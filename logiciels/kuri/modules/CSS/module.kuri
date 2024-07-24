@@ -815,14 +815,14 @@ crée_class_selector :: fonc (ident: CSSOMString) -> SimpleSelector
     retourne SimpleSelector(SimpleSelector.Type.Class, crée_chaine_utf16_unique_vide(), ident)
 }
 
-crée_attribute_selector :: fonc (ident: CSSOMString) -> SimpleSelector
+crée_attribute_selector :: fonc (namespace_prefix: CSSOMString, ident: CSSOMString) -> SimpleSelector
 {
-    retourne SimpleSelector(SimpleSelector.Type.Attrib, crée_chaine_utf16_unique_vide(), ident)
+    retourne SimpleSelector(SimpleSelector.Type.Attrib, namespace_prefix, ident)
 }
 
-crée_attribute_selector :: fonc (ident: CSSOMString, matcher: SimpleSelector.AttributeMatcher, value: CSSOMString, modifier: Optionnel(SimpleSelector.AttributeModifier)) -> SimpleSelector
+crée_attribute_selector :: fonc (namespace_prefix: CSSOMString, ident: CSSOMString, matcher: SimpleSelector.AttributeMatcher, value: CSSOMString, modifier: Optionnel(SimpleSelector.AttributeModifier)) -> SimpleSelector
 {
-    retourne SimpleSelector(SimpleSelector.Type.Attrib, crée_chaine_utf16_unique_vide(), ident, matcher, value, modifier)
+    retourne SimpleSelector(SimpleSelector.Type.Attrib, namespace_prefix, ident, matcher, value, modifier)
 }
 
 crée_pseudo_class_selector :: fonc (ident: CSSOMString) -> SimpleSelector

@@ -834,8 +834,13 @@ parse_type_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(SimpleSel
     si opt_wq_name.possède_valeur() {
         wq_name := opt_wq_name.Quelque
 
+        espace_de_nom := crée_chaine_utf16_unique_vide()
+        si wq_name.ns_prefix.possède_valeur() {
+            espace_de_nom = wq_name.ns_prefix.Quelque.espace
+        }
+
         parseuse.curseur = parseuse_locale.curseur
-        retourne crée_type_selector(crée_chaine_utf16_unique_vide(), wq_name.ident)
+        retourne crée_type_selector(espace_de_nom, wq_name.ident)
     }
 
     parseuse_locale = parseuse
@@ -984,10 +989,15 @@ parse_attribute_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(Simp
         retourne
     }
     wq_name := opt_wq_name.Quelque
+
+    espace_de_nom := crée_chaine_utf16_unique_vide()
+    si wq_name.ns_prefix.possède_valeur() {
+        espace_de_nom = wq_name.ns_prefix.Quelque.espace
+    }
     
     si parseuse_locale.fini() {
         parseuse.avance()
-        retourne crée_attribute_selector(wq_name.ident)
+        retourne crée_attribute_selector(espace_de_nom, wq_name.ident)
     }
 
     matcher := parseuse_locale.parse_attribute_matcher()
@@ -1033,7 +1043,7 @@ parse_attribute_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(Simp
     }
 
     parseuse.avance()
-    retourne crée_attribute_selector(wq_name.ident, matcher.Quelque, attribute_value, modifier)
+    retourne crée_attribute_selector(espace_de_nom, wq_name.ident, matcher.Quelque, attribute_value, modifier)
 }
 
 /* <attr-matcher> = [ '~' | '|' | '^' | '$' | '*' ]? '=' */
