@@ -1,6 +1,7 @@
 importe Chaine
 importe #inemployé CSS
 importe Fondation
+importe Internet
 
 est_tag_auto_fermant :: fonc (tag: DOMString) -> bool
 {
@@ -381,6 +382,7 @@ donne_href :: fonc (anchor: *HTMLAnchorElement) -> DOMString
 
 table_virtuelle_anchor_element := TableVirtuelleÉlément(
     sur_destruction = anchor_element_sur_destruction,
+    sur_activation_behavior = anchor_element_sur_activation_behavior,
     sur_changement_attribut = anchor_element_sur_changement_attribut
 )
 
@@ -405,6 +407,33 @@ anchor_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DO
             anchor.ajoute_pseudo_classe(CSS.PseudoClasses.Link)
         }
     }
+}
+
+/* À FAIRE : standardise
+ * https://html.spec.whatwg.org/multipage/links.html#api-for-a-and-area-elements */
+anchor_element_sur_activation_behavior :: fonc (target: *EventTarget, event: *Event @inutilisée)
+{
+    anchor := target comme *HTMLAnchorElement
+    imprime("[%] %\n", #nom_de_cette_fonction, anchor.donne_href())
+
+    /* Follow the hyperlink.
+     * https://html.spec.whatwg.org/multipage/links.html#following-hyperlinks-2 */
+    navigable := donne_node_navigable(anchor)
+    saufsi navigable {
+        imprime("[%] pas de navigable\n", #nom_de_cette_fonction)
+        retourne
+    }
+
+    chn_href := converti_vers_chaine(anchor.donne_href().donne_chaine_utf16())
+    diffère déloge(chn_href)
+
+    url := tente parse_uri_standard(chn_href) piège err {
+        imprime("[%] impossible de parser l'URI : %\n", #nom_de_cette_fonction, err)
+        retourne
+    }
+
+    source_document := anchor.document
+    navigate(navigable, url, source_document)
 }
 
 /** \} */
