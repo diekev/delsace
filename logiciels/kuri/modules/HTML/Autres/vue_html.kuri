@@ -826,10 +826,26 @@ vue_rendu_page_sur_relachement_souris :: fonc (base: *QT_Rappels_GLWidget, event
     si élément {
         élément.est_en_train_d_être_activé(faux)
     }
-    si document.élément_en_cours_d_activation && document.élément_en_cours_d_activation != élément {
-        document.élément_en_cours_d_activation.est_en_train_d_être_activé(faux)
+    si document.élément_en_cours_d_activation {
+        si document.élément_en_cours_d_activation != élément {
+            document.élément_en_cours_d_activation.est_en_train_d_être_activé(faux)
+        }
+        sinon {
+            envoie_un_clic(élément)
+        }
     }
     document.élément_en_cours_d_activation = nul
+}
+
+/* https://w3c.github.io/uievents/#send-click-event */
+envoie_un_clic :: fonc (élément: *HTML.Élément)
+{
+    /* À FAIRE : standardise. */
+    évènement := loge(HTML.Event)
+    évènement.target = élément
+    évènement.type = HTML.EventType.click
+
+    _ := dispatch(évènement, élément)
 }
 
 /** \} */
