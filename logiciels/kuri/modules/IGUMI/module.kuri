@@ -211,7 +211,7 @@ ModeImmédiat :: énum {
     LIGNES
 }
 
-termine_immédiat :: fonc (mode: ModeImmédiat)
+termine_immédiat :: fonc (mode: ModeImmédiat, réinitailise_nuanceur := vrai)
 {
     si !num_sommets_immédiat {
         retourne
@@ -257,7 +257,9 @@ termine_immédiat :: fonc (mode: ModeImmédiat)
     glUseProgram(0)
     glBindVertexArray(0)
     num_sommets_immédiat = 0
-    nuanceur_global = nul
+    si réinitailise_nuanceur {
+        nuanceur_global = nul
+    }
 
     vérifie_erreur("termine_immédiat")
 }
@@ -302,6 +304,10 @@ installe_format_xcnu :: fonc (nuanceur: *NuanceurGL)
 
 ajoute_sommets :: fonc (pos: Vec3, couleur: CouleurRVBA)
 {
+    si num_sommets_immédiat >= MAX_SOMMETS_IMMÉDIAT {
+        termine_immédiat(ModeImmédiat.TRIANGLES, faux)
+    }
+
     sommets_immédiat[num_sommets_immédiat].position = pos
     sommets_immédiat[num_sommets_immédiat].couleur = couleur
     num_sommets_immédiat += 1
@@ -309,6 +315,10 @@ ajoute_sommets :: fonc (pos: Vec3, couleur: CouleurRVBA)
 
 ajoute_sommets :: fonc (pos: Vec3, uv: Vec2, couleur: CouleurRVBA)
 {
+    si num_sommets_immédiat >= MAX_SOMMETS_IMMÉDIAT {
+        termine_immédiat(ModeImmédiat.TRIANGLES, faux)
+    }
+
     sommets_immédiat[num_sommets_immédiat].position = pos
     sommets_immédiat[num_sommets_immédiat].couleur = couleur
     sommets_immédiat[num_sommets_immédiat].uv = uv
