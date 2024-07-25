@@ -87,9 +87,8 @@ table_virtuelle_élément := TableVirtuelleÉlément(
     si local_name == ATTR_id {
         // À FAIRE espace de nom pour attribut
         // 1. If localName is id, namespace is null, and value is null or the empty string, then unset element’s ID.
-        // À FAIRE : chaine vide
-        si valeur == nul {
-            élément.id = DOMString()
+        si valeur == nul || mémoire(valeur).est_vide() {
+            élément.id = crée_chaine_utf16_unique_vide()
         }
         // 2. Otherwise, if localName is id, namespace is null, then set element’s ID to value.
         sinon {
@@ -399,8 +398,7 @@ anchor_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DO
     anchor := base comme *HTMLAnchorElement
 
     si local_name == ATTR_href {
-        // À FAIRE : chaine vide
-        si valeur == nul {
+        si valeur == nul || mémoire(valeur).est_vide() {
             anchor.enlève_pseudo_classe(CSS.PseudoClasses.Link)
         }
         sinon {
