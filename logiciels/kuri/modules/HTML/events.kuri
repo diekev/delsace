@@ -162,6 +162,7 @@ Event :: struct {
     canceled: bool
     stop_propagation: bool
     stop_immediate_propagation: bool
+    bubbles: bool
 
     /* Attributes. */
     is_trusted: bool
@@ -302,6 +303,19 @@ run_activation_behavior :: fonc (target: *EventTarget, event: *Event)
     assert(target.table != nul)
     assert(target.table.sur_activation_behavior != nul)
     target.table.sur_activation_behavior(target, event)
+}
+
+possède_legacy_pre_activation_behavior :: fonc (target: *EventTarget) -> bool
+{
+    assert(possède_activation_behavior(target))
+    retourne target.table != nul && target.table.sur_legacy_pre_activation_behavior != nul
+}
+
+run_legacy_pre_activation_behavior :: fonc (target: *EventTarget, event: *Event)
+{
+    assert(target.table != nul)
+    assert(target.table.sur_legacy_pre_activation_behavior != nul)
+    target.table.sur_legacy_pre_activation_behavior(target, event)
 }
 
 run_legacy_canceled_activation_behavior :: fonc (target: *EventTarget, event: *Event)
@@ -601,27 +615,47 @@ dispatch :: fonc (event: *Event, target: *EventTarget, legacy_target_override : 
 
         // 11. Let clearTargets be true if clearTargetsStruct’s shadow-adjusted target, clearTargetsStruct’s relatedTarget, or an EventTarget object in clearTargetsStruct’s touch target list is a node and its root is a shadow root; otherwise false.
 
-        // 12. If activationTarget is non-null and activationTarget has legacy-pre-activation behavior, then run activationTarget’s legacy-pre-activation behavior.
+        // 12. If activationTarget is non-null and activationTarget has legacy-pre-activation behavior,
+        //     then run activationTarget’s legacy-pre-activation behavior.
+        si activation_target && activation_target.possède_legacy_pre_activation_behavior() {
+            run_legacy_pre_activation_behavior(activation_target, event)
+        }
 
         // 13. For each struct in event’s path, in reverse order:
-
+        pour > event.path {
             // 1. If struct’s shadow-adjusted target is non-null, then set event’s eventPhase attribute to AT_TARGET.
-
+            si it.shadow_adjusted_target {
+                event.event_phase = EventPhase.AT_TARGET
+            }
             // 2. Otherwise, set event’s eventPhase attribute to CAPTURING_PHASE.
+            sinon {
+                event.event_phase = EventPhase.CAPTURING_PHASE
+            }
 
             // 3. Invoke with struct, event, "capturing", and legacyOutputDidListenersThrowFlag if given.
+            invoke(it, event, "capturing", legacy_output_did_listeners_throw)
+        }
 
         // 14. For each struct in event’s path:
-
+        pour event.path {
             // 1. If struct’s shadow-adjusted target is non-null, then set event’s eventPhase attribute to AT_TARGET.
-
+            si it.shadow_adjusted_target {
+                event.event_phase = EventPhase.AT_TARGET
+            }
             // 2. Otherwise:
-
+            sinon {
                 // 1. If event’s bubbles attribute is false, then continue.
+                saufsi event.bubbles {
+                    continue
+                }
 
                 // 2. Set event’s eventPhase attribute to BUBBLING_PHASE.
+                event.event_phase = EventPhase.BUBBLING_PHASE
+            }
 
             // 3. Invoke with struct, event, "bubbling", and legacyOutputDidListenersThrowFlag if given.
+            invoke(it, event, "bubbling", legacy_output_did_listeners_throw)
+        }
     }
 
     // 6. Set event’s eventPhase attribute to NONE.
@@ -664,6 +698,12 @@ dispatch :: fonc (event: *Event, target: *EventTarget, legacy_target_override : 
 
     // 12. Return false if event’s canceled flag is set; otherwise true.
     retourne event.canceled == faux
+}
+
+/* https://dom.spec.whatwg.org/#concept-event-listener-invoke */
+invoke :: fonc (segment: &Event.Path @inutilisée, event: *Event @inutilisée, phase: chaine @inutilisée, legacy_output_did_listeners_throw : *bool = nul @inutilisée)
+{
+    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
 }
 
 /** \} */
