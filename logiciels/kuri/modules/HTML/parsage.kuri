@@ -84,17 +84,6 @@ noeud_courant :: fonc (parseuse: *Parseuse) -> *Élément #enligne
     retourne noeud_courant(*parseuse.pile_éléments_ouvert)
 }
 
-crée_élément_pour :: fonc (parseuse: *Parseuse, lexème: Lexème) -> *Élément
-{
-    élément := crée_élément_avec_tag(parseuse.document, lexème.nom)
-
-    pour lexème.attributs {
-        élément.ajoute_attribut(it.nom, it.valeur)
-    }
-
-    retourne élément
-}
-
 gère_lexème_pour_mode :: fonc (parseuse: *Parseuse, mode: TypeFonctionModeInsertion, lexème: Lexème)
 {
     // si lexème.genre != GenreLexème.Caractère {
@@ -463,7 +452,7 @@ insère_mode_AvantHtml :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 
     si lexème.genre == GenreLexème.DébutTag && lexème.nom == TAG_html {
-        élément := parseuse.crée_élément_pour(lexème)
+        élément := parseuse.crée_élément_pour_lexème(lexème, EspaceDeNom_HTML, parseuse.document)
         parseuse.document.ajoute_enfant(élément)
         parseuse.mode_insertion = insère_mode_AvantHead
         empile(*parseuse.pile_éléments_ouvert, élément)
@@ -474,12 +463,14 @@ insère_mode_AvantHtml :: fonc (parseuse: *Parseuse, lexème: Lexème)
         retourne
     }
 
-    lexème_html: Lexème
-    lexème_html.nom = TAG_html
-    élément := parseuse.crée_élément_pour(lexème_html)
+    /* Create an html element whose node document is the Document object. */
+    élément := crée_élément_avec_tag(parseuse.document, TAG_html)
+    /* Append it to the Document object. */
     parseuse.document.ajoute_enfant(élément)
+    /* Put this element in the stack of open elements. */
     empile(*parseuse.pile_éléments_ouvert, élément)
 
+    /* Switch the insertion mode to "before head", then reprocess the token. */
     parseuse.mode_insertion = insère_mode_AvantHead
     parseuse.gère_lexème_pour_mode(parseuse.mode_insertion, lexème)
 }
@@ -533,6 +524,7 @@ gère_élément_contenant_texte_cru :: fonc (parseuse: *Parseuse, lexème: Lexè
     parseuse.mode_insertion = insère_mode_Texte
 }
 
+/* https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inhead */
 insère_mode_DansHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
 {
     si lexème.genre == GenreLexème.Caractère && est_caractère_espace_blanc(lexème.point_de_code) {
@@ -595,12 +587,11 @@ insère_mode_DansHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
         si lexème.nom == TAG_script {
             position_ajustée_d_insertion := trouve_position_appropriée_pour_insertion(parseuse)
-            élément := parseuse.crée_élément_pour(lexème)
+            élément := parseuse.crée_élément_pour_lexème(lexème, EspaceDeNom_HTML, position_ajustée_d_insertion)
             // À FAIRE : élément_script.document_parseur = parseuse.document
             // À FAIRE : élément_script.non_blocant = faux
             // À FAIRE : élément_script.déjà_lancé = parseuse.créée_depuis_parsage_fragment
             // À FAIRE : document.write()
-            position_ajustée_d_insertion.ajoute_enfant(élément)
             empile(*parseuse.pile_éléments_ouvert, élément)
             parseuse.lexeuse.état = ÉtatLexage.ScriptData
             parseuse.mode_insertion_original = parseuse.mode_insertion
