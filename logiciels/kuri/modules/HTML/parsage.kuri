@@ -586,15 +586,36 @@ insère_mode_DansHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == TAG_script {
+            /* 1. Let the adjusted insertion location be the appropriate place for inserting a node. */
             position_ajustée_d_insertion := trouve_position_appropriée_pour_insertion(parseuse)
-            élément := parseuse.crée_élément_pour_lexème(lexème, EspaceDeNom_HTML, position_ajustée_d_insertion)
-            // À FAIRE : élément_script.document_parseur = parseuse.document
-            // À FAIRE : élément_script.non_blocant = faux
-            // À FAIRE : élément_script.déjà_lancé = parseuse.créée_depuis_parsage_fragment
-            // À FAIRE : document.write()
+
+            /* 2. Create an element for the token in the HTML namespace, with the intended parent being
+             * the element in which the adjusted insertion location finds itself. */
+            élément := parseuse.crée_élément_pour_lexème(lexème, EspaceDeNom_HTML, position_ajustée_d_insertion) comme *HTMLScriptElement
+
+            /* 3. Set the element's parser document to the Document, and set the element's force async to false. */
+            élément.document_parseur = parseuse.document
+            élément.force_async = faux
+
+            /* À FAIRE : 4. If the parser was created as part of the HTML fragment parsing algorithm,
+             * then set the script element's already started to true. (fragment case) */
+
+            /* À FAIRE : 5. If the parser was invoked via the document.write() or document.writeln() methods,
+             * then optionally set the script element's already started to true. */
+
+            /* 6. Insert the newly created element at the adjusted insertion location. */
+            position_ajustée_d_insertion.ajoute_enfant(élément)
+
+            /* 7. Push the element onto the stack of open elements so that it is the new current node. */
             empile(*parseuse.pile_éléments_ouvert, élément)
+
+            /* 8. Switch the tokenizer to the script data state. */
             parseuse.lexeuse.état = ÉtatLexage.ScriptData
+
+            /* 9. Let the original insertion mode be the current insertion mode. */
             parseuse.mode_insertion_original = parseuse.mode_insertion
+
+            /* 10. Switch the insertion mode to "text". */
             parseuse.mode_insertion = insère_mode_Texte
             retourne
         }
