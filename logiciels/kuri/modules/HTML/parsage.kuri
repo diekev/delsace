@@ -445,6 +445,7 @@ vérifie_lexème_doctype_pour_quirks :: fonc (lexème: &Lexème) -> bool
     retourne faux
 }
 
+/* https://html.spec.whatwg.org/multipage/parsing.html#the-before-html-insertion-mode */
 insère_mode_AvantHtml :: fonc (parseuse: *Parseuse, lexème: Lexème)
 {
     si lexème.genre == GenreLexème.Doctype {
@@ -466,7 +467,6 @@ insère_mode_AvantHtml :: fonc (parseuse: *Parseuse, lexème: Lexème)
         parseuse.document.ajoute_enfant(élément)
         parseuse.mode_insertion = insère_mode_AvantHead
         empile(*parseuse.pile_éléments_ouvert, élément)
-        // À FAIRE : contexte navigation, voir spec
         retourne
     }
 
@@ -479,8 +479,6 @@ insère_mode_AvantHtml :: fonc (parseuse: *Parseuse, lexème: Lexème)
     élément := parseuse.crée_élément_pour(lexème_html)
     parseuse.document.ajoute_enfant(élément)
     empile(*parseuse.pile_éléments_ouvert, élément)
-
-    // À FAIRE : si document est chargé dans un contexte navigation...
 
     parseuse.mode_insertion = insère_mode_AvantHead
     parseuse.gère_lexème_pour_mode(parseuse.mode_insertion, lexème)
