@@ -100,6 +100,11 @@ donne_display :: fonc (propriétés: *PropriétésDeStyle) -> Display
         sinon si mot_clé == PROP_block {
             résultat.outer_type = Display.Type.Block
         }
+        sinon si mot_clé == PROP_list_item {
+            résultat.outer_type = Display.Type.Block
+            résultat.inner_type = Display.Type.Flow
+            résultat.est_list_item = vrai
+        }
         sinon {
             assert(mot_clé == PROP_inline)
         }
@@ -393,4 +398,5 @@ Display :: struct {
     /* Valeurs initiales. */
     outer_type := Type.Inline
     inner_type := Type.Flow
+    est_list_item := faux
 }

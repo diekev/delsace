@@ -72,6 +72,7 @@ PROP_ltr : CSSOMString = ---
 PROP_rtl : CSSOMString = ---
 PROP_block : CSSOMString = ---
 PROP_inline : CSSOMString = ---
+PROP_list_item : CSSOMString = ---
 
 PC_active: CSSOMString = ---
 PC_any_link: CSSOMString = ---

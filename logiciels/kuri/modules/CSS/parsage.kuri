@@ -1428,6 +1428,15 @@ parse_propriété_display :: fonc (value: [..]ComponentValue) -> Optionnel([..]V
         tableau_ajoute(*résultat, ValeurDeStyle(mot_clé.Quelque))
         retourne résultat
     }
+
+    lexème := parseuse.lexème_courant()
+    si lexème.est_lexème_de_genre(GenreLexème.Ident) {
+        si lexème.donne_texte() == PROP_list_item {
+            résultat: [..]ValeurDeStyle
+            tableau_ajoute(*résultat, ValeurDeStyle(PROP_list_item))
+            retourne résultat
+        }
+    }
 }
 
 parse_display_outside :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(CSSOMString)
