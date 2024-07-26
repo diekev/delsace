@@ -39,6 +39,10 @@ détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
             détruit_chaine(texte.texte)
             déloge(texte)
         }
+        sinon si it.type == NoeudDeDispositionNouvelleLigne {
+            bris := it comme *NoeudDeDispositionNouvelleLigne
+            déloge(bris)
+        }
         sinon {
             imprime("noeud inconnu !")
             déloge(it)
@@ -191,6 +195,10 @@ crée_noeud_pour_élément :: fonc (stylesheet: *CSSStyleSheet, arbre: *ArbreDeD
         bloc := arbre.crée_noeud(NoeudDeDispositionBloc)
         bloc.élément = élément
         résultat = bloc
+    }
+    sinon si élément.texte == HTML.TAG_br {
+        bris := arbre.crée_noeud(NoeudDeDispositionNouvelleLigne)
+        résultat = bris
     }
     sinon {
         inline := arbre.crée_noeud(NoeudDeDispositionInline)
@@ -614,6 +622,32 @@ noeud_disposition_inline_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Co
 {
     noeud := base comme *NoeudDeDispositionInline
     dessine_enfants_inline(noeud, ctx)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom NoeudDeDispositionNouvelleLigne
+ * \{ */
+
+/* Créé pour chaque noeud hors texte */
+NoeudDeDispositionNouvelleLigne :: struct {
+    empl base_bloc: NoeudDeDisposition
+    type = #type_de_cette_structure
+    sur_mesure = noeud_disposition_nouvelle_ligne_sur_mesure
+    sur_divise_en_lignes = noeud_disposition_nouvelle_ligne_sur_divise_en_lignes
+}
+
+noeud_disposition_nouvelle_ligne_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDisposition)
+{
+    noeud := base comme *NoeudDeDispositionInline
+    noeud.largeur = ctx.largeur_disponible
+    dispose_enfants_inline(noeud, ctx)
+}
+
+noeud_disposition_nouvelle_ligne_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition @inutilisée, bloc_contenant: *NoeudDeDispositionBloc, ctx: *ContexteDisposition)
+{
+    _ := bloc_contenant.ajoute_ligne()
 }
 
 /** \} */

@@ -656,6 +656,10 @@ donne_texte_item_pour_noeud :: fonc (noeud: *CSS.NoeudDeDisposition) -> chaine
         retourne "texte"
     }
 
+    si noeud.type == CSS.NoeudDeDispositionNouvelleLigne {
+        retourne "<br/>"
+    }
+
     noeud_bloc := noeud comme *CSS.NoeudDeDispositionBloc
     retourne imprime_chaine("% (%) [%x%] [%x%]", CSS.donne_nom_classe(noeud), noeud_bloc.élément.texte, noeud.position_x, noeud.position_y, noeud.largeur, noeud.hauteur)
 }
