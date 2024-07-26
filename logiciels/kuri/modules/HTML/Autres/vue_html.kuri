@@ -617,7 +617,7 @@ crée_widget_vue_arbre_de_disposition :: fonc (fenêtre: *QT_Fenetre_Principale,
 
     résultat := crée_widget_arbre(nul, parent)
 
-    arbre := crée_arbre_de_disposition(*rappels.page_web)
+    arbre := crée_arbre_de_disposition(*rappels.page_web, 1916)
     si arbre {
         item_document := QT_cree_treewidgetitem(nul, nul)
         QT_treewidgetitem_definis_indicateur_enfant(item_document, QT_Indicateur_Enfant_Arbre.INVISIBLE_SI_SANS_ENFANT)
@@ -737,7 +737,7 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glClearColor(1.0, 1.0, 1.0, 1.0)
 
-    arbre := crée_arbre_de_disposition(vue_rendu_page.page)
+    arbre := crée_arbre_de_disposition(vue_rendu_page.page, vue_rendu_page.largeur)
     saufsi arbre && arbre.racine {
         retourne
     }
@@ -868,7 +868,7 @@ donne_feuille_de_style_défaut :: fonc () -> *CSS.CSSStyleSheet
     retourne stylesheet
 }
 
-crée_arbre_de_disposition :: fonc (page: *PageWeb) -> *CSS.ArbreDeDisposition
+crée_arbre_de_disposition :: fonc (page: *PageWeb, largeur: z32) -> *CSS.ArbreDeDisposition
 {
     document := donne_document(page)
     saufsi document {
@@ -882,7 +882,7 @@ crée_arbre_de_disposition :: fonc (page: *PageWeb) -> *CSS.ArbreDeDisposition
     saufsi document.feuilles_de_style {
         document.ajoute_feuille_de_style(donne_feuille_de_style_défaut())
     }
-    CSS.crée_arbre_de_disposition(document)
+    CSS.crée_arbre_de_disposition(document, largeur)
     retourne document.arbre_de_disposition
 }
 

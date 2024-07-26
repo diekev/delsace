@@ -106,7 +106,7 @@ imprime_arbre :: fonc (enchaineuse: *Enchaineuse, racine: *NoeudDeDisposition, p
 /** \nom Génération d'arbres de disposition.
  * \{ */
 
-crée_arbre_de_disposition :: fonc (document: *HTML.Document)
+crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32)
 {
     html := HTML.donne_élément_html(document)
     saufsi html {
@@ -134,6 +134,7 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document)
     imprime("Créé % noeud(s)\n", résultat.noeuds.taille)
 
     ctx: ContexteDisposition
+    ctx.largeur_disponible = largeur comme n32
     ctx.globales = document.globales_dessin
 
     mesure(racine, *ctx)
@@ -226,6 +227,7 @@ ContexteDisposition :: struct {
 ContexteDessin :: struct {
     globales: *GlobalesDessin
     peintre: *Peintre
+    fragment: *Fragment
 
     hauteur_vue: z32
 }
@@ -242,6 +244,17 @@ donne_rectangle_corrigé :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDispositi
     rect.y = ctx.hauteur_vue - noeud.position_y comme z32 - noeud.hauteur comme z32
     rect.largeur = noeud.largeur comme z32
     rect.hauteur = noeud.hauteur comme z32
+    retourne rect
+}
+
+donne_rectangle_corrigé :: fonc (ctx: *ContexteDessin, rect: RectanglePosDim(r32)) -> RectanglePosDim(r32)
+{
+    /* Nous disposons les noeuds comme si leur origine était leur coin du haut
+     * gauche mais nous devons les dessiner comme si leur origine était leur
+     * coin du bas gauche.
+     * De plus, nous devons nous assurer que l'origine du document est le bas
+     * gauche de la page et non le haut gauche. */
+    rect.y = ctx.hauteur_vue comme r32 - rect.y - rect.hauteur
     retourne rect
 }
 
@@ -267,6 +280,7 @@ NoeudDeDisposition :: struct {
 
     sur_mesure: fonc (*NoeudDeDisposition, *ContexteDisposition)(rien)
     sur_dessin: fonc (*NoeudDeDisposition, *ContexteDessin)(rien)
+    sur_divise_en_lignes: fonc (*NoeudDeDisposition, *NoeudDeDispositionBloc, *ContexteDisposition)(rien)
 }
 
 donne_rectangle :: fonc (noeud: *NoeudDeDisposition) -> RectanglePosDim(z32)
@@ -305,6 +319,16 @@ décale :: fonc (noeud: *NoeudDeDisposition, x: n32, y: n32)
     pour noeud.enfants {
         it.décale(x, y)
     }
+
+    si noeud.type == NoeudDeDispositionBloc || noeud.type == NoeudDeDispositionInline {
+        bloc := noeud comme *NoeudDeDispositionBloc
+        pour bloc.lignes {
+            pour * fragment dans it.fragments {
+                fragment.x += x comme r32
+                fragment.y += y comme r32
+            }
+        }
+    }
 }
 
 donne_nom_classe :: fonc (noeud: *NoeudDeDisposition) -> chaine
@@ -322,10 +346,6 @@ mesure :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDisposition)
 
 dessine :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDessin)
 {
-    si noeud.largeur == 0 || noeud.hauteur == 0 {
-        retourne
-    }
-
     si noeud.sur_dessin {
         noeud.sur_dessin(noeud, ctx)
     }
@@ -364,6 +384,65 @@ donne_curseur :: fonc (noeud: *NoeudDeDisposition) -> CursorType
     retourne donne_type_cursor(cursor.value[0].mot_clé)
 }
 
+divise_en_lignes :: fonc (noeud: *NoeudDeDisposition, bloc_contenant: *NoeudDeDispositionBloc, ctx: *ContexteDisposition)
+{
+    si noeud.sur_divise_en_lignes {
+        noeud.sur_divise_en_lignes(noeud, bloc_contenant, ctx)
+        retourne
+    }
+
+    pour noeud.enfants {
+        divise_en_lignes(it, bloc_contenant, ctx)
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom BoiteDeLigne
+ * Boite pour tenir les fragments de chaque ligne pour les dispositions
+ * « inline ».
+ * https://www.w3.org/TR/2011/REC-CSS2-20110607/visuren.html#line-box
+ * \{ */
+
+Fragment :: struct {
+    noeud: *NoeudDeDisposition
+    index_début: z64
+    index_fin: z64
+
+    x: r32
+    y: r32
+    hauteur: r32
+    largeur: r32
+}
+
+BoiteDeLigne :: struct {
+    bloc: *NoeudDeDispositionBloc
+
+    fragments: [..]Fragment
+    largeur_courante: r32
+}
+
+peut_ajouter_fragment :: fonc (boite: *BoiteDeLigne, largeur: r32) -> bool
+{
+    retourne (boite.largeur_courante + largeur) < (boite.bloc.largeur comme r32)
+}
+
+ajoute_fragment :: fonc (boite: *BoiteDeLigne, noeud: *NoeudDeDisposition, index_début: z64, index_fin: z64, hauteur: r32, largeur: r32)
+{
+    fragment: Fragment
+    fragment.noeud = noeud
+    fragment.index_début = index_début
+    fragment.index_fin = index_fin
+    fragment.hauteur = hauteur
+    fragment.largeur = largeur
+    fragment.x = boite.largeur_courante
+
+    boite.largeur_courante += largeur
+
+    tableau_ajoute(*boite.fragments, fragment)
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -378,11 +457,16 @@ NoeudDeDispositionBloc :: struct {
     sur_dessin = noeud_disposition_bloc_sur_dessin
 
     élément: *HTML.Élément
+
+    lignes: [..]BoiteDeLigne
+
+    est_disposition_inline: bool
 }
 
 noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDisposition)
 {
     noeud := base comme *NoeudDeDispositionBloc
+    noeud.largeur = ctx.largeur_disponible
 
     /* À FAIRE : génère des noeuds anonymes, etc. */
     doit_formatter_en_blocs := faux
@@ -394,25 +478,13 @@ noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Cont
         }
     }
 
+    noeud.est_disposition_inline = doit_formatter_en_blocs == faux
+
     si doit_formatter_en_blocs {
-        pour noeud.enfants {
-            it.mesure(ctx)
-
-            it.décale(0, noeud.hauteur)
-
-            noeud.hauteur += it.hauteur
-            noeud.largeur = max(noeud.largeur, it.largeur)
-        }
+        dispose_enfants_block(noeud, ctx)
     }
     sinon {
-        pour noeud.enfants {
-            it.mesure(ctx)
-
-            it.décale(noeud.largeur, 0)
-
-            noeud.largeur += it.largeur
-            noeud.hauteur = max(noeud.hauteur, it.hauteur)
-        }
+        dispose_enfants_inline(noeud, ctx)
     }
 }
 
@@ -420,6 +492,52 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
 {
     noeud := base comme *NoeudDeDispositionBloc
 
+    // rect := ctx.donne_rectangle_corrigé(noeud)
+    // couleur := CouleurRVBA(1.0, 0.5, 0.5, 1.0)
+    // peintre := ctx.peintre
+    // peintre.remplis_rectangle(rect, couleur)
+
+    saufsi noeud.est_disposition_inline {
+        dessine_enfants_block(noeud, ctx)
+    }
+    sinon {
+        dessine_enfants_inline(noeud, ctx)
+    }
+}
+
+ajoute_ligne :: fonc (bloc: *NoeudDeDispositionBloc) -> *BoiteDeLigne
+{
+    ligne := tableau_ajoute_élément(*bloc.lignes)
+    ligne.bloc = bloc
+    retourne ligne
+}
+
+donne_ligne_courante :: fonc (bloc: *NoeudDeDispositionBloc) -> *BoiteDeLigne
+{
+    si bloc.lignes.taille == 0 {
+        retourne ajoute_ligne(bloc)
+    }
+
+    retourne *bloc.lignes[bloc.lignes.taille - 1]
+}
+
+dispose_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDisposition)
+{
+    ctx_locale := mémoire(ctx)
+    ctx_locale.largeur_disponible = ctx.largeur_disponible
+
+    pour noeud.enfants {
+        it.mesure(*ctx_locale)
+
+        it.décale(0, noeud.hauteur)
+
+        noeud.hauteur += it.hauteur
+        noeud.largeur = max(noeud.largeur, it.largeur)
+    }
+}
+
+dessine_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDessin)
+{
     // rect := ctx.donne_rectangle_corrigé(noeud)
 
     // couleur := CouleurRVBA(0.5, 0.0, 0.5, 1.0)
@@ -429,6 +547,45 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
 
     pour noeud.enfants {
         dessine(it, ctx)
+    }
+}
+
+dispose_enfants_inline :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDisposition)
+{
+    ctx_locale := mémoire(ctx)
+    ctx_locale.largeur_disponible = ctx.largeur_disponible
+
+    pour noeud.enfants {
+        divise_en_lignes(it, noeud, *ctx_locale)
+    }
+
+    pour noeud.lignes {
+        hauteur := 0.0
+        pour * fragment dans it.fragments {
+            hauteur = max(fragment.hauteur, hauteur)
+            fragment.y = noeud.hauteur comme r32
+        }
+        noeud.hauteur += hauteur comme n32
+    }
+
+    // pour noeud.enfants {
+    //     it.mesure(ctx)
+
+    //     it.décale(noeud.largeur, 0)
+
+    //     noeud.largeur += it.largeur
+    //     noeud.hauteur = max(noeud.hauteur, it.hauteur)
+    // }
+}
+
+dessine_enfants_inline :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDessin)
+{
+    ctx_locale := mémoire(ctx)
+    pour noeud.lignes {
+        pour * fragment dans it.fragments {
+            ctx_locale.fragment = fragment
+            dessine(fragment.noeud, *ctx_locale)
+        }
     }
 }
 
@@ -440,42 +597,23 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
 
 /* Créé pour chaque noeud hors texte */
 NoeudDeDispositionInline :: struct {
-    empl base: NoeudDeDisposition
+    empl base_bloc: NoeudDeDispositionBloc
     type = #type_de_cette_structure
     sur_mesure = noeud_disposition_inline_sur_mesure
     sur_dessin = noeud_disposition_inline_sur_dessin
-
-    élément: *HTML.Élément
 }
 
 noeud_disposition_inline_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDisposition)
 {
     noeud := base comme *NoeudDeDispositionInline
-
-    pour noeud.enfants {
-        it.mesure(ctx)
-
-        it.décale(noeud.largeur, 0)
-
-        noeud.largeur += it.largeur
-        noeud.hauteur = max(noeud.hauteur, it.hauteur)
-    }
+    noeud.largeur = ctx.largeur_disponible
+    dispose_enfants_inline(noeud, ctx)
 }
 
 noeud_disposition_inline_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
 {
     noeud := base comme *NoeudDeDispositionInline
-
-    // rect := ctx.donne_rectangle_corrigé(noeud)
-
-    // couleur := CouleurRVBA(0.5, 0.0, 0.5, 1.0)
-
-    // peintre := ctx.peintre
-    // peintre.dessine_rectangle(rect, couleur)
-
-    pour noeud.enfants {
-        dessine(it, ctx)
-    }
+    dessine_enfants_inline(noeud, ctx)
 }
 
 /** \} */
@@ -490,23 +628,17 @@ NoeudDeDispositionTexte :: struct {
     type = #type_de_cette_structure
     sur_mesure = noeud_disposition_texte_sur_mesure
     sur_dessin = noeud_disposition_texte_sur_dessin
+    sur_divise_en_lignes = noeud_disposition_texte_sur_divise_en_lignes
 
     noeud_texte: *HTML.NoeudTexte
     texte: ChaineUTF16
     fonte: *Fonte
+
+    morceaux: [..]ChaineUTF16
 }
 
-noeud_disposition_texte_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDisposition)
+détermine_fonte :: fonc (noeud_texte: *NoeudDeDispositionTexte, ctx: *ContexteDisposition) -> *Fonte
 {
-    noeud := base comme *NoeudDeDispositionTexte
-
-    si est_vide_ou_uniquement_espaces_blanches(noeud.noeud_texte.données) {
-        noeud.hauteur = 0
-        noeud.largeur = 0
-        noeud.sur_dessin = nul
-        retourne
-    }
-
     globales := ctx.globales
     assert(globales != nul)
     famille_fonte := "sérif"
@@ -514,7 +646,7 @@ noeud_disposition_texte_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Con
     graisse := GraisseFonte.Normal
     taille_fonte := globales.taille_fonte_défaut
 
-    propriétés := *noeud.parent.propriétés
+    propriétés := *noeud_texte.parent.propriétés
     font_weight := donne_déclaration(propriétés, PROP_font_weight)
     si font_weight {
         mot_clé := font_weight.value[0].mot_clé
@@ -536,7 +668,22 @@ noeud_disposition_texte_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Con
     }
 
     fonte := globales.donne_fonte(famille_fonte, style, graisse, taille_fonte)
-    noeud.fonte = fonte
+    noeud_texte.fonte = fonte
+    retourne fonte
+}
+
+noeud_disposition_texte_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDisposition)
+{
+    noeud := base comme *NoeudDeDispositionTexte
+
+    si est_vide_ou_uniquement_espaces_blanches(noeud.noeud_texte.données) {
+        noeud.hauteur = 0
+        noeud.largeur = 0
+        noeud.sur_dessin = nul
+        retourne
+    }
+
+    fonte := détermine_fonte(noeud, ctx)
     métriques := fonte.donne_métriques_fonte()
 
     /* À FAIRE : meilleur algorithme, respect du standard. */
@@ -562,11 +709,56 @@ noeud_disposition_texte_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Con
     noeud.largeur = fonte.donne_largeur_texte(texte) comme n32
 }
 
-noeud_disposition_texte_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+noeud_disposition_texte_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, bloc_contenant: *NoeudDeDispositionBloc, ctx: *ContexteDisposition)
 {
     noeud := base comme *NoeudDeDispositionTexte
 
-    rect := ctx.donne_rectangle_corrigé(noeud)
+    si est_vide_ou_uniquement_espaces_blanches(noeud.noeud_texte.données) {
+        noeud.hauteur = 0
+        noeud.largeur = 0
+        noeud.sur_dessin = nul
+        retourne
+    }
+
+    fonte := détermine_fonte(noeud, ctx)
+    métriques := fonte.donne_métriques_fonte()
+
+    noeud.hauteur = (métriques.donne_hauteur_ligne() + 0.5) comme n32
+
+    /* À FAIRE : meilleur algorithme, respect du standard. */
+    morceaux := divise_sur_espaces_blanches_ascii(noeud.noeud_texte.données)
+
+    espace := ChaineUTF16Unique(' ' comme n32)
+    index_espace := morceaux.taille
+    largeur_espace := fonte.donne_largeur_texte(espace.donne_chaine_utf16())
+
+    tableau_ajoute(*morceaux, espace.donne_chaine_utf16())
+
+    ligne_courante := bloc_contenant.donne_ligne_courante()
+    noeud.morceaux = morceaux
+
+    hauteur_texte := métriques.donne_hauteur_ligne()
+
+    pour morceaux {
+        largeur_morceau := fonte.donne_largeur_texte(it)
+
+        saufsi ligne_courante.peut_ajouter_fragment(largeur_morceau comme r32) {
+            ligne_courante = bloc_contenant.ajoute_ligne()
+        }
+
+        ligne_courante.ajoute_fragment(noeud, index_it, index_it + 1, hauteur_texte, largeur_morceau comme r32)
+
+        si index_it < index_espace - 1 {
+            si ligne_courante.peut_ajouter_fragment(largeur_espace comme r32) {
+                ligne_courante.ajoute_fragment(noeud, index_espace, index_espace + 1, hauteur_texte, largeur_espace comme r32)
+            }
+        }
+    }
+}
+
+noeud_disposition_texte_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+{
+    noeud := base comme *NoeudDeDispositionTexte
 
     propriétés := *noeud.parent.propriétés
 
@@ -597,12 +789,32 @@ noeud_disposition_texte_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Con
         }
     }
 
-    texte := noeud.texte
-
     peintre := ctx.peintre
     fonte := noeud.fonte
     assert(fonte != nul)
-    peintre.dessine_texte(fonte, texte, rect, couleur, *effets)
+
+    si ctx.fragment {
+        fragment := ctx.fragment
+
+        rect: RectanglePosDim(r32)
+        rect.x = fragment.x
+        rect.y = fragment.y
+        rect.largeur = fragment.largeur
+        rect.hauteur = fragment.hauteur
+
+        rect = ctx.donne_rectangle_corrigé(rect)
+
+        // peintre.dessine_rectangle(rect, couleur)
+
+        texte := noeud.morceaux[fragment.index_début]
+
+        peintre.dessine_texte(fonte, texte, rect, couleur, *effets)
+    }
+    sinon {
+        texte := noeud.texte
+        rect := ctx.donne_rectangle_corrigé(noeud)
+        peintre.dessine_texte(fonte, texte, rect, couleur, *effets)
+    }
 }
 
 /** \} */
