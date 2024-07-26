@@ -1393,7 +1393,7 @@ donne_info_type_pour_nom :: fonc (nom: CSSOMString) -> *InfoTypePropriété
 /* https://www.w3.org/TR/css-cascade/#defaulting-keywords */
 parse_css_wide_keyword :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(CSSOMString)
 {
-    mots_clés := ["initial", "inherit", "unset", "revert"]
+    mots_clés := [PROP_initial, PROP_inherit, PROP_unset, PROP_revert]
     lexème := parseuse.lexème_courant()
 
     pour mots_clés {
@@ -1447,7 +1447,7 @@ parse_display_outside :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel
     }
 
     /* block | inline | run-in */
-    mots_clés := ["block", "inline", "run-in"]
+    mots_clés := [PROP_block, PROP_inline, PROP_run_in]
     lexème := parseuse.lexème_courant()
 
     pour mots_clés {
@@ -1466,7 +1466,7 @@ parse_display_box :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(CSS
     }
 
     /* contents | none */
-    mots_clés := ["contents", "none"]
+    mots_clés := [PROP_contents, PROP_none]
     lexème := parseuse.lexème_courant()
 
     pour mots_clés {
@@ -1858,7 +1858,7 @@ parse_propriété_font_weight :: fonc (value: [..]ComponentValue) -> Optionnel([
     résultat: [..]ValeurDeStyle
 
     mots_clés := [
-        "normal", "bold"
+        PROP_normal, PROP_bold
     ]
 
     tantque !fini(parseuse) {
