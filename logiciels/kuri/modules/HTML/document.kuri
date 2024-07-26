@@ -251,6 +251,19 @@ invalide_style :: fonc (document: *Document, pseudo_classe: CSS.PseudoClasses @i
     }
 }
 
+/* Invalide le style suite au redimensionnement de la fenêtre. */
+invalide_style_pour_redimensionnement :: fonc (document: *Document)
+{
+    /* À FAIRE : ne détruit pas l'arbre, refait une disposition. */
+    CSS.détruit_arbre(document.arbre_de_disposition)
+    document.arbre_de_disposition = nul
+
+    user_agent := document.donne_user_agent()
+    si user_agent {
+        user_agent.requiers_rendu()
+    }
+}
+
 donne_user_agent :: fonc (document: *Document) -> *UserAgent
 {
     browsing_context := document.browsing_context

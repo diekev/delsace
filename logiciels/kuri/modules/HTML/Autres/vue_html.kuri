@@ -812,6 +812,14 @@ vue_rendu_page_sur_redimensionnement :: fonc (rappels: *QT_Rappels_GLWidget, tai
     vue_rendu_page := rappels comme *VueRenduPage
     vue_rendu_page.largeur = taille.largeur
     vue_rendu_page.hauteur = taille.hauteur
+
+    page := vue_rendu_page.page
+    document := donne_document(page)
+    si document {
+        document.invalide_style_pour_redimensionnement()
+    }
+    /* Réinitialise la barre de défilement. */
+    page.défilement_vertical.rect.largeur = 0.0
 }
 
 vue_rendu_page_sur_déplacement_souris :: fonc (base: *QT_Rappels_GLWidget, event: *QT_MouseEvent)
