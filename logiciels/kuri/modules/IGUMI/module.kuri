@@ -575,12 +575,15 @@ dessine_texte :: fonc (fonte: *Fonte, texte: ChaineUTF16, x: r32, y: r32, couleu
     utilise_nuanceur(nuanceur_texte)
 
     // met en place la texture de la fonte sur le nuanceur
-    glGenTextures(1, *fonte.atlas.id)
-    diffère glDeleteTextures(1, *fonte.atlas.id)
+    saufsi glIsTexture(fonte.atlas.id) {
+        glGenTextures(1, *fonte.atlas.id)
+        // À FAIRE : libère la texture quand la police n'est plus requise
+        // diffère glDeleteTextures(1, *fonte.atlas.id)
 
-    // À FAIRE : (GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE) (GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE
-    params := donne_paramètres_texture_atlas_fonte(fonte.atlas)
-    définis_texture_2d(fonte.atlas.id, *params)
+        // À FAIRE : (GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE) (GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE
+        params := donne_paramètres_texture_atlas_fonte(fonte.atlas)
+        définis_texture_2d(fonte.atlas.id, *params)
+    }
 
     glUseProgram(nuanceur_texte.programme)
 
