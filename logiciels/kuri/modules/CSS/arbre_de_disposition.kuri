@@ -238,6 +238,7 @@ ContexteDessin :: struct {
     fragment: *Fragment
 
     hauteur_vue: z32
+    décalage_y: r32
 }
 
 donne_rectangle_corrigé :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition) -> RectanglePosDim(z32)
@@ -249,7 +250,7 @@ donne_rectangle_corrigé :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDispositi
      * coin du bas gauche.
      * De plus, nous devons nous assurer que l'origine du document est le bas
      * gauche de la page et non le haut gauche. */
-    rect.y = ctx.hauteur_vue - noeud.position_y comme z32 - noeud.hauteur comme z32
+    rect.y = ctx.hauteur_vue - noeud.position_y comme z32 - noeud.hauteur comme z32 + ctx.décalage_y comme z32
     rect.largeur = noeud.largeur comme z32
     rect.hauteur = noeud.hauteur comme z32
     retourne rect
@@ -262,7 +263,7 @@ donne_rectangle_corrigé :: fonc (ctx: *ContexteDessin, rect: RectanglePosDim(r3
      * coin du bas gauche.
      * De plus, nous devons nous assurer que l'origine du document est le bas
      * gauche de la page et non le haut gauche. */
-    rect.y = ctx.hauteur_vue comme r32 - rect.y - rect.hauteur
+    rect.y = ctx.hauteur_vue comme r32 + ctx.décalage_y - rect.y - rect.hauteur
     retourne rect
 }
 
