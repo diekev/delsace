@@ -28,10 +28,18 @@ détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
 
         si it.type == NoeudDeDispositionBloc {
             bloc := it comme *NoeudDeDispositionBloc
+            pour *boite dans bloc.lignes {
+                détruit_données_boite_de_ligne(boite)
+            }
+            déloge(bloc.lignes)
             déloge(bloc)
         }
         sinon si it.type == NoeudDeDispositionInline {
             noeud := it comme *NoeudDeDispositionInline
+            pour *boite dans noeud.lignes {
+                détruit_données_boite_de_ligne(boite)
+            }
+            déloge(noeud.lignes)
             déloge(noeud)
         }
         sinon si it.type == NoeudDeDispositionTexte {
@@ -430,6 +438,11 @@ BoiteDeLigne :: struct {
 
     fragments: [..]Fragment
     largeur_courante: r32
+}
+
+détruit_données_boite_de_ligne :: fonc (boite: *BoiteDeLigne)
+{
+    déloge(boite.fragments)
 }
 
 peut_ajouter_fragment :: fonc (boite: *BoiteDeLigne, largeur: r32) -> bool
