@@ -143,7 +143,7 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32)
         crée_noeud_pour_élément(feuille_de_style, résultat, résultat.racine, it)
     }
 
-    imprime("Créé % noeud(s)\n", résultat.noeuds.taille)
+    // imprime("Créé % noeud(s)\n", résultat.noeuds.taille)
 
     ctx: ContexteDisposition
     ctx.largeur_disponible = largeur comme n32
@@ -151,7 +151,7 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32)
 
     mesure(racine, *ctx)
 
-    imprime("taille arbre : %x%\n", résultat.racine.largeur, résultat.racine.hauteur)
+    // imprime("taille arbre : %x%\n", résultat.racine.largeur, résultat.racine.hauteur)
 
     // imprime_arbre(résultat)
 
@@ -180,12 +180,12 @@ crée_noeud_pour_élément :: fonc (stylesheet: *CSSStyleSheet, arbre: *ArbreDeD
     règles := collecte_les_règles_appropriées(stylesheet, élément)
     diffère déloge(règles)
 
-    imprime("% règle(s) pour %\n", règles.taille, élément.texte)
+    // imprime("% règle(s) pour %\n", règles.taille, élément.texte)
 
     propriétés: PropriétésDeStyle
 
     pour règles {
-        imprime_règle(it)
+        // imprime_règle(it)
         pour déclaration dans it.déclarations {
             ajoute_déclaration(*propriétés, déclaration)
         }
