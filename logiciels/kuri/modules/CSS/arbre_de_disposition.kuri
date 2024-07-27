@@ -438,6 +438,16 @@ Fragment :: struct {
     largeur: r32
 }
 
+donne_rectangle :: fonc (fragment: *Fragment) -> RectanglePosDim(r32)
+{
+    rect: RectanglePosDim(r32)
+    rect.x = fragment.x
+    rect.y = fragment.y
+    rect.largeur = fragment.largeur
+    rect.hauteur = fragment.hauteur
+    retourne rect
+}
+
 BoiteDeLigne :: struct {
     bloc: *NoeudDeDispositionBloc
 
@@ -848,14 +858,7 @@ noeud_disposition_texte_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Con
 
     si ctx.fragment {
         fragment := ctx.fragment
-
-        rect: RectanglePosDim(r32)
-        rect.x = fragment.x
-        rect.y = fragment.y
-        rect.largeur = fragment.largeur
-        rect.hauteur = fragment.hauteur
-
-        rect = ctx.donne_rectangle_corrigé(rect)
+        rect := ctx.donne_rectangle_corrigé(fragment.donne_rectangle())
 
         // peintre.dessine_rectangle(rect, couleur)
 
