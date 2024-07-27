@@ -251,6 +251,8 @@ ContexteDessin :: struct {
     fragment: *Fragment
 
     hauteur_vue: z32
+    largeur_vue: z32
+
     décalage_y: r32
 }
 

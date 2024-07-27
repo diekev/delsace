@@ -763,6 +763,7 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
     ctx.globales = document.globales_dessin
     ctx.peintre = peintre
     ctx.hauteur_vue = vue_rendu_page.hauteur
+    ctx.largeur_vue = vue_rendu_page.largeur
     ctx.décalage_y = page.défilement_vertical.rect.y
 
     // début_rendu := maintenant_précis()
