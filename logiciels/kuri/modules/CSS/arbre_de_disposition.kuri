@@ -112,6 +112,11 @@ imprime_arbre :: fonc (enchaineuse: *Enchaineuse, racine: *NoeudDeDisposition, p
     }
 }
 
+dessine :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
+{
+    dessine(arbre.racine, ctx)
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

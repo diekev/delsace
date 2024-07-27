@@ -767,7 +767,7 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
 
     // début_rendu := maintenant_précis()
 
-    CSS.dessine(arbre.racine, *ctx)
+    CSS.dessine(arbre, *ctx)
 
     // imprime("temps de rendu : %\n", début_rendu.temps_écoulé_millisecondes())
 
