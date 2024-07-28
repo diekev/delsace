@@ -131,6 +131,7 @@ Intrinsics :: struct {
     error_prototype: *ErrorPrototype
     reference_error_prototype: *ReferenceErrorPrototype
     type_error_prototype: *TypeErrorPrototype
+    syntax_error_prototype: *SyntaxErrorPrototype
 
     array: *ArrayConstructor
 }
@@ -148,6 +149,7 @@ create_intrinsics :: fonc (realm: *Realm)
     realm.intrinsics.error_prototype = crée_error_prototype(tas_de_mémoire, realm.intrinsics.object_prototype)
     realm.intrinsics.reference_error_prototype = crée_reference_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype)
     realm.intrinsics.type_error_prototype = crée_type_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype)
+    realm.intrinsics.syntax_error_prototype = crée_syntax_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype)
 
     realm.intrinsics.array = crée_array_constructor(tas_de_mémoire, realm.intrinsics.array_prototype)
 }

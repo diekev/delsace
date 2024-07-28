@@ -1928,6 +1928,70 @@ crée_reference_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, protot
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom SyntaxError
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-native-error-types-used-in-this-standard-syntaxerror
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_syntax_error := TableVirtuelleCellule(classe = SyntaxError, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
+SyntaxError :: struct {
+    empl error: Error
+    table = *table_virtuelle_syntax_error
+
+    message: *PrimitiveChaine
+}
+
+crée_syntax_error :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *SyntaxErrorPrototype, message: chaine) -> *SyntaxError
+{
+    résultat := tas_de_mémoire.alloue(SyntaxError)
+    résultat.prototype = prototype
+    résultat.message = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(message))
+    retourne résultat
+}
+
+lance_syntax_error :: fonc (interpréteuse: &Interpréteuse, message: chaine) -> CompletionRecord
+{
+    retourne lance_syntax_error(interpréteuse.donne_realm(), message)
+}
+
+lance_syntax_error :: fonc (realm: *Realm, message: chaine) -> CompletionRecord
+{
+    exception := crée_syntax_error(realm.donne_tas_de_mémoire(), realm.intrinsics.syntax_error_prototype, message)
+    retourne throw_completion(exception)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom SyntaxErrorPrototype
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-nativeerror-prototype-objects
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_syntax_error_prototype := TableVirtuelleCellule(classe = SyntaxErrorPrototype, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
+SyntaxErrorPrototype :: struct {
+    empl objet: Object
+    table = *table_virtuelle_syntax_error_prototype
+}
+
+crée_syntax_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ErrorPrototype) -> *SyntaxErrorPrototype
+{
+    résultat := tas_de_mémoire.alloue(SyntaxErrorPrototype)
+    résultat.prototype = prototype
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom TypeError
  * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-native-error-types-used-in-this-standard-typeerror
  * \{ */
