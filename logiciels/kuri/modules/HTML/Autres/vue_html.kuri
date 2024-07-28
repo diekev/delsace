@@ -344,7 +344,19 @@ BarreDeDéfilement :: struct {
     est_cliqué: bool
     est_survolé: bool
     pos_clique_y: r32
-    décalage_y: r32
+    hauteur: r32
+}
+
+décale_par :: fonc (barre: *BarreDeDéfilement, delta: r32)
+{
+    barre.rect.y += delta
+
+    si barre.rect.y < 0.0 {
+        barre.rect.y = 0.0
+    }
+    sinon si (barre.rect.y + barre.rect.hauteur) > barre.hauteur {
+        barre.rect.y = barre.hauteur - barre.rect.hauteur
+    }
 }
 
 PageWeb :: struct {
@@ -697,6 +709,7 @@ VueRenduPage :: struct {
     sur_deplacement_souris = vue_rendu_page_sur_déplacement_souris
     sur_pression_souris = vue_rendu_page_sur_pression_souris
     sur_relachement_souris = vue_rendu_page_sur_relachement_souris
+    sur_molette_souris = vue_rendu_page_sur_molette_souris
 
     page: *PageWeb
 
@@ -764,7 +777,11 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
     ctx.peintre = peintre
     ctx.hauteur_vue = vue_rendu_page.hauteur
     ctx.largeur_vue = vue_rendu_page.largeur
-    ctx.décalage_y = page.défilement_vertical.rect.y
+
+    racine := arbre.racine
+    si racine.hauteur > vue_rendu_page.hauteur comme n32 {
+        ctx.décalage_y = page.défilement_vertical.rect.y
+    }
 
     // début_rendu := maintenant_précis()
 
@@ -772,7 +789,6 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
 
     // imprime("temps de rendu : %\n", début_rendu.temps_écoulé_millisecondes())
 
-    racine := arbre.racine
     si racine.hauteur > vue_rendu_page.hauteur comme n32 {
         hauteur_vue := vue_rendu_page.hauteur comme r32
         hauteur_page := racine.hauteur comme r32
@@ -821,6 +837,7 @@ vue_rendu_page_sur_redimensionnement :: fonc (rappels: *QT_Rappels_GLWidget, tai
     }
     /* Réinitialise la barre de défilement. */
     page.défilement_vertical.rect.largeur = 0.0
+    page.défilement_vertical.hauteur = vue_rendu_page.hauteur comme r32
 }
 
 vue_rendu_page_sur_déplacement_souris :: fonc (base: *QT_Rappels_GLWidget, event: *QT_MouseEvent)
@@ -848,13 +865,7 @@ vue_rendu_page_sur_déplacement_souris :: fonc (base: *QT_Rappels_GLWidget, even
     si défilement.est_cliqué {
         décalage := position.y comme r32 - défilement.pos_clique_y
         défilement.pos_clique_y = position.y comme r32
-        défilement.rect.y += décalage
-        si défilement.rect.y < 0.0 {
-            défilement.rect.y = 0.0
-        }
-        sinon si (défilement.rect.y + défilement.rect.hauteur) > vue_rendu_page.hauteur comme r32 {
-            défilement.rect.y = vue_rendu_page.hauteur comme r32 - défilement.rect.hauteur
-        }
+        défilement.décale_par(décalage)
         QT_widget_ajourne(vue_rendu_page.widget)
     }
     sinon si défilement.rect.contient(position.x comme r32, position.y comme r32) {
@@ -934,6 +945,35 @@ vue_rendu_page_sur_relachement_souris :: fonc (base: *QT_Rappels_GLWidget, event
         }
     }
     document.élément_en_cours_d_activation = nul
+}
+
+vue_rendu_page_sur_molette_souris :: fonc (base: *QT_Rappels_GLWidget, event: *QT_WheelEvent)
+{
+    vue_rendu_page := base comme *VueRenduPage
+
+    document := donne_document(vue_rendu_page.page)
+    saufsi document {
+        retourne
+    }
+
+    arbre := document.arbre_de_disposition
+    saufsi arbre {
+        retourne
+    }
+
+    delta := QT_wheel_event_donne_delta(event)
+
+    HAUTEURE_LIGNE :: 16.0
+    NOMBRE_DE_LIGNES_PAR_ROULEMENT :: 5.0
+    DÉCALAGE_PAR_ROULEMENT :: NOMBRE_DE_LIGNES_PAR_ROULEMENT * HAUTEURE_LIGNE
+
+    si delta > 0 {
+        décale_par(*vue_rendu_page.page.défilement_vertical, -DÉCALAGE_PAR_ROULEMENT)
+    }
+    sinon {
+        décale_par(*vue_rendu_page.page.défilement_vertical, DÉCALAGE_PAR_ROULEMENT)
+    }
+    QT_widget_ajourne(vue_rendu_page.widget)
 }
 
 /* https://w3c.github.io/uievents/#send-click-event */
