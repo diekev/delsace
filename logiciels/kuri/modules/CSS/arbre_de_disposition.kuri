@@ -4,7 +4,9 @@ importe Couleur
 importe Fondation
 importe Géométrie
 importe #inemployé HTML
+importe IGUMI
 importe Math
+importe OpenGL
 importe PeintureInterface
 importe Typographie
 
@@ -16,6 +18,9 @@ ArbreDeDisposition :: struct {
     racine: *NoeudDeDisposition
 
     noeuds: [..]*NoeudDeDisposition
+    tampon_id: [..]n32
+    largeur_vue: z32
+    hauteur_vue: z32
 }
 
 détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
@@ -58,6 +63,7 @@ détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
         }
     }
 
+    déloge(arbre.tampon_id)
     déloge(arbre.noeuds)
     déloge(arbre)
 }
@@ -72,7 +78,13 @@ crée_noeud :: fonc (arbre: *ArbreDeDisposition, $TypeNoeud: type_de_données) -
 
 donne_élément_pour_position :: fonc (arbre: *ArbreDeDisposition, x: z32, y: z32) -> *HTML.Élément
 {
-    noeud := donne_noeud_pour_position(arbre.racine, x, y)
+    tampon_id := arbre.tampon_id
+    /* OpenGL est de bas en haut, donc inverse l'axe des y. */
+    index := (arbre.hauteur_vue - y - 1) * arbre.largeur_vue + x
+
+    index_noeud := tampon_id[index]
+
+    noeud := arbre.noeuds[index_noeud]
     saufsi noeud {
         retourne nul
     }
@@ -116,8 +128,47 @@ imprime_arbre :: fonc (enchaineuse: *Enchaineuse, racine: *NoeudDeDisposition, p
 
 dessine :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
 {
+    arbre.hauteur_vue = ctx.hauteur_vue
+    arbre.largeur_vue = ctx.largeur_vue
+
     dessine(arbre.racine, ctx)
-    // dessine_tampon_id(arbre.racine, ctx)
+
+    /* Tampon ID. */
+
+    fbo: GLuint
+    glGenFramebuffers(1, *fbo)
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo)
+
+    render_buf: GLuint
+    glGenRenderbuffers(1, *render_buf)
+    glBindRenderbuffer(GL_RENDERBUFFER, render_buf)
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_R32UI, ctx.largeur_vue, ctx.hauteur_vue)
+    vérifie_erreur("glRenderbufferStorage")
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, render_buf)
+    vérifie_erreur("glFramebufferRenderbuffer")
+
+    dessine_tampon_id(arbre.racine, ctx)
+    vérifie_erreur("dessine_tampon_id")
+
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0)
+    vérifie_erreur("glBindFramebuffer")
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo)
+    vérifie_erreur("glBindFramebuffer")
+
+    tableau_redimensionne(arbre.tampon_id, ctx.largeur_vue * ctx.hauteur_vue)
+
+    glReadBuffer(GL_COLOR_ATTACHMENT0)
+    vérifie_erreur("glReadBuffer")
+    glReadPixels(0, 0, ctx.largeur_vue, ctx.hauteur_vue, GL_RED_INTEGER, GL_UNSIGNED_INT, arbre.tampon_id.pointeur)
+    vérifie_erreur("glReadPixels")
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0)
+
+    glBindRenderbuffer(GL_RENDERBUFFER, 0)
+
+    glDeleteFramebuffers(1, *fbo)
+    glDeleteRenderbuffers(1, *render_buf)
 }
 
 /** \} */
@@ -287,34 +338,50 @@ donne_rectangle_corrigé :: fonc (ctx: *ContexteDessin, rect: RectanglePosDim(r3
 
 remplis_rectangle_id :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition)
 {
-    peintre := ctx.peintre
+    // peintre := ctx.peintre
 
-    entropie := graine_aléatoire(noeud.id + 1)
+    // entropie := graine_aléatoire(noeud.id + 1)
 
-    couleur: CouleurRVBA
-    couleur.r = aléatoire_unilatérale(entropie)
-    couleur.v = aléatoire_unilatérale(entropie)
-    couleur.b = aléatoire_unilatérale(entropie)
-    couleur.a = 1.0
+    // couleur: CouleurRVBA
+    // couleur.r = aléatoire_unilatérale(entropie)
+    // couleur.v = aléatoire_unilatérale(entropie)
+    // couleur.b = aléatoire_unilatérale(entropie)
+    // couleur.a = 1.0
 
     rect := ctx.donne_rectangle_corrigé(noeud)
-    peintre.remplis_rectangle(rect, couleur)
+    // peintre.remplis_rectangle(rect, couleur)
+
+    IGUMI.utilise_nuanceur(IGUMI.nuanceur_id)
+    IGUMI.commence_immédiat_id()
+    diffère IGUMI.termine_immédiat_id(IGUMI.ModeImmédiat.TRIANGLES)
+
+    // imprime("[%] (% % % %) : %\n", #nom_de_cette_fonction, rect.x, rect.y, rect.largeur, rect.hauteur, noeud.id)
+
+    IGUMI.quad_immédiat_id(rect.x comme r32, rect.y comme r32, rect.largeur comme r32, rect.hauteur comme r32, noeud.id)
 }
 
 remplis_rectangle_id :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition, rect: RectanglePosDim(r32))
 {
-    peintre := ctx.peintre
+    // peintre := ctx.peintre
 
-    entropie := graine_aléatoire(noeud.id + 1)
+    // entropie := graine_aléatoire(noeud.id + 1)
 
-    couleur: CouleurRVBA
-    couleur.r = aléatoire_unilatérale(entropie)
-    couleur.v = aléatoire_unilatérale(entropie)
-    couleur.b = aléatoire_unilatérale(entropie)
-    couleur.a = 1.0
+    // couleur: CouleurRVBA
+    // couleur.r = aléatoire_unilatérale(entropie)
+    // couleur.v = aléatoire_unilatérale(entropie)
+    // couleur.b = aléatoire_unilatérale(entropie)
+    // couleur.a = 1.0
 
     rect = ctx.donne_rectangle_corrigé(rect)
-    peintre.remplis_rectangle(rect, couleur)
+    // peintre.remplis_rectangle(rect, couleur)
+
+    IGUMI.utilise_nuanceur(IGUMI.nuanceur_id)
+    IGUMI.commence_immédiat_id()
+    diffère IGUMI.termine_immédiat_id(IGUMI.ModeImmédiat.TRIANGLES)
+
+    // imprime("[%] (% % % %) : %\n", #nom_de_cette_fonction, rect.x, rect.y, rect.largeur, rect.hauteur, noeud.id)
+
+    IGUMI.quad_immédiat_id(rect.x, rect.y, rect.largeur, rect.hauteur, noeud.id)
 }
 
 /** \} */
