@@ -108,26 +108,6 @@ GenreLexème :: énum {
     Yield
 }
 
-donne_genre_lexème_pour_assignation_composée :: fonc (genre: GenreLexème) -> GenreLexème
-{
-    discr genre {
-        PlusÉgal { retourne GenreLexème.Plus }
-        MoinsÉgal { retourne GenreLexème.Moins }
-        ÉtoileÉgal { retourne GenreLexème.Étoile }
-        SlashÉgal { retourne GenreLexème.Slash }
-        PourcentÉgal { retourne GenreLexème.Pourcent }
-        DécalageGaucheÉgal { retourne GenreLexème.DécalageGauche }
-        DécalageDroiteÉgal { retourne GenreLexème.DécalageDroite }
-        EtBinaireÉgal { retourne GenreLexème.EtBinaire }
-        OuBinaireÉgal { retourne GenreLexème.OuBinaire }
-        OuExclusifÉgal { retourne GenreLexème.OuExclusif }
-        sinon {}
-    }
-
-    assert(faux)
-    retourne GenreLexème.Plus
-}
-
 rafine_genre_lexème_identifiant :: fonc (identifiant: chaine) -> GenreLexème
 {
     si identifiant.taille == 2 {
