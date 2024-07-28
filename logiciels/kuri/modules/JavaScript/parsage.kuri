@@ -541,18 +541,6 @@ donne_opération_binaire_pour_genre_lexème :: fonc (genre: GenreLexème) -> Bin
         Slash {
             retourne BinaryOperation.Divise
         }
-        Inférieur {
-            retourne BinaryOperation.Inférieur
-        }
-        Supérieur {
-            retourne BinaryOperation.Supérieur
-        }
-        InférieurÉgal {
-            retourne BinaryOperation.InférieurÉgal
-        }
-        SupérieurÉgal {
-            retourne BinaryOperation.SupérieurÉgal
-        }
         sinon {
             panique("genre opérateur non-géré")
         }
@@ -583,6 +571,28 @@ donne_opération_égalitaire_pour_genre_lexème :: fonc (genre: GenreLexème) ->
     retourne EqualityOperation.Égal
 }
 
+donne_opération_relationnelle_pour_genre_lexème :: fonc (genre: GenreLexème) -> RelationalOperation
+{
+    discr genre {
+        Inférieur {
+            retourne RelationalOperation.Inférieur
+        }
+        Supérieur {
+            retourne RelationalOperation.Supérieur
+        }
+        InférieurÉgal {
+            retourne RelationalOperation.InférieurÉgal
+        }
+        SupérieurÉgal {
+            retourne RelationalOperation.SupérieurÉgal
+        }
+        sinon {
+            panique("genre opérateur non-géré")
+        }
+    }
+
+    retourne RelationalOperation.Inférieur
+}
 parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxique, précédence: z32, associativité: Associativité) -> *NoeudSyntaxique
 {
     lexème := parseuse.lexème_courant()
@@ -591,15 +601,20 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxiq
         Plus,
         Moins,
         Étoile,
-        Slash,
-        Inférieur,
-        Supérieur,
-        InférieurÉgal,
-        SupérieurÉgal {
+        Slash {
             opération := donne_opération_binaire_pour_genre_lexème(lexème.genre)
             parseuse.consomme()
             opérande_droite := parseuse.parse_expression(précédence, associativité)
             retourne crée_binary_expression(opération, gauche, opérande_droite)
+        }
+        Inférieur,
+        Supérieur,
+        InférieurÉgal,
+        SupérieurÉgal {
+            opération := donne_opération_relationnelle_pour_genre_lexème(lexème.genre)
+            parseuse.consomme()
+            opérande_droite := parseuse.parse_expression(précédence, associativité)
+            retourne crée_relational_expression(opération, gauche, opérande_droite)
         }
         EstÉgal,
         NEspaPasÉgal,

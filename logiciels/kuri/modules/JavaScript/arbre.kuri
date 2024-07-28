@@ -519,11 +519,6 @@ BinaryOperation :: énum {
     Moins
     Multiplie
     Divise
-
-    Supérieur
-    Inférieur
-    SupérieurÉgal
-    InférieurÉgal
 }
 
 BinaryExpression :: struct {
@@ -659,18 +654,6 @@ apply_string_or_numeric_binary_operator :: fonc (interpréteuse: &Interpréteuse
         Divise {
             valeur = divise_valeurs(gauche, droite)
         }
-        Supérieur {
-            valeur = compare_supérieur_valeurs(gauche, droite)
-        }
-        Inférieur {
-            valeur = compare_inférieur_valeurs(gauche, droite)
-        }
-        SupérieurÉgal {
-            valeur = compare_supérieur_égal_valeurs(gauche, droite)
-        }
-        InférieurÉgal {
-            valeur = compare_inférieur_égal_valeurs(gauche, droite)
-        }
     }
 
     retourne normal_completion(valeur)
@@ -702,34 +685,6 @@ divise_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
     assert(gauche.est_nombre())
     assert(droite.est_nombre())
     retourne Valeur(Number = gauche.Number / droite.Number)
-}
-
-compare_supérieur_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
-{
-    assert(gauche.est_nombre())
-    assert(droite.est_nombre())
-    retourne Valeur(Boolean = gauche.Number > droite.Number)
-}
-
-compare_inférieur_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
-{
-    assert(gauche.est_nombre())
-    assert(droite.est_nombre())
-    retourne Valeur(Boolean = gauche.Number < droite.Number)
-}
-
-compare_supérieur_égal_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
-{
-    assert(gauche.est_nombre())
-    assert(droite.est_nombre())
-    retourne Valeur(Boolean = gauche.Number >= droite.Number)
-}
-
-compare_inférieur_égal_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
-{
-    assert(gauche.est_nombre())
-    assert(droite.est_nombre())
-    retourne Valeur(Boolean = gauche.Number <= droite.Number)
 }
 
 /** \} */
@@ -922,6 +877,243 @@ is_strictly_equal :: fonc (x: Valeur, y: Valeur) -> Valeur
 
     // 3. Return SameValueNonNumber(x, y).
     retourne same_value_non_number(x, y)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom RelationalExpression
+ * \{ */
+
+RelationalOperation :: énum {
+    Supérieur
+    Inférieur
+    SupérieurÉgal
+    InférieurÉgal
+}
+
+RelationalExpression :: struct {
+    empl  base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_relational_expression
+
+    opération: RelationalOperation
+    gauche: *NoeudSyntaxique
+    droite: *NoeudSyntaxique
+}
+
+crée_relational_expression :: fonc (opération: RelationalOperation, gauche: *NoeudSyntaxique, droite: *NoeudSyntaxique) -> *RelationalExpression
+{
+    résultat := loge(RelationalExpression)
+    résultat.opération = opération
+    résultat.gauche = gauche
+    résultat.droite = droite
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-relational-operators-runtime-semantics-evaluation */
+sur_exécution_relational_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
+{
+    noeud := base comme *RelationalExpression
+
+    // 1. Let lref be ? Evaluation of RelationalExpression.
+    completion_lref := exécute_noeud(noeud.gauche, interpréteuse)
+    saufsi completion_lref.est_normal() {
+        retourne completion_lref
+    }
+    lref := completion_lref.valeur
+
+    // 2. Let lval be ? GetValue(lref).
+    completion_lval := get_value(interpréteuse, lref)
+    saufsi completion_lval.est_normal() {
+        retourne completion_lval
+    }
+    lval := completion_lval.valeur.V
+
+    // 3. Let rref be ? Evaluation of ShiftExpression.
+    completion_rref := exécute_noeud(noeud.droite, interpréteuse)
+    saufsi completion_rref.est_normal() {
+        retourne completion_rref
+    }
+    rref := completion_rref.valeur
+
+    // 4. Let rval be ? GetValue(rref).
+    completion_rval := get_value(interpréteuse, rref)
+    saufsi completion_rval.est_normal() {
+        retourne completion_rval
+    }
+    rval := completion_rval.valeur.V
+
+    r: Valeur
+
+    discr noeud.opération {
+        Inférieur {
+            // 5. Let r be ? IsLessThan(lval, rval, true).
+            completion := is_less_than(interpréteuse, lval, rval, vrai)
+            saufsi completion.est_normal() {
+                retourne completion
+            }
+            r = completion.valeur.V
+
+            // 6. If r is undefined, return false. Otherwise, return r.
+            si r.est_undefined() {
+                r = Valeur(Boolean = faux)
+            }
+        }
+        Supérieur {
+            // 5. Let r be ? IsLessThan(rval, lval, false).
+            completion := is_less_than(interpréteuse, rval, lval, faux)
+            saufsi completion.est_normal() {
+                retourne completion
+            }
+            r = completion.valeur.V
+
+            // 6. If r is undefined, return false. Otherwise, return r.
+            si r.est_undefined() {
+                r = Valeur(Boolean = faux)
+            }
+        }
+        InférieurÉgal {
+            // 5. Let r be ? IsLessThan(rval, lval, false).
+            completion := is_less_than(interpréteuse, rval, lval, faux)
+            saufsi completion.est_normal() {
+                retourne completion
+            }
+            r = completion.valeur.V
+
+            // 6. If r is either true or undefined, return false. Otherwise, return true.
+            si r.est_true() || r.est_undefined() {
+                r = Valeur(Boolean = faux)
+            }
+            sinon {
+                r = Valeur(Boolean = vrai)
+            }
+        }
+        SupérieurÉgal {
+            // 5. Let r be ? IsLessThan(lval, rval, true).
+            completion := is_less_than(interpréteuse, lval, rval, vrai)
+            saufsi completion.est_normal() {
+                retourne completion
+            }
+            r = completion.valeur.V
+
+            // 6. If r is either true or undefined, return false. Otherwise, return true.
+            si r.est_true() || r.est_undefined() {
+                r = Valeur(Boolean = faux)
+            }
+            sinon {
+                r = Valeur(Boolean = vrai)
+            }
+        }
+    }
+
+    retourne normal_completion(r)
+}
+
+/* 7.2.11 IsLessThan ( x, y, LeftFirst )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-islessthan */
+is_less_than :: fonc (interpréteuse: &Interpréteuse, x: Valeur, y: Valeur, left_first: bool) -> CompletionRecord
+{
+    px: Valeur
+    py: Valeur
+
+    // 1. If LeftFirst is true, then
+    si left_first {
+        // a. Let px be ? ToPrimitive(x, NUMBER).
+        completion := vers_primitive(interpréteuse, x, TypePréféré.Number)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        px = completion.valeur.V
+
+        // b. Let py be ? ToPrimitive(y, NUMBER).
+        completion = vers_primitive(interpréteuse, y, TypePréféré.Number)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        py = completion.valeur.V
+    }
+    // 2. Else,
+    sinon {
+        // a. NOTE: The order of evaluation needs to be reversed to preserve left to right evaluation.
+        // b. Let py be ? ToPrimitive(y, NUMBER).
+        completion := vers_primitive(interpréteuse, y, TypePréféré.Number)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        py = completion.valeur.V
+
+        // c. Let px be ? ToPrimitive(x, NUMBER).
+        completion = vers_primitive(interpréteuse, x, TypePréféré.Number)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        px = completion.valeur.V
+    }
+
+    // 3. If px is a String and py is a String, then
+    si px.est_chaine() && py.est_chaine() {
+        panique("is_less_than non-implémenté pour chaine < chaine")
+        // a. Let lx be the length of px.
+        // b. Let ly be the length of py.
+        // c. For each integer i such that 0 ≤ i < min(lx, ly), in ascending order, do
+            // i. Let cx be the numeric value of the code unit at index i within px.
+            // ii. Let cy be the numeric value of the code unit at index i within py.
+            // iii. If cx < cy, return true.
+            // iv. If cx > cy, return false.
+        // d. If lx < ly, return true. Otherwise, return false.   
+    }
+    // 4. Else,
+    sinon {
+        // a. If px is a BigInt and py is a String, then
+        si px.est_big_int() && py.est_chaine() {
+            // i. Let ny be StringToBigInt(py).
+            // ii. If ny is undefined, return undefined.
+            // iii. Return BigInt::lessThan(px, ny).
+            panique("is_less_than non-implémenté pour bigint < chaine")
+        }
+        // b. If px is a String and py is a BigInt, then
+        si px.est_chaine() && py.est_big_int() {
+            // i. Let nx be StringToBigInt(px).
+            // ii. If nx is undefined, return undefined.
+            // iii. Return BigInt::lessThan(nx, py).
+            panique("is_less_than non-implémenté pour bigint < chaine")
+        }
+        // c. NOTE: Because px and py are primitive values, evaluation order is not important.
+        // d. Let nx be ? ToNumeric(px).
+        completion := to_numeric(interpréteuse, px)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        nx := completion.valeur.V
+
+        // e. Let ny be ? ToNumeric(py).
+        completion = to_numeric(interpréteuse, py)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        ny := completion.valeur.V
+
+        // f. If Type(nx) is Type(ny), then
+        si donne_type(nx) == donne_type(ny) {
+            // i. If nx is a Number, then
+            si nx.est_nombre() {
+                // 1. Return Number::lessThan(nx, ny).
+                retourne normal_completion(Valeur(Boolean = nx.Number < ny.Number))
+            }
+            // ii. Else,
+                // 1. Assert: nx is a BigInt.
+                // 2. Return BigInt::lessThan(nx, ny).
+            panique("is_less_than non-implémenté pour bigint < bigint")
+        }
+
+        // g. Assert: nx is a BigInt and ny is a Number, or nx is a Number and ny is a BigInt.
+        // h. If nx or ny is NaN, return undefined.
+        // i. If nx is -∞𝔽 or ny is +∞𝔽, return true.
+        // j. If nx is +∞𝔽 or ny is -∞𝔽, return false.
+        // k. If ℝ(nx) < ℝ(ny), return true; otherwise return false.
+        panique("is_less_than non-implémenté pour bigint|number < bigint|number")
+    }
 }
 
 /** \} */
