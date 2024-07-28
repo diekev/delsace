@@ -134,6 +134,7 @@ Intrinsics :: struct {
     syntax_error_prototype: *SyntaxErrorPrototype
 
     array: *ArrayConstructor
+    eval: *Function
 }
 
 /* 9.3.2 CreateIntrinsics ( realmRec )
@@ -152,6 +153,7 @@ create_intrinsics :: fonc (realm: *Realm)
     realm.intrinsics.syntax_error_prototype = crée_syntax_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype)
 
     realm.intrinsics.array = crée_array_constructor(tas_de_mémoire, realm.intrinsics.array_prototype)
+    realm.intrinsics.eval = crée_eval(realm.intrinsics.function_prototype)
 }
 
 /** \} */
@@ -295,6 +297,10 @@ set_default_global_bindings :: fonc (realm: *Realm)
     desc = PropertyDescriptor()
     desc.value = Valeur(Object = realm.intrinsics.array)
     _ := define_property_or_throw(global, STR_Array, desc)
+
+    desc = PropertyDescriptor()
+    desc.value = Valeur(Function = realm.intrinsics.eval)
+    _ := define_property_or_throw(global, STR_eval, desc)
 
     // 3. Return UNUSED.
 }

@@ -1465,6 +1465,198 @@ sur_appel_fonction_instruite :: fonc (object: *Object, interpréteuse: &Interpr�
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom 19.2.1 eval ( x )
+ * \{ */
+
+crée_eval :: fonc (function_prototype: *FunctionPrototype) -> *Function
+{
+    résultat := crée_fonction(function_prototype, STR_eval, nul)
+    résultat.sur_call = eval_sur_call
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/global-object.html#sec-eval-x */
+eval_sur_call :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur @inutilisée, arguments: []Valeur) -> CompletionRecord
+{
+    si arguments.taille == 0 {
+        retourne normal_completion(js_undefined)
+    }
+
+    retourne perform_eval(interpréteuse, arguments[0], faux, faux)
+}
+
+/* 19.2.1.1 PerformEval ( x, strictCaller, direct )
+ * https://tc39.es/ecma262/multipage/global-object.html#sec-performeval */
+perform_eval :: fonc (interpréteuse: &Interpréteuse, x: Valeur, strict_caller: bool, direct: bool) -> CompletionRecord
+{
+    // 1. Assert: If direct is false, then strictCaller is also false.
+    assert(direct == vrai || (direct == faux && strict_caller == faux))
+
+    // 2. If x is not a String, return x.
+    saufsi x.est_chaine() {
+        retourne normal_completion(x)
+    }
+
+    // 3. Let evalRealm be the current Realm Record.
+    // 4. NOTE: In the case of a direct eval, evalRealm is the realm of both the caller of eval and of the eval function itself.
+    eval_realm := interpréteuse.donne_realm()
+
+    // À FAIRE : 5. Perform ? HostEnsureCanCompileStrings(evalRealm, « », x, direct).
+
+    // 6. Let inFunction be false.
+    in_function := faux
+
+    // 7. Let inMethod be false.
+    in_method := faux
+
+    // 8. Let inDerivedConstructor be false.
+    in_derived_constructor := faux
+
+    // 9. Let inClassFieldInitializer be false.
+    in_class_field_initializer := faux
+
+    // 10. If direct is true, then
+    si direct {
+        // a. Let thisEnvRec be GetThisEnvironment().
+        // b. If thisEnvRec is a Function Environment Record, then
+            // i. Let F be thisEnvRec.[[FunctionObject]].
+            // ii. Set inFunction to true.
+            // iii. Set inMethod to thisEnvRec.HasSuperBinding().
+            // iv. If F.[[ConstructorKind]] is DERIVED, set inDerivedConstructor to true.
+            // v. Let classFieldInitializerName be F.[[ClassFieldInitializerName]].
+            // vi. If classFieldInitializerName is not EMPTY, set inClassFieldInitializer to true.
+        panique("direct eval non-implémenté")
+    }
+
+    // À FAIRE : 11. Perform the following substeps in an implementation-defined order, possibly interleaving parsing and error detection:
+    // À FAIRE : a. Let script be ParseText(x, Script).
+    // b. If script is a List of errors, throw a SyntaxError exception.
+    script: *Script
+    contenu := converti_vers_chaine(x.String.texte.donne_chaine_utf16())
+    diffère déloge(contenu)
+
+    discr parse_script(contenu, eval_realm) {
+        Ok(s) {
+            script = s
+        }
+        Erreur(e) {
+            diffère déloge(e.message)
+            retourne interpréteuse.lance_syntax_error(e.message)
+        }
+        sinon {
+            chn := "Erreur inconnue"
+            retourne interpréteuse.lance_syntax_error(chn)
+        }
+    }
+
+    // À FAIRE : c. If script Contains ScriptBody is false, return undefined.
+    // À FAIRE : d. Let body be the ScriptBody of script.
+    body := script.ecma_script_code
+
+    // À FAIRE : e. If inFunction is false and body Contains NewTarget, throw a SyntaxError exception.
+    // À FAIRE : f. If inMethod is false and body Contains SuperProperty, throw a SyntaxError exception.
+    // À FAIRE : g. If inDerivedConstructor is false and body Contains SuperCall, throw a SyntaxError exception.
+    // À FAIRE : h. If inClassFieldInitializer is true and ContainsArguments of body is true, throw a SyntaxError exception.
+
+    // 12. If strictCaller is true, let strictEval be true.
+    strict_eval := si strict_caller {
+        vrai
+    }
+    // 13. Else, let strictEval be ScriptIsStrict of script.
+    sinon {
+        // À FAIRE : ScriptIsStrict
+        faux
+    }
+
+    // 14. Let runningContext be the running execution context.
+    // 15. NOTE: If direct is true, runningContext will be the execution context that performed the direct eval. If direct is false, runningContext will be the execution context for the invocation of the eval function.
+    running_context := interpréteuse.donne_running_execution_context()
+
+    lex_env: *Environment
+    var_env: *Environment
+    private_env: *PrivateEnvironment
+
+    // 16. If direct is true, then
+    si direct {
+        // a. Let lexEnv be NewDeclarativeEnvironment(runningContext's LexicalEnvironment).
+        lex_env = new_declarative_environment(interpréteuse.donne_tas_de_mémoire(), running_context.lexical_environment)
+
+        // b. Let varEnv be runningContext's VariableEnvironment.
+        var_env = running_context.variable_environment
+    
+        // c. Let privateEnv be runningContext's PrivateEnvironment.
+        private_env = running_context.private_environment
+    }
+    // 17. Else,
+    sinon {
+        // a. Let lexEnv be NewDeclarativeEnvironment(evalRealm.[[GlobalEnv]]).
+        lex_env = new_declarative_environment(interpréteuse.donne_tas_de_mémoire(), eval_realm.global_environment)
+
+        // b. Let varEnv be evalRealm.[[GlobalEnv]].
+        var_env = eval_realm.global_environment
+
+        // c. Let privateEnv be null.
+        private_env = nul
+    }
+
+    // 18. If strictEval is true, set varEnv to lexEnv.
+    si strict_eval {
+        var_env = lex_env
+    }
+
+    // 19. If runningContext is not already suspended, suspend runningContext.
+    mv := interpréteuse.mv
+    mv.suspend_running_execution_context()
+
+    // 20. Let evalContext be a new ECMAScript code execution context.
+    eval_context := crée_execution_context(interpréteuse.donne_tas_de_mémoire())
+
+    // 21. Set evalContext's Function to null.
+    eval_context.function = nul
+
+    // 22. Set evalContext's Realm to evalRealm.
+    eval_context.realm = eval_realm
+
+    // 23. Set evalContext's ScriptOrModule to runningContext's ScriptOrModule.
+    eval_context.script_or_module = running_context.script_or_module
+
+    // 24. Set evalContext's VariableEnvironment to varEnv.
+    eval_context.variable_environment = var_env
+
+    // 25. Set evalContext's LexicalEnvironment to lexEnv.
+    eval_context.lexical_environment = lex_env
+
+    // 26. Set evalContext's PrivateEnvironment to privateEnv.
+    eval_context.private_environment = private_env
+
+    // 27. Push evalContext onto the execution context stack; evalContext is now the running execution context.
+    mv.empile_execution_context(eval_context)
+
+    // À FAIRE : 28. Let result be Completion(EvalDeclarationInstantiation(body, varEnv, lexEnv, privateEnv, strictEval)).
+    result := normal_completion(js_undefined)
+
+    // 29. If result is a normal completion, then
+    si result.est_normal() {
+        // a. Set result to Completion(Evaluation of body).
+        result = interpréteuse.exécute(body)
+    }
+
+    // 30. If result is a normal completion and result.[[Value]] is EMPTY, then
+        // a. Set result to NormalCompletion(undefined).
+
+    // 31. Suspend evalContext and remove it from the execution context stack.
+    mv.suspend_running_execution_context()
+    mv.dépile_execution_context()
+
+    // À FAIRE : 32. Resume the context that is now on the top of the execution context stack as the running execution context.
+
+    // 33. Return ? result.
+    retourne result
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom FunctionPrototype
  * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-function-prototype-object
  * \{ */
