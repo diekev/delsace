@@ -37,7 +37,6 @@ GenreLexème :: énum {
     EtBinaireÉgal
     OuBinaireÉgal
     OuExclusifÉgal
-    NonBinaireÉgal
     EstÉgal
     NEspaPasÉgal
     EstÉgalStrict
@@ -122,7 +121,6 @@ donne_genre_lexème_pour_assignation_composée :: fonc (genre: GenreLexème) -> 
         EtBinaireÉgal { retourne GenreLexème.EtBinaire }
         OuBinaireÉgal { retourne GenreLexème.OuBinaire }
         OuExclusifÉgal { retourne GenreLexème.OuExclusif }
-        NonBinaireÉgal { retourne GenreLexème.NonBinaire }
         sinon {}
     }
 
@@ -238,7 +236,6 @@ associativité_pour_opérateur :: fonc (genre: GenreLexème) -> Associativité
         EtBinaireÉgal,
         OuBinaireÉgal,
         OuExclusifÉgal,
-        NonBinaireÉgal,
         EstÉgal,
         NEspaPasÉgal,
         EstÉgalStrict,
@@ -278,8 +275,7 @@ précédence_pour_opérateur :: fonc (genre: GenreLexème) -> z32
         DécalageDroiteÉgal,
         EtBinaireÉgal,
         OuBinaireÉgal,
-        OuExclusifÉgal,
-        NonBinaireÉgal {
+        OuExclusifÉgal {
             retourne 2
         }
         OuLogique {
@@ -421,7 +417,6 @@ est_lexème_expression_secondaire :: fonc (genre: GenreLexème) -> bool
         EtBinaireÉgal,
         OuBinaireÉgal,
         OuExclusifÉgal,
-        NonBinaireÉgal,
         EstÉgal,
         NEspaPasÉgal,
         EstÉgalStrict,
