@@ -567,11 +567,11 @@ sur_exécution_binary_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
     }
     gauche := valeur_complétion_gauche.valeur.V
     droite := valeur_complétion_droite.valeur.V
-    retourne évalue_expression_binaire(interpréteuse, noeud.opération, gauche, droite)
+    retourne apply_string_or_numeric_binary_operator(interpréteuse, noeud.opération, gauche, droite)
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-applystringornumericbinaryoperator */
-évalue_expression_binaire :: fonc (interpréteuse: &Interpréteuse, opération: BinaryOperation, gauche: Valeur, droite: Valeur) -> CompletionRecord
+apply_string_or_numeric_binary_operator :: fonc (interpréteuse: &Interpréteuse, opération: BinaryOperation, gauche: Valeur, droite: Valeur) -> CompletionRecord
 {
     // 1. If opText is +, then
     si opération == BinaryOperation.Plus {
