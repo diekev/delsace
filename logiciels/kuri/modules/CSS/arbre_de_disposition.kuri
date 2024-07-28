@@ -496,23 +496,6 @@ ajoute_enfant :: fonc (parent: *NoeudDeDisposition, enfant: *NoeudDeDisposition)
     tableau_ajoute(*parent.enfants, enfant)
 }
 
-donne_noeud_pour_position :: fonc (noeud: *NoeudDeDisposition, x: z32, y: z32) -> *NoeudDeDisposition
-{
-    rect := noeud.donne_rectangle()
-    saufsi rect.contient(x, y) {
-        retourne nul
-    }
-
-    pour noeud.enfants {
-        résultat := donne_noeud_pour_position(it, x, y)
-        si résultat {
-            retourne résultat
-        }
-    }
-
-    retourne noeud
-}
-
 donne_curseur :: fonc (noeud: *NoeudDeDisposition) -> CursorType
 {
     cursor := donne_déclaration(*noeud.propriétés, PROP_cursor)
