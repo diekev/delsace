@@ -1214,6 +1214,18 @@ evaluate_call :: fonc (interpréteuse: &Interpréteuse, func: Valeur, ref: Valeu
 
 AssignmentOperation :: énum {
     Assigne /* = */
+    Ajoute /* += */
+    Soustrait /* -= */
+    // À FAIRE : Exponentiation /* **= */
+    Multiplie /* *= */
+    Divise /* /= */
+    Modulo /* %= */
+    DécalageGauche /* <<= */
+    DécalageDroite /* >>= */
+    // À FAIRE : DécalageDroiteNaturel /* >>>= */
+    EtBinaire /* &= */
+    OuBinaire /* |= */
+    OuExBinaire /* ^= */
 }
 
 AssignmentExpression :: struct {
@@ -1239,8 +1251,14 @@ crée_assignment_expression :: fonc (opération: AssignmentOperation, gauche: *N
 sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
     noeud := base comme *AssignmentExpression
-    assert(noeud.opération == AssignmentOperation.Assigne)
+    si noeud.opération == AssignmentOperation.Assigne {
+        retourne évalue_assignement_simple(noeud, interpréteuse)
+    }
+    retourne évalue_assignement_opéré(noeud, interpréteuse)
+}
 
+évalue_assignement_simple :: fonc (noeud: *AssignmentExpression, interpréteuse: &Interpréteuse) -> CompletionRecord
+{
     // 1. If LeftHandSideExpression is neither an ObjectLiteral nor an ArrayLiteral, then
     si noeud.gauche.type != ObjectExpression && noeud.gauche.type != ArrayLiteral {
         // a. Let lref be ? Evaluation of LeftHandSideExpression.
@@ -1297,6 +1315,92 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
     // 4. Let rval be ? GetValue(rref).
     // 5. Perform ? DestructuringAssignmentEvaluation of assignmentPattern with argument rval.
     // 6. Return rval.
+}
+
+évalue_assignement_opéré :: fonc (noeud: *AssignmentExpression, interpréteuse: &Interpréteuse) -> CompletionRecord
+{
+    // 1. Let lref be ? Evaluation of LeftHandSideExpression.
+    completion_lref := exécute_noeud(noeud.gauche, interpréteuse)
+    saufsi completion_lref.est_normal() {
+        retourne completion_lref
+    }
+    lref := completion_lref.valeur
+
+    // 2. Let lval be ? GetValue(lref).
+    completion_lval := get_value(interpréteuse, lref)
+    saufsi completion_lval.est_normal() {
+        retourne completion_lval
+    }
+    lval := completion_lval.valeur.V
+
+    // 3. Let rref be ? Evaluation of AssignmentExpression.
+    completion_rref := exécute_noeud(noeud.droite, interpréteuse)
+    saufsi completion_rref.est_normal() {
+        retourne completion_rref
+    }
+    rref := completion_rref.valeur
+
+    // 4. Let rval be ? GetValue(rref).
+    completion_rval := get_value(interpréteuse, rref)
+    saufsi completion_rval.est_normal() {
+        retourne completion_rval
+    }
+    rval := completion_rval.valeur.V
+
+    // 5. Let assignmentOpText be the source text matched by AssignmentOperator.
+    // 6. Let opText be the sequence of Unicode code points associated with assignmentOpText in the following table:
+    opérateur_binaire: BinaryOperation
+    discr noeud.opération {
+        Assigne {
+            panique("Assignement opéré via '=' qui devrait être un chemin différent.")
+        }
+        Ajoute {
+            opérateur_binaire = BinaryOperation.Plus
+        }
+        Soustrait {
+            opérateur_binaire = BinaryOperation.Moins
+        }
+        Multiplie {
+            opérateur_binaire = BinaryOperation.Multiplie
+        }
+        Divise {
+            opérateur_binaire = BinaryOperation.Divise
+        }
+        Modulo {
+            panique("%= non-implémenté")
+        }
+        DécalageGauche {
+            panique("<<= non-implémenté")
+        }
+        DécalageDroite {
+            panique(">>= non-implémenté")
+        }
+        EtBinaire {
+            panique("&= non-implémenté")
+        }
+        OuBinaire {
+            panique("|= non-implémenté")
+        }
+        OuExBinaire {
+            panique("^= non-implémenté")
+        }
+    }
+
+    // 7. Let r be ? ApplyStringOrNumericBinaryOperator(lval, opText, rval).
+    completion := apply_string_or_numeric_binary_operator(interpréteuse, opérateur_binaire, lval, rval)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    r := completion.valeur.V
+
+    // 8. Perform ? PutValue(lref, r).
+    completion_assignment := put_value(interpréteuse, lref, r)
+    saufsi completion_assignment.est_normal() {
+        retourne completion_assignment
+    }
+
+    // 9. Return r.
+    retourne normal_completion(r)
 }
 
 /** \} */

@@ -624,10 +624,37 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxiq
             retourne update
         }
         Égal {
-            parseuse.consomme()
-
-            expression := parseuse.parse_expression(précédence, associativité)
-            retourne crée_assignment_expression(AssignmentOperation.Assigne, gauche, expression)
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.Assigne, précédence, associativité)
+        }
+        PlusÉgal {
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.Ajoute, précédence, associativité)
+        }
+        MoinsÉgal {
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.Soustrait, précédence, associativité)
+        }
+        ÉtoileÉgal {
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.Multiplie, précédence, associativité)
+        }
+        SlashÉgal {
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.Divise, précédence, associativité)
+        }
+        PourcentÉgal {
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.Modulo, précédence, associativité)
+        }
+        DécalageGaucheÉgal {
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.DécalageGauche, précédence, associativité)
+        }
+        DécalageDroiteÉgal {
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.DécalageDroite, précédence, associativité)
+        }
+        EtBinaireÉgal {
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.EtBinaire, précédence, associativité)
+        }
+        OuBinaireÉgal {
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.OuBinaire, précédence, associativité)
+        }
+        OuExclusifÉgal {
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.OuExBinaire, précédence, associativité)
         }
         Point {
             parseuse.consomme()
@@ -679,6 +706,13 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxiq
     }
 
     retourne nul
+}
+
+parse_assignement_expression :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxique, opération: AssignmentOperation, précédence: z32, associativité: Associativité) -> *AssignmentExpression
+{
+    parseuse.consomme()
+    expression := parseuse.parse_expression(précédence, associativité)
+    retourne crée_assignment_expression(opération, gauche, expression)
 }
 
 parse_expression_virgule :: fonc (parseuse: *Parseuse) -> [..]*NoeudSyntaxique
