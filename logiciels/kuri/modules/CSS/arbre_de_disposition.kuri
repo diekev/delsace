@@ -78,6 +78,10 @@ crée_noeud :: fonc (arbre: *ArbreDeDisposition, $TypeNoeud: type_de_données) -
 
 donne_élément_pour_position :: fonc (arbre: *ArbreDeDisposition, x: z32, y: z32) -> *HTML.Élément
 {
+    saufsi 0 <= x < arbre.largeur_vue && 0 <= y < arbre.hauteur_vue {
+        retourne nul
+    }
+
     tampon_id := arbre.tampon_id
     /* OpenGL est de bas en haut, donc inverse l'axe des y. */
     index := (arbre.hauteur_vue - y - 1) * arbre.largeur_vue + x
