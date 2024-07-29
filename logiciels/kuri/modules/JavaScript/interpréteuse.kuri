@@ -1,3 +1,4 @@
+importe Chaine
 importe Ensemble
 importe Fondation
 
@@ -11,7 +12,6 @@ TypeUnresolvable :: #opaque z32
 /* Type pour ReferenceRecord.reference_name */
 ReferencedName :: union {
     valeur: Valeur
-    nom: ECMAString // À FAIRE : supprime ceci, uniquement utilisé dans Environment pour référence non résovable
     private_name: *PrivateName
 }
 
@@ -19,11 +19,7 @@ is_property_key :: fonc (referenced_name: ReferencedName) -> bool
 {
     discr referenced_name {
         valeur(v) {
-            // À FAIRE: property_key
             retourne v.est_chaine() || v.est_symbol()
-        }
-        nom {
-            retourne vrai
         }
         sinon {
             retourne faux
@@ -31,15 +27,17 @@ is_property_key :: fonc (referenced_name: ReferencedName) -> bool
     }
 }
 
-donne_property_key :: fonc (referenced_name: ReferencedName) -> ECMAString
+donne_property_key :: fonc (referenced_name: ReferencedName) -> PropertyKey
 {
-    // À FAIRE: type PropertyKey
-    discr referenced_name {
-        nom(n) {
-            retourne n
+    discr referenced_name.valeur {
+        String(s) {
+            retourne s.texte
+        }
+        Symbol(s) {
+            retourne s
         }
         sinon {
-            retourne referenced_name.valeur.String.texte
+            panique("donne_property_key sur un referenced_name invalide")
         }
     }
 }
@@ -557,6 +555,18 @@ donne_noeud_évalué_courant :: fonc (interpréteuse: &Interpréteuse @inutilis�
     retourne nul
 }
 
+crée_string_value_completion :: fonc (interpréteuse: &Interpréteuse, texte: chaine) -> CompletionRecord
+{
+    retourne crée_string_value_completion(interpréteuse, crée_chaine_utf16_unique(texte))
+}
+
+crée_string_value_completion :: fonc (interpréteuse: &Interpréteuse, texte: ECMAString) -> CompletionRecord
+{
+    string := crée_chaine(interpréteuse.donne_tas_de_mémoire(), texte)
+    value := Valeur(String = string)
+    retourne normal_completion(value)
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -580,7 +590,7 @@ resolve_binding :: fonc (interpréteuse: &Interpréteuse, nom: ECMAString, envir
     strict := is_strict(interpréteuse.donne_noeud_évalué_courant())
 
     // 4. Return ? GetIdentifierReference(env, name, strict).
-    retourne get_identifier_reference(environment, nom, strict)
+    retourne get_identifier_reference(interpréteuse.donne_tas_de_mémoire(), environment, nom, strict)
 }
 
 /* 9.4.6 GetGlobalObject

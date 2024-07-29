@@ -4,8 +4,6 @@ importe Internet
 
 /* CSS Object Model https://www.w3.org/TR/cssom-1/ */
 
-CSSOMString :: ChaineUTF16
-
 /* ------------------------------------------------------------------------- */
 /** \nom Style Sheets
  * https://www.w3.org/TR/cssom-1/#css-style-sheets
@@ -43,7 +41,6 @@ détruit_feuille_de_style :: fonc (stylesheet: *CSSStyleSheet)
         }
     }
 
-    détruit_chaine(stylesheet.type)
     déloge(stylesheet.rules)
     déloge(stylesheet)
 }
@@ -153,8 +150,6 @@ CSSDeclaration :: struct {
 
 détruit_déclaration :: fonc (déclaration: *CSSDeclaration)
 {
-    détruit_chaine(déclaration.property_name)
-
     pour * déclaration.value {
         détruit_valeur_de_style(it)
     }
