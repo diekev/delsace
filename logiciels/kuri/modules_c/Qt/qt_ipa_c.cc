@@ -32,6 +32,7 @@
 #include <QPushButton>
 #include <QScreen>
 #include <QScrollArea>
+#include <QScrollBar>
 #include <QSettings>
 #include <QShortcut>
 #include <QSortFilterProxyModel>
@@ -2103,6 +2104,36 @@ void QT_scroll_area_definis_style_frame(QT_ScrollArea *scroll_area, int style)
 {
     auto qscroll = vers_qt(scroll_area);
     qscroll->setFrameStyle(style);
+}
+
+QT_ScrollBar *QT_scroll_area_donne_barre_horizontale(QT_ScrollArea *scroll_area)
+{
+    auto qscroll = vers_qt(scroll_area);
+    return vers_ipa(qscroll->horizontalScrollBar());
+}
+
+QT_ScrollBar *QT_scroll_area_donne_barre_verticale(QT_ScrollArea *scroll_area)
+{
+    auto qscroll = vers_qt(scroll_area);
+    return vers_ipa(qscroll->verticalScrollBar());
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_ScrollBar
+ * \{ */
+
+void QT_scroll_bar_definis_plage(QT_ScrollBar *bar, int min, int max)
+{
+    VERS_QT(bar);
+    qbar->setRange(min, max);
+}
+
+void QT_scroll_bar_definis_valeur(QT_ScrollBar *bar, int valeur)
+{
+    VERS_QT(bar);
+    qbar->setValue(valeur);
 }
 
 /** \} */
