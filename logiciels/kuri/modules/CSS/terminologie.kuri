@@ -1,0 +1,372 @@
+importe Chaine
+importe Compilatrice
+importe Fondation
+
+CSSOMString :: ChaineUTF16Unique
+
+PROP_after : CSSOMString = ---
+PROP_alias : CSSOMString = ---
+PROP_all_scroll : CSSOMString = ---
+PROP_auto : CSSOMString = ---
+PROP_before : CSSOMString = ---
+PROP_blink : CSSOMString = ---
+PROP_block : CSSOMString = ---
+PROP_bold : CSSOMString = ---
+PROP_cell : CSSOMString = ---
+PROP_col_resize : CSSOMString = ---
+PROP_color : CSSOMString = ---
+PROP_contents : CSSOMString = ---
+PROP_context_menu : CSSOMString = ---
+PROP_copy : CSSOMString = ---
+PROP_crosshair : CSSOMString = ---
+PROP_cursor : CSSOMString = ---
+PROP_dashed : CSSOMString = ---
+PROP_default : CSSOMString = ---
+PROP_dir : CSSOMString = ---
+PROP_display : CSSOMString = ---
+PROP_dotted : CSSOMString = ---
+PROP_double : CSSOMString = ---
+PROP_e_resize : CSSOMString = ---
+PROP_em : CSSOMString = ---
+PROP_ew_resize : CSSOMString = ---
+PROP_first_letter : CSSOMString = ---
+PROP_first_line : CSSOMString = ---
+PROP_font_size : CSSOMString = ---
+PROP_font_weight : CSSOMString = ---
+PROP_grab : CSSOMString = ---
+PROP_grabbing : CSSOMString = ---
+PROP_help : CSSOMString = ---
+PROP_host : CSSOMString = ---
+PROP_initial : CSSOMString = ---
+PROP_inherit : CSSOMString = ---
+PROP_inline : CSSOMString = ---
+PROP_is : CSSOMString = ---
+PROP_line_through : CSSOMString = ---
+PROP_list_item : CSSOMString = ---
+PROP_ltr : CSSOMString = ---
+PROP_move : CSSOMString = ---
+PROP_n_resize : CSSOMString = ---
+PROP_ne_resize : CSSOMString = ---
+PROP_nesw_resize : CSSOMString = ---
+PROP_no_drop : CSSOMString = ---
+PROP_none : CSSOMString = ---
+PROP_normal : CSSOMString = ---
+PROP_not : CSSOMString = ---
+PROP_not_allowed : CSSOMString = ---
+PROP_ns_resize : CSSOMString = ---
+PROP_nw_resize : CSSOMString = ---
+PROP_nwse_resize : CSSOMString = ---
+PROP_overline : CSSOMString = ---
+PROP_pointer : CSSOMString = ---
+PROP_progress : CSSOMString = ---
+PROP_revert : CSSOMString = ---
+PROP_row_resize : CSSOMString = ---
+PROP_run_in : CSSOMString = ---
+PROP_rtl : CSSOMString = ---
+PROP_s_resize : CSSOMString = ---
+PROP_se_resize : CSSOMString = ---
+PROP_solid : CSSOMString = ---
+PROP_sw_resize : CSSOMString = ---
+PROP_text : CSSOMString = ---
+PROP_text_decoration : CSSOMString = ---
+PROP_transparent : CSSOMString = ---
+PROP_underline : CSSOMString = ---
+PROP_unset : CSSOMString = ---
+PROP_url : CSSOMString = ---
+PROP_vertical_text : CSSOMString = ---
+PROP_w_resize : CSSOMString = ---
+PROP_wait : CSSOMString = ---
+PROP_wavy : CSSOMString = ---
+PROP_where : CSSOMString = ---
+PROP_zoom_in : CSSOMString = ---
+PROP_zoom_out : CSSOMString = ---
+
+PC_active: CSSOMString = ---
+PC_any_link: CSSOMString = ---
+PC_autofill: CSSOMString = ---
+PC_backdrop: CSSOMString = ---
+PC_blank: CSSOMString = ---
+PC_buffering: CSSOMString = ---
+PC_checked: CSSOMString = ---
+PC_current: CSSOMString = ---
+PC_default: CSSOMString = ---
+PC_defined: CSSOMString = ---
+PC_disabled: CSSOMString = ---
+PC_drop: CSSOMString = ---
+PC_empty: CSSOMString = ---
+PC_enabled: CSSOMString = ---
+PC_first: CSSOMString = ---
+PC_first_child: CSSOMString = ---
+PC_first_of_type: CSSOMString = ---
+PC_focus: CSSOMString = ---
+PC_focus_visible: CSSOMString = ---
+PC_focus_within: CSSOMString = ---
+PC_fullscreen: CSSOMString = ---
+PC_future: CSSOMString = ---
+PC_host: CSSOMString = ---
+PC_hover: CSSOMString = ---
+PC_in_range: CSSOMString = ---
+PC_indeterminate: CSSOMString = ---
+PC_invalid: CSSOMString = ---
+PC_is: CSSOMString = ---
+PC_last_child: CSSOMString = ---
+PC_last_of_type: CSSOMString = ---
+PC_left: CSSOMString = ---
+PC_link: CSSOMString = ---
+PC_local_link: CSSOMString = ---
+PC_modal: CSSOMString = ---
+PC_muted: CSSOMString = ---
+PC_only_child: CSSOMString = ---
+PC_only_of_type: CSSOMString = ---
+PC_optional: CSSOMString = ---
+PC_out_of_range: CSSOMString = ---
+PC_past: CSSOMString = ---
+PC_paused: CSSOMString = ---
+PC_placeholder_shown: CSSOMString = ---
+PC_playing: CSSOMString = ---
+PC_popover_open: CSSOMString = ---
+PC_read_only: CSSOMString = ---
+PC_read_write: CSSOMString = ---
+PC_required: CSSOMString = ---
+PC_right: CSSOMString = ---
+PC_root: CSSOMString = ---
+PC_scope: CSSOMString = ---
+PC_seeking: CSSOMString = ---
+PC_stalled: CSSOMString = ---
+PC_target: CSSOMString = ---
+PC_target_within: CSSOMString = ---
+PC_user_invalid: CSSOMString = ---
+PC_user_valid: CSSOMString = ---
+PC_valid: CSSOMString = ---
+PC_visited: CSSOMString = ---
+PC_volume_locked: CSSOMString = ---
+
+COL_aliceblue : CSSOMString = ---
+COL_antiquewhite : CSSOMString = ---
+COL_aqua : CSSOMString = ---
+COL_aquamarine : CSSOMString = ---
+COL_azure : CSSOMString = ---
+COL_beige : CSSOMString = ---
+COL_bisque : CSSOMString = ---
+COL_black : CSSOMString = ---
+COL_blanchedalmond : CSSOMString = ---
+COL_blue : CSSOMString = ---
+COL_blueviolet : CSSOMString = ---
+COL_brown : CSSOMString = ---
+COL_burlywood : CSSOMString = ---
+COL_cadetblue : CSSOMString = ---
+COL_chartreuse : CSSOMString = ---
+COL_chocolate : CSSOMString = ---
+COL_coral : CSSOMString = ---
+COL_cornflowerblue : CSSOMString = ---
+COL_cornsilk : CSSOMString = ---
+COL_crimson : CSSOMString = ---
+COL_cyan : CSSOMString = ---
+COL_darkblue : CSSOMString = ---
+COL_darkcyan : CSSOMString = ---
+COL_darkgoldenrod : CSSOMString = ---
+COL_darkgray : CSSOMString = ---
+COL_darkgreen : CSSOMString = ---
+COL_darkgrey : CSSOMString = ---
+COL_darkkhaki : CSSOMString = ---
+COL_darkmagenta : CSSOMString = ---
+COL_darkolivegreen : CSSOMString = ---
+COL_darkorange : CSSOMString = ---
+COL_darkorchid : CSSOMString = ---
+COL_darkred : CSSOMString = ---
+COL_darksalmon : CSSOMString = ---
+COL_darkseagreen : CSSOMString = ---
+COL_darkslateblue : CSSOMString = ---
+COL_darkslategray : CSSOMString = ---
+COL_darkslategrey : CSSOMString = ---
+COL_darkturquoise : CSSOMString = ---
+COL_darkviolet : CSSOMString = ---
+COL_deeppink : CSSOMString = ---
+COL_deepskyblue : CSSOMString = ---
+COL_dimgray : CSSOMString = ---
+COL_dimgrey : CSSOMString = ---
+COL_dodgerblue : CSSOMString = ---
+COL_firebrick : CSSOMString = ---
+COL_floralwhite : CSSOMString = ---
+COL_forestgreen : CSSOMString = ---
+COL_fuchsia : CSSOMString = ---
+COL_gainsboro : CSSOMString = ---
+COL_ghostwhite : CSSOMString = ---
+COL_gold : CSSOMString = ---
+COL_goldenrod : CSSOMString = ---
+COL_gray : CSSOMString = ---
+COL_green : CSSOMString = ---
+COL_greenyellow : CSSOMString = ---
+COL_grey : CSSOMString = ---
+COL_honeydew : CSSOMString = ---
+COL_hotpink : CSSOMString = ---
+COL_indianred : CSSOMString = ---
+COL_indigo : CSSOMString = ---
+COL_ivory : CSSOMString = ---
+COL_khaki : CSSOMString = ---
+COL_lavender : CSSOMString = ---
+COL_lavenderblush : CSSOMString = ---
+COL_lawngreen : CSSOMString = ---
+COL_lemonchiffon : CSSOMString = ---
+COL_lightblue : CSSOMString = ---
+COL_lightcoral : CSSOMString = ---
+COL_lightcyan : CSSOMString = ---
+COL_lightgoldenrodyellow : CSSOMString = ---
+COL_lightgray : CSSOMString = ---
+COL_lightgreen : CSSOMString = ---
+COL_lightgrey : CSSOMString = ---
+COL_lightpink : CSSOMString = ---
+COL_lightsalmon : CSSOMString = ---
+COL_lightseagreen : CSSOMString = ---
+COL_lightskyblue : CSSOMString = ---
+COL_lightslategray : CSSOMString = ---
+COL_lightslategrey : CSSOMString = ---
+COL_lightsteelblue : CSSOMString = ---
+COL_lightyellow : CSSOMString = ---
+COL_lime : CSSOMString = ---
+COL_limegreen : CSSOMString = ---
+COL_linen : CSSOMString = ---
+COL_magenta : CSSOMString = ---
+COL_maroon : CSSOMString = ---
+COL_mediumaquamarine : CSSOMString = ---
+COL_mediumblue : CSSOMString = ---
+COL_mediumorchid : CSSOMString = ---
+COL_mediumpurple : CSSOMString = ---
+COL_mediumseagreen : CSSOMString = ---
+COL_mediumslateblue : CSSOMString = ---
+COL_mediumspringgreen : CSSOMString = ---
+COL_mediumturquoise : CSSOMString = ---
+COL_mediumvioletred : CSSOMString = ---
+COL_midnightblue : CSSOMString = ---
+COL_mintcream : CSSOMString = ---
+COL_mistyrose : CSSOMString = ---
+COL_moccasin : CSSOMString = ---
+COL_navajowhite : CSSOMString = ---
+COL_navy : CSSOMString = ---
+COL_oldlace : CSSOMString = ---
+COL_olive : CSSOMString = ---
+COL_olivedrab : CSSOMString = ---
+COL_orange : CSSOMString = ---
+COL_orangered : CSSOMString = ---
+COL_orchid : CSSOMString = ---
+COL_palegoldenrod : CSSOMString = ---
+COL_palegreen : CSSOMString = ---
+COL_paleturquoise : CSSOMString = ---
+COL_palevioletred : CSSOMString = ---
+COL_papayawhip : CSSOMString = ---
+COL_peachpuff : CSSOMString = ---
+COL_peru : CSSOMString = ---
+COL_pink : CSSOMString = ---
+COL_plum : CSSOMString = ---
+COL_powderblue : CSSOMString = ---
+COL_purple : CSSOMString = ---
+COL_rebeccapurple : CSSOMString = ---
+COL_red : CSSOMString = ---
+COL_rosybrown : CSSOMString = ---
+COL_royalblue : CSSOMString = ---
+COL_saddlebrown : CSSOMString = ---
+COL_salmon : CSSOMString = ---
+COL_sandybrown : CSSOMString = ---
+COL_seagreen : CSSOMString = ---
+COL_seashell : CSSOMString = ---
+COL_sienna : CSSOMString = ---
+COL_silver : CSSOMString = ---
+COL_skyblue : CSSOMString = ---
+COL_slateblue : CSSOMString = ---
+COL_slategray : CSSOMString = ---
+COL_slategrey : CSSOMString = ---
+COL_snow : CSSOMString = ---
+COL_springgreen : CSSOMString = ---
+COL_steelblue : CSSOMString = ---
+COL_tan : CSSOMString = ---
+COL_teal : CSSOMString = ---
+COL_thistle : CSSOMString = ---
+COL_tomato : CSSOMString = ---
+COL_turquoise : CSSOMString = ---
+COL_violet : CSSOMString = ---
+COL_wheat : CSSOMString = ---
+COL_white : CSSOMString = ---
+COL_whitesmoke : CSSOMString = ---
+COL_yellow : CSSOMString = ---
+COL_yellowgreen : CSSOMString = ---
+
+COL_AccentColor : CSSOMString = ---
+COL_AccentColorText : CSSOMString = ---
+COL_ActiveText : CSSOMString = ---
+COL_ButtonBorder : CSSOMString = ---
+COL_ButtonFace : CSSOMString = ---
+COL_ButtonText : CSSOMString = ---
+COL_Canvas : CSSOMString = ---
+COL_CanvasText : CSSOMString = ---
+COL_Field : CSSOMString = ---
+COL_FieldText : CSSOMString = ---
+COL_GrayText : CSSOMString = ---
+COL_Highlight : CSSOMString = ---
+COL_HighlightText : CSSOMString = ---
+COL_LinkText : CSSOMString = ---
+COL_Mark : CSSOMString = ---
+COL_MarkText : CSSOMString = ---
+COL_SelectedItem : CSSOMString = ---
+COL_SelectedItemText : CSSOMString = ---
+COL_VisitedText : CSSOMString = ---
+
+/* Ceci doit être après les tags, car nous l'utilions comme sentinelle dans le
+ * métaprogramme plus bas. */
+
+#portée_module
+
+terminologie_initialisée := faux
+
+initialise_tags :: fonc ()
+#corps_texte {
+    retourne génère_fonction_pour_tags(faux)
+}
+
+#ajoute_init initialise_tags()
+
+génère_fonction_pour_tags :: fonc (pour_impression: bool) -> chaine
+{
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    saufsi pour_impression {
+        ajoute_au_tampon(*enchaineuse, "    si terminologie_initialisée { retourne }\n")
+        ajoute_au_tampon(*enchaineuse, "    terminologie_initialisée = vrai\n")
+    }
+
+    lexèmes := compilatrice_lèxe_fichier(#chemin_de_ce_fichier)
+
+    pour lexèmes {
+        si it.genre != Compilatrice.GenreLexème.CHAINE_CARACTERE {
+            continue
+        }
+
+        si it.texte == "terminologie_initialisée" {
+            arrête
+        }
+
+        nom_tag: chaine
+        si it.texte.commence_par("PROP_") {
+            nom_tag = it.texte.avance(5)
+        }
+        sinon si it.texte.commence_par("PC_") {
+            nom_tag = it.texte.avance(3)
+        }
+        sinon si it.texte.commence_par("COL_") {
+            nom_tag = it.texte.avance(4)
+        }
+        sinon {
+            continue
+        }
+
+        nom_tag = copie_chaine(nom_tag)
+        diffère déloge(nom_tag)
+        remplace_sans_copie(*nom_tag, '_', '-')
+
+        ajoute_au_tampon(*enchaineuse, "    ", it.texte, " = crée_chaine_utf16_unique(\"", nom_tag, "\")\n")
+    }
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+

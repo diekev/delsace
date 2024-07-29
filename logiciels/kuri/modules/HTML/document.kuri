@@ -83,6 +83,8 @@ Document :: struct {
     globales_dessin: *CSS.GlobalesDessin
 
     noeud_survolé: *Élément
+    /* L'élément sous la souris lors des pressions et relâchement. */
+    élément_en_cours_d_activation: *Élément
 }
 
 #portée_fichier
@@ -91,7 +93,7 @@ table_virtuelle_document := TableVirtuelleÉlément(
     sur_destruction = document_sur_destruction
 )
 
-document_sur_destruction :: fonc (base: *Noeud)
+document_sur_destruction :: fonc (base: *EventTarget)
 {
     document := base comme *Document
     CSS.détruit_arbre(document.arbre_de_disposition)
@@ -230,17 +232,49 @@ définis_noeud_survolé :: fonc (document: *Document, noeud: *Élément)
     // À FAIRE : ajout de :hover
     document.noeud_survolé = noeud
 
+    user_agent := document.donne_user_agent()
+    si user_agent {
+        user_agent.notifie_élément_survolé()
+    }
+}
+
+/* Invalide le style suite à la modification d'une pseudo-classe. */
+invalide_style :: fonc (document: *Document, pseudo_classe: CSS.PseudoClasses @inutilisée)
+{
+    /* À FAIRE : utilise la pseudo-classe, et ne détruit pas l'arbre. */
+    CSS.détruit_arbre(document.arbre_de_disposition)
+    document.arbre_de_disposition = nul
+
+    user_agent := document.donne_user_agent()
+    si user_agent {
+        user_agent.requiers_rendu()
+    }
+}
+
+/* Invalide le style suite au redimensionnement de la fenêtre. */
+invalide_style_pour_redimensionnement :: fonc (document: *Document)
+{
+    /* À FAIRE : ne détruit pas l'arbre, refait une disposition. */
+    CSS.détruit_arbre(document.arbre_de_disposition)
+    document.arbre_de_disposition = nul
+
+    user_agent := document.donne_user_agent()
+    si user_agent {
+        user_agent.requiers_rendu()
+    }
+}
+
+donne_user_agent :: fonc (document: *Document) -> *UserAgent
+{
     browsing_context := document.browsing_context
     saufsi browsing_context {
         /* Permet d'appeler cette fonction en dehors d'un contexte de navigation. */
-        retourne
+        retourne nul
     }
 
     assert(browsing_context.group != nul)
     assert(browsing_context.group.user_agent != nul)
-
-    user_agent := browsing_context.group.user_agent
-    user_agent.notifie_élément_survolé()
+    retourne browsing_context.group.user_agent
 }
 
 /** \} */
@@ -274,7 +308,7 @@ table_virtuelle_type_document := TableVirtuelleÉlément(
     sur_destruction = type_document_sur_destruction
 )
 
-type_document_sur_destruction :: fonc (base: *Noeud)
+type_document_sur_destruction :: fonc (base: *EventTarget)
 {
     type_document := base comme *NoeudTypeDocument
     déloge(type_document)
@@ -309,7 +343,7 @@ table_virtuelle_fragment_document := TableVirtuelleÉlément(
     sur_destruction = fragment_document_sur_destruction
 )
 
-fragment_document_sur_destruction :: fonc (base: *Noeud)
+fragment_document_sur_destruction :: fonc (base: *EventTarget)
 {
     fragment_document := base comme *NoeudFragmentDocument
     déloge(fragment_document)
@@ -378,7 +412,7 @@ table_virtuelle_texte := TableVirtuelleÉlément(
     sur_destruction = texte_sur_destruction
 )
 
-texte_sur_destruction :: fonc (base: *Noeud)
+texte_sur_destruction :: fonc (base: *EventTarget)
 {
     texte := base comme *NoeudTexte
     détruit_chaine(texte.données)
@@ -414,7 +448,7 @@ table_virtuelle_section_cdata := TableVirtuelleÉlément(
     sur_destruction = section_cdata_sur_destruction
 )
 
-section_cdata_sur_destruction :: fonc (base: *Noeud)
+section_cdata_sur_destruction :: fonc (base: *EventTarget)
 {
     section_cdata := base comme *NoeudSectionCDATA
     détruit_chaine(section_cdata.données)
@@ -451,7 +485,7 @@ table_virtuelle_commentaire := TableVirtuelleÉlément(
     sur_destruction = commentaire_sur_destruction
 )
 
-commentaire_sur_destruction :: fonc (base: *Noeud)
+commentaire_sur_destruction :: fonc (base: *EventTarget)
 {
     commentaire := base comme *NoeudCommentaire
     détruit_chaine(commentaire.données)
@@ -490,7 +524,7 @@ table_virtuelle_processing_instruction := TableVirtuelleÉlément(
     sur_destruction = processing_instruction_sur_destruction
 )
 
-processing_instruction_sur_destruction :: fonc (base: *Noeud)
+processing_instruction_sur_destruction :: fonc (base: *EventTarget)
 {
     processing_instruction := base comme *NoeudProcessingInstruction
     détruit_chaine(processing_instruction.données)

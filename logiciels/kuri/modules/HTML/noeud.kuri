@@ -9,8 +9,8 @@ importe Fondation
 #portée_module
 
 TableVirtuelleNoeud :: struct {
-    /* Appelé quand le noeud est détruit. */
-    sur_destruction: fonc(*Noeud)(rien)
+    empl base_event_target: TableVirtuelleEventTarget
+
     /* Appelé quand le noeud est insérer dans un noeud parent. */
     sur_insertion: fonc(*Noeud)(rien)
     /* Appelé quand le noeud devinent connecté. */
@@ -50,7 +50,7 @@ GenreNoeud :: énum n16 {
 }
 
 Noeud :: struct {
-    table: *TableVirtuelleNoeud
+    empl event_target: EventTarget
 
     genre: GenreNoeud
 
@@ -157,17 +157,19 @@ ajoute_enfant :: fonc (parent: *Noeud, enfant: *Noeud)
     enfant.parent = parent
     tableau_ajoute(*parent.enfants, enfant)
 
-    si enfant.table  {
-        si enfant.table.sur_insertion {
-            enfant.table.sur_insertion(enfant)
+    table := enfant.table comme *TableVirtuelleNoeud
+    si table  {
+        si table.sur_insertion {
+            table.sur_insertion(enfant)
         }
-        si enfant.table.sur_connexion && enfant.est_connecté() {
-            enfant.table.sur_connexion(enfant)
+        si table.sur_connexion && enfant.est_connecté() {
+            table.sur_connexion(enfant)
         }
     }
 
-    si parent.table && parent.table.sur_changement_enfants {
-        parent.table.sur_changement_enfants(parent)
+    table = parent.table comme *TableVirtuelleNoeud
+    si table && table.sur_changement_enfants {
+        table.sur_changement_enfants(parent)
     }
 }
 
@@ -320,7 +322,7 @@ donne_contenu_texte_enfant :: fonc (noeud: *Noeud) -> ChaineUTF16
         }
 
         texte := noeud comme *NoeudTexte
-        ajoute_au_tampon(enchaineuse, texte.données)
+        ajoute(enchaineuse, texte.données)
     }
 
     retourne chaine_depuis_enchaineuse(enchaineuse)
