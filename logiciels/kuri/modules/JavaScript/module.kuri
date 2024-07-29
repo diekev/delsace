@@ -1504,16 +1504,16 @@ perform_eval :: fonc (interpréteuse: &Interpréteuse, x: Valeur, strict_caller:
     // À FAIRE : 5. Perform ? HostEnsureCanCompileStrings(evalRealm, « », x, direct).
 
     // 6. Let inFunction be false.
-    in_function := faux
+    // in_function := faux
 
     // 7. Let inMethod be false.
-    in_method := faux
+    // in_method := faux
 
     // 8. Let inDerivedConstructor be false.
-    in_derived_constructor := faux
+    // in_derived_constructor := faux
 
     // 9. Let inClassFieldInitializer be false.
-    in_class_field_initializer := faux
+    // in_class_field_initializer := faux
 
     // 10. If direct is true, then
     si direct {
