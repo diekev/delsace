@@ -815,7 +815,7 @@ noeud_disposition_nouvelle_ligne_sur_mesure :: fonc (base: *NoeudDeDisposition, 
     dispose_enfants_inline(noeud, ctx)
 }
 
-noeud_disposition_nouvelle_ligne_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition @inutilisée, bloc_contenant: *NoeudDeDispositionBloc, ctx: *ContexteDisposition)
+noeud_disposition_nouvelle_ligne_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition @inutilisée, bloc_contenant: *NoeudDeDispositionBloc, ctx: *ContexteDisposition @inutilisée)
 {
     _ := bloc_contenant.ajoute_ligne()
 }
