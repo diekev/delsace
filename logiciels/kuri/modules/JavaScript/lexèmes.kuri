@@ -226,7 +226,7 @@ rafine_genre_lexème_opérateur :: fonc (identifiant: chaine) -> Optionnel(Genre
         si identifiant == "||" { retourne GenreLexème.OuLogique }
         si identifiant == "??" { retourne GenreLexème.Coalesce }
     }
-    sinon si identifiant.taille == 2 {
+    sinon si identifiant.taille == 3 {
         si identifiant == "<<=" { retourne GenreLexème.DécalageGaucheÉgal }
         si identifiant == ">>=" { retourne GenreLexème.DécalageDroiteÉgal }
         si identifiant == ">>>" { retourne GenreLexème.DécalageDroiteNaturel }
