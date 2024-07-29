@@ -44,7 +44,7 @@ définis_rappels_interface :: fonc (user_agent: *UserAgent, rappels: *RappelsInt
 
 RappelsInterface :: struct {
     sur_destruction: fonc(*RappelsInterface)(rien)
-    sur_lancement_requête: fonc(*RappelsInterface, *Requête)(rien)
+    sur_lancement_requête: fonc(*RappelsInterface, *Request)(*Response)
     sur_spin_event_loop: fonc(*RappelsInterface)(rien)
     sur_élément_survolé: fonc(*RappelsInterface)(rien)
     sur_requête_rendu: fonc(*RappelsInterface)(rien)
@@ -75,6 +75,16 @@ requiers_rendu :: fonc (user_agent: *UserAgent)
     }
 
     rappels.sur_requête_rendu(rappels)
+}
+
+lance_requête :: fonc (user_agent: *UserAgent, request: *Request) -> *Response
+{
+    rappels := user_agent.rappels_interface
+    saufsi rappels && rappels.sur_lancement_requête {
+        retourne network_error()
+    }
+
+    retourne rappels.sur_lancement_requête(rappels, request)
 }
 
 /** \} */

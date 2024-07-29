@@ -1116,7 +1116,18 @@ rappels_interface_sur_requête_rendu :: fonc (base: *RappelsInterface)
     QT_application_poste_evenement(rappels.fenêtre, évènement_sur_requête_rendu)
 }
 
-rappels_interface_sur_lancement_requête :: fonc (base: *RappelsInterface, requête: *Requête)
+RappelsRequête :: struct {
+    empl base: QT_Rappels_Socket
+
+    requête: *Request
+    parseuse: ParseuseMessageServeuseHTTP
+    response: *Response
+
+    temps_parsage_http: z64
+    début_requête: Instantané
+}
+
+rappels_interface_sur_lancement_requête :: fonc (base: *RappelsInterface, requête: *Request) -> *Response
 {
     rappels := base comme *RappelsInterfaceQt
 
@@ -1124,33 +1135,29 @@ rappels_interface_sur_lancement_requête :: fonc (base: *RappelsInterface, requ�
 
     parent := rappels.fenêtre
 
-    uri := requête.ressource.uri
+    uri := requête.donne_url_courant()
     hôte := uri.hôte
     port := port_pour_uri(uri)
 
-    si requête.est_http() {
+    si uri.schéma == "http" {
         prise := QT_cree_ssl_socket_rappels(parent, rappels_socket)
         QT_abstract_socket_connect_to_host(prise, hôte.vers_qt(), port)
     }
     sinon {
-        assert(requête.est_https())
+        assert(uri.schéma == "https")
         prise := QT_cree_ssl_socket_rappels(parent, rappels_socket)
         QT_ssl_socket_connect_to_host_encrypted(prise, hôte.vers_qt(), port)
     }
-}
 
-crée_rappel_socket_pour_requête :: fonc (requête: *Requête) -> *QT_Rappels_Socket
-{
-    RappelsRequête :: struct {
-        empl base: QT_Rappels_Socket
-
-        requête: *Requête
-        parseuse: ParseuseMessageServeuseHTTP
-
-        temps_parsage_http: z64
-        début_requête: Instantané
+    tantque rappels_socket.response == nul {
+        rappels_interface_sur_spin_event_loop(rappels)
     }
 
+    retourne rappels_socket.response
+}
+
+crée_rappel_socket_pour_requête :: fonc (requête: *Request) -> *RappelsRequête
+{
     sur_connexion :: fonc (base: *QT_Rappels_Socket)
     {
         rappels := base comme *RappelsRequête
@@ -1161,7 +1168,7 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Requête) -> *QT_Rappels_S
         initialise_enchaineuse(*enchaineuse)
         diffère détruit_tampons(*enchaineuse)
 
-        uri := rappels.requête.ressource.uri
+        uri := rappels.requête.donne_url_courant()
 
         ajoute_au_tampon(*enchaineuse, "GET ")
         si uri.chemin {
@@ -1197,7 +1204,7 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Requête) -> *QT_Rappels_S
     {
         rappels := base comme *RappelsRequête
         imprime("Erreur\n")
-        ressource_eu_erreur(rappels.requête.ressource)
+        rappels.response = network_error()
     }
 
     sur_prêt_à_lire :: fonc (base: *QT_Rappels_Socket)
@@ -1235,13 +1242,14 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Requête) -> *QT_Rappels_S
 
         message := finalise_message(parseuse)
 
-        content_type := entête(*message, "Content-Type")
-        si content_type {
-            // imprime("Content-Type : %\n", content_type.valeur)
+        entête_content_type := entête(*message, "Content-Type")
+        content_type := "text/html" // À FAIRE
+        si entête_content_type {
+            imprime("Content-Type : %\n", entête_content_type.valeur)
 
-            position_charset := cherche_aiguille_par_force_brute(content_type.valeur, "charset=")
+            position_charset := cherche_aiguille_par_force_brute(entête_content_type.valeur, "charset=")
             si position_charset != -1 {
-                charset := avance(content_type.valeur, position_charset + "charset=".taille)
+                charset := avance(entête_content_type.valeur, position_charset + "charset=".taille)
 
                 si charset == "ISO-8859-1" {
                     nouveau_contenu := convertis_iso_8859_1_vers_utf8(message.contenu)
@@ -1251,8 +1259,17 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Requête) -> *QT_Rappels_S
             }
         }
 
-        requête.message = message
-        ressource_fut_chargée(requête.ressource, message.contenu)
+        response := loge(Response)
+        response.status = message.status
+
+        body_info := loge(ResponseBodyInfo)
+        body_info.decodede_size = message.contenu.taille comme z32
+        body_info.content_type = content_type
+
+        response.body_info = body_info
+        response.body = message.contenu
+
+        rappels.response = response
 
         réinitialise(parseuse)
 

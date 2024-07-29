@@ -431,7 +431,7 @@ anchor_element_sur_activation_behavior :: fonc (target: *EventTarget, event: *Ev
     }
 
     source_document := anchor.document
-    navigate(navigable, url, source_document)
+    navigate(source_document.donne_user_agent(), navigable, url, source_document)
 }
 
 /** \} */
