@@ -176,6 +176,53 @@ rafine_genre_lexème_identifiant :: fonc (identifiant: chaine) -> GenreLexème
     retourne GenreLexème.Identifiant
 }
 
+rafine_genre_lexème_opérateur :: fonc (identifiant: chaine) -> Optionnel(GenreLexème)
+{
+    si identifiant.taille == 1 {
+        c := identifiant[0]
+
+        si c == '+' { retourne GenreLexème.Plus }
+        si c == '-' { retourne GenreLexème.Moins }
+        si c == '/' { retourne GenreLexème.Slash }
+        si c == '*' { retourne GenreLexème.Étoile }
+        si c == '%' { retourne GenreLexème.Pourcent }
+        si c == '<' { retourne GenreLexème.Inférieur }
+        si c == '>' { retourne GenreLexème.Supérieur }
+        si c == '=' { retourne GenreLexème.Égal }
+        si c == '&' { retourne GenreLexème.EtBinaire }
+        si c == '|' { retourne GenreLexème.OuBinaire }
+        si c == '^' { retourne GenreLexème.OuExclusif }
+        si c == '~' { retourne GenreLexème.NonBinaire }
+        si c == '!' { retourne GenreLexème.NonLogique }
+    }
+    sinon si identifiant.taille == 2 {
+        si identifiant == "+=" { retourne GenreLexème.PlusÉgal }
+        si identifiant == "-=" { retourne GenreLexème.MoinsÉgal }
+        si identifiant == "*=" { retourne GenreLexème.ÉtoileÉgal }
+        si identifiant == "/=" { retourne GenreLexème.SlashÉgal }
+        si identifiant == "%=" { retourne GenreLexème.PourcentÉgal }
+        si identifiant == "<=" { retourne GenreLexème.InférieurÉgal }
+        si identifiant == ">=" { retourne GenreLexème.SupérieurÉgal }
+        si identifiant == "&=" { retourne GenreLexème.EtBinaireÉgal }
+        si identifiant == "|=" { retourne GenreLexème.OuBinaireÉgal }
+        si identifiant == "^=" { retourne GenreLexème.OuExclusifÉgal }
+        si identifiant == "==" { retourne GenreLexème.EstÉgal }
+        si identifiant == "!=" { retourne GenreLexème.NEspaPasÉgal }
+        si identifiant == "++" { retourne GenreLexème.PlusPlus }
+        si identifiant == "--" { retourne GenreLexème.MoinsMoins }
+        si identifiant == "<<" { retourne GenreLexème.DécalageGauche }
+        si identifiant == ">>" { retourne GenreLexème.DécalageDroite }
+        si identifiant == "&&" { retourne GenreLexème.EtLogique }
+        si identifiant == "||" { retourne GenreLexème.OuLogique }
+    }
+    sinon si identifiant.taille == 2 {
+        si identifiant == "<<=" { retourne GenreLexème.DécalageGaucheÉgal }
+        si identifiant == ">>=" { retourne GenreLexème.DécalageDroiteÉgal }
+        si identifiant == "===" { retourne GenreLexème.EstÉgalStrict }
+        si identifiant == "!==" { retourne GenreLexème.NEspaPasÉgalStrict }
+    }
+}
+
 Lexème :: struct {
     texte: chaine
     genre: GenreLexème
