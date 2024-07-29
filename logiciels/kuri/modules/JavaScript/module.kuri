@@ -339,7 +339,7 @@ vers_objet :: fonc (realm: *Realm, valeur: Valeur) -> CompletionRecord
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-topropertykey */
 to_property_key :: fonc (interpréteuse: &Interpréteuse, argument: Valeur) -> CompletionRecord
 {
-    retourne to_property_key(interpréteuse.donne_realm(), key)
+    retourne to_property_key(interpréteuse.donne_realm(), argument)
 }
 
 to_property_key :: fonc (realm: *Realm, argument: Valeur) -> CompletionRecord
@@ -730,13 +730,52 @@ Configurable :: DrapeauxPropriété.CONFIGURABLE
 Enumerable :: DrapeauxPropriété.ENUMERABLE
 Writable :: DrapeauxPropriété.WRITABLE
 
+PropertyKey :: union {
+    String: ECMAString
+    Symbol: *Symbol
+}
+
+opérateur == :: fonc (p1: PropertyKey, p2: PropertyKey) -> bool
+{
+    discr p1 {
+        String(s1) {
+            discr p2 {
+                String(s2) {
+                    retourne s1 == s2
+                }
+                sinon {
+                    retourne faux
+                }
+            }
+        }
+        Symbol(s1) {
+            discr p2 {
+                Symbol(s2) {
+                    retourne s1 == s2
+                }
+                sinon {
+                    retourne faux
+                }
+            }
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+opérateur != :: fonc (p1: PropertyKey, p2: PropertyKey) -> bool
+{
+    retourne !(p1 == p2)
+}
+
 Object :: struct {
     empl base: Cellule
     table = *table_virtuelle_objet
 
     /* https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-property-attributes */
     Propriété :: struct {
-        nom: ECMAString
+        nom: PropertyKey
         valeur: Valeur
         get: fonc(*Object)(Valeur)
         set: fonc(*Object, Valeur)(rien)
@@ -778,7 +817,7 @@ sur_destruction_objet :: fonc (base: *Cellule)
     déloge(objet.propriétés)
 }
 
-ajoute_propriété :: fonc (objet: *Object, nom: ECMAString, valeur: Valeur, drapeaux: DrapeauxPropriété)
+ajoute_propriété :: fonc (objet: *Object, nom: PropertyKey, valeur: Valeur, drapeaux: DrapeauxPropriété)
 {
     tableau_ajoute(*objet.propriétés, Object.Propriété(nom, valeur, drapeaux = drapeaux))
 }
@@ -790,19 +829,19 @@ internal_get_prototype_of :: fonc (object: *Object) -> *Object
 }
 
 /* [[GetOwnProperty]] */
-internal_get_own_property :: fonc (object: *Object, property_key: ECMAString) -> CompletionRecord
+internal_get_own_property :: fonc (object: *Object, property_key: PropertyKey) -> CompletionRecord
 {
     retourne object.sur_get_own_property(object, property_key)
 }
 
 /* [[DefineOwnProperty]] */
-internal_define_own_property :: fonc (object: *Object, property_key: ECMAString, desc: &PropertyDescriptor) -> CompletionRecord
+internal_define_own_property :: fonc (object: *Object, property_key: PropertyKey, desc: &PropertyDescriptor) -> CompletionRecord
 {
     retourne object.sur_define_own_property(object, property_key, desc)
 }
 
 /* [[HasProperty]] */
-internal_has_property :: fonc (object: *Object, property_key: ECMAString) -> CompletionRecord
+internal_has_property :: fonc (object: *Object, property_key: PropertyKey) -> CompletionRecord
 {
     // À FAIRE : sur_has_property
     propriété := trouve_propriété(object, property_key)
@@ -813,13 +852,13 @@ internal_has_property :: fonc (object: *Object, property_key: ECMAString) -> Com
 }
 
 /* [[Get]] */
-internal_get :: fonc (object: *Object, property_key: ECMAString, receiver: Valeur) -> CompletionRecord
+internal_get :: fonc (object: *Object, property_key: PropertyKey, receiver: Valeur) -> CompletionRecord
 {
     retourne object.sur_get(object, property_key, receiver)
 }
 
 /* [[Set]] */
-internal_set :: fonc (object: *Object, property_key: ECMAString, valeur: Valeur, receiver: Valeur @inutilisée) -> CompletionRecord
+internal_set :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur, receiver: Valeur @inutilisée) -> CompletionRecord
 {
     // À FAIRE : sur_set
     propriété := trouve_propriété(object, property_key)
@@ -838,7 +877,7 @@ internal_call :: fonc (object: *Object, interpréteuse: &Interpréteuse, this_va
     retourne object.sur_call(object, interpréteuse, this_value, arguments)
 }
 
-trouve_propriété :: fonc (objet: *Object, nom: ECMAString) -> *Object.Propriété
+trouve_propriété :: fonc (objet: *Object, nom: PropertyKey) -> *Object.Propriété
 {
     pour * objet.propriétés {
         si it.nom == nom {
@@ -857,19 +896,16 @@ trouve_propriété :: fonc (objet: *Object, nom: ECMAString) -> *Object.Proprié
 
 /* 7.3.2 Get
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-get-o-p */
-get :: fonc (object: *Object, property_key: ECMAString) -> CompletionRecord
+get :: fonc (object: *Object, property_key: PropertyKey) -> CompletionRecord
 {
-    // À FAIRE : type property_key
     // 1. Return ? O.[[Get]](P, O).
     retourne object.internal_get(property_key, Valeur(Object = object))
 }
 
 /* 7.3.4 Set
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-set-o-p-v-throw */
-set :: fonc (object: *Object, property_key: ECMAString, valeur: Valeur, throw: bool) -> CompletionRecord
+set :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur, throw: bool) -> CompletionRecord
 {
-    // À FAIRE : type property_key
-
     // 1. Let success be ? O.[[Set]](P, V, O).
     completion := object.internal_set(property_key, valeur, Valeur(Object = object))
     saufsi completion.est_normal() {
@@ -887,7 +923,7 @@ set :: fonc (object: *Object, property_key: ECMAString, valeur: Valeur, throw: b
 
 /* 7.3.5 CreateDataProperty ( O, P, V )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-createdataproperty */
-create_data_property :: fonc (object: *Object, property_key: ECMAString, valeur: Valeur) -> CompletionRecord
+create_data_property :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur) -> CompletionRecord
 {
     // 1. Let newDesc be the PropertyDescriptor { [[Value]]: V, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: true }.
     new_desc: PropertyDescriptor
@@ -902,7 +938,7 @@ create_data_property :: fonc (object: *Object, property_key: ECMAString, valeur:
 
 /* 7.3.6 CreateDataPropertyOrThrow ( O, P, V )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-createdatapropertyorthrow */
-create_data_property_or_throw :: fonc (object: *Object, property_key: ECMAString, valeur: Valeur) -> CompletionRecord
+create_data_property_or_throw :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur) -> CompletionRecord
 {
     // 1. Let success be ? CreateDataProperty(O, P, V).
     completion := create_data_property(object, property_key, valeur)
@@ -922,7 +958,7 @@ create_data_property_or_throw :: fonc (object: *Object, property_key: ECMAString
 
 /* 7.3.8 DefinePropertyOrThrow ( O, P, desc )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-definepropertyorthrow */
-define_property_or_throw :: fonc (object: *Object, property_key: ECMAString, desc: &PropertyDescriptor) -> CompletionRecord
+define_property_or_throw :: fonc (object: *Object, property_key: PropertyKey, desc: &PropertyDescriptor) -> CompletionRecord
 {
     // 1. Let success be ? O.[[DefineOwnProperty]](P, desc).
     completion := internal_define_own_property(object, property_key, desc)
@@ -942,7 +978,7 @@ define_property_or_throw :: fonc (object: *Object, property_key: ECMAString, des
 
 /* 7.3.11 HasProperty ( O, P ) 
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-hasproperty */
-has_property :: fonc (object: *Object, property_key: ECMAString) -> CompletionRecord
+has_property :: fonc (object: *Object, property_key: PropertyKey) -> CompletionRecord
 {
     // 1. Return ? O.[[HasProperty]](P).
     retourne internal_has_property(object, property_key)
@@ -950,7 +986,7 @@ has_property :: fonc (object: *Object, property_key: ECMAString) -> CompletionRe
 
 /* 7.3.12 HasOwnProperty ( O, P )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-hasownproperty */
-has_own_property :: fonc (object: *Object, nom: ECMAString) -> CompletionRecord
+has_own_property :: fonc (object: *Object, nom: PropertyKey) -> CompletionRecord
 {
     completion_desc := internal_get_own_property(object, nom)
     saufsi completion_desc.est_normal() {
@@ -1022,7 +1058,7 @@ ordinary_get_prototype_of :: fonc (object: *Object) -> *Object
 
 /* 10.1.5.1 OrdinaryGetOwnProperty ( O, P )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarygetownproperty */
-ordinary_get_own_property :: fonc (object: *Object, property_key: ECMAString) -> CompletionRecord
+ordinary_get_own_property :: fonc (object: *Object, property_key: PropertyKey) -> CompletionRecord
 {
     propriété := object.trouve_propriété(property_key)
 
@@ -1067,7 +1103,7 @@ ordinary_get_own_property :: fonc (object: *Object, property_key: ECMAString) ->
 
 /* 10.1.6 [[DefineOwnProperty]] ( P, Desc )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarydefineownproperty */
-ordinary_define_own_property :: fonc (object: *Object, property_key: ECMAString, desc: &PropertyDescriptor) -> CompletionRecord
+ordinary_define_own_property :: fonc (object: *Object, property_key: PropertyKey, desc: &PropertyDescriptor) -> CompletionRecord
 {
     // À FAIRE : standardise
     saufsi desc.value.possède_valeur() {
@@ -1101,7 +1137,7 @@ ordinary_define_own_property :: fonc (object: *Object, property_key: ECMAString,
 
 /* 10.1.8.1 OrdinaryGet ( O, P, Receiver )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinary-object-internal-methods-and-internal-slots-get-p-receiver */
-ordinary_get :: fonc (object: *Object, property_key: ECMAString, receiver: Valeur) -> CompletionRecord
+ordinary_get :: fonc (object: *Object, property_key: PropertyKey, receiver: Valeur) -> CompletionRecord
 {
     // 1. Let desc be ? O.[[GetOwnProperty]](P).
     completion_desc := internal_get_own_property(object, property_key)
@@ -1191,6 +1227,7 @@ crée_object_prototype :: fonc (tas_de_mémoire: *TasDeMémoire) -> *ObjectProto
 {
     résultat := tas_de_mémoire.alloue(ObjectPrototype)
     résultat.ajoute_fonction_native(STR_hasOwnProperty, object_prototype_has_own_property)
+    résultat.ajoute_fonction_native(STR_toString, object_prototype_to_string)
     retourne résultat
 }
 
@@ -1203,8 +1240,7 @@ object_prototype_has_own_property :: fonc (object: *Object @inutilisée, interpr
     }
 
     // 1. Let P be ? ToPropertyKey(V).
-    // À FAIRE : property_key
-    complétion_nom := vers_chaine(interpréteuse, args[0])
+    complétion_nom := to_property_key(interpréteuse, args[0])
     saufsi complétion_nom.est_normal() {
         retourne complétion_nom
     }
@@ -1219,6 +1255,63 @@ object_prototype_has_own_property :: fonc (object: *Object @inutilisée, interpr
 
     // 3. Return ? HasOwnProperty(O, P).
     retourne has_own_property(obj, nom)
+}
+
+/* 20.1.3.6 Object.prototype.toString ( )
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-object.prototype.tostring */
+object_prototype_to_string :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this: Valeur, args: []Valeur @inutilisée) -> CompletionRecord
+{
+    // 1. If the this value is undefined, return "[object Undefined]".
+    si this.est_undefined() {
+        retourne crée_string_value_completion(interpréteuse, "[object Undefined]")
+    }
+
+    // 2. If the this value is null, return "[object Null]".
+    si this.est_nulle() {
+        retourne crée_string_value_completion(interpréteuse, "[object Null]")
+    }
+
+    // 3. Let O be ! ToObject(this value).
+    O := vers_objet(interpréteuse.donne_realm(), this).valeur.V.donne_objet()
+
+    // À FAIRE : 4. Let isArray be ? IsArray(O).
+
+    builtin_tag: chaine
+
+    // 5. If isArray is true, let builtinTag be "Array".
+    si O.donne_classe() == ObjetArray {
+        builtin_tag = "Array"
+    }
+    // À FAIRE : 6. Else if O has a [[ParameterMap]] internal slot, let builtinTag be "Arguments".
+    // 7. Else if O has a [[Call]] internal method, let builtinTag be "Function".
+    sinon si O.sur_call {
+        builtin_tag = "Function"
+    }
+    // 8. Else if O has an [[ErrorData]] internal slot, let builtinTag be "Error".
+    sinon si O.donne_classe() == Error || O.donne_classe() == ReferenceError || O.donne_classe() == TypeError {
+        builtin_tag = "Error"
+    }
+    // À FAIRE : 9. Else if O has a [[BooleanData]] internal slot, let builtinTag be "Boolean".
+    // À FAIRE : 10. Else if O has a [[NumberData]] internal slot, let builtinTag be "Number".
+    // 11. Else if O has a [[StringData]] internal slot, let builtinTag be "String".
+    sinon si O.donne_classe() == ObjetChaine {
+        builtin_tag = "String"
+    }
+    // À FAIRE : 12. Else if O has a [[DateValue]] internal slot, let builtinTag be "Date".
+    // À FAIRE : 13. Else if O has a [[RegExpMatcher]] internal slot, let builtinTag be "RegExp".
+    // 14. Else, let builtinTag be "Object".
+    sinon {
+        builtin_tag = "Object"
+    }
+
+    // À FAIRE : 15. Let tag be ? Get(O, %Symbol.toStringTag%).
+    // 16. If tag is not a String, set tag to builtinTag.
+    tag := builtin_tag
+
+    // 17. Return the string-concatenation of "[object ", tag, and "]".
+    résultat := enchaine("[object ", tag, "]")
+    diffère déloge(résultat)
+    retourne crée_string_value_completion(interpréteuse, résultat)
 }
 
 /** \} */
@@ -1287,11 +1380,13 @@ Function :: struct {
     is_class_constructor := faux
 }
 
-crée_fonction :: fonc (tas_de_mémoire: *TasDeMémoire, nom: ECMAString, corps: *NoeudSyntaxique) -> *Function
+crée_fonction :: fonc (function_prototype: *FunctionPrototype, nom: ECMAString, corps: *NoeudSyntaxique) -> *Function
 {
+    tas_de_mémoire := function_prototype.donne_tas_de_mémoire()
     résultat := tas_de_mémoire.alloue(Function)
     résultat.nom = nom
     résultat.corps = corps
+    résultat.prototype = function_prototype
     résultat.sur_call = sur_appel_fonction_instruite
     retourne résultat
 }
@@ -1299,11 +1394,14 @@ crée_fonction :: fonc (tas_de_mémoire: *TasDeMémoire, nom: ECMAString, corps:
 /* 10.2.3 OrdinaryFunctionCreate ( functionPrototype, sourceText, ParameterList, Body, thisMode, env, privateEnv )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinaryfunctioncreate 
  * À FAIRE : paramètres et étapes manquants */
-ordinary_function_create :: fonc (tas_de_mémoire: *TasDeMémoire, params: [..]*NoeudSyntaxique, corps: *NoeudSyntaxique, this_mode: bool, env: *Environment, private_env: *PrivateEnvironment) -> *Function
+ordinary_function_create :: fonc (function_prototype: *FunctionPrototype, params: [..]*NoeudSyntaxique, corps: *NoeudSyntaxique, this_mode: bool, env: *Environment, private_env: *PrivateEnvironment) -> *Function
 {
+    tas_de_mémoire := function_prototype.donne_tas_de_mémoire()
+
     // 1. Let internalSlotsList be the internal slots listed in Table 30.
     // 2. Let F be OrdinaryObjectCreate(functionPrototype, internalSlotsList).
     F := tas_de_mémoire.alloue(Function)
+    F.prototype = function_prototype
 
     // 3. Set F.[[Call]] to the definition specified in 10.2.1.
     F.sur_call = sur_appel_fonction_instruite
@@ -1362,6 +1460,232 @@ sur_appel_fonction_instruite :: fonc (object: *Object, interpréteuse: &Interpr�
     assert(object.donne_classe() == Function)
     fonction := object comme *Function
     retourne interpréteuse.exécute(fonction.corps, TypeScope.FUNCTION)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 19.2.1 eval ( x )
+ * \{ */
+
+crée_eval :: fonc (function_prototype: *FunctionPrototype) -> *Function
+{
+    résultat := crée_fonction(function_prototype, STR_eval, nul)
+    résultat.sur_call = eval_sur_call
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/global-object.html#sec-eval-x */
+eval_sur_call :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur @inutilisée, arguments: []Valeur) -> CompletionRecord
+{
+    si arguments.taille == 0 {
+        retourne normal_completion(js_undefined)
+    }
+
+    retourne perform_eval(interpréteuse, arguments[0], faux, faux)
+}
+
+/* 19.2.1.1 PerformEval ( x, strictCaller, direct )
+ * https://tc39.es/ecma262/multipage/global-object.html#sec-performeval */
+perform_eval :: fonc (interpréteuse: &Interpréteuse, x: Valeur, strict_caller: bool, direct: bool) -> CompletionRecord
+{
+    // 1. Assert: If direct is false, then strictCaller is also false.
+    assert(direct == vrai || (direct == faux && strict_caller == faux))
+
+    // 2. If x is not a String, return x.
+    saufsi x.est_chaine() {
+        retourne normal_completion(x)
+    }
+
+    // 3. Let evalRealm be the current Realm Record.
+    // 4. NOTE: In the case of a direct eval, evalRealm is the realm of both the caller of eval and of the eval function itself.
+    eval_realm := interpréteuse.donne_realm()
+
+    // À FAIRE : 5. Perform ? HostEnsureCanCompileStrings(evalRealm, « », x, direct).
+
+    // 6. Let inFunction be false.
+    in_function := faux
+
+    // 7. Let inMethod be false.
+    in_method := faux
+
+    // 8. Let inDerivedConstructor be false.
+    in_derived_constructor := faux
+
+    // 9. Let inClassFieldInitializer be false.
+    in_class_field_initializer := faux
+
+    // 10. If direct is true, then
+    si direct {
+        // a. Let thisEnvRec be GetThisEnvironment().
+        // b. If thisEnvRec is a Function Environment Record, then
+            // i. Let F be thisEnvRec.[[FunctionObject]].
+            // ii. Set inFunction to true.
+            // iii. Set inMethod to thisEnvRec.HasSuperBinding().
+            // iv. If F.[[ConstructorKind]] is DERIVED, set inDerivedConstructor to true.
+            // v. Let classFieldInitializerName be F.[[ClassFieldInitializerName]].
+            // vi. If classFieldInitializerName is not EMPTY, set inClassFieldInitializer to true.
+        panique("direct eval non-implémenté")
+    }
+
+    // À FAIRE : 11. Perform the following substeps in an implementation-defined order, possibly interleaving parsing and error detection:
+    // À FAIRE : a. Let script be ParseText(x, Script).
+    // b. If script is a List of errors, throw a SyntaxError exception.
+    script: *Script
+    contenu := converti_vers_chaine(x.String.texte.donne_chaine_utf16())
+    diffère déloge(contenu)
+
+    discr parse_script(contenu, eval_realm) {
+        Ok(s) {
+            script = s
+        }
+        Erreur(e) {
+            diffère déloge(e.message)
+            retourne interpréteuse.lance_syntax_error(e.message)
+        }
+        sinon {
+            chn := "Erreur inconnue"
+            retourne interpréteuse.lance_syntax_error(chn)
+        }
+    }
+
+    // À FAIRE : c. If script Contains ScriptBody is false, return undefined.
+    // À FAIRE : d. Let body be the ScriptBody of script.
+    body := script.ecma_script_code
+
+    // À FAIRE : e. If inFunction is false and body Contains NewTarget, throw a SyntaxError exception.
+    // À FAIRE : f. If inMethod is false and body Contains SuperProperty, throw a SyntaxError exception.
+    // À FAIRE : g. If inDerivedConstructor is false and body Contains SuperCall, throw a SyntaxError exception.
+    // À FAIRE : h. If inClassFieldInitializer is true and ContainsArguments of body is true, throw a SyntaxError exception.
+
+    // 12. If strictCaller is true, let strictEval be true.
+    strict_eval := si strict_caller {
+        vrai
+    }
+    // 13. Else, let strictEval be ScriptIsStrict of script.
+    sinon {
+        // À FAIRE : ScriptIsStrict
+        faux
+    }
+
+    // 14. Let runningContext be the running execution context.
+    // 15. NOTE: If direct is true, runningContext will be the execution context that performed the direct eval. If direct is false, runningContext will be the execution context for the invocation of the eval function.
+    running_context := interpréteuse.donne_running_execution_context()
+
+    lex_env: *Environment
+    var_env: *Environment
+    private_env: *PrivateEnvironment
+
+    // 16. If direct is true, then
+    si direct {
+        // a. Let lexEnv be NewDeclarativeEnvironment(runningContext's LexicalEnvironment).
+        lex_env = new_declarative_environment(interpréteuse.donne_tas_de_mémoire(), running_context.lexical_environment)
+
+        // b. Let varEnv be runningContext's VariableEnvironment.
+        var_env = running_context.variable_environment
+    
+        // c. Let privateEnv be runningContext's PrivateEnvironment.
+        private_env = running_context.private_environment
+    }
+    // 17. Else,
+    sinon {
+        // a. Let lexEnv be NewDeclarativeEnvironment(evalRealm.[[GlobalEnv]]).
+        lex_env = new_declarative_environment(interpréteuse.donne_tas_de_mémoire(), eval_realm.global_environment)
+
+        // b. Let varEnv be evalRealm.[[GlobalEnv]].
+        var_env = eval_realm.global_environment
+
+        // c. Let privateEnv be null.
+        private_env = nul
+    }
+
+    // 18. If strictEval is true, set varEnv to lexEnv.
+    si strict_eval {
+        var_env = lex_env
+    }
+
+    // 19. If runningContext is not already suspended, suspend runningContext.
+    mv := interpréteuse.mv
+    mv.suspend_running_execution_context()
+
+    // 20. Let evalContext be a new ECMAScript code execution context.
+    eval_context := crée_execution_context(interpréteuse.donne_tas_de_mémoire())
+
+    // 21. Set evalContext's Function to null.
+    eval_context.function = nul
+
+    // 22. Set evalContext's Realm to evalRealm.
+    eval_context.realm = eval_realm
+
+    // 23. Set evalContext's ScriptOrModule to runningContext's ScriptOrModule.
+    eval_context.script_or_module = running_context.script_or_module
+
+    // 24. Set evalContext's VariableEnvironment to varEnv.
+    eval_context.variable_environment = var_env
+
+    // 25. Set evalContext's LexicalEnvironment to lexEnv.
+    eval_context.lexical_environment = lex_env
+
+    // 26. Set evalContext's PrivateEnvironment to privateEnv.
+    eval_context.private_environment = private_env
+
+    // 27. Push evalContext onto the execution context stack; evalContext is now the running execution context.
+    mv.empile_execution_context(eval_context)
+
+    // À FAIRE : 28. Let result be Completion(EvalDeclarationInstantiation(body, varEnv, lexEnv, privateEnv, strictEval)).
+    result := normal_completion(js_undefined)
+
+    // 29. If result is a normal completion, then
+    si result.est_normal() {
+        // a. Set result to Completion(Evaluation of body).
+        result = interpréteuse.exécute(body)
+    }
+
+    // 30. If result is a normal completion and result.[[Value]] is EMPTY, then
+        // a. Set result to NormalCompletion(undefined).
+
+    // 31. Suspend evalContext and remove it from the execution context stack.
+    mv.suspend_running_execution_context()
+    mv.dépile_execution_context()
+
+    // À FAIRE : 32. Resume the context that is now on the top of the execution context stack as the running execution context.
+
+    // 33. Return ? result.
+    retourne result
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom FunctionPrototype
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-function-prototype-object
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_function_prototype := TableVirtuelleCellule(classe = FunctionPrototype, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
+/* À FAIRE : is builtin function object */
+FunctionPrototype :: struct {
+    empl function: Function
+    table = *table_virtuelle_function_prototype
+}
+
+crée_function_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ObjectPrototype) -> *FunctionPrototype
+{
+    résultat := tas_de_mémoire.alloue(FunctionPrototype)
+    résultat.prototype = prototype
+    résultat.sur_call = fonction_prototype_sur_call
+    résultat.ajoute_propriété(STR_length, Valeur(Number = 0.0), DrapeauxPropriété.zéro)
+    résultat.ajoute_propriété(STR_name, Valeur(String = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(""))), DrapeauxPropriété.zéro)
+    retourne résultat
+}
+
+fonction_prototype_sur_call :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse @inutilisée, this_value: Valeur @inutilisée, arguments: []Valeur @inutilisée) -> CompletionRecord
+{
+    retourne normal_completion(js_undefined)
 }
 
 /** \} */
@@ -1789,6 +2113,70 @@ ReferenceErrorPrototype :: struct {
 crée_reference_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ErrorPrototype) -> *ReferenceErrorPrototype
 {
     résultat := tas_de_mémoire.alloue(ReferenceErrorPrototype)
+    résultat.prototype = prototype
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom SyntaxError
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-native-error-types-used-in-this-standard-syntaxerror
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_syntax_error := TableVirtuelleCellule(classe = SyntaxError, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
+SyntaxError :: struct {
+    empl error: Error
+    table = *table_virtuelle_syntax_error
+
+    message: *PrimitiveChaine
+}
+
+crée_syntax_error :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *SyntaxErrorPrototype, message: chaine) -> *SyntaxError
+{
+    résultat := tas_de_mémoire.alloue(SyntaxError)
+    résultat.prototype = prototype
+    résultat.message = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(message))
+    retourne résultat
+}
+
+lance_syntax_error :: fonc (interpréteuse: &Interpréteuse, message: chaine) -> CompletionRecord
+{
+    retourne lance_syntax_error(interpréteuse.donne_realm(), message)
+}
+
+lance_syntax_error :: fonc (realm: *Realm, message: chaine) -> CompletionRecord
+{
+    exception := crée_syntax_error(realm.donne_tas_de_mémoire(), realm.intrinsics.syntax_error_prototype, message)
+    retourne throw_completion(exception)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom SyntaxErrorPrototype
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-nativeerror-prototype-objects
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_syntax_error_prototype := TableVirtuelleCellule(classe = SyntaxErrorPrototype, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
+SyntaxErrorPrototype :: struct {
+    empl objet: Object
+    table = *table_virtuelle_syntax_error_prototype
+}
+
+crée_syntax_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ErrorPrototype) -> *SyntaxErrorPrototype
+{
+    résultat := tas_de_mémoire.alloue(SyntaxErrorPrototype)
     résultat.prototype = prototype
     retourne résultat
 }
