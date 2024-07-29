@@ -139,11 +139,22 @@ EventType :: énum n8 {
  * https://dom.spec.whatwg.org/#event
  * \{ */
 
+/* https://dom.spec.whatwg.org/#dom-event-eventphase */
+EventPhase :: énum {
+    NONE :: 0
+    CAPTURING_PHASE :: 1
+    AT_TARGET :: 2
+    BUBBLING_PHASE :: 3
+}
+
 Event :: struct {
+    type: EventType
+    event_phase: EventPhase
+
     target: *EventTarget
     related_target: *EventTarget
     current_target: *EventTarget
-    touche_target_list: [..]*EventTarget
+    touch_target_list: [..]*EventTarget
 
     /* Flags. */
     dispatch: bool
@@ -151,9 +162,56 @@ Event :: struct {
     canceled: bool
     stop_propagation: bool
     stop_immediate_propagation: bool
+    bubbles: bool
 
     /* Attributes. */
     is_trusted: bool
+
+    /* https://dom.spec.whatwg.org/#event-path */
+    Path :: struct {
+        invocation_target: *EventTarget
+        shadow_adjusted_target: *EventTarget
+        related_target: *EventTarget
+        touch_target_list: [..]*EventTarget
+        root_of_closed_tree: bool
+        slot_in_closed_tree: bool
+        invocation_target_in_shadow_tree: bool
+    }
+
+    path: [..]Path
+}
+
+/* https://dom.spec.whatwg.org/#concept-event-path-append */
+append_event_path :: fonc (event: *Event, invocation_target: *EventTarget, shadow_adjusted_target: *EventTarget, related_target: *EventTarget, touch_target_list: [..]*EventTarget, slot_in_closed_tree: bool)
+{
+    // 1. Let invocationTargetInShadowTree be false.
+    invocation_target_in_shadow_tree := faux
+
+    // À FAIRE : 2. If invocationTarget is a node and its root is a shadow root, then set invocationTargetInShadowTree to true.
+
+    // 3. Let root-of-closed-tree be false.
+    root_of_closed_tree := faux
+
+    // À FAIRE : 4. If invocationTarget is a shadow root whose mode is "closed", then set root-of-closed-tree to true.
+
+    // 5. Append a new struct to event’s path whose
+    // invocation target is invocationTarget,
+    // invocation-target-in-shadow-tree is invocationTargetInShadowTree,
+    // shadow-adjusted target is shadowAdjustedTarget,
+    // relatedTarget is relatedTarget,
+    // touch target list is touchTargets,
+    // root-of-closed-tree is root-of-closed-tree,
+    // and slot-in-closed-tree is slot-in-closed-tree.
+    path: Event.Path
+    path.invocation_target = invocation_target
+    path.shadow_adjusted_target = shadow_adjusted_target
+    path.related_target = related_target
+    path.touch_target_list = touch_target_list
+    path.invocation_target_in_shadow_tree = invocation_target_in_shadow_tree
+    path.root_of_closed_tree = root_of_closed_tree
+    path.slot_in_closed_tree = slot_in_closed_tree
+
+    tableau_ajoute(*event.path, path)
 }
 
 /** } */
@@ -185,7 +243,32 @@ AddEventListenerOptions :: struct {
  * https://dom.spec.whatwg.org/#eventtarget
  * \{ */
 
+#portée_module
+
+TableVirtuelleEventTarget :: struct {
+    /* Appelé quand la cible est détruite. */
+    sur_destruction: fonc(*EventTarget)(rien)
+    /* https://dom.spec.whatwg.org/#get-the-parent */
+    sur_get_the_parent: fonc(*EventTarget, *Event)(*EventTarget) = event_target_sur_get_the_parent
+    /* https://dom.spec.whatwg.org/#eventtarget-activation-behavior */
+    sur_activation_behavior: fonc(*EventTarget, *Event)(rien)
+    /* https://dom.spec.whatwg.org/#eventtarget-legacy-pre-activation-behavior */
+    sur_legacy_pre_activation_behavior: fonc(*EventTarget, *Event)(rien)
+    /* https://dom.spec.whatwg.org/#eventtarget-legacy-canceled-activation-behavior */
+    sur_legacy_canceled_activation_behavior: fonc(*EventTarget, *Event)(rien)
+}
+
+/* Implémentation défaut pour get_the_parent. */
+event_target_sur_get_the_parent :: fonc (target: *EventTarget @inutilisée, event: *Event @inutilisée) -> *EventTarget
+{
+    retourne nul
+}
+
+#portée_export
+
 EventTarget :: struct {
+    table: *TableVirtuelleEventTarget
+
     EventListenerEntry :: struct {
         type: EventType
         callback: *EventListener
@@ -200,6 +283,47 @@ EventTarget :: struct {
 }
 
 #portée_fichier
+
+get_the_parent :: fonc (target: *EventTarget, event: *Event) -> *EventTarget
+{
+    assert(target.table != nul)
+    assert(target.table.sur_get_the_parent != nul)
+    retourne target.table.sur_get_the_parent(target, event)
+}
+
+possède_activation_behavior :: fonc (target: *EventTarget) -> bool
+{
+    /* À FAIRE : nous pourrions avoir une condition plus subtile pour,
+     *  par exemple, les éléments ancres qui n'ont pas de href. */
+    retourne target.table != nul && target.table.sur_activation_behavior != nul
+}
+
+run_activation_behavior :: fonc (target: *EventTarget, event: *Event)
+{
+    assert(target.table != nul)
+    assert(target.table.sur_activation_behavior != nul)
+    target.table.sur_activation_behavior(target, event)
+}
+
+possède_legacy_pre_activation_behavior :: fonc (target: *EventTarget) -> bool
+{
+    assert(possède_activation_behavior(target))
+    retourne target.table != nul && target.table.sur_legacy_pre_activation_behavior != nul
+}
+
+run_legacy_pre_activation_behavior :: fonc (target: *EventTarget, event: *Event)
+{
+    assert(target.table != nul)
+    assert(target.table.sur_legacy_pre_activation_behavior != nul)
+    target.table.sur_legacy_pre_activation_behavior(target, event)
+}
+
+run_legacy_canceled_activation_behavior :: fonc (target: *EventTarget, event: *Event)
+{
+    assert(target.table != nul)
+    assert(target.table.sur_legacy_canceled_activation_behavior != nul)
+    target.table.sur_legacy_canceled_activation_behavior(target, event)
+}
 
 /* https://dom.spec.whatwg.org/#add-an-event-listener */
 add_an_event_listener :: fonc (target: *EventTarget, listener: EventTarget.EventListenerEntry)
@@ -284,6 +408,29 @@ default_passive_value :: fonc (type: EventType, target: *EventTarget) -> bool
     retourne faux
 }
 
+/* https://html.spec.whatwg.org/multipage/nav-history-apis.html#concept-document-window */
+donne_document_associé :: fonc (target: *EventTarget @inutilisée) -> *Document
+{
+    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+    retourne nul
+}
+
+/* https://dom.spec.whatwg.org/#retarget */
+retarget :: fonc (a: *EventTarget @inutilisée, b: *EventTarget @inutilisée) -> *EventTarget
+{
+    // boucle {
+        // 1. If one of the following is true
+        //     A is not a node
+        //     A’s root is not a shadow root
+        //     B is a node and A’s root is a shadow-including inclusive ancestor of B
+        //     then return A.
+
+        // 2. Set A to A’s root’s host.
+    //}
+    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+    retourne nul
+}
+
 #portée_export
 
 /* https://dom.spec.whatwg.org/#dom-eventtarget-addeventlistener */
@@ -364,8 +511,6 @@ dispatch_event :: fonc (target: *EventTarget, event: *Event) -> bool
 /* https://dom.spec.whatwg.org/#concept-event-dispatch */
 dispatch :: fonc (event: *Event, target: *EventTarget, legacy_target_override : *bool = nul, legacy_output_did_listeners_throw : *bool = nul) -> bool
 {
-    imprime("[HTML] À FAIRE : %\n", #nom_de_cette_fonction)
-
     // 1. Set event’s dispatch flag.
     event.dispatch = vrai
 
@@ -399,8 +544,9 @@ dispatch :: fonc (event: *Event, target: *EventTarget, legacy_target_override : 
         // 3. Append to an event path with event, target, targetOverride, relatedTarget, touchTargets, and false.
         append_event_path(event, target, target_override, related_target, touch_targets, faux)
 
-        // À FAIRE 4. Let isActivationEvent be true, if event is a MouseEvent object and event’s type attribute is "click"; otherwise false.
-        is_activation_event := faux
+        // 4. Let isActivationEvent be true, if event is a MouseEvent object and event’s type attribute is "click"; otherwise false.
+        // À FAIRE : vérifie si MouseEvent
+        is_activation_event := event.type == EventType.click
 
         // 5. If isActivationEvent is true and target has activation behavior, then set activationTarget to target.
         si is_activation_event && target.possède_activation_behavior() {
@@ -469,27 +615,47 @@ dispatch :: fonc (event: *Event, target: *EventTarget, legacy_target_override : 
 
         // 11. Let clearTargets be true if clearTargetsStruct’s shadow-adjusted target, clearTargetsStruct’s relatedTarget, or an EventTarget object in clearTargetsStruct’s touch target list is a node and its root is a shadow root; otherwise false.
 
-        // 12. If activationTarget is non-null and activationTarget has legacy-pre-activation behavior, then run activationTarget’s legacy-pre-activation behavior.
+        // 12. If activationTarget is non-null and activationTarget has legacy-pre-activation behavior,
+        //     then run activationTarget’s legacy-pre-activation behavior.
+        si activation_target && activation_target.possède_legacy_pre_activation_behavior() {
+            run_legacy_pre_activation_behavior(activation_target, event)
+        }
 
         // 13. For each struct in event’s path, in reverse order:
-
+        pour > event.path {
             // 1. If struct’s shadow-adjusted target is non-null, then set event’s eventPhase attribute to AT_TARGET.
-
+            si it.shadow_adjusted_target {
+                event.event_phase = EventPhase.AT_TARGET
+            }
             // 2. Otherwise, set event’s eventPhase attribute to CAPTURING_PHASE.
+            sinon {
+                event.event_phase = EventPhase.CAPTURING_PHASE
+            }
 
             // 3. Invoke with struct, event, "capturing", and legacyOutputDidListenersThrowFlag if given.
+            invoke(it, event, "capturing", legacy_output_did_listeners_throw)
+        }
 
         // 14. For each struct in event’s path:
-
+        pour event.path {
             // 1. If struct’s shadow-adjusted target is non-null, then set event’s eventPhase attribute to AT_TARGET.
-
+            si it.shadow_adjusted_target {
+                event.event_phase = EventPhase.AT_TARGET
+            }
             // 2. Otherwise:
-
+            sinon {
                 // 1. If event’s bubbles attribute is false, then continue.
+                saufsi event.bubbles {
+                    continue
+                }
 
                 // 2. Set event’s eventPhase attribute to BUBBLING_PHASE.
+                event.event_phase = EventPhase.BUBBLING_PHASE
+            }
 
             // 3. Invoke with struct, event, "bubbling", and legacyOutputDidListenersThrowFlag if given.
+            invoke(it, event, "bubbling", legacy_output_did_listeners_throw)
+        }
     }
 
     // 6. Set event’s eventPhase attribute to NONE.
@@ -532,6 +698,12 @@ dispatch :: fonc (event: *Event, target: *EventTarget, legacy_target_override : 
 
     // 12. Return false if event’s canceled flag is set; otherwise true.
     retourne event.canceled == faux
+}
+
+/* https://dom.spec.whatwg.org/#concept-event-listener-invoke */
+invoke :: fonc (segment: &Event.Path @inutilisée, event: *Event @inutilisée, phase: chaine @inutilisée, legacy_output_did_listeners_throw : *bool = nul @inutilisée)
+{
+    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
 }
 
 /** \} */

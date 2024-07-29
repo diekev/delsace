@@ -37,7 +37,6 @@ GenreLexème :: énum {
     EtBinaireÉgal
     OuBinaireÉgal
     OuExclusifÉgal
-    NonBinaireÉgal
     EstÉgal
     NEspaPasÉgal
     EstÉgalStrict
@@ -107,27 +106,6 @@ GenreLexème :: énum {
     While
     With
     Yield
-}
-
-donne_genre_lexème_pour_assignation_composée :: fonc (genre: GenreLexème) -> GenreLexème
-{
-    discr genre {
-        PlusÉgal { retourne GenreLexème.Plus }
-        MoinsÉgal { retourne GenreLexème.Moins }
-        ÉtoileÉgal { retourne GenreLexème.Étoile }
-        SlashÉgal { retourne GenreLexème.Slash }
-        PourcentÉgal { retourne GenreLexème.Pourcent }
-        DécalageGaucheÉgal { retourne GenreLexème.DécalageGauche }
-        DécalageDroiteÉgal { retourne GenreLexème.DécalageDroite }
-        EtBinaireÉgal { retourne GenreLexème.EtBinaire }
-        OuBinaireÉgal { retourne GenreLexème.OuBinaire }
-        OuExclusifÉgal { retourne GenreLexème.OuExclusif }
-        NonBinaireÉgal { retourne GenreLexème.NonBinaire }
-        sinon {}
-    }
-
-    assert(faux)
-    retourne GenreLexème.Plus
 }
 
 rafine_genre_lexème_identifiant :: fonc (identifiant: chaine) -> GenreLexème
@@ -238,7 +216,6 @@ associativité_pour_opérateur :: fonc (genre: GenreLexème) -> Associativité
         EtBinaireÉgal,
         OuBinaireÉgal,
         OuExclusifÉgal,
-        NonBinaireÉgal,
         EstÉgal,
         NEspaPasÉgal,
         EstÉgalStrict,
@@ -278,8 +255,7 @@ précédence_pour_opérateur :: fonc (genre: GenreLexème) -> z32
         DécalageDroiteÉgal,
         EtBinaireÉgal,
         OuBinaireÉgal,
-        OuExclusifÉgal,
-        NonBinaireÉgal {
+        OuExclusifÉgal {
             retourne 2
         }
         OuLogique {
@@ -421,7 +397,6 @@ est_lexème_expression_secondaire :: fonc (genre: GenreLexème) -> bool
         EtBinaireÉgal,
         OuBinaireÉgal,
         OuExclusifÉgal,
-        NonBinaireÉgal,
         EstÉgal,
         NEspaPasÉgal,
         EstÉgalStrict,

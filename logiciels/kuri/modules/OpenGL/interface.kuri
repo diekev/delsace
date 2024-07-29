@@ -95,6 +95,9 @@ GL_DYNAMIC_DRAW : GLenum : 0x88E8
 GL_DYNAMIC_READ : GLenum : 0x88E9
 GL_DYNAMIC_COPY : GLenum : 0x88EA
 GL_ARRAY_BUFFER_BINDING : GLenum : 0x8894
+GL_RED_INTEGER : GLenum : 0x8D94
+GL_R32I : GLenum : 0x8235
+GL_R32UI : GLenum : 0x8236
 
 GL_ONE : n32 : 1
 GL_LESS : GLenum : 0x0201
@@ -117,6 +120,10 @@ glBlendFunc :: fonc (sfactor: n32, dfactor: n32) -> rien #externe libGL
 
 glViewport :: fonc (px: z32, py: z32, tx: z32, ty: z32) -> rien #externe libGL
 
+glReadBuffer :: fonc (mode: GLenum) -> rien #externe libGL
+
+glReadPixels :: fonc (x: GLint, y: GLint, width: GLsizei, height: GLsizei, format: GLenum, type: GLenum, data: *rien) -> rien #externe libGL
+
 // foncs de VAO
 glGenVertexArrays :: fonc (n: z32, ptr: *n32) -> rien #externe libGL
 glDeleteVertexArrays :: fonc (n: z32, ptr: *n32) -> rien #externe libGL
@@ -134,6 +141,7 @@ glIsBuffer :: fonc (target: GLenum) -> GLboolean #externe libGL
 glEnableVertexAttribArray :: fonc (id: n32) -> rien #externe libGL
 glDisableVertexAttribArray :: fonc (id: n32) -> rien #externe libGL
 glVertexAttribPointer :: fonc (index: n32, size: z32, type_: n32, normalized: n32, stride: n32, pointer: *rien) -> rien #externe libGL
+glVertexAttribIPointer :: fonc (index: n32, size: z32, type_: n32, stride: n32, pointer: *rien) -> rien #externe libGL
 glDrawArrays :: fonc (mode: n32, first: z32, count: z64) -> rien #externe libGL
 glDrawElements :: fonc (mode: GLenum, count: z64, type: GLenum, indices: *rien) -> rien #externe libGL
 
@@ -256,6 +264,68 @@ glIsShader :: fonc (shader: n32) -> bool #externe libGL
 glIsProgram :: fonc (program: GLuint) -> GLboolean #externe libGL
 
 glGetError :: fonc () -> n32 #externe libGL
+
+/* ------------------------------------------------------------------------- */
+/** \nom FrameBuffer
+ * \{ */
+
+GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE : GLenum : 0x8CD0
+GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME : GLenum : 0x8CD1
+GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL : GLenum : 0x8CD2
+GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE : GLenum : 0x8CD3
+GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER : GLenum : 0x8CD4
+GL_FRAMEBUFFER_COMPLETE : GLenum : 0x8CD5
+GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT : GLenum : 0x8CD6
+GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT : GLenum : 0x8CD7
+GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER : GLenum : 0x8CDB
+GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER : GLenum : 0x8CDC
+GL_FRAMEBUFFER_UNSUPPORTED : GLenum : 0x8CDD
+GL_MAX_COLOR_ATTACHMENTS : GLenum : 0x8CDF
+GL_COLOR_ATTACHMENT0 : GLenum : 0x8CE0
+GL_COLOR_ATTACHMENT1 : GLenum : 0x8CE1
+GL_COLOR_ATTACHMENT2 : GLenum : 0x8CE2
+GL_COLOR_ATTACHMENT3 : GLenum : 0x8CE3
+GL_COLOR_ATTACHMENT4 : GLenum : 0x8CE4
+GL_COLOR_ATTACHMENT5 : GLenum : 0x8CE5
+GL_COLOR_ATTACHMENT6 : GLenum : 0x8CE6
+GL_COLOR_ATTACHMENT7 : GLenum : 0x8CE7
+GL_COLOR_ATTACHMENT8 : GLenum : 0x8CE8
+GL_COLOR_ATTACHMENT9 : GLenum : 0x8CE9
+GL_COLOR_ATTACHMENT10 : GLenum : 0x8CEA
+GL_COLOR_ATTACHMENT11 : GLenum : 0x8CEB
+GL_COLOR_ATTACHMENT12 : GLenum : 0x8CEC
+GL_COLOR_ATTACHMENT13 : GLenum : 0x8CED
+GL_COLOR_ATTACHMENT14 : GLenum : 0x8CEE
+GL_COLOR_ATTACHMENT15 : GLenum : 0x8CEF
+GL_FRAMEBUFFER : GLenum : 0x8D40
+GL_READ_FRAMEBUFFER : GLenum : 0x8CA8
+GL_DRAW_FRAMEBUFFER : GLenum : 0x8CA9
+
+glGenFramebuffers :: fonc (n: GLsizei, ids: *GLuint) -> rien #externe libGL
+glDeleteFramebuffers :: fonc (n: GLsizei, ids: *GLuint) -> rien #externe libGL
+glIsFramebuffer :: fonc (framebuffer: GLuint) -> GLboolean #externe libGL
+glBindFramebuffer :: fonc (target: GLenum, framebuffer: GLuint) -> rien #externe libGL
+glCheckFramebufferStatus :: fonc (target: GLenum) -> GLenum #externe libGL
+glFramebufferRenderbuffer :: fonc (target: GLenum, attachment: GLenum, renderbuffertarget: GLenum, renderbuffer: GLuint) -> rien #externe libGL
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom RenderBuffer
+ * \{ */
+
+GL_RENDERBUFFER : GLenum : 0x8D41
+GL_RENDERBUFFER_WIDTH : GLenum : 0x8D42
+GL_RENDERBUFFER_HEIGHT : GLenum : 0x8D43
+GL_RENDERBUFFER_INTERNAL_FORMAT : GLenum : 0x8D44
+
+glGenRenderbuffers :: fonc (n: GLsizei, ids: *GLuint) -> rien #externe libGL
+glDeleteRenderbuffers :: fonc (n: GLsizei, ids: *GLuint) -> rien #externe libGL
+glIsRenderbuffer :: fonc (framebuffer: GLuint) -> GLboolean #externe libGL
+glBindRenderbuffer :: fonc (target: GLenum, renderbuffer: GLuint) -> rien #externe libGL
+glRenderbufferStorage :: fonc (target: GLenum, internalformat: GLenum, width: GLsizei, height: GLsizei) -> rien #externe libGL
+
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Ciseau.

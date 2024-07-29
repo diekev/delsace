@@ -126,12 +126,15 @@ crée_execution_context :: fonc (tas_de_mémoire: *TasDeMémoire) -> *ExecutionC
 Intrinsics :: struct {
     string_prototype: *StringPrototype
     object_prototype: *ObjectPrototype
+    function_prototype: *FunctionPrototype
     array_prototype: *ArrayPrototype
     error_prototype: *ErrorPrototype
     reference_error_prototype: *ReferenceErrorPrototype
     type_error_prototype: *TypeErrorPrototype
+    syntax_error_prototype: *SyntaxErrorPrototype
 
     array: *ArrayConstructor
+    eval: *Function
 }
 
 /* 9.3.2 CreateIntrinsics ( realmRec )
@@ -142,12 +145,15 @@ create_intrinsics :: fonc (realm: *Realm)
 
     realm.intrinsics.object_prototype = crée_object_prototype(tas_de_mémoire)
     realm.intrinsics.string_prototype = crée_string_prototype(tas_de_mémoire, realm.intrinsics.object_prototype)
+    realm.intrinsics.function_prototype = crée_function_prototype(tas_de_mémoire, realm.intrinsics.object_prototype)
     realm.intrinsics.array_prototype = crée_array_prototype(tas_de_mémoire, realm.intrinsics.object_prototype)
     realm.intrinsics.error_prototype = crée_error_prototype(tas_de_mémoire, realm.intrinsics.object_prototype)
     realm.intrinsics.reference_error_prototype = crée_reference_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype)
     realm.intrinsics.type_error_prototype = crée_type_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype)
+    realm.intrinsics.syntax_error_prototype = crée_syntax_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype)
 
     realm.intrinsics.array = crée_array_constructor(tas_de_mémoire, realm.intrinsics.array_prototype)
+    realm.intrinsics.eval = crée_eval(realm.intrinsics.function_prototype)
 }
 
 /** \} */
@@ -291,6 +297,10 @@ set_default_global_bindings :: fonc (realm: *Realm)
     desc = PropertyDescriptor()
     desc.value = Valeur(Object = realm.intrinsics.array)
     _ := define_property_or_throw(global, STR_Array, desc)
+
+    desc = PropertyDescriptor()
+    desc.value = Valeur(Function = realm.intrinsics.eval)
+    _ := define_property_or_throw(global, STR_eval, desc)
 
     // 3. Return UNUSED.
 }
