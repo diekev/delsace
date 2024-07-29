@@ -7,12 +7,14 @@ importe Fondation
 STR_bigint: ChaineUTF16Unique = ---
 STR_boolean: ChaineUTF16Unique = ---
 STR_constructor: ChaineUTF16Unique = ---
+STR_eval: ChaineUTF16Unique = ---
 STR_false: ChaineUTF16Unique = ---
 STR_function: ChaineUTF16Unique = ---
 STR_globalThis: ChaineUTF16Unique = ---
 STR_hasOwnProperty: ChaineUTF16Unique = ---
 STR_join: ChaineUTF16Unique = ---
 STR_length: ChaineUTF16Unique = ---
+STR_name: ChaineUTF16Unique = ---
 STR_null: ChaineUTF16Unique = ---
 STR_number: ChaineUTF16Unique = ---
 STR_object: ChaineUTF16Unique = ---
