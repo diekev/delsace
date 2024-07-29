@@ -152,7 +152,7 @@ Lexème :: struct {
     genre: GenreLexème
 
     /* Pour Ident, Function, At_Keyword, Hash, String, et Url. */
-    valeur: ChaineUTF16
+    valeur: CSSOMString
 
     /* Pour Delim */
     point_de_code: n32
@@ -167,21 +167,17 @@ Lexème :: struct {
     drapeau_type_nombre: DrapeauxTypeNombre
 
     /* Pour Dimension */
-    unité: ChaineUTF16
+    unité: CSSOMString
 }
 
 détruit_lexèmes :: fonc (lexèmes: *[..]Lexème)
 {
     tmp := mémoire(lexèmes)
-    pour tmp {
-        détruit_chaine(it.valeur)
-        détruit_chaine(it.unité)
-    }
     déloge(tmp)
     mémoire(lexèmes) = tmp
 }
 
-donne_texte :: fonc (lexème: Lexème) -> ChaineUTF16 #enligne
+donne_texte :: fonc (lexème: Lexème) -> CSSOMString #enligne
 {
     retourne lexème.valeur
 }
@@ -262,7 +258,7 @@ est_lexème_exclamation :: fonc (lexème: $T) -> bool
 
 est_identifiant :: fonc (lexème: $T, ident: chaine) -> bool
 {
-    retourne lexème.est_lexème_de_genre(GenreLexème.Ident) && lexème.donne_texte() == ident
+    retourne lexème.est_lexème_de_genre(GenreLexème.Ident) && lexème.donne_texte() == crée_chaine_utf16_unique(ident)
 }
 
 est_identifiant :: fonc (lexème: $T, ident: CSSOMString) -> bool
@@ -574,7 +570,7 @@ consomme_un_lexème_simili_ident :: fonc (lexeuse: &Lexeuse) -> Lexème
     string := consomme_une_séquence_identifiante(lexeuse)
 
     // À FAIRE : comparaison insensible à la casse
-    si string == "url" && lexeuse.point_de_code_suivant() == '(' {
+    si string == PROP_url && lexeuse.point_de_code_suivant() == '(' {
         lexeuse.consomme()
 
         tantque est_espace_blanche(lexeuse.point_de_code_suivant()) {
@@ -596,19 +592,21 @@ consomme_un_lexème_simili_ident :: fonc (lexeuse: &Lexeuse) -> Lexème
  * https://www.w3.org/TR/css-syntax-3/#consume-string-token */
 consomme_un_lexème_chaine :: fonc (lexeuse: &Lexeuse, point_de_code_final: n32) -> Lexème
 {
+    /* À FAIRE : tampon temporaire. */
     valeur: ChaineUTF16
+    diffère détruit_chaine(valeur)
 
     tantque !fini(lexeuse) {
         point_de_code := lexeuse.consomme_point_de_code_suivant()
 
         si point_de_code == point_de_code_final {
-            retourne Lexème(GenreLexème.String, valeur = valeur)
+            retourne Lexème(GenreLexème.String, valeur = crée_chaine_utf16_unique(valeur))
         }
 
         si est_nouvelle_ligne(point_de_code) {
             lexeuse.rapporte_erreur("nouvelle ligne inattendu")
             lexeuse.reconsomme_point_de_code()
-            retourne Lexème(GenreLexème.Bad_String, valeur = valeur)
+            retourne Lexème(GenreLexème.Bad_String, valeur = crée_chaine_utf16_unique(valeur))
         }
 
         si point_de_code == '\\' {
@@ -629,7 +627,7 @@ consomme_un_lexème_chaine :: fonc (lexeuse: &Lexeuse, point_de_code_final: n32)
         chaine_ajoute(*valeur, point_de_code)
     }
 
-    retourne Lexème(GenreLexème.String, valeur = valeur)
+    retourne Lexème(GenreLexème.String, valeur = crée_chaine_utf16_unique(valeur))
 }
 
 /* 4.3.6 Consume a url token
@@ -832,9 +830,11 @@ vérifie_si_trois_points_de_code_commenceraient_un_nombre :: fonc (lexeuse: &Lex
 
 /* 4.3.11 Consume an ident sequence
  * https://www.w3.org/TR/css-syntax-3/#consume-name */
-consomme_une_séquence_identifiante :: fonc (lexeuse: &Lexeuse) -> ChaineUTF16
+consomme_une_séquence_identifiante :: fonc (lexeuse: &Lexeuse) -> CSSOMString
 {
+    /* À FAIRE : tampon temporaire. */
     résultat: ChaineUTF16
+    diffère détruit_chaine(résultat)
 
     tantque !fini(lexeuse) {
         point_de_code := lexeuse.consomme_point_de_code_suivant()
@@ -854,7 +854,7 @@ consomme_une_séquence_identifiante :: fonc (lexeuse: &Lexeuse) -> ChaineUTF16
         arrête
     }
 
-    retourne résultat
+    retourne crée_chaine_utf16_unique(résultat)
 }
 
 /* 4.3.12 Consume a number

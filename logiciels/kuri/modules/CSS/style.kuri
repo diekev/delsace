@@ -6,16 +6,11 @@ importe Fondation
 ValeurDeStyle :: union {
     mot_clé: CSSOMString
     couleur: CouleurRVBAN8
+    longueur: Longueur
 }
 
-détruit_valeur_de_style :: fonc (value: *ValeurDeStyle)
+détruit_valeur_de_style :: fonc (value: *ValeurDeStyle @inutilisée)
 {
-    discr mémoire(value) {
-        mot_clé(m) {
-            détruit_chaine(m)
-        }
-        sinon {}
-    }
 }
 
 est_mot_clé :: fonc (valeur: ValeurDeStyle, mot_clé: CSSOMString) -> bool
@@ -72,9 +67,11 @@ détruit_propriétés :: fonc (propriétés: *PropriétésDeStyle)
 
 ajoute_déclaration :: fonc (propriétés: *PropriétésDeStyle, déclaration: *CSSDeclaration)
 {
-    existante := propriétés.donne_déclaration(déclaration.property_name)
-    si existante {
-        retourne
+    pour propriétés.déclarations {
+        si it.property_name == déclaration.property_name {
+            propriétés.déclarations[index_it] = déclaration
+            retourne
+        }
     }
     tableau_ajoute(*propriétés.déclarations, déclaration)
 }
@@ -89,6 +86,33 @@ donne_déclaration :: fonc (propriétés: *PropriétésDeStyle, nom: CSSOMString
     retourne nul
 }
 
+donne_display :: fonc (propriétés: *PropriétésDeStyle) -> Display
+{
+    résultat: Display
+
+    display := donne_déclaration(propriétés, PROP_display)
+    si display {
+        mot_clé := display.value[0].mot_clé
+
+        si mot_clé == PROP_none {
+            résultat.outer_type = Display.Type.None
+        }
+        sinon si mot_clé == PROP_block {
+            résultat.outer_type = Display.Type.Block
+        }
+        sinon si mot_clé == PROP_list_item {
+            résultat.outer_type = Display.Type.Block
+            résultat.inner_type = Display.Type.Flow
+            résultat.est_list_item = vrai
+        }
+        sinon {
+            assert(mot_clé == PROP_inline)
+        }
+    }
+
+    retourne résultat
+}
+
 /** \} */
 
 Style :: struct {
@@ -99,6 +123,15 @@ Style :: struct {
     // margin: Margin
     // border: Border
     // padding: Padding
+}
+
+Longueur :: struct {
+    Unité :: énum {
+        Em
+    }
+
+    valeur: r64
+    unité: Unité
 }
 
 /* https://drafts.csswg.org/css-backgrounds/ */
@@ -121,187 +154,187 @@ Style :: struct {
 #portée_module
 
 NamedColor :: struct {
-    nom: chaine
+    nom: CSSOMString
     valeur: CouleurRVBAN8
 }
 
 named_colors := [
-    NamedColor("aliceblue", CouleurRVBAN8(240, 248, 255, 255)),
-    NamedColor("antiquewhite", CouleurRVBAN8(250, 235, 215, 255)),
-    NamedColor("aqua", CouleurRVBAN8(0, 255, 255, 255)),
-    NamedColor("aquamarine", CouleurRVBAN8(127, 255, 212, 255)),
-    NamedColor("azure", CouleurRVBAN8(240, 255, 255, 255)),
-    NamedColor("beige", CouleurRVBAN8(245, 245, 220, 255)),
-    NamedColor("bisque", CouleurRVBAN8(255, 228, 196, 255)),
-    NamedColor("black", CouleurRVBAN8(0, 0, 0, 255)),
-    NamedColor("blanchedalmond", CouleurRVBAN8(255, 235, 205, 255)),
-    NamedColor("blue", CouleurRVBAN8(0, 0, 255, 255)),
-    NamedColor("blueviolet", CouleurRVBAN8(138, 43, 226, 255)),
-    NamedColor("brown", CouleurRVBAN8(165, 42, 42, 255)),
-    NamedColor("burlywood", CouleurRVBAN8(222, 184, 135, 255)),
-    NamedColor("cadetblue", CouleurRVBAN8(95, 158, 160, 255)),
-    NamedColor("chartreuse", CouleurRVBAN8(127, 255, 0, 255)),
-    NamedColor("chocolate", CouleurRVBAN8(210, 105, 30, 255)),
-    NamedColor("coral", CouleurRVBAN8(255, 127, 80, 255)),
-    NamedColor("cornflowerblue", CouleurRVBAN8(100, 149, 237, 255)),
-    NamedColor("cornsilk", CouleurRVBAN8(255, 248, 220, 255)),
-    NamedColor("crimson", CouleurRVBAN8(220, 20, 60, 255)),
-    NamedColor("cyan", CouleurRVBAN8(0, 255, 255, 255)),
-    NamedColor("darkblue", CouleurRVBAN8(0, 0, 139, 255)),
-    NamedColor("darkcyan", CouleurRVBAN8(0, 139, 139, 255)),
-    NamedColor("darkgoldenrod", CouleurRVBAN8(184, 134, 11, 255)),
-    NamedColor("darkgray", CouleurRVBAN8(169, 169, 169, 255)),
-    NamedColor("darkgreen", CouleurRVBAN8(0, 100, 0, 255)),
-    NamedColor("darkgrey", CouleurRVBAN8(169, 169, 169, 255)),
-    NamedColor("darkkhaki", CouleurRVBAN8(189, 183, 107, 255)),
-    NamedColor("darkmagenta", CouleurRVBAN8(139, 0, 139, 255)),
-    NamedColor("darkolivegreen", CouleurRVBAN8(85, 107, 47, 255)),
-    NamedColor("darkorange", CouleurRVBAN8(255, 140, 0, 255)),
-    NamedColor("darkorchid", CouleurRVBAN8(153, 50, 204, 255)),
-    NamedColor("darkred", CouleurRVBAN8(139, 0, 0, 255)),
-    NamedColor("darksalmon", CouleurRVBAN8(233, 150, 122, 255)),
-    NamedColor("darkseagreen", CouleurRVBAN8(143, 188, 143, 255)),
-    NamedColor("darkslateblue", CouleurRVBAN8(72, 61, 139, 255)),
-    NamedColor("darkslategray", CouleurRVBAN8(47, 79, 79, 255)),
-    NamedColor("darkslategrey", CouleurRVBAN8(47, 79, 79, 255)),
-    NamedColor("darkturquoise", CouleurRVBAN8(0, 206, 209, 255)),
-    NamedColor("darkviolet", CouleurRVBAN8(148, 0, 211, 255)),
-    NamedColor("deeppink", CouleurRVBAN8(255, 20, 147, 255)),
-    NamedColor("deepskyblue", CouleurRVBAN8(0, 191, 255, 255)),
-    NamedColor("dimgray", CouleurRVBAN8(105, 105, 105, 255)),
-    NamedColor("dimgrey", CouleurRVBAN8(105, 105, 105, 255)),
-    NamedColor("dodgerblue", CouleurRVBAN8(30, 144, 255, 255)),
-    NamedColor("firebrick", CouleurRVBAN8(178, 34, 34, 255)),
-    NamedColor("floralwhite", CouleurRVBAN8(255, 250, 240, 255)),
-    NamedColor("forestgreen", CouleurRVBAN8(34, 139, 34, 255)),
-    NamedColor("fuchsia", CouleurRVBAN8(255, 0, 255, 255)),
-    NamedColor("gainsboro", CouleurRVBAN8(220, 220, 220, 255)),
-    NamedColor("ghostwhite", CouleurRVBAN8(248, 248, 255, 255)),
-    NamedColor("gold", CouleurRVBAN8(255, 215, 0, 255)),
-    NamedColor("goldenrod", CouleurRVBAN8(218, 165, 32, 255)),
-    NamedColor("gray", CouleurRVBAN8(128, 128, 128, 255)),
-    NamedColor("green", CouleurRVBAN8(0, 128, 0, 255)),
-    NamedColor("greenyellow", CouleurRVBAN8(173, 255, 47, 255)),
-    NamedColor("grey", CouleurRVBAN8(128, 128, 128, 255)),
-    NamedColor("honeydew", CouleurRVBAN8(240, 255, 240, 255)),
-    NamedColor("hotpink", CouleurRVBAN8(255, 105, 180, 255)),
-    NamedColor("indianred", CouleurRVBAN8(205, 92, 92, 255)),
-    NamedColor("indigo", CouleurRVBAN8(75, 0, 130, 255)),
-    NamedColor("ivory", CouleurRVBAN8(255, 255, 240, 255)),
-    NamedColor("khaki", CouleurRVBAN8(240, 230, 140, 255)),
-    NamedColor("lavender", CouleurRVBAN8(230, 230, 250, 255)),
-    NamedColor("lavenderblush", CouleurRVBAN8(255, 240, 245, 255)),
-    NamedColor("lawngreen", CouleurRVBAN8(124, 252, 0, 255)),
-    NamedColor("lemonchiffon", CouleurRVBAN8(255, 250, 205, 255)),
-    NamedColor("lightblue", CouleurRVBAN8(173, 216, 230, 255)),
-    NamedColor("lightcoral", CouleurRVBAN8(240, 128, 128, 255)),
-    NamedColor("lightcyan", CouleurRVBAN8(224, 255, 255, 255)),
-    NamedColor("lightgoldenrodyellow", CouleurRVBAN8(250, 250, 210, 255)),
-    NamedColor("lightgray", CouleurRVBAN8(211, 211, 211, 255)),
-    NamedColor("lightgreen", CouleurRVBAN8(144, 238, 144, 255)),
-    NamedColor("lightgrey", CouleurRVBAN8(211, 211, 211, 255)),
-    NamedColor("lightpink", CouleurRVBAN8(255, 182, 193, 255)),
-    NamedColor("lightsalmon", CouleurRVBAN8(255, 160, 122, 255)),
-    NamedColor("lightseagreen", CouleurRVBAN8(32, 178, 170, 255)),
-    NamedColor("lightskyblue", CouleurRVBAN8(135, 206, 250, 255)),
-    NamedColor("lightslategray", CouleurRVBAN8(119, 136, 153, 255)),
-    NamedColor("lightslategrey", CouleurRVBAN8(119, 136, 153, 255)),
-    NamedColor("lightsteelblue", CouleurRVBAN8(176, 196, 222, 255)),
-    NamedColor("lightyellow", CouleurRVBAN8(255, 255, 224, 255)),
-    NamedColor("lime", CouleurRVBAN8(0, 255, 0, 255)),
-    NamedColor("limegreen", CouleurRVBAN8(50, 205, 50, 255)),
-    NamedColor("linen", CouleurRVBAN8(250, 240, 230, 255)),
-    NamedColor("magenta", CouleurRVBAN8(255, 0, 255, 255)),
-    NamedColor("maroon", CouleurRVBAN8(128, 0, 0, 255)),
-    NamedColor("mediumaquamarine", CouleurRVBAN8(102, 205, 170, 255)),
-    NamedColor("mediumblue", CouleurRVBAN8(0, 0, 205, 255)),
-    NamedColor("mediumorchid", CouleurRVBAN8(186, 85, 211, 255)),
-    NamedColor("mediumpurple", CouleurRVBAN8(147, 112, 219, 255)),
-    NamedColor("mediumseagreen", CouleurRVBAN8(60, 179, 113, 255)),
-    NamedColor("mediumslateblue", CouleurRVBAN8(123, 104, 238, 255)),
-    NamedColor("mediumspringgreen", CouleurRVBAN8(0, 250, 154, 255)),
-    NamedColor("mediumturquoise", CouleurRVBAN8(72, 209, 204, 255)),
-    NamedColor("mediumvioletred", CouleurRVBAN8(199, 21, 133, 255)),
-    NamedColor("midnightblue", CouleurRVBAN8(25, 25, 112, 255)),
-    NamedColor("mintcream", CouleurRVBAN8(245, 255, 250, 255)),
-    NamedColor("mistyrose", CouleurRVBAN8(255, 228, 225, 255)),
-    NamedColor("moccasin", CouleurRVBAN8(255, 228, 181, 255)),
-    NamedColor("navajowhite", CouleurRVBAN8(255, 222, 173, 255)),
-    NamedColor("navy", CouleurRVBAN8(0, 0, 128, 255)),
-    NamedColor("oldlace", CouleurRVBAN8(253, 245, 230, 255)),
-    NamedColor("olive", CouleurRVBAN8(128, 128, 0, 255)),
-    NamedColor("olivedrab", CouleurRVBAN8(107, 142, 35, 255)),
-    NamedColor("orange", CouleurRVBAN8(255, 165, 0, 255)),
-    NamedColor("orangered", CouleurRVBAN8(255, 69, 0, 255)),
-    NamedColor("orchid", CouleurRVBAN8(218, 112, 214, 255)),
-    NamedColor("palegoldenrod", CouleurRVBAN8(238, 232, 170, 255)),
-    NamedColor("palegreen", CouleurRVBAN8(152, 251, 152, 255)),
-    NamedColor("paleturquoise", CouleurRVBAN8(175, 238, 238, 255)),
-    NamedColor("palevioletred", CouleurRVBAN8(219, 112, 147, 255)),
-    NamedColor("papayawhip", CouleurRVBAN8(255, 239, 213, 255)),
-    NamedColor("peachpuff", CouleurRVBAN8(255, 218, 185, 255)),
-    NamedColor("peru", CouleurRVBAN8(205, 133, 63, 255)),
-    NamedColor("pink", CouleurRVBAN8(255, 192, 203, 255)),
-    NamedColor("plum", CouleurRVBAN8(221, 160, 221, 255)),
-    NamedColor("powderblue", CouleurRVBAN8(176, 224, 230, 255)),
-    NamedColor("purple", CouleurRVBAN8(128, 0, 128, 255)),
-    NamedColor("rebeccapurple", CouleurRVBAN8(102, 51, 153, 255)),
-    NamedColor("red", CouleurRVBAN8(255, 0, 0, 255)),
-    NamedColor("rosybrown", CouleurRVBAN8(188, 143, 143, 255)),
-    NamedColor("royalblue", CouleurRVBAN8(65, 105, 225, 255)),
-    NamedColor("saddlebrown", CouleurRVBAN8(139, 69, 19, 255)),
-    NamedColor("salmon", CouleurRVBAN8(250, 128, 114, 255)),
-    NamedColor("sandybrown", CouleurRVBAN8(244, 164, 96, 255)),
-    NamedColor("seagreen", CouleurRVBAN8(46, 139, 87, 255)),
-    NamedColor("seashell", CouleurRVBAN8(255, 245, 238, 255)),
-    NamedColor("sienna", CouleurRVBAN8(160, 82, 45, 255)),
-    NamedColor("silver", CouleurRVBAN8(192, 192, 192, 255)),
-    NamedColor("skyblue", CouleurRVBAN8(135, 206, 235, 255)),
-    NamedColor("slateblue", CouleurRVBAN8(106, 90, 205, 255)),
-    NamedColor("slategray", CouleurRVBAN8(112, 128, 144, 255)),
-    NamedColor("slategrey", CouleurRVBAN8(112, 128, 144, 255)),
-    NamedColor("snow", CouleurRVBAN8(255, 250, 250, 255)),
-    NamedColor("springgreen", CouleurRVBAN8(0, 255, 127, 255)),
-    NamedColor("steelblue", CouleurRVBAN8(70, 130, 180, 255)),
-    NamedColor("tan", CouleurRVBAN8(210, 180, 140, 255)),
-    NamedColor("teal", CouleurRVBAN8(0, 128, 128, 255)),
-    NamedColor("thistle", CouleurRVBAN8(216, 191, 216, 255)),
-    NamedColor("tomato", CouleurRVBAN8(255, 99, 71, 255)),
-    NamedColor("turquoise", CouleurRVBAN8(64, 224, 208, 255)),
-    NamedColor("violet", CouleurRVBAN8(238, 130, 238, 255)),
-    NamedColor("wheat", CouleurRVBAN8(245, 222, 179, 255)),
-    NamedColor("white", CouleurRVBAN8(255, 255, 255, 255)),
-    NamedColor("whitesmoke", CouleurRVBAN8(245, 245, 245, 255)),
-    NamedColor("yellow", CouleurRVBAN8(255, 255, 0, 255)),
-    NamedColor("yellowgreen", CouleurRVBAN8(154, 205, 50, 255))
+    NamedColor(COL_aliceblue, CouleurRVBAN8(240, 248, 255, 255)),
+    NamedColor(COL_antiquewhite, CouleurRVBAN8(250, 235, 215, 255)),
+    NamedColor(COL_aqua, CouleurRVBAN8(0, 255, 255, 255)),
+    NamedColor(COL_aquamarine, CouleurRVBAN8(127, 255, 212, 255)),
+    NamedColor(COL_azure, CouleurRVBAN8(240, 255, 255, 255)),
+    NamedColor(COL_beige, CouleurRVBAN8(245, 245, 220, 255)),
+    NamedColor(COL_bisque, CouleurRVBAN8(255, 228, 196, 255)),
+    NamedColor(COL_black, CouleurRVBAN8(0, 0, 0, 255)),
+    NamedColor(COL_blanchedalmond, CouleurRVBAN8(255, 235, 205, 255)),
+    NamedColor(COL_blue, CouleurRVBAN8(0, 0, 255, 255)),
+    NamedColor(COL_blueviolet, CouleurRVBAN8(138, 43, 226, 255)),
+    NamedColor(COL_brown, CouleurRVBAN8(165, 42, 42, 255)),
+    NamedColor(COL_burlywood, CouleurRVBAN8(222, 184, 135, 255)),
+    NamedColor(COL_cadetblue, CouleurRVBAN8(95, 158, 160, 255)),
+    NamedColor(COL_chartreuse, CouleurRVBAN8(127, 255, 0, 255)),
+    NamedColor(COL_chocolate, CouleurRVBAN8(210, 105, 30, 255)),
+    NamedColor(COL_coral, CouleurRVBAN8(255, 127, 80, 255)),
+    NamedColor(COL_cornflowerblue, CouleurRVBAN8(100, 149, 237, 255)),
+    NamedColor(COL_cornsilk, CouleurRVBAN8(255, 248, 220, 255)),
+    NamedColor(COL_crimson, CouleurRVBAN8(220, 20, 60, 255)),
+    NamedColor(COL_cyan, CouleurRVBAN8(0, 255, 255, 255)),
+    NamedColor(COL_darkblue, CouleurRVBAN8(0, 0, 139, 255)),
+    NamedColor(COL_darkcyan, CouleurRVBAN8(0, 139, 139, 255)),
+    NamedColor(COL_darkgoldenrod, CouleurRVBAN8(184, 134, 11, 255)),
+    NamedColor(COL_darkgray, CouleurRVBAN8(169, 169, 169, 255)),
+    NamedColor(COL_darkgreen, CouleurRVBAN8(0, 100, 0, 255)),
+    NamedColor(COL_darkgrey, CouleurRVBAN8(169, 169, 169, 255)),
+    NamedColor(COL_darkkhaki, CouleurRVBAN8(189, 183, 107, 255)),
+    NamedColor(COL_darkmagenta, CouleurRVBAN8(139, 0, 139, 255)),
+    NamedColor(COL_darkolivegreen, CouleurRVBAN8(85, 107, 47, 255)),
+    NamedColor(COL_darkorange, CouleurRVBAN8(255, 140, 0, 255)),
+    NamedColor(COL_darkorchid, CouleurRVBAN8(153, 50, 204, 255)),
+    NamedColor(COL_darkred, CouleurRVBAN8(139, 0, 0, 255)),
+    NamedColor(COL_darksalmon, CouleurRVBAN8(233, 150, 122, 255)),
+    NamedColor(COL_darkseagreen, CouleurRVBAN8(143, 188, 143, 255)),
+    NamedColor(COL_darkslateblue, CouleurRVBAN8(72, 61, 139, 255)),
+    NamedColor(COL_darkslategray, CouleurRVBAN8(47, 79, 79, 255)),
+    NamedColor(COL_darkslategrey, CouleurRVBAN8(47, 79, 79, 255)),
+    NamedColor(COL_darkturquoise, CouleurRVBAN8(0, 206, 209, 255)),
+    NamedColor(COL_darkviolet, CouleurRVBAN8(148, 0, 211, 255)),
+    NamedColor(COL_deeppink, CouleurRVBAN8(255, 20, 147, 255)),
+    NamedColor(COL_deepskyblue, CouleurRVBAN8(0, 191, 255, 255)),
+    NamedColor(COL_dimgray, CouleurRVBAN8(105, 105, 105, 255)),
+    NamedColor(COL_dimgrey, CouleurRVBAN8(105, 105, 105, 255)),
+    NamedColor(COL_dodgerblue, CouleurRVBAN8(30, 144, 255, 255)),
+    NamedColor(COL_firebrick, CouleurRVBAN8(178, 34, 34, 255)),
+    NamedColor(COL_floralwhite, CouleurRVBAN8(255, 250, 240, 255)),
+    NamedColor(COL_forestgreen, CouleurRVBAN8(34, 139, 34, 255)),
+    NamedColor(COL_fuchsia, CouleurRVBAN8(255, 0, 255, 255)),
+    NamedColor(COL_gainsboro, CouleurRVBAN8(220, 220, 220, 255)),
+    NamedColor(COL_ghostwhite, CouleurRVBAN8(248, 248, 255, 255)),
+    NamedColor(COL_gold, CouleurRVBAN8(255, 215, 0, 255)),
+    NamedColor(COL_goldenrod, CouleurRVBAN8(218, 165, 32, 255)),
+    NamedColor(COL_gray, CouleurRVBAN8(128, 128, 128, 255)),
+    NamedColor(COL_green, CouleurRVBAN8(0, 128, 0, 255)),
+    NamedColor(COL_greenyellow, CouleurRVBAN8(173, 255, 47, 255)),
+    NamedColor(COL_grey, CouleurRVBAN8(128, 128, 128, 255)),
+    NamedColor(COL_honeydew, CouleurRVBAN8(240, 255, 240, 255)),
+    NamedColor(COL_hotpink, CouleurRVBAN8(255, 105, 180, 255)),
+    NamedColor(COL_indianred, CouleurRVBAN8(205, 92, 92, 255)),
+    NamedColor(COL_indigo, CouleurRVBAN8(75, 0, 130, 255)),
+    NamedColor(COL_ivory, CouleurRVBAN8(255, 255, 240, 255)),
+    NamedColor(COL_khaki, CouleurRVBAN8(240, 230, 140, 255)),
+    NamedColor(COL_lavender, CouleurRVBAN8(230, 230, 250, 255)),
+    NamedColor(COL_lavenderblush, CouleurRVBAN8(255, 240, 245, 255)),
+    NamedColor(COL_lawngreen, CouleurRVBAN8(124, 252, 0, 255)),
+    NamedColor(COL_lemonchiffon, CouleurRVBAN8(255, 250, 205, 255)),
+    NamedColor(COL_lightblue, CouleurRVBAN8(173, 216, 230, 255)),
+    NamedColor(COL_lightcoral, CouleurRVBAN8(240, 128, 128, 255)),
+    NamedColor(COL_lightcyan, CouleurRVBAN8(224, 255, 255, 255)),
+    NamedColor(COL_lightgoldenrodyellow, CouleurRVBAN8(250, 250, 210, 255)),
+    NamedColor(COL_lightgray, CouleurRVBAN8(211, 211, 211, 255)),
+    NamedColor(COL_lightgreen, CouleurRVBAN8(144, 238, 144, 255)),
+    NamedColor(COL_lightgrey, CouleurRVBAN8(211, 211, 211, 255)),
+    NamedColor(COL_lightpink, CouleurRVBAN8(255, 182, 193, 255)),
+    NamedColor(COL_lightsalmon, CouleurRVBAN8(255, 160, 122, 255)),
+    NamedColor(COL_lightseagreen, CouleurRVBAN8(32, 178, 170, 255)),
+    NamedColor(COL_lightskyblue, CouleurRVBAN8(135, 206, 250, 255)),
+    NamedColor(COL_lightslategray, CouleurRVBAN8(119, 136, 153, 255)),
+    NamedColor(COL_lightslategrey, CouleurRVBAN8(119, 136, 153, 255)),
+    NamedColor(COL_lightsteelblue, CouleurRVBAN8(176, 196, 222, 255)),
+    NamedColor(COL_lightyellow, CouleurRVBAN8(255, 255, 224, 255)),
+    NamedColor(COL_lime, CouleurRVBAN8(0, 255, 0, 255)),
+    NamedColor(COL_limegreen, CouleurRVBAN8(50, 205, 50, 255)),
+    NamedColor(COL_linen, CouleurRVBAN8(250, 240, 230, 255)),
+    NamedColor(COL_magenta, CouleurRVBAN8(255, 0, 255, 255)),
+    NamedColor(COL_maroon, CouleurRVBAN8(128, 0, 0, 255)),
+    NamedColor(COL_mediumaquamarine, CouleurRVBAN8(102, 205, 170, 255)),
+    NamedColor(COL_mediumblue, CouleurRVBAN8(0, 0, 205, 255)),
+    NamedColor(COL_mediumorchid, CouleurRVBAN8(186, 85, 211, 255)),
+    NamedColor(COL_mediumpurple, CouleurRVBAN8(147, 112, 219, 255)),
+    NamedColor(COL_mediumseagreen, CouleurRVBAN8(60, 179, 113, 255)),
+    NamedColor(COL_mediumslateblue, CouleurRVBAN8(123, 104, 238, 255)),
+    NamedColor(COL_mediumspringgreen, CouleurRVBAN8(0, 250, 154, 255)),
+    NamedColor(COL_mediumturquoise, CouleurRVBAN8(72, 209, 204, 255)),
+    NamedColor(COL_mediumvioletred, CouleurRVBAN8(199, 21, 133, 255)),
+    NamedColor(COL_midnightblue, CouleurRVBAN8(25, 25, 112, 255)),
+    NamedColor(COL_mintcream, CouleurRVBAN8(245, 255, 250, 255)),
+    NamedColor(COL_mistyrose, CouleurRVBAN8(255, 228, 225, 255)),
+    NamedColor(COL_moccasin, CouleurRVBAN8(255, 228, 181, 255)),
+    NamedColor(COL_navajowhite, CouleurRVBAN8(255, 222, 173, 255)),
+    NamedColor(COL_navy, CouleurRVBAN8(0, 0, 128, 255)),
+    NamedColor(COL_oldlace, CouleurRVBAN8(253, 245, 230, 255)),
+    NamedColor(COL_olive, CouleurRVBAN8(128, 128, 0, 255)),
+    NamedColor(COL_olivedrab, CouleurRVBAN8(107, 142, 35, 255)),
+    NamedColor(COL_orange, CouleurRVBAN8(255, 165, 0, 255)),
+    NamedColor(COL_orangered, CouleurRVBAN8(255, 69, 0, 255)),
+    NamedColor(COL_orchid, CouleurRVBAN8(218, 112, 214, 255)),
+    NamedColor(COL_palegoldenrod, CouleurRVBAN8(238, 232, 170, 255)),
+    NamedColor(COL_palegreen, CouleurRVBAN8(152, 251, 152, 255)),
+    NamedColor(COL_paleturquoise, CouleurRVBAN8(175, 238, 238, 255)),
+    NamedColor(COL_palevioletred, CouleurRVBAN8(219, 112, 147, 255)),
+    NamedColor(COL_papayawhip, CouleurRVBAN8(255, 239, 213, 255)),
+    NamedColor(COL_peachpuff, CouleurRVBAN8(255, 218, 185, 255)),
+    NamedColor(COL_peru, CouleurRVBAN8(205, 133, 63, 255)),
+    NamedColor(COL_pink, CouleurRVBAN8(255, 192, 203, 255)),
+    NamedColor(COL_plum, CouleurRVBAN8(221, 160, 221, 255)),
+    NamedColor(COL_powderblue, CouleurRVBAN8(176, 224, 230, 255)),
+    NamedColor(COL_purple, CouleurRVBAN8(128, 0, 128, 255)),
+    NamedColor(COL_rebeccapurple, CouleurRVBAN8(102, 51, 153, 255)),
+    NamedColor(COL_red, CouleurRVBAN8(255, 0, 0, 255)),
+    NamedColor(COL_rosybrown, CouleurRVBAN8(188, 143, 143, 255)),
+    NamedColor(COL_royalblue, CouleurRVBAN8(65, 105, 225, 255)),
+    NamedColor(COL_saddlebrown, CouleurRVBAN8(139, 69, 19, 255)),
+    NamedColor(COL_salmon, CouleurRVBAN8(250, 128, 114, 255)),
+    NamedColor(COL_sandybrown, CouleurRVBAN8(244, 164, 96, 255)),
+    NamedColor(COL_seagreen, CouleurRVBAN8(46, 139, 87, 255)),
+    NamedColor(COL_seashell, CouleurRVBAN8(255, 245, 238, 255)),
+    NamedColor(COL_sienna, CouleurRVBAN8(160, 82, 45, 255)),
+    NamedColor(COL_silver, CouleurRVBAN8(192, 192, 192, 255)),
+    NamedColor(COL_skyblue, CouleurRVBAN8(135, 206, 235, 255)),
+    NamedColor(COL_slateblue, CouleurRVBAN8(106, 90, 205, 255)),
+    NamedColor(COL_slategray, CouleurRVBAN8(112, 128, 144, 255)),
+    NamedColor(COL_slategrey, CouleurRVBAN8(112, 128, 144, 255)),
+    NamedColor(COL_snow, CouleurRVBAN8(255, 250, 250, 255)),
+    NamedColor(COL_springgreen, CouleurRVBAN8(0, 255, 127, 255)),
+    NamedColor(COL_steelblue, CouleurRVBAN8(70, 130, 180, 255)),
+    NamedColor(COL_tan, CouleurRVBAN8(210, 180, 140, 255)),
+    NamedColor(COL_teal, CouleurRVBAN8(0, 128, 128, 255)),
+    NamedColor(COL_thistle, CouleurRVBAN8(216, 191, 216, 255)),
+    NamedColor(COL_tomato, CouleurRVBAN8(255, 99, 71, 255)),
+    NamedColor(COL_turquoise, CouleurRVBAN8(64, 224, 208, 255)),
+    NamedColor(COL_violet, CouleurRVBAN8(238, 130, 238, 255)),
+    NamedColor(COL_wheat, CouleurRVBAN8(245, 222, 179, 255)),
+    NamedColor(COL_white, CouleurRVBAN8(255, 255, 255, 255)),
+    NamedColor(COL_whitesmoke, CouleurRVBAN8(245, 245, 245, 255)),
+    NamedColor(COL_yellow, CouleurRVBAN8(255, 255, 0, 255)),
+    NamedColor(COL_yellowgreen, CouleurRVBAN8(154, 205, 50, 255))
 ]
 
 /* https://www.w3.org/TR/css-color-4/#css-system-colors */
 system_colors := [
-    NamedColor("AccentColor", CouleurRVBAN8(0, 0, 0, 255)),
-    NamedColor("AccentColorText", CouleurRVBAN8(0, 0, 0, 255)),
-    NamedColor("ActiveText", CouleurRVBAN8(0, 0, 255, 255)),
-    NamedColor("ButtonBorder", CouleurRVBAN8(0, 0, 0, 255)),
-    NamedColor("ButtonFace", CouleurRVBAN8(200, 200, 200, 255)),
-    NamedColor("ButtonText", CouleurRVBAN8(0, 0, 0, 255)),
-    NamedColor("Canvas", CouleurRVBAN8(255, 255, 255, 255)),
-    NamedColor("CanvasText", CouleurRVBAN8(0, 0, 0, 255)),
-    NamedColor("Field", CouleurRVBAN8(255, 255, 255, 255)),
-    NamedColor("FieldText", CouleurRVBAN8(0, 0, 0, 255)),
-    NamedColor("GrayText", CouleurRVBAN8(128, 128, 128, 255)),
-    NamedColor("Highlight", CouleurRVBAN8(0, 0, 255, 255)),
-    NamedColor("HighlightText", CouleurRVBAN8(0, 0, 0, 255)),
-    NamedColor("LinkText", CouleurRVBAN8(0, 0, 255, 255)),
-    NamedColor("Mark", CouleurRVBAN8(0, 255, 255, 255)),
-    NamedColor("MarkText", CouleurRVBAN8(0, 0, 0, 255)),
-    NamedColor("SelectedItem", CouleurRVBAN8(25, 103, 210, 255)),
-    NamedColor("SelectedItemText", CouleurRVBAN8(0, 0, 0, 255)),
-    NamedColor("VisitedText", CouleurRVBAN8(0, 0, 255, 255))
+    NamedColor(COL_AccentColor, CouleurRVBAN8(0, 0, 0, 255)),
+    NamedColor(COL_AccentColorText, CouleurRVBAN8(0, 0, 0, 255)),
+    NamedColor(COL_ActiveText, CouleurRVBAN8(0, 0, 255, 255)),
+    NamedColor(COL_ButtonBorder, CouleurRVBAN8(0, 0, 0, 255)),
+    NamedColor(COL_ButtonFace, CouleurRVBAN8(200, 200, 200, 255)),
+    NamedColor(COL_ButtonText, CouleurRVBAN8(0, 0, 0, 255)),
+    NamedColor(COL_Canvas, CouleurRVBAN8(255, 255, 255, 255)),
+    NamedColor(COL_CanvasText, CouleurRVBAN8(0, 0, 0, 255)),
+    NamedColor(COL_Field, CouleurRVBAN8(255, 255, 255, 255)),
+    NamedColor(COL_FieldText, CouleurRVBAN8(0, 0, 0, 255)),
+    NamedColor(COL_GrayText, CouleurRVBAN8(128, 128, 128, 255)),
+    NamedColor(COL_Highlight, CouleurRVBAN8(0, 0, 255, 255)),
+    NamedColor(COL_HighlightText, CouleurRVBAN8(0, 0, 0, 255)),
+    NamedColor(COL_LinkText, CouleurRVBAN8(0, 0, 255, 255)),
+    NamedColor(COL_Mark, CouleurRVBAN8(0, 255, 255, 255)),
+    NamedColor(COL_MarkText, CouleurRVBAN8(0, 0, 0, 255)),
+    NamedColor(COL_SelectedItem, CouleurRVBAN8(25, 103, 210, 255)),
+    NamedColor(COL_SelectedItemText, CouleurRVBAN8(0, 0, 0, 255)),
+    NamedColor(COL_VisitedText, CouleurRVBAN8(0, 0, 255, 255))
 ]
 
 trouve_couleur_pour_mot_clé :: fonc (mot_clé: CSSOMString) -> Optionnel(CouleurRVBAN8)
 {
-    si mot_clé == "transparent" {
+    si mot_clé == PROP_transparent {
         retourne CouleurRVBAN8(0, 0, 0, 255)
     }
 
@@ -365,4 +398,5 @@ Display :: struct {
     /* Valeurs initiales. */
     outer_type := Type.Inline
     inner_type := Type.Flow
+    est_list_item := faux
 }

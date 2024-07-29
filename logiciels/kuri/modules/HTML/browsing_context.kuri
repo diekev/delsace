@@ -505,12 +505,16 @@ donne_top_level_browsing_context :: fonc (start: *BrowsingContext) -> *BrowsingC
         retourne nul
     }
 
-    // À FAIRE : 2. Let navigable be start's active document's node navigable.
+    // 2. Let navigable be start's active document's node navigable.
+    navigable := active_document.donne_node_navigable()
 
     // 3. While navigable's parent is not null, set navigable to navigable's parent.
+    tantque navigable.parent != nul {
+        navigable = navigable.parent
+    }
 
     // 4. Return navigable's active browsing context.
-    retourne nul
+    retourne navigable.donne_active_browsing_context()
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#creating-browsing-contexts */
