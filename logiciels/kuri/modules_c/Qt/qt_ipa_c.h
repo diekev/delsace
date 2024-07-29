@@ -159,6 +159,7 @@ struct QT_Rappel_Generique {
     O(FenetrePrincipale, QT_Fenetre_Principale, fenetre_principale)                               \
     O(TabWidget, QT_TabWidget, tab_widget)                                                        \
     O(QScrollArea, QT_ScrollArea, scroll_area)                                                    \
+    O(QScrollBar, QT_ScrollBar, scroll_bar)                                                       \
     O(QCheckBox, QT_CheckBox, check_box)                                                          \
     O(QLabel, QT_Label, label)                                                                    \
     O(QLineEdit, QT_LineEdit, line_edit)                                                          \
@@ -1843,6 +1844,17 @@ void QT_scroll_area_definis_comportement_vertical(
 void QT_scroll_area_permet_redimensionnement_widget(struct QT_ScrollArea *scroll_area,
                                                     int redimensionnable);
 void QT_scroll_area_definis_style_frame(struct QT_ScrollArea *scroll_area, int style);
+struct QT_ScrollBar *QT_scroll_area_donne_barre_horizontale(struct QT_ScrollArea *scroll_area);
+struct QT_ScrollBar *QT_scroll_area_donne_barre_verticale(struct QT_ScrollArea *scroll_area);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_ScrollBar
+ * \{ */
+
+void QT_scroll_bar_definis_plage(struct QT_ScrollBar *bar, int min, int max);
+void QT_scroll_bar_definis_valeur(struct QT_ScrollBar *bar, int valeur);
 
 /** \} */
 
