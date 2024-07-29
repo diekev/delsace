@@ -43,6 +43,14 @@ GenreLexème :: énum {
     NEspaPasÉgalStrict
     PlusPlus
     MoinsMoins
+    Interrogation
+    DoublePoint
+    Coalesce
+    EtLogiqueÉgal
+    OuLogiqueÉgal
+    CoalesceÉgal
+    DécalageDroiteNaturel
+    DécalageDroiteNaturelÉgal
 
     // opérateurs unaires
     PlusUnaire
@@ -194,6 +202,8 @@ rafine_genre_lexème_opérateur :: fonc (identifiant: chaine) -> Optionnel(Genre
         si c == '^' { retourne GenreLexème.OuExclusif }
         si c == '~' { retourne GenreLexème.NonBinaire }
         si c == '!' { retourne GenreLexème.NonLogique }
+        si c == '?' { retourne GenreLexème.Interrogation }
+        si c == ':' { retourne GenreLexème.DoublePoint }
     }
     sinon si identifiant.taille == 2 {
         si identifiant == "+=" { retourne GenreLexème.PlusÉgal }
@@ -214,12 +224,20 @@ rafine_genre_lexème_opérateur :: fonc (identifiant: chaine) -> Optionnel(Genre
         si identifiant == ">>" { retourne GenreLexème.DécalageDroite }
         si identifiant == "&&" { retourne GenreLexème.EtLogique }
         si identifiant == "||" { retourne GenreLexème.OuLogique }
+        si identifiant == "??" { retourne GenreLexème.Coalesce }
     }
     sinon si identifiant.taille == 2 {
         si identifiant == "<<=" { retourne GenreLexème.DécalageGaucheÉgal }
         si identifiant == ">>=" { retourne GenreLexème.DécalageDroiteÉgal }
+        si identifiant == ">>>" { retourne GenreLexème.DécalageDroiteNaturel }
         si identifiant == "===" { retourne GenreLexème.EstÉgalStrict }
         si identifiant == "!==" { retourne GenreLexème.NEspaPasÉgalStrict }
+        si identifiant == "&&=" { retourne GenreLexème.EtLogiqueÉgal }
+        si identifiant == "||=" { retourne GenreLexème.OuLogiqueÉgal }
+        si identifiant == "??=" { retourne GenreLexème.CoalesceÉgal }
+    }
+    sinon si identifiant.taille == 4 {
+        si identifiant == ">>>=" { retourne GenreLexème.DécalageDroiteNaturelÉgal }
     }
 }
 
@@ -450,7 +468,15 @@ est_lexème_expression_secondaire :: fonc (genre: GenreLexème) -> bool
         NEspaPasÉgalStrict,
         Point,
         ParenthèseOuvrante,
-        CrochetOuvrant {
+        CrochetOuvrant,
+        Interrogation,
+        DoublePoint,
+        Coalesce,
+        EtLogiqueÉgal,
+        OuLogiqueÉgal,
+        CoalesceÉgal,
+        DécalageDroiteNaturel,
+        DécalageDroiteNaturelÉgal {
             retourne vrai
         }
         sinon {
