@@ -115,6 +115,7 @@ principale :: fonc () -> z32
 
 évènement_sur_création_onglet : z32 = -1
 évènement_sur_survole_élément : z32 = -1
+évènement_sur_requête_rendu : z32 = -1
 
 ÉvènementCréationOnglet :: struct {
     uri: chaine
@@ -124,6 +125,7 @@ initialise_évènements_personnalisés :: fonc ()
 {
     évènement_sur_création_onglet = QT_enregistre_evenement_personnel()
     évènement_sur_survole_élément = QT_enregistre_evenement_personnel()
+    évènement_sur_requête_rendu = QT_enregistre_evenement_personnel()
 }
 
 sur_filtre_evenement_impl :: fonc (base: *QT_Rappels_Fenetre_Principale, event: *QT_Evenement) -> z32
@@ -153,7 +155,7 @@ sur_filtre_evenement_impl :: fonc (base: *QT_Rappels_Fenetre_Principale, event: 
 
         navigable := crée_un_fresh_top_level_traversable(*rappels.user_agent, uri) comme *TraversableNavigable
 
-        page_web := crée_page_web(uri, navigable.donne_active_document())
+        page_web := crée_page_web(uri, navigable)
         crée_widget_pour_page(rappels.fenetre, page_web)
 
         déloge(message)
@@ -178,6 +180,13 @@ sur_filtre_evenement_impl :: fonc (base: *QT_Rappels_Fenetre_Principale, event: 
             QT_gui_application_definis_curseur(curseur_qt)
         }
 
+        QT_evenement_accepte(event)
+        retourne 1
+    }
+
+    si type == évènement_sur_requête_rendu {
+        rappels := base comme *RappelsFenetrePrincipale
+        QT_widget_ajourne(rappels.widget_rendu)
         QT_evenement_accepte(event)
         retourne 1
     }
@@ -330,12 +339,34 @@ sur_fermeture_application :: fonc (base: *QT_Rappel_Generique)
 /** \nom PageWeb
  * \{ */
 
+BarreDeDéfilement :: struct {
+    rect: RectanglePosDim(r32)
+    est_cliqué: bool
+    est_survolé: bool
+    pos_clique_y: r32
+    hauteur: r32
+}
+
+décale_par :: fonc (barre: *BarreDeDéfilement, delta: r32)
+{
+    barre.rect.y += delta
+
+    si barre.rect.y < 0.0 {
+        barre.rect.y = 0.0
+    }
+    sinon si (barre.rect.y + barre.rect.hauteur) > barre.hauteur {
+        barre.rect.y = barre.hauteur - barre.rect.hauteur
+    }
+}
+
 PageWeb :: struct {
     uri: URI
     parsat: ParsatHTML
-    document: *Document
+    navigable: *Navigable
     contenu: chaine
     fonte: *Fonte
+
+    défilement_vertical: BarreDeDéfilement
 }
 
 crée_page_web :: fonc (uri: &URI, contenu: chaine) -> PageWeb
@@ -348,18 +379,18 @@ crée_page_web :: fonc (uri: &URI, contenu: chaine) -> PageWeb
     retourne résultat
 }
 
-crée_page_web :: fonc (uri: &URI, document: *Document) -> PageWeb
+crée_page_web :: fonc (uri: &URI, navigable: *Navigable) -> PageWeb
 {
     résultat: PageWeb
     résultat.uri = uri
-    résultat.document = document
+    résultat.navigable = navigable
     retourne résultat
 }
 
 donne_document :: fonc (page: *PageWeb) -> *Document
 {
-    si page.document {
-        retourne page.document
+    si page.navigable {
+        retourne page.navigable.donne_active_document()
     }
     retourne page.parsat.document
 }
@@ -386,6 +417,7 @@ RappelsFenetrePrincipale :: struct {
 
     page_web: PageWeb
     chargeuse_ressource: ChargeuseRessource
+    widget_rendu: *QT_GLWidget
 
     /* Données rappels. */
     sur_filtre_evenement = sur_filtre_evenement_impl
@@ -407,6 +439,7 @@ crée_widget_pour_page :: fonc (fenêtre: *QT_Fenetre_Principale, page_web: Page
 
     widget_rendu := crée_widget_pour_rendu(fenêtre, tabs)
     QT_tab_widget_ajoute_tab(tabs, widget_rendu, "Rendu")
+    rappels.widget_rendu = widget_rendu
 
     widget_source := crée_widget_vue_source(fenêtre, tabs)
     QT_tab_widget_ajoute_tab(tabs, widget_source, "Source")
@@ -482,10 +515,16 @@ crée_widget_arbre_pour_dom :: fonc (fenêtre: *QT_Fenetre_Principale, parent: Q
     si document {
         titre := document.donne_title_element()
         si titre {
-            texte_titre := extrait_texte_noeud(titre)
-            diffère déloge(texte_titre)
+            texte_titre := donne_contenu_texte_descandants(titre)
+            diffère détruit_chaine(texte_titre)
 
-            QT_widget_definis_titre_fenetre(fenêtre, vers_qt(texte_titre))
+            texte_filtré := supprime_espace_blanches_autour(texte_titre)
+            diffère détruit_chaine(texte_filtré)
+
+            texte_natif := converti_vers_chaine(texte_filtré)
+            diffère déloge(texte_natif)
+
+            QT_widget_definis_titre_fenetre(fenêtre, vers_qt(texte_natif))
         }
 
         item_document := QT_cree_treewidgetitem(nul, nul)
@@ -600,12 +639,14 @@ crée_widget_vue_arbre_de_disposition :: fonc (fenêtre: *QT_Fenetre_Principale,
 
     résultat := crée_widget_arbre(nul, parent)
 
-    arbre := crée_arbre_de_disposition(*rappels.page_web)
+    arbre := crée_arbre_de_disposition(*rappels.page_web, 1916)
     si arbre {
         item_document := QT_cree_treewidgetitem(nul, nul)
         QT_treewidgetitem_definis_indicateur_enfant(item_document, QT_Indicateur_Enfant_Arbre.INVISIBLE_SI_SANS_ENFANT)
-        texte := vers_qt("bloc")
-        QT_treewidgetitem_definis_texte(item_document, 0, *texte)
+        texte := donne_texte_item_pour_noeud(arbre.racine)
+        diffère déloge_si_logée(texte)
+        qtexte := vers_qt(texte)
+        QT_treewidgetitem_definis_texte(item_document, 0, *qtexte)
         QT_treewidget_ajoute_item_racine(résultat, item_document)
 
         pour arbre.racine.enfants {
@@ -619,12 +660,8 @@ ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *CSS.NoeudDeD
 {
     item_noeud := QT_cree_treewidgetitem(nul, nul)
     QT_treewidgetitem_definis_indicateur_enfant(item_noeud, QT_Indicateur_Enfant_Arbre.INVISIBLE_SI_SANS_ENFANT)
-    texte := si noeud.type == CSS.NoeudDeDispositionBloc {
-        "bloc"
-    }
-    sinon {
-        "texte"
-    }
+    texte := donne_texte_item_pour_noeud(noeud)
+    diffère déloge_si_logée(texte)
     qtexte := vers_qt(texte)
     QT_treewidgetitem_definis_texte(item_noeud, 0, *qtexte)
 
@@ -633,6 +670,20 @@ ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *CSS.NoeudDeD
     pour noeud.enfants {
         ajoute_item_pour_noeud(item_noeud, it)
     }
+}
+
+donne_texte_item_pour_noeud :: fonc (noeud: *CSS.NoeudDeDisposition) -> chaine
+{
+    si noeud.type == CSS.NoeudDeDispositionTexte {
+        retourne "texte"
+    }
+
+    si noeud.type == CSS.NoeudDeDispositionNouvelleLigne {
+        retourne "<br/>"
+    }
+
+    noeud_bloc := noeud comme *CSS.NoeudDeDispositionBloc
+    retourne imprime_chaine("% (%) [%x%] [%x%]", CSS.donne_nom_classe(noeud), noeud_bloc.élément.texte, noeud.position_x, noeud.position_y, noeud.largeur, noeud.hauteur)
 }
 
 /** \} */
@@ -656,6 +707,9 @@ VueRenduPage :: struct {
     sur_peinture_gl = vue_rendu_page_sur_peinture
     sur_redimensionnement_gl = vue_rendu_page_sur_redimensionnement
     sur_deplacement_souris = vue_rendu_page_sur_déplacement_souris
+    sur_pression_souris = vue_rendu_page_sur_pression_souris
+    sur_relachement_souris = vue_rendu_page_sur_relachement_souris
+    sur_molette_souris = vue_rendu_page_sur_molette_souris
 
     page: *PageWeb
 
@@ -710,7 +764,7 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glClearColor(1.0, 1.0, 1.0, 1.0)
 
-    arbre := crée_arbre_de_disposition(vue_rendu_page.page)
+    arbre := crée_arbre_de_disposition(vue_rendu_page.page, vue_rendu_page.largeur)
     saufsi arbre && arbre.racine {
         retourne
     }
@@ -720,11 +774,54 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
 
     ctx: CSS.ContexteDessin
     ctx.globales = document.globales_dessin
-    ctx.fonte = CSS.donne_fonte_défaut(ctx.globales)
     ctx.peintre = peintre
     ctx.hauteur_vue = vue_rendu_page.hauteur
+    ctx.largeur_vue = vue_rendu_page.largeur
 
-    CSS.dessine(arbre.racine, *ctx)
+    racine := arbre.racine
+    si racine.hauteur > vue_rendu_page.hauteur comme n32 {
+        ctx.décalage_y = page.défilement_vertical.rect.y
+    }
+
+    // début_rendu := maintenant_précis()
+
+    CSS.dessine(arbre, *ctx)
+
+    // imprime("temps de rendu : %\n", début_rendu.temps_écoulé_millisecondes())
+
+    si racine.hauteur > vue_rendu_page.hauteur comme n32 {
+        hauteur_vue := vue_rendu_page.hauteur comme r32
+        hauteur_page := racine.hauteur comme r32
+
+        largeur_barre := 12.0
+        hauteur_barre := hauteur_vue * hauteur_vue / hauteur_page
+
+        rect_barre: RectanglePosDim(r32)
+        si page.défilement_vertical.rect.largeur == 0.0 {
+            rect_barre.x = vue_rendu_page.largeur comme r32 - largeur_barre
+            rect_barre.largeur = largeur_barre
+            rect_barre.y = 0.0
+            rect_barre.hauteur = hauteur_barre
+
+            page.défilement_vertical.rect = rect_barre
+        }
+        sinon {
+            rect_barre = page.défilement_vertical.rect
+        }
+
+        couleur := CouleurRVBA(1.0, 0.5, 0.5, 0.5)
+
+        si page.défilement_vertical.est_cliqué || page.défilement_vertical.est_survolé {
+            couleur.r *= 0.5
+            couleur.v *= 0.5
+            couleur.b *= 0.5
+        }
+
+        /* Change la position pour le dessin qui commence du bas. */
+        rect_barre.y = hauteur_vue - hauteur_barre - page.défilement_vertical.rect.y
+
+        peintre.remplis_rectangle(rect_barre, couleur)
+    }
 }
 
 vue_rendu_page_sur_redimensionnement :: fonc (rappels: *QT_Rappels_GLWidget, taille: QT_Taille)
@@ -732,6 +829,15 @@ vue_rendu_page_sur_redimensionnement :: fonc (rappels: *QT_Rappels_GLWidget, tai
     vue_rendu_page := rappels comme *VueRenduPage
     vue_rendu_page.largeur = taille.largeur
     vue_rendu_page.hauteur = taille.hauteur
+
+    page := vue_rendu_page.page
+    document := donne_document(page)
+    si document {
+        document.invalide_style_pour_redimensionnement()
+    }
+    /* Réinitialise la barre de défilement. */
+    page.défilement_vertical.rect.largeur = 0.0
+    page.défilement_vertical.hauteur = vue_rendu_page.hauteur comme r32
 }
 
 vue_rendu_page_sur_déplacement_souris :: fonc (base: *QT_Rappels_GLWidget, event: *QT_MouseEvent)
@@ -753,6 +859,132 @@ vue_rendu_page_sur_déplacement_souris :: fonc (base: *QT_Rappels_GLWidget, even
 
     élément := CSS.donne_élément_pour_position(arbre, position.x, position.y)
     document.définis_noeud_survolé(élément)
+
+    défilement := *vue_rendu_page.page.défilement_vertical
+
+    si défilement.est_cliqué {
+        décalage := position.y comme r32 - défilement.pos_clique_y
+        défilement.pos_clique_y = position.y comme r32
+        défilement.décale_par(décalage)
+        QT_widget_ajourne(vue_rendu_page.widget)
+    }
+    sinon si défilement.rect.contient(position.x comme r32, position.y comme r32) {
+        saufsi défilement.est_survolé {
+            défilement.est_survolé = vrai
+            QT_widget_ajourne(vue_rendu_page.widget)
+        }
+    }
+    sinon si défilement.est_survolé {
+        défilement.est_survolé = faux
+        QT_widget_ajourne(vue_rendu_page.widget)
+    }
+}
+
+vue_rendu_page_sur_pression_souris :: fonc (base: *QT_Rappels_GLWidget, event: *QT_MouseEvent)
+{
+    vue_rendu_page := base comme *VueRenduPage
+
+    document := donne_document(vue_rendu_page.page)
+    saufsi document {
+        retourne
+    }
+
+    arbre := document.arbre_de_disposition
+    saufsi arbre {
+        retourne
+    }
+
+    position: QT_Position
+    QT_mouse_event_donne_position(event, *position)
+
+    si vue_rendu_page.page.défilement_vertical.est_survolé {
+        vue_rendu_page.page.défilement_vertical.est_cliqué = vrai
+        vue_rendu_page.page.défilement_vertical.pos_clique_y = position.y comme r32
+        retourne
+    }
+
+    élément := CSS.donne_élément_pour_position(arbre, position.x, position.y)
+    si élément {
+        élément.est_en_train_d_être_activé(vrai)
+    }
+    document.élément_en_cours_d_activation = élément
+}
+
+vue_rendu_page_sur_relachement_souris :: fonc (base: *QT_Rappels_GLWidget, event: *QT_MouseEvent)
+{
+    vue_rendu_page := base comme *VueRenduPage
+
+    document := donne_document(vue_rendu_page.page)
+    saufsi document {
+        retourne
+    }
+
+    arbre := document.arbre_de_disposition
+    saufsi arbre {
+        retourne
+    }
+
+    si vue_rendu_page.page.défilement_vertical.est_cliqué {
+        vue_rendu_page.page.défilement_vertical.est_cliqué = faux
+        retourne
+    }
+
+    position: QT_Position
+    QT_mouse_event_donne_position(event, *position)
+
+    élément := CSS.donne_élément_pour_position(arbre, position.x, position.y)
+    si élément {
+        élément.est_en_train_d_être_activé(faux)
+    }
+    si document.élément_en_cours_d_activation {
+        si document.élément_en_cours_d_activation != élément {
+            document.élément_en_cours_d_activation.est_en_train_d_être_activé(faux)
+        }
+        sinon {
+            envoie_un_clic(élément)
+        }
+    }
+    document.élément_en_cours_d_activation = nul
+}
+
+vue_rendu_page_sur_molette_souris :: fonc (base: *QT_Rappels_GLWidget, event: *QT_WheelEvent)
+{
+    vue_rendu_page := base comme *VueRenduPage
+
+    document := donne_document(vue_rendu_page.page)
+    saufsi document {
+        retourne
+    }
+
+    arbre := document.arbre_de_disposition
+    saufsi arbre {
+        retourne
+    }
+
+    delta := QT_wheel_event_donne_delta(event)
+
+    HAUTEURE_LIGNE :: 16.0
+    NOMBRE_DE_LIGNES_PAR_ROULEMENT :: 5.0
+    DÉCALAGE_PAR_ROULEMENT :: NOMBRE_DE_LIGNES_PAR_ROULEMENT * HAUTEURE_LIGNE
+
+    si delta > 0 {
+        décale_par(*vue_rendu_page.page.défilement_vertical, -DÉCALAGE_PAR_ROULEMENT)
+    }
+    sinon {
+        décale_par(*vue_rendu_page.page.défilement_vertical, DÉCALAGE_PAR_ROULEMENT)
+    }
+    QT_widget_ajourne(vue_rendu_page.widget)
+}
+
+/* https://w3c.github.io/uievents/#send-click-event */
+envoie_un_clic :: fonc (élément: *HTML.Élément)
+{
+    /* À FAIRE : standardise. */
+    évènement := loge(HTML.Event)
+    évènement.target = élément
+    évènement.type = HTML.EventType.click
+
+    _ := dispatch(évènement, élément)
 }
 
 /** \} */
@@ -775,7 +1007,7 @@ donne_feuille_de_style_défaut :: fonc () -> *CSS.CSSStyleSheet
     retourne stylesheet
 }
 
-crée_arbre_de_disposition :: fonc (page: *PageWeb) -> *CSS.ArbreDeDisposition
+crée_arbre_de_disposition :: fonc (page: *PageWeb, largeur: z32) -> *CSS.ArbreDeDisposition
 {
     document := donne_document(page)
     saufsi document {
@@ -786,8 +1018,10 @@ crée_arbre_de_disposition :: fonc (page: *PageWeb) -> *CSS.ArbreDeDisposition
         retourne document.arbre_de_disposition
     }
 
-    document.ajoute_feuille_de_style(donne_feuille_de_style_défaut())
-    CSS.crée_arbre_de_disposition(document)
+    saufsi document.feuilles_de_style {
+        document.ajoute_feuille_de_style(donne_feuille_de_style_défaut())
+    }
+    CSS.crée_arbre_de_disposition(document, largeur)
     retourne document.arbre_de_disposition
 }
 
@@ -858,6 +1092,7 @@ crée_rappels_interface_qt :: fonc (fenêtre: *QT_Fenetre_Principale) -> *Rappel
     résultat.fenêtre = fenêtre
     résultat.sur_destruction = rappels_interface_sur_destruction
     résultat.sur_élément_survolé = rappels_interface_sur_élément_survolé
+    résultat.sur_requête_rendu = rappels_interface_sur_requête_rendu
     résultat.sur_lancement_requête = rappels_interface_sur_lancement_requête
     résultat.sur_spin_event_loop = rappels_interface_sur_spin_event_loop
     retourne résultat
@@ -873,6 +1108,12 @@ rappels_interface_sur_élément_survolé :: fonc (base: *RappelsInterface)
 {
     rappels := base comme *RappelsInterfaceQt
     QT_application_poste_evenement(rappels.fenêtre, évènement_sur_survole_élément)
+}
+
+rappels_interface_sur_requête_rendu :: fonc (base: *RappelsInterface)
+{
+    rappels := base comme *RappelsInterfaceQt
+    QT_application_poste_evenement(rappels.fenêtre, évènement_sur_requête_rendu)
 }
 
 rappels_interface_sur_lancement_requête :: fonc (base: *RappelsInterface, requête: *Requête)
