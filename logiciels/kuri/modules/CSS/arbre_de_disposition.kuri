@@ -864,6 +864,14 @@ détermine_fonte :: fonc (noeud_texte: *NoeudDeDispositionTexte, ctx: *ContexteD
         }
     }
 
+    font_style := donne_déclaration(propriétés, PROP_font_style)
+    si font_style {
+        mot_clé := font_style.value[0].mot_clé
+        si mot_clé == PROP_italic {
+            style = "italic"
+        }
+    }
+
     fonte := globales.donne_fonte(famille_fonte, style, graisse, taille_fonte)
     noeud_texte.fonte = fonte
     retourne fonte

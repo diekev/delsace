@@ -1369,7 +1369,8 @@ infos_types_propriétés := [
     InfoTypePropriété(PROP_text_decoration, parse_propriété_text_decoration),
     InfoTypePropriété(PROP_cursor, parse_propriété_cursor),
     InfoTypePropriété(PROP_font_weight, parse_propriété_font_weight),
-    InfoTypePropriété(PROP_font_size, parse_propriété_font_size)
+    InfoTypePropriété(PROP_font_size, parse_propriété_font_size),
+    InfoTypePropriété(PROP_font_style, parse_propriété_font_style)
 ]
 
 donne_info_type_pour_nom :: fonc (nom: CSSOMString) -> *InfoTypePropriété
@@ -1922,6 +1923,55 @@ parse_propriété_font_size :: fonc (value: [..]ComponentValue) -> Optionnel([..
 
             longueur := Longueur(données_lexème.numeric_value, Longueur.Unité.Em)
             tableau_ajoute(*résultat, ValeurDeStyle(longueur = longueur))
+        }
+        sinon {
+            imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
+            déloge(résultat)
+            retourne
+        }
+
+        parseuse.consomme_espaces_blanches()
+    }
+
+    si résultat.taille != 0 {
+        retourne résultat
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Font Style
+ * https://drafts.csswg.org/css-fonts/#font-style-prop
+ * \{ */
+
+parse_propriété_font_style :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+
+    résultat: [..]ValeurDeStyle
+    mots_clés := [
+        PROP_normal, PROP_italic
+    ]
+
+    tantque !fini(parseuse) {
+        lexème := parseuse.lexème_courant()
+
+        si lexème.est_lexème_de_genre(GenreLexème.Ident) {
+            pour mots_clés {
+                si lexème.est_identifiant(it) {
+                    texte := lexème.donne_texte()
+                    tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = texte))
+                    arrête
+                }
+            }
+            sansarrêt {
+                imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
+                déloge(résultat)
+                retourne
+            }
+
+            parseuse.avance()
         }
         sinon {
             imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
