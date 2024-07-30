@@ -39,6 +39,42 @@ définis_rappels_interface :: fonc (user_agent: *UserAgent, rappels: *RappelsInt
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Algorithm
+ * Structure pour implémenter les routines/callbacks/algorithms de la spec.
+ * \{ */
+
+Algorithm :: struct {
+    sur_run: fonc(*Algorithm)(rien)
+    sur_destruction: fonc(*Algorithm)(rien)
+}
+
+run :: fonc (algorithm: *Algorithm)
+{
+    saufsi algorithm {
+        retourne
+    }
+
+    si algorithm.sur_run {
+        algorithm.sur_run(algorithm)
+    }
+
+    si algorithm.sur_destruction {
+        algorithm.sur_destruction(algorithm)
+    }
+}
+
+/** \} */
+
+/* https://html.spec.whatwg.org/multipage/webappapis.html#generic-task-sources */
+SourceDeTâche :: énum {
+    ManipulationDOM
+    InteractionUtilisateur
+    Réseautage
+    NavigationEtTraversée
+    Rendu
+}
+
+/* ------------------------------------------------------------------------- */
 /** \nom RappelsInterface
  * \{ */
 
@@ -48,6 +84,7 @@ RappelsInterface :: struct {
     sur_spin_event_loop: fonc(*RappelsInterface)(rien)
     sur_élément_survolé: fonc(*RappelsInterface)(rien)
     sur_requête_rendu: fonc(*RappelsInterface)(rien)
+    sur_enfile_une_tâche: fonc(*RappelsInterface, SourceDeTâche, *Algorithm)(rien)
 }
 
 détruit_rappels :: fonc (rappels: *RappelsInterface)
@@ -85,6 +122,16 @@ lance_requête :: fonc (user_agent: *UserAgent, request: *Request) -> *Response
     }
 
     retourne rappels.sur_lancement_requête(rappels, request)
+}
+
+enfile_une_tâche :: fonc (user_agent: *UserAgent, source: SourceDeTâche, algorithm: *Algorithm)
+{
+    rappels := user_agent.rappels_interface
+    saufsi rappels && rappels.sur_enfile_une_tâche {
+        retourne
+    }
+
+    rappels.sur_enfile_une_tâche(rappels, source, algorithm)
 }
 
 /** \} */

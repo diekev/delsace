@@ -1,27 +1,6 @@
 importe Fondation
 importe Internet
 
-/* Structure pour implémenter les routines/callbacks/algorithms de la spec. */
-Algorithm :: struct {
-    sur_run: fonc(*Algorithm)(rien)
-    sur_destruction: fonc(*Algorithm)(rien)
-}
-
-run :: fonc (algorithm: *Algorithm)
-{
-    saufsi algorithm {
-        retourne
-    }
-
-    si algorithm.sur_run {
-        algorithm.sur_run(algorithm)
-    }
-
-    si algorithm.sur_destruction {
-        algorithm.sur_destruction(algorithm)
-    }
-}
-
 /* https://w3c.github.io/navigation-timing/#sec-performance-navigation-types */
 NavigationTimingType :: énum {
     navigate
