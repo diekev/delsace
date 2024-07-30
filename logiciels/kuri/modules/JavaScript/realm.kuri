@@ -116,6 +116,26 @@ crée_execution_context :: fonc (tas_de_mémoire: *TasDeMémoire) -> *ExecutionC
     retourne tas_de_mémoire.alloue(ExecutionContext)
 }
 
+/* 9.4.1 GetActiveScriptOrModule ( )
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-getactivescriptormodule */
+get_active_script_or_module :: fonc (mv: *MachineVirtuelle) -> *Script // ScriptOrModule
+{
+    // 1. If the execution context stack is empty, return null.
+    si mv.execution_contexts.taille == 0 {
+        retourne nul
+    }
+
+    // 2. Let ec be the topmost execution context on the execution context stack whose ScriptOrModule component is not null.
+    // 3. If no such execution context exists, return null. Otherwise, return ec's ScriptOrModule.
+    pour > mv.execution_contexts {
+        si it.script_or_module {
+            retourne it.script_or_module
+        }
+    }
+
+    retourne nul
+}
+
 suspend :: fonc (execution_context: *ExecutionContext)
 {
     si execution_context.est_suspendu {
