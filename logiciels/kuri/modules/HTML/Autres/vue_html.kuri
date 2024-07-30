@@ -95,8 +95,6 @@ principale :: fonc () -> z32
     rappels_user_agent := crée_rappels_interface_qt(fenêtre)
     définis_rappels_interface(*rappels_fenêtre.user_agent, rappels_user_agent)
 
-    rappels_fenêtre.chargeuse_ressource.rappels_interface = crée_rappels_interface_qt(fenêtre)
-
     si chemin_fichier {
         évènement := loge(ÉvènementCréationOnglet)
         évènement.uri = chemin_fichier
@@ -136,9 +134,6 @@ sur_filtre_evenement_impl :: fonc (base: *QT_Rappels_Fenetre_Principale, event: 
         rappels := base comme *RappelsFenetrePrincipale
 
         message := QT_event_perso_donne_donnees(event) comme *ÉvènementCréationOnglet
-
-        // ressource := crée_ressource_pour_chargement_page_web(rappels.fenetre, message.uri)
-        // charge_ressource(*rappels.chargeuse_ressource, ressource, vrai)
 
         uri: URI
 
@@ -328,9 +323,6 @@ sur_fermeture_application :: fonc (base: *QT_Rappel_Generique)
     rappel := base comme *RappelFermetureApp
     détruit_données_page_web(*rappel.rappels_fenêtre.page_web)
     détruit_données_user_agent(*rappel.rappels_fenêtre.user_agent)
-
-    rappels_interface := rappel.rappels_fenêtre.chargeuse_ressource.rappels_interface comme *RappelsInterfaceQt
-    déloge(rappels_interface)
 }
 
 /** \} */
@@ -416,7 +408,6 @@ RappelsFenetrePrincipale :: struct {
     user_agent: UserAgent
 
     page_web: PageWeb
-    chargeuse_ressource: ChargeuseRessource
     widget_rendu: *QT_GLWidget
 
     /* Données rappels. */
@@ -1023,56 +1014,6 @@ crée_arbre_de_disposition :: fonc (page: *PageWeb, largeur: z32) -> *CSS.ArbreD
     }
     CSS.crée_arbre_de_disposition(document, largeur)
     retourne document.arbre_de_disposition
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom ChargeuseRessource
- * \{ */
-
-ChargeuseRessource :: struct {
-    ressources_en_chargement: [..]*Ressource
-    rappels_interface: *RappelsInterface
-}
-
-charge_ressource :: fonc (chargeuse: *ChargeuseRessource, ressource: *Ressource, async: bool)
-{
-    si est_fichier(ressource) {
-        contenu := contenu_fichier_texte(ressource.uri.chemin)
-        ressource_fut_chargée(ressource, contenu)
-        retourne
-    }
-
-    requête := loge(Requête)
-    requête.ressource = ressource
-    lance_requête(chargeuse, requête)
-
-    saufsi async {
-        tantque !ressource.chargement_terminé {
-            spin_event_loop(chargeuse)
-        }
-    }
-}
-
-lance_requête :: fonc (chargeuse: *ChargeuseRessource, requête: *Requête)
-{
-    rappels := chargeuse.rappels_interface
-    saufsi rappels && rappels.sur_lancement_requête {
-        retourne
-    }
-
-    rappels.sur_lancement_requête(rappels, requête)
-}
-
-spin_event_loop :: fonc (chargeuse: *ChargeuseRessource)
-{
-    rappels := chargeuse.rappels_interface
-    saufsi rappels && rappels.sur_spin_event_loop {
-        retourne
-    }
-
-    rappels.sur_spin_event_loop(rappels)
 }
 
 /** \} */
