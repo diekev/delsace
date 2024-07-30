@@ -431,9 +431,25 @@ attempt_to_populate_the_history_entry_document :: fonc (user_agent: *UserAgent,
         //     navigation timing type  navTimingType
     }
 
-    // À FAIRE : 6.
+    // 6. Queue a global task on the navigation and traversal task source, given navigable's active window, to run these steps:
+    Tâche :: struct {
+        empl base: Algorithm
+
+        completion_steps: *Algorithm
+        entry: *SessionHistoryEntry
+        navigation_params: *NavigationParams
+        source_snapshot_params: SourceSnapshotParams
+    }
+
+    sur_run :: fonc (base: *Algorithm)
     {
-        // ...
+        tâche := base comme *Tâche
+        navigation_params := tâche.navigation_params
+        entry := tâche.entry
+        completion_steps := tâche.completion_steps
+        source_snapshot_params := tâche.source_snapshot_params
+
+        // À FAIRE : complète
 
         // 6.
         entry.document_state.document = load_a_document(navigation_params, source_snapshot_params, Origin())
@@ -450,6 +466,22 @@ attempt_to_populate_the_history_entry_document :: fonc (user_agent: *UserAgent,
         run(completion_steps)
         détruit_navigation_params(navigation_params)
     }
+
+    sur_destruction :: fonc (base: *Algorithm)
+    {
+        tâche := base comme *Tâche
+        déloge(tâche)
+    }
+
+    tâche := loge(Tâche)
+    tâche.sur_run = sur_run
+    tâche.sur_destruction = sur_destruction
+    tâche.completion_steps = completion_steps
+    tâche.entry = entry
+    tâche.navigation_params = navigation_params
+    tâche.source_snapshot_params = source_snapshot_params
+
+    user_agent.enfile_une_tâche(SourceDeTâche.NavigationEtTraversée, tâche)
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#create-navigation-params-by-fetching
