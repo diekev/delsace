@@ -339,17 +339,34 @@ crée_return_statement :: fonc (argument: *NoeudSyntaxique) -> *ReturnStatement
     retourne résultat
 }
 
+/* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-return-statement-runtime-semantics-evaluation */
 sur_exécution_return :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
     noeud := base comme *ReturnStatement
 
-    résultat := return_completion(js_null)
+    // ReturnStatement : return ;
+    // 1. Return Completion Record { [[Type]]: RETURN, [[Value]]: undefined, [[Target]]: EMPTY }.
+    résultat := return_completion(js_undefined)
 
+    // ReturnStatement : return Expression ;
     si noeud.argument {
-        résultat = exécute_noeud(noeud.argument, interpréteuse)
-        si résultat.est_normal() {
-            retourne return_completion(résultat.valeur)
+        // 1. Let exprRef be ? Evaluation of Expression.
+        completion := exécute_noeud(noeud.argument, interpréteuse)
+        saufsi completion.est_normal() {
+            retourne completion
         }
+        expr_ref := completion.valeur
+        // 2. Let exprValue be ? GetValue(exprRef).
+        completion = get_value(interpréteuse, expr_ref)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        expr_value := completion.valeur.V
+
+        // À FAIRE : 3. If GetGeneratorKind() is ASYNC, set exprValue to ? Await(exprValue).
+
+        // 4. Return Completion Record { [[Type]]: RETURN, [[Value]]: exprValue, [[Target]]: EMPTY }.
+        résultat = return_completion(expr_value)
     }
 
     retourne résultat
