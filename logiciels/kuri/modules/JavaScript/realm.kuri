@@ -184,7 +184,7 @@ create_intrinsics :: fonc (realm: *Realm)
     realm.intrinsics.syntax_error_prototype = crée_syntax_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype)
 
     realm.intrinsics.array = crée_array_constructor(tas_de_mémoire, realm.intrinsics.array_prototype)
-    realm.intrinsics.eval = crée_eval(realm.intrinsics.function_prototype)
+    realm.intrinsics.eval = crée_eval(realm, realm.intrinsics.function_prototype)
 }
 
 /** \} */
