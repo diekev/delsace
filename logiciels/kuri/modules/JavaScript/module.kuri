@@ -2092,6 +2092,12 @@ crée_reference_error :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Refe
     retourne résultat
 }
 
+lance_reference_error :: fonc (realm: *Realm, message: chaine) -> CompletionRecord
+{
+    exception := crée_reference_error(realm.donne_tas_de_mémoire(), realm.intrinsics.reference_error_prototype, message)
+    retourne throw_completion(exception)
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
