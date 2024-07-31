@@ -344,6 +344,7 @@ sur_fermeture_application :: fonc (base: *QT_Rappel_Generique)
     rappel := base comme *RappelFermetureApp
     détruit_données_page_web(*rappel.rappels_fenêtre.page_web)
     détruit_données_user_agent(*rappel.rappels_fenêtre.user_agent)
+    détruit_table_chaines_utf16_uniques()
 }
 
 /** \} */
