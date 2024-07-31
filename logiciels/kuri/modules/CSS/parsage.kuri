@@ -1538,6 +1538,8 @@ parse_propriété_color :: fonc (value: [..]ComponentValue) -> Optionnel([..]Val
             retourne résultat
         }
 
+        lexème := parseuse.lexème_courant()
+        imprime("[%] lexème inconnu : %\n", #nom_de_cette_fonction, lexème)
         retourne
     }
 }
@@ -1602,6 +1604,89 @@ parse_valeur_couleur :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(
         parseuse.avance()
         retourne ValeurDeStyle(couleur = couleur)
     }
+
+    si lexème.est_fonction() {
+        fonction := lexème.function
+
+        si fonction.name == PROP_rgb || fonction.name == PROP_rgba {
+            résultat := parse_couleur_rgb(fonction)
+            si résultat.possède_valeur() {
+                parseuse.avance()
+            }
+            retourne résultat
+        }
+
+        retourne
+    }
+}
+
+parse_couleur_rgb :: fonc (function: &ParsedFunction) -> Optionnel(ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(function.value)
+
+    si parseuse.fini() {
+        retourne
+    }
+
+    /* Rouge */
+    lexème := parseuse.lexème_courant()
+    saufsi lexème.est_lexème_de_genre(GenreLexème.Number) {
+        retourne
+    }
+    rouge := lexème.lexème.numeric_value
+    parseuse.avance()
+
+    lexème = parseuse.lexème_courant()
+    saufsi lexème.est_lexème_de_genre(GenreLexème.Comma) {
+        retourne
+    }
+    parseuse.avance()
+    parseuse.consomme_espaces_blanches()
+
+    /* Vert. */
+    lexème = parseuse.lexème_courant()
+    saufsi lexème.est_lexème_de_genre(GenreLexème.Number) {
+        retourne
+    }
+    vert := lexème.lexème.numeric_value
+    parseuse.avance()
+
+    lexème = parseuse.lexème_courant()
+    saufsi lexème.est_lexème_de_genre(GenreLexème.Comma) {
+        retourne
+    }
+    parseuse.avance()
+    parseuse.consomme_espaces_blanches()
+
+    /* Bleu */
+    lexème = parseuse.lexème_courant()
+    saufsi lexème.est_lexème_de_genre(GenreLexème.Number) {
+        retourne
+    }
+    bleu := lexème.lexème.numeric_value
+    parseuse.avance()
+
+    alpha : n8 = 255
+    si function.name == PROP_rgba {
+        /* Alpha */
+        lexème = parseuse.lexème_courant()
+        saufsi lexème.est_lexème_de_genre(GenreLexème.Comma) {
+            retourne
+        }
+        parseuse.avance()
+        parseuse.consomme_espaces_blanches()
+
+        lexème = parseuse.lexème_courant()
+        saufsi lexème.est_lexème_de_genre(GenreLexème.Number) {
+            retourne
+        }
+
+        alpha = (lexème.lexème.numeric_value * 255.0) comme n8
+        parseuse.avance()
+    }
+
+    couleur := CouleurRVBAN8(rouge comme n8, vert comme n8, bleu comme n8, alpha)
+    retourne ValeurDeStyle(couleur = couleur)
 }
 
 /** \} */
