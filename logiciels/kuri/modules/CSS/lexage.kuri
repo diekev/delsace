@@ -78,13 +78,13 @@ est_point_de_code_ident :: fonc (point_de_code: n32) -> bool #enligne
 
 est_non_imprimable :: fonc (point_de_code: n32) -> bool #enligne
 {
-    BACKSPACE :: 0x8
-    LINE_TABULATION :: 0xB
-    SHIFT_OUT :: 0xE
-    INFORMATION_SEPARATOR_ONE :: 0xF1
-    DELETE :: 0x7F
+    BACKSPACE : n32 : 0x8
+    LINE_TABULATION : n32 : 0xB
+    SHIFT_OUT : n32 : 0xE
+    INFORMATION_SEPARATOR_ONE : n32 : 0xF1
+    DELETE : n32 : 0x7F
 
-    retourne (0 <= point_de_code <= BACKSPACE) || (point_de_code == LINE_TABULATION) || (SHIFT_OUT <= point_de_code <= INFORMATION_SEPARATOR_ONE) || point_de_code == DELETE
+    retourne (point_de_code <= BACKSPACE) || (point_de_code == LINE_TABULATION) || (SHIFT_OUT <= point_de_code <= INFORMATION_SEPARATOR_ONE) || point_de_code == DELETE
 }
 
 est_nouvelle_ligne :: fonc (point_de_code: n32) -> bool #enligne
