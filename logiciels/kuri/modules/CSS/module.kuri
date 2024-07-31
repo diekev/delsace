@@ -64,19 +64,35 @@ apparie_sélecteur :: fonc (selector: []CompoundSelector, index: z64, élément:
 
 apparie_simple_selector :: fonc (simple: &SimpleSelector, élément: *HTML.Élément) -> bool
 {
-    si simple.type == SimpleSelector.Type.PseudoClass {
-        si simple.est_fonction {
+    discr simple.type {
+        Attrib {
             retourne faux
         }
+        ID {
+            retourne faux
+        }
+        PseudoClass {
+            si simple.est_fonction {
+                retourne faux
+            }
 
-        retourne (élément.pseudo_classes & simple.pseudo_classe) == simple.pseudo_classe
+            retourne (élément.pseudo_classes & simple.pseudo_classe) == simple.pseudo_classe
+        }
+        Class {
+            retourne faux
+        }
+        Type {
+            retourne simple.ident == élément.texte
+        }
+        PseudoElement {
+            retourne faux
+        }
+        Universal {
+            retourne vrai
+        }
     }
 
-    si simple.type != SimpleSelector.Type.Type {
-        retourne faux
-    }
-
-    retourne simple.ident == élément.texte
+    retourne faux
 }
 
 /* ------------------------------------------------------------------------- */
