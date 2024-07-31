@@ -358,6 +358,7 @@ BarreDeDéfilement :: struct {
     est_survolé: bool
     pos_clique_y: r32
     hauteur: r32
+    ratio: r32 = 1.0
 }
 
 décale_par :: fonc (barre: *BarreDeDéfilement, delta: r32)
@@ -794,7 +795,7 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
 
     racine := arbre.racine
     si racine.hauteur > vue_rendu_page.hauteur comme n32 {
-        ctx.décalage_y = page.défilement_vertical.rect.y
+        ctx.décalage_y = page.défilement_vertical.rect.y / page.défilement_vertical.ratio
     }
 
     // début_rendu := maintenant_précis()
@@ -809,6 +810,7 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
 
         largeur_barre := 12.0
         hauteur_barre := hauteur_vue * hauteur_vue / hauteur_page
+        page.défilement_vertical.ratio = hauteur_vue / hauteur_page
 
         rect_barre: RectanglePosDim(r32)
         si page.défilement_vertical.rect.largeur == 0.0 {
@@ -851,6 +853,7 @@ vue_rendu_page_sur_redimensionnement :: fonc (rappels: *QT_Rappels_GLWidget, tai
     }
     /* Réinitialise la barre de défilement. */
     page.défilement_vertical.rect.largeur = 0.0
+    page.défilement_vertical.ratio = 1.0
     page.défilement_vertical.hauteur = vue_rendu_page.hauteur comme r32
 }
 
