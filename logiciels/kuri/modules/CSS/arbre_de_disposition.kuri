@@ -1087,9 +1087,12 @@ noeud_disposition_texte_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Con
     fonte := noeud.fonte
     assert(fonte != nul)
 
+    métriques := donne_métriques_fonte(fonte)
+
     si ctx.fragment {
         fragment := ctx.fragment
         rect := ctx.donne_rectangle_corrigé(fragment.donne_rectangle())
+        rect.y -= métriques.jambage_inférieur
 
         // peintre.dessine_rectangle(rect, couleur)
 
@@ -1100,6 +1103,7 @@ noeud_disposition_texte_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Con
     sinon {
         texte := noeud.texte
         rect := ctx.donne_rectangle_corrigé(noeud)
+        rect.y -= métriques.jambage_inférieur comme z32
         peintre.dessine_texte(fonte, texte, rect, couleur, *effets)
     }
 }
