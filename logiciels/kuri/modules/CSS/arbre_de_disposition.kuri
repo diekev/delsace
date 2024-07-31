@@ -672,10 +672,13 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
 {
     noeud := base comme *NoeudDeDispositionBloc
 
-    // rect := ctx.donne_rectangle_corrigé(noeud)
-    // couleur := CouleurRVBA(1.0, 0.5, 0.5, 1.0)
     peintre := ctx.peintre
-    // peintre.remplis_rectangle(rect, couleur)
+
+    background := donne_background(*noeud.propriétés)
+    si background.color.a != 0 {
+        rect_noeud := ctx.donne_rectangle_corrigé(noeud)
+        peintre.remplis_rectangle(rect_noeud, background.color)
+    }
 
     bordure := donne_border(*noeud.propriétés)
 

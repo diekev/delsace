@@ -1370,6 +1370,8 @@ InfoTypePropriété :: struct {
 
 infos_types_propriétés := [
     InfoTypePropriété(PROP_display, parse_propriété_display),
+    InfoTypePropriété(PROP_background, parse_propriété_color),
+    InfoTypePropriété(PROP_background_color, parse_propriété_color),
     InfoTypePropriété(PROP_color, parse_propriété_color),
     InfoTypePropriété(PROP_text_decoration, parse_propriété_text_decoration),
     InfoTypePropriété(PROP_cursor, parse_propriété_cursor),

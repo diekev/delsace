@@ -139,9 +139,27 @@ Longueur :: struct {
 }
 
 /* https://drafts.csswg.org/css-backgrounds/ */
-// Background :: struct {
-//     color: Color
-// }
+Background :: struct {
+    color: CouleurRVBAN8
+}
+
+donne_background :: fonc (propriétés: *PropriétésDeStyle) -> Background
+{
+    résultat: Background
+
+    pour propriétés.déclarations {
+        si it.property_name == PROP_background {
+            assert(it.value.taille == 1)
+            résultat.color = it.value[0].couleur
+        }
+        sinon si it.property_name == PROP_background_color {
+            assert(it.value.taille == 1)
+            résultat.color = it.value[0].couleur
+        }
+    }
+
+    retourne résultat
+}
 
 LineStyle :: énum {
     None
