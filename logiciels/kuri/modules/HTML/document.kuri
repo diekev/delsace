@@ -78,6 +78,7 @@ Document :: struct {
     is_initial_about_blank: bool
 
     /* CSS. */
+    feuille_de_style_agent: *CSS.CSSStyleSheet
     feuilles_de_style: [..]*CSS.CSSStyleSheet
     arbre_de_disposition: *CSS.ArbreDeDisposition
     globales_dessin: *CSS.GlobalesDessin

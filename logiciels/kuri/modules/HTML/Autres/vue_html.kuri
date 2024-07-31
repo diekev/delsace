@@ -1032,8 +1032,9 @@ crée_arbre_de_disposition :: fonc (page: *PageWeb, largeur: z32) -> *CSS.ArbreD
         retourne document.arbre_de_disposition
     }
 
-    saufsi document.feuilles_de_style {
-        document.ajoute_feuille_de_style(donne_feuille_de_style_défaut())
+    saufsi document.feuille_de_style_agent {
+        document.feuille_de_style_agent = donne_feuille_de_style_défaut()
+        tableau_insère_index(*document.feuilles_de_style, document.feuille_de_style_agent, 0)
     }
     CSS.crée_arbre_de_disposition(document, largeur)
     retourne document.arbre_de_disposition
