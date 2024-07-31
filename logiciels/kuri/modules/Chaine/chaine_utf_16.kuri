@@ -990,13 +990,11 @@ crée_chaine_utf16_unique :: fonc (table: &TableChainesUTF16Unique, chn: &Chaine
 
     index := table.chaines.taille comme n32
     entrée.index = index
+    entrée.chn = copie_chaine(chn)
 
     ensemble_ajoute(*table.ensemble, entrée)
 
-    tableau_ajoute(*table.chaines, chn)
-    chn.unités.pointeur = nul
-    chn.unités.taille = 0
-    chn.unités.capacité = 0
+    tableau_ajoute(*table.chaines, entrée.chn)
 
     retourne ChaineUTF16Unique(index)
 }
