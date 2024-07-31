@@ -79,6 +79,20 @@ apparie_simple_selector :: fonc (simple: &SimpleSelector, élément: *HTML.Élé
             retourne (élément.pseudo_classes & simple.pseudo_classe) == simple.pseudo_classe
         }
         Class {
+            valeur := HTML.donne_attribut(élément, HTML.ATTR_class)
+            saufsi valeur.possède_valeur() {
+                retourne faux
+            }
+
+            classes_élément := divise_sur_espaces_blanches_ascii(valeur.Quelque)
+            diffère déloge(classes_élément)
+
+            pour classes_élément {
+                si compare_ascii_insensible_à_la_casse(it, simple.ident) {
+                    retourne vrai
+                }
+            }
+
             retourne faux
         }
         Type {
