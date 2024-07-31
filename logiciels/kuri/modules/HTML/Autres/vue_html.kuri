@@ -431,6 +431,7 @@ RappelsFenetrePrincipale :: struct {
 
     page_web: PageWeb
     widget_rendu: *QT_GLWidget
+    widget_arbre_de_dispostion: *QT_TreeWidget
 
     /* Données rappels. */
     sur_filtre_evenement = sur_filtre_evenement_impl
@@ -653,22 +654,38 @@ crée_widget_vue_arbre_de_disposition :: fonc (fenêtre: *QT_Fenetre_Principale,
     rappels := QT_fenetre_principale_donne_rappels(fenêtre) comme *RappelsFenetrePrincipale
 
     résultat := crée_widget_arbre(nul, parent)
-
-    arbre := crée_arbre_de_disposition(*rappels.page_web, 1916)
-    si arbre {
-        item_document := QT_cree_treewidgetitem(nul, nul)
-        QT_treewidgetitem_definis_indicateur_enfant(item_document, QT_Indicateur_Enfant_Arbre.INVISIBLE_SI_SANS_ENFANT)
-        texte := donne_texte_item_pour_noeud(arbre.racine)
-        diffère déloge_si_logée(texte)
-        qtexte := vers_qt(texte)
-        QT_treewidgetitem_definis_texte(item_document, 0, *qtexte)
-        QT_treewidget_ajoute_item_racine(résultat, item_document)
-
-        pour arbre.racine.enfants {
-            ajoute_item_pour_noeud(item_document, it)
-        }
-    }
+    rappels.widget_arbre_de_dispostion = résultat
+    ajourne_widget_arbre_de_disposition(rappels)
     retourne résultat
+}
+
+ajourne_widget_arbre_de_disposition :: fonc (rappels: *RappelsFenetrePrincipale)
+{
+    QT_treewidget_efface(rappels.widget_arbre_de_dispostion)
+
+    document := donne_document(*rappels.page_web)
+    saufsi document {
+        retourne
+    }
+
+    arbre := document.arbre_de_disposition
+    saufsi arbre {
+        retourne
+    }
+
+    widget := rappels.widget_arbre_de_dispostion
+
+    item_document := QT_cree_treewidgetitem(nul, nul)
+    QT_treewidgetitem_definis_indicateur_enfant(item_document, QT_Indicateur_Enfant_Arbre.INVISIBLE_SI_SANS_ENFANT)
+    texte := donne_texte_item_pour_noeud(arbre.racine)
+    diffère déloge_si_logée(texte)
+    qtexte := vers_qt(texte)
+    QT_treewidgetitem_definis_texte(item_document, 0, *qtexte)
+    QT_treewidget_ajoute_item_racine(widget, item_document)
+
+    pour arbre.racine.enfants {
+        ajoute_item_pour_noeud(item_document, it)
+    }
 }
 
 ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *CSS.NoeudDeDisposition)
@@ -710,7 +727,7 @@ donne_texte_item_pour_noeud :: fonc (noeud: *CSS.NoeudDeDisposition) -> chaine
 crée_widget_pour_rendu :: fonc (fenêtre: *QT_Fenetre_Principale, parent: QT_Generic_Widget) -> *QT_GLWidget
 {
     rappels := QT_fenetre_principale_donne_rappels(fenêtre) comme *RappelsFenetrePrincipale
-    résultat := crée_vue_rendu_page(parent, *rappels.page_web)
+    résultat := crée_vue_rendu_page(fenêtre, parent, *rappels.page_web)
     retourne résultat
 }
 
@@ -726,6 +743,7 @@ VueRenduPage :: struct {
     sur_relachement_souris = vue_rendu_page_sur_relachement_souris
     sur_molette_souris = vue_rendu_page_sur_molette_souris
 
+    fenêtre_principale: *QT_Fenetre_Principale
     page: *PageWeb
 
     hauteur: z32
@@ -734,10 +752,11 @@ VueRenduPage :: struct {
     peintre: *Peintre
 }
 
-crée_vue_rendu_page :: fonc (parent: QT_Generic_Widget, page: *PageWeb) -> *QT_GLWidget
+crée_vue_rendu_page :: fonc (fenêtre_principale: *QT_Fenetre_Principale, parent: QT_Generic_Widget, page: *PageWeb) -> *QT_GLWidget
 {
     rappels := loge(VueRenduPage)
     rappels.page = page
+    rappels.fenêtre_principale = fenêtre_principale
     résultat := QT_cree_glwidget(rappels, parent)
     QT_widget_definis_trackage_souris(résultat, vrai)
     retourne résultat
@@ -779,9 +798,16 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glClearColor(1.0, 1.0, 1.0, 1.0)
 
+    ancien_arbre := donne_arbre_de_disposition(vue_rendu_page.page)
+
     arbre := crée_arbre_de_disposition(vue_rendu_page.page, vue_rendu_page.largeur)
     saufsi arbre && arbre.racine {
         retourne
+    }
+
+    si ancien_arbre != arbre {
+        rappels := QT_fenetre_principale_donne_rappels(vue_rendu_page.fenêtre_principale) comme *RappelsFenetrePrincipale
+        ajourne_widget_arbre_de_disposition(rappels)
     }
 
     page := vue_rendu_page.page
@@ -1040,6 +1066,16 @@ crée_arbre_de_disposition :: fonc (page: *PageWeb, largeur: z32) -> *CSS.ArbreD
         tableau_insère_index(*document.feuilles_de_style, document.feuille_de_style_agent, 0)
     }
     CSS.crée_arbre_de_disposition(document, largeur)
+    retourne document.arbre_de_disposition
+}
+
+donne_arbre_de_disposition :: fonc (page: *PageWeb) -> *CSS.ArbreDeDisposition
+{
+    document := donne_document(page)
+    saufsi document {
+        retourne nul
+    }
+
     retourne document.arbre_de_disposition
 }
 
