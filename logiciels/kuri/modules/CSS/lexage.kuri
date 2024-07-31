@@ -105,6 +105,11 @@ point_de_code_maximal_autorisé :: fonc () -> n32 #enligne
     retourne 0x10FFFF
 }
 
+est_guillemet_ascii_ou_apostrophe :: fonc (point_de_code: n32) -> bool #enligne
+{
+    retourne point_de_code == '"' comme n32 || point_de_code == '\''
+}
+
 /* ------------------------------------------------------------------------- */
 /** \nom 4 Tokenization
  * https://www.w3.org/TR/css-syntax-3/#tokenization
@@ -569,15 +574,26 @@ consomme_un_lexème_simili_ident :: fonc (lexeuse: &Lexeuse) -> Lexème
 {
     string := consomme_une_séquence_identifiante(lexeuse)
 
-    // À FAIRE : comparaison insensible à la casse
-    si string == PROP_url && lexeuse.point_de_code_suivant() == '(' {
+    // If string’s value is an ASCII case-insensitive match for "url", and the
+    // next input code point is U+0028 LEFT PARENTHESIS ((), consume it.
+    si compare_ascii_insensible_à_la_casse(string, PROP_url) && lexeuse.point_de_code_suivant() == '(' {
         lexeuse.consomme()
 
-        tantque est_espace_blanche(lexeuse.point_de_code_suivant()) {
+        // While the next two input code points are whitespace, consume the next input code point.
+        tantque est_espace_blanche(lexeuse.point_de_code_suivant()) && est_espace_blanche(lexeuse.point_de_code_suivant(1)) {
             lexeuse.consomme()
         }
 
-        panique("non-implémenté")
+        // If the next one or two input code points are U+0022 QUOTATION MARK ("), U+0027 APOSTROPHE ('),
+        // or whitespace followed by U+0022 QUOTATION MARK (") or U+0027 APOSTROPHE ('),
+        // then create a <function-token> with its value set to string and return it.
+        si est_guillemet_ascii_ou_apostrophe(lexeuse.point_de_code_suivant()) ||
+            (est_espace_blanche(lexeuse.point_de_code_suivant()) && est_guillemet_ascii_ou_apostrophe(lexeuse.point_de_code_suivant(1))) {
+            retourne Lexème(GenreLexème.Function, valeur = string)
+        }
+
+        // Otherwise, consume a url token, and return it.
+        retourne consomme_un_lexème_url(lexeuse)
     }
 
     si lexeuse.point_de_code_suivant() == '(' {
@@ -635,6 +651,9 @@ consomme_un_lexème_chaine :: fonc (lexeuse: &Lexeuse, point_de_code_final: n32)
 consomme_un_lexème_url :: fonc (lexeuse: &Lexeuse) -> Lexème
 {
     valeur: ChaineUTF16
+    diffère détruit_chaine(valeur)
+
+    genre_lexème := GenreLexème.Url
 
     lexeuse.consomme_espaces_blanches()
 
@@ -642,7 +661,7 @@ consomme_un_lexème_url :: fonc (lexeuse: &Lexeuse) -> Lexème
         point_de_code := lexeuse.consomme_point_de_code_suivant()
 
         si point_de_code == ')' {
-            retourne Lexème(GenreLexème.Url, valeur = valeur)
+            arrête
         }
 
         si est_espace_blanche(point_de_code) {
@@ -652,23 +671,25 @@ consomme_un_lexème_url :: fonc (lexeuse: &Lexeuse) -> Lexème
 
             si point_de_code == ')' {
                 lexeuse.consomme()
-                retourne Lexème(GenreLexème.Url, valeur = valeur)
+                arrête
             }
 
             si point_de_code == FIN_DE_FICHIER {
                 lexeuse.consomme() 
                 lexeuse.rapporte_erreur("fin de fichier inattendu")
-                retourne Lexème(GenreLexème.Url, valeur = valeur)
+                arrête
             }
 
             lexeuse.consomme_les_restes_d_un_url()
-            retourne Lexème(GenreLexème.Bad_Url, valeur = valeur)
+            genre_lexème = GenreLexème.Bad_Url
+            arrête
         }
 
         si point_de_code == '"' || point_de_code == '\'' || point_de_code == '(' || est_non_imprimable(point_de_code) {
             lexeuse.rapporte_erreur("caractère inattendu")
             lexeuse.consomme_les_restes_d_un_url()
-            retourne Lexème(GenreLexème.Bad_Url, valeur = valeur)
+            genre_lexème = GenreLexème.Bad_Url
+            arrête
         }
 
         si point_de_code == '\\' {
@@ -680,11 +701,14 @@ consomme_un_lexème_url :: fonc (lexeuse: &Lexeuse) -> Lexème
 
             lexeuse.rapporte_erreur("caractère inattendu")
             lexeuse.consomme_les_restes_d_un_url()
-            retourne Lexème(GenreLexème.Bad_Url, valeur = valeur)
+            genre_lexème = GenreLexème.Bad_Url
+            arrête
         }
         
         chaine_ajoute(*valeur, point_de_code)
     }
+
+    retourne Lexème(genre_lexème, valeur = crée_chaine_utf16_unique(valeur))
 }
 
 /* 4.3.7 Consume an escaped code point
@@ -1002,7 +1026,7 @@ convertis_une_chaine_en_un_nombre :: fonc (repr: ChaineUTF32) -> r64
 
 /* 4.3.14 Consume the remnants of a bad url
  * https://www.w3.org/TR/css-syntax-3/#consume-remnants-of-bad-url */
-consomme_les_restes_d_un_url :: fonc (lexeuse: &Lexeuse) -> Lexème
+consomme_les_restes_d_un_url :: fonc (lexeuse: &Lexeuse)
 {
     tantque !fini(lexeuse) {
         point_de_code := lexeuse.consomme_point_de_code_suivant()
@@ -1012,7 +1036,7 @@ consomme_les_restes_d_un_url :: fonc (lexeuse: &Lexeuse) -> Lexème
         }
 
         si forment_un_échappement_valide(lexeuse, point_de_code) {
-            _ = consomme_un_point_de_code_échappé(lexeuse)
+            _ := consomme_un_point_de_code_échappé(lexeuse)
             continue
         }
     }
