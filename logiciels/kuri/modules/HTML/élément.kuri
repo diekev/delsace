@@ -158,6 +158,9 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élé
     sinon si tag == TAG_head {
         élément = loge(HTMLHeadElement)
     }
+    sinon si tag == TAG_h1 || tag == TAG_h2 || tag == TAG_h3 || tag == TAG_h4 || tag == TAG_h5 || tag == TAG_h6 {
+        élément = loge(HTMLHeadingElement)
+    }
     sinon si tag == TAG_hr {
         élément = loge(HTMLHRElement)
     }
@@ -526,6 +529,33 @@ table_virtuelle_head_element := TableVirtuelleÉlément(
 head_element_sur_destruction :: fonc (base: *EventTarget)
 {
     élément := base comme *HTMLHeadElement
+    déloge(élément)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLHeadingElement
+ * https://html.spec.whatwg.org/multipage/sections.html#the-h1,-h2,-h3,-h4,-h5,-and-h6-elements
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLHeadingElement
+ * \{ */
+
+#portée_export
+
+HTMLHeadingElement :: struct {
+    empl html_element: HTMLElement
+    table = *table_virtuelle_heading_element
+}
+
+#portée_fichier
+
+table_virtuelle_heading_element := TableVirtuelleÉlément(
+    sur_destruction = heading_element_sur_destruction
+)
+
+heading_element_sur_destruction :: fonc (base: *EventTarget)
+{
+    élément := base comme *HTMLHeadingElement
     déloge(élément)
 }
 
