@@ -224,6 +224,19 @@ ajoute_feuille_de_style :: fonc (document: *Document, feuille_de_style: *CSS.CSS
     tableau_ajoute(*document.feuilles_de_style, feuille_de_style)
 }
 
+supprime_feuille_de_style_associée :: fonc (document: *Document, élément: *Élément)
+{
+    pour document.feuilles_de_style {
+        si it.owner_node != élément {
+            continue
+        }
+
+        tableau_supprime_index(*document.feuilles_de_style, index_it)
+        CSS.détruit_feuille_de_style(it)
+        arrête
+    }
+}
+
 définis_noeud_survolé :: fonc (document: *Document, noeud: *Élément)
 {
     si document.noeud_survolé == noeud {

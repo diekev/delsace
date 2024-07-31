@@ -1000,11 +1000,65 @@ style_element_sur_changement_enfants :: fonc (base: *Noeud)
  */
 ajourne_style_block :: fonc (style: *HTMLStyleElement)
 {
-    // À FAIRE : implémente
+    // 1. Let element be the style element.
+    element := style
+
+    // 2. If element has an associated CSS style sheet, remove the CSS style sheet
+    //    in question.
+    document := element.document
+    document.supprime_feuille_de_style_associée(element)
+
+    // 3. If element is not connected, then return.
+    saufsi element.est_connecté() {
+        retourne
+    }
+
+    // 4. If element's type attribute is present and its value is neither the
+    //    empty string nor an ASCII case-insensitive match for "text/css", then
+    //    return.
+    mime_css := crée_chaine_utf16_unique("text/css")
+
+    attr_type := element.cherche_attribut(ATTR_type)
+    si attr_type && !(attr_type.valeur.est_vide() || compare_ascii_insensible_à_la_casse(attr_type.valeur, mime_css)) {
+        retourne
+    }
+
+    // 5. If the Should element's inline behavior be blocked by Content Security Policy?
+    //    algorithm returns "Blocked" when executed upon the style element, "style",
+    //    and the style element's child text content, then return. [CSP]
     texte_source := extrait_texte_noeud(style)
     diffère déloge(texte_source)
 
-    imprime("[%]\n%\n", #nom_de_cette_fonction, texte_source)
+    bloqué := le_comportement_inline_de_l_élément_doit_être_bloqué_par_csp(element, "style", texte_source)
+    si bloqué == "Blocked" {
+        retourne
+    }
+
+    // 6. Create a CSS style sheet with the following properties:
+    feuille_de_style := loge(CSS.CSSStyleSheet)
+    feuille_de_style.type = mime_css
+    feuille_de_style.owner_node = element
+    // À FAIRE : media = The media attribute of element.
+    // À FAIRE : title = The title attribute of element, if element is in a document tree, or the empty string otherwise.
+    feuille_de_style.alternate = faux
+    feuille_de_style.origin_clean = vrai
+    feuille_de_style.parent_style_sheet = nul
+    feuille_de_style.owner_rule = nul
+
+    //  À FAIRE : 7. If element contributes a script-blocking style sheet, append element
+    //    to its node document's script-blocking style sheet set.
+
+    // À FAIRE : 8. If element's media attribute's value matches the environment and
+    //    element is potentially render-blocking, then block rendering on element.
+
+    // Non-spécifié
+    ctx: CSS.ContexteParsageFeuilleDeStyle
+    diffère CSS.détruit_données_contexte(*ctx)
+    CSS.parse_style_rules(*ctx, feuille_de_style, texte_source)
+    CSS.rapporte_propriétés_non_supportées(*ctx)
+    document.ajoute_feuille_de_style(feuille_de_style)
+
+    // À FAIRE : implémente la finalisation
 }
 
 /** \} */
