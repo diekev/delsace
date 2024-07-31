@@ -225,15 +225,8 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32)
     résolveuse: RésolveuseStyle
     résolveuse.feuilles_de_style = document.feuilles_de_style
 
-    racine := résultat.crée_noeud(NoeudDeDispositionBloc)
-    racine.élément = html
-    html.noeud_de_disposition = racine
-
-    résultat.racine = racine
-
-    pour html.enfants {
-        crée_noeud_pour_élément(*résolveuse, résultat, résultat.racine, it)
-    }
+    crée_noeud_pour_élément(*résolveuse, résultat, nul, html)
+    résultat.racine = html.noeud_de_disposition
 
     // imprime("Créé % noeud(s)\n", résultat.noeuds.taille)
 
@@ -241,7 +234,7 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32)
     ctx.largeur_disponible = largeur comme n32
     ctx.globales = document.globales_dessin
 
-    mesure(racine, *ctx)
+    mesure(résultat.racine, *ctx)
 
     // imprime("taille arbre : %x%\n", résultat.racine.largeur, résultat.racine.hauteur)
 
@@ -308,7 +301,10 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
 
     élément.noeud_de_disposition = résultat
     résultat.propriétés = propriétés
-    parent.ajoute_enfant(résultat)
+
+    si parent {
+        parent.ajoute_enfant(résultat)
+    }
 
     pour noeud.enfants {
         crée_noeud_pour_élément(résolveuse, arbre, résultat, it)
