@@ -1487,6 +1487,7 @@ parse_display_box :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(CSS
 
 /* ------------------------------------------------------------------------- */
 /** \nom Color
+ * https://drafts.csswg.org/css-color/#the-color-property
  * \{ */
 
 valeur_hex_depuis_unité :: fonc (unité: n16) -> n8
