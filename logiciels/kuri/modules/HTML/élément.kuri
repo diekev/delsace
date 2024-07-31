@@ -459,7 +459,7 @@ anchor_element_sur_activation_behavior :: fonc (target: *EventTarget, event: *Ev
 #portée_export
 
 HTMLBodyElement :: struct {
-    empl base_élément: Élément
+    empl html_element: HTMLElement
     table = *table_virtuelle_body_element
 }
 
@@ -486,7 +486,7 @@ body_element_sur_destruction :: fonc (base: *EventTarget)
 #portée_export
 
 HTMLFormElement :: struct {
-    empl base_élément: Élément
+    empl html_element: HTMLElement
     table = *table_virtuelle_form_element
 }
 
@@ -513,7 +513,7 @@ form_element_sur_destruction :: fonc (base: *EventTarget)
 #portée_export
 
 HTMLHeadElement :: struct {
-    empl base_élément: Élément
+    empl html_element: HTMLElement
     table = *table_virtuelle_head_element
 }
 
@@ -540,7 +540,7 @@ head_element_sur_destruction :: fonc (base: *EventTarget)
 #portée_export
 
 HTMLHRElement :: struct {
-    empl base_élément: Élément
+    empl html_element: HTMLElement
     table = *table_virtuelle_hr_element
 }
 
@@ -567,7 +567,7 @@ hr_element_sur_destruction :: fonc (base: *EventTarget)
 #portée_export
 
 HTMLHtmlElement :: struct {
-    empl base_élément: Élément
+    empl html_element: HTMLElement
     table = *table_virtuelle_html_element
 }
 
