@@ -69,7 +69,7 @@ apparie_simple_selector :: fonc (simple: &SimpleSelector, élément: *HTML.Élé
             retourne faux
         }
         ID {
-            retourne faux
+            retourne simple.ident == élément.id
         }
         PseudoClass {
             si simple.est_fonction {
