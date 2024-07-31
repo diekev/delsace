@@ -181,6 +181,34 @@ dessine :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
 /** \nom Génération d'arbres de disposition.
  * \{ */
 
+RésolveuseStyle :: struct {
+    feuilles_de_style: []*CSSStyleSheet
+}
+
+collecte_les_règles_appropriées :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élément) -> [..]*CSSStyleRule
+{
+    règles: [..]*CSSStyleRule
+
+    pour stylesheet dans résolveuse.feuilles_de_style {
+        pour règle dans stylesheet.rules {
+            si règle.type != CSSRuleType.Style {
+                continue
+            }
+
+            règle_de_style := règle comme *CSSStyleRule
+
+            pour complex dans règle_de_style.selector_list.complex_selectors {
+                si apparie_sélecteur(complex.compound_selectors, complex.compound_selectors.taille - 1, élément) {
+                    tableau_ajoute(*règles, règle_de_style)
+                    arrête
+                }
+            }
+        }
+    }
+
+    retourne règles
+}
+
 crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32)
 {
     html := HTML.donne_élément_html(document)
@@ -194,7 +222,8 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32)
 
     résultat := loge(ArbreDeDisposition)
 
-    feuille_de_style := document.feuilles_de_style[0]
+    résolveuse: RésolveuseStyle
+    résolveuse.feuilles_de_style = document.feuilles_de_style
 
     racine := résultat.crée_noeud(NoeudDeDispositionBloc)
     racine.élément = html
@@ -203,7 +232,7 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32)
     résultat.racine = racine
 
     pour html.enfants {
-        crée_noeud_pour_élément(feuille_de_style, résultat, résultat.racine, it)
+        crée_noeud_pour_élément(*résolveuse, résultat, résultat.racine, it)
     }
 
     // imprime("Créé % noeud(s)\n", résultat.noeuds.taille)
@@ -225,7 +254,7 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32)
     document.arbre_de_disposition = résultat
 }
 
-crée_noeud_pour_élément :: fonc (stylesheet: *CSSStyleSheet, arbre: *ArbreDeDisposition, parent: *NoeudDeDisposition, noeud: *HTML.Noeud)
+crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *ArbreDeDisposition, parent: *NoeudDeDisposition, noeud: *HTML.Noeud)
 {
     si HTML.est_texte(noeud) {
         résultat := arbre.crée_noeud(NoeudDeDispositionTexte)
@@ -240,7 +269,7 @@ crée_noeud_pour_élément :: fonc (stylesheet: *CSSStyleSheet, arbre: *ArbreDeD
 
     élément := noeud comme *HTML.Élément
 
-    règles := collecte_les_règles_appropriées(stylesheet, élément)
+    règles := collecte_les_règles_appropriées(résolveuse, élément)
     diffère déloge(règles)
 
     // imprime("% règle(s) pour %\n", règles.taille, élément.texte)
@@ -282,7 +311,7 @@ crée_noeud_pour_élément :: fonc (stylesheet: *CSSStyleSheet, arbre: *ArbreDeD
     parent.ajoute_enfant(résultat)
 
     pour noeud.enfants {
-        crée_noeud_pour_élément(stylesheet, arbre, résultat, it)
+        crée_noeud_pour_élément(résolveuse, arbre, résultat, it)
     }
 }
 
