@@ -1004,6 +1004,15 @@ donne_chaine_pour_index :: fonc (table: &TableChainesUTF16Unique, index: n32) ->
     retourne table.chaines[index comme z64]
 }
 
+détruit_table_chaines_utf16_uniques :: fonc ()
+{
+    pour __table_chaines_utf16_uniques.chaines {
+        détruit_chaine(it)
+    }
+    déloge(__table_chaines_utf16_uniques.chaines)
+    déloge(__table_chaines_utf16_uniques.ensemble)
+}
+
 __table_chaines_utf16_uniques: TableChainesUTF16Unique
 
 /** } */
