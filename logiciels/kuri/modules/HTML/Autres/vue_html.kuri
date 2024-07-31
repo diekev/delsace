@@ -801,7 +801,7 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
 
     ancien_arbre := donne_arbre_de_disposition(vue_rendu_page.page)
 
-    arbre := crée_arbre_de_disposition(vue_rendu_page.page, vue_rendu_page.largeur)
+    arbre := crée_arbre_de_disposition(vue_rendu_page.page, vue_rendu_page.largeur, vue_rendu_page.hauteur)
     saufsi arbre && arbre.racine {
         retourne
     }
@@ -1051,7 +1051,7 @@ donne_feuille_de_style_défaut :: fonc () -> *CSS.CSSStyleSheet
     retourne stylesheet
 }
 
-crée_arbre_de_disposition :: fonc (page: *PageWeb, largeur: z32) -> *CSS.ArbreDeDisposition
+crée_arbre_de_disposition :: fonc (page: *PageWeb, largeur: z32, hauteur: z32) -> *CSS.ArbreDeDisposition
 {
     document := donne_document(page)
     saufsi document {
@@ -1066,7 +1066,7 @@ crée_arbre_de_disposition :: fonc (page: *PageWeb, largeur: z32) -> *CSS.ArbreD
         document.feuille_de_style_agent = donne_feuille_de_style_défaut()
         tableau_insère_index(*document.feuilles_de_style, document.feuille_de_style_agent, 0)
     }
-    CSS.crée_arbre_de_disposition(document, largeur)
+    CSS.crée_arbre_de_disposition(document, largeur, hauteur)
     retourne document.arbre_de_disposition
 }
 

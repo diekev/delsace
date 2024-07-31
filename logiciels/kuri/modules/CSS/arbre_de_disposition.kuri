@@ -209,7 +209,7 @@ collecte_les_règles_appropriées :: fonc (résolveuse: *RésolveuseStyle, élé
     retourne règles
 }
 
-crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32)
+crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, hauteur: z32)
 {
     html := HTML.donne_élément_html(document)
     saufsi html {
@@ -232,6 +232,7 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32)
 
     ctx: ContexteDisposition
     ctx.largeur_disponible = largeur comme n32
+    ctx.hauteur_disponible = hauteur comme n32
     ctx.globales = document.globales_dessin
 
     mesure(résultat.racine, *ctx)
@@ -320,6 +321,7 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
 ContexteDisposition :: struct {
     globales: *GlobalesDessin
     largeur_disponible: n32
+    hauteur_disponible: n32
 }
 
 /** \} */
@@ -661,6 +663,10 @@ noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Cont
     }
     sinon {
         dispose_enfants_inline(noeud, ctx)
+    }
+
+    si noeud.parent == nul {
+        noeud.hauteur = max(noeud.hauteur, ctx.hauteur_disponible)
     }
 }
 
