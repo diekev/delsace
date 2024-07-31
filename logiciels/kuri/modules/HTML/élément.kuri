@@ -158,6 +158,9 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élé
     sinon si tag == TAG_head {
         élément = loge(HTMLHeadElement)
     }
+    sinon si tag == TAG_hr {
+        élément = loge(HTMLHRElement)
+    }
     sinon si tag == TAG_html {
         élément = loge(HTMLHtmlElement)
     }
@@ -523,6 +526,33 @@ table_virtuelle_head_element := TableVirtuelleÉlément(
 head_element_sur_destruction :: fonc (base: *EventTarget)
 {
     élément := base comme *HTMLHeadElement
+    déloge(élément)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLHRElement
+ * https://html.spec.whatwg.org/multipage/grouping-content.html#the-hr-element
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLHRElement
+ * \{ */
+
+#portée_export
+
+HTMLHRElement :: struct {
+    empl base_élément: Élément
+    table = *table_virtuelle_hr_element
+}
+
+#portée_fichier
+
+table_virtuelle_hr_element := TableVirtuelleÉlément(
+    sur_destruction = hr_element_sur_destruction
+)
+
+hr_element_sur_destruction :: fonc (base: *EventTarget)
+{
+    élément := base comme *HTMLHRElement
     déloge(élément)
 }
 
