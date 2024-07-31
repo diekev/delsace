@@ -1285,22 +1285,27 @@ donne_info_type_pour_nom :: fonc (ctx: *ContexteParsageFeuilleDeStyle, nom: CSSO
 /* https://www.w3.org/TR/css-syntax-3/#parse-a-css-stylesheet */
 parse_a_css_style_sheet :: fonc (ctx: *ContexteParsageFeuilleDeStyle, contenu: chaine) -> *CSSStyleSheet
 {
+    résultat := loge(CSSStyleSheet)
+    résultat.type = crée_chaine_utf16_unique("text/css")
+
+    parse_style_rules(ctx, résultat, contenu)
+
+    retourne résultat
+}
+
+parse_style_rules :: fonc (ctx: *ContexteParsageFeuilleDeStyle, css_stylesheet: *CSSStyleSheet, contenu: chaine)
+{
     lexèmes := lèxe_style(contenu)
     diffère détruit_lexèmes(*lexèmes)
 
     stylesheet := parse_a_stylesheet(lexèmes)
     diffère détruit_données_stylesheet(*stylesheet)
 
-    résultat := loge(CSSStyleSheet)
-    résultat.type = crée_chaine_utf16_unique("text/css")
-
     pour stylesheet.value {
         si it.type == ParsedQualifiedRule {
-            parse_a_style_rule(ctx, résultat, it comme *ParsedQualifiedRule)
+            parse_a_style_rule(ctx, css_stylesheet, it comme *ParsedQualifiedRule)
         }
     }
-
-    retourne résultat
 }
 
 /* https://www.w3.org/TR/css-syntax-3/#style-rules */
