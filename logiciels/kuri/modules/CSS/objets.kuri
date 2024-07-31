@@ -1,5 +1,6 @@
 importe Chaine
 importe Fondation
+importe #inemployé HTML
 importe Internet
 
 /* CSS Object Model https://www.w3.org/TR/cssom-1/ */
@@ -19,8 +20,13 @@ StyleSheet :: struct {
 CSSStyleSheet :: struct {
     empl base: StyleSheet
 
+    owner_node: *HTML.Élément
+    parent_style_sheet: *CSSStyleSheet
     owner_rule: *CSSRule
     rules: [..]*CSSRule
+    alternate: bool
+    origin_clean: bool
+    disabled: bool
 }
 
 imprime_style_sheet :: fonc (stylesheet: *CSSStyleSheet)
