@@ -38,6 +38,9 @@ imprime_valeur_de_style :: fonc (enchaineuse: *Enchaineuse, valeur: *ValeurDeSty
         couleur(c) {
             ajoute_au_tampon(enchaineuse, "rgb(", c.r, " ", c.v, " ", c.b, ")")
         }
+        longueur(l) {
+            ajoute_au_tampon(enchaineuse, l.valeur, " ", l.unité)
+        }
         sinon {
             ajoute_au_tampon(enchaineuse, "VALEUR INVALIDE OU À IMPRIMER")
         }
@@ -128,6 +131,7 @@ Style :: struct {
 Longueur :: struct {
     Unité :: énum {
         Em
+        Px
     }
 
     valeur: r64
@@ -139,11 +143,306 @@ Longueur :: struct {
 //     color: Color
 // }
 
-// Border :: struct {
-//     width: [4]LineWidth
-//     color: [4]Color
-//     style: [4]LineStyle
-// }
+LineStyle :: énum {
+    None
+    Hidden
+    Dotted
+    Dashed
+    Solid
+    Double
+    Groove
+    Ridge
+    Inset
+    Outset
+}
+
+BorderEdge :: énum {
+    Top
+    Bottom
+    Left
+    Right
+}
+
+Border :: struct {
+    width: [4]ValeurDeStyle
+    style: [4]LineStyle
+    color: [4]ValeurDeStyle
+}
+
+donne_taille :: fonc (bordure: &Border, coté: BorderEdge) -> r32
+{
+    width := bordure.width[coté]
+
+    discr width {
+        longueur(l) {
+            assert(l.unité == Longueur.Unité.Px)
+            retourne l.valeur comme r32
+        }
+        mot_clé(m) {
+            si m == PROP_thin {
+                retourne 1.0
+            }
+            si m == PROP_medium {
+                retourne 3.0
+            }
+            si m == PROP_thick {
+                retourne 5.0
+            }
+            panique("donne_width : mot-clé inconnu")
+        }
+        sinon {
+            panique("donne_width non-implémenté")
+        }
+    }
+
+    retourne 0.0
+}
+
+donne_couleur :: fonc (bordure: &Border, coté: BorderEdge) -> CouleurRVBAN8
+{
+    color := bordure.color[coté]
+
+    discr color {
+        couleur(c) {
+            retourne c
+        }
+        mot_clé(m) {
+            si m == PROP_currentColor {
+                /* À FAIRE : utilise la propriété 'color' */
+                retourne CouleurRVBAN8(0, 0, 0, 255)
+            }
+            panique("donne_couleur : mot-clé inconnu")
+        }
+        sinon {
+            panique("donne_couleur non-implémenté")
+        }
+    }
+
+    retourne CouleurRVBAN8()
+}
+
+donne_border :: fonc (propriétés: *PropriétésDeStyle) -> Border
+{
+    résultat: Border = ---
+    pour i dans 4 {
+        résultat.width[i] = ValeurDeStyle(mot_clé = PROP_medium)
+    }
+    pour i dans 4 {
+        résultat.style[i] = LineStyle.None
+    }
+    pour i dans 4 {
+        résultat.color[i] = ValeurDeStyle(mot_clé = PROP_currentColor)
+    }
+
+    pour propriétés.déclarations {
+        si it.property_name == PROP_border {
+            assert(it.value.taille == 3)
+
+            width := it.value[0]
+            style := donne_line_style(it.value[1])
+            color := it.value[2]
+
+            pour i dans 4 {
+                résultat.width[i] = width
+            }
+            pour i dans 4 {
+                résultat.style[i] = style
+            }
+            pour i dans 4 {
+                résultat.color[i] = color
+            }
+        }
+        sinon si it.property_name == PROP_border_style {
+            si it.value.taille == 1 {
+                pour i dans 4 {
+                    résultat.style[i] = donne_line_style(it.value[0])
+                }
+            }
+            sinon si it.value.taille == 2 {
+                résultat.style[BorderEdge.Top] = donne_line_style(it.value[0])
+                résultat.style[BorderEdge.Bottom] = donne_line_style(it.value[0])
+                résultat.style[BorderEdge.Right] = donne_line_style(it.value[1])
+                résultat.style[BorderEdge.Left] = donne_line_style(it.value[1])
+            }
+            sinon si it.value.taille == 3 {
+                résultat.style[BorderEdge.Top] = donne_line_style(it.value[0])
+                résultat.style[BorderEdge.Right] = donne_line_style(it.value[1])
+                résultat.style[BorderEdge.Left] = donne_line_style(it.value[1])
+                résultat.style[BorderEdge.Bottom] = donne_line_style(it.value[2])
+            }
+            sinon {
+                assert(it.value.taille == 4)
+                résultat.style[BorderEdge.Top] = donne_line_style(it.value[0])
+                résultat.style[BorderEdge.Right] = donne_line_style(it.value[1])
+                résultat.style[BorderEdge.Bottom] = donne_line_style(it.value[2])
+                résultat.style[BorderEdge.Left] = donne_line_style(it.value[3])
+            }
+        }
+        sinon si it.property_name == PROP_border_width {
+            si it.value.taille == 1 {
+                pour i dans 4 {
+                    résultat.width[i] = it.value[0]
+                }
+            }
+            sinon si it.value.taille == 2 {
+                résultat.width[BorderEdge.Top] = it.value[0]
+                résultat.width[BorderEdge.Bottom] = it.value[0]
+                résultat.width[BorderEdge.Right] = it.value[1]
+                résultat.width[BorderEdge.Left] = it.value[1]
+            }
+            sinon si it.value.taille == 3 {
+                résultat.width[BorderEdge.Top] = it.value[0]
+                résultat.width[BorderEdge.Right] = it.value[1]
+                résultat.width[BorderEdge.Left] = it.value[1]
+                résultat.width[BorderEdge.Bottom] = it.value[2]
+            }
+            sinon {
+                assert(it.value.taille == 4)
+                résultat.width[BorderEdge.Top] = it.value[0]
+                résultat.width[BorderEdge.Right] = it.value[1]
+                résultat.width[BorderEdge.Bottom] = it.value[2]
+                résultat.width[BorderEdge.Left] = it.value[3]
+            }
+        }
+        sinon si it.property_name == PROP_border_color {
+            si it.value.taille == 1 {
+                pour i dans 4 {
+                    résultat.color[i] = it.value[0]
+                }
+            }
+            sinon si it.value.taille == 2 {
+                résultat.color[BorderEdge.Top] = it.value[0]
+                résultat.color[BorderEdge.Bottom] = it.value[0]
+                résultat.color[BorderEdge.Right] = it.value[1]
+                résultat.color[BorderEdge.Left] = it.value[1]
+            }
+            sinon si it.value.taille == 3 {
+                résultat.color[BorderEdge.Top] = it.value[0]
+                résultat.color[BorderEdge.Right] = it.value[1]
+                résultat.color[BorderEdge.Left] = it.value[1]
+                résultat.color[BorderEdge.Bottom] = it.value[2]
+            }
+            sinon {
+                assert(it.value.taille == 4)
+                résultat.color[BorderEdge.Top] = it.value[0]
+                résultat.color[BorderEdge.Right] = it.value[1]
+                résultat.color[BorderEdge.Bottom] = it.value[2]
+                résultat.color[BorderEdge.Left] = it.value[3]
+            }
+        }
+        sinon si it.property_name == PROP_border_top {
+            assert(it.value.taille == 3)
+            résultat.width[BorderEdge.Top] = it.value[0]
+            résultat.style[BorderEdge.Top] = donne_line_style(it.value[1])
+            résultat.color[BorderEdge.Top] = it.value[2]
+        }
+        sinon si it.property_name == PROP_border_bottom {
+            assert(it.value.taille == 3)
+            résultat.width[BorderEdge.Bottom] = it.value[0]
+            résultat.style[BorderEdge.Bottom] = donne_line_style(it.value[1])
+            résultat.color[BorderEdge.Bottom] = it.value[2]
+        }
+        sinon si it.property_name == PROP_border_left {
+            assert(it.value.taille == 3)
+            résultat.width[BorderEdge.Left] = it.value[0]
+            résultat.style[BorderEdge.Left] = donne_line_style(it.value[1])
+            résultat.color[BorderEdge.Left] = it.value[2]
+        }
+        sinon si it.property_name == PROP_border_right {
+            assert(it.value.taille == 3)
+            résultat.width[BorderEdge.Right] = it.value[0]
+            résultat.style[BorderEdge.Right] = donne_line_style(it.value[1])
+            résultat.color[BorderEdge.Right] = it.value[2]
+        }
+        sinon si it.property_name == PROP_border_top_color {
+            assert(it.value.taille == 1)
+            résultat.color[BorderEdge.Top] = it.value[0]
+        }
+        sinon si it.property_name == PROP_border_bottom_color {
+            assert(it.value.taille == 1)
+            résultat.color[BorderEdge.Bottom] = it.value[0]
+        }
+        sinon si it.property_name == PROP_border_left_color {
+            assert(it.value.taille == 1)
+            résultat.color[BorderEdge.Left] = it.value[0]
+        }
+        sinon si it.property_name == PROP_border_right_color {
+            assert(it.value.taille == 1)
+            résultat.color[BorderEdge.Right] = it.value[0]
+        }
+        sinon si it.property_name == PROP_border_top_width {
+            assert(it.value.taille == 1)
+            résultat.width[BorderEdge.Top] = it.value[0]
+        }
+        sinon si it.property_name == PROP_border_bottom_width {
+            assert(it.value.taille == 1)
+            résultat.width[BorderEdge.Bottom] = it.value[0]
+        }
+        sinon si it.property_name == PROP_border_left_width {
+            assert(it.value.taille == 1)
+            résultat.width[BorderEdge.Left] = it.value[0]
+        }
+        sinon si it.property_name == PROP_border_right_width {
+            assert(it.value.taille == 1)
+            résultat.width[BorderEdge.Right] = it.value[0]
+        }
+        sinon si it.property_name == PROP_border_top_style {
+            assert(it.value.taille == 1)
+            résultat.style[BorderEdge.Top] = donne_line_style(it.value[0])
+        }
+        sinon si it.property_name == PROP_border_bottom_style {
+            assert(it.value.taille == 1)
+            résultat.style[BorderEdge.Bottom] = donne_line_style(it.value[0])
+        }
+        sinon si it.property_name == PROP_border_left_style {
+            assert(it.value.taille == 1)
+            résultat.style[BorderEdge.Left] = donne_line_style(it.value[0])
+        }
+        sinon si it.property_name == PROP_border_right_style {
+            assert(it.value.taille == 1)
+            résultat.style[BorderEdge.Right] = donne_line_style(it.value[0])
+        }
+    }
+
+    retourne résultat
+}
+
+donne_line_style :: fonc (value: ValeurDeStyle) -> LineStyle
+{
+    si value.est_mot_clé(PROP_none) {
+        retourne LineStyle.None
+    }
+    si value.est_mot_clé(PROP_hidden) {
+        retourne LineStyle.Hidden
+    }
+    si value.est_mot_clé(PROP_dotted) {
+        retourne LineStyle.Dotted
+    }
+    si value.est_mot_clé(PROP_dashed) {
+        retourne LineStyle.Dashed
+    }
+    si value.est_mot_clé(PROP_solid) {
+        retourne LineStyle.Solid
+    }
+    si value.est_mot_clé(PROP_double) {
+        retourne LineStyle.Double
+    }
+    si value.est_mot_clé(PROP_groove) {
+        retourne LineStyle.Groove
+    }
+    si value.est_mot_clé(PROP_ridge) {
+        retourne LineStyle.Ridge
+    }
+    si value.est_mot_clé(PROP_inset) {
+        retourne LineStyle.Inset
+    }
+    si value.est_mot_clé(PROP_outset) {
+        retourne LineStyle.Outset
+    }
+
+    imprime("[%] %\n", #nom_de_cette_fonction, value)
+    panique("LineStyle inconnu")
+}
 
 /* https://www.w3.org/TR/css-color-4/ */
 // Color :: struct {

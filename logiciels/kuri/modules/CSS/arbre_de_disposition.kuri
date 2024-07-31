@@ -635,6 +635,19 @@ noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Cont
     noeud := base comme *NoeudDeDispositionBloc
     noeud.largeur = ctx.largeur_disponible
 
+    bordure := donne_border(*noeud.propriétés)
+
+    pour bordure.style {
+        si it == LineStyle.None {
+            continue
+        }
+        
+        largeur := donne_taille(bordure, index_it comme z32 comme BorderEdge)
+        si index_it == BorderEdge.Top comme z32 || index_it == BorderEdge.Bottom comme z32 {
+            noeud.hauteur += largeur comme n32
+        }
+    }
+
     /* À FAIRE : génère des noeuds anonymes, etc. */
     doit_formatter_en_blocs := faux
 
@@ -661,8 +674,49 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
 
     // rect := ctx.donne_rectangle_corrigé(noeud)
     // couleur := CouleurRVBA(1.0, 0.5, 0.5, 1.0)
-    // peintre := ctx.peintre
+    peintre := ctx.peintre
     // peintre.remplis_rectangle(rect, couleur)
+
+    bordure := donne_border(*noeud.propriétés)
+
+    pour bordure.style {
+        si it == LineStyle.None || it == LineStyle.Hidden {
+            continue
+        }
+
+        couleur := donne_couleur(bordure, index_it comme z32 comme BorderEdge)
+        largeur := donne_taille(bordure, index_it comme z32 comme BorderEdge)
+
+        rect: RectanglePosDim(r32)
+
+        si index_it == BorderEdge.Top comme z32 {
+            rect.x = noeud.position_x comme r32
+            rect.y = noeud.position_y comme r32 + noeud.hauteur comme r32 - largeur
+            rect.largeur = noeud.largeur comme r32
+            rect.hauteur = largeur
+        }
+        sinon si index_it == BorderEdge.Bottom comme z32 {
+            rect.x = noeud.position_x comme r32
+            rect.y = noeud.position_y comme r32
+            rect.largeur = noeud.largeur comme r32
+            rect.hauteur = largeur
+        }
+        sinon si index_it == BorderEdge.Left comme z32 {
+            rect.x = noeud.position_x comme r32
+            rect.y = noeud.position_y comme r32
+            rect.largeur = largeur
+            rect.hauteur = noeud.hauteur comme r32
+        }
+        sinon /* si index_it == BorderEdge.Right comme z32 */ {
+            rect.x = noeud.position_x comme r32
+            rect.y = noeud.position_y comme r32 + noeud.largeur comme r32 - largeur
+            rect.largeur = largeur
+            rect.hauteur = noeud.hauteur comme r32
+        }
+
+        rect = ctx.donne_rectangle_corrigé(rect)
+        peintre.remplis_rectangle(rect, couleur)
+    }
 
     saufsi noeud.est_disposition_inline {
         dessine_enfants_block(noeud, ctx)
@@ -889,6 +943,9 @@ détermine_fonte :: fonc (noeud_texte: *NoeudDeDispositionTexte, ctx: *ContexteD
         discr longueur.unité {
             Em {
                 taille_fonte *= longueur.valeur comme r32
+            }
+            Px {
+                taille_fonte = longueur.valeur comme r32
             }
         }
     }
