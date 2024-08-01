@@ -118,7 +118,7 @@ possède :: fonc (liste: *ListeÉlémentsActifsFormattage, élément: *Élément
             retourne élément_trouvé
         }
 
-        si entrée.élément.texte == nom_tag {
+        si entrée.élément.local_name == nom_tag {
             retourne entrée.élément
         }
 

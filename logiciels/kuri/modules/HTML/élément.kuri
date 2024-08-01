@@ -58,7 +58,7 @@ TableVirtuelleÉlément :: struct {
     est_sur_pile_éléments_ouvert: bool
 
     espace_de_nom: chaine // DOMString @namespaceURI
-    texte: DOMString // DOMString @localName
+    local_name: DOMString
 
     état_élément_custom: chaine
     définition_élément_custom: *rien
@@ -168,7 +168,7 @@ initialise_élément :: fonc (élément: *Élément, document: *Document, texte:
 {
     élément.genre = GenreNoeud.Élément
     élément.document = document
-    élément.texte = texte
+    élément.local_name = texte
 }
 
 crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élément
@@ -230,7 +230,7 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élé
 
 est_compatible_html5 :: fonc (élément: *Élément) -> bool
 {
-    discr élément.texte {
+    discr élément.local_name {
         TAG_acronym,
         TAG_applet,
         TAG_basefont,
@@ -331,7 +331,7 @@ enfant_directe_avec_balise :: fonc (élément: *Élément, balise: DOMString) ->
         }
 
         élément_enfant := (it comme *Élément)
-        si élément_enfant.texte == balise {
+        si élément_enfant.local_name == balise {
             retourne élément_enfant
         }
     }

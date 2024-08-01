@@ -120,7 +120,7 @@ imprime_arbre :: fonc (enchaineuse: *Enchaineuse, racine: *NoeudDeDisposition, p
     imprime_dans_enchaineuse(enchaineuse, "%%", indentation, racine.donne_nom_classe())
     si racine.type == NoeudDeDispositionBloc {
         bloc := racine comme *NoeudDeDispositionBloc
-        imprime_dans_enchaineuse(enchaineuse, " %", bloc.élément.texte)
+        imprime_dans_enchaineuse(enchaineuse, " %", bloc.élément.local_name)
     }
 
     imprime_dans_enchaineuse(enchaineuse, " % % %x%\n", racine.position_x, racine.position_y, racine.largeur, racine.hauteur)
@@ -266,7 +266,7 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
     règles := collecte_les_règles_appropriées(résolveuse, élément)
     diffère déloge(règles)
 
-    // imprime("% règle(s) pour %\n", règles.taille, élément.texte)
+    // imprime("% règle(s) pour %\n", règles.taille, élément.local_name)
 
     propriétés: PropriétésDeStyle
 
@@ -305,7 +305,7 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
         bloc.élément = élément
         résultat = bloc
     }
-    sinon si élément.texte == HTML.TAG_br {
+    sinon si élément.local_name == HTML.TAG_br {
         bris := arbre.crée_noeud(NoeudDeDispositionNouvelleLigne)
         résultat = bris
     }

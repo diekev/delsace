@@ -96,7 +96,7 @@ apparie_simple_selector :: fonc (simple: &SimpleSelector, élément: *HTML.Élé
             retourne faux
         }
         Type {
-            retourne simple.ident == élément.texte
+            retourne simple.ident == élément.local_name
         }
         PseudoElement {
             retourne faux

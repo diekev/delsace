@@ -192,7 +192,7 @@ donne_élément_document :: fonc (document: *Document) -> *Élément
 donne_élément_html :: fonc (document: *Document) -> *HTMLHtmlElement
 {
     élément := donne_élément_document(document)
-    si élément && élément.texte == TAG_html {
+    si élément && élément.local_name == TAG_html {
         retourne élément comme *HTMLHtmlElement
     }
     retourne nul

@@ -568,7 +568,7 @@ ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *Noeud)
         initialise_enchaineuse(*enchaineuse)
         diffère détruit_tampons(*enchaineuse)
 
-        ajoute_au_tampon(*enchaineuse, "<", élément.texte)
+        ajoute_au_tampon(*enchaineuse, "<", élément.local_name)
 
         pour noeud.attributs {
             ajoute_au_tampon(*enchaineuse, " ", it.nom, "=\"", it.valeur, "\"")
@@ -716,7 +716,7 @@ donne_texte_item_pour_noeud :: fonc (noeud: *CSS.NoeudDeDisposition) -> chaine
     }
 
     noeud_bloc := noeud comme *CSS.NoeudDeDispositionBloc
-    retourne imprime_chaine("% (%) [%x%] [%x%]", CSS.donne_nom_classe(noeud), noeud_bloc.élément.texte, noeud.position_x, noeud.position_y, noeud.largeur, noeud.hauteur)
+    retourne imprime_chaine("% (%) [%x%] [%x%]", CSS.donne_nom_classe(noeud), noeud_bloc.élément.local_name, noeud.position_x, noeud.position_y, noeud.largeur, noeud.hauteur)
 }
 
 /** \} */
