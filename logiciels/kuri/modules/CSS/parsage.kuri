@@ -307,6 +307,34 @@ parse_a_style_block_s_contents :: fonc (input: [..]ComponentValue) -> StyleBlock
 }
 
 /* 5.3.8 Parse a list of declarations */
+parse_a_list_of_declarations :: fonc (input: [..]Lexème) -> StyleBlockContent
+{
+    // 1. Normalize input, and set input to the result.
+    // 2. Consume a list of declarations from input, and return the result.
+    parseuse := initialise_une_parseuse(input)
+    retourne consomme_une_liste_de_déclarations(parseuse)
+}
+
+parse_attribut_style :: fonc (valeur: ChaineUTF16) -> *CSSStyleDeclaration
+{
+    contenu := converti_vers_chaine(valeur)
+    diffère déloge(contenu)
+
+    lexèmes := lèxe_style(contenu)
+    diffère détruit_lexèmes(*lexèmes)
+
+    style_content := parse_a_list_of_declarations(lexèmes)
+    diffère détruit_content(style_content)
+
+    ctx: ContexteParsageFeuilleDeStyle
+    diffère détruit_données_contexte(*ctx)
+
+    résultat := parse_css_style_declaration(*ctx, style_content.decls)
+
+    rapporte_propriétés_non_supportées(*ctx, #nom_de_cette_fonction)
+
+    retourne résultat
+}
 
 /* 5.3.9 Parse a component value */
 
@@ -525,6 +553,79 @@ consomme_le_contenu_d_un_bloc_de_style :: fonc (parseuse: &Parseuse($T)) -> Styl
 }
 
 /* 5.4.5 Consume a list of declarations */
+consomme_une_liste_de_déclarations :: fonc (parseuse: &Parseuse($T)) -> StyleBlockContent
+{
+    // Create an initially empty list of declarations.
+    decls: [..]ParsedDeclaration
+    rules: [..]*ParsedRule
+
+    tantque !fini(parseuse) {
+        lexème := parseuse.consomme_le_lexème_en_entrée_suivant()
+
+        si lexème.est_lexème_de_genre(GenreLexème.Whitespace) || lexème.est_lexème_de_genre(GenreLexème.Semicolon) {
+            continue
+        }
+
+        si lexème.est_lexème_de_genre(GenreLexème.EOF) {
+            arrête
+        }
+
+        si lexème.est_lexème_de_genre(GenreLexème.At_Keyword) {
+            parseuse.reconsomme_le_lexème_courant()
+            rule := parseuse.consomme_une_règle_arobase()
+            si rule {
+                tableau_ajoute(*rules, rule)
+            }
+            continue
+        }
+
+        si lexème.est_lexème_de_genre(GenreLexème.Ident) {
+            // Initialize a temporary list initially filled with the current input token.
+            temp: [..]T
+            tableau_ajoute(*temp, lexème)
+
+            // As long as the next input token is anything other than a <semicolon-token>
+            // or <EOF-token>, consume a component value and append it to the temporary list.
+            tantque !fini(parseuse) {
+                lexème = parseuse.lexème_courant()
+
+                si lexème.est_lexème_de_genre(GenreLexème.EOF) || lexème.est_lexème_de_genre(GenreLexème.Semicolon) {
+                    arrête
+                }
+
+                tableau_ajoute(*temp, lexème)
+                parseuse.avance()
+            }
+
+            // Consume a declaration from the temporary list.
+            // If anything was returned, append it to the list of declarations.
+            parseuse_decl := initialise_une_parseuse(temp)
+            decl := consomme_une_déclaration(parseuse_decl)
+            si decl.possède_valeur() {
+                tableau_ajoute(*decls, decl.Quelque)
+            }
+
+            // @Performance
+            déloge(temp)
+            continue
+        }
+
+        // This is a parse error.
+        // Reconsume the current input token.
+        // As long as the next input token is anything other than a <semicolon-token> or <EOF-token>,
+        // consume a component value and throw away the returned value.
+        parseuse.reconsomme_le_lexème_courant()
+        tantque !fini(parseuse) {
+            lexème = parseuse.lexème_courant()
+            si lexème.est_lexème_de_genre(GenreLexème.EOF) || lexème.est_lexème_de_genre(GenreLexème.Semicolon) {
+                arrête
+            }
+            parseuse.avance()
+        }
+    }
+
+    retourne StyleBlockContent(decls, rules)
+}
 
 /* 5.4.6 Consume a declaration */
 consomme_une_déclaration :: fonc (parseuse: &Parseuse($T)) -> Optionnel(ParsedDeclaration)
