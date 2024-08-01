@@ -286,6 +286,12 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
         }
     }
 
+    si élément.style {
+        pour élément.style.déclarations {
+            ajoute_déclaration(*propriétés, it)
+        }
+    }
+
     display := donne_display(*propriétés)
 
     si display.outer_type == Display.Type.None {

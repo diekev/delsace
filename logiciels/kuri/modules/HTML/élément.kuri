@@ -67,6 +67,8 @@ TableVirtuelleÉlément :: struct {
 
     /* CSS */
     noeud_de_disposition: *CSS.NoeudDeDisposition
+    /* https://html.spec.whatwg.org/multipage/dom.html#attr-style */
+    style: *CSS.CSSStyleDeclaration
 }
 
 #portée_fichier
@@ -76,8 +78,9 @@ table_virtuelle_élément := TableVirtuelleÉlément(
     sur_changement_attribut = élément_sur_changement_attribut
 )
 
-élément_détruit_données :: fonc (élément: *Élément @inutilisée)
+élément_détruit_données :: fonc (élément: *Élément)
 {
+    CSS.détruit_style_declaration(élément.style)
 }
 
 élément_sur_destruction :: fonc (base: *EventTarget)
@@ -105,6 +108,21 @@ table_virtuelle_élément := TableVirtuelleÉlément(
             élément.id = mémoire(valeur)
         }
 
+        retourne vrai
+    }
+
+    si local_name == TAG_style {
+        CSS.détruit_style_declaration(élément.style)
+
+        si valeur == nul || mémoire(valeur).est_vide() {
+            élément.style = nul
+        }
+        sinon {
+            valeur_texte := mémoire(valeur).donne_chaine_utf16()
+            élément.style = CSS.parse_attribut_style(valeur_texte)
+        }
+
+        élément.document.invalide_style()
         retourne vrai
     }
 
