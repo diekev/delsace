@@ -63,7 +63,7 @@ est_lettre :: fonc (point_de_code: n32) -> bool #enligne
 
 est_non_ascii :: fonc (point_de_code: n32) -> bool #enligne
 {
-    retourne point_de_code >= 0x80
+    retourne point_de_code >= 0x80 && point_de_code != FIN_DE_FICHIER
 }
 
 est_début_ident :: fonc (point_de_code: n32) -> bool #enligne
