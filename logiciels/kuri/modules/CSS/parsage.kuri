@@ -1261,10 +1261,10 @@ ContexteParsageFeuilleDeStyle :: struct {
     propriétés_non_supportées: [..]CSSOMString
 }
 
-rapporte_propriétés_non_supportées :: fonc (ctx: *ContexteParsageFeuilleDeStyle)
+rapporte_propriétés_non_supportées :: fonc (ctx: *ContexteParsageFeuilleDeStyle, fonction: chaine)
 {
     pour ctx.propriétés_non_supportées {
-        imprime("[CSS] propriété non-supportée : %\n", it)
+        imprime("[CSS][%] propriété non-supportée : %\n", fonction, it)
     }
 }
 

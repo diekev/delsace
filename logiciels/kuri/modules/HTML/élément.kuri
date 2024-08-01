@@ -1126,7 +1126,7 @@ ajourne_style_block :: fonc (style: *HTMLStyleElement)
     ctx: CSS.ContexteParsageFeuilleDeStyle
     diffère CSS.détruit_données_contexte(*ctx)
     CSS.parse_style_rules(*ctx, feuille_de_style, texte_source)
-    CSS.rapporte_propriétés_non_supportées(*ctx)
+    CSS.rapporte_propriétés_non_supportées(*ctx, #nom_de_cette_fonction)
     document.ajoute_feuille_de_style(feuille_de_style)
 
     // À FAIRE : implémente la finalisation

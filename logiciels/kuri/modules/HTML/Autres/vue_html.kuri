@@ -1046,7 +1046,7 @@ donne_feuille_de_style_défaut :: fonc () -> *CSS.CSSStyleSheet
     diffère CSS.détruit_données_contexte(*ctx)
 
     stylesheet := CSS.parse_a_css_style_sheet(*ctx, contenu)
-    CSS.rapporte_propriétés_non_supportées(*ctx)
+    CSS.rapporte_propriétés_non_supportées(*ctx, #nom_de_cette_fonction)
 
     retourne stylesheet
 }
