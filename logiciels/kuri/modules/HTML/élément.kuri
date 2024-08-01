@@ -87,8 +87,12 @@ table_virtuelle_élément := TableVirtuelleÉlément(
     déloge(élément)
 }
 
-élément_sur_changement_attribut :: fonc (élément: *Élément, local_name: DOMString, vieille_valeur: *DOMString @inutilisée, valeur: *DOMString) -> bool
+élément_sur_changement_attribut :: fonc (élément: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString) -> bool
 {
+    si vieille_valeur && valeur && mémoire(vieille_valeur) == mémoire(valeur) {
+        retourne vrai
+    }
+
     /* https://dom.spec.whatwg.org/#concept-id */
     si local_name == ATTR_id {
         // À FAIRE espace de nom pour attribut
