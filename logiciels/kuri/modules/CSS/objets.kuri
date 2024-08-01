@@ -103,31 +103,52 @@ CSSStyleRule :: struct {
     type = CSSRuleType.Style
 
     selector_list: SelectorList
-    déclarations: [..]*CSSDeclaration
+    style: *CSSStyleDeclaration
 }
 
 détruit_style_rule :: fonc (rule: *CSSStyleRule)
 {
     détruit_données_selector_list(*rule.selector_list)
-    
-    pour rule.déclarations {
-        détruit_déclaration(it)
-    }
-
-    déloge(rule.déclarations)
+    détruit_style_declaration(rule.style)
     déloge(rule)
-}
-
-ajoute_déclaration :: fonc (style: *CSSStyleRule, déclaration: *CSSDeclaration)
-{
-    tableau_ajoute(*style.déclarations, déclaration)
 }
 
 imprime_règle :: fonc (règle: *CSSStyleRule)
 {
     imprime("% {\n", règle.selector_list)
+    imprime_style(règle.style)
+    imprime("}\n")
+}
 
-    pour déclaration dans règle.déclarations {
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom https://www.w3.org/TR/cssom-1/#cssstyledeclaration
+ * \{ */
+
+CSSStyleDeclaration :: struct {
+    déclarations: [..]*DéclarationPropriété
+}
+
+détruit_style_declaration :: fonc (style: *CSSStyleDeclaration)
+{
+    pour style.déclarations {
+        détruit_déclaration(it)
+    }
+
+    déloge(style.déclarations)
+    déloge(style)
+}
+
+ajoute_déclaration :: fonc (style: *CSSStyleDeclaration, déclaration: *DéclarationPropriété)
+{
+    tableau_ajoute(*style.déclarations, déclaration)
+}
+
+imprime_style :: fonc (style: *CSSStyleDeclaration)
+{
+
+    pour déclaration dans style.déclarations {
         imprime("    %:", déclaration.property_name)
 
         pour valeur dans déclaration.value {
@@ -136,18 +157,16 @@ imprime_règle :: fonc (règle: *CSSStyleRule)
 
         imprime(";\n")
     }
-
-    imprime("}\n")
 }
 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom CSSDeclaration
+/** \nom DéclarationPropriété
  * https://www.w3.org/TR/cssom-1/#css-declarations
  * \{ */
 
-CSSDeclaration :: struct {
+DéclarationPropriété :: struct {
     info: *InfoTypePropriété
     property_name: CSSOMString
     value: [..]ValeurDeStyle
@@ -155,7 +174,7 @@ CSSDeclaration :: struct {
     case_sensitive: bool
 }
 
-détruit_déclaration :: fonc (déclaration: *CSSDeclaration)
+détruit_déclaration :: fonc (déclaration: *DéclarationPropriété)
 {
     pour * déclaration.value {
         détruit_valeur_de_style(it)

@@ -62,7 +62,7 @@ imprime_valeur_de_style :: fonc (enchaineuse: *Enchaineuse, valeur: *ValeurDeSty
  * \{ */
 
 PropriétésDeStyle :: struct {
-    déclarations: [..]*CSSDeclaration
+    déclarations: [..]*DéclarationPropriété
 }
 
 détruit_données_propriétés :: fonc (propriétés: *PropriétésDeStyle)
@@ -76,7 +76,7 @@ détruit_propriétés :: fonc (propriétés: *PropriétésDeStyle)
     déloge(propriétés)
 }
 
-ajoute_déclaration :: fonc (propriétés: *PropriétésDeStyle, déclaration: *CSSDeclaration)
+ajoute_déclaration :: fonc (propriétés: *PropriétésDeStyle, déclaration: *DéclarationPropriété)
 {
     pour propriétés.déclarations {
         si it.property_name == déclaration.property_name {
@@ -87,7 +87,7 @@ ajoute_déclaration :: fonc (propriétés: *PropriétésDeStyle, déclaration: *
     tableau_ajoute(*propriétés.déclarations, déclaration)
 }
 
-donne_déclaration :: fonc (propriétés: *PropriétésDeStyle, nom: CSSOMString) -> *CSSDeclaration
+donne_déclaration :: fonc (propriétés: *PropriétésDeStyle, nom: CSSOMString) -> *DéclarationPropriété
 {
     pour propriétés.déclarations {
         si it.property_name == nom {

@@ -1321,6 +1321,8 @@ parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sh
     résultat := loge(CSSStyleRule)
     résultat.parent_style_sheet = parent_style_sheet
     résultat.selector_list = selectors.Quelque
+    style := loge(CSSStyleDeclaration)
+    résultat.style = style
 
     content := parse_a_style_block_s_contents(parsed_rule.bloc.value)
     diffère détruit_content(content)
@@ -1339,16 +1341,16 @@ parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sh
             continue
         }
 
-        déclaration := loge(CSSDeclaration)
+        déclaration := loge(DéclarationPropriété)
         déclaration.info = info_type_propriété
         déclaration.property_name = it.name
         déclaration.value = opt_valeur.Quelque
         déclaration.important = it.important
 
-        résultat.ajoute_déclaration(déclaration)
+        style.ajoute_déclaration(déclaration)
     }
 
-    si résultat.déclarations.taille == 0 {
+    si style.déclarations.taille == 0 {
         détruit_style_rule(résultat)
         retourne
     }
