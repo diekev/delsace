@@ -1321,15 +1321,28 @@ parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sh
     résultat := loge(CSSStyleRule)
     résultat.parent_style_sheet = parent_style_sheet
     résultat.selector_list = selectors.Quelque
-    style := loge(CSSStyleDeclaration)
-    résultat.style = style
 
     content := parse_a_style_block_s_contents(parsed_rule.bloc.value)
     diffère détruit_content(content)
 
     /* Ne considère que les déclarations.
      * À FAIRE : @nest peut être préservé. */
-    pour content.decls {
+    style := parse_css_style_declaration(ctx, content.decls)
+    résultat.style = style
+
+    si style.déclarations.taille == 0 {
+        détruit_style_rule(résultat)
+        retourne
+    }
+
+    tableau_ajoute(*parent_style_sheet.rules, résultat)
+}
+
+parse_css_style_declaration :: fonc (ctx: *ContexteParsageFeuilleDeStyle, déclarations: []ParsedDeclaration) -> *CSSStyleDeclaration
+{
+    résultat := loge(CSSStyleDeclaration)
+
+    pour déclarations {
         info_type_propriété := donne_info_type_pour_nom(ctx, it.name)
         saufsi info_type_propriété {
             continue
@@ -1347,15 +1360,10 @@ parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sh
         déclaration.value = opt_valeur.Quelque
         déclaration.important = it.important
 
-        style.ajoute_déclaration(déclaration)
+        résultat.ajoute_déclaration(déclaration)
     }
 
-    si style.déclarations.taille == 0 {
-        détruit_style_rule(résultat)
-        retourne
-    }
-
-    tableau_ajoute(*parent_style_sheet.rules, résultat)
+    retourne résultat
 }
 
 /** \} */
