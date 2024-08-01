@@ -2367,6 +2367,16 @@ parse_valeur_line_width :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionn
             retourne
         }
 
+        si lexème.est_lexème_de_genre(GenreLexème.Number) {
+            parseuse.avance()
+
+            si lexème.lexème.drapeau_type_nombre == DrapeauxTypeNombre.Integer {
+                retourne ValeurDeStyle(integer = lexème.lexème.numeric_value)
+            }
+
+            retourne ValeurDeStyle(number = lexème.lexème.numeric_value)
+        }
+
         retourne
     }
 }

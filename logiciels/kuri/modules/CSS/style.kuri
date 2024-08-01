@@ -7,6 +7,8 @@ ValeurDeStyle :: union {
     mot_clé: CSSOMString
     couleur: CouleurRVBAN8
     longueur: Longueur
+    integer: r64
+    number: r64
 }
 
 détruit_valeur_de_style :: fonc (value: *ValeurDeStyle @inutilisée)
@@ -40,6 +42,12 @@ imprime_valeur_de_style :: fonc (enchaineuse: *Enchaineuse, valeur: *ValeurDeSty
         }
         longueur(l) {
             ajoute_au_tampon(enchaineuse, l.valeur, " ", l.unité)
+        }
+        integer(i) {
+            ajoute_au_tampon(enchaineuse, i)
+        }
+        number(n) {
+            ajoute_au_tampon(enchaineuse, n)
         }
         sinon {
             ajoute_au_tampon(enchaineuse, "VALEUR INVALIDE OU À IMPRIMER")
@@ -192,6 +200,12 @@ donne_taille :: fonc (bordure: &Border, coté: BorderEdge) -> r32
     width := bordure.width[coté]
 
     discr width {
+        integer(i) {
+            retourne i comme r32
+        }
+        number(n) {
+            retourne n comme r32
+        }
         longueur(l) {
             assert(l.unité == Longueur.Unité.Px)
             retourne l.valeur comme r32
