@@ -2134,7 +2134,7 @@ parse_propriété_font_weight :: fonc (value: [..]ComponentValue) -> Optionnel([
     résultat: [..]ValeurDeStyle
 
     mots_clés := [
-        PROP_normal, PROP_bold
+        PROP_normal, PROP_bold, PROP_lighter, PROP_bolder
     ]
 
     tantque !fini(parseuse) {

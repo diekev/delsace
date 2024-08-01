@@ -951,7 +951,7 @@ détermine_fonte :: fonc (noeud_texte: *NoeudDeDispositionTexte, ctx: *ContexteD
     si font_weight {
         mot_clé := font_weight.value[0].mot_clé
 
-        si mot_clé == PROP_bold {
+        si mot_clé == PROP_bold || mot_clé == PROP_bolder {
             graisse = GraisseFonte.Gras
         }
     }
