@@ -1217,7 +1217,6 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Request) -> *RappelsRequê
     {
         rappels := base comme *RappelsRequête
         parseuse := *rappels.parseuse
-        requête := rappels.requête
 
         enchaineuse: Enchaineuse
         initialise_enchaineuse(*enchaineuse)
