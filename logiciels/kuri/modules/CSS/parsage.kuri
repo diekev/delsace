@@ -1538,15 +1538,20 @@ donne_info_type_pour_nom :: fonc (nom: CSSOMString) -> *InfoTypePropriété
  * \{ */
 
 /* https://www.w3.org/TR/css-cascade/#defaulting-keywords */
-parse_css_wide_keyword :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(CSSOMString)
+parse_css_wide_keyword :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
 {
     mots_clés := [PROP_initial, PROP_inherit, PROP_unset, PROP_revert]
+    retourne parse_mot_clé(parseuse, mots_clés)
+}
+
+parse_mot_clé :: fonc (parseuse: &Parseuse(ComponentValue), mots_clés: []CSSOMString) -> Optionnel(ValeurDeStyle)
+{
     lexème := parseuse.lexème_courant()
 
     pour mots_clés {
         si lexème.est_identifiant(it) {
             parseuse.avance()
-            retourne lexème.donne_texte()
+            retourne ValeurDeStyle(mot_clé = lexème.donne_texte())
         }
     }
 }
@@ -1603,14 +1608,14 @@ parse_propriété_display :: fonc (value: [..]ComponentValue) -> Optionnel([..]V
     mot_clé := parseuse.parse_display_outside()
     si mot_clé.possède_valeur() {
         résultat: [..]ValeurDeStyle
-        tableau_ajoute(*résultat, ValeurDeStyle(mot_clé.Quelque))
+        tableau_ajoute(*résultat, mot_clé)
         retourne résultat
     }
 
     mot_clé = parseuse.parse_display_box()
     si mot_clé.possède_valeur() {
         résultat: [..]ValeurDeStyle
-        tableau_ajoute(*résultat, ValeurDeStyle(mot_clé.Quelque))
+        tableau_ajoute(*résultat, mot_clé)
         retourne résultat
     }
 
@@ -1624,7 +1629,7 @@ parse_propriété_display :: fonc (value: [..]ComponentValue) -> Optionnel([..]V
     }
 }
 
-parse_display_outside :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(CSSOMString)
+parse_display_outside :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
 {
     opt_mot_clé := parse_css_wide_keyword(parseuse)
     si opt_mot_clé.possède_valeur() {
@@ -1633,17 +1638,10 @@ parse_display_outside :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel
 
     /* block | inline | run-in */
     mots_clés := [PROP_block, PROP_inline, PROP_run_in]
-    lexème := parseuse.lexème_courant()
-
-    pour mots_clés {
-        si lexème.est_identifiant(it) {
-            parseuse.avance()
-            retourne lexème.donne_texte()
-        }
-    }
+    retourne parse_mot_clé(parseuse, mots_clés)
 }
 
-parse_display_box :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(CSSOMString)
+parse_display_box :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
 {
     opt_mot_clé := parse_css_wide_keyword(parseuse)
     si opt_mot_clé.possède_valeur() {
@@ -1652,14 +1650,7 @@ parse_display_box :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(CSS
 
     /* contents | none */
     mots_clés := [PROP_contents, PROP_none]
-    lexème := parseuse.lexème_courant()
-
-    pour mots_clés {
-        si lexème.est_identifiant(it) {
-            parseuse.avance()
-            retourne lexème.donne_texte()
-        }
-    }
+    retourne parse_mot_clé(parseuse, mots_clés)
 }
 
 /** \} */
@@ -2105,20 +2096,15 @@ parse_propriété_cursor :: fonc (value: [..]ComponentValue) -> Optionnel([..]Va
         lexème := parseuse.lexème_courant()
 
         si lexème.est_lexème_de_genre(GenreLexème.Ident) {
-            pour mots_clés {
-                si lexème.est_identifiant(it) {
-                    texte := lexème.donne_texte()
-                    tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = texte))
-                    arrête
-                }
+            valeur := parse_mot_clé(parseuse, mots_clés)
+            si valeur.possède_valeur() {
+                tableau_ajoute(*résultat, valeur)
             }
-            sansarrêt {
+            sinon {
                 imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
                 déloge(résultat)
                 retourne
             }
-
-            parseuse.avance()
         }
         sinon {
             imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
@@ -2155,20 +2141,15 @@ parse_propriété_font_weight :: fonc (value: [..]ComponentValue) -> Optionnel([
         lexème := parseuse.lexème_courant()
 
         si lexème.est_lexème_de_genre(GenreLexème.Ident) {
-            pour mots_clés {
-                si lexème.est_identifiant(it) {
-                    texte := lexème.donne_texte()
-                    tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = texte))
-                    arrête
-                }
+            valeur := parse_mot_clé(parseuse, mots_clés)
+            si valeur.possède_valeur() {
+                tableau_ajoute(*résultat, valeur)
             }
-            sansarrêt {
+            sinon {
                 imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
                 déloge(résultat)
                 retourne
             }
-
-            parseuse.avance()
         }
         sinon {
             imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
@@ -2236,20 +2217,15 @@ parse_propriété_font_style :: fonc (value: [..]ComponentValue) -> Optionnel([.
         lexème := parseuse.lexème_courant()
 
         si lexème.est_lexème_de_genre(GenreLexème.Ident) {
-            pour mots_clés {
-                si lexème.est_identifiant(it) {
-                    texte := lexème.donne_texte()
-                    tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = texte))
-                    arrête
-                }
+            valeur := parse_mot_clé(parseuse, mots_clés)
+            si valeur.possède_valeur() {
+                tableau_ajoute(*résultat, valeur)
             }
-            sansarrêt {
+            sinon {
                 imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
                 déloge(résultat)
                 retourne
             }
-
-            parseuse.avance()
         }
         sinon {
             imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
@@ -2477,12 +2453,9 @@ parse_valeur_line_width :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionn
 
         lexème := parseuse.lexème_courant()
         si lexème.est_lexème_de_genre(GenreLexème.Ident) {
-            pour mots_clés {
-                si lexème.est_identifiant(it) {
-                    texte := lexème.donne_texte()
-                    parseuse.avance()
-                    retourne ValeurDeStyle(mot_clé = texte)
-                }
+            valeur := parse_mot_clé(parseuse, mots_clés)
+            si valeur.possède_valeur() {
+                retourne valeur
             }
 
             retourne
@@ -2506,12 +2479,9 @@ parse_valeur_line_style :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionn
 
         lexème := parseuse.lexème_courant()
         si lexème.est_lexème_de_genre(GenreLexème.Ident) {
-            pour mots_clés {
-                si lexème.est_identifiant(it) {
-                    texte := lexème.donne_texte()
-                    parseuse.avance()
-                    retourne ValeurDeStyle(mot_clé = texte)
-                }
+            valeur := parse_mot_clé(parseuse, mots_clés)
+            si valeur.possède_valeur() {
+                retourne valeur
             }
         }
 
