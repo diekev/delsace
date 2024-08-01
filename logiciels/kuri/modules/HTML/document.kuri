@@ -252,10 +252,9 @@ définis_noeud_survolé :: fonc (document: *Document, noeud: *Élément)
     }
 }
 
-/* Invalide le style suite à la modification d'une pseudo-classe. */
-invalide_style :: fonc (document: *Document, pseudo_classe: CSS.PseudoClasses @inutilisée)
+/* Invalide le style de manière générale. */
+invalide_style :: fonc (document: *Document)
 {
-    /* À FAIRE : utilise la pseudo-classe, et ne détruit pas l'arbre. */
     CSS.détruit_arbre(document.arbre_de_disposition)
     document.arbre_de_disposition = nul
 
@@ -265,17 +264,18 @@ invalide_style :: fonc (document: *Document, pseudo_classe: CSS.PseudoClasses @i
     }
 }
 
+/* Invalide le style suite à la modification d'une pseudo-classe. */
+invalide_style :: fonc (document: *Document, pseudo_classe: CSS.PseudoClasses @inutilisée)
+{
+    /* À FAIRE : utilise la pseudo-classe, et ne détruit pas l'arbre. */
+    document.invalide_style()
+}
+
 /* Invalide le style suite au redimensionnement de la fenêtre. */
 invalide_style_pour_redimensionnement :: fonc (document: *Document)
 {
     /* À FAIRE : ne détruit pas l'arbre, refait une disposition. */
-    CSS.détruit_arbre(document.arbre_de_disposition)
-    document.arbre_de_disposition = nul
-
-    user_agent := document.donne_user_agent()
-    si user_agent {
-        user_agent.requiers_rendu()
-    }
+    document.invalide_style()
 }
 
 donne_user_agent :: fonc (document: *Document) -> *UserAgent
