@@ -76,9 +76,14 @@ table_virtuelle_élément := TableVirtuelleÉlément(
     sur_changement_attribut = élément_sur_changement_attribut
 )
 
+élément_détruit_données :: fonc (élément: *Élément @inutilisée)
+{
+}
+
 élément_sur_destruction :: fonc (base: *EventTarget)
 {
     élément := base comme *Élément
+    élément_détruit_données(élément)
     déloge(élément)
 }
 
@@ -399,6 +404,7 @@ table_virtuelle_anchor_element := TableVirtuelleÉlément(
 anchor_element_sur_destruction :: fonc (base: *EventTarget)
 {
     élément := base comme *HTMLAnchorElement
+    élément_détruit_données(élément)
     déloge(élément)
 }
 
@@ -475,6 +481,7 @@ table_virtuelle_body_element := TableVirtuelleÉlément(
 body_element_sur_destruction :: fonc (base: *EventTarget)
 {
     élément := base comme *HTMLBodyElement
+    élément_détruit_données(élément)
     déloge(élément)
 }
 
@@ -502,6 +509,7 @@ table_virtuelle_form_element := TableVirtuelleÉlément(
 form_element_sur_destruction :: fonc (base: *EventTarget)
 {
     élément := base comme *HTMLFormElement
+    élément_détruit_données(élément)
     déloge(élément)
 }
 
@@ -529,6 +537,7 @@ table_virtuelle_head_element := TableVirtuelleÉlément(
 head_element_sur_destruction :: fonc (base: *EventTarget)
 {
     élément := base comme *HTMLHeadElement
+    élément_détruit_données(élément)
     déloge(élément)
 }
 
@@ -556,6 +565,7 @@ table_virtuelle_heading_element := TableVirtuelleÉlément(
 heading_element_sur_destruction :: fonc (base: *EventTarget)
 {
     élément := base comme *HTMLHeadingElement
+    élément_détruit_données(élément)
     déloge(élément)
 }
 
@@ -583,6 +593,7 @@ table_virtuelle_hr_element := TableVirtuelleÉlément(
 hr_element_sur_destruction :: fonc (base: *EventTarget)
 {
     élément := base comme *HTMLHRElement
+    élément_détruit_données(élément)
     déloge(élément)
 }
 
@@ -610,6 +621,7 @@ table_virtuelle_html_element := TableVirtuelleÉlément(
 html_element_sur_destruction :: fonc (base: *EventTarget)
 {
     élément := base comme *HTMLHtmlElement
+    élément_détruit_données(élément)
     déloge(élément)
 }
 
@@ -646,6 +658,7 @@ table_virtuelle_image_element := TableVirtuelleÉlément(
 image_element_sur_destruction :: fonc (base: *EventTarget)
 {
     élément := base comme *HTMLImageElement
+    élément_détruit_données(élément)
     déloge(élément)
 }
 
@@ -696,6 +709,7 @@ table_virtuelle_video_element := TableVirtuelleÉlément(
 video_element_sur_destruction :: fonc (base: *EventTarget)
 {
     élément := base comme *HTMLVideoElement
+    élément_détruit_données(élément)
     déloge(élément)
 }
 
@@ -761,6 +775,7 @@ table_virtuelle_script_element := TableVirtuelleÉlément(
 script_element_sur_destruction :: fonc (base: *EventTarget)
 {
     élément := base comme *HTMLScriptElement
+    élément_détruit_données(élément)
     déloge(élément)
 }
 
@@ -1039,6 +1054,7 @@ table_virtuelle_style_element := TableVirtuelleÉlément(
 style_element_sur_destruction :: fonc (base: *EventTarget)
 {
     élément := base comme *HTMLStyleElement
+    élément_détruit_données(élément)
     déloge(élément)
 }
 
