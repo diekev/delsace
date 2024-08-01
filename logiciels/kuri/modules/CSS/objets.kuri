@@ -148,6 +148,7 @@ imprime_règle :: fonc (règle: *CSSStyleRule)
  * \{ */
 
 CSSDeclaration :: struct {
+    info: *InfoTypePropriété
     property_name: CSSOMString
     value: [..]ValeurDeStyle
     important: bool

@@ -1340,6 +1340,7 @@ parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sh
         }
 
         déclaration := loge(CSSDeclaration)
+        déclaration.info = info_type_propriété
         déclaration.property_name = it.name
         déclaration.value = opt_valeur.Quelque
         déclaration.important = it.important
@@ -1361,43 +1362,49 @@ parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sh
 /** \nom InfoTypePropriété
  * \{ */
 
-#portée_fichier
+#portée_module
+
+PropriétéHéritable :: énum n8 {
+    Oui
+    Non
+}
 
 InfoTypePropriété :: struct {
     nom: CSSOMString
     fonction_de_parsage: fonc([..]ComponentValue)(Optionnel([..]ValeurDeStyle))
+    héritable: PropriétéHéritable
 }
 
 infos_types_propriétés := [
-    InfoTypePropriété(PROP_display, parse_propriété_display),
-    InfoTypePropriété(PROP_background, parse_propriété_color),
-    InfoTypePropriété(PROP_background_color, parse_propriété_color),
-    InfoTypePropriété(PROP_color, parse_propriété_color),
-    InfoTypePropriété(PROP_text_decoration, parse_propriété_text_decoration),
-    InfoTypePropriété(PROP_cursor, parse_propriété_cursor),
-    InfoTypePropriété(PROP_font_weight, parse_propriété_font_weight),
-    InfoTypePropriété(PROP_font_size, parse_propriété_font_size),
-    InfoTypePropriété(PROP_font_style, parse_propriété_font_style),
-    InfoTypePropriété(PROP_border_color, parse_propriété_border_color),
-    InfoTypePropriété(PROP_border_top_color, parse_propriété_color),
-    InfoTypePropriété(PROP_border_left_color, parse_propriété_color),
-    InfoTypePropriété(PROP_border_bottom_color, parse_propriété_color),
-    InfoTypePropriété(PROP_border_right_color, parse_propriété_color),
-    InfoTypePropriété(PROP_border, parse_propriété_border),
-    InfoTypePropriété(PROP_border_top, parse_propriété_border),
-    InfoTypePropriété(PROP_border_left, parse_propriété_border),
-    InfoTypePropriété(PROP_border_bottom, parse_propriété_border),
-    InfoTypePropriété(PROP_border_right, parse_propriété_border),
-    InfoTypePropriété(PROP_border_style, parse_propriété_border_style),
-    InfoTypePropriété(PROP_border_top_style, parse_propriété_border_line_style),
-    InfoTypePropriété(PROP_border_bottom_style, parse_propriété_border_line_style),
-    InfoTypePropriété(PROP_border_right_style, parse_propriété_border_line_style),
-    InfoTypePropriété(PROP_border_left_style, parse_propriété_border_line_style),
-    InfoTypePropriété(PROP_border_width, parse_propriété_border_width),
-    InfoTypePropriété(PROP_border_top_width, parse_propriété_border_line_width),
-    InfoTypePropriété(PROP_border_bottom_width, parse_propriété_border_line_width),
-    InfoTypePropriété(PROP_border_left_width, parse_propriété_border_line_width),
-    InfoTypePropriété(PROP_border_right_width, parse_propriété_border_line_width)
+    InfoTypePropriété(PROP_display, parse_propriété_display, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_background, parse_propriété_color, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_background_color, parse_propriété_color, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_color, parse_propriété_color, PropriétéHéritable.Oui),
+    InfoTypePropriété(PROP_text_decoration, parse_propriété_text_decoration, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_cursor, parse_propriété_cursor, PropriétéHéritable.Oui),
+    InfoTypePropriété(PROP_font_weight, parse_propriété_font_weight, PropriétéHéritable.Oui),
+    InfoTypePropriété(PROP_font_size, parse_propriété_font_size, PropriétéHéritable.Oui),
+    InfoTypePropriété(PROP_font_style, parse_propriété_font_style, PropriétéHéritable.Oui),
+    InfoTypePropriété(PROP_border_color, parse_propriété_border_color, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_top_color, parse_propriété_color, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_left_color, parse_propriété_color, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_bottom_color, parse_propriété_color, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_right_color, parse_propriété_color, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border, parse_propriété_border, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_top, parse_propriété_border, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_left, parse_propriété_border, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_bottom, parse_propriété_border, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_right, parse_propriété_border, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_style, parse_propriété_border_style, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_top_style, parse_propriété_border_line_style, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_bottom_style, parse_propriété_border_line_style, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_right_style, parse_propriété_border_line_style, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_left_style, parse_propriété_border_line_style, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_width, parse_propriété_border_width, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_top_width, parse_propriété_border_line_width, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_bottom_width, parse_propriété_border_line_width, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_left_width, parse_propriété_border_line_width, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_right_width, parse_propriété_border_line_width, PropriétéHéritable.Non)
 ]
 
 donne_info_type_pour_nom :: fonc (nom: CSSOMString) -> *InfoTypePropriété

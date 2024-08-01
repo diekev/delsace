@@ -270,6 +270,15 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
 
     propriétés: PropriétésDeStyle
 
+    si parent {
+        pour parent.propriétés.déclarations {
+            si it.info.héritable == PropriétéHéritable.Non {
+                continue
+            }
+            ajoute_déclaration(*propriétés, it)
+        }
+    }
+
     pour règles {
         // imprime_règle(it)
         pour déclaration dans it.déclarations {
