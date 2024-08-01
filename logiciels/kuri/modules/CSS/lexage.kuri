@@ -81,7 +81,7 @@ est_non_imprimable :: fonc (point_de_code: n32) -> bool #enligne
     BACKSPACE : n32 : 0x8
     LINE_TABULATION : n32 : 0xB
     SHIFT_OUT : n32 : 0xE
-    INFORMATION_SEPARATOR_ONE : n32 : 0xF1
+    INFORMATION_SEPARATOR_ONE : n32 : 0x1F
     DELETE : n32 : 0x7F
 
     retourne (point_de_code <= BACKSPACE) || (point_de_code == LINE_TABULATION) || (SHIFT_OUT <= point_de_code <= INFORMATION_SEPARATOR_ONE) || point_de_code == DELETE
