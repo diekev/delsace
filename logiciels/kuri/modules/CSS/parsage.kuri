@@ -1430,6 +1430,7 @@ parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sh
      * À FAIRE : @nest peut être préservé. */
     style := parse_css_style_declaration(ctx, content.decls)
     résultat.style = style
+    style.parent_css_rule = résultat
 
     si style.déclarations.taille == 0 {
         détruit_style_rule(résultat)

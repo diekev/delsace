@@ -120,6 +120,8 @@ table_virtuelle_élément := TableVirtuelleÉlément(
         sinon {
             valeur_texte := mémoire(valeur).donne_chaine_utf16()
             élément.style = CSS.parse_attribut_style(valeur_texte)
+            // À FAIRE(langage)
+            // élément.style.owner_node = élément
         }
 
         élément.document.invalide_style()

@@ -123,11 +123,22 @@ imprime_règle :: fonc (règle: *CSSStyleRule)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom https://www.w3.org/TR/cssom-1/#cssstyledeclaration
+/** \nom CSSStyleDeclaration
+ * https://www.w3.org/TR/cssom-1/#css-declaration-blocks
+ * https://www.w3.org/TR/cssom-1/#cssstyledeclaration
  * \{ */
 
 CSSStyleDeclaration :: struct {
     déclarations: [..]*DéclarationPropriété
+    /* The CSS rule that the CSS declaration block is associated with, if any, or null otherwise. */
+    parent_css_rule: *CSSRule
+    /* The Element that the CSS declaration block is associated with, if any, or null otherwise. */
+    // À FAIRE(langage)
+    // owner_node: *HTML.Élément
+    /* Set if the object is a computed style declaration, rather than a specified style. */
+    computed: bool
+    /* Set when the CSS declaration block is updating the owner node’s style attribute. */
+    updating: bool
 }
 
 détruit_style_declaration :: fonc (style: *CSSStyleDeclaration)
