@@ -1551,6 +1551,44 @@ parse_css_wide_keyword :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionne
     }
 }
 
+/* https://drafts.csswg.org/css-values-4/#lengths */
+parse_valeur_length :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+{
+    si parseuse.fini() {
+        retourne
+    }
+
+    lexème := parseuse.lexème_courant()
+
+    si lexème.est_lexème_de_genre(GenreLexème.Dimension) {
+        données_lexème := lexème.lexème
+
+        si données_lexème.unité == PROP_em {
+            parseuse.avance()
+            longueur := Longueur(données_lexème.numeric_value, Longueur.Unité.Em)
+            retourne ValeurDeStyle(longueur = longueur)
+        }
+
+        si données_lexème.unité == PROP_px {
+            parseuse.avance()
+            longueur := Longueur(données_lexème.numeric_value, Longueur.Unité.Px)
+            retourne ValeurDeStyle(longueur = longueur)
+        }
+
+        retourne
+    }
+
+    si lexème.est_lexème_de_genre(GenreLexème.Number) {
+        parseuse.avance()
+
+        si lexème.lexème.drapeau_type_nombre == DrapeauxTypeNombre.Integer {
+            retourne ValeurDeStyle(integer = lexème.lexème.numeric_value)
+        }
+
+        retourne ValeurDeStyle(number = lexème.lexème.numeric_value)
+    }
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -2160,28 +2198,17 @@ parse_propriété_font_size :: fonc (value: [..]ComponentValue) -> Optionnel([..
     résultat: [..]ValeurDeStyle
 
     tantque !fini(parseuse) {
+        valeur := parse_valeur_length(parseuse)
+        si valeur.possède_valeur() {
+            tableau_ajoute(*résultat, valeur.Quelque)
+            continue
+        }
+
         lexème := parseuse.lexème_courant()
 
-        si lexème.est_lexème_de_genre(GenreLexème.Dimension) {
-            parseuse.avance()
-            données_lexème := lexème.lexème
-
-            si données_lexème.unité != PROP_em {
-                imprime("[%] unité inconnue %\n", #nom_de_cette_fonction, lexème)
-                déloge(résultat)
-                retourne
-            }
-
-            longueur := Longueur(données_lexème.numeric_value, Longueur.Unité.Em)
-            tableau_ajoute(*résultat, ValeurDeStyle(longueur = longueur))
-        }
-        sinon {
-            imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
-            déloge(résultat)
-            retourne
-        }
-
-        parseuse.consomme_espaces_blanches()
+        imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
+        déloge(résultat)
+        retourne
     }
 
     si résultat.taille != 0 {
@@ -2461,32 +2488,9 @@ parse_valeur_line_width :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionn
             retourne
         }
 
-        si lexème.est_lexème_de_genre(GenreLexème.Dimension) {
-            données_lexème := lexème.lexème
-
-            si données_lexème.unité == PROP_em {
-                parseuse.avance()
-                longueur := Longueur(données_lexème.numeric_value, Longueur.Unité.Em)
-                retourne ValeurDeStyle(longueur = longueur)
-            }
-
-            si données_lexème.unité == PROP_px {
-                parseuse.avance()
-                longueur := Longueur(données_lexème.numeric_value, Longueur.Unité.Px)
-                retourne ValeurDeStyle(longueur = longueur)
-            }
-
-            retourne
-        }
-
-        si lexème.est_lexème_de_genre(GenreLexème.Number) {
-            parseuse.avance()
-
-            si lexème.lexème.drapeau_type_nombre == DrapeauxTypeNombre.Integer {
-                retourne ValeurDeStyle(integer = lexème.lexème.numeric_value)
-            }
-
-            retourne ValeurDeStyle(number = lexème.lexème.numeric_value)
+        valeur := parse_valeur_length(parseuse)
+        si valeur.possède_valeur() {
+            retourne valeur
         }
 
         retourne
