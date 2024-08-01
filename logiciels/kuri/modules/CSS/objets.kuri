@@ -132,6 +132,10 @@ CSSStyleDeclaration :: struct {
 
 détruit_style_declaration :: fonc (style: *CSSStyleDeclaration)
 {
+    saufsi style {
+        retourne
+    }
+
     pour style.déclarations {
         détruit_déclaration(it)
     }
