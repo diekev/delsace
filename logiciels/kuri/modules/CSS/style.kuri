@@ -230,7 +230,7 @@ donne_taille :: fonc (bordure: &Border, coté: BorderEdge) -> r32
     retourne 0.0
 }
 
-donne_couleur :: fonc (bordure: &Border, coté: BorderEdge) -> CouleurRVBAN8
+donne_couleur :: fonc (bordure: &Border, coté: BorderEdge, propriétés: *PropriétésDeStyle) -> CouleurRVBAN8
 {
     color := bordure.color[coté]
 
@@ -240,7 +240,10 @@ donne_couleur :: fonc (bordure: &Border, coté: BorderEdge) -> CouleurRVBAN8
         }
         mot_clé(m) {
             si m == PROP_currentColor {
-                /* À FAIRE : utilise la propriété 'color' */
+                prop_color := donne_déclaration(propriétés, PROP_color)
+                si prop_color {
+                    retourne prop_color.value[0].couleur
+                }
                 retourne CouleurRVBAN8(0, 0, 0, 255)
             }
             panique("donne_couleur : mot-clé inconnu")

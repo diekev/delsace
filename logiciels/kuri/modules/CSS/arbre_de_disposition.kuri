@@ -718,7 +718,7 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
             continue
         }
 
-        couleur := donne_couleur(bordure, index_it comme z32 comme BorderEdge)
+        couleur := donne_couleur(bordure, index_it comme z32 comme BorderEdge, *noeud.propriétés)
         largeur := donne_taille(bordure, index_it comme z32 comme BorderEdge)
 
         rect: RectanglePosDim(r32)
