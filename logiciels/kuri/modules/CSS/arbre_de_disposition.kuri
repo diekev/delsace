@@ -251,9 +251,13 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, haut
 crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *ArbreDeDisposition, parent: *NoeudDeDisposition, noeud: *HTML.Noeud)
 {
     si HTML.est_texte(noeud) {
-        résultat := arbre.crée_noeud(NoeudDeDispositionTexte)
-        résultat.noeud_texte = noeud comme *HTML.NoeudTexte
+        /* Les textes doivent une boite inline anonyme autour d'eux. */
+        résultat := arbre.crée_noeud(NoeudDeDispositionInline)
         parent.ajoute_enfant(résultat)
+
+        texte := arbre.crée_noeud(NoeudDeDispositionTexte)
+        texte.noeud_texte = noeud comme *HTML.NoeudTexte
+        résultat.ajoute_enfant(texte)
         retourne
     }
 
@@ -467,11 +471,21 @@ donne_rectangle :: fonc (noeud: *NoeudDeDisposition) -> RectanglePosDim(z32)
     retourne rect
 }
 
+est_noeud_non_anonyme :: fonc (noeud: *NoeudDeDisposition) -> bool
+{
+    si noeud.type != NoeudDeDispositionBloc && noeud.type != NoeudDeDispositionInline {
+        retourne faux
+    }
+
+    noeud_bloc := noeud comme *NoeudDeDispositionBloc
+    retourne noeud_bloc.élément != nul
+}
+
 donne_élément :: fonc (noeud: *NoeudDeDisposition) -> *HTML.Élément
 {
     noeud_courant := noeud
 
-    tantque noeud_courant != nul && (noeud_courant.type != NoeudDeDispositionBloc && noeud_courant.type != NoeudDeDispositionInline) {
+    tantque noeud_courant != nul && !est_noeud_non_anonyme(noeud_courant) {
         noeud_courant = noeud_courant.parent
     }
 
@@ -937,6 +951,15 @@ NoeudDeDispositionTexte :: struct {
     morceaux: [..]ChaineUTF16
 }
 
+donne_propriété_parent :: fonc (noeud_texte: *NoeudDeDispositionTexte) -> *PropriétésDeStyle
+{
+    parent := noeud_texte.parent
+    tantque !est_noeud_non_anonyme(parent) {
+        parent = parent.parent
+    }
+    retourne *parent.propriétés
+}
+
 détermine_fonte :: fonc (noeud_texte: *NoeudDeDispositionTexte, ctx: *ContexteDisposition) -> *Fonte
 {
     globales := ctx.globales
@@ -946,7 +969,7 @@ détermine_fonte :: fonc (noeud_texte: *NoeudDeDispositionTexte, ctx: *ContexteD
     graisse := GraisseFonte.Normal
     taille_fonte := globales.taille_fonte_défaut
 
-    propriétés := *noeud_texte.parent.propriétés
+    propriétés := donne_propriété_parent(noeud_texte)
     font_weight := donne_déclaration(propriétés, PROP_font_weight)
     si font_weight {
         mot_clé := font_weight.value[0].mot_clé
@@ -1071,7 +1094,7 @@ noeud_disposition_texte_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Con
 {
     noeud := base comme *NoeudDeDispositionTexte
 
-    propriétés := *noeud.parent.propriétés
+    propriétés := donne_propriété_parent(noeud)
 
     couleur := CouleurRVBAN8(0, 0, 0, 255)
 

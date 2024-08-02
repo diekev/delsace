@@ -716,7 +716,13 @@ donne_texte_item_pour_noeud :: fonc (noeud: *CSS.NoeudDeDisposition) -> chaine
     }
 
     noeud_bloc := noeud comme *CSS.NoeudDeDispositionBloc
-    retourne imprime_chaine("% (%) [%x%] [%x%]", CSS.donne_nom_classe(noeud), noeud_bloc.élément.local_name, noeud.position_x, noeud.position_y, noeud.largeur, noeud.hauteur)
+
+    local_name := crée_chaine_utf16_unique("#anonyme")
+    si noeud_bloc.élément {
+        local_name = noeud_bloc.élément.local_name
+    }
+
+    retourne imprime_chaine("% (%) [%x%] [%x%]", CSS.donne_nom_classe(noeud), local_name, noeud.position_x, noeud.position_y, noeud.largeur, noeud.hauteur)
 }
 
 /** \} */
