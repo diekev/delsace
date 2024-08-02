@@ -1247,6 +1247,8 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Request) -> *RappelsRequê
 
         message := finalise_message(parseuse)
 
+        contenu := copie_chaine(message.contenu)
+
         entête_content_type := entête(*message, "Content-Type")
         content_type := "text/html" // À FAIRE
         si entête_content_type {
@@ -1258,8 +1260,8 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Request) -> *RappelsRequê
 
                 si charset == "ISO-8859-1" {
                     nouveau_contenu := convertis_iso_8859_1_vers_utf8(message.contenu)
-                    déloge(message.contenu)
-                    message.contenu = nouveau_contenu
+                    déloge(contenu)
+                    contenu = nouveau_contenu
                 }
             }
         }
@@ -1272,7 +1274,7 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Request) -> *RappelsRequê
         body_info.content_type = content_type
 
         response.body_info = body_info
-        response.body = message.contenu
+        response.body = contenu
 
         rappels.response = response
 
