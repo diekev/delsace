@@ -755,30 +755,53 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
             continue
         }
 
-        couleur := donne_couleur(bordure, index_it comme z32 comme BorderEdge, *noeud.propriétés)
+        coté := index_it comme z32 comme BorderEdge
+
+        couleur: CouleurRVBAN8
+
+        si it == LineStyle.Inset {
+            si coté == BorderEdge.Top || coté == BorderEdge.Left {
+                couleur = CouleurRVBAN8(154, 154, 154, 255)
+            }
+            sinon {
+                couleur = CouleurRVBAN8(238, 238, 238, 255)
+            }
+        }
+        sinon si it == LineStyle.Outset {
+            si coté == BorderEdge.Top || coté == BorderEdge.Left {
+                couleur = CouleurRVBAN8(238, 238, 238, 255)
+            }
+            sinon {
+                couleur = CouleurRVBAN8(154, 154, 154, 255)
+            }
+        }
+        sinon {
+            couleur = donne_couleur(bordure, index_it comme z32 comme BorderEdge, *noeud.propriétés)
+        }
+
         largeur := donne_taille(bordure, index_it comme z32 comme BorderEdge)
 
         rect: RectanglePosDim(r32)
 
-        si index_it == BorderEdge.Top comme z32 {
+        si coté == BorderEdge.Top {
             rect.x = noeud.position_x comme r32
             rect.y = noeud.position_y comme r32 + noeud.hauteur comme r32 - largeur
             rect.largeur = noeud.largeur comme r32
             rect.hauteur = largeur
         }
-        sinon si index_it == BorderEdge.Bottom comme z32 {
+        sinon si coté == BorderEdge.Bottom {
             rect.x = noeud.position_x comme r32
             rect.y = noeud.position_y comme r32
             rect.largeur = noeud.largeur comme r32
             rect.hauteur = largeur
         }
-        sinon si index_it == BorderEdge.Left comme z32 {
+        sinon si coté == BorderEdge.Left {
             rect.x = noeud.position_x comme r32
             rect.y = noeud.position_y comme r32
             rect.largeur = largeur
             rect.hauteur = noeud.hauteur comme r32
         }
-        sinon /* si index_it == BorderEdge.Right comme z32 */ {
+        sinon /* si coté == BorderEdge.Right */ {
             rect.x = noeud.position_x comme r32
             rect.y = noeud.position_y comme r32 + noeud.largeur comme r32 - largeur
             rect.largeur = largeur
