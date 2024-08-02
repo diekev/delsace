@@ -329,6 +329,55 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
     pour noeud.enfants {
         crée_noeud_pour_élément(résolveuse, arbre, résultat, it)
     }
+
+    si résultat.type != NoeudDeDispositionBloc && résultat.type != NoeudDeDispositionInline {
+        retourne
+    }
+
+    noeud_disposition := résultat comme *NoeudDeDispositionBloc
+
+    /* Crée des blocs anonymes pour envelopper les blocs inlines si au moins un enfant est un bloc.
+     * Voir définition de "block container box" :
+     * https://www.w3.org/TR/2011/REC-CSS2-20110607/visuren.html#block-boxes */
+    doit_formatter_en_blocs := faux
+
+    pour noeud_disposition.enfants {
+        si it.type == NoeudDeDispositionBloc {
+            doit_formatter_en_blocs = vrai
+            arrête
+        }
+    }
+
+    noeud_disposition.est_disposition_inline = doit_formatter_en_blocs == faux
+
+    saufsi noeud_disposition.est_disposition_inline {
+        /* À FAIRE : les noeuds Inline doivent être divisés
+         * https://www.w3.org/TR/2011/REC-CSS2-20110607/visuren.html#anonymous-block-level */
+        assert(noeud_disposition.type != NoeudDeDispositionInline)
+
+        nouveaux_enfants: [..]*NoeudDeDisposition
+
+        bloc_anonyme_courant: *NoeudDeDispositionBloc
+        pour noeud_disposition.enfants {
+            si it.type == NoeudDeDispositionBloc {
+                tableau_ajoute(*nouveaux_enfants, it)
+                bloc_anonyme_courant = nul
+                continue
+            }
+
+            si bloc_anonyme_courant == nul {
+                bloc_anonyme_courant = arbre.crée_noeud(NoeudDeDispositionBloc)
+                bloc_anonyme_courant.parent = noeud_disposition
+                bloc_anonyme_courant.est_disposition_inline = vrai
+                tableau_ajoute(*nouveaux_enfants, bloc_anonyme_courant)
+            }
+
+            bloc_anonyme_courant.ajoute_enfant(it)
+        }
+
+        déloge(noeud_disposition.enfants)
+        noeud_disposition.enfants = nouveaux_enfants
+    }
 }
 
 /** \} */
@@ -675,19 +724,7 @@ noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Cont
         }
     }
 
-    /* À FAIRE : génère des noeuds anonymes, etc. */
-    doit_formatter_en_blocs := faux
-
-    pour noeud.enfants {
-        si it.type == NoeudDeDispositionBloc {
-            doit_formatter_en_blocs = vrai
-            arrête
-        }
-    }
-
-    noeud.est_disposition_inline = doit_formatter_en_blocs == faux
-
-    si doit_formatter_en_blocs {
+    saufsi noeud.est_disposition_inline {
         dispose_enfants_block(noeud, ctx)
     }
     sinon {
