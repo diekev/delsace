@@ -1527,7 +1527,18 @@ infos_types_propriétés := [
     InfoTypePropriété(PROP_margin_inline_start, parse_propriété_margin_top, PropriétéHéritable.Non),
     InfoTypePropriété(PROP_margin_left, parse_propriété_margin_top, PropriétéHéritable.Non),
     InfoTypePropriété(PROP_margin_right, parse_propriété_margin_top, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_margin_top, parse_propriété_margin_top, PropriétéHéritable.Non)
+    InfoTypePropriété(PROP_margin_top, parse_propriété_margin_top, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_padding, parse_propriété_padding, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_padding_block, parse_propriété_padding_top, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_padding_block_end, parse_propriété_padding_top, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_padding_block_start, parse_propriété_padding_top, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_padding_bottom, parse_propriété_padding_top, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_padding_inline, parse_propriété_padding_top, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_padding_inline_end, parse_propriété_padding_top, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_padding_inline_start, parse_propriété_padding_top, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_padding_left, parse_propriété_padding_top, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_padding_right, parse_propriété_padding_top, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_padding_top, parse_propriété_padding_top, PropriétéHéritable.Non)
 ]
 
 donne_info_type_pour_nom :: fonc (nom: CSSOMString) -> *InfoTypePropriété
@@ -2544,6 +2555,54 @@ parse_propriété_margin :: fonc (value: [..]ComponentValue) -> Optionnel([..]Va
 }
 
 parse_propriété_margin_top :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    parseuse.consomme_espaces_blanches()
+    /* <length-percentage> | auto */
+    valeur := parse_valeur_length(parseuse)
+    si valeur.possède_valeur() {
+        résultat: [..]ValeurDeStyle
+        tableau_ajoute(*résultat, valeur.Quelque)
+        retourne résultat
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Padding
+ * https://drafts.csswg.org/css-box/#padding-physical
+ * https://drafts.csswg.org/css-logical/#padding-properties
+ * \{ */
+
+parse_propriété_padding :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+
+    résultat: [..]ValeurDeStyle
+
+    tantque !fini(parseuse) {
+        parseuse.consomme_espaces_blanches()
+        lexème := parseuse.lexème_courant()
+
+        /* <length-percentage> */
+        valeur := parse_valeur_length(parseuse)
+        si valeur.possède_valeur() {
+            tableau_ajoute(*résultat, valeur.Quelque)
+            continue
+        }
+
+        imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
+        déloge(résultat)
+        retourne
+    }
+
+    si résultat.taille != 0 {
+        retourne résultat
+    }
+}
+
+parse_propriété_padding_top :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     parseuse.consomme_espaces_blanches()

@@ -528,6 +528,7 @@ NoeudDeDisposition :: struct {
     hauteur: n32
 
     marges: [4]r64
+    rembourrage: [4]r64
 
     sur_mesure: fonc (*NoeudDeDisposition, *ContexteDisposition)(rien)
     sur_dessin: fonc (*NoeudDeDisposition, *ContexteDessin)(rien)
@@ -551,6 +552,15 @@ calcules_marges :: fonc (noeud: *NoeudDeDisposition, globales: *GlobalesDessin)
 
     pour 4 {
         noeud.marges[it] = marges.valeur[it].number
+    }
+}
+
+calcules_rembourrage :: fonc (noeud: *NoeudDeDisposition, globales: *GlobalesDessin)
+{
+    rembourrage := donne_rembourrage(noeud.propriétés, globales)
+
+    pour 4 {
+        noeud.rembourrage[it] = rembourrage.valeur[it].number
     }
 }
 
@@ -903,14 +913,19 @@ dispose_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDis
 
     si noeud.est_noeud_non_anonyme() {
         calcules_marges(noeud, ctx.globales)
+        calcules_rembourrage(noeud, ctx.globales)
         ctx_locale.largeur_disponible -= (noeud.marges[BorderEdge.Left] + noeud.marges[BorderEdge.Right]) comme n32
+        ctx_locale.largeur_disponible -= (noeud.rembourrage[BorderEdge.Left] + noeud.rembourrage[BorderEdge.Right]) comme n32
     }
 
     /* https://www.w3.org/TR/CSS2/box.html#collapsing-margins */
     marges := noeud.marges
-    décalage_x := marges[BorderEdge.Left] comme n32
+    rembourrage := noeud.rembourrage
+    décalage_x := (marges[BorderEdge.Left] + rembourrage[BorderEdge.Left]) comme n32
 
     dernière_marge := marges[BorderEdge.Top]
+
+    noeud.hauteur += rembourrage[BorderEdge.Top] comme n32
 
     pour noeud.enfants {
         it.mesure(*ctx_locale)
@@ -935,6 +950,8 @@ dispose_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDis
 
         noeud.largeur = max(noeud.largeur, it.largeur)
     }
+
+    noeud.hauteur += rembourrage[BorderEdge.Bottom] comme n32
 }
 
 dessine_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDessin)
