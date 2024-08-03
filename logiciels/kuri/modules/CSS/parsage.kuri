@@ -1538,7 +1538,13 @@ infos_types_propriétés := [
     InfoTypePropriété(PROP_padding_inline_start, parse_propriété_padding_top, PropriétéHéritable.Non),
     InfoTypePropriété(PROP_padding_left, parse_propriété_padding_top, PropriétéHéritable.Non),
     InfoTypePropriété(PROP_padding_right, parse_propriété_padding_top, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_padding_top, parse_propriété_padding_top, PropriétéHéritable.Non)
+    InfoTypePropriété(PROP_padding_top, parse_propriété_padding_top, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_height, parse_propriété_height_width, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_min_height, parse_propriété_min_height_width, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_max_height, parse_propriété_max_height_width, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_width, parse_propriété_height_width, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_min_width, parse_propriété_min_height_width, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_max_width, parse_propriété_max_height_width, PropriétéHéritable.Non)
 ]
 
 donne_info_type_pour_nom :: fonc (nom: CSSOMString) -> *InfoTypePropriété
@@ -2613,6 +2619,74 @@ parse_propriété_padding_top :: fonc (value: [..]ComponentValue) -> Optionnel([
         tableau_ajoute(*résultat, valeur.Quelque)
         retourne résultat
     }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Height & Width
+ * https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#propdef-height
+ * https://drafts.csswg.org/css-sizing-3/#preferred-size-properties
+ * \{ */
+
+parse_propriété_height_width :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+
+    résultat: [..]ValeurDeStyle
+
+    /* auto | <length-percentage [0,∞]> | min-content | max-content | fit-content(<length-percentage [0,∞]>) | <calc-size()> */
+
+    tantque !fini(parseuse) {
+        parseuse.consomme_espaces_blanches()
+
+        valeur := parse_valeur_length(parseuse)
+        si valeur.possède_valeur() {
+            tableau_ajoute(*résultat, valeur.Quelque)
+            continue
+        }
+
+        lexème := parseuse.lexème_courant()
+        imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
+        déloge(résultat)
+        retourne
+    }
+
+    si résultat.taille != 0 {
+        retourne résultat
+    }
+}
+
+parse_propriété_min_height_width :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    parseuse.consomme_espaces_blanches()
+    /* auto | <length-percentage [0,∞]> | min-content | max-content | fit-content(<length-percentage [0,∞]>) | <calc-size()> */
+    valeur := parse_valeur_length(parseuse)
+    si valeur.possède_valeur() {
+        résultat: [..]ValeurDeStyle
+        tableau_ajoute(*résultat, valeur.Quelque)
+        retourne résultat
+    }
+
+    lexème := parseuse.lexème_courant()
+    imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
+}
+
+parse_propriété_max_height_width :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    parseuse.consomme_espaces_blanches()
+    /* none | <length-percentage [0,∞]> | min-content | max-content | fit-content(<length-percentage [0,∞]>) | <calc-size()> */
+    valeur := parse_valeur_length(parseuse)
+    si valeur.possède_valeur() {
+        résultat: [..]ValeurDeStyle
+        tableau_ajoute(*résultat, valeur.Quelque)
+        retourne résultat
+    }
+
+    lexème := parseuse.lexème_courant()
+    imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
 }
 
 /** \} */

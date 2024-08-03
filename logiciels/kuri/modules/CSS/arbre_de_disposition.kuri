@@ -911,12 +911,51 @@ dispose_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDis
 {
     ctx_locale := mémoire(ctx)
 
+    /* À FAIRE : utilise les bonnes formules.
+     * https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#Computing_widths_and_margins */
+    noeud.largeur = ctx_locale.largeur_disponible
+    diffère noeud.largeur += noeud.rembourrage[BorderEdge.Right] comme n32
+
     si noeud.est_noeud_non_anonyme() {
         calcules_marges(noeud, ctx.globales)
         calcules_rembourrage(noeud, ctx.globales)
-        ctx_locale.largeur_disponible -= (noeud.marges[BorderEdge.Left] + noeud.marges[BorderEdge.Right]) comme n32
-        ctx_locale.largeur_disponible -= (noeud.rembourrage[BorderEdge.Left] + noeud.rembourrage[BorderEdge.Right]) comme n32
+        noeud.largeur -= (noeud.marges[BorderEdge.Left] + noeud.marges[BorderEdge.Right]) comme n32
+        noeud.largeur -= (noeud.rembourrage[BorderEdge.Left] + noeud.rembourrage[BorderEdge.Right]) comme n32
     }
+
+    prop_max_width := donne_déclaration(noeud.propriétés, PROP_max_width)
+    si prop_max_width {
+        discr prop_max_width.value[0] {
+            integer(i) {
+                si noeud.largeur > i comme n32 {
+                    noeud.largeur = i comme n32
+                }
+            }
+            number(n) {
+                si noeud.largeur > n comme n32 {
+                    noeud.largeur = n comme n32
+                }
+            }
+            longueur(l) {
+                discr l.unité {
+                    Px {
+                        si noeud.largeur > l.valeur comme n32 {
+                            noeud.largeur = l.valeur comme n32
+                        }
+                    }
+                    Em {
+                        taille := l.valeur * donne_taille_fonte_ou_référence(noeud.propriétés, ctx.globales)
+                        si noeud.largeur > taille comme n32 {
+                            noeud.largeur = taille comme n32
+                        }
+                    }
+                }
+            }
+            sinon {}
+        }
+    }
+
+    ctx_locale.largeur_disponible = noeud.largeur
 
     /* https://www.w3.org/TR/CSS2/box.html#collapsing-margins */
     marges := noeud.marges
@@ -947,8 +986,6 @@ dispose_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDis
         sinon {
             noeud.hauteur += it.hauteur + dernière_marge comme n32
         }
-
-        noeud.largeur = max(noeud.largeur, it.largeur)
     }
 
     noeud.hauteur += rembourrage[BorderEdge.Bottom] comme n32
