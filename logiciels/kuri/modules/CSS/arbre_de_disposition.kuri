@@ -31,6 +31,9 @@ détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
 
     pour arbre.noeuds {
         déloge(it.enfants)
+        si it.propriétés {
+            détruit_propriétés(it.propriétés)
+        }
 
         si it.type == NoeudDeDispositionBloc {
             bloc := it comme *NoeudDeDispositionBloc
@@ -182,6 +185,7 @@ dessine :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
  * \{ */
 
 RésolveuseStyle :: struct {
+    globales: *GlobalesDessin
     feuilles_de_style: []*CSSStyleSheet
 }
 
@@ -209,6 +213,41 @@ collecte_les_règles_appropriées :: fonc (résolveuse: *RésolveuseStyle, élé
     retourne règles
 }
 
+résoud_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élément, propriétés_parent: *PropriétésDeStyle) -> *PropriétésDeStyle
+{
+    résultat := loge(PropriétésDeStyle)
+
+    règles := collecte_les_règles_appropriées(résolveuse, élément)
+    diffère déloge(règles)
+    // imprime("% règle(s) pour %\n", règles.taille, élément.local_name)
+
+    si propriétés_parent {
+        pour propriétés_parent.déclarations {
+            si it.info.héritable == PropriétéHéritable.Non {
+                continue
+            }
+            ajoute_déclaration(résultat, it)
+        }
+    }
+
+    pour règles {
+        // imprime_règle(it)
+        pour déclaration dans it.style.déclarations {
+            ajoute_déclaration(résultat, déclaration)
+        }
+    }
+
+    si élément.style {
+        pour élément.style.déclarations {
+            ajoute_déclaration(résultat, it)
+        }
+    }
+
+    absolutise_taille_fonte(résultat, propriétés_parent, résolveuse.globales)
+
+    retourne résultat
+}
+
 crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, hauteur: z32)
 {
     html := HTML.donne_élément_html(document)
@@ -223,9 +262,10 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, haut
     résultat := loge(ArbreDeDisposition)
 
     résolveuse: RésolveuseStyle
+    résolveuse.globales = document.globales_dessin
     résolveuse.feuilles_de_style = document.feuilles_de_style
 
-    crée_noeud_pour_élément(*résolveuse, résultat, nul, html, document.globales_dessin)
+    crée_noeud_pour_élément(*résolveuse, résultat, nul, html)
     résultat.racine = html.noeud_de_disposition
 
     // imprime("Créé % noeud(s)\n", résultat.noeuds.taille)
@@ -248,7 +288,7 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, haut
     document.arbre_de_disposition = résultat
 }
 
-crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *ArbreDeDisposition, parent: *NoeudDeDisposition, noeud: *HTML.Noeud, globales: *GlobalesDessin)
+crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *ArbreDeDisposition, parent: *NoeudDeDisposition, noeud: *HTML.Noeud)
 {
     si HTML.est_texte(noeud) {
         /* Les textes doivent une boite inline anonyme autour d'eux. */
@@ -267,39 +307,16 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
 
     élément := noeud comme *HTML.Élément
 
-    règles := collecte_les_règles_appropriées(résolveuse, élément)
-    diffère déloge(règles)
-
-    // imprime("% règle(s) pour %\n", règles.taille, élément.local_name)
-
-    propriétés: PropriétésDeStyle
-
+    propriétés_parent: *PropriétésDeStyle
     si parent {
-        pour parent.propriétés.déclarations {
-            si it.info.héritable == PropriétéHéritable.Non {
-                continue
-            }
-            ajoute_déclaration(*propriétés, it)
-        }
+        propriétés_parent = parent.propriétés
     }
 
-    pour règles {
-        // imprime_règle(it)
-        pour déclaration dans it.style.déclarations {
-            ajoute_déclaration(*propriétés, déclaration)
-        }
-    }
+    propriétés := résoud_style(résolveuse, élément, propriétés_parent)
 
-    si élément.style {
-        pour élément.style.déclarations {
-            ajoute_déclaration(*propriétés, it)
-        }
-    }
-
-    display := donne_display(*propriétés)
-
+    display := donne_display(propriétés)
     si display.outer_type == Display.Type.None {
-        détruit_données_propriétés(*propriétés)
+        détruit_propriétés(propriétés)
         retourne
     }
 
@@ -319,12 +336,6 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
         résultat = inline
     }
 
-    propriétés_parent: *PropriétésDeStyle
-    si parent {
-        propriétés_parent = *parent.propriétés
-    }
-    absolutise_taille_fonte(*propriétés, propriétés_parent, globales)
-
     élément.noeud_de_disposition = résultat
     résultat.propriétés = propriétés
 
@@ -333,7 +344,7 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
     }
 
     pour noeud.enfants {
-        crée_noeud_pour_élément(résolveuse, arbre, résultat, it, globales)
+        crée_noeud_pour_élément(résolveuse, arbre, résultat, it)
     }
 
     si résultat.type != NoeudDeDispositionBloc && résultat.type != NoeudDeDispositionInline {
@@ -499,7 +510,7 @@ NoeudDeDisposition :: struct {
     type := #type_de_cette_structure
 
     id: n32
-    propriétés: PropriétésDeStyle
+    propriétés: *PropriétésDeStyle
 
     parent: *NoeudDeDisposition
     enfants: [..]*NoeudDeDisposition
@@ -532,7 +543,7 @@ donne_propriété_parent :: fonc (noeud_texte: *NoeudDeDisposition) -> *Proprié
     tantque !est_noeud_non_anonyme(parent) {
         parent = parent.parent
     }
-    retourne *parent.propriétés
+    retourne parent.propriétés
 }
 
 est_noeud_non_anonyme :: fonc (noeud: *NoeudDeDisposition) -> bool
@@ -618,7 +629,7 @@ ajoute_enfant :: fonc (parent: *NoeudDeDisposition, enfant: *NoeudDeDisposition)
 
 donne_curseur :: fonc (noeud: *NoeudDeDisposition) -> CursorType
 {
-    cursor := donne_déclaration(*noeud.propriétés, PROP_cursor)
+    cursor := donne_déclaration(noeud.propriétés, PROP_cursor)
     saufsi cursor {
         retourne CursorType.auto
     }
@@ -726,16 +737,18 @@ noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Cont
     noeud := base comme *NoeudDeDispositionBloc
     noeud.largeur = ctx.largeur_disponible
 
-    bordure := donne_border(*noeud.propriétés)
+    si noeud.est_noeud_non_anonyme() {
+        bordure := donne_border(noeud.propriétés)
 
-    pour bordure.style {
-        si it == LineStyle.None {
-            continue
-        }
-        
-        largeur := donne_taille(bordure, index_it comme z32 comme BorderEdge)
-        si index_it == BorderEdge.Top comme z32 || index_it == BorderEdge.Bottom comme z32 {
-            noeud.hauteur += largeur comme n32
+        pour bordure.style {
+            si it == LineStyle.None {
+                continue
+            }
+            
+            largeur := donne_taille(bordure, index_it comme z32 comme BorderEdge)
+            si index_it == BorderEdge.Top comme z32 || index_it == BorderEdge.Bottom comme z32 {
+                noeud.hauteur += largeur comme n32
+            }
         }
     }
 
@@ -757,74 +770,76 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
 
     peintre := ctx.peintre
 
-    background := donne_background(*noeud.propriétés)
-    si background.color.a != 0 {
-        rect_noeud := ctx.donne_rectangle_corrigé(noeud)
-        peintre.remplis_rectangle(rect_noeud, background.color)
-    }
-
-    bordure := donne_border(*noeud.propriétés)
-
-    pour bordure.style {
-        si it == LineStyle.None || it == LineStyle.Hidden {
-            continue
+    si noeud.est_noeud_non_anonyme() {
+        background := donne_background(noeud.propriétés)
+        si background.color.a != 0 {
+            rect_noeud := ctx.donne_rectangle_corrigé(noeud)
+            peintre.remplis_rectangle(rect_noeud, background.color)
         }
 
-        coté := index_it comme z32 comme BorderEdge
+        bordure := donne_border(noeud.propriétés)
 
-        couleur: CouleurRVBAN8
+        pour bordure.style {
+            si it == LineStyle.None || it == LineStyle.Hidden {
+                continue
+            }
 
-        si it == LineStyle.Inset {
-            si coté == BorderEdge.Top || coté == BorderEdge.Left {
-                couleur = CouleurRVBAN8(154, 154, 154, 255)
+            coté := index_it comme z32 comme BorderEdge
+
+            couleur: CouleurRVBAN8
+
+            si it == LineStyle.Inset {
+                si coté == BorderEdge.Top || coté == BorderEdge.Left {
+                    couleur = CouleurRVBAN8(154, 154, 154, 255)
+                }
+                sinon {
+                    couleur = CouleurRVBAN8(238, 238, 238, 255)
+                }
+            }
+            sinon si it == LineStyle.Outset {
+                si coté == BorderEdge.Top || coté == BorderEdge.Left {
+                    couleur = CouleurRVBAN8(238, 238, 238, 255)
+                }
+                sinon {
+                    couleur = CouleurRVBAN8(154, 154, 154, 255)
+                }
             }
             sinon {
-                couleur = CouleurRVBAN8(238, 238, 238, 255)
+                couleur = donne_couleur(bordure, index_it comme z32 comme BorderEdge, noeud.propriétés)
             }
-        }
-        sinon si it == LineStyle.Outset {
-            si coté == BorderEdge.Top || coté == BorderEdge.Left {
-                couleur = CouleurRVBAN8(238, 238, 238, 255)
+
+            largeur := donne_taille(bordure, index_it comme z32 comme BorderEdge)
+
+            rect: RectanglePosDim(r32)
+
+            si coté == BorderEdge.Top {
+                rect.x = noeud.position_x comme r32
+                rect.y = noeud.position_y comme r32 + noeud.hauteur comme r32 - largeur
+                rect.largeur = noeud.largeur comme r32
+                rect.hauteur = largeur
             }
-            sinon {
-                couleur = CouleurRVBAN8(154, 154, 154, 255)
+            sinon si coté == BorderEdge.Bottom {
+                rect.x = noeud.position_x comme r32
+                rect.y = noeud.position_y comme r32
+                rect.largeur = noeud.largeur comme r32
+                rect.hauteur = largeur
             }
-        }
-        sinon {
-            couleur = donne_couleur(bordure, index_it comme z32 comme BorderEdge, *noeud.propriétés)
-        }
+            sinon si coté == BorderEdge.Left {
+                rect.x = noeud.position_x comme r32
+                rect.y = noeud.position_y comme r32
+                rect.largeur = largeur
+                rect.hauteur = noeud.hauteur comme r32
+            }
+            sinon /* si coté == BorderEdge.Right */ {
+                rect.x = noeud.position_x comme r32
+                rect.y = noeud.position_y comme r32 + noeud.largeur comme r32 - largeur
+                rect.largeur = largeur
+                rect.hauteur = noeud.hauteur comme r32
+            }
 
-        largeur := donne_taille(bordure, index_it comme z32 comme BorderEdge)
-
-        rect: RectanglePosDim(r32)
-
-        si coté == BorderEdge.Top {
-            rect.x = noeud.position_x comme r32
-            rect.y = noeud.position_y comme r32 + noeud.hauteur comme r32 - largeur
-            rect.largeur = noeud.largeur comme r32
-            rect.hauteur = largeur
+            rect = ctx.donne_rectangle_corrigé(rect)
+            peintre.remplis_rectangle(rect, couleur)
         }
-        sinon si coté == BorderEdge.Bottom {
-            rect.x = noeud.position_x comme r32
-            rect.y = noeud.position_y comme r32
-            rect.largeur = noeud.largeur comme r32
-            rect.hauteur = largeur
-        }
-        sinon si coté == BorderEdge.Left {
-            rect.x = noeud.position_x comme r32
-            rect.y = noeud.position_y comme r32
-            rect.largeur = largeur
-            rect.hauteur = noeud.hauteur comme r32
-        }
-        sinon /* si coté == BorderEdge.Right */ {
-            rect.x = noeud.position_x comme r32
-            rect.y = noeud.position_y comme r32 + noeud.largeur comme r32 - largeur
-            rect.largeur = largeur
-            rect.hauteur = noeud.hauteur comme r32
-        }
-
-        rect = ctx.donne_rectangle_corrigé(rect)
-        peintre.remplis_rectangle(rect, couleur)
     }
 
     saufsi noeud.est_disposition_inline {
