@@ -181,7 +181,7 @@ dessine :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom Génération d'arbres de disposition.
+/** \nom RésolveuseStyle.
  * \{ */
 
 RésolveuseStyle :: struct {
@@ -247,6 +247,12 @@ résoud_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élémen
 
     retourne résultat
 }
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Génération d'arbres de disposition.
+ * \{ */
 
 crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, hauteur: z32)
 {
