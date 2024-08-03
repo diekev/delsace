@@ -223,6 +223,123 @@ Style :: struct {
     // padding: Padding
 }
 
+Marges :: struct {
+    valeur: [4]ValeurDeStyle
+}
+
+donne_marges :: fonc (propriétés: *PropriétésDeStyle, globales: *GlobalesDessin) -> Marges
+{
+    résultat: Marges
+    pour 4 {
+        résultat.valeur[it] = ValeurDeStyle(number = 0.0)
+    }
+
+    pour propriétés.déclarations {
+        si it.property_name == PROP_margin {
+            si it.value.taille == 1 {
+                pour i dans 4 {
+                    résultat.valeur[i] = it.value[0]
+                }
+            }
+            sinon si it.value.taille == 2 {
+                résultat.valeur[BorderEdge.Top] = it.value[0]
+                résultat.valeur[BorderEdge.Bottom] = it.value[0]
+                résultat.valeur[BorderEdge.Right] = it.value[1]
+                résultat.valeur[BorderEdge.Left] = it.value[1]
+            }
+            sinon si it.value.taille == 3 {
+                résultat.valeur[BorderEdge.Top] = it.value[0]
+                résultat.valeur[BorderEdge.Right] = it.value[1]
+                résultat.valeur[BorderEdge.Left] = it.value[1]
+                résultat.valeur[BorderEdge.Bottom] = it.value[2]
+            }
+            sinon {
+                assert(it.value.taille == 4)
+                résultat.valeur[BorderEdge.Top] = it.value[0]
+                résultat.valeur[BorderEdge.Right] = it.value[1]
+                résultat.valeur[BorderEdge.Bottom] = it.value[2]
+                résultat.valeur[BorderEdge.Left] = it.value[3]
+            }
+        }
+        sinon si it.property_name == PROP_margin_left {
+            résultat.valeur[BorderEdge.Left] = it.value[0]
+        }
+        sinon si it.property_name == PROP_margin_right {
+            résultat.valeur[BorderEdge.Right] = it.value[0]
+        }
+        sinon si it.property_name == PROP_margin_top {
+            résultat.valeur[BorderEdge.Top] = it.value[0]
+        }
+        sinon si it.property_name == PROP_margin_bottom {
+            résultat.valeur[BorderEdge.Bottom] = it.value[0]
+        }
+        /* À FAIRE : direction du flux */
+        sinon si it.property_name == PROP_margin_block {
+            si it.value.taille == 1 {
+                résultat.valeur[BorderEdge.Top] = it.value[0]
+                résultat.valeur[BorderEdge.Bottom] = it.value[0]
+            }
+            sinon {
+                assert(it.value.taille >= 2)
+                résultat.valeur[BorderEdge.Top] = it.value[0]
+                résultat.valeur[BorderEdge.Bottom] = it.value[1]
+            }
+        }
+        sinon si it.property_name == PROP_margin_block_end {
+            résultat.valeur[BorderEdge.Bottom] = it.value[0]
+        }
+        sinon si it.property_name == PROP_margin_block_start {
+            résultat.valeur[BorderEdge.Top] = it.value[0]
+        }
+        sinon si it.property_name == PROP_margin_inline {
+            si it.value.taille == 1 {
+                résultat.valeur[BorderEdge.Left] = it.value[0]
+                résultat.valeur[BorderEdge.Right] = it.value[0]
+            }
+            sinon {
+                assert(it.value.taille >= 2)
+                résultat.valeur[BorderEdge.Left] = it.value[0]
+                résultat.valeur[BorderEdge.Right] = it.value[1]
+            }
+        }
+        sinon si it.property_name == PROP_margin_inline_end {
+            résultat.valeur[BorderEdge.Right] = it.value[0]
+        }
+        sinon si it.property_name == PROP_margin_inline_start {
+            résultat.valeur[BorderEdge.Left] = it.value[0]
+        }
+    }
+
+    /* Rends absolu. */
+    taille_fonte := donne_taille_fonte_ou_référence(propriétés, globales)
+
+    pour 4 {
+        valeur := résultat.valeur[it]
+
+        discr valeur {
+            longueur(l) {
+                taille_marge: r64
+                discr l.unité {
+                    Px {
+                        taille_marge = l.valeur
+                    }
+                    Em {
+                        taille_marge = taille_fonte * l.valeur 
+                    }
+                }
+
+                résultat.valeur[it] = ValeurDeStyle(number = taille_marge)
+            }
+            integer(i) {
+                résultat.valeur[it] = ValeurDeStyle(number = i)
+            }
+            sinon {}
+        }
+    }
+
+    retourne résultat
+}
+
 Longueur :: struct {
     Unité :: énum {
         Em

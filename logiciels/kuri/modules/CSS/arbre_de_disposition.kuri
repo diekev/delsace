@@ -527,6 +527,8 @@ NoeudDeDisposition :: struct {
     largeur: n32
     hauteur: n32
 
+    marges: [4]r64
+
     sur_mesure: fonc (*NoeudDeDisposition, *ContexteDisposition)(rien)
     sur_dessin: fonc (*NoeudDeDisposition, *ContexteDessin)(rien)
     sur_dessin_tampon_id: fonc (*NoeudDeDisposition, *ContexteDessin)(rien)
@@ -541,6 +543,15 @@ donne_rectangle :: fonc (noeud: *NoeudDeDisposition) -> RectanglePosDim(z32)
     rect.largeur = noeud.largeur comme z32
     rect.hauteur = noeud.hauteur comme z32
     retourne rect
+}
+
+calcules_marges :: fonc (noeud: *NoeudDeDisposition, globales: *GlobalesDessin)
+{
+    marges := donne_marges(noeud.propriétés, globales)
+
+    pour 4 {
+        noeud.marges[it] = marges.valeur[it].number
+    }
 }
 
 donne_propriété_parent :: fonc (noeud_texte: *NoeudDeDisposition) -> *PropriétésDeStyle
@@ -889,14 +900,39 @@ donne_ligne_courante :: fonc (bloc: *NoeudDeDispositionBloc) -> *BoiteDeLigne
 dispose_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDisposition)
 {
     ctx_locale := mémoire(ctx)
-    ctx_locale.largeur_disponible = ctx.largeur_disponible
+
+    si noeud.est_noeud_non_anonyme() {
+        calcules_marges(noeud, ctx.globales)
+        ctx_locale.largeur_disponible -= (noeud.marges[BorderEdge.Left] + noeud.marges[BorderEdge.Right]) comme n32
+    }
+
+    /* https://www.w3.org/TR/CSS2/box.html#collapsing-margins */
+    marges := noeud.marges
+    décalage_x := marges[BorderEdge.Left] comme n32
+
+    dernière_marge := marges[BorderEdge.Top]
 
     pour noeud.enfants {
         it.mesure(*ctx_locale)
 
-        it.décale(0, noeud.hauteur)
+        marges_enfant := it.marges
+        marge_inter_enfant := max(marges_enfant[BorderEdge.Bottom], dernière_marge)
+        décalage_y := marge_inter_enfant comme n32
 
-        noeud.hauteur += it.hauteur
+        it.décale(décalage_x, décalage_y + noeud.hauteur)
+
+        dernière_marge = marges_enfant[BorderEdge.Bottom]
+
+        si index_it == 0 {
+            noeud.hauteur += it.hauteur + marges[BorderEdge.Top] comme n32
+        }
+        sinon si index_it == noeud.enfants.taille - 1 {
+            noeud.hauteur += it.hauteur + marges[BorderEdge.Bottom] comme n32
+        }
+        sinon {
+            noeud.hauteur += it.hauteur + dernière_marge comme n32
+        }
+
         noeud.largeur = max(noeud.largeur, it.largeur)
     }
 }
@@ -925,7 +961,14 @@ dessine_tampon_id_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *C
 dispose_enfants_inline :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDisposition)
 {
     ctx_locale := mémoire(ctx)
-    ctx_locale.largeur_disponible = ctx.largeur_disponible
+
+    décalage_x: n32
+    décalage_y: n32
+
+    si noeud.est_noeud_non_anonyme() {
+        calcules_marges(noeud, ctx.globales)
+        ctx_locale.largeur_disponible -= (noeud.marges[BorderEdge.Left] + noeud.marges[BorderEdge.Right]) comme n32
+    }
 
     pour noeud.enfants {
         divise_en_lignes(it, noeud, *ctx_locale)
@@ -938,6 +981,10 @@ dispose_enfants_inline :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDi
             fragment.y = noeud.hauteur comme r32
         }
         noeud.hauteur += hauteur comme n32
+    }
+
+    si décalage_x != 0 || décalage_y != 0 {
+        noeud.décale(décalage_x, décalage_y)
     }
 
     // pour noeud.enfants {
