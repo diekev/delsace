@@ -2176,10 +2176,18 @@ parse_propriété_font_size :: fonc (value: [..]ComponentValue) -> Optionnel([..
 {
     parseuse := initialise_une_parseuse(value)
 
+    mots_clés := [PROP_larger, PROP_smaller, PROP_xx_small, PROP_x_small, PROP_small, PROP_medium, PROP_large, PROP_x_large, PROP_xx_large, PROP_xxx_large]
+
     résultat: [..]ValeurDeStyle
 
     tantque !fini(parseuse) {
         valeur := parse_valeur_length(parseuse)
+        si valeur.possède_valeur() {
+            tableau_ajoute(*résultat, valeur.Quelque)
+            continue
+        }
+
+        valeur = parse_mot_clé(parseuse, mots_clés)
         si valeur.possède_valeur() {
             tableau_ajoute(*résultat, valeur.Quelque)
             continue

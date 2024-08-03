@@ -124,6 +124,93 @@ donne_display :: fonc (propriétés: *PropriétésDeStyle) -> Display
     retourne résultat
 }
 
+donne_taille_fonte_ou_référence :: fonc (propriétés: *PropriétésDeStyle, globales: *GlobalesDessin) -> r64
+{
+    saufsi propriétés {
+        retourne globales.taille_fonte_défaut
+    }
+
+    prop_font_size := donne_déclaration(propriétés, PROP_font_size)
+    saufsi prop_font_size {
+        retourne globales.taille_fonte_défaut
+    }
+
+    /* Nous devons avoir un nombre si une propriété existe puisque les valeurs sont absolutisées dès la création des propriétés. */
+    retourne prop_font_size.value[0].number
+}
+
+absolutise_taille_fonte :: fonc (propriétés: *PropriétésDeStyle, propriétés_parent: *PropriétésDeStyle, globales: *GlobalesDessin)
+{
+    prop_font_size := donne_déclaration(propriétés, PROP_font_size)
+    saufsi prop_font_size {
+        retourne
+    }
+
+    discr prop_font_size.value[0] {
+        mot_clé(m) {
+            taille_fonte_référence := donne_taille_fonte_ou_référence(propriétés_parent, globales)
+
+            taille_fonte := taille_fonte_référence
+
+            /* Utilise 1.2 pour l'échelle. La spécification propose une valeur entre 1.2 et 1.5. */
+            si m == PROP_smaller {
+                taille_fonte /= 1.2
+            }
+            sinon si m == PROP_larger {
+                taille_fonte *= 1.2
+            }
+            /* https://drafts.csswg.org/css-fonts/#absolute-size-mapping */
+            sinon si m == PROP_xx_small {
+                taille_fonte *= 3.0 / 5.0
+            }
+            sinon si m == PROP_x_small {
+                taille_fonte *= 3.0 / 4.0
+            }
+            sinon si m == PROP_small {
+                taille_fonte *= 8.0 / 9.0
+            }
+            sinon si m == PROP_medium {
+                /* Valeur de base, fateur de 1.0 */
+            }
+            sinon si m == PROP_large {
+                taille_fonte *= 6.0 / 5.0
+            }
+            sinon si m == PROP_x_large {
+                taille_fonte *= 3.0 / 2.0
+            }
+            sinon si m == PROP_xx_large {
+                taille_fonte *= 2.0
+            }
+            sinon si m == PROP_xxx_large {
+                taille_fonte *= 3.0
+            }
+            sinon {
+                message := imprime_chaine("[%] mot_clé '%' non pris en charge", #nom_de_cette_fonction, m)
+                panique(message)
+            }
+
+            prop_font_size.value[0] = ValeurDeStyle(number = taille_fonte)
+        }
+        longueur(l) {
+            taille_fonte := donne_taille_fonte_ou_référence(propriétés_parent, globales)
+
+            discr l.unité {
+                Em {
+                    taille_fonte *= l.valeur
+                }
+                Px {
+                    taille_fonte = l.valeur
+                }
+            }
+
+            prop_font_size.value[0] = ValeurDeStyle(number = taille_fonte)
+        }
+        sinon {
+            retourne
+        }
+    }
+}
+
 /** \} */
 
 Style :: struct {

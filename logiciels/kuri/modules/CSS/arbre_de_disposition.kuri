@@ -225,7 +225,7 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, haut
     résolveuse: RésolveuseStyle
     résolveuse.feuilles_de_style = document.feuilles_de_style
 
-    crée_noeud_pour_élément(*résolveuse, résultat, nul, html)
+    crée_noeud_pour_élément(*résolveuse, résultat, nul, html, document.globales_dessin)
     résultat.racine = html.noeud_de_disposition
 
     // imprime("Créé % noeud(s)\n", résultat.noeuds.taille)
@@ -248,7 +248,7 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, haut
     document.arbre_de_disposition = résultat
 }
 
-crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *ArbreDeDisposition, parent: *NoeudDeDisposition, noeud: *HTML.Noeud)
+crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *ArbreDeDisposition, parent: *NoeudDeDisposition, noeud: *HTML.Noeud, globales: *GlobalesDessin)
 {
     si HTML.est_texte(noeud) {
         /* Les textes doivent une boite inline anonyme autour d'eux. */
@@ -319,6 +319,12 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
         résultat = inline
     }
 
+    propriétés_parent: *PropriétésDeStyle
+    si parent {
+        propriétés_parent = *parent.propriétés
+    }
+    absolutise_taille_fonte(*propriétés, propriétés_parent, globales)
+
     élément.noeud_de_disposition = résultat
     résultat.propriétés = propriétés
 
@@ -327,7 +333,7 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
     }
 
     pour noeud.enfants {
-        crée_noeud_pour_élément(résolveuse, arbre, résultat, it)
+        crée_noeud_pour_élément(résolveuse, arbre, résultat, it, globales)
     }
 
     si résultat.type != NoeudDeDispositionBloc && résultat.type != NoeudDeDispositionInline {
@@ -518,6 +524,15 @@ donne_rectangle :: fonc (noeud: *NoeudDeDisposition) -> RectanglePosDim(z32)
     rect.largeur = noeud.largeur comme z32
     rect.hauteur = noeud.hauteur comme z32
     retourne rect
+}
+
+donne_propriété_parent :: fonc (noeud_texte: *NoeudDeDisposition) -> *PropriétésDeStyle
+{
+    parent := noeud_texte.parent
+    tantque !est_noeud_non_anonyme(parent) {
+        parent = parent.parent
+    }
+    retourne *parent.propriétés
 }
 
 est_noeud_non_anonyme :: fonc (noeud: *NoeudDeDisposition) -> bool
@@ -1011,15 +1026,6 @@ NoeudDeDispositionTexte :: struct {
     morceaux: [..]ChaineUTF16
 }
 
-donne_propriété_parent :: fonc (noeud_texte: *NoeudDeDispositionTexte) -> *PropriétésDeStyle
-{
-    parent := noeud_texte.parent
-    tantque !est_noeud_non_anonyme(parent) {
-        parent = parent.parent
-    }
-    retourne *parent.propriétés
-}
-
 détermine_fonte :: fonc (noeud_texte: *NoeudDeDispositionTexte, ctx: *ContexteDisposition) -> *Fonte
 {
     globales := ctx.globales
@@ -1027,29 +1033,15 @@ détermine_fonte :: fonc (noeud_texte: *NoeudDeDispositionTexte, ctx: *ContexteD
     famille_fonte := "sérif"
     style := "normal"
     graisse := GraisseFonte.Normal
-    taille_fonte := globales.taille_fonte_défaut
-
     propriétés := donne_propriété_parent(noeud_texte)
+    taille_fonte := donne_taille_fonte_ou_référence(propriétés, globales)
+
     font_weight := donne_déclaration(propriétés, PROP_font_weight)
     si font_weight {
         mot_clé := font_weight.value[0].mot_clé
 
         si mot_clé == PROP_bold || mot_clé == PROP_bolder {
             graisse = GraisseFonte.Gras
-        }
-    }
-
-    font_size := donne_déclaration(propriétés, PROP_font_size)
-    si font_size {
-        longueur := font_size.value[0].longueur
-
-        discr longueur.unité {
-            Em {
-                taille_fonte *= longueur.valeur comme r32
-            }
-            Px {
-                taille_fonte = longueur.valeur comme r32
-            }
         }
     }
 
@@ -1061,7 +1053,7 @@ détermine_fonte :: fonc (noeud_texte: *NoeudDeDispositionTexte, ctx: *ContexteD
         }
     }
 
-    fonte := globales.donne_fonte(famille_fonte, style, graisse, taille_fonte)
+    fonte := globales.donne_fonte(famille_fonte, style, graisse, taille_fonte comme r32)
     noeud_texte.fonte = fonte
     retourne fonte
 }
