@@ -47,10 +47,6 @@ prétraite :: fonc (chn: &ChaineUTF32)
 
 apparie_sélecteur :: fonc (selector: []CompoundSelector, index: z64, élément: *HTML.Élément) -> bool
 {
-    si selector.taille != 1 {
-        retourne faux
-    }
-
     compound := selector[index]
 
     pour compound.simple_selectors {
@@ -59,7 +55,48 @@ apparie_sélecteur :: fonc (selector: []CompoundSelector, index: z64, élément:
         }
     }
 
-    retourne vrai
+    si index == 0 {
+        retourne vrai
+    }
+
+    discr compound.combinateur {
+        NEXT_SIBLING {
+            retourne faux
+        }
+        CHILD {
+            parent := élément.parent
+            saufsi HTML.est_élément(parent) {
+                retourne faux
+            }
+
+            retourne apparie_sélecteur(selector, index - 1, parent comme *HTML.Élément)
+        }
+        DESCENDANT {
+            parent := élément.parent
+
+            tantque parent != nul {
+                saufsi HTML.est_élément(parent) {
+                    arrête
+                }
+
+                si apparie_sélecteur(selector, index - 1, parent comme *HTML.Élément) {
+                    retourne vrai
+                }
+
+                parent = parent.parent
+            }
+
+            retourne faux
+        }
+        COLUMN {
+            retourne faux
+        }
+        SUBSEQUENT_SIBLING {
+            retourne faux
+        }
+    }
+
+    retourne faux
 }
 
 apparie_simple_selector :: fonc (simple: &SimpleSelector, élément: *HTML.Élément) -> bool
