@@ -433,6 +433,7 @@ RappelsFenetrePrincipale :: struct {
     page_web: PageWeb
     widget_rendu: *QT_GLWidget
     widget_arbre_de_dispostion: *QT_TreeWidget
+    widget_arbre_dom: *QT_TreeWidget
 
     /* Données rappels. */
     sur_filtre_evenement = sur_filtre_evenement_impl
@@ -548,23 +549,32 @@ initialise_rappels_arborescence :: fonc (fenêtre_principale: *QT_Fenetre_Princi
 crée_widget_arbre_pour_dom :: fonc (fenêtre: *QT_Fenetre_Principale, parent: QT_Generic_Widget) -> *QT_TreeWidget
 {
     rappels := QT_fenetre_principale_donne_rappels(fenêtre) comme *RappelsFenetrePrincipale
-
     résultat := crée_widget_arbre(nul, parent)
+    rappels.widget_arbre_dom = résultat
+    ajourne_widget_arbre_dom(rappels)
+    retourne résultat
+}
+
+ajourne_widget_arbre_dom :: fonc (rappels: *RappelsFenetrePrincipale)
+{
+    QT_treewidget_efface(rappels.widget_arbre_dom)
 
     document := donne_document(*rappels.page_web)
-    si document {
-        item_document := QT_cree_treewidgetitem(nul, nul)
-        QT_treewidgetitem_definis_indicateur_enfant(item_document, QT_Indicateur_Enfant_Arbre.INVISIBLE_SI_SANS_ENFANT)
-        texte := vers_qt("document")
-        QT_treewidgetitem_definis_texte(item_document, 0, *texte)
-        QT_treewidget_ajoute_item_racine(résultat, item_document)
-
-        pour document.enfants {
-            ajoute_item_pour_noeud(item_document, it)
-        }
+    saufsi document {
+        retourne
     }
 
-    retourne résultat
+    arbre := rappels.widget_arbre_dom
+
+    item_document := QT_cree_treewidgetitem(nul, nul)
+    QT_treewidgetitem_definis_indicateur_enfant(item_document, QT_Indicateur_Enfant_Arbre.INVISIBLE_SI_SANS_ENFANT)
+    texte := vers_qt("document")
+    QT_treewidgetitem_definis_texte(item_document, 0, *texte)
+    QT_treewidget_ajoute_item_racine(arbre, item_document)
+
+    pour document.enfants {
+        ajoute_item_pour_noeud(item_document, it)
+    }
 }
 
 ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *Noeud)
@@ -1332,6 +1342,8 @@ rappels_interface_sur_document_est_prêt :: fonc (base: *RappelsInterface, docum
 {
     rappels := base comme *RappelsInterfaceQt
     définis_titre_fenêtre(rappels.fenêtre, document)
+    rappels_fenêtre := QT_fenetre_principale_donne_rappels(rappels.fenêtre) comme *RappelsFenetrePrincipale
+    ajourne_widget_arbre_dom(rappels_fenêtre)
 }
 
 /** \} */
