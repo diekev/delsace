@@ -269,7 +269,7 @@ crée_un_fresh_top_level_traversable :: fonc (user_agent: *UserAgent, initial_na
     traversable := crée_un_nouveau_top_level_traversable(user_agent, nul, "")
 
     // 2. Navigate traversable to initialNavigationURL using traversable's active document, with documentResource set to initialNavigationPostResource.
-    navigate(traversable, initial_navigation_url, traversable.donne_active_document())
+    navigate(user_agent, traversable, initial_navigation_url, traversable.donne_active_document())
 
     // 3. Return traversable.
     retourne traversable
