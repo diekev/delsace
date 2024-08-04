@@ -1,3 +1,4 @@
+importe Chaine
 importe CodecDonnées
 importe Fondation
 importe Internet
@@ -118,7 +119,7 @@ initialise_depuis_message :: fonc (message_serveuse: *MessageServeuseHTTP, messa
 possède_entête :: fonc (message: &MessageHTTP, nom: chaine) -> bool
 {
     pour message.entêtes {
-        si it.nom == nom {
+        si compare_ascii_insensible_à_la_casse(it.nom, nom) {
             retourne vrai
         }
     }
@@ -129,7 +130,7 @@ possède_entête :: fonc (message: &MessageHTTP, nom: chaine) -> bool
 entête :: fonc (message: &MessageHTTP, nom: chaine) -> *Entête
 {
     pour * message.entêtes {
-        si it.nom == nom {
+        si compare_ascii_insensible_à_la_casse(it.nom, nom) {
             retourne it
         }
     }
@@ -140,7 +141,7 @@ entête :: fonc (message: &MessageHTTP, nom: chaine) -> *Entête
 possède_entête :: fonc (message: *MessageHTTP, nom: chaine) -> bool
 {
     pour message.entêtes {
-        si it.nom == nom {
+        si compare_ascii_insensible_à_la_casse(it.nom, nom) {
             retourne vrai
         }
     }
@@ -151,7 +152,7 @@ possède_entête :: fonc (message: *MessageHTTP, nom: chaine) -> bool
 entête :: fonc (message: *MessageHTTP, nom: chaine) -> *Entête
 {
     pour * message.entêtes {
-        si it.nom == nom {
+        si compare_ascii_insensible_à_la_casse(it.nom, nom) {
             retourne it
         }
     }
