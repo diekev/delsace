@@ -68,6 +68,8 @@ est_type_contenu :: fonc (message: *MessageHTTP, type_contenu: chaine) -> bool
     retourne entête_type_contenu.valeur == type_contenu
 }
 
+/* Liste des médias de l'IANA :
+ * https://www.iana.org/assignments/media-types/media-types.xhtml?utm_source=localhost%3A8080 */
 donne_type_contenu :: fonc (message: *MessageHTTP) -> chaine
 {
     entête_content_type := entête(message, "Content-Type")
