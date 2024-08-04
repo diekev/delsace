@@ -35,7 +35,7 @@ imprime_noeud :: fonc (noeud: *Noeud, tab: z32) -> rien
     }
     sinon si noeud.est_élément() {
         élément := noeud comme *Élément
-        imprime("<%", élément.texte)
+        imprime("<%", élément.local_name)
 
         pour élément.attributs {
             imprime(" %=%", it.nom, it.valeur)
