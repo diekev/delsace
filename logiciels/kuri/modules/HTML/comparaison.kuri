@@ -5,7 +5,7 @@
 
 noeuds_éléments_sont_égaux :: fonc (élément1: *Élément, élément2: *Élément) -> bool
 {
-    retourne élément1.texte == élément2.texte
+    retourne élément1.local_name == élément2.local_name
 }
 
 noeuds_textes_sont_égaux :: fonc (texte1: *NoeudTexte, texte2: *NoeudTexte) -> bool
