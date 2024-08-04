@@ -100,7 +100,7 @@ est_un_élément_parmis :: fonc (noeud: *Noeud, tags: ...DOMString) -> bool
     }
 
     élément := noeud comme *Élément
-    retourne fait_partie_de(élément.texte, ...tags)
+    retourne fait_partie_de(élément.local_name, ...tags)
 }
 
 /* https://html.spec.whatwg.org/multipage/parsing.html#appropriate-place-for-inserting-a-node */
@@ -649,7 +649,7 @@ insère_mode_DansHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
             parseuse.génère_tags_fin_implicites_attentivement()
 
-            si parseuse.noeud_courant().texte != TAG_template {
+            si parseuse.noeud_courant().local_name != TAG_template {
                 erreur_de_parsage(parseuse, "le noeud courant n'est pas un <template>")
             }
 
@@ -853,7 +853,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
                 retourne
             }
 
-            si parseuse.pile_éléments_ouvert.éléments[1].texte != TAG_body {
+            si parseuse.pile_éléments_ouvert.éléments[1].local_name != TAG_body {
                 retourne
             }
 
@@ -906,16 +906,16 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
             boucle {
                 noeud := parseuse.pile_éléments_ouvert.éléments[index]
 
-                si noeud.texte == TAG_li {
+                si noeud.local_name == TAG_li {
                     parseuse.génère_tags_fin_implicites_autres_que(TAG_li)
 
                     noeud = parseuse.noeud_courant()
 
-                    si noeud.texte != TAG_li {
+                    si noeud.local_name != TAG_li {
                         erreur_de_parsage(parseuse, "le noeud courant n'est pas un <li>")
                     }
 
-                    tantque noeud.texte != TAG_li {
+                    tantque noeud.local_name != TAG_li {
                         dépile(*parseuse.pile_éléments_ouvert)
                         noeud = parseuse.noeud_courant()
                     }
@@ -924,7 +924,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
                     arrête
                 }
 
-                si fait_partie_de_catégorie_spécial(noeud.texte) && !fait_partie_de(noeud.texte, TAG_address, TAG_div, TAG_p) {
+                si fait_partie_de_catégorie_spécial(noeud.local_name) && !fait_partie_de(noeud.local_name, TAG_address, TAG_div, TAG_p) {
                     arrête
                 }
 
@@ -955,7 +955,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
             }
 
             noeud := parseuse.noeud_courant()
-            si fait_partie_de(noeud.texte, TAG_h1, TAG_h2, TAG_h3, TAG_h4, TAG_h5, TAG_h6) {
+            si fait_partie_de(noeud.local_name, TAG_h1, TAG_h2, TAG_h3, TAG_h4, TAG_h5, TAG_h6) {
                 erreur_de_parsage(parseuse, "élément <h> ouvert quand un autre <h> s'ouvre")
                 dépile(*parseuse.pile_éléments_ouvert)
             }
@@ -982,27 +982,27 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
             boucle {
                 noeud := parseuse.pile_éléments_ouvert.éléments[index]
 
-                si noeud.texte == TAG_dd {
+                si noeud.local_name == TAG_dd {
                     parseuse.génère_tags_fin_implicites_autres_que(TAG_dd)
 
-                    si parseuse.noeud_courant().texte != TAG_dd {
+                    si parseuse.noeud_courant().local_name != TAG_dd {
                         erreur_de_parsage(parseuse, "le noeud courant doit être un <dd>")
                     }
 
                     parseuse.dépile_tous_les_éléments_jusque(TAG_dd)
                     arrête
                 }
-                sinon si noeud.texte == TAG_dt {
+                sinon si noeud.local_name == TAG_dt {
                     parseuse.génère_tags_fin_implicites_autres_que(TAG_dt)
 
-                    si parseuse.noeud_courant().texte != TAG_dt {
+                    si parseuse.noeud_courant().local_name != TAG_dt {
                         erreur_de_parsage(parseuse, "le noeud courant doit être un <dt>")
                     }
 
                     parseuse.dépile_tous_les_éléments_jusque(TAG_dt)
                     arrête
                 }
-                sinon si fait_partie_de_catégorie_spécial(noeud.texte) && !fait_partie_de(TAG_address, TAG_div, TAG_p) {
+                sinon si fait_partie_de_catégorie_spécial(noeud.local_name) && !fait_partie_de(TAG_address, TAG_div, TAG_p) {
                     arrête
                 }
 
@@ -1183,7 +1183,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == TAG_optgroup || lexème.nom == TAG_option {
-            si parseuse.noeud_courant().texte == TAG_option {
+            si parseuse.noeud_courant().local_name == TAG_option {
                 dépile(*parseuse.pile_éléments_ouvert)
             }
 
@@ -1196,7 +1196,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
             si possède_dans_portée(*parseuse.pile_éléments_ouvert, TAG_ruby) {
                 parseuse.génère_tags_fin_implicites()
 
-                si parseuse.noeud_courant().texte != TAG_ruby {
+                si parseuse.noeud_courant().local_name != TAG_ruby {
                     erreur_de_parsage(parseuse, "attendu un élément <ruby>")
                 }
 
@@ -1209,7 +1209,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
             si possède_dans_portée(*parseuse.pile_éléments_ouvert, TAG_ruby) {
                 parseuse.génère_tags_fin_implicites_autres_que(TAG_rtc)
 
-                si !fait_partie_de(parseuse.noeud_courant().texte, TAG_ruby, TAG_rtc) {
+                si !fait_partie_de(parseuse.noeud_courant().local_name, TAG_ruby, TAG_rtc) {
                     erreur_de_parsage(parseuse, "attendu un élément <ruby> ou <rtc>")
                 }
 
@@ -1282,7 +1282,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
             noeud := parseuse.noeud_courant()
 
-            si noeud.texte != lexème.nom {
+            si noeud.local_name != lexème.nom {
                 erreur_de_parsage(parseuse, "le noeud courrant ne possède pas le même tag de fin")
             }
 
@@ -1320,7 +1320,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
                 noeud := parseuse.noeud_courant()
 
-                si noeud.texte != TAG_form {
+                si noeud.local_name != TAG_form {
                     erreur_de_parsage(parseuse, "attendu un élément <form>")
                 }
 
@@ -1354,7 +1354,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
             noeud := parseuse.noeud_courant()
 
-            si noeud.texte != TAG_li {
+            si noeud.local_name != TAG_li {
                 erreur_de_parsage(parseuse, "le noeud courant n'est pas un <li>")
             }
 
@@ -1370,7 +1370,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
             parseuse.génère_tags_fin_implicites_autres_que(lexème.nom)
 
-            si parseuse.noeud_courant().texte != lexème.nom {
+            si parseuse.noeud_courant().local_name != lexème.nom {
                 erreur_de_parsage(parseuse, "le noeud courant n'est ni un <dd> ni un <dt>")
             }
 
@@ -1388,7 +1388,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
             noeud := parseuse.noeud_courant()
 
-            si noeud.texte != lexème.nom {
+            si noeud.local_name != lexème.nom {
                 erreur_de_parsage(parseuse, "le noeud courant n'a pas de balise <h>")
             }
 
@@ -1489,7 +1489,7 @@ insère_mode_DansTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
     si lexème.genre == GenreLexème.Caractère {
         noeud := parseuse.noeud_courant()
 
-        si fait_partie_de(noeud.texte, TAG_table, TAG_tbody, TAG_tfoot, TAG_thead, TAG_tr) {
+        si fait_partie_de(noeud.local_name, TAG_table, TAG_tbody, TAG_tfoot, TAG_thead, TAG_tr) {
             // À FAIRE
             retourne
         }
@@ -1679,7 +1679,7 @@ insère_mode_DansGroupeColonne :: fonc (parseuse: *Parseuse, lexème: Lexème)
     si lexème.genre == GenreLexème.FinTag && lexème.nom == TAG_colgroup {
         noeud_courant := parseuse.noeud_courant()
 
-        si noeud_courant.texte != TAG_colgroup {
+        si noeud_courant.local_name != TAG_colgroup {
             parseuse.erreur_de_parsage("obtenu </colgroup> alors que <colgroup> n'est pas le noeud courant, le tag sera ignoré")
             retourne
         }
@@ -1705,7 +1705,7 @@ insère_mode_DansGroupeColonne :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 
     noeud_courant := parseuse.noeud_courant()
-    si noeud_courant.texte != TAG_colgroup {
+    si noeud_courant.local_name != TAG_colgroup {
         parseuse.erreur_de_parsage("le noeud courant n'est pas un <colgroup>, le lexème sera ignoré")
         retourne
     }
@@ -1870,7 +1870,7 @@ insère_mode_DansCell :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
             parseuse.génère_tags_fin_implicites()
 
-            si parseuse.noeud_courant().texte != lexème.nom {
+            si parseuse.noeud_courant().local_name != lexème.nom {
                 erreur_de_parsage(parseuse, "le noeud courant n'est pas de la même balise")
             }
 
@@ -1942,7 +1942,7 @@ insère_mode_DansSelect :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == TAG_option {
-            si parseuse.noeud_courant().texte == TAG_option {
+            si parseuse.noeud_courant().local_name == TAG_option {
                 dépile(*parseuse.pile_éléments_ouvert)
             }
 
@@ -1951,11 +1951,11 @@ insère_mode_DansSelect :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == TAG_optgroup {
-            si parseuse.noeud_courant().texte == TAG_option {
+            si parseuse.noeud_courant().local_name == TAG_option {
                 dépile(*parseuse.pile_éléments_ouvert)
             }
 
-            si parseuse.noeud_courant().texte == TAG_optgroup {
+            si parseuse.noeud_courant().local_name == TAG_optgroup {
                 dépile(*parseuse.pile_éléments_ouvert)
             }
 
@@ -1997,11 +1997,11 @@ insère_mode_DansSelect :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
     si lexème.genre == GenreLexème.FinTag {
         si lexème.nom == TAG_optgroup {
-            si parseuse.noeud_courant().texte == TAG_option && parseuse.pile_éléments_ouvert.éléments[parseuse.pile_éléments_ouvert.éléments.taille - 1].texte == TAG_optgroup {
+            si parseuse.noeud_courant().local_name == TAG_option && parseuse.pile_éléments_ouvert.éléments[parseuse.pile_éléments_ouvert.éléments.taille - 1].local_name == TAG_optgroup {
                 dépile(*parseuse.pile_éléments_ouvert)
             }
 
-            si parseuse.noeud_courant().texte != TAG_optgroup {
+            si parseuse.noeud_courant().local_name != TAG_optgroup {
                 erreur_de_parsage(parseuse, "attendu <optgroup> sur la pile d'éléments ouverts")
                 retourne
             }
@@ -2011,7 +2011,7 @@ insère_mode_DansSelect :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == TAG_option {
-            si parseuse.noeud_courant().texte != TAG_option {
+            si parseuse.noeud_courant().local_name != TAG_option {
                 erreur_de_parsage(parseuse, "attendu <option> sur la pile d'éléments ouverts")
                 retourne
             }
@@ -2256,7 +2256,7 @@ génère_tags_fin_implicites :: fonc (parseuse: *Parseuse)
 {
     noeud := parseuse.noeud_courant()
 
-    tantque fait_partie_de(noeud.texte, TAG_dd, TAG_dt, TAG_li, TAG_optgroup, TAG_option, TAG_p, TAG_rb, TAG_rt, TAG_rtc) {
+    tantque fait_partie_de(noeud.local_name, TAG_dd, TAG_dt, TAG_li, TAG_optgroup, TAG_option, TAG_p, TAG_rb, TAG_rt, TAG_rtc) {
         dépile(*parseuse.pile_éléments_ouvert)
         noeud = parseuse.noeud_courant()
     }
@@ -2266,7 +2266,7 @@ génère_tags_fin_implicites_autres_que :: fonc (parseuse: *Parseuse, tag: DOMSt
 {
     noeud := parseuse.noeud_courant()
 
-    tantque noeud.texte != tag && fait_partie_de(noeud.texte, TAG_dd, TAG_dt, TAG_li, TAG_optgroup, TAG_option, TAG_p, TAG_rb, TAG_rt, TAG_rtc) {
+    tantque noeud.local_name != tag && fait_partie_de(noeud.local_name, TAG_dd, TAG_dt, TAG_li, TAG_optgroup, TAG_option, TAG_p, TAG_rb, TAG_rt, TAG_rtc) {
         dépile(*parseuse.pile_éléments_ouvert)
         noeud = parseuse.noeud_courant()
     }
@@ -2276,7 +2276,7 @@ génère_tags_fin_implicites_attentivement :: fonc (parseuse: *Parseuse)
 {
     noeud := parseuse.noeud_courant()
 
-    tantque fait_partie_de(noeud.texte, TAG_caption, TAG_colgroup, TAG_dd, TAG_dt, TAG_li, TAG_optgroup, TAG_option, TAG_p, TAG_rb, TAG_rp, TAG_rt, TAG_rtc, TAG_tbody, TAG_td, TAG_tfoot, TAG_th, TAG_thead, TAG_tr) {
+    tantque fait_partie_de(noeud.local_name, TAG_caption, TAG_colgroup, TAG_dd, TAG_dt, TAG_li, TAG_optgroup, TAG_option, TAG_p, TAG_rb, TAG_rp, TAG_rt, TAG_rtc, TAG_tbody, TAG_td, TAG_tfoot, TAG_th, TAG_thead, TAG_tr) {
         dépile(*parseuse.pile_éléments_ouvert)
         noeud = parseuse.noeud_courant()
     }
@@ -2293,7 +2293,7 @@ lance_algorithme_adoption :: fonc (parseuse: *Parseuse, lexème: Lexème)
     sujet := lexème.nom
     noeud := parseuse.noeud_courant()
 
-    si noeud.texte == sujet && !possède(*parseuse.liste_éléments_actifs_formattage, noeud) {
+    si noeud.local_name == sujet && !possède(*parseuse.liste_éléments_actifs_formattage, noeud) {
         dépile(*parseuse.pile_éléments_ouvert)
         retourne
     }
@@ -2388,7 +2388,7 @@ tout_autre_tag_fin_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         élément := parseuse.pile_éléments_ouvert.éléments[index]
 
         // À FAIRE : vérifier si nous avons un élément HTML, la spec suggère que nous pourrions avoir autre chose
-        si élément.texte == lexème.nom {
+        si élément.local_name == lexème.nom {
             parseuse.génère_tags_fin_implicites_autres_que(lexème.nom)
 
             si élément != parseuse.noeud_courant() {
@@ -2403,7 +2403,7 @@ tout_autre_tag_fin_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
             arrête
         }
-        sinon si fait_partie_de_catégorie_spécial(élément.texte) {
+        sinon si fait_partie_de_catégorie_spécial(élément.local_name) {
             erreur_de_parsage(parseuse, "l'élément est dans la catégorie spéciale")
             retourne
         }
@@ -2419,7 +2419,7 @@ ferme_un_élément_p :: fonc (parseuse: *Parseuse)
 
     noeud := parseuse.noeud_courant()
 
-    si noeud.texte != TAG_p {
+    si noeud.local_name != TAG_p {
         erreur_de_parsage(parseuse, "l'élément courant n'est pas un <p>")
     }
 
@@ -2430,7 +2430,7 @@ dépile_tous_les_éléments_jusque :: fonc (parseuse: *Parseuse, nom_tag: DOMStr
 {
     noeud := parseuse.noeud_courant()
 
-    tantque noeud.texte != nom_tag {
+    tantque noeud.local_name != nom_tag {
         dépile(*parseuse.pile_éléments_ouvert)
         noeud = parseuse.noeud_courant()
     }
@@ -2441,7 +2441,7 @@ dépile_vers_contexte_table :: fonc (parseuse: *Parseuse)
 {
     noeud := parseuse.noeud_courant()
 
-    tantque !fait_partie_de(noeud.texte, TAG_table, TAG_template, TAG_html) {
+    tantque !fait_partie_de(noeud.local_name, TAG_table, TAG_template, TAG_html) {
         dépile(*parseuse.pile_éléments_ouvert)
         noeud = parseuse.noeud_courant()
     }
@@ -2451,7 +2451,7 @@ dépile_vers_contexte_table_body :: fonc (parseuse: *Parseuse)
 {
     noeud := parseuse.noeud_courant()
 
-    tantque !fait_partie_de(noeud.texte, TAG_tbody, TAG_tfoot, TAG_thead, TAG_template, TAG_html) {
+    tantque !fait_partie_de(noeud.local_name, TAG_tbody, TAG_tfoot, TAG_thead, TAG_template, TAG_html) {
         dépile(*parseuse.pile_éléments_ouvert)
         noeud = parseuse.noeud_courant()
     }
@@ -2461,7 +2461,7 @@ dépile_vers_contexte_table_row :: fonc (parseuse: *Parseuse)
 {
     noeud := parseuse.noeud_courant()
 
-    tantque !fait_partie_de(noeud.texte, TAG_tr, TAG_template, TAG_html) {
+    tantque !fait_partie_de(noeud.local_name, TAG_tr, TAG_template, TAG_html) {
         dépile(*parseuse.pile_éléments_ouvert)
         noeud = parseuse.noeud_courant()
     }
@@ -2492,18 +2492,18 @@ restaure_mode_insertion_appropriemment :: fonc (parseuse: *Parseuse)
             // À FAIRE : si fragment, noeud = élément_contexte
         }
 
-        si noeud.texte == TAG_select {
+        si noeud.local_name == TAG_select {
             si !dernier {
                 index_ancêtre := index
 
                 tantque index_ancêtre != 0 {
                     ancêtre := parseuse.pile_éléments_ouvert.éléments[index_ancêtre]
 
-                    si ancêtre.texte == TAG_template {
+                    si ancêtre.local_name == TAG_template {
                         arrête
                     }
 
-                    si ancêtre.texte == TAG_table {
+                    si ancêtre.local_name == TAG_table {
                         parseuse.mode_insertion = insère_mode_DansSelectDansTable
                         retourne
                     }
@@ -2516,58 +2516,58 @@ restaure_mode_insertion_appropriemment :: fonc (parseuse: *Parseuse)
             retourne
         }
 
-        si noeud.texte == TAG_td || noeud.texte == TAG_th {
+        si noeud.local_name == TAG_td || noeud.local_name == TAG_th {
             parseuse.mode_insertion = insère_mode_DansCell
             retourne
         }
 
-        si noeud.texte == TAG_tr {
+        si noeud.local_name == TAG_tr {
             parseuse.mode_insertion = insère_mode_DansRow
             retourne
         }
 
-        si fait_partie_de(noeud.texte, TAG_tbody, TAG_thead, TAG_tfoot) {
+        si fait_partie_de(noeud.local_name, TAG_tbody, TAG_thead, TAG_tfoot) {
             parseuse.mode_insertion = insère_mode_DansCorpsTable
             retourne
         }
 
-        si noeud.texte == TAG_caption {
+        si noeud.local_name == TAG_caption {
             parseuse.mode_insertion = insère_mode_DansCaption
             retourne
         }
 
-        si noeud.texte == TAG_colgroup {
+        si noeud.local_name == TAG_colgroup {
             parseuse.mode_insertion = insère_mode_DansGroupeColonne
             retourne
         }
 
-        si noeud.texte == TAG_table {
+        si noeud.local_name == TAG_table {
             parseuse.mode_insertion = insère_mode_DansTable
             retourne
         }
 
-        si noeud.texte == TAG_template {
+        si noeud.local_name == TAG_template {
             // À FAIRE : pile de mode d'insertion pour les templates
             parseuse.mode_insertion = parseuse.pile_insertion_template[parseuse.pile_insertion_template.taille - 1]
             retourne
         }
 
-        si noeud.texte == TAG_head && !dernier {
+        si noeud.local_name == TAG_head && !dernier {
             parseuse.mode_insertion = insère_mode_DansHead
             retourne
         }
 
-        si noeud.texte == TAG_body {
+        si noeud.local_name == TAG_body {
             parseuse.mode_insertion = insère_mode_DansBody
             retourne
         }
 
-        si noeud.texte == TAG_frameset {
+        si noeud.local_name == TAG_frameset {
             parseuse.mode_insertion = insère_mode_DansFrameSet
             retourne
         }
 
-        si noeud.texte == TAG_html {
+        si noeud.local_name == TAG_html {
             si parseuse.élément_head == nul {
                 parseuse.mode_insertion = insère_mode_AvantHead
             }
@@ -2593,11 +2593,11 @@ ferme_la_cellule :: fonc (parseuse: *Parseuse)
 
     noeud := parseuse.noeud_courant()
 
-    si !fait_partie_de(noeud.texte, TAG_td, TAG_th) {
+    si !fait_partie_de(noeud.local_name, TAG_td, TAG_th) {
         erreur_de_parsage(parseuse, "attendu un <td> ou <th>")
     }
 
-    tantque !fait_partie_de(noeud.texte, TAG_td, TAG_th) {
+    tantque !fait_partie_de(noeud.local_name, TAG_td, TAG_th) {
         dépile(*parseuse.pile_éléments_ouvert)
         noeud = parseuse.noeud_courant()
     }

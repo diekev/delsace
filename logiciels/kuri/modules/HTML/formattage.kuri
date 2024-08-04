@@ -253,15 +253,15 @@ formatte_noeud :: fonc (contexte_formattage: &ContexteFormattage, noeud: *Noeud,
             élément := noeud comme *Élément
 
             garde_tag_sur_la_même_ligne := faux
-            si élément.texte == TAG_a || élément.texte == TAG_p || élément.texte == TAG_span || élément.texte == TAG_br {
+            si élément.local_name == TAG_a || élément.local_name == TAG_p || élément.local_name == TAG_span || élément.local_name == TAG_br {
                 garde_tag_sur_la_même_ligne = vrai
             }
 
             /* Ouverture du tag. */
-            enchaineuse.imprime_dans_enchaineuse("<%", élément.texte)
+            enchaineuse.imprime_dans_enchaineuse("<%", élément.local_name)
 
             /* Attributs. */
-            attributs := cueille_et_tri_attributs(contexte_formattage, élément.texte, élément.attributs)
+            attributs := cueille_et_tri_attributs(contexte_formattage, élément.local_name, élément.attributs)
             diffère déloge(attributs)
 
             pour attributs {
@@ -283,7 +283,7 @@ formatte_noeud :: fonc (contexte_formattage: &ContexteFormattage, noeud: *Noeud,
                 }
             }
 
-            si est_tag_auto_fermant(élément.texte) {
+            si est_tag_auto_fermant(élément.local_name) {
                 si contexte_formattage.supprime_slash_tags_auto_fermant {
                     enchaineuse.ajoute_au_tampon(">")
                 }
@@ -313,11 +313,11 @@ formatte_noeud :: fonc (contexte_formattage: &ContexteFormattage, noeud: *Noeud,
             contexte_formattage.profondeur -= 1
 
             /* Fermeture du tag. */
-            saufsi contexte_formattage.ignore_tag_fin_éléments_optionnels && est_élément_optionnel(élément.texte) {
+            saufsi contexte_formattage.ignore_tag_fin_éléments_optionnels && est_élément_optionnel(élément.local_name) {
                 saufsi garde_tag_sur_la_même_ligne {
                     tabulation_au_besoin(contexte_formattage, enchaineuse)
                 }
-                enchaineuse.imprime_dans_enchaineuse("</%>", élément.texte)
+                enchaineuse.imprime_dans_enchaineuse("</%>", élément.local_name)
                 saufsi garde_tag_sur_la_même_ligne {
                     nouvelle_ligne_après_tag_au_besoin(contexte_formattage, enchaineuse)
                 }

@@ -84,6 +84,18 @@ named_evaluation :: fonc (interpréteuse: &Interpréteuse, noeud: *NoeudSyntaxiq
     panique("name_evaluation non-implémenté")
 }
 
+/* 8.6.5 Static Semantics: PropName
+ * https://tc39.es/ecma262/multipage/syntax-directed-operations.html#sec-static-semantics-propname */
+prop_name :: fonc (noeud: *NoeudSyntaxique) -> ECMAString
+{
+    si noeud.type == Identifier {
+        identifier := noeud comme *Identifier
+        retourne identifier.nom
+    }
+    // À FAIRE : complète
+    retourne crée_chaine_utf16_unique_vide()
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -165,7 +177,8 @@ sur_exécution_function_declaration :: fonc (base: *NoeudSyntaxique, interpréte
     running_execution_context := mv.donne_running_execution_context()
     realm := running_execution_context.realm
 
-    fonction := crée_fonction(realm.intrinsics.function_prototype, noeud.id.nom, noeud.corps)
+    fonction := crée_fonction(realm, realm.intrinsics.function_prototype, noeud.id.nom, noeud.corps)
+    fonction.environment = running_execution_context.lexical_environment
 
     objet_global := interpréteuse.get_global_object()
     completion := set(objet_global, noeud.id.nom, Valeur(Function = fonction), vrai)
@@ -240,7 +253,7 @@ instantiate_ordinary_function_expression :: fonc (interpréteuse: &Interpréteus
 
         // 5. Let closure be OrdinaryFunctionCreate(%Function.prototype%, sourceText, FormalParameters, FunctionBody, NON-LEXICAL-THIS, env, privateEnv).
         realm := running_execution_context.realm
-        closure := ordinary_function_create(realm.intrinsics.function_prototype, expression.params, expression.corps, NON_LEXICAL_THIS, env, private_env)
+        closure := ordinary_function_create(realm, realm.intrinsics.function_prototype, expression.params, expression.corps, NON_LEXICAL_THIS, env, private_env)
 
         // À FAIRE 6. Perform SetFunctionName(closure, name).
 
@@ -327,17 +340,34 @@ crée_return_statement :: fonc (argument: *NoeudSyntaxique) -> *ReturnStatement
     retourne résultat
 }
 
+/* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-return-statement-runtime-semantics-evaluation */
 sur_exécution_return :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
     noeud := base comme *ReturnStatement
 
-    résultat := return_completion(js_null)
+    // ReturnStatement : return ;
+    // 1. Return Completion Record { [[Type]]: RETURN, [[Value]]: undefined, [[Target]]: EMPTY }.
+    résultat := return_completion(js_undefined)
 
+    // ReturnStatement : return Expression ;
     si noeud.argument {
-        résultat = exécute_noeud(noeud.argument, interpréteuse)
-        si résultat.est_normal() {
-            retourne return_completion(résultat.valeur)
+        // 1. Let exprRef be ? Evaluation of Expression.
+        completion := exécute_noeud(noeud.argument, interpréteuse)
+        saufsi completion.est_normal() {
+            retourne completion
         }
+        expr_ref := completion.valeur
+        // 2. Let exprValue be ? GetValue(exprRef).
+        completion = get_value(interpréteuse, expr_ref)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        expr_value := completion.valeur.V
+
+        // À FAIRE : 3. If GetGeneratorKind() is ASYNC, set exprValue to ? Await(exprValue).
+
+        // 4. Return Completion Record { [[Type]]: RETURN, [[Value]]: exprValue, [[Target]]: EMPTY }.
+        résultat = return_completion(expr_value)
     }
 
     retourne résultat
@@ -1717,6 +1747,28 @@ sur_exécution_variable_declarator :: fonc (base: *NoeudSyntaxique, interpréteu
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom PropertyDefinition
+ * \{ */
+
+PropertyDefinition :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+
+    property_name: *NoeudSyntaxique
+    expression: *NoeudSyntaxique
+}
+
+crée_property_definition :: fonc (property_name: *NoeudSyntaxique, expression: *NoeudSyntaxique) -> *PropertyDefinition
+{
+    résultat := loge(PropertyDefinition)
+    résultat.property_name = property_name
+    résultat.expression = expression
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom ObjectExpression
  * \{ */
 
@@ -1724,18 +1776,88 @@ ObjectExpression :: struct {
     empl base: NoeudSyntaxique
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_object_expression
+
+    properties: [..]*PropertyDefinition
 }
 
-crée_object_expression :: fonc () -> *ObjectExpression
+crée_object_expression :: fonc (properties: [..]*PropertyDefinition) -> *ObjectExpression
 {
     résultat := loge(ObjectExpression)
+    résultat.properties = properties
     retourne résultat
 }
 
-sur_exécution_object_expression :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: &Interpréteuse) -> CompletionRecord
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-object-initializer-runtime-semantics-evaluation */
+sur_exécution_object_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: &Interpréteuse) -> CompletionRecord
 {
+    noeud := base comme *ObjectExpression
+
+    // À FAIRE : 1. Let obj be OrdinaryObjectCreate(%Object.prototype%).
     objet := crée_objet(interpréteuse.donne_tas_de_mémoire(), interpréteuse.donne_realm().intrinsics.object_prototype)
+
+    // 2. Perform ? PropertyDefinitionEvaluation of PropertyDefinitionList with argument obj.
+    completion := property_definition_evaluation(interpréteuse, noeud.properties, objet)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+
+    // 3. Return obj.
     retourne normal_completion(Valeur(Object = objet))
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-runtime-semantics-propertydefinitionevaluation */
+property_definition_evaluation :: fonc (interpréteuse: &Interpréteuse, properties: []*PropertyDefinition, object: *Object) -> CompletionRecord
+{
+    pour properties {
+        // 1. Let propKey be ? Evaluation of PropertyName.
+        assert(it.property_name.type == Identifier)
+        prop_key := (it.property_name comme *Identifier).nom
+
+        // À FAIRE : complète
+        is_proto_setter := faux
+        // 2. If this PropertyDefinition is contained within a Script that is being evaluated for JSON.parse (see step 7 of JSON.parse), then
+            // a. Let isProtoSetter be false.
+        // 3. Else if propKey is "__proto__" and IsComputedPropertyKey of PropertyName is false, then
+            // a. Let isProtoSetter be true.
+        // 4. Else,
+            // a. Let isProtoSetter be false.
+        // 5. If IsAnonymousFunctionDefinition(AssignmentExpression) is true and isProtoSetter is false, then
+        prop_value: Valeur
+        si is_anonymous_function_definition(it.expression) && is_proto_setter == faux {
+            // a. Let propValue be ? NamedEvaluation of AssignmentExpression with argument propKey.
+            completion := named_evaluation(interpréteuse, it.expression, prop_key)
+            saufsi completion.est_normal() {
+                retourne completion
+            }
+
+            prop_value = completion.valeur.V
+        }
+        // 6. Else,
+        sinon {
+            // a. Let exprValueRef be ? Evaluation of AssignmentExpression.
+            completion := exécute_noeud(it.expression, interpréteuse)
+            saufsi completion.est_normal() {
+                retourne completion
+            }
+            expr_value_ref := completion.valeur
+            // b. Let propValue be ? GetValue(exprValueRef).
+            completion = get_value(interpréteuse, expr_value_ref)
+            saufsi completion.est_normal() {
+                retourne completion
+            }
+            prop_value = completion.valeur.V
+        }
+        // 7. If isProtoSetter is true, then
+            // a. If propValue is an Object or propValue is null, then
+                // i. Perform ! object.[[SetPrototypeOf]](propValue).
+            // b. Return UNUSED.
+        // 8. Assert: object is an ordinary, extensible object with no non-configurable properties.
+        // 9. Perform ! CreateDataPropertyOrThrow(object, propKey, propValue).
+        _ := create_data_property_or_throw(object, prop_key, prop_value)
+        // 10. Return UNUSED.
+    }
+
+    retourne normal_completion(js_undefined)
 }
 
 /** \} */

@@ -31,6 +31,9 @@ détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
 
     pour arbre.noeuds {
         déloge(it.enfants)
+        si it.propriétés {
+            détruit_propriétés(it.propriétés)
+        }
 
         si it.type == NoeudDeDispositionBloc {
             bloc := it comme *NoeudDeDispositionBloc
@@ -120,7 +123,7 @@ imprime_arbre :: fonc (enchaineuse: *Enchaineuse, racine: *NoeudDeDisposition, p
     imprime_dans_enchaineuse(enchaineuse, "%%", indentation, racine.donne_nom_classe())
     si racine.type == NoeudDeDispositionBloc {
         bloc := racine comme *NoeudDeDispositionBloc
-        imprime_dans_enchaineuse(enchaineuse, " %", bloc.élément.texte)
+        imprime_dans_enchaineuse(enchaineuse, " %", bloc.élément.local_name)
     }
 
     imprime_dans_enchaineuse(enchaineuse, " % % %x%\n", racine.position_x, racine.position_y, racine.largeur, racine.hauteur)
@@ -178,10 +181,82 @@ dessine :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom RésolveuseStyle.
+ * \{ */
+
+RésolveuseStyle :: struct {
+    globales: *GlobalesDessin
+    feuilles_de_style: []*CSSStyleSheet
+}
+
+collecte_les_règles_appropriées :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élément) -> [..]*CSSStyleRule
+{
+    règles: [..]*CSSStyleRule
+
+    pour stylesheet dans résolveuse.feuilles_de_style {
+        pour règle dans stylesheet.rules {
+            si règle.type != CSSRuleType.Style {
+                continue
+            }
+
+            règle_de_style := règle comme *CSSStyleRule
+
+            pour complex dans règle_de_style.selector_list.complex_selectors {
+                si apparie_sélecteur(complex.compound_selectors, complex.compound_selectors.taille - 1, élément) {
+                    tableau_ajoute(*règles, règle_de_style)
+                    arrête
+                }
+            }
+        }
+    }
+
+    retourne règles
+}
+
+résoud_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élément, propriétés_parent: *PropriétésDeStyle) -> *PropriétésDeStyle
+{
+    résultat := loge(PropriétésDeStyle)
+
+    HTML.applique_presentational_hints(élément, résultat)
+
+    règles := collecte_les_règles_appropriées(résolveuse, élément)
+    diffère déloge(règles)
+    // imprime("% règle(s) pour %\n", règles.taille, élément.local_name)
+
+    si propriétés_parent {
+        pour propriétés_parent.déclarations {
+            si it.info.héritable == PropriétéHéritable.Non {
+                continue
+            }
+            ajoute_déclaration(résultat, it)
+        }
+    }
+
+    pour règles {
+        // imprime_règle(it)
+        pour déclaration dans it.style.déclarations {
+            ajoute_déclaration(résultat, déclaration)
+        }
+    }
+
+    si élément.style {
+        pour élément.style.déclarations {
+            ajoute_déclaration(résultat, it)
+        }
+    }
+
+    absolutise_taille_fonte(résultat, propriétés_parent, résolveuse.globales)
+
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Génération d'arbres de disposition.
  * \{ */
 
-crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32)
+crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, hauteur: z32)
 {
     html := HTML.donne_élément_html(document)
     saufsi html {
@@ -194,25 +269,21 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32)
 
     résultat := loge(ArbreDeDisposition)
 
-    feuille_de_style := document.feuilles_de_style[0]
+    résolveuse: RésolveuseStyle
+    résolveuse.globales = document.globales_dessin
+    résolveuse.feuilles_de_style = document.feuilles_de_style
 
-    racine := résultat.crée_noeud(NoeudDeDispositionBloc)
-    racine.élément = html
-    html.noeud_de_disposition = racine
-
-    résultat.racine = racine
-
-    pour html.enfants {
-        crée_noeud_pour_élément(feuille_de_style, résultat, résultat.racine, it)
-    }
+    crée_noeud_pour_élément(*résolveuse, résultat, nul, html)
+    résultat.racine = html.noeud_de_disposition
 
     // imprime("Créé % noeud(s)\n", résultat.noeuds.taille)
 
     ctx: ContexteDisposition
     ctx.largeur_disponible = largeur comme n32
+    ctx.hauteur_disponible = hauteur comme n32
     ctx.globales = document.globales_dessin
 
-    mesure(racine, *ctx)
+    mesure(résultat.racine, *ctx)
 
     // imprime("taille arbre : %x%\n", résultat.racine.largeur, résultat.racine.hauteur)
 
@@ -225,12 +296,16 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32)
     document.arbre_de_disposition = résultat
 }
 
-crée_noeud_pour_élément :: fonc (stylesheet: *CSSStyleSheet, arbre: *ArbreDeDisposition, parent: *NoeudDeDisposition, noeud: *HTML.Noeud)
+crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *ArbreDeDisposition, parent: *NoeudDeDisposition, noeud: *HTML.Noeud)
 {
     si HTML.est_texte(noeud) {
-        résultat := arbre.crée_noeud(NoeudDeDispositionTexte)
-        résultat.noeud_texte = noeud comme *HTML.NoeudTexte
+        /* Les textes doivent une boite inline anonyme autour d'eux. */
+        résultat := arbre.crée_noeud(NoeudDeDispositionInline)
         parent.ajoute_enfant(résultat)
+
+        texte := arbre.crée_noeud(NoeudDeDispositionTexte)
+        texte.noeud_texte = noeud comme *HTML.NoeudTexte
+        résultat.ajoute_enfant(texte)
         retourne
     }
 
@@ -240,24 +315,16 @@ crée_noeud_pour_élément :: fonc (stylesheet: *CSSStyleSheet, arbre: *ArbreDeD
 
     élément := noeud comme *HTML.Élément
 
-    règles := collecte_les_règles_appropriées(stylesheet, élément)
-    diffère déloge(règles)
-
-    // imprime("% règle(s) pour %\n", règles.taille, élément.texte)
-
-    propriétés: PropriétésDeStyle
-
-    pour règles {
-        // imprime_règle(it)
-        pour déclaration dans it.déclarations {
-            ajoute_déclaration(*propriétés, déclaration)
-        }
+    propriétés_parent: *PropriétésDeStyle
+    si parent {
+        propriétés_parent = parent.propriétés
     }
 
-    display := donne_display(*propriétés)
+    propriétés := résoud_style(résolveuse, élément, propriétés_parent)
 
+    display := donne_display(propriétés)
     si display.outer_type == Display.Type.None {
-        détruit_données_propriétés(*propriétés)
+        détruit_propriétés(propriétés)
         retourne
     }
 
@@ -267,7 +334,7 @@ crée_noeud_pour_élément :: fonc (stylesheet: *CSSStyleSheet, arbre: *ArbreDeD
         bloc.élément = élément
         résultat = bloc
     }
-    sinon si élément.texte == HTML.TAG_br {
+    sinon si élément.local_name == HTML.TAG_br {
         bris := arbre.crée_noeud(NoeudDeDispositionNouvelleLigne)
         résultat = bris
     }
@@ -279,10 +346,62 @@ crée_noeud_pour_élément :: fonc (stylesheet: *CSSStyleSheet, arbre: *ArbreDeD
 
     élément.noeud_de_disposition = résultat
     résultat.propriétés = propriétés
-    parent.ajoute_enfant(résultat)
+
+    si parent {
+        parent.ajoute_enfant(résultat)
+    }
 
     pour noeud.enfants {
-        crée_noeud_pour_élément(stylesheet, arbre, résultat, it)
+        crée_noeud_pour_élément(résolveuse, arbre, résultat, it)
+    }
+
+    si résultat.type != NoeudDeDispositionBloc && résultat.type != NoeudDeDispositionInline {
+        retourne
+    }
+
+    noeud_disposition := résultat comme *NoeudDeDispositionBloc
+
+    /* Crée des blocs anonymes pour envelopper les blocs inlines si au moins un enfant est un bloc.
+     * Voir définition de "block container box" :
+     * https://www.w3.org/TR/2011/REC-CSS2-20110607/visuren.html#block-boxes */
+    doit_formatter_en_blocs := faux
+
+    pour noeud_disposition.enfants {
+        si it.type == NoeudDeDispositionBloc {
+            doit_formatter_en_blocs = vrai
+            arrête
+        }
+    }
+
+    noeud_disposition.est_disposition_inline = doit_formatter_en_blocs == faux
+
+    saufsi noeud_disposition.est_disposition_inline {
+        /* À FAIRE : les noeuds Inline doivent être divisés
+         * https://www.w3.org/TR/2011/REC-CSS2-20110607/visuren.html#anonymous-block-level */
+        assert(noeud_disposition.type != NoeudDeDispositionInline)
+
+        nouveaux_enfants: [..]*NoeudDeDisposition
+
+        bloc_anonyme_courant: *NoeudDeDispositionBloc
+        pour noeud_disposition.enfants {
+            si it.type == NoeudDeDispositionBloc {
+                tableau_ajoute(*nouveaux_enfants, it)
+                bloc_anonyme_courant = nul
+                continue
+            }
+
+            si bloc_anonyme_courant == nul {
+                bloc_anonyme_courant = arbre.crée_noeud(NoeudDeDispositionBloc)
+                bloc_anonyme_courant.parent = noeud_disposition
+                bloc_anonyme_courant.est_disposition_inline = vrai
+                tableau_ajoute(*nouveaux_enfants, bloc_anonyme_courant)
+            }
+
+            bloc_anonyme_courant.ajoute_enfant(it)
+        }
+
+        déloge(noeud_disposition.enfants)
+        noeud_disposition.enfants = nouveaux_enfants
     }
 }
 
@@ -295,6 +414,7 @@ crée_noeud_pour_élément :: fonc (stylesheet: *CSSStyleSheet, arbre: *ArbreDeD
 ContexteDisposition :: struct {
     globales: *GlobalesDessin
     largeur_disponible: n32
+    hauteur_disponible: n32
 }
 
 /** \} */
@@ -398,7 +518,7 @@ NoeudDeDisposition :: struct {
     type := #type_de_cette_structure
 
     id: n32
-    propriétés: PropriétésDeStyle
+    propriétés: *PropriétésDeStyle
 
     parent: *NoeudDeDisposition
     enfants: [..]*NoeudDeDisposition
@@ -408,6 +528,9 @@ NoeudDeDisposition :: struct {
 
     largeur: n32
     hauteur: n32
+
+    marges: [4]r64
+    rembourrage: [4]r64
 
     sur_mesure: fonc (*NoeudDeDisposition, *ContexteDisposition)(rien)
     sur_dessin: fonc (*NoeudDeDisposition, *ContexteDessin)(rien)
@@ -425,11 +548,48 @@ donne_rectangle :: fonc (noeud: *NoeudDeDisposition) -> RectanglePosDim(z32)
     retourne rect
 }
 
+calcules_marges :: fonc (noeud: *NoeudDeDisposition, globales: *GlobalesDessin)
+{
+    marges := donne_marges(noeud.propriétés, globales)
+
+    pour 4 {
+        noeud.marges[it] = marges.valeur[it].number
+    }
+}
+
+calcules_rembourrage :: fonc (noeud: *NoeudDeDisposition, globales: *GlobalesDessin)
+{
+    rembourrage := donne_rembourrage(noeud.propriétés, globales)
+
+    pour 4 {
+        noeud.rembourrage[it] = rembourrage.valeur[it].number
+    }
+}
+
+donne_propriété_parent :: fonc (noeud_texte: *NoeudDeDisposition) -> *PropriétésDeStyle
+{
+    parent := noeud_texte.parent
+    tantque !est_noeud_non_anonyme(parent) {
+        parent = parent.parent
+    }
+    retourne parent.propriétés
+}
+
+est_noeud_non_anonyme :: fonc (noeud: *NoeudDeDisposition) -> bool
+{
+    si noeud.type != NoeudDeDispositionBloc && noeud.type != NoeudDeDispositionInline {
+        retourne faux
+    }
+
+    noeud_bloc := noeud comme *NoeudDeDispositionBloc
+    retourne noeud_bloc.élément != nul
+}
+
 donne_élément :: fonc (noeud: *NoeudDeDisposition) -> *HTML.Élément
 {
     noeud_courant := noeud
 
-    tantque noeud_courant != nul && (noeud_courant.type != NoeudDeDispositionBloc && noeud_courant.type != NoeudDeDispositionInline) {
+    tantque noeud_courant != nul && !est_noeud_non_anonyme(noeud_courant) {
         noeud_courant = noeud_courant.parent
     }
 
@@ -498,7 +658,7 @@ ajoute_enfant :: fonc (parent: *NoeudDeDisposition, enfant: *NoeudDeDisposition)
 
 donne_curseur :: fonc (noeud: *NoeudDeDisposition) -> CursorType
 {
-    cursor := donne_déclaration(*noeud.propriétés, PROP_cursor)
+    cursor := donne_déclaration(noeud.propriétés, PROP_cursor)
     saufsi cursor {
         retourne CursorType.auto
     }
@@ -606,23 +766,30 @@ noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Cont
     noeud := base comme *NoeudDeDispositionBloc
     noeud.largeur = ctx.largeur_disponible
 
-    /* À FAIRE : génère des noeuds anonymes, etc. */
-    doit_formatter_en_blocs := faux
+    si noeud.est_noeud_non_anonyme() {
+        bordure := donne_border(noeud.propriétés)
 
-    pour noeud.enfants {
-        si it.type == NoeudDeDispositionBloc {
-            doit_formatter_en_blocs = vrai
-            arrête
+        pour bordure.style {
+            si it == LineStyle.None {
+                continue
+            }
+            
+            largeur := donne_taille(bordure, index_it comme z32 comme BorderEdge)
+            si index_it == BorderEdge.Top comme z32 || index_it == BorderEdge.Bottom comme z32 {
+                noeud.hauteur += largeur comme n32
+            }
         }
     }
 
-    noeud.est_disposition_inline = doit_formatter_en_blocs == faux
-
-    si doit_formatter_en_blocs {
+    saufsi noeud.est_disposition_inline {
         dispose_enfants_block(noeud, ctx)
     }
     sinon {
         dispose_enfants_inline(noeud, ctx)
+    }
+
+    si noeud.parent == nul {
+        noeud.hauteur = max(noeud.hauteur, ctx.hauteur_disponible)
     }
 }
 
@@ -630,10 +797,79 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
 {
     noeud := base comme *NoeudDeDispositionBloc
 
-    // rect := ctx.donne_rectangle_corrigé(noeud)
-    // couleur := CouleurRVBA(1.0, 0.5, 0.5, 1.0)
-    // peintre := ctx.peintre
-    // peintre.remplis_rectangle(rect, couleur)
+    peintre := ctx.peintre
+
+    si noeud.est_noeud_non_anonyme() {
+        background := donne_background(noeud.propriétés)
+        si background.color.a != 0 {
+            rect_noeud := ctx.donne_rectangle_corrigé(noeud)
+            peintre.remplis_rectangle(rect_noeud, background.color)
+        }
+
+        bordure := donne_border(noeud.propriétés)
+
+        pour bordure.style {
+            si it == LineStyle.None || it == LineStyle.Hidden {
+                continue
+            }
+
+            coté := index_it comme z32 comme BorderEdge
+
+            couleur: CouleurRVBAN8
+
+            si it == LineStyle.Inset {
+                si coté == BorderEdge.Top || coté == BorderEdge.Left {
+                    couleur = CouleurRVBAN8(154, 154, 154, 255)
+                }
+                sinon {
+                    couleur = CouleurRVBAN8(238, 238, 238, 255)
+                }
+            }
+            sinon si it == LineStyle.Outset {
+                si coté == BorderEdge.Top || coté == BorderEdge.Left {
+                    couleur = CouleurRVBAN8(238, 238, 238, 255)
+                }
+                sinon {
+                    couleur = CouleurRVBAN8(154, 154, 154, 255)
+                }
+            }
+            sinon {
+                couleur = donne_couleur(bordure, coté, noeud.propriétés)
+            }
+
+            largeur := donne_taille(bordure, coté)
+
+            rect: RectanglePosDim(r32)
+
+            si coté == BorderEdge.Top {
+                rect.x = noeud.position_x comme r32
+                rect.y = noeud.position_y comme r32 + noeud.hauteur comme r32 - largeur
+                rect.largeur = noeud.largeur comme r32
+                rect.hauteur = largeur
+            }
+            sinon si coté == BorderEdge.Bottom {
+                rect.x = noeud.position_x comme r32
+                rect.y = noeud.position_y comme r32
+                rect.largeur = noeud.largeur comme r32
+                rect.hauteur = largeur
+            }
+            sinon si coté == BorderEdge.Left {
+                rect.x = noeud.position_x comme r32
+                rect.y = noeud.position_y comme r32
+                rect.largeur = largeur
+                rect.hauteur = noeud.hauteur comme r32
+            }
+            sinon /* si coté == BorderEdge.Right */ {
+                rect.x = noeud.position_x comme r32
+                rect.y = noeud.position_y comme r32 + noeud.largeur comme r32 - largeur
+                rect.largeur = largeur
+                rect.hauteur = noeud.hauteur comme r32
+            }
+
+            rect = ctx.donne_rectangle_corrigé(rect)
+            peintre.remplis_rectangle(rect, couleur)
+        }
+    }
 
     saufsi noeud.est_disposition_inline {
         dessine_enfants_block(noeud, ctx)
@@ -676,16 +912,85 @@ donne_ligne_courante :: fonc (bloc: *NoeudDeDispositionBloc) -> *BoiteDeLigne
 dispose_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDisposition)
 {
     ctx_locale := mémoire(ctx)
-    ctx_locale.largeur_disponible = ctx.largeur_disponible
+
+    /* À FAIRE : utilise les bonnes formules.
+     * https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#Computing_widths_and_margins */
+    noeud.largeur = ctx_locale.largeur_disponible
+    diffère noeud.largeur += noeud.rembourrage[BorderEdge.Right] comme n32
+
+    si noeud.est_noeud_non_anonyme() {
+        calcules_marges(noeud, ctx.globales)
+        calcules_rembourrage(noeud, ctx.globales)
+        noeud.largeur -= (noeud.marges[BorderEdge.Left] + noeud.marges[BorderEdge.Right]) comme n32
+        noeud.largeur -= (noeud.rembourrage[BorderEdge.Left] + noeud.rembourrage[BorderEdge.Right]) comme n32
+    }
+
+    prop_max_width := donne_déclaration(noeud.propriétés, PROP_max_width)
+    si prop_max_width {
+        discr prop_max_width.value[0] {
+            integer(i) {
+                si noeud.largeur > i comme n32 {
+                    noeud.largeur = i comme n32
+                }
+            }
+            number(n) {
+                si noeud.largeur > n comme n32 {
+                    noeud.largeur = n comme n32
+                }
+            }
+            longueur(l) {
+                discr l.unité {
+                    Px {
+                        si noeud.largeur > l.valeur comme n32 {
+                            noeud.largeur = l.valeur comme n32
+                        }
+                    }
+                    Em {
+                        taille := l.valeur * donne_taille_fonte_ou_référence(noeud.propriétés, ctx.globales)
+                        si noeud.largeur > taille comme n32 {
+                            noeud.largeur = taille comme n32
+                        }
+                    }
+                }
+            }
+            sinon {}
+        }
+    }
+
+    ctx_locale.largeur_disponible = noeud.largeur
+
+    /* https://www.w3.org/TR/CSS2/box.html#collapsing-margins */
+    marges := noeud.marges
+    rembourrage := noeud.rembourrage
+    décalage_x := (marges[BorderEdge.Left] + rembourrage[BorderEdge.Left]) comme n32
+
+    dernière_marge := marges[BorderEdge.Top]
+
+    noeud.hauteur += rembourrage[BorderEdge.Top] comme n32
 
     pour noeud.enfants {
         it.mesure(*ctx_locale)
 
-        it.décale(0, noeud.hauteur)
+        marges_enfant := it.marges
+        marge_inter_enfant := max(marges_enfant[BorderEdge.Bottom], dernière_marge)
+        décalage_y := marge_inter_enfant comme n32
 
-        noeud.hauteur += it.hauteur
-        noeud.largeur = max(noeud.largeur, it.largeur)
+        it.décale(décalage_x, décalage_y + noeud.hauteur)
+
+        dernière_marge = marges_enfant[BorderEdge.Bottom]
+
+        si index_it == 0 {
+            noeud.hauteur += it.hauteur + marges[BorderEdge.Top] comme n32
+        }
+        sinon si index_it == noeud.enfants.taille - 1 {
+            noeud.hauteur += it.hauteur + marges[BorderEdge.Bottom] comme n32
+        }
+        sinon {
+            noeud.hauteur += it.hauteur + dernière_marge comme n32
+        }
     }
+
+    noeud.hauteur += rembourrage[BorderEdge.Bottom] comme n32
 }
 
 dessine_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDessin)
@@ -712,7 +1017,14 @@ dessine_tampon_id_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *C
 dispose_enfants_inline :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDisposition)
 {
     ctx_locale := mémoire(ctx)
-    ctx_locale.largeur_disponible = ctx.largeur_disponible
+
+    décalage_x: n32
+    décalage_y: n32
+
+    si noeud.est_noeud_non_anonyme() {
+        calcules_marges(noeud, ctx.globales)
+        ctx_locale.largeur_disponible -= (noeud.marges[BorderEdge.Left] + noeud.marges[BorderEdge.Right]) comme n32
+    }
 
     pour noeud.enfants {
         divise_en_lignes(it, noeud, *ctx_locale)
@@ -725,6 +1037,10 @@ dispose_enfants_inline :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDi
             fragment.y = noeud.hauteur comme r32
         }
         noeud.hauteur += hauteur comme n32
+    }
+
+    si décalage_x != 0 || décalage_y != 0 {
+        noeud.décale(décalage_x, décalage_y)
     }
 
     // pour noeud.enfants {
@@ -804,18 +1120,10 @@ noeud_disposition_inline_sur_dessin_tampon_id :: fonc (base: *NoeudDeDisposition
 NoeudDeDispositionNouvelleLigne :: struct {
     empl base_bloc: NoeudDeDisposition
     type = #type_de_cette_structure
-    sur_mesure = noeud_disposition_nouvelle_ligne_sur_mesure
     sur_divise_en_lignes = noeud_disposition_nouvelle_ligne_sur_divise_en_lignes
 }
 
-noeud_disposition_nouvelle_ligne_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDisposition)
-{
-    noeud := base comme *NoeudDeDispositionInline
-    noeud.largeur = ctx.largeur_disponible
-    dispose_enfants_inline(noeud, ctx)
-}
-
-noeud_disposition_nouvelle_ligne_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition @inutilisée, bloc_contenant: *NoeudDeDispositionBloc, ctx: *ContexteDisposition)
+noeud_disposition_nouvelle_ligne_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition @inutilisée, bloc_contenant: *NoeudDeDispositionBloc, ctx: *ContexteDisposition @inutilisée)
 {
     _ := bloc_contenant.ajoute_ligne()
 }
@@ -849,30 +1157,27 @@ détermine_fonte :: fonc (noeud_texte: *NoeudDeDispositionTexte, ctx: *ContexteD
     famille_fonte := "sérif"
     style := "normal"
     graisse := GraisseFonte.Normal
-    taille_fonte := globales.taille_fonte_défaut
+    propriétés := donne_propriété_parent(noeud_texte)
+    taille_fonte := donne_taille_fonte_ou_référence(propriétés, globales)
 
-    propriétés := *noeud_texte.parent.propriétés
     font_weight := donne_déclaration(propriétés, PROP_font_weight)
     si font_weight {
         mot_clé := font_weight.value[0].mot_clé
 
-        si mot_clé == PROP_bold {
+        si mot_clé == PROP_bold || mot_clé == PROP_bolder {
             graisse = GraisseFonte.Gras
         }
     }
 
-    font_size := donne_déclaration(propriétés, PROP_font_size)
-    si font_size {
-        longueur := font_size.value[0].longueur
-
-        discr longueur.unité {
-            Em {
-                taille_fonte *= longueur.valeur comme r32
-            }
+    font_style := donne_déclaration(propriétés, PROP_font_style)
+    si font_style {
+        mot_clé := font_style.value[0].mot_clé
+        si mot_clé == PROP_italic {
+            style = "italic"
         }
     }
 
-    fonte := globales.donne_fonte(famille_fonte, style, graisse, taille_fonte)
+    fonte := globales.donne_fonte(famille_fonte, style, graisse, taille_fonte comme r32)
     noeud_texte.fonte = fonte
     retourne fonte
 }
@@ -965,7 +1270,7 @@ noeud_disposition_texte_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Con
 {
     noeud := base comme *NoeudDeDispositionTexte
 
-    propriétés := *noeud.parent.propriétés
+    propriétés := donne_propriété_parent(noeud)
 
     couleur := CouleurRVBAN8(0, 0, 0, 255)
 
@@ -998,9 +1303,12 @@ noeud_disposition_texte_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Con
     fonte := noeud.fonte
     assert(fonte != nul)
 
+    métriques := donne_métriques_fonte(fonte)
+
     si ctx.fragment {
         fragment := ctx.fragment
         rect := ctx.donne_rectangle_corrigé(fragment.donne_rectangle())
+        rect.y -= métriques.jambage_inférieur
 
         // peintre.dessine_rectangle(rect, couleur)
 
@@ -1011,6 +1319,7 @@ noeud_disposition_texte_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Con
     sinon {
         texte := noeud.texte
         rect := ctx.donne_rectangle_corrigé(noeud)
+        rect.y -= métriques.jambage_inférieur comme z32
         peintre.dessine_texte(fonte, texte, rect, couleur, *effets)
     }
 }

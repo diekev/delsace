@@ -93,7 +93,7 @@ est_élément_type :: fonc (noeud: *Noeud, type: chaine) -> *Élément
 
     élément := noeud comme *Élément
 
-    si élément.texte == type {
+    si élément.local_name == type {
         retourne élément
     }
 
@@ -108,7 +108,7 @@ est_élément_type :: fonc (noeud: *Noeud, tag: DOMString) -> *Élément
 
     élément := noeud comme *Élément
 
-    si élément.texte == tag {
+    si élément.local_name == tag {
         retourne élément
     }
 

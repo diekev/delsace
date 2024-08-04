@@ -307,6 +307,34 @@ parse_a_style_block_s_contents :: fonc (input: [..]ComponentValue) -> StyleBlock
 }
 
 /* 5.3.8 Parse a list of declarations */
+parse_a_list_of_declarations :: fonc (input: [..]Lexème) -> StyleBlockContent
+{
+    // 1. Normalize input, and set input to the result.
+    // 2. Consume a list of declarations from input, and return the result.
+    parseuse := initialise_une_parseuse(input)
+    retourne consomme_une_liste_de_déclarations(parseuse)
+}
+
+parse_attribut_style :: fonc (valeur: ChaineUTF16) -> *CSSStyleDeclaration
+{
+    contenu := converti_vers_chaine(valeur)
+    diffère déloge(contenu)
+
+    lexèmes := lèxe_style(contenu)
+    diffère détruit_lexèmes(*lexèmes)
+
+    style_content := parse_a_list_of_declarations(lexèmes)
+    diffère détruit_content(style_content)
+
+    ctx: ContexteParsageFeuilleDeStyle
+    diffère détruit_données_contexte(*ctx)
+
+    résultat := parse_css_style_declaration(*ctx, style_content.decls)
+
+    rapporte_propriétés_non_supportées(*ctx, #nom_de_cette_fonction)
+
+    retourne résultat
+}
 
 /* 5.3.9 Parse a component value */
 
@@ -525,6 +553,79 @@ consomme_le_contenu_d_un_bloc_de_style :: fonc (parseuse: &Parseuse($T)) -> Styl
 }
 
 /* 5.4.5 Consume a list of declarations */
+consomme_une_liste_de_déclarations :: fonc (parseuse: &Parseuse($T)) -> StyleBlockContent
+{
+    // Create an initially empty list of declarations.
+    decls: [..]ParsedDeclaration
+    rules: [..]*ParsedRule
+
+    tantque !fini(parseuse) {
+        lexème := parseuse.consomme_le_lexème_en_entrée_suivant()
+
+        si lexème.est_lexème_de_genre(GenreLexème.Whitespace) || lexème.est_lexème_de_genre(GenreLexème.Semicolon) {
+            continue
+        }
+
+        si lexème.est_lexème_de_genre(GenreLexème.EOF) {
+            arrête
+        }
+
+        si lexème.est_lexème_de_genre(GenreLexème.At_Keyword) {
+            parseuse.reconsomme_le_lexème_courant()
+            rule := parseuse.consomme_une_règle_arobase()
+            si rule {
+                tableau_ajoute(*rules, rule)
+            }
+            continue
+        }
+
+        si lexème.est_lexème_de_genre(GenreLexème.Ident) {
+            // Initialize a temporary list initially filled with the current input token.
+            temp: [..]T
+            tableau_ajoute(*temp, lexème)
+
+            // As long as the next input token is anything other than a <semicolon-token>
+            // or <EOF-token>, consume a component value and append it to the temporary list.
+            tantque !fini(parseuse) {
+                lexème = parseuse.lexème_courant()
+
+                si lexème.est_lexème_de_genre(GenreLexème.EOF) || lexème.est_lexème_de_genre(GenreLexème.Semicolon) {
+                    arrête
+                }
+
+                tableau_ajoute(*temp, lexème)
+                parseuse.avance()
+            }
+
+            // Consume a declaration from the temporary list.
+            // If anything was returned, append it to the list of declarations.
+            parseuse_decl := initialise_une_parseuse(temp)
+            decl := consomme_une_déclaration(parseuse_decl)
+            si decl.possède_valeur() {
+                tableau_ajoute(*decls, decl.Quelque)
+            }
+
+            // @Performance
+            déloge(temp)
+            continue
+        }
+
+        // This is a parse error.
+        // Reconsume the current input token.
+        // As long as the next input token is anything other than a <semicolon-token> or <EOF-token>,
+        // consume a component value and throw away the returned value.
+        parseuse.reconsomme_le_lexème_courant()
+        tantque !fini(parseuse) {
+            lexème = parseuse.lexème_courant()
+            si lexème.est_lexème_de_genre(GenreLexème.EOF) || lexème.est_lexème_de_genre(GenreLexème.Semicolon) {
+                arrête
+            }
+            parseuse.avance()
+        }
+    }
+
+    retourne StyleBlockContent(decls, rules)
+}
 
 /* 5.4.6 Consume a declaration */
 consomme_une_déclaration :: fonc (parseuse: &Parseuse($T)) -> Optionnel(ParsedDeclaration)
@@ -1261,10 +1362,10 @@ ContexteParsageFeuilleDeStyle :: struct {
     propriétés_non_supportées: [..]CSSOMString
 }
 
-rapporte_propriétés_non_supportées :: fonc (ctx: *ContexteParsageFeuilleDeStyle)
+rapporte_propriétés_non_supportées :: fonc (ctx: *ContexteParsageFeuilleDeStyle, fonction: chaine)
 {
     pour ctx.propriétés_non_supportées {
-        imprime("[CSS] propriété non-supportée : %\n", it)
+        imprime("[CSS][%] propriété non-supportée : %\n", fonction, it)
     }
 }
 
@@ -1285,22 +1386,27 @@ donne_info_type_pour_nom :: fonc (ctx: *ContexteParsageFeuilleDeStyle, nom: CSSO
 /* https://www.w3.org/TR/css-syntax-3/#parse-a-css-stylesheet */
 parse_a_css_style_sheet :: fonc (ctx: *ContexteParsageFeuilleDeStyle, contenu: chaine) -> *CSSStyleSheet
 {
+    résultat := loge(CSSStyleSheet)
+    résultat.type = crée_chaine_utf16_unique("text/css")
+
+    parse_style_rules(ctx, résultat, contenu)
+
+    retourne résultat
+}
+
+parse_style_rules :: fonc (ctx: *ContexteParsageFeuilleDeStyle, css_stylesheet: *CSSStyleSheet, contenu: chaine)
+{
     lexèmes := lèxe_style(contenu)
     diffère détruit_lexèmes(*lexèmes)
 
     stylesheet := parse_a_stylesheet(lexèmes)
     diffère détruit_données_stylesheet(*stylesheet)
 
-    résultat := loge(CSSStyleSheet)
-    résultat.type = crée_chaine_utf16_unique("text/css")
-
     pour stylesheet.value {
         si it.type == ParsedQualifiedRule {
-            parse_a_style_rule(ctx, résultat, it comme *ParsedQualifiedRule)
+            parse_a_style_rule(ctx, css_stylesheet, it comme *ParsedQualifiedRule)
         }
     }
-
-    retourne résultat
 }
 
 /* https://www.w3.org/TR/css-syntax-3/#style-rules */
@@ -1322,7 +1428,23 @@ parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sh
 
     /* Ne considère que les déclarations.
      * À FAIRE : @nest peut être préservé. */
-    pour content.decls {
+    style := parse_css_style_declaration(ctx, content.decls)
+    résultat.style = style
+    style.parent_css_rule = résultat
+
+    si style.déclarations.taille == 0 {
+        détruit_style_rule(résultat)
+        retourne
+    }
+
+    tableau_ajoute(*parent_style_sheet.rules, résultat)
+}
+
+parse_css_style_declaration :: fonc (ctx: *ContexteParsageFeuilleDeStyle, déclarations: []ParsedDeclaration) -> *CSSStyleDeclaration
+{
+    résultat := loge(CSSStyleDeclaration)
+
+    pour déclarations {
         info_type_propriété := donne_info_type_pour_nom(ctx, it.name)
         saufsi info_type_propriété {
             continue
@@ -1334,7 +1456,8 @@ parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sh
             continue
         }
 
-        déclaration := loge(CSSDeclaration)
+        déclaration := loge(DéclarationPropriété)
+        déclaration.info = info_type_propriété
         déclaration.property_name = it.name
         déclaration.value = opt_valeur.Quelque
         déclaration.important = it.important
@@ -1342,12 +1465,7 @@ parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sh
         résultat.ajoute_déclaration(déclaration)
     }
 
-    si résultat.déclarations.taille == 0 {
-        détruit_style_rule(résultat)
-        retourne
-    }
-
-    tableau_ajoute(*parent_style_sheet.rules, résultat)
+    retourne résultat
 }
 
 /** \} */
@@ -1356,21 +1474,80 @@ parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sh
 /** \nom InfoTypePropriété
  * \{ */
 
-#portée_fichier
+#portée_module
+
+PropriétéHéritable :: énum n8 {
+    Oui
+    Non
+}
 
 InfoTypePropriété :: struct {
     nom: CSSOMString
     fonction_de_parsage: fonc([..]ComponentValue)(Optionnel([..]ValeurDeStyle))
+    héritable: PropriétéHéritable
 }
 
 infos_types_propriétés := [
-    InfoTypePropriété(PROP_display, parse_propriété_display),
-    InfoTypePropriété(PROP_color, parse_propriété_color),
-    InfoTypePropriété(PROP_text_decoration, parse_propriété_text_decoration),
-    InfoTypePropriété(PROP_cursor, parse_propriété_cursor),
-    InfoTypePropriété(PROP_font_weight, parse_propriété_font_weight),
-    InfoTypePropriété(PROP_font_size, parse_propriété_font_size)
+    InfoTypePropriété(PROP_display, parse_propriété_display, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_background, parse_propriété_color, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_background_color, parse_propriété_color, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_color, parse_propriété_color, PropriétéHéritable.Oui),
+    InfoTypePropriété(PROP_text_decoration, parse_propriété_text_decoration, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_cursor, parse_propriété_cursor, PropriétéHéritable.Oui),
+    InfoTypePropriété(PROP_font_weight, parse_propriété_font_weight, PropriétéHéritable.Oui),
+    InfoTypePropriété(PROP_font_size, parse_propriété_font_size, PropriétéHéritable.Oui),
+    InfoTypePropriété(PROP_font_style, parse_propriété_font_style, PropriétéHéritable.Oui),
+    InfoTypePropriété(PROP_border_color, parse_propriété_border_color, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_top_color, parse_propriété_color, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_left_color, parse_propriété_color, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_bottom_color, parse_propriété_color, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_right_color, parse_propriété_color, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border, parse_propriété_border, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_top, parse_propriété_border, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_left, parse_propriété_border, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_bottom, parse_propriété_border, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_right, parse_propriété_border, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_style, parse_propriété_border_style, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_top_style, parse_propriété_border_line_style, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_bottom_style, parse_propriété_border_line_style, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_right_style, parse_propriété_border_line_style, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_left_style, parse_propriété_border_line_style, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_width, parse_propriété_border_width, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_top_width, parse_propriété_border_line_width, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_bottom_width, parse_propriété_border_line_width, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_left_width, parse_propriété_border_line_width, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_right_width, parse_propriété_border_line_width, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_margin, parse_propriété_margin, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_margin_block, parse_propriété_margin_top, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_margin_block_end, parse_propriété_margin_top, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_margin_block_start, parse_propriété_margin_top, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_margin_bottom, parse_propriété_margin_top, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_margin_inline, parse_propriété_margin_top, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_margin_inline_end, parse_propriété_margin_top, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_margin_inline_start, parse_propriété_margin_top, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_margin_left, parse_propriété_margin_top, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_margin_right, parse_propriété_margin_top, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_margin_top, parse_propriété_margin_top, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_padding, parse_propriété_padding, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_padding_block, parse_propriété_padding_top, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_padding_block_end, parse_propriété_padding_top, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_padding_block_start, parse_propriété_padding_top, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_padding_bottom, parse_propriété_padding_top, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_padding_inline, parse_propriété_padding_top, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_padding_inline_end, parse_propriété_padding_top, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_padding_inline_start, parse_propriété_padding_top, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_padding_left, parse_propriété_padding_top, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_padding_right, parse_propriété_padding_top, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_padding_top, parse_propriété_padding_top, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_height, parse_propriété_height_width, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_min_height, parse_propriété_min_height_width, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_max_height, parse_propriété_max_height_width, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_width, parse_propriété_height_width, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_min_width, parse_propriété_min_height_width, PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_max_width, parse_propriété_max_height_width, PropriétéHéritable.Non)
 ]
+
+#portée_export
 
 donne_info_type_pour_nom :: fonc (nom: CSSOMString) -> *InfoTypePropriété
 {
@@ -1382,8 +1559,6 @@ donne_info_type_pour_nom :: fonc (nom: CSSOMString) -> *InfoTypePropriété
     retourne nul
 }
 
-#portée_export
-
 /** } */
 
 /* ------------------------------------------------------------------------- */
@@ -1391,16 +1566,59 @@ donne_info_type_pour_nom :: fonc (nom: CSSOMString) -> *InfoTypePropriété
  * \{ */
 
 /* https://www.w3.org/TR/css-cascade/#defaulting-keywords */
-parse_css_wide_keyword :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(CSSOMString)
+parse_css_wide_keyword :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
 {
     mots_clés := [PROP_initial, PROP_inherit, PROP_unset, PROP_revert]
+    retourne parse_mot_clé(parseuse, mots_clés)
+}
+
+parse_mot_clé :: fonc (parseuse: &Parseuse(ComponentValue), mots_clés: []CSSOMString) -> Optionnel(ValeurDeStyle)
+{
     lexème := parseuse.lexème_courant()
 
     pour mots_clés {
         si lexème.est_identifiant(it) {
             parseuse.avance()
-            retourne lexème.donne_texte()
+            retourne ValeurDeStyle(mot_clé = lexème.donne_texte())
         }
+    }
+}
+
+/* https://drafts.csswg.org/css-values-4/#lengths */
+parse_valeur_length :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+{
+    si parseuse.fini() {
+        retourne
+    }
+
+    lexème := parseuse.lexème_courant()
+
+    si lexème.est_lexème_de_genre(GenreLexème.Dimension) {
+        données_lexème := lexème.lexème
+
+        si données_lexème.unité == PROP_em {
+            parseuse.avance()
+            longueur := Longueur(données_lexème.numeric_value, Longueur.Unité.Em)
+            retourne ValeurDeStyle(longueur = longueur)
+        }
+
+        si données_lexème.unité == PROP_px {
+            parseuse.avance()
+            longueur := Longueur(données_lexème.numeric_value, Longueur.Unité.Px)
+            retourne ValeurDeStyle(longueur = longueur)
+        }
+
+        retourne
+    }
+
+    si lexème.est_lexème_de_genre(GenreLexème.Number) {
+        parseuse.avance()
+
+        si lexème.lexème.drapeau_type_nombre == DrapeauxTypeNombre.Integer {
+            retourne ValeurDeStyle(integer = lexème.lexème.numeric_value)
+        }
+
+        retourne ValeurDeStyle(number = lexème.lexème.numeric_value)
     }
 }
 
@@ -1418,14 +1636,14 @@ parse_propriété_display :: fonc (value: [..]ComponentValue) -> Optionnel([..]V
     mot_clé := parseuse.parse_display_outside()
     si mot_clé.possède_valeur() {
         résultat: [..]ValeurDeStyle
-        tableau_ajoute(*résultat, ValeurDeStyle(mot_clé.Quelque))
+        tableau_ajoute(*résultat, mot_clé)
         retourne résultat
     }
 
     mot_clé = parseuse.parse_display_box()
     si mot_clé.possède_valeur() {
         résultat: [..]ValeurDeStyle
-        tableau_ajoute(*résultat, ValeurDeStyle(mot_clé.Quelque))
+        tableau_ajoute(*résultat, mot_clé)
         retourne résultat
     }
 
@@ -1439,7 +1657,7 @@ parse_propriété_display :: fonc (value: [..]ComponentValue) -> Optionnel([..]V
     }
 }
 
-parse_display_outside :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(CSSOMString)
+parse_display_outside :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
 {
     opt_mot_clé := parse_css_wide_keyword(parseuse)
     si opt_mot_clé.possède_valeur() {
@@ -1448,17 +1666,10 @@ parse_display_outside :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel
 
     /* block | inline | run-in */
     mots_clés := [PROP_block, PROP_inline, PROP_run_in]
-    lexème := parseuse.lexème_courant()
-
-    pour mots_clés {
-        si lexème.est_identifiant(it) {
-            parseuse.avance()
-            retourne lexème.donne_texte()
-        }
-    }
+    retourne parse_mot_clé(parseuse, mots_clés)
 }
 
-parse_display_box :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(CSSOMString)
+parse_display_box :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
 {
     opt_mot_clé := parse_css_wide_keyword(parseuse)
     si opt_mot_clé.possède_valeur() {
@@ -1467,20 +1678,14 @@ parse_display_box :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(CSS
 
     /* contents | none */
     mots_clés := [PROP_contents, PROP_none]
-    lexème := parseuse.lexème_courant()
-
-    pour mots_clés {
-        si lexème.est_identifiant(it) {
-            parseuse.avance()
-            retourne lexème.donne_texte()
-        }
-    }
+    retourne parse_mot_clé(parseuse, mots_clés)
 }
 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Color
+ * https://drafts.csswg.org/css-color/#the-color-property
  * \{ */
 
 valeur_hex_depuis_unité :: fonc (unité: n16) -> n8
@@ -1500,15 +1705,36 @@ parse_propriété_color :: fonc (value: [..]ComponentValue) -> Optionnel([..]Val
 {
     parseuse := initialise_une_parseuse(value)
 
-    lexème := parseuse.lexème_courant()
-
     résultat: [..]ValeurDeStyle
+
+    tantque !fini(parseuse) {
+        parseuse.consomme_espaces_blanches()
+
+        valeur := parse_valeur_couleur(parseuse)
+        si valeur.possède_valeur() {
+            tableau_ajoute(*résultat, valeur.Quelque)
+            retourne résultat
+        }
+
+        lexème := parseuse.lexème_courant()
+        imprime("[%] lexème inconnu : %\n", #nom_de_cette_fonction, lexème)
+        retourne
+    }
+}
+
+parse_valeur_couleur :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+{
+    si parseuse.fini() {
+        retourne
+    }
+
+    lexème := parseuse.lexème_courant()
 
     si lexème.est_lexème_de_genre(GenreLexème.Ident) {
         opt_couleur := trouve_couleur_pour_mot_clé(lexème.donne_texte())
         si opt_couleur.possède_valeur() {
-            tableau_ajoute(*résultat, ValeurDeStyle(couleur = opt_couleur.Quelque))
-            retourne résultat
+            parseuse.avance()
+            retourne ValeurDeStyle(couleur = opt_couleur.Quelque)
         }
     }
 
@@ -1553,9 +1779,92 @@ parse_propriété_color :: fonc (value: [..]ComponentValue) -> Optionnel([..]Val
             retourne
         }
 
-        tableau_ajoute(*résultat, ValeurDeStyle(couleur = couleur))
-        retourne résultat
+        parseuse.avance()
+        retourne ValeurDeStyle(couleur = couleur)
     }
+
+    si lexème.est_fonction() {
+        fonction := lexème.function
+
+        si fonction.name == PROP_rgb || fonction.name == PROP_rgba {
+            résultat := parse_couleur_rgb(fonction)
+            si résultat.possède_valeur() {
+                parseuse.avance()
+            }
+            retourne résultat
+        }
+
+        retourne
+    }
+}
+
+parse_couleur_rgb :: fonc (function: &ParsedFunction) -> Optionnel(ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(function.value)
+
+    si parseuse.fini() {
+        retourne
+    }
+
+    /* Rouge */
+    lexème := parseuse.lexème_courant()
+    saufsi lexème.est_lexème_de_genre(GenreLexème.Number) {
+        retourne
+    }
+    rouge := lexème.lexème.numeric_value
+    parseuse.avance()
+
+    lexème = parseuse.lexème_courant()
+    saufsi lexème.est_lexème_de_genre(GenreLexème.Comma) {
+        retourne
+    }
+    parseuse.avance()
+    parseuse.consomme_espaces_blanches()
+
+    /* Vert. */
+    lexème = parseuse.lexème_courant()
+    saufsi lexème.est_lexème_de_genre(GenreLexème.Number) {
+        retourne
+    }
+    vert := lexème.lexème.numeric_value
+    parseuse.avance()
+
+    lexème = parseuse.lexème_courant()
+    saufsi lexème.est_lexème_de_genre(GenreLexème.Comma) {
+        retourne
+    }
+    parseuse.avance()
+    parseuse.consomme_espaces_blanches()
+
+    /* Bleu */
+    lexème = parseuse.lexème_courant()
+    saufsi lexème.est_lexème_de_genre(GenreLexème.Number) {
+        retourne
+    }
+    bleu := lexème.lexème.numeric_value
+    parseuse.avance()
+
+    alpha : n8 = 255
+    si function.name == PROP_rgba {
+        /* Alpha */
+        lexème = parseuse.lexème_courant()
+        saufsi lexème.est_lexème_de_genre(GenreLexème.Comma) {
+            retourne
+        }
+        parseuse.avance()
+        parseuse.consomme_espaces_blanches()
+
+        lexème = parseuse.lexème_courant()
+        saufsi lexème.est_lexème_de_genre(GenreLexème.Number) {
+            retourne
+        }
+
+        alpha = (lexème.lexème.numeric_value * 255.0) comme n8
+        parseuse.avance()
+    }
+
+    couleur := CouleurRVBAN8(rouge comme n8, vert comme n8, bleu comme n8, alpha)
+    retourne ValeurDeStyle(couleur = couleur)
 }
 
 /** \} */
@@ -1815,20 +2124,15 @@ parse_propriété_cursor :: fonc (value: [..]ComponentValue) -> Optionnel([..]Va
         lexème := parseuse.lexème_courant()
 
         si lexème.est_lexème_de_genre(GenreLexème.Ident) {
-            pour mots_clés {
-                si lexème.est_identifiant(it) {
-                    texte := lexème.donne_texte()
-                    tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = texte))
-                    arrête
-                }
+            valeur := parse_mot_clé(parseuse, mots_clés)
+            si valeur.possède_valeur() {
+                tableau_ajoute(*résultat, valeur)
             }
-            sansarrêt {
+            sinon {
                 imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
                 déloge(résultat)
                 retourne
             }
-
-            parseuse.avance()
         }
         sinon {
             imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
@@ -1858,27 +2162,22 @@ parse_propriété_font_weight :: fonc (value: [..]ComponentValue) -> Optionnel([
     résultat: [..]ValeurDeStyle
 
     mots_clés := [
-        PROP_normal, PROP_bold
+        PROP_normal, PROP_bold, PROP_lighter, PROP_bolder
     ]
 
     tantque !fini(parseuse) {
         lexème := parseuse.lexème_courant()
 
         si lexème.est_lexème_de_genre(GenreLexème.Ident) {
-            pour mots_clés {
-                si lexème.est_identifiant(it) {
-                    texte := lexème.donne_texte()
-                    tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = texte))
-                    arrête
-                }
+            valeur := parse_mot_clé(parseuse, mots_clés)
+            si valeur.possède_valeur() {
+                tableau_ajoute(*résultat, valeur)
             }
-            sansarrêt {
+            sinon {
                 imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
                 déloge(résultat)
                 retourne
             }
-
-            parseuse.avance()
         }
         sinon {
             imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
@@ -1905,23 +2204,64 @@ parse_propriété_font_size :: fonc (value: [..]ComponentValue) -> Optionnel([..
 {
     parseuse := initialise_une_parseuse(value)
 
+    mots_clés := [PROP_larger, PROP_smaller, PROP_xx_small, PROP_x_small, PROP_small, PROP_medium, PROP_large, PROP_x_large, PROP_xx_large, PROP_xxx_large]
+
     résultat: [..]ValeurDeStyle
+
+    tantque !fini(parseuse) {
+        valeur := parse_valeur_length(parseuse)
+        si valeur.possède_valeur() {
+            tableau_ajoute(*résultat, valeur.Quelque)
+            continue
+        }
+
+        valeur = parse_mot_clé(parseuse, mots_clés)
+        si valeur.possède_valeur() {
+            tableau_ajoute(*résultat, valeur.Quelque)
+            continue
+        }
+
+        lexème := parseuse.lexème_courant()
+
+        imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
+        déloge(résultat)
+        retourne
+    }
+
+    si résultat.taille != 0 {
+        retourne résultat
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Font Style
+ * https://drafts.csswg.org/css-fonts/#font-style-prop
+ * \{ */
+
+parse_propriété_font_style :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+
+    résultat: [..]ValeurDeStyle
+    mots_clés := [
+        PROP_normal, PROP_italic
+    ]
 
     tantque !fini(parseuse) {
         lexème := parseuse.lexème_courant()
 
-        si lexème.est_lexème_de_genre(GenreLexème.Dimension) {
-            parseuse.avance()
-            données_lexème := lexème.lexème
-
-            si données_lexème.unité != PROP_em {
-                imprime("[%] unité inconnue %\n", #nom_de_cette_fonction, lexème)
+        si lexème.est_lexème_de_genre(GenreLexème.Ident) {
+            valeur := parse_mot_clé(parseuse, mots_clés)
+            si valeur.possède_valeur() {
+                tableau_ajoute(*résultat, valeur)
+            }
+            sinon {
+                imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
                 déloge(résultat)
                 retourne
             }
-
-            longueur := Longueur(données_lexème.numeric_value, Longueur.Unité.Em)
-            tableau_ajoute(*résultat, ValeurDeStyle(longueur = longueur))
         }
         sinon {
             imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
@@ -1935,6 +2275,418 @@ parse_propriété_font_size :: fonc (value: [..]ComponentValue) -> Optionnel([..
     si résultat.taille != 0 {
         retourne résultat
     }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Borders
+ * https://drafts.csswg.org/css-backgrounds-3/#border-shorthands
+ * \{ */
+
+parse_propriété_border :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+
+    valeur_width: Optionnel(ValeurDeStyle)
+    valeur_style: Optionnel(ValeurDeStyle)
+    valeur_color: Optionnel(ValeurDeStyle)
+
+    tantque !fini(parseuse) {
+        parseuse.consomme_espaces_blanches()
+
+        style := parse_valeur_line_style(parseuse)
+        si style.possède_valeur() {
+            valeur_style = style
+            continue
+        }
+
+        width := parse_valeur_line_width(parseuse)
+        si width.possède_valeur() {
+            valeur_width = width
+            continue
+        }
+
+        color := parse_valeur_couleur(parseuse)
+        si color.possède_valeur() {
+            valeur_color = color
+            continue
+        }
+
+        parseuse.consomme_espaces_blanches()
+
+        lexème := parseuse.lexème_courant()
+        imprime("[%] lexème inconnu %\n", #nom_de_cette_fonction, lexème)
+        retourne
+    }
+
+    résultat: [..]ValeurDeStyle
+    tableau_réserve(*résultat, 3)
+
+    si valeur_width.possède_valeur() {
+        tableau_ajoute(*résultat, valeur_width.Quelque)
+    }
+    sinon {
+        /* Valeur initiale */
+        tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = PROP_medium))
+    }
+
+    si valeur_style.possède_valeur() {
+        tableau_ajoute(*résultat, valeur_style.Quelque)
+    }
+    sinon {
+        /* Valeur initiale */
+        tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = PROP_none))
+    }
+
+    si valeur_color.possède_valeur() {
+        tableau_ajoute(*résultat, valeur_color.Quelque)
+    }
+    sinon {
+        /* Valeur initiale */
+        tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = PROP_currentColor))
+    }
+
+    retourne résultat
+}
+
+parse_propriété_border_color :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+
+    résultat: [..]ValeurDeStyle
+    tableau_réserve(*résultat, 4)
+
+    tantque !fini(parseuse) {
+        parseuse.consomme_espaces_blanches()
+
+        color := parse_valeur_couleur(parseuse)
+        si color.possède_valeur() {
+            tableau_ajoute(*résultat, color.Quelque)
+            continue
+        }
+
+        parseuse.consomme_espaces_blanches()
+
+        lexème := parseuse.lexème_courant()
+        imprime("[%] lexème inconnu %\n", #nom_de_cette_fonction, lexème)
+        déloge(résultat)
+        retourne
+    }
+
+    retourne résultat
+}
+
+parse_propriété_border_style :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+
+    résultat: [..]ValeurDeStyle
+    tableau_réserve(*résultat, 4)
+
+    tantque !fini(parseuse) {
+        parseuse.consomme_espaces_blanches()
+
+        style := parse_valeur_line_style(parseuse)
+        si style.possède_valeur() {
+            tableau_ajoute(*résultat, style.Quelque)
+            continue
+        }
+
+        parseuse.consomme_espaces_blanches()
+
+        lexème := parseuse.lexème_courant()
+        imprime("[%] lexème inconnu %\n", #nom_de_cette_fonction, lexème)
+        déloge(résultat)
+        retourne
+    }
+
+    retourne résultat
+}
+
+parse_propriété_border_width :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+
+    résultat: [..]ValeurDeStyle
+    tableau_réserve(*résultat, 4)
+
+    tantque !fini(parseuse) {
+        parseuse.consomme_espaces_blanches()
+
+        width := parse_valeur_line_width(parseuse)
+        si width.possède_valeur() {
+            tableau_ajoute(*résultat, width.Quelque)
+            continue
+        }
+
+        parseuse.consomme_espaces_blanches()
+
+        lexème := parseuse.lexème_courant()
+        imprime("[%] lexème inconnu %\n", #nom_de_cette_fonction, lexème)
+        déloge(résultat)
+        retourne
+    }
+
+    retourne résultat
+}
+
+parse_propriété_border_line_style :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+
+    résultat: [..]ValeurDeStyle
+
+    tantque !fini(parseuse) {
+        parseuse.consomme_espaces_blanches()
+
+        style := parse_valeur_line_style(parseuse)
+        si style.possède_valeur() {
+            tableau_ajoute(*résultat, style.Quelque)
+            retourne résultat
+        }
+
+        parseuse.consomme_espaces_blanches()
+
+        lexème := parseuse.lexème_courant()
+        imprime("[%] lexème inconnu %\n", #nom_de_cette_fonction, lexème)
+        déloge(résultat)
+        retourne
+    }
+}
+
+parse_propriété_border_line_width :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+
+    résultat: [..]ValeurDeStyle
+
+    tantque !fini(parseuse) {
+        parseuse.consomme_espaces_blanches()
+
+        width := parse_valeur_line_width(parseuse)
+        si width.possède_valeur() {
+            tableau_ajoute(*résultat, width.Quelque)
+            retourne résultat
+        }
+
+        parseuse.consomme_espaces_blanches()
+
+        lexème := parseuse.lexème_courant()
+        imprime("[%] lexème inconnu %\n", #nom_de_cette_fonction, lexème)
+        déloge(résultat)
+        retourne
+    }
+}
+
+/* <line-width> = <length [0,∞]> | thin | medium | thick */
+parse_valeur_line_width :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+{
+    mots_clés := [PROP_thin, PROP_medium, PROP_thick]
+
+    tantque !parseuse.fini() {
+        parseuse.consomme_espaces_blanches()
+
+        lexème := parseuse.lexème_courant()
+        si lexème.est_lexème_de_genre(GenreLexème.Ident) {
+            valeur := parse_mot_clé(parseuse, mots_clés)
+            si valeur.possède_valeur() {
+                retourne valeur
+            }
+
+            retourne
+        }
+
+        valeur := parse_valeur_length(parseuse)
+        si valeur.possède_valeur() {
+            retourne valeur
+        }
+
+        retourne
+    }
+}
+
+/* <line-style> = none | hidden | dotted | dashed | solid | double | groove | ridge | inset | outset */
+parse_valeur_line_style :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+{
+    mots_clés := [PROP_none, PROP_hidden, PROP_dotted, PROP_dashed, PROP_solid, PROP_double, PROP_groove, PROP_ridge, PROP_inset, PROP_outset]
+    tantque !parseuse.fini() {
+        parseuse.consomme_espaces_blanches()
+
+        lexème := parseuse.lexème_courant()
+        si lexème.est_lexème_de_genre(GenreLexème.Ident) {
+            valeur := parse_mot_clé(parseuse, mots_clés)
+            si valeur.possède_valeur() {
+                retourne valeur
+            }
+        }
+
+        retourne
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Font Style
+ * https://drafts.csswg.org/css-box/#margin-physical
+ * https://drafts.csswg.org/css-logical/#margin-properties
+ * \{ */
+
+parse_propriété_margin :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+
+    résultat: [..]ValeurDeStyle
+
+    tantque !fini(parseuse) {
+        parseuse.consomme_espaces_blanches()
+        lexème := parseuse.lexème_courant()
+
+        /* <length-percentage> */
+        valeur := parse_valeur_length(parseuse)
+        si valeur.possède_valeur() {
+            tableau_ajoute(*résultat, valeur.Quelque)
+            continue
+        }
+
+        imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
+        déloge(résultat)
+        retourne
+    }
+
+    si résultat.taille != 0 {
+        retourne résultat
+    }
+}
+
+parse_propriété_margin_top :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    parseuse.consomme_espaces_blanches()
+    /* <length-percentage> | auto */
+    valeur := parse_valeur_length(parseuse)
+    si valeur.possède_valeur() {
+        résultat: [..]ValeurDeStyle
+        tableau_ajoute(*résultat, valeur.Quelque)
+        retourne résultat
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Padding
+ * https://drafts.csswg.org/css-box/#padding-physical
+ * https://drafts.csswg.org/css-logical/#padding-properties
+ * \{ */
+
+parse_propriété_padding :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+
+    résultat: [..]ValeurDeStyle
+
+    tantque !fini(parseuse) {
+        parseuse.consomme_espaces_blanches()
+        lexème := parseuse.lexème_courant()
+
+        /* <length-percentage> */
+        valeur := parse_valeur_length(parseuse)
+        si valeur.possède_valeur() {
+            tableau_ajoute(*résultat, valeur.Quelque)
+            continue
+        }
+
+        imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
+        déloge(résultat)
+        retourne
+    }
+
+    si résultat.taille != 0 {
+        retourne résultat
+    }
+}
+
+parse_propriété_padding_top :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    parseuse.consomme_espaces_blanches()
+    /* <length-percentage> | auto */
+    valeur := parse_valeur_length(parseuse)
+    si valeur.possède_valeur() {
+        résultat: [..]ValeurDeStyle
+        tableau_ajoute(*résultat, valeur.Quelque)
+        retourne résultat
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Height & Width
+ * https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#propdef-height
+ * https://drafts.csswg.org/css-sizing-3/#preferred-size-properties
+ * \{ */
+
+parse_propriété_height_width :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+
+    résultat: [..]ValeurDeStyle
+
+    /* auto | <length-percentage [0,∞]> | min-content | max-content | fit-content(<length-percentage [0,∞]>) | <calc-size()> */
+
+    tantque !fini(parseuse) {
+        parseuse.consomme_espaces_blanches()
+
+        valeur := parse_valeur_length(parseuse)
+        si valeur.possède_valeur() {
+            tableau_ajoute(*résultat, valeur.Quelque)
+            continue
+        }
+
+        lexème := parseuse.lexème_courant()
+        imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
+        déloge(résultat)
+        retourne
+    }
+
+    si résultat.taille != 0 {
+        retourne résultat
+    }
+}
+
+parse_propriété_min_height_width :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    parseuse.consomme_espaces_blanches()
+    /* auto | <length-percentage [0,∞]> | min-content | max-content | fit-content(<length-percentage [0,∞]>) | <calc-size()> */
+    valeur := parse_valeur_length(parseuse)
+    si valeur.possède_valeur() {
+        résultat: [..]ValeurDeStyle
+        tableau_ajoute(*résultat, valeur.Quelque)
+        retourne résultat
+    }
+
+    lexème := parseuse.lexème_courant()
+    imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
+}
+
+parse_propriété_max_height_width :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    parseuse.consomme_espaces_blanches()
+    /* none | <length-percentage [0,∞]> | min-content | max-content | fit-content(<length-percentage [0,∞]>) | <calc-size()> */
+    valeur := parse_valeur_length(parseuse)
+    si valeur.possède_valeur() {
+        résultat: [..]ValeurDeStyle
+        tableau_ajoute(*résultat, valeur.Quelque)
+        retourne résultat
+    }
+
+    lexème := parseuse.lexème_courant()
+    imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
 }
 
 /** \} */

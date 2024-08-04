@@ -44,11 +44,11 @@ possède_dans_portée_ex :: fonc (pile: *PileÉlémentsOuverts, nom_tag: DOMStri
     boucle {
         noeud := pile.éléments[index]
 
-        si noeud.texte == nom_tag {
+        si noeud.local_name == nom_tag {
             retourne vrai
         }
 
-        si fait_partie_de(noeud.texte, ...liste) {
+        si fait_partie_de(noeud.local_name, ...liste) {
             retourne faux
         }
 
@@ -176,7 +176,7 @@ supprime_élément :: fonc (pile: *PileÉlémentsOuverts, élément: *Élément)
             arrête
         }
 
-        si fait_partie_de_catégorie_spécial(it.texte) {
+        si fait_partie_de_catégorie_spécial(it.local_name) {
             élément_préc = it
         }
     }
