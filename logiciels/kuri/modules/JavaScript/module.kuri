@@ -1378,9 +1378,11 @@ Function :: struct {
     this_mode: ThisMode
     strict := faux
     is_class_constructor := faux
+    realm: *Realm
+    script_or_module: *Script // ScriptOrModule
 }
 
-crée_fonction :: fonc (function_prototype: *FunctionPrototype, nom: ECMAString, corps: *NoeudSyntaxique) -> *Function
+crée_fonction :: fonc (realm: *Realm, function_prototype: *FunctionPrototype, nom: ECMAString, corps: *NoeudSyntaxique) -> *Function
 {
     tas_de_mémoire := function_prototype.donne_tas_de_mémoire()
     résultat := tas_de_mémoire.alloue(Function)
@@ -1388,13 +1390,14 @@ crée_fonction :: fonc (function_prototype: *FunctionPrototype, nom: ECMAString,
     résultat.corps = corps
     résultat.prototype = function_prototype
     résultat.sur_call = sur_appel_fonction_instruite
+    résultat.realm = realm
     retourne résultat
 }
 
 /* 10.2.3 OrdinaryFunctionCreate ( functionPrototype, sourceText, ParameterList, Body, thisMode, env, privateEnv )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinaryfunctioncreate 
  * À FAIRE : paramètres et étapes manquants */
-ordinary_function_create :: fonc (function_prototype: *FunctionPrototype, params: [..]*NoeudSyntaxique, corps: *NoeudSyntaxique, this_mode: bool, env: *Environment, private_env: *PrivateEnvironment) -> *Function
+ordinary_function_create :: fonc (realm: *Realm, function_prototype: *FunctionPrototype, params: [..]*NoeudSyntaxique, corps: *NoeudSyntaxique, this_mode: bool, env: *Environment, private_env: *PrivateEnvironment) -> *Function
 {
     tas_de_mémoire := function_prototype.donne_tas_de_mémoire()
 
@@ -1443,7 +1446,11 @@ ordinary_function_create :: fonc (function_prototype: *FunctionPrototype, params
     F.private_environment = private_env
 
     // 15. Set F.[[ScriptOrModule]] to GetActiveScriptOrModule().
+    F.script_or_module = get_active_script_or_module(realm.donne_mv())
+
     // 16. Set F.[[Realm]] to the current Realm Record.
+    F.realm = realm
+
     // 17. Set F.[[HomeObject]] to undefined.
     // 18. Set F.[[Fields]] to a new empty List.
     // 19. Set F.[[PrivateMethods]] to a new empty List.
@@ -1455,11 +1462,323 @@ ordinary_function_create :: fonc (function_prototype: *FunctionPrototype, params
     retourne F
 }
 
-sur_appel_fonction_instruite :: fonc (object: *Object, interpréteuse: &Interpréteuse, this_value: Valeur @inutilisée, arguments: []Valeur @inutilisée) -> CompletionRecord
+/* 10.2.1 [[Call]] ( thisArgument, argumentsList )
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ecmascript-function-objects-call-thisargument-argumentslist */
+sur_appel_fonction_instruite :: fonc (object: *Object, interpréteuse: &Interpréteuse, this_argument: Valeur, arguments_list: []Valeur) -> CompletionRecord
 {
     assert(object.donne_classe() == Function)
-    fonction := object comme *Function
-    retourne interpréteuse.exécute(fonction.corps, TypeScope.FUNCTION)
+    F := object comme *Function
+
+    mv := interpréteuse.mv
+
+    // 1. Let callerContext be the running execution context.
+    caller_context := interpréteuse.donne_running_execution_context()
+
+    // 2. Let calleeContext be PrepareForOrdinaryCall(F, undefined).
+    callee_context := prepare_for_ordinary_call(interpréteuse, F, js_undefined)
+
+    // 3. Assert: calleeContext is now the running execution context.
+    assert(callee_context == interpréteuse.donne_running_execution_context())
+
+    // 4. If F.[[IsClassConstructor]] is true, then
+    si F.is_class_constructor {
+        // a. Let error be a newly created TypeError object.
+        // b. NOTE: error is created in calleeContext with F's associated Realm Record.
+        // c. Remove calleeContext from the execution context stack and restore callerContext as the running execution context.
+        mv.dépile_execution_context()
+        assert(caller_context == mv.donne_running_execution_context())
+
+        // d. Return ThrowCompletion(error).
+        panique("[[Call]] sur class constructor non-implémenté")
+    }
+
+    // 5. Perform OrdinaryCallBindThis(F, calleeContext, thisArgument).
+    ordinary_call_bind_this(F, callee_context, this_argument)
+
+    // 6. Let result be Completion(OrdinaryCallEvaluateBody(F, argumentsList)).
+    result := ordinary_call_evaluate_body(interpréteuse, F, arguments_list)
+
+    // 7. Remove calleeContext from the execution context stack and restore callerContext as the running execution context.
+    mv.dépile_execution_context()
+    assert(caller_context == mv.donne_running_execution_context())
+
+    // 8. If result is a return completion, return result.[[Value]].
+    si result.est_return() {
+        retourne normal_completion(result.valeur)
+    }
+
+    // 9. ReturnIfAbrupt(result).
+    si result.est_abrupt() {
+        retourne result
+    }
+
+    // 10. Return undefined.
+    retourne normal_completion(js_undefined)
+}
+
+/* 10.2.1.1 PrepareForOrdinaryCall ( F, newTarget )
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-prepareforordinarycall */
+prepare_for_ordinary_call :: fonc (interpréteuse: &Interpréteuse, F: *Function, new_target: Valeur) -> *ExecutionContext
+{
+    // 1. Let callerContext be the running execution context.
+    caller_context := interpréteuse.donne_running_execution_context()
+
+    // 2. Let calleeContext be a new ECMAScript code execution context.
+    callee_context := crée_execution_context(interpréteuse.donne_tas_de_mémoire())
+
+    // 3. Set the Function of calleeContext to F.
+    callee_context.function = F
+
+    // 4. Let calleeRealm be F.[[Realm]].
+    callee_realm := F.realm
+
+    // 5. Set the Realm of calleeContext to calleeRealm.
+    callee_context.realm = callee_realm
+
+    // 6. Set the ScriptOrModule of calleeContext to F.[[ScriptOrModule]].
+    callee_context.script_or_module = F.script_or_module
+
+    // 7. Let localEnv be NewFunctionEnvironment(F, newTarget).
+    local_env := new_function_environment(F, new_target)
+
+    // 8. Set the LexicalEnvironment of calleeContext to localEnv.
+    callee_context.lexical_environment = local_env
+
+    // 9. Set the VariableEnvironment of calleeContext to localEnv.
+    callee_context.variable_environment = local_env
+
+    // 10. Set the PrivateEnvironment of calleeContext to F.[[PrivateEnvironment]].
+    callee_context.private_environment = F.private_environment
+
+    // 11. If callerContext is not already suspended, suspend callerContext.
+    caller_context.suspend()
+
+    // 12. Push calleeContext onto the execution context stack; calleeContext is now the running execution context.
+    mv := interpréteuse.mv
+    mv.empile_execution_context(callee_context)
+
+    // 13. NOTE: Any exception objects produced after this point are associated with calleeRealm.
+
+    // 14. Return calleeContext.
+    retourne callee_context
+}
+
+/* 10.2.1.2 OrdinaryCallBindThis ( F, calleeContext, thisArgument )
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarycallbindthis */
+ordinary_call_bind_this :: fonc (F: *Function, callee_context: *ExecutionContext, this_argument: Valeur)
+{
+    // 1. Let thisMode be F.[[ThisMode]].
+    this_mode := F.this_mode
+
+    // 2. If thisMode is LEXICAL, return UNUSED.
+    si this_mode == ThisMode.LEXICAL {
+        retourne
+    }
+
+    // 3. Let calleeRealm be F.[[Realm]].
+    callee_realm := F.realm
+
+    // 4. Let localEnv be the LexicalEnvironment of calleeContext.
+    local_env := callee_context.lexical_environment
+
+    this_value: Valeur
+    // 5. If thisMode is STRICT, then
+    si this_mode == ThisMode.STRICT {
+        // a. Let thisValue be thisArgument.
+        this_value = this_argument
+    }
+    // 6. Else,
+    sinon {
+        // a. If thisArgument is either undefined or null, then
+        si this_argument.est_undefined() || this_argument.est_nulle() {
+            // i. Let globalEnv be calleeRealm.[[GlobalEnv]].
+            global_env := callee_realm.global_environment
+
+            // ii. Assert: globalEnv is a Global Environment Record.
+            assert(global_env.donne_classe() == GlobalEnvironment)
+
+            // iii. Let thisValue be globalEnv.[[GlobalThisValue]].
+            this_value = global_env.global_this_value
+        }
+        // b. Else,
+        sinon {
+            // i. Let thisValue be ! ToObject(thisArgument).
+            // ii. NOTE: ToObject produces wrapper objects using calleeRealm.
+            this_value = vers_objet(callee_realm, this_argument).valeur.V
+        }
+    }
+
+    // 7. Assert: localEnv is a Function Environment Record.
+    assert(local_env.donne_classe() == FunctionEnvironment)
+
+    // 8. Assert: The next step never returns an abrupt completion because localEnv.[[ThisBindingStatus]] is not INITIALIZED.
+    // 9. Perform ! localEnv.BindThisValue(thisValue).
+    completion := bind_this_value(local_env comme *FunctionEnvironment, this_value)
+    assert(completion.est_normal())
+
+    // 10. Return UNUSED.
+    retourne
+}
+
+/* 10.2.1.3 Runtime Semantics: EvaluateBody
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-runtime-semantics-evaluatebody */
+evaluate_body :: fonc (interpréteuse: &Interpréteuse, function_object: *Function, arguments_list: []Valeur) -> CompletionRecord
+{
+    // À FAIRE : tous les cas
+    // FunctionBody : FunctionStatementList
+    // 1. Return ? EvaluateFunctionBody of FunctionBody with arguments functionObject and argumentsList.
+    retourne evaluate_function_body(interpréteuse, function_object, arguments_list)
+}
+
+/* 10.2.1.4 OrdinaryCallEvaluateBody ( F, argumentsList )
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarycallevaluatebody */
+ordinary_call_evaluate_body :: fonc (interpréteuse: &Interpréteuse, F: *Function, arguments_list: []Valeur) -> CompletionRecord
+{
+    // 1. Return ? EvaluateBody of F.[[ECMAScriptCode]] with arguments F and argumentsList.
+    retourne evaluate_body(interpréteuse, F, arguments_list)
+}
+
+/* 10.2.11 FunctionDeclarationInstantiation ( func, argumentsList )
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-functiondeclarationinstantiation */
+function_declaration_instantiation :: fonc (interpréteuse: &Interpréteuse @inutilisée, func: *Function @inutilisée, arguments_list: []Valeur @inutilisée) -> CompletionRecord
+{
+    // À FAIRE
+
+    // 1. Let calleeContext be the running execution context.
+    // callee_context := interpréteuse.donne_running_execution_context()
+
+    // 2. Let code be func.[[ECMAScriptCode]].
+    // code := func.corps
+
+    // 3. Let strict be func.[[Strict]].
+    // strict := func.strict
+
+    // 4. Let formals be func.[[FormalParameters]].
+    // formals := func.formal_parameters
+
+    // 5. Let parameterNames be the BoundNames of formals.
+
+    // 6. If parameterNames has any duplicate entries, let hasDuplicates be true. Otherwise, let hasDuplicates be false.
+    // 7. Let simpleParameterList be IsSimpleParameterList of formals.
+    // 8. Let hasParameterExpressions be ContainsExpression of formals.
+    // 9. Let varNames be the VarDeclaredNames of code.
+    // 10. Let varDeclarations be the VarScopedDeclarations of code.
+    // 11. Let lexicalNames be the LexicallyDeclaredNames of code.
+    // 12. Let functionNames be a new empty List.
+    // 13. Let functionsToInitialize be a new empty List.
+    // 14. For each element d of varDeclarations, in reverse List order, do
+        // a. If d is neither a VariableDeclaration nor a ForBinding nor a BindingIdentifier, then
+            // i. Assert: d is either a FunctionDeclaration, a GeneratorDeclaration, an AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration.
+            // ii. Let fn be the sole element of the BoundNames of d.
+            // iii. If functionNames does not contain fn, then
+                // 1. Insert fn as the first element of functionNames.
+                // 2. NOTE: If there are multiple function declarations for the same name, the last declaration is used.
+                // 3. Insert d as the first element of functionsToInitialize.
+    // 15. Let argumentsObjectNeeded be true.
+    // 16. If func.[[ThisMode]] is LEXICAL, then
+        // a. NOTE: Arrow functions never have an arguments object.
+        // b. Set argumentsObjectNeeded to false.
+    // 17. Else if parameterNames contains "arguments", then
+        // a. Set argumentsObjectNeeded to false.
+    // 18. Else if hasParameterExpressions is false, then
+        // a. If functionNames contains "arguments" or lexicalNames contains "arguments", then
+            // i. Set argumentsObjectNeeded to false.
+    // 19. If strict is true or hasParameterExpressions is false, then
+        // a. NOTE: Only a single Environment Record is needed for the parameters, since calls to eval in strict mode code cannot create new bindings which are visible outside of the eval.
+        // b. Let env be the LexicalEnvironment of calleeContext.
+    // 20. Else,
+        // a. NOTE: A separate Environment Record is needed to ensure that bindings created by direct eval calls in the formal parameter list are outside the environment where parameters are declared.
+        // b. Let calleeEnv be the LexicalEnvironment of calleeContext.
+        // c. Let env be NewDeclarativeEnvironment(calleeEnv).
+        // d. Assert: The VariableEnvironment of calleeContext and calleeEnv are the same Environment Record.
+        // e. Set the LexicalEnvironment of calleeContext to env.
+    // 21. For each String paramName of parameterNames, do
+        // a. Let alreadyDeclared be ! env.HasBinding(paramName).
+        // b. NOTE: Early errors ensure that duplicate parameter names can only occur in non-strict functions that do not have parameter default values or rest parameters.
+        // c. If alreadyDeclared is false, then
+            // i. Perform ! env.CreateMutableBinding(paramName, false).
+            // ii. If hasDuplicates is true, then
+                // 1. Perform ! env.InitializeBinding(paramName, undefined).
+    // 22. If argumentsObjectNeeded is true, then
+        // a. If strict is true or simpleParameterList is false, then
+            // i. Let ao be CreateUnmappedArgumentsObject(argumentsList).
+        // b. Else,
+            // i. NOTE: A mapped argument object is only provided for non-strict functions that don't have a rest parameter, any parameter default value initializers, or any destructured parameters.
+            // ii. Let ao be CreateMappedArgumentsObject(func, formals, argumentsList, env).
+        // c. If strict is true, then
+            // i. Perform ! env.CreateImmutableBinding("arguments", false).
+            // ii. NOTE: In strict mode code early errors prevent attempting to assign to this binding, so its mutability is not observable.
+        // d. Else,
+            // i. Perform ! env.CreateMutableBinding("arguments", false).
+        // e. Perform ! env.InitializeBinding("arguments", ao).
+        // f. Let parameterBindings be the list-concatenation of parameterNames and « "arguments" ».
+    // 23. Else,
+        // a. Let parameterBindings be parameterNames.
+    // 24. Let iteratorRecord be CreateListIteratorRecord(argumentsList).
+    // 25. If hasDuplicates is true, then
+        // a. Perform ? IteratorBindingInitialization of formals with arguments iteratorRecord and undefined.
+    // 26. Else,
+        // a. Perform ? IteratorBindingInitialization of formals with arguments iteratorRecord and env.
+    // 27. If hasParameterExpressions is false, then
+        // a. NOTE: Only a single Environment Record is needed for the parameters and top-level vars.
+        // b. Let instantiatedVarNames be a copy of the List parameterBindings.
+        // c. For each element n of varNames, do
+            // i. If instantiatedVarNames does not contain n, then
+                // 1. Append n to instantiatedVarNames.
+                // 2. Perform ! env.CreateMutableBinding(n, false).
+                // 3. Perform ! env.InitializeBinding(n, undefined).
+        // d. Let varEnv be env.
+    // 28. Else,
+        // a. NOTE: A separate Environment Record is needed to ensure that closures created by expressions in the formal parameter list do not have visibility of declarations in the function body.
+        // b. Let varEnv be NewDeclarativeEnvironment(env).
+        // c. Set the VariableEnvironment of calleeContext to varEnv.
+        // d. Let instantiatedVarNames be a new empty List.
+        // e. For each element n of varNames, do
+            // i. If instantiatedVarNames does not contain n, then
+                // 1. Append n to instantiatedVarNames.
+                // 2. Perform ! varEnv.CreateMutableBinding(n, false).
+                // 3. If parameterBindings does not contain n, or if functionNames contains n, then
+                    // a. Let initialValue be undefined.
+                // 4. Else,
+                    // a. Let initialValue be ! env.GetBindingValue(n, false).
+                // 5. Perform ! varEnv.InitializeBinding(n, initialValue).
+                // 6. NOTE: A var with the same name as a formal parameter initially has the same value as the corresponding initialized parameter.
+    // 29. NOTE: Annex B.3.2.1 adds additional steps at this point.
+    // 30. If strict is false, then
+        // a. Let lexEnv be NewDeclarativeEnvironment(varEnv).
+        // b. NOTE: Non-strict functions use a separate Environment Record for top-level lexical declarations so that a direct eval can determine whether any var scoped declarations introduced by the eval code conflict with pre-existing top-level lexically scoped declarations. This is not needed for strict functions because a strict direct eval always places all declarations into a new Environment Record.
+    // 31. Else,
+        // a. Let lexEnv be varEnv.
+    // 32. Set the LexicalEnvironment of calleeContext to lexEnv.
+    // 33. Let lexDeclarations be the LexicallyScopedDeclarations of code.
+    // 34. For each element d of lexDeclarations, do
+        // a. NOTE: A lexically declared name cannot be the same as a function/generator declaration, formal parameter, or a var name. Lexically declared names are only instantiated here but not initialized.
+        // b. For each element dn of the BoundNames of d, do
+            // i. If IsConstantDeclaration of d is true, then
+                // 1. Perform ! lexEnv.CreateImmutableBinding(dn, true).
+            // ii. Else,
+                // 1. Perform ! lexEnv.CreateMutableBinding(dn, false).
+    // 35. Let privateEnv be the PrivateEnvironment of calleeContext.
+    // 36. For each Parse Node f of functionsToInitialize, do
+        // a. Let fn be the sole element of the BoundNames of f.
+        // b. Let fo be InstantiateFunctionObject of f with arguments lexEnv and privateEnv.
+        // c. Perform ! varEnv.SetMutableBinding(fn, fo, false).
+
+    // 37. Return UNUSED.
+    retourne normal_completion(js_undefined)
+}
+
+/* 15.2.3 Runtime Semantics: EvaluateFunctionBody
+ * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-runtime-semantics-evaluatefunctionbody */
+evaluate_function_body :: fonc (interpréteuse: &Interpréteuse, function_object: *Function, arguments_list: []Valeur) -> CompletionRecord
+{
+    // 1. Perform ? FunctionDeclarationInstantiation(functionObject, argumentsList).
+    completion := function_declaration_instantiation(interpréteuse, function_object, arguments_list)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    // 2. Return ? Evaluation of FunctionStatementList.
+    retourne interpréteuse.exécute(function_object.corps, TypeScope.FUNCTION)
 }
 
 /** \} */
@@ -1468,9 +1787,9 @@ sur_appel_fonction_instruite :: fonc (object: *Object, interpréteuse: &Interpr�
 /** \nom 19.2.1 eval ( x )
  * \{ */
 
-crée_eval :: fonc (function_prototype: *FunctionPrototype) -> *Function
+crée_eval :: fonc (realm: *Realm, function_prototype: *FunctionPrototype) -> *Function
 {
-    résultat := crée_fonction(function_prototype, STR_eval, nul)
+    résultat := crée_fonction(realm, function_prototype, STR_eval, nul)
     résultat.sur_call = eval_sur_call
     retourne résultat
 }
@@ -1504,16 +1823,16 @@ perform_eval :: fonc (interpréteuse: &Interpréteuse, x: Valeur, strict_caller:
     // À FAIRE : 5. Perform ? HostEnsureCanCompileStrings(evalRealm, « », x, direct).
 
     // 6. Let inFunction be false.
-    in_function := faux
+    // in_function := faux
 
     // 7. Let inMethod be false.
-    in_method := faux
+    // in_method := faux
 
     // 8. Let inDerivedConstructor be false.
-    in_derived_constructor := faux
+    // in_derived_constructor := faux
 
     // 9. Let inClassFieldInitializer be false.
-    in_class_field_initializer := faux
+    // in_class_field_initializer := faux
 
     // 10. If direct is true, then
     si direct {
@@ -2090,6 +2409,12 @@ crée_reference_error :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Refe
     résultat.prototype = prototype
     résultat.message = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(message))
     retourne résultat
+}
+
+lance_reference_error :: fonc (realm: *Realm, message: chaine) -> CompletionRecord
+{
+    exception := crée_reference_error(realm.donne_tas_de_mémoire(), realm.intrinsics.reference_error_prototype, message)
+    retourne throw_completion(exception)
 }
 
 /** \} */
