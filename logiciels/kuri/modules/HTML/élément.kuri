@@ -44,6 +44,9 @@ TableVirtuelleÉlément :: struct {
     /* Appelé quand un attribut est ajouté, modifié, ou supprimé.
      * La fonction doit retourner si oui ou non l'attribut fut géré. */
     sur_changement_attribut: fonc(*Élément, DOMString, *DOMString, *DOMString)(bool) = élément_sur_changement_attribut
+
+    /* Appelé lors de la résolution des propriétés de style pour l'élément. */
+    sur_applique_presentational_hints: fonc(*Élément, *CSS.PropriétésDeStyle)(rien)
 }
 
 #portée_export
@@ -375,6 +378,18 @@ est_en_train_d_être_activé :: fonc (élément: *Élément, ouinon: bool)
     sinon {
         élément.enlève_pseudo_classe(CSS.PseudoClasses.Active)
     }
+}
+
+applique_presentational_hints :: fonc (élément: *Élément, propriétés: *CSS.PropriétésDeStyle)
+{
+    table := élément.table comme *TableVirtuelleÉlément
+    saufsi table {
+        retourne
+    }
+    saufsi table.sur_applique_presentational_hints {
+        retourne
+    }
+    table.sur_applique_presentational_hints(élément, propriétés)
 }
 
 /** \} */
