@@ -1,4 +1,5 @@
 importe Chaine
+importe Couleur
 importe #inemployé CSS
 importe Fondation
 importe Internet
@@ -514,7 +515,8 @@ HTMLBodyElement :: struct {
 #portée_fichier
 
 table_virtuelle_body_element := TableVirtuelleÉlément(
-    sur_destruction = body_element_sur_destruction
+    sur_destruction = body_element_sur_destruction,
+    sur_applique_presentational_hints = body_element_sur_applique_presentational_hints
 )
 
 body_element_sur_destruction :: fonc (base: *EventTarget)
@@ -522,6 +524,156 @@ body_element_sur_destruction :: fonc (base: *EventTarget)
     élément := base comme *HTMLBodyElement
     élément_détruit_données(élément)
     déloge(élément)
+}
+
+/* https://html.spec.whatwg.org/multipage/rendering.html#the-page */
+body_element_sur_applique_presentational_hints :: fonc (base: *Élément, propriétés: *CSS.PropriétésDeStyle)
+{
+    body := base comme *HTMLBodyElement
+
+    opt_bgcolor := donne_attribut(body, ATTR_bgcolor)
+    si opt_bgcolor.possède_valeur() {
+        bgcolor := opt_bgcolor.Quelque
+        ajoute_propriété_pour_couleur(propriétés, CSS.PROP_background_color, bgcolor)
+    }
+
+    opt_text := donne_attribut(body, ATTR_text)
+    si opt_text.possède_valeur() {
+        text := opt_text.Quelque
+        ajoute_propriété_pour_couleur(propriétés, CSS.PROP_color, text)
+    }
+
+    /* À FAIRE : utilise les attributs. */
+    ajoute_propriété_pour_nombre(propriétés, CSS.PROP_margin_top, 8.0)
+    ajoute_propriété_pour_nombre(propriétés, CSS.PROP_margin_bottom, 8.0)
+    ajoute_propriété_pour_nombre(propriétés, CSS.PROP_margin_left, 8.0)
+    ajoute_propriété_pour_nombre(propriétés, CSS.PROP_margin_right, 8.0)
+}
+
+ajoute_propriété_pour_couleur :: fonc (propriétés: *CSS.PropriétésDeStyle, nom_propriété: CSS.CSSOMString, texte: DOMString)
+{
+    opt_couleur := parse_a_legacy_colour_value(texte)
+    saufsi opt_couleur.possède_valeur() {
+        retourne
+    }
+
+    couleur := opt_couleur.Quelque
+    value: [..]CSS.ValeurDeStyle
+    tableau_ajoute(*value, CSS.ValeurDeStyle(couleur = couleur))
+
+    /* À FAIRE : fuite de mémoire */
+    déclaration := loge(CSS.DéclarationPropriété)
+    déclaration.info = CSS.donne_info_type_pour_nom(nom_propriété)
+    déclaration.property_name = nom_propriété
+    déclaration.value = value
+
+    CSS.ajoute_déclaration(propriétés, déclaration)
+}
+
+ajoute_propriété_pour_nombre :: fonc (propriétés: *CSS.PropriétésDeStyle, nom_propriété: CSS.CSSOMString, valeur: r64)
+{
+    value: [..]CSS.ValeurDeStyle
+    tableau_ajoute(*value, CSS.ValeurDeStyle(number = valeur))
+
+    /* À FAIRE : fuite de mémoire */
+    déclaration := loge(CSS.DéclarationPropriété)
+    déclaration.info = CSS.donne_info_type_pour_nom(nom_propriété)
+    déclaration.property_name = nom_propriété
+    déclaration.value = value
+
+    CSS.ajoute_déclaration(propriétés, déclaration)
+}
+
+/* https://html.spec.whatwg.org/multipage/common-microsyntaxes.html#rules-for-parsing-a-legacy-colour-value */
+parse_a_legacy_colour_value :: fonc (string: DOMString) -> Optionnel(CouleurRVBAN8)
+{
+    // 1. Let input be the string being parsed.
+    input := string.donne_chaine_utf16()
+
+    // 2. If input is the empty string, then return an error.
+    si input.est_vide() {
+        retourne
+    }
+
+    // 3. Strip leading and trailing ASCII whitespace from input.
+    input = supprime_espace_blanches_autour(input)
+
+    // 4. If input is an ASCII case-insensitive match for the string "transparent", then return an error.
+    si compare_ascii_insensible_à_la_casse(input, "transparent") {
+        retourne
+    }
+
+    // À FAIRE 5. If input is an ASCII case-insensitive match for one of the named colors, then return the simple color corresponding to that keyword. [CSSCOLOR]
+
+    // 6. If input's code point length is four, and the first character in input is U+0023 (#), and the last three characters of input are all ASCII hex digits, then:
+    si input.taille() == 4 && input.unités[0] == 0x23 && CSS.est_chiffre_hex(input.unités[1]) && CSS.est_chiffre_hex(input.unités[2]) && CSS.est_chiffre_hex(input.unités[3]) {
+        // 1. Let result be a simple color.
+        result: CouleurRVBAN8
+        result.a = 255
+
+        // 2. Interpret the second character of input as a hexadecimal digit; let the red component of result be the resulting number multiplied by 17.
+        result.r = CSS.valeur_hex_depuis_unité(input.unités[1]) * 17
+
+        // 3. Interpret the third character of input as a hexadecimal digit; let the green component of result be the resulting number multiplied by 17.
+        result.r = CSS.valeur_hex_depuis_unité(input.unités[2]) * 17
+
+        // 4. Interpret the fourth character of input as a hexadecimal digit; let the blue component of result be the resulting number multiplied by 17.
+        result.r = CSS.valeur_hex_depuis_unité(input.unités[3]) * 17
+
+        // 5. Return result.
+        retourne result
+    }
+
+    // À FAIRE : 7. Replace any code points greater than U+FFFF in input (i.e., any characters that are not in the basic multilingual plane) with the two-character string "00".
+
+    // 8. If input's code point length is greater than 128, truncate input, leaving only the first 128 characters.
+    // À FAIRE : utilise la taille en point de code
+    si input.taille() > 128 {
+        input.unités.taille = 128
+    }
+
+    // 9. If the first character in input is a U+0023 NUMBER SIGN character (#), remove it.
+    si input.unités[0] == 0x23 {
+        input.unités.pointeur += 1
+        input.unités.taille -= 1
+    }
+
+    // 10. Replace any character in input that is not an ASCII hex digit with the character U+0030 DIGIT ZERO (0).
+    pour & input.unités {
+        point_de_code : n16 = it
+        saufsi CSS.est_chiffre_hex(point_de_code) {
+            it = 0x30
+        }
+    }
+
+    // À FAIRE : continue
+    assert(input.taille() == 6)
+
+    // 11. While input's code point length is zero or not a multiple of three, append a U+0030 DIGIT ZERO (0) character to input.
+
+    // 12. Split input into three strings of equal code point length, to obtain three components. Let length be the code point length that all of those components have (one third the code point length of input).
+
+    // 13. If length is greater than 8, then remove the leading length-8 characters in each component, and let length be 8.
+
+    // 14. While length is greater than two and the first character in each component is a U+0030 DIGIT ZERO (0) character, remove that character and reduce length by one.
+
+    // 15. If length is still greater than two, truncate each component, leaving only the first two characters in each.
+
+    // 16. Let result be a simple color.
+    result: CouleurRVBAN8
+    result.a = 255
+
+    // 17. Interpret the first component as a hexadecimal number; let the red component of result be the resulting number.
+    result.r = CSS.valeur_hex_depuis_unité(input.unités[0]) * 16 + CSS.valeur_hex_depuis_unité(input.unités[1])
+
+    // 18. Interpret the second component as a hexadecimal number; let the green component of result be the resulting number.
+    result.v = CSS.valeur_hex_depuis_unité(input.unités[2]) * 16 + CSS.valeur_hex_depuis_unité(input.unités[3])
+
+    // 19. Interpret the third component as a hexadecimal number; let the blue component of result be the resulting number.
+    result.b = CSS.valeur_hex_depuis_unité(input.unités[4]) * 16 + CSS.valeur_hex_depuis_unité(input.unités[5])
+
+    // 20. Return result.
+    retourne result
 }
 
 /** \} */
