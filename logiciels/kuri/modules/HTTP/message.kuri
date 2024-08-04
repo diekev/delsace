@@ -118,13 +118,7 @@ initialise_depuis_message :: fonc (message_serveuse: *MessageServeuseHTTP, messa
 
 possède_entête :: fonc (message: &MessageHTTP, nom: chaine) -> bool
 {
-    pour message.entêtes {
-        si compare_ascii_insensible_à_la_casse(it.nom, nom) {
-            retourne vrai
-        }
-    }
-
-    retourne faux
+    retourne entête(message, nom) != nul
 }
 
 entête :: fonc (message: &MessageHTTP, nom: chaine) -> *Entête
@@ -140,13 +134,7 @@ entête :: fonc (message: &MessageHTTP, nom: chaine) -> *Entête
 
 possède_entête :: fonc (message: *MessageHTTP, nom: chaine) -> bool
 {
-    pour message.entêtes {
-        si compare_ascii_insensible_à_la_casse(it.nom, nom) {
-            retourne vrai
-        }
-    }
-
-    retourne faux
+    retourne entête(message, nom) != nul
 }
 
 entête :: fonc (message: *MessageHTTP, nom: chaine) -> *Entête
