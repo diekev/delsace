@@ -1,5 +1,6 @@
 importe Chaine
 importe Fondation
+importe #inemployé HTML
 importe Internet
 
 /* CSS Object Model https://www.w3.org/TR/cssom-1/ */
@@ -19,8 +20,13 @@ StyleSheet :: struct {
 CSSStyleSheet :: struct {
     empl base: StyleSheet
 
+    owner_node: *HTML.Élément
+    parent_style_sheet: *CSSStyleSheet
     owner_rule: *CSSRule
     rules: [..]*CSSRule
+    alternate: bool
+    origin_clean: bool
+    disabled: bool
 }
 
 imprime_style_sheet :: fonc (stylesheet: *CSSStyleSheet)
@@ -97,31 +103,67 @@ CSSStyleRule :: struct {
     type = CSSRuleType.Style
 
     selector_list: SelectorList
-    déclarations: [..]*CSSDeclaration
+    style: *CSSStyleDeclaration
 }
 
 détruit_style_rule :: fonc (rule: *CSSStyleRule)
 {
     détruit_données_selector_list(*rule.selector_list)
-    
-    pour rule.déclarations {
-        détruit_déclaration(it)
-    }
-
-    déloge(rule.déclarations)
+    détruit_style_declaration(rule.style)
     déloge(rule)
-}
-
-ajoute_déclaration :: fonc (style: *CSSStyleRule, déclaration: *CSSDeclaration)
-{
-    tableau_ajoute(*style.déclarations, déclaration)
 }
 
 imprime_règle :: fonc (règle: *CSSStyleRule)
 {
     imprime("% {\n", règle.selector_list)
+    imprime_style(règle.style)
+    imprime("}\n")
+}
 
-    pour déclaration dans règle.déclarations {
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom CSSStyleDeclaration
+ * https://www.w3.org/TR/cssom-1/#css-declaration-blocks
+ * https://www.w3.org/TR/cssom-1/#cssstyledeclaration
+ * \{ */
+
+CSSStyleDeclaration :: struct {
+    déclarations: [..]*DéclarationPropriété
+    /* The CSS rule that the CSS declaration block is associated with, if any, or null otherwise. */
+    parent_css_rule: *CSSRule
+    /* The Element that the CSS declaration block is associated with, if any, or null otherwise. */
+    // À FAIRE(langage)
+    // owner_node: *HTML.Élément
+    /* Set if the object is a computed style declaration, rather than a specified style. */
+    computed: bool
+    /* Set when the CSS declaration block is updating the owner node’s style attribute. */
+    updating: bool
+}
+
+détruit_style_declaration :: fonc (style: *CSSStyleDeclaration)
+{
+    saufsi style {
+        retourne
+    }
+
+    pour style.déclarations {
+        détruit_déclaration(it)
+    }
+
+    déloge(style.déclarations)
+    déloge(style)
+}
+
+ajoute_déclaration :: fonc (style: *CSSStyleDeclaration, déclaration: *DéclarationPropriété)
+{
+    tableau_ajoute(*style.déclarations, déclaration)
+}
+
+imprime_style :: fonc (style: *CSSStyleDeclaration)
+{
+
+    pour déclaration dans style.déclarations {
         imprime("    %:", déclaration.property_name)
 
         pour valeur dans déclaration.value {
@@ -130,25 +172,24 @@ imprime_règle :: fonc (règle: *CSSStyleRule)
 
         imprime(";\n")
     }
-
-    imprime("}\n")
 }
 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom CSSDeclaration
+/** \nom DéclarationPropriété
  * https://www.w3.org/TR/cssom-1/#css-declarations
  * \{ */
 
-CSSDeclaration :: struct {
+DéclarationPropriété :: struct {
+    info: *InfoTypePropriété
     property_name: CSSOMString
     value: [..]ValeurDeStyle
     important: bool
     case_sensitive: bool
 }
 
-détruit_déclaration :: fonc (déclaration: *CSSDeclaration)
+détruit_déclaration :: fonc (déclaration: *DéclarationPropriété)
 {
     pour * déclaration.value {
         détruit_valeur_de_style(it)

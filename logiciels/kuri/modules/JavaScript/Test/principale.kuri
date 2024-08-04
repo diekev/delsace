@@ -316,7 +316,7 @@ enveloppe_élément_sur_création_enveloppe :: fonc (base: *Enveloppable, envelo
     enveloppe.ajoute_fonction_native("getElementsByClassName", fonction_native_get_element_by_class_name)
     enveloppe.ajoute_fonction_native("getElementsByTagName", fonction_native_get_element_by_tag_name)
 
-    si élément.texte == TAG_img {
+    si élément.local_name == TAG_img {
         img := élément comme *HTMLImageElement
         src := img.donne_src()
 
