@@ -484,13 +484,45 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
         AccoladeOuvrante {
             parseuse.consomme()
 
+            properties: [..]*PropertyDefinition
+
+            tantque !fini(parseuse) {
+                si apparie(parseuse, GenreLexème.AccoladeFermante) {
+                    arrête
+                }
+
+                saufsi apparie(parseuse, GenreLexème.Identifiant) {
+                    rapporte_erreur(parseuse, "Attendu un identifiant pour le nom du membre")
+                    arrête
+                }
+                nom_membre := crée_identifier(lexème_courant(parseuse).texte)
+                parseuse.consomme()
+
+                saufsi apparie(parseuse, GenreLexème.DoublePoint) {
+                    rapporte_erreur(parseuse, "Attendu un double point")
+                    arrête
+                }
+                parseuse.consomme()
+
+                expression := parseuse.parse_expression()
+
+                property := crée_property_definition(nom_membre, expression)
+                tableau_ajoute(*properties, property)
+
+                saufsi apparie(parseuse, GenreLexème.Virgule) {
+                    arrête
+                }
+
+                parseuse.consomme()
+            }
+
             saufsi apparie(parseuse, GenreLexème.AccoladeFermante) {
                 parseuse.rapporte_erreur("Attendu une accolade fermante à la fin de l'expression d'objet")
                 retourne nul
             }
             parseuse.consomme()
 
-            retourne crée_object_expression()
+            retourne crée_object_expression(properties)
         }
         CrochetOuvrant {
             parseuse.consomme()
