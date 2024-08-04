@@ -89,7 +89,7 @@ principale :: fonc () -> z32
     fenêtre := QT_cree_fenetre_principale(*rappels_fenêtre)
     diffère QT_detruit_fenetre_principale(fenêtre)
 
-    QT_widget_definis_titre_fenetre(fenêtre, vers_qt("HTML"))
+    définis_titre_fenêtre(fenêtre, nul)
     QT_widget_affiche_maximisee(fenêtre)
 
     rappels_user_agent := crée_rappels_interface_qt(fenêtre)
@@ -438,6 +438,31 @@ RappelsFenetrePrincipale :: struct {
     sur_filtre_evenement = sur_filtre_evenement_impl
 }
 
+définis_titre_fenêtre :: fonc (fenêtre: *QT_Fenetre_Principale, document: *Document)
+{
+    saufsi document {
+        QT_widget_definis_titre_fenetre(fenêtre, vers_qt("Vue HTML"))
+        retourne
+    }
+
+    titre := document.donne_title_element()
+    saufsi titre {
+        QT_widget_definis_titre_fenetre(fenêtre, vers_qt("Document Sans Titre - Vue HTML"))
+        retourne
+    }
+
+    texte_titre := donne_contenu_texte_descandants(titre)
+    diffère détruit_chaine(texte_titre)
+
+    texte_filtré := supprime_espace_blanches_autour(texte_titre)
+    diffère détruit_chaine(texte_filtré)
+
+    texte_final := imprime_chaine("% - Vue HTML", texte_filtré)
+    diffère déloge(texte_final)
+
+    QT_widget_definis_titre_fenetre(fenêtre, vers_qt(texte_final))
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -528,20 +553,6 @@ crée_widget_arbre_pour_dom :: fonc (fenêtre: *QT_Fenetre_Principale, parent: Q
 
     document := donne_document(*rappels.page_web)
     si document {
-        titre := document.donne_title_element()
-        si titre {
-            texte_titre := donne_contenu_texte_descandants(titre)
-            diffère détruit_chaine(texte_titre)
-
-            texte_filtré := supprime_espace_blanches_autour(texte_titre)
-            diffère détruit_chaine(texte_filtré)
-
-            texte_natif := converti_vers_chaine(texte_filtré)
-            diffère déloge(texte_natif)
-
-            QT_widget_definis_titre_fenetre(fenêtre, vers_qt(texte_natif))
-        }
-
         item_document := QT_cree_treewidgetitem(nul, nul)
         QT_treewidgetitem_definis_indicateur_enfant(item_document, QT_Indicateur_Enfant_Arbre.INVISIBLE_SI_SANS_ENFANT)
         texte := vers_qt("document")
@@ -1107,6 +1118,7 @@ crée_rappels_interface_qt :: fonc (fenêtre: *QT_Fenetre_Principale) -> *Rappel
     résultat.sur_lancement_requête = rappels_interface_sur_lancement_requête
     résultat.sur_spin_event_loop = rappels_interface_sur_spin_event_loop
     résultat.sur_enfile_une_tâche = rappels_interface_sur_enfile_une_tâche
+    résultat.sur_document_est_prêt = rappels_interface_sur_document_est_prêt
     retourne résultat
 }
 
@@ -1314,6 +1326,12 @@ rappels_interface_sur_enfile_une_tâche :: fonc (base: *RappelsInterface, source
             QT_application_poste_evenement_et_donnees(rappels.fenêtre, évènement_sur_tâche_rendu, algorithm)
         }
     }
+}
+
+rappels_interface_sur_document_est_prêt :: fonc (base: *RappelsInterface, document: *Document)
+{
+    rappels := base comme *RappelsInterfaceQt
+    définis_titre_fenêtre(rappels.fenêtre, document)
 }
 
 /** \} */
