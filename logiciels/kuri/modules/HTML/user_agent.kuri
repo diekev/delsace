@@ -39,15 +39,52 @@ définis_rappels_interface :: fonc (user_agent: *UserAgent, rappels: *RappelsInt
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Algorithm
+ * Structure pour implémenter les routines/callbacks/algorithms de la spec.
+ * \{ */
+
+Algorithm :: struct {
+    sur_run: fonc(*Algorithm)(rien)
+    sur_destruction: fonc(*Algorithm)(rien)
+}
+
+run :: fonc (algorithm: *Algorithm)
+{
+    saufsi algorithm {
+        retourne
+    }
+
+    si algorithm.sur_run {
+        algorithm.sur_run(algorithm)
+    }
+
+    si algorithm.sur_destruction {
+        algorithm.sur_destruction(algorithm)
+    }
+}
+
+/** \} */
+
+/* https://html.spec.whatwg.org/multipage/webappapis.html#generic-task-sources */
+SourceDeTâche :: énum {
+    ManipulationDOM
+    InteractionUtilisateur
+    Réseautage
+    NavigationEtTraversée
+    Rendu
+}
+
+/* ------------------------------------------------------------------------- */
 /** \nom RappelsInterface
  * \{ */
 
 RappelsInterface :: struct {
     sur_destruction: fonc(*RappelsInterface)(rien)
-    sur_lancement_requête: fonc(*RappelsInterface, *Requête)(rien)
+    sur_lancement_requête: fonc(*RappelsInterface, *Request)(*Response)
     sur_spin_event_loop: fonc(*RappelsInterface)(rien)
     sur_élément_survolé: fonc(*RappelsInterface)(rien)
     sur_requête_rendu: fonc(*RappelsInterface)(rien)
+    sur_enfile_une_tâche: fonc(*RappelsInterface, SourceDeTâche, *Algorithm)(rien)
 }
 
 détruit_rappels :: fonc (rappels: *RappelsInterface)
@@ -77,99 +114,24 @@ requiers_rendu :: fonc (user_agent: *UserAgent)
     rappels.sur_requête_rendu(rappels)
 }
 
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Ressource
- * \{ */
-
-Ressource :: struct {
-    sur_chargement: fonc(*Ressource, chaine)(rien)
-    sur_erreur: fonc(*Ressource)(rien)
-
-    uri: URI
-    type: chaine // application/javascript, text/html, etc.
-
-    chargement_terminé := faux
-}
-
-crée_ressource_pour_chargement_page_web :: fonc (chemin: chaine) -> *Ressource
+lance_requête :: fonc (user_agent: *UserAgent, request: *Request) -> *Response
 {
-    sur_chargement :: fonc (ressource: *Ressource, données: chaine)
-    {
-        page_web := crée_page_web(ressource.uri, données)
-        crée_widget_pour_page(ressource.fenêtre, page_web)
+    rappels := user_agent.rappels_interface
+    saufsi rappels && rappels.sur_lancement_requête {
+        retourne network_error()
     }
 
-    résultat := loge(Ressource)
-    résultat.sur_chargement = sur_chargement
-    résultat.type = "text/html"
+    retourne rappels.sur_lancement_requête(rappels, request)
+}
 
-    si est_un_fichier_régulier(CheminFichier(chemin)) {
-        uri: URI
-        uri.schéma = "file"
-        uri.schéma_est_défini = vrai
-        uri.autorité_est_définie = vrai
-        uri.chemin = chemin
-        résultat.uri = uri
-    }
-    sinon {
-        résultat.uri = tente parse_uri_standard(chemin) piège nonatteignable
+enfile_une_tâche :: fonc (user_agent: *UserAgent, source: SourceDeTâche, algorithm: *Algorithm)
+{
+    rappels := user_agent.rappels_interface
+    saufsi rappels && rappels.sur_enfile_une_tâche {
+        retourne
     }
 
-    retourne résultat
-}
-
-est_fichier :: fonc (ressource: *Ressource) -> bool
-{
-    uri := ressource.uri
-
-    si uri.schéma == "file" {
-        retourne vrai
-    }
-
-    retourne faux
-}
-
-ressource_fut_chargée :: fonc (ressource: *Ressource, données: chaine)
-{
-    si ressource.sur_chargement {
-        ressource.sur_chargement(ressource, données)
-    }
-
-    ressource.chargement_terminé = vrai
-}
-
-ressource_eu_erreur :: fonc (ressource: *Ressource)
-{
-    si ressource.sur_erreur {
-        ressource.sur_erreur(ressource)
-    }
-
-    ressource.chargement_terminé = vrai
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Requête
- * \{ */
-
-Requête :: struct {
-    ressource: *Ressource
-    message: MessageServeuseHTTP
-}
-
-est_http :: fonc (requête: *Requête) -> bool
-{
-    assert(requête.ressource != nul)
-    retourne requête.ressource.uri.schéma == "http"
-}
-
-est_https :: fonc (requête: *Requête) -> bool
-{
-    assert(requête.ressource != nul)
-    retourne requête.ressource.uri.schéma == "https"
+    rappels.sur_enfile_une_tâche(rappels, source, algorithm)
 }
 
 /** \} */

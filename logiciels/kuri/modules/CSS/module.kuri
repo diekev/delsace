@@ -45,34 +45,8 @@ prétraite :: fonc (chn: &ChaineUTF32)
     }
 }
 
-collecte_les_règles_appropriées :: fonc (stylesheet: *CSSStyleSheet, élément: *HTML.Élément) -> [..]*CSSStyleRule
-{
-    règles: [..]*CSSStyleRule
-
-    pour règle dans stylesheet.rules {
-        si règle.type != CSSRuleType.Style {
-            continue
-        }
-
-        règle_de_style := règle comme *CSSStyleRule
-
-        pour complex dans règle_de_style.selector_list.complex_selectors {
-            si apparie_sélecteur(complex.compound_selectors, complex.compound_selectors.taille - 1, élément) {
-                tableau_ajoute(*règles, règle_de_style)
-                arrête
-            }
-        }
-    }
-
-    retourne règles
-}
-
 apparie_sélecteur :: fonc (selector: []CompoundSelector, index: z64, élément: *HTML.Élément) -> bool
 {
-    si selector.taille != 1 {
-        retourne faux
-    }
-
     compound := selector[index]
 
     pour compound.simple_selectors {
@@ -81,24 +55,95 @@ apparie_sélecteur :: fonc (selector: []CompoundSelector, index: z64, élément:
         }
     }
 
-    retourne vrai
+    si index == 0 {
+        retourne vrai
+    }
+
+    discr compound.combinateur {
+        NEXT_SIBLING {
+            retourne faux
+        }
+        CHILD {
+            parent := élément.parent
+            saufsi HTML.est_élément(parent) {
+                retourne faux
+            }
+
+            retourne apparie_sélecteur(selector, index - 1, parent comme *HTML.Élément)
+        }
+        DESCENDANT {
+            parent := élément.parent
+
+            tantque parent != nul {
+                saufsi HTML.est_élément(parent) {
+                    arrête
+                }
+
+                si apparie_sélecteur(selector, index - 1, parent comme *HTML.Élément) {
+                    retourne vrai
+                }
+
+                parent = parent.parent
+            }
+
+            retourne faux
+        }
+        COLUMN {
+            retourne faux
+        }
+        SUBSEQUENT_SIBLING {
+            retourne faux
+        }
+    }
+
+    retourne faux
 }
 
 apparie_simple_selector :: fonc (simple: &SimpleSelector, élément: *HTML.Élément) -> bool
 {
-    si simple.type == SimpleSelector.Type.PseudoClass {
-        si simple.est_fonction {
+    discr simple.type {
+        Attrib {
             retourne faux
         }
+        ID {
+            retourne simple.ident == élément.id
+        }
+        PseudoClass {
+            si simple.est_fonction {
+                retourne faux
+            }
 
-        retourne (élément.pseudo_classes & simple.pseudo_classe) == simple.pseudo_classe
+            retourne (élément.pseudo_classes & simple.pseudo_classe) == simple.pseudo_classe
+        }
+        Class {
+            valeur := HTML.donne_attribut(élément, HTML.ATTR_class)
+            saufsi valeur.possède_valeur() {
+                retourne faux
+            }
+
+            classes_élément := divise_sur_espaces_blanches_ascii(valeur.Quelque)
+            diffère déloge(classes_élément)
+
+            pour classes_élément {
+                si compare_ascii_insensible_à_la_casse(it, simple.ident) {
+                    retourne vrai
+                }
+            }
+
+            retourne faux
+        }
+        Type {
+            retourne simple.ident == élément.local_name
+        }
+        PseudoElement {
+            retourne faux
+        }
+        Universal {
+            retourne vrai
+        }
     }
 
-    si simple.type != SimpleSelector.Type.Type {
-        retourne faux
-    }
-
-    retourne simple.ident == élément.texte
+    retourne faux
 }
 
 /* ------------------------------------------------------------------------- */
