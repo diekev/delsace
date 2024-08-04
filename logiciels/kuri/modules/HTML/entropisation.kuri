@@ -59,9 +59,9 @@ génère_enfants_récusifs :: fonc (ctx_entropie: &ContexteEntropisation, parent
         retourne
     }
 
-    nombre_enfants := nombre_enfants_possibles(gna, parent.texte)
+    nombre_enfants := nombre_enfants_possibles(gna, parent.local_name)
     pour 0 ... nombre_enfants - 1 {
-        enfant := crée_élément_avec_tag(ctx_entropie.document, tag_enfant_possible(gna, parent.texte))
+        enfant := crée_élément_avec_tag(ctx_entropie.document, tag_enfant_possible(gna, parent.local_name))
         ctx_entropie.éléments_créés += 1
         ajoute_enfant(parent, enfant)
     }
@@ -74,11 +74,11 @@ génère_enfants_récusifs :: fonc (ctx_entropie: &ContexteEntropisation, parent
 
         élément_enfant := it comme *Élément
 
-        saufsi !est_tag_auto_fermant(élément_enfant.texte) {
+        saufsi !est_tag_auto_fermant(élément_enfant.local_name) {
             continue
         }
 
-        si élément_enfant.texte == TAG_script {
+        si élément_enfant.local_name == TAG_script {
             continue
         }
 

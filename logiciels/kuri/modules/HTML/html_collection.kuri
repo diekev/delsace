@@ -97,7 +97,7 @@ crée_filtre_pour_tag_name :: fonc (tag_name: DOMString) -> *HTMLCollectionFilte
     {
         filtre := base comme *TagNameFilter
         // À FAIRE : qualified name
-        retourne élément.texte == filtre.tag_name
+        retourne élément.local_name == filtre.tag_name
     }
 
     sur_destruction :: fonc (base: *HTMLCollectionFilter)

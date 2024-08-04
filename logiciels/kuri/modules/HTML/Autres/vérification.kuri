@@ -135,7 +135,7 @@ vérifie_noeud :: fonc (contexte_vérification: &ContexteVérification, noeud: *
             contexte_vérification.profondeur_max = contexte_vérification.profondeur
         }
 
-        si élément.texte == TAG_html {
+        si élément.local_name == TAG_html {
             // La parseuse aura inséré un tag <html> si aucun n'est présent.
 
             // Vérifie s'il y a un attribut lang
@@ -153,14 +153,14 @@ vérifie_noeud :: fonc (contexte_vérification: &ContexteVérification, noeud: *
                 contexte_vérification.ajoute_diagnostique("Le tag <html> ne possède pas d'attribut 'lang' pour déclarer le langage princapal du document")
             }
         }
-        sinon si élément.texte == TAG_title {
+        sinon si élément.local_name == TAG_title {
             texte := donne_contenu_texte_descandants(élément)
             si texte.taille() != 0 {
                 contexte_vérification.possède_titre = vrai
             }
             détruit_chaine(texte)
         }
-        sinon si élément.texte == TAG_meta {
+        sinon si élément.local_name == TAG_meta {
             attr_charset := élément.cherche_attribut(ATTR_charset)
             attr_name := élément.cherche_attribut(ATTR_name)
             attr_content := élément.cherche_attribut(ATTR_content)
@@ -204,29 +204,29 @@ vérifie_noeud :: fonc (contexte_vérification: &ContexteVérification, noeud: *
 
         }
         // http://html5doctor.com/i-b-em-strong-element/
-        sinon si élément.texte == TAG_i {
+        sinon si élément.local_name == TAG_i {
             contexte_vérification.ajoute_diagnostique("<i> rencontré, préférez utiliser <em>")
         }
-        sinon si élément.texte == TAG_b {
+        sinon si élément.local_name == TAG_b {
             contexte_vérification.ajoute_diagnostique("<b> rencontré, préférez utiliser <strong>")
         }
-        sinon si élément.texte == TAG_br {
+        sinon si élément.local_name == TAG_br {
             // À FAIRE : vérifie si nous sommes dans un <p>, c'est ok pour les formulaires pour séparer les labels des entrées, mais pas pour la mise en style de texte
             contexte_vérification.ajoute_diagnostique("<br/> rencontré, préférez utiliser CSS pour la mise en style")
         }
-        sinon si élément.texte == TAG_blink {
+        sinon si élément.local_name == TAG_blink {
             contexte_vérification.ajoute_diagnostique("<blink> rencontré, préférez utiliser CSS pour la mise en style")
         }
-        sinon si élément.texte == TAG_big {
+        sinon si élément.local_name == TAG_big {
             contexte_vérification.ajoute_diagnostique("<big> rencontré, préférez utiliser CSS pour la mise en style")
         }
-        sinon si élément.texte == TAG_center {
+        sinon si élément.local_name == TAG_center {
             contexte_vérification.ajoute_diagnostique("<center> rencontré, préférez utiliser CSS pour la mise en style")
         }
-        sinon si élément.texte == TAG_strike {
+        sinon si élément.local_name == TAG_strike {
             contexte_vérification.ajoute_diagnostique("<strike> rencontré, préférez utiliser CSS pour la mise en style")
         }
-        sinon si élément.texte == TAG_img {
+        sinon si élément.local_name == TAG_img {
             possède_hauteur := élément.cherche_attribut(ATTR_height)
             possède_largeur := élément.cherche_attribut(ATTR_width)
             possède_alt := élément.cherche_attribut(ATTR_alt)
@@ -243,7 +243,7 @@ vérifie_noeud :: fonc (contexte_vérification: &ContexteVérification, noeud: *
                 contexte_vérification.ajoute_diagnostique("<img> sans attribut alt")
             }
         }
-        sinon si élément.texte == TAG_a {
+        sinon si élément.local_name == TAG_a {
             possède_titre := élément.cherche_attribut(ATTR_title)
             possède_href := élément.cherche_attribut(ATTR_href)
 
@@ -266,7 +266,7 @@ vérifie_noeud :: fonc (contexte_vérification: &ContexteVérification, noeud: *
                 contexte_vérification.ajoute_diagnostique("<a> sans href")
             }
         }
-        sinon si élément.texte == TAG_form {
+        sinon si élément.local_name == TAG_form {
             fieldset := élément.enfant_directe_avec_balise(TAG_fieldset)
 
             saufsi fieldset {
@@ -282,25 +282,25 @@ vérifie_noeud :: fonc (contexte_vérification: &ContexteVérification, noeud: *
 
             // À FAIRE : vérifie que les inputs ont des labels
         }
-        sinon si élément.texte == TAG_base {
+        sinon si élément.local_name == TAG_base {
             contexte_vérification.ajoute_diagnostique("<base> rencontré, veuillez utiliser des liens absolus")
         }
-        sinon si élément.texte == TAG_h1 {
+        sinon si élément.local_name == TAG_h1 {
             contexte_vérification.nombre_de_h1 += 1
         }
-        sinon si élément.texte == TAG_h2 {
+        sinon si élément.local_name == TAG_h2 {
             contexte_vérification.nombre_de_h2 += 1
         }
-        sinon si élément.texte == TAG_h3 {
+        sinon si élément.local_name == TAG_h3 {
             contexte_vérification.nombre_de_h3 += 1
         }
-        sinon si élément.texte == TAG_h4 {
+        sinon si élément.local_name == TAG_h4 {
             contexte_vérification.nombre_de_h4 += 1
         }
-        sinon si élément.texte == TAG_h5 {
+        sinon si élément.local_name == TAG_h5 {
             contexte_vérification.nombre_de_h5 += 1
         }
-        sinon si élément.texte == TAG_h6 {
+        sinon si élément.local_name == TAG_h6 {
             contexte_vérification.nombre_de_h6 += 1
         }
         // À CONSIDÉRER : inutile de mettre un type dans style ou script

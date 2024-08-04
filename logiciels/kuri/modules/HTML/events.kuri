@@ -554,7 +554,7 @@ dispatch :: fonc (event: *Event, target: *EventTarget, legacy_target_override : 
         }
 
         // À FAIRE 6. Let slottable be target, if target is a slottable and is assigned, and null otherwise.
-        slottable: *EventTarget
+        // slottable: *EventTarget
 
         // 7. Let slot-in-closed-tree be false.
         slot_in_closed_tree := faux

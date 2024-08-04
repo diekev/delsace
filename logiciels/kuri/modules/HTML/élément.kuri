@@ -1,4 +1,5 @@
 importe Chaine
+importe Couleur
 importe #inemployé CSS
 importe Fondation
 importe Internet
@@ -41,8 +42,12 @@ TableVirtuelleÉlément :: struct {
     /* Appelé quand un élément fut dépilé de la pile des éléments ouverts. */
     sur_dépilement: fonc(*Élément)(rien)
 
-    /* Appelé quand un attribut est ajouté, modifié, ou supprimé. */
-    sur_changement_attribut: fonc(*Élément, DOMString, *DOMString, *DOMString)(rien) = élément_sur_changement_attribut
+    /* Appelé quand un attribut est ajouté, modifié, ou supprimé.
+     * La fonction doit retourner si oui ou non l'attribut fut géré. */
+    sur_changement_attribut: fonc(*Élément, DOMString, *DOMString, *DOMString)(bool) = élément_sur_changement_attribut
+
+    /* Appelé lors de la résolution des propriétés de style pour l'élément. */
+    sur_applique_presentational_hints: fonc(*Élément, *CSS.PropriétésDeStyle)(rien)
 }
 
 #portée_export
@@ -57,7 +62,7 @@ TableVirtuelleÉlément :: struct {
     est_sur_pile_éléments_ouvert: bool
 
     espace_de_nom: chaine // DOMString @namespaceURI
-    texte: DOMString // DOMString @localName
+    local_name: DOMString
 
     état_élément_custom: chaine
     définition_élément_custom: *rien
@@ -66,6 +71,8 @@ TableVirtuelleÉlément :: struct {
 
     /* CSS */
     noeud_de_disposition: *CSS.NoeudDeDisposition
+    /* https://html.spec.whatwg.org/multipage/dom.html#attr-style */
+    style: *CSS.CSSStyleDeclaration
 }
 
 #portée_fichier
@@ -75,14 +82,24 @@ table_virtuelle_élément := TableVirtuelleÉlément(
     sur_changement_attribut = élément_sur_changement_attribut
 )
 
+élément_détruit_données :: fonc (élément: *Élément)
+{
+    CSS.détruit_style_declaration(élément.style)
+}
+
 élément_sur_destruction :: fonc (base: *EventTarget)
 {
     élément := base comme *Élément
+    élément_détruit_données(élément)
     déloge(élément)
 }
 
-élément_sur_changement_attribut :: fonc (élément: *Élément, local_name: DOMString, vieille_valeur: *DOMString @inutilisée, valeur: *DOMString)
+élément_sur_changement_attribut :: fonc (élément: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString) -> bool
 {
+    si vieille_valeur && valeur && mémoire(vieille_valeur) == mémoire(valeur) {
+        retourne vrai
+    }
+
     /* https://dom.spec.whatwg.org/#concept-id */
     si local_name == ATTR_id {
         // À FAIRE espace de nom pour attribut
@@ -94,7 +111,28 @@ table_virtuelle_élément := TableVirtuelleÉlément(
         sinon {
             élément.id = mémoire(valeur)
         }
+
+        retourne vrai
     }
+
+    si local_name == TAG_style {
+        CSS.détruit_style_declaration(élément.style)
+
+        si valeur == nul || mémoire(valeur).est_vide() {
+            élément.style = nul
+        }
+        sinon {
+            valeur_texte := mémoire(valeur).donne_chaine_utf16()
+            élément.style = CSS.parse_attribut_style(valeur_texte)
+            // À FAIRE(langage)
+            // élément.style.owner_node = élément
+        }
+
+        élément.document.invalide_style()
+        retourne vrai
+    }
+
+    retourne faux
 }
 
 #portée_export
@@ -126,7 +164,7 @@ gère_changement_attribute :: fonc (attribut: Attribut, élément: *Élément, v
     // À FAIRE : espace de nom pour l'attribut
     table := élément.table comme *TableVirtuelleÉlément
     si table && table.sur_changement_attribut {
-        table.sur_changement_attribut(élément, attribut.nom, vieille_valeur, nouvelle_valeur)
+        _ := table.sur_changement_attribut(élément, attribut.nom, vieille_valeur, nouvelle_valeur)
     }
 }
 
@@ -134,7 +172,7 @@ initialise_élément :: fonc (élément: *Élément, document: *Document, texte:
 {
     élément.genre = GenreNoeud.Élément
     élément.document = document
-    élément.texte = texte
+    élément.local_name = texte
 }
 
 crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élément
@@ -152,6 +190,12 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élé
     }
     sinon si tag == TAG_head {
         élément = loge(HTMLHeadElement)
+    }
+    sinon si tag == TAG_h1 || tag == TAG_h2 || tag == TAG_h3 || tag == TAG_h4 || tag == TAG_h5 || tag == TAG_h6 {
+        élément = loge(HTMLHeadingElement)
+    }
+    sinon si tag == TAG_hr {
+        élément = loge(HTMLHRElement)
     }
     sinon si tag == TAG_html {
         élément = loge(HTMLHtmlElement)
@@ -190,7 +234,7 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élé
 
 est_compatible_html5 :: fonc (élément: *Élément) -> bool
 {
-    discr élément.texte {
+    discr élément.local_name {
         TAG_acronym,
         TAG_applet,
         TAG_basefont,
@@ -291,7 +335,7 @@ enfant_directe_avec_balise :: fonc (élément: *Élément, balise: DOMString) ->
         }
 
         élément_enfant := (it comme *Élément)
-        si élément_enfant.texte == balise {
+        si élément_enfant.local_name == balise {
             retourne élément_enfant
         }
     }
@@ -335,6 +379,18 @@ est_en_train_d_être_activé :: fonc (élément: *Élément, ouinon: bool)
     sinon {
         élément.enlève_pseudo_classe(CSS.PseudoClasses.Active)
     }
+}
+
+applique_presentational_hints :: fonc (élément: *Élément, propriétés: *CSS.PropriétésDeStyle)
+{
+    table := élément.table comme *TableVirtuelleÉlément
+    saufsi table {
+        retourne
+    }
+    saufsi table.sur_applique_presentational_hints {
+        retourne
+    }
+    table.sur_applique_presentational_hints(élément, propriétés)
 }
 
 /** \} */
@@ -388,12 +444,15 @@ table_virtuelle_anchor_element := TableVirtuelleÉlément(
 anchor_element_sur_destruction :: fonc (base: *EventTarget)
 {
     élément := base comme *HTMLAnchorElement
+    élément_détruit_données(élément)
     déloge(élément)
 }
 
-anchor_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString)
+anchor_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString) -> bool
 {
-    élément_sur_changement_attribut(base, local_name, vieille_valeur, valeur)
+    si élément_sur_changement_attribut(base, local_name, vieille_valeur, valeur) {
+        retourne vrai
+    }
 
     anchor := base comme *HTMLAnchorElement
 
@@ -404,7 +463,11 @@ anchor_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DO
         sinon {
             anchor.ajoute_pseudo_classe(CSS.PseudoClasses.Link)
         }
+
+        retourne vrai
     }
+
+    retourne faux
 }
 
 /* À FAIRE : standardise
@@ -431,7 +494,7 @@ anchor_element_sur_activation_behavior :: fonc (target: *EventTarget, event: *Ev
     }
 
     source_document := anchor.document
-    navigate(navigable, url, source_document)
+    navigate(source_document.donne_user_agent(), navigable, url, source_document)
 }
 
 /** \} */
@@ -445,20 +508,172 @@ anchor_element_sur_activation_behavior :: fonc (target: *EventTarget, event: *Ev
 #portée_export
 
 HTMLBodyElement :: struct {
-    empl base_élément: Élément
+    empl html_element: HTMLElement
     table = *table_virtuelle_body_element
 }
 
 #portée_fichier
 
 table_virtuelle_body_element := TableVirtuelleÉlément(
-    sur_destruction = body_element_sur_destruction
+    sur_destruction = body_element_sur_destruction,
+    sur_applique_presentational_hints = body_element_sur_applique_presentational_hints
 )
 
 body_element_sur_destruction :: fonc (base: *EventTarget)
 {
     élément := base comme *HTMLBodyElement
+    élément_détruit_données(élément)
     déloge(élément)
+}
+
+/* https://html.spec.whatwg.org/multipage/rendering.html#the-page */
+body_element_sur_applique_presentational_hints :: fonc (base: *Élément, propriétés: *CSS.PropriétésDeStyle)
+{
+    body := base comme *HTMLBodyElement
+
+    opt_bgcolor := donne_attribut(body, ATTR_bgcolor)
+    si opt_bgcolor.possède_valeur() {
+        bgcolor := opt_bgcolor.Quelque
+        ajoute_propriété_pour_couleur(propriétés, CSS.PROP_background_color, bgcolor)
+    }
+
+    opt_text := donne_attribut(body, ATTR_text)
+    si opt_text.possède_valeur() {
+        text := opt_text.Quelque
+        ajoute_propriété_pour_couleur(propriétés, CSS.PROP_color, text)
+    }
+
+    /* À FAIRE : utilise les attributs. */
+    ajoute_propriété_pour_nombre(propriétés, CSS.PROP_margin_top, 8.0)
+    ajoute_propriété_pour_nombre(propriétés, CSS.PROP_margin_bottom, 8.0)
+    ajoute_propriété_pour_nombre(propriétés, CSS.PROP_margin_left, 8.0)
+    ajoute_propriété_pour_nombre(propriétés, CSS.PROP_margin_right, 8.0)
+}
+
+ajoute_propriété_pour_couleur :: fonc (propriétés: *CSS.PropriétésDeStyle, nom_propriété: CSS.CSSOMString, texte: DOMString)
+{
+    opt_couleur := parse_a_legacy_colour_value(texte)
+    saufsi opt_couleur.possède_valeur() {
+        retourne
+    }
+
+    couleur := opt_couleur.Quelque
+    value: [..]CSS.ValeurDeStyle
+    tableau_ajoute(*value, CSS.ValeurDeStyle(couleur = couleur))
+
+    /* À FAIRE : fuite de mémoire */
+    déclaration := loge(CSS.DéclarationPropriété)
+    déclaration.info = CSS.donne_info_type_pour_nom(nom_propriété)
+    déclaration.property_name = nom_propriété
+    déclaration.value = value
+
+    CSS.ajoute_déclaration(propriétés, déclaration)
+}
+
+ajoute_propriété_pour_nombre :: fonc (propriétés: *CSS.PropriétésDeStyle, nom_propriété: CSS.CSSOMString, valeur: r64)
+{
+    value: [..]CSS.ValeurDeStyle
+    tableau_ajoute(*value, CSS.ValeurDeStyle(number = valeur))
+
+    /* À FAIRE : fuite de mémoire */
+    déclaration := loge(CSS.DéclarationPropriété)
+    déclaration.info = CSS.donne_info_type_pour_nom(nom_propriété)
+    déclaration.property_name = nom_propriété
+    déclaration.value = value
+
+    CSS.ajoute_déclaration(propriétés, déclaration)
+}
+
+/* https://html.spec.whatwg.org/multipage/common-microsyntaxes.html#rules-for-parsing-a-legacy-colour-value */
+parse_a_legacy_colour_value :: fonc (string: DOMString) -> Optionnel(CouleurRVBAN8)
+{
+    // 1. Let input be the string being parsed.
+    input := string.donne_chaine_utf16()
+
+    // 2. If input is the empty string, then return an error.
+    si input.est_vide() {
+        retourne
+    }
+
+    // 3. Strip leading and trailing ASCII whitespace from input.
+    input = supprime_espace_blanches_autour(input)
+
+    // 4. If input is an ASCII case-insensitive match for the string "transparent", then return an error.
+    si compare_ascii_insensible_à_la_casse(input, "transparent") {
+        retourne
+    }
+
+    // À FAIRE 5. If input is an ASCII case-insensitive match for one of the named colors, then return the simple color corresponding to that keyword. [CSSCOLOR]
+
+    // 6. If input's code point length is four, and the first character in input is U+0023 (#), and the last three characters of input are all ASCII hex digits, then:
+    si input.taille() == 4 && input.unités[0] == 0x23 && CSS.est_chiffre_hex(input.unités[1]) && CSS.est_chiffre_hex(input.unités[2]) && CSS.est_chiffre_hex(input.unités[3]) {
+        // 1. Let result be a simple color.
+        result: CouleurRVBAN8
+        result.a = 255
+
+        // 2. Interpret the second character of input as a hexadecimal digit; let the red component of result be the resulting number multiplied by 17.
+        result.r = CSS.valeur_hex_depuis_unité(input.unités[1]) * 17
+
+        // 3. Interpret the third character of input as a hexadecimal digit; let the green component of result be the resulting number multiplied by 17.
+        result.r = CSS.valeur_hex_depuis_unité(input.unités[2]) * 17
+
+        // 4. Interpret the fourth character of input as a hexadecimal digit; let the blue component of result be the resulting number multiplied by 17.
+        result.r = CSS.valeur_hex_depuis_unité(input.unités[3]) * 17
+
+        // 5. Return result.
+        retourne result
+    }
+
+    // À FAIRE : 7. Replace any code points greater than U+FFFF in input (i.e., any characters that are not in the basic multilingual plane) with the two-character string "00".
+
+    // 8. If input's code point length is greater than 128, truncate input, leaving only the first 128 characters.
+    // À FAIRE : utilise la taille en point de code
+    si input.taille() > 128 {
+        input.unités.taille = 128
+    }
+
+    // 9. If the first character in input is a U+0023 NUMBER SIGN character (#), remove it.
+    si input.unités[0] == 0x23 {
+        input.unités.pointeur += 1
+        input.unités.taille -= 1
+    }
+
+    // 10. Replace any character in input that is not an ASCII hex digit with the character U+0030 DIGIT ZERO (0).
+    pour & input.unités {
+        point_de_code : n16 = it
+        saufsi CSS.est_chiffre_hex(point_de_code) {
+            it = 0x30
+        }
+    }
+
+    // À FAIRE : continue
+    assert(input.taille() == 6)
+
+    // 11. While input's code point length is zero or not a multiple of three, append a U+0030 DIGIT ZERO (0) character to input.
+
+    // 12. Split input into three strings of equal code point length, to obtain three components. Let length be the code point length that all of those components have (one third the code point length of input).
+
+    // 13. If length is greater than 8, then remove the leading length-8 characters in each component, and let length be 8.
+
+    // 14. While length is greater than two and the first character in each component is a U+0030 DIGIT ZERO (0) character, remove that character and reduce length by one.
+
+    // 15. If length is still greater than two, truncate each component, leaving only the first two characters in each.
+
+    // 16. Let result be a simple color.
+    result: CouleurRVBAN8
+    result.a = 255
+
+    // 17. Interpret the first component as a hexadecimal number; let the red component of result be the resulting number.
+    result.r = CSS.valeur_hex_depuis_unité(input.unités[0]) * 16 + CSS.valeur_hex_depuis_unité(input.unités[1])
+
+    // 18. Interpret the second component as a hexadecimal number; let the green component of result be the resulting number.
+    result.v = CSS.valeur_hex_depuis_unité(input.unités[2]) * 16 + CSS.valeur_hex_depuis_unité(input.unités[3])
+
+    // 19. Interpret the third component as a hexadecimal number; let the blue component of result be the resulting number.
+    result.b = CSS.valeur_hex_depuis_unité(input.unités[4]) * 16 + CSS.valeur_hex_depuis_unité(input.unités[5])
+
+    // 20. Return result.
+    retourne result
 }
 
 /** \} */
@@ -472,7 +687,7 @@ body_element_sur_destruction :: fonc (base: *EventTarget)
 #portée_export
 
 HTMLFormElement :: struct {
-    empl base_élément: Élément
+    empl html_element: HTMLElement
     table = *table_virtuelle_form_element
 }
 
@@ -485,6 +700,7 @@ table_virtuelle_form_element := TableVirtuelleÉlément(
 form_element_sur_destruction :: fonc (base: *EventTarget)
 {
     élément := base comme *HTMLFormElement
+    élément_détruit_données(élément)
     déloge(élément)
 }
 
@@ -499,7 +715,7 @@ form_element_sur_destruction :: fonc (base: *EventTarget)
 #portée_export
 
 HTMLHeadElement :: struct {
-    empl base_élément: Élément
+    empl html_element: HTMLElement
     table = *table_virtuelle_head_element
 }
 
@@ -512,6 +728,63 @@ table_virtuelle_head_element := TableVirtuelleÉlément(
 head_element_sur_destruction :: fonc (base: *EventTarget)
 {
     élément := base comme *HTMLHeadElement
+    élément_détruit_données(élément)
+    déloge(élément)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLHeadingElement
+ * https://html.spec.whatwg.org/multipage/sections.html#the-h1,-h2,-h3,-h4,-h5,-and-h6-elements
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLHeadingElement
+ * \{ */
+
+#portée_export
+
+HTMLHeadingElement :: struct {
+    empl html_element: HTMLElement
+    table = *table_virtuelle_heading_element
+}
+
+#portée_fichier
+
+table_virtuelle_heading_element := TableVirtuelleÉlément(
+    sur_destruction = heading_element_sur_destruction
+)
+
+heading_element_sur_destruction :: fonc (base: *EventTarget)
+{
+    élément := base comme *HTMLHeadingElement
+    élément_détruit_données(élément)
+    déloge(élément)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLHRElement
+ * https://html.spec.whatwg.org/multipage/grouping-content.html#the-hr-element
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLHRElement
+ * \{ */
+
+#portée_export
+
+HTMLHRElement :: struct {
+    empl html_element: HTMLElement
+    table = *table_virtuelle_hr_element
+}
+
+#portée_fichier
+
+table_virtuelle_hr_element := TableVirtuelleÉlément(
+    sur_destruction = hr_element_sur_destruction
+)
+
+hr_element_sur_destruction :: fonc (base: *EventTarget)
+{
+    élément := base comme *HTMLHRElement
+    élément_détruit_données(élément)
     déloge(élément)
 }
 
@@ -526,7 +799,7 @@ head_element_sur_destruction :: fonc (base: *EventTarget)
 #portée_export
 
 HTMLHtmlElement :: struct {
-    empl base_élément: Élément
+    empl html_element: HTMLElement
     table = *table_virtuelle_html_element
 }
 
@@ -539,6 +812,7 @@ table_virtuelle_html_element := TableVirtuelleÉlément(
 html_element_sur_destruction :: fonc (base: *EventTarget)
 {
     élément := base comme *HTMLHtmlElement
+    élément_détruit_données(élément)
     déloge(élément)
 }
 
@@ -575,6 +849,7 @@ table_virtuelle_image_element := TableVirtuelleÉlément(
 image_element_sur_destruction :: fonc (base: *EventTarget)
 {
     élément := base comme *HTMLImageElement
+    élément_détruit_données(élément)
     déloge(élément)
 }
 
@@ -625,6 +900,7 @@ table_virtuelle_video_element := TableVirtuelleÉlément(
 video_element_sur_destruction :: fonc (base: *EventTarget)
 {
     élément := base comme *HTMLVideoElement
+    élément_détruit_données(élément)
     déloge(élément)
 }
 
@@ -690,6 +966,7 @@ table_virtuelle_script_element := TableVirtuelleÉlément(
 script_element_sur_destruction :: fonc (base: *EventTarget)
 {
     élément := base comme *HTMLScriptElement
+    élément_détruit_données(élément)
     déloge(élément)
 }
 
@@ -968,6 +1245,7 @@ table_virtuelle_style_element := TableVirtuelleÉlément(
 style_element_sur_destruction :: fonc (base: *EventTarget)
 {
     élément := base comme *HTMLStyleElement
+    élément_détruit_données(élément)
     déloge(élément)
 }
 
@@ -1000,11 +1278,65 @@ style_element_sur_changement_enfants :: fonc (base: *Noeud)
  */
 ajourne_style_block :: fonc (style: *HTMLStyleElement)
 {
-    // À FAIRE : implémente
+    // 1. Let element be the style element.
+    element := style
+
+    // 2. If element has an associated CSS style sheet, remove the CSS style sheet
+    //    in question.
+    document := element.document
+    document.supprime_feuille_de_style_associée(element)
+
+    // 3. If element is not connected, then return.
+    saufsi element.est_connecté() {
+        retourne
+    }
+
+    // 4. If element's type attribute is present and its value is neither the
+    //    empty string nor an ASCII case-insensitive match for "text/css", then
+    //    return.
+    mime_css := crée_chaine_utf16_unique("text/css")
+
+    attr_type := element.cherche_attribut(ATTR_type)
+    si attr_type && !(attr_type.valeur.est_vide() || compare_ascii_insensible_à_la_casse(attr_type.valeur, mime_css)) {
+        retourne
+    }
+
+    // 5. If the Should element's inline behavior be blocked by Content Security Policy?
+    //    algorithm returns "Blocked" when executed upon the style element, "style",
+    //    and the style element's child text content, then return. [CSP]
     texte_source := extrait_texte_noeud(style)
     diffère déloge(texte_source)
 
-    imprime("[%]\n%\n", #nom_de_cette_fonction, texte_source)
+    bloqué := le_comportement_inline_de_l_élément_doit_être_bloqué_par_csp(element, "style", texte_source)
+    si bloqué == "Blocked" {
+        retourne
+    }
+
+    // 6. Create a CSS style sheet with the following properties:
+    feuille_de_style := loge(CSS.CSSStyleSheet)
+    feuille_de_style.type = mime_css
+    feuille_de_style.owner_node = element
+    // À FAIRE : media = The media attribute of element.
+    // À FAIRE : title = The title attribute of element, if element is in a document tree, or the empty string otherwise.
+    feuille_de_style.alternate = faux
+    feuille_de_style.origin_clean = vrai
+    feuille_de_style.parent_style_sheet = nul
+    feuille_de_style.owner_rule = nul
+
+    //  À FAIRE : 7. If element contributes a script-blocking style sheet, append element
+    //    to its node document's script-blocking style sheet set.
+
+    // À FAIRE : 8. If element's media attribute's value matches the environment and
+    //    element is potentially render-blocking, then block rendering on element.
+
+    // Non-spécifié
+    ctx: CSS.ContexteParsageFeuilleDeStyle
+    diffère CSS.détruit_données_contexte(*ctx)
+    CSS.parse_style_rules(*ctx, feuille_de_style, texte_source)
+    CSS.rapporte_propriétés_non_supportées(*ctx, #nom_de_cette_fonction)
+    document.ajoute_feuille_de_style(feuille_de_style)
+
+    // À FAIRE : implémente la finalisation
 }
 
 /** \} */

@@ -1,27 +1,6 @@
 importe Fondation
 importe Internet
 
-/* Structure pour implémenter les routines/callbacks/algorithms de la spec. */
-Algorithm :: struct {
-    sur_run: fonc(*Algorithm)(rien)
-    sur_destruction: fonc(*Algorithm)(rien)
-}
-
-run :: fonc (algorithm: *Algorithm)
-{
-    saufsi algorithm {
-        retourne
-    }
-
-    si algorithm.sur_run {
-        algorithm.sur_run(algorithm)
-    }
-
-    si algorithm.sur_destruction {
-        algorithm.sur_destruction(algorithm)
-    }
-}
-
 /* https://w3c.github.io/navigation-timing/#sec-performance-navigation-types */
 NavigationTimingType :: énum {
     navigate
@@ -130,7 +109,7 @@ an optional entry list or null formDataEntryList (default null)
 an optional referrer policy referrerPolicy (default the empty string)
 and an optional user navigation involvement userInvolvement (default "none"):
 */
-navigate :: fonc (navigable: *Navigable, url: &URI, source_document: *Document, history_handling := NavigationHistoryBehavior.AUTO)
+navigate :: fonc (user_agent: *UserAgent, navigable: *Navigable, url: &URI, source_document: *Document, history_handling := NavigationHistoryBehavior.AUTO)
 {
     // 1. Let cspNavigationType be "form-submission" if formDataEntryList is non-null; otherwise "other".
 
@@ -221,10 +200,10 @@ navigate :: fonc (navigable: *Navigable, url: &URI, source_document: *Document, 
         // 5. If continue is false, then return.
 
     // 22. In parallel, run these steps:
-    navigate_parallel_steps(navigable, url, source_snapshot_params, target_snapshot_params, history_handling)
+    navigate_parallel_steps(user_agent, navigable, url, source_snapshot_params, target_snapshot_params, history_handling)
 }
 
-navigate_parallel_steps :: fonc (navigable: *Navigable, url: &URI, source_snapshot_params: &SourceSnapshotParams, target_snapshot_params: &TargetSnapshotParams, history_handling: NavigationHistoryBehavior)
+navigate_parallel_steps :: fonc (user_agent: *UserAgent, navigable: *Navigable, url: &URI, source_snapshot_params: &SourceSnapshotParams, target_snapshot_params: &TargetSnapshotParams, history_handling: NavigationHistoryBehavior)
 {
     // 1. Let unloadPromptCanceled be the result of checking if unloading is
     //    canceled for navigable's active document's inclusive descendant navigables.
@@ -321,7 +300,7 @@ navigate_parallel_steps :: fonc (navigable: *Navigable, url: &URI, source_snapsh
     completion_steps.sur_run = completion_steps_run
     completion_steps.sur_destruction = completion_steps_détruit
 
-    attempt_to_populate_the_history_entry_document(history_entry, navigable, NavigationTimingType.navigate, source_snapshot_params, target_snapshot_params, navigation_params, completion_steps)
+    attempt_to_populate_the_history_entry_document(user_agent, history_entry, navigable, NavigationTimingType.navigate, source_snapshot_params, target_snapshot_params, navigation_params, completion_steps)
 }
 
 /** \} */
@@ -414,7 +393,8 @@ To attempt to populate the history entry's document for a
     an optional boolean allowPOST (default false)
     and optional algorithm steps completionSteps (default an empty algorithm)
  */
-attempt_to_populate_the_history_entry_document :: fonc (entry: *SessionHistoryEntry,
+attempt_to_populate_the_history_entry_document :: fonc (user_agent: *UserAgent,
+                                                        entry: *SessionHistoryEntry,
                                                         navigable: *Navigable,
                                                         nav_timing_type: NavigationTimingType,
                                                         source_snapshot_params: &SourceSnapshotParams,
@@ -439,7 +419,7 @@ attempt_to_populate_the_history_entry_document :: fonc (entry: *SessionHistoryEn
         //     documentResource is null, or allowPOST is true and documentResource's request body is not failure,
 
         // then set navigationParams to the result of creating navigation params by fetching given entry, navigable, sourceSnapshotParams, targetSnapshotParams, cspNavigationType, navigationId, and navTimingType.
-        navigation_params = create_navigation_params_by_fetching(entry, navigable, source_snapshot_params, target_snapshot_params, nav_timing_type)
+        navigation_params = create_navigation_params_by_fetching(user_agent, entry, navigable, source_snapshot_params, target_snapshot_params, nav_timing_type)
 
         // 3. Otherwise, if entry's URL's scheme is not a fetch scheme, then set navigationParams to a new non-fetch scheme navigation params, with
         //     id  navigationId
@@ -451,9 +431,25 @@ attempt_to_populate_the_history_entry_document :: fonc (entry: *SessionHistoryEn
         //     navigation timing type  navTimingType
     }
 
-    // À FAIRE : 6.
+    // 6. Queue a global task on the navigation and traversal task source, given navigable's active window, to run these steps:
+    Tâche :: struct {
+        empl base: Algorithm
+
+        completion_steps: *Algorithm
+        entry: *SessionHistoryEntry
+        navigation_params: *NavigationParams
+        source_snapshot_params: SourceSnapshotParams
+    }
+
+    sur_run :: fonc (base: *Algorithm)
     {
-        // ...
+        tâche := base comme *Tâche
+        navigation_params := tâche.navigation_params
+        entry := tâche.entry
+        completion_steps := tâche.completion_steps
+        source_snapshot_params := tâche.source_snapshot_params
+
+        // À FAIRE : complète
 
         // 6.
         entry.document_state.document = load_a_document(navigation_params, source_snapshot_params, Origin())
@@ -470,12 +466,29 @@ attempt_to_populate_the_history_entry_document :: fonc (entry: *SessionHistoryEn
         run(completion_steps)
         détruit_navigation_params(navigation_params)
     }
+
+    sur_destruction :: fonc (base: *Algorithm)
+    {
+        tâche := base comme *Tâche
+        déloge(tâche)
+    }
+
+    tâche := loge(Tâche)
+    tâche.sur_run = sur_run
+    tâche.sur_destruction = sur_destruction
+    tâche.completion_steps = completion_steps
+    tâche.entry = entry
+    tâche.navigation_params = navigation_params
+    tâche.source_snapshot_params = source_snapshot_params
+
+    user_agent.enfile_une_tâche(SourceDeTâche.NavigationEtTraversée, tâche)
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#create-navigation-params-by-fetching
     To create navigation params by fetching given a session history entry entry, a navigable navigable, a source snapshot params sourceSnapshotParams, a target snapshot params targetSnapshotParams, a string cspNavigationType, a navigation ID-or-null navigationId, and a NavigationTimingType navTimingType, perform the following steps. They return a navigation params, a non-fetch scheme navigation params, or null.
  */
-create_navigation_params_by_fetching :: fonc (entry: *SessionHistoryEntry,
+create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
+                                              entry: *SessionHistoryEntry,
                                               navigable: *Navigable,
                                               source_snapshot_params: &SourceSnapshotParams,
                                               target_snapshot_params: &TargetSnapshotParams @inutilisée,
@@ -627,7 +640,7 @@ create_navigation_params_by_fetching :: fonc (entry: *SessionHistoryEntry,
             process_response.sur_rappel = sur_rappel_process_response
             process_response.sur_destruction = sur_destruction_process_response
 
-            fetch_controller = fetch(request, process_response = process_response)
+            fetch_controller = fetch(user_agent, request, process_response = process_response)
         }
         // 6. Otherwise, process the next manual redirect for fetchController.
         sinon {

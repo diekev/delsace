@@ -310,7 +310,8 @@ FetchTimingInfo :: struct {
  * https://fetch.spec.whatwg.org/#fetching
  * \{ */
 
-fetch :: fonc (request: *Request,
+fetch :: fonc (user_agent: *UserAgent,
+               request: *Request,
                process_request_body_chunk_length: *BaseProcessRequestBodyChunkLength = nul,
                process_request_end_of_body: *BaseProcessRequestEndOfBody = nul,
                process_early_hints_response: *BaseProcessEarlyHintsResponse = nul,
@@ -427,7 +428,7 @@ fetch :: fonc (request: *Request,
         // 2. Append record to request’s client’s fetch group list of fetch records.
 
     // 17. Run main fetch given fetchParams.
-    _ := main_fetch(fetch_params)
+    _ := main_fetch(user_agent, fetch_params)
 
     // 18. Return fetchParams’s controller.
     retourne fetch_params.controller
@@ -440,7 +441,7 @@ fetch :: fonc (request: *Request,
  * https://fetch.spec.whatwg.org/#main-fetch
  * \{ */
 
-main_fetch :: fonc (fetch_params: *FetchParams, recursive := faux) -> *Response
+main_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, recursive := faux) -> *Response
 {
     // 1. Let request be fetchParams’s request.
     request := fetch_params.request
@@ -486,7 +487,7 @@ main_fetch :: fonc (fetch_params: *FetchParams, recursive := faux) -> *Response
             request.response_tainting = "basic"
 
             // Return the result of running scheme fetch given fetchParams.
-            response = scheme_fetch(fetch_params)
+            response = scheme_fetch(user_agent, fetch_params)
         }
 
         // request’s mode is "same-origin"
@@ -599,7 +600,7 @@ response_handover :: fonc (fetch_params: *FetchParams, response: *Response)
  * https://fetch.spec.whatwg.org/#scheme-fetch
  * \{ */
 
-scheme_fetch :: fonc (fetch_params: *FetchParams) -> *Response
+scheme_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Response
 {
     // À FAIRE 1. If fetchParams is canceled, then retun the appropriate network error for fetchParams.
 
@@ -641,7 +642,7 @@ scheme_fetch :: fonc (fetch_params: *FetchParams) -> *Response
         retourne network_error()
     }
     sinon si schéma == "http" || schéma == "https" {
-        panique("http(s) non-implémenté")
+        retourne user_agent.lance_requête(request)
     }
 
     retourne network_error()

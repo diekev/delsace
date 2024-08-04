@@ -159,9 +159,79 @@ declarative_environment_with_base_object :: fonc (base: *Environment @inutilisé
 /** \nom Function Environment Record
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_func_env := TableVirtuelleCellule(classe = FunctionEnvironment)
+
+#portée_export
+
+ThisBindingStatus :: énum {
+    LEXICAL
+    INITIALIZED
+    UNINITIALIZED
+}
+
 FunctionEnvironment :: struct {
     empl base_decl: DeclarativeEnvironment
+    table = *table_virtuelle_func_env
 
+    function_object: *Function
+    new_target: Valeur
+    this_value: Valeur
+    this_binding_status: ThisBindingStatus
+}
+
+/* 9.1.2.4 NewFunctionEnvironment ( F, newTarget )
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-newfunctionenvironment */
+new_function_environment :: fonc (F: *Function, new_target: Valeur) -> *FunctionEnvironment
+{
+    tas_de_mémoire := F.donne_tas_de_mémoire()
+
+    // 1. Let env be a new Function Environment Record containing no bindings.
+    env := tas_de_mémoire.alloue(FunctionEnvironment)
+
+    // 2. Set env.[[FunctionObject]] to F.
+    env.function_object = F
+
+    // 3. If F.[[ThisMode]] is LEXICAL, set env.[[ThisBindingStatus]] to LEXICAL.
+    si F.this_mode == ThisMode.LEXICAL {
+        env.this_binding_status = ThisBindingStatus.LEXICAL
+    }
+    // 4. Else, set env.[[ThisBindingStatus]] to UNINITIALIZED.
+    sinon {
+        env.this_binding_status = ThisBindingStatus.UNINITIALIZED
+    }
+
+    // 5. Set env.[[NewTarget]] to newTarget.
+    env.new_target = new_target
+
+    // 6. Set env.[[OuterEnv]] to F.[[Environment]].
+    env.outer_environment = F.environment
+
+    // 7. Return env.
+    retourne env
+}
+
+/* 9.1.1.3.1 BindThisValue ( V )
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-bindthisvalue */
+bind_this_value :: fonc (env_rec: *FunctionEnvironment, V: Valeur) -> CompletionRecord
+{
+    // 1. Assert: envRec.[[ThisBindingStatus]] is not LEXICAL.
+    assert(env_rec.this_binding_status != ThisBindingStatus.LEXICAL)
+
+    // 2. If envRec.[[ThisBindingStatus]] is INITIALIZED, throw a ReferenceError exception.
+    si env_rec.this_binding_status == ThisBindingStatus.INITIALIZED {
+        retourne lance_reference_error(env_rec.function_object.realm, "this value already bound")
+    }
+
+    // 3. Set envRec.[[ThisValue]] to V.
+    env_rec.this_value = V
+
+    // 4. Set envRec.[[ThisBindingStatus]] to INITIALIZED.
+    env_rec.this_binding_status = ThisBindingStatus.INITIALIZED
+
+    // 5. Return V.
+    retourne normal_completion(V)
 }
 
 /** \} */
