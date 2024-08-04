@@ -432,7 +432,7 @@ RappelsFenetrePrincipale :: struct {
 
     page_web: PageWeb
     widget_rendu: *QT_GLWidget
-    widget_arbre_de_dispostion: *QT_TreeWidget
+    widget_arbre_de_disposition: *QT_TreeWidget
     widget_arbre_dom: *QT_TreeWidget
 
     /* Données rappels. */
@@ -676,14 +676,14 @@ crée_widget_vue_arbre_de_disposition :: fonc (fenêtre: *QT_Fenetre_Principale,
     rappels := QT_fenetre_principale_donne_rappels(fenêtre) comme *RappelsFenetrePrincipale
 
     résultat := crée_widget_arbre(nul, parent)
-    rappels.widget_arbre_de_dispostion = résultat
+    rappels.widget_arbre_de_disposition = résultat
     ajourne_widget_arbre_de_disposition(rappels)
     retourne résultat
 }
 
 ajourne_widget_arbre_de_disposition :: fonc (rappels: *RappelsFenetrePrincipale)
 {
-    QT_treewidget_efface(rappels.widget_arbre_de_dispostion)
+    QT_treewidget_efface(rappels.widget_arbre_de_disposition)
 
     document := donne_document(*rappels.page_web)
     saufsi document {
@@ -695,7 +695,7 @@ ajourne_widget_arbre_de_disposition :: fonc (rappels: *RappelsFenetrePrincipale)
         retourne
     }
 
-    widget := rappels.widget_arbre_de_dispostion
+    widget := rappels.widget_arbre_de_disposition
 
     item_document := QT_cree_treewidgetitem(nul, nul)
     QT_treewidgetitem_definis_indicateur_enfant(item_document, QT_Indicateur_Enfant_Arbre.INVISIBLE_SI_SANS_ENFANT)
