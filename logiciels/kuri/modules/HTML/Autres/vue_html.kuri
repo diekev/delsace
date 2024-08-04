@@ -1254,22 +1254,13 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Request) -> *RappelsRequê
         message := finalise_message(parseuse)
 
         contenu := copie_chaine(message.contenu)
+        content_type := donne_type_contenu(*message)
+        charset := donne_charset(*message)
 
-        entête_content_type := entête(*message, "Content-Type")
-        content_type := "text/html" // À FAIRE
-        si entête_content_type {
-            imprime("Content-Type : %\n", entête_content_type.valeur)
-
-            position_charset := cherche_aiguille_par_force_brute(entête_content_type.valeur, "charset=")
-            si position_charset != -1 {
-                charset := avance(entête_content_type.valeur, position_charset + "charset=".taille)
-
-                si charset == "ISO-8859-1" {
-                    nouveau_contenu := convertis_iso_8859_1_vers_utf8(message.contenu)
-                    déloge(contenu)
-                    contenu = nouveau_contenu
-                }
-            }
+        si compare_ascii_insensible_à_la_casse(charset,"ISO-8859-1" ) {
+            nouveau_contenu := convertis_iso_8859_1_vers_utf8(message.contenu)
+            déloge(contenu)
+            contenu = nouveau_contenu
         }
 
         response := loge(Response)
@@ -1277,7 +1268,7 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Request) -> *RappelsRequê
 
         body_info := loge(ResponseBodyInfo)
         body_info.decodede_size = message.contenu.taille comme z32
-        body_info.content_type = content_type
+        body_info.content_type = copie_chaine(content_type)
 
         response.body_info = body_info
         response.body = contenu
