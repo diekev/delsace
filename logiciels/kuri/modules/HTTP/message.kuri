@@ -68,6 +68,64 @@ est_type_contenu :: fonc (message: *MessageHTTP, type_contenu: chaine) -> bool
     retourne entête_type_contenu.valeur == type_contenu
 }
 
+donne_type_contenu :: fonc (message: *MessageHTTP) -> chaine
+{
+    entête_content_type := entête(message, "Content-Type")
+    saufsi entête_content_type {
+        retourne ""
+    }
+
+    valeur := entête_content_type.valeur
+    morceaux := divise(valeur, ';')
+    diffère déloge(morceaux)
+
+    résultat: chaine
+
+    si morceaux {
+        résultat = morceaux[0]
+    }
+    sinon {
+        résultat = valeur
+    }
+
+    retourne supprime_espaces_blancs(résultat)
+}
+
+donne_charset :: fonc (message: *MessageHTTP) -> chaine
+{
+    entête_content_type := entête(message, "Content-Type")
+    saufsi entête_content_type {
+        retourne ""
+    }
+
+    valeur := entête_content_type.valeur
+    morceaux := divise(valeur, ';')
+    diffère déloge(morceaux)
+
+    résultat: chaine
+
+    si morceaux {
+        pour 1 ... morceaux.taille - 1 {
+            morceaux_attribut := divise(morceaux[it], '=')
+            // À FAIRE(langage)
+            // diffère déloge(morceaux_attribut)
+
+            si morceaux_attribut.taille != 2 {
+                continue
+            }
+
+            saufsi compare_ascii_insensible_à_la_casse(morceaux_attribut[0], "charset") {
+                continue
+            }
+
+            résultat = morceaux_attribut[1]
+            arrête
+        }
+    }
+
+    retourne supprime_espaces_blancs(résultat)
+}
+
 valeur_entête_ou :: fonc (message: *MessageHTTP, nom: chaine, défaut: chaine) -> chaine
 {
     entête_pour_nom := entête(message, nom)
