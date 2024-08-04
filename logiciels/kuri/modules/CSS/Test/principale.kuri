@@ -13,7 +13,7 @@ principale :: fonc () -> z32
     diffère détruit_données_contexte(*ctx)
 
     stylesheet := parse_a_css_style_sheet(*ctx, contenu)
-    rapporte_propriétés_non_supportées(*ctx)
+    rapporte_propriétés_non_supportées(*ctx, #nom_de_cette_fonction)
 
     élément := crée_chaine_utf16("p")
 

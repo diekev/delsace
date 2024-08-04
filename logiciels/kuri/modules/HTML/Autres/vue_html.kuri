@@ -95,8 +95,6 @@ principale :: fonc () -> z32
     rappels_user_agent := crée_rappels_interface_qt(fenêtre)
     définis_rappels_interface(*rappels_fenêtre.user_agent, rappels_user_agent)
 
-    rappels_fenêtre.chargeuse_ressource.rappels_interface = crée_rappels_interface_qt(fenêtre)
-
     si chemin_fichier {
         évènement := loge(ÉvènementCréationOnglet)
         évènement.uri = chemin_fichier
@@ -116,6 +114,11 @@ principale :: fonc () -> z32
 évènement_sur_création_onglet : z32 = -1
 évènement_sur_survole_élément : z32 = -1
 évènement_sur_requête_rendu : z32 = -1
+évènement_sur_tâche_manipulation_dom : z32 = -1
+évènement_sur_tâche_interaction_utilisateur : z32 = -1
+évènement_sur_tâche_réseautage : z32 = -1
+évènement_sur_tâche_navigation_et_traversée : z32 = -1
+évènement_sur_tâche_rendu : z32 = -1
 
 ÉvènementCréationOnglet :: struct {
     uri: chaine
@@ -126,6 +129,11 @@ initialise_évènements_personnalisés :: fonc ()
     évènement_sur_création_onglet = QT_enregistre_evenement_personnel()
     évènement_sur_survole_élément = QT_enregistre_evenement_personnel()
     évènement_sur_requête_rendu = QT_enregistre_evenement_personnel()
+    évènement_sur_tâche_manipulation_dom = QT_enregistre_evenement_personnel()
+    évènement_sur_tâche_interaction_utilisateur = QT_enregistre_evenement_personnel()
+    évènement_sur_tâche_réseautage = QT_enregistre_evenement_personnel()
+    évènement_sur_tâche_navigation_et_traversée = QT_enregistre_evenement_personnel()
+    évènement_sur_tâche_rendu = QT_enregistre_evenement_personnel()
 }
 
 sur_filtre_evenement_impl :: fonc (base: *QT_Rappels_Fenetre_Principale, event: *QT_Evenement) -> z32
@@ -136,9 +144,6 @@ sur_filtre_evenement_impl :: fonc (base: *QT_Rappels_Fenetre_Principale, event: 
         rappels := base comme *RappelsFenetrePrincipale
 
         message := QT_event_perso_donne_donnees(event) comme *ÉvènementCréationOnglet
-
-        // ressource := crée_ressource_pour_chargement_page_web(rappels.fenetre, message.uri)
-        // charge_ressource(*rappels.chargeuse_ressource, ressource, vrai)
 
         uri: URI
 
@@ -187,6 +192,17 @@ sur_filtre_evenement_impl :: fonc (base: *QT_Rappels_Fenetre_Principale, event: 
     si type == évènement_sur_requête_rendu {
         rappels := base comme *RappelsFenetrePrincipale
         QT_widget_ajourne(rappels.widget_rendu)
+        QT_evenement_accepte(event)
+        retourne 1
+    }
+
+    si type == évènement_sur_tâche_manipulation_dom ||
+       type == évènement_sur_tâche_interaction_utilisateur ||
+       type == évènement_sur_tâche_réseautage ||
+       type == évènement_sur_tâche_navigation_et_traversée ||
+       type == évènement_sur_tâche_rendu {
+        algorithm := QT_event_perso_donne_donnees(event) comme *Algorithm
+        algorithm.run()
         QT_evenement_accepte(event)
         retourne 1
     }
@@ -328,9 +344,7 @@ sur_fermeture_application :: fonc (base: *QT_Rappel_Generique)
     rappel := base comme *RappelFermetureApp
     détruit_données_page_web(*rappel.rappels_fenêtre.page_web)
     détruit_données_user_agent(*rappel.rappels_fenêtre.user_agent)
-
-    rappels_interface := rappel.rappels_fenêtre.chargeuse_ressource.rappels_interface comme *RappelsInterfaceQt
-    déloge(rappels_interface)
+    détruit_table_chaines_utf16_uniques()
 }
 
 /** \} */
@@ -345,6 +359,7 @@ BarreDeDéfilement :: struct {
     est_survolé: bool
     pos_clique_y: r32
     hauteur: r32
+    ratio: r32 = 1.0
 }
 
 décale_par :: fonc (barre: *BarreDeDéfilement, delta: r32)
@@ -416,8 +431,8 @@ RappelsFenetrePrincipale :: struct {
     user_agent: UserAgent
 
     page_web: PageWeb
-    chargeuse_ressource: ChargeuseRessource
     widget_rendu: *QT_GLWidget
+    widget_arbre_de_dispostion: *QT_TreeWidget
 
     /* Données rappels. */
     sur_filtre_evenement = sur_filtre_evenement_impl
@@ -553,7 +568,7 @@ ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *Noeud)
         initialise_enchaineuse(*enchaineuse)
         diffère détruit_tampons(*enchaineuse)
 
-        ajoute_au_tampon(*enchaineuse, "<", élément.texte)
+        ajoute_au_tampon(*enchaineuse, "<", élément.local_name)
 
         pour noeud.attributs {
             ajoute_au_tampon(*enchaineuse, " ", it.nom, "=\"", it.valeur, "\"")
@@ -620,9 +635,11 @@ crée_widget_vue_texte :: fonc (fenêtre: *QT_Fenetre_Principale, parent: QT_Gen
     QT_plain_text_edit_definis_mode_retour_ligne(résultat, QT_Line_Wrap_Mode.AUCUN)
     si document {
         body := document.donne_élément_body()
-        texte := extrait_texte_noeud(body)
-        diffère déloge(texte)
-        QT_plain_text_edit_definis_texte(résultat, texte)
+        si body {
+            texte := extrait_texte_noeud(body)
+            diffère déloge(texte)
+            QT_plain_text_edit_definis_texte(résultat, texte)
+        }
     }
     retourne résultat
 }
@@ -638,22 +655,38 @@ crée_widget_vue_arbre_de_disposition :: fonc (fenêtre: *QT_Fenetre_Principale,
     rappels := QT_fenetre_principale_donne_rappels(fenêtre) comme *RappelsFenetrePrincipale
 
     résultat := crée_widget_arbre(nul, parent)
-
-    arbre := crée_arbre_de_disposition(*rappels.page_web, 1916)
-    si arbre {
-        item_document := QT_cree_treewidgetitem(nul, nul)
-        QT_treewidgetitem_definis_indicateur_enfant(item_document, QT_Indicateur_Enfant_Arbre.INVISIBLE_SI_SANS_ENFANT)
-        texte := donne_texte_item_pour_noeud(arbre.racine)
-        diffère déloge_si_logée(texte)
-        qtexte := vers_qt(texte)
-        QT_treewidgetitem_definis_texte(item_document, 0, *qtexte)
-        QT_treewidget_ajoute_item_racine(résultat, item_document)
-
-        pour arbre.racine.enfants {
-            ajoute_item_pour_noeud(item_document, it)
-        }
-    }
+    rappels.widget_arbre_de_dispostion = résultat
+    ajourne_widget_arbre_de_disposition(rappels)
     retourne résultat
+}
+
+ajourne_widget_arbre_de_disposition :: fonc (rappels: *RappelsFenetrePrincipale)
+{
+    QT_treewidget_efface(rappels.widget_arbre_de_dispostion)
+
+    document := donne_document(*rappels.page_web)
+    saufsi document {
+        retourne
+    }
+
+    arbre := document.arbre_de_disposition
+    saufsi arbre {
+        retourne
+    }
+
+    widget := rappels.widget_arbre_de_dispostion
+
+    item_document := QT_cree_treewidgetitem(nul, nul)
+    QT_treewidgetitem_definis_indicateur_enfant(item_document, QT_Indicateur_Enfant_Arbre.INVISIBLE_SI_SANS_ENFANT)
+    texte := donne_texte_item_pour_noeud(arbre.racine)
+    diffère déloge_si_logée(texte)
+    qtexte := vers_qt(texte)
+    QT_treewidgetitem_definis_texte(item_document, 0, *qtexte)
+    QT_treewidget_ajoute_item_racine(widget, item_document)
+
+    pour arbre.racine.enfants {
+        ajoute_item_pour_noeud(item_document, it)
+    }
 }
 
 ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *CSS.NoeudDeDisposition)
@@ -683,7 +716,13 @@ donne_texte_item_pour_noeud :: fonc (noeud: *CSS.NoeudDeDisposition) -> chaine
     }
 
     noeud_bloc := noeud comme *CSS.NoeudDeDispositionBloc
-    retourne imprime_chaine("% (%) [%x%] [%x%]", CSS.donne_nom_classe(noeud), noeud_bloc.élément.texte, noeud.position_x, noeud.position_y, noeud.largeur, noeud.hauteur)
+
+    local_name := crée_chaine_utf16_unique("#anonyme")
+    si noeud_bloc.élément {
+        local_name = noeud_bloc.élément.local_name
+    }
+
+    retourne imprime_chaine("% (%) [%x%] [%x%]", CSS.donne_nom_classe(noeud), local_name, noeud.position_x, noeud.position_y, noeud.largeur, noeud.hauteur)
 }
 
 /** \} */
@@ -695,7 +734,7 @@ donne_texte_item_pour_noeud :: fonc (noeud: *CSS.NoeudDeDisposition) -> chaine
 crée_widget_pour_rendu :: fonc (fenêtre: *QT_Fenetre_Principale, parent: QT_Generic_Widget) -> *QT_GLWidget
 {
     rappels := QT_fenetre_principale_donne_rappels(fenêtre) comme *RappelsFenetrePrincipale
-    résultat := crée_vue_rendu_page(parent, *rappels.page_web)
+    résultat := crée_vue_rendu_page(fenêtre, parent, *rappels.page_web)
     retourne résultat
 }
 
@@ -711,6 +750,7 @@ VueRenduPage :: struct {
     sur_relachement_souris = vue_rendu_page_sur_relachement_souris
     sur_molette_souris = vue_rendu_page_sur_molette_souris
 
+    fenêtre_principale: *QT_Fenetre_Principale
     page: *PageWeb
 
     hauteur: z32
@@ -719,10 +759,11 @@ VueRenduPage :: struct {
     peintre: *Peintre
 }
 
-crée_vue_rendu_page :: fonc (parent: QT_Generic_Widget, page: *PageWeb) -> *QT_GLWidget
+crée_vue_rendu_page :: fonc (fenêtre_principale: *QT_Fenetre_Principale, parent: QT_Generic_Widget, page: *PageWeb) -> *QT_GLWidget
 {
     rappels := loge(VueRenduPage)
     rappels.page = page
+    rappels.fenêtre_principale = fenêtre_principale
     résultat := QT_cree_glwidget(rappels, parent)
     QT_widget_definis_trackage_souris(résultat, vrai)
     retourne résultat
@@ -764,9 +805,16 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glClearColor(1.0, 1.0, 1.0, 1.0)
 
-    arbre := crée_arbre_de_disposition(vue_rendu_page.page, vue_rendu_page.largeur)
+    ancien_arbre := donne_arbre_de_disposition(vue_rendu_page.page)
+
+    arbre := crée_arbre_de_disposition(vue_rendu_page.page, vue_rendu_page.largeur, vue_rendu_page.hauteur)
     saufsi arbre && arbre.racine {
         retourne
+    }
+
+    si ancien_arbre != arbre {
+        rappels := QT_fenetre_principale_donne_rappels(vue_rendu_page.fenêtre_principale) comme *RappelsFenetrePrincipale
+        ajourne_widget_arbre_de_disposition(rappels)
     }
 
     page := vue_rendu_page.page
@@ -780,7 +828,7 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
 
     racine := arbre.racine
     si racine.hauteur > vue_rendu_page.hauteur comme n32 {
-        ctx.décalage_y = page.défilement_vertical.rect.y
+        ctx.décalage_y = page.défilement_vertical.rect.y / page.défilement_vertical.ratio
     }
 
     // début_rendu := maintenant_précis()
@@ -795,6 +843,7 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
 
         largeur_barre := 12.0
         hauteur_barre := hauteur_vue * hauteur_vue / hauteur_page
+        page.défilement_vertical.ratio = hauteur_vue / hauteur_page
 
         rect_barre: RectanglePosDim(r32)
         si page.défilement_vertical.rect.largeur == 0.0 {
@@ -837,6 +886,7 @@ vue_rendu_page_sur_redimensionnement :: fonc (rappels: *QT_Rappels_GLWidget, tai
     }
     /* Réinitialise la barre de défilement. */
     page.défilement_vertical.rect.largeur = 0.0
+    page.défilement_vertical.ratio = 1.0
     page.défilement_vertical.hauteur = vue_rendu_page.hauteur comme r32
 }
 
@@ -1002,12 +1052,12 @@ donne_feuille_de_style_défaut :: fonc () -> *CSS.CSSStyleSheet
     diffère CSS.détruit_données_contexte(*ctx)
 
     stylesheet := CSS.parse_a_css_style_sheet(*ctx, contenu)
-    CSS.rapporte_propriétés_non_supportées(*ctx)
+    CSS.rapporte_propriétés_non_supportées(*ctx, #nom_de_cette_fonction)
 
     retourne stylesheet
 }
 
-crée_arbre_de_disposition :: fonc (page: *PageWeb, largeur: z32) -> *CSS.ArbreDeDisposition
+crée_arbre_de_disposition :: fonc (page: *PageWeb, largeur: z32, hauteur: z32) -> *CSS.ArbreDeDisposition
 {
     document := donne_document(page)
     saufsi document {
@@ -1018,61 +1068,22 @@ crée_arbre_de_disposition :: fonc (page: *PageWeb, largeur: z32) -> *CSS.ArbreD
         retourne document.arbre_de_disposition
     }
 
-    saufsi document.feuilles_de_style {
-        document.ajoute_feuille_de_style(donne_feuille_de_style_défaut())
+    saufsi document.feuille_de_style_agent {
+        document.feuille_de_style_agent = donne_feuille_de_style_défaut()
+        tableau_insère_index(*document.feuilles_de_style, document.feuille_de_style_agent, 0)
     }
-    CSS.crée_arbre_de_disposition(document, largeur)
+    CSS.crée_arbre_de_disposition(document, largeur, hauteur)
     retourne document.arbre_de_disposition
 }
 
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom ChargeuseRessource
- * \{ */
-
-ChargeuseRessource :: struct {
-    ressources_en_chargement: [..]*Ressource
-    rappels_interface: *RappelsInterface
-}
-
-charge_ressource :: fonc (chargeuse: *ChargeuseRessource, ressource: *Ressource, async: bool)
+donne_arbre_de_disposition :: fonc (page: *PageWeb) -> *CSS.ArbreDeDisposition
 {
-    si est_fichier(ressource) {
-        contenu := contenu_fichier_texte(ressource.uri.chemin)
-        ressource_fut_chargée(ressource, contenu)
-        retourne
+    document := donne_document(page)
+    saufsi document {
+        retourne nul
     }
 
-    requête := loge(Requête)
-    requête.ressource = ressource
-    lance_requête(chargeuse, requête)
-
-    saufsi async {
-        tantque !ressource.chargement_terminé {
-            spin_event_loop(chargeuse)
-        }
-    }
-}
-
-lance_requête :: fonc (chargeuse: *ChargeuseRessource, requête: *Requête)
-{
-    rappels := chargeuse.rappels_interface
-    saufsi rappels && rappels.sur_lancement_requête {
-        retourne
-    }
-
-    rappels.sur_lancement_requête(rappels, requête)
-}
-
-spin_event_loop :: fonc (chargeuse: *ChargeuseRessource)
-{
-    rappels := chargeuse.rappels_interface
-    saufsi rappels && rappels.sur_spin_event_loop {
-        retourne
-    }
-
-    rappels.sur_spin_event_loop(rappels)
+    retourne document.arbre_de_disposition
 }
 
 /** \} */
@@ -1095,6 +1106,7 @@ crée_rappels_interface_qt :: fonc (fenêtre: *QT_Fenetre_Principale) -> *Rappel
     résultat.sur_requête_rendu = rappels_interface_sur_requête_rendu
     résultat.sur_lancement_requête = rappels_interface_sur_lancement_requête
     résultat.sur_spin_event_loop = rappels_interface_sur_spin_event_loop
+    résultat.sur_enfile_une_tâche = rappels_interface_sur_enfile_une_tâche
     retourne résultat
 }
 
@@ -1116,7 +1128,18 @@ rappels_interface_sur_requête_rendu :: fonc (base: *RappelsInterface)
     QT_application_poste_evenement(rappels.fenêtre, évènement_sur_requête_rendu)
 }
 
-rappels_interface_sur_lancement_requête :: fonc (base: *RappelsInterface, requête: *Requête)
+RappelsRequête :: struct {
+    empl base: QT_Rappels_Socket
+
+    requête: *Request
+    parseuse: ParseuseMessageServeuseHTTP
+    response: *Response
+
+    temps_parsage_http: z64
+    début_requête: Instantané
+}
+
+rappels_interface_sur_lancement_requête :: fonc (base: *RappelsInterface, requête: *Request) -> *Response
 {
     rappels := base comme *RappelsInterfaceQt
 
@@ -1124,33 +1147,29 @@ rappels_interface_sur_lancement_requête :: fonc (base: *RappelsInterface, requ�
 
     parent := rappels.fenêtre
 
-    uri := requête.ressource.uri
+    uri := requête.donne_url_courant()
     hôte := uri.hôte
     port := port_pour_uri(uri)
 
-    si requête.est_http() {
+    si uri.schéma == "http" {
         prise := QT_cree_ssl_socket_rappels(parent, rappels_socket)
         QT_abstract_socket_connect_to_host(prise, hôte.vers_qt(), port)
     }
     sinon {
-        assert(requête.est_https())
+        assert(uri.schéma == "https")
         prise := QT_cree_ssl_socket_rappels(parent, rappels_socket)
         QT_ssl_socket_connect_to_host_encrypted(prise, hôte.vers_qt(), port)
     }
-}
 
-crée_rappel_socket_pour_requête :: fonc (requête: *Requête) -> *QT_Rappels_Socket
-{
-    RappelsRequête :: struct {
-        empl base: QT_Rappels_Socket
-
-        requête: *Requête
-        parseuse: ParseuseMessageServeuseHTTP
-
-        temps_parsage_http: z64
-        début_requête: Instantané
+    tantque rappels_socket.response == nul {
+        rappels_interface_sur_spin_event_loop(rappels)
     }
 
+    retourne rappels_socket.response
+}
+
+crée_rappel_socket_pour_requête :: fonc (requête: *Request) -> *RappelsRequête
+{
     sur_connexion :: fonc (base: *QT_Rappels_Socket)
     {
         rappels := base comme *RappelsRequête
@@ -1161,7 +1180,7 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Requête) -> *QT_Rappels_S
         initialise_enchaineuse(*enchaineuse)
         diffère détruit_tampons(*enchaineuse)
 
-        uri := rappels.requête.ressource.uri
+        uri := rappels.requête.donne_url_courant()
 
         ajoute_au_tampon(*enchaineuse, "GET ")
         si uri.chemin {
@@ -1197,14 +1216,13 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Requête) -> *QT_Rappels_S
     {
         rappels := base comme *RappelsRequête
         imprime("Erreur\n")
-        ressource_eu_erreur(rappels.requête.ressource)
+        rappels.response = network_error()
     }
 
     sur_prêt_à_lire :: fonc (base: *QT_Rappels_Socket)
     {
         rappels := base comme *RappelsRequête
         parseuse := *rappels.parseuse
-        requête := rappels.requête
 
         enchaineuse: Enchaineuse
         initialise_enchaineuse(*enchaineuse)
@@ -1235,24 +1253,36 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Requête) -> *QT_Rappels_S
 
         message := finalise_message(parseuse)
 
-        content_type := entête(*message, "Content-Type")
-        si content_type {
-            // imprime("Content-Type : %\n", content_type.valeur)
+        contenu := copie_chaine(message.contenu)
 
-            position_charset := cherche_aiguille_par_force_brute(content_type.valeur, "charset=")
+        entête_content_type := entête(*message, "Content-Type")
+        content_type := "text/html" // À FAIRE
+        si entête_content_type {
+            imprime("Content-Type : %\n", entête_content_type.valeur)
+
+            position_charset := cherche_aiguille_par_force_brute(entête_content_type.valeur, "charset=")
             si position_charset != -1 {
-                charset := avance(content_type.valeur, position_charset + "charset=".taille)
+                charset := avance(entête_content_type.valeur, position_charset + "charset=".taille)
 
                 si charset == "ISO-8859-1" {
                     nouveau_contenu := convertis_iso_8859_1_vers_utf8(message.contenu)
-                    déloge(message.contenu)
-                    message.contenu = nouveau_contenu
+                    déloge(contenu)
+                    contenu = nouveau_contenu
                 }
             }
         }
 
-        requête.message = message
-        ressource_fut_chargée(requête.ressource, message.contenu)
+        response := loge(Response)
+        response.status = message.status
+
+        body_info := loge(ResponseBodyInfo)
+        body_info.decodede_size = message.contenu.taille comme z32
+        body_info.content_type = content_type
+
+        response.body_info = body_info
+        response.body = contenu
+
+        rappels.response = response
 
         réinitialise(parseuse)
 
@@ -1270,6 +1300,29 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Requête) -> *QT_Rappels_S
 rappels_interface_sur_spin_event_loop :: fonc (base: *RappelsInterface @inutilisée)
 {
     QT_application_process_events()
+}
+
+rappels_interface_sur_enfile_une_tâche :: fonc (base: *RappelsInterface, source: SourceDeTâche, algorithm: *Algorithm)
+{
+    rappels := base comme *RappelsInterfaceQt
+
+    discr source {
+        ManipulationDOM {
+            QT_application_poste_evenement_et_donnees(rappels.fenêtre, évènement_sur_tâche_manipulation_dom, algorithm)
+        }
+        InteractionUtilisateur {
+            QT_application_poste_evenement_et_donnees(rappels.fenêtre, évènement_sur_tâche_interaction_utilisateur, algorithm)
+        }
+        Réseautage {
+            QT_application_poste_evenement_et_donnees(rappels.fenêtre, évènement_sur_tâche_réseautage, algorithm)
+        }
+        NavigationEtTraversée {
+            QT_application_poste_evenement_et_donnees(rappels.fenêtre, évènement_sur_tâche_navigation_et_traversée, algorithm)
+        }
+        Rendu {
+            QT_application_poste_evenement_et_donnees(rappels.fenêtre, évènement_sur_tâche_rendu, algorithm)
+        }
+    }
 }
 
 /** \} */

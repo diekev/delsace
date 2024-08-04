@@ -78,6 +78,7 @@ Document :: struct {
     is_initial_about_blank: bool
 
     /* CSS. */
+    feuille_de_style_agent: *CSS.CSSStyleSheet
     feuilles_de_style: [..]*CSS.CSSStyleSheet
     arbre_de_disposition: *CSS.ArbreDeDisposition
     globales_dessin: *CSS.GlobalesDessin
@@ -191,7 +192,7 @@ donne_élément_document :: fonc (document: *Document) -> *Élément
 donne_élément_html :: fonc (document: *Document) -> *HTMLHtmlElement
 {
     élément := donne_élément_document(document)
-    si élément && élément.texte == TAG_html {
+    si élément && élément.local_name == TAG_html {
         retourne élément comme *HTMLHtmlElement
     }
     retourne nul
@@ -223,6 +224,19 @@ ajoute_feuille_de_style :: fonc (document: *Document, feuille_de_style: *CSS.CSS
     tableau_ajoute(*document.feuilles_de_style, feuille_de_style)
 }
 
+supprime_feuille_de_style_associée :: fonc (document: *Document, élément: *Élément)
+{
+    pour document.feuilles_de_style {
+        si it.owner_node != élément {
+            continue
+        }
+
+        tableau_supprime_index(*document.feuilles_de_style, index_it)
+        CSS.détruit_feuille_de_style(it)
+        arrête
+    }
+}
+
 définis_noeud_survolé :: fonc (document: *Document, noeud: *Élément)
 {
     si document.noeud_survolé == noeud {
@@ -238,10 +252,9 @@ définis_noeud_survolé :: fonc (document: *Document, noeud: *Élément)
     }
 }
 
-/* Invalide le style suite à la modification d'une pseudo-classe. */
-invalide_style :: fonc (document: *Document, pseudo_classe: CSS.PseudoClasses @inutilisée)
+/* Invalide le style de manière générale. */
+invalide_style :: fonc (document: *Document)
 {
-    /* À FAIRE : utilise la pseudo-classe, et ne détruit pas l'arbre. */
     CSS.détruit_arbre(document.arbre_de_disposition)
     document.arbre_de_disposition = nul
 
@@ -251,17 +264,18 @@ invalide_style :: fonc (document: *Document, pseudo_classe: CSS.PseudoClasses @i
     }
 }
 
+/* Invalide le style suite à la modification d'une pseudo-classe. */
+invalide_style :: fonc (document: *Document, pseudo_classe: CSS.PseudoClasses @inutilisée)
+{
+    /* À FAIRE : utilise la pseudo-classe, et ne détruit pas l'arbre. */
+    document.invalide_style()
+}
+
 /* Invalide le style suite au redimensionnement de la fenêtre. */
 invalide_style_pour_redimensionnement :: fonc (document: *Document)
 {
     /* À FAIRE : ne détruit pas l'arbre, refait une disposition. */
-    CSS.détruit_arbre(document.arbre_de_disposition)
-    document.arbre_de_disposition = nul
-
-    user_agent := document.donne_user_agent()
-    si user_agent {
-        user_agent.requiers_rendu()
-    }
+    document.invalide_style()
 }
 
 donne_user_agent :: fonc (document: *Document) -> *UserAgent

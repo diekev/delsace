@@ -363,7 +363,7 @@ imprime_complétion :: fonc (enchaineuse: *Enchaineuse, completion: *CompletionR
         retourne
     }
 
-    saufsi completion.type == CompletionRecord.Type.NORMAL {
+    saufsi completion.type == CompletionRecord.Type.NORMAL || completion.type == CompletionRecord.Type.RETURN {
         ajoute_au_tampon(enchaineuse, "À FAIRE : impression des complétions anormales.")
         retourne
     }
@@ -479,7 +479,7 @@ exécute :: fonc (interpréteuse: &Interpréteuse, programme: *Programme) -> Com
     retourne exécute(interpréteuse, programme, TypeScope.AUCUN)
 }
 
-exécute :: fonc (interpréteuse: &Interpréteuse, noeud: *NoeudSyntaxique, type_scope: TypeScope) -> CompletionRecord
+exécute :: fonc (interpréteuse: &Interpréteuse, noeud: *NoeudSyntaxique, type_scope: TypeScope @inutilisée) -> CompletionRecord
 {
     si noeud.type != NoeudScope && noeud.type != Programme && noeud.type != BlockStatement {
         retourne exécute_noeud(noeud, interpréteuse)
@@ -495,12 +495,6 @@ exécute :: fonc (interpréteuse: &Interpréteuse, noeud: *NoeudSyntaxique, type
         résultat = exécute_noeud(it, interpréteuse)
         si résultat.est_normal() {
             continue
-        }
-
-        si résultat.est_return() {
-            si type_scope == TypeScope.FUNCTION {
-                retourne normal_completion(résultat.valeur)
-            }
         }
 
         retourne résultat
