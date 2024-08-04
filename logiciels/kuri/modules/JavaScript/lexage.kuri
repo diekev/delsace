@@ -74,8 +74,12 @@ initialise_fanions_caractères :: fonc ()
             fanion = (FanionCaractère.Opérateur)
         }
 
-        si it == '=' {
-            fanion = (FanionCaractère.Opérateur | FanionCaractère.PeutSuivreOpérateur)
+        si it == '=' || it == '?' {
+            fanion |= (FanionCaractère.Opérateur | FanionCaractère.PeutSuivreOpérateur)
+        }
+
+        si it == ':' {
+            fanion |= FanionCaractère.Opérateur
         }
 
         si it == '<' || it == '>' || it == '&' || it == '|' || it == '+' {
@@ -94,65 +98,10 @@ initialise_fanions_caractères :: fonc ()
     }
 }
 
-// doit être dans le même ordre que les définitions dans GenreLexème
-chaines_opérateurs := [ "+", "-", "*", "/", "%", "<", ">", "<<", ">>", "&", "&&", "|", "||", "^", "~", "!", "=", "+=", "-=", "*=", "/=", "%=", "<=", ">=", "<<=", ">>=", "&=", "|=", "^=", "==", "!=", "===", "!==", "++", "--" ]
-
-empreintes_opérateurs: [chaines_opérateurs.taille]z32
-
-calcule_empreintes_opérateurs :: fonc ()
-{
-    pour chaines_opérateurs {
-        empreinte := 0
-
-        pour c, index_c dans it {
-            empreinte += (c * (index_c + 1)) comme z32
-        }
-
-        empreintes_opérateurs[index_it] = empreinte
-    }
-}
-
-génère_tableaux :: fonc ()
-{
-    empreintes : [32]z32 = ---
-
-    pour opérateurs {
-        empreinte := 0
-
-        pour c, index_c dans it {
-            empreinte += (c * (index_c + 1)) comme z32
-        }
-
-        empreintes[index_it] = empreinte
-    }
-
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-
-    ajoute_au_tampon(*enchaineuse, "empreintes_opérateurs : [32]z32 = ")
-
-    virgule := "[ "
-
-    pour empreintes {
-        ajoute_au_tampon(*enchaineuse, virgule, it)
-        virgule = ", "
-    }
-
-    ajoute_au_tampon(*enchaineuse, " ]")
-
-    chn := chaine_depuis_enchaineuse(*enchaineuse)
-    imprime("%\n", chn)
-
-    // À FAIRE : ajoute la chaine de compilation dans ce module, pour cet espace de travail
-}
-
-// #exécute génère_tableaux()
-
 initialise_données_globales :: fonc ()
 {
     // À FAIRE : nous pourrions utiliser un métaprogramme pour générer ces données
     initialise_fanions_caractères()
-    calcule_empreintes_opérateurs()
 }
 
 #ajoute_init initialise_données_globales()
@@ -229,8 +178,12 @@ débute_lexème :: fonc (empl lexeuse: &Lexeuse) #enligne
 
 crée_lexème :: fonc (empl lexeuse: &Lexeuse, genre: GenreLexème) -> Lexème
 {
-    texte := construit_chaine(début_mot, (début_source - début_mot) comme z32)
-    retourne Lexème(genre = genre, texte = texte)
+    retourne Lexème(genre = genre, texte = lexeuse.donne_texte_courant())
+}
+
+donne_texte_courant :: fonc (empl lexeuse: &Lexeuse) -> chaine #enligne
+{
+    retourne construit_chaine(début_mot, (début_source - début_mot) comme z32)
 }
 
 crée_lexème_pour_caractère :: fonc (lexeuse: &Lexeuse, genre: GenreLexème) -> Lexème
@@ -481,9 +434,6 @@ donne_lexème_suivant :: fonc (lexeuse: &Lexeuse) -> Résultat(Lexème, ErreurCo
     si fanion.Opérateur {
         lexeuse.débute_lexème()
 
-        empreinte := c comme z32
-        taille_mot_courant := 1
-
         tantque !fini(lexeuse) {
             c = lexeuse.caractère_courant()
             fanion = fanions_caractères[c comme n8]
@@ -492,26 +442,16 @@ donne_lexème_suivant :: fonc (lexeuse: &Lexeuse) -> Résultat(Lexème, ErreurCo
                 arrête
             }
 
-            empreinte += c comme z32 * (taille_mot_courant + 1)
-
             lexeuse.avance()
-            taille_mot_courant += 1
         }
 
-        genre_lexème: GenreLexème
-
-        pour empreintes_opérateurs {
-            si it == empreinte {
-                genre_lexème = ((GenreLexème.Plus comme z32) + index_it comme z32) comme GenreLexème
-                arrête
-            }
-        }
-        sansarrêt {
+        opt_genre := rafine_genre_lexème_opérateur(lexeuse.donne_texte_courant())
+        saufsi opt_genre.possède_valeur() {
             lexeuse.début_source = lexeuse.début_mot
             retourne rapporte_erreur(lexeuse, "Opérateur inconnu")
         }
 
-        retourne crée_lexème(lexeuse, genre_lexème)
+        retourne crée_lexème(lexeuse, opt_genre.Quelque)
     }
 
     // cas à gérer : caractères littéraux
