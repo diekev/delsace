@@ -1547,6 +1547,8 @@ infos_types_propriétés := [
     InfoTypePropriété(PROP_max_width, parse_propriété_max_height_width, PropriétéHéritable.Non)
 ]
 
+#portée_export
+
 donne_info_type_pour_nom :: fonc (nom: CSSOMString) -> *InfoTypePropriété
 {
     pour infos_types_propriétés {
@@ -1556,8 +1558,6 @@ donne_info_type_pour_nom :: fonc (nom: CSSOMString) -> *InfoTypePropriété
     }
     retourne nul
 }
-
-#portée_export
 
 /** } */
 
