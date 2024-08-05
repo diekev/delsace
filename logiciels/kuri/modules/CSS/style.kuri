@@ -65,6 +65,17 @@ PropriétésDeStyle :: struct {
     déclarations: [..]*DéclarationPropriété
 }
 
+copie_propriétés :: fonc (source: *PropriétésDeStyle) -> *PropriétésDeStyle
+{
+    résultat := loge(PropriétésDeStyle)
+
+    pour source.déclarations {
+        ajoute_déclaration(résultat, it)
+    }
+
+    retourne résultat
+}
+
 détruit_données_propriétés :: fonc (propriétés: *PropriétésDeStyle)
 {
     déloge(propriétés.déclarations)

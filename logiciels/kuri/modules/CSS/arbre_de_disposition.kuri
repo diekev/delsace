@@ -376,32 +376,73 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
     noeud_disposition.est_disposition_inline = doit_formatter_en_blocs == faux
 
     saufsi noeud_disposition.est_disposition_inline {
-        /* À FAIRE : les noeuds Inline doivent être divisés
-         * https://www.w3.org/TR/2011/REC-CSS2-20110607/visuren.html#anonymous-block-level */
-        assert(noeud_disposition.type != NoeudDeDispositionInline)
+        si noeud_disposition.type == NoeudDeDispositionInline {
+            assert(parent != nul)
 
-        nouveaux_enfants: [..]*NoeudDeDisposition
+            /* When an inline box contains an in-flow block-level box, the inline box (and its
+             * inline ancestors within the same line box) are broken around the block-level
+             * box (and any block-level siblings that are consecutive or separated only by
+             * collapsible whitespace and/or out-of-flow elements), splitting the inline box
+             * into two boxes (even if either side is empty), one on each side of the
+             * block-level box(es). The line boxes before the break and after the break are
+             * enclosed in anonymous block boxes, and the block-level box becomes a sibling of
+             * those anonymous boxes. When such an inline box is affected by relative
+             * positioning, any resulting translation also affects the block-level box
+             * contained in the inline box.
+             *
+             * À FAIRE : récursion
+             *
+             * https://www.w3.org/TR/2011/REC-CSS2-20110607/visuren.html#anonymous-block-level */
+            anciens_enfants := noeud_disposition.enfants
+            diffère déloge(anciens_enfants)
 
-        bloc_anonyme_courant: *NoeudDeDispositionBloc
-        pour noeud_disposition.enfants {
-            si it.type == NoeudDeDispositionBloc {
-                tableau_ajoute(*nouveaux_enfants, it)
-                bloc_anonyme_courant = nul
-                continue
+            noeud_inline_courant := noeud_disposition
+            noeud_inline_courant.enfants.pointeur = nul
+            noeud_inline_courant.enfants.taille = 0
+            noeud_inline_courant.enfants.capacité = 0
+
+            pour anciens_enfants {
+                si it.type == NoeudDeDispositionBloc {
+                    parent.ajoute_enfant(it)
+                    noeud_inline_courant = nul
+                    continue
+                }
+
+                si noeud_inline_courant == nul {
+                    noeud_inline_courant = arbre.crée_noeud(NoeudDeDispositionInline)
+                    noeud_inline_courant.parent = noeud_disposition
+                    noeud_inline_courant.est_disposition_inline = vrai
+                    noeud_inline_courant.propriétés = copie_propriétés(noeud_disposition.propriétés)
+                    parent.ajoute_enfant(noeud_inline_courant)
+                }
+
+                noeud_inline_courant.ajoute_enfant(it)
             }
-
-            si bloc_anonyme_courant == nul {
-                bloc_anonyme_courant = arbre.crée_noeud(NoeudDeDispositionBloc)
-                bloc_anonyme_courant.parent = noeud_disposition
-                bloc_anonyme_courant.est_disposition_inline = vrai
-                tableau_ajoute(*nouveaux_enfants, bloc_anonyme_courant)
-            }
-
-            bloc_anonyme_courant.ajoute_enfant(it)
         }
+        sinon {
+            nouveaux_enfants: [..]*NoeudDeDisposition
 
-        déloge(noeud_disposition.enfants)
-        noeud_disposition.enfants = nouveaux_enfants
+            bloc_anonyme_courant: *NoeudDeDispositionBloc
+            pour noeud_disposition.enfants {
+                si it.type == NoeudDeDispositionBloc {
+                    tableau_ajoute(*nouveaux_enfants, it)
+                    bloc_anonyme_courant = nul
+                    continue
+                }
+
+                si bloc_anonyme_courant == nul {
+                    bloc_anonyme_courant = arbre.crée_noeud(NoeudDeDispositionBloc)
+                    bloc_anonyme_courant.parent = noeud_disposition
+                    bloc_anonyme_courant.est_disposition_inline = vrai
+                    tableau_ajoute(*nouveaux_enfants, bloc_anonyme_courant)
+                }
+
+                bloc_anonyme_courant.ajoute_enfant(it)
+            }
+
+            déloge(noeud_disposition.enfants)
+            noeud_disposition.enfants = nouveaux_enfants
+        }
     }
 }
 
