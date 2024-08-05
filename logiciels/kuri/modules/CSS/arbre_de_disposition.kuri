@@ -814,8 +814,8 @@ noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Cont
             si it == LineStyle.None {
                 continue
             }
-            
-            largeur := donne_taille(bordure, index_it comme z32 comme BorderEdge)
+
+            largeur := donne_taille(bordure, index_it comme z32 comme BorderEdge, noeud.propriétés, ctx.globales)
             si index_it == BorderEdge.Top comme z32 || index_it == BorderEdge.Bottom comme z32 {
                 noeud.hauteur += largeur comme n32
             }
@@ -878,7 +878,7 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
                 couleur = donne_couleur(bordure, coté, noeud.propriétés)
             }
 
-            largeur := donne_taille(bordure, coté)
+            largeur := donne_taille(bordure, coté, noeud.propriétés, ctx.globales)
 
             rect: RectanglePosDim(r32)
 

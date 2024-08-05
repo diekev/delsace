@@ -527,7 +527,7 @@ Border :: struct {
     color: [4]ValeurDeStyle
 }
 
-donne_taille :: fonc (bordure: &Border, coté: BorderEdge) -> r32
+donne_taille :: fonc (bordure: &Border, coté: BorderEdge, propriétés: *PropriétésDeStyle, globales: *GlobalesDessin) -> r32
 {
     width := bordure.width[coté]
 
@@ -539,8 +539,15 @@ donne_taille :: fonc (bordure: &Border, coté: BorderEdge) -> r32
             retourne n comme r32
         }
         longueur(l) {
-            assert(l.unité == Longueur.Unité.Px)
-            retourne l.valeur comme r32
+            taille_fonte := donne_taille_fonte_ou_référence(propriétés, globales)
+            discr l.unité {
+                Px {
+                    retourne l.valeur comme r32
+                }
+                Em {
+                    retourne (l.valeur * taille_fonte) comme r32
+                }
+            }
         }
         mot_clé(m) {
             si m == PROP_thin {
