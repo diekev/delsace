@@ -1494,6 +1494,9 @@ infos_types_propriétés := [
     InfoTypePropriété(PROP_background_color, parse_propriété_color, PropriétéHéritable.Non, prop_background_color_sur_calcul_style),
     InfoTypePropriété(PROP_color, parse_propriété_color, PropriétéHéritable.Oui, prop_color_sur_calcul_style),
     InfoTypePropriété(PROP_text_decoration, parse_propriété_text_decoration, PropriétéHéritable.Non, prop_text_decoration_sur_calcul_style),
+    InfoTypePropriété(PROP_text_decoration_line, parse_propriété_text_decoration_line, PropriétéHéritable.Non, prop_text_decoration_line_sur_calcul_style),
+    InfoTypePropriété(PROP_text_decoration_style, parse_propriété_text_decoration_style, PropriétéHéritable.Non, prop_text_decoration_style_sur_calcul_style),
+    InfoTypePropriété(PROP_text_decoration_color, parse_propriété_color, PropriétéHéritable.Non, prop_text_decoration_color_sur_calcul_style),
     InfoTypePropriété(PROP_cursor, parse_propriété_cursor, PropriétéHéritable.Oui, prop_cursor_sur_calcul_style),
     InfoTypePropriété(PROP_font_weight, parse_propriété_font_weight, PropriétéHéritable.Oui, prop_font_weight_sur_calcul_style),
     InfoTypePropriété(PROP_font_size, parse_propriété_font_size, PropriétéHéritable.Oui, prop_font_size_sur_calcul_style),
@@ -1879,8 +1882,6 @@ parse_propriété_text_decoration :: fonc (value: [..]ComponentValue) -> Optionn
 {
     parseuse := initialise_une_parseuse(value)
 
-    résultat: [..]ValeurDeStyle
-
     // text-decoration-line
     // 	   none | [ underline || overline || line-through || blink ]
     // text-decoration-style
@@ -1890,60 +1891,128 @@ parse_propriété_text_decoration :: fonc (value: [..]ComponentValue) -> Optionn
     // text-decoration
     //     <'text-decoration-line'> || <'text-decoration-style'> || <'text-decoration-color'>
 
-    eu_text_decoration_line := faux
-    eu_text_decoration_style := faux
+    line := ValeurDeStyle(mot_clé = PROP_none)
+    style := ValeurDeStyle(mot_clé = PROP_solid)
+    color := ValeurDeStyle(mot_clé = PROP_currentColor)
+
+    tantque !fini(parseuse) {
+        parseuse.consomme_espaces_blanches()
+
+        valeur_line := parse_valeur_text_decoration_line(parseuse)
+        si valeur_line.possède_valeur() {
+            line = valeur_line.Quelque
+            continue
+        }
+
+        valeur_style := parse_valeur_text_decoration_style(parseuse)
+        si valeur_style.possède_valeur() {
+            style = valeur_style.Quelque
+            continue
+        }
+
+        valeur_color := parse_valeur_couleur(parseuse)
+        si valeur_color.possède_valeur() {
+            color = valeur_style.Quelque
+            continue
+        }
+
+        lexème := parseuse.lexème_courant()
+        imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
+        retourne
+    }
+
+    résultat: [..]ValeurDeStyle
+    tableau_ajoute(*résultat, line)
+    tableau_ajoute(*résultat, style)
+    tableau_ajoute(*résultat, color)
+    retourne résultat
+}
+
+parse_propriété_text_decoration_line :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    valeur_line := parse_valeur_text_decoration_line(parseuse)
+    si valeur_line.possède_valeur() {
+        résultat: [..]ValeurDeStyle
+        tableau_ajoute(*résultat, valeur_line.Quelque)
+        retourne résultat
+    }
+}
+
+parse_propriété_text_decoration_style :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    valeur_style := parse_valeur_text_decoration_style(parseuse)
+    si valeur_style.possède_valeur() {
+        résultat: [..]ValeurDeStyle
+        tableau_ajoute(*résultat, valeur_style.Quelque)
+        retourne résultat
+    }
+}
+
+parse_valeur_text_decoration_line :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+{
+    si parseuse.fini() {
+        retourne
+    }
+
+    résultat: TextDecorationLine
 
     tantque !fini(parseuse) {
         lexème := parseuse.lexème_courant()
 
-        si lexème.est_lexème_de_genre(GenreLexème.Ident) {
-            mot_clé := lexème.donne_texte()
-
-            si mot_clé == PROP_none {
-                saufsi eu_text_decoration_line {
-                    tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = mot_clé))
-                }
-                eu_text_decoration_line = vrai
-            }
-            sinon si mot_clé == PROP_underline || mot_clé == PROP_overline || mot_clé == PROP_line_through {
-                tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = mot_clé))
-                eu_text_decoration_line = vrai
-            }
-            sinon si mot_clé == PROP_blink {
-                imprime("[%] mot-clé non-supporté %\n", #nom_de_cette_fonction, mot_clé)
-                déloge(résultat)
-                retourne
-            }
-            sinon si mot_clé == PROP_solid {
-                saufsi eu_text_decoration_style {
-                    tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = mot_clé))
-                }
-                eu_text_decoration_style = vrai
-            }
-            sinon si mot_clé == PROP_double || mot_clé == PROP_dotted || mot_clé == PROP_dashed || mot_clé == PROP_wavy {
-                imprime("[%] mot-clé non-supporté %\n", #nom_de_cette_fonction, mot_clé)
-                déloge(résultat)
-                retourne
-            }
-            sinon {
-                imprime("[%] mot-clé non-supporté %\n", #nom_de_cette_fonction, mot_clé)
-                déloge(résultat)
-                retourne
-            }
-
-            parseuse.avance()
-        }
-        sinon {
-            imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
-            déloge(résultat)
+        saufsi lexème.est_lexème_de_genre(GenreLexème.Ident) {
             retourne
         }
 
+        mot_clé := lexème.donne_texte()
+
+        si mot_clé == PROP_none {
+            parseuse.avance()
+            retourne ValeurDeStyle(mot_clé = mot_clé)
+        }
+
+        si mot_clé == PROP_underline {
+            résultat.UNDERLINE = vrai
+        }
+        sinon si mot_clé == PROP_overline {
+            résultat.OVERLINE = vrai
+        }
+        sinon si mot_clé == PROP_line_through {
+            résultat.LINE_THROUGH = vrai
+        }
+        sinon {
+            retourne
+        }
+
+        parseuse.avance()
         parseuse.consomme_espaces_blanches()
     }
 
-    si résultat.taille != 0 {
-        retourne résultat
+    retourne ValeurDeStyle(text_decoration_line = résultat)
+}
+
+parse_valeur_text_decoration_style :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+{
+    si parseuse.fini() {
+        retourne
+    }
+
+    lexème := parseuse.lexème_courant()
+
+    saufsi lexème.est_lexème_de_genre(GenreLexème.Ident) {
+        retourne
+    }
+
+    mot_clé := lexème.donne_texte()
+
+    si mot_clé == PROP_solid {
+        parseuse.avance()
+        retourne ValeurDeStyle(mot_clé = mot_clé)
+    }
+
+    si mot_clé == PROP_double || mot_clé == PROP_dotted || mot_clé == PROP_dashed || mot_clé == PROP_wavy {
+        retourne
     }
 }
 

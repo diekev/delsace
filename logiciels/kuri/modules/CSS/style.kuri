@@ -2,6 +2,13 @@ importe Chaine
 importe Couleur
 importe Fondation
 
+TextDecorationLine :: énum_drapeau n8 {
+    UNDERLINE
+    LINE_THROUGH
+    OVERLINE
+    BLINK
+}
+
 /* https://www.w3.org/TR/css-values/#value-defs */
 ValeurDeStyle :: union {
     mot_clé: CSSOMString
@@ -9,6 +16,7 @@ ValeurDeStyle :: union {
     longueur: Longueur
     integer: r64
     number: r64
+    text_decoration_line: TextDecorationLine
 }
 
 détruit_valeur_de_style :: fonc (value: *ValeurDeStyle @inutilisée)
@@ -60,6 +68,9 @@ imprime_valeur_de_style :: fonc (enchaineuse: *Enchaineuse, valeur: *ValeurDeSty
         }
         number(n) {
             ajoute_au_tampon(enchaineuse, n)
+        }
+        text_decoration_line(t) {
+            ajoute_au_tampon(enchaineuse, t)
         }
         sinon {
             ajoute_au_tampon(enchaineuse, "VALEUR INVALIDE OU À IMPRIMER")
@@ -240,6 +251,10 @@ Style :: struct {
     height: ValeurDeStyle
     min_height: ValeurDeStyle
     max_height: ValeurDeStyle
+
+    text_decoration_style: ValeurDeStyle
+    text_decoration_line: ValeurDeStyle
+    text_decoration_color: ValeurDeStyle
 }
 
 initialise_style :: fonc (style: *Style)
@@ -270,6 +285,11 @@ initialise_style :: fonc (style: *Style)
     /* Font */
     style.font_weight = ValeurDeStyle(mot_clé = PROP_normal)
     style.font_style = ValeurDeStyle(mot_clé = PROP_normal)
+
+    /* Text Decoration */
+    style.text_decoration_line = ValeurDeStyle(mot_clé = PROP_none)
+    style.text_decoration_style = ValeurDeStyle(mot_clé = PROP_solid)
+    style.text_decoration_color = ValeurDeStyle(mot_clé = PROP_currentColor)
 }
 
 /* https://www.w3.org/TR/css-color-4/ */
@@ -687,8 +707,27 @@ prop_background_color_sur_calcul_style :: fonc (déclaration: *DéclarationPropr
     style.background.color = calcule_valeur_color(déclaration.value[0], style, ctx)
 }
 
-prop_text_decoration_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété @inutilisée, style: *Style @inutilisée, ctx: *ContexteCalculStyle @inutilisée)
+prop_text_decoration_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
 {
+    assert(déclaration.value.taille == 3)
+    style.text_decoration_line = déclaration.value[0]
+    style.text_decoration_style = déclaration.value[1]
+    style.text_decoration_color = calcule_valeur_color(déclaration.value[2], style, ctx)
+}
+
+prop_text_decoration_line_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle @inutilisée)
+{
+    style.text_decoration_line = déclaration.value[0]
+}
+
+prop_text_decoration_style_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle @inutilisée)
+{
+    style.text_decoration_style = déclaration.value[0]
+}
+
+prop_text_decoration_color_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    style.text_decoration_color = calcule_valeur_color(déclaration.value[0], style, ctx)
 }
 
 prop_cursor_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle @inutilisée)

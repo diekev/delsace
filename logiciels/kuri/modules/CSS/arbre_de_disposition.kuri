@@ -1294,25 +1294,24 @@ noeud_disposition_texte_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Con
 
     propriétés := donne_propriété_parent(noeud)
 
-    couleur := propriétés.style.color
-
     effets: EffetsTexte
 
-    text_decoration := donne_déclaration(propriétés, PROP_text_decoration)
-    si text_decoration {
-        pour text_decoration.value {
-            si it.est_mot_clé(PROP_underline) {
-                effets.souslignage = vrai
-                effets.couleur_souslignage = vers_couleur_rvba(couleur)
-            }
-            sinon si it.est_mot_clé(PROP_overline) {
-                effets.surlignage = vrai
-                effets.couleur_surlignage = vers_couleur_rvba(couleur)
-            }
-            sinon si it.est_mot_clé(PROP_line_through) {
-                effets.barrage = vrai
-                effets.couleur_barrage = vers_couleur_rvba(couleur)
-            }
+    line := propriétés.style.text_decoration_line
+    saufsi line.est_mot_clé(PROP_none) {
+        decoration := line.text_decoration_line
+        couleur := vers_couleur_rvba(propriétés.style.text_decoration_color.couleur)
+
+        si decoration.UNDERLINE {
+            effets.souslignage = vrai
+            effets.couleur_souslignage = couleur
+        }
+        si decoration.OVERLINE {
+            effets.surlignage = vrai
+            effets.couleur_surlignage = couleur
+        }
+        si decoration.LINE_THROUGH {
+            effets.barrage = vrai
+            effets.couleur_barrage = couleur
         }
     }
 
@@ -1321,6 +1320,7 @@ noeud_disposition_texte_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Con
     assert(fonte != nul)
 
     métriques := donne_métriques_fonte(fonte)
+    couleur := propriétés.style.color
 
     si ctx.fragment {
         fragment := ctx.fragment
