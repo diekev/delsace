@@ -848,7 +848,7 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
     ctx.largeur_vue = vue_rendu_page.largeur
 
     racine := arbre.racine
-    si racine.hauteur > vue_rendu_page.hauteur comme n32 {
+    si racine.hauteur > vue_rendu_page.hauteur comme r32 {
         ctx.décalage_y = page.défilement_vertical.rect.y / page.défilement_vertical.ratio
     }
 
@@ -858,9 +858,9 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
 
     // imprime("temps de rendu : %\n", début_rendu.temps_écoulé_millisecondes())
 
-    si racine.hauteur > vue_rendu_page.hauteur comme n32 {
+    si racine.hauteur > vue_rendu_page.hauteur comme r32 {
         hauteur_vue := vue_rendu_page.hauteur comme r32
-        hauteur_page := racine.hauteur comme r32
+        hauteur_page := racine.hauteur
 
         largeur_barre := 12.0
         hauteur_barre := hauteur_vue * hauteur_vue / hauteur_page
