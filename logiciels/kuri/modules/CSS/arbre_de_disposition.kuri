@@ -262,6 +262,12 @@ résoud_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élémen
         info.sur_calcul_style(it, *résultat.style, *ctx_calcul_style)
     }
 
+    pour résultat.style.bordure.style {
+        si it == LineStyle.None {
+            résultat.style.bordure.width[index_it] = ValeurDeStyle(number = 0.0)
+        }
+    }
+
     retourne résultat
 }
 
@@ -973,17 +979,11 @@ dispose_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDis
     diffère noeud.largeur += noeud.rembourrage[BorderEdge.Right] comme n32
 
     si noeud.est_noeud_non_anonyme() {
+        calcule_largeur_et_marges(noeud, ctx.largeur_disponible comme r64)
         calcules_marges(noeud)
         calcules_rembourrage(noeud)
         noeud.largeur -= (noeud.marges[BorderEdge.Left] + noeud.marges[BorderEdge.Right]) comme n32
         noeud.largeur -= (noeud.rembourrage[BorderEdge.Left] + noeud.rembourrage[BorderEdge.Right]) comme n32
-    }
-
-    max_width := noeud.propriétés.style.max_width
-    si max_width.est_nombre() {
-        si noeud.largeur > max_width.number comme n32 {
-            noeud.largeur = max_width.number comme n32
-        }
     }
 
     ctx_locale.largeur_disponible = noeud.largeur
@@ -992,6 +992,8 @@ dispose_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDis
     marges := noeud.marges
     rembourrage := noeud.rembourrage
     décalage_x := (marges[BorderEdge.Left] + rembourrage[BorderEdge.Left]) comme n32
+
+    noeud.position_x = marges[BorderEdge.Left] comme n32
 
     dernière_marge := marges[BorderEdge.Top]
 
@@ -1020,6 +1022,166 @@ dispose_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDis
     }
 
     noeud.hauteur += rembourrage[BorderEdge.Bottom] comme n32
+}
+
+calcule_largeur_et_marges :: fonc (noeud: *NoeudDeDispositionBloc, width_of_containing_block: r64)
+{
+    // À FAIRE : ne modifie pas les valeurs calculées
+    sauvegarde_style := noeud.propriétés.style
+    calcule_largeur_et_marges_block_level_normal_flow(noeud, width_of_containing_block)
+
+    width := noeud.propriétés.style.width
+    max_width := noeud.propriétés.style.max_width
+    si max_width.est_nombre() && (width.number > max_width.number) {
+        noeud.propriétés.style = sauvegarde_style
+        noeud.propriétés.style.width = max_width
+        calcule_largeur_et_marges_block_level_normal_flow(noeud, width_of_containing_block)
+    }
+
+    width = noeud.propriétés.style.width
+    min_width := noeud.propriétés.style.min_width
+    si min_width.est_nombre() && (width.number < min_width.number) {
+        noeud.propriétés.style = sauvegarde_style
+        noeud.propriétés.style.width = min_width
+        calcule_largeur_et_marges_block_level_normal_flow(noeud, width_of_containing_block)
+    }
+}
+
+/* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#blockwidth */
+calcule_largeur_et_marges_block_level_normal_flow :: fonc (noeud: *NoeudDeDispositionBloc, width_of_containing_block: r64)
+{
+    style := *noeud.propriétés.style
+
+    margin_left := style.marges.valeur[BorderEdge.Left]
+    border_left_width := style.bordure.width[BorderEdge.Left]
+    padding_left := style.padding.valeur[BorderEdge.Left]
+    width := style.width
+    padding_right := style.padding.valeur[BorderEdge.Right]
+    border_right_width := style.bordure.width[BorderEdge.Right]
+    margin_right := style.marges.valeur[BorderEdge.Right]
+
+    // If 'width' is not 'auto' and 'border-left-width' + 'padding-left' + 'width' + 'padding-right'
+    // + 'border-right-width' (plus any of 'margin-left' or 'margin-right' that are not 'auto') is
+    // larger than the width of the containing block, then any 'auto' values for 'margin-left' or
+    // 'margin-right' are, for the following rules, treated as zero.
+    saufsi width.est_auto() {
+        tmp : r64 = 0.0
+        tmp += border_left_width.number
+        tmp += padding_left.number
+        tmp += width.number
+        tmp += padding_right.number
+        tmp += border_right_width.number
+
+        saufsi margin_left.est_auto() {
+            tmp += margin_left.number
+        }
+        saufsi margin_right.est_auto() {
+            tmp += margin_right.number
+        }
+
+        si tmp > width_of_containing_block {
+            si margin_left.est_auto() {
+                margin_left = ValeurDeStyle(number = 0.0)
+            }
+            si margin_right.est_auto() {
+                margin_right = ValeurDeStyle(number = 0.0)
+            }
+        }
+    }
+
+    // If all of the above have a computed value other than 'auto', the values are said to be "over-constrained"
+    // and one of the used values will have to be different from its computed value.
+    // If the 'direction' property of the containing block has the value 'ltr', the specified value of
+    // 'margin-right' is ignored and the value is calculated so as to make the equality true.
+    // If the value of 'direction' is 'rtl', this happens to 'margin-left' instead.
+    surcontraint := 0
+    surcontraint += margin_left.est_auto() comme z32
+    surcontraint += border_left_width.est_auto() comme z32
+    surcontraint += padding_left.est_auto() comme z32
+    surcontraint += width.est_auto() comme z32
+    surcontraint += padding_right.est_auto() comme z32
+    surcontraint += border_right_width.est_auto() comme z32
+    surcontraint += margin_right.est_auto() comme z32
+
+    si surcontraint == 0 {
+        // À FAIRE : direction
+        margin_right = ValeurDeStyle(number = 0.0)
+    }
+
+    // If there is exactly one value specified as 'auto', its used value follows from the equality.
+    si surcontraint == 1 {
+        si margin_left.est_auto() {
+            résultat := width_of_containing_block - (border_left_width.number + padding_left.number + width.number + padding_right.number + border_right_width.number + margin_right.number)
+            margin_left = ValeurDeStyle(number = résultat)
+        }
+        sinon si border_left_width.est_auto() {
+            résultat := width_of_containing_block - (margin_left.number + padding_left.number + width.number + padding_right.number + border_right_width.number + margin_right.number)
+            border_left_width = ValeurDeStyle(number = résultat)
+        }
+        sinon si padding_left.est_auto() {
+            résultat := width_of_containing_block - (margin_left.number + border_left_width.number + width.number + padding_right.number + border_right_width.number + margin_right.number)
+            padding_left = ValeurDeStyle(number = résultat)
+        }
+        sinon si width.est_auto() {
+            résultat := width_of_containing_block - (margin_left.number + border_left_width.number + padding_left.number + padding_right.number + border_right_width.number + margin_right.number)
+            width = ValeurDeStyle(number = résultat)
+        }
+        sinon si padding_right.est_auto() {
+            résultat := width_of_containing_block - (margin_left.number + border_left_width.number + padding_left.number + width.number + border_right_width.number + margin_right.number)
+            padding_right = ValeurDeStyle(number = résultat)
+        }
+        sinon si border_right_width.est_auto() {
+            résultat := width_of_containing_block - (margin_left.number + border_left_width.number + padding_left.number + width.number + padding_right.number + margin_right.number)
+            border_right_width = ValeurDeStyle(number = résultat)
+        }
+        sinon si margin_right.est_auto() {
+            résultat := width_of_containing_block - (margin_left.number + border_left_width.number + padding_left.number + width.number + padding_right.number + border_right_width.number)
+            margin_right = ValeurDeStyle(number = résultat)
+        }
+    }
+
+    // If 'width' is set to 'auto', any other 'auto' values become '0' and 'width' follows from the resulting equality.
+    si width.est_auto() {
+        si margin_left.est_auto() {
+            margin_left = ValeurDeStyle(number = 0.0)
+        }
+        si border_left_width.est_auto() {
+            border_left_width = ValeurDeStyle(number = 0.0)
+        }
+        si padding_left.est_auto() {
+            padding_left = ValeurDeStyle(number = 0.0)
+        }
+        si padding_right.est_auto() {
+            padding_right = ValeurDeStyle(number = 0.0)
+        }
+        si border_right_width.est_auto() {
+            border_right_width = ValeurDeStyle(number = 0.0)
+        }
+        si margin_right.est_auto() {
+            margin_right = ValeurDeStyle(number = 0.0)
+        }
+
+        résultat := width_of_containing_block - (margin_left.number + border_left_width.number + padding_left.number + padding_right.number + border_right_width.number + margin_right.number)
+        width = ValeurDeStyle(number = résultat)
+    }
+
+    // If both 'margin-left' and 'margin-right' are 'auto', their used values are equal.
+    // This horizontally centers the element with respect to the edges of the containing block.
+    si margin_left.est_auto() && margin_right.est_auto() {
+        résultat := width_of_containing_block - (border_left_width.number + padding_left.number + width.number + padding_right.number + border_right_width.number)
+        résultat *= 0.5
+
+        margin_left = ValeurDeStyle(number = résultat)
+        margin_right = ValeurDeStyle(number = résultat)
+    }
+
+    style.marges.valeur[BorderEdge.Left] = margin_left
+    style.bordure.width[BorderEdge.Left] = border_left_width
+    style.padding.valeur[BorderEdge.Left] = padding_left
+    style.width = width
+    style.padding.valeur[BorderEdge.Right] = padding_right
+    style.bordure.width[BorderEdge.Right] = border_right_width
+    style.marges.valeur[BorderEdge.Right] = margin_right
 }
 
 dessine_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDessin)
@@ -1051,6 +1213,7 @@ dispose_enfants_inline :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDi
     décalage_y: n32
 
     si noeud.est_noeud_non_anonyme() {
+        calcule_largeur_et_marges(noeud, ctx.largeur_disponible comme r64)
         calcules_marges(noeud)
         ctx_locale.largeur_disponible -= (noeud.marges[BorderEdge.Left] + noeud.marges[BorderEdge.Right]) comme n32
     }

@@ -35,6 +35,11 @@ est_mot_clé :: fonc (valeur: ValeurDeStyle, mot_clé: CSSOMString) -> bool
     }
 }
 
+est_auto :: fonc (valeur: ValeurDeStyle) -> bool
+{
+    retourne est_mot_clé(valeur, PROP_auto)
+}
+
 est_nombre :: fonc (valeur: ValeurDeStyle) -> bool
 {
     discr valeur {
@@ -290,6 +295,14 @@ initialise_style :: fonc (style: *Style)
     style.text_decoration_line = ValeurDeStyle(mot_clé = PROP_none)
     style.text_decoration_style = ValeurDeStyle(mot_clé = PROP_solid)
     style.text_decoration_color = ValeurDeStyle(mot_clé = PROP_currentColor)
+
+    /* Tailles */
+    style.width = ValeurDeStyle(mot_clé = PROP_auto)
+    style.min_width = ValeurDeStyle(number = 0.0)
+    style.max_width = ValeurDeStyle(mot_clé = PROP_none)
+    style.height = ValeurDeStyle(mot_clé = PROP_auto)
+    style.min_height = ValeurDeStyle(number = 0.0)
+    style.max_height = ValeurDeStyle(mot_clé = PROP_none)
 }
 
 /* https://www.w3.org/TR/css-color-4/ */

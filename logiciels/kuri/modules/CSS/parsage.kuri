@@ -168,6 +168,14 @@ est_lexème_delim :: fonc (value: ComponentValue, point_de_code: n32) -> bool
     }
 }
 
+est_mot_clé :: fonc (value: ComponentValue, mot_clé: CSSOMString) -> bool
+{
+    saufsi est_lexème_de_genre(value, GenreLexème.Ident) {
+        retourne faux
+    }
+    retourne value.donne_texte() == mot_clé
+}
+
 Parseuse :: struct ($T: type_de_données) {
     lexèmes: [..]T
     curseur: z64
@@ -2620,6 +2628,12 @@ parse_propriété_margin :: fonc (value: [..]ComponentValue) -> Optionnel([..]Va
             continue
         }
 
+        si lexème.est_mot_clé(PROP_auto) {
+            parseuse.avance()
+            tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = PROP_auto))
+            continue
+        }
+
         imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
         déloge(résultat)
         retourne
@@ -2639,6 +2653,12 @@ parse_propriété_margin_top :: fonc (value: [..]ComponentValue) -> Optionnel([.
     si valeur.possède_valeur() {
         résultat: [..]ValeurDeStyle
         tableau_ajoute(*résultat, valeur.Quelque)
+        retourne résultat
+    }
+    lexème := parseuse.lexème_courant()
+    si lexème.est_mot_clé(PROP_auto) {
+        résultat: [..]ValeurDeStyle
+        tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = PROP_auto))
         retourne résultat
     }
 }
