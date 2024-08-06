@@ -260,6 +260,8 @@ Style :: struct {
     text_decoration_style: ValeurDeStyle
     text_decoration_line: ValeurDeStyle
     text_decoration_color: ValeurDeStyle
+
+    line_height: ValeurDeStyle
 }
 
 initialise_style :: fonc (style: *Style)
@@ -303,6 +305,8 @@ initialise_style :: fonc (style: *Style)
     style.height = ValeurDeStyle(mot_clé = PROP_auto)
     style.min_height = ValeurDeStyle(number = 0.0)
     style.max_height = ValeurDeStyle(mot_clé = PROP_none)
+
+    style.line_height = ValeurDeStyle(mot_clé = PROP_normal)
 }
 
 /* https://www.w3.org/TR/css-color-4/ */
@@ -1268,6 +1272,30 @@ prop_max_width_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété,
         }
         sinon {
             style.max_width = déclaration.value[0]
+        }
+    }
+}
+
+prop_line_height_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    valeur := déclaration.value[0]
+
+    discr valeur {
+        integer(i) {
+            style.line_height = ValeurDeStyle(number = i)
+        }
+        longueur(l) {
+            discr l.unité {
+                Px {
+                    style.line_height = ValeurDeStyle(number = l.valeur)
+                }
+                Em {
+                    style.line_height = ValeurDeStyle(number = l.valeur * ctx.taille_fonte)
+                }
+            }
+        }
+        sinon {
+            style.line_height = valeur
         }
     }
 }

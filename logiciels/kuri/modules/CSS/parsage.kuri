@@ -1556,7 +1556,8 @@ infos_types_propriétés := [
     InfoTypePropriété(PROP_max_height, parse_propriété_max_height_width, PropriétéHéritable.Non, prop_max_height_sur_calcul_style),
     InfoTypePropriété(PROP_width, parse_propriété_height_width, PropriétéHéritable.Non, prop_width_sur_calcul_style),
     InfoTypePropriété(PROP_min_width, parse_propriété_min_height_width, PropriétéHéritable.Non, prop_min_width_sur_calcul_style),
-    InfoTypePropriété(PROP_max_width, parse_propriété_max_height_width, PropriétéHéritable.Non, prop_max_width_sur_calcul_style)
+    InfoTypePropriété(PROP_max_width, parse_propriété_max_height_width, PropriétéHéritable.Non, prop_max_width_sur_calcul_style),
+    InfoTypePropriété(PROP_line_height, parse_propriété_line_height, PropriétéHéritable.Oui, prop_line_height_sur_calcul_style)
 ]
 
 #portée_export
@@ -2776,6 +2777,38 @@ parse_propriété_max_height_width :: fonc (value: [..]ComponentValue) -> Option
     }
 
     lexème := parseuse.lexème_courant()
+    imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Line Height
+ * https://drafts.csswg.org/css2/#propdef-line-height
+ * \{ */
+
+/* normal | <number> | <length> | <percentage> | inherit */
+parse_propriété_line_height :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+
+    résultat: [..]ValeurDeStyle
+
+    /* parse_valeur_length inclus <number> */
+    valeur := parse_valeur_length(parseuse)
+    si valeur.possède_valeur() {
+        tableau_ajoute(*résultat, valeur.Quelque)
+        retourne résultat
+    }
+
+    lexème := parseuse.lexème_courant()
+
+    si lexème.est_mot_clé(PROP_normal) {
+        parseuse.avance()
+        tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = PROP_normal))
+        retourne résultat
+    }
+
     imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
 }
 

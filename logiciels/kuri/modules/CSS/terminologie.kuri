@@ -74,6 +74,7 @@ PROP_italic : CSSOMString = ---
 PROP_large : CSSOMString = ---
 PROP_larger : CSSOMString = ---
 PROP_lighter : CSSOMString = ---
+PROP_line_height : CSSOMString = ---
 PROP_line_through : CSSOMString = ---
 PROP_list_item : CSSOMString = ---
 PROP_ltr : CSSOMString = ---
