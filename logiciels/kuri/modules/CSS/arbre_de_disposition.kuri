@@ -217,8 +217,6 @@ résoud_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élémen
 {
     résultat := crée_propriétés_de_style()
 
-    HTML.applique_presentational_hints(élément, résultat)
-
     règles := collecte_les_règles_appropriées(résolveuse, élément)
     diffère déloge(règles)
     // imprime("% règle(s) pour %\n", règles.taille, élément.local_name)
@@ -231,6 +229,8 @@ résoud_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élémen
             ajoute_déclaration(résultat, it)
         }
     }
+
+    HTML.applique_presentational_hints(élément, résultat)
 
     pour règles {
         // imprime_règle(it)
