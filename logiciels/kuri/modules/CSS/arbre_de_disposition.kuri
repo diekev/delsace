@@ -976,17 +976,20 @@ dispose_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDis
     /* À FAIRE : utilise les bonnes formules.
      * https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#Computing_widths_and_margins */
     noeud.largeur = ctx_locale.largeur_disponible
-    diffère noeud.largeur += noeud.rembourrage[BorderEdge.Right] comme r32
 
     si noeud.est_noeud_non_anonyme() {
         calcule_largeur_et_marges(noeud, ctx.largeur_disponible comme r64)
         calcules_marges(noeud)
         calcules_rembourrage(noeud)
-        noeud.largeur -= (noeud.marges[BorderEdge.Left] + noeud.marges[BorderEdge.Right]) comme r32
-        noeud.largeur -= (noeud.rembourrage[BorderEdge.Left] + noeud.rembourrage[BorderEdge.Right]) comme r32
-    }
 
-    ctx_locale.largeur_disponible = noeud.largeur
+        style := *noeud.propriétés.style
+
+        noeud.largeur = (style.bordure.width[BorderEdge.Left].number + style.bordure.width[BorderEdge.Right].number) comme r32
+        noeud.largeur += (noeud.rembourrage[BorderEdge.Left] + noeud.rembourrage[BorderEdge.Right]) comme r32
+        noeud.largeur += style.width.number comme r32
+
+        ctx_locale.largeur_disponible = style.width.number comme r32
+    }
 
     /* https://www.w3.org/TR/CSS2/box.html#collapsing-margins */
     marges := noeud.marges
@@ -1215,7 +1218,15 @@ dispose_enfants_inline :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDi
     si noeud.est_noeud_non_anonyme() {
         calcule_largeur_et_marges(noeud, ctx.largeur_disponible comme r64)
         calcules_marges(noeud)
-        ctx_locale.largeur_disponible -= (noeud.marges[BorderEdge.Left] + noeud.marges[BorderEdge.Right]) comme r32
+        calcules_rembourrage(noeud)
+
+        style := *noeud.propriétés.style
+
+        noeud.largeur = (style.bordure.width[BorderEdge.Left].number + style.bordure.width[BorderEdge.Right].number) comme r32
+        noeud.largeur += (noeud.rembourrage[BorderEdge.Left] + noeud.rembourrage[BorderEdge.Right]) comme r32
+        noeud.largeur += style.width.number comme r32
+
+        ctx_locale.largeur_disponible = style.width.number comme r32
     }
 
     pour noeud.enfants {
