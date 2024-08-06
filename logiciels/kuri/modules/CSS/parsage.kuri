@@ -2738,6 +2738,13 @@ parse_propriété_height_width :: fonc (value: [..]ComponentValue) -> Optionnel(
         }
 
         lexème := parseuse.lexème_courant()
+
+        si lexème.est_mot_clé(PROP_auto) {
+            parseuse.avance()
+            tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = PROP_auto))
+            continue
+        }
+
         imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
         déloge(résultat)
         retourne
