@@ -1243,8 +1243,28 @@ prop_max_height_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété
 {
 }
 
-prop_width_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété @inutilisée, style: *Style @inutilisée, ctx: *ContexteCalculStyle @inutilisée)
+prop_width_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
 {
+    valeur := déclaration.value[0]
+
+    discr valeur {
+        integer(i) {
+            style.width = ValeurDeStyle(number = i)
+        }
+        longueur(l) {
+            discr l.unité {
+                Px {
+                    style.width = ValeurDeStyle(number = l.valeur)
+                }
+                Em {
+                    style.width = ValeurDeStyle(number = l.valeur * ctx.taille_fonte)
+                }
+            }
+        }
+        sinon {
+            style.width = valeur
+        }
+    }
 }
 
 prop_min_width_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété @inutilisée, style: *Style @inutilisée, ctx: *ContexteCalculStyle @inutilisée)
