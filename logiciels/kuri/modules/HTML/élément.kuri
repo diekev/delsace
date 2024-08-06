@@ -185,6 +185,9 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élé
     sinon si tag == TAG_body {
         élément = loge(HTMLBodyElement)
     }
+    sinon si tag == TAG_font {
+        élément = loge(HTMLFontElement)
+    }
     sinon si tag == TAG_form {
         élément = loge(HTMLFormElement)
     }
@@ -674,6 +677,49 @@ parse_a_legacy_colour_value :: fonc (string: DOMString) -> Optionnel(CouleurRVBA
 
     // 20. Return result.
     retourne result
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLFontElement
+ * https://html.spec.whatwg.org/multipage/obsolete.html#htmlfontelement
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLFontElement
+ * \{ */
+
+#portée_export
+
+HTMLFontElement :: struct {
+    empl html_element: HTMLElement
+    table = *table_virtuelle_font_element
+}
+
+#portée_fichier
+
+table_virtuelle_font_element := TableVirtuelleÉlément(
+    sur_destruction = font_element_sur_destruction,
+    sur_applique_presentational_hints = font_element_sur_applique_presentational_hints
+)
+
+font_element_sur_destruction :: fonc (base: *EventTarget)
+{
+    élément := base comme *HTMLFontElement
+    élément_détruit_données(élément)
+    déloge(élément)
+}
+
+/* https://html.spec.whatwg.org/multipage/rendering.html#phrasing-content-3 */
+font_element_sur_applique_presentational_hints :: fonc (base: *Élément, propriétés: *CSS.PropriétésDeStyle)
+{
+    font := base comme *HTMLFontElement
+
+    opt_color := donne_attribut(font, ATTR_color)
+    si opt_color.possède_valeur() {
+        color := opt_color.Quelque
+        ajoute_propriété_pour_couleur(propriétés, CSS.PROP_color, color)
+    }
+
+    /* À FAIRE : face, size. */
 }
 
 /** \} */
