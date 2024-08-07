@@ -977,6 +977,8 @@ dispose_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDis
      * https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#Computing_widths_and_margins */
     noeud.largeur = ctx_locale.largeur_disponible
 
+    position_x_contenu := 0.0
+
     si noeud.est_noeud_non_anonyme() {
         calcule_largeur_et_marges(noeud, ctx.largeur_disponible comme r64)
         calcules_marges(noeud)
@@ -988,13 +990,17 @@ dispose_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDis
         noeud.largeur += (noeud.rembourrage[BorderEdge.Left] + noeud.rembourrage[BorderEdge.Right]) comme r32
         noeud.largeur += style.width.number comme r32
 
+        position_x_contenu = noeud.marges[BorderEdge.Left] comme r32
+        position_x_contenu += style.bordure.width[BorderEdge.Left].number comme r32
+        position_x_contenu += noeud.rembourrage[BorderEdge.Left] comme r32
+
         ctx_locale.largeur_disponible = style.width.number comme r32
     }
 
     /* https://www.w3.org/TR/CSS2/box.html#collapsing-margins */
     marges := noeud.marges
     rembourrage := noeud.rembourrage
-    décalage_x := (marges[BorderEdge.Left] + rembourrage[BorderEdge.Left]) comme r32
+    décalage_x := position_x_contenu
 
     noeud.position_x = marges[BorderEdge.Left] comme r32
 
