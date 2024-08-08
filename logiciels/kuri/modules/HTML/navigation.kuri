@@ -129,6 +129,21 @@ NavigationHistoryBehavior :: énum {
     AUTO
 }
 
+/* https://html.spec.whatwg.org/multipage/nav-history-apis.html#navigationtype */
+NavigationType :: énum {
+    push
+    replace
+    reload
+    traverse
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#user-navigation-involvement */
+UserNavigationInvolvment :: énum {
+    BrowserUI
+    Activation
+    None
+}
+
 /* ------------------------------------------------------------------------- */
 /** \nom 7.4.2.2 Beginning navigation
  * https://html.spec.whatwg.org/multipage/browsing-the-web.html#beginning-navigation
@@ -1085,3 +1100,84 @@ populate_with_html_head_body :: fonc (document: *Document)
 }
 
 /** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 7.4.6.1 Updating the traversable.
+ * https://html.spec.whatwg.org/multipage/browsing-the-web.html#updating-the-traversable
+ * \{ */
+
+ChangingNavigableContinuationState :: struct {
+    displayed_document: *Document
+    target_entry: *SessionHistoryEntry
+    navigable: *Navigable
+    update_only: bool
+}
+
+/* They return "initiator-disallowed", "canceled-by-beforeunload", "canceled-by-navigate", or "applied". */
+HistoryApplication :: énum {
+    Applied
+    InitiatorDisallowed
+    CanceledByBeforeunload
+    CanceledByNavigate
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#apply-the-push/replace-history-step */
+apply_the_push_replace_history_step :: fonc (user_agent: *UserAgent, step: n32, traversable: *TraversableNavigable, history_handling: NavigationHistoryBehavior) -> HistoryApplication
+{
+    // 1. Return the result of applying the history step step to traversable given false, null, null, null, and historyHandling.
+    retourne apply_the_history_step(user_agent, step, traversable, faux, nul, nul, nul)
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#apply-the-history-step */
+apply_the_history_step :: fonc (user_agent: *UserAgent,
+                                step: n32,
+                                traversable: *TraversableNavigable,
+                                check_for_canceletion: bool,
+                                source_snapshot_params: *SourceSnapshotParams,
+                                initiator_to_check: *Navigable,
+                                user_involvment_for_navigate_events: *UserNavigationInvolvment,
+                                navigation_type: *NavigationType) -> HistoryApplication
+{
+    // À FAIRE : 1. Assert: This is running within traversable's session history traversal queue.
+
+    // 2. Let targetStep be the result of getting the used step given traversable and step.
+    target_step := get_the_used_step(traversable, step)
+
+    // 3. If initiatorToCheck is not null, then:
+    si initiator_to_check {
+        // 1. Assert: sourceSnapshotParams is not null.
+        assert(source_snapshot_params != nul)
+
+        // 2. For each navigable of get all navigables whose current session history entry will change or reload:
+        //    if initiatorToCheck is not allowed by sandboxing to navigate navigable given sourceSnapshotParams,
+        //    then return "initiator-disallowed".
+        panique("initiator_to_check != nul non-implémenté")
+    }
+
+    // 4. Let navigablesCrossingDocuments be the result of getting all navigables that might experience a
+    //    cross-document traversal given traversable and targetStep.
+
+    // 5. If checkForCancelation is true, and the result of checking if unloading is canceled given navigablesCrossingDocuments, traversable, targetStep, and userInvolvementForNavigateEvents is not "continue", then return that result.
+
+    // 6. Let changingNavigables be the result of get all navigables whose current session history entry will change or reload given traversable and targetStep.
+
+    // 7. Let nonchangingNavigablesThatStillNeedUpdates be the result of getting all navigables that only need history object length/index update given traversable and targetStep.
+
+    // 8. For each navigable of changingNavigables:
+
+        // 1. Let targetEntry be the result of getting the target history entry given navigable and targetStep.
+
+        // 2. Set navigable's current session history entry to targetEntry.
+
+        // 3. Set the ongoing navigation for navigable to "traversal".
+
+    // 9. Let totalChangeJobs be the size of changingNavigables.
+
+    // 10. Let completedChangeJobs be 0.
+
+    // 11. Let changingNavigableContinuations be an empty queue of changing navigable continuation states.
+
+    // 12. For each navigable of changingNavigables, queue a global task on the navigation and traversal task source of navigable's active window to run the steps:
+}
+
+/** \} */
