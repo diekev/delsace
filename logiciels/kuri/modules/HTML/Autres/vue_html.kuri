@@ -425,12 +425,17 @@ détruit_données_page_web :: fonc (page: *PageWeb)
 /** \nom Données fenêtre principale.
  * \{ */
 
+WidgetsPage :: struct {
+    line_edit: *QT_LineEdit
+}
+
 RappelsFenetrePrincipale :: struct {
     empl base : QT_Rappels_Fenetre_Principale
 
     user_agent: UserAgent
 
     page_web: PageWeb
+    widgets_page: WidgetsPage
     widget_rendu: *QT_GLWidget
     widget_arbre_de_disposition: *QT_TreeWidget
     widget_arbre_dom: *QT_TreeWidget
@@ -475,6 +480,10 @@ crée_widget_pour_page :: fonc (fenêtre: *QT_Fenetre_Principale, page_web: Page
     rappels := QT_fenetre_principale_donne_rappels(fenêtre) comme *RappelsFenetrePrincipale
     rappels.page_web = page_web
 
+    widget := QT_cree_widget(nul, fenêtre)
+
+    barre_de_navigation := crée_barre_de_navigation(*rappels.user_agent, *rappels.page_web, *rappels.widgets_page, widget)
+
     tabs := QT_cree_tab_widget(nul, fenêtre)
     QT_tab_widget_definis_tabs_fermable(tabs, 0)
 
@@ -494,7 +503,72 @@ crée_widget_pour_page :: fonc (fenêtre: *QT_Fenetre_Principale, page_web: Page
     widget_arbre_disposition := crée_widget_vue_arbre_de_disposition(fenêtre, tabs)
     QT_tab_widget_ajoute_tab(tabs, widget_arbre_disposition, "Arbre de Disposition")
 
-    QT_fenetre_principale_definis_widget_central(fenêtre, tabs)
+    disposition := QT_cree_vbox_layout(widget)
+    QT_layout_ajoute_widget(disposition, barre_de_navigation)
+    QT_layout_ajoute_widget(disposition, tabs)
+
+    QT_fenetre_principale_definis_widget_central(fenêtre, widget)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Barre de navigation.
+ * \{ */
+
+RappelChangementAdresse :: struct {
+    empl base: QT_Rappel_Generique
+
+    user_agent: *UserAgent
+    page_web: *PageWeb
+    line_edit: *QT_LineEdit
+}
+
+crée_rappel_changement_adresse :: fonc (user_agent: *UserAgent, page_web: *PageWeb, line_edit: *QT_LineEdit) -> *QT_Rappel_Generique
+{
+    résultat := loge(RappelChangementAdresse)
+    résultat.sur_rappel = rappel_changement_adresse_sur_rappel
+    résultat.user_agent = user_agent
+    résultat.page_web = page_web
+    résultat.line_edit = line_edit
+    retourne résultat
+}
+
+rappel_changement_adresse_sur_rappel :: fonc (base: *QT_Rappel_Generique)
+{
+    rappel := base comme *RappelChangementAdresse
+
+    line_edit := rappel.line_edit
+    texte := QT_line_edit_donne_texte(line_edit).vers_kuri().copie_chaine()
+
+    si texte.est_vide() {
+        retourne
+    }
+
+    url := tente parse_uri_standard(texte) piège _ {
+        retourne
+    }
+
+    page_web := rappel.page_web
+    document := page_web.donne_document()
+
+    navigate(rappel.user_agent, page_web.navigable, url, document)
+}
+
+crée_barre_de_navigation :: fonc (user_agent: *UserAgent, page_web: *PageWeb, widgets: *WidgetsPage, parent: *QT_Widget) -> *QT_Widget
+{
+    widget := QT_cree_widget(nul, parent)
+    line_edit := QT_cree_line_edit(widget)
+
+    rappel_changement := crée_rappel_changement_adresse(user_agent, page_web, line_edit)
+    QT_line_edit_connecte_sur_pression_retour(line_edit, rappel_changement)
+
+    disposition := QT_cree_hbox_layout(widget)
+    QT_layout_ajoute_widget(disposition, line_edit)
+
+    widgets.line_edit = line_edit
+
+    retourne widget
 }
 
 /** \} */
@@ -1344,6 +1418,11 @@ rappels_interface_sur_document_est_prêt :: fonc (base: *RappelsInterface, docum
     définis_titre_fenêtre(rappels.fenêtre, document)
     rappels_fenêtre := QT_fenetre_principale_donne_rappels(rappels.fenêtre) comme *RappelsFenetrePrincipale
     ajourne_widget_arbre_dom(rappels_fenêtre)
+
+    chaine_url := recompose_uri(*document.url)
+    diffère déloge(chaine_url)
+
+    QT_line_edit_definis_texte(rappels_fenêtre.widgets_page.line_edit, chaine_url.vers_qt())
 }
 
 /** \} */
