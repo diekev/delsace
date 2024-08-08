@@ -573,6 +573,20 @@ ajoute_propriété_pour_couleur :: fonc (propriétés: *CSS.PropriétésDeStyle,
     CSS.ajoute_déclaration(propriétés, déclaration)
 }
 
+ajoute_propriété_pour_mot_clé :: fonc (propriétés: *CSS.PropriétésDeStyle, nom_propriété: CSS.CSSOMString, mot_clé: CSS.CSSOMString)
+{
+    value: [..]CSS.ValeurDeStyle
+    tableau_ajoute(*value, CSS.ValeurDeStyle(mot_clé = mot_clé))
+
+    /* À FAIRE : fuite de mémoire */
+    déclaration := loge(CSS.DéclarationPropriété)
+    déclaration.info = CSS.donne_info_type_pour_nom(nom_propriété)
+    déclaration.property_name = nom_propriété
+    déclaration.value = value
+
+    CSS.ajoute_déclaration(propriétés, déclaration)
+}
+
 ajoute_propriété_pour_nombre :: fonc (propriétés: *CSS.PropriétésDeStyle, nom_propriété: CSS.CSSOMString, valeur: r64)
 {
     value: [..]CSS.ValeurDeStyle
@@ -719,7 +733,107 @@ font_element_sur_applique_presentational_hints :: fonc (base: *Élément, propri
         ajoute_propriété_pour_couleur(propriétés, CSS.PROP_color, color)
     }
 
-    /* À FAIRE : face, size. */
+    opt_size := donne_attribut(font, ATTR_size)
+    si opt_size.possède_valeur() {
+        opt_font_size := parse_a_legacy_font_size(opt_size.Quelque)
+        si opt_font_size.possède_valeur() {
+            ajoute_propriété_pour_mot_clé(propriétés, CSS.PROP_font_size, opt_font_size.Quelque)
+        }
+    }
+
+    /* À FAIRE : face. */
+}
+
+parse_a_legacy_font_size :: fonc (attribute_value: DOMString) -> Optionnel(CSS.CSSOMString)
+{
+    // 1. Let input be the attribute's value.
+    input := attribute_value.donne_chaine_utf16()
+
+    // 2. Let position be a pointer into input, initially pointing at the start of the string.
+    position := input.unités.pointeur
+    fin := position + input.taille()
+
+    // 3. Skip ASCII whitespace within input given position.
+    tantque position < fin {
+        saufsi est_espace_blanche_ascii(mémoire(position)) {
+            arrête
+        }
+
+        position += 1
+    }
+
+    // 4. If position is past the end of input, there is no presentational hint. Return.
+    si position >= fin {
+        retourne
+    }
+
+    // 5. If the character at position is a U+002B PLUS SIGN character (+), then let mode be
+    //    relative-plus, and advance position to the next character. Otherwise, if the character
+    //    at position is a U+002D HYPHEN-MINUS character (-), then let mode be relative-minus,
+    //    and advance position to the next character. Otherwise, let mode be absolute.
+    ModeFonte :: énum {
+        Aucun
+        RelativePlus
+        RelativeMinus
+    }
+    mode := ModeFonte.Aucun
+    si mémoire(position) == 0x2B {
+        mode = ModeFonte.RelativePlus
+        position += 1
+    }
+    sinon si mémoire(position) == 0x2D {
+        mode = ModeFonte.RelativeMinus
+        position += 1
+    }
+
+    // 6. Collect a sequence of code points that are ASCII digits from input given position, and let the resulting sequence be digits.
+    //    https://infra.spec.whatwg.org/#collect-a-sequence-of-code-points
+    digits: ChaineUTF16
+
+    tantque position < fin {
+        saufsi CSS.est_chiffre(mémoire(position)) {
+            arrête
+        }
+
+        chaine_ajoute(*digits, mémoire(position))
+        position += 1
+    }
+
+    // 7. If digits is the empty string, there is no presentational hint. Return.
+    si digits.est_vide() {
+        retourne
+    }
+    diffère détruit_chaine(digits)
+
+    // 8. Interpret digits as a base-ten integer. Let value be the resulting number.
+    value: z32
+    pour digits.unités {
+        value *= 10
+        value += (it - '0' comme n16) comme z32
+    }
+
+    // 9. If mode is relative-plus, then increment value by 3.
+    //    If mode is relative-minus, then let value be the result of subtracting value from 3.
+    si mode == ModeFonte.RelativePlus {
+        value += 3
+    }
+    sinon si mode == ModeFonte.RelativeMinus {
+        value -= 3
+    }
+
+    // 10. If value is greater than 7, let it be 7.
+    si value > 7 {
+        value = 7
+    }
+
+    // 11. If value is less than 1, let it be 1.
+    si value < 1 {
+        value = 1
+    }
+
+    // 12. Set 'font-size' to the keyword corresponding to the value of value according to the following table:
+    table := [CSS.PROP_x_small, CSS.PROP_small, CSS.PROP_medium, CSS.PROP_large, CSS.PROP_x_large, CSS.PROP_xx_large, CSS.PROP_xxx_large]
+    retourne table[value - 1]
 }
 
 /** \} */

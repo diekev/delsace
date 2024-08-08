@@ -153,6 +153,7 @@ ATTR_language : DOMString = ---
 ATTR_method : DOMString = ---
 ATTR_name : DOMString = ---
 ATTR_nomodule : DOMString = ---
+ATTR_size : DOMString = ---
 ATTR_src : DOMString = ---
 ATTR_text : DOMString = ---
 ATTR_title : DOMString = ---
