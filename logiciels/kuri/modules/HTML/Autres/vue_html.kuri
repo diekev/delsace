@@ -844,6 +844,7 @@ VueRenduPage :: struct {
     sur_pression_souris = vue_rendu_page_sur_pression_souris
     sur_relachement_souris = vue_rendu_page_sur_relachement_souris
     sur_molette_souris = vue_rendu_page_sur_molette_souris
+    sur_sortie = vue_rendu_page_sur_sortie
 
     fenêtre_principale: *QT_Fenetre_Principale
     page: *PageWeb
@@ -1119,6 +1120,16 @@ vue_rendu_page_sur_molette_souris :: fonc (base: *QT_Rappels_GLWidget, event: *Q
         décale_par(*vue_rendu_page.page.défilement_vertical, DÉCALAGE_PAR_ROULEMENT)
     }
     QT_widget_ajourne(vue_rendu_page.widget)
+}
+
+vue_rendu_page_sur_sortie :: fonc (base: *QT_Rappels_GLWidget, event: *QT_Evenement @inutilisée)
+{
+    vue_rendu_page := base comme *VueRenduPage
+    si vue_rendu_page.page.défilement_vertical.est_cliqué {
+        retourne
+    }
+    vue_rendu_page.page.défilement_vertical.est_survolé = faux
+    QT_gui_application_restaure_curseur()
 }
 
 /* https://w3c.github.io/uievents/#send-click-event */
