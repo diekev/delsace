@@ -149,7 +149,11 @@ an optional entry list or null formDataEntryList (default null)
 an optional referrer policy referrerPolicy (default the empty string)
 and an optional user navigation involvement userInvolvement (default "none"):
 */
-navigate :: fonc (user_agent: *UserAgent, navigable: *Navigable, url: &URI, source_document: *Document, history_handling := NavigationHistoryBehavior.AUTO)
+navigate :: fonc (user_agent: *UserAgent,
+                  navigable: *Navigable,
+                  url: &URI,
+                  source_document: *Document,
+                  history_handling := NavigationHistoryBehavior.AUTO)
 {
     // 1. Let cspNavigationType be "form-submission" if formDataEntryList is non-null; otherwise "other".
 
@@ -243,7 +247,12 @@ navigate :: fonc (user_agent: *UserAgent, navigable: *Navigable, url: &URI, sour
     navigate_parallel_steps(user_agent, navigable, url, source_snapshot_params, target_snapshot_params, history_handling)
 }
 
-navigate_parallel_steps :: fonc (user_agent: *UserAgent, navigable: *Navigable, url: &URI, source_snapshot_params: &SourceSnapshotParams, target_snapshot_params: &TargetSnapshotParams, history_handling: NavigationHistoryBehavior)
+navigate_parallel_steps :: fonc (user_agent: *UserAgent,
+                                 navigable: *Navigable,
+                                 url: &URI,
+                                 source_snapshot_params: &SourceSnapshotParams,
+                                 target_snapshot_params: &TargetSnapshotParams,
+                                 history_handling: NavigationHistoryBehavior)
 {
     // 1. Let unloadPromptCanceled be the result of checking if unloading is
     //    canceled for navigable's active document's inclusive descendant navigables.
