@@ -3,6 +3,7 @@ importe Couleur
 importe #inemployé CSS
 importe Fondation
 importe Internet
+importe Unicode
 
 est_tag_auto_fermant :: fonc (tag: DOMString) -> bool
 {
@@ -623,7 +624,7 @@ parse_a_legacy_colour_value :: fonc (string: DOMString) -> Optionnel(CouleurRVBA
     // À FAIRE 5. If input is an ASCII case-insensitive match for one of the named colors, then return the simple color corresponding to that keyword. [CSSCOLOR]
 
     // 6. If input's code point length is four, and the first character in input is U+0023 (#), and the last three characters of input are all ASCII hex digits, then:
-    si input.taille() == 4 && input.unités[0] == 0x23 && CSS.est_chiffre_hex(input.unités[1]) && CSS.est_chiffre_hex(input.unités[2]) && CSS.est_chiffre_hex(input.unités[3]) {
+    si input.taille() == 4 && input.unités[0] == 0x23 && est_chiffre_hexadecimal_ascii(input.unités[1]) && est_chiffre_hexadecimal_ascii(input.unités[2]) && est_chiffre_hexadecimal_ascii(input.unités[3]) {
         // 1. Let result be a simple color.
         result: CouleurRVBAN8
         result.a = 255
@@ -658,7 +659,7 @@ parse_a_legacy_colour_value :: fonc (string: DOMString) -> Optionnel(CouleurRVBA
     // 10. Replace any character in input that is not an ASCII hex digit with the character U+0030 DIGIT ZERO (0).
     pour & input.unités {
         point_de_code : n16 = it
-        saufsi CSS.est_chiffre_hex(point_de_code) {
+        saufsi est_chiffre_hexadecimal_ascii(point_de_code) {
             it = 0x30
         }
     }
@@ -791,7 +792,7 @@ parse_a_legacy_font_size :: fonc (attribute_value: DOMString) -> Optionnel(CSS.C
     digits: ChaineUTF16
 
     tantque position < fin {
-        saufsi CSS.est_chiffre(mémoire(position)) {
+        saufsi est_chiffre_ascii(mémoire(position)) {
             arrête
         }
 

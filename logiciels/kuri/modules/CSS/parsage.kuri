@@ -3,6 +3,7 @@ importe Couleur
 importe Ensemble
 importe Fondation
 importe Internet
+importe Unicode
 
 /* ------------------------------------------------------------------------- */
 /** \nom 5. Parsing
@@ -1756,7 +1757,7 @@ parse_valeur_couleur :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(
         valeur := lexème.donne_texte().donne_chaine_utf16()
 
         pour valeur.unités {
-            saufsi est_chiffre_hex(it) {
+            saufsi est_chiffre_hexadecimal_ascii(it) {
                 imprime("[%] couleur hexadécimal inconnu : %\n", #nom_de_cette_fonction, valeur)
                 retourne
             }
