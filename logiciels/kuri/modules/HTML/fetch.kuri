@@ -124,6 +124,7 @@ détruit_response :: fonc (response: *Response)
     déloge(response)
 }
 
+/* https://fetch.spec.whatwg.org/#concept-response-url */
 donne_url :: fonc (response: *Response) -> Optionnel(URI)
 {
     si response.url_list.taille == 0 {
