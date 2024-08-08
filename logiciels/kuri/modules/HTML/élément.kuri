@@ -490,10 +490,10 @@ anchor_element_sur_activation_behavior :: fonc (target: *EventTarget, event: *Ev
     }
 
     chn_href := converti_vers_chaine(anchor.donne_href().donne_chaine_utf16())
-    diffère déloge(chn_href)
 
     url := tente parse_uri_standard(chn_href) piège err {
         imprime("[%] impossible de parser l'URI : %\n", #nom_de_cette_fonction, err)
+        diffère déloge(chn_href)
         retourne
     }
 
