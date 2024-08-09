@@ -1369,6 +1369,14 @@ détermine_fonte :: fonc (noeud_texte: *NoeudDeDispositionTexte, ctx: *ContexteD
     propriétés := donne_propriété_parent(noeud_texte)
     taille_fonte := propriétés.style.taille_fonte.number comme r32
 
+    font_family := propriétés.style.font_family.mot_clé
+    si font_family == PROP_monospace {
+        famille_fonte = "monospace"
+    }
+    sinon si font_family == PROP_sans_serif {
+        famille_fonte = "sans-serif"
+    }
+
     font_weight := propriétés.style.font_weight.mot_clé
     si font_weight == PROP_bold || font_weight == PROP_bolder {
         graisse = GraisseFonte.Gras

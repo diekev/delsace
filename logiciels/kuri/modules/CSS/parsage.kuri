@@ -1507,6 +1507,7 @@ infos_types_propriétés := [
     InfoTypePropriété(PROP_text_decoration_style, parse_propriété_text_decoration_style, PropriétéHéritable.Non, prop_text_decoration_style_sur_calcul_style),
     InfoTypePropriété(PROP_text_decoration_color, parse_propriété_color, PropriétéHéritable.Non, prop_text_decoration_color_sur_calcul_style),
     InfoTypePropriété(PROP_cursor, parse_propriété_cursor, PropriétéHéritable.Oui, prop_cursor_sur_calcul_style),
+    InfoTypePropriété(PROP_font_family, parse_propriété_font_family, PropriétéHéritable.Oui, prop_font_family_sur_calcul_style),
     InfoTypePropriété(PROP_font_weight, parse_propriété_font_weight, PropriétéHéritable.Oui, prop_font_weight_sur_calcul_style),
     InfoTypePropriété(PROP_font_size, parse_propriété_font_size, PropriétéHéritable.Oui, prop_font_size_sur_calcul_style),
     InfoTypePropriété(PROP_font_style, parse_propriété_font_style, PropriétéHéritable.Oui, prop_font_style_sur_calcul_style),
@@ -2198,6 +2199,57 @@ parse_propriété_cursor :: fonc (value: [..]ComponentValue) -> Optionnel([..]Va
         PROP_n_resize, PROP_ne_resize, PROP_nw_resize, PROP_s_resize, PROP_se_resize, PROP_sw_resize,
         PROP_w_resize, PROP_ew_resize, PROP_ns_resize, PROP_nesw_resize, PROP_nwse_resize,
         PROP_col_resize, PROP_row_resize, PROP_all_scroll, PROP_zoom_in, PROP_zoom_out
+    ]
+
+    tantque !fini(parseuse) {
+        lexème := parseuse.lexème_courant()
+
+        si lexème.est_lexème_de_genre(GenreLexème.Ident) {
+            valeur := parse_mot_clé(parseuse, mots_clés)
+            si valeur.possède_valeur() {
+                tableau_ajoute(*résultat, valeur)
+            }
+            sinon {
+                imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
+                déloge(résultat)
+                retourne
+            }
+        }
+        sinon {
+            imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
+            déloge(résultat)
+            retourne
+        }
+
+        parseuse.consomme_espaces_blanches()
+    }
+
+    si résultat.taille != 0 {
+        retourne résultat
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Font family
+ * https://drafts.csswg.org/css-fonts/#font-family-prop
+ * \{ */
+
+parse_propriété_font_family :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+
+    // [ <family-name> | <generic-family> ]#
+    // <generic-family> = <generic-script-specific>| <generic-complete> | <generic-incomplete>
+    // <generic-script-specific> = generic(kai) | generic(fangsong) | generic(nastaliq)
+    // <generic-complete> = serif | sans-serif | system-ui | cursive | fantasy | math | monospace
+    // <generic-incomplete> = ui-serif | ui-sans-serif | ui-monospace | ui-rounded
+
+    résultat: [..]ValeurDeStyle
+
+    mots_clés := [
+        PROP_serif, PROP_sans_serif, PROP_monospace
     ]
 
     tantque !fini(parseuse) {

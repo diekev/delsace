@@ -245,6 +245,8 @@ Style :: struct {
     bordure: Border
     padding: Padding
     cursor: CursorType
+
+    font_family: ValeurDeStyle
     taille_fonte: ValeurDeStyle
     font_weight: ValeurDeStyle
     font_style: ValeurDeStyle
@@ -290,6 +292,7 @@ initialise_style :: fonc (style: *Style)
     }
 
     /* Font */
+    style.font_family = ValeurDeStyle(mot_clé = PROP_serif)
     style.font_weight = ValeurDeStyle(mot_clé = PROP_normal)
     style.font_style = ValeurDeStyle(mot_clé = PROP_normal)
 
@@ -757,6 +760,12 @@ prop_font_weight_sur_calcul_style :: fonc (déclaration: *DéclarationPropriét�
 {
     assert(déclaration.value.taille == 1)
     style.font_weight = déclaration.value[0]
+}
+
+prop_font_family_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle @inutilisée)
+{
+    assert(déclaration.value.taille == 1)
+    style.font_family = déclaration.value[0]
 }
 
 prop_font_style_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle @inutilisée)
