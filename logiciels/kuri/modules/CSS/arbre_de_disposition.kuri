@@ -782,7 +782,7 @@ détruit_données_boite_de_ligne :: fonc (boite: *BoiteDeLigne)
 
 peut_ajouter_fragment :: fonc (boite: *BoiteDeLigne, largeur: r32) -> bool
 {
-    retourne (boite.largeur_courante + largeur) < boite.bloc.largeur
+    retourne (boite.largeur_courante + largeur) < boite.bloc.propriétés.style.width.number comme r32
 }
 
 ajoute_fragment :: fonc (boite: *BoiteDeLigne, noeud: *NoeudDeDisposition, index_début: z64, index_fin: z64, hauteur: r32, largeur: r32)
@@ -1233,6 +1233,11 @@ dispose_enfants_inline :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDi
         noeud.largeur += style.width.number comme r32
 
         ctx_locale.largeur_disponible = style.width.number comme r32
+
+        décalage_x = noeud.rembourrage[BorderEdge.Left] comme r32
+        décalage_y = noeud.rembourrage[BorderEdge.Top] comme r32
+
+        noeud.hauteur = (noeud.rembourrage[BorderEdge.Top] + noeud.rembourrage[BorderEdge.Bottom]) comme r32
     }
 
     pour noeud.enfants {
@@ -1243,13 +1248,18 @@ dispose_enfants_inline :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDi
         hauteur := 0.0
         pour * fragment dans it.fragments {
             hauteur = max(fragment.hauteur, hauteur)
-            fragment.y = noeud.hauteur
+            fragment.y = décalage_y
         }
         noeud.hauteur += hauteur
+        décalage_y += hauteur
     }
 
     si décalage_x != 0.0 || décalage_y != 0.0 {
-        noeud.décale(décalage_x, décalage_y)
+        pour noeud.lignes {
+            pour * fragment dans it.fragments {
+                fragment.x += décalage_x
+            }
+        }
     }
 
     // pour noeud.enfants {
