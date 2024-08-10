@@ -536,6 +536,8 @@ donne_paramètres_texture_atlas_fonte :: fonc (atlas: *texture_atlas_t) -> Param
     résultat.bordure = 0
     résultat.type = GL_UNSIGNED_BYTE
     résultat.format = GL_RED
+    résultat.wrap_s = GL_CLAMP_TO_EDGE
+    résultat.wrap_t = GL_CLAMP_TO_EDGE
     retourne résultat
 }
 
@@ -565,7 +567,6 @@ dessine_texte :: fonc (fonte: *Fonte, texte: chaine, x: r32, y: r32, couleur: Co
     glGenTextures(1, *fonte.atlas.id)
     diffère glDeleteTextures(1, *fonte.atlas.id)
 
-    // À FAIRE : (GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE) (GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE
     params := donne_paramètres_texture_atlas_fonte(fonte.atlas)
     définis_texture_2d(fonte.atlas.id, *params)
 
@@ -617,7 +618,6 @@ dessine_texte :: fonc (fonte: *Fonte, texte: ChaineUTF16, x: r32, y: r32, couleu
         // À FAIRE : libère la texture quand la police n'est plus requise
         // diffère glDeleteTextures(1, *fonte.atlas.id)
 
-        // À FAIRE : (GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE) (GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE
         params := donne_paramètres_texture_atlas_fonte(fonte.atlas)
         définis_texture_2d(fonte.atlas.id, *params)
     }
