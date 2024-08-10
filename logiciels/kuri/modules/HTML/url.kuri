@@ -1,0 +1,164 @@
+importe Chaine
+importe Fondation
+importe Internet
+
+/* ------------------------------------------------------------------------- */
+/** \nom Host
+ * https://url.spec.whatwg.org/#concept-host
+ * \{ */
+
+/* À FAIRE : structure correcte. */
+Host :: chaine
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Domain
+ * https://url.spec.whatwg.org/#concept-domain
+ * \{ */
+
+Domain :: chaine
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom URL
+ * https://url.spec.whatwg.org/#concept-url
+ * \{ */
+
+ChaineASCII :: chaine
+
+/* À FAIRE : fusionne avec URI */
+URL :: struct {
+    scheme: ChaineASCII
+    username: ChaineASCII
+    password: ChaineASCII
+    host: Optionnel(Host)
+    port: Optionnel(n16)
+    path: [..]ChaineASCII
+    query: Optionnel(ChaineASCII)
+    fragment: Optionnel(ChaineASCII)
+}
+
+/* https://url.spec.whatwg.org/#concept-url-origin */
+donne_origin :: fonc (url: URI) -> Origin
+{
+    /* The origin of a URL url is the origin returned by running these steps, switching on url’s scheme: */
+
+    schéma := url.schéma
+
+    si schéma == "blob" {
+        imprime("À FAIRE : origine pour blob")
+        // 1. If url’s blob URL entry is non-null, then return url’s blob URL entry’s environment’s origin.
+
+        // 2. Let pathURL be the result of parsing the result of URL path serializing url.
+
+        // 3. If pathURL is failure, then return a new opaque origin.
+
+        // 4. If pathURL’s scheme is "http", "https", or "file", then return pathURL’s origin.
+
+        // 5. Return a new opaque origin.
+        retourne crée_nouvelle_origin_opaque()
+    }
+
+    si schéma == "ftp" || schéma == "http" || schéma == "https" || schéma == "ws" || schéma == "wss" {
+        retourne Origin(scheme = schéma, host = url.hôte, port = port_pour_uri(url))
+    }
+
+    si schéma == "file" {
+        /* Unfortunate as it is, this is left as an exercise to the reader.
+         * When in doubt, return a new opaque origin. */
+        retourne crée_nouvelle_origin_opaque()
+    }
+
+    /* Return a new opaque origin. */
+    retourne crée_nouvelle_origin_opaque()
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 4.4 URL Parsing
+ * https://url.spec.whatwg.org/#url-parsing
+ * \{ */
+
+ÉtatParsageURL :: énum {
+    SchemeStart
+    Scheme
+    NoScheme
+    SpecialRelativeOrAuthority
+    PathOrAuthority
+    Relative
+    RelativeSlash
+    SpecialAuthoritySlashes
+    SpecialAuthorityIgnoreSlashes
+    Authority
+    Host
+    Hostname
+    Port
+    File
+    FileSlash
+    FileHost
+    PathStart
+    Path
+    OpaquePath
+    Query
+    Fragment
+}
+
+/* https://url.spec.whatwg.org/#concept-basic-url-parser */
+/* À FAIRE : encoding */
+basic_url_parser :: fonc (input: ChaineUTF16, base : *URL = nul, url : *URL = nul, state_override : *ÉtatParsageURL = nul) -> *URL
+{
+    résultat := url
+
+    // 1. If url is not given:
+    si url == nul {
+        // 1. Set url to a new URL.
+        résultat = loge(URL)
+
+        // À FAIRE 2. If input contains any leading or trailing C0 control or space, invalid-URL-unit validation error.
+
+        // À FAIRE 3. Remove any leading and trailing C0 control or space from input.
+    }
+
+    // À FAIRE 2. If input contains any ASCII tab or newline, invalid-URL-unit validation error.
+
+    // À FAIRE 3. Remove all ASCII tab or newline from input.
+
+    // 4. Let state be state override if given, or scheme start state otherwise.
+    state := si state_override { mémoire(state_override) } sinon { ÉtatParsageURL.SchemeStart }
+
+    // À FAIRE 5. Set encoding to the result of getting an output encoding from encoding.
+
+    // 6. Let buffer be the empty string.
+    buffer: chaine
+
+    // 7. Let atSignSeen, insideBrackets, and passwordTokenSeen be false.
+    at_sign_seen := faux
+    inside_brackets := faux
+    password_token_seen := faux
+
+    // À FAIRE 8. Let pointer be a pointer for input.
+
+    // À FAIRE 9. Keep running the following state machine by switching on state. If after a run pointer points to the EOF code point, go to the next step. Otherwise, increase pointer by 1 and continue with the state machine.
+
+    // 10. Return url.
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 4.5 URL Serializing
+ * https://url.spec.whatwg.org/#url-serializing
+ * \{ */
+
+/* https://url.spec.whatwg.org/#concept-url-serializer */
+url_serializer :: fonc (url: *URI) -> ChaineASCII
+{
+    // À FAIRE : standardise
+    retourne recompose_uri(url)
+}
+
+/** \} */

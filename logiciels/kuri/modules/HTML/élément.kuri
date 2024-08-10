@@ -3,6 +3,7 @@ importe Couleur
 importe #inemployé CSS
 importe Fondation
 importe Internet
+importe Unicode
 
 est_tag_auto_fermant :: fonc (tag: DOMString) -> bool
 {
@@ -184,6 +185,9 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élé
     }
     sinon si tag == TAG_body {
         élément = loge(HTMLBodyElement)
+    }
+    sinon si tag == TAG_font {
+        élément = loge(HTMLFontElement)
     }
     sinon si tag == TAG_form {
         élément = loge(HTMLFormElement)
@@ -486,10 +490,10 @@ anchor_element_sur_activation_behavior :: fonc (target: *EventTarget, event: *Ev
     }
 
     chn_href := converti_vers_chaine(anchor.donne_href().donne_chaine_utf16())
-    diffère déloge(chn_href)
 
     url := tente parse_uri_standard(chn_href) piège err {
         imprime("[%] impossible de parser l'URI : %\n", #nom_de_cette_fonction, err)
+        diffère déloge(chn_href)
         retourne
     }
 
@@ -570,6 +574,20 @@ ajoute_propriété_pour_couleur :: fonc (propriétés: *CSS.PropriétésDeStyle,
     CSS.ajoute_déclaration(propriétés, déclaration)
 }
 
+ajoute_propriété_pour_mot_clé :: fonc (propriétés: *CSS.PropriétésDeStyle, nom_propriété: CSS.CSSOMString, mot_clé: CSS.CSSOMString)
+{
+    value: [..]CSS.ValeurDeStyle
+    tableau_ajoute(*value, CSS.ValeurDeStyle(mot_clé = mot_clé))
+
+    /* À FAIRE : fuite de mémoire */
+    déclaration := loge(CSS.DéclarationPropriété)
+    déclaration.info = CSS.donne_info_type_pour_nom(nom_propriété)
+    déclaration.property_name = nom_propriété
+    déclaration.value = value
+
+    CSS.ajoute_déclaration(propriétés, déclaration)
+}
+
 ajoute_propriété_pour_nombre :: fonc (propriétés: *CSS.PropriétésDeStyle, nom_propriété: CSS.CSSOMString, valeur: r64)
 {
     value: [..]CSS.ValeurDeStyle
@@ -606,7 +624,7 @@ parse_a_legacy_colour_value :: fonc (string: DOMString) -> Optionnel(CouleurRVBA
     // À FAIRE 5. If input is an ASCII case-insensitive match for one of the named colors, then return the simple color corresponding to that keyword. [CSSCOLOR]
 
     // 6. If input's code point length is four, and the first character in input is U+0023 (#), and the last three characters of input are all ASCII hex digits, then:
-    si input.taille() == 4 && input.unités[0] == 0x23 && CSS.est_chiffre_hex(input.unités[1]) && CSS.est_chiffre_hex(input.unités[2]) && CSS.est_chiffre_hex(input.unités[3]) {
+    si input.taille() == 4 && input.unités[0] == 0x23 && est_chiffre_hexadecimal_ascii(input.unités[1]) && est_chiffre_hexadecimal_ascii(input.unités[2]) && est_chiffre_hexadecimal_ascii(input.unités[3]) {
         // 1. Let result be a simple color.
         result: CouleurRVBAN8
         result.a = 255
@@ -641,7 +659,7 @@ parse_a_legacy_colour_value :: fonc (string: DOMString) -> Optionnel(CouleurRVBA
     // 10. Replace any character in input that is not an ASCII hex digit with the character U+0030 DIGIT ZERO (0).
     pour & input.unités {
         point_de_code : n16 = it
-        saufsi CSS.est_chiffre_hex(point_de_code) {
+        saufsi est_chiffre_hexadecimal_ascii(point_de_code) {
             it = 0x30
         }
     }
@@ -674,6 +692,149 @@ parse_a_legacy_colour_value :: fonc (string: DOMString) -> Optionnel(CouleurRVBA
 
     // 20. Return result.
     retourne result
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLFontElement
+ * https://html.spec.whatwg.org/multipage/obsolete.html#htmlfontelement
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLFontElement
+ * \{ */
+
+#portée_export
+
+HTMLFontElement :: struct {
+    empl html_element: HTMLElement
+    table = *table_virtuelle_font_element
+}
+
+#portée_fichier
+
+table_virtuelle_font_element := TableVirtuelleÉlément(
+    sur_destruction = font_element_sur_destruction,
+    sur_applique_presentational_hints = font_element_sur_applique_presentational_hints
+)
+
+font_element_sur_destruction :: fonc (base: *EventTarget)
+{
+    élément := base comme *HTMLFontElement
+    élément_détruit_données(élément)
+    déloge(élément)
+}
+
+/* https://html.spec.whatwg.org/multipage/rendering.html#phrasing-content-3 */
+font_element_sur_applique_presentational_hints :: fonc (base: *Élément, propriétés: *CSS.PropriétésDeStyle)
+{
+    font := base comme *HTMLFontElement
+
+    opt_color := donne_attribut(font, ATTR_color)
+    si opt_color.possède_valeur() {
+        color := opt_color.Quelque
+        ajoute_propriété_pour_couleur(propriétés, CSS.PROP_color, color)
+    }
+
+    opt_size := donne_attribut(font, ATTR_size)
+    si opt_size.possède_valeur() {
+        opt_font_size := parse_a_legacy_font_size(opt_size.Quelque)
+        si opt_font_size.possède_valeur() {
+            ajoute_propriété_pour_mot_clé(propriétés, CSS.PROP_font_size, opt_font_size.Quelque)
+        }
+    }
+
+    /* À FAIRE : face. */
+}
+
+parse_a_legacy_font_size :: fonc (attribute_value: DOMString) -> Optionnel(CSS.CSSOMString)
+{
+    // 1. Let input be the attribute's value.
+    input := attribute_value.donne_chaine_utf16()
+
+    // 2. Let position be a pointer into input, initially pointing at the start of the string.
+    position := input.unités.pointeur
+    fin := position + input.taille()
+
+    // 3. Skip ASCII whitespace within input given position.
+    tantque position < fin {
+        saufsi est_espace_blanche_ascii(mémoire(position)) {
+            arrête
+        }
+
+        position += 1
+    }
+
+    // 4. If position is past the end of input, there is no presentational hint. Return.
+    si position >= fin {
+        retourne
+    }
+
+    // 5. If the character at position is a U+002B PLUS SIGN character (+), then let mode be
+    //    relative-plus, and advance position to the next character. Otherwise, if the character
+    //    at position is a U+002D HYPHEN-MINUS character (-), then let mode be relative-minus,
+    //    and advance position to the next character. Otherwise, let mode be absolute.
+    ModeFonte :: énum {
+        Aucun
+        RelativePlus
+        RelativeMinus
+    }
+    mode := ModeFonte.Aucun
+    si mémoire(position) == 0x2B {
+        mode = ModeFonte.RelativePlus
+        position += 1
+    }
+    sinon si mémoire(position) == 0x2D {
+        mode = ModeFonte.RelativeMinus
+        position += 1
+    }
+
+    // 6. Collect a sequence of code points that are ASCII digits from input given position, and let the resulting sequence be digits.
+    //    https://infra.spec.whatwg.org/#collect-a-sequence-of-code-points
+    digits: ChaineUTF16
+
+    tantque position < fin {
+        saufsi est_chiffre_ascii(mémoire(position)) {
+            arrête
+        }
+
+        chaine_ajoute(*digits, mémoire(position))
+        position += 1
+    }
+
+    // 7. If digits is the empty string, there is no presentational hint. Return.
+    si digits.est_vide() {
+        retourne
+    }
+    diffère détruit_chaine(digits)
+
+    // 8. Interpret digits as a base-ten integer. Let value be the resulting number.
+    value: z32
+    pour digits.unités {
+        value *= 10
+        value += (it - '0' comme n16) comme z32
+    }
+
+    // 9. If mode is relative-plus, then increment value by 3.
+    //    If mode is relative-minus, then let value be the result of subtracting value from 3.
+    si mode == ModeFonte.RelativePlus {
+        value += 3
+    }
+    sinon si mode == ModeFonte.RelativeMinus {
+        value -= 3
+    }
+
+    // 10. If value is greater than 7, let it be 7.
+    si value > 7 {
+        value = 7
+    }
+
+    // 11. If value is less than 1, let it be 1.
+    si value < 1 {
+        value = 1
+    }
+
+    // 12. Set 'font-size' to the keyword corresponding to the value of value according to the following table:
+    table := [CSS.PROP_x_small, CSS.PROP_small, CSS.PROP_medium, CSS.PROP_large, CSS.PROP_x_large, CSS.PROP_xx_large, CSS.PROP_xxx_large]
+    retourne table[value - 1]
 }
 
 /** \} */

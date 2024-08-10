@@ -1,7 +1,38 @@
+importe Chaine
 importe CodecDonnées
 importe Fondation
 importe Internet
 importe Numérique
+
+/* ------------------------------------------------------------------------- */
+/** \nom ContenuHTTP
+ * \{ */
+
+ContenuHTTP :: struct {
+    type: chaine
+    contenu: chaine
+}
+
+contenu_url_form_encoded :: fonc (chn: chaine) -> ContenuHTTP
+{
+    retourne ContenuHTTP("application/x-www-form-urlencoded", chn)
+}
+
+contenu_html :: fonc (html: chaine) -> ContenuHTTP
+{
+    retourne ContenuHTTP("text/html;charset=utf-8", html)
+}
+
+contenu_json :: fonc (json: chaine) -> ContenuHTTP
+{
+    retourne ContenuHTTP("application/json;charset=utf-8", json)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom MessageHTTP
+ * \{ */
 
 MessageHTTP :: struct {
     version: chaine
@@ -37,6 +68,66 @@ est_type_contenu :: fonc (message: *MessageHTTP, type_contenu: chaine) -> bool
     retourne entête_type_contenu.valeur == type_contenu
 }
 
+/* Liste des médias de l'IANA :
+ * https://www.iana.org/assignments/media-types/media-types.xhtml?utm_source=localhost%3A8080 */
+donne_type_contenu :: fonc (message: *MessageHTTP) -> chaine
+{
+    entête_content_type := entête(message, "Content-Type")
+    saufsi entête_content_type {
+        retourne ""
+    }
+
+    valeur := entête_content_type.valeur
+    morceaux := divise(valeur, ';')
+    diffère déloge(morceaux)
+
+    résultat: chaine
+
+    si morceaux {
+        résultat = morceaux[0]
+    }
+    sinon {
+        résultat = valeur
+    }
+
+    retourne supprime_espaces_blancs(résultat)
+}
+
+donne_charset :: fonc (message: *MessageHTTP) -> chaine
+{
+    entête_content_type := entête(message, "Content-Type")
+    saufsi entête_content_type {
+        retourne ""
+    }
+
+    valeur := entête_content_type.valeur
+    morceaux := divise(valeur, ';')
+    diffère déloge(morceaux)
+
+    résultat: chaine
+
+    si morceaux {
+        pour 1 ... morceaux.taille - 1 {
+            morceaux_attribut := divise(morceaux[it], '=')
+            // À FAIRE(langage)
+            // diffère déloge(morceaux_attribut)
+
+            si morceaux_attribut.taille != 2 {
+                continue
+            }
+
+            saufsi compare_ascii_insensible_à_la_casse(morceaux_attribut[0], "charset") {
+                continue
+            }
+
+            résultat = morceaux_attribut[1]
+            arrête
+        }
+    }
+
+    retourne supprime_espaces_blancs(résultat)
+}
+
 valeur_entête_ou :: fonc (message: *MessageHTTP, nom: chaine, défaut: chaine) -> chaine
 {
     entête_pour_nom := entête(message, nom)
@@ -48,88 +139,15 @@ valeur_entête_ou :: fonc (message: *MessageHTTP, nom: chaine, défaut: chaine) 
     retourne entête_pour_nom.valeur
 }
 
-MessageClienteHTTP :: struct {
-    empl base: MessageHTTP
-
-    méthode: chaine
-    requête: chaine
-
-    uri: URI
-}
-
-initialise_depuis_message :: fonc (message_serveuse: *MessageClienteHTTP, message: MessageHTTP)
-{
-    mémoire(message_serveuse comme *MessageHTTP) = message
-}
-
-ContenuHTTP :: struct {
-    type: chaine
-    contenu: chaine
-}
-
-contenu_url_form_encoded :: fonc (chn: chaine) -> ContenuHTTP
-{
-    retourne ContenuHTTP("application/x-www-form-urlencoded", chn)
-}
-
-contenu_html :: fonc (html: chaine) -> ContenuHTTP
-{
-    retourne ContenuHTTP("text/html;charset=utf-8", html)
-}
-
-contenu_json :: fonc (json: chaine) -> ContenuHTTP
-{
-    retourne ContenuHTTP("application/json;charset=utf-8", json)
-}
-
-crée_message_avec_contenu :: fonc (code_état: CodeÉtatHTTP, contenu: ContenuHTTP) -> MessageServeuseHTTP
-{
-    message: MessageServeuseHTTP
-    message.version = "HTTP/1.1"
-    message.contenu = contenu.contenu
-    ajoute_entête(*message, "Content-Type", contenu.type)
-    message.code_état = code_état
-
-    retourne message
-}
-
-crée_message_cliente_avec_contenu :: fonc (contenu: ContenuHTTP) -> MessageClienteHTTP
-{
-    message: MessageClienteHTTP
-    message.version = "HTTP/1.1"
-    message.contenu = contenu.contenu
-    ajoute_entête(*message, "Content-Type", contenu.type)
-
-    retourne message
-}
-
-MessageServeuseHTTP :: struct {
-    empl base: MessageHTTP
-
-    status: z32
-    code_état: CodeÉtatHTTP
-}
-
-initialise_depuis_message :: fonc (message_serveuse: *MessageServeuseHTTP, message: MessageHTTP)
-{
-    mémoire(message_serveuse comme *MessageHTTP) = message
-}
-
 possède_entête :: fonc (message: &MessageHTTP, nom: chaine) -> bool
 {
-    pour message.entêtes {
-        si it.nom == nom {
-            retourne vrai
-        }
-    }
-
-    retourne faux
+    retourne entête(message, nom) != nul
 }
 
 entête :: fonc (message: &MessageHTTP, nom: chaine) -> *Entête
 {
     pour * message.entêtes {
-        si it.nom == nom {
+        si compare_ascii_insensible_à_la_casse(it.nom, nom) {
             retourne it
         }
     }
@@ -139,19 +157,13 @@ entête :: fonc (message: &MessageHTTP, nom: chaine) -> *Entête
 
 possède_entête :: fonc (message: *MessageHTTP, nom: chaine) -> bool
 {
-    pour message.entêtes {
-        si it.nom == nom {
-            retourne vrai
-        }
-    }
-
-    retourne faux
+    retourne entête(message, nom) != nul
 }
 
 entête :: fonc (message: *MessageHTTP, nom: chaine) -> *Entête
 {
     pour * message.entêtes {
-        si it.nom == nom {
+        si compare_ascii_insensible_à_la_casse(it.nom, nom) {
             retourne it
         }
     }
@@ -175,6 +187,36 @@ ajoute_entête :: fonc (message: *MessageHTTP, nom: chaine, valeur: chaine)
 {
     entête := Entête(nom, valeur)
     tableau_ajoute(*message.entêtes, entête)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom MessageClienteHTTP
+ * \{ */
+
+MessageClienteHTTP :: struct {
+    empl base: MessageHTTP
+
+    méthode: chaine
+    requête: chaine
+
+    uri: URI
+}
+
+initialise_depuis_message :: fonc (message_serveuse: *MessageClienteHTTP, message: MessageHTTP)
+{
+    mémoire(message_serveuse comme *MessageHTTP) = message
+}
+
+crée_message_cliente_avec_contenu :: fonc (contenu: ContenuHTTP) -> MessageClienteHTTP
+{
+    message: MessageClienteHTTP
+    message.version = "HTTP/1.1"
+    message.contenu = contenu.contenu
+    ajoute_entête(*message, "Content-Type", contenu.type)
+
+    retourne message
 }
 
 parse_contenu_message_url_encoded :: fonc (message: &MessageClienteHTTP, $T: type_de_données) -> bool, T
@@ -217,6 +259,57 @@ parse_contenu_message_url_encoded :: fonc (message: &MessageClienteHTTP, $T: typ
     retourne vrai, info
 }
 
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom MessageServeuseHTTP
+ * \{ */
+
+MessageServeuseHTTP :: struct {
+    empl base: MessageHTTP
+
+    status: z32
+    code_état: CodeÉtatHTTP
+}
+
+initialise_depuis_message :: fonc (message_serveuse: *MessageServeuseHTTP, message: MessageHTTP)
+{
+    mémoire(message_serveuse comme *MessageHTTP) = message
+}
+
+crée_message_avec_contenu :: fonc (code_état: CodeÉtatHTTP, contenu: ContenuHTTP) -> MessageServeuseHTTP
+{
+    message: MessageServeuseHTTP
+    message.version = "HTTP/1.1"
+    message.contenu = contenu.contenu
+    ajoute_entête(*message, "Content-Type", contenu.type)
+    message.code_état = code_état
+
+    retourne message
+}
+
+chaine_pour_message_serveuse :: fonc (message: &MessageServeuseHTTP) -> chaine
+{
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    imprime_dans_enchaineuse(*enchaineuse, "% %\r\n", message.version, chaine_code_état_http(message.code_état))
+
+    pour message.entêtes {
+        imprime_dans_enchaineuse(*enchaineuse, "%: %\r\n", it.nom, it.valeur)
+    }
+
+    // imprime_cookie_client(*enchaineuse, message.cookies, vrai)
+
+    ajoute_au_tampon(*enchaineuse, "\r\n")
+    ajoute_au_tampon(*enchaineuse, message.contenu)
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
+/** \} */
+
 // ---------------------------------------------------------
 // Formattage/Impression
 
@@ -239,26 +332,6 @@ chaine_pour_message_cliente :: fonc (message: &MessageClienteHTTP) -> chaine
     si message.contenu {
         imprime_dans_enchaineuse(*enchaineuse, "Content-Length: %\r\n", message.contenu.taille)
     }
-
-    ajoute_au_tampon(*enchaineuse, "\r\n")
-    ajoute_au_tampon(*enchaineuse, message.contenu)
-
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
-}
-
-chaine_pour_message_serveuse :: fonc (message: &MessageServeuseHTTP) -> chaine
-{
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
-
-    imprime_dans_enchaineuse(*enchaineuse, "% %\r\n", message.version, chaine_code_état_http(message.code_état))
-
-    pour message.entêtes {
-        imprime_dans_enchaineuse(*enchaineuse, "%: %\r\n", it.nom, it.valeur)
-    }
-
-    // imprime_cookie_client(*enchaineuse, message.cookies, vrai)
 
     ajoute_au_tampon(*enchaineuse, "\r\n")
     ajoute_au_tampon(*enchaineuse, message.contenu)

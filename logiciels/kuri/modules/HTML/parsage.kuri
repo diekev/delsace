@@ -34,15 +34,20 @@ Parseuse :: struct {
     parseuse_spéculative_active: *Parseuse
 }
 
-initialise_parseuse :: fonc (entrée: chaine) -> Parseuse
+initialise_parseuse :: fonc (entrée: chaine, document : *Document = nul) -> Parseuse
 {
     flux_utf32 := crée_chaine_utf32(entrée)
 
     parseuse: Parseuse
     parseuse.mode_insertion = insère_mode_Initial
     parseuse.lexeuse = initialise_lexeuse(flux_utf32)
-    parseuse.document = crée_noeud_document()
-    parseuse.document.type = "html"
+    si document {
+        parseuse.document = document
+    }
+    sinon {
+        parseuse.document = crée_noeud_document()
+        parseuse.document.type = "html"
+    }
 
     retourne parseuse
 }

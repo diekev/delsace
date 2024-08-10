@@ -1,6 +1,32 @@
 importe Fondation
 importe Internet
 
+/* https://html.spec.whatwg.org/multipage/browsers.html#cross-origin-opener-policy-value */
+CrossOriginOpenerPolicyValue :: énum n8 {
+    UnsafeNone
+    SameOriginAllowPopup
+    SameOrigin
+    SameOriginPlusCEOP
+}
+
+/* https://html.spec.whatwg.org/multipage/browsers.html#cross-origin-opener-policy */
+CrossOriginOpenerPolicy :: struct {
+    value: CrossOriginOpenerPolicyValue
+    reporting_endpoint: Optionnel(chaine)
+    report_only_value: CrossOriginOpenerPolicyValue
+    report_only_reporting_endpoint: Optionnel(chaine)
+}
+
+/* https://html.spec.whatwg.org/multipage/browsers.html#coop-enforcement-result */
+CrossOriginOpenerPolicyEnforcementResult :: struct {
+    needs_a_browsing_context_group_switch := faux
+    would_need_a_browsing_context_group_switch_due_to_report_only := faux
+    current_context_is_navigation_source := faux
+    url: URI
+    origin: Origin
+    cross_origin_opener_policy: CrossOriginOpenerPolicy
+}
+
 /* https://w3c.github.io/navigation-timing/#sec-performance-navigation-types */
 NavigationTimingType :: énum {
     navigate
@@ -12,6 +38,22 @@ NavigationTimingType :: énum {
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#navigation-id */
 NavigationID :: chaine
 
+/* must be an algorithm accepting a Document */
+CommitEarlyHints :: struct {
+    sur_rappel: fonc(*CommitEarlyHints, *Document)(rien)
+    sur_destruction: fonc (*CommitEarlyHints)(rien)
+}
+
+run :: fonc (commit_early_hints: *CommitEarlyHints, document: *Document)
+{
+    si commit_early_hints.sur_rappel {
+        commit_early_hints.sur_rappel(commit_early_hints, document)
+    }
+    si commit_early_hints.sur_destruction {
+        commit_early_hints.sur_destruction(commit_early_hints)
+    }
+}
+
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#navigation-params */
 NavigationParams :: struct {
     id: NavigationID
@@ -20,10 +62,9 @@ NavigationParams :: struct {
     response: *Response
     fetch_controller: *FetchController
     /* null or an algorithm accepting a Document, once it has been created */
-    commit_early_hints: *rien
+    commit_early_hints: *CommitEarlyHints
     
-    //COOP enforcement result
-    //    a cross-origin opener policy enforcement result, used for reporting and potentially for causing a browsing context group switch
+    COOP_enforcement_result: CrossOriginOpenerPolicyEnforcementResult
     // reserved environment
     //    null or an environment reserved for the new Document
     
@@ -33,8 +74,7 @@ NavigationParams :: struct {
     //  a policy container to use for the new Document
 
     final_sandboxing_flag: SandboxingFlags
-    //cross-origin opener policy
-    //  a cross-origin opener policy to use for the new Document
+    cross_origin_opener_policy: CrossOriginOpenerPolicy
     
     navigation_timing_type: NavigationTimingType
     
@@ -89,6 +129,21 @@ NavigationHistoryBehavior :: énum {
     AUTO
 }
 
+/* https://html.spec.whatwg.org/multipage/nav-history-apis.html#navigationtype */
+NavigationType :: énum {
+    push
+    replace
+    reload
+    traverse
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#user-navigation-involvement */
+UserNavigationInvolvment :: énum {
+    BrowserUI
+    Activation
+    None
+}
+
 /* ------------------------------------------------------------------------- */
 /** \nom 7.4.2.2 Beginning navigation
  * https://html.spec.whatwg.org/multipage/browsing-the-web.html#beginning-navigation
@@ -109,7 +164,11 @@ an optional entry list or null formDataEntryList (default null)
 an optional referrer policy referrerPolicy (default the empty string)
 and an optional user navigation involvement userInvolvement (default "none"):
 */
-navigate :: fonc (user_agent: *UserAgent, navigable: *Navigable, url: &URI, source_document: *Document, history_handling := NavigationHistoryBehavior.AUTO)
+navigate :: fonc (user_agent: *UserAgent,
+                  navigable: *Navigable,
+                  url: &URI,
+                  source_document: *Document,
+                  history_handling := NavigationHistoryBehavior.AUTO)
 {
     // 1. Let cspNavigationType be "form-submission" if formDataEntryList is non-null; otherwise "other".
 
@@ -203,7 +262,12 @@ navigate :: fonc (user_agent: *UserAgent, navigable: *Navigable, url: &URI, sour
     navigate_parallel_steps(user_agent, navigable, url, source_snapshot_params, target_snapshot_params, history_handling)
 }
 
-navigate_parallel_steps :: fonc (user_agent: *UserAgent, navigable: *Navigable, url: &URI, source_snapshot_params: &SourceSnapshotParams, target_snapshot_params: &TargetSnapshotParams, history_handling: NavigationHistoryBehavior)
+navigate_parallel_steps :: fonc (user_agent: *UserAgent,
+                                 navigable: *Navigable,
+                                 url: &URI,
+                                 source_snapshot_params: &SourceSnapshotParams,
+                                 target_snapshot_params: &TargetSnapshotParams,
+                                 history_handling: NavigationHistoryBehavior)
 {
     // 1. Let unloadPromptCanceled be the result of checking if unloading is
     //    canceled for navigable's active document's inclusive descendant navigables.
@@ -371,6 +435,12 @@ finalize_a_cross_document_navigation :: fonc (navigable: *Navigable, history_han
     // À FAIRE : 10. Apply the push/replace history step targetStep to traversable given historyHandling.
     navigable.current_session_history_entry = history_entry
     navigable.active_session_history_entry = history_entry
+
+    document := history_entry.donne_document()
+    user_agent := document.donne_user_agent()
+    si user_agent {
+        user_agent.document_est_prêt(document)
+    }
 }
 
 /** } */
@@ -435,6 +505,7 @@ attempt_to_populate_the_history_entry_document :: fonc (user_agent: *UserAgent,
     Tâche :: struct {
         empl base: Algorithm
 
+        user_agent: *UserAgent
         completion_steps: *Algorithm
         entry: *SessionHistoryEntry
         navigation_params: *NavigationParams
@@ -448,11 +519,12 @@ attempt_to_populate_the_history_entry_document :: fonc (user_agent: *UserAgent,
         entry := tâche.entry
         completion_steps := tâche.completion_steps
         source_snapshot_params := tâche.source_snapshot_params
+        user_agent := tâche.user_agent
 
         // À FAIRE : complète
 
         // 6.
-        entry.document_state.document = load_a_document(navigation_params, source_snapshot_params, Origin())
+        entry.document_state.document = load_a_document(user_agent, navigation_params, source_snapshot_params, Origin())
 
         // 7. If entry's document state's document is not null, then:
         si entry.document_state.document != nul {
@@ -476,6 +548,7 @@ attempt_to_populate_the_history_entry_document :: fonc (user_agent: *UserAgent,
     tâche := loge(Tâche)
     tâche.sur_run = sur_run
     tâche.sur_destruction = sur_destruction
+    tâche.user_agent = user_agent
     tâche.completion_steps = completion_steps
     tâche.entry = entry
     tâche.navigation_params = navigation_params
@@ -563,14 +636,19 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
     //     url navigable's active document's URL
     //     origin  navigable's active document's origin
     //     cross-origin opener policy  navigable's active document's cross-origin opener policy
-    //     current context is navigation source    true if navigable's active document's origin is same origin with entry's document state's initiator origin otherwise false
+    //     À FAIRE : current context is navigation source    true if navigable's active document's origin is same origin with entry's document state's initiator origin otherwise false
+    coop_enforcement_result: CrossOriginOpenerPolicyEnforcementResult
+    coop_enforcement_result.url = navigable.donne_active_document().url
+    coop_enforcement_result.origin = navigable.donne_active_document().origin
+    coop_enforcement_result.cross_origin_opener_policy = navigable.donne_active_document().cross_origin_opener_policy
 
     // 13. Let finalSandboxFlags be an empty sandboxing flag set.
-    // final_sanboxing_flags: SandboxingFlags
+    // final_sandboxing_flags: SandboxingFlags
 
     // 14. Let responsePolicyContainer be null.
 
     // 15. Let responseCOOP be a new cross-origin opener policy.
+    response_coop: CrossOriginOpenerPolicy
 
     // 16. Let locationURL be null.
 
@@ -663,12 +741,14 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
         // 11. Set responseOrigin to the result of determining the origin given response's URL, finalSandboxFlags, and entry's document state's initiator origin.
 
         // 12. If navigable is a top-level traversable, then:
-
+        si navigable.est_top_level_traversable() {
+            imprime("À FAIRE : [navigation/COOP]\n")
             // 1. Set responseCOOP to the result of obtaining a cross-origin opener policy given response and request's reserved client.
 
             // 2. Set coopEnforcementResult to the result of enforcing the response's cross-origin opener policy given navigable's active browsing context, response's URL, responseOrigin, responseCOOP, coopEnforcementResult and request's referrer.
 
             // 3. If finalSandboxFlags is not empty and responseCOOP's value is not "unsafe-none", then set response to an appropriate network error and break.
+        }
 
         // 13. If response is not a network error, navigable is a child navigable, and the result of performing a cross-origin resource policy check with navigable's container document's origin, navigable's container document's relevant settings object, request's destination, response, and true is blocked, then set response to a network error and break.
 
@@ -749,19 +829,19 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
     résultat.response = response
     résultat.fetch_controller = fetch_controller
     //     commit early hints  commitEarlyHints
-    //     cross-origin opener policy  responseCOOP
+    résultat.cross_origin_opener_policy = response_coop
     //     reserved environment    request's reserved client
     //     origin  responseOrigin
     //     policy container    resultPolicyContainer
     //     final sandboxing flag set   finalSandboxFlags
-    //     COOP enforcement result coopEnforcementResult
+    résultat.COOP_enforcement_result = coop_enforcement_result
     //     navigation timing type  navTimingType
     //     about base URL  entry's document state's about base URL
     retourne résultat
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#loading-a-document */
-load_a_document :: fonc (navigation_params: *NavigationParams, source_snapshot_params: SourceSnapshotParams @inutilisée, initiator_origin: Origin @inutilisée) -> *Document
+load_a_document :: fonc (user_agent: *UserAgent, navigation_params: *NavigationParams, source_snapshot_params: SourceSnapshotParams @inutilisée, initiator_origin: Origin @inutilisée) -> *Document
 {
     // 1. Let type be the computed type of navigationParams's response.
     mime_type := navigation_params.response.donne_mime_type()
@@ -774,7 +854,7 @@ load_a_document :: fonc (navigation_params: *NavigationParams, source_snapshot_p
     // an HTML MIME type
     si mime_type == "text/html" {
         // Return the result of loading an HTML document, given navigationParams.
-        retourne load_an_html_document(navigation_params)
+        retourne load_an_html_document(user_agent, navigation_params)
     }
 
     // an XML MIME type that is not an explicitly supported XML MIME type
@@ -803,17 +883,301 @@ load_a_document :: fonc (navigation_params: *NavigationParams, source_snapshot_p
 }
 
 /* https://html.spec.whatwg.org/multipage/document-lifecycle.html#navigate-html */
-load_an_html_document :: fonc (navigation_params: *NavigationParams) -> *Document
+load_an_html_document :: fonc (user_agent: *UserAgent, navigation_params: *NavigationParams) -> *Document
 {
-    // À FAIRE : implémente proprement
     response := navigation_params.response
-    parsat := parse_document(response.body.Quelque)
-    diffère détruit(parsat)
-    document := parsat.document
-    document.browsing_context = navigation_params.navigable.donne_active_browsing_context()
-    parsat.document = nul
+
+    // 1. Let document be the result of creating and initializing a Document object given "html", "text/html", and navigationParams.
+    document := create_and_initialize_a_document_object(user_agent, "html", "text/html", navigation_params)
+
+    // 2. If document's URL is about:blank, then populate with html/head/body given document.
+    si document.url.uri == "about:blank" {
+        populate_with_html_head_body(document)
+    }
+    // 3. Otherwise, create an HTML parser and associate it with the document. Each task that the networking task source places on the task queue while fetching runs must then fill the parser's input byte stream with the fetched bytes and cause the HTML parser to perform the appropriate processing of the input stream.
+    sinon {
+        parseuse := initialise_parseuse(response.body.Quelque, document)
+        diffère détruit_parseuse(*parseuse)
+
+        // début := maintenant_précis()
+        parse(*parseuse)
+        // temps := début.temps_écoulé_microsecondes()
+
+        // À FAIRE : The first task that the networking task source places on the task queue while fetching runs must process link headers given document, navigationParams's response, and "media", after the task has been processed by the HTML parser.
+        // À FAIRE : Before any script execution occurs, the user agent must wait for scripts may run for the newly-created document to be true for document.
+        // À FAIRE : When no more bytes are available, the user agent must queue a global task on the networking task source given document's relevant global object to have the parser process the implied EOF character, which eventually causes a load event to be fired.
+    }
+
+    // 4. Return document.
     retourne document
+}
+
+/* https://html.spec.whatwg.org/multipage/document-lifecycle.html#initialise-the-document-object */
+create_and_initialize_a_document_object :: fonc (user_agent: *UserAgent, type: chaine,  content_type: chaine, navigation_params: *NavigationParams) -> *Document
+{
+    // 1. Let browsingContext be navigationParams's navigable's active browsing context.
+    browsing_context := navigation_params.navigable.donne_active_browsing_context()
+
+    // 2. Set browsingContext to the result of the obtaining a browsing context to use for a navigation response given browsingContext, navigationParams's final sandboxing flag set, navigationParams's cross-origin opener policy, and navigationParams's COOP enforcement result.
+    browsing_context = obtain_a_browsing_context_for_a_navigation_response(user_agent, browsing_context, navigation_params.final_sandboxing_flag, navigation_params.cross_origin_opener_policy, navigation_params.COOP_enforcement_result)
+
+    // À FAIRE 3. Let permissionsPolicy be the result of creating a permissions policy from a response given navigationParams's navigable's container, navigationParams's origin, and navigationParams's response. [PERMISSIONSPOLICY]
+
+    // 4. Let creationURL be navigationParams's response's URL.
+    creation_url := navigation_params.response.donne_url()
+
+    // 5. If navigationParams's request is non-null, then set creationURL to navigationParams's request's current URL.
+    si navigation_params.request {
+        creation_url = navigation_params.request.donne_url_courant()
+    }
+
+    // À FAIRE 6. Let window be null.
+
+    // À FAIRE 7. If browsingContext's active document's is initial about:blank is true, and browsingContext's active document's origin is same origin-domain with navigationParams's origin, then set window to browsingContext's active window.
+
+    // À FAIRE 8. Otherwise:
+
+        // 1. Let oacHeader be the result of getting a structured field value given `Origin-Agent-Cluster` and "item" from navigationParams's response's header list.
+
+        // 2. Let requestsOAC be true if oacHeader is not null and oacHeader[0] is the boolean true; otherwise false.
+
+        // 3. If navigationParams's reserved environment is a non-secure context, then set requestsOAC to false.
+
+        // 4. Let agent be the result of obtaining a similar-origin window agent given navigationParams's origin, browsingContext's group, and requestsOAC.
+
+        // 5. Let realmExecutionContext be the result of creating a new realm given agent and the following customizations:
+            // For the global object, create a new Window object.
+            // For the global this binding, use browsingContext's WindowProxy object.
+
+        // 6. Set window to the global object of realmExecutionContext's Realm component.
+
+        // 7. Let topLevelCreationURL be creationURL.
+
+        // 8. Let topLevelOrigin be navigationParams's origin.
+
+        // 9. If navigable's container is not null, then:
+
+            // 1. Let parentEnvironment be navigable's container's relevant settings object.
+
+            // 2. Set topLevelCreationURL to parentEnvironment's top-level creation URL.
+
+            // 3. Set topLevelOrigin to parentEnvironment's top-level origin.
+
+        // 10. Set up a window environment settings object with creationURL, realmExecutionContext, navigationParams's reserved environment, topLevelCreationURL, and topLevelOrigin.
+
+    // À FAIRE 9. Let loadTimingInfo be a new document load timing info with its navigation start time set to navigationParams's response's timing info's start time.
+
+    // 10. Let document be a new Document, with
+    //     type type
+    //     content type contentType
+    //     origin navigationParams's origin
+    //     browsing context browsingContext
+    //     policy container navigationParams's policy container
+    //     permissions policy permissionsPolicy
+    //     active sandboxing flag set navigationParams's final sandboxing flag set
+    //     cross-origin opener policy navigationParams's cross-origin opener policy
+    //     load timing info loadTimingInfo
+    //     was created via cross-origin redirects navigationParams's response's has cross-origin redirects
+    //     during-loading navigation ID for WebDriver BiDi navigationParams's id
+    //     URL creationURL
+    //     current document readiness "loading"
+    //     about base URL navigationParams's about base URL
+    //     allow declarative shadow roots true
+    document := crée_noeud_document()
+    document.type = type
+    document.type_contenu = content_type
+    document.origin = navigation_params.origin
+    document.browsing_context = browsing_context
+    //     policy container navigationParams's policy container
+    //     permissions policy permissionsPolicy
+    document.active_sandboxing_flags = navigation_params.final_sandboxing_flag
+    document.cross_origin_opener_policy = navigation_params.cross_origin_opener_policy
+    //     load timing info loadTimingInfo
+    //     was created via cross-origin redirects navigationParams's response's has cross-origin redirects
+    //     during-loading navigation ID for WebDriver BiDi navigationParams's id
+    document.url = creation_url
+    //     current document readiness "loading"
+    document.about_base_url = navigation_params.about_base_URL
+    document.permets_racines_shadow_déclaratives = vrai
+
+    // À FAIRE 11. Set window's associated Document to document.
+
+    // À FAIRE 12. Run CSP initialization for a Document given document. [CSP]
+
+    // 13. If navigationParams's request is non-null, then:
+    si navigation_params.request {
+        imprime("À FAIRE : [document referrer]\n")
+        // 1. Set document's referrer to the empty string.
+
+        // 2. Let referrer be navigationParams's request's referrer.
+
+        // 3. If referrer is a URL record, then set document's referrer to the serialization of referrer.
+    }
+
+    // 14. If navigationParams's fetch controller is not null, then:
+    si navigation_params.fetch_controller {
+        imprime("À FAIRE : [extract the full timing info from navigationParams's fetch controller]\n")
+        // 1. Let fullTimingInfo be the result of extracting the full timing info from navigationParams's fetch controller.
+
+        // 2. Let redirectCount be 0 if navigationParams's response's has cross-origin redirects is true; otherwise navigationParams's request's redirect count.
+
+        // 3. Create the navigation timing entry for document, given fullTimingInfo, redirectCount, navigationTimingType, navigationParams's response's service worker timing info, and navigationParams's response's body info.
+    }
+
+    // À FAIRE 15. Create the navigation timing entry for document, with navigationParams's response's timing info, redirectCount, navigationParams's navigation timing type, and navigationParams's response's service worker timing info.
+
+    // À FAIRE 16. If navigationParams's response has a `Refresh` header, then:
+
+        // 1. Let value be the isomorphic decoding of the value of the header.
+
+        // 2. Run the shared declarative refresh steps with document and value.
+
+    // 17. If navigationParams's commit early hints is not null, then call navigationParams's commit early hints with document.
+    si navigation_params.commit_early_hints {
+        run(navigation_params.commit_early_hints, document)
+    }
+
+    // À FAIRE 18. Process link headers given document, navigationParams's response, and "pre-media".
+
+    // 19. Return document.
+    retourne document
+}
+
+/* https://html.spec.whatwg.org/multipage/browsers.html#obtain-browsing-context-navigation */
+obtain_a_browsing_context_for_a_navigation_response :: fonc (user_agent: *UserAgent, browsing_context: *BrowsingContext, sandbox_flags: SandboxingFlags @inutilisée, navigation_coop: CrossOriginOpenerPolicy @inutilisée, coop_enforcement_result: CrossOriginOpenerPolicyEnforcementResult) -> *BrowsingContext
+{
+    // 1. If browsingContext is not a top-level browsing context, then return browsingContext.
+    saufsi browsing_context.est_top_level_browsing_context() {
+        retourne browsing_context
+    }
+
+    // 2. If coopEnforcementResult's needs a browsing context group switch is false, then:
+    si coop_enforcement_result.needs_a_browsing_context_group_switch == faux {
+        // À FAIRE : 1. If coopEnforcementResult's would need a browsing context group switch due to report-only is true,
+        // set browsing context's virtual browsing context group ID to a new unique identifier.
+
+        // 2. Return browsingContext.
+        retourne browsing_context
+    }
+
+    // 3. Let newBrowsingContext be the first return value of creating a new top-level browsing context and document.
+    new_browsing_context, _ := crée_un_nouveau_top_level_browsing_context_et_document(user_agent)
+
+    // À FAIRE : 4. If navigationCOOP's value is "same-origin-plus-COEP", then set newBrowsingContext's group's cross-origin isolation mode to either "logical" or "concrete". The choice of which is implementation-defined.
+
+    // À FAIRE : 5. If sandboxFlags is not empty, then:
+
+        // 1. Assert: navigationCOOP's value is "unsafe-none".
+
+        // 2. Assert: newBrowsingContext's popup sandboxing flag set is empty.
+
+        // 3. Set newBrowsingContext's popup sandboxing flag set to a clone of sandboxFlags.
+
+    // 6. Return newBrowsingContext.
+    retourne new_browsing_context
+}
+
+/* https://html.spec.whatwg.org/multipage/document-lifecycle.html#populate-with-html/head/body */
+populate_with_html_head_body :: fonc (document: *Document)
+{
+    // 1. Let html be the result of creating an element given document, html, and the HTML namespace.
+    html := crée_élément_avec_tag(document, TAG_html)
+
+    // 2. Let head be the result of creating an element given document, head, and the HTML namespace.
+    head := crée_élément_avec_tag(document, TAG_html)
+
+    // 3. Let body be the result of creating an element given document, body, and the HTML namespace.
+    body := crée_élément_avec_tag(document, TAG_html)
+
+    // 4. Append html to document.
+    document.ajoute_enfant(html)
+
+    // 5. Append head to html.
+    html.ajoute_enfant(head)
+
+    // 6. Append body to html.
+    html.ajoute_enfant(body)
 }
 
 /** } */
 
+/* ------------------------------------------------------------------------- */
+/** \nom 7.4.6.1 Updating the traversable.
+ * https://html.spec.whatwg.org/multipage/browsing-the-web.html#updating-the-traversable
+ * \{ */
+
+ChangingNavigableContinuationState :: struct {
+    displayed_document: *Document
+    target_entry: *SessionHistoryEntry
+    navigable: *Navigable
+    update_only: bool
+}
+
+/* They return "initiator-disallowed", "canceled-by-beforeunload", "canceled-by-navigate", or "applied". */
+HistoryApplication :: énum {
+    Applied
+    InitiatorDisallowed
+    CanceledByBeforeunload
+    CanceledByNavigate
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#apply-the-push/replace-history-step */
+apply_the_push_replace_history_step :: fonc (user_agent: *UserAgent, step: n32, traversable: *TraversableNavigable, history_handling: NavigationHistoryBehavior) -> HistoryApplication
+{
+    // 1. Return the result of applying the history step step to traversable given false, null, null, null, and historyHandling.
+    retourne apply_the_history_step(user_agent, step, traversable, faux, nul, nul, nul)
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#apply-the-history-step */
+apply_the_history_step :: fonc (user_agent: *UserAgent,
+                                step: n32,
+                                traversable: *TraversableNavigable,
+                                check_for_canceletion: bool,
+                                source_snapshot_params: *SourceSnapshotParams,
+                                initiator_to_check: *Navigable,
+                                user_involvment_for_navigate_events: *UserNavigationInvolvment,
+                                navigation_type: *NavigationType) -> HistoryApplication
+{
+    // À FAIRE : 1. Assert: This is running within traversable's session history traversal queue.
+
+    // 2. Let targetStep be the result of getting the used step given traversable and step.
+    target_step := get_the_used_step(traversable, step)
+
+    // 3. If initiatorToCheck is not null, then:
+    si initiator_to_check {
+        // 1. Assert: sourceSnapshotParams is not null.
+        assert(source_snapshot_params != nul)
+
+        // 2. For each navigable of get all navigables whose current session history entry will change or reload:
+        //    if initiatorToCheck is not allowed by sandboxing to navigate navigable given sourceSnapshotParams,
+        //    then return "initiator-disallowed".
+        panique("initiator_to_check != nul non-implémenté")
+    }
+
+    // 4. Let navigablesCrossingDocuments be the result of getting all navigables that might experience a
+    //    cross-document traversal given traversable and targetStep.
+
+    // 5. If checkForCancelation is true, and the result of checking if unloading is canceled given navigablesCrossingDocuments, traversable, targetStep, and userInvolvementForNavigateEvents is not "continue", then return that result.
+
+    // 6. Let changingNavigables be the result of get all navigables whose current session history entry will change or reload given traversable and targetStep.
+
+    // 7. Let nonchangingNavigablesThatStillNeedUpdates be the result of getting all navigables that only need history object length/index update given traversable and targetStep.
+
+    // 8. For each navigable of changingNavigables:
+
+        // 1. Let targetEntry be the result of getting the target history entry given navigable and targetStep.
+
+        // 2. Set navigable's current session history entry to targetEntry.
+
+        // 3. Set the ongoing navigation for navigable to "traversal".
+
+    // 9. Let totalChangeJobs be the size of changingNavigables.
+
+    // 10. Let completedChangeJobs be 0.
+
+    // 11. Let changingNavigableContinuations be an empty queue of changing navigable continuation states.
+
+    // 12. For each navigable of changingNavigables, queue a global task on the navigation and traversal task source of navigable's active window to run the steps:
+}
+
+/** \} */
