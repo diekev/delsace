@@ -73,6 +73,8 @@ Document :: struct {
     load_timing_info: DocumentLoadTimingInfo
     about_base_url: Optionnel(URI)
 
+    cross_origin_opener_policy: CrossOriginOpenerPolicy
+
     referrer: chaine /* Peut être vide. */
 
     is_initial_about_blank: bool

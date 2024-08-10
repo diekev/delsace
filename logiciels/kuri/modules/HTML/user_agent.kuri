@@ -85,6 +85,7 @@ RappelsInterface :: struct {
     sur_élément_survolé: fonc(*RappelsInterface)(rien)
     sur_requête_rendu: fonc(*RappelsInterface)(rien)
     sur_enfile_une_tâche: fonc(*RappelsInterface, SourceDeTâche, *Algorithm)(rien)
+    sur_document_est_prêt: fonc (*RappelsInterface, *Document)(rien)
 }
 
 détruit_rappels :: fonc (rappels: *RappelsInterface)
@@ -132,6 +133,16 @@ enfile_une_tâche :: fonc (user_agent: *UserAgent, source: SourceDeTâche, algor
     }
 
     rappels.sur_enfile_une_tâche(rappels, source, algorithm)
+}
+
+document_est_prêt :: fonc (user_agent: *UserAgent, document: *Document)
+{
+    rappels := user_agent.rappels_interface
+    saufsi rappels && rappels.sur_document_est_prêt {
+        retourne
+    }
+
+    rappels.sur_document_est_prêt(rappels, document)
 }
 
 /** \} */
