@@ -1,6 +1,7 @@
 importe Chaine
 importe Fondation
 importe Math
+importe Unicode
 
 avance :: fonc (chn: &ChaineUTF32, n: z32)
 {
@@ -36,31 +37,6 @@ opérateur <= :: fonc (a: z8, b: n32) -> bool
     retourne a comme n32 <= b
 }
 
-est_chiffre :: fonc (point_de_code: n32) -> bool #enligne
-{
-    retourne '0' <= point_de_code <= '9'
-}
-
-est_chiffre_hex :: fonc (point_de_code: n32) -> bool #enligne
-{
-    retourne '0' <= point_de_code <= '9' || 'a' <= point_de_code <= 'f' || 'A' <= point_de_code <= 'Z'
-}
-
-est_lettre_majuscule :: fonc (point_de_code: n32) -> bool #enligne
-{
-    retourne 'A' <= point_de_code <= 'Z'
-}
-
-est_lettre_minuscule :: fonc (point_de_code: n32) -> bool #enligne
-{
-    retourne 'a' <= point_de_code <= 'z'
-}
-
-est_lettre :: fonc (point_de_code: n32) -> bool #enligne
-{
-    retourne est_lettre_majuscule(point_de_code) || est_lettre_minuscule(point_de_code)
-}
-
 est_non_ascii :: fonc (point_de_code: n32) -> bool #enligne
 {
     retourne point_de_code >= 0x80 && point_de_code != FIN_DE_FICHIER
@@ -68,12 +44,12 @@ est_non_ascii :: fonc (point_de_code: n32) -> bool #enligne
 
 est_début_ident :: fonc (point_de_code: n32) -> bool #enligne
 {
-    retourne est_lettre(point_de_code) || est_non_ascii(point_de_code) || point_de_code == '_'
+    retourne est_lettre_ascii(point_de_code) || est_non_ascii(point_de_code) || point_de_code == '_'
 }
 
 est_point_de_code_ident :: fonc (point_de_code: n32) -> bool #enligne
 {
-    retourne est_début_ident(point_de_code) || est_chiffre(point_de_code) || point_de_code == '-'
+    retourne est_début_ident(point_de_code) || est_chiffre_ascii(point_de_code) || point_de_code == '-'
 }
 
 est_non_imprimable :: fonc (point_de_code: n32) -> bool #enligne
@@ -98,11 +74,6 @@ est_espace_blanche :: fonc (point_de_code: n32) -> bool #enligne
     CHARACTER_TABULATION : n32 : 0x9
     SPACE : n32 : 0x20
     retourne est_nouvelle_ligne(point_de_code) || point_de_code == CHARACTER_TABULATION || point_de_code == SPACE
-}
-
-point_de_code_maximal_autorisé :: fonc () -> n32 #enligne
-{
-    retourne 0x10FFFF
 }
 
 est_guillemet_ascii_ou_apostrophe :: fonc (point_de_code: n32) -> bool #enligne
@@ -419,7 +390,7 @@ consomme_un_lexème :: fonc (lexeuse: &Lexeuse) -> Lexème
     }
 
     si point_de_code == '+' {
-        si est_chiffre(lexeuse.point_de_code_suivant()) {
+        si est_chiffre_ascii(lexeuse.point_de_code_suivant()) {
             lexeuse.reconsomme_point_de_code()
             retourne lexeuse.consomme_un_lexème_numérique()
         }
@@ -432,7 +403,7 @@ consomme_un_lexème :: fonc (lexeuse: &Lexeuse) -> Lexème
     }
 
     si point_de_code == '-' {
-        si est_chiffre(lexeuse.point_de_code_suivant()) {
+        si est_chiffre_ascii(lexeuse.point_de_code_suivant()) {
             lexeuse.reconsomme_point_de_code()
             retourne lexeuse.consomme_un_lexème_numérique()
         }
@@ -451,7 +422,7 @@ consomme_un_lexème :: fonc (lexeuse: &Lexeuse) -> Lexème
     }
 
     si point_de_code == '.' {
-        si est_chiffre(lexeuse.point_de_code_suivant()) {
+        si est_chiffre_ascii(lexeuse.point_de_code_suivant()) {
             lexeuse.reconsomme_point_de_code()
             retourne lexeuse.consomme_un_lexème_numérique()
         }
@@ -510,7 +481,7 @@ consomme_un_lexème :: fonc (lexeuse: &Lexeuse) -> Lexème
         retourne Lexème(GenreLexème.Close_Bracket)
     }
 
-    si est_chiffre(point_de_code) {
+    si est_chiffre_ascii(point_de_code) {
         lexeuse.reconsomme_point_de_code()
         retourne lexeuse.consomme_un_lexème_numérique()
     }
@@ -717,12 +688,12 @@ consomme_un_point_de_code_échappé :: fonc (lexeuse: &Lexeuse) -> n32
 {
     point_de_code := lexeuse.consomme_point_de_code_suivant()
 
-    si est_chiffre_hex(point_de_code) {
+    si est_chiffre_hexadecimal_ascii(point_de_code) {
         résultat := point_de_code // À FAIRE : convertis hex
 
         pour 5 {
             point_de_code = lexeuse.point_de_code_suivant()
-            saufsi est_chiffre_hex(point_de_code) {
+            saufsi est_chiffre_hexadecimal_ascii(point_de_code) {
                 arrête
             }
 
@@ -826,11 +797,11 @@ vérifie_si_trois_points_de_code_commenceraient_un_nombre :: fonc (lexeuse: &Lex
     troisième := lexeuse.point_de_code_suivant(1)
 
     si premier == '+' || premier == '-' {
-        si est_chiffre(deuxième) {
+        si est_chiffre_ascii(deuxième) {
             retourne vrai
         }
 
-        si deuxième == '.' && est_chiffre(troisième) {
+        si deuxième == '.' && est_chiffre_ascii(troisième) {
             retourne vrai
         }
 
@@ -838,14 +809,14 @@ vérifie_si_trois_points_de_code_commenceraient_un_nombre :: fonc (lexeuse: &Lex
     }
 
     si premier == '.' {
-        si est_chiffre(deuxième) {
+        si est_chiffre_ascii(deuxième) {
             retourne vrai
         }
 
         retourne faux
     }
 
-    si est_chiffre(premier) {
+    si est_chiffre_ascii(premier) {
         retourne vrai
     }
 
@@ -896,7 +867,7 @@ consomme_un_nombre :: fonc (lexeuse: &Lexeuse) -> r64, DrapeauxTypeNombre
         lexeuse.consomme()
     }
 
-    tantque est_chiffre(lexeuse.point_de_code_suivant()) {
+    tantque est_chiffre_ascii(lexeuse.point_de_code_suivant()) {
         point_de_code = lexeuse.consomme_point_de_code_suivant()
         chaine_ajoute(*repr, point_de_code)
     }
@@ -904,13 +875,13 @@ consomme_un_nombre :: fonc (lexeuse: &Lexeuse) -> r64, DrapeauxTypeNombre
     si lexeuse.point_de_code_suivant() == '.' {
         point_de_code = lexeuse.consomme_point_de_code_suivant()
 
-        si est_chiffre(lexeuse.point_de_code_suivant()) {
+        si est_chiffre_ascii(lexeuse.point_de_code_suivant()) {
             chaine_ajoute(*repr, point_de_code)
             chaine_ajoute(*repr, lexeuse.consomme_point_de_code_suivant())
 
             type = DrapeauxTypeNombre.Number
 
-            tantque est_chiffre(lexeuse.point_de_code_suivant()) {
+            tantque est_chiffre_ascii(lexeuse.point_de_code_suivant()) {
                 point_de_code = lexeuse.consomme_point_de_code_suivant()
                 chaine_ajoute(*repr, point_de_code)
             }
@@ -928,13 +899,13 @@ consomme_un_nombre :: fonc (lexeuse: &Lexeuse) -> r64, DrapeauxTypeNombre
             point_de_code_signe = lexeuse.consomme_point_de_code_suivant()
         }
 
-        si est_chiffre(lexeuse.point_de_code_suivant()) {
+        si est_chiffre_ascii(lexeuse.point_de_code_suivant()) {
             chaine_ajoute(*repr, point_de_code)
             chaine_ajoute(*repr, point_de_code_signe)
 
             type = DrapeauxTypeNombre.Number
 
-            tantque est_chiffre(lexeuse.point_de_code_suivant()) {
+            tantque est_chiffre_ascii(lexeuse.point_de_code_suivant()) {
                 point_de_code = lexeuse.consomme_point_de_code_suivant()
                 chaine_ajoute(*repr, point_de_code)
             }
@@ -971,7 +942,7 @@ convertis_une_chaine_en_un_nombre :: fonc (repr: ChaineUTF32) -> r64
 
     i : r64 = 0.0
     tantque repr.taille() != 0 {
-        saufsi est_chiffre(repr.points_de_code[0]) {
+        saufsi est_chiffre_ascii(repr.points_de_code[0]) {
             arrête
         }
 
@@ -987,7 +958,7 @@ convertis_une_chaine_en_un_nombre :: fonc (repr: ChaineUTF32) -> r64
     f : r64 = 0.0
     d : r64 = 0.0
     tantque repr.taille() != 0 {
-        saufsi est_chiffre(repr.points_de_code[0]) {
+        saufsi est_chiffre_ascii(repr.points_de_code[0]) {
             arrête
         }
 
@@ -1012,7 +983,7 @@ convertis_une_chaine_en_un_nombre :: fonc (repr: ChaineUTF32) -> r64
 
     e : r64 = 0.0
     tantque repr.taille() != 0 {
-        saufsi est_chiffre(repr.points_de_code[0]) {
+        saufsi est_chiffre_ascii(repr.points_de_code[0]) {
             arrête
         }
 
