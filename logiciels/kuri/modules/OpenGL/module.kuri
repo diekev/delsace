@@ -72,6 +72,12 @@ ParamètresTexture2D :: struct {
     format: GLenum
     type: GLenum
     données: *rien
+
+    min_filter := GL_LINEAR
+    mag_filter := GL_LINEAR
+
+    wrap_s := GL_CLAMP
+    wrap_t := GL_CLAMP
 }
 
 /** Définis les données de la texture correspondant au `code_texture`.
@@ -82,10 +88,10 @@ définis_texture_2d :: fonc (code_texture: n32, params: *ParamètresTexture2D)
     glBindTexture(GL_TEXTURE_2D, code_texture)
     vérifie_erreur("définis_texture_2d : glBindTexture")
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, params.min_filter)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, params.mag_filter)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, params.wrap_s)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, params.wrap_t)
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, params.largeur, params.hauteur, params.bordure, params.format, params.type, params.données)
     vérifie_erreur("définis_texture_2d : glTexImage2D")

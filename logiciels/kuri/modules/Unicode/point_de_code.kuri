@@ -67,74 +67,79 @@ est_noncaractère :: fonc (point_de_code: n32) -> bool
         0xEFFFE, 0xEFFFF, 0xFFFFE, 0xFFFFF, 0x10FFFE, 0x10FFFF)
 }
 
-est_ascii :: fonc (point_de_code: n32) -> bool
+point_de_code_maximal_autorisé :: fonc () -> n32 #enligne
 {
-    retourne 0x0 <= point_de_code <= 0x7F
+    retourne 0x10FFFF
 }
 
-est_ascii_tab_ou_nouvelle_ligne :: fonc (point_de_code: n32) -> bool
+est_ascii :: fonc (point_de_code: n32) -> bool #enligne
+{
+    retourne point_de_code <= 0x7F
+}
+
+est_ascii_tab_ou_nouvelle_ligne :: fonc (point_de_code: n32) -> bool #enligne
 {
     retourne point_de_code == 0x09 || point_de_code == 0x0A || point_de_code == 0x0D
 }
 
-est_ascii_espace_blanc :: fonc (point_de_code: n32) -> bool
+est_ascii_espace_blanc :: fonc (point_de_code: n32) -> bool #enligne
 {
     retourne est_ascii_tab_ou_nouvelle_ligne(point_de_code) || point_de_code == 0x0C || point_de_code == 0x20
 }
 
-est_controle_C0 :: fonc (point_de_code: n32) -> bool
+est_controle_C0 :: fonc (point_de_code: n32) -> bool #enligne
 {
     retourne point_de_code <= 0x1F
 }
 
-est_controle_C0_ou_espace :: fonc (point_de_code: n32) -> bool
+est_controle_C0_ou_espace :: fonc (point_de_code: n32) -> bool #enligne
 {
     retourne est_controle_C0(point_de_code) || point_de_code == 0x20
 }
 
-est_controle :: fonc (point_de_code: n32) -> bool
+est_controle :: fonc (point_de_code: n32) -> bool #enligne
 {
     retourne est_controle_C0(point_de_code) || (0x7F <= point_de_code <= 0x9F)
 }
 
-est_ascii_chiffre :: fonc (point_de_code: n32) -> bool
+est_chiffre_ascii :: fonc (point_de_code: n32) -> bool #enligne
 {
     retourne (0x30 <= point_de_code <= 0x39)
 }
 
-est_ascii_chiffre_hex_maj :: fonc (point_de_code: n32) -> bool
+est_chiffre_hexadecimal_majuscule_ascii :: fonc (point_de_code: n32) -> bool #enligne
 {
-    retourne est_ascii_chiffre(point_de_code) || (A_MAJUSCULE <= point_de_code <= F_MAJUSCULE)
+    retourne est_chiffre_ascii(point_de_code) || (A_MAJUSCULE <= point_de_code <= F_MAJUSCULE)
 }
 
-est_ascii_chiffre_hex_min :: fonc (point_de_code: n32) -> bool
+est_chiffre_hexadecimal_minuscule_ascii :: fonc (point_de_code: n32) -> bool #enligne
 {
-    retourne est_ascii_chiffre(point_de_code) || (A_MINUSCULE <= point_de_code <= F_MINUSCULE)
+    retourne est_chiffre_ascii(point_de_code) || (A_MINUSCULE <= point_de_code <= F_MINUSCULE)
 }
 
-est_ascii_hexadecimal :: fonc (point_de_code: n32) -> bool
+est_chiffre_hexadecimal_ascii :: fonc (point_de_code: n32) -> bool #enligne
 {
-    retourne est_ascii_chiffre_hex_min(point_de_code) || est_ascii_chiffre_hex_maj(point_de_code)
+    retourne est_chiffre_hexadecimal_minuscule_ascii(point_de_code) || est_chiffre_hexadecimal_majuscule_ascii(point_de_code)
 }
 
-est_ascii_alpha_majuscule :: fonc (point_de_code: n32) -> bool
+est_lettre_majuscule_ascii :: fonc (point_de_code: n32) -> bool #enligne
 {
     retourne A_MAJUSCULE <= point_de_code <= Z_MAJUSCULE
 }
 
-est_ascii_alpha_minuscule :: fonc (point_de_code: n32) -> bool
+est_lettre_minuscule_ascii :: fonc (point_de_code: n32) -> bool #enligne
 {
     retourne A_MINUSCULE <= point_de_code <= Z_MINUSCULE
 }
 
-est_ascii_alpha :: fonc (point_de_code: n32) -> bool
+est_lettre_ascii :: fonc (point_de_code: n32) -> bool #enligne
 {
     retourne A_MAJUSCULE <= point_de_code <= Z_MAJUSCULE || A_MINUSCULE <= point_de_code <= Z_MINUSCULE
 }
 
-est_ascii_alphanumérique :: fonc (point_de_code: n32) -> bool
+est_ascii_alphanumérique :: fonc (point_de_code: n32) -> bool #enligne
 {
-    retourne est_ascii_alpha(point_de_code) || est_ascii_chiffre(point_de_code)
+    retourne est_lettre_ascii(point_de_code) || est_chiffre_ascii(point_de_code)
 }
 
 /* Utilisé par/pour HTML. */

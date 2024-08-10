@@ -367,7 +367,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 sinon si c == SLASH {
                     lexeuse.état = ÉtatLexage.EndTagOpen
                 }
-                sinon si est_ascii_alpha(c) {
+                sinon si est_lettre_ascii(c) {
                     lexeuse.crée_lexème(GenreLexème.DébutTag)
                     lexeuse.reconsomme_dans_état(ÉtatLexage.TagName)
                 }
@@ -396,7 +396,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     lexeuse.état = ÉtatLexage.Data
                     retourne lexeuse.émet_lexème()
                 }
-                sinon si est_ascii_alpha_majuscule(c) {
+                sinon si est_lettre_majuscule_ascii(c) {
                     chaine_ajoute(*lexeuse.nom_lexème_courant, c + 0x20)
                 }
                 sinon si c == NUL {
@@ -411,7 +411,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
             }
             EndTagOpen {
-                si est_ascii_alpha(c) {
+                si est_lettre_ascii(c) {
                     lexeuse.crée_lexème(GenreLexème.FinTag)
                     lexeuse.reconsomme_dans_état(ÉtatLexage.TagName)
                 }
@@ -487,7 +487,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 si est_espace_blanc_html(c) {
                     // ignore
                 }
-                sinon si est_ascii_alpha_majuscule(c) {
+                sinon si est_lettre_majuscule_ascii(c) {
                     lexeuse.crée_lexème(GenreLexème.Doctype)
                     chaine_ajoute(*lexeuse.nom_lexème_courant, c + 0x20)
                     lexeuse.état = ÉtatLexage.DOCTYPEName
@@ -528,7 +528,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     lexeuse.état = ÉtatLexage.Data
                     retourne lexeuse.émet_lexème()
                 }
-                sinon si est_ascii_alpha_majuscule(c) {
+                sinon si est_lettre_majuscule_ascii(c) {
                     chaine_ajoute(*lexeuse.nom_lexème_courant, c + 0x20)
                 }
                 sinon si c == NUL {
@@ -963,7 +963,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 sinon si c == EGAL {
                     lexeuse.état = ÉtatLexage.BeforeAttributeValue
                 }
-                sinon si est_ascii_alpha_majuscule(c) {
+                sinon si est_lettre_majuscule_ascii(c) {
                     chaine_ajoute(*lexeuse.nom_attribut_courant, c + 0x20)
                 }
                 sinon si c == NUL {
@@ -1167,7 +1167,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
             }
             RCDATAEndTagOpen {
-                si est_ascii_alpha(c) {
+                si est_lettre_ascii(c) {
                     lexeuse.crée_lexème(GenreLexème.FinTag)
                     lexeuse.reconsomme_dans_état(ÉtatLexage.RCDATAEndTagName)
                 }
@@ -1193,12 +1193,12 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                         retourne lexeuse.émet_lexème()
                     }
                 }
-                sinon si est_ascii_alpha_majuscule(c) {
+                sinon si est_lettre_majuscule_ascii(c) {
                     chaine_ajoute(*lexeuse.nom_lexème_courant, c + 0x20)
                     chaine_ajoute(*lexeuse.tampon_temporaire, c)
                     continue
                 }
-                sinon si est_ascii_alpha_minuscule(c) {
+                sinon si est_lettre_minuscule_ascii(c) {
                     chaine_ajoute(*lexeuse.nom_lexème_courant, c)
                     chaine_ajoute(*lexeuse.tampon_temporaire, c)
                     continue
@@ -1226,7 +1226,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
             }
             RAWTEXTEndTagOpen {
-                si est_ascii_alpha(c) {
+                si est_lettre_ascii(c) {
                     lexeuse.crée_lexème(GenreLexème.FinTag)
                     lexeuse.reconsomme_dans_état(ÉtatLexage.RAWTEXTEndTagName)
                 }
@@ -1252,12 +1252,12 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                         retourne lexeuse.émet_lexème()
                     }
                 }
-                sinon si est_ascii_alpha_majuscule(c) {
+                sinon si est_lettre_majuscule_ascii(c) {
                     chaine_ajoute(*lexeuse.nom_lexème_courant, c + 0x20)
                     chaine_ajoute(*lexeuse.tampon_temporaire, c)
                     continue
                 }
-                sinon si est_ascii_alpha_minuscule(c) {
+                sinon si est_lettre_minuscule_ascii(c) {
                     chaine_ajoute(*lexeuse.nom_lexème_courant, c)
                     chaine_ajoute(*lexeuse.tampon_temporaire, c)
                     continue
@@ -1471,7 +1471,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
             }
             HexadecimalCharacterReferenceStart {
-                si est_ascii_hexadecimal(c) {
+                si est_chiffre_hexadecimal_ascii(c) {
                     lexeuse.reconsomme_dans_état(ÉtatLexage.HexadecimalCharacterReference)
                 }
                 sinon {
@@ -1483,7 +1483,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
             }
             DecimalCharacterReferenceStart {
-                si est_ascii_chiffre(c) {
+                si est_chiffre_ascii(c) {
                     lexeuse.reconsomme_dans_état(ÉtatLexage.DecimalCharacterReference)
                 }
                 sinon {
@@ -1495,15 +1495,15 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
             }
             HexadecimalCharacterReference {
-                si est_ascii_chiffre(c) {
+                si est_chiffre_ascii(c) {
                     lexeuse.code_référence_caractère *= 16
                     lexeuse.code_référence_caractère += (c - 0x30)
                 }
-                sinon si est_ascii_chiffre_hex_maj(c) {
+                sinon si est_chiffre_hexadecimal_majuscule_ascii(c) {
                     lexeuse.code_référence_caractère *= 16
                     lexeuse.code_référence_caractère += (c - 0x37)
                 }
-                sinon si est_ascii_chiffre_hex_min(c) {
+                sinon si est_chiffre_hexadecimal_minuscule_ascii(c) {
                     lexeuse.code_référence_caractère *= 16
                     lexeuse.code_référence_caractère += (c - 0x57)
                 }
@@ -1515,7 +1515,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
             }
             DecimalCharacterReference {
-                si est_ascii_chiffre(c) {
+                si est_chiffre_ascii(c) {
                     lexeuse.code_référence_caractère *= 10
                     lexeuse.code_référence_caractère += (c - 0x30)
                 }
@@ -1589,7 +1589,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
             }
             ScriptDataEndTagOpen {
-                si est_ascii_alpha(c) {
+                si est_lettre_ascii(c) {
                     lexeuse.crée_lexème(GenreLexème.FinTag)
                     lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptDataEndTagName)
                 }
@@ -1615,12 +1615,12 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                         retourne lexeuse.émet_lexème()
                     }
                 }
-                sinon si est_ascii_alpha_majuscule(c) {
+                sinon si est_lettre_majuscule_ascii(c) {
                     chaine_ajoute(*lexeuse.nom_lexème_courant, c + 0x20)
                     chaine_ajoute(*lexeuse.tampon_temporaire, c)
                     continue
                 }
-                sinon si est_ascii_alpha_minuscule(c) {
+                sinon si est_lettre_minuscule_ascii(c) {
                     chaine_ajoute(*lexeuse.nom_lexème_courant, c)
                     chaine_ajoute(*lexeuse.tampon_temporaire, c)
                     continue
@@ -1717,7 +1717,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                     réinitialise(lexeuse.tampon_temporaire)
                     lexeuse.état = ÉtatLexage.ScriptDataEscapedEndTagOpen
                 }
-                sinon si est_ascii_alpha(c) {
+                sinon si est_lettre_ascii(c) {
                     réinitialise(lexeuse.tampon_temporaire)
                     lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptDataDoubleEscapeStart)
                     retourne lexeuse.émet_lexème_caractère(CHEVRON_OUVRANT)
@@ -1728,7 +1728,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 }
             }
             ScriptDataEscapedEndTagOpen {
-                si est_ascii_alpha(c) {
+                si est_lettre_ascii(c) {
                     lexeuse.crée_lexème(GenreLexème.FinTag)
                     lexeuse.reconsomme_dans_état(ÉtatLexage.ScriptDataEscapedEndTagName)
                 }
@@ -1754,12 +1754,12 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                         retourne lexeuse.émet_lexème()
                     }
                 }
-                sinon si est_ascii_alpha_majuscule(c) {
+                sinon si est_lettre_majuscule_ascii(c) {
                     chaine_ajoute(*lexeuse.nom_lexème_courant, c + 0x20)
                     chaine_ajoute(*lexeuse.tampon_temporaire, c)
                     continue
                 }
-                sinon si est_ascii_alpha_minuscule(c) {
+                sinon si est_lettre_minuscule_ascii(c) {
                     chaine_ajoute(*lexeuse.nom_lexème_courant, c)
                     chaine_ajoute(*lexeuse.tampon_temporaire, c)
                     continue
@@ -1785,11 +1785,11 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                         retourne lexeuse.émet_lexème_caractère(c)
                     }
                 }
-                sinon si est_ascii_alpha_majuscule(c) {
+                sinon si est_lettre_majuscule_ascii(c) {
                     chaine_ajoute(*lexeuse.tampon_temporaire, c + 0x20)
                     retourne lexeuse.émet_lexème_caractère(c)
                 }
-                sinon si est_ascii_alpha_minuscule(c) {
+                sinon si est_lettre_minuscule_ascii(c) {
                     chaine_ajoute(*lexeuse.tampon_temporaire, c)
                     retourne lexeuse.émet_lexème_caractère(c)
                 }
@@ -1883,11 +1883,11 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                         retourne lexeuse.émet_lexème_caractère(c)
                     }
                 }
-                sinon si est_ascii_alpha_majuscule(c) {
+                sinon si est_lettre_majuscule_ascii(c) {
                     chaine_ajoute(*lexeuse.tampon_temporaire, c + 0x20)
                     retourne lexeuse.émet_lexème_caractère(c)
                 }
-                sinon si est_ascii_alpha_minuscule(c) {
+                sinon si est_lettre_minuscule_ascii(c) {
                     chaine_ajoute(*lexeuse.tampon_temporaire, c)
                     retourne lexeuse.émet_lexème_caractère(c)
                 }

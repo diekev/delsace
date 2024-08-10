@@ -3,6 +3,7 @@ importe Couleur
 importe Ensemble
 importe Fondation
 importe Internet
+importe Unicode
 
 /* ------------------------------------------------------------------------- */
 /** \nom 5. Parsing
@@ -166,6 +167,14 @@ est_lexème_delim :: fonc (value: ComponentValue, point_de_code: n32) -> bool
             retourne faux
         }
     }
+}
+
+est_mot_clé :: fonc (value: ComponentValue, mot_clé: CSSOMString) -> bool
+{
+    saufsi est_lexème_de_genre(value, GenreLexème.Ident) {
+        retourne faux
+    }
+    retourne value.donne_texte() == mot_clé
 }
 
 Parseuse :: struct ($T: type_de_données) {
@@ -1485,66 +1494,72 @@ InfoTypePropriété :: struct {
     nom: CSSOMString
     fonction_de_parsage: fonc([..]ComponentValue)(Optionnel([..]ValeurDeStyle))
     héritable: PropriétéHéritable
+    sur_calcul_style: fonc(*DéclarationPropriété, *Style, *ContexteCalculStyle)(rien)
 }
 
 infos_types_propriétés := [
-    InfoTypePropriété(PROP_display, parse_propriété_display, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_background, parse_propriété_color, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_background_color, parse_propriété_color, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_color, parse_propriété_color, PropriétéHéritable.Oui),
-    InfoTypePropriété(PROP_text_decoration, parse_propriété_text_decoration, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_cursor, parse_propriété_cursor, PropriétéHéritable.Oui),
-    InfoTypePropriété(PROP_font_weight, parse_propriété_font_weight, PropriétéHéritable.Oui),
-    InfoTypePropriété(PROP_font_size, parse_propriété_font_size, PropriétéHéritable.Oui),
-    InfoTypePropriété(PROP_font_style, parse_propriété_font_style, PropriétéHéritable.Oui),
-    InfoTypePropriété(PROP_border_color, parse_propriété_border_color, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_border_top_color, parse_propriété_color, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_border_left_color, parse_propriété_color, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_border_bottom_color, parse_propriété_color, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_border_right_color, parse_propriété_color, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_border, parse_propriété_border, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_border_top, parse_propriété_border, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_border_left, parse_propriété_border, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_border_bottom, parse_propriété_border, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_border_right, parse_propriété_border, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_border_style, parse_propriété_border_style, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_border_top_style, parse_propriété_border_line_style, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_border_bottom_style, parse_propriété_border_line_style, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_border_right_style, parse_propriété_border_line_style, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_border_left_style, parse_propriété_border_line_style, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_border_width, parse_propriété_border_width, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_border_top_width, parse_propriété_border_line_width, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_border_bottom_width, parse_propriété_border_line_width, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_border_left_width, parse_propriété_border_line_width, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_border_right_width, parse_propriété_border_line_width, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_margin, parse_propriété_margin, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_margin_block, parse_propriété_margin_top, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_margin_block_end, parse_propriété_margin_top, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_margin_block_start, parse_propriété_margin_top, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_margin_bottom, parse_propriété_margin_top, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_margin_inline, parse_propriété_margin_top, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_margin_inline_end, parse_propriété_margin_top, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_margin_inline_start, parse_propriété_margin_top, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_margin_left, parse_propriété_margin_top, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_margin_right, parse_propriété_margin_top, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_margin_top, parse_propriété_margin_top, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_padding, parse_propriété_padding, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_padding_block, parse_propriété_padding_top, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_padding_block_end, parse_propriété_padding_top, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_padding_block_start, parse_propriété_padding_top, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_padding_bottom, parse_propriété_padding_top, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_padding_inline, parse_propriété_padding_top, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_padding_inline_end, parse_propriété_padding_top, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_padding_inline_start, parse_propriété_padding_top, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_padding_left, parse_propriété_padding_top, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_padding_right, parse_propriété_padding_top, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_padding_top, parse_propriété_padding_top, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_height, parse_propriété_height_width, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_min_height, parse_propriété_min_height_width, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_max_height, parse_propriété_max_height_width, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_width, parse_propriété_height_width, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_min_width, parse_propriété_min_height_width, PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_max_width, parse_propriété_max_height_width, PropriétéHéritable.Non)
+    InfoTypePropriété(PROP_display, parse_propriété_display, PropriétéHéritable.Non, prop_display_sur_calcul_style),
+    InfoTypePropriété(PROP_background, parse_propriété_color, PropriétéHéritable.Non, prop_background_sur_calcul_style),
+    InfoTypePropriété(PROP_background_color, parse_propriété_color, PropriétéHéritable.Non, prop_background_color_sur_calcul_style),
+    InfoTypePropriété(PROP_color, parse_propriété_color, PropriétéHéritable.Oui, prop_color_sur_calcul_style),
+    InfoTypePropriété(PROP_text_decoration, parse_propriété_text_decoration, PropriétéHéritable.Non, prop_text_decoration_sur_calcul_style),
+    InfoTypePropriété(PROP_text_decoration_line, parse_propriété_text_decoration_line, PropriétéHéritable.Non, prop_text_decoration_line_sur_calcul_style),
+    InfoTypePropriété(PROP_text_decoration_style, parse_propriété_text_decoration_style, PropriétéHéritable.Non, prop_text_decoration_style_sur_calcul_style),
+    InfoTypePropriété(PROP_text_decoration_color, parse_propriété_color, PropriétéHéritable.Non, prop_text_decoration_color_sur_calcul_style),
+    InfoTypePropriété(PROP_cursor, parse_propriété_cursor, PropriétéHéritable.Oui, prop_cursor_sur_calcul_style),
+    InfoTypePropriété(PROP_font_family, parse_propriété_font_family, PropriétéHéritable.Oui, prop_font_family_sur_calcul_style),
+    InfoTypePropriété(PROP_font_weight, parse_propriété_font_weight, PropriétéHéritable.Oui, prop_font_weight_sur_calcul_style),
+    InfoTypePropriété(PROP_font_size, parse_propriété_font_size, PropriétéHéritable.Oui, prop_font_size_sur_calcul_style),
+    InfoTypePropriété(PROP_font_style, parse_propriété_font_style, PropriétéHéritable.Oui, prop_font_style_sur_calcul_style),
+    InfoTypePropriété(PROP_border_color, parse_propriété_border_color, PropriétéHéritable.Non, prop_border_color_sur_calcul_style),
+    InfoTypePropriété(PROP_border_top_color, parse_propriété_color, PropriétéHéritable.Non, prop_border_top_color_sur_calcul_style),
+    InfoTypePropriété(PROP_border_left_color, parse_propriété_color, PropriétéHéritable.Non, prop_border_left_color_sur_calcul_style),
+    InfoTypePropriété(PROP_border_bottom_color, parse_propriété_color, PropriétéHéritable.Non, prop_border_bottom_color_sur_calcul_style),
+    InfoTypePropriété(PROP_border_right_color, parse_propriété_color, PropriétéHéritable.Non, prop_border_right_color_sur_calcul_style),
+    InfoTypePropriété(PROP_border, parse_propriété_border, PropriétéHéritable.Non, prop_border_sur_calcul_style),
+    InfoTypePropriété(PROP_border_top, parse_propriété_border, PropriétéHéritable.Non, prop_border_top_sur_calcul_style),
+    InfoTypePropriété(PROP_border_left, parse_propriété_border, PropriétéHéritable.Non, prop_border_left_sur_calcul_style),
+    InfoTypePropriété(PROP_border_bottom, parse_propriété_border, PropriétéHéritable.Non, prop_border_bottom_sur_calcul_style),
+    InfoTypePropriété(PROP_border_right, parse_propriété_border, PropriétéHéritable.Non, prop_border_right_sur_calcul_style),
+    InfoTypePropriété(PROP_border_style, parse_propriété_border_style, PropriétéHéritable.Non, prop_border_style_sur_calcul_style),
+    InfoTypePropriété(PROP_border_top_style, parse_propriété_border_line_style, PropriétéHéritable.Non, prop_border_top_style_sur_calcul_style),
+    InfoTypePropriété(PROP_border_bottom_style, parse_propriété_border_line_style, PropriétéHéritable.Non, prop_border_bottom_style_sur_calcul_style),
+    InfoTypePropriété(PROP_border_right_style, parse_propriété_border_line_style, PropriétéHéritable.Non, prop_border_right_style_sur_calcul_style),
+    InfoTypePropriété(PROP_border_left_style, parse_propriété_border_line_style, PropriétéHéritable.Non, prop_border_left_style_sur_calcul_style),
+    InfoTypePropriété(PROP_border_width, parse_propriété_border_width, PropriétéHéritable.Non, prop_border_width_sur_calcul_style),
+    InfoTypePropriété(PROP_border_top_width, parse_propriété_border_line_width, PropriétéHéritable.Non, prop_border_top_width_sur_calcul_style),
+    InfoTypePropriété(PROP_border_bottom_width, parse_propriété_border_line_width, PropriétéHéritable.Non, prop_border_bottom_width_sur_calcul_style),
+    InfoTypePropriété(PROP_border_left_width, parse_propriété_border_line_width, PropriétéHéritable.Non, prop_border_left_width_sur_calcul_style),
+    InfoTypePropriété(PROP_border_right_width, parse_propriété_border_line_width, PropriétéHéritable.Non, prop_border_right_width_sur_calcul_style),
+    InfoTypePropriété(PROP_margin, parse_propriété_margin, PropriétéHéritable.Non, prop_margin_sur_calcul_style),
+    InfoTypePropriété(PROP_margin_block, parse_propriété_margin_top, PropriétéHéritable.Non, prop_margin_block_sur_calcul_style),
+    InfoTypePropriété(PROP_margin_block_end, parse_propriété_margin_top, PropriétéHéritable.Non, prop_margin_block_end_sur_calcul_style),
+    InfoTypePropriété(PROP_margin_block_start, parse_propriété_margin_top, PropriétéHéritable.Non, prop_margin_block_start_sur_calcul_style),
+    InfoTypePropriété(PROP_margin_bottom, parse_propriété_margin_top, PropriétéHéritable.Non, prop_margin_bottom_sur_calcul_style),
+    InfoTypePropriété(PROP_margin_inline, parse_propriété_margin_top, PropriétéHéritable.Non, prop_margin_inline_sur_calcul_style),
+    InfoTypePropriété(PROP_margin_inline_end, parse_propriété_margin_top, PropriétéHéritable.Non, prop_margin_inline_end_sur_calcul_style),
+    InfoTypePropriété(PROP_margin_inline_start, parse_propriété_margin_top, PropriétéHéritable.Non, prop_margin_inline_start_sur_calcul_style),
+    InfoTypePropriété(PROP_margin_left, parse_propriété_margin_top, PropriétéHéritable.Non, prop_margin_left_sur_calcul_style),
+    InfoTypePropriété(PROP_margin_right, parse_propriété_margin_top, PropriétéHéritable.Non, prop_margin_right_sur_calcul_style),
+    InfoTypePropriété(PROP_margin_top, parse_propriété_margin_top, PropriétéHéritable.Non, prop_margin_top_sur_calcul_style),
+    InfoTypePropriété(PROP_padding, parse_propriété_padding, PropriétéHéritable.Non, prop_padding_sur_calcul_style),
+    InfoTypePropriété(PROP_padding_block, parse_propriété_padding_top, PropriétéHéritable.Non, prop_padding_block_sur_calcul_style),
+    InfoTypePropriété(PROP_padding_block_end, parse_propriété_padding_top, PropriétéHéritable.Non, prop_padding_block_end_sur_calcul_style),
+    InfoTypePropriété(PROP_padding_block_start, parse_propriété_padding_top, PropriétéHéritable.Non, prop_padding_block_start_sur_calcul_style),
+    InfoTypePropriété(PROP_padding_bottom, parse_propriété_padding_top, PropriétéHéritable.Non, prop_padding_bottom_sur_calcul_style),
+    InfoTypePropriété(PROP_padding_inline, parse_propriété_padding_top, PropriétéHéritable.Non, prop_padding_inline_sur_calcul_style),
+    InfoTypePropriété(PROP_padding_inline_end, parse_propriété_padding_top, PropriétéHéritable.Non, prop_padding_inline_end_sur_calcul_style),
+    InfoTypePropriété(PROP_padding_inline_start, parse_propriété_padding_top, PropriétéHéritable.Non, prop_padding_inline_start_sur_calcul_style),
+    InfoTypePropriété(PROP_padding_left, parse_propriété_padding_top, PropriétéHéritable.Non, prop_padding_left_sur_calcul_style),
+    InfoTypePropriété(PROP_padding_right, parse_propriété_padding_top, PropriétéHéritable.Non, prop_padding_right_sur_calcul_style),
+    InfoTypePropriété(PROP_padding_top, parse_propriété_padding_top, PropriétéHéritable.Non, prop_padding_top_sur_calcul_style),
+    InfoTypePropriété(PROP_height, parse_propriété_height_width, PropriétéHéritable.Non, prop_height_sur_calcul_style),
+    InfoTypePropriété(PROP_min_height, parse_propriété_min_height_width, PropriétéHéritable.Non, prop_min_height_sur_calcul_style),
+    InfoTypePropriété(PROP_max_height, parse_propriété_max_height_width, PropriétéHéritable.Non, prop_max_height_sur_calcul_style),
+    InfoTypePropriété(PROP_width, parse_propriété_height_width, PropriétéHéritable.Non, prop_width_sur_calcul_style),
+    InfoTypePropriété(PROP_min_width, parse_propriété_min_height_width, PropriétéHéritable.Non, prop_min_width_sur_calcul_style),
+    InfoTypePropriété(PROP_max_width, parse_propriété_max_height_width, PropriétéHéritable.Non, prop_max_width_sur_calcul_style),
+    InfoTypePropriété(PROP_line_height, parse_propriété_line_height, PropriétéHéritable.Oui, prop_line_height_sur_calcul_style)
 ]
 
 #portée_export
@@ -1743,7 +1758,7 @@ parse_valeur_couleur :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(
         valeur := lexème.donne_texte().donne_chaine_utf16()
 
         pour valeur.unités {
-            saufsi est_chiffre_hex(it) {
+            saufsi est_chiffre_hexadecimal_ascii(it) {
                 imprime("[%] couleur hexadécimal inconnu : %\n", #nom_de_cette_fonction, valeur)
                 retourne
             }
@@ -1878,8 +1893,6 @@ parse_propriété_text_decoration :: fonc (value: [..]ComponentValue) -> Optionn
 {
     parseuse := initialise_une_parseuse(value)
 
-    résultat: [..]ValeurDeStyle
-
     // text-decoration-line
     // 	   none | [ underline || overline || line-through || blink ]
     // text-decoration-style
@@ -1889,60 +1902,128 @@ parse_propriété_text_decoration :: fonc (value: [..]ComponentValue) -> Optionn
     // text-decoration
     //     <'text-decoration-line'> || <'text-decoration-style'> || <'text-decoration-color'>
 
-    eu_text_decoration_line := faux
-    eu_text_decoration_style := faux
+    line := ValeurDeStyle(mot_clé = PROP_none)
+    style := ValeurDeStyle(mot_clé = PROP_solid)
+    color := ValeurDeStyle(mot_clé = PROP_currentColor)
+
+    tantque !fini(parseuse) {
+        parseuse.consomme_espaces_blanches()
+
+        valeur_line := parse_valeur_text_decoration_line(parseuse)
+        si valeur_line.possède_valeur() {
+            line = valeur_line.Quelque
+            continue
+        }
+
+        valeur_style := parse_valeur_text_decoration_style(parseuse)
+        si valeur_style.possède_valeur() {
+            style = valeur_style.Quelque
+            continue
+        }
+
+        valeur_color := parse_valeur_couleur(parseuse)
+        si valeur_color.possède_valeur() {
+            color = valeur_style.Quelque
+            continue
+        }
+
+        lexème := parseuse.lexème_courant()
+        imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
+        retourne
+    }
+
+    résultat: [..]ValeurDeStyle
+    tableau_ajoute(*résultat, line)
+    tableau_ajoute(*résultat, style)
+    tableau_ajoute(*résultat, color)
+    retourne résultat
+}
+
+parse_propriété_text_decoration_line :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    valeur_line := parse_valeur_text_decoration_line(parseuse)
+    si valeur_line.possède_valeur() {
+        résultat: [..]ValeurDeStyle
+        tableau_ajoute(*résultat, valeur_line.Quelque)
+        retourne résultat
+    }
+}
+
+parse_propriété_text_decoration_style :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    valeur_style := parse_valeur_text_decoration_style(parseuse)
+    si valeur_style.possède_valeur() {
+        résultat: [..]ValeurDeStyle
+        tableau_ajoute(*résultat, valeur_style.Quelque)
+        retourne résultat
+    }
+}
+
+parse_valeur_text_decoration_line :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+{
+    si parseuse.fini() {
+        retourne
+    }
+
+    résultat: TextDecorationLine
 
     tantque !fini(parseuse) {
         lexème := parseuse.lexème_courant()
 
-        si lexème.est_lexème_de_genre(GenreLexème.Ident) {
-            mot_clé := lexème.donne_texte()
-
-            si mot_clé == PROP_none {
-                saufsi eu_text_decoration_line {
-                    tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = mot_clé))
-                }
-                eu_text_decoration_line = vrai
-            }
-            sinon si mot_clé == PROP_underline || mot_clé == PROP_overline || mot_clé == PROP_line_through {
-                tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = mot_clé))
-                eu_text_decoration_line = vrai
-            }
-            sinon si mot_clé == PROP_blink {
-                imprime("[%] mot-clé non-supporté %\n", #nom_de_cette_fonction, mot_clé)
-                déloge(résultat)
-                retourne
-            }
-            sinon si mot_clé == PROP_solid {
-                saufsi eu_text_decoration_style {
-                    tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = mot_clé))
-                }
-                eu_text_decoration_style = vrai
-            }
-            sinon si mot_clé == PROP_double || mot_clé == PROP_dotted || mot_clé == PROP_dashed || mot_clé == PROP_wavy {
-                imprime("[%] mot-clé non-supporté %\n", #nom_de_cette_fonction, mot_clé)
-                déloge(résultat)
-                retourne
-            }
-            sinon {
-                imprime("[%] mot-clé non-supporté %\n", #nom_de_cette_fonction, mot_clé)
-                déloge(résultat)
-                retourne
-            }
-
-            parseuse.avance()
-        }
-        sinon {
-            imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
-            déloge(résultat)
+        saufsi lexème.est_lexème_de_genre(GenreLexème.Ident) {
             retourne
         }
 
+        mot_clé := lexème.donne_texte()
+
+        si mot_clé == PROP_none {
+            parseuse.avance()
+            retourne ValeurDeStyle(mot_clé = mot_clé)
+        }
+
+        si mot_clé == PROP_underline {
+            résultat.UNDERLINE = vrai
+        }
+        sinon si mot_clé == PROP_overline {
+            résultat.OVERLINE = vrai
+        }
+        sinon si mot_clé == PROP_line_through {
+            résultat.LINE_THROUGH = vrai
+        }
+        sinon {
+            retourne
+        }
+
+        parseuse.avance()
         parseuse.consomme_espaces_blanches()
     }
 
-    si résultat.taille != 0 {
-        retourne résultat
+    retourne ValeurDeStyle(text_decoration_line = résultat)
+}
+
+parse_valeur_text_decoration_style :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+{
+    si parseuse.fini() {
+        retourne
+    }
+
+    lexème := parseuse.lexème_courant()
+
+    saufsi lexème.est_lexème_de_genre(GenreLexème.Ident) {
+        retourne
+    }
+
+    mot_clé := lexème.donne_texte()
+
+    si mot_clé == PROP_solid {
+        parseuse.avance()
+        retourne ValeurDeStyle(mot_clé = mot_clé)
+    }
+
+    si mot_clé == PROP_double || mot_clé == PROP_dotted || mot_clé == PROP_dashed || mot_clé == PROP_wavy {
+        retourne
     }
 }
 
@@ -2118,6 +2199,57 @@ parse_propriété_cursor :: fonc (value: [..]ComponentValue) -> Optionnel([..]Va
         PROP_n_resize, PROP_ne_resize, PROP_nw_resize, PROP_s_resize, PROP_se_resize, PROP_sw_resize,
         PROP_w_resize, PROP_ew_resize, PROP_ns_resize, PROP_nesw_resize, PROP_nwse_resize,
         PROP_col_resize, PROP_row_resize, PROP_all_scroll, PROP_zoom_in, PROP_zoom_out
+    ]
+
+    tantque !fini(parseuse) {
+        lexème := parseuse.lexème_courant()
+
+        si lexème.est_lexème_de_genre(GenreLexème.Ident) {
+            valeur := parse_mot_clé(parseuse, mots_clés)
+            si valeur.possède_valeur() {
+                tableau_ajoute(*résultat, valeur)
+            }
+            sinon {
+                imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
+                déloge(résultat)
+                retourne
+            }
+        }
+        sinon {
+            imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
+            déloge(résultat)
+            retourne
+        }
+
+        parseuse.consomme_espaces_blanches()
+    }
+
+    si résultat.taille != 0 {
+        retourne résultat
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Font family
+ * https://drafts.csswg.org/css-fonts/#font-family-prop
+ * \{ */
+
+parse_propriété_font_family :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+
+    // [ <family-name> | <generic-family> ]#
+    // <generic-family> = <generic-script-specific>| <generic-complete> | <generic-incomplete>
+    // <generic-script-specific> = generic(kai) | generic(fangsong) | generic(nastaliq)
+    // <generic-complete> = serif | sans-serif | system-ui | cursive | fantasy | math | monospace
+    // <generic-incomplete> = ui-serif | ui-sans-serif | ui-monospace | ui-rounded
+
+    résultat: [..]ValeurDeStyle
+
+    mots_clés := [
+        PROP_serif, PROP_sans_serif, PROP_monospace
     ]
 
     tantque !fini(parseuse) {
@@ -2550,6 +2682,12 @@ parse_propriété_margin :: fonc (value: [..]ComponentValue) -> Optionnel([..]Va
             continue
         }
 
+        si lexème.est_mot_clé(PROP_auto) {
+            parseuse.avance()
+            tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = PROP_auto))
+            continue
+        }
+
         imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
         déloge(résultat)
         retourne
@@ -2569,6 +2707,12 @@ parse_propriété_margin_top :: fonc (value: [..]ComponentValue) -> Optionnel([.
     si valeur.possède_valeur() {
         résultat: [..]ValeurDeStyle
         tableau_ajoute(*résultat, valeur.Quelque)
+        retourne résultat
+    }
+    lexème := parseuse.lexème_courant()
+    si lexème.est_mot_clé(PROP_auto) {
+        résultat: [..]ValeurDeStyle
+        tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = PROP_auto))
         retourne résultat
     }
 }
@@ -2647,6 +2791,13 @@ parse_propriété_height_width :: fonc (value: [..]ComponentValue) -> Optionnel(
         }
 
         lexème := parseuse.lexème_courant()
+
+        si lexème.est_mot_clé(PROP_auto) {
+            parseuse.avance()
+            tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = PROP_auto))
+            continue
+        }
+
         imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
         déloge(résultat)
         retourne
@@ -2686,6 +2837,38 @@ parse_propriété_max_height_width :: fonc (value: [..]ComponentValue) -> Option
     }
 
     lexème := parseuse.lexème_courant()
+    imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Line Height
+ * https://drafts.csswg.org/css2/#propdef-line-height
+ * \{ */
+
+/* normal | <number> | <length> | <percentage> | inherit */
+parse_propriété_line_height :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+
+    résultat: [..]ValeurDeStyle
+
+    /* parse_valeur_length inclus <number> */
+    valeur := parse_valeur_length(parseuse)
+    si valeur.possède_valeur() {
+        tableau_ajoute(*résultat, valeur.Quelque)
+        retourne résultat
+    }
+
+    lexème := parseuse.lexème_courant()
+
+    si lexème.est_mot_clé(PROP_normal) {
+        parseuse.avance()
+        tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = PROP_normal))
+        retourne résultat
+    }
+
     imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
 }
 
