@@ -89,7 +89,7 @@ principale :: fonc () -> z32
     fenêtre := QT_cree_fenetre_principale(*rappels_fenêtre)
     diffère QT_detruit_fenetre_principale(fenêtre)
 
-    QT_widget_definis_titre_fenetre(fenêtre, vers_qt("HTML"))
+    définis_titre_fenêtre(fenêtre, nul)
     QT_widget_affiche_maximisee(fenêtre)
 
     rappels_user_agent := crée_rappels_interface_qt(fenêtre)
@@ -425,17 +425,48 @@ détruit_données_page_web :: fonc (page: *PageWeb)
 /** \nom Données fenêtre principale.
  * \{ */
 
+WidgetsPage :: struct {
+    line_edit: *QT_LineEdit
+}
+
 RappelsFenetrePrincipale :: struct {
     empl base : QT_Rappels_Fenetre_Principale
 
     user_agent: UserAgent
 
     page_web: PageWeb
+    widgets_page: WidgetsPage
     widget_rendu: *QT_GLWidget
-    widget_arbre_de_dispostion: *QT_TreeWidget
+    widget_arbre_de_disposition: *QT_TreeWidget
+    widget_arbre_dom: *QT_TreeWidget
 
     /* Données rappels. */
     sur_filtre_evenement = sur_filtre_evenement_impl
+}
+
+définis_titre_fenêtre :: fonc (fenêtre: *QT_Fenetre_Principale, document: *Document)
+{
+    saufsi document {
+        QT_widget_definis_titre_fenetre(fenêtre, vers_qt("Vue HTML"))
+        retourne
+    }
+
+    titre := document.donne_title_element()
+    saufsi titre {
+        QT_widget_definis_titre_fenetre(fenêtre, vers_qt("Document Sans Titre - Vue HTML"))
+        retourne
+    }
+
+    texte_titre := donne_contenu_texte_descandants(titre)
+    diffère détruit_chaine(texte_titre)
+
+    texte_filtré := supprime_espace_blanches_autour(texte_titre)
+    diffère détruit_chaine(texte_filtré)
+
+    texte_final := imprime_chaine("% - Vue HTML", texte_filtré)
+    diffère déloge(texte_final)
+
+    QT_widget_definis_titre_fenetre(fenêtre, vers_qt(texte_final))
 }
 
 /** \} */
@@ -448,6 +479,10 @@ crée_widget_pour_page :: fonc (fenêtre: *QT_Fenetre_Principale, page_web: Page
 {
     rappels := QT_fenetre_principale_donne_rappels(fenêtre) comme *RappelsFenetrePrincipale
     rappels.page_web = page_web
+
+    widget := QT_cree_widget(nul, fenêtre)
+
+    barre_de_navigation := crée_barre_de_navigation(*rappels.user_agent, *rappels.page_web, *rappels.widgets_page, widget)
 
     tabs := QT_cree_tab_widget(nul, fenêtre)
     QT_tab_widget_definis_tabs_fermable(tabs, 0)
@@ -468,7 +503,72 @@ crée_widget_pour_page :: fonc (fenêtre: *QT_Fenetre_Principale, page_web: Page
     widget_arbre_disposition := crée_widget_vue_arbre_de_disposition(fenêtre, tabs)
     QT_tab_widget_ajoute_tab(tabs, widget_arbre_disposition, "Arbre de Disposition")
 
-    QT_fenetre_principale_definis_widget_central(fenêtre, tabs)
+    disposition := QT_cree_vbox_layout(widget)
+    QT_layout_ajoute_widget(disposition, barre_de_navigation)
+    QT_layout_ajoute_widget(disposition, tabs)
+
+    QT_fenetre_principale_definis_widget_central(fenêtre, widget)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Barre de navigation.
+ * \{ */
+
+RappelChangementAdresse :: struct {
+    empl base: QT_Rappel_Generique
+
+    user_agent: *UserAgent
+    page_web: *PageWeb
+    line_edit: *QT_LineEdit
+}
+
+crée_rappel_changement_adresse :: fonc (user_agent: *UserAgent, page_web: *PageWeb, line_edit: *QT_LineEdit) -> *QT_Rappel_Generique
+{
+    résultat := loge(RappelChangementAdresse)
+    résultat.sur_rappel = rappel_changement_adresse_sur_rappel
+    résultat.user_agent = user_agent
+    résultat.page_web = page_web
+    résultat.line_edit = line_edit
+    retourne résultat
+}
+
+rappel_changement_adresse_sur_rappel :: fonc (base: *QT_Rappel_Generique)
+{
+    rappel := base comme *RappelChangementAdresse
+
+    line_edit := rappel.line_edit
+    texte := QT_line_edit_donne_texte(line_edit).vers_kuri().copie_chaine()
+
+    si texte.est_vide() {
+        retourne
+    }
+
+    url := tente parse_uri_standard(texte) piège _ {
+        retourne
+    }
+
+    page_web := rappel.page_web
+    document := page_web.donne_document()
+
+    navigate(rappel.user_agent, page_web.navigable, url, document)
+}
+
+crée_barre_de_navigation :: fonc (user_agent: *UserAgent, page_web: *PageWeb, widgets: *WidgetsPage, parent: *QT_Widget) -> *QT_Widget
+{
+    widget := QT_cree_widget(nul, parent)
+    line_edit := QT_cree_line_edit(widget)
+
+    rappel_changement := crée_rappel_changement_adresse(user_agent, page_web, line_edit)
+    QT_line_edit_connecte_sur_pression_retour(line_edit, rappel_changement)
+
+    disposition := QT_cree_hbox_layout(widget)
+    QT_layout_ajoute_widget(disposition, line_edit)
+
+    widgets.line_edit = line_edit
+
+    retourne widget
 }
 
 /** \} */
@@ -523,37 +623,32 @@ initialise_rappels_arborescence :: fonc (fenêtre_principale: *QT_Fenetre_Princi
 crée_widget_arbre_pour_dom :: fonc (fenêtre: *QT_Fenetre_Principale, parent: QT_Generic_Widget) -> *QT_TreeWidget
 {
     rappels := QT_fenetre_principale_donne_rappels(fenêtre) comme *RappelsFenetrePrincipale
-
     résultat := crée_widget_arbre(nul, parent)
+    rappels.widget_arbre_dom = résultat
+    ajourne_widget_arbre_dom(rappels)
+    retourne résultat
+}
+
+ajourne_widget_arbre_dom :: fonc (rappels: *RappelsFenetrePrincipale)
+{
+    QT_treewidget_efface(rappels.widget_arbre_dom)
 
     document := donne_document(*rappels.page_web)
-    si document {
-        titre := document.donne_title_element()
-        si titre {
-            texte_titre := donne_contenu_texte_descandants(titre)
-            diffère détruit_chaine(texte_titre)
-
-            texte_filtré := supprime_espace_blanches_autour(texte_titre)
-            diffère détruit_chaine(texte_filtré)
-
-            texte_natif := converti_vers_chaine(texte_filtré)
-            diffère déloge(texte_natif)
-
-            QT_widget_definis_titre_fenetre(fenêtre, vers_qt(texte_natif))
-        }
-
-        item_document := QT_cree_treewidgetitem(nul, nul)
-        QT_treewidgetitem_definis_indicateur_enfant(item_document, QT_Indicateur_Enfant_Arbre.INVISIBLE_SI_SANS_ENFANT)
-        texte := vers_qt("document")
-        QT_treewidgetitem_definis_texte(item_document, 0, *texte)
-        QT_treewidget_ajoute_item_racine(résultat, item_document)
-
-        pour document.enfants {
-            ajoute_item_pour_noeud(item_document, it)
-        }
+    saufsi document {
+        retourne
     }
 
-    retourne résultat
+    arbre := rappels.widget_arbre_dom
+
+    item_document := QT_cree_treewidgetitem(nul, nul)
+    QT_treewidgetitem_definis_indicateur_enfant(item_document, QT_Indicateur_Enfant_Arbre.INVISIBLE_SI_SANS_ENFANT)
+    texte := vers_qt("document")
+    QT_treewidgetitem_definis_texte(item_document, 0, *texte)
+    QT_treewidget_ajoute_item_racine(arbre, item_document)
+
+    pour document.enfants {
+        ajoute_item_pour_noeud(item_document, it)
+    }
 }
 
 ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *Noeud)
@@ -655,14 +750,14 @@ crée_widget_vue_arbre_de_disposition :: fonc (fenêtre: *QT_Fenetre_Principale,
     rappels := QT_fenetre_principale_donne_rappels(fenêtre) comme *RappelsFenetrePrincipale
 
     résultat := crée_widget_arbre(nul, parent)
-    rappels.widget_arbre_de_dispostion = résultat
+    rappels.widget_arbre_de_disposition = résultat
     ajourne_widget_arbre_de_disposition(rappels)
     retourne résultat
 }
 
 ajourne_widget_arbre_de_disposition :: fonc (rappels: *RappelsFenetrePrincipale)
 {
-    QT_treewidget_efface(rappels.widget_arbre_de_dispostion)
+    QT_treewidget_efface(rappels.widget_arbre_de_disposition)
 
     document := donne_document(*rappels.page_web)
     saufsi document {
@@ -674,7 +769,7 @@ ajourne_widget_arbre_de_disposition :: fonc (rappels: *RappelsFenetrePrincipale)
         retourne
     }
 
-    widget := rappels.widget_arbre_de_dispostion
+    widget := rappels.widget_arbre_de_disposition
 
     item_document := QT_cree_treewidgetitem(nul, nul)
     QT_treewidgetitem_definis_indicateur_enfant(item_document, QT_Indicateur_Enfant_Arbre.INVISIBLE_SI_SANS_ENFANT)
@@ -749,6 +844,7 @@ VueRenduPage :: struct {
     sur_pression_souris = vue_rendu_page_sur_pression_souris
     sur_relachement_souris = vue_rendu_page_sur_relachement_souris
     sur_molette_souris = vue_rendu_page_sur_molette_souris
+    sur_sortie = vue_rendu_page_sur_sortie
 
     fenêtre_principale: *QT_Fenetre_Principale
     page: *PageWeb
@@ -827,7 +923,7 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
     ctx.largeur_vue = vue_rendu_page.largeur
 
     racine := arbre.racine
-    si racine.hauteur > vue_rendu_page.hauteur comme n32 {
+    si racine.hauteur > vue_rendu_page.hauteur comme r32 {
         ctx.décalage_y = page.défilement_vertical.rect.y / page.défilement_vertical.ratio
     }
 
@@ -837,9 +933,9 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
 
     // imprime("temps de rendu : %\n", début_rendu.temps_écoulé_millisecondes())
 
-    si racine.hauteur > vue_rendu_page.hauteur comme n32 {
+    si racine.hauteur > vue_rendu_page.hauteur comme r32 {
         hauteur_vue := vue_rendu_page.hauteur comme r32
-        hauteur_page := racine.hauteur comme r32
+        hauteur_page := racine.hauteur
 
         largeur_barre := 12.0
         hauteur_barre := hauteur_vue * hauteur_vue / hauteur_page
@@ -1026,6 +1122,16 @@ vue_rendu_page_sur_molette_souris :: fonc (base: *QT_Rappels_GLWidget, event: *Q
     QT_widget_ajourne(vue_rendu_page.widget)
 }
 
+vue_rendu_page_sur_sortie :: fonc (base: *QT_Rappels_GLWidget, event: *QT_Evenement @inutilisée)
+{
+    vue_rendu_page := base comme *VueRenduPage
+    si vue_rendu_page.page.défilement_vertical.est_cliqué {
+        retourne
+    }
+    vue_rendu_page.page.défilement_vertical.est_survolé = faux
+    QT_gui_application_restaure_curseur()
+}
+
 /* https://w3c.github.io/uievents/#send-click-event */
 envoie_un_clic :: fonc (élément: *HTML.Élément)
 {
@@ -1107,6 +1213,7 @@ crée_rappels_interface_qt :: fonc (fenêtre: *QT_Fenetre_Principale) -> *Rappel
     résultat.sur_lancement_requête = rappels_interface_sur_lancement_requête
     résultat.sur_spin_event_loop = rappels_interface_sur_spin_event_loop
     résultat.sur_enfile_une_tâche = rappels_interface_sur_enfile_une_tâche
+    résultat.sur_document_est_prêt = rappels_interface_sur_document_est_prêt
     retourne résultat
 }
 
@@ -1198,9 +1305,12 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Request) -> *RappelsRequê
         ajoute_au_tampon(*enchaineuse, "Host: ")
         ajoute_au_tampon(*enchaineuse, uri.hôte)
         ajoute_au_tampon(*enchaineuse, "\r\n")
+
+        pour rappels.requête.header_list {
+            ajoute_au_tampon(*enchaineuse, it.name, ": ", it.value, "\r\n")
+        }
+
         ajoute_au_tampon(*enchaineuse, "Accept-Encoding: identity\r\n")
-        ajoute_au_tampon(*enchaineuse, "Accept-Charset: utf-8, iso-8859-1q=0.5\r\n")
-        ajoute_au_tampon(*enchaineuse, "Accept: text/html,application/xhtml+xml,application/xmlq=0.9,image/webp,image/apng,*/ *q=0.8\r\n")
         ajoute_au_tampon(*enchaineuse, "User-Agent: delsace\r\n")
         ajoute_au_tampon(*enchaineuse, "Connection: close\r\n")
         ajoute_au_tampon(*enchaineuse, "\r\n")
@@ -1254,22 +1364,13 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Request) -> *RappelsRequê
         message := finalise_message(parseuse)
 
         contenu := copie_chaine(message.contenu)
+        content_type := donne_type_contenu(*message)
+        charset := donne_charset(*message)
 
-        entête_content_type := entête(*message, "Content-Type")
-        content_type := "text/html" // À FAIRE
-        si entête_content_type {
-            imprime("Content-Type : %\n", entête_content_type.valeur)
-
-            position_charset := cherche_aiguille_par_force_brute(entête_content_type.valeur, "charset=")
-            si position_charset != -1 {
-                charset := avance(entête_content_type.valeur, position_charset + "charset=".taille)
-
-                si charset == "ISO-8859-1" {
-                    nouveau_contenu := convertis_iso_8859_1_vers_utf8(message.contenu)
-                    déloge(contenu)
-                    contenu = nouveau_contenu
-                }
-            }
+        si compare_ascii_insensible_à_la_casse(charset,"ISO-8859-1" ) {
+            nouveau_contenu := convertis_iso_8859_1_vers_utf8(message.contenu)
+            déloge(contenu)
+            contenu = nouveau_contenu
         }
 
         response := loge(Response)
@@ -1277,7 +1378,7 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Request) -> *RappelsRequê
 
         body_info := loge(ResponseBodyInfo)
         body_info.decodede_size = message.contenu.taille comme z32
-        body_info.content_type = content_type
+        body_info.content_type = copie_chaine(content_type)
 
         response.body_info = body_info
         response.body = contenu
@@ -1323,6 +1424,19 @@ rappels_interface_sur_enfile_une_tâche :: fonc (base: *RappelsInterface, source
             QT_application_poste_evenement_et_donnees(rappels.fenêtre, évènement_sur_tâche_rendu, algorithm)
         }
     }
+}
+
+rappels_interface_sur_document_est_prêt :: fonc (base: *RappelsInterface, document: *Document)
+{
+    rappels := base comme *RappelsInterfaceQt
+    définis_titre_fenêtre(rappels.fenêtre, document)
+    rappels_fenêtre := QT_fenetre_principale_donne_rappels(rappels.fenêtre) comme *RappelsFenetrePrincipale
+    ajourne_widget_arbre_dom(rappels_fenêtre)
+
+    chaine_url := recompose_uri(*document.url)
+    diffère déloge(chaine_url)
+
+    QT_line_edit_definis_texte(rappels_fenêtre.widgets_page.line_edit, chaine_url.vers_qt())
 }
 
 /** \} */
