@@ -122,7 +122,7 @@ table_virtuelle_élément := TableVirtuelleÉlément(
         si valeur == nul || mémoire(valeur).est_vide() {
             élément.style = nul
         }
-        sinon {
+        sinon si rendu_css_est_requis(élément) {
             valeur_texte := mémoire(valeur).donne_chaine_utf16()
             élément.style = CSS.parse_attribut_style(valeur_texte)
             // À FAIRE(langage)
@@ -134,6 +134,21 @@ table_virtuelle_élément := TableVirtuelleÉlément(
     }
 
     retourne faux
+}
+
+rendu_css_est_requis :: fonc (élément: *Élément) -> bool
+{
+    document := élément.document
+    saufsi document {
+        retourne faux
+    }
+
+    user_agent := donne_user_agent(document)
+    saufsi user_agent {
+        retourne faux
+    }
+
+    retourne vrai
 }
 
 #portée_export
@@ -1439,6 +1454,10 @@ style_element_sur_changement_enfants :: fonc (base: *Noeud)
  */
 ajourne_style_block :: fonc (style: *HTMLStyleElement)
 {
+    saufsi rendu_css_est_requis(style) {
+        retourne
+    }
+
     // 1. Let element be the style element.
     element := style
 
