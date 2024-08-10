@@ -1305,9 +1305,12 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Request) -> *RappelsRequê
         ajoute_au_tampon(*enchaineuse, "Host: ")
         ajoute_au_tampon(*enchaineuse, uri.hôte)
         ajoute_au_tampon(*enchaineuse, "\r\n")
+
+        pour rappels.requête.header_list {
+            ajoute_au_tampon(*enchaineuse, it.name, ": ", it.value, "\r\n")
+        }
+
         ajoute_au_tampon(*enchaineuse, "Accept-Encoding: identity\r\n")
-        ajoute_au_tampon(*enchaineuse, "Accept-Charset: utf-8, iso-8859-1q=0.5\r\n")
-        ajoute_au_tampon(*enchaineuse, "Accept: text/html,application/xhtml+xml,application/xmlq=0.9,image/webp,image/apng,*/ *q=0.8\r\n")
         ajoute_au_tampon(*enchaineuse, "User-Agent: delsace\r\n")
         ajoute_au_tampon(*enchaineuse, "Connection: close\r\n")
         ajoute_au_tampon(*enchaineuse, "\r\n")

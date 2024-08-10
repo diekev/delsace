@@ -1,3 +1,4 @@
+importe Chaine
 importe Fondation
 importe Internet
 importe SysFichier
@@ -51,6 +52,9 @@ Request :: struct {
     /* "basic", "cors", or "opaque" */
     response_tainting := "basic"
 
+    /* empty string, "download", "imageset", "manifest", "prefetch", "prerender", or "xslt" */
+    initiator := ""
+
     user_activation: bool
 
     render_blocking: bool
@@ -58,6 +62,7 @@ Request :: struct {
 
 détruit_request :: fonc (request: *Request)
 {
+    déloge(request.header_list)
     déloge(request)
 }
 
@@ -65,6 +70,22 @@ donne_url_courant :: fonc (request: *Request) -> URI
 {
     // À FAIRE : nous devons avoir une liste
     retourne request.url
+}
+
+possède_entête :: fonc (request: *Request, nom: chaine) -> bool
+{
+    pour request.header_list {
+        si compare_ascii_insensible_à_la_casse(it.name, nom) {
+            retourne vrai
+        }
+    }
+    retourne faux
+}
+
+ajoute_entête :: fonc (request: *Request, nom: chaine, valeur: chaine)
+{
+    entête := Header(nom, valeur)
+    tableau_ajoute(*request.header_list, entête)
 }
 
 /** \} */
@@ -399,24 +420,46 @@ fetch :: fonc (user_agent: *UserAgent,
         // 2. Otherwise, set request’s policy container to a new policy container.
 
     // 13. If request’s header list does not contain `Accept`, then:
-
+    saufsi possède_entête(request, "Accept") {
         // 1. Let value be `*/*`.
+        value := "*/*"
 
         // 2. If request’s initiator is "prefetch", then set value to the document `Accept` header value.
-
+        si request.initiator == "prefetch" {
+            value = donne_document_accept_header_value()
+        }
         // 3. Otherwise, the user agent should set value to the first matching statement, if any, switching on request’s destination:
         //     "document"
         //     "frame"
         //     "iframe"
-        //         the document `Accept` header value
+        //         the document `Accept` header value 
         //     "image"
         //         `image/png,image/svg+xml,image/*;q=0.8,*/*;q=0.5`
         //     "json"
         //         `application/json,*/*;q=0.5`
         //     "style"
         //         `text/css,*/*;q=0.1`
+        sinon {
+            discr request.destination {
+                "document", "frame", "iframe" {
+                    value = donne_document_accept_header_value()
+                }
+                "image" {
+                    value = "image/png,image/svg+xml,image/*;q=0.8,*/*;q=0.5"
+                }
+                "json" {
+                    value = "application/json,*/*;q=0.5"
+                }
+                "style" {
+                    "text/css,*/*;q=0.1"
+                }
+                sinon {}
+            }
+        }
 
         // 4. Append (`Accept`, value) to request’s header list.
+        ajoute_entête(request, "Accept", value)
+    }
 
     // 14. If request’s header list does not contain `Accept-Language`, then user agents should append (`Accept-Language, an appropriate header value) to request’s header list.
 
@@ -433,6 +476,12 @@ fetch :: fonc (user_agent: *UserAgent,
 
     // 18. Return fetchParams’s controller.
     retourne fetch_params.controller
+}
+
+/* https://fetch.spec.whatwg.org/#document-accept-header-value */
+donne_document_accept_header_value :: fonc () -> chaine
+{
+    retourne "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
 }
 
 /** \} */
