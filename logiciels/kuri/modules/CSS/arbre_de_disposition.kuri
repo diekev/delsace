@@ -1031,6 +1031,8 @@ dispose_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDis
 
 calcule_largeur_et_marges :: fonc (noeud: *NoeudDeDispositionBloc, width_of_containing_block: r64)
 {
+    résoud_pourcentage_largeurs(noeud, width_of_containing_block)
+
     // À FAIRE : ne modifie pas les valeurs calculées
     sauvegarde_style := noeud.propriétés.style
     calcule_largeur_et_marges_block_level_normal_flow(noeud, width_of_containing_block)
@@ -1052,6 +1054,36 @@ calcule_largeur_et_marges :: fonc (noeud: *NoeudDeDispositionBloc, width_of_cont
     }
 
     ajourne_boite_pour_calcul_largeur(noeud)
+}
+
+calcule_pourcentage :: fonc (valeur: ValeurDeStyle, référence: r64) -> ValeurDeStyle
+{
+    saufsi valeur.est_percentage() {
+        retourne valeur
+    }
+
+    retourne ValeurDeStyle(number = valeur.percentage * référence / 100.0)
+}
+
+résoud_pourcentage_largeurs :: fonc (noeud: *NoeudDeDispositionBloc, width_of_containing_block: r64)
+{
+    style := *noeud.propriétés.style
+
+    margin_left := style.marges.valeur[BorderEdge.Left]
+    border_left_width := style.bordure.width[BorderEdge.Left]
+    padding_left := style.padding.valeur[BorderEdge.Left]
+    width := style.width
+    padding_right := style.padding.valeur[BorderEdge.Right]
+    border_right_width := style.bordure.width[BorderEdge.Right]
+    margin_right := style.marges.valeur[BorderEdge.Right]
+
+    style.marges.valeur[BorderEdge.Left] = calcule_pourcentage(margin_left, width_of_containing_block)
+    style.bordure.width[BorderEdge.Left] = calcule_pourcentage(border_left_width, width_of_containing_block)
+    style.padding.valeur[BorderEdge.Left] = calcule_pourcentage(padding_left, width_of_containing_block)
+    style.width = calcule_pourcentage(width, width_of_containing_block)
+    style.padding.valeur[BorderEdge.Right] = calcule_pourcentage(padding_right, width_of_containing_block)
+    style.bordure.width[BorderEdge.Right] = calcule_pourcentage(border_right_width, width_of_containing_block)
+    style.marges.valeur[BorderEdge.Right] = calcule_pourcentage(margin_right, width_of_containing_block)
 }
 
 calcule_hauteur_et_marges :: fonc (noeud: *NoeudDeDispositionBloc)

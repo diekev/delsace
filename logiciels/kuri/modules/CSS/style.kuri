@@ -16,6 +16,7 @@ ValeurDeStyle :: union {
     longueur: Longueur
     integer: r64
     number: r64
+    percentage: r64
     text_decoration_line: TextDecorationLine
 }
 
@@ -38,6 +39,18 @@ est_mot_clé :: fonc (valeur: ValeurDeStyle, mot_clé: CSSOMString) -> bool
 est_auto :: fonc (valeur: ValeurDeStyle) -> bool
 {
     retourne est_mot_clé(valeur, PROP_auto)
+}
+
+est_percentage :: fonc (valeur: ValeurDeStyle) -> bool
+{
+    discr valeur {
+        percentage {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
 }
 
 est_nombre :: fonc (valeur: ValeurDeStyle) -> bool
@@ -73,6 +86,9 @@ imprime_valeur_de_style :: fonc (enchaineuse: *Enchaineuse, valeur: *ValeurDeSty
         }
         number(n) {
             ajoute_au_tampon(enchaineuse, n)
+        }
+        percentage(p) {
+            ajoute_au_tampon(enchaineuse, p, "%")
         }
         text_decoration_line(t) {
             ajoute_au_tampon(enchaineuse, t)

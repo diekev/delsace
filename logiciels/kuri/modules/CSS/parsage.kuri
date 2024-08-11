@@ -1673,6 +1673,39 @@ parse_valeur_length :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(V
     }
 }
 
+parse_valeur_percentage :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+{
+    si parseuse.fini() {
+        retourne
+    }
+
+    lexème := parseuse.lexème_courant()
+
+    si lexème.est_lexème_de_genre(GenreLexème.Percentage) {
+        parseuse.avance()
+        retourne ValeurDeStyle(percentage = lexème.lexème.numeric_value)
+    }
+
+    si lexème.est_lexème_de_genre(GenreLexème.Number) {
+        parseuse.avance()
+
+        si lexème.lexème.drapeau_type_nombre == DrapeauxTypeNombre.Integer {
+            retourne ValeurDeStyle(integer = lexème.lexème.numeric_value)
+        }
+
+        retourne ValeurDeStyle(number = lexème.lexème.numeric_value)
+    }
+}
+
+parse_valeur_length_percentage :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+{
+    length := parse_valeur_length(parseuse)
+    si length.possède_valeur() {
+        retourne length
+    }
+    retourne parse_valeur_percentage(parseuse)
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -2712,7 +2745,7 @@ parse_propriété_margin :: fonc (value: [..]ComponentValue) -> Optionnel([..]Va
         lexème := parseuse.lexème_courant()
 
         /* <length-percentage> */
-        valeur := parse_valeur_length(parseuse)
+        valeur := parse_valeur_length_percentage(parseuse)
         si valeur.possède_valeur() {
             tableau_ajoute(*résultat, valeur.Quelque)
             continue
@@ -2739,7 +2772,7 @@ parse_propriété_margin_top :: fonc (value: [..]ComponentValue) -> Optionnel([.
     parseuse := initialise_une_parseuse(value)
     parseuse.consomme_espaces_blanches()
     /* <length-percentage> | auto */
-    valeur := parse_valeur_length(parseuse)
+    valeur := parse_valeur_length_percentage(parseuse)
     si valeur.possède_valeur() {
         résultat: [..]ValeurDeStyle
         tableau_ajoute(*résultat, valeur.Quelque)
@@ -2772,7 +2805,7 @@ parse_propriété_padding :: fonc (value: [..]ComponentValue) -> Optionnel([..]V
         lexème := parseuse.lexème_courant()
 
         /* <length-percentage> */
-        valeur := parse_valeur_length(parseuse)
+        valeur := parse_valeur_length_percentage(parseuse)
         si valeur.possède_valeur() {
             tableau_ajoute(*résultat, valeur.Quelque)
             continue
@@ -2793,7 +2826,7 @@ parse_propriété_padding_top :: fonc (value: [..]ComponentValue) -> Optionnel([
     parseuse := initialise_une_parseuse(value)
     parseuse.consomme_espaces_blanches()
     /* <length-percentage> | auto */
-    valeur := parse_valeur_length(parseuse)
+    valeur := parse_valeur_length_percentage(parseuse)
     si valeur.possède_valeur() {
         résultat: [..]ValeurDeStyle
         tableau_ajoute(*résultat, valeur.Quelque)
@@ -2820,7 +2853,7 @@ parse_propriété_height_width :: fonc (value: [..]ComponentValue) -> Optionnel(
     tantque !fini(parseuse) {
         parseuse.consomme_espaces_blanches()
 
-        valeur := parse_valeur_length(parseuse)
+        valeur := parse_valeur_length_percentage(parseuse)
         si valeur.possède_valeur() {
             tableau_ajoute(*résultat, valeur.Quelque)
             continue
@@ -2849,7 +2882,7 @@ parse_propriété_min_height_width :: fonc (value: [..]ComponentValue) -> Option
     parseuse := initialise_une_parseuse(value)
     parseuse.consomme_espaces_blanches()
     /* auto | <length-percentage [0,∞]> | min-content | max-content | fit-content(<length-percentage [0,∞]>) | <calc-size()> */
-    valeur := parse_valeur_length(parseuse)
+    valeur := parse_valeur_length_percentage(parseuse)
     si valeur.possède_valeur() {
         résultat: [..]ValeurDeStyle
         tableau_ajoute(*résultat, valeur.Quelque)
@@ -2865,7 +2898,7 @@ parse_propriété_max_height_width :: fonc (value: [..]ComponentValue) -> Option
     parseuse := initialise_une_parseuse(value)
     parseuse.consomme_espaces_blanches()
     /* none | <length-percentage [0,∞]> | min-content | max-content | fit-content(<length-percentage [0,∞]>) | <calc-size()> */
-    valeur := parse_valeur_length(parseuse)
+    valeur := parse_valeur_length_percentage(parseuse)
     si valeur.possède_valeur() {
         résultat: [..]ValeurDeStyle
         tableau_ajoute(*résultat, valeur.Quelque)
@@ -2892,6 +2925,12 @@ parse_propriété_line_height :: fonc (value: [..]ComponentValue) -> Optionnel([
 
     /* parse_valeur_length inclus <number> */
     valeur := parse_valeur_length(parseuse)
+    si valeur.possède_valeur() {
+        tableau_ajoute(*résultat, valeur.Quelque)
+        retourne résultat
+    }
+
+    valeur = parse_valeur_percentage(parseuse)
     si valeur.possède_valeur() {
         tableau_ajoute(*résultat, valeur.Quelque)
         retourne résultat
