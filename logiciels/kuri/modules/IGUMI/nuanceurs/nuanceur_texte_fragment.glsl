@@ -2,8 +2,8 @@
 layout (location = 0) out vec4 couleur_fragment;
 
 uniform sampler2D atlas;
-smooth in vec4 couleur_vertex;
-smooth in vec2 UV;
+in vec4 couleur_vertex;
+in vec2 UV;
 
 void main()
 {
