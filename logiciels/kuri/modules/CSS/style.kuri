@@ -157,6 +157,13 @@ Padding :: struct {
 Longueur :: struct {
     Unité :: énum {
         Em
+        /* https://drafts.csswg.org/css-values-4/#absolute-lengths */
+        Cm
+        Mm
+        Q
+        In
+        Pc
+        Pt
         Px
     }
 
@@ -172,6 +179,30 @@ calcule_longueur :: fonc (l: Longueur, ctx: *ContexteCalculStyle) -> r64
         }
         Em {
             retourne l.valeur * ctx.taille_fonte
+        }
+        In {
+            /* 1in = 96 px */
+            retourne l.valeur * 96.0
+        }
+        Cm {
+            /* 1cm = 1 / 2.54 in */
+            retourne l.valeur * 96.0 / 2.54
+        }
+        Mm {
+            /* 1mm = 1 / 10 cm */
+            retourne l.valeur * 9.6 / 2.54
+        }
+        Q {
+            /* 1Q = 1 / 40 cm (2.4 = 96 / 40) */
+            retourne l.valeur * 2.4 / 2.54
+        }
+        Pc {
+            /* 1pc = 1 / 6 in (16 = 96 / 6) */
+            retourne l.valeur * 16
+        }
+        Pt {
+            /* 1pt = 1/72 in */
+            retourne l.valeur * 96.0 / 72.0
         }
     }
 

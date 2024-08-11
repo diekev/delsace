@@ -1623,6 +1623,42 @@ parse_valeur_length :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(V
             retourne ValeurDeStyle(longueur = longueur)
         }
 
+        si données_lexème.unité == PROP_in {
+            parseuse.avance()
+            longueur := Longueur(données_lexème.numeric_value, Longueur.Unité.In)
+            retourne ValeurDeStyle(longueur = longueur)
+        }
+
+        si données_lexème.unité == PROP_cm {
+            parseuse.avance()
+            longueur := Longueur(données_lexème.numeric_value, Longueur.Unité.Cm)
+            retourne ValeurDeStyle(longueur = longueur)
+        }
+
+        si données_lexème.unité == PROP_mm {
+            parseuse.avance()
+            longueur := Longueur(données_lexème.numeric_value, Longueur.Unité.Mm)
+            retourne ValeurDeStyle(longueur = longueur)
+        }
+
+        si données_lexème.unité == PROP_Q {
+            parseuse.avance()
+            longueur := Longueur(données_lexème.numeric_value, Longueur.Unité.Q)
+            retourne ValeurDeStyle(longueur = longueur)
+        }
+
+        si données_lexème.unité == PROP_pc {
+            parseuse.avance()
+            longueur := Longueur(données_lexème.numeric_value, Longueur.Unité.Pc)
+            retourne ValeurDeStyle(longueur = longueur)
+        }
+
+        si données_lexème.unité == PROP_pt {
+            parseuse.avance()
+            longueur := Longueur(données_lexème.numeric_value, Longueur.Unité.Pt)
+            retourne ValeurDeStyle(longueur = longueur)
+        }
+
         retourne
     }
 
