@@ -920,8 +920,8 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
                 rect.hauteur = noeud.hauteur
             }
             sinon /* si coté == BorderEdge.Right */ {
-                rect.x = noeud.position_x
-                rect.y = noeud.position_y + noeud.largeur - largeur
+                rect.x = noeud.position_x + noeud.largeur - largeur
+                rect.y = noeud.position_y
                 rect.largeur = largeur
                 rect.hauteur = noeud.hauteur
             }
