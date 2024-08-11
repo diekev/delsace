@@ -126,7 +126,7 @@ imprime_arbre :: fonc (enchaineuse: *Enchaineuse, racine: *NoeudDeDisposition, p
         imprime_dans_enchaineuse(enchaineuse, " %", bloc.élément.local_name)
     }
 
-    imprime_dans_enchaineuse(enchaineuse, " % % %x%\n", racine.position_x, racine.position_y, racine.largeur, racine.hauteur)
+    imprime_dans_enchaineuse(enchaineuse, " % % %x%\n", racine.modèle_de_boite.marge.x, racine.modèle_de_boite.marge.y, racine.modèle_de_boite.marge.largeur, racine.modèle_de_boite.marge.hauteur)
 
     pour racine.enfants {
         imprime_arbre(enchaineuse, it, profondeur + 1)
@@ -496,21 +496,6 @@ ContexteDessin :: struct {
     décalage_y: r32
 }
 
-donne_rectangle_corrigé :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition) -> RectanglePosDim(z32)
-{
-    rect: RectanglePosDim(z32)
-    rect.x = noeud.position_x comme z32
-    /* Nous disposons les noeuds comme si leur origine était leur coin du haut
-     * gauche mais nous devons les dessiner comme si leur origine était leur
-     * coin du bas gauche.
-     * De plus, nous devons nous assurer que l'origine du document est le bas
-     * gauche de la page et non le haut gauche. */
-    rect.y = ctx.hauteur_vue - noeud.position_y comme z32 - noeud.hauteur comme z32 + ctx.décalage_y comme z32
-    rect.largeur = noeud.largeur comme z32
-    rect.hauteur = noeud.hauteur comme z32
-    retourne rect
-}
-
 donne_rectangle_corrigé :: fonc (ctx: *ContexteDessin, rect: RectanglePosDim(r32)) -> RectanglePosDim(r32)
 {
     /* Nous disposons les noeuds comme si leur origine était leur coin du haut
@@ -534,7 +519,7 @@ remplis_rectangle_id :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition)
     // couleur.b = aléatoire_unilatérale(entropie)
     // couleur.a = 1.0
 
-    rect := ctx.donne_rectangle_corrigé(noeud)
+    rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
     // peintre.remplis_rectangle(rect, couleur)
 
     IGUMI.utilise_nuanceur(IGUMI.nuanceur_id)
@@ -543,7 +528,7 @@ remplis_rectangle_id :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition)
 
     // imprime("[%] (% % % %) : %\n", #nom_de_cette_fonction, rect.x, rect.y, rect.largeur, rect.hauteur, noeud.id)
 
-    IGUMI.quad_immédiat_id(rect.x comme r32, rect.y comme r32, rect.largeur comme r32, rect.hauteur comme r32, noeud.id)
+    IGUMI.quad_immédiat_id(rect.x, rect.y, rect.largeur, rect.hauteur, noeud.id)
 }
 
 remplis_rectangle_id :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition, rect: RectanglePosDim(r32))
@@ -576,6 +561,13 @@ remplis_rectangle_id :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition, 
 /** \nom NoeudDeDisposition
  * \{ */
 
+ModèleDeBoite :: struct {
+    marge: RectanglePosDim(r32)
+    bordure: RectanglePosDim(r32)
+    rembourrage: RectanglePosDim(r32)
+    contenu: RectanglePosDim(r32)
+}
+
 NoeudDeDisposition :: struct {
     type := #type_de_cette_structure
 
@@ -585,14 +577,7 @@ NoeudDeDisposition :: struct {
     parent: *NoeudDeDisposition
     enfants: [..]*NoeudDeDisposition
 
-    position_x: r32
-    position_y: r32
-
-    largeur: r32
-    hauteur: r32
-
-    marges: [4]r64
-    rembourrage: [4]r64
+    modèle_de_boite: ModèleDeBoite
 
     sur_mesure: fonc (*NoeudDeDisposition, *ContexteDisposition)(rien)
     sur_dessin: fonc (*NoeudDeDisposition, *ContexteDessin)(rien)
@@ -600,32 +585,64 @@ NoeudDeDisposition :: struct {
     sur_divise_en_lignes: fonc (*NoeudDeDisposition, *NoeudDeDispositionBloc, *ContexteDisposition)(rien)
 }
 
-donne_rectangle :: fonc (noeud: *NoeudDeDisposition) -> RectanglePosDim(z32)
+donne_rectangle_bordure :: fonc (noeud: *NoeudDeDisposition) -> RectanglePosDim(r32)
 {
-    rect: RectanglePosDim(z32)
-    rect.x = noeud.position_x comme z32
-    rect.y = noeud.position_y comme z32
-    rect.largeur = noeud.largeur comme z32
-    rect.hauteur = noeud.hauteur comme z32
-    retourne rect
+    retourne noeud.modèle_de_boite.bordure
 }
 
-calcules_marges :: fonc (noeud: *NoeudDeDisposition)
+donne_rectangle_contenu :: fonc (noeud: *NoeudDeDisposition) -> RectanglePosDim(r32)
 {
-    marges := noeud.propriétés.style.marges
-
-    pour 4 {
-        noeud.marges[it] = marges.valeur[it].number
-    }
+    retourne noeud.modèle_de_boite.contenu
 }
 
-calcules_rembourrage :: fonc (noeud: *NoeudDeDisposition)
+ajourne_boite_pour_calcul_largeur :: fonc (noeud: *NoeudDeDisposition)
 {
-    rembourrage := noeud.propriétés.style.padding
+    style := *noeud.propriétés.style
 
-    pour 4 {
-        noeud.rembourrage[it] = rembourrage.valeur[it].number
-    }
+    margin_left := style.marges.valeur[BorderEdge.Left].number comme r32
+    border_left_width := style.bordure.width[BorderEdge.Left].number comme r32
+    padding_left := style.padding.valeur[BorderEdge.Left].number comme r32
+    width := style.width.number comme r32
+    padding_right := style.padding.valeur[BorderEdge.Right].number comme r32
+    border_right_width := style.bordure.width[BorderEdge.Right].number comme r32
+    margin_right := style.marges.valeur[BorderEdge.Right].number comme r32
+
+    noeud.modèle_de_boite.marge.x = 0.0
+    noeud.modèle_de_boite.marge.largeur = margin_left + border_left_width + padding_left + width + padding_right + border_right_width + margin_right
+
+    noeud.modèle_de_boite.bordure.x = margin_left
+    noeud.modèle_de_boite.bordure.largeur = border_left_width + padding_left + width + padding_right + border_right_width
+
+    noeud.modèle_de_boite.rembourrage.x = margin_left + border_left_width
+    noeud.modèle_de_boite.rembourrage.largeur =  padding_left + width + padding_right
+
+    noeud.modèle_de_boite.contenu.x = margin_left + border_left_width + padding_left
+    noeud.modèle_de_boite.contenu.largeur = width
+}
+
+ajourne_boite_pour_calcul_hauteur :: fonc (noeud: *NoeudDeDisposition)
+{
+    style := *noeud.propriétés.style
+
+    margin_top := style.marges.valeur[BorderEdge.Top].number comme r32
+    border_top_height := style.bordure.width[BorderEdge.Top].number comme r32
+    padding_top := style.padding.valeur[BorderEdge.Top].number comme r32
+    height := style.height.number comme r32
+    padding_bottom := style.padding.valeur[BorderEdge.Bottom].number comme r32
+    border_bottom_height := style.bordure.width[BorderEdge.Bottom].number comme r32
+    margin_bottom := style.marges.valeur[BorderEdge.Bottom].number comme r32
+
+    noeud.modèle_de_boite.marge.y = 0.0
+    noeud.modèle_de_boite.marge.hauteur = margin_top + border_top_height + padding_top + height + padding_bottom + border_bottom_height + margin_bottom
+
+    noeud.modèle_de_boite.bordure.y = margin_top
+    noeud.modèle_de_boite.bordure.hauteur = border_top_height + padding_top + height + padding_bottom + border_bottom_height
+
+    noeud.modèle_de_boite.rembourrage.y = margin_top + border_top_height
+    noeud.modèle_de_boite.rembourrage.hauteur =  padding_top + height + padding_bottom
+
+    noeud.modèle_de_boite.contenu.y = margin_top + border_top_height + padding_top
+    noeud.modèle_de_boite.contenu.hauteur = height
 }
 
 donne_propriété_parent :: fonc (noeud_texte: *NoeudDeDisposition) -> *PropriétésDeStyle
@@ -667,8 +684,15 @@ donne_élément :: fonc (noeud: *NoeudDeDisposition) -> *HTML.Élément
 
 décale :: fonc (noeud: *NoeudDeDisposition, x: r32, y: r32)
 {
-    noeud.position_x += x
-    noeud.position_y += y
+    noeud.modèle_de_boite.marge.x += x
+    noeud.modèle_de_boite.bordure.x += x
+    noeud.modèle_de_boite.rembourrage.x += x
+    noeud.modèle_de_boite.contenu.x += x
+
+    noeud.modèle_de_boite.marge.y += y
+    noeud.modèle_de_boite.bordure.y += y
+    noeud.modèle_de_boite.rembourrage.y += y
+    noeud.modèle_de_boite.contenu.y += y
 
     pour noeud.enfants {
         it.décale(x, y)
@@ -824,32 +848,12 @@ NoeudDeDispositionBloc :: struct {
 noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDisposition)
 {
     noeud := base comme *NoeudDeDispositionBloc
-    noeud.largeur = ctx.largeur_disponible
-
-    si noeud.est_noeud_non_anonyme() {
-        bordure := noeud.propriétés.style.bordure
-
-        pour bordure.style {
-            si it == LineStyle.None {
-                continue
-            }
-
-            largeur := noeud.propriétés.style.bordure.width[index_it].number
-            si index_it == BorderEdge.Top comme z32 || index_it == BorderEdge.Bottom comme z32 {
-                noeud.hauteur += largeur comme r32
-            }
-        }
-    }
 
     saufsi noeud.est_disposition_inline {
         dispose_enfants_block(noeud, ctx)
     }
     sinon {
         dispose_enfants_inline(noeud, ctx)
-    }
-
-    si noeud.parent == nul {
-        noeud.hauteur = max(noeud.hauteur, ctx.hauteur_disponible)
     }
 }
 
@@ -862,7 +866,7 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
     si noeud.est_noeud_non_anonyme() {
         background := noeud.propriétés.style.background
         si background.color.a != 0 {
-            rect_noeud := ctx.donne_rectangle_corrigé(noeud)
+            rect_noeud := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
             peintre.remplis_rectangle(rect_noeud, background.color)
         }
 
@@ -900,30 +904,31 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
             largeur := noeud.propriétés.style.bordure.width[coté].number comme r32
 
             rect: RectanglePosDim(r32)
+            rect_bordure := noeud.donne_rectangle_bordure()
 
             si coté == BorderEdge.Top {
-                rect.x = noeud.position_x
-                rect.y = noeud.position_y + noeud.hauteur - largeur
-                rect.largeur = noeud.largeur
+                rect.x = rect_bordure.x
+                rect.y = rect_bordure.y + rect_bordure.hauteur - largeur
+                rect.largeur = rect_bordure.largeur
                 rect.hauteur = largeur
             }
             sinon si coté == BorderEdge.Bottom {
-                rect.x = noeud.position_x
-                rect.y = noeud.position_y
-                rect.largeur = noeud.largeur
+                rect.x = rect_bordure.x
+                rect.y = rect_bordure.y
+                rect.largeur = rect_bordure.largeur
                 rect.hauteur = largeur
             }
             sinon si coté == BorderEdge.Left {
-                rect.x = noeud.position_x
-                rect.y = noeud.position_y
+                rect.x = rect_bordure.x
+                rect.y = rect_bordure.y
                 rect.largeur = largeur
-                rect.hauteur = noeud.hauteur
+                rect.hauteur = rect_bordure.hauteur
             }
             sinon /* si coté == BorderEdge.Right */ {
-                rect.x = noeud.position_x + noeud.largeur - largeur
-                rect.y = noeud.position_y
+                rect.x = rect_bordure.x + rect_bordure.largeur - largeur
+                rect.y = rect_bordure.y
                 rect.largeur = largeur
-                rect.hauteur = noeud.hauteur
+                rect.hauteur = rect_bordure.hauteur
             }
 
             rect = ctx.donne_rectangle_corrigé(rect)
@@ -975,62 +980,53 @@ dispose_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDis
 
     /* À FAIRE : utilise les bonnes formules.
      * https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#Computing_widths_and_margins */
-    noeud.largeur = ctx_locale.largeur_disponible
-
-    position_x_contenu := 0.0
-
     si noeud.est_noeud_non_anonyme() {
         calcule_largeur_et_marges(noeud, ctx.largeur_disponible comme r64)
-        calcules_marges(noeud)
-        calcules_rembourrage(noeud)
-
-        style := *noeud.propriétés.style
-
-        noeud.largeur = (style.bordure.width[BorderEdge.Left].number + style.bordure.width[BorderEdge.Right].number) comme r32
-        noeud.largeur += (noeud.rembourrage[BorderEdge.Left] + noeud.rembourrage[BorderEdge.Right]) comme r32
-        noeud.largeur += style.width.number comme r32
-
-        position_x_contenu = noeud.marges[BorderEdge.Left] comme r32
-        position_x_contenu += style.bordure.width[BorderEdge.Left].number comme r32
-        position_x_contenu += noeud.rembourrage[BorderEdge.Left] comme r32
-
-        ctx_locale.largeur_disponible = style.width.number comme r32
+        calcule_hauteur_et_marges(noeud)
+        ctx_locale.largeur_disponible = noeud.modèle_de_boite.contenu.largeur
     }
 
     /* https://www.w3.org/TR/CSS2/box.html#collapsing-margins */
-    marges := noeud.marges
-    rembourrage := noeud.rembourrage
-    décalage_x := position_x_contenu
+    décalage_x := noeud.modèle_de_boite.contenu.x
+    décalage_y := noeud.modèle_de_boite.contenu.y
 
-    noeud.position_x = marges[BorderEdge.Left] comme r32
+    // dernière_marge := marges[BorderEdge.Top]
 
-    dernière_marge := marges[BorderEdge.Top]
-
-    noeud.hauteur += rembourrage[BorderEdge.Top] comme r32
+    hauteur_contenu := 0.0
 
     pour noeud.enfants {
         it.mesure(*ctx_locale)
 
-        marges_enfant := it.marges
-        marge_inter_enfant := max(marges_enfant[BorderEdge.Bottom], dernière_marge)
-        décalage_y := marge_inter_enfant comme r32
+        hauteur_enfant := it.modèle_de_boite.marge.hauteur
 
-        it.décale(décalage_x, décalage_y + noeud.hauteur)
+        // marges_enfant := it.marges
+        // marge_inter_enfant := max(marges_enfant[BorderEdge.Bottom], dernière_marge)
+        // décalage_y := marge_inter_enfant comme r32
 
-        dernière_marge = marges_enfant[BorderEdge.Bottom]
+        it.décale(décalage_x, décalage_y + hauteur_contenu)
+
+        // dernière_marge = marges_enfant[BorderEdge.Bottom]
 
         si index_it == 0 {
-            noeud.hauteur += it.hauteur + marges[BorderEdge.Top] comme r32
+            hauteur_contenu += hauteur_enfant // + marges[BorderEdge.Top] comme r32
         }
         sinon si index_it == noeud.enfants.taille - 1 {
-            noeud.hauteur += it.hauteur + marges[BorderEdge.Bottom] comme r32
+            hauteur_contenu += hauteur_enfant // + marges[BorderEdge.Bottom] comme r32
         }
         sinon {
-            noeud.hauteur += it.hauteur + dernière_marge comme r32
+            hauteur_contenu += hauteur_enfant // + dernière_marge comme r32
         }
     }
 
-    noeud.hauteur += rembourrage[BorderEdge.Bottom] comme r32
+    si noeud.est_noeud_non_anonyme() {
+        si noeud.parent == nul {
+            noeud.propriétés.style.height = ValeurDeStyle(number = max(ctx.hauteur_disponible, hauteur_contenu) comme r64)
+        }
+        sinon {
+            noeud.propriétés.style.height = ValeurDeStyle(number = hauteur_contenu)
+        }
+        calcule_hauteur_et_marges(noeud)
+    }
 }
 
 calcule_largeur_et_marges :: fonc (noeud: *NoeudDeDispositionBloc, width_of_containing_block: r64)
@@ -1054,6 +1050,54 @@ calcule_largeur_et_marges :: fonc (noeud: *NoeudDeDispositionBloc, width_of_cont
         noeud.propriétés.style.width = min_width
         calcule_largeur_et_marges_block_level_normal_flow(noeud, width_of_containing_block)
     }
+
+    ajourne_boite_pour_calcul_largeur(noeud)
+}
+
+calcule_hauteur_et_marges :: fonc (noeud: *NoeudDeDispositionBloc)
+{
+    style := *noeud.propriétés.style
+
+    /* À FAIRE */
+    margin_top := style.marges.valeur[BorderEdge.Top]
+    border_top_height := style.bordure.width[BorderEdge.Top]
+    padding_top := style.padding.valeur[BorderEdge.Top]
+    height := style.height
+    padding_bottom := style.padding.valeur[BorderEdge.Bottom]
+    border_bottom_height := style.bordure.width[BorderEdge.Bottom]
+    margin_bottom := style.marges.valeur[BorderEdge.Bottom]
+
+    saufsi margin_top.est_nombre() {
+        margin_top = ValeurDeStyle(number = 0)
+    }
+    saufsi border_top_height.est_nombre() {
+        border_top_height = ValeurDeStyle(number = 0)
+    }
+    saufsi padding_top.est_nombre() {
+        padding_top = ValeurDeStyle(number = 0)
+    }
+    saufsi height.est_nombre() {
+        height = ValeurDeStyle(number = 0)
+    }
+    saufsi padding_bottom.est_nombre() {
+        padding_bottom = ValeurDeStyle(number = 0)
+    }
+    saufsi border_bottom_height.est_nombre() {
+        border_bottom_height = ValeurDeStyle(number = 0)
+    }
+    saufsi margin_bottom.est_nombre() {
+        margin_bottom = ValeurDeStyle(number = 0)
+    }
+
+    style.marges.valeur[BorderEdge.Top] = margin_top
+    style.bordure.width[BorderEdge.Top] = border_top_height
+    style.padding.valeur[BorderEdge.Top] = padding_top
+    style.height = height
+    style.padding.valeur[BorderEdge.Bottom] = padding_bottom
+    style.bordure.width[BorderEdge.Bottom] = border_bottom_height
+    style.marges.valeur[BorderEdge.Bottom] = margin_bottom
+
+    ajourne_boite_pour_calcul_hauteur(noeud)
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#blockwidth */
@@ -1218,31 +1262,20 @@ dispose_enfants_inline :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDi
 {
     ctx_locale := mémoire(ctx)
 
-    décalage_x: r32
-    décalage_y: r32
-
     si noeud.est_noeud_non_anonyme() {
         calcule_largeur_et_marges(noeud, ctx.largeur_disponible comme r64)
-        calcules_marges(noeud)
-        calcules_rembourrage(noeud)
-
-        style := *noeud.propriétés.style
-
-        noeud.largeur = (style.bordure.width[BorderEdge.Left].number + style.bordure.width[BorderEdge.Right].number) comme r32
-        noeud.largeur += (noeud.rembourrage[BorderEdge.Left] + noeud.rembourrage[BorderEdge.Right]) comme r32
-        noeud.largeur += style.width.number comme r32
-
-        ctx_locale.largeur_disponible = style.width.number comme r32
-
-        décalage_x = noeud.rembourrage[BorderEdge.Left] comme r32
-        décalage_y = noeud.rembourrage[BorderEdge.Top] comme r32
-
-        noeud.hauteur = (noeud.rembourrage[BorderEdge.Top] + noeud.rembourrage[BorderEdge.Bottom]) comme r32
+        calcule_hauteur_et_marges(noeud)
+        ctx_locale.largeur_disponible = noeud.modèle_de_boite.contenu.largeur
     }
+
+    décalage_x := noeud.modèle_de_boite.contenu.x
+    décalage_y := noeud.modèle_de_boite.contenu.y
 
     pour noeud.enfants {
         divise_en_lignes(it, noeud, *ctx_locale)
     }
+
+    hauteur_contenu := 0.0
 
     pour noeud.lignes {
         hauteur := 0.0
@@ -1250,9 +1283,14 @@ dispose_enfants_inline :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDi
             hauteur = max(fragment.hauteur, hauteur)
             fragment.y = décalage_y
         }
-        noeud.hauteur += hauteur
+        hauteur_contenu += hauteur
         décalage_y += hauteur
     }
+
+    noeud.modèle_de_boite.marge.hauteur += hauteur_contenu
+    noeud.modèle_de_boite.bordure.hauteur += hauteur_contenu
+    noeud.modèle_de_boite.contenu.hauteur += hauteur_contenu
+    noeud.modèle_de_boite.rembourrage.hauteur += hauteur_contenu
 
     si décalage_x != 0.0 || décalage_y != 0.0 {
         pour noeud.lignes {
@@ -1261,15 +1299,6 @@ dispose_enfants_inline :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDi
             }
         }
     }
-
-    // pour noeud.enfants {
-    //     it.mesure(ctx)
-
-    //     it.décale(noeud.largeur, 0)
-
-    //     noeud.largeur += it.largeur
-    //     noeud.hauteur = max(noeud.hauteur, it.hauteur)
-    // }
 }
 
 dessine_enfants_inline :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDessin)
@@ -1312,7 +1341,6 @@ NoeudDeDispositionInline :: struct {
 noeud_disposition_inline_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDisposition)
 {
     noeud := base comme *NoeudDeDispositionInline
-    noeud.largeur = ctx.largeur_disponible
     dispose_enfants_inline(noeud, ctx)
 }
 
@@ -1407,8 +1435,6 @@ noeud_disposition_texte_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Con
     noeud := base comme *NoeudDeDispositionTexte
 
     si est_vide_ou_uniquement_espaces_blanches(noeud.noeud_texte.données) {
-        noeud.hauteur = 0
-        noeud.largeur = 0
         noeud.sur_dessin = nul
         retourne
     }
@@ -1435,8 +1461,17 @@ noeud_disposition_texte_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Con
     texte := chaine_depuis_enchaineuse(enchaineuse)
     noeud.texte = texte
 
-    noeud.hauteur = métriques.donne_hauteur_ligne()
-    noeud.largeur = fonte.donne_largeur_texte(texte) comme r32
+    /* XXX */
+    noeud.modèle_de_boite.marge.hauteur = métriques.donne_hauteur_ligne()
+    noeud.modèle_de_boite.bordure.hauteur = métriques.donne_hauteur_ligne()
+    noeud.modèle_de_boite.contenu.hauteur = métriques.donne_hauteur_ligne()
+    noeud.modèle_de_boite.rembourrage.hauteur = métriques.donne_hauteur_ligne()
+
+    largeur_texte := fonte.donne_largeur_texte(texte) comme r32
+    noeud.modèle_de_boite.marge.largeur = largeur_texte
+    noeud.modèle_de_boite.bordure.largeur = largeur_texte
+    noeud.modèle_de_boite.contenu.largeur = largeur_texte
+    noeud.modèle_de_boite.rembourrage.largeur = largeur_texte
 }
 
 noeud_disposition_texte_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, bloc_contenant: *NoeudDeDispositionBloc, ctx: *ContexteDisposition)
@@ -1444,8 +1479,6 @@ noeud_disposition_texte_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition,
     noeud := base comme *NoeudDeDispositionTexte
 
     si est_vide_ou_uniquement_espaces_blanches(noeud.noeud_texte.données) {
-        noeud.hauteur = 0
-        noeud.largeur = 0
         noeud.sur_dessin = nul
         retourne
     }
@@ -1453,7 +1486,10 @@ noeud_disposition_texte_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition,
     fonte := détermine_fonte(noeud, ctx)
     métriques := fonte.donne_métriques_fonte()
 
-    noeud.hauteur = métriques.donne_hauteur_ligne()
+    noeud.modèle_de_boite.marge.hauteur = métriques.donne_hauteur_ligne()
+    noeud.modèle_de_boite.bordure.hauteur = métriques.donne_hauteur_ligne()
+    noeud.modèle_de_boite.contenu.hauteur = métriques.donne_hauteur_ligne()
+    noeud.modèle_de_boite.rembourrage.hauteur = métriques.donne_hauteur_ligne()
 
     /* À FAIRE : meilleur algorithme, respect du standard. */
     morceaux := divise_sur_espaces_blanches_ascii(noeud.noeud_texte.données)
@@ -1533,8 +1569,8 @@ noeud_disposition_texte_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Con
     }
     sinon {
         texte := noeud.texte
-        rect := ctx.donne_rectangle_corrigé(noeud)
-        rect.y -= métriques.jambage_inférieur comme z32
+        rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_contenu())
+        rect.y -= métriques.jambage_inférieur
         peintre.dessine_texte(fonte, texte, rect, couleur, *effets)
     }
 }

@@ -817,7 +817,12 @@ donne_texte_item_pour_noeud :: fonc (noeud: *CSS.NoeudDeDisposition) -> chaine
         local_name = noeud_bloc.élément.local_name
     }
 
-    retourne imprime_chaine("% (%) [%x%] [%x%]", CSS.donne_nom_classe(noeud), local_name, noeud.position_x, noeud.position_y, noeud.largeur, noeud.hauteur)
+    position_x := noeud.modèle_de_boite.marge.x
+    position_y := noeud.modèle_de_boite.marge.y
+    largeur := noeud.modèle_de_boite.marge.largeur
+    hauteur := noeud.modèle_de_boite.marge.hauteur
+
+    retourne imprime_chaine("% (%) [%x%] [%x%]", CSS.donne_nom_classe(noeud), local_name, position_x, position_y, largeur, hauteur)
 }
 
 /** \} */
@@ -922,8 +927,8 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
     ctx.hauteur_vue = vue_rendu_page.hauteur
     ctx.largeur_vue = vue_rendu_page.largeur
 
-    racine := arbre.racine
-    si racine.hauteur > vue_rendu_page.hauteur comme r32 {
+    hauteur_racine := arbre.racine.modèle_de_boite.marge.hauteur
+    si hauteur_racine > vue_rendu_page.hauteur comme r32 {
         ctx.décalage_y = page.défilement_vertical.rect.y / page.défilement_vertical.ratio
     }
 
@@ -933,9 +938,9 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
 
     // imprime("temps de rendu : %\n", début_rendu.temps_écoulé_millisecondes())
 
-    si racine.hauteur > vue_rendu_page.hauteur comme r32 {
+    si hauteur_racine > vue_rendu_page.hauteur comme r32 {
         hauteur_vue := vue_rendu_page.hauteur comme r32
-        hauteur_page := racine.hauteur
+        hauteur_page := hauteur_racine
 
         largeur_barre := 12.0
         hauteur_barre := hauteur_vue * hauteur_vue / hauteur_page
