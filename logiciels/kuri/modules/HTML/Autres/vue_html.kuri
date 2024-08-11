@@ -1437,6 +1437,8 @@ rappels_interface_sur_document_est_prêt :: fonc (base: *RappelsInterface, docum
     diffère déloge(chaine_url)
 
     QT_line_edit_definis_texte(rappels_fenêtre.widgets_page.line_edit, chaine_url.vers_qt())
+
+    QT_widget_ajourne(rappels_fenêtre.widget_rendu)
 }
 
 /** \} */
