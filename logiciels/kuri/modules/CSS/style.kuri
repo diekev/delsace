@@ -547,7 +547,7 @@ system_colors := [
 trouve_couleur_pour_mot_clé :: fonc (mot_clé: CSSOMString) -> Optionnel(CouleurRVBAN8)
 {
     si mot_clé == PROP_transparent {
-        retourne CouleurRVBAN8(0, 0, 0, 255)
+        retourne CouleurRVBAN8(0, 0, 0, 0)
     }
 
     pour named_colors {
