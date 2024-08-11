@@ -245,30 +245,51 @@ résoud_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élémen
         }
     }
 
+    calcule_style(résolveuse, résultat, propriétés_parent)
+
+    retourne résultat
+}
+
+crée_style_pour_bloc_anonyme :: fonc (résolveuse: *RésolveuseStyle, bloc: *NoeudDeDispositionBloc, bloc_parent: *NoeudDeDispositionBloc)
+{
+    résultat := crée_propriétés_de_style()
+
+    pour bloc_parent.propriétés.déclarations {
+        si it.info.héritable == PropriétéHéritable.Non {
+            continue
+        }
+        ajoute_déclaration(résultat, it)
+    }
+
+    calcule_style(résolveuse, résultat, bloc_parent.propriétés)
+
+    bloc.propriétés = résultat
+}
+
+calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *PropriétésDeStyle, propriétés_parent: *PropriétésDeStyle)
+{
     /* https://www.w3.org/TR/2011/REC-CSS2-20110607/cascade.html#computed-value */
     ctx_calcul_style: ContexteCalculStyle
     ctx_calcul_style.taille_fonte = résolveuse.globales.taille_fonte_défaut
 
     /* À FAIRE : gère proprement l'héritage des valeurs (surtout pour ne pas les recalculer). */
     si propriétés_parent {
-        résultat.style.taille_fonte = propriétés_parent.style.taille_fonte
+        propriétés.style.taille_fonte = propriétés_parent.style.taille_fonte
     }
     sinon {
-        résultat.style.taille_fonte = ValeurDeStyle(number = ctx_calcul_style.taille_fonte)
+        propriétés.style.taille_fonte = ValeurDeStyle(number = ctx_calcul_style.taille_fonte)
     }
 
-    pour résultat.déclarations {
+    pour propriétés.déclarations {
         info := it.info
-        info.sur_calcul_style(it, *résultat.style, *ctx_calcul_style)
+        info.sur_calcul_style(it, *propriétés.style, *ctx_calcul_style)
     }
 
-    pour résultat.style.bordure.style {
+    pour propriétés.style.bordure.style {
         si it == LineStyle.None {
-            résultat.style.bordure.width[index_it] = ValeurDeStyle(number = 0.0)
+            propriétés.style.bordure.width[index_it] = ValeurDeStyle(number = 0.0)
         }
     }
-
-    retourne résultat
 }
 
 /** \} */
@@ -433,6 +454,7 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
                     noeud_inline_courant = arbre.crée_noeud(NoeudDeDispositionInline)
                     noeud_inline_courant.parent = noeud_disposition
                     noeud_inline_courant.est_disposition_inline = vrai
+                    crée_style_pour_bloc_anonyme(résolveuse, noeud_inline_courant, noeud_disposition)
                     noeud_inline_courant.propriétés = copie_propriétés(noeud_disposition.propriétés)
                     parent.ajoute_enfant(noeud_inline_courant)
                 }
@@ -455,6 +477,7 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
                     bloc_anonyme_courant = arbre.crée_noeud(NoeudDeDispositionBloc)
                     bloc_anonyme_courant.parent = noeud_disposition
                     bloc_anonyme_courant.est_disposition_inline = vrai
+                    crée_style_pour_bloc_anonyme(résolveuse, bloc_anonyme_courant, noeud_disposition)
                     tableau_ajoute(*nouveaux_enfants, bloc_anonyme_courant)
                 }
 
@@ -980,11 +1003,9 @@ dispose_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDis
 
     /* À FAIRE : utilise les bonnes formules.
      * https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#Computing_widths_and_margins */
-    si noeud.est_noeud_non_anonyme() {
-        calcule_largeur_et_marges(noeud, ctx.largeur_disponible comme r64)
-        calcule_hauteur_et_marges(noeud)
-        ctx_locale.largeur_disponible = noeud.modèle_de_boite.contenu.largeur
-    }
+    calcule_largeur_et_marges(noeud, ctx.largeur_disponible comme r64)
+    calcule_hauteur_et_marges(noeud)
+    ctx_locale.largeur_disponible = noeud.modèle_de_boite.contenu.largeur
 
     /* https://www.w3.org/TR/CSS2/box.html#collapsing-margins */
     décalage_x := noeud.modèle_de_boite.contenu.x
@@ -1018,15 +1039,13 @@ dispose_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDis
         }
     }
 
-    si noeud.est_noeud_non_anonyme() {
-        si noeud.parent == nul {
-            noeud.propriétés.style.height = ValeurDeStyle(number = max(ctx.hauteur_disponible, hauteur_contenu) comme r64)
-        }
-        sinon {
-            noeud.propriétés.style.height = ValeurDeStyle(number = hauteur_contenu)
-        }
-        calcule_hauteur_et_marges(noeud)
+    si noeud.parent == nul {
+        noeud.propriétés.style.height = ValeurDeStyle(number = max(ctx.hauteur_disponible, hauteur_contenu) comme r64)
     }
+    sinon {
+        noeud.propriétés.style.height = ValeurDeStyle(number = hauteur_contenu)
+    }
+    calcule_hauteur_et_marges(noeud)
 }
 
 calcule_largeur_et_marges :: fonc (noeud: *NoeudDeDispositionBloc, width_of_containing_block: r64)
@@ -1294,11 +1313,9 @@ dispose_enfants_inline :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDi
 {
     ctx_locale := mémoire(ctx)
 
-    si noeud.est_noeud_non_anonyme() {
-        calcule_largeur_et_marges(noeud, ctx.largeur_disponible comme r64)
-        calcule_hauteur_et_marges(noeud)
-        ctx_locale.largeur_disponible = noeud.modèle_de_boite.contenu.largeur
-    }
+    calcule_largeur_et_marges(noeud, ctx.largeur_disponible comme r64)
+    calcule_hauteur_et_marges(noeud)
+    ctx_locale.largeur_disponible = noeud.modèle_de_boite.contenu.largeur
 
     décalage_x := noeud.modèle_de_boite.contenu.x
     décalage_y := noeud.modèle_de_boite.contenu.y
