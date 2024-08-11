@@ -1250,8 +1250,21 @@ prop_border_right_style_sur_calcul_style :: fonc (déclaration: *DéclarationPro
     style.bordure.style[BorderEdge.Right] = calcule_valeur_line_style(déclaration.value[0], style, ctx)
 }
 
-prop_height_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété @inutilisée, style: *Style @inutilisée, ctx: *ContexteCalculStyle @inutilisée)
+prop_height_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
 {
+    valeur := déclaration.value[0]
+
+    discr valeur {
+        integer(i) {
+            style.height = ValeurDeStyle(number = i)
+        }
+        longueur(l) {
+            style.height = ValeurDeStyle(number = calcule_longueur(l, ctx))
+        }
+        sinon {
+            style.height = valeur
+        }
+    }
 }
 
 prop_min_height_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété @inutilisée, style: *Style @inutilisée, ctx: *ContexteCalculStyle @inutilisée)
