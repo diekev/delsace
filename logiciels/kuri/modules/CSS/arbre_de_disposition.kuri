@@ -1677,11 +1677,35 @@ possède_ratio_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> 
     retourne élément.image_data.donnees != nul
 }
 
+possède_largeur_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> bool
+{
+    retourne possède_ratio_intrinsèque(noeud)
+}
+
+possède_hauteur_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> bool
+{
+    retourne possède_ratio_intrinsèque(noeud)
+}
+
 donne_ratio_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> r32
 {
     élément := noeud.élément comme *HTML.HTMLImageElement
     assert(élément.local_name == HTML.TAG_img)
     retourne HTML.donne_ratio_intrinsèque(élément)
+}
+
+donne_largeur_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> r32
+{
+    élément := noeud.élément comme *HTML.HTMLImageElement
+    assert(élément.local_name == HTML.TAG_img)
+    retourne HTML.donne_largeur_intrinsèque(élément) comme r32
+}
+
+donne_hauteur_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> r32
+{
+    élément := noeud.élément comme *HTML.HTMLImageElement
+    assert(élément.local_name == HTML.TAG_img)
+    retourne HTML.donne_hauteur_intrinsèque(élément) comme r32
 }
 
 noeud_disposition_remplacement_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDisposition)
@@ -1720,15 +1744,23 @@ calcule_largeur_et_marges_inline_replaced_element :: fonc (noeud: *NoeudDeDispos
 
     // If 'height' and 'width' both have computed values of 'auto' and the element also has
     // an intrinsic width, then that intrinsic width is the used value of 'width'.
-    si width.est_auto() && height.est_auto() {
-        panique("non-implémenté")
+    si width.est_auto() && height.est_auto() && noeud.possède_largeur_intrinsèque() {
+        width = ValeurDeStyle(number = noeud.donne_largeur_intrinsèque())
     }
-
     // If 'height' and 'width' both have computed values of 'auto' and the element has no
     // intrinsic width, but does have an intrinsic height and intrinsic ratio;
     // or if 'width' has a computed value of 'auto', 'height' has some other computed value,
     // and the element does have an intrinsic ratio; then the used value of 'width' is:
     //     (used height) * (intrinsic ratio)
+    sinon si (width.est_auto() && height.est_auto() && !noeud.possède_largeur_intrinsèque()) ||
+             (width.est_auto() && !height.est_auto() && noeud.possède_ratio_intrinsèque()) {
+        si height.est_auto() {
+            width = ValeurDeStyle(number = noeud.donne_hauteur_intrinsèque() * noeud.donne_ratio_intrinsèque())
+        }
+        sinon {
+            width = ValeurDeStyle(number = height.number * noeud.donne_ratio_intrinsèque())
+        }
+    }
 
     // If 'height' and 'width' both have computed values of 'auto' and the element has
     // an intrinsic ratio but no intrinsic height or width, then the used value of 'width'
@@ -1739,12 +1771,14 @@ calcule_largeur_et_marges_inline_replaced_element :: fonc (noeud: *NoeudDeDispos
 
     // Otherwise, if 'width' has a computed value of 'auto', and the element has an intrinsic width,
     // then that intrinsic width is the used value of 'width'.
-
+    sinon si width.est_auto() && noeud.possède_largeur_intrinsèque() {
+        width = ValeurDeStyle(number = noeud.donne_largeur_intrinsèque())
+    }
     // Otherwise, if 'width' has a computed value of 'auto', but none of the conditions above are met,
     // then the used value of 'width' becomes 300px.
     // If 300px is too wide to fit the device, UAs should use the width of the largest rectangle that
     // has a 2:1 ratio and fits the device instead.
-    si width.est_auto() {
+    sinon si width.est_auto() {
         width = ValeurDeStyle(number = 300.0)
     }
 
