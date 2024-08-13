@@ -1665,6 +1665,25 @@ NoeudDeDispositionRemplacement :: struct {
     sur_dessin_tampon_id = noeud_disposition_remplacement_sur_dessin_tampon_id
 }
 
+possède_ratio_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> bool
+{
+    saufsi noeud.élément {
+        retourne faux
+    }
+
+    élément := noeud.élément comme *HTML.HTMLImageElement
+    assert(élément.local_name == HTML.TAG_img)
+
+    retourne élément.image_data.donnees != nul
+}
+
+donne_ratio_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> r32
+{
+    élément := noeud.élément comme *HTML.HTMLImageElement
+    assert(élément.local_name == HTML.TAG_img)
+    retourne HTML.donne_ratio_intrinsèque(élément)
+}
+
 noeud_disposition_remplacement_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDisposition)
 {
     noeud := base comme *NoeudDeDispositionRemplacement
@@ -1769,6 +1788,9 @@ calcule_hauteur_et_marges_inline_replaced_element :: fonc (noeud: *NoeudDeDispos
     // Otherwise, if 'height' has a computed value of 'auto', and the element has an intrinsic
     // ratio then the used value of 'height' is:
     //      (used width) / (intrinsic ratio)
+    si height.est_auto() && noeud.possède_ratio_intrinsèque() {
+        height = ValeurDeStyle(number = width.number / noeud.donne_ratio_intrinsèque())
+    }
 
     // Otherwise, if 'height' has a computed value of 'auto', and the element has an intrinsic height,
     // then that intrinsic height is the used value of 'height'.
@@ -1819,7 +1841,17 @@ noeud_disposition_remplacement_sur_dessin :: fonc (base: *NoeudDeDisposition, ct
 
     rect = ctx.donne_rectangle_corrigé(rect)
     peintre := ctx.peintre
-    peintre.remplis_rectangle(rect, CouleurRVBA(1.0, 0.0, 0.0, 1.0))
+
+    assert(noeud.élément.local_name == HTML.TAG_img)
+    image := noeud.élément comme *HTML.HTMLImageElement
+
+    si image.image_data.donnees {
+        peintre.dessine_image(image.image_data, rect)
+    }
+    sinon {
+        /* À FAIRE : image nulle */
+        peintre.remplis_rectangle(rect, CouleurRVBA(1.0, 0.0, 1.0, 1.0))
+    }
 }
 
 noeud_disposition_remplacement_sur_dessin_tampon_id :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
