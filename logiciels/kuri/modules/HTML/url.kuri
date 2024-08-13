@@ -46,6 +46,17 @@ URL :: struct {
     fragment: Optionnel(ChaineASCII)
 }
 
+convertis_uri_url :: fonc (uri: *URI) -> *URL
+{
+    chn := recompose_uri(uri)
+    diffère déloge(chn)
+
+    chn16 := crée_chaine_utf16(chn)
+    diffère détruit_chaine(chn16)
+
+    retourne basic_url_parser(chn16)
+}
+
 détruit_url :: fonc (url: *URL)
 {
     déloge(url)
