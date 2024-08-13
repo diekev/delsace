@@ -323,7 +323,7 @@ fini :: fonc (parser: *BasicURLParser) -> bool
 
 définis_state :: fonc (parser: *BasicURLParser, nouveau: ÉtatParsageURL) #enligne
 {
-    imprime("[%] % -> %\n", #nom_de_cette_fonction, parser.state, nouveau)
+    // imprime("[%] % -> %\n", #nom_de_cette_fonction, parser.state, nouveau)
     parser.state = nouveau
 }
 
