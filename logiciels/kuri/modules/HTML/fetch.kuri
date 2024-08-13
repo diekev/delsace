@@ -681,20 +681,22 @@ scheme_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Re
         chemin := CheminFichier(request.donne_url_courant().chemin)
 
         /* À FAIRE : permissions. */
-        si est_un_fichier_régulier(chemin) && chemin.extension() == ".html" {
-            contenu := contenu_fichier_texte(chemin)
+        si est_un_fichier_régulier(chemin) {
+            si chemin.extension() == ".html" {
+                contenu := contenu_fichier_texte(chemin)
 
-            response := loge(Response)
-            response.status = 200
+                response := loge(Response)
+                response.status = 200
 
-            body_info := loge(ResponseBodyInfo)
-            body_info.decodede_size = contenu.taille comme z32
-            body_info.content_type = "text/html"
+                body_info := loge(ResponseBodyInfo)
+                body_info.decodede_size = contenu.taille comme z32
+                body_info.content_type = "text/html"
 
-            response.body_info = body_info
-            response.body = contenu
+                response.body_info = body_info
+                response.body = contenu
 
-            retourne response
+                retourne response
+            }
         }
 
         retourne network_error()
