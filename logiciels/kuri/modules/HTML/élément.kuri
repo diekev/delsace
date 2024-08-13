@@ -2,6 +2,7 @@ importe Chaine
 importe Couleur
 importe #inemployé CSS
 importe Fondation
+importe Image
 importe Internet
 importe Unicode
 
@@ -1005,6 +1006,8 @@ html_element_sur_destruction :: fonc (base: *EventTarget)
 HTMLImageElement :: struct {
     empl html_element: HTMLElement
     table = *table_virtuelle_image_element
+
+    image_data: ImageIO
 }
 
 donne_src :: fonc (anchor: *HTMLImageElement) -> DOMString
@@ -1016,17 +1019,144 @@ donne_src :: fonc (anchor: *HTMLImageElement) -> DOMString
     retourne DOMString()
 }
 
+donne_hauteur_intrinsèque :: fonc (image: *HTMLImageElement) -> z32 #enligne
+{
+    retourne image.image_data.hauteur
+}
+
+donne_largeur_intrinsèque :: fonc (image: *HTMLImageElement) -> z32 #enligne
+{
+    retourne image.image_data.largeur
+}
+
+donne_ratio_intrinsèque :: fonc (image: *HTMLImageElement) -> r32 #enligne
+{
+    si image.image_data.hauteur == 0 {
+        retourne 1.0
+    }
+
+    retourne image.image_data.largeur comme r32 / image.image_data.hauteur comme r32
+}
+
 #portée_fichier
 
 table_virtuelle_image_element := TableVirtuelleÉlément(
-    sur_destruction = image_element_sur_destruction
+    sur_destruction = image_element_sur_destruction,
+    sur_changement_attribut = image_element_sur_changement_attribut
 )
+
+image_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString) -> bool
+{
+    si élément_sur_changement_attribut(base, local_name, vieille_valeur, valeur) {
+        retourne vrai
+    }
+
+    image := base comme *HTMLImageElement
+
+    si local_name == ATTR_src {
+        update_image_data(image)
+        retourne vrai
+    }
+
+    retourne faux
+}
 
 image_element_sur_destruction :: fonc (base: *EventTarget)
 {
     élément := base comme *HTMLImageElement
     élément_détruit_données(élément)
+    IMG_detruit_image(*élément.image_data)
     déloge(élément)
+}
+
+/* https://html.spec.whatwg.org/multipage/images.html#update-the-image-data */
+update_image_data :: fonc (image: *HTMLImageElement)
+{
+    // À FAIRE : standardise
+    document := image.document
+    user_agent := document.donne_user_agent()
+    saufsi user_agent {
+        retourne
+    }
+
+    IMG_detruit_image(*image.image_data)
+    image.image_data = ImageIO()
+
+    src := image.donne_src()
+    si src.est_vide() {
+        document.invalide_style()
+        retourne
+    }
+
+    url_document := convertis_uri_url(*document.url)
+
+    url_src := basic_url_parser(src.donne_chaine_utf16(), base = url_document)
+    saufsi url_src {
+        retourne
+    }
+
+    url_string := url_serializer(url_src)
+    // diffère déloge(url_string)
+
+    // imprime("[%] %\n", #nom_de_cette_fonction, url_string)
+
+    request := loge(Request)
+    request.destination = "image"
+    request.mode = "no-cors"
+    request.redirect_mode = "follow"
+    request.url = tente parse_uri_standard(url_string) piège nonatteignable
+
+    RappelProcessResponse :: struct {
+        empl base: BaseProcessResponse
+
+        image: *HTMLImageElement
+        url_src: *URL
+    }
+
+    sur_rappel_process_response :: fonc (base: *BaseProcessResponse, réponse: *Response)
+    {
+        diffère détruit_response(réponse)
+
+        rappel := base comme *RappelProcessResponse
+
+        saufsi réponse.body_info {
+            retourne
+        }
+
+        saufsi réponse.body_info.content_type == "image/png" {
+            retourne
+        }
+
+        contenu := réponse.body.Quelque
+
+        proxy_image := IMG_cree_proxy_memoire(contenu.pointeur, contenu.taille comme n64)
+        diffère IMG_detruit_proxy(proxy_image)
+
+        chn_c_chemin := crée_chaine_c(rappel.url_src.path.Path[rappel.url_src.path.Path.taille - 1])
+        diffère détruit_chaine_c(chn_c_chemin)
+
+        résultat_lecture_image := IMG_ouvre_image_avec_proxy(chn_c_chemin, *rappel.image.image_data, proxy_image)
+        si résultat_lecture_image != ResultatOperation.OK {
+            imprime("Impossible de lire l'image : %\n", résultat_lecture_image)
+        }
+
+        invalide_style(rappel.image.document)
+    }
+
+    sur_destruction_process_response :: fonc (base: *BaseProcessResponse)
+    {
+        rappel := base comme *RappelProcessResponse
+        déloge(rappel)
+    }
+
+    process_response := loge(RappelProcessResponse)
+    process_response.image = image
+    process_response.url_src = url_src
+    process_response.sur_rappel = sur_rappel_process_response
+    process_response.sur_destruction = sur_destruction_process_response
+
+    fetch_controller := fetch(user_agent, request, process_response = process_response)
+    diffère détruit_fetch_controller(fetch_controller)
 }
 
 /** \} */
