@@ -544,11 +544,19 @@ main_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, recursiv
             // Return a network error.
 
         // request’s mode is "no-cors"
+        sinon si request.mode == "no-cors" {
             // If request’s redirect mode is not "follow", then return a network error.
+            si request.redirect_mode != "follow" {
+                response = network_error()
+            }
+            sinon {
+                // Set request’s response tainting to "opaque".
+                request.response_tainting = "opaque"
 
-            // Set request’s response tainting to "opaque".
-
-            // Return the result of running scheme fetch given fetchParams.
+                // Return the result of running scheme fetch given fetchParams.
+                response = scheme_fetch(user_agent, fetch_params)
+            }
+        }
 
         // request’s current URL’s scheme is not an HTTP(S) scheme
             // Return a network error.
