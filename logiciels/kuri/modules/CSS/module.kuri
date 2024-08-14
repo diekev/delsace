@@ -103,6 +103,37 @@ apparie_simple_selector :: fonc (simple: &SimpleSelector, élément: *HTML.Élé
 {
     discr simple.type {
         Attrib {
+            attribut := HTML.donne_attribut(élément, simple.ident)
+            saufsi attribut.possède_valeur() {
+                retourne faux
+            }
+
+            si simple.matcher.possède_valeur() {
+                matcher := simple.matcher.Quelque
+
+                /* À FAIRE : complète, sensibilité à la casse. */
+                discr matcher {
+                    EST_ÉGAL {
+                        retourne simple.attribute_value == attribut.Quelque
+                    }
+                    INCLUS {
+                        retourne faux
+                    }
+                    DASHMATCH {
+                        retourne faux
+                    }
+                    PREFIXMATCH {
+                        retourne faux
+                    }
+                    SUFFIXMATCH {
+                        retourne faux
+                    }
+                    SUBSTRINGMATCH {
+                        retourne faux
+                    }
+                }
+            }
+
             retourne faux
         }
         ID {
