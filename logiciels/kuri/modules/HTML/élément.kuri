@@ -637,7 +637,12 @@ parse_a_legacy_colour_value :: fonc (string: DOMString) -> Optionnel(CouleurRVBA
         retourne
     }
 
-    // À FAIRE 5. If input is an ASCII case-insensitive match for one of the named colors, then return the simple color corresponding to that keyword. [CSSCOLOR]
+    // 5. If input is an ASCII case-insensitive match for one of the named colors, then return the simple color corresponding to that keyword. [CSSCOLOR]
+    // À FAIRE : n'utilise que les mots-clés appropriés
+    opt_couleur := CSS.trouve_couleur_pour_mot_clé(crée_chaine_utf16_unique(input))
+    si opt_couleur.possède_valeur() {
+        retourne opt_couleur
+    }
 
     // 6. If input's code point length is four, and the first character in input is U+0023 (#), and the last three characters of input are all ASCII hex digits, then:
     si input.taille() == 4 && input.unités[0] == 0x23 && est_chiffre_hexadecimal_ascii(input.unités[1]) && est_chiffre_hexadecimal_ascii(input.unités[2]) && est_chiffre_hexadecimal_ascii(input.unités[3]) {
