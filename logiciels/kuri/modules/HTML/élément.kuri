@@ -1123,7 +1123,7 @@ update_image_data :: fonc (image: *HTMLImageElement)
             retourne
         }
 
-        saufsi réponse.body_info.content_type == "image/png" {
+        saufsi est_type_mime_image(réponse.body_info.content_type) {
             retourne
         }
 
@@ -1157,6 +1157,11 @@ update_image_data :: fonc (image: *HTMLImageElement)
 
     fetch_controller := fetch(user_agent, request, process_response = process_response)
     diffère détruit_fetch_controller(fetch_controller)
+}
+
+est_type_mime_image :: fonc (content_type: chaine) -> bool
+{
+    retourne content_type == "image/jpeg" || content_type == "image/png"
 }
 
 /** \} */
