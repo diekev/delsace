@@ -49,7 +49,7 @@ TableVirtuelleÉlément :: struct {
     sur_changement_attribut: fonc(*Élément, DOMString, *DOMString, *DOMString)(bool) = élément_sur_changement_attribut
 
     /* Appelé lors de la résolution des propriétés de style pour l'élément. */
-    sur_applique_presentational_hints: fonc(*Élément, *CSS.PropriétésDeStyle)(rien)
+    sur_applique_presentational_hints: fonc(*Élément, *CSS.RésolveuseStyle)(rien)
 }
 
 #portée_export
@@ -401,7 +401,7 @@ est_en_train_d_être_activé :: fonc (élément: *Élément, ouinon: bool)
     }
 }
 
-applique_presentational_hints :: fonc (élément: *Élément, propriétés: *CSS.PropriétésDeStyle)
+applique_presentational_hints :: fonc (élément: *Élément, résolveuse: *CSS.RésolveuseStyle)
 {
     table := élément.table comme *TableVirtuelleÉlément
     saufsi table {
@@ -410,7 +410,7 @@ applique_presentational_hints :: fonc (élément: *Élément, propriétés: *CSS
     saufsi table.sur_applique_presentational_hints {
         retourne
     }
-    table.sur_applique_presentational_hints(élément, propriétés)
+    table.sur_applique_presentational_hints(élément, résolveuse)
 }
 
 /** \} */
@@ -547,30 +547,30 @@ body_element_sur_destruction :: fonc (base: *EventTarget)
 }
 
 /* https://html.spec.whatwg.org/multipage/rendering.html#the-page */
-body_element_sur_applique_presentational_hints :: fonc (base: *Élément, propriétés: *CSS.PropriétésDeStyle)
+body_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
 {
     body := base comme *HTMLBodyElement
 
     opt_bgcolor := donne_attribut(body, ATTR_bgcolor)
     si opt_bgcolor.possède_valeur() {
         bgcolor := opt_bgcolor.Quelque
-        ajoute_propriété_pour_couleur(propriétés, CSS.PROP_background_color, bgcolor)
+        ajoute_propriété_pour_couleur(résolveuse, CSS.PROP_background_color, bgcolor)
     }
 
     opt_text := donne_attribut(body, ATTR_text)
     si opt_text.possède_valeur() {
         text := opt_text.Quelque
-        ajoute_propriété_pour_couleur(propriétés, CSS.PROP_color, text)
+        ajoute_propriété_pour_couleur(résolveuse, CSS.PROP_color, text)
     }
 
     /* À FAIRE : utilise les attributs. */
-    ajoute_propriété_pour_nombre(propriétés, CSS.PROP_margin_top, 8.0)
-    ajoute_propriété_pour_nombre(propriétés, CSS.PROP_margin_bottom, 8.0)
-    ajoute_propriété_pour_nombre(propriétés, CSS.PROP_margin_left, 8.0)
-    ajoute_propriété_pour_nombre(propriétés, CSS.PROP_margin_right, 8.0)
+    ajoute_propriété_pour_nombre(résolveuse, CSS.PROP_margin_top, 8.0)
+    ajoute_propriété_pour_nombre(résolveuse, CSS.PROP_margin_bottom, 8.0)
+    ajoute_propriété_pour_nombre(résolveuse, CSS.PROP_margin_left, 8.0)
+    ajoute_propriété_pour_nombre(résolveuse, CSS.PROP_margin_right, 8.0)
 }
 
-ajoute_propriété_pour_couleur :: fonc (propriétés: *CSS.PropriétésDeStyle, nom_propriété: CSS.CSSOMString, texte: DOMString)
+ajoute_propriété_pour_couleur :: fonc (résolveuse: *CSS.RésolveuseStyle, nom_propriété: CSS.CSSOMString, texte: DOMString)
 {
     opt_couleur := parse_a_legacy_colour_value(texte)
     saufsi opt_couleur.possède_valeur() {
@@ -587,10 +587,10 @@ ajoute_propriété_pour_couleur :: fonc (propriétés: *CSS.PropriétésDeStyle,
     déclaration.property_name = nom_propriété
     déclaration.value = value
 
-    CSS.ajoute_déclaration(propriétés, déclaration)
+    CSS.ajoute_presentational_hint(résolveuse, déclaration)
 }
 
-ajoute_propriété_pour_mot_clé :: fonc (propriétés: *CSS.PropriétésDeStyle, nom_propriété: CSS.CSSOMString, mot_clé: CSS.CSSOMString)
+ajoute_propriété_pour_mot_clé :: fonc (résolveuse: *CSS.RésolveuseStyle, nom_propriété: CSS.CSSOMString, mot_clé: CSS.CSSOMString)
 {
     value: [..]CSS.ValeurDeStyle
     tableau_ajoute(*value, CSS.ValeurDeStyle(mot_clé = mot_clé))
@@ -601,10 +601,10 @@ ajoute_propriété_pour_mot_clé :: fonc (propriétés: *CSS.PropriétésDeStyle
     déclaration.property_name = nom_propriété
     déclaration.value = value
 
-    CSS.ajoute_déclaration(propriétés, déclaration)
+    CSS.ajoute_presentational_hint(résolveuse, déclaration)
 }
 
-ajoute_propriété_pour_nombre :: fonc (propriétés: *CSS.PropriétésDeStyle, nom_propriété: CSS.CSSOMString, valeur: r64)
+ajoute_propriété_pour_nombre :: fonc (résolveuse: *CSS.RésolveuseStyle, nom_propriété: CSS.CSSOMString, valeur: r64)
 {
     value: [..]CSS.ValeurDeStyle
     tableau_ajoute(*value, CSS.ValeurDeStyle(number = valeur))
@@ -615,7 +615,7 @@ ajoute_propriété_pour_nombre :: fonc (propriétés: *CSS.PropriétésDeStyle, 
     déclaration.property_name = nom_propriété
     déclaration.value = value
 
-    CSS.ajoute_déclaration(propriétés, déclaration)
+    CSS.ajoute_presentational_hint(résolveuse, déclaration)
 }
 
 /* https://html.spec.whatwg.org/multipage/common-microsyntaxes.html#rules-for-parsing-a-legacy-colour-value */
@@ -745,21 +745,21 @@ font_element_sur_destruction :: fonc (base: *EventTarget)
 }
 
 /* https://html.spec.whatwg.org/multipage/rendering.html#phrasing-content-3 */
-font_element_sur_applique_presentational_hints :: fonc (base: *Élément, propriétés: *CSS.PropriétésDeStyle)
+font_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
 {
     font := base comme *HTMLFontElement
 
     opt_color := donne_attribut(font, ATTR_color)
     si opt_color.possède_valeur() {
         color := opt_color.Quelque
-        ajoute_propriété_pour_couleur(propriétés, CSS.PROP_color, color)
+        ajoute_propriété_pour_couleur(résolveuse, CSS.PROP_color, color)
     }
 
     opt_size := donne_attribut(font, ATTR_size)
     si opt_size.possède_valeur() {
         opt_font_size := parse_a_legacy_font_size(opt_size.Quelque)
         si opt_font_size.possède_valeur() {
-            ajoute_propriété_pour_mot_clé(propriétés, CSS.PROP_font_size, opt_font_size.Quelque)
+            ajoute_propriété_pour_mot_clé(résolveuse, CSS.PROP_font_size, opt_font_size.Quelque)
         }
     }
 
@@ -1634,6 +1634,7 @@ ajourne_style_block :: fonc (style: *HTMLStyleElement)
 
     // 6. Create a CSS style sheet with the following properties:
     feuille_de_style := loge(CSS.CSSStyleSheet)
+    feuille_de_style.origine = CSS.OrigineCascade.Author
     feuille_de_style.type = mime_css
     feuille_de_style.owner_node = element
     // À FAIRE : media = The media attribute of element.

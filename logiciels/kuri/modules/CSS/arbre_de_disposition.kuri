@@ -8,6 +8,7 @@ importe IGUMI
 importe Math
 importe OpenGL
 importe PeintureInterface
+importe Triage
 importe Typographie
 
 /* ------------------------------------------------------------------------- */
@@ -191,6 +192,15 @@ dessine :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
 RésolveuseStyle :: struct {
     globales: *GlobalesDessin
     feuilles_de_style: []*CSSStyleSheet
+
+    /* Tampon réutilisé pour les cascades de propriétés. */
+    déclarations_cascade: [..]DéclarationCascadée
+}
+
+/* https://html.spec.whatwg.org/multipage/rendering.html#the-css-user-agent-style-sheet-and-presentational-hints */
+ajoute_presentational_hint :: fonc (résolveuse: *RésolveuseStyle, déclaration: *DéclarationPropriété)
+{
+    tableau_ajoute(*résolveuse.déclarations_cascade, DéclarationCascadée(déclaration, Spécificité(0, 0, 0), OrigineCascade.Author))
 }
 
 collecte_les_règles_appropriées :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élément) -> [..]*CSSStyleRule
@@ -225,6 +235,31 @@ résoud_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élémen
     diffère déloge(règles)
     // imprime("% règle(s) pour %\n", règles.taille, élément.local_name)
 
+    résolveuse.déclarations_cascade.taille = 0
+
+    pour règles {
+        // imprime_règle(it)
+        tableau_réserve(*résolveuse.déclarations_cascade, résolveuse.déclarations_cascade.taille + it.style.déclarations.taille)
+        spécificité := calcule_spécificité(*it.selector_list)
+        origine := donne_origine_cascade(it)
+        pour déclaration dans it.style.déclarations {
+            tableau_ajoute(*résolveuse.déclarations_cascade, DéclarationCascadée(déclaration, spécificité, origine))
+        }
+    }
+
+    HTML.applique_presentational_hints(élément, résolveuse)
+
+    si élément.style {
+        /* https://drafts.csswg.org/css-style-attr/#style-attribute
+         * "In the cascade, these declarations are considered to have author origin and a specificity higher than any selector." */
+        tableau_réserve(*résolveuse.déclarations_cascade, résolveuse.déclarations_cascade.taille + élément.style.déclarations.taille)
+        spécificité := donne_spécificité_max()
+        pour élément.style.déclarations {
+            tableau_ajoute(*résolveuse.déclarations_cascade, DéclarationCascadée(it, spécificité, OrigineCascade.Author))
+        }
+    }
+    tri_rapide(résolveuse.déclarations_cascade, compare_déclarations_pour_cascade)
+
     si propriétés_parent {
         pour propriétés_parent.déclarations {
             si it.info.héritable == PropriétéHéritable.Non {
@@ -234,24 +269,55 @@ résoud_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élémen
         }
     }
 
-    HTML.applique_presentational_hints(élément, résultat)
-
-    pour règles {
-        // imprime_règle(it)
-        pour déclaration dans it.style.déclarations {
-            ajoute_déclaration(résultat, déclaration)
-        }
-    }
-
-    si élément.style {
-        pour élément.style.déclarations {
-            ajoute_déclaration(résultat, it)
-        }
+    pour > résolveuse.déclarations_cascade {
+        ajoute_déclaration(résultat, it.déclaration)
     }
 
     calcule_style(résolveuse, résultat, propriétés_parent)
 
     retourne résultat
+}
+
+/* https://www.w3.org/TR/css-cascade/#origin */
+OrigineCascade :: énum {
+    Author
+    User
+    UserAgent
+}
+
+DéclarationCascadée :: struct {
+    déclaration: *DéclarationPropriété
+    spécificité: Spécificité
+    origine: OrigineCascade
+}
+
+/* https://www.w3.org/TR/css-cascade/#cascade-sort */
+compare_déclarations_pour_cascade :: fonc (a: DéclarationCascadée, b: DéclarationCascadée) -> z32
+{
+    /* Tri par importance. */
+    si a.déclaration.important && !b.déclaration.important {
+        retourne -1
+    }
+    si b.déclaration.important && !a.déclaration.important {
+        retourne 1
+    }
+
+    /* Même importance -> tri par origine. */
+    si a.origine != b.origine {
+        retourne a.origine comme z32 - b.origine comme z32
+    }
+
+    /* Même importance et origine -> tri par spécifité. */
+    si a.spécificité > b.spécificité {
+        retourne -1
+    }
+    si b.spécificité > a.spécificité {
+        retourne 1
+    }
+
+    /* À FAIRE : contextes et ordre d'apparition (incluant imports, etc.). */
+
+    retourne 0
 }
 
 crée_style_pour_bloc_anonyme :: fonc (résolveuse: *RésolveuseStyle, bloc: *NoeudDeDispositionBloc, bloc_parent: *NoeudDeDispositionBloc)

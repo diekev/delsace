@@ -15,6 +15,8 @@ StyleSheet :: struct {
     /* "text/css" */
     type: CSSOMString
     location: URI
+
+    origine: OrigineCascade
 }
 
 CSSStyleSheet :: struct {
@@ -90,6 +92,14 @@ CSSRule :: struct {
     PAGE_RULE : n16 : 6
     MARGIN_RULE : n16 : 9
     NAMESPACE_RULE : n16 : 10
+}
+
+donne_origine_cascade :: fonc (rule: *CSSRule) -> OrigineCascade
+{
+    saufsi rule.parent_style_sheet {
+        retourne OrigineCascade.Author
+    }
+    retourne rule.parent_style_sheet.origine
 }
 
 /** \} */
