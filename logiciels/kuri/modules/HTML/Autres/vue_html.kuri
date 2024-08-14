@@ -1112,17 +1112,19 @@ vue_rendu_page_sur_molette_souris :: fonc (base: *QT_Rappels_GLWidget, event: *Q
         retourne
     }
 
-    delta := QT_wheel_event_donne_delta(event)
+    delta_molette := QT_wheel_event_donne_delta(event)
 
     HAUTEURE_LIGNE :: 16.0
     NOMBRE_DE_LIGNES_PAR_ROULEMENT :: 5.0
     DÉCALAGE_PAR_ROULEMENT :: NOMBRE_DE_LIGNES_PAR_ROULEMENT * HAUTEURE_LIGNE
 
-    si delta > 0 {
-        décale_par(*vue_rendu_page.page.défilement_vertical, -DÉCALAGE_PAR_ROULEMENT)
+    delta := DÉCALAGE_PAR_ROULEMENT * vue_rendu_page.page.défilement_vertical.ratio
+
+    si delta_molette > 0 {
+        décale_par(*vue_rendu_page.page.défilement_vertical, -delta)
     }
     sinon {
-        décale_par(*vue_rendu_page.page.défilement_vertical, DÉCALAGE_PAR_ROULEMENT)
+        décale_par(*vue_rendu_page.page.défilement_vertical, delta)
     }
     QT_widget_ajourne(vue_rendu_page.widget)
 }
