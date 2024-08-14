@@ -675,12 +675,20 @@ consomme_une_déclaration :: fonc (parseuse: &Parseuse($T)) -> Optionnel(ParsedD
     // important flag to true.
     supprime_espaces_blanches_en_fin(*value)
     si value.taille > 2 {
-        i0 := value.taille - 2
-        i1 := value.taille - 1
+        sauvegarde_taille := value.taille
+        i0 := value.taille - 1
 
-        si value[i0].est_lexème_exclamation() && value[i1].est_lexème_de_genre(GenreLexème.Ident) && compare_ascii_insensible_à_la_casse(value[i1].lexème.valeur, "important") {
-            value.taille -= 2
-            résultat.important = vrai
+        si value[i0].est_lexème_de_genre(GenreLexème.Ident) && compare_ascii_insensible_à_la_casse(value[i0].lexème.valeur, "important") {
+            value.taille -= 1
+            supprime_espaces_blanches_en_fin(*value)
+
+            si value.taille > 0 && value[value.taille - 1].est_lexème_exclamation() {
+                value.taille -= 1
+                résultat.important = vrai
+            }
+            sinon {
+                value.taille = sauvegarde_taille
+            }
         }
     }
 
