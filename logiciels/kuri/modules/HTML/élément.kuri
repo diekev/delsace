@@ -4,6 +4,7 @@ importe #inemployé CSS
 importe Fondation
 importe Image
 importe Internet
+importe Numérique
 importe Unicode
 
 est_tag_auto_fermant :: fonc (tag: DOMString) -> bool
@@ -1050,7 +1051,8 @@ donne_ratio_intrinsèque :: fonc (image: *HTMLImageElement) -> r32 #enligne
 
 table_virtuelle_image_element := TableVirtuelleÉlément(
     sur_destruction = image_element_sur_destruction,
-    sur_changement_attribut = image_element_sur_changement_attribut
+    sur_changement_attribut = image_element_sur_changement_attribut,
+    sur_applique_presentational_hints = image_element_sur_applique_presentational_hints
 )
 
 image_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString) -> bool
@@ -1067,6 +1069,42 @@ image_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOM
     }
 
     retourne faux
+}
+
+image_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
+{
+    image := base comme *HTMLImageElement
+
+    opt_width := image.donne_attribut(ATTR_width)
+    si opt_width.possède_valeur() {
+        valeur := parse_a_non_zero_dimension(opt_width.Quelque)
+        si valeur.possède_valeur() {
+            ajoute_propriété_pour_nombre(résolveuse, CSS.PROP_width, valeur.Quelque)
+        }
+    }
+
+    opt_height := image.donne_attribut(ATTR_height)
+    si opt_height.possède_valeur() {
+        valeur := parse_a_non_zero_dimension(opt_height.Quelque)
+        si valeur.possède_valeur() {
+            ajoute_propriété_pour_nombre(résolveuse, CSS.PROP_height, valeur.Quelque)
+        }
+    }
+}
+
+/* https://html.spec.whatwg.org/multipage/common-microsyntaxes.html#rules-for-parsing-non-zero-dimension-values */
+parse_a_non_zero_dimension :: fonc (string: DOMString) -> Optionnel(r64)
+{
+    // À FAIRE : standardise
+
+    chn := converti_vers_chaine(string.donne_chaine_utf16())
+    diffère déloge(chn)
+
+    résultat := tente extrait_r64(chn) piège _ {
+        retourne
+    }
+
+    retourne résultat
 }
 
 image_element_sur_destruction :: fonc (base: *EventTarget)
