@@ -560,6 +560,8 @@ system_colors := [
     NamedColor(COL_VisitedText, CouleurRVBAN8(0, 0, 255, 255))
 ]
 
+#portée_export
+
 trouve_couleur_pour_mot_clé :: fonc (mot_clé: CSSOMString) -> Optionnel(CouleurRVBAN8)
 {
     si mot_clé == PROP_transparent {
@@ -578,8 +580,6 @@ trouve_couleur_pour_mot_clé :: fonc (mot_clé: CSSOMString) -> Optionnel(Couleu
         }
     }
 }
-
-#portée_export
 
 // Opacity :: struct {
 // }
