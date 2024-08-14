@@ -362,11 +362,10 @@ BarreDeDéfilement :: struct {
     ratio: r32 = 1.0
 }
 
-décale_par :: fonc (barre: *BarreDeDéfilement, delta: r32) -> bool
+définis_position_y :: fonc (barre: *BarreDeDéfilement, y: r32) -> bool
 {
     vieil_y := barre.rect.y
-
-    barre.rect.y += delta
+    barre.rect.y = y
 
     si barre.rect.y < 0.0 {
         barre.rect.y = 0.0
@@ -376,6 +375,11 @@ décale_par :: fonc (barre: *BarreDeDéfilement, delta: r32) -> bool
     }
 
     retourne barre.rect.y != vieil_y
+}
+
+décale_par :: fonc (barre: *BarreDeDéfilement, delta: r32) -> bool
+{
+    retourne définis_position_y(barre, barre.rect.y + delta)
 }
 
 PageWeb :: struct {
@@ -854,6 +858,7 @@ VueRenduPage :: struct {
     sur_relachement_souris = vue_rendu_page_sur_relachement_souris
     sur_molette_souris = vue_rendu_page_sur_molette_souris
     sur_sortie = vue_rendu_page_sur_sortie
+    sur_relachement_cle = vue_rendu_page_sur_relachement_cle
 
     fenêtre_principale: *QT_Fenetre_Principale
     page: *PageWeb
@@ -870,6 +875,7 @@ crée_vue_rendu_page :: fonc (fenêtre_principale: *QT_Fenetre_Principale, paren
     rappels.page = page
     rappels.fenêtre_principale = fenêtre_principale
     résultat := QT_cree_glwidget(rappels, parent)
+    QT_widget_definis_comportement_focus(résultat, QT_Focus_Policy.WheelFocus)
     QT_widget_definis_trackage_souris(résultat, vrai)
     retourne résultat
 }
@@ -1148,6 +1154,32 @@ vue_rendu_page_sur_sortie :: fonc (base: *QT_Rappels_GLWidget, event: *QT_Evenem
     }
     vue_rendu_page.page.défilement_vertical.est_survolé = faux
     QT_gui_application_restaure_curseur()
+}
+
+vue_rendu_page_sur_relachement_cle :: fonc (base: *QT_Rappels_GLWidget, event: *QT_KeyEvent)
+{
+    vue_rendu_page := base comme *VueRenduPage
+    touche := QT_key_event_donne_cle(event)
+
+    barre := *vue_rendu_page.page.défilement_vertical
+    ajourne_rendu := faux
+
+    si touche == QT_Key.Home {
+        ajourne_rendu = barre.définis_position_y(0.0)
+    }
+    sinon si touche == QT_Key.End {
+        ajourne_rendu = barre.définis_position_y(barre.hauteur - barre.rect.hauteur)
+    }
+    sinon si touche == QT_Key.PageDown {
+        ajourne_rendu = barre.décale_par(barre.rect.hauteur * 0.9)
+    }
+    sinon si touche == QT_Key.PageUp {
+        ajourne_rendu = barre.décale_par(-barre.rect.hauteur * 0.9)
+    }
+
+    si ajourne_rendu {
+        QT_widget_ajourne(vue_rendu_page.widget)
+    }
 }
 
 /* https://w3c.github.io/uievents/#send-click-event */
