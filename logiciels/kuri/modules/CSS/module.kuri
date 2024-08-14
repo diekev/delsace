@@ -618,6 +618,66 @@ donne_chaine_pour_pseudo_classe :: fonc (pseudo_classe: PseudoClasses) -> CSSOMS
  * https://www.w3.org/TR/selectors-4/
  * \{ */
 
+/* https://www.w3.org/TR/selectors-4/#specificity-rules */
+Spécificité :: struct {
+    A: n32
+    B: n32
+    C: n32
+}
+
+donne_spécificité_max :: fonc () -> Spécificité
+{
+    retourne Spécificité(0xfffffff, 0xffffffff, 0xfffffffff)
+}
+
+opérateur == :: fonc (s1: Spécificité, s2: Spécificité) -> bool
+{
+    retourne s1.A == s2.A && s1.B == s2.B && s1.C == s2.C
+}
+
+opérateur != :: fonc (s1: Spécificité, s2: Spécificité) -> bool
+{
+    retourne !(s1 == s2)
+}
+
+opérateur < :: fonc (s1: Spécificité, s2: Spécificité) -> bool
+{
+    si s1.A < s2.A {
+        retourne vrai
+    }
+    si s1.A > s2.A {
+        retourne faux
+    }
+
+    si s1.B < s2.B {
+        retourne vrai
+    }
+    si s1.B > s2.B {
+        retourne faux
+    }
+
+    retourne s1.C < s2.C
+}
+
+opérateur > :: fonc (s1: Spécificité, s2: Spécificité) -> bool
+{
+    si s1.A > s2.A {
+        retourne vrai
+    }
+    si s1.A < s2.A {
+        retourne faux
+    }
+
+    si s1.B > s2.B {
+        retourne vrai
+    }
+    si s1.B < s2.B {
+        retourne faux
+    }
+
+    retourne s1.C > s2.C
+}
+
 SelectorList :: struct {
     complex_selectors: [..]ComplexSelector
 }
@@ -629,6 +689,20 @@ détruit_données_selector_list :: fonc (selector: *SelectorList)
     }
 
     déloge(selector.complex_selectors)
+}
+
+calcule_spécificité :: fonc (selector: *SelectorList) -> Spécificité
+{
+    résultat: Spécificité
+
+    pour * selector.complex_selectors {
+        spécificité := calcule_spécificité(it)
+        si spécificité > résultat {
+            résultat = spécificité
+        }
+    }
+
+    retourne résultat
 }
 
 imprime_selector_list :: fonc (enchaineuse: *Enchaineuse, selector_list: *SelectorList)
@@ -657,6 +731,17 @@ détruit_données_complex_selector :: fonc (selector: *ComplexSelector)
     }
 
     déloge(selector.compound_selectors)
+}
+
+calcule_spécificité :: fonc (selector: *ComplexSelector) -> Spécificité
+{
+    résultat: Spécificité
+
+    pour * selector.compound_selectors {
+        calcule_spécificité(it, *résultat)
+    }
+
+    retourne résultat
 }
 
 imprime_complex_selector :: fonc (enchaineuse: *Enchaineuse, complex_selectors: *ComplexSelector)
@@ -701,6 +786,13 @@ Combinator :: énum {
 CompoundSelector :: struct {
     simple_selectors: [..]SimpleSelector
     combinateur: Combinator
+}
+
+calcule_spécificité :: fonc (selector: *CompoundSelector, spécificité: *Spécificité)
+{
+    pour * selector.simple_selectors {
+        calcule_spécificité(it, spécificité)
+    }
 }
 
 détruit_données_compound_selector :: fonc (selector: *CompoundSelector)
@@ -773,6 +865,28 @@ SimpleSelector :: struct {
 détruit_données_simple_selector :: fonc (selector: *SimpleSelector)
 {
     détruit_données_selector_list(*selector.selector_list)
+}
+
+calcule_spécificité :: fonc (selector: *SimpleSelector, spécificité: *Spécificité)
+{
+    discr selector.type {
+        Universal {
+            /* Ignore */
+        }
+        ID {
+            spécificité.A += 1
+        }
+        Class,
+        Attrib,
+        PseudoClass {
+            /* À FAIRE : fonctions */
+            spécificité.B += 1
+        }
+        Type,
+        PseudoElement {
+            spécificité.C += 1
+        }
+    }
 }
 
 imprime_simple_selector :: fonc (enchaineuse: *Enchaineuse, selector: *SimpleSelector)
