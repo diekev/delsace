@@ -362,8 +362,10 @@ BarreDeDéfilement :: struct {
     ratio: r32 = 1.0
 }
 
-décale_par :: fonc (barre: *BarreDeDéfilement, delta: r32)
+décale_par :: fonc (barre: *BarreDeDéfilement, delta: r32) -> bool
 {
+    vieil_y := barre.rect.y
+
     barre.rect.y += delta
 
     si barre.rect.y < 0.0 {
@@ -372,6 +374,8 @@ décale_par :: fonc (barre: *BarreDeDéfilement, delta: r32)
     sinon si (barre.rect.y + barre.rect.hauteur) > barre.hauteur {
         barre.rect.y = barre.hauteur - barre.rect.hauteur
     }
+
+    retourne barre.rect.y != vieil_y
 }
 
 PageWeb :: struct {
@@ -1013,20 +1017,26 @@ vue_rendu_page_sur_déplacement_souris :: fonc (base: *QT_Rappels_GLWidget, even
 
     défilement := *vue_rendu_page.page.défilement_vertical
 
+    ajourne_rendu := faux
+
     si défilement.est_cliqué {
         décalage := position.y comme r32 - défilement.pos_clique_y
         défilement.pos_clique_y = position.y comme r32
-        défilement.décale_par(décalage)
-        QT_widget_ajourne(vue_rendu_page.widget)
+        ajourne_rendu |= défilement.décale_par(décalage)
     }
-    sinon si défilement.rect.contient(position.x comme r32, position.y comme r32) {
+
+    si défilement.rect.contient(position.x comme r32, position.y comme r32) {
         saufsi défilement.est_survolé {
             défilement.est_survolé = vrai
-            QT_widget_ajourne(vue_rendu_page.widget)
+            ajourne_rendu = vrai
         }
     }
     sinon si défilement.est_survolé {
         défilement.est_survolé = faux
+        ajourne_rendu = vrai
+    }
+
+    si ajourne_rendu {
         QT_widget_ajourne(vue_rendu_page.widget)
     }
 }
@@ -1077,6 +1087,7 @@ vue_rendu_page_sur_relachement_souris :: fonc (base: *QT_Rappels_GLWidget, event
 
     si vue_rendu_page.page.défilement_vertical.est_cliqué {
         vue_rendu_page.page.défilement_vertical.est_cliqué = faux
+        QT_widget_ajourne(vue_rendu_page.widget)
         retourne
     }
 
@@ -1121,12 +1132,12 @@ vue_rendu_page_sur_molette_souris :: fonc (base: *QT_Rappels_GLWidget, event: *Q
     delta := DÉCALAGE_PAR_ROULEMENT * vue_rendu_page.page.défilement_vertical.ratio
 
     si delta_molette > 0 {
-        décale_par(*vue_rendu_page.page.défilement_vertical, -delta)
+        delta = -delta
     }
-    sinon {
-        décale_par(*vue_rendu_page.page.défilement_vertical, delta)
+
+    si décale_par(*vue_rendu_page.page.défilement_vertical, delta) {
+        QT_widget_ajourne(vue_rendu_page.widget)
     }
-    QT_widget_ajourne(vue_rendu_page.widget)
 }
 
 vue_rendu_page_sur_sortie :: fonc (base: *QT_Rappels_GLWidget, event: *QT_Evenement @inutilisée)
