@@ -713,6 +713,22 @@ scheme_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Re
 
                 retourne response
             }
+
+            si chemin.extension() == ".css" {
+                contenu := contenu_fichier_texte(chemin)
+
+                response := loge(Response)
+                response.status = 200
+
+                body_info := loge(ResponseBodyInfo)
+                body_info.decodede_size = contenu.taille comme z32
+                body_info.content_type = "text/css"
+
+                response.body_info = body_info
+                response.body = contenu
+
+                retourne response
+            }
         }
 
         retourne network_error()
