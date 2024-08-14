@@ -162,15 +162,8 @@ ajoute_déclaration :: fonc (style: *CSSStyleDeclaration, déclaration: *Déclar
 
 imprime_style :: fonc (style: *CSSStyleDeclaration)
 {
-
     pour déclaration dans style.déclarations {
-        imprime("    %:", déclaration.property_name)
-
-        pour valeur dans déclaration.value {
-            imprime(" %", valeur)
-        }
-
-        imprime(";\n")
+        imprime_déclaration(déclaration.property_name)
     }
 }
 
@@ -197,6 +190,20 @@ détruit_déclaration :: fonc (déclaration: *DéclarationPropriété)
 
     déloge(déclaration.value)
     déloge(déclaration)
+}
+
+imprime_déclaration :: fonc (déclaration: *DéclarationPropriété)
+{
+    imprime("    %:", déclaration.property_name)
+    pour valeur dans déclaration.value {
+        imprime(" %", valeur)
+    }
+
+    si déclaration.important {
+        imprime(" !important")
+    }
+
+    imprime(";\n")
 }
 
 /** \} */
