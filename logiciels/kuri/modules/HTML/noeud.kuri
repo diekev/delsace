@@ -1,4 +1,5 @@
 importe Chaine
+importe CSS
 importe Fondation
 
 /* ------------------------------------------------------------------------- */
@@ -156,6 +157,30 @@ ajoute_enfant :: fonc (parent: *Noeud, enfant: *Noeud)
 {
     enfant.parent = parent
     tableau_ajoute(*parent.enfants, enfant)
+
+    si enfant.est_élément() {
+        premier_élément_rencontré := faux
+
+        pour parent.enfants {
+            saufsi it.est_élément() {
+                continue
+            }
+
+            élément := it comme *Élément
+            saufsi premier_élément_rencontré {
+                premier_élément_rencontré = vrai
+                élément.ajoute_pseudo_classe(CSS.PseudoClasses.FirstChild)
+            }
+            sinon {
+                élément.enlève_pseudo_classe(CSS.PseudoClasses.FirstChild)
+            }
+
+            élément.enlève_pseudo_classe(CSS.PseudoClasses.LastChild)
+        }
+
+        élément := enfant comme *Élément
+        élément.ajoute_pseudo_classe(CSS.PseudoClasses.LastChild)
+    }
 
     table := enfant.table comme *TableVirtuelleNoeud
     si table  {
