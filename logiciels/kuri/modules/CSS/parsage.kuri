@@ -2398,6 +2398,11 @@ parse_propriété_font_weight :: fonc (value: [..]ComponentValue) -> Optionnel([
                 retourne
             }
         }
+        sinon si lexème.est_lexème_de_genre(GenreLexème.Number) {
+            parseuse.avance()
+            valeur := ValeurDeStyle(number = lexème.lexème.numeric_value)
+            tableau_ajoute(*résultat, valeur)
+        }
         sinon {
             imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
             déloge(résultat)

@@ -1551,9 +1551,15 @@ détermine_fonte :: fonc (noeud_texte: *NoeudDeDispositionTexte, ctx: *ContexteD
         famille_fonte = "sans-serif"
     }
 
-    font_weight := propriétés.style.font_weight.mot_clé
-    si font_weight == PROP_bold || font_weight == PROP_bolder {
+    font_weight := propriétés.style.font_weight
+    si font_weight.est_mot_clé(PROP_bold) || font_weight.est_mot_clé(PROP_bolder) {
         graisse = GraisseFonte.Gras
+    }
+    sinon si font_weight.est_nombre() {
+        nombre := font_weight.number
+        si nombre >= 700.0 {
+            graisse = GraisseFonte.Gras
+        }
     }
 
     font_style := propriétés.style.font_style.mot_clé
