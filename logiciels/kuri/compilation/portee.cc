@@ -144,8 +144,6 @@ NoeudDéclaration *trouve_dans_bloc_ou_module(
         if (peut_sélectionner_déclaration(decl, fichier->module, fichier)) {
             return decl;
         }
-
-        return nullptr;
     }
 
     /* cherche dans les modules importés */
@@ -155,15 +153,15 @@ NoeudDéclaration *trouve_dans_bloc_ou_module(
         }
 
         decl = trouve_dans_bloc(module.module->bloc, ident, nullptr, fonction_courante);
-
-        if (decl != nullptr) {
-            if (!peut_sélectionner_déclaration(decl, module.module, fichier)) {
-                decl = nullptr;
-            }
-            return kuri::DécisionItération::Arrête;
+        if (decl == nullptr) {
+            return kuri::DécisionItération::Continue;
         }
 
-        return kuri::DécisionItération::Continue;
+        if (!peut_sélectionner_déclaration(decl, module.module, fichier)) {
+            return kuri::DécisionItération::Continue;
+        }
+
+        return kuri::DécisionItération::Arrête;
     });
 
     return decl;
