@@ -2428,7 +2428,7 @@ parse_propriété_font_size :: fonc (value: [..]ComponentValue) -> Optionnel([..
     résultat: [..]ValeurDeStyle
 
     tantque !fini(parseuse) {
-        valeur := parse_valeur_length(parseuse)
+        valeur := parse_valeur_length_percentage(parseuse)
         si valeur.possède_valeur() {
             tableau_ajoute(*résultat, valeur.Quelque)
             continue

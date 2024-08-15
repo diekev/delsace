@@ -874,6 +874,11 @@ prop_font_size_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété,
             ctx.taille_fonte = taille_fonte
             style.taille_fonte = ValeurDeStyle(number = taille_fonte)
         }
+        percentage(p) {
+            taille_fonte := ctx.taille_fonte * p / 100.0
+            ctx.taille_fonte = taille_fonte
+            style.taille_fonte = ValeurDeStyle(number = taille_fonte)
+        }
         sinon {
             retourne
         }
