@@ -150,24 +150,92 @@ apparie_simple_selector :: fonc (simple: &SimpleSelector, élément: *HTML.Élé
 
             matcher := simple.matcher.Quelque
 
-            /* À FAIRE : complète, sensibilité à la casse. */
+            /* À FAIRE : sensibilité à la casse. */
             discr matcher {
                 EST_ÉGAL {
                     retourne simple.attribute_value == attribut.Quelque
                 }
                 INCLUS {
+                    morceaux := HTML.run_ordered_set_parser(attribut.Quelque)
+                    diffère déloge(morceaux)
+
+                    pour morceaux {
+                        si it == simple.attribute_value {
+                            retourne vrai
+                        }
+                    }
+
                     retourne faux
                 }
                 DASHMATCH {
-                    retourne faux
+                    si simple.attribute_value == attribut.Quelque {
+                        retourne vrai
+                    }
+
+                    chn_attribut := attribut.Quelque.donne_chaine_utf16()
+                    chn_selector := simple.attribute_value.donne_chaine_utf16()
+
+                    saufsi est_préfixe_de(chn_selector, chn_attribut) {
+                        retourne faux
+                    }
+
+                    retourne chn_attribut.unités[chn_selector.taille()] == ('-' comme n32)
                 }
                 PREFIXMATCH {
-                    retourne faux
+                    si simple.attribute_value == attribut.Quelque {
+                        retourne vrai
+                    }
+                    chn_attribut := attribut.Quelque.donne_chaine_utf16()
+                    chn_selector := simple.attribute_value.donne_chaine_utf16()
+                    retourne est_préfixe_de(chn_selector, chn_attribut)
                 }
                 SUFFIXMATCH {
-                    retourne faux
+                    si simple.attribute_value == attribut.Quelque {
+                        retourne vrai
+                    }
+
+                    chn_attribut := attribut.Quelque.donne_chaine_utf16()
+                    chn_selector := simple.attribute_value.donne_chaine_utf16()
+
+                    si chn_selector.taille() > chn_attribut.taille() {
+                        retourne faux
+                    }
+
+                    diff := chn_attribut.taille() - chn_selector.taille()
+
+                    sous_chaine_attribut := chn_attribut
+                    sous_chaine_attribut.unités.taille = chn_selector.taille()
+                    sous_chaine_attribut.unités.pointeur += diff
+
+                    retourne chn_selector == sous_chaine_attribut
                 }
                 SUBSTRINGMATCH {
+                    si simple.attribute_value == attribut.Quelque {
+                        retourne vrai
+                    }
+
+                    chn_attribut := attribut.Quelque.donne_chaine_utf16()
+                    chn_selector := simple.attribute_value.donne_chaine_utf16()
+
+                    si chn_selector.taille() > chn_attribut.taille() {
+                        retourne faux
+                    }
+
+                    i := 0
+                    fin := chn_attribut.taille() - chn_selector.taille() + 1
+
+                    sous_chaine_attribut := chn_attribut
+                    sous_chaine_attribut.unités.taille = chn_selector.taille()
+
+                    tantque i < fin {
+                        si chn_selector == sous_chaine_attribut {
+                            retourne vrai
+                        }
+
+                        sous_chaine_attribut.unités.pointeur += 1
+                        i += 1
+                    }
+
                     retourne faux
                 }
             }
