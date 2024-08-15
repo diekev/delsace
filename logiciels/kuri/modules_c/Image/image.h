@@ -15,6 +15,7 @@ enum ResultatOperation {
     OK,
     IMAGE_INEXISTANTE,
     TYPE_IMAGE_NON_SUPPORTE,
+    PROXY_NON_SUPPORTE,
     AJOUT_CALQUE_IMPOSSIBLE,
     AJOUT_CANAL_IMPOSSIBLE,
     LECTURE_DONNEES_IMPOSSIBLE,
@@ -29,7 +30,16 @@ struct ImageIO {
     int nombre_composants;
 };
 
+struct ImageIOProxy;
+
+struct ImageIOProxy *IMG_cree_proxy_memoire(void *buf, uint64_t size);
+
+void IMG_detruit_proxy(struct ImageIOProxy *proxy);
+
 enum ResultatOperation IMG_ouvre_image(const char *chemin, struct ImageIO *image);
+enum ResultatOperation IMG_ouvre_image_avec_proxy(const char *chemin,
+                                                  struct ImageIO *image,
+                                                  struct ImageIOProxy *proxy);
 
 enum ResultatOperation IMG_ecris_image(const char *chemin, struct ImageIO *image);
 
