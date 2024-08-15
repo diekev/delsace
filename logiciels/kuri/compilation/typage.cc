@@ -1182,20 +1182,6 @@ std::optional<InformationMembreTypeCompose> donne_membre_pour_nom(
 /** \name Accès aux noms hiérarchiques des types.
  * \{ */
 
-static void nom_hiérarchique(Enchaineuse &enchaineuse,
-                             NoeudBloc *bloc,
-                             kuri::chaine_statique ident)
-{
-    auto const noms = donne_les_noms_de_la_hiérarchie(bloc);
-
-    /* -2 pour éviter le nom du module. */
-    for (auto i = noms.taille() - 2; i >= 0; --i) {
-        enchaineuse.ajoute(noms[i]->nom);
-        enchaineuse.ajoute(".");
-    }
-    enchaineuse.ajoute(ident);
-}
-
 kuri::chaine_statique donne_nom_hiérarchique(TypeUnion *type)
 {
     if (type->nom_hiérarchique_ != "") {
@@ -1489,11 +1475,26 @@ static ParenthèseParamètres donne_spécifiant_tranche(OptionsImpressionType co
     return {"[", "]"};
 }
 
+static void nom_hiérarchique(Enchaineuse &enchaineuse,
+                             NoeudBloc *bloc,
+                             kuri::chaine_statique ident,
+                             OptionsImpressionType options)
+{
+    auto const noms = donne_les_noms_de_la_hiérarchie(bloc);
+
+    /* -2 pour éviter le nom du module. */
+    for (auto i = noms.taille() - 2; i >= 0; --i) {
+        enchaineuse.ajoute(noms[i]->nom);
+        enchaineuse.ajoute(donne_séparateur_hiérarchie(options));
+    }
+    enchaineuse.ajoute(ident);
+}
+
 static void chaine_type_structure(Enchaineuse &enchaineuse,
                                   const NoeudDéclarationClasse *decl,
                                   OptionsImpressionType options)
 {
-    nom_hiérarchique(enchaineuse, decl->bloc_parent, decl->ident->nom);
+    nom_hiérarchique(enchaineuse, decl->bloc_parent, decl->ident->nom, options);
 
     auto parenthèses = donne_parenthèses_paramètres_polymorphiques(options);
 
@@ -1698,7 +1699,7 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type, OptionsImpre
         case GenreNoeud::ENUM_DRAPEAU:
         case GenreNoeud::ERREUR:
         {
-            nom_hiérarchique(enchaineuse, type->bloc_parent, type->ident->nom);
+            nom_hiérarchique(enchaineuse, type->bloc_parent, type->ident->nom, options);
             return;
         }
         case GenreNoeud::TYPE_DE_DONNÉES:
@@ -1719,7 +1720,7 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type, OptionsImpre
         case GenreNoeud::DÉCLARATION_OPAQUE:
         {
             auto type_opaque = static_cast<TypeOpaque const *>(type);
-            nom_hiérarchique(enchaineuse, type->bloc_parent, type->ident->nom);
+            nom_hiérarchique(enchaineuse, type->bloc_parent, type->ident->nom, options);
 
             if (drapeau_est_actif(options,
                                   OptionsImpressionType::AJOUTE_PARAMÈTRES_POLYMORPHIQUE)) {

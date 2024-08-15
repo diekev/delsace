@@ -665,10 +665,11 @@ dessine_texte :: fonc (fonte: *Fonte, texte: ChaineUTF16, x: r32, y: r32, couleu
 
 glyphe_immédiat :: fonc (glyph: *texture_glyph_t, x: r32, y: r32, couleur: CouleurRVBA)
 {
-    x0 := (x + glyph.offset_x comme r32)
-    y0 := (y + glyph.offset_y comme r32)
-    x1 := x0 + glyph.width comme r32
-    y1 := y0 - glyph.height comme r32
+    /* Arrondis les valeurs pour éviter d'interpoler ou rendre des données nulles (l'espace entre les glyphes). */
+    x0 := plancher(x + glyph.offset_x comme r32)
+    y0 := plancher(y + glyph.offset_y comme r32)
+    x1 := plancher(x0 + glyph.width comme r32)
+    y1 := plancher(y0 - glyph.height comme r32)
     s0 := glyph.s0
     t0 := glyph.t0
     s1 := glyph.s1
