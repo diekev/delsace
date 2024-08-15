@@ -807,7 +807,7 @@ prop_display_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, s
         style.display.est_list_item = vrai
     }
     sinon {
-        assert(mot_clé == PROP_inline)
+        assert(mot_clé == PROP_inline || mot_clé == PROP_unset)
     }
 }
 
