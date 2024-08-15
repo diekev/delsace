@@ -61,7 +61,26 @@ apparie_sélecteur :: fonc (selector: []CompoundSelector, index: z64, élément:
 
     discr compound.combinateur {
         NEXT_SIBLING {
-            retourne faux
+            parent := élément.parent
+
+            ainé: *HTML.Élément
+            pour parent.enfants {
+                saufsi HTML.est_élément(it) {
+                    continue
+                }
+
+                si it == élément {
+                    arrête
+                }
+
+                ainé = it comme *HTML.Élément
+            }
+
+            saufsi ainé {
+                retourne faux
+            }
+
+            retourne apparie_sélecteur(selector, index - 1, ainé)
         }
         CHILD {
             parent := élément.parent
@@ -92,6 +111,22 @@ apparie_sélecteur :: fonc (selector: []CompoundSelector, index: z64, élément:
             retourne faux
         }
         SUBSEQUENT_SIBLING {
+            parent := élément.parent
+
+            pour parent.enfants {
+                saufsi HTML.est_élément(it) {
+                    continue
+                }
+
+                si it == élément {
+                    arrête
+                }
+
+                si apparie_sélecteur(selector, index - 1, it comme *HTML.Élément) {
+                    retourne vrai
+                }
+            }
+
             retourne faux
         }
     }
