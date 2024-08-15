@@ -3,8 +3,8 @@ layout(location = 0) in vec3 position;
 layout(location = 1) in vec4 couleur;
 layout(location = 2) in vec2 uv;
 
-smooth out vec2 UV;
-smooth out vec4 couleur_vertex;
+out vec2 UV;
+out vec4 couleur_vertex;
 
 uniform mat4 projection;
 

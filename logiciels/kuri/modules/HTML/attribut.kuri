@@ -12,7 +12,7 @@ détruit_attributs :: fonc (attributs: &[..]Attribut)
     déloge(attributs)
 }
 
-chaine_ou_défaut :: fonc (attribut: *Attribut, défaut := DOMString()) -> DOMString
+chaine_ou_défaut :: fonc (attribut: *Attribut, défaut := crée_chaine_utf16_unique_vide()) -> DOMString
 {
     si attribut {
         retourne attribut.valeur
