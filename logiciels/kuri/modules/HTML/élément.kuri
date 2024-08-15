@@ -1134,7 +1134,8 @@ update_image_data :: fonc (image: *HTMLImageElement)
         retourne
     }
 
-    url_document := convertis_uri_url(*document.url)
+    base_url := donne_base_url(document)
+    url_document := convertis_uri_url(*base_url)
 
     url_src := basic_url_parser(src.donne_chaine_utf16(), base = url_document)
     saufsi url_src {
