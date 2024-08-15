@@ -1989,8 +1989,6 @@ cherche_référence_caractère_nommé :: fonc (lexeuse: *Lexeuse) -> bool
 
     boucle {
         caractère_suivant := lexeuse.point_de_code_suivant()
-        // À FAIRE: supprime ceci par quelque moyen
-        chaine_ajoute(*lexeuse.tampon_temporaire, caractère_suivant)
 
         chaine_ajoute(*tampon_temporaire, caractère_suivant)
 
@@ -2003,6 +2001,7 @@ cherche_référence_caractère_nommé :: fonc (lexeuse: *Lexeuse) -> bool
             arrête
         }
 
+        chaine_ajoute(*lexeuse.tampon_temporaire, caractère_suivant)
         dernier_caractère_apparié = caractère_suivant
         dernier_résultat = résultat
     }
