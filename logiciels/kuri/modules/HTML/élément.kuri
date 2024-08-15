@@ -1317,6 +1317,7 @@ process_stylesheet_link :: fonc (link: *HTMLLinkElement)
 
         link: *HTMLLinkElement
         url_src: *URL
+        url_string: ChaineASCII
     }
 
     sur_rappel_process_response :: fonc (base: *BaseProcessResponse, réponse: *Response)
@@ -1338,6 +1339,7 @@ process_stylesheet_link :: fonc (link: *HTMLLinkElement)
         mime_css := crée_chaine_utf16_unique("text/css")
 
         feuille_de_style := loge(CSS.CSSStyleSheet)
+        feuille_de_style.location.uri = rappel.url_string
         feuille_de_style.origine = CSS.OrigineCascade.Author
         feuille_de_style.type = mime_css
         feuille_de_style.owner_node = rappel.link
@@ -1362,6 +1364,7 @@ process_stylesheet_link :: fonc (link: *HTMLLinkElement)
 
     process_response := loge(RappelProcessResponse)
     process_response.link = link
+    process_response.url_string = url_string
     process_response.url_src = url_src
     process_response.sur_rappel = sur_rappel_process_response
     process_response.sur_destruction = sur_destruction_process_response
