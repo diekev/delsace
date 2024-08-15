@@ -454,7 +454,7 @@ donne_href :: fonc (anchor: *HTMLAnchorElement) -> DOMString
     si attribut.possède_valeur() {
         retourne attribut.Quelque
     }
-    retourne DOMString()
+    retourne crée_chaine_utf16_unique_vide()
 }
 
 #portée_fichier
@@ -1025,7 +1025,7 @@ donne_src :: fonc (anchor: *HTMLImageElement) -> DOMString
     si attribut.possède_valeur() {
         retourne attribut.Quelque
     }
-    retourne DOMString()
+    retourne crée_chaine_utf16_unique_vide()
 }
 
 donne_hauteur_intrinsèque :: fonc (image: *HTMLImageElement) -> z32 #enligne
@@ -1413,7 +1413,7 @@ donne_src :: fonc (anchor: *HTMLMediaElement) -> DOMString
     si attribut.possède_valeur() {
         retourne attribut.Quelque
     }
-    retourne DOMString()
+    retourne crée_chaine_utf16_unique_vide()
 }
 
 /** \} */
@@ -1494,7 +1494,7 @@ donne_src :: fonc (anchor: *HTMLScriptElement) -> DOMString
     si attribut.possède_valeur() {
         retourne attribut.Quelque
     }
-    retourne DOMString()
+    retourne crée_chaine_utf16_unique_vide()
 }
 
 #portée_fichier
