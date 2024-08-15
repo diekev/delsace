@@ -549,25 +549,22 @@ body_element_sur_destruction :: fonc (base: *EventTarget)
 /* https://html.spec.whatwg.org/multipage/rendering.html#the-page */
 body_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
 {
-    body := base comme *HTMLBodyElement
-
-    opt_bgcolor := donne_attribut(body, ATTR_bgcolor)
-    si opt_bgcolor.possède_valeur() {
-        bgcolor := opt_bgcolor.Quelque
-        ajoute_propriété_pour_couleur(résolveuse, CSS.PROP_background_color, bgcolor)
-    }
-
-    opt_text := donne_attribut(body, ATTR_text)
-    si opt_text.possède_valeur() {
-        text := opt_text.Quelque
-        ajoute_propriété_pour_couleur(résolveuse, CSS.PROP_color, text)
-    }
+    ajoute_propriété_pour_legacy_colour_value(résolveuse, base, ATTR_bgcolor, CSS.PROP_background_color)
+    ajoute_propriété_pour_legacy_colour_value(résolveuse, base, ATTR_text, CSS.PROP_color)
 
     /* À FAIRE : utilise les attributs. */
     ajoute_propriété_pour_nombre(résolveuse, CSS.PROP_margin_top, 8.0)
     ajoute_propriété_pour_nombre(résolveuse, CSS.PROP_margin_bottom, 8.0)
     ajoute_propriété_pour_nombre(résolveuse, CSS.PROP_margin_left, 8.0)
     ajoute_propriété_pour_nombre(résolveuse, CSS.PROP_margin_right, 8.0)
+}
+
+ajoute_propriété_pour_legacy_colour_value :: fonc (résolveuse: *CSS.RésolveuseStyle, élément: *Élément, nom_attribut: DOMString, nom_propriété: CSS.CSSOMString)
+{
+    opt_attribut := élément.donne_attribut(nom_attribut)
+    si opt_attribut.possède_valeur() {
+        ajoute_propriété_pour_couleur(résolveuse, nom_propriété, opt_attribut.Quelque)
+    }
 }
 
 ajoute_propriété_pour_couleur :: fonc (résolveuse: *CSS.RésolveuseStyle, nom_propriété: CSS.CSSOMString, texte: DOMString)
@@ -602,6 +599,17 @@ ajoute_propriété_pour_mot_clé :: fonc (résolveuse: *CSS.RésolveuseStyle, no
     déclaration.value = value
 
     CSS.ajoute_presentational_hint(résolveuse, déclaration)
+}
+
+ajoute_propriété_pour_non_zero_dimension :: fonc (résolveuse: *CSS.RésolveuseStyle, élément: *Élément, nom_attribut: DOMString, nom_propriété: CSS.CSSOMString)
+{
+    opt_attribut := élément.donne_attribut(nom_attribut)
+    si opt_attribut.possède_valeur() {
+        valeur := parse_a_non_zero_dimension(opt_attribut.Quelque)
+        si valeur.possède_valeur() {
+            ajoute_propriété_pour_nombre(résolveuse, nom_propriété, valeur.Quelque)
+        }
+    }
 }
 
 ajoute_propriété_pour_nombre :: fonc (résolveuse: *CSS.RésolveuseStyle, nom_propriété: CSS.CSSOMString, valeur: r64)
@@ -1065,23 +1073,8 @@ image_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOM
 
 image_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
 {
-    image := base comme *HTMLImageElement
-
-    opt_width := image.donne_attribut(ATTR_width)
-    si opt_width.possède_valeur() {
-        valeur := parse_a_non_zero_dimension(opt_width.Quelque)
-        si valeur.possède_valeur() {
-            ajoute_propriété_pour_nombre(résolveuse, CSS.PROP_width, valeur.Quelque)
-        }
-    }
-
-    opt_height := image.donne_attribut(ATTR_height)
-    si opt_height.possède_valeur() {
-        valeur := parse_a_non_zero_dimension(opt_height.Quelque)
-        si valeur.possède_valeur() {
-            ajoute_propriété_pour_nombre(résolveuse, CSS.PROP_height, valeur.Quelque)
-        }
-    }
+    ajoute_propriété_pour_non_zero_dimension(résolveuse, base, ATTR_width, CSS.PROP_width)
+    ajoute_propriété_pour_non_zero_dimension(résolveuse, base, ATTR_height, CSS.PROP_height)
 }
 
 /* https://html.spec.whatwg.org/multipage/common-microsyntaxes.html#rules-for-parsing-non-zero-dimension-values */
