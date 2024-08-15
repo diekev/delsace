@@ -173,7 +173,7 @@ ajoute_déclaration :: fonc (style: *CSSStyleDeclaration, déclaration: *Déclar
 imprime_style :: fonc (style: *CSSStyleDeclaration)
 {
     pour déclaration dans style.déclarations {
-        imprime_déclaration(déclaration.property_name)
+        imprime_déclaration(déclaration)
     }
 }
 
