@@ -15,6 +15,8 @@ StyleSheet :: struct {
     /* "text/css" */
     type: CSSOMString
     location: URI
+
+    origine: OrigineCascade
 }
 
 CSSStyleSheet :: struct {
@@ -92,6 +94,14 @@ CSSRule :: struct {
     NAMESPACE_RULE : n16 : 10
 }
 
+donne_origine_cascade :: fonc (rule: *CSSRule) -> OrigineCascade
+{
+    saufsi rule.parent_style_sheet {
+        retourne OrigineCascade.Author
+    }
+    retourne rule.parent_style_sheet.origine
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -162,15 +172,8 @@ ajoute_déclaration :: fonc (style: *CSSStyleDeclaration, déclaration: *Déclar
 
 imprime_style :: fonc (style: *CSSStyleDeclaration)
 {
-
     pour déclaration dans style.déclarations {
-        imprime("    %:", déclaration.property_name)
-
-        pour valeur dans déclaration.value {
-            imprime(" %", valeur)
-        }
-
-        imprime(";\n")
+        imprime_déclaration(déclaration)
     }
 }
 
@@ -197,6 +200,20 @@ détruit_déclaration :: fonc (déclaration: *DéclarationPropriété)
 
     déloge(déclaration.value)
     déloge(déclaration)
+}
+
+imprime_déclaration :: fonc (déclaration: *DéclarationPropriété)
+{
+    imprime("    %:", déclaration.property_name)
+    pour valeur dans déclaration.value {
+        imprime(" %", valeur)
+    }
+
+    si déclaration.important {
+        imprime(" !important")
+    }
+
+    imprime(";\n")
 }
 
 /** \} */
