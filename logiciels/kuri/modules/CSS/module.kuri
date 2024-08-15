@@ -143,33 +143,34 @@ apparie_simple_selector :: fonc (simple: &SimpleSelector, élément: *HTML.Élé
                 retourne faux
             }
 
-            si simple.matcher.possède_valeur() {
-                matcher := simple.matcher.Quelque
-
-                /* À FAIRE : complète, sensibilité à la casse. */
-                discr matcher {
-                    EST_ÉGAL {
-                        retourne simple.attribute_value == attribut.Quelque
-                    }
-                    INCLUS {
-                        retourne faux
-                    }
-                    DASHMATCH {
-                        retourne faux
-                    }
-                    PREFIXMATCH {
-                        retourne faux
-                    }
-                    SUFFIXMATCH {
-                        retourne faux
-                    }
-                    SUBSTRINGMATCH {
-                        retourne faux
-                    }
-                }
+            saufsi simple.matcher.possède_valeur() {
+                /* Nous avons un sélecteur de type [attr], nous pouvons retourner vrai ici. */
+                retourne vrai
             }
 
-            retourne faux
+            matcher := simple.matcher.Quelque
+
+            /* À FAIRE : complète, sensibilité à la casse. */
+            discr matcher {
+                EST_ÉGAL {
+                    retourne simple.attribute_value == attribut.Quelque
+                }
+                INCLUS {
+                    retourne faux
+                }
+                DASHMATCH {
+                    retourne faux
+                }
+                PREFIXMATCH {
+                    retourne faux
+                }
+                SUFFIXMATCH {
+                    retourne faux
+                }
+                SUBSTRINGMATCH {
+                    retourne faux
+                }
+            }
         }
         ID {
             retourne simple.ident == élément.id
