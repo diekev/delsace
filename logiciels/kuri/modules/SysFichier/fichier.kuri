@@ -218,7 +218,7 @@ détermine_taille_fichiers_dossier :: fonc (dossier: CheminFichier, récursif : 
  * fichier régulier, ou si une erreur est rencontré. */
 détermine_taille_fichier :: fonc (chemin: CheminFichier) -> n64
 {
-    fichier := tente ouvre_fichier_pour_lecture(chemin) piège err {
+    fichier := tente ouvre_fichier_pour_lecture(chemin) piège _ {
         retourne 0
     }
 
@@ -231,11 +231,11 @@ détermine_taille_fichier :: fonc (chemin: CheminFichier) -> n64
  * fichier régulier, ou si une erreur est rencontré. */
 détermine_taille_fichier :: fonc (fichier: *Fichier) -> z64
 {
-    résultat := tente positionne_fichier(fichier, PositionFin(0)) piège err {
+    résultat := tente positionne_fichier(fichier, PositionFin(0)) piège _ {
         retourne 0
     }
 
-    _ := tente positionne_fichier(fichier, PositionDébut(0)) piège err {
+    _ := tente positionne_fichier(fichier, PositionDébut(0)) piège _ {
         retourne 0
     }
 
@@ -248,7 +248,7 @@ détermine_taille_fichier :: fonc (fichier: *Fichier) -> z64
 
 est_fin_de_fichier :: fonc (fichier: *Fichier) -> bool
 {
-    résultat := tente système_fin_de_fichier(fichier.desc) piège err {
+    résultat := tente système_fin_de_fichier(fichier.desc) piège _ {
         retourne vrai
     }
 

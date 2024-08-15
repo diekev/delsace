@@ -1,4 +1,5 @@
 importe Chaine
+importe CSS
 importe Fondation
 
 /* ------------------------------------------------------------------------- */
@@ -157,6 +158,30 @@ ajoute_enfant :: fonc (parent: *Noeud, enfant: *Noeud)
     enfant.parent = parent
     tableau_ajoute(*parent.enfants, enfant)
 
+    si enfant.est_élément() {
+        premier_élément_rencontré := faux
+
+        pour parent.enfants {
+            saufsi it.est_élément() {
+                continue
+            }
+
+            élément := it comme *Élément
+            saufsi premier_élément_rencontré {
+                premier_élément_rencontré = vrai
+                élément.ajoute_pseudo_classe(CSS.PseudoClasses.FirstChild)
+            }
+            sinon {
+                élément.enlève_pseudo_classe(CSS.PseudoClasses.FirstChild)
+            }
+
+            élément.enlève_pseudo_classe(CSS.PseudoClasses.LastChild)
+        }
+
+        élément := enfant comme *Élément
+        élément.ajoute_pseudo_classe(CSS.PseudoClasses.LastChild)
+    }
+
     table := enfant.table comme *TableVirtuelleNoeud
     si table  {
         si table.sur_insertion {
@@ -193,6 +218,15 @@ donne_attribut :: fonc (noeud: *Noeud, nom_qualifié: DOMString) -> Optionnel(DO
     attribut := cherche_attribut(noeud, nom_qualifié)
     saufsi attribut {
         retourne
+    }
+    retourne attribut.valeur
+}
+
+donne_attribut_ou_chaine_vide :: fonc (noeud: *Noeud, nom_qualifié: DOMString) -> DOMString
+{
+    attribut := cherche_attribut(noeud, nom_qualifié)
+    saufsi attribut {
+        retourne crée_chaine_utf16_unique_vide()
     }
     retourne attribut.valeur
 }

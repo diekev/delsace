@@ -1,6 +1,7 @@
 importe Chaine
 importe Fondation
 importe Internet
+importe Unicode
 
 /* ------------------------------------------------------------------------- */
 /** \nom Host
@@ -28,6 +29,11 @@ Domain :: chaine
 
 ChaineASCII :: chaine
 
+URLPath :: union {
+    Segment: chaine
+    Path: [..]chaine
+}
+
 /* À FAIRE : fusionne avec URI */
 URL :: struct {
     scheme: ChaineASCII
@@ -35,9 +41,54 @@ URL :: struct {
     password: ChaineASCII
     host: Optionnel(Host)
     port: Optionnel(n16)
-    path: [..]ChaineASCII
+    path: URLPath
     query: Optionnel(ChaineASCII)
     fragment: Optionnel(ChaineASCII)
+}
+
+convertis_uri_url :: fonc (uri: *URI) -> *URL
+{
+    chn := recompose_uri(uri)
+    diffère déloge(chn)
+
+    chn16 := crée_chaine_utf16(chn)
+    diffère détruit_chaine(chn16)
+
+    retourne basic_url_parser(chn16)
+}
+
+détruit_url :: fonc (url: *URL)
+{
+    déloge(url)
+}
+
+/* https://url.spec.whatwg.org/#url-opaque-path */
+possède_chemin_opaque :: fonc (url: *URL) -> bool
+{
+    /* A URL has an opaque path if its path is a URL path segment. */
+    discr url.path {
+        Segment {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+ajoute_segment_au_chemin :: fonc (url: *URL, segment: chaine)
+{
+    discr url.path {
+        Path {
+            tableau_ajoute(*url.path.Path, segment)
+            retourne
+        }
+        sinon {
+            path: [..]chaine
+            tableau_ajoute(*path, segment)
+            url.path = path
+        }
+    }
 }
 
 /* https://url.spec.whatwg.org/#concept-url-origin */
@@ -75,7 +126,116 @@ donne_origin :: fonc (url: URI) -> Origin
     retourne crée_nouvelle_origin_opaque()
 }
 
+/* https://url.spec.whatwg.org/#special-scheme */
+SchémaSpécial :: struct {
+    nom: ChaineASCII
+    port: Optionnel(n16)
+}
+
+données_schéma_spécial := [
+    SchémaSpécial("ftp", 21),
+    SchémaSpécial("file"),
+    SchémaSpécial("http", 80),
+    SchémaSpécial("https", 443),
+    SchémaSpécial("ws", 80),
+    SchémaSpécial("wss", 443)
+]
+
+/* https://url.spec.whatwg.org/#is-special */
+est_spécial :: fonc (url: *URL) -> bool
+{
+    retourne est_schéma_spécial(url.scheme)
+}
+
+est_schéma_spécial :: fonc (schéma: ChaineASCII) -> bool
+{
+    pour données_schéma_spécial {
+        si schéma == it.nom {
+            retourne vrai
+        }
+    }
+    retourne faux
+}
+
+est_port_défaut :: fonc (schéma: ChaineASCII, port: n16) -> bool
+{
+    pour données_schéma_spécial {
+        saufsi schéma == it.nom {
+            continue
+        }
+
+        saufsi it.port.possède_valeur() {
+            retourne faux
+        }
+
+        retourne it.port.Quelque == port
+    }
+
+    retourne faux
+}
+
+/* https://url.spec.whatwg.org/#include-credentials */
+inclus_credentials :: fonc (url: *URL) -> bool
+{
+    retourne url.username != "" || url.password != ""
+}
+
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 4.2 URL miscellaneous
+ * https://url.spec.whatwg.org/#url-miscellaneous
+ * \{ */
+
+DOUBLE_POINT : n32 : 0x3A
+
+/* https://url.spec.whatwg.org/#windows-drive-letter */
+est_lettre_stockage_windows :: fonc (point_de_code1: n32, point_de_code2: n32) -> bool #enligne
+{
+    saufsi est_lettre_ascii(point_de_code1) {
+        retourne faux
+    }
+
+    PIPE : n32 : 0x7C
+    retourne point_de_code2 == DOUBLE_POINT || point_de_code2 == PIPE
+}
+
+/* https://url.spec.whatwg.org/#normalized-windows-drive-letter */
+est_lettre_stockage_windows_normalisée :: fonc (point_de_code1: n32, point_de_code2: n32) -> bool #enligne
+{
+    retourne est_lettre_stockage_windows(point_de_code1, point_de_code2) && point_de_code2 == DOUBLE_POINT
+}
+
+est_lettre_stockage_windows_normalisée :: fonc (chn: chaine) -> bool
+{
+    si chn.taille < 2 {
+        retourne faux
+    }
+
+    retourne est_lettre_stockage_windows(chn[0] comme n32, chn[1] comme n32)
+}
+
+/* https://url.spec.whatwg.org/#start-with-a-windows-drive-letter */
+commence_par_lettre_stockage_windows :: fonc (chn: ChaineUTF16) -> bool
+{
+    si chn.taille() < 2 {
+        retourne faux
+    }
+
+    saufsi est_lettre_stockage_windows(chn.unités[0], chn.unités[1]) {
+        retourne faux
+    }
+
+    si chn.taille() == 2 {
+        retourne vrai
+    }
+
+    point_de_code3 := chn.unités[2]
+
+    retourne point_de_code3 == 0x2F || point_de_code3 == 0x5C || point_de_code3 == 0x3F || point_de_code3 == 0x23
+}
+
+/** } */
 
 /* ------------------------------------------------------------------------- */
 /** \nom 4.4 URL Parsing
@@ -110,6 +270,8 @@ donne_origin :: fonc (url: URI) -> Origin
 /* À FAIRE : encoding */
 basic_url_parser :: fonc (input: ChaineUTF16, base : *URL = nul, url : *URL = nul, state_override : *ÉtatParsageURL = nul) -> *URL
 {
+    // imprime("[%] %\n", #nom_de_cette_fonction, input)
+
     résultat := url
 
     // 1. If url is not given:
@@ -132,20 +294,838 @@ basic_url_parser :: fonc (input: ChaineUTF16, base : *URL = nul, url : *URL = nu
     // À FAIRE 5. Set encoding to the result of getting an output encoding from encoding.
 
     // 6. Let buffer be the empty string.
-    buffer: chaine
+    // Fais dans l'initialisation de parser plus bas.
 
     // 7. Let atSignSeen, insideBrackets, and passwordTokenSeen be false.
-    at_sign_seen := faux
-    inside_brackets := faux
-    password_token_seen := faux
+    // Fais dans l'initialisation de parser plus bas.
 
-    // À FAIRE 8. Let pointer be a pointer for input.
+    // 8. Let pointer be a pointer for input.
+    pointer : z64 = 0
 
-    // À FAIRE 9. Keep running the following state machine by switching on state. If after a run pointer points to the EOF code point, go to the next step. Otherwise, increase pointer by 1 and continue with the state machine.
+    // 9. Keep running the following state machine by switching on state. If after a run pointer points to the EOF code point, go to the next step. Otherwise, increase pointer by 1 and continue with the state machine.
+    parser: BasicURLParser
+    parser.input = input
+    parser.url = résultat
+    parser.base = base
+    parser.state = state
+    parser.pointer = pointer
+    parser.pointer_orig = pointer
+    parser.state_override = state_override
+
+    boucle {
+        résultat_parsage := RésultatParsageURL.Ok
+        discr parser.state {
+            SchemeStart {
+                résultat_parsage = basic_url_parser_scheme_start(*parser)
+            }
+            Scheme {
+                résultat_parsage = basic_url_parser_scheme(*parser)
+            }
+            NoScheme {
+                résultat_parsage = basic_url_parser_no_scheme(*parser)
+            }
+            SpecialAuthoritySlashes {
+                résultat_parsage = basic_url_parser_special_authority_slashes(*parser)
+            }
+            SpecialAuthorityIgnoreSlashes {
+                résultat_parsage = basic_url_parser_special_authority_ignore_slashes(*parser)
+            }
+            Authority {
+                résultat_parsage = basic_url_parser_authority(*parser)
+            }
+            Host, Hostname {
+                résultat_parsage = basic_url_parser_host(*parser)
+            }
+            File {
+                résultat_parsage = basic_url_parser_file(*parser)
+            }
+            FileSlash {
+                résultat_parsage = basic_url_parser_file_slash(*parser)
+            }
+            FileHost {
+                résultat_parsage = basic_url_parser_file_host(*parser)
+            }
+            PathStart {
+                résultat_parsage = basic_url_parser_path_start(*parser)
+            }
+            Path {
+                résultat_parsage = basic_url_parser_path(*parser)
+            }
+            Query {
+                résultat_parsage = basic_url_parser_query(*parser)
+            }
+            sinon {
+                panique("état parsage non-implémenté : %\n", parser.state)
+            }
+        }
+
+        si résultat_parsage == RésultatParsageURL.Ok {
+            si fini(*parser) {
+                arrête
+            }
+            increase_pointer(*parser)
+            continue
+        }
+
+        si résultat_parsage == RésultatParsageURL.Terminé {
+            arrête
+        }
+
+        si résultat != url {
+            détruit_url(résultat)
+        }
+        retourne nul
+    }
 
     // 10. Return url.
     retourne résultat
 }
+
+#portée_fichier
+
+BasicURLParser :: struct {
+    url: *URL
+    base: *URL
+
+    state: ÉtatParsageURL
+    state_override: *ÉtatParsageURL
+    input: ChaineUTF16
+    pointer: z64
+    pointer_orig: z64
+    buffer: ChaineUTF16
+
+    at_sign_seen := faux
+    inside_brackets := faux
+    password_token_seen := faux
+}
+
+fini :: fonc (parser: *BasicURLParser) -> bool
+{
+    retourne parser.pointer >= parser.input.taille()
+}
+
+définis_state :: fonc (parser: *BasicURLParser, nouveau: ÉtatParsageURL) #enligne
+{
+    // imprime("[%] % -> %\n", #nom_de_cette_fonction, parser.state, nouveau)
+    parser.state = nouveau
+}
+
+donne_caractère :: fonc (empl parser: *BasicURLParser) -> n32
+{
+    si pointer == -1 || pointer >= input.taille() {
+        retourne FIN_DE_FICHIER
+    }
+
+    retourne input.unités[pointer]
+}
+
+donne_restant :: fonc (empl parser: *BasicURLParser) -> ChaineUTF16
+{
+    si pointer == -1 || (pointer + 1) >= input.taille() {
+        retourne ChaineUTF16()
+    }
+
+    résultat := input
+    résultat.unités.pointeur += (pointer + 1)
+    résultat.unités.taille -= (pointer + 1)
+    retourne résultat
+}
+
+donne_sous_chaine_depuis_pointeur :: fonc (empl parser: *BasicURLParser) -> ChaineUTF16
+{
+    si pointer || pointer >= input.taille() {
+        retourne ChaineUTF16()
+    }
+
+    résultat := input
+    résultat.unités.pointeur += pointer
+    résultat.unités.taille -= pointer
+    retourne résultat
+}
+
+decrease_pointer :: fonc (parser: *BasicURLParser) #enligne
+{
+    parser.pointer -= 1
+}
+
+decrease_pointer :: fonc (parser: *BasicURLParser, compte: z64) #enligne
+{
+    parser.pointer -= compte
+}
+
+increase_pointer :: fonc (parser: *BasicURLParser) #enligne
+{
+    parser.pointer += 1
+}
+
+RésultatParsageURL :: énum {
+    Échec
+    Ok
+    Terminé
+}
+
+/* https://url.spec.whatwg.org/#scheme-start-state */
+basic_url_parser_scheme_start :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
+{
+    // 1. If c is an ASCII alpha, append c, lowercased, to buffer, and set state to scheme state.
+    c := parser.donne_caractère()
+    si est_lettre_ascii(c) {
+        chaine_ajoute(*parser.buffer, en_minuscule(c comme n16))
+        parser.définis_state(ÉtatParsageURL.Scheme)
+        retourne RésultatParsageURL.Ok
+    }
+
+    // 2. Otherwise, if state override is not given, set state to no scheme state and decrease pointer by 1.
+    saufsi parser.state_override {
+        parser.définis_state(ÉtatParsageURL.NoScheme)
+        parser.decrease_pointer()
+        retourne RésultatParsageURL.Ok
+    }
+
+    // 3. Otherwise, return failure.
+    retourne RésultatParsageURL.Échec
+}
+
+/* https://url.spec.whatwg.org/#no-scheme-state */
+basic_url_parser_scheme :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
+{
+    // 1. If c is an ASCII alphanumeric, U+002B (+), U+002D (-), or U+002E (.), append c, lowercased, to buffer.
+    c := parser.donne_caractère()
+    si est_lettre_ascii(c) || c == 0x2B || c == 0x2D || c == 0x2E {
+        chaine_ajoute(*parser.buffer, en_minuscule(c comme n16))
+        retourne RésultatParsageURL.Ok
+    }
+
+    // 2. Otherwise, if c is U+003A (:), then:
+    si c == 0x3A {
+        // 1. If state override is given, then:
+        si parser.state_override {
+            schéma_url_est_spécial := est_schéma_spécial(parser.url.scheme)
+            // XXX
+            buffer_ascii := converti_vers_chaine(parser.buffer)
+            diffère déloge(buffer_ascii)
+            buffer_est_schéma_spécial := est_schéma_spécial(buffer_ascii)
+
+            // 1. If url’s scheme is a special scheme and buffer is not a special scheme, then return.
+            si schéma_url_est_spécial && !buffer_est_schéma_spécial {
+                retourne RésultatParsageURL.Terminé
+            }
+
+            // 2. If url’s scheme is not a special scheme and buffer is a special scheme, then return.
+            si !schéma_url_est_spécial && buffer_est_schéma_spécial {
+                retourne RésultatParsageURL.Terminé
+            }
+
+            // 3. If url includes credentials or has a non-null port, and buffer is "file", then return.
+            si (parser.url.inclus_credentials() || parser.url.port.possède_valeur()) && parser.buffer == "file" {
+                retourne RésultatParsageURL.Terminé
+            }
+
+            // 4. If url’s scheme is "file" and its host is an empty host, then return.
+            si parser.url.scheme == "file" && !parser.url.host.possède_valeur() {
+                retourne RésultatParsageURL.Terminé
+            }
+        }
+
+        // 2. Set url’s scheme to buffer.
+        parser.url.scheme = converti_vers_chaine(parser.buffer)
+
+        // 3. If state override is given, then:
+        si parser.state_override {
+            // 1. If url’s port is url’s scheme’s default port, then set url’s port to null.
+            si parser.url.port.possède_valeur() && est_port_défaut(parser.url.scheme, parser.url.port.Quelque) {
+                init_de(Optionnel(n16))(*parser.url.port)
+            }
+
+            // 2. Return.
+            retourne RésultatParsageURL.Terminé
+        }
+
+        // 4. Set buffer to the empty string.
+        parser.buffer.unités.taille = 0
+
+        // 5. If url’s scheme is "file", then:
+        si parser.url.scheme == "file" {
+            // 1. If remaining does not start with "//", special-scheme-missing-following-solidus validation error.
+            restant := parser.donne_restant()
+            si restant.taille() > 2 && restant.unités[0] != 0x2F && restant.unités[1] != 0x2F {
+                imprime("[%] special-scheme-missing-following-solidus\n", #nom_de_cette_fonction)
+            }
+
+            // 2. Set state to file state.
+            parser.définis_state(ÉtatParsageURL.File)
+            retourne RésultatParsageURL.Ok
+        }
+
+        // 6. Otherwise, if url is special, base is non-null, and base’s scheme is url’s scheme:
+        si est_spécial(parser.url) && parser.base != nul && parser.base.scheme == parser.url.scheme {
+            // 1. Assert: base is special (and therefore does not have an opaque path).
+            assert(parser.base.est_spécial())
+
+            // 2. Set state to special relative or authority state.
+            parser.définis_state(ÉtatParsageURL.SpecialRelativeOrAuthority)
+            retourne RésultatParsageURL.Ok
+        }
+
+        // 7. Otherwise, if url is special, set state to special authority slashes state.
+        si est_spécial(parser.url) {
+            parser.définis_state(ÉtatParsageURL.SpecialAuthoritySlashes)
+            retourne RésultatParsageURL.Ok
+        }
+
+        // 8. Otherwise, if remaining starts with an U+002F (/), set state to path or authority state and increase pointer by 1.
+        restant := parser.donne_restant()
+        si restant.taille() > 1 && restant.unités[0] == 0x2F {
+            parser.définis_state(ÉtatParsageURL.PathOrAuthority)
+            parser.increase_pointer()
+            retourne RésultatParsageURL.Ok
+        }
+
+        // 9. Otherwise, set url’s path to the empty string and set state to opaque path state.
+        parser.url.path = ""
+        parser.définis_state(ÉtatParsageURL.OpaquePath)
+        retourne RésultatParsageURL.Ok
+    }
+
+    // 3. Otherwise, if state override is not given, set buffer to the empty string, state to no scheme state, and start over (from the first code point in input).
+    saufsi parser.state_override {
+        parser.buffer.unités.taille = 0
+        parser.définis_state(ÉtatParsageURL.NoScheme)
+        parser.pointer = parser.pointer_orig
+        retourne RésultatParsageURL.Ok
+    }
+
+    // 4. Otherwise, return failure.
+    retourne RésultatParsageURL.Échec
+}
+
+/* https://url.spec.whatwg.org/#no-scheme-state */
+basic_url_parser_no_scheme :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
+{
+    // 1. If base is null, or base has an opaque path and c is not U+0023 (#), missing-scheme-non-relative-URL validation error, return failure.
+    si parser.base == nul || (possède_chemin_opaque(parser.base) && parser.donne_caractère() != 0x23) {
+        imprime("[%] missing-scheme-non-relative-URL\n", #nom_de_cette_fonction)
+        retourne RésultatParsageURL.Échec
+    }
+
+    // 2. Otherwise, if base has an opaque path and c is U+0023 (#),
+    // set url’s scheme to base’s scheme,
+    //     url’s path to base’s path,
+    //     url’s query to base’s query,
+    //     url’s fragment to the empty string,
+    //     and set state to fragment state.
+    si possède_chemin_opaque(parser.base) && parser.donne_caractère() == 0x23 {
+        parser.url.scheme = copie_chaine(parser.base.scheme)
+        discr parser.base.path {
+            Segment(s) {
+                parser.url.path = copie_chaine(s)
+            }
+            Path(p) {
+                pour p {
+                    ajoute_segment_au_chemin(parser.url, copie_chaine(it))
+                }
+            }
+            sinon {}
+        }
+        parser.url.query = copie_chaine(parser.base.query)
+        parser.url.fragment = ""
+        parser.définis_state(ÉtatParsageURL.Fragment)
+        retourne RésultatParsageURL.Ok
+    }
+
+    // 3. Otherwise, if base’s scheme is not "file", set state to relative state and decrease pointer by 1.
+    si parser.base.scheme != "file" {
+        parser.définis_state(ÉtatParsageURL.Relative)
+        parser.decrease_pointer()
+        retourne RésultatParsageURL.Ok
+    }
+
+    // 4. Otherwise, set state to file state and decrease pointer by 1.
+    parser.définis_state(ÉtatParsageURL.File)
+    parser.decrease_pointer()
+    retourne RésultatParsageURL.Ok
+}
+
+/* https://url.spec.whatwg.org/#special-authority-slashes-state */
+basic_url_parser_special_authority_slashes :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
+{
+    // 1. If c is U+002F (/) and remaining starts with U+002F (/), then
+    // set state to special authority ignore slashes state and increase pointer by 1.
+    c := parser.donne_caractère()
+    restant := parser.donne_restant()
+    si c == 0x2F && restant.taille() >= 1 && restant.unités[0] == 0x2F {
+        parser.définis_state(ÉtatParsageURL.SpecialAuthorityIgnoreSlashes)
+        parser.increase_pointer()
+    }
+    // 2. Otherwise, special-scheme-missing-following-solidus validation error, set
+    // state to special authority ignore slashes state and decrease pointer by 1.
+    sinon {
+        imprime("[%] special-scheme-missing-following-solidus\n", #nom_de_cette_fonction)
+        parser.définis_state(ÉtatParsageURL.SpecialAuthorityIgnoreSlashes)
+        parser.decrease_pointer()
+    }
+    retourne RésultatParsageURL.Ok
+}
+
+/* https://url.spec.whatwg.org/#special-authority-ignore-slashes-state */
+basic_url_parser_special_authority_ignore_slashes :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
+{
+    // 1. If c is neither U+002F (/) nor U+005C (\), then set state to authority state and decrease pointer by 1.
+    c := parser.donne_caractère()
+    si c != 0x2F && c != 0x5C {
+        parser.définis_state(ÉtatParsageURL.Authority)
+        parser.decrease_pointer()
+    }
+    // 2. Otherwise, special-scheme-missing-following-solidus validation error.
+    sinon {
+        imprime("[%] special-scheme-missing-following-solidus\n", #nom_de_cette_fonction)
+    }
+    retourne RésultatParsageURL.Ok
+}
+
+/* https://url.spec.whatwg.org/#authority-state */
+basic_url_parser_authority :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
+{
+    // 1. If c is U+0040 (@), then:
+    c := parser.donne_caractère()
+    si c == 0x40 {
+        panique("non-implementé")
+        // 1. Invalid-credentials validation error.
+
+        // 2. If atSignSeen is true, then prepend "%40" to buffer.
+
+        // 3. Set atSignSeen to true.
+
+        // 4. For each codePoint in buffer:
+
+            // 1. If codePoint is U+003A (:) and passwordTokenSeen is false, then set passwordTokenSeen to true and continue.
+
+            // 2. Let encodedCodePoints be the result of running UTF-8 percent-encode codePoint using the userinfo percent-encode set.
+
+            // 3. If passwordTokenSeen is true, then append encodedCodePoints to url’s password.
+
+            // 4. Otherwise, append encodedCodePoints to url’s username.
+
+        // 5. Set buffer to the empty string.
+    }
+    // 2. Otherwise, if one of the following is true:
+        // c is the EOF code point, U+002F (/), U+003F (?), or U+0023 (#)
+        // url is special and c is U+005C (\)
+        // then:
+    sinon si (c == FIN_DE_FICHIER || c == 0x2F || c == 0x3F || c == 0x23) || (est_spécial(parser.url) && c == 0x5C) {
+        // If atSignSeen is true and buffer is the empty string, host-missing validation error, return failure.
+        si parser.at_sign_seen == vrai && parser.buffer.taille() == 0 {
+            imprime("[%] host-missing\n", #nom_de_cette_fonction)
+            retourne RésultatParsageURL.Échec
+        }
+
+        // Decrease pointer by buffer’s code point length + 1, set buffer to the empty string, and set state to host state.
+        parser.decrease_pointer(parser.buffer.taille() + 1)
+        parser.buffer.unités.taille = 0
+        parser.définis_state(ÉtatParsageURL.Host)
+    }
+    // 3. Otherwise, append c to buffer.
+    sinon {
+        chaine_ajoute(*parser.buffer, c)
+    }
+    retourne RésultatParsageURL.Ok
+}
+
+/* https://url.spec.whatwg.org/#host-state */
+basic_url_parser_host :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
+{
+    c := parser.donne_caractère()
+
+    // 1. If state override is given and url’s scheme is "file", then decrease pointer by 1 and set state to file host state.
+    si parser.state_override && parser.url.scheme == "file" {
+        parser.decrease_pointer()
+        parser.définis_state(ÉtatParsageURL.FileHost)
+    }
+    // 2. Otherwise, if c is U+003A (:) and insideBrackets is false, then:
+    sinon si c == 0x3A && parser.inside_brackets == faux {
+        panique("non-implémenté")
+        // 1. If buffer is the empty string, host-missing validation error, return failure.
+
+        // 2. If state override is given and state override is hostname state, then return.
+
+        // 3. Let host be the result of host parsing buffer with url is not special.
+
+        // 4. If host is failure, then return failure.
+
+        // 5. Set url’s host to host, buffer to the empty string, and state to port state.
+    }
+    // 3. Otherwise, if one of the following is true:
+    //    c is the EOF code point, U+002F (/), U+003F (?), or U+0023 (#)
+    //    url is special and c is U+005C (\)
+    //    then decrease pointer by 1, and then:
+    sinon si (c == FIN_DE_FICHIER || c == 0x2F || c == 0x3F || c == 0x23) || (est_spécial(parser.url) && c == 0x5C) {
+        parser.decrease_pointer()
+
+        // 1. If url is special and buffer is the empty string, host-missing validation error, return failure.
+        si est_spécial(parser.url) && parser.buffer.est_vide() {
+            imprime("[%] host-missing\n", #nom_de_cette_fonction)
+        }
+        // 2. Otherwise, if state override is given, buffer is the empty string, and either url includes credentials or url’s port is non-null, return.
+        sinon si parser.state_override && parser.buffer.est_vide() && (parser.url.inclus_credentials() || parser.url.port.possède_valeur()) {
+            retourne RésultatParsageURL.Terminé
+        }
+
+        // À FAIRE : 3. Let host be the result of host parsing buffer with url is not special.
+        host := converti_vers_chaine(parser.buffer)
+
+        // 4. If host is failure, then return failure.
+
+        // 5. Set url’s host to host, buffer to the empty string, and state to path start state.
+        parser.url.host = host
+        parser.buffer.unités.taille = 0
+        parser.définis_state(ÉtatParsageURL.PathStart)
+
+        // 6. If state override is given, then return.
+        si parser.state_override {
+            retourne RésultatParsageURL.Terminé
+        }
+    }
+    // 4. Otherwise:
+    sinon {
+        // 1. If c is U+005B ([), then set insideBrackets to true.
+        si c == 0x5B {
+            parser.inside_brackets = vrai
+        }
+
+        // 2. If c is U+005D (]), then set insideBrackets to false.
+        si c == 0x5D {
+            parser.inside_brackets = faux
+        }
+
+        // 3. Append c to buffer.
+        chaine_ajoute(*parser.buffer, c)
+    }
+    retourne RésultatParsageURL.Ok
+}
+
+/* https://url.spec.whatwg.org/#file-state */
+basic_url_parser_file :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
+{
+    // 1. Set url’s scheme to "file".
+    parser.url.scheme = "file"
+
+    // 2. Set url’s host to the empty string.
+    parser.url.host = ""
+
+    // 3. If c is U+002F (/) or U+005C (\), then:
+    c := parser.donne_caractère()
+    si c == 0x2F || c == 0x5C {
+        // 1. If c is U+005C (\), invalid-reverse-solidus validation error.
+        si c == 0x5C {
+            imprime("[%] invalid-reverse-solidus\n", #nom_de_cette_fonction)
+        }
+
+        // 2. Set state to file slash state.
+        parser.définis_state(ÉtatParsageURL.FileSlash)
+        retourne RésultatParsageURL.Ok
+    }
+
+    // 4. Otherwise, if base is non-null and base’s scheme is "file":
+    si parser.base != nul && parser.base.scheme == "file" {
+        // 1. Set url’s host to base’s host, url’s path to a clone of base’s path, and url’s query to base’s query.
+        parser.url.host = parser.base.host
+        discr parser.base.path {
+            Segment(s) {
+                parser.url.path = copie_chaine(s)
+            }
+            Path(p) {
+                pour p {
+                    ajoute_segment_au_chemin(parser.url, copie_chaine(it))
+                }
+            }
+            sinon {}
+        }
+        si parser.base.query.possède_valeur() {
+            parser.url.query = copie_chaine(parser.base.query.Quelque)
+        }
+
+        // 2. If c is U+003F (?), then set url’s query to the empty string and state to query state.
+        si c == 0x3F {
+            parser.url.query = ""
+            parser.définis_state(ÉtatParsageURL.Query)
+            retourne RésultatParsageURL.Ok
+        }
+        // 3. Otherwise, if c is U+0023 (#), set url’s fragment to the empty string and state to fragment state.
+        si c == 0x23 {
+            parser.url.fragment = ""
+            parser.définis_state(ÉtatParsageURL.Fragment)
+            retourne RésultatParsageURL.Ok
+        }
+        // 4. Otherwise, if c is not the EOF code point:
+        si c != FIN_DE_FICHIER {
+            // 1. Set url’s query to null.
+            init_de(Optionnel(ChaineASCII))(*parser.url.query)
+
+            // 2. If the code point substring from pointer to the end of input does not start with a Windows drive letter, then shorten url’s path.
+            discr parser.url.path {
+                Path {
+                    parser.url.path.Path.taille -= 1
+                }
+                sinon {}
+            }
+
+            // 3. Otherwise:
+
+                // 1. File-invalid-Windows-drive-letter validation error.
+
+                // 2. Set url’s path to « ».
+
+            // 4. Set state to path state and decrease pointer by 1.
+            parser.définis_state(ÉtatParsageURL.Path)
+            parser.decrease_pointer()
+            retourne RésultatParsageURL.Ok
+        }
+    }
+
+    // 5. Otherwise, set state to path state, and decrease pointer by 1.
+    parser.définis_state(ÉtatParsageURL.Path)
+    parser.decrease_pointer()
+    retourne RésultatParsageURL.Ok
+}
+
+/* https://url.spec.whatwg.org/#file-slash-state */
+basic_url_parser_file_slash :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
+{
+    // 1. If c is U+002F (/) or U+005C (\), then:
+    c := parser.donne_caractère()
+    si c == 0x2F || c == 0x5C {
+        // 1. If c is U+005C (\), invalid-reverse-solidus validation error.
+        si c == 0x5C {
+            imprime("[%] invalid-reverse-solidus\n", #nom_de_cette_fonction)
+        }
+
+        // 2. Set state to file host state.
+        parser.définis_state(ÉtatParsageURL.FileHost)
+        retourne RésultatParsageURL.Ok
+    }
+
+    // 2. Otherwise:
+
+    // 1. If base is non-null and base’s scheme is "file", then:
+    si parser.base != nul && parser.base.scheme == "file" {
+        // 1. Set url’s host to base’s host.
+        parser.url.host = parser.base.host
+
+        // 2. If the code point substring from pointer to the end of input does not 
+        // start with a Windows drive letter and base’s path[0] is a normalized Windows
+        // drive letter, then append base’s path[0] to url’s path.
+        sous_chaine := parser.donne_sous_chaine_depuis_pointeur()
+        saufsi commence_par_lettre_stockage_windows(sous_chaine) {
+            path := parser.base.path
+            discr path {
+                Path(p) {
+                    si p.taille > 1 && est_lettre_stockage_windows_normalisée(p[0]) {
+                        ajoute_segment_au_chemin(parser.url, p[0])
+                    }
+                }
+                sinon {}
+            }
+        }
+    }
+
+    // 2. Set state to path state, and decrease pointer by 1.
+    parser.définis_state(ÉtatParsageURL.Path)
+    parser.decrease_pointer()
+    retourne RésultatParsageURL.Ok
+}
+
+/* https://url.spec.whatwg.org/#file-host-state */
+basic_url_parser_file_host :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
+{
+    c := parser.donne_caractère()
+
+    // 1. If c is the EOF code point, U+002F (/), U+005C (\), U+003F (?), or U+0023 (#), then decrease pointer by 1 and then:
+    si c == FIN_DE_FICHIER || c == 0x2F || c == 0x5C || c == 0x3F || c == 0x23 {
+        parser.decrease_pointer()
+
+        // À FAIRE 1. If state override is not given and buffer is a Windows drive letter, file-invalid-Windows-drive-letter-host validation error, set state to path state.
+
+        // 2. Otherwise, if buffer is the empty string, then:
+        si parser.buffer.est_vide() {
+            // 1. Set url’s host to the empty string.
+            parser.url.host = ""
+
+            // 2. If state override is given, then return.
+            si parser.state_override {
+                retourne RésultatParsageURL.Terminé
+            }
+
+            // 3. Set state to path start state.
+            parser.définis_state(ÉtatParsageURL.PathStart)
+            retourne RésultatParsageURL.Ok
+        }
+
+        // 3. Otherwise, run these steps:
+        panique("non-implémenté")
+
+            // 1. Let host be the result of host parsing buffer with url is not special.
+
+            // 2. If host is failure, then return failure.
+
+            // 3. If host is "localhost", then set host to the empty string.
+
+            // 4. Set url’s host to host.
+
+            // 5. If state override is given, then return.
+
+            // 6. Set buffer to the empty string and state to path start state.
+    }
+
+    // 2. Otherwise, append c to buffer.
+    chaine_ajoute(*parser.buffer, c)
+    retourne RésultatParsageURL.Ok
+}
+
+/* https://url.spec.whatwg.org/#path-start-state */
+basic_url_parser_path_start :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
+{
+    // 1. If url is special, then:
+    si parser.url.est_spécial() {
+        // 1. If c is U+005C (\), invalid-reverse-solidus validation error.
+        c := parser.donne_caractère()
+        si c == 0x5C {
+            imprime("[%] invalid-reverse-solidus\n", #nom_de_cette_fonction)
+        }
+
+        // 2. Set state to path state.
+        parser.définis_state(ÉtatParsageURL.Path)
+
+        // 3. If c is neither U+002F (/) nor U+005C (\), then decrease pointer by 1.
+        si c != 0x2F && c != 0x5C {
+            parser.decrease_pointer()
+        }
+
+        retourne RésultatParsageURL.Ok
+    }
+
+    panique("non-implémenté")
+
+    // 2. Otherwise, if state override is not given and c is U+003F (?), set url’s query to the empty string and state to query state.
+
+    // 3. Otherwise, if state override is not given and c is U+0023 (#), set url’s fragment to the empty string and state to fragment state.
+
+    // 4. Otherwise, if c is not the EOF code point:
+
+        // 1. Set state to path state.
+
+        // 2. If c is not U+002F (/), then decrease pointer by 1.
+
+    // 5. Otherwise, if state override is given and url’s host is null, append the empty string to url’s path.
+}
+
+/* https://url.spec.whatwg.org/#path-state */
+basic_url_parser_path :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
+{
+    // 1. If one of the following is true:
+    //    c is the EOF code point or U+002F (/)
+    //    url is special and c is U+005C (\)
+    //    state override is not given and c is U+003F (?) or U+0023 (#)
+    //    then:
+    c := parser.donne_caractère()
+    si (c == FIN_DE_FICHIER || c == 0x2F) || (parser.url.est_spécial() && c == 0x5C) || (parser.state_override == nul && (c == 0x3F || c == 0x23)) {
+        // 1. If url is special and c is U+005C (\), invalid-reverse-solidus validation error.
+        si parser.url.est_spécial() && c == 0x5C {
+            imprime("[%] invalid-reverse-solidus\n", #nom_de_cette_fonction)
+        }
+
+        // 2. If buffer is a double-dot URL path segment, then:
+        si parser.buffer == ".." {
+            panique("non-implémenté")
+            // 1. Shorten url’s path.
+
+            // 2. If neither c is U+002F (/), nor url is special and c is U+005C (\), append the empty string to url’s path.
+        }
+
+        // 3. Otherwise, if buffer is a single-dot URL path segment and if neither c is U+002F (/), nor url is special and c is U+005C (\), append the empty string to url’s path.
+        si parser.buffer == "." && (c != 0x2F && (!parser.url.est_spécial() && c == 0x5C)) {
+            ajoute_segment_au_chemin(parser.url, "")
+        }
+
+        // 4. Otherwise, if buffer is not a single-dot URL path segment, then:
+        si parser.buffer != "." {
+            // À FAIRE 1. If url’s scheme is "file", url’s path is empty, and buffer is a Windows drive letter, then replace the second code point in buffer with U+003A (:).
+
+            // 2. Append buffer to url’s path.
+            ajoute_segment_au_chemin(parser.url, converti_vers_chaine(parser.buffer))
+        }
+
+        // 5. Set buffer to the empty string.
+        parser.buffer.unités.taille = 0
+
+        // 6. If c is U+003F (?), then set url’s query to the empty string and state to query state.
+        si c == 0x3F {
+            parser.url.query = ""
+            parser.définis_state(ÉtatParsageURL.Query)
+        }
+
+        // 7. If c is U+0023 (#), then set url’s fragment to the empty string and state to fragment state.
+        si c == 0x23 {
+            parser.url.fragment = ""
+            parser.définis_state(ÉtatParsageURL.Fragment)
+        }
+    }
+    // 2. Otherwise, run these steps:
+    sinon {
+        // À FAIRE 1. If c is not a URL code point and not U+0025 (%), invalid-URL-unit validation error.
+
+        // À FAIRE 2. If c is U+0025 (%) and remaining does not start with two ASCII hex digits, invalid-URL-unit validation error.
+
+        // À FAIRE 3. UTF-8 percent-encode c using the path percent-encode set and append the result to buffer.
+        chaine_ajoute(*parser.buffer, c)
+    }
+
+    retourne RésultatParsageURL.Ok
+}
+
+/* https://url.spec.whatwg.org/#query-state */
+basic_url_parser_query :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
+{
+    // À FAIRE : 1. If encoding is not UTF-8 and one of the following is true:
+    //    url is not special
+    //    url’s scheme is "ws" or "wss"
+    //    then set encoding to UTF-8.
+
+    c := parser.donne_caractère()
+
+    // 2. If one of the following is true:
+    // state override is not given and c is U+0023 (#)
+    // c is the EOF code point
+    // then:
+    si (parser.state_override == nul && c == 0x23) || c == FIN_DE_FICHIER {
+        // À FAIRE : 1. Let queryPercentEncodeSet be the special-query percent-encode set if url is special;
+        //    otherwise the query percent-encode set.
+
+        // À FAIRE : 2. Percent-encode after encoding, with encoding, buffer, and queryPercentEncodeSet, and append the result to url’s query.
+        parser.url.query = converti_vers_chaine(parser.buffer)
+
+        // 3. Set buffer to the empty string.
+        parser.buffer.unités.taille = 0
+
+        // 4. If c is U+0023 (#), then set url’s fragment to the empty string and state to fragment state.
+        si c == 0x23 {
+            parser.url.fragment = ""
+            parser.définis_state(ÉtatParsageURL.Fragment)
+        }
+    }
+    // 3. Otherwise, if c is not the EOF code point:
+    sinon si c != FIN_DE_FICHIER {
+        // À FAIRE 1. If c is not a URL code point and not U+0025 (%), invalid-URL-unit validation error.
+
+        // À FAIRE 2. If c is U+0025 (%) and remaining does not start with two ASCII hex digits, invalid-URL-unit validation error.
+
+        // 3. Append c to buffer.
+        chaine_ajoute(*parser.buffer, c)
+    }
+
+    retourne RésultatParsageURL.Ok
+}
+
+#portée_export
 
 /** \} */
 
@@ -159,6 +1139,75 @@ url_serializer :: fonc (url: *URI) -> ChaineASCII
 {
     // À FAIRE : standardise
     retourne recompose_uri(url)
+}
+
+url_serializer :: fonc (url: *URL, exclude_fragment := faux) -> ChaineASCII
+{
+    // 1. Let output be url’s scheme and U+003A (:) concatenated.
+    output: Enchaineuse
+    initialise_enchaineuse(*output)
+    diffère détruit_tampons(*output)
+
+    ajoute_au_tampon(*output, url.scheme, ":")
+
+    // 2. If url’s host is non-null:
+    si url.host.possède_valeur() {
+        // 1. Append "//" to output.
+        ajoute_au_tampon(*output, "//")
+
+        // 2. If url includes credentials, then:
+        si url.inclus_credentials() {
+            // 1. Append url’s username to output.
+            ajoute_au_tampon(*output, url.username)
+
+            // 2. If url’s password is not the empty string, then append U+003A (:), followed by url’s password, to output.
+            si url.password {
+                ajoute_au_tampon(*output, ":", url.password)
+            }
+
+            // 3. Append U+0040 (@) to output.
+            ajoute_au_tampon(*output, "@")
+        }
+
+        // 3. Append url’s host, serialized, to output.
+        ajoute_au_tampon(*output, url.host.Quelque)
+
+        // 4. If url’s port is non-null, append U+003A (:) followed by url’s port, serialized, to output.
+        si url.port.possède_valeur() {
+            ajoute_au_tampon(*output, ":", url.port.Quelque)
+        }
+    }
+
+    // 3. If url’s host is null, url does not have an opaque path, url’s path’s size is greater than 1, and url’s path[0] is the empty string, then append U+002F (/) followed by U+002E (.) to output.
+    // si !url.host.possède_valeur() && !url.possède_chemin_opaque() && url.path.Path.taille > 1 && url.path.Path[0] == "" {
+    //     ajoute_au_tampon(*output, "/.")
+    // }
+
+    // 4. Append the result of URL path serializing url to output.
+    discr url.path {
+        Segment(s) {
+            ajoute_au_tampon(*output, s)
+        }
+        Path(p) {
+            pour p {
+                ajoute_au_tampon(*output, "/", it)
+            }
+        }
+        sinon {}
+    }
+
+    // 5. If url’s query is non-null, append U+003F (?), followed by url’s query, to output.
+    si url.query.possède_valeur() {
+        ajoute_au_tampon(*output, "?", url.query.Quelque)
+    }
+
+    // 6. If exclude fragment is false and url’s fragment is non-null, then append U+0023 (#), followed by url’s fragment, to output.
+    si exclude_fragment == faux && url.fragment.possède_valeur() {
+        ajoute_au_tampon(*output, "#", url.fragment.Quelque)
+    }
+
+    // 7. Return output.
+    retourne chaine_depuis_enchaineuse(*output)
 }
 
 /** \} */
