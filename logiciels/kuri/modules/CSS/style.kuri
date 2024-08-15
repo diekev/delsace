@@ -312,6 +312,11 @@ Style :: struct {
     font_weight: ValeurDeStyle
     font_style: ValeurDeStyle
 
+    bottom: ValeurDeStyle
+    left: ValeurDeStyle
+    right: ValeurDeStyle
+    top: ValeurDeStyle
+
     width: ValeurDeStyle
     min_width: ValeurDeStyle
     max_width: ValeurDeStyle
@@ -371,6 +376,12 @@ initialise_style :: fonc (style: *Style)
     style.max_height = ValeurDeStyle(mot_clé = PROP_none)
 
     style.line_height = ValeurDeStyle(mot_clé = PROP_normal)
+
+    /* Position */
+    style.top = ValeurDeStyle(mot_clé = PROP_auto)
+    style.bottom = ValeurDeStyle(mot_clé = PROP_auto)
+    style.left = ValeurDeStyle(mot_clé = PROP_auto)
+    style.right = ValeurDeStyle(mot_clé = PROP_auto)
 }
 
 /* https://www.w3.org/TR/css-color-4/ */
@@ -1343,6 +1354,74 @@ prop_line_height_sur_calcul_style :: fonc (déclaration: *DéclarationPropriét�
         }
         sinon {
             style.line_height = valeur
+        }
+    }
+}
+
+prop_bottom_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    valeur := déclaration.value[0]
+
+    discr valeur {
+        integer(i) {
+            style.bottom = ValeurDeStyle(number = i)
+        }
+        longueur(l) {
+            style.bottom = ValeurDeStyle(number = calcule_longueur(l, ctx))
+        }
+        sinon {
+            style.bottom = valeur
+        }
+    }
+}
+
+prop_left_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    valeur := déclaration.value[0]
+
+    discr valeur {
+        integer(i) {
+            style.left = ValeurDeStyle(number = i)
+        }
+        longueur(l) {
+            style.left = ValeurDeStyle(number = calcule_longueur(l, ctx))
+        }
+        sinon {
+            style.left = valeur
+        }
+    }
+}
+
+prop_right_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    valeur := déclaration.value[0]
+
+    discr valeur {
+        integer(i) {
+            style.right = ValeurDeStyle(number = i)
+        }
+        longueur(l) {
+            style.right = ValeurDeStyle(number = calcule_longueur(l, ctx))
+        }
+        sinon {
+            style.right = valeur
+        }
+    }
+}
+
+prop_top_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    valeur := déclaration.value[0]
+
+    discr valeur {
+        integer(i) {
+            style.top = ValeurDeStyle(number = i)
+        }
+        longueur(l) {
+            style.top = ValeurDeStyle(number = calcule_longueur(l, ctx))
+        }
+        sinon {
+            style.top = valeur
         }
     }
 }

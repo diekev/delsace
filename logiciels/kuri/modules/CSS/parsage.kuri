@@ -1573,7 +1573,11 @@ infos_types_propriétés := [
     InfoTypePropriété(PROP_width, parse_propriété_height_width, PropriétéHéritable.Non, prop_width_sur_calcul_style),
     InfoTypePropriété(PROP_min_width, parse_propriété_min_height_width, PropriétéHéritable.Non, prop_min_width_sur_calcul_style),
     InfoTypePropriété(PROP_max_width, parse_propriété_max_height_width, PropriétéHéritable.Non, prop_max_width_sur_calcul_style),
-    InfoTypePropriété(PROP_line_height, parse_propriété_line_height, PropriétéHéritable.Oui, prop_line_height_sur_calcul_style)
+    InfoTypePropriété(PROP_line_height, parse_propriété_line_height, PropriétéHéritable.Oui, prop_line_height_sur_calcul_style),
+    InfoTypePropriété(PROP_bottom, parse_propriété_inset, PropriétéHéritable.Non, prop_bottom_sur_calcul_style),
+    InfoTypePropriété(PROP_left, parse_propriété_inset, PropriétéHéritable.Non, prop_left_sur_calcul_style),
+    InfoTypePropriété(PROP_right, parse_propriété_inset, PropriétéHéritable.Non, prop_right_sur_calcul_style),
+    InfoTypePropriété(PROP_top, parse_propriété_inset, PropriétéHéritable.Non, prop_top_sur_calcul_style)
 ]
 
 #portée_export
@@ -2959,6 +2963,34 @@ parse_propriété_line_height :: fonc (value: [..]ComponentValue) -> Optionnel([
     }
 
     imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Line Height
+ * https://drafts.csswg.org/css-position/#insets
+ * \{ */
+
+parse_propriété_inset :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    parseuse.consomme_espaces_blanches()
+
+    résultat: [..]ValeurDeStyle
+
+    lexème := parseuse.lexème_courant()
+    si lexème.est_mot_clé(PROP_auto) {
+        tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = PROP_auto))
+        retourne
+    }
+
+    /* auto | <length-percentage> */
+    valeur := parse_valeur_length_percentage(parseuse)
+    si valeur.possède_valeur() {
+        tableau_ajoute(*résultat, valeur.Quelque)
+        retourne résultat
+    }
 }
 
 /** \} */
