@@ -969,6 +969,7 @@ parse_type_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(SimpleSel
     }
 
     si parseuse_locale.lexème_courant().est_lexème_fois() {
+        parseuse_locale.avance()
         parseuse.curseur = parseuse_locale.curseur
         retourne crée_universal_selector(crée_chaine_utf16_unique_vide())
     }
