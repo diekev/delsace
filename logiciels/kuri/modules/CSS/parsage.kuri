@@ -1021,6 +1021,12 @@ parse_ns_prefix :: fonc (parseuse: &ParseuseSelector) -> Optionnel(NSPrefix)
 
     si parseuse.lexème_courant().est_lexème_pipe() {
         parseuse.avance()
+
+        /* Ignorons les appariements d'attibuts avec |=. */
+        si parseuse.lexème_courant().est_lexème_égal() {
+            retourne
+        }
+
         retourne résultat
     }
 }
