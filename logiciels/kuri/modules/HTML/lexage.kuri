@@ -1978,6 +1978,7 @@ cherche_référence_caractère_nommé :: fonc (lexeuse: *Lexeuse) -> bool
     dernier_caractère_apparié: n32
 
     tampon_temporaire: ChaineFixe
+    chaine_ajoute(*tampon_temporaire, '&')
 
     /* Plusieurs fonctions s'appelent « commence_par », donc utilisons
      * une enveloppe pour avoir la bonne. */
