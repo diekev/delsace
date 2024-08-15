@@ -61,7 +61,26 @@ apparie_sélecteur :: fonc (selector: []CompoundSelector, index: z64, élément:
 
     discr compound.combinateur {
         NEXT_SIBLING {
-            retourne faux
+            parent := élément.parent
+
+            ainé: *HTML.Élément
+            pour parent.enfants {
+                saufsi HTML.est_élément(it) {
+                    continue
+                }
+
+                si it == élément {
+                    arrête
+                }
+
+                ainé = it comme *HTML.Élément
+            }
+
+            saufsi ainé {
+                retourne faux
+            }
+
+            retourne apparie_sélecteur(selector, index - 1, ainé)
         }
         CHILD {
             parent := élément.parent
@@ -92,6 +111,22 @@ apparie_sélecteur :: fonc (selector: []CompoundSelector, index: z64, élément:
             retourne faux
         }
         SUBSEQUENT_SIBLING {
+            parent := élément.parent
+
+            pour parent.enfants {
+                saufsi HTML.est_élément(it) {
+                    continue
+                }
+
+                si it == élément {
+                    arrête
+                }
+
+                si apparie_sélecteur(selector, index - 1, it comme *HTML.Élément) {
+                    retourne vrai
+                }
+            }
+
             retourne faux
         }
     }
@@ -103,7 +138,107 @@ apparie_simple_selector :: fonc (simple: &SimpleSelector, élément: *HTML.Élé
 {
     discr simple.type {
         Attrib {
-            retourne faux
+            attribut := HTML.donne_attribut(élément, simple.ident)
+            saufsi attribut.possède_valeur() {
+                retourne faux
+            }
+
+            saufsi simple.matcher.possède_valeur() {
+                /* Nous avons un sélecteur de type [attr], nous pouvons retourner vrai ici. */
+                retourne vrai
+            }
+
+            matcher := simple.matcher.Quelque
+
+            /* À FAIRE : sensibilité à la casse. */
+            discr matcher {
+                EST_ÉGAL {
+                    retourne simple.attribute_value == attribut.Quelque
+                }
+                INCLUS {
+                    morceaux := HTML.run_ordered_set_parser(attribut.Quelque)
+                    diffère déloge(morceaux)
+
+                    pour morceaux {
+                        si it == simple.attribute_value {
+                            retourne vrai
+                        }
+                    }
+
+                    retourne faux
+                }
+                DASHMATCH {
+                    si simple.attribute_value == attribut.Quelque {
+                        retourne vrai
+                    }
+
+                    chn_attribut := attribut.Quelque.donne_chaine_utf16()
+                    chn_selector := simple.attribute_value.donne_chaine_utf16()
+
+                    saufsi est_préfixe_de(chn_selector, chn_attribut) {
+                        retourne faux
+                    }
+
+                    retourne chn_attribut.unités[chn_selector.taille()] == ('-' comme n32)
+                }
+                PREFIXMATCH {
+                    si simple.attribute_value == attribut.Quelque {
+                        retourne vrai
+                    }
+                    chn_attribut := attribut.Quelque.donne_chaine_utf16()
+                    chn_selector := simple.attribute_value.donne_chaine_utf16()
+                    retourne est_préfixe_de(chn_selector, chn_attribut)
+                }
+                SUFFIXMATCH {
+                    si simple.attribute_value == attribut.Quelque {
+                        retourne vrai
+                    }
+
+                    chn_attribut := attribut.Quelque.donne_chaine_utf16()
+                    chn_selector := simple.attribute_value.donne_chaine_utf16()
+
+                    si chn_selector.taille() > chn_attribut.taille() {
+                        retourne faux
+                    }
+
+                    diff := chn_attribut.taille() - chn_selector.taille()
+
+                    sous_chaine_attribut := chn_attribut
+                    sous_chaine_attribut.unités.taille = chn_selector.taille()
+                    sous_chaine_attribut.unités.pointeur += diff
+
+                    retourne chn_selector == sous_chaine_attribut
+                }
+                SUBSTRINGMATCH {
+                    si simple.attribute_value == attribut.Quelque {
+                        retourne vrai
+                    }
+
+                    chn_attribut := attribut.Quelque.donne_chaine_utf16()
+                    chn_selector := simple.attribute_value.donne_chaine_utf16()
+
+                    si chn_selector.taille() > chn_attribut.taille() {
+                        retourne faux
+                    }
+
+                    i := 0
+                    fin := chn_attribut.taille() - chn_selector.taille() + 1
+
+                    sous_chaine_attribut := chn_attribut
+                    sous_chaine_attribut.unités.taille = chn_selector.taille()
+
+                    tantque i < fin {
+                        si chn_selector == sous_chaine_attribut {
+                            retourne vrai
+                        }
+
+                        sous_chaine_attribut.unités.pointeur += 1
+                        i += 1
+                    }
+
+                    retourne faux
+                }
+            }
         }
         ID {
             retourne simple.ident == élément.id
@@ -587,6 +722,66 @@ donne_chaine_pour_pseudo_classe :: fonc (pseudo_classe: PseudoClasses) -> CSSOMS
  * https://www.w3.org/TR/selectors-4/
  * \{ */
 
+/* https://www.w3.org/TR/selectors-4/#specificity-rules */
+Spécificité :: struct {
+    A: n32
+    B: n32
+    C: n32
+}
+
+donne_spécificité_max :: fonc () -> Spécificité
+{
+    retourne Spécificité(0xfffffff, 0xffffffff, 0xfffffffff)
+}
+
+opérateur == :: fonc (s1: Spécificité, s2: Spécificité) -> bool
+{
+    retourne s1.A == s2.A && s1.B == s2.B && s1.C == s2.C
+}
+
+opérateur != :: fonc (s1: Spécificité, s2: Spécificité) -> bool
+{
+    retourne !(s1 == s2)
+}
+
+opérateur < :: fonc (s1: Spécificité, s2: Spécificité) -> bool
+{
+    si s1.A < s2.A {
+        retourne vrai
+    }
+    si s1.A > s2.A {
+        retourne faux
+    }
+
+    si s1.B < s2.B {
+        retourne vrai
+    }
+    si s1.B > s2.B {
+        retourne faux
+    }
+
+    retourne s1.C < s2.C
+}
+
+opérateur > :: fonc (s1: Spécificité, s2: Spécificité) -> bool
+{
+    si s1.A > s2.A {
+        retourne vrai
+    }
+    si s1.A < s2.A {
+        retourne faux
+    }
+
+    si s1.B > s2.B {
+        retourne vrai
+    }
+    si s1.B < s2.B {
+        retourne faux
+    }
+
+    retourne s1.C > s2.C
+}
+
 SelectorList :: struct {
     complex_selectors: [..]ComplexSelector
 }
@@ -598,6 +793,20 @@ détruit_données_selector_list :: fonc (selector: *SelectorList)
     }
 
     déloge(selector.complex_selectors)
+}
+
+calcule_spécificité :: fonc (selector: *SelectorList) -> Spécificité
+{
+    résultat: Spécificité
+
+    pour * selector.complex_selectors {
+        spécificité := calcule_spécificité(it)
+        si spécificité > résultat {
+            résultat = spécificité
+        }
+    }
+
+    retourne résultat
 }
 
 imprime_selector_list :: fonc (enchaineuse: *Enchaineuse, selector_list: *SelectorList)
@@ -626,6 +835,17 @@ détruit_données_complex_selector :: fonc (selector: *ComplexSelector)
     }
 
     déloge(selector.compound_selectors)
+}
+
+calcule_spécificité :: fonc (selector: *ComplexSelector) -> Spécificité
+{
+    résultat: Spécificité
+
+    pour * selector.compound_selectors {
+        calcule_spécificité(it, *résultat)
+    }
+
+    retourne résultat
 }
 
 imprime_complex_selector :: fonc (enchaineuse: *Enchaineuse, complex_selectors: *ComplexSelector)
@@ -670,6 +890,13 @@ Combinator :: énum {
 CompoundSelector :: struct {
     simple_selectors: [..]SimpleSelector
     combinateur: Combinator
+}
+
+calcule_spécificité :: fonc (selector: *CompoundSelector, spécificité: *Spécificité)
+{
+    pour * selector.simple_selectors {
+        calcule_spécificité(it, spécificité)
+    }
 }
 
 détruit_données_compound_selector :: fonc (selector: *CompoundSelector)
@@ -742,6 +969,28 @@ SimpleSelector :: struct {
 détruit_données_simple_selector :: fonc (selector: *SimpleSelector)
 {
     détruit_données_selector_list(*selector.selector_list)
+}
+
+calcule_spécificité :: fonc (selector: *SimpleSelector, spécificité: *Spécificité)
+{
+    discr selector.type {
+        Universal {
+            /* Ignore */
+        }
+        ID {
+            spécificité.A += 1
+        }
+        Class,
+        Attrib,
+        PseudoClass {
+            /* À FAIRE : fonctions */
+            spécificité.B += 1
+        }
+        Type,
+        PseudoElement {
+            spécificité.C += 1
+        }
+    }
 }
 
 imprime_simple_selector :: fonc (enchaineuse: *Enchaineuse, selector: *SimpleSelector)

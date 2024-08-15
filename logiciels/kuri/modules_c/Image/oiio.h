@@ -17,6 +17,7 @@
 #    pragma GCC diagnostic ignored "-Wuseless-cast"
 #    pragma GCC system_header
 #endif
+#include <OpenImageIO/filesystem.h>
 #include <OpenImageIO/imageio.h>
 #if defined(__GNUC__)
 #    pragma GCC diagnostic pop

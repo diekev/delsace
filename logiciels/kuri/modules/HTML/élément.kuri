@@ -2,7 +2,9 @@ importe Chaine
 importe Couleur
 importe #inemployé CSS
 importe Fondation
+importe Image
 importe Internet
+importe Numérique
 importe Unicode
 
 est_tag_auto_fermant :: fonc (tag: DOMString) -> bool
@@ -48,7 +50,7 @@ TableVirtuelleÉlément :: struct {
     sur_changement_attribut: fonc(*Élément, DOMString, *DOMString, *DOMString)(bool) = élément_sur_changement_attribut
 
     /* Appelé lors de la résolution des propriétés de style pour l'élément. */
-    sur_applique_presentational_hints: fonc(*Élément, *CSS.PropriétésDeStyle)(rien)
+    sur_applique_presentational_hints: fonc(*Élément, *CSS.RésolveuseStyle)(rien)
 }
 
 #portée_export
@@ -122,7 +124,7 @@ table_virtuelle_élément := TableVirtuelleÉlément(
         si valeur == nul || mémoire(valeur).est_vide() {
             élément.style = nul
         }
-        sinon {
+        sinon si rendu_css_est_requis(élément) {
             valeur_texte := mémoire(valeur).donne_chaine_utf16()
             élément.style = CSS.parse_attribut_style(valeur_texte)
             // À FAIRE(langage)
@@ -134,6 +136,21 @@ table_virtuelle_élément := TableVirtuelleÉlément(
     }
 
     retourne faux
+}
+
+rendu_css_est_requis :: fonc (élément: *Élément) -> bool
+{
+    document := élément.document
+    saufsi document {
+        retourne faux
+    }
+
+    user_agent := donne_user_agent(document)
+    saufsi user_agent {
+        retourne faux
+    }
+
+    retourne vrai
 }
 
 #portée_export
@@ -206,6 +223,9 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élé
     }
     sinon si tag == TAG_img {
         élément = loge(HTMLImageElement)
+    }
+    sinon si tag == TAG_link {
+        élément = loge(HTMLLinkElement)
     }
     sinon si tag == TAG_script {
         élément = loge(HTMLScriptElement)
@@ -385,7 +405,7 @@ est_en_train_d_être_activé :: fonc (élément: *Élément, ouinon: bool)
     }
 }
 
-applique_presentational_hints :: fonc (élément: *Élément, propriétés: *CSS.PropriétésDeStyle)
+applique_presentational_hints :: fonc (élément: *Élément, résolveuse: *CSS.RésolveuseStyle)
 {
     table := élément.table comme *TableVirtuelleÉlément
     saufsi table {
@@ -394,7 +414,7 @@ applique_presentational_hints :: fonc (élément: *Élément, propriétés: *CSS
     saufsi table.sur_applique_presentational_hints {
         retourne
     }
-    table.sur_applique_presentational_hints(élément, propriétés)
+    table.sur_applique_presentational_hints(élément, résolveuse)
 }
 
 /** \} */
@@ -430,11 +450,7 @@ est_hyperlien :: fonc (anchor: *HTMLAnchorElement) -> bool
 
 donne_href :: fonc (anchor: *HTMLAnchorElement) -> DOMString
 {
-    attribut := anchor.donne_attribut(ATTR_href)
-    si attribut.possède_valeur() {
-        retourne attribut.Quelque
-    }
-    retourne DOMString()
+    retourne donne_attribut_ou_chaine_vide(anchor, ATTR_href)
 }
 
 #portée_fichier
@@ -531,30 +547,27 @@ body_element_sur_destruction :: fonc (base: *EventTarget)
 }
 
 /* https://html.spec.whatwg.org/multipage/rendering.html#the-page */
-body_element_sur_applique_presentational_hints :: fonc (base: *Élément, propriétés: *CSS.PropriétésDeStyle)
+body_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
 {
-    body := base comme *HTMLBodyElement
-
-    opt_bgcolor := donne_attribut(body, ATTR_bgcolor)
-    si opt_bgcolor.possède_valeur() {
-        bgcolor := opt_bgcolor.Quelque
-        ajoute_propriété_pour_couleur(propriétés, CSS.PROP_background_color, bgcolor)
-    }
-
-    opt_text := donne_attribut(body, ATTR_text)
-    si opt_text.possède_valeur() {
-        text := opt_text.Quelque
-        ajoute_propriété_pour_couleur(propriétés, CSS.PROP_color, text)
-    }
+    ajoute_propriété_pour_legacy_colour_value(résolveuse, base, ATTR_bgcolor, CSS.PROP_background_color)
+    ajoute_propriété_pour_legacy_colour_value(résolveuse, base, ATTR_text, CSS.PROP_color)
 
     /* À FAIRE : utilise les attributs. */
-    ajoute_propriété_pour_nombre(propriétés, CSS.PROP_margin_top, 8.0)
-    ajoute_propriété_pour_nombre(propriétés, CSS.PROP_margin_bottom, 8.0)
-    ajoute_propriété_pour_nombre(propriétés, CSS.PROP_margin_left, 8.0)
-    ajoute_propriété_pour_nombre(propriétés, CSS.PROP_margin_right, 8.0)
+    ajoute_propriété_pour_nombre(résolveuse, CSS.PROP_margin_top, 8.0)
+    ajoute_propriété_pour_nombre(résolveuse, CSS.PROP_margin_bottom, 8.0)
+    ajoute_propriété_pour_nombre(résolveuse, CSS.PROP_margin_left, 8.0)
+    ajoute_propriété_pour_nombre(résolveuse, CSS.PROP_margin_right, 8.0)
 }
 
-ajoute_propriété_pour_couleur :: fonc (propriétés: *CSS.PropriétésDeStyle, nom_propriété: CSS.CSSOMString, texte: DOMString)
+ajoute_propriété_pour_legacy_colour_value :: fonc (résolveuse: *CSS.RésolveuseStyle, élément: *Élément, nom_attribut: DOMString, nom_propriété: CSS.CSSOMString)
+{
+    opt_attribut := élément.donne_attribut(nom_attribut)
+    si opt_attribut.possède_valeur() {
+        ajoute_propriété_pour_couleur(résolveuse, nom_propriété, opt_attribut.Quelque)
+    }
+}
+
+ajoute_propriété_pour_couleur :: fonc (résolveuse: *CSS.RésolveuseStyle, nom_propriété: CSS.CSSOMString, texte: DOMString)
 {
     opt_couleur := parse_a_legacy_colour_value(texte)
     saufsi opt_couleur.possède_valeur() {
@@ -571,10 +584,10 @@ ajoute_propriété_pour_couleur :: fonc (propriétés: *CSS.PropriétésDeStyle,
     déclaration.property_name = nom_propriété
     déclaration.value = value
 
-    CSS.ajoute_déclaration(propriétés, déclaration)
+    CSS.ajoute_presentational_hint(résolveuse, déclaration)
 }
 
-ajoute_propriété_pour_mot_clé :: fonc (propriétés: *CSS.PropriétésDeStyle, nom_propriété: CSS.CSSOMString, mot_clé: CSS.CSSOMString)
+ajoute_propriété_pour_mot_clé :: fonc (résolveuse: *CSS.RésolveuseStyle, nom_propriété: CSS.CSSOMString, mot_clé: CSS.CSSOMString)
 {
     value: [..]CSS.ValeurDeStyle
     tableau_ajoute(*value, CSS.ValeurDeStyle(mot_clé = mot_clé))
@@ -585,10 +598,21 @@ ajoute_propriété_pour_mot_clé :: fonc (propriétés: *CSS.PropriétésDeStyle
     déclaration.property_name = nom_propriété
     déclaration.value = value
 
-    CSS.ajoute_déclaration(propriétés, déclaration)
+    CSS.ajoute_presentational_hint(résolveuse, déclaration)
 }
 
-ajoute_propriété_pour_nombre :: fonc (propriétés: *CSS.PropriétésDeStyle, nom_propriété: CSS.CSSOMString, valeur: r64)
+ajoute_propriété_pour_non_zero_dimension :: fonc (résolveuse: *CSS.RésolveuseStyle, élément: *Élément, nom_attribut: DOMString, nom_propriété: CSS.CSSOMString)
+{
+    opt_attribut := élément.donne_attribut(nom_attribut)
+    si opt_attribut.possède_valeur() {
+        valeur := parse_a_non_zero_dimension(opt_attribut.Quelque)
+        si valeur.possède_valeur() {
+            ajoute_propriété_pour_nombre(résolveuse, nom_propriété, valeur.Quelque)
+        }
+    }
+}
+
+ajoute_propriété_pour_nombre :: fonc (résolveuse: *CSS.RésolveuseStyle, nom_propriété: CSS.CSSOMString, valeur: r64)
 {
     value: [..]CSS.ValeurDeStyle
     tableau_ajoute(*value, CSS.ValeurDeStyle(number = valeur))
@@ -599,7 +623,7 @@ ajoute_propriété_pour_nombre :: fonc (propriétés: *CSS.PropriétésDeStyle, 
     déclaration.property_name = nom_propriété
     déclaration.value = value
 
-    CSS.ajoute_déclaration(propriétés, déclaration)
+    CSS.ajoute_presentational_hint(résolveuse, déclaration)
 }
 
 /* https://html.spec.whatwg.org/multipage/common-microsyntaxes.html#rules-for-parsing-a-legacy-colour-value */
@@ -621,7 +645,12 @@ parse_a_legacy_colour_value :: fonc (string: DOMString) -> Optionnel(CouleurRVBA
         retourne
     }
 
-    // À FAIRE 5. If input is an ASCII case-insensitive match for one of the named colors, then return the simple color corresponding to that keyword. [CSSCOLOR]
+    // 5. If input is an ASCII case-insensitive match for one of the named colors, then return the simple color corresponding to that keyword. [CSSCOLOR]
+    // À FAIRE : n'utilise que les mots-clés appropriés
+    opt_couleur := CSS.trouve_couleur_pour_mot_clé(crée_chaine_utf16_unique(input))
+    si opt_couleur.possède_valeur() {
+        retourne opt_couleur
+    }
 
     // 6. If input's code point length is four, and the first character in input is U+0023 (#), and the last three characters of input are all ASCII hex digits, then:
     si input.taille() == 4 && input.unités[0] == 0x23 && est_chiffre_hexadecimal_ascii(input.unités[1]) && est_chiffre_hexadecimal_ascii(input.unités[2]) && est_chiffre_hexadecimal_ascii(input.unités[3]) {
@@ -724,21 +753,21 @@ font_element_sur_destruction :: fonc (base: *EventTarget)
 }
 
 /* https://html.spec.whatwg.org/multipage/rendering.html#phrasing-content-3 */
-font_element_sur_applique_presentational_hints :: fonc (base: *Élément, propriétés: *CSS.PropriétésDeStyle)
+font_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
 {
     font := base comme *HTMLFontElement
 
     opt_color := donne_attribut(font, ATTR_color)
     si opt_color.possède_valeur() {
         color := opt_color.Quelque
-        ajoute_propriété_pour_couleur(propriétés, CSS.PROP_color, color)
+        ajoute_propriété_pour_couleur(résolveuse, CSS.PROP_color, color)
     }
 
     opt_size := donne_attribut(font, ATTR_size)
     si opt_size.possède_valeur() {
         opt_font_size := parse_a_legacy_font_size(opt_size.Quelque)
         si opt_font_size.possède_valeur() {
-            ajoute_propriété_pour_mot_clé(propriétés, CSS.PROP_font_size, opt_font_size.Quelque)
+            ajoute_propriété_pour_mot_clé(résolveuse, CSS.PROP_font_size, opt_font_size.Quelque)
         }
     }
 
@@ -990,28 +1019,358 @@ html_element_sur_destruction :: fonc (base: *EventTarget)
 HTMLImageElement :: struct {
     empl html_element: HTMLElement
     table = *table_virtuelle_image_element
+
+    image_data: ImageIO
 }
 
-donne_src :: fonc (anchor: *HTMLImageElement) -> DOMString
+donne_src :: fonc (image: *HTMLImageElement) -> DOMString
 {
-    attribut := anchor.donne_attribut(ATTR_src)
-    si attribut.possède_valeur() {
-        retourne attribut.Quelque
+    retourne donne_attribut_ou_chaine_vide(image, ATTR_src)
+}
+
+donne_hauteur_intrinsèque :: fonc (image: *HTMLImageElement) -> z32 #enligne
+{
+    retourne image.image_data.hauteur
+}
+
+donne_largeur_intrinsèque :: fonc (image: *HTMLImageElement) -> z32 #enligne
+{
+    retourne image.image_data.largeur
+}
+
+donne_ratio_intrinsèque :: fonc (image: *HTMLImageElement) -> r32 #enligne
+{
+    si image.image_data.hauteur == 0 {
+        retourne 1.0
     }
-    retourne DOMString()
+
+    retourne image.image_data.largeur comme r32 / image.image_data.hauteur comme r32
 }
 
 #portée_fichier
 
 table_virtuelle_image_element := TableVirtuelleÉlément(
-    sur_destruction = image_element_sur_destruction
+    sur_destruction = image_element_sur_destruction,
+    sur_changement_attribut = image_element_sur_changement_attribut,
+    sur_applique_presentational_hints = image_element_sur_applique_presentational_hints
 )
+
+image_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString) -> bool
+{
+    si élément_sur_changement_attribut(base, local_name, vieille_valeur, valeur) {
+        retourne vrai
+    }
+
+    image := base comme *HTMLImageElement
+
+    si local_name == ATTR_src {
+        update_image_data(image)
+        retourne vrai
+    }
+
+    retourne faux
+}
+
+image_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
+{
+    ajoute_propriété_pour_non_zero_dimension(résolveuse, base, ATTR_width, CSS.PROP_width)
+    ajoute_propriété_pour_non_zero_dimension(résolveuse, base, ATTR_height, CSS.PROP_height)
+}
+
+/* https://html.spec.whatwg.org/multipage/common-microsyntaxes.html#rules-for-parsing-non-zero-dimension-values */
+parse_a_non_zero_dimension :: fonc (string: DOMString) -> Optionnel(r64)
+{
+    // À FAIRE : standardise
+
+    chn := converti_vers_chaine(string.donne_chaine_utf16())
+    diffère déloge(chn)
+
+    résultat := tente extrait_r64(chn) piège _ {
+        retourne
+    }
+
+    retourne résultat
+}
 
 image_element_sur_destruction :: fonc (base: *EventTarget)
 {
     élément := base comme *HTMLImageElement
     élément_détruit_données(élément)
+    IMG_detruit_image(*élément.image_data)
     déloge(élément)
+}
+
+/* https://html.spec.whatwg.org/multipage/images.html#update-the-image-data */
+update_image_data :: fonc (image: *HTMLImageElement)
+{
+    // À FAIRE : standardise
+    document := image.document
+    user_agent := document.donne_user_agent()
+    saufsi user_agent {
+        retourne
+    }
+
+    IMG_detruit_image(*image.image_data)
+    image.image_data = ImageIO()
+
+    src := image.donne_src()
+    si src.est_vide() {
+        document.invalide_style()
+        retourne
+    }
+
+    base_url := donne_base_url(document)
+    url_document := convertis_uri_url(*base_url)
+
+    url_src := basic_url_parser(src.donne_chaine_utf16(), base = url_document)
+    saufsi url_src {
+        retourne
+    }
+
+    url_string := url_serializer(url_src)
+    // diffère déloge(url_string)
+
+    // imprime("[%] %\n", #nom_de_cette_fonction, url_string)
+
+    request := loge(Request)
+    request.destination = "image"
+    request.mode = "no-cors"
+    request.redirect_mode = "follow"
+    request.url = tente parse_uri_standard(url_string) piège nonatteignable
+
+    RappelProcessResponse :: struct {
+        empl base: BaseProcessResponse
+
+        image: *HTMLImageElement
+        url_src: *URL
+    }
+
+    sur_rappel_process_response :: fonc (base: *BaseProcessResponse, réponse: *Response)
+    {
+        diffère détruit_response(réponse)
+
+        rappel := base comme *RappelProcessResponse
+
+        saufsi réponse.body_info {
+            retourne
+        }
+
+        saufsi est_type_mime_image(réponse.body_info.content_type) {
+            retourne
+        }
+
+        contenu := réponse.body.Quelque
+
+        proxy_image := IMG_cree_proxy_memoire(contenu.pointeur, contenu.taille comme n64)
+        diffère IMG_detruit_proxy(proxy_image)
+
+        chn_c_chemin := crée_chaine_c(rappel.url_src.path.Path[rappel.url_src.path.Path.taille - 1])
+        diffère détruit_chaine_c(chn_c_chemin)
+
+        résultat_lecture_image := IMG_ouvre_image_avec_proxy(chn_c_chemin, *rappel.image.image_data, proxy_image)
+        si résultat_lecture_image != ResultatOperation.OK {
+            imprime("Impossible de lire l'image : %\n", résultat_lecture_image)
+        }
+
+        invalide_style(rappel.image.document)
+    }
+
+    sur_destruction_process_response :: fonc (base: *BaseProcessResponse)
+    {
+        rappel := base comme *RappelProcessResponse
+        déloge(rappel)
+    }
+
+    process_response := loge(RappelProcessResponse)
+    process_response.image = image
+    process_response.url_src = url_src
+    process_response.sur_rappel = sur_rappel_process_response
+    process_response.sur_destruction = sur_destruction_process_response
+
+    fetch_controller := fetch(user_agent, request, process_response = process_response)
+    diffère détruit_fetch_controller(fetch_controller)
+}
+
+est_type_mime_image :: fonc (content_type: chaine) -> bool
+{
+    retourne content_type == "image/jpeg" || content_type == "image/png"
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLLinkElement
+ * https://html.spec.whatwg.org/multipage/semantics.html#the-link-element
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLLinkElement
+ * \{ */
+
+#portée_export
+
+HTMLLinkElement :: struct {
+    empl html_element: HTMLElement
+    table = *table_virtuelle_link_element
+}
+
+donne_href :: fonc (link: *HTMLLinkElement) -> DOMString
+{
+    retourne donne_attribut_ou_chaine_vide(link, ATTR_href)
+}
+
+donne_rel :: fonc (link: *HTMLLinkElement) -> DOMString
+{
+    retourne donne_attribut_ou_chaine_vide(link, ATTR_rel)
+}
+
+#portée_fichier
+
+table_virtuelle_link_element := TableVirtuelleÉlément(
+    sur_destruction = link_element_sur_destruction,
+    sur_changement_attribut = link_element_sur_changement_attribut
+)
+
+link_element_sur_destruction :: fonc (base: *EventTarget)
+{
+    élément := base comme *HTMLLinkElement
+    élément_détruit_données(élément)
+    déloge(élément)
+}
+
+link_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString) -> bool
+{
+    si élément_sur_changement_attribut(base, local_name, vieille_valeur, valeur) {
+        retourne vrai
+    }
+
+    link := base comme *HTMLLinkElement
+
+    si local_name == ATTR_href || local_name == ATTR_rel {
+        process_link_element(link)
+        retourne vrai
+    }
+
+    retourne faux
+}
+
+/* https://html.spec.whatwg.org/multipage/links.html */
+process_link_element :: fonc (link: *HTMLLinkElement)
+{
+    rel := link.donne_rel()
+    si rel.est_vide() {
+        link.document.supprime_feuille_de_style_associée(link)
+        retourne
+    }
+
+    types := run_ordered_set_parser(rel)
+    diffère déloge(types)
+
+    est_stylesheet := faux
+    est_alternate := faux
+
+    pour types {
+        si it == ATTR_stylesheet {
+            est_stylesheet = vrai
+        }
+        sinon si it == ATTR_alternate {
+            est_alternate = vrai
+        }
+    }
+
+    si est_stylesheet && !est_alternate {
+        process_stylesheet_link(link)
+    }
+}
+
+process_stylesheet_link :: fonc (link: *HTMLLinkElement)
+{
+    // À FAIRE : standardise
+    document := link.document
+    user_agent := document.donne_user_agent()
+    saufsi user_agent {
+        retourne
+    }
+
+    document.supprime_feuille_de_style_associée(link)
+
+    src := link.donne_href()
+    si src.est_vide() {
+        retourne
+    }
+
+    base_url := donne_base_url(document)
+    url_document := convertis_uri_url(*base_url)
+
+    url_src := basic_url_parser(src.donne_chaine_utf16(), base = url_document)
+    saufsi url_src {
+        retourne
+    }
+
+    url_string := url_serializer(url_src)
+
+    request := loge(Request)
+    request.destination = "style"
+    request.mode = "no-cors"
+    request.redirect_mode = "follow"
+    request.url = tente parse_uri_standard(url_string) piège nonatteignable
+
+    RappelProcessResponse :: struct {
+        empl base: BaseProcessResponse
+
+        link: *HTMLLinkElement
+        url_src: *URL
+        url_string: ChaineASCII
+    }
+
+    sur_rappel_process_response :: fonc (base: *BaseProcessResponse, réponse: *Response)
+    {
+        diffère détruit_response(réponse)
+
+        rappel := base comme *RappelProcessResponse
+
+        saufsi réponse.body_info {
+            retourne
+        }
+
+        saufsi réponse.body_info.content_type == "text/css" {
+            retourne
+        }
+
+        contenu := réponse.body.Quelque
+
+        mime_css := crée_chaine_utf16_unique("text/css")
+
+        feuille_de_style := loge(CSS.CSSStyleSheet)
+        feuille_de_style.location.uri = rappel.url_string
+        feuille_de_style.origine = CSS.OrigineCascade.Author
+        feuille_de_style.type = mime_css
+        feuille_de_style.owner_node = rappel.link
+        feuille_de_style.alternate = faux
+        feuille_de_style.origin_clean = vrai
+        feuille_de_style.parent_style_sheet = nul
+        feuille_de_style.owner_rule = nul
+
+        // Non-spécifié
+        ctx: CSS.ContexteParsageFeuilleDeStyle
+        diffère CSS.détruit_données_contexte(*ctx)
+        CSS.parse_style_rules(*ctx, feuille_de_style, contenu)
+        CSS.rapporte_propriétés_non_supportées(*ctx, #nom_de_cette_fonction)
+        rappel.link.document.ajoute_feuille_de_style(feuille_de_style)
+    }
+
+    sur_destruction_process_response :: fonc (base: *BaseProcessResponse)
+    {
+        rappel := base comme *RappelProcessResponse
+        déloge(rappel)
+    }
+
+    process_response := loge(RappelProcessResponse)
+    process_response.link = link
+    process_response.url_string = url_string
+    process_response.url_src = url_src
+    process_response.sur_rappel = sur_rappel_process_response
+    process_response.sur_destruction = sur_destruction_process_response
+
+    fetch_controller := fetch(user_agent, request, process_response = process_response)
+    diffère détruit_fetch_controller(fetch_controller)
 }
 
 /** \} */
@@ -1028,13 +1387,9 @@ HTMLMediaElement :: struct {
     empl html_element: HTMLElement
 }
 
-donne_src :: fonc (anchor: *HTMLMediaElement) -> DOMString
+donne_src :: fonc (media: *HTMLMediaElement) -> DOMString
 {
-    attribut := anchor.donne_attribut(ATTR_src)
-    si attribut.possède_valeur() {
-        retourne attribut.Quelque
-    }
-    retourne DOMString()
+    retourne donne_attribut_ou_chaine_vide(media, ATTR_src)
 }
 
 /** \} */
@@ -1109,13 +1464,9 @@ HTMLScriptElement :: struct {
     // result : "uninitialized", null, scipt, import map parse result
 }
 
-donne_src :: fonc (anchor: *HTMLScriptElement) -> DOMString
+donne_src :: fonc (script: *HTMLScriptElement) -> DOMString
 {
-    attribut := anchor.donne_attribut(ATTR_src)
-    si attribut.possède_valeur() {
-        retourne attribut.Quelque
-    }
-    retourne DOMString()
+    retourne donne_attribut_ou_chaine_vide(script, ATTR_src)
 }
 
 #portée_fichier
@@ -1439,6 +1790,10 @@ style_element_sur_changement_enfants :: fonc (base: *Noeud)
  */
 ajourne_style_block :: fonc (style: *HTMLStyleElement)
 {
+    saufsi rendu_css_est_requis(style) {
+        retourne
+    }
+
     // 1. Let element be the style element.
     element := style
 
@@ -1475,6 +1830,7 @@ ajourne_style_block :: fonc (style: *HTMLStyleElement)
 
     // 6. Create a CSS style sheet with the following properties:
     feuille_de_style := loge(CSS.CSSStyleSheet)
+    feuille_de_style.origine = CSS.OrigineCascade.Author
     feuille_de_style.type = mime_css
     feuille_de_style.owner_node = element
     // À FAIRE : media = The media attribute of element.

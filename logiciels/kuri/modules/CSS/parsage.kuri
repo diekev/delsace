@@ -675,12 +675,20 @@ consomme_une_déclaration :: fonc (parseuse: &Parseuse($T)) -> Optionnel(ParsedD
     // important flag to true.
     supprime_espaces_blanches_en_fin(*value)
     si value.taille > 2 {
-        i0 := value.taille - 2
-        i1 := value.taille - 1
+        sauvegarde_taille := value.taille
+        i0 := value.taille - 1
 
-        si value[i0].est_lexème_exclamation() && value[i1].est_lexème_de_genre(GenreLexème.Ident) && compare_ascii_insensible_à_la_casse(value[i1].lexème.valeur, "important") {
-            value.taille -= 2
-            résultat.important = vrai
+        si value[i0].est_lexème_de_genre(GenreLexème.Ident) && compare_ascii_insensible_à_la_casse(value[i0].lexème.valeur, "important") {
+            value.taille -= 1
+            supprime_espaces_blanches_en_fin(*value)
+
+            si value.taille > 0 && value[value.taille - 1].est_lexème_exclamation() {
+                value.taille -= 1
+                résultat.important = vrai
+            }
+            sinon {
+                value.taille = sauvegarde_taille
+            }
         }
     }
 
@@ -961,6 +969,7 @@ parse_type_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(SimpleSel
     }
 
     si parseuse_locale.lexème_courant().est_lexème_fois() {
+        parseuse_locale.avance()
         parseuse.curseur = parseuse_locale.curseur
         retourne crée_universal_selector(crée_chaine_utf16_unique_vide())
     }
@@ -1013,6 +1022,12 @@ parse_ns_prefix :: fonc (parseuse: &ParseuseSelector) -> Optionnel(NSPrefix)
 
     si parseuse.lexème_courant().est_lexème_pipe() {
         parseuse.avance()
+
+        /* Ignorons les appariements d'attibuts avec |=. */
+        si parseuse.lexème_courant().est_lexème_égal() {
+            retourne
+        }
+
         retourne résultat
     }
 }
@@ -1559,7 +1574,11 @@ infos_types_propriétés := [
     InfoTypePropriété(PROP_width, parse_propriété_height_width, PropriétéHéritable.Non, prop_width_sur_calcul_style),
     InfoTypePropriété(PROP_min_width, parse_propriété_min_height_width, PropriétéHéritable.Non, prop_min_width_sur_calcul_style),
     InfoTypePropriété(PROP_max_width, parse_propriété_max_height_width, PropriétéHéritable.Non, prop_max_width_sur_calcul_style),
-    InfoTypePropriété(PROP_line_height, parse_propriété_line_height, PropriétéHéritable.Oui, prop_line_height_sur_calcul_style)
+    InfoTypePropriété(PROP_line_height, parse_propriété_line_height, PropriétéHéritable.Oui, prop_line_height_sur_calcul_style),
+    InfoTypePropriété(PROP_bottom, parse_propriété_inset, PropriétéHéritable.Non, prop_bottom_sur_calcul_style),
+    InfoTypePropriété(PROP_left, parse_propriété_inset, PropriétéHéritable.Non, prop_left_sur_calcul_style),
+    InfoTypePropriété(PROP_right, parse_propriété_inset, PropriétéHéritable.Non, prop_right_sur_calcul_style),
+    InfoTypePropriété(PROP_top, parse_propriété_inset, PropriétéHéritable.Non, prop_top_sur_calcul_style)
 ]
 
 #portée_export
@@ -1623,6 +1642,42 @@ parse_valeur_length :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(V
             retourne ValeurDeStyle(longueur = longueur)
         }
 
+        si données_lexème.unité == PROP_in {
+            parseuse.avance()
+            longueur := Longueur(données_lexème.numeric_value, Longueur.Unité.In)
+            retourne ValeurDeStyle(longueur = longueur)
+        }
+
+        si données_lexème.unité == PROP_cm {
+            parseuse.avance()
+            longueur := Longueur(données_lexème.numeric_value, Longueur.Unité.Cm)
+            retourne ValeurDeStyle(longueur = longueur)
+        }
+
+        si données_lexème.unité == PROP_mm {
+            parseuse.avance()
+            longueur := Longueur(données_lexème.numeric_value, Longueur.Unité.Mm)
+            retourne ValeurDeStyle(longueur = longueur)
+        }
+
+        si données_lexème.unité == PROP_Q {
+            parseuse.avance()
+            longueur := Longueur(données_lexème.numeric_value, Longueur.Unité.Q)
+            retourne ValeurDeStyle(longueur = longueur)
+        }
+
+        si données_lexème.unité == PROP_pc {
+            parseuse.avance()
+            longueur := Longueur(données_lexème.numeric_value, Longueur.Unité.Pc)
+            retourne ValeurDeStyle(longueur = longueur)
+        }
+
+        si données_lexème.unité == PROP_pt {
+            parseuse.avance()
+            longueur := Longueur(données_lexème.numeric_value, Longueur.Unité.Pt)
+            retourne ValeurDeStyle(longueur = longueur)
+        }
+
         retourne
     }
 
@@ -1635,6 +1690,39 @@ parse_valeur_length :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(V
 
         retourne ValeurDeStyle(number = lexème.lexème.numeric_value)
     }
+}
+
+parse_valeur_percentage :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+{
+    si parseuse.fini() {
+        retourne
+    }
+
+    lexème := parseuse.lexème_courant()
+
+    si lexème.est_lexème_de_genre(GenreLexème.Percentage) {
+        parseuse.avance()
+        retourne ValeurDeStyle(percentage = lexème.lexème.numeric_value)
+    }
+
+    si lexème.est_lexème_de_genre(GenreLexème.Number) {
+        parseuse.avance()
+
+        si lexème.lexème.drapeau_type_nombre == DrapeauxTypeNombre.Integer {
+            retourne ValeurDeStyle(integer = lexème.lexème.numeric_value)
+        }
+
+        retourne ValeurDeStyle(number = lexème.lexème.numeric_value)
+    }
+}
+
+parse_valeur_length_percentage :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+{
+    length := parse_valeur_length(parseuse)
+    si length.possède_valeur() {
+        retourne length
+    }
+    retourne parse_valeur_percentage(parseuse)
 }
 
 /** \} */
@@ -2311,6 +2399,11 @@ parse_propriété_font_weight :: fonc (value: [..]ComponentValue) -> Optionnel([
                 retourne
             }
         }
+        sinon si lexème.est_lexème_de_genre(GenreLexème.Number) {
+            parseuse.avance()
+            valeur := ValeurDeStyle(number = lexème.lexème.numeric_value)
+            tableau_ajoute(*résultat, valeur)
+        }
         sinon {
             imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
             déloge(résultat)
@@ -2341,7 +2434,7 @@ parse_propriété_font_size :: fonc (value: [..]ComponentValue) -> Optionnel([..
     résultat: [..]ValeurDeStyle
 
     tantque !fini(parseuse) {
-        valeur := parse_valeur_length(parseuse)
+        valeur := parse_valeur_length_percentage(parseuse)
         si valeur.possède_valeur() {
             tableau_ajoute(*résultat, valeur.Quelque)
             continue
@@ -2676,7 +2769,7 @@ parse_propriété_margin :: fonc (value: [..]ComponentValue) -> Optionnel([..]Va
         lexème := parseuse.lexème_courant()
 
         /* <length-percentage> */
-        valeur := parse_valeur_length(parseuse)
+        valeur := parse_valeur_length_percentage(parseuse)
         si valeur.possède_valeur() {
             tableau_ajoute(*résultat, valeur.Quelque)
             continue
@@ -2703,7 +2796,7 @@ parse_propriété_margin_top :: fonc (value: [..]ComponentValue) -> Optionnel([.
     parseuse := initialise_une_parseuse(value)
     parseuse.consomme_espaces_blanches()
     /* <length-percentage> | auto */
-    valeur := parse_valeur_length(parseuse)
+    valeur := parse_valeur_length_percentage(parseuse)
     si valeur.possède_valeur() {
         résultat: [..]ValeurDeStyle
         tableau_ajoute(*résultat, valeur.Quelque)
@@ -2736,7 +2829,7 @@ parse_propriété_padding :: fonc (value: [..]ComponentValue) -> Optionnel([..]V
         lexème := parseuse.lexème_courant()
 
         /* <length-percentage> */
-        valeur := parse_valeur_length(parseuse)
+        valeur := parse_valeur_length_percentage(parseuse)
         si valeur.possède_valeur() {
             tableau_ajoute(*résultat, valeur.Quelque)
             continue
@@ -2756,8 +2849,8 @@ parse_propriété_padding_top :: fonc (value: [..]ComponentValue) -> Optionnel([
 {
     parseuse := initialise_une_parseuse(value)
     parseuse.consomme_espaces_blanches()
-    /* <length-percentage> | auto */
-    valeur := parse_valeur_length(parseuse)
+    /* 	<length-percentage [0,∞]> */
+    valeur := parse_valeur_length_percentage(parseuse)
     si valeur.possède_valeur() {
         résultat: [..]ValeurDeStyle
         tableau_ajoute(*résultat, valeur.Quelque)
@@ -2784,7 +2877,7 @@ parse_propriété_height_width :: fonc (value: [..]ComponentValue) -> Optionnel(
     tantque !fini(parseuse) {
         parseuse.consomme_espaces_blanches()
 
-        valeur := parse_valeur_length(parseuse)
+        valeur := parse_valeur_length_percentage(parseuse)
         si valeur.possède_valeur() {
             tableau_ajoute(*résultat, valeur.Quelque)
             continue
@@ -2813,7 +2906,7 @@ parse_propriété_min_height_width :: fonc (value: [..]ComponentValue) -> Option
     parseuse := initialise_une_parseuse(value)
     parseuse.consomme_espaces_blanches()
     /* auto | <length-percentage [0,∞]> | min-content | max-content | fit-content(<length-percentage [0,∞]>) | <calc-size()> */
-    valeur := parse_valeur_length(parseuse)
+    valeur := parse_valeur_length_percentage(parseuse)
     si valeur.possède_valeur() {
         résultat: [..]ValeurDeStyle
         tableau_ajoute(*résultat, valeur.Quelque)
@@ -2829,7 +2922,7 @@ parse_propriété_max_height_width :: fonc (value: [..]ComponentValue) -> Option
     parseuse := initialise_une_parseuse(value)
     parseuse.consomme_espaces_blanches()
     /* none | <length-percentage [0,∞]> | min-content | max-content | fit-content(<length-percentage [0,∞]>) | <calc-size()> */
-    valeur := parse_valeur_length(parseuse)
+    valeur := parse_valeur_length_percentage(parseuse)
     si valeur.possède_valeur() {
         résultat: [..]ValeurDeStyle
         tableau_ajoute(*résultat, valeur.Quelque)
@@ -2861,6 +2954,12 @@ parse_propriété_line_height :: fonc (value: [..]ComponentValue) -> Optionnel([
         retourne résultat
     }
 
+    valeur = parse_valeur_percentage(parseuse)
+    si valeur.possède_valeur() {
+        tableau_ajoute(*résultat, valeur.Quelque)
+        retourne résultat
+    }
+
     lexème := parseuse.lexème_courant()
 
     si lexème.est_mot_clé(PROP_normal) {
@@ -2870,6 +2969,34 @@ parse_propriété_line_height :: fonc (value: [..]ComponentValue) -> Optionnel([
     }
 
     imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Line Height
+ * https://drafts.csswg.org/css-position/#insets
+ * \{ */
+
+parse_propriété_inset :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    parseuse.consomme_espaces_blanches()
+
+    résultat: [..]ValeurDeStyle
+
+    lexème := parseuse.lexème_courant()
+    si lexème.est_mot_clé(PROP_auto) {
+        tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = PROP_auto))
+        retourne
+    }
+
+    /* auto | <length-percentage> */
+    valeur := parse_valeur_length_percentage(parseuse)
+    si valeur.possède_valeur() {
+        tableau_ajoute(*résultat, valeur.Quelque)
+        retourne résultat
+    }
 }
 
 /** \} */

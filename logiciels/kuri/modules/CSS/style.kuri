@@ -16,6 +16,7 @@ ValeurDeStyle :: union {
     longueur: Longueur
     integer: r64
     number: r64
+    percentage: r64
     text_decoration_line: TextDecorationLine
 }
 
@@ -38,6 +39,18 @@ est_mot_clé :: fonc (valeur: ValeurDeStyle, mot_clé: CSSOMString) -> bool
 est_auto :: fonc (valeur: ValeurDeStyle) -> bool
 {
     retourne est_mot_clé(valeur, PROP_auto)
+}
+
+est_percentage :: fonc (valeur: ValeurDeStyle) -> bool
+{
+    discr valeur {
+        percentage {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
 }
 
 est_nombre :: fonc (valeur: ValeurDeStyle) -> bool
@@ -73,6 +86,9 @@ imprime_valeur_de_style :: fonc (enchaineuse: *Enchaineuse, valeur: *ValeurDeSty
         }
         number(n) {
             ajoute_au_tampon(enchaineuse, n)
+        }
+        percentage(p) {
+            ajoute_au_tampon(enchaineuse, p, "%")
         }
         text_decoration_line(t) {
             ajoute_au_tampon(enchaineuse, t)
@@ -157,11 +173,56 @@ Padding :: struct {
 Longueur :: struct {
     Unité :: énum {
         Em
+        /* https://drafts.csswg.org/css-values-4/#absolute-lengths */
+        Cm
+        Mm
+        Q
+        In
+        Pc
+        Pt
         Px
     }
 
     valeur: r64
     unité: Unité
+}
+
+calcule_longueur :: fonc (l: Longueur, ctx: *ContexteCalculStyle) -> r64
+{
+    discr l.unité {
+        Px {
+            retourne l.valeur
+        }
+        Em {
+            retourne l.valeur * ctx.taille_fonte
+        }
+        In {
+            /* 1in = 96 px */
+            retourne l.valeur * 96.0
+        }
+        Cm {
+            /* 1cm = 1 / 2.54 in */
+            retourne l.valeur * 96.0 / 2.54
+        }
+        Mm {
+            /* 1mm = 1 / 10 cm */
+            retourne l.valeur * 9.6 / 2.54
+        }
+        Q {
+            /* 1Q = 1 / 40 cm (2.4 = 96 / 40) */
+            retourne l.valeur * 2.4 / 2.54
+        }
+        Pc {
+            /* 1pc = 1 / 6 in (16 = 96 / 6) */
+            retourne l.valeur * 16
+        }
+        Pt {
+            /* 1pt = 1/72 in */
+            retourne l.valeur * 96.0 / 72.0
+        }
+    }
+
+    retourne l.valeur
 }
 
 /* https://drafts.csswg.org/css-backgrounds/ */
@@ -236,6 +297,63 @@ ContexteCalculStyle :: struct {
     taille_fonte: r64
 }
 
+IDPropriété :: énum n16 {
+    Display
+    Color
+    Cursor
+
+    BackgroundColor
+
+    BorderWidthBottom
+    BorderWidthLeft
+    BorderWidthRight
+    BorderWidthTop
+
+    BorderStyleBottom
+    BorderStyleLeft
+    BorderStyleRight
+    BorderStyleTop
+
+    BorderColorBottom
+    BorderColorLeft
+    BorderColorRight
+    BorderColorTop
+
+    MarginBottom
+    MarginLeft
+    MarginRight
+    MarginTop
+
+    PaddingBottom
+    PaddingLeft
+    PaddingRight
+    PaddingTop
+
+    FontFamily
+    FontSize
+    FontWeight
+    FontStyle
+
+    Bottom
+    Left
+    Right
+    Top
+
+    Width
+    MinWidth
+    MaxWidth
+
+    Height
+    MinHeight
+    MaxHeight
+
+    TextDecorationStyle
+    TextDecorationLine
+    TextDecorationColor
+
+    LineHeight
+}
+
 Style :: struct {
     display: Display
     color: CouleurRVBAN8
@@ -250,6 +368,11 @@ Style :: struct {
     taille_fonte: ValeurDeStyle
     font_weight: ValeurDeStyle
     font_style: ValeurDeStyle
+
+    bottom: ValeurDeStyle
+    left: ValeurDeStyle
+    right: ValeurDeStyle
+    top: ValeurDeStyle
 
     width: ValeurDeStyle
     min_width: ValeurDeStyle
@@ -310,6 +433,12 @@ initialise_style :: fonc (style: *Style)
     style.max_height = ValeurDeStyle(mot_clé = PROP_none)
 
     style.line_height = ValeurDeStyle(mot_clé = PROP_normal)
+
+    /* Position */
+    style.top = ValeurDeStyle(mot_clé = PROP_auto)
+    style.bottom = ValeurDeStyle(mot_clé = PROP_auto)
+    style.left = ValeurDeStyle(mot_clé = PROP_auto)
+    style.right = ValeurDeStyle(mot_clé = PROP_auto)
 }
 
 /* https://www.w3.org/TR/css-color-4/ */
@@ -499,10 +628,12 @@ system_colors := [
     NamedColor(COL_VisitedText, CouleurRVBAN8(0, 0, 255, 255))
 ]
 
+#portée_export
+
 trouve_couleur_pour_mot_clé :: fonc (mot_clé: CSSOMString) -> Optionnel(CouleurRVBAN8)
 {
     si mot_clé == PROP_transparent {
-        retourne CouleurRVBAN8(0, 0, 0, 255)
+        retourne CouleurRVBAN8(0, 0, 0, 0)
     }
 
     pour named_colors {
@@ -517,8 +648,6 @@ trouve_couleur_pour_mot_clé :: fonc (mot_clé: CSSOMString) -> Optionnel(Couleu
         }
     }
 }
-
-#portée_export
 
 // Opacity :: struct {
 // }
@@ -574,17 +703,7 @@ calcule_valeur_marge :: fonc (valeur: ValeurDeStyle, style: *Style @inutilisée,
 {
     discr valeur {
         longueur(l) {
-            taille_marge: r64
-            discr l.unité {
-                Px {
-                    taille_marge = l.valeur
-                }
-                Em {
-                    taille_marge = ctx.taille_fonte * l.valeur 
-                }
-            }
-
-            retourne ValeurDeStyle(number = taille_marge)
+            retourne ValeurDeStyle(number = calcule_longueur(l, ctx))
         }
         integer(i) {
             retourne ValeurDeStyle(number = i)
@@ -599,17 +718,7 @@ calcule_valeur_padding :: fonc (valeur: ValeurDeStyle, style: *Style @inutilisé
 {
     discr valeur {
         longueur(l) {
-            taille_marge: r64
-            discr l.unité {
-                Px {
-                    taille_marge = l.valeur
-                }
-                Em {
-                    taille_marge = ctx.taille_fonte * l.valeur 
-                }
-            }
-
-            retourne ValeurDeStyle(number = taille_marge)
+            retourne ValeurDeStyle(number = calcule_longueur(l, ctx))
         }
         integer(i) {
             retourne ValeurDeStyle(number = i)
@@ -630,14 +739,7 @@ calcule_valeur_border_width :: fonc (valeur: ValeurDeStyle, style: *Style @inuti
             retourne valeur
         }
         longueur(l) {
-            discr l.unité {
-                Px {
-                    retourne ValeurDeStyle(number = l.valeur)
-                }
-                Em {
-                    retourne ValeurDeStyle(number = l.valeur * ctx.taille_fonte)
-                }
-            }
+            retourne ValeurDeStyle(number = calcule_longueur(l, ctx))
         }
         mot_clé(m) {
             si m == PROP_thin {
@@ -825,15 +927,12 @@ prop_font_size_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété,
             style.taille_fonte = ValeurDeStyle(number = taille_fonte)
         }
         longueur(l) {
-            taille_fonte := l.valeur
-            discr l.unité {
-                Em {
-                    taille_fonte *= ctx.taille_fonte
-                }
-                Px {
-                }
-            }
-
+            taille_fonte := calcule_longueur(l, ctx)
+            ctx.taille_fonte = taille_fonte
+            style.taille_fonte = ValeurDeStyle(number = taille_fonte)
+        }
+        percentage(p) {
+            taille_fonte := ctx.taille_fonte * p / 100.0
             ctx.taille_fonte = taille_fonte
             style.taille_fonte = ValeurDeStyle(number = taille_fonte)
         }
@@ -1240,8 +1339,21 @@ prop_border_right_style_sur_calcul_style :: fonc (déclaration: *DéclarationPro
     style.bordure.style[BorderEdge.Right] = calcule_valeur_line_style(déclaration.value[0], style, ctx)
 }
 
-prop_height_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété @inutilisée, style: *Style @inutilisée, ctx: *ContexteCalculStyle @inutilisée)
+prop_height_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
 {
+    valeur := déclaration.value[0]
+
+    discr valeur {
+        integer(i) {
+            style.height = ValeurDeStyle(number = i)
+        }
+        longueur(l) {
+            style.height = ValeurDeStyle(number = calcule_longueur(l, ctx))
+        }
+        sinon {
+            style.height = valeur
+        }
+    }
 }
 
 prop_min_height_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété @inutilisée, style: *Style @inutilisée, ctx: *ContexteCalculStyle @inutilisée)
@@ -1261,14 +1373,7 @@ prop_width_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, sty
             style.width = ValeurDeStyle(number = i)
         }
         longueur(l) {
-            discr l.unité {
-                Px {
-                    style.width = ValeurDeStyle(number = l.valeur)
-                }
-                Em {
-                    style.width = ValeurDeStyle(number = l.valeur * ctx.taille_fonte)
-                }
-            }
+            style.width = ValeurDeStyle(number = calcule_longueur(l, ctx))
         }
         sinon {
             style.width = valeur
@@ -1290,14 +1395,7 @@ prop_max_width_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété,
             style.max_width = déclaration.value[0]
         }
         longueur(l) {
-            discr l.unité {
-                Px {
-                    style.max_width = ValeurDeStyle(number = l.valeur)
-                }
-                Em {
-                    style.max_width = ValeurDeStyle(number = l.valeur * ctx.taille_fonte)
-                }
-            }
+            style.max_width = ValeurDeStyle(number = calcule_longueur(l, ctx))
         }
         sinon {
             style.max_width = déclaration.value[0]
@@ -1314,17 +1412,78 @@ prop_line_height_sur_calcul_style :: fonc (déclaration: *DéclarationPropriét�
             style.line_height = ValeurDeStyle(number = i)
         }
         longueur(l) {
-            discr l.unité {
-                Px {
-                    style.line_height = ValeurDeStyle(number = l.valeur)
-                }
-                Em {
-                    style.line_height = ValeurDeStyle(number = l.valeur * ctx.taille_fonte)
-                }
-            }
+            style.line_height = ValeurDeStyle(number = calcule_longueur(l, ctx))
         }
         sinon {
             style.line_height = valeur
+        }
+    }
+}
+
+prop_bottom_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    valeur := déclaration.value[0]
+
+    discr valeur {
+        integer(i) {
+            style.bottom = ValeurDeStyle(number = i)
+        }
+        longueur(l) {
+            style.bottom = ValeurDeStyle(number = calcule_longueur(l, ctx))
+        }
+        sinon {
+            style.bottom = valeur
+        }
+    }
+}
+
+prop_left_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    valeur := déclaration.value[0]
+
+    discr valeur {
+        integer(i) {
+            style.left = ValeurDeStyle(number = i)
+        }
+        longueur(l) {
+            style.left = ValeurDeStyle(number = calcule_longueur(l, ctx))
+        }
+        sinon {
+            style.left = valeur
+        }
+    }
+}
+
+prop_right_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    valeur := déclaration.value[0]
+
+    discr valeur {
+        integer(i) {
+            style.right = ValeurDeStyle(number = i)
+        }
+        longueur(l) {
+            style.right = ValeurDeStyle(number = calcule_longueur(l, ctx))
+        }
+        sinon {
+            style.right = valeur
+        }
+    }
+}
+
+prop_top_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    valeur := déclaration.value[0]
+
+    discr valeur {
+        integer(i) {
+            style.top = ValeurDeStyle(number = i)
+        }
+        longueur(l) {
+            style.top = ValeurDeStyle(number = calcule_longueur(l, ctx))
+        }
+        sinon {
+            style.top = valeur
         }
     }
 }

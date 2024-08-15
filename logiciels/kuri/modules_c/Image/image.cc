@@ -859,12 +859,35 @@ ResultatOperation IMG_ecris_image_avec_adaptrice(const char *chemin,
     return ResultatOperation::OK;
 }
 
+struct ImageIOProxy *IMG_cree_proxy_memoire(void *buf, uint64_t size)
+{
+    return reinterpret_cast<ImageIOProxy *>(new OIIO::Filesystem::IOMemReader(buf, size));
+}
+
+void IMG_detruit_proxy(ImageIOProxy *proxy)
+{
+    auto ioproxy = reinterpret_cast<OIIO::Filesystem::IOProxy *>(proxy);
+    delete ioproxy;
+}
+
 ResultatOperation IMG_ouvre_image(const char *chemin, ImageIO *image)
 {
-    auto input = OIIO::ImageInput::open(chemin);
+    return IMG_ouvre_image_avec_proxy(chemin, image, nullptr);
+}
+
+ResultatOperation IMG_ouvre_image_avec_proxy(const char *chemin,
+                                             ImageIO *image,
+                                             ImageIOProxy *proxy)
+{
+    auto ioproxy = reinterpret_cast<OIIO::Filesystem::IOProxy *>(proxy);
+    auto input = OIIO::ImageInput::open(chemin, nullptr, ioproxy);
 
     if (input == nullptr) {
         return ResultatOperation::TYPE_IMAGE_NON_SUPPORTE;
+    }
+
+    if (proxy && !input->supports("ioproxy")) {
+        return ResultatOperation::PROXY_NON_SUPPORTE;
     }
 
     const auto &spec = input->spec();

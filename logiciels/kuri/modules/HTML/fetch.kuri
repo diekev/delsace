@@ -544,11 +544,19 @@ main_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, recursiv
             // Return a network error.
 
         // request’s mode is "no-cors"
+        sinon si request.mode == "no-cors" {
             // If request’s redirect mode is not "follow", then return a network error.
+            si request.redirect_mode != "follow" {
+                response = network_error()
+            }
+            sinon {
+                // Set request’s response tainting to "opaque".
+                request.response_tainting = "opaque"
 
-            // Set request’s response tainting to "opaque".
-
-            // Return the result of running scheme fetch given fetchParams.
+                // Return the result of running scheme fetch given fetchParams.
+                response = scheme_fetch(user_agent, fetch_params)
+            }
+        }
 
         // request’s current URL’s scheme is not an HTTP(S) scheme
             // Return a network error.
@@ -673,20 +681,54 @@ scheme_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Re
         chemin := CheminFichier(request.donne_url_courant().chemin)
 
         /* À FAIRE : permissions. */
-        si est_un_fichier_régulier(chemin) && chemin.extension() == ".html" {
-            contenu := contenu_fichier_texte(chemin)
+        si est_un_fichier_régulier(chemin) {
+            si chemin.extension() == ".html" {
+                contenu := contenu_fichier_texte(chemin)
 
-            response := loge(Response)
-            response.status = 200
+                response := loge(Response)
+                response.status = 200
 
-            body_info := loge(ResponseBodyInfo)
-            body_info.decodede_size = contenu.taille comme z32
-            body_info.content_type = "text/html"
+                body_info := loge(ResponseBodyInfo)
+                body_info.decodede_size = contenu.taille comme z32
+                body_info.content_type = "text/html"
 
-            response.body_info = body_info
-            response.body = contenu
+                response.body_info = body_info
+                response.body = contenu
 
-            retourne response
+                retourne response
+            }
+
+            si chemin.extension() == ".png" || chemin.extension() == ".jpg" || chemin.extension() == ".jpeg" {
+                contenu := contenu_fichier_texte(chemin)
+
+                response := loge(Response)
+                response.status = 200
+
+                body_info := loge(ResponseBodyInfo)
+                body_info.decodede_size = contenu.taille comme z32
+                body_info.content_type = "image/png" // XXX par extension
+
+                response.body_info = body_info
+                response.body = contenu
+
+                retourne response
+            }
+
+            si chemin.extension() == ".css" {
+                contenu := contenu_fichier_texte(chemin)
+
+                response := loge(Response)
+                response.status = 200
+
+                body_info := loge(ResponseBodyInfo)
+                body_info.decodede_size = contenu.taille comme z32
+                body_info.content_type = "text/css"
+
+                response.body_info = body_info
+                response.body = contenu
+
+                retourne response
+            }
         }
 
         retourne network_error()
