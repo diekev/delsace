@@ -297,6 +297,63 @@ ContexteCalculStyle :: struct {
     taille_fonte: r64
 }
 
+IDPropriété :: énum n16 {
+    Display
+    Color
+    Cursor
+
+    BackgroundColor
+
+    BorderWidthBottom
+    BorderWidthLeft
+    BorderWidthRight
+    BorderWidthTop
+
+    BorderStyleBottom
+    BorderStyleLeft
+    BorderStyleRight
+    BorderStyleTop
+
+    BorderColorBottom
+    BorderColorLeft
+    BorderColorRight
+    BorderColorTop
+
+    MarginBottom
+    MarginLeft
+    MarginRight
+    MarginTop
+
+    PaddingBottom
+    PaddingLeft
+    PaddingRight
+    PaddingTop
+
+    FontFamily
+    FontSize
+    FontWeight
+    FontStyle
+
+    Bottom
+    Left
+    Right
+    Top
+
+    Width
+    MinWidth
+    MaxWidth
+
+    Height
+    MinHeight
+    MaxHeight
+
+    TextDecorationStyle
+    TextDecorationLine
+    TextDecorationColor
+
+    LineHeight
+}
+
 Style :: struct {
     display: Display
     color: CouleurRVBAN8
