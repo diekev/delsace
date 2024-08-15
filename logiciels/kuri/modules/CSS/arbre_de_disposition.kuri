@@ -243,7 +243,7 @@ résoud_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élémen
         spécificité := calcule_spécificité(*it.selector_list)
         origine := donne_origine_cascade(it)
         pour déclaration dans it.style.déclarations {
-            tableau_ajoute(*résolveuse.déclarations_cascade, DéclarationCascadée(déclaration, spécificité, origine))
+            tableau_ajoute(*résolveuse.déclarations_cascade, DéclarationCascadée(déclaration, spécificité, origine, index_it))
         }
     }
 
@@ -289,6 +289,7 @@ DéclarationCascadée :: struct {
     déclaration: *DéclarationPropriété
     spécificité: Spécificité
     origine: OrigineCascade
+    index_règle: z64
 }
 
 /* https://www.w3.org/TR/css-cascade/#cascade-sort */
@@ -315,7 +316,15 @@ compare_déclarations_pour_cascade :: fonc (a: DéclarationCascadée, b: Déclar
         retourne 1
     }
 
-    /* À FAIRE : contextes et ordre d'apparition (incluant imports, etc.). */
+    /* Même importance, origine, et spécifité -> tri par position. */
+    si a.index_règle < b.index_règle {
+        retourne 1
+    }
+    si b.index_règle < a.index_règle {
+        retourne -1
+    }
+
+    /* À FAIRE : contextes. */
 
     retourne 0
 }
