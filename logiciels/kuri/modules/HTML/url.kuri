@@ -355,6 +355,9 @@ basic_url_parser :: fonc (input: ChaineUTF16, base : *URL = nul, url : *URL = nu
             NoScheme {
                 résultat_parsage = basic_url_parser_no_scheme(*parser)
             }
+            Relative {
+                résultat_parsage = basic_url_parser_relative(*parser)
+            }
             SpecialAuthoritySlashes {
                 résultat_parsage = basic_url_parser_special_authority_slashes(*parser)
             }
@@ -674,6 +677,67 @@ basic_url_parser_no_scheme :: fonc (parser: *BasicURLParser) -> RésultatParsage
     // 4. Otherwise, set state to file state and decrease pointer by 1.
     parser.définis_state(ÉtatParsageURL.File)
     parser.decrease_pointer()
+    retourne RésultatParsageURL.Ok
+}
+
+/* https://url.spec.whatwg.org/#relative-state */
+basic_url_parser_relative :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
+{
+    // 1. Assert: base’s scheme is not "file".
+    assert(parser.base.scheme != "file")
+
+    // 2. Set url’s scheme to base’s scheme.
+    parser.url.scheme = parser.base.scheme
+
+    // 3. If c is U+002F (/), then set state to relative slash state.
+    c := parser.donne_caractère()
+    si c == 0x2F {
+        parser.définis_state(ÉtatParsageURL.RelativeSlash)
+    }
+    // 4. Otherwise, if url is special and c is U+005C (\), invalid-reverse-solidus validation error, set state to relative slash state.
+    sinon si parser.url.est_spécial() && c == 0x5C {
+        imprime("[%] invalid-reverse-solidus\n", #nom_de_cette_fonction)
+        parser.définis_state(ÉtatParsageURL.RelativeSlash)
+    }
+    // 5. Otherwise:
+    sinon {
+        // 1. Set url’s username to base’s username,
+        //        url’s password to base’s password,
+        //        url’s host to base’s host,
+        //        url’s port to base’s port,
+        //        url’s path to a clone of base’s path, and
+        //        url’s query to base’s query.
+        parser.url.username = parser.base.username
+        parser.url.password = parser.base.password
+        parser.url.host = parser.base.host
+        parser.url.port = parser.base.port
+        parser.url.path = clone(parser.base.path)
+        parser.url.query = parser.base.query
+
+        // 2. If c is U+003F (?), then set url’s query to the empty string, and state to query state.
+        si c == 0x3F {
+            parser.url.query = ""
+            parser.définis_state(ÉtatParsageURL.Query)
+        }
+        // 3. Otherwise, if c is U+0023 (#), set url’s fragment to the empty string and state to fragment state.
+        sinon si c == 0x23 {
+            parser.url.fragment = ""
+            parser.définis_state(ÉtatParsageURL.Fragment)
+        }
+        // 4. Otherwise, if c is not the EOF code point:
+        sinon si c != FIN_DE_FICHIER {
+            // 1. Set url’s query to null.
+            init_de(Optionnel(ChaineASCII))(*parser.url.query)
+
+            // 2. Shorten url’s path.
+            shorten_path(parser.url)
+
+            // 3. Set state to path state and decrease pointer by 1.
+            parser.définis_state(ÉtatParsageURL.Path)
+            parser.decrease_pointer()
+        }
+    }
+
     retourne RésultatParsageURL.Ok
 }
 
