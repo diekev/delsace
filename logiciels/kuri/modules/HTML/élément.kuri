@@ -1023,9 +1023,9 @@ HTMLImageElement :: struct {
     image_data: ImageIO
 }
 
-donne_src :: fonc (anchor: *HTMLImageElement) -> DOMString
+donne_src :: fonc (image: *HTMLImageElement) -> DOMString
 {
-    retourne donne_attribut_ou_chaine_vide(anchor, ATTR_src)
+    retourne donne_attribut_ou_chaine_vide(image, ATTR_src)
 }
 
 donne_hauteur_intrinsèque :: fonc (image: *HTMLImageElement) -> z32 #enligne
@@ -1384,9 +1384,9 @@ HTMLMediaElement :: struct {
     empl html_element: HTMLElement
 }
 
-donne_src :: fonc (anchor: *HTMLMediaElement) -> DOMString
+donne_src :: fonc (media: *HTMLMediaElement) -> DOMString
 {
-    retourne donne_attribut_ou_chaine_vide(anchor, ATTR_src)
+    retourne donne_attribut_ou_chaine_vide(media, ATTR_src)
 }
 
 /** \} */
@@ -1461,9 +1461,9 @@ HTMLScriptElement :: struct {
     // result : "uninitialized", null, scipt, import map parse result
 }
 
-donne_src :: fonc (anchor: *HTMLScriptElement) -> DOMString
+donne_src :: fonc (script: *HTMLScriptElement) -> DOMString
 {
-    retourne donne_attribut_ou_chaine_vide(anchor, ATTR_src)
+    retourne donne_attribut_ou_chaine_vide(script, ATTR_src)
 }
 
 #portée_fichier
