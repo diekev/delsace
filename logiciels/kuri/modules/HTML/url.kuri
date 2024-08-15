@@ -34,6 +34,27 @@ URLPath :: union {
     Path: [..]chaine
 }
 
+clone :: fonc (path: URLPath) -> URLPath
+{
+    discr path {
+        Segment(s) {
+            retourne copie_chaine(s)
+        }
+        Path(p) {
+            résultat: [..]chaine
+            pour p {
+                tableau_ajoute(*résultat, copie_chaine(it))
+            }
+            retourne résultat
+        }
+        sinon {}
+    }
+
+    // À FAIRE(langage)
+    résultat: URLPath
+    retourne résultat
+}
+
 /* À FAIRE : fusionne avec URI */
 URL :: struct {
     scheme: ChaineASCII
@@ -827,19 +848,11 @@ basic_url_parser_file :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
 
     // 4. Otherwise, if base is non-null and base’s scheme is "file":
     si parser.base != nul && parser.base.scheme == "file" {
-        // 1. Set url’s host to base’s host, url’s path to a clone of base’s path, and url’s query to base’s query.
+        // 1. Set url’s host to base’s host,
+        //        url’s path to a clone of base’s path, and
+        //        url’s query to base’s query.
         parser.url.host = parser.base.host
-        discr parser.base.path {
-            Segment(s) {
-                parser.url.path = copie_chaine(s)
-            }
-            Path(p) {
-                pour p {
-                    ajoute_segment_au_chemin(parser.url, copie_chaine(it))
-                }
-            }
-            sinon {}
-        }
+        parser.url.path = clone(parser.base.path)
         si parser.base.query.possède_valeur() {
             parser.url.query = copie_chaine(parser.base.query.Quelque)
         }
