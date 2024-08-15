@@ -450,11 +450,7 @@ est_hyperlien :: fonc (anchor: *HTMLAnchorElement) -> bool
 
 donne_href :: fonc (anchor: *HTMLAnchorElement) -> DOMString
 {
-    attribut := anchor.donne_attribut(ATTR_href)
-    si attribut.possède_valeur() {
-        retourne attribut.Quelque
-    }
-    retourne crée_chaine_utf16_unique_vide()
+    retourne donne_attribut_ou_chaine_vide(anchor, ATTR_href)
 }
 
 #portée_fichier
@@ -1021,11 +1017,7 @@ HTMLImageElement :: struct {
 
 donne_src :: fonc (anchor: *HTMLImageElement) -> DOMString
 {
-    attribut := anchor.donne_attribut(ATTR_src)
-    si attribut.possède_valeur() {
-        retourne attribut.Quelque
-    }
-    retourne crée_chaine_utf16_unique_vide()
+    retourne donne_attribut_ou_chaine_vide(anchor, ATTR_src)
 }
 
 donne_hauteur_intrinsèque :: fonc (image: *HTMLImageElement) -> z32 #enligne
@@ -1228,20 +1220,12 @@ HTMLLinkElement :: struct {
 
 donne_href :: fonc (link: *HTMLLinkElement) -> DOMString
 {
-    attribut := link.donne_attribut(ATTR_href)
-    si attribut.possède_valeur() {
-        retourne attribut.Quelque
-    }
-    retourne crée_chaine_utf16_unique_vide()
+    retourne donne_attribut_ou_chaine_vide(link, ATTR_href)
 }
 
 donne_rel :: fonc (link: *HTMLLinkElement) -> DOMString
 {
-    attribut := link.donne_attribut(ATTR_rel)
-    si attribut.possède_valeur() {
-        retourne attribut.Quelque
-    }
-    retourne crée_chaine_utf16_unique_vide()
+    retourne donne_attribut_ou_chaine_vide(link, ATTR_rel)
 }
 
 #portée_fichier
@@ -1409,11 +1393,7 @@ HTMLMediaElement :: struct {
 
 donne_src :: fonc (anchor: *HTMLMediaElement) -> DOMString
 {
-    attribut := anchor.donne_attribut(ATTR_src)
-    si attribut.possède_valeur() {
-        retourne attribut.Quelque
-    }
-    retourne crée_chaine_utf16_unique_vide()
+    retourne donne_attribut_ou_chaine_vide(anchor, ATTR_src)
 }
 
 /** \} */
@@ -1490,11 +1470,7 @@ HTMLScriptElement :: struct {
 
 donne_src :: fonc (anchor: *HTMLScriptElement) -> DOMString
 {
-    attribut := anchor.donne_attribut(ATTR_src)
-    si attribut.possède_valeur() {
-        retourne attribut.Quelque
-    }
-    retourne crée_chaine_utf16_unique_vide()
+    retourne donne_attribut_ou_chaine_vide(anchor, ATTR_src)
 }
 
 #portée_fichier

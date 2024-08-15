@@ -197,6 +197,15 @@ donne_attribut :: fonc (noeud: *Noeud, nom_qualifié: DOMString) -> Optionnel(DO
     retourne attribut.valeur
 }
 
+donne_attribut_ou_chaine_vide :: fonc (noeud: *Noeud, nom_qualifié: DOMString) -> DOMString
+{
+    attribut := cherche_attribut(noeud, nom_qualifié)
+    saufsi attribut {
+        retourne crée_chaine_utf16_unique_vide()
+    }
+    retourne attribut.valeur
+}
+
 /* https://dom.spec.whatwg.org/#concept-node-document */
 donne_node_document :: fonc (noeud: *Noeud) -> *Document #enligne
 {
