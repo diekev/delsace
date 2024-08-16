@@ -358,6 +358,9 @@ basic_url_parser :: fonc (input: ChaineUTF16, base : *URL = nul, url : *URL = nu
             Relative {
                 résultat_parsage = basic_url_parser_relative(*parser)
             }
+            RelativeSlash {
+                résultat_parsage = basic_url_parser_relative_slash(*parser)
+            }
             SpecialAuthoritySlashes {
                 résultat_parsage = basic_url_parser_special_authority_slashes(*parser)
             }
@@ -736,6 +739,43 @@ basic_url_parser_relative :: fonc (parser: *BasicURLParser) -> RésultatParsageU
             parser.définis_state(ÉtatParsageURL.Path)
             parser.decrease_pointer()
         }
+    }
+
+    retourne RésultatParsageURL.Ok
+}
+
+/* https://url.spec.whatwg.org/#relative-slash-state */
+basic_url_parser_relative_slash :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
+{
+    // 1. If url is special and c is U+002F (/) or U+005C (\), then:
+    c := parser.donne_caractère()
+    si parser.url.est_spécial() && (c == 0x2F || c == 0x5C) {
+        // 1. If c is U+005C (\), invalid-reverse-solidus validation error.
+        si c == 0x5C {
+            imprime("[%] invalid-reverse-solidus\n", #nom_de_cette_fonction)
+        }
+
+        // 2. Set state to special authority ignore slashes state.
+        parser.définis_state(ÉtatParsageURL.SpecialAuthorityIgnoreSlashes)
+    }
+    // 2. Otherwise, if c is U+002F (/), then set state to authority state.
+    sinon si c == 0x2F {
+        parser.définis_state(ÉtatParsageURL.Authority)
+    }
+    // 3. Otherwise,
+    sinon {
+        // set url’s username to base’s username,
+        //     url’s password to base’s password,
+        //     url’s host to base’s host,
+        //     url’s port to base’s port,
+        //     state to path state, and then,
+        //     decrease pointer by 1.
+        parser.url.username = parser.base.username
+        parser.url.password = parser.base.password
+        parser.url.host = parser.base.host
+        parser.url.port = parser.base.port
+        parser.définis_state(ÉtatParsageURL.Path)
+        parser.decrease_pointer()
     }
 
     retourne RésultatParsageURL.Ok
