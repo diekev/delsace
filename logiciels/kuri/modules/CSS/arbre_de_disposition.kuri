@@ -976,7 +976,16 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
     si noeud.est_noeud_non_anonyme() {
         background := noeud.propriétés.style.background
         si background.color.a != 0 {
-            rect_noeud := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
+            rect_noeud: RectanglePosDim(r32)
+            si base.parent == nul {
+                /* L'arrière plan de l'élément racine doit s'appliquer au cannevas. */
+                rect_noeud.hauteur = ctx.hauteur_vue comme r32
+                rect_noeud.largeur = ctx.largeur_vue comme r32
+            }
+            sinon {
+                rect_noeud = ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
+            }
+
             peintre.remplis_rectangle(rect_noeud, background.color)
         }
 
