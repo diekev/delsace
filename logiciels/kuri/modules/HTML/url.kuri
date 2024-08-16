@@ -231,6 +231,15 @@ est_lettre_stockage_windows :: fonc (point_de_code1: n32, point_de_code2: n32) -
     retourne point_de_code2 == DOUBLE_POINT || point_de_code2 == PIPE
 }
 
+est_lettre_stockage_windows :: fonc (chn: ChaineUTF16) -> bool
+{
+    si chn.taille() != 2 {
+        retourne faux
+    }
+
+    retourne est_lettre_stockage_windows(chn.unités[0], chn.unités[1])
+}
+
 /* https://url.spec.whatwg.org/#normalized-windows-drive-letter */
 est_lettre_stockage_windows_normalisée :: fonc (point_de_code1: n32, point_de_code2: n32) -> bool #enligne
 {
@@ -989,13 +998,18 @@ basic_url_parser_file :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
             init_de(Optionnel(ChaineASCII))(*parser.url.query)
 
             // 2. If the code point substring from pointer to the end of input does not start with a Windows drive letter, then shorten url’s path.
-            shorten_path(parser.url)
-
+            sous_chaine := parser.donne_sous_chaine_depuis_pointeur()
+            saufsi commence_par_lettre_stockage_windows(sous_chaine) {
+                shorten_path(parser.url)
+            }
             // 3. Otherwise:
-
+            sinon {
                 // 1. File-invalid-Windows-drive-letter validation error.
+                imprime("[%] file-invalid-Windows-drive-letter\n", #nom_de_cette_fonction)
 
                 // 2. Set url’s path to « ».
+                parser.url.path = ""
+            }
 
             // 4. Set state to path state and decrease pointer by 1.
             parser.définis_state(ÉtatParsageURL.Path)
@@ -1065,10 +1079,15 @@ basic_url_parser_file_host :: fonc (parser: *BasicURLParser) -> RésultatParsage
     si c == FIN_DE_FICHIER || c == 0x2F || c == 0x5C || c == 0x3F || c == 0x23 {
         parser.decrease_pointer()
 
-        // À FAIRE 1. If state override is not given and buffer is a Windows drive letter, file-invalid-Windows-drive-letter-host validation error, set state to path state.
-
+        // If state override is not given and buffer is a Windows drive letter,
+        si parser.state_override == nul && est_lettre_stockage_windows(parser.buffer) {
+            // file-invalid-Windows-drive-letter-host validation error,
+            imprime("[%] file-invalid-Windows-drive-letter-host\n", #nom_de_cette_fonction)
+            // set state to path state.
+            parser.définis_state(ÉtatParsageURL.Path)
+        }
         // 2. Otherwise, if buffer is the empty string, then:
-        si parser.buffer.est_vide() {
+        sinon si parser.buffer.est_vide() {
             // 1. Set url’s host to the empty string.
             parser.url.host = ""
 
@@ -1079,11 +1098,10 @@ basic_url_parser_file_host :: fonc (parser: *BasicURLParser) -> RésultatParsage
 
             // 3. Set state to path start state.
             parser.définis_state(ÉtatParsageURL.PathStart)
-            retourne RésultatParsageURL.Ok
         }
-
         // 3. Otherwise, run these steps:
-        panique("non-implémenté")
+        sinon {
+            panique("non-implémenté")
 
             // 1. Let host be the result of host parsing buffer with url is not special.
 
@@ -1096,10 +1114,13 @@ basic_url_parser_file_host :: fonc (parser: *BasicURLParser) -> RésultatParsage
             // 5. If state override is given, then return.
 
             // 6. Set buffer to the empty string and state to path start state.
+        }
+    }
+    // 2. Otherwise, append c to buffer.
+    sinon {
+        chaine_ajoute(*parser.buffer, c)
     }
 
-    // 2. Otherwise, append c to buffer.
-    chaine_ajoute(*parser.buffer, c)
     retourne RésultatParsageURL.Ok
 }
 
