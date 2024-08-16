@@ -1126,12 +1126,7 @@ dispose_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDis
         }
     }
 
-    si noeud.parent == nul {
-        noeud.propriétés.style.height = ValeurDeStyle(number = max(ctx.hauteur_disponible, hauteur_contenu) comme r64)
-    }
-    sinon {
-        noeud.propriétés.style.height = ValeurDeStyle(number = hauteur_contenu)
-    }
+    noeud.propriétés.style.height = ValeurDeStyle(number = hauteur_contenu)
     calcule_hauteur_et_marges(noeud)
 }
 
