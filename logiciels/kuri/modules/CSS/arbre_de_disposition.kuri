@@ -988,6 +988,21 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
 
             peintre.remplis_rectangle(rect_noeud, background.color)
         }
+        sinon si noeud.parent == nul && noeud.élément && noeud.élément.local_name == HTML.TAG_html {
+            /* Hérite de l'arrière-plan du "body".
+             * https://www.w3.org/TR/CSS21/colors.html#background */
+            body := HTML.donne_élément_body(noeud.élément.document)
+            si body && body.noeud_de_disposition {
+                background = body.noeud_de_disposition.propriétés.style.background
+                si background.color.a != 0 {
+                    /* À FAIRE : ne peint pas l'arrière-plan du "body" dans ce cas. */
+                    rect_noeud: RectanglePosDim(r32)
+                    rect_noeud.hauteur = ctx.hauteur_vue comme r32
+                    rect_noeud.largeur = ctx.largeur_vue comme r32
+                    peintre.remplis_rectangle(rect_noeud, background.color)
+                }
+            }
+        }
 
         bordure := noeud.propriétés.style.bordure
 
