@@ -66,6 +66,19 @@ cherche_attribut :: fonc (attributs: []*Attr, nom: DOMString) -> *Attr
     retourne nul
 }
 
+/* https://dom.spec.whatwg.org/#set-an-existing-attribute-value */
+définis_valeur :: fonc (attribut: *Attr, valeur: DOMString)
+{
+    // 1. If attribute’s element is null, then set attribute’s value to value.
+    si attribut.élément == nul {
+        attribut.valeur = valeur
+    }
+    // 2. Otherwise, change attribute to value.
+    sinon {
+        change_attribut(attribut, valeur)
+    }
+}
+
 #portée_fichier
 
 table_virtuelle_attr := TableVirtuelleÉlément(

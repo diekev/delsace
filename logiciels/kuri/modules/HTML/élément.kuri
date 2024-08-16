@@ -168,6 +168,19 @@ ajoute_attribut :: fonc (élément: *Élément, attribut_lexé: AttributLexé)
     gère_changement_attribute(attribut, élément, nul, *attribut.valeur)
 }
 
+/* https://dom.spec.whatwg.org/#concept-element-attributes-change */
+change_attribut :: fonc (attribut: *Attr, valeur: DOMString)
+{
+    // 1. Let oldValue be attribute’s value.
+    vieille_valeur := attr.valeur
+
+    // 2. Set attribute’s value to value.
+    attribut.valeur = valeur
+
+    // 3. Handle attribute changes for attribute with attribute’s element, oldValue, and value.
+    gère_changement_attribute(attribut, attribut.élément, vieille_valeur, valeur)
+}
+
 /* https://dom.spec.whatwg.org/#handle-attribute-changes */
 gère_changement_attribute :: fonc (attribut: *Attr, élément: *Élément, vieille_valeur: *DOMString, nouvelle_valeur: *DOMString)
 {
