@@ -156,19 +156,20 @@ rendu_css_est_requis :: fonc (élément: *Élément) -> bool
 #portée_export
 
 /* https://dom.spec.whatwg.org/#concept-element-attributes-append */
-ajoute_attribut :: fonc (élément: *Élément, attribut: Attribut)
+ajoute_attribut :: fonc (élément: *Élément, attribut_lexé: AttributLexé)
 {
     // 1. Append attribute to element’s attribute list.
-    ajoute_attribut(élément, attribut.nom, attribut.valeur)
+    attribut := ajoute_attribut(élément, attribut_lexé.nom, attribut_lexé.valeur)
 
-    // À FAIRE 2. Set attribute’s element to element.
+    // 2. Set attribute’s element to element.
+    attribut.élément = élément
 
     // 3. Handle attribute changes for attribute with element, null, and attribute’s value.
     gère_changement_attribute(attribut, élément, nul, *attribut.valeur)
 }
 
 /* https://dom.spec.whatwg.org/#handle-attribute-changes */
-gère_changement_attribute :: fonc (attribut: Attribut, élément: *Élément, vieille_valeur: *DOMString, nouvelle_valeur: *DOMString)
+gère_changement_attribute :: fonc (attribut: *Attr, élément: *Élément, vieille_valeur: *DOMString, nouvelle_valeur: *DOMString)
 {
     // À FAIRE 1. Queue a mutation record of "attributes" for element with attribute’s local name,
     //    attribute’s namespace, oldValue, « », « », null, and null.
@@ -182,7 +183,7 @@ gère_changement_attribute :: fonc (attribut: Attribut, élément: *Élément, v
     // À FAIRE : espace de nom pour l'attribut
     table := élément.table comme *TableVirtuelleÉlément
     si table && table.sur_changement_attribut {
-        _ := table.sur_changement_attribut(élément, attribut.nom, vieille_valeur, nouvelle_valeur)
+        _ := table.sur_changement_attribut(élément, attribut.local_name, vieille_valeur, nouvelle_valeur)
     }
 }
 

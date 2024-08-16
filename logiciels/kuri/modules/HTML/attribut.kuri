@@ -1,27 +1,18 @@
 importe Chaine
+importe Fondation
 
-Attribut :: struct {
+/* Représentation d'un attribut lors du lexage. */
+AttributLexé :: struct {
     nom: DOMString
     valeur: DOMString
-
-    // À FAIRE(langage) élément: *Élément
 }
 
-détruit_attributs :: fonc (attributs: &[..]Attribut)
+détruit_attributs :: fonc (attributs: &[..]AttributLexé)
 {
     déloge(attributs)
 }
 
-chaine_ou_défaut :: fonc (attribut: *Attribut, défaut := crée_chaine_utf16_unique_vide()) -> DOMString
-{
-    si attribut {
-        retourne attribut.valeur
-    }
-
-    retourne défaut
-}
-
-cherche_attribut :: fonc (attributs: [..]Attribut, nom: DOMString) -> *Attribut
+cherche_attribut :: fonc (attributs: [..]AttributLexé, nom: DOMString) -> *AttributLexé
 {
     pour * attributs {
         si it.nom == nom {
@@ -32,8 +23,61 @@ cherche_attribut :: fonc (attributs: [..]Attribut, nom: DOMString) -> *Attribut
     retourne nul
 }
 
-ajoute_attribut :: fonc (attributs: *[..]Attribut, nom: DOMString, valeur: DOMString)
+ajoute_attribut :: fonc (attributs: *[..]AttributLexé, nom: DOMString, valeur: DOMString)
 {
-    attribut := Attribut(nom = nom, valeur = valeur)
+    attribut := AttributLexé(nom = nom, valeur = valeur)
     tableau_ajoute(attributs, attribut)
 }
+
+/* ------------------------------------------------------------------------- */
+/** \nom Attr.
+ * https://dom.spec.whatwg.org/#interface-attr
+ * \{ */
+
+Attr :: struct {
+    empl base: Noeud
+    table = *table_virtuelle_attr
+
+    namespace: Optionnel(DOMString)
+    namespace_prefix: Optionnel(DOMString)
+    local_name: DOMString
+    valeur: DOMString
+    élément: *Élément
+}
+
+crée_noeud_attr :: fonc (document: *Document, nom: DOMString, valeur: DOMString) -> *Attr
+{
+    résultat := loge(Attr)
+    résultat.document = document
+    résultat.genre = GenreNoeud.Attr
+    résultat.local_name = nom
+    résultat.valeur = valeur
+    retourne résultat
+}
+
+cherche_attribut :: fonc (attributs: []*Attr, nom: DOMString) -> *Attr
+{
+    pour attributs {
+        si it.local_name == nom {
+            retourne it
+        }
+    }
+
+    retourne nul
+}
+
+#portée_fichier
+
+table_virtuelle_attr := TableVirtuelleÉlément(
+    sur_destruction = attr_sur_destruction
+)
+
+attr_sur_destruction :: fonc (base: *EventTarget)
+{
+    attr := base comme *Attr
+    déloge(attr)
+}
+
+#portée_export
+
+/** \} */
