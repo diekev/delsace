@@ -364,6 +364,12 @@ basic_url_parser :: fonc (input: ChaineUTF16, base : *URL = nul, url : *URL = nu
             NoScheme {
                 résultat_parsage = basic_url_parser_no_scheme(*parser)
             }
+            SpecialRelativeOrAuthority {
+                résultat_parsage = basic_url_parser_special_relative_or_authority(*parser)
+            }
+            PathOrAuthority {
+                résultat_parsage = basic_url_parser_path_or_authority(*parser)
+            }
             Relative {
                 résultat_parsage = basic_url_parser_relative(*parser)
             }
@@ -689,6 +695,42 @@ basic_url_parser_no_scheme :: fonc (parser: *BasicURLParser) -> RésultatParsage
     // 4. Otherwise, set state to file state and decrease pointer by 1.
     parser.définis_state(ÉtatParsageURL.File)
     parser.decrease_pointer()
+    retourne RésultatParsageURL.Ok
+}
+
+/* https://url.spec.whatwg.org/#special-relative-or-authority-state */
+basic_url_parser_special_relative_or_authority :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
+{
+    // 1. If c is U+002F (/) and remaining starts with U+002F (/),
+    c := parser.donne_caractère()
+    restant := parser.donne_restant()
+    si c == 0x2F && restant.taille() > 1 && restant.unités[0] == 0x2F {
+        // then set state to special authority ignore slashes state and increase pointer by 1.
+        parser.définis_state(ÉtatParsageURL.SpecialAuthorityIgnoreSlashes)
+        parser.increase_pointer()
+    }
+    // 2. Otherwise, special-scheme-missing-following-solidus validation error, set state to relative state and decrease pointer by 1.
+    sinon {
+        imprime("[%] special-scheme-missing-following-solidus\n", #nom_de_cette_fonction)
+        parser.définis_state(ÉtatParsageURL.Relative)
+        parser.decrease_pointer()
+    }
+    retourne RésultatParsageURL.Ok
+}
+
+/* https://url.spec.whatwg.org/#path-or-authority-state */
+basic_url_parser_path_or_authority :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
+{
+    // 1. If c is U+002F (/), then set state to authority state.
+    c := parser.donne_caractère()
+    si c == 0x2F {
+        parser.définis_state(ÉtatParsageURL.Authority)
+    }
+    // 2. Otherwise, set state to path state, and decrease pointer by 1.
+    sinon {
+        parser.définis_state(ÉtatParsageURL.Authority)
+        parser.decrease_pointer()
+    }
     retourne RésultatParsageURL.Ok
 }
 
