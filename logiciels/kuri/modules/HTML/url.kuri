@@ -643,7 +643,8 @@ basic_url_parser_scheme :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
     saufsi parser.state_override {
         parser.buffer.unités.taille = 0
         parser.définis_state(ÉtatParsageURL.NoScheme)
-        parser.pointer = parser.pointer_orig
+        /* -1 car nous allons augmenter le pointeur en sortant de cette fonction. */
+        parser.pointer = parser.pointer_orig - 1
         retourne RésultatParsageURL.Ok
     }
 
