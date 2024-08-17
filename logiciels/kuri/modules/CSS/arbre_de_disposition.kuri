@@ -1032,7 +1032,14 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
                 }
             }
             sinon {
-                couleur = noeud.propriétés.style.bordure.color[coté].couleur
+                border_color := noeud.propriétés.style.bordure.color[coté]
+                /* À FAIRE : calcule la valeur même s'il n'y a pas de propriété. */
+                si border_color.est_mot_clé(PROP_currentColor) {
+                    couleur = noeud.propriétés.style.color
+                }
+                sinon {
+                    couleur = noeud.propriétés.style.bordure.color[coté].couleur
+                }
             }
 
             largeur := noeud.propriétés.style.bordure.width[coté].number comme r32
