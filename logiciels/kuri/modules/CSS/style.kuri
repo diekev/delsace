@@ -352,6 +352,8 @@ IDPropriété :: énum n16 {
     TextDecorationColor
 
     LineHeight
+
+    TextAlign
 }
 
 Style :: struct {
@@ -387,6 +389,8 @@ Style :: struct {
     text_decoration_color: ValeurDeStyle
 
     line_height: ValeurDeStyle
+
+    text_align: ValeurDeStyle
 }
 
 initialise_style :: fonc (style: *Style)
@@ -433,6 +437,8 @@ initialise_style :: fonc (style: *Style)
     style.max_height = ValeurDeStyle(mot_clé = PROP_none)
 
     style.line_height = ValeurDeStyle(mot_clé = PROP_normal)
+
+    style.text_align = ValeurDeStyle(mot_clé = PROP_start)
 
     /* Position */
     style.top = ValeurDeStyle(mot_clé = PROP_auto)
@@ -1486,6 +1492,11 @@ prop_top_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style
             style.top = valeur
         }
     }
+}
+
+prop_text_align_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle @inutilisée)
+{
+    style.text_align = déclaration.value[0]
 }
 
 /** \} */
