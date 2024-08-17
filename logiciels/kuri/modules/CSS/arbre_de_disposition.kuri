@@ -1426,6 +1426,7 @@ AlignementTexte :: énum {
     Gauche
     Droite
     Centre
+    Justifié
 }
 
 donne_alignement_texte :: fonc (noeud: *NoeudDeDispositionBloc) -> AlignementTexte
@@ -1450,6 +1451,10 @@ donne_alignement_texte :: fonc (noeud: *NoeudDeDispositionBloc) -> AlignementTex
 
     si style.text_align.est_mot_clé(PROP_center) {
         retourne AlignementTexte.Centre
+    }
+
+    si style.text_align.est_mot_clé(PROP_justify) {
+        retourne AlignementTexte.Justifié
     }
 
     retourne AlignementTexte.Gauche
@@ -1484,10 +1489,23 @@ dispose_enfants_inline :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDi
         sinon si alignement == AlignementTexte.Centre {
             décalage_pour_alignement = (ctx_locale.largeur_disponible - it.largeur_courante) / 2.0
         }
+        sinon si alignement == AlignementTexte.Justifié {
+            /* À FAIRE : ignore l'espace finale. */
+            décalage_pour_alignement = (ctx_locale.largeur_disponible - it.largeur_courante) / ((it.fragments.taille - 1) comme r32)
+        }
 
-        pour * fragment dans it.fragments {
+        pour * fragment, index_fragment dans it.fragments {
             hauteur = max(fragment.hauteur, hauteur)
-            fragment.x += décalage_pour_alignement
+
+            si alignement == AlignementTexte.Justifié {
+                si index_fragment != 0 && index_it != (noeud.lignes.taille - 1) {
+                    fragment.x += décalage_pour_alignement * (index_fragment comme r32)
+                }
+            }
+            sinon {
+                fragment.x += décalage_pour_alignement
+            }
+
             fragment.y = décalage_y
         }
         hauteur_contenu += hauteur
