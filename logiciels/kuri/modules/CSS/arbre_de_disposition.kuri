@@ -1042,13 +1042,13 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
 
             si coté == BorderEdge.Top {
                 rect.x = rect_bordure.x
-                rect.y = rect_bordure.y + rect_bordure.hauteur - largeur
+                rect.y = rect_bordure.y
                 rect.largeur = rect_bordure.largeur
                 rect.hauteur = largeur
             }
             sinon si coté == BorderEdge.Bottom {
                 rect.x = rect_bordure.x
-                rect.y = rect_bordure.y
+                rect.y = rect_bordure.y + rect_bordure.hauteur - largeur
                 rect.largeur = rect_bordure.largeur
                 rect.hauteur = largeur
             }
