@@ -1239,7 +1239,12 @@ parse_pseudo_class_selector :: fonc (parseuse: &ParseuseSelector, pour_pseudo_el
             retourne crée_pseudo_element_selector(ident)
         }
 
-        retourne crée_pseudo_class_selector(ident)
+        pseudo_classe := donne_pseudo_classe_pour_nom(ident)
+        saufsi pseudo_classe.possède_valeur() {
+            retourne
+        }
+
+        retourne crée_pseudo_class_selector(pseudo_classe.Quelque)
     }
 
     si parseuse_locale.lexème_courant().est_fonction() {
