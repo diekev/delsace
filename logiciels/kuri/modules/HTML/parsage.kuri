@@ -839,7 +839,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
             noeud := noeud_courant(*parseuse.pile_éléments_ouvert)
             pour lexème.attributs {
                 saufsi noeud.possède_attribut(it.nom) {
-                    noeud.ajoute_attribut(it.nom, it.valeur)
+                    noeud.ajoute_attribut(it)
                 }
             }
 
@@ -871,7 +871,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
             pour lexème.attributs {
                 si !élément_body.possède_attribut(it.nom) {
-                    élément_body.ajoute_attribut(it.nom, it.valeur)
+                    élément_body.ajoute_attribut(it)
                 }
             }
 
