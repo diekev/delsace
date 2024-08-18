@@ -674,7 +674,7 @@ ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *Noeud)
         ajoute_au_tampon(*enchaineuse, "<", élément.local_name)
 
         pour noeud.attributs {
-            ajoute_au_tampon(*enchaineuse, " ", it.nom, "=\"", it.valeur, "\"")
+            ajoute_au_tampon(*enchaineuse, " ", it.local_name, "=\"", it.valeur, "\"")
         }
 
         ajoute_au_tampon(*enchaineuse, ">")
