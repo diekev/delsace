@@ -40,7 +40,7 @@ NOTATION_NODE : n16 : 12 // legacy
 
 GenreNoeud :: énum n16 {
     Élément :: ELEMENT_NODE
-    // ATTRIBUTE_NODE
+    Attr :: ATTRIBUTE_NODE
     Texte :: TEXT_NODE
     Section_CDATA :: CDATA_SECTION_NODE
     ProcessingInstruction :: PROCESSING_INSTRUCTION_NODE
@@ -58,16 +58,19 @@ Noeud :: struct {
     parent: *Noeud
     enfants: [..]*Noeud
 
-    attributs: [..]Attribut
+    attributs: [..]*Attr
 
     document: *Document
 }
 
 détruit_noeud :: fonc (noeud: *Noeud)
 {
-    détruit_attributs(noeud.attributs)
+    pour noeud.attributs {
+        détruit_noeud(it)
+    }
+    déloge(noeud.attributs)
     déloge_tableau_et_ses_éléments(noeud.enfants, détruit_noeud)
-    
+
     si noeud.table && noeud.table.sur_destruction {
         noeud.table.sur_destruction(noeud)
         retourne
@@ -198,9 +201,11 @@ ajoute_enfant :: fonc (parent: *Noeud, enfant: *Noeud)
     }
 }
 
-ajoute_attribut :: fonc (noeud: *Noeud, nom: DOMString, valeur: DOMString)
+ajoute_attribut :: fonc (noeud: *Noeud, nom: DOMString, valeur: DOMString) -> *Attr
 {
-    ajoute_attribut(*noeud.attributs, nom, valeur)
+    résultat := crée_noeud_attr(noeud.document, nom, valeur)
+    tableau_ajoute(*noeud.attributs, résultat)
+    retourne résultat
 }
 
 possède_attribut :: fonc (noeud: *Noeud, nom: DOMString) -> bool
@@ -208,7 +213,7 @@ possède_attribut :: fonc (noeud: *Noeud, nom: DOMString) -> bool
     retourne cherche_attribut(noeud.attributs, nom) != nul
 }
 
-cherche_attribut :: fonc (noeud: *Noeud, nom: DOMString) -> *Attribut
+cherche_attribut :: fonc (noeud: *Noeud, nom: DOMString) -> *Attr
 {
     retourne cherche_attribut(noeud.attributs, nom)
 }

@@ -431,7 +431,6 @@ donne_format_réel_contexte :: fonc (valeur: eini) -> FormatRéel
 
 /** \} */
 
-// Structure passée implicitement à toutes les fonctions non marquées par #!nulctx.
 ContexteProgramme :: struct {
     allocatrice := allocatrice_défaut
     données_allocatrice : *BaseAllocatrice = nul
