@@ -42,7 +42,7 @@ Lexème :: struct {
     // tag début ou fin
     auto_fermant := faux
     drapeau_auto_fermant_reconnu := faux
-    attributs: [..]Attribut
+    attributs: [..]AttributLexé
 
     // caractère
     point_de_code: n32
@@ -51,12 +51,12 @@ Lexème :: struct {
     données: ChaineUTF16
 }
 
-cherche_attribut :: fonc (lexème: *Lexème, nom: ChaineUTF16) -> *Attribut
+cherche_attribut :: fonc (lexème: *Lexème, nom: ChaineUTF16) -> *AttributLexé
 {
     retourne cherche_attribut(lexème.attributs, crée_chaine_utf16_unique(nom))
 }
 
-cherche_attribut :: fonc (lexème: *Lexème, nom: DOMString) -> *Attribut
+cherche_attribut :: fonc (lexème: *Lexème, nom: DOMString) -> *AttributLexé
 {
     retourne cherche_attribut(lexème.attributs, nom)
 }

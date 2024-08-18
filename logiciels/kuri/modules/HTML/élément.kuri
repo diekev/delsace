@@ -47,7 +47,7 @@ TableVirtuelleÉlément :: struct {
 
     /* Appelé quand un attribut est ajouté, modifié, ou supprimé.
      * La fonction doit retourner si oui ou non l'attribut fut géré. */
-    sur_changement_attribut: fonc(*Élément, DOMString, *DOMString, *DOMString)(bool) = élément_sur_changement_attribut
+    sur_changement_attribut: fonc(*Élément, DOMString, *DOMString, *DOMString, Optionnel(DOMString))(bool) = élément_sur_changement_attribut
 
     /* Appelé lors de la résolution des propriétés de style pour l'élément. */
     sur_applique_presentational_hints: fonc(*Élément, *CSS.RésolveuseStyle)(rien)
@@ -97,15 +97,14 @@ table_virtuelle_élément := TableVirtuelleÉlément(
     déloge(élément)
 }
 
-élément_sur_changement_attribut :: fonc (élément: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString) -> bool
+élément_sur_changement_attribut :: fonc (élément: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
 {
     si vieille_valeur && valeur && mémoire(vieille_valeur) == mémoire(valeur) {
         retourne vrai
     }
 
     /* https://dom.spec.whatwg.org/#concept-id */
-    si local_name == ATTR_id {
-        // À FAIRE espace de nom pour attribut
+    si local_name == ATTR_id && !espace_de_nom.possède_valeur() {
         // 1. If localName is id, namespace is null, and value is null or the empty string, then unset element’s ID.
         si valeur == nul || mémoire(valeur).est_vide() {
             élément.id = crée_chaine_utf16_unique_vide()
@@ -156,19 +155,33 @@ rendu_css_est_requis :: fonc (élément: *Élément) -> bool
 #portée_export
 
 /* https://dom.spec.whatwg.org/#concept-element-attributes-append */
-ajoute_attribut :: fonc (élément: *Élément, attribut: Attribut)
+ajoute_attribut :: fonc (élément: *Élément, attribut_lexé: AttributLexé)
 {
     // 1. Append attribute to element’s attribute list.
-    ajoute_attribut(élément, attribut.nom, attribut.valeur)
+    attribut := ajoute_attribut(élément, attribut_lexé.nom, attribut_lexé.valeur)
 
-    // À FAIRE 2. Set attribute’s element to element.
+    // 2. Set attribute’s element to element.
+    attribut.élément = élément
 
     // 3. Handle attribute changes for attribute with element, null, and attribute’s value.
     gère_changement_attribute(attribut, élément, nul, *attribut.valeur)
 }
 
+/* https://dom.spec.whatwg.org/#concept-element-attributes-change */
+change_attribut :: fonc (attribut: *Attr, valeur: DOMString)
+{
+    // 1. Let oldValue be attribute’s value.
+    vieille_valeur := attr.valeur
+
+    // 2. Set attribute’s value to value.
+    attribut.valeur = valeur
+
+    // 3. Handle attribute changes for attribute with attribute’s element, oldValue, and value.
+    gère_changement_attribute(attribut, attribut.élément, vieille_valeur, valeur)
+}
+
 /* https://dom.spec.whatwg.org/#handle-attribute-changes */
-gère_changement_attribute :: fonc (attribut: Attribut, élément: *Élément, vieille_valeur: *DOMString, nouvelle_valeur: *DOMString)
+gère_changement_attribute :: fonc (attribut: *Attr, élément: *Élément, vieille_valeur: *DOMString, nouvelle_valeur: *DOMString)
 {
     // À FAIRE 1. Queue a mutation record of "attributes" for element with attribute’s local name,
     //    attribute’s namespace, oldValue, « », « », null, and null.
@@ -179,10 +192,9 @@ gère_changement_attribute :: fonc (attribut: Attribut, élément: *Élément, v
 
     // 3. Run the attribute change steps with element, attribute’s local name, oldValue, newValue,
     //    and attribute’s namespace.
-    // À FAIRE : espace de nom pour l'attribut
     table := élément.table comme *TableVirtuelleÉlément
     si table && table.sur_changement_attribut {
-        _ := table.sur_changement_attribut(élément, attribut.nom, vieille_valeur, nouvelle_valeur)
+        _ := table.sur_changement_attribut(élément, attribut.local_name, vieille_valeur, nouvelle_valeur, attribut.namespace)
     }
 }
 
@@ -468,9 +480,9 @@ anchor_element_sur_destruction :: fonc (base: *EventTarget)
     déloge(élément)
 }
 
-anchor_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString) -> bool
+anchor_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
 {
-    si élément_sur_changement_attribut(base, local_name, vieille_valeur, valeur) {
+    si élément_sur_changement_attribut(base, local_name, vieille_valeur, valeur, espace_de_nom) {
         retourne vrai
     }
 
@@ -1055,9 +1067,9 @@ table_virtuelle_image_element := TableVirtuelleÉlément(
     sur_applique_presentational_hints = image_element_sur_applique_presentational_hints
 )
 
-image_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString) -> bool
+image_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
 {
-    si élément_sur_changement_attribut(base, local_name, vieille_valeur, valeur) {
+    si élément_sur_changement_attribut(base, local_name, vieille_valeur, valeur, espace_de_nom) {
         retourne vrai
     }
 
@@ -1235,9 +1247,9 @@ link_element_sur_destruction :: fonc (base: *EventTarget)
     déloge(élément)
 }
 
-link_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString) -> bool
+link_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
 {
-    si élément_sur_changement_attribut(base, local_name, vieille_valeur, valeur) {
+    si élément_sur_changement_attribut(base, local_name, vieille_valeur, valeur, espace_de_nom) {
         retourne vrai
     }
 
