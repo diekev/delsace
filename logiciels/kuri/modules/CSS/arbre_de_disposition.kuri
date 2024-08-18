@@ -976,8 +976,32 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
     si noeud.est_noeud_non_anonyme() {
         background := noeud.propriétés.style.background
         si background.color.a != 0 {
-            rect_noeud := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
+            rect_noeud: RectanglePosDim(r32)
+            si base.parent == nul {
+                /* L'arrière plan de l'élément racine doit s'appliquer au cannevas. */
+                rect_noeud.hauteur = ctx.hauteur_vue comme r32
+                rect_noeud.largeur = ctx.largeur_vue comme r32
+            }
+            sinon {
+                rect_noeud = ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
+            }
+
             peintre.remplis_rectangle(rect_noeud, background.color)
+        }
+        sinon si noeud.parent == nul && noeud.élément && noeud.élément.local_name == HTML.TAG_html {
+            /* Hérite de l'arrière-plan du "body".
+             * https://www.w3.org/TR/CSS21/colors.html#background */
+            body := HTML.donne_élément_body(noeud.élément.document)
+            si body && body.noeud_de_disposition {
+                background = body.noeud_de_disposition.propriétés.style.background
+                si background.color.a != 0 {
+                    /* À FAIRE : ne peint pas l'arrière-plan du "body" dans ce cas. */
+                    rect_noeud: RectanglePosDim(r32)
+                    rect_noeud.hauteur = ctx.hauteur_vue comme r32
+                    rect_noeud.largeur = ctx.largeur_vue comme r32
+                    peintre.remplis_rectangle(rect_noeud, background.color)
+                }
+            }
         }
 
         bordure := noeud.propriétés.style.bordure
@@ -1008,7 +1032,14 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
                 }
             }
             sinon {
-                couleur = noeud.propriétés.style.bordure.color[coté].couleur
+                border_color := noeud.propriétés.style.bordure.color[coté]
+                /* À FAIRE : calcule la valeur même s'il n'y a pas de propriété. */
+                si border_color.est_mot_clé(PROP_currentColor) {
+                    couleur = noeud.propriétés.style.color
+                }
+                sinon {
+                    couleur = noeud.propriétés.style.bordure.color[coté].couleur
+                }
             }
 
             largeur := noeud.propriétés.style.bordure.width[coté].number comme r32
@@ -1018,13 +1049,13 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
 
             si coté == BorderEdge.Top {
                 rect.x = rect_bordure.x
-                rect.y = rect_bordure.y + rect_bordure.hauteur - largeur
+                rect.y = rect_bordure.y
                 rect.largeur = rect_bordure.largeur
                 rect.hauteur = largeur
             }
             sinon si coté == BorderEdge.Bottom {
                 rect.x = rect_bordure.x
-                rect.y = rect_bordure.y
+                rect.y = rect_bordure.y + rect_bordure.hauteur - largeur
                 rect.largeur = rect_bordure.largeur
                 rect.hauteur = largeur
             }
@@ -1126,12 +1157,7 @@ dispose_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDis
         }
     }
 
-    si noeud.parent == nul {
-        noeud.propriétés.style.height = ValeurDeStyle(number = max(ctx.hauteur_disponible, hauteur_contenu) comme r64)
-    }
-    sinon {
-        noeud.propriétés.style.height = ValeurDeStyle(number = hauteur_contenu)
-    }
+    noeud.propriétés.style.height = ValeurDeStyle(number = hauteur_contenu)
     calcule_hauteur_et_marges(noeud)
 }
 
@@ -1396,6 +1422,44 @@ dessine_tampon_id_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *C
     }
 }
 
+AlignementTexte :: énum {
+    Gauche
+    Droite
+    Centre
+    Justifié
+}
+
+donne_alignement_texte :: fonc (noeud: *NoeudDeDispositionBloc) -> AlignementTexte
+{
+    style := *noeud.propriétés.style
+
+    si style.text_align.est_mot_clé(PROP_start) {
+        retourne AlignementTexte.Gauche
+    }
+
+    si style.text_align.est_mot_clé(PROP_end) {
+        retourne AlignementTexte.Droite
+    }
+
+    si style.text_align.est_mot_clé(PROP_left) {
+        retourne AlignementTexte.Gauche
+    }
+
+    si style.text_align.est_mot_clé(PROP_right) {
+        retourne AlignementTexte.Droite
+    }
+
+    si style.text_align.est_mot_clé(PROP_center) {
+        retourne AlignementTexte.Centre
+    }
+
+    si style.text_align.est_mot_clé(PROP_justify) {
+        retourne AlignementTexte.Justifié
+    }
+
+    retourne AlignementTexte.Gauche
+}
+
 dispose_enfants_inline :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDisposition)
 {
     ctx_locale := mémoire(ctx)
@@ -1413,10 +1477,35 @@ dispose_enfants_inline :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDi
 
     hauteur_contenu := 0.0
 
+    alignement := donne_alignement_texte(noeud)
+
     pour noeud.lignes {
         hauteur := 0.0
-        pour * fragment dans it.fragments {
+        décalage_pour_alignement := 0.0
+
+        si alignement == AlignementTexte.Droite {
+            décalage_pour_alignement = ctx_locale.largeur_disponible - it.largeur_courante
+        }
+        sinon si alignement == AlignementTexte.Centre {
+            décalage_pour_alignement = (ctx_locale.largeur_disponible - it.largeur_courante) / 2.0
+        }
+        sinon si alignement == AlignementTexte.Justifié {
+            /* À FAIRE : ignore l'espace finale. */
+            décalage_pour_alignement = (ctx_locale.largeur_disponible - it.largeur_courante) / ((it.fragments.taille - 1) comme r32)
+        }
+
+        pour * fragment, index_fragment dans it.fragments {
             hauteur = max(fragment.hauteur, hauteur)
+
+            si alignement == AlignementTexte.Justifié {
+                si index_fragment != 0 && index_it != (noeud.lignes.taille - 1) {
+                    fragment.x += décalage_pour_alignement * (index_fragment comme r32)
+                }
+            }
+            sinon {
+                fragment.x += décalage_pour_alignement
+            }
+
             fragment.y = décalage_y
         }
         hauteur_contenu += hauteur
