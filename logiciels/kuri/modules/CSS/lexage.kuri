@@ -413,7 +413,7 @@ consomme_un_lexème :: fonc (lexeuse: &Lexeuse) -> Lexème
             retourne Lexème(GenreLexème.CDC)
         }
 
-        si est_début_ident(lexeuse.point_de_code_suivant()) {
+        si vérifie_si_trois_points_de_code_commenceraient_un_ident(lexeuse) {
             lexeuse.reconsomme_point_de_code()
             retourne lexeuse.consomme_un_lexème_simili_ident()
         }
