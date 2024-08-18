@@ -173,6 +173,7 @@ Padding :: struct {
 Longueur :: struct {
     Unité :: énum {
         Em
+        Rem
         /* https://drafts.csswg.org/css-values-4/#absolute-lengths */
         Cm
         Mm
@@ -195,6 +196,9 @@ calcule_longueur :: fonc (l: Longueur, ctx: *ContexteCalculStyle) -> r64
         }
         Em {
             retourne l.valeur * ctx.taille_fonte
+        }
+        Rem {
+            retourne l.valeur * ctx.taille_fonte_racine
         }
         In {
             /* 1in = 96 px */
@@ -295,6 +299,7 @@ donne_line_style :: fonc (value: ValeurDeStyle) -> LineStyle
 
 ContexteCalculStyle :: struct {
     taille_fonte: r64
+    taille_fonte_racine: r64
 }
 
 IDPropriété :: énum n16 {

@@ -1684,6 +1684,12 @@ parse_valeur_length :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(V
             retourne ValeurDeStyle(longueur = longueur)
         }
 
+        si données_lexème.unité == PROP_rem {
+            parseuse.avance()
+            longueur := Longueur(données_lexème.numeric_value, Longueur.Unité.Rem)
+            retourne ValeurDeStyle(longueur = longueur)
+        }
+
         retourne
     }
 

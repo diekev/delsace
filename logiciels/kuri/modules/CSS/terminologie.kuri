@@ -136,6 +136,7 @@ PROP_pointer : CSSOMString = ---
 PROP_progress : CSSOMString = ---
 PROP_pt : CSSOMString = ---
 PROP_px : CSSOMString = ---
+PROP_rem : CSSOMString = ---
 PROP_revert : CSSOMString = ---
 PROP_rgb : CSSOMString = ---
 PROP_rgba : CSSOMString = ---

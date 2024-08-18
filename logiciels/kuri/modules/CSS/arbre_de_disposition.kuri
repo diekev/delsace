@@ -191,6 +191,7 @@ dessine :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
 
 RésolveuseStyle :: struct {
     globales: *GlobalesDessin
+    taille_fonte_racine: r64
     feuilles_de_style: []*CSSStyleSheet
 
     /* Tampon réutilisé pour les cascades de propriétés. */
@@ -350,6 +351,7 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
     /* https://www.w3.org/TR/2011/REC-CSS2-20110607/cascade.html#computed-value */
     ctx_calcul_style: ContexteCalculStyle
     ctx_calcul_style.taille_fonte = résolveuse.globales.taille_fonte_défaut
+    ctx_calcul_style.taille_fonte_racine = résolveuse.taille_fonte_racine
 
     /* À FAIRE : gère proprement l'héritage des valeurs (surtout pour ne pas les recalculer). */
     si propriétés_parent {
@@ -391,6 +393,7 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, haut
     résultat := loge(ArbreDeDisposition)
 
     résolveuse: RésolveuseStyle
+    résolveuse.taille_fonte_racine = document.globales_dessin.taille_fonte_défaut
     résolveuse.globales = document.globales_dessin
     résolveuse.feuilles_de_style = document.feuilles_de_style
 
@@ -468,6 +471,10 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
         inline := arbre.crée_noeud(NoeudDeDispositionInline)
         inline.élément = élément
         résultat = inline
+    }
+
+    si résultat.parent == nul {
+        résolveuse.taille_fonte_racine = propriétés.style.taille_fonte.number
     }
 
     élément.noeud_de_disposition = résultat
