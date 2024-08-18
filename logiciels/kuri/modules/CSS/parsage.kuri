@@ -1578,7 +1578,8 @@ infos_types_propriétés := [
     InfoTypePropriété(PROP_bottom, parse_propriété_inset, PropriétéHéritable.Non, prop_bottom_sur_calcul_style),
     InfoTypePropriété(PROP_left, parse_propriété_inset, PropriétéHéritable.Non, prop_left_sur_calcul_style),
     InfoTypePropriété(PROP_right, parse_propriété_inset, PropriétéHéritable.Non, prop_right_sur_calcul_style),
-    InfoTypePropriété(PROP_top, parse_propriété_inset, PropriétéHéritable.Non, prop_top_sur_calcul_style)
+    InfoTypePropriété(PROP_top, parse_propriété_inset, PropriétéHéritable.Non, prop_top_sur_calcul_style),
+    InfoTypePropriété(PROP_text_align, parse_propriété_text_align, PropriétéHéritable.Oui, prop_text_align_sur_calcul_style)
 ]
 
 #portée_export
@@ -2997,6 +2998,29 @@ parse_propriété_inset :: fonc (value: [..]ComponentValue) -> Optionnel([..]Val
         tableau_ajoute(*résultat, valeur.Quelque)
         retourne résultat
     }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Text Align
+ * https://drafts.csswg.org/css-text/#text-align-property
+ * \{ */
+
+parse_propriété_text_align :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+
+    mots_clés := [PROP_start, PROP_end, PROP_left, PROP_right, PROP_center, PROP_justify, PROP_match_parent, PROP_justify_all]
+
+    valeur := parse_mot_clé(parseuse, mots_clés)
+    saufsi valeur.possède_valeur() {
+        retourne
+    }
+
+    résultat: [..]ValeurDeStyle
+    tableau_ajoute(*résultat, valeur.Quelque)
+    retourne résultat
 }
 
 /** \} */
