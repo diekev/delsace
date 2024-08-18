@@ -1218,6 +1218,27 @@ résoud_pourcentage_largeurs :: fonc (noeud: *NoeudDeDispositionBloc, width_of_c
     style.marges.valeur[BorderEdge.Right] = calcule_pourcentage(margin_right, width_of_containing_block)
 }
 
+résoud_pourcentage_hauteur :: fonc (noeud: *NoeudDeDispositionBloc, height_of_containing_block: r64)
+{
+    style := *noeud.propriétés.style
+
+    margin_top := style.marges.valeur[BorderEdge.Top]
+    border_top_width := style.bordure.width[BorderEdge.Top]
+    padding_top := style.padding.valeur[BorderEdge.Top]
+    height := style.height
+    padding_bottom := style.padding.valeur[BorderEdge.Bottom]
+    border_bottom_width := style.bordure.width[BorderEdge.Bottom]
+    margin_bottom := style.marges.valeur[BorderEdge.Bottom]
+
+    style.marges.valeur[BorderEdge.Top] = calcule_pourcentage(margin_top, height_of_containing_block)
+    style.bordure.width[BorderEdge.Top] = calcule_pourcentage(border_top_width, height_of_containing_block)
+    style.padding.valeur[BorderEdge.Top] = calcule_pourcentage(padding_top, height_of_containing_block)
+    style.height = calcule_pourcentage(height, height_of_containing_block)
+    style.padding.valeur[BorderEdge.Bottom] = calcule_pourcentage(padding_bottom, height_of_containing_block)
+    style.bordure.width[BorderEdge.Bottom] = calcule_pourcentage(border_bottom_width, height_of_containing_block)
+    style.marges.valeur[BorderEdge.Bottom] = calcule_pourcentage(margin_bottom, height_of_containing_block)
+}
+
 calcule_hauteur_et_marges :: fonc (noeud: *NoeudDeDispositionBloc)
 {
     style := *noeud.propriétés.style
@@ -1885,6 +1906,7 @@ noeud_disposition_remplacement_sur_mesure :: fonc (base: *NoeudDeDisposition, ct
     assert(noeud.propriétés.style.display.outer_type == Display.Type.Inline)
 
     résoud_pourcentage_largeurs(noeud, ctx.largeur_disponible)
+    résoud_pourcentage_hauteur(noeud, ctx.hauteur_disponible)
 
     calcule_largeur_et_marges_inline_replaced_element(noeud)
     calcule_hauteur_et_marges_inline_replaced_element(noeud)
