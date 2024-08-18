@@ -142,7 +142,7 @@ vérifie_noeud :: fonc (contexte_vérification: &ContexteVérification, noeud: *
             // Voir aussi https://www.w3.org/International/geo/html-tech/tech-lang.html#ri20030510.102829377
             possède_lang := faux
             pour élément.attributs {
-                si it.nom == ATTR_lang {
+                si it.local_name == ATTR_lang {
                     possède_lang = vrai
                     // À FAIRE : vérifie que le langage est valide
                     // https://www.w3.org/International/geo/html-tech/tech-lang.html#ri20030218.131140352
