@@ -699,6 +699,21 @@ Display :: struct {
 /** \nom Fonctions auxillaires pour le calcul des valeurs de style.
  * \{ */
 
+GenreValeurCalculée :: énum_drapeau {
+    LongueurAbsolue
+    LongueurPourcentage
+    Nombre
+    Couleur
+    LineStyle
+    BorderWidth
+    Auto
+    Spécifié
+    Cursor
+    Display
+    TextDecorationLine
+    TextDecorationStyle
+}
+
 calcule_valeur_marge :: fonc (valeur: ValeurDeStyle, style: *Style @inutilisée, ctx: *ContexteCalculStyle) -> ValeurDeStyle
 {
     discr valeur {
