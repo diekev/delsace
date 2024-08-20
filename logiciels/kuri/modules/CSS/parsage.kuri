@@ -2270,116 +2270,20 @@ CursorType :: énum {
 }
 
 donne_type_cursor :: fonc (chn: CSSOMString) -> CursorType
-{
-    si chn == PROP_auto {
-        retourne CursorType.auto;
+#corps_texte {
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    infos := info_de(CursorType)
+    pour infos.noms {
+        ajoute_au_tampon(*enchaineuse, "    si chn == PROP_", it, " {\n")
+        ajoute_au_tampon(*enchaineuse, "        retourne CursorType.", it, "\n")
+        ajoute_au_tampon(*enchaineuse, "    }\n")
     }
-    si chn == PROP_default {
-        retourne CursorType.default;
-    }
-    si chn == PROP_none {
-        retourne CursorType.none;
-    }
-    si chn == PROP_context_menu {
-        retourne CursorType.context_menu;
-    }
-    si chn == PROP_help {
-        retourne CursorType.help;
-    }
-    si chn == PROP_pointer {
-        retourne CursorType.pointer;
-    }
-    si chn == PROP_progress {
-        retourne CursorType.progress;
-    }
-    si chn == PROP_wait {
-        retourne CursorType.wait;
-    }
-    si chn == PROP_cell {
-        retourne CursorType.cell;
-    }
-    si chn == PROP_crosshair {
-        retourne CursorType.crosshair;
-    }
-    si chn == PROP_text {
-        retourne CursorType.text;
-    }
-    si chn == PROP_vertical_text {
-        retourne CursorType.vertical_text;
-    }
-    si chn == PROP_alias {
-        retourne CursorType.alias;
-    }
-    si chn == PROP_copy {
-        retourne CursorType.copy;
-    }
-    si chn == PROP_move {
-        retourne CursorType.move;
-    }
-    si chn == PROP_no_drop {
-        retourne CursorType.no_drop;
-    }
-    si chn == PROP_not_allowed {
-        retourne CursorType.not_allowed;
-    }
-    si chn == PROP_grab {
-        retourne CursorType.grab;
-    }
-    si chn == PROP_grabbing {
-        retourne CursorType.grabbing;
-    }
-    si chn == PROP_e_resize {
-        retourne CursorType.e_resize;
-    }
-    si chn == PROP_n_resize {
-        retourne CursorType.n_resize;
-    }
-    si chn == PROP_ne_resize {
-        retourne CursorType.ne_resize;
-    }
-    si chn == PROP_nw_resize {
-        retourne CursorType.nw_resize;
-    }
-    si chn == PROP_s_resize {
-        retourne CursorType.s_resize;
-    }
-    si chn == PROP_se_resize {
-        retourne CursorType.se_resize;
-    }
-    si chn == PROP_sw_resize {
-        retourne CursorType.sw_resize;
-    }
-    si chn == PROP_w_resize {
-        retourne CursorType.w_resize;
-    }
-    si chn == PROP_ew_resize {
-        retourne CursorType.ew_resize;
-    }
-    si chn == PROP_ns_resize {
-        retourne CursorType.ns_resize;
-    }
-    si chn == PROP_nesw_resize {
-        retourne CursorType.nesw_resize;
-    }
-    si chn == PROP_nwse_resize {
-        retourne CursorType.nwse_resize;
-    }
-    si chn == PROP_col_resize {
-        retourne CursorType.col_resize;
-    }
-    si chn == PROP_row_resize {
-        retourne CursorType.row_resize;
-    }
-    si chn == PROP_all_scroll {
-        retourne CursorType.all_scroll;
-    }
-    si chn == PROP_zoom_in {
-        retourne CursorType.zoom_in;
-    }
-    si chn == PROP_zoom_out {
-        retourne CursorType.zoom_out;
-    }
-    panique("chn pour curseur invalide")
+
+    ajoute_au_tampon(*enchaineuse, «panique("chn pour curseur invalide")\n»)
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
 parse_propriété_cursor :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
