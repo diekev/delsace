@@ -1469,6 +1469,71 @@ parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sh
     tableau_ajoute(*parent_style_sheet.rules, résultat)
 }
 
+ContexteParsageShorthand :: struct {
+    déclaration: *CSSStyleDeclaration
+    
+    déclaration_parsée: *ParsedDeclaration
+}
+
+ajoute_propriété :: fonc (ctx: *ContexteParsageShorthand, nom: CSSOMString, valeur: ValeurDeStyle)
+{
+    info_type_propriété := donne_info_type_pour_nom(nom)
+    saufsi info_type_propriété {
+        retourne
+    }
+
+    déclaration := loge(DéclarationPropriété)
+    déclaration.info = info_type_propriété
+    déclaration.property_name = nom
+    tableau_ajoute(*déclaration.value, valeur)
+    déclaration.important = ctx.déclaration_parsée.important
+
+    ctx.déclaration.ajoute_déclaration(déclaration)
+}
+
+/* Les valeurs et noms doivent être données dans l'ordre : top, right, bottom, left. Voir #BorderEdge. */
+ajoute_propriétés_boite :: fonc (ctx: *ContexteParsageShorthand, nombre_valeurs: z64, valeurs: [4]ValeurDeStyle, noms: [4]CSSOMString)
+{
+    si nombre_valeurs == 1 {
+        pour 4 {
+            ajoute_propriété(ctx, noms[it], valeurs[0])
+        }
+    }
+    sinon si nombre_valeurs == 2 {
+        ajoute_propriété(ctx, noms[BorderEdge.Top], valeurs[0])
+        ajoute_propriété(ctx, noms[BorderEdge.Bottom], valeurs[0])
+        ajoute_propriété(ctx, noms[BorderEdge.Right], valeurs[1])
+        ajoute_propriété(ctx, noms[BorderEdge.Left], valeurs[1])
+    }
+    sinon si nombre_valeurs == 3 {
+        ajoute_propriété(ctx, noms[BorderEdge.Top], valeurs[0])
+        ajoute_propriété(ctx, noms[BorderEdge.Right], valeurs[1])
+        ajoute_propriété(ctx, noms[BorderEdge.Left], valeurs[1])
+        ajoute_propriété(ctx, noms[BorderEdge.Bottom], valeurs[2])
+    }
+    sinon {
+        assert(nombre_valeurs == 4)
+        ajoute_propriété(ctx, noms[BorderEdge.Top], valeurs[0])
+        ajoute_propriété(ctx, noms[BorderEdge.Right], valeurs[1])
+        ajoute_propriété(ctx, noms[BorderEdge.Bottom], valeurs[2])
+        ajoute_propriété(ctx, noms[BorderEdge.Left], valeurs[3])
+    }
+}
+
+/* Les valeurs et noms doivent être données dans l'ordre : start, end. */
+ajoute_propriétés_logique :: fonc (ctx: *ContexteParsageShorthand, nombre_valeurs: z64, valeurs: [2]ValeurDeStyle, noms: [2]CSSOMString)
+{
+    si nombre_valeurs == 1 {
+        ajoute_propriété(ctx, noms[0], valeurs[0])
+        ajoute_propriété(ctx, noms[1], valeurs[0])
+    }
+    sinon {
+        assert(nombre_valeurs == 2)
+        ajoute_propriété(ctx, noms[0], valeurs[0])
+        ajoute_propriété(ctx, noms[1], valeurs[1])
+    }
+}
+
 parse_css_style_declaration :: fonc (ctx: *ContexteParsageFeuilleDeStyle, déclarations: []ParsedDeclaration) -> *CSSStyleDeclaration
 {
     résultat := loge(CSSStyleDeclaration)
@@ -1476,6 +1541,18 @@ parse_css_style_declaration :: fonc (ctx: *ContexteParsageFeuilleDeStyle, décla
     pour déclarations {
         info_type_propriété := donne_info_type_pour_nom(ctx, it.name)
         saufsi info_type_propriété {
+            continue
+        }
+
+        si info_type_propriété.sur_parsage_shorthand {
+            ctx_parsage_shorthand: ContexteParsageShorthand
+            ctx_parsage_shorthand.déclaration_parsée = *it
+            ctx_parsage_shorthand.déclaration = résultat
+
+            saufsi info_type_propriété.sur_parsage_shorthand(*ctx_parsage_shorthand, it.value) {
+                imprime("Impossible de parser '%'\n", it.name)
+            }
+
             continue
         }
 
@@ -1514,26 +1591,27 @@ InfoTypePropriété :: struct {
     nom: CSSOMString
     héritable: PropriétéHéritable
     fonction_de_parsage: fonc([..]ComponentValue)(Optionnel([..]ValeurDeStyle))
+    sur_parsage_shorthand: fonc(*ContexteParsageShorthand, [..]ComponentValue)(bool)
     sur_calcul_style: fonc(*DéclarationPropriété, *Style, *ContexteCalculStyle)(rien)
 }
 
 infos_types_propriétés_shorthand := [
     InfoTypePropriété(PROP_background, fonction_de_parsage = parse_propriété_color, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_background_sur_calcul_style),
-    InfoTypePropriété(PROP_border, fonction_de_parsage = parse_propriété_border, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_border_sur_calcul_style),
-    InfoTypePropriété(PROP_border_color, fonction_de_parsage = parse_propriété_border_color, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_border_color_sur_calcul_style),
-    InfoTypePropriété(PROP_border_style, fonction_de_parsage = parse_propriété_border_style, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_border_style_sur_calcul_style),
-    InfoTypePropriété(PROP_border_width, fonction_de_parsage = parse_propriété_border_width, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_border_width_sur_calcul_style),
-    InfoTypePropriété(PROP_border_top, fonction_de_parsage = parse_propriété_border, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_border_top_sur_calcul_style),
-    InfoTypePropriété(PROP_border_left, fonction_de_parsage = parse_propriété_border, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_border_left_sur_calcul_style),
-    InfoTypePropriété(PROP_border_bottom, fonction_de_parsage = parse_propriété_border, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_border_bottom_sur_calcul_style),
-    InfoTypePropriété(PROP_border_right, fonction_de_parsage = parse_propriété_border, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_border_right_sur_calcul_style),
-    InfoTypePropriété(PROP_margin, fonction_de_parsage = parse_propriété_margin, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_margin_sur_calcul_style),
-    InfoTypePropriété(PROP_margin_block, fonction_de_parsage = parse_propriété_margin_top, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_margin_block_sur_calcul_style),
-    InfoTypePropriété(PROP_margin_inline, fonction_de_parsage = parse_propriété_margin_top, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_margin_inline_sur_calcul_style),
-    InfoTypePropriété(PROP_text_decoration, fonction_de_parsage = parse_propriété_text_decoration, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_text_decoration_sur_calcul_style),
-    InfoTypePropriété(PROP_padding, fonction_de_parsage = parse_propriété_padding, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_padding_sur_calcul_style),
-    InfoTypePropriété(PROP_padding_block, fonction_de_parsage = parse_propriété_padding_top, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_padding_block_sur_calcul_style),
-    InfoTypePropriété(PROP_padding_inline, fonction_de_parsage = parse_propriété_padding_top, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_padding_inline_sur_calcul_style),
+    InfoTypePropriété(PROP_border, sur_parsage_shorthand = parse_propriété_border, héritable = PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_color, sur_parsage_shorthand = parse_propriété_border_color, héritable = PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_style, sur_parsage_shorthand = parse_propriété_border_style, héritable = PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_width, sur_parsage_shorthand = parse_propriété_border_width, héritable = PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_top, sur_parsage_shorthand = parse_propriété_border_edge, héritable = PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_left, sur_parsage_shorthand = parse_propriété_border_edge, héritable = PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_bottom, sur_parsage_shorthand = parse_propriété_border_edge, héritable = PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_right, sur_parsage_shorthand = parse_propriété_border_edge, héritable = PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_margin, sur_parsage_shorthand = parse_propriété_margin, héritable = PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_margin_block, sur_parsage_shorthand = parse_propriété_margin_logique, héritable = PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_margin_inline, sur_parsage_shorthand = parse_propriété_margin_logique, héritable = PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_text_decoration, sur_parsage_shorthand = parse_propriété_text_decoration, héritable = PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_padding, sur_parsage_shorthand = parse_propriété_padding, héritable = PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_padding_block, sur_parsage_shorthand = parse_propriété_padding_logique, héritable = PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_padding_inline, sur_parsage_shorthand = parse_propriété_padding_logique, héritable = PropriétéHéritable.Non),
     InfoTypePropriété(PROP_text_align, fonction_de_parsage = parse_propriété_text_align, héritable = PropriétéHéritable.Oui, sur_calcul_style = prop_text_align_sur_calcul_style)
 ]
 
@@ -1743,6 +1821,15 @@ parse_valeur_length_percentage :: fonc (parseuse: &Parseuse(ComponentValue)) -> 
         retourne length
     }
     retourne parse_valeur_percentage(parseuse)
+}
+
+parse_valeur_length_percentage_ou_auto :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+{
+    lexème := parseuse.lexème_courant()
+    si lexème.est_mot_clé(PROP_auto) {
+        retourne ValeurDeStyle(mot_clé = PROP_auto)
+    }
+    retourne parse_valeur_length_percentage(parseuse)
 }
 
 /** \} */
@@ -1997,7 +2084,7 @@ parse_couleur_rgb :: fonc (function: &ParsedFunction) -> Optionnel(ValeurDeStyle
  * https://drafts.csswg.org/css-text-decor/#text-decoration-property
  * \{ */
 
-parse_propriété_text_decoration :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+parse_propriété_text_decoration :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
 {
     parseuse := initialise_une_parseuse(value)
 
@@ -2037,14 +2124,13 @@ parse_propriété_text_decoration :: fonc (value: [..]ComponentValue) -> Optionn
 
         lexème := parseuse.lexème_courant()
         imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
-        retourne
+        retourne faux
     }
 
-    résultat: [..]ValeurDeStyle
-    tableau_ajoute(*résultat, line)
-    tableau_ajoute(*résultat, style)
-    tableau_ajoute(*résultat, color)
-    retourne résultat
+    ajoute_propriété(ctx, PROP_text_decoration_line, line)
+    ajoute_propriété(ctx, PROP_text_decoration_style, style)
+    ajoute_propriété(ctx, PROP_text_decoration_color, color)
+    retourne vrai
 }
 
 parse_propriété_text_decoration_line :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
@@ -2529,7 +2615,13 @@ parse_propriété_font_style :: fonc (value: [..]ComponentValue) -> Optionnel([.
  * https://drafts.csswg.org/css-backgrounds-3/#border-shorthands
  * \{ */
 
-parse_propriété_border :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+ValeursBorder :: struct {
+    width: ValeurDeStyle
+    style: ValeurDeStyle
+    color: ValeurDeStyle
+}
+
+parse_propriété_border_impl :: fonc (value: [..]ComponentValue) -> Optionnel(ValeursBorder)
 {
     parseuse := initialise_une_parseuse(value)
 
@@ -2565,49 +2657,110 @@ parse_propriété_border :: fonc (value: [..]ComponentValue) -> Optionnel([..]Va
         retourne
     }
 
-    résultat: [..]ValeurDeStyle
-    tableau_réserve(*résultat, 3)
+    résultat: ValeursBorder
 
     si valeur_width.possède_valeur() {
-        tableau_ajoute(*résultat, valeur_width.Quelque)
+        résultat.width = valeur_width.Quelque
     }
     sinon {
         /* Valeur initiale */
-        tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = PROP_medium))
+        résultat.width = ValeurDeStyle(mot_clé = PROP_medium)
     }
 
     si valeur_style.possède_valeur() {
-        tableau_ajoute(*résultat, valeur_style.Quelque)
+        résultat.style = valeur_style.Quelque
     }
     sinon {
         /* Valeur initiale */
-        tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = PROP_none))
+        résultat.style = ValeurDeStyle(mot_clé = PROP_none)
     }
 
     si valeur_color.possède_valeur() {
-        tableau_ajoute(*résultat, valeur_color.Quelque)
+        résultat.color = valeur_color.Quelque
     }
     sinon {
         /* Valeur initiale */
-        tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = PROP_currentColor))
+        résultat.color = ValeurDeStyle(mot_clé = PROP_currentColor)
     }
 
     retourne résultat
 }
 
-parse_propriété_border_color :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+parse_propriété_border :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
+{
+    opt_valeurs := parse_propriété_border_impl(value)
+    saufsi opt_valeurs.possède_valeur() {
+        retourne faux
+    }
+
+    valeurs := opt_valeurs.Quelque
+
+    ajoute_propriété(ctx, PROP_border_top_width, valeurs.width)
+    ajoute_propriété(ctx, PROP_border_bottom_width, valeurs.width)
+    ajoute_propriété(ctx, PROP_border_right_width, valeurs.width)
+    ajoute_propriété(ctx, PROP_border_left_width, valeurs.width)
+
+    ajoute_propriété(ctx, PROP_border_top_style, valeurs.style)
+    ajoute_propriété(ctx, PROP_border_bottom_style, valeurs.style)
+    ajoute_propriété(ctx, PROP_border_right_style, valeurs.style)
+    ajoute_propriété(ctx, PROP_border_left_style, valeurs.style)
+
+    ajoute_propriété(ctx, PROP_border_top_color, valeurs.color)
+    ajoute_propriété(ctx, PROP_border_bottom_color, valeurs.color)
+    ajoute_propriété(ctx, PROP_border_right_color, valeurs.color)
+    ajoute_propriété(ctx, PROP_border_left_color, valeurs.color)
+
+    retourne vrai
+}
+
+parse_propriété_border_edge :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
+{
+    opt_valeurs := parse_propriété_border_impl(value)
+    saufsi opt_valeurs.possède_valeur() {
+        retourne faux
+    }
+
+    valeurs := opt_valeurs.Quelque
+
+    si ctx.déclaration_parsée.name == PROP_border_top {
+        ajoute_propriété(ctx, PROP_border_top_width, valeurs.width)
+        ajoute_propriété(ctx, PROP_border_top_style, valeurs.style)
+        ajoute_propriété(ctx, PROP_border_top_color, valeurs.color)
+    }
+    sinon si ctx.déclaration_parsée.name == PROP_border_bottom {
+        ajoute_propriété(ctx, PROP_border_bottom_width, valeurs.width)
+        ajoute_propriété(ctx, PROP_border_bottom_style, valeurs.style)
+        ajoute_propriété(ctx, PROP_border_bottom_color, valeurs.color)
+    }
+    sinon si ctx.déclaration_parsée.name == PROP_border_right {
+        ajoute_propriété(ctx, PROP_border_right_width, valeurs.width)
+        ajoute_propriété(ctx, PROP_border_right_style, valeurs.style)
+        ajoute_propriété(ctx, PROP_border_right_color, valeurs.color)
+    }
+    sinon {
+        assert(ctx.déclaration_parsée.name == PROP_border_left)
+        ajoute_propriété(ctx, PROP_border_left_width, valeurs.width)
+        ajoute_propriété(ctx, PROP_border_left_style, valeurs.style)
+        ajoute_propriété(ctx, PROP_border_left_color, valeurs.color)
+    }
+
+    retourne vrai
+}
+
+parse_propriété_border_color :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
 {
     parseuse := initialise_une_parseuse(value)
 
-    résultat: [..]ValeurDeStyle
-    tableau_réserve(*résultat, 4)
+    résultat: [4]ValeurDeStyle
+    nombre_valeurs: z64
 
-    tantque !fini(parseuse) {
+    tantque !fini(parseuse) && nombre_valeurs != 4 {
         parseuse.consomme_espaces_blanches()
 
         color := parse_valeur_couleur(parseuse)
         si color.possède_valeur() {
-            tableau_ajoute(*résultat, color.Quelque)
+            résultat[nombre_valeurs] = color.Quelque
+            nombre_valeurs += 1
             continue
         }
 
@@ -2615,26 +2768,27 @@ parse_propriété_border_color :: fonc (value: [..]ComponentValue) -> Optionnel(
 
         lexème := parseuse.lexème_courant()
         imprime("[%] lexème inconnu %\n", #nom_de_cette_fonction, lexème)
-        déloge(résultat)
-        retourne
+        retourne faux
     }
 
-    retourne résultat
+    ctx.ajoute_propriétés_boite(nombre_valeurs, résultat, [PROP_border_top_color, PROP_border_right_color, PROP_border_bottom_color, PROP_border_left_color])
+    retourne vrai
 }
 
-parse_propriété_border_style :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+parse_propriété_border_style :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
 {
     parseuse := initialise_une_parseuse(value)
 
-    résultat: [..]ValeurDeStyle
-    tableau_réserve(*résultat, 4)
+    résultat: [4]ValeurDeStyle
+    nombre_valeurs: z64
 
-    tantque !fini(parseuse) {
+    tantque !fini(parseuse) && nombre_valeurs != 4 {
         parseuse.consomme_espaces_blanches()
 
         style := parse_valeur_line_style(parseuse)
         si style.possède_valeur() {
-            tableau_ajoute(*résultat, style.Quelque)
+            résultat[nombre_valeurs] = style.Quelque
+            nombre_valeurs += 1
             continue
         }
 
@@ -2642,26 +2796,27 @@ parse_propriété_border_style :: fonc (value: [..]ComponentValue) -> Optionnel(
 
         lexème := parseuse.lexème_courant()
         imprime("[%] lexème inconnu %\n", #nom_de_cette_fonction, lexème)
-        déloge(résultat)
-        retourne
+        retourne faux
     }
 
-    retourne résultat
+    ctx.ajoute_propriétés_boite(nombre_valeurs, résultat, [PROP_border_top_style, PROP_border_right_style, PROP_border_bottom_style, PROP_border_left_style])
+    retourne vrai
 }
 
-parse_propriété_border_width :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+parse_propriété_border_width :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
 {
     parseuse := initialise_une_parseuse(value)
 
-    résultat: [..]ValeurDeStyle
-    tableau_réserve(*résultat, 4)
+    résultat: [4]ValeurDeStyle
+    nombre_valeurs: z64
 
-    tantque !fini(parseuse) {
+    tantque !fini(parseuse) && nombre_valeurs != 4 {
         parseuse.consomme_espaces_blanches()
 
         width := parse_valeur_line_width(parseuse)
         si width.possède_valeur() {
-            tableau_ajoute(*résultat, width.Quelque)
+            résultat[nombre_valeurs] = width.Quelque
+            nombre_valeurs += 1
             continue
         }
 
@@ -2669,11 +2824,11 @@ parse_propriété_border_width :: fonc (value: [..]ComponentValue) -> Optionnel(
 
         lexème := parseuse.lexème_courant()
         imprime("[%] lexème inconnu %\n", #nom_de_cette_fonction, lexème)
-        déloge(résultat)
-        retourne
+        retourne faux
     }
 
-    retourne résultat
+    ctx.ajoute_propriétés_boite(nombre_valeurs, résultat, [PROP_border_top_width, PROP_border_right_width, PROP_border_bottom_width, PROP_border_left_width])
+    retourne vrai
 }
 
 parse_propriété_border_line_style :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
@@ -2778,37 +2933,69 @@ parse_valeur_line_style :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionn
  * https://drafts.csswg.org/css-logical/#margin-properties
  * \{ */
 
-parse_propriété_margin :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+parse_propriété_margin :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
 {
     parseuse := initialise_une_parseuse(value)
 
-    résultat: [..]ValeurDeStyle
+    résultat: [4]ValeurDeStyle
+    nombre_valeurs: z64
 
-    tantque !fini(parseuse) {
+    tantque !fini(parseuse) && nombre_valeurs != 4 {
         parseuse.consomme_espaces_blanches()
         lexème := parseuse.lexème_courant()
 
-        /* <length-percentage> */
-        valeur := parse_valeur_length_percentage(parseuse)
+        /* <length-percentage> | auto */
+        valeur := parse_valeur_length_percentage_ou_auto(parseuse)
         si valeur.possède_valeur() {
-            tableau_ajoute(*résultat, valeur.Quelque)
-            continue
-        }
-
-        si lexème.est_mot_clé(PROP_auto) {
-            parseuse.avance()
-            tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = PROP_auto))
+            résultat[nombre_valeurs] = valeur.Quelque
+            nombre_valeurs += 1
             continue
         }
 
         imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
-        déloge(résultat)
-        retourne
+        retourne faux
     }
 
-    si résultat.taille != 0 {
-        retourne résultat
+    ctx.ajoute_propriétés_boite(nombre_valeurs, résultat, [PROP_margin_top, PROP_margin_right, PROP_margin_bottom, PROP_margin_left])
+    retourne vrai
+}
+
+parse_propriété_margin_logique :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
+{
+    parseuse := initialise_une_parseuse(value)
+
+    résultat: [2]ValeurDeStyle
+    nombre_valeurs: z64
+
+    tantque !fini(parseuse) && nombre_valeurs != 2 {
+        parseuse.consomme_espaces_blanches()
+        lexème := parseuse.lexème_courant()
+
+        /* <length-percentage> | auto */
+        valeur := parse_valeur_length_percentage_ou_auto(parseuse)
+        si valeur.possède_valeur() {
+            résultat[nombre_valeurs] = valeur.Quelque
+            nombre_valeurs += 1
+            continue
+        }
+
+        imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
+        retourne faux
     }
+
+    noms: [2]CSSOMString
+    si ctx.déclaration_parsée.name == PROP_margin_block {
+        noms[0] = PROP_margin_block_start
+        noms[1] = PROP_margin_block_end
+    }
+    sinon {
+        assert(ctx.déclaration_parsée.name == PROP_margin_inline)
+        noms[0] = PROP_margin_inline_start
+        noms[1] = PROP_margin_inline_end
+    }
+
+    ctx.ajoute_propriétés_logique(nombre_valeurs, résultat, noms)
+    retourne vrai
 }
 
 parse_propriété_margin_top :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
@@ -2816,16 +3003,10 @@ parse_propriété_margin_top :: fonc (value: [..]ComponentValue) -> Optionnel([.
     parseuse := initialise_une_parseuse(value)
     parseuse.consomme_espaces_blanches()
     /* <length-percentage> | auto */
-    valeur := parse_valeur_length_percentage(parseuse)
+    valeur := parse_valeur_length_percentage_ou_auto(parseuse)
     si valeur.possède_valeur() {
         résultat: [..]ValeurDeStyle
         tableau_ajoute(*résultat, valeur.Quelque)
-        retourne résultat
-    }
-    lexème := parseuse.lexème_courant()
-    si lexème.est_mot_clé(PROP_auto) {
-        résultat: [..]ValeurDeStyle
-        tableau_ajoute(*résultat, ValeurDeStyle(mot_clé = PROP_auto))
         retourne résultat
     }
 }
@@ -2838,31 +3019,69 @@ parse_propriété_margin_top :: fonc (value: [..]ComponentValue) -> Optionnel([.
  * https://drafts.csswg.org/css-logical/#padding-properties
  * \{ */
 
-parse_propriété_padding :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)
+parse_propriété_padding :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
 {
     parseuse := initialise_une_parseuse(value)
 
-    résultat: [..]ValeurDeStyle
+    résultat: [4]ValeurDeStyle
+    nombre_valeurs: z64
 
-    tantque !fini(parseuse) {
+    tantque !fini(parseuse) && nombre_valeurs != 4 {
         parseuse.consomme_espaces_blanches()
         lexème := parseuse.lexème_courant()
 
         /* <length-percentage> */
         valeur := parse_valeur_length_percentage(parseuse)
         si valeur.possède_valeur() {
-            tableau_ajoute(*résultat, valeur.Quelque)
+            résultat[nombre_valeurs] = valeur.Quelque
+            nombre_valeurs += 1
             continue
         }
 
         imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
-        déloge(résultat)
-        retourne
+        retourne faux
     }
 
-    si résultat.taille != 0 {
-        retourne résultat
+    ctx.ajoute_propriétés_boite(nombre_valeurs, résultat, [PROP_padding_top, PROP_padding_right, PROP_padding_bottom, PROP_padding_left])
+    retourne vrai
+}
+
+parse_propriété_padding_logique :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
+{
+    parseuse := initialise_une_parseuse(value)
+
+    résultat: [2]ValeurDeStyle
+    nombre_valeurs: z64
+
+    tantque !fini(parseuse) && nombre_valeurs != 2 {
+        parseuse.consomme_espaces_blanches()
+        lexème := parseuse.lexème_courant()
+
+        /* 	<length-percentage [0,∞]> */
+        valeur := parse_valeur_length_percentage(parseuse)
+        si valeur.possède_valeur() {
+            résultat[nombre_valeurs] = valeur.Quelque
+            nombre_valeurs += 1
+            continue
+        }
+
+        imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
+        retourne faux
     }
+
+    noms: [2]CSSOMString
+    si ctx.déclaration_parsée.name == PROP_padding_block {
+        noms[0] = PROP_padding_block_start
+        noms[1] = PROP_padding_block_end
+    }
+    sinon {
+        assert(ctx.déclaration_parsée.name == PROP_padding_inline)
+        noms[0] = PROP_padding_inline_start
+        noms[1] = PROP_padding_inline_end
+    }
+
+    ctx.ajoute_propriétés_logique(nombre_valeurs, résultat, noms)
+    retourne vrai
 }
 
 parse_propriété_padding_top :: fonc (value: [..]ComponentValue) -> Optionnel([..]ValeurDeStyle)

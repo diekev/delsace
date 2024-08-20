@@ -247,11 +247,12 @@ LineStyle :: énum {
     Outset
 }
 
+/* Même ordre que pour les définitions des propriétés des métriques des boites (par exmple "border"). */
 BorderEdge :: énum {
     Top
+    Right
     Bottom
     Left
-    Right
 }
 
 Border :: struct {
@@ -840,14 +841,6 @@ prop_background_color_sur_calcul_style :: fonc (déclaration: *DéclarationPropr
     style.background.color = calcule_valeur_color(déclaration.value[0], style, ctx)
 }
 
-prop_text_decoration_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    assert(déclaration.value.taille == 3)
-    style.text_decoration_line = déclaration.value[0]
-    style.text_decoration_style = déclaration.value[1]
-    style.text_decoration_color = calcule_valeur_color(déclaration.value[2], style, ctx)
-}
-
 prop_text_decoration_line_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle @inutilisée)
 {
     style.text_decoration_line = déclaration.value[0]
@@ -953,34 +946,6 @@ prop_font_size_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété,
     }
 }
 
-prop_margin_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    si déclaration.value.taille == 1 {
-        pour i dans 4 {
-            style.marges.valeur[i] = calcule_valeur_marge(déclaration.value[0], style, ctx)
-        }
-    }
-    sinon si déclaration.value.taille == 2 {
-        style.marges.valeur[BorderEdge.Top] = calcule_valeur_marge(déclaration.value[0], style, ctx)
-        style.marges.valeur[BorderEdge.Bottom] = calcule_valeur_marge(déclaration.value[0], style, ctx)
-        style.marges.valeur[BorderEdge.Right] = calcule_valeur_marge(déclaration.value[1], style, ctx)
-        style.marges.valeur[BorderEdge.Left] = calcule_valeur_marge(déclaration.value[1], style, ctx)
-    }
-    sinon si déclaration.value.taille == 3 {
-        style.marges.valeur[BorderEdge.Top] = calcule_valeur_marge(déclaration.value[0], style, ctx)
-        style.marges.valeur[BorderEdge.Right] = calcule_valeur_marge(déclaration.value[1], style, ctx)
-        style.marges.valeur[BorderEdge.Left] = calcule_valeur_marge(déclaration.value[1], style, ctx)
-        style.marges.valeur[BorderEdge.Bottom] = calcule_valeur_marge(déclaration.value[2], style, ctx)
-    }
-    sinon {
-        assert(déclaration.value.taille == 4)
-        style.marges.valeur[BorderEdge.Top] = calcule_valeur_marge(déclaration.value[0], style, ctx)
-        style.marges.valeur[BorderEdge.Right] = calcule_valeur_marge(déclaration.value[1], style, ctx)
-        style.marges.valeur[BorderEdge.Bottom] = calcule_valeur_marge(déclaration.value[2], style, ctx)
-        style.marges.valeur[BorderEdge.Left] = calcule_valeur_marge(déclaration.value[3], style, ctx)
-    }
-}
-
 prop_margin_left_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
 {
     style.marges.valeur[BorderEdge.Left] = calcule_valeur_marge(déclaration.value[0], style, ctx)
@@ -1002,19 +967,6 @@ prop_margin_bottom_sur_calcul_style :: fonc (déclaration: *DéclarationProprié
 }
 
 /* À FAIRE : direction du flux */
-prop_margin_block_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    si déclaration.value.taille == 1 {
-        style.marges.valeur[BorderEdge.Top] = calcule_valeur_marge(déclaration.value[0], style, ctx)
-        style.marges.valeur[BorderEdge.Bottom] = calcule_valeur_marge(déclaration.value[0], style, ctx)
-    }
-    sinon {
-        assert(déclaration.value.taille >= 2)
-        style.marges.valeur[BorderEdge.Top] = calcule_valeur_marge(déclaration.value[0], style, ctx)
-        style.marges.valeur[BorderEdge.Bottom] = calcule_valeur_marge(déclaration.value[1], style, ctx)
-    }
-}
-
 prop_margin_block_end_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
 {
     style.marges.valeur[BorderEdge.Bottom] = calcule_valeur_marge(déclaration.value[0], style, ctx)
@@ -1025,19 +977,6 @@ prop_margin_block_start_sur_calcul_style :: fonc (déclaration: *DéclarationPro
     style.marges.valeur[BorderEdge.Top] = calcule_valeur_marge(déclaration.value[0], style, ctx)
 }
 
-prop_margin_inline_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    si déclaration.value.taille == 1 {
-        style.marges.valeur[BorderEdge.Left] = calcule_valeur_marge(déclaration.value[0], style, ctx)
-        style.marges.valeur[BorderEdge.Right] = calcule_valeur_marge(déclaration.value[0], style, ctx)
-    }
-    sinon {
-        assert(déclaration.value.taille >= 2)
-        style.marges.valeur[BorderEdge.Left] = calcule_valeur_marge(déclaration.value[0], style, ctx)
-        style.marges.valeur[BorderEdge.Right] = calcule_valeur_marge(déclaration.value[1], style, ctx)
-    }
-}
-
 prop_margin_inline_end_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
 {
     style.marges.valeur[BorderEdge.Right] = calcule_valeur_marge(déclaration.value[0], style, ctx)
@@ -1046,34 +985,6 @@ prop_margin_inline_end_sur_calcul_style :: fonc (déclaration: *DéclarationProp
 prop_margin_inline_start_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
 {
     style.marges.valeur[BorderEdge.Left] = calcule_valeur_marge(déclaration.value[0], style, ctx)
-}
-
-prop_padding_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    si déclaration.value.taille == 1 {
-        pour i dans 4 {
-            style.padding.valeur[i] = calcule_valeur_padding(déclaration.value[0], style, ctx)
-        }
-    }
-    sinon si déclaration.value.taille == 2 {
-        style.padding.valeur[BorderEdge.Top] = calcule_valeur_padding(déclaration.value[0], style, ctx)
-        style.padding.valeur[BorderEdge.Bottom] = calcule_valeur_padding(déclaration.value[0], style, ctx)
-        style.padding.valeur[BorderEdge.Right] = calcule_valeur_padding(déclaration.value[1], style, ctx)
-        style.padding.valeur[BorderEdge.Left] = calcule_valeur_padding(déclaration.value[1], style, ctx)
-    }
-    sinon si déclaration.value.taille == 3 {
-        style.padding.valeur[BorderEdge.Top] = calcule_valeur_padding(déclaration.value[0], style, ctx)
-        style.padding.valeur[BorderEdge.Right] = calcule_valeur_padding(déclaration.value[1], style, ctx)
-        style.padding.valeur[BorderEdge.Left] = calcule_valeur_padding(déclaration.value[1], style, ctx)
-        style.padding.valeur[BorderEdge.Bottom] = calcule_valeur_padding(déclaration.value[2], style, ctx)
-    }
-    sinon {
-        assert(déclaration.value.taille == 4)
-        style.padding.valeur[BorderEdge.Top] = calcule_valeur_padding(déclaration.value[0], style, ctx)
-        style.padding.valeur[BorderEdge.Right] = calcule_valeur_padding(déclaration.value[1], style, ctx)
-        style.padding.valeur[BorderEdge.Bottom] = calcule_valeur_padding(déclaration.value[2], style, ctx)
-        style.padding.valeur[BorderEdge.Left] = calcule_valeur_padding(déclaration.value[3], style, ctx)
-    }
 }
 
 prop_padding_left_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
@@ -1097,19 +1008,6 @@ prop_padding_bottom_sur_calcul_style :: fonc (déclaration: *DéclarationPropri�
 }
 
 /* À FAIRE : direction du flux */
-prop_padding_block_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    si déclaration.value.taille == 1 {
-        style.padding.valeur[BorderEdge.Top] = calcule_valeur_padding(déclaration.value[0], style, ctx)
-        style.padding.valeur[BorderEdge.Bottom] = calcule_valeur_padding(déclaration.value[0], style, ctx)
-    }
-    sinon {
-        assert(déclaration.value.taille >= 2)
-        style.padding.valeur[BorderEdge.Top] = calcule_valeur_padding(déclaration.value[0], style, ctx)
-        style.padding.valeur[BorderEdge.Bottom] = calcule_valeur_padding(déclaration.value[1], style, ctx)
-    }
-}
-
 prop_padding_block_end_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
 {
     style.padding.valeur[BorderEdge.Bottom] = calcule_valeur_padding(déclaration.value[0], style, ctx)
@@ -1120,19 +1018,6 @@ prop_padding_block_start_sur_calcul_style :: fonc (déclaration: *DéclarationPr
     style.padding.valeur[BorderEdge.Top] = calcule_valeur_padding(déclaration.value[0], style, ctx)
 }
 
-prop_padding_inline_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    si déclaration.value.taille == 1 {
-        style.padding.valeur[BorderEdge.Left] = calcule_valeur_padding(déclaration.value[0], style, ctx)
-        style.padding.valeur[BorderEdge.Right] = calcule_valeur_padding(déclaration.value[0], style, ctx)
-    }
-    sinon {
-        assert(déclaration.value.taille >= 2)
-        style.padding.valeur[BorderEdge.Left] = calcule_valeur_padding(déclaration.value[0], style, ctx)
-        style.padding.valeur[BorderEdge.Right] = calcule_valeur_padding(déclaration.value[1], style, ctx)
-    }
-}
-
 prop_padding_inline_end_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
 {
     style.padding.valeur[BorderEdge.Right] = calcule_valeur_padding(déclaration.value[0], style, ctx)
@@ -1141,141 +1026,6 @@ prop_padding_inline_end_sur_calcul_style :: fonc (déclaration: *DéclarationPro
 prop_padding_inline_start_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
 {
     style.padding.valeur[BorderEdge.Left] = calcule_valeur_padding(déclaration.value[0], style, ctx)
-}
-
-prop_border_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    assert(déclaration.value.taille == 3)
-
-    width := calcule_valeur_border_width(déclaration.value[0], style, ctx)
-    border_style := calcule_valeur_line_style(déclaration.value[1], style, ctx)
-    color := calcule_valeur_color(déclaration.value[2], style, ctx)
-
-    pour i dans 4 {
-        style.bordure.width[i] = width
-    }
-    pour i dans 4 {
-        style.bordure.style[i] = border_style
-    }
-    pour i dans 4 {
-        style.bordure.color[i] = color
-    }
-}
-
-prop_border_style_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    si déclaration.value.taille == 1 {
-        pour i dans 4 {
-            style.bordure.style[i] = calcule_valeur_line_style(déclaration.value[0], style, ctx)
-        }
-    }
-    sinon si déclaration.value.taille == 2 {
-        style.bordure.style[BorderEdge.Top] = calcule_valeur_line_style(déclaration.value[0], style, ctx)
-        style.bordure.style[BorderEdge.Bottom] = calcule_valeur_line_style(déclaration.value[0], style, ctx)
-        style.bordure.style[BorderEdge.Right] = calcule_valeur_line_style(déclaration.value[1], style, ctx)
-        style.bordure.style[BorderEdge.Left] = calcule_valeur_line_style(déclaration.value[1], style, ctx)
-    }
-    sinon si déclaration.value.taille == 3 {
-        style.bordure.style[BorderEdge.Top] = calcule_valeur_line_style(déclaration.value[0], style, ctx)
-        style.bordure.style[BorderEdge.Right] = calcule_valeur_line_style(déclaration.value[1], style, ctx)
-        style.bordure.style[BorderEdge.Left] = calcule_valeur_line_style(déclaration.value[1], style, ctx)
-        style.bordure.style[BorderEdge.Bottom] = calcule_valeur_line_style(déclaration.value[2], style, ctx)
-    }
-    sinon {
-        assert(déclaration.value.taille == 4)
-        style.bordure.style[BorderEdge.Top] = calcule_valeur_line_style(déclaration.value[0], style, ctx)
-        style.bordure.style[BorderEdge.Right] = calcule_valeur_line_style(déclaration.value[1], style, ctx)
-        style.bordure.style[BorderEdge.Bottom] = calcule_valeur_line_style(déclaration.value[2], style, ctx)
-        style.bordure.style[BorderEdge.Left] = calcule_valeur_line_style(déclaration.value[3], style, ctx)
-    }
-}
-
-prop_border_width_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    si déclaration.value.taille == 1 {
-        pour i dans 4 {
-            style.bordure.width[i] = calcule_valeur_border_width(déclaration.value[0], style, ctx)
-        }
-    }
-    sinon si déclaration.value.taille == 2 {
-        style.bordure.width[BorderEdge.Top] = calcule_valeur_border_width(déclaration.value[0], style, ctx)
-        style.bordure.width[BorderEdge.Bottom] = calcule_valeur_border_width(déclaration.value[0], style, ctx)
-        style.bordure.width[BorderEdge.Right] = calcule_valeur_border_width(déclaration.value[1], style, ctx)
-        style.bordure.width[BorderEdge.Left] = calcule_valeur_border_width(déclaration.value[1], style, ctx)
-    }
-    sinon si déclaration.value.taille == 3 {
-        style.bordure.width[BorderEdge.Top] = calcule_valeur_border_width(déclaration.value[0], style, ctx)
-        style.bordure.width[BorderEdge.Right] = calcule_valeur_border_width(déclaration.value[1], style, ctx)
-        style.bordure.width[BorderEdge.Left] = calcule_valeur_border_width(déclaration.value[1], style, ctx)
-        style.bordure.width[BorderEdge.Bottom] = calcule_valeur_border_width(déclaration.value[2], style, ctx)
-    }
-    sinon {
-        assert(déclaration.value.taille == 4)
-        style.bordure.width[BorderEdge.Top] = calcule_valeur_border_width(déclaration.value[0], style, ctx)
-        style.bordure.width[BorderEdge.Right] = calcule_valeur_border_width(déclaration.value[1], style, ctx)
-        style.bordure.width[BorderEdge.Bottom] = calcule_valeur_border_width(déclaration.value[2], style, ctx)
-        style.bordure.width[BorderEdge.Left] = calcule_valeur_border_width(déclaration.value[3], style, ctx)
-    }
-}
-
-prop_border_color_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    si déclaration.value.taille == 1 {
-        pour i dans 4 {
-            style.bordure.color[i] = calcule_valeur_color(déclaration.value[0], style, ctx)
-        }
-    }
-    sinon si déclaration.value.taille == 2 {
-        style.bordure.color[BorderEdge.Top] = calcule_valeur_color(déclaration.value[0], style, ctx)
-        style.bordure.color[BorderEdge.Bottom] = calcule_valeur_color(déclaration.value[0], style, ctx)
-        style.bordure.color[BorderEdge.Right] = calcule_valeur_color(déclaration.value[1], style, ctx)
-        style.bordure.color[BorderEdge.Left] = calcule_valeur_color(déclaration.value[1], style, ctx)
-    }
-    sinon si déclaration.value.taille == 3 {
-        style.bordure.color[BorderEdge.Top] = calcule_valeur_color(déclaration.value[0], style, ctx)
-        style.bordure.color[BorderEdge.Right] = calcule_valeur_color(déclaration.value[1], style, ctx)
-        style.bordure.color[BorderEdge.Left] = calcule_valeur_color(déclaration.value[1], style, ctx)
-        style.bordure.color[BorderEdge.Bottom] = calcule_valeur_color(déclaration.value[2], style, ctx)
-    }
-    sinon {
-        assert(déclaration.value.taille == 4)
-        style.bordure.color[BorderEdge.Top] = calcule_valeur_color(déclaration.value[0], style, ctx)
-        style.bordure.color[BorderEdge.Right] = calcule_valeur_color(déclaration.value[1], style, ctx)
-        style.bordure.color[BorderEdge.Bottom] = calcule_valeur_color(déclaration.value[2], style, ctx)
-        style.bordure.color[BorderEdge.Left] = calcule_valeur_color(déclaration.value[3], style, ctx)
-    }
-}
-
-prop_border_top_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    assert(déclaration.value.taille == 3)
-    style.bordure.width[BorderEdge.Top] = calcule_valeur_border_width(déclaration.value[0], style, ctx)
-    style.bordure.style[BorderEdge.Top] = calcule_valeur_line_style(déclaration.value[1], style, ctx)
-    style.bordure.color[BorderEdge.Top] = calcule_valeur_color(déclaration.value[2], style, ctx)
-}
-
-prop_border_bottom_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    assert(déclaration.value.taille == 3)
-    style.bordure.width[BorderEdge.Bottom] = calcule_valeur_border_width(déclaration.value[0], style, ctx)
-    style.bordure.style[BorderEdge.Bottom] = calcule_valeur_line_style(déclaration.value[1], style, ctx)
-    style.bordure.color[BorderEdge.Bottom] = calcule_valeur_color(déclaration.value[2], style, ctx)
-}
-
-prop_border_left_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    assert(déclaration.value.taille == 3)
-    style.bordure.width[BorderEdge.Left] = calcule_valeur_border_width(déclaration.value[0], style, ctx)
-    style.bordure.style[BorderEdge.Left] = calcule_valeur_line_style(déclaration.value[1], style, ctx)
-    style.bordure.color[BorderEdge.Left] = calcule_valeur_color(déclaration.value[2], style, ctx)
-}
-
-prop_border_right_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    assert(déclaration.value.taille == 3)
-    style.bordure.width[BorderEdge.Right] = calcule_valeur_border_width(déclaration.value[0], style, ctx)
-    style.bordure.style[BorderEdge.Right] = calcule_valeur_line_style(déclaration.value[1], style, ctx)
-    style.bordure.color[BorderEdge.Right] = calcule_valeur_color(déclaration.value[2], style, ctx)
 }
 
 prop_border_top_color_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
