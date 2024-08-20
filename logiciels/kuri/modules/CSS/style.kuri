@@ -365,7 +365,6 @@ IDPropriété :: énum n16 {
 Style :: struct {
     display: Display
     color: CouleurRVBAN8
-    // opacity: Opacity
     background: Background
     marges: Marges
     bordure: Border
@@ -452,10 +451,6 @@ initialise_style :: fonc (style: *Style)
     style.left = ValeurDeStyle(mot_clé = PROP_auto)
     style.right = ValeurDeStyle(mot_clé = PROP_auto)
 }
-
-/* https://www.w3.org/TR/css-color-4/ */
-// Color :: struct {
-// }
 
 /* https://www.w3.org/TR/css-color-4/#named-colors */
 
@@ -659,13 +654,6 @@ trouve_couleur_pour_mot_clé :: fonc (mot_clé: CSSOMString) -> Optionnel(Couleu
             retourne it.valeur
         }
     }
-}
-
-// Opacity :: struct {
-// }
-
-TypePropriété :: énum {
-    Display
 }
 
 /* https://drafts.csswg.org/css-display/#the-display-properties */
