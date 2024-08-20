@@ -18,6 +18,9 @@ ValeurDeStyle :: union {
     number: r64
     percentage: r64
     text_decoration_line: TextDecorationLine
+    line_style: LineStyle
+    display: Display
+    cursor: CursorType
 }
 
 détruit_valeur_de_style :: fonc (value: *ValeurDeStyle @inutilisée)
@@ -363,93 +366,94 @@ IDPropriété :: énum n16 {
 }
 
 Style :: struct {
-    display: Display
-    color: CouleurRVBAN8
-    background: Background
-    marges: Marges
-    bordure: Border
-    padding: Padding
-    cursor: CursorType
-
-    font_family: ValeurDeStyle
-    taille_fonte: ValeurDeStyle
-    font_weight: ValeurDeStyle
-    font_style: ValeurDeStyle
-
-    bottom: ValeurDeStyle
-    left: ValeurDeStyle
-    right: ValeurDeStyle
-    top: ValeurDeStyle
-
-    width: ValeurDeStyle
-    min_width: ValeurDeStyle
-    max_width: ValeurDeStyle
-
-    height: ValeurDeStyle
-    min_height: ValeurDeStyle
-    max_height: ValeurDeStyle
-
-    text_decoration_style: ValeurDeStyle
-    text_decoration_line: ValeurDeStyle
-    text_decoration_color: ValeurDeStyle
-
-    line_height: ValeurDeStyle
-
-    text_align: ValeurDeStyle
+    valeurs: [IDPropriété.nombre_éléments]ValeurDeStyle
 }
 
 initialise_style :: fonc (style: *Style)
 {
-    /* Marges */
-    pour 4 {
-        style.marges.valeur[it] = ValeurDeStyle(number = 0.0)
-    }
-    /* Padding */
-    pour 4 {
-        style.padding.valeur[it] = ValeurDeStyle(number = 0.0)
-    }
+    style.valeurs[IDPropriété.Display] = ValeurDeStyle(display = Display())
+    style.valeurs[IDPropriété.Cursor] = ValeurDeStyle(cursor = CursorType.auto)
 
-    style.color = CouleurRVBAN8(0, 0, 0, 255)
-    style.background.color = CouleurRVBAN8(0, 0, 0, 0)
+    /* Marges */
+    style.valeurs[IDPropriété.MarginBottom] = ValeurDeStyle(number = 0.0)
+    style.valeurs[IDPropriété.MarginLeft] = ValeurDeStyle(number = 0.0)
+    style.valeurs[IDPropriété.MarginRight] = ValeurDeStyle(number = 0.0)
+    style.valeurs[IDPropriété.MarginTop] = ValeurDeStyle(number = 0.0)
+
+    /* Padding */
+    style.valeurs[IDPropriété.PaddingBottom] = ValeurDeStyle(number = 0.0)
+    style.valeurs[IDPropriété.PaddingLeft] = ValeurDeStyle(number = 0.0)
+    style.valeurs[IDPropriété.PaddingRight] = ValeurDeStyle(number = 0.0)
+    style.valeurs[IDPropriété.PaddingTop] = ValeurDeStyle(number = 0.0)
+
+    style.valeurs[IDPropriété.Color] = CouleurRVBAN8(0, 0, 0, 255)
+    style.valeurs[IDPropriété.BackgroundColor] = CouleurRVBAN8(0, 0, 0, 0)
 
     /* Bordure */
-    pour i dans 4 {
-        style.bordure.width[i] = ValeurDeStyle(mot_clé = PROP_medium)
-    }
-    pour i dans 4 {
-        style.bordure.style[i] = LineStyle.None
-    }
-    pour i dans 4 {
-        style.bordure.color[i] = ValeurDeStyle(mot_clé = PROP_currentColor)
-    }
+    style.valeurs[IDPropriété.BorderWidthBottom] = ValeurDeStyle(mot_clé = PROP_medium)
+    style.valeurs[IDPropriété.BorderWidthLeft] = ValeurDeStyle(mot_clé = PROP_medium)
+    style.valeurs[IDPropriété.BorderWidthRight] = ValeurDeStyle(mot_clé = PROP_medium)
+    style.valeurs[IDPropriété.BorderWidthTop] = ValeurDeStyle(mot_clé = PROP_medium)
+
+    style.valeurs[IDPropriété.BorderStyleBottom] = ValeurDeStyle(line_style = LineStyle.None)
+    style.valeurs[IDPropriété.BorderStyleLeft] = ValeurDeStyle(line_style = LineStyle.None)
+    style.valeurs[IDPropriété.BorderStyleRight] = ValeurDeStyle(line_style = LineStyle.None)
+    style.valeurs[IDPropriété.BorderStyleTop] = ValeurDeStyle(line_style = LineStyle.None)
+
+    style.valeurs[IDPropriété.BorderColorBottom] = ValeurDeStyle(mot_clé = PROP_currentColor)
+    style.valeurs[IDPropriété.BorderColorLeft] = ValeurDeStyle(mot_clé = PROP_currentColor)
+    style.valeurs[IDPropriété.BorderColorRight] = ValeurDeStyle(mot_clé = PROP_currentColor)
+    style.valeurs[IDPropriété.BorderColorTop] = ValeurDeStyle(mot_clé = PROP_currentColor)
 
     /* Font */
-    style.font_family = ValeurDeStyle(mot_clé = PROP_serif)
-    style.font_weight = ValeurDeStyle(mot_clé = PROP_normal)
-    style.font_style = ValeurDeStyle(mot_clé = PROP_normal)
+    style.valeurs[IDPropriété.FontFamily] = ValeurDeStyle(mot_clé = PROP_serif)
+    style.valeurs[IDPropriété.FontWeight] = ValeurDeStyle(mot_clé = PROP_normal)
+    style.valeurs[IDPropriété.FontStyle] = ValeurDeStyle(mot_clé = PROP_normal)
 
     /* Text Decoration */
-    style.text_decoration_line = ValeurDeStyle(mot_clé = PROP_none)
-    style.text_decoration_style = ValeurDeStyle(mot_clé = PROP_solid)
-    style.text_decoration_color = ValeurDeStyle(mot_clé = PROP_currentColor)
+    style.valeurs[IDPropriété.TextDecorationLine] = ValeurDeStyle(mot_clé = PROP_none)
+    style.valeurs[IDPropriété.TextDecorationStyle] = ValeurDeStyle(mot_clé = PROP_solid)
+    style.valeurs[IDPropriété.TextDecorationColor] = ValeurDeStyle(mot_clé = PROP_currentColor)
 
     /* Tailles */
-    style.width = ValeurDeStyle(mot_clé = PROP_auto)
-    style.min_width = ValeurDeStyle(number = 0.0)
-    style.max_width = ValeurDeStyle(mot_clé = PROP_none)
-    style.height = ValeurDeStyle(mot_clé = PROP_auto)
-    style.min_height = ValeurDeStyle(number = 0.0)
-    style.max_height = ValeurDeStyle(mot_clé = PROP_none)
+    style.valeurs[IDPropriété.Width] = ValeurDeStyle(mot_clé = PROP_auto)
+    style.valeurs[IDPropriété.MinWidth] = ValeurDeStyle(number = 0.0)
+    style.valeurs[IDPropriété.MaxWidth] = ValeurDeStyle(mot_clé = PROP_none)
+    style.valeurs[IDPropriété.Height] = ValeurDeStyle(mot_clé = PROP_auto)
+    style.valeurs[IDPropriété.MinHeight] = ValeurDeStyle(number = 0.0)
+    style.valeurs[IDPropriété.MaxHeight] = ValeurDeStyle(mot_clé = PROP_none)
 
-    style.line_height = ValeurDeStyle(mot_clé = PROP_normal)
+    style.valeurs[IDPropriété.LineHeight] = ValeurDeStyle(mot_clé = PROP_normal)
 
-    style.text_align = ValeurDeStyle(mot_clé = PROP_start)
+    style.valeurs[IDPropriété.TextAlign] = ValeurDeStyle(mot_clé = PROP_start)
 
     /* Position */
-    style.top = ValeurDeStyle(mot_clé = PROP_auto)
-    style.bottom = ValeurDeStyle(mot_clé = PROP_auto)
-    style.left = ValeurDeStyle(mot_clé = PROP_auto)
-    style.right = ValeurDeStyle(mot_clé = PROP_auto)
+    style.valeurs[IDPropriété.Top] = ValeurDeStyle(mot_clé = PROP_auto)
+    style.valeurs[IDPropriété.Bottom] = ValeurDeStyle(mot_clé = PROP_auto)
+    style.valeurs[IDPropriété.Left] = ValeurDeStyle(mot_clé = PROP_auto)
+    style.valeurs[IDPropriété.Right] = ValeurDeStyle(mot_clé = PROP_auto)
+}
+
+donne_bordure :: fonc (style: *Style) -> Border
+{
+    résultat: Border
+
+    résultat.width[BorderEdge.Top] = style.valeurs[IDPropriété.BorderWidthTop]
+    résultat.width[BorderEdge.Bottom] = style.valeurs[IDPropriété.BorderWidthBottom]
+    résultat.width[BorderEdge.Left] = style.valeurs[IDPropriété.BorderWidthLeft]
+    résultat.width[BorderEdge.Right] = style.valeurs[IDPropriété.BorderWidthRight]
+
+    résultat.style[BorderEdge.Top] = style.valeurs[IDPropriété.BorderStyleTop]
+    résultat.style[BorderEdge.Bottom] = style.valeurs[IDPropriété.BorderStyleBottom]
+    résultat.style[BorderEdge.Left] = style.valeurs[IDPropriété.BorderStyleLeft]
+    résultat.style[BorderEdge.Right] = style.valeurs[IDPropriété.BorderStyleRight]
+
+    résultat.color[BorderEdge.Top] = style.valeurs[IDPropriété.BorderColorTop]
+    résultat.color[BorderEdge.Bottom] = style.valeurs[IDPropriété.BorderColorBottom]
+    résultat.color[BorderEdge.Left] = style.valeurs[IDPropriété.BorderColorLeft]
+    résultat.color[BorderEdge.Right] = style.valeurs[IDPropriété.BorderColorRight]
+
+    retourne résultat
 }
 
 /* https://www.w3.org/TR/css-color-4/#named-colors */
@@ -696,7 +700,8 @@ Display :: struct {
 }
 
 /* ------------------------------------------------------------------------- */
-/** \nom Fonctions auxillaires pour le calcul des valeurs de style.
+/** \nom Fonctions de rappels pour le calcul des valeurs de style.
+ * Ces fonctions génèrent les "computed values".
  * \{ */
 
 GenreValeurCalculée :: énum_drapeau {
@@ -714,173 +719,144 @@ GenreValeurCalculée :: énum_drapeau {
     TextDecorationStyle
 }
 
-calcule_valeur_marge :: fonc (valeur: ValeurDeStyle, style: *Style @inutilisée, ctx: *ContexteCalculStyle) -> ValeurDeStyle
+calcule_valeur_propriété_générique :: fonc (valeur: ValeurDeStyle, genre_valeur_calculée: GenreValeurCalculée, style: *Style, ctx: *ContexteCalculStyle) -> Optionnel(ValeurDeStyle)
 {
     discr valeur {
+        mot_clé(m) {
+            si genre_valeur_calculée.Couleur {
+                si m == PROP_currentColor {
+                    retourne style.valeurs[IDPropriété.Color]
+                }
+                retourne
+            }
+            si genre_valeur_calculée.TextDecorationLine {
+                si m == PROP_none {
+                    retourne valeur
+                }
+                retourne
+            }
+            si genre_valeur_calculée.Cursor {
+                retourne ValeurDeStyle(cursor = donne_type_cursor(m))
+            }
+            si genre_valeur_calculée.BorderWidth {
+                si m == PROP_thin {
+                    retourne ValeurDeStyle(number = 1.0)
+                }
+                si m == PROP_medium {
+                    retourne ValeurDeStyle(number = 3.0)
+                }
+                si m == PROP_thick {
+                    retourne ValeurDeStyle(number = 5.0)
+                }
+                retourne
+            }
+            si genre_valeur_calculée.LineStyle {
+                retourne ValeurDeStyle(line_style = donne_line_style(valeur))
+            }
+            si genre_valeur_calculée.Auto && m == PROP_auto {
+                retourne valeur
+            }
+        }
+        couleur {
+            si genre_valeur_calculée.Couleur {
+                retourne valeur
+            }
+        }
         longueur(l) {
-            retourne ValeurDeStyle(number = calcule_longueur(l, ctx))
+            si genre_valeur_calculée.LongueurPourcentage || genre_valeur_calculée.BorderWidth || genre_valeur_calculée.Nombre {
+                retourne ValeurDeStyle(number = calcule_longueur(l, ctx))
+            }
         }
         integer(i) {
-            retourne ValeurDeStyle(number = i)
-        }
-        sinon {}
-    }
-
-    retourne valeur
-}
-
-calcule_valeur_padding :: fonc (valeur: ValeurDeStyle, style: *Style @inutilisée, ctx: *ContexteCalculStyle) -> ValeurDeStyle
-{
-    discr valeur {
-        longueur(l) {
-            retourne ValeurDeStyle(number = calcule_longueur(l, ctx))
-        }
-        integer(i) {
-            retourne ValeurDeStyle(number = i)
-        }
-        sinon {}
-    }
-
-    retourne valeur
-}
-
-calcule_valeur_border_width :: fonc (valeur: ValeurDeStyle, style: *Style @inutilisée, ctx: *ContexteCalculStyle) -> ValeurDeStyle
-{
-    discr valeur {
-        integer(i) {
-            retourne ValeurDeStyle(number = i)
+            si genre_valeur_calculée.LongueurPourcentage || genre_valeur_calculée.BorderWidth || genre_valeur_calculée.Nombre {
+                retourne ValeurDeStyle(number = i)
+            }
         }
         number {
-            retourne valeur
-        }
-        longueur(l) {
-            retourne ValeurDeStyle(number = calcule_longueur(l, ctx))
-        }
-        mot_clé(m) {
-            si m == PROP_thin {
-                retourne ValeurDeStyle(number = 1.0)
+            si genre_valeur_calculée.LongueurPourcentage || genre_valeur_calculée.BorderWidth || genre_valeur_calculée.Nombre {
+                retourne valeur
             }
-            si m == PROP_medium {
-                retourne ValeurDeStyle(number = 3.0)
-            }
-            si m == PROP_thick {
-                retourne ValeurDeStyle(number = 5.0)
-            }
-            panique("calcule_valeur_border_width : mot-clé inconnu")
         }
-        sinon {
-            panique("calcule_valeur_border_width non-implémenté")
+        percentage {
+            si genre_valeur_calculée.LongueurPourcentage {
+                retourne valeur
+            }
         }
+        text_decoration_line {
+            si genre_valeur_calculée.TextDecorationLine {
+                retourne valeur
+            }
+        }
+        line_style {
+            si genre_valeur_calculée.LineStyle {
+                retourne valeur
+            }
+        }
+        display {
+            si genre_valeur_calculée.Display {
+                retourne valeur
+            }
+        }
+        cursor {
+            si genre_valeur_calculée.Cursor {
+                retourne valeur
+            }
+        }
+        sinon {}
     }
-    retourne valeur
 }
 
-calcule_valeur_line_style :: fonc (valeur: ValeurDeStyle, style: *Style @inutilisée, ctx: *ContexteCalculStyle @inutilisée) -> LineStyle
+calcule_valeur_propriété_générique :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
 {
-    retourne donne_line_style(valeur)
-}
+    info := déclaration.info
+    genre_valeur_calculée := info.genre_valeur_calculée
 
-calcule_valeur_color :: fonc (valeur: ValeurDeStyle, style: *Style, ctx: *ContexteCalculStyle @inutilisée) -> ValeurDeStyle
-{
-    discr valeur {
-        couleur {
-            retourne valeur
-        }
-        mot_clé(m) {
-            si m == PROP_currentColor {
-                retourne style.color
-            }
-            panique("donne_couleur : mot-clé inconnu")
-        }
-        sinon {
-            panique("donne_couleur non-implémenté")
-        }
+    résultat := calcule_valeur_propriété_générique(déclaration.value[0], genre_valeur_calculée, style, ctx)
+    si résultat.possède_valeur() {
+        style.valeurs[info.id] = résultat.Quelque
+        retourne
     }
-    retourne valeur
+
+    si genre_valeur_calculée.Spécifié {
+        style.valeurs[info.id] = déclaration.value[0]
+        retourne
+    }
 }
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Fonctions de rappels pour le calcul des valeurs de style.
- * Ces fonctions génèrent les "computed values".
- * \{ */
 
 prop_display_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle @inutilisée)
 {
     mot_clé := déclaration.value[0].mot_clé
 
+    résultat: Display
+
     si mot_clé == PROP_none {
-        style.display.outer_type = Display.Type.None
+        résultat.outer_type = Display.Type.None
     }
     sinon si mot_clé == PROP_block {
-        style.display.outer_type = Display.Type.Block
+        résultat.outer_type = Display.Type.Block
     }
     sinon si mot_clé == PROP_list_item {
-        style.display.outer_type = Display.Type.Block
-        style.display.inner_type = Display.Type.Flow
-        style.display.est_list_item = vrai
+        résultat.outer_type = Display.Type.Block
+        résultat.inner_type = Display.Type.Flow
+        résultat.est_list_item = vrai
     }
     sinon {
         assert(mot_clé == PROP_inline || mot_clé == PROP_unset)
     }
-}
 
-prop_color_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    assert(déclaration.value.taille == 1)
-    style.color = calcule_valeur_color(déclaration.value[0], style, ctx)
+    style.valeurs[IDPropriété.Display] = ValeurDeStyle(display = résultat)
 }
 
 prop_background_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
 {
     assert(déclaration.value.taille == 1)
-    style.background.color = calcule_valeur_color(déclaration.value[0], style, ctx)
-}
-
-prop_background_color_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    assert(déclaration.value.taille == 1)
-    style.background.color = calcule_valeur_color(déclaration.value[0], style, ctx)
-}
-
-prop_text_decoration_line_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle @inutilisée)
-{
-    style.text_decoration_line = déclaration.value[0]
-}
-
-prop_text_decoration_style_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle @inutilisée)
-{
-    style.text_decoration_style = déclaration.value[0]
-}
-
-prop_text_decoration_color_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    style.text_decoration_color = calcule_valeur_color(déclaration.value[0], style, ctx)
-}
-
-prop_cursor_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle @inutilisée)
-{
-    assert(déclaration.value.taille == 1)
-    style.cursor = donne_type_cursor(déclaration.value[0].mot_clé)
+    style.valeurs[IDPropriété.BackgroundColor] = calcule_valeur_propriété_générique(déclaration.value[0], GenreValeurCalculée.Couleur, style, ctx)
 }
 
 prop_font_weight_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle @inutilisée)
 {
     assert(déclaration.value.taille == 1)
-    style.font_weight = déclaration.value[0]
-}
-
-prop_font_family_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle @inutilisée)
-{
-    assert(déclaration.value.taille == 1)
-    style.font_family = déclaration.value[0]
-}
-
-prop_font_style_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle @inutilisée)
-{
-    assert(déclaration.value.taille == 1)
-    style.font_style = déclaration.value[0]
+    style.valeurs[IDPropriété.FontWeight] = déclaration.value[0]
 }
 
 prop_font_size_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
@@ -931,17 +907,17 @@ prop_font_size_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété,
             }
 
             ctx.taille_fonte = taille_fonte
-            style.taille_fonte = ValeurDeStyle(number = taille_fonte)
+            style.valeurs[IDPropriété.FontSize] = ValeurDeStyle(number = taille_fonte)
         }
         longueur(l) {
             taille_fonte := calcule_longueur(l, ctx)
             ctx.taille_fonte = taille_fonte
-            style.taille_fonte = ValeurDeStyle(number = taille_fonte)
+            style.valeurs[IDPropriété.FontSize] = ValeurDeStyle(number = taille_fonte)
         }
         percentage(p) {
             taille_fonte := ctx.taille_fonte * p / 100.0
             ctx.taille_fonte = taille_fonte
-            style.taille_fonte = ValeurDeStyle(number = taille_fonte)
+            style.valeurs[IDPropriété.FontSize] = ValeurDeStyle(number = taille_fonte)
         }
         sinon {
             retourne
@@ -949,312 +925,46 @@ prop_font_size_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété,
     }
 }
 
-prop_margin_left_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    style.marges.valeur[BorderEdge.Left] = calcule_valeur_marge(déclaration.value[0], style, ctx)
-}
-
-prop_margin_right_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    style.marges.valeur[BorderEdge.Right] = calcule_valeur_marge(déclaration.value[0], style, ctx)
-}
-
-prop_margin_top_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    style.marges.valeur[BorderEdge.Top] = calcule_valeur_marge(déclaration.value[0], style, ctx)
-}
-
-prop_margin_bottom_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    style.marges.valeur[BorderEdge.Bottom] = calcule_valeur_marge(déclaration.value[0], style, ctx)
-}
-
 /* À FAIRE : direction du flux */
 prop_margin_block_end_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
 {
-    style.marges.valeur[BorderEdge.Bottom] = calcule_valeur_marge(déclaration.value[0], style, ctx)
+    style.valeurs[IDPropriété.MarginBottom] = calcule_valeur_propriété_générique(déclaration.value[0], déclaration.info.genre_valeur_calculée, style, ctx)
 }
 
 prop_margin_block_start_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
 {
-    style.marges.valeur[BorderEdge.Top] = calcule_valeur_marge(déclaration.value[0], style, ctx)
+    style.valeurs[IDPropriété.MarginTop] = calcule_valeur_propriété_générique(déclaration.value[0], déclaration.info.genre_valeur_calculée, style, ctx)
 }
 
 prop_margin_inline_end_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
 {
-    style.marges.valeur[BorderEdge.Right] = calcule_valeur_marge(déclaration.value[0], style, ctx)
+    style.valeurs[IDPropriété.MarginRight] = calcule_valeur_propriété_générique(déclaration.value[0], déclaration.info.genre_valeur_calculée, style, ctx)
 }
 
 prop_margin_inline_start_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
 {
-    style.marges.valeur[BorderEdge.Left] = calcule_valeur_marge(déclaration.value[0], style, ctx)
-}
-
-prop_padding_left_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    style.padding.valeur[BorderEdge.Left] = calcule_valeur_padding(déclaration.value[0], style, ctx)
-}
-
-prop_padding_right_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    style.padding.valeur[BorderEdge.Right] = calcule_valeur_padding(déclaration.value[0], style, ctx)
-}
-
-prop_padding_top_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    style.padding.valeur[BorderEdge.Top] = calcule_valeur_padding(déclaration.value[0], style, ctx)
-}
-
-prop_padding_bottom_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    style.padding.valeur[BorderEdge.Bottom] = calcule_valeur_padding(déclaration.value[0], style, ctx)
+    style.valeurs[IDPropriété.MarginLeft] = calcule_valeur_propriété_générique(déclaration.value[0], déclaration.info.genre_valeur_calculée, style, ctx)
 }
 
 /* À FAIRE : direction du flux */
 prop_padding_block_end_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
 {
-    style.padding.valeur[BorderEdge.Bottom] = calcule_valeur_padding(déclaration.value[0], style, ctx)
+    style.valeurs[IDPropriété.PaddingBottom] = calcule_valeur_propriété_générique(déclaration.value[0], déclaration.info.genre_valeur_calculée, style, ctx)
 }
 
 prop_padding_block_start_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
 {
-    style.padding.valeur[BorderEdge.Top] = calcule_valeur_padding(déclaration.value[0], style, ctx)
+    style.valeurs[IDPropriété.PaddingTop] = calcule_valeur_propriété_générique(déclaration.value[0], déclaration.info.genre_valeur_calculée, style, ctx)
 }
 
 prop_padding_inline_end_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
 {
-    style.padding.valeur[BorderEdge.Right] = calcule_valeur_padding(déclaration.value[0], style, ctx)
+    style.valeurs[IDPropriété.PaddingRight] = calcule_valeur_propriété_générique(déclaration.value[0], déclaration.info.genre_valeur_calculée, style, ctx)
 }
 
 prop_padding_inline_start_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
 {
-    style.padding.valeur[BorderEdge.Left] = calcule_valeur_padding(déclaration.value[0], style, ctx)
-}
-
-prop_border_top_color_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    assert(déclaration.value.taille == 1)
-    style.bordure.color[BorderEdge.Top] = calcule_valeur_color(déclaration.value[0], style, ctx)
-}
-
-prop_border_bottom_color_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    assert(déclaration.value.taille == 1)
-    style.bordure.color[BorderEdge.Bottom] = calcule_valeur_color(déclaration.value[0], style, ctx)
-}
-
-prop_border_left_color_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    assert(déclaration.value.taille == 1)
-    style.bordure.color[BorderEdge.Left] = calcule_valeur_color(déclaration.value[0], style, ctx)
-}
-
-prop_border_right_color_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    assert(déclaration.value.taille == 1)
-    style.bordure.color[BorderEdge.Right] = calcule_valeur_color(déclaration.value[0], style, ctx)
-}
-
-prop_border_top_width_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    assert(déclaration.value.taille == 1)
-    style.bordure.width[BorderEdge.Top] = calcule_valeur_border_width(déclaration.value[0], style, ctx)
-}
-
-prop_border_bottom_width_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    assert(déclaration.value.taille == 1)
-    style.bordure.width[BorderEdge.Bottom] = calcule_valeur_border_width(déclaration.value[0], style, ctx)
-}
-
-prop_border_left_width_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    assert(déclaration.value.taille == 1)
-    style.bordure.width[BorderEdge.Left] = calcule_valeur_border_width(déclaration.value[0], style, ctx)
-}
-
-prop_border_right_width_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    assert(déclaration.value.taille == 1)
-    style.bordure.width[BorderEdge.Right] = calcule_valeur_border_width(déclaration.value[0], style, ctx)
-}
-
-prop_border_top_style_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    assert(déclaration.value.taille == 1)
-    style.bordure.style[BorderEdge.Top] = calcule_valeur_line_style(déclaration.value[0], style, ctx)
-}
-
-prop_border_bottom_style_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    assert(déclaration.value.taille == 1)
-    style.bordure.style[BorderEdge.Bottom] = calcule_valeur_line_style(déclaration.value[0], style, ctx)
-}
-
-prop_border_left_style_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    assert(déclaration.value.taille == 1)
-    style.bordure.style[BorderEdge.Left] = calcule_valeur_line_style(déclaration.value[0], style, ctx)
-}
-
-prop_border_right_style_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    assert(déclaration.value.taille == 1)
-    style.bordure.style[BorderEdge.Right] = calcule_valeur_line_style(déclaration.value[0], style, ctx)
-}
-
-prop_height_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    valeur := déclaration.value[0]
-
-    discr valeur {
-        integer(i) {
-            style.height = ValeurDeStyle(number = i)
-        }
-        longueur(l) {
-            style.height = ValeurDeStyle(number = calcule_longueur(l, ctx))
-        }
-        sinon {
-            style.height = valeur
-        }
-    }
-}
-
-prop_min_height_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété @inutilisée, style: *Style @inutilisée, ctx: *ContexteCalculStyle @inutilisée)
-{
-}
-
-prop_max_height_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété @inutilisée, style: *Style @inutilisée, ctx: *ContexteCalculStyle @inutilisée)
-{
-}
-
-prop_width_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    valeur := déclaration.value[0]
-
-    discr valeur {
-        integer(i) {
-            style.width = ValeurDeStyle(number = i)
-        }
-        longueur(l) {
-            style.width = ValeurDeStyle(number = calcule_longueur(l, ctx))
-        }
-        sinon {
-            style.width = valeur
-        }
-    }
-}
-
-prop_min_width_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété @inutilisée, style: *Style @inutilisée, ctx: *ContexteCalculStyle @inutilisée)
-{
-}
-
-prop_max_width_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    discr déclaration.value[0] {
-        integer(i) {
-            style.max_width = ValeurDeStyle(number = i)
-        }
-        number {
-            style.max_width = déclaration.value[0]
-        }
-        longueur(l) {
-            style.max_width = ValeurDeStyle(number = calcule_longueur(l, ctx))
-        }
-        sinon {
-            style.max_width = déclaration.value[0]
-        }
-    }
-}
-
-prop_line_height_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    valeur := déclaration.value[0]
-
-    discr valeur {
-        integer(i) {
-            style.line_height = ValeurDeStyle(number = i)
-        }
-        longueur(l) {
-            style.line_height = ValeurDeStyle(number = calcule_longueur(l, ctx))
-        }
-        sinon {
-            style.line_height = valeur
-        }
-    }
-}
-
-prop_bottom_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    valeur := déclaration.value[0]
-
-    discr valeur {
-        integer(i) {
-            style.bottom = ValeurDeStyle(number = i)
-        }
-        longueur(l) {
-            style.bottom = ValeurDeStyle(number = calcule_longueur(l, ctx))
-        }
-        sinon {
-            style.bottom = valeur
-        }
-    }
-}
-
-prop_left_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    valeur := déclaration.value[0]
-
-    discr valeur {
-        integer(i) {
-            style.left = ValeurDeStyle(number = i)
-        }
-        longueur(l) {
-            style.left = ValeurDeStyle(number = calcule_longueur(l, ctx))
-        }
-        sinon {
-            style.left = valeur
-        }
-    }
-}
-
-prop_right_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    valeur := déclaration.value[0]
-
-    discr valeur {
-        integer(i) {
-            style.right = ValeurDeStyle(number = i)
-        }
-        longueur(l) {
-            style.right = ValeurDeStyle(number = calcule_longueur(l, ctx))
-        }
-        sinon {
-            style.right = valeur
-        }
-    }
-}
-
-prop_top_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    valeur := déclaration.value[0]
-
-    discr valeur {
-        integer(i) {
-            style.top = ValeurDeStyle(number = i)
-        }
-        longueur(l) {
-            style.top = ValeurDeStyle(number = calcule_longueur(l, ctx))
-        }
-        sinon {
-            style.top = valeur
-        }
-    }
-}
-
-prop_text_align_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle @inutilisée)
-{
-    style.text_align = déclaration.value[0]
+    style.valeurs[IDPropriété.PaddingLeft] = calcule_valeur_propriété_générique(déclaration.value[0], déclaration.info.genre_valeur_calculée, style, ctx)
 }
 
 /** \} */
