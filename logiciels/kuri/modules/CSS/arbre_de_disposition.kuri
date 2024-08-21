@@ -263,10 +263,13 @@ résoud_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élémen
 
     si propriétés_parent {
         pour propriétés_parent.déclarations {
-            si it.info.héritable == PropriétéHéritable.Non {
+            info := it.info
+            si info.héritable == PropriétéHéritable.Non {
                 continue
             }
-            ajoute_déclaration(résultat, it)
+            /* Nous devons hériter des valeurs calculées. */
+            id := info.id
+            résultat.style.valeurs[id] = propriétés_parent.style.valeurs[id]
         }
     }
 
