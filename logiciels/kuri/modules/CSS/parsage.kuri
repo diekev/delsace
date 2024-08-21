@@ -1724,57 +1724,10 @@ parse_valeur_length :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(V
     si lexème.est_lexème_de_genre(GenreLexème.Dimension) {
         données_lexème := lexème.lexème
 
-        si données_lexème.unité == PROP_em {
+        unité := donne_unité_pour_nom(données_lexème.unité)
+        si unité.possède_valeur() {
             parseuse.avance()
-            longueur := Longueur(données_lexème.numeric_value, Longueur.Unité.Em)
-            retourne ValeurDeStyle(longueur = longueur)
-        }
-
-        si données_lexème.unité == PROP_px {
-            parseuse.avance()
-            longueur := Longueur(données_lexème.numeric_value, Longueur.Unité.Px)
-            retourne ValeurDeStyle(longueur = longueur)
-        }
-
-        si données_lexème.unité == PROP_in {
-            parseuse.avance()
-            longueur := Longueur(données_lexème.numeric_value, Longueur.Unité.In)
-            retourne ValeurDeStyle(longueur = longueur)
-        }
-
-        si données_lexème.unité == PROP_cm {
-            parseuse.avance()
-            longueur := Longueur(données_lexème.numeric_value, Longueur.Unité.Cm)
-            retourne ValeurDeStyle(longueur = longueur)
-        }
-
-        si données_lexème.unité == PROP_mm {
-            parseuse.avance()
-            longueur := Longueur(données_lexème.numeric_value, Longueur.Unité.Mm)
-            retourne ValeurDeStyle(longueur = longueur)
-        }
-
-        si données_lexème.unité == PROP_Q {
-            parseuse.avance()
-            longueur := Longueur(données_lexème.numeric_value, Longueur.Unité.Q)
-            retourne ValeurDeStyle(longueur = longueur)
-        }
-
-        si données_lexème.unité == PROP_pc {
-            parseuse.avance()
-            longueur := Longueur(données_lexème.numeric_value, Longueur.Unité.Pc)
-            retourne ValeurDeStyle(longueur = longueur)
-        }
-
-        si données_lexème.unité == PROP_pt {
-            parseuse.avance()
-            longueur := Longueur(données_lexème.numeric_value, Longueur.Unité.Pt)
-            retourne ValeurDeStyle(longueur = longueur)
-        }
-
-        si données_lexème.unité == PROP_rem {
-            parseuse.avance()
-            longueur := Longueur(données_lexème.numeric_value, Longueur.Unité.Rem)
+            longueur := Longueur(données_lexème.numeric_value, unité.Quelque)
             retourne ValeurDeStyle(longueur = longueur)
         }
 

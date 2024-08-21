@@ -191,6 +191,45 @@ Longueur :: struct {
     unité: Unité
 }
 
+donne_unité_pour_nom :: fonc (nom: CSSOMString) -> Optionnel(Longueur.Unité)
+{
+    si nom == PROP_em {
+        retourne Longueur.Unité.Em
+    }
+
+    si nom == PROP_px {
+        retourne Longueur.Unité.Px
+    }
+
+    si nom == PROP_in {
+        retourne Longueur.Unité.In
+    }
+
+    si nom == PROP_cm {
+        retourne Longueur.Unité.Cm
+    }
+
+    si nom == PROP_mm {
+        retourne Longueur.Unité.Mm
+    }
+
+    si nom == PROP_Q {
+        retourne Longueur.Unité.Q
+    }
+
+    si nom == PROP_pc {
+        retourne Longueur.Unité.Pc
+    }
+
+    si nom == PROP_pt {
+        retourne Longueur.Unité.Pt
+    }
+
+    si nom == PROP_rem {
+        retourne Longueur.Unité.Rem
+    }
+}
+
 calcule_longueur :: fonc (l: Longueur, ctx: *ContexteCalculStyle) -> r64
 {
     discr l.unité {
