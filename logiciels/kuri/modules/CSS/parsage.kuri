@@ -1593,7 +1593,7 @@ parse_css_style_declaration :: fonc (ctx: *ContexteParsageFeuilleDeStyle, décla
             ctx_parsage_shorthand.déclaration = résultat
 
             saufsi info_type_propriété.sur_parsage_shorthand(*ctx_parsage_shorthand, it.value) {
-                imprime("Impossible de parser '%'\n", it.name)
+                imprime("Impossible de parser : %\n", it)
             }
 
             continue
@@ -1601,7 +1601,7 @@ parse_css_style_declaration :: fonc (ctx: *ContexteParsageFeuilleDeStyle, décla
 
         opt_valeur := info_type_propriété.fonction_de_parsage(it.value)
         saufsi opt_valeur.possède_valeur() {
-            imprime("Impossible de parser '%'\n", it.name)
+            imprime("Impossible de parser : %\n", it)
             continue
         }
 
@@ -1915,8 +1915,6 @@ parse_propriété_color :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurD
             retourne valeur
         }
 
-        lexème := parseuse.lexème_courant()
-        imprime("[%] lexème inconnu : %\n", #nom_de_cette_fonction, lexème)
         retourne
     }
 }
@@ -1943,7 +1941,6 @@ parse_valeur_couleur :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(
 
         pour valeur.unités {
             saufsi est_chiffre_hexadecimal_ascii(it) {
-                imprime("[%] couleur hexadécimal inconnu : %\n", #nom_de_cette_fonction, valeur)
                 retourne
             }
         }
@@ -1974,7 +1971,6 @@ parse_valeur_couleur :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(
             couleur.a = valeur_hex_depuis_unité(valeur.unités[6]) * 16 + valeur_hex_depuis_unité(valeur.unités[7])
         }
         sinon {
-            imprime("[%] couleur hexadécimal inconnu : %\n", #nom_de_cette_fonction, valeur)
             retourne
         }
 
@@ -2111,8 +2107,6 @@ parse_propriété_text_decoration :: fonc (ctx: *ContexteParsageShorthand, value
             continue
         }
 
-        lexème := parseuse.lexème_courant()
-        imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
         retourne faux
     }
 
@@ -2277,7 +2271,6 @@ parse_propriété_cursor :: fonc (value: [..]ComponentValue) -> Optionnel(Valeur
     parseuse := initialise_une_parseuse(value)
     valeur := parse_mot_clé(parseuse, mots_clés)
     saufsi valeur.possède_valeur() {
-        imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, parseuse.lexème_courant())
         retourne
     }
 
@@ -2315,7 +2308,6 @@ parse_propriété_font_family :: fonc (value: [..]ComponentValue) -> Optionnel(V
             }
         }
 
-        imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
         retourne
     }
 }
@@ -2347,7 +2339,6 @@ parse_propriété_font_weight :: fonc (value: [..]ComponentValue) -> Optionnel(V
             retourne ValeurDeStyle(number = lexème.lexème.numeric_value)
         }
 
-        imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
         retourne
     }
 }
@@ -2376,9 +2367,6 @@ parse_propriété_font_size :: fonc (value: [..]ComponentValue) -> Optionnel(Val
             retourne valeur
         }
 
-        lexème := parseuse.lexème_courant()
-
-        imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
         retourne
     }
 }
@@ -2398,14 +2386,7 @@ parse_propriété_font_style :: fonc (value: [..]ComponentValue) -> Optionnel(Va
     ]
 
     parseuse := initialise_une_parseuse(value)
-    valeur := parse_mot_clé(parseuse, mots_clés)
-    saufsi valeur.possède_valeur() {
-        lexème := parseuse.lexème_courant()
-        imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
-        retourne
-    }
-
-    retourne valeur
+    retourne parse_mot_clé(parseuse, mots_clés)
 }
 
 /** \} */
@@ -2450,10 +2431,6 @@ parse_propriété_border_impl :: fonc (value: [..]ComponentValue) -> Optionnel(V
             continue
         }
 
-        parseuse.consomme_espaces_blanches()
-
-        lexème := parseuse.lexème_courant()
-        imprime("[%] lexème inconnu %\n", #nom_de_cette_fonction, lexème)
         retourne
     }
 
@@ -2564,10 +2541,6 @@ parse_propriété_border_color :: fonc (ctx: *ContexteParsageShorthand, value: [
             continue
         }
 
-        parseuse.consomme_espaces_blanches()
-
-        lexème := parseuse.lexème_courant()
-        imprime("[%] lexème inconnu %\n", #nom_de_cette_fonction, lexème)
         retourne faux
     }
 
@@ -2592,10 +2565,6 @@ parse_propriété_border_style :: fonc (ctx: *ContexteParsageShorthand, value: [
             continue
         }
 
-        parseuse.consomme_espaces_blanches()
-
-        lexème := parseuse.lexème_courant()
-        imprime("[%] lexème inconnu %\n", #nom_de_cette_fonction, lexème)
         retourne faux
     }
 
@@ -2620,10 +2589,6 @@ parse_propriété_border_width :: fonc (ctx: *ContexteParsageShorthand, value: [
             continue
         }
 
-        parseuse.consomme_espaces_blanches()
-
-        lexème := parseuse.lexème_courant()
-        imprime("[%] lexème inconnu %\n", #nom_de_cette_fonction, lexème)
         retourne faux
     }
 
@@ -2643,10 +2608,6 @@ parse_propriété_border_line_style :: fonc (value: [..]ComponentValue) -> Optio
             retourne style
         }
 
-        parseuse.consomme_espaces_blanches()
-
-        lexème := parseuse.lexème_courant()
-        imprime("[%] lexème inconnu %\n", #nom_de_cette_fonction, lexème)
         retourne
     }
 }
@@ -2663,10 +2624,6 @@ parse_propriété_border_line_width :: fonc (value: [..]ComponentValue) -> Optio
             retourne width
         }
 
-        parseuse.consomme_espaces_blanches()
-
-        lexème := parseuse.lexème_courant()
-        imprime("[%] lexème inconnu %\n", #nom_de_cette_fonction, lexème)
         retourne
     }
 }
@@ -2734,7 +2691,6 @@ parse_propriété_margin :: fonc (ctx: *ContexteParsageShorthand, value: [..]Com
 
     tantque !fini(parseuse) && nombre_valeurs != 4 {
         parseuse.consomme_espaces_blanches()
-        lexème := parseuse.lexème_courant()
 
         /* <length-percentage> | auto */
         valeur := parse_valeur_length_percentage_ou_auto(parseuse)
@@ -2744,7 +2700,6 @@ parse_propriété_margin :: fonc (ctx: *ContexteParsageShorthand, value: [..]Com
             continue
         }
 
-        imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
         retourne faux
     }
 
@@ -2761,7 +2716,6 @@ parse_propriété_margin_logique :: fonc (ctx: *ContexteParsageShorthand, value:
 
     tantque !fini(parseuse) && nombre_valeurs != 2 {
         parseuse.consomme_espaces_blanches()
-        lexème := parseuse.lexème_courant()
 
         /* <length-percentage> | auto */
         valeur := parse_valeur_length_percentage_ou_auto(parseuse)
@@ -2771,7 +2725,6 @@ parse_propriété_margin_logique :: fonc (ctx: *ContexteParsageShorthand, value:
             continue
         }
 
-        imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
         retourne faux
     }
 
@@ -2815,7 +2768,6 @@ parse_propriété_padding :: fonc (ctx: *ContexteParsageShorthand, value: [..]Co
 
     tantque !fini(parseuse) && nombre_valeurs != 4 {
         parseuse.consomme_espaces_blanches()
-        lexème := parseuse.lexème_courant()
 
         /* <length-percentage> */
         valeur := parse_valeur_length_percentage(parseuse)
@@ -2825,7 +2777,6 @@ parse_propriété_padding :: fonc (ctx: *ContexteParsageShorthand, value: [..]Co
             continue
         }
 
-        imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
         retourne faux
     }
 
@@ -2842,7 +2793,6 @@ parse_propriété_padding_logique :: fonc (ctx: *ContexteParsageShorthand, value
 
     tantque !fini(parseuse) && nombre_valeurs != 2 {
         parseuse.consomme_espaces_blanches()
-        lexème := parseuse.lexème_courant()
 
         /* 	<length-percentage [0,∞]> */
         valeur := parse_valeur_length_percentage(parseuse)
@@ -2852,7 +2802,6 @@ parse_propriété_padding_logique :: fonc (ctx: *ContexteParsageShorthand, value
             continue
         }
 
-        imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
         retourne faux
     }
 
@@ -2901,8 +2850,6 @@ parse_propriété_height_width :: fonc (value: [..]ComponentValue) -> Optionnel(
             retourne valeur
         }
 
-        lexème := parseuse.lexème_courant()
-        imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
         retourne
     }
 }
@@ -2912,13 +2859,7 @@ parse_propriété_min_height_width :: fonc (value: [..]ComponentValue) -> Option
     parseuse := initialise_une_parseuse(value)
     parseuse.consomme_espaces_blanches()
     /* auto | <length-percentage [0,∞]> | min-content | max-content | fit-content(<length-percentage [0,∞]>) | <calc-size()> */
-    valeur := parse_valeur_length_percentage_ou_auto(parseuse)
-    si valeur.possède_valeur() {
-        retourne valeur
-    }
-
-    lexème := parseuse.lexème_courant()
-    imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
+    retourne parse_valeur_length_percentage_ou_auto(parseuse)
 }
 
 parse_propriété_max_height_width :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
@@ -2926,13 +2867,7 @@ parse_propriété_max_height_width :: fonc (value: [..]ComponentValue) -> Option
     parseuse := initialise_une_parseuse(value)
     parseuse.consomme_espaces_blanches()
     /* none | <length-percentage [0,∞]> | min-content | max-content | fit-content(<length-percentage [0,∞]>) | <calc-size()> */
-    valeur := parse_valeur_length_percentage(parseuse)
-    si valeur.possède_valeur() {
-        retourne valeur
-    }
-
-    lexème := parseuse.lexème_courant()
-    imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
+    retourne parse_valeur_length_percentage(parseuse)
 }
 
 /** \} */
@@ -2963,8 +2898,6 @@ parse_propriété_line_height :: fonc (value: [..]ComponentValue) -> Optionnel(V
     si lexème.est_mot_clé(PROP_normal) {
         retourne ValeurDeStyle(mot_clé = PROP_normal)
     }
-
-    imprime("[%] lexème non-supporté %\n", #nom_de_cette_fonction, lexème)
 }
 
 /** \} */
