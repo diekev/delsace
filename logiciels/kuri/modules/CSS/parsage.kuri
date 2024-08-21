@@ -71,6 +71,24 @@ ParsedDeclaration :: struct {
     important: bool
 }
 
+formatte_parsed_declaration :: fonc (enchaineuse: *Enchaineuse, déclaration: *ParsedDeclaration)
+{
+    saufsi déclaration {
+        ajoute_au_tampon(enchaineuse, "déclaration nulle")
+        retourne
+    }
+
+    ajoute_au_tampon(enchaineuse, déclaration.name, ": ")
+
+    pour déclaration.value {
+        ajoute_au_tampon(enchaineuse, it)
+    }
+
+    si déclaration.important {
+        ajoute_au_tampon(enchaineuse, " !important")
+    }
+} @FormattageImpression
+
 détruit_données_déclaration :: fonc (déclaration: *ParsedDeclaration)
 {
     détruit_tableau_component_value(*déclaration.value)
@@ -91,6 +109,31 @@ ComponentValue :: union {
     function: ParsedFunction
     bloc: ParsedSimpleBlock
 }
+
+formatte_component_value :: fonc (enchaineuse: *Enchaineuse, value: *ComponentValue)
+{
+    saufsi value {
+        ajoute_au_tampon(enchaineuse, "valeur nulle")
+        retourne
+    }
+
+    discr mémoire(value) {
+        lexème(l) {
+            formatte_lexème(enchaineuse, *l)
+            // À FAIRE collision de nom dans formattage ajoute_au_tampon(enchaineuse, l)
+        }
+        function(f) {
+            ajoute_au_tampon(enchaineuse, f.name, "(")
+            pour f.value {
+                ajoute_au_tampon(enchaineuse, it)
+            }
+            ajoute_au_tampon(enchaineuse, ")")
+        }
+        sinon {
+            ajoute_au_tampon(enchaineuse, "IMPRESSION À FAIRE")
+        }
+    }
+} @FormattageImpression
 
 détruit_tableau_component_value :: fonc (value: *[..]ComponentValue)
 {
