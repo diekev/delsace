@@ -196,6 +196,15 @@ RésolveuseStyle :: struct {
 
     /* Tampon réutilisé pour les cascades de propriétés. */
     déclarations_cascade: [..]DéclarationCascadée
+
+    /* Style dont les propriétés sont toujours à leurs valeurs initiales.
+     * Utilisé lors du calcul des valeurs. */
+    valeurs_initiales: Style
+}
+
+initialise_résolveuse :: fonc (résolveuse: *RésolveuseStyle)
+{
+    initialise_style(*résolveuse.valeurs_initiales)
 }
 
 /* https://html.spec.whatwg.org/multipage/rendering.html#the-css-user-agent-style-sheet-and-presentational-hints */
@@ -355,6 +364,8 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
     ctx_calcul_style: ContexteCalculStyle
     ctx_calcul_style.taille_fonte = résolveuse.globales.taille_fonte_défaut
     ctx_calcul_style.taille_fonte_racine = résolveuse.taille_fonte_racine
+    ctx_calcul_style.propriétés_parent = propriétés_parent
+    ctx_calcul_style.valeurs_initiales = *résolveuse.valeurs_initiales
 
     /* À FAIRE : gère proprement l'héritage des valeurs (surtout pour ne pas les recalculer). */
     si propriétés_parent {
@@ -409,6 +420,7 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, haut
     résultat := loge(ArbreDeDisposition)
 
     résolveuse: RésolveuseStyle
+    initialise_résolveuse(*résolveuse)
     résolveuse.taille_fonte_racine = document.globales_dessin.taille_fonte_défaut
     résolveuse.globales = document.globales_dessin
     résolveuse.feuilles_de_style = document.feuilles_de_style

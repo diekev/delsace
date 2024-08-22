@@ -343,6 +343,8 @@ donne_line_style :: fonc (value: ValeurDeStyle) -> LineStyle
 ContexteCalculStyle :: struct {
     taille_fonte: r64
     taille_fonte_racine: r64
+    propriétés_parent: *PropriétésDeStyle
+    valeurs_initiales: *Style
 }
 
 IDPropriété :: énum n16 {
@@ -851,6 +853,30 @@ calcule_valeur_propriété_générique :: fonc (déclaration: *DéclarationPropr
     genre_valeur_calculée := info.genre_valeur_calculée
 
     valeur := déclaration.value[0]
+
+    si valeur.est_mot_clé(PROP_inherit) {
+        /* https://www.w3.org/TR/css-cascade/#inherit */
+        si ctx.propriétés_parent {
+            valeur = ctx.propriétés_parent.style.valeurs[info.id]
+        }
+        sinon {
+            valeur = ctx.valeurs_initiales.valeurs[info.id]
+        }
+    }
+    sinon si valeur.est_mot_clé(PROP_initial) {
+        /* https://www.w3.org/TR/css-cascade/#initial */
+        valeur = ctx.valeurs_initiales.valeurs[info.id]
+    }
+    sinon si valeur.est_mot_clé(PROP_unset) {
+        /* https://www.w3.org/TR/css-cascade/#inherit-initial */
+        // À FAIRE : unset
+        valeur = ctx.valeurs_initiales.valeurs[info.id]
+    }
+    sinon si valeur.est_mot_clé(PROP_revert) {
+        /* https://www.w3.org/TR/css-cascade/#default */
+        // À FAIRE : revert
+        valeur = ctx.valeurs_initiales.valeurs[info.id]
+    }
 
     résultat := calcule_valeur_propriété_générique(valeur, genre_valeur_calculée, style, ctx)
     si résultat.possède_valeur() {

@@ -1599,7 +1599,7 @@ parse_css_style_declaration :: fonc (ctx: *ContexteParsageFeuilleDeStyle, décla
             continue
         }
 
-        opt_valeur := info_type_propriété.fonction_de_parsage(it.value)
+        opt_valeur := parse_valeur_propriété(info_type_propriété, it.value)
         saufsi opt_valeur.possède_valeur() {
             imprime("Impossible de parser : %\n", it)
             continue
@@ -1615,6 +1615,20 @@ parse_css_style_declaration :: fonc (ctx: *ContexteParsageFeuilleDeStyle, décla
     }
 
     retourne résultat
+}
+
+parse_valeur_propriété :: fonc (info_type_propriété: *InfoTypePropriété, value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    opt_valeur := info_type_propriété.fonction_de_parsage(value)
+    si opt_valeur.possède_valeur() {
+        retourne opt_valeur
+    }
+
+    parseuse := initialise_une_parseuse(value)
+    opt_valeur = parse_css_wide_keyword(parseuse)
+    si opt_valeur.possède_valeur() {
+        retourne opt_valeur
+    }
 }
 
 /** \} */
@@ -2541,6 +2555,13 @@ parse_propriété_border_color :: fonc (ctx: *ContexteParsageShorthand, value: [
             continue
         }
 
+        opt_mot_clé := parse_css_wide_keyword(parseuse)
+        si opt_mot_clé.possède_valeur() {
+            résultat[nombre_valeurs] = opt_mot_clé.Quelque
+            nombre_valeurs += 1
+            continue
+        }
+
         retourne faux
     }
 
@@ -2565,6 +2586,13 @@ parse_propriété_border_style :: fonc (ctx: *ContexteParsageShorthand, value: [
             continue
         }
 
+        opt_mot_clé := parse_css_wide_keyword(parseuse)
+        si opt_mot_clé.possède_valeur() {
+            résultat[nombre_valeurs] = opt_mot_clé.Quelque
+            nombre_valeurs += 1
+            continue
+        }
+
         retourne faux
     }
 
@@ -2585,6 +2613,13 @@ parse_propriété_border_width :: fonc (ctx: *ContexteParsageShorthand, value: [
         width := parse_valeur_line_width(parseuse)
         si width.possède_valeur() {
             résultat[nombre_valeurs] = width.Quelque
+            nombre_valeurs += 1
+            continue
+        }
+
+        opt_mot_clé := parse_css_wide_keyword(parseuse)
+        si opt_mot_clé.possède_valeur() {
+            résultat[nombre_valeurs] = opt_mot_clé.Quelque
             nombre_valeurs += 1
             continue
         }
@@ -2773,6 +2808,13 @@ parse_propriété_padding :: fonc (ctx: *ContexteParsageShorthand, value: [..]Co
         valeur := parse_valeur_length_percentage(parseuse)
         si valeur.possède_valeur() {
             résultat[nombre_valeurs] = valeur.Quelque
+            nombre_valeurs += 1
+            continue
+        }
+
+        opt_mot_clé := parse_css_wide_keyword(parseuse)
+        si opt_mot_clé.possède_valeur() {
+            résultat[nombre_valeurs] = opt_mot_clé.Quelque
             nombre_valeurs += 1
             continue
         }
