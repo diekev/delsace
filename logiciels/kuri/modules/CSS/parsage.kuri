@@ -2058,6 +2058,11 @@ parse_valeur_couleur :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(
             parseuse.avance()
             retourne ValeurDeStyle(couleur = opt_couleur.Quelque)
         }
+
+        si lexème.est_mot_clé(PROP_currentColor) {
+            parseuse.avance()
+            retourne ValeurDeStyle(mot_clé = PROP_currentColor)
+        }
     }
 
     /* https://www.w3.org/TR/css-color-4/#typedef-hex-color */

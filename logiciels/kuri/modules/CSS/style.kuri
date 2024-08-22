@@ -994,7 +994,9 @@ calcule_valeur_propriété_générique :: fonc (déclaration: *DéclarationPropr
         valeur = résoud_valeur_variable(ctx, info, valeur.variable)
     }
 
-    si valeur.est_mot_clé(PROP_inherit) {
+    /* "color: currentColor" doit prendre la valeur héritée
+     * https://www.w3.org/TR/css-color-4/#resolving-other-colors */
+    si valeur.est_mot_clé(PROP_inherit) || (valeur.est_mot_clé(PROP_currentColor) && info.id == IDPropriété.Color) {
         /* https://www.w3.org/TR/css-cascade/#inherit */
         si ctx.propriétés_parent {
             valeur = ctx.propriétés_parent.style.valeurs[info.id]
