@@ -1714,7 +1714,7 @@ infos_types_propriétés_shorthand := [
 ]
 
 infos_types_propriétés := [
-    InfoTypePropriété(PROP_display, id = IDPropriété.Display, fonction_de_parsage = parse_propriété_display, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_display_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.Display),
+    InfoTypePropriété(PROP_display, id = IDPropriété.Display, fonction_de_parsage = parse_propriété_display, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.Display),
     InfoTypePropriété(PROP_background_color, id = IDPropriété.BackgroundColor, fonction_de_parsage = parse_propriété_color, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.Couleur),
     InfoTypePropriété(PROP_color, id = IDPropriété.Color, fonction_de_parsage = parse_propriété_color, héritable = PropriétéHéritable.Oui, genre_valeur_calculée = GenreValeurCalculée.Couleur),
     InfoTypePropriété(PROP_text_decoration_line, id = IDPropriété.TextDecorationLine, fonction_de_parsage = parse_propriété_text_decoration_line, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.TextDecorationLine),

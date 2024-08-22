@@ -926,6 +926,9 @@ calcule_valeur_propriété_générique :: fonc (valeur: ValeurDeStyle, genre_val
             si genre_valeur_calculée.FontSize {
                 retourne calcule_font_size_pour_mot_clé(m, ctx)
             }
+            si genre_valeur_calculée.Display {
+                retourne calcule_display_pour_mot_clé(m)
+            }
         }
         couleur {
             si genre_valeur_calculée.Couleur {
@@ -1043,10 +1046,8 @@ résoud_valeur_variable :: fonc (ctx: *ContexteCalculStyle, info: *InfoTypePropr
     retourne ctx.valeurs_initiales.valeurs[info.id]
 }
 
-prop_display_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle @inutilisée)
+calcule_display_pour_mot_clé :: fonc (mot_clé: CSSOMString) -> ValeurDeStyle
 {
-    mot_clé := déclaration.value[0].mot_clé
-
     résultat: Display
 
     si mot_clé == PROP_none {
@@ -1061,10 +1062,10 @@ prop_display_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, s
         résultat.est_list_item = vrai
     }
     sinon {
-        assert(mot_clé == PROP_inline || mot_clé == PROP_unset)
+        assert(mot_clé == PROP_inline)
     }
 
-    style.valeurs[IDPropriété.Display] = ValeurDeStyle(display = résultat)
+    retourne ValeurDeStyle(display = résultat)
 }
 
 calcule_font_size_pour_mot_clé :: fonc (m: CSSOMString, ctx: *ContexteCalculStyle) -> ValeurDeStyle
