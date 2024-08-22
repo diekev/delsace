@@ -1857,6 +1857,19 @@ noeud_disposition_texte_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Con
     métriques := donne_métriques_fonte(fonte)
     couleur := propriétés.style.valeurs[IDPropriété.Color].couleur
 
+    background_color := propriétés.style.valeurs[IDPropriété.BackgroundColor].couleur
+    si background_color.a != 0 {
+        rect_noeud: RectanglePosDim(r32)
+        si ctx.fragment {
+            fragment := ctx.fragment
+            rect_noeud = ctx.donne_rectangle_corrigé(fragment.donne_rectangle())
+        }
+        sinon {
+            rect_noeud = ctx.donne_rectangle_corrigé(noeud.donne_rectangle_contenu())
+        }
+        peintre.remplis_rectangle(rect_noeud, background_color)
+    }
+
     si ctx.fragment {
         fragment := ctx.fragment
         rect := ctx.donne_rectangle_corrigé(fragment.donne_rectangle())
