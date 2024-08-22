@@ -94,6 +94,10 @@ nom_fichier_avec_extension :: fonc (chemin: CheminFichier) -> chaine
         pos += 1
     }
 
+    si pos >= chemin.chn.taille {
+        retourne ""
+    }
+
     retourne sous_chaine(chemin.chn, pos, chemin.chn.taille)
 }
 

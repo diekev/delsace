@@ -38,7 +38,7 @@ génère_méthodes_getset_pour_type :: fonc (enchaineuse: *Enchaineuse, type: *T
         enchaineuse.ajoute_au_tampon("{\n")
         enchaineuse.ajoute_au_tampon("    notre_instance := (instance comme *", type.nom_sauf, "PourPython).notre_instance\n")
 
-        si (type_membre.drapeaux & DrapeauxType.TYPE_EST_UNION) != 0 {
+        si type_membre.drapeaux.TYPE_EST_UNION {
             enchaineuse.ajoute_au_tampon("    discr notre_instance {\n")
             enchaineuse.ajoute_au_tampon("        ", it.nom, " {\n")
             enchaineuse.ajoute_au_tampon("            membre := notre_instance.", it.nom, "\n")
