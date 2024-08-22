@@ -4,6 +4,7 @@ importe Fondation
 
 CSSOMString :: ChaineUTF16Unique
 
+PROP_absolute : CSSOMString = ---
 PROP_after : CSSOMString = ---
 PROP_alias : CSSOMString = ---
 PROP_all_scroll : CSSOMString = ---
@@ -59,6 +60,8 @@ PROP_end : CSSOMString = ---
 PROP_ew_resize : CSSOMString = ---
 PROP_first_letter : CSSOMString = ---
 PROP_first_line : CSSOMString = ---
+PROP_fixed : CSSOMString = ---
+PROP_float : CSSOMString = ---
 PROP_font_family : CSSOMString = ---
 PROP_font_size : CSSOMString = ---
 PROP_font_style : CSSOMString = ---
@@ -133,9 +136,11 @@ PROP_padding_right : CSSOMString = ---
 PROP_padding_top : CSSOMString = ---
 PROP_pc : CSSOMString = ---
 PROP_pointer : CSSOMString = ---
+PROP_position : CSSOMString = ---
 PROP_progress : CSSOMString = ---
 PROP_pt : CSSOMString = ---
 PROP_px : CSSOMString = ---
+PROP_relative : CSSOMString = ---
 PROP_rem : CSSOMString = ---
 PROP_revert : CSSOMString = ---
 PROP_rgb : CSSOMString = ---
@@ -153,6 +158,8 @@ PROP_small : CSSOMString = ---
 PROP_smaller : CSSOMString = ---
 PROP_solid : CSSOMString = ---
 PROP_start : CSSOMString = ---
+PROP_static : CSSOMString = ---
+PROP_sticky : CSSOMString = ---
 PROP_sw_resize : CSSOMString = ---
 PROP_text : CSSOMString = ---
 PROP_text_align : CSSOMString = ---

@@ -407,6 +407,8 @@ ContexteCalculStyle :: struct {
 
 IDPropriété :: énum n16 {
     Display
+    Position
+    Float
     Color
     Cursor
 
@@ -472,6 +474,8 @@ initialise_style :: fonc (style: *Style)
 {
     style.valeurs[IDPropriété.Display] = ValeurDeStyle(display = Display())
     style.valeurs[IDPropriété.Cursor] = ValeurDeStyle(cursor = CursorType.auto)
+    style.valeurs[IDPropriété.Position] = ValeurDeStyle(mot_clé = PROP_static)
+    style.valeurs[IDPropriété.Float] = ValeurDeStyle(mot_clé = PROP_none)
 
     /* Marges */
     style.valeurs[IDPropriété.MarginBottom] = ValeurDeStyle(number = 0.0)

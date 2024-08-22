@@ -1795,7 +1795,9 @@ infos_types_propriétés := [
     InfoTypePropriété(PROP_bottom, id = IDPropriété.Bottom, fonction_de_parsage = parse_propriété_inset, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto),
     InfoTypePropriété(PROP_left, id = IDPropriété.Left, fonction_de_parsage = parse_propriété_inset, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto),
     InfoTypePropriété(PROP_right, id = IDPropriété.Right, fonction_de_parsage = parse_propriété_inset, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto),
-    InfoTypePropriété(PROP_top, id = IDPropriété.Top, fonction_de_parsage = parse_propriété_inset, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto)
+    InfoTypePropriété(PROP_top, id = IDPropriété.Top, fonction_de_parsage = parse_propriété_inset, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto),
+    InfoTypePropriété(PROP_position, id = IDPropriété.Position, fonction_de_parsage = parse_propriété_position, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
+    InfoTypePropriété(PROP_float, id = IDPropriété.Float, fonction_de_parsage = parse_propriété_float, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.Spécifié)
 ]
 
 #portée_export
@@ -3296,6 +3298,34 @@ parse_propriété_text_align :: fonc (value: [..]ComponentValue) -> Optionnel(Va
 {
     parseuse := initialise_une_parseuse(value)
     mots_clés := [PROP_start, PROP_end, PROP_left, PROP_right, PROP_center, PROP_justify, PROP_match_parent, PROP_justify_all]
+    retourne parse_mot_clé(parseuse, mots_clés)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Position
+ * https://drafts.csswg.org/css-position/#position-property
+ * \{ */
+
+parse_propriété_position :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    mots_clés := [PROP_static, PROP_relative, PROP_absolute, PROP_sticky, PROP_fixed]
+    retourne parse_mot_clé(parseuse, mots_clés)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Float
+ * https://drafts.csswg.org/css2/#propdef-float
+ * \{ */
+
+parse_propriété_float :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    mots_clés := [PROP_left, PROP_right, PROP_none]
     retourne parse_mot_clé(parseuse, mots_clés)
 }
 
