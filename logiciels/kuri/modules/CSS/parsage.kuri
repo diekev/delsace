@@ -1684,14 +1684,9 @@ parse_valeur_propriété :: fonc (info_type_propriété: *InfoTypePropriété, v
     }
 
     parseuse := initialise_une_parseuse(value)
-    opt_valeur = parse_css_wide_keyword(parseuse)
+    opt_valeur = parse_mot_clé_global_ou_var(parseuse)
     si opt_valeur.possède_valeur() {
         retourne opt_valeur
-    }
-
-    opt_variable := parse_variable(parseuse)
-    si opt_variable.possède_valeur() {
-        retourne opt_variable.Quelque
     }
 }
 
@@ -1831,6 +1826,19 @@ parse_css_wide_keyword :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionne
 {
     mots_clés := [PROP_initial, PROP_inherit, PROP_unset, PROP_revert]
     retourne parse_mot_clé(parseuse, mots_clés)
+}
+
+parse_mot_clé_global_ou_var :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+{
+    opt_valeur := parse_css_wide_keyword(parseuse)
+    si opt_valeur.possède_valeur() {
+        retourne opt_valeur
+    }
+
+    opt_variable := parse_variable(parseuse)
+    si opt_variable.possède_valeur() {
+        retourne opt_variable.Quelque
+    }
 }
 
 parse_mot_clé :: fonc (parseuse: &Parseuse(ComponentValue), mots_clés: []CSSOMString) -> Optionnel(ValeurDeStyle)
@@ -2688,9 +2696,9 @@ parse_propriété_border_color :: fonc (ctx: *ContexteParsageShorthand, value: [
             continue
         }
 
-        opt_mot_clé := parse_css_wide_keyword(parseuse)
-        si opt_mot_clé.possède_valeur() {
-            résultat[nombre_valeurs] = opt_mot_clé.Quelque
+        opt_valeur := parse_mot_clé_global_ou_var(parseuse)
+        si opt_valeur.possède_valeur() {
+            résultat[nombre_valeurs] = opt_valeur.Quelque
             nombre_valeurs += 1
             continue
         }
@@ -2719,9 +2727,9 @@ parse_propriété_border_style :: fonc (ctx: *ContexteParsageShorthand, value: [
             continue
         }
 
-        opt_mot_clé := parse_css_wide_keyword(parseuse)
-        si opt_mot_clé.possède_valeur() {
-            résultat[nombre_valeurs] = opt_mot_clé.Quelque
+        opt_valeur := parse_mot_clé_global_ou_var(parseuse)
+        si opt_valeur.possède_valeur() {
+            résultat[nombre_valeurs] = opt_valeur.Quelque
             nombre_valeurs += 1
             continue
         }
@@ -2750,9 +2758,9 @@ parse_propriété_border_width :: fonc (ctx: *ContexteParsageShorthand, value: [
             continue
         }
 
-        opt_mot_clé := parse_css_wide_keyword(parseuse)
-        si opt_mot_clé.possède_valeur() {
-            résultat[nombre_valeurs] = opt_mot_clé.Quelque
+        opt_valeur := parse_mot_clé_global_ou_var(parseuse)
+        si opt_valeur.possède_valeur() {
+            résultat[nombre_valeurs] = opt_valeur.Quelque
             nombre_valeurs += 1
             continue
         }
@@ -2868,6 +2876,13 @@ parse_propriété_margin :: fonc (ctx: *ContexteParsageShorthand, value: [..]Com
             continue
         }
 
+        valeur = parse_mot_clé_global_ou_var(parseuse)
+        si valeur.possède_valeur() {
+            résultat[nombre_valeurs] = valeur.Quelque
+            nombre_valeurs += 1
+            continue
+        }
+
         retourne faux
     }
 
@@ -2887,6 +2902,13 @@ parse_propriété_margin_logique :: fonc (ctx: *ContexteParsageShorthand, value:
 
         /* <length-percentage> | auto */
         valeur := parse_valeur_length_percentage_ou_auto(parseuse)
+        si valeur.possède_valeur() {
+            résultat[nombre_valeurs] = valeur.Quelque
+            nombre_valeurs += 1
+            continue
+        }
+
+        valeur = parse_mot_clé_global_ou_var(parseuse)
         si valeur.possède_valeur() {
             résultat[nombre_valeurs] = valeur.Quelque
             nombre_valeurs += 1
@@ -2945,9 +2967,9 @@ parse_propriété_padding :: fonc (ctx: *ContexteParsageShorthand, value: [..]Co
             continue
         }
 
-        opt_mot_clé := parse_css_wide_keyword(parseuse)
-        si opt_mot_clé.possède_valeur() {
-            résultat[nombre_valeurs] = opt_mot_clé.Quelque
+        opt_valeur := parse_mot_clé_global_ou_var(parseuse)
+        si opt_valeur.possède_valeur() {
+            résultat[nombre_valeurs] = opt_valeur.Quelque
             nombre_valeurs += 1
             continue
         }
@@ -2971,6 +2993,13 @@ parse_propriété_padding_logique :: fonc (ctx: *ContexteParsageShorthand, value
 
         /* 	<length-percentage [0,∞]> */
         valeur := parse_valeur_length_percentage(parseuse)
+        si valeur.possède_valeur() {
+            résultat[nombre_valeurs] = valeur.Quelque
+            nombre_valeurs += 1
+            continue
+        }
+
+        valeur = parse_mot_clé_global_ou_var(parseuse)
         si valeur.possède_valeur() {
             résultat[nombre_valeurs] = valeur.Quelque
             nombre_valeurs += 1
