@@ -403,6 +403,9 @@ basic_url_parser :: fonc (input: ChaineUTF16, base : *URL = nul, url : *URL = nu
             Path {
                 résultat_parsage = basic_url_parser_path(*parser)
             }
+            OpaquePath {
+                résultat_parsage = basic_url_parser_opaque_path(*parser)
+            }
             Query {
                 résultat_parsage = basic_url_parser_query(*parser)
             }
@@ -445,6 +448,7 @@ BasicURLParser :: struct {
     pointer: z64
     pointer_orig: z64
     buffer: ChaineUTF16
+    buffer_opaque_path: ChaineUTF16
 
     at_sign_seen := faux
     inside_brackets := faux
@@ -1263,6 +1267,40 @@ basic_url_parser_path :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
 
         // À FAIRE 3. UTF-8 percent-encode c using the path percent-encode set and append the result to buffer.
         chaine_ajoute(*parser.buffer, c)
+    }
+
+    retourne RésultatParsageURL.Ok
+}
+
+/* https://url.spec.whatwg.org/#cannot-be-a-base-url-path-state */
+basic_url_parser_opaque_path :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
+{
+    // 1. If c is U+003F (?), then set url’s query to the empty string and state to query state.
+    c := parser.donne_caractère()
+    si c == 0x3F {
+        parser.url.query = ""
+        parser.définis_state(ÉtatParsageURL.Query)
+        parser.url.path = converti_vers_chaine(parser.buffer_opaque_path)
+    }
+    // 2. Otherwise, if c is U+0023 (#), then set url’s fragment to the empty string and state to fragment state.
+    sinon si c == 0x23 {
+        parser.url.fragment = ""
+        parser.définis_state(ÉtatParsageURL.Fragment)
+        parser.url.path = converti_vers_chaine(parser.buffer_opaque_path)
+    }
+    // 3. Otherwise:
+    sinon {
+        // À FAIRE 1. If c is not the EOF code point, not a URL code point, and not U+0025 (%), invalid-URL-unit validation error.
+
+        // À FAIRE 2. If c is U+0025 (%) and remaining does not start with two ASCII hex digits, invalid-URL-unit validation error.
+
+        // À FAIRE 3. If c is not the EOF code point, UTF-8 percent-encode c using the C0 control percent-encode set and append the result to url’s path.
+        si c != FIN_DE_FICHIER {
+            chaine_ajoute(*parser.buffer_opaque_path, c)
+        }
+        sinon {
+            parser.url.path = converti_vers_chaine(parser.buffer_opaque_path)
+        }
     }
 
     retourne RésultatParsageURL.Ok

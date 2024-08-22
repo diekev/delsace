@@ -153,6 +153,99 @@ détruit_lexèmes :: fonc (lexèmes: *[..]Lexème)
     mémoire(lexèmes) = tmp
 }
 
+formatte_lexème :: fonc (enchaineuse: *Enchaineuse, lexème: *Lexème)
+{
+    saufsi lexème {
+        ajoute_au_tampon(enchaineuse, "lexème nul")
+        retourne
+    }
+
+    discr lexème.genre {
+        Ident {
+            ajoute_au_tampon(enchaineuse, lexème.valeur)
+        }
+        Function {
+            ajoute_au_tampon(enchaineuse, lexème.valeur, "(")
+        }
+        At_Keyword {
+            ajoute_au_tampon(enchaineuse, "@", lexème.valeur)
+        }
+        Hash {
+            ajoute_au_tampon(enchaineuse, "#", lexème.valeur)
+        }
+        String {
+            ajoute_au_tampon(enchaineuse, "\"", lexème.valeur, "\"")
+        }
+        Bad_String {
+            ajoute_au_tampon(enchaineuse, "BadString")
+        }
+        Url {
+            ajoute_au_tampon(enchaineuse, "url(", lexème.valeur, ")")
+        }
+        Bad_Url {
+            ajoute_au_tampon(enchaineuse, "Bad_Url")
+        }
+        Delim {
+            valeur := lexème.point_de_code comme z8
+            chn: chaine = ---
+            chn.pointeur = *valeur
+            chn.taille = 1
+            ajoute_au_tampon(enchaineuse, chn)
+        }
+        Number {
+            ajoute_au_tampon(enchaineuse, lexème.numeric_value)
+        }
+        Percentage {
+            ajoute_au_tampon(enchaineuse, lexème.numeric_value, "%")
+        }
+        Dimension {
+            ajoute_au_tampon(enchaineuse, lexème.numeric_value, lexème.unité)
+        }
+        Whitespace {
+            ajoute_au_tampon(enchaineuse, " ")
+        }
+        CDO {
+            ajoute_au_tampon(enchaineuse, "CDO")
+        }
+        CDC {
+            ajoute_au_tampon(enchaineuse, "CDC")
+        }
+        Colon {
+            ajoute_au_tampon(enchaineuse, ":")
+        }
+        Semicolon {
+            ajoute_au_tampon(enchaineuse, ";")
+        }
+        Comma {
+            ajoute_au_tampon(enchaineuse, ",")
+        }
+        Open_Square_Bracket {
+            ajoute_au_tampon(enchaineuse, "[")
+        }
+        Close_Square_Bracket {
+            ajoute_au_tampon(enchaineuse, "]")
+        }
+        Open_Parenthesis {
+            ajoute_au_tampon(enchaineuse, "(")
+        }
+        Close_Parenthesis {
+            ajoute_au_tampon(enchaineuse, ")")
+        }
+        Open_Bracket {
+            ajoute_au_tampon(enchaineuse, "{")
+        }
+        Close_Bracket {
+            ajoute_au_tampon(enchaineuse, "}")
+        }
+        EOF {
+            ajoute_au_tampon(enchaineuse, "EOF")
+        }
+        sinon {
+            ajoute_au_tampon(enchaineuse, "IMPRESSION À FAIRE")
+        }
+    }
+} // @FormattageImpression
+
 donne_texte :: fonc (lexème: Lexème) -> CSSOMString #enligne
 {
     retourne lexème.valeur
@@ -232,6 +325,11 @@ est_lexème_exclamation :: fonc (lexème: $T) -> bool
     retourne est_lexème_delim(lexème, '!' comme n32)
 }
 
+est_lexème_slash :: fonc (lexème: $T) -> bool
+{
+    retourne est_lexème_delim(lexème, '/' comme n32)
+}
+
 est_identifiant :: fonc (lexème: $T, ident: chaine) -> bool
 {
     retourne lexème.est_lexème_de_genre(GenreLexème.Ident) && lexème.donne_texte() == crée_chaine_utf16_unique(ident)
@@ -299,7 +397,7 @@ point_de_code_suivant :: fonc (lexeuse: &Lexeuse, décalage: z64) -> n32
     si lexeuse.curseur + décalage >= lexeuse.contenu.taille() {
         retourne FIN_DE_FICHIER
     }
-    retourne lexeuse.contenu.points_de_code[lexeuse.curseur]
+    retourne lexeuse.contenu.points_de_code[lexeuse.curseur + décalage]
 }
 
 consomme_point_de_code_suivant :: fonc (lexeuse: &Lexeuse) -> n32
@@ -403,7 +501,7 @@ consomme_un_lexème :: fonc (lexeuse: &Lexeuse) -> Lexème
     }
 
     si point_de_code == '-' {
-        si est_chiffre_ascii(lexeuse.point_de_code_suivant()) {
+        si vérifie_si_trois_points_de_code_commenceraient_un_nombre(lexeuse, point_de_code) {
             lexeuse.reconsomme_point_de_code()
             retourne lexeuse.consomme_un_lexème_numérique()
         }
@@ -413,7 +511,7 @@ consomme_un_lexème :: fonc (lexeuse: &Lexeuse) -> Lexème
             retourne Lexème(GenreLexème.CDC)
         }
 
-        si est_début_ident(lexeuse.point_de_code_suivant()) {
+        si vérifie_si_trois_points_de_code_commenceraient_un_ident(lexeuse) {
             lexeuse.reconsomme_point_de_code()
             retourne lexeuse.consomme_un_lexème_simili_ident()
         }

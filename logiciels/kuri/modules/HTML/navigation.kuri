@@ -138,7 +138,7 @@ NavigationType :: énum {
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#user-navigation-involvement */
-UserNavigationInvolvment :: énum {
+UserNavigationInvolvement :: énum {
     BrowserUI
     Activation
     None
@@ -1135,7 +1135,7 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
                                 check_for_canceletion: bool,
                                 source_snapshot_params: *SourceSnapshotParams,
                                 initiator_to_check: *Navigable,
-                                user_involvment_for_navigate_events: *UserNavigationInvolvment,
+                                user_involvement_for_navigate_events: *UserNavigationInvolvement,
                                 navigation_type: *NavigationType) -> HistoryApplication
 {
     // À FAIRE : 1. Assert: This is running within traversable's session history traversal queue.
@@ -1156,24 +1156,44 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
 
     // 4. Let navigablesCrossingDocuments be the result of getting all navigables that might experience a
     //    cross-document traversal given traversable and targetStep.
+    navigables_crossing_documents := get_all_navigables_that_might_experience_a_cross_document_traversal(traversable, target_step)
+    diffère déloge(navigables_crossing_documents)
 
     // 5. If checkForCancelation is true, and the result of checking if unloading is canceled given navigablesCrossingDocuments, traversable, targetStep, and userInvolvementForNavigateEvents is not "continue", then return that result.
+    si check_for_canceletion {
+        result := check_if_unloading_is_canceled(navigables_crossing_documents, traversable, user_involvement_for_navigate_events)
+        si result == "canceled-by-beforeunload" {
+            retourne HistoryApplication.CanceledByBeforeunload
+        }
+        si result == "canceled-by-navigate" {
+            retourne HistoryApplication.CanceledByNavigate
+        }
+    }
 
     // 6. Let changingNavigables be the result of get all navigables whose current session history entry will change or reload given traversable and targetStep.
+    changing_navigables := get_all_navigables_whose_current_session_history_entry_will_change_or_reload(traversable, target_step)
+    diffère déloge(changing_navigables)
 
     // 7. Let nonchangingNavigablesThatStillNeedUpdates be the result of getting all navigables that only need history object length/index update given traversable and targetStep.
+    nonchanging_navigables_that_still_need_updates := get_all_navigables_that_only_need_history_object_length_index_update(traversable, target_step)
+    diffère déloge(nonchanging_navigables_that_still_need_updates)
 
     // 8. For each navigable of changingNavigables:
-
+    pour navigable dans changing_navigables {
         // 1. Let targetEntry be the result of getting the target history entry given navigable and targetStep.
+        target_entry := get_the_target_history_entry(navigable, target_step)
 
         // 2. Set navigable's current session history entry to targetEntry.
+        navigable.current_session_history_entry = target_entry
 
         // 3. Set the ongoing navigation for navigable to "traversal".
+    }
 
     // 9. Let totalChangeJobs be the size of changingNavigables.
+    total_change_jobs := changing_navigables.taille
 
     // 10. Let completedChangeJobs be 0.
+    completed_change_jobs := 0
 
     // 11. Let changingNavigableContinuations be an empty queue of changing navigable continuation states.
 

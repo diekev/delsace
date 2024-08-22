@@ -352,7 +352,7 @@ PseudoClasses :: énum_drapeau n64 {
     Backdrop
 }
 
-donne_pseudo_classe_pour_nom :: fonc (nom: CSSOMString) -> PseudoClasses
+donne_pseudo_classe_pour_nom :: fonc (nom: CSSOMString) -> Optionnel(PseudoClasses)
 {
     si compare_ascii_insensible_à_la_casse(nom, PC_active) {
         retourne PseudoClasses.Active
@@ -532,8 +532,7 @@ donne_pseudo_classe_pour_nom :: fonc (nom: CSSOMString) -> PseudoClasses
         retourne PseudoClasses.Backdrop
     }
 
-    imprime("pseudo classe : %\n", nom)
-    panique("Pseudo classe inconnue.")
+    imprime("[%] pseudo classe inconnue : %\n", #nom_de_cette_fonction, nom)
 }
 
 donne_chaine_pour_pseudo_classe :: fonc (pseudo_classe: PseudoClasses) -> CSSOMString
@@ -1119,9 +1118,9 @@ crée_attribute_selector :: fonc (namespace_prefix: CSSOMString, ident: CSSOMStr
     retourne SimpleSelector(SimpleSelector.Type.Attrib, namespace_prefix, ident, matcher, value, modifier)
 }
 
-crée_pseudo_class_selector :: fonc (ident: CSSOMString) -> SimpleSelector
+crée_pseudo_class_selector :: fonc (pseudo_classe: PseudoClasses) -> SimpleSelector
 {
-    retourne SimpleSelector(SimpleSelector.Type.PseudoClass, crée_chaine_utf16_unique_vide(), pseudo_classe = donne_pseudo_classe_pour_nom(ident))
+    retourne SimpleSelector(SimpleSelector.Type.PseudoClass, crée_chaine_utf16_unique_vide(), pseudo_classe = pseudo_classe)
 }
 
 crée_pseudo_element_selector :: fonc (ident: CSSOMString) -> SimpleSelector
