@@ -1190,6 +1190,32 @@ dispose_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDis
     pour noeud.enfants {
         it.mesure(*ctx_locale)
 
+        position := it.propriétés.style.valeurs[IDPropriété.Position]
+        /* À FAIRE : https://drafts.csswg.org/css-position/#abspos-layout */
+        si position.est_mot_clé(PROP_absolute) {
+            top := it.propriétés.style.valeurs[IDPropriété.Top]
+            bottom := it.propriétés.style.valeurs[IDPropriété.Bottom]
+            left := it.propriétés.style.valeurs[IDPropriété.Left]
+            right := it.propriétés.style.valeurs[IDPropriété.Right]
+
+            si left.est_auto() && right.est_auto() {
+                left = ValeurDeStyle(number = 0.0)
+            }
+            sinon si left.est_auto() {
+                left = ValeurDeStyle(number = -right.number)
+            }
+
+            si top.est_auto() && bottom.est_auto() {
+                top = ValeurDeStyle(number = 0.0)
+            }
+            sinon si top.est_auto() {
+                top = ValeurDeStyle(number = -bottom.number)
+            }
+
+            it.décale(décalage_x + left.number comme r32, décalage_y + hauteur_contenu + top.number comme r32)
+            continue
+        }
+
         hauteur_enfant := it.modèle_de_boite.marge.hauteur
 
         // marges_enfant := it.marges
@@ -1208,6 +1234,33 @@ dispose_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDis
         }
         sinon {
             hauteur_contenu += hauteur_enfant // + dernière_marge comme r32
+        }
+    }
+
+    pour noeud.enfants {
+        position := it.propriétés.style.valeurs[IDPropriété.Position]
+        /* À FAIRE : https://drafts.csswg.org/css-position/#relpos-insets */
+        si position.est_mot_clé(PROP_relative) {
+            top := it.propriétés.style.valeurs[IDPropriété.Top]
+            bottom := it.propriétés.style.valeurs[IDPropriété.Bottom]
+            left := it.propriétés.style.valeurs[IDPropriété.Left]
+            right := it.propriétés.style.valeurs[IDPropriété.Right]
+
+            si left.est_auto() && right.est_auto() {
+                left = ValeurDeStyle(number = 0.0)
+            }
+            sinon si left.est_auto() {
+                left = ValeurDeStyle(number = -right.number)
+            }
+
+            si top.est_auto() && bottom.est_auto() {
+                top = ValeurDeStyle(number = 0.0)
+            }
+            sinon si top.est_auto() {
+                top = ValeurDeStyle(number = -bottom.number)
+            }
+
+            it.décale(left.number comme r32, top.number comme r32)
         }
     }
 
@@ -1486,6 +1539,18 @@ dessine_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDes
     // peintre.dessine_rectangle(rect, couleur)
 
     pour noeud.enfants {
+        position := it.propriétés.style.valeurs[IDPropriété.Position]
+        saufsi position.est_mot_clé(PROP_static) {
+            continue
+        }
+        dessine(it, ctx)
+    }
+
+    pour noeud.enfants {
+        position := it.propriétés.style.valeurs[IDPropriété.Position]
+        si position.est_mot_clé(PROP_static) {
+            continue
+        }
         dessine(it, ctx)
     }
 }
