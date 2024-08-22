@@ -110,6 +110,30 @@ ComponentValue :: union {
     bloc: ParsedSimpleBlock
 }
 
+copie_value :: fonc (value: ComponentValue) -> ComponentValue
+{
+    discr value {
+        lexème {
+            retourne value
+        }
+        function(f) {
+            résultat: ParsedFunction
+            résultat.name = f.name
+            résultat.value = copie_tableau_component_value(f.value)
+            retourne résultat
+        }
+        bloc(b) {
+            résultat: ParsedSimpleBlock
+            résultat.token = b.token
+            résultat.value = copie_tableau_component_value(b.value)
+            retourne résultat
+        }
+        sinon {}
+    }
+
+    retourne value
+}
+
 formatte_component_value :: fonc (enchaineuse: *Enchaineuse, value: *ComponentValue)
 {
     saufsi value {
@@ -134,6 +158,19 @@ formatte_component_value :: fonc (enchaineuse: *Enchaineuse, value: *ComponentVa
         }
     }
 } @FormattageImpression
+
+copie_tableau_component_value :: fonc (value: [..]ComponentValue) -> [..]ComponentValue
+{
+    résultat: [..]ComponentValue
+    tableau_réserve(*résultat, value.taille)
+
+    pour value {
+        copie := copie_value(it)
+        tableau_ajoute(*résultat, copie)
+    }
+
+    retourne résultat
+}
 
 détruit_tableau_component_value :: fonc (value: *[..]ComponentValue)
 {
@@ -1599,7 +1636,7 @@ parse_css_style_declaration :: fonc (ctx: *ContexteParsageFeuilleDeStyle, décla
             déclaration.property_name = it.name
             déclaration.case_sensitive = vrai
             déclaration.est_personnalisée = vrai
-            déclaration.valeur_personnalisée = tableau_copie(it.value)
+            déclaration.valeur_personnalisée = copie_tableau_component_value(it.value)
             résultat.ajoute_déclaration(déclaration)
             continue
         }
