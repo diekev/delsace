@@ -2131,73 +2131,240 @@ parse_valeur_couleur :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(
     }
 }
 
+/* https://www.w3.org/TR/css-color-4/#rgb-functions */
 parse_couleur_rgb :: fonc (function: &ParsedFunction) -> Optionnel(ValeurDeStyle)
 {
-    parseuse := initialise_une_parseuse(function.value)
-
-    si parseuse.fini() {
-        retourne
+    résultat := parse_couleur_syntaxe_legacy(function.value)
+    si résultat.possède_valeur() {
+        retourne résultat
     }
 
-    /* Rouge */
-    lexème := parseuse.lexème_courant()
-    saufsi lexème.est_lexème_de_genre(GenreLexème.Number) {
-        retourne
+    résultat = parse_couleur_rgb_legacy(function.value)
+    si résultat.possède_valeur() {
+        retourne résultat
     }
-    rouge := lexème.lexème.numeric_value
-    parseuse.avance()
 
-    lexème = parseuse.lexème_courant()
-    saufsi lexème.est_lexème_de_genre(GenreLexème.Comma) {
-        retourne
+    résultat = parse_couleur_rgb_modern(function.value)
+    si résultat.possède_valeur() {
+        retourne résultat
     }
-    parseuse.avance()
-    parseuse.consomme_espaces_blanches()
+}
 
-    /* Vert. */
-    lexème = parseuse.lexème_courant()
-    saufsi lexème.est_lexème_de_genre(GenreLexème.Number) {
-        retourne
-    }
-    vert := lexème.lexème.numeric_value
-    parseuse.avance()
+parse_couleur_rgb_modern :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
 
-    lexème = parseuse.lexème_courant()
-    saufsi lexème.est_lexème_de_genre(GenreLexème.Comma) {
-        retourne
-    }
-    parseuse.avance()
-    parseuse.consomme_espaces_blanches()
+    valeurs := r64.[0.0, 0.0, 0.0, 255.0]
+    nombre_de_valeurs := 0
 
-    /* Bleu */
-    lexème = parseuse.lexème_courant()
-    saufsi lexème.est_lexème_de_genre(GenreLexème.Number) {
-        retourne
-    }
-    bleu := lexème.lexème.numeric_value
-    parseuse.avance()
+    eu_nombre := faux
+    eu_pourcentage := faux
 
-    alpha : n8 = 255
-    si function.name == PROP_rgba {
-        /* Alpha */
-        lexème = parseuse.lexème_courant()
-        saufsi lexème.est_lexème_de_genre(GenreLexème.Comma) {
+    tantque !parseuse.fini() && nombre_de_valeurs < 3 {
+        lexème := parseuse.lexème_courant()
+        si lexème.est_lexème_de_genre(GenreLexème.Number) {
+            si eu_pourcentage {
+                /* pas de mélange entre nombre et pourcentage pour les couleurs hors alpha */
+                retourne
+            }
+
+            eu_nombre = vrai
+
+            valeurs[nombre_de_valeurs] = lexème.lexème.numeric_value
+            nombre_de_valeurs += 1
+        }
+        sinon si lexème.est_lexème_de_genre(GenreLexème.Percentage) {
+            si eu_nombre {
+                /* pas de mélange entre nombre et pourcentage pour les couleurs hors alpha */
+                retourne
+            }
+
+            eu_pourcentage = vrai
+            valeur := lexème.lexème.numeric_value * 255.0 / 100.0
+            valeurs[nombre_de_valeurs] = valeur
+            nombre_de_valeurs += 1
+        }
+        sinon si lexème.est_mot_clé(PROP_none) {
+            valeurs[nombre_de_valeurs] = 0.0
+            nombre_de_valeurs += 1
+        }
+        sinon {
             retourne
         }
-        parseuse.avance()
-        parseuse.consomme_espaces_blanches()
 
-        lexème = parseuse.lexème_courant()
-        saufsi lexème.est_lexème_de_genre(GenreLexème.Number) {
-            retourne
+        parseuse.avance()
+
+        si consomme_slash_et_espaces_blanches(parseuse) {
+            arrête
         }
-
-        alpha = (lexème.lexème.numeric_value * 255.0) comme n8
-        parseuse.avance()
     }
 
-    couleur := CouleurRVBAN8(rouge comme n8, vert comme n8, bleu comme n8, alpha)
+    parseuse.consomme_espaces_blanches()
+    saufsi parseuse.fini() {
+        lexème := parseuse.lexème_courant()
+        si lexème.est_lexème_de_genre(GenreLexème.Number) {
+            valeurs[3] = lexème.lexème.numeric_value * 255.0
+        }
+        sinon si lexème.est_lexème_de_genre(GenreLexème.Percentage) {
+            eu_pourcentage = vrai
+            valeur := lexème.lexème.numeric_value * 255.0 / 100.0
+            valeurs[3] = valeur
+        }
+    }
+
+    couleur := CouleurRVBAN8(valeurs[0] comme n8, valeurs[1] comme n8, valeurs[2] comme n8, valeurs[3] comme n8)
     retourne ValeurDeStyle(couleur = couleur)
+}
+
+parse_couleur_rgb_legacy :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+
+    valeurs := r64.[0.0, 0.0, 0.0, 255.0]
+    nombre_de_valeurs := 0
+
+    eu_nombre := faux
+    eu_pourcentage := faux
+
+    tantque !parseuse.fini() && nombre_de_valeurs < 3 {
+        lexème := parseuse.lexème_courant()
+        si lexème.est_lexème_de_genre(GenreLexème.Number) {
+            si eu_pourcentage {
+                /* pas de mélange entre nombre et pourcentage pour les couleurs hors alpha */
+                retourne
+            }
+
+            eu_nombre = vrai
+
+            valeurs[nombre_de_valeurs] = lexème.lexème.numeric_value
+            nombre_de_valeurs += 1
+        }
+        sinon si lexème.est_lexème_de_genre(GenreLexème.Percentage) {
+            si eu_nombre {
+                /* pas de mélange entre nombre et pourcentage pour les couleurs hors alpha */
+                retourne
+            }
+
+            eu_pourcentage = vrai
+            valeur := lexème.lexème.numeric_value * 255.0 / 100.0
+            valeurs[nombre_de_valeurs] = valeur
+            nombre_de_valeurs += 1
+        }
+        sinon {
+            retourne
+        }
+
+        parseuse.avance()
+
+        si consomme_virgule_et_espaces_blanches(parseuse) {
+            arrête
+        }
+    }
+
+    parseuse.consomme_espaces_blanches()
+    saufsi parseuse.fini() {
+        lexème := parseuse.lexème_courant()
+        si lexème.est_lexème_de_genre(GenreLexème.Number) {
+            valeurs[3] = lexème.lexème.numeric_value * 255.0
+        }
+        sinon si lexème.est_lexème_de_genre(GenreLexème.Percentage) {
+            eu_pourcentage = vrai
+            valeur := lexème.lexème.numeric_value * 255.0 / 100.0
+            valeurs[3] = valeur
+        }
+    }
+
+    couleur := CouleurRVBAN8(valeurs[0] comme n8, valeurs[1] comme n8, valeurs[2] comme n8, valeurs[3] comme n8)
+    retourne ValeurDeStyle(couleur = couleur)
+}
+
+/* https://www.w3.org/TR/css-color-4/#legacy-color-syntax */
+parse_couleur_syntaxe_legacy :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+
+    valeurs := r64.[0.0, 0.0, 0.0, 255.0]
+    nombre_de_valeurs := 0
+
+    eu_nombre := faux
+    eu_pourcentage := faux
+
+    tantque !parseuse.fini() && nombre_de_valeurs < 4 {
+        lexème := parseuse.lexème_courant()
+        si lexème.est_lexème_de_genre(GenreLexème.Number) {
+            si eu_pourcentage && nombre_de_valeurs < 4 {
+                /* pas de mélange entre nombre et pourcentage pour les couleurs hors alpha */
+                retourne
+            }
+
+            eu_nombre = vrai
+
+            valeur := lexème.lexème.numeric_value
+            si nombre_de_valeurs == 3 {
+                valeur *= 255.0
+            }
+
+            valeurs[nombre_de_valeurs] = valeur
+            nombre_de_valeurs += 1
+        }
+        sinon si lexème.est_lexème_de_genre(GenreLexème.Percentage) {
+            si eu_nombre && nombre_de_valeurs < 4 {
+                /* pas de mélange entre nombre et pourcentage pour les couleurs hors alpha */
+                retourne
+            }
+
+            eu_pourcentage = vrai
+            valeurs[nombre_de_valeurs] = lexème.lexème.numeric_value * 255.0 / 100.0
+            nombre_de_valeurs += 1
+        }
+        sinon {
+            retourne
+        }
+
+        parseuse.avance()
+
+        saufsi consomme_virgule_et_espaces_blanches(parseuse) {
+            arrête
+        }
+    }
+
+    parseuse.consomme_espaces_blanches()
+    saufsi parseuse.fini() {
+        /* Erreur de parsage ou de syntaxe. */
+        retourne
+    }
+
+    /* L'alpha est implicite. */
+    si nombre_de_valeurs < 3 {
+        retourne
+    }
+
+    couleur := CouleurRVBAN8(valeurs[0] comme n8, valeurs[1] comme n8, valeurs[2] comme n8, valeurs[3] comme n8)
+    retourne ValeurDeStyle(couleur = couleur)
+}
+
+consomme_virgule_et_espaces_blanches :: fonc (parseuse: &Parseuse(ComponentValue)) -> bool
+{
+    parseuse.consomme_espaces_blanches()
+    lexème := parseuse.lexème_courant()
+    saufsi lexème.est_lexème_de_genre(GenreLexème.Comma) {
+        retourne faux
+    }
+    parseuse.avance()
+    parseuse.consomme_espaces_blanches()
+    retourne vrai
+}
+
+consomme_slash_et_espaces_blanches :: fonc (parseuse: &Parseuse(ComponentValue)) -> bool
+{
+    parseuse.consomme_espaces_blanches()
+    lexème := parseuse.lexème_courant()
+    saufsi lexème.est_lexème_slash() {
+        retourne faux
+    }
+    parseuse.avance()
+    parseuse.consomme_espaces_blanches()
+    retourne vrai
 }
 
 /** \} */
