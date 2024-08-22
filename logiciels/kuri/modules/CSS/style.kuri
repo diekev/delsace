@@ -990,7 +990,7 @@ calcule_valeur_propriété_générique :: fonc (déclaration: *DéclarationPropr
 
     valeur := déclaration.value[0]
 
-    si valeur.est_variable() {
+    tantque valeur.est_variable() {
         valeur = résoud_valeur_variable(ctx, info, valeur.variable)
     }
 
