@@ -816,6 +816,7 @@ GenreValeurCalculée :: énum_drapeau {
     Display
     TextDecorationLine
     TextDecorationStyle
+    FontSize
     FontWeight
 }
 
@@ -922,6 +923,9 @@ calcule_valeur_propriété_générique :: fonc (valeur: ValeurDeStyle, genre_val
 
                 retourne ValeurDeStyle(number = 400.0)
             }
+            si genre_valeur_calculée.FontSize {
+                retourne calcule_font_size_pour_mot_clé(m, ctx)
+            }
         }
         couleur {
             si genre_valeur_calculée.Couleur {
@@ -929,21 +933,25 @@ calcule_valeur_propriété_générique :: fonc (valeur: ValeurDeStyle, genre_val
             }
         }
         longueur(l) {
-            si genre_valeur_calculée.LongueurPourcentage || genre_valeur_calculée.BorderWidth || genre_valeur_calculée.Nombre {
+            si genre_valeur_calculée.LongueurAbsolue || genre_valeur_calculée.LongueurPourcentage || genre_valeur_calculée.BorderWidth || genre_valeur_calculée.Nombre {
                 retourne ValeurDeStyle(number = calcule_longueur(l, ctx))
             }
         }
         integer(i) {
-            si genre_valeur_calculée.LongueurPourcentage || genre_valeur_calculée.BorderWidth || genre_valeur_calculée.Nombre {
+            si genre_valeur_calculée.LongueurAbsolue || genre_valeur_calculée.LongueurPourcentage || genre_valeur_calculée.BorderWidth || genre_valeur_calculée.Nombre {
                 retourne ValeurDeStyle(number = i)
             }
         }
         number {
-            si genre_valeur_calculée.LongueurPourcentage || genre_valeur_calculée.BorderWidth || genre_valeur_calculée.Nombre {
+            si genre_valeur_calculée.LongueurAbsolue || genre_valeur_calculée.LongueurPourcentage || genre_valeur_calculée.BorderWidth || genre_valeur_calculée.Nombre {
                 retourne valeur
             }
         }
-        percentage {
+        percentage(p) {
+            si genre_valeur_calculée.FontSize {
+                retourne ValeurDeStyle(number = ctx.taille_fonte * p / 100.0)
+            }
+
             si genre_valeur_calculée.LongueurPourcentage {
                 retourne valeur
             }
@@ -1059,70 +1067,49 @@ prop_display_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, s
     style.valeurs[IDPropriété.Display] = ValeurDeStyle(display = résultat)
 }
 
-prop_font_size_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+calcule_font_size_pour_mot_clé :: fonc (m: CSSOMString, ctx: *ContexteCalculStyle) -> ValeurDeStyle
 {
-    valeur := déclaration.value[0]
+    taille_fonte_référence := ctx.taille_fonte
+    taille_fonte := taille_fonte_référence
 
-    discr valeur {
-        mot_clé(m) {
-            taille_fonte_référence := ctx.taille_fonte
-
-            taille_fonte := taille_fonte_référence
-
-            /* Utilise 1.2 pour l'échelle. La spécification propose une valeur entre 1.2 et 1.5. */
-            si m == PROP_smaller {
-                taille_fonte /= 1.2
-            }
-            sinon si m == PROP_larger {
-                taille_fonte *= 1.2
-            }
-            /* https://drafts.csswg.org/css-fonts/#absolute-size-mapping */
-            sinon si m == PROP_xx_small {
-                taille_fonte *= 3.0 / 5.0
-            }
-            sinon si m == PROP_x_small {
-                taille_fonte *= 3.0 / 4.0
-            }
-            sinon si m == PROP_small {
-                taille_fonte *= 8.0 / 9.0
-            }
-            sinon si m == PROP_medium {
-                /* Valeur de base, fateur de 1.0 */
-            }
-            sinon si m == PROP_large {
-                taille_fonte *= 6.0 / 5.0
-            }
-            sinon si m == PROP_x_large {
-                taille_fonte *= 3.0 / 2.0
-            }
-            sinon si m == PROP_xx_large {
-                taille_fonte *= 2.0
-            }
-            sinon si m == PROP_xxx_large {
-                taille_fonte *= 3.0
-            }
-            sinon {
-                message := imprime_chaine("[%] mot_clé '%' non pris en charge", #nom_de_cette_fonction, m)
-                panique(message)
-            }
-
-            ctx.taille_fonte = taille_fonte
-            style.valeurs[IDPropriété.FontSize] = ValeurDeStyle(number = taille_fonte)
-        }
-        longueur(l) {
-            taille_fonte := calcule_longueur(l, ctx)
-            ctx.taille_fonte = taille_fonte
-            style.valeurs[IDPropriété.FontSize] = ValeurDeStyle(number = taille_fonte)
-        }
-        percentage(p) {
-            taille_fonte := ctx.taille_fonte * p / 100.0
-            ctx.taille_fonte = taille_fonte
-            style.valeurs[IDPropriété.FontSize] = ValeurDeStyle(number = taille_fonte)
-        }
-        sinon {
-            retourne
-        }
+    /* Utilise 1.2 pour l'échelle. La spécification propose une valeur entre 1.2 et 1.5. */
+    si m == PROP_smaller {
+        taille_fonte /= 1.2
     }
+    sinon si m == PROP_larger {
+        taille_fonte *= 1.2
+    }
+    /* https://drafts.csswg.org/css-fonts/#absolute-size-mapping */
+    sinon si m == PROP_xx_small {
+        taille_fonte *= 3.0 / 5.0
+    }
+    sinon si m == PROP_x_small {
+        taille_fonte *= 3.0 / 4.0
+    }
+    sinon si m == PROP_small {
+        taille_fonte *= 8.0 / 9.0
+    }
+    sinon si m == PROP_medium {
+        /* Valeur de base, fateur de 1.0 */
+    }
+    sinon si m == PROP_large {
+        taille_fonte *= 6.0 / 5.0
+    }
+    sinon si m == PROP_x_large {
+        taille_fonte *= 3.0 / 2.0
+    }
+    sinon si m == PROP_xx_large {
+        taille_fonte *= 2.0
+    }
+    sinon si m == PROP_xxx_large {
+        taille_fonte *= 3.0
+    }
+    sinon {
+        message := imprime_chaine("[%] mot_clé '%' non pris en charge", #nom_de_cette_fonction, m)
+        panique(message)
+    }
+
+    retourne ValeurDeStyle(number = taille_fonte)
 }
 
 /* À FAIRE : direction du flux */

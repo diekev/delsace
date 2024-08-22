@@ -392,10 +392,14 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
 
         si info.sur_calcul_style {
             info.sur_calcul_style(it, *propriétés.style, *ctx_calcul_style)
-            continue
+        }
+        sinon {
+            calcule_valeur_propriété_générique(it, *propriétés.style, *ctx_calcul_style)
         }
 
-        calcule_valeur_propriété_générique(it, *propriétés.style, *ctx_calcul_style)
+        si info.id == IDPropriété.FontSize {
+            ctx_calcul_style.taille_fonte = propriétés.style.valeurs[IDPropriété.FontSize].number
+        }
     }
 
     si propriétés.style.valeurs[IDPropriété.BorderStyleLeft].line_style == LineStyle.None {
