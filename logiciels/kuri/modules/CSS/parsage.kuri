@@ -188,6 +188,18 @@ est_fonction :: fonc (value: ComponentValue) -> bool
     }
 }
 
+est_fonction :: fonc (value: ComponentValue, nom: CSSOMString) -> bool
+{
+    discr value {
+        function(f) {
+            retourne f.name == nom
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
 est_lexème_de_genre :: fonc (value: ComponentValue, genre: GenreLexème) -> bool
 {
     discr value {
@@ -1582,6 +1594,16 @@ parse_css_style_declaration :: fonc (ctx: *ContexteParsageFeuilleDeStyle, décla
     résultat := loge(CSSStyleDeclaration)
 
     pour déclarations {
+        si est_propriété_personnalisée(it.name) {
+            déclaration := loge(DéclarationPropriété)
+            déclaration.property_name = it.name
+            déclaration.case_sensitive = vrai
+            déclaration.est_personnalisée = vrai
+            déclaration.valeur_personnalisée = tableau_copie(it.value)
+            résultat.ajoute_déclaration(déclaration)
+            continue
+        }
+
         info_type_propriété := donne_info_type_pour_nom(ctx, it.name)
         saufsi info_type_propriété {
             continue
@@ -1629,6 +1651,23 @@ parse_valeur_propriété :: fonc (info_type_propriété: *InfoTypePropriété, v
     si opt_valeur.possède_valeur() {
         retourne opt_valeur
     }
+
+    opt_variable := parse_variable(parseuse)
+    si opt_variable.possède_valeur() {
+        retourne opt_variable.Quelque
+    }
+}
+
+est_propriété_personnalisée :: fonc (nom: CSSOMString) -> bool
+{
+    chn := nom.donne_chaine_utf16()
+    si chn.taille() < 2 {
+        retourne faux
+    }
+
+    HYPHEN := '-' comme n32
+
+    retourne chn.unités[0] == HYPHEN && chn.unités[1] == HYPHEN
 }
 
 /** \} */
@@ -1842,6 +1881,41 @@ parse_valeur_length_percentage_ou_auto :: fonc (parseuse: &Parseuse(ComponentVal
         retourne ValeurDeStyle(mot_clé = PROP_auto)
     }
     retourne parse_valeur_length_percentage(parseuse)
+}
+
+parse_variable :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+{
+    si parseuse.fini() {
+        retourne
+    }
+
+    lexème := parseuse.lexème_courant()
+    saufsi lexème.est_fonction(PROP_var) {
+        retourne
+    }
+
+    parseuse_arguments := initialise_une_parseuse(lexème.function.value)
+    parseuse_arguments.consomme_espaces_blanches()
+
+    lexème = parseuse_arguments.lexème_courant()
+    saufsi lexème.est_lexème_de_genre(GenreLexème.Ident) {
+        retourne
+    }
+
+    nom := lexème.donne_texte()
+    saufsi nom.est_propriété_personnalisée() {
+        retourne
+    }
+
+    parseuse_arguments.avance()
+    parseuse_arguments.consomme_espaces_blanches()
+
+    // À FAIRE : fallback
+
+    résultat: Variable
+    résultat.nom = nom
+
+    retourne ValeurDeStyle(variable = résultat)
 }
 
 /** \} */

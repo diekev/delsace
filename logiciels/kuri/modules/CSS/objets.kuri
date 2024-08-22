@@ -188,8 +188,10 @@ DéclarationPropriété :: struct {
     info: *InfoTypePropriété
     property_name: CSSOMString
     value: [..]ValeurDeStyle
+    valeur_personnalisée: [..]ComponentValue
     important: bool
     case_sensitive: bool
+    est_personnalisée: bool
 }
 
 détruit_déclaration :: fonc (déclaration: *DéclarationPropriété)
@@ -198,6 +200,7 @@ détruit_déclaration :: fonc (déclaration: *DéclarationPropriété)
         détruit_valeur_de_style(it)
     }
 
+    // À FAIRE : copie proprement détruit_tableau_component_value(*déclaration.valeur_personnalisée)
     déloge(déclaration.value)
     déloge(déclaration)
 }

@@ -167,6 +167,7 @@ PROP_transparent : CSSOMString = ---
 PROP_underline : CSSOMString = ---
 PROP_unset : CSSOMString = ---
 PROP_url : CSSOMString = ---
+PROP_var : CSSOMString = ---
 PROP_vertical_text : CSSOMString = ---
 PROP_w_resize : CSSOMString = ---
 PROP_wait : CSSOMString = ---

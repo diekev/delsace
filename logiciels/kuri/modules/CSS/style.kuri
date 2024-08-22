@@ -9,6 +9,11 @@ TextDecorationLine :: énum_drapeau n8 {
     BLINK
 }
 
+Variable :: struct {
+    nom: CSSOMString
+    fallback: [..]ComponentValue
+}
+
 /* https://www.w3.org/TR/css-values/#value-defs */
 ValeurDeStyle :: union {
     mot_clé: CSSOMString
@@ -21,10 +26,17 @@ ValeurDeStyle :: union {
     line_style: LineStyle
     display: Display
     cursor: CursorType
+    variable: Variable
 }
 
-détruit_valeur_de_style :: fonc (value: *ValeurDeStyle @inutilisée)
+détruit_valeur_de_style :: fonc (value: *ValeurDeStyle)
 {
+    discr mémoire(value) {
+        variable(v) {
+            détruit_tableau_component_value(*v.fallback)
+        }
+        sinon {}
+    }
 }
 
 est_mot_clé :: fonc (valeur: ValeurDeStyle, mot_clé: CSSOMString) -> bool
@@ -60,6 +72,18 @@ est_nombre :: fonc (valeur: ValeurDeStyle) -> bool
 {
     discr valeur {
         number {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+est_variable :: fonc (valeur: ValeurDeStyle) -> bool
+{
+    discr valeur {
+        variable {
             retourne vrai
         }
         sinon {
@@ -105,6 +129,13 @@ imprime_valeur_de_style :: fonc (enchaineuse: *Enchaineuse, valeur: *ValeurDeSty
         cursor(c) {
             ajoute_au_tampon(enchaineuse, c)
         }
+        variable(v) {
+            ajoute_au_tampon(enchaineuse, "var(", v.nom, ",")
+            pour v.fallback {
+                ajoute_au_tampon(enchaineuse, " ", it)
+            }
+            ajoute_au_tampon(enchaineuse, ")")
+        }
         sinon {
             ajoute_au_tampon(enchaineuse, "VALEUR INVALIDE OU À IMPRIMER")
         }
@@ -118,20 +149,22 @@ imprime_valeur_de_style :: fonc (enchaineuse: *Enchaineuse, valeur: *ValeurDeSty
  * \{ */
 
 PropriétésDeStyle :: struct {
+    parent: *PropriétésDeStyle
     déclarations: [..]*DéclarationPropriété
     style: Style
 }
 
-crée_propriétés_de_style :: fonc () -> *PropriétésDeStyle
+crée_propriétés_de_style :: fonc (parent: *PropriétésDeStyle) -> *PropriétésDeStyle
 {
     résultat := loge(PropriétésDeStyle)
+    résultat.parent = parent
     initialise_style(*résultat.style)
     retourne résultat
 }
 
 copie_propriétés :: fonc (source: *PropriétésDeStyle) -> *PropriétésDeStyle
 {
-    résultat := crée_propriétés_de_style()
+    résultat := crée_propriétés_de_style(source.parent)
 
     pour source.déclarations {
         ajoute_déclaration(résultat, it)
@@ -169,6 +202,21 @@ donne_déclaration :: fonc (propriétés: *PropriétésDeStyle, nom: CSSOMString
             retourne it
         }
     }
+    retourne nul
+}
+
+donne_déclaration_propriété_personnalisée :: fonc (propriétés: *PropriétésDeStyle, nom: CSSOMString) -> *DéclarationPropriété
+{
+    courantes := propriétés
+
+    tantque courantes != nul {
+        résultat := donne_déclaration(propriétés, nom)
+        si résultat {
+            retourne résultat
+        }
+        courantes = courantes.parent
+    }
+
     retourne nul
 }
 
@@ -352,6 +400,7 @@ donne_line_style :: fonc (value: ValeurDeStyle) -> LineStyle
 ContexteCalculStyle :: struct {
     taille_fonte: r64
     taille_fonte_racine: r64
+    propriétés: *PropriétésDeStyle
     propriétés_parent: *PropriétésDeStyle
     valeurs_initiales: *Style
 }
@@ -863,6 +912,10 @@ calcule_valeur_propriété_générique :: fonc (déclaration: *DéclarationPropr
 
     valeur := déclaration.value[0]
 
+    si valeur.est_variable() {
+        valeur = résoud_valeur_variable(ctx, info, valeur.variable)
+    }
+
     si valeur.est_mot_clé(PROP_inherit) {
         /* https://www.w3.org/TR/css-cascade/#inherit */
         si ctx.propriétés_parent {
@@ -897,6 +950,22 @@ calcule_valeur_propriété_générique :: fonc (déclaration: *DéclarationPropr
         style.valeurs[info.id] = valeur
         retourne
     }
+}
+
+/* À FAIRE : variables récurives. */
+résoud_valeur_variable :: fonc (ctx: *ContexteCalculStyle, info: *InfoTypePropriété, variable: Variable) -> ValeurDeStyle
+{
+    déclaration := donne_déclaration_propriété_personnalisée(ctx.propriétés, variable.nom)
+    saufsi déclaration {
+        retourne ctx.valeurs_initiales.valeurs[info.id]
+    }
+
+    résultat := parse_valeur_propriété(info, déclaration.valeur_personnalisée)
+    si résultat.possède_valeur() {
+        retourne résultat.Quelque
+    }
+
+    retourne ctx.valeurs_initiales.valeurs[info.id]
 }
 
 prop_display_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle @inutilisée)

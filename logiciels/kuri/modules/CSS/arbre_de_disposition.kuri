@@ -239,7 +239,7 @@ collecte_les_règles_appropriées :: fonc (résolveuse: *RésolveuseStyle, élé
 
 résoud_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élément, propriétés_parent: *PropriétésDeStyle) -> *PropriétésDeStyle
 {
-    résultat := crée_propriétés_de_style()
+    résultat := crée_propriétés_de_style(propriétés_parent)
 
     règles := collecte_les_règles_appropriées(résolveuse, élément)
     diffère déloge(règles)
@@ -272,6 +272,9 @@ résoud_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élémen
 
     si propriétés_parent {
         pour propriétés_parent.déclarations {
+            si it.est_personnalisée {
+                continue
+            }
             info := it.info
             si info.héritable == PropriétéHéritable.Non {
                 continue
@@ -344,13 +347,18 @@ compare_déclarations_pour_cascade :: fonc (a: DéclarationCascadée, b: Déclar
 
 crée_style_pour_bloc_anonyme :: fonc (résolveuse: *RésolveuseStyle, bloc: *NoeudDeDispositionBloc, bloc_parent: *NoeudDeDispositionBloc)
 {
-    résultat := crée_propriétés_de_style()
+    résultat := crée_propriétés_de_style(bloc_parent.propriétés)
 
     pour bloc_parent.propriétés.déclarations {
+        si it.est_personnalisée {
+            continue
+        }
         si it.info.héritable == PropriétéHéritable.Non {
             continue
         }
-        ajoute_déclaration(résultat, it)
+        /* Nous devons hériter des valeurs calculées. */
+        id := it.info.id
+        résultat.style.valeurs[id] = bloc_parent.propriétés.style.valeurs[id]
     }
 
     calcule_style(résolveuse, résultat, bloc_parent.propriétés)
@@ -364,6 +372,7 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
     ctx_calcul_style: ContexteCalculStyle
     ctx_calcul_style.taille_fonte = résolveuse.globales.taille_fonte_défaut
     ctx_calcul_style.taille_fonte_racine = résolveuse.taille_fonte_racine
+    ctx_calcul_style.propriétés = propriétés
     ctx_calcul_style.propriétés_parent = propriétés_parent
     ctx_calcul_style.valeurs_initiales = *résolveuse.valeurs_initiales
 
@@ -376,6 +385,9 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
     }
 
     pour propriétés.déclarations {
+        si it.est_personnalisée {
+            continue
+        }
         info := it.info
 
         si info.sur_calcul_style {
