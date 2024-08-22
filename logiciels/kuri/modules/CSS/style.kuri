@@ -850,14 +850,16 @@ calcule_valeur_propriété_générique :: fonc (déclaration: *DéclarationPropr
     info := déclaration.info
     genre_valeur_calculée := info.genre_valeur_calculée
 
-    résultat := calcule_valeur_propriété_générique(déclaration.value[0], genre_valeur_calculée, style, ctx)
+    valeur := déclaration.value[0]
+
+    résultat := calcule_valeur_propriété_générique(valeur, genre_valeur_calculée, style, ctx)
     si résultat.possède_valeur() {
         style.valeurs[info.id] = résultat.Quelque
         retourne
     }
 
     si genre_valeur_calculée.Spécifié {
-        style.valeurs[info.id] = déclaration.value[0]
+        style.valeurs[info.id] = valeur
         retourne
     }
 }
