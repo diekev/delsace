@@ -96,6 +96,15 @@ imprime_valeur_de_style :: fonc (enchaineuse: *Enchaineuse, valeur: *ValeurDeSty
         text_decoration_line(t) {
             ajoute_au_tampon(enchaineuse, t)
         }
+        line_style(l) {
+            ajoute_au_tampon(enchaineuse, l)
+        }
+        display(d) {
+            ajoute_au_tampon(enchaineuse, d)
+        }
+        cursor(c) {
+            ajoute_au_tampon(enchaineuse, c)
+        }
         sinon {
             ajoute_au_tampon(enchaineuse, "VALEUR INVALIDE OU À IMPRIMER")
         }
