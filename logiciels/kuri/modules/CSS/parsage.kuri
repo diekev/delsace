@@ -1742,6 +1742,9 @@ infos_types_propriétés_shorthand := [
     InfoTypePropriété(PROP_padding, sur_parsage_shorthand = parse_propriété_padding, héritable = PropriétéHéritable.Non),
     InfoTypePropriété(PROP_padding_block, sur_parsage_shorthand = parse_propriété_padding_logique, héritable = PropriétéHéritable.Non),
     InfoTypePropriété(PROP_padding_inline, sur_parsage_shorthand = parse_propriété_padding_logique, héritable = PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_inset, sur_parsage_shorthand = parse_propriété_inset_shorthand, héritable = PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_inset_block, sur_parsage_shorthand = parse_propriété_inset_logique, héritable = PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_inset_inline, sur_parsage_shorthand = parse_propriété_inset_logique, héritable = PropriétéHéritable.Non),
     InfoTypePropriété(PROP_text_align, id = IDPropriété.TextAlign, fonction_de_parsage = parse_propriété_text_align, héritable = PropriétéHéritable.Oui, genre_valeur_calculée = GenreValeurCalculée.Spécifié)
 ]
 
@@ -1796,6 +1799,10 @@ infos_types_propriétés := [
     InfoTypePropriété(PROP_left, id = IDPropriété.Left, fonction_de_parsage = parse_propriété_inset, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto),
     InfoTypePropriété(PROP_right, id = IDPropriété.Right, fonction_de_parsage = parse_propriété_inset, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto),
     InfoTypePropriété(PROP_top, id = IDPropriété.Top, fonction_de_parsage = parse_propriété_inset, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto),
+    InfoTypePropriété(PROP_inset_block_end, fonction_de_parsage = parse_propriété_inset, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_inset_block_end_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto),
+    InfoTypePropriété(PROP_inset_block_start, fonction_de_parsage = parse_propriété_inset, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_inset_block_start_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto),
+    InfoTypePropriété(PROP_inset_inline_end, fonction_de_parsage = parse_propriété_inset, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_inset_inline_end_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto),
+    InfoTypePropriété(PROP_inset_inline_start, fonction_de_parsage = parse_propriété_inset, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_inset_inline_start_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto),
     InfoTypePropriété(PROP_position, id = IDPropriété.Position, fonction_de_parsage = parse_propriété_position, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
     InfoTypePropriété(PROP_float, id = IDPropriété.Float, fonction_de_parsage = parse_propriété_float, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.Spécifié)
 ]
@@ -3285,6 +3292,81 @@ parse_propriété_inset :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurD
     parseuse := initialise_une_parseuse(value)
     /* auto | <length-percentage> */
     retourne parse_valeur_length_percentage_ou_auto(parseuse)
+}
+
+parse_propriété_inset_logique :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
+{
+    parseuse := initialise_une_parseuse(value)
+
+    résultat: [2]ValeurDeStyle
+    nombre_valeurs: z64
+
+    tantque !fini(parseuse) && nombre_valeurs != 2 {
+        parseuse.consomme_espaces_blanches()
+
+        /* auto | <length-percentage> */
+        valeur := parse_valeur_length_percentage_ou_auto(parseuse)
+        si valeur.possède_valeur() {
+            résultat[nombre_valeurs] = valeur.Quelque
+            nombre_valeurs += 1
+            continue
+        }
+
+        opt_valeur := parse_mot_clé_global_ou_var(parseuse)
+        si opt_valeur.possède_valeur() {
+            résultat[nombre_valeurs] = opt_valeur.Quelque
+            nombre_valeurs += 1
+            continue
+        }
+
+        retourne faux
+    }
+
+    noms: [2]CSSOMString
+    si ctx.déclaration_parsée.name == PROP_inset_block {
+        noms[0] = PROP_inset_block_start
+        noms[1] = PROP_inset_block_end
+    }
+    sinon {
+        assert(ctx.déclaration_parsée.name == PROP_inset_inline)
+        noms[0] = PROP_inset_inline_start
+        noms[1] = PROP_inset_inline_end
+    }
+
+    ctx.ajoute_propriétés_logique(nombre_valeurs, résultat, noms)
+    retourne vrai
+}
+
+parse_propriété_inset_shorthand :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
+{
+    parseuse := initialise_une_parseuse(value)
+
+    résultat: [4]ValeurDeStyle
+    nombre_valeurs: z64
+
+    tantque !fini(parseuse) && nombre_valeurs != 4 {
+        parseuse.consomme_espaces_blanches()
+
+        /* auto | <length-percentage> */
+        valeur := parse_valeur_length_percentage_ou_auto(parseuse)
+        si valeur.possède_valeur() {
+            résultat[nombre_valeurs] = valeur.Quelque
+            nombre_valeurs += 1
+            continue
+        }
+
+        opt_valeur := parse_mot_clé_global_ou_var(parseuse)
+        si opt_valeur.possède_valeur() {
+            résultat[nombre_valeurs] = opt_valeur.Quelque
+            nombre_valeurs += 1
+            continue
+        }
+
+        retourne faux
+    }
+
+    ctx.ajoute_propriétés_boite(nombre_valeurs, résultat, [PROP_top, PROP_right, PROP_bottom, PROP_left])
+    retourne vrai
 }
 
 /** \} */

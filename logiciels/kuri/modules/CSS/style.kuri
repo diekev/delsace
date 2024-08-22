@@ -1161,4 +1161,25 @@ prop_padding_inline_start_sur_calcul_style :: fonc (déclaration: *DéclarationP
     style.valeurs[IDPropriété.PaddingLeft] = calcule_valeur_propriété_générique(déclaration.value[0], déclaration.info.genre_valeur_calculée, style, ctx)
 }
 
+/* À FAIRE : direction du flux */
+prop_inset_block_end_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    style.valeurs[IDPropriété.Bottom] = calcule_valeur_propriété_générique(déclaration.value[0], déclaration.info.genre_valeur_calculée, style, ctx)
+}
+
+prop_inset_block_start_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    style.valeurs[IDPropriété.Top] = calcule_valeur_propriété_générique(déclaration.value[0], déclaration.info.genre_valeur_calculée, style, ctx)
+}
+
+prop_inset_inline_end_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    style.valeurs[IDPropriété.Right] = calcule_valeur_propriété_générique(déclaration.value[0], déclaration.info.genre_valeur_calculée, style, ctx)
+}
+
+prop_inset_inline_start_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    style.valeurs[IDPropriété.Left] = calcule_valeur_propriété_générique(déclaration.value[0], déclaration.info.genre_valeur_calculée, style, ctx)
+}
+
 /** \} */
