@@ -816,6 +816,7 @@ GenreValeurCalculée :: énum_drapeau {
     Display
     TextDecorationLine
     TextDecorationStyle
+    FontWeight
 }
 
 calcule_valeur_propriété_générique :: fonc (valeur: ValeurDeStyle, genre_valeur_calculée: GenreValeurCalculée, style: *Style, ctx: *ContexteCalculStyle) -> Optionnel(ValeurDeStyle)
@@ -854,6 +855,72 @@ calcule_valeur_propriété_générique :: fonc (valeur: ValeurDeStyle, genre_val
             }
             si genre_valeur_calculée.Auto && m == PROP_auto {
                 retourne valeur
+            }
+            si genre_valeur_calculée.FontWeight {
+                si m == PROP_normal {
+                    retourne ValeurDeStyle(number = 400.0)
+                }
+                si m == PROP_bold {
+                    retourne ValeurDeStyle(number = 700.0)
+                }
+                si m == PROP_bolder {
+                    graisse_parent : r64 = 400.0
+                    si ctx.propriétés_parent {
+                        graisse_parent = ctx.propriétés_parent.style.valeurs[IDPropriété.FontWeight].number
+                    }
+
+                    si graisse_parent < 100.0 {
+                        retourne ValeurDeStyle(number = 400.0)
+                    }
+
+                    si graisse_parent < 350.0 {
+                        retourne ValeurDeStyle(number = 400.0)
+                    }
+
+                    si graisse_parent < 550.0 {
+                        retourne ValeurDeStyle(number = 700.0)
+                    }
+
+                    si graisse_parent < 750.0 {
+                        retourne ValeurDeStyle(number = 900.0)
+                    }
+                    
+                    si graisse_parent < 900.0 {
+                        retourne ValeurDeStyle(number = 900.0)
+                    }
+
+                    retourne ValeurDeStyle(number = graisse_parent)
+                }
+                si m == PROP_lighter {
+                    graisse_parent : r64 = 400.0
+                    si ctx.propriétés_parent {
+                        graisse_parent = ctx.propriétés_parent.style.valeurs[IDPropriété.FontWeight].number
+                    }
+
+                    si graisse_parent < 100.0 {
+                        retourne ValeurDeStyle(number = graisse_parent)
+                    }
+
+                    si graisse_parent < 350.0 {
+                        retourne ValeurDeStyle(number = 100.0)
+                    }
+
+                    si graisse_parent < 550.0 {
+                        retourne ValeurDeStyle(number = 100.0)
+                    }
+
+                    si graisse_parent < 750.0 {
+                        retourne ValeurDeStyle(number = 400.0)
+                    }
+                    
+                    si graisse_parent < 900.0 {
+                        retourne ValeurDeStyle(number = 700.0)
+                    }
+
+                    retourne ValeurDeStyle(number = 700.0)
+                }
+
+                retourne ValeurDeStyle(number = 400.0)
             }
         }
         couleur {
@@ -990,12 +1057,6 @@ prop_display_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, s
     }
 
     style.valeurs[IDPropriété.Display] = ValeurDeStyle(display = résultat)
-}
-
-prop_font_weight_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle @inutilisée)
-{
-    assert(déclaration.value.taille == 1)
-    style.valeurs[IDPropriété.FontWeight] = déclaration.value[0]
 }
 
 prop_font_size_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)

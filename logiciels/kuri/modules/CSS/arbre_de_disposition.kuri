@@ -410,6 +410,9 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
     si propriétés.style.valeurs[IDPropriété.BorderStyleBottom].line_style == LineStyle.None {
         propriétés.style.valeurs[IDPropriété.BorderWidthBottom] = ValeurDeStyle(number = 0.0)
     }
+    saufsi propriétés.style.valeurs[IDPropriété.FontWeight].est_nombre() {
+        propriétés.style.valeurs[IDPropriété.FontWeight] = calcule_valeur_propriété_générique(propriétés.style.valeurs[IDPropriété.FontWeight], GenreValeurCalculée.FontWeight, *propriétés.style, *ctx_calcul_style)
+    }
 }
 
 /** \} */
@@ -1709,15 +1712,9 @@ détermine_fonte :: fonc (noeud_texte: *NoeudDeDispositionTexte, ctx: *ContexteD
         famille_fonte = "sans-serif"
     }
 
-    font_weight := propriétés.style.valeurs[IDPropriété.FontWeight]
-    si font_weight.est_mot_clé(PROP_bold) || font_weight.est_mot_clé(PROP_bolder) {
+    font_weight := propriétés.style.valeurs[IDPropriété.FontWeight].number
+    si font_weight >= 700.0 {
         graisse = GraisseFonte.Gras
-    }
-    sinon si font_weight.est_nombre() {
-        nombre := font_weight.number
-        si nombre >= 700.0 {
-            graisse = GraisseFonte.Gras
-        }
     }
 
     font_style := propriétés.style.valeurs[IDPropriété.FontStyle].mot_clé
