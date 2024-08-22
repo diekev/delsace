@@ -1694,7 +1694,7 @@ InfoTypePropriété :: struct {
 }
 
 infos_types_propriétés_shorthand := [
-    InfoTypePropriété(PROP_background, fonction_de_parsage = parse_propriété_color, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_background_sur_calcul_style),
+    InfoTypePropriété(PROP_background, sur_parsage_shorthand = parse_propriété_background, héritable = PropriétéHéritable.Non),
     InfoTypePropriété(PROP_border, sur_parsage_shorthand = parse_propriété_border, héritable = PropriétéHéritable.Non),
     InfoTypePropriété(PROP_border_color, sur_parsage_shorthand = parse_propriété_border_color, héritable = PropriétéHéritable.Non),
     InfoTypePropriété(PROP_border_style, sur_parsage_shorthand = parse_propriété_border_style, héritable = PropriétéHéritable.Non),
@@ -2475,6 +2475,23 @@ parse_propriété_font_style :: fonc (value: [..]ComponentValue) -> Optionnel(Va
 
     parseuse := initialise_une_parseuse(value)
     retourne parse_mot_clé(parseuse, mots_clés)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Background
+ * https://drafts.csswg.org/css-backgrounds-3/#background
+ * \{ */
+
+parse_propriété_background :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
+{
+    valeur := parse_propriété_color(value)
+    si valeur.possède_valeur() {
+        ajoute_propriété(ctx, PROP_background_color, valeur.Quelque)
+        retourne vrai
+    }
+    retourne faux
 }
 
 /** \} */

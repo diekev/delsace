@@ -992,12 +992,6 @@ prop_display_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, s
     style.valeurs[IDPropriété.Display] = ValeurDeStyle(display = résultat)
 }
 
-prop_background_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
-{
-    assert(déclaration.value.taille == 1)
-    style.valeurs[IDPropriété.BackgroundColor] = calcule_valeur_propriété_générique(déclaration.value[0], GenreValeurCalculée.Couleur, style, ctx)
-}
-
 prop_font_weight_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle @inutilisée)
 {
     assert(déclaration.value.taille == 1)
