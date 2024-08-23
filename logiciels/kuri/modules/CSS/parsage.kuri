@@ -3,6 +3,7 @@ importe Couleur
 importe Ensemble
 importe Fondation
 importe Internet
+importe Math
 importe Unicode
 
 /* ------------------------------------------------------------------------- */
@@ -2143,6 +2144,14 @@ parse_valeur_couleur :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(
             retourne résultat
         }
 
+        si fonction.name == PROP_hsl || fonction.name == PROP_hsla {
+            résultat := parse_couleur_hsl(fonction)
+            si résultat.possède_valeur() {
+                parseuse.avance()
+            }
+            retourne résultat
+        }
+
         retourne
     }
 }
@@ -2360,6 +2369,203 @@ parse_couleur_syntaxe_legacy :: fonc (value: [..]ComponentValue) -> Optionnel(Va
 
     couleur := CouleurRVBAN8(valeurs[0] comme n8, valeurs[1] comme n8, valeurs[2] comme n8, valeurs[3] comme n8)
     retourne ValeurDeStyle(couleur = couleur)
+}
+
+/* https://drafts.csswg.org/css-color-4/#funcdef-hsl */
+parse_couleur_hsl :: fonc (function: &ParsedFunction) -> Optionnel(ValeurDeStyle)
+{
+    résultat := parse_couleur_hsl_legacy(function.value)
+    si résultat.possède_valeur() {
+        retourne résultat
+    }
+
+    résultat = parse_couleur_hsl_modern(function.value)
+    si résultat.possède_valeur() {
+        retourne résultat
+    }
+}
+
+parse_couleur_hsl_modern :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+
+    /* Teinte */
+    hue : r64 = 0
+    opt_hue := parseuse.parse_hue()
+    si opt_hue.possède_valeur() {
+        hue = opt_hue.Quelque
+    }
+    sinon {
+        lexème := parseuse.lexème_courant()
+        saufsi lexème.est_mot_clé(PROP_none) {
+            retourne
+        }
+        parseuse.avance()
+    }
+
+    parseuse.consomme_espaces_blanches()
+
+    /* Saturation. */
+    lexème := parseuse.lexème_courant()
+    sat : r64 = 0
+    si lexème.est_lexème_de_genre(GenreLexème.Percentage) {
+        sat = lexème.lexème.numeric_value
+    }
+    sinon saufsi lexème.est_mot_clé(PROP_none) {
+        retourne
+    }
+    parseuse.avance()
+
+    parseuse.consomme_espaces_blanches()
+
+    /* Luminance */
+    lexème = parseuse.lexème_courant()
+    lum : r64 = 0
+    si lexème.est_lexème_de_genre(GenreLexème.Percentage) {
+        lum = lexème.lexème.numeric_value
+    }
+    sinon saufsi lexème.est_mot_clé(PROP_none) {
+        retourne
+    }
+    parseuse.avance()
+
+    parseuse.consomme_espaces_blanches()
+
+    /* Alpha */
+    alpha : r64 = 0.0
+    saufsi parseuse.fini() {
+        lexème = parseuse.lexème_courant()
+        si lexème.est_lexème_de_genre(GenreLexème.Percentage) {
+            alpha = lexème.lexème.numeric_value / 100.0
+        }
+        sinon si lexème.est_lexème_de_genre(GenreLexème.Number) {
+            alpha = lexème.lexème.numeric_value
+        }
+        sinon {
+            retourne
+        }
+
+        parseuse.avance()
+        parseuse.consomme_espaces_blanches()
+    }
+
+    saufsi parseuse.fini() {
+        retourne
+    }
+
+    tsl: CouleurTSL
+    tsl.t = (hue / 360.0) comme r32
+    tsl.s = (sat / 100.0) comme r32
+    tsl.l = (lum / 100.0) comme r32
+
+    rvb := tsl_vers_rvb(tsl)
+
+    couleur := CouleurRVBAN8((rvb.r * 255.0) comme n8, (rvb.v * 255.0)  comme n8, (rvb.b * 255.0)  comme n8, (alpha * 255.0)  comme n8)
+    retourne ValeurDeStyle(couleur = couleur)
+}
+
+parse_couleur_hsl_legacy :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+
+    /* Teinte */
+    opt_hue := parseuse.parse_hue()
+    saufsi opt_hue.possède_valeur() {
+        retourne
+    }
+    hue := opt_hue.Quelque
+
+    saufsi parseuse.consomme_virgule_et_espaces_blanches() {
+        retourne
+    }
+
+    /* Saturation. */
+    lexème := parseuse.lexème_courant()
+    saufsi lexème.est_lexème_de_genre(GenreLexème.Percentage) {
+        retourne
+    }
+    sat := lexème.lexème.numeric_value
+    parseuse.avance()
+
+    saufsi parseuse.consomme_virgule_et_espaces_blanches() {
+        retourne
+    }
+
+    /* Luminance */
+    lexème = parseuse.lexème_courant()
+    saufsi lexème.est_lexème_de_genre(GenreLexème.Percentage) {
+        retourne
+    }
+    lum := lexème.lexème.numeric_value
+    parseuse.avance()
+
+    /* Alpha */
+    alpha : r64 = 0.0
+    si parseuse.consomme_virgule_et_espaces_blanches() {
+        lexème = parseuse.lexème_courant()
+        si lexème.est_lexème_de_genre(GenreLexème.Percentage) {
+            alpha = lexème.lexème.numeric_value / 100.0
+        }
+        sinon si lexème.est_lexème_de_genre(GenreLexème.Number) {
+            alpha = lexème.lexème.numeric_value
+        }
+        sinon {
+            retourne
+        }
+
+        parseuse.avance()
+        parseuse.consomme_espaces_blanches()
+    }
+
+    saufsi parseuse.fini() {
+        retourne
+    }
+
+    tsl: CouleurTSL
+    tsl.t = (hue / 360.0) comme r32
+    tsl.s = (sat / 100.0) comme r32
+    tsl.l = (lum / 100.0) comme r32
+
+    rvb := tsl_vers_rvb(tsl)
+
+    couleur := CouleurRVBAN8((rvb.r * 255.0) comme n8, (rvb.v * 255.0)  comme n8, (rvb.b * 255.0)  comme n8, (alpha * 255.0)  comme n8)
+    retourne ValeurDeStyle(couleur = couleur)
+}
+
+parse_hue :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(r64)
+{
+    lexème := parseuse.lexème_courant()
+
+    si lexème.est_lexème_de_genre(GenreLexème.Number) {
+        parseuse.avance()
+        retourne lexème.lexème.numeric_value
+    }
+
+    si lexème.est_lexème_de_genre(GenreLexème.Dimension) {
+        données_lexème := lexème.lexème
+        
+        si données_lexème.unité == PROP_deg {
+            parseuse.avance()
+            retourne lexème.lexème.numeric_value
+        }
+
+        si données_lexème.unité == PROP_grad {
+            parseuse.avance()
+            retourne lexème.lexème.numeric_value / 400.0 * 360.0
+        }
+
+        si données_lexème.unité == PROP_rad {
+            parseuse.avance()
+            retourne lexème.lexème.numeric_value / Constantes(r64).PI * 180.0
+        }
+
+        si données_lexème.unité == PROP_turn {
+            parseuse.avance()
+            retourne lexème.lexème.numeric_value * 360.0
+        }
+
+        retourne
+    }
 }
 
 consomme_virgule_et_espaces_blanches :: fonc (parseuse: &Parseuse(ComponentValue)) -> bool
