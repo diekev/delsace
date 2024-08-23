@@ -416,6 +416,9 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, haut
     résolveuse.globales = document.globales_dessin
     résolveuse.feuilles_de_style = document.feuilles_de_style
 
+    /* À FAIRE : ceci peut changer mais comment est encore inconnue. */
+    html.pseudo_classes.Root = vrai
+
     crée_noeud_pour_élément(*résolveuse, résultat, nul, html)
     résultat.racine = html.noeud_de_disposition
 
