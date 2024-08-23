@@ -496,7 +496,7 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
         résultat = inline
     }
 
-    si résultat.parent == nul {
+    si parent == nul {
         résolveuse.taille_fonte_racine = propriétés.style.valeurs[IDPropriété.FontSize].number
     }
 
