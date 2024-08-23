@@ -2226,6 +2226,9 @@ parse_couleur_rgb_modern :: fonc (value: [..]ComponentValue) -> Optionnel(Valeur
             valeur := lexème.lexème.numeric_value * 255.0 / 100.0
             valeurs[3] = valeur
         }
+        sinon si lexème.est_mot_clé(PROP_none) {
+            valeurs[3] = 0.0
+        }
     }
 
     couleur := CouleurRVBAN8(valeurs[0] comme n8, valeurs[1] comme n8, valeurs[2] comme n8, valeurs[3] comme n8)
