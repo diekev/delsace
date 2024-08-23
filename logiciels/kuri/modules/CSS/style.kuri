@@ -224,7 +224,7 @@ donne_déclaration_propriété_personnalisée :: fonc (propriétés: *Propriét�
     courantes := propriétés
 
     tantque courantes != nul {
-        résultat := donne_déclaration(propriétés, nom)
+        résultat := donne_déclaration(courantes, nom)
         si résultat {
             retourne résultat
         }
