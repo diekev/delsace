@@ -447,6 +447,7 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
     si HTML.est_texte(noeud) {
         /* Les textes doivent une boite inline anonyme autour d'eux. */
         résultat := arbre.crée_noeud(NoeudDeDispositionInline)
+        crée_style_pour_bloc_anonyme(résolveuse, résultat, parent comme *NoeudDeDispositionBloc)
         parent.ajoute_enfant(résultat)
 
         texte := arbre.crée_noeud(NoeudDeDispositionTexte)
