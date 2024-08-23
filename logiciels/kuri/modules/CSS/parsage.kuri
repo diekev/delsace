@@ -603,7 +603,7 @@ consomme_le_contenu_d_un_bloc_de_style :: fonc (parseuse: &Parseuse($T)) -> Styl
 
         si lexème.est_lexème_de_genre(GenreLexème.Ident) {
             // Initialize a temporary list initially filled with the current input token.
-            temp: [..]T
+            temp: [..]ComponentValue
             tableau_ajoute(*temp, lexème)
 
             // As long as the next input token is anything other than a <semicolon-token>
@@ -651,7 +651,8 @@ consomme_le_contenu_d_un_bloc_de_style :: fonc (parseuse: &Parseuse($T)) -> Styl
             si lexème.est_lexème_de_genre(GenreLexème.EOF) || lexème.est_lexème_de_genre(GenreLexème.Semicolon) {
                 arrête
             }
-            parseuse.avance()
+            component_value := consomme_une_valeur_composante(parseuse)
+            détruit_value(component_value)
         }
     }
 
@@ -687,7 +688,7 @@ consomme_une_liste_de_déclarations :: fonc (parseuse: &Parseuse($T)) -> StyleBl
 
         si lexème.est_lexème_de_genre(GenreLexème.Ident) {
             // Initialize a temporary list initially filled with the current input token.
-            temp: [..]T
+            temp: [..]ComponentValue
             tableau_ajoute(*temp, lexème)
 
             // As long as the next input token is anything other than a <semicolon-token>
@@ -699,8 +700,8 @@ consomme_une_liste_de_déclarations :: fonc (parseuse: &Parseuse($T)) -> StyleBl
                     arrête
                 }
 
-                tableau_ajoute(*temp, lexème)
-                parseuse.avance()
+                component_value := consomme_une_valeur_composante(parseuse)
+                tableau_ajoute(*temp, component_value)
             }
 
             // Consume a declaration from the temporary list.
@@ -726,7 +727,8 @@ consomme_une_liste_de_déclarations :: fonc (parseuse: &Parseuse($T)) -> StyleBl
             si lexème.est_lexème_de_genre(GenreLexème.EOF) || lexème.est_lexème_de_genre(GenreLexème.Semicolon) {
                 arrête
             }
-            parseuse.avance()
+            component_value := consomme_une_valeur_composante(parseuse)
+            détruit_value(component_value)
         }
     }
 
@@ -762,8 +764,8 @@ consomme_une_déclaration :: fonc (parseuse: &Parseuse($T)) -> Optionnel(ParsedD
             arrête
         }
 
-        tableau_ajoute(*value, lexème)
-        parseuse.avance()
+        component_value := consomme_une_valeur_composante(parseuse)
+        tableau_ajoute(*value, component_value)
     }
 
     // 5. If the last two non-<whitespace-token>s in the declaration’s value are a <delim-token>
