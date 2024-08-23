@@ -159,6 +159,22 @@ crée_propriétés_de_style :: fonc (parent: *PropriétésDeStyle) -> *Propriét
     résultat := loge(PropriétésDeStyle)
     résultat.parent = parent
     initialise_style(*résultat.style)
+
+    si parent {
+        pour parent.déclarations {
+            si it.est_personnalisée {
+                continue
+            }
+            info := it.info
+            si info.héritable == PropriétéHéritable.Non {
+                continue
+            }
+            /* Nous devons hériter des valeurs calculées. */
+            id := info.id
+            résultat.style.valeurs[id] = parent.style.valeurs[id]
+        }
+    }
+
     retourne résultat
 }
 

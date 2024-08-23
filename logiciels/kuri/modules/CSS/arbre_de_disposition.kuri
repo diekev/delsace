@@ -270,21 +270,6 @@ résoud_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élémen
     }
     tri_rapide(résolveuse.déclarations_cascade, compare_déclarations_pour_cascade)
 
-    si propriétés_parent {
-        pour propriétés_parent.déclarations {
-            si it.est_personnalisée {
-                continue
-            }
-            info := it.info
-            si info.héritable == PropriétéHéritable.Non {
-                continue
-            }
-            /* Nous devons hériter des valeurs calculées. */
-            id := info.id
-            résultat.style.valeurs[id] = propriétés_parent.style.valeurs[id]
-        }
-    }
-
     pour > résolveuse.déclarations_cascade {
         ajoute_déclaration(résultat, it.déclaration)
     }
@@ -348,19 +333,6 @@ compare_déclarations_pour_cascade :: fonc (a: DéclarationCascadée, b: Déclar
 crée_style_pour_bloc_anonyme :: fonc (résolveuse: *RésolveuseStyle, bloc: *NoeudDeDispositionBloc, bloc_parent: *NoeudDeDispositionBloc)
 {
     résultat := crée_propriétés_de_style(bloc_parent.propriétés)
-
-    pour bloc_parent.propriétés.déclarations {
-        si it.est_personnalisée {
-            continue
-        }
-        si it.info.héritable == PropriétéHéritable.Non {
-            continue
-        }
-        /* Nous devons hériter des valeurs calculées. */
-        id := it.info.id
-        résultat.style.valeurs[id] = bloc_parent.propriétés.style.valeurs[id]
-    }
-
     calcule_style(résolveuse, résultat, bloc_parent.propriétés)
 
     bloc.propriétés = résultat
