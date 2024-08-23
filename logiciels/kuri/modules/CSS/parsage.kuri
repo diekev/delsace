@@ -110,6 +110,19 @@ ComponentValue :: union {
     bloc: ParsedSimpleBlock
 }
 
+détruit_value :: fonc (value: ComponentValue)
+{
+    discr value {
+        function(f) {
+            détruit_données_function(*f)
+        }
+        bloc(b) {
+            détruit_données_bloc(*b)
+        }
+        sinon {}
+    }
+}
+
 copie_value :: fonc (value: ComponentValue) -> ComponentValue
 {
     discr value {
@@ -176,15 +189,7 @@ détruit_tableau_component_value :: fonc (value: *[..]ComponentValue)
 {
     tmp := mémoire(value)
     pour tmp {
-        discr it {
-            function(f) {
-                détruit_données_function(*f)
-            }
-            bloc(b) {
-                détruit_données_bloc(*b)
-            }
-            sinon {}
-        }
+        détruit_value(it)
     }
 
     déloge(tmp)
