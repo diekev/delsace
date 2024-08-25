@@ -213,9 +213,15 @@ ajoute_presentational_hint :: fonc (résolveuse: *RésolveuseStyle, déclaration
     tableau_ajoute(*résolveuse.déclarations_cascade, DéclarationCascadée(déclaration, Spécificité(0, 0, 0), OrigineCascade.Author))
 }
 
-collecte_les_règles_appropriées :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élément) -> [..]*CSSStyleRule
+RègleEtSpécificité :: struct {
+    règle: *CSSStyleRule
+    /* La spécifité du sélecteur complexe ayant la hautissime spécifité ayant apparié l'élément. */
+    spécificité: Spécificité
+}
+
+collecte_les_règles_appropriées :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élément) -> [..]RègleEtSpécificité
 {
-    règles: [..]*CSSStyleRule
+    règles: [..]RègleEtSpécificité
 
     pour stylesheet dans résolveuse.feuilles_de_style {
         pour règle dans stylesheet.rules {
@@ -225,11 +231,24 @@ collecte_les_règles_appropriées :: fonc (résolveuse: *RésolveuseStyle, élé
 
             règle_de_style := règle comme *CSSStyleRule
 
+            règle_appariée: *CSSStyleRule
+            spécificité: Spécificité
+
             pour complex dans règle_de_style.selector_list.complex_selectors {
-                si apparie_sélecteur(complex.compound_selectors, complex.compound_selectors.taille - 1, élément) {
-                    tableau_ajoute(*règles, règle_de_style)
-                    arrête
+                saufsi apparie_sélecteur(complex.compound_selectors, complex.compound_selectors.taille - 1, élément) {
+                    continue
                 }
+
+                spécificité_sélecteur := calcule_spécificité(*complex)
+                si spécificité_sélecteur > spécificité {
+                    spécificité = spécificité_sélecteur
+                }
+
+                règle_appariée = règle_de_style
+            }
+
+            si règle_appariée {
+                tableau_ajoute(*règles, RègleEtSpécificité(règle_appariée, spécificité))
             }
         }
     }
@@ -248,11 +267,11 @@ résoud_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élémen
     résolveuse.déclarations_cascade.taille = 0
 
     pour règles {
-        // imprime_règle(it)
-        tableau_réserve(*résolveuse.déclarations_cascade, résolveuse.déclarations_cascade.taille + it.style.déclarations.taille)
-        spécificité := calcule_spécificité(*it.selector_list)
-        origine := donne_origine_cascade(it)
-        pour déclaration dans it.style.déclarations {
+        // imprime_règle(it.règle)
+        tableau_réserve(*résolveuse.déclarations_cascade, résolveuse.déclarations_cascade.taille + it.règle.style.déclarations.taille)
+        spécificité := it.spécificité
+        origine := donne_origine_cascade(it.règle)
+        pour déclaration dans it.règle.style.déclarations {
             tableau_ajoute(*résolveuse.déclarations_cascade, DéclarationCascadée(déclaration, spécificité, origine, index_it))
         }
     }
