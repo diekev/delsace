@@ -161,6 +161,7 @@ dessine :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
 
     dessine_tampon_id(arbre.racine, ctx)
     vérifie_erreur("dessine_tampon_id")
+    IGUMI.termine_immédiat_id()
 
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0)
     vérifie_erreur("glBindFramebuffer")
@@ -678,9 +679,7 @@ remplis_rectangle_id :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition)
     rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
     // peintre.remplis_rectangle(rect, couleur)
 
-    IGUMI.utilise_nuanceur(IGUMI.nuanceur_id)
-    IGUMI.commence_immédiat_id()
-    diffère IGUMI.termine_immédiat_id(IGUMI.ModeImmédiat.TRIANGLES)
+    IGUMI.commence_immédiat_id(IGUMI.ModeImmédiat.TRIANGLES, IGUMI.nuanceur_id)
 
     // imprime("[%] (% % % %) : %\n", #nom_de_cette_fonction, rect.x, rect.y, rect.largeur, rect.hauteur, noeud.id)
 
@@ -702,9 +701,7 @@ remplis_rectangle_id :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition, 
     rect = ctx.donne_rectangle_corrigé(rect)
     // peintre.remplis_rectangle(rect, couleur)
 
-    IGUMI.utilise_nuanceur(IGUMI.nuanceur_id)
-    IGUMI.commence_immédiat_id()
-    diffère IGUMI.termine_immédiat_id(IGUMI.ModeImmédiat.TRIANGLES)
+    IGUMI.commence_immédiat_id(IGUMI.ModeImmédiat.TRIANGLES, IGUMI.nuanceur_id)
 
     // imprime("[%] (% % % %) : %\n", #nom_de_cette_fonction, rect.x, rect.y, rect.largeur, rect.hauteur, noeud.id)
 

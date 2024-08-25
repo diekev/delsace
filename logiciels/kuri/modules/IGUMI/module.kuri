@@ -813,18 +813,27 @@ image_immédiat :: fonc (params: *ParamètresTexture2D, x: r32, y: r32, largeur:
 /** \nom Tampon ID.
  * \{ */
 
-commence_immédiat_id :: fonc ()
+dernier_mode_id: ModeImmédiat
+dernier_nuanceur_id: *NuanceurGL
+
+commence_immédiat_id :: fonc (mode: ModeImmédiat, nuanceur: *NuanceurGL)
 {
-    termine_immédiat_id(ModeImmédiat.TRIANGLES)
+    si mode != dernier_mode_id || nuanceur != dernier_nuanceur_id || données_tampon_id.num_sommets == MAX_SOMMETS_IMMÉDIAT {
+        dernier_mode_id = mode
+        dernier_nuanceur_id = nuanceur
+        utilise_nuanceur(nuanceur)
+
+        termine_immédiat_id()
+    }
 }
 
-termine_immédiat_id :: fonc (mode: ModeImmédiat, réinitailise_nuanceur := vrai)
+termine_immédiat_id :: fonc ()
 {
     saufsi données_tampon_id.num_sommets {
         retourne
     }
 
-    nuanceur := nuanceur_global
+    nuanceur := dernier_nuanceur_id
 
     saufsi nuanceur {
         si données_tampon_id.num_sommets {
@@ -859,7 +868,7 @@ termine_immédiat_id :: fonc (mode: ModeImmédiat, réinitailise_nuanceur := vra
     glBufferSubData(GL_ARRAY_BUFFER, 0, compte * taille_de(FormatVertexXId), s.pointeur)
     vérifie_erreur("termine_immédiat_id.glBufferSubData")
 
-    si mode == ModeImmédiat.TRIANGLES {
+    si dernier_mode_id == ModeImmédiat.TRIANGLES {
         glDrawArrays(GL_TRIANGLES, 0, compte comme z64)
     }
     sinon {
@@ -870,9 +879,6 @@ termine_immédiat_id :: fonc (mode: ModeImmédiat, réinitailise_nuanceur := vra
     glUseProgram(0)
     glBindVertexArray(0)
     données_tampon_id.num_sommets = 0
-    si réinitailise_nuanceur {
-        nuanceur_global = nul
-    }
 
     vérifie_erreur(#nom_de_cette_fonction)
 }
@@ -927,7 +933,7 @@ quad_immédiat_id :: fonc (p0: Vec3, p1: Vec3, p2: Vec3, p3: Vec3, id: n32)
 ajoute_sommets_id :: fonc (pos: Vec3, id: n32)
 {
     si données_tampon_id.num_sommets >= MAX_SOMMETS_IMMÉDIAT {
-        termine_immédiat_id(ModeImmédiat.TRIANGLES, faux)
+        termine_immédiat_id()
     }
 
     données_tampon_id.sommets[données_tampon_id.num_sommets].position = pos
