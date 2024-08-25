@@ -1823,6 +1823,7 @@ void QT_tab_widget_definis_index_courant(struct QT_TabWidget *tab_widget, int in
 int QT_tab_widget_donne_compte_tabs(struct QT_TabWidget *tab_widget);
 void QT_tab_widget_remplace_widget_page_courante(struct QT_TabWidget *tab_widget,
                                                  union QT_Generic_Widget widget);
+struct QT_Widget *QT_tab_widget_donne_widget_courant(struct QT_TabWidget *tab_widget);
 
 /** \} */
 
