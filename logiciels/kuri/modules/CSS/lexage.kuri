@@ -358,13 +358,15 @@ Lexeuse :: struct {
     contenu: ChaineUTF32
     curseur: z64
 
-    /* Pour consomme_une_séquence_identifiante. */
+    /* Tampons pour les fonctions construisant des chaines. */
     tampon_temporaire: ChaineUTF16
+    tampon_utf32: ChaineUTF32
 }
 
 détruit_données :: fonc (lexeuse: &Lexeuse)
 {
     détruit_chaine(lexeuse.tampon_temporaire)
+    détruit_chaine(lexeuse.tampon_utf32)
 }
 
 apparie :: fonc (lexeuse: &Lexeuse, points_de_code: ...z8) -> bool
@@ -685,21 +687,19 @@ consomme_un_lexème_simili_ident :: fonc (lexeuse: &Lexeuse) -> Lexème
  * https://www.w3.org/TR/css-syntax-3/#consume-string-token */
 consomme_un_lexème_chaine :: fonc (lexeuse: &Lexeuse, point_de_code_final: n32) -> Lexème
 {
-    /* À FAIRE : tampon temporaire. */
-    valeur: ChaineUTF16
-    diffère détruit_chaine(valeur)
+    diffère réinitialise(lexeuse.tampon_temporaire)
 
     tantque !fini(lexeuse) {
         point_de_code := lexeuse.consomme_point_de_code_suivant()
 
         si point_de_code == point_de_code_final {
-            retourne Lexème(GenreLexème.String, valeur = crée_chaine_utf16_unique(valeur))
+            retourne Lexème(GenreLexème.String, valeur = crée_chaine_utf16_unique(lexeuse.tampon_temporaire))
         }
 
         si est_nouvelle_ligne(point_de_code) {
             lexeuse.rapporte_erreur("nouvelle ligne inattendu")
             lexeuse.reconsomme_point_de_code()
-            retourne Lexème(GenreLexème.Bad_String, valeur = crée_chaine_utf16_unique(valeur))
+            retourne Lexème(GenreLexème.Bad_String, valeur = crée_chaine_utf16_unique(lexeuse.tampon_temporaire))
         }
 
         si point_de_code == '\\' {
@@ -713,22 +713,21 @@ consomme_un_lexème_chaine :: fonc (lexeuse: &Lexeuse, point_de_code_final: n32)
             }
 
             point_de_code = consomme_un_point_de_code_échappé(lexeuse)
-            chaine_ajoute(*valeur, point_de_code)
+            chaine_ajoute(*lexeuse.tampon_temporaire, point_de_code)
             continue
         }
 
-        chaine_ajoute(*valeur, point_de_code)
+        chaine_ajoute(*lexeuse.tampon_temporaire, point_de_code)
     }
 
-    retourne Lexème(GenreLexème.String, valeur = crée_chaine_utf16_unique(valeur))
+    retourne Lexème(GenreLexème.String, valeur = crée_chaine_utf16_unique(lexeuse.tampon_temporaire))
 }
 
 /* 4.3.6 Consume a url token
  * https://www.w3.org/TR/css-syntax-3/#consume-url-token */
 consomme_un_lexème_url :: fonc (lexeuse: &Lexeuse) -> Lexème
 {
-    valeur: ChaineUTF16
-    diffère détruit_chaine(valeur)
+    diffère réinitialise(lexeuse.tampon_temporaire)
 
     genre_lexème := GenreLexème.Url
 
@@ -772,7 +771,7 @@ consomme_un_lexème_url :: fonc (lexeuse: &Lexeuse) -> Lexème
         si point_de_code == '\\' {
             si forment_un_échappement_valide(lexeuse, point_de_code) {
                 point_de_code = consomme_un_point_de_code_échappé(lexeuse)
-                chaine_ajoute(*valeur, point_de_code)
+                chaine_ajoute(*lexeuse.tampon_temporaire, point_de_code)
                 continue
             }
 
@@ -782,10 +781,10 @@ consomme_un_lexème_url :: fonc (lexeuse: &Lexeuse) -> Lexème
             arrête
         }
         
-        chaine_ajoute(*valeur, point_de_code)
+        chaine_ajoute(*lexeuse.tampon_temporaire, point_de_code)
     }
 
-    retourne Lexème(genre_lexème, valeur = crée_chaine_utf16_unique(valeur))
+    retourne Lexème(genre_lexème, valeur = crée_chaine_utf16_unique(lexeuse.tampon_temporaire))
 }
 
 /* 4.3.7 Consume an escaped code point
@@ -962,32 +961,31 @@ consomme_un_nombre :: fonc (lexeuse: &Lexeuse) -> r64, DrapeauxTypeNombre
 {
     type := DrapeauxTypeNombre.Integer
 
-    repr: ChaineUTF32
-    diffère détruit_chaine(repr)
+    diffère réinitialise(lexeuse.tampon_utf32)
 
     point_de_code := lexeuse.point_de_code_suivant()
     si point_de_code == '+' || point_de_code == '-' {
-        chaine_ajoute(*repr, point_de_code)
+        chaine_ajoute(*lexeuse.tampon_utf32, point_de_code)
         lexeuse.consomme()
     }
 
     tantque est_chiffre_ascii(lexeuse.point_de_code_suivant()) {
         point_de_code = lexeuse.consomme_point_de_code_suivant()
-        chaine_ajoute(*repr, point_de_code)
+        chaine_ajoute(*lexeuse.tampon_utf32, point_de_code)
     }
 
     si lexeuse.point_de_code_suivant() == '.' {
         point_de_code = lexeuse.consomme_point_de_code_suivant()
 
         si est_chiffre_ascii(lexeuse.point_de_code_suivant()) {
-            chaine_ajoute(*repr, point_de_code)
-            chaine_ajoute(*repr, lexeuse.consomme_point_de_code_suivant())
+            chaine_ajoute(*lexeuse.tampon_utf32, point_de_code)
+            chaine_ajoute(*lexeuse.tampon_utf32, lexeuse.consomme_point_de_code_suivant())
 
             type = DrapeauxTypeNombre.Number
 
             tantque est_chiffre_ascii(lexeuse.point_de_code_suivant()) {
                 point_de_code = lexeuse.consomme_point_de_code_suivant()
-                chaine_ajoute(*repr, point_de_code)
+                chaine_ajoute(*lexeuse.tampon_utf32, point_de_code)
             }
         }
         sinon {
@@ -1004,14 +1002,14 @@ consomme_un_nombre :: fonc (lexeuse: &Lexeuse) -> r64, DrapeauxTypeNombre
         }
 
         si est_chiffre_ascii(lexeuse.point_de_code_suivant()) {
-            chaine_ajoute(*repr, point_de_code)
-            chaine_ajoute(*repr, point_de_code_signe)
+            chaine_ajoute(*lexeuse.tampon_utf32, point_de_code)
+            chaine_ajoute(*lexeuse.tampon_utf32, point_de_code_signe)
 
             type = DrapeauxTypeNombre.Number
 
             tantque est_chiffre_ascii(lexeuse.point_de_code_suivant()) {
                 point_de_code = lexeuse.consomme_point_de_code_suivant()
-                chaine_ajoute(*repr, point_de_code)
+                chaine_ajoute(*lexeuse.tampon_utf32, point_de_code)
             }
         }
         sinon {
@@ -1023,7 +1021,7 @@ consomme_un_nombre :: fonc (lexeuse: &Lexeuse) -> r64, DrapeauxTypeNombre
         }
     }
 
-    valeur := convertis_une_chaine_en_un_nombre(repr)
+    valeur := convertis_une_chaine_en_un_nombre(lexeuse.tampon_utf32)
     retourne valeur, type
 }
 
