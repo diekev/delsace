@@ -76,6 +76,9 @@ TableVirtuelleÉlément :: struct {
     noeud_de_disposition: *CSS.NoeudDeDisposition
     /* https://html.spec.whatwg.org/multipage/dom.html#attr-style */
     style: *CSS.CSSStyleDeclaration
+
+    /* Cache */
+    liste_classes: [..]DOMString
 }
 
 #portée_fichier
@@ -88,6 +91,7 @@ table_virtuelle_élément := TableVirtuelleÉlément(
 élément_détruit_données :: fonc (élément: *Élément)
 {
     CSS.détruit_style_declaration(élément.style)
+    déloge(élément.liste_classes)
 }
 
 élément_sur_destruction :: fonc (base: *EventTarget)
@@ -131,6 +135,11 @@ table_virtuelle_élément := TableVirtuelleÉlément(
         }
 
         élément.document.invalide_style()
+        retourne vrai
+    }
+
+    si local_name == ATTR_class {
+        déloge(élément.liste_classes)
         retourne vrai
     }
 
@@ -333,6 +342,18 @@ get_elements_by_tag_name :: fonc (élément: *Élément, qualified_name: DOMStri
 
     initialise_collection_pour_filtre(résultat)
     retourne résultat
+}
+
+donne_liste_classe :: fonc (élément: *Élément) -> []DOMString
+{
+    saufsi élément.liste_classes {
+        valeur := donne_attribut(élément, ATTR_class)
+        si valeur.possède_valeur() {
+            élément.liste_classes = divise_sur_espaces_blanches_ascii(valeur.Quelque)
+        }
+    }
+
+    retourne élément.liste_classes
 }
 
 /** \} */
