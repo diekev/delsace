@@ -17,6 +17,7 @@ lèxe_style :: fonc (contenu: chaine) -> [..]Lexème
     prétraite(chn)
 
     lexeuse: Lexeuse
+    diffère détruit_données(lexeuse)
     lexeuse.contenu = chn
 
     lexèmes: [..]Lexème

@@ -357,6 +357,14 @@ donne_bloc_simple :: fonc (lexème: &Lexème @inutilisée) -> ParsedSimpleBlock
 Lexeuse :: struct {
     contenu: ChaineUTF32
     curseur: z64
+
+    /* Pour consomme_une_séquence_identifiante. */
+    tampon_temporaire: ChaineUTF16
+}
+
+détruit_données :: fonc (lexeuse: &Lexeuse)
+{
+    détruit_chaine(lexeuse.tampon_temporaire)
 }
 
 apparie :: fonc (lexeuse: &Lexeuse, points_de_code: ...z8) -> bool
@@ -925,21 +933,19 @@ vérifie_si_trois_points_de_code_commenceraient_un_nombre :: fonc (lexeuse: &Lex
  * https://www.w3.org/TR/css-syntax-3/#consume-name */
 consomme_une_séquence_identifiante :: fonc (lexeuse: &Lexeuse) -> CSSOMString
 {
-    /* À FAIRE : tampon temporaire. */
-    résultat: ChaineUTF16
-    diffère détruit_chaine(résultat)
+    diffère réinitialise(lexeuse.tampon_temporaire)
 
     tantque !fini(lexeuse) {
         point_de_code := lexeuse.consomme_point_de_code_suivant()
 
         si est_point_de_code_ident(point_de_code) {
-            chaine_ajoute(*résultat, point_de_code)
+            chaine_ajoute(*lexeuse.tampon_temporaire, point_de_code)
             continue
         }
 
         si forment_un_échappement_valide(lexeuse, point_de_code) {
             point_de_code = consomme_un_point_de_code_échappé(lexeuse)
-            chaine_ajoute(*résultat, point_de_code)
+            chaine_ajoute(*lexeuse.tampon_temporaire, point_de_code)
             continue
         }
 
@@ -947,7 +953,7 @@ consomme_une_séquence_identifiante :: fonc (lexeuse: &Lexeuse) -> CSSOMString
         arrête
     }
 
-    retourne crée_chaine_utf16_unique(résultat)
+    retourne crée_chaine_utf16_unique(lexeuse.tampon_temporaire)
 }
 
 /* 4.3.12 Consume a number
