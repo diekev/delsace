@@ -210,6 +210,11 @@ initialise_résolveuse :: fonc (résolveuse: *RésolveuseStyle)
     initialise_style(*résolveuse.valeurs_initiales)
 }
 
+détruit_données_résolveuse :: fonc (résolveuse: *RésolveuseStyle)
+{
+    déloge(résolveuse.déclarations_cascade)
+}
+
 /* https://html.spec.whatwg.org/multipage/rendering.html#the-css-user-agent-style-sheet-and-presentational-hints */
 ajoute_presentational_hint :: fonc (résolveuse: *RésolveuseStyle, déclaration: *DéclarationPropriété)
 {
@@ -434,6 +439,7 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, haut
 
     résolveuse: RésolveuseStyle
     initialise_résolveuse(*résolveuse)
+    diffère détruit_données_résolveuse(*résolveuse)
     résolveuse.taille_fonte_racine = document.globales_dessin.taille_fonte_défaut
     résolveuse.globales = document.globales_dessin
     résolveuse.feuilles_de_style = document.feuilles_de_style
