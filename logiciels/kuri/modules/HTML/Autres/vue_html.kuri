@@ -1004,6 +1004,7 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
         rect_barre.y = hauteur_vue - hauteur_barre - page.défilement_vertical.rect.y
 
         peintre.remplis_rectangle(rect_barre, couleur)
+        peintre.termine_dessin()
     }
 }
 
