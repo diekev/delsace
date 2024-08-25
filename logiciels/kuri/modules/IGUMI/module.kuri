@@ -205,6 +205,7 @@ num_sommets_immédiat : z32 = 0
 va_immédiat: n32
 vbo_immédiat: n32
 vbo_immédiat_index: n32
+données_tampon_initialisées: bool
 
 nuanceur_global: *NuanceurGL
 nuanceur_base: *NuanceurGL
@@ -228,6 +229,7 @@ DonnéesImmédiatesXId :: struct {
     va_immédiat: n32
     vbo_immédiat: n32
     vbo_immédiat_index: n32
+    données_tampon_initialisées: bool
 }
 
 données_tampon_id: DonnéesImmédiatesXId
@@ -280,8 +282,14 @@ termine_immédiat :: fonc (mode: ModeImmédiat, réinitailise_nuanceur := vrai)
 
     installe_format_xcnu(nuanceur)
 
-    glBufferData(GL_ARRAY_BUFFER, compte * taille_de(FormatVertexXCNU), s.pointeur, GL_DYNAMIC_DRAW)
-    vérifie_erreur("termine_immédiat.glBufferData")
+    saufsi données_tampon_initialisées {
+        glBufferData(GL_ARRAY_BUFFER, (MAX_SOMMETS_IMMÉDIAT comme n32) * taille_de(FormatVertexXCNU), s.pointeur, GL_DYNAMIC_DRAW)
+        vérifie_erreur("termine_immédiat.glBufferData")
+        données_tampon_initialisées = vrai
+    }
+
+    glBufferSubData(GL_ARRAY_BUFFER, 0, compte * taille_de(FormatVertexXCNU), s.pointeur)
+    vérifie_erreur("termine_immédiat_id.glBufferSubData")
 
     si mode == ModeImmédiat.TRIANGLES {
         glDrawArrays(GL_TRIANGLES, 0, compte comme z64)
@@ -842,8 +850,14 @@ termine_immédiat_id :: fonc (mode: ModeImmédiat, réinitailise_nuanceur := vra
 
     installe_format_xid(nuanceur)
 
-    glBufferData(GL_ARRAY_BUFFER, compte * taille_de(FormatVertexXId), s.pointeur, GL_DYNAMIC_DRAW)
-    vérifie_erreur("termine_immédiat_id.glBufferData")
+    saufsi données_tampon_id.données_tampon_initialisées {
+        glBufferData(GL_ARRAY_BUFFER, (MAX_SOMMETS_IMMÉDIAT comme n32) * taille_de(FormatVertexXId), s.pointeur, GL_DYNAMIC_DRAW)
+        vérifie_erreur("termine_immédiat.glBufferData")
+        données_tampon_id.données_tampon_initialisées = vrai
+    }
+
+    glBufferSubData(GL_ARRAY_BUFFER, 0, compte * taille_de(FormatVertexXId), s.pointeur)
+    vérifie_erreur("termine_immédiat_id.glBufferSubData")
 
     si mode == ModeImmédiat.TRIANGLES {
         glDrawArrays(GL_TRIANGLES, 0, compte comme z64)
