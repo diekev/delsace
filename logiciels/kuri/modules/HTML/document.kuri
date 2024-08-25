@@ -245,7 +245,14 @@ définis_noeud_survolé :: fonc (document: *Document, noeud: *Élément)
         retourne
     }
 
-    // À FAIRE : ajout de :hover
+    si noeud {
+        noeud.ajoute_pseudo_classe(CSS.PseudoClasses.Hover)
+    }
+
+    si document.noeud_survolé {
+        document.noeud_survolé.enlève_pseudo_classe(CSS.PseudoClasses.Hover)
+    }
+
     document.noeud_survolé = noeud
 
     user_agent := document.donne_user_agent()
