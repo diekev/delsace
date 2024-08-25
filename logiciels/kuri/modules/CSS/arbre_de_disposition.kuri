@@ -55,6 +55,7 @@ détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
         sinon si it.type == NoeudDeDispositionTexte {
             texte := it comme *NoeudDeDispositionTexte
             détruit_chaine(texte.texte)
+            déloge(texte.morceaux)
             déloge(texte)
         }
         sinon si it.type == NoeudDeDispositionNouvelleLigne {
