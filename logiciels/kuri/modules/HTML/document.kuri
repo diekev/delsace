@@ -351,10 +351,14 @@ invalide_style :: fonc (document: *Document, élément: *Élément, pseudo_class
 }
 
 /* Invalide le style suite au redimensionnement de la fenêtre. */
-invalide_style_pour_redimensionnement :: fonc (document: *Document)
+invalide_style_pour_redimensionnement :: fonc (document: *Document, largeur: z32, hauteur: z32)
 {
-    /* À FAIRE : ne détruit pas l'arbre, refait une disposition. */
-    document.invalide_style()
+    saufsi document.résolveuse_style {
+        retourne
+    }
+
+    ajournement := CSS.donne_ajournement_pour_redimensionnement(document.résolveuse_style, largeur, hauteur)
+    document.définis_ajournement_arbre(ajournement)
 }
 
 invalide_style_depuis_élément :: fonc (document: *Document, élément: *Élément)

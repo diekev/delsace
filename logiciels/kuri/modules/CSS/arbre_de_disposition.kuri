@@ -280,6 +280,12 @@ possède_règle_avec_pseudo_classe :: fonc (résolveuse: *RésolveuseStyle, pseu
     retourne (résolveuse.pseudo_classes & pseudo_classe) != PseudoClasses.zéro
 }
 
+donne_ajournement_pour_redimensionnement :: fonc (résolveuse: *RésolveuseStyle @inutilisée, largeur: z32 @inutilisée, hauteur: z32 @inutilisée) -> AjournementArbre
+{
+    /* À FAIRE : règles média, sauvegarde de l'ancienne taille */
+    retourne AjournementArbre.Disposition
+}
+
 RègleEtSpécificité :: struct {
     règle: *CSSStyleRule
     /* La spécifité du sélecteur complexe ayant la hautissime spécifité ayant apparié l'élément. */

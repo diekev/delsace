@@ -1017,7 +1017,7 @@ vue_rendu_page_sur_redimensionnement :: fonc (rappels: *QT_Rappels_GLWidget, tai
     page := vue_rendu_page.page
     document := donne_document(page)
     si document {
-        document.invalide_style_pour_redimensionnement()
+        document.invalide_style_pour_redimensionnement(taille.largeur, taille.hauteur)
     }
     /* Réinitialise la barre de défilement. */
     page.défilement_vertical.rect.largeur = 0.0
