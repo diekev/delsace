@@ -29,6 +29,120 @@ ValeurDeStyle :: union {
     variable: Variable
 }
 
+opérateur == :: fonc (a: ValeurDeStyle, b: ValeurDeStyle) -> bool
+{
+    discr a {
+        mot_clé(m) {
+            retourne b.est_mot_clé(m)
+        }
+        couleur(c) {
+            discr b {
+                couleur(cb) {
+                    retourne cb.r == c.r && cb.v == c.v && cb.b == c.b && cb.a == c.a
+                }
+                sinon {
+                    retourne faux
+                }
+            }
+        }
+        longueur(l) {
+            discr b {
+                longueur(lb) {
+                    retourne lb.valeur == l.valeur && lb.unité == l.unité
+                }
+                sinon {
+                    retourne faux
+                }
+            }
+
+        }
+        integer(i) {
+            discr b {
+                integer(ib) {
+                    retourne ib == i
+                }
+                sinon {
+                    retourne faux
+                }
+            }
+        }
+        number(n) {
+            discr b {
+                number(nb) {
+                    retourne nb == n
+                }
+                sinon {
+                    retourne faux
+                }
+            }
+        }
+        percentage(p) {
+            discr b {
+                percentage(pb) {
+                    retourne pb == p
+                }
+                sinon {
+                    retourne faux
+                }
+            }
+        }
+        text_decoration_line(t) {
+            discr b {
+                text_decoration_line(tb) {
+                    retourne tb == t
+                }
+                sinon {
+                    retourne faux
+                }
+            }
+        }
+        line_style(l) {
+            discr b {
+                line_style(lb) {
+                    retourne lb == l
+                }
+                sinon {
+                    retourne faux
+                }
+            }
+        }
+        display(d) {
+            discr b {
+                display(db) {
+                    retourne db.inner_type == d.inner_type && db.outer_type == d.outer_type && d.est_list_item == db.est_list_item
+                }
+                sinon {
+                    retourne faux
+                }
+            }
+        }
+        cursor(c) {
+            discr b {
+                cursor(cb) {
+                    retourne cb == c
+                }
+                sinon {
+                    retourne faux
+                }
+            }
+        }
+        variable(v) {
+            discr b {
+                variable(vb) {
+                    retourne vb.nom == v.nom
+                }
+                sinon {
+                    retourne faux
+                }
+            }
+        }
+        sinon {
+            retourne faux
+        }
+    }
+    retourne faux
+}
+
 détruit_valeur_de_style :: fonc (value: *ValeurDeStyle)
 {
     discr mémoire(value) {
@@ -159,6 +273,20 @@ crée_propriétés_de_style :: fonc (parent: *PropriétésDeStyle) -> *Propriét
     résultat := loge(PropriétésDeStyle)
     résultat.parent = parent
     initialise_style(*résultat.style)
+
+    si parent {
+        pour * infos_types_propriétés {
+            si it.héritable == PropriétéHéritable.Non {
+                continue
+            }
+            /* Nous devons hériter des valeurs calculées. */
+            id := it.id
+            résultat.style.valeurs[id] = parent.style.valeurs[id]
+        }
+
+        résultat.style.valeurs[IDPropriété.TextAlign] = parent.style.valeurs[IDPropriété.TextAlign]
+    }
+
     retourne résultat
 }
 
@@ -210,7 +338,7 @@ donne_déclaration_propriété_personnalisée :: fonc (propriétés: *Propriét�
     courantes := propriétés
 
     tantque courantes != nul {
-        résultat := donne_déclaration(propriétés, nom)
+        résultat := donne_déclaration(courantes, nom)
         si résultat {
             retourne résultat
         }
@@ -407,6 +535,8 @@ ContexteCalculStyle :: struct {
 
 IDPropriété :: énum n16 {
     Display
+    Position
+    Float
     Color
     Cursor
 
@@ -472,6 +602,8 @@ initialise_style :: fonc (style: *Style)
 {
     style.valeurs[IDPropriété.Display] = ValeurDeStyle(display = Display())
     style.valeurs[IDPropriété.Cursor] = ValeurDeStyle(cursor = CursorType.auto)
+    style.valeurs[IDPropriété.Position] = ValeurDeStyle(mot_clé = PROP_static)
+    style.valeurs[IDPropriété.Float] = ValeurDeStyle(mot_clé = PROP_none)
 
     /* Marges */
     style.valeurs[IDPropriété.MarginBottom] = ValeurDeStyle(number = 0.0)
@@ -1155,6 +1287,27 @@ prop_padding_inline_end_sur_calcul_style :: fonc (déclaration: *DéclarationPro
 prop_padding_inline_start_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
 {
     style.valeurs[IDPropriété.PaddingLeft] = calcule_valeur_propriété_générique(déclaration.value[0], déclaration.info.genre_valeur_calculée, style, ctx)
+}
+
+/* À FAIRE : direction du flux */
+prop_inset_block_end_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    style.valeurs[IDPropriété.Bottom] = calcule_valeur_propriété_générique(déclaration.value[0], déclaration.info.genre_valeur_calculée, style, ctx)
+}
+
+prop_inset_block_start_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    style.valeurs[IDPropriété.Top] = calcule_valeur_propriété_générique(déclaration.value[0], déclaration.info.genre_valeur_calculée, style, ctx)
+}
+
+prop_inset_inline_end_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    style.valeurs[IDPropriété.Right] = calcule_valeur_propriété_générique(déclaration.value[0], déclaration.info.genre_valeur_calculée, style, ctx)
+}
+
+prop_inset_inline_start_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    style.valeurs[IDPropriété.Left] = calcule_valeur_propriété_générique(déclaration.value[0], déclaration.info.genre_valeur_calculée, style, ctx)
 }
 
 /** \} */
