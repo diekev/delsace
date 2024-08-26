@@ -36,6 +36,11 @@ détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
             détruit_propriétés(it.propriétés)
         }
 
+        élément := it.donne_élément()
+        si élément {
+            élément.noeud_de_disposition = nul
+        }
+
         si it.type == NoeudDeDispositionBloc {
             bloc := it comme *NoeudDeDispositionBloc
             pour *boite dans bloc.lignes {
@@ -55,6 +60,7 @@ détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
         sinon si it.type == NoeudDeDispositionTexte {
             texte := it comme *NoeudDeDispositionTexte
             détruit_chaine(texte.texte)
+            déloge(texte.morceaux)
             déloge(texte)
         }
         sinon si it.type == NoeudDeDispositionNouvelleLigne {
@@ -144,6 +150,7 @@ dessine :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
     arbre.largeur_vue = ctx.largeur_vue
 
     dessine(arbre.racine, ctx)
+    ctx.peintre.termine_dessin()
 
     /* Tampon ID. */
 
@@ -161,6 +168,7 @@ dessine :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
 
     dessine_tampon_id(arbre.racine, ctx)
     vérifie_erreur("dessine_tampon_id")
+    IGUMI.termine_immédiat_id()
 
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0)
     vérifie_erreur("glBindFramebuffer")
@@ -200,11 +208,65 @@ RésolveuseStyle :: struct {
     /* Style dont les propriétés sont toujours à leurs valeurs initiales.
      * Utilisé lors du calcul des valeurs. */
     valeurs_initiales: Style
+
+    /* Cache. */
+    pseudo_classes: PseudoClasses
+}
+
+crée_résolveuse_style :: fonc (document: *HTML.Document) -> *RésolveuseStyle
+{
+    résultat := loge(RésolveuseStyle)
+    initialise_résolveuse(résultat)
+    résultat.taille_fonte_racine = document.globales_dessin.taille_fonte_défaut
+    résultat.globales = document.globales_dessin
+    résultat.feuilles_de_style = document.feuilles_de_style
+    initialise_cache(résultat)
+    retourne résultat
 }
 
 initialise_résolveuse :: fonc (résolveuse: *RésolveuseStyle)
 {
     initialise_style(*résolveuse.valeurs_initiales)
+}
+
+initialise_cache :: fonc (résolveuse: *RésolveuseStyle)
+{
+    pseudo_classes: PseudoClasses
+
+    pour feuille dans résolveuse.feuilles_de_style {
+        pour règle dans feuille.rules {
+            si règle.type != CSSRuleType.Style {
+                continue
+            }
+
+            règle_de_style := règle comme *CSSStyleRule
+            pour complex dans règle_de_style.selector_list.complex_selectors {
+                pour compound dans complex.compound_selectors {
+                    pour simple dans compound.simple_selectors {
+                        si simple.type == SimpleSelector.Type.PseudoClass {
+                            pseudo_classes |= simple.pseudo_classe
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    résolveuse.pseudo_classes = pseudo_classes
+}
+
+détruit_données_résolveuse :: fonc (résolveuse: *RésolveuseStyle)
+{
+    déloge(résolveuse.déclarations_cascade)
+}
+
+détruit_résolveuse :: fonc (résolveuse: *RésolveuseStyle)
+{
+    saufsi résolveuse {
+        retourne
+    }
+    détruit_données_résolveuse(résolveuse)
+    déloge(résolveuse)
 }
 
 /* https://html.spec.whatwg.org/multipage/rendering.html#the-css-user-agent-style-sheet-and-presentational-hints */
@@ -213,9 +275,20 @@ ajoute_presentational_hint :: fonc (résolveuse: *RésolveuseStyle, déclaration
     tableau_ajoute(*résolveuse.déclarations_cascade, DéclarationCascadée(déclaration, Spécificité(0, 0, 0), OrigineCascade.Author))
 }
 
-collecte_les_règles_appropriées :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élément) -> [..]*CSSStyleRule
+possède_règle_avec_pseudo_classe :: fonc (résolveuse: *RésolveuseStyle, pseudo_classe: PseudoClasses) -> bool
 {
-    règles: [..]*CSSStyleRule
+    retourne (résolveuse.pseudo_classes & pseudo_classe) != PseudoClasses.zéro
+}
+
+RègleEtSpécificité :: struct {
+    règle: *CSSStyleRule
+    /* La spécifité du sélecteur complexe ayant la hautissime spécifité ayant apparié l'élément. */
+    spécificité: Spécificité
+}
+
+collecte_les_règles_appropriées :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élément) -> [..]RègleEtSpécificité
+{
+    règles: [..]RègleEtSpécificité
 
     pour stylesheet dans résolveuse.feuilles_de_style {
         pour règle dans stylesheet.rules {
@@ -225,11 +298,24 @@ collecte_les_règles_appropriées :: fonc (résolveuse: *RésolveuseStyle, élé
 
             règle_de_style := règle comme *CSSStyleRule
 
+            règle_appariée: *CSSStyleRule
+            spécificité: Spécificité
+
             pour complex dans règle_de_style.selector_list.complex_selectors {
-                si apparie_sélecteur(complex.compound_selectors, complex.compound_selectors.taille - 1, élément) {
-                    tableau_ajoute(*règles, règle_de_style)
-                    arrête
+                saufsi apparie_sélecteur(complex.compound_selectors, complex.compound_selectors.taille - 1, élément) {
+                    continue
                 }
+
+                spécificité_sélecteur := calcule_spécificité(*complex)
+                si spécificité_sélecteur > spécificité {
+                    spécificité = spécificité_sélecteur
+                }
+
+                règle_appariée = règle_de_style
+            }
+
+            si règle_appariée {
+                tableau_ajoute(*règles, RègleEtSpécificité(règle_appariée, spécificité))
             }
         }
     }
@@ -248,11 +334,11 @@ résoud_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élémen
     résolveuse.déclarations_cascade.taille = 0
 
     pour règles {
-        // imprime_règle(it)
-        tableau_réserve(*résolveuse.déclarations_cascade, résolveuse.déclarations_cascade.taille + it.style.déclarations.taille)
-        spécificité := calcule_spécificité(*it.selector_list)
-        origine := donne_origine_cascade(it)
-        pour déclaration dans it.style.déclarations {
+        // imprime_règle(it.règle)
+        tableau_réserve(*résolveuse.déclarations_cascade, résolveuse.déclarations_cascade.taille + it.règle.style.déclarations.taille)
+        spécificité := it.spécificité
+        origine := donne_origine_cascade(it.règle)
+        pour déclaration dans it.règle.style.déclarations {
             tableau_ajoute(*résolveuse.déclarations_cascade, DéclarationCascadée(déclaration, spécificité, origine, index_it))
         }
     }
@@ -270,21 +356,6 @@ résoud_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élémen
     }
     tri_rapide(résolveuse.déclarations_cascade, compare_déclarations_pour_cascade)
 
-    si propriétés_parent {
-        pour propriétés_parent.déclarations {
-            si it.est_personnalisée {
-                continue
-            }
-            info := it.info
-            si info.héritable == PropriétéHéritable.Non {
-                continue
-            }
-            /* Nous devons hériter des valeurs calculées. */
-            id := info.id
-            résultat.style.valeurs[id] = propriétés_parent.style.valeurs[id]
-        }
-    }
-
     pour > résolveuse.déclarations_cascade {
         ajoute_déclaration(résultat, it.déclaration)
     }
@@ -292,6 +363,112 @@ résoud_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élémen
     calcule_style(résolveuse, résultat, propriétés_parent)
 
     retourne résultat
+}
+
+AjournementArbre :: énum_drapeau {
+    /* L'arbre doit être redessiné. */
+    Dessin
+    /* L'arbre doit être disposé. */
+    Disposition
+    /* L'arbre doit être construit. */
+    Construction
+}
+
+donne_ajournement_pour_changement_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élément) -> AjournementArbre
+{
+    noeud_de_disposition := élément.noeud_de_disposition
+    anciennes_propriétés: *PropriétésDeStyle
+    propriétés_parent: *PropriétésDeStyle
+
+    si noeud_de_disposition {
+        anciennes_propriétés = noeud_de_disposition.propriétés
+        assert(anciennes_propriétés != nul)
+        propriétés_parent = anciennes_propriétés.parent
+    }
+
+    nouvelles_propriétés := résoud_style(résolveuse, élément, propriétés_parent)
+    diffère détruit_propriétés(nouvelles_propriétés)
+
+    /* Vérifie si "display: none" reste "display: none". */
+    display := nouvelles_propriétés.style.valeurs[IDPropriété.Display].display
+    si display.outer_type == Display.Type.None {
+        si noeud_de_disposition == nul {
+            /* Nous restons sur "display: none". */
+            retourne AjournementArbre.zéro
+        }
+        /* Nous sommes passé de "display: none" à autre chose, reconstruisons. */
+        retourne AjournementArbre.Construction
+    }
+
+    si noeud_de_disposition == nul {
+        /* Nous sommes passé de "display: none" à autre chose, reconstruisons. */
+        retourne AjournementArbre.Construction
+    }
+
+    assert(anciennes_propriétés != nul)
+    résultat: AjournementArbre
+
+    pour * infos_types_propriétés_shorthand {
+        résultat |= donne_ajournement_pour_différence_propriétés(nouvelles_propriétés, anciennes_propriétés, it)
+    }
+
+    pour * infos_types_propriétés {
+        résultat |= donne_ajournement_pour_différence_propriétés(nouvelles_propriétés, anciennes_propriétés, it)
+    }
+
+    si résultat.Construction {
+        retourne résultat
+    }
+
+    si résultat == AjournementArbre.zéro {
+        retourne résultat
+    }
+
+    /* Sauvegarde les propriétés. */
+    noeud_de_disposition.propriétés = nouvelles_propriétés
+    nouvelles_propriétés = anciennes_propriétés
+
+    retourne résultat
+}
+
+donne_ajournement_pour_différence_propriétés :: fonc (nouvelles_propriétés: *PropriétésDeStyle, anciennes_propriétés: *PropriétésDeStyle, info: *InfoTypePropriété) -> AjournementArbre
+{
+    nouvelle := nouvelles_propriétés.donne_déclaration(info.nom)
+    ancienne := anciennes_propriétés.donne_déclaration(info.nom)
+
+    si nouvelle == nul && ancienne == nul {
+        retourne AjournementArbre.zéro
+    }
+
+    si nouvelle == nul || ancienne == nul {
+        retourne donne_ajournement_arbre(info)
+    }
+
+    si nouvelle.value.taille != ancienne.value.taille {
+        retourne donne_ajournement_arbre(info)
+    }
+
+    pour nouvelle.value {
+        si ancienne.value[index_it] == it {
+            continue
+        }
+
+        retourne donne_ajournement_arbre(info)
+    }
+
+    si nouvelle.important != ancienne.important {
+        retourne donne_ajournement_arbre(info)
+    }
+
+    retourne AjournementArbre.zéro
+}
+
+donne_ajournement_arbre :: fonc (info: *InfoTypePropriété) -> AjournementArbre
+{
+    si info.affecte_disposition {
+        retourne AjournementArbre.Construction
+    }
+    retourne AjournementArbre.Dessin
 }
 
 /* https://www.w3.org/TR/css-cascade/#origin */
@@ -348,19 +525,6 @@ compare_déclarations_pour_cascade :: fonc (a: DéclarationCascadée, b: Déclar
 crée_style_pour_bloc_anonyme :: fonc (résolveuse: *RésolveuseStyle, bloc: *NoeudDeDispositionBloc, bloc_parent: *NoeudDeDispositionBloc)
 {
     résultat := crée_propriétés_de_style(bloc_parent.propriétés)
-
-    pour bloc_parent.propriétés.déclarations {
-        si it.est_personnalisée {
-            continue
-        }
-        si it.info.héritable == PropriétéHéritable.Non {
-            continue
-        }
-        /* Nous devons hériter des valeurs calculées. */
-        id := it.info.id
-        résultat.style.valeurs[id] = bloc_parent.propriétés.style.valeurs[id]
-    }
-
     calcule_style(résolveuse, résultat, bloc_parent.propriétés)
 
     bloc.propriétés = résultat
@@ -436,15 +600,18 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, haut
         document.globales_dessin = crée_globales_dessin()
     }
 
+    saufsi document.résolveuse_style {
+        document.résolveuse_style = crée_résolveuse_style(document)
+    }
+
     résultat := loge(ArbreDeDisposition)
 
-    résolveuse: RésolveuseStyle
-    initialise_résolveuse(*résolveuse)
-    résolveuse.taille_fonte_racine = document.globales_dessin.taille_fonte_défaut
-    résolveuse.globales = document.globales_dessin
-    résolveuse.feuilles_de_style = document.feuilles_de_style
+    résolveuse := document.résolveuse_style
 
-    crée_noeud_pour_élément(*résolveuse, résultat, nul, html)
+    /* À FAIRE : ceci peut changer mais comment est encore inconnue. */
+    html.pseudo_classes.Root = vrai
+
+    crée_noeud_pour_élément(résolveuse, résultat, nul, html)
     résultat.racine = html.noeud_de_disposition
 
     // imprime("Créé % noeud(s)\n", résultat.noeuds.taille)
@@ -472,6 +639,7 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
     si HTML.est_texte(noeud) {
         /* Les textes doivent une boite inline anonyme autour d'eux. */
         résultat := arbre.crée_noeud(NoeudDeDispositionInline)
+        crée_style_pour_bloc_anonyme(résolveuse, résultat, parent comme *NoeudDeDispositionBloc)
         parent.ajoute_enfant(résultat)
 
         texte := arbre.crée_noeud(NoeudDeDispositionTexte)
@@ -520,7 +688,7 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
         résultat = inline
     }
 
-    si résultat.parent == nul {
+    si parent == nul {
         résolveuse.taille_fonte_racine = propriétés.style.valeurs[IDPropriété.FontSize].number
     }
 
@@ -683,9 +851,7 @@ remplis_rectangle_id :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition)
     rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
     // peintre.remplis_rectangle(rect, couleur)
 
-    IGUMI.utilise_nuanceur(IGUMI.nuanceur_id)
-    IGUMI.commence_immédiat_id()
-    diffère IGUMI.termine_immédiat_id(IGUMI.ModeImmédiat.TRIANGLES)
+    IGUMI.commence_immédiat_id(IGUMI.ModeImmédiat.TRIANGLES, IGUMI.nuanceur_id)
 
     // imprime("[%] (% % % %) : %\n", #nom_de_cette_fonction, rect.x, rect.y, rect.largeur, rect.hauteur, noeud.id)
 
@@ -707,9 +873,7 @@ remplis_rectangle_id :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition, 
     rect = ctx.donne_rectangle_corrigé(rect)
     // peintre.remplis_rectangle(rect, couleur)
 
-    IGUMI.utilise_nuanceur(IGUMI.nuanceur_id)
-    IGUMI.commence_immédiat_id()
-    diffère IGUMI.termine_immédiat_id(IGUMI.ModeImmédiat.TRIANGLES)
+    IGUMI.commence_immédiat_id(IGUMI.ModeImmédiat.TRIANGLES, IGUMI.nuanceur_id)
 
     // imprime("[%] (% % % %) : %\n", #nom_de_cette_fonction, rect.x, rect.y, rect.largeur, rect.hauteur, noeud.id)
 
@@ -1190,6 +1354,38 @@ dispose_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDis
     pour noeud.enfants {
         it.mesure(*ctx_locale)
 
+        position := it.propriétés.style.valeurs[IDPropriété.Position]
+        /* À FAIRE : https://drafts.csswg.org/css-position/#abspos-layout */
+        si position.est_mot_clé(PROP_absolute) {
+            top := it.propriétés.style.valeurs[IDPropriété.Top]
+            bottom := it.propriétés.style.valeurs[IDPropriété.Bottom]
+            left := it.propriétés.style.valeurs[IDPropriété.Left]
+            right := it.propriétés.style.valeurs[IDPropriété.Right]
+
+            si left.est_auto() && right.est_auto() {
+                left = ValeurDeStyle(number = 0.0)
+            }
+            sinon si left.est_auto() {
+                left = ValeurDeStyle(number = -right.number)
+            }
+            sinon saufsi left.est_nombre() {
+                left = ValeurDeStyle(number = 0.0)
+            }
+
+            si top.est_auto() && bottom.est_auto() {
+                top = ValeurDeStyle(number = 0.0)
+            }
+            sinon si top.est_auto() {
+                top = ValeurDeStyle(number = -bottom.number)
+            }
+            sinon saufsi top.est_nombre() {
+                top = ValeurDeStyle(number = 0.0)
+            }
+
+            it.décale(décalage_x + left.number comme r32, décalage_y + hauteur_contenu + top.number comme r32)
+            continue
+        }
+
         hauteur_enfant := it.modèle_de_boite.marge.hauteur
 
         // marges_enfant := it.marges
@@ -1208,6 +1404,33 @@ dispose_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDis
         }
         sinon {
             hauteur_contenu += hauteur_enfant // + dernière_marge comme r32
+        }
+    }
+
+    pour noeud.enfants {
+        position := it.propriétés.style.valeurs[IDPropriété.Position]
+        /* À FAIRE : https://drafts.csswg.org/css-position/#relpos-insets */
+        si position.est_mot_clé(PROP_relative) {
+            top := it.propriétés.style.valeurs[IDPropriété.Top]
+            bottom := it.propriétés.style.valeurs[IDPropriété.Bottom]
+            left := it.propriétés.style.valeurs[IDPropriété.Left]
+            right := it.propriétés.style.valeurs[IDPropriété.Right]
+
+            si left.est_auto() && right.est_auto() {
+                left = ValeurDeStyle(number = 0.0)
+            }
+            sinon si left.est_auto() {
+                left = ValeurDeStyle(number = -right.number)
+            }
+
+            si top.est_auto() && bottom.est_auto() {
+                top = ValeurDeStyle(number = 0.0)
+            }
+            sinon si top.est_auto() {
+                top = ValeurDeStyle(number = -bottom.number)
+            }
+
+            it.décale(left.number comme r32, top.number comme r32)
         }
     }
 
@@ -1486,6 +1709,18 @@ dessine_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDes
     // peintre.dessine_rectangle(rect, couleur)
 
     pour noeud.enfants {
+        position := it.propriétés.style.valeurs[IDPropriété.Position]
+        saufsi position.est_mot_clé(PROP_static) {
+            continue
+        }
+        dessine(it, ctx)
+    }
+
+    pour noeud.enfants {
+        position := it.propriétés.style.valeurs[IDPropriété.Position]
+        si position.est_mot_clé(PROP_static) {
+            continue
+        }
         dessine(it, ctx)
     }
 }
@@ -1856,6 +2091,19 @@ noeud_disposition_texte_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Con
 
     métriques := donne_métriques_fonte(fonte)
     couleur := propriétés.style.valeurs[IDPropriété.Color].couleur
+
+    background_color := propriétés.style.valeurs[IDPropriété.BackgroundColor].couleur
+    si background_color.a != 0 {
+        rect_noeud: RectanglePosDim(r32)
+        si ctx.fragment {
+            fragment := ctx.fragment
+            rect_noeud = ctx.donne_rectangle_corrigé(fragment.donne_rectangle())
+        }
+        sinon {
+            rect_noeud = ctx.donne_rectangle_corrigé(noeud.donne_rectangle_contenu())
+        }
+        peintre.remplis_rectangle(rect_noeud, background_color)
+    }
 
     si ctx.fragment {
         fragment := ctx.fragment
