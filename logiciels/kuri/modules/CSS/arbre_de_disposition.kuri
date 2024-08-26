@@ -1,6 +1,7 @@
 importe Aléa
 importe Chaine
 importe Couleur
+importe Ensemble
 importe Fondation
 importe Géométrie
 importe #inemployé HTML
@@ -211,6 +212,11 @@ RésolveuseStyle :: struct {
 
     /* Cache. */
     pseudo_classes: PseudoClasses
+    /* Les valeurs des ChaineUTF16Uniques des sélecteurs d'id.
+     * Nous utilisons les valeurs et non les chaines car nous stockons les
+     * données sous d'ensemble et il est plus rapide de comparer des nombres
+     * que des chaines pour le stockage ordonné. */
+    ids_connus: [..]n32
 }
 
 crée_résolveuse_style :: fonc (document: *HTML.Document) -> *RésolveuseStyle
@@ -232,6 +238,7 @@ initialise_résolveuse :: fonc (résolveuse: *RésolveuseStyle)
 initialise_cache :: fonc (résolveuse: *RésolveuseStyle)
 {
     pseudo_classes: PseudoClasses
+    résolveuse.ids_connus.taille = 0
 
     pour feuille dans résolveuse.feuilles_de_style {
         pour règle dans feuille.rules {
@@ -246,6 +253,9 @@ initialise_cache :: fonc (résolveuse: *RésolveuseStyle)
                         si simple.type == SimpleSelector.Type.PseudoClass {
                             pseudo_classes |= simple.pseudo_classe
                         }
+                        sinon si simple.type == SimpleSelector.Type.ID {
+                            ensemble_ajoute(*résolveuse.ids_connus, simple.ident.valeur)
+                        }
                     }
                 }
             }
@@ -258,6 +268,7 @@ initialise_cache :: fonc (résolveuse: *RésolveuseStyle)
 détruit_données_résolveuse :: fonc (résolveuse: *RésolveuseStyle)
 {
     déloge(résolveuse.déclarations_cascade)
+    déloge(résolveuse.ids_connus)
 }
 
 détruit_résolveuse :: fonc (résolveuse: *RésolveuseStyle)
@@ -278,6 +289,17 @@ ajoute_presentational_hint :: fonc (résolveuse: *RésolveuseStyle, déclaration
 possède_règle_avec_pseudo_classe :: fonc (résolveuse: *RésolveuseStyle, pseudo_classe: PseudoClasses) -> bool
 {
     retourne (résolveuse.pseudo_classes & pseudo_classe) != PseudoClasses.zéro
+}
+
+possède_règle_avec_id :: fonc (résolveuse: *RésolveuseStyle, id: CSSOMString) -> bool
+{
+    si id.est_vide() {
+        /* Si l'id est la chaine vide, nous devons vérifier que toutes les règles
+         * s'appliquent, donc pas de court-circuitage. */
+        retourne vrai
+    }
+
+    retourne ensemble_possède(*résolveuse.ids_connus, id.valeur)
 }
 
 donne_ajournement_pour_redimensionnement :: fonc (résolveuse: *RésolveuseStyle @inutilisée, largeur: z32 @inutilisée, hauteur: z32 @inutilisée) -> AjournementArbre

@@ -118,6 +118,7 @@ table_virtuelle_élément := TableVirtuelleÉlément(
             élément.id = mémoire(valeur)
         }
 
+        élément.document.invalide_style_pour_id(élément, vieille_valeur, valeur)
         retourne vrai
     }
 

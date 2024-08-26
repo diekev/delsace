@@ -361,6 +361,30 @@ invalide_style_pour_redimensionnement :: fonc (document: *Document, largeur: z32
     document.définis_ajournement_arbre(ajournement)
 }
 
+/* Invalide le style suite au changement de la valeur de l'attribut "id". */
+invalide_style_pour_id :: fonc (document: *Document, élément: *Élément, vieil_id: *DOMString, nouvel_id: *DOMString)
+{
+    saufsi document.résolveuse_style {
+        retourne
+    }
+
+    résolveuse := document.résolveuse_style
+    possède_règle := faux
+    si vieil_id && CSS.possède_règle_avec_id(résolveuse, mémoire(vieil_id)) {
+        possède_règle = vrai
+    }
+
+    si nouvel_id && CSS.possède_règle_avec_id(résolveuse, mémoire(nouvel_id)) {
+        possède_règle = vrai
+    }
+
+    saufsi possède_règle {
+        retourne
+    }
+
+    invalide_style_depuis_élément(document, élément)
+}
+
 invalide_style_depuis_élément :: fonc (document: *Document, élément: *Élément)
 {
     saufsi document.résolveuse_style {
