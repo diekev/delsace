@@ -246,6 +246,14 @@ apparie_simple_selector :: fonc (simple: &SimpleSelector, élément: *HTML.Élé
         }
         PseudoClass {
             si simple.est_fonction {
+                si simple.ident == PROP_not {
+                    retourne !apparie_sélecteur_fonction(simple.selector_list, élément)
+                }
+
+                si simple.ident == PROP_is || simple.ident == PROP_where {
+                    retourne apparie_sélecteur_fonction(simple.selector_list, élément)
+                }
+
                 retourne faux
             }
 
@@ -269,6 +277,17 @@ apparie_simple_selector :: fonc (simple: &SimpleSelector, élément: *HTML.Élé
             retourne faux
         }
         Universal {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}
+
+apparie_sélecteur_fonction :: fonc (selector_list: &SelectorList, élément: *HTML.Élément) -> bool
+{
+    pour complex dans selector_list.complex_selectors {
+        si apparie_sélecteur(complex.compound_selectors, complex.compound_selectors.taille - 1, élément) {
             retourne vrai
         }
     }
@@ -977,8 +996,27 @@ calcule_spécificité :: fonc (selector: *SimpleSelector, spécificité: *Spéci
         Class,
         Attrib,
         PseudoClass {
-            /* À FAIRE : fonctions */
-            spécificité.B += 1
+            saufsi selector.est_fonction {
+                spécificité.B += 1
+                retourne
+            }
+
+            si selector.ident == PROP_where {
+                /* The specificity of a :where() pseudo-class is replaced by zero. */
+                retourne
+            }
+
+            si selector.ident == PROP_is || selector.ident == PROP_not {
+                /* The specificity of an :is(), :not(), or :has() pseudo-class is
+                 * replaced by the specificity of the most specific complex
+                 * selector in its selector list argument.
+                 * À FAIRE : ":has" */
+                spécifissime := calcule_spécificité(*selector.selector_list)
+                spécificité.A += spécifissime.A
+                spécificité.B += spécifissime.B
+                spécificité.C += spécifissime.C
+                retourne
+            }
         }
         Type,
         PseudoElement {
