@@ -208,6 +208,9 @@ RésolveuseStyle :: struct {
     /* Style dont les propriétés sont toujours à leurs valeurs initiales.
      * Utilisé lors du calcul des valeurs. */
     valeurs_initiales: Style
+
+    /* Cache. */
+    pseudo_classes: PseudoClasses
 }
 
 crée_résolveuse_style :: fonc (document: *HTML.Document) -> *RésolveuseStyle
@@ -217,12 +220,39 @@ crée_résolveuse_style :: fonc (document: *HTML.Document) -> *RésolveuseStyle
     résultat.taille_fonte_racine = document.globales_dessin.taille_fonte_défaut
     résultat.globales = document.globales_dessin
     résultat.feuilles_de_style = document.feuilles_de_style
+    initialise_cache(résultat)
     retourne résultat
 }
 
 initialise_résolveuse :: fonc (résolveuse: *RésolveuseStyle)
 {
     initialise_style(*résolveuse.valeurs_initiales)
+}
+
+initialise_cache :: fonc (résolveuse: *RésolveuseStyle)
+{
+    pseudo_classes: PseudoClasses
+
+    pour feuille dans résolveuse.feuilles_de_style {
+        pour règle dans feuille.rules {
+            si règle.type != CSSRuleType.Style {
+                continue
+            }
+
+            règle_de_style := règle comme *CSSStyleRule
+            pour complex dans règle_de_style.selector_list.complex_selectors {
+                pour compound dans complex.compound_selectors {
+                    pour simple dans compound.simple_selectors {
+                        si simple.type == SimpleSelector.Type.PseudoClass {
+                            pseudo_classes |= simple.pseudo_classe
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    résolveuse.pseudo_classes = pseudo_classes
 }
 
 détruit_données_résolveuse :: fonc (résolveuse: *RésolveuseStyle)
@@ -243,6 +273,11 @@ détruit_résolveuse :: fonc (résolveuse: *RésolveuseStyle)
 ajoute_presentational_hint :: fonc (résolveuse: *RésolveuseStyle, déclaration: *DéclarationPropriété)
 {
     tableau_ajoute(*résolveuse.déclarations_cascade, DéclarationCascadée(déclaration, Spécificité(0, 0, 0), OrigineCascade.Author))
+}
+
+possède_règle_avec_pseudo_classe :: fonc (résolveuse: *RésolveuseStyle, pseudo_classe: PseudoClasses) -> bool
+{
+    retourne (résolveuse.pseudo_classes & pseudo_classe) != PseudoClasses.zéro
 }
 
 RègleEtSpécificité :: struct {
