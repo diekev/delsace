@@ -41,7 +41,20 @@ tableau_ajoute :: fonc (tabl: *[..]$T, valeur: T) -> rien #enligne
 
     si tmp.taille == tmp.capacité {
         capacité := tmp.capacité
-        reloge_tableau(tmp, capacité + 1)
+
+        si capacité == 0 {
+            capacité = 8
+        }
+        sinon si capacité == 1 {
+            capacité = 2
+        }
+        sinon {
+            /* Agrandis par un facteur de 1.5.
+             * Voir https://github.com/facebook/folly/blob/main/folly/docs/FBVector.md */
+            capacité += capacité >> 1
+        }
+
+        reloge_tableau(tmp, capacité)
     }
 
     tmp.taille += 1

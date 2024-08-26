@@ -205,6 +205,7 @@ num_sommets_immédiat : z32 = 0
 va_immédiat: n32
 vbo_immédiat: n32
 vbo_immédiat_index: n32
+données_tampon_initialisées: bool
 
 nuanceur_global: *NuanceurGL
 nuanceur_base: *NuanceurGL
@@ -228,6 +229,7 @@ DonnéesImmédiatesXId :: struct {
     va_immédiat: n32
     vbo_immédiat: n32
     vbo_immédiat_index: n32
+    données_tampon_initialisées: bool
 }
 
 données_tampon_id: DonnéesImmédiatesXId
@@ -238,9 +240,20 @@ données_tampon_id: DonnéesImmédiatesXId
 /** \nom Dessin.
  * \{ */
 
-commence_immédiat :: fonc ()
+dernier_mode: ModeImmédiat
+dernier_nuanceur: *NuanceurGL
+dernière_fonte: *Fonte
+
+commence_immédiat :: fonc (mode: ModeImmédiat, nuanceur: *NuanceurGL, fonte : *Fonte = nul)
 {
-    termine_immédiat(ModeImmédiat.TRIANGLES)
+    si mode != dernier_mode || nuanceur != dernier_nuanceur || fonte != dernière_fonte || num_sommets_immédiat == MAX_SOMMETS_IMMÉDIAT {
+        termine_immédiat()
+
+        dernier_mode = mode
+        dernier_nuanceur = nuanceur
+        dernière_fonte = fonte
+        utilise_nuanceur(nuanceur)
+    }
 }
 
 ModeImmédiat :: énum {
@@ -248,7 +261,7 @@ ModeImmédiat :: énum {
     LIGNES
 }
 
-termine_immédiat :: fonc (mode: ModeImmédiat, réinitailise_nuanceur := vrai)
+termine_immédiat :: fonc ()
 {
     si !num_sommets_immédiat {
         retourne
@@ -280,10 +293,16 @@ termine_immédiat :: fonc (mode: ModeImmédiat, réinitailise_nuanceur := vrai)
 
     installe_format_xcnu(nuanceur)
 
-    glBufferData(GL_ARRAY_BUFFER, compte * taille_de(FormatVertexXCNU), s.pointeur, GL_DYNAMIC_DRAW)
-    vérifie_erreur("termine_immédiat.glBufferData")
+    saufsi données_tampon_initialisées {
+        glBufferData(GL_ARRAY_BUFFER, (MAX_SOMMETS_IMMÉDIAT comme n32) * taille_de(FormatVertexXCNU), s.pointeur, GL_DYNAMIC_DRAW)
+        vérifie_erreur("termine_immédiat.glBufferData")
+        données_tampon_initialisées = vrai
+    }
 
-    si mode == ModeImmédiat.TRIANGLES {
+    glBufferSubData(GL_ARRAY_BUFFER, 0, compte * taille_de(FormatVertexXCNU), s.pointeur)
+    vérifie_erreur("termine_immédiat_id.glBufferSubData")
+
+    si dernier_mode == ModeImmédiat.TRIANGLES {
         glDrawArrays(GL_TRIANGLES, 0, compte comme z64)
     }
     sinon {
@@ -294,9 +313,6 @@ termine_immédiat :: fonc (mode: ModeImmédiat, réinitailise_nuanceur := vrai)
     glUseProgram(0)
     glBindVertexArray(0)
     num_sommets_immédiat = 0
-    si réinitailise_nuanceur {
-        nuanceur_global = nul
-    }
 
     vérifie_erreur("termine_immédiat")
 }
@@ -342,7 +358,7 @@ installe_format_xcnu :: fonc (nuanceur: *NuanceurGL)
 ajoute_sommets :: fonc (pos: Vec3, couleur: CouleurRVBA)
 {
     si num_sommets_immédiat >= MAX_SOMMETS_IMMÉDIAT {
-        termine_immédiat(ModeImmédiat.TRIANGLES, faux)
+        termine_immédiat()
     }
 
     sommets_immédiat[num_sommets_immédiat].position = pos
@@ -353,7 +369,7 @@ ajoute_sommets :: fonc (pos: Vec3, couleur: CouleurRVBA)
 ajoute_sommets :: fonc (pos: Vec3, uv: Vec2, couleur: CouleurRVBA)
 {
     si num_sommets_immédiat >= MAX_SOMMETS_IMMÉDIAT {
-        termine_immédiat(ModeImmédiat.TRIANGLES, faux)
+        termine_immédiat()
     }
 
     sommets_immédiat[num_sommets_immédiat].position = pos
@@ -550,18 +566,16 @@ donne_paramètres_texture_atlas_fonte :: fonc (atlas: *texture_atlas_t) -> Param
 */
 dessine_texte :: fonc (fonte: *Fonte, texte: chaine, x: r32, y: r32, couleur: CouleurRVBA)
 {
-    commence_immédiat()
+    commence_immédiat(ModeImmédiat.TRIANGLES, nuanceur_texte, fonte)
 
-    ancienne_fonction_mélange: z32
-    glGetIntegerv(GL_BLEND_SRC_ALPHA, *ancienne_fonction_mélange)
-    diffère glBlendFunc(GL_SRC_ALPHA, ancienne_fonction_mélange comme n32)
+    // ancienne_fonction_mélange: z32
+    // glGetIntegerv(GL_BLEND_SRC_ALPHA, *ancienne_fonction_mélange)
+    // diffère glBlendFunc(GL_SRC_ALPHA, ancienne_fonction_mélange comme n32)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-    gl_blend_est_actif := glIsEnabled(GL_BLEND) != 0
-    diffère saufsi gl_blend_est_actif { glDisable(GL_BLEND) }
+    // gl_blend_est_actif := glIsEnabled(GL_BLEND) != 0
+    // diffère saufsi gl_blend_est_actif { glDisable(GL_BLEND) }
     glEnable(GL_BLEND)
-
-    utilise_nuanceur(nuanceur_texte)
 
     // met en place la texture de la fonte sur le nuanceur
     glGenTextures(1, *fonte.atlas.id)
@@ -593,24 +607,20 @@ dessine_texte :: fonc (fonte: *Fonte, texte: chaine, x: r32, y: r32, couleur: Co
 
         dernier_caractère = glyph
     }
-
-    termine_immédiat(ModeImmédiat.TRIANGLES)
 }
 
 dessine_texte :: fonc (fonte: *Fonte, texte: ChaineUTF16, x: r32, y: r32, couleur: CouleurRVBA, effets: *EffetsTexte)
 {
-    commence_immédiat()
+    commence_immédiat(ModeImmédiat.TRIANGLES, nuanceur_texte, fonte)
 
-    ancienne_fonction_mélange: z32
-    glGetIntegerv(GL_BLEND_SRC_ALPHA, *ancienne_fonction_mélange)
-    diffère glBlendFunc(GL_SRC_ALPHA, ancienne_fonction_mélange comme n32)
+    // ancienne_fonction_mélange: z32
+    // glGetIntegerv(GL_BLEND_SRC_ALPHA, *ancienne_fonction_mélange)
+    // diffère glBlendFunc(GL_SRC_ALPHA, ancienne_fonction_mélange comme n32)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-    gl_blend_est_actif := glIsEnabled(GL_BLEND) != 0
-    diffère saufsi gl_blend_est_actif { glDisable(GL_BLEND) }
+    // gl_blend_est_actif := glIsEnabled(GL_BLEND) != 0
+    // diffère saufsi gl_blend_est_actif { glDisable(GL_BLEND) }
     glEnable(GL_BLEND)
-
-    utilise_nuanceur(nuanceur_texte)
 
     // met en place la texture de la fonte sur le nuanceur
     saufsi glIsTexture(fonte.atlas.id) {
@@ -659,8 +669,6 @@ dessine_texte :: fonc (fonte: *Fonte, texte: ChaineUTF16, x: r32, y: r32, couleu
 
         dernier_caractère = glyph
     }
-
-    termine_immédiat(ModeImmédiat.TRIANGLES)
 }
 
 glyphe_immédiat :: fonc (glyph: *texture_glyph_t, x: r32, y: r32, couleur: CouleurRVBA)
@@ -760,7 +768,7 @@ image_immédiat :: fonc (image: TamponImageRVBA32Bit, x: r32, y: r32, largeur: r
 
 image_immédiat :: fonc (params: *ParamètresTexture2D, x: r32, y: r32, largeur: r32, hauteur: r32)
 {
-    commence_immédiat()
+    commence_immédiat(ModeImmédiat.TRIANGLES, nuanceur_image)
 
     ancienne_fonction_mélange: z32
     glGetIntegerv(GL_BLEND_SRC_ALPHA, *ancienne_fonction_mélange)
@@ -770,8 +778,6 @@ image_immédiat :: fonc (params: *ParamètresTexture2D, x: r32, y: r32, largeur:
     gl_blend_est_actif := glIsEnabled(GL_BLEND) != 0
     diffère saufsi gl_blend_est_actif { glDisable(GL_BLEND) }
     glEnable(GL_BLEND)
-
-    utilise_nuanceur(nuanceur_image)
 
     code_texture: n32
     glGenTextures(1, *code_texture)
@@ -796,7 +802,7 @@ image_immédiat :: fonc (params: *ParamètresTexture2D, x: r32, y: r32, largeur:
 
     quad_immédiat(p0, p1, p2, p3, u0, u1, u2, u3, CouleurRVBA())
 
-    termine_immédiat(ModeImmédiat.TRIANGLES)
+    termine_immédiat()
 }
 
 /** \} */
@@ -805,18 +811,27 @@ image_immédiat :: fonc (params: *ParamètresTexture2D, x: r32, y: r32, largeur:
 /** \nom Tampon ID.
  * \{ */
 
-commence_immédiat_id :: fonc ()
+dernier_mode_id: ModeImmédiat
+dernier_nuanceur_id: *NuanceurGL
+
+commence_immédiat_id :: fonc (mode: ModeImmédiat, nuanceur: *NuanceurGL)
 {
-    termine_immédiat_id(ModeImmédiat.TRIANGLES)
+    si mode != dernier_mode_id || nuanceur != dernier_nuanceur_id || données_tampon_id.num_sommets == MAX_SOMMETS_IMMÉDIAT {
+        dernier_mode_id = mode
+        dernier_nuanceur_id = nuanceur
+        utilise_nuanceur(nuanceur)
+
+        termine_immédiat_id()
+    }
 }
 
-termine_immédiat_id :: fonc (mode: ModeImmédiat, réinitailise_nuanceur := vrai)
+termine_immédiat_id :: fonc ()
 {
     saufsi données_tampon_id.num_sommets {
         retourne
     }
 
-    nuanceur := nuanceur_global
+    nuanceur := dernier_nuanceur_id
 
     saufsi nuanceur {
         si données_tampon_id.num_sommets {
@@ -842,10 +857,16 @@ termine_immédiat_id :: fonc (mode: ModeImmédiat, réinitailise_nuanceur := vra
 
     installe_format_xid(nuanceur)
 
-    glBufferData(GL_ARRAY_BUFFER, compte * taille_de(FormatVertexXId), s.pointeur, GL_DYNAMIC_DRAW)
-    vérifie_erreur("termine_immédiat_id.glBufferData")
+    saufsi données_tampon_id.données_tampon_initialisées {
+        glBufferData(GL_ARRAY_BUFFER, (MAX_SOMMETS_IMMÉDIAT comme n32) * taille_de(FormatVertexXId), s.pointeur, GL_DYNAMIC_DRAW)
+        vérifie_erreur("termine_immédiat.glBufferData")
+        données_tampon_id.données_tampon_initialisées = vrai
+    }
 
-    si mode == ModeImmédiat.TRIANGLES {
+    glBufferSubData(GL_ARRAY_BUFFER, 0, compte * taille_de(FormatVertexXId), s.pointeur)
+    vérifie_erreur("termine_immédiat_id.glBufferSubData")
+
+    si dernier_mode_id == ModeImmédiat.TRIANGLES {
         glDrawArrays(GL_TRIANGLES, 0, compte comme z64)
     }
     sinon {
@@ -856,9 +877,6 @@ termine_immédiat_id :: fonc (mode: ModeImmédiat, réinitailise_nuanceur := vra
     glUseProgram(0)
     glBindVertexArray(0)
     données_tampon_id.num_sommets = 0
-    si réinitailise_nuanceur {
-        nuanceur_global = nul
-    }
 
     vérifie_erreur(#nom_de_cette_fonction)
 }
@@ -913,7 +931,7 @@ quad_immédiat_id :: fonc (p0: Vec3, p1: Vec3, p2: Vec3, p3: Vec3, id: n32)
 ajoute_sommets_id :: fonc (pos: Vec3, id: n32)
 {
     si données_tampon_id.num_sommets >= MAX_SOMMETS_IMMÉDIAT {
-        termine_immédiat_id(ModeImmédiat.TRIANGLES, faux)
+        termine_immédiat_id()
     }
 
     données_tampon_id.sommets[données_tampon_id.num_sommets].position = pos

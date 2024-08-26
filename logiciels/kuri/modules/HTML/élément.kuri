@@ -76,6 +76,9 @@ TableVirtuelleÉlément :: struct {
     noeud_de_disposition: *CSS.NoeudDeDisposition
     /* https://html.spec.whatwg.org/multipage/dom.html#attr-style */
     style: *CSS.CSSStyleDeclaration
+
+    /* Cache */
+    liste_classes: [..]DOMString
 }
 
 #portée_fichier
@@ -88,6 +91,7 @@ table_virtuelle_élément := TableVirtuelleÉlément(
 élément_détruit_données :: fonc (élément: *Élément)
 {
     CSS.détruit_style_declaration(élément.style)
+    déloge(élément.liste_classes)
 }
 
 élément_sur_destruction :: fonc (base: *EventTarget)
@@ -131,6 +135,11 @@ table_virtuelle_élément := TableVirtuelleÉlément(
         }
 
         élément.document.invalide_style()
+        retourne vrai
+    }
+
+    si local_name == ATTR_class {
+        déloge(élément.liste_classes)
         retourne vrai
     }
 
@@ -335,6 +344,18 @@ get_elements_by_tag_name :: fonc (élément: *Élément, qualified_name: DOMStri
     retourne résultat
 }
 
+donne_liste_classe :: fonc (élément: *Élément) -> []DOMString
+{
+    saufsi élément.liste_classes {
+        valeur := donne_attribut(élément, ATTR_class)
+        si valeur.possède_valeur() {
+            élément.liste_classes = divise_sur_espaces_blanches_ascii(valeur.Quelque)
+        }
+    }
+
+    retourne élément.liste_classes
+}
+
 /** \} */
 
 fait_partie_de_catégorie_spécial :: fonc (nom: DOMString) -> bool
@@ -391,7 +412,7 @@ ajoute_pseudo_classe :: fonc (élément: *Élément, pseudo_classe: CSS.PseudoCl
 
     élément.pseudo_classes |= pseudo_classe
     assert(élément.document != nul)
-    élément.document.invalide_style(pseudo_classe)
+    élément.document.invalide_style(élément, pseudo_classe)
 }
 
 enlève_pseudo_classe :: fonc (élément: *Élément, pseudo_classe: CSS.PseudoClasses)
@@ -402,7 +423,7 @@ enlève_pseudo_classe :: fonc (élément: *Élément, pseudo_classe: CSS.PseudoC
 
     élément.pseudo_classes &= ~pseudo_classe
     assert(élément.document != nul)
-    élément.document.invalide_style(pseudo_classe)
+    élément.document.invalide_style(élément, pseudo_classe)
 }
 
 est_en_train_d_être_activé :: fonc (élément: *Élément, ouinon: bool)
