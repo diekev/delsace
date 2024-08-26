@@ -1,5 +1,6 @@
 importe Chaine
 importe #inemployé CSS
+importe Ensemble
 importe Fondation
 importe Internet
 
@@ -248,7 +249,7 @@ définis_noeud_survolé :: fonc (document: *Document, noeud: *Élément)
     }
 
     si document.noeud_survolé {
-        document.noeud_survolé.enlève_pseudo_classe(CSS.PseudoClasses.Hover)
+        document.noeud_survolé.pseudo_classes.Hover = faux
 
         noeud_courant := document.noeud_survolé
         tantque noeud_courant != nul {
@@ -262,7 +263,7 @@ définis_noeud_survolé :: fonc (document: *Document, noeud: *Élément)
     }
 
     si noeud {
-        noeud.ajoute_pseudo_classe(CSS.PseudoClasses.Hover)
+        noeud.pseudo_classes.Hover = vrai
 
         noeud_courant := noeud
         tantque noeud_courant != nul {
@@ -275,12 +276,55 @@ définis_noeud_survolé :: fonc (document: *Document, noeud: *Élément)
         }
     }
 
+    ancien_noeud := document.noeud_survolé
     document.noeud_survolé = noeud
+
+    ancêtre := donne_ancêtre_élément_commun(ancien_noeud, noeud)
+    assert(ancêtre != nul)
+    invalide_style_depuis_élément(document, ancêtre)
 
     user_agent := document.donne_user_agent()
     si user_agent {
         user_agent.notifie_élément_survolé()
     }
+}
+
+donne_ancêtre_élément_commun :: fonc (a: *Élément, b: *Élément) -> *Élément
+{
+    si a == nul {
+        retourne b
+    }
+
+    si b == nul {
+        retourne a
+    }
+
+    ancêtres_de_a: [..]*Élément
+    diffère déloge(ancêtres_de_a)
+
+    noeud := a
+    boucle {
+        ensemble_ajoute(*ancêtres_de_a, noeud)
+        saufsi noeud.parent.est_élément() {
+            arrête
+        }
+        noeud = noeud.parent comme *Élément
+    }
+
+    noeud = b
+
+    boucle {
+        si ensemble_possède(*ancêtres_de_a, noeud) {
+            retourne noeud
+        }
+
+        saufsi noeud.parent.est_élément() {
+            arrête
+        }
+        noeud = noeud.parent comme *Élément
+    }
+
+    retourne nul
 }
 
 /* Invalide le style de manière générale. */
