@@ -84,6 +84,7 @@ Document :: struct {
     feuilles_de_style: [..]*CSS.CSSStyleSheet
     arbre_de_disposition: *CSS.ArbreDeDisposition
     globales_dessin: *CSS.GlobalesDessin
+    résolveuse_style: *CSS.RésolveuseStyle
 
     noeud_survolé: *Élément
     /* L'élément sous la souris lors des pressions et relâchement. */
@@ -101,6 +102,7 @@ document_sur_destruction :: fonc (base: *EventTarget)
     document := base comme *Document
     CSS.détruit_arbre(document.arbre_de_disposition)
     CSS.détruit_globales_dessin(document.globales_dessin)
+    CSS.détruit_résolveuse(document.résolveuse_style)
     déloge_tableau_et_ses_éléments(document.feuilles_de_style, CSS.détruit_feuille_de_style)
     déloge(document)
 }

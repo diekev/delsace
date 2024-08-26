@@ -205,6 +205,16 @@ RésolveuseStyle :: struct {
     valeurs_initiales: Style
 }
 
+crée_résolveuse_style :: fonc (document: *HTML.Document) -> *RésolveuseStyle
+{
+    résultat := loge(RésolveuseStyle)
+    initialise_résolveuse(résultat)
+    résultat.taille_fonte_racine = document.globales_dessin.taille_fonte_défaut
+    résultat.globales = document.globales_dessin
+    résultat.feuilles_de_style = document.feuilles_de_style
+    retourne résultat
+}
+
 initialise_résolveuse :: fonc (résolveuse: *RésolveuseStyle)
 {
     initialise_style(*résolveuse.valeurs_initiales)
@@ -213,6 +223,15 @@ initialise_résolveuse :: fonc (résolveuse: *RésolveuseStyle)
 détruit_données_résolveuse :: fonc (résolveuse: *RésolveuseStyle)
 {
     déloge(résolveuse.déclarations_cascade)
+}
+
+détruit_résolveuse :: fonc (résolveuse: *RésolveuseStyle)
+{
+    saufsi résolveuse {
+        retourne
+    }
+    détruit_données_résolveuse(résolveuse)
+    déloge(résolveuse)
 }
 
 /* https://html.spec.whatwg.org/multipage/rendering.html#the-css-user-agent-style-sheet-and-presentational-hints */
@@ -435,19 +454,18 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, haut
         document.globales_dessin = crée_globales_dessin()
     }
 
+    saufsi document.résolveuse_style {
+        document.résolveuse_style = crée_résolveuse_style(document)
+    }
+
     résultat := loge(ArbreDeDisposition)
 
-    résolveuse: RésolveuseStyle
-    initialise_résolveuse(*résolveuse)
-    diffère détruit_données_résolveuse(*résolveuse)
-    résolveuse.taille_fonte_racine = document.globales_dessin.taille_fonte_défaut
-    résolveuse.globales = document.globales_dessin
-    résolveuse.feuilles_de_style = document.feuilles_de_style
+    résolveuse := document.résolveuse_style
 
     /* À FAIRE : ceci peut changer mais comment est encore inconnue. */
     html.pseudo_classes.Root = vrai
 
-    crée_noeud_pour_élément(*résolveuse, résultat, nul, html)
+    crée_noeud_pour_élément(résolveuse, résultat, nul, html)
     résultat.racine = html.noeud_de_disposition
 
     // imprime("Créé % noeud(s)\n", résultat.noeuds.taille)
