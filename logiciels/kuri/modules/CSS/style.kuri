@@ -29,6 +29,120 @@ ValeurDeStyle :: union {
     variable: Variable
 }
 
+opérateur == :: fonc (a: ValeurDeStyle, b: ValeurDeStyle) -> bool
+{
+    discr a {
+        mot_clé(m) {
+            retourne b.est_mot_clé(m)
+        }
+        couleur(c) {
+            discr b {
+                couleur(cb) {
+                    retourne cb.r == c.r && cb.v == c.v && cb.b == c.b && cb.a == c.a
+                }
+                sinon {
+                    retourne faux
+                }
+            }
+        }
+        longueur(l) {
+            discr b {
+                longueur(lb) {
+                    retourne lb.valeur == l.valeur && lb.unité == l.unité
+                }
+                sinon {
+                    retourne faux
+                }
+            }
+
+        }
+        integer(i) {
+            discr b {
+                integer(ib) {
+                    retourne ib == i
+                }
+                sinon {
+                    retourne faux
+                }
+            }
+        }
+        number(n) {
+            discr b {
+                number(nb) {
+                    retourne nb == n
+                }
+                sinon {
+                    retourne faux
+                }
+            }
+        }
+        percentage(p) {
+            discr b {
+                percentage(pb) {
+                    retourne pb == p
+                }
+                sinon {
+                    retourne faux
+                }
+            }
+        }
+        text_decoration_line(t) {
+            discr b {
+                text_decoration_line(tb) {
+                    retourne tb == t
+                }
+                sinon {
+                    retourne faux
+                }
+            }
+        }
+        line_style(l) {
+            discr b {
+                line_style(lb) {
+                    retourne lb == l
+                }
+                sinon {
+                    retourne faux
+                }
+            }
+        }
+        display(d) {
+            discr b {
+                display(db) {
+                    retourne db.inner_type == d.inner_type && db.outer_type == d.outer_type && d.est_list_item == db.est_list_item
+                }
+                sinon {
+                    retourne faux
+                }
+            }
+        }
+        cursor(c) {
+            discr b {
+                cursor(cb) {
+                    retourne cb == c
+                }
+                sinon {
+                    retourne faux
+                }
+            }
+        }
+        variable(v) {
+            discr b {
+                variable(vb) {
+                    retourne vb.nom == v.nom
+                }
+                sinon {
+                    retourne faux
+                }
+            }
+        }
+        sinon {
+            retourne faux
+        }
+    }
+    retourne faux
+}
+
 détruit_valeur_de_style :: fonc (value: *ValeurDeStyle)
 {
     discr mémoire(value) {
