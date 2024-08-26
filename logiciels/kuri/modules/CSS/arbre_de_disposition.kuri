@@ -36,6 +36,11 @@ détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
             détruit_propriétés(it.propriétés)
         }
 
+        élément := it.donne_élément()
+        si élément {
+            élément.noeud_de_disposition = nul
+        }
+
         si it.type == NoeudDeDispositionBloc {
             bloc := it comme *NoeudDeDispositionBloc
             pour *boite dans bloc.lignes {
