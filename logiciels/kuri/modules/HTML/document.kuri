@@ -309,6 +309,45 @@ invalide_style_pour_redimensionnement :: fonc (document: *Document)
     document.invalide_style()
 }
 
+invalide_style_depuis_élément :: fonc (document: *Document, élément: *Élément)
+{
+    saufsi document.résolveuse_style {
+        retourne
+    }
+
+    ajournement := donne_ajournement_depuis_élément(document.résolveuse_style, élément)
+
+    si ajournement.Construction {
+        document.invalide_style()
+    }
+    sinon {
+        user_agent := document.donne_user_agent()
+        si user_agent {
+            user_agent.requiers_rendu()
+        }
+    }
+}
+
+donne_ajournement_depuis_élément :: fonc (résolveuse: *CSS.RésolveuseStyle, élément: *Élément) -> CSS.AjournementArbre
+{
+    résultat := CSS.donne_ajournement_pour_changement_style(résolveuse, élément)
+
+    si résultat == CSS.AjournementArbre.zéro && élément.noeud_de_disposition == nul {
+        /* Nous avons, par exemple, un noeud qui est "display: none", et reste "display: none". */
+        retourne résultat
+    }
+
+    pour élément.enfants {
+        saufsi it.est_élément() {
+            continue
+        }
+
+        résultat |= donne_ajournement_depuis_élément(résolveuse, it comme *Élément)
+    }
+
+    retourne résultat
+}
+
 donne_user_agent :: fonc (document: *Document) -> *UserAgent
 {
     browsing_context := document.browsing_context

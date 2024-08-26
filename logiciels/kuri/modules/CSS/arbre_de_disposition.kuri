@@ -330,6 +330,112 @@ résoud_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élémen
     retourne résultat
 }
 
+AjournementArbre :: énum_drapeau {
+    /* L'arbre doit être redessiné. */
+    Dessin
+    /* L'arbre doit être disposé. */
+    Disposition
+    /* L'arbre doit être construit. */
+    Construction
+}
+
+donne_ajournement_pour_changement_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élément) -> AjournementArbre
+{
+    noeud_de_disposition := élément.noeud_de_disposition
+    anciennes_propriétés: *PropriétésDeStyle
+    propriétés_parent: *PropriétésDeStyle
+
+    si noeud_de_disposition {
+        anciennes_propriétés = noeud_de_disposition.propriétés
+        assert(anciennes_propriétés != nul)
+        propriétés_parent = anciennes_propriétés.parent
+    }
+
+    nouvelles_propriétés := résoud_style(résolveuse, élément, propriétés_parent)
+    diffère détruit_propriétés(nouvelles_propriétés)
+
+    /* Vérifie si "display: none" reste "display: none". */
+    display := nouvelles_propriétés.style.valeurs[IDPropriété.Display].display
+    si display.outer_type == Display.Type.None {
+        si noeud_de_disposition == nul {
+            /* Nous restons sur "display: none". */
+            retourne AjournementArbre.zéro
+        }
+        /* Nous sommes passé de "display: none" à autre chose, reconstruisons. */
+        retourne AjournementArbre.Construction
+    }
+
+    si noeud_de_disposition == nul {
+        /* Nous sommes passé de "display: none" à autre chose, reconstruisons. */
+        retourne AjournementArbre.Construction
+    }
+
+    assert(anciennes_propriétés != nul)
+    résultat: AjournementArbre
+
+    pour * infos_types_propriétés_shorthand {
+        résultat |= donne_ajournement_pour_différence_propriétés(nouvelles_propriétés, anciennes_propriétés, it)
+    }
+
+    pour * infos_types_propriétés {
+        résultat |= donne_ajournement_pour_différence_propriétés(nouvelles_propriétés, anciennes_propriétés, it)
+    }
+
+    si résultat.Construction {
+        retourne résultat
+    }
+
+    si résultat == AjournementArbre.zéro {
+        retourne résultat
+    }
+
+    /* Sauvegarde les propriétés. */
+    noeud_de_disposition.propriétés = nouvelles_propriétés
+    nouvelles_propriétés = anciennes_propriétés
+
+    retourne résultat
+}
+
+donne_ajournement_pour_différence_propriétés :: fonc (nouvelles_propriétés: *PropriétésDeStyle, anciennes_propriétés: *PropriétésDeStyle, info: *InfoTypePropriété) -> AjournementArbre
+{
+    nouvelle := nouvelles_propriétés.donne_déclaration(info.nom)
+    ancienne := anciennes_propriétés.donne_déclaration(info.nom)
+
+    si nouvelle == nul && ancienne == nul {
+        retourne AjournementArbre.zéro
+    }
+
+    si nouvelle == nul || ancienne == nul {
+        retourne donne_ajournement_arbre(info)
+    }
+
+    si nouvelle.value.taille != ancienne.value.taille {
+        retourne donne_ajournement_arbre(info)
+    }
+
+    pour nouvelle.value {
+        si ancienne.value[index_it] == it {
+            continue
+        }
+
+        retourne donne_ajournement_arbre(info)
+    }
+
+    si nouvelle.important != ancienne.important {
+        retourne donne_ajournement_arbre(info)
+    }
+
+    retourne AjournementArbre.zéro
+}
+
+donne_ajournement_arbre :: fonc (info: *InfoTypePropriété) -> AjournementArbre
+{
+    si info.affecte_disposition {
+        retourne AjournementArbre.Construction
+    }
+    retourne AjournementArbre.Dessin
+}
+
 /* https://www.w3.org/TR/css-cascade/#origin */
 OrigineCascade :: énum {
     Author
