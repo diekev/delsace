@@ -1204,12 +1204,18 @@ dispose_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDis
             sinon si left.est_auto() {
                 left = ValeurDeStyle(number = -right.number)
             }
+            sinon saufsi left.est_nombre() {
+                left = ValeurDeStyle(number = 0.0)
+            }
 
             si top.est_auto() && bottom.est_auto() {
                 top = ValeurDeStyle(number = 0.0)
             }
             sinon si top.est_auto() {
                 top = ValeurDeStyle(number = -bottom.number)
+            }
+            sinon saufsi top.est_nombre() {
+                top = ValeurDeStyle(number = 0.0)
             }
 
             it.décale(décalage_x + left.number comme r32, décalage_y + hauteur_contenu + top.number comme r32)
