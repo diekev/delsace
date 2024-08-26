@@ -135,6 +135,7 @@ glGenBuffers :: fonc (n: z32, ptr: *n32) -> rien #externe libGL
 glDeleteBuffers :: fonc (n: z32, ptr: *n32) -> rien #externe libGL
 glBindBuffer :: fonc (target: GLenum, id: n32) -> rien #externe libGL
 glBufferData :: fonc (target: GLenum, size: n64, data: *rien, usage: n32) -> rien #externe libGL
+glBufferSubData :: fonc (target: GLenum, offset: z64, size: n64, data: *rien) -> rien #externe libGL
 glIsBuffer :: fonc (target: GLenum) -> GLboolean #externe libGL
 
 // foncs Arrays

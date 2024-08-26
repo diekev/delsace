@@ -483,6 +483,34 @@ définis_titre_fenêtre :: fonc (fenêtre: *QT_Fenetre_Principale, document: *Do
 /** \nom Widget page.
  * \{ */
 
+RappelsTab :: struct {
+    empl base: QT_Rappels_TabWidget
+
+    fenêtre: *QT_Fenetre_Principale
+
+    sur_changement_page = rappels_widget_page_sur_changement_index
+    sur_destruction = rappels_widget_page_sur_destruction
+}
+
+rappels_widget_page_sur_changement_index :: fonc (base: *QT_Rappels_TabWidget, index: z32 @inutilisée)
+{
+    rappels := base comme *RappelsTab
+    fenêtre := rappels.fenêtre
+    rappels_fenêtre := QT_fenetre_principale_donne_rappels(fenêtre) comme *RappelsFenetrePrincipale
+
+    page := QT_tab_widget_donne_widget_courant(rappels.widget)
+
+    si page == (rappels_fenêtre.widget_arbre_de_disposition comme *QT_Widget) {
+        ajourne_widget_arbre_de_disposition(rappels_fenêtre)
+    }
+}
+
+rappels_widget_page_sur_destruction :: fonc (base: *QT_Rappels_TabWidget)
+{
+    rappels := base comme *RappelsTab
+    déloge(rappels)
+}
+
 crée_widget_pour_page :: fonc (fenêtre: *QT_Fenetre_Principale, page_web: PageWeb)
 {
     rappels := QT_fenetre_principale_donne_rappels(fenêtre) comme *RappelsFenetrePrincipale
@@ -492,7 +520,9 @@ crée_widget_pour_page :: fonc (fenêtre: *QT_Fenetre_Principale, page_web: Page
 
     barre_de_navigation := crée_barre_de_navigation(*rappels.user_agent, *rappels.page_web, *rappels.widgets_page, widget)
 
-    tabs := QT_cree_tab_widget(nul, fenêtre)
+    rappels_tabs := loge(RappelsTab)
+    rappels_tabs.fenêtre = fenêtre
+    tabs := QT_cree_tab_widget(rappels_tabs, fenêtre)
     QT_tab_widget_definis_tabs_fermable(tabs, 0)
 
     widget_rendu := crée_widget_pour_rendu(fenêtre, tabs)
@@ -916,16 +946,9 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glClearColor(1.0, 1.0, 1.0, 1.0)
 
-    ancien_arbre := donne_arbre_de_disposition(vue_rendu_page.page)
-
     arbre := crée_arbre_de_disposition(vue_rendu_page.page, vue_rendu_page.largeur, vue_rendu_page.hauteur)
     saufsi arbre && arbre.racine {
         retourne
-    }
-
-    si ancien_arbre != arbre {
-        rappels := QT_fenetre_principale_donne_rappels(vue_rendu_page.fenêtre_principale) comme *RappelsFenetrePrincipale
-        ajourne_widget_arbre_de_disposition(rappels)
     }
 
     page := vue_rendu_page.page
@@ -981,6 +1004,7 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
         rect_barre.y = hauteur_vue - hauteur_barre - page.défilement_vertical.rect.y
 
         peintre.remplis_rectangle(rect_barre, couleur)
+        peintre.termine_dessin()
     }
 }
 

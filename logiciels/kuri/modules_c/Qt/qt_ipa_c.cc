@@ -2046,6 +2046,12 @@ void QT_tab_widget_remplace_widget_page_courante(QT_TabWidget *tab_widget,
     qtab_widget->setCurrentIndex(nouvel_index);
 }
 
+QT_Widget *QT_tab_widget_donne_widget_courant(QT_TabWidget *tab_widget)
+{
+    VERS_QT(tab_widget);
+    return reinterpret_cast<QT_Widget *>(qtab_widget->currentWidget());
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
