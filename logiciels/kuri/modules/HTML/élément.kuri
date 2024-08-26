@@ -134,7 +134,7 @@ table_virtuelle_élément := TableVirtuelleÉlément(
             // élément.style.owner_node = élément
         }
 
-        élément.document.invalide_style()
+        élément.document.invalide_style_depuis_élément(élément)
         retourne vrai
     }
 
