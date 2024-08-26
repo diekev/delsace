@@ -34,6 +34,9 @@ Peintre :: struct {
     /* Donne la taille du cannevas. */
     rappel_donne_taille_cannevas: fonc(*Peintre)(Taille)
 
+    /* Termine le dessin en cours (vide les tampons courant, etc.) */
+    rappel_termine_dessin: fonc(*Peintre)(rien)
+
     /* Remplis la totalité du cannevas avec la couleur donnée. */
     rappel_remplis_arrière_plan: fonc(*Peintre, CouleurPeintre)(rien)
 
@@ -91,6 +94,11 @@ définis_taille_cannevas :: fonc (peintre: *Peintre, taille: Taille) -> rien #en
 donne_taille_cannevas :: fonc (peintre: *Peintre) -> Taille #enligne
 {
     retourne peintre.rappel_donne_taille_cannevas(peintre)
+}
+
+termine_dessin :: fonc (peintre: *Peintre) #enligne
+{
+    peintre.rappel_termine_dessin(peintre)
 }
 
 remplis_arrière_plan :: fonc (peintre: *Peintre, couleur: CouleurPeintre) -> rien #enligne
@@ -494,6 +502,7 @@ crée_peintre_igumi :: fonc (taille_cannevas: Taille) -> *Peintre
     peintre := loge(Peintre)
     peintre.rappel_définis_taille_cannevas = définis_taille_cannevas_igumi
     peintre.rappel_donne_taille_cannevas = donne_taille_cannevas_igumi
+    peintre.rappel_termine_dessin = termine_dessin_igumi
     peintre.rappel_remplis_arrière_plan = remplis_arrière_plan_igumi
     peintre.rappel_dessine_rectangle = dessine_rectangle_igumi
     peintre.rappel_remplis_rectangle = remplis_rectangle_igumi
@@ -600,6 +609,11 @@ donne_taille_cannevas_igumi :: fonc (peintre: *Peintre @inutilisée) -> Taille
     retourne Taille(Largeur(IGUMI.donne_largeur_cannevas()), Hauteur(IGUMI.donne_hauteur_cannevas()))
 }
 
+termine_dessin_igumi :: fonc (peintre: *Peintre @inutilisée)
+{
+    IGUMI.termine_immédiat()
+}
+
 remplis_arrière_plan_igumi :: fonc (peintre: *Peintre @inutilisée, couleur_peintre: CouleurPeintre)
 {
     couleur := donne_couleur_igumi(couleur_peintre)
@@ -611,9 +625,7 @@ dessine_rectangle_igumi :: fonc (peintre: *Peintre @inutilisée, rectangle_peint
     rectangle := donne_rectangle_igumi(rectangle_peintre)
     couleur := donne_couleur_igumi(couleur_peintre)
 
-    utilise_nuanceur(nuanceur_base)
-    commence_immédiat()
-    diffère termine_immédiat(ModeImmédiat.LIGNES)
+    commence_immédiat(ModeImmédiat.LIGNES, nuanceur_base)
 
     p0 := Point2D(r32)(rectangle.x, rectangle.y)
     p1 := Point2D(r32)(rectangle.x, rectangle.y + rectangle.hauteur)
@@ -631,9 +643,7 @@ remplis_rectangle_igumi :: fonc (peintre: *Peintre @inutilisée, rectangle_peint
     rectangle := donne_rectangle_igumi(rectangle_peintre)
     couleur := donne_couleur_igumi(couleur_peintre)
 
-    utilise_nuanceur(nuanceur_base)
-    commence_immédiat()
-    diffère termine_immédiat(ModeImmédiat.TRIANGLES)
+    commence_immédiat(ModeImmédiat.TRIANGLES, nuanceur_base)
 
     quad_immédiat(rectangle.x, rectangle.y, rectangle.largeur, rectangle.hauteur, couleur)
 }
@@ -643,9 +653,7 @@ dessine_rectangle_arrondi_igumi :: fonc (peintre: *Peintre @inutilisée, rectang
     rectangle := donne_rectangle_igumi(rectangle_peintre)
     couleur := donne_couleur_igumi(couleur_peintre)
 
-    utilise_nuanceur(nuanceur_base)
-    commence_immédiat()
-    diffère termine_immédiat(ModeImmédiat.LIGNES)
+    commence_immédiat(ModeImmédiat.LIGNES, nuanceur_base)
 
     rayon_double := rayon * 2.0
     si rayon_double == rectangle.largeur && rayon_double == rectangle.hauteur {
@@ -662,9 +670,7 @@ remplis_rectangle_arrondi_igumi :: fonc (peintre: *Peintre @inutilisée, rectang
     rectangle := donne_rectangle_igumi(rectangle_peintre)
     couleur := donne_couleur_igumi(couleur_peintre)
 
-    utilise_nuanceur(nuanceur_base)
-    commence_immédiat()
-    diffère termine_immédiat(ModeImmédiat.TRIANGLES)
+    commence_immédiat(ModeImmédiat.TRIANGLES, nuanceur_base)
 
     rayon_double := rayon * 2.0
     si rayon_double == rectangle.largeur && rayon_double == rectangle.hauteur {
@@ -681,9 +687,7 @@ dessine_cercle_igumi :: fonc (peintre: *Peintre @inutilisée, cercle_peintre: Ce
     cercle := donne_cercle_igumi(cercle_peintre)
     couleur := donne_couleur_igumi(couleur_peintre)
 
-    utilise_nuanceur(nuanceur_base)
-    commence_immédiat()
-    diffère termine_immédiat(ModeImmédiat.LIGNES)
+    commence_immédiat(ModeImmédiat.LIGNES, nuanceur_base)
 
     cercle_immédiat(cercle.centre_x, cercle.centre_y, cercle.rayon, couleur, faux)
 }
@@ -693,9 +697,7 @@ remplis_cercle_igumi :: fonc (peintre: *Peintre @inutilisée, cercle_peintre: Ce
     cercle := donne_cercle_igumi(cercle_peintre)
     couleur := donne_couleur_igumi(couleur_peintre)
 
-    utilise_nuanceur(nuanceur_base)
-    commence_immédiat()
-    diffère termine_immédiat(ModeImmédiat.TRIANGLES)
+    commence_immédiat(ModeImmédiat.TRIANGLES, nuanceur_base)
 
     cercle_immédiat(cercle.centre_x, cercle.centre_y, cercle.rayon, couleur, vrai)
 }
@@ -705,9 +707,7 @@ dessine_segment_igumi :: fonc (peintre: *Peintre @inutilisée, segment_peintre: 
     segment := donne_ligne_igumi(segment_peintre)
     couleur := donne_couleur_igumi(couleur_peintre)
 
-    utilise_nuanceur(nuanceur_base)
-    commence_immédiat()
-    diffère termine_immédiat(ModeImmédiat.LIGNES)
+    commence_immédiat(ModeImmédiat.LIGNES, nuanceur_base)
 
     segment_immédiat(segment.p0.x, segment.p0.y, segment.p1.x, segment.p1.y, couleur)
 }
@@ -716,9 +716,7 @@ dessine_segments_igumi :: fonc (peintre: *Peintre @inutilisée, segments_peintre
 {
     couleur := donne_couleur_igumi(couleur_peintre)
 
-    utilise_nuanceur(nuanceur_base)
-    commence_immédiat()
-    diffère termine_immédiat(ModeImmédiat.LIGNES)
+    commence_immédiat(ModeImmédiat.LIGNES, nuanceur_base)
 
     pour segments_peintre {
         segment := donne_ligne_igumi(it)
