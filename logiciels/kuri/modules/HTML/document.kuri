@@ -86,6 +86,9 @@ Document :: struct {
     arbre_de_disposition: *CSS.ArbreDeDisposition
     globales_dessin: *CSS.GlobalesDessin
     résolveuse_style: *CSS.RésolveuseStyle
+    /* Nous accumulons les changements via les différentes fonctions d'ajournement/invalidation,
+     * et remettons ceci à zéro lors des rendus via "CSS.donne_arbre_de_disposition_ajourné". */
+    ajournement_arbre := CSS.AjournementArbre.Construction
 
     noeud_survolé: *Élément
     /* L'élément sous la souris lors des pressions et relâchement. */
@@ -330,13 +333,7 @@ donne_ancêtre_élément_commun :: fonc (a: *Élément, b: *Élément) -> *Élé
 /* Invalide le style de manière générale. */
 invalide_style :: fonc (document: *Document)
 {
-    CSS.détruit_arbre(document.arbre_de_disposition)
-    document.arbre_de_disposition = nul
-
-    user_agent := document.donne_user_agent()
-    si user_agent {
-        user_agent.requiers_rendu()
-    }
+    document.définis_ajournement_arbre(CSS.AjournementArbre.Construction)
 }
 
 /* Invalide le style suite à la modification d'une pseudo-classe. */
@@ -367,16 +364,7 @@ invalide_style_depuis_élément :: fonc (document: *Document, élément: *Élém
     }
 
     ajournement := donne_ajournement_depuis_élément(document.résolveuse_style, élément)
-
-    si ajournement.Construction {
-        document.invalide_style()
-    }
-    sinon {
-        user_agent := document.donne_user_agent()
-        si user_agent {
-            user_agent.requiers_rendu()
-        }
-    }
+    document.définis_ajournement_arbre(ajournement)
 }
 
 donne_ajournement_depuis_élément :: fonc (résolveuse: *CSS.RésolveuseStyle, élément: *Élément) -> CSS.AjournementArbre
@@ -398,6 +386,19 @@ donne_ajournement_depuis_élément :: fonc (résolveuse: *CSS.RésolveuseStyle, 
 
     retourne résultat
 }
+
+#portée_fichier
+
+définis_ajournement_arbre :: fonc (document: *Document, ajournement: CSS.AjournementArbre)
+{
+    document.ajournement_arbre |= ajournement
+    user_agent := document.donne_user_agent()
+    si user_agent {
+        user_agent.requiers_rendu()
+    }
+}
+
+#portée_export
 
 donne_user_agent :: fonc (document: *Document) -> *UserAgent
 {

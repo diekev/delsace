@@ -589,6 +589,25 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
 /** \nom Génération d'arbres de disposition.
  * \{ */
 
+donne_arbre_de_disposition_ajourné :: fonc (document: *HTML.Document, largeur: z32, hauteur: z32) -> *ArbreDeDisposition
+{
+    ajournement := document.ajournement_arbre
+
+    si document.arbre_de_disposition == nul || ajournement.Construction {
+        si document.arbre_de_disposition {
+            détruit_arbre(document.arbre_de_disposition)
+        }
+        crée_arbre_de_disposition(document, largeur, hauteur)
+    }
+    sinon si ajournement.Disposition {
+        dispose_arbre(document.globales_dessin, document.arbre_de_disposition, largeur, hauteur)
+    }
+
+    document.ajournement_arbre = AjournementArbre.zéro
+
+    retourne document.arbre_de_disposition
+}
+
 crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, hauteur: z32)
 {
     html := HTML.donne_élément_html(document)
@@ -616,14 +635,7 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, haut
 
     // imprime("Créé % noeud(s)\n", résultat.noeuds.taille)
 
-    ctx: ContexteDisposition
-    ctx.largeur_disponible = largeur comme r32
-    ctx.hauteur_disponible = hauteur comme r32
-    ctx.globales = document.globales_dessin
-
-    mesure(résultat.racine, *ctx)
-
-    // imprime("taille arbre : %x%\n", résultat.racine.largeur, résultat.racine.hauteur)
+    dispose_arbre(document.globales_dessin, résultat, largeur, hauteur)
 
     // imprime_arbre(résultat)
 
@@ -632,6 +644,18 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, haut
     }
 
     document.arbre_de_disposition = résultat
+}
+
+dispose_arbre :: fonc (globales: *GlobalesDessin, arbre: *ArbreDeDisposition, largeur: z32, hauteur: z32)
+{
+    ctx: ContexteDisposition
+    ctx.largeur_disponible = largeur comme r32
+    ctx.hauteur_disponible = hauteur comme r32
+    ctx.globales = globales
+
+    mesure(arbre.racine, *ctx)
+
+    // imprime("taille arbre : %x%\n", résultat.racine.largeur, résultat.racine.hauteur)
 }
 
 crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *ArbreDeDisposition, parent: *NoeudDeDisposition, noeud: *HTML.Noeud)
