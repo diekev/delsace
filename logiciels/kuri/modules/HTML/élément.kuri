@@ -141,6 +141,7 @@ table_virtuelle_élément := TableVirtuelleÉlément(
 
     si local_name == ATTR_class {
         déloge(élément.liste_classes)
+        // À FAIRE : invalide le style pour les classes
         retourne vrai
     }
 

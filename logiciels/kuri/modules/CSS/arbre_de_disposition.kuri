@@ -218,6 +218,7 @@ RésolveuseStyle :: struct {
      * que des chaines pour le stockage ordonné. */
     ids_connus: [..]n32
     attrs_connus: [..]n32
+    classes_connues: [..]n32
 }
 
 crée_résolveuse_style :: fonc (document: *HTML.Document) -> *RésolveuseStyle
@@ -241,6 +242,7 @@ initialise_cache :: fonc (résolveuse: *RésolveuseStyle)
     pseudo_classes: PseudoClasses
     résolveuse.ids_connus.taille = 0
     résolveuse.attrs_connus.taille = 0
+    résolveuse.classes_connues.taille = 0
 
     pour feuille dans résolveuse.feuilles_de_style {
         pour règle dans feuille.rules {
@@ -261,6 +263,9 @@ initialise_cache :: fonc (résolveuse: *RésolveuseStyle)
                         sinon si simple.type == SimpleSelector.Type.Attrib {
                             ensemble_ajoute(*résolveuse.attrs_connus, simple.ident.valeur)
                         }
+                        sinon si simple.type == SimpleSelector.Type.Class {
+                            ensemble_ajoute(*résolveuse.classes_connues, simple.ident.valeur)
+                        }
                     }
                 }
             }
@@ -275,6 +280,7 @@ détruit_données_résolveuse :: fonc (résolveuse: *RésolveuseStyle)
     déloge(résolveuse.déclarations_cascade)
     déloge(résolveuse.ids_connus)
     déloge(résolveuse.attrs_connus)
+    déloge(résolveuse.classes_connues)
 }
 
 détruit_résolveuse :: fonc (résolveuse: *RésolveuseStyle)
