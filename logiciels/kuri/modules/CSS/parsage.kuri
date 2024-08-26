@@ -3,6 +3,7 @@ importe Couleur
 importe Ensemble
 importe Fondation
 importe Internet
+importe Math
 importe Unicode
 
 /* ------------------------------------------------------------------------- */
@@ -110,6 +111,19 @@ ComponentValue :: union {
     bloc: ParsedSimpleBlock
 }
 
+détruit_value :: fonc (value: ComponentValue)
+{
+    discr value {
+        function(f) {
+            détruit_données_function(*f)
+        }
+        bloc(b) {
+            détruit_données_bloc(*b)
+        }
+        sinon {}
+    }
+}
+
 copie_value :: fonc (value: ComponentValue) -> ComponentValue
 {
     discr value {
@@ -176,15 +190,7 @@ détruit_tableau_component_value :: fonc (value: *[..]ComponentValue)
 {
     tmp := mémoire(value)
     pour tmp {
-        discr it {
-            function(f) {
-                détruit_données_function(*f)
-            }
-            bloc(b) {
-                détruit_données_bloc(*b)
-            }
-            sinon {}
-        }
+        détruit_value(it)
     }
 
     déloge(tmp)
@@ -598,7 +604,7 @@ consomme_le_contenu_d_un_bloc_de_style :: fonc (parseuse: &Parseuse($T)) -> Styl
 
         si lexème.est_lexème_de_genre(GenreLexème.Ident) {
             // Initialize a temporary list initially filled with the current input token.
-            temp: [..]T
+            temp: [..]ComponentValue
             tableau_ajoute(*temp, lexème)
 
             // As long as the next input token is anything other than a <semicolon-token>
@@ -646,7 +652,8 @@ consomme_le_contenu_d_un_bloc_de_style :: fonc (parseuse: &Parseuse($T)) -> Styl
             si lexème.est_lexème_de_genre(GenreLexème.EOF) || lexème.est_lexème_de_genre(GenreLexème.Semicolon) {
                 arrête
             }
-            parseuse.avance()
+            component_value := consomme_une_valeur_composante(parseuse)
+            détruit_value(component_value)
         }
     }
 
@@ -682,7 +689,7 @@ consomme_une_liste_de_déclarations :: fonc (parseuse: &Parseuse($T)) -> StyleBl
 
         si lexème.est_lexème_de_genre(GenreLexème.Ident) {
             // Initialize a temporary list initially filled with the current input token.
-            temp: [..]T
+            temp: [..]ComponentValue
             tableau_ajoute(*temp, lexème)
 
             // As long as the next input token is anything other than a <semicolon-token>
@@ -694,8 +701,8 @@ consomme_une_liste_de_déclarations :: fonc (parseuse: &Parseuse($T)) -> StyleBl
                     arrête
                 }
 
-                tableau_ajoute(*temp, lexème)
-                parseuse.avance()
+                component_value := consomme_une_valeur_composante(parseuse)
+                tableau_ajoute(*temp, component_value)
             }
 
             // Consume a declaration from the temporary list.
@@ -721,7 +728,8 @@ consomme_une_liste_de_déclarations :: fonc (parseuse: &Parseuse($T)) -> StyleBl
             si lexème.est_lexème_de_genre(GenreLexème.EOF) || lexème.est_lexème_de_genre(GenreLexème.Semicolon) {
                 arrête
             }
-            parseuse.avance()
+            component_value := consomme_une_valeur_composante(parseuse)
+            détruit_value(component_value)
         }
     }
 
@@ -757,8 +765,8 @@ consomme_une_déclaration :: fonc (parseuse: &Parseuse($T)) -> Optionnel(ParsedD
             arrête
         }
 
-        tableau_ajoute(*value, lexème)
-        parseuse.avance()
+        component_value := consomme_une_valeur_composante(parseuse)
+        tableau_ajoute(*value, component_value)
     }
 
     // 5. If the last two non-<whitespace-token>s in the declaration’s value are a <delim-token>
@@ -1720,6 +1728,7 @@ InfoTypePropriété :: struct {
     héritable: PropriétéHéritable
     genre_valeur_calculée: GenreValeurCalculée
     id: IDPropriété
+    affecte_disposition: bool
     fonction_de_parsage: fonc([..]ComponentValue)(Optionnel(ValeurDeStyle))
     sur_parsage_shorthand: fonc(*ContexteParsageShorthand, [..]ComponentValue)(bool)
     sur_calcul_style: fonc(*DéclarationPropriété, *Style, *ContexteCalculStyle)(rien)
@@ -1727,36 +1736,39 @@ InfoTypePropriété :: struct {
 
 infos_types_propriétés_shorthand := [
     InfoTypePropriété(PROP_background, sur_parsage_shorthand = parse_propriété_background, héritable = PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_border, sur_parsage_shorthand = parse_propriété_border, héritable = PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border, sur_parsage_shorthand = parse_propriété_border, héritable = PropriétéHéritable.Non, affecte_disposition = vrai),
     InfoTypePropriété(PROP_border_color, sur_parsage_shorthand = parse_propriété_border_color, héritable = PropriétéHéritable.Non),
     InfoTypePropriété(PROP_border_style, sur_parsage_shorthand = parse_propriété_border_style, héritable = PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_border_width, sur_parsage_shorthand = parse_propriété_border_width, héritable = PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_border_top, sur_parsage_shorthand = parse_propriété_border_edge, héritable = PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_border_left, sur_parsage_shorthand = parse_propriété_border_edge, héritable = PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_border_bottom, sur_parsage_shorthand = parse_propriété_border_edge, héritable = PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_border_right, sur_parsage_shorthand = parse_propriété_border_edge, héritable = PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_margin, sur_parsage_shorthand = parse_propriété_margin, héritable = PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_margin_block, sur_parsage_shorthand = parse_propriété_margin_logique, héritable = PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_margin_inline, sur_parsage_shorthand = parse_propriété_margin_logique, héritable = PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_border_width, sur_parsage_shorthand = parse_propriété_border_width, héritable = PropriétéHéritable.Non, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_border_top, sur_parsage_shorthand = parse_propriété_border_edge, héritable = PropriétéHéritable.Non, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_border_left, sur_parsage_shorthand = parse_propriété_border_edge, héritable = PropriétéHéritable.Non, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_border_bottom, sur_parsage_shorthand = parse_propriété_border_edge, héritable = PropriétéHéritable.Non, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_border_right, sur_parsage_shorthand = parse_propriété_border_edge, héritable = PropriétéHéritable.Non, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_margin, sur_parsage_shorthand = parse_propriété_margin, héritable = PropriétéHéritable.Non, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_margin_block, sur_parsage_shorthand = parse_propriété_margin_logique, héritable = PropriétéHéritable.Non, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_margin_inline, sur_parsage_shorthand = parse_propriété_margin_logique, héritable = PropriétéHéritable.Non, affecte_disposition = vrai),
     InfoTypePropriété(PROP_text_decoration, sur_parsage_shorthand = parse_propriété_text_decoration, héritable = PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_padding, sur_parsage_shorthand = parse_propriété_padding, héritable = PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_padding_block, sur_parsage_shorthand = parse_propriété_padding_logique, héritable = PropriétéHéritable.Non),
-    InfoTypePropriété(PROP_padding_inline, sur_parsage_shorthand = parse_propriété_padding_logique, héritable = PropriétéHéritable.Non),
+    InfoTypePropriété(PROP_padding, sur_parsage_shorthand = parse_propriété_padding, héritable = PropriétéHéritable.Non, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_padding_block, sur_parsage_shorthand = parse_propriété_padding_logique, héritable = PropriétéHéritable.Non, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_padding_inline, sur_parsage_shorthand = parse_propriété_padding_logique, héritable = PropriétéHéritable.Non, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_inset, sur_parsage_shorthand = parse_propriété_inset_shorthand, héritable = PropriétéHéritable.Non, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_inset_block, sur_parsage_shorthand = parse_propriété_inset_logique, héritable = PropriétéHéritable.Non, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_inset_inline, sur_parsage_shorthand = parse_propriété_inset_logique, héritable = PropriétéHéritable.Non, affecte_disposition = vrai),
     InfoTypePropriété(PROP_text_align, id = IDPropriété.TextAlign, fonction_de_parsage = parse_propriété_text_align, héritable = PropriétéHéritable.Oui, genre_valeur_calculée = GenreValeurCalculée.Spécifié)
 ]
 
 infos_types_propriétés := [
-    InfoTypePropriété(PROP_display, id = IDPropriété.Display, fonction_de_parsage = parse_propriété_display, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.Display),
+    InfoTypePropriété(PROP_display, id = IDPropriété.Display, fonction_de_parsage = parse_propriété_display, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.Display, affecte_disposition = vrai),
     InfoTypePropriété(PROP_background_color, id = IDPropriété.BackgroundColor, fonction_de_parsage = parse_propriété_color, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.Couleur),
     InfoTypePropriété(PROP_color, id = IDPropriété.Color, fonction_de_parsage = parse_propriété_color, héritable = PropriétéHéritable.Oui, genre_valeur_calculée = GenreValeurCalculée.Couleur),
     InfoTypePropriété(PROP_text_decoration_line, id = IDPropriété.TextDecorationLine, fonction_de_parsage = parse_propriété_text_decoration_line, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.TextDecorationLine),
     InfoTypePropriété(PROP_text_decoration_style, id = IDPropriété.TextDecorationStyle, fonction_de_parsage = parse_propriété_text_decoration_style, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.TextDecorationStyle),
     InfoTypePropriété(PROP_text_decoration_color, id = IDPropriété.TextDecorationColor, fonction_de_parsage = parse_propriété_color, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.Couleur),
     InfoTypePropriété(PROP_cursor, id = IDPropriété.Cursor, fonction_de_parsage = parse_propriété_cursor, héritable = PropriétéHéritable.Oui, genre_valeur_calculée = GenreValeurCalculée.Cursor),
-    InfoTypePropriété(PROP_font_family, id = IDPropriété.FontFamily, fonction_de_parsage = parse_propriété_font_family, héritable = PropriétéHéritable.Oui, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
-    InfoTypePropriété(PROP_font_weight, id = IDPropriété.FontWeight, fonction_de_parsage = parse_propriété_font_weight, héritable = PropriétéHéritable.Oui, genre_valeur_calculée = GenreValeurCalculée.Nombre | GenreValeurCalculée.FontWeight),
-    InfoTypePropriété(PROP_font_size, id = IDPropriété.FontSize, fonction_de_parsage = parse_propriété_font_size, héritable = PropriétéHéritable.Oui, genre_valeur_calculée = GenreValeurCalculée.LongueurAbsolue | GenreValeurCalculée.FontSize),
-    InfoTypePropriété(PROP_font_style, id = IDPropriété.FontStyle, fonction_de_parsage = parse_propriété_font_style, héritable = PropriétéHéritable.Oui, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
+    InfoTypePropriété(PROP_font_family, id = IDPropriété.FontFamily, fonction_de_parsage = parse_propriété_font_family, héritable = PropriétéHéritable.Oui, genre_valeur_calculée = GenreValeurCalculée.Spécifié, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_font_weight, id = IDPropriété.FontWeight, fonction_de_parsage = parse_propriété_font_weight, héritable = PropriétéHéritable.Oui, genre_valeur_calculée = GenreValeurCalculée.Nombre | GenreValeurCalculée.FontWeight, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_font_size, id = IDPropriété.FontSize, fonction_de_parsage = parse_propriété_font_size, héritable = PropriétéHéritable.Oui, genre_valeur_calculée = GenreValeurCalculée.LongueurAbsolue | GenreValeurCalculée.FontSize, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_font_style, id = IDPropriété.FontStyle, fonction_de_parsage = parse_propriété_font_style, héritable = PropriétéHéritable.Oui, genre_valeur_calculée = GenreValeurCalculée.Spécifié, affecte_disposition = vrai),
     InfoTypePropriété(PROP_border_top_color, id = IDPropriété.BorderColorTop, fonction_de_parsage = parse_propriété_color, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.Couleur),
     InfoTypePropriété(PROP_border_left_color, id = IDPropriété.BorderColorLeft, fonction_de_parsage = parse_propriété_color, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.Couleur),
     InfoTypePropriété(PROP_border_bottom_color, id = IDPropriété.BorderColorBottom, fonction_de_parsage = parse_propriété_color, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.Couleur),
@@ -1765,37 +1777,43 @@ infos_types_propriétés := [
     InfoTypePropriété(PROP_border_bottom_style, id = IDPropriété.BorderStyleBottom, fonction_de_parsage = parse_propriété_border_line_style, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LineStyle),
     InfoTypePropriété(PROP_border_right_style, id = IDPropriété.BorderStyleRight, fonction_de_parsage = parse_propriété_border_line_style, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LineStyle),
     InfoTypePropriété(PROP_border_left_style, id = IDPropriété.BorderStyleLeft, fonction_de_parsage = parse_propriété_border_line_style, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LineStyle),
-    InfoTypePropriété(PROP_border_top_width, id = IDPropriété.BorderWidthTop, fonction_de_parsage = parse_propriété_border_line_width, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.BorderWidth),
-    InfoTypePropriété(PROP_border_bottom_width, id = IDPropriété.BorderWidthBottom, fonction_de_parsage = parse_propriété_border_line_width, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.BorderWidth),
-    InfoTypePropriété(PROP_border_left_width, id = IDPropriété.BorderWidthLeft, fonction_de_parsage = parse_propriété_border_line_width, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.BorderWidth),
-    InfoTypePropriété(PROP_border_right_width, id = IDPropriété.BorderWidthRight, fonction_de_parsage = parse_propriété_border_line_width, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.BorderWidth),
-    InfoTypePropriété(PROP_margin_block_end, fonction_de_parsage = parse_propriété_margin_top, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_margin_block_end_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto),
-    InfoTypePropriété(PROP_margin_block_start, fonction_de_parsage = parse_propriété_margin_top, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_margin_block_start_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto),
-    InfoTypePropriété(PROP_margin_bottom, id = IDPropriété.MarginBottom, fonction_de_parsage = parse_propriété_margin_top, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto),
-    InfoTypePropriété(PROP_margin_inline_end, fonction_de_parsage = parse_propriété_margin_top, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_margin_inline_end_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto),
-    InfoTypePropriété(PROP_margin_inline_start, fonction_de_parsage = parse_propriété_margin_top, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_margin_inline_start_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto),
-    InfoTypePropriété(PROP_margin_left, id = IDPropriété.MarginLeft, fonction_de_parsage = parse_propriété_margin_top, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto),
-    InfoTypePropriété(PROP_margin_right, id = IDPropriété.MarginRight, fonction_de_parsage = parse_propriété_margin_top, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto),
-    InfoTypePropriété(PROP_margin_top, id = IDPropriété.MarginTop, fonction_de_parsage = parse_propriété_margin_top, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto),
-    InfoTypePropriété(PROP_padding_block_end, fonction_de_parsage = parse_propriété_padding_top, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_padding_block_end_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage),
-    InfoTypePropriété(PROP_padding_block_start, fonction_de_parsage = parse_propriété_padding_top, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_padding_block_start_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage),
-    InfoTypePropriété(PROP_padding_bottom, id = IDPropriété.PaddingBottom, fonction_de_parsage = parse_propriété_padding_top, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage),
-    InfoTypePropriété(PROP_padding_inline_end, fonction_de_parsage = parse_propriété_padding_top, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_padding_inline_end_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage),
-    InfoTypePropriété(PROP_padding_inline_start, fonction_de_parsage = parse_propriété_padding_top, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_padding_inline_start_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage),
-    InfoTypePropriété(PROP_padding_left, id = IDPropriété.PaddingLeft, fonction_de_parsage = parse_propriété_padding_top, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage),
-    InfoTypePropriété(PROP_padding_right, id = IDPropriété.PaddingRight, fonction_de_parsage = parse_propriété_padding_top, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage),
-    InfoTypePropriété(PROP_padding_top, id = IDPropriété.PaddingTop, fonction_de_parsage = parse_propriété_padding_top, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage),
-    InfoTypePropriété(PROP_height, id = IDPropriété.Height, fonction_de_parsage = parse_propriété_height_width, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Spécifié),
-    InfoTypePropriété(PROP_min_height, id = IDPropriété.MinHeight, fonction_de_parsage = parse_propriété_min_height_width, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Spécifié),
-    InfoTypePropriété(PROP_max_height, id = IDPropriété.MaxHeight, fonction_de_parsage = parse_propriété_max_height_width, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Spécifié),
-    InfoTypePropriété(PROP_width, id = IDPropriété.Width, fonction_de_parsage = parse_propriété_height_width, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Spécifié),
-    InfoTypePropriété(PROP_min_width, id = IDPropriété.MinWidth, fonction_de_parsage = parse_propriété_min_height_width, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Spécifié),
-    InfoTypePropriété(PROP_max_width, id = IDPropriété.MaxWidth, fonction_de_parsage = parse_propriété_max_height_width, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Spécifié),
-    InfoTypePropriété(PROP_line_height, id = IDPropriété.LineHeight, fonction_de_parsage = parse_propriété_line_height, héritable = PropriétéHéritable.Oui, genre_valeur_calculée = GenreValeurCalculée.Nombre | GenreValeurCalculée.Spécifié),
-    InfoTypePropriété(PROP_bottom, id = IDPropriété.Bottom, fonction_de_parsage = parse_propriété_inset, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto),
-    InfoTypePropriété(PROP_left, id = IDPropriété.Left, fonction_de_parsage = parse_propriété_inset, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto),
-    InfoTypePropriété(PROP_right, id = IDPropriété.Right, fonction_de_parsage = parse_propriété_inset, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto),
-    InfoTypePropriété(PROP_top, id = IDPropriété.Top, fonction_de_parsage = parse_propriété_inset, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto)
+    InfoTypePropriété(PROP_border_top_width, id = IDPropriété.BorderWidthTop, fonction_de_parsage = parse_propriété_border_line_width, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.BorderWidth, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_border_bottom_width, id = IDPropriété.BorderWidthBottom, fonction_de_parsage = parse_propriété_border_line_width, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.BorderWidth, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_border_left_width, id = IDPropriété.BorderWidthLeft, fonction_de_parsage = parse_propriété_border_line_width, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.BorderWidth, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_border_right_width, id = IDPropriété.BorderWidthRight, fonction_de_parsage = parse_propriété_border_line_width, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.BorderWidth, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_margin_block_end, fonction_de_parsage = parse_propriété_margin_top, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_margin_block_end_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_margin_block_start, fonction_de_parsage = parse_propriété_margin_top, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_margin_block_start_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_margin_bottom, id = IDPropriété.MarginBottom, fonction_de_parsage = parse_propriété_margin_top, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_margin_inline_end, fonction_de_parsage = parse_propriété_margin_top, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_margin_inline_end_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_margin_inline_start, fonction_de_parsage = parse_propriété_margin_top, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_margin_inline_start_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_margin_left, id = IDPropriété.MarginLeft, fonction_de_parsage = parse_propriété_margin_top, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_margin_right, id = IDPropriété.MarginRight, fonction_de_parsage = parse_propriété_margin_top, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_margin_top, id = IDPropriété.MarginTop, fonction_de_parsage = parse_propriété_margin_top, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_padding_block_end, fonction_de_parsage = parse_propriété_padding_top, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_padding_block_end_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_padding_block_start, fonction_de_parsage = parse_propriété_padding_top, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_padding_block_start_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_padding_bottom, id = IDPropriété.PaddingBottom, fonction_de_parsage = parse_propriété_padding_top, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_padding_inline_end, fonction_de_parsage = parse_propriété_padding_top, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_padding_inline_end_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_padding_inline_start, fonction_de_parsage = parse_propriété_padding_top, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_padding_inline_start_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_padding_left, id = IDPropriété.PaddingLeft, fonction_de_parsage = parse_propriété_padding_top, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_padding_right, id = IDPropriété.PaddingRight, fonction_de_parsage = parse_propriété_padding_top, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_padding_top, id = IDPropriété.PaddingTop, fonction_de_parsage = parse_propriété_padding_top, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_height, id = IDPropriété.Height, fonction_de_parsage = parse_propriété_height_width, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Spécifié, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_min_height, id = IDPropriété.MinHeight, fonction_de_parsage = parse_propriété_min_height_width, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Spécifié, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_max_height, id = IDPropriété.MaxHeight, fonction_de_parsage = parse_propriété_max_height_width, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Spécifié, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_width, id = IDPropriété.Width, fonction_de_parsage = parse_propriété_height_width, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Spécifié, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_min_width, id = IDPropriété.MinWidth, fonction_de_parsage = parse_propriété_min_height_width, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Spécifié, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_max_width, id = IDPropriété.MaxWidth, fonction_de_parsage = parse_propriété_max_height_width, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Spécifié, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_line_height, id = IDPropriété.LineHeight, fonction_de_parsage = parse_propriété_line_height, héritable = PropriétéHéritable.Oui, genre_valeur_calculée = GenreValeurCalculée.Nombre | GenreValeurCalculée.Spécifié, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_bottom, id = IDPropriété.Bottom, fonction_de_parsage = parse_propriété_inset, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_left, id = IDPropriété.Left, fonction_de_parsage = parse_propriété_inset, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_right, id = IDPropriété.Right, fonction_de_parsage = parse_propriété_inset, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_top, id = IDPropriété.Top, fonction_de_parsage = parse_propriété_inset, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_inset_block_end, fonction_de_parsage = parse_propriété_inset, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_inset_block_end_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_inset_block_start, fonction_de_parsage = parse_propriété_inset, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_inset_block_start_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_inset_inline_end, fonction_de_parsage = parse_propriété_inset, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_inset_inline_end_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_inset_inline_start, fonction_de_parsage = parse_propriété_inset, héritable = PropriétéHéritable.Non, sur_calcul_style = prop_inset_inline_start_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_position, id = IDPropriété.Position, fonction_de_parsage = parse_propriété_position, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.Spécifié, affecte_disposition = vrai),
+    InfoTypePropriété(PROP_float, id = IDPropriété.Float, fonction_de_parsage = parse_propriété_float, héritable = PropriétéHéritable.Non, genre_valeur_calculée = GenreValeurCalculée.Spécifié, affecte_disposition = vrai)
 ]
 
 #portée_export
@@ -2127,6 +2145,14 @@ parse_valeur_couleur :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(
             retourne résultat
         }
 
+        si fonction.name == PROP_hsl || fonction.name == PROP_hsla {
+            résultat := parse_couleur_hsl(fonction)
+            si résultat.possède_valeur() {
+                parseuse.avance()
+            }
+            retourne résultat
+        }
+
         retourne
     }
 }
@@ -2209,6 +2235,9 @@ parse_couleur_rgb_modern :: fonc (value: [..]ComponentValue) -> Optionnel(Valeur
             eu_pourcentage = vrai
             valeur := lexème.lexème.numeric_value * 255.0 / 100.0
             valeurs[3] = valeur
+        }
+        sinon si lexème.est_mot_clé(PROP_none) {
+            valeurs[3] = 0.0
         }
     }
 
@@ -2341,6 +2370,203 @@ parse_couleur_syntaxe_legacy :: fonc (value: [..]ComponentValue) -> Optionnel(Va
 
     couleur := CouleurRVBAN8(valeurs[0] comme n8, valeurs[1] comme n8, valeurs[2] comme n8, valeurs[3] comme n8)
     retourne ValeurDeStyle(couleur = couleur)
+}
+
+/* https://drafts.csswg.org/css-color-4/#funcdef-hsl */
+parse_couleur_hsl :: fonc (function: &ParsedFunction) -> Optionnel(ValeurDeStyle)
+{
+    résultat := parse_couleur_hsl_legacy(function.value)
+    si résultat.possède_valeur() {
+        retourne résultat
+    }
+
+    résultat = parse_couleur_hsl_modern(function.value)
+    si résultat.possède_valeur() {
+        retourne résultat
+    }
+}
+
+parse_couleur_hsl_modern :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+
+    /* Teinte */
+    hue : r64 = 0
+    opt_hue := parseuse.parse_hue()
+    si opt_hue.possède_valeur() {
+        hue = opt_hue.Quelque
+    }
+    sinon {
+        lexème := parseuse.lexème_courant()
+        saufsi lexème.est_mot_clé(PROP_none) {
+            retourne
+        }
+        parseuse.avance()
+    }
+
+    parseuse.consomme_espaces_blanches()
+
+    /* Saturation. */
+    lexème := parseuse.lexème_courant()
+    sat : r64 = 0
+    si lexème.est_lexème_de_genre(GenreLexème.Percentage) {
+        sat = lexème.lexème.numeric_value
+    }
+    sinon saufsi lexème.est_mot_clé(PROP_none) {
+        retourne
+    }
+    parseuse.avance()
+
+    parseuse.consomme_espaces_blanches()
+
+    /* Luminance */
+    lexème = parseuse.lexème_courant()
+    lum : r64 = 0
+    si lexème.est_lexème_de_genre(GenreLexème.Percentage) {
+        lum = lexème.lexème.numeric_value
+    }
+    sinon saufsi lexème.est_mot_clé(PROP_none) {
+        retourne
+    }
+    parseuse.avance()
+
+    parseuse.consomme_espaces_blanches()
+
+    /* Alpha */
+    alpha : r64 = 0.0
+    saufsi parseuse.fini() {
+        lexème = parseuse.lexème_courant()
+        si lexème.est_lexème_de_genre(GenreLexème.Percentage) {
+            alpha = lexème.lexème.numeric_value / 100.0
+        }
+        sinon si lexème.est_lexème_de_genre(GenreLexème.Number) {
+            alpha = lexème.lexème.numeric_value
+        }
+        sinon {
+            retourne
+        }
+
+        parseuse.avance()
+        parseuse.consomme_espaces_blanches()
+    }
+
+    saufsi parseuse.fini() {
+        retourne
+    }
+
+    tsl: CouleurTSL
+    tsl.t = (hue / 360.0) comme r32
+    tsl.s = (sat / 100.0) comme r32
+    tsl.l = (lum / 100.0) comme r32
+
+    rvb := tsl_vers_rvb(tsl)
+
+    couleur := CouleurRVBAN8((rvb.r * 255.0) comme n8, (rvb.v * 255.0)  comme n8, (rvb.b * 255.0)  comme n8, (alpha * 255.0)  comme n8)
+    retourne ValeurDeStyle(couleur = couleur)
+}
+
+parse_couleur_hsl_legacy :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+
+    /* Teinte */
+    opt_hue := parseuse.parse_hue()
+    saufsi opt_hue.possède_valeur() {
+        retourne
+    }
+    hue := opt_hue.Quelque
+
+    saufsi parseuse.consomme_virgule_et_espaces_blanches() {
+        retourne
+    }
+
+    /* Saturation. */
+    lexème := parseuse.lexème_courant()
+    saufsi lexème.est_lexème_de_genre(GenreLexème.Percentage) {
+        retourne
+    }
+    sat := lexème.lexème.numeric_value
+    parseuse.avance()
+
+    saufsi parseuse.consomme_virgule_et_espaces_blanches() {
+        retourne
+    }
+
+    /* Luminance */
+    lexème = parseuse.lexème_courant()
+    saufsi lexème.est_lexème_de_genre(GenreLexème.Percentage) {
+        retourne
+    }
+    lum := lexème.lexème.numeric_value
+    parseuse.avance()
+
+    /* Alpha */
+    alpha : r64 = 0.0
+    si parseuse.consomme_virgule_et_espaces_blanches() {
+        lexème = parseuse.lexème_courant()
+        si lexème.est_lexème_de_genre(GenreLexème.Percentage) {
+            alpha = lexème.lexème.numeric_value / 100.0
+        }
+        sinon si lexème.est_lexème_de_genre(GenreLexème.Number) {
+            alpha = lexème.lexème.numeric_value
+        }
+        sinon {
+            retourne
+        }
+
+        parseuse.avance()
+        parseuse.consomme_espaces_blanches()
+    }
+
+    saufsi parseuse.fini() {
+        retourne
+    }
+
+    tsl: CouleurTSL
+    tsl.t = (hue / 360.0) comme r32
+    tsl.s = (sat / 100.0) comme r32
+    tsl.l = (lum / 100.0) comme r32
+
+    rvb := tsl_vers_rvb(tsl)
+
+    couleur := CouleurRVBAN8((rvb.r * 255.0) comme n8, (rvb.v * 255.0)  comme n8, (rvb.b * 255.0)  comme n8, (alpha * 255.0)  comme n8)
+    retourne ValeurDeStyle(couleur = couleur)
+}
+
+parse_hue :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(r64)
+{
+    lexème := parseuse.lexème_courant()
+
+    si lexème.est_lexème_de_genre(GenreLexème.Number) {
+        parseuse.avance()
+        retourne lexème.lexème.numeric_value
+    }
+
+    si lexème.est_lexème_de_genre(GenreLexème.Dimension) {
+        données_lexème := lexème.lexème
+        
+        si données_lexème.unité == PROP_deg {
+            parseuse.avance()
+            retourne lexème.lexème.numeric_value
+        }
+
+        si données_lexème.unité == PROP_grad {
+            parseuse.avance()
+            retourne lexème.lexème.numeric_value / 400.0 * 360.0
+        }
+
+        si données_lexème.unité == PROP_rad {
+            parseuse.avance()
+            retourne lexème.lexème.numeric_value / Constantes(r64).PI * 180.0
+        }
+
+        si données_lexème.unité == PROP_turn {
+            parseuse.avance()
+            retourne lexème.lexème.numeric_value * 360.0
+        }
+
+        retourne
+    }
 }
 
 consomme_virgule_et_espaces_blanches :: fonc (parseuse: &Parseuse(ComponentValue)) -> bool
@@ -3285,6 +3511,81 @@ parse_propriété_inset :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurD
     retourne parse_valeur_length_percentage_ou_auto(parseuse)
 }
 
+parse_propriété_inset_logique :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
+{
+    parseuse := initialise_une_parseuse(value)
+
+    résultat: [2]ValeurDeStyle
+    nombre_valeurs: z64
+
+    tantque !fini(parseuse) && nombre_valeurs != 2 {
+        parseuse.consomme_espaces_blanches()
+
+        /* auto | <length-percentage> */
+        valeur := parse_valeur_length_percentage_ou_auto(parseuse)
+        si valeur.possède_valeur() {
+            résultat[nombre_valeurs] = valeur.Quelque
+            nombre_valeurs += 1
+            continue
+        }
+
+        opt_valeur := parse_mot_clé_global_ou_var(parseuse)
+        si opt_valeur.possède_valeur() {
+            résultat[nombre_valeurs] = opt_valeur.Quelque
+            nombre_valeurs += 1
+            continue
+        }
+
+        retourne faux
+    }
+
+    noms: [2]CSSOMString
+    si ctx.déclaration_parsée.name == PROP_inset_block {
+        noms[0] = PROP_inset_block_start
+        noms[1] = PROP_inset_block_end
+    }
+    sinon {
+        assert(ctx.déclaration_parsée.name == PROP_inset_inline)
+        noms[0] = PROP_inset_inline_start
+        noms[1] = PROP_inset_inline_end
+    }
+
+    ctx.ajoute_propriétés_logique(nombre_valeurs, résultat, noms)
+    retourne vrai
+}
+
+parse_propriété_inset_shorthand :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
+{
+    parseuse := initialise_une_parseuse(value)
+
+    résultat: [4]ValeurDeStyle
+    nombre_valeurs: z64
+
+    tantque !fini(parseuse) && nombre_valeurs != 4 {
+        parseuse.consomme_espaces_blanches()
+
+        /* auto | <length-percentage> */
+        valeur := parse_valeur_length_percentage_ou_auto(parseuse)
+        si valeur.possède_valeur() {
+            résultat[nombre_valeurs] = valeur.Quelque
+            nombre_valeurs += 1
+            continue
+        }
+
+        opt_valeur := parse_mot_clé_global_ou_var(parseuse)
+        si opt_valeur.possède_valeur() {
+            résultat[nombre_valeurs] = opt_valeur.Quelque
+            nombre_valeurs += 1
+            continue
+        }
+
+        retourne faux
+    }
+
+    ctx.ajoute_propriétés_boite(nombre_valeurs, résultat, [PROP_top, PROP_right, PROP_bottom, PROP_left])
+    retourne vrai
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -3296,6 +3597,34 @@ parse_propriété_text_align :: fonc (value: [..]ComponentValue) -> Optionnel(Va
 {
     parseuse := initialise_une_parseuse(value)
     mots_clés := [PROP_start, PROP_end, PROP_left, PROP_right, PROP_center, PROP_justify, PROP_match_parent, PROP_justify_all]
+    retourne parse_mot_clé(parseuse, mots_clés)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Position
+ * https://drafts.csswg.org/css-position/#position-property
+ * \{ */
+
+parse_propriété_position :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    mots_clés := [PROP_static, PROP_relative, PROP_absolute, PROP_sticky, PROP_fixed]
+    retourne parse_mot_clé(parseuse, mots_clés)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Float
+ * https://drafts.csswg.org/css2/#propdef-float
+ * \{ */
+
+parse_propriété_float :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    mots_clés := [PROP_left, PROP_right, PROP_none]
     retourne parse_mot_clé(parseuse, mots_clés)
 }
 
