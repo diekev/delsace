@@ -340,10 +340,17 @@ invalide_style :: fonc (document: *Document)
 }
 
 /* Invalide le style suite à la modification d'une pseudo-classe. */
-invalide_style :: fonc (document: *Document, pseudo_classe: CSS.PseudoClasses @inutilisée)
+invalide_style :: fonc (document: *Document, élément: *Élément, pseudo_classe: CSS.PseudoClasses)
 {
-    /* À FAIRE : utilise la pseudo-classe, et ne détruit pas l'arbre. */
-    document.invalide_style()
+    saufsi document.résolveuse_style {
+        retourne
+    }
+
+    saufsi CSS.possède_règle_avec_pseudo_classe(document.résolveuse_style, pseudo_classe) {
+        retourne
+    }
+
+    invalide_style_depuis_élément(document, élément)
 }
 
 /* Invalide le style suite au redimensionnement de la fenêtre. */

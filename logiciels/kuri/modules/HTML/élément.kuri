@@ -412,7 +412,7 @@ ajoute_pseudo_classe :: fonc (élément: *Élément, pseudo_classe: CSS.PseudoCl
 
     élément.pseudo_classes |= pseudo_classe
     assert(élément.document != nul)
-    élément.document.invalide_style(pseudo_classe)
+    élément.document.invalide_style(élément, pseudo_classe)
 }
 
 enlève_pseudo_classe :: fonc (élément: *Élément, pseudo_classe: CSS.PseudoClasses)
@@ -423,7 +423,7 @@ enlève_pseudo_classe :: fonc (élément: *Élément, pseudo_classe: CSS.PseudoC
 
     élément.pseudo_classes &= ~pseudo_classe
     assert(élément.document != nul)
-    élément.document.invalide_style(pseudo_classe)
+    élément.document.invalide_style(élément, pseudo_classe)
 }
 
 est_en_train_d_être_activé :: fonc (élément: *Élément, ouinon: bool)
