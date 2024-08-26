@@ -217,6 +217,7 @@ RésolveuseStyle :: struct {
      * données sous d'ensemble et il est plus rapide de comparer des nombres
      * que des chaines pour le stockage ordonné. */
     ids_connus: [..]n32
+    attrs_connus: [..]n32
 }
 
 crée_résolveuse_style :: fonc (document: *HTML.Document) -> *RésolveuseStyle
@@ -239,6 +240,7 @@ initialise_cache :: fonc (résolveuse: *RésolveuseStyle)
 {
     pseudo_classes: PseudoClasses
     résolveuse.ids_connus.taille = 0
+    résolveuse.attrs_connus.taille = 0
 
     pour feuille dans résolveuse.feuilles_de_style {
         pour règle dans feuille.rules {
@@ -256,6 +258,9 @@ initialise_cache :: fonc (résolveuse: *RésolveuseStyle)
                         sinon si simple.type == SimpleSelector.Type.ID {
                             ensemble_ajoute(*résolveuse.ids_connus, simple.ident.valeur)
                         }
+                        sinon si simple.type == SimpleSelector.Type.Attrib {
+                            ensemble_ajoute(*résolveuse.attrs_connus, simple.ident.valeur)
+                        }
                     }
                 }
             }
@@ -269,6 +274,7 @@ détruit_données_résolveuse :: fonc (résolveuse: *RésolveuseStyle)
 {
     déloge(résolveuse.déclarations_cascade)
     déloge(résolveuse.ids_connus)
+    déloge(résolveuse.attrs_connus)
 }
 
 détruit_résolveuse :: fonc (résolveuse: *RésolveuseStyle)
@@ -300,6 +306,17 @@ possède_règle_avec_id :: fonc (résolveuse: *RésolveuseStyle, id: CSSOMString
     }
 
     retourne ensemble_possède(*résolveuse.ids_connus, id.valeur)
+}
+
+possède_règle_avec_attribut :: fonc (résolveuse: *RésolveuseStyle, attr: CSSOMString) -> bool
+{
+    si attr.est_vide() {
+        /* Si l'attribut est la chaine vide, nous devons vérifier que toutes les règles
+         * s'appliquent, donc pas de court-circuitage. */
+        retourne vrai
+    }
+
+    retourne ensemble_possède(*résolveuse.attrs_connus, attr.valeur)
 }
 
 donne_ajournement_pour_redimensionnement :: fonc (résolveuse: *RésolveuseStyle @inutilisée, largeur: z32 @inutilisée, hauteur: z32 @inutilisée) -> AjournementArbre

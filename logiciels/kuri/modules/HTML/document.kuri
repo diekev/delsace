@@ -385,6 +385,21 @@ invalide_style_pour_id :: fonc (document: *Document, élément: *Élément, viei
     invalide_style_depuis_élément(document, élément)
 }
 
+/* Invalide le style suite au changement de la valeur de l'attribut spécifié. */
+invalide_style_pour_attribut :: fonc (document: *Document, élément: *Élément, attribut: DOMString)
+{
+    saufsi document.résolveuse_style {
+        retourne
+    }
+
+    résolveuse := document.résolveuse_style
+    saufsi CSS.possède_règle_avec_attribut(résolveuse, attribut) {
+        retourne
+    }
+
+    invalide_style_depuis_élément(document, élément)
+}
+
 invalide_style_depuis_élément :: fonc (document: *Document, élément: *Élément)
 {
     saufsi document.résolveuse_style {

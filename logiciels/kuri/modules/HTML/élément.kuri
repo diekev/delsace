@@ -206,6 +206,8 @@ gère_changement_attribute :: fonc (attribut: *Attr, élément: *Élément, viei
     si table && table.sur_changement_attribut {
         _ := table.sur_changement_attribut(élément, attribut.local_name, vieille_valeur, nouvelle_valeur, attribut.namespace)
     }
+
+    élément.document.invalide_style_pour_attribut(élément, attribut.local_name)
 }
 
 initialise_élément :: fonc (élément: *Élément, document: *Document, texte: DOMString) -> rien
