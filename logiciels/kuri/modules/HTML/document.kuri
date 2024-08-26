@@ -245,12 +245,32 @@ définis_noeud_survolé :: fonc (document: *Document, noeud: *Élément)
         retourne
     }
 
-    si noeud {
-        noeud.ajoute_pseudo_classe(CSS.PseudoClasses.Hover)
-    }
-
     si document.noeud_survolé {
         document.noeud_survolé.enlève_pseudo_classe(CSS.PseudoClasses.Hover)
+
+        noeud_courant := document.noeud_survolé
+        tantque noeud_courant != nul {
+            noeud_courant.pseudo_classes.Hover = faux
+            parent := noeud_courant.parent
+            saufsi parent.est_élément() {
+                arrête
+            }
+            noeud_courant = parent comme *Élément
+        }
+    }
+
+    si noeud {
+        noeud.ajoute_pseudo_classe(CSS.PseudoClasses.Hover)
+
+        noeud_courant := noeud
+        tantque noeud_courant != nul {
+            noeud_courant.pseudo_classes.Hover = vrai
+            parent := noeud_courant.parent
+            saufsi parent.est_élément() {
+                arrête
+            }
+            noeud_courant = parent comme *Élément
+        }
     }
 
     document.noeud_survolé = noeud
