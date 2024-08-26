@@ -276,7 +276,7 @@ crée_propriétés_de_style :: fonc (parent: *PropriétésDeStyle) -> *Propriét
 
     si parent {
         pour * infos_types_propriétés {
-            si it.héritable == PropriétéHéritable.Non {
+            saufsi it.drapeaux.Héritée {
                 continue
             }
             /* Nous devons hériter des valeurs calculées. */
