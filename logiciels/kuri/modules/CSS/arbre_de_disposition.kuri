@@ -466,6 +466,9 @@ donne_ajournement_pour_différence_propriétés :: fonc (nouvelles_propriétés:
 donne_ajournement_arbre :: fonc (info: *InfoTypePropriété) -> AjournementArbre
 {
     si info.drapeaux.AffecteDisposition {
+        retourne AjournementArbre.Disposition
+    }
+    si info.drapeaux.AffecteConstructionArbre {
         retourne AjournementArbre.Construction
     }
     retourne AjournementArbre.Dessin

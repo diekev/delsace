@@ -1723,6 +1723,8 @@ DrapeauxPropriété :: énum_drapeau {
     Héritée
     /* Un changement de valeur requiers une redisposition. */
     AffecteDisposition
+    /* Un changement de valeur requiers une reconstruction de l'arbre. */
+    AffecteConstructionArbre
 }
 
 InfoTypePropriété :: struct {
@@ -1759,7 +1761,7 @@ infos_types_propriétés_shorthand := [
 ]
 
 infos_types_propriétés := [
-    InfoTypePropriété(PROP_display, id = IDPropriété.Display, fonction_de_parsage = parse_propriété_display, genre_valeur_calculée = GenreValeurCalculée.Display, drapeaux = DrapeauxPropriété.AffecteDisposition),
+    InfoTypePropriété(PROP_display, id = IDPropriété.Display, fonction_de_parsage = parse_propriété_display, genre_valeur_calculée = GenreValeurCalculée.Display, drapeaux = DrapeauxPropriété.AffecteConstructionArbre),
     InfoTypePropriété(PROP_background_color, id = IDPropriété.BackgroundColor, fonction_de_parsage = parse_propriété_color, genre_valeur_calculée = GenreValeurCalculée.Couleur),
     InfoTypePropriété(PROP_color, id = IDPropriété.Color, fonction_de_parsage = parse_propriété_color, drapeaux = DrapeauxPropriété.Héritée, genre_valeur_calculée = GenreValeurCalculée.Couleur),
     InfoTypePropriété(PROP_text_decoration_line, id = IDPropriété.TextDecorationLine, fonction_de_parsage = parse_propriété_text_decoration_line, genre_valeur_calculée = GenreValeurCalculée.TextDecorationLine),
@@ -1813,8 +1815,8 @@ infos_types_propriétés := [
     InfoTypePropriété(PROP_inset_block_start, fonction_de_parsage = parse_propriété_inset, sur_calcul_style = prop_inset_block_start_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto, drapeaux = DrapeauxPropriété.AffecteDisposition),
     InfoTypePropriété(PROP_inset_inline_end, fonction_de_parsage = parse_propriété_inset, sur_calcul_style = prop_inset_inline_end_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto, drapeaux = DrapeauxPropriété.AffecteDisposition),
     InfoTypePropriété(PROP_inset_inline_start, fonction_de_parsage = parse_propriété_inset, sur_calcul_style = prop_inset_inline_start_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto, drapeaux = DrapeauxPropriété.AffecteDisposition),
-    InfoTypePropriété(PROP_position, id = IDPropriété.Position, fonction_de_parsage = parse_propriété_position, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition),
-    InfoTypePropriété(PROP_float, id = IDPropriété.Float, fonction_de_parsage = parse_propriété_float, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition)
+    InfoTypePropriété(PROP_position, id = IDPropriété.Position, fonction_de_parsage = parse_propriété_position, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteConstructionArbre),
+    InfoTypePropriété(PROP_float, id = IDPropriété.Float, fonction_de_parsage = parse_propriété_float, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteConstructionArbre)
 ]
 
 #portée_export
