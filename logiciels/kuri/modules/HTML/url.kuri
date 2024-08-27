@@ -409,6 +409,9 @@ basic_url_parser :: fonc (input: ChaineUTF16, base : *URL = nul, url : *URL = nu
             Query {
                 résultat_parsage = basic_url_parser_query(*parser)
             }
+            Fragment {
+                résultat_parsage = basic_url_parser_fragment(*parser)
+            }
             sinon {
                 panique("état parsage non-implémenté : %\n", parser.state)
             }
@@ -1344,6 +1347,27 @@ basic_url_parser_query :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
 
         // 3. Append c to buffer.
         chaine_ajoute(*parser.buffer, c)
+    }
+
+    retourne RésultatParsageURL.Ok
+}
+
+/* https://url.spec.whatwg.org/#fragment-state */
+basic_url_parser_fragment :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
+{
+    // 1. If c is not the EOF code point, then:
+    c := parser.donne_caractère()
+    si c != FIN_DE_FICHIER {
+        // À FAIRE : 1. If c is not a URL code point and not U+0025 (%), invalid-URL-unit validation error.
+
+        // À FAIRE : 2. If c is U+0025 (%) and remaining does not start with two ASCII hex digits, invalid-URL-unit validation error.
+
+        // 3. UTF-8 percent-encode c using the fragment percent-encode set and append the result to url’s fragment.
+        chaine_ajoute(*parser.buffer, c)
+    }
+    sinon {
+        parser.url.fragment = converti_vers_chaine(parser.buffer)
+        parser.buffer.unités.taille = 0
     }
 
     retourne RésultatParsageURL.Ok
