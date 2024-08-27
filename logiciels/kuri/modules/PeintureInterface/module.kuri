@@ -741,25 +741,25 @@ dessine_texte_utf16_igumi :: fonc (peintre: *Peintre @inutilisée, fonte: *Fonte
 dessine_image_igumi :: fonc (peintre: *Peintre @inutilisée, image: ImageIO, rectangle_peintre: RectanglePeintre)
 {
     rect := donne_rectangle_igumi(rectangle_peintre)
-    image_immédiat(image, rect.x, rect.y, rect.largeur, rect.hauteur)
+    image_immédiat(image, rect)
 }
 
 dessine_image_grise_8bit_igumi :: fonc (peintre: *Peintre @inutilisée, image: TamponImageGrise8Bit, rectangle_peintre: RectanglePeintre)
 {
     rect := donne_rectangle_igumi(rectangle_peintre)
-    image_immédiat(image, rect.x, rect.y, rect.largeur, rect.hauteur)
+    image_immédiat(image, rect)
 }
 
 dessine_image_rvba_8bit_igumi :: fonc (peintre: *Peintre @inutilisée, image: TamponImageRVBA8Bit, rectangle_peintre: RectanglePeintre)
 {
     rect := donne_rectangle_igumi(rectangle_peintre)
-    image_immédiat(image, rect.x, rect.y, rect.largeur, rect.hauteur)
+    image_immédiat(image, rect)
 }
 
 dessine_image_rvba_32bit_igumi :: fonc (peintre: *Peintre @inutilisée, image: TamponImageRVBA32Bit, rectangle_peintre: RectanglePeintre)
 {
     rect := donne_rectangle_igumi(rectangle_peintre)
-    image_immédiat(image, rect.x, rect.y, rect.largeur, rect.hauteur)
+    image_immédiat(image, rect)
 }
 
 donne_fonte_igumi :: fonc (peintre: *Peintre @inutilisée) -> *Fonte
