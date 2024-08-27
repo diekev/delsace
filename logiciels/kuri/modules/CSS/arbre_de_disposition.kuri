@@ -44,18 +44,12 @@ détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
 
         si it.type == NoeudDeDispositionBloc {
             bloc := it comme *NoeudDeDispositionBloc
-            pour *boite dans bloc.lignes {
-                détruit_données_boite_de_ligne(boite)
-            }
-            déloge(bloc.lignes)
+            détruit_lignes(bloc)
             déloge(bloc)
         }
         sinon si it.type == NoeudDeDispositionInline {
             noeud := it comme *NoeudDeDispositionInline
-            pour *boite dans noeud.lignes {
-                détruit_données_boite_de_ligne(boite)
-            }
-            déloge(noeud.lignes)
+            détruit_lignes(noeud)
             déloge(noeud)
         }
         sinon si it.type == NoeudDeDispositionTexte {
@@ -1249,6 +1243,20 @@ NoeudDeDispositionBloc :: struct {
     lignes: [..]BoiteDeLigne
 
     est_disposition_inline: bool
+}
+
+détruit_lignes :: fonc (noeud: *NoeudDeDispositionBloc)
+{
+    réinitialise_lignes(noeud)
+    déloge(noeud.lignes)
+}
+
+réinitialise_lignes :: fonc (noeud: *NoeudDeDispositionBloc)
+{
+    pour * noeud.lignes {
+        détruit_données_boite_de_ligne(it)
+    }
+    noeud.lignes.taille = 0
 }
 
 noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDisposition)
