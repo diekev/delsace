@@ -2832,6 +2832,7 @@ parse_propriété_font_family :: fonc (value: [..]ComponentValue) -> Optionnel(V
         PROP_serif, PROP_sans_serif, PROP_monospace
     ]
 
+    /* À FAIRE : stocke la liste complète. */
     tantque !fini(parseuse) {
         lexème := parseuse.lexème_courant()
 
@@ -2840,10 +2841,26 @@ parse_propriété_font_family :: fonc (value: [..]ComponentValue) -> Optionnel(V
             si valeur.possède_valeur() {
                 retourne valeur
             }
+
+            parseuse.avance()
+            continue
+        }
+
+        si lexème.est_lexème_de_genre(GenreLexème.String) {
+            parseuse.avance()
+            continue
+        }
+
+        si parseuse.consomme_virgule_et_espaces_blanches() {
+            continue
         }
 
         retourne
     }
+
+    /* Si nous arrivons ici, la syntaxe est valide, mais nous ne connaissons pas la fonte.
+     * Retourne une valeur par défaut pour ne pas polluer la sortie avec des messages d'erreur. */
+    retourne ValeurDeStyle(mot_clé = PROP_serif)
 }
 
 /** \} */
