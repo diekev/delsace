@@ -18,7 +18,6 @@ ParsedStyleSheet :: struct {
 
 détruit_données_stylesheet :: fonc (stylesheet: *ParsedStyleSheet)
 {
-    imprime("[%] : % value(s)\n", #nom_de_cette_fonction, stylesheet.value.taille)
     pour stylesheet.value {
         détruit_tableau_component_value(*it.prelude)
         détruit_données_bloc(*it.bloc)
