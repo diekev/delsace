@@ -369,14 +369,6 @@ donne_déclaration_propriété_personnalisée :: fonc (propriétés: *Propriét�
 
 /** \} */
 
-Marges :: struct {
-    valeur: [4]ValeurDeStyle
-}
-
-Padding :: struct {
-    valeur: [4]ValeurDeStyle
-}
-
 Longueur :: struct {
     Unité :: énum {
         Em
