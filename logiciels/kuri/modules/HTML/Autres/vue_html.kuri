@@ -955,6 +955,7 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
     document := donne_document(page)
 
     ctx: CSS.ContexteDessin
+    ctx.document = document
     ctx.globales = document.globales_dessin
     ctx.peintre = peintre
     ctx.hauteur_vue = vue_rendu_page.hauteur

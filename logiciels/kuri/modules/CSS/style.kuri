@@ -1,6 +1,7 @@
 importe Chaine
 importe Couleur
 importe Fondation
+importe Internet
 
 TextDecorationLine :: énum_drapeau n8 {
     UNDERLINE
@@ -370,6 +371,30 @@ donne_déclaration_propriété_personnalisée :: fonc (propriétés: *Propriét�
 donne_valeur :: fonc (propriétés: *PropriétésDeStyle, id: IDPropriété) -> ValeurDeStyle
 {
     retourne propriétés.style.valeurs[id]
+}
+
+donne_url_base_pour_background_image :: fonc (propriétés: *PropriétésDeStyle) -> Optionnel(URI)
+{
+    déclaration := propriétés.donne_déclaration(PROP_background_image)
+    saufsi déclaration {
+        retourne
+    }
+
+    saufsi déclaration.style_parent {
+        retourne
+    }
+    
+    style_parent := déclaration.style_parent
+    saufsi style_parent.parent_css_rule {
+        retourne
+    }
+
+    parent_css_rule := style_parent.parent_css_rule
+    saufsi parent_css_rule.parent_style_sheet {
+        retourne
+    }
+
+    retourne parent_css_rule.parent_style_sheet.location
 }
 
 /** \} */

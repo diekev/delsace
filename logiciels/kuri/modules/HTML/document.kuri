@@ -432,6 +432,14 @@ invalide_style_depuis_élément :: fonc (document: *Document, élément: *Élém
     document.définis_ajournement_arbre(ajournement)
 }
 
+invalide_style_pour_image :: fonc (document: *Document)
+{
+    saufsi document.résolveuse_style {
+        retourne
+    }
+    document.définis_ajournement_arbre(CSS.AjournementArbre.Dessin)
+}
+
 donne_ajournement_depuis_élément :: fonc (résolveuse: *CSS.RésolveuseStyle, élément: *Élément) -> CSS.AjournementArbre
 {
     résultat := CSS.donne_ajournement_pour_changement_style(résolveuse, élément)
