@@ -585,7 +585,6 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
     ctx_calcul_style.taille_fonte = résolveuse.globales.taille_fonte_défaut
     ctx_calcul_style.taille_fonte_racine = résolveuse.taille_fonte_racine
     ctx_calcul_style.propriétés = propriétés
-    ctx_calcul_style.propriétés_parent = propriétés_parent
     ctx_calcul_style.valeurs_initiales = *résolveuse.valeurs_initiales
 
     /* À FAIRE : gère proprement l'héritage des valeurs (surtout pour ne pas les recalculer). */
