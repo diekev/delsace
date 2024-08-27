@@ -742,32 +742,32 @@ ligne_glyphe_immédiate :: fonc (fonte: *Fonte, glyph: *texture_glyph_t, caract�
 /** \nom Image
  * \{ */
 
-image_immédiat :: fonc (image: ImageIO, rect: RectanglePosDim(r32))
+image_immédiat :: fonc (image: ImageIO, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32))
 {
     params := donne_paramètres_texture_pour_image(image)
-    image_immédiat(*params, rect)
+    image_immédiat(*params, rect_image, rect)
 }
 
-image_immédiat :: fonc (image: TamponImageGrise8Bit, rect: RectanglePosDim(r32))
+image_immédiat :: fonc (image: TamponImageGrise8Bit, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32))
 {
     /* À FAIRE : dessine en noir et blanc. */
     params := donne_paramètres_texture_pour_image(image)
-    image_immédiat(*params, rect)
+    image_immédiat(*params, rect_image, rect)
 }
 
-image_immédiat :: fonc (image: TamponImageRVBA8Bit, rect: RectanglePosDim(r32))
+image_immédiat :: fonc (image: TamponImageRVBA8Bit, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32))
 {
     params := donne_paramètres_texture_pour_image(image)
-    image_immédiat(*params, rect)
+    image_immédiat(*params, rect_image, rect)
 }
 
-image_immédiat :: fonc (image: TamponImageRVBA32Bit, rect: RectanglePosDim(r32))
+image_immédiat :: fonc (image: TamponImageRVBA32Bit, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32))
 {
     params := donne_paramètres_texture_pour_image(image)
-    image_immédiat(*params, rect)
+    image_immédiat(*params, rect_image, rect)
 }
 
-image_immédiat :: fonc (params: *ParamètresTexture2D, rect: RectanglePosDim(r32))
+image_immédiat :: fonc (params: *ParamètresTexture2D, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32))
 {
     commence_immédiat(ModeImmédiat.TRIANGLES, nuanceur_image)
 
@@ -801,10 +801,24 @@ image_immédiat :: fonc (params: *ParamètresTexture2D, rect: RectanglePosDim(r3
     p2 := Vec3(x = x + largeur, y = y + hauteur)
     p3 := Vec3(x = x, y = y + hauteur)
 
-    u0 := Vec2(0.0, 0.0)
-    u1 := Vec2(1.0, 0.0)
-    u2 := Vec2(1.0, 1.0)
-    u3 := Vec2(0.0, 1.0)
+    x_min_image := rect_image.x
+    y_min_image := rect_image.y
+
+    x_min_rect := rect.x
+    x_max_rect := rect.x + rect.largeur
+    y_min_rect := rect.y
+    y_max_rect := rect.y + rect.hauteur
+
+    ux_min := (x_min_rect - x_min_image) / rect_image.largeur
+    ux_max := (x_max_rect - x_min_image) / rect_image.largeur
+
+    uy_min := (y_min_rect - y_min_image) / rect_image.hauteur
+    uy_max := (y_max_rect - y_min_image) / rect_image.hauteur
+
+    u0 := Vec2(ux_min, uy_min)
+    u1 := Vec2(ux_max, uy_min)
+    u2 := Vec2(ux_max, uy_max)
+    u3 := Vec2(ux_min, uy_max)
 
     quad_immédiat(p0, p1, p2, p3, u0, u1, u2, u3, CouleurRVBA())
 
