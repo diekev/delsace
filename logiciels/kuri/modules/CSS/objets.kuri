@@ -167,6 +167,8 @@ détruit_style_declaration :: fonc (style: *CSSStyleDeclaration)
 
 ajoute_déclaration :: fonc (style: *CSSStyleDeclaration, déclaration: *DéclarationPropriété)
 {
+    assert(déclaration.style_parent == nul)
+    déclaration.style_parent = style
     tableau_ajoute(*style.déclarations, déclaration)
 }
 
@@ -186,6 +188,7 @@ imprime_style :: fonc (style: *CSSStyleDeclaration)
 
 DéclarationPropriété :: struct {
     info: *InfoTypePropriété
+    style_parent: *CSSStyleDeclaration
     property_name: CSSOMString
     value: [..]ValeurDeStyle
     valeur_personnalisée: [..]ComponentValue
