@@ -1376,7 +1376,7 @@ process_stylesheet_link :: fonc (link: *HTMLLinkElement)
         mime_css := crée_chaine_utf16_unique("text/css")
 
         feuille_de_style := loge(CSS.CSSStyleSheet)
-        feuille_de_style.location.uri = rappel.url_string
+        feuille_de_style.location = tente parse_uri_standard(rappel.url_string) piège nonatteignable
         feuille_de_style.origine = CSS.OrigineCascade.Author
         feuille_de_style.type = mime_css
         feuille_de_style.owner_node = rappel.link
