@@ -1427,8 +1427,14 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
                 image_data := opt_image_data.Quelque
                 /* À FAIRE : background-clip */
                 rect := noeud.donne_rectangle_bordure()
+
+                rect_image := rect
+                rect_image.largeur = image_data.largeur comme r32
+                rect_image.hauteur = image_data.hauteur comme r32
+
                 rect = ctx.donne_rectangle_corrigé(rect)
-                peintre.dessine_image(image_data, rect)
+                rect_image = ctx.donne_rectangle_corrigé(rect_image)
+                peintre.dessine_image(image_data, rect_image, rect)
             }
         }
 
