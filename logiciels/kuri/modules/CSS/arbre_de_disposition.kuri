@@ -1,10 +1,13 @@
 importe Aléa
 importe Chaine
 importe Couleur
+importe Ensemble
 importe Fondation
 importe Géométrie
 importe #inemployé HTML
 importe IGUMI
+importe Image
+importe Internet
 importe Math
 importe OpenGL
 importe PeintureInterface
@@ -43,18 +46,12 @@ détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
 
         si it.type == NoeudDeDispositionBloc {
             bloc := it comme *NoeudDeDispositionBloc
-            pour *boite dans bloc.lignes {
-                détruit_données_boite_de_ligne(boite)
-            }
-            déloge(bloc.lignes)
+            détruit_lignes(bloc)
             déloge(bloc)
         }
         sinon si it.type == NoeudDeDispositionInline {
             noeud := it comme *NoeudDeDispositionInline
-            pour *boite dans noeud.lignes {
-                détruit_données_boite_de_ligne(boite)
-            }
-            déloge(noeud.lignes)
+            détruit_lignes(noeud)
             déloge(noeud)
         }
         sinon si it.type == NoeudDeDispositionTexte {
@@ -211,6 +208,13 @@ RésolveuseStyle :: struct {
 
     /* Cache. */
     pseudo_classes: PseudoClasses
+    /* Les valeurs des ChaineUTF16Uniques des sélecteurs d'id.
+     * Nous utilisons les valeurs et non les chaines car nous stockons les
+     * données sous d'ensemble et il est plus rapide de comparer des nombres
+     * que des chaines pour le stockage ordonné. */
+    ids_connus: [..]n32
+    attrs_connus: [..]n32
+    classes_connues: [..]n32
 }
 
 crée_résolveuse_style :: fonc (document: *HTML.Document) -> *RésolveuseStyle
@@ -232,6 +236,9 @@ initialise_résolveuse :: fonc (résolveuse: *RésolveuseStyle)
 initialise_cache :: fonc (résolveuse: *RésolveuseStyle)
 {
     pseudo_classes: PseudoClasses
+    résolveuse.ids_connus.taille = 0
+    résolveuse.attrs_connus.taille = 0
+    résolveuse.classes_connues.taille = 0
 
     pour feuille dans résolveuse.feuilles_de_style {
         pour règle dans feuille.rules {
@@ -246,6 +253,15 @@ initialise_cache :: fonc (résolveuse: *RésolveuseStyle)
                         si simple.type == SimpleSelector.Type.PseudoClass {
                             pseudo_classes |= simple.pseudo_classe
                         }
+                        sinon si simple.type == SimpleSelector.Type.ID {
+                            ensemble_ajoute(*résolveuse.ids_connus, simple.ident.valeur)
+                        }
+                        sinon si simple.type == SimpleSelector.Type.Attrib {
+                            ensemble_ajoute(*résolveuse.attrs_connus, simple.ident.valeur)
+                        }
+                        sinon si simple.type == SimpleSelector.Type.Class {
+                            ensemble_ajoute(*résolveuse.classes_connues, simple.ident.valeur)
+                        }
                     }
                 }
             }
@@ -258,6 +274,9 @@ initialise_cache :: fonc (résolveuse: *RésolveuseStyle)
 détruit_données_résolveuse :: fonc (résolveuse: *RésolveuseStyle)
 {
     déloge(résolveuse.déclarations_cascade)
+    déloge(résolveuse.ids_connus)
+    déloge(résolveuse.attrs_connus)
+    déloge(résolveuse.classes_connues)
 }
 
 détruit_résolveuse :: fonc (résolveuse: *RésolveuseStyle)
@@ -278,6 +297,34 @@ ajoute_presentational_hint :: fonc (résolveuse: *RésolveuseStyle, déclaration
 possède_règle_avec_pseudo_classe :: fonc (résolveuse: *RésolveuseStyle, pseudo_classe: PseudoClasses) -> bool
 {
     retourne (résolveuse.pseudo_classes & pseudo_classe) != PseudoClasses.zéro
+}
+
+possède_règle_avec_id :: fonc (résolveuse: *RésolveuseStyle, id: CSSOMString) -> bool
+{
+    si id.est_vide() {
+        /* Si l'id est la chaine vide, nous devons vérifier que toutes les règles
+         * s'appliquent, donc pas de court-circuitage. */
+        retourne vrai
+    }
+
+    retourne ensemble_possède(*résolveuse.ids_connus, id.valeur)
+}
+
+possède_règle_avec_attribut :: fonc (résolveuse: *RésolveuseStyle, attr: CSSOMString) -> bool
+{
+    si attr.est_vide() {
+        /* Si l'attribut est la chaine vide, nous devons vérifier que toutes les règles
+         * s'appliquent, donc pas de court-circuitage. */
+        retourne vrai
+    }
+
+    retourne ensemble_possède(*résolveuse.attrs_connus, attr.valeur)
+}
+
+donne_ajournement_pour_redimensionnement :: fonc (résolveuse: *RésolveuseStyle @inutilisée, largeur: z32 @inutilisée, hauteur: z32 @inutilisée) -> AjournementArbre
+{
+    /* À FAIRE : règles média, sauvegarde de l'ancienne taille */
+    retourne AjournementArbre.Disposition
 }
 
 RègleEtSpécificité :: struct {
@@ -465,7 +512,10 @@ donne_ajournement_pour_différence_propriétés :: fonc (nouvelles_propriétés:
 
 donne_ajournement_arbre :: fonc (info: *InfoTypePropriété) -> AjournementArbre
 {
-    si info.affecte_disposition {
+    si info.drapeaux.AffecteDisposition {
+        retourne AjournementArbre.Disposition
+    }
+    si info.drapeaux.AffecteConstructionArbre {
         retourne AjournementArbre.Construction
     }
     retourne AjournementArbre.Dessin
@@ -537,7 +587,6 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
     ctx_calcul_style.taille_fonte = résolveuse.globales.taille_fonte_défaut
     ctx_calcul_style.taille_fonte_racine = résolveuse.taille_fonte_racine
     ctx_calcul_style.propriétés = propriétés
-    ctx_calcul_style.propriétés_parent = propriétés_parent
     ctx_calcul_style.valeurs_initiales = *résolveuse.valeurs_initiales
 
     /* À FAIRE : gère proprement l'héritage des valeurs (surtout pour ne pas les recalculer). */
@@ -589,6 +638,26 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
 /** \nom Génération d'arbres de disposition.
  * \{ */
 
+donne_arbre_de_disposition_ajourné :: fonc (document: *HTML.Document, largeur: z32, hauteur: z32) -> *ArbreDeDisposition
+{
+    ajournement := document.ajournement_arbre
+
+    si document.arbre_de_disposition == nul || ajournement.Construction {
+        si document.arbre_de_disposition {
+            détruit_arbre(document.arbre_de_disposition)
+            document.arbre_de_disposition = nul
+        }
+        crée_arbre_de_disposition(document, largeur, hauteur)
+    }
+    sinon si ajournement.Disposition {
+        dispose_arbre(document.globales_dessin, document.arbre_de_disposition, largeur, hauteur)
+    }
+
+    document.ajournement_arbre = AjournementArbre.zéro
+
+    retourne document.arbre_de_disposition
+}
+
 crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, hauteur: z32)
 {
     html := HTML.donne_élément_html(document)
@@ -616,22 +685,28 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, haut
 
     // imprime("Créé % noeud(s)\n", résultat.noeuds.taille)
 
-    ctx: ContexteDisposition
-    ctx.largeur_disponible = largeur comme r32
-    ctx.hauteur_disponible = hauteur comme r32
-    ctx.globales = document.globales_dessin
-
-    mesure(résultat.racine, *ctx)
-
-    // imprime("taille arbre : %x%\n", résultat.racine.largeur, résultat.racine.hauteur)
+    dispose_arbre(document.globales_dessin, résultat, largeur, hauteur)
 
     // imprime_arbre(résultat)
 
     si document.arbre_de_disposition {
         détruit_arbre(document.arbre_de_disposition)
+        document.arbre_de_disposition = nul
     }
 
     document.arbre_de_disposition = résultat
+}
+
+dispose_arbre :: fonc (globales: *GlobalesDessin, arbre: *ArbreDeDisposition, largeur: z32, hauteur: z32)
+{
+    ctx: ContexteDisposition
+    ctx.largeur_disponible = largeur comme r32
+    ctx.hauteur_disponible = hauteur comme r32
+    ctx.globales = globales
+
+    mesure(arbre.racine, *ctx)
+
+    // imprime("taille arbre : %x%\n", résultat.racine.largeur, résultat.racine.hauteur)
 }
 
 crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *ArbreDeDisposition, parent: *NoeudDeDisposition, noeud: *HTML.Noeud)
@@ -815,6 +890,7 @@ ContexteDisposition :: struct {
  * \{ */
 
 ContexteDessin :: struct {
+    document: *HTML.Document
     globales: *GlobalesDessin
     peintre: *Peintre
     fragment: *Fragment
@@ -878,6 +954,113 @@ remplis_rectangle_id :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition, 
     // imprime("[%] (% % % %) : %\n", #nom_de_cette_fonction, rect.x, rect.y, rect.largeur, rect.hauteur, noeud.id)
 
     IGUMI.quad_immédiat_id(rect.x, rect.y, rect.largeur, rect.hauteur, noeud.id)
+}
+
+donne_image_pour_url :: fonc (ctx: *ContexteDessin, url: CSSOMString, base_url: Optionnel(URI)) -> Optionnel(ImageIO)
+{
+    saufsi base_url.possède_valeur() {
+        base_url = HTML.donne_base_url(ctx.document)
+    }
+
+    uri_de_base := base_url.Quelque
+    url_de_base := HTML.convertis_uri_url(*uri_de_base)
+    diffère HTML.détruit_url(url_de_base)
+
+    url_src := HTML.basic_url_parser(url.donne_chaine_utf16(), base = url_de_base)
+    saufsi url_src {
+        retourne
+    }
+
+    url_string := HTML.url_serializer(url_src)
+
+    données_image := HTML.donne_image_pour_url(ctx.document, url_string)
+
+    si données_image.état == HTML.ÉtatRequêteImage.Succès {
+        retourne données_image.données
+    }
+
+    si données_image.état == HTML.ÉtatRequêteImage.Échec {
+        retourne
+    }
+
+    si données_image.état == HTML.ÉtatRequêteImage.EnCours {
+        retourne
+    }
+
+    HTML.définis_état_requête_image(ctx.document, url_string, HTML.ÉtatRequêteImage.EnCours)
+
+    RappelProcessResponse :: struct {
+        empl base: HTML.BaseProcessResponse
+
+        document: *HTML.Document
+        url_src: *HTML.URL
+        url_string: chaine
+    }
+
+    sur_rappel_process_response :: fonc (base: *HTML.BaseProcessResponse, réponse: *HTML.Response)
+    {
+        diffère HTML.détruit_response(réponse)
+
+        rappel := base comme *RappelProcessResponse
+
+        saufsi réponse.body_info {
+            HTML.définis_état_requête_image(rappel.document, rappel.url_string, HTML.ÉtatRequêteImage.Échec)
+            retourne
+        }
+
+        saufsi est_type_mime_image(réponse.body_info.content_type) {
+            HTML.définis_état_requête_image(rappel.document, rappel.url_string, HTML.ÉtatRequêteImage.Échec)
+            retourne
+        }
+
+        contenu := réponse.body.Quelque
+
+        proxy_image := IMG_cree_proxy_memoire(contenu.pointeur, contenu.taille comme n64)
+        diffère IMG_detruit_proxy(proxy_image)
+
+        chn_c_chemin := crée_chaine_c(rappel.url_src.path.Path[rappel.url_src.path.Path.taille - 1])
+        diffère détruit_chaine_c(chn_c_chemin)
+
+        image_data: ImageIO
+        résultat_lecture_image := IMG_ouvre_image_avec_proxy(chn_c_chemin, *image_data, proxy_image)
+        si résultat_lecture_image != ResultatOperation.OK {
+            HTML.définis_état_requête_image(rappel.document, rappel.url_string, HTML.ÉtatRequêteImage.Échec)
+            retourne
+        }
+
+        HTML.définis_données_image(rappel.document, rappel.url_string, image_data)
+        HTML.invalide_style_pour_image(rappel.document)
+    }
+
+    sur_destruction_process_response :: fonc (base: *HTML.BaseProcessResponse)
+    {
+        rappel := base comme *RappelProcessResponse
+        HTML.détruit_url(rappel.url_src)
+        déloge(rappel.url_string)
+        déloge(rappel)
+    }
+
+    process_response := loge(RappelProcessResponse)
+    process_response.document = ctx.document
+    process_response.url_src = url_src
+    process_response.url_string = url_string
+    process_response.sur_rappel = sur_rappel_process_response
+    process_response.sur_destruction = sur_destruction_process_response
+
+    request := loge(HTML.Request)
+    request.destination = "image"
+    request.mode = "no-cors"
+    request.redirect_mode = "follow"
+    request.url = tente parse_uri_standard(url_string) piège nonatteignable
+
+    user_agent := HTML.donne_user_agent(ctx.document)
+    fetch_controller := HTML.fetch(user_agent, request, process_response = process_response)
+    diffère HTML.détruit_fetch_controller(fetch_controller)
+}
+
+est_type_mime_image :: fonc (content_type: chaine) -> bool
+{
+    retourne content_type == "image/jpeg" || content_type == "image/png"
 }
 
 /** \} */
@@ -1173,6 +1356,20 @@ NoeudDeDispositionBloc :: struct {
     est_disposition_inline: bool
 }
 
+détruit_lignes :: fonc (noeud: *NoeudDeDispositionBloc)
+{
+    réinitialise_lignes(noeud)
+    déloge(noeud.lignes)
+}
+
+réinitialise_lignes :: fonc (noeud: *NoeudDeDispositionBloc)
+{
+    pour * noeud.lignes {
+        détruit_données_boite_de_ligne(it)
+    }
+    noeud.lignes.taille = 0
+}
+
 noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDisposition)
 {
     noeud := base comme *NoeudDeDispositionBloc
@@ -1219,6 +1416,19 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
                     rect_noeud.largeur = ctx.largeur_vue comme r32
                     peintre.remplis_rectangle(rect_noeud, background_color)
                 }
+            }
+        }
+
+        image := noeud.propriétés.donne_valeur(IDPropriété.BackgroundImage)
+        saufsi image.est_none() {
+            base_url := donne_url_base_pour_background_image(noeud.propriétés)
+            opt_image_data := ctx.donne_image_pour_url(image.url, base_url)
+            si opt_image_data.possède_valeur() {
+                image_data := opt_image_data.Quelque
+                /* À FAIRE : background-clip */
+                rect := noeud.donne_rectangle_bordure()
+                rect = ctx.donne_rectangle_corrigé(rect)
+                peintre.dessine_image(image_data, rect)
             }
         }
 
@@ -1782,6 +1992,7 @@ dispose_enfants_inline :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDi
     décalage_x := noeud.modèle_de_boite.contenu.x
     décalage_y := noeud.modèle_de_boite.contenu.y
 
+    réinitialise_lignes(noeud)
     pour noeud.enfants {
         divise_en_lignes(it, noeud, *ctx_locale)
     }
