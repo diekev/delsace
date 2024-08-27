@@ -2,6 +2,7 @@ importe Chaine
 importe #inemployé CSS
 importe Ensemble
 importe Fondation
+importe Image
 importe Internet
 
 /* ------------------------------------------------------------------------- */
@@ -52,6 +53,19 @@ DocumentLoadTimingInfo :: struct {
     load_event_end_time: DOMHighResTimeStamp
 }
 
+ÉtatRequêteImage :: énum {
+    NonCommencé
+    EnCours
+    Échec
+    Succès
+}
+
+ImageDisponible :: struct {
+    données: ImageIO
+    url: chaine
+    état: ÉtatRequêteImage
+}
+
 Document :: struct {
     empl base: Noeud
     table = *table_virtuelle_document
@@ -93,6 +107,8 @@ Document :: struct {
     noeud_survolé: *Élément
     /* L'élément sous la souris lors des pressions et relâchement. */
     élément_en_cours_d_activation: *Élément
+
+    images_disponibles: [..]ImageDisponible
 }
 
 #portée_fichier
@@ -108,6 +124,12 @@ document_sur_destruction :: fonc (base: *EventTarget)
     CSS.détruit_globales_dessin(document.globales_dessin)
     CSS.détruit_résolveuse(document.résolveuse_style)
     déloge_tableau_et_ses_éléments(document.feuilles_de_style, CSS.détruit_feuille_de_style)
+
+    pour document.images_disponibles {
+        IMG_detruit_image(*it.données)
+    }
+
+    déloge(document.images_disponibles)
     déloge(document)
 }
 
@@ -454,6 +476,48 @@ donne_user_agent :: fonc (document: *Document) -> *UserAgent
     assert(browsing_context.group != nul)
     assert(browsing_context.group.user_agent != nul)
     retourne browsing_context.group.user_agent
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Images.
+ * \{ */
+
+donne_image_pour_url :: fonc (document: *Document, url: chaine) -> ImageDisponible
+{
+    pour document.images_disponibles {
+        si it.url == url {
+            retourne it
+        }
+    }
+
+    résultat: ImageDisponible
+    résultat.url = copie_chaine(url)
+    résultat.état = ÉtatRequêteImage.NonCommencé
+    tableau_ajoute(*document.images_disponibles, résultat)
+    retourne résultat
+}
+
+définis_état_requête_image :: fonc (document: *Document, url: chaine, état: ÉtatRequêteImage)
+{
+    pour & document.images_disponibles {
+        si it.url == url {
+            it.état = état
+            retourne
+        }
+    }
+}
+
+définis_données_image :: fonc (document: *Document, url: chaine, données: ImageIO)
+{
+    pour & document.images_disponibles {
+        si it.url == url {
+            it.données = données
+            it.état = ÉtatRequêteImage.Succès
+            retourne
+        }
+    }
 }
 
 /** \} */
