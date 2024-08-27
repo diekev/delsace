@@ -1868,6 +1868,7 @@ dispose_enfants_inline :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDi
     décalage_x := noeud.modèle_de_boite.contenu.x
     décalage_y := noeud.modèle_de_boite.contenu.y
 
+    réinitialise_lignes(noeud)
     pour noeud.enfants {
         divise_en_lignes(it, noeud, *ctx_locale)
     }
