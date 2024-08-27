@@ -2,6 +2,7 @@ importe Chaine
 importe #inemployé CSS
 importe Ensemble
 importe Fondation
+importe Image
 importe Internet
 
 /* ------------------------------------------------------------------------- */
@@ -52,6 +53,19 @@ DocumentLoadTimingInfo :: struct {
     load_event_end_time: DOMHighResTimeStamp
 }
 
+ÉtatRequêteImage :: énum {
+    NonCommencé
+    EnCours
+    Échec
+    Succès
+}
+
+ImageDisponible :: struct {
+    données: ImageIO
+    url: chaine
+    état: ÉtatRequêteImage
+}
+
 Document :: struct {
     empl base: Noeud
     table = *table_virtuelle_document
@@ -86,10 +100,15 @@ Document :: struct {
     arbre_de_disposition: *CSS.ArbreDeDisposition
     globales_dessin: *CSS.GlobalesDessin
     résolveuse_style: *CSS.RésolveuseStyle
+    /* Nous accumulons les changements via les différentes fonctions d'ajournement/invalidation,
+     * et remettons ceci à zéro lors des rendus via "CSS.donne_arbre_de_disposition_ajourné". */
+    ajournement_arbre := CSS.AjournementArbre.Construction
 
     noeud_survolé: *Élément
     /* L'élément sous la souris lors des pressions et relâchement. */
     élément_en_cours_d_activation: *Élément
+
+    images_disponibles: [..]ImageDisponible
 }
 
 #portée_fichier
@@ -105,6 +124,12 @@ document_sur_destruction :: fonc (base: *EventTarget)
     CSS.détruit_globales_dessin(document.globales_dessin)
     CSS.détruit_résolveuse(document.résolveuse_style)
     déloge_tableau_et_ses_éléments(document.feuilles_de_style, CSS.détruit_feuille_de_style)
+
+    pour document.images_disponibles {
+        IMG_detruit_image(*it.données)
+    }
+
+    déloge(document.images_disponibles)
     déloge(document)
 }
 
@@ -330,13 +355,7 @@ donne_ancêtre_élément_commun :: fonc (a: *Élément, b: *Élément) -> *Élé
 /* Invalide le style de manière générale. */
 invalide_style :: fonc (document: *Document)
 {
-    CSS.détruit_arbre(document.arbre_de_disposition)
-    document.arbre_de_disposition = nul
-
-    user_agent := document.donne_user_agent()
-    si user_agent {
-        user_agent.requiers_rendu()
-    }
+    document.définis_ajournement_arbre(CSS.AjournementArbre.Construction)
 }
 
 /* Invalide le style suite à la modification d'une pseudo-classe. */
@@ -354,10 +373,53 @@ invalide_style :: fonc (document: *Document, élément: *Élément, pseudo_class
 }
 
 /* Invalide le style suite au redimensionnement de la fenêtre. */
-invalide_style_pour_redimensionnement :: fonc (document: *Document)
+invalide_style_pour_redimensionnement :: fonc (document: *Document, largeur: z32, hauteur: z32)
 {
-    /* À FAIRE : ne détruit pas l'arbre, refait une disposition. */
-    document.invalide_style()
+    saufsi document.résolveuse_style {
+        retourne
+    }
+
+    ajournement := CSS.donne_ajournement_pour_redimensionnement(document.résolveuse_style, largeur, hauteur)
+    document.définis_ajournement_arbre(ajournement)
+}
+
+/* Invalide le style suite au changement de la valeur de l'attribut "id". */
+invalide_style_pour_id :: fonc (document: *Document, élément: *Élément, vieil_id: *DOMString, nouvel_id: *DOMString)
+{
+    saufsi document.résolveuse_style {
+        retourne
+    }
+
+    résolveuse := document.résolveuse_style
+    possède_règle := faux
+    si vieil_id && CSS.possède_règle_avec_id(résolveuse, mémoire(vieil_id)) {
+        possède_règle = vrai
+    }
+
+    si nouvel_id && CSS.possède_règle_avec_id(résolveuse, mémoire(nouvel_id)) {
+        possède_règle = vrai
+    }
+
+    saufsi possède_règle {
+        retourne
+    }
+
+    invalide_style_depuis_élément(document, élément)
+}
+
+/* Invalide le style suite au changement de la valeur de l'attribut spécifié. */
+invalide_style_pour_attribut :: fonc (document: *Document, élément: *Élément, attribut: DOMString)
+{
+    saufsi document.résolveuse_style {
+        retourne
+    }
+
+    résolveuse := document.résolveuse_style
+    saufsi CSS.possède_règle_avec_attribut(résolveuse, attribut) {
+        retourne
+    }
+
+    invalide_style_depuis_élément(document, élément)
 }
 
 invalide_style_depuis_élément :: fonc (document: *Document, élément: *Élément)
@@ -367,16 +429,15 @@ invalide_style_depuis_élément :: fonc (document: *Document, élément: *Élém
     }
 
     ajournement := donne_ajournement_depuis_élément(document.résolveuse_style, élément)
+    document.définis_ajournement_arbre(ajournement)
+}
 
-    si ajournement.Construction {
-        document.invalide_style()
+invalide_style_pour_image :: fonc (document: *Document)
+{
+    saufsi document.résolveuse_style {
+        retourne
     }
-    sinon {
-        user_agent := document.donne_user_agent()
-        si user_agent {
-            user_agent.requiers_rendu()
-        }
-    }
+    document.définis_ajournement_arbre(CSS.AjournementArbre.Dessin)
 }
 
 donne_ajournement_depuis_élément :: fonc (résolveuse: *CSS.RésolveuseStyle, élément: *Élément) -> CSS.AjournementArbre
@@ -399,6 +460,19 @@ donne_ajournement_depuis_élément :: fonc (résolveuse: *CSS.RésolveuseStyle, 
     retourne résultat
 }
 
+#portée_fichier
+
+définis_ajournement_arbre :: fonc (document: *Document, ajournement: CSS.AjournementArbre)
+{
+    document.ajournement_arbre |= ajournement
+    user_agent := document.donne_user_agent()
+    si user_agent {
+        user_agent.requiers_rendu()
+    }
+}
+
+#portée_export
+
 donne_user_agent :: fonc (document: *Document) -> *UserAgent
 {
     browsing_context := document.browsing_context
@@ -410,6 +484,48 @@ donne_user_agent :: fonc (document: *Document) -> *UserAgent
     assert(browsing_context.group != nul)
     assert(browsing_context.group.user_agent != nul)
     retourne browsing_context.group.user_agent
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Images.
+ * \{ */
+
+donne_image_pour_url :: fonc (document: *Document, url: chaine) -> ImageDisponible
+{
+    pour document.images_disponibles {
+        si it.url == url {
+            retourne it
+        }
+    }
+
+    résultat: ImageDisponible
+    résultat.url = copie_chaine(url)
+    résultat.état = ÉtatRequêteImage.NonCommencé
+    tableau_ajoute(*document.images_disponibles, résultat)
+    retourne résultat
+}
+
+définis_état_requête_image :: fonc (document: *Document, url: chaine, état: ÉtatRequêteImage)
+{
+    pour & document.images_disponibles {
+        si it.url == url {
+            it.état = état
+            retourne
+        }
+    }
+}
+
+définis_données_image :: fonc (document: *Document, url: chaine, données: ImageIO)
+{
+    pour & document.images_disponibles {
+        si it.url == url {
+            it.données = données
+            it.état = ÉtatRequêteImage.Succès
+            retourne
+        }
+    }
 }
 
 /** \} */
