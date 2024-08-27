@@ -1763,6 +1763,7 @@ infos_types_propriétés_shorthand := [
 infos_types_propriétés := [
     InfoTypePropriété(PROP_display, id = IDPropriété.Display, fonction_de_parsage = parse_propriété_display, genre_valeur_calculée = GenreValeurCalculée.Display, drapeaux = DrapeauxPropriété.AffecteConstructionArbre),
     InfoTypePropriété(PROP_background_color, id = IDPropriété.BackgroundColor, fonction_de_parsage = parse_propriété_color, genre_valeur_calculée = GenreValeurCalculée.Couleur),
+    InfoTypePropriété(PROP_background_image, id = IDPropriété.BackgroundImage, fonction_de_parsage = parse_propriété_background_image, genre_valeur_calculée = GenreValeurCalculée.BackgroundImage),
     InfoTypePropriété(PROP_color, id = IDPropriété.Color, fonction_de_parsage = parse_propriété_color, drapeaux = DrapeauxPropriété.Héritée, genre_valeur_calculée = GenreValeurCalculée.Couleur),
     InfoTypePropriété(PROP_text_decoration_line, id = IDPropriété.TextDecorationLine, fonction_de_parsage = parse_propriété_text_decoration_line, genre_valeur_calculée = GenreValeurCalculée.TextDecorationLine),
     InfoTypePropriété(PROP_text_decoration_style, id = IDPropriété.TextDecorationStyle, fonction_de_parsage = parse_propriété_text_decoration_style, genre_valeur_calculée = GenreValeurCalculée.TextDecorationStyle),
@@ -2949,12 +2950,81 @@ parse_propriété_font_style :: fonc (value: [..]ComponentValue) -> Optionnel(Va
 
 parse_propriété_background :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
 {
-    valeur := parse_propriété_color(value)
-    si valeur.possède_valeur() {
-        ajoute_propriété(ctx, PROP_background_color, valeur.Quelque)
-        retourne vrai
+    couleur: Optionnel(ValeurDeStyle)
+    image: Optionnel(ValeurDeStyle)
+
+    parseuse := initialise_une_parseuse(value)
+
+    tantque !parseuse.fini() {
+        parseuse.consomme_espaces_blanches()
+
+        valeur_couleur := parse_valeur_couleur(parseuse)
+        si valeur_couleur.possède_valeur() {
+            couleur = valeur_couleur
+            continue
+        }
+
+        valeur_image := parse_valeur_background_image(parseuse)
+        si valeur_image.possède_valeur() {
+            image = valeur_image
+            continue
+        }
+
+        retourne faux
     }
-    retourne faux
+
+    si couleur.possède_valeur() {
+        ajoute_propriété(ctx, PROP_background_color, couleur.Quelque)
+    }
+
+    si image.possède_valeur() {
+        ajoute_propriété(ctx, PROP_background_image, image.Quelque)
+    }
+
+    retourne vrai
+}
+
+/* https://drafts.csswg.org/css-backgrounds-3/#background-image */
+parse_propriété_background_image :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+
+    tantque !fini(parseuse) {
+        image := parse_valeur_background_image(parseuse)
+        si image.possède_valeur() {
+            retourne image
+        }
+
+        retourne
+    }
+}
+
+/* <image> | none
+ * <image> = <url> | <gradient> */
+parse_valeur_background_image :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+{
+    lexème := parseuse.lexème_courant()
+    si lexème.est_mot_clé(PROP_none) {
+        parseuse.avance()
+        retourne ValeurDeStyle(mot_clé = PROP_none)
+    }
+
+    si lexème.est_lexème_de_genre(GenreLexème.Url) {
+        url := lexème.lexème.valeur
+        parseuse.avance()
+        retourne ValeurDeStyle(url = url)
+    }
+
+    si lexème.est_fonction() {
+        fonction := lexème.function
+
+        si fonction.name == PROP_url {
+            parseuse.avance()
+            /* À FAIRE : parse proprement un identifiant ou une chaine. */
+            retourne ValeurDeStyle(url = fonction.value[0].lexème.valeur)
+        }
+        retourne
+    }
 }
 
 /** \} */

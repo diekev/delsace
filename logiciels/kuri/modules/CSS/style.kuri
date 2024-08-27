@@ -17,6 +17,7 @@ Variable :: struct {
 /* https://www.w3.org/TR/css-values/#value-defs */
 ValeurDeStyle :: union {
     mot_clé: CSSOMString
+    url: CSSOMString
     couleur: CouleurRVBAN8
     longueur: Longueur
     integer: r64
@@ -34,6 +35,16 @@ opérateur == :: fonc (a: ValeurDeStyle, b: ValeurDeStyle) -> bool
     discr a {
         mot_clé(m) {
             retourne b.est_mot_clé(m)
+        }
+        url(u) {
+            discr b {
+                url(ub) {
+                    retourne ub == u
+                }
+                sinon {
+                    retourne faux
+                }
+            }
         }
         couleur(c) {
             discr b {
@@ -170,6 +181,11 @@ est_auto :: fonc (valeur: ValeurDeStyle) -> bool
     retourne est_mot_clé(valeur, PROP_auto)
 }
 
+est_none :: fonc (valeur: ValeurDeStyle) -> bool
+{
+    retourne est_mot_clé(valeur, PROP_none)
+}
+
 est_percentage :: fonc (valeur: ValeurDeStyle) -> bool
 {
     discr valeur {
@@ -215,6 +231,9 @@ imprime_valeur_de_style :: fonc (enchaineuse: *Enchaineuse, valeur: *ValeurDeSty
     discr mémoire(valeur) {
         mot_clé(m) {
             ajoute_au_tampon(enchaineuse, m)
+        }
+        url(u) {
+            ajoute_au_tampon(enchaineuse, "url(\"", u, "\")")
         }
         couleur(c) {
             ajoute_au_tampon(enchaineuse, "rgb(", c.r, " ", c.v, " ", c.b, ")")
@@ -541,6 +560,7 @@ IDPropriété :: énum n16 {
     Cursor
 
     BackgroundColor
+    BackgroundImage
 
     BorderWidthBottom
     BorderWidthLeft
@@ -619,6 +639,7 @@ initialise_style :: fonc (style: *Style)
 
     style.valeurs[IDPropriété.Color] = CouleurRVBAN8(0, 0, 0, 255)
     style.valeurs[IDPropriété.BackgroundColor] = CouleurRVBAN8(0, 0, 0, 0)
+    style.valeurs[IDPropriété.BackgroundImage] = ValeurDeStyle(mot_clé = PROP_none)
 
     /* Bordure */
     style.valeurs[IDPropriété.BorderWidthBottom] = ValeurDeStyle(mot_clé = PROP_medium)
@@ -950,6 +971,7 @@ GenreValeurCalculée :: énum_drapeau {
     TextDecorationStyle
     FontSize
     FontWeight
+    BackgroundImage
 }
 
 calcule_valeur_propriété_générique :: fonc (valeur: ValeurDeStyle, genre_valeur_calculée: GenreValeurCalculée, style: *Style, ctx: *ContexteCalculStyle) -> Optionnel(ValeurDeStyle)
@@ -1060,6 +1082,14 @@ calcule_valeur_propriété_générique :: fonc (valeur: ValeurDeStyle, genre_val
             }
             si genre_valeur_calculée.Display {
                 retourne calcule_display_pour_mot_clé(m)
+            }
+            si genre_valeur_calculée.BackgroundImage && m == PROP_none {
+                retourne valeur
+            }
+        }
+        url {
+            si genre_valeur_calculée.BackgroundImage {
+                retourne valeur
             }
         }
         couleur {
