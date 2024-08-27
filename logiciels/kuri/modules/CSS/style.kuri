@@ -1,6 +1,7 @@
 importe Chaine
 importe Couleur
 importe Fondation
+importe Internet
 
 TextDecorationLine :: énum_drapeau n8 {
     UNDERLINE
@@ -17,6 +18,7 @@ Variable :: struct {
 /* https://www.w3.org/TR/css-values/#value-defs */
 ValeurDeStyle :: union {
     mot_clé: CSSOMString
+    url: CSSOMString
     couleur: CouleurRVBAN8
     longueur: Longueur
     integer: r64
@@ -34,6 +36,16 @@ opérateur == :: fonc (a: ValeurDeStyle, b: ValeurDeStyle) -> bool
     discr a {
         mot_clé(m) {
             retourne b.est_mot_clé(m)
+        }
+        url(u) {
+            discr b {
+                url(ub) {
+                    retourne ub == u
+                }
+                sinon {
+                    retourne faux
+                }
+            }
         }
         couleur(c) {
             discr b {
@@ -170,6 +182,11 @@ est_auto :: fonc (valeur: ValeurDeStyle) -> bool
     retourne est_mot_clé(valeur, PROP_auto)
 }
 
+est_none :: fonc (valeur: ValeurDeStyle) -> bool
+{
+    retourne est_mot_clé(valeur, PROP_none)
+}
+
 est_percentage :: fonc (valeur: ValeurDeStyle) -> bool
 {
     discr valeur {
@@ -215,6 +232,9 @@ imprime_valeur_de_style :: fonc (enchaineuse: *Enchaineuse, valeur: *ValeurDeSty
     discr mémoire(valeur) {
         mot_clé(m) {
             ajoute_au_tampon(enchaineuse, m)
+        }
+        url(u) {
+            ajoute_au_tampon(enchaineuse, "url(\"", u, "\")")
         }
         couleur(c) {
             ajoute_au_tampon(enchaineuse, "rgb(", c.r, " ", c.v, " ", c.b, ")")
@@ -276,7 +296,7 @@ crée_propriétés_de_style :: fonc (parent: *PropriétésDeStyle) -> *Propriét
 
     si parent {
         pour * infos_types_propriétés {
-            si it.héritable == PropriétéHéritable.Non {
+            saufsi it.drapeaux.Héritée {
                 continue
             }
             /* Nous devons hériter des valeurs calculées. */
@@ -348,15 +368,36 @@ donne_déclaration_propriété_personnalisée :: fonc (propriétés: *Propriét�
     retourne nul
 }
 
+donne_valeur :: fonc (propriétés: *PropriétésDeStyle, id: IDPropriété) -> ValeurDeStyle
+{
+    retourne propriétés.style.valeurs[id]
+}
+
+donne_url_base_pour_background_image :: fonc (propriétés: *PropriétésDeStyle) -> Optionnel(URI)
+{
+    déclaration := propriétés.donne_déclaration(PROP_background_image)
+    saufsi déclaration {
+        retourne
+    }
+
+    saufsi déclaration.style_parent {
+        retourne
+    }
+    
+    style_parent := déclaration.style_parent
+    saufsi style_parent.parent_css_rule {
+        retourne
+    }
+
+    parent_css_rule := style_parent.parent_css_rule
+    saufsi parent_css_rule.parent_style_sheet {
+        retourne
+    }
+
+    retourne parent_css_rule.parent_style_sheet.location
+}
+
 /** \} */
-
-Marges :: struct {
-    valeur: [4]ValeurDeStyle
-}
-
-Padding :: struct {
-    valeur: [4]ValeurDeStyle
-}
 
 Longueur :: struct {
     Unité :: énum {
@@ -529,7 +570,6 @@ ContexteCalculStyle :: struct {
     taille_fonte: r64
     taille_fonte_racine: r64
     propriétés: *PropriétésDeStyle
-    propriétés_parent: *PropriétésDeStyle
     valeurs_initiales: *Style
 }
 
@@ -541,6 +581,7 @@ IDPropriété :: énum n16 {
     Cursor
 
     BackgroundColor
+    BackgroundImage
 
     BorderWidthBottom
     BorderWidthLeft
@@ -619,6 +660,7 @@ initialise_style :: fonc (style: *Style)
 
     style.valeurs[IDPropriété.Color] = CouleurRVBAN8(0, 0, 0, 255)
     style.valeurs[IDPropriété.BackgroundColor] = CouleurRVBAN8(0, 0, 0, 0)
+    style.valeurs[IDPropriété.BackgroundImage] = ValeurDeStyle(mot_clé = PROP_none)
 
     /* Bordure */
     style.valeurs[IDPropriété.BorderWidthBottom] = ValeurDeStyle(mot_clé = PROP_medium)
@@ -950,6 +992,7 @@ GenreValeurCalculée :: énum_drapeau {
     TextDecorationStyle
     FontSize
     FontWeight
+    BackgroundImage
 }
 
 calcule_valeur_propriété_générique :: fonc (valeur: ValeurDeStyle, genre_valeur_calculée: GenreValeurCalculée, style: *Style, ctx: *ContexteCalculStyle) -> Optionnel(ValeurDeStyle)
@@ -998,8 +1041,8 @@ calcule_valeur_propriété_générique :: fonc (valeur: ValeurDeStyle, genre_val
                 }
                 si m == PROP_bolder {
                     graisse_parent : r64 = 400.0
-                    si ctx.propriétés_parent {
-                        graisse_parent = ctx.propriétés_parent.style.valeurs[IDPropriété.FontWeight].number
+                    si ctx.propriétés.parent {
+                        graisse_parent = ctx.propriétés.parent.style.valeurs[IDPropriété.FontWeight].number
                     }
 
                     si graisse_parent < 100.0 {
@@ -1026,8 +1069,8 @@ calcule_valeur_propriété_générique :: fonc (valeur: ValeurDeStyle, genre_val
                 }
                 si m == PROP_lighter {
                     graisse_parent : r64 = 400.0
-                    si ctx.propriétés_parent {
-                        graisse_parent = ctx.propriétés_parent.style.valeurs[IDPropriété.FontWeight].number
+                    si ctx.propriétés.parent {
+                        graisse_parent = ctx.propriétés.parent.style.valeurs[IDPropriété.FontWeight].number
                     }
 
                     si graisse_parent < 100.0 {
@@ -1060,6 +1103,14 @@ calcule_valeur_propriété_générique :: fonc (valeur: ValeurDeStyle, genre_val
             }
             si genre_valeur_calculée.Display {
                 retourne calcule_display_pour_mot_clé(m)
+            }
+            si genre_valeur_calculée.BackgroundImage && m == PROP_none {
+                retourne valeur
+            }
+        }
+        url {
+            si genre_valeur_calculée.BackgroundImage {
+                retourne valeur
             }
         }
         couleur {
@@ -1130,8 +1181,8 @@ calcule_valeur_propriété_générique :: fonc (déclaration: *DéclarationPropr
      * https://www.w3.org/TR/css-color-4/#resolving-other-colors */
     si valeur.est_mot_clé(PROP_inherit) || (valeur.est_mot_clé(PROP_currentColor) && info.id == IDPropriété.Color) {
         /* https://www.w3.org/TR/css-cascade/#inherit */
-        si ctx.propriétés_parent {
-            valeur = ctx.propriétés_parent.style.valeurs[info.id]
+        si ctx.propriétés.parent {
+            valeur = ctx.propriétés.parent.style.valeurs[info.id]
         }
         sinon {
             valeur = ctx.valeurs_initiales.valeurs[info.id]

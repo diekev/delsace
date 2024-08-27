@@ -11,6 +11,7 @@ PROP_all_scroll : CSSOMString = ---
 PROP_auto : CSSOMString = ---
 PROP_background : CSSOMString = ---
 PROP_background_color : CSSOMString = ---
+PROP_background_image : CSSOMString = ---
 PROP_before : CSSOMString = ---
 PROP_blink : CSSOMString = ---
 PROP_block : CSSOMString = ---
