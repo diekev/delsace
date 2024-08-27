@@ -367,6 +367,11 @@ donne_déclaration_propriété_personnalisée :: fonc (propriétés: *Propriét�
     retourne nul
 }
 
+donne_valeur :: fonc (propriétés: *PropriétésDeStyle, id: IDPropriété) -> ValeurDeStyle
+{
+    retourne propriétés.style.valeurs[id]
+}
+
 /** \} */
 
 Longueur :: struct {
