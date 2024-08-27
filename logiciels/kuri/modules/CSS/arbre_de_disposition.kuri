@@ -643,6 +643,7 @@ donne_arbre_de_disposition_ajourné :: fonc (document: *HTML.Document, largeur: 
     si document.arbre_de_disposition == nul || ajournement.Construction {
         si document.arbre_de_disposition {
             détruit_arbre(document.arbre_de_disposition)
+            document.arbre_de_disposition = nul
         }
         crée_arbre_de_disposition(document, largeur, hauteur)
     }
@@ -688,6 +689,7 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, haut
 
     si document.arbre_de_disposition {
         détruit_arbre(document.arbre_de_disposition)
+        document.arbre_de_disposition = nul
     }
 
     document.arbre_de_disposition = résultat
