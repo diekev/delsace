@@ -489,8 +489,6 @@ apparie_règle :: fonc (règle_de_style: RègleAppariée, élément: *HTML.Élé
 
 résoud_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élément, propriétés_parent: *PropriétésDeStyle) -> *PropriétésDeStyle
 {
-    résultat := crée_propriétés_de_style(propriétés_parent)
-
     règles := collecte_les_règles_appropriées(résolveuse, élément)
     diffère déloge(règles)
     // imprime("% règle(s) pour %\n", règles.taille, élément.local_name)
@@ -524,6 +522,8 @@ résoud_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élémen
         }
     }
     tri_rapide(résolveuse.déclarations_cascade, compare_déclarations_pour_cascade)
+
+    résultat := crée_propriétés_de_style(propriétés_parent)
 
     pour > résolveuse.déclarations_cascade {
         ajoute_déclaration(résultat, it.déclaration)
