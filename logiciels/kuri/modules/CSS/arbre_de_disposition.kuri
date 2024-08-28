@@ -1379,18 +1379,23 @@ donne_élément :: fonc (noeud: *NoeudDeDisposition) -> *HTML.Élément
 {
     noeud_courant := noeud
 
-    tantque noeud_courant != nul && !est_noeud_non_anonyme(noeud_courant) {
-        noeud_courant = noeud_courant.parent
-    }
-
-    si noeud_courant {
+    tantque noeud_courant != nul {
+        élément: *HTML.Élément
         si noeud_courant.type == NoeudDeDispositionInline {
-            retourne (noeud_courant comme *NoeudDeDispositionBloc).élément
+            élément = (noeud_courant comme *NoeudDeDispositionBloc).élément
         }
-        si noeud_courant.type == NoeudDeDispositionRemplacement {
-            retourne (noeud_courant comme *NoeudDeDispositionBloc).élément
+        sinon si noeud_courant.type == NoeudDeDispositionRemplacement {
+            élément = (noeud_courant comme *NoeudDeDispositionBloc).élément
         }
-        retourne (noeud_courant comme *NoeudDeDispositionBloc).élément
+        sinon si noeud_courant.type == NoeudDeDispositionBloc {
+            élément = (noeud_courant comme *NoeudDeDispositionBloc).élément
+        }
+
+        si élément {
+            retourne élément
+        }
+
+        noeud_courant = noeud_courant.parent
     }
 
     retourne nul
