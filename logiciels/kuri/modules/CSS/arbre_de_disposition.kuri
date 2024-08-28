@@ -752,6 +752,68 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
     saufsi propriétés.style.valeurs[IDPropriété.FontWeight].est_nombre() {
         propriétés.style.valeurs[IDPropriété.FontWeight] = calcule_valeur_propriété_générique(propriétés.style.valeurs[IDPropriété.FontWeight], GenreValeurCalculée.FontWeight, *propriétés.style, *ctx_calcul_style)
     }
+
+    calcule_display_final(propriétés)
+}
+
+/* Corrige display en prenant en compte position et float.
+ * https://www.w3.org/TR/2011/REC-CSS2-20110607/visuren.html#dis-pos-flo */
+calcule_display_final :: fonc (propriétés: *PropriétésDeStyle)
+{
+    display := propriétés.donne_valeur(IDPropriété.Display).display
+    position := propriétés.donne_valeur(IDPropriété.Position)
+    float := propriétés.donne_valeur(IDPropriété.Float)
+
+    // 1. If 'display' has the value 'none', then 'position' and 'float' do not apply. In this case,
+    // the element generates no box.
+    si display.outer_type == Display.Type.None {
+        retourne
+    }
+
+    // 2. Otherwise, if 'position' has the value 'absolute' or 'fixed', the box is absolutely positioned,
+    // the computed value of 'float' is 'none', and display is set according to the table below.
+    // The position of the box will be determined by the 'top', 'right', 'bottom' and 'left' properties
+    // and the box's containing block.
+    si position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_fixed) {
+        propriétés.style.valeurs[IDPropriété.Float] = ValeurDeStyle(mot_clé = PROP_none)
+        propriétés.style.valeurs[IDPropriété.Display] = convertis_display_pour_position_ou_float(display)
+        retourne
+    }
+
+    // 3. Otherwise, if 'float' has a value other than 'none', the box is floated and 'display' is set
+    // according to the table below.
+    saufsi float.est_none() {
+        propriétés.style.valeurs[IDPropriété.Display] = convertis_display_pour_position_ou_float(display)
+        retourne
+    }
+
+    // 4. Otherwise, if the element is the root element, 'display' is set according to the table below,
+    // except that it is undefined in CSS 2.1 whether a specified value of 'list-item' becomes a computed
+    // value of 'block' or 'list-item'.
+    // À FAIRE : test plus robuste pour définir l'élément racine.
+    // À FAIRE : list-item.
+    saufsi propriétés.parent {
+        propriétés.style.valeurs[IDPropriété.Display] = convertis_display_pour_position_ou_float(display)
+        retourne
+    }
+
+    // 5. Otherwise, the remaining 'display' property values apply as specified.
+}
+
+convertis_display_pour_position_ou_float :: fonc (spécifié: Display) -> ValeurDeStyle
+{
+    // À FAIRE : display-internal
+    résultat := spécifié
+
+    si spécifié.outer_type == Display.Type.Inline {
+        résultat.outer_type = Display.Type.Block
+
+        si spécifié.inner_type != Display.Type.Table {
+            résultat.inner_type = Display.Type.FlowRoot
+        }
+    }
+
+    retourne ValeurDeStyle(display = résultat)
 }
 
 /** \} */
