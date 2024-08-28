@@ -2471,6 +2471,14 @@ noeud_disposition_texte_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition,
 
     hauteur_texte := métriques.donne_hauteur_ligne()
 
+    propriétés := donne_propriété_parent(noeud)
+    line_height := propriétés.donne_valeur(IDPropriété.LineHeight)
+
+    si line_height.est_nombre() {
+        /* line-height définis la hauteur minimale. */
+        hauteur_texte = max(hauteur_texte, line_height.number comme r32)
+    }
+
     pour morceaux {
         largeur_morceau := fonte.donne_largeur_texte(it)
 
