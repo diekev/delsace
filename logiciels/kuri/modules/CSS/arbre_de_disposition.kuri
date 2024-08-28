@@ -1338,23 +1338,28 @@ ajourne_boite_pour_calcul_hauteur :: fonc (noeud: *NoeudDeDisposition)
     noeud.modèle_de_boite.contenu.hauteur = height
 }
 
-donne_propriété_parent :: fonc (noeud_texte: *NoeudDeDisposition) -> *PropriétésDeStyle
+donne_propriété_parent :: fonc (noeud_texte: *NoeudDeDispositionTexte) -> *PropriétésDeStyle
 {
     parent := noeud_texte.parent
-    tantque !est_noeud_non_anonyme(parent) {
+    tantque est_noeud_anonyme(parent) {
         parent = parent.parent
     }
     retourne parent.propriétés
 }
 
-est_noeud_non_anonyme :: fonc (noeud: *NoeudDeDisposition) -> bool
+est_noeud_anonyme :: fonc (noeud: *NoeudDeDisposition) -> bool
 {
     si noeud.type != NoeudDeDispositionBloc && noeud.type != NoeudDeDispositionInline {
         retourne faux
     }
 
     noeud_bloc := noeud comme *NoeudDeDispositionBloc
-    retourne noeud_bloc.élément != nul
+    retourne noeud_bloc.élément == nul
+}
+
+est_noeud_non_anonyme :: fonc (noeud: *NoeudDeDisposition) -> bool
+{
+    retourne !est_noeud_anonyme(noeud)
 }
 
 est_block_level :: fonc (noeud: *NoeudDeDisposition) -> bool
