@@ -321,6 +321,14 @@ copie_propriétés :: fonc (source: *PropriétésDeStyle) -> *PropriétésDeStyl
     retourne résultat
 }
 
+permute :: fonc (a: *PropriétésDeStyle, b: *PropriétésDeStyle)
+{
+    assert(a.parent == b.parent)
+    tmp := mémoire(a)
+    mémoire(a) = mémoire(b)
+    mémoire(b) = tmp
+}
+
 détruit_données_propriétés :: fonc (propriétés: *PropriétésDeStyle)
 {
     déloge(propriétés.déclarations)

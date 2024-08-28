@@ -594,8 +594,7 @@ donne_ajournement_pour_changement_style :: fonc (résolveuse: *RésolveuseStyle,
     }
 
     /* Sauvegarde les propriétés. */
-    noeud_de_disposition.propriétés = nouvelles_propriétés
-    nouvelles_propriétés = anciennes_propriétés
+    permute(nouvelles_propriétés, anciennes_propriétés)
 
     retourne résultat
 }
