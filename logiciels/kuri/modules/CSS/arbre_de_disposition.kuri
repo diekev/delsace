@@ -194,6 +194,48 @@ dessine :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
 /** \nom RésolveuseStyle.
  * \{ */
 
+RègleAppariée :: struct {
+    règle: *CSSStyleRule
+    index_feuille_de_style: z64
+    index_règle: z64
+    origine: OrigineCascade
+}
+
+opérateur == :: fonc (a: RègleAppariée, b: RègleAppariée) -> bool
+{
+    retourne a.règle == b.règle
+}
+
+opérateur != :: fonc (a: RègleAppariée, b: RègleAppariée) -> bool
+{
+    retourne a.règle != b.règle
+}
+
+opérateur < :: fonc (a: RègleAppariée, b: RègleAppariée) -> bool
+{
+    retourne a.règle < b.règle
+}
+
+RèglesParIdentifiant :: struct {
+    ident: n32
+    règles: [..]RègleAppariée
+}
+
+opérateur == :: fonc (a: RèglesParIdentifiant, b: RèglesParIdentifiant) -> bool
+{
+    retourne a.ident == b.ident
+}
+
+opérateur != :: fonc (a: RèglesParIdentifiant, b: RèglesParIdentifiant) -> bool
+{
+    retourne a.ident != b.ident
+}
+
+opérateur < :: fonc (a: RèglesParIdentifiant, b: RèglesParIdentifiant) -> bool
+{
+    retourne a.ident < b.ident
+}
+
 RésolveuseStyle :: struct {
     globales: *GlobalesDessin
     taille_fonte_racine: r64
@@ -215,6 +257,10 @@ RésolveuseStyle :: struct {
     ids_connus: [..]n32
     attrs_connus: [..]n32
     classes_connues: [..]n32
+
+    /* Ségrégation des règles pour accélérer leurs appariements. */
+    règles_par_classe: [..]RèglesParIdentifiant
+    autres_règles: [..]RègleAppariée
 }
 
 crée_résolveuse_style :: fonc (document: *HTML.Document) -> *RésolveuseStyle
@@ -239,16 +285,29 @@ initialise_cache :: fonc (résolveuse: *RésolveuseStyle)
     résolveuse.ids_connus.taille = 0
     résolveuse.attrs_connus.taille = 0
     résolveuse.classes_connues.taille = 0
+    résolveuse.autres_règles.taille = 0
+    résolveuse.règles_par_classe.taille = 0
 
-    pour feuille dans résolveuse.feuilles_de_style {
-        pour règle dans feuille.rules {
+    pour feuille, index_feuille dans résolveuse.feuilles_de_style {
+        pour règle, index_règle dans feuille.rules {
             si règle.type != CSSRuleType.Style {
                 continue
             }
 
             règle_de_style := règle comme *CSSStyleRule
+            règle_ajoutée := faux
+
+            règle_appariée: RègleAppariée
+            règle_appariée.règle = règle_de_style
+            règle_appariée.index_feuille_de_style = index_feuille
+            règle_appariée.index_règle = index_règle
+
             pour complex dans règle_de_style.selector_list.complex_selectors {
+
+                dernière_classe: Optionnel(CSSOMString)
+
                 pour compound dans complex.compound_selectors {
+                    init_de(Optionnel(CSSOMString))(*dernière_classe)
                     pour simple dans compound.simple_selectors {
                         si simple.type == SimpleSelector.Type.PseudoClass {
                             pseudo_classes |= simple.pseudo_classe
@@ -261,14 +320,54 @@ initialise_cache :: fonc (résolveuse: *RésolveuseStyle)
                         }
                         sinon si simple.type == SimpleSelector.Type.Class {
                             ensemble_ajoute(*résolveuse.classes_connues, simple.ident.valeur)
+                            dernière_classe = simple.ident
                         }
                     }
                 }
+
+                si dernière_classe.possède_valeur() {
+                    règle_ajoutée = vrai
+                    ajoute_règle_pour_classe(résolveuse, dernière_classe.Quelque, règle_appariée)
+                }
+            }
+
+            saufsi règle_ajoutée {
+                tableau_ajoute(*résolveuse.autres_règles, règle_appariée)
             }
         }
     }
 
     résolveuse.pseudo_classes = pseudo_classes
+}
+
+ajoute_règle_pour_classe :: fonc (résolveuse: *RésolveuseStyle, classe: CSSOMString, règle: RègleAppariée)
+{
+    règle_par_identifiant: RèglesParIdentifiant
+    règle_par_identifiant.ident = classe.valeur
+
+    index := ensemble_possède_retourne_index(*résolveuse.règles_par_classe, règle_par_identifiant)
+    si index != -1 {
+        règles_par_identifant := *résolveuse.règles_par_classe[index]
+        tableau_ajoute(*règles_par_identifant.règles, règle)
+        retourne
+    }
+
+    tableau_ajoute(*règle_par_identifiant.règles, règle)
+    ensemble_ajoute(*résolveuse.règles_par_classe, règle_par_identifiant)
+}
+
+donne_règles_pour_classe :: fonc (résolveuse: *RésolveuseStyle, classe: CSSOMString) -> [..]RègleAppariée
+{
+    règle_par_identifiant: RèglesParIdentifiant
+    règle_par_identifiant.ident = classe.valeur
+
+    index := ensemble_possède_retourne_index(*résolveuse.règles_par_classe, règle_par_identifiant)
+    si index != -1 {
+        retourne résolveuse.règles_par_classe[index].règles
+    }
+
+    résultat: [..]RègleAppariée
+    retourne résultat
 }
 
 détruit_données_résolveuse :: fonc (résolveuse: *RésolveuseStyle)
@@ -277,6 +376,11 @@ détruit_données_résolveuse :: fonc (résolveuse: *RésolveuseStyle)
     déloge(résolveuse.ids_connus)
     déloge(résolveuse.attrs_connus)
     déloge(résolveuse.classes_connues)
+    déloge(résolveuse.autres_règles)
+    pour résolveuse.règles_par_classe {
+        déloge(it.règles)
+    }
+    déloge(résolveuse.règles_par_classe)
 }
 
 détruit_résolveuse :: fonc (résolveuse: *RésolveuseStyle)
@@ -328,46 +432,59 @@ donne_ajournement_pour_redimensionnement :: fonc (résolveuse: *RésolveuseStyle
 }
 
 RègleEtSpécificité :: struct {
-    règle: *CSSStyleRule
+    règle: RègleAppariée
     /* La spécifité du sélecteur complexe ayant la hautissime spécifité ayant apparié l'élément. */
     spécificité: Spécificité
 }
 
 collecte_les_règles_appropriées :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élément) -> [..]RègleEtSpécificité
 {
-    règles: [..]RègleEtSpécificité
+    temp: [..]RègleAppariée
+    diffère déloge(temp)
 
-    pour stylesheet dans résolveuse.feuilles_de_style {
-        pour règle dans stylesheet.rules {
-            si règle.type != CSSRuleType.Style {
-                continue
-            }
+    résultat: [..]RègleEtSpécificité
 
-            règle_de_style := règle comme *CSSStyleRule
+    classes := HTML.donne_liste_classe(élément)
+    pour classes {
+        règles_pour_classe := donne_règles_pour_classe(résolveuse, it)
 
-            règle_appariée: *CSSStyleRule
-            spécificité: Spécificité
-
-            pour complex dans règle_de_style.selector_list.complex_selectors {
-                saufsi apparie_sélecteur(complex.compound_selectors, complex.compound_selectors.taille - 1, élément) {
-                    continue
-                }
-
-                spécificité_sélecteur := calcule_spécificité(*complex)
-                si spécificité_sélecteur > spécificité {
-                    spécificité = spécificité_sélecteur
-                }
-
-                règle_appariée = règle_de_style
-            }
-
-            si règle_appariée {
-                tableau_ajoute(*règles, RègleEtSpécificité(règle_appariée, spécificité))
-            }
+        pour règle dans règles_pour_classe {
+            ensemble_ajoute(*temp, règle)
         }
     }
 
-    retourne règles
+    pour temp {
+        apparie_règle(it, élément, *résultat)
+    }
+
+    pour résolveuse.autres_règles {
+        apparie_règle(it, élément, *résultat)
+    }
+
+    retourne résultat
+}
+
+apparie_règle :: fonc (règle_de_style: RègleAppariée, élément: *HTML.Élément, résultat: *[..]RègleEtSpécificité)
+{
+    règle_appariée := faux
+    spécificité: Spécificité
+
+    pour complex dans règle_de_style.règle.selector_list.complex_selectors {
+        saufsi apparie_sélecteur(complex.compound_selectors, complex.compound_selectors.taille - 1, élément) {
+            continue
+        }
+
+        spécificité_sélecteur := calcule_spécificité(*complex)
+        si spécificité_sélecteur > spécificité {
+            spécificité = spécificité_sélecteur
+        }
+
+        règle_appariée = vrai
+    }
+
+    si règle_appariée {
+        tableau_ajoute(résultat, RègleEtSpécificité(règle_de_style, spécificité))
+    }
 }
 
 résoud_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élément, propriétés_parent: *PropriétésDeStyle) -> *PropriétésDeStyle
@@ -382,11 +499,16 @@ résoud_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élémen
 
     pour règles {
         // imprime_règle(it.règle)
-        tableau_réserve(*résolveuse.déclarations_cascade, résolveuse.déclarations_cascade.taille + it.règle.style.déclarations.taille)
+        règle := it.règle.règle
+        déclarations := règle.style.déclarations
+        tableau_réserve(*résolveuse.déclarations_cascade, résolveuse.déclarations_cascade.taille + déclarations.taille)
         spécificité := it.spécificité
-        origine := donne_origine_cascade(it.règle)
-        pour déclaration dans it.règle.style.déclarations {
-            tableau_ajoute(*résolveuse.déclarations_cascade, DéclarationCascadée(déclaration, spécificité, origine, index_it))
+        origine := donne_origine_cascade(règle)
+
+        index_règle := (it.règle.index_feuille_de_style << 32) | it.règle.index_règle
+
+        pour déclaration dans déclarations {
+            tableau_ajoute(*résolveuse.déclarations_cascade, DéclarationCascadée(déclaration, spécificité, origine, index_règle))
         }
     }
 
