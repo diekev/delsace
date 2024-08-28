@@ -1246,6 +1246,10 @@ calcule_display_pour_mot_clé :: fonc (mot_clé: CSSOMString) -> ValeurDeStyle
         résultat.inner_type = Display.Type.Flow
         résultat.est_list_item = vrai
     }
+    sinon si mot_clé == PROP_inline_block {
+        résultat.outer_type = Display.Type.Inline
+        résultat.inner_type = Display.Type.FlowRoot
+    }
     sinon {
         assert(mot_clé == PROP_inline)
     }

@@ -82,6 +82,7 @@ PROP_in : CSSOMString = ---
 PROP_initial : CSSOMString = ---
 PROP_inherit : CSSOMString = ---
 PROP_inline : CSSOMString = ---
+PROP_inline_block : CSSOMString = ---
 PROP_inset : CSSOMString = ---
 PROP_inset_block : CSSOMString = ---
 PROP_inset_block_end : CSSOMString = ---

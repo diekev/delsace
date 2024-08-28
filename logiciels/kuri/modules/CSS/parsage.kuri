@@ -1995,7 +1995,12 @@ parse_propriété_display :: fonc (value: [..]ComponentValue) -> Optionnel(Valeu
 {
     parseuse := initialise_une_parseuse(value)
 
-    mot_clé := parseuse.parse_display_outside()
+    mot_clé := parseuse.parse_display_legacy()
+    si mot_clé.possède_valeur() {
+        retourne mot_clé
+    }
+
+    mot_clé = parseuse.parse_display_outside()
     si mot_clé.possède_valeur() {
         retourne mot_clé
     }
@@ -2034,6 +2039,13 @@ parse_display_box :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(Val
 
     /* contents | none */
     mots_clés := [PROP_contents, PROP_none]
+    retourne parse_mot_clé(parseuse, mots_clés)
+}
+
+parse_display_legacy :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+{
+    /* <display-legacy>   = inline-block | inline-table | inline-flex | inline-grid */
+    mots_clés := [PROP_inline_block]
     retourne parse_mot_clé(parseuse, mots_clés)
 }
 
