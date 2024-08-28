@@ -771,13 +771,13 @@ image_immédiat :: fonc (params: *ParamètresTexture2D, rect_image: RectanglePos
 {
     commence_immédiat(ModeImmédiat.TRIANGLES, nuanceur_image)
 
-    ancienne_fonction_mélange: z32
-    glGetIntegerv(GL_BLEND_SRC_ALPHA, *ancienne_fonction_mélange)
-    diffère glBlendFunc(GL_SRC_ALPHA, ancienne_fonction_mélange comme n32)
+    // ancienne_fonction_mélange: z32
+    // glGetIntegerv(GL_BLEND_SRC_ALPHA, *ancienne_fonction_mélange)
+    // diffère glBlendFunc(GL_SRC_ALPHA, ancienne_fonction_mélange comme n32)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-    gl_blend_est_actif := glIsEnabled(GL_BLEND) != 0
-    diffère saufsi gl_blend_est_actif { glDisable(GL_BLEND) }
+    // gl_blend_est_actif := glIsEnabled(GL_BLEND) != 0
+    // diffère saufsi gl_blend_est_actif { glDisable(GL_BLEND) }
     glEnable(GL_BLEND)
 
     code_texture: n32
