@@ -974,7 +974,7 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
     doit_formatter_en_blocs := faux
 
     pour noeud_disposition.enfants {
-        si it.type == NoeudDeDispositionBloc {
+        si it.est_block_level() {
             doit_formatter_en_blocs = vrai
             arrête
         }
@@ -1009,7 +1009,7 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
             noeud_inline_courant.enfants.capacité = 0
 
             pour anciens_enfants {
-                si it.type == NoeudDeDispositionBloc {
+                si it.est_block_level() {
                     parent.ajoute_enfant(it)
                     noeud_inline_courant = nul
                     continue
@@ -1021,6 +1021,7 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
                     noeud_inline_courant.est_disposition_inline = vrai
                     crée_style_pour_bloc_anonyme(résolveuse, noeud_inline_courant, noeud_disposition)
                     noeud_inline_courant.propriétés = copie_propriétés(noeud_disposition.propriétés)
+                    noeud_inline_courant.propriétés.style.valeurs[IDPropriété.Display] = Display(outer_type = Display.Type.Inline, inner_type = Display.Type.Flow)
                     parent.ajoute_enfant(noeud_inline_courant)
                 }
 
@@ -1032,7 +1033,7 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
 
             bloc_anonyme_courant: *NoeudDeDispositionBloc
             pour noeud_disposition.enfants {
-                si it.type == NoeudDeDispositionBloc {
+                si it.est_block_level() {
                     tableau_ajoute(*nouveaux_enfants, it)
                     bloc_anonyme_courant = nul
                     continue
@@ -1043,6 +1044,7 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
                     bloc_anonyme_courant.parent = noeud_disposition
                     bloc_anonyme_courant.est_disposition_inline = vrai
                     crée_style_pour_bloc_anonyme(résolveuse, bloc_anonyme_courant, noeud_disposition)
+                    bloc_anonyme_courant.propriétés.style.valeurs[IDPropriété.Display] = Display(outer_type = Display.Type.Block, inner_type = Display.Type.Flow)
                     tableau_ajoute(*nouveaux_enfants, bloc_anonyme_courant)
                 }
 
@@ -1354,6 +1356,24 @@ est_noeud_non_anonyme :: fonc (noeud: *NoeudDeDisposition) -> bool
 
     noeud_bloc := noeud comme *NoeudDeDispositionBloc
     retourne noeud_bloc.élément != nul
+}
+
+est_block_level :: fonc (noeud: *NoeudDeDisposition) -> bool
+{
+    assert(noeud.propriétés != nul)
+    retourne donne_display(noeud).outer_type == Display.Type.Block
+}
+
+est_inline_level :: fonc (noeud: *NoeudDeDisposition) -> bool
+{
+    assert(noeud.propriétés != nul)
+    retourne donne_display(noeud).outer_type == Display.Type.Inline
+}
+
+donne_display :: fonc (noeud: *NoeudDeDisposition) -> Display
+{
+    assert(noeud.propriétés != nul)
+    retourne noeud.propriétés.donne_valeur(IDPropriété.Display).display
 }
 
 donne_élément :: fonc (noeud: *NoeudDeDisposition) -> *HTML.Élément
