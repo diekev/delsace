@@ -1756,7 +1756,8 @@ infos_types_propriétés_shorthand := [
     InfoTypePropriété(PROP_inset, sur_parsage_shorthand = parse_propriété_inset_shorthand, drapeaux = DrapeauxPropriété.AffecteDisposition),
     InfoTypePropriété(PROP_inset_block, sur_parsage_shorthand = parse_propriété_inset_logique, drapeaux = DrapeauxPropriété.AffecteDisposition),
     InfoTypePropriété(PROP_inset_inline, sur_parsage_shorthand = parse_propriété_inset_logique, drapeaux = DrapeauxPropriété.AffecteDisposition),
-    InfoTypePropriété(PROP_text_align, id = IDPropriété.TextAlign, fonction_de_parsage = parse_propriété_text_align, drapeaux = DrapeauxPropriété.Héritée, genre_valeur_calculée = GenreValeurCalculée.Spécifié)
+    InfoTypePropriété(PROP_text_align, id = IDPropriété.TextAlign, fonction_de_parsage = parse_propriété_text_align, drapeaux = DrapeauxPropriété.Héritée, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
+    InfoTypePropriété(PROP_font, sur_parsage_shorthand = parse_propriété_font, drapeaux = DrapeauxPropriété.AffecteDisposition /* | DrapeauxPropriété.Héritée */)
 ]
 
 infos_types_propriétés := [
@@ -2827,6 +2828,64 @@ parse_propriété_cursor :: fonc (value: [..]ComponentValue) -> Optionnel(Valeur
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Font
+ * https://drafts.csswg.org/css-fonts/#font-prop
+ * \{ */
+
+parse_propriété_font :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
+{
+    font_weight := ValeurDeStyle(mot_clé = PROP_normal)
+    line_height := ValeurDeStyle(mot_clé = PROP_normal)
+    font_family := ValeurDeStyle(mot_clé = PROP_serif)
+    font_size := ValeurDeStyle(mot_clé = PROP_medium)
+
+    parseuse := initialise_une_parseuse(value)
+
+    tantque !fini(parseuse) {
+        parseuse.consomme_espaces_blanches()
+
+        valeur := parse_valeur_font_weight(parseuse)
+        si valeur.possède_valeur() {
+            font_weight = valeur.Quelque
+            continue
+        }
+
+        valeur = parse_valeur_font_size(parseuse)
+        si valeur.possède_valeur() {
+            font_size = valeur.Quelque
+
+            saufsi parseuse.consomme_slash_et_espaces_blanches() { 
+                continue
+            }
+
+            valeur = parse_valeur_line_height(parseuse)
+            si valeur.possède_valeur() {
+                line_height = valeur.Quelque
+                continue
+            }
+
+            retourne faux
+        }
+
+        valeur = parse_valeur_font_family(parseuse, vrai)
+        si valeur.possède_valeur() {
+            font_family = valeur.Quelque
+            continue
+        }
+
+        retourne faux
+    }
+
+    ctx.ajoute_propriété(PROP_font_weight, font_weight)
+    ctx.ajoute_propriété(PROP_line_height, line_height)
+    ctx.ajoute_propriété(PROP_font_family, font_family)
+    ctx.ajoute_propriété(PROP_font_size, font_size)
+    retourne vrai
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Font family
  * https://drafts.csswg.org/css-fonts/#font-family-prop
  * \{ */
@@ -2834,6 +2893,11 @@ parse_propriété_cursor :: fonc (value: [..]ComponentValue) -> Optionnel(Valeur
 parse_propriété_font_family :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
+    retourne parse_valeur_font_family(parseuse, faux)
+}
+
+parse_valeur_font_family :: fonc (parseuse: &Parseuse(ComponentValue), pour_shorthand: bool) -> Optionnel(ValeurDeStyle)
+{
 
     // [ <family-name> | <generic-family> ]#
     // <generic-family> = <generic-script-specific>| <generic-complete> | <generic-incomplete>
@@ -2845,6 +2909,8 @@ parse_propriété_font_family :: fonc (value: [..]ComponentValue) -> Optionnel(V
         PROP_serif, PROP_sans_serif, PROP_monospace
     ]
 
+    dernière_valeur_connue: Optionnel(ValeurDeStyle)
+
     /* À FAIRE : stocke la liste complète. */
     tantque !fini(parseuse) {
         lexème := parseuse.lexème_courant()
@@ -2852,7 +2918,8 @@ parse_propriété_font_family :: fonc (value: [..]ComponentValue) -> Optionnel(V
         si lexème.est_lexème_de_genre(GenreLexème.Ident) {
             valeur := parse_mot_clé(parseuse, mots_clés)
             si valeur.possède_valeur() {
-                retourne valeur
+                dernière_valeur_connue = valeur
+                continue
             }
 
             parseuse.avance()
@@ -2868,7 +2935,15 @@ parse_propriété_font_family :: fonc (value: [..]ComponentValue) -> Optionnel(V
             continue
         }
 
+        si pour_shorthand {
+            arrête
+        }
+
         retourne
+    }
+
+    si dernière_valeur_connue.possède_valeur() {
+        retourne dernière_valeur_connue
     }
 
     /* Si nous arrivons ici, la syntaxe est valide, mais nous ne connaissons pas la fonte.
@@ -2886,24 +2961,24 @@ parse_propriété_font_family :: fonc (value: [..]ComponentValue) -> Optionnel(V
 parse_propriété_font_weight :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
+    retourne parse_valeur_font_weight(parseuse)
+}
 
+parse_valeur_font_weight :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+{
     mots_clés := [
         PROP_normal, PROP_bold, PROP_lighter, PROP_bolder
     ]
 
-    tantque !fini(parseuse) {
-        valeur := parse_mot_clé(parseuse, mots_clés)
-        si valeur.possède_valeur() {
-            retourne valeur
-        }
+    valeur := parse_mot_clé(parseuse, mots_clés)
+    si valeur.possède_valeur() {
+        retourne valeur
+    }
 
-        lexème := parseuse.lexème_courant()
-        si lexème.est_lexème_de_genre(GenreLexème.Number) {
-            parseuse.avance()
-            retourne ValeurDeStyle(number = lexème.lexème.numeric_value)
-        }
-
-        retourne
+    lexème := parseuse.lexème_courant()
+    si lexème.est_lexème_de_genre(GenreLexème.Number) {
+        parseuse.avance()
+        retourne ValeurDeStyle(number = lexème.lexème.numeric_value)
     }
 }
 
@@ -2917,21 +2992,21 @@ parse_propriété_font_weight :: fonc (value: [..]ComponentValue) -> Optionnel(V
 parse_propriété_font_size :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
+    retourne parse_valeur_font_size(parseuse)
+}
 
+parse_valeur_font_size :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+{
     mots_clés := [PROP_larger, PROP_smaller, PROP_xx_small, PROP_x_small, PROP_small, PROP_medium, PROP_large, PROP_x_large, PROP_xx_large, PROP_xxx_large]
 
-    tantque !fini(parseuse) {
-        valeur := parse_valeur_length_percentage(parseuse)
-        si valeur.possède_valeur() {
-            retourne valeur
-        }
+    valeur := parse_valeur_length_percentage(parseuse)
+    si valeur.possède_valeur() {
+        retourne valeur
+    }
 
-        valeur = parse_mot_clé(parseuse, mots_clés)
-        si valeur.possède_valeur() {
-            retourne valeur
-        }
-
-        retourne
+    valeur = parse_mot_clé(parseuse, mots_clés)
+    si valeur.possède_valeur() {
+        retourne valeur
     }
 }
 
@@ -3580,7 +3655,11 @@ parse_propriété_max_height_width :: fonc (value: [..]ComponentValue) -> Option
 parse_propriété_line_height :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
+    retourne parse_valeur_line_height(parseuse)
+}
 
+parse_valeur_line_height :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+{
     /* parse_valeur_length inclus <number> */
     valeur := parse_valeur_length(parseuse)
     si valeur.possède_valeur() {
@@ -3595,6 +3674,7 @@ parse_propriété_line_height :: fonc (value: [..]ComponentValue) -> Optionnel(V
     lexème := parseuse.lexème_courant()
 
     si lexème.est_mot_clé(PROP_normal) {
+        parseuse.avance()
         retourne ValeurDeStyle(mot_clé = PROP_normal)
     }
 }

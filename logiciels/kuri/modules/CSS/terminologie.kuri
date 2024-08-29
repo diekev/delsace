@@ -65,6 +65,7 @@ PROP_first_letter : CSSOMString = ---
 PROP_first_line : CSSOMString = ---
 PROP_fixed : CSSOMString = ---
 PROP_float : CSSOMString = ---
+PROP_font : CSSOMString = ---
 PROP_font_family : CSSOMString = ---
 PROP_font_size : CSSOMString = ---
 PROP_font_style : CSSOMString = ---
