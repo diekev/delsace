@@ -1,0 +1,234 @@
+importe Fondation
+importe Math
+
+/* ------------------------------------------------------------------------- */
+/** \nom ContexteDeFormattage
+ * \{ */
+
+ContexteDeFormattage :: struct {
+    sur_formatte: fonc(*ContexteDeFormattage, *NoeudDeDispositionBloc)(rien)
+
+    globales: *GlobalesDessin
+    
+    largeur_disponible: r32
+    hauteur_disponible: r32
+}
+
+formatte :: fonc (contexte: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc)
+{
+    // ancien_noeud := contexte.noeud_contextuel
+    // diffère contexte.définis_noeud_contextuel(ancien_noeud)
+    // contexte.définis_noeud_contextuel(noeud)
+
+    contexte.sur_formatte(contexte, noeud)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ContexteDeFormattage
+ * \{ */
+
+ContexteDeFormattageBloc :: struct {
+    empl base: ContexteDeFormattage
+    sur_formatte = contexte_formattage_bloc_sur_formatte
+
+    racine: *NoeudDeDispositionBloc
+}
+
+contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc)
+{
+    ctx := base comme *ContexteDeFormattageBloc
+
+    /* https://www.w3.org/TR/CSS2/box.html#collapsing-margins */
+    décalage_x := noeud.modèle_de_boite.contenu.x
+    décalage_y := noeud.modèle_de_boite.contenu.y
+
+    // dernière_marge := marges[BorderEdge.Top]
+
+    hauteur_contenu := 0.0
+
+    pour noeud.enfants {
+        it.mesure(ctx)
+
+        position := it.propriétés.style.valeurs[IDPropriété.Position]
+        /* À FAIRE : https://drafts.csswg.org/css-position/#abspos-layout */
+        si position.est_mot_clé(PROP_absolute) {
+            top := it.propriétés.style.valeurs[IDPropriété.Top]
+            bottom := it.propriétés.style.valeurs[IDPropriété.Bottom]
+            left := it.propriétés.style.valeurs[IDPropriété.Left]
+            right := it.propriétés.style.valeurs[IDPropriété.Right]
+
+            si left.est_auto() && right.est_auto() {
+                left = ValeurDeStyle(number = 0.0)
+            }
+            sinon si left.est_auto() {
+                left = ValeurDeStyle(number = -right.number)
+            }
+            sinon saufsi left.est_nombre() {
+                left = ValeurDeStyle(number = 0.0)
+            }
+
+            si top.est_auto() && bottom.est_auto() {
+                top = ValeurDeStyle(number = 0.0)
+            }
+            sinon si top.est_auto() {
+                top = ValeurDeStyle(number = -bottom.number)
+            }
+            sinon saufsi top.est_nombre() {
+                top = ValeurDeStyle(number = 0.0)
+            }
+
+            it.décale(décalage_x + left.number comme r32, décalage_y + hauteur_contenu + top.number comme r32)
+            continue
+        }
+
+        hauteur_enfant := it.modèle_de_boite.marge.hauteur
+
+        // marges_enfant := it.marges
+        // marge_inter_enfant := max(marges_enfant[BorderEdge.Bottom], dernière_marge)
+        // décalage_y := marge_inter_enfant comme r32
+
+        it.décale(décalage_x, décalage_y + hauteur_contenu)
+
+        // dernière_marge = marges_enfant[BorderEdge.Bottom]
+
+        si index_it == 0 {
+            hauteur_contenu += hauteur_enfant // + marges[BorderEdge.Top] comme r32
+        }
+        sinon si index_it == noeud.enfants.taille - 1 {
+            hauteur_contenu += hauteur_enfant // + marges[BorderEdge.Bottom] comme r32
+        }
+        sinon {
+            hauteur_contenu += hauteur_enfant // + dernière_marge comme r32
+        }
+    }
+
+    pour noeud.enfants {
+        position := it.propriétés.style.valeurs[IDPropriété.Position]
+        /* À FAIRE : https://drafts.csswg.org/css-position/#relpos-insets */
+        si position.est_mot_clé(PROP_relative) {
+            top := it.propriétés.style.valeurs[IDPropriété.Top]
+            bottom := it.propriétés.style.valeurs[IDPropriété.Bottom]
+            left := it.propriétés.style.valeurs[IDPropriété.Left]
+            right := it.propriétés.style.valeurs[IDPropriété.Right]
+
+            si left.est_auto() && right.est_auto() {
+                left = ValeurDeStyle(number = 0.0)
+            }
+            sinon si left.est_auto() {
+                left = ValeurDeStyle(number = -right.number)
+            }
+
+            si top.est_auto() && bottom.est_auto() {
+                top = ValeurDeStyle(number = 0.0)
+            }
+            sinon si top.est_auto() {
+                top = ValeurDeStyle(number = -bottom.number)
+            }
+
+            it.décale(left.number comme r32, top.number comme r32)
+        }
+    }
+
+    noeud.propriétés.style.valeurs[IDPropriété.Height] = ValeurDeStyle(number = hauteur_contenu)
+}
+
+/** \} */
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ContexteDeFormattage
+ * \{ */
+
+ContexteDeFormattageInline :: struct {
+    empl base: ContexteDeFormattage
+    sur_formatte = contexte_formattage_inline_sur_formatte
+
+    racine: *NoeudDeDispositionBloc
+}
+
+contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc)
+{
+    ctx := base comme *ContexteDeFormattageInline
+
+    décalage_x := noeud.modèle_de_boite.contenu.x
+    décalage_y := noeud.modèle_de_boite.contenu.y
+
+    réinitialise_lignes(noeud)
+    pour noeud.enfants {
+        divise_en_lignes(it, noeud, ctx)
+    }
+
+    hauteur_contenu := 0.0
+
+    alignement := donne_alignement_texte(noeud)
+
+    pour noeud.lignes {
+        hauteur := 0.0
+        décalage_pour_alignement := 0.0
+
+        si alignement == AlignementTexte.Droite {
+            décalage_pour_alignement = ctx.largeur_disponible - it.largeur_courante
+        }
+        sinon si alignement == AlignementTexte.Centre {
+            décalage_pour_alignement = (ctx.largeur_disponible - it.largeur_courante) / 2.0
+        }
+        sinon si alignement == AlignementTexte.Justifié {
+            /* À FAIRE : ignore l'espace finale. */
+            décalage_pour_alignement = (ctx.largeur_disponible - it.largeur_courante) / ((it.fragments.taille - 1) comme r32)
+        }
+
+        pour * fragment, index_fragment dans it.fragments {
+            hauteur = max(fragment.hauteur, hauteur)
+
+            si alignement == AlignementTexte.Justifié {
+                si index_fragment != 0 && index_it != (noeud.lignes.taille - 1) {
+                    fragment.x += décalage_pour_alignement * (index_fragment comme r32)
+                }
+            }
+            sinon {
+                fragment.x += décalage_pour_alignement
+            }
+
+            fragment.y = décalage_y
+        }
+
+        // pour * fragment dans it.fragments {
+        //     noeud_fragment := fragment.noeud
+        //     propriétés_noeud_fragment := donne_propriétés(noeud_fragment)
+        //     vertical_align := propriétés_noeud_fragment.donne_valeur(IDPropriété.VerticalAlign)
+        //     imprime("vertical-align: % (% | %)\n", vertical_align, fragment.hauteur, hauteur)
+
+        //     si vertical_align.est_mot_clé(PROP_bottom) || vertical_align.est_mot_clé(PROP_baseline) {
+        //         si fragment.hauteur < hauteur {
+        //             fragment.y += (hauteur - fragment.hauteur)
+        //         }
+        //     }
+        //     sinon si vertical_align.est_mot_clé(PROP_top) {
+        //         si fragment.hauteur < hauteur {
+        //             fragment.y = (hauteur - fragment.hauteur)
+        //         }
+        //     }
+        // }
+
+        hauteur_contenu += hauteur
+        décalage_y += hauteur
+    }
+
+    noeud.modèle_de_boite.marge.hauteur += hauteur_contenu
+    noeud.modèle_de_boite.bordure.hauteur += hauteur_contenu
+    noeud.modèle_de_boite.contenu.hauteur += hauteur_contenu
+    noeud.modèle_de_boite.rembourrage.hauteur += hauteur_contenu
+
+    si décalage_x != 0.0 || décalage_y != 0.0 {
+        pour noeud.lignes {
+            pour * fragment dans it.fragments {
+                fragment.x += décalage_x
+            }
+        }
+    }
+}
+
+/** \} */
