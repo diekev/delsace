@@ -639,6 +639,7 @@ IDPropriété :: énum n16 {
     TextDecorationColor
 
     LineHeight
+    VerticalAlign
 
     TextAlign
 }
@@ -705,6 +706,7 @@ initialise_style :: fonc (style: *Style)
     style.valeurs[IDPropriété.MaxHeight] = ValeurDeStyle(mot_clé = PROP_none)
 
     style.valeurs[IDPropriété.LineHeight] = ValeurDeStyle(mot_clé = PROP_normal)
+    style.valeurs[IDPropriété.VerticalAlign] = ValeurDeStyle(mot_clé = PROP_baseline)
 
     style.valeurs[IDPropriété.TextAlign] = ValeurDeStyle(mot_clé = PROP_start)
 

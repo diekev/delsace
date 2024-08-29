@@ -1816,7 +1816,8 @@ infos_types_propriétés := [
     InfoTypePropriété(PROP_inset_inline_end, fonction_de_parsage = parse_propriété_inset, sur_calcul_style = prop_inset_inline_end_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto, drapeaux = DrapeauxPropriété.AffecteDisposition),
     InfoTypePropriété(PROP_inset_inline_start, fonction_de_parsage = parse_propriété_inset, sur_calcul_style = prop_inset_inline_start_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto, drapeaux = DrapeauxPropriété.AffecteDisposition),
     InfoTypePropriété(PROP_position, id = IDPropriété.Position, fonction_de_parsage = parse_propriété_position, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteConstructionArbre),
-    InfoTypePropriété(PROP_float, id = IDPropriété.Float, fonction_de_parsage = parse_propriété_float, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteConstructionArbre)
+    InfoTypePropriété(PROP_float, id = IDPropriété.Float, fonction_de_parsage = parse_propriété_float, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteConstructionArbre),
+    InfoTypePropriété(PROP_vertical_align, id = IDPropriété.VerticalAlign, fonction_de_parsage = parse_propriété_vertical_align, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition)
 ]
 
 #portée_export
@@ -3730,3 +3731,19 @@ parse_propriété_float :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurD
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Vertical Align
+ * https://drafts.csswg.org/css2/#propdef-vertical-align
+ * https://www.w3.org/TR/css-inline-3/#transverse-alignment
+ * \{ */
+
+/* baseline | sub | super | top | text-top | middle | bottom | text-bottom | <percentage> | <length> */
+parse_propriété_vertical_align :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    mots_clés := [PROP_baseline, PROP_top, PROP_bottom]
+    retourne parse_mot_clé(parseuse, mots_clés)
+}
+
+/** } */
