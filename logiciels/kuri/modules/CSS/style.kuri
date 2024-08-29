@@ -321,6 +321,14 @@ copie_propriétés :: fonc (source: *PropriétésDeStyle) -> *PropriétésDeStyl
     retourne résultat
 }
 
+permute :: fonc (a: *PropriétésDeStyle, b: *PropriétésDeStyle)
+{
+    assert(a.parent == b.parent)
+    tmp := mémoire(a)
+    mémoire(a) = mémoire(b)
+    mémoire(b) = tmp
+}
+
 détruit_données_propriétés :: fonc (propriétés: *PropriétésDeStyle)
 {
     déloge(propriétés.déclarations)
@@ -631,6 +639,7 @@ IDPropriété :: énum n16 {
     TextDecorationColor
 
     LineHeight
+    VerticalAlign
 
     TextAlign
 }
@@ -682,6 +691,7 @@ initialise_style :: fonc (style: *Style)
     style.valeurs[IDPropriété.FontFamily] = ValeurDeStyle(mot_clé = PROP_serif)
     style.valeurs[IDPropriété.FontWeight] = ValeurDeStyle(mot_clé = PROP_normal)
     style.valeurs[IDPropriété.FontStyle] = ValeurDeStyle(mot_clé = PROP_normal)
+    style.valeurs[IDPropriété.FontSize] = ValeurDeStyle(mot_clé = PROP_medium)
 
     /* Text Decoration */
     style.valeurs[IDPropriété.TextDecorationLine] = ValeurDeStyle(mot_clé = PROP_none)
@@ -697,6 +707,7 @@ initialise_style :: fonc (style: *Style)
     style.valeurs[IDPropriété.MaxHeight] = ValeurDeStyle(mot_clé = PROP_none)
 
     style.valeurs[IDPropriété.LineHeight] = ValeurDeStyle(mot_clé = PROP_normal)
+    style.valeurs[IDPropriété.VerticalAlign] = ValeurDeStyle(mot_clé = PROP_baseline)
 
     style.valeurs[IDPropriété.TextAlign] = ValeurDeStyle(mot_clé = PROP_start)
 
@@ -1245,6 +1256,10 @@ calcule_display_pour_mot_clé :: fonc (mot_clé: CSSOMString) -> ValeurDeStyle
         résultat.outer_type = Display.Type.Block
         résultat.inner_type = Display.Type.Flow
         résultat.est_list_item = vrai
+    }
+    sinon si mot_clé == PROP_inline_block {
+        résultat.outer_type = Display.Type.Inline
+        résultat.inner_type = Display.Type.FlowRoot
     }
     sinon {
         assert(mot_clé == PROP_inline)
