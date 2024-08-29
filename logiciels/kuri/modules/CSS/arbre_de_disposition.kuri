@@ -1248,6 +1248,16 @@ ModèleDeBoite :: struct {
     contenu: RectanglePosDim(r32)
 }
 
+définis_largeur :: fonc (modèle: &ModèleDeBoite, largeur: r32)
+{
+    modèle.contenu.largeur = largeur
+}
+
+définis_hauteur :: fonc (modèle: &ModèleDeBoite, hauteur: r32)
+{
+    modèle.contenu.hauteur = hauteur
+}
+
 NoeudDeDisposition :: struct {
     type := #type_de_cette_structure
 
@@ -1598,13 +1608,87 @@ formatte_intérieur :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDeFor
     }
 }
 
+/* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#containing-block-details
+ * https://drafts.csswg.org/css-display/#containing-block
+ * https://www.w3.org/TR/css-position-3/#def-cb
+ * À FAIRE : initial containing block */
+donne_containing_block :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage) -> ModèleDeBoite
+{
+    // 1. The containing block in which the root element lives is a rectangle called the initial containing block.
+    // For continuous media, it has the dimensions of the viewport and is anchored at the canvas origin;
+    // it is the page area for paged media.
+    // The 'direction' property of the initial containing block is the same as for the root element.
+    si noeud.parent == nul {
+        résultat: ModèleDeBoite
+        résultat.définis_largeur(ctx.largeur_disponible)
+        résultat.définis_hauteur(ctx.hauteur_disponible)
+        retourne résultat
+    }
+
+    // 2. For other elements, if the element's position is 'relative' or 'static',
+    // the containing block is formed by the content edge of the nearest block
+    // container ancestor box.
+    position := noeud.propriétés.donne_valeur(IDPropriété.Position)
+    si position.est_mot_clé(PROP_relative) || position.est_mot_clé(PROP_static) {
+        parent := noeud.parent
+
+        tantque parent != nul {
+            si parent.type == NoeudDeDispositionBloc {
+                retourne parent.modèle_de_boite
+            }
+
+            parent = parent.parent
+        }
+    }
+    // 3. If the element has 'position: fixed', the containing block is established by the viewport
+    // in the case of continuous media or the page area in the case of paged media.
+    sinon si position.est_mot_clé(PROP_fixed) {
+        résultat: ModèleDeBoite
+        résultat.définis_largeur(ctx.largeur_disponible)
+        résultat.définis_hauteur(ctx.hauteur_disponible)
+        retourne résultat
+    }
+    // 4. If the element has 'position: absolute', the containing block is established by the nearest
+    // ancestor with a 'position' of 'absolute', 'relative' or 'fixed', in the following way:
+    sinon si position.est_mot_clé(PROP_absolute) {
+        ancêtre := noeud.parent
+
+        tantque ancêtre != nul {
+            position_parent := ancêtre.propriétés.donne_valeur(IDPropriété.Position)
+            si position_parent.est_mot_clé(PROP_relative) || position_parent.est_mot_clé(PROP_absolute) || position_parent.est_mot_clé(PROP_fixed) {
+                arrête
+            }
+
+            ancêtre = ancêtre.parent
+        }
+
+        si ancêtre {
+            retourne ancêtre.modèle_de_boite
+        }
+
+        // À FAIRE : 1. In the case that the ancestor is an inline element, the containing block is the bounding
+        // box around the padding boxes of the first and the last inline boxes generated for that element.
+        // In CSS 2.1, if the inline element is split across multiple lines, the containing block is undefined.
+
+        // À FAIRE : 2. Otherwise, the containing block is formed by the padding edge of the ancestor.
+    }
+
+    // If there is no such ancestor, the containing block is the initial containing block.
+    résultat: ModèleDeBoite
+    résultat.définis_largeur(ctx.largeur_disponible)
+    résultat.définis_hauteur(ctx.hauteur_disponible)
+    retourne résultat
+}
+
 noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage)
 {
     noeud := base comme *NoeudDeDispositionBloc
 
+    containing_block := donne_containing_block(base, ctx)
+
     /* À FAIRE : utilise les bonnes formules.
      * https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#Computing_widths_and_margins */
-    calcule_largeur_et_marges(noeud, ctx.largeur_disponible comme r64)
+    calcule_largeur_et_marges(noeud, containing_block.contenu.largeur)
     calcule_hauteur_et_marges(noeud)
 
     formatte_intérieur(noeud, ctx)
