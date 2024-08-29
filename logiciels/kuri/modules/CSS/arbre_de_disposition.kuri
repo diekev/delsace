@@ -710,12 +710,8 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
     ctx_calcul_style.propriétés = propriétés
     ctx_calcul_style.valeurs_initiales = *résolveuse.valeurs_initiales
 
-    /* À FAIRE : gère proprement l'héritage des valeurs (surtout pour ne pas les recalculer). */
     si propriétés_parent {
-        propriétés.style.valeurs[IDPropriété.FontSize] = propriétés_parent.style.valeurs[IDPropriété.FontSize]
-    }
-    sinon {
-        propriétés.style.valeurs[IDPropriété.FontSize] = ValeurDeStyle(number = ctx_calcul_style.taille_fonte)
+        ctx_calcul_style.taille_fonte = propriétés_parent.style.valeurs[IDPropriété.FontSize].number
     }
 
     pour propriétés.déclarations {
@@ -747,6 +743,9 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
     }
     si propriétés.style.valeurs[IDPropriété.BorderStyleBottom].line_style == LineStyle.None {
         propriétés.style.valeurs[IDPropriété.BorderWidthBottom] = ValeurDeStyle(number = 0.0)
+    }
+    saufsi propriétés.style.valeurs[IDPropriété.FontSize].est_nombre() {
+        propriétés.style.valeurs[IDPropriété.FontSize] = calcule_valeur_propriété_générique(propriétés.style.valeurs[IDPropriété.FontSize], GenreValeurCalculée.LongueurAbsolue | GenreValeurCalculée.FontSize, *propriétés.style, *ctx_calcul_style)
     }
     saufsi propriétés.style.valeurs[IDPropriété.FontWeight].est_nombre() {
         propriétés.style.valeurs[IDPropriété.FontWeight] = calcule_valeur_propriété_générique(propriétés.style.valeurs[IDPropriété.FontWeight], GenreValeurCalculée.FontWeight, *propriétés.style, *ctx_calcul_style)
