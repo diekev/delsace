@@ -2240,7 +2240,8 @@ NoeudDeDispositionInline :: struct {
 noeud_disposition_inline_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage)
 {
     noeud := base comme *NoeudDeDispositionInline
-    calcule_largeur_et_marges(noeud, ctx.largeur_disponible comme r64)
+    containing_block := donne_containing_block(base, ctx)
+    calcule_largeur_et_marges(noeud, containing_block.contenu.largeur)
     calcule_hauteur_et_marges(noeud) // pour résoudre les %
     formatte_intérieur(noeud, ctx)
     calcule_hauteur_et_marges(noeud)
