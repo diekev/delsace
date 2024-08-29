@@ -1228,19 +1228,20 @@ basic_url_parser_path :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
 
         // 2. If buffer is a double-dot URL path segment, then:
         si parser.buffer == ".." {
-            panique("non-implémenté")
             // 1. Shorten url’s path.
+            shorten_path(parser.url)
 
             // 2. If neither c is U+002F (/), nor url is special and c is U+005C (\), append the empty string to url’s path.
+            si c != 0x2F && (!parser.url.est_spécial() && c == 0x5C) {
+                ajoute_segment_au_chemin(parser.url, "")
+            }
         }
-
         // 3. Otherwise, if buffer is a single-dot URL path segment and if neither c is U+002F (/), nor url is special and c is U+005C (\), append the empty string to url’s path.
-        si parser.buffer == "." && (c != 0x2F && (!parser.url.est_spécial() && c == 0x5C)) {
+        sinon si parser.buffer == "." && (c != 0x2F && (!parser.url.est_spécial() && c == 0x5C)) {
             ajoute_segment_au_chemin(parser.url, "")
         }
-
         // 4. Otherwise, if buffer is not a single-dot URL path segment, then:
-        si parser.buffer != "." {
+        sinon si parser.buffer != "." {
             // À FAIRE 1. If url’s scheme is "file", url’s path is empty, and buffer is a Windows drive letter, then replace the second code point in buffer with U+003A (:).
 
             // 2. Append buffer to url’s path.
