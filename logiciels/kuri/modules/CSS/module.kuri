@@ -4,6 +4,7 @@ importe Fondation
 importe Internet
 
 charge "arbre_de_disposition"
+charge "contexte_de_formattage"
 charge "globales"
 charge "lexage"
 charge "objets"
