@@ -3,11 +3,13 @@ importe #inemployé HTML
 importe Fondation
 importe Internet
 
+charge "arbre_de_disposition"
 charge "globales"
 charge "lexage"
 charge "objets"
 charge "parsage"
 charge "style"
+charge "terminologie"
 
 lèxe_style :: fonc (contenu: chaine) -> [..]Lexème
 {
