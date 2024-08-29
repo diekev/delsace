@@ -691,6 +691,7 @@ initialise_style :: fonc (style: *Style)
     style.valeurs[IDPropriété.FontFamily] = ValeurDeStyle(mot_clé = PROP_serif)
     style.valeurs[IDPropriété.FontWeight] = ValeurDeStyle(mot_clé = PROP_normal)
     style.valeurs[IDPropriété.FontStyle] = ValeurDeStyle(mot_clé = PROP_normal)
+    style.valeurs[IDPropriété.FontSize] = ValeurDeStyle(mot_clé = PROP_medium)
 
     /* Text Decoration */
     style.valeurs[IDPropriété.TextDecorationLine] = ValeurDeStyle(mot_clé = PROP_none)
