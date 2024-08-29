@@ -881,7 +881,7 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, haut
 
 dispose_arbre :: fonc (globales: *GlobalesDessin, arbre: *ArbreDeDisposition, largeur: z32, hauteur: z32)
 {
-    ctx: ContexteDisposition
+    ctx: ContexteDeFormattage
     ctx.largeur_disponible = largeur comme r32
     ctx.hauteur_disponible = hauteur comme r32
     ctx.globales = globales
@@ -1058,10 +1058,10 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom ContexteDisposition
+/** \nom ContexteDeFormattage
  * \{ */
 
-ContexteDisposition :: struct {
+ContexteDeFormattage :: struct {
     globales: *GlobalesDessin
     largeur_disponible: r32
     hauteur_disponible: r32
@@ -1271,10 +1271,10 @@ NoeudDeDisposition :: struct {
 
     modèle_de_boite: ModèleDeBoite
 
-    sur_mesure: fonc (*NoeudDeDisposition, *ContexteDisposition)(rien)
+    sur_mesure: fonc (*NoeudDeDisposition, *ContexteDeFormattage)(rien)
     sur_dessin: fonc (*NoeudDeDisposition, *ContexteDessin)(rien)
     sur_dessin_tampon_id: fonc (*NoeudDeDisposition, *ContexteDessin)(rien)
-    sur_divise_en_lignes: fonc (*NoeudDeDisposition, *NoeudDeDispositionBloc, *ContexteDisposition)(rien)
+    sur_divise_en_lignes: fonc (*NoeudDeDisposition, *NoeudDeDispositionBloc, *ContexteDeFormattage)(rien)
 }
 
 donne_propriétés :: fonc (noeud: *NoeudDeDisposition) -> *PropriétésDeStyle
@@ -1446,7 +1446,7 @@ donne_nom_classe :: fonc (noeud: *NoeudDeDisposition) -> chaine
     retourne infos.nom
 }
 
-mesure :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDisposition)
+mesure :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage)
 {
     si noeud.sur_mesure {
         noeud.sur_mesure(noeud, ctx)
@@ -1481,7 +1481,7 @@ donne_curseur :: fonc (noeud: *NoeudDeDisposition) -> CursorType
     retourne noeud.propriétés.style.valeurs[IDPropriété.Cursor].cursor
 }
 
-divise_en_lignes :: fonc (noeud: *NoeudDeDisposition, bloc_contenant: *NoeudDeDispositionBloc, ctx: *ContexteDisposition)
+divise_en_lignes :: fonc (noeud: *NoeudDeDisposition, bloc_contenant: *NoeudDeDispositionBloc, ctx: *ContexteDeFormattage)
 {
     si noeud.sur_divise_en_lignes {
         noeud.sur_divise_en_lignes(noeud, bloc_contenant, ctx)
@@ -1590,7 +1590,7 @@ réinitialise_lignes :: fonc (noeud: *NoeudDeDispositionBloc)
     noeud.lignes.taille = 0
 }
 
-noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDisposition)
+noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage)
 {
     noeud := base comme *NoeudDeDispositionBloc
 
@@ -1769,7 +1769,7 @@ donne_ligne_courante :: fonc (bloc: *NoeudDeDispositionBloc) -> *BoiteDeLigne
     retourne *bloc.lignes[bloc.lignes.taille - 1]
 }
 
-dispose_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDisposition)
+dispose_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDeFormattage)
 {
     ctx_locale := mémoire(ctx)
 
@@ -2207,7 +2207,7 @@ donne_alignement_texte :: fonc (noeud: *NoeudDeDispositionBloc) -> AlignementTex
     retourne AlignementTexte.Gauche
 }
 
-dispose_enfants_inline :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDisposition)
+dispose_enfants_inline :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDeFormattage)
 {
     ctx_locale := mémoire(ctx)
 
@@ -2330,7 +2330,7 @@ NoeudDeDispositionInline :: struct {
     sur_dessin_tampon_id = noeud_disposition_inline_sur_dessin_tampon_id
 }
 
-noeud_disposition_inline_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDisposition)
+noeud_disposition_inline_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage)
 {
     noeud := base comme *NoeudDeDispositionInline
     dispose_enfants_inline(noeud, ctx)
@@ -2362,7 +2362,7 @@ NoeudDeDispositionNouvelleLigne :: struct {
     sur_divise_en_lignes = noeud_disposition_nouvelle_ligne_sur_divise_en_lignes
 }
 
-noeud_disposition_nouvelle_ligne_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition @inutilisée, bloc_contenant: *NoeudDeDispositionBloc, ctx: *ContexteDisposition @inutilisée)
+noeud_disposition_nouvelle_ligne_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition @inutilisée, bloc_contenant: *NoeudDeDispositionBloc, ctx: *ContexteDeFormattage @inutilisée)
 {
     _ := bloc_contenant.ajoute_ligne()
 }
@@ -2389,7 +2389,7 @@ NoeudDeDispositionTexte :: struct {
     morceaux: [..]ChaineUTF16
 }
 
-détermine_fonte :: fonc (noeud_texte: *NoeudDeDispositionTexte, ctx: *ContexteDisposition) -> *Fonte
+détermine_fonte :: fonc (noeud_texte: *NoeudDeDispositionTexte, ctx: *ContexteDeFormattage) -> *Fonte
 {
     globales := ctx.globales
     assert(globales != nul)
@@ -2422,7 +2422,7 @@ détermine_fonte :: fonc (noeud_texte: *NoeudDeDispositionTexte, ctx: *ContexteD
     retourne fonte
 }
 
-noeud_disposition_texte_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDisposition)
+noeud_disposition_texte_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage)
 {
     noeud := base comme *NoeudDeDispositionTexte
 
@@ -2466,7 +2466,7 @@ noeud_disposition_texte_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Con
     noeud.modèle_de_boite.rembourrage.largeur = largeur_texte
 }
 
-noeud_disposition_texte_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, bloc_contenant: *NoeudDeDispositionBloc, ctx: *ContexteDisposition)
+noeud_disposition_texte_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, bloc_contenant: *NoeudDeDispositionBloc, ctx: *ContexteDeFormattage)
 {
     noeud := base comme *NoeudDeDispositionTexte
 
@@ -2660,7 +2660,7 @@ donne_hauteur_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> r
     retourne HTML.donne_hauteur_intrinsèque(élément) comme r32
 }
 
-noeud_disposition_remplacement_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDisposition)
+noeud_disposition_remplacement_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage)
 {
     noeud := base comme *NoeudDeDispositionRemplacement
 
@@ -2798,7 +2798,7 @@ calcule_hauteur_et_marges_inline_replaced_element :: fonc (noeud: *NoeudDeDispos
     style.valeurs[IDPropriété.MarginBottom] = margin_bottom
 }
 
-noeud_disposition_remplacement_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, bloc_contenant: *NoeudDeDispositionBloc, ctx: *ContexteDisposition)
+noeud_disposition_remplacement_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, bloc_contenant: *NoeudDeDispositionBloc, ctx: *ContexteDeFormattage)
 {
     noeud_disposition_remplacement_sur_mesure(base, ctx)
 
