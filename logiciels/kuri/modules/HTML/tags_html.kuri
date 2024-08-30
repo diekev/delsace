@@ -134,6 +134,7 @@ TAG_xmp: DOMString = ---
 /* Atributs */
 
 ATTR_action : DOMString = ---
+ATTR_align : DOMString = ---
 ATTR_alt : DOMString = ---
 ATTR_alternate : DOMString = ---
 ATTR_async : DOMString = ---
