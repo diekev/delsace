@@ -121,6 +121,7 @@ PROP_match_parent : CSSOMString = ---
 PROP_max_height : CSSOMString = ---
 PROP_max_width : CSSOMString = ---
 PROP_medium : CSSOMString = ---
+PROP_middle : CSSOMString = ---
 PROP_min_height : CSSOMString = ---
 PROP_min_width : CSSOMString = ---
 PROP_mm : CSSOMString = ---

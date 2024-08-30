@@ -12,7 +12,7 @@ ContexteDeFormattage :: struct {
     initial_containing_block: *ContainingBlock
 
     /* https://html.spec.whatwg.org/multipage/rendering.html#align-descendants */
-    doit_aligner_les_descendants: bool
+    doit_aligner_les_descendants: Optionnel(AlignementTexte)
 }
 
 donne_initial_containing_block :: fonc (ctx: *ContexteDeFormattage) -> ContainingBlock
@@ -27,6 +27,22 @@ formatte :: fonc (contexte: *ContexteDeFormattage, noeud: *NoeudDeDispositionBlo
     // contexte.définis_noeud_contextuel(noeud)
 
     contexte.sur_formatte(contexte, noeud)
+}
+
+modifie_marges_pour_alignement_forcé :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition)
+{
+    saufsi ctx.doit_aligner_les_descendants.possède_valeur() {
+        retourne
+    }
+
+    propriétés := noeud.propriétés
+    margin_left := propriétés.donne_valeur(IDPropriété.MarginLeft)
+    margin_right := propriétés.donne_valeur(IDPropriété.MarginRight)
+
+    si !margin_left.est_auto() && !margin_right.est_auto() {
+        propriétés.style.valeurs[IDPropriété.MarginLeft] = ValeurDeStyle(mot_clé = PROP_auto)
+        propriétés.style.valeurs[IDPropriété.MarginRight] = ValeurDeStyle(mot_clé = PROP_auto)
+    }
 }
 
 /* https://drafts.csswg.org/css-display-4/#establish-an-independent-formatting-context
@@ -252,6 +268,9 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
     hauteur_contenu := 0.0
 
     alignement := donne_alignement_texte(noeud)
+    si ctx.doit_aligner_les_descendants.possède_valeur() {
+        alignement = ctx.doit_aligner_les_descendants.Quelque
+    }
 
     pour noeud.lignes {
         hauteur := 0.0

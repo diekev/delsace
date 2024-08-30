@@ -1725,39 +1725,74 @@ formatte_intérieur :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDeFor
     }
 }
 
+est_élément_avec_attribut_alignement_spécial :: fonc (élément: *HTML.Élément) -> bool
+{
+    tags := [HTML.TAG_div, HTML.TAG_thead, HTML.TAG_tbody, HTML.TAG_tfoot, HTML.TAG_tr, HTML.TAG_td, HTML.TAG_th]
+
+    pour tags {
+        si élément.local_name == it {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}
+
+donne_alignement_descendants :: fonc (noeud: *NoeudDeDispositionBloc) -> Optionnel(AlignementTexte)
+{
+    saufsi noeud.élément {
+        retourne
+    }
+
+    si noeud.élément.local_name == HTML.TAG_center {
+        retourne AlignementTexte.Centre
+    }
+
+    si est_élément_avec_attribut_alignement_spécial(noeud.élément) {
+        attribut_align := HTML.donne_attribut(noeud.élément, HTML.ATTR_align)
+        saufsi attribut_align.possède_valeur() {
+            retourne
+        }
+
+        alignement := attribut_align.Quelque
+        si compare_ascii_insensible_à_la_casse(alignement, PROP_center) || compare_ascii_insensible_à_la_casse(alignement, PROP_middle) {
+            retourne AlignementTexte.Centre
+        }
+
+        si compare_ascii_insensible_à_la_casse(alignement, PROP_right) {
+            retourne AlignementTexte.Droite
+        }
+
+        si compare_ascii_insensible_à_la_casse(alignement, PROP_left) {
+            retourne AlignementTexte.Gauche
+        }
+
+        si compare_ascii_insensible_à_la_casse(alignement, PROP_justify) {
+            retourne AlignementTexte.Justifié
+        }
+
+        retourne
+    }
+}
+
 noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage)
 {
     noeud := base comme *NoeudDeDispositionBloc
 
     containing_block := donne_containing_block(base, ctx)
 
-    // Ceci ne fonctionne pas si "width" est auto. Il nous faudra peut-être forcer "width: fit-content"
-    // si ctx.doit_aligner_les_descendants {
-    //     propriétés := noeud.propriétés
-    //     margin_left := propriétés.donne_valeur(IDPropriété.MarginLeft)
-    //     margin_right := propriétés.donne_valeur(IDPropriété.MarginRight)
-
-    //     si !margin_left.est_auto() && !margin_right.est_auto() {
-    //         propriétés.style.valeurs[IDPropriété.MarginLeft] = ValeurDeStyle(mot_clé = PROP_auto)
-    //         propriétés.style.valeurs[IDPropriété.MarginRight] = ValeurDeStyle(mot_clé = PROP_auto)
-    //     }
-    // }
+    modifie_marges_pour_alignement_forcé(ctx, noeud)
 
     /* À FAIRE : utilise les bonnes formules.
      * https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#Computing_widths_and_margins */
     calcule_largeur_et_marges(noeud, containing_block)
     calcule_hauteur_et_marges(noeud, containing_block)
 
-    // si noeud.élément && noeud.élément.local_name == HTML.TAG_div {
-    //     attribut_align := HTML.donne_attribut(noeud.élément, HTML.ATTR_align)
-    //     si attribut_align.possède_valeur() {
-    //         alignement := attribut_align.Quelque
-    //         /* À FAIRE : "middle" */
-    //         si compare_ascii_insensible_à_la_casse(alignement, HTML.TAG_center) {
-    //             ctx.doit_aligner_les_descendants |= vrai
-    //         }
-    //     }
-    // }
+    doit_aligner_les_descendants := ctx.doit_aligner_les_descendants
+    alignement := donne_alignement_descendants(noeud)
+    si alignement.possède_valeur() {
+        ctx.doit_aligner_les_descendants = alignement
+    }
 
     formatte_intérieur(noeud, ctx)
 
@@ -1766,6 +1801,8 @@ noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Cont
          * Il faudra réviser l'interaction entre la disposition inline et le type de noeud (block ou inline). */
         calcule_hauteur_et_marges(noeud, containing_block)
     }
+
+    ctx.doit_aligner_les_descendants = doit_aligner_les_descendants
 }
 
 noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
@@ -2626,6 +2663,8 @@ noeud_disposition_remplacement_sur_mesure :: fonc (base: *NoeudDeDisposition, ct
     noeud := base comme *NoeudDeDispositionRemplacement
 
     containing_block := donne_containing_block(noeud, ctx)
+
+    modifie_marges_pour_alignement_forcé(ctx, noeud)
 
     résoud_pourcentage_largeurs(noeud, containing_block)
     résoud_pourcentage_hauteur(noeud, containing_block)
