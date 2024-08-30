@@ -881,10 +881,14 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, haut
 
 dispose_arbre :: fonc (globales: *GlobalesDessin, arbre: *ArbreDeDisposition, largeur: z32, hauteur: z32)
 {
+    initial_containing_block: ContainingBlock
+    initial_containing_block.rect.hauteur = hauteur comme r32
+    initial_containing_block.rect.largeur = largeur comme r32
+    initial_containing_block.noeud = arbre.racine
+
     ctx: ContexteDeFormattage
-    ctx.largeur_disponible = largeur comme r32
-    ctx.hauteur_disponible = hauteur comme r32
     ctx.globales = globales
+    ctx.initial_containing_block = *initial_containing_block
 
     mesure(arbre.racine, *ctx)
 
@@ -1494,6 +1498,114 @@ divise_en_lignes :: fonc (noeud: *NoeudDeDisposition, bloc_contenant: *NoeudDeDi
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom ContainingBlock
+ * https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#containing-block-details
+ * https://drafts.csswg.org/css-display/#containing-block
+ * https://www.w3.org/TR/css-position-3/#def-cb
+ * \{ */
+
+ContainingBlock :: struct {
+    rect: RectanglePosDim(r32)
+    noeud: *NoeudDeDisposition
+}
+
+crée_containing_block_pour_contenu :: fonc (noeud: *NoeudDeDisposition) -> ContainingBlock
+{
+    résultat: ContainingBlock
+    résultat.rect = noeud.modèle_de_boite.contenu
+    résultat.noeud = noeud
+    retourne résultat
+}
+
+crée_containing_block_pour_rembourrage :: fonc (noeud: *NoeudDeDisposition) -> ContainingBlock
+{
+    résultat: ContainingBlock
+    résultat.rect = noeud.modèle_de_boite.rembourrage
+    résultat.noeud = noeud
+    retourne résultat
+}
+
+donne_x :: fonc (bloc: &ContainingBlock) -> r32
+{
+    retourne bloc.rect.x
+}
+
+donne_y :: fonc (bloc: &ContainingBlock) -> r32
+{
+    retourne bloc.rect.y
+}
+
+donne_largeur :: fonc (bloc: &ContainingBlock) -> r32
+{
+    retourne bloc.rect.largeur
+}
+
+donne_hauteur :: fonc (bloc: &ContainingBlock) -> r32
+{
+    retourne bloc.rect.hauteur
+}
+
+donne_containing_block :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage) -> ContainingBlock
+{
+    // 1. The containing block in which the root element lives is a rectangle called the initial containing block.
+    // For continuous media, it has the dimensions of the viewport and is anchored at the canvas origin;
+    // it is the page area for paged media.
+    // The 'direction' property of the initial containing block is the same as for the root element.
+    si noeud.parent == nul {
+        retourne ctx.donne_initial_containing_block()
+    }
+
+    // 2. For other elements, if the element's position is 'relative' or 'static',
+    // the containing block is formed by the content edge of the nearest block
+    // container ancestor box.
+    position := noeud.propriétés.donne_valeur(IDPropriété.Position)
+    si position.est_mot_clé(PROP_relative) || position.est_mot_clé(PROP_static) {
+        parent := noeud.parent
+
+        tantque parent != nul {
+            si parent.type == NoeudDeDispositionBloc {
+                retourne crée_containing_block_pour_contenu(parent)
+            }
+
+            parent = parent.parent
+        }
+    }
+    // 3. If the element has 'position: fixed', the containing block is established by the viewport
+    // in the case of continuous media or the page area in the case of paged media.
+    sinon si position.est_mot_clé(PROP_fixed) {
+        retourne ctx.donne_initial_containing_block()
+    }
+    // 4. If the element has 'position: absolute', the containing block is established by the nearest
+    // ancestor with a 'position' of 'absolute', 'relative' or 'fixed', in the following way:
+    sinon si position.est_mot_clé(PROP_absolute) {
+        ancêtre := noeud.parent
+
+        tantque ancêtre != nul {
+            position_parent := ancêtre.propriétés.donne_valeur(IDPropriété.Position)
+            si position_parent.est_mot_clé(PROP_relative) || position_parent.est_mot_clé(PROP_absolute) || position_parent.est_mot_clé(PROP_fixed) {
+                arrête
+            }
+
+            ancêtre = ancêtre.parent
+        }
+
+        si ancêtre {
+            // À FAIRE : 1. In the case that the ancestor is an inline element, the containing block is the bounding
+            // box around the padding boxes of the first and the last inline boxes generated for that element.
+            // In CSS 2.1, if the inline element is split across multiple lines, the containing block is undefined.
+
+            // À FAIRE : 2. Otherwise, the containing block is formed by the padding edge of the ancestor.
+            retourne crée_containing_block_pour_rembourrage(ancêtre)
+        }
+    }
+
+    // If there is no such ancestor, the containing block is the initial containing block.
+    retourne ctx.donne_initial_containing_block()
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom BoiteDeLigne
  * Boite pour tenir les fragments de chaque ligne pour les dispositions
  * « inline ».
@@ -1593,91 +1705,74 @@ formatte_intérieur :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDeFor
     si (noeud.type == NoeudDeDispositionBloc && noeud.est_disposition_inline) || noeud.type == NoeudDeDispositionInline {
         ctx_local: ContexteDeFormattageInline
         ctx_local.globales = ctx.globales
-        ctx_local.largeur_disponible = noeud.modèle_de_boite.contenu.largeur
-        ctx_local.hauteur_disponible = ctx.hauteur_disponible
+        ctx_local.doit_aligner_les_descendants = ctx.doit_aligner_les_descendants
+        ctx_local.initial_containing_block = ctx.initial_containing_block
 
         formatte(*ctx_local, noeud)
     }
     sinon {
-        ctx_local: ContexteDeFormattageBloc
-        ctx_local.globales = ctx.globales
-        ctx_local.largeur_disponible = noeud.modèle_de_boite.contenu.largeur
-        ctx_local.hauteur_disponible = ctx.hauteur_disponible
+        si noeud.requiers_contexte_de_formattage_indépendant() {
+            ctx_local: ContexteDeFormattageBloc
+            ctx_local.globales = ctx.globales
+            ctx_local.doit_aligner_les_descendants = ctx.doit_aligner_les_descendants
+            ctx_local.initial_containing_block = ctx.initial_containing_block
 
-        formatte(*ctx_local, noeud)
+            formatte(*ctx_local, noeud)
+            retourne
+        }
+
+        formatte(ctx, noeud)
     }
 }
 
-/* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#containing-block-details
- * https://drafts.csswg.org/css-display/#containing-block
- * https://www.w3.org/TR/css-position-3/#def-cb
- * À FAIRE : initial containing block */
-donne_containing_block :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage) -> ModèleDeBoite
+est_élément_avec_attribut_alignement_spécial :: fonc (élément: *HTML.Élément) -> bool
 {
-    // 1. The containing block in which the root element lives is a rectangle called the initial containing block.
-    // For continuous media, it has the dimensions of the viewport and is anchored at the canvas origin;
-    // it is the page area for paged media.
-    // The 'direction' property of the initial containing block is the same as for the root element.
-    si noeud.parent == nul {
-        résultat: ModèleDeBoite
-        résultat.définis_largeur(ctx.largeur_disponible)
-        résultat.définis_hauteur(ctx.hauteur_disponible)
-        retourne résultat
-    }
+    tags := [HTML.TAG_div, HTML.TAG_thead, HTML.TAG_tbody, HTML.TAG_tfoot, HTML.TAG_tr, HTML.TAG_td, HTML.TAG_th]
 
-    // 2. For other elements, if the element's position is 'relative' or 'static',
-    // the containing block is formed by the content edge of the nearest block
-    // container ancestor box.
-    position := noeud.propriétés.donne_valeur(IDPropriété.Position)
-    si position.est_mot_clé(PROP_relative) || position.est_mot_clé(PROP_static) {
-        parent := noeud.parent
-
-        tantque parent != nul {
-            si parent.type == NoeudDeDispositionBloc {
-                retourne parent.modèle_de_boite
-            }
-
-            parent = parent.parent
+    pour tags {
+        si élément.local_name == it {
+            retourne vrai
         }
     }
-    // 3. If the element has 'position: fixed', the containing block is established by the viewport
-    // in the case of continuous media or the page area in the case of paged media.
-    sinon si position.est_mot_clé(PROP_fixed) {
-        résultat: ModèleDeBoite
-        résultat.définis_largeur(ctx.largeur_disponible)
-        résultat.définis_hauteur(ctx.hauteur_disponible)
-        retourne résultat
-    }
-    // 4. If the element has 'position: absolute', the containing block is established by the nearest
-    // ancestor with a 'position' of 'absolute', 'relative' or 'fixed', in the following way:
-    sinon si position.est_mot_clé(PROP_absolute) {
-        ancêtre := noeud.parent
 
-        tantque ancêtre != nul {
-            position_parent := ancêtre.propriétés.donne_valeur(IDPropriété.Position)
-            si position_parent.est_mot_clé(PROP_relative) || position_parent.est_mot_clé(PROP_absolute) || position_parent.est_mot_clé(PROP_fixed) {
-                arrête
-            }
+    retourne faux
+}
 
-            ancêtre = ancêtre.parent
-        }
-
-        si ancêtre {
-            retourne ancêtre.modèle_de_boite
-        }
-
-        // À FAIRE : 1. In the case that the ancestor is an inline element, the containing block is the bounding
-        // box around the padding boxes of the first and the last inline boxes generated for that element.
-        // In CSS 2.1, if the inline element is split across multiple lines, the containing block is undefined.
-
-        // À FAIRE : 2. Otherwise, the containing block is formed by the padding edge of the ancestor.
+donne_alignement_descendants :: fonc (noeud: *NoeudDeDispositionBloc) -> Optionnel(AlignementTexte)
+{
+    saufsi noeud.élément {
+        retourne
     }
 
-    // If there is no such ancestor, the containing block is the initial containing block.
-    résultat: ModèleDeBoite
-    résultat.définis_largeur(ctx.largeur_disponible)
-    résultat.définis_hauteur(ctx.hauteur_disponible)
-    retourne résultat
+    si noeud.élément.local_name == HTML.TAG_center {
+        retourne AlignementTexte.Centre
+    }
+
+    si est_élément_avec_attribut_alignement_spécial(noeud.élément) {
+        attribut_align := HTML.donne_attribut(noeud.élément, HTML.ATTR_align)
+        saufsi attribut_align.possède_valeur() {
+            retourne
+        }
+
+        alignement := attribut_align.Quelque
+        si compare_ascii_insensible_à_la_casse(alignement, PROP_center) || compare_ascii_insensible_à_la_casse(alignement, PROP_middle) {
+            retourne AlignementTexte.Centre
+        }
+
+        si compare_ascii_insensible_à_la_casse(alignement, PROP_right) {
+            retourne AlignementTexte.Droite
+        }
+
+        si compare_ascii_insensible_à_la_casse(alignement, PROP_left) {
+            retourne AlignementTexte.Gauche
+        }
+
+        si compare_ascii_insensible_à_la_casse(alignement, PROP_justify) {
+            retourne AlignementTexte.Justifié
+        }
+
+        retourne
+    }
 }
 
 noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage)
@@ -1686,18 +1781,28 @@ noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Cont
 
     containing_block := donne_containing_block(base, ctx)
 
+    modifie_marges_pour_alignement_forcé(ctx, noeud)
+
     /* À FAIRE : utilise les bonnes formules.
      * https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#Computing_widths_and_margins */
-    calcule_largeur_et_marges(noeud, containing_block.contenu.largeur)
-    calcule_hauteur_et_marges(noeud)
+    calcule_largeur_et_marges(noeud, containing_block)
+    calcule_hauteur_et_marges(noeud, containing_block)
+
+    doit_aligner_les_descendants := ctx.doit_aligner_les_descendants
+    alignement := donne_alignement_descendants(noeud)
+    si alignement.possède_valeur() {
+        ctx.doit_aligner_les_descendants = alignement
+    }
 
     formatte_intérieur(noeud, ctx)
 
     saufsi noeud.est_disposition_inline {
         /* À FAIRE : une disposition inline interfère avec la hauteur du bloc.
          * Il faudra réviser l'interaction entre la disposition inline et le type de noeud (block ou inline). */
-        calcule_hauteur_et_marges(noeud)
+        calcule_hauteur_et_marges(noeud, containing_block)
     }
+
+    ctx.doit_aligner_les_descendants = doit_aligner_les_descendants
 }
 
 noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
@@ -1867,9 +1972,10 @@ donne_ligne_courante :: fonc (bloc: *NoeudDeDispositionBloc) -> *BoiteDeLigne
     retourne *bloc.lignes[bloc.lignes.taille - 1]
 }
 
-calcule_largeur_et_marges :: fonc (noeud: *NoeudDeDispositionBloc, width_of_containing_block: r64)
+calcule_largeur_et_marges :: fonc (noeud: *NoeudDeDispositionBloc, containing_block: &ContainingBlock)
 {
-    résoud_pourcentage_largeurs(noeud, width_of_containing_block)
+    résoud_pourcentage_largeurs(noeud, containing_block)
+    width_of_containing_block := containing_block.donne_largeur()
 
     // À FAIRE : ne modifie pas les valeurs calculées
     sauvegarde_style := noeud.propriétés.style
@@ -1903,49 +2009,71 @@ calcule_pourcentage :: fonc (valeur: ValeurDeStyle, référence: r64) -> ValeurD
     retourne ValeurDeStyle(number = valeur.percentage * référence / 100.0)
 }
 
-résoud_pourcentage_largeurs :: fonc (noeud: *NoeudDeDispositionBloc, width_of_containing_block: r64)
+résoud_pourcentage_largeurs :: fonc (noeud: *NoeudDeDispositionBloc, containing_block: &ContainingBlock)
 {
     style := *noeud.propriétés.style
+    width_of_containing_block := containing_block.donne_largeur()
 
     margin_left := style.valeurs[IDPropriété.MarginLeft]
-    border_left_width := style.valeurs[IDPropriété.BorderWidthLeft]
     padding_left := style.valeurs[IDPropriété.PaddingLeft]
     width := style.valeurs[IDPropriété.Width]
     padding_right := style.valeurs[IDPropriété.PaddingRight]
-    border_right_width := style.valeurs[IDPropriété.BorderWidthRight]
     margin_right := style.valeurs[IDPropriété.MarginRight]
 
     style.valeurs[IDPropriété.MarginLeft] = calcule_pourcentage(margin_left, width_of_containing_block)
-    style.valeurs[IDPropriété.BorderWidthLeft] = calcule_pourcentage(border_left_width, width_of_containing_block)
     style.valeurs[IDPropriété.PaddingLeft] = calcule_pourcentage(padding_left, width_of_containing_block)
     style.valeurs[IDPropriété.Width] = calcule_pourcentage(width, width_of_containing_block)
     style.valeurs[IDPropriété.PaddingRight] = calcule_pourcentage(padding_right, width_of_containing_block)
-    style.valeurs[IDPropriété.BorderWidthRight] = calcule_pourcentage(border_right_width, width_of_containing_block)
     style.valeurs[IDPropriété.MarginRight] = calcule_pourcentage(margin_right, width_of_containing_block)
 }
 
-résoud_pourcentage_hauteur :: fonc (noeud: *NoeudDeDispositionBloc, height_of_containing_block: r64)
+résoud_pourcentage_hauteur :: fonc (noeud: *NoeudDeDispositionBloc, containing_block: &ContainingBlock)
 {
     style := *noeud.propriétés.style
+    width_of_containing_block := containing_block.donne_largeur()
+    height_of_containing_block := containing_block.donne_hauteur()
 
     margin_top := style.valeurs[IDPropriété.MarginTop]
-    border_top_width := style.valeurs[IDPropriété.BorderWidthTop]
     padding_top := style.valeurs[IDPropriété.PaddingTop]
     height := style.valeurs[IDPropriété.Height]
     padding_bottom := style.valeurs[IDPropriété.PaddingBottom]
-    border_bottom_width := style.valeurs[IDPropriété.BorderWidthBottom]
     margin_bottom := style.valeurs[IDPropriété.MarginBottom]
 
-    style.valeurs[IDPropriété.MarginTop] = calcule_pourcentage(margin_top, height_of_containing_block)
-    style.valeurs[IDPropriété.BorderWidthTop] = calcule_pourcentage(border_top_width, height_of_containing_block)
-    style.valeurs[IDPropriété.PaddingTop] = calcule_pourcentage(padding_top, height_of_containing_block)
+    style.valeurs[IDPropriété.MarginTop] = calcule_pourcentage(margin_top, width_of_containing_block)
+    style.valeurs[IDPropriété.PaddingTop] = calcule_pourcentage(padding_top, width_of_containing_block)
     style.valeurs[IDPropriété.Height] = calcule_pourcentage(height, height_of_containing_block)
-    style.valeurs[IDPropriété.PaddingBottom] = calcule_pourcentage(padding_bottom, height_of_containing_block)
-    style.valeurs[IDPropriété.BorderWidthBottom] = calcule_pourcentage(border_bottom_width, height_of_containing_block)
-    style.valeurs[IDPropriété.MarginBottom] = calcule_pourcentage(margin_bottom, height_of_containing_block)
+    style.valeurs[IDPropriété.PaddingBottom] = calcule_pourcentage(padding_bottom, width_of_containing_block)
+    style.valeurs[IDPropriété.MarginBottom] = calcule_pourcentage(margin_bottom, width_of_containing_block)
 }
 
-calcule_hauteur_et_marges :: fonc (noeud: *NoeudDeDispositionBloc)
+calcule_hauteur_et_marges :: fonc (noeud: *NoeudDeDispositionBloc, containing_block: &ContainingBlock)
+{
+    résoud_pourcentage_hauteur(noeud, containing_block)
+
+    // À FAIRE : ne modifie pas les valeurs calculées
+    sauvegarde_style := noeud.propriétés.style
+    calcule_hauteur_et_marges_block_level_normal_flow(noeud)
+
+    height := noeud.propriétés.style.valeurs[IDPropriété.Height]
+    max_height := noeud.propriétés.style.valeurs[IDPropriété.MaxHeight]
+    si max_height.est_nombre() && (height.number > max_height.number) {
+        noeud.propriétés.style = sauvegarde_style
+        noeud.propriétés.style.valeurs[IDPropriété.Height] = max_height
+        calcule_hauteur_et_marges_block_level_normal_flow(noeud)
+    }
+
+    height = noeud.propriétés.style.valeurs[IDPropriété.Height]
+    min_height := noeud.propriétés.style.valeurs[IDPropriété.MinHeight]
+    si min_height.est_nombre() && (height.number < min_height.number) {
+        noeud.propriétés.style = sauvegarde_style
+        noeud.propriétés.style.valeurs[IDPropriété.Height] = min_height
+        calcule_hauteur_et_marges_block_level_normal_flow(noeud)
+    }
+
+    ajourne_boite_pour_calcul_hauteur(noeud)
+}
+
+calcule_hauteur_et_marges_block_level_normal_flow :: fonc (noeud: *NoeudDeDispositionBloc)
 {
     style := *noeud.propriétés.style
 
@@ -1987,8 +2115,6 @@ calcule_hauteur_et_marges :: fonc (noeud: *NoeudDeDispositionBloc)
     style.valeurs[IDPropriété.PaddingBottom] = padding_bottom
     style.valeurs[IDPropriété.BorderWidthBottom] = border_bottom_height
     style.valeurs[IDPropriété.MarginBottom] = margin_bottom
-
-    ajourne_boite_pour_calcul_hauteur(noeud)
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#blockwidth */
@@ -2161,45 +2287,6 @@ dessine_tampon_id_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *C
     }
 }
 
-AlignementTexte :: énum {
-    Gauche
-    Droite
-    Centre
-    Justifié
-}
-
-donne_alignement_texte :: fonc (noeud: *NoeudDeDispositionBloc) -> AlignementTexte
-{
-    style := *noeud.propriétés.style
-    text_align := style.valeurs[IDPropriété.TextAlign]
-
-    si text_align.est_mot_clé(PROP_start) {
-        retourne AlignementTexte.Gauche
-    }
-
-    si text_align.est_mot_clé(PROP_end) {
-        retourne AlignementTexte.Droite
-    }
-
-    si text_align.est_mot_clé(PROP_left) {
-        retourne AlignementTexte.Gauche
-    }
-
-    si text_align.est_mot_clé(PROP_right) {
-        retourne AlignementTexte.Droite
-    }
-
-    si text_align.est_mot_clé(PROP_center) {
-        retourne AlignementTexte.Centre
-    }
-
-    si text_align.est_mot_clé(PROP_justify) {
-        retourne AlignementTexte.Justifié
-    }
-
-    retourne AlignementTexte.Gauche
-}
-
 dessine_enfants_inline :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDessin)
 {
     ctx_locale := mémoire(ctx)
@@ -2240,10 +2327,11 @@ NoeudDeDispositionInline :: struct {
 noeud_disposition_inline_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage)
 {
     noeud := base comme *NoeudDeDispositionInline
-    calcule_largeur_et_marges(noeud, ctx.largeur_disponible comme r64)
-    calcule_hauteur_et_marges(noeud) // pour résoudre les %
+    containing_block := donne_containing_block(base, ctx)
+    calcule_largeur_et_marges(noeud, containing_block)
+    calcule_hauteur_et_marges(noeud, containing_block)
     formatte_intérieur(noeud, ctx)
-    calcule_hauteur_et_marges(noeud)
+    calcule_hauteur_et_marges(noeud, containing_block)
 }
 
 noeud_disposition_inline_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
@@ -2574,13 +2662,51 @@ noeud_disposition_remplacement_sur_mesure :: fonc (base: *NoeudDeDisposition, ct
 {
     noeud := base comme *NoeudDeDispositionRemplacement
 
-    assert(noeud.propriétés.style.valeurs[IDPropriété.Display].display.outer_type == Display.Type.Inline)
+    containing_block := donne_containing_block(noeud, ctx)
 
-    résoud_pourcentage_largeurs(noeud, ctx.largeur_disponible)
-    résoud_pourcentage_hauteur(noeud, ctx.hauteur_disponible)
+    modifie_marges_pour_alignement_forcé(ctx, noeud)
 
-    calcule_largeur_et_marges_inline_replaced_element(noeud)
-    calcule_hauteur_et_marges_inline_replaced_element(noeud)
+    résoud_pourcentage_largeurs(noeud, containing_block)
+    résoud_pourcentage_hauteur(noeud, containing_block)
+
+    display := noeud.propriétés.donne_valeur(IDPropriété.Display).display
+    si display.outer_type == Display.Type.Inline {
+        calcule_largeur_et_marges_inline_replaced_element(noeud)
+        calcule_hauteur_et_marges_inline_replaced_element(noeud)
+    }
+    sinon {
+        calcule_largeur_et_marges(noeud, containing_block)
+        /* La hauteur à la même règle que pour le cas inline. */
+        calcule_hauteur_et_marges_inline_replaced_element(noeud)
+    }
+}
+
+calcule_largeur_et_marges :: fonc (noeud: *NoeudDeDispositionRemplacement, containing_block: &ContainingBlock)
+{
+    résoud_pourcentage_largeurs(noeud, containing_block)
+    width_of_containing_block := containing_block.donne_largeur()
+
+    // À FAIRE : ne modifie pas les valeurs calculées
+    sauvegarde_style := noeud.propriétés.style
+    calcule_largeur_et_marges_block_level_replaced_element(noeud, width_of_containing_block)
+
+    width := noeud.propriétés.style.valeurs[IDPropriété.Width]
+    max_width := noeud.propriétés.style.valeurs[IDPropriété.MaxWidth]
+    si max_width.est_nombre() && (width.number > max_width.number) {
+        noeud.propriétés.style = sauvegarde_style
+        noeud.propriétés.style.valeurs[IDPropriété.Width] = max_width
+        calcule_largeur_et_marges_block_level_replaced_element(noeud, width_of_containing_block)
+    }
+
+    width = noeud.propriétés.style.valeurs[IDPropriété.Width]
+    min_width := noeud.propriétés.style.valeurs[IDPropriété.MinWidth]
+    si min_width.est_nombre() && (width.number < min_width.number) {
+        noeud.propriétés.style = sauvegarde_style
+        noeud.propriétés.style.valeurs[IDPropriété.Width] = min_width
+        calcule_largeur_et_marges_block_level_replaced_element(noeud, width_of_containing_block)
+    }
+
+    ajourne_boite_pour_calcul_largeur(noeud)
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#inline-replaced-width */
@@ -2710,6 +2836,21 @@ calcule_hauteur_et_marges_inline_replaced_element :: fonc (noeud: *NoeudDeDispos
     style.valeurs[IDPropriété.MarginBottom] = margin_bottom
 
     ajourne_boite_pour_calcul_hauteur(noeud)
+}
+
+/* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#block-replaced-width */
+calcule_largeur_et_marges_block_level_replaced_element :: fonc (noeud: *NoeudDeDispositionRemplacement, width_of_containing_block: r64)
+{
+    sauvegarde_style := noeud.propriétés.style
+
+    // The used value of 'width' is determined as for inline replaced elements.
+    calcule_largeur_et_marges_inline_replaced_element(noeud)
+    width := noeud.propriétés.donne_valeur(IDPropriété.Width)
+
+    // Then the rules for non-replaced block-level elements are applied to determine the margins.
+    noeud.propriétés.style = sauvegarde_style
+    noeud.propriétés.style.valeurs[IDPropriété.Width] = width
+    calcule_largeur_et_marges_block_level_normal_flow(noeud, width_of_containing_block)
 }
 
 noeud_disposition_remplacement_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, bloc_contenant: *NoeudDeDispositionBloc, ctx: *ContexteDeFormattage)

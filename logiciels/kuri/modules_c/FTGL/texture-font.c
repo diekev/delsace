@@ -12,6 +12,7 @@
 #include "texture-font.h"
 #include "utf8-utils.h"
 #include <assert.h>
+#include <freetype/tttables.h>
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -228,6 +229,8 @@ static int texture_font_init(texture_font_t *self)
     self->height = 0;
     self->ascender = 0;
     self->descender = 0;
+    self->max_char_width = 0;
+    self->avg_char_width = 0;
     self->rendermode = RENDER_NORMAL;
     self->outline_thickness = 0.0;
     self->hinting = 1;
@@ -262,6 +265,14 @@ static int texture_font_init(texture_font_t *self)
     self->descender = (metrics.descender >> 6) / 100.0;
     self->height = (metrics.height >> 6) / 100.0;
     self->linegap = self->height - self->ascender + self->descender;
+    FT_Fixed em_scale = (FT_Fixed)FT_MulDiv(self->size, 1 << 16, face->units_per_EM);
+    self->max_char_width = FT_MulFix(face->bbox.xMax - face->bbox.xMin, em_scale);
+
+    TT_OS2 *pOS2 = FT_Get_Sfnt_Table(face, ft_sfnt_os2);
+    if (pOS2) {
+        self->avg_char_width = FT_MulFix(pOS2->xAvgCharWidth, em_scale);
+    }
+
     FT_Done_Face(face);
     FT_Done_FreeType(library);
 
