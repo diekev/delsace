@@ -29,6 +29,46 @@ formatte :: fonc (contexte: *ContexteDeFormattage, noeud: *NoeudDeDispositionBlo
     contexte.sur_formatte(contexte, noeud)
 }
 
+/* https://drafts.csswg.org/css-display-4/#establish-an-independent-formatting-context
+ * https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_flow_layout/Introduction_to_formatting_contexts#creating_a_new_block_formatting_context */
+requiers_contexte_de_formattage_indépendant :: fonc (noeud: *NoeudDeDisposition) -> bool
+{
+    si noeud.parent == nul {
+        retourne vrai
+    }
+
+    // elements made to float using float
+    float := noeud.propriétés.donne_valeur(IDPropriété.Float)
+    saufsi float.est_none() {
+        retourne vrai
+    }
+
+    // absolutely positioned elements
+    position := noeud.propriétés.donne_valeur(IDPropriété.Position)
+    si position.est_mot_clé(PROP_absolute) {
+        retourne vrai
+    }
+
+    // À FAIRE : table cells or elements with display: table-cell, including anonymous table cells created when using the display: table-* properties
+    // À FAIRE : table captions or elements with display: table-caption
+    // À FAIRE : block elements where overflow has a value other than visible
+
+    // elements with display: inline-block
+    // elements with display: flow-root or display: flow-root list-item
+    display := noeud.propriétés.donne_valeur(IDPropriété.Display).display
+    si display.inner_type == Display.Type.FlowRoot {
+        retourne vrai
+    }
+
+    // À FAIRE : elements with contain: layout, content, or strict
+    // À FAIRE : flex items
+    // À FAIRE : grid items
+    // À FAIRE : multicol containers
+    // À FAIRE : elements with column-span set to all
+
+    retourne faux
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

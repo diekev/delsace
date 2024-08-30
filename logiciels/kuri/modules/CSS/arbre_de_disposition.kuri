@@ -1711,12 +1711,17 @@ formatte_intérieur :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDeFor
         formatte(*ctx_local, noeud)
     }
     sinon {
-        ctx_local: ContexteDeFormattageBloc
-        ctx_local.globales = ctx.globales
-        ctx_local.doit_aligner_les_descendants = ctx.doit_aligner_les_descendants
-        ctx_local.initial_containing_block = ctx.initial_containing_block
+        si noeud.requiers_contexte_de_formattage_indépendant() {
+            ctx_local: ContexteDeFormattageBloc
+            ctx_local.globales = ctx.globales
+            ctx_local.doit_aligner_les_descendants = ctx.doit_aligner_les_descendants
+            ctx_local.initial_containing_block = ctx.initial_containing_block
 
-        formatte(*ctx_local, noeud)
+            formatte(*ctx_local, noeud)
+            retourne
+        }
+
+        formatte(ctx, noeud)
     }
 }
 
