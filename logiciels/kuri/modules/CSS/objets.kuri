@@ -14,7 +14,7 @@ importe Internet
 StyleSheet :: struct {
     /* "text/css" */
     type: CSSOMString
-    location: URI
+    location: Optionnel(URI)
 
     origine: OrigineCascade
 }
