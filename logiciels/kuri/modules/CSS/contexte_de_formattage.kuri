@@ -9,9 +9,15 @@ ContexteDeFormattage :: struct {
     sur_formatte: fonc(*ContexteDeFormattage, *NoeudDeDispositionBloc)(rien)
 
     globales: *GlobalesDessin
-    
-    largeur_disponible: r32
-    hauteur_disponible: r32
+    initial_containing_block: *ContainingBlock
+
+    /* https://html.spec.whatwg.org/multipage/rendering.html#align-descendants */
+    doit_aligner_les_descendants: Optionnel(AlignementTexte)
+}
+
+donne_initial_containing_block :: fonc (ctx: *ContexteDeFormattage) -> ContainingBlock
+{
+    retourne mémoire(ctx.initial_containing_block)
 }
 
 formatte :: fonc (contexte: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc)
@@ -21,6 +27,62 @@ formatte :: fonc (contexte: *ContexteDeFormattage, noeud: *NoeudDeDispositionBlo
     // contexte.définis_noeud_contextuel(noeud)
 
     contexte.sur_formatte(contexte, noeud)
+}
+
+modifie_marges_pour_alignement_forcé :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition)
+{
+    saufsi ctx.doit_aligner_les_descendants.possède_valeur() {
+        retourne
+    }
+
+    propriétés := noeud.propriétés
+    margin_left := propriétés.donne_valeur(IDPropriété.MarginLeft)
+    margin_right := propriétés.donne_valeur(IDPropriété.MarginRight)
+
+    si !margin_left.est_auto() && !margin_right.est_auto() {
+        propriétés.style.valeurs[IDPropriété.MarginLeft] = ValeurDeStyle(mot_clé = PROP_auto)
+        propriétés.style.valeurs[IDPropriété.MarginRight] = ValeurDeStyle(mot_clé = PROP_auto)
+    }
+}
+
+/* https://drafts.csswg.org/css-display-4/#establish-an-independent-formatting-context
+ * https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_flow_layout/Introduction_to_formatting_contexts#creating_a_new_block_formatting_context */
+requiers_contexte_de_formattage_indépendant :: fonc (noeud: *NoeudDeDisposition) -> bool
+{
+    si noeud.parent == nul {
+        retourne vrai
+    }
+
+    // elements made to float using float
+    float := noeud.propriétés.donne_valeur(IDPropriété.Float)
+    saufsi float.est_none() {
+        retourne vrai
+    }
+
+    // absolutely positioned elements
+    position := noeud.propriétés.donne_valeur(IDPropriété.Position)
+    si position.est_mot_clé(PROP_absolute) {
+        retourne vrai
+    }
+
+    // À FAIRE : table cells or elements with display: table-cell, including anonymous table cells created when using the display: table-* properties
+    // À FAIRE : table captions or elements with display: table-caption
+    // À FAIRE : block elements where overflow has a value other than visible
+
+    // elements with display: inline-block
+    // elements with display: flow-root or display: flow-root list-item
+    display := noeud.propriétés.donne_valeur(IDPropriété.Display).display
+    si display.inner_type == Display.Type.FlowRoot {
+        retourne vrai
+    }
+
+    // À FAIRE : elements with contain: layout, content, or strict
+    // À FAIRE : flex items
+    // À FAIRE : grid items
+    // À FAIRE : multicol containers
+    // À FAIRE : elements with column-span set to all
+
+    retourne faux
 }
 
 /** \} */
@@ -34,6 +96,22 @@ ContexteDeFormattageBloc :: struct {
     sur_formatte = contexte_formattage_bloc_sur_formatte
 
     racine: *NoeudDeDispositionBloc
+}
+
+résoud_pourcentage_insets :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage)
+{
+    containing_block := donne_containing_block(noeud, ctx)
+
+    top := noeud.propriétés.style.valeurs[IDPropriété.Top]
+    bottom := noeud.propriétés.style.valeurs[IDPropriété.Bottom]
+    left := noeud.propriétés.style.valeurs[IDPropriété.Left]
+    right := noeud.propriétés.style.valeurs[IDPropriété.Right]
+
+    noeud.propriétés.style.valeurs[IDPropriété.Top] = calcule_pourcentage(top, containing_block.donne_hauteur())
+    noeud.propriétés.style.valeurs[IDPropriété.Bottom] = calcule_pourcentage(bottom, containing_block.donne_hauteur())
+
+    noeud.propriétés.style.valeurs[IDPropriété.Left] = calcule_pourcentage(left, containing_block.donne_largeur())
+    noeud.propriétés.style.valeurs[IDPropriété.Right] = calcule_pourcentage(right, containing_block.donne_largeur())
 }
 
 contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc)
@@ -54,6 +132,8 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
         position := it.propriétés.style.valeurs[IDPropriété.Position]
         /* À FAIRE : https://drafts.csswg.org/css-position/#abspos-layout */
         si position.est_mot_clé(PROP_absolute) {
+            résoud_pourcentage_insets(it, ctx)
+
             top := it.propriétés.style.valeurs[IDPropriété.Top]
             bottom := it.propriétés.style.valeurs[IDPropriété.Bottom]
             left := it.propriétés.style.valeurs[IDPropriété.Left]
@@ -108,6 +188,8 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
         position := it.propriétés.style.valeurs[IDPropriété.Position]
         /* À FAIRE : https://drafts.csswg.org/css-position/#relpos-insets */
         si position.est_mot_clé(PROP_relative) {
+            résoud_pourcentage_insets(it, ctx)
+
             top := it.propriétés.style.valeurs[IDPropriété.Top]
             bottom := it.propriétés.style.valeurs[IDPropriété.Bottom]
             left := it.propriétés.style.valeurs[IDPropriété.Left]
@@ -149,9 +231,51 @@ ContexteDeFormattageInline :: struct {
     racine: *NoeudDeDispositionBloc
 }
 
+AlignementTexte :: énum {
+    Gauche
+    Droite
+    Centre
+    Justifié
+}
+
+donne_alignement_texte :: fonc (noeud: *NoeudDeDispositionBloc) -> AlignementTexte
+{
+    style := *noeud.propriétés.style
+    text_align := style.valeurs[IDPropriété.TextAlign]
+
+    si text_align.est_mot_clé(PROP_start) {
+        retourne AlignementTexte.Gauche
+    }
+
+    si text_align.est_mot_clé(PROP_end) {
+        retourne AlignementTexte.Droite
+    }
+
+    si text_align.est_mot_clé(PROP_left) {
+        retourne AlignementTexte.Gauche
+    }
+
+    si text_align.est_mot_clé(PROP_right) {
+        retourne AlignementTexte.Droite
+    }
+
+    si text_align.est_mot_clé(PROP_center) {
+        retourne AlignementTexte.Centre
+    }
+
+    si text_align.est_mot_clé(PROP_justify) {
+        retourne AlignementTexte.Justifié
+    }
+
+    retourne AlignementTexte.Gauche
+}
+
 contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc)
 {
     ctx := base comme *ContexteDeFormattageInline
+
+    containing_block := donne_containing_block(noeud, ctx)
+    largeur_disponible := containing_block.donne_largeur()
 
     décalage_x := noeud.modèle_de_boite.contenu.x
     décalage_y := noeud.modèle_de_boite.contenu.y
@@ -164,20 +288,23 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
     hauteur_contenu := 0.0
 
     alignement := donne_alignement_texte(noeud)
+    si ctx.doit_aligner_les_descendants.possède_valeur() {
+        alignement = ctx.doit_aligner_les_descendants.Quelque
+    }
 
     pour noeud.lignes {
         hauteur := 0.0
         décalage_pour_alignement := 0.0
 
         si alignement == AlignementTexte.Droite {
-            décalage_pour_alignement = ctx.largeur_disponible - it.largeur_courante
+            décalage_pour_alignement = largeur_disponible - it.largeur_courante
         }
         sinon si alignement == AlignementTexte.Centre {
-            décalage_pour_alignement = (ctx.largeur_disponible - it.largeur_courante) / 2.0
+            décalage_pour_alignement = (largeur_disponible - it.largeur_courante) / 2.0
         }
         sinon si alignement == AlignementTexte.Justifié {
             /* À FAIRE : ignore l'espace finale. */
-            décalage_pour_alignement = (ctx.largeur_disponible - it.largeur_courante) / ((it.fragments.taille - 1) comme r32)
+            décalage_pour_alignement = (largeur_disponible - it.largeur_courante) / ((it.fragments.taille - 1) comme r32)
         }
 
         pour * fragment, index_fragment dans it.fragments {
