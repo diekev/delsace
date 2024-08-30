@@ -1745,8 +1745,8 @@ noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Cont
 
     /* À FAIRE : utilise les bonnes formules.
      * https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#Computing_widths_and_margins */
-    calcule_largeur_et_marges(noeud, containing_block.donne_largeur())
-    calcule_hauteur_et_marges(noeud)
+    calcule_largeur_et_marges(noeud, containing_block)
+    calcule_hauteur_et_marges(noeud, containing_block)
 
     // si noeud.élément && noeud.élément.local_name == HTML.TAG_div {
     //     attribut_align := HTML.donne_attribut(noeud.élément, HTML.ATTR_align)
@@ -1764,7 +1764,7 @@ noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Cont
     saufsi noeud.est_disposition_inline {
         /* À FAIRE : une disposition inline interfère avec la hauteur du bloc.
          * Il faudra réviser l'interaction entre la disposition inline et le type de noeud (block ou inline). */
-        calcule_hauteur_et_marges(noeud)
+        calcule_hauteur_et_marges(noeud, containing_block)
     }
 }
 
@@ -1935,9 +1935,10 @@ donne_ligne_courante :: fonc (bloc: *NoeudDeDispositionBloc) -> *BoiteDeLigne
     retourne *bloc.lignes[bloc.lignes.taille - 1]
 }
 
-calcule_largeur_et_marges :: fonc (noeud: *NoeudDeDispositionBloc, width_of_containing_block: r64)
+calcule_largeur_et_marges :: fonc (noeud: *NoeudDeDispositionBloc, containing_block: &ContainingBlock)
 {
-    résoud_pourcentage_largeurs(noeud, width_of_containing_block)
+    résoud_pourcentage_largeurs(noeud, containing_block)
+    width_of_containing_block := containing_block.donne_largeur()
 
     // À FAIRE : ne modifie pas les valeurs calculées
     sauvegarde_style := noeud.propriétés.style
@@ -1971,51 +1972,46 @@ calcule_pourcentage :: fonc (valeur: ValeurDeStyle, référence: r64) -> ValeurD
     retourne ValeurDeStyle(number = valeur.percentage * référence / 100.0)
 }
 
-résoud_pourcentage_largeurs :: fonc (noeud: *NoeudDeDispositionBloc, width_of_containing_block: r64)
+résoud_pourcentage_largeurs :: fonc (noeud: *NoeudDeDispositionBloc, containing_block: &ContainingBlock)
 {
     style := *noeud.propriétés.style
+    width_of_containing_block := containing_block.donne_largeur()
 
     margin_left := style.valeurs[IDPropriété.MarginLeft]
-    border_left_width := style.valeurs[IDPropriété.BorderWidthLeft]
     padding_left := style.valeurs[IDPropriété.PaddingLeft]
     width := style.valeurs[IDPropriété.Width]
     padding_right := style.valeurs[IDPropriété.PaddingRight]
-    border_right_width := style.valeurs[IDPropriété.BorderWidthRight]
     margin_right := style.valeurs[IDPropriété.MarginRight]
 
     style.valeurs[IDPropriété.MarginLeft] = calcule_pourcentage(margin_left, width_of_containing_block)
-    style.valeurs[IDPropriété.BorderWidthLeft] = calcule_pourcentage(border_left_width, width_of_containing_block)
     style.valeurs[IDPropriété.PaddingLeft] = calcule_pourcentage(padding_left, width_of_containing_block)
     style.valeurs[IDPropriété.Width] = calcule_pourcentage(width, width_of_containing_block)
     style.valeurs[IDPropriété.PaddingRight] = calcule_pourcentage(padding_right, width_of_containing_block)
-    style.valeurs[IDPropriété.BorderWidthRight] = calcule_pourcentage(border_right_width, width_of_containing_block)
     style.valeurs[IDPropriété.MarginRight] = calcule_pourcentage(margin_right, width_of_containing_block)
 }
 
-résoud_pourcentage_hauteur :: fonc (noeud: *NoeudDeDispositionBloc, height_of_containing_block: r64)
+résoud_pourcentage_hauteur :: fonc (noeud: *NoeudDeDispositionBloc, containing_block: &ContainingBlock)
 {
     style := *noeud.propriétés.style
+    width_of_containing_block := containing_block.donne_largeur()
+    height_of_containing_block := containing_block.donne_hauteur()
 
     margin_top := style.valeurs[IDPropriété.MarginTop]
-    border_top_width := style.valeurs[IDPropriété.BorderWidthTop]
     padding_top := style.valeurs[IDPropriété.PaddingTop]
     height := style.valeurs[IDPropriété.Height]
     padding_bottom := style.valeurs[IDPropriété.PaddingBottom]
-    border_bottom_width := style.valeurs[IDPropriété.BorderWidthBottom]
     margin_bottom := style.valeurs[IDPropriété.MarginBottom]
 
-    style.valeurs[IDPropriété.MarginTop] = calcule_pourcentage(margin_top, height_of_containing_block)
-    style.valeurs[IDPropriété.BorderWidthTop] = calcule_pourcentage(border_top_width, height_of_containing_block)
-    style.valeurs[IDPropriété.PaddingTop] = calcule_pourcentage(padding_top, height_of_containing_block)
+    style.valeurs[IDPropriété.MarginTop] = calcule_pourcentage(margin_top, width_of_containing_block)
+    style.valeurs[IDPropriété.PaddingTop] = calcule_pourcentage(padding_top, width_of_containing_block)
     style.valeurs[IDPropriété.Height] = calcule_pourcentage(height, height_of_containing_block)
-    style.valeurs[IDPropriété.PaddingBottom] = calcule_pourcentage(padding_bottom, height_of_containing_block)
-    style.valeurs[IDPropriété.BorderWidthBottom] = calcule_pourcentage(border_bottom_width, height_of_containing_block)
-    style.valeurs[IDPropriété.MarginBottom] = calcule_pourcentage(margin_bottom, height_of_containing_block)
+    style.valeurs[IDPropriété.PaddingBottom] = calcule_pourcentage(padding_bottom, width_of_containing_block)
+    style.valeurs[IDPropriété.MarginBottom] = calcule_pourcentage(margin_bottom, width_of_containing_block)
 }
 
-calcule_hauteur_et_marges :: fonc (noeud: *NoeudDeDispositionBloc)
+calcule_hauteur_et_marges :: fonc (noeud: *NoeudDeDispositionBloc, containing_block: &ContainingBlock)
 {
-    // résoud_pourcentage_hauteurs(noeud)
+    résoud_pourcentage_hauteur(noeud, containing_block)
 
     // À FAIRE : ne modifie pas les valeurs calculées
     sauvegarde_style := noeud.propriétés.style
@@ -2334,10 +2330,10 @@ noeud_disposition_inline_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Co
 {
     noeud := base comme *NoeudDeDispositionInline
     containing_block := donne_containing_block(base, ctx)
-    calcule_largeur_et_marges(noeud, containing_block.donne_largeur())
-    calcule_hauteur_et_marges(noeud) // pour résoudre les %
+    calcule_largeur_et_marges(noeud, containing_block)
+    calcule_hauteur_et_marges(noeud, containing_block)
     formatte_intérieur(noeud, ctx)
-    calcule_hauteur_et_marges(noeud)
+    calcule_hauteur_et_marges(noeud, containing_block)
 }
 
 noeud_disposition_inline_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
@@ -2670,8 +2666,8 @@ noeud_disposition_remplacement_sur_mesure :: fonc (base: *NoeudDeDisposition, ct
 
     containing_block := donne_containing_block(noeud, ctx)
 
-    résoud_pourcentage_largeurs(noeud, containing_block.donne_largeur())
-    résoud_pourcentage_hauteur(noeud, containing_block.donne_hauteur())
+    résoud_pourcentage_largeurs(noeud, containing_block)
+    résoud_pourcentage_hauteur(noeud, containing_block)
 
     display := noeud.propriétés.donne_valeur(IDPropriété.Display).display
     si display.outer_type == Display.Type.Inline {
