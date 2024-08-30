@@ -2007,6 +2007,11 @@ parse_propriété_display :: fonc (value: [..]ComponentValue) -> Optionnel(Valeu
         retourne mot_clé
     }
 
+    mot_clé = parseuse.parse_display_inside()
+    si mot_clé.possède_valeur() {
+        retourne mot_clé
+    }
+
     mot_clé = parseuse.parse_display_box()
     si mot_clé.possède_valeur() {
         retourne mot_clé
@@ -2018,6 +2023,13 @@ parse_propriété_display :: fonc (value: [..]ComponentValue) -> Optionnel(Valeu
             retourne ValeurDeStyle(PROP_list_item)
         }
     }
+}
+
+parse_display_inside :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+{
+    /* <display-inside>   = flow | flow-root | table | flex | grid | ruby */
+    mots_clés := [PROP_flow, PROP_flow_root]
+    retourne parse_mot_clé(parseuse, mots_clés)
 }
 
 parse_display_outside :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
@@ -2846,6 +2858,19 @@ parse_propriété_font :: fonc (ctx: *ContexteParsageShorthand, value: [..]Compo
 
         valeur := parse_valeur_font_weight(parseuse)
         si valeur.possède_valeur() {
+            /* font-weight et font-size peuvent n'être qu'un nombre, si nous avons un slash,
+             * c'est une font-size, sinon font-weight. */
+            si parseuse.consomme_slash_et_espaces_blanches() {
+                font_size = valeur.Quelque
+
+                valeur = parse_valeur_line_height(parseuse)
+                si valeur.possède_valeur() {
+                    line_height = valeur.Quelque
+                    continue
+                }
+                retourne faux
+            }
+
             font_weight = valeur.Quelque
             continue
         }
