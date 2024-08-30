@@ -2015,6 +2015,33 @@ résoud_pourcentage_hauteur :: fonc (noeud: *NoeudDeDispositionBloc, height_of_c
 
 calcule_hauteur_et_marges :: fonc (noeud: *NoeudDeDispositionBloc)
 {
+    // résoud_pourcentage_hauteurs(noeud)
+
+    // À FAIRE : ne modifie pas les valeurs calculées
+    sauvegarde_style := noeud.propriétés.style
+    calcule_hauteur_et_marges_block_level_normal_flow(noeud)
+
+    height := noeud.propriétés.style.valeurs[IDPropriété.Height]
+    max_height := noeud.propriétés.style.valeurs[IDPropriété.MaxHeight]
+    si max_height.est_nombre() && (height.number > max_height.number) {
+        noeud.propriétés.style = sauvegarde_style
+        noeud.propriétés.style.valeurs[IDPropriété.Height] = max_height
+        calcule_hauteur_et_marges_block_level_normal_flow(noeud)
+    }
+
+    height = noeud.propriétés.style.valeurs[IDPropriété.Height]
+    min_height := noeud.propriétés.style.valeurs[IDPropriété.MinHeight]
+    si min_height.est_nombre() && (height.number < min_height.number) {
+        noeud.propriétés.style = sauvegarde_style
+        noeud.propriétés.style.valeurs[IDPropriété.Height] = min_height
+        calcule_hauteur_et_marges_block_level_normal_flow(noeud)
+    }
+
+    ajourne_boite_pour_calcul_hauteur(noeud)
+}
+
+calcule_hauteur_et_marges_block_level_normal_flow :: fonc (noeud: *NoeudDeDispositionBloc)
+{
     style := *noeud.propriétés.style
 
     /* À FAIRE */
@@ -2055,8 +2082,6 @@ calcule_hauteur_et_marges :: fonc (noeud: *NoeudDeDispositionBloc)
     style.valeurs[IDPropriété.PaddingBottom] = padding_bottom
     style.valeurs[IDPropriété.BorderWidthBottom] = border_bottom_height
     style.valeurs[IDPropriété.MarginBottom] = margin_bottom
-
-    ajourne_boite_pour_calcul_hauteur(noeud)
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#blockwidth */
