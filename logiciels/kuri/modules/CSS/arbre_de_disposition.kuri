@@ -503,10 +503,13 @@ résoud_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élémen
         spécificité := it.spécificité
         origine := donne_origine_cascade(règle)
 
-        index_règle := (it.règle.index_feuille_de_style << 32) | it.règle.index_règle
+        position: PositionDéclaration
+        position.index_feuille = it.règle.index_feuille_de_style
+        position.index_règle = it.règle.index_règle
 
-        pour déclaration dans déclarations {
-            tableau_ajoute(*résolveuse.déclarations_cascade, DéclarationCascadée(déclaration, spécificité, origine, index_règle))
+        pour déclaration, index_déclaration dans déclarations {
+            position.index_déclaration = index_déclaration
+            tableau_ajoute(*résolveuse.déclarations_cascade, DéclarationCascadée(déclaration, spécificité, origine, position))
         }
     }
 
@@ -649,11 +652,38 @@ OrigineCascade :: énum {
     UserAgent
 }
 
+PositionDéclaration :: struct {
+    index_feuille: z64
+    index_règle: z64
+    index_déclaration: z64
+}
+
+opérateur < :: fonc (a: PositionDéclaration, b: PositionDéclaration) -> bool
+{
+    si a.index_feuille < b.index_feuille {
+        retourne vrai
+    }
+
+    si a.index_feuille > b.index_feuille {
+        retourne faux
+    }
+
+    si a.index_règle < b.index_règle {
+        retourne vrai
+    }
+
+    si a.index_règle > b.index_règle {
+        retourne faux
+    }
+
+    retourne a.index_déclaration < b.index_déclaration
+}
+
 DéclarationCascadée :: struct {
     déclaration: *DéclarationPropriété
     spécificité: Spécificité
     origine: OrigineCascade
-    index_règle: z64
+    position: PositionDéclaration
 }
 
 /* https://www.w3.org/TR/css-cascade/#cascade-sort */
@@ -681,10 +711,10 @@ compare_déclarations_pour_cascade :: fonc (a: DéclarationCascadée, b: Déclar
     }
 
     /* Même importance, origine, et spécifité -> tri par position. */
-    si a.index_règle < b.index_règle {
+    si a.position < b.position {
         retourne 1
     }
-    si b.index_règle < a.index_règle {
+    si b.position < a.position {
         retourne -1
     }
 
