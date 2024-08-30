@@ -2668,15 +2668,21 @@ noeud_disposition_remplacement_sur_mesure :: fonc (base: *NoeudDeDisposition, ct
 {
     noeud := base comme *NoeudDeDispositionRemplacement
 
-    assert(noeud.propriétés.style.valeurs[IDPropriété.Display].display.outer_type == Display.Type.Inline)
-
     containing_block := donne_containing_block(noeud, ctx)
 
     résoud_pourcentage_largeurs(noeud, containing_block.donne_largeur())
     résoud_pourcentage_hauteur(noeud, containing_block.donne_hauteur())
 
-    calcule_largeur_et_marges_inline_replaced_element(noeud)
-    calcule_hauteur_et_marges_inline_replaced_element(noeud)
+    display := noeud.propriétés.donne_valeur(IDPropriété.Display).display
+    si display.outer_type == Display.Type.Inline {
+        calcule_largeur_et_marges_inline_replaced_element(noeud)
+        calcule_hauteur_et_marges_inline_replaced_element(noeud)
+    }
+    sinon {
+        calcule_largeur_et_marges_block_level_replaced_element(noeud, containing_block.donne_largeur())
+        /* La hauteur à la même règle que pour le cas inline. */
+        calcule_hauteur_et_marges_inline_replaced_element(noeud)
+    }
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#inline-replaced-width */
@@ -2806,6 +2812,21 @@ calcule_hauteur_et_marges_inline_replaced_element :: fonc (noeud: *NoeudDeDispos
     style.valeurs[IDPropriété.MarginBottom] = margin_bottom
 
     ajourne_boite_pour_calcul_hauteur(noeud)
+}
+
+/* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#block-replaced-width */
+calcule_largeur_et_marges_block_level_replaced_element :: fonc (noeud: *NoeudDeDispositionRemplacement, width_of_containing_block: r64)
+{
+    sauvegarde_style := noeud.propriétés.style
+
+    // The used value of 'width' is determined as for inline replaced elements.
+    calcule_largeur_et_marges_inline_replaced_element(noeud)
+    width := noeud.propriétés.donne_valeur(IDPropriété.Width)
+
+    // Then the rules for non-replaced block-level elements are applied to determine the margins.
+    noeud.propriétés.style = sauvegarde_style
+    noeud.propriétés.style.valeurs[IDPropriété.Width] = width
+    calcule_largeur_et_marges_block_level_normal_flow(noeud, width_of_containing_block)
 }
 
 noeud_disposition_remplacement_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, bloc_contenant: *NoeudDeDispositionBloc, ctx: *ContexteDeFormattage)
