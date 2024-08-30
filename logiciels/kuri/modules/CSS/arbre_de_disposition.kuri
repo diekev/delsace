@@ -1705,6 +1705,7 @@ formatte_intérieur :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDeFor
     si (noeud.type == NoeudDeDispositionBloc && noeud.est_disposition_inline) || noeud.type == NoeudDeDispositionInline {
         ctx_local: ContexteDeFormattageInline
         ctx_local.globales = ctx.globales
+        ctx_local.doit_aligner_les_descendants = ctx.doit_aligner_les_descendants
         ctx_local.initial_containing_block = ctx.initial_containing_block
 
         formatte(*ctx_local, noeud)
@@ -1712,6 +1713,7 @@ formatte_intérieur :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDeFor
     sinon {
         ctx_local: ContexteDeFormattageBloc
         ctx_local.globales = ctx.globales
+        ctx_local.doit_aligner_les_descendants = ctx.doit_aligner_les_descendants
         ctx_local.initial_containing_block = ctx.initial_containing_block
 
         formatte(*ctx_local, noeud)
@@ -1724,10 +1726,33 @@ noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Cont
 
     containing_block := donne_containing_block(base, ctx)
 
+    // Ceci ne fonctionne pas si "width" est auto. Il nous faudra peut-être forcer "width: fit-content"
+    // si ctx.doit_aligner_les_descendants {
+    //     propriétés := noeud.propriétés
+    //     margin_left := propriétés.donne_valeur(IDPropriété.MarginLeft)
+    //     margin_right := propriétés.donne_valeur(IDPropriété.MarginRight)
+
+    //     si !margin_left.est_auto() && !margin_right.est_auto() {
+    //         propriétés.style.valeurs[IDPropriété.MarginLeft] = ValeurDeStyle(mot_clé = PROP_auto)
+    //         propriétés.style.valeurs[IDPropriété.MarginRight] = ValeurDeStyle(mot_clé = PROP_auto)
+    //     }
+    // }
+
     /* À FAIRE : utilise les bonnes formules.
      * https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#Computing_widths_and_margins */
     calcule_largeur_et_marges(noeud, containing_block.donne_largeur())
     calcule_hauteur_et_marges(noeud)
+
+    // si noeud.élément && noeud.élément.local_name == HTML.TAG_div {
+    //     attribut_align := HTML.donne_attribut(noeud.élément, HTML.ATTR_align)
+    //     si attribut_align.possède_valeur() {
+    //         alignement := attribut_align.Quelque
+    //         /* À FAIRE : "middle" */
+    //         si compare_ascii_insensible_à_la_casse(alignement, HTML.TAG_center) {
+    //             ctx.doit_aligner_les_descendants |= vrai
+    //         }
+    //     }
+    // }
 
     formatte_intérieur(noeud, ctx)
 

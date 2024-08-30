@@ -10,6 +10,9 @@ ContexteDeFormattage :: struct {
 
     globales: *GlobalesDessin
     initial_containing_block: *ContainingBlock
+
+    /* https://html.spec.whatwg.org/multipage/rendering.html#align-descendants */
+    doit_aligner_les_descendants: bool
 }
 
 donne_initial_containing_block :: fonc (ctx: *ContexteDeFormattage) -> ContainingBlock
