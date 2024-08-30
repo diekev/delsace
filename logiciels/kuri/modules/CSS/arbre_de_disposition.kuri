@@ -2675,10 +2675,38 @@ noeud_disposition_remplacement_sur_mesure :: fonc (base: *NoeudDeDisposition, ct
         calcule_hauteur_et_marges_inline_replaced_element(noeud)
     }
     sinon {
-        calcule_largeur_et_marges_block_level_replaced_element(noeud, containing_block.donne_largeur())
+        calcule_largeur_et_marges(noeud, containing_block)
         /* La hauteur à la même règle que pour le cas inline. */
         calcule_hauteur_et_marges_inline_replaced_element(noeud)
     }
+}
+
+calcule_largeur_et_marges :: fonc (noeud: *NoeudDeDispositionRemplacement, containing_block: &ContainingBlock)
+{
+    résoud_pourcentage_largeurs(noeud, containing_block)
+    width_of_containing_block := containing_block.donne_largeur()
+
+    // À FAIRE : ne modifie pas les valeurs calculées
+    sauvegarde_style := noeud.propriétés.style
+    calcule_largeur_et_marges_block_level_replaced_element(noeud, width_of_containing_block)
+
+    width := noeud.propriétés.style.valeurs[IDPropriété.Width]
+    max_width := noeud.propriétés.style.valeurs[IDPropriété.MaxWidth]
+    si max_width.est_nombre() && (width.number > max_width.number) {
+        noeud.propriétés.style = sauvegarde_style
+        noeud.propriétés.style.valeurs[IDPropriété.Width] = max_width
+        calcule_largeur_et_marges_block_level_replaced_element(noeud, width_of_containing_block)
+    }
+
+    width = noeud.propriétés.style.valeurs[IDPropriété.Width]
+    min_width := noeud.propriétés.style.valeurs[IDPropriété.MinWidth]
+    si min_width.est_nombre() && (width.number < min_width.number) {
+        noeud.propriétés.style = sauvegarde_style
+        noeud.propriétés.style.valeurs[IDPropriété.Width] = min_width
+        calcule_largeur_et_marges_block_level_replaced_element(noeud, width_of_containing_block)
+    }
+
+    ajourne_boite_pour_calcul_largeur(noeud)
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#inline-replaced-width */
