@@ -2846,6 +2846,19 @@ parse_propriété_font :: fonc (ctx: *ContexteParsageShorthand, value: [..]Compo
 
         valeur := parse_valeur_font_weight(parseuse)
         si valeur.possède_valeur() {
+            /* font-weight et font-size peuvent n'être qu'un nombre, si nous avons un slash,
+             * c'est une font-size, sinon font-weight. */
+            si parseuse.consomme_slash_et_espaces_blanches() {
+                font_size = valeur.Quelque
+
+                valeur = parse_valeur_line_height(parseuse)
+                si valeur.possède_valeur() {
+                    line_height = valeur.Quelque
+                    continue
+                }
+                retourne faux
+            }
+
             font_weight = valeur.Quelque
             continue
         }
