@@ -2250,45 +2250,6 @@ dessine_tampon_id_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *C
     }
 }
 
-AlignementTexte :: énum {
-    Gauche
-    Droite
-    Centre
-    Justifié
-}
-
-donne_alignement_texte :: fonc (noeud: *NoeudDeDispositionBloc) -> AlignementTexte
-{
-    style := *noeud.propriétés.style
-    text_align := style.valeurs[IDPropriété.TextAlign]
-
-    si text_align.est_mot_clé(PROP_start) {
-        retourne AlignementTexte.Gauche
-    }
-
-    si text_align.est_mot_clé(PROP_end) {
-        retourne AlignementTexte.Droite
-    }
-
-    si text_align.est_mot_clé(PROP_left) {
-        retourne AlignementTexte.Gauche
-    }
-
-    si text_align.est_mot_clé(PROP_right) {
-        retourne AlignementTexte.Droite
-    }
-
-    si text_align.est_mot_clé(PROP_center) {
-        retourne AlignementTexte.Centre
-    }
-
-    si text_align.est_mot_clé(PROP_justify) {
-        retourne AlignementTexte.Justifié
-    }
-
-    retourne AlignementTexte.Gauche
-}
-
 dessine_enfants_inline :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDessin)
 {
     ctx_locale := mémoire(ctx)
