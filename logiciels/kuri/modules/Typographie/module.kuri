@@ -107,9 +107,10 @@ MétriquesFonte :: struct {
     jambage_inférieur: r32
     /* Espace entre deux lignes. */
     interligne: r32
-    /* Taille maximal d'un caractère. */
-    // À FAIRE
-    // largeur_maximale: r32
+    /* Taille maximale d'un caractère. */
+    largeur_maximale: r32
+    /* Taille moyenne d'un caractère. */
+    largeur_moyenne: r32
 }
 
 donne_métriques_fonte :: fonc (fonte: *Fonte) -> MétriquesFonte
@@ -118,6 +119,8 @@ donne_métriques_fonte :: fonc (fonte: *Fonte) -> MétriquesFonte
     résultat.jambage_supérieur = fonte.font.ascender
     résultat.jambage_inférieur = fonte.font.descender
     résultat.interligne = fonte.font.linegap
+    résultat.largeur_maximale = fonte.font.max_char_width
+    résultat.largeur_moyenne = fonte.font.avg_char_width
     retourne résultat
 }
 
