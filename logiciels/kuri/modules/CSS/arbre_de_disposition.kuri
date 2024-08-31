@@ -1317,6 +1317,42 @@ donne_propriétés :: fonc (noeud: *NoeudDeDisposition) -> *PropriétésDeStyle
     retourne noeud.propriétés
 }
 
+détermine_fonte :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage) -> *Fonte
+{
+    globales := ctx.globales
+    assert(globales != nul)
+    famille_fonte := "sérif"
+    style := "normal"
+    graisse := GraisseFonte.Normal
+    propriétés := noeud.donne_propriétés()
+    taille_fonte := propriétés.style.valeurs[IDPropriété.FontSize].number comme r32
+
+    font_family := propriétés.style.valeurs[IDPropriété.FontFamily].mot_clé
+    si font_family == PROP_monospace {
+        famille_fonte = "monospace"
+    }
+    sinon si font_family == PROP_sans_serif {
+        famille_fonte = "sans-serif"
+    }
+
+    font_weight := propriétés.style.valeurs[IDPropriété.FontWeight].number
+    si font_weight >= 700.0 {
+        graisse = GraisseFonte.Gras
+    }
+
+    font_style := propriétés.style.valeurs[IDPropriété.FontStyle].mot_clé
+    si font_style == PROP_italic {
+        style = "italic"
+    }
+
+    résultat := globales.donne_fonte(famille_fonte, style, graisse, taille_fonte)
+    si noeud.type == NoeudDeDispositionTexte {
+        noeud_texte := noeud comme *NoeudDeDispositionTexte
+        noeud_texte.fonte = résultat
+    }
+    retourne résultat
+}
+
 donne_rectangle_bordure :: fonc (noeud: *NoeudDeDisposition) -> RectanglePosDim(r32)
 {
     retourne noeud.modèle_de_boite.bordure
@@ -2415,39 +2451,6 @@ NoeudDeDispositionTexte :: struct {
     fonte: *Fonte
 
     morceaux: [..]ChaineUTF16
-}
-
-détermine_fonte :: fonc (noeud_texte: *NoeudDeDispositionTexte, ctx: *ContexteDeFormattage) -> *Fonte
-{
-    globales := ctx.globales
-    assert(globales != nul)
-    famille_fonte := "sérif"
-    style := "normal"
-    graisse := GraisseFonte.Normal
-    propriétés := donne_propriété_parent(noeud_texte)
-    taille_fonte := propriétés.style.valeurs[IDPropriété.FontSize].number comme r32
-
-    font_family := propriétés.style.valeurs[IDPropriété.FontFamily].mot_clé
-    si font_family == PROP_monospace {
-        famille_fonte = "monospace"
-    }
-    sinon si font_family == PROP_sans_serif {
-        famille_fonte = "sans-serif"
-    }
-
-    font_weight := propriétés.style.valeurs[IDPropriété.FontWeight].number
-    si font_weight >= 700.0 {
-        graisse = GraisseFonte.Gras
-    }
-
-    font_style := propriétés.style.valeurs[IDPropriété.FontStyle].mot_clé
-    si font_style == PROP_italic {
-        style = "italic"
-    }
-
-    fonte := globales.donne_fonte(famille_fonte, style, graisse, taille_fonte)
-    noeud_texte.fonte = fonte
-    retourne fonte
 }
 
 noeud_disposition_texte_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage)
