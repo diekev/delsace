@@ -2433,9 +2433,20 @@ NoeudDeDispositionNouvelleLigne :: struct {
     sur_divise_en_lignes = noeud_disposition_nouvelle_ligne_sur_divise_en_lignes
 }
 
-noeud_disposition_nouvelle_ligne_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition @inutilisée, bloc_contenant: *NoeudDeDispositionBloc, ctx: *ContexteDeFormattage @inutilisée)
+noeud_disposition_nouvelle_ligne_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, bloc_contenant: *NoeudDeDispositionBloc, ctx: *ContexteDeFormattage)
 {
-    _ := bloc_contenant.ajoute_ligne()
+    ligne := bloc_contenant.ajoute_ligne()
+
+    line_height := base.propriétés.donne_valeur(IDPropriété.LineHeight)
+    si line_height.est_nombre() {
+        ligne.garantis_hauteur_minimale(line_height.number comme r32)
+    }
+    sinon si line_height.est_mot_clé(PROP_normal) {
+        fonte := détermine_fonte(base, ctx)
+        métriques := fonte.donne_métriques_fonte()
+        hauteur := métriques.donne_hauteur_ligne()
+        ligne.garantis_hauteur_minimale(hauteur)
+    }
 }
 
 /** \} */
