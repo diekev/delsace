@@ -293,7 +293,7 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
     }
 
     pour noeud.lignes {
-        hauteur := 0.0
+        hauteur := it.hauteur_contenu
         décalage_pour_alignement := 0.0
 
         si alignement == AlignementTexte.Droite {
@@ -308,8 +308,6 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
         }
 
         pour * fragment, index_fragment dans it.fragments {
-            hauteur = max(fragment.hauteur, hauteur)
-
             si alignement == AlignementTexte.Justifié {
                 si index_fragment != 0 && index_it != (noeud.lignes.taille - 1) {
                     fragment.x += décalage_pour_alignement * (index_fragment comme r32)

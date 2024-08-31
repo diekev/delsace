@@ -1704,6 +1704,7 @@ BoiteDeLigne :: struct {
 
     fragments: [..]Fragment
     largeur_courante: r32
+    hauteur_contenu: r32
 }
 
 détruit_données_boite_de_ligne :: fonc (boite: *BoiteDeLigne)
@@ -1727,8 +1728,14 @@ ajoute_fragment :: fonc (boite: *BoiteDeLigne, noeud: *NoeudDeDisposition, index
     fragment.x = boite.largeur_courante
 
     boite.largeur_courante += largeur
+    boite.garantis_hauteur_minimale(hauteur)
 
     tableau_ajoute(*boite.fragments, fragment)
+}
+
+garantis_hauteur_minimale :: fonc (boite: *BoiteDeLigne, hauteur: r32)
+{
+    boite.hauteur_contenu = max(boite.hauteur_contenu, hauteur)
 }
 
 /** \} */
