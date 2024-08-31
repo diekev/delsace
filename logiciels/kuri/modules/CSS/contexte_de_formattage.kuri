@@ -280,10 +280,8 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
     décalage_x := noeud.modèle_de_boite.contenu.x
     décalage_y := noeud.modèle_de_boite.contenu.y
 
-    réinitialise_lignes(noeud)
-    pour noeud.enfants {
-        divise_en_lignes(it, noeud, ctx)
-    }
+    enligneuse: Enligneuse
+    divise_en_lignes(*enligneuse, noeud, ctx)
 
     hauteur_contenu := 0.0
 
