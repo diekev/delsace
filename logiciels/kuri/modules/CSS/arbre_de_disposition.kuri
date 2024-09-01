@@ -1470,6 +1470,19 @@ donne_display :: fonc (noeud: *NoeudDeDisposition) -> Display
     retourne noeud.propriétés.donne_valeur(IDPropriété.Display).display
 }
 
+donne_line_height :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage) -> r32
+{
+    line_height := noeud.propriétés.donne_valeur(IDPropriété.LineHeight)
+    si line_height.est_nombre() {
+        retourne line_height.number comme r32
+    }
+
+    assert(line_height.est_mot_clé(PROP_normal))
+    fonte := détermine_fonte(noeud, ctx)
+    métriques := fonte.donne_métriques_fonte()
+    retourne métriques.donne_hauteur_ligne()
+}
+
 donne_élément :: fonc (noeud: *NoeudDeDisposition) -> *HTML.Élément
 {
     noeud_courant := noeud
@@ -2509,17 +2522,8 @@ NoeudDeDispositionNouvelleLigne :: struct {
 noeud_disposition_nouvelle_ligne_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, enligneuse: *Enligneuse, ctx: *ContexteDeFormattage)
 {
     ligne := enligneuse.ajoute_ligne()
-
-    line_height := base.propriétés.donne_valeur(IDPropriété.LineHeight)
-    si line_height.est_nombre() {
-        ligne.garantis_hauteur_minimale(line_height.number comme r32)
-    }
-    sinon si line_height.est_mot_clé(PROP_normal) {
-        fonte := détermine_fonte(base, ctx)
-        métriques := fonte.donne_métriques_fonte()
-        hauteur := métriques.donne_hauteur_ligne()
-        ligne.garantis_hauteur_minimale(hauteur)
-    }
+    line_height := donne_line_height(base, ctx)
+    ligne.garantis_hauteur_minimale(line_height)
 }
 
 /** \} */
