@@ -326,13 +326,12 @@ initialise_cache :: fonc (résolveuse: *RésolveuseStyle)
                 }
 
                 si dernière_classe.possède_valeur() {
-                    règle_ajoutée = vrai
                     ajoute_règle_pour_classe(résolveuse, dernière_classe.Quelque, règle_appariée)
                 }
-            }
-
-            saufsi règle_ajoutée {
-                tableau_ajoute(*résolveuse.autres_règles, règle_appariée)
+                sinon saufsi règle_ajoutée {
+                    règle_ajoutée = vrai
+                    tableau_ajoute(*résolveuse.autres_règles, règle_appariée)
+                }
             }
         }
     }
