@@ -723,10 +723,11 @@ compare_déclarations_pour_cascade :: fonc (a: DéclarationCascadée, b: Déclar
     retourne 0
 }
 
-crée_style_pour_bloc_anonyme :: fonc (résolveuse: *RésolveuseStyle, bloc: *NoeudDeDispositionBloc, bloc_parent: *NoeudDeDispositionBloc)
+crée_style_pour_bloc_anonyme :: fonc (résolveuse: *RésolveuseStyle, bloc: *NoeudDeDispositionBloc, bloc_parent: *NoeudDeDispositionBloc, outer_display: Display.Type)
 {
     résultat := crée_propriétés_de_style(bloc_parent.propriétés)
     calcule_style(résolveuse, résultat, bloc_parent.propriétés)
+    résultat.style.valeurs[IDPropriété.Display] = Display(outer_type = outer_display, inner_type = Display.Type.Flow)
 
     bloc.propriétés = résultat
 }
@@ -930,7 +931,7 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
     si HTML.est_texte(noeud) {
         /* Les textes doivent une boite inline anonyme autour d'eux. */
         résultat := arbre.crée_noeud(NoeudDeDispositionInline)
-        crée_style_pour_bloc_anonyme(résolveuse, résultat, parent comme *NoeudDeDispositionBloc)
+        crée_style_pour_bloc_anonyme(résolveuse, résultat, parent comme *NoeudDeDispositionBloc, Display.Type.Inline)
         parent.ajoute_enfant(résultat)
 
         texte := arbre.crée_noeud(NoeudDeDispositionTexte)
@@ -1051,8 +1052,7 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
                     noeud_inline_courant = arbre.crée_noeud(NoeudDeDispositionInline)
                     noeud_inline_courant.parent = noeud_disposition
                     noeud_inline_courant.est_disposition_inline = vrai
-                    crée_style_pour_bloc_anonyme(résolveuse, noeud_inline_courant, noeud_disposition)
-                    noeud_inline_courant.propriétés.style.valeurs[IDPropriété.Display] = Display(outer_type = Display.Type.Inline, inner_type = Display.Type.Flow)
+                    crée_style_pour_bloc_anonyme(résolveuse, noeud_inline_courant, noeud_disposition, Display.Type.Inline)
                     parent.ajoute_enfant(noeud_inline_courant)
                 }
 
@@ -1074,8 +1074,7 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
                     bloc_anonyme_courant = arbre.crée_noeud(NoeudDeDispositionBloc)
                     bloc_anonyme_courant.parent = noeud_disposition
                     bloc_anonyme_courant.est_disposition_inline = vrai
-                    crée_style_pour_bloc_anonyme(résolveuse, bloc_anonyme_courant, noeud_disposition)
-                    bloc_anonyme_courant.propriétés.style.valeurs[IDPropriété.Display] = Display(outer_type = Display.Type.Block, inner_type = Display.Type.Flow)
+                    crée_style_pour_bloc_anonyme(résolveuse, bloc_anonyme_courant, noeud_disposition, Display.Type.Block)
                     tableau_ajoute(*nouveaux_enfants, bloc_anonyme_courant)
                 }
 
