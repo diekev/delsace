@@ -1052,7 +1052,6 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
                     noeud_inline_courant.parent = noeud_disposition
                     noeud_inline_courant.est_disposition_inline = vrai
                     crée_style_pour_bloc_anonyme(résolveuse, noeud_inline_courant, noeud_disposition)
-                    noeud_inline_courant.propriétés = copie_propriétés(noeud_disposition.propriétés)
                     noeud_inline_courant.propriétés.style.valeurs[IDPropriété.Display] = Display(outer_type = Display.Type.Inline, inner_type = Display.Type.Flow)
                     parent.ajoute_enfant(noeud_inline_courant)
                 }
