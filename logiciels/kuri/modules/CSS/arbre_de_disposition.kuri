@@ -1853,6 +1853,11 @@ divise_en_lignes :: fonc (enligneuse: *Enligneuse, bloc_contenant: *NoeudDeDispo
     }
 }
 
+donne_lignes_tenante :: fonc (empl enligneuse: *Enligneuse) -> *LignesTenante
+{
+    retourne *bloc_contenant.lignes_tenante
+}
+
 ajoute_ligne :: fonc (empl enligneuse: *Enligneuse) -> *BoiteDeLigne
 {
     ligne_courante = ajoute_ligne(*enligneuse.bloc_contenant.lignes_tenante)
@@ -2556,16 +2561,29 @@ noeud_disposition_inline_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition
     padding_right := style.valeurs[IDPropriété.PaddingRight].number comme r32
     margin_right := style.valeurs[IDPropriété.MarginRight].number comme r32
 
-    hauteur := 0.0 // À FAIRE : donne_line_height(noeud, ctx)
-    _ := enligneuse.ajoute_fragment(noeud, hauteur, margin_left, Fragment.Type.MargeDébut)
-    _ := enligneuse.ajoute_fragment(noeud, hauteur, padding_left, Fragment.Type.RembourrageDébut)
+    fragment_marge_début := enligneuse.ajoute_fragment(noeud, 0.0, margin_left, Fragment.Type.MargeDébut)
+    fragment_rembourrage_début := enligneuse.ajoute_fragment(noeud, 0.0, padding_left, Fragment.Type.RembourrageDébut)
 
     pour noeud.enfants {
         divise_en_lignes(it, enligneuse, ctx)
     }
 
-    _ := enligneuse.ajoute_fragment(noeud, hauteur, padding_right, Fragment.Type.RembourrageFin)
-    _ := enligneuse.ajoute_fragment(noeud, hauteur, margin_right, Fragment.Type.MargeFin)
+    fragment_rembourrage_fin := enligneuse.ajoute_fragment(noeud, 0.0, padding_right, Fragment.Type.RembourrageFin)
+    fragment_marge_fin := enligneuse.ajoute_fragment(noeud, 0.0, margin_right, Fragment.Type.MargeFin)
+
+    lignes_tenante := enligneuse.donne_lignes_tenante()
+
+    hauteur := 0.0
+    pour fragment_rembourrage_début + 1 ... fragment_rembourrage_fin - 1 {
+        fragment := lignes_tenante.fragments[it]
+        hauteur = max(fragment.hauteur, hauteur)
+    }
+
+    index_fragments := [fragment_marge_début, fragment_rembourrage_début, fragment_rembourrage_fin, fragment_marge_fin]
+    pour index_fragments {
+        fragment := *lignes_tenante.fragments[it]
+        fragment.hauteur = hauteur
+    }
 }
 
 noeud_disposition_inline_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
