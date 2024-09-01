@@ -1316,7 +1316,7 @@ NoeudDeDisposition :: struct {
 
     sur_mesure: fonc (*NoeudDeDisposition, *ContexteDeFormattage)(rien)
     sur_dessin: fonc (*NoeudDeDisposition, *ContexteDessin)(rien)
-    sur_dessin_fragment: fonc (*NoeudDeDisposition, *Fragment, *ContexteDessin)(rien)
+    sur_dessin_fragment: fonc (*NoeudDeDisposition, *Fragment, *LignesTenante, *ContexteDessin)(rien)
     sur_dessin_tampon_id: fonc (*NoeudDeDisposition, *ContexteDessin)(rien)
     sur_dessin_fragment_tampon_id: fonc (*NoeudDeDisposition, *Fragment, *ContexteDessin)(rien)
     sur_divise_en_lignes: fonc (*NoeudDeDisposition, *Enligneuse, *ContexteDeFormattage)(rien)
@@ -1552,9 +1552,9 @@ dessine :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDessin)
     }
 }
 
-dessine_fragment :: fonc (noeud: *NoeudDeDisposition, fragment: *Fragment, ctx: *ContexteDessin)
+dessine_fragment :: fonc (noeud: *NoeudDeDisposition, fragment: *Fragment, lignes_tenante: *LignesTenante, ctx: *ContexteDessin)
 {
-    noeud.sur_dessin_fragment(noeud, fragment, ctx)
+    noeud.sur_dessin_fragment(noeud, fragment, lignes_tenante, ctx)
 }
 
 dessine_tampon_id :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDessin)
@@ -2508,8 +2508,9 @@ dessine_tampon_id_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *C
 
 dessine_enfants_inline :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDessin)
 {
-    pour * noeud.lignes_tenante.fragments {
-        dessine_fragment(it.noeud, it, ctx)
+    lignes_tenante := *noeud.lignes_tenante
+    pour * lignes_tenante.fragments {
+        dessine_fragment(it.noeud, it, lignes_tenante, ctx)
     }
 }
 
@@ -2592,18 +2593,37 @@ noeud_disposition_inline_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Co
     dessine_enfants_inline(noeud, ctx)
 }
 
-noeud_disposition_inline_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment, ctx: *ContexteDessin)
+noeud_disposition_inline_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment, lignes_tenante: *LignesTenante, ctx: *ContexteDessin)
 {
     si fragment.type == Fragment.Type.MargeDébut || fragment.type == Fragment.Type.MargeFin {
         retourne
     }
 
-    propriétés := base.propriétés
+    si fragment.type == Fragment.Type.RembourrageDébut {
+        propriétés := base.propriétés
 
-    background_color := propriétés.style.valeurs[IDPropriété.BackgroundColor].couleur
-    si background_color.a != 0 {
-        rect_noeud := ctx.donne_rectangle_corrigé(fragment.donne_rectangle())
-        ctx.peintre.remplis_rectangle(rect_noeud, background_color)
+        background_color := propriétés.donne_valeur(IDPropriété.BackgroundColor).couleur
+
+        /* Le rembourrage vertical n'affecte pas la taille mais doit être inclus dans le dessin. */
+        padding_top := propriétés.donne_valeur(IDPropriété.PaddingTop).number comme r32
+        padding_bottom := propriétés.donne_valeur(IDPropriété.PaddingBottom).number comme r32
+
+        si background_color.a != 0 {
+            dernier_fragment := lignes_tenante.fragments.pointeur + lignes_tenante.fragments.taille
+            tantque fragment != dernier_fragment {
+                rect_noeud := ctx.donne_rectangle_corrigé(fragment.donne_rectangle())
+                rect_noeud.y -= padding_top
+                rect_noeud.hauteur += padding_top + padding_bottom
+
+                ctx.peintre.remplis_rectangle(rect_noeud, background_color)
+
+                si fragment.type == Fragment.Type.RembourrageFin && fragment.noeud == base {
+                    arrête
+                }
+
+                fragment += 1
+            }
+        }
     }
 }
 
@@ -2787,7 +2807,7 @@ noeud_disposition_texte_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition,
     }
 }
 
-noeud_disposition_texte_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment, ctx: *ContexteDessin)
+noeud_disposition_texte_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
 {
     noeud := base comme *NoeudDeDispositionTexte
 
@@ -2820,12 +2840,6 @@ noeud_disposition_texte_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, 
 
     métriques := donne_métriques_fonte(fonte)
     couleur := propriétés.style.valeurs[IDPropriété.Color].couleur
-
-    background_color := propriétés.style.valeurs[IDPropriété.BackgroundColor].couleur
-    si background_color.a != 0 {
-        rect_noeud := ctx.donne_rectangle_corrigé(fragment.donne_rectangle())
-        peintre.remplis_rectangle(rect_noeud, background_color)
-    }
 
     rect := ctx.donne_rectangle_corrigé(fragment.donne_rectangle())
     rect.y -= métriques.jambage_inférieur
@@ -3111,7 +3125,7 @@ noeud_disposition_remplacement_sur_dessin :: fonc (base: *NoeudDeDisposition, ct
     dessine_image(ctx, image.image_data, noeud.donne_rectangle_bordure())
 }
 
-noeud_disposition_remplacement_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment, ctx: *ContexteDessin)
+noeud_disposition_remplacement_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
 {
     noeud := base comme *NoeudDeDispositionRemplacement
     assert(noeud.élément.local_name == HTML.TAG_img)
