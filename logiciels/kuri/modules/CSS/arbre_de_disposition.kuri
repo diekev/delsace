@@ -1864,7 +1864,7 @@ peut_ajouter_fragment :: fonc (empl enligneuse: *Enligneuse, largeur: r32) -> bo
     retourne ligne_courante.peut_ajouter_fragment(largeur)
 }
 
-ajoute_fragment :: fonc (empl enligneuse: *Enligneuse, noeud: *NoeudDeDisposition, index_début: z64, index_fin: z64, hauteur: r32, largeur: r32, type := Fragment.Type.Normal)
+ajoute_fragment :: fonc (empl enligneuse: *Enligneuse, noeud: *NoeudDeDisposition, index_début: z64, index_fin: z64, hauteur: r32, largeur: r32, type := Fragment.Type.Normal) -> z64
 {
     lignes_tenante := *enligneuse.bloc_contenant.lignes_tenante
 
@@ -1886,11 +1886,12 @@ ajoute_fragment :: fonc (empl enligneuse: *Enligneuse, noeud: *NoeudDeDispositio
     ligne_courante.garantis_hauteur_minimale(hauteur)
 
     ligne_courante.dernier_fragment = ajoute_fragment(lignes_tenante, fragment)
+    retourne ligne_courante.dernier_fragment
 }
 
-ajoute_fragment :: fonc (enligneuse: *Enligneuse, noeud: *NoeudDeDisposition, hauteur: r32, largeur: r32, type: Fragment.Type)
+ajoute_fragment :: fonc (enligneuse: *Enligneuse, noeud: *NoeudDeDisposition, hauteur: r32, largeur: r32, type: Fragment.Type) -> z64
 {
-    ajoute_fragment(enligneuse, noeud, 0, 0, hauteur, largeur, type)
+    retourne ajoute_fragment(enligneuse, noeud, 0, 0, hauteur, largeur, type)
 }
 
 garantis_hauteur_minimale :: fonc (enligneuse: *Enligneuse, hauteur: r32)
@@ -2556,15 +2557,15 @@ noeud_disposition_inline_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition
     margin_right := style.valeurs[IDPropriété.MarginRight].number comme r32
 
     hauteur := 0.0 // À FAIRE : donne_line_height(noeud, ctx)
-    enligneuse.ajoute_fragment(noeud, hauteur, margin_left, Fragment.Type.MargeDébut)
-    enligneuse.ajoute_fragment(noeud, hauteur, padding_left, Fragment.Type.RembourrageDébut)
+    _ := enligneuse.ajoute_fragment(noeud, hauteur, margin_left, Fragment.Type.MargeDébut)
+    _ := enligneuse.ajoute_fragment(noeud, hauteur, padding_left, Fragment.Type.RembourrageDébut)
 
     pour noeud.enfants {
         divise_en_lignes(it, enligneuse, ctx)
     }
 
-    enligneuse.ajoute_fragment(noeud, hauteur, padding_right, Fragment.Type.RembourrageFin)
-    enligneuse.ajoute_fragment(noeud, hauteur, margin_right, Fragment.Type.MargeFin)
+    _ := enligneuse.ajoute_fragment(noeud, hauteur, padding_right, Fragment.Type.RembourrageFin)
+    _ := enligneuse.ajoute_fragment(noeud, hauteur, margin_right, Fragment.Type.MargeFin)
 }
 
 noeud_disposition_inline_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
@@ -2758,11 +2759,11 @@ noeud_disposition_texte_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition,
     pour morceaux {
         largeur_morceau := fonte.donne_largeur_texte(it)
 
-        enligneuse.ajoute_fragment(noeud, index_it, index_it + 1, hauteur_texte, largeur_morceau comme r32)
+        _ := enligneuse.ajoute_fragment(noeud, index_it, index_it + 1, hauteur_texte, largeur_morceau comme r32)
 
         si index_it < index_espace - 1 {
             si enligneuse.peut_ajouter_fragment(largeur_espace comme r32) {
-                enligneuse.ajoute_fragment(noeud, index_espace, index_espace + 1, hauteur_texte, largeur_espace comme r32)
+                _ := enligneuse.ajoute_fragment(noeud, index_espace, index_espace + 1, hauteur_texte, largeur_espace comme r32)
             }
         }
     }
@@ -3081,7 +3082,7 @@ noeud_disposition_remplacement_sur_divise_en_lignes :: fonc (base: *NoeudDeDispo
     largeur := noeud.propriétés.style.valeurs[IDPropriété.Width].number comme r32
     hauteur := noeud.propriétés.style.valeurs[IDPropriété.Height].number comme r32
 
-    enligneuse.ajoute_fragment(noeud, 0, 0, hauteur, largeur)
+    _ := enligneuse.ajoute_fragment(noeud, 0, 0, hauteur, largeur)
 }
 
 noeud_disposition_remplacement_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
