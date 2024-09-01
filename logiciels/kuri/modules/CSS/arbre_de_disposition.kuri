@@ -2759,11 +2759,7 @@ noeud_disposition_texte_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Con
 noeud_disposition_texte_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, enligneuse: *Enligneuse, ctx: *ContexteDeFormattage)
 {
     noeud := base comme *NoeudDeDispositionTexte
-
-    si est_vide_ou_uniquement_espaces_blanches(noeud.noeud_texte.données) {
-        noeud.sur_dessin = nul
-        retourne
-    }
+    déloge(noeud.morceaux)
 
     fonte := détermine_fonte(noeud, ctx)
     métriques := fonte.donne_métriques_fonte()
@@ -2772,6 +2768,17 @@ noeud_disposition_texte_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition,
     noeud.modèle_de_boite.bordure.hauteur = métriques.donne_hauteur_ligne()
     noeud.modèle_de_boite.contenu.hauteur = métriques.donne_hauteur_ligne()
     noeud.modèle_de_boite.rembourrage.hauteur = métriques.donne_hauteur_ligne()
+
+    si est_vide_ou_uniquement_espaces_blanches(noeud.noeud_texte.données) {
+        espace := ChaineUTF16Unique(' ' comme n32)
+        largeur_espace := fonte.donne_largeur_texte(espace.donne_chaine_utf16())
+
+        tableau_ajoute(*noeud.morceaux, espace.donne_chaine_utf16())
+
+        /* À FAIRE : hauteur du contenu */
+        _ := enligneuse.ajoute_fragment(noeud, 0, 1, 0.0, largeur_espace comme r32)
+        retourne
+    }
 
     /* À FAIRE : meilleur algorithme, respect du standard. */
     morceaux := divise_sur_espaces_blanches_ascii(noeud.noeud_texte.données)
