@@ -1525,11 +1525,9 @@ décale :: fonc (noeud: *NoeudDeDisposition, x: r32, y: r32)
 
     si noeud.type == NoeudDeDispositionBloc || noeud.type == NoeudDeDispositionInline {
         bloc := noeud comme *NoeudDeDispositionBloc
-        pour bloc.lignes {
-            pour * fragment dans it.fragments {
-                fragment.x += x
-                fragment.y += y
-            }
+        pour * bloc.lignes_tenante.fragments {
+            it.x += x
+            it.y += y
         }
     }
 }
@@ -1752,7 +1750,8 @@ donne_rectangle :: fonc (fragment: *Fragment) -> RectanglePosDim(r32)
 BoiteDeLigne :: struct {
     bloc: *NoeudDeDispositionBloc
 
-    fragments: [..]Fragment
+    premier_fragment: z64
+    dernier_fragment: z64
     largeur_courante: r32
     hauteur_contenu: r32
 }
@@ -1767,26 +1766,69 @@ peut_ajouter_fragment :: fonc (boite: *BoiteDeLigne, largeur: r32) -> bool
     retourne (boite.largeur_courante + largeur) < boite.bloc.propriétés.style.valeurs[IDPropriété.Width].number comme r32
 }
 
-ajoute_fragment :: fonc (boite: *BoiteDeLigne, noeud: *NoeudDeDisposition, index_début: z64, index_fin: z64, hauteur: r32, largeur: r32, type: Fragment.Type)
-{
-    fragment: Fragment
-    fragment.noeud = noeud
-    fragment.index_début = index_début
-    fragment.index_fin = index_fin
-    fragment.hauteur = hauteur
-    fragment.largeur = largeur
-    fragment.x = boite.largeur_courante
-    fragment.type = type
-
-    boite.largeur_courante += largeur
-    boite.garantis_hauteur_minimale(hauteur)
-
-    tableau_ajoute(*boite.fragments, fragment)
-}
-
 garantis_hauteur_minimale :: fonc (boite: *BoiteDeLigne, hauteur: r32)
 {
     boite.hauteur_contenu = max(boite.hauteur_contenu, hauteur)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom LignesTenante
+ * Structure pour tenir les BoiteDeLignes et leurs fragments d'un bloc.
+ * \{ */
+
+LignesTenante :: struct {
+    bloc: *NoeudDeDispositionBloc
+    lignes: [..]BoiteDeLigne
+    fragments: [..]Fragment
+}
+
+réinitialise :: fonc (lignes_tenante: *LignesTenante)
+{
+    lignes_tenante.lignes.taille = 0
+    lignes_tenante.fragments.taille = 0
+}
+
+détruit_données :: fonc (lignes_tenante: *LignesTenante)
+{
+    déloge(lignes_tenante.lignes)
+    déloge(lignes_tenante.fragments)
+}
+
+donne_ligne_courante :: fonc (lignes_tenante: *LignesTenante) -> *BoiteDeLigne
+{
+    si lignes_tenante.lignes.taille == 0 {
+        retourne ajoute_ligne(lignes_tenante)
+    }
+
+    retourne *lignes_tenante.lignes[lignes_tenante.lignes.taille - 1]
+}
+
+ajoute_ligne :: fonc (lignes_tenante: *LignesTenante) -> *BoiteDeLigne
+{
+    résultat := tableau_ajoute_élément(*lignes_tenante.lignes)
+    résultat.bloc = lignes_tenante.bloc
+    résultat.premier_fragment = lignes_tenante.fragments.taille
+    /* -1 pour que le calcul du nombre de fragments se fasse via "fin - début + 1", et
+     * avoir un résultat correcte quand il n'y a aucun fragment dans la ligne. */
+    résultat.dernier_fragment = lignes_tenante.fragments.taille - 1
+    retourne résultat
+}
+
+ajoute_fragment :: fonc (lignes_tenante: *LignesTenante, fragment: &Fragment) -> z64
+{
+    résultat := lignes_tenante.fragments.taille
+    tableau_ajoute(*lignes_tenante.fragments, fragment)
+    retourne résultat
+}
+
+donne_fragments_ligne :: fonc (lignes_tenante: *LignesTenante, ligne: *BoiteDeLigne) -> []Fragment
+{
+    résultat: []Fragment
+    résultat.pointeur = lignes_tenante.fragments.pointeur + ligne.premier_fragment
+    résultat.taille = ligne.dernier_fragment - ligne.premier_fragment + 1
+    retourne résultat
 }
 
 /** \} */
@@ -1804,6 +1846,7 @@ divise_en_lignes :: fonc (enligneuse: *Enligneuse, bloc_contenant: *NoeudDeDispo
 {
     réinitialise_lignes(bloc_contenant)
     enligneuse.bloc_contenant = bloc_contenant
+    bloc_contenant.lignes_tenante.bloc = bloc_contenant
 
     pour bloc_contenant.enfants {
         divise_en_lignes(it, enligneuse, ctx)
@@ -1812,7 +1855,7 @@ divise_en_lignes :: fonc (enligneuse: *Enligneuse, bloc_contenant: *NoeudDeDispo
 
 ajoute_ligne :: fonc (empl enligneuse: *Enligneuse) -> *BoiteDeLigne
 {
-    ligne_courante = enligneuse.bloc_contenant.ajoute_ligne()
+    ligne_courante = ajoute_ligne(*enligneuse.bloc_contenant.lignes_tenante)
     retourne ligne_courante
 }
 
@@ -1823,12 +1866,26 @@ peut_ajouter_fragment :: fonc (empl enligneuse: *Enligneuse, largeur: r32) -> bo
 
 ajoute_fragment :: fonc (empl enligneuse: *Enligneuse, noeud: *NoeudDeDisposition, index_début: z64, index_fin: z64, hauteur: r32, largeur: r32, type := Fragment.Type.Normal)
 {
-    ligne_courante = enligneuse.bloc_contenant.donne_ligne_courante()
+    lignes_tenante := *enligneuse.bloc_contenant.lignes_tenante
+
+    ligne_courante = lignes_tenante.donne_ligne_courante()
     saufsi ligne_courante.peut_ajouter_fragment(largeur) {
-        ligne_courante = bloc_contenant.ajoute_ligne()
+        ligne_courante = lignes_tenante.ajoute_ligne()
     }
 
-    ligne_courante.ajoute_fragment(noeud, index_début, index_fin, hauteur, largeur, type)
+    fragment: Fragment
+    fragment.noeud = noeud
+    fragment.index_début = index_début
+    fragment.index_fin = index_fin
+    fragment.hauteur = hauteur
+    fragment.largeur = largeur
+    fragment.x = ligne_courante.largeur_courante
+    fragment.type = type
+
+    ligne_courante.largeur_courante += largeur
+    ligne_courante.garantis_hauteur_minimale(hauteur)
+
+    ligne_courante.dernier_fragment = ajoute_fragment(lignes_tenante, fragment)
 }
 
 ajoute_fragment :: fonc (enligneuse: *Enligneuse, noeud: *NoeudDeDisposition, hauteur: r32, largeur: r32, type: Fragment.Type)
@@ -1857,23 +1914,19 @@ NoeudDeDispositionBloc :: struct {
 
     élément: *HTML.Élément
 
-    lignes: [..]BoiteDeLigne
+    lignes_tenante: LignesTenante
 
     est_disposition_inline: bool
 }
 
 détruit_lignes :: fonc (noeud: *NoeudDeDispositionBloc)
 {
-    réinitialise_lignes(noeud)
-    déloge(noeud.lignes)
+    détruit_données(*noeud.lignes_tenante)
 }
 
 réinitialise_lignes :: fonc (noeud: *NoeudDeDispositionBloc)
 {
-    pour * noeud.lignes {
-        détruit_données_boite_de_ligne(it)
-    }
-    noeud.lignes.taille = 0
+    réinitialise(*noeud.lignes_tenante)
 }
 
 formatte_intérieur :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDeFormattage)
@@ -2130,22 +2183,6 @@ noeud_disposition_bloc_sur_dessin_tampon_id :: fonc (base: *NoeudDeDisposition, 
     sinon {
         dessine_tampon_id_enfants_inline(noeud, ctx)
     }
-}
-
-ajoute_ligne :: fonc (bloc: *NoeudDeDispositionBloc) -> *BoiteDeLigne
-{
-    ligne := tableau_ajoute_élément(*bloc.lignes)
-    ligne.bloc = bloc
-    retourne ligne
-}
-
-donne_ligne_courante :: fonc (bloc: *NoeudDeDispositionBloc) -> *BoiteDeLigne
-{
-    si bloc.lignes.taille == 0 {
-        retourne ajoute_ligne(bloc)
-    }
-
-    retourne *bloc.lignes[bloc.lignes.taille - 1]
 }
 
 calcule_largeur_et_marges :: fonc (noeud: *NoeudDeDispositionBloc, containing_block: &ContainingBlock)
@@ -2465,19 +2502,15 @@ dessine_tampon_id_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *C
 
 dessine_enfants_inline :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDessin)
 {
-    pour noeud.lignes {
-        pour * fragment dans it.fragments {
-            dessine_fragment(fragment.noeud, fragment, ctx)
-        }
+    pour * noeud.lignes_tenante.fragments {
+        dessine_fragment(it.noeud, it, ctx)
     }
 }
 
 dessine_tampon_id_enfants_inline :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDessin)
 {
-    pour noeud.lignes {
-        pour * fragment dans it.fragments {
-            dessine_fragment_tampon_id(fragment.noeud, fragment, ctx)
-        }
+    pour * noeud.lignes_tenante.fragments {
+        dessine_fragment_tampon_id(it.noeud, it, ctx)
     }
 }
 
