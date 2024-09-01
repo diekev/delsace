@@ -258,6 +258,18 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élé
     sinon si tag == TAG_style {
         élément = loge(HTMLStyleElement)
     }
+    sinon si tag == TAG_table {
+        élément = loge(HTMLTableElement)
+    }
+    sinon si tag == TAG_td || tag == TAG_th {
+        élément = loge(HTMLTableCellElement)
+    }
+    sinon si tag == TAG_thead || tag == TAG_tbody || tag == TAG_tfoot {
+        élément = loge(HTMLTableSectionElement)
+    }
+    sinon si tag == TAG_tr {
+        élément = loge(HTMLTableRowElement)
+    }
     sinon si tag == TAG_video {
         élément = loge(HTMLVideoElement)
     }
@@ -1891,6 +1903,142 @@ ajourne_style_block :: fonc (style: *HTMLStyleElement)
     document.ajoute_feuille_de_style(feuille_de_style)
 
     // À FAIRE : implémente la finalisation
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLTableElement
+ * https://html.spec.whatwg.org/multipage/tables.html#the-table-element
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLTableElement
+ * \{ */
+
+#portée_export
+
+HTMLTableElement :: struct {
+    empl html_element: HTMLElement
+    table = *table_virtuelle_table_element
+}
+
+#portée_fichier
+
+table_virtuelle_table_element := TableVirtuelleÉlément(
+    sur_destruction = table_element_sur_destruction,
+    sur_applique_presentational_hints = table_element_sur_applique_presentational_hints
+)
+
+table_element_sur_destruction :: fonc (base: *EventTarget)
+{
+    élément := base comme *HTMLTableElement
+    élément_détruit_données(élément)
+    déloge(élément)
+}
+
+table_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
+{
+    ajoute_propriété_pour_legacy_colour_value(résolveuse, base, ATTR_bgcolor, CSS.PROP_background_color)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLTableCellElement
+ * https://html.spec.whatwg.org/multipage/tables.html#the-td-element
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLTableCellElement
+ * \{ */
+
+#portée_export
+
+HTMLTableCellElement :: struct {
+    empl html_element: HTMLElement
+    table = *table_virtuelle_table_cell_element
+}
+
+#portée_fichier
+
+table_virtuelle_table_cell_element := TableVirtuelleÉlément(
+    sur_destruction = table_cell_element_sur_destruction,
+    sur_applique_presentational_hints = table_cell_element_sur_applique_presentational_hints
+)
+
+table_cell_element_sur_destruction :: fonc (base: *EventTarget)
+{
+    élément := base comme *HTMLTableCellElement
+    élément_détruit_données(élément)
+    déloge(élément)
+}
+
+table_cell_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
+{
+    ajoute_propriété_pour_legacy_colour_value(résolveuse, base, ATTR_bgcolor, CSS.PROP_background_color)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLTableRowElement
+ * https://html.spec.whatwg.org/multipage/tables.html#the-tr-element
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLTableRowElement
+ * \{ */
+
+#portée_export
+
+HTMLTableRowElement :: struct {
+    empl html_element: HTMLElement
+    table = *table_virtuelle_table_row_element
+}
+
+#portée_fichier
+
+table_virtuelle_table_row_element := TableVirtuelleÉlément(
+    sur_destruction = table_row_element_sur_destruction,
+    sur_applique_presentational_hints = table_row_element_sur_applique_presentational_hints
+)
+
+table_row_element_sur_destruction :: fonc (base: *EventTarget)
+{
+    élément := base comme *HTMLTableRowElement
+    élément_détruit_données(élément)
+    déloge(élément)
+}
+
+table_row_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
+{
+    ajoute_propriété_pour_legacy_colour_value(résolveuse, base, ATTR_bgcolor, CSS.PROP_background_color)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLTableSectionElement
+ * https://html.spec.whatwg.org/multipage/tables.html#the-tbody-element
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLTableSectionElement
+ * \{ */
+
+#portée_export
+
+HTMLTableSectionElement :: struct {
+    empl html_element: HTMLElement
+    table = *table_virtuelle_table_section_element
+}
+
+#portée_fichier
+
+table_virtuelle_table_section_element := TableVirtuelleÉlément(
+    sur_destruction = table_section_element_sur_destruction,
+    sur_applique_presentational_hints = table_section_element_sur_applique_presentational_hints
+)
+
+table_section_element_sur_destruction :: fonc (base: *EventTarget)
+{
+    élément := base comme *HTMLTableSectionElement
+    élément_détruit_données(élément)
+    déloge(élément)
+}
+
+table_section_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
+{
+    ajoute_propriété_pour_legacy_colour_value(résolveuse, base, ATTR_bgcolor, CSS.PROP_background_color)
 }
 
 /** \} */
