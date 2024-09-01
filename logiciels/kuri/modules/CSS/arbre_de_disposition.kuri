@@ -1722,9 +1722,18 @@ donne_containing_block :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeForm
  * \{ */
 
 Fragment :: struct {
+    Type :: énum {
+        Normal
+        MargeDébut
+        MargeFin
+        RembourrageDébut
+        RembourrageFin
+    }
+
     noeud: *NoeudDeDisposition
     index_début: z64
     index_fin: z64
+    type: Type
 
     x: r32
     y: r32
@@ -1760,7 +1769,7 @@ peut_ajouter_fragment :: fonc (boite: *BoiteDeLigne, largeur: r32) -> bool
     retourne (boite.largeur_courante + largeur) < boite.bloc.propriétés.style.valeurs[IDPropriété.Width].number comme r32
 }
 
-ajoute_fragment :: fonc (boite: *BoiteDeLigne, noeud: *NoeudDeDisposition, index_début: z64, index_fin: z64, hauteur: r32, largeur: r32)
+ajoute_fragment :: fonc (boite: *BoiteDeLigne, noeud: *NoeudDeDisposition, index_début: z64, index_fin: z64, hauteur: r32, largeur: r32, type: Fragment.Type)
 {
     fragment: Fragment
     fragment.noeud = noeud
@@ -1769,6 +1778,7 @@ ajoute_fragment :: fonc (boite: *BoiteDeLigne, noeud: *NoeudDeDisposition, index
     fragment.hauteur = hauteur
     fragment.largeur = largeur
     fragment.x = boite.largeur_courante
+    fragment.type = type
 
     boite.largeur_courante += largeur
     boite.garantis_hauteur_minimale(hauteur)
@@ -1813,14 +1823,19 @@ peut_ajouter_fragment :: fonc (empl enligneuse: *Enligneuse, largeur: r32) -> bo
     retourne ligne_courante.peut_ajouter_fragment(largeur)
 }
 
-ajoute_fragment :: fonc (empl enligneuse: *Enligneuse, noeud: *NoeudDeDisposition, index_début: z64, index_fin: z64, hauteur: r32, largeur: r32)
+ajoute_fragment :: fonc (empl enligneuse: *Enligneuse, noeud: *NoeudDeDisposition, index_début: z64, index_fin: z64, hauteur: r32, largeur: r32, type := Fragment.Type.Normal)
 {
     ligne_courante = enligneuse.bloc_contenant.donne_ligne_courante()
     saufsi ligne_courante.peut_ajouter_fragment(largeur) {
         ligne_courante = bloc_contenant.ajoute_ligne()
     }
 
-    ligne_courante.ajoute_fragment(noeud, index_début, index_fin, hauteur, largeur)
+    ligne_courante.ajoute_fragment(noeud, index_début, index_fin, hauteur, largeur, type)
+}
+
+ajoute_fragment :: fonc (enligneuse: *Enligneuse, noeud: *NoeudDeDisposition, hauteur: r32, largeur: r32, type: Fragment.Type)
+{
+    ajoute_fragment(enligneuse, noeud, 0, 0, hauteur, largeur, type)
 }
 
 garantis_hauteur_minimale :: fonc (enligneuse: *Enligneuse, hauteur: r32)
@@ -2480,6 +2495,8 @@ NoeudDeDispositionInline :: struct {
     type = #type_de_cette_structure
     sur_mesure = noeud_disposition_inline_sur_mesure
     sur_dessin = noeud_disposition_inline_sur_dessin
+    sur_dessin_fragment = noeud_disposition_inline_sur_dessin_fragment
+    sur_divise_en_lignes = noeud_disposition_inline_sur_divise_en_lignes
     sur_dessin_tampon_id = noeud_disposition_inline_sur_dessin_tampon_id
 }
 
@@ -2493,10 +2510,51 @@ noeud_disposition_inline_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Co
     calcule_hauteur_et_marges(noeud, containing_block)
 }
 
+noeud_disposition_inline_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, enligneuse: *Enligneuse, ctx: *ContexteDeFormattage)
+{
+    noeud := base comme *NoeudDeDispositionInline
+    containing_block := donne_containing_block(noeud, ctx)
+    calcule_largeur_et_marges_inline_non_replaced_element(noeud, containing_block)
+    calcule_hauteur_et_marges_inline_non_replaced_element(noeud, containing_block)
+
+    style := *noeud.propriétés.style
+
+    margin_left := style.valeurs[IDPropriété.MarginLeft].number comme r32
+    padding_left := style.valeurs[IDPropriété.PaddingLeft].number comme r32
+    padding_right := style.valeurs[IDPropriété.PaddingRight].number comme r32
+    margin_right := style.valeurs[IDPropriété.MarginRight].number comme r32
+
+    hauteur := 0.0 // À FAIRE : donne_line_height(noeud, ctx)
+    enligneuse.ajoute_fragment(noeud, hauteur, margin_left, Fragment.Type.MargeDébut)
+    enligneuse.ajoute_fragment(noeud, hauteur, padding_left, Fragment.Type.RembourrageDébut)
+
+    pour noeud.enfants {
+        divise_en_lignes(it, enligneuse, ctx)
+    }
+
+    enligneuse.ajoute_fragment(noeud, hauteur, padding_right, Fragment.Type.RembourrageFin)
+    enligneuse.ajoute_fragment(noeud, hauteur, margin_right, Fragment.Type.MargeFin)
+}
+
 noeud_disposition_inline_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
 {
     noeud := base comme *NoeudDeDispositionInline
     dessine_enfants_inline(noeud, ctx)
+}
+
+noeud_disposition_inline_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment, ctx: *ContexteDessin)
+{
+    si fragment.type == Fragment.Type.MargeDébut || fragment.type == Fragment.Type.MargeFin {
+        retourne
+    }
+
+    propriétés := base.propriétés
+
+    background_color := propriétés.style.valeurs[IDPropriété.BackgroundColor].couleur
+    si background_color.a != 0 {
+        rect_noeud := ctx.donne_rectangle_corrigé(fragment.donne_rectangle())
+        ctx.peintre.remplis_rectangle(rect_noeud, background_color)
+    }
 }
 
 noeud_disposition_inline_sur_dessin_tampon_id :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
@@ -2504,6 +2562,43 @@ noeud_disposition_inline_sur_dessin_tampon_id :: fonc (base: *NoeudDeDisposition
     noeud := base comme *NoeudDeDispositionInline
     ctx.remplis_rectangle_id(noeud)
     dessine_tampon_id_enfants_inline(noeud, ctx)
+}
+
+/* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#inline-width */
+calcule_largeur_et_marges_inline_non_replaced_element :: fonc (noeud: *NoeudDeDispositionBloc, containing_block: &ContainingBlock)
+{
+    résoud_pourcentage_largeurs(noeud, containing_block)
+
+    style := *noeud.propriétés.style
+    margin_left := style.valeurs[IDPropriété.MarginLeft]
+    margin_right := style.valeurs[IDPropriété.MarginRight]
+
+    si margin_left.est_auto() {
+        style.valeurs[IDPropriété.MarginLeft] = ValeurDeStyle(number = 0.0)
+    }
+
+    si margin_right.est_auto() {
+        style.valeurs[IDPropriété.MarginRight] = ValeurDeStyle(number = 0.0)
+    }
+}
+
+/* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#inline-non-replaced */
+calcule_hauteur_et_marges_inline_non_replaced_element :: fonc (noeud: *NoeudDeDispositionBloc, containing_block: &ContainingBlock)
+{
+    // À FAIRE : ceci est une copie des calculs pour la largeur
+    résoud_pourcentage_hauteur(noeud, containing_block)
+
+    style := *noeud.propriétés.style
+    margin_top := style.valeurs[IDPropriété.MarginTop]
+    margin_bottom := style.valeurs[IDPropriété.MarginBottom]
+
+    si margin_top.est_auto() {
+        style.valeurs[IDPropriété.MarginTop] = ValeurDeStyle(number = 0.0)
+    }
+
+    si margin_bottom.est_auto() {
+        style.valeurs[IDPropriété.MarginBottom] = ValeurDeStyle(number = 0.0)
+    }
 }
 
 /** \} */
