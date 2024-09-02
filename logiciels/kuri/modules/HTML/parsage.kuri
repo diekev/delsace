@@ -1073,7 +1073,11 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si fait_partie_de(lexème.nom, TAG_applet, TAG_marquee, TAG_object) {
-            panique("algorithm d'insertion incomplet")
+            parseuse.reconstruit_liste_des_éléments_de_formattage_actifs()
+            _ := parseuse.insère_élément_html(lexème)
+            ajoute_marqueur(*parseuse.liste_éléments_actifs_formattage)
+            parseuse.frameset_ok = faux
+            retourne
         }
 
         si lexème.nom == TAG_table {
@@ -1407,7 +1411,22 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si fait_partie_de(lexème.nom, TAG_applet, TAG_marquee, TAG_object) {
-            panique("algorithm d'insertion incomplet")
+            si !possède_dans_portée(*parseuse.pile_éléments_ouvert, lexème.nom) {
+                erreur_de_parsage(parseuse, "aucun élément du tag dans la porté")
+                retourne
+            }
+
+            parseuse.génère_tags_fin_implicites()
+
+            noeud := parseuse.noeud_courant()
+            si noeud.local_name != lexème.nom {
+                erreur_de_parsage(parseuse, "le noeud courant n'a pas de balise <h>")
+            }
+
+            dépile_tous_les_éléments_jusque(parseuse, lexème.nom)
+
+            enlève_éléments_jusqu_au_dernier_marqueur(*parseuse.liste_éléments_actifs_formattage)
+            retourne
         }
 
         si lexème.nom == TAG_br {
