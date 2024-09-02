@@ -1213,16 +1213,29 @@ update_image_data :: fonc (image: *HTMLImageElement)
             retourne
         }
 
-        saufsi est_type_mime_image(réponse.body_info.content_type) {
+        content_type := réponse.body_info.content_type
+        saufsi est_type_mime_image(content_type) {
             retourne
         }
 
         contenu := réponse.body.Quelque
 
+        // À FAIRE : prend le chemin de l'url si le schéma n'est pas "data"
+        chemin_image := ""
+        si content_type == "image/png" {
+            chemin_image = "image.png"
+        }
+        sinon si content_type == "image/jpeg" {
+            chemin_image = "image.jpeg"
+        }
+        sinon {
+            panique("chemin image non résolvable")
+        }
+
         proxy_image := IMG_cree_proxy_memoire(contenu.pointeur, contenu.taille comme n64)
         diffère IMG_detruit_proxy(proxy_image)
 
-        chn_c_chemin := crée_chaine_c(rappel.url_src.path.Path[rappel.url_src.path.Path.taille - 1])
+        chn_c_chemin := crée_chaine_c(chemin_image)
         diffère détruit_chaine_c(chn_c_chemin)
 
         résultat_lecture_image := IMG_ouvre_image_avec_proxy(chn_c_chemin, *rappel.image.image_data, proxy_image)
