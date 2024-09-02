@@ -3062,8 +3062,8 @@ parse_propriété_font_style :: fonc (value: [..]ComponentValue) -> Optionnel(Va
 
 parse_propriété_background :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
 {
-    couleur: Optionnel(ValeurDeStyle)
-    image: Optionnel(ValeurDeStyle)
+    couleur := ValeurDeStyle(mot_clé = PROP_transparent)
+    image := ValeurDeStyle(mot_clé = PROP_none)
 
     parseuse := initialise_une_parseuse(value)
 
@@ -3085,13 +3085,8 @@ parse_propriété_background :: fonc (ctx: *ContexteParsageShorthand, value: [..
         retourne faux
     }
 
-    si couleur.possède_valeur() {
-        ajoute_propriété(ctx, PROP_background_color, couleur.Quelque)
-    }
-
-    si image.possède_valeur() {
-        ajoute_propriété(ctx, PROP_background_image, image.Quelque)
-    }
+    ajoute_propriété(ctx, PROP_background_color, couleur)
+    ajoute_propriété(ctx, PROP_background_image, image)
 
     retourne vrai
 }

@@ -258,6 +258,18 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élé
     sinon si tag == TAG_style {
         élément = loge(HTMLStyleElement)
     }
+    sinon si tag == TAG_table {
+        élément = loge(HTMLTableElement)
+    }
+    sinon si tag == TAG_td || tag == TAG_th {
+        élément = loge(HTMLTableCellElement)
+    }
+    sinon si tag == TAG_thead || tag == TAG_tbody || tag == TAG_tfoot {
+        élément = loge(HTMLTableSectionElement)
+    }
+    sinon si tag == TAG_tr {
+        élément = loge(HTMLTableRowElement)
+    }
     sinon si tag == TAG_video {
         élément = loge(HTMLVideoElement)
     }
@@ -542,15 +554,24 @@ anchor_element_sur_activation_behavior :: fonc (target: *EventTarget, event: *Ev
         retourne
     }
 
-    chn_href := converti_vers_chaine(anchor.donne_href().donne_chaine_utf16())
+    chn_href := anchor.donne_href().donne_chaine_utf16()
 
-    url := tente parse_uri_standard(chn_href) piège err {
-        imprime("[%] impossible de parser l'URI : %\n", #nom_de_cette_fonction, err)
-        diffère déloge(chn_href)
+    source_document := anchor.document
+    base_url := donne_base_url(source_document)
+    url_document := convertis_uri_url(*base_url)
+
+    url_src := basic_url_parser(chn_href, base = url_document)
+    saufsi url_src {
         retourne
     }
 
-    source_document := anchor.document
+    url_string := url_serializer(url_src)
+
+    url := tente parse_uri_standard(url_string) piège err {
+        imprime("[%] impossible de parser l'URI : %\n", #nom_de_cette_fonction, err)
+        retourne
+    }
+
     navigate(source_document.donne_user_agent(), navigable, url, source_document)
 }
 
@@ -1192,16 +1213,29 @@ update_image_data :: fonc (image: *HTMLImageElement)
             retourne
         }
 
-        saufsi est_type_mime_image(réponse.body_info.content_type) {
+        content_type := réponse.body_info.content_type
+        saufsi est_type_mime_image(content_type) {
             retourne
         }
 
         contenu := réponse.body.Quelque
 
+        // À FAIRE : prend le chemin de l'url si le schéma n'est pas "data"
+        chemin_image := ""
+        si content_type == "image/png" {
+            chemin_image = "image.png"
+        }
+        sinon si content_type == "image/jpeg" {
+            chemin_image = "image.jpeg"
+        }
+        sinon {
+            panique("chemin image non résolvable")
+        }
+
         proxy_image := IMG_cree_proxy_memoire(contenu.pointeur, contenu.taille comme n64)
         diffère IMG_detruit_proxy(proxy_image)
 
-        chn_c_chemin := crée_chaine_c(rappel.url_src.path.Path[rappel.url_src.path.Path.taille - 1])
+        chn_c_chemin := crée_chaine_c(chemin_image)
         diffère détruit_chaine_c(chn_c_chemin)
 
         résultat_lecture_image := IMG_ouvre_image_avec_proxy(chn_c_chemin, *rappel.image.image_data, proxy_image)
@@ -1891,6 +1925,142 @@ ajourne_style_block :: fonc (style: *HTMLStyleElement)
     document.ajoute_feuille_de_style(feuille_de_style)
 
     // À FAIRE : implémente la finalisation
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLTableElement
+ * https://html.spec.whatwg.org/multipage/tables.html#the-table-element
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLTableElement
+ * \{ */
+
+#portée_export
+
+HTMLTableElement :: struct {
+    empl html_element: HTMLElement
+    table = *table_virtuelle_table_element
+}
+
+#portée_fichier
+
+table_virtuelle_table_element := TableVirtuelleÉlément(
+    sur_destruction = table_element_sur_destruction,
+    sur_applique_presentational_hints = table_element_sur_applique_presentational_hints
+)
+
+table_element_sur_destruction :: fonc (base: *EventTarget)
+{
+    élément := base comme *HTMLTableElement
+    élément_détruit_données(élément)
+    déloge(élément)
+}
+
+table_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
+{
+    ajoute_propriété_pour_legacy_colour_value(résolveuse, base, ATTR_bgcolor, CSS.PROP_background_color)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLTableCellElement
+ * https://html.spec.whatwg.org/multipage/tables.html#the-td-element
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLTableCellElement
+ * \{ */
+
+#portée_export
+
+HTMLTableCellElement :: struct {
+    empl html_element: HTMLElement
+    table = *table_virtuelle_table_cell_element
+}
+
+#portée_fichier
+
+table_virtuelle_table_cell_element := TableVirtuelleÉlément(
+    sur_destruction = table_cell_element_sur_destruction,
+    sur_applique_presentational_hints = table_cell_element_sur_applique_presentational_hints
+)
+
+table_cell_element_sur_destruction :: fonc (base: *EventTarget)
+{
+    élément := base comme *HTMLTableCellElement
+    élément_détruit_données(élément)
+    déloge(élément)
+}
+
+table_cell_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
+{
+    ajoute_propriété_pour_legacy_colour_value(résolveuse, base, ATTR_bgcolor, CSS.PROP_background_color)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLTableRowElement
+ * https://html.spec.whatwg.org/multipage/tables.html#the-tr-element
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLTableRowElement
+ * \{ */
+
+#portée_export
+
+HTMLTableRowElement :: struct {
+    empl html_element: HTMLElement
+    table = *table_virtuelle_table_row_element
+}
+
+#portée_fichier
+
+table_virtuelle_table_row_element := TableVirtuelleÉlément(
+    sur_destruction = table_row_element_sur_destruction,
+    sur_applique_presentational_hints = table_row_element_sur_applique_presentational_hints
+)
+
+table_row_element_sur_destruction :: fonc (base: *EventTarget)
+{
+    élément := base comme *HTMLTableRowElement
+    élément_détruit_données(élément)
+    déloge(élément)
+}
+
+table_row_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
+{
+    ajoute_propriété_pour_legacy_colour_value(résolveuse, base, ATTR_bgcolor, CSS.PROP_background_color)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLTableSectionElement
+ * https://html.spec.whatwg.org/multipage/tables.html#the-tbody-element
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLTableSectionElement
+ * \{ */
+
+#portée_export
+
+HTMLTableSectionElement :: struct {
+    empl html_element: HTMLElement
+    table = *table_virtuelle_table_section_element
+}
+
+#portée_fichier
+
+table_virtuelle_table_section_element := TableVirtuelleÉlément(
+    sur_destruction = table_section_element_sur_destruction,
+    sur_applique_presentational_hints = table_section_element_sur_applique_presentational_hints
+)
+
+table_section_element_sur_destruction :: fonc (base: *EventTarget)
+{
+    élément := base comme *HTMLTableSectionElement
+    élément_détruit_données(élément)
+    déloge(élément)
+}
+
+table_section_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
+{
+    ajoute_propriété_pour_legacy_colour_value(résolveuse, base, ATTR_bgcolor, CSS.PROP_background_color)
 }
 
 /** \} */

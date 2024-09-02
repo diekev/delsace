@@ -23,7 +23,12 @@ principale :: fonc () -> z32
     imprime("texte : %\n", texte)
 
     en_minuscule_sur_place(texte)
+    imprime("texte : %\n", texte)
 
+    en_majuscule_sur_place(texte)
+    imprime("texte : %\n", texte)
+
+    en_minuscule_sur_place(texte)
     imprime("texte : %\n", texte)
 
     retourne 0
