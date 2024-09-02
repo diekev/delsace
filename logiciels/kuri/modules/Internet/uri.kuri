@@ -431,7 +431,7 @@ recompose_uri :: fonc (uri: *URI) -> chaine
         append(*résultat, ":")
     }
 
-    si uri.autorité_est_définie {
+    si uri.autorité_est_définie && uri.schéma != "data" {
         append(*résultat, "//")
         append(*résultat, uri.autorité)
     }
@@ -440,7 +440,7 @@ recompose_uri :: fonc (uri: *URI) -> chaine
         append(*résultat, "/")
     }
     sinon {
-        si uri.chemin[0] != '/' {
+        si uri.chemin[0] != '/' && uri.schéma != "data" {
             append(*résultat, "/")
         }
         append(*résultat, uri.chemin)
