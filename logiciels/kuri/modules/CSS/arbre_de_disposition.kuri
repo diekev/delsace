@@ -561,7 +561,7 @@ donne_ajournement_pour_changement_style :: fonc (résolveuse: *RésolveuseStyle,
     diffère détruit_propriétés(nouvelles_propriétés)
 
     /* Vérifie si "display: none" reste "display: none". */
-    display := nouvelles_propriétés.style.valeurs[IDPropriété.Display].display
+    display := nouvelles_propriétés.donne_valeur_calculée(IDPropriété.Display).display
     si display.outer_type == Display.Type.None {
         si noeud_de_disposition == nul {
             /* Nous restons sur "display: none". */
@@ -726,7 +726,7 @@ crée_style_pour_bloc_anonyme :: fonc (résolveuse: *RésolveuseStyle, bloc: *No
 {
     résultat := crée_propriétés_de_style(bloc_parent.propriétés)
     calcule_style(résolveuse, résultat, bloc_parent.propriétés)
-    résultat.style.valeurs[IDPropriété.Display] = Display(outer_type = outer_display, inner_type = Display.Type.Flow)
+    résultat.définis_valeur_calculée(IDPropriété.Display, Display(outer_type = outer_display, inner_type = Display.Type.Flow))
 
     bloc.propriétés = résultat
 }
@@ -741,7 +741,7 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
     ctx_calcul_style.valeurs_initiales = *résolveuse.valeurs_initiales
 
     si propriétés_parent {
-        ctx_calcul_style.taille_fonte = propriétés_parent.style.valeurs[IDPropriété.FontSize].number
+        ctx_calcul_style.taille_fonte = propriétés_parent.donne_valeur_calculée(IDPropriété.FontSize).number
     }
 
     pour propriétés.déclarations {
@@ -758,27 +758,27 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
         }
 
         si info.id == IDPropriété.FontSize {
-            ctx_calcul_style.taille_fonte = propriétés.style.valeurs[IDPropriété.FontSize].number
+            ctx_calcul_style.taille_fonte = propriétés.donne_valeur_calculée(IDPropriété.FontSize).number
         }
     }
 
     si propriétés.style.valeurs[IDPropriété.BorderStyleLeft].line_style == LineStyle.None {
-        propriétés.style.valeurs[IDPropriété.BorderWidthLeft] = ValeurDeStyle(number = 0.0)
+        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthLeft, ValeurDeStyle(number = 0.0))
     }
     si propriétés.style.valeurs[IDPropriété.BorderStyleTop].line_style == LineStyle.None {
-        propriétés.style.valeurs[IDPropriété.BorderWidthTop] = ValeurDeStyle(number = 0.0)
+        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthTop, ValeurDeStyle(number = 0.0))
     }
     si propriétés.style.valeurs[IDPropriété.BorderStyleRight].line_style == LineStyle.None {
-        propriétés.style.valeurs[IDPropriété.BorderWidthRight] = ValeurDeStyle(number = 0.0)
+        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthRight, ValeurDeStyle(number = 0.0))
     }
     si propriétés.style.valeurs[IDPropriété.BorderStyleBottom].line_style == LineStyle.None {
-        propriétés.style.valeurs[IDPropriété.BorderWidthBottom] = ValeurDeStyle(number = 0.0)
+        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthBottom, ValeurDeStyle(number = 0.0))
     }
     saufsi propriétés.style.valeurs[IDPropriété.FontSize].est_nombre() {
-        propriétés.style.valeurs[IDPropriété.FontSize] = calcule_valeur_propriété_générique(propriétés.style.valeurs[IDPropriété.FontSize], GenreValeurCalculée.LongueurAbsolue | GenreValeurCalculée.FontSize, *propriétés.style, *ctx_calcul_style)
+        propriétés.définis_valeur_calculée(IDPropriété.FontSize, calcule_valeur_propriété_générique(propriétés.style.valeurs[IDPropriété.FontSize], GenreValeurCalculée.LongueurAbsolue | GenreValeurCalculée.FontSize, *propriétés.style, *ctx_calcul_style))
     }
     saufsi propriétés.style.valeurs[IDPropriété.FontWeight].est_nombre() {
-        propriétés.style.valeurs[IDPropriété.FontWeight] = calcule_valeur_propriété_générique(propriétés.style.valeurs[IDPropriété.FontWeight], GenreValeurCalculée.FontWeight, *propriétés.style, *ctx_calcul_style)
+        propriétés.définis_valeur_calculée(IDPropriété.FontWeight, calcule_valeur_propriété_générique(propriétés.style.valeurs[IDPropriété.FontWeight], GenreValeurCalculée.FontWeight, *propriétés.style, *ctx_calcul_style))
     }
 
     calcule_display_final(propriétés)
@@ -788,9 +788,9 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
  * https://www.w3.org/TR/2011/REC-CSS2-20110607/visuren.html#dis-pos-flo */
 calcule_display_final :: fonc (propriétés: *PropriétésDeStyle)
 {
-    display := propriétés.donne_valeur(IDPropriété.Display).display
-    position := propriétés.donne_valeur(IDPropriété.Position)
-    float := propriétés.donne_valeur(IDPropriété.Float)
+    display := propriétés.donne_valeur_calculée(IDPropriété.Display).display
+    position := propriétés.donne_valeur_calculée(IDPropriété.Position)
+    float := propriétés.donne_valeur_calculée(IDPropriété.Float)
 
     // 1. If 'display' has the value 'none', then 'position' and 'float' do not apply. In this case,
     // the element generates no box.
@@ -803,15 +803,15 @@ calcule_display_final :: fonc (propriétés: *PropriétésDeStyle)
     // The position of the box will be determined by the 'top', 'right', 'bottom' and 'left' properties
     // and the box's containing block.
     si position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_fixed) {
-        propriétés.style.valeurs[IDPropriété.Float] = ValeurDeStyle(mot_clé = PROP_none)
-        propriétés.style.valeurs[IDPropriété.Display] = convertis_display_pour_position_ou_float(display)
+        propriétés.définis_valeur_calculée(IDPropriété.Float, ValeurDeStyle(mot_clé = PROP_none))
+        propriétés.définis_valeur_calculée(IDPropriété.Display, convertis_display_pour_position_ou_float(display))
         retourne
     }
 
     // 3. Otherwise, if 'float' has a value other than 'none', the box is floated and 'display' is set
     // according to the table below.
     saufsi float.est_none() {
-        propriétés.style.valeurs[IDPropriété.Display] = convertis_display_pour_position_ou_float(display)
+        propriétés.définis_valeur_calculée(IDPropriété.Display, convertis_display_pour_position_ou_float(display))
         retourne
     }
 
@@ -821,7 +821,7 @@ calcule_display_final :: fonc (propriétés: *PropriétésDeStyle)
     // À FAIRE : test plus robuste pour définir l'élément racine.
     // À FAIRE : list-item.
     saufsi propriétés.parent {
-        propriétés.style.valeurs[IDPropriété.Display] = convertis_display_pour_position_ou_float(display)
+        propriétés.définis_valeur_calculée(IDPropriété.Display, convertis_display_pour_position_ou_float(display))
         retourne
     }
 
@@ -952,7 +952,7 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
 
     propriétés := résoud_style(résolveuse, élément, propriétés_parent)
 
-    display := propriétés.style.valeurs[IDPropriété.Display].display
+    display := propriétés.donne_valeur_calculée(IDPropriété.Display).display
     si display.outer_type == Display.Type.None {
         détruit_propriétés(propriétés)
         retourne
@@ -980,7 +980,7 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
     }
 
     si parent == nul {
-        résolveuse.taille_fonte_racine = propriétés.style.valeurs[IDPropriété.FontSize].number
+        résolveuse.taille_fonte_racine = propriétés.donne_valeur_calculée(IDPropriété.FontSize).number
     }
 
     élément.noeud_de_disposition = résultat
@@ -1350,9 +1350,9 @@ détermine_fonte :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage
     style := "normal"
     graisse := GraisseFonte.Normal
     propriétés := noeud.donne_propriétés()
-    taille_fonte := propriétés.style.valeurs[IDPropriété.FontSize].number comme r32
+    taille_fonte := propriétés.donne_valeur_calculée(IDPropriété.FontSize).number comme r32
 
-    font_family := propriétés.style.valeurs[IDPropriété.FontFamily].mot_clé
+    font_family := propriétés.donne_valeur_calculée(IDPropriété.FontFamily).mot_clé
     si font_family == PROP_monospace {
         famille_fonte = "monospace"
     }
@@ -1360,12 +1360,12 @@ détermine_fonte :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage
         famille_fonte = "sans-serif"
     }
 
-    font_weight := propriétés.style.valeurs[IDPropriété.FontWeight].number
+    font_weight := propriétés.donne_valeur_calculée(IDPropriété.FontWeight).number
     si font_weight >= 700.0 {
         graisse = GraisseFonte.Gras
     }
 
-    font_style := propriétés.style.valeurs[IDPropriété.FontStyle].mot_clé
+    font_style := propriétés.donne_valeur_calculée(IDPropriété.FontStyle).mot_clé
     si font_style == PROP_italic {
         style = "italic"
     }
@@ -1390,15 +1390,15 @@ donne_rectangle_contenu :: fonc (noeud: *NoeudDeDisposition) -> RectanglePosDim(
 
 ajourne_boite_pour_calcul_largeur :: fonc (noeud: *NoeudDeDisposition)
 {
-    style := *noeud.propriétés.style
+    propriétés := noeud.propriétés
 
-    margin_left := style.valeurs[IDPropriété.MarginLeft].number comme r32
-    border_left_width := style.valeurs[IDPropriété.BorderWidthLeft].number comme r32
-    padding_left := style.valeurs[IDPropriété.PaddingLeft].number comme r32
-    width := style.valeurs[IDPropriété.Width].number comme r32
-    padding_right := style.valeurs[IDPropriété.PaddingRight].number comme r32
-    border_right_width := style.valeurs[IDPropriété.BorderWidthRight].number comme r32
-    margin_right := style.valeurs[IDPropriété.MarginRight].number comme r32
+    margin_left := propriétés.donne_valeur_utilisée(IDPropriété.MarginLeft).number comme r32
+    border_left_width := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthLeft).number comme r32
+    padding_left := propriétés.donne_valeur_utilisée(IDPropriété.PaddingLeft).number comme r32
+    width := propriétés.donne_valeur_utilisée(IDPropriété.Width).number comme r32
+    padding_right := propriétés.donne_valeur_utilisée(IDPropriété.PaddingRight).number comme r32
+    border_right_width := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthRight).number comme r32
+    margin_right := propriétés.donne_valeur_utilisée(IDPropriété.MarginRight).number comme r32
 
     noeud.modèle_de_boite.marge.x = 0.0
     noeud.modèle_de_boite.marge.largeur = margin_left + border_left_width + padding_left + width + padding_right + border_right_width + margin_right
@@ -1415,15 +1415,15 @@ ajourne_boite_pour_calcul_largeur :: fonc (noeud: *NoeudDeDisposition)
 
 ajourne_boite_pour_calcul_hauteur :: fonc (noeud: *NoeudDeDisposition)
 {
-    style := *noeud.propriétés.style
+    propriétés := noeud.propriétés
 
-    margin_top := style.valeurs[IDPropriété.MarginTop].number comme r32
-    border_top_height := style.valeurs[IDPropriété.BorderWidthTop].number comme r32
-    padding_top := style.valeurs[IDPropriété.PaddingTop].number comme r32
-    height := style.valeurs[IDPropriété.Height].number comme r32
-    padding_bottom := style.valeurs[IDPropriété.PaddingBottom].number comme r32
-    border_bottom_height := style.valeurs[IDPropriété.BorderWidthBottom].number comme r32
-    margin_bottom := style.valeurs[IDPropriété.MarginBottom].number comme r32
+    margin_top := propriétés.donne_valeur_utilisée(IDPropriété.MarginTop).number comme r32
+    border_top_height := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthTop).number comme r32
+    padding_top := propriétés.donne_valeur_utilisée(IDPropriété.PaddingTop).number comme r32
+    height := propriétés.donne_valeur_utilisée(IDPropriété.Height).number comme r32
+    padding_bottom := propriétés.donne_valeur_utilisée(IDPropriété.PaddingBottom).number comme r32
+    border_bottom_height := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthBottom).number comme r32
+    margin_bottom := propriétés.donne_valeur_utilisée(IDPropriété.MarginBottom).number comme r32
 
     noeud.modèle_de_boite.marge.y = 0.0
     noeud.modèle_de_boite.marge.hauteur = margin_top + border_top_height + padding_top + height + padding_bottom + border_bottom_height + margin_bottom
@@ -1477,12 +1477,12 @@ est_inline_level :: fonc (noeud: *NoeudDeDisposition) -> bool
 donne_display :: fonc (noeud: *NoeudDeDisposition) -> Display
 {
     assert(noeud.propriétés != nul)
-    retourne noeud.propriétés.donne_valeur(IDPropriété.Display).display
+    retourne noeud.propriétés.donne_valeur_calculée(IDPropriété.Display).display
 }
 
 donne_line_height :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage) -> r32
 {
-    line_height := noeud.propriétés.donne_valeur(IDPropriété.LineHeight)
+    line_height := noeud.propriétés.donne_valeur_calculée(IDPropriété.LineHeight)
     si line_height.est_nombre() {
         retourne line_height.number comme r32
     }
@@ -1597,7 +1597,7 @@ donne_curseur :: fonc (noeud: *NoeudDeDisposition) -> CursorType
     saufsi noeud.propriétés {
         retourne CursorType.auto
     }
-    retourne noeud.propriétés.style.valeurs[IDPropriété.Cursor].cursor
+    retourne noeud.propriétés.donne_valeur_calculée(IDPropriété.Cursor).cursor
 }
 
 divise_en_lignes :: fonc (noeud: *NoeudDeDisposition, enligneuse: *Enligneuse, ctx: *ContexteDeFormattage)
@@ -1675,7 +1675,7 @@ donne_containing_block :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeForm
     // 2. For other elements, if the element's position is 'relative' or 'static',
     // the containing block is formed by the content edge of the nearest block
     // container ancestor box.
-    position := noeud.propriétés.donne_valeur(IDPropriété.Position)
+    position := noeud.propriétés.donne_valeur_calculée(IDPropriété.Position)
     si position.est_mot_clé(PROP_relative) || position.est_mot_clé(PROP_static) {
         parent := noeud.parent
 
@@ -1698,7 +1698,7 @@ donne_containing_block :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeForm
         ancêtre := noeud.parent
 
         tantque ancêtre != nul {
-            position_parent := ancêtre.propriétés.donne_valeur(IDPropriété.Position)
+            position_parent := ancêtre.propriétés.donne_valeur_calculée(IDPropriété.Position)
             si position_parent.est_mot_clé(PROP_relative) || position_parent.est_mot_clé(PROP_absolute) || position_parent.est_mot_clé(PROP_fixed) {
                 arrête
             }
@@ -1775,7 +1775,7 @@ détruit_données_boite_de_ligne :: fonc (boite: *BoiteDeLigne)
 
 peut_ajouter_fragment :: fonc (boite: *BoiteDeLigne, largeur: r32) -> bool
 {
-    retourne (boite.largeur_courante + largeur) < boite.bloc.propriétés.style.valeurs[IDPropriété.Width].number comme r32
+    retourne (boite.largeur_courante + largeur) < boite.bloc.propriétés.donne_valeur_utilisée(IDPropriété.Width).number comme r32
 }
 
 garantis_hauteur_minimale :: fonc (boite: *BoiteDeLigne, hauteur: r32)
@@ -2059,7 +2059,7 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
     peintre := ctx.peintre
 
     si noeud.est_noeud_non_anonyme() {
-        background_color := noeud.propriétés.style.valeurs[IDPropriété.BackgroundColor].couleur
+        background_color := noeud.propriétés.donne_valeur_calculée(IDPropriété.BackgroundColor).couleur
         si background_color.a != 0 {
             rect_noeud: RectanglePosDim(r32)
             si base.parent == nul {
@@ -2078,7 +2078,7 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
              * https://www.w3.org/TR/CSS21/colors.html#background */
             body := HTML.donne_élément_body(noeud.élément.document)
             si body && body.noeud_de_disposition {
-                background_color = body.noeud_de_disposition.propriétés.style.valeurs[IDPropriété.BackgroundColor].couleur
+                background_color = body.noeud_de_disposition.propriétés.donne_valeur_calculée(IDPropriété.BackgroundColor).couleur
                 si background_color.a != 0 {
                     /* À FAIRE : ne peint pas l'arrière-plan du "body" dans ce cas. */
                     rect_noeud: RectanglePosDim(r32)
@@ -2089,7 +2089,7 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
             }
         }
 
-        image := noeud.propriétés.donne_valeur(IDPropriété.BackgroundImage)
+        image := noeud.propriétés.donne_valeur_calculée(IDPropriété.BackgroundImage)
         saufsi image.est_none() {
             base_url := donne_url_base_pour_background_image(noeud.propriétés)
             opt_image_data := ctx.donne_image_pour_url(image.url, base_url)
@@ -2139,7 +2139,7 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
                 border_color := bordure.color[coté]
                 /* À FAIRE : calcule la valeur même s'il n'y a pas de propriété. */
                 si border_color.est_mot_clé(PROP_currentColor) {
-                    couleur = noeud.propriétés.style.valeurs[IDPropriété.Color]
+                    couleur = noeud.propriétés.donne_valeur_calculée(IDPropriété.Color)
                 }
                 sinon {
                     couleur = bordure.color[coté].couleur
@@ -2212,19 +2212,19 @@ calcule_largeur_et_marges :: fonc (noeud: *NoeudDeDispositionBloc, containing_bl
     sauvegarde_style := noeud.propriétés.style
     calcule_largeur_et_marges_block_level_normal_flow(noeud, width_of_containing_block)
 
-    width := noeud.propriétés.style.valeurs[IDPropriété.Width]
-    max_width := noeud.propriétés.style.valeurs[IDPropriété.MaxWidth]
+    width := noeud.propriétés.donne_valeur_calculée(IDPropriété.Width)
+    max_width := noeud.propriétés.donne_valeur_calculée(IDPropriété.MaxWidth)
     si max_width.est_nombre() && (width.number > max_width.number) {
         noeud.propriétés.style = sauvegarde_style
-        noeud.propriétés.style.valeurs[IDPropriété.Width] = max_width
+        noeud.propriétés.définis_valeur_utilisée(IDPropriété.Width, max_width)
         calcule_largeur_et_marges_block_level_normal_flow(noeud, width_of_containing_block)
     }
 
-    width = noeud.propriétés.style.valeurs[IDPropriété.Width]
-    min_width := noeud.propriétés.style.valeurs[IDPropriété.MinWidth]
+    width = noeud.propriétés.donne_valeur_calculée(IDPropriété.Width)
+    min_width := noeud.propriétés.donne_valeur_calculée(IDPropriété.MinWidth)
     si min_width.est_nombre() && (width.number < min_width.number) {
         noeud.propriétés.style = sauvegarde_style
-        noeud.propriétés.style.valeurs[IDPropriété.Width] = min_width
+        noeud.propriétés.définis_valeur_utilisée(IDPropriété.Width, min_width)
         calcule_largeur_et_marges_block_level_normal_flow(noeud, width_of_containing_block)
     }
 
@@ -2242,39 +2242,27 @@ calcule_pourcentage :: fonc (valeur: ValeurDeStyle, référence: r64) -> ValeurD
 
 résoud_pourcentage_largeurs :: fonc (noeud: *NoeudDeDispositionBloc, containing_block: &ContainingBlock)
 {
-    style := *noeud.propriétés.style
     width_of_containing_block := containing_block.donne_largeur()
 
-    margin_left := style.valeurs[IDPropriété.MarginLeft]
-    padding_left := style.valeurs[IDPropriété.PaddingLeft]
-    width := style.valeurs[IDPropriété.Width]
-    padding_right := style.valeurs[IDPropriété.PaddingRight]
-    margin_right := style.valeurs[IDPropriété.MarginRight]
-
-    style.valeurs[IDPropriété.MarginLeft] = calcule_pourcentage(margin_left, width_of_containing_block)
-    style.valeurs[IDPropriété.PaddingLeft] = calcule_pourcentage(padding_left, width_of_containing_block)
-    style.valeurs[IDPropriété.Width] = calcule_pourcentage(width, width_of_containing_block)
-    style.valeurs[IDPropriété.PaddingRight] = calcule_pourcentage(padding_right, width_of_containing_block)
-    style.valeurs[IDPropriété.MarginRight] = calcule_pourcentage(margin_right, width_of_containing_block)
+    propriétés := noeud.propriétés
+    propriétés.résoud_pourcentage(IDPropriété.MarginLeft, width_of_containing_block)
+    propriétés.résoud_pourcentage(IDPropriété.PaddingLeft, width_of_containing_block)
+    propriétés.résoud_pourcentage(IDPropriété.Width, width_of_containing_block)
+    propriétés.résoud_pourcentage(IDPropriété.PaddingRight, width_of_containing_block)
+    propriétés.résoud_pourcentage(IDPropriété.MarginRight, width_of_containing_block)
 }
 
 résoud_pourcentage_hauteur :: fonc (noeud: *NoeudDeDispositionBloc, containing_block: &ContainingBlock)
 {
-    style := *noeud.propriétés.style
     width_of_containing_block := containing_block.donne_largeur()
     height_of_containing_block := containing_block.donne_hauteur()
 
-    margin_top := style.valeurs[IDPropriété.MarginTop]
-    padding_top := style.valeurs[IDPropriété.PaddingTop]
-    height := style.valeurs[IDPropriété.Height]
-    padding_bottom := style.valeurs[IDPropriété.PaddingBottom]
-    margin_bottom := style.valeurs[IDPropriété.MarginBottom]
-
-    style.valeurs[IDPropriété.MarginTop] = calcule_pourcentage(margin_top, width_of_containing_block)
-    style.valeurs[IDPropriété.PaddingTop] = calcule_pourcentage(padding_top, width_of_containing_block)
-    style.valeurs[IDPropriété.Height] = calcule_pourcentage(height, height_of_containing_block)
-    style.valeurs[IDPropriété.PaddingBottom] = calcule_pourcentage(padding_bottom, width_of_containing_block)
-    style.valeurs[IDPropriété.MarginBottom] = calcule_pourcentage(margin_bottom, width_of_containing_block)
+    propriétés := noeud.propriétés
+    propriétés.résoud_pourcentage(IDPropriété.MarginTop, width_of_containing_block)
+    propriétés.résoud_pourcentage(IDPropriété.PaddingTop, width_of_containing_block)
+    propriétés.résoud_pourcentage(IDPropriété.Height, height_of_containing_block)
+    propriétés.résoud_pourcentage(IDPropriété.PaddingBottom, width_of_containing_block)
+    propriétés.résoud_pourcentage(IDPropriété.MarginBottom, width_of_containing_block)
 }
 
 calcule_hauteur_et_marges :: fonc (noeud: *NoeudDeDispositionBloc, containing_block: &ContainingBlock)
@@ -2285,19 +2273,19 @@ calcule_hauteur_et_marges :: fonc (noeud: *NoeudDeDispositionBloc, containing_bl
     sauvegarde_style := noeud.propriétés.style
     calcule_hauteur_et_marges_block_level_normal_flow(noeud)
 
-    height := noeud.propriétés.style.valeurs[IDPropriété.Height]
-    max_height := noeud.propriétés.style.valeurs[IDPropriété.MaxHeight]
+    height := noeud.propriétés.donne_valeur_calculée(IDPropriété.Height)
+    max_height := noeud.propriétés.donne_valeur_calculée(IDPropriété.MaxHeight)
     si max_height.est_nombre() && (height.number > max_height.number) {
         noeud.propriétés.style = sauvegarde_style
-        noeud.propriétés.style.valeurs[IDPropriété.Height] = max_height
+        noeud.propriétés.définis_valeur_utilisée(IDPropriété.Height, max_height)
         calcule_hauteur_et_marges_block_level_normal_flow(noeud)
     }
 
-    height = noeud.propriétés.style.valeurs[IDPropriété.Height]
-    min_height := noeud.propriétés.style.valeurs[IDPropriété.MinHeight]
+    height = noeud.propriétés.donne_valeur_calculée(IDPropriété.Height)
+    min_height := noeud.propriétés.donne_valeur_calculée(IDPropriété.MinHeight)
     si min_height.est_nombre() && (height.number < min_height.number) {
         noeud.propriétés.style = sauvegarde_style
-        noeud.propriétés.style.valeurs[IDPropriété.Height] = min_height
+        noeud.propriétés.définis_valeur_utilisée(IDPropriété.Height, min_height)
         calcule_hauteur_et_marges_block_level_normal_flow(noeud)
     }
 
@@ -2306,16 +2294,16 @@ calcule_hauteur_et_marges :: fonc (noeud: *NoeudDeDispositionBloc, containing_bl
 
 calcule_hauteur_et_marges_block_level_normal_flow :: fonc (noeud: *NoeudDeDispositionBloc)
 {
-    style := *noeud.propriétés.style
+    propriétés := noeud.propriétés
 
     /* À FAIRE */
-    margin_top := style.valeurs[IDPropriété.MarginTop]
-    border_top_height := style.valeurs[IDPropriété.BorderWidthTop]
-    padding_top := style.valeurs[IDPropriété.PaddingTop]
-    height := style.valeurs[IDPropriété.Height]
-    padding_bottom := style.valeurs[IDPropriété.PaddingBottom]
-    border_bottom_height := style.valeurs[IDPropriété.BorderWidthBottom]
-    margin_bottom := style.valeurs[IDPropriété.MarginBottom]
+    margin_top := propriétés.donne_valeur_calculée(IDPropriété.MarginTop)
+    border_top_height := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthTop)
+    padding_top := propriétés.donne_valeur_calculée(IDPropriété.PaddingTop)
+    height := propriétés.donne_valeur_calculée(IDPropriété.Height)
+    padding_bottom := propriétés.donne_valeur_calculée(IDPropriété.PaddingBottom)
+    border_bottom_height := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthBottom)
+    margin_bottom := propriétés.donne_valeur_calculée(IDPropriété.MarginBottom)
 
     saufsi margin_top.est_nombre() {
         margin_top = ValeurDeStyle(number = 0)
@@ -2339,27 +2327,27 @@ calcule_hauteur_et_marges_block_level_normal_flow :: fonc (noeud: *NoeudDeDispos
         margin_bottom = ValeurDeStyle(number = 0)
     }
 
-    style.valeurs[IDPropriété.MarginTop] = margin_top
-    style.valeurs[IDPropriété.BorderWidthTop] = border_top_height
-    style.valeurs[IDPropriété.PaddingTop] = padding_top
-    style.valeurs[IDPropriété.Height] = height
-    style.valeurs[IDPropriété.PaddingBottom] = padding_bottom
-    style.valeurs[IDPropriété.BorderWidthBottom] = border_bottom_height
-    style.valeurs[IDPropriété.MarginBottom] = margin_bottom
+    propriétés.définis_valeur_utilisée(IDPropriété.MarginTop, margin_top)
+    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthTop, border_top_height)
+    propriétés.définis_valeur_utilisée(IDPropriété.PaddingTop, padding_top)
+    propriétés.définis_valeur_utilisée(IDPropriété.Height, height)
+    propriétés.définis_valeur_utilisée(IDPropriété.PaddingBottom, padding_bottom)
+    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthBottom, border_bottom_height)
+    propriétés.définis_valeur_utilisée(IDPropriété.MarginBottom, margin_bottom)
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#blockwidth */
 calcule_largeur_et_marges_block_level_normal_flow :: fonc (noeud: *NoeudDeDispositionBloc, width_of_containing_block: r64)
 {
-    style := *noeud.propriétés.style
+    propriétés := noeud.propriétés
 
-    margin_left := style.valeurs[IDPropriété.MarginLeft]
-    border_left_width := style.valeurs[IDPropriété.BorderWidthLeft]
-    padding_left := style.valeurs[IDPropriété.PaddingLeft]
-    width := style.valeurs[IDPropriété.Width]
-    padding_right := style.valeurs[IDPropriété.PaddingRight]
-    border_right_width := style.valeurs[IDPropriété.BorderWidthRight]
-    margin_right := style.valeurs[IDPropriété.MarginRight]
+    margin_left := propriétés.donne_valeur_calculée(IDPropriété.MarginLeft)
+    border_left_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthLeft)
+    padding_left := propriétés.donne_valeur_calculée(IDPropriété.PaddingLeft)
+    width := propriétés.donne_valeur_calculée(IDPropriété.Width)
+    padding_right := propriétés.donne_valeur_calculée(IDPropriété.PaddingRight)
+    border_right_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthRight)
+    margin_right := propriétés.donne_valeur_calculée(IDPropriété.MarginRight)
 
     // If 'width' is not 'auto' and 'border-left-width' + 'padding-left' + 'width' + 'padding-right'
     // + 'border-right-width' (plus any of 'margin-left' or 'margin-right' that are not 'auto') is
@@ -2476,13 +2464,13 @@ calcule_largeur_et_marges_block_level_normal_flow :: fonc (noeud: *NoeudDeDispos
         margin_right = ValeurDeStyle(number = résultat)
     }
 
-    style.valeurs[IDPropriété.MarginLeft] = margin_left
-    style.valeurs[IDPropriété.BorderWidthLeft] = border_left_width
-    style.valeurs[IDPropriété.PaddingLeft] = padding_left
-    style.valeurs[IDPropriété.Width] = width
-    style.valeurs[IDPropriété.PaddingRight] = padding_right
-    style.valeurs[IDPropriété.BorderWidthRight] = border_right_width
-    style.valeurs[IDPropriété.MarginRight] = margin_right
+    propriétés.définis_valeur_utilisée(IDPropriété.MarginLeft, margin_left)
+    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthLeft, border_left_width)
+    propriétés.définis_valeur_utilisée(IDPropriété.PaddingLeft, padding_left)
+    propriétés.définis_valeur_utilisée(IDPropriété.Width, width)
+    propriétés.définis_valeur_utilisée(IDPropriété.PaddingRight, padding_right)
+    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthRight, border_right_width)
+    propriétés.définis_valeur_utilisée(IDPropriété.MarginRight, margin_right)
 }
 
 dessine_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDessin)
@@ -2495,7 +2483,7 @@ dessine_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDes
     // peintre.dessine_rectangle(rect, couleur)
 
     pour noeud.enfants {
-        position := it.propriétés.style.valeurs[IDPropriété.Position]
+        position := it.propriétés.donne_valeur_calculée(IDPropriété.Position)
         saufsi position.est_mot_clé(PROP_static) {
             continue
         }
@@ -2503,7 +2491,7 @@ dessine_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDes
     }
 
     pour noeud.enfants {
-        position := it.propriétés.style.valeurs[IDPropriété.Position]
+        position := it.propriétés.donne_valeur_calculée(IDPropriété.Position)
         si position.est_mot_clé(PROP_static) {
             continue
         }
@@ -2567,12 +2555,12 @@ noeud_disposition_inline_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition
     calcule_largeur_et_marges_inline_non_replaced_element(noeud, containing_block)
     calcule_hauteur_et_marges_inline_non_replaced_element(noeud, containing_block)
 
-    style := *noeud.propriétés.style
+    propriétés := noeud.propriétés
 
-    margin_left := style.valeurs[IDPropriété.MarginLeft].number comme r32
-    padding_left := style.valeurs[IDPropriété.PaddingLeft].number comme r32
-    padding_right := style.valeurs[IDPropriété.PaddingRight].number comme r32
-    margin_right := style.valeurs[IDPropriété.MarginRight].number comme r32
+    margin_left := propriétés.donne_valeur_calculée(IDPropriété.MarginLeft).number comme r32
+    padding_left := propriétés.donne_valeur_calculée(IDPropriété.PaddingLeft).number comme r32
+    padding_right := propriétés.donne_valeur_calculée(IDPropriété.PaddingRight).number comme r32
+    margin_right := propriétés.donne_valeur_calculée(IDPropriété.MarginRight).number comme r32
 
     fragment_marge_début := enligneuse.ajoute_fragment(noeud, 0.0, margin_left, Fragment.Type.MargeDébut)
     fragment_rembourrage_début := enligneuse.ajoute_fragment(noeud, 0.0, padding_left, Fragment.Type.RembourrageDébut)
@@ -2614,11 +2602,11 @@ noeud_disposition_inline_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition,
     si fragment.type == Fragment.Type.RembourrageDébut {
         propriétés := base.propriétés
 
-        background_color := propriétés.donne_valeur(IDPropriété.BackgroundColor).couleur
+        background_color := propriétés.donne_valeur_calculée(IDPropriété.BackgroundColor).couleur
 
         /* Le rembourrage vertical n'affecte pas la taille mais doit être inclus dans le dessin. */
-        padding_top := propriétés.donne_valeur(IDPropriété.PaddingTop).number comme r32
-        padding_bottom := propriétés.donne_valeur(IDPropriété.PaddingBottom).number comme r32
+        padding_top := propriétés.donne_valeur_calculée(IDPropriété.PaddingTop).number comme r32
+        padding_bottom := propriétés.donne_valeur_calculée(IDPropriété.PaddingBottom).number comme r32
 
         si background_color.a != 0 {
             dernier_fragment := lignes_tenante.fragments.pointeur + lignes_tenante.fragments.taille
@@ -2651,16 +2639,16 @@ calcule_largeur_et_marges_inline_non_replaced_element :: fonc (noeud: *NoeudDeDi
 {
     résoud_pourcentage_largeurs(noeud, containing_block)
 
-    style := *noeud.propriétés.style
-    margin_left := style.valeurs[IDPropriété.MarginLeft]
-    margin_right := style.valeurs[IDPropriété.MarginRight]
+    propriétés := noeud.propriétés
+    margin_left := propriétés.donne_valeur_calculée(IDPropriété.MarginLeft)
+    margin_right := propriétés.donne_valeur_calculée(IDPropriété.MarginRight)
 
     si margin_left.est_auto() {
-        style.valeurs[IDPropriété.MarginLeft] = ValeurDeStyle(number = 0.0)
+        propriétés.définis_valeur_utilisée(IDPropriété.MarginLeft, ValeurDeStyle(number = 0.0))
     }
 
     si margin_right.est_auto() {
-        style.valeurs[IDPropriété.MarginRight] = ValeurDeStyle(number = 0.0)
+        propriétés.définis_valeur_utilisée(IDPropriété.MarginRight, ValeurDeStyle(number = 0.0))
     }
 }
 
@@ -2670,16 +2658,16 @@ calcule_hauteur_et_marges_inline_non_replaced_element :: fonc (noeud: *NoeudDeDi
     // À FAIRE : ceci est une copie des calculs pour la largeur
     résoud_pourcentage_hauteur(noeud, containing_block)
 
-    style := *noeud.propriétés.style
-    margin_top := style.valeurs[IDPropriété.MarginTop]
-    margin_bottom := style.valeurs[IDPropriété.MarginBottom]
+    propriétés := noeud.propriétés
+    margin_top := propriétés.donne_valeur_calculée(IDPropriété.MarginTop)
+    margin_bottom := propriétés.donne_valeur_calculée(IDPropriété.MarginBottom)
 
     si margin_top.est_auto() {
-        style.valeurs[IDPropriété.MarginTop] = ValeurDeStyle(number = 0.0)
+        propriétés.définis_valeur_utilisée(IDPropriété.MarginTop, ValeurDeStyle(number = 0.0))
     }
 
     si margin_bottom.est_auto() {
-        style.valeurs[IDPropriété.MarginBottom] = ValeurDeStyle(number = 0.0)
+        propriétés.définis_valeur_utilisée(IDPropriété.MarginBottom, ValeurDeStyle(number = 0.0))
     }
 }
 
@@ -2806,7 +2794,7 @@ noeud_disposition_texte_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition,
     hauteur_texte := métriques.donne_hauteur_ligne()
 
     propriétés := donne_propriété_parent(noeud)
-    line_height := propriétés.donne_valeur(IDPropriété.LineHeight)
+    line_height := propriétés.donne_valeur_calculée(IDPropriété.LineHeight)
 
     si line_height.est_nombre() {
         /* line-height définis la hauteur minimale. */
@@ -2834,10 +2822,10 @@ noeud_disposition_texte_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, 
 
     effets: EffetsTexte
 
-    line := propriétés.style.valeurs[IDPropriété.TextDecorationLine]
+    line := propriétés.donne_valeur_calculée(IDPropriété.TextDecorationLine)
     saufsi line.est_mot_clé(PROP_none) {
         decoration := line.text_decoration_line
-        couleur := vers_couleur_rvba(propriétés.style.valeurs[IDPropriété.TextDecorationColor].couleur)
+        couleur := vers_couleur_rvba(propriétés.donne_valeur_calculée(IDPropriété.TextDecorationColor).couleur)
 
         si decoration.UNDERLINE {
             effets.souslignage = vrai
@@ -2858,7 +2846,7 @@ noeud_disposition_texte_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, 
     assert(fonte != nul)
 
     métriques := donne_métriques_fonte(fonte)
-    couleur := propriétés.style.valeurs[IDPropriété.Color].couleur
+    couleur := propriétés.donne_valeur_calculée(IDPropriété.Color).couleur
 
     rect := ctx.donne_rectangle_corrigé(fragment.donne_rectangle())
     rect.y -= métriques.jambage_inférieur
@@ -2941,7 +2929,7 @@ noeud_disposition_remplacement_sur_mesure :: fonc (base: *NoeudDeDisposition, ct
     résoud_pourcentage_largeurs(noeud, containing_block)
     résoud_pourcentage_hauteur(noeud, containing_block)
 
-    display := noeud.propriétés.donne_valeur(IDPropriété.Display).display
+    display := noeud.propriétés.donne_valeur_calculée(IDPropriété.Display).display
     si display.outer_type == Display.Type.Inline {
         calcule_largeur_et_marges_inline_replaced_element(noeud)
         calcule_hauteur_et_marges_inline_replaced_element(noeud)
@@ -2962,19 +2950,19 @@ calcule_largeur_et_marges :: fonc (noeud: *NoeudDeDispositionRemplacement, conta
     sauvegarde_style := noeud.propriétés.style
     calcule_largeur_et_marges_block_level_replaced_element(noeud, width_of_containing_block)
 
-    width := noeud.propriétés.style.valeurs[IDPropriété.Width]
-    max_width := noeud.propriétés.style.valeurs[IDPropriété.MaxWidth]
+    width := noeud.propriétés.donne_valeur_calculée(IDPropriété.Width)
+    max_width := noeud.propriétés.donne_valeur_calculée(IDPropriété.MaxWidth)
     si max_width.est_nombre() && (width.number > max_width.number) {
         noeud.propriétés.style = sauvegarde_style
-        noeud.propriétés.style.valeurs[IDPropriété.Width] = max_width
+        noeud.propriétés.définis_valeur_utilisée(IDPropriété.Width, max_width)
         calcule_largeur_et_marges_block_level_replaced_element(noeud, width_of_containing_block)
     }
 
-    width = noeud.propriétés.style.valeurs[IDPropriété.Width]
-    min_width := noeud.propriétés.style.valeurs[IDPropriété.MinWidth]
+    width = noeud.propriétés.donne_valeur_calculée(IDPropriété.Width)
+    min_width := noeud.propriétés.donne_valeur_calculée(IDPropriété.MinWidth)
     si min_width.est_nombre() && (width.number < min_width.number) {
         noeud.propriétés.style = sauvegarde_style
-        noeud.propriétés.style.valeurs[IDPropriété.Width] = min_width
+        noeud.propriétés.définis_valeur_utilisée(IDPropriété.Width, min_width)
         calcule_largeur_et_marges_block_level_replaced_element(noeud, width_of_containing_block)
     }
 
@@ -2984,16 +2972,16 @@ calcule_largeur_et_marges :: fonc (noeud: *NoeudDeDispositionRemplacement, conta
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#inline-replaced-width */
 calcule_largeur_et_marges_inline_replaced_element :: fonc (noeud: *NoeudDeDispositionRemplacement)
 {
-    style := *noeud.propriétés.style
+    propriétés := noeud.propriétés
 
-    margin_left := style.valeurs[IDPropriété.MarginLeft]
-    border_left_width := style.valeurs[IDPropriété.BorderWidthLeft]
-    padding_left := style.valeurs[IDPropriété.PaddingLeft]
-    width := style.valeurs[IDPropriété.Width]
-    height := style.valeurs[IDPropriété.Height]
-    padding_right := style.valeurs[IDPropriété.PaddingRight]
-    border_right_width := style.valeurs[IDPropriété.BorderWidthRight]
-    margin_right := style.valeurs[IDPropriété.MarginRight]
+    margin_left := propriétés.donne_valeur_calculée(IDPropriété.MarginLeft)
+    border_left_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthLeft)
+    padding_left := propriétés.donne_valeur_calculée(IDPropriété.PaddingLeft)
+    width := propriétés.donne_valeur_calculée(IDPropriété.Width)
+    height := propriétés.donne_valeur_calculée(IDPropriété.Height)
+    padding_right := propriétés.donne_valeur_calculée(IDPropriété.PaddingRight)
+    border_right_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthRight)
+    margin_right := propriétés.donne_valeur_calculée(IDPropriété.MarginRight)
 
     // A computed value of 'auto' for 'margin-left' or 'margin-right' becomes a used value of '0'.
     si margin_left.est_auto() {
@@ -3043,13 +3031,13 @@ calcule_largeur_et_marges_inline_replaced_element :: fonc (noeud: *NoeudDeDispos
         width = ValeurDeStyle(number = 300.0)
     }
 
-    style.valeurs[IDPropriété.MarginLeft] = margin_left
-    style.valeurs[IDPropriété.BorderWidthLeft] = border_left_width
-    style.valeurs[IDPropriété.PaddingLeft] = padding_left
-    style.valeurs[IDPropriété.Width] = width
-    style.valeurs[IDPropriété.PaddingRight] = padding_right
-    style.valeurs[IDPropriété.BorderWidthRight] = border_right_width
-    style.valeurs[IDPropriété.MarginRight] = margin_right
+    propriétés.définis_valeur_utilisée(IDPropriété.MarginLeft, margin_left)
+    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthLeft, border_left_width)
+    propriétés.définis_valeur_utilisée(IDPropriété.PaddingLeft, padding_left)
+    propriétés.définis_valeur_utilisée(IDPropriété.Width, width)
+    propriétés.définis_valeur_utilisée(IDPropriété.PaddingRight, padding_right)
+    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthRight, border_right_width)
+    propriétés.définis_valeur_utilisée(IDPropriété.MarginRight, margin_right)
 
     ajourne_boite_pour_calcul_largeur(noeud)
 }
@@ -3057,16 +3045,16 @@ calcule_largeur_et_marges_inline_replaced_element :: fonc (noeud: *NoeudDeDispos
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#inline-replaced-height */
 calcule_hauteur_et_marges_inline_replaced_element :: fonc (noeud: *NoeudDeDispositionRemplacement)
 {
-    style := *noeud.propriétés.style
+    propriétés := noeud.propriétés
 
-    margin_top := style.valeurs[IDPropriété.MarginTop]
-    border_top_height := style.valeurs[IDPropriété.BorderWidthTop]
-    padding_top := style.valeurs[IDPropriété.PaddingTop]
-    height := style.valeurs[IDPropriété.Height]
-    width := style.valeurs[IDPropriété.Width]
-    padding_bottom := style.valeurs[IDPropriété.PaddingBottom]
-    border_bottom_height := style.valeurs[IDPropriété.BorderWidthBottom]
-    margin_bottom := style.valeurs[IDPropriété.MarginBottom]
+    margin_top := propriétés.donne_valeur_calculée(IDPropriété.MarginTop)
+    border_top_height := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthTop)
+    padding_top := propriétés.donne_valeur_calculée(IDPropriété.PaddingTop)
+    height := propriétés.donne_valeur_calculée(IDPropriété.Height)
+    width := propriétés.donne_valeur_calculée(IDPropriété.Width)
+    padding_bottom := propriétés.donne_valeur_calculée(IDPropriété.PaddingBottom)
+    border_bottom_height := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthBottom)
+    margin_bottom := propriétés.donne_valeur_calculée(IDPropriété.MarginBottom)
 
     // If 'margin-top', or 'margin-bottom' are 'auto', their used value is 0.
     si margin_top.est_auto() {
@@ -3099,13 +3087,13 @@ calcule_hauteur_et_marges_inline_replaced_element :: fonc (noeud: *NoeudDeDispos
         height = ValeurDeStyle(number = width.number * 0.5)
     }
 
-    style.valeurs[IDPropriété.MarginTop] = margin_top
-    style.valeurs[IDPropriété.BorderWidthTop] = border_top_height
-    style.valeurs[IDPropriété.PaddingTop] = padding_top
-    style.valeurs[IDPropriété.Height] = height
-    style.valeurs[IDPropriété.PaddingBottom] = padding_bottom
-    style.valeurs[IDPropriété.BorderWidthBottom] = border_bottom_height
-    style.valeurs[IDPropriété.MarginBottom] = margin_bottom
+    propriétés.définis_valeur_utilisée(IDPropriété.MarginTop, margin_top)
+    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthTop, border_top_height)
+    propriétés.définis_valeur_utilisée(IDPropriété.PaddingTop, padding_top)
+    propriétés.définis_valeur_utilisée(IDPropriété.Height, height)
+    propriétés.définis_valeur_utilisée(IDPropriété.PaddingBottom, padding_bottom)
+    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthBottom, border_bottom_height)
+    propriétés.définis_valeur_utilisée(IDPropriété.MarginBottom, margin_bottom)
 
     ajourne_boite_pour_calcul_hauteur(noeud)
 }
@@ -3117,11 +3105,11 @@ calcule_largeur_et_marges_block_level_replaced_element :: fonc (noeud: *NoeudDeD
 
     // The used value of 'width' is determined as for inline replaced elements.
     calcule_largeur_et_marges_inline_replaced_element(noeud)
-    width := noeud.propriétés.donne_valeur(IDPropriété.Width)
+    width := noeud.propriétés.donne_valeur_calculée(IDPropriété.Width)
 
     // Then the rules for non-replaced block-level elements are applied to determine the margins.
     noeud.propriétés.style = sauvegarde_style
-    noeud.propriétés.style.valeurs[IDPropriété.Width] = width
+    noeud.propriétés.définis_valeur_utilisée(IDPropriété.Width, width)
     calcule_largeur_et_marges_block_level_normal_flow(noeud, width_of_containing_block)
 }
 
@@ -3130,8 +3118,8 @@ noeud_disposition_remplacement_sur_divise_en_lignes :: fonc (base: *NoeudDeDispo
     noeud_disposition_remplacement_sur_mesure(base, ctx)
 
     noeud := base comme *NoeudDeDispositionRemplacement
-    largeur := noeud.propriétés.style.valeurs[IDPropriété.Width].number comme r32
-    hauteur := noeud.propriétés.style.valeurs[IDPropriété.Height].number comme r32
+    largeur := noeud.propriétés.donne_valeur_calculée(IDPropriété.Width).number comme r32
+    hauteur := noeud.propriétés.donne_valeur_calculée(IDPropriété.Height).number comme r32
 
     _ := enligneuse.ajoute_fragment(noeud, 0, 0, hauteur, largeur)
 }
