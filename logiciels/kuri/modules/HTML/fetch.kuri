@@ -1,4 +1,5 @@
 importe Chaine
+importe CodecDonnées
 importe Fondation
 importe Internet
 importe SysFichier
@@ -675,7 +676,34 @@ scheme_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Re
         panique("blob non-implémenté")
     }
     sinon si schéma == "data" {
-        panique("data non-implémenté")
+        // 1. Let dataURLStruct be the result of running the data: URL processor on request’s current URL.
+        opt_data_url_struct := data_url_processor(request.donne_url_courant())
+
+        // 2. If dataURLStruct is failure, then return a network error.
+        saufsi opt_data_url_struct.possède_valeur() {
+            retourne network_error()
+        }
+
+        data_url_struct := opt_data_url_struct.Quelque
+
+        // À FAIRE 3. Let mimeType be dataURLStruct’s MIME type, serialized.
+        mime_type := data_url_struct.mime_type
+
+        // 4. Return a new response whose status message is `OK`, header list is « (`Content-Type`, mimeType) », and body is dataURLStruct’s body as a body.
+        // À FAIRE : entêtes pour les réponses.
+        contenu := data_url_struct.body
+
+        response := loge(Response)
+        response.status = 200
+
+        body_info := loge(ResponseBodyInfo)
+        body_info.decodede_size = contenu.taille comme z32
+        body_info.content_type = copie_chaine(mime_type)
+
+        response.body_info = body_info
+        response.body = contenu
+
+        retourne response
     }
     sinon si schéma == "file" {
         chemin := CheminFichier(request.donne_url_courant().chemin)
@@ -741,3 +769,108 @@ scheme_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Re
 }
 
 /** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 6. Data URLs
+ * https://fetch.spec.whatwg.org/#data-urls
+ * \{ */
+
+/* https://fetch.spec.whatwg.org/#data-url-struct */
+DataURLStruct :: struct {
+    mime_type: chaine
+    body: chaine
+}
+
+/* https://fetch.spec.whatwg.org/#data-url-processor */
+data_url_processor :: fonc (url: URI) -> Optionnel(DataURLStruct)
+{
+    // 1. Assert: dataURL’s scheme is "data".
+    assert(url.schéma == "data")
+
+    // 2. Let input be the result of running the URL serializer on dataURL with exclude fragment set to true.
+    input := recompose_uri(*url)
+    input_orig := input
+    diffère déloge(input_orig)
+
+    // 3. Remove the leading "data:" from input.
+    input = avance(input, 5)
+
+    // 4. Let position point at the start of input.
+    position : z64 = 0
+
+    // 5. Let mimeType be the result of collecting a sequence of code points that are not equal to U+002C (,), given position.
+    position_virgule := trouve_caractère_depuis_le_début(input, ',')
+    si position_virgule == -1 {
+        position_virgule = input.taille
+    }
+    mimetype := input.sous_chaine(position, position_virgule)
+    position = position_virgule
+
+    // 6. Strip leading and trailing ASCII whitespace from mimeType.
+    mimetype = supprime_espaces_blancs(mimetype)
+
+    // 7. If position is past the end of input, then return failure.
+    si position >= input.taille {
+        retourne
+    }
+
+    // 8. Advance position by 1.
+    position += 1
+
+    // 9. Let encodedBody be the remainder of input.
+    encoded_body := avance(input, position)
+
+    // 10. Let body be the percent-decoding of encodedBody.
+    body := résoud_échappement_url(encoded_body)
+    diffère déloge(body)
+
+    // 11. If mimeType ends with U+003B (;), followed by zero or more U+0020 SPACE, followed by an ASCII case-insensitive match for "base64", then:
+    si mime_type_fini_par_base64(mimetype) {
+        // À FAIRE 1. Let stringBody be the isomorphic decode of body.
+        string_body := body
+
+        // 2. Set body to the forgiving-base64 decode of stringBody.
+        nouveau_body := décode_base64(string_body)
+        déloge(body)
+        body = nouveau_body
+
+        // À FAIRE : 3. If body is failure, then return failure.
+
+        // 4. Remove the last 6 code points from mimeType.
+        mimetype.taille -= 6
+
+        // 5. Remove trailing U+0020 SPACE code points from mimeType, if any.
+        mimetype = supprime_espaces_blancs_à_la_fin(mimetype)
+
+        // 6. Remove the last U+003B (;) from mimeType.
+        mimetype.taille -= 1
+    }
+
+    // À FAIRE : 12. If mimeType starts with ";", then prepend "text/plain" to mimeType.
+    // si mime_type.taille > 0 && mime_type[0] == ';' {
+    // }
+
+    // À FAIRE : 13. Let mimeTypeRecord be the result of parsing mimeType.
+
+    // À FAIRE : 14. If mimeTypeRecord is failure, then set mimeTypeRecord to text/plain;charset=US-ASCII.
+
+    // 15. Return a new data: URL struct whose MIME type is mimeTypeRecord and body is body.
+    résultat: DataURLStruct
+    résultat.mime_type = copie_chaine(mimetype)
+    résultat.body = copie_chaine(body)
+    retourne résultat
+}
+
+mime_type_fini_par_base64 :: fonc (mime_type: chaine) -> bool
+{
+    position_point_virgule := trouve_caractère_depuis_la_fin(mime_type, ';')
+    si position_point_virgule == -1 {
+        retourne faux
+    }
+
+    dernier_paramètre := mime_type.sous_chaine(position_point_virgule + 1, mime_type.taille)
+    dernier_paramètre = supprime_espaces_blancs_au_début(dernier_paramètre)
+    retourne compare_ascii_insensible_à_la_casse(dernier_paramètre, "base64")
+}
+
+/** \} */

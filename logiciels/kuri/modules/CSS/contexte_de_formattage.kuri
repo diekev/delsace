@@ -280,10 +280,8 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
     décalage_x := noeud.modèle_de_boite.contenu.x
     décalage_y := noeud.modèle_de_boite.contenu.y
 
-    réinitialise_lignes(noeud)
-    pour noeud.enfants {
-        divise_en_lignes(it, noeud, ctx)
-    }
+    enligneuse: Enligneuse
+    divise_en_lignes(*enligneuse, noeud, ctx)
 
     hauteur_contenu := 0.0
 
@@ -292,9 +290,19 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
         alignement = ctx.doit_aligner_les_descendants.Quelque
     }
 
-    pour noeud.lignes {
-        hauteur := 0.0
+    lignes_tenante := *noeud.lignes_tenante
+
+    pour lignes_tenante.lignes {
+        hauteur := it.hauteur_contenu
         décalage_pour_alignement := 0.0
+
+        fragments := donne_fragments_ligne(lignes_tenante, *it)
+
+        si fragments.taille == 0 {
+            hauteur_contenu += hauteur
+            décalage_y += hauteur
+            continue
+        }
 
         si alignement == AlignementTexte.Droite {
             décalage_pour_alignement = largeur_disponible - it.largeur_courante
@@ -304,14 +312,12 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
         }
         sinon si alignement == AlignementTexte.Justifié {
             /* À FAIRE : ignore l'espace finale. */
-            décalage_pour_alignement = (largeur_disponible - it.largeur_courante) / ((it.fragments.taille - 1) comme r32)
+            décalage_pour_alignement = (largeur_disponible - it.largeur_courante) / ((fragments.taille - 1) comme r32)
         }
 
-        pour * fragment, index_fragment dans it.fragments {
-            hauteur = max(fragment.hauteur, hauteur)
-
+        pour * fragment, index_fragment dans fragments {
             si alignement == AlignementTexte.Justifié {
-                si index_fragment != 0 && index_it != (noeud.lignes.taille - 1) {
+                si index_fragment != 0 && index_it != (lignes_tenante.lignes.taille - 1) {
                     fragment.x += décalage_pour_alignement * (index_fragment comme r32)
                 }
             }
@@ -350,10 +356,8 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
     noeud.modèle_de_boite.rembourrage.hauteur += hauteur_contenu
 
     si décalage_x != 0.0 || décalage_y != 0.0 {
-        pour noeud.lignes {
-            pour * fragment dans it.fragments {
-                fragment.x += décalage_x
-            }
+        pour * noeud.lignes_tenante.fragments {
+            it.x += décalage_x
         }
     }
 }

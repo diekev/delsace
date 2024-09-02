@@ -77,6 +77,20 @@ encode_format_url :: fonc (enchaineuse: *Enchaineuse, texte: chaine)
     }
 }
 
+donne_valeur_hex :: fonc (c: z8) -> z8 #enligne
+{
+    si 'a' <= c <= 'f' {
+        retourne (c - 'a') + 10
+    }
+    si 'A' <= c <= 'F' {
+        retourne (c - 'A') + 10
+    }
+    si '0' <= c <= '9' {
+        retourne (c - '0')
+    }
+    retourne c
+}
+
 résoud_échappement_url :: fonc (chn: chaine) -> chaine
 {
     enchaineuse: Enchaineuse
@@ -87,40 +101,20 @@ résoud_échappement_url :: fonc (chn: chaine) -> chaine
 
     tantque i < chn.taille {
         si chn[i] == '%' {
-            i += 1
-
             si i + 2 >= chn.taille {
                 arrête
             }
 
+            i += 1
             c := chn[i]
 
-            v : z8
-
-            si 'a' <= c <= 'f' {
-                v = (c - 'a') + 10
-            }
-            sinon si 'A' <= c <= 'F' {
-                v = (c - 'a') + 10
-            }
-            sinon si '0' <= c <= '9' {
-                v = (c - '0')
-            }
+            v := donne_valeur_hex(c)
 
             i += 1
             c = chn[i]
 
             v *= 16
-
-            si 'a' <= c <= 'f' {
-                v += (c - 'a') + 10
-            }
-            sinon si 'A' <= c <= 'F' {
-                v += (c - 'a') + 10
-            }
-            sinon si '0' <= c <= '9' {
-                v += (c - '0')
-            }
+            v += donne_valeur_hex(c)
 
             ajoute_au_tampon(*enchaineuse, v)
             i += 1
@@ -149,32 +143,13 @@ résoud_échappement_url_localement :: fonc (chn: &chaine)
 
             c := chn[index_courant]
 
-            v : z8
-
-            si 'a' <= c <= 'f' {
-                v = (c - 'a') + 10
-            }
-            sinon si 'A' <= c <= 'F' {
-                v = (c - 'A') + 10
-            }
-            sinon si '0' <= c <= '9' {
-                v = (c - '0')
-            }
+            v := donne_valeur_hex(c)
 
             index_courant += 1
             c = chn[index_courant]
 
             v *= 16
-
-            si 'a' <= c <= 'f' {
-                v += (c - 'a') + 10
-            }
-            sinon si 'A' <= c <= 'F' {
-                v += (c - 'A') + 10
-            }
-            sinon si '0' <= c <= '9' {
-                v += (c - '0')
-            }
+            v += donne_valeur_hex(c)
 
             chn[index_d_insertion] = v
         }
