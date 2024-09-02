@@ -125,8 +125,35 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
     // dernière_marge := marges[BorderEdge.Top]
 
     hauteur_contenu := 0.0
+    décalage_hors_float := 0.0
+
+    // décalage_float_right := décalage_x + noeud.modèle_de_boite.contenu.largeur
+
+    // pour noeud.enfants {
+    //     float := it.propriétés.donne_valeur(IDPropriété.Float)
+    //     si float.est_mot_clé(PROP_left) {
+    //         it.mesure(ctx)
+    //         it.décale(décalage_x, décalage_y)
+    //         décalage_x += it.modèle_de_boite.marge.largeur
+    //         hauteur_contenu = max(it.modèle_de_boite.marge.hauteur, hauteur_contenu)
+    //     }
+    //     sinon si float.est_mot_clé(PROP_right) {
+    //         it.mesure(ctx)
+    //         it.décale(décalage_float_right - it.modèle_de_boite.marge.largeur, décalage_y)
+    //         décalage_float_right -= it.modèle_de_boite.marge.largeur
+    //         hauteur_contenu = max(it.modèle_de_boite.marge.hauteur, hauteur_contenu)
+    //     }
+    // }
 
     pour noeud.enfants {
+        // float := it.propriétés.donne_valeur(IDPropriété.Float)
+        // si float.est_mot_clé(PROP_left) {
+        //     continue
+        // }
+        // si float.est_mot_clé(PROP_right) {
+        //     continue
+        // }
+
         it.mesure(ctx)
 
         position := it.propriétés.style.valeurs[IDPropriété.Position]
@@ -159,7 +186,7 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
                 top = ValeurDeStyle(number = 0.0)
             }
 
-            it.décale(décalage_x + left.number comme r32, décalage_y + hauteur_contenu + top.number comme r32)
+            it.décale(décalage_x + left.number comme r32, décalage_y + décalage_hors_float + top.number comme r32)
             continue
         }
 
@@ -169,18 +196,21 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
         // marge_inter_enfant := max(marges_enfant[BorderEdge.Bottom], dernière_marge)
         // décalage_y := marge_inter_enfant comme r32
 
-        it.décale(décalage_x, décalage_y + hauteur_contenu)
+        it.décale(décalage_x, décalage_y + décalage_hors_float)
 
         // dernière_marge = marges_enfant[BorderEdge.Bottom]
 
         si index_it == 0 {
             hauteur_contenu += hauteur_enfant // + marges[BorderEdge.Top] comme r32
+            décalage_hors_float += hauteur_enfant
         }
         sinon si index_it == noeud.enfants.taille - 1 {
             hauteur_contenu += hauteur_enfant // + marges[BorderEdge.Bottom] comme r32
+            décalage_hors_float += hauteur_enfant
         }
         sinon {
             hauteur_contenu += hauteur_enfant // + dernière_marge comme r32
+            décalage_hors_float += hauteur_enfant
         }
     }
 
