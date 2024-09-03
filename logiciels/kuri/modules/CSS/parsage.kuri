@@ -394,10 +394,15 @@ StyleBlockContent :: struct {
     rules: [..]*ParsedRule
 }
 
-détruit_content :: fonc (content: &StyleBlockContent)
+détruit_content :: fonc (content: &StyleBlockContent, détruit_valeurs: bool)
 {
     pour content.decls {
-        déloge(it.value)
+        si détruit_valeurs {
+            détruit_tableau_component_value(*it.value)
+        }
+        sinon {
+            déloge(it.value)
+        }
     }
 
     déloge(content.rules)
@@ -423,6 +428,7 @@ parse_a_list_of_declarations :: fonc (input: [..]Lexème) -> StyleBlockContent
 
 parse_attribut_style :: fonc (valeur: ChaineUTF16) -> *CSSStyleDeclaration
 {
+    imprime("[%] %\n", #nom_de_cette_fonction, valeur)
     contenu := converti_vers_chaine(valeur)
     diffère déloge(contenu)
 
@@ -430,7 +436,7 @@ parse_attribut_style :: fonc (valeur: ChaineUTF16) -> *CSSStyleDeclaration
     diffère détruit_lexèmes(*lexèmes)
 
     style_content := parse_a_list_of_declarations(lexèmes)
-    diffère détruit_content(style_content)
+    diffère détruit_content(style_content, vrai)
 
     ctx: ContexteParsageFeuilleDeStyle
     diffère détruit_données_contexte(*ctx)
@@ -1552,7 +1558,7 @@ parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sh
     résultat.selector_list = selectors.Quelque
 
     content := parse_a_style_block_s_contents(parsed_rule.bloc.value)
-    diffère détruit_content(content)
+    diffère détruit_content(content, faux)
 
     /* Ne considère que les déclarations.
      * À FAIRE : @nest peut être préservé. */
