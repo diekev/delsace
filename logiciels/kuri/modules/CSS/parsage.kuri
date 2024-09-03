@@ -1821,8 +1821,6 @@ infos_types_propriétés := [
     InfoTypePropriété(PROP_vertical_align, id = IDPropriété.VerticalAlign, fonction_de_parsage = parse_propriété_vertical_align, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition)
 ]
 
-#portée_export
-
 donne_info_type_pour_nom :: fonc (nom: CSSOMString) -> *InfoTypePropriété
 {
     pour infos_types_propriétés_shorthand {
@@ -2070,6 +2068,8 @@ parse_display_legacy :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(
  * https://drafts.csswg.org/css-color/#the-color-property
  * \{ */
 
+#portée_export
+
 valeur_hex_depuis_unité :: fonc (unité: n16) -> n8
 {
     si 'A' <= unité <= 'F' {
@@ -2082,6 +2082,8 @@ valeur_hex_depuis_unité :: fonc (unité: n16) -> n8
 
     retourne unité comme n8 - ('0' comme n8)
 }
+
+#portée_module
 
 parse_propriété_color :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
 {
@@ -2761,6 +2763,8 @@ parse_valeur_text_decoration_style :: fonc (parseuse: &Parseuse(ComponentValue))
  * https://drafts.csswg.org/css-ui/#cursor
  * \{ */
 
+#portée_export
+
 CursorType :: énum {
     auto
     default
@@ -2799,6 +2803,8 @@ CursorType :: énum {
     zoom_in
     zoom_out
 }
+
+#portée_module
 
 donne_type_cursor :: fonc (chn: CSSOMString) -> CursorType
 #corps_texte {

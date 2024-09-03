@@ -155,6 +155,11 @@ opérateur == :: fonc (a: ValeurDeStyle, b: ValeurDeStyle) -> bool
     retourne faux
 }
 
+opérateur != :: fonc (a: ValeurDeStyle, b: ValeurDeStyle) -> bool
+{
+    retourne !(a == b)
+}
+
 détruit_valeur_de_style :: fonc (value: *ValeurDeStyle)
 {
     discr mémoire(value) {

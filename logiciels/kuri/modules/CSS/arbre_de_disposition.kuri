@@ -261,6 +261,9 @@ RésolveuseStyle :: struct {
     /* Ségrégation des règles pour accélérer leurs appariements. */
     règles_par_classe: [..]RèglesParIdentifiant
     autres_règles: [..]RègleAppariée
+
+    /* Cache pour les hints de présentations. */
+    presentational_hints: [..]*DéclarationPropriété
 }
 
 crée_résolveuse_style :: fonc (document: *HTML.Document) -> *RésolveuseStyle
@@ -380,6 +383,10 @@ détruit_données_résolveuse :: fonc (résolveuse: *RésolveuseStyle)
         déloge(it.règles)
     }
     déloge(résolveuse.règles_par_classe)
+    pour résolveuse.presentational_hints {
+        détruit_déclaration(it)
+    }
+    déloge(résolveuse.presentational_hints)
 }
 
 détruit_résolveuse :: fonc (résolveuse: *RésolveuseStyle)
@@ -392,9 +399,33 @@ détruit_résolveuse :: fonc (résolveuse: *RésolveuseStyle)
 }
 
 /* https://html.spec.whatwg.org/multipage/rendering.html#the-css-user-agent-style-sheet-and-presentational-hints */
-ajoute_presentational_hint :: fonc (résolveuse: *RésolveuseStyle, déclaration: *DéclarationPropriété)
+ajoute_presentational_hint :: fonc (résolveuse: *RésolveuseStyle, nom_propriété: CSSOMString, value: ValeurDeStyle)
 {
+    pour résolveuse.presentational_hints {
+        si it.property_name != nom_propriété {
+            continue
+        }
+
+        si it.value.taille != 1 {
+            continue
+        }
+
+        si it.value[0] != value {
+            continue
+        }
+
+        tableau_ajoute(*résolveuse.déclarations_cascade, DéclarationCascadée(it, Spécificité(0, 0, 0), OrigineCascade.Author))
+        retourne
+    }
+
+    déclaration := loge(DéclarationPropriété)
+    déclaration.info = donne_info_type_pour_nom(nom_propriété)
+    déclaration.property_name = nom_propriété
+    tableau_ajoute(*déclaration.value, value)
+
     tableau_ajoute(*résolveuse.déclarations_cascade, DéclarationCascadée(déclaration, Spécificité(0, 0, 0), OrigineCascade.Author))
+
+    tableau_ajoute(*résolveuse.presentational_hints, déclaration)
 }
 
 possède_règle_avec_pseudo_classe :: fonc (résolveuse: *RésolveuseStyle, pseudo_classe: PseudoClasses) -> bool

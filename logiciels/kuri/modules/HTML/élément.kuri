@@ -632,31 +632,12 @@ ajoute_propriété_pour_couleur :: fonc (résolveuse: *CSS.RésolveuseStyle, nom
         retourne
     }
 
-    couleur := opt_couleur.Quelque
-    value: [..]CSS.ValeurDeStyle
-    tableau_ajoute(*value, CSS.ValeurDeStyle(couleur = couleur))
-
-    /* À FAIRE : fuite de mémoire */
-    déclaration := loge(CSS.DéclarationPropriété)
-    déclaration.info = CSS.donne_info_type_pour_nom(nom_propriété)
-    déclaration.property_name = nom_propriété
-    déclaration.value = value
-
-    CSS.ajoute_presentational_hint(résolveuse, déclaration)
+    CSS.ajoute_presentational_hint(résolveuse, nom_propriété, CSS.ValeurDeStyle(couleur = opt_couleur.Quelque))
 }
 
 ajoute_propriété_pour_mot_clé :: fonc (résolveuse: *CSS.RésolveuseStyle, nom_propriété: CSS.CSSOMString, mot_clé: CSS.CSSOMString)
 {
-    value: [..]CSS.ValeurDeStyle
-    tableau_ajoute(*value, CSS.ValeurDeStyle(mot_clé = mot_clé))
-
-    /* À FAIRE : fuite de mémoire */
-    déclaration := loge(CSS.DéclarationPropriété)
-    déclaration.info = CSS.donne_info_type_pour_nom(nom_propriété)
-    déclaration.property_name = nom_propriété
-    déclaration.value = value
-
-    CSS.ajoute_presentational_hint(résolveuse, déclaration)
+    CSS.ajoute_presentational_hint(résolveuse, nom_propriété, CSS.ValeurDeStyle(mot_clé = mot_clé))
 }
 
 ajoute_propriété_pour_non_zero_dimension :: fonc (résolveuse: *CSS.RésolveuseStyle, élément: *Élément, nom_attribut: DOMString, nom_propriété: CSS.CSSOMString)
@@ -672,16 +653,7 @@ ajoute_propriété_pour_non_zero_dimension :: fonc (résolveuse: *CSS.Résolveus
 
 ajoute_propriété_pour_nombre :: fonc (résolveuse: *CSS.RésolveuseStyle, nom_propriété: CSS.CSSOMString, valeur: r64)
 {
-    value: [..]CSS.ValeurDeStyle
-    tableau_ajoute(*value, CSS.ValeurDeStyle(number = valeur))
-
-    /* À FAIRE : fuite de mémoire */
-    déclaration := loge(CSS.DéclarationPropriété)
-    déclaration.info = CSS.donne_info_type_pour_nom(nom_propriété)
-    déclaration.property_name = nom_propriété
-    déclaration.value = value
-
-    CSS.ajoute_presentational_hint(résolveuse, déclaration)
+    CSS.ajoute_presentational_hint(résolveuse, nom_propriété, CSS.ValeurDeStyle(number = valeur))
 }
 
 /* https://html.spec.whatwg.org/multipage/common-microsyntaxes.html#rules-for-parsing-a-legacy-colour-value */
