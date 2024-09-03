@@ -1,5 +1,6 @@
 importe Fondation
 importe Internet
+importe MIME
 
 /* https://html.spec.whatwg.org/multipage/browsers.html#cross-origin-opener-policy-value */
 CrossOriginOpenerPolicyValue :: énum n8 {
@@ -852,7 +853,7 @@ load_a_document :: fonc (user_agent: *UserAgent, navigation_params: *NavigationP
     //    Otherwise, if the type is one of the following types:
 
     // an HTML MIME type
-    si mime_type == "text/html" {
+    si mime_type == MIME_text_html {
         // Return the result of loading an HTML document, given navigationParams.
         retourne load_an_html_document(user_agent, navigation_params)
     }

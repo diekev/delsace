@@ -4,6 +4,7 @@ importe #inemployé CSS
 importe Fondation
 importe Image
 importe Internet
+importe MIME
 importe Numérique
 importe Unicode
 
@@ -1241,11 +1242,6 @@ update_image_data :: fonc (image: *HTMLImageElement)
     diffère détruit_fetch_controller(fetch_controller)
 }
 
-est_type_mime_image :: fonc (content_type: chaine) -> bool
-{
-    retourne content_type == "image/jpeg" || content_type == "image/png"
-}
-
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1382,13 +1378,13 @@ process_stylesheet_link :: fonc (link: *HTMLLinkElement)
             retourne
         }
 
-        saufsi réponse.body_info.content_type == "text/css" {
+        saufsi réponse.body_info.content_type == MIME_text_css {
             retourne
         }
 
         contenu := réponse.body.Quelque
 
-        mime_css := crée_chaine_utf16_unique("text/css")
+        mime_css := crée_chaine_utf16_unique(MIME_text_css)
 
         feuille_de_style := loge(CSS.CSSStyleSheet)
         feuille_de_style.location = tente parse_uri_standard(copie_chaine(rappel.url_string)) piège nonatteignable
@@ -1727,7 +1723,7 @@ détermine_type_block_script :: fonc (script: *HTMLScriptElement) -> DOMString
     si (attr_type != nul && attr_type.valeur.est_vide()) ||
          (attr_type == nul && attr_language != nul && attr_language.valeur.est_vide()) ||
          (attr_type == nul && attr_language == nul) {
-        retourne crée_chaine_utf16_unique("text/javascript")
+        retourne crée_chaine_utf16_unique(MIME_text_javascript)
     }
 
     si attr_type {
@@ -1739,37 +1735,6 @@ détermine_type_block_script :: fonc (script: *HTMLScriptElement) -> DOMString
     chn := imprime_chaine("text/%", attr_language.valeur)
     diffère déloge(chn)
     retourne crée_chaine_utf16_unique(chn)
-}
-
-/* https://mimesniff.spec.whatwg.org/#javascript-mime-type-essence-match */
-est_type_mime_javascript :: fonc (chn: DOMString) -> bool
-{
-    mimes_possibles := [
-        "application/ecmascript",
-        "application/javascript",
-        "application/x-ecmascript",
-        "application/x-javascript",
-        "text/ecmascript",
-        "text/javascript",
-        "text/javascript1.0",
-        "text/javascript1.1",
-        "text/javascript1.2",
-        "text/javascript1.3",
-        "text/javascript1.4",
-        "text/javascript1.5",
-        "text/jscript",
-        "text/livescript",
-        "text/x-ecmascript",
-        "text/x-javascript"
-    ]
-
-    pour mimes_possibles {
-        si compare_ascii_insensible_à_la_casse(chn, it) {
-            retourne vrai
-        }
-    }
-
-    retourne faux
 }
 
 /* https://w3c.github.io/webappsec-csp/#should-block-inline */
@@ -1865,7 +1830,7 @@ ajourne_style_block :: fonc (style: *HTMLStyleElement)
     // 4. If element's type attribute is present and its value is neither the
     //    empty string nor an ASCII case-insensitive match for "text/css", then
     //    return.
-    mime_css := crée_chaine_utf16_unique("text/css")
+    mime_css := crée_chaine_utf16_unique(MIME_text_css)
 
     attr_type := element.cherche_attribut(ATTR_type)
     si attr_type && !(attr_type.valeur.est_vide() || compare_ascii_insensible_à_la_casse(attr_type.valeur, mime_css)) {

@@ -9,6 +9,7 @@ importe IGUMI
 importe Image
 importe Internet
 importe Math
+importe MIME
 importe OpenGL
 importe PeintureInterface
 importe Triage
@@ -1316,11 +1317,6 @@ donne_image_pour_url :: fonc (ctx: *ContexteDessin, url: CSSOMString, base_url: 
     user_agent := HTML.donne_user_agent(ctx.document)
     fetch_controller := HTML.fetch(user_agent, request, process_response = process_response)
     diffère HTML.détruit_fetch_controller(fetch_controller)
-}
-
-est_type_mime_image :: fonc (content_type: chaine) -> bool
-{
-    retourne content_type == "image/jpeg" || content_type == "image/png"
 }
 
 /** \} */
