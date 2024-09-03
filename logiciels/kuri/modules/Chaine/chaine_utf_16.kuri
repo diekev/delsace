@@ -922,7 +922,7 @@ compare_ascii_insensible_à_la_casse :: fonc (chn1: ChaineUTF16Unique, chn2: cha
 supprime_espace_blanches_autour :: fonc (chn: ChaineUTF16Unique) -> ChaineUTF16Unique
 {
     chn_utf16 := chn.donne_chaine_utf16()
-    chn_utf16 = supprime_espace_blanches_autour(chn_utf16)
+    supprime_espace_blanches_autour_en_place(*chn_utf16)
     retourne crée_chaine_utf16_unique(chn_utf16)
 }
 
