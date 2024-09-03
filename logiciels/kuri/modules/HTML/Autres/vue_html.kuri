@@ -1218,6 +1218,8 @@ envoie_un_clic :: fonc (élément: *HTML.Élément)
     évènement.type = HTML.EventType.click
 
     _ := dispatch(évènement, élément)
+
+    déloge(évènement)
 }
 
 /** \} */

@@ -55,6 +55,22 @@ clone :: fonc (path: URLPath) -> URLPath
     retourne résultat
 }
 
+détruit_path :: fonc (path: URLPath)
+{
+    discr path {
+        Segment(s) {
+            déloge_si_logée(s)
+        }
+        Path(p) {
+            pour p {
+                déloge_si_logée(it)
+            }
+            déloge(p)
+        }
+        sinon {}
+    }
+}
+
 /* À FAIRE : fusionne avec URI */
 URL :: struct {
     scheme: ChaineASCII
@@ -80,7 +96,43 @@ convertis_uri_url :: fonc (uri: *URI) -> *URL
 
 détruit_url :: fonc (url: *URL)
 {
+    saufsi url {
+        retourne
+    }
+
+    déloge_si_logée(url.scheme)
+    déloge_si_logée(url.username)
+    déloge_si_logée(url.password)
+    détruit_path(url.path)
+
+    si url.query.possède_valeur() {
+        déloge_si_logée(url.query.Quelque)
+    }
+
+    si url.fragment.possède_valeur() {
+        déloge_si_logée(url.query.Quelque)
+    }
+
+    init_de(URL)(url)
     déloge(url)
+}
+
+définis_schéma :: fonc (url: *URL, schéma: ChaineASCII)
+{
+    déloge_si_logée(url.scheme)
+    url.scheme = schéma
+}
+
+définis_path :: fonc (url: *URL, path: URLPath)
+{
+    détruit_path(url.path)
+    url.path = clone(path)
+}
+
+définis_path :: fonc (url: *URL, opaque: chaine)
+{
+    détruit_path(url.path)
+    url.path = opaque
 }
 
 /* https://url.spec.whatwg.org/#url-opaque-path */
@@ -151,6 +203,7 @@ shorten_path :: fonc (url: *URL)
 {
     discr url.path {
         Path {
+            déloge_si_logée(url.path.Path[url.path.Path.taille - 1])
             url.path.Path.taille -= 1
         }
         sinon {}
@@ -344,6 +397,8 @@ basic_url_parser :: fonc (input: ChaineUTF16, base : *URL = nul, url : *URL = nu
 
     // 9. Keep running the following state machine by switching on state. If after a run pointer points to the EOF code point, go to the next step. Otherwise, increase pointer by 1 and continue with the state machine.
     parser: BasicURLParser
+    diffère détruit_données(*parser)
+
     parser.input = input
     parser.url = résultat
     parser.base = base
@@ -456,6 +511,12 @@ BasicURLParser :: struct {
     at_sign_seen := faux
     inside_brackets := faux
     password_token_seen := faux
+}
+
+détruit_données :: fonc (parser: *BasicURLParser)
+{
+    détruit_chaine(parser.buffer)
+    détruit_chaine(parser.buffer_opaque_path)
 }
 
 fini :: fonc (parser: *BasicURLParser) -> bool
@@ -587,7 +648,7 @@ basic_url_parser_scheme :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
         }
 
         // 2. Set url’s scheme to buffer.
-        parser.url.scheme = converti_vers_chaine(parser.buffer)
+        parser.url.définis_schéma(converti_vers_chaine(parser.buffer))
 
         // 3. If state override is given, then:
         si parser.state_override {
@@ -641,7 +702,7 @@ basic_url_parser_scheme :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
         }
 
         // 9. Otherwise, set url’s path to the empty string and set state to opaque path state.
-        parser.url.path = ""
+        parser.url.définis_path("")
         parser.définis_state(ÉtatParsageURL.OpaquePath)
         retourne RésultatParsageURL.Ok
     }
@@ -675,18 +736,8 @@ basic_url_parser_no_scheme :: fonc (parser: *BasicURLParser) -> RésultatParsage
     //     url’s fragment to the empty string,
     //     and set state to fragment state.
     si possède_chemin_opaque(parser.base) && parser.donne_caractère() == 0x23 {
-        parser.url.scheme = copie_chaine(parser.base.scheme)
-        discr parser.base.path {
-            Segment(s) {
-                parser.url.path = copie_chaine(s)
-            }
-            Path(p) {
-                pour p {
-                    ajoute_segment_au_chemin(parser.url, copie_chaine(it))
-                }
-            }
-            sinon {}
-        }
+        parser.url.définis_schéma(copie_chaine(parser.base.scheme))
+        parser.url.définis_path(parser.base.path)
         parser.url.query = copie_chaine(parser.base.query)
         parser.url.fragment = ""
         parser.définis_state(ÉtatParsageURL.Fragment)
@@ -749,7 +800,7 @@ basic_url_parser_relative :: fonc (parser: *BasicURLParser) -> RésultatParsageU
     assert(parser.base.scheme != "file")
 
     // 2. Set url’s scheme to base’s scheme.
-    parser.url.scheme = parser.base.scheme
+    parser.url.définis_schéma(copie_chaine(parser.base.scheme))
 
     // 3. If c is U+002F (/), then set state to relative slash state.
     c := parser.donne_caractère()
@@ -773,7 +824,7 @@ basic_url_parser_relative :: fonc (parser: *BasicURLParser) -> RésultatParsageU
         parser.url.password = parser.base.password
         parser.url.host = parser.base.host
         parser.url.port = parser.base.port
-        parser.url.path = clone(parser.base.path)
+        parser.url.définis_path(parser.base.path)
         parser.url.query = parser.base.query
 
         // 2. If c is U+003F (?), then set url’s query to the empty string, and state to query state.
@@ -1001,7 +1052,7 @@ basic_url_parser_host :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
 basic_url_parser_file :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
 {
     // 1. Set url’s scheme to "file".
-    parser.url.scheme = "file"
+    parser.url.définis_schéma("file")
 
     // 2. Set url’s host to the empty string.
     parser.url.host = ""
@@ -1025,7 +1076,7 @@ basic_url_parser_file :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
         //        url’s path to a clone of base’s path, and
         //        url’s query to base’s query.
         parser.url.host = parser.base.host
-        parser.url.path = clone(parser.base.path)
+        parser.url.définis_path(parser.base.path)
         si parser.base.query.possède_valeur() {
             parser.url.query = copie_chaine(parser.base.query.Quelque)
         }
@@ -1058,7 +1109,7 @@ basic_url_parser_file :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
                 imprime("[%] file-invalid-Windows-drive-letter\n", #nom_de_cette_fonction)
 
                 // 2. Set url’s path to « ».
-                parser.url.path = ""
+                parser.url.définis_path("")
             }
 
             // 4. Set state to path state and decrease pointer by 1.
@@ -1284,13 +1335,13 @@ basic_url_parser_opaque_path :: fonc (parser: *BasicURLParser) -> RésultatParsa
     si c == 0x3F {
         parser.url.query = ""
         parser.définis_state(ÉtatParsageURL.Query)
-        parser.url.path = converti_vers_chaine(parser.buffer_opaque_path)
+        parser.url.définis_path(converti_vers_chaine(parser.buffer_opaque_path))
     }
     // 2. Otherwise, if c is U+0023 (#), then set url’s fragment to the empty string and state to fragment state.
     sinon si c == 0x23 {
         parser.url.fragment = ""
         parser.définis_state(ÉtatParsageURL.Fragment)
-        parser.url.path = converti_vers_chaine(parser.buffer_opaque_path)
+        parser.url.définis_path(converti_vers_chaine(parser.buffer_opaque_path))
     }
     // 3. Otherwise:
     sinon {
@@ -1303,7 +1354,7 @@ basic_url_parser_opaque_path :: fonc (parser: *BasicURLParser) -> RésultatParsa
             chaine_ajoute(*parser.buffer_opaque_path, c)
         }
         sinon {
-            parser.url.path = converti_vers_chaine(parser.buffer_opaque_path)
+            parser.url.définis_path(converti_vers_chaine(parser.buffer_opaque_path))
         }
     }
 

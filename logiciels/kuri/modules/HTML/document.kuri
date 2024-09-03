@@ -129,6 +129,7 @@ document_sur_destruction :: fonc (base: *EventTarget)
         IMG_detruit_image(*it.données)
     }
 
+    détruit_uri(document.url)
     déloge(document.images_disponibles)
     déloge(document)
 }

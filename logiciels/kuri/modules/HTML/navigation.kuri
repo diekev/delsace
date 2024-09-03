@@ -583,7 +583,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
     //     referrer    entry's document state's request referrer
     //     referrer policy entry's document state's request referrer policy
     request := loge(Request)
-    request.url = entry.url
+    request.url = tente parse_uri_standard(recompose_uri(*entry.url)) piège nonatteignable
     request.client = source_snapshot_params.fetch_client
     request.destination = "document"
     request.credentials_mode = "include"
@@ -783,7 +783,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
         // 21. Set currentURL to locationURL.
 
         // 22. Set entry's URL to currentURL.
-        entry.url = current_url
+        entry.url = tente parse_uri_standard(recompose_uri(*current_url)) piège nonatteignable
     }
 
     // 20. If locationURL is a URL whose scheme is not a fetch scheme, then return a new non-fetch scheme navigation params, with
@@ -928,7 +928,8 @@ create_and_initialize_a_document_object :: fonc (user_agent: *UserAgent, type: c
 
     // 5. If navigationParams's request is non-null, then set creationURL to navigationParams's request's current URL.
     si navigation_params.request {
-        creation_url = navigation_params.request.donne_url_courant()
+        url := navigation_params.request.donne_url_courant()
+        creation_url = tente parse_uri_standard(recompose_uri(*url)) piège nonatteignable
     }
 
     // À FAIRE 6. Let window be null.

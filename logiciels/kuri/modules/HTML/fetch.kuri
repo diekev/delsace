@@ -64,6 +64,7 @@ Request :: struct {
 détruit_request :: fonc (request: *Request)
 {
     déloge(request.header_list)
+    détruit_uri(request.url)
     déloge(request)
 }
 

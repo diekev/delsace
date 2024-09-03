@@ -559,8 +559,10 @@ anchor_element_sur_activation_behavior :: fonc (target: *EventTarget, event: *Ev
     source_document := anchor.document
     base_url := donne_base_url(source_document)
     url_document := convertis_uri_url(*base_url)
+    diffère détruit_url(url_document)
 
     url_src := basic_url_parser(chn_href, base = url_document)
+    diffère détruit_url(url_src)
     saufsi url_src {
         retourne
     }
@@ -1151,6 +1153,7 @@ update_image_data :: fonc (image: *HTMLImageElement)
 
     base_url := donne_base_url(document)
     url_document := convertis_uri_url(*base_url)
+    diffère détruit_url(url_document)
 
     url_src := basic_url_parser(src.donne_chaine_utf16(), base = url_document)
     saufsi url_src {
@@ -1171,6 +1174,7 @@ update_image_data :: fonc (image: *HTMLImageElement)
     RappelProcessResponse :: struct {
         empl base: BaseProcessResponse
 
+        request: *Request
         image: *HTMLImageElement
         url_src: *URL
     }
@@ -1221,12 +1225,15 @@ update_image_data :: fonc (image: *HTMLImageElement)
     sur_destruction_process_response :: fonc (base: *BaseProcessResponse)
     {
         rappel := base comme *RappelProcessResponse
+        détruit_url(rappel.url_src)
+        détruit_request(rappel.request)
         déloge(rappel)
     }
 
     process_response := loge(RappelProcessResponse)
     process_response.image = image
     process_response.url_src = url_src
+    process_response.request = request
     process_response.sur_rappel = sur_rappel_process_response
     process_response.sur_destruction = sur_destruction_process_response
 
@@ -1341,6 +1348,7 @@ process_stylesheet_link :: fonc (link: *HTMLLinkElement)
 
     base_url := donne_base_url(document)
     url_document := convertis_uri_url(*base_url)
+    diffère détruit_url(url_document)
 
     url_src := basic_url_parser(src.donne_chaine_utf16(), base = url_document)
     saufsi url_src {
@@ -1359,6 +1367,7 @@ process_stylesheet_link :: fonc (link: *HTMLLinkElement)
         empl base: BaseProcessResponse
 
         link: *HTMLLinkElement
+        request: *Request
         url_src: *URL
         url_string: ChaineASCII
     }
@@ -1382,7 +1391,7 @@ process_stylesheet_link :: fonc (link: *HTMLLinkElement)
         mime_css := crée_chaine_utf16_unique("text/css")
 
         feuille_de_style := loge(CSS.CSSStyleSheet)
-        feuille_de_style.location = tente parse_uri_standard(rappel.url_string) piège nonatteignable
+        feuille_de_style.location = tente parse_uri_standard(copie_chaine(rappel.url_string)) piège nonatteignable
         feuille_de_style.origine = CSS.OrigineCascade.Author
         feuille_de_style.type = mime_css
         feuille_de_style.owner_node = rappel.link
@@ -1402,11 +1411,14 @@ process_stylesheet_link :: fonc (link: *HTMLLinkElement)
     sur_destruction_process_response :: fonc (base: *BaseProcessResponse)
     {
         rappel := base comme *RappelProcessResponse
+        détruit_url(rappel.url_src)
+        détruit_request(rappel.request)
         déloge(rappel)
     }
 
     process_response := loge(RappelProcessResponse)
     process_response.link = link
+    process_response.request = request
     process_response.url_string = url_string
     process_response.url_src = url_src
     process_response.sur_rappel = sur_rappel_process_response
