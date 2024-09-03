@@ -68,6 +68,8 @@ principale :: fonc () -> z32
         chemin_fichier = arg1
     }
 
+    diffère QT_détruit_tampon_rappels()
+
     /* Création application. */
     taille_arguments := arguments.taille comme z32
     app := QT_cree_application(*taille_arguments, arguments.pointeur)
@@ -564,7 +566,7 @@ RappelChangementAdresse :: struct {
 
 crée_rappel_changement_adresse :: fonc (user_agent: *UserAgent, page_web: *PageWeb, line_edit: *QT_LineEdit) -> *QT_Rappel_Generique
 {
-    résultat := loge(RappelChangementAdresse)
+    résultat := QT_loge_rappel(RappelChangementAdresse)
     résultat.sur_rappel = rappel_changement_adresse_sur_rappel
     résultat.user_agent = user_agent
     résultat.page_web = page_web
