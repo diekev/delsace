@@ -2071,6 +2071,11 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
             base_url := donne_url_base_pour_background_image(noeud.propriétés)
             opt_image_data := ctx.donne_image_pour_url(image.url, base_url)
             si opt_image_data.possède_valeur() {
+                /* À FAIRE : parse la propriété "background-repeat". Ceci est la valeur défaut. */
+                répétition: RépétitionImage
+                répétition.x = GenreRépétitionImage.Normale
+                répétition.y = GenreRépétitionImage.Normale
+
                 image_data := opt_image_data.Quelque
                 /* À FAIRE : background-clip */
                 rect := noeud.donne_rectangle_bordure()
@@ -2081,7 +2086,7 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
 
                 rect = ctx.donne_rectangle_corrigé(rect)
                 rect_image = ctx.donne_rectangle_corrigé(rect_image)
-                peintre.dessine_image(image_data, rect_image, rect)
+                peintre.dessine_image(image_data, rect_image, rect, répétition)
             }
         }
 
