@@ -650,6 +650,11 @@ IDPropriété :: énum n16 {
     BorderColorRight
     BorderColorTop
 
+    BorderBottomLeftRadius
+    BorderBottomRightRadius
+    BorderTopLeftRadius
+    BorderTopRightRadius
+
     MarginBottom
     MarginLeft
     MarginRight
@@ -730,6 +735,11 @@ initialise_style :: fonc (style: *Style)
     style.valeurs[IDPropriété.BorderColorLeft] = ValeurDeStyle(mot_clé = PROP_currentColor)
     style.valeurs[IDPropriété.BorderColorRight] = ValeurDeStyle(mot_clé = PROP_currentColor)
     style.valeurs[IDPropriété.BorderColorTop] = ValeurDeStyle(mot_clé = PROP_currentColor)
+
+    style.valeurs[IDPropriété.BorderBottomLeftRadius] = ValeurDeStyle(number = 0.0)
+    style.valeurs[IDPropriété.BorderBottomRightRadius] = ValeurDeStyle(number = 0.0)
+    style.valeurs[IDPropriété.BorderTopLeftRadius] = ValeurDeStyle(number = 0.0)
+    style.valeurs[IDPropriété.BorderTopRightRadius] = ValeurDeStyle(number = 0.0)
 
     /* Font */
     style.valeurs[IDPropriété.FontFamily] = ValeurDeStyle(mot_clé = PROP_serif)

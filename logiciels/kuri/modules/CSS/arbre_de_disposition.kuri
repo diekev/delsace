@@ -2048,7 +2048,13 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
                 rect_noeud = ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
             }
 
-            peintre.remplis_rectangle(rect_noeud, background_color)
+            border_radius := noeud.propriétés.donne_valeur_calculée(IDPropriété.BorderTopLeftRadius).number
+            si border_radius != 0.0 {
+                peintre.remplis_rectangle_arrondi(rect_noeud, border_radius comme r32, background_color)
+            }
+            sinon {
+                peintre.remplis_rectangle(rect_noeud, background_color)
+            }
         }
         sinon si noeud.parent == nul && noeud.élément && noeud.élément.local_name == HTML.TAG_html {
             /* Hérite de l'arrière-plan du "body".
@@ -2320,15 +2326,26 @@ noeud_disposition_inline_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition,
         padding_bottom := propriétés.donne_valeur_calculée(IDPropriété.PaddingBottom).number comme r32
 
         si background_color.a != 0 {
+            border_radius := propriétés.donne_valeur_calculée(IDPropriété.BorderTopLeftRadius).number
+
+            premier_fragment := fragment
             dernier_fragment := lignes_tenante.fragments.pointeur + lignes_tenante.fragments.taille
             tantque fragment != dernier_fragment {
                 rect_noeud := ctx.donne_rectangle_corrigé(fragment.donne_rectangle())
                 rect_noeud.y -= padding_top
                 rect_noeud.hauteur += padding_top + padding_bottom
 
-                ctx.peintre.remplis_rectangle(rect_noeud, background_color)
+                est_premier_fragment := fragment == premier_fragment
+                est_dernier_fragment := fragment.type == Fragment.Type.RembourrageFin && fragment.noeud == base
 
-                si fragment.type == Fragment.Type.RembourrageFin && fragment.noeud == base {
+                si (est_premier_fragment || est_dernier_fragment) && border_radius != 0.0 {
+                    ctx.peintre.remplis_rectangle_arrondi(rect_noeud, border_radius comme r32, background_color)
+                }
+                sinon {
+                    ctx.peintre.remplis_rectangle(rect_noeud, background_color)
+                }
+
+                si est_dernier_fragment {
                     arrête
                 }
 
