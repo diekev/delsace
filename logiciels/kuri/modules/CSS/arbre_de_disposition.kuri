@@ -239,6 +239,8 @@ opérateur < :: fonc (a: RèglesParIdentifiant, b: RèglesParIdentifiant) -> boo
 
 RésolveuseStyle :: struct {
     globales: *GlobalesDessin
+    /* À FAIRE(langage) : dépendance cyclique */
+    document: *rien
     taille_fonte_racine: r64
     feuilles_de_style: []*CSSStyleSheet
 
@@ -271,6 +273,7 @@ crée_résolveuse_style :: fonc (document: *HTML.Document) -> *RésolveuseStyle
 {
     résultat := loge(RésolveuseStyle)
     initialise_résolveuse(résultat)
+    résultat.document = document
     résultat.taille_fonte_racine = document.globales_dessin.taille_fonte_défaut
     résultat.globales = document.globales_dessin
     résultat.feuilles_de_style = document.feuilles_de_style
@@ -767,6 +770,7 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
 {
     /* https://www.w3.org/TR/2011/REC-CSS2-20110607/cascade.html#computed-value */
     ctx_calcul_style: ContexteCalculStyle
+    ctx_calcul_style.document = résolveuse.document comme *HTML.Document
     ctx_calcul_style.taille_fonte = résolveuse.globales.taille_fonte_défaut
     ctx_calcul_style.taille_fonte_racine = résolveuse.taille_fonte_racine
     ctx_calcul_style.propriétés = propriétés
@@ -1204,23 +1208,8 @@ dessine_image :: fonc (ctx: *ContexteDessin, image: ImageIO, rect: RectanglePosD
     }
 }
 
-donne_image_pour_url :: fonc (ctx: *ContexteDessin, url: CSSOMString, base_url: Optionnel(URI)) -> Optionnel(ImageIO)
+donne_image_pour_url :: fonc (ctx: *ContexteDessin, url_string: chaine) -> Optionnel(ImageIO)
 {
-    saufsi base_url.possède_valeur() {
-        base_url = HTML.donne_base_url(ctx.document)
-    }
-
-    uri_de_base := base_url.Quelque
-    url_de_base := HTML.convertis_uri_url(*uri_de_base)
-    diffère HTML.détruit_url(url_de_base)
-
-    url_src := HTML.basic_url_parser(url.donne_chaine_utf16(), base = url_de_base)
-    saufsi url_src {
-        retourne
-    }
-
-    url_string := HTML.url_serializer(url_src)
-
     données_image := HTML.donne_image_pour_url(ctx.document, url_string)
 
     si données_image.état == HTML.ÉtatRequêteImage.Succès {
@@ -1234,6 +1223,11 @@ donne_image_pour_url :: fonc (ctx: *ContexteDessin, url: CSSOMString, base_url: 
     si données_image.état == HTML.ÉtatRequêteImage.EnCours {
         retourne
     }
+
+    url_string_utf16 := crée_chaine_utf16(url_string)
+    diffère détruit_chaine(url_string_utf16)
+
+    url_src := HTML.basic_url_parser(url_string_utf16)
 
     HTML.définis_état_requête_image(ctx.document, url_string, HTML.ÉtatRequêteImage.EnCours)
 
@@ -2070,8 +2064,7 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
 
         image := noeud.propriétés.donne_valeur_calculée(IDPropriété.BackgroundImage)
         saufsi image.est_none() {
-            base_url := donne_url_base_pour_background_image(noeud.propriétés)
-            opt_image_data := ctx.donne_image_pour_url(image.url, base_url)
+            opt_image_data := ctx.donne_image_pour_url(image.url_absolu)
             si opt_image_data.possède_valeur() {
                 /* À FAIRE : parse la propriété "background-repeat". Ceci est la valeur défaut. */
                 répétition: RépétitionImage

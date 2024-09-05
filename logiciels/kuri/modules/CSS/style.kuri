@@ -1,6 +1,7 @@
 importe Chaine
 importe Couleur
 importe Fondation
+importe #inemployé HTML
 importe Internet
 
 TextDecorationLine :: énum_drapeau n8 {
@@ -19,6 +20,7 @@ Variable :: struct {
 ValeurDeStyle :: union {
     mot_clé: CSSOMString
     url: CSSOMString
+    url_absolu: chaine
     couleur: CouleurRVBAN8
     longueur: Longueur
     integer: r64
@@ -40,6 +42,16 @@ opérateur == :: fonc (a: ValeurDeStyle, b: ValeurDeStyle) -> bool
         url(u) {
             discr b {
                 url(ub) {
+                    retourne ub == u
+                }
+                sinon {
+                    retourne faux
+                }
+            }
+        }
+        url_absolu(u) {
+            discr b {
+                url_absolu(ub) {
                     retourne ub == u
                 }
                 sinon {
@@ -165,6 +177,9 @@ détruit_valeur_de_style :: fonc (value: *ValeurDeStyle)
     discr mémoire(value) {
         variable(v) {
             détruit_tableau_component_value(*v.fallback)
+        }
+        url_absolu(u) {
+            déloge_si_logée(u)
         }
         sinon {}
     }
@@ -336,6 +351,8 @@ permute :: fonc (a: *PropriétésDeStyle, b: *PropriétésDeStyle)
 
 détruit_données_propriétés :: fonc (propriétés: *PropriétésDeStyle)
 {
+    /* À FAIRE : valeurs utilisées */
+    détruit_valeur_de_style(*propriétés.style.valeurs[IDPropriété.BackgroundImage])
     déloge(propriétés.déclarations)
 }
 
@@ -601,6 +618,7 @@ donne_line_style :: fonc (value: ValeurDeStyle) -> LineStyle
 }
 
 ContexteCalculStyle :: struct {
+    document: *HTML.Document
     taille_fonte: r64
     taille_fonte_racine: r64
     propriétés: *PropriétésDeStyle
@@ -1145,7 +1163,27 @@ calcule_valeur_propriété_générique :: fonc (valeur: ValeurDeStyle, genre_val
                 retourne valeur
             }
         }
-        url {
+        url(u) {
+            si genre_valeur_calculée.BackgroundImage {
+                base_url := donne_url_base_pour_background_image(ctx.propriétés)
+                saufsi base_url.possède_valeur() {
+                    base_url = HTML.donne_base_url(ctx.document)
+                }
+                uri_de_base := base_url.Quelque
+                url_de_base := HTML.convertis_uri_url(*uri_de_base)
+                diffère HTML.détruit_url(url_de_base)
+
+                url_src := HTML.basic_url_parser(u.donne_chaine_utf16(), base = url_de_base)
+                saufsi url_src {
+                    retourne ValeurDeStyle(mot_clé = PROP_none)
+                }
+
+                url_string := HTML.url_serializer(url_src)
+                HTML.détruit_url(url_src)
+                retourne ValeurDeStyle(url_absolu = url_string)
+            }
+        }
+        url_absolu {
             si genre_valeur_calculée.BackgroundImage {
                 retourne valeur
             }
