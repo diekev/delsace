@@ -10,6 +10,7 @@ importe CodecDonnées
 importe Fondation
 importe Internet
 importe JSON
+importe MIME
 importe SysFichier
 importe Temps
 
@@ -75,18 +76,9 @@ pièce_jointe_depuis_mémoire :: fonc (nom: chaine, nom_fichier: chaine, contenu
     résultat: PièceJointe
     résultat.nom = nom
     résultat.nom_fichier = nom_fichier
-    résultat.type_mime = "application/octet-stream"
+    résultat.type_mime = MIME_application_octet_stream
     résultat.contenu = copie_chaine(contenu)
     retourne résultat
-}
-
-type_mime_pour_extension :: fonc (extension: chaine) -> chaine
-{
-    si extension == ".pdf" {
-        retourne "application/pdf"
-    }
-
-    retourne "application/octet-stream"
 }
 
 pièce_jointe_depuis_fichier :: fonc (chemin: CheminFichier) -> PièceJointe
@@ -388,7 +380,7 @@ crée_corps_message :: fonc (courriel: &Courriel) -> chaine
     }
 
     // Création du corps
-    type_mime := "text/plain"
+    type_mime := MIME_text_plain
 
     pour courriel.messages {
         si séparateur_corps {
@@ -400,7 +392,7 @@ crée_corps_message :: fonc (courriel: &Courriel) -> chaine
         ajoute_au_tampon(*enchaineuse, "Content-Transfer-Encoding: base64\r\n")
         ajoute_au_tampon(*enchaineuse, "Content-Disposition: inline\r\n\r\n")
 
-        type_mime = "text/html"
+        type_mime = MIME_text_html
 
         ajoute_au_tampon(*enchaineuse, "\r\n")
 

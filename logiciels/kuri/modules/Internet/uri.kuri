@@ -132,6 +132,11 @@ URI :: struct {
     fragment_est_défini := faux // @privé
 }
 
+détruit_uri :: fonc (uri: &URI)
+{
+    déloge_si_logée(uri.uri)
+}
+
 RésultatURI :: union {
     err: ErreurURI
     uri: URI

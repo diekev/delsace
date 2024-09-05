@@ -742,28 +742,28 @@ ligne_glyphe_immédiate :: fonc (fonte: *Fonte, glyph: *texture_glyph_t, caract�
 /** \nom Image
  * \{ */
 
-image_immédiat :: fonc (image: ImageIO, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32))
+image_immédiat :: fonc (image: ImageIO, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32), répétition: RépétitionImage)
 {
-    params := donne_paramètres_texture_pour_image(image)
+    params := donne_paramètres_texture_pour_image(image, répétition)
     image_immédiat(*params, rect_image, rect)
 }
 
-image_immédiat :: fonc (image: TamponImageGrise8Bit, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32))
+image_immédiat :: fonc (image: TamponImageGrise8Bit, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32), répétition: RépétitionImage)
 {
     /* À FAIRE : dessine en noir et blanc. */
-    params := donne_paramètres_texture_pour_image(image)
+    params := donne_paramètres_texture_pour_image(image, répétition)
     image_immédiat(*params, rect_image, rect)
 }
 
-image_immédiat :: fonc (image: TamponImageRVBA8Bit, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32))
+image_immédiat :: fonc (image: TamponImageRVBA8Bit, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32), répétition: RépétitionImage)
 {
-    params := donne_paramètres_texture_pour_image(image)
+    params := donne_paramètres_texture_pour_image(image, répétition)
     image_immédiat(*params, rect_image, rect)
 }
 
-image_immédiat :: fonc (image: TamponImageRVBA32Bit, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32))
+image_immédiat :: fonc (image: TamponImageRVBA32Bit, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32), répétition: RépétitionImage)
 {
-    params := donne_paramètres_texture_pour_image(image)
+    params := donne_paramètres_texture_pour_image(image, répétition)
     image_immédiat(*params, rect_image, rect)
 }
 

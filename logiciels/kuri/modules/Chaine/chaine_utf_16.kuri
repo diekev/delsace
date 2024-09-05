@@ -922,7 +922,7 @@ compare_ascii_insensible_à_la_casse :: fonc (chn1: ChaineUTF16Unique, chn2: cha
 supprime_espace_blanches_autour :: fonc (chn: ChaineUTF16Unique) -> ChaineUTF16Unique
 {
     chn_utf16 := chn.donne_chaine_utf16()
-    chn_utf16 = supprime_espace_blanches_autour(chn_utf16)
+    supprime_espace_blanches_autour_en_place(*chn_utf16)
     retourne crée_chaine_utf16_unique(chn_utf16)
 }
 
@@ -937,6 +937,14 @@ compare_chaine_utf16_unique :: fonc (a1: ChaineUTF16Unique, a2: ChaineUTF16Uniqu
 /* ------------------------------------------------------------------------- */
 /** \nom TableChainesUTF16Unique
  * \{ */
+
+#portée_fichier
+
+/* Nous utilisons notre propre allocatrices ici car nous ne pouvons pas utiliser
+ * une autre allocatrice lors de l'exécution du programme puisque plusieurs
+ * chaines sont initialisées via ajoute_init qui alloue dans le contexte global.
+ * Ainsi, ajouter des chaines après le début de princiaple nous évite de crasher,  */
+alloc_table_chaines_utf16_uniques: BaseAllocatrice
 
 TableChainesUTF16Unique :: struct {
     chaines: [..]ChaineUTF16
@@ -975,28 +983,34 @@ crée_chaine_utf16_unique :: fonc (table: &TableChainesUTF16Unique, chn: &Chaine
         retourne ChaineUTF16Unique(entrée.index)
     }
 
-    si table.chaines.taille == 0 {
-        pour 128 {
-            chn_ascii: ChaineUTF16
-            chaine_ajoute(*chn_ascii, it comme n16)
-            tableau_ajoute(*table.chaines, chn_ascii)
+    ctx := contexte()
+    ctx.allocatrice = allocatrice_défaut
+    ctx.données_allocatrice = *alloc_table_chaines_utf16_uniques
+
+    pousse_contexte ctx {
+        si table.chaines.taille == 0 {
+            pour 128 {
+                chn_ascii: ChaineUTF16
+                chaine_ajoute(*chn_ascii, it comme n16)
+                tableau_ajoute(*table.chaines, chn_ascii)
+            }
+            chn_vide: ChaineUTF16
+            /* ChaineUTF16Unique.CHAINE_VIDE */
+            tableau_ajoute(*table.chaines, chn_vide)
+            /* ChaineUTF16Unique.CHAINE_NULLE (représentée par une chaine vide). */
+            tableau_ajoute(*table.chaines, chn_vide)
         }
-        chn_vide: ChaineUTF16
-        /* ChaineUTF16Unique.CHAINE_VIDE */
-        tableau_ajoute(*table.chaines, chn_vide)
-        /* ChaineUTF16Unique.CHAINE_NULLE (représentée par une chaine vide). */
-        tableau_ajoute(*table.chaines, chn_vide)
+
+        index := table.chaines.taille comme n32
+        entrée.index = index
+        entrée.chn = copie_chaine(chn)
+
+        ensemble_ajoute(*table.ensemble, entrée)
+
+        tableau_ajoute(*table.chaines, entrée.chn)
+
+        retourne ChaineUTF16Unique(index)
     }
-
-    index := table.chaines.taille comme n32
-    entrée.index = index
-    entrée.chn = copie_chaine(chn)
-
-    ensemble_ajoute(*table.ensemble, entrée)
-
-    tableau_ajoute(*table.chaines, entrée.chn)
-
-    retourne ChaineUTF16Unique(index)
 }
 
 donne_chaine_pour_index :: fonc (table: &TableChainesUTF16Unique, index: n32) -> ChaineUTF16
@@ -1004,15 +1018,23 @@ donne_chaine_pour_index :: fonc (table: &TableChainesUTF16Unique, index: n32) ->
     retourne table.chaines[index comme z64]
 }
 
+__table_chaines_utf16_uniques: TableChainesUTF16Unique
+
+#portée_export
+
 détruit_table_chaines_utf16_uniques :: fonc ()
 {
-    pour __table_chaines_utf16_uniques.chaines {
-        détruit_chaine(it)
-    }
-    déloge(__table_chaines_utf16_uniques.chaines)
-    déloge(__table_chaines_utf16_uniques.ensemble)
-}
+    ctx := contexte()
+    ctx.allocatrice = allocatrice_défaut
+    ctx.données_allocatrice = *alloc_table_chaines_utf16_uniques
 
-__table_chaines_utf16_uniques: TableChainesUTF16Unique
+    pousse_contexte ctx {
+        pour __table_chaines_utf16_uniques.chaines {
+            détruit_chaine(it)
+        }
+        déloge(__table_chaines_utf16_uniques.chaines)
+        déloge(__table_chaines_utf16_uniques.ensemble)
+    }
+}
 
 /** } */
