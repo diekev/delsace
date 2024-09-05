@@ -335,6 +335,91 @@ convertis_type_curseur :: fonc (curseur: TypeCurseurSystème) -> QT_CursorShape
 /** } */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Allocation rappels.
+ * Allocation d'objets dérivant de QT_Rappel_Generique.
+ * Peut être utilisé pour les créer des rappels pour des widgets ou autre
+ * objets où il n'y a pas de destruction explicite desdits rappels.
+ * \{ */
+
+#portée_fichier
+
+TamponRappels :: struct {
+    Page :: struct {
+        page_suivante: *Page
+        occupés: z64
+        données : [1024]octet = ---
+    }
+
+    page_de_base: Page
+    page_courante: *Page
+}
+
+initialise_tampon_rappels :: fonc (tampon: *TamponRappels)
+{
+    si tampon.page_courante != nul {
+        retourne
+    }
+
+    tampon.page_courante = *tampon.page_de_base
+}
+
+détruit_tampon_rappels :: fonc (tampon: *TamponRappels)
+{
+    page_courante := tampon.page_de_base.page_suivante
+    tantque page_courante != nul {
+        page_suivante := page_courante.page_suivante
+        déloge(page_courante)
+        page_courante = page_suivante
+    }
+    tampon.page_de_base.occupés = 0
+    tampon.page_courante = nul
+    initialise_tampon_rappels(tampon)
+}
+
+donne_logement_pour_taille :: fonc (tampon: *TamponRappels, taille: z64) -> *octet
+{
+    si taille >= 1024 {
+        panique("Taille trop grande pour le tampon de rappels.")
+    }
+
+    page := tampon.page_courante
+
+    si page.occupés + taille > 1024 {
+        nouvelle_page := loge(TamponRappels.Page)
+        page.page_suivante = nouvelle_page
+        page = nouvelle_page
+        tampon.page_courante = page
+    }
+
+    résultat := *page.données[page.occupés]
+    page.occupés += taille
+    retourne résultat
+}
+
+__tampon_rappels: TamponRappels
+
+#portée_export
+
+QT_loge_rappel :: fonc ($T: type_de_données) -> *T
+{
+    initialise_tampon_rappels(*__tampon_rappels)
+
+    taille := taille_de(T) comme z64
+    logement := donne_logement_pour_taille(*__tampon_rappels, taille)
+
+    résultat := logement comme *T
+    init_de(T)(résultat)
+    retourne résultat
+}
+
+QT_détruit_tampon_rappels :: fonc ()
+{
+    détruit_tampon_rappels(*__tampon_rappels)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Clavier
  * \{ */
 
