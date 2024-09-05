@@ -1,6 +1,7 @@
 importe Chaine
 importe Couleur
 importe Fondation
+importe #inemployé HTML
 importe Internet
 
 TextDecorationLine :: énum_drapeau n8 {
@@ -19,6 +20,7 @@ Variable :: struct {
 ValeurDeStyle :: union {
     mot_clé: CSSOMString
     url: CSSOMString
+    url_absolu: chaine
     couleur: CouleurRVBAN8
     longueur: Longueur
     integer: r64
@@ -40,6 +42,16 @@ opérateur == :: fonc (a: ValeurDeStyle, b: ValeurDeStyle) -> bool
         url(u) {
             discr b {
                 url(ub) {
+                    retourne ub == u
+                }
+                sinon {
+                    retourne faux
+                }
+            }
+        }
+        url_absolu(u) {
+            discr b {
+                url_absolu(ub) {
                     retourne ub == u
                 }
                 sinon {
@@ -155,11 +167,19 @@ opérateur == :: fonc (a: ValeurDeStyle, b: ValeurDeStyle) -> bool
     retourne faux
 }
 
+opérateur != :: fonc (a: ValeurDeStyle, b: ValeurDeStyle) -> bool
+{
+    retourne !(a == b)
+}
+
 détruit_valeur_de_style :: fonc (value: *ValeurDeStyle)
 {
     discr mémoire(value) {
         variable(v) {
             détruit_tableau_component_value(*v.fallback)
+        }
+        url_absolu(u) {
+            déloge_si_logée(u)
         }
         sinon {}
     }
@@ -301,10 +321,10 @@ crée_propriétés_de_style :: fonc (parent: *PropriétésDeStyle) -> *Propriét
             }
             /* Nous devons hériter des valeurs calculées. */
             id := it.id
-            résultat.style.valeurs[id] = parent.style.valeurs[id]
+            résultat.définis_valeur_calculée(id, parent.donne_valeur_calculée(id))
         }
 
-        résultat.style.valeurs[IDPropriété.TextAlign] = parent.style.valeurs[IDPropriété.TextAlign]
+        résultat.définis_valeur_calculée(IDPropriété.TextAlign, parent.donne_valeur_calculée(IDPropriété.TextAlign))
     }
 
     retourne résultat
@@ -331,6 +351,8 @@ permute :: fonc (a: *PropriétésDeStyle, b: *PropriétésDeStyle)
 
 détruit_données_propriétés :: fonc (propriétés: *PropriétésDeStyle)
 {
+    /* À FAIRE : valeurs utilisées */
+    détruit_valeur_de_style(*propriétés.style.valeurs[IDPropriété.BackgroundImage])
     déloge(propriétés.déclarations)
 }
 
@@ -376,9 +398,30 @@ donne_déclaration_propriété_personnalisée :: fonc (propriétés: *Propriét�
     retourne nul
 }
 
-donne_valeur :: fonc (propriétés: *PropriétésDeStyle, id: IDPropriété) -> ValeurDeStyle
+donne_valeur_calculée :: fonc (propriétés: *PropriétésDeStyle, id: IDPropriété) -> ValeurDeStyle
 {
     retourne propriétés.style.valeurs[id]
+}
+
+définis_valeur_calculée :: fonc (propriétés: *PropriétésDeStyle, id: IDPropriété, valeur: ValeurDeStyle)
+{
+    propriétés.style.valeurs[id] = valeur
+}
+
+donne_valeur_utilisée :: fonc (propriétés: *PropriétésDeStyle, id: IDPropriété) -> ValeurDeStyle
+{
+    retourne propriétés.style.valeurs[id]
+}
+
+définis_valeur_utilisée :: fonc (propriétés: *PropriétésDeStyle, id: IDPropriété, valeur: ValeurDeStyle)
+{
+    propriétés.style.valeurs[id] = valeur
+}
+
+résoud_pourcentage :: fonc (propriétés: *PropriétésDeStyle, id: IDPropriété, valeur_de_base: r64)
+{
+    valeur := propriétés.donne_valeur_calculée(id)
+    propriétés.définis_valeur_calculée(id, calcule_pourcentage(valeur, valeur_de_base))
 }
 
 donne_url_base_pour_background_image :: fonc (propriétés: *PropriétésDeStyle) -> Optionnel(URI)
@@ -575,6 +618,7 @@ donne_line_style :: fonc (value: ValeurDeStyle) -> LineStyle
 }
 
 ContexteCalculStyle :: struct {
+    document: *HTML.Document
     taille_fonte: r64
     taille_fonte_racine: r64
     propriétés: *PropriétésDeStyle
@@ -605,6 +649,11 @@ IDPropriété :: énum n16 {
     BorderColorLeft
     BorderColorRight
     BorderColorTop
+
+    BorderBottomLeftRadius
+    BorderBottomRightRadius
+    BorderTopLeftRadius
+    BorderTopRightRadius
 
     MarginBottom
     MarginLeft
@@ -686,6 +735,11 @@ initialise_style :: fonc (style: *Style)
     style.valeurs[IDPropriété.BorderColorLeft] = ValeurDeStyle(mot_clé = PROP_currentColor)
     style.valeurs[IDPropriété.BorderColorRight] = ValeurDeStyle(mot_clé = PROP_currentColor)
     style.valeurs[IDPropriété.BorderColorTop] = ValeurDeStyle(mot_clé = PROP_currentColor)
+
+    style.valeurs[IDPropriété.BorderBottomLeftRadius] = ValeurDeStyle(number = 0.0)
+    style.valeurs[IDPropriété.BorderBottomRightRadius] = ValeurDeStyle(number = 0.0)
+    style.valeurs[IDPropriété.BorderTopLeftRadius] = ValeurDeStyle(number = 0.0)
+    style.valeurs[IDPropriété.BorderTopRightRadius] = ValeurDeStyle(number = 0.0)
 
     /* Font */
     style.valeurs[IDPropriété.FontFamily] = ValeurDeStyle(mot_clé = PROP_serif)
@@ -1053,7 +1107,7 @@ calcule_valeur_propriété_générique :: fonc (valeur: ValeurDeStyle, genre_val
                 si m == PROP_bolder {
                     graisse_parent : r64 = 400.0
                     si ctx.propriétés.parent {
-                        graisse_parent = ctx.propriétés.parent.style.valeurs[IDPropriété.FontWeight].number
+                        graisse_parent = ctx.propriétés.parent.donne_valeur_calculée(IDPropriété.FontWeight).number
                     }
 
                     si graisse_parent < 100.0 {
@@ -1081,7 +1135,7 @@ calcule_valeur_propriété_générique :: fonc (valeur: ValeurDeStyle, genre_val
                 si m == PROP_lighter {
                     graisse_parent : r64 = 400.0
                     si ctx.propriétés.parent {
-                        graisse_parent = ctx.propriétés.parent.style.valeurs[IDPropriété.FontWeight].number
+                        graisse_parent = ctx.propriétés.parent.donne_valeur_calculée(IDPropriété.FontWeight).number
                     }
 
                     si graisse_parent < 100.0 {
@@ -1119,7 +1173,27 @@ calcule_valeur_propriété_générique :: fonc (valeur: ValeurDeStyle, genre_val
                 retourne valeur
             }
         }
-        url {
+        url(u) {
+            si genre_valeur_calculée.BackgroundImage {
+                base_url := donne_url_base_pour_background_image(ctx.propriétés)
+                saufsi base_url.possède_valeur() {
+                    base_url = HTML.donne_base_url(ctx.document)
+                }
+                uri_de_base := base_url.Quelque
+                url_de_base := HTML.convertis_uri_url(*uri_de_base)
+                diffère HTML.détruit_url(url_de_base)
+
+                url_src := HTML.basic_url_parser(u.donne_chaine_utf16(), base = url_de_base)
+                saufsi url_src {
+                    retourne ValeurDeStyle(mot_clé = PROP_none)
+                }
+
+                url_string := HTML.url_serializer(url_src)
+                HTML.détruit_url(url_src)
+                retourne ValeurDeStyle(url_absolu = url_string)
+            }
+        }
+        url_absolu {
             si genre_valeur_calculée.BackgroundImage {
                 retourne valeur
             }
@@ -1193,7 +1267,7 @@ calcule_valeur_propriété_générique :: fonc (déclaration: *DéclarationPropr
     si valeur.est_mot_clé(PROP_inherit) || (valeur.est_mot_clé(PROP_currentColor) && info.id == IDPropriété.Color) {
         /* https://www.w3.org/TR/css-cascade/#inherit */
         si ctx.propriétés.parent {
-            valeur = ctx.propriétés.parent.style.valeurs[info.id]
+            valeur = ctx.propriétés.parent.donne_valeur_calculée(info.id)
         }
         sinon {
             valeur = ctx.valeurs_initiales.valeurs[info.id]
