@@ -1241,6 +1241,7 @@ donne_image_pour_url :: fonc (ctx: *ContexteDessin, url: CSSOMString, base_url: 
         empl base: HTML.BaseProcessResponse
 
         document: *HTML.Document
+        request: *HTML.Request
         url_src: *HTML.URL
         url_string: chaine
     }
@@ -1297,7 +1298,7 @@ donne_image_pour_url :: fonc (ctx: *ContexteDessin, url: CSSOMString, base_url: 
     {
         rappel := base comme *RappelProcessResponse
         HTML.détruit_url(rappel.url_src)
-        déloge(rappel.url_string)
+        HTML.détruit_request(rappel.request)
         déloge(rappel)
     }
 
@@ -1312,7 +1313,8 @@ donne_image_pour_url :: fonc (ctx: *ContexteDessin, url: CSSOMString, base_url: 
     request.destination = "image"
     request.mode = "no-cors"
     request.redirect_mode = "follow"
-    request.url = tente parse_uri_standard(url_string) piège nonatteignable
+    request.url = tente parse_uri_standard(copie_chaine(url_string)) piège nonatteignable
+    process_response.request = request
 
     user_agent := HTML.donne_user_agent(ctx.document)
     fetch_controller := HTML.fetch(user_agent, request, process_response = process_response)
