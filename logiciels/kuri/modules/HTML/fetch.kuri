@@ -16,7 +16,7 @@ Header :: struct {
 
 Request :: struct {
     method := "GET"
-    url: URI
+    url_list: [..]URI
     local_urls_only: bool
     header_list: [..]Header
     unsafe_request: bool
@@ -61,17 +61,24 @@ Request :: struct {
     render_blocking: bool
 }
 
+définis_url :: fonc (request: *Request, url: URI)
+{
+    tableau_ajoute(*request.url_list, url)
+}
+
 détruit_request :: fonc (request: *Request)
 {
     déloge(request.header_list)
-    détruit_uri(request.url)
+    pour request.url_list {
+        détruit_uri(it)
+    }
+    déloge(request.url_list)
     déloge(request)
 }
 
 donne_url_courant :: fonc (request: *Request) -> URI
 {
-    // À FAIRE : nous devons avoir une liste
-    retourne request.url
+    retourne request.url_list[request.url_list.taille - 1]
 }
 
 possède_entête :: fonc (request: *Request, nom: chaine) -> bool

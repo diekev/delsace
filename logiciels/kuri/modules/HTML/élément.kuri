@@ -1170,7 +1170,7 @@ update_image_data :: fonc (image: *HTMLImageElement)
     request.destination = "image"
     request.mode = "no-cors"
     request.redirect_mode = "follow"
-    request.url = tente parse_uri_standard(url_string) piège nonatteignable
+    request.définis_url(tente parse_uri_standard(url_string) piège nonatteignable)
 
     RappelProcessResponse :: struct {
         empl base: BaseProcessResponse
@@ -1357,7 +1357,7 @@ process_stylesheet_link :: fonc (link: *HTMLLinkElement)
     request.destination = "style"
     request.mode = "no-cors"
     request.redirect_mode = "follow"
-    request.url = tente parse_uri_standard(url_string) piège nonatteignable
+    request.définis_url(tente parse_uri_standard(url_string) piège nonatteignable)
 
     RappelProcessResponse :: struct {
         empl base: BaseProcessResponse

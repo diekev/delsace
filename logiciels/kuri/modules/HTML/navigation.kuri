@@ -584,7 +584,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
     //     referrer    entry's document state's request referrer
     //     referrer policy entry's document state's request referrer policy
     request := loge(Request)
-    request.url = tente parse_uri_standard(recompose_uri(*entry.url)) piège nonatteignable
+    request.définis_url(tente parse_uri_standard(recompose_uri(*entry.url)) piège nonatteignable)
     request.client = source_snapshot_params.fetch_client
     request.destination = "document"
     request.credentials_mode = "include"

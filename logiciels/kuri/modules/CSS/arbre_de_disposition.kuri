@@ -1307,7 +1307,7 @@ donne_image_pour_url :: fonc (ctx: *ContexteDessin, url_string: chaine) -> Optio
     request.destination = "image"
     request.mode = "no-cors"
     request.redirect_mode = "follow"
-    request.url = tente parse_uri_standard(copie_chaine(url_string)) piège nonatteignable
+    HTML.définis_url(request, tente parse_uri_standard(copie_chaine(url_string)) piège nonatteignable)
     process_response.request = request
 
     user_agent := HTML.donne_user_agent(ctx.document)
