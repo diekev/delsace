@@ -5,6 +5,7 @@ importe Internet
 
 charge "arbre_de_disposition"
 charge "contexte_de_formattage"
+charge "dimensionnement"
 charge "globales"
 charge "lexage"
 charge "objets"
