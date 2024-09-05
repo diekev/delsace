@@ -65,7 +65,7 @@ Peintre :: struct {
 
     /* Dessine l'image dans le rectangle donné. */
     rappel_dessine_image: fonc(*Peintre, ImageIO, RectanglePeintre)(rien)
-    rappel_dessine_sous_image: fonc(*Peintre, ImageIO, RectanglePeintre, RectanglePeintre)(rien)
+    rappel_dessine_sous_image: fonc(*Peintre, ImageIO, RectanglePeintre, RectanglePeintre, RépétitionImage)(rien)
     rappel_dessine_image_grise_8bit: fonc(*Peintre, TamponImageGrise8Bit, RectanglePeintre)(rien)
     rappel_dessine_image_rvba_8bit: fonc(*Peintre, TamponImageRVBA8Bit, RectanglePeintre)(rien)
     rappel_dessine_image_rvba_32bit: fonc(*Peintre, TamponImageRVBA32Bit, RectanglePeintre)(rien)
@@ -162,9 +162,15 @@ dessine_image :: fonc (peintre: *Peintre, image: ImageIO, rectangle: RectanglePe
     peintre.rappel_dessine_image(peintre, image, rectangle)
 }
 
+dessine_image :: fonc (peintre: *Peintre, image: ImageIO, rectangle_image: RectanglePeintre, rectangle_sous_image: RectanglePeintre, répétition: RépétitionImage) -> rien #enligne
+{
+    peintre.rappel_dessine_sous_image(peintre, image, rectangle_image, rectangle_sous_image, répétition)
+}
+
 dessine_image :: fonc (peintre: *Peintre, image: ImageIO, rectangle_image: RectanglePeintre, rectangle_sous_image: RectanglePeintre) -> rien #enligne
 {
-    peintre.rappel_dessine_sous_image(peintre, image, rectangle_image, rectangle_sous_image)
+    répétition: RépétitionImage
+    peintre.rappel_dessine_sous_image(peintre, image, rectangle_image, rectangle_sous_image, répétition)
 }
 
 dessine_image :: fonc (peintre: *Peintre, image: TamponImageGrise8Bit, rectangle: RectanglePeintre) -> rien #enligne
@@ -748,32 +754,36 @@ dessine_texte_utf16_igumi :: fonc (peintre: *Peintre @inutilisée, fonte: *Fonte
 dessine_image_igumi :: fonc (peintre: *Peintre @inutilisée, image: ImageIO, rectangle_peintre: RectanglePeintre)
 {
     rect := donne_rectangle_igumi(rectangle_peintre)
-    image_immédiat(image, rect, rect)
+    répétition: RépétitionImage
+    image_immédiat(image, rect, rect, répétition)
 }
 
-dessine_sous_image_igumi :: fonc (peintre: *Peintre @inutilisée, image: ImageIO, rectangle_image: RectanglePeintre, rectangle_sous_image: RectanglePeintre)
+dessine_sous_image_igumi :: fonc (peintre: *Peintre @inutilisée, image: ImageIO, rectangle_image: RectanglePeintre, rectangle_sous_image: RectanglePeintre, répétition: RépétitionImage)
 {
     rect_image := donne_rectangle_igumi(rectangle_image)
     rect := donne_rectangle_igumi(rectangle_sous_image)
-    image_immédiat(image, rect_image, rect)
+    image_immédiat(image, rect_image, rect, répétition)
 }
 
 dessine_image_grise_8bit_igumi :: fonc (peintre: *Peintre @inutilisée, image: TamponImageGrise8Bit, rectangle_peintre: RectanglePeintre)
 {
     rect := donne_rectangle_igumi(rectangle_peintre)
-    image_immédiat(image, rect, rect)
+    répétition: RépétitionImage
+    image_immédiat(image, rect, rect, répétition)
 }
 
 dessine_image_rvba_8bit_igumi :: fonc (peintre: *Peintre @inutilisée, image: TamponImageRVBA8Bit, rectangle_peintre: RectanglePeintre)
 {
     rect := donne_rectangle_igumi(rectangle_peintre)
-    image_immédiat(image, rect, rect)
+    répétition: RépétitionImage
+    image_immédiat(image, rect, rect, répétition)
 }
 
 dessine_image_rvba_32bit_igumi :: fonc (peintre: *Peintre @inutilisée, image: TamponImageRVBA32Bit, rectangle_peintre: RectanglePeintre)
 {
     rect := donne_rectangle_igumi(rectangle_peintre)
-    image_immédiat(image, rect, rect)
+    répétition: RépétitionImage
+    image_immédiat(image, rect, rect, répétition)
 }
 
 donne_fonte_igumi :: fonc (peintre: *Peintre @inutilisée) -> *Fonte
