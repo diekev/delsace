@@ -126,9 +126,11 @@ document_sur_destruction :: fonc (base: *EventTarget)
     déloge_tableau_et_ses_éléments(document.feuilles_de_style, CSS.détruit_feuille_de_style)
 
     pour document.images_disponibles {
+        déloge(it.url)
         IMG_detruit_image(*it.données)
     }
 
+    détruit_uri(document.url)
     déloge(document.images_disponibles)
     déloge(document)
 }
