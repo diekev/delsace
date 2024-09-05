@@ -48,6 +48,7 @@ SessionHistoryEntry :: struct {
 détruit_session_history_entry :: fonc (she: *SessionHistoryEntry)
 {
     détruit_noeud(she.document_state.document)
+    détruit_uri(she.url)
     déloge(she.document_state)
     déloge(she)
 }
@@ -83,7 +84,7 @@ initialise_navigable :: fonc (navigable: *Navigable, document_state: *DocumentSt
 
     // 2. Let entry be a new session history entry, with
     entry := loge(SessionHistoryEntry)
-    entry.url = document_state.document.url
+    entry.url = tente parse_uri_standard(recompose_uri(*document_state.document.url)) piège nonatteignable
     entry.document_state = document_state
 
     // 3. Set navigable's current session history entry to entry.

@@ -513,6 +513,34 @@ rééchantillonne_linéaire :: fonc (entrée: TamponImage($T), sortie: *TamponIm
     retourne résultat
 }
 
+/* ------------------------------------------------------------------------- */
+/** \nom Options de dessin des images pour les modules de dessin.
+ * \{ */
+
+/* Définis la manière de répéter une image lors de son dessin.
+ *
+ * Basée sur les options de CSS :
+ * https://drafts.csswg.org/css-backgrounds-3/#background-repeat */
+GenreRépétitionImage :: énum n8 {
+    /* L'image ne doit être répétée. */
+    Aucune
+    /* L'image doit être répétée, et peut apparaître coupée. */
+    Normale
+    /* L'image doit être mise à l'échelle et répétée afin de couvrir son aire de dessin. */
+    Arrondis
+    /* L'image doit être répétée sans être coupée dans son aire de dessin.
+     * Si possible, de l'espace est introduit entre les répétitions. */
+    Espacé
+}
+
+/* Définis la manière de répéter une image sur chacun des axes lors de son image. */
+RépétitionImage :: struct {
+    x: GenreRépétitionImage
+    y: GenreRépétitionImage
+}
+
+/** \} */
+
 /*
 
 // tentative de l'implémentation en Kuri de https://github.com/woltapp/blurhash/tree/master/C

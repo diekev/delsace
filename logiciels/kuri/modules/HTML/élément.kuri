@@ -4,6 +4,7 @@ importe #inemployé CSS
 importe Fondation
 importe Image
 importe Internet
+importe MIME
 importe Numérique
 importe Unicode
 
@@ -91,6 +92,9 @@ table_virtuelle_élément := TableVirtuelleÉlément(
 élément_détruit_données :: fonc (élément: *Élément)
 {
     CSS.détruit_style_declaration(élément.style)
+    si élément.noeud_de_disposition && élément.noeud_de_disposition.type != CSS.NoeudDeDispositionNouvelleLigne {
+        (élément.noeud_de_disposition comme *CSS.NoeudDeDispositionBloc).élément = nul
+    }
     déloge(élément.liste_classes)
 }
 
@@ -559,8 +563,10 @@ anchor_element_sur_activation_behavior :: fonc (target: *EventTarget, event: *Ev
     source_document := anchor.document
     base_url := donne_base_url(source_document)
     url_document := convertis_uri_url(*base_url)
+    diffère détruit_url(url_document)
 
     url_src := basic_url_parser(chn_href, base = url_document)
+    diffère détruit_url(url_src)
     saufsi url_src {
         retourne
     }
@@ -632,31 +638,12 @@ ajoute_propriété_pour_couleur :: fonc (résolveuse: *CSS.RésolveuseStyle, nom
         retourne
     }
 
-    couleur := opt_couleur.Quelque
-    value: [..]CSS.ValeurDeStyle
-    tableau_ajoute(*value, CSS.ValeurDeStyle(couleur = couleur))
-
-    /* À FAIRE : fuite de mémoire */
-    déclaration := loge(CSS.DéclarationPropriété)
-    déclaration.info = CSS.donne_info_type_pour_nom(nom_propriété)
-    déclaration.property_name = nom_propriété
-    déclaration.value = value
-
-    CSS.ajoute_presentational_hint(résolveuse, déclaration)
+    CSS.ajoute_presentational_hint(résolveuse, nom_propriété, CSS.ValeurDeStyle(couleur = opt_couleur.Quelque))
 }
 
 ajoute_propriété_pour_mot_clé :: fonc (résolveuse: *CSS.RésolveuseStyle, nom_propriété: CSS.CSSOMString, mot_clé: CSS.CSSOMString)
 {
-    value: [..]CSS.ValeurDeStyle
-    tableau_ajoute(*value, CSS.ValeurDeStyle(mot_clé = mot_clé))
-
-    /* À FAIRE : fuite de mémoire */
-    déclaration := loge(CSS.DéclarationPropriété)
-    déclaration.info = CSS.donne_info_type_pour_nom(nom_propriété)
-    déclaration.property_name = nom_propriété
-    déclaration.value = value
-
-    CSS.ajoute_presentational_hint(résolveuse, déclaration)
+    CSS.ajoute_presentational_hint(résolveuse, nom_propriété, CSS.ValeurDeStyle(mot_clé = mot_clé))
 }
 
 ajoute_propriété_pour_non_zero_dimension :: fonc (résolveuse: *CSS.RésolveuseStyle, élément: *Élément, nom_attribut: DOMString, nom_propriété: CSS.CSSOMString)
@@ -672,16 +659,7 @@ ajoute_propriété_pour_non_zero_dimension :: fonc (résolveuse: *CSS.Résolveus
 
 ajoute_propriété_pour_nombre :: fonc (résolveuse: *CSS.RésolveuseStyle, nom_propriété: CSS.CSSOMString, valeur: r64)
 {
-    value: [..]CSS.ValeurDeStyle
-    tableau_ajoute(*value, CSS.ValeurDeStyle(number = valeur))
-
-    /* À FAIRE : fuite de mémoire */
-    déclaration := loge(CSS.DéclarationPropriété)
-    déclaration.info = CSS.donne_info_type_pour_nom(nom_propriété)
-    déclaration.property_name = nom_propriété
-    déclaration.value = value
-
-    CSS.ajoute_presentational_hint(résolveuse, déclaration)
+    CSS.ajoute_presentational_hint(résolveuse, nom_propriété, CSS.ValeurDeStyle(number = valeur))
 }
 
 /* https://html.spec.whatwg.org/multipage/common-microsyntaxes.html#rules-for-parsing-a-legacy-colour-value */
@@ -1179,6 +1157,7 @@ update_image_data :: fonc (image: *HTMLImageElement)
 
     base_url := donne_base_url(document)
     url_document := convertis_uri_url(*base_url)
+    diffère détruit_url(url_document)
 
     url_src := basic_url_parser(src.donne_chaine_utf16(), base = url_document)
     saufsi url_src {
@@ -1194,11 +1173,12 @@ update_image_data :: fonc (image: *HTMLImageElement)
     request.destination = "image"
     request.mode = "no-cors"
     request.redirect_mode = "follow"
-    request.url = tente parse_uri_standard(url_string) piège nonatteignable
+    request.définis_url(tente parse_uri_standard(url_string) piège nonatteignable)
 
     RappelProcessResponse :: struct {
         empl base: BaseProcessResponse
 
+        request: *Request
         image: *HTMLImageElement
         url_src: *URL
     }
@@ -1249,22 +1229,20 @@ update_image_data :: fonc (image: *HTMLImageElement)
     sur_destruction_process_response :: fonc (base: *BaseProcessResponse)
     {
         rappel := base comme *RappelProcessResponse
+        détruit_url(rappel.url_src)
+        détruit_request(rappel.request)
         déloge(rappel)
     }
 
     process_response := loge(RappelProcessResponse)
     process_response.image = image
     process_response.url_src = url_src
+    process_response.request = request
     process_response.sur_rappel = sur_rappel_process_response
     process_response.sur_destruction = sur_destruction_process_response
 
     fetch_controller := fetch(user_agent, request, process_response = process_response)
     diffère détruit_fetch_controller(fetch_controller)
-}
-
-est_type_mime_image :: fonc (content_type: chaine) -> bool
-{
-    retourne content_type == "image/jpeg" || content_type == "image/png"
 }
 
 /** \} */
@@ -1369,6 +1347,7 @@ process_stylesheet_link :: fonc (link: *HTMLLinkElement)
 
     base_url := donne_base_url(document)
     url_document := convertis_uri_url(*base_url)
+    diffère détruit_url(url_document)
 
     url_src := basic_url_parser(src.donne_chaine_utf16(), base = url_document)
     saufsi url_src {
@@ -1381,12 +1360,13 @@ process_stylesheet_link :: fonc (link: *HTMLLinkElement)
     request.destination = "style"
     request.mode = "no-cors"
     request.redirect_mode = "follow"
-    request.url = tente parse_uri_standard(url_string) piège nonatteignable
+    request.définis_url(tente parse_uri_standard(url_string) piège nonatteignable)
 
     RappelProcessResponse :: struct {
         empl base: BaseProcessResponse
 
         link: *HTMLLinkElement
+        request: *Request
         url_src: *URL
         url_string: ChaineASCII
     }
@@ -1401,16 +1381,16 @@ process_stylesheet_link :: fonc (link: *HTMLLinkElement)
             retourne
         }
 
-        saufsi réponse.body_info.content_type == "text/css" {
+        saufsi réponse.body_info.content_type == MIME_text_css {
             retourne
         }
 
         contenu := réponse.body.Quelque
 
-        mime_css := crée_chaine_utf16_unique("text/css")
+        mime_css := crée_chaine_utf16_unique(MIME_text_css)
 
         feuille_de_style := loge(CSS.CSSStyleSheet)
-        feuille_de_style.location = tente parse_uri_standard(rappel.url_string) piège nonatteignable
+        feuille_de_style.location = tente parse_uri_standard(copie_chaine(rappel.url_string)) piège nonatteignable
         feuille_de_style.origine = CSS.OrigineCascade.Author
         feuille_de_style.type = mime_css
         feuille_de_style.owner_node = rappel.link
@@ -1430,11 +1410,14 @@ process_stylesheet_link :: fonc (link: *HTMLLinkElement)
     sur_destruction_process_response :: fonc (base: *BaseProcessResponse)
     {
         rappel := base comme *RappelProcessResponse
+        détruit_url(rappel.url_src)
+        détruit_request(rappel.request)
         déloge(rappel)
     }
 
     process_response := loge(RappelProcessResponse)
     process_response.link = link
+    process_response.request = request
     process_response.url_string = url_string
     process_response.url_src = url_src
     process_response.sur_rappel = sur_rappel_process_response
@@ -1743,7 +1726,7 @@ détermine_type_block_script :: fonc (script: *HTMLScriptElement) -> DOMString
     si (attr_type != nul && attr_type.valeur.est_vide()) ||
          (attr_type == nul && attr_language != nul && attr_language.valeur.est_vide()) ||
          (attr_type == nul && attr_language == nul) {
-        retourne crée_chaine_utf16_unique("text/javascript")
+        retourne crée_chaine_utf16_unique(MIME_text_javascript)
     }
 
     si attr_type {
@@ -1755,37 +1738,6 @@ détermine_type_block_script :: fonc (script: *HTMLScriptElement) -> DOMString
     chn := imprime_chaine("text/%", attr_language.valeur)
     diffère déloge(chn)
     retourne crée_chaine_utf16_unique(chn)
-}
-
-/* https://mimesniff.spec.whatwg.org/#javascript-mime-type-essence-match */
-est_type_mime_javascript :: fonc (chn: DOMString) -> bool
-{
-    mimes_possibles := [
-        "application/ecmascript",
-        "application/javascript",
-        "application/x-ecmascript",
-        "application/x-javascript",
-        "text/ecmascript",
-        "text/javascript",
-        "text/javascript1.0",
-        "text/javascript1.1",
-        "text/javascript1.2",
-        "text/javascript1.3",
-        "text/javascript1.4",
-        "text/javascript1.5",
-        "text/jscript",
-        "text/livescript",
-        "text/x-ecmascript",
-        "text/x-javascript"
-    ]
-
-    pour mimes_possibles {
-        si compare_ascii_insensible_à_la_casse(chn, it) {
-            retourne vrai
-        }
-    }
-
-    retourne faux
 }
 
 /* https://w3c.github.io/webappsec-csp/#should-block-inline */
@@ -1881,7 +1833,7 @@ ajourne_style_block :: fonc (style: *HTMLStyleElement)
     // 4. If element's type attribute is present and its value is neither the
     //    empty string nor an ASCII case-insensitive match for "text/css", then
     //    return.
-    mime_css := crée_chaine_utf16_unique("text/css")
+    mime_css := crée_chaine_utf16_unique(MIME_text_css)
 
     attr_type := element.cherche_attribut(ATTR_type)
     si attr_type && !(attr_type.valeur.est_vide() || compare_ascii_insensible_à_la_casse(attr_type.valeur, mime_css)) {

@@ -49,6 +49,11 @@ détruit_feuille_de_style :: fonc (stylesheet: *CSSStyleSheet)
         }
     }
 
+    si stylesheet.location.possède_valeur() {
+        url := stylesheet.location.Quelque
+        détruit_uri(url)
+    }
+
     déloge(stylesheet.rules)
     déloge(stylesheet)
 }

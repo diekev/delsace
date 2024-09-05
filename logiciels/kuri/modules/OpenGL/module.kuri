@@ -100,7 +100,7 @@ définis_texture_2d :: fonc (code_texture: n32, params: *ParamètresTexture2D)
     vérifie_erreur("définis_texture_2d : glBindTexture 0")
 }
 
-donne_paramètres_texture_pour_image :: fonc (image: ImageIO) -> ParamètresTexture2D
+donne_paramètres_texture_pour_image :: fonc (image: ImageIO, répétition: RépétitionImage) -> ParamètresTexture2D
 {
     résultat: ParamètresTexture2D
     résultat.largeur = image.largeur
@@ -120,10 +120,11 @@ donne_paramètres_texture_pour_image :: fonc (image: ImageIO) -> ParamètresText
     sinon {
         résultat.format = GL_RGBA
     }
+    définis_répétition(*résultat, répétition)
     retourne résultat
 }
 
-donne_paramètres_texture_pour_image :: fonc (image: TamponImageGrise8Bit) -> ParamètresTexture2D
+donne_paramètres_texture_pour_image :: fonc (image: TamponImageGrise8Bit, répétition: RépétitionImage) -> ParamètresTexture2D
 {
     résultat: ParamètresTexture2D
     résultat.largeur = image.largeur
@@ -132,10 +133,11 @@ donne_paramètres_texture_pour_image :: fonc (image: TamponImageGrise8Bit) -> Pa
     résultat.bordure = 0
     résultat.type = GL_UNSIGNED_BYTE
     résultat.format = GL_RED
+    définis_répétition(*résultat, répétition)
     retourne résultat
 }
 
-donne_paramètres_texture_pour_image :: fonc (image: TamponImageRVBA8Bit) -> ParamètresTexture2D
+donne_paramètres_texture_pour_image :: fonc (image: TamponImageRVBA8Bit, répétition: RépétitionImage) -> ParamètresTexture2D
 {
     résultat: ParamètresTexture2D
     résultat.largeur = image.largeur
@@ -144,10 +146,11 @@ donne_paramètres_texture_pour_image :: fonc (image: TamponImageRVBA8Bit) -> Par
     résultat.bordure = 0
     résultat.type = GL_UNSIGNED_BYTE
     résultat.format = GL_RGBA
+    définis_répétition(*résultat, répétition)
     retourne résultat
 }
 
-donne_paramètres_texture_pour_image :: fonc (image: TamponImageRVBA32Bit) -> ParamètresTexture2D
+donne_paramètres_texture_pour_image :: fonc (image: TamponImageRVBA32Bit, répétition: RépétitionImage) -> ParamètresTexture2D
 {
     résultat: ParamètresTexture2D
     résultat.largeur = image.largeur
@@ -156,7 +159,23 @@ donne_paramètres_texture_pour_image :: fonc (image: TamponImageRVBA32Bit) -> Pa
     résultat.bordure = 0
     résultat.type = GL_FLOAT
     résultat.format = GL_RGBA
+    définis_répétition(*résultat, répétition)
     retourne résultat
+}
+
+définis_répétition :: fonc (params: *ParamètresTexture2D, répétition: RépétitionImage)
+{
+    params.wrap_s = convertis_répétition(répétition.x)
+    params.wrap_t = convertis_répétition(répétition.y)
+}
+
+convertis_répétition :: fonc (répétition: GenreRépétitionImage) -> GLenum
+{
+    si répétition != GenreRépétitionImage.Aucune {
+        retourne GL_REPEAT
+    }
+
+    retourne GL_CLAMP
 }
 
 /** \} */
