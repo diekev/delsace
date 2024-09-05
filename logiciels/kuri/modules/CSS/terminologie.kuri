@@ -7,6 +7,7 @@ CSSOMString :: ChaineUTF16Unique
 PROP_absolute : CSSOMString = ---
 PROP_after : CSSOMString = ---
 PROP_alias : CSSOMString = ---
+PROP_all : CSSOMString = ---
 PROP_all_scroll : CSSOMString = ---
 PROP_auto : CSSOMString = ---
 PROP_background : CSSOMString = ---

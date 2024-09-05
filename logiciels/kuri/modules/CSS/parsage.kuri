@@ -1777,7 +1777,8 @@ infos_types_propriétés_shorthand := [
     InfoTypePropriété(PROP_inset_block, sur_parsage_shorthand = parse_propriété_inset_logique, drapeaux = DrapeauxPropriété.AffecteDisposition),
     InfoTypePropriété(PROP_inset_inline, sur_parsage_shorthand = parse_propriété_inset_logique, drapeaux = DrapeauxPropriété.AffecteDisposition),
     InfoTypePropriété(PROP_text_align, id = IDPropriété.TextAlign, fonction_de_parsage = parse_propriété_text_align, drapeaux = DrapeauxPropriété.Héritée, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
-    InfoTypePropriété(PROP_font, sur_parsage_shorthand = parse_propriété_font, drapeaux = DrapeauxPropriété.AffecteDisposition /* | DrapeauxPropriété.Héritée */)
+    InfoTypePropriété(PROP_font, sur_parsage_shorthand = parse_propriété_font, drapeaux = DrapeauxPropriété.AffecteDisposition /* | DrapeauxPropriété.Héritée */),
+    InfoTypePropriété(PROP_all, sur_parsage_shorthand = parse_propriété_all, drapeaux = DrapeauxPropriété.AffecteConstructionArbre)
 ]
 
 infos_types_propriétés := [
@@ -2002,6 +2003,27 @@ parse_variable :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(Valeur
     résultat.nom = nom
 
     retourne ValeurDeStyle(variable = résultat)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom All
+ * https://drafts.csswg.org/css-cascade/#all-shorthand
+ * \{ */
+
+parse_propriété_all :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
+{
+    parseuse := initialise_une_parseuse(value)
+    opt_valeur := parse_css_wide_keyword(parseuse)
+    si opt_valeur.possède_valeur() {
+        valeur := opt_valeur.Quelque
+        pour * infos_types_propriétés {
+            ctx.ajoute_propriété(it.nom, valeur)
+        }
+        retourne vrai
+    }
+    retourne faux
 }
 
 /** \} */
