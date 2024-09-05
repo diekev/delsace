@@ -100,6 +100,9 @@ détruit_url :: fonc (url: *URL)
         retourne
     }
 
+    si url.host.possède_valeur() {
+        déloge_si_logée(url.host.Quelque)
+    }
     déloge_si_logée(url.scheme)
     déloge_si_logée(url.username)
     déloge_si_logée(url.password)
@@ -121,6 +124,14 @@ définis_schéma :: fonc (url: *URL, schéma: ChaineASCII)
 {
     déloge_si_logée(url.scheme)
     url.scheme = schéma
+}
+
+définis_host :: fonc (url: *URL, host: chaine)
+{
+    si url.host.possède_valeur() {
+        déloge_si_logée(url.host.Quelque)
+    }
+    url.host = host
 }
 
 définis_path :: fonc (url: *URL, path: URLPath)
@@ -822,7 +833,9 @@ basic_url_parser_relative :: fonc (parser: *BasicURLParser) -> RésultatParsageU
         //        url’s query to base’s query.
         parser.url.username = parser.base.username
         parser.url.password = parser.base.password
-        parser.url.host = parser.base.host
+        si parser.base.host.possède_valeur() {
+            parser.url.définis_host(copie_chaine(parser.base.host.Quelque))
+        }
         parser.url.port = parser.base.port
         parser.url.définis_path(parser.base.path)
         parser.url.query = parser.base.query
@@ -882,7 +895,9 @@ basic_url_parser_relative_slash :: fonc (parser: *BasicURLParser) -> RésultatPa
         //     decrease pointer by 1.
         parser.url.username = parser.base.username
         parser.url.password = parser.base.password
-        parser.url.host = parser.base.host
+        si parser.base.host.possède_valeur() {
+            parser.url.définis_host(copie_chaine(parser.base.host.Quelque))
+        }
         parser.url.port = parser.base.port
         parser.définis_state(ÉtatParsageURL.Path)
         parser.decrease_pointer()
@@ -1021,7 +1036,7 @@ basic_url_parser_host :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
         // 4. If host is failure, then return failure.
 
         // 5. Set url’s host to host, buffer to the empty string, and state to path start state.
-        parser.url.host = host
+        parser.url.définis_host(host)
         parser.buffer.unités.taille = 0
         parser.définis_state(ÉtatParsageURL.PathStart)
 
@@ -1055,7 +1070,7 @@ basic_url_parser_file :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
     parser.url.définis_schéma("file")
 
     // 2. Set url’s host to the empty string.
-    parser.url.host = ""
+    parser.url.définis_host("")
 
     // 3. If c is U+002F (/) or U+005C (\), then:
     c := parser.donne_caractère()
@@ -1075,7 +1090,9 @@ basic_url_parser_file :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
         // 1. Set url’s host to base’s host,
         //        url’s path to a clone of base’s path, and
         //        url’s query to base’s query.
-        parser.url.host = parser.base.host
+        si parser.base.host.possède_valeur() {
+            parser.url.définis_host(copie_chaine(parser.base.host.Quelque))
+        }
         parser.url.définis_path(parser.base.path)
         si parser.base.query.possède_valeur() {
             parser.url.query = copie_chaine(parser.base.query.Quelque)
@@ -1146,7 +1163,9 @@ basic_url_parser_file_slash :: fonc (parser: *BasicURLParser) -> RésultatParsag
     // 1. If base is non-null and base’s scheme is "file", then:
     si parser.base != nul && parser.base.scheme == "file" {
         // 1. Set url’s host to base’s host.
-        parser.url.host = parser.base.host
+        si parser.base.host.possède_valeur() {
+            parser.url.définis_host(copie_chaine(parser.base.host.Quelque))
+        }
 
         // 2. If the code point substring from pointer to the end of input does not 
         // start with a Windows drive letter and base’s path[0] is a normalized Windows
@@ -1190,7 +1209,7 @@ basic_url_parser_file_host :: fonc (parser: *BasicURLParser) -> RésultatParsage
         // 2. Otherwise, if buffer is the empty string, then:
         sinon si parser.buffer.est_vide() {
             // 1. Set url’s host to the empty string.
-            parser.url.host = ""
+            parser.url.définis_host("")
 
             // 2. If state override is given, then return.
             si parser.state_override {

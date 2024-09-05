@@ -1327,6 +1327,7 @@ rappels_interface_sur_lancement_requête :: fonc (base: *RappelsInterface, requ�
     rappels := base comme *RappelsInterfaceQt
 
     rappels_socket := crée_rappel_socket_pour_requête(requête)
+    diffère déloge(rappels_socket)
 
     parent := rappels.fenêtre
 

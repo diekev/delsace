@@ -150,6 +150,10 @@ détruit_response :: fonc (response: *Response)
         déloge(body)
     }
 
+    si response.body_info {
+        déloge_si_logée(response.body_info.content_type)
+    }
+
     déloge(response.body_info)
     déloge(response)
 }
