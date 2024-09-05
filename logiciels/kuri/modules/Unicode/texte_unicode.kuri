@@ -393,14 +393,7 @@ en_majuscule_sur_place :: fonc (chn: &ChaineUTF32)
     pour & chn.points_de_code {
         rune := Rune(it)
 
-        /* Vérifions si nous avons une lettre majuscule. */
-        f := donne_permutation_casse(unicode_tolower, rune)
-        si f == nul || it >= f.min {
-            continue
-        }
-
-        /* Trouve la permutation pour passer de minuscule à majuscule. */
-        f = donne_permutation_casse(unicode_casefold, rune)
+        f := donne_permutation_casse(unicode_toupper, rune)
         si f == nul || it < f.min {
             continue
         }

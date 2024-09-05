@@ -394,10 +394,15 @@ StyleBlockContent :: struct {
     rules: [..]*ParsedRule
 }
 
-détruit_content :: fonc (content: &StyleBlockContent)
+détruit_content :: fonc (content: &StyleBlockContent, détruit_valeurs: bool)
 {
     pour content.decls {
-        déloge(it.value)
+        si détruit_valeurs {
+            détruit_tableau_component_value(*it.value)
+        }
+        sinon {
+            déloge(it.value)
+        }
     }
 
     déloge(content.rules)
@@ -430,7 +435,7 @@ parse_attribut_style :: fonc (valeur: ChaineUTF16) -> *CSSStyleDeclaration
     diffère détruit_lexèmes(*lexèmes)
 
     style_content := parse_a_list_of_declarations(lexèmes)
-    diffère détruit_content(style_content)
+    diffère détruit_content(style_content, vrai)
 
     ctx: ContexteParsageFeuilleDeStyle
     diffère détruit_données_contexte(*ctx)
@@ -1552,7 +1557,7 @@ parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sh
     résultat.selector_list = selectors.Quelque
 
     content := parse_a_style_block_s_contents(parsed_rule.bloc.value)
-    diffère détruit_content(content)
+    diffère détruit_content(content, faux)
 
     /* Ne considère que les déclarations.
      * À FAIRE : @nest peut être préservé. */
@@ -1631,6 +1636,21 @@ ajoute_propriétés_logique :: fonc (ctx: *ContexteParsageShorthand, nombre_vale
         ajoute_propriété(ctx, noms[0], valeurs[0])
         ajoute_propriété(ctx, noms[1], valeurs[1])
     }
+}
+
+parse_mot_clé_global :: fonc (ctx: *ContexteParsageShorthand, noms_propriétés: []CSSOMString, value: [..]ComponentValue) -> bool
+{
+    parseuse := initialise_une_parseuse(value)
+    valeur := parse_css_wide_keyword(parseuse)
+    saufsi valeur.possède_valeur() {
+        retourne faux
+    }
+
+    pour noms_propriétés {
+        ctx.ajoute_propriété(it, valeur.Quelque)
+    }
+
+    retourne vrai
 }
 
 parse_css_style_declaration :: fonc (ctx: *ContexteParsageFeuilleDeStyle, déclarations: []ParsedDeclaration) -> *CSSStyleDeclaration
@@ -1757,7 +1777,9 @@ infos_types_propriétés_shorthand := [
     InfoTypePropriété(PROP_inset_block, sur_parsage_shorthand = parse_propriété_inset_logique, drapeaux = DrapeauxPropriété.AffecteDisposition),
     InfoTypePropriété(PROP_inset_inline, sur_parsage_shorthand = parse_propriété_inset_logique, drapeaux = DrapeauxPropriété.AffecteDisposition),
     InfoTypePropriété(PROP_text_align, id = IDPropriété.TextAlign, fonction_de_parsage = parse_propriété_text_align, drapeaux = DrapeauxPropriété.Héritée, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
-    InfoTypePropriété(PROP_font, sur_parsage_shorthand = parse_propriété_font, drapeaux = DrapeauxPropriété.AffecteDisposition /* | DrapeauxPropriété.Héritée */)
+    InfoTypePropriété(PROP_font, sur_parsage_shorthand = parse_propriété_font, drapeaux = DrapeauxPropriété.AffecteDisposition /* | DrapeauxPropriété.Héritée */),
+    InfoTypePropriété(PROP_all, sur_parsage_shorthand = parse_propriété_all, drapeaux = DrapeauxPropriété.AffecteConstructionArbre),
+    InfoTypePropriété(PROP_border_radius, sur_parsage_shorthand = parse_propriété_border_radius_shorthand)
 ]
 
 infos_types_propriétés := [
@@ -1818,10 +1840,12 @@ infos_types_propriétés := [
     InfoTypePropriété(PROP_inset_inline_start, fonction_de_parsage = parse_propriété_inset, sur_calcul_style = prop_inset_inline_start_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto, drapeaux = DrapeauxPropriété.AffecteDisposition),
     InfoTypePropriété(PROP_position, id = IDPropriété.Position, fonction_de_parsage = parse_propriété_position, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteConstructionArbre),
     InfoTypePropriété(PROP_float, id = IDPropriété.Float, fonction_de_parsage = parse_propriété_float, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteConstructionArbre),
-    InfoTypePropriété(PROP_vertical_align, id = IDPropriété.VerticalAlign, fonction_de_parsage = parse_propriété_vertical_align, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition)
+    InfoTypePropriété(PROP_vertical_align, id = IDPropriété.VerticalAlign, fonction_de_parsage = parse_propriété_vertical_align, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition),
+    InfoTypePropriété(PROP_border_bottom_left_radius, id = IDPropriété.BorderBottomLeftRadius, fonction_de_parsage = parse_propriété_border_radius, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage),
+    InfoTypePropriété(PROP_border_bottom_right_radius, id = IDPropriété.BorderBottomRightRadius, fonction_de_parsage = parse_propriété_border_radius, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage),
+    InfoTypePropriété(PROP_border_top_left_radius, id = IDPropriété.BorderTopLeftRadius, fonction_de_parsage = parse_propriété_border_radius, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage),
+    InfoTypePropriété(PROP_border_top_right_radius, id = IDPropriété.BorderTopRightRadius, fonction_de_parsage = parse_propriété_border_radius, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage)
 ]
-
-#portée_export
 
 donne_info_type_pour_nom :: fonc (nom: CSSOMString) -> *InfoTypePropriété
 {
@@ -1989,6 +2013,27 @@ parse_variable :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(Valeur
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom All
+ * https://drafts.csswg.org/css-cascade/#all-shorthand
+ * \{ */
+
+parse_propriété_all :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
+{
+    parseuse := initialise_une_parseuse(value)
+    opt_valeur := parse_css_wide_keyword(parseuse)
+    si opt_valeur.possède_valeur() {
+        valeur := opt_valeur.Quelque
+        pour * infos_types_propriétés {
+            ctx.ajoute_propriété(it.nom, valeur)
+        }
+        retourne vrai
+    }
+    retourne faux
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Display
  * \{ */
 
@@ -2070,6 +2115,8 @@ parse_display_legacy :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(
  * https://drafts.csswg.org/css-color/#the-color-property
  * \{ */
 
+#portée_export
+
 valeur_hex_depuis_unité :: fonc (unité: n16) -> n8
 {
     si 'A' <= unité <= 'F' {
@@ -2082,6 +2129,8 @@ valeur_hex_depuis_unité :: fonc (unité: n16) -> n8
 
     retourne unité comme n8 - ('0' comme n8)
 }
+
+#portée_module
 
 parse_propriété_color :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
 {
@@ -2631,6 +2680,11 @@ consomme_slash_et_espaces_blanches :: fonc (parseuse: &Parseuse(ComponentValue))
 
 parse_propriété_text_decoration :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
 {
+    noms_propriétés := [PROP_text_decoration_line, PROP_text_decoration_style, PROP_text_decoration_color]
+    si parse_mot_clé_global(ctx, noms_propriétés, value) {
+        retourne vrai
+    }
+
     parseuse := initialise_une_parseuse(value)
 
     // text-decoration-line
@@ -2761,6 +2815,8 @@ parse_valeur_text_decoration_style :: fonc (parseuse: &Parseuse(ComponentValue))
  * https://drafts.csswg.org/css-ui/#cursor
  * \{ */
 
+#portée_export
+
 CursorType :: énum {
     auto
     default
@@ -2799,6 +2855,8 @@ CursorType :: énum {
     zoom_in
     zoom_out
 }
+
+#portée_module
 
 donne_type_cursor :: fonc (chn: CSSOMString) -> CursorType
 #corps_texte {
@@ -2846,6 +2904,11 @@ parse_propriété_cursor :: fonc (value: [..]ComponentValue) -> Optionnel(Valeur
 
 parse_propriété_font :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
 {
+    noms_propriétés := [PROP_font_weight, PROP_line_height, PROP_font_family, PROP_font_size]
+    si parse_mot_clé_global(ctx, noms_propriétés, value) {
+        retourne vrai
+    }
+
     font_weight := ValeurDeStyle(mot_clé = PROP_normal)
     line_height := ValeurDeStyle(mot_clé = PROP_normal)
     font_family := ValeurDeStyle(mot_clé = PROP_serif)
@@ -3062,6 +3125,11 @@ parse_propriété_font_style :: fonc (value: [..]ComponentValue) -> Optionnel(Va
 
 parse_propriété_background :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
 {
+    noms_propriétés := [PROP_background_color, PROP_background_image]
+    si parse_mot_clé_global(ctx, noms_propriétés, value) {
+        retourne vrai
+    }
+
     couleur := ValeurDeStyle(mot_clé = PROP_transparent)
     image := ValeurDeStyle(mot_clé = PROP_none)
 
@@ -3210,6 +3278,15 @@ parse_propriété_border_impl :: fonc (value: [..]ComponentValue) -> Optionnel(V
 
 parse_propriété_border :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
 {
+    noms_propriétés := [
+        PROP_border_top_width, PROP_border_bottom_width, PROP_border_right_width, PROP_border_left_width,
+        PROP_border_top_style, PROP_border_bottom_style, PROP_border_right_style, PROP_border_left_style,
+        PROP_border_top_color, PROP_border_bottom_color, PROP_border_right_color, PROP_border_left_color
+    ]
+    si parse_mot_clé_global(ctx, noms_propriétés, value) {
+        retourne vrai
+    }
+
     opt_valeurs := parse_propriété_border_impl(value)
     saufsi opt_valeurs.possède_valeur() {
         retourne faux
@@ -3237,6 +3314,24 @@ parse_propriété_border :: fonc (ctx: *ContexteParsageShorthand, value: [..]Com
 
 parse_propriété_border_edge :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
 {
+    noms_propriétés: [3]CSSOMString
+    si ctx.déclaration_parsée.name == PROP_border_top {
+        noms_propriétés = [PROP_border_top_width, PROP_border_top_style, PROP_border_top_color]
+    }
+    sinon si ctx.déclaration_parsée.name == PROP_border_bottom {
+        noms_propriétés = [PROP_border_bottom_width, PROP_border_bottom_style, PROP_border_bottom_color]
+    }
+    sinon si ctx.déclaration_parsée.name == PROP_border_right {
+        noms_propriétés = [PROP_border_right_width, PROP_border_right_style, PROP_border_right_color]
+    }
+    sinon {
+        assert(ctx.déclaration_parsée.name == PROP_border_left)
+        noms_propriétés = [PROP_border_left_width, PROP_border_left_style, PROP_border_left_color]
+    }
+    si parse_mot_clé_global(ctx, noms_propriétés, value) {
+        retourne vrai
+    }
+
     opt_valeurs := parse_propriété_border_impl(value)
     saufsi opt_valeurs.possède_valeur() {
         retourne faux
@@ -3271,6 +3366,11 @@ parse_propriété_border_edge :: fonc (ctx: *ContexteParsageShorthand, value: [.
 
 parse_propriété_border_color :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
 {
+    noms_propriétés := [PROP_border_top_color, PROP_border_right_color, PROP_border_bottom_color, PROP_border_left_color]
+    si parse_mot_clé_global(ctx, noms_propriétés, value) {
+        retourne vrai
+    }
+
     parseuse := initialise_une_parseuse(value)
 
     résultat: [4]ValeurDeStyle
@@ -3296,12 +3396,17 @@ parse_propriété_border_color :: fonc (ctx: *ContexteParsageShorthand, value: [
         retourne faux
     }
 
-    ctx.ajoute_propriétés_boite(nombre_valeurs, résultat, [PROP_border_top_color, PROP_border_right_color, PROP_border_bottom_color, PROP_border_left_color])
+    ctx.ajoute_propriétés_boite(nombre_valeurs, résultat, noms_propriétés)
     retourne vrai
 }
 
 parse_propriété_border_style :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
 {
+    noms_propriétés := [PROP_border_top_style, PROP_border_right_style, PROP_border_bottom_style, PROP_border_left_style]
+    si parse_mot_clé_global(ctx, noms_propriétés, value) {
+        retourne vrai
+    }
+
     parseuse := initialise_une_parseuse(value)
 
     résultat: [4]ValeurDeStyle
@@ -3327,12 +3432,17 @@ parse_propriété_border_style :: fonc (ctx: *ContexteParsageShorthand, value: [
         retourne faux
     }
 
-    ctx.ajoute_propriétés_boite(nombre_valeurs, résultat, [PROP_border_top_style, PROP_border_right_style, PROP_border_bottom_style, PROP_border_left_style])
+    ctx.ajoute_propriétés_boite(nombre_valeurs, résultat, noms_propriétés)
     retourne vrai
 }
 
 parse_propriété_border_width :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
 {
+    noms_propriétés := [PROP_border_top_width, PROP_border_right_width, PROP_border_bottom_width, PROP_border_left_width]
+    si parse_mot_clé_global(ctx, noms_propriétés, value) {
+        retourne vrai
+    }
+
     parseuse := initialise_une_parseuse(value)
 
     résultat: [4]ValeurDeStyle
@@ -3358,7 +3468,7 @@ parse_propriété_border_width :: fonc (ctx: *ContexteParsageShorthand, value: [
         retourne faux
     }
 
-    ctx.ajoute_propriétés_boite(nombre_valeurs, résultat, [PROP_border_top_width, PROP_border_right_width, PROP_border_bottom_width, PROP_border_left_width])
+    ctx.ajoute_propriétés_boite(nombre_valeurs, résultat, noms_propriétés)
     retourne vrai
 }
 
@@ -3443,6 +3553,72 @@ parse_valeur_line_style :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionn
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Border radius
+ * https://drafts.csswg.org/css-backgrounds-3/#border-radius
+ * \{ */
+
+parse_propriété_border_radius_shorthand :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
+{
+    noms_propriétés := [PROP_border_top_left_radius, PROP_border_top_right_radius, PROP_border_bottom_right_radius, PROP_border_bottom_left_radius]
+    si parse_mot_clé_global(ctx, noms_propriétés, value) {
+        retourne vrai
+    }
+
+    parseuse := initialise_une_parseuse(value)
+
+    résultat: [4]ValeurDeStyle
+    nombre_de_valeurs: z64
+
+    tantque !fini(parseuse) && nombre_de_valeurs != 4 {
+        parseuse.consomme_espaces_blanches()
+
+        /* <length-percentage> */
+        valeur := parse_valeur_length_percentage(parseuse)
+        si valeur.possède_valeur() {
+            résultat[nombre_de_valeurs] = valeur.Quelque
+            nombre_de_valeurs += 1
+            continue
+        }
+
+        opt_variable := parse_variable(parseuse)
+        si opt_variable.possède_valeur() {
+            résultat[nombre_de_valeurs] = opt_variable.Quelque
+            nombre_de_valeurs += 1
+            continue
+        }
+
+        retourne faux
+    }
+
+    si nombre_de_valeurs == 1 {
+        résultat[1] = résultat[0]
+        résultat[2] = résultat[0]
+        résultat[3] = résultat[0]
+    }
+    sinon si nombre_de_valeurs == 2 {
+        résultat[2] = résultat[1]
+        résultat[3] = résultat[0]
+    }
+    sinon si nombre_de_valeurs == 3 {
+        résultat[3] = résultat[0]
+    }
+
+    pour 4 {
+        ctx.ajoute_propriété(noms_propriétés[it], résultat[it])
+    }
+
+    retourne vrai
+}
+
+parse_propriété_border_radius :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    retourne parse_valeur_length_percentage(parseuse)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Font Style
  * https://drafts.csswg.org/css-box/#margin-physical
  * https://drafts.csswg.org/css-logical/#margin-properties
@@ -3450,6 +3626,11 @@ parse_valeur_line_style :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionn
 
 parse_propriété_margin :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
 {
+    noms_propriétés := [PROP_margin_top, PROP_margin_right, PROP_margin_bottom, PROP_margin_left]
+    si parse_mot_clé_global(ctx, noms_propriétés, value) {
+        retourne vrai
+    }
+
     parseuse := initialise_une_parseuse(value)
 
     résultat: [4]ValeurDeStyle
@@ -3476,12 +3657,26 @@ parse_propriété_margin :: fonc (ctx: *ContexteParsageShorthand, value: [..]Com
         retourne faux
     }
 
-    ctx.ajoute_propriétés_boite(nombre_valeurs, résultat, [PROP_margin_top, PROP_margin_right, PROP_margin_bottom, PROP_margin_left])
+    ctx.ajoute_propriétés_boite(nombre_valeurs, résultat, noms_propriétés)
     retourne vrai
 }
 
 parse_propriété_margin_logique :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
 {
+    noms_propriétés: [2]CSSOMString
+    si ctx.déclaration_parsée.name == PROP_margin_block {
+        noms_propriétés[0] = PROP_margin_block_start
+        noms_propriétés[1] = PROP_margin_block_end
+    }
+    sinon {
+        assert(ctx.déclaration_parsée.name == PROP_margin_inline)
+        noms_propriétés[0] = PROP_margin_inline_start
+        noms_propriétés[1] = PROP_margin_inline_end
+    }
+    si parse_mot_clé_global(ctx, noms_propriétés, value) {
+        retourne vrai
+    }
+
     parseuse := initialise_une_parseuse(value)
 
     résultat: [2]ValeurDeStyle
@@ -3508,18 +3703,7 @@ parse_propriété_margin_logique :: fonc (ctx: *ContexteParsageShorthand, value:
         retourne faux
     }
 
-    noms: [2]CSSOMString
-    si ctx.déclaration_parsée.name == PROP_margin_block {
-        noms[0] = PROP_margin_block_start
-        noms[1] = PROP_margin_block_end
-    }
-    sinon {
-        assert(ctx.déclaration_parsée.name == PROP_margin_inline)
-        noms[0] = PROP_margin_inline_start
-        noms[1] = PROP_margin_inline_end
-    }
-
-    ctx.ajoute_propriétés_logique(nombre_valeurs, résultat, noms)
+    ctx.ajoute_propriétés_logique(nombre_valeurs, résultat, noms_propriétés)
     retourne vrai
 }
 
@@ -3541,6 +3725,11 @@ parse_propriété_margin_top :: fonc (value: [..]ComponentValue) -> Optionnel(Va
 
 parse_propriété_padding :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
 {
+    noms_propriétés := [PROP_padding_top, PROP_padding_right, PROP_padding_bottom, PROP_padding_left]
+    si parse_mot_clé_global(ctx, noms_propriétés, value) {
+        retourne vrai
+    }
+
     parseuse := initialise_une_parseuse(value)
 
     résultat: [4]ValeurDeStyle
@@ -3567,12 +3756,26 @@ parse_propriété_padding :: fonc (ctx: *ContexteParsageShorthand, value: [..]Co
         retourne faux
     }
 
-    ctx.ajoute_propriétés_boite(nombre_valeurs, résultat, [PROP_padding_top, PROP_padding_right, PROP_padding_bottom, PROP_padding_left])
+    ctx.ajoute_propriétés_boite(nombre_valeurs, résultat, noms_propriétés)
     retourne vrai
 }
 
 parse_propriété_padding_logique :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
 {
+    noms_propriétés: [2]CSSOMString
+    si ctx.déclaration_parsée.name == PROP_padding_block {
+        noms_propriétés[0] = PROP_padding_block_start
+        noms_propriétés[1] = PROP_padding_block_end
+    }
+    sinon {
+        assert(ctx.déclaration_parsée.name == PROP_padding_inline)
+        noms_propriétés[0] = PROP_padding_inline_start
+        noms_propriétés[1] = PROP_padding_inline_end
+    }
+    si parse_mot_clé_global(ctx, noms_propriétés, value) {
+        retourne vrai
+    }
+
     parseuse := initialise_une_parseuse(value)
 
     résultat: [2]ValeurDeStyle
@@ -3599,18 +3802,7 @@ parse_propriété_padding_logique :: fonc (ctx: *ContexteParsageShorthand, value
         retourne faux
     }
 
-    noms: [2]CSSOMString
-    si ctx.déclaration_parsée.name == PROP_padding_block {
-        noms[0] = PROP_padding_block_start
-        noms[1] = PROP_padding_block_end
-    }
-    sinon {
-        assert(ctx.déclaration_parsée.name == PROP_padding_inline)
-        noms[0] = PROP_padding_inline_start
-        noms[1] = PROP_padding_inline_end
-    }
-
-    ctx.ajoute_propriétés_logique(nombre_valeurs, résultat, noms)
+    ctx.ajoute_propriétés_logique(nombre_valeurs, résultat, noms_propriétés)
     retourne vrai
 }
 
@@ -3715,6 +3907,20 @@ parse_propriété_inset :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurD
 
 parse_propriété_inset_logique :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
 {
+    noms_propriétés: [2]CSSOMString
+    si ctx.déclaration_parsée.name == PROP_inset_block {
+        noms_propriétés[0] = PROP_inset_block_start
+        noms_propriétés[1] = PROP_inset_block_end
+    }
+    sinon {
+        assert(ctx.déclaration_parsée.name == PROP_inset_inline)
+        noms_propriétés[0] = PROP_inset_inline_start
+        noms_propriétés[1] = PROP_inset_inline_end
+    }
+    si parse_mot_clé_global(ctx, noms_propriétés, value) {
+        retourne vrai
+    }
+
     parseuse := initialise_une_parseuse(value)
 
     résultat: [2]ValeurDeStyle
@@ -3741,23 +3947,18 @@ parse_propriété_inset_logique :: fonc (ctx: *ContexteParsageShorthand, value: 
         retourne faux
     }
 
-    noms: [2]CSSOMString
-    si ctx.déclaration_parsée.name == PROP_inset_block {
-        noms[0] = PROP_inset_block_start
-        noms[1] = PROP_inset_block_end
-    }
-    sinon {
-        assert(ctx.déclaration_parsée.name == PROP_inset_inline)
-        noms[0] = PROP_inset_inline_start
-        noms[1] = PROP_inset_inline_end
-    }
 
-    ctx.ajoute_propriétés_logique(nombre_valeurs, résultat, noms)
+    ctx.ajoute_propriétés_logique(nombre_valeurs, résultat, noms_propriétés)
     retourne vrai
 }
 
 parse_propriété_inset_shorthand :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
 {
+    noms_propriétés := [PROP_top, PROP_right, PROP_bottom, PROP_left]
+    si parse_mot_clé_global(ctx, noms_propriétés, value) {
+        retourne vrai
+    }
+
     parseuse := initialise_une_parseuse(value)
 
     résultat: [4]ValeurDeStyle
@@ -3784,7 +3985,7 @@ parse_propriété_inset_shorthand :: fonc (ctx: *ContexteParsageShorthand, value
         retourne faux
     }
 
-    ctx.ajoute_propriétés_boite(nombre_valeurs, résultat, [PROP_top, PROP_right, PROP_bottom, PROP_left])
+    ctx.ajoute_propriétés_boite(nombre_valeurs, résultat, noms_propriétés)
     retourne vrai
 }
 
