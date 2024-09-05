@@ -428,7 +428,6 @@ parse_a_list_of_declarations :: fonc (input: [..]Lexème) -> StyleBlockContent
 
 parse_attribut_style :: fonc (valeur: ChaineUTF16) -> *CSSStyleDeclaration
 {
-    imprime("[%] %\n", #nom_de_cette_fonction, valeur)
     contenu := converti_vers_chaine(valeur)
     diffère déloge(contenu)
 
