@@ -92,6 +92,9 @@ table_virtuelle_élément := TableVirtuelleÉlément(
 élément_détruit_données :: fonc (élément: *Élément)
 {
     CSS.détruit_style_declaration(élément.style)
+    si élément.noeud_de_disposition && élément.noeud_de_disposition.type != CSS.NoeudDeDispositionNouvelleLigne {
+        (élément.noeud_de_disposition comme *CSS.NoeudDeDispositionBloc).élément = nul
+    }
     déloge(élément.liste_classes)
 }
 

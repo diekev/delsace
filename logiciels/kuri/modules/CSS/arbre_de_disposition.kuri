@@ -104,7 +104,7 @@ donne_élément_pour_position :: fonc (arbre: *ArbreDeDisposition, x: z32, y: z3
     saufsi noeud {
         retourne nul
     }
-    retourne noeud.donne_élément()
+    retourne noeud.donne_élément_récursif()
 }
 
 imprime_arbre :: fonc (arbre: *ArbreDeDisposition)
@@ -1468,20 +1468,24 @@ donne_line_height :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattag
 
 donne_élément :: fonc (noeud: *NoeudDeDisposition) -> *HTML.Élément
 {
+    si noeud.type == NoeudDeDispositionInline {
+        retourne (noeud comme *NoeudDeDispositionBloc).élément
+    }
+    si noeud.type == NoeudDeDispositionRemplacement {
+        retourne (noeud comme *NoeudDeDispositionBloc).élément
+    }
+    si noeud.type == NoeudDeDispositionBloc {
+        retourne (noeud comme *NoeudDeDispositionBloc).élément
+    }
+    retourne nul
+}
+
+donne_élément_récursif :: fonc (noeud: *NoeudDeDisposition) -> *HTML.Élément
+{
     noeud_courant := noeud
 
     tantque noeud_courant != nul {
-        élément: *HTML.Élément
-        si noeud_courant.type == NoeudDeDispositionInline {
-            élément = (noeud_courant comme *NoeudDeDispositionBloc).élément
-        }
-        sinon si noeud_courant.type == NoeudDeDispositionRemplacement {
-            élément = (noeud_courant comme *NoeudDeDispositionBloc).élément
-        }
-        sinon si noeud_courant.type == NoeudDeDispositionBloc {
-            élément = (noeud_courant comme *NoeudDeDispositionBloc).élément
-        }
-
+        élément := noeud_courant.donne_élément()
         si élément {
             retourne élément
         }
