@@ -1,0 +1,71 @@
+importe Chaine
+
+MIME_application_octet_stream :: "application/octet-stream"
+MIME_text_css :: "text/css"
+MIME_text_html :: "text/html"
+MIME_text_javascript :: "text/javascript"
+MIME_text_plain :: "text/plain"
+
+DonnéesMime :: struct {
+    type: chaine
+    données: chaine
+}
+
+crée_données_mime :: fonc (type: chaine) -> *DonnéesMime
+{
+    résultat := loge(DonnéesMime)
+    résultat.type = type
+    retourne résultat
+}
+
+détruit_données_mime :: fonc (données: *DonnéesMime)
+{
+    déloge_si_logée(données.type)
+    déloge_si_logée(données.données)
+    déloge(données)
+}
+
+/* https://mimesniff.spec.whatwg.org/#javascript-mime-type-essence-match */
+est_type_mime_javascript :: fonc (chn: ChaineUTF16Unique) -> bool
+{
+    mimes_possibles := [
+        "application/ecmascript",
+        "application/javascript",
+        "application/x-ecmascript",
+        "application/x-javascript",
+        "text/ecmascript",
+        "text/javascript",
+        "text/javascript1.0",
+        "text/javascript1.1",
+        "text/javascript1.2",
+        "text/javascript1.3",
+        "text/javascript1.4",
+        "text/javascript1.5",
+        "text/jscript",
+        "text/livescript",
+        "text/x-ecmascript",
+        "text/x-javascript"
+    ]
+
+    pour mimes_possibles {
+        si compare_ascii_insensible_à_la_casse(chn, it) {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}
+
+est_type_mime_image :: fonc (content_type: chaine) -> bool
+{
+    retourne content_type == "image/jpeg" || content_type == "image/png"
+}
+
+type_mime_pour_extension :: fonc (extension: chaine) -> chaine
+{
+    si extension == ".pdf" {
+        retourne "application/pdf"
+    }
+
+    retourne MIME_application_octet_stream
+}
