@@ -3852,7 +3852,13 @@ parse_propriété_max_height_width :: fonc (value: [..]ComponentValue) -> Option
 {
     parseuse := initialise_une_parseuse(value)
     parseuse.consomme_espaces_blanches()
+
     /* none | <length-percentage [0,∞]> | min-content | max-content | fit-content(<length-percentage [0,∞]>) | <calc-size()> */
+    lexème := parseuse.lexème_courant()
+    si lexème.est_mot_clé(PROP_none) {
+        retourne ValeurDeStyle(mot_clé = PROP_none)
+    }
+
     retourne parse_valeur_length_percentage(parseuse)
 }
 
