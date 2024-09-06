@@ -2269,8 +2269,8 @@ noeud_disposition_inline_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition
 {
     noeud := base comme *NoeudDeDispositionInline
     containing_block := donne_containing_block(noeud, ctx)
-    calcule_largeur_et_marges_inline_non_replaced_element(noeud, containing_block)
-    calcule_hauteur_et_marges_inline_non_replaced_element(noeud, containing_block)
+    calcule_largeur_et_marges(noeud, containing_block)
+    calcule_hauteur_et_marges(noeud, containing_block)
 
     propriétés := noeud.propriétés
 
@@ -2625,19 +2625,8 @@ noeud_disposition_remplacement_sur_mesure :: fonc (base: *NoeudDeDisposition, ct
 
     modifie_marges_pour_alignement_forcé(ctx, noeud)
 
-    résoud_pourcentage_largeurs(noeud, containing_block)
-    résoud_pourcentage_hauteur(noeud, containing_block)
-
-    display := noeud.propriétés.donne_valeur_calculée(IDPropriété.Display).display
-    si display.outer_type == Display.Type.Inline {
-        calcule_largeur_et_marges_inline_replaced_element(noeud)
-        calcule_hauteur_et_marges_inline_replaced_element(noeud)
-    }
-    sinon {
-        calcule_largeur_et_marges(noeud, containing_block)
-        /* La hauteur à la même règle que pour le cas inline. */
-        calcule_hauteur_et_marges_inline_replaced_element(noeud)
-    }
+    calcule_largeur_et_marges(noeud, containing_block)
+    calcule_hauteur_et_marges(noeud, containing_block)
 }
 
 noeud_disposition_remplacement_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, enligneuse: *Enligneuse, ctx: *ContexteDeFormattage)
