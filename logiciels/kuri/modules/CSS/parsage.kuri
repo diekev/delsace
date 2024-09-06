@@ -3596,8 +3596,8 @@ parse_propriété_border_radius_shorthand :: fonc (ctx: *ContexteParsageShorthan
         résultat[3] = résultat[0]
     }
     sinon si nombre_de_valeurs == 2 {
-        résultat[2] = résultat[1]
-        résultat[3] = résultat[0]
+        résultat[2] = résultat[0]
+        résultat[3] = résultat[1]
     }
     sinon si nombre_de_valeurs == 3 {
         résultat[3] = résultat[0]
