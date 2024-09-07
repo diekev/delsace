@@ -818,6 +818,9 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
     }
 
     calcule_display_final(propriétés)
+
+    /* Transfert les valeurs calculées aux valeurs utilisées. */
+    propriétés.style_utilisée = propriétés.style
 }
 
 /* Corrige display en prenant en compte position et float.
@@ -1373,9 +1376,9 @@ détermine_fonte :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage
     style := "normal"
     graisse := GraisseFonte.Normal
     propriétés := noeud.donne_propriétés()
-    taille_fonte := propriétés.donne_valeur_calculée(IDPropriété.FontSize).number comme r32
+    taille_fonte := propriétés.donne_valeur_utilisée(IDPropriété.FontSize).number comme r32
 
-    font_family := propriétés.donne_valeur_calculée(IDPropriété.FontFamily).mot_clé
+    font_family := propriétés.donne_valeur_utilisée(IDPropriété.FontFamily).mot_clé
     si font_family == PROP_monospace {
         famille_fonte = "monospace"
     }
@@ -1383,12 +1386,12 @@ détermine_fonte :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage
         famille_fonte = "sans-serif"
     }
 
-    font_weight := propriétés.donne_valeur_calculée(IDPropriété.FontWeight).number
+    font_weight := propriétés.donne_valeur_utilisée(IDPropriété.FontWeight).number
     si font_weight >= 700.0 {
         graisse = GraisseFonte.Gras
     }
 
-    font_style := propriétés.donne_valeur_calculée(IDPropriété.FontStyle).mot_clé
+    font_style := propriétés.donne_valeur_utilisée(IDPropriété.FontStyle).mot_clé
     si font_style == PROP_italic {
         style = "italic"
     }
@@ -1450,12 +1453,12 @@ est_inline_level :: fonc (noeud: *NoeudDeDisposition) -> bool
 donne_display :: fonc (noeud: *NoeudDeDisposition) -> Display
 {
     assert(noeud.propriétés != nul)
-    retourne noeud.propriétés.donne_valeur_calculée(IDPropriété.Display).display
+    retourne noeud.propriétés.donne_valeur_utilisée(IDPropriété.Display).display
 }
 
 donne_line_height :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage) -> r32
 {
-    line_height := noeud.propriétés.donne_valeur_calculée(IDPropriété.LineHeight)
+    line_height := noeud.propriétés.donne_valeur_utilisée(IDPropriété.LineHeight)
     si line_height.est_nombre() {
         retourne line_height.number comme r32
     }
@@ -1574,7 +1577,7 @@ donne_curseur :: fonc (noeud: *NoeudDeDisposition) -> CursorType
     saufsi noeud.propriétés {
         retourne CursorType.auto
     }
-    retourne noeud.propriétés.donne_valeur_calculée(IDPropriété.Cursor).cursor
+    retourne noeud.propriétés.donne_valeur_utilisée(IDPropriété.Cursor).cursor
 }
 
 divise_en_lignes :: fonc (noeud: *NoeudDeDisposition, enligneuse: *Enligneuse, ctx: *ContexteDeFormattage)
@@ -1652,7 +1655,7 @@ donne_containing_block :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeForm
     // 2. For other elements, if the element's position is 'relative' or 'static',
     // the containing block is formed by the content edge of the nearest block
     // container ancestor box.
-    position := noeud.propriétés.donne_valeur_calculée(IDPropriété.Position)
+    position := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Position)
     si position.est_mot_clé(PROP_relative) || position.est_mot_clé(PROP_static) {
         parent := noeud.parent
 
@@ -1675,7 +1678,7 @@ donne_containing_block :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeForm
         ancêtre := noeud.parent
 
         tantque ancêtre != nul {
-            position_parent := ancêtre.propriétés.donne_valeur_calculée(IDPropriété.Position)
+            position_parent := ancêtre.propriétés.donne_valeur_utilisée(IDPropriété.Position)
             si position_parent.est_mot_clé(PROP_relative) || position_parent.est_mot_clé(PROP_absolute) || position_parent.est_mot_clé(PROP_fixed) {
                 arrête
             }
@@ -2036,7 +2039,7 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
     peintre := ctx.peintre
 
     si noeud.est_noeud_non_anonyme() {
-        background_color := noeud.propriétés.donne_valeur_calculée(IDPropriété.BackgroundColor).couleur
+        background_color := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BackgroundColor).couleur
         si background_color.a != 0 {
             rect_noeud: RectanglePosDim(r32)
             si base.parent == nul {
@@ -2048,10 +2051,10 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
                 rect_noeud = ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
             }
 
-            border_radius_top_left := noeud.propriétés.donne_valeur_calculée(IDPropriété.BorderTopLeftRadius).number comme r32
-            border_radius_top_right := noeud.propriétés.donne_valeur_calculée(IDPropriété.BorderTopRightRadius).number comme r32
-            border_radius_bottom_right := noeud.propriétés.donne_valeur_calculée(IDPropriété.BorderBottomRightRadius).number comme r32
-            border_radius_bottom_left := noeud.propriétés.donne_valeur_calculée(IDPropriété.BorderBottomLeftRadius).number comme r32
+            border_radius_top_left := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderTopLeftRadius).number comme r32
+            border_radius_top_right := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderTopRightRadius).number comme r32
+            border_radius_bottom_right := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomRightRadius).number comme r32
+            border_radius_bottom_left := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomLeftRadius).number comme r32
 
             rayons := [ border_radius_top_left, border_radius_top_right, border_radius_bottom_right, border_radius_bottom_left ]
             peintre.remplis_rectangle_arrondi(rect_noeud, rayons, background_color)
@@ -2061,7 +2064,7 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
              * https://www.w3.org/TR/CSS21/colors.html#background */
             body := HTML.donne_élément_body(noeud.élément.document)
             si body && body.noeud_de_disposition {
-                background_color = body.noeud_de_disposition.propriétés.donne_valeur_calculée(IDPropriété.BackgroundColor).couleur
+                background_color = body.noeud_de_disposition.propriétés.donne_valeur_utilisée(IDPropriété.BackgroundColor).couleur
                 si background_color.a != 0 {
                     /* À FAIRE : ne peint pas l'arrière-plan du "body" dans ce cas. */
                     rect_noeud: RectanglePosDim(r32)
@@ -2072,7 +2075,7 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
             }
         }
 
-        image := noeud.propriétés.donne_valeur_calculée(IDPropriété.BackgroundImage)
+        image := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BackgroundImage)
         saufsi image.est_none() {
             opt_image_data := ctx.donne_image_pour_url(image.url_absolu)
             si opt_image_data.possède_valeur() {
@@ -2126,7 +2129,7 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
                 border_color := bordure.color[coté]
                 /* À FAIRE : calcule la valeur même s'il n'y a pas de propriété. */
                 si border_color.est_mot_clé(PROP_currentColor) {
-                    couleur = noeud.propriétés.donne_valeur_calculée(IDPropriété.Color)
+                    couleur = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color)
                 }
                 sinon {
                     couleur = bordure.color[coté].couleur
@@ -2200,7 +2203,7 @@ dessine_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDes
     // peintre.dessine_rectangle(rect, couleur)
 
     pour noeud.enfants {
-        position := it.propriétés.donne_valeur_calculée(IDPropriété.Position)
+        position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position)
         saufsi position.est_mot_clé(PROP_static) {
             continue
         }
@@ -2208,7 +2211,7 @@ dessine_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDes
     }
 
     pour noeud.enfants {
-        position := it.propriétés.donne_valeur_calculée(IDPropriété.Position)
+        position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position)
         si position.est_mot_clé(PROP_static) {
             continue
         }
@@ -2274,10 +2277,10 @@ noeud_disposition_inline_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition
 
     propriétés := noeud.propriétés
 
-    margin_left := propriétés.donne_valeur_calculée(IDPropriété.MarginLeft).number comme r32
-    padding_left := propriétés.donne_valeur_calculée(IDPropriété.PaddingLeft).number comme r32
-    padding_right := propriétés.donne_valeur_calculée(IDPropriété.PaddingRight).number comme r32
-    margin_right := propriétés.donne_valeur_calculée(IDPropriété.MarginRight).number comme r32
+    margin_left := propriétés.donne_valeur_utilisée(IDPropriété.MarginLeft).number comme r32
+    padding_left := propriétés.donne_valeur_utilisée(IDPropriété.PaddingLeft).number comme r32
+    padding_right := propriétés.donne_valeur_utilisée(IDPropriété.PaddingRight).number comme r32
+    margin_right := propriétés.donne_valeur_utilisée(IDPropriété.MarginRight).number comme r32
 
     fragment_marge_début := enligneuse.ajoute_fragment(noeud, 0.0, margin_left, Fragment.Type.MargeDébut)
     fragment_rembourrage_début := enligneuse.ajoute_fragment(noeud, 0.0, padding_left, Fragment.Type.RembourrageDébut)
@@ -2319,17 +2322,17 @@ noeud_disposition_inline_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition,
     si fragment.type == Fragment.Type.RembourrageDébut {
         propriétés := base.propriétés
 
-        background_color := propriétés.donne_valeur_calculée(IDPropriété.BackgroundColor).couleur
+        background_color := propriétés.donne_valeur_utilisée(IDPropriété.BackgroundColor).couleur
 
         /* Le rembourrage vertical n'affecte pas la taille mais doit être inclus dans le dessin. */
-        padding_top := propriétés.donne_valeur_calculée(IDPropriété.PaddingTop).number comme r32
-        padding_bottom := propriétés.donne_valeur_calculée(IDPropriété.PaddingBottom).number comme r32
+        padding_top := propriétés.donne_valeur_utilisée(IDPropriété.PaddingTop).number comme r32
+        padding_bottom := propriétés.donne_valeur_utilisée(IDPropriété.PaddingBottom).number comme r32
 
         si background_color.a != 0 {
-            border_radius_top_left := propriétés.donne_valeur_calculée(IDPropriété.BorderTopLeftRadius).number comme r32
-            border_radius_top_right := propriétés.donne_valeur_calculée(IDPropriété.BorderTopRightRadius).number comme r32
-            border_radius_bottom_right := propriétés.donne_valeur_calculée(IDPropriété.BorderBottomRightRadius).number comme r32
-            border_radius_bottom_left := propriétés.donne_valeur_calculée(IDPropriété.BorderBottomLeftRadius).number comme r32
+            border_radius_top_left := propriétés.donne_valeur_utilisée(IDPropriété.BorderTopLeftRadius).number comme r32
+            border_radius_top_right := propriétés.donne_valeur_utilisée(IDPropriété.BorderTopRightRadius).number comme r32
+            border_radius_bottom_right := propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomRightRadius).number comme r32
+            border_radius_bottom_left := propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomLeftRadius).number comme r32
 
             premier_fragment := fragment
             dernier_fragment := lignes_tenante.fragments.pointeur + lignes_tenante.fragments.taille
@@ -2493,7 +2496,7 @@ noeud_disposition_texte_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition,
     hauteur_texte := métriques.donne_hauteur_ligne()
 
     propriétés := donne_propriété_parent(noeud)
-    line_height := propriétés.donne_valeur_calculée(IDPropriété.LineHeight)
+    line_height := propriétés.donne_valeur_utilisée(IDPropriété.LineHeight)
 
     si line_height.est_nombre() {
         /* line-height définis la hauteur minimale. */
@@ -2521,10 +2524,10 @@ noeud_disposition_texte_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, 
 
     effets: EffetsTexte
 
-    line := propriétés.donne_valeur_calculée(IDPropriété.TextDecorationLine)
+    line := propriétés.donne_valeur_utilisée(IDPropriété.TextDecorationLine)
     saufsi line.est_mot_clé(PROP_none) {
         decoration := line.text_decoration_line
-        couleur := vers_couleur_rvba(propriétés.donne_valeur_calculée(IDPropriété.TextDecorationColor).couleur)
+        couleur := vers_couleur_rvba(propriétés.donne_valeur_utilisée(IDPropriété.TextDecorationColor).couleur)
 
         si decoration.UNDERLINE {
             effets.souslignage = vrai
@@ -2545,7 +2548,7 @@ noeud_disposition_texte_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, 
     assert(fonte != nul)
 
     métriques := donne_métriques_fonte(fonte)
-    couleur := propriétés.donne_valeur_calculée(IDPropriété.Color).couleur
+    couleur := propriétés.donne_valeur_utilisée(IDPropriété.Color).couleur
 
     rect := ctx.donne_rectangle_corrigé(fragment.donne_rectangle())
     rect.y -= métriques.jambage_inférieur
@@ -2634,8 +2637,8 @@ noeud_disposition_remplacement_sur_divise_en_lignes :: fonc (base: *NoeudDeDispo
     noeud_disposition_remplacement_sur_mesure(base, ctx)
 
     noeud := base comme *NoeudDeDispositionRemplacement
-    largeur := noeud.propriétés.donne_valeur_calculée(IDPropriété.Width).number comme r32
-    hauteur := noeud.propriétés.donne_valeur_calculée(IDPropriété.Height).number comme r32
+    largeur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width).number comme r32
+    hauteur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Height).number comme r32
 
     _ := enligneuse.ajoute_fragment(noeud, 0, 0, hauteur, largeur)
 }
