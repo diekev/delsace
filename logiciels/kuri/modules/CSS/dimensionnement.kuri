@@ -126,6 +126,8 @@ résoud_pourcentage_largeurs :: fonc (noeud: *NoeudDeDisposition, containing_blo
     width_of_containing_block := containing_block.donne_largeur()
 
     propriétés := noeud.propriétés
+    propriétés.résoud_pourcentage(IDPropriété.MinWidth, width_of_containing_block)
+    propriétés.résoud_pourcentage(IDPropriété.MaxWidth, width_of_containing_block)
     propriétés.résoud_pourcentage(IDPropriété.MarginLeft, width_of_containing_block)
     propriétés.résoud_pourcentage(IDPropriété.PaddingLeft, width_of_containing_block)
     propriétés.résoud_pourcentage(IDPropriété.Width, width_of_containing_block)
@@ -138,6 +140,7 @@ résoud_pourcentage_hauteur :: fonc (noeud: *NoeudDeDisposition, containing_bloc
     width_of_containing_block := containing_block.donne_largeur()
     height_of_containing_block := containing_block.donne_hauteur()
 
+    // À FAIRE : pourcentage min-height, max-height
     propriétés := noeud.propriétés
     propriétés.résoud_pourcentage(IDPropriété.MarginTop, width_of_containing_block)
     propriétés.résoud_pourcentage(IDPropriété.PaddingTop, width_of_containing_block)
