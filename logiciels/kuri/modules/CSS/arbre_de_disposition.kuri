@@ -23,6 +23,7 @@ ArbreDeDisposition :: struct {
     racine: *NoeudDeDisposition
 
     noeuds: [..]*NoeudDeDisposition
+    tampon_id_fut_dessiné: bool
     tampon_id: [..]n32
     largeur_vue: z32
     hauteur_vue: z32
@@ -90,6 +91,10 @@ crée_noeud :: fonc (arbre: *ArbreDeDisposition, $TypeNoeud: type_de_données) -
 
 donne_élément_pour_position :: fonc (arbre: *ArbreDeDisposition, x: z32, y: z32) -> *HTML.Élément
 {
+    saufsi arbre.tampon_id_fut_dessiné {
+        retourne nul
+    }
+
     saufsi 0 <= x < arbre.largeur_vue && 0 <= y < arbre.hauteur_vue {
         retourne nul
     }
@@ -187,6 +192,8 @@ dessine :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
 
     glDeleteFramebuffers(1, *fbo)
     glDeleteRenderbuffers(1, *render_buf)
+
+    arbre.tampon_id_fut_dessiné = vrai
 }
 
 /** \} */
