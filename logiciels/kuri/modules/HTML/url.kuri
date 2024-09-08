@@ -213,9 +213,10 @@ donne_origin :: fonc (url: URI) -> Origin
 shorten_path :: fonc (url: *URL)
 {
     discr url.path {
-        Path {
-            déloge_si_logée(url.path.Path[url.path.Path.taille - 1])
-            url.path.Path.taille -= 1
+        Path(p) {
+            segment := enlève_dernier_élément(*p)
+            déloge_si_logée(segment)
+            url.path = p
         }
         sinon {}
     }
