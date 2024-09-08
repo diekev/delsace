@@ -370,6 +370,35 @@ détermine_origin :: fonc (opt_url: Optionnel(URI), sandbox_flags: SandboxingFla
     retourne donne_origin(url)
 }
 
+/* https://html.spec.whatwg.org/multipage/browsers.html#same-origin */
+sont_même_origine :: fonc (a: Origin, b: Origin) -> bool
+{
+    // 1. If A and B are the same opaque origin, then return true.
+    si a.est_opaque && b.est_opaque {
+        retourne a.valeur_opaque == b.valeur_opaque
+    }
+
+    // 2. If A and B are both tuple origins and their schemes, hosts, and port are identical, then return true.
+    si !a.est_opaque && !b.est_opaque {
+        si a.scheme != b.scheme {
+            retourne faux
+        }
+
+        si a.host != b.host {
+            retourne faux
+        }
+
+        si !a.port.possède_valeur() || !b.port.possède_valeur() {
+            retourne faux
+        }
+
+        retourne a.port.Quelque == b.port.Quelque
+    }
+
+    // 3. Return false.
+    retourne faux
+}
+
 /* Valeur unique pour chaque origine opaque */
 valeur_origine_opaque: z32
 
