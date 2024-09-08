@@ -8,6 +8,13 @@ unsafe_shared_current_time :: fonc () -> Instantané
     retourne maintenant()
 }
 
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#nested-history */
+NestedHistory :: struct {
+    /* unique internal value */
+    id: z32
+    entries: [..]*SessionHistoryEntry
+}
+
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#document-state-2 */
 DocumentState :: struct {
     document: *Document
@@ -20,6 +27,8 @@ DocumentState :: struct {
     request_referrer_policy: chaine
     reload_pending: bool
     ever_populated: bool
+
+    nested_histories: [..]NestedHistory
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#session-history-entry */
@@ -71,10 +80,15 @@ Navigable :: struct {
 
     id: IDNavigable
     parent: *Navigable
+    /* XXX - ceci est sensé être implicite ? */
+    enfants: [..]*Navigable
     current_session_history_entry: *SessionHistoryEntry
     active_session_history_entry: *SessionHistoryEntry
     is_closing: bool
     is_delaying_load_events: bool
+
+    /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#ongoing-navigation */
+    ongoing_navigation: OngoingNavigationType
 }
 
 initialise_navigable :: fonc (navigable: *Navigable, document_state: *DocumentState, parent: *Navigable = nul)
@@ -94,7 +108,16 @@ initialise_navigable :: fonc (navigable: *Navigable, document_state: *DocumentSt
     navigable.active_session_history_entry = entry
 
     // 5. Set navigable's parent to parent.
+    navigable.définis_parent(parent)
+}
+
+définis_parent :: fonc (navigable: *Navigable, parent: *Navigable)
+{
+    assert(navigable.parent == nul)
     navigable.parent = parent
+    si parent {
+        tableau_ajoute(*parent.enfants, navigable)
+    }
 }
 
 donne_active_document :: fonc (navigable: *Navigable) -> *Document
@@ -150,20 +173,59 @@ donne_session_history_entries :: fonc (navigable: *Navigable) -> *[..]*SessionHi
         retourne *traversable.session_history_entries
     }
 
-    panique("donne_session_history_entries non-implémenté")
-    // Let docStates be an empty ordered set of document states.
+    // 4. Let docStates be an empty ordered set of document states.
+    // À FAIRE(langage) : les pointeurs créées par les types tableaux n'ont pas d'opérateurs
+    // doc_states_à_vérifier: [..]*DocumentState
+    // diffère déloge(doc_states_à_vérifier)
 
-    // For each entry of traversable's session history entries, append entry's document state to docStates.
+    // doc_states_vérifiés: [..]*DocumentState
+    // diffère déloge(doc_states_vérifiés)
 
-    // For each docState of docStates:
+    // // 5. For each entry of traversable's session history entries, append entry's document state to docStates.
+    // pour traversable.session_history_entries {
+    //     tableau_ajoute(*doc_states_à_vérifier, it.document_state)
+    // }
 
-    // For each nestedHistory of docState's nested histories:
+    // // 6. For each docState of docStates:
+    // tantque doc_states_à_vérifier.taille != 0 {
+    //     doc_state := enlève_dernier_élément(*doc_states_à_vérifier)
 
-    // If nestedHistory's id equals navigable's id, return nestedHistory's entries.
+    //     si ensemble_possède(*doc_states_vérifiés, doc_state) {
+    //         continue
+    //     }
+    //     ensemble_ajoute(*doc_states_vérifiés, doc_state)
 
-    // For each entry of nestedHistory's entries, append entry's document state to docStates.
+    //     // 1. For each nestedHistory of docState's nested histories:
+    //     pour nested_history dans doc_state.nested_histories {
+    //         // 1. If nestedHistory's id equals navigable's id, return nestedHistory's entries.
+    //         si nested_history.id == navigable.id {
+    //             retourne *nested_history.entries
+    //         }
 
-    // Assert: this step is not reached.
+    //         // 2. For each entry of nestedHistory's entries, append entry's document state to docStates.
+    //         pour entry dans nested_history.entries {
+    //             tableau_ajoute(*doc_states_à_vérifier, entry.document_state)
+    //         }
+    //     }
+    // }
+
+    // 7. Assert: this step is not reached.
+    assert(faux)
+    retourne nul
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#set-the-ongoing-navigation */
+définis_ongoing_navigation :: fonc (navigable: *Navigable, new_value: OngoingNavigationType)
+{
+    // 1. If navigable's ongoing navigation is equal to newValue, then return.
+    si navigable.ongoing_navigation == new_value {
+        retourne
+    }
+
+    // À FAIRE : 2. Inform the navigation API about aborting navigation given navigable.
+
+    // 3. Set navigable's ongoing navigation to newValue.
+    navigable.ongoing_navigation = new_value
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#traversable-navigables */
@@ -351,6 +413,35 @@ détermine_origin :: fonc (opt_url: Optionnel(URI), sandbox_flags: SandboxingFla
 
     // 5. Return url's origin.
     retourne donne_origin(url)
+}
+
+/* https://html.spec.whatwg.org/multipage/browsers.html#same-origin */
+sont_même_origine :: fonc (a: Origin, b: Origin) -> bool
+{
+    // 1. If A and B are the same opaque origin, then return true.
+    si a.est_opaque && b.est_opaque {
+        retourne a.valeur_opaque == b.valeur_opaque
+    }
+
+    // 2. If A and B are both tuple origins and their schemes, hosts, and port are identical, then return true.
+    si !a.est_opaque && !b.est_opaque {
+        si a.scheme != b.scheme {
+            retourne faux
+        }
+
+        si a.host != b.host {
+            retourne faux
+        }
+
+        si !a.port.possède_valeur() || !b.port.possède_valeur() {
+            retourne faux
+        }
+
+        retourne a.port.Quelque == b.port.Quelque
+    }
+
+    // 3. Return false.
+    retourne faux
 }
 
 /* Valeur unique pour chaque origine opaque */

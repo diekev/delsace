@@ -4268,7 +4268,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
              * est_sûre: bool
              */
             AtomeConstante *info_type_plus_grand = nullptr;
-            if (type_union->est_polymorphe) {
+            if (type_union->est_polymorphe || type_union->type_le_plus_grand == nullptr) {
                 auto type_pointeur_info_type = m_compilatrice.typeuse.type_pointeur_pour(
                     m_compilatrice.typeuse.type_info_type_, false);
                 info_type_plus_grand = m_constructrice.crée_constante_nulle(

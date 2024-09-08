@@ -25,11 +25,9 @@ dépile :: fonc (pile: *PileÉlémentsOuverts) #enligne
 {
     assert(pile.éléments.taille > 0)
 
-    élément := pile.éléments[pile.éléments.taille - 1]
+    élément := enlève_dernier_élément(*pile.éléments)
     élément.est_sur_pile_éléments_ouvert = faux
     élément_fut_dépilé_de_la_pile_des_éléments_ouverts(élément)
-
-    pile.éléments.taille -= 1
 }
 
 taille :: fonc (pile: *PileÉlémentsOuverts) -> z64 #enligne
