@@ -188,8 +188,7 @@ donne_session_history_entries :: fonc (navigable: *Navigable) -> *[..]*SessionHi
 
     // // 6. For each docState of docStates:
     // tantque doc_states_à_vérifier.taille != 0 {
-    //     doc_state := doc_states_à_vérifier[doc_states_à_vérifier.taille - 1]
-    //     doc_states_à_vérifier.taille -= 1
+    //     doc_state := enlève_dernier_élément(*doc_states_à_vérifier)
 
     //     si ensemble_possède(*doc_states_vérifiés, doc_state) {
     //         continue

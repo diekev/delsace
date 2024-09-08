@@ -1337,8 +1337,7 @@ get_all_navigables_whose_current_session_history_entry_will_change_or_reload :: 
 
     // 3. For each navigable of navigablesToCheck:
     tantque navigables_to_check.taille != 0 {
-        navigable := navigables_to_check[navigables_to_check.taille - 1]
-        navigables_to_check.taille -= 1
+        navigable := enlève_dernier_élément(*navigables_to_check)
 
         // 1. Let targetEntry be the result of getting the target history entry given navigable and targetStep.
         target_entry := get_the_target_history_entry(navigable, target_step)
@@ -1375,8 +1374,7 @@ get_all_navigables_that_only_need_history_object_length_index_update :: fonc (tr
 
     // 3. For each navigable of navigablesToCheck:
     tantque navigables_to_check.taille != 0 {
-        navigable := navigables_to_check[navigables_to_check.taille - 1]
-        navigables_to_check.taille -= 1
+        navigable := enlève_dernier_élément(*navigables_to_check)
 
         // 1. Let targetEntry be the result of getting the target history entry given navigable and targetStep.
         target_entry := get_the_target_history_entry(navigable, target_step)
@@ -1445,8 +1443,7 @@ get_all_used_history_steps :: fonc (traversable: *TraversableNavigable) -> [..]n
     diffère déloge(entrées_visitées)
 
     tantque entrées_à_visiter.taille != 0 {
-        entrée := entrées_à_visiter[entrées_à_visiter.taille - 1]
-        entrées_à_visiter.taille -= 1
+        entrée := enlève_dernier_élément(*entrées_à_visiter)
 
         si ensemble_possède(*entrées_visitées, entrée) {
             continue
@@ -1478,8 +1475,7 @@ get_all_navigables_that_might_experience_a_cross_document_traversal :: fonc (tra
 
     // 3. For each navigable of navigablesToCheck:
     tantque navigables_to_check.taille != 0 {
-        navigable := navigables_to_check[navigables_to_check.taille - 1]
-        navigables_to_check.taille -= 1
+        navigable := enlève_dernier_élément(*navigables_to_check)
 
         // 1. Let targetEntry be the result of getting the target history entry given navigable and targetStep.
         target_entry := get_the_target_history_entry(navigable, target_step)
