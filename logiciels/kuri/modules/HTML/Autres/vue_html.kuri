@@ -964,7 +964,7 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
     ctx.largeur_vue = vue_rendu_page.largeur
 
     hauteur_racine := arbre.racine.modèle_de_boite.marge.hauteur
-    si hauteur_racine > vue_rendu_page.hauteur comme r32 {
+    si page.défilement_vertical.rect.y != 0.0 && hauteur_racine > vue_rendu_page.hauteur comme r32 {
         ctx.décalage_y = page.défilement_vertical.rect.y / page.défilement_vertical.ratio
     }
 
@@ -1516,6 +1516,8 @@ rappels_interface_sur_document_est_prêt :: fonc (base: *RappelsInterface, docum
     QT_line_edit_definis_texte(rappels_fenêtre.widgets_page.line_edit, chaine_url.vers_qt())
 
     QT_widget_ajourne(rappels_fenêtre.widget_rendu)
+
+    QT_gui_application_restaure_curseur()
 }
 
 /** \} */
