@@ -1533,6 +1533,8 @@ rappels_interface_sur_document_est_prêt :: fonc (base: *RappelsInterface, docum
 
     QT_widget_ajourne(rappels_fenêtre.widget_rendu)
 
+    init_de(BarreDeDéfilement)(*rappels_fenêtre.page_web.défilement_vertical)
+
     QT_gui_application_restaure_curseur()
 }
 
