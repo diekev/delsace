@@ -508,13 +508,16 @@ finalize_a_cross_document_navigation :: fonc (navigable: *Navigable, history_han
     // Otherwise:
     sinon {
         // 1. Replace entryToReplace with historyEntry in targetEntries.
+        tableau_remplace(target_entries, entry_to_replace, history_entry)
 
         // 2. Set historyEntry's step to entryToReplace's step.
+        history_entry.step = entry_to_replace.step
 
-        // 3. If historyEntry's document state's origin is same origin with entryToReplace's document state's origin, then set historyEntry's navigation API key to entryToReplace's navigation API key.
+        // À FAIRE 3. If historyEntry's document state's origin is same origin with entryToReplace's document state's origin,
+        //    then set historyEntry's navigation API key to entryToReplace's navigation API key.
 
         // 4. Set targetStep to traversable's current session history step.
-        panique("finalize_a_cross_document_navigation non-implémenté")
+        target_step = traversable.current_session_history_entry.step
     }
 
     // À FAIRE : 10. Apply the push/replace history step targetStep to traversable given historyHandling.
