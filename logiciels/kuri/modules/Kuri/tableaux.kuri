@@ -403,3 +403,14 @@ enlève_dernier_élément :: fonc (tableau: *[..]$T) -> T
     tableau.taille -= 1
     retourne résultat
 }
+
+tableau_remplace :: fonc (tableau: *[..]$T, valeur: T, nouvelle_valeur: T)
+{
+    tmp := mémoire(tableau)
+    pour tmp {
+        si it != valeur {
+            continue
+        }
+        tmp.pointeur[index_it] = nouvelle_valeur
+    }
+}
