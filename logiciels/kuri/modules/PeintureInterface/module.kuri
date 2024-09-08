@@ -48,7 +48,7 @@ Peintre :: struct {
     /* Dessine le contour du rectangle arrondi avec la couleur donnée. */
     rappel_dessine_rectangle_arrondi: fonc(*Peintre, RectanglePeintre, r32, CouleurPeintre)(rien)
     /* Remplis le rectangle arrondi avec la couleur donnée. */
-    rappel_remplis_rectangle_arrondi: fonc(*Peintre, RectanglePeintre, r32, CouleurPeintre)(rien)
+    rappel_remplis_rectangle_arrondi: fonc(*Peintre, RectanglePeintre, [4]r32, CouleurPeintre)(rien)
 
     /* Dessine le contour du cercle avec la couleur donnée. */
     rappel_dessine_cercle: fonc(*Peintre, CerclePeintre, CouleurPeintre)(rien)
@@ -123,6 +123,11 @@ dessine_rectangle_arrondi :: fonc (peintre: *Peintre, rectangle: RectanglePeintr
 }
 
 remplis_rectangle_arrondi :: fonc (peintre: *Peintre, rectangle: RectanglePeintre, rayon: r32, couleur: CouleurPeintre) -> rien #enligne
+{
+    peintre.rappel_remplis_rectangle_arrondi(peintre, rectangle, [rayon, rayon, rayon, rayon], couleur)
+}
+
+remplis_rectangle_arrondi :: fonc (peintre: *Peintre, rectangle: RectanglePeintre, rayon: [4]r32, couleur: CouleurPeintre) -> rien #enligne
 {
     peintre.rappel_remplis_rectangle_arrondi(peintre, rectangle, rayon, couleur)
 }
@@ -388,7 +393,7 @@ dessine_rectangle_arrondi_dessin :: fonc (peintre: *Peintre, rectangle_peintre: 
     dessine_rectangle(*peintre_dessin.tampon_de_rendu, rectangle, couleur)
 }
 
-remplis_rectangle_arrondi_dessin :: fonc (peintre: *Peintre, rectangle_peintre: RectanglePeintre, rayon: r32 @inutilisée, couleur_peintre: CouleurPeintre)
+remplis_rectangle_arrondi_dessin :: fonc (peintre: *Peintre, rectangle_peintre: RectanglePeintre, rayon: [4]r32 @inutilisée, couleur_peintre: CouleurPeintre)
 {
     peintre_dessin := peintre comme *PeintreDessin
     rectangle := donne_rectangle_dessin(rectangle_peintre)
@@ -678,19 +683,19 @@ dessine_rectangle_arrondi_igumi :: fonc (peintre: *Peintre @inutilisée, rectang
     contour_quad_arrondi_immédiat(rectangle.x, rectangle.y, rectangle.largeur, rectangle.hauteur, rayon, couleur)
 }
 
-remplis_rectangle_arrondi_igumi :: fonc (peintre: *Peintre @inutilisée, rectangle_peintre: RectanglePeintre, rayon: r32, couleur_peintre: CouleurPeintre)
+remplis_rectangle_arrondi_igumi :: fonc (peintre: *Peintre @inutilisée, rectangle_peintre: RectanglePeintre, rayon: [4]r32, couleur_peintre: CouleurPeintre)
 {
     rectangle := donne_rectangle_igumi(rectangle_peintre)
     couleur := donne_couleur_igumi(couleur_peintre)
 
     commence_immédiat(ModeImmédiat.TRIANGLES, nuanceur_base)
 
-    rayon_double := rayon * 2.0
-    si rayon_double == rectangle.largeur && rayon_double == rectangle.hauteur {
-        position := rectangle.position_interne(Point2D(r32)(0.5, 0.5))
-        cercle_immédiat(position.x, position.y, rayon, couleur, vrai)
-        retourne
-    }
+    // rayon_double := rayon * 2.0
+    // si rayon_double == rectangle.largeur && rayon_double == rectangle.hauteur {
+    //     position := rectangle.position_interne(Point2D(r32)(0.5, 0.5))
+    //     cercle_immédiat(position.x, position.y, rayon, couleur, vrai)
+    //     retourne
+    // }
 
     quad_arrondi_immédiat(rectangle.x, rectangle.y, rectangle.largeur, rectangle.hauteur, rayon, couleur)
 }

@@ -484,32 +484,131 @@ cercle_immédiat_impl :: fonc (cx: r32, cy: r32, r: r32, segs: z32, phi: r32, co
 /** \nom Quad arrondi.
  * \{ */
 
-quad_arrondi_immédiat :: fonc (pos_x: r32, pos_y: r32, largeur: r32, hauteur: r32, rayon: r32, couleur: CouleurRVBA)
+CoinRectangleArrondi :: énum {
+    HautGauche
+    HautDroite
+    BasDroite
+    BasGauche
+}
+
+quad_arrondi_immédiat :: fonc (pos_x: r32, pos_y: r32, largeur: r32, hauteur: r32, rayons: [4]r32, couleur: CouleurRVBA)
 {
-    px := pos_x + rayon
-    py := pos_y + rayon
-    tx := largeur - 2.0 * rayon
-    ty := hauteur - 2.0 * rayon
+    /* Génération de point créer les différents rectangles à peindre.
+     * Si le rayon correspondant à un coin est égal à zéro, un rectangle
+     * sera dessiné, sinon, un quadrant de cercle.
+     * 
+     * Les index des points pour la grille sont :
+     *
+     * 12 --- 13 --- 14 --- 15
+     *  |      |      |      |
+     *  8 ---  9 --- 10 --- 11
+     *  |      |      |      |
+     *  4 ---  5 ---  6 ---  7
+     *  |      |      |      |
+     *  0 ---  1 ---  2 ---  3
+     *   
+     * Les points sont alors les couples (x,y) suivants :
+     *
+     *  4,3 --- 5,3 --- 6,7 --- 7,7
+     *   |       |       |       |
+     *  4,2 --- 5,2 --- 6,6 --- 7,6
+     *   |       |       |       |
+     *  0,1 --- 1,1 --- 2,5 --- 3,5
+     *   |       |       |       |
+     *  0,0 --- 1,0 --- 2,4 --- 3,4
+     */
+
+    points_x: [8]r32 = ---
+    points_y: [8]r32 = ---
+
+    /* Coordonnées x pour les deux lignes du bas. */
+    points_x[0] = pos_x
+    points_x[1] = pos_x + rayons[CoinRectangleArrondi.BasGauche]
+    points_x[2] = pos_x + largeur - rayons[CoinRectangleArrondi.BasDroite]
+    points_x[3] = pos_x + largeur
+
+    /* Coordonnées x pour les deux lignes du haut */
+    points_x[4] = pos_x
+    points_x[5] = pos_x + rayons[CoinRectangleArrondi.HautGauche]
+    points_x[6] = pos_x + largeur - rayons[CoinRectangleArrondi.HautDroite]
+    points_x[7] = pos_x + largeur
+
+    /* Coordonnées y pour les deux colonnes de gauche. */
+    points_y[0] = pos_y
+    points_y[1] = pos_y + rayons[CoinRectangleArrondi.BasGauche]
+    points_y[2] = pos_y + hauteur - rayons[CoinRectangleArrondi.HautGauche]
+    points_y[3] = pos_y + hauteur
+
+    /* Coordonnées y pour les deux colonnes de droite. */
+    points_y[4] = pos_y
+    points_y[5] = pos_y + rayons[CoinRectangleArrondi.BasDroite]
+    points_y[6] = pos_y + hauteur - rayons[CoinRectangleArrondi.HautDroite]
+    points_y[7] = pos_y + hauteur
+
+    points: [16]Vec3 = ---
+
+    /* Ligne du bas */
+    points[0] = Vec3(x = points_x[0], y = points_y[0])
+    points[1] = Vec3(x = points_x[1], y = points_y[0])
+    points[2] = Vec3(x = points_x[2], y = points_y[4])
+    points[3] = Vec3(x = points_x[3], y = points_y[4])
+
+    points[4] = Vec3(x = points_x[0], y = points_y[1])
+    points[5] = Vec3(x = points_x[1], y = points_y[1])
+    points[6] = Vec3(x = points_x[2], y = points_y[5])
+    points[7] = Vec3(x = points_x[3], y = points_y[5])
+
+    /* Ligne du haut */
+    points[8] = Vec3(x = points_x[4], y = points_y[2])
+    points[9] = Vec3(x = points_x[5], y = points_y[2])
+    points[10] = Vec3(x = points_x[6], y = points_y[6])
+    points[11] = Vec3(x = points_x[7], y = points_y[6])
+
+    points[12] = Vec3(x = points_x[4], y = points_y[3])
+    points[13] = Vec3(x = points_x[5], y = points_y[3])
+    points[14] = Vec3(x = points_x[6], y = points_y[7])
+    points[15] = Vec3(x = points_x[7], y = points_y[7])
+
+    /* Peinture des rectangles et quandrants de cercle. */
 
     /* Centre. */
-    quad_immédiat(px, py, tx, ty, couleur)
+    quad_immédiat(points[5], points[6], points[10], points[9], couleur)
     /* Rectangle gauche. */
-    quad_immédiat(pos_x, py, rayon, ty, couleur)
+    quad_immédiat(points[4], points[5], points[9], points[8], couleur)
     /* Rectangle droite. */
-    quad_immédiat(px + tx, py, rayon, ty, couleur)
+    quad_immédiat(points[6], points[7], points[11], points[10], couleur)
     /* Rectangle haut. */
-    quad_immédiat(px, py + ty, tx, rayon, couleur)
+    quad_immédiat(points[9], points[10], points[14], points[13], couleur)
     /* Rectangle bas. */
-    quad_immédiat(px, pos_y, tx, rayon, couleur)
+    quad_immédiat(points[1], points[2], points[6], points[5], couleur)
 
-    /* Haut gauche. */
-    quadrant_cercle_immédiat(px, py + ty, rayon, 1, couleur, vrai)
-    /* Haut droite. */
-    quadrant_cercle_immédiat(px + tx, py + ty, rayon, 0, couleur, vrai)
-    /* Bas gauche. */
-    quadrant_cercle_immédiat(px, py, rayon, 2, couleur, vrai)
-    /* Bas droite. */
-    quadrant_cercle_immédiat(px + tx, py, rayon, 3, couleur, vrai)
+    si rayons[CoinRectangleArrondi.HautGauche] > 0.0 {
+        quadrant_cercle_immédiat(points[9].x, points[9].y, rayons[CoinRectangleArrondi.HautGauche], 1, couleur, vrai)
+    }
+    sinon {
+        quad_immédiat(points[8], points[9], points[13], points[12], couleur)
+    }
+
+    si rayons[CoinRectangleArrondi.HautDroite] > 0.0 {
+        quadrant_cercle_immédiat(points[10].x, points[10].y, rayons[CoinRectangleArrondi.HautDroite], 0, couleur, vrai)
+    }
+    sinon {
+        quad_immédiat(points[10], points[11], points[15], points[14], couleur)
+    }
+
+    si rayons[CoinRectangleArrondi.BasGauche] > 0.0 {
+        quadrant_cercle_immédiat(points[5].x, points[5].y, rayons[CoinRectangleArrondi.BasGauche], 2, couleur, vrai)
+    }
+    sinon {
+        quad_immédiat(points[0], points[1], points[5], points[4], couleur)
+    }
+
+    si rayons[CoinRectangleArrondi.BasDroite] > 0.0 {
+        quadrant_cercle_immédiat(points[6].x, points[6].y, rayons[CoinRectangleArrondi.BasDroite], 3, couleur, vrai)
+    }
+    sinon {
+        quad_immédiat(points[2], points[3], points[7], points[6], couleur)
+    }
 }
 
 contour_quad_arrondi_immédiat :: fonc (pos_x: r32, pos_y: r32, largeur: r32, hauteur: r32, rayon: r32, couleur: CouleurRVBA)

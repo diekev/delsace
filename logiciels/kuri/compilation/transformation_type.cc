@@ -12,6 +12,8 @@
 #include "typage.hh"
 #include "validation_semantique.hh"
 
+#include "utilitaires/log.hh"
+
 #define REQUIERS_TYPE_VALIDE(variable)                                                            \
     do {                                                                                          \
         if (!variable->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {                 \
@@ -374,7 +376,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
                         auto ts_de = type_pointe_de->comme_type_structure();
                         auto ts_vers = type_pointe_vers->comme_type_structure();
 
-                        auto décalage_type_base = est_type_de_base(ts_vers, ts_de);
+                        décalage_type_base = est_type_de_base(ts_vers, ts_de);
                         if (décalage_type_base) {
                             return TransformationType::vers_dérivé(type_vers,
                                                                    décalage_type_base.value());
@@ -500,7 +502,8 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
         }
         CAS_POUR_NOEUDS_HORS_TYPES:
         {
-            assert_rappel(false, [&]() { dbg() << "Noeud non-géré pour type : " << type->genre; });
+            assert_rappel(false,
+                          [&]() { dbg() << "Noeud non-géré pour type : " << type_vers->genre; });
             break;
         }
     }

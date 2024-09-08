@@ -1,3 +1,4 @@
+importe Ensemble
 importe Fondation
 importe Internet
 importe MIME
@@ -37,7 +38,66 @@ NavigationTimingType :: énum {
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#navigation-id */
-NavigationID :: chaine
+NavigationID :: UUID
+
+OngoingNavigationType :: union {
+    NavigationID: NavigationID
+    Chaine: chaine
+}
+
+opérateur == :: fonc (a: OngoingNavigationType, b: OngoingNavigationType) -> bool
+{
+    discr a {
+        NavigationID(id) {
+            retourne b == id
+        }
+        Chaine(c) {
+            retourne b == c
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+opérateur != :: fonc (a: OngoingNavigationType, b: OngoingNavigationType) -> bool
+{
+    retourne !(a == b)
+}
+
+opérateur == :: fonc (ongoing: OngoingNavigationType, navigation_id: NavigationID) -> bool
+{
+    discr ongoing {
+        NavigationID(id) {
+            retourne id == navigation_id
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+opérateur != :: fonc (ongoing: OngoingNavigationType, navigation_id: NavigationID) -> bool
+{
+    retourne !(ongoing == navigation_id)
+}
+
+opérateur == :: fonc (ongoing: OngoingNavigationType, chn: chaine) -> bool
+{
+    discr ongoing {
+        Chaine(c) {
+            retourne c == chn
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+opérateur != :: fonc (ongoing: OngoingNavigationType, chn: chaine) -> bool
+{
+    retourne !(ongoing == chn)
+}
 
 /* must be an algorithm accepting a Document */
 CommitEarlyHints :: struct {
@@ -80,6 +140,17 @@ NavigationParams :: struct {
     navigation_timing_type: NavigationTimingType
     
     about_base_URL: Optionnel(URI)
+}
+
+/* À FAIRE https://html.spec.whatwg.org/multipage/browsing-the-web.html#non-fetch-scheme-navigation-params */
+est_non_fetch_scheme :: fonc (navigation_params: *NavigationParams @inutilisée) -> bool
+{
+    retourne faux
+}
+
+est_navigation_params :: fonc (navigation_params: *NavigationParams @inutilisée) -> bool
+{
+    retourne vrai
 }
 
 détruit_navigation_params :: fonc (navigation_params: *NavigationParams)
@@ -177,6 +248,7 @@ navigate :: fonc (user_agent: *UserAgent,
     source_snapshot_params := snapshot_source_snapshot_params(source_document)
 
     // 3. Let initiatorOriginSnapshot be sourceDocument's origin.
+    initiator_origin_snapshot := source_document.origin
 
     // 4. Let initiatorBaseURLSnapshot be sourceDocument's document base URL.
 
@@ -187,6 +259,7 @@ navigate :: fonc (user_agent: *UserAgent,
         // 2. Return.
 
     // 6. Let navigationId be the result of generating a random UUID. [WEBCRYPTO]
+    navigation_id := génère_un_uuid_aléatoire()
 
     // 7. If the surrounding agent is equal to navigable's active document's relevant agent, then continue these steps. Otherwise, queue a global task on the navigation and traversal task source given navigable's active window to continue these steps.
 
@@ -197,10 +270,26 @@ navigate :: fonc (user_agent: *UserAgent,
     // 10. If container is an iframe element and will lazy load element steps given container returns true, then stop intersection-observing a lazy loading element container and set container's lazy load resumption steps to null.
 
     // 11. If historyHandling is "auto", then:
+    si history_handling == NavigationHistoryBehavior.AUTO {
+        active_document := navigable.donne_active_document()
 
-        // 1. If url equals navigable's active document's URL, and initiatorOriginSnapshot is same origin with targetNavigable's active document's origin, then set historyHandling to "replace".
+        chn_url := recompose_uri(*url)
+        diffère déloge(chn_url)
 
+        chn_url_active_document := recompose_uri(*active_document.url)
+        diffère déloge(chn_url_active_document)
+
+        // 1. If url equals navigable's active document's URL,
+        //    and initiatorOriginSnapshot is same origin with targetNavigable's active document's origin,
+        //    then set historyHandling to "replace".
+        si chn_url == chn_url_active_document && sont_même_origine(initiator_origin_snapshot, active_document.origin) {
+            history_handling = NavigationHistoryBehavior.REPLACE
+        }
         // 2. Otherwise, set historyHandling to "push".
+        sinon {
+            history_handling = NavigationHistoryBehavior.PUSH
+        }
+    }
 
     // 12. If the navigation must be a replace given url and navigable's active document, then set historyHandling to "replace".
 
@@ -229,12 +318,15 @@ navigate :: fonc (user_agent: *UserAgent,
     // 17. Invoke WebDriver BiDi navigation started with targetBrowsingContext, and a new WebDriver BiDi navigation status whose id is navigationId, status is "pending", and url is url.
 
     // 18. If navigable's ongoing navigation is "traversal", then:
-
+    si navigable.ongoing_navigation == "traversal" {
         // 1. Invoke WebDriver BiDi navigation failed with targetBrowsingContext and a new WebDriver BiDi navigation status whose id is navigationId, status is "canceled", and url is url.
 
         // 2. Return.
+        retourne
+    }
 
     // 19. Set the ongoing navigation for navigable to navigationId.
+    navigable.définis_ongoing_navigation(navigation_id)
 
     // 20. If url's scheme is "javascript", then:
 
@@ -260,7 +352,51 @@ navigate :: fonc (user_agent: *UserAgent,
         // 5. If continue is false, then return.
 
     // 22. In parallel, run these steps:
-    navigate_parallel_steps(user_agent, navigable, url, source_snapshot_params, target_snapshot_params, history_handling)
+    Tâche :: struct {
+        empl base: Algorithm
+
+        user_agent: *UserAgent
+        navigable: *Navigable
+        url: URI
+        source_snapshot_params: SourceSnapshotParams
+        target_snapshot_params: TargetSnapshotParams
+        history_handling: NavigationHistoryBehavior
+        navigation_id: NavigationID
+    }
+
+    sur_run :: fonc (base: *Algorithm)
+    {
+        tâche := base comme *Tâche
+
+        user_agent := tâche.user_agent
+        navigable := tâche.navigable
+        url := tâche.url
+        source_snapshot_params_ := tâche.source_snapshot_params
+        target_snapshot_params_ := tâche.target_snapshot_params
+        history_handling := tâche.history_handling
+        navigation_id_ := tâche.navigation_id
+
+        navigate_parallel_steps(user_agent, navigable, url, source_snapshot_params_, target_snapshot_params_, history_handling, navigation_id_)
+    }
+
+    sur_destruction :: fonc (base: *Algorithm)
+    {
+        tâche := base comme *Tâche
+        déloge(tâche)
+    }
+
+    tâche := loge(Tâche)
+    tâche.sur_run = sur_run
+    tâche.sur_destruction = sur_destruction
+    tâche.user_agent = user_agent
+    tâche.navigable = navigable
+    tâche.url = url
+    tâche.source_snapshot_params = source_snapshot_params
+    tâche.target_snapshot_params = target_snapshot_params
+    tâche.history_handling = history_handling
+    tâche.navigation_id = navigation_id
+
+    user_agent.lance_en_parallèle(tâche)
 }
 
 navigate_parallel_steps :: fonc (user_agent: *UserAgent,
@@ -268,16 +404,19 @@ navigate_parallel_steps :: fonc (user_agent: *UserAgent,
                                  url: &URI,
                                  source_snapshot_params: &SourceSnapshotParams,
                                  target_snapshot_params: &TargetSnapshotParams,
-                                 history_handling: NavigationHistoryBehavior)
+                                 history_handling: NavigationHistoryBehavior,
+                                 navigation_id: NavigationID)
 {
     // 1. Let unloadPromptCanceled be the result of checking if unloading is
     //    canceled for navigable's active document's inclusive descendant navigables.
 
     // 2. If unloadPromptCanceled is true, or navigable's ongoing navigation is no longer navigationId, then:
-
+    si navigable.ongoing_navigation != navigation_id {
         // 1. Invoke WebDriver BiDi navigation failed with targetBrowsingContext and a new WebDriver BiDi navigation status whose id is navigationId, status is "canceled", and url is url.
 
         // 2. Abort these steps.
+        retourne
+    }
 
     // 3. Queue a global task on the navigation and traversal task source given navigable's active window to abort a document and its descendants given navigable's active document.
 
@@ -365,7 +504,7 @@ navigate_parallel_steps :: fonc (user_agent: *UserAgent,
     completion_steps.sur_run = completion_steps_run
     completion_steps.sur_destruction = completion_steps_détruit
 
-    attempt_to_populate_the_history_entry_document(user_agent, history_entry, navigable, NavigationTimingType.navigate, source_snapshot_params, target_snapshot_params, navigation_params, completion_steps)
+    attempt_to_populate_the_history_entry_document(user_agent, history_entry, navigable, NavigationTimingType.navigate, source_snapshot_params, target_snapshot_params, navigation_id, navigation_params, completion_steps)
 }
 
 /** \} */
@@ -424,21 +563,27 @@ finalize_a_cross_document_navigation :: fonc (navigable: *Navigable, history_han
     // Otherwise:
     sinon {
         // 1. Replace entryToReplace with historyEntry in targetEntries.
+        tableau_remplace(target_entries, entry_to_replace, history_entry)
 
         // 2. Set historyEntry's step to entryToReplace's step.
+        history_entry.step = entry_to_replace.step
 
-        // 3. If historyEntry's document state's origin is same origin with entryToReplace's document state's origin, then set historyEntry's navigation API key to entryToReplace's navigation API key.
+        // À FAIRE 3. If historyEntry's document state's origin is same origin with entryToReplace's document state's origin,
+        //    then set historyEntry's navigation API key to entryToReplace's navigation API key.
 
         // 4. Set targetStep to traversable's current session history step.
-        panique("finalize_a_cross_document_navigation non-implémenté")
+        target_step = traversable.current_session_history_entry.step
     }
 
     // À FAIRE : 10. Apply the push/replace history step targetStep to traversable given historyHandling.
+    document := history_entry.donne_document()
+    user_agent := document.donne_user_agent()
+
+    // _ := apply_the_push_replace_history_step(user_agent, target_step, traversable, history_handling)
+
     navigable.current_session_history_entry = history_entry
     navigable.active_session_history_entry = history_entry
 
-    document := history_entry.donne_document()
-    user_agent := document.donne_user_agent()
     si user_agent {
         user_agent.document_est_prêt(document)
     }
@@ -470,6 +615,7 @@ attempt_to_populate_the_history_entry_document :: fonc (user_agent: *UserAgent,
                                                         nav_timing_type: NavigationTimingType,
                                                         source_snapshot_params: &SourceSnapshotParams,
                                                         target_snapshot_params: &TargetSnapshotParams,
+                                                        navigation_id: NavigationID,
                                                         navigation_params : *NavigationParams = nul,
                                                         completion_steps : *Algorithm = nul)
 {
@@ -490,7 +636,7 @@ attempt_to_populate_the_history_entry_document :: fonc (user_agent: *UserAgent,
         //     documentResource is null, or allowPOST is true and documentResource's request body is not failure,
 
         // then set navigationParams to the result of creating navigation params by fetching given entry, navigable, sourceSnapshotParams, targetSnapshotParams, cspNavigationType, navigationId, and navTimingType.
-        navigation_params = create_navigation_params_by_fetching(user_agent, entry, navigable, source_snapshot_params, target_snapshot_params, nav_timing_type)
+        navigation_params = create_navigation_params_by_fetching(user_agent, entry, navigable, source_snapshot_params, target_snapshot_params, navigation_id, nav_timing_type)
 
         // 3. Otherwise, if entry's URL's scheme is not a fetch scheme, then set navigationParams to a new non-fetch scheme navigation params, with
         //     id  navigationId
@@ -511,33 +657,120 @@ attempt_to_populate_the_history_entry_document :: fonc (user_agent: *UserAgent,
         entry: *SessionHistoryEntry
         navigation_params: *NavigationParams
         source_snapshot_params: SourceSnapshotParams
+        navigable: *Navigable
+        navigation_id: NavigationID
     }
 
     sur_run :: fonc (base: *Algorithm)
     {
         tâche := base comme *Tâche
+
         navigation_params := tâche.navigation_params
+        diffère détruit_navigation_params(navigation_params)
+
         entry := tâche.entry
         completion_steps := tâche.completion_steps
         source_snapshot_params := tâche.source_snapshot_params
         user_agent := tâche.user_agent
+        navigable := tâche.navigable
+        navigation_id := tâche.navigation_id
 
-        // À FAIRE : complète
+        // 1. If navigable's ongoing navigation no longer equals navigationId, then run completionSteps and abort these steps.
+        si navigable.ongoing_navigation != navigation_id {
+            run(completion_steps)
+            retourne
+        }
 
-        // 6.
-        entry.document_state.document = load_a_document(user_agent, navigation_params, source_snapshot_params, Origin())
+        // 2. Let saveExtraDocumentState be true.
+        save_extra_document_state := vrai
+
+        // 3. If navigationParams is a non-fetch scheme navigation params, then:
+        si navigation_params != nul && navigation_params.est_non_fetch_scheme() {
+            panique("non-implémenté")
+
+            // 1. Set entry's document state's document to the result of running attempt to create a non-fetch scheme document given navigationParams.
+
+            // 2. Set saveExtraDocumentState to false.
+        }
+        // 4. Otherwise, if any of the following are true:
+        //    navigationParams is null;
+        //    À FAIRE : the result of should navigation response to navigation request of type in target be blocked by Content Security Policy? given navigationParams's request, navigationParams's response, navigationParams's policy container's CSP list, cspNavigationType, and navigable is "Blocked";
+        //    À FAIRE : navigationParams's reserved environment is non-null and the result of checking a navigation response's adherence to its embedder policy given navigationParams's response, navigable, and navigationParams's policy container's embedder policy is false; or
+        //    À FAIRE : the result of checking a navigation response's adherence to `X-Frame-Options` given navigationParams's response, navigable, navigationParams's policy container's CSP list, and navigationParams's origin is false,
+        // then:
+        sinon si navigation_params == nul {
+            panique("non-implémenté")
+
+            // 1. Set entry's document state's document to the result of creating a document for inline content that doesn't have a DOM, given navigable, null, and navTimingType. The inline content should indicate to the user the sort of error that occurred.
+
+            // 2. Make document unsalvageable given entry's document state's document and "navigation-failure".
+
+            // 3. Set saveExtraDocumentState to false.
+
+            // 4. If navigationParams is not null, then:
+
+                // 1. Run the environment discarding steps for navigationParams's reserved environment.
+
+                // 2. Invoke WebDriver BiDi navigation failed with currentBrowsingContext and a new WebDriver BiDi navigation status whose id is navigationId, status is "canceled", and url is navigationParams's response's URL.
+        }
+        // 5. Otherwise, if navigationParams's response has a `Content-Disposition` header specifying the attachment disposition type, then:
+        // À FAIRE : attachment disposition type
+        sinon si navigation_params.response.possède_entête("Content-Disposition") {
+            panique("non-implémenté")
+
+            // 1. Let sourceAllowsDownloading be sourceSnapshotParams's allows downloading.
+
+            // 2. Let targetAllowsDownloading be false if navigationParams's final sandboxing flag set has the sandboxed downloads browsing context flag set; otherwise true.
+
+            // 3. Let uaAllowsDownloading be true.
+
+            // 4. Optionally, the user agent may set uaAllowsDownloading to false, if it believes doing so would safeguard the user from a potentially hostile download.
+
+            // 5. If sourceAllowsDownloading, targetAllowsDownloading, and uaAllowsDownloading are true, then:
+
+                // 1. Handle navigationParams's response as a download.
+
+                // 2. Invoke WebDriver BiDi download started with currentBrowsingContext and a new WebDriver BiDi navigation status whose id is navigationId, status is "complete", and url is navigationParams's response's URL.
+        }
+        // 6. Otherwise, if navigationParams's response's status is not 204 and is not 205
+        sinon si navigation_params.response.status != 204 && navigation_params.response.status != 205 {
+            // then set entry's document state's document to the result of loading a document given
+            // navigationParams, sourceSnapshotParams, and entry's document state's initiator origin.
+            entry.document_state.document = load_a_document(user_agent, navigation_params, source_snapshot_params, Origin())
+        }
 
         // 7. If entry's document state's document is not null, then:
         si entry.document_state.document != nul {
             // 1. Set entry's document state's ever populated to true.
             entry.document_state.ever_populated = vrai
 
-            // À FAIRE : 2. 3.
+            // 2. If saveExtraDocumentState is true:
+            si save_extra_document_state {
+                // 1. Let document be entry's document state's document.
+                document := entry.document_state.document
+
+                // 2. Set entry's document state's origin to document's origin.
+                entry.document_state.origin = document.origin
+
+                // À FAIRE : 3. If document's URL requires storing the policy container in history, then:
+
+                    // 1. Assert: navigationParams is a navigation params (i.e., neither null nor a non-fetch scheme navigation params).
+
+                    // 2. Set entry's document state's history policy container to navigationParams's policy container.
+            }
+            
+            // 3. If entry's document state's request referrer is "client", and navigationParams is a navigation params (i.e., neither null nor a non-fetch scheme navigation params), then:
+            si entry.document_state.request_referrer == "client" && navigation_params.est_navigation_params() {
+                // 1. Assert: navigationParams's request is not null.
+                assert(navigation_params.request != nul)
+
+                // 2. Set entry's document state's request referrer to navigationParams's request's referrer.
+                entry.document_state.request_referrer = navigation_params.request.referrer
+            }
         }
 
         // 8. Run completionSteps.
         run(completion_steps)
-        détruit_navigation_params(navigation_params)
     }
 
     sur_destruction :: fonc (base: *Algorithm)
@@ -548,6 +781,8 @@ attempt_to_populate_the_history_entry_document :: fonc (user_agent: *UserAgent,
 
     tâche := loge(Tâche)
     tâche.sur_run = sur_run
+    tâche.navigable = navigable
+    tâche.navigation_id = navigation_id
     tâche.sur_destruction = sur_destruction
     tâche.user_agent = user_agent
     tâche.completion_steps = completion_steps
@@ -566,6 +801,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
                                               navigable: *Navigable,
                                               source_snapshot_params: &SourceSnapshotParams,
                                               target_snapshot_params: &TargetSnapshotParams @inutilisée,
+                                              navigation_id: NavigationID,
                                               nav_timing_type: NavigationTimingType @inutilisée) -> *NavigationParams
 {
     // 1. Assert: this is running in parallel.
@@ -729,7 +965,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
         // 7. Wait until either response is non-null, or navigable's ongoing navigation changes to no longer equal navigationId.
         //     If the latter condition occurs, then abort fetchController, and return.
         //     Otherwise, proceed onward.
-        tantque response == nul {
+        tantque response == nul && navigable.ongoing_navigation == navigation_id {
             continue
         }
 
@@ -824,7 +1060,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
     //     navigation timing type  navTimingType
     //     about base URL  entry's document state's about base URL
     résultat := loge(NavigationParams)
-    //     id  navigationId
+    résultat.id = navigation_id
     résultat.navigable = navigable
     résultat.request = request
     résultat.response = response
@@ -1108,6 +1344,7 @@ populate_with_html_head_body :: fonc (document: *Document)
  * https://html.spec.whatwg.org/multipage/browsing-the-web.html#updating-the-traversable
  * \{ */
 
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#changing-navigable-continuation-state */
 ChangingNavigableContinuationState :: struct {
     displayed_document: *Document
     target_entry: *SessionHistoryEntry
@@ -1126,8 +1363,19 @@ HistoryApplication :: énum {
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#apply-the-push/replace-history-step */
 apply_the_push_replace_history_step :: fonc (user_agent: *UserAgent, step: n32, traversable: *TraversableNavigable, history_handling: NavigationHistoryBehavior) -> HistoryApplication
 {
+    assert(history_handling != NavigationHistoryBehavior.AUTO)
+
+    navigation_type: NavigationType
+    si history_handling == NavigationHistoryBehavior.PUSH {
+        navigation_type = NavigationType.push
+    }
+    sinon {
+        assert(history_handling == NavigationHistoryBehavior.REPLACE)
+        navigation_type = NavigationType.replace
+    }
+
     // 1. Return the result of applying the history step step to traversable given false, null, null, null, and historyHandling.
-    retourne apply_the_history_step(user_agent, step, traversable, faux, nul, nul, nul)
+    retourne apply_the_history_step(user_agent, step, traversable, faux, nul, nul, nul, *navigation_type)
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#apply-the-history-step */
@@ -1189,6 +1437,7 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
         navigable.current_session_history_entry = target_entry
 
         // 3. Set the ongoing navigation for navigable to "traversal".
+        navigable.définis_ongoing_navigation("traversal")
     }
 
     // 9. Let totalChangeJobs be the size of changingNavigables.
@@ -1198,8 +1447,322 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
     completed_change_jobs := 0
 
     // 11. Let changingNavigableContinuations be an empty queue of changing navigable continuation states.
+    changing_navigable_continuations: [..]ChangingNavigableContinuationState
+    diffère déloge(changing_navigable_continuations)
 
     // 12. For each navigable of changingNavigables, queue a global task on the navigation and traversal task source of navigable's active window to run the steps:
+
+    retourne HistoryApplication.Applied
+}
+
+changing_navigable_continuations_steps :: fonc (navigable: *Navigable,
+                                                traversable: *TraversableNavigable,
+                                                navigation_type: *NavigationType,
+                                                changing_navigable_continuations: *[..]ChangingNavigableContinuationState)
+{
+    // 1. Let displayedEntry be navigable's active session history entry.
+    displayed_entry := navigable.active_session_history_entry
+
+    // 2. Let targetEntry be navigable's current session history entry.
+    target_entry := navigable.current_session_history_entry
+
+    // 3. Let changingNavigableContinuation be a changing navigable continuation state with:
+    //    displayed document   displayedEntry's document
+    //    target entry         targetEntry
+    //    navigable            navigable
+    //    update-only          false
+    changing_navigable_continuation: ChangingNavigableContinuationState
+    changing_navigable_continuation.displayed_document = displayed_entry.donne_document()
+    changing_navigable_continuation.target_entry = target_entry
+    changing_navigable_continuation.navigable = navigable
+    changing_navigable_continuation.update_only = faux
+
+    // 4. If displayedEntry is targetEntry and targetEntry's document state's reload pending is false, then:
+    si displayed_entry == target_entry && target_entry.document_state.reload_pending == faux {
+        // 1. Set changingNavigableContinuation's update-only to true.
+        changing_navigable_continuation.update_only = vrai
+
+        // 2. Enqueue changingNavigableContinuation on changingNavigableContinuations.
+        tableau_ajoute(changing_navigable_continuations, changing_navigable_continuation)
+
+        // 3. Abort these steps.
+        retourne
+    }
+
+    // 5. Switch on navigationType:
+    si navigation_type {
+        discr mémoire(navigation_type) {
+            reload {
+                // "reload"
+                // Assert: targetEntry's document state's reload pending is true.
+                assert(target_entry.document_state.reload_pending == vrai)
+            }
+            traverse {
+                // "traverse"
+                // Assert: targetEntry's document state's ever populated is true.
+                assert(target_entry.document_state.ever_populated == vrai)
+            }
+            replace {
+                // "replace"
+                // Assert: targetEntry's step is displayedEntry's step and targetEntry's document state's ever populated is false.
+                assert(target_entry.step == displayed_entry.step)
+                assert(target_entry.document_state.ever_populated == faux)
+            }
+            push {
+                // "push"
+                // Assert: targetEntry's step is displayedEntry's step + 1 and targetEntry's document state's ever populated is false.
+                assert(target_entry.step == displayed_entry.step + 1)
+                assert(target_entry.document_state.ever_populated == faux)
+            }
+        }
+    }
+
+    // 6. Let oldOrigin be targetEntry's document state's origin.
+    old_origin := target_entry.donne_document().origin
+
+    // À FAIRE : 7. If all of the following are true:
+    //    navigable is not traversable;
+    //    targetEntry is not navigable's current session history entry; and
+    //    oldOrigin is the same as navigable's current session history entry's document state's origin,
+    //    then:
+    {
+        // 1. Assert: userInvolvementForNavigateEvents is not null.
+
+        // 2. Let navigation be navigable's active window's navigation API.
+
+        // 3. Fire a traverse navigate event at navigation given targetEntry and userInvolvementForNavigateEvents.
+    }
+
+    // 8. If targetEntry's document is null, or targetEntry's document state's reload pending is true, then:
+    si target_entry.donne_document() == nul || target_entry.document_state.reload_pending == vrai {
+        // 1. Let navTimingType be "back_forward" if targetEntry's document is null; otherwise "reload".
+        nav_timing_type := si target_entry.donne_document() == nul {
+            NavigationTimingType.BackForward
+        }
+        sinon {
+            NavigationTimingType.Reload
+        }
+
+        // 2. Let targetSnapshotParams be the result of snapshotting target snapshot params given navigable.
+        target_snapshot_params := snapshot_target_snapshot_params(navigable)
+
+        // 3. Let potentiallyTargetSpecificSourceSnapshotParams be sourceSnapshotParams.
+        potentially_target_specific_source_snapshot_params := source_snapshot_params
+
+        // À FAIRE : 4. If potentiallyTargetSpecificSourceSnapshotParams is null, then set it to the result of snapshotting source snapshot params given navigable's active document.
+        si potentially_target_specific_source_snapshot_params == nul {
+
+        }
+
+        // 5. Set targetEntry's document state's reload pending to false.
+        target_entry.document_state.reload_pending = faux
+
+        // 6. Let allowPOST be targetEntry's document state's reload pending.
+        allow_post := target_entry.document_state.reload_pending
+
+        // À FAIRE : 7. In parallel, attempt to populate the history entry's document for targetEntry, given navigable, potentiallyTargetSpecificSourceSnapshotParams, targetSnapshotParams, with allowPOST set to allowPOST and completionSteps set to queue a global task on the navigation and traversal task source given navigable's active window to run afterDocumentPopulated.
+    }
+
+    // Otherwise, run afterDocumentPopulated immediately.
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#getting-the-used-step */
+get_the_used_step :: fonc (traversable: *TraversableNavigable, step: n32) -> n32
+{
+    // 1. Let steps be the result of getting all used history steps within traversable.
+    steps := get_all_used_history_steps(traversable)
+    diffère déloge(steps)
+ 
+    // 2. Return the greatest item in steps that is less than or equal to step.
+    résultat: n32
+
+    pour steps {
+        si it > step {
+            arrête
+        }
+        résultat = it
+    }
+
+    retourne résultat
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#get-all-navigables-whose-current-session-history-entry-will-change-or-reload */
+get_all_navigables_whose_current_session_history_entry_will_change_or_reload :: fonc (traversable: *TraversableNavigable, target_step: n32) -> [..]*Navigable
+{
+    // 1. Let results be an empty list.
+    results: [..]*Navigable
+
+    // 2. Let navigablesToCheck be « traversable ».
+    navigables_to_check: [..]*Navigable
+    tableau_ajoute(*navigables_to_check, traversable)
+
+    // 3. For each navigable of navigablesToCheck:
+    tantque navigables_to_check.taille != 0 {
+        navigable := enlève_dernier_élément(*navigables_to_check)
+
+        // 1. Let targetEntry be the result of getting the target history entry given navigable and targetStep.
+        target_entry := get_the_target_history_entry(navigable, target_step)
+
+        // 2. If targetEntry is not navigable's current session history entry or targetEntry's document state's reload pending is true,
+        //    then append navigable to results.
+        si target_entry != navigable.current_session_history_entry || target_entry.document_state.reload_pending {
+            tableau_ajoute(*results, navigable)
+        }
+
+        // 3. If targetEntry's document is navigable's document, and targetEntry's document state's reload pending is false,
+        //    then extend navigablesToCheck with the child navigables of navigable.
+        document_navigable := navigable.donne_active_document()
+        si document_navigable == target_entry.donne_document() && target_entry.document_state.reload_pending == faux {
+            pour navigable.enfants {
+                tableau_ajoute(*navigables_to_check, it)
+            }
+        }
+    }
+
+    // 4. Return results.
+    retourne results
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#getting-all-navigables-that-only-need-history-object-length/index-update */
+get_all_navigables_that_only_need_history_object_length_index_update :: fonc (traversable: *TraversableNavigable, target_step: n32) -> [..]*Navigable
+{
+    // 1. Let results be an empty list.
+    results: [..]*Navigable
+
+    // 2. Let navigablesToCheck be « traversable ».
+    navigables_to_check: [..]*Navigable
+    tableau_ajoute(*navigables_to_check, traversable)
+
+    // 3. For each navigable of navigablesToCheck:
+    tantque navigables_to_check.taille != 0 {
+        navigable := enlève_dernier_élément(*navigables_to_check)
+
+        // 1. Let targetEntry be the result of getting the target history entry given navigable and targetStep.
+        target_entry := get_the_target_history_entry(navigable, target_step)
+
+        // 2. If targetEntry is navigable's current session history entry and targetEntry's document state's reload pending is false, then:
+        si target_entry == navigable.current_session_history_entry && target_entry.document_state.reload_pending == faux {
+            // 1. Append navigable to results.
+            tableau_ajoute(*results, navigable)
+
+            // 2. Extend navigablesToCheck with navigable's child navigables.
+            pour navigable.enfants {
+                tableau_ajoute(*navigables_to_check, it)
+            }
+        }
+    }
+
+    // Return results.
+    retourne results
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#getting-the-target-history-entry */
+get_the_target_history_entry :: fonc (navigable: *Navigable, step: n32) -> *SessionHistoryEntry
+{
+    // 1. Let entries be the result of getting session history entries for navigable.
+    entries := donne_session_history_entries(navigable)
+
+    // 2. Return the item in entries that has the greatest step less than or equal to step.
+    résultat: *SessionHistoryEntry
+
+    plus_grand_step : n32 = 0
+
+    pour mémoire(entries) {
+        si it.step > step {
+            continue
+        }
+
+        si it.step >= plus_grand_step {
+            plus_grand_step = it.step
+            résultat = it
+        }
+    }
+
+    assert(résultat != nul)
+    retourne résultat
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#getting-all-used-history-steps */
+get_all_used_history_steps :: fonc (traversable: *TraversableNavigable) -> [..]n32
+{
+    // 1. Assert: this is running within traversable's session history traversal queue.
+
+    // 2. Let steps be an empty ordered set of non-negative integers.
+    steps: [..]n32
+
+    // NOTE : les étapes suivantes sont réalisées différemment
+    // 3. Let entryLists be the ordered set « traversable's session history entries ».
+    // 4. For each entryList of entryLists:
+        // 1. For each entry of entryList:
+            // 1. Append entry's step to steps.
+            // 2. For each nestedHistory of entry's document state's nested histories, append nestedHistory's entries list to entryLists.
+
+    entrées_à_visiter := tableau_copie(traversable.session_history_entries)
+    diffère déloge(entrées_à_visiter)
+
+    entrées_visitées: [..]*SessionHistoryEntry
+    diffère déloge(entrées_visitées)
+
+    tantque entrées_à_visiter.taille != 0 {
+        entrée := enlève_dernier_élément(*entrées_à_visiter)
+
+        si ensemble_possède(*entrées_visitées, entrée) {
+            continue
+        }
+        ensemble_ajoute(*entrées_visitées, entrée)
+
+        ensemble_ajoute(*steps, entrée.step)
+
+        pour entrée_nichée dans entrée.document_state.nested_histories {
+            pour she dans entrée_nichée.entries {
+                tableau_ajoute(*entrées_à_visiter, she)
+            }
+        }
+    }
+
+    // 5. Return steps, sorted.
+    retourne steps
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#getting-all-navigables-that-might-experience-a-cross-document-traversal */
+get_all_navigables_that_might_experience_a_cross_document_traversal :: fonc (traversable: *TraversableNavigable, target_step: n32) -> [..]*Navigable
+{
+    // 1. Let results be an empty list.
+    results: [..]*Navigable
+
+    // 2. Let navigablesToCheck be « traversable ».
+    navigables_to_check: [..]*Navigable
+    tableau_ajoute(*navigables_to_check, traversable)
+
+    // 3. For each navigable of navigablesToCheck:
+    tantque navigables_to_check.taille != 0 {
+        navigable := enlève_dernier_élément(*navigables_to_check)
+
+        // 1. Let targetEntry be the result of getting the target history entry given navigable and targetStep.
+        target_entry := get_the_target_history_entry(navigable, target_step)
+
+        // 2. If targetEntry's document is not navigable's document or targetEntry's document state's reload pending is true, then append navigable to results.
+        document_navigable := navigable.donne_active_document()
+        si document_navigable != target_entry.donne_document() || target_entry.document_state.reload_pending == vrai {
+            tableau_ajoute(*results, navigable)
+        }
+        // 3. Otherwise, extend navigablesToCheck with navigable's child navigables.
+        sinon {
+            pour navigable.enfants {
+                tableau_ajoute(*navigables_to_check, it)
+            }
+        }
+    }
+
+    // 4. Return results.
+    retourne results
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#checking-if-unloading-is-canceled */
+check_if_unloading_is_canceled :: fonc (navigables_crossing_documents: [..]*Navigable @inutilisée, traversable: *TraversableNavigable @inutilisée, user_involvement_for_navigate_events: *UserNavigationInvolvement @inutilisée) -> chaine
+{
+    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+    retourne "continue"
 }
 
 /** \} */
