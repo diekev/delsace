@@ -396,3 +396,21 @@ tableau_donne_index :: fonc (tableau: []$T, valeur: T) -> z64
     }
     retourne -1
 }
+
+enlève_dernier_élément :: fonc (tableau: *[..]$T) -> T
+{
+    résultat := mémoire(tableau)[tableau.taille - 1]
+    tableau.taille -= 1
+    retourne résultat
+}
+
+tableau_remplace :: fonc (tableau: *[..]$T, valeur: T, nouvelle_valeur: T)
+{
+    tmp := mémoire(tableau)
+    pour tmp {
+        si it != valeur {
+            continue
+        }
+        tmp.pointeur[index_it] = nouvelle_valeur
+    }
+}
