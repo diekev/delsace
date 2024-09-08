@@ -37,7 +37,66 @@ NavigationTimingType :: énum {
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#navigation-id */
-NavigationID :: chaine
+NavigationID :: UUID
+
+OngoingNavigationType :: union {
+    NavigationID: NavigationID
+    Chaine: chaine
+}
+
+opérateur == :: fonc (a: OngoingNavigationType, b: OngoingNavigationType) -> bool
+{
+    discr a {
+        NavigationID(id) {
+            retourne b == id
+        }
+        Chaine(c) {
+            retourne b == c
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+opérateur != :: fonc (a: OngoingNavigationType, b: OngoingNavigationType) -> bool
+{
+    retourne !(a == b)
+}
+
+opérateur == :: fonc (ongoing: OngoingNavigationType, navigation_id: NavigationID) -> bool
+{
+    discr ongoing {
+        NavigationID(id) {
+            retourne id == navigation_id
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+opérateur != :: fonc (ongoing: OngoingNavigationType, navigation_id: NavigationID) -> bool
+{
+    retourne !(ongoing == navigation_id)
+}
+
+opérateur == :: fonc (ongoing: OngoingNavigationType, chn: chaine) -> bool
+{
+    discr ongoing {
+        Chaine(c) {
+            retourne c == chn
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+opérateur != :: fonc (ongoing: OngoingNavigationType, chn: chaine) -> bool
+{
+    retourne !(ongoing == chn)
+}
 
 /* must be an algorithm accepting a Document */
 CommitEarlyHints :: struct {
@@ -187,6 +246,7 @@ navigate :: fonc (user_agent: *UserAgent,
         // 2. Return.
 
     // 6. Let navigationId be the result of generating a random UUID. [WEBCRYPTO]
+    navigation_id := génère_un_uuid_aléatoire()
 
     // 7. If the surrounding agent is equal to navigable's active document's relevant agent, then continue these steps. Otherwise, queue a global task on the navigation and traversal task source given navigable's active window to continue these steps.
 
@@ -229,12 +289,15 @@ navigate :: fonc (user_agent: *UserAgent,
     // 17. Invoke WebDriver BiDi navigation started with targetBrowsingContext, and a new WebDriver BiDi navigation status whose id is navigationId, status is "pending", and url is url.
 
     // 18. If navigable's ongoing navigation is "traversal", then:
-
+    si navigable.ongoing_navigation == "traversal" {
         // 1. Invoke WebDriver BiDi navigation failed with targetBrowsingContext and a new WebDriver BiDi navigation status whose id is navigationId, status is "canceled", and url is url.
 
         // 2. Return.
+        retourne
+    }
 
     // 19. Set the ongoing navigation for navigable to navigationId.
+    navigable.définis_ongoing_navigation(navigation_id)
 
     // 20. If url's scheme is "javascript", then:
 
@@ -260,7 +323,7 @@ navigate :: fonc (user_agent: *UserAgent,
         // 5. If continue is false, then return.
 
     // 22. In parallel, run these steps:
-    navigate_parallel_steps(user_agent, navigable, url, source_snapshot_params, target_snapshot_params, history_handling)
+    navigate_parallel_steps(user_agent, navigable, url, source_snapshot_params, target_snapshot_params, history_handling, navigation_id)
 }
 
 navigate_parallel_steps :: fonc (user_agent: *UserAgent,
@@ -268,16 +331,19 @@ navigate_parallel_steps :: fonc (user_agent: *UserAgent,
                                  url: &URI,
                                  source_snapshot_params: &SourceSnapshotParams,
                                  target_snapshot_params: &TargetSnapshotParams,
-                                 history_handling: NavigationHistoryBehavior)
+                                 history_handling: NavigationHistoryBehavior,
+                                 navigation_id: NavigationID)
 {
     // 1. Let unloadPromptCanceled be the result of checking if unloading is
     //    canceled for navigable's active document's inclusive descendant navigables.
 
     // 2. If unloadPromptCanceled is true, or navigable's ongoing navigation is no longer navigationId, then:
-
+    si navigable.ongoing_navigation != navigation_id {
         // 1. Invoke WebDriver BiDi navigation failed with targetBrowsingContext and a new WebDriver BiDi navigation status whose id is navigationId, status is "canceled", and url is url.
 
         // 2. Abort these steps.
+        retourne
+    }
 
     // 3. Queue a global task on the navigation and traversal task source given navigable's active window to abort a document and its descendants given navigable's active document.
 
@@ -365,7 +431,7 @@ navigate_parallel_steps :: fonc (user_agent: *UserAgent,
     completion_steps.sur_run = completion_steps_run
     completion_steps.sur_destruction = completion_steps_détruit
 
-    attempt_to_populate_the_history_entry_document(user_agent, history_entry, navigable, NavigationTimingType.navigate, source_snapshot_params, target_snapshot_params, navigation_params, completion_steps)
+    attempt_to_populate_the_history_entry_document(user_agent, history_entry, navigable, NavigationTimingType.navigate, source_snapshot_params, target_snapshot_params, navigation_id, navigation_params, completion_steps)
 }
 
 /** \} */
@@ -470,6 +536,7 @@ attempt_to_populate_the_history_entry_document :: fonc (user_agent: *UserAgent,
                                                         nav_timing_type: NavigationTimingType,
                                                         source_snapshot_params: &SourceSnapshotParams,
                                                         target_snapshot_params: &TargetSnapshotParams,
+                                                        navigation_id: NavigationID,
                                                         navigation_params : *NavigationParams = nul,
                                                         completion_steps : *Algorithm = nul)
 {
@@ -490,7 +557,7 @@ attempt_to_populate_the_history_entry_document :: fonc (user_agent: *UserAgent,
         //     documentResource is null, or allowPOST is true and documentResource's request body is not failure,
 
         // then set navigationParams to the result of creating navigation params by fetching given entry, navigable, sourceSnapshotParams, targetSnapshotParams, cspNavigationType, navigationId, and navTimingType.
-        navigation_params = create_navigation_params_by_fetching(user_agent, entry, navigable, source_snapshot_params, target_snapshot_params, nav_timing_type)
+        navigation_params = create_navigation_params_by_fetching(user_agent, entry, navigable, source_snapshot_params, target_snapshot_params, navigation_id, nav_timing_type)
 
         // 3. Otherwise, if entry's URL's scheme is not a fetch scheme, then set navigationParams to a new non-fetch scheme navigation params, with
         //     id  navigationId
@@ -566,6 +633,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
                                               navigable: *Navigable,
                                               source_snapshot_params: &SourceSnapshotParams,
                                               target_snapshot_params: &TargetSnapshotParams @inutilisée,
+                                              navigation_id: NavigationID,
                                               nav_timing_type: NavigationTimingType @inutilisée) -> *NavigationParams
 {
     // 1. Assert: this is running in parallel.
@@ -729,7 +797,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
         // 7. Wait until either response is non-null, or navigable's ongoing navigation changes to no longer equal navigationId.
         //     If the latter condition occurs, then abort fetchController, and return.
         //     Otherwise, proceed onward.
-        tantque response == nul {
+        tantque response == nul && navigable.ongoing_navigation == navigation_id {
             continue
         }
 
@@ -824,7 +892,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
     //     navigation timing type  navTimingType
     //     about base URL  entry's document state's about base URL
     résultat := loge(NavigationParams)
-    //     id  navigationId
+    résultat.id = navigation_id
     résultat.navigable = navigable
     résultat.request = request
     résultat.response = response
@@ -1189,6 +1257,7 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
         navigable.current_session_history_entry = target_entry
 
         // 3. Set the ongoing navigation for navigable to "traversal".
+        navigable.définis_ongoing_navigation("traversal")
     }
 
     // 9. Let totalChangeJobs be the size of changingNavigables.

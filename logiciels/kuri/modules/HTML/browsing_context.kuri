@@ -75,6 +75,9 @@ Navigable :: struct {
     active_session_history_entry: *SessionHistoryEntry
     is_closing: bool
     is_delaying_load_events: bool
+
+    /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#ongoing-navigation */
+    ongoing_navigation: OngoingNavigationType
 }
 
 initialise_navigable :: fonc (navigable: *Navigable, document_state: *DocumentState, parent: *Navigable = nul)
@@ -164,6 +167,20 @@ donne_session_history_entries :: fonc (navigable: *Navigable) -> *[..]*SessionHi
     // For each entry of nestedHistory's entries, append entry's document state to docStates.
 
     // Assert: this step is not reached.
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#set-the-ongoing-navigation */
+définis_ongoing_navigation :: fonc (navigable: *Navigable, new_value: OngoingNavigationType)
+{
+    // 1. If navigable's ongoing navigation is equal to newValue, then return.
+    si navigable.ongoing_navigation == new_value {
+        retourne
+    }
+
+    // À FAIRE : 2. Inform the navigation API about aborting navigation given navigable.
+
+    // 3. Set navigable's ongoing navigation to newValue.
+    navigable.ongoing_navigation = new_value
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#traversable-navigables */
