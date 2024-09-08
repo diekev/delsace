@@ -258,7 +258,7 @@ est_fin_de_fichier :: fonc (fichier: *Fichier) -> bool
 // ----------------------------------------------------------
 // Lecture
 
-lis :: fonc (fichier: *Fichier, tampon: [..]octet) -> RésultatOpérationFichier
+lis :: fonc (fichier: *Fichier, tampon: []octet) -> RésultatOpérationFichier
 {
     octets_lus := tente système_lis(fichier.desc, tampon.pointeur comme *z8, tampon.taille) piège err {
         retourne err

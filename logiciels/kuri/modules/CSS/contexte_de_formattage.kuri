@@ -40,8 +40,8 @@ modifie_marges_pour_alignement_forcé :: fonc (ctx: *ContexteDeFormattage, noeud
     margin_right := propriétés.donne_valeur_calculée(IDPropriété.MarginRight)
 
     si !margin_left.est_auto() && !margin_right.est_auto() {
-        propriétés.définis_valeur_calculée(IDPropriété.MarginLeft, ValeurDeStyle(mot_clé = PROP_auto))
-        propriétés.définis_valeur_calculée(IDPropriété.MarginRight, ValeurDeStyle(mot_clé = PROP_auto))
+        propriétés.définis_valeur_utilisée(IDPropriété.MarginLeft, ValeurDeStyle(mot_clé = PROP_auto))
+        propriétés.définis_valeur_utilisée(IDPropriété.MarginRight, ValeurDeStyle(mot_clé = PROP_auto))
     }
 }
 
@@ -107,6 +107,10 @@ résoud_pourcentage_insets :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDe
 
     noeud.propriétés.résoud_pourcentage(IDPropriété.Left, containing_block.donne_largeur())
     noeud.propriétés.résoud_pourcentage(IDPropriété.Right, containing_block.donne_largeur())
+
+    pour [IDPropriété.Top, IDPropriété.Bottom, IDPropriété.Left, IDPropriété.Right] {
+        noeud.propriétés.définis_valeur_utilisée(it, noeud.propriétés.donne_valeur_calculée(it))
+    }
 }
 
 contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc)
@@ -125,7 +129,7 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
     // décalage_float_right := décalage_x + noeud.modèle_de_boite.contenu.largeur
 
     // pour noeud.enfants {
-    //     float := it.propriétés.donne_valeur_calculée(IDPropriété.Float)
+    //     float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float)
     //     si float.est_mot_clé(PROP_left) {
     //         it.mesure(ctx)
     //         it.décale(décalage_x, décalage_y)
@@ -141,7 +145,7 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
     // }
 
     pour noeud.enfants {
-        // float := it.propriétés.donne_valeur_calculée(IDPropriété.Float)
+        // float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float)
         // si float.est_mot_clé(PROP_left) {
         //     continue
         // }
@@ -151,15 +155,15 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
 
         it.mesure(ctx)
 
-        position := it.propriétés.donne_valeur_calculée(IDPropriété.Position)
+        position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position)
         /* À FAIRE : https://drafts.csswg.org/css-position/#abspos-layout */
         si position.est_mot_clé(PROP_absolute) {
             résoud_pourcentage_insets(it, ctx)
 
-            top := it.propriétés.donne_valeur_calculée(IDPropriété.Top)
-            bottom := it.propriétés.donne_valeur_calculée(IDPropriété.Bottom)
-            left := it.propriétés.donne_valeur_calculée(IDPropriété.Left)
-            right := it.propriétés.donne_valeur_calculée(IDPropriété.Right)
+            top := it.propriétés.donne_valeur_utilisée(IDPropriété.Top)
+            bottom := it.propriétés.donne_valeur_utilisée(IDPropriété.Bottom)
+            left := it.propriétés.donne_valeur_utilisée(IDPropriété.Left)
+            right := it.propriétés.donne_valeur_utilisée(IDPropriété.Right)
 
             si left.est_auto() && right.est_auto() {
                 left = ValeurDeStyle(number = 0.0)
@@ -210,15 +214,15 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
     }
 
     pour noeud.enfants {
-        position := it.propriétés.donne_valeur_calculée(IDPropriété.Position)
+        position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position)
         /* À FAIRE : https://drafts.csswg.org/css-position/#relpos-insets */
         si position.est_mot_clé(PROP_relative) {
             résoud_pourcentage_insets(it, ctx)
 
-            top := it.propriétés.donne_valeur_calculée(IDPropriété.Top)
-            bottom := it.propriétés.donne_valeur_calculée(IDPropriété.Bottom)
-            left := it.propriétés.donne_valeur_calculée(IDPropriété.Left)
-            right := it.propriétés.donne_valeur_calculée(IDPropriété.Right)
+            top := it.propriétés.donne_valeur_utilisée(IDPropriété.Top)
+            bottom := it.propriétés.donne_valeur_utilisée(IDPropriété.Bottom)
+            left := it.propriétés.donne_valeur_utilisée(IDPropriété.Left)
+            right := it.propriétés.donne_valeur_utilisée(IDPropriété.Right)
 
             si left.est_auto() && right.est_auto() {
                 left = ValeurDeStyle(number = 0.0)
@@ -238,7 +242,7 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
         }
     }
 
-    noeud.propriétés.définis_valeur_utilisée(IDPropriété.Height, ValeurDeStyle(number = hauteur_contenu))
+    noeud.propriétés.définis_valeur_calculée(IDPropriété.Height, ValeurDeStyle(number = hauteur_contenu))
 }
 
 /** \} */
@@ -265,7 +269,7 @@ AlignementTexte :: énum {
 
 donne_alignement_texte :: fonc (noeud: *NoeudDeDispositionBloc) -> AlignementTexte
 {
-    text_align := noeud.propriétés.donne_valeur_calculée(IDPropriété.TextAlign)
+    text_align := noeud.propriétés.donne_valeur_utilisée(IDPropriété.TextAlign)
 
     si text_align.est_mot_clé(PROP_start) {
         retourne AlignementTexte.Gauche
@@ -355,7 +359,7 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
         // pour * fragment dans it.fragments {
         //     noeud_fragment := fragment.noeud
         //     propriétés_noeud_fragment := donne_propriétés(noeud_fragment)
-        //     vertical_align := propriétés_noeud_fragment.donne_valeur_calculée(IDPropriété.VerticalAlign)
+        //     vertical_align := propriétés_noeud_fragment.donne_valeur_utilisée(IDPropriété.VerticalAlign)
         //     imprime("vertical-align: % (% | %)\n", vertical_align, fragment.hauteur, hauteur)
 
         //     si vertical_align.est_mot_clé(PROP_bottom) || vertical_align.est_mot_clé(PROP_baseline) {
