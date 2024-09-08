@@ -1300,6 +1300,7 @@ populate_with_html_head_body :: fonc (document: *Document)
  * https://html.spec.whatwg.org/multipage/browsing-the-web.html#updating-the-traversable
  * \{ */
 
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#changing-navigable-continuation-state */
 ChangingNavigableContinuationState :: struct {
     displayed_document: *Document
     target_entry: *SessionHistoryEntry
@@ -1402,10 +1403,123 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
     completed_change_jobs := 0
 
     // 11. Let changingNavigableContinuations be an empty queue of changing navigable continuation states.
+    changing_navigable_continuations: [..]ChangingNavigableContinuationState
+    diffère déloge(changing_navigable_continuations)
 
     // 12. For each navigable of changingNavigables, queue a global task on the navigation and traversal task source of navigable's active window to run the steps:
 
     retourne HistoryApplication.Applied
+}
+
+changing_navigable_continuations_steps :: fonc (navigable: *Navigable,
+                                                traversable: *TraversableNavigable,
+                                                navigation_type: *NavigationType,
+                                                changing_navigable_continuations: *[..]ChangingNavigableContinuationState)
+{
+    // 1. Let displayedEntry be navigable's active session history entry.
+    displayed_entry := navigable.active_session_history_entry
+
+    // 2. Let targetEntry be navigable's current session history entry.
+    target_entry := navigable.current_session_history_entry
+
+    // 3. Let changingNavigableContinuation be a changing navigable continuation state with:
+    //    displayed document   displayedEntry's document
+    //    target entry         targetEntry
+    //    navigable            navigable
+    //    update-only          false
+    changing_navigable_continuation: ChangingNavigableContinuationState
+    changing_navigable_continuation.displayed_document = displayed_entry.donne_document()
+    changing_navigable_continuation.target_entry = target_entry
+    changing_navigable_continuation.navigable = navigable
+    changing_navigable_continuation.update_only = faux
+
+    // 4. If displayedEntry is targetEntry and targetEntry's document state's reload pending is false, then:
+    si displayed_entry == target_entry && target_entry.document_state.reload_pending == faux {
+        // 1. Set changingNavigableContinuation's update-only to true.
+        changing_navigable_continuation.update_only = vrai
+
+        // 2. Enqueue changingNavigableContinuation on changingNavigableContinuations.
+        tableau_ajoute(changing_navigable_continuations, changing_navigable_continuation)
+
+        // 3. Abort these steps.
+        retourne
+    }
+
+    // 5. Switch on navigationType:
+    si navigation_type {
+        discr mémoire(navigation_type) {
+            reload {
+                // "reload"
+                // Assert: targetEntry's document state's reload pending is true.
+                assert(target_entry.document_state.reload_pending == vrai)
+            }
+            traverse {
+                // "traverse"
+                // Assert: targetEntry's document state's ever populated is true.
+                assert(target_entry.document_state.ever_populated == vrai)
+            }
+            replace {
+                // "replace"
+                // Assert: targetEntry's step is displayedEntry's step and targetEntry's document state's ever populated is false.
+                assert(target_entry.step == displayed_entry.step)
+                assert(target_entry.document_state.ever_populated == faux)
+            }
+            push {
+                // "push"
+                // Assert: targetEntry's step is displayedEntry's step + 1 and targetEntry's document state's ever populated is false.
+                assert(target_entry.step == displayed_entry.step + 1)
+                assert(target_entry.document_state.ever_populated == faux)
+            }
+        }
+    }
+
+    // 6. Let oldOrigin be targetEntry's document state's origin.
+    old_origin := target_entry.donne_document().origin
+
+    // À FAIRE : 7. If all of the following are true:
+    //    navigable is not traversable;
+    //    targetEntry is not navigable's current session history entry; and
+    //    oldOrigin is the same as navigable's current session history entry's document state's origin,
+    //    then:
+    {
+        // 1. Assert: userInvolvementForNavigateEvents is not null.
+
+        // 2. Let navigation be navigable's active window's navigation API.
+
+        // 3. Fire a traverse navigate event at navigation given targetEntry and userInvolvementForNavigateEvents.
+    }
+
+    // 8. If targetEntry's document is null, or targetEntry's document state's reload pending is true, then:
+    si target_entry.donne_document() == nul || target_entry.document_state.reload_pending == vrai {
+        // 1. Let navTimingType be "back_forward" if targetEntry's document is null; otherwise "reload".
+        nav_timing_type := si target_entry.donne_document() == nul {
+            NavigationTimingType.BackForward
+        }
+        sinon {
+            NavigationTimingType.Reload
+        }
+
+        // 2. Let targetSnapshotParams be the result of snapshotting target snapshot params given navigable.
+        target_snapshot_params := snapshot_target_snapshot_params(navigable)
+
+        // 3. Let potentiallyTargetSpecificSourceSnapshotParams be sourceSnapshotParams.
+        potentially_target_specific_source_snapshot_params := source_snapshot_params
+
+        // À FAIRE : 4. If potentiallyTargetSpecificSourceSnapshotParams is null, then set it to the result of snapshotting source snapshot params given navigable's active document.
+        si potentially_target_specific_source_snapshot_params == nul {
+
+        }
+
+        // 5. Set targetEntry's document state's reload pending to false.
+        target_entry.document_state.reload_pending = faux
+
+        // 6. Let allowPOST be targetEntry's document state's reload pending.
+        allow_post := target_entry.document_state.reload_pending
+
+        // À FAIRE : 7. In parallel, attempt to populate the history entry's document for targetEntry, given navigable, potentiallyTargetSpecificSourceSnapshotParams, targetSnapshotParams, with allowPOST set to allowPOST and completionSteps set to queue a global task on the navigation and traversal task source given navigable's active window to run afterDocumentPopulated.
+    }
+
+    // Otherwise, run afterDocumentPopulated immediately.
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#getting-the-used-step */
