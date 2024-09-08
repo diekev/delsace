@@ -1,3 +1,4 @@
+importe Ensemble
 importe Fondation
 importe Internet
 importe MIME
@@ -236,6 +237,7 @@ navigate :: fonc (user_agent: *UserAgent,
     source_snapshot_params := snapshot_source_snapshot_params(source_document)
 
     // 3. Let initiatorOriginSnapshot be sourceDocument's origin.
+    initiator_origin_snapshot := source_document.origin
 
     // 4. Let initiatorBaseURLSnapshot be sourceDocument's document base URL.
 
@@ -257,10 +259,26 @@ navigate :: fonc (user_agent: *UserAgent,
     // 10. If container is an iframe element and will lazy load element steps given container returns true, then stop intersection-observing a lazy loading element container and set container's lazy load resumption steps to null.
 
     // 11. If historyHandling is "auto", then:
+    si history_handling == NavigationHistoryBehavior.AUTO {
+        active_document := navigable.donne_active_document()
 
-        // 1. If url equals navigable's active document's URL, and initiatorOriginSnapshot is same origin with targetNavigable's active document's origin, then set historyHandling to "replace".
+        chn_url := recompose_uri(*url)
+        diffère déloge(chn_url)
 
+        chn_url_active_document := recompose_uri(*active_document.url)
+        diffère déloge(chn_url_active_document)
+
+        // 1. If url equals navigable's active document's URL,
+        //    and initiatorOriginSnapshot is same origin with targetNavigable's active document's origin,
+        //    then set historyHandling to "replace".
+        si chn_url == chn_url_active_document && sont_même_origine(initiator_origin_snapshot, active_document.origin) {
+            history_handling = NavigationHistoryBehavior.REPLACE
+        }
         // 2. Otherwise, set historyHandling to "push".
+        sinon {
+            history_handling = NavigationHistoryBehavior.PUSH
+        }
+    }
 
     // 12. If the navigation must be a replace given url and navigable's active document, then set historyHandling to "replace".
 
@@ -500,11 +518,14 @@ finalize_a_cross_document_navigation :: fonc (navigable: *Navigable, history_han
     }
 
     // À FAIRE : 10. Apply the push/replace history step targetStep to traversable given historyHandling.
+    document := history_entry.donne_document()
+    user_agent := document.donne_user_agent()
+
+    // _ := apply_the_push_replace_history_step(user_agent, target_step, traversable, history_handling)
+
     navigable.current_session_history_entry = history_entry
     navigable.active_session_history_entry = history_entry
 
-    document := history_entry.donne_document()
-    user_agent := document.donne_user_agent()
     si user_agent {
         user_agent.document_est_prêt(document)
     }
@@ -1194,8 +1215,19 @@ HistoryApplication :: énum {
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#apply-the-push/replace-history-step */
 apply_the_push_replace_history_step :: fonc (user_agent: *UserAgent, step: n32, traversable: *TraversableNavigable, history_handling: NavigationHistoryBehavior) -> HistoryApplication
 {
+    assert(history_handling != NavigationHistoryBehavior.AUTO)
+
+    navigation_type: NavigationType
+    si history_handling == NavigationHistoryBehavior.PUSH {
+        navigation_type = NavigationType.push
+    }
+    sinon {
+        assert(history_handling == NavigationHistoryBehavior.REPLACE)
+        navigation_type = NavigationType.replace
+    }
+
     // 1. Return the result of applying the history step step to traversable given false, null, null, null, and historyHandling.
-    retourne apply_the_history_step(user_agent, step, traversable, faux, nul, nul, nul)
+    retourne apply_the_history_step(user_agent, step, traversable, faux, nul, nul, nul, *navigation_type)
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#apply-the-history-step */
@@ -1269,6 +1301,211 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
     // 11. Let changingNavigableContinuations be an empty queue of changing navigable continuation states.
 
     // 12. For each navigable of changingNavigables, queue a global task on the navigation and traversal task source of navigable's active window to run the steps:
+
+    retourne HistoryApplication.Applied
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#getting-the-used-step */
+get_the_used_step :: fonc (traversable: *TraversableNavigable, step: n32) -> n32
+{
+    // 1. Let steps be the result of getting all used history steps within traversable.
+    steps := get_all_used_history_steps(traversable)
+    diffère déloge(steps)
+ 
+    // 2. Return the greatest item in steps that is less than or equal to step.
+    résultat: n32
+
+    pour steps {
+        si it > step {
+            arrête
+        }
+        résultat = it
+    }
+
+    retourne résultat
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#get-all-navigables-whose-current-session-history-entry-will-change-or-reload */
+get_all_navigables_whose_current_session_history_entry_will_change_or_reload :: fonc (traversable: *TraversableNavigable, target_step: n32) -> [..]*Navigable
+{
+    // 1. Let results be an empty list.
+    results: [..]*Navigable
+
+    // 2. Let navigablesToCheck be « traversable ».
+    navigables_to_check: [..]*Navigable
+    tableau_ajoute(*navigables_to_check, traversable)
+
+    // 3. For each navigable of navigablesToCheck:
+    tantque navigables_to_check.taille != 0 {
+        navigable := navigables_to_check[navigables_to_check.taille - 1]
+        navigables_to_check.taille -= 1
+
+        // 1. Let targetEntry be the result of getting the target history entry given navigable and targetStep.
+        target_entry := get_the_target_history_entry(navigable, target_step)
+
+        // 2. If targetEntry is not navigable's current session history entry or targetEntry's document state's reload pending is true,
+        //    then append navigable to results.
+        si target_entry != navigable.current_session_history_entry || target_entry.document_state.reload_pending {
+            tableau_ajoute(*results, navigable)
+        }
+
+        // 3. If targetEntry's document is navigable's document, and targetEntry's document state's reload pending is false,
+        //    then extend navigablesToCheck with the child navigables of navigable.
+        document_navigable := navigable.donne_active_document()
+        si document_navigable == target_entry.donne_document() && target_entry.document_state.reload_pending == faux {
+            pour navigable.enfants {
+                tableau_ajoute(*navigables_to_check, it)
+            }
+        }
+    }
+
+    // 4. Return results.
+    retourne results
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#getting-all-navigables-that-only-need-history-object-length/index-update */
+get_all_navigables_that_only_need_history_object_length_index_update :: fonc (traversable: *TraversableNavigable, target_step: n32) -> [..]*Navigable
+{
+    // 1. Let results be an empty list.
+    results: [..]*Navigable
+
+    // 2. Let navigablesToCheck be « traversable ».
+    navigables_to_check: [..]*Navigable
+    tableau_ajoute(*navigables_to_check, traversable)
+
+    // 3. For each navigable of navigablesToCheck:
+    tantque navigables_to_check.taille != 0 {
+        navigable := navigables_to_check[navigables_to_check.taille - 1]
+        navigables_to_check.taille -= 1
+
+        // 1. Let targetEntry be the result of getting the target history entry given navigable and targetStep.
+        target_entry := get_the_target_history_entry(navigable, target_step)
+
+        // 2. If targetEntry is navigable's current session history entry and targetEntry's document state's reload pending is false, then:
+        si target_entry == navigable.current_session_history_entry && target_entry.document_state.reload_pending == faux {
+            // 1. Append navigable to results.
+            tableau_ajoute(*results, navigable)
+
+            // 2. Extend navigablesToCheck with navigable's child navigables.
+            pour navigable.enfants {
+                tableau_ajoute(*navigables_to_check, it)
+            }
+        }
+    }
+
+    // Return results.
+    retourne results
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#getting-the-target-history-entry */
+get_the_target_history_entry :: fonc (navigable: *Navigable, step: n32) -> *SessionHistoryEntry
+{
+    // 1. Let entries be the result of getting session history entries for navigable.
+    entries := donne_session_history_entries(navigable)
+
+    // 2. Return the item in entries that has the greatest step less than or equal to step.
+    résultat: *SessionHistoryEntry
+
+    plus_grand_step : n32 = 0
+
+    pour mémoire(entries) {
+        si it.step > step {
+            continue
+        }
+
+        si it.step >= plus_grand_step {
+            plus_grand_step = it.step
+            résultat = it
+        }
+    }
+
+    assert(résultat != nul)
+    retourne résultat
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#getting-all-used-history-steps */
+get_all_used_history_steps :: fonc (traversable: *TraversableNavigable) -> [..]n32
+{
+    // 1. Assert: this is running within traversable's session history traversal queue.
+
+    // 2. Let steps be an empty ordered set of non-negative integers.
+    steps: [..]n32
+
+    // NOTE : les étapes suivantes sont réalisées différemment
+    // 3. Let entryLists be the ordered set « traversable's session history entries ».
+    // 4. For each entryList of entryLists:
+        // 1. For each entry of entryList:
+            // 1. Append entry's step to steps.
+            // 2. For each nestedHistory of entry's document state's nested histories, append nestedHistory's entries list to entryLists.
+
+    entrées_à_visiter := tableau_copie(traversable.session_history_entries)
+    diffère déloge(entrées_à_visiter)
+
+    entrées_visitées: [..]*SessionHistoryEntry
+    diffère déloge(entrées_visitées)
+
+    tantque entrées_à_visiter.taille != 0 {
+        entrée := entrées_à_visiter[entrées_à_visiter.taille - 1]
+        entrées_à_visiter.taille -= 1
+
+        si ensemble_possède(*entrées_visitées, entrée) {
+            continue
+        }
+        ensemble_ajoute(*entrées_visitées, entrée)
+
+        ensemble_ajoute(*steps, entrée.step)
+
+        pour entrée_nichée dans entrée.document_state.nested_histories {
+            pour she dans entrée_nichée.entries {
+                tableau_ajoute(*entrées_à_visiter, she)
+            }
+        }
+    }
+
+    // 5. Return steps, sorted.
+    retourne steps
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#getting-all-navigables-that-might-experience-a-cross-document-traversal */
+get_all_navigables_that_might_experience_a_cross_document_traversal :: fonc (traversable: *TraversableNavigable, target_step: n32) -> [..]*Navigable
+{
+    // 1. Let results be an empty list.
+    results: [..]*Navigable
+
+    // 2. Let navigablesToCheck be « traversable ».
+    navigables_to_check: [..]*Navigable
+    tableau_ajoute(*navigables_to_check, traversable)
+
+    // 3. For each navigable of navigablesToCheck:
+    tantque navigables_to_check.taille != 0 {
+        navigable := navigables_to_check[navigables_to_check.taille - 1]
+        navigables_to_check.taille -= 1
+
+        // 1. Let targetEntry be the result of getting the target history entry given navigable and targetStep.
+        target_entry := get_the_target_history_entry(navigable, target_step)
+
+        // 2. If targetEntry's document is not navigable's document or targetEntry's document state's reload pending is true, then append navigable to results.
+        document_navigable := navigable.donne_active_document()
+        si document_navigable != target_entry.donne_document() || target_entry.document_state.reload_pending == vrai {
+            tableau_ajoute(*results, navigable)
+        }
+        // 3. Otherwise, extend navigablesToCheck with navigable's child navigables.
+        sinon {
+            pour navigable.enfants {
+                tableau_ajoute(*navigables_to_check, it)
+            }
+        }
+    }
+
+    // 4. Return results.
+    retourne results
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#checking-if-unloading-is-canceled */
+check_if_unloading_is_canceled :: fonc (navigables_crossing_documents: [..]*Navigable @inutilisée, traversable: *TraversableNavigable @inutilisée, user_involvement_for_navigate_events: *UserNavigationInvolvement @inutilisée) -> chaine
+{
+    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+    retourne "continue"
 }
 
 /** \} */

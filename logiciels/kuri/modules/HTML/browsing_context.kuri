@@ -8,6 +8,13 @@ unsafe_shared_current_time :: fonc () -> Instantané
     retourne maintenant()
 }
 
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#nested-history */
+NestedHistory :: struct {
+    /* unique internal value */
+    id: z32
+    entries: [..]*SessionHistoryEntry
+}
+
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#document-state-2 */
 DocumentState :: struct {
     document: *Document
@@ -20,6 +27,8 @@ DocumentState :: struct {
     request_referrer_policy: chaine
     reload_pending: bool
     ever_populated: bool
+
+    nested_histories: [..]NestedHistory
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#session-history-entry */
@@ -71,6 +80,8 @@ Navigable :: struct {
 
     id: IDNavigable
     parent: *Navigable
+    /* XXX - ceci est sensé être implicite ? */
+    enfants: [..]*Navigable
     current_session_history_entry: *SessionHistoryEntry
     active_session_history_entry: *SessionHistoryEntry
     is_closing: bool
@@ -97,7 +108,16 @@ initialise_navigable :: fonc (navigable: *Navigable, document_state: *DocumentSt
     navigable.active_session_history_entry = entry
 
     // 5. Set navigable's parent to parent.
+    navigable.définis_parent(parent)
+}
+
+définis_parent :: fonc (navigable: *Navigable, parent: *Navigable)
+{
+    assert(navigable.parent == nul)
     navigable.parent = parent
+    si parent {
+        tableau_ajoute(*parent.enfants, navigable)
+    }
 }
 
 donne_active_document :: fonc (navigable: *Navigable) -> *Document
@@ -153,20 +173,46 @@ donne_session_history_entries :: fonc (navigable: *Navigable) -> *[..]*SessionHi
         retourne *traversable.session_history_entries
     }
 
-    panique("donne_session_history_entries non-implémenté")
-    // Let docStates be an empty ordered set of document states.
+    // 4. Let docStates be an empty ordered set of document states.
+    // À FAIRE(langage) : les pointeurs créées par les types tableaux n'ont pas d'opérateurs
+    // doc_states_à_vérifier: [..]*DocumentState
+    // diffère déloge(doc_states_à_vérifier)
 
-    // For each entry of traversable's session history entries, append entry's document state to docStates.
+    // doc_states_vérifiés: [..]*DocumentState
+    // diffère déloge(doc_states_vérifiés)
 
-    // For each docState of docStates:
+    // // 5. For each entry of traversable's session history entries, append entry's document state to docStates.
+    // pour traversable.session_history_entries {
+    //     tableau_ajoute(*doc_states_à_vérifier, it.document_state)
+    // }
 
-    // For each nestedHistory of docState's nested histories:
+    // // 6. For each docState of docStates:
+    // tantque doc_states_à_vérifier.taille != 0 {
+    //     doc_state := doc_states_à_vérifier[doc_states_à_vérifier.taille - 1]
+    //     doc_states_à_vérifier.taille -= 1
 
-    // If nestedHistory's id equals navigable's id, return nestedHistory's entries.
+    //     si ensemble_possède(*doc_states_vérifiés, doc_state) {
+    //         continue
+    //     }
+    //     ensemble_ajoute(*doc_states_vérifiés, doc_state)
 
-    // For each entry of nestedHistory's entries, append entry's document state to docStates.
+    //     // 1. For each nestedHistory of docState's nested histories:
+    //     pour nested_history dans doc_state.nested_histories {
+    //         // 1. If nestedHistory's id equals navigable's id, return nestedHistory's entries.
+    //         si nested_history.id == navigable.id {
+    //             retourne *nested_history.entries
+    //         }
 
-    // Assert: this step is not reached.
+    //         // 2. For each entry of nestedHistory's entries, append entry's document state to docStates.
+    //         pour entry dans nested_history.entries {
+    //             tableau_ajoute(*doc_states_à_vérifier, entry.document_state)
+    //         }
+    //     }
+    // }
+
+    // 7. Assert: this step is not reached.
+    assert(faux)
+    retourne nul
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#set-the-ongoing-navigation */
