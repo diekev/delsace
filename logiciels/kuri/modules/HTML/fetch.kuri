@@ -177,6 +177,16 @@ donne_mime_type :: fonc (response: *Response) -> chaine
     retourne ""
 }
 
+possède_entête :: fonc (response: *Response, nom: chaine) -> bool
+{
+    pour response.header_list {
+        si compare_ascii_insensible_à_la_casse(it.name, nom) {
+            retourne vrai
+        }
+    }
+    retourne faux
+}
+
 /* https://fetch.spec.whatwg.org/#concept-network-error */
 network_error :: fonc () -> *Response
 {

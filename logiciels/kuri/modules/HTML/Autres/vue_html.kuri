@@ -429,6 +429,37 @@ détruit_données_page_web :: fonc (page: *PageWeb)
     déloge(page.contenu)
 }
 
+donne_défilement_vertical :: fonc (page: *PageWeb, largeur_vue: r32, hauteur_vue: r32, hauteur_page: r32) -> *BarreDeDéfilement
+{
+    si hauteur_page == 0.0 || hauteur_page <= hauteur_vue {
+        retourne nul
+    }
+
+    barre := *page.défilement_vertical
+
+    hauteur_barre := hauteur_vue * hauteur_vue / hauteur_page
+
+    si barre.rect.hauteur == hauteur_barre {
+        retourne barre
+    }
+
+    /* Ajourne la barre */
+    largeur_barre := 12.0
+    barre.ratio = hauteur_vue / hauteur_page
+
+    rect_barre: RectanglePosDim(r32)
+    rect_barre.x = largeur_vue - largeur_barre
+    rect_barre.largeur = largeur_barre
+    rect_barre.y = 0.0
+    rect_barre.hauteur = hauteur_barre
+
+    barre.hauteur = hauteur_vue
+
+    barre.rect = rect_barre
+
+    retourne barre
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -964,8 +995,10 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
     ctx.largeur_vue = vue_rendu_page.largeur
 
     hauteur_racine := arbre.racine.modèle_de_boite.marge.hauteur
-    si hauteur_racine > vue_rendu_page.hauteur comme r32 {
-        ctx.décalage_y = page.défilement_vertical.rect.y / page.défilement_vertical.ratio
+    barre := donne_défilement_vertical(page, vue_rendu_page.largeur comme r32, vue_rendu_page.hauteur comme r32, hauteur_racine)
+
+    si barre {
+        ctx.décalage_y = barre.rect.y / barre.ratio
     }
 
     // début_rendu := maintenant_précis()
@@ -974,37 +1007,20 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
 
     // imprime("temps de rendu : %\n", début_rendu.temps_écoulé_millisecondes())
 
-    si hauteur_racine > vue_rendu_page.hauteur comme r32 {
+    si barre {
         hauteur_vue := vue_rendu_page.hauteur comme r32
-        hauteur_page := hauteur_racine
 
-        largeur_barre := 12.0
-        hauteur_barre := hauteur_vue * hauteur_vue / hauteur_page
-        page.défilement_vertical.ratio = hauteur_vue / hauteur_page
+        rect_barre := barre.rect
 
-        rect_barre: RectanglePosDim(r32)
-        si page.défilement_vertical.rect.largeur == 0.0 {
-            rect_barre.x = vue_rendu_page.largeur comme r32 - largeur_barre
-            rect_barre.largeur = largeur_barre
-            rect_barre.y = 0.0
-            rect_barre.hauteur = hauteur_barre
-
-            page.défilement_vertical.rect = rect_barre
-        }
-        sinon {
-            rect_barre = page.défilement_vertical.rect
-        }
+        /* Change la position pour le dessin qui commence du bas. */
+        rect_barre.y = hauteur_vue - rect_barre.hauteur - rect_barre.y
 
         couleur := CouleurRVBA(1.0, 0.5, 0.5, 0.5)
-
-        si page.défilement_vertical.est_cliqué || page.défilement_vertical.est_survolé {
+        si barre.est_cliqué || barre.est_survolé {
             couleur.r *= 0.5
             couleur.v *= 0.5
             couleur.b *= 0.5
         }
-
-        /* Change la position pour le dessin qui commence du bas. */
-        rect_barre.y = hauteur_vue - hauteur_barre - page.défilement_vertical.rect.y
 
         peintre.remplis_rectangle(rect_barre, couleur)
         peintre.termine_dessin()
@@ -1516,6 +1532,10 @@ rappels_interface_sur_document_est_prêt :: fonc (base: *RappelsInterface, docum
     QT_line_edit_definis_texte(rappels_fenêtre.widgets_page.line_edit, chaine_url.vers_qt())
 
     QT_widget_ajourne(rappels_fenêtre.widget_rendu)
+
+    init_de(BarreDeDéfilement)(*rappels_fenêtre.page_web.défilement_vertical)
+
+    QT_gui_application_restaure_curseur()
 }
 
 /** \} */
