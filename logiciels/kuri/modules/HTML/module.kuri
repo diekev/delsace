@@ -23,6 +23,7 @@ charge "pile_éléments_ouverts"
 charge "tags_html"
 charge "url"
 charge "user_agent"
+charge "webcrypto"
 
 DOMString :: ChaineUTF16Unique
 
