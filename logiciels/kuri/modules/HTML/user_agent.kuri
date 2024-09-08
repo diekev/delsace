@@ -135,6 +135,13 @@ enfile_une_tâche :: fonc (user_agent: *UserAgent, source: SourceDeTâche, algor
     rappels.sur_enfile_une_tâche(rappels, source, algorithm)
 }
 
+/* https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel */
+lance_en_parallèle :: fonc (user_agent: *UserAgent @inutilisée, algorithm: *Algorithm)
+{
+    // À FAIRE : lance un thread.
+    run(algorithm)
+}
+
 document_est_prêt :: fonc (user_agent: *UserAgent, document: *Document)
 {
     rappels := user_agent.rappels_interface

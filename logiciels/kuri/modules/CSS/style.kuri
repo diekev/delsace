@@ -306,6 +306,7 @@ PropriétésDeStyle :: struct {
     parent: *PropriétésDeStyle
     déclarations: [..]*DéclarationPropriété
     style: Style
+    style_utilisée: Style
 }
 
 crée_propriétés_de_style :: fonc (parent: *PropriétésDeStyle) -> *PropriétésDeStyle
@@ -313,6 +314,7 @@ crée_propriétés_de_style :: fonc (parent: *PropriétésDeStyle) -> *Propriét
     résultat := loge(PropriétésDeStyle)
     résultat.parent = parent
     initialise_style(*résultat.style)
+    initialise_style(*résultat.style_utilisée)
 
     si parent {
         pour * infos_types_propriétés {
@@ -410,12 +412,12 @@ définis_valeur_calculée :: fonc (propriétés: *PropriétésDeStyle, id: IDPro
 
 donne_valeur_utilisée :: fonc (propriétés: *PropriétésDeStyle, id: IDPropriété) -> ValeurDeStyle
 {
-    retourne propriétés.style.valeurs[id]
+    retourne propriétés.style_utilisée.valeurs[id]
 }
 
 définis_valeur_utilisée :: fonc (propriétés: *PropriétésDeStyle, id: IDPropriété, valeur: ValeurDeStyle)
 {
-    propriétés.style.valeurs[id] = valeur
+    propriétés.style_utilisée.valeurs[id] = valeur
 }
 
 résoud_pourcentage :: fonc (propriétés: *PropriétésDeStyle, id: IDPropriété, valeur_de_base: r64)
