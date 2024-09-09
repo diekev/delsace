@@ -85,6 +85,7 @@ RappelsInterface :: struct {
     sur_élément_survolé: fonc(*RappelsInterface)(rien)
     sur_requête_rendu: fonc(*RappelsInterface)(rien)
     sur_enfile_une_tâche: fonc(*RappelsInterface, SourceDeTâche, *Algorithm)(rien)
+    sur_tâche_parallèle: fonc(*RappelsInterface, *Algorithm)(rien)
     sur_document_est_prêt: fonc (*RappelsInterface, *Document)(rien)
 }
 
@@ -136,10 +137,14 @@ enfile_une_tâche :: fonc (user_agent: *UserAgent, source: SourceDeTâche, algor
 }
 
 /* https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel */
-lance_en_parallèle :: fonc (user_agent: *UserAgent @inutilisée, algorithm: *Algorithm)
+lance_en_parallèle :: fonc (user_agent: *UserAgent, algorithm: *Algorithm)
 {
-    // À FAIRE : lance un thread.
-    run(algorithm)
+    rappels := user_agent.rappels_interface
+    saufsi rappels && rappels.sur_tâche_parallèle {
+        retourne
+    }
+
+    rappels.sur_tâche_parallèle(rappels, algorithm)
 }
 
 document_est_prêt :: fonc (user_agent: *UserAgent, document: *Document)
