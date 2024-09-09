@@ -121,6 +121,7 @@ principale :: fonc () -> z32
 évènement_sur_tâche_réseautage : z32 = -1
 évènement_sur_tâche_navigation_et_traversée : z32 = -1
 évènement_sur_tâche_rendu : z32 = -1
+évènement_sur_tâche_parallèle : z32 = -1
 
 ÉvènementCréationOnglet :: struct {
     uri: chaine
@@ -136,6 +137,7 @@ initialise_évènements_personnalisés :: fonc ()
     évènement_sur_tâche_réseautage = QT_enregistre_evenement_personnel()
     évènement_sur_tâche_navigation_et_traversée = QT_enregistre_evenement_personnel()
     évènement_sur_tâche_rendu = QT_enregistre_evenement_personnel()
+    évènement_sur_tâche_parallèle = QT_enregistre_evenement_personnel()
 }
 
 sur_filtre_evenement_impl :: fonc (base: *QT_Rappels_Fenetre_Principale, event: *QT_Evenement) -> z32
@@ -1290,9 +1292,53 @@ donne_arbre_de_disposition :: fonc (page: *PageWeb) -> *CSS.ArbreDeDisposition
 /** \nom RappelsInterfaceQt
  * \{ */
 
+RappelsThread :: struct {
+    empl base: QT_Rappels_Thread
+
+    rappels_interface: *RappelsInterfaceQt
+
+    sur_lancement_thread = rappels_thread_sur_lancement_thread
+}
+
+rappels_thread_sur_lancement_thread :: fonc (base: *QT_Rappels_Thread) #sanstrace
+{
+    __init_contexte_fil_exécution()
+
+    rappels := base comme *RappelsThread
+
+    rappels_filtre_évènement := QT_loge_rappel(FiltreÉvènementThread)
+    parent: *QT_Object
+    filtre_évènement := QT_object_cree(rappels_filtre_évènement, parent)
+
+    rappels.rappels_interface.filtre_évènement_thread = filtre_évènement
+}
+
+FiltreÉvènementThread :: struct {
+    empl base: QT_Rappels_Object
+    sur_evenement = filtre_thread_sur_évènement
+}
+
+filtre_thread_sur_évènement :: fonc (base: *QT_Rappels_Object @inutilisée, évènement: *QT_Evenement) -> z32
+{
+    type := QT_evenement_donne_type(évènement) comme n32 comme z32
+    
+    si type == évènement_sur_tâche_parallèle {
+        algorithm := QT_event_perso_donne_donnees(évènement) comme *Algorithm
+        run(algorithm)
+        QT_evenement_accepte(évènement)
+        retourne 1
+    }
+
+    retourne 0
+}
+
 RappelsInterfaceQt :: struct {
     empl base: RappelsInterface
     fenêtre: *QT_Fenetre_Principale
+
+    thread_fut_commencé: bool
+    thread: *QT_Thread
+    filtre_évènement_thread: *QT_Object
 }
 
 crée_rappels_interface_qt :: fonc (fenêtre: *QT_Fenetre_Principale) -> *RappelsInterfaceQt
@@ -1305,13 +1351,25 @@ crée_rappels_interface_qt :: fonc (fenêtre: *QT_Fenetre_Principale) -> *Rappel
     résultat.sur_lancement_requête = rappels_interface_sur_lancement_requête
     résultat.sur_spin_event_loop = rappels_interface_sur_spin_event_loop
     résultat.sur_enfile_une_tâche = rappels_interface_sur_enfile_une_tâche
+    résultat.sur_tâche_parallèle = rappels_interface_sur_tâche_parallèle
     résultat.sur_document_est_prêt = rappels_interface_sur_document_est_prêt
+
+    rappels_thread := QT_loge_rappel(RappelsThread)
+    rappels_thread.rappels_interface = résultat
+
+    thread := QT_thread_cree(rappels_thread)
+    résultat.thread = thread
+
+    QT_thread_start(thread)
+
     retourne résultat
 }
 
 rappels_interface_sur_destruction :: fonc (base: *RappelsInterface)
 {
     rappels := base comme *RappelsInterfaceQt
+    QT_thread_quit(rappels.thread)
+    QT_thread_wait(rappels.thread)
     déloge(rappels)
 }
 
@@ -1345,7 +1403,8 @@ rappels_interface_sur_lancement_requête :: fonc (base: *RappelsInterface, requ�
     rappels_socket := crée_rappel_socket_pour_requête(requête)
     diffère déloge(rappels_socket)
 
-    parent := rappels.fenêtre
+    /* Parent nul pour éviter les problèmes si nous ne sommes dans le fil principal. */
+    parent : *QT_Object = nul
 
     uri := requête.donne_url_courant()
     hôte := uri.hôte
@@ -1517,6 +1576,12 @@ rappels_interface_sur_enfile_une_tâche :: fonc (base: *RappelsInterface, source
             QT_application_poste_evenement_et_donnees(rappels.fenêtre, évènement_sur_tâche_rendu, algorithm)
         }
     }
+}
+
+rappels_interface_sur_tâche_parallèle :: fonc (base: *RappelsInterface, algorithm: *Algorithm)
+{
+    rappels := base comme *RappelsInterfaceQt
+    QT_application_poste_evenement_et_donnees(rappels.filtre_évènement_thread, évènement_sur_tâche_parallèle, algorithm)
 }
 
 rappels_interface_sur_document_est_prêt :: fonc (base: *RappelsInterface, document: *Document)

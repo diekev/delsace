@@ -312,6 +312,7 @@ struct NoeudDéclarationSymbole : NoeudDéclaration {
 
     VisibilitéSymbole visibilité_symbole
     PortéeSymbole portée [copie]
+    PartageMémoire partage_mémoire [copie]
 }
 
 struct NoeudDéclarationBibliothèque : NoeudDéclarationSymbole {

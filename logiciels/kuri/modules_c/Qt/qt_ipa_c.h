@@ -255,7 +255,8 @@ union QT_AbstractSocket {
     O(QDrag, QT_Drag, drag)                                                                       \
     O(QMimeData, QT_MimeData, mimedata)                                                           \
     O(QClipboard, QT_Clipboard, clipboard)                                                        \
-    O(QShortcut, QT_Shortcut, shortcut)
+    O(QShortcut, QT_Shortcut, shortcut)                                                           \
+    O(QThread, QT_Thread, thread)
 
 #define PRODECLARE_TYPES_OBJETS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_OBJETS(PRODECLARE_TYPES_OBJETS)
@@ -284,6 +285,8 @@ void QT_object_definis_propriete_bool(union QT_Generic_Object object,
                                       bool valeur);
 
 bool QT_object_bloque_signaux(union QT_Generic_Object object, bool ouinon);
+
+void QT_object_move_to_thread(union QT_Generic_Object object, struct QT_Thread *thread);
 
 /** \} */
 
@@ -419,6 +422,20 @@ enum QT_ToolBarArea { ENUMERE_TOOLBARAREA(ENUMERE_DECLARATION_ENUM_IPA) };
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Object
+ * \{ */
+
+struct QT_Rappels_Object {
+    int (*sur_evenement)(struct QT_Rappels_Object *, struct QT_Evenement *);
+    struct QT_Object *object;
+};
+
+struct QT_Object *QT_object_cree(struct QT_Rappels_Object *rappels,
+                                 union QT_Generic_Object parent);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Fenetre_Principale
  * \{ */
 
@@ -485,6 +502,8 @@ void QT_application_beep();
 struct QT_Clipboard *QT_application_donne_clipboard();
 
 void QT_application_process_events();
+
+struct QT_Thread *QT_application_thread();
 
 /** \} */
 
@@ -1140,6 +1159,24 @@ void QT_shortcut_definis_touches(struct QT_Shortcut *shortcut,
                                  enum QT_Key key);
 void QT_shortcut_sur_activation(struct QT_Shortcut *shortcut, struct QT_Rappel_Generique *rappel);
 void QT_shortcut_definis_contexte(struct QT_Shortcut *shortcut, enum QT_Shortcut_Context context);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Thread
+ * \{ */
+
+struct QT_Rappels_Thread {
+    void (*sur_lancement_thread)(struct QT_Rappels_Thread *);
+    void (*sur_destruction)(struct QT_Rappels_Thread *);
+};
+
+struct QT_Thread *QT_thread_courant();
+
+struct QT_Thread *QT_thread_cree(struct QT_Rappels_Thread *rappels);
+void QT_thread_start(struct QT_Thread *thread);
+void QT_thread_quit(struct QT_Thread *thread);
+void QT_thread_wait(struct QT_Thread *thread);
 
 /** \} */
 
