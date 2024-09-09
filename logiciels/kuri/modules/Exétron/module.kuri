@@ -180,8 +180,10 @@ travail_sur_la_tâche :: fonc (entrée: EntréeFileTravail, index_logique: z32 @
     entrée.fonction_travail(entrée.données)
 }
 
-fonction_fil :: fonc (arg: *rien) -> *rien
+fonction_fil :: fonc (arg: *rien) -> *rien #sanstrace
 {
+    __init_contexte_fil_exécution()
+
     info_fil := arg comme *InfoFilExécution
 
     entrée: EntréeFileTravail
