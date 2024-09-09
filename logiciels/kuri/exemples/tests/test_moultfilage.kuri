@@ -23,8 +23,10 @@ store_t :: struct {
 }
 
 // Fonction pour le thread du magasin.
-fn_store :: fonc (p_data: *rien) -> *rien
+fn_store :: fonc (p_data: *rien) -> *rien #sanstrace
 {
+    __init_contexte_fil_exécution()
+
     store := p_data comme *store_t
 
     boucle {
@@ -47,8 +49,10 @@ donnée_client_t :: struct {
 }
 
 // Fonction pour les threads des clients.
-fn_clients :: fonc (p_data: *rien) -> *rien
+fn_clients :: fonc (p_data: *rien) -> *rien #sanstrace #cliche ri_finale
 {
+    __init_contexte_fil_exécution()
+
     donnée_client := p_data comme *donnée_client_t
     store := donnée_client.store
     nb : z32 = donnée_client.index

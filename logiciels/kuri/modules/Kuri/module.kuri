@@ -760,9 +760,9 @@ crée_contexte :: fonc () -> rien #création_contexte
     init_de(BaseAllocatrice)(*base_allocatrice)
 }
 
-__contexte_fil_principal : ContexteProgramme = ---
+__contexte_fil_principal : ContexteProgramme #mémoire_locale = ---
 __arguments_ligne_commande : []*z8 = ---
-__tampon_stockage_tamporaire : [16384]z8 = ---
+__tampon_stockage_tamporaire : [16384]z8 #mémoire_locale = ---
 __table_des_types: []*InfoType
 
 contexte :: fonc () -> ContexteProgramme #horsligne
@@ -811,7 +811,7 @@ __initialise_contexte_extra :: fonc (ctx: *ContexteProgramme, trace_appel: *Trac
     ctx.stockage_temporaire = stockage_temporaire
 }
 
-__début_pile: *n64
+__début_pile: *n64 #mémoire_locale
 __init_début_pile :: fonc (adresse: *n64)
 {
     __début_pile = adresse
@@ -854,10 +854,10 @@ __point_d_entree_systeme :: fonc (argc: z32, argv: **z8) -> z32 #sanstrace #sans
  */
 
 /* Globales nécessaires pour Kuri. */
-__info_trace_appel_dynamique : InfoFonctionTraceAppel = ---
-__trace_appel_dynamique : TraceAppel = ---
-__base_allocatrice_dynamique : BaseAllocatrice = ---
-__stockage_temporaire_dynamique : StockageTemporaire = ---
+__info_trace_appel_dynamique : InfoFonctionTraceAppel #mémoire_locale = ---
+__trace_appel_dynamique : TraceAppel #mémoire_locale = ---
+__base_allocatrice_dynamique : BaseAllocatrice #mémoire_locale = ---
+__stockage_temporaire_dynamique : StockageTemporaire #mémoire_locale = ---
 
 __point_d_entree_dynamique :: fonc () #sanstrace #sansbroyage
 {
@@ -875,6 +875,48 @@ __point_de_sortie_dynamique :: fonc () #sanstrace #sansbroyage
 {
     __fini_exécution_kuri()
 }
+
+/* ------------------------------------------------------------------------- */
+/** \nom Initialisation des contextes des fils d'exécution.
+ * \{ */
+
+#portée_fichier
+
+__info_trace_appel_locale_fil : InfoFonctionTraceAppel #mémoire_locale = ---
+__trace_appel_locale_fil : TraceAppel #mémoire_locale = ---
+__info_appel_locale_fil : InfoAppelTraceAppel #mémoire_locale = ---
+__allocatrice_locale_fil : BaseAllocatrice #mémoire_locale = ---
+__stockage_temporaire_local_fil : StockageTemporaire #mémoire_locale = ---
+
+#portée_export
+
+__init_contexte_fil_exécution :: fonc () #sanstrace
+{
+    /* Cette fonction doit être la première à être appelée, donc le début de la pile sera plus ou moins juste. */
+    début_pile: n64
+
+    init_de(InfoFonctionTraceAppel)(*__info_trace_appel_locale_fil)
+    __info_trace_appel_locale_fil.nom = "???"
+    __info_trace_appel_locale_fil.fichier = "???"
+    __info_trace_appel_locale_fil.adresse = nul
+
+    init_de(InfoAppelTraceAppel)(*__info_appel_locale_fil)
+    __info_appel_locale_fil.ligne = 0
+    __info_appel_locale_fil.colonne = 0
+    __info_appel_locale_fil.texte = "???"
+
+    init_de(TraceAppel)(*__trace_appel_locale_fil)
+    __trace_appel_locale_fil.info_fonction = *__info_trace_appel_locale_fil
+    __trace_appel_locale_fil.info_appel = *__info_appel_locale_fil
+
+    init_de(ContexteProgramme)(*__contexte_fil_principal)
+
+    __init_début_pile(*début_pile)
+
+    __initialise_contexte_extra(*__contexte_fil_principal, *__trace_appel_locale_fil, *__allocatrice_locale_fil, *__stockage_temporaire_local_fil)
+}
+
+/** \} */
 
 // -----------------------------------
 

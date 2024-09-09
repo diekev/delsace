@@ -151,6 +151,29 @@ std::ostream &operator<<(std::ostream &os, PortéeSymbole const portée)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name PartageMémoire
+ * \{ */
+
+std::ostream &operator<<(std::ostream &os, PartageMémoire const partage)
+{
+    switch (partage) {
+        case PartageMémoire::GLOBAL:
+        {
+            os << "GLOBAL";
+            break;
+        }
+        case PartageMémoire::LOCAL:
+        {
+            os << "LOCAL";
+            break;
+        }
+    }
+    return os;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name DrapeauxNoeudFonction
  * \{ */
 

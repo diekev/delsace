@@ -39,7 +39,6 @@ Ajout de IdentifiantCode pour que les métaprogrammes puissent ne comparer qu'un
 // Directives
 
 - ajout de #convention_c
-- ajout de #thread_local
 - ajout de #macro
 - ajout de #insère pour controler où nous collons du code
 - ajout de #enligne pour les appels de fonctions
