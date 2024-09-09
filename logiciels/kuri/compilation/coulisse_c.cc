@@ -1081,6 +1081,10 @@ static void déclare_visibilité_globale(Enchaineuse &os,
         os << "extern ";
     }
 
+    if (valeur_globale->donne_partage_mémoire() == PartageMémoire::LOCAL) {
+        os << "__thread ";
+    }
+
     if (valeur_globale->est_constante) {
         os << "const ";
     }
