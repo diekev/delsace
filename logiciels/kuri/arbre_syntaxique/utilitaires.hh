@@ -140,6 +140,22 @@ std::ostream &operator<<(std::ostream &os, PortéeSymbole const portée);
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name PartageMémoire
+ * Définis si une variable peut-être partagée par tous les fils d'exécution.
+ * \{ */
+
+enum class PartageMémoire : uint8_t {
+    /* La variable globale est modifiable par tous les fils d'exécution. */
+    GLOBAL = 0,
+    /* Chaque fil d'exécution possède une copie de la variable. */
+    LOCAL = 1,
+};
+
+std::ostream &operator<<(std::ostream &os, PartageMémoire const partage);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name Drapeaux pour les fonctions.
  * \{ */
 

@@ -3890,6 +3890,18 @@ void Syntaxeuse::analyse_directive_déclaration_variable(NoeudDéclarationVariab
         return;
     }
 
+    if (lexème_directive->ident == ID::mémoire_globale) {
+        consomme();
+        déclaration->partage_mémoire = PartageMémoire::GLOBAL;
+        return;
+    }
+
+    if (lexème_directive->ident == ID::mémoire_locale) {
+        consomme();
+        déclaration->partage_mémoire = PartageMémoire::LOCAL;
+        return;
+    }
+
     rapporte_erreur("Directive de déclaration de variable inconnue.");
 }
 
