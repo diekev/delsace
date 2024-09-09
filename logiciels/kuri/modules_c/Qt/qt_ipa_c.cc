@@ -42,6 +42,7 @@
 #include <QStatusBar>
 #include <QTableView>
 #include <QTcpSocket>
+#include <QThread>
 #include <QTimer>
 #include <QToolButton>
 #include <QToolTip>
@@ -372,6 +373,45 @@ void QT_detruit_icon(QT_Icon *icon)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Object
+ * \{ */
+
+class Object final : public QObject {
+    QT_Rappels_Object *m_rappels;
+
+  public:
+    Object(QT_Rappels_Object *rappels, QObject *parent = nullptr)
+        : QObject(parent), m_rappels(rappels)
+    {
+    }
+
+    bool event(QEvent *event) override
+    {
+        if (!m_rappels || !m_rappels->sur_evenement) {
+            return QObject::event(event);
+        }
+
+        if (m_rappels->sur_evenement(m_rappels, vers_ipa(event))) {
+            return true;
+        }
+
+        return QObject::event(event);
+    }
+};
+
+QT_Object *QT_object_cree(QT_Rappels_Object *rappels, QT_Generic_Object parent)
+{
+    VERS_QT(parent);
+    auto résultat = vers_ipa(new Object(rappels, qparent));
+    if (rappels) {
+        rappels->object = résultat;
+    }
+    return résultat;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Generic_Object
  * \{ */
 
@@ -393,6 +433,13 @@ bool QT_object_bloque_signaux(QT_Generic_Object object, bool ouinon)
 {
     auto qobject = vers_qt(object);
     return qobject->blockSignals(ouinon);
+}
+
+void QT_object_move_to_thread(QT_Generic_Object object, QT_Thread *thread)
+{
+    VERS_QT(object);
+    VERS_QT(thread);
+    qobject->moveToThread(qthread);
 }
 
 /** \} */
@@ -546,6 +593,11 @@ QT_Clipboard *QT_application_donne_clipboard()
 void QT_application_process_events()
 {
     QCoreApplication::processEvents();
+}
+
+QT_Thread *QT_application_thread()
+{
+    return vers_ipa(QApplication::instance()->thread());
 }
 
 /** \} */
@@ -954,6 +1006,67 @@ void QT_shortcut_definis_contexte(struct QT_Shortcut *shortcut, enum QT_Shortcut
 {
     VERS_QT(shortcut);
     qshortcut->setContext(convertis_shortcut_context(context));
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Thread
+ * \{ */
+
+class Thread final : public QThread {
+    QT_Rappels_Thread *m_rappels;
+
+  public:
+    Thread(QT_Rappels_Thread *rappels, QObject *parent = nullptr)
+        : QThread(parent), m_rappels(rappels)
+    {
+    }
+
+    ~Thread() override
+    {
+        if (m_rappels && m_rappels->sur_destruction) {
+            m_rappels->sur_destruction(m_rappels);
+        }
+    }
+
+    void run() override
+    {
+        if (m_rappels && m_rappels->sur_lancement_thread) {
+            m_rappels->sur_lancement_thread(m_rappels);
+        }
+
+        QThread::run();
+    }
+};
+
+QT_Thread *QT_thread_courant()
+{
+    return vers_ipa(QThread::currentThread());
+}
+
+QT_Thread *QT_thread_cree(struct QT_Rappels_Thread *rappels)
+{
+    auto résultat = new Thread(rappels);
+    return vers_ipa(résultat);
+}
+
+void QT_thread_start(QT_Thread *thread)
+{
+    VERS_QT(thread);
+    qthread->start();
+}
+
+void QT_thread_quit(QT_Thread *thread)
+{
+    VERS_QT(thread);
+    qthread->quit();
+}
+
+void QT_thread_wait(QT_Thread *thread)
+{
+    VERS_QT(thread);
+    qthread->wait();
 }
 
 /** \} */

@@ -20,6 +20,7 @@ struct NoeudDéclarationType;
 using Type = NoeudDéclarationType;
 
 enum class VisibilitéSymbole : uint8_t;
+enum class PartageMémoire : uint8_t;
 
 #define ENUMERE_GENRE_ATOME(O)                                                                    \
     O(CONSTANTE_ENTIÈRE, AtomeConstanteEntière, constante_entière)                                \
@@ -358,6 +359,8 @@ struct AtomeGlobale : public AtomeConstante {
     Type const *donne_type_alloué() const;
 
     VisibilitéSymbole donne_visibilité_symbole() const;
+
+    PartageMémoire donne_partage_mémoire() const;
 };
 
 struct TranstypeConstant : public AtomeConstante {
