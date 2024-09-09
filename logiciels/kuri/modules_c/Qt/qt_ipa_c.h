@@ -419,6 +419,20 @@ enum QT_ToolBarArea { ENUMERE_TOOLBARAREA(ENUMERE_DECLARATION_ENUM_IPA) };
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Object
+ * \{ */
+
+struct QT_Rappels_Object {
+    int (*sur_evenement)(struct QT_Rappels_Object *, struct QT_Evenement *);
+    struct QT_Object *object;
+};
+
+struct QT_Object *QT_object_cree(struct QT_Rappels_Object *rappels,
+                                 union QT_Generic_Object parent);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Fenetre_Principale
  * \{ */
 

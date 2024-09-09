@@ -372,6 +372,45 @@ void QT_detruit_icon(QT_Icon *icon)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Object
+ * \{ */
+
+class Object final : public QObject {
+    QT_Rappels_Object *m_rappels;
+
+  public:
+    Object(QT_Rappels_Object *rappels, QObject *parent = nullptr)
+        : QObject(parent), m_rappels(rappels)
+    {
+    }
+
+    bool event(QEvent *event) override
+    {
+        if (!m_rappels || !m_rappels->sur_evenement) {
+            return QObject::event(event);
+        }
+
+        if (m_rappels->sur_evenement(m_rappels, vers_ipa(event))) {
+            return true;
+        }
+
+        return QObject::event(event);
+    }
+};
+
+QT_Object *QT_object_cree(QT_Rappels_Object *rappels, QT_Generic_Object parent)
+{
+    VERS_QT(parent);
+    auto résultat = vers_ipa(new Object(rappels, qparent));
+    if (rappels) {
+        rappels->object = résultat;
+    }
+    return résultat;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Generic_Object
  * \{ */
 
