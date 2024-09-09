@@ -682,7 +682,8 @@ crée_browsing_context_et_document :: fonc (creator: *Document, embedder: *Élé
 
     // À FAIRE 18. Mark document as ready for post-load tasks.
 
-    // À FAIRE 19. Populate with html/head/body given document.
+    // 19. Populate with html/head/body given document.
+    populate_with_html_head_body(document)
 
     // À FAIRE 20. Make active document.
 

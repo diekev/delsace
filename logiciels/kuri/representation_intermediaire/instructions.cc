@@ -57,6 +57,14 @@ VisibilitéSymbole AtomeGlobale::donne_visibilité_symbole() const
     return decl->visibilité_symbole;
 }
 
+PartageMémoire AtomeGlobale::donne_partage_mémoire() const
+{
+    if (!decl) {
+        return PartageMémoire::GLOBAL;
+    }
+    return decl->partage_mémoire;
+}
+
 AtomeFonction::~AtomeFonction()
 {
     /* À FAIRE : stocke ça quelque part dans un tableau_page. */
