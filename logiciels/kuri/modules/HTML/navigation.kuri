@@ -807,6 +807,33 @@ attempt_to_populate_the_history_entry_document :: fonc (params: *HistoryEntryPop
     user_agent.enfile_une_tâche(SourceDeTâche.NavigationEtTraversée, tâche)
 }
 
+crée_tâche_pour_entry_population_attempt :: fonc (params: *HistoryEntryPopulationParams) -> *Algorithm
+{
+    Tâche :: struct {
+        empl base: Algorithm
+
+        params: HistoryEntryPopulationParams
+    }
+
+    sur_run :: fonc (base: *Algorithm)
+    {
+        tâche := base comme *Tâche
+        attempt_to_populate_the_history_entry_document(*tâche.params)
+    }
+
+    sur_destruction :: fonc (base: *Algorithm)
+    {
+        tâche := base comme *Tâche
+        déloge(tâche)
+    }
+
+    tâche := loge(Tâche)
+    tâche.params = mémoire(params)
+    tâche.sur_run = sur_run
+    tâche.sur_destruction = sur_destruction
+    retourne tâche
+}
+
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#create-navigation-params-by-fetching
     To create navigation params by fetching given a session history entry entry, a navigable navigable, a source snapshot params sourceSnapshotParams, a target snapshot params targetSnapshotParams, a string cspNavigationType, a navigation ID-or-null navigationId, and a NavigationTimingType navTimingType, perform the following steps. They return a navigation params, a non-fetch scheme navigation params, or null.
  */
@@ -1465,13 +1492,174 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
     diffère déloge(changing_navigable_continuations)
 
     // 12. For each navigable of changingNavigables, queue a global task on the navigation and traversal task source of navigable's active window to run the steps:
+    pour navigable dans changing_navigables {
+        tâche := crée_tâche_pour_changing_navigable_continuations_steps(user_agent, navigable, traversable, navigation_type, source_snapshot_params, *changing_navigable_continuations)
+        user_agent.enfile_une_tâche(SourceDeTâche.NavigationEtTraversée, tâche)
+    }
 
+    // 13. Let navigablesThatMustWaitBeforeHandlingSyncNavigation be an empty set.
+    navigables_that_must_wait_before_handling_sync_navigation: [..]*Navigable
+    diffère déloge(navigables_that_must_wait_before_handling_sync_navigation)
+
+    // 14. While completedChangeJobs does not equal totalChangeJobs:
+    décalage_défilement := 0
+    tantque completed_change_jobs != total_change_jobs {
+        // 1. If traversable's running nested apply history step is false, then:
+        si traversable.running_nested_apply_history_step == faux {
+            // À FAIRE : 1. While traversable's session history traversal queue's algorithm set contains one or more synchronous navigation steps with a target navigable not contained in navigablesThatMustWaitBeforeHandlingSyncNavigation:
+
+                // 1. Let steps be the first item in traversable's session history traversal queue's algorithm set that is synchronous navigation steps with a target navigable not contained in navigablesThatMustWaitBeforeHandlingSyncNavigation.
+
+                // 2. Remove steps from traversable's session history traversal queue's algorithm set.
+
+                // 3. Set traversable's running nested apply history step to true.
+
+                // 4. Run steps.
+
+                // 5. Set traversable's running nested apply history step to false.
+        }
+
+        // 2. Let changingNavigableContinuation be the result of dequeuing from changingNavigableContinuations.
+        // 3. If changingNavigableContinuation is nothing, then continue.
+        si changing_navigable_continuations.taille == 0 {
+            continue
+        }
+
+        changing_navigable_continuation := changing_navigable_continuations[décalage_défilement]
+        décalage_défilement += 1
+
+        // 4. Let displayedDocument be changingNavigableContinuation's displayed document.
+        displayed_document := changing_navigable_continuation.displayed_document
+
+        // 5. Let targetEntry be changingNavigableContinuation's target entry.
+        target_entry := changing_navigable_continuation.target_entry
+
+        // 6. Let navigable be changingNavigableContinuation's navigable.
+        navigable := changing_navigable_continuation.navigable
+
+        // À FAIRE 7. Let (scriptHistoryLength, scriptHistoryIndex) be the result of getting the history object length and index given traversable and targetStep.
+
+        // 8. Append navigable to navigablesThatMustWaitBeforeHandlingSyncNavigation.
+        tableau_ajoute(*navigables_that_must_wait_before_handling_sync_navigation, navigable)
+
+        // À FAIRE : 9. Let entriesForNavigationAPI be the result of getting session history entries for the navigation API given navigable and targetStep.
+
+        // 10. If changingNavigableContinuation's update-only is true, or targetEntry's document is displayedDocument, then:
+        si changing_navigable_continuation.update_only || target_entry.donne_document() == displayed_document {
+            // 1. Set the ongoing navigation for navigable to null.
+            init_de(OngoingNavigationType)(*navigable.ongoing_navigation)
+
+            // 2. Queue a global task on the navigation and traversal task source given navigable's active window to perform afterPotentialUnloads.
+        }
+        // 11. Otherwise:
+        sinon {
+            // 1. Assert: navigationType is not null.
+
+            // 2. Deactivate displayedDocument, given userNavigationInvolvement, targetEntry, navigationType, and afterPotentialUnloads.
+        }
+
+        // 12. In both cases, let afterPotentialUnloads be the following steps:
+
+            // 1. If changingNavigableContinuation's update-only is false, then activate history entry targetEntry for navigable.
+
+            // 2. Let updateDocument be an algorithm step which performs update document for history step application given targetEntry's document, targetEntry, changingNavigableContinuation's update-only, scriptHistoryLength, scriptHistoryIndex, navigationType, entriesForNavigationAPI, and displayedEntry.
+
+            // 3. If targetEntry's document is equal to displayedDocument, then perform updateDocument.
+
+            // 4. Otherwise, queue a global task on the navigation and traversal task source given targetEntry's document's relevant global object to perform updateDocument.
+
+            // 5. Increment completedChangeJobs.
+    }
+
+    // 15. Let totalNonchangingJobs be the size of nonchangingNavigablesThatStillNeedUpdates.
+    total_non_chaging_jobs := nonchanging_navigables_that_still_need_updates.taille
+
+    // 16. Let completedNonchangingJobs be 0.
+    completed_non_changing_jobs := 0
+
+    // À FAIRE : 17. Let (scriptHistoryLength, scriptHistoryIndex) be the result of getting the history object length and index given traversable and targetStep.
+
+    // 18. For each navigable of nonchangingNavigablesThatStillNeedUpdates, queue a global task on the navigation and traversal task source given navigable's active window to run the steps:
+    // À FAIRE : crée une tâche
+    pour navigable dans nonchanging_navigables_that_still_need_updates {
+        // 1. Let document be navigable's active document.
+
+        // 2. Set document's history object's index to scriptHistoryIndex.
+
+        // 3. Set document's history object's length to scriptHistoryLength.
+
+        // 4. Increment completedNonchangingJobs.
+        completed_non_changing_jobs += 1
+    }
+
+    // 19. Wait for completedNonchangingJobs to equal totalNonchangingJobs.
+    tantque completed_non_changing_jobs != total_non_chaging_jobs {
+        continue
+    }
+
+    // 20. Set traversable's current session history step to targetStep.
+    traversable.current_session_history_entry.step = target_step
+
+    // 21. Return "applied".
     retourne HistoryApplication.Applied
 }
 
-changing_navigable_continuations_steps :: fonc (navigable: *Navigable,
+
+crée_tâche_pour_changing_navigable_continuations_steps :: fonc (user_agent: *UserAgent,
+                                                                navigable: *Navigable,
+                                                                traversable: *TraversableNavigable,
+                                                                navigation_type: *NavigationType,
+                                                                source_snapshot_params: *SourceSnapshotParams,
+                                                                changing_navigable_continuations: *[..]ChangingNavigableContinuationState) -> *Algorithm
+{
+    Tâche :: struct {
+        empl base: Algorithm
+
+        user_agent: *UserAgent
+        navigable: *Navigable
+        traversable: *TraversableNavigable
+        navigation_type: *NavigationType
+        source_snapshot_params: *SourceSnapshotParams
+        changing_navigable_continuations: *[..]ChangingNavigableContinuationState
+    }
+
+    sur_run :: fonc (base: *Algorithm)
+    {
+        tâche := base comme *Tâche
+
+        user_agent := tâche.user_agent
+        navigable := tâche.navigable
+        traversable := tâche.traversable
+        navigation_type := tâche.navigation_type
+        source_snapshot_params := tâche.source_snapshot_params
+        changing_navigable_continuations := tâche.changing_navigable_continuations
+
+        changing_navigable_continuations_steps(user_agent, navigable, traversable, navigation_type, source_snapshot_params, changing_navigable_continuations)
+    }
+
+    sur_destruction :: fonc (base: *Algorithm)
+    {
+        tâche := base comme *Tâche
+        déloge(tâche)
+    }
+
+    tâche := loge(Tâche)
+    tâche.user_agent = user_agent
+    tâche.navigable = navigable
+    tâche.traversable = traversable
+    tâche.navigation_type = navigation_type
+    tâche.source_snapshot_params = source_snapshot_params
+    tâche.changing_navigable_continuations = changing_navigable_continuations
+    tâche.sur_run = sur_run
+    tâche.sur_destruction = sur_destruction
+    retourne tâche
+}
+
+changing_navigable_continuations_steps :: fonc (user_agent: *UserAgent,
+                                                navigable: *Navigable,
                                                 traversable: *TraversableNavigable,
                                                 navigation_type: *NavigationType,
+                                                source_snapshot_params: *SourceSnapshotParams,
                                                 changing_navigable_continuations: *[..]ChangingNavigableContinuationState)
 {
     // 1. Let displayedEntry be navigable's active session history entry.
@@ -1551,21 +1739,21 @@ changing_navigable_continuations_steps :: fonc (navigable: *Navigable,
     si target_entry.donne_document() == nul || target_entry.document_state.reload_pending == vrai {
         // 1. Let navTimingType be "back_forward" if targetEntry's document is null; otherwise "reload".
         nav_timing_type := si target_entry.donne_document() == nul {
-            NavigationTimingType.BackForward
+            NavigationTimingType.back_forward
         }
         sinon {
-            NavigationTimingType.Reload
+            NavigationTimingType.reload
         }
 
         // 2. Let targetSnapshotParams be the result of snapshotting target snapshot params given navigable.
         target_snapshot_params := snapshot_target_snapshot_params(navigable)
 
         // 3. Let potentiallyTargetSpecificSourceSnapshotParams be sourceSnapshotParams.
-        potentially_target_specific_source_snapshot_params := source_snapshot_params
-
-        // À FAIRE : 4. If potentiallyTargetSpecificSourceSnapshotParams is null, then set it to the result of snapshotting source snapshot params given navigable's active document.
-        si potentially_target_specific_source_snapshot_params == nul {
-
+        potentially_target_specific_source_snapshot_params: SourceSnapshotParams
+        
+        // 4. If potentiallyTargetSpecificSourceSnapshotParams is null, then set it to the result of snapshotting source snapshot params given navigable's active document.
+        si source_snapshot_params == nul {
+            potentially_target_specific_source_snapshot_params = snapshot_source_snapshot_params(navigable.donne_active_document())
         }
 
         // 5. Set targetEntry's document state's reload pending to false.
@@ -1574,10 +1762,130 @@ changing_navigable_continuations_steps :: fonc (navigable: *Navigable,
         // 6. Let allowPOST be targetEntry's document state's reload pending.
         allow_post := target_entry.document_state.reload_pending
 
-        // À FAIRE : 7. In parallel, attempt to populate the history entry's document for targetEntry, given navigable, potentiallyTargetSpecificSourceSnapshotParams, targetSnapshotParams, with allowPOST set to allowPOST and completionSteps set to queue a global task on the navigation and traversal task source given navigable's active window to run afterDocumentPopulated.
+        // À FAIRE : 7. In parallel, attempt to populate the history entry's document for targetEntry, given navigable, potentiallyTargetSpecificSourceSnapshotParams, targetSnapshotParams, with allowPOST set to allowPOST and
+        //   completionSteps set to queue a global task on the navigation and traversal task source given navigable's active window to run afterDocumentPopulated.
+
+        tâche_after_document_populated := crée_tâche_pour_after_document_populated(target_entry, navigable, changing_navigable_continuation, changing_navigable_continuations)
+        // À FAIRE : navigable.active_window
+        completion_steps := crée_tâche_pour_enfiler_tâche(user_agent, tâche_after_document_populated, SourceDeTâche.NavigationEtTraversée)
+
+        history_entry_population_params: HistoryEntryPopulationParams
+        history_entry_population_params.user_agent = user_agent
+        history_entry_population_params.entry = target_entry
+        history_entry_population_params.navigable = navigable
+        history_entry_population_params.source_snapshot_params = potentially_target_specific_source_snapshot_params
+        history_entry_population_params.target_snapshot_params = target_snapshot_params
+        history_entry_population_params.completion_steps = completion_steps
+        history_entry_population_params.allow_post = allow_post
+        history_entry_population_params.nav_timing_type = nav_timing_type
+
+        tâche_pour_entry_population_attempt := crée_tâche_pour_entry_population_attempt(*history_entry_population_params)
+        user_agent.lance_en_parallèle(tâche_pour_entry_population_attempt)
+        retourne
     }
 
     // Otherwise, run afterDocumentPopulated immediately.
+    after_document_populated(target_entry, navigable, changing_navigable_continuation, changing_navigable_continuations)
+}
+
+crée_tâche_pour_enfiler_tâche :: fonc (user_agent: *UserAgent, tâche_à_enfiler: *Algorithm, source: SourceDeTâche) -> *Algorithm
+{
+    Tâche :: struct {
+        empl base: Algorithm
+
+        user_agent: *UserAgent
+        tâche_à_enfiler: *Algorithm
+        source: SourceDeTâche
+    }
+
+    sur_run :: fonc (base: *Algorithm)
+    {
+        tâche := base comme *Tâche
+
+        user_agent := tâche.user_agent
+        tâche_à_enfiler := tâche.tâche_à_enfiler
+        source := tâche.source
+
+        user_agent.enfile_une_tâche(source, tâche_à_enfiler)
+    }
+
+    sur_destruction :: fonc (base: *Algorithm)
+    {
+        tâche := base comme *Tâche
+        déloge(tâche)
+    }
+
+    tâche := loge(Tâche)
+    tâche.user_agent = user_agent
+    tâche.tâche_à_enfiler = tâche_à_enfiler
+    tâche.source = source
+    tâche.sur_run = sur_run
+    tâche.sur_destruction = sur_destruction
+    retourne tâche
+}
+
+crée_tâche_pour_after_document_populated :: fonc (target_entry: *SessionHistoryEntry,
+                                                  navigable: *Navigable,
+                                                  changing_navigable_continuation: ChangingNavigableContinuationState,
+                                                  changing_navigable_continuations: *[..]ChangingNavigableContinuationState) -> *Algorithm
+{
+    Tâche :: struct {
+        empl base: Algorithm
+
+        target_entry: *SessionHistoryEntry
+        navigable: *Navigable
+        changing_navigable_continuation: ChangingNavigableContinuationState
+        changing_navigable_continuations: *[..]ChangingNavigableContinuationState
+    }
+
+    sur_run :: fonc (base: *Algorithm)
+    {
+        tâche := base comme *Tâche
+
+        target_entry := tâche.target_entry
+        navigable := tâche.navigable
+        changing_navigable_continuation := tâche.changing_navigable_continuation
+        changing_navigable_continuations := tâche.changing_navigable_continuations
+
+        after_document_populated(target_entry, navigable, changing_navigable_continuation, changing_navigable_continuations)
+    }
+
+    sur_destruction :: fonc (base: *Algorithm)
+    {
+        tâche := base comme *Tâche
+        déloge(tâche)
+    }
+
+    tâche := loge(Tâche)
+    tâche.target_entry = target_entry
+    tâche.navigable = navigable
+    tâche.changing_navigable_continuation = changing_navigable_continuation
+    tâche.changing_navigable_continuations = changing_navigable_continuations
+    tâche.sur_run = sur_run
+    tâche.sur_destruction = sur_destruction
+    retourne tâche
+}
+
+after_document_populated :: fonc (target_entry: *SessionHistoryEntry,
+                                  navigable: *Navigable,
+                                  changing_navigable_continuation: ChangingNavigableContinuationState,
+                                  changing_navigable_continuations: *[..]ChangingNavigableContinuationState)
+{
+    // 1. If targetEntry's document is null, then set changingNavigableContinuation's update-only to true.
+    si target_entry.donne_document() == nul {
+        changing_navigable_continuation.update_only = vrai
+    }
+
+    // À FAIRE : 2. If targetEntry's document's origin is not oldOrigin, then set targetEntry's classic history API state to StructuredSerializeForStorage(null).
+
+    // À FAIRE : 3. If all of the following are true:
+    //    navigable's parent is null;
+    //    targetEntry's document's browsing context is not an auxiliary browsing context whose opener browsing context is non-null; and
+    //    targetEntry's document's origin is not oldOrigin,
+    //    then set targetEntry's document state's navigable target name to the empty string.
+
+    // 4. Enqueue changingNavigableContinuation on changingNavigableContinuations.
+    tableau_ajoute(changing_navigable_continuations, changing_navigable_continuation)
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#getting-the-used-step */

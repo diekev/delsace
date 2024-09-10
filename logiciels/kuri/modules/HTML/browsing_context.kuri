@@ -236,7 +236,7 @@ TraversableNavigable :: struct {
     // A current session history step, a number, initially 0.
     session_history_entries: [..]*SessionHistoryEntry
     // A session history traversal queue, a session history traversal parallel queue, the result of starting a new session history traversal parallel queue.
-    // A running nested apply history step boolean, initially false.
+    running_nested_apply_history_step := faux
     // A system visibility state, which is either "hidden" or "visible".
 }
 
