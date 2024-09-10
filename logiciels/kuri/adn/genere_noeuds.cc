@@ -1241,9 +1241,10 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
         inclus(os, "assembleuse.hh");
 
         const char *empile_bloc = R"(
-NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDéclarationEntêteFonction *appartiens_à_fonction)
+NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDéclarationEntêteFonction *appartiens_à_fonction, TypeBloc type_bloc)
 {
     auto bloc = crée_noeud<GenreNoeud::INSTRUCTION_COMPOSÉE>(lexeme)->comme_bloc();
+    bloc->type_bloc = type_bloc;
     bloc->appartiens_à_fonction = appartiens_à_fonction;
     bloc->bloc_parent = bloc_courant();
     m_blocs.empile(bloc);
@@ -1322,7 +1323,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDéclaratio
         : m_allocatrice(allocatrice)
     {}
 
-    NoeudBloc *empile_bloc(Lexème const *lexeme, NoeudDéclarationEntêteFonction *appartiens_à_fonction);
+    NoeudBloc *empile_bloc(Lexème const *lexeme, NoeudDéclarationEntêteFonction *appartiens_à_fonction, TypeBloc type_bloc);
 
     NoeudBloc *bloc_courant() const
     {
