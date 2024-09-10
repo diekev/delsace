@@ -93,6 +93,7 @@ Document :: struct {
     referrer: chaine /* Peut être vide. */
 
     is_initial_about_blank: bool
+    latest_entry: *SessionHistoryEntry
 
     /* CSS. */
     feuille_de_style_agent: *CSS.CSSStyleSheet
