@@ -161,12 +161,13 @@ donne_traversable_navigable :: fonc (input_navigable: *Navigable) -> *Traversabl
 }
 
 /*  https://html.spec.whatwg.org/multipage/browsing-the-web.html#getting-session-history-entries */
-donne_session_history_entries :: fonc (navigable: *Navigable) -> *[..]*SessionHistoryEntry
+donne_session_history_entries :: fonc (user_agent: *UserAgent, navigable: *Navigable) -> *[..]*SessionHistoryEntry
 {
     // 1. Let traversable be navigable's traversable navigable.
     traversable := donne_traversable_navigable(navigable)
 
-    // À FAIRE : 2. Assert: this is running within traversable's session history traversal queue.
+    // 2. Assert: this is running within traversable's session history traversal queue.
+    assert(user_agent.est_exécuté_sur_file_parallèle(traversable))
 
     // 3. If navigable is traversable, return traversable's session history entries.
     si navigable == traversable {
@@ -233,10 +234,10 @@ TraversableNavigable :: struct {
     empl base: Navigable
     type = #type_de_cette_structure
 
-    // A current session history step, a number, initially 0.
+    current_session_history_entry_step: n32 = 0
     session_history_entries: [..]*SessionHistoryEntry
-    // A session history traversal queue, a session history traversal parallel queue, the result of starting a new session history traversal parallel queue.
-    // A running nested apply history step boolean, initially false.
+    index_file_parallèle: z64
+    running_nested_apply_history_step := faux
     // A system visibility state, which is either "hidden" or "visible".
 }
 
@@ -300,6 +301,7 @@ crée_un_nouveau_top_level_traversable :: fonc (user_agent: *UserAgent, opener: 
 
     // 5. Let traversable be a new traversable navigable.
     traversable := loge(TraversableNavigable)
+    traversable.index_file_parallèle = user_agent.crée_file_parallèle_pour_traversable()
 
     // 6. Initialize the navigable traversable given documentState.
     initialise_navigable(traversable, document_state)
@@ -685,7 +687,8 @@ crée_browsing_context_et_document :: fonc (creator: *Document, embedder: *Élé
     // 19. Populate with html/head/body given document.
     populate_with_html_head_body(document)
 
-    // À FAIRE 20. Make active document.
+    // 20. Make active document.
+    make_active(document)
 
     // À FAIRE 21. Completely finish loading document.
 
