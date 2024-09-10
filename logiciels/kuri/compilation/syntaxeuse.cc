@@ -1554,6 +1554,10 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
             noeud->expression = expression;
             analyse_annotations(noeud->annotations);
 
+            if (m_tacheronne.assembleuse->bloc_courant()->type_bloc == TypeBloc::IMPÉRATIF) {
+                noeud->drapeaux |= DrapeauxNoeud::EST_LOCALE;
+            }
+
             m_noeud_expression_virgule = nullptr;
 
             return noeud;
