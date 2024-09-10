@@ -209,6 +209,12 @@ NavigationType :: énum {
     traverse
 }
 
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#the-navigation-must-be-a-replace */
+navigation_must_be_a_replace :: fonc (url: &URI, document: *Document) -> bool
+{
+    retourne document.is_initial_about_blank || url.schéma == "javascript"
+}
+
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#user-navigation-involvement */
 UserNavigationInvolvement :: énum {
     BrowserUI
@@ -292,6 +298,9 @@ navigate :: fonc (user_agent: *UserAgent,
     }
 
     // 12. If the navigation must be a replace given url and navigable's active document, then set historyHandling to "replace".
+    si navigation_must_be_a_replace(url, navigable.donne_active_document()) {
+        history_handling = NavigationHistoryBehavior.REPLACE
+    }
 
     // 13. If all of the following are true:
     //     documentResource is null;
@@ -1529,8 +1538,7 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
 
         // 2. Let changingNavigableContinuation be the result of dequeuing from changingNavigableContinuations.
         // 3. If changingNavigableContinuation is nothing, then continue.
-        si changing_navigable_continuations.taille == 0 {
-            user_agent.spin_event_loop()
+        si décalage_défilement >= changing_navigable_continuations.taille {
             continue
         }
 
@@ -1886,7 +1894,7 @@ changing_navigable_continuations_steps :: fonc (user_agent: *UserAgent,
         // 6. Let allowPOST be targetEntry's document state's reload pending.
         allow_post := target_entry.document_state.reload_pending
 
-        // À FAIRE : 7. In parallel, attempt to populate the history entry's document for targetEntry, given navigable, potentiallyTargetSpecificSourceSnapshotParams, targetSnapshotParams, with allowPOST set to allowPOST and
+        // 7. In parallel, attempt to populate the history entry's document for targetEntry, given navigable, potentiallyTargetSpecificSourceSnapshotParams, targetSnapshotParams, with allowPOST set to allowPOST and
         //   completionSteps set to queue a global task on the navigation and traversal task source given navigable's active window to run afterDocumentPopulated.
 
         tâche_after_document_populated := crée_tâche_pour_after_document_populated(target_entry, navigable, changing_navigable_continuation, changing_navigable_continuations)
