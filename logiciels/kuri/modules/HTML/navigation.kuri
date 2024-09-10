@@ -634,6 +634,7 @@ attempt_to_populate_the_history_entry_document :: fonc (params: *HistoryEntryPop
     completion_steps := params.completion_steps
 
     // 1. Assert: this is running in parallel.
+    assert(user_agent.est_exécuté_en_parallèle())
 
     // 2. Assert: if navigationParams is non-null, then navigationParams's response is non-null.
 
@@ -846,6 +847,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
                                               nav_timing_type: NavigationTimingType @inutilisée) -> *NavigationParams
 {
     // 1. Assert: this is running in parallel.
+    assert(user_agent.est_exécuté_en_parallèle())
 
     // 2. Let documentResource be entry's document state's resource.
 

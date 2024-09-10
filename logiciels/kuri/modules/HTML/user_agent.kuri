@@ -87,6 +87,8 @@ RappelsInterface :: struct {
     sur_enfile_une_tâche: fonc(*RappelsInterface, SourceDeTâche, *Algorithm)(rien)
     sur_tâche_parallèle: fonc(*RappelsInterface, *Algorithm)(rien)
     sur_document_est_prêt: fonc (*RappelsInterface, *Document)(rien)
+    sur_est_exécuté_sur_fil_principal: fonc(*RappelsInterface)(bool)
+    sur_est_exécuté_en_parallèle: fonc(*RappelsInterface)(bool)
 }
 
 détruit_rappels :: fonc (rappels: *RappelsInterface)
@@ -165,6 +167,24 @@ document_est_prêt :: fonc (user_agent: *UserAgent, document: *Document)
     }
 
     rappels.sur_document_est_prêt(rappels, document)
+}
+
+est_exécuté_sur_fil_principal :: fonc (user_agent: *UserAgent) -> bool
+{
+    rappels := user_agent.rappels_interface
+    saufsi rappels && rappels.sur_est_exécuté_sur_fil_principal {
+        retourne faux
+    }
+    retourne rappels.sur_est_exécuté_sur_fil_principal(rappels)
+}
+
+est_exécuté_en_parallèle :: fonc (user_agent: *UserAgent) -> bool
+{
+    rappels := user_agent.rappels_interface
+    saufsi rappels && rappels.sur_est_exécuté_en_parallèle {
+        retourne faux
+    }
+    retourne rappels.sur_est_exécuté_en_parallèle(rappels)
 }
 
 /** \} */

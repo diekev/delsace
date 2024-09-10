@@ -1353,6 +1353,8 @@ crée_rappels_interface_qt :: fonc (fenêtre: *QT_Fenetre_Principale) -> *Rappel
     résultat.sur_enfile_une_tâche = rappels_interface_sur_enfile_une_tâche
     résultat.sur_tâche_parallèle = rappels_interface_sur_tâche_parallèle
     résultat.sur_document_est_prêt = rappels_interface_sur_document_est_prêt
+    résultat.sur_est_exécuté_sur_fil_principal = rappels_interface_sur_est_exécuté_sur_fil_principal
+    résultat.sur_est_exécuté_en_parallèle = rappels_interface_sur_est_exécuté_en_parallèle
 
     rappels_thread := QT_loge_rappel(RappelsThread)
     rappels_thread.rappels_interface = résultat
@@ -1601,6 +1603,16 @@ rappels_interface_sur_document_est_prêt :: fonc (base: *RappelsInterface, docum
     init_de(BarreDeDéfilement)(*rappels_fenêtre.page_web.défilement_vertical)
 
     QT_gui_application_restaure_curseur()
+}
+
+rappels_interface_sur_est_exécuté_sur_fil_principal :: fonc (base: *RappelsInterface @inutilisée) -> bool
+{
+    retourne QT_thread_courant() == QT_application_thread()
+}
+
+rappels_interface_sur_est_exécuté_en_parallèle :: fonc (base: *RappelsInterface @inutilisée) -> bool
+{
+    retourne QT_thread_courant() != QT_application_thread()
 }
 
 /** \} */
