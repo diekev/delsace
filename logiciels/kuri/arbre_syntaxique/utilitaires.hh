@@ -151,6 +151,27 @@ std::ostream &operator<<(std::ostream &os, PartageMémoire const partage);
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name TypeBloc
+ * \{ */
+
+enum class TypeBloc : uint8_t {
+    /* Le bloc est le bloc impératif d'une fonction. */
+    IMPÉRATIF = 0,
+    /* Le bloc est le bloc global d'un module. */
+    MODULE = 1,
+    /* Le bloc est le bloc définissant les membres d'une structure ou d'une énumération. */
+    TYPE = 2,
+    /* Le bloc est le bloc de constantes d'une fonction ou d'un type. */
+    CONSTANTES = 3,
+    /* Le bloc est le bloc de paramètres d'une fonction. */
+    PARAMÈTRES = 4,
+};
+
+std::ostream &operator<<(std::ostream &os, TypeBloc const type);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name Drapeaux pour les fonctions.
  * \{ */
 
