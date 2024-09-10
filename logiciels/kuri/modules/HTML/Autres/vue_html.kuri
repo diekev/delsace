@@ -1609,9 +1609,10 @@ rappels_interface_sur_est_exécuté_sur_fil_principal :: fonc (base: *RappelsInt
     retourne QT_thread_courant() == QT_application_thread()
 }
 
-rappels_interface_sur_est_exécuté_en_parallèle :: fonc (base: *RappelsInterface @inutilisée) -> bool
+rappels_interface_sur_est_exécuté_en_parallèle :: fonc (base: *RappelsInterface) -> bool
 {
-    retourne QT_thread_courant() != QT_application_thread()
+    rappels := base comme *RappelsInterfaceQt
+    retourne QT_thread_courant() == rappels.thread
 }
 
 /** \} */
