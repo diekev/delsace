@@ -135,7 +135,7 @@ struct Syntaxeuse : BaseSyntaxeuse {
                                                    GenreLexème racine_expression,
                                                    GenreLexème lexème_final);
 
-    NoeudBloc *analyse_bloc(bool accolade_requise = true);
+    NoeudBloc *analyse_bloc(TypeBloc type_bloc, bool accolade_requise = true);
 
     NoeudExpression *analyse_appel_fonction(NoeudExpression *gauche);
 
