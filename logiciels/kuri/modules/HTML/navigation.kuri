@@ -1440,7 +1440,7 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
     assert(user_agent.est_exécuté_sur_file_parallèle(traversable))
 
     // 2. Let targetStep be the result of getting the used step given traversable and step.
-    target_step := get_the_used_step(traversable, step)
+    target_step := get_the_used_step(user_agent, traversable, step)
 
     // 3. If initiatorToCheck is not null, then:
     si initiator_to_check {
@@ -1455,7 +1455,7 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
 
     // 4. Let navigablesCrossingDocuments be the result of getting all navigables that might experience a
     //    cross-document traversal given traversable and targetStep.
-    navigables_crossing_documents := get_all_navigables_that_might_experience_a_cross_document_traversal(traversable, target_step)
+    navigables_crossing_documents := get_all_navigables_that_might_experience_a_cross_document_traversal(user_agent, traversable, target_step)
     diffère déloge(navigables_crossing_documents)
 
     // 5. If checkForCancelation is true, and the result of checking if unloading is canceled given navigablesCrossingDocuments, traversable, targetStep, and userInvolvementForNavigateEvents is not "continue", then return that result.
@@ -1470,17 +1470,17 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
     }
 
     // 6. Let changingNavigables be the result of get all navigables whose current session history entry will change or reload given traversable and targetStep.
-    changing_navigables := get_all_navigables_whose_current_session_history_entry_will_change_or_reload(traversable, target_step)
+    changing_navigables := get_all_navigables_whose_current_session_history_entry_will_change_or_reload(user_agent, traversable, target_step)
     diffère déloge(changing_navigables)
 
     // 7. Let nonchangingNavigablesThatStillNeedUpdates be the result of getting all navigables that only need history object length/index update given traversable and targetStep.
-    nonchanging_navigables_that_still_need_updates := get_all_navigables_that_only_need_history_object_length_index_update(traversable, target_step)
+    nonchanging_navigables_that_still_need_updates := get_all_navigables_that_only_need_history_object_length_index_update(user_agent, traversable, target_step)
     diffère déloge(nonchanging_navigables_that_still_need_updates)
 
     // 8. For each navigable of changingNavigables:
     pour navigable dans changing_navigables {
         // 1. Let targetEntry be the result of getting the target history entry given navigable and targetStep.
-        target_entry := get_the_target_history_entry(navigable, target_step)
+        target_entry := get_the_target_history_entry(user_agent, navigable, target_step)
 
         // 2. Set navigable's current session history entry to targetEntry.
         navigable.current_session_history_entry = target_entry
@@ -2002,10 +2002,10 @@ activate_histroy_entry :: fonc (entry: *SessionHistoryEntry, navigable: *Navigab
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#getting-the-used-step */
-get_the_used_step :: fonc (traversable: *TraversableNavigable, step: n32) -> n32
+get_the_used_step :: fonc (user_agent: *UserAgent, traversable: *TraversableNavigable, step: n32) -> n32
 {
     // 1. Let steps be the result of getting all used history steps within traversable.
-    steps := get_all_used_history_steps(traversable)
+    steps := get_all_used_history_steps(user_agent, traversable)
     diffère déloge(steps)
  
     // 2. Return the greatest item in steps that is less than or equal to step.
@@ -2022,7 +2022,7 @@ get_the_used_step :: fonc (traversable: *TraversableNavigable, step: n32) -> n32
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#get-all-navigables-whose-current-session-history-entry-will-change-or-reload */
-get_all_navigables_whose_current_session_history_entry_will_change_or_reload :: fonc (traversable: *TraversableNavigable, target_step: n32) -> [..]*Navigable
+get_all_navigables_whose_current_session_history_entry_will_change_or_reload :: fonc (user_agent: *UserAgent, traversable: *TraversableNavigable, target_step: n32) -> [..]*Navigable
 {
     // 1. Let results be an empty list.
     results: [..]*Navigable
@@ -2036,7 +2036,7 @@ get_all_navigables_whose_current_session_history_entry_will_change_or_reload :: 
         navigable := enlève_dernier_élément(*navigables_to_check)
 
         // 1. Let targetEntry be the result of getting the target history entry given navigable and targetStep.
-        target_entry := get_the_target_history_entry(navigable, target_step)
+        target_entry := get_the_target_history_entry(user_agent, navigable, target_step)
 
         // 2. If targetEntry is not navigable's current session history entry or targetEntry's document state's reload pending is true,
         //    then append navigable to results.
@@ -2059,7 +2059,7 @@ get_all_navigables_whose_current_session_history_entry_will_change_or_reload :: 
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#getting-all-navigables-that-only-need-history-object-length/index-update */
-get_all_navigables_that_only_need_history_object_length_index_update :: fonc (traversable: *TraversableNavigable, target_step: n32) -> [..]*Navigable
+get_all_navigables_that_only_need_history_object_length_index_update :: fonc (user_agent: *UserAgent, traversable: *TraversableNavigable, target_step: n32) -> [..]*Navigable
 {
     // 1. Let results be an empty list.
     results: [..]*Navigable
@@ -2073,7 +2073,7 @@ get_all_navigables_that_only_need_history_object_length_index_update :: fonc (tr
         navigable := enlève_dernier_élément(*navigables_to_check)
 
         // 1. Let targetEntry be the result of getting the target history entry given navigable and targetStep.
-        target_entry := get_the_target_history_entry(navigable, target_step)
+        target_entry := get_the_target_history_entry(user_agent, navigable, target_step)
 
         // 2. If targetEntry is navigable's current session history entry and targetEntry's document state's reload pending is false, then:
         si target_entry == navigable.current_session_history_entry && target_entry.document_state.reload_pending == faux {
@@ -2092,10 +2092,10 @@ get_all_navigables_that_only_need_history_object_length_index_update :: fonc (tr
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#getting-the-target-history-entry */
-get_the_target_history_entry :: fonc (navigable: *Navigable, step: n32) -> *SessionHistoryEntry
+get_the_target_history_entry :: fonc (user_agent: *UserAgent, navigable: *Navigable, step: n32) -> *SessionHistoryEntry
 {
     // 1. Let entries be the result of getting session history entries for navigable.
-    entries := donne_session_history_entries(navigable)
+    entries := donne_session_history_entries(user_agent, navigable)
 
     // 2. Return the item in entries that has the greatest step less than or equal to step.
     résultat: *SessionHistoryEntry
@@ -2161,7 +2161,7 @@ get_all_used_history_steps :: fonc (user_agent: *UserAgent, traversable: *Traver
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#getting-all-navigables-that-might-experience-a-cross-document-traversal */
-get_all_navigables_that_might_experience_a_cross_document_traversal :: fonc (traversable: *TraversableNavigable, target_step: n32) -> [..]*Navigable
+get_all_navigables_that_might_experience_a_cross_document_traversal :: fonc (user_agent: *UserAgent, traversable: *TraversableNavigable, target_step: n32) -> [..]*Navigable
 {
     // 1. Let results be an empty list.
     results: [..]*Navigable
@@ -2175,7 +2175,7 @@ get_all_navigables_that_might_experience_a_cross_document_traversal :: fonc (tra
         navigable := enlève_dernier_élément(*navigables_to_check)
 
         // 1. Let targetEntry be the result of getting the target history entry given navigable and targetStep.
-        target_entry := get_the_target_history_entry(navigable, target_step)
+        target_entry := get_the_target_history_entry(user_agent, navigable, target_step)
 
         // 2. If targetEntry's document is not navigable's document or targetEntry's document state's reload pending is true, then append navigable to results.
         document_navigable := navigable.donne_active_document()
