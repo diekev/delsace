@@ -476,33 +476,36 @@ navigate_parallel_steps :: fonc (user_agent: *UserAgent,
     //    navigable, "navigate", sourceSnapshotParams, targetSnapshotParams, navigationId, navigationParams, cspNavigationType, with allowPOST set to true
     //    and completionSteps set to the following step:
     //        1. Append session history traversal steps to navigable's traversable to finalize a cross-document navigation given navigable, historyHandling, and historyEntry.
-    CompletionSteps :: struct {
+    Tâche :: struct {
         empl base: Algorithm
 
+        user_agent: *UserAgent
         navigable: *Navigable
         history_handling: NavigationHistoryBehavior
         history_entry: *SessionHistoryEntry
     }
 
-    completion_steps_run :: fonc (base: *Algorithm)
+    tâche_run :: fonc (base: *Algorithm)
     {
-        steps := base comme *CompletionSteps
-        // À FAIRE : nous devons le mettre dans une file de tâche comme indiquer plus haut
-        finalize_a_cross_document_navigation(steps.navigable, steps.history_handling, steps.history_entry)
+        steps := base comme *Tâche
+        finalize_a_cross_document_navigation(steps.user_agent, steps.navigable, steps.history_handling, steps.history_entry)
     }
 
-    completion_steps_détruit :: fonc (base: *Algorithm)
+    tâche_détruit :: fonc (base: *Algorithm)
     {
-        steps := base comme *CompletionSteps
+        steps := base comme *Tâche
         déloge(steps)
     }
 
-    completion_steps := loge(CompletionSteps)
-    completion_steps.navigable = navigable
-    completion_steps.history_handling = history_handling
-    completion_steps.history_entry = history_entry
-    completion_steps.sur_run = completion_steps_run
-    completion_steps.sur_destruction = completion_steps_détruit
+    tâche := loge(Tâche)
+    tâche.user_agent = user_agent
+    tâche.navigable = navigable
+    tâche.history_handling = history_handling
+    tâche.history_entry = history_entry
+    tâche.sur_run = tâche_run
+    tâche.sur_destruction = tâche_détruit
+
+    completion_steps := crée_tâche_pour_traversable(user_agent, tâche, navigable.donne_traversable_navigable())
 
     history_entry_population_params: HistoryEntryPopulationParams
     history_entry_population_params.user_agent = user_agent
@@ -525,9 +528,12 @@ navigate_parallel_steps :: fonc (user_agent: *UserAgent,
  * \{ */
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#finalize-a-cross-document-navigation */
-finalize_a_cross_document_navigation :: fonc (navigable: *Navigable, history_handling: NavigationHistoryBehavior, history_entry: *SessionHistoryEntry)
+finalize_a_cross_document_navigation :: fonc (user_agent: *UserAgent, navigable: *Navigable, history_handling: NavigationHistoryBehavior, history_entry: *SessionHistoryEntry)
 {
-    // À FAIRE : 1. Assert: this is running on navigable's traversable navigable's session history traversal queue.
+    traversable := navigable.donne_traversable_navigable()
+
+    // 1. Assert: this is running on navigable's traversable navigable's session history traversal queue.
+    assert(user_agent.est_exécuté_sur_file_parallèle(traversable))
 
     // 2. Set navigable's is delaying load events to false.
     navigable.is_delaying_load_events = faux
@@ -550,13 +556,13 @@ finalize_a_cross_document_navigation :: fonc (navigable: *Navigable, history_han
     }
 
     // 6. Let traversable be navigable's traversable navigable.
-    traversable := navigable.donne_traversable_navigable()
+    // Fait plus haut.
 
     // 7. Let targetStep be null.
     target_step: Optionnel(n32) 
 
     // 8. Let targetEntries be the result of getting session history entries for navigable.
-    target_entries := donne_session_history_entries(navigable)
+    target_entries := donne_session_history_entries(user_agent, navigable)
 
     // 9. If entryToReplace is null, then:
     si entry_to_replace == nul {
@@ -588,7 +594,6 @@ finalize_a_cross_document_navigation :: fonc (navigable: *Navigable, history_han
 
     // À FAIRE : 10. Apply the push/replace history step targetStep to traversable given historyHandling.
     document := history_entry.donne_document()
-    user_agent := document.donne_user_agent()
 
     // _ := apply_the_push_replace_history_step(user_agent, target_step, traversable, history_handling)
 
@@ -1431,7 +1436,8 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
                                 user_involvement_for_navigate_events: *UserNavigationInvolvement,
                                 navigation_type: *NavigationType) -> HistoryApplication
 {
-    // À FAIRE : 1. Assert: This is running within traversable's session history traversal queue.
+    // 1. Assert: This is running within traversable's session history traversal queue.
+    assert(user_agent.est_exécuté_sur_file_parallèle(traversable))
 
     // 2. Let targetStep be the result of getting the used step given traversable and step.
     target_step := get_the_used_step(traversable, step)
@@ -2112,9 +2118,10 @@ get_the_target_history_entry :: fonc (navigable: *Navigable, step: n32) -> *Sess
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#getting-all-used-history-steps */
-get_all_used_history_steps :: fonc (traversable: *TraversableNavigable) -> [..]n32
+get_all_used_history_steps :: fonc (user_agent: *UserAgent, traversable: *TraversableNavigable) -> [..]n32
 {
     // 1. Assert: this is running within traversable's session history traversal queue.
+    assert(user_agent.est_exécuté_sur_file_parallèle(traversable))
 
     // 2. Let steps be an empty ordered set of non-negative integers.
     steps: [..]n32
