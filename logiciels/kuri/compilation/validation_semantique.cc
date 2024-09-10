@@ -227,8 +227,10 @@ MetaProgramme *Sémanticienne::crée_métaprogramme_pour_directive(NoeudDirectiv
     decl_corps->bloc_parent = directive->bloc_parent;
 
     m_assembleuse->bloc_courant(decl_corps->bloc_parent);
-    decl_entete->bloc_constantes = m_assembleuse->empile_bloc(directive->lexème, decl_entete);
-    decl_entete->bloc_paramètres = m_assembleuse->empile_bloc(directive->lexème, decl_entete);
+    decl_entete->bloc_constantes = m_assembleuse->empile_bloc(
+        directive->lexème, decl_entete, TypeBloc::CONSTANTES);
+    decl_entete->bloc_paramètres = m_assembleuse->empile_bloc(
+        directive->lexème, decl_entete, TypeBloc::PARAMÈTRES);
 
     decl_entete->drapeaux_fonction |= (DrapeauxNoeudFonction::EST_MÉTAPROGRAMME |
                                        DrapeauxNoeudFonction::FUT_GÉNÉRÉE_PAR_LA_COMPILATRICE);
@@ -282,7 +284,8 @@ MetaProgramme *Sémanticienne::crée_métaprogramme_pour_directive(NoeudDirectiv
     auto type_fonction = m_compilatrice.typeuse.type_fonction(types_entrees, type_expression);
     decl_entete->type = type_fonction;
 
-    decl_corps->bloc = m_assembleuse->empile_bloc(directive->lexème, decl_entete);
+    decl_corps->bloc = m_assembleuse->empile_bloc(
+        directive->lexème, decl_entete, TypeBloc::IMPÉRATIF);
 
     static Lexème lexème_retourne = {"retourne", {}, GenreLexème::RETOURNE, 0, 0, 0};
     auto expr_ret = m_assembleuse->crée_retourne(&lexème_retourne, nullptr);
@@ -3135,8 +3138,8 @@ MetaProgramme *Sémanticienne::crée_métaprogramme_corps_texte(NoeudBloc *bloc_
     assert(m_assembleuse->bloc_courant() == nullptr);
     m_assembleuse->bloc_courant(bloc_parent);
 
-    fonction->bloc_constantes = m_assembleuse->empile_bloc(lexème, fonction);
-    fonction->bloc_paramètres = m_assembleuse->empile_bloc(lexème, fonction);
+    fonction->bloc_constantes = m_assembleuse->empile_bloc(lexème, fonction, TypeBloc::CONSTANTES);
+    fonction->bloc_paramètres = m_assembleuse->empile_bloc(lexème, fonction, TypeBloc::PARAMÈTRES);
 
     fonction->bloc_parent = bloc_parent;
     nouveau_corps->bloc_parent = fonction->bloc_paramètres;
