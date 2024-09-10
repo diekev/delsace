@@ -86,7 +86,12 @@ RappelsInterface :: struct {
     sur_requête_rendu: fonc(*RappelsInterface)(rien)
     sur_enfile_une_tâche: fonc(*RappelsInterface, SourceDeTâche, *Algorithm)(rien)
     sur_tâche_parallèle: fonc(*RappelsInterface, *Algorithm)(rien)
+    sur_tâche_traversable: fonc(*RappelsInterface, *TraversableNavigable, *Algorithm)(rien)
     sur_document_est_prêt: fonc (*RappelsInterface, *Document)(rien)
+    sur_est_exécuté_sur_fil_principal: fonc(*RappelsInterface)(bool)
+    sur_est_exécuté_en_parallèle: fonc(*RappelsInterface)(bool)
+    sur_est_exécuté_sur_file_parallèle: fonc(*RappelsInterface,*TraversableNavigable)(bool)
+    sur_création_file_parallèle_pour_traversable: fonc(*RappelsInterface)(z64)
 }
 
 détruit_rappels :: fonc (rappels: *RappelsInterface)
@@ -94,6 +99,16 @@ détruit_rappels :: fonc (rappels: *RappelsInterface)
     si rappels.sur_destruction {
         rappels.sur_destruction(rappels)
     }
+}
+
+spin_event_loop :: fonc (user_agent: *UserAgent)
+{
+    rappels := user_agent.rappels_interface
+    saufsi rappels && rappels.sur_spin_event_loop {
+        retourne
+    }
+
+    rappels.sur_spin_event_loop(rappels)
 }
 
 notifie_élément_survolé :: fonc (user_agent: *UserAgent)
@@ -147,6 +162,16 @@ lance_en_parallèle :: fonc (user_agent: *UserAgent, algorithm: *Algorithm)
     rappels.sur_tâche_parallèle(rappels, algorithm)
 }
 
+lance_sur_file_parallèle :: fonc (user_agent: *UserAgent, traversable: *TraversableNavigable, algorithm: *Algorithm)
+{
+    rappels := user_agent.rappels_interface
+    saufsi rappels && rappels.sur_tâche_traversable {
+        retourne
+    }
+
+    rappels.sur_tâche_traversable(rappels, traversable, algorithm)
+}
+
 document_est_prêt :: fonc (user_agent: *UserAgent, document: *Document)
 {
     rappels := user_agent.rappels_interface
@@ -155,6 +180,120 @@ document_est_prêt :: fonc (user_agent: *UserAgent, document: *Document)
     }
 
     rappels.sur_document_est_prêt(rappels, document)
+}
+
+est_exécuté_sur_fil_principal :: fonc (user_agent: *UserAgent) -> bool
+{
+    rappels := user_agent.rappels_interface
+    saufsi rappels && rappels.sur_est_exécuté_sur_fil_principal {
+        retourne faux
+    }
+    retourne rappels.sur_est_exécuté_sur_fil_principal(rappels)
+}
+
+est_exécuté_en_parallèle :: fonc (user_agent: *UserAgent) -> bool
+{
+    rappels := user_agent.rappels_interface
+    saufsi rappels && rappels.sur_est_exécuté_en_parallèle {
+        retourne faux
+    }
+    retourne rappels.sur_est_exécuté_en_parallèle(rappels)
+}
+
+est_exécuté_sur_file_parallèle :: fonc (user_agent: *UserAgent, traversable: *TraversableNavigable) -> bool
+{
+    rappels := user_agent.rappels_interface
+    saufsi rappels && rappels.sur_est_exécuté_sur_file_parallèle {
+        retourne faux
+    }
+    retourne rappels.sur_est_exécuté_sur_file_parallèle(rappels, traversable)
+}
+
+crée_file_parallèle_pour_traversable :: fonc (user_agent: *UserAgent) -> z64
+{
+    rappels := user_agent.rappels_interface
+    saufsi rappels && rappels.sur_création_file_parallèle_pour_traversable {
+        retourne -1
+    }
+    retourne rappels.sur_création_file_parallèle_pour_traversable(rappels)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Création de tâches.
+ * \{ */
+
+crée_tâche_pour_enfiler_tâche :: fonc (user_agent: *UserAgent, tâche_à_enfiler: *Algorithm, source: SourceDeTâche) -> *Algorithm
+{
+    Tâche :: struct {
+        empl base: Algorithm
+
+        user_agent: *UserAgent
+        tâche_à_enfiler: *Algorithm
+        source: SourceDeTâche
+    }
+
+    sur_run :: fonc (base: *Algorithm)
+    {
+        tâche := base comme *Tâche
+
+        user_agent := tâche.user_agent
+        tâche_à_enfiler := tâche.tâche_à_enfiler
+        source := tâche.source
+
+        user_agent.enfile_une_tâche(source, tâche_à_enfiler)
+    }
+
+    sur_destruction :: fonc (base: *Algorithm)
+    {
+        tâche := base comme *Tâche
+        déloge(tâche)
+    }
+
+    tâche := loge(Tâche)
+    tâche.user_agent = user_agent
+    tâche.tâche_à_enfiler = tâche_à_enfiler
+    tâche.source = source
+    tâche.sur_run = sur_run
+    tâche.sur_destruction = sur_destruction
+    retourne tâche
+}
+
+crée_tâche_pour_traversable :: fonc (user_agent: *UserAgent, tâche_à_enfiler: *Algorithm, traversable: *TraversableNavigable) -> *Algorithm
+{
+    Tâche :: struct {
+        empl base: Algorithm
+
+        user_agent: *UserAgent
+        tâche_à_enfiler: *Algorithm
+        traversable: *TraversableNavigable
+    }
+
+    sur_run :: fonc (base: *Algorithm)
+    {
+        tâche := base comme *Tâche
+
+        user_agent := tâche.user_agent
+        tâche_à_enfiler := tâche.tâche_à_enfiler
+        traversable := tâche.traversable
+
+        user_agent.lance_sur_file_parallèle(traversable, tâche_à_enfiler)
+    }
+
+    sur_destruction :: fonc (base: *Algorithm)
+    {
+        tâche := base comme *Tâche
+        déloge(tâche)
+    }
+
+    tâche := loge(Tâche)
+    tâche.user_agent = user_agent
+    tâche.tâche_à_enfiler = tâche_à_enfiler
+    tâche.traversable = traversable
+    tâche.sur_run = sur_run
+    tâche.sur_destruction = sur_destruction
+    retourne tâche
 }
 
 /** \} */

@@ -172,6 +172,43 @@ std::ostream &operator<<(std::ostream &os, PartageMémoire const partage)
 }
 
 /** \} */
+/* ------------------------------------------------------------------------- */
+/** \name TypeBloc
+ * \{ */
+
+std::ostream &operator<<(std::ostream &os, TypeBloc const type)
+{
+    switch (type) {
+        case TypeBloc::IMPÉRATIF:
+        {
+            os << "IMPÉRATIF";
+            break;
+        }
+        case TypeBloc::MODULE:
+        {
+            os << "MODULE";
+            break;
+        }
+        case TypeBloc::TYPE:
+        {
+            os << "TYPE";
+            break;
+        }
+        case TypeBloc::CONSTANTES:
+        {
+            os << "CONSTANTES";
+            break;
+        }
+        case TypeBloc::PARAMÈTRES:
+        {
+            os << "PARAMÈTRES";
+            break;
+        }
+    }
+    return os;
+}
+
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \name DrapeauxNoeudFonction
