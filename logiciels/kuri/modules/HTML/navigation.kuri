@@ -504,7 +504,18 @@ navigate_parallel_steps :: fonc (user_agent: *UserAgent,
     completion_steps.sur_run = completion_steps_run
     completion_steps.sur_destruction = completion_steps_détruit
 
-    attempt_to_populate_the_history_entry_document(user_agent, history_entry, navigable, NavigationTimingType.navigate, source_snapshot_params, target_snapshot_params, navigation_id, navigation_params, completion_steps)
+    history_entry_population_params: HistoryEntryPopulationParams
+    history_entry_population_params.user_agent = user_agent
+    history_entry_population_params.entry = history_entry
+    history_entry_population_params.navigable = navigable
+    history_entry_population_params.nav_timing_type =  NavigationTimingType.navigate
+    history_entry_population_params.source_snapshot_params = source_snapshot_params
+    history_entry_population_params.target_snapshot_params = target_snapshot_params
+    history_entry_population_params.navigation_id = navigation_id
+    history_entry_population_params.navigation_params = navigation_params
+    history_entry_population_params.completion_steps = completion_steps
+
+    attempt_to_populate_the_history_entry_document(*history_entry_population_params)
 }
 
 /** \} */
@@ -595,30 +606,33 @@ finalize_a_cross_document_navigation :: fonc (navigable: *Navigable, history_han
 /** \nom 7.4.5
  * \{ */
 
-/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#attempt-to-populate-the-history-entry's-document
+HistoryEntryPopulationParams :: struct {
+    user_agent: *UserAgent
+    entry: *SessionHistoryEntry
+    navigable: *Navigable
+    nav_timing_type: NavigationTimingType
+    source_snapshot_params: SourceSnapshotParams
+    target_snapshot_params: TargetSnapshotParams
+    navigation_id: Optionnel(NavigationID)
+    navigation_params : *NavigationParams = nul
+    csp_navigation_type := "other"
+    allow_post := faux
+    completion_steps : *Algorithm = nul
+}
 
-To attempt to populate the history entry's document for a
-    session history entry entry
-    navigable navigable
-    NavigationTimingType navTimingType
-    source snapshot params sourceSnapshotParams
-    target snapshot params targetSnapshotParams
-    optional navigation ID-or-null navigationId (default null)
-    an optional navigation params-or-null navigationParams (default null)
-    an optional string cspNavigationType (default "other")
-    an optional boolean allowPOST (default false)
-    and optional algorithm steps completionSteps (default an empty algorithm)
- */
-attempt_to_populate_the_history_entry_document :: fonc (user_agent: *UserAgent,
-                                                        entry: *SessionHistoryEntry,
-                                                        navigable: *Navigable,
-                                                        nav_timing_type: NavigationTimingType,
-                                                        source_snapshot_params: &SourceSnapshotParams,
-                                                        target_snapshot_params: &TargetSnapshotParams,
-                                                        navigation_id: NavigationID,
-                                                        navigation_params : *NavigationParams = nul,
-                                                        completion_steps : *Algorithm = nul)
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#attempt-to-populate-the-history-entry's-document */
+attempt_to_populate_the_history_entry_document :: fonc (params: *HistoryEntryPopulationParams)
 {
+    user_agent := params.user_agent
+    entry := params.entry
+    navigable := params.navigable
+    nav_timing_type := params.nav_timing_type
+    source_snapshot_params := params.source_snapshot_params
+    target_snapshot_params := params.target_snapshot_params
+    navigation_id := params.navigation_id
+    navigation_params := params.navigation_params
+    completion_steps := params.completion_steps
+
     // 1. Assert: this is running in parallel.
 
     // 2. Assert: if navigationParams is non-null, then navigationParams's response is non-null.
