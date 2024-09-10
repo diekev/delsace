@@ -1457,7 +1457,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                     données_précédence, racine_expression, lexème_final);
                 analyse_annotations(decl->annotations);
 
-                if (!bloc_constantes_polymorphiques.est_vide()) {
+                if (m_tacheronne.assembleuse->bloc_courant()->type_bloc == TypeBloc::IMPÉRATIF) {
                     decl->drapeaux |= DrapeauxNoeud::EST_LOCALE;
                 }
                 m_noeud_expression_virgule = nullptr;
@@ -1471,7 +1471,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                 recycle_référence(gauche->comme_référence_déclaration());
                 decl->expression_type = analyse_expression(
                     données_précédence, racine_expression, lexème_final);
-                if (!bloc_constantes_polymorphiques.est_vide()) {
+                if (m_tacheronne.assembleuse->bloc_courant()->type_bloc == TypeBloc::IMPÉRATIF) {
                     decl->drapeaux |= DrapeauxNoeud::EST_LOCALE;
                 }
                 analyse_directive_déclaration_variable(decl);
@@ -1517,7 +1517,8 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
 
                     auto decl = m_tacheronne.assembleuse->crée_déclaration_variable(
                         it->comme_référence_déclaration());
-                    if (!bloc_constantes_polymorphiques.est_vide()) {
+                    if (m_tacheronne.assembleuse->bloc_courant()->type_bloc ==
+                        TypeBloc::IMPÉRATIF) {
                         decl->drapeaux |= DrapeauxNoeud::EST_LOCALE;
                     }
                     decl->drapeaux |= DrapeauxNoeud::EST_DÉCLARATION_EXPRESSION_VIRGULE;
