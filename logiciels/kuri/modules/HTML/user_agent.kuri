@@ -96,6 +96,16 @@ détruit_rappels :: fonc (rappels: *RappelsInterface)
     }
 }
 
+spin_event_loop :: fonc (user_agent: *UserAgent)
+{
+    rappels := user_agent.rappels_interface
+    saufsi rappels && rappels.sur_spin_event_loop {
+        retourne
+    }
+
+    rappels.sur_spin_event_loop(rappels)
+}
+
 notifie_élément_survolé :: fonc (user_agent: *UserAgent)
 {
     rappels := user_agent.rappels_interface
