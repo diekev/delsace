@@ -1300,17 +1300,9 @@ RappelsThread :: struct {
     sur_lancement_thread = rappels_thread_sur_lancement_thread
 }
 
-rappels_thread_sur_lancement_thread :: fonc (base: *QT_Rappels_Thread) #sanstrace
+rappels_thread_sur_lancement_thread :: fonc (base: *QT_Rappels_Thread @inutilisée) #sanstrace
 {
     __init_contexte_fil_exécution()
-
-    rappels := base comme *RappelsThread
-
-    rappels_filtre_évènement := QT_loge_rappel(FiltreÉvènementThread)
-    parent: *QT_Object
-    filtre_évènement := QT_object_cree(rappels_filtre_évènement, parent)
-
-    rappels.rappels_interface.filtre_évènement_thread = filtre_évènement
 }
 
 FiltreÉvènementThread :: struct {
@@ -1361,6 +1353,13 @@ crée_rappels_interface_qt :: fonc (fenêtre: *QT_Fenetre_Principale) -> *Rappel
 
     thread := QT_thread_cree(rappels_thread)
     résultat.thread = thread
+
+    rappels_filtre_évènement := QT_loge_rappel(FiltreÉvènementThread)
+    parent: *QT_Object
+    filtre_évènement := QT_object_cree(rappels_filtre_évènement, parent)
+    QT_object_move_to_thread(filtre_évènement, thread)
+
+    résultat.filtre_évènement_thread = filtre_évènement
 
     QT_thread_start(thread)
 
