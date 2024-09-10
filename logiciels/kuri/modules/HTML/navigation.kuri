@@ -563,7 +563,7 @@ finalize_a_cross_document_navigation :: fonc (navigable: *Navigable, history_han
         // À FAIRE : 1. Clear the forward session history of traversable.
 
         // 2. Set targetStep to traversable's current session history step + 1.
-        target_step = traversable.current_session_history_entry.step + 1
+        target_step = traversable.current_session_history_entry_step + 1
 
         // 3. Set historyEntry's step to targetStep.
         history_entry.step = target_step.Quelque
@@ -583,7 +583,7 @@ finalize_a_cross_document_navigation :: fonc (navigable: *Navigable, history_han
         //    then set historyEntry's navigation API key to entryToReplace's navigation API key.
 
         // 4. Set targetStep to traversable's current session history step.
-        target_step = traversable.current_session_history_entry.step
+        target_step = traversable.current_session_history_entry_step
     }
 
     // À FAIRE : 10. Apply the push/replace history step targetStep to traversable given historyHandling.
@@ -1598,7 +1598,7 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
     }
 
     // 20. Set traversable's current session history step to targetStep.
-    traversable.current_session_history_entry.step = target_step
+    traversable.current_session_history_entry_step = target_step
 
     // 21. Return "applied".
     retourne HistoryApplication.Applied
