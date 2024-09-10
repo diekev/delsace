@@ -1840,7 +1840,7 @@ changing_navigable_continuations_steps :: fonc (user_agent: *UserAgent,
                 // "replace"
                 // Assert: targetEntry's step is displayedEntry's step and targetEntry's document state's ever populated is false.
                 assert(target_entry.step == displayed_entry.step)
-                assert(target_entry.document_state.ever_populated == faux)
+                // assert(target_entry.document_state.ever_populated == faux)
             }
             push {
                 // "push"
@@ -1987,7 +1987,45 @@ after_document_populated :: fonc (target_entry: *SessionHistoryEntry,
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#deactivate-a-document-for-a-cross-document-navigation */
 deactivate_document_for_a_cross_document_navigation :: fonc (displayed_document: *Document, user_navigation_involvement: *UserNavigationInvolvement, target_entry: *SessionHistoryEntry, navigation_type: NavigationType, after_potential_unloads: *Algorithm)
 {
-    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+    // 1. Let navigable be displayedDocument's node navigable.
+    navigable := displayed_document.donne_node_navigable()
+
+    // 2. Let potentiallyTriggerViewTransition be false.
+    potentially_trigger_view_transition := faux
+
+    // 3. Let isBrowserUINavigation be true if userNavigationInvolvement is "browser UI"; otherwise false.
+    is_browser_ui_navigation := user_navigation_involvement != nul && mémoire(user_navigation_involvement) == UserNavigationInvolvement.BrowserUI
+
+    // À FAIRE : 4. Set potentiallyTriggerViewTransition to the result of calling can navigation trigger a cross-document view-transition? given displayedDocument, targetEntry's document, navigationType, and isBrowserUINavigation.
+
+    // 5. If potentiallyTriggerViewTransition is false, then:
+    saufsi potentially_trigger_view_transition {
+        // À FAIRE : 1. Let firePageSwapBeforeUnload be the following step:
+
+            // 1. Fire the pageswap event given displayedDocument, targetEntry, navigationType, and null.
+
+        // 2. Set the ongoing navigation for navigable to null.
+        init_de(OngoingNavigationType)(*navigation.ongoing_navigation)
+
+        // 3. Unload a document and its descendants given displayedDocument, targetEntry's document, afterPotentialUnloads, and firePageSwapBeforeUnload.
+    }
+
+    // 6. Otherwise, queue a global task on the navigation and traversal task source given navigable's active window to run the steps:
+    panique("continue ici")
+
+        // 1. Let proceedWithNavigationAfterViewTransitionCapture be the following step:
+
+            // 1. Append the following session history traversal steps to navigable's traversable navigable:
+
+                // 1. Set the ongoing navigation for navigable to null.
+
+                // 2. Unload a document and its descendants given displayedDocument, targetEntry's document, and afterPotentialUnloads.
+
+        // 2. Let viewTransition be the result of setting up a cross-document view-transition given displayedDocument, targetEntry's document, navigationType, and proceedWithNavigationAfterViewTransitionCapture.
+
+        // 3. Fire the pageswap event given displayedDocument, targetEntry, navigationType, and viewTransition.
+
+        // 4. If viewTransition is null, then run proceedWithNavigationAfterViewTransitionCapture.
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#activate-history-entry */
@@ -2224,11 +2262,99 @@ DocumentUpdateParams :: struct {
     script_history_index: n32
     navigation_type: *NavigationType
     entries_for_navigation_api: []*SessionHistoryEntry
-    previous_entry_for_activation: *SessionHistoryEntry
+    previous_entry_for_activation: Optionnel(*SessionHistoryEntry)
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#update-document-for-history-step-application */
-update_document_for_history_step_application :: fonc (params: *DocumentUpdateParams @inutilisée)
+update_document_for_history_step_application :: fonc (empl params: *DocumentUpdateParams)
+{
+    // 1. Let documentIsNew be true if document's latest entry is null; otherwise false.
+    document_is_new := document.latest_entry != nul
+
+    // 2. Let documentsEntryChanged be true if document's latest entry is not entry; otherwise false.
+    documents_entry_changed := document.latest_entry != entry
+
+    // À FAIRE 3. Set document's history object's index to scriptHistoryIndex.
+
+    // À FAIRE 4. Set document's history object's length to scriptHistoryLength.
+
+    // À FAIRE 5. Let navigation be history's relevant global object's navigation API.
+
+    // 6. If documentsEntryChanged is true, then:
+    si documents_entry_changed {
+        // 1. Let oldURL be document's latest entry's URL.
+        old_url := document.latest_entry.url
+
+        // 2. Set document's latest entry to entry.
+        document.latest_entry = entry
+
+        // 3. Restore the history object state given document and entry.
+        restore_the_history_object_state(document, entry)
+
+        // 4. If documentIsNew is false, then:
+        saufsi document_is_new {
+            // 1. Assert: navigationType is not null.
+            assert(navigation_type != nul)
+
+            // À FAIRE : 2. Update the navigation API entries for a same-document navigation given navigation, entry, and navigationType.
+
+            // À FAIRE : 3. Fire an event named popstate at document's relevant global object, using PopStateEvent, with the state attribute initialized to document's history object's state and hasUAVisualTransition initialized to true if a visual transition, to display a cached rendered state of the latest entry, was done by the user agent.
+
+            // 4. Restore persisted state given entry.
+            restore_persisted_state(entry)
+
+            // À FAIRE : 5. If oldURL's fragment is not equal to entry's URL's fragment, then queue a global task on the DOM manipulation task source given document's relevant global object to fire an event named hashchange at document's relevant global object, using HashChangeEvent, with the oldURL attribute initialized to the serialization of oldURL and the newURL attribute initialized to the serialization of entry's URL.
+        }
+        // 5. Otherwise:
+        sinon {
+            // À FAIRE : 1. Assert: entriesForNavigationAPI is given.
+
+            // 2. Restore persisted state given entry.
+            restore_persisted_state(entry)
+
+            // À FAIRE : 3. Initialize the navigation API entries for a new document given navigation, entriesForNavigationAPI, and entry.
+        }
+    }
+
+    // 7. If all the following are true:
+    // previousEntryForActivation is given;
+    // navigationType is non-null; and
+    // navigationType is "reload" or previousEntryForActivation's document is not document,
+    // then:
+    si previous_entry_for_activation.possède_valeur() && navigation_type != nul && (mémoire(navigation_type) == NavigationType.reload || donne_document(previous_entry_for_activation.Quelque) != document) {
+        // À FAIRE : 1. If navigation's activation is null, then set navigation's activation to a new NavigationActivation object in navigation's relevant realm.
+
+        // 2. Let previousEntryIndex be the result of getting the navigation API entry index of previousEntryForActivation within navigation.
+
+        // 3. If previousEntryIndex is non-negative, then set activation's old entry to navigation's entry list[previousEntryIndex].
+
+        // 4. Otherwise, if all the following are true:
+        // navigationType is "replace";
+        // previousEntryForActivation's document state's origin is same origin with document's origin; and
+        // previousEntryForActivation's document's initial about:blank is false,
+        // then set activation's old entry to a new NavigationHistoryEntry in navigation's relevant realm, whose session history entry is previousEntryForActivation.
+
+        // 5. Set activation's new entry to navigation's current entry.
+
+        // 6. Set activation's navigation type to navigationType.
+    }
+
+    // 8. If documentIsNew is true, then:
+    si document_is_new {
+        // À FAIRE : 1. Try to scroll to the fragment for document.
+
+        // 2. At this point scripts may run for the newly-created document document.
+    }
+    // 9. Otherwise, if documentsEntryChanged is false and doNotReactivate is false, then:
+    sinon {
+        // À FAIRE : 1. Assert: entriesForNavigationAPI is given.
+
+        // À FAIRE : 2. Reactivate document given entry and entriesForNavigationAPI.
+    }
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#restore-the-history-object-state */
+restore_the_history_object_state :: fonc (document: *Document @inutilisée, entry: *SessionHistoryEntry @inutilisée)
 {
     imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
 }
@@ -2250,6 +2376,58 @@ make_active :: fonc (document: *Document @inutilisée)
 save_persisted_state :: fonc (entry: *SessionHistoryEntry @inutilisée)
 {
     imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#restore-persisted-state */
+restore_persisted_state :: fonc (entry: *SessionHistoryEntry @inutilisée)
+{
+    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 7.5.9 Unloading documents
+ * https://html.spec.whatwg.org/multipage/document-lifecycle.html#unloading-documents
+ * \{ */
+
+/* https://html.spec.whatwg.org/multipage/document-lifecycle.html#unload-a-document-and-its-descendants */
+unload_a_document_and_its_descendants :: fonc (document: *Document, new_document : *Document = nul, after_all_unloads : *Algorithm = nul, fire_page_swap_steps : *Algorithm = nul)
+{
+    // 1. Assert: this is running within document's node navigable's traversable navigable's session history traversal queue.
+    traversable := document.donne_node_navigable().donne_traversable_navigable()
+    assert(user_agent.est_exécuté_sur_file_parallèle(traversable))
+
+    // 2. Let childNavigables be document's child navigables.
+    child_navigables := traversable.enfants
+
+    // 3. Let numberUnloaded be 0.
+    number_unloaded := 0
+
+    // 4. For each childNavigable of childNavigables,
+    pour child_navigable dans child_navigables {
+        // queue a global task on the navigation and traversal task source given childNavigable's active window to perform the following steps:
+        panique("continue ici")
+
+        // 1. Let incrementUnloaded be an algorithm step which increments numberUnloaded.
+
+        // 2. Unload a document and its descendants given childNavigable's active document, null, and incrementUnloaded.
+    }
+
+    // 5. Wait until numberUnloaded equals childNavigable's size.
+    tantque number_unloaded != child_navigables.taille {
+        continue
+    }
+
+    panique("continue ici")
+
+    // 6. Queue a global task on the navigation and traversal task source given document's relevant global object to perform the following steps:
+
+        // 1. If firePageSwapSteps is given, then run firePageSwapSteps.
+
+        // 2. Unload document, passing along newDocument if it is not null.
+
+        // 3. If afterAllUnloads was given, then run it.
 }
 
 /** \} */
