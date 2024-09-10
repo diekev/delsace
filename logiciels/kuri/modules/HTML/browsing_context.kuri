@@ -685,7 +685,8 @@ crée_browsing_context_et_document :: fonc (creator: *Document, embedder: *Élé
     // 19. Populate with html/head/body given document.
     populate_with_html_head_body(document)
 
-    // À FAIRE 20. Make active document.
+    // 20. Make active document.
+    make_active(document)
 
     // À FAIRE 21. Completely finish loading document.
 
