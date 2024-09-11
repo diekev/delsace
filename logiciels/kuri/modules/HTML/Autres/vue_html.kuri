@@ -472,6 +472,9 @@ donne_défilement_vertical :: fonc (page: *PageWeb, largeur_vue: r32, hauteur_vu
 
 WidgetsPage :: struct {
     line_edit: *QT_LineEdit
+    bouton_avant: *QT_PushButton
+    bouton_arrière: *QT_PushButton
+    bouton_recharge: *QT_PushButton
 }
 
 RappelsFenetrePrincipale :: struct {
@@ -630,6 +633,13 @@ rappel_changement_adresse_sur_rappel :: fonc (base: *QT_Rappel_Generique)
     navigate(rappel.user_agent, page_web.navigable, url, document)
 }
 
+QT_crée_push_button :: fonc (texte: chaine, icone: *QT_Icon, parent: QT_Generic_Widget) -> *QT_PushButton
+{
+    résultat := QT_cree_push_button(texte.vers_qt(), parent)
+    QT_push_button_definis_icone(résultat, icone)
+    retourne résultat
+}
+
 crée_barre_de_navigation :: fonc (user_agent: *UserAgent, page_web: *PageWeb, widgets: *WidgetsPage, parent: *QT_Widget) -> *QT_Widget
 {
     widget := QT_cree_widget(nul, parent)
@@ -638,12 +648,122 @@ crée_barre_de_navigation :: fonc (user_agent: *UserAgent, page_web: *PageWeb, w
     rappel_changement := crée_rappel_changement_adresse(user_agent, page_web, line_edit)
     QT_line_edit_connecte_sur_pression_retour(line_edit, rappel_changement)
 
+    style := QT_application_donne_style()
+
+    icone_avant := QT_style_donne_standard_icon(style, QT_Standard_Pixmap.ArrowForward)
+    diffère QT_detruit_icon(icone_avant)
+
+    icone_arrière := QT_style_donne_standard_icon(style, QT_Standard_Pixmap.ArrowBack)
+    diffère QT_detruit_icon(icone_arrière)
+
+    icone_recharge := QT_style_donne_standard_icon(style, QT_Standard_Pixmap.BrowserReload)
+    diffère QT_detruit_icon(icone_recharge)
+
+    bouton_avant := QT_crée_push_button("", icone_avant, widget)
+    crée_rappel_pour_bouton_avant(user_agent, page_web, bouton_avant)
+
+    bouton_arrière := QT_crée_push_button("", icone_arrière, widget)
+    crée_rappel_pour_bouton_arrière(user_agent, page_web, bouton_arrière)
+
+    bouton_recharge := QT_crée_push_button("", icone_recharge, widget)
+    crée_rappel_pour_bouton_recharge(user_agent, page_web, bouton_recharge)
+
+    QT_widget_definis_actif(bouton_avant, faux)
+    QT_widget_definis_actif(bouton_arrière, faux)
+
     disposition := QT_cree_hbox_layout(widget)
+    QT_layout_ajoute_widget(disposition, bouton_arrière)
+    QT_layout_ajoute_widget(disposition, bouton_avant)
+    QT_layout_ajoute_widget(disposition, bouton_recharge)
     QT_layout_ajoute_widget(disposition, line_edit)
 
     widgets.line_edit = line_edit
+    widgets.bouton_avant = bouton_avant
+    widgets.bouton_arrière = bouton_arrière
+    widgets.bouton_recharge = bouton_recharge
 
     retourne widget
+}
+
+crée_rappel_pour_bouton_avant :: fonc (user_agent: *UserAgent, page_web: *PageWeb, bouton: *QT_PushButton)
+{
+    RappelTraversée :: struct {
+        empl base: QT_Rappel_Generique
+
+        user_agent: *UserAgent
+        page_web: *PageWeb
+    }
+
+    sur_traversée :: fonc (base: *QT_Rappel_Generique)
+    {
+        rappel := base comme *RappelTraversée
+        user_agent := rappel.user_agent
+        page_web := rappel.page_web
+        traversable := page_web.navigable
+
+        traverse_the_history_by_a_delta(user_agent, traversable, 1)
+    }
+
+    rappel := QT_loge_rappel(RappelTraversée)
+    rappel.sur_rappel = sur_traversée
+    rappel.user_agent = user_agent
+    rappel.page_web = page_web
+
+    QT_push_button_connecte_sur_clic(bouton, rappel)
+}
+
+crée_rappel_pour_bouton_arrière :: fonc (user_agent: *UserAgent, page_web: *PageWeb, bouton: *QT_PushButton)
+{
+    RappelTraversée :: struct {
+        empl base: QT_Rappel_Generique
+
+        user_agent: *UserAgent
+        page_web: *PageWeb
+    }
+
+    sur_traversée :: fonc (base: *QT_Rappel_Generique)
+    {
+        rappel := base comme *RappelTraversée
+        user_agent := rappel.user_agent
+        page_web := rappel.page_web
+        traversable := page_web.navigable
+
+        traverse_the_history_by_a_delta(user_agent, traversable, -1)
+    }
+
+    rappel := QT_loge_rappel(RappelTraversée)
+    rappel.sur_rappel = sur_traversée
+    rappel.user_agent = user_agent
+    rappel.page_web = page_web
+
+    QT_push_button_connecte_sur_clic(bouton, rappel)
+}
+
+crée_rappel_pour_bouton_recharge :: fonc (user_agent: *UserAgent, page_web: *PageWeb, bouton: *QT_PushButton)
+{
+    RappelTraversée :: struct {
+        empl base: QT_Rappel_Generique
+
+        user_agent: *UserAgent
+        page_web: *PageWeb
+    }
+
+    sur_traversée :: fonc (base: *QT_Rappel_Generique)
+    {
+        rappel := base comme *RappelTraversée
+        user_agent := rappel.user_agent
+        page_web := rappel.page_web
+        traversable := page_web.navigable
+
+        reload(user_agent, traversable, UserNavigationInvolvement.BrowserUI)
+    }
+
+    rappel := QT_loge_rappel(RappelTraversée)
+    rappel.sur_rappel = sur_traversée
+    rappel.user_agent = user_agent
+    rappel.page_web = page_web
+
+    QT_push_button_connecte_sur_clic(bouton, rappel)
 }
 
 /** \} */
@@ -1641,6 +1761,15 @@ rappels_interface_sur_document_est_prêt :: fonc (base: *RappelsInterface, docum
     diffère déloge(chaine_url)
 
     QT_line_edit_definis_texte(rappels_fenêtre.widgets_page.line_edit, chaine_url.vers_qt())
+
+    page_web := rappels_fenêtre.page_web
+    traversable := page_web.navigable
+
+    index_courant := traversable.current_session_history_entry_step comme z64
+    index_max := traversable.session_history_entries.taille - 1
+
+    QT_widget_definis_actif(rappels_fenêtre.widgets_page.bouton_avant, index_courant < index_max)
+    QT_widget_definis_actif(rappels_fenêtre.widgets_page.bouton_arrière, index_courant > 0)
 
     QT_widget_ajourne(rappels_fenêtre.widget_rendu)
 
