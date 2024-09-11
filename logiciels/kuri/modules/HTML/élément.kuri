@@ -85,6 +85,7 @@ TableVirtuelleÉlément :: struct {
 #portée_fichier
 
 table_virtuelle_élément := TableVirtuelleÉlément(
+    classe = Élément,
     sur_destruction = élément_sur_destruction,
     sur_changement_attribut = élément_sur_changement_attribut
 )
@@ -509,6 +510,7 @@ donne_href :: fonc (anchor: *HTMLAnchorElement) -> DOMString
 #portée_fichier
 
 table_virtuelle_anchor_element := TableVirtuelleÉlément(
+    classe = HTMLAnchorElement,
     sur_destruction = anchor_element_sur_destruction,
     sur_activation_behavior = anchor_element_sur_activation_behavior,
     sur_changement_attribut = anchor_element_sur_changement_attribut
@@ -599,6 +601,7 @@ HTMLBodyElement :: struct {
 #portée_fichier
 
 table_virtuelle_body_element := TableVirtuelleÉlément(
+    classe = HTMLBodyElement,
     sur_destruction = body_element_sur_destruction,
     sur_applique_presentational_hints = body_element_sur_applique_presentational_hints
 )
@@ -777,6 +780,7 @@ HTMLFontElement :: struct {
 #portée_fichier
 
 table_virtuelle_font_element := TableVirtuelleÉlément(
+    classe = HTMLFontElement,
     sur_destruction = font_element_sur_destruction,
     sur_applique_presentational_hints = font_element_sur_applique_presentational_hints
 )
@@ -920,6 +924,7 @@ HTMLFormElement :: struct {
 #portée_fichier
 
 table_virtuelle_form_element := TableVirtuelleÉlément(
+    classe = HTMLFormElement,
     sur_destruction = form_element_sur_destruction
 )
 
@@ -948,6 +953,7 @@ HTMLHeadElement :: struct {
 #portée_fichier
 
 table_virtuelle_head_element := TableVirtuelleÉlément(
+    classe = HTMLHeadElement,
     sur_destruction = head_element_sur_destruction
 )
 
@@ -976,6 +982,7 @@ HTMLHeadingElement :: struct {
 #portée_fichier
 
 table_virtuelle_heading_element := TableVirtuelleÉlément(
+    classe = HTMLHeadingElement,
     sur_destruction = heading_element_sur_destruction
 )
 
@@ -1004,6 +1011,7 @@ HTMLHRElement :: struct {
 #portée_fichier
 
 table_virtuelle_hr_element := TableVirtuelleÉlément(
+    classe = HTMLHRElement,
     sur_destruction = hr_element_sur_destruction
 )
 
@@ -1032,6 +1040,7 @@ HTMLHtmlElement :: struct {
 #portée_fichier
 
 table_virtuelle_html_element := TableVirtuelleÉlément(
+    classe = HTMLHtmlElement,
     sur_destruction = html_element_sur_destruction
 )
 
@@ -1086,6 +1095,7 @@ donne_ratio_intrinsèque :: fonc (image: *HTMLImageElement) -> r32 #enligne
 #portée_fichier
 
 table_virtuelle_image_element := TableVirtuelleÉlément(
+    classe = HTMLImageElement,
     sur_destruction = image_element_sur_destruction,
     sur_changement_attribut = image_element_sur_changement_attribut,
     sur_applique_presentational_hints = image_element_sur_applique_presentational_hints
@@ -1273,6 +1283,7 @@ donne_rel :: fonc (link: *HTMLLinkElement) -> DOMString
 #portée_fichier
 
 table_virtuelle_link_element := TableVirtuelleÉlément(
+    classe = HTMLLinkElement,
     sur_destruction = link_element_sur_destruction,
     sur_changement_attribut = link_element_sur_changement_attribut
 )
@@ -1464,6 +1475,7 @@ HTMLVideoElement :: struct {
 #portée_fichier
 
 table_virtuelle_video_element := TableVirtuelleÉlément(
+    classe = HTMLVideoElement,
     sur_destruction = video_element_sur_destruction
 )
 
@@ -1526,6 +1538,7 @@ donne_src :: fonc (script: *HTMLScriptElement) -> DOMString
 #portée_fichier
 
 table_virtuelle_script_element := TableVirtuelleÉlément(
+    classe = HTMLScriptElement,
     sur_destruction = script_element_sur_destruction
 )
 
@@ -1770,6 +1783,7 @@ HTMLStyleElement :: struct {
 #portée_fichier
 
 table_virtuelle_style_element := TableVirtuelleÉlément(
+    classe = HTMLStyleElement,
     sur_destruction = style_element_sur_destruction,
     sur_connexion = style_element_sur_connexion_ou_déconnexion,
     sur_déconnexion = style_element_sur_connexion_ou_déconnexion,
@@ -1897,6 +1911,7 @@ HTMLTableElement :: struct {
 #portée_fichier
 
 table_virtuelle_table_element := TableVirtuelleÉlément(
+    classe = HTMLTableElement,
     sur_destruction = table_element_sur_destruction,
     sur_applique_presentational_hints = table_element_sur_applique_presentational_hints
 )
@@ -1931,6 +1946,7 @@ HTMLTableCellElement :: struct {
 #portée_fichier
 
 table_virtuelle_table_cell_element := TableVirtuelleÉlément(
+    classe = HTMLTableCellElement,
     sur_destruction = table_cell_element_sur_destruction,
     sur_applique_presentational_hints = table_cell_element_sur_applique_presentational_hints
 )
@@ -1965,6 +1981,7 @@ HTMLTableRowElement :: struct {
 #portée_fichier
 
 table_virtuelle_table_row_element := TableVirtuelleÉlément(
+    classe = HTMLTableRowElement,
     sur_destruction = table_row_element_sur_destruction,
     sur_applique_presentational_hints = table_row_element_sur_applique_presentational_hints
 )
@@ -1999,6 +2016,7 @@ HTMLTableSectionElement :: struct {
 #portée_fichier
 
 table_virtuelle_table_section_element := TableVirtuelleÉlément(
+    classe = HTMLTableSectionElement,
     sur_destruction = table_section_element_sur_destruction,
     sur_applique_presentational_hints = table_section_element_sur_applique_presentational_hints
 )

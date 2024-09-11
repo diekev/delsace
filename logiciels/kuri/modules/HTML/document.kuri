@@ -121,6 +121,7 @@ Document :: struct {
 #portée_fichier
 
 table_virtuelle_document := TableVirtuelleÉlément(
+    classe = Document,
     sur_destruction = document_sur_destruction
 )
 
@@ -565,6 +566,7 @@ crée_noeud_doctype :: fonc (document: *Document) -> *NoeudTypeDocument
 #portée_fichier
 
 table_virtuelle_type_document := TableVirtuelleÉlément(
+    classe = NoeudTypeDocument,
     sur_destruction = type_document_sur_destruction
 )
 
@@ -600,6 +602,7 @@ crée_noeud_fragment_document :: fonc (document: *Document) -> *NoeudFragmentDoc
 #portée_fichier
 
 table_virtuelle_fragment_document := TableVirtuelleÉlément(
+    classe = NoeudFragmentDocument,
     sur_destruction = fragment_document_sur_destruction
 )
 
@@ -669,6 +672,7 @@ est_espace_blanche_entre_élément :: fonc (texte: *NoeudTexte) -> bool
 #portée_fichier
 
 table_virtuelle_texte := TableVirtuelleÉlément(
+    classe = NoeudTexte,
     sur_destruction = texte_sur_destruction
 )
 
@@ -705,6 +709,7 @@ crée_noeud_section_cdata :: fonc (document: *Document) -> *NoeudTexte
 #portée_fichier
 
 table_virtuelle_section_cdata := TableVirtuelleÉlément(
+    classe = NoeudSectionCDATA,
     sur_destruction = section_cdata_sur_destruction
 )
 
@@ -742,6 +747,7 @@ crée_noeud_commentaire :: fonc (document: *Document, données: ChaineUTF16) -> 
 #portée_fichier
 
 table_virtuelle_commentaire := TableVirtuelleÉlément(
+    classe = NoeudCommentaire,
     sur_destruction = commentaire_sur_destruction
 )
 
@@ -781,6 +787,7 @@ crée_noeud_processing_instruction :: fonc (document: *Document, données: Chain
 #portée_fichier
 
 table_virtuelle_processing_instruction := TableVirtuelleÉlément(
+    classe = NoeudProcessingInstruction,
     sur_destruction = processing_instruction_sur_destruction
 )
 
