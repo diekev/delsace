@@ -1668,6 +1668,8 @@ void QT_widget_definis_comportement_focus(union QT_Generic_Widget widget,
 
 void QT_widget_accepte_drop(union QT_Generic_Widget widget, bool ouinon);
 
+struct QT_Style *QT_widget_donne_style(union QT_Generic_Widget widget);
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

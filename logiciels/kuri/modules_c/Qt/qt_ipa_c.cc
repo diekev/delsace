@@ -1663,6 +1663,12 @@ void QT_widget_accepte_drop(union QT_Generic_Widget widget, bool ouinon)
     qwidget->setAcceptDrops(ouinon);
 }
 
+QT_Style *QT_widget_donne_style(union QT_Generic_Widget widget)
+{
+    VERS_QT(widget);
+    return vers_ipa(qwidget->style());
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
