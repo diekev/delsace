@@ -601,15 +601,11 @@ finalize_a_cross_document_navigation :: fonc (user_agent: *UserAgent, navigable:
         target_step = traversable.current_session_history_entry_step
     }
 
-    // À FAIRE : 10. Apply the push/replace history step targetStep to traversable given historyHandling.
-    document := history_entry.donne_document()
-
-    // _ := apply_the_push_replace_history_step(user_agent, target_step, traversable, history_handling)
-
-    navigable.current_session_history_entry = history_entry
-    navigable.active_session_history_entry = history_entry
+    // 10. Apply the push/replace history step targetStep to traversable given historyHandling.
+    _ := apply_the_push_replace_history_step(user_agent, target_step, traversable, history_handling)
 
     si user_agent {
+        document := history_entry.donne_document()
         user_agent.document_est_prêt(document)
     }
 }
