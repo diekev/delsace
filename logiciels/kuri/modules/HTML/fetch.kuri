@@ -2,6 +2,7 @@ importe Chaine
 importe CodecDonnées
 importe Fondation
 importe Internet
+importe MIME
 importe SysFichier
 
 /* ------------------------------------------------------------------------- */
@@ -777,53 +778,21 @@ scheme_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Re
 
         /* À FAIRE : permissions. */
         si est_un_fichier_régulier(chemin) {
-            si chemin.extension() == ".html" {
-                contenu := contenu_fichier_texte(chemin)
+            type_mime := type_mime_pour_extension(chemin.extension())
 
-                response := loge(Response)
-                response.status = 200
+            contenu := contenu_fichier_texte(chemin)
 
-                body_info := loge(ResponseBodyInfo)
-                body_info.decodede_size = contenu.taille comme z32
-                body_info.content_type = "text/html"
+            response := loge(Response)
+            response.status = 200
 
-                response.body_info = body_info
-                response.body = contenu
+            body_info := loge(ResponseBodyInfo)
+            body_info.decodede_size = contenu.taille comme z32
+            body_info.content_type = type_mime
 
-                retourne response
-            }
+            response.body_info = body_info
+            response.body = contenu
 
-            si chemin.extension() == ".png" || chemin.extension() == ".jpg" || chemin.extension() == ".jpeg" {
-                contenu := contenu_fichier_texte(chemin)
-
-                response := loge(Response)
-                response.status = 200
-
-                body_info := loge(ResponseBodyInfo)
-                body_info.decodede_size = contenu.taille comme z32
-                body_info.content_type = "image/png" // XXX par extension
-
-                response.body_info = body_info
-                response.body = contenu
-
-                retourne response
-            }
-
-            si chemin.extension() == ".css" {
-                contenu := contenu_fichier_texte(chemin)
-
-                response := loge(Response)
-                response.status = 200
-
-                body_info := loge(ResponseBodyInfo)
-                body_info.decodede_size = contenu.taille comme z32
-                body_info.content_type = "text/css"
-
-                response.body_info = body_info
-                response.body = contenu
-
-                retourne response
-            }
+            retourne response
         }
 
         retourne network_error()
