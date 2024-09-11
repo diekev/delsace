@@ -391,7 +391,7 @@ décale_par :: fonc (barre: *BarreDeDéfilement, delta: r32) -> bool
 PageWeb :: struct {
     uri: URI
     parsat: ParsatHTML
-    navigable: *Navigable
+    navigable: *TraversableNavigable
     contenu: chaine
     fonte: *Fonte
 
@@ -408,7 +408,7 @@ crée_page_web :: fonc (uri: &URI, contenu: chaine) -> PageWeb
     retourne résultat
 }
 
-crée_page_web :: fonc (uri: &URI, navigable: *Navigable) -> PageWeb
+crée_page_web :: fonc (uri: &URI, navigable: *TraversableNavigable) -> PageWeb
 {
     résultat: PageWeb
     résultat.uri = uri
