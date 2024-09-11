@@ -45,6 +45,20 @@ OngoingNavigationType :: union {
     Chaine: chaine
 }
 
+est_nul :: fonc (ongoing: OngoingNavigationType) -> bool
+{
+    discr ongoing {
+        NavigationID {
+            retourne faux
+        } 
+        Chaine {
+            retourne faux
+        }
+        sinon {}
+    }
+    retourne vrai
+}
+
 opérateur == :: fonc (a: OngoingNavigationType, b: OngoingNavigationType) -> bool
 {
     discr a {
@@ -117,7 +131,7 @@ run :: fonc (commit_early_hints: *CommitEarlyHints, document: *Document)
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#navigation-params */
 NavigationParams :: struct {
-    id: NavigationID
+    id: Optionnel(NavigationID)
     navigable: *Navigable
     request: *Request
     response: *Response
@@ -370,7 +384,7 @@ navigate :: fonc (user_agent: *UserAgent,
         source_snapshot_params: SourceSnapshotParams
         target_snapshot_params: TargetSnapshotParams
         history_handling: NavigationHistoryBehavior
-        navigation_id: NavigationID
+        navigation_id: Optionnel(NavigationID)
     }
 
     sur_run :: fonc (base: *Algorithm)
@@ -848,7 +862,7 @@ attempt_to_populate_the_history_entry_document :: fonc (params: *HistoryEntryPop
         navigation_params: *NavigationParams
         source_snapshot_params: SourceSnapshotParams
         navigable: *Navigable
-        navigation_id: NavigationID
+        navigation_id: Optionnel(NavigationID)
     }
 
     sur_run :: fonc (base: *Algorithm)
@@ -866,7 +880,7 @@ attempt_to_populate_the_history_entry_document :: fonc (params: *HistoryEntryPop
         navigation_id := tâche.navigation_id
 
         // 1. If navigable's ongoing navigation no longer equals navigationId, then run completionSteps and abort these steps.
-        si navigable.ongoing_navigation != navigation_id {
+        si (!navigation_id.possède_valeur() && !est_nul(navigable.ongoing_navigation)) || (navigable.ongoing_navigation != navigation_id) {
             run(completion_steps)
             retourne
         }
@@ -1018,7 +1032,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
                                               navigable: *Navigable,
                                               source_snapshot_params: &SourceSnapshotParams,
                                               target_snapshot_params: &TargetSnapshotParams @inutilisée,
-                                              navigation_id: NavigationID,
+                                              navigation_id: Optionnel(NavigationID),
                                               nav_timing_type: NavigationTimingType @inutilisée) -> *NavigationParams
 {
     // 1. Assert: this is running in parallel.
