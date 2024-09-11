@@ -1,12 +1,5 @@
 importe Fondation
 importe Internet
-importe Temps
-
-/* https://w3c.github.io/hr-time/#dfn-unsafe-shared-current-time */
-unsafe_shared_current_time :: fonc () -> Instantané
-{
-    retourne maintenant()
-}
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#nested-history */
 NestedHistory :: struct {
