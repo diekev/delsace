@@ -53,6 +53,12 @@ DocumentLoadTimingInfo :: struct {
     load_event_end_time: DOMHighResTimeStamp
 }
 
+/* https://html.spec.whatwg.org/multipage/dom.html#document-unload-timing-info */
+DocumentUnloadTimingInfo :: struct {
+    unload_event_start_time: DOMHighResTimeStamp
+    unload_event_end_time: DOMHighResTimeStamp
+}
+
 ÉtatRequêteImage :: énum {
     NonCommencé
     EnCours
