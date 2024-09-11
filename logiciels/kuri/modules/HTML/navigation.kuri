@@ -613,6 +613,171 @@ finalize_a_cross_document_navigation :: fonc (user_agent: *UserAgent, navigable:
 /** } */
 
 /* ------------------------------------------------------------------------- */
+/** \nom 7.4.3 Reloading and traversing
+ * https://html.spec.whatwg.org/multipage/browsing-the-web.html#reloading-and-traversing
+ * \{ */
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#reload */
+reload :: fonc (user_agent: *UserAgent, navigable: *Navigable, user_involvement := UserNavigationInvolvement.None)
+{
+    // If userInvolvement is not "browser UI", then:
+    si user_involvement != UserNavigationInvolvement.BrowserUI {
+        panique("non-implémenté")
+        // 1. Let navigation be navigable's active window's navigation API.
+
+        // 2. Let destinationNavigationAPIState be navigable's active session history entry's navigation API state.
+
+        // 3. If navigationAPIState is not null, then set destinationNavigationAPIState to navigationAPIState.
+
+        // 4. Let continue be the result of firing a push/replace/reload navigate event at navigation with navigationType set to "reload", isSameDocument set to false, userInvolvement set to userInvolvement, destinationURL set to navigable's active session history entry's URL, and navigationAPIState set to destinationNavigationAPIState.
+
+        // 5. If continue is false, then return.
+    }
+
+    // 2. Set navigable's active session history entry's document state's reload pending to true.
+    navigable.active_session_history_entry.document_state.reload_pending = vrai
+
+    // 3. Let traversable be navigable's traversable navigable.
+    traversable := navigable.donne_traversable_navigable()
+
+    // 4. Append the following session history traversal steps to traversable:
+    tâche := crée_tâche_pour_reload_history_step(user_agent, traversable)
+    user_agent.lance_sur_file_parallèle(traversable, tâche)
+}
+
+crée_tâche_pour_reload_history_step :: fonc (user_agent: *UserAgent, traversable: *TraversableNavigable) -> *Algorithm
+{
+    Tâche :: struct {
+        empl base: Algorithm
+
+        user_agent: *UserAgent
+        traversable: *TraversableNavigable
+    }
+
+    sur_run :: fonc (base: *Algorithm)
+    {
+        tâche := base comme *Tâche
+
+        // 1. Apply the reload history step to traversable.
+        _ := apply_the_reload_history_step(tâche.user_agent, tâche.traversable)
+
+        document := tâche.traversable.active_session_history_entry.donne_document()
+        tâche.user_agent.document_est_prêt(document)
+    }
+
+    sur_destruction :: fonc (base: *Algorithm)
+    {
+        tâche := base comme *Tâche
+        déloge(tâche)
+    }
+
+    tâche := loge(Tâche)
+    tâche.user_agent = user_agent
+    tâche.traversable = traversable
+    tâche.sur_run = sur_run
+    tâche.sur_destruction = sur_destruction
+    retourne tâche
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#traverse-the-history-by-a-delta */
+traverse_the_history_by_a_delta :: fonc (user_agent: *UserAgent, traversable: *TraversableNavigable, delta: z32, source_document : *Document = nul)
+{
+    // 1. Let sourceSnapshotParams and initiatorToCheck be null.
+    source_snapshot_params: *SourceSnapshotParams
+    initiator_to_check: *Navigable
+
+    // 2. Let userInvolvement be "browser UI".
+    user_involvement := UserNavigationInvolvement.BrowserUI
+
+    // 3. If sourceDocument is given, then:
+    si source_document {
+        // À FAIRE : 1. Set sourceSnapshotParams to the result of snapshotting source snapshot params given sourceDocument.
+
+        // 2. Set initiatorToCheck to sourceDocument's node navigable.
+        initiator_to_check = source_document.donne_node_navigable()
+
+        // 3. Set userInvolvement to "none".
+        user_involvement = UserNavigationInvolvement.None
+    }
+
+    // 4. Append the following session history traversal steps to traversable:
+    tâche := crée_tâche_pour_traverse_history_step(user_agent, traversable, source_snapshot_params, initiator_to_check, user_involvement, delta)
+    user_agent.lance_sur_file_parallèle(traversable, tâche)
+}
+
+crée_tâche_pour_traverse_history_step :: fonc (user_agent: *UserAgent,
+                                               traversable: *TraversableNavigable,                           
+                                               source_snapshot_params: *SourceSnapshotParams,
+                                               initiator_to_check: *Navigable,
+                                               user_involvement: UserNavigationInvolvement,
+                                               delta: z32) -> *Algorithm
+{
+    Tâche :: struct {
+        empl base: Algorithm
+
+        user_agent: *UserAgent
+        traversable: *TraversableNavigable
+        source_snapshot_params: *SourceSnapshotParams
+        initiator_to_check: *Navigable
+        user_involvement: UserNavigationInvolvement
+        delta: z32
+    }
+
+    sur_run :: fonc (base: *Algorithm)
+    {
+        tâche := base comme *Tâche
+
+        user_agent := tâche.user_agent
+        traversable := tâche.traversable
+
+        // 1. Let allSteps be the result of getting all used history steps for traversable.
+        all_steps := get_all_used_history_steps(user_agent, traversable)
+
+        // 2. Let currentStepIndex be the index of traversable's current session history step within allSteps.
+        current_step_index : n32 = 0
+        pour all_steps {
+            si it == traversable.current_session_history_entry_step {
+                current_step_index = index_it comme n32
+                arrête
+            }
+        }
+
+        // 3. Let targetStepIndex be currentStepIndex plus delta.
+        target_step_index := (current_step_index comme z32 + tâche.delta)
+
+        // 4. If allSteps[targetStepIndex] does not exist, then abort these steps.
+        si target_step_index < 0 || target_step_index >= all_steps.taille {
+            retourne
+        }
+
+        // 5. Apply the traverse history step allSteps[targetStepIndex] to traversable, given sourceSnapshotParams, initiatorToCheck, and userInvolvement.
+        _ := apply_the_traverse_history_step(user_agent, all_steps[target_step_index], traversable, tâche.source_snapshot_params, tâche.initiator_to_check, tâche.user_involvement)
+
+        document := tâche.traversable.active_session_history_entry.donne_document()
+        tâche.user_agent.document_est_prêt(document)
+    }
+
+    sur_destruction :: fonc (base: *Algorithm)
+    {
+        tâche := base comme *Tâche
+        déloge(tâche)
+    }
+
+    tâche := loge(Tâche)
+    tâche.user_agent = user_agent
+    tâche.traversable = traversable
+    tâche.source_snapshot_params = source_snapshot_params
+    tâche.initiator_to_check = initiator_to_check
+    tâche.user_involvement = user_involvement
+    tâche.delta = delta
+    tâche.sur_run = sur_run
+    tâche.sur_destruction = sur_destruction
+    retourne tâche
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom 7.4.5
  * \{ */
 
@@ -1245,6 +1410,25 @@ apply_the_push_replace_history_step :: fonc (user_agent: *UserAgent, step: n32, 
 
     // 1. Return the result of applying the history step step to traversable given false, null, null, null, and historyHandling.
     retourne apply_the_history_step(user_agent, step, traversable, faux, nul, nul, nul, *navigation_type)
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#apply-the-reload-history-step */
+apply_the_reload_history_step :: fonc (user_agent: *UserAgent, traversable: *TraversableNavigable) -> HistoryApplication
+{
+    // 1. Let step be traversable's current session history step.
+    step := traversable.current_session_history_entry_step
+
+    // 2. Return the result of applying the history step step to traversable given true, null, null, null, and "reload".
+    navigation_type := NavigationType.reload
+    retourne apply_the_history_step(user_agent, step, traversable, vrai, nul, nul, nul, *navigation_type)
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#apply-the-traverse-history-step */
+apply_the_traverse_history_step :: fonc (user_agent: *UserAgent, step: n32, traversable: *TraversableNavigable, source_snapshot_params: *SourceSnapshotParams, initiator_to_check: *Navigable, user_involvement: UserNavigationInvolvement) -> HistoryApplication
+{
+    // 1. Return the result of applying the history step step to traversable given true, sourceSnapshotParams, initiatorToCheck, userInvolvement, and "traverse".
+    navigation_type := NavigationType.traverse
+    retourne apply_the_history_step(user_agent, step, traversable, vrai, source_snapshot_params, initiator_to_check, *user_involvement, *navigation_type)
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#apply-the-history-step */
