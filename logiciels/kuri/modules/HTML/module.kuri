@@ -8,6 +8,7 @@ importe Temps
 charge "élément"
 charge "attribut"
 charge "browsing_context"
+charge "common_microsyntaxes"
 charge "comparaison"
 charge "document"
 charge "entités"
