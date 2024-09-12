@@ -1008,6 +1008,9 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
     si élément.local_name == HTML.TAG_img {
         résultat = crée_noeud_de_remplacement_image(arbre, élément comme *HTML.HTMLImageElement)
     }
+    sinon si élément.local_name == HTML.TAG_input && HTML.is_text_entry_widget(élément comme *HTML.HTMLInputElement) {
+        résultat = crée_noeud_de_remplacement_text_input(arbre, élément comme *HTML.HTMLInputElement)
+    }
     sinon si display.outer_type == Display.Type.Block {
         bloc := arbre.crée_noeud(NoeudDeDispositionBloc)
         bloc.élément = élément
@@ -2759,6 +2762,84 @@ noeud_image_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *F
     assert(noeud.élément.local_name == HTML.TAG_img)
     image := noeud.élément comme *HTML.HTMLImageElement
     dessine_image(ctx, image.image_data, fragment.donne_rectangle())
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom NoeudDeDispositionRemplacement pour image
+ * \{ */
+
+#portée_fichier
+
+crée_noeud_de_remplacement_text_input :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLInputElement) -> *NoeudDeDispositionRemplacement
+{
+    résultat := arbre.crée_noeud(NoeudDeDispositionRemplacement)
+    résultat.élément = élément
+    résultat.sur_dessin = noeud_text_input_sur_dessin
+    résultat.sur_dessin_fragment = noeud_text_input_sur_dessin_fragment
+    résultat.sur_possède_ratio_intrinsèque = noeud_text_input_possède_ratio_intrinsèque
+    résultat.sur_possède_largeur_intrinsèque = noeud_text_input_possède_largeur_intrinsèque
+    résultat.sur_possède_hauteur_intrinsèque = noeud_text_input_possède_hauteur_intrinsèque
+    résultat.sur_donne_ratio_intrinsèque = noeud_text_input_donne_ratio_intrinsèque
+    résultat.sur_donne_largeur_intrinsèque = noeud_text_input_donne_largeur_intrinsèque
+    résultat.sur_donne_hauteur_intrinsèque = noeud_text_input_donne_hauteur_intrinsèque
+    retourne résultat
+}
+
+noeud_text_input_possède_ratio_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement @inutilisée) -> bool
+{
+    retourne faux
+}
+
+noeud_text_input_possède_largeur_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement @inutilisée) -> bool
+{
+    retourne vrai
+}
+
+noeud_text_input_possède_hauteur_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement @inutilisée) -> bool
+{
+    retourne vrai
+}
+
+noeud_text_input_donne_ratio_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement @inutilisée) -> r32
+{
+    retourne 0.0
+}
+
+noeud_text_input_donne_largeur_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement @inutilisée) -> r32
+{
+    retourne 150.0
+}
+
+noeud_text_input_donne_hauteur_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement @inutilisée) -> r32
+{
+    retourne 20.0
+}
+
+noeud_text_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+{
+    noeud := base comme *NoeudDeDispositionRemplacement
+    assert(noeud.élément.local_name == HTML.TAG_input)
+
+    dessine_arrière_plan(ctx, noeud)
+
+    /* À FAIRE : considère toutes les propriétés de bordure. */
+    border_declaration := donne_déclaration(noeud.propriétés, PROP_border)
+    si border_declaration {
+        dessine_bordure(ctx, noeud)
+    }
+    sinon {
+        /* Dessine une bordure par défaut. */
+        rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
+        couleur := CouleurRVBAN8(0, 0, 0, 255)
+        ctx.peintre.dessine_rectangle(rect, couleur)
+    }
+}
+
+noeud_text_input_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment @inutilisée, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
+{
+    noeud_text_input_sur_dessin(base, ctx)
 }
 
 /** \} */

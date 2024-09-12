@@ -1271,6 +1271,21 @@ HTMLInputElement :: struct {
     table = *table_virtuelle_input_element
 }
 
+/* https://html.spec.whatwg.org/multipage/rendering.html#the-input-element-as-a-text-entry-widget */
+is_text_entry_widget :: fonc (input: *HTMLInputElement) -> bool
+{
+    opt_type := donne_attribut(input, ATTR_type)
+    saufsi opt_type.possède_valeur() {
+        /* "The attribute's missing value default and invalid value default are both the Text state."
+         * https://html.spec.whatwg.org/multipage/input.html#attr-input-type
+         *
+         * À FAIRE : détermine l'état de l'attribut :
+         * https://html.spec.whatwg.org/multipage/common-microsyntaxes.html#missing-value-default */
+        retourne vrai
+    }
+    retourne opt_type.Quelque == ATTR_text
+}
+
 #portée_fichier
 
 table_virtuelle_input_element := TableVirtuelleÉlément(
