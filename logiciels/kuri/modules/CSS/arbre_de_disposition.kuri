@@ -2621,65 +2621,48 @@ NoeudDeDispositionRemplacement :: struct {
     sur_dessin_tampon_id = noeud_disposition_remplacement_sur_dessin_tampon_id
 
     /* Rappels spécifiques. */
-    sur_possède_ratio_intrinsèque: fonc(*NoeudDeDispositionRemplacement)(bool)
-    sur_possède_largeur_intrinsèque: fonc(*NoeudDeDispositionRemplacement)(bool)
-    sur_possède_hauteur_intrinsèque: fonc(*NoeudDeDispositionRemplacement)(bool)
-    sur_donne_ratio_intrinsèque: fonc(*NoeudDeDispositionRemplacement)(r32)
-    sur_donne_largeur_intrinsèque: fonc(*NoeudDeDispositionRemplacement)(r32)
-    sur_donne_hauteur_intrinsèque: fonc(*NoeudDeDispositionRemplacement)(r32)
+    sur_calcul_dimensions_intrinsèques: fonc(*NoeudDeDispositionRemplacement,*ContexteDeFormattage)(rien)
+    
+    ratio_intrinsèque: Optionnel(r32)
+    largeur_intrinsèque: Optionnel(r32)
+    hauteur_intrinsèque: Optionnel(r32)
 }
 
 possède_ratio_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> bool
 {
-    saufsi noeud.sur_possède_ratio_intrinsèque {
-        retourne faux
-    }
-    retourne noeud.sur_possède_ratio_intrinsèque(noeud)
+    retourne noeud.ratio_intrinsèque.possède_valeur()
 }
 
 possède_largeur_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> bool
 {
-    saufsi noeud.sur_possède_largeur_intrinsèque {
-        retourne faux
-    }
-    retourne noeud.sur_possède_largeur_intrinsèque(noeud)
+    retourne noeud.largeur_intrinsèque.possède_valeur()
 }
 
 possède_hauteur_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> bool
 {
-    saufsi noeud.sur_possède_hauteur_intrinsèque {
-        retourne faux
-    }
-    retourne noeud.sur_possède_hauteur_intrinsèque(noeud)
+    retourne noeud.hauteur_intrinsèque.possède_valeur()
 }
 
 donne_ratio_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> r32
 {
-    saufsi noeud.sur_donne_ratio_intrinsèque {
-        retourne 0.0
-    }
-    retourne noeud.sur_donne_ratio_intrinsèque(noeud)
+    retourne noeud.ratio_intrinsèque.Quelque
 }
 
 donne_largeur_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> r32
 {
-    saufsi noeud.sur_donne_largeur_intrinsèque {
-        retourne 0.0
-    }
-    retourne noeud.sur_donne_largeur_intrinsèque(noeud)
+    retourne noeud.largeur_intrinsèque.Quelque
 }
 
 donne_hauteur_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> r32
 {
-    saufsi noeud.sur_donne_hauteur_intrinsèque {
-        retourne 0.0
-    }
-    retourne noeud.sur_donne_hauteur_intrinsèque(noeud)
+    retourne noeud.hauteur_intrinsèque.Quelque
 }
 
 noeud_disposition_remplacement_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage)
 {
     noeud := base comme *NoeudDeDispositionRemplacement
+
+    noeud.sur_calcul_dimensions_intrinsèques(noeud, ctx)
 
     containing_block := donne_containing_block(noeud, ctx)
 
@@ -2720,56 +2703,20 @@ crée_noeud_de_remplacement_image :: fonc (arbre: *ArbreDeDisposition, élément
     résultat.élément = élément
     résultat.sur_dessin = noeud_image_sur_dessin
     résultat.sur_dessin_fragment = noeud_image_sur_dessin_fragment
-    résultat.sur_possède_ratio_intrinsèque = noeud_image_possède_ratio_intrinsèque
-    résultat.sur_possède_largeur_intrinsèque = noeud_image_possède_largeur_intrinsèque
-    résultat.sur_possède_hauteur_intrinsèque = noeud_image_possède_hauteur_intrinsèque
-    résultat.sur_donne_ratio_intrinsèque = noeud_image_donne_ratio_intrinsèque
-    résultat.sur_donne_largeur_intrinsèque = noeud_image_donne_largeur_intrinsèque
-    résultat.sur_donne_hauteur_intrinsèque = noeud_image_donne_hauteur_intrinsèque
+    résultat.sur_calcul_dimensions_intrinsèques = noeud_image_calcul_dimensions_intrinsèques
     retourne résultat
 }
 
-noeud_image_possède_ratio_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> bool
+noeud_image_calcul_dimensions_intrinsèques :: fonc (noeud: *NoeudDeDispositionRemplacement, ctx: *ContexteDeFormattage @inutilisée)
 {
-    saufsi noeud.élément {
-        retourne faux
+    élément := noeud.élément comme *HTML.HTMLImageElement
+    assert(élément.local_name == HTML.TAG_img)
+
+    si élément.image_data.donnees {
+        noeud.ratio_intrinsèque = HTML.donne_ratio_intrinsèque(élément)
+        noeud.largeur_intrinsèque = HTML.donne_largeur_intrinsèque(élément) comme r32
+        noeud.hauteur_intrinsèque = HTML.donne_hauteur_intrinsèque(élément) comme r32
     }
-
-    élément := noeud.élément comme *HTML.HTMLImageElement
-    assert(élément.local_name == HTML.TAG_img)
-
-    retourne élément.image_data.donnees != nul
-}
-
-noeud_image_possède_largeur_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> bool
-{
-    retourne noeud_image_possède_ratio_intrinsèque(noeud)
-}
-
-noeud_image_possède_hauteur_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> bool
-{
-    retourne noeud_image_possède_ratio_intrinsèque(noeud)
-}
-
-noeud_image_donne_ratio_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> r32
-{
-    élément := noeud.élément comme *HTML.HTMLImageElement
-    assert(élément.local_name == HTML.TAG_img)
-    retourne HTML.donne_ratio_intrinsèque(élément)
-}
-
-noeud_image_donne_largeur_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> r32
-{
-    élément := noeud.élément comme *HTML.HTMLImageElement
-    assert(élément.local_name == HTML.TAG_img)
-    retourne HTML.donne_largeur_intrinsèque(élément) comme r32
-}
-
-noeud_image_donne_hauteur_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> r32
-{
-    élément := noeud.élément comme *HTML.HTMLImageElement
-    assert(élément.local_name == HTML.TAG_img)
-    retourne HTML.donne_hauteur_intrinsèque(élément) comme r32
 }
 
 noeud_image_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
@@ -2802,43 +2749,15 @@ crée_noeud_de_remplacement_text_input :: fonc (arbre: *ArbreDeDisposition, él�
     résultat.élément = élément
     résultat.sur_dessin = noeud_text_input_sur_dessin
     résultat.sur_dessin_fragment = noeud_text_input_sur_dessin_fragment
-    résultat.sur_possède_ratio_intrinsèque = noeud_text_input_possède_ratio_intrinsèque
-    résultat.sur_possède_largeur_intrinsèque = noeud_text_input_possède_largeur_intrinsèque
-    résultat.sur_possède_hauteur_intrinsèque = noeud_text_input_possède_hauteur_intrinsèque
-    résultat.sur_donne_ratio_intrinsèque = noeud_text_input_donne_ratio_intrinsèque
-    résultat.sur_donne_largeur_intrinsèque = noeud_text_input_donne_largeur_intrinsèque
-    résultat.sur_donne_hauteur_intrinsèque = noeud_text_input_donne_hauteur_intrinsèque
+    résultat.sur_calcul_dimensions_intrinsèques = noeud_text_input_dimensions_intrinsèques
     retourne résultat
 }
 
-noeud_text_input_possède_ratio_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement @inutilisée) -> bool
+noeud_text_input_dimensions_intrinsèques :: fonc (noeud: *NoeudDeDispositionRemplacement, ctx: *ContexteDeFormattage @inutilisée)
 {
-    retourne faux
-}
-
-noeud_text_input_possède_largeur_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement @inutilisée) -> bool
-{
-    retourne vrai
-}
-
-noeud_text_input_possède_hauteur_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement @inutilisée) -> bool
-{
-    retourne vrai
-}
-
-noeud_text_input_donne_ratio_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement @inutilisée) -> r32
-{
-    retourne 0.0
-}
-
-noeud_text_input_donne_largeur_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement @inutilisée) -> r32
-{
-    retourne 150.0
-}
-
-noeud_text_input_donne_hauteur_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement @inutilisée) -> r32
-{
-    retourne 20.0
+    assert(noeud.élément.local_name == HTML.TAG_input)
+    noeud.largeur_intrinsèque = 150.0
+    noeud.hauteur_intrinsèque = 20.0
 }
 
 noeud_text_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
