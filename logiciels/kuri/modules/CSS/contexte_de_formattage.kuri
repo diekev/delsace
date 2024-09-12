@@ -247,8 +247,6 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
 
 /** \} */
 
-/** \} */
-
 /* ------------------------------------------------------------------------- */
 /** \nom ContexteDeFormattage
  * \{ */
