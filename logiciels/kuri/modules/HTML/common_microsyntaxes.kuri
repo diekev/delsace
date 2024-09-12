@@ -5,6 +5,57 @@ importe Numérique
 importe Unicode
 
 /* ------------------------------------------------------------------------- */
+/** \nom 2.3.4.1 Signed integers
+ * \{ */
+
+/* https://html.spec.whatwg.org/multipage/common-microsyntaxes.html#rules-for-parsing-integers */
+parse_an_integer :: fonc (string: DOMString) -> Optionnel(z32)
+{
+    // À FAIRE : standardise
+    chn := converti_vers_chaine(string.donne_chaine_utf16())
+    diffère déloge(chn)
+
+    résultat := tente extrait_z32(chn) piège _ {
+        retourne
+    }
+
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 2.3.4.2 Non-negative integers
+ * \{ */
+
+/* https://html.spec.whatwg.org/multipage/common-microsyntaxes.html#rules-for-parsing-non-negative-integers */
+parse_a_non_negative_integer :: fonc (string: DOMString) -> Optionnel(n32)
+{
+    // 1. Let input be the string being parsed.
+    input := string
+
+    // 2. Let value be the result of parsing input using the rules for parsing integers.
+    opt_value := parse_an_integer(input)
+
+    // If value is an error, return an error.
+    saufsi opt_value.possède_valeur() {
+        retourne
+    }
+
+    value := opt_value.Quelque
+
+    // If value is less than zero, return an error.
+    si value < 0 {
+        retourne
+    }
+
+    // Return value.
+    retourne value comme n32
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom 2.3.4.5 Nonzero percentages and lengths
  * \{ */
 
