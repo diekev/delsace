@@ -2134,7 +2134,7 @@ insère_mode_DansTemplate :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
     si lexème.genre == GenreLexème.FinDeFichier {
         si !possède_dans_portée(*parseuse.pile_éléments_ouvert, TAG_template) {
-            parseuse.arrête_de_parser = vrai
+            parseuse.stop_parsing()
             retourne
         }
 
@@ -2178,7 +2178,7 @@ insère_mode_AprèsBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 
     si lexème.genre == GenreLexème.FinDeFichier {
-        parseuse.arrête_de_parser = vrai
+        parseuse.stop_parsing()
         retourne
     }
 
@@ -2199,7 +2199,7 @@ insère_mode_AprèsAprèsBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 
     si lexème.genre == GenreLexème.FinDeFichier {
-        parseuse.arrête_de_parser = vrai
+        parseuse.stop_parsing()
         retourne
     }
 
@@ -2627,3 +2627,185 @@ ferme_la_cellule :: fonc (parseuse: *Parseuse)
 
     parseuse.mode_insertion = insère_mode_DansRow
 }
+
+/* ------------------------------------------------------------------------- */
+/** \nom 13.2.7 The end
+ * https://html.spec.whatwg.org/multipage/parsing.html#the-end
+ * \{ */
+
+#portée_fichier
+
+/* https://html.spec.whatwg.org/multipage/parsing.html#stop-parsing */
+stop_parsing :: fonc (empl parseuse: *Parseuse)
+{
+    user_agent := document.donne_user_agent()
+
+    // 1. If the active speculative HTML parser is not null, then stop the speculative HTML parser and return.
+
+    // À FAIRE : 2. Set the insertion point to undefined.
+
+    // 3. Update the current document readiness to "interactive".
+    update_the_current_document_readiness(document, "interactive")
+
+    // 4. Pop all the nodes off the stack of open elements.
+    tantque taille(*pile_éléments_ouvert) != 0 {
+        dépile(*pile_éléments_ouvert)
+    }
+
+    // 5. While the list of scripts that will execute when the document has finished parsing is not empty:
+    tantque user_agent != nul && document.scripts_that_will_execute_when_the_document_has_finished_parsing.taille != 0 {
+        // 1. Spin the event loop until the first script in the list of scripts that will execute when the document
+        //    has finished parsing has its ready to be parser-executed set to true and the parser's Document has no
+        //    style sheet that is blocking scripts.
+        script := document.scripts_that_will_execute_when_the_document_has_finished_parsing[0]
+
+        tantque !script.prêt_à_être_exécuté_par_parseuse || has_a_style_sheet_that_is_blocking_scripts(document) {
+            user_agent.spin_event_loop()
+        }
+
+        // 2. Execute the script element given by the first script in the list of scripts that will execute when the
+        //    document has finished parsing.
+        execute_the_script_element(script)
+
+        // 3. Remove the first script element from the list of scripts that will execute when the document has
+        //    finished parsing (i.e. shift out the first entry in the list).
+        tableau_supprime_index(*document.scripts_that_will_execute_when_the_document_has_finished_parsing, 0)
+    }
+
+    // 6. Queue a global task on the DOM manipulation task source given the Document's relevant global object
+    //    to run the following substeps:
+    si user_agent {
+        tâche := crée_tâche_stop_parsing_étape_6()
+        user_agent.enfile_une_tâche(SourceDeTâche.ManipulationDOM, tâche)
+    }
+
+    // 7. Spin the event loop until the set of scripts that will execute as soon as possible and the list of scripts that will execute in order as soon as possible are empty.
+    tantque user_agent != nul {
+        si document.scripts_that_will_execute_as_soon_as_possible.taille != 0 {
+            user_agent.spin_event_loop()
+            continue
+        }
+
+        si document.scripts_that_will_execute_in_order_as_soon_as_possible.taille != 0 {
+            user_agent.spin_event_loop()
+            continue
+        }
+
+        arrête
+    }
+
+    // À FAIRE : 8. Spin the event loop until there is nothing that delays the load event in the Document.
+
+    // 9. Queue a global task on the DOM manipulation task source given the Document's relevant global object to run the following steps:
+    si user_agent {
+        tâche := crée_tâche_stop_parsing_étape_9(document)
+        user_agent.enfile_une_tâche(SourceDeTâche.ManipulationDOM, tâche)
+    }
+
+    // 10. If the Document's print when loaded flag is set, then run the printing steps.
+
+    // 11. The Document is now ready for post-load tasks.
+    mark_as_ready_for_post_load_tasks(document)
+
+    arrête_de_parser = vrai
+}
+
+crée_tâche_stop_parsing_étape_6 :: fonc () -> *Algorithm
+{
+    Tâche :: struct {
+        empl base: Algorithm
+    }
+
+    sur_run :: fonc (base: *Algorithm @inutilisée)
+    {
+        // À FAIRE : tâche := base comme *Tâche
+
+        // 1. Set the Document's load timing info's DOM content loaded event start time to the current high resolution
+        //    time given the Document's relevant global object.
+
+        // 2. Fire an event named DOMContentLoaded at the Document object, with its bubbles attribute initialized to true.
+
+        // 3. Set the Document's load timing info's DOM content loaded event end time to the current high resolution time
+        //    given the Document's relevant global object.
+
+        // 4. Enable the client message queue of the ServiceWorkerContainer object whose associated service worker client
+        //    is the Document object's relevant settings object.
+
+        // 5. Invoke WebDriver BiDi DOM content loaded with the Document's browsing context, and a new WebDriver BiDi
+        //    navigation status whose id is the Document object's during-loading navigation ID for WebDriver BiDi, status
+        //    is "pending", and url is the Document object's URL.
+    }
+
+    sur_destruction :: fonc (base: *Algorithm)
+    {
+        tâche := base comme *Tâche
+        déloge(tâche)
+    }
+
+    tâche := loge(Tâche)
+    tâche.sur_run = sur_run
+    tâche.sur_destruction = sur_destruction
+    retourne tâche
+}
+
+crée_tâche_stop_parsing_étape_9 :: fonc (document: *Document) -> *Algorithm
+{
+    Tâche :: struct {
+        empl base: Algorithm
+        document: *Document
+    }
+
+    sur_run :: fonc (base: *Algorithm)
+    {
+        tâche := base comme *Tâche
+
+        document := tâche.document
+
+        // 1. Update the current document readiness to "complete".
+        update_the_current_document_readiness(document, "complete")
+
+        // 2. If the Document object's browsing context is null, then abort these steps.
+        si document.browsing_context == nul {
+            retourne
+        }
+
+        // À FAIRE : 3. Let window be the Document's relevant global object.
+
+        // 4. Set the Document's load timing info's load event start time to the current high resolution time given window.
+
+        // 5. Fire an event named load at window, with legacy target override flag set.
+
+        // 6. Invoke WebDriver BiDi load complete with the Document's browsing context, and a new WebDriver BiDi navigation status whose id is the Document object's during-loading navigation ID for WebDriver BiDi, status is "complete", and url is the Document object's URL.
+
+        // 7. Set the Document object's during-loading navigation ID for WebDriver BiDi to null.
+
+        // 8. Set the Document's load timing info's load event end time to the current high resolution time given window.
+
+        // 9. Assert: Document's page showing is false.
+        assert(document.page_showing == faux)
+
+        // 10. Set the Document's page showing flag to true.
+        document.page_showing = vrai
+
+        // 11. Fire a page transition event named pageshow at window with false.
+
+        // 12. Completely finish loading the Document.
+        completely_finish_loading(document)
+
+        // 13. Queue the navigation timing entry for the Document.
+    }
+
+    sur_destruction :: fonc (base: *Algorithm)
+    {
+        tâche := base comme *Tâche
+        déloge(tâche)
+    }
+
+    tâche := loge(Tâche)
+    tâche.document = document
+    tâche.sur_run = sur_run
+    tâche.sur_destruction = sur_destruction
+    retourne tâche
+}
+
+/** \} */

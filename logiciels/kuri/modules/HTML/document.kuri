@@ -84,9 +84,13 @@ Document :: struct {
     permets_racines_shadow_déclaratives: bool
 
     pending_parsing_blocking_script: *HTMLScriptElement
+    scripts_that_will_execute_as_soon_as_possible: [..]*HTMLScriptElement
+    scripts_that_will_execute_in_order_as_soon_as_possible: [..]*HTMLScriptElement
+    scripts_that_will_execute_when_the_document_has_finished_parsing: [..]*HTMLScriptElement
 
     la_parseuse_ne_peut_changer_le_mode: bool
     ready_for_post_load_tasks: bool
+    page_showing: bool
 
     origin: Origin
     browsing_context: *BrowsingContext
@@ -98,6 +102,8 @@ Document :: struct {
     cross_origin_opener_policy: CrossOriginOpenerPolicy
 
     referrer: chaine /* Peut être vide. */
+
+    current_document_readiness: chaine
 
     is_initial_about_blank: bool
     latest_entry: *SessionHistoryEntry
@@ -117,6 +123,8 @@ Document :: struct {
     élément_en_cours_d_activation: *Élément
 
     images_disponibles: [..]ImageDisponible
+
+    script_blocking_style_sheet_set: [..]*CSS.CSSStyleSheet
 }
 
 #portée_fichier
@@ -257,6 +265,28 @@ donne_élément_body :: fonc (document: *Document) -> *Élément
 mark_as_ready_for_post_load_tasks :: fonc (document: *Document)
 {
     document.ready_for_post_load_tasks = vrai
+}
+
+/* https://html.spec.whatwg.org/multipage/dom.html#update-the-current-document-readiness */
+update_the_current_document_readiness :: fonc (document: *Document, readiness_value: chaine)
+{
+    // 1. If document's current document readiness equals readinessValue, then return.
+    si document.current_document_readiness == readiness_value {
+        retourne
+    }
+
+    // 2. Set document's current document readiness to readinessValue.
+    document.current_document_readiness = readiness_value
+
+    // À FAIRE : 3. If document is associated with an HTML parser, then:
+
+        // 1. Let now be the current high resolution time given document's relevant global object.
+
+        // 2. If readinessValue is "complete", and document's load timing info's DOM complete time is 0, then set document's load timing info's DOM complete time to now.
+
+        // 3. Otherwise, if readinessValue is "interactive", and document's load timing info's DOM interactive time is 0, then set document's load timing info's DOM interactive time to now.
+
+    // À FAIRE : 4. Fire an event named readystatechange at document.
 }
 
 /** \} */
@@ -475,6 +505,34 @@ donne_ajournement_depuis_élément :: fonc (résolveuse: *CSS.RésolveuseStyle, 
     }
 
     retourne résultat
+}
+
+/* https://html.spec.whatwg.org/multipage/semantics.html#has-a-style-sheet-that-is-blocking-scripts */
+has_a_style_sheet_that_is_blocking_scripts :: fonc (document: *Document) -> bool
+{
+    // 1. If document's script-blocking style sheet set is not empty, then return true.
+    si document.script_blocking_style_sheet_set.taille != 0 {
+        retourne vrai
+    }
+
+    // 2. If document's node navigable is null, then return false.
+    navigable := document.donne_node_navigable()
+    si navigable == nul {
+        retourne faux
+    }
+
+    // À FAIRE : 3. Let containerDocument be document's node navigable's container document.
+
+    // À FAIRE : 4. If containerDocument is non-null and containerDocument's script-blocking style sheet set is not empty, then return true.
+
+    // 5. Return false.
+    retourne faux
+}
+
+/* https://html.spec.whatwg.org/multipage/semantics.html#has-no-style-sheet-that-is-blocking-scripts */
+has_no_style_sheet_that_is_blocking_scripts :: fonc (document: *Document) -> bool
+{
+    retourne !has_a_style_sheet_that_is_blocking_scripts(document)
 }
 
 #portée_fichier

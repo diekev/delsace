@@ -1765,6 +1765,12 @@ le_comportement_inline_de_l_élément_doit_être_bloqué_par_csp :: fonc (élém
     retourne résultat
 }
 
+/* https://html.spec.whatwg.org/multipage/scripting.html#execute-the-script-element */
+execute_the_script_element :: fonc (el: *HTMLScriptElement @inutilisée)
+{
+    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
