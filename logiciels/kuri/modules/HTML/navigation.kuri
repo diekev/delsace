@@ -2607,6 +2607,30 @@ load_an_html_document :: fonc (user_agent: *UserAgent, navigation_params: *Navig
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom 7.5.8 Finishing the loading process
+ * https://html.spec.whatwg.org/multipage/document-lifecycle.html#loading-documents
+ * \{ */
+
+/* https://html.spec.whatwg.org/multipage/document-lifecycle.html#completely-finish-loading */
+completely_finish_loading :: fonc (document: *Document)
+{
+    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+
+    // 1. Assert: document's browsing context is non-null.
+    assert(document.browsing_context != nul)
+
+    // 2. Set document's completely loaded time to the current time.
+
+    // 3. Let container be document's node navigable's container.
+
+    // 4. If container is an iframe element, then queue an element task on the DOM manipulation task source given container to run the iframe load event steps given container.
+
+    // 5. Otherwise, if container is non-null, then queue an element task on the DOM manipulation task source given container to fire an event named load at container.
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom 7.5.9 Unloading documents
  * https://html.spec.whatwg.org/multipage/document-lifecycle.html#unloading-documents
  * \{ */

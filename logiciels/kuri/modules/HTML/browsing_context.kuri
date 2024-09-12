@@ -684,7 +684,8 @@ crée_browsing_context_et_document :: fonc (creator: *Document, embedder: *Élé
     // 20. Make active document.
     make_active(document)
 
-    // À FAIRE 21. Completely finish loading document.
+    // 21. Completely finish loading document.
+    completely_finish_loading(document)
 
     // 22. Return browsingContext and document.
     retourne browsing_context, document
