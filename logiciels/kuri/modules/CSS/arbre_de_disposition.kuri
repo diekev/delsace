@@ -2758,10 +2758,59 @@ crée_noeud_de_remplacement_text_input :: fonc (arbre: *ArbreDeDisposition, él�
 noeud_text_input_dimensions_intrinsèques :: fonc (noeud: *NoeudDeDispositionRemplacement, ctx: *ContexteDeFormattage)
 {
     assert(noeud.élément.local_name == HTML.TAG_input)
-    noeud.largeur_intrinsèque = 150.0
-    noeud.hauteur_intrinsèque = 20.0
 
     noeud.fonte = détermine_fonte(noeud, ctx)
+    métriques := noeud.fonte.donne_métriques_fonte()
+    hauteur_ligne := métriques.donne_hauteur_ligne()
+
+    line_height: r32
+    line_height_prop := noeud.propriétés.donne_valeur_utilisée(IDPropriété.LineHeight)
+    si line_height_prop.est_nombre() {
+        line_height = line_height_prop.number comme r32
+    }
+
+    /* For input elements whose type attribute is in one of the above states, the used value of the 'line-height'
+     * property must be a length value that is no smaller than what the used value would be for 'line-height: normal'. */
+    si line_height < hauteur_ligne {
+        noeud.propriétés.définis_valeur_utilisée(IDPropriété.LineHeight, ValeurDeStyle(number = hauteur_ligne))
+        line_height = hauteur_ligne
+    }
+
+    noeud.largeur_intrinsèque = donne_inline_size_pour_text_input(noeud)
+    noeud.hauteur_intrinsèque = line_height
+}
+
+/* https://html.spec.whatwg.org/multipage/rendering.html#the-input-element-as-a-text-entry-widget */
+donne_inline_size_pour_text_input :: fonc (noeud: *NoeudDeDispositionRemplacement) -> r32
+{
+    métriques := noeud.fonte.donne_métriques_fonte()
+
+    // À FAIRE : 1. If the 'field-sizing' property on the element has a computed value of 'content',
+    // the inline size is determined by the text which the element shows. The text is either
+    // a value or a short hint specified by the placeholder attribute. User agents may take
+    // the text caret size into account in the inline size.
+
+    // 2. If the element has a size attribute, and parsing that attribute's value using the
+    // rules for parsing non-negative integers doesn't generate an error, return the value
+    // obtained from applying the converting a character width to pixels algorithm to the value
+    // of the attribute.
+    size := HTML.donne_attribut_ou_chaine_vide(noeud.élément, HTML.ATTR_size)
+    saufsi size.est_vide() {
+        opt_value := HTML.parse_a_non_negative_integer(size)
+        si opt_value.possède_valeur() {
+            retourne convert_a_character_width_to_pixels(opt_value.Quelque comme r32, métriques)
+        }
+    }
+
+    // 3. Otherwise, return the value obtained from applying the converting a character width to
+    // pixels algorithm to the number 20.
+    retourne convert_a_character_width_to_pixels(20.0, métriques)
+}
+
+/* https://html.spec.whatwg.org/multipage/rendering.html#converting-a-character-width-to-pixels */
+convert_a_character_width_to_pixels :: fonc (size: r32, métriques: &MétriquesFonte) -> r32
+{
+    retourne (size - 1.0) * métriques.largeur_moyenne + métriques.largeur_maximale
 }
 
 noeud_text_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
