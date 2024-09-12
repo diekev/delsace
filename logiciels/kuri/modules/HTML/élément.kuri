@@ -254,6 +254,9 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élé
     sinon si tag == TAG_img {
         élément = loge(HTMLImageElement)
     }
+    sinon si tag == TAG_input {
+        élément = loge(HTMLInputElement)
+    }
     sinon si tag == TAG_link {
         élément = loge(HTMLLinkElement)
     }
@@ -1253,6 +1256,50 @@ update_image_data :: fonc (image: *HTMLImageElement)
 
     fetch_controller := fetch(user_agent, request, process_response = process_response)
     diffère détruit_fetch_controller(fetch_controller)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLInputElement
+ * \{ */
+
+#portée_export
+
+HTMLInputElement :: struct {
+    empl html_element: HTMLElement
+    table = *table_virtuelle_input_element
+}
+
+#portée_fichier
+
+table_virtuelle_input_element := TableVirtuelleÉlément(
+    classe = HTMLInputElement,
+    sur_destruction = input_element_sur_destruction,
+    sur_changement_attribut = input_element_sur_changement_attribut
+)
+
+input_element_sur_destruction :: fonc (base: *EventTarget)
+{
+    élément := base comme *HTMLInputElement
+    élément_détruit_données(élément)
+    déloge(élément)
+}
+
+input_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
+{
+    si élément_sur_changement_attribut(base, local_name, vieille_valeur, valeur, espace_de_nom) {
+        retourne vrai
+    }
+
+    input := base comme *HTMLInputElement
+
+    si local_name == ATTR_type {
+        invalide_style_depuis_élément(input.document, input)
+        retourne vrai
+    }
+
+    retourne faux
 }
 
 /** \} */
