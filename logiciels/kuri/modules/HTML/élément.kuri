@@ -1743,7 +1743,6 @@ détermine_type_block_script :: fonc (script: *HTMLScriptElement) -> DOMString
     }
 
     si attr_type {
-        /* À FAIRE : supprime espace blanches */
         retourne supprime_espace_blanches_autour(attr_type.valeur)
     }
 
