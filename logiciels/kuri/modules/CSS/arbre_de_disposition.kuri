@@ -2626,6 +2626,8 @@ NoeudDeDispositionRemplacement :: struct {
     ratio_intrinsèque: Optionnel(r32)
     largeur_intrinsèque: Optionnel(r32)
     hauteur_intrinsèque: Optionnel(r32)
+
+    fonte: *Fonte
 }
 
 possède_ratio_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> bool
@@ -2753,11 +2755,13 @@ crée_noeud_de_remplacement_text_input :: fonc (arbre: *ArbreDeDisposition, él�
     retourne résultat
 }
 
-noeud_text_input_dimensions_intrinsèques :: fonc (noeud: *NoeudDeDispositionRemplacement, ctx: *ContexteDeFormattage @inutilisée)
+noeud_text_input_dimensions_intrinsèques :: fonc (noeud: *NoeudDeDispositionRemplacement, ctx: *ContexteDeFormattage)
 {
     assert(noeud.élément.local_name == HTML.TAG_input)
     noeud.largeur_intrinsèque = 150.0
     noeud.hauteur_intrinsèque = 20.0
+
+    noeud.fonte = détermine_fonte(noeud, ctx)
 }
 
 noeud_text_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
@@ -2777,6 +2781,19 @@ noeud_text_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDe
         rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
         couleur := CouleurRVBAN8(0, 0, 0, 255)
         ctx.peintre.dessine_rectangle(rect, couleur)
+    }
+
+    élément := noeud.élément comme *HTML.HTMLInputElement
+    value := HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_value).donne_chaine_utf16()
+
+    saufsi value.est_vide() {
+        métriques := donne_métriques_fonte(noeud.fonte)
+
+        rect_texte := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_contenu())
+        rect_texte.y -= métriques.jambage_inférieur
+
+        couleur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color).couleur
+        ctx.peintre.dessine_texte(noeud.fonte, value, rect_texte, couleur, nul)
     }
 }
 
