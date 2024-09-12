@@ -1323,6 +1323,150 @@ donne_image_pour_url :: fonc (ctx: *ContexteDessin, url_string: chaine) -> Optio
     diffère HTML.détruit_fetch_controller(fetch_controller)
 }
 
+dessine_arrière_plan :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDispositionBloc)
+{
+    peintre := ctx.peintre
+
+    background_color := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BackgroundColor).couleur
+    si background_color.a != 0 {
+        rect_noeud: RectanglePosDim(r32)
+        si noeud.parent == nul {
+            /* L'arrière plan de l'élément racine doit s'appliquer au cannevas. */
+            rect_noeud.hauteur = ctx.hauteur_vue comme r32
+            rect_noeud.largeur = ctx.largeur_vue comme r32
+        }
+        sinon {
+            rect_noeud = ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
+        }
+
+        border_radius_top_left := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderTopLeftRadius).number comme r32
+        border_radius_top_right := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderTopRightRadius).number comme r32
+        border_radius_bottom_right := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomRightRadius).number comme r32
+        border_radius_bottom_left := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomLeftRadius).number comme r32
+
+        rayons := [ border_radius_top_left, border_radius_top_right, border_radius_bottom_right, border_radius_bottom_left ]
+        peintre.remplis_rectangle_arrondi(rect_noeud, rayons, background_color)
+    }
+    sinon si noeud.parent == nul && noeud.élément && noeud.élément.local_name == HTML.TAG_html {
+        /* Hérite de l'arrière-plan du "body".
+            * https://www.w3.org/TR/CSS21/colors.html#background */
+        body := HTML.donne_élément_body(noeud.élément.document)
+        si body && body.noeud_de_disposition {
+            background_color = body.noeud_de_disposition.propriétés.donne_valeur_utilisée(IDPropriété.BackgroundColor).couleur
+            si background_color.a != 0 {
+                /* À FAIRE : ne peint pas l'arrière-plan du "body" dans ce cas. */
+                rect_noeud: RectanglePosDim(r32)
+                rect_noeud.hauteur = ctx.hauteur_vue comme r32
+                rect_noeud.largeur = ctx.largeur_vue comme r32
+                peintre.remplis_rectangle(rect_noeud, background_color)
+            }
+        }
+    }
+
+    image := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BackgroundImage)
+    si image.est_none() {
+        retourne
+    }
+
+    opt_image_data := ctx.donne_image_pour_url(image.url_absolu)
+    saufsi opt_image_data.possède_valeur() {
+        retourne
+    }
+
+    /* À FAIRE : parse la propriété "background-repeat". Ceci est la valeur défaut. */
+    répétition: RépétitionImage
+    répétition.x = GenreRépétitionImage.Normale
+    répétition.y = GenreRépétitionImage.Normale
+
+    image_data := opt_image_data.Quelque
+    /* À FAIRE : background-clip */
+    rect := noeud.donne_rectangle_bordure()
+
+    rect_image := rect
+    rect_image.largeur = image_data.largeur comme r32
+    rect_image.hauteur = image_data.hauteur comme r32
+
+    rect = ctx.donne_rectangle_corrigé(rect)
+    rect_image = ctx.donne_rectangle_corrigé(rect_image)
+    peintre.dessine_image(image_data, rect_image, rect, répétition)
+}
+
+dessine_bordure :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDispositionBloc)
+{
+    bordure := donne_bordure(*noeud.propriétés.style)
+    peintre := ctx.peintre
+
+    pour bordure.style {
+        si it == LineStyle.None || it == LineStyle.Hidden {
+            continue
+        }
+
+        coté := index_it comme z32 comme BorderEdge
+
+        couleur: CouleurRVBAN8
+
+        si it == LineStyle.Inset {
+            si coté == BorderEdge.Top || coté == BorderEdge.Left {
+                couleur = CouleurRVBAN8(154, 154, 154, 255)
+            }
+            sinon {
+                couleur = CouleurRVBAN8(238, 238, 238, 255)
+            }
+        }
+        sinon si it == LineStyle.Outset {
+            si coté == BorderEdge.Top || coté == BorderEdge.Left {
+                couleur = CouleurRVBAN8(238, 238, 238, 255)
+            }
+            sinon {
+                couleur = CouleurRVBAN8(154, 154, 154, 255)
+            }
+        }
+        sinon {
+            border_color := bordure.color[coté]
+            /* À FAIRE : calcule la valeur même s'il n'y a pas de propriété. */
+            si border_color.est_mot_clé(PROP_currentColor) {
+                couleur = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color)
+            }
+            sinon {
+                couleur = bordure.color[coté].couleur
+            }
+        }
+
+        largeur := bordure.width[coté].number comme r32
+
+        rect: RectanglePosDim(r32)
+        rect_bordure := noeud.donne_rectangle_bordure()
+
+        si coté == BorderEdge.Top {
+            rect.x = rect_bordure.x
+            rect.y = rect_bordure.y
+            rect.largeur = rect_bordure.largeur
+            rect.hauteur = largeur
+        }
+        sinon si coté == BorderEdge.Bottom {
+            rect.x = rect_bordure.x
+            rect.y = rect_bordure.y + rect_bordure.hauteur - largeur
+            rect.largeur = rect_bordure.largeur
+            rect.hauteur = largeur
+        }
+        sinon si coté == BorderEdge.Left {
+            rect.x = rect_bordure.x
+            rect.y = rect_bordure.y
+            rect.largeur = largeur
+            rect.hauteur = rect_bordure.hauteur
+        }
+        sinon /* si coté == BorderEdge.Right */ {
+            rect.x = rect_bordure.x + rect_bordure.largeur - largeur
+            rect.y = rect_bordure.y
+            rect.largeur = largeur
+            rect.hauteur = rect_bordure.hauteur
+        }
+
+        rect = ctx.donne_rectangle_corrigé(rect)
+        peintre.remplis_rectangle(rect, couleur)
+    }
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -2041,139 +2185,9 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
 {
     noeud := base comme *NoeudDeDispositionBloc
 
-    peintre := ctx.peintre
-
     si noeud.est_noeud_non_anonyme() {
-        background_color := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BackgroundColor).couleur
-        si background_color.a != 0 {
-            rect_noeud: RectanglePosDim(r32)
-            si base.parent == nul {
-                /* L'arrière plan de l'élément racine doit s'appliquer au cannevas. */
-                rect_noeud.hauteur = ctx.hauteur_vue comme r32
-                rect_noeud.largeur = ctx.largeur_vue comme r32
-            }
-            sinon {
-                rect_noeud = ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
-            }
-
-            border_radius_top_left := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderTopLeftRadius).number comme r32
-            border_radius_top_right := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderTopRightRadius).number comme r32
-            border_radius_bottom_right := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomRightRadius).number comme r32
-            border_radius_bottom_left := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomLeftRadius).number comme r32
-
-            rayons := [ border_radius_top_left, border_radius_top_right, border_radius_bottom_right, border_radius_bottom_left ]
-            peintre.remplis_rectangle_arrondi(rect_noeud, rayons, background_color)
-        }
-        sinon si noeud.parent == nul && noeud.élément && noeud.élément.local_name == HTML.TAG_html {
-            /* Hérite de l'arrière-plan du "body".
-             * https://www.w3.org/TR/CSS21/colors.html#background */
-            body := HTML.donne_élément_body(noeud.élément.document)
-            si body && body.noeud_de_disposition {
-                background_color = body.noeud_de_disposition.propriétés.donne_valeur_utilisée(IDPropriété.BackgroundColor).couleur
-                si background_color.a != 0 {
-                    /* À FAIRE : ne peint pas l'arrière-plan du "body" dans ce cas. */
-                    rect_noeud: RectanglePosDim(r32)
-                    rect_noeud.hauteur = ctx.hauteur_vue comme r32
-                    rect_noeud.largeur = ctx.largeur_vue comme r32
-                    peintre.remplis_rectangle(rect_noeud, background_color)
-                }
-            }
-        }
-
-        image := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BackgroundImage)
-        saufsi image.est_none() {
-            opt_image_data := ctx.donne_image_pour_url(image.url_absolu)
-            si opt_image_data.possède_valeur() {
-                /* À FAIRE : parse la propriété "background-repeat". Ceci est la valeur défaut. */
-                répétition: RépétitionImage
-                répétition.x = GenreRépétitionImage.Normale
-                répétition.y = GenreRépétitionImage.Normale
-
-                image_data := opt_image_data.Quelque
-                /* À FAIRE : background-clip */
-                rect := noeud.donne_rectangle_bordure()
-
-                rect_image := rect
-                rect_image.largeur = image_data.largeur comme r32
-                rect_image.hauteur = image_data.hauteur comme r32
-
-                rect = ctx.donne_rectangle_corrigé(rect)
-                rect_image = ctx.donne_rectangle_corrigé(rect_image)
-                peintre.dessine_image(image_data, rect_image, rect, répétition)
-            }
-        }
-
-        bordure := donne_bordure(*noeud.propriétés.style)
-
-        pour bordure.style {
-            si it == LineStyle.None || it == LineStyle.Hidden {
-                continue
-            }
-
-            coté := index_it comme z32 comme BorderEdge
-
-            couleur: CouleurRVBAN8
-
-            si it == LineStyle.Inset {
-                si coté == BorderEdge.Top || coté == BorderEdge.Left {
-                    couleur = CouleurRVBAN8(154, 154, 154, 255)
-                }
-                sinon {
-                    couleur = CouleurRVBAN8(238, 238, 238, 255)
-                }
-            }
-            sinon si it == LineStyle.Outset {
-                si coté == BorderEdge.Top || coté == BorderEdge.Left {
-                    couleur = CouleurRVBAN8(238, 238, 238, 255)
-                }
-                sinon {
-                    couleur = CouleurRVBAN8(154, 154, 154, 255)
-                }
-            }
-            sinon {
-                border_color := bordure.color[coté]
-                /* À FAIRE : calcule la valeur même s'il n'y a pas de propriété. */
-                si border_color.est_mot_clé(PROP_currentColor) {
-                    couleur = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color)
-                }
-                sinon {
-                    couleur = bordure.color[coté].couleur
-                }
-            }
-
-            largeur := bordure.width[coté].number comme r32
-
-            rect: RectanglePosDim(r32)
-            rect_bordure := noeud.donne_rectangle_bordure()
-
-            si coté == BorderEdge.Top {
-                rect.x = rect_bordure.x
-                rect.y = rect_bordure.y
-                rect.largeur = rect_bordure.largeur
-                rect.hauteur = largeur
-            }
-            sinon si coté == BorderEdge.Bottom {
-                rect.x = rect_bordure.x
-                rect.y = rect_bordure.y + rect_bordure.hauteur - largeur
-                rect.largeur = rect_bordure.largeur
-                rect.hauteur = largeur
-            }
-            sinon si coté == BorderEdge.Left {
-                rect.x = rect_bordure.x
-                rect.y = rect_bordure.y
-                rect.largeur = largeur
-                rect.hauteur = rect_bordure.hauteur
-            }
-            sinon /* si coté == BorderEdge.Right */ {
-                rect.x = rect_bordure.x + rect_bordure.largeur - largeur
-                rect.y = rect_bordure.y
-                rect.largeur = largeur
-                rect.hauteur = rect_bordure.hauteur
-            }
-
-            rect = ctx.donne_rectangle_corrigé(rect)
-            peintre.remplis_rectangle(rect, couleur)
-        }
+        dessine_arrière_plan(ctx, noeud)
+        dessine_bordure(ctx, noeud)
     }
 
     saufsi noeud.est_disposition_inline {
