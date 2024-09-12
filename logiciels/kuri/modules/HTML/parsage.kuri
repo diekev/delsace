@@ -66,10 +66,6 @@ parse :: fonc (parseuse: *Parseuse)
     boucle {
         lexème := lexème_suivant(*parseuse.lexeuse)
 
-        si lexème.genre == GenreLexème.FinDeFichier {
-            arrête
-        }
-
         parseuse.lexème_courant = lexème
 
         //imprime("mode_insertion : %\n", parseuse.mode_insertion)
