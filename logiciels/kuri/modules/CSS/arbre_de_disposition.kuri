@@ -1483,6 +1483,46 @@ ModèleDeBoite :: struct {
     contenu: RectanglePosDim(r32)
 }
 
+décale_horizontalement :: fonc (modèle: &ModèleDeBoite, delta: r32)
+{
+    modèle.marge.x += delta
+    modèle.bordure.x += delta
+    modèle.rembourrage.x += delta
+    modèle.contenu.x += delta
+}
+
+décale_verticalement :: fonc (modèle: &ModèleDeBoite, delta: r32)
+{
+    modèle.marge.y += delta
+    modèle.bordure.y += delta
+    modèle.rembourrage.y += delta
+    modèle.contenu.y += delta
+}
+
+définis_hauteur_contenu :: fonc (modèle: &ModèleDeBoite, hauteur: r32)
+{
+    modèle.marge.hauteur = hauteur
+    modèle.bordure.hauteur = hauteur
+    modèle.contenu.hauteur = hauteur
+    modèle.rembourrage.hauteur = hauteur
+}
+
+incrémente_hauteur_contenu :: fonc (modèle: &ModèleDeBoite, hauteur: r32)
+{
+    modèle.marge.hauteur += hauteur
+    modèle.bordure.hauteur += hauteur
+    modèle.contenu.hauteur += hauteur
+    modèle.rembourrage.hauteur += hauteur
+}
+
+définis_largeur_contenu :: fonc (modèle: &ModèleDeBoite, largeur: r32)
+{
+    modèle.marge.largeur = largeur
+    modèle.bordure.largeur = largeur
+    modèle.contenu.largeur = largeur
+    modèle.rembourrage.largeur = largeur
+}
+
 définis_largeur :: fonc (modèle: &ModèleDeBoite, largeur: r32)
 {
     modèle.contenu.largeur = largeur
@@ -1653,15 +1693,8 @@ donne_élément_récursif :: fonc (noeud: *NoeudDeDisposition) -> *HTML.Élémen
 
 décale :: fonc (noeud: *NoeudDeDisposition, x: r32, y: r32)
 {
-    noeud.modèle_de_boite.marge.x += x
-    noeud.modèle_de_boite.bordure.x += x
-    noeud.modèle_de_boite.rembourrage.x += x
-    noeud.modèle_de_boite.contenu.x += x
-
-    noeud.modèle_de_boite.marge.y += y
-    noeud.modèle_de_boite.bordure.y += y
-    noeud.modèle_de_boite.rembourrage.y += y
-    noeud.modèle_de_boite.contenu.y += y
+    décale_horizontalement(noeud.modèle_de_boite, x)
+    décale_verticalement(noeud.modèle_de_boite, y)
 
     pour noeud.enfants {
         it.décale(x, y)
@@ -2468,16 +2501,10 @@ noeud_disposition_texte_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Con
     noeud.texte = texte
 
     /* XXX */
-    noeud.modèle_de_boite.marge.hauteur = métriques.donne_hauteur_ligne()
-    noeud.modèle_de_boite.bordure.hauteur = métriques.donne_hauteur_ligne()
-    noeud.modèle_de_boite.contenu.hauteur = métriques.donne_hauteur_ligne()
-    noeud.modèle_de_boite.rembourrage.hauteur = métriques.donne_hauteur_ligne()
+    définis_hauteur_contenu(noeud.modèle_de_boite, métriques.donne_hauteur_ligne())
 
     largeur_texte := fonte.donne_largeur_texte(texte) comme r32
-    noeud.modèle_de_boite.marge.largeur = largeur_texte
-    noeud.modèle_de_boite.bordure.largeur = largeur_texte
-    noeud.modèle_de_boite.contenu.largeur = largeur_texte
-    noeud.modèle_de_boite.rembourrage.largeur = largeur_texte
+    définis_largeur_contenu(noeud.modèle_de_boite, largeur_texte)
 }
 
 noeud_disposition_texte_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, enligneuse: *Enligneuse, ctx: *ContexteDeFormattage)
@@ -2488,10 +2515,7 @@ noeud_disposition_texte_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition,
     fonte := détermine_fonte(noeud, ctx)
     métriques := fonte.donne_métriques_fonte()
 
-    noeud.modèle_de_boite.marge.hauteur = métriques.donne_hauteur_ligne()
-    noeud.modèle_de_boite.bordure.hauteur = métriques.donne_hauteur_ligne()
-    noeud.modèle_de_boite.contenu.hauteur = métriques.donne_hauteur_ligne()
-    noeud.modèle_de_boite.rembourrage.hauteur = métriques.donne_hauteur_ligne()
+    définis_hauteur_contenu(noeud.modèle_de_boite, métriques.donne_hauteur_ligne())
 
     si est_vide_ou_uniquement_espaces_blanches(noeud.noeud_texte.données) {
         espace := ChaineUTF16Unique(' ' comme n32)

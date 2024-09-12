@@ -376,10 +376,7 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
         décalage_y += hauteur
     }
 
-    noeud.modèle_de_boite.marge.hauteur += hauteur_contenu
-    noeud.modèle_de_boite.bordure.hauteur += hauteur_contenu
-    noeud.modèle_de_boite.contenu.hauteur += hauteur_contenu
-    noeud.modèle_de_boite.rembourrage.hauteur += hauteur_contenu
+    incrémente_hauteur_contenu(noeud.modèle_de_boite, hauteur_contenu)
 
     si décalage_x != 0.0 || décalage_y != 0.0 {
         pour * noeud.lignes_tenante.fragments {
