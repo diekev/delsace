@@ -2780,8 +2780,15 @@ noeud_text_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDe
     }
 }
 
-noeud_text_input_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment @inutilisée, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
+noeud_text_input_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
 {
+    /* XXX - ceci devrait sans doute être fait lors de la disposition. */
+    x := fragment.x - base.modèle_de_boite.contenu.x
+    y := fragment.y - base.modèle_de_boite.contenu.y
+
+    décale_horizontalement(base.modèle_de_boite, x)
+    décale_verticalement(base.modèle_de_boite, y)
+
     noeud_text_input_sur_dessin(base, ctx)
 }
 
