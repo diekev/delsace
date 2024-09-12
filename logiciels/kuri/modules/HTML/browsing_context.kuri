@@ -675,7 +675,8 @@ crée_browsing_context_et_document :: fonc (creator: *Document, embedder: *Élé
 
     // À FAIRE 17. Assert: document's URL and document's relevant settings object's creation URL are about:blank.
 
-    // À FAIRE 18. Mark document as ready for post-load tasks.
+    // 18. Mark document as ready for post-load tasks.
+    mark_as_ready_for_post_load_tasks(document)
 
     // 19. Populate with html/head/body given document.
     populate_with_html_head_body(document)

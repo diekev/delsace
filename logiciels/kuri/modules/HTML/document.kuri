@@ -86,6 +86,7 @@ Document :: struct {
     pending_parsing_blocking_script: *HTMLScriptElement
 
     la_parseuse_ne_peut_changer_le_mode: bool
+    ready_for_post_load_tasks: bool
 
     origin: Origin
     browsing_context: *BrowsingContext
@@ -250,6 +251,12 @@ donne_élément_body :: fonc (document: *Document) -> *Élément
         }
     }
     retourne nul
+}
+
+/* https://html.spec.whatwg.org/multipage/parsing.html#ready-for-post-load-tasks */
+mark_as_ready_for_post_load_tasks :: fonc (document: *Document)
+{
+    document.ready_for_post_load_tasks = vrai
 }
 
 /** \} */
