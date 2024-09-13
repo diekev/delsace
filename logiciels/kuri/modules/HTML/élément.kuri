@@ -277,6 +277,9 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élé
     sinon si tag == TAG_tr {
         élément = loge(HTMLTableRowElement)
     }
+    sinon si tag == TAG_textarea {
+        élément = loge(HTMLTextAreaElement)
+    }
     sinon si tag == TAG_video {
         élément = loge(HTMLVideoElement)
     }
@@ -1985,6 +1988,70 @@ table_section_element_sur_destruction :: fonc (base: *EventTarget)
 table_section_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
 {
     ajoute_propriété_pour_legacy_colour_value(résolveuse, base, ATTR_bgcolor, CSS.PROP_background_color)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLTextAreaElement
+ * https://html.spec.whatwg.org/multipage/form-elements.html#the-textarea-element
+ * \{ */
+
+#portée_export
+
+HTMLTextAreaElement :: struct {
+    empl html_element: HTMLElement
+    table = *table_virtuelle_textarea_element
+}
+
+/* https://html.spec.whatwg.org/multipage/form-elements.html#attr-textarea-cols-value */
+donne_cols :: fonc (textarea: *HTMLTextAreaElement) -> n32
+{
+    cols := donne_attribut_ou_chaine_vide(textarea, ATTR_cols)
+    saufsi cols.est_vide() {
+        opt_valeur := parse_a_non_negative_integer(cols)
+        si opt_valeur.possède_valeur() && opt_valeur.Quelque > 0 {
+            retourne opt_valeur.Quelque
+        }
+    }
+    retourne 20
+}
+
+donne_character_width :: fonc (textarea: *HTMLTextAreaElement) -> n32
+{
+    retourne donne_cols(textarea)
+}
+
+/* https://html.spec.whatwg.org/multipage/form-elements.html#attr-textarea-rows-value */
+donne_rows :: fonc (textarea: *HTMLTextAreaElement) -> n32
+{
+    rows := donne_attribut_ou_chaine_vide(textarea, ATTR_rows)
+    saufsi rows.est_vide() {
+        opt_valeur := parse_a_non_negative_integer(rows)
+        si opt_valeur.possède_valeur() && opt_valeur.Quelque > 0 {
+            retourne opt_valeur.Quelque
+        }
+    }
+    retourne 2
+}
+
+donne_character_height :: fonc (textarea: *HTMLTextAreaElement) -> n32
+{
+    retourne donne_rows(textarea)
+}
+
+#portée_fichier
+
+table_virtuelle_textarea_element := TableVirtuelleÉlément(
+    classe = HTMLTextAreaElement,
+    sur_destruction = textarea_element_sur_destruction
+)
+
+textarea_element_sur_destruction :: fonc (base: *EventTarget)
+{
+    élément := base comme *HTMLTextAreaElement
+    élément_détruit_données(élément)
+    déloge(élément)
 }
 
 /** \} */
