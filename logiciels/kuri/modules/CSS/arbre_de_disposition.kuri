@@ -1011,6 +1011,9 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
     sinon si élément.local_name == HTML.TAG_input && HTML.is_text_entry_widget(élément comme *HTML.HTMLInputElement) {
         résultat = crée_noeud_de_remplacement_text_input(arbre, élément comme *HTML.HTMLInputElement)
     }
+    sinon si élément.local_name == HTML.TAG_textarea {
+        résultat = crée_noeud_de_remplacement_textarea(arbre, élément comme *HTML.HTMLTextAreaElement)
+    }
     sinon si display.outer_type == Display.Type.Block {
         bloc := arbre.crée_noeud(NoeudDeDispositionBloc)
         bloc.élément = élément
@@ -2856,6 +2859,99 @@ noeud_text_input_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragmen
     décale_verticalement(base.modèle_de_boite, y)
 
     noeud_text_input_sur_dessin(base, ctx)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom NoeudDeDispositionRemplacement pour textarea
+ * \{ */
+
+#portée_fichier
+
+crée_noeud_de_remplacement_textarea :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLTextAreaElement) -> *NoeudDeDispositionRemplacement
+{
+    résultat := arbre.crée_noeud(NoeudDeDispositionRemplacement)
+    résultat.élément = élément
+    résultat.sur_dessin = noeud_textarea_sur_dessin
+    résultat.sur_dessin_fragment = noeud_textarea_sur_dessin_fragment
+    résultat.sur_calcul_dimensions_intrinsèques = noeud_textarea_dimensions_intrinsèques
+    retourne résultat
+}
+
+noeud_textarea_dimensions_intrinsèques :: fonc (noeud: *NoeudDeDispositionRemplacement, ctx: *ContexteDeFormattage)
+{
+    assert(noeud.élément.local_name == HTML.TAG_textarea)
+    noeud.fonte = détermine_fonte(noeud, ctx)
+    noeud.largeur_intrinsèque = donne_textarea_effective_width(noeud)
+    noeud.hauteur_intrinsèque = donne_textarea_effective_height(noeud, ctx)
+}
+
+LARGEUR_BARRE_DE_DÉFILEMENT :: 16.0
+
+/* https://html.spec.whatwg.org/multipage/rendering.html#textarea-effective-width */
+donne_textarea_effective_width :: fonc (noeud: *NoeudDeDispositionRemplacement) -> r32
+{
+    élément := noeud.élément comme *HTML.HTMLTextAreaElement
+    métriques := noeud.fonte.donne_métriques_fonte()
+    character_width := HTML.donne_character_width(élément)
+    retourne (character_width comme r32) * métriques.largeur_moyenne + LARGEUR_BARRE_DE_DÉFILEMENT
+}
+
+/* https://html.spec.whatwg.org/multipage/rendering.html#textarea-effective-height */
+donne_textarea_effective_height :: fonc (noeud: *NoeudDeDispositionRemplacement, ctx: *ContexteDeFormattage) -> r32
+{
+    élément := noeud.élément comme *HTML.HTMLTextAreaElement
+    character_height := HTML.donne_character_height(élément)
+    imprime("character_height : %\n", character_height)
+    line_height := donne_line_height(noeud, ctx)
+    imprime("line_height : %\n", line_height)
+    retourne character_height comme r32 * line_height
+}
+
+noeud_textarea_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+{
+    noeud := base comme *NoeudDeDispositionRemplacement
+    assert(noeud.élément.local_name == HTML.TAG_textarea)
+
+    dessine_arrière_plan(ctx, noeud)
+
+    /* À FAIRE : considère toutes les propriétés de bordure. */
+    border_declaration := donne_déclaration(noeud.propriétés, PROP_border)
+    si border_declaration {
+        dessine_bordure(ctx, noeud)
+    }
+    sinon {
+        /* Dessine une bordure par défaut. */
+        rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
+        couleur := CouleurRVBAN8(0, 0, 0, 255)
+        ctx.peintre.dessine_rectangle(rect, couleur)
+    }
+
+    élément := noeud.élément comme *HTML.HTMLInputElement
+    value := HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_value).donne_chaine_utf16()
+
+    saufsi value.est_vide() {
+        métriques := donne_métriques_fonte(noeud.fonte)
+
+        rect_texte := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_contenu())
+        rect_texte.y -= métriques.jambage_inférieur
+
+        couleur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color).couleur
+        ctx.peintre.dessine_texte(noeud.fonte, value, rect_texte, couleur, nul)
+    }
+}
+
+noeud_textarea_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
+{
+    /* XXX - ceci devrait sans doute être fait lors de la disposition. */
+    x := fragment.x - base.modèle_de_boite.contenu.x
+    y := fragment.y - base.modèle_de_boite.contenu.y
+
+    décale_horizontalement(base.modèle_de_boite, x)
+    décale_verticalement(base.modèle_de_boite, y)
+
+    noeud_textarea_sur_dessin(base, ctx)
 }
 
 /** \} */
