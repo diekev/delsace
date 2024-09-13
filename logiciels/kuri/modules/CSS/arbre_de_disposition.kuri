@@ -2740,7 +2740,7 @@ noeud_image_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *F
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom NoeudDeDispositionRemplacement pour image
+/** \nom NoeudDeDispositionRemplacement pour input
  * \{ */
 
 #portée_fichier
