@@ -1152,6 +1152,32 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
         peintre.remplis_rectangle(rect_barre, couleur)
         peintre.termine_dessin()
     }
+
+    lien_survolé := document.donne_lien_survolé()
+    si lien_survolé {
+        href := lien_survolé.donne_href()
+
+        saufsi href.est_vide() {
+            texte := href.donne_chaine_utf16()
+            fonte := CSS.donne_fonte_défaut(document.globales_dessin)
+            métriques := fonte.donne_métriques_fonte()
+
+            rect: RectanglePosDim(r32)
+            rect.y = 0
+            rect.hauteur = métriques.donne_hauteur_ligne()
+            rect.largeur = fonte.donne_largeur_texte(texte) comme r32 + 2.0 * métriques.largeur_moyenne
+
+            couleur := CouleurRVBAN8(255, 255, 255, 255)
+            peintre.remplis_rectangle(rect, couleur)
+
+            couleur = CouleurRVBAN8(0, 0, 0, 255)
+            rect.x = métriques.largeur_moyenne
+            rect.y -= métriques.jambage_inférieur
+            peintre.dessine_texte(fonte, texte, rect, couleur, nul)
+
+            peintre.termine_dessin()
+        }
+    }
 }
 
 vue_rendu_page_sur_redimensionnement :: fonc (rappels: *QT_Rappels_GLWidget, taille: QT_Taille)

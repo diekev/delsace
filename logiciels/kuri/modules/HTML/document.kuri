@@ -361,6 +361,26 @@ définis_noeud_survolé :: fonc (document: *Document, noeud: *Élément)
     }
 }
 
+donne_lien_survolé :: fonc (document: *Document) -> *HTMLAnchorElement
+{
+    noeud := document.noeud_survolé
+
+    tantque noeud != nul {
+        si noeud.local_name == TAG_a {
+            retourne noeud comme *HTMLAnchorElement
+        }
+
+        parent := noeud.parent
+        saufsi parent.est_élément() {
+            retourne nul
+        }
+
+        noeud = parent comme *Élément
+    }
+
+    retourne nul
+}
+
 donne_ancêtre_élément_commun :: fonc (a: *Élément, b: *Élément) -> *Élément
 {
     si a == nul {
