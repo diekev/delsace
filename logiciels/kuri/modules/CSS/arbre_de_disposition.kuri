@@ -2929,7 +2929,7 @@ noeud_textarea_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDess
         ctx.peintre.dessine_rectangle(rect, couleur)
     }
 
-    élément := noeud.élément comme *HTML.HTMLInputElement
+    élément := noeud.élément comme *HTML.HTMLTextAreaElement
     value := HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_value).donne_chaine_utf16()
 
     saufsi value.est_vide() {
