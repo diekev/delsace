@@ -7,7 +7,6 @@ importe Géométrie
 importe HTML
 importe HTTP
 importe Internet
-importe Math
 importe OpenGL
 importe PeintureInterface
 importe Qt
