@@ -152,11 +152,13 @@ dessine :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
     arbre.hauteur_vue = ctx.hauteur_vue
     arbre.largeur_vue = ctx.largeur_vue
 
+    IGUMI.réinitialise_données()
     dessine(arbre.racine, ctx)
     ctx.peintre.termine_dessin()
 
     /* Tampon ID. */
 
+    IGUMI.réinitialise_données_id()
     fbo: GLuint
     glGenFramebuffers(1, *fbo)
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo)
