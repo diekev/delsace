@@ -155,7 +155,10 @@ dessine :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
     IGUMI.réinitialise_données()
     dessine(arbre.racine, ctx)
     ctx.peintre.termine_dessin()
+}
 
+dessine_tampon_id :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
+{
     /* Tampon ID. */
 
     IGUMI.réinitialise_données_id()

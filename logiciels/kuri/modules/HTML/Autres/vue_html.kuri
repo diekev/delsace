@@ -1178,6 +1178,8 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
             peintre.termine_dessin()
         }
     }
+
+    CSS.dessine_tampon_id(arbre, *ctx)
 }
 
 vue_rendu_page_sur_redimensionnement :: fonc (rappels: *QT_Rappels_GLWidget, taille: QT_Taille)
