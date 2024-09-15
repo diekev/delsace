@@ -1434,7 +1434,19 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 
     si lexème.genre == GenreLexème.FinDeFichier {
-        panique("algorithme d'insertion incomplet")
+        si parseuse.pile_insertion_template.taille != 0 {
+            parseuse.gère_lexème_pour_mode(insère_mode_DansTemplate, lexème)
+        }
+        sinon {
+            éléments_valides_restants := [TAG_dd, TAG_dt, TAG_li, TAG_optgroup, TAG_option, TAG_p, TAG_rb, TAG_rp, TAG_rt, TAG_rtc, TAG_tbody, TAG_td, TAG_tfoot, TAG_th, TAG_thead, TAG_tr, TAG_body, TAG_html]
+            pour parseuse.pile_éléments_ouvert.éléments {
+                saufsi fait_partie_de(it.local_name, ...éléments_valides_restants) {
+                    erreur_de_parsage(parseuse, "élément invalide en fin de fichier")
+                }
+            }
+
+            parseuse.stop_parsing()
+        }
     }
 }
 
