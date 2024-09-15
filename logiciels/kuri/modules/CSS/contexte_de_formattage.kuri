@@ -166,26 +166,26 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
             right := it.propriétés.donne_valeur_utilisée(IDPropriété.Right)
 
             si left.est_auto() && right.est_auto() {
-                left = ValeurDeStyle(number = 0.0)
+                left = ValeurDeStyle(pixels = 0.0)
             }
             sinon si left.est_auto() {
-                left = ValeurDeStyle(number = -right.number)
+                left = ValeurDeStyle(pixels = -right.pixels)
             }
-            sinon saufsi left.est_nombre() {
-                left = ValeurDeStyle(number = 0.0)
+            sinon saufsi left.est_pixels() {
+                left = ValeurDeStyle(pixels = 0.0)
             }
 
             si top.est_auto() && bottom.est_auto() {
-                top = ValeurDeStyle(number = 0.0)
+                top = ValeurDeStyle(pixels = 0.0)
             }
             sinon si top.est_auto() {
-                top = ValeurDeStyle(number = -bottom.number)
+                top = ValeurDeStyle(pixels = -bottom.pixels)
             }
-            sinon saufsi top.est_nombre() {
-                top = ValeurDeStyle(number = 0.0)
+            sinon saufsi top.est_pixels() {
+                top = ValeurDeStyle(pixels = 0.0)
             }
 
-            it.décale(décalage_x + left.number comme r32, décalage_y + décalage_hors_float + top.number comme r32)
+            it.décale(décalage_x + left.pixels comme r32, décalage_y + décalage_hors_float + top.pixels comme r32)
             continue
         }
 
@@ -225,24 +225,24 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
             right := it.propriétés.donne_valeur_utilisée(IDPropriété.Right)
 
             si left.est_auto() && right.est_auto() {
-                left = ValeurDeStyle(number = 0.0)
+                left = ValeurDeStyle(pixels = 0.0)
             }
             sinon si left.est_auto() {
-                left = ValeurDeStyle(number = -right.number)
+                left = ValeurDeStyle(pixels = -right.pixels)
             }
 
             si top.est_auto() && bottom.est_auto() {
-                top = ValeurDeStyle(number = 0.0)
+                top = ValeurDeStyle(pixels = 0.0)
             }
             sinon si top.est_auto() {
-                top = ValeurDeStyle(number = -bottom.number)
+                top = ValeurDeStyle(pixels = -bottom.pixels)
             }
 
-            it.décale(left.number comme r32, top.number comme r32)
+            it.décale(left.pixels comme r32, top.pixels comme r32)
         }
     }
 
-    noeud.propriétés.définis_valeur_calculée(IDPropriété.Height, ValeurDeStyle(number = hauteur_contenu))
+    noeud.propriétés.définis_valeur_calculée(IDPropriété.Height, ValeurDeStyle(pixels = hauteur_contenu))
 }
 
 /** \} */

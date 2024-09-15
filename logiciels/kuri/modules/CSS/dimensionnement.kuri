@@ -4,13 +4,13 @@ ajourne_boite_pour_calcul_largeur :: fonc (noeud: *NoeudDeDisposition)
 {
     propriétés := noeud.propriétés
 
-    margin_left := propriétés.donne_valeur_utilisée(IDPropriété.MarginLeft).number comme r32
-    border_left_width := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthLeft).number comme r32
-    padding_left := propriétés.donne_valeur_utilisée(IDPropriété.PaddingLeft).number comme r32
-    width := propriétés.donne_valeur_utilisée(IDPropriété.Width).number comme r32
-    padding_right := propriétés.donne_valeur_utilisée(IDPropriété.PaddingRight).number comme r32
-    border_right_width := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthRight).number comme r32
-    margin_right := propriétés.donne_valeur_utilisée(IDPropriété.MarginRight).number comme r32
+    margin_left := propriétés.donne_valeur_utilisée(IDPropriété.MarginLeft).pixels comme r32
+    border_left_width := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthLeft).pixels comme r32
+    padding_left := propriétés.donne_valeur_utilisée(IDPropriété.PaddingLeft).pixels comme r32
+    width := propriétés.donne_valeur_utilisée(IDPropriété.Width).pixels comme r32
+    padding_right := propriétés.donne_valeur_utilisée(IDPropriété.PaddingRight).pixels comme r32
+    border_right_width := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthRight).pixels comme r32
+    margin_right := propriétés.donne_valeur_utilisée(IDPropriété.MarginRight).pixels comme r32
 
     noeud.modèle_de_boite.marge.x = 0.0
     noeud.modèle_de_boite.marge.largeur = margin_left + border_left_width + padding_left + width + padding_right + border_right_width + margin_right
@@ -29,13 +29,13 @@ ajourne_boite_pour_calcul_hauteur :: fonc (noeud: *NoeudDeDisposition)
 {
     propriétés := noeud.propriétés
 
-    margin_top := propriétés.donne_valeur_utilisée(IDPropriété.MarginTop).number comme r32
-    border_top_height := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthTop).number comme r32
-    padding_top := propriétés.donne_valeur_utilisée(IDPropriété.PaddingTop).number comme r32
-    height := propriétés.donne_valeur_utilisée(IDPropriété.Height).number comme r32
-    padding_bottom := propriétés.donne_valeur_utilisée(IDPropriété.PaddingBottom).number comme r32
-    border_bottom_height := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthBottom).number comme r32
-    margin_bottom := propriétés.donne_valeur_utilisée(IDPropriété.MarginBottom).number comme r32
+    margin_top := propriétés.donne_valeur_utilisée(IDPropriété.MarginTop).pixels comme r32
+    border_top_height := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthTop).pixels comme r32
+    padding_top := propriétés.donne_valeur_utilisée(IDPropriété.PaddingTop).pixels comme r32
+    height := propriétés.donne_valeur_utilisée(IDPropriété.Height).pixels comme r32
+    padding_bottom := propriétés.donne_valeur_utilisée(IDPropriété.PaddingBottom).pixels comme r32
+    border_bottom_height := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthBottom).pixels comme r32
+    margin_bottom := propriétés.donne_valeur_utilisée(IDPropriété.MarginBottom).pixels comme r32
 
     noeud.modèle_de_boite.marge.y = 0.0
     noeud.modèle_de_boite.marge.hauteur = margin_top + border_top_height + padding_top + height + padding_bottom + border_bottom_height + margin_bottom
@@ -62,13 +62,13 @@ calcule_largeur_et_marges :: fonc (noeud: *NoeudDeDisposition, containing_block:
     width := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width)
 
     max_width := noeud.propriétés.donne_valeur_calculée(IDPropriété.MaxWidth)
-    si max_width.est_nombre() && (width.number > max_width.number) {
+    si max_width.est_pixels() && (width.pixels > max_width.pixels) {
         fonction_de_calcul(noeud, width_of_containing_block, *max_width)
     }
 
     width = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width)
     min_width := noeud.propriétés.donne_valeur_calculée(IDPropriété.MinWidth)
-    si min_width.est_nombre() && min_width.number > 0.0 && (width.number < min_width.number) {
+    si min_width.est_pixels() && min_width.pixels > 0.0 && (width.pixels < min_width.pixels) {
         fonction_de_calcul(noeud, width_of_containing_block, *min_width)
     }
 
@@ -113,7 +113,7 @@ calcule_pourcentage :: fonc (valeur: ValeurDeStyle, référence: r64) -> ValeurD
         retourne valeur
     }
 
-    retourne ValeurDeStyle(number = valeur.percentage * référence / 100.0)
+    retourne ValeurDeStyle(pixels = valeur.percentage * référence / 100.0)
 }
 
 résoud_pourcentage_largeurs :: fonc (noeud: *NoeudDeDisposition, containing_block: &ContainingBlock)
@@ -154,13 +154,13 @@ calcule_hauteur_et_marges :: fonc (noeud: *NoeudDeDisposition, containing_block:
 
     height := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Height)
     max_height := noeud.propriétés.donne_valeur_calculée(IDPropriété.MaxHeight)
-    si max_height.est_nombre() && (height.number > max_height.number) {
+    si max_height.est_pixels() && (height.pixels > max_height.pixels) {
         fonction_de_calcul(noeud, *max_height)
     }
 
     height = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Height)
     min_height := noeud.propriétés.donne_valeur_calculée(IDPropriété.MinHeight)
-    si min_height.est_nombre() && (height.number < min_height.number) {
+    si min_height.est_pixels() && (height.pixels < min_height.pixels) {
         fonction_de_calcul(noeud, *min_height)
     }
 
@@ -209,26 +209,26 @@ calcule_hauteur_et_marges_block_level_normal_flow :: fonc (base: *NoeudDeDisposi
     border_bottom_height := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthBottom)
     margin_bottom := propriétés.donne_valeur_calculée(IDPropriété.MarginBottom)
 
-    saufsi margin_top.est_nombre() {
-        margin_top = ValeurDeStyle(number = 0)
+    saufsi margin_top.est_pixels() {
+        margin_top = ValeurDeStyle(pixels = 0)
     }
-    saufsi border_top_height.est_nombre() {
-        border_top_height = ValeurDeStyle(number = 0)
+    saufsi border_top_height.est_pixels() {
+        border_top_height = ValeurDeStyle(pixels = 0)
     }
-    saufsi padding_top.est_nombre() {
-        padding_top = ValeurDeStyle(number = 0)
+    saufsi padding_top.est_pixels() {
+        padding_top = ValeurDeStyle(pixels = 0)
     }
-    saufsi height.est_nombre() {
-        height = ValeurDeStyle(number = 0)
+    saufsi height.est_pixels() {
+        height = ValeurDeStyle(pixels = 0)
     }
-    saufsi padding_bottom.est_nombre() {
-        padding_bottom = ValeurDeStyle(number = 0)
+    saufsi padding_bottom.est_pixels() {
+        padding_bottom = ValeurDeStyle(pixels = 0)
     }
-    saufsi border_bottom_height.est_nombre() {
-        border_bottom_height = ValeurDeStyle(number = 0)
+    saufsi border_bottom_height.est_pixels() {
+        border_bottom_height = ValeurDeStyle(pixels = 0)
     }
-    saufsi margin_bottom.est_nombre() {
-        margin_bottom = ValeurDeStyle(number = 0)
+    saufsi margin_bottom.est_pixels() {
+        margin_bottom = ValeurDeStyle(pixels = 0)
     }
 
     propriétés.définis_valeur_utilisée(IDPropriété.MarginTop, margin_top)
@@ -263,25 +263,25 @@ calcule_largeur_et_marges_block_level_normal_flow :: fonc (base: *NoeudDeDisposi
     // 'margin-right' are, for the following rules, treated as zero.
     saufsi width.est_auto() {
         tmp : r64 = 0.0
-        tmp += border_left_width.number
-        tmp += padding_left.number
-        tmp += width.number
-        tmp += padding_right.number
-        tmp += border_right_width.number
+        tmp += border_left_width.pixels
+        tmp += padding_left.pixels
+        tmp += width.pixels
+        tmp += padding_right.pixels
+        tmp += border_right_width.pixels
 
         saufsi margin_left.est_auto() {
-            tmp += margin_left.number
+            tmp += margin_left.pixels
         }
         saufsi margin_right.est_auto() {
-            tmp += margin_right.number
+            tmp += margin_right.pixels
         }
 
         si tmp > width_of_containing_block {
             si margin_left.est_auto() {
-                margin_left = ValeurDeStyle(number = 0.0)
+                margin_left = ValeurDeStyle(pixels = 0.0)
             }
             si margin_right.est_auto() {
-                margin_right = ValeurDeStyle(number = 0.0)
+                margin_right = ValeurDeStyle(pixels = 0.0)
             }
         }
     }
@@ -302,74 +302,74 @@ calcule_largeur_et_marges_block_level_normal_flow :: fonc (base: *NoeudDeDisposi
 
     si surcontraint == 0 {
         // À FAIRE : direction
-        margin_right = ValeurDeStyle(number = 0.0)
+        margin_right = ValeurDeStyle(pixels = 0.0)
     }
 
     // If there is exactly one value specified as 'auto', its used value follows from the equality.
     si surcontraint == 1 {
         si margin_left.est_auto() {
-            résultat := width_of_containing_block - (border_left_width.number + padding_left.number + width.number + padding_right.number + border_right_width.number + margin_right.number)
-            margin_left = ValeurDeStyle(number = résultat)
+            résultat := width_of_containing_block - (border_left_width.pixels + padding_left.pixels + width.pixels + padding_right.pixels + border_right_width.pixels + margin_right.pixels)
+            margin_left = ValeurDeStyle(pixels = résultat)
         }
         sinon si border_left_width.est_auto() {
-            résultat := width_of_containing_block - (margin_left.number + padding_left.number + width.number + padding_right.number + border_right_width.number + margin_right.number)
-            border_left_width = ValeurDeStyle(number = résultat)
+            résultat := width_of_containing_block - (margin_left.pixels + padding_left.pixels + width.pixels + padding_right.pixels + border_right_width.pixels + margin_right.pixels)
+            border_left_width = ValeurDeStyle(pixels = résultat)
         }
         sinon si padding_left.est_auto() {
-            résultat := width_of_containing_block - (margin_left.number + border_left_width.number + width.number + padding_right.number + border_right_width.number + margin_right.number)
-            padding_left = ValeurDeStyle(number = résultat)
+            résultat := width_of_containing_block - (margin_left.pixels + border_left_width.pixels + width.pixels + padding_right.pixels + border_right_width.pixels + margin_right.pixels)
+            padding_left = ValeurDeStyle(pixels = résultat)
         }
         sinon si width.est_auto() {
-            résultat := width_of_containing_block - (margin_left.number + border_left_width.number + padding_left.number + padding_right.number + border_right_width.number + margin_right.number)
-            width = ValeurDeStyle(number = résultat)
+            résultat := width_of_containing_block - (margin_left.pixels + border_left_width.pixels + padding_left.pixels + padding_right.pixels + border_right_width.pixels + margin_right.pixels)
+            width = ValeurDeStyle(pixels = résultat)
         }
         sinon si padding_right.est_auto() {
-            résultat := width_of_containing_block - (margin_left.number + border_left_width.number + padding_left.number + width.number + border_right_width.number + margin_right.number)
-            padding_right = ValeurDeStyle(number = résultat)
+            résultat := width_of_containing_block - (margin_left.pixels + border_left_width.pixels + padding_left.pixels + width.pixels + border_right_width.pixels + margin_right.pixels)
+            padding_right = ValeurDeStyle(pixels = résultat)
         }
         sinon si border_right_width.est_auto() {
-            résultat := width_of_containing_block - (margin_left.number + border_left_width.number + padding_left.number + width.number + padding_right.number + margin_right.number)
-            border_right_width = ValeurDeStyle(number = résultat)
+            résultat := width_of_containing_block - (margin_left.pixels + border_left_width.pixels + padding_left.pixels + width.pixels + padding_right.pixels + margin_right.pixels)
+            border_right_width = ValeurDeStyle(pixels = résultat)
         }
         sinon si margin_right.est_auto() {
-            résultat := width_of_containing_block - (margin_left.number + border_left_width.number + padding_left.number + width.number + padding_right.number + border_right_width.number)
-            margin_right = ValeurDeStyle(number = résultat)
+            résultat := width_of_containing_block - (margin_left.pixels + border_left_width.pixels + padding_left.pixels + width.pixels + padding_right.pixels + border_right_width.pixels)
+            margin_right = ValeurDeStyle(pixels = résultat)
         }
     }
 
     // If 'width' is set to 'auto', any other 'auto' values become '0' and 'width' follows from the resulting equality.
     si width.est_auto() {
         si margin_left.est_auto() {
-            margin_left = ValeurDeStyle(number = 0.0)
+            margin_left = ValeurDeStyle(pixels = 0.0)
         }
         si border_left_width.est_auto() {
-            border_left_width = ValeurDeStyle(number = 0.0)
+            border_left_width = ValeurDeStyle(pixels = 0.0)
         }
         si padding_left.est_auto() {
-            padding_left = ValeurDeStyle(number = 0.0)
+            padding_left = ValeurDeStyle(pixels = 0.0)
         }
         si padding_right.est_auto() {
-            padding_right = ValeurDeStyle(number = 0.0)
+            padding_right = ValeurDeStyle(pixels = 0.0)
         }
         si border_right_width.est_auto() {
-            border_right_width = ValeurDeStyle(number = 0.0)
+            border_right_width = ValeurDeStyle(pixels = 0.0)
         }
         si margin_right.est_auto() {
-            margin_right = ValeurDeStyle(number = 0.0)
+            margin_right = ValeurDeStyle(pixels = 0.0)
         }
 
-        résultat := width_of_containing_block - (margin_left.number + border_left_width.number + padding_left.number + padding_right.number + border_right_width.number + margin_right.number)
-        width = ValeurDeStyle(number = résultat)
+        résultat := width_of_containing_block - (margin_left.pixels + border_left_width.pixels + padding_left.pixels + padding_right.pixels + border_right_width.pixels + margin_right.pixels)
+        width = ValeurDeStyle(pixels = résultat)
     }
 
     // If both 'margin-left' and 'margin-right' are 'auto', their used values are equal.
     // This horizontally centers the element with respect to the edges of the containing block.
     si margin_left.est_auto() && margin_right.est_auto() {
-        résultat := width_of_containing_block - (border_left_width.number + padding_left.number + width.number + padding_right.number + border_right_width.number)
+        résultat := width_of_containing_block - (border_left_width.pixels + padding_left.pixels + width.pixels + padding_right.pixels + border_right_width.pixels)
         résultat *= 0.5
 
-        margin_left = ValeurDeStyle(number = résultat)
-        margin_right = ValeurDeStyle(number = résultat)
+        margin_left = ValeurDeStyle(pixels = résultat)
+        margin_right = ValeurDeStyle(pixels = résultat)
     }
 
     propriétés.définis_valeur_utilisée(IDPropriété.MarginLeft, margin_left)
@@ -402,16 +402,16 @@ calcule_largeur_et_marges_inline_replaced_element :: fonc (base: *NoeudDeDisposi
 
     // A computed value of 'auto' for 'margin-left' or 'margin-right' becomes a used value of '0'.
     si margin_left.est_auto() {
-        margin_left = ValeurDeStyle(number = 0.0)
+        margin_left = ValeurDeStyle(pixels = 0.0)
     }
     si margin_right.est_auto() {
-        margin_right = ValeurDeStyle(number = 0.0)
+        margin_right = ValeurDeStyle(pixels = 0.0)
     }
 
     // If 'height' and 'width' both have computed values of 'auto' and the element also has
     // an intrinsic width, then that intrinsic width is the used value of 'width'.
     si width.est_auto() && height.est_auto() && noeud.possède_largeur_intrinsèque() {
-        width = ValeurDeStyle(number = noeud.donne_largeur_intrinsèque())
+        width = ValeurDeStyle(pixels = noeud.donne_largeur_intrinsèque())
     }
     // If 'height' and 'width' both have computed values of 'auto' and the element has no
     // intrinsic width, but does have an intrinsic height and intrinsic ratio;
@@ -421,10 +421,10 @@ calcule_largeur_et_marges_inline_replaced_element :: fonc (base: *NoeudDeDisposi
     sinon si (width.est_auto() && height.est_auto() && !noeud.possède_largeur_intrinsèque()) ||
              (width.est_auto() && !height.est_auto() && noeud.possède_ratio_intrinsèque()) {
         si height.est_auto() {
-            width = ValeurDeStyle(number = noeud.donne_hauteur_intrinsèque() * noeud.donne_ratio_intrinsèque())
+            width = ValeurDeStyle(pixels = noeud.donne_hauteur_intrinsèque() * noeud.donne_ratio_intrinsèque())
         }
         sinon {
-            width = ValeurDeStyle(number = height.number * noeud.donne_ratio_intrinsèque())
+            width = ValeurDeStyle(pixels = height.pixels * noeud.donne_ratio_intrinsèque())
         }
     }
 
@@ -438,14 +438,14 @@ calcule_largeur_et_marges_inline_replaced_element :: fonc (base: *NoeudDeDisposi
     // Otherwise, if 'width' has a computed value of 'auto', and the element has an intrinsic width,
     // then that intrinsic width is the used value of 'width'.
     sinon si width.est_auto() && noeud.possède_largeur_intrinsèque() {
-        width = ValeurDeStyle(number = noeud.donne_largeur_intrinsèque())
+        width = ValeurDeStyle(pixels = noeud.donne_largeur_intrinsèque())
     }
     // Otherwise, if 'width' has a computed value of 'auto', but none of the conditions above are met,
     // then the used value of 'width' becomes 300px.
     // If 300px is too wide to fit the device, UAs should use the width of the largest rectangle that
     // has a 2:1 ratio and fits the device instead.
     sinon si width.est_auto() {
-        width = ValeurDeStyle(number = 300.0)
+        width = ValeurDeStyle(pixels = 300.0)
     }
 
     propriétés.définis_valeur_utilisée(IDPropriété.MarginLeft, margin_left)
@@ -479,16 +479,16 @@ calcule_hauteur_et_marges_inline_replaced_element :: fonc (base: *NoeudDeDisposi
 
     // If 'margin-top', or 'margin-bottom' are 'auto', their used value is 0.
     si margin_top.est_auto() {
-        margin_top = ValeurDeStyle(number = 0.0)
+        margin_top = ValeurDeStyle(pixels = 0.0)
     }
     si margin_bottom.est_auto() {
-        margin_bottom = ValeurDeStyle(number = 0.0)
+        margin_bottom = ValeurDeStyle(pixels = 0.0)
     }
 
     // If 'height' and 'width' both have computed values of 'auto' and the element also has
     // an intrinsic height, then that intrinsic height is the used value of 'height'.
     si width.est_auto() && height.est_auto() && noeud.possède_hauteur_intrinsèque() {
-        height = ValeurDeStyle(number = noeud.donne_hauteur_intrinsèque())
+        height = ValeurDeStyle(pixels = noeud.donne_hauteur_intrinsèque())
     }
 
     // Otherwise, if 'height' has a computed value of 'auto', and the element has an intrinsic
@@ -496,13 +496,13 @@ calcule_hauteur_et_marges_inline_replaced_element :: fonc (base: *NoeudDeDisposi
     //      (used width) / (intrinsic ratio)
     sinon si height.est_auto() && noeud.possède_ratio_intrinsèque() {
         largeur_utilisée := propriétés.donne_valeur_utilisée(IDPropriété.Width)
-        height = ValeurDeStyle(number = largeur_utilisée.number / noeud.donne_ratio_intrinsèque())
+        height = ValeurDeStyle(pixels = largeur_utilisée.pixels / noeud.donne_ratio_intrinsèque())
     }
 
     // Otherwise, if 'height' has a computed value of 'auto', and the element has an intrinsic height,
     // then that intrinsic height is the used value of 'height'.
     sinon si height.est_auto() && noeud.possède_hauteur_intrinsèque() {
-        height = ValeurDeStyle(number = noeud.donne_hauteur_intrinsèque())
+        height = ValeurDeStyle(pixels = noeud.donne_hauteur_intrinsèque())
     }
 
     // Otherwise, if 'height' has a computed value of 'auto', but none of the conditions above are met,
@@ -510,7 +510,7 @@ calcule_hauteur_et_marges_inline_replaced_element :: fonc (base: *NoeudDeDisposi
     // 2:1 ratio, has a height not greater than 150px, and has a width not greater than the device width.
     sinon si height.est_auto() {
         largeur_utilisée := propriétés.donne_valeur_utilisée(IDPropriété.Width)
-        height = ValeurDeStyle(number = largeur_utilisée.number * 0.5)
+        height = ValeurDeStyle(pixels = largeur_utilisée.pixels * 0.5)
     }
 
     propriétés.définis_valeur_utilisée(IDPropriété.MarginTop, margin_top)
@@ -554,16 +554,16 @@ calcule_largeur_et_marges_inline_non_replaced_element :: fonc (base: *NoeudDeDis
     margin_right := propriétés.donne_valeur_calculée(IDPropriété.MarginRight)
 
     si margin_left.est_auto() {
-        margin_left = ValeurDeStyle(number = 0.0)
+        margin_left = ValeurDeStyle(pixels = 0.0)
     }
 
     si margin_right.est_auto() {
-        margin_right = ValeurDeStyle(number = 0.0)
+        margin_right = ValeurDeStyle(pixels = 0.0)
     }
 
     /* width ne s'applique pas, mais pour éviter des problèmes plus tard, remettons la valeur à zéro */
     si width.est_auto() {
-        width = ValeurDeStyle(number = 0.0)
+        width = ValeurDeStyle(pixels = 0.0)
     }
 
     propriétés.définis_valeur_utilisée(IDPropriété.MarginLeft, margin_left)
@@ -593,16 +593,16 @@ calcule_hauteur_et_marges_inline_non_replaced_element :: fonc (base: *NoeudDeDis
     margin_bottom := propriétés.donne_valeur_calculée(IDPropriété.MarginBottom)
 
     si margin_top.est_auto() {
-        margin_top = ValeurDeStyle(number = 0.0)
+        margin_top = ValeurDeStyle(pixels = 0.0)
     }
 
     si margin_bottom.est_auto() {
-        margin_bottom = ValeurDeStyle(number = 0.0)
+        margin_bottom = ValeurDeStyle(pixels = 0.0)
     }
 
     /* height ne s'applique pas, mais pour éviter des problèmes plus tard, remettons la valeur à zéro */
     si height.est_auto() {
-        height = ValeurDeStyle(number = 0.0)
+        height = ValeurDeStyle(pixels = 0.0)
     }
 
     propriétés.définis_valeur_utilisée(IDPropriété.MarginTop, margin_top)

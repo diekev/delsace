@@ -784,7 +784,7 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
     ctx_calcul_style.valeurs_initiales = *résolveuse.valeurs_initiales
 
     si propriétés_parent {
-        ctx_calcul_style.taille_fonte = propriétés_parent.donne_valeur_calculée(IDPropriété.FontSize).number
+        ctx_calcul_style.taille_fonte = propriétés_parent.donne_valeur_calculée(IDPropriété.FontSize).pixels
     }
 
     pour propriétés.déclarations {
@@ -801,23 +801,23 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
         }
 
         si info.id == IDPropriété.FontSize {
-            ctx_calcul_style.taille_fonte = propriétés.donne_valeur_calculée(IDPropriété.FontSize).number
+            ctx_calcul_style.taille_fonte = propriétés.donne_valeur_calculée(IDPropriété.FontSize).pixels
         }
     }
 
     si propriétés.style.valeurs[IDPropriété.BorderStyleLeft].line_style == LineStyle.None {
-        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthLeft, ValeurDeStyle(number = 0.0))
+        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthLeft, ValeurDeStyle(pixels = 0.0))
     }
     si propriétés.style.valeurs[IDPropriété.BorderStyleTop].line_style == LineStyle.None {
-        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthTop, ValeurDeStyle(number = 0.0))
+        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthTop, ValeurDeStyle(pixels = 0.0))
     }
     si propriétés.style.valeurs[IDPropriété.BorderStyleRight].line_style == LineStyle.None {
-        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthRight, ValeurDeStyle(number = 0.0))
+        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthRight, ValeurDeStyle(pixels = 0.0))
     }
     si propriétés.style.valeurs[IDPropriété.BorderStyleBottom].line_style == LineStyle.None {
-        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthBottom, ValeurDeStyle(number = 0.0))
+        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthBottom, ValeurDeStyle(pixels = 0.0))
     }
-    saufsi propriétés.style.valeurs[IDPropriété.FontSize].est_nombre() {
+    saufsi propriétés.style.valeurs[IDPropriété.FontSize].est_pixels() {
         propriétés.définis_valeur_calculée(IDPropriété.FontSize, calcule_valeur_propriété_générique(propriétés.style.valeurs[IDPropriété.FontSize], GenreValeurCalculée.LongueurAbsolue | GenreValeurCalculée.FontSize, *propriétés.style, *ctx_calcul_style))
     }
     saufsi propriétés.style.valeurs[IDPropriété.FontWeight].est_nombre() {
@@ -1030,7 +1030,7 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
     }
 
     si parent == nul {
-        résolveuse.taille_fonte_racine = propriétés.donne_valeur_calculée(IDPropriété.FontSize).number
+        résolveuse.taille_fonte_racine = propriétés.donne_valeur_calculée(IDPropriété.FontSize).pixels
     }
 
     élément.noeud_de_disposition = résultat
@@ -1345,10 +1345,10 @@ dessine_arrière_plan :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDispositionB
             rect_noeud = ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
         }
 
-        border_radius_top_left := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderTopLeftRadius).number comme r32
-        border_radius_top_right := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderTopRightRadius).number comme r32
-        border_radius_bottom_right := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomRightRadius).number comme r32
-        border_radius_bottom_left := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomLeftRadius).number comme r32
+        border_radius_top_left := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderTopLeftRadius).pixels comme r32
+        border_radius_top_right := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderTopRightRadius).pixels comme r32
+        border_radius_bottom_right := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomRightRadius).pixels comme r32
+        border_radius_bottom_left := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomLeftRadius).pixels comme r32
 
         rayons := [ border_radius_top_left, border_radius_top_right, border_radius_bottom_right, border_radius_bottom_left ]
         peintre.remplis_rectangle_arrondi(rect_noeud, rayons, background_color)
@@ -1438,7 +1438,7 @@ dessine_bordure :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDispositionBloc)
             }
         }
 
-        largeur := bordure.width[coté].number comme r32
+        largeur := bordure.width[coté].pixels comme r32
 
         rect: RectanglePosDim(r32)
         rect_bordure := noeud.donne_rectangle_bordure()
@@ -1571,7 +1571,7 @@ détermine_fonte :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage
     style := "normal"
     graisse := GraisseFonte.Normal
     propriétés := noeud.donne_propriétés()
-    taille_fonte := propriétés.donne_valeur_utilisée(IDPropriété.FontSize).number comme r32
+    taille_fonte := propriétés.donne_valeur_utilisée(IDPropriété.FontSize).pixels comme r32
 
     font_family := propriétés.donne_valeur_utilisée(IDPropriété.FontFamily).mot_clé
     si font_family == PROP_monospace {
@@ -1656,6 +1656,10 @@ donne_line_height :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattag
     line_height := noeud.propriétés.donne_valeur_utilisée(IDPropriété.LineHeight)
     si line_height.est_nombre() {
         retourne line_height.number comme r32
+    }
+
+    si line_height.est_pixels() {
+        retourne line_height.pixels comme r32
     }
 
     assert(line_height.est_mot_clé(PROP_normal))
@@ -1943,7 +1947,7 @@ détruit_données_boite_de_ligne :: fonc (boite: *BoiteDeLigne)
 
 peut_ajouter_fragment :: fonc (boite: *BoiteDeLigne, largeur: r32) -> bool
 {
-    retourne (boite.largeur_courante + largeur) < boite.bloc.propriétés.donne_valeur_utilisée(IDPropriété.Width).number comme r32
+    retourne (boite.largeur_courante + largeur) < boite.bloc.propriétés.donne_valeur_utilisée(IDPropriété.Width).pixels comme r32
 }
 
 garantis_hauteur_minimale :: fonc (boite: *BoiteDeLigne, hauteur: r32)
@@ -2335,10 +2339,10 @@ noeud_disposition_inline_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition
 
     propriétés := noeud.propriétés
 
-    margin_left := propriétés.donne_valeur_utilisée(IDPropriété.MarginLeft).number comme r32
-    padding_left := propriétés.donne_valeur_utilisée(IDPropriété.PaddingLeft).number comme r32
-    padding_right := propriétés.donne_valeur_utilisée(IDPropriété.PaddingRight).number comme r32
-    margin_right := propriétés.donne_valeur_utilisée(IDPropriété.MarginRight).number comme r32
+    margin_left := propriétés.donne_valeur_utilisée(IDPropriété.MarginLeft).pixels comme r32
+    padding_left := propriétés.donne_valeur_utilisée(IDPropriété.PaddingLeft).pixels comme r32
+    padding_right := propriétés.donne_valeur_utilisée(IDPropriété.PaddingRight).pixels comme r32
+    margin_right := propriétés.donne_valeur_utilisée(IDPropriété.MarginRight).pixels comme r32
 
     fragment_marge_début := enligneuse.ajoute_fragment(noeud, 0.0, margin_left, Fragment.Type.MargeDébut)
     fragment_rembourrage_début := enligneuse.ajoute_fragment(noeud, 0.0, padding_left, Fragment.Type.RembourrageDébut)
@@ -2383,14 +2387,14 @@ noeud_disposition_inline_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition,
         background_color := propriétés.donne_valeur_utilisée(IDPropriété.BackgroundColor).couleur
 
         /* Le rembourrage vertical n'affecte pas la taille mais doit être inclus dans le dessin. */
-        padding_top := propriétés.donne_valeur_utilisée(IDPropriété.PaddingTop).number comme r32
-        padding_bottom := propriétés.donne_valeur_utilisée(IDPropriété.PaddingBottom).number comme r32
+        padding_top := propriétés.donne_valeur_utilisée(IDPropriété.PaddingTop).pixels comme r32
+        padding_bottom := propriétés.donne_valeur_utilisée(IDPropriété.PaddingBottom).pixels comme r32
 
         si background_color.a != 0 {
-            border_radius_top_left := propriétés.donne_valeur_utilisée(IDPropriété.BorderTopLeftRadius).number comme r32
-            border_radius_top_right := propriétés.donne_valeur_utilisée(IDPropriété.BorderTopRightRadius).number comme r32
-            border_radius_bottom_right := propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomRightRadius).number comme r32
-            border_radius_bottom_left := propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomLeftRadius).number comme r32
+            border_radius_top_left := propriétés.donne_valeur_utilisée(IDPropriété.BorderTopLeftRadius).pixels comme r32
+            border_radius_top_right := propriétés.donne_valeur_utilisée(IDPropriété.BorderTopRightRadius).pixels comme r32
+            border_radius_bottom_right := propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomRightRadius).pixels comme r32
+            border_radius_bottom_left := propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomLeftRadius).pixels comme r32
 
             premier_fragment := fragment
             dernier_fragment := lignes_tenante.fragments.pointeur + lignes_tenante.fragments.taille
@@ -2682,8 +2686,8 @@ noeud_disposition_remplacement_sur_divise_en_lignes :: fonc (base: *NoeudDeDispo
     noeud_disposition_remplacement_sur_mesure(base, ctx)
 
     noeud := base comme *NoeudDeDispositionRemplacement
-    largeur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width).number comme r32
-    hauteur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Height).number comme r32
+    largeur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width).pixels comme r32
+    hauteur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Height).pixels comme r32
 
     _ := enligneuse.ajoute_fragment(noeud, 0, 0, hauteur, largeur)
 }
@@ -2775,7 +2779,7 @@ noeud_text_input_dimensions_intrinsèques :: fonc (noeud: *NoeudDeDispositionRem
     /* For input elements whose type attribute is in one of the above states, the used value of the 'line-height'
      * property must be a length value that is no smaller than what the used value would be for 'line-height: normal'. */
     si line_height < hauteur_ligne {
-        noeud.propriétés.définis_valeur_utilisée(IDPropriété.LineHeight, ValeurDeStyle(number = hauteur_ligne))
+        noeud.propriétés.définis_valeur_utilisée(IDPropriété.LineHeight, ValeurDeStyle(pixels = hauteur_ligne))
         line_height = hauteur_ligne
     }
 
