@@ -2906,9 +2906,7 @@ donne_textarea_effective_height :: fonc (noeud: *NoeudDeDispositionRemplacement,
 {
     élément := noeud.élément comme *HTML.HTMLTextAreaElement
     character_height := HTML.donne_character_height(élément)
-    imprime("character_height : %\n", character_height)
     line_height := donne_line_height(noeud, ctx)
-    imprime("line_height : %\n", line_height)
     retourne character_height comme r32 * line_height
 }
 
