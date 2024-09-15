@@ -418,7 +418,7 @@ calcule_largeur_et_marges_inline_replaced_element :: fonc (base: *NoeudDeDisposi
     // or if 'width' has a computed value of 'auto', 'height' has some other computed value,
     // and the element does have an intrinsic ratio; then the used value of 'width' is:
     //     (used height) * (intrinsic ratio)
-    sinon si (width.est_auto() && height.est_auto() && !noeud.possède_largeur_intrinsèque()) ||
+    sinon si (width.est_auto() && height.est_auto() && !noeud.possède_largeur_intrinsèque() && noeud.possède_ratio_intrinsèque()) ||
              (width.est_auto() && !height.est_auto() && noeud.possède_ratio_intrinsèque()) {
         si height.est_auto() {
             width = ValeurDeStyle(pixels = noeud.donne_hauteur_intrinsèque() * noeud.donne_ratio_intrinsèque())
