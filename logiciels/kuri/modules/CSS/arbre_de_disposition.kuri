@@ -1653,18 +1653,24 @@ donne_display :: fonc (noeud: *NoeudDeDisposition) -> Display
 
 donne_line_height :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage) -> r32
 {
-    line_height := noeud.propriétés.donne_valeur_utilisée(IDPropriété.LineHeight)
-    si line_height.est_nombre() {
-        retourne line_height.number comme r32
-    }
+    fonte := détermine_fonte(noeud, ctx)
+    retourne donne_line_height(noeud.propriétés, fonte)
+}
 
+donne_line_height :: fonc (propriétés: *PropriétésDeStyle, fonte: *Fonte) -> r32
+{
+    line_height := propriétés.donne_valeur_utilisée(IDPropriété.LineHeight)
     si line_height.est_pixels() {
         retourne line_height.pixels comme r32
     }
 
-    assert(line_height.est_mot_clé(PROP_normal))
-    fonte := détermine_fonte(noeud, ctx)
     métriques := fonte.donne_métriques_fonte()
+
+    si line_height.est_nombre() {
+        retourne line_height.number comme r32 * métriques.donne_hauteur_ligne()
+    }
+
+    assert(line_height.est_mot_clé(PROP_normal))
     retourne métriques.donne_hauteur_ligne()
 }
 
@@ -2549,12 +2555,9 @@ noeud_disposition_texte_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition,
     hauteur_texte := métriques.donne_hauteur_ligne()
 
     propriétés := donne_propriété_parent(noeud)
-    line_height := propriétés.donne_valeur_utilisée(IDPropriété.LineHeight)
-
-    si line_height.est_nombre() {
-        /* line-height définis la hauteur minimale. */
-        hauteur_texte = max(hauteur_texte, line_height.number comme r32)
-    }
+    line_height := donne_line_height(propriétés, fonte)
+    /* line-height définis la hauteur minimale. */
+    hauteur_texte = max(hauteur_texte, line_height)
 
     pour morceaux {
         largeur_morceau := fonte.donne_largeur_texte(it)
@@ -2770,11 +2773,7 @@ noeud_text_input_dimensions_intrinsèques :: fonc (noeud: *NoeudDeDispositionRem
     métriques := noeud.fonte.donne_métriques_fonte()
     hauteur_ligne := métriques.donne_hauteur_ligne()
 
-    line_height: r32
-    line_height_prop := noeud.propriétés.donne_valeur_utilisée(IDPropriété.LineHeight)
-    si line_height_prop.est_nombre() {
-        line_height = line_height_prop.number comme r32
-    }
+    line_height := donne_line_height(noeud, ctx)
 
     /* For input elements whose type attribute is in one of the above states, the used value of the 'line-height'
      * property must be a length value that is no smaller than what the used value would be for 'line-height: normal'. */
