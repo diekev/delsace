@@ -6988,34 +6988,34 @@ RésultatValidation Sémanticienne::valide_instruction_empl(NoeudInstructionEmpl
 
     empl->type = decl->type;
     decl->drapeaux |= DrapeauxNoeud::EMPLOYE;
-    auto type_employe = decl->type;
+    auto type_employé = decl->type;
 
-    // permet le déréférencement de pointeur, mais uniquement sur un niveau
-    if (type_employe->est_type_pointeur() || type_employe->est_type_référence()) {
-        type_employe = type_déréférencé_pour(type_employe);
+    /* Permet le déréférencement de pointeur, mais uniquement sur un niveau. */
+    if (type_employé->est_type_pointeur() || type_employé->est_type_référence()) {
+        type_employé = type_déréférencé_pour(type_employé);
     }
 
-    if (!type_employe->est_type_structure()) {
+    if (!type_employé->est_type_structure()) {
         m_unité->espace
             ->rapporte_erreur(decl,
                               "Impossible d'employer une variable n'étant pas une structure.")
             .ajoute_message("Le type de la variable est : ")
-            .ajoute_message(chaine_type(type_employe))
+            .ajoute_message(chaine_type(type_employé))
             .ajoute_message(".\n\n");
         return CodeRetourValidation::Erreur;
     }
 
-    if (!type_employe->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-        return Attente::sur_type(type_employe);
+    if (!type_employé->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+        return Attente::sur_type(type_employé);
     }
 
-    auto type_structure = type_employe->comme_type_structure();
+    auto type_structure = type_employé->comme_type_structure();
 
-    // pour les structures, prend le bloc_parent qui sera celui de la structure
+    /* Pour les structures, prend le bloc_parent qui sera celui de la structure. */
     auto bloc_parent = decl->bloc_parent;
 
-    // pour les fonctions, utilisent leurs blocs si le bloc_parent est le bloc_parent de la
-    // fonction (ce qui est le cas pour les paramètres...)
+    /* Pour les fonctions, utilisent leurs blocs si le bloc_parent est le bloc_parent de la
+     * fonction (ce qui est le cas pour les paramètres...) */
     if (fonction_courante() && bloc_parent == fonction_courante()->corps->bloc->bloc_parent) {
         bloc_parent = fonction_courante()->corps->bloc;
     }
