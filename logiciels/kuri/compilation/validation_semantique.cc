@@ -6977,18 +6977,84 @@ RésultatValidation Sémanticienne::valide_construction_tableau_typé(
 
 RésultatValidation Sémanticienne::valide_instruction_empl(NoeudInstructionEmpl *empl)
 {
-    if (!empl->expression->est_déclaration_variable()) {
-        m_espace->rapporte_erreur(empl->expression,
-                                  "Les directives empl ne sont pas supportées sur autre "
-                                  "chose que des déclarations de variables.");
+    if (empl->expression->est_déclaration_variable()) {
+        return valide_instruction_empl_déclaration(empl);
+    }
+
+    auto type = empl->expression->type;
+    if (type->est_type_type_de_données() && type->comme_type_type_de_données()->type_connu &&
+        type->comme_type_type_de_données()->type_connu->est_type_énum()) {
+        return valide_instruction_empl_énum(empl);
+    }
+
+    m_espace->rapporte_erreur(empl->expression, "Type d'expression invalide à droite de « empl ».")
+        .ajoute_message("Les expressions employables sont les déclarations de variables ou "
+                        "les déclarations de types énumérants.");
+    return CodeRetourValidation::Erreur;
+}
+
+RésultatValidation Sémanticienne::valide_instruction_empl_énum(NoeudInstructionEmpl *empl)
+{
+    auto type_employé =
+        empl->expression->type->comme_type_type_de_données()->type_connu->comme_type_énum();
+
+    if (!type_employé->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+        return Attente::sur_type(type_employé);
+    }
+
+    empl->type = type_employé;
+
+    auto bloc_parent = empl->bloc_parent;
+
+    if (bloc_parent->type_bloc != TypeBloc::IMPÉRATIF &&
+        bloc_parent->type_bloc != TypeBloc::TYPE && bloc_parent->type_bloc != TypeBloc::MODULE) {
+        m_espace->rapporte_erreur(empl, "Emploie d'une énumération dans un bloc non-conforme");
         return CodeRetourValidation::Erreur;
     }
 
-    auto decl = empl->expression->comme_déclaration_variable();
+    POUR_INDEX (type_employé->membres) {
+        if (it.drapeaux & MembreTypeComposé::EST_IMPLICITE) {
+            continue;
+        }
 
-    empl->type = decl->type;
+        auto decl_existante = trouve_dans_bloc(
+            bloc_parent, it.nom, bloc_parent->bloc_parent, fonction_courante());
+
+        if (decl_existante) {
+            m_espace
+                ->rapporte_erreur(type_employé,
+                                  "Impossible d'employer la déclaration car une "
+                                  "déclaration avec le même nom qu'un de ses membres "
+                                  "existe déjà dans le bloc.")
+                .ajoute_message("La déclaration existante est :\n")
+                .ajoute_site(decl_existante)
+                .ajoute_message("Le membre en conflit est :\n")
+                .ajoute_site(it.decl);
+            return CodeRetourValidation::Erreur;
+        }
+
+        auto decl = m_assembleuse->crée_déclaration_constante(
+            type_employé->lexème, it.expression_valeur_defaut, nullptr);
+        decl->ident = it.nom;
+        decl->type = it.type;
+        decl->bloc_parent = bloc_parent;
+        decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+        decl->valeur_expression = it.valeur;
+        decl->genre_valeur = GenreValeur::DROITE;
+
+        bloc_parent->ajoute_membre(decl);
+    }
+
+    return CodeRetourValidation::OK;
+}
+
+RésultatValidation Sémanticienne::valide_instruction_empl_déclaration(NoeudInstructionEmpl *empl)
+{
+    auto decl = empl->expression->comme_déclaration_variable();
     decl->drapeaux |= DrapeauxNoeud::EMPLOYE;
+
     auto type_employé = decl->type;
+    empl->type = decl->type;
 
     /* Permet le déréférencement de pointeur, mais uniquement sur un niveau. */
     if (type_employé->est_type_pointeur() || type_employé->est_type_référence()) {

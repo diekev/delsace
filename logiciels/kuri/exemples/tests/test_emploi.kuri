@@ -14,6 +14,7 @@ principale :: fonc () -> z32
     test_transtypage_vers_bases_multiple_avec_indirection()
     test_transtypage_référence_vers_bases_multiple()
     test_transtypage_référence_vers_bases_multiple_avec_indirection()
+    test_emploi_énum()
     retourne 0
 }
 
@@ -514,6 +515,25 @@ test_transtypage_référence_vers_bases_multiple_avec_indirection :: fonc ()
         modifie_membre_base2_dérivé(réf_s)
         assert(s.membre2 == "membre de base2")
     }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Emploi de type de données.
+ * \{ */
+
+test_emploi_énum :: fonc ()
+{
+    Énum :: énum {
+        VALEUR1
+        VALEUR2
+    }
+
+    empl Énum
+
+    x := VALEUR1
+    assert(x == Énum.VALEUR1)
 }
 
 /** \} */
