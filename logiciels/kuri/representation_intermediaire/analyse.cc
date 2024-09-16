@@ -892,16 +892,14 @@ static bool est_comparaison_ordonnée_naturel_zéro(InstructionOpBinaire const *
     auto const opérande_gauche = op_binaire->valeur_gauche;
 
     /* Détecte naturel >= 0. */
-    if (genre == OpérateurBinaire::Genre::Comp_Sup_Egal_Nat ||
-        genre == OpérateurBinaire::Genre::Comp_Sup_Nat) {
+    if (genre == OpérateurBinaire::Genre::Comp_Sup_Egal_Nat) {
         return est_constante_entière_zéro(opérande_droite) &&
                opérande_gauche->type->est_type_entier_naturel();
     }
 
     /* Détecte 0 <= naturel.
      * Les opérateurs durent être canonicalisés, donc aucune constante ne peut être à gauche. */
-    assert(!((genre == OpérateurBinaire::Genre::Comp_Inf_Egal_Nat ||
-              genre == OpérateurBinaire::Genre::Comp_Inf_Nat) &&
+    assert(!(genre == OpérateurBinaire::Genre::Comp_Inf_Nat &&
              est_constante_entière_zéro(opérande_gauche) &&
              opérande_droite->type->est_type_entier_naturel()));
 

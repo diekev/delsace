@@ -1,0 +1,42 @@
+importe Temps
+
+/* ------------------------------------------------------------------------- */
+/** \nom 1.2.2 Moments and Durations
+ * https://w3c.github.io/hr-time/#moments-and-durations
+ * \{ */
+
+/* https://w3c.github.io/hr-time/#dfn-unsafe-moment */
+UnsafeMoment :: #opaque r64
+
+/* https://w3c.github.io/hr-time/#dfn-moment */
+CoarsenedMoment :: #opaque r64
+Moment :: CoarsenedMoment
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 1.4 Time Origin
+ * https://w3c.github.io/hr-time/#sec-time-origin
+ * \{ */
+
+/* https://w3c.github.io/hr-time/#dfn-relative-high-resolution-time */
+relative_high_resolution_time :: fonc (coarse_time: Moment, global: *rien)
+{
+    /* The relative high resolution coarse time given a moment from the
+     * monotonic clock coarseTime and a global object global, is the duration
+     * from global's relevant settings object's time origin to coarseTime. */
+}
+
+/* https://w3c.github.io/hr-time/#dfn-current-high-resolution-time */
+current_high_resolution_time :: fonc (current_global: *rien)
+{
+    retourne relative_high_resolution_time(unsafe_shared_current_time(), current_global)
+}
+
+/* https://w3c.github.io/hr-time/#dfn-unsafe-shared-current-time */
+unsafe_shared_current_time :: fonc () -> Instantané
+{
+    retourne maintenant()
+}
+
+/** \} */

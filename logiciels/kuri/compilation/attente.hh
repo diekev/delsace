@@ -105,9 +105,16 @@ struct SymboleAttendu {
     NoeudExpression *expression = nullptr;
 };
 
+/* Comme AttenteSurDéclaration, mais seul le type (NoeudExpression.type) est attendu, pas les
+ * membres ou autre chose. */
+struct TypeDéclaration {
+    NoeudDéclaration *déclaration = nullptr;
+};
+
 using AttenteSurType = AttenteSur<Type const *>;
 using AttenteSurMétaProgramme = AttenteSur<MetaProgramme *>;
 using AttenteSurDéclaration = AttenteSur<NoeudDéclaration *>;
+using AttenteSurTypeDéclaration = AttenteSur<TypeDéclaration>;
 using AttenteSurSymbole = AttenteSur<SymboleAttendu>;
 using AttenteSurOpérateur = AttenteSur<NoeudExpression *>;
 using AttenteSurMessage = AttenteSur<DonnéesAttenteMessage>;
@@ -137,6 +144,7 @@ struct SélecteurInfoTypeAttente;
 
 DÉCLARE_INFO_TYPE_ATTENTE(type, AttenteSurType);
 DÉCLARE_INFO_TYPE_ATTENTE(déclaration, AttenteSurDéclaration);
+DÉCLARE_INFO_TYPE_ATTENTE(type_déclaration, AttenteSurTypeDéclaration);
 DÉCLARE_INFO_TYPE_ATTENTE(opérateur, AttenteSurOpérateur);
 DÉCLARE_INFO_TYPE_ATTENTE(métaprogramme, AttenteSurMétaProgramme);
 DÉCLARE_INFO_TYPE_ATTENTE(ri, AttenteSurRI);
@@ -164,6 +172,7 @@ struct Attente {
                                      AttenteSurType,
                                      AttenteSurMétaProgramme,
                                      AttenteSurDéclaration,
+                                     AttenteSurTypeDéclaration,
                                      AttenteSurSymbole,
                                      AttenteSurOpérateur,
                                      AttenteSurMessage,
@@ -226,6 +235,12 @@ struct Attente {
     {
         assert(déclaration);
         return AttenteSurDéclaration{déclaration};
+    }
+
+    static Attente sur_type_déclaration(NoeudDéclaration *déclaration)
+    {
+        assert(déclaration);
+        return AttenteSurTypeDéclaration{déclaration};
     }
 
     static Attente sur_symbole(NoeudExpression *ident)
@@ -303,6 +318,12 @@ struct Attente {
     {
         assert(est<AttenteSurDéclaration>());
         return std::get<AttenteSurDéclaration>(attente).valeur;
+    }
+
+    NoeudDéclaration *type_déclaration() const
+    {
+        assert(est<AttenteSurTypeDéclaration>());
+        return std::get<AttenteSurTypeDéclaration>(attente).valeur.déclaration;
     }
 
     NoeudExpression *symbole() const

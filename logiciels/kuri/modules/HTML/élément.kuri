@@ -5,7 +5,6 @@ importe Fondation
 importe Image
 importe Internet
 importe MIME
-importe Numérique
 importe Unicode
 
 est_tag_auto_fermant :: fonc (tag: DOMString) -> bool
@@ -85,6 +84,7 @@ TableVirtuelleÉlément :: struct {
 #portée_fichier
 
 table_virtuelle_élément := TableVirtuelleÉlément(
+    classe = Élément,
     sur_destruction = élément_sur_destruction,
     sur_changement_attribut = élément_sur_changement_attribut
 )
@@ -135,8 +135,7 @@ table_virtuelle_élément := TableVirtuelleÉlément(
         sinon si rendu_css_est_requis(élément) {
             valeur_texte := mémoire(valeur).donne_chaine_utf16()
             élément.style = CSS.parse_attribut_style(valeur_texte)
-            // À FAIRE(langage)
-            // élément.style.owner_node = élément
+            élément.style.owner_node = élément
         }
 
         élément.document.invalide_style_depuis_élément(élément)
@@ -253,6 +252,9 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élé
     sinon si tag == TAG_img {
         élément = loge(HTMLImageElement)
     }
+    sinon si tag == TAG_input {
+        élément = loge(HTMLInputElement)
+    }
     sinon si tag == TAG_link {
         élément = loge(HTMLLinkElement)
     }
@@ -273,6 +275,9 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élé
     }
     sinon si tag == TAG_tr {
         élément = loge(HTMLTableRowElement)
+    }
+    sinon si tag == TAG_textarea {
+        élément = loge(HTMLTextAreaElement)
     }
     sinon si tag == TAG_video {
         élément = loge(HTMLVideoElement)
@@ -509,6 +514,7 @@ donne_href :: fonc (anchor: *HTMLAnchorElement) -> DOMString
 #portée_fichier
 
 table_virtuelle_anchor_element := TableVirtuelleÉlément(
+    classe = HTMLAnchorElement,
     sur_destruction = anchor_element_sur_destruction,
     sur_activation_behavior = anchor_element_sur_activation_behavior,
     sur_changement_attribut = anchor_element_sur_changement_attribut
@@ -599,6 +605,7 @@ HTMLBodyElement :: struct {
 #portée_fichier
 
 table_virtuelle_body_element := TableVirtuelleÉlément(
+    classe = HTMLBodyElement,
     sur_destruction = body_element_sur_destruction,
     sur_applique_presentational_hints = body_element_sur_applique_presentational_hints
 )
@@ -662,103 +669,6 @@ ajoute_propriété_pour_nombre :: fonc (résolveuse: *CSS.RésolveuseStyle, nom_
     CSS.ajoute_presentational_hint(résolveuse, nom_propriété, CSS.ValeurDeStyle(number = valeur))
 }
 
-/* https://html.spec.whatwg.org/multipage/common-microsyntaxes.html#rules-for-parsing-a-legacy-colour-value */
-parse_a_legacy_colour_value :: fonc (string: DOMString) -> Optionnel(CouleurRVBAN8)
-{
-    // 1. Let input be the string being parsed.
-    input := string.donne_chaine_utf16()
-
-    // 2. If input is the empty string, then return an error.
-    si input.est_vide() {
-        retourne
-    }
-
-    // 3. Strip leading and trailing ASCII whitespace from input.
-    input = supprime_espace_blanches_autour(input)
-
-    // 4. If input is an ASCII case-insensitive match for the string "transparent", then return an error.
-    si compare_ascii_insensible_à_la_casse(input, "transparent") {
-        retourne
-    }
-
-    // 5. If input is an ASCII case-insensitive match for one of the named colors, then return the simple color corresponding to that keyword. [CSSCOLOR]
-    // À FAIRE : n'utilise que les mots-clés appropriés
-    opt_couleur := CSS.trouve_couleur_pour_mot_clé(crée_chaine_utf16_unique(input))
-    si opt_couleur.possède_valeur() {
-        retourne opt_couleur
-    }
-
-    // 6. If input's code point length is four, and the first character in input is U+0023 (#), and the last three characters of input are all ASCII hex digits, then:
-    si input.taille() == 4 && input.unités[0] == 0x23 && est_chiffre_hexadecimal_ascii(input.unités[1]) && est_chiffre_hexadecimal_ascii(input.unités[2]) && est_chiffre_hexadecimal_ascii(input.unités[3]) {
-        // 1. Let result be a simple color.
-        result: CouleurRVBAN8
-        result.a = 255
-
-        // 2. Interpret the second character of input as a hexadecimal digit; let the red component of result be the resulting number multiplied by 17.
-        result.r = CSS.valeur_hex_depuis_unité(input.unités[1]) * 17
-
-        // 3. Interpret the third character of input as a hexadecimal digit; let the green component of result be the resulting number multiplied by 17.
-        result.r = CSS.valeur_hex_depuis_unité(input.unités[2]) * 17
-
-        // 4. Interpret the fourth character of input as a hexadecimal digit; let the blue component of result be the resulting number multiplied by 17.
-        result.r = CSS.valeur_hex_depuis_unité(input.unités[3]) * 17
-
-        // 5. Return result.
-        retourne result
-    }
-
-    // À FAIRE : 7. Replace any code points greater than U+FFFF in input (i.e., any characters that are not in the basic multilingual plane) with the two-character string "00".
-
-    // 8. If input's code point length is greater than 128, truncate input, leaving only the first 128 characters.
-    // À FAIRE : utilise la taille en point de code
-    si input.taille() > 128 {
-        input.unités.taille = 128
-    }
-
-    // 9. If the first character in input is a U+0023 NUMBER SIGN character (#), remove it.
-    si input.unités[0] == 0x23 {
-        input.unités.pointeur += 1
-        input.unités.taille -= 1
-    }
-
-    // 10. Replace any character in input that is not an ASCII hex digit with the character U+0030 DIGIT ZERO (0).
-    pour & input.unités {
-        point_de_code : n16 = it
-        saufsi est_chiffre_hexadecimal_ascii(point_de_code) {
-            it = 0x30
-        }
-    }
-
-    // À FAIRE : continue
-    assert(input.taille() == 6)
-
-    // 11. While input's code point length is zero or not a multiple of three, append a U+0030 DIGIT ZERO (0) character to input.
-
-    // 12. Split input into three strings of equal code point length, to obtain three components. Let length be the code point length that all of those components have (one third the code point length of input).
-
-    // 13. If length is greater than 8, then remove the leading length-8 characters in each component, and let length be 8.
-
-    // 14. While length is greater than two and the first character in each component is a U+0030 DIGIT ZERO (0) character, remove that character and reduce length by one.
-
-    // 15. If length is still greater than two, truncate each component, leaving only the first two characters in each.
-
-    // 16. Let result be a simple color.
-    result: CouleurRVBAN8
-    result.a = 255
-
-    // 17. Interpret the first component as a hexadecimal number; let the red component of result be the resulting number.
-    result.r = CSS.valeur_hex_depuis_unité(input.unités[0]) * 16 + CSS.valeur_hex_depuis_unité(input.unités[1])
-
-    // 18. Interpret the second component as a hexadecimal number; let the green component of result be the resulting number.
-    result.v = CSS.valeur_hex_depuis_unité(input.unités[2]) * 16 + CSS.valeur_hex_depuis_unité(input.unités[3])
-
-    // 19. Interpret the third component as a hexadecimal number; let the blue component of result be the resulting number.
-    result.b = CSS.valeur_hex_depuis_unité(input.unités[4]) * 16 + CSS.valeur_hex_depuis_unité(input.unités[5])
-
-    // 20. Return result.
-    retourne result
-}
-
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -777,6 +687,7 @@ HTMLFontElement :: struct {
 #portée_fichier
 
 table_virtuelle_font_element := TableVirtuelleÉlément(
+    classe = HTMLFontElement,
     sur_destruction = font_element_sur_destruction,
     sur_applique_presentational_hints = font_element_sur_applique_presentational_hints
 )
@@ -920,6 +831,7 @@ HTMLFormElement :: struct {
 #portée_fichier
 
 table_virtuelle_form_element := TableVirtuelleÉlément(
+    classe = HTMLFormElement,
     sur_destruction = form_element_sur_destruction
 )
 
@@ -948,6 +860,7 @@ HTMLHeadElement :: struct {
 #portée_fichier
 
 table_virtuelle_head_element := TableVirtuelleÉlément(
+    classe = HTMLHeadElement,
     sur_destruction = head_element_sur_destruction
 )
 
@@ -976,6 +889,7 @@ HTMLHeadingElement :: struct {
 #portée_fichier
 
 table_virtuelle_heading_element := TableVirtuelleÉlément(
+    classe = HTMLHeadingElement,
     sur_destruction = heading_element_sur_destruction
 )
 
@@ -1004,6 +918,7 @@ HTMLHRElement :: struct {
 #portée_fichier
 
 table_virtuelle_hr_element := TableVirtuelleÉlément(
+    classe = HTMLHRElement,
     sur_destruction = hr_element_sur_destruction
 )
 
@@ -1032,6 +947,7 @@ HTMLHtmlElement :: struct {
 #portée_fichier
 
 table_virtuelle_html_element := TableVirtuelleÉlément(
+    classe = HTMLHtmlElement,
     sur_destruction = html_element_sur_destruction
 )
 
@@ -1086,6 +1002,7 @@ donne_ratio_intrinsèque :: fonc (image: *HTMLImageElement) -> r32 #enligne
 #portée_fichier
 
 table_virtuelle_image_element := TableVirtuelleÉlément(
+    classe = HTMLImageElement,
     sur_destruction = image_element_sur_destruction,
     sur_changement_attribut = image_element_sur_changement_attribut,
     sur_applique_presentational_hints = image_element_sur_applique_presentational_hints
@@ -1111,21 +1028,6 @@ image_element_sur_applique_presentational_hints :: fonc (base: *Élément, réso
 {
     ajoute_propriété_pour_non_zero_dimension(résolveuse, base, ATTR_width, CSS.PROP_width)
     ajoute_propriété_pour_non_zero_dimension(résolveuse, base, ATTR_height, CSS.PROP_height)
-}
-
-/* https://html.spec.whatwg.org/multipage/common-microsyntaxes.html#rules-for-parsing-non-zero-dimension-values */
-parse_a_non_zero_dimension :: fonc (string: DOMString) -> Optionnel(r64)
-{
-    // À FAIRE : standardise
-
-    chn := converti_vers_chaine(string.donne_chaine_utf16())
-    diffère déloge(chn)
-
-    résultat := tente extrait_r64(chn) piège _ {
-        retourne
-    }
-
-    retourne résultat
 }
 
 image_element_sur_destruction :: fonc (base: *EventTarget)
@@ -1248,6 +1150,65 @@ update_image_data :: fonc (image: *HTMLImageElement)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom HTMLInputElement
+ * \{ */
+
+#portée_export
+
+HTMLInputElement :: struct {
+    empl html_element: HTMLElement
+    table = *table_virtuelle_input_element
+}
+
+/* https://html.spec.whatwg.org/multipage/rendering.html#the-input-element-as-a-text-entry-widget */
+is_text_entry_widget :: fonc (input: *HTMLInputElement) -> bool
+{
+    opt_type := donne_attribut(input, ATTR_type)
+    saufsi opt_type.possède_valeur() {
+        /* "The attribute's missing value default and invalid value default are both the Text state."
+         * https://html.spec.whatwg.org/multipage/input.html#attr-input-type
+         *
+         * À FAIRE : détermine l'état de l'attribut :
+         * https://html.spec.whatwg.org/multipage/common-microsyntaxes.html#missing-value-default */
+        retourne vrai
+    }
+    retourne opt_type.Quelque == ATTR_text
+}
+
+#portée_fichier
+
+table_virtuelle_input_element := TableVirtuelleÉlément(
+    classe = HTMLInputElement,
+    sur_destruction = input_element_sur_destruction,
+    sur_changement_attribut = input_element_sur_changement_attribut
+)
+
+input_element_sur_destruction :: fonc (base: *EventTarget)
+{
+    élément := base comme *HTMLInputElement
+    élément_détruit_données(élément)
+    déloge(élément)
+}
+
+input_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
+{
+    si élément_sur_changement_attribut(base, local_name, vieille_valeur, valeur, espace_de_nom) {
+        retourne vrai
+    }
+
+    input := base comme *HTMLInputElement
+
+    si local_name == ATTR_type {
+        invalide_style_depuis_élément(input.document, input)
+        retourne vrai
+    }
+
+    retourne faux
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom HTMLLinkElement
  * https://html.spec.whatwg.org/multipage/semantics.html#the-link-element
  * https://developer.mozilla.org/en-US/docs/Web/API/HTMLLinkElement
@@ -1273,6 +1234,7 @@ donne_rel :: fonc (link: *HTMLLinkElement) -> DOMString
 #portée_fichier
 
 table_virtuelle_link_element := TableVirtuelleÉlément(
+    classe = HTMLLinkElement,
     sur_destruction = link_element_sur_destruction,
     sur_changement_attribut = link_element_sur_changement_attribut
 )
@@ -1464,6 +1426,7 @@ HTMLVideoElement :: struct {
 #portée_fichier
 
 table_virtuelle_video_element := TableVirtuelleÉlément(
+    classe = HTMLVideoElement,
     sur_destruction = video_element_sur_destruction
 )
 
@@ -1526,6 +1489,7 @@ donne_src :: fonc (script: *HTMLScriptElement) -> DOMString
 #portée_fichier
 
 table_virtuelle_script_element := TableVirtuelleÉlément(
+    classe = HTMLScriptElement,
     sur_destruction = script_element_sur_destruction
 )
 
@@ -1730,7 +1694,6 @@ détermine_type_block_script :: fonc (script: *HTMLScriptElement) -> DOMString
     }
 
     si attr_type {
-        /* À FAIRE : supprime espace blanches */
         retourne supprime_espace_blanches_autour(attr_type.valeur)
     }
 
@@ -1752,6 +1715,12 @@ le_comportement_inline_de_l_élément_doit_être_bloqué_par_csp :: fonc (élém
     retourne résultat
 }
 
+/* https://html.spec.whatwg.org/multipage/scripting.html#execute-the-script-element */
+execute_the_script_element :: fonc (el: *HTMLScriptElement @inutilisée)
+{
+    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1770,6 +1739,7 @@ HTMLStyleElement :: struct {
 #portée_fichier
 
 table_virtuelle_style_element := TableVirtuelleÉlément(
+    classe = HTMLStyleElement,
     sur_destruction = style_element_sur_destruction,
     sur_connexion = style_element_sur_connexion_ou_déconnexion,
     sur_déconnexion = style_element_sur_connexion_ou_déconnexion,
@@ -1897,6 +1867,7 @@ HTMLTableElement :: struct {
 #portée_fichier
 
 table_virtuelle_table_element := TableVirtuelleÉlément(
+    classe = HTMLTableElement,
     sur_destruction = table_element_sur_destruction,
     sur_applique_presentational_hints = table_element_sur_applique_presentational_hints
 )
@@ -1931,6 +1902,7 @@ HTMLTableCellElement :: struct {
 #portée_fichier
 
 table_virtuelle_table_cell_element := TableVirtuelleÉlément(
+    classe = HTMLTableCellElement,
     sur_destruction = table_cell_element_sur_destruction,
     sur_applique_presentational_hints = table_cell_element_sur_applique_presentational_hints
 )
@@ -1965,6 +1937,7 @@ HTMLTableRowElement :: struct {
 #portée_fichier
 
 table_virtuelle_table_row_element := TableVirtuelleÉlément(
+    classe = HTMLTableRowElement,
     sur_destruction = table_row_element_sur_destruction,
     sur_applique_presentational_hints = table_row_element_sur_applique_presentational_hints
 )
@@ -1999,6 +1972,7 @@ HTMLTableSectionElement :: struct {
 #portée_fichier
 
 table_virtuelle_table_section_element := TableVirtuelleÉlément(
+    classe = HTMLTableSectionElement,
     sur_destruction = table_section_element_sur_destruction,
     sur_applique_presentational_hints = table_section_element_sur_applique_presentational_hints
 )
@@ -2013,6 +1987,70 @@ table_section_element_sur_destruction :: fonc (base: *EventTarget)
 table_section_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
 {
     ajoute_propriété_pour_legacy_colour_value(résolveuse, base, ATTR_bgcolor, CSS.PROP_background_color)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLTextAreaElement
+ * https://html.spec.whatwg.org/multipage/form-elements.html#the-textarea-element
+ * \{ */
+
+#portée_export
+
+HTMLTextAreaElement :: struct {
+    empl html_element: HTMLElement
+    table = *table_virtuelle_textarea_element
+}
+
+/* https://html.spec.whatwg.org/multipage/form-elements.html#attr-textarea-cols-value */
+donne_cols :: fonc (textarea: *HTMLTextAreaElement) -> n32
+{
+    cols := donne_attribut_ou_chaine_vide(textarea, ATTR_cols)
+    saufsi cols.est_vide() {
+        opt_valeur := parse_a_non_negative_integer(cols)
+        si opt_valeur.possède_valeur() && opt_valeur.Quelque > 0 {
+            retourne opt_valeur.Quelque
+        }
+    }
+    retourne 20
+}
+
+donne_character_width :: fonc (textarea: *HTMLTextAreaElement) -> n32
+{
+    retourne donne_cols(textarea)
+}
+
+/* https://html.spec.whatwg.org/multipage/form-elements.html#attr-textarea-rows-value */
+donne_rows :: fonc (textarea: *HTMLTextAreaElement) -> n32
+{
+    rows := donne_attribut_ou_chaine_vide(textarea, ATTR_rows)
+    saufsi rows.est_vide() {
+        opt_valeur := parse_a_non_negative_integer(rows)
+        si opt_valeur.possède_valeur() && opt_valeur.Quelque > 0 {
+            retourne opt_valeur.Quelque
+        }
+    }
+    retourne 2
+}
+
+donne_character_height :: fonc (textarea: *HTMLTextAreaElement) -> n32
+{
+    retourne donne_rows(textarea)
+}
+
+#portée_fichier
+
+table_virtuelle_textarea_element := TableVirtuelleÉlément(
+    classe = HTMLTextAreaElement,
+    sur_destruction = textarea_element_sur_destruction
+)
+
+textarea_element_sur_destruction :: fonc (base: *EventTarget)
+{
+    élément := base comme *HTMLTextAreaElement
+    élément_détruit_données(élément)
+    déloge(élément)
 }
 
 /** \} */
