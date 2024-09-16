@@ -152,11 +152,16 @@ dessine :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
     arbre.hauteur_vue = ctx.hauteur_vue
     arbre.largeur_vue = ctx.largeur_vue
 
+    IGUMI.réinitialise_données()
     dessine(arbre.racine, ctx)
     ctx.peintre.termine_dessin()
+}
 
+dessine_tampon_id :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
+{
     /* Tampon ID. */
 
+    IGUMI.réinitialise_données_id()
     fbo: GLuint
     glGenFramebuffers(1, *fbo)
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo)
@@ -246,8 +251,7 @@ opérateur < :: fonc (a: RèglesParIdentifiant, b: RèglesParIdentifiant) -> boo
 
 RésolveuseStyle :: struct {
     globales: *GlobalesDessin
-    /* À FAIRE(langage) : dépendance cyclique */
-    document: *rien
+    document: *HTML.Document
     taille_fonte_racine: r64
     feuilles_de_style: []*CSSStyleSheet
 
@@ -777,14 +781,14 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
 {
     /* https://www.w3.org/TR/2011/REC-CSS2-20110607/cascade.html#computed-value */
     ctx_calcul_style: ContexteCalculStyle
-    ctx_calcul_style.document = résolveuse.document comme *HTML.Document
+    ctx_calcul_style.document = résolveuse.document
     ctx_calcul_style.taille_fonte = résolveuse.globales.taille_fonte_défaut
     ctx_calcul_style.taille_fonte_racine = résolveuse.taille_fonte_racine
     ctx_calcul_style.propriétés = propriétés
     ctx_calcul_style.valeurs_initiales = *résolveuse.valeurs_initiales
 
     si propriétés_parent {
-        ctx_calcul_style.taille_fonte = propriétés_parent.donne_valeur_calculée(IDPropriété.FontSize).number
+        ctx_calcul_style.taille_fonte = propriétés_parent.donne_valeur_calculée(IDPropriété.FontSize).pixels
     }
 
     pour propriétés.déclarations {
@@ -801,23 +805,23 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
         }
 
         si info.id == IDPropriété.FontSize {
-            ctx_calcul_style.taille_fonte = propriétés.donne_valeur_calculée(IDPropriété.FontSize).number
+            ctx_calcul_style.taille_fonte = propriétés.donne_valeur_calculée(IDPropriété.FontSize).pixels
         }
     }
 
     si propriétés.style.valeurs[IDPropriété.BorderStyleLeft].line_style == LineStyle.None {
-        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthLeft, ValeurDeStyle(number = 0.0))
+        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthLeft, ValeurDeStyle(pixels = 0.0))
     }
     si propriétés.style.valeurs[IDPropriété.BorderStyleTop].line_style == LineStyle.None {
-        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthTop, ValeurDeStyle(number = 0.0))
+        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthTop, ValeurDeStyle(pixels = 0.0))
     }
     si propriétés.style.valeurs[IDPropriété.BorderStyleRight].line_style == LineStyle.None {
-        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthRight, ValeurDeStyle(number = 0.0))
+        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthRight, ValeurDeStyle(pixels = 0.0))
     }
     si propriétés.style.valeurs[IDPropriété.BorderStyleBottom].line_style == LineStyle.None {
-        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthBottom, ValeurDeStyle(number = 0.0))
+        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthBottom, ValeurDeStyle(pixels = 0.0))
     }
-    saufsi propriétés.style.valeurs[IDPropriété.FontSize].est_nombre() {
+    saufsi propriétés.style.valeurs[IDPropriété.FontSize].est_pixels() {
         propriétés.définis_valeur_calculée(IDPropriété.FontSize, calcule_valeur_propriété_générique(propriétés.style.valeurs[IDPropriété.FontSize], GenreValeurCalculée.LongueurAbsolue | GenreValeurCalculée.FontSize, *propriétés.style, *ctx_calcul_style))
     }
     saufsi propriétés.style.valeurs[IDPropriété.FontWeight].est_nombre() {
@@ -1006,9 +1010,13 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
 
     résultat: *NoeudDeDisposition
     si élément.local_name == HTML.TAG_img {
-        remplacement := arbre.crée_noeud(NoeudDeDispositionRemplacement)
-        remplacement.élément = élément
-        résultat = remplacement
+        résultat = crée_noeud_de_remplacement_image(arbre, élément comme *HTML.HTMLImageElement)
+    }
+    sinon si élément.local_name == HTML.TAG_input && HTML.is_text_entry_widget(élément comme *HTML.HTMLInputElement) {
+        résultat = crée_noeud_de_remplacement_text_input(arbre, élément comme *HTML.HTMLInputElement)
+    }
+    sinon si élément.local_name == HTML.TAG_textarea {
+        résultat = crée_noeud_de_remplacement_textarea(arbre, élément comme *HTML.HTMLTextAreaElement)
     }
     sinon si display.outer_type == Display.Type.Block {
         bloc := arbre.crée_noeud(NoeudDeDispositionBloc)
@@ -1026,7 +1034,7 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
     }
 
     si parent == nul {
-        résolveuse.taille_fonte_racine = propriétés.donne_valeur_calculée(IDPropriété.FontSize).number
+        résolveuse.taille_fonte_racine = propriétés.donne_valeur_calculée(IDPropriété.FontSize).pixels
     }
 
     élément.noeud_de_disposition = résultat
@@ -1325,6 +1333,150 @@ donne_image_pour_url :: fonc (ctx: *ContexteDessin, url_string: chaine) -> Optio
     diffère HTML.détruit_fetch_controller(fetch_controller)
 }
 
+dessine_arrière_plan :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDispositionBloc)
+{
+    peintre := ctx.peintre
+
+    background_color := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BackgroundColor).couleur
+    si background_color.a != 0 {
+        rect_noeud: RectanglePosDim(r32)
+        si noeud.parent == nul {
+            /* L'arrière plan de l'élément racine doit s'appliquer au cannevas. */
+            rect_noeud.hauteur = ctx.hauteur_vue comme r32
+            rect_noeud.largeur = ctx.largeur_vue comme r32
+        }
+        sinon {
+            rect_noeud = ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
+        }
+
+        border_radius_top_left := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderTopLeftRadius).pixels comme r32
+        border_radius_top_right := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderTopRightRadius).pixels comme r32
+        border_radius_bottom_right := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomRightRadius).pixels comme r32
+        border_radius_bottom_left := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomLeftRadius).pixels comme r32
+
+        rayons := [ border_radius_top_left, border_radius_top_right, border_radius_bottom_right, border_radius_bottom_left ]
+        peintre.remplis_rectangle_arrondi(rect_noeud, rayons, background_color)
+    }
+    sinon si noeud.parent == nul && noeud.élément && noeud.élément.local_name == HTML.TAG_html {
+        /* Hérite de l'arrière-plan du "body".
+            * https://www.w3.org/TR/CSS21/colors.html#background */
+        body := HTML.donne_élément_body(noeud.élément.document)
+        si body && body.noeud_de_disposition {
+            background_color = body.noeud_de_disposition.propriétés.donne_valeur_utilisée(IDPropriété.BackgroundColor).couleur
+            si background_color.a != 0 {
+                /* À FAIRE : ne peint pas l'arrière-plan du "body" dans ce cas. */
+                rect_noeud: RectanglePosDim(r32)
+                rect_noeud.hauteur = ctx.hauteur_vue comme r32
+                rect_noeud.largeur = ctx.largeur_vue comme r32
+                peintre.remplis_rectangle(rect_noeud, background_color)
+            }
+        }
+    }
+
+    image := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BackgroundImage)
+    si image.est_none() {
+        retourne
+    }
+
+    opt_image_data := ctx.donne_image_pour_url(image.url_absolu)
+    saufsi opt_image_data.possède_valeur() {
+        retourne
+    }
+
+    /* À FAIRE : parse la propriété "background-repeat". Ceci est la valeur défaut. */
+    répétition: RépétitionImage
+    répétition.x = GenreRépétitionImage.Normale
+    répétition.y = GenreRépétitionImage.Normale
+
+    image_data := opt_image_data.Quelque
+    /* À FAIRE : background-clip */
+    rect := noeud.donne_rectangle_bordure()
+
+    rect_image := rect
+    rect_image.largeur = image_data.largeur comme r32
+    rect_image.hauteur = image_data.hauteur comme r32
+
+    rect = ctx.donne_rectangle_corrigé(rect)
+    rect_image = ctx.donne_rectangle_corrigé(rect_image)
+    peintre.dessine_image(image_data, rect_image, rect, répétition)
+}
+
+dessine_bordure :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDispositionBloc)
+{
+    bordure := donne_bordure(*noeud.propriétés.style)
+    peintre := ctx.peintre
+
+    pour bordure.style {
+        si it == LineStyle.None || it == LineStyle.Hidden {
+            continue
+        }
+
+        coté := index_it comme z32 comme BorderEdge
+
+        couleur: CouleurRVBAN8
+
+        si it == LineStyle.Inset {
+            si coté == BorderEdge.Top || coté == BorderEdge.Left {
+                couleur = CouleurRVBAN8(154, 154, 154, 255)
+            }
+            sinon {
+                couleur = CouleurRVBAN8(238, 238, 238, 255)
+            }
+        }
+        sinon si it == LineStyle.Outset {
+            si coté == BorderEdge.Top || coté == BorderEdge.Left {
+                couleur = CouleurRVBAN8(238, 238, 238, 255)
+            }
+            sinon {
+                couleur = CouleurRVBAN8(154, 154, 154, 255)
+            }
+        }
+        sinon {
+            border_color := bordure.color[coté]
+            /* À FAIRE : calcule la valeur même s'il n'y a pas de propriété. */
+            si border_color.est_mot_clé(PROP_currentColor) {
+                couleur = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color)
+            }
+            sinon {
+                couleur = bordure.color[coté].couleur
+            }
+        }
+
+        largeur := bordure.width[coté].pixels comme r32
+
+        rect: RectanglePosDim(r32)
+        rect_bordure := noeud.donne_rectangle_bordure()
+
+        si coté == BorderEdge.Top {
+            rect.x = rect_bordure.x
+            rect.y = rect_bordure.y
+            rect.largeur = rect_bordure.largeur
+            rect.hauteur = largeur
+        }
+        sinon si coté == BorderEdge.Bottom {
+            rect.x = rect_bordure.x
+            rect.y = rect_bordure.y + rect_bordure.hauteur - largeur
+            rect.largeur = rect_bordure.largeur
+            rect.hauteur = largeur
+        }
+        sinon si coté == BorderEdge.Left {
+            rect.x = rect_bordure.x
+            rect.y = rect_bordure.y
+            rect.largeur = largeur
+            rect.hauteur = rect_bordure.hauteur
+        }
+        sinon /* si coté == BorderEdge.Right */ {
+            rect.x = rect_bordure.x + rect_bordure.largeur - largeur
+            rect.y = rect_bordure.y
+            rect.largeur = largeur
+            rect.hauteur = rect_bordure.hauteur
+        }
+
+        rect = ctx.donne_rectangle_corrigé(rect)
+        peintre.remplis_rectangle(rect, couleur)
+    }
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1336,6 +1488,46 @@ ModèleDeBoite :: struct {
     bordure: RectanglePosDim(r32)
     rembourrage: RectanglePosDim(r32)
     contenu: RectanglePosDim(r32)
+}
+
+décale_horizontalement :: fonc (modèle: &ModèleDeBoite, delta: r32)
+{
+    modèle.marge.x += delta
+    modèle.bordure.x += delta
+    modèle.rembourrage.x += delta
+    modèle.contenu.x += delta
+}
+
+décale_verticalement :: fonc (modèle: &ModèleDeBoite, delta: r32)
+{
+    modèle.marge.y += delta
+    modèle.bordure.y += delta
+    modèle.rembourrage.y += delta
+    modèle.contenu.y += delta
+}
+
+définis_hauteur_contenu :: fonc (modèle: &ModèleDeBoite, hauteur: r32)
+{
+    modèle.marge.hauteur = hauteur
+    modèle.bordure.hauteur = hauteur
+    modèle.contenu.hauteur = hauteur
+    modèle.rembourrage.hauteur = hauteur
+}
+
+incrémente_hauteur_contenu :: fonc (modèle: &ModèleDeBoite, hauteur: r32)
+{
+    modèle.marge.hauteur += hauteur
+    modèle.bordure.hauteur += hauteur
+    modèle.contenu.hauteur += hauteur
+    modèle.rembourrage.hauteur += hauteur
+}
+
+définis_largeur_contenu :: fonc (modèle: &ModèleDeBoite, largeur: r32)
+{
+    modèle.marge.largeur = largeur
+    modèle.bordure.largeur = largeur
+    modèle.contenu.largeur = largeur
+    modèle.rembourrage.largeur = largeur
 }
 
 définis_largeur :: fonc (modèle: &ModèleDeBoite, largeur: r32)
@@ -1383,7 +1575,7 @@ détermine_fonte :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage
     style := "normal"
     graisse := GraisseFonte.Normal
     propriétés := noeud.donne_propriétés()
-    taille_fonte := propriétés.donne_valeur_utilisée(IDPropriété.FontSize).number comme r32
+    taille_fonte := propriétés.donne_valeur_utilisée(IDPropriété.FontSize).pixels comme r32
 
     font_family := propriétés.donne_valeur_utilisée(IDPropriété.FontFamily).mot_clé
     si font_family == PROP_monospace {
@@ -1465,14 +1657,24 @@ donne_display :: fonc (noeud: *NoeudDeDisposition) -> Display
 
 donne_line_height :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage) -> r32
 {
-    line_height := noeud.propriétés.donne_valeur_utilisée(IDPropriété.LineHeight)
+    fonte := détermine_fonte(noeud, ctx)
+    retourne donne_line_height(noeud.propriétés, fonte)
+}
+
+donne_line_height :: fonc (propriétés: *PropriétésDeStyle, fonte: *Fonte) -> r32
+{
+    line_height := propriétés.donne_valeur_utilisée(IDPropriété.LineHeight)
+    si line_height.est_pixels() {
+        retourne line_height.pixels comme r32
+    }
+
+    métriques := fonte.donne_métriques_fonte()
+
     si line_height.est_nombre() {
-        retourne line_height.number comme r32
+        retourne line_height.number comme r32 * métriques.donne_hauteur_ligne()
     }
 
     assert(line_height.est_mot_clé(PROP_normal))
-    fonte := détermine_fonte(noeud, ctx)
-    métriques := fonte.donne_métriques_fonte()
     retourne métriques.donne_hauteur_ligne()
 }
 
@@ -1508,15 +1710,8 @@ donne_élément_récursif :: fonc (noeud: *NoeudDeDisposition) -> *HTML.Élémen
 
 décale :: fonc (noeud: *NoeudDeDisposition, x: r32, y: r32)
 {
-    noeud.modèle_de_boite.marge.x += x
-    noeud.modèle_de_boite.bordure.x += x
-    noeud.modèle_de_boite.rembourrage.x += x
-    noeud.modèle_de_boite.contenu.x += x
-
-    noeud.modèle_de_boite.marge.y += y
-    noeud.modèle_de_boite.bordure.y += y
-    noeud.modèle_de_boite.rembourrage.y += y
-    noeud.modèle_de_boite.contenu.y += y
+    décale_horizontalement(noeud.modèle_de_boite, x)
+    décale_verticalement(noeud.modèle_de_boite, y)
 
     pour noeud.enfants {
         it.décale(x, y)
@@ -1762,7 +1957,7 @@ détruit_données_boite_de_ligne :: fonc (boite: *BoiteDeLigne)
 
 peut_ajouter_fragment :: fonc (boite: *BoiteDeLigne, largeur: r32) -> bool
 {
-    retourne (boite.largeur_courante + largeur) < boite.bloc.propriétés.donne_valeur_utilisée(IDPropriété.Width).number comme r32
+    retourne (boite.largeur_courante + largeur) < boite.bloc.propriétés.donne_valeur_utilisée(IDPropriété.Width).pixels comme r32
 }
 
 garantis_hauteur_minimale :: fonc (boite: *BoiteDeLigne, hauteur: r32)
@@ -2043,139 +2238,9 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
 {
     noeud := base comme *NoeudDeDispositionBloc
 
-    peintre := ctx.peintre
-
     si noeud.est_noeud_non_anonyme() {
-        background_color := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BackgroundColor).couleur
-        si background_color.a != 0 {
-            rect_noeud: RectanglePosDim(r32)
-            si base.parent == nul {
-                /* L'arrière plan de l'élément racine doit s'appliquer au cannevas. */
-                rect_noeud.hauteur = ctx.hauteur_vue comme r32
-                rect_noeud.largeur = ctx.largeur_vue comme r32
-            }
-            sinon {
-                rect_noeud = ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
-            }
-
-            border_radius_top_left := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderTopLeftRadius).number comme r32
-            border_radius_top_right := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderTopRightRadius).number comme r32
-            border_radius_bottom_right := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomRightRadius).number comme r32
-            border_radius_bottom_left := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomLeftRadius).number comme r32
-
-            rayons := [ border_radius_top_left, border_radius_top_right, border_radius_bottom_right, border_radius_bottom_left ]
-            peintre.remplis_rectangle_arrondi(rect_noeud, rayons, background_color)
-        }
-        sinon si noeud.parent == nul && noeud.élément && noeud.élément.local_name == HTML.TAG_html {
-            /* Hérite de l'arrière-plan du "body".
-             * https://www.w3.org/TR/CSS21/colors.html#background */
-            body := HTML.donne_élément_body(noeud.élément.document)
-            si body && body.noeud_de_disposition {
-                background_color = body.noeud_de_disposition.propriétés.donne_valeur_utilisée(IDPropriété.BackgroundColor).couleur
-                si background_color.a != 0 {
-                    /* À FAIRE : ne peint pas l'arrière-plan du "body" dans ce cas. */
-                    rect_noeud: RectanglePosDim(r32)
-                    rect_noeud.hauteur = ctx.hauteur_vue comme r32
-                    rect_noeud.largeur = ctx.largeur_vue comme r32
-                    peintre.remplis_rectangle(rect_noeud, background_color)
-                }
-            }
-        }
-
-        image := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BackgroundImage)
-        saufsi image.est_none() {
-            opt_image_data := ctx.donne_image_pour_url(image.url_absolu)
-            si opt_image_data.possède_valeur() {
-                /* À FAIRE : parse la propriété "background-repeat". Ceci est la valeur défaut. */
-                répétition: RépétitionImage
-                répétition.x = GenreRépétitionImage.Normale
-                répétition.y = GenreRépétitionImage.Normale
-
-                image_data := opt_image_data.Quelque
-                /* À FAIRE : background-clip */
-                rect := noeud.donne_rectangle_bordure()
-
-                rect_image := rect
-                rect_image.largeur = image_data.largeur comme r32
-                rect_image.hauteur = image_data.hauteur comme r32
-
-                rect = ctx.donne_rectangle_corrigé(rect)
-                rect_image = ctx.donne_rectangle_corrigé(rect_image)
-                peintre.dessine_image(image_data, rect_image, rect, répétition)
-            }
-        }
-
-        bordure := donne_bordure(*noeud.propriétés.style)
-
-        pour bordure.style {
-            si it == LineStyle.None || it == LineStyle.Hidden {
-                continue
-            }
-
-            coté := index_it comme z32 comme BorderEdge
-
-            couleur: CouleurRVBAN8
-
-            si it == LineStyle.Inset {
-                si coté == BorderEdge.Top || coté == BorderEdge.Left {
-                    couleur = CouleurRVBAN8(154, 154, 154, 255)
-                }
-                sinon {
-                    couleur = CouleurRVBAN8(238, 238, 238, 255)
-                }
-            }
-            sinon si it == LineStyle.Outset {
-                si coté == BorderEdge.Top || coté == BorderEdge.Left {
-                    couleur = CouleurRVBAN8(238, 238, 238, 255)
-                }
-                sinon {
-                    couleur = CouleurRVBAN8(154, 154, 154, 255)
-                }
-            }
-            sinon {
-                border_color := bordure.color[coté]
-                /* À FAIRE : calcule la valeur même s'il n'y a pas de propriété. */
-                si border_color.est_mot_clé(PROP_currentColor) {
-                    couleur = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color)
-                }
-                sinon {
-                    couleur = bordure.color[coté].couleur
-                }
-            }
-
-            largeur := bordure.width[coté].number comme r32
-
-            rect: RectanglePosDim(r32)
-            rect_bordure := noeud.donne_rectangle_bordure()
-
-            si coté == BorderEdge.Top {
-                rect.x = rect_bordure.x
-                rect.y = rect_bordure.y
-                rect.largeur = rect_bordure.largeur
-                rect.hauteur = largeur
-            }
-            sinon si coté == BorderEdge.Bottom {
-                rect.x = rect_bordure.x
-                rect.y = rect_bordure.y + rect_bordure.hauteur - largeur
-                rect.largeur = rect_bordure.largeur
-                rect.hauteur = largeur
-            }
-            sinon si coté == BorderEdge.Left {
-                rect.x = rect_bordure.x
-                rect.y = rect_bordure.y
-                rect.largeur = largeur
-                rect.hauteur = rect_bordure.hauteur
-            }
-            sinon /* si coté == BorderEdge.Right */ {
-                rect.x = rect_bordure.x + rect_bordure.largeur - largeur
-                rect.y = rect_bordure.y
-                rect.largeur = largeur
-                rect.hauteur = rect_bordure.hauteur
-            }
-
-            rect = ctx.donne_rectangle_corrigé(rect)
-            peintre.remplis_rectangle(rect, couleur)
-        }
+        dessine_arrière_plan(ctx, noeud)
+        dessine_bordure(ctx, noeud)
     }
 
     saufsi noeud.est_disposition_inline {
@@ -2284,10 +2349,10 @@ noeud_disposition_inline_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition
 
     propriétés := noeud.propriétés
 
-    margin_left := propriétés.donne_valeur_utilisée(IDPropriété.MarginLeft).number comme r32
-    padding_left := propriétés.donne_valeur_utilisée(IDPropriété.PaddingLeft).number comme r32
-    padding_right := propriétés.donne_valeur_utilisée(IDPropriété.PaddingRight).number comme r32
-    margin_right := propriétés.donne_valeur_utilisée(IDPropriété.MarginRight).number comme r32
+    margin_left := propriétés.donne_valeur_utilisée(IDPropriété.MarginLeft).pixels comme r32
+    padding_left := propriétés.donne_valeur_utilisée(IDPropriété.PaddingLeft).pixels comme r32
+    padding_right := propriétés.donne_valeur_utilisée(IDPropriété.PaddingRight).pixels comme r32
+    margin_right := propriétés.donne_valeur_utilisée(IDPropriété.MarginRight).pixels comme r32
 
     fragment_marge_début := enligneuse.ajoute_fragment(noeud, 0.0, margin_left, Fragment.Type.MargeDébut)
     fragment_rembourrage_début := enligneuse.ajoute_fragment(noeud, 0.0, padding_left, Fragment.Type.RembourrageDébut)
@@ -2332,14 +2397,14 @@ noeud_disposition_inline_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition,
         background_color := propriétés.donne_valeur_utilisée(IDPropriété.BackgroundColor).couleur
 
         /* Le rembourrage vertical n'affecte pas la taille mais doit être inclus dans le dessin. */
-        padding_top := propriétés.donne_valeur_utilisée(IDPropriété.PaddingTop).number comme r32
-        padding_bottom := propriétés.donne_valeur_utilisée(IDPropriété.PaddingBottom).number comme r32
+        padding_top := propriétés.donne_valeur_utilisée(IDPropriété.PaddingTop).pixels comme r32
+        padding_bottom := propriétés.donne_valeur_utilisée(IDPropriété.PaddingBottom).pixels comme r32
 
         si background_color.a != 0 {
-            border_radius_top_left := propriétés.donne_valeur_utilisée(IDPropriété.BorderTopLeftRadius).number comme r32
-            border_radius_top_right := propriétés.donne_valeur_utilisée(IDPropriété.BorderTopRightRadius).number comme r32
-            border_radius_bottom_right := propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomRightRadius).number comme r32
-            border_radius_bottom_left := propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomLeftRadius).number comme r32
+            border_radius_top_left := propriétés.donne_valeur_utilisée(IDPropriété.BorderTopLeftRadius).pixels comme r32
+            border_radius_top_right := propriétés.donne_valeur_utilisée(IDPropriété.BorderTopRightRadius).pixels comme r32
+            border_radius_bottom_right := propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomRightRadius).pixels comme r32
+            border_radius_bottom_left := propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomLeftRadius).pixels comme r32
 
             premier_fragment := fragment
             dernier_fragment := lignes_tenante.fragments.pointeur + lignes_tenante.fragments.taille
@@ -2453,16 +2518,10 @@ noeud_disposition_texte_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Con
     noeud.texte = texte
 
     /* XXX */
-    noeud.modèle_de_boite.marge.hauteur = métriques.donne_hauteur_ligne()
-    noeud.modèle_de_boite.bordure.hauteur = métriques.donne_hauteur_ligne()
-    noeud.modèle_de_boite.contenu.hauteur = métriques.donne_hauteur_ligne()
-    noeud.modèle_de_boite.rembourrage.hauteur = métriques.donne_hauteur_ligne()
+    définis_hauteur_contenu(noeud.modèle_de_boite, métriques.donne_hauteur_ligne())
 
     largeur_texte := fonte.donne_largeur_texte(texte) comme r32
-    noeud.modèle_de_boite.marge.largeur = largeur_texte
-    noeud.modèle_de_boite.bordure.largeur = largeur_texte
-    noeud.modèle_de_boite.contenu.largeur = largeur_texte
-    noeud.modèle_de_boite.rembourrage.largeur = largeur_texte
+    définis_largeur_contenu(noeud.modèle_de_boite, largeur_texte)
 }
 
 noeud_disposition_texte_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, enligneuse: *Enligneuse, ctx: *ContexteDeFormattage)
@@ -2473,10 +2532,7 @@ noeud_disposition_texte_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition,
     fonte := détermine_fonte(noeud, ctx)
     métriques := fonte.donne_métriques_fonte()
 
-    noeud.modèle_de_boite.marge.hauteur = métriques.donne_hauteur_ligne()
-    noeud.modèle_de_boite.bordure.hauteur = métriques.donne_hauteur_ligne()
-    noeud.modèle_de_boite.contenu.hauteur = métriques.donne_hauteur_ligne()
-    noeud.modèle_de_boite.rembourrage.hauteur = métriques.donne_hauteur_ligne()
+    définis_hauteur_contenu(noeud.modèle_de_boite, métriques.donne_hauteur_ligne())
 
     si est_vide_ou_uniquement_espaces_blanches(noeud.noeud_texte.données) {
         espace := ChaineUTF16Unique(' ' comme n32)
@@ -2503,12 +2559,9 @@ noeud_disposition_texte_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition,
     hauteur_texte := métriques.donne_hauteur_ligne()
 
     propriétés := donne_propriété_parent(noeud)
-    line_height := propriétés.donne_valeur_utilisée(IDPropriété.LineHeight)
-
-    si line_height.est_nombre() {
-        /* line-height définis la hauteur minimale. */
-        hauteur_texte = max(hauteur_texte, line_height.number comme r32)
-    }
+    line_height := donne_line_height(propriétés, fonte)
+    /* line-height définis la hauteur minimale. */
+    hauteur_texte = max(hauteur_texte, line_height)
 
     pour morceaux {
         largeur_morceau := fonte.donne_largeur_texte(it)
@@ -2578,58 +2631,54 @@ NoeudDeDispositionRemplacement :: struct {
     empl base_bloc: NoeudDeDispositionBloc
     type = #type_de_cette_structure
     sur_mesure = noeud_disposition_remplacement_sur_mesure
-    sur_dessin = noeud_disposition_remplacement_sur_dessin
-    sur_dessin_fragment = noeud_disposition_remplacement_sur_dessin_fragment
     sur_divise_en_lignes = noeud_disposition_remplacement_sur_divise_en_lignes
     sur_dessin_tampon_id = noeud_disposition_remplacement_sur_dessin_tampon_id
+
+    /* Rappels spécifiques. */
+    sur_calcul_dimensions_intrinsèques: fonc(*NoeudDeDispositionRemplacement,*ContexteDeFormattage)(rien)
+    
+    ratio_intrinsèque: Optionnel(r32)
+    largeur_intrinsèque: Optionnel(r32)
+    hauteur_intrinsèque: Optionnel(r32)
+
+    fonte: *Fonte
 }
 
 possède_ratio_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> bool
 {
-    saufsi noeud.élément {
-        retourne faux
-    }
-
-    élément := noeud.élément comme *HTML.HTMLImageElement
-    assert(élément.local_name == HTML.TAG_img)
-
-    retourne élément.image_data.donnees != nul
+    retourne noeud.ratio_intrinsèque.possède_valeur()
 }
 
 possède_largeur_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> bool
 {
-    retourne possède_ratio_intrinsèque(noeud)
+    retourne noeud.largeur_intrinsèque.possède_valeur()
 }
 
 possède_hauteur_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> bool
 {
-    retourne possède_ratio_intrinsèque(noeud)
+    retourne noeud.hauteur_intrinsèque.possède_valeur()
 }
 
 donne_ratio_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> r32
 {
-    élément := noeud.élément comme *HTML.HTMLImageElement
-    assert(élément.local_name == HTML.TAG_img)
-    retourne HTML.donne_ratio_intrinsèque(élément)
+    retourne noeud.ratio_intrinsèque.Quelque
 }
 
 donne_largeur_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> r32
 {
-    élément := noeud.élément comme *HTML.HTMLImageElement
-    assert(élément.local_name == HTML.TAG_img)
-    retourne HTML.donne_largeur_intrinsèque(élément) comme r32
+    retourne noeud.largeur_intrinsèque.Quelque
 }
 
 donne_hauteur_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> r32
 {
-    élément := noeud.élément comme *HTML.HTMLImageElement
-    assert(élément.local_name == HTML.TAG_img)
-    retourne HTML.donne_hauteur_intrinsèque(élément) comme r32
+    retourne noeud.hauteur_intrinsèque.Quelque
 }
 
 noeud_disposition_remplacement_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage)
 {
     noeud := base comme *NoeudDeDispositionRemplacement
+
+    noeud.sur_calcul_dimensions_intrinsèques(noeud, ctx)
 
     containing_block := donne_containing_block(noeud, ctx)
 
@@ -2644,13 +2693,49 @@ noeud_disposition_remplacement_sur_divise_en_lignes :: fonc (base: *NoeudDeDispo
     noeud_disposition_remplacement_sur_mesure(base, ctx)
 
     noeud := base comme *NoeudDeDispositionRemplacement
-    largeur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width).number comme r32
-    hauteur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Height).number comme r32
+    largeur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width).pixels comme r32
+    hauteur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Height).pixels comme r32
 
     _ := enligneuse.ajoute_fragment(noeud, 0, 0, hauteur, largeur)
 }
 
-noeud_disposition_remplacement_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+noeud_disposition_remplacement_sur_dessin_tampon_id :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+{
+    noeud := base comme *NoeudDeDispositionRemplacement
+    ctx.remplis_rectangle_id(noeud)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom NoeudDeDispositionRemplacement pour image
+ * \{ */
+
+#portée_fichier
+
+crée_noeud_de_remplacement_image :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLImageElement) -> *NoeudDeDispositionRemplacement
+{
+    résultat := arbre.crée_noeud(NoeudDeDispositionRemplacement)
+    résultat.élément = élément
+    résultat.sur_dessin = noeud_image_sur_dessin
+    résultat.sur_dessin_fragment = noeud_image_sur_dessin_fragment
+    résultat.sur_calcul_dimensions_intrinsèques = noeud_image_calcul_dimensions_intrinsèques
+    retourne résultat
+}
+
+noeud_image_calcul_dimensions_intrinsèques :: fonc (noeud: *NoeudDeDispositionRemplacement, ctx: *ContexteDeFormattage @inutilisée)
+{
+    élément := noeud.élément comme *HTML.HTMLImageElement
+    assert(élément.local_name == HTML.TAG_img)
+
+    si élément.image_data.donnees {
+        noeud.ratio_intrinsèque = HTML.donne_ratio_intrinsèque(élément)
+        noeud.largeur_intrinsèque = HTML.donne_largeur_intrinsèque(élément) comme r32
+        noeud.hauteur_intrinsèque = HTML.donne_hauteur_intrinsèque(élément) comme r32
+    }
+}
+
+noeud_image_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
 {
     noeud := base comme *NoeudDeDispositionRemplacement
     assert(noeud.élément.local_name == HTML.TAG_img)
@@ -2658,7 +2743,7 @@ noeud_disposition_remplacement_sur_dessin :: fonc (base: *NoeudDeDisposition, ct
     dessine_image(ctx, image.image_data, noeud.donne_rectangle_bordure())
 }
 
-noeud_disposition_remplacement_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
+noeud_image_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
 {
     noeud := base comme *NoeudDeDispositionRemplacement
     assert(noeud.élément.local_name == HTML.TAG_img)
@@ -2666,10 +2751,222 @@ noeud_disposition_remplacement_sur_dessin_fragment :: fonc (base: *NoeudDeDispos
     dessine_image(ctx, image.image_data, fragment.donne_rectangle())
 }
 
-noeud_disposition_remplacement_sur_dessin_tampon_id :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom NoeudDeDispositionRemplacement pour input
+ * \{ */
+
+#portée_fichier
+
+crée_noeud_de_remplacement_text_input :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLInputElement) -> *NoeudDeDispositionRemplacement
+{
+    résultat := arbre.crée_noeud(NoeudDeDispositionRemplacement)
+    résultat.élément = élément
+    résultat.sur_dessin = noeud_text_input_sur_dessin
+    résultat.sur_dessin_fragment = noeud_text_input_sur_dessin_fragment
+    résultat.sur_calcul_dimensions_intrinsèques = noeud_text_input_dimensions_intrinsèques
+    retourne résultat
+}
+
+noeud_text_input_dimensions_intrinsèques :: fonc (noeud: *NoeudDeDispositionRemplacement, ctx: *ContexteDeFormattage)
+{
+    assert(noeud.élément.local_name == HTML.TAG_input)
+
+    noeud.fonte = détermine_fonte(noeud, ctx)
+    métriques := noeud.fonte.donne_métriques_fonte()
+    hauteur_ligne := métriques.donne_hauteur_ligne()
+
+    line_height := donne_line_height(noeud, ctx)
+
+    /* For input elements whose type attribute is in one of the above states, the used value of the 'line-height'
+     * property must be a length value that is no smaller than what the used value would be for 'line-height: normal'. */
+    si line_height < hauteur_ligne {
+        noeud.propriétés.définis_valeur_utilisée(IDPropriété.LineHeight, ValeurDeStyle(pixels = hauteur_ligne))
+        line_height = hauteur_ligne
+    }
+
+    noeud.largeur_intrinsèque = donne_inline_size_pour_text_input(noeud)
+    noeud.hauteur_intrinsèque = line_height
+}
+
+/* https://html.spec.whatwg.org/multipage/rendering.html#the-input-element-as-a-text-entry-widget */
+donne_inline_size_pour_text_input :: fonc (noeud: *NoeudDeDispositionRemplacement) -> r32
+{
+    métriques := noeud.fonte.donne_métriques_fonte()
+
+    // À FAIRE : 1. If the 'field-sizing' property on the element has a computed value of 'content',
+    // the inline size is determined by the text which the element shows. The text is either
+    // a value or a short hint specified by the placeholder attribute. User agents may take
+    // the text caret size into account in the inline size.
+
+    // 2. If the element has a size attribute, and parsing that attribute's value using the
+    // rules for parsing non-negative integers doesn't generate an error, return the value
+    // obtained from applying the converting a character width to pixels algorithm to the value
+    // of the attribute.
+    size := HTML.donne_attribut_ou_chaine_vide(noeud.élément, HTML.ATTR_size)
+    saufsi size.est_vide() {
+        opt_value := HTML.parse_a_non_negative_integer(size)
+        si opt_value.possède_valeur() {
+            retourne convert_a_character_width_to_pixels(opt_value.Quelque comme r32, métriques)
+        }
+    }
+
+    // 3. Otherwise, return the value obtained from applying the converting a character width to
+    // pixels algorithm to the number 20.
+    retourne convert_a_character_width_to_pixels(20.0, métriques)
+}
+
+/* https://html.spec.whatwg.org/multipage/rendering.html#converting-a-character-width-to-pixels */
+convert_a_character_width_to_pixels :: fonc (size: r32, métriques: &MétriquesFonte) -> r32
+{
+    retourne (size - 1.0) * métriques.largeur_moyenne + métriques.largeur_maximale
+}
+
+noeud_text_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
 {
     noeud := base comme *NoeudDeDispositionRemplacement
-    ctx.remplis_rectangle_id(noeud)
+    assert(noeud.élément.local_name == HTML.TAG_input)
+
+    dessine_arrière_plan(ctx, noeud)
+
+    /* À FAIRE : considère toutes les propriétés de bordure. */
+    border_declaration := donne_déclaration(noeud.propriétés, PROP_border)
+    si border_declaration {
+        dessine_bordure(ctx, noeud)
+    }
+    sinon {
+        /* Dessine une bordure par défaut. */
+        rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
+        couleur := CouleurRVBAN8(0, 0, 0, 255)
+        ctx.peintre.dessine_rectangle(rect, couleur)
+    }
+
+    élément := noeud.élément comme *HTML.HTMLInputElement
+    couleur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color).couleur
+    value := HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_value).donne_chaine_utf16()
+
+    si value.est_vide() {
+        value = HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_placeholder).donne_chaine_utf16()
+        couleur.a = 128
+    }
+
+    saufsi value.est_vide() {
+        métriques := donne_métriques_fonte(noeud.fonte)
+
+        rect_texte := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_contenu())
+        rect_texte.y -= métriques.jambage_inférieur
+
+        ctx.peintre.dessine_texte(noeud.fonte, value, rect_texte, couleur, nul)
+    }
+}
+
+noeud_text_input_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
+{
+    /* XXX - ceci devrait sans doute être fait lors de la disposition. */
+    x := fragment.x - base.modèle_de_boite.contenu.x
+    y := fragment.y - base.modèle_de_boite.contenu.y
+
+    décale_horizontalement(base.modèle_de_boite, x)
+    décale_verticalement(base.modèle_de_boite, y)
+
+    noeud_text_input_sur_dessin(base, ctx)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom NoeudDeDispositionRemplacement pour textarea
+ * \{ */
+
+#portée_fichier
+
+crée_noeud_de_remplacement_textarea :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLTextAreaElement) -> *NoeudDeDispositionRemplacement
+{
+    résultat := arbre.crée_noeud(NoeudDeDispositionRemplacement)
+    résultat.élément = élément
+    résultat.sur_dessin = noeud_textarea_sur_dessin
+    résultat.sur_dessin_fragment = noeud_textarea_sur_dessin_fragment
+    résultat.sur_calcul_dimensions_intrinsèques = noeud_textarea_dimensions_intrinsèques
+    retourne résultat
+}
+
+noeud_textarea_dimensions_intrinsèques :: fonc (noeud: *NoeudDeDispositionRemplacement, ctx: *ContexteDeFormattage)
+{
+    assert(noeud.élément.local_name == HTML.TAG_textarea)
+    noeud.fonte = détermine_fonte(noeud, ctx)
+    noeud.largeur_intrinsèque = donne_textarea_effective_width(noeud)
+    noeud.hauteur_intrinsèque = donne_textarea_effective_height(noeud, ctx)
+}
+
+LARGEUR_BARRE_DE_DÉFILEMENT :: 16.0
+
+/* https://html.spec.whatwg.org/multipage/rendering.html#textarea-effective-width */
+donne_textarea_effective_width :: fonc (noeud: *NoeudDeDispositionRemplacement) -> r32
+{
+    élément := noeud.élément comme *HTML.HTMLTextAreaElement
+    métriques := noeud.fonte.donne_métriques_fonte()
+    character_width := HTML.donne_character_width(élément)
+    retourne (character_width comme r32) * métriques.largeur_moyenne + LARGEUR_BARRE_DE_DÉFILEMENT
+}
+
+/* https://html.spec.whatwg.org/multipage/rendering.html#textarea-effective-height */
+donne_textarea_effective_height :: fonc (noeud: *NoeudDeDispositionRemplacement, ctx: *ContexteDeFormattage) -> r32
+{
+    élément := noeud.élément comme *HTML.HTMLTextAreaElement
+    character_height := HTML.donne_character_height(élément)
+    line_height := donne_line_height(noeud, ctx)
+    retourne character_height comme r32 * line_height
+}
+
+noeud_textarea_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+{
+    noeud := base comme *NoeudDeDispositionRemplacement
+    assert(noeud.élément.local_name == HTML.TAG_textarea)
+
+    dessine_arrière_plan(ctx, noeud)
+
+    /* À FAIRE : considère toutes les propriétés de bordure. */
+    border_declaration := donne_déclaration(noeud.propriétés, PROP_border)
+    si border_declaration {
+        dessine_bordure(ctx, noeud)
+    }
+    sinon {
+        /* Dessine une bordure par défaut. */
+        rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
+        couleur := CouleurRVBAN8(0, 0, 0, 255)
+        ctx.peintre.dessine_rectangle(rect, couleur)
+    }
+
+    élément := noeud.élément comme *HTML.HTMLTextAreaElement
+    couleur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color).couleur
+    value := HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_value).donne_chaine_utf16()
+
+    si value.est_vide() {
+        value = HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_placeholder).donne_chaine_utf16()
+        couleur.a = 128
+    }
+
+    saufsi value.est_vide() {
+        métriques := donne_métriques_fonte(noeud.fonte)
+
+        rect_texte := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_contenu())
+        rect_texte.y -= métriques.jambage_inférieur
+
+        ctx.peintre.dessine_texte(noeud.fonte, value, rect_texte, couleur, nul)
+    }
+}
+
+noeud_textarea_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
+{
+    /* XXX - ceci devrait sans doute être fait lors de la disposition. */
+    x := fragment.x - base.modèle_de_boite.contenu.x
+    y := fragment.y - base.modèle_de_boite.contenu.y
+
+    décale_horizontalement(base.modèle_de_boite, x)
+    décale_verticalement(base.modèle_de_boite, y)
+
+    noeud_textarea_sur_dessin(base, ctx)
 }
 
 /** \} */
