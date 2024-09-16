@@ -1661,8 +1661,8 @@ RésultatValidation Sémanticienne::valide_accès_membre(NoeudExpressionMembre *
                 return Attente::sur_symbole(expression_membre);
             }
 
-            if (!déclaration_référée->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-                return Attente::sur_déclaration(déclaration_référée);
+            if (!déclaration_référée->type) {
+                return Attente::sur_type_déclaration(déclaration_référée);
             }
 
             expression_membre->genre_valeur = déclaration_référée->genre_valeur;
