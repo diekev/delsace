@@ -1559,86 +1559,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
         case GenreNoeud::INSTRUCTION_EMPL:
         {
             auto empl = noeud->comme_empl();
-
-            if (!empl->expression->est_déclaration_variable()) {
-                m_espace->rapporte_erreur(empl->expression,
-                                          "Les directives empl ne sont pas supportées sur autre "
-                                          "chose que des déclarations de variables.");
-                return CodeRetourValidation::Erreur;
-            }
-
-            auto decl = empl->expression->comme_déclaration_variable();
-
-            empl->type = decl->type;
-            decl->drapeaux |= DrapeauxNoeud::EMPLOYE;
-            auto type_employe = decl->type;
-
-            // permet le déréférencement de pointeur, mais uniquement sur un niveau
-            if (type_employe->est_type_pointeur() || type_employe->est_type_référence()) {
-                type_employe = type_déréférencé_pour(type_employe);
-            }
-
-            if (!type_employe->est_type_structure()) {
-                m_unité->espace
-                    ->rapporte_erreur(
-                        decl, "Impossible d'employer une variable n'étant pas une structure.")
-                    .ajoute_message("Le type de la variable est : ")
-                    .ajoute_message(chaine_type(type_employe))
-                    .ajoute_message(".\n\n");
-                return CodeRetourValidation::Erreur;
-            }
-
-            if (!type_employe->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-                return Attente::sur_type(type_employe);
-            }
-
-            auto type_structure = type_employe->comme_type_structure();
-
-            // pour les structures, prend le bloc_parent qui sera celui de la structure
-            auto bloc_parent = decl->bloc_parent;
-
-            // pour les fonctions, utilisent leurs blocs si le bloc_parent est le bloc_parent de la
-            // fonction (ce qui est le cas pour les paramètres...)
-            if (fonction_courante() &&
-                bloc_parent == fonction_courante()->corps->bloc->bloc_parent) {
-                bloc_parent = fonction_courante()->corps->bloc;
-            }
-
-            POUR_INDEX (type_structure->membres) {
-                if (it.drapeaux & MembreTypeComposé::EST_CONSTANT) {
-                    continue;
-                }
-
-                auto decl_existante = trouve_dans_bloc(
-                    bloc_parent, it.nom, bloc_parent->bloc_parent, fonction_courante());
-
-                if (decl_existante) {
-                    m_espace
-                        ->rapporte_erreur(decl,
-                                          "Impossible d'employer la déclaration car une "
-                                          "déclaration avec le même nom qu'un de ses membres "
-                                          "existe déjà dans le bloc.")
-                        .ajoute_message("La déclaration existante est :\n")
-                        .ajoute_site(decl_existante)
-                        .ajoute_message("Le membre en conflit est :\n")
-                        .ajoute_site(it.decl);
-                    return CodeRetourValidation::Erreur;
-                }
-
-                auto decl_membre = m_assembleuse->crée_déclaration_variable(
-                    decl->lexème, nullptr, nullptr);
-                decl_membre->ident = it.nom;
-                decl_membre->type = it.type;
-                decl_membre->bloc_parent = bloc_parent;
-                decl_membre->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-                decl_membre->déclaration_vient_d_un_emploi = decl;
-                decl_membre->index_membre_employé = index_it;
-                decl_membre->expression = it.expression_valeur_defaut;
-                decl_membre->genre_valeur = GenreValeur::TRANSCENDANTALE;
-
-                bloc_parent->ajoute_membre(decl_membre);
-            }
-            break;
+            return valide_instruction_empl(noeud->comme_empl());
         }
         case GenreNoeud::DIRECTIVE_INTROSPECTION:
         {
@@ -1735,8 +1656,8 @@ RésultatValidation Sémanticienne::valide_accès_membre(NoeudExpressionMembre *
                 return Attente::sur_symbole(expression_membre);
             }
 
-            if (!déclaration_référée->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-                return Attente::sur_déclaration(déclaration_référée);
+            if (!déclaration_référée->type) {
+                return Attente::sur_type_déclaration(déclaration_référée);
             }
 
             expression_membre->genre_valeur = déclaration_référée->genre_valeur;
@@ -7039,6 +6960,186 @@ RésultatValidation Sémanticienne::valide_construction_tableau_typé(
 
     tableau->type = m_compilatrice.typeuse.type_tableau_fixe(type_élément,
                                                              feuilles->expressions.taille());
+
+    return CodeRetourValidation::OK;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Expression « empl ».
+ * \{ */
+
+static NoeudDéclaration *donne_déclaration_employée(NoeudExpression *noeud)
+{
+    if (noeud->est_déclaration_variable()) {
+        return noeud->comme_déclaration_variable();
+    }
+
+    if (noeud->est_référence_déclaration()) {
+        return noeud->comme_référence_déclaration()->déclaration_référée;
+    }
+
+    return nullptr;
+}
+
+RésultatValidation Sémanticienne::valide_instruction_empl(NoeudInstructionEmpl *empl)
+{
+    auto déclaration_employée = donne_déclaration_employée(empl->expression);
+
+    if (déclaration_employée) {
+        if (déclaration_employée->est_déclaration_variable()) {
+            return valide_instruction_empl_déclaration(
+                empl, déclaration_employée->comme_déclaration_variable());
+        }
+
+        if (déclaration_employée->est_type_énum() || déclaration_employée->est_type_structure()) {
+            return valide_instruction_empl_énum(empl, déclaration_employée->comme_type_composé());
+        }
+    }
+
+    m_espace->rapporte_erreur(empl->expression, "Type d'expression invalide à droite de « empl ».")
+        .ajoute_message("Les expressions employables sont les déclarations de variables ou "
+                        "les déclarations de types énumérants.");
+    return CodeRetourValidation::Erreur;
+}
+
+RésultatValidation Sémanticienne::valide_instruction_empl_énum(
+    NoeudInstructionEmpl *empl, NoeudDéclarationTypeComposé *type_employé)
+{
+    if (!type_employé->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+        return Attente::sur_type(type_employé);
+    }
+
+    auto const est_structure = type_employé->est_type_structure();
+
+    empl->type = type_employé;
+
+    auto bloc_parent = empl->bloc_parent;
+
+    if (bloc_parent->type_bloc != TypeBloc::IMPÉRATIF &&
+        bloc_parent->type_bloc != TypeBloc::TYPE && bloc_parent->type_bloc != TypeBloc::MODULE) {
+        m_espace->rapporte_erreur(empl, "Emploie d'une énumération dans un bloc non-conforme");
+        return CodeRetourValidation::Erreur;
+    }
+
+    POUR_INDEX (type_employé->membres) {
+        if (it.drapeaux & MembreTypeComposé::EST_IMPLICITE) {
+            continue;
+        }
+
+        if (est_structure && (it.drapeaux & MembreTypeComposé::EST_CONSTANT) == 0) {
+            continue;
+        }
+
+        auto decl_existante = trouve_dans_bloc(
+            bloc_parent, it.nom, bloc_parent->bloc_parent, fonction_courante());
+
+        if (decl_existante) {
+            m_espace
+                ->rapporte_erreur(type_employé,
+                                  "Impossible d'employer la déclaration car une "
+                                  "déclaration avec le même nom qu'un de ses membres "
+                                  "existe déjà dans le bloc.")
+                .ajoute_message("La déclaration existante est :\n")
+                .ajoute_site(decl_existante)
+                .ajoute_message("Le membre en conflit est :\n")
+                .ajoute_site(it.decl);
+            return CodeRetourValidation::Erreur;
+        }
+
+        auto valeur_expression = ValeurExpression(it.valeur);
+        if (it.decl && it.decl->comme_déclaration_constante()->valeur_expression.est_valide()) {
+            valeur_expression = it.decl->comme_déclaration_constante()->valeur_expression;
+        }
+
+        auto decl = m_assembleuse->crée_déclaration_constante(
+            type_employé->lexème, it.expression_valeur_defaut, nullptr);
+        decl->ident = it.nom;
+        decl->type = it.type;
+        decl->bloc_parent = bloc_parent;
+        decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+        decl->valeur_expression = valeur_expression;
+        decl->genre_valeur = GenreValeur::DROITE;
+
+        bloc_parent->ajoute_membre(decl);
+    }
+
+    return CodeRetourValidation::OK;
+}
+
+RésultatValidation Sémanticienne::valide_instruction_empl_déclaration(
+    NoeudInstructionEmpl *empl, NoeudDéclarationVariable *decl)
+{
+    decl->drapeaux |= DrapeauxNoeud::EMPLOYE;
+
+    auto type_employé = decl->type;
+    empl->type = decl->type;
+
+    /* Permet le déréférencement de pointeur, mais uniquement sur un niveau. */
+    if (type_employé->est_type_pointeur() || type_employé->est_type_référence()) {
+        type_employé = type_déréférencé_pour(type_employé);
+    }
+
+    if (!type_employé->est_type_structure()) {
+        m_unité->espace
+            ->rapporte_erreur(decl,
+                              "Impossible d'employer une variable n'étant pas une structure.")
+            .ajoute_message("Le type de la variable est : ")
+            .ajoute_message(chaine_type(type_employé))
+            .ajoute_message(".\n\n");
+        return CodeRetourValidation::Erreur;
+    }
+
+    if (!type_employé->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+        return Attente::sur_type(type_employé);
+    }
+
+    auto type_structure = type_employé->comme_type_structure();
+
+    /* Pour les structures, prend le bloc_parent qui sera celui de la structure. */
+    auto bloc_parent = decl->bloc_parent;
+
+    /* Pour les fonctions, utilisent leurs blocs si le bloc_parent est le bloc_parent de la
+     * fonction (ce qui est le cas pour les paramètres...) */
+    if (fonction_courante() && bloc_parent == fonction_courante()->corps->bloc->bloc_parent) {
+        bloc_parent = fonction_courante()->corps->bloc;
+    }
+
+    POUR_INDEX (type_structure->membres) {
+        if (it.drapeaux & MembreTypeComposé::EST_CONSTANT) {
+            continue;
+        }
+
+        auto decl_existante = trouve_dans_bloc(
+            bloc_parent, it.nom, bloc_parent->bloc_parent, fonction_courante());
+
+        if (decl_existante) {
+            m_espace
+                ->rapporte_erreur(decl,
+                                  "Impossible d'employer la déclaration car une "
+                                  "déclaration avec le même nom qu'un de ses membres "
+                                  "existe déjà dans le bloc.")
+                .ajoute_message("La déclaration existante est :\n")
+                .ajoute_site(decl_existante)
+                .ajoute_message("Le membre en conflit est :\n")
+                .ajoute_site(it.decl);
+            return CodeRetourValidation::Erreur;
+        }
+
+        auto decl_membre = m_assembleuse->crée_déclaration_variable(
+            decl->lexème, nullptr, nullptr);
+        decl_membre->ident = it.nom;
+        decl_membre->type = it.type;
+        decl_membre->bloc_parent = bloc_parent;
+        decl_membre->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+        decl_membre->déclaration_vient_d_un_emploi = decl;
+        decl_membre->index_membre_employé = index_it;
+        decl_membre->expression = it.expression_valeur_defaut;
+        decl_membre->genre_valeur = GenreValeur::TRANSCENDANTALE;
+
+        bloc_parent->ajoute_membre(decl_membre);
+    }
 
     return CodeRetourValidation::OK;
 }

@@ -2,6 +2,7 @@ importe Chaine
 importe CodecDonnées
 importe Fondation
 importe Internet
+importe MIME
 importe SysFichier
 
 /* ------------------------------------------------------------------------- */
@@ -95,6 +96,27 @@ ajoute_entête :: fonc (request: *Request, nom: chaine, valeur: chaine)
 {
     entête := Header(nom, valeur)
     tableau_ajoute(*request.header_list, entête)
+}
+
+/* https://fetch.spec.whatwg.org/#subresource-request */
+is_subressource :: fonc (request: *Request) -> bool
+{
+    destinations := ["audio", "audioworklet", "font", "image", "json", "manifest", "paintworklet", "script", "style", "track", "video", "xslt", ""]
+    retourne tableau_possède_élément(destinations, request.destination)
+}
+
+/* https://fetch.spec.whatwg.org/#non-subresource-request */
+is_non_subressource :: fonc (request: *Request) -> bool
+{
+    destinations := ["document", "embed", "frame", "iframe", "object", "report", "serviceworker", "sharedworker", "worker"]
+    retourne tableau_possède_élément(destinations, request.destination)
+}
+
+/* https://fetch.spec.whatwg.org/#navigation-request */
+is_navigation :: fonc (request: *Request) -> bool
+{
+    destinations := ["document", "embed", "frame", "iframe", "object"]
+    retourne tableau_possède_élément(destinations, request.destination)
 }
 
 /** \} */
@@ -197,6 +219,28 @@ network_error :: fonc () -> *Response
     retourne résultat
 }
 
+/* https://fetch.spec.whatwg.org/#concept-aborted-network-error */
+aborted_network_error :: fonc () -> *Response
+{
+    résultat := network_error()
+    résultat.aborted_flag = vrai
+    retourne résultat
+}
+
+/* https://fetch.spec.whatwg.org/#appropriate-network-error */
+appropriate_network_error :: fonc (fetch_params: *FetchParams) -> *Response
+{
+    // 1. Assert: fetchParams is canceled.
+    assert(fetch_params.is_canceled())
+
+    // 2. Return an aborted network error if fetchParams is aborted; otherwise return a network error.
+    si fetch_params.is_aborted() {
+        retourne aborted_network_error()
+    }
+
+    retourne network_error()
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -292,6 +336,26 @@ détruit_fetch_params :: fonc (empl fetch_params: *FetchParams)
     }
 
     déloge(fetch_params)
+}
+
+/* https://fetch.spec.whatwg.org/#fetch-params-aborted */
+is_aborted :: fonc (fetch_params: *FetchParams) -> bool
+{
+    saufsi fetch_params.controller {
+        retourne faux
+    }
+    state := fetch_params.controller.state
+    retourne state == "aborted"
+}
+
+/* https://fetch.spec.whatwg.org/#fetch-params-canceled */
+is_canceled :: fonc (fetch_params: *FetchParams) -> bool
+{
+    saufsi fetch_params.controller {
+        retourne faux
+    }
+    state := fetch_params.controller.state
+    retourne state == "aborted" || state == "terminated"
 }
 
 /** \} */
@@ -489,10 +553,12 @@ fetch :: fonc (user_agent: *UserAgent,
     // 15. If request’s internal priority is null, then use request’s priority, initiator, destination, and render-blocking in an implementation-defined manner to set request’s internal priority to an implementation-defined object.
 
     // 16. If request is a subresource request, then:
-
+    // si request.is_subressource() {
+    //    imprime("À FAIRE : [request.is_subressource()]\n")
         // 1. Let record be a new fetch record whose request is request and controller is fetchParams’s controller.
 
         // 2. Append record to request’s client’s fetch group list of fetch records.
+    //}
 
     // 17. Run main fetch given fetchParams.
     _ := main_fetch(user_agent, fetch_params)
@@ -683,7 +749,10 @@ response_handover :: fonc (fetch_params: *FetchParams, response: *Response)
 
 scheme_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Response
 {
-    // À FAIRE 1. If fetchParams is canceled, then retun the appropriate network error for fetchParams.
+    // 1. If fetchParams is canceled, then retun the appropriate network error for fetchParams.
+    si fetch_params.is_canceled() {
+        retourne appropriate_network_error(fetch_params)
+    }
 
     // 2. Let request be fetchParams’s request.
     request := fetch_params.request
@@ -732,53 +801,21 @@ scheme_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Re
 
         /* À FAIRE : permissions. */
         si est_un_fichier_régulier(chemin) {
-            si chemin.extension() == ".html" {
-                contenu := contenu_fichier_texte(chemin)
+            type_mime := type_mime_pour_extension(chemin.extension())
 
-                response := loge(Response)
-                response.status = 200
+            contenu := contenu_fichier_texte(chemin)
 
-                body_info := loge(ResponseBodyInfo)
-                body_info.decodede_size = contenu.taille comme z32
-                body_info.content_type = "text/html"
+            response := loge(Response)
+            response.status = 200
 
-                response.body_info = body_info
-                response.body = contenu
+            body_info := loge(ResponseBodyInfo)
+            body_info.decodede_size = contenu.taille comme z32
+            body_info.content_type = type_mime
 
-                retourne response
-            }
+            response.body_info = body_info
+            response.body = contenu
 
-            si chemin.extension() == ".png" || chemin.extension() == ".jpg" || chemin.extension() == ".jpeg" {
-                contenu := contenu_fichier_texte(chemin)
-
-                response := loge(Response)
-                response.status = 200
-
-                body_info := loge(ResponseBodyInfo)
-                body_info.decodede_size = contenu.taille comme z32
-                body_info.content_type = "image/png" // XXX par extension
-
-                response.body_info = body_info
-                response.body = contenu
-
-                retourne response
-            }
-
-            si chemin.extension() == ".css" {
-                contenu := contenu_fichier_texte(chemin)
-
-                response := loge(Response)
-                response.status = 200
-
-                body_info := loge(ResponseBodyInfo)
-                body_info.decodede_size = contenu.taille comme z32
-                body_info.content_type = "text/css"
-
-                response.body_info = body_info
-                response.body = contenu
-
-                retourne response
-            }
+            retourne response
         }
 
         retourne network_error()
