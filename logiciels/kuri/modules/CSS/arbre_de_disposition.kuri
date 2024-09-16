@@ -251,8 +251,7 @@ opérateur < :: fonc (a: RèglesParIdentifiant, b: RèglesParIdentifiant) -> boo
 
 RésolveuseStyle :: struct {
     globales: *GlobalesDessin
-    /* À FAIRE(langage) : dépendance cyclique */
-    document: *rien
+    document: *HTML.Document
     taille_fonte_racine: r64
     feuilles_de_style: []*CSSStyleSheet
 
@@ -782,7 +781,7 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
 {
     /* https://www.w3.org/TR/2011/REC-CSS2-20110607/cascade.html#computed-value */
     ctx_calcul_style: ContexteCalculStyle
-    ctx_calcul_style.document = résolveuse.document comme *HTML.Document
+    ctx_calcul_style.document = résolveuse.document
     ctx_calcul_style.taille_fonte = résolveuse.globales.taille_fonte_défaut
     ctx_calcul_style.taille_fonte_racine = résolveuse.taille_fonte_racine
     ctx_calcul_style.propriétés = propriétés
