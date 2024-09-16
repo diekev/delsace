@@ -310,7 +310,8 @@ struct Sémanticienne {
         NoeudExpressionConstructionTableauTypé *tableau);
 
     RésultatValidation valide_instruction_empl(NoeudInstructionEmpl *empl);
-    RésultatValidation valide_instruction_empl_énum(NoeudInstructionEmpl *empl, NoeudEnum *énum);
+    RésultatValidation valide_instruction_empl_énum(NoeudInstructionEmpl *empl,
+                                                    NoeudDéclarationTypeComposé *type_employé);
     RésultatValidation valide_instruction_empl_déclaration(NoeudInstructionEmpl *empl,
                                                            NoeudDéclarationVariable *déclaration);
 };

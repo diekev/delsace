@@ -6998,8 +6998,8 @@ RésultatValidation Sémanticienne::valide_instruction_empl(NoeudInstructionEmpl
                 empl, déclaration_employée->comme_déclaration_variable());
         }
 
-        if (déclaration_employée->est_type_énum()) {
-            return valide_instruction_empl_énum(empl, déclaration_employée->comme_type_énum());
+        if (déclaration_employée->est_type_énum() || déclaration_employée->est_type_structure()) {
+            return valide_instruction_empl_énum(empl, déclaration_employée->comme_type_composé());
         }
     }
 
@@ -7009,14 +7009,14 @@ RésultatValidation Sémanticienne::valide_instruction_empl(NoeudInstructionEmpl
     return CodeRetourValidation::Erreur;
 }
 
-RésultatValidation Sémanticienne::valide_instruction_empl_énum(NoeudInstructionEmpl *empl,
-                                                               NoeudEnum *énum)
+RésultatValidation Sémanticienne::valide_instruction_empl_énum(
+    NoeudInstructionEmpl *empl, NoeudDéclarationTypeComposé *type_employé)
 {
-    auto type_employé = énum;
-
     if (!type_employé->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
         return Attente::sur_type(type_employé);
     }
+
+    auto const est_structure = type_employé->est_type_structure();
 
     empl->type = type_employé;
 
@@ -7030,6 +7030,10 @@ RésultatValidation Sémanticienne::valide_instruction_empl_énum(NoeudInstructi
 
     POUR_INDEX (type_employé->membres) {
         if (it.drapeaux & MembreTypeComposé::EST_IMPLICITE) {
+            continue;
+        }
+
+        if (est_structure && (it.drapeaux & MembreTypeComposé::EST_CONSTANT) == 0) {
             continue;
         }
 
@@ -7049,13 +7053,18 @@ RésultatValidation Sémanticienne::valide_instruction_empl_énum(NoeudInstructi
             return CodeRetourValidation::Erreur;
         }
 
+        auto valeur_expression = ValeurExpression(it.valeur);
+        if (it.decl && it.decl->comme_déclaration_constante()->valeur_expression.est_valide()) {
+            valeur_expression = it.decl->comme_déclaration_constante()->valeur_expression;
+        }
+
         auto decl = m_assembleuse->crée_déclaration_constante(
             type_employé->lexème, it.expression_valeur_defaut, nullptr);
         decl->ident = it.nom;
         decl->type = it.type;
         decl->bloc_parent = bloc_parent;
         decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-        decl->valeur_expression = it.valeur;
+        decl->valeur_expression = valeur_expression;
         decl->genre_valeur = GenreValeur::DROITE;
 
         bloc_parent->ajoute_membre(decl);

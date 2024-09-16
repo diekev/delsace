@@ -16,6 +16,7 @@ principale :: fonc () -> z32
     test_transtypage_référence_vers_bases_multiple_avec_indirection()
     test_emploi_variable_locale()
     test_emploi_énum()
+    test_emploi_structure()
     retourne 0
 }
 
@@ -564,6 +565,20 @@ test_emploi_énum :: fonc ()
 
     x := VALEUR1
     assert(x == Énum.VALEUR1)
+}
+
+test_emploi_structure :: fonc ()
+{
+    Structure :: struct {
+        VALEUR :: 123
+        x: z32
+    }
+
+    empl Structure
+
+    s: Structure
+    s.x = VALEUR
+    assert(s.x == 123)
 }
 
 /** \} */
