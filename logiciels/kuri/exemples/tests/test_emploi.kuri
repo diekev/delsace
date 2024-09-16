@@ -14,6 +14,7 @@ principale :: fonc () -> z32
     test_transtypage_vers_bases_multiple_avec_indirection()
     test_transtypage_référence_vers_bases_multiple()
     test_transtypage_référence_vers_bases_multiple_avec_indirection()
+    test_emploi_variable_locale()
     test_emploi_énum()
     retourne 0
 }
@@ -514,6 +515,35 @@ test_transtypage_référence_vers_bases_multiple_avec_indirection :: fonc ()
         assert(s.membre1 == "membre de base1")
         modifie_membre_base2_dérivé(réf_s)
         assert(s.membre2 == "membre de base2")
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Emploi de variable locale.
+ * \{ */
+
+test_emploi_variable_locale :: fonc ()
+{
+    Structure :: struct {
+        VALEUR :: 123
+        x: z32
+    }
+
+    {
+        empl s: Structure
+
+        x = 123
+        assert(s.x == 123)
+    }
+
+    {
+        s: Structure
+        empl s
+
+        x = 456
+        assert(s.x == 456)
     }
 }
 

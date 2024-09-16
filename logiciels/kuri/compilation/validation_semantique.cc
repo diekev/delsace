@@ -6975,16 +6975,32 @@ RésultatValidation Sémanticienne::valide_construction_tableau_typé(
 /** \name Expression « empl ».
  * \{ */
 
-RésultatValidation Sémanticienne::valide_instruction_empl(NoeudInstructionEmpl *empl)
+static NoeudDéclaration *donne_déclaration_employée(NoeudExpression *noeud)
 {
-    if (empl->expression->est_déclaration_variable()) {
-        return valide_instruction_empl_déclaration(empl);
+    if (noeud->est_déclaration_variable()) {
+        return noeud->comme_déclaration_variable();
     }
 
-    auto type = empl->expression->type;
-    if (type->est_type_type_de_données() && type->comme_type_type_de_données()->type_connu &&
-        type->comme_type_type_de_données()->type_connu->est_type_énum()) {
-        return valide_instruction_empl_énum(empl);
+    if (noeud->est_référence_déclaration()) {
+        return noeud->comme_référence_déclaration()->déclaration_référée;
+    }
+
+    return nullptr;
+}
+
+RésultatValidation Sémanticienne::valide_instruction_empl(NoeudInstructionEmpl *empl)
+{
+    auto déclaration_employée = donne_déclaration_employée(empl->expression);
+
+    if (déclaration_employée) {
+        if (déclaration_employée->est_déclaration_variable()) {
+            return valide_instruction_empl_déclaration(
+                empl, déclaration_employée->comme_déclaration_variable());
+        }
+
+        if (déclaration_employée->est_type_énum()) {
+            return valide_instruction_empl_énum(empl, déclaration_employée->comme_type_énum());
+        }
     }
 
     m_espace->rapporte_erreur(empl->expression, "Type d'expression invalide à droite de « empl ».")
@@ -6993,10 +7009,10 @@ RésultatValidation Sémanticienne::valide_instruction_empl(NoeudInstructionEmpl
     return CodeRetourValidation::Erreur;
 }
 
-RésultatValidation Sémanticienne::valide_instruction_empl_énum(NoeudInstructionEmpl *empl)
+RésultatValidation Sémanticienne::valide_instruction_empl_énum(NoeudInstructionEmpl *empl,
+                                                               NoeudEnum *énum)
 {
-    auto type_employé =
-        empl->expression->type->comme_type_type_de_données()->type_connu->comme_type_énum();
+    auto type_employé = énum;
 
     if (!type_employé->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
         return Attente::sur_type(type_employé);
@@ -7048,9 +7064,9 @@ RésultatValidation Sémanticienne::valide_instruction_empl_énum(NoeudInstructi
     return CodeRetourValidation::OK;
 }
 
-RésultatValidation Sémanticienne::valide_instruction_empl_déclaration(NoeudInstructionEmpl *empl)
+RésultatValidation Sémanticienne::valide_instruction_empl_déclaration(
+    NoeudInstructionEmpl *empl, NoeudDéclarationVariable *decl)
 {
-    auto decl = empl->expression->comme_déclaration_variable();
     decl->drapeaux |= DrapeauxNoeud::EMPLOYE;
 
     auto type_employé = decl->type;
