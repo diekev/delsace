@@ -308,4 +308,6 @@ struct Sémanticienne {
 
     RésultatValidation valide_construction_tableau_typé(
         NoeudExpressionConstructionTableauTypé *tableau);
+
+    RésultatValidation valide_instruction_empl(NoeudInstructionEmpl *empl);
 };
