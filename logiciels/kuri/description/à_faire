@@ -459,8 +459,6 @@ que les types de bases et dérivés
 
 utilisation d'un fichier "module.kuri" pour définir le contenu d'un module, les fichiers à charger
 
-emploie des énums "empl MonÉnum", pour directement accéder aux valeurs
-
 // Garde trace des espaces de noms, mais permet l'utilisation des membres via empl
 
 importe Fondation
@@ -592,7 +590,7 @@ considération des assertions statiques lors de la compilation de plusieurs espa
 - ajout d'expressions par défaut pour les déclarations de variables, si celles-ci ne sont pas explicitement marquées comme non-initialisées, pour simplifier la RI :
 -- comment pour les tableaux et les chaines ? (expression_tableau_vide, expression_tableau_chaine)
 
-- ajout de noeud pour les valeurs des énumérations si ceux-ci ne sont pas explicitement déclarés (pour permettre les emplois d'énumérations)
+- ajout de noeud pour les valeurs des énumérations si ceux-ci ne sont pas explicitement déclarés
 
 - variable_locales :: fonc () #compilatrice
     retourne une structure contenant les variables locales de la fonction qui sont visibles depuis l'appel
