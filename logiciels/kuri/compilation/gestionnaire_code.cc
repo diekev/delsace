@@ -1016,6 +1016,12 @@ void GestionnaireCode::ajoute_requêtes_pour_attente(EspaceDeTravail *espace, At
             requiers_typage(espace, decl);
         }
     }
+    else if (attente.est<AttenteSurTypeDéclaration>()) {
+        NoeudDéclaration *decl = attente.type_déclaration();
+        if (*donne_adresse_unité(decl) == nullptr) {
+            requiers_typage(espace, decl);
+        }
+    }
     else if (attente.est<AttenteSurInitialisationType>()) {
         auto type = const_cast<Type *>(attente.initialisation_type());
         requiers_initialisation_type(espace, type);
