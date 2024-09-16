@@ -26,6 +26,8 @@ ValeurDeStyle :: union {
     integer: r64
     number: r64
     percentage: r64
+    /* Valeur finale pour les longueurs, etc. */
+    pixels: r64
     text_decoration_line: TextDecorationLine
     line_style: LineStyle
     display: Display
@@ -94,6 +96,16 @@ opérateur == :: fonc (a: ValeurDeStyle, b: ValeurDeStyle) -> bool
             discr b {
                 number(nb) {
                     retourne nb == n
+                }
+                sinon {
+                    retourne faux
+                }
+            }
+        }
+        pixels(p) {
+            discr b {
+                pixels(pb) {
+                    retourne pb == p
                 }
                 sinon {
                     retourne faux
@@ -231,6 +243,18 @@ est_nombre :: fonc (valeur: ValeurDeStyle) -> bool
     }
 }
 
+est_pixels :: fonc (valeur: ValeurDeStyle) -> bool
+{
+    discr valeur {
+        pixels {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
 est_variable :: fonc (valeur: ValeurDeStyle) -> bool
 {
     discr valeur {
@@ -269,6 +293,9 @@ imprime_valeur_de_style :: fonc (enchaineuse: *Enchaineuse, valeur: *ValeurDeSty
             ajoute_au_tampon(enchaineuse, n)
         }
         percentage(p) {
+            ajoute_au_tampon(enchaineuse, p, "%")
+        }
+        pixels(p) {
             ajoute_au_tampon(enchaineuse, p, "%")
         }
         text_decoration_line(t) {
@@ -707,16 +734,16 @@ initialise_style :: fonc (style: *Style)
     style.valeurs[IDPropriété.Float] = ValeurDeStyle(mot_clé = PROP_none)
 
     /* Marges */
-    style.valeurs[IDPropriété.MarginBottom] = ValeurDeStyle(number = 0.0)
-    style.valeurs[IDPropriété.MarginLeft] = ValeurDeStyle(number = 0.0)
-    style.valeurs[IDPropriété.MarginRight] = ValeurDeStyle(number = 0.0)
-    style.valeurs[IDPropriété.MarginTop] = ValeurDeStyle(number = 0.0)
+    style.valeurs[IDPropriété.MarginBottom] = ValeurDeStyle(pixels = 0.0)
+    style.valeurs[IDPropriété.MarginLeft] = ValeurDeStyle(pixels = 0.0)
+    style.valeurs[IDPropriété.MarginRight] = ValeurDeStyle(pixels = 0.0)
+    style.valeurs[IDPropriété.MarginTop] = ValeurDeStyle(pixels = 0.0)
 
     /* Padding */
-    style.valeurs[IDPropriété.PaddingBottom] = ValeurDeStyle(number = 0.0)
-    style.valeurs[IDPropriété.PaddingLeft] = ValeurDeStyle(number = 0.0)
-    style.valeurs[IDPropriété.PaddingRight] = ValeurDeStyle(number = 0.0)
-    style.valeurs[IDPropriété.PaddingTop] = ValeurDeStyle(number = 0.0)
+    style.valeurs[IDPropriété.PaddingBottom] = ValeurDeStyle(pixels = 0.0)
+    style.valeurs[IDPropriété.PaddingLeft] = ValeurDeStyle(pixels = 0.0)
+    style.valeurs[IDPropriété.PaddingRight] = ValeurDeStyle(pixels = 0.0)
+    style.valeurs[IDPropriété.PaddingTop] = ValeurDeStyle(pixels = 0.0)
 
     style.valeurs[IDPropriété.Color] = CouleurRVBAN8(0, 0, 0, 255)
     style.valeurs[IDPropriété.BackgroundColor] = CouleurRVBAN8(0, 0, 0, 0)
@@ -738,10 +765,10 @@ initialise_style :: fonc (style: *Style)
     style.valeurs[IDPropriété.BorderColorRight] = ValeurDeStyle(mot_clé = PROP_currentColor)
     style.valeurs[IDPropriété.BorderColorTop] = ValeurDeStyle(mot_clé = PROP_currentColor)
 
-    style.valeurs[IDPropriété.BorderBottomLeftRadius] = ValeurDeStyle(number = 0.0)
-    style.valeurs[IDPropriété.BorderBottomRightRadius] = ValeurDeStyle(number = 0.0)
-    style.valeurs[IDPropriété.BorderTopLeftRadius] = ValeurDeStyle(number = 0.0)
-    style.valeurs[IDPropriété.BorderTopRightRadius] = ValeurDeStyle(number = 0.0)
+    style.valeurs[IDPropriété.BorderBottomLeftRadius] = ValeurDeStyle(pixels = 0.0)
+    style.valeurs[IDPropriété.BorderBottomRightRadius] = ValeurDeStyle(pixels = 0.0)
+    style.valeurs[IDPropriété.BorderTopLeftRadius] = ValeurDeStyle(pixels = 0.0)
+    style.valeurs[IDPropriété.BorderTopRightRadius] = ValeurDeStyle(pixels = 0.0)
 
     /* Font */
     style.valeurs[IDPropriété.FontFamily] = ValeurDeStyle(mot_clé = PROP_serif)
@@ -756,10 +783,10 @@ initialise_style :: fonc (style: *Style)
 
     /* Tailles */
     style.valeurs[IDPropriété.Width] = ValeurDeStyle(mot_clé = PROP_auto)
-    style.valeurs[IDPropriété.MinWidth] = ValeurDeStyle(number = 0.0)
+    style.valeurs[IDPropriété.MinWidth] = ValeurDeStyle(pixels = 0.0)
     style.valeurs[IDPropriété.MaxWidth] = ValeurDeStyle(mot_clé = PROP_none)
     style.valeurs[IDPropriété.Height] = ValeurDeStyle(mot_clé = PROP_auto)
-    style.valeurs[IDPropriété.MinHeight] = ValeurDeStyle(number = 0.0)
+    style.valeurs[IDPropriété.MinHeight] = ValeurDeStyle(pixels = 0.0)
     style.valeurs[IDPropriété.MaxHeight] = ValeurDeStyle(mot_clé = PROP_none)
 
     style.valeurs[IDPropriété.LineHeight] = ValeurDeStyle(mot_clé = PROP_normal)
@@ -1083,13 +1110,13 @@ calcule_valeur_propriété_générique :: fonc (valeur: ValeurDeStyle, genre_val
             }
             si genre_valeur_calculée.BorderWidth {
                 si m == PROP_thin {
-                    retourne ValeurDeStyle(number = 1.0)
+                    retourne ValeurDeStyle(pixels = 1.0)
                 }
                 si m == PROP_medium {
-                    retourne ValeurDeStyle(number = 3.0)
+                    retourne ValeurDeStyle(pixels = 3.0)
                 }
                 si m == PROP_thick {
-                    retourne ValeurDeStyle(number = 5.0)
+                    retourne ValeurDeStyle(pixels = 5.0)
                 }
                 retourne
             }
@@ -1207,22 +1234,31 @@ calcule_valeur_propriété_générique :: fonc (valeur: ValeurDeStyle, genre_val
         }
         longueur(l) {
             si genre_valeur_calculée.LongueurAbsolue || genre_valeur_calculée.LongueurPourcentage || genre_valeur_calculée.BorderWidth || genre_valeur_calculée.Nombre {
-                retourne ValeurDeStyle(number = calcule_longueur(l, ctx))
+                retourne ValeurDeStyle(pixels = calcule_longueur(l, ctx))
             }
         }
         integer(i) {
-            si genre_valeur_calculée.LongueurAbsolue || genre_valeur_calculée.LongueurPourcentage || genre_valeur_calculée.BorderWidth || genre_valeur_calculée.Nombre {
+            si genre_valeur_calculée.Nombre {
                 retourne ValeurDeStyle(number = i)
             }
+            si genre_valeur_calculée.LongueurAbsolue || genre_valeur_calculée.LongueurPourcentage || genre_valeur_calculée.BorderWidth {
+                retourne ValeurDeStyle(pixels = i)
+            }
         }
-        number {
-            si genre_valeur_calculée.LongueurAbsolue || genre_valeur_calculée.LongueurPourcentage || genre_valeur_calculée.BorderWidth || genre_valeur_calculée.Nombre {
+        number(n) {
+            si genre_valeur_calculée.Nombre {
                 retourne valeur
             }
+            si genre_valeur_calculée.LongueurAbsolue || genre_valeur_calculée.LongueurPourcentage || genre_valeur_calculée.BorderWidth {
+                retourne ValeurDeStyle(pixels = n)
+            }
+        }
+        pixels {
+            retourne valeur
         }
         percentage(p) {
             si genre_valeur_calculée.FontSize {
-                retourne ValeurDeStyle(number = ctx.taille_fonte * p / 100.0)
+                retourne ValeurDeStyle(pixels = ctx.taille_fonte * p / 100.0)
             }
 
             si genre_valeur_calculée.LongueurPourcentage {
@@ -1394,7 +1430,7 @@ calcule_font_size_pour_mot_clé :: fonc (m: CSSOMString, ctx: *ContexteCalculSty
         panique(message)
     }
 
-    retourne ValeurDeStyle(number = taille_fonte)
+    retourne ValeurDeStyle(pixels = taille_fonte)
 }
 
 /* À FAIRE : direction du flux */

@@ -245,6 +245,12 @@ dernier_mode: ModeImmédiat
 dernier_nuanceur: *NuanceurGL
 dernière_fonte: *Fonte
 
+réinitialise_données :: fonc ()
+{
+    dernier_nuanceur = nul
+    dernière_fonte = nul
+}
+
 commence_immédiat :: fonc (mode: ModeImmédiat, nuanceur: *NuanceurGL, fonte : *Fonte = nul)
 {
     si mode != dernier_mode || nuanceur != dernier_nuanceur || fonte != dernière_fonte || num_sommets_immédiat == MAX_SOMMETS_IMMÉDIAT {
@@ -932,6 +938,11 @@ image_immédiat :: fonc (params: *ParamètresTexture2D, rect_image: RectanglePos
 
 dernier_mode_id: ModeImmédiat
 dernier_nuanceur_id: *NuanceurGL
+
+réinitialise_données_id :: fonc ()
+{
+    dernier_nuanceur_id = nul
+}
 
 commence_immédiat_id :: fonc (mode: ModeImmédiat, nuanceur: *NuanceurGL)
 {
