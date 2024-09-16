@@ -1,12 +1,5 @@
 importe Fondation
 importe Internet
-importe Temps
-
-/* https://w3c.github.io/hr-time/#dfn-unsafe-shared-current-time */
-unsafe_shared_current_time :: fonc () -> Instantané
-{
-    retourne maintenant()
-}
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#nested-history */
 NestedHistory :: struct {
@@ -682,7 +675,8 @@ crée_browsing_context_et_document :: fonc (creator: *Document, embedder: *Élé
 
     // À FAIRE 17. Assert: document's URL and document's relevant settings object's creation URL are about:blank.
 
-    // À FAIRE 18. Mark document as ready for post-load tasks.
+    // 18. Mark document as ready for post-load tasks.
+    mark_as_ready_for_post_load_tasks(document)
 
     // 19. Populate with html/head/body given document.
     populate_with_html_head_body(document)
@@ -690,7 +684,8 @@ crée_browsing_context_et_document :: fonc (creator: *Document, embedder: *Élé
     // 20. Make active document.
     make_active(document)
 
-    // À FAIRE 21. Completely finish loading document.
+    // 21. Completely finish loading document.
+    completely_finish_loading(document)
 
     // 22. Return browsingContext and document.
     retourne browsing_context, document
