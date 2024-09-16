@@ -414,3 +414,13 @@ tableau_remplace :: fonc (tableau: *[..]$T, valeur: T, nouvelle_valeur: T)
         tmp.pointeur[index_it] = nouvelle_valeur
     }
 }
+
+tableau_possède_élément :: fonc (tableau: []$T, valeur: T) -> bool
+{
+    pour tableau {
+        si it == valeur {
+            retourne vrai
+        }
+    }
+    retourne faux
+}

@@ -622,9 +622,25 @@ void QT_gui_application_restaure_curseur()
 /** \name QT_Style
  * \{ */
 
+static QStyle::StandardPixmap convertis_standard_pixmap(QT_Standard_Pixmap standard_icon)
+{
+    switch (standard_icon) {
+        ENUMERE_STANDARD_PIXMAP(ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT)
+    }
+    return QStyle::SP_TitleBarMenuButton;
+}
+
 QT_Style *QT_application_donne_style()
 {
     return vers_ipa(QApplication::style());
+}
+
+QT_Icon *QT_style_donne_standard_icon(QT_Style *style, QT_Standard_Pixmap standard_icon)
+{
+    VERS_QT(style);
+    auto icon = qstyle->standardIcon(convertis_standard_pixmap(standard_icon));
+    auto résultat = new QIcon(icon);
+    return vers_ipa(résultat);
 }
 
 /** \} */
@@ -1661,6 +1677,12 @@ void QT_widget_accepte_drop(union QT_Generic_Widget widget, bool ouinon)
 {
     VERS_QT(widget);
     qwidget->setAcceptDrops(ouinon);
+}
+
+QT_Style *QT_widget_donne_style(union QT_Generic_Widget widget)
+{
+    VERS_QT(widget);
+    return vers_ipa(qwidget->style());
 }
 
 /** \} */

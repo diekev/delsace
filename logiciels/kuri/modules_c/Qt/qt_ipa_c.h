@@ -520,7 +520,87 @@ void QT_gui_application_restaure_curseur();
 /** \name QT_Style
  * \{ */
 
+#define ENUMERE_STANDARD_PIXMAP(O)                                                                \
+    O(QT_STANDARD_PIXMAP_TitleBarMenuButton, QStyle::SP_TitleBarMenuButton)                       \
+    O(QT_STANDARD_PIXMAP_TitleBarMinButton, QStyle::SP_TitleBarMinButton)                         \
+    O(QT_STANDARD_PIXMAP_TitleBarMaxButton, QStyle::SP_TitleBarMaxButton)                         \
+    O(QT_STANDARD_PIXMAP_TitleBarCloseButton, QStyle::SP_TitleBarCloseButton)                     \
+    O(QT_STANDARD_PIXMAP_TitleBarNormalButton, QStyle::SP_TitleBarNormalButton)                   \
+    O(QT_STANDARD_PIXMAP_TitleBarShadeButton, QStyle::SP_TitleBarShadeButton)                     \
+    O(QT_STANDARD_PIXMAP_TitleBarUnshadeButton, QStyle::SP_TitleBarUnshadeButton)                 \
+    O(QT_STANDARD_PIXMAP_TitleBarContextHelpButton, QStyle::SP_TitleBarContextHelpButton)         \
+    O(QT_STANDARD_PIXMAP_DockWidgetCloseButton, QStyle::SP_DockWidgetCloseButton)                 \
+    O(QT_STANDARD_PIXMAP_MessageBoxInformation, QStyle::SP_MessageBoxInformation)                 \
+    O(QT_STANDARD_PIXMAP_MessageBoxWarning, QStyle::SP_MessageBoxWarning)                         \
+    O(QT_STANDARD_PIXMAP_MessageBoxCritical, QStyle::SP_MessageBoxCritical)                       \
+    O(QT_STANDARD_PIXMAP_MessageBoxQuestion, QStyle::SP_MessageBoxQuestion)                       \
+    O(QT_STANDARD_PIXMAP_DesktopIcon, QStyle::SP_DesktopIcon)                                     \
+    O(QT_STANDARD_PIXMAP_TrashIcon, QStyle::SP_TrashIcon)                                         \
+    O(QT_STANDARD_PIXMAP_ComputerIcon, QStyle::SP_ComputerIcon)                                   \
+    O(QT_STANDARD_PIXMAP_DriveFDIcon, QStyle::SP_DriveFDIcon)                                     \
+    O(QT_STANDARD_PIXMAP_DriveHDIcon, QStyle::SP_DriveHDIcon)                                     \
+    O(QT_STANDARD_PIXMAP_DriveCDIcon, QStyle::SP_DriveCDIcon)                                     \
+    O(QT_STANDARD_PIXMAP_DriveDVDIcon, QStyle::SP_DriveDVDIcon)                                   \
+    O(QT_STANDARD_PIXMAP_DriveNetIcon, QStyle::SP_DriveNetIcon)                                   \
+    O(QT_STANDARD_PIXMAP_DirOpenIcon, QStyle::SP_DirOpenIcon)                                     \
+    O(QT_STANDARD_PIXMAP_DirClosedIcon, QStyle::SP_DirClosedIcon)                                 \
+    O(QT_STANDARD_PIXMAP_DirLinkIcon, QStyle::SP_DirLinkIcon)                                     \
+    O(QT_STANDARD_PIXMAP_DirLinkOpenIcon, QStyle::SP_DirLinkOpenIcon)                             \
+    O(QT_STANDARD_PIXMAP_FileIcon, QStyle::SP_FileIcon)                                           \
+    O(QT_STANDARD_PIXMAP_FileLinkIcon, QStyle::SP_FileLinkIcon)                                   \
+    O(QT_STANDARD_PIXMAP_ToolBarHorizontalExtensionButton,                                        \
+      QStyle::SP_ToolBarHorizontalExtensionButton)                                                \
+    O(QT_STANDARD_PIXMAP_ToolBarVerticalExtensionButton,                                          \
+      QStyle::SP_ToolBarVerticalExtensionButton)                                                  \
+    O(QT_STANDARD_PIXMAP_FileDialogStart, QStyle::SP_FileDialogStart)                             \
+    O(QT_STANDARD_PIXMAP_FileDialogEnd, QStyle::SP_FileDialogEnd)                                 \
+    O(QT_STANDARD_PIXMAP_FileDialogToParent, QStyle::SP_FileDialogToParent)                       \
+    O(QT_STANDARD_PIXMAP_FileDialogNewFolder, QStyle::SP_FileDialogNewFolder)                     \
+    O(QT_STANDARD_PIXMAP_FileDialogDetailedView, QStyle::SP_FileDialogDetailedView)               \
+    O(QT_STANDARD_PIXMAP_FileDialogInfoView, QStyle::SP_FileDialogInfoView)                       \
+    O(QT_STANDARD_PIXMAP_FileDialogContentsView, QStyle::SP_FileDialogContentsView)               \
+    O(QT_STANDARD_PIXMAP_FileDialogListView, QStyle::SP_FileDialogListView)                       \
+    O(QT_STANDARD_PIXMAP_FileDialogBack, QStyle::SP_FileDialogBack)                               \
+    O(QT_STANDARD_PIXMAP_DirIcon, QStyle::SP_DirIcon)                                             \
+    O(QT_STANDARD_PIXMAP_DialogOkButton, QStyle::SP_DialogOkButton)                               \
+    O(QT_STANDARD_PIXMAP_DialogCancelButton, QStyle::SP_DialogCancelButton)                       \
+    O(QT_STANDARD_PIXMAP_DialogHelpButton, QStyle::SP_DialogHelpButton)                           \
+    O(QT_STANDARD_PIXMAP_DialogOpenButton, QStyle::SP_DialogOpenButton)                           \
+    O(QT_STANDARD_PIXMAP_DialogSaveButton, QStyle::SP_DialogSaveButton)                           \
+    O(QT_STANDARD_PIXMAP_DialogCloseButton, QStyle::SP_DialogCloseButton)                         \
+    O(QT_STANDARD_PIXMAP_DialogApplyButton, QStyle::SP_DialogApplyButton)                         \
+    O(QT_STANDARD_PIXMAP_DialogResetButton, QStyle::SP_DialogResetButton)                         \
+    O(QT_STANDARD_PIXMAP_DialogDiscardButton, QStyle::SP_DialogDiscardButton)                     \
+    O(QT_STANDARD_PIXMAP_DialogYesButton, QStyle::SP_DialogYesButton)                             \
+    O(QT_STANDARD_PIXMAP_DialogNoButton, QStyle::SP_DialogNoButton)                               \
+    O(QT_STANDARD_PIXMAP_ArrowUp, QStyle::SP_ArrowUp)                                             \
+    O(QT_STANDARD_PIXMAP_ArrowDown, QStyle::SP_ArrowDown)                                         \
+    O(QT_STANDARD_PIXMAP_ArrowLeft, QStyle::SP_ArrowLeft)                                         \
+    O(QT_STANDARD_PIXMAP_ArrowRight, QStyle::SP_ArrowRight)                                       \
+    O(QT_STANDARD_PIXMAP_ArrowBack, QStyle::SP_ArrowBack)                                         \
+    O(QT_STANDARD_PIXMAP_ArrowForward, QStyle::SP_ArrowForward)                                   \
+    O(QT_STANDARD_PIXMAP_DirHomeIcon, QStyle::SP_DirHomeIcon)                                     \
+    O(QT_STANDARD_PIXMAP_CommandLink, QStyle::SP_CommandLink)                                     \
+    O(QT_STANDARD_PIXMAP_VistaShield, QStyle::SP_VistaShield)                                     \
+    O(QT_STANDARD_PIXMAP_BrowserReload, QStyle::SP_BrowserReload)                                 \
+    O(QT_STANDARD_PIXMAP_BrowserStop, QStyle::SP_BrowserStop)                                     \
+    O(QT_STANDARD_PIXMAP_MediaPlay, QStyle::SP_MediaPlay)                                         \
+    O(QT_STANDARD_PIXMAP_MediaStop, QStyle::SP_MediaStop)                                         \
+    O(QT_STANDARD_PIXMAP_MediaPause, QStyle::SP_MediaPause)                                       \
+    O(QT_STANDARD_PIXMAP_MediaSkipForward, QStyle::SP_MediaSkipForward)                           \
+    O(QT_STANDARD_PIXMAP_MediaSkipBackward, QStyle::SP_MediaSkipBackward)                         \
+    O(QT_STANDARD_PIXMAP_MediaSeekForward, QStyle::SP_MediaSeekForward)                           \
+    O(QT_STANDARD_PIXMAP_MediaSeekBackward, QStyle::SP_MediaSeekBackward)                         \
+    O(QT_STANDARD_PIXMAP_MediaVolume, QStyle::SP_MediaVolume)                                     \
+    O(QT_STANDARD_PIXMAP_MediaVolumeMuted, QStyle::SP_MediaVolumeMuted)                           \
+    O(QT_STANDARD_PIXMAP_LineEditClearButton, QStyle::SP_LineEditClearButton)
+
+enum QT_Standard_Pixmap { ENUMERE_STANDARD_PIXMAP(ENUMERE_DECLARATION_ENUM_IPA) };
+
 struct QT_Style *QT_application_donne_style();
+
+struct QT_Icon *QT_style_donne_standard_icon(struct QT_Style *style,
+                                             enum QT_Standard_Pixmap standard_icon);
 
 /** \} */
 
@@ -1667,6 +1747,8 @@ void QT_widget_definis_comportement_focus(union QT_Generic_Widget widget,
                                           enum QT_Focus_Policy policy);
 
 void QT_widget_accepte_drop(union QT_Generic_Widget widget, bool ouinon);
+
+struct QT_Style *QT_widget_donne_style(union QT_Generic_Widget widget);
 
 /** \} */
 

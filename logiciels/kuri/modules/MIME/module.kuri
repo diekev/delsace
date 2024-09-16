@@ -1,6 +1,8 @@
 importe Chaine
 
 MIME_application_octet_stream :: "application/octet-stream"
+MIME_image_jpeg :: "image/jpeg"
+MIME_image_png :: "image/png"
 MIME_text_css :: "text/css"
 MIME_text_html :: "text/html"
 MIME_text_javascript :: "text/javascript"
@@ -58,13 +60,29 @@ est_type_mime_javascript :: fonc (chn: ChaineUTF16Unique) -> bool
 
 est_type_mime_image :: fonc (content_type: chaine) -> bool
 {
-    retourne content_type == "image/jpeg" || content_type == "image/png"
+    retourne content_type == MIME_image_jpeg || content_type == MIME_image_png
 }
 
 type_mime_pour_extension :: fonc (extension: chaine) -> chaine
 {
-    si extension == ".pdf" {
+    si compare_ascii_insensible_à_la_casse(extension, ".pdf") {
         retourne "application/pdf"
+    }
+
+    si compare_ascii_insensible_à_la_casse(extension, ".html") || compare_ascii_insensible_à_la_casse(extension, ".htm") {
+        retourne MIME_text_html
+    }
+
+    si compare_ascii_insensible_à_la_casse(extension, ".css") {
+        retourne MIME_text_css
+    }
+
+    si compare_ascii_insensible_à_la_casse(extension, ".jpeg") || compare_ascii_insensible_à_la_casse(extension, ".jpg") {
+        retourne MIME_image_jpeg
+    }
+
+    si compare_ascii_insensible_à_la_casse(extension, ".png") {
+        retourne MIME_image_png
     }
 
     retourne MIME_application_octet_stream

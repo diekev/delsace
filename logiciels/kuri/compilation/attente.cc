@@ -205,6 +205,55 @@ InfoTypeAttente info_type_attente_sur_déclaration = {NOM_RAPPEL_POUR_UNITÉ(dé
 /** \} */
 
 /** -----------------------------------------------------------------
+ * AttenteSurTypeDeclaration
+ * \{ */
+
+RAPPEL_POUR_UNITÉ(type_déclaration)
+{
+    auto adresse = donne_adresse_unité(attente.type_déclaration());
+    if (adresse) {
+        return *adresse;
+    }
+    return nullptr;
+}
+
+RAPPEL_POUR_COMMENTAIRE(type_déclaration)
+{
+    return enchaine("(type decl) ", attente.type_déclaration()->ident->nom);
+}
+
+RAPPEL_POUR_EST_RÉSOLUE(type_déclaration)
+{
+    auto déclaration_attendue = attente.type_déclaration();
+    return déclaration_attendue->type != nullptr;
+}
+
+RAPPEL_POUR_ERREUR(type_déclaration)
+{
+    auto espace = unité->espace;
+    auto decl = attente.type_déclaration();
+    auto unité_decl = donne_adresse_unité(decl);
+    auto erreur = espace->rapporte_erreur(
+        decl, "Je ne peux pas continuer la compilation car une déclaration ne peut être typée.");
+
+    // À FAIRE : ne devrait pas arriver
+    if (unité_decl && *unité_decl) {
+        erreur.ajoute_message("Note : l'unité de compilation est dans cette état :\n")
+            .ajoute_message(unité->chaine_attentes_récursives())
+            .ajoute_message("\n");
+    }
+}
+
+InfoTypeAttente info_type_attente_sur_type_déclaration = {
+    NOM_RAPPEL_POUR_UNITÉ(type_déclaration),
+    condition_blocage_défaut,
+    NOM_RAPPEL_POUR_COMMENTAIRE(type_déclaration),
+    NOM_RAPPEL_POUR_EST_RÉSOLUE(type_déclaration),
+    NOM_RAPPEL_POUR_ERREUR(type_déclaration)};
+
+/** \} */
+
+/** -----------------------------------------------------------------
  * AttenteSurOpérateur
  * \{ */
 

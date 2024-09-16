@@ -246,6 +246,8 @@ AddEventListenerOptions :: struct {
 #portée_module
 
 TableVirtuelleEventTarget :: struct {
+    /* Type de l'objet associé à cette table. */
+    classe: type_de_données
     /* Appelé quand la cible est détruite. */
     sur_destruction: fonc(*EventTarget)(rien)
     /* https://dom.spec.whatwg.org/#get-the-parent */
