@@ -942,7 +942,11 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, haut
     /* À FAIRE : ceci peut changer mais comment est encore inconnue. */
     html.pseudo_classes.Root = vrai
 
-    crée_noeud_pour_élément(résolveuse, résultat, nul, html)
+    créatrice: CréatriceArbre
+    créatrice.arbre = résultat
+    créatrice.résolveuse = résolveuse
+
+    crée_noeud_pour_élément(*créatrice, nul, html)
     résultat.racine = html.noeud_de_disposition
 
     // imprime("Créé % noeud(s)\n", résultat.noeuds.taille)
@@ -975,7 +979,12 @@ dispose_arbre :: fonc (globales: *GlobalesDessin, arbre: *ArbreDeDisposition, la
     // imprime("taille arbre : %x%\n", résultat.racine.largeur, résultat.racine.hauteur)
 }
 
-crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *ArbreDeDisposition, parent: *NoeudDeDisposition, noeud: *HTML.Noeud)
+CréatriceArbre :: struct {
+    résolveuse: *RésolveuseStyle
+    arbre: *ArbreDeDisposition
+}
+
+crée_noeud_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *NoeudDeDisposition, noeud: *HTML.Noeud)
 {
     si HTML.est_texte(noeud) {
         /* Les textes doivent une boite inline anonyme autour d'eux. */
@@ -1045,7 +1054,7 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
     }
 
     pour noeud.enfants {
-        crée_noeud_pour_élément(résolveuse, arbre, résultat, it)
+        crée_noeud_pour_élément(créatrice, résultat, it)
     }
 
     si résultat.type != NoeudDeDispositionBloc && résultat.type != NoeudDeDispositionInline {
