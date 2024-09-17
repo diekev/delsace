@@ -392,7 +392,14 @@ commence_par_lettre_stockage_windows :: fonc (chn: ChaineUTF16) -> bool
 /* À FAIRE : encoding */
 basic_url_parser :: fonc (input: ChaineUTF16, base : *URL = nul, url : *URL = nul, state_override : *ÉtatParsageURL = nul) -> *URL
 {
-    // imprime("[%] %\n", #nom_de_cette_fonction, input)
+    // si base {
+    //     chn_base := url_serializer(base)
+    //     diffère déloge(chn_base)
+    //     imprime("[%] %, base = %\n", #nom_de_cette_fonction, input, chn_base)
+    // }
+    // sinon {
+    //     imprime("[%] %\n", #nom_de_cette_fonction, input)
+    // }
 
     résultat := url
 
