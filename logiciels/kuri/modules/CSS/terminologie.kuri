@@ -445,6 +445,13 @@ COL_SelectedItem : CSSOMString = ---
 COL_SelectedItemText : CSSOMString = ---
 COL_VisitedText : CSSOMString = ---
 
+/* Préfixes vendeurs (p.e. "-moz-" pour Mozilla). */
+PRV_khtml : CSSOMString = ---
+PRV_moz : CSSOMString = ---
+PRV_ms : CSSOMString = ---
+PRV_o : CSSOMString = ---
+PRV_webkit : CSSOMString = ---
+
 /* Ceci doit être après les tags, car nous l'utilions comme sentinelle dans le
  * métaprogramme plus bas. */
 
@@ -479,6 +486,12 @@ génère_fonction_pour_tags :: fonc (pour_impression: bool) -> chaine
 
         si it.texte == "terminologie_initialisée" {
             arrête
+        }
+
+        si it.texte.commence_par("PRV_") {
+            nom_tag := it.texte.avance(4)
+            ajoute_au_tampon(*enchaineuse, "    ", it.texte, " = crée_chaine_utf16_unique(\"-", nom_tag, "-\")\n")
+            continue
         }
 
         nom_tag: chaine
