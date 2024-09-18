@@ -1894,6 +1894,8 @@ class SyntaxeuseRI : public BaseSyntaxeuseRI<SyntaxeuseRI> {
     kuri::table_hachage<IdentifiantCode *, AtomeGlobale *> m_table_globales{"table_globales"};
     kuri::table_hachage<IdentifiantCode *, AtomeFonction *> m_table_fonctions{"table_fonctions"};
 
+    kuri::tableau<AtomeFonction *> m_fonctions{};
+
     AtomeFonction *m_fonction_courante = nullptr;
     int32_t m_décalage_instructions = 0;
 
@@ -1941,6 +1943,11 @@ class SyntaxeuseRI : public BaseSyntaxeuseRI<SyntaxeuseRI> {
     }
 
     EMPECHE_COPIE(SyntaxeuseRI);
+
+    kuri::tableau_statique<AtomeFonction *> donne_fonctions() const
+    {
+        return m_fonctions;
+    }
 
     /* Types. */
     Type *crée_type_pointeur(Lexème const *lexème, Type *type_pointé)
@@ -2293,6 +2300,8 @@ class SyntaxeuseRI : public BaseSyntaxeuseRI<SyntaxeuseRI> {
             return;
         }
 
+        m_fonctions.ajoute(fonction);
+
         auto types_entrées = kuri::tablet<Type *, 6>();
 
         POUR (données_fonction.paramètres) {
@@ -2627,6 +2636,10 @@ int main(int argc, char **argv)
     auto registre_symbolique = RegistreSymboliqueRI(typeuse);
     SyntaxeuseRI syntaxeuse(&fichier, typeuse, registre_symbolique, pré_syntaxeuse);
     syntaxeuse.analyse();
+
+    POUR (syntaxeuse.donne_fonctions()) {
+        dbg() << imprime_fonction(it);
+    }
 
     return 0;
 }
