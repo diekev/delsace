@@ -1,0 +1,16 @@
+fonction principale() -> __ret0 z32
+label 0
+  %a = alloue z32
+  stocke *z32 %a, z32 0
+  %4 = charge *z32 %a
+  stocke *z32 %__ret0, z32 %4
+  %6 = charge *z32 %__ret0
+  retourne z32 %6
+
+-------------------------------
+
+fonction principale() -> __ret0 z32
+label 0
+  stocke *z32 %__ret0, z32 0
+  %3 = charge *z32 %__ret0
+  retourne z32 %3

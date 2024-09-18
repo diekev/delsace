@@ -2601,6 +2601,33 @@ class SyntaxeuseRI : public BaseSyntaxeuseRI<SyntaxeuseRI> {
 
 /** \} */
 
+static bool est_espace_blanche(char c)
+{
+    return c == ' ' || c == '\t' || c == '\n';
+}
+
+static kuri::chaine supprime_espaces_blanches_autour(kuri::chaine_statique chaine)
+{
+    auto début = int64_t(0);
+    auto fin = chaine.taille();
+
+    for (auto i = 0; i < chaine.taille(); i++) {
+        if (!est_espace_blanche(chaine.pointeur()[i])) {
+            break;
+        }
+        début += 1;
+    }
+
+    for (auto i = chaine.taille() - 1; i >= 0; i--) {
+        if (!est_espace_blanche(chaine.pointeur()[i])) {
+            break;
+        }
+        fin -= 1;
+    }
+
+    return chaine.sous_chaine(début, fin);
+}
+
 int main(int argc, char **argv)
 {
     if (argc < 2) {
@@ -2618,8 +2645,32 @@ int main(int argc, char **argv)
     auto texte = charge_contenu_fichier(
         {chemin_fichier_ri.pointeur(), chemin_fichier_ri.taille()});
 
+    auto tampon = lng::tampon_source(texte.c_str());
+
+    Enchaineuse enchaineuse;
+
+    kuri::chaine texte_source;
+    kuri::chaine texte_résultat;
+
+    for (auto i = 0; i < tampon.nombre_lignes(); i++) {
+        auto ligne = tampon[i];
+
+        if (ligne.taille() > 4) {
+            auto sous_chaine = dls::vue_chaine(ligne.begin(), 4);
+            if (sous_chaine == "----") {
+                texte_source = supprime_espaces_blanches_autour(enchaineuse.chaine());
+                enchaineuse.réinitialise();
+                continue;
+            }
+        }
+
+        enchaineuse << ligne;
+    }
+
+    texte_résultat = supprime_espaces_blanches_autour(enchaineuse.chaine());
+
     Fichier fichier;
-    fichier.tampon_ = lng::tampon_source(texte.c_str());
+    fichier.tampon_ = lng::tampon_source(dls::chaine(texte_source.begin(), texte_source.end()));
     fichier.chemin_ = "";
 
     ArgumentsCompilatrice arguments;
@@ -2647,16 +2698,26 @@ int main(int argc, char **argv)
         &fichier, compilatrice.typeuse, *compilatrice.registre_ri, pré_syntaxeuse);
     syntaxeuse.analyse();
 
-    POUR (syntaxeuse.donne_fonctions()) {
-        dbg() << imprime_fonction(it);
-    }
+    //    POUR (syntaxeuse.donne_fonctions()) {
+    //        dbg() << imprime_fonction(it);
+    //    }
 
     auto contexte_analyse = ContexteAnalyseRI();
 
     POUR (syntaxeuse.donne_fonctions()) {
         contexte_analyse.analyse_ri(
             *compilatrice.espace_de_travail_defaut, syntaxeuse.donne_constructrice(), it);
-        dbg() << imprime_fonction(it);
+
+        auto résultat = supprime_espaces_blanches_autour(imprime_fonction(it));
+
+        if (résultat != texte_résultat) {
+            dbg() << "Erreur : différence dans la sortie\n";
+            dbg() << "Obtenu :\n";
+            dbg() << résultat;
+            dbg() << "Voulu :\n";
+            dbg() << texte_résultat;
+            return 1;
+        }
     }
 
     return 0;
