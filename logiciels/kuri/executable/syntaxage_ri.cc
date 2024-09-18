@@ -8,6 +8,8 @@
 
 #include "arbre_syntaxique/assembleuse.hh"
 
+#include "compilation/compilatrice.hh"
+#include "compilation/espace_de_travail.hh"
 #include "compilation/graphe_dependance.hh"
 #include "compilation/operateurs.hh"
 #include "compilation/typage.hh"
@@ -18,6 +20,7 @@
 #include "parsage/lexeuse.hh"
 #include "parsage/modules.hh"
 
+#include "representation_intermediaire/analyse.hh"
 #include "representation_intermediaire/constructrice_ri.hh"
 #include "representation_intermediaire/impression.hh"
 
@@ -1949,6 +1952,11 @@ class SyntaxeuseRI : public BaseSyntaxeuseRI<SyntaxeuseRI> {
         return m_fonctions;
     }
 
+    ConstructriceRI &donne_constructrice()
+    {
+        return m_constructrice;
+    }
+
     /* Types. */
     Type *crée_type_pointeur(Lexème const *lexème, Type *type_pointé)
     {
@@ -2614,9 +2622,12 @@ int main(int argc, char **argv)
     fichier.tampon_ = lng::tampon_source(texte.c_str());
     fichier.chemin_ = "";
 
-    auto gérante_chaine = dls::outils::Synchrone<GeranteChaine>();
-    auto table_identifiants = dls::outils::Synchrone<TableIdentifiant>();
-    auto contexte_lexage = ContexteLexage{gérante_chaine, table_identifiants, imprime_erreur};
+    ArgumentsCompilatrice arguments;
+    arguments.importe_kuri = false;
+    auto compilatrice = Compilatrice("", arguments);
+
+    auto contexte_lexage = ContexteLexage{
+        compilatrice.gérante_chaine, compilatrice.table_identifiants, imprime_erreur};
 
     Lexeuse lexeuse(contexte_lexage, &fichier);
     lexeuse.performe_lexage();
@@ -2625,10 +2636,6 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    auto graphe_dépendances = dls::outils::Synchrone<GrapheDépendance>();
-    auto registre_opérateurs = dls::outils::Synchrone<RegistreDesOpérateurs>();
-    Typeuse typeuse(graphe_dépendances, registre_opérateurs);
-
     PrésyntaxeuseRI pré_syntaxeuse(&fichier);
     pré_syntaxeuse.analyse();
 
@@ -2636,11 +2643,19 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    auto registre_symbolique = RegistreSymboliqueRI(typeuse);
-    SyntaxeuseRI syntaxeuse(&fichier, typeuse, registre_symbolique, pré_syntaxeuse);
+    SyntaxeuseRI syntaxeuse(
+        &fichier, compilatrice.typeuse, *compilatrice.registre_ri, pré_syntaxeuse);
     syntaxeuse.analyse();
 
     POUR (syntaxeuse.donne_fonctions()) {
+        dbg() << imprime_fonction(it);
+    }
+
+    auto contexte_analyse = ContexteAnalyseRI();
+
+    POUR (syntaxeuse.donne_fonctions()) {
+        contexte_analyse.analyse_ri(
+            *compilatrice.espace_de_travail_defaut, syntaxeuse.donne_constructrice(), it);
         dbg() << imprime_fonction(it);
     }
 
