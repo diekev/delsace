@@ -374,6 +374,21 @@ void BaseSyntaxeuseRI<Impl>::analyse_union(bool est_nonsûre)
 
     /* Nom de l'union. */
     auto données = parse_type_nominal();
+    auto union_anonyme = false;
+
+    while (apparie(GenreLexème::BARRE)) {
+        union_anonyme = true;
+        consomme();
+
+        données = parse_type_nominal();
+    }
+
+    if (union_anonyme) {
+        if (apparie(GenreLexème::POINT_VIRGULE)) {
+            consomme();
+        }
+        return;
+    }
 
     CONSOMME_LEXEME(EGAL, "Attendu « = » après le nom de l'union.");
     CONSOMME_LEXEME(ACCOLADE_OUVRANTE,
