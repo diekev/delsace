@@ -2307,7 +2307,7 @@ class SyntaxeuseRI : public BaseSyntaxeuseRI<SyntaxeuseRI> {
         m_fonction_courante = fonction;
         m_constructrice.définis_fonction_courante(fonction);
 
-        dbg() << fonction->nom;
+        // dbg() << fonction->nom;
     }
 
     void termine_fonction()
