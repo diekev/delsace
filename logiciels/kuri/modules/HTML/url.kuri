@@ -210,16 +210,33 @@ donne_origin :: fonc (url: URI) -> Origin
     retourne crée_nouvelle_origin_opaque()
 }
 
+/* https://url.spec.whatwg.org/#shorten-a-urls-path */
 shorten_path :: fonc (url: *URL)
 {
+    // 1. Assert: url does not have an opaque path.
+    assert(!url.possède_chemin_opaque())
+
+    // 2. Let path be url’s path.
+    path: [..]chaine
     discr url.path {
         Path(p) {
-            segment := enlève_dernier_élément(*p)
-            déloge_si_logée(segment)
-            url.path = p
+            path = p
         }
         sinon {}
     }
+
+    // 3. If url’s scheme is "file", path’s size is 1, and path[0] is a normalized Windows drive letter, then return.
+    si url.scheme == "file" && path.taille == 1 && est_lettre_stockage_windows_normalisée(path[0]) {
+        retourne
+    }
+
+    // 4. Remove path’s last item, if any.
+    si path.taille > 0 {
+        segment := enlève_dernier_élément(*path)
+        déloge_si_logée(segment)
+    }
+
+    url.path = path
 }
 
 /* https://url.spec.whatwg.org/#special-scheme */
@@ -375,7 +392,14 @@ commence_par_lettre_stockage_windows :: fonc (chn: ChaineUTF16) -> bool
 /* À FAIRE : encoding */
 basic_url_parser :: fonc (input: ChaineUTF16, base : *URL = nul, url : *URL = nul, state_override : *ÉtatParsageURL = nul) -> *URL
 {
-    // imprime("[%] %\n", #nom_de_cette_fonction, input)
+    // si base {
+    //     chn_base := url_serializer(base)
+    //     diffère déloge(chn_base)
+    //     imprime("[%] %, base = %\n", #nom_de_cette_fonction, input, chn_base)
+    // }
+    // sinon {
+    //     imprime("[%] %\n", #nom_de_cette_fonction, input)
+    // }
 
     résultat := url
 
