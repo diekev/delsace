@@ -1511,7 +1511,17 @@ donne_info_type_pour_nom :: fonc (ctx: *ContexteParsageFeuilleDeStyle, nom: CSSO
 {
     résultat := donne_info_type_pour_nom(nom)
     saufsi résultat {
-        ensemble_ajoute(*ctx.propriétés_non_supportées, nom)
+        préfixes_vendeurs := [PRV_khtml, PRV_moz, PRV_ms, PRV_o, PRV_webkit]
+
+        pour préfixes_vendeurs {
+            préfixe := it.donne_chaine_utf16()
+            si est_préfixe_de(préfixe, nom.donne_chaine_utf16()) {
+                arrête
+            }
+        }
+        sansarrêt {
+            ensemble_ajoute(*ctx.propriétés_non_supportées, nom)
+        }
     }
     retourne résultat
 }
