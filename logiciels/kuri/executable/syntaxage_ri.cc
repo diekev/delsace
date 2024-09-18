@@ -2293,15 +2293,19 @@ class SyntaxeuseRI : public BaseSyntaxeuseRI<SyntaxeuseRI> {
             return;
         }
 
+        auto types_entrées = kuri::tablet<Type *, 6>();
+
         POUR (données_fonction.paramètres) {
             auto alloc = m_constructrice.crée_allocation(nullptr, it.type, it.nom->ident, true);
             fonction->params_entrée.ajoute(alloc);
+            types_entrées.ajoute(it.type);
         }
 
         fonction->param_sortie = m_constructrice.crée_allocation(
             nullptr, données_fonction.type_retour, données_fonction.nom_retour->ident, true);
 
-        /* À FAIRE : type fonction. */
+        fonction->type = m_typeuse.type_fonction(
+            types_entrées, données_fonction.type_retour, false);
 
         m_décalage_instructions = fonction->numérote_instructions();
         m_fonction_courante = fonction;
