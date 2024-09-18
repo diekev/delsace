@@ -2300,6 +2300,9 @@ class SyntaxeuseRI : public BaseSyntaxeuseRI<SyntaxeuseRI> {
             return;
         }
 
+        auto decl = m_assembleuse.crée_entête_fonction(données_fonction.nom);
+        fonction->decl = decl;
+
         m_fonctions.ajoute(fonction);
 
         auto types_entrées = kuri::tablet<Type *, 6>();
