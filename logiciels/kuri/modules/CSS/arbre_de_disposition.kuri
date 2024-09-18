@@ -942,7 +942,11 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, haut
     /* À FAIRE : ceci peut changer mais comment est encore inconnue. */
     html.pseudo_classes.Root = vrai
 
-    crée_noeud_pour_élément(résolveuse, résultat, nul, html)
+    créatrice: CréatriceArbre
+    créatrice.arbre = résultat
+    créatrice.résolveuse = résolveuse
+
+    crée_noeud_pour_élément(*créatrice, nul, html)
     résultat.racine = html.noeud_de_disposition
 
     // imprime("Créé % noeud(s)\n", résultat.noeuds.taille)
@@ -975,7 +979,12 @@ dispose_arbre :: fonc (globales: *GlobalesDessin, arbre: *ArbreDeDisposition, la
     // imprime("taille arbre : %x%\n", résultat.racine.largeur, résultat.racine.hauteur)
 }
 
-crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *ArbreDeDisposition, parent: *NoeudDeDisposition, noeud: *HTML.Noeud)
+CréatriceArbre :: struct {
+    résolveuse: *RésolveuseStyle
+    arbre: *ArbreDeDisposition
+}
+
+crée_noeud_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *NoeudDeDisposition, noeud: *HTML.Noeud)
 {
     si HTML.est_texte(noeud) {
         /* Les textes doivent une boite inline anonyme autour d'eux. */
@@ -1045,99 +1054,10 @@ crée_noeud_pour_élément :: fonc (résolveuse: *RésolveuseStyle, arbre: *Arbr
     }
 
     pour noeud.enfants {
-        crée_noeud_pour_élément(résolveuse, arbre, résultat, it)
+        crée_noeud_pour_élément(créatrice, résultat, it)
     }
 
-    si résultat.type != NoeudDeDispositionBloc && résultat.type != NoeudDeDispositionInline {
-        retourne
-    }
-
-    noeud_disposition := résultat comme *NoeudDeDispositionBloc
-
-    /* Crée des blocs anonymes pour envelopper les blocs inlines si au moins un enfant est un bloc.
-     * Voir définition de "block container box" :
-     * https://www.w3.org/TR/2011/REC-CSS2-20110607/visuren.html#block-boxes */
-    doit_formatter_en_blocs := faux
-
-    pour noeud_disposition.enfants {
-        si it.est_block_level() {
-            doit_formatter_en_blocs = vrai
-            arrête
-        }
-    }
-
-    noeud_disposition.est_disposition_inline = doit_formatter_en_blocs == faux
-
-    saufsi noeud_disposition.est_disposition_inline {
-        si noeud_disposition.type == NoeudDeDispositionInline {
-            assert(parent != nul)
-
-            /* When an inline box contains an in-flow block-level box, the inline box (and its
-             * inline ancestors within the same line box) are broken around the block-level
-             * box (and any block-level siblings that are consecutive or separated only by
-             * collapsible whitespace and/or out-of-flow elements), splitting the inline box
-             * into two boxes (even if either side is empty), one on each side of the
-             * block-level box(es). The line boxes before the break and after the break are
-             * enclosed in anonymous block boxes, and the block-level box becomes a sibling of
-             * those anonymous boxes. When such an inline box is affected by relative
-             * positioning, any resulting translation also affects the block-level box
-             * contained in the inline box.
-             *
-             * À FAIRE : récursion
-             *
-             * https://www.w3.org/TR/2011/REC-CSS2-20110607/visuren.html#anonymous-block-level */
-            anciens_enfants := noeud_disposition.enfants
-            diffère déloge(anciens_enfants)
-
-            noeud_inline_courant := noeud_disposition
-            noeud_inline_courant.enfants.pointeur = nul
-            noeud_inline_courant.enfants.taille = 0
-            noeud_inline_courant.enfants.capacité = 0
-
-            pour anciens_enfants {
-                si it.est_block_level() {
-                    parent.ajoute_enfant(it)
-                    noeud_inline_courant = nul
-                    continue
-                }
-
-                si noeud_inline_courant == nul {
-                    noeud_inline_courant = arbre.crée_noeud(NoeudDeDispositionInline)
-                    noeud_inline_courant.parent = noeud_disposition
-                    noeud_inline_courant.est_disposition_inline = vrai
-                    crée_style_pour_bloc_anonyme(résolveuse, noeud_inline_courant, noeud_disposition, Display.Type.Inline)
-                    parent.ajoute_enfant(noeud_inline_courant)
-                }
-
-                noeud_inline_courant.ajoute_enfant(it)
-            }
-        }
-        sinon {
-            nouveaux_enfants: [..]*NoeudDeDisposition
-
-            bloc_anonyme_courant: *NoeudDeDispositionBloc
-            pour noeud_disposition.enfants {
-                si it.est_block_level() {
-                    tableau_ajoute(*nouveaux_enfants, it)
-                    bloc_anonyme_courant = nul
-                    continue
-                }
-
-                si bloc_anonyme_courant == nul {
-                    bloc_anonyme_courant = arbre.crée_noeud(NoeudDeDispositionBloc)
-                    bloc_anonyme_courant.parent = noeud_disposition
-                    bloc_anonyme_courant.est_disposition_inline = vrai
-                    crée_style_pour_bloc_anonyme(résolveuse, bloc_anonyme_courant, noeud_disposition, Display.Type.Block)
-                    tableau_ajoute(*nouveaux_enfants, bloc_anonyme_courant)
-                }
-
-                bloc_anonyme_courant.ajoute_enfant(it)
-            }
-
-            déloge(noeud_disposition.enfants)
-            noeud_disposition.enfants = nouveaux_enfants
-        }
-    }
+    corrige_hiérarchie(résultat, créatrice)
 }
 
 /** \} */
@@ -1557,6 +1477,7 @@ NoeudDeDisposition :: struct {
     sur_dessin_tampon_id: fonc (*NoeudDeDisposition, *ContexteDessin)(rien)
     sur_dessin_fragment_tampon_id: fonc (*NoeudDeDisposition, *Fragment, *ContexteDessin)(rien)
     sur_divise_en_lignes: fonc (*NoeudDeDisposition, *Enligneuse, *ContexteDeFormattage)(rien)
+    sur_correction_hiérarchie: fonc(*NoeudDeDisposition, *CréatriceArbre)(rien)
 }
 
 donne_propriétés :: fonc (noeud: *NoeudDeDisposition) -> *PropriétésDeStyle
@@ -1791,6 +1712,13 @@ divise_en_lignes :: fonc (noeud: *NoeudDeDisposition, enligneuse: *Enligneuse, c
 
     pour noeud.enfants {
         divise_en_lignes(it, enligneuse, ctx)
+    }
+}
+
+corrige_hiérarchie :: fonc (noeud: *NoeudDeDisposition, créatrice: *CréatriceArbre)
+{
+    si noeud.sur_correction_hiérarchie {
+        noeud.sur_correction_hiérarchie(noeud, créatrice)
     }
 }
 
@@ -2111,6 +2039,7 @@ NoeudDeDispositionBloc :: struct {
     sur_mesure = noeud_disposition_bloc_sur_mesure
     sur_dessin = noeud_disposition_bloc_sur_dessin
     sur_dessin_tampon_id = noeud_disposition_bloc_sur_dessin_tampon_id
+    sur_correction_hiérarchie = noeud_disposition_bloc_corrige_hiérarchie
 
     élément: *HTML.Élément
 
@@ -2127,6 +2056,23 @@ détruit_lignes :: fonc (noeud: *NoeudDeDispositionBloc)
 réinitialise_lignes :: fonc (noeud: *NoeudDeDispositionBloc)
 {
     réinitialise(*noeud.lignes_tenante)
+}
+
+détermine_disposition_interne :: fonc (noeud: *NoeudDeDispositionBloc)
+{
+    /* Crée des blocs anonymes pour envelopper les blocs inlines si au moins un enfant est un bloc.
+     * Voir définition de "block container box" :
+     * https://www.w3.org/TR/2011/REC-CSS2-20110607/visuren.html#block-boxes */
+    doit_formatter_en_blocs := faux
+
+    pour noeud.enfants {
+        si it.est_block_level() {
+            doit_formatter_en_blocs = vrai
+            arrête
+        }
+    }
+
+    noeud.est_disposition_inline = doit_formatter_en_blocs == faux
 }
 
 formatte_intérieur :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDeFormattage)
@@ -2313,6 +2259,40 @@ dessine_tampon_id_enfants_inline :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *
     }
 }
 
+noeud_disposition_bloc_corrige_hiérarchie :: fonc (base: *NoeudDeDisposition, créatrice: *CréatriceArbre)
+{
+    noeud := base comme *NoeudDeDispositionBloc
+    détermine_disposition_interne(noeud)
+
+    si noeud.est_disposition_inline {
+        retourne
+    }
+
+    nouveaux_enfants: [..]*NoeudDeDisposition
+
+    bloc_anonyme_courant: *NoeudDeDispositionBloc
+    pour noeud.enfants {
+        si it.est_block_level() {
+            tableau_ajoute(*nouveaux_enfants, it)
+            bloc_anonyme_courant = nul
+            continue
+        }
+
+        si bloc_anonyme_courant == nul {
+            bloc_anonyme_courant = créatrice.arbre.crée_noeud(NoeudDeDispositionBloc)
+            bloc_anonyme_courant.parent = noeud
+            bloc_anonyme_courant.est_disposition_inline = vrai
+            crée_style_pour_bloc_anonyme(créatrice.résolveuse, bloc_anonyme_courant, noeud, Display.Type.Block)
+            tableau_ajoute(*nouveaux_enfants, bloc_anonyme_courant)
+        }
+
+        bloc_anonyme_courant.ajoute_enfant(it)
+    }
+
+    déloge(noeud.enfants)
+    noeud.enfants = nouveaux_enfants
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -2328,6 +2308,7 @@ NoeudDeDispositionInline :: struct {
     sur_dessin_fragment = noeud_disposition_inline_sur_dessin_fragment
     sur_divise_en_lignes = noeud_disposition_inline_sur_divise_en_lignes
     sur_dessin_tampon_id = noeud_disposition_inline_sur_dessin_tampon_id
+    sur_correction_hiérarchie = noeud_disposition_inline_corrige_hiérarchie
 }
 
 noeud_disposition_inline_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage)
@@ -2443,6 +2424,58 @@ noeud_disposition_inline_sur_dessin_tampon_id :: fonc (base: *NoeudDeDisposition
     noeud := base comme *NoeudDeDispositionInline
     ctx.remplis_rectangle_id(noeud)
     dessine_tampon_id_enfants_inline(noeud, ctx)
+}
+
+noeud_disposition_inline_corrige_hiérarchie :: fonc (base: *NoeudDeDisposition, créatrice: *CréatriceArbre)
+{
+    noeud := base comme *NoeudDeDispositionInline
+    détermine_disposition_interne(noeud)
+
+    si noeud.est_disposition_inline {
+        retourne
+    }
+
+    assert(noeud.parent != nul)
+
+    /* When an inline box contains an in-flow block-level box, the inline box (and its
+     * inline ancestors within the same line box) are broken around the block-level
+     * box (and any block-level siblings that are consecutive or separated only by
+     * collapsible whitespace and/or out-of-flow elements), splitting the inline box
+     * into two boxes (even if either side is empty), one on each side of the
+     * block-level box(es). The line boxes before the break and after the break are
+     * enclosed in anonymous block boxes, and the block-level box becomes a sibling of
+     * those anonymous boxes. When such an inline box is affected by relative
+     * positioning, any resulting translation also affects the block-level box
+     * contained in the inline box.
+     *
+     * À FAIRE : récursion
+     *
+     * https://www.w3.org/TR/2011/REC-CSS2-20110607/visuren.html#anonymous-block-level */
+    anciens_enfants := noeud.enfants
+    diffère déloge(anciens_enfants)
+
+    noeud_inline_courant := noeud
+    noeud_inline_courant.enfants.pointeur = nul
+    noeud_inline_courant.enfants.taille = 0
+    noeud_inline_courant.enfants.capacité = 0
+
+    pour anciens_enfants {
+        si it.est_block_level() {
+            noeud.parent.ajoute_enfant(it)
+            noeud_inline_courant = nul
+            continue
+        }
+
+        si noeud_inline_courant == nul {
+            noeud_inline_courant = créatrice.arbre.crée_noeud(NoeudDeDispositionInline)
+            noeud_inline_courant.parent = noeud
+            noeud_inline_courant.est_disposition_inline = vrai
+            crée_style_pour_bloc_anonyme(créatrice.résolveuse, noeud_inline_courant, noeud, Display.Type.Inline)
+            noeud.parent.ajoute_enfant(noeud_inline_courant)
+        }
+
+        noeud_inline_courant.ajoute_enfant(it)
+    }
 }
 
 /** \} */
@@ -2633,6 +2666,7 @@ NoeudDeDispositionRemplacement :: struct {
     sur_mesure = noeud_disposition_remplacement_sur_mesure
     sur_divise_en_lignes = noeud_disposition_remplacement_sur_divise_en_lignes
     sur_dessin_tampon_id = noeud_disposition_remplacement_sur_dessin_tampon_id
+    sur_correction_hiérarchie = nul
 
     /* Rappels spécifiques. */
     sur_calcul_dimensions_intrinsèques: fonc(*NoeudDeDispositionRemplacement,*ContexteDeFormattage)(rien)
