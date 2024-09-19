@@ -123,6 +123,20 @@ install(
 
 ################################################################################
 
+add_executable(test_fsau
+    test_fsau.cc
+)
+
+target_include_directories(test_fsau PUBLIC "${INCLUSIONS}")
+
+target_link_libraries(test_fsau "${BIBLIOTHEQUES}")
+
+install(
+    TARGETS test_fsau RUNTIME DESTINATION ${RACINE_INSTALLATION}
+)
+
+################################################################################
+
 if(AVEC_LLVM)
     set(NOM_PROJET parcer)
 
