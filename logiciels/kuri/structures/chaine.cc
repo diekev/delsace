@@ -125,4 +125,31 @@ int64_t distance_levenshtein(chaine_statique const &chn1, chaine_statique const 
     return couts[n];
 }
 
+static bool est_espace_blanche(char c)
+{
+    return c == ' ' || c == '\t' || c == '\n';
+}
+
+kuri::chaine supprime_espaces_blanches_autour(kuri::chaine_statique chaine)
+{
+    auto début = int64_t(0);
+    auto fin = chaine.taille();
+
+    for (auto i = 0; i < chaine.taille(); i++) {
+        if (!est_espace_blanche(chaine.pointeur()[i])) {
+            break;
+        }
+        début += 1;
+    }
+
+    for (auto i = chaine.taille() - 1; i >= 0; i--) {
+        if (!est_espace_blanche(chaine.pointeur()[i])) {
+            break;
+        }
+        fin -= 1;
+    }
+
+    return chaine.sous_chaine(début, fin);
+}
+
 }  // namespace kuri
