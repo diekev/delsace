@@ -380,6 +380,9 @@ void PrésyntaxeuseRI::débute_fonction(const Fonction &fonction)
 {
     m_données_préparsage.fonctions.ajoute(fonction);
 
+    /* À FAIRE : n'incrémente que si le type n'est pas « rien ». */
+    numéro_instruction_courante = fonction.paramètres.taille() + 1;
+
 #ifdef IMPRIME_RI
     numéro_instruction_courante = 0;
 
@@ -389,7 +392,6 @@ void PrésyntaxeuseRI::débute_fonction(const Fonction &fonction)
     POUR (fonction.paramètres) {
         std::cerr << virgule << it.nom << " " << chaine_type(it.type);
         virgule = ", ";
-        numéro_instruction_courante++;
     }
 
     if (fonction.paramètres.est_vide()) {
@@ -397,8 +399,6 @@ void PrésyntaxeuseRI::débute_fonction(const Fonction &fonction)
     }
 
     std::cerr << ") -> " << chaine_type(fonction.type_retour) << "\n";
-    /* À FAIRE : n'incrémente que si le type n'est pas « rien ». */
-    numéro_instruction_courante++;
 #endif
 }
 
@@ -411,6 +411,7 @@ void PrésyntaxeuseRI::termine_fonction()
 
 void PrésyntaxeuseRI::crée_allocation(const LexèmesType &type, IdentifiantCode *ident)
 {
+    numéro_instruction_courante++;
 #ifdef IMPRIME_RI
     imprime_numéro_instruction(true, ident);
     std::cerr << "alloue " << chaine_type(type) << '\n';
@@ -420,6 +421,7 @@ void PrésyntaxeuseRI::crée_allocation(const LexèmesType &type, IdentifiantCod
 void PrésyntaxeuseRI::crée_appel(const DescriptionAtome &atome_fonction,
                                  kuri::tableau_statique<DescriptionAtome> arguments)
 {
+    numéro_instruction_courante++;
 #ifdef IMPRIME_RI
     imprime_numéro_instruction(true);
     std::cerr << "appel ";
@@ -441,6 +443,7 @@ void PrésyntaxeuseRI::crée_appel(const DescriptionAtome &atome_fonction,
 
 void PrésyntaxeuseRI::crée_branche(uint64_t cible)
 {
+    numéro_instruction_courante++;
 #ifdef IMPRIME_RI
     imprime_numéro_instruction(false);
     std::cerr << "branche %" << cible << '\n';
@@ -449,6 +452,7 @@ void PrésyntaxeuseRI::crée_branche(uint64_t cible)
 
 void PrésyntaxeuseRI::crée_charge(const DescriptionAtome &valeur)
 {
+    numéro_instruction_courante++;
 #ifdef IMPRIME_RI
     imprime_numéro_instruction(true);
     std::cerr << "charge " << valeur << '\n';
@@ -457,6 +461,7 @@ void PrésyntaxeuseRI::crée_charge(const DescriptionAtome &valeur)
 
 void PrésyntaxeuseRI::crée_index(const DescriptionAtome &indexé, const DescriptionAtome &valeur)
 {
+    numéro_instruction_courante++;
 #ifdef IMPRIME_RI
     imprime_numéro_instruction(true);
     std::cerr << "index " << indexé << ", " << valeur << '\n';
@@ -465,14 +470,20 @@ void PrésyntaxeuseRI::crée_index(const DescriptionAtome &indexé, const Descri
 
 void PrésyntaxeuseRI::crée_label(uint64_t index)
 {
+    auto données = Fonction::DonnéesLabel{};
+    données.index = index;
+    données.numéro = numéro_instruction_courante++;
+
+    m_données_préparsage.fonctions.dernier_élément().labels.ajoute(données);
+
 #ifdef IMPRIME_RI
-    numéro_instruction_courante++;
     std::cerr << "label " << index << '\n';
 #endif
 }
 
 void PrésyntaxeuseRI::crée_membre(const DescriptionAtome &valeur, uint64_t index)
 {
+    numéro_instruction_courante++;
 #ifdef IMPRIME_RI
     imprime_numéro_instruction(true);
     std::cerr << "membre " << valeur << ", " << index << '\n';
@@ -481,6 +492,7 @@ void PrésyntaxeuseRI::crée_membre(const DescriptionAtome &valeur, uint64_t ind
 
 void PrésyntaxeuseRI::crée_retourne(const DescriptionAtome &valeur)
 {
+    numéro_instruction_courante++;
 #ifdef IMPRIME_RI
     imprime_numéro_instruction(false);
     std::cerr << "retourne";
@@ -493,6 +505,7 @@ void PrésyntaxeuseRI::crée_retourne(const DescriptionAtome &valeur)
 
 void PrésyntaxeuseRI::crée_si(const DescriptionAtome &prédicat, uint64_t si_vrai, uint64_t si_faux)
 {
+    numéro_instruction_courante++;
 #ifdef IMPRIME_RI
     imprime_numéro_instruction(false);
     std::cerr << "si " << prédicat << " alors %" << si_vrai << " sinon %" << si_faux << '\n';
@@ -501,6 +514,7 @@ void PrésyntaxeuseRI::crée_si(const DescriptionAtome &prédicat, uint64_t si_v
 
 void PrésyntaxeuseRI::crée_stocke(const DescriptionAtome &cible, const DescriptionAtome &valeur)
 {
+    numéro_instruction_courante++;
 #ifdef IMPRIME_RI
     imprime_numéro_instruction(false);
     std::cerr << "stocke " << cible << ", " << valeur << '\n';
@@ -511,6 +525,7 @@ void PrésyntaxeuseRI::crée_transtype(IdentifiantCode *ident,
                                      const DescriptionAtome &valeur,
                                      const LexèmesType &type)
 {
+    numéro_instruction_courante++;
 #ifdef IMPRIME_RI
     imprime_numéro_instruction(true);
     std::cerr << ident->nom << " " << valeur << " vers " << chaine_type(type) << '\n';
@@ -520,6 +535,7 @@ void PrésyntaxeuseRI::crée_transtype(IdentifiantCode *ident,
 void PrésyntaxeuseRI::crée_opérateur_unaire(OpérateurUnaire::Genre genre,
                                             const DescriptionAtome &opérande)
 {
+    numéro_instruction_courante++;
 #ifdef IMPRIME_RI
     imprime_numéro_instruction(true);
     std::cerr << chaine_pour_genre_op(genre) << ' ' << opérande << '\n';
@@ -530,6 +546,7 @@ void PrésyntaxeuseRI::crée_opérateur_binaire(OpérateurBinaire::Genre genre,
                                              const DescriptionAtome &gauche,
                                              const DescriptionAtome &droite)
 {
+    numéro_instruction_courante++;
 #ifdef IMPRIME_RI
     imprime_numéro_instruction(true);
     std::cerr << chaine_pour_genre_op(genre) << ' ' << gauche << ", " << droite << '\n';
@@ -538,6 +555,7 @@ void PrésyntaxeuseRI::crée_opérateur_binaire(OpérateurBinaire::Genre genre,
 
 void PrésyntaxeuseRI::crée_inatteignable()
 {
+    numéro_instruction_courante++;
 #ifdef IMPRIME_RI
     imprime_numéro_instruction(false);
     std::cerr << "inatteignable\n";
@@ -550,15 +568,12 @@ void PrésyntaxeuseRI::imprime_numéro_instruction(bool numérote, IdentifiantCo
     std::cerr << "  ";
     if (numérote) {
         if (ident) {
-            numéro_instruction_courante++;
             std::cerr << "%" << ident->nom << " = ";
         }
         else {
-            std::cerr << "%" << numéro_instruction_courante++ << " = ";
+            /* -1 car nous incrémentons avant d'appeler. */
+            std::cerr << "%" << numéro_instruction_courante - 1 << " = ";
         }
-    }
-    else {
-        numéro_instruction_courante++;
     }
 }
 #endif
@@ -573,7 +588,8 @@ SyntaxeuseRI::SyntaxeuseRI(Fichier *fichier,
                            Typeuse &typeuse,
                            RegistreSymboliqueRI &registre,
                            PrésyntaxeuseRI &pré_syntaxeuse)
-    : BaseSyntaxeuseRI(fichier), m_typeuse(typeuse), m_constructrice(typeuse, registre)
+    : BaseSyntaxeuseRI(fichier), m_typeuse(typeuse), m_constructrice(typeuse, registre),
+      m_présyntaxeuse(&pré_syntaxeuse)
 {
     auto données_préparsage = pré_syntaxeuse.donne_données_préparsage();
     POUR (données_préparsage->structures) {
@@ -985,6 +1001,26 @@ void SyntaxeuseRI::débute_fonction(const Fonction &données_fonction)
     m_fonction_courante = fonction;
     m_constructrice.définis_fonction_courante(fonction);
 
+    auto données_préparsage = m_présyntaxeuse->donne_données_préparsage();
+    const BaseSyntaxeuseRI<PrésyntaxeuseRI>::Fonction *fonction_préparsée = nullptr;
+    POUR (données_préparsage->fonctions) {
+        if (it.nom->ident == données_fonction.nom->ident) {
+            fonction_préparsée = &it;
+            break;
+        }
+    }
+
+    POUR (fonction_préparsée->labels) {
+        auto label = m_constructrice.réserve_label(nullptr);
+        label->id = it.index;
+
+        auto label_réservé = LabelRéservé{};
+        label_réservé.cible = it.numéro;
+        label_réservé.label = label;
+
+        m_labels_réservés.ajoute(label_réservé);
+    }
+
     // dbg() << fonction->nom;
 }
 
@@ -1068,17 +1104,14 @@ void SyntaxeuseRI::crée_index(Atome *indexé, Atome *valeur)
 
 void SyntaxeuseRI::crée_label(uint64_t index)
 {
-    /* À FAIRE : précrée les labels. */
     POUR (m_labels_réservés) {
-        if (it.cible == m_fonction_courante->instructions.taille()) {
-            /* À FAIRE : vérifie que les labels des branches sont dans les instructions. */
+        if (it.label->id == index) {
             m_constructrice.insère_label(it.label);
             return;
         }
     }
 
-    auto label = m_constructrice.crée_label(nullptr);
-    label->id = int32_t(index);
+    rapporte_erreur("Erreur interne (crée_label) : label inconnu");
 }
 
 void SyntaxeuseRI::crée_membre(Atome *valeur, uint64_t index)
@@ -1102,7 +1135,7 @@ void SyntaxeuseRI::crée_si(Atome *prédicat, uint64_t si_vrai, uint64_t si_faux
     if (!label_si_faux) {
         return;
     }
-    m_constructrice.crée_branche(nullptr, label_si_vrai, label_si_faux);
+    m_constructrice.crée_branche_condition(nullptr, prédicat, label_si_vrai, label_si_faux);
 }
 
 void SyntaxeuseRI::crée_stocke(Atome *cible, Atome *valeur)
@@ -1229,26 +1262,14 @@ NoeudDéclarationType *SyntaxeuseRI::crée_type_nominal_pour_genre(const Lexème
 
 InstructionLabel *SyntaxeuseRI::donne_label_pour_cible(int32_t cible)
 {
-    auto cible_décalée = cible - m_décalage_instructions;
-    if (cible_décalée < m_fonction_courante->instructions.taille()) {
-        auto inst = m_fonction_courante->instructions[cible_décalée];
-        if (!inst->est_label()) {
-            rapporte_erreur("La cible de la branche n'est pas un label");
-            return nullptr;
-        }
-        return inst->comme_label();
-    }
-
     POUR (m_labels_réservés) {
         if (it.cible == cible) {
             return it.label;
         }
     }
 
-    auto résultat = m_constructrice.réserve_label(nullptr);
-    auto label_réservé = LabelRéservé{résultat, cible};
-    m_labels_réservés.ajoute(label_réservé);
-    return résultat;
+    rapporte_erreur("Erreur interne (donne_label_pour_cible) : label inconnu");
+    return nullptr;
 }
 
 /** \} */
