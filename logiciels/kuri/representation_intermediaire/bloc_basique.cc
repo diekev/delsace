@@ -77,6 +77,11 @@ void Bloc::fusionne_enfant(Bloc *enfant)
         this->ajoute_instruction(it);
     }
 
+    this->valeurs.supprime_dernier();
+    POUR (enfant->valeurs) {
+        this->valeurs.ajoute(it);
+    }
+
     /* Supprime la référence à l'enfant dans la hiérarchie. */
     this->enlève_enfant(enfant);
     enfant->enlève_parent(this);
@@ -138,6 +143,17 @@ bool Bloc::supprime_instructions_à_supprimer()
 
     instructions_à_supprimer = false;
     fonction_et_blocs->marque_instructions_modifiés();
+    return true;
+}
+
+bool Bloc::tous_les_parents_furent_remplis() const
+{
+    POUR (parents) {
+        if (!it->possède_drapeau(DrapeauxBlocBasique::EST_REMPLIS)) {
+            return false;
+        }
+    }
+
     return true;
 }
 

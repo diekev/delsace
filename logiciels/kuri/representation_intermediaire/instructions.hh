@@ -78,6 +78,7 @@ enum class DrapeauxAtome : uint8_t {
        une globale fut créée préemptivement. */
     RI_FUT_GÉNÉRÉE = (1 << 3),
     EST_UTILISÉ = (1 << 4),
+    FUT_RÉINSÉRÉ_APRÈS_FSAU = (1 << 5),
 };
 DEFINIS_OPERATEURS_DRAPEAU(DrapeauxAtome)
 

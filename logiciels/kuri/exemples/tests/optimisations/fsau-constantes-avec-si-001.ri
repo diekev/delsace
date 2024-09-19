@@ -1,0 +1,68 @@
+/*
+
+/* Exemple de https://en.wikipedia.org/wiki/Constant_folding */
+/* INCORRECT le phi de la branche n'est pas supprimé, le résultat est mauvais. */
+constantes_avec_si :: fonc () -> z32 #cliche ri
+{
+    a := 30
+    b := 9 - (a / 5)
+    c := b * 4
+
+    si (c > 10) {
+        c = c - 10
+    }
+
+    retourne c * (60 / a)
+}
+
+ */
+
+fonction constantes_avec_si() -> __ret0 z32
+label 0
+  %a = alloue z32
+  stocke *z32 %a, z32 30
+  %b = alloue z32
+  %5 = charge *z32 %a
+  %6 = divz z32 %5, z32 5
+  %7 = alloue z32
+  stocke *z32 %7, z32 %6
+  %9 = charge *z32 %7
+  %10 = sst z32 9, z32 %9
+  stocke *z32 %b, z32 %10
+  %c = alloue z32
+  %13 = charge *z32 %b
+  %14 = mul z32 %13, z32 4
+  stocke *z32 %c, z32 %14
+  %16 = charge *z32 %c
+  %17 = sup z32 %16, z32 10
+  %18 = alloue bool
+  stocke *bool %18, bool %17
+  %20 = charge *bool %18
+  si bool %20 alors %22 sinon %27
+
+label 1
+  %23 = charge *z32 %c
+  %24 = sst z32 %23, z32 10
+  stocke *z32 %c, z32 %24
+  branche %27
+
+label 2
+  %28 = charge *z32 %c
+  %29 = charge *z32 %a
+  %30 = divz z32 60, z32 %29
+  %31 = alloue z32
+  stocke *z32 %31, z32 %30
+  %33 = charge *z32 %31
+  %34 = mul z32 %28, z32 %33
+  %35 = alloue z32
+  stocke *z32 %35, z32 %34
+  %37 = charge *z32 %35
+  stocke *z32 %__ret0, z32 %37
+  %39 = charge *z32 %__ret0
+  retourne z32 %39
+
+--------------------------
+
+fonction constantes_avec_si() -> __ret0 z32
+label 0
+  retourne z32 4

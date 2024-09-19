@@ -33,6 +33,7 @@ set(SOURCES
     bloc_basique.cc
     code_binaire.cc
     constructrice_ri.cc
+    fsau.cc
     impression.cc
     instructions.cc
     machine_virtuelle.cc
@@ -45,6 +46,7 @@ set(SOURCES
     bloc_basique.hh
     code_binaire.hh
     constructrice_ri.hh
+    fsau.hh
     impression.hh
     instructions.hh
     machine_virtuelle.hh
