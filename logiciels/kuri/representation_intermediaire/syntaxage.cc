@@ -1102,7 +1102,7 @@ void SyntaxeuseRI::crée_si(Atome *prédicat, uint64_t si_vrai, uint64_t si_faux
     if (!label_si_faux) {
         return;
     }
-    m_constructrice.crée_branche(nullptr, label_si_vrai, label_si_faux);
+    m_constructrice.crée_branche_condition(nullptr, prédicat, label_si_vrai, label_si_faux);
 }
 
 void SyntaxeuseRI::crée_stocke(Atome *cible, Atome *valeur)
