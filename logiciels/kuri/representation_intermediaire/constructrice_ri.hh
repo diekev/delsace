@@ -227,9 +227,9 @@ struct ConstructriceRI {
                                                  bool crée_seulement = false);
     InstructionSélection *crée_sélection(NoeudExpression const *site, bool crée_seulement);
 
-  private:
     void insère(Instruction *inst);
 
+  private:
     kuri::chaine imprime_site(NoeudExpression const *site) const;
 
     /* Déduplication des instructions de chargement. Nous ne créons des chargements que la première
