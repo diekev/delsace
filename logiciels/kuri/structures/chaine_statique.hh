@@ -64,7 +64,7 @@ struct chaine_statique {
     chaine_statique sous_chaine(int64_t début, int64_t fin) const
     {
         assert(début >= 0 && début < taille());
-        assert(fin >= 0 && fin < taille());
+        assert(fin >= 0 && fin <= taille());
         assert(début <= fin);
         return chaine_statique(pointeur() + début, fin - début);
     }
