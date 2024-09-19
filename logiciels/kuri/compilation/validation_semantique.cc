@@ -1564,7 +1564,6 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
         }
         case GenreNoeud::INSTRUCTION_EMPL:
         {
-            auto empl = noeud->comme_empl();
             return valide_instruction_empl(noeud->comme_empl());
         }
         case GenreNoeud::DIRECTIVE_INTROSPECTION:
