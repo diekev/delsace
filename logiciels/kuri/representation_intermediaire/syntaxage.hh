@@ -61,7 +61,7 @@ struct TypesSyntaxageRI;
 
 template <typename Impl>
 struct BaseSyntaxeuseRI : public BaseSyntaxeuse {
-  protected:
+  public:
     using TypeAtome = typename TypesSyntaxageRI<Impl>::TypeAtome;
     using TypeType = typename TypesSyntaxageRI<Impl>::TypeType;
     using TableauType = kuri::tablet<TypeType, 6>;
@@ -72,10 +72,15 @@ struct BaseSyntaxeuseRI : public BaseSyntaxeuse {
     };
 
     struct Fonction {
+        struct DonnéesLabel {
+            int index;
+            int numéro;
+        };
         Lexème *nom = nullptr;
         kuri::tablet<ParamètreFonction, 6> paramètres{};
         Lexème const *nom_retour = nullptr;
         TypeType type_retour{};
+        kuri::tableau<DonnéesLabel> labels{};
     };
 
     struct DonnéesMembreTypeComposé {
@@ -94,8 +99,9 @@ struct BaseSyntaxeuseRI : public BaseSyntaxeuse {
         TypeAtome atome{};
     };
 
-  public:
     BaseSyntaxeuseRI(Fichier *fichier);
+
+    EMPECHE_COPIE(BaseSyntaxeuseRI);
 
     ~BaseSyntaxeuseRI() override;
 
@@ -1465,6 +1471,8 @@ class SyntaxeuseRI : public BaseSyntaxeuseRI<SyntaxeuseRI> {
     };
 
     kuri::tableau<LabelRéservé, int> m_labels_réservés{};
+
+    PrésyntaxeuseRI *m_présyntaxeuse = nullptr;
 
   public:
     SyntaxeuseRI(Fichier *fichier,
