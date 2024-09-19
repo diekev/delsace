@@ -385,6 +385,8 @@ class Object final : public QObject {
     {
     }
 
+    EMPECHE_COPIE(Object);
+
     bool event(QEvent *event) override
     {
         if (!m_rappels || !m_rappels->sur_evenement) {
@@ -1038,6 +1040,8 @@ class Thread final : public QThread {
         : QThread(parent), m_rappels(rappels)
     {
     }
+
+    EMPECHE_COPIE(Thread);
 
     ~Thread() override
     {
