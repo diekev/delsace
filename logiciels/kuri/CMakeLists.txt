@@ -245,6 +245,17 @@ include(bugs/test_bugs.txt)
 
 add_test(NAME "suppression-variable-temp-001" COMMAND test_ri "${CMAKE_CURRENT_SOURCE_DIR}/exemples/tests/optimisations/suppression-variable-temp-001.kuri")
 
+macro(ajoute_test_fsau __nom_fichier__)
+    add_test(NAME ${__nom_fichier__} COMMAND test_fsau "${CMAKE_CURRENT_SOURCE_DIR}/exemples/tests/optimisations/${__nom_fichier__}.ri")
+endmacro()
+
+ajoute_test_fsau(fsau-001)
+ajoute_test_fsau(fsau-boucle-pour-sur-scalaire-001)
+ajoute_test_fsau(fsau-boucle-pour-sur-tableau-fixe-001)
+ajoute_test_fsau(fsau-condition-constante-redondante-001)
+ajoute_test_fsau(fsau-constantes-avec-si-001)
+ajoute_test_fsau(fsau-constantes-sans-branches-001)
+
 if(CHEMIN_DELSACE_PRIVE)
     include(${CHEMIN_DELSACE_PRIVE}/CMakeLists.txt)
 endif()

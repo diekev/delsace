@@ -20,6 +20,17 @@ namespace kuri {
 struct chaine;
 }
 
+namespace FSAU {
+struct Valeur;
+}
+
+enum class DrapeauxBlocBasique : uint32_t {
+    ZÉRO = 0,
+    EST_REMPLIS = (1u << 0),
+    EST_SCELLÉ = (1u << 1),
+};
+DEFINIS_OPERATEURS_DRAPEAU(DrapeauxBlocBasique)
+
 struct Bloc {
     FonctionEtBlocs *fonction_et_blocs = nullptr;
 
@@ -31,6 +42,14 @@ struct Bloc {
     kuri::tableau<Bloc *, int> enfants{};
 
     bool est_atteignable = false;
+
+    kuri::tableau<FSAU::Valeur *> valeurs{};
+    DrapeauxBlocBasique drapeaux = DrapeauxBlocBasique::ZÉRO;
+
+    inline bool possède_drapeau(DrapeauxBlocBasique drapeau) const
+    {
+        return (drapeaux & drapeau) != DrapeauxBlocBasique::ZÉRO;
+    }
 
   private:
     bool instructions_à_supprimer = false;
@@ -63,6 +82,8 @@ struct Bloc {
 
     /* Supprime du bloc les instructions dont l'état est EST_A_SUPPRIMER. */
     bool supprime_instructions_à_supprimer();
+
+    bool tous_les_parents_furent_remplis() const;
 
   private:
     void enlève_du_tableau(kuri::tableau<Bloc *, int> &tableau, const Bloc *bloc);
