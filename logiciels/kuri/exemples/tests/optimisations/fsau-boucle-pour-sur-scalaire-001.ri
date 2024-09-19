@@ -1,0 +1,77 @@
+/*
+
+boucle_pour_sur_scalaire :: fonc () -> z32
+{
+    a := 0
+    pour 15 {
+        a += 1
+    }
+    retourne a
+}
+
+ */
+
+fonction boucle_pour_sur_scalaire() -> __ret0 z32
+label 0
+  %a = alloue z32
+  stocke *z32 %a, z32 0
+  %it = alloue z32
+  stocke *z32 %it, z32 0
+  %index_it = alloue z32
+  stocke *z32 %index_it, z32 0
+  branche %9
+
+label 1
+  %10 = charge *z32 %index_it
+  %11 = supeg z32 %10, z32 15
+  %12 = alloue bool
+  stocke *bool %12, bool %11
+  %14 = charge *bool %12
+  si bool %14 alors %16 sinon %18
+
+label 4
+  branche %31
+
+label 5
+  %19 = charge *z32 %a
+  %20 = ajt z32 %19, z32 1
+  stocke *z32 %a, z32 %20
+  branche %23
+
+label 3
+  %24 = charge *z32 %it
+  %25 = ajt z32 %24, z32 1
+  stocke *z32 %it, z32 %25
+  %27 = charge *z32 %index_it
+  %28 = ajt z32 %27, z32 1
+  stocke *z32 %index_it, z32 %28
+  branche %9
+
+label 2
+  %32 = charge *z32 %a
+  stocke *z32 %__ret0, z32 %32
+  %34 = charge *z32 %__ret0
+  retourne z32 %34
+
+--------------------------
+
+fonction boucle_pour_sur_scalaire() -> __ret0 z32
+label 0
+  %index_it = alloue z32
+  stocke *z32 %index_it, z32 0
+  branche %5
+
+label 1
+  %6 = charge *z32 %index_it
+  %7 = supeg z32 %6, z32 15
+  si bool %7 alors %9 sinon %12
+
+label 4
+  %10 = charge *z32 %index_it
+  retourne z32 %10
+
+label 5
+  %13 = charge *z32 %index_it
+  %14 = ajt z32 %13, z32 1
+  stocke *z32 %index_it, z32 %14
+  branche %5
