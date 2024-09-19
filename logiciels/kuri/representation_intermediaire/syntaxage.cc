@@ -381,7 +381,7 @@ void PrésyntaxeuseRI::débute_fonction(const Fonction &fonction)
     m_données_préparsage.fonctions.ajoute(fonction);
 
     /* À FAIRE : n'incrémente que si le type n'est pas « rien ». */
-    numéro_instruction_courante = fonction.paramètres.taille() + 1;
+    numéro_instruction_courante = int32_t(fonction.paramètres.taille()) + 1;
 
 #ifdef IMPRIME_RI
     numéro_instruction_courante = 0;
@@ -471,7 +471,7 @@ void PrésyntaxeuseRI::crée_index(const DescriptionAtome &indexé, const Descri
 void PrésyntaxeuseRI::crée_label(uint64_t index)
 {
     auto données = Fonction::DonnéesLabel{};
-    données.index = index;
+    données.index = int32_t(index);
     données.numéro = numéro_instruction_courante++;
 
     m_données_préparsage.fonctions.dernier_élément().labels.ajoute(données);
