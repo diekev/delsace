@@ -1,0 +1,72 @@
+/*
+
+boucle_pour_sur_tableau_fixe :: fonc () -> z32
+{
+    a := 0
+    b := [0, 1, 2, 3, 4, 5]
+    pour b {
+        a += it
+    }
+    retourne a
+}
+
+*/
+
+fonction boucle_pour_sur_tableau_fixe() -> __ret0 z32
+label 0
+  %a = alloue z32
+  stocke *z32 %a, z32 0
+  %b = alloue [6]z32
+  %5 = index *[6]z32 %b, z64 0
+  stocke *z32 %5, z32 0
+  %7 = index *[6]z32 %b, z64 1
+  stocke *z32 %7, z32 1
+  %9 = index *[6]z32 %b, z64 2
+  stocke *z32 %9, z32 2
+  %11 = index *[6]z32 %b, z64 3
+  stocke *z32 %11, z32 3
+  %13 = index *[6]z32 %b, z64 4
+  stocke *z32 %13, z32 4
+  %15 = index *[6]z32 %b, z64 5
+  stocke *z32 %15, z32 5
+  %it = alloue z32
+  %index_it = alloue z64
+  stocke *z64 %index_it, z64 0
+  branche %21
+
+label 1
+  %22 = charge *z64 %index_it
+  %23 = supeg z64 %22, z64 6
+  %24 = alloue bool
+  stocke *bool %24, bool %23
+  %26 = charge *bool %24
+  si bool %26 alors %28 sinon %30
+
+label 4
+  branche %48
+
+label 5
+  %31 = index *[6]z32 %b, z64 0
+  %32 = alloue *z32
+  stocke **z32 %32, *z32 %31
+  %34 = charge *z64 %index_it
+  %35 = index **z32 %32, z64 %34
+  %36 = charge *z32 %35
+  stocke *z32 %it, z32 %36
+  %38 = charge *z32 %a
+  %39 = charge *z32 %it
+  %40 = ajt z32 %38, z32 %39
+  stocke *z32 %a, z32 %40
+  branche %43
+
+label 3
+  %44 = charge *z64 %index_it
+  %45 = ajt z64 %44, z64 1
+  stocke *z64 %index_it, z64 %45
+  branche %21
+
+label 2
+  %49 = charge *z32 %a
+  stocke *z32 %__ret0, z32 %49
+  %51 = charge *z32 %__ret0
+  retourne z32 %51
