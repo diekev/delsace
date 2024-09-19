@@ -243,6 +243,8 @@ compile_fichier(modules/OutilsMaintenance/Programmes triage_imports)
 
 include(bugs/test_bugs.txt)
 
+add_test(NAME "suppression-variable-temp-001" COMMAND test_ri "${CMAKE_CURRENT_SOURCE_DIR}/exemples/tests/optimisations/suppression-variable-temp-001.kuri")
+
 if(CHEMIN_DELSACE_PRIVE)
     include(${CHEMIN_DELSACE_PRIVE}/CMakeLists.txt)
 endif()
