@@ -235,6 +235,8 @@ std::ostream &operator<<(std::ostream &os, chaine const &chn);
 
 int64_t distance_levenshtein(chaine_statique const &chn1, chaine_statique const &chn2);
 
+kuri::chaine supprime_espaces_blanches_autour(kuri::chaine_statique chaine);
+
 }  // namespace kuri
 
 namespace std {
