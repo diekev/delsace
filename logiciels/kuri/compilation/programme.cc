@@ -1641,13 +1641,24 @@ static void imprime_déclaration_type_ri(TypeCompose const *type_structure,
                                         std::ostream &os,
                                         OptionsImpressionType options)
 {
-    os << donne_classe_type(*type_structure) << " " << chaine_type(type_structure, options)
-       << " = ";
+    os << donne_classe_type(*type_structure) << " " << chaine_type(type_structure, options);
+
+    if (type_structure->est_type_union() && type_structure->comme_type_union()->est_anonyme) {
+        os << "\n";
+        return;
+    }
+
+    os << " = ";
 
     auto virgule = "{ ";
+    auto virgule_placée = false;
 
     auto const membres = type_structure->donne_membres_pour_code_machine();
     POUR_NOMME (membre, membres) {
+        if (membre.nom == ID::chaine_vide) {
+            continue;
+        }
+
         os << virgule;
 
         if (membre.nom) {
@@ -1656,9 +1667,10 @@ static void imprime_déclaration_type_ri(TypeCompose const *type_structure,
 
         os << chaine_type(membre.type, options);
         virgule = ", ";
+        virgule_placée = true;
     }
 
-    if (membres.taille() == 0) {
+    if (!virgule_placée || membres.taille() == 0) {
         os << "{ ";
     }
     os << " }\n";
