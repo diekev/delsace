@@ -12,6 +12,7 @@
 
 #include "parsage/lexeuse.hh"
 
+#include "representation_intermediaire/analyse.hh"
 #include "representation_intermediaire/impression.hh"
 #include "representation_intermediaire/syntaxage.hh"
 
@@ -67,8 +68,32 @@ int main(int argc, char **argv)
     auto texte = charge_contenu_fichier(
         {chemin_fichier_ri.pointeur(), chemin_fichier_ri.taille()});
 
+    auto tampon = lng::tampon_source(texte.c_str());
+
+    Enchaineuse enchaineuse;
+
+    kuri::chaine texte_source;
+    kuri::chaine texte_résultat;
+
+    for (auto i = 0; i < tampon.nombre_lignes(); i++) {
+        auto ligne = tampon[i];
+
+        if (ligne.taille() > 4) {
+            auto sous_chaine = dls::vue_chaine(ligne.begin(), 4);
+            if (sous_chaine == "----") {
+                texte_source = supprime_espaces_blanches_autour(enchaineuse.chaine());
+                enchaineuse.réinitialise();
+                continue;
+            }
+        }
+
+        enchaineuse << ligne;
+    }
+
+    texte_résultat = supprime_espaces_blanches_autour(enchaineuse.chaine());
+
     Fichier fichier;
-    fichier.tampon_ = lng::tampon_source(texte.c_str());
+    fichier.tampon_ = lng::tampon_source(dls::chaine(texte_source.begin(), texte_source.end()));
     fichier.chemin_ = "";
 
     ArgumentsCompilatrice arguments;
@@ -96,8 +121,22 @@ int main(int argc, char **argv)
         &fichier, compilatrice.typeuse, *compilatrice.registre_ri, pré_syntaxeuse);
     syntaxeuse.analyse();
 
+    auto contexte_analyse = ContexteAnalyseRI();
+
     POUR (syntaxeuse.donne_fonctions()) {
-        dbg() << imprime_fonction(it);
+        contexte_analyse.analyse_ri(
+            *compilatrice.espace_de_travail_defaut, syntaxeuse.donne_constructrice(), it);
+
+        auto résultat = supprime_espaces_blanches_autour(imprime_fonction(it));
+
+        if (résultat != texte_résultat) {
+            dbg() << "Erreur : différence dans la sortie\n";
+            dbg() << "Obtenu :\n";
+            dbg() << résultat;
+            dbg() << "Voulu :\n";
+            dbg() << texte_résultat;
+            return 1;
+        }
     }
 
     return 0;

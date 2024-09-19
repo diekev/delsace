@@ -109,6 +109,20 @@ install(
 
 ################################################################################
 
+add_executable(test_ri
+    test_ri.cc
+)
+
+target_include_directories(test_ri PUBLIC "${INCLUSIONS}")
+
+target_link_libraries(test_ri "${BIBLIOTHEQUES}")
+
+install(
+    TARGETS test_ri RUNTIME DESTINATION ${RACINE_INSTALLATION}
+)
+
+################################################################################
+
 if(AVEC_LLVM)
     set(NOM_PROJET parcer)
 

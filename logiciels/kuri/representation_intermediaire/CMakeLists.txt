@@ -38,6 +38,7 @@ set(SOURCES
     machine_virtuelle.cc
     machine_virtuelle_intrinseques.cc
     optimisations.cc
+    syntaxage.cc
     visite_instructions.cc
 
     analyse.hh
@@ -48,6 +49,7 @@ set(SOURCES
     instructions.hh
     machine_virtuelle.hh
     optimisations.hh
+    syntaxage.hh
     visite_instructions.hh
 )
 
