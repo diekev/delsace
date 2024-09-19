@@ -1,0 +1,75 @@
+/*
+
+/* Exemple de https://fr.wikipedia.org/wiki/Static_single_assignment_form */
+forme_statique_à_affectation_unique :: fonc () -> z32
+{
+    x := 5
+    x -= 3
+    y : z32
+    w : z32
+
+    si x < 3 {
+        y = x * 2
+        w = y
+    }
+    sinon {
+        y = x - 3
+    }
+
+    w = x - y
+    z := x + y
+    retourne z
+}
+
+*/
+
+fonction forme_statique_à_affectation_unique() -> __ret0 z32
+label 0
+  %x = alloue z32
+  stocke *z32 %x, z32 5
+  %4 = charge *z32 %x
+  %5 = sst z32 %4, z32 3
+  stocke *z32 %x, z32 %5
+  %y = alloue z32
+  stocke *z32 %y, z32 0
+  %w = alloue z32
+  stocke *z32 %w, z32 0
+  %11 = charge *z32 %x
+  %12 = inf z32 %11, z32 3
+  %13 = alloue bool
+  stocke *bool %13, bool %12
+  %15 = charge *bool %13
+  si bool %15 alors %17 sinon %24
+
+label 1
+  %18 = charge *z32 %x
+  %19 = mul z32 %18, z32 2
+  stocke *z32 %y, z32 %19
+  %21 = charge *z32 %y
+  stocke *z32 %w, z32 %21
+  branche %29
+
+label 2
+  %25 = charge *z32 %x
+  %26 = sst z32 %25, z32 3
+  stocke *z32 %y, z32 %26
+  branche %29
+
+label 3
+  %30 = charge *z32 %x
+  %31 = charge *z32 %y
+  %32 = sst z32 %30, z32 %31
+  stocke *z32 %w, z32 %32
+  %z = alloue z32
+  %35 = ajt z32 %30, z32 %31
+  stocke *z32 %z, z32 %35
+  %37 = charge *z32 %z
+  stocke *z32 %__ret0, z32 %37
+  %39 = charge *z32 %__ret0
+  retourne z32 %39
+
+------------------------
+
+fonction forme_statique_à_affectation_unique() -> __ret0 z32
+label 0
+  retourne z32 6

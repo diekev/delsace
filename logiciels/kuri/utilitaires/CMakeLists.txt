@@ -14,6 +14,7 @@ set(SOURCES
     algorithmes.cc
     calcul.cc
     compteuse_cas.cc
+    enum_drapeau.cc
     garde_portee.cc
     log.cc
     macros.cc
@@ -23,6 +24,7 @@ set(SOURCES
     algorithmes.hh
     calcul.hh
     compteuse_cas.hh
+    enum_drapeau.hh
     garde_portee.hh
     log.hh
     macros.hh
