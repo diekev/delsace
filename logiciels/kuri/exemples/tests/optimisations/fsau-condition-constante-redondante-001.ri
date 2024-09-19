@@ -1,0 +1,54 @@
+/*
+
+condition_constante_redondante :: fonc () -> z32
+{
+    a := 5
+
+    si a == 5 {
+        si a == 5 {
+            retourne 1
+        }
+    }
+
+    retourne 0
+}
+
+*/
+
+fonction condition_constante_redondante() -> __ret0 z32
+label 0
+  %a = alloue z32
+  stocke *z32 %a, z32 5
+  %4 = charge *z32 %a
+  %5 = eg z32 %4, z32 5
+  %6 = alloue bool
+  stocke *bool %6, bool %5
+  %8 = charge *bool %6
+  si bool %8 alors %10 sinon %23
+
+label 1
+  %11 = charge *z32 %a
+  %12 = eg z32 %11, z32 5
+  %13 = alloue bool
+  stocke *bool %13, bool %12
+  %15 = charge *bool %13
+  si bool %15 alors %17 sinon %21
+
+label 3
+  stocke *z32 %__ret0, z32 1
+  %19 = charge *z32 %__ret0
+  retourne z32 %19
+
+label 4
+  branche %23
+
+label 2
+  stocke *z32 %__ret0, z32 0
+  %25 = charge *z32 %__ret0
+  retourne z32 %25
+
+--------------------------
+
+fonction condition_constante_redondante() -> __ret0 z32
+label 0
+  retourne z32 1

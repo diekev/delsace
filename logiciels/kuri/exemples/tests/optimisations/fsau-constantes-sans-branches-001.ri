@@ -1,0 +1,46 @@
+/*
+
+/* Exemple de https://en.wikipedia.org/wiki/Constant_folding */
+constantes_sans_branches :: fonc () -> z32
+{
+    x := 14
+    y := 7 - x / 2
+    retourne y * (28 / x + 2)
+}
+
+ */
+
+fonction constantes_sans_branches() -> __ret0 z32
+label 0
+  %x = alloue z32
+  stocke *z32 %x, z32 14
+  %y = alloue z32
+  %5 = charge *z32 %x
+  %6 = divz z32 %5, z32 2
+  %7 = alloue z32
+  stocke *z32 %7, z32 %6
+  %9 = charge *z32 %7
+  %10 = sst z32 7, z32 %9
+  stocke *z32 %y, z32 %10
+  %12 = charge *z32 %y
+  %13 = divz z32 28, z32 %5
+  %14 = alloue z32
+  stocke *z32 %14, z32 %13
+  %16 = charge *z32 %14
+  %17 = ajt z32 %16, z32 2
+  %18 = alloue z32
+  stocke *z32 %18, z32 %17
+  %20 = charge *z32 %18
+  %21 = mul z32 %12, z32 %20
+  %22 = alloue z32
+  stocke *z32 %22, z32 %21
+  %24 = charge *z32 %22
+  stocke *z32 %__ret0, z32 %24
+  %26 = charge *z32 %__ret0
+  retourne z32 %26
+
+--------------------------
+
+fonction constantes_sans_branches() -> __ret0 z32
+label 0
+  retourne z32 0
