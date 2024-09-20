@@ -134,7 +134,7 @@ table_virtuelle_document := TableVirtuelleÉlément(
     sur_destruction = document_sur_destruction
 )
 
-document_sur_destruction :: fonc (base: *EventTarget)
+document_sur_destruction :: fonc (base: *PlatformObject)
 {
     document := base comme *Document
     CSS.détruit_arbre(document.arbre_de_disposition)
@@ -655,7 +655,7 @@ table_virtuelle_type_document := TableVirtuelleÉlément(
     sur_destruction = type_document_sur_destruction
 )
 
-type_document_sur_destruction :: fonc (base: *EventTarget)
+type_document_sur_destruction :: fonc (base: *PlatformObject)
 {
     type_document := base comme *NoeudTypeDocument
     déloge(type_document)
@@ -691,7 +691,7 @@ table_virtuelle_fragment_document := TableVirtuelleÉlément(
     sur_destruction = fragment_document_sur_destruction
 )
 
-fragment_document_sur_destruction :: fonc (base: *EventTarget)
+fragment_document_sur_destruction :: fonc (base: *PlatformObject)
 {
     fragment_document := base comme *NoeudFragmentDocument
     déloge(fragment_document)
@@ -761,7 +761,7 @@ table_virtuelle_texte := TableVirtuelleÉlément(
     sur_destruction = texte_sur_destruction
 )
 
-texte_sur_destruction :: fonc (base: *EventTarget)
+texte_sur_destruction :: fonc (base: *PlatformObject)
 {
     texte := base comme *NoeudTexte
     détruit_chaine(texte.données)
@@ -798,7 +798,7 @@ table_virtuelle_section_cdata := TableVirtuelleÉlément(
     sur_destruction = section_cdata_sur_destruction
 )
 
-section_cdata_sur_destruction :: fonc (base: *EventTarget)
+section_cdata_sur_destruction :: fonc (base: *PlatformObject)
 {
     section_cdata := base comme *NoeudSectionCDATA
     détruit_chaine(section_cdata.données)
@@ -836,7 +836,7 @@ table_virtuelle_commentaire := TableVirtuelleÉlément(
     sur_destruction = commentaire_sur_destruction
 )
 
-commentaire_sur_destruction :: fonc (base: *EventTarget)
+commentaire_sur_destruction :: fonc (base: *PlatformObject)
 {
     commentaire := base comme *NoeudCommentaire
     détruit_chaine(commentaire.données)
@@ -876,7 +876,7 @@ table_virtuelle_processing_instruction := TableVirtuelleÉlément(
     sur_destruction = processing_instruction_sur_destruction
 )
 
-processing_instruction_sur_destruction :: fonc (base: *EventTarget)
+processing_instruction_sur_destruction :: fonc (base: *PlatformObject)
 {
     processing_instruction := base comme *NoeudProcessingInstruction
     détruit_chaine(processing_instruction.données)

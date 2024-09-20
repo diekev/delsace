@@ -120,7 +120,25 @@ crée_filtre_pour_tag_name :: fonc (tag_name: DOMString) -> *HTMLCollectionFilte
  * https://dom.spec.whatwg.org/#htmlcollection
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_html_collection := TableVirtuellePlatformObject(
+    classe = HTMLCollection,
+    sur_destruction = html_collection_sur_destruction
+)
+
+html_collection_sur_destruction :: fonc (base: *PlatformObject)
+{
+    collection := base comme *HTMLCollection
+    détruit_collection(collection)
+}
+
+#portée_export
+
 HTMLCollection :: struct {
+    empl platform_object: PlatformObject
+    table = *table_virtuelle_html_collection
+
     // À FAIRE : la collection est vivante
     root: *Noeud
     filter: *HTMLCollectionFilter

@@ -98,7 +98,7 @@ table_virtuelle_élément := TableVirtuelleÉlément(
     déloge(élément.liste_classes)
 }
 
-élément_sur_destruction :: fonc (base: *EventTarget)
+élément_sur_destruction :: fonc (base: *PlatformObject)
 {
     élément := base comme *Élément
     élément_détruit_données(élément)
@@ -520,7 +520,7 @@ table_virtuelle_anchor_element := TableVirtuelleÉlément(
     sur_changement_attribut = anchor_element_sur_changement_attribut
 )
 
-anchor_element_sur_destruction :: fonc (base: *EventTarget)
+anchor_element_sur_destruction :: fonc (base: *PlatformObject)
 {
     élément := base comme *HTMLAnchorElement
     élément_détruit_données(élément)
@@ -610,7 +610,7 @@ table_virtuelle_body_element := TableVirtuelleÉlément(
     sur_applique_presentational_hints = body_element_sur_applique_presentational_hints
 )
 
-body_element_sur_destruction :: fonc (base: *EventTarget)
+body_element_sur_destruction :: fonc (base: *PlatformObject)
 {
     élément := base comme *HTMLBodyElement
     élément_détruit_données(élément)
@@ -692,7 +692,7 @@ table_virtuelle_font_element := TableVirtuelleÉlément(
     sur_applique_presentational_hints = font_element_sur_applique_presentational_hints
 )
 
-font_element_sur_destruction :: fonc (base: *EventTarget)
+font_element_sur_destruction :: fonc (base: *PlatformObject)
 {
     élément := base comme *HTMLFontElement
     élément_détruit_données(élément)
@@ -835,7 +835,7 @@ table_virtuelle_form_element := TableVirtuelleÉlément(
     sur_destruction = form_element_sur_destruction
 )
 
-form_element_sur_destruction :: fonc (base: *EventTarget)
+form_element_sur_destruction :: fonc (base: *PlatformObject)
 {
     élément := base comme *HTMLFormElement
     élément_détruit_données(élément)
@@ -864,7 +864,7 @@ table_virtuelle_head_element := TableVirtuelleÉlément(
     sur_destruction = head_element_sur_destruction
 )
 
-head_element_sur_destruction :: fonc (base: *EventTarget)
+head_element_sur_destruction :: fonc (base: *PlatformObject)
 {
     élément := base comme *HTMLHeadElement
     élément_détruit_données(élément)
@@ -893,7 +893,7 @@ table_virtuelle_heading_element := TableVirtuelleÉlément(
     sur_destruction = heading_element_sur_destruction
 )
 
-heading_element_sur_destruction :: fonc (base: *EventTarget)
+heading_element_sur_destruction :: fonc (base: *PlatformObject)
 {
     élément := base comme *HTMLHeadingElement
     élément_détruit_données(élément)
@@ -922,7 +922,7 @@ table_virtuelle_hr_element := TableVirtuelleÉlément(
     sur_destruction = hr_element_sur_destruction
 )
 
-hr_element_sur_destruction :: fonc (base: *EventTarget)
+hr_element_sur_destruction :: fonc (base: *PlatformObject)
 {
     élément := base comme *HTMLHRElement
     élément_détruit_données(élément)
@@ -951,7 +951,7 @@ table_virtuelle_html_element := TableVirtuelleÉlément(
     sur_destruction = html_element_sur_destruction
 )
 
-html_element_sur_destruction :: fonc (base: *EventTarget)
+html_element_sur_destruction :: fonc (base: *PlatformObject)
 {
     élément := base comme *HTMLHtmlElement
     élément_détruit_données(élément)
@@ -1030,7 +1030,7 @@ image_element_sur_applique_presentational_hints :: fonc (base: *Élément, réso
     ajoute_propriété_pour_non_zero_dimension(résolveuse, base, ATTR_height, CSS.PROP_height)
 }
 
-image_element_sur_destruction :: fonc (base: *EventTarget)
+image_element_sur_destruction :: fonc (base: *PlatformObject)
 {
     élément := base comme *HTMLImageElement
     élément_détruit_données(élément)
@@ -1183,7 +1183,7 @@ table_virtuelle_input_element := TableVirtuelleÉlément(
     sur_changement_attribut = input_element_sur_changement_attribut
 )
 
-input_element_sur_destruction :: fonc (base: *EventTarget)
+input_element_sur_destruction :: fonc (base: *PlatformObject)
 {
     élément := base comme *HTMLInputElement
     élément_détruit_données(élément)
@@ -1239,7 +1239,7 @@ table_virtuelle_link_element := TableVirtuelleÉlément(
     sur_changement_attribut = link_element_sur_changement_attribut
 )
 
-link_element_sur_destruction :: fonc (base: *EventTarget)
+link_element_sur_destruction :: fonc (base: *PlatformObject)
 {
     élément := base comme *HTMLLinkElement
     élément_détruit_données(élément)
@@ -1430,7 +1430,7 @@ table_virtuelle_video_element := TableVirtuelleÉlément(
     sur_destruction = video_element_sur_destruction
 )
 
-video_element_sur_destruction :: fonc (base: *EventTarget)
+video_element_sur_destruction :: fonc (base: *PlatformObject)
 {
     élément := base comme *HTMLVideoElement
     élément_détruit_données(élément)
@@ -1493,7 +1493,7 @@ table_virtuelle_script_element := TableVirtuelleÉlément(
     sur_destruction = script_element_sur_destruction
 )
 
-script_element_sur_destruction :: fonc (base: *EventTarget)
+script_element_sur_destruction :: fonc (base: *PlatformObject)
 {
     élément := base comme *HTMLScriptElement
     élément_détruit_données(élément)
@@ -1747,7 +1747,7 @@ table_virtuelle_style_element := TableVirtuelleÉlément(
     sur_changement_enfants = style_element_sur_changement_enfants
 )
 
-style_element_sur_destruction :: fonc (base: *EventTarget)
+style_element_sur_destruction :: fonc (base: *PlatformObject)
 {
     élément := base comme *HTMLStyleElement
     élément_détruit_données(élément)
@@ -1872,7 +1872,7 @@ table_virtuelle_table_element := TableVirtuelleÉlément(
     sur_applique_presentational_hints = table_element_sur_applique_presentational_hints
 )
 
-table_element_sur_destruction :: fonc (base: *EventTarget)
+table_element_sur_destruction :: fonc (base: *PlatformObject)
 {
     élément := base comme *HTMLTableElement
     élément_détruit_données(élément)
@@ -1907,7 +1907,7 @@ table_virtuelle_table_cell_element := TableVirtuelleÉlément(
     sur_applique_presentational_hints = table_cell_element_sur_applique_presentational_hints
 )
 
-table_cell_element_sur_destruction :: fonc (base: *EventTarget)
+table_cell_element_sur_destruction :: fonc (base: *PlatformObject)
 {
     élément := base comme *HTMLTableCellElement
     élément_détruit_données(élément)
@@ -1942,7 +1942,7 @@ table_virtuelle_table_row_element := TableVirtuelleÉlément(
     sur_applique_presentational_hints = table_row_element_sur_applique_presentational_hints
 )
 
-table_row_element_sur_destruction :: fonc (base: *EventTarget)
+table_row_element_sur_destruction :: fonc (base: *PlatformObject)
 {
     élément := base comme *HTMLTableRowElement
     élément_détruit_données(élément)
@@ -1977,7 +1977,7 @@ table_virtuelle_table_section_element := TableVirtuelleÉlément(
     sur_applique_presentational_hints = table_section_element_sur_applique_presentational_hints
 )
 
-table_section_element_sur_destruction :: fonc (base: *EventTarget)
+table_section_element_sur_destruction :: fonc (base: *PlatformObject)
 {
     élément := base comme *HTMLTableSectionElement
     élément_détruit_données(élément)
@@ -2046,7 +2046,7 @@ table_virtuelle_textarea_element := TableVirtuelleÉlément(
     sur_destruction = textarea_element_sur_destruction
 )
 
-textarea_element_sur_destruction :: fonc (base: *EventTarget)
+textarea_element_sur_destruction :: fonc (base: *PlatformObject)
 {
     élément := base comme *HTMLTextAreaElement
     élément_détruit_données(élément)

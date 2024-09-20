@@ -246,10 +246,8 @@ AddEventListenerOptions :: struct {
 #portée_module
 
 TableVirtuelleEventTarget :: struct {
-    /* Type de l'objet associé à cette table. */
-    classe: type_de_données
-    /* Appelé quand la cible est détruite. */
-    sur_destruction: fonc(*EventTarget)(rien)
+    empl platform_object: TableVirtuellePlatformObject
+
     /* https://dom.spec.whatwg.org/#get-the-parent */
     sur_get_the_parent: fonc(*EventTarget, *Event)(*EventTarget) = event_target_sur_get_the_parent
     /* https://dom.spec.whatwg.org/#eventtarget-activation-behavior */
@@ -269,7 +267,7 @@ event_target_sur_get_the_parent :: fonc (target: *EventTarget @inutilisée, even
 #portée_export
 
 EventTarget :: struct {
-    table: *TableVirtuelleEventTarget
+    empl platform_object: PlatformObject
 
     EventListenerEntry :: struct {
         type: EventType
@@ -286,45 +284,56 @@ EventTarget :: struct {
 
 #portée_fichier
 
+donne_table :: fonc (event_target: *EventTarget) -> *TableVirtuelleEventTarget #enligne
+{
+    retourne event_target.table comme *TableVirtuelleEventTarget
+}
+
 get_the_parent :: fonc (target: *EventTarget, event: *Event) -> *EventTarget
 {
-    assert(target.table != nul)
-    assert(target.table.sur_get_the_parent != nul)
-    retourne target.table.sur_get_the_parent(target, event)
+    table := target.donne_table()
+    assert(table != nul)
+    assert(table.sur_get_the_parent != nul)
+    retourne table.sur_get_the_parent(target, event)
 }
 
 possède_activation_behavior :: fonc (target: *EventTarget) -> bool
 {
+    table := target.donne_table()
     /* À FAIRE : nous pourrions avoir une condition plus subtile pour,
      *  par exemple, les éléments ancres qui n'ont pas de href. */
-    retourne target.table != nul && target.table.sur_activation_behavior != nul
+    retourne table != nul && table.sur_activation_behavior != nul
 }
 
 run_activation_behavior :: fonc (target: *EventTarget, event: *Event)
 {
-    assert(target.table != nul)
-    assert(target.table.sur_activation_behavior != nul)
-    target.table.sur_activation_behavior(target, event)
+    table := target.donne_table()
+    assert(table != nul)
+    assert(table.sur_activation_behavior != nul)
+    table.sur_activation_behavior(target, event)
 }
 
 possède_legacy_pre_activation_behavior :: fonc (target: *EventTarget) -> bool
 {
     assert(possède_activation_behavior(target))
-    retourne target.table != nul && target.table.sur_legacy_pre_activation_behavior != nul
+    table := target.donne_table()
+    retourne table != nul && table.sur_legacy_pre_activation_behavior != nul
 }
 
 run_legacy_pre_activation_behavior :: fonc (target: *EventTarget, event: *Event)
 {
-    assert(target.table != nul)
-    assert(target.table.sur_legacy_pre_activation_behavior != nul)
-    target.table.sur_legacy_pre_activation_behavior(target, event)
+    table := target.donne_table()
+    assert(table != nul)
+    assert(table.sur_legacy_pre_activation_behavior != nul)
+    table.sur_legacy_pre_activation_behavior(target, event)
 }
 
 run_legacy_canceled_activation_behavior :: fonc (target: *EventTarget, event: *Event)
 {
-    assert(target.table != nul)
-    assert(target.table.sur_legacy_canceled_activation_behavior != nul)
-    target.table.sur_legacy_canceled_activation_behavior(target, event)
+    table := target.donne_table()
+    assert(table != nul)
+    assert(table.sur_legacy_canceled_activation_behavior != nul)
+    table.sur_legacy_canceled_activation_behavior(target, event)
 }
 
 /* https://dom.spec.whatwg.org/#add-an-event-listener */

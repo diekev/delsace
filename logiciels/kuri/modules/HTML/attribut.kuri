@@ -86,7 +86,7 @@ table_virtuelle_attr := TableVirtuelleÉlément(
     sur_destruction = attr_sur_destruction
 )
 
-attr_sur_destruction :: fonc (base: *EventTarget)
+attr_sur_destruction :: fonc (base: *PlatformObject)
 {
     attr := base comme *Attr
     déloge(attr)

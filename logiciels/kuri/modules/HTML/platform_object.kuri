@@ -1,0 +1,31 @@
+/* ------------------------------------------------------------------------- */
+/** \nom PlatformObject
+ * https://webidl.spec.whatwg.org/#dfn-platform-object
+ * \{ */
+
+#portée_module
+
+TableVirtuellePlatformObject :: struct {
+    /* Type de l'objet associé à cette table. */
+    classe: type_de_données
+    /* Appelé quand la cible est détruite. */
+    sur_destruction: fonc(*PlatformObject)(rien)
+}
+
+#portée_export
+
+PlatformObject :: struct {
+    table: *TableVirtuellePlatformObject
+}
+
+détruit :: fonc (object: *PlatformObject)
+{
+    si object.table && object.table.sur_destruction {
+       object.table.sur_destruction(object)
+    }
+    sinon {
+        déloge(object)
+    }
+}
+
+/** \} */
