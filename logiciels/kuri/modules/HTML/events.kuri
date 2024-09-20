@@ -248,6 +248,8 @@ AddEventListenerOptions :: struct {
 TableVirtuelleEventTarget :: struct {
     empl platform_object: TableVirtuellePlatformObject
 
+    sur_destruction = event_target_sur_destruction
+
     /* https://dom.spec.whatwg.org/#get-the-parent */
     sur_get_the_parent: fonc(*EventTarget, *Event)(*EventTarget) = event_target_sur_get_the_parent
     /* https://dom.spec.whatwg.org/#eventtarget-activation-behavior */
@@ -256,6 +258,13 @@ TableVirtuelleEventTarget :: struct {
     sur_legacy_pre_activation_behavior: fonc(*EventTarget, *Event)(rien)
     /* https://dom.spec.whatwg.org/#eventtarget-legacy-canceled-activation-behavior */
     sur_legacy_canceled_activation_behavior: fonc(*EventTarget, *Event)(rien)
+}
+
+event_target_sur_destruction :: fonc (base: *PlatformObject)
+{
+    target := base comme *EventTarget
+    event_target_détruit_données(target)
+    déloge(target)
 }
 
 /* Implémentation défaut pour get_the_parent. */
@@ -280,6 +289,13 @@ EventTarget :: struct {
     }
 
     listeners: [..]EventListenerEntry
+}
+
+#portée_module
+
+event_target_détruit_données :: fonc (event_target: *EventTarget)
+{
+    déloge(event_target.listeners)
 }
 
 #portée_fichier

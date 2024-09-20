@@ -65,6 +65,8 @@ Noeud :: struct {
 
 détruit_noeud :: fonc (noeud: *Noeud)
 {
+    event_target_détruit_données(noeud)
+
     pour noeud.attributs {
         détruit_noeud(it)
     }

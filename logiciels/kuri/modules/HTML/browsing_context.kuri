@@ -456,8 +456,16 @@ crée_nouvelle_origin_opaque :: fonc () -> Origin
 #portée_fichier
 
 table_virtuelle_window := TableVirtuelleEventTarget(
-    classe = Window
+    classe = Window,
+    sur_destruction = window_sur_destruction
 )
+
+window_sur_destruction :: fonc (base: *PlatformObject)
+{
+    window := base comme *Window
+    event_target_détruit_données(window)
+    déloge(window)
+}
 
 #portée_export
 
