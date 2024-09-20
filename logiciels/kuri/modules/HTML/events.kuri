@@ -740,8 +740,25 @@ invoke :: fonc (segment: &Event.Path @inutilisée, event: *Event @inutilisée, p
  * https://dom.spec.whatwg.org/#abortsignal
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_abort_signal := TableVirtuelleEventTarget(
+    classe = AbortSignal,
+    sur_destruction = abort_signal_sur_destruction
+)
+
+abort_signal_sur_destruction :: fonc (base: *PlatformObject)
+{
+    abort_signal := base comme *AbortSignal
+    event_target_détruit_données(abort_signal)
+    déloge(abort_signal)
+}
+
+#portée_export
+
 AbortSignal :: struct {
     empl event_target: EventTarget
+    table = *table_virtuelle_abort_signal
 
     aborted: bool
 }
