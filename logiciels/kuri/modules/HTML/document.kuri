@@ -543,9 +543,14 @@ has_a_style_sheet_that_is_blocking_scripts :: fonc (document: *Document) -> bool
         retourne faux
     }
 
-    // À FAIRE : 3. Let containerDocument be document's node navigable's container document.
+    // 3. Let containerDocument be document's node navigable's container document.
+    container_document := donne_container_document(navigable)
 
-    // À FAIRE : 4. If containerDocument is non-null and containerDocument's script-blocking style sheet set is not empty, then return true.
+    // 4. If containerDocument is non-null and containerDocument's script-blocking
+    //    style sheet set is not empty, then return true.
+    si container_document != nul && container_document.script_blocking_style_sheet_set.taille != 0 {
+        retourne vrai
+    }
 
     // 5. Return false.
     retourne faux

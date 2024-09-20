@@ -138,6 +138,19 @@ donne_container :: fonc (navigable: *Navigable @inutilisée) -> *Élément
     retourne nul
 }
 
+/* https://html.spec.whatwg.org/multipage/document-sequences.html#nav-container-document */
+donne_container_document :: fonc (navigable: *Navigable) -> *Document
+{
+    // 1. If navigable's container is null, then return null.
+    container := donne_container(navigable)
+    saufsi container {
+        retourne nul
+    }
+
+    // 2. Return navigable's container's node document.
+    retourne container.document
+}
+
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#nav-traversable */
 donne_traversable_navigable :: fonc (input_navigable: *Navigable) -> *TraversableNavigable
 {
