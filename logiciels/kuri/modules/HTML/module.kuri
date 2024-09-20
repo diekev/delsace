@@ -27,6 +27,7 @@ charge "tags_html"
 charge "url"
 charge "user_agent"
 charge "webcrypto"
+charge "webdriver_bidi"
 
 DOMString :: ChaineUTF16Unique
 

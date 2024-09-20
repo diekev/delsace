@@ -262,7 +262,7 @@ donne_top_level_traversable :: fonc (input_navigable: *Navigable) -> *Traversabl
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#creating-a-new-top-level-traversable */
-crée_un_nouveau_top_level_traversable :: fonc (user_agent: *UserAgent, opener: *BrowsingContext, target_name: chaine, openerNavigableForWebDriver : *Navigable = nul @inutilisée) -> *TraversableNavigable
+crée_un_nouveau_top_level_traversable :: fonc (user_agent: *UserAgent, opener: *BrowsingContext, target_name: chaine, opener_navigable_for_webdriver : *Navigable = nul) -> *TraversableNavigable
 {
     // 1. Let document be null.
     document: *Document = nul
@@ -313,7 +313,8 @@ crée_un_nouveau_top_level_traversable :: fonc (user_agent: *UserAgent, opener: 
     // 11. Append traversable to the user agent's top-level traversable set.
     tableau_ajoute(*user_agent.top_level_traversables, traversable)
 
-    // À FAIRE 12. Invoke WebDriver BiDi navigable created with traversable and openerNavigableForWebDriver.
+    // 12. Invoke WebDriver BiDi navigable created with traversable and openerNavigableForWebDriver.
+    webdriver_bidi_navigable_created(traversable, opener_navigable_for_webdriver)
 
     // 13. Return traversable.
     retourne traversable

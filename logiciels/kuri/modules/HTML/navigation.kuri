@@ -283,7 +283,16 @@ navigate :: fonc (user_agent: *UserAgent,
 
     // 7. If the surrounding agent is equal to navigable's active document's relevant agent, then continue these steps. Otherwise, queue a global task on the navigation and traversal task source given navigable's active window to continue these steps.
 
-    // 8. If navigable's active document's unload counter is greater than 0, then invoke WebDriver BiDi navigation failed with a WebDriver BiDi navigation status whose id is navigationId, status is "canceled", and url is url, and return.
+    // 8. If navigable's active document's unload counter is greater than 0, then
+    //    invoke WebDriver BiDi navigation failed with a WebDriver BiDi navigation
+    //    status whose id is navigationId, status is "canceled", and url is url, and return.
+    si navigable.donne_active_document().unload_counter > 0 {
+        navigation_status: WebDriverNavigationStatus
+        navigation_status.id = navigation_id
+        navigation_status.url = url
+        navigation_status.status = "canceled"
+        webdriver_bidi_navigation_failed(navigable, *navigation_status)
+    }
 
     // 9. Let container be navigable's container.
 
@@ -333,16 +342,27 @@ navigate :: fonc (user_agent: *UserAgent,
     }
 
     // 15. Let targetBrowsingContext be navigable's active browsing context.
-    // target_browsing_context := navigable.donne_active_browsing_context()
+    target_browsing_context := navigable.donne_active_browsing_context()
 
     // 16. Let targetSnapshotParams be the result of snapshotting target snapshot params given navigable.
     target_snapshot_params := snapshot_target_snapshot_params(navigable)
 
-    // 17. Invoke WebDriver BiDi navigation started with targetBrowsingContext, and a new WebDriver BiDi navigation status whose id is navigationId, status is "pending", and url is url.
+    // 17. Invoke WebDriver BiDi navigation started with targetBrowsingContext,
+    //     and a new WebDriver BiDi navigation status whose id is navigationId,
+    //     status is "pending", and url is url.
+    navigation_status: WebDriverNavigationStatus
+    navigation_status.id = navigation_id
+    navigation_status.url = url
+    navigation_status.status = "pending"
+    webdriver_bidi_navigation_started(target_browsing_context, *navigation_status)
 
     // 18. If navigable's ongoing navigation is "traversal", then:
     si navigable.ongoing_navigation == "traversal" {
         // 1. Invoke WebDriver BiDi navigation failed with targetBrowsingContext and a new WebDriver BiDi navigation status whose id is navigationId, status is "canceled", and url is url.
+        navigation_status.id = navigation_id
+        navigation_status.url = url
+        navigation_status.status = "canceled"
+        webdriver_bidi_navigation_failed(target_browsing_context, *navigation_status)
 
         // 2. Return.
         retourne
@@ -385,6 +405,7 @@ navigate :: fonc (user_agent: *UserAgent,
         target_snapshot_params: TargetSnapshotParams
         history_handling: NavigationHistoryBehavior
         navigation_id: Optionnel(NavigationID)
+        target_browsing_context: *BrowsingContext
     }
 
     sur_run :: fonc (base: *Algorithm)
@@ -398,8 +419,9 @@ navigate :: fonc (user_agent: *UserAgent,
         target_snapshot_params_ := tâche.target_snapshot_params
         history_handling := tâche.history_handling
         navigation_id_ := tâche.navigation_id
+        target_browsing_context := tâche.target_browsing_context
 
-        navigate_parallel_steps(user_agent, navigable, url, source_snapshot_params_, target_snapshot_params_, history_handling, navigation_id_)
+        navigate_parallel_steps(user_agent, navigable, url, source_snapshot_params_, target_snapshot_params_, history_handling, navigation_id_, target_browsing_context)
     }
 
     sur_destruction :: fonc (base: *Algorithm)
@@ -418,6 +440,7 @@ navigate :: fonc (user_agent: *UserAgent,
     tâche.target_snapshot_params = target_snapshot_params
     tâche.history_handling = history_handling
     tâche.navigation_id = navigation_id
+    tâche.target_browsing_context = target_browsing_context
 
     user_agent.lance_en_parallèle(tâche)
 }
@@ -428,14 +451,22 @@ navigate_parallel_steps :: fonc (user_agent: *UserAgent,
                                  source_snapshot_params: &SourceSnapshotParams,
                                  target_snapshot_params: &TargetSnapshotParams,
                                  history_handling: NavigationHistoryBehavior,
-                                 navigation_id: NavigationID)
+                                 navigation_id: NavigationID,
+                                 target_browsing_context: *BrowsingContext)
 {
     // 1. Let unloadPromptCanceled be the result of checking if unloading is
     //    canceled for navigable's active document's inclusive descendant navigables.
 
     // 2. If unloadPromptCanceled is true, or navigable's ongoing navigation is no longer navigationId, then:
     si navigable.ongoing_navigation != navigation_id {
-        // 1. Invoke WebDriver BiDi navigation failed with targetBrowsingContext and a new WebDriver BiDi navigation status whose id is navigationId, status is "canceled", and url is url.
+        // 1. Invoke WebDriver BiDi navigation failed with targetBrowsingContext
+        //    and a new WebDriver BiDi navigation status whose id is navigationId,
+        //    status is "canceled", and url is url.
+        navigation_status: WebDriverNavigationStatus
+        navigation_status.id = navigation_id
+        navigation_status.url = url
+        navigation_status.status = "canceled"
+        webdriver_bidi_navigation_failed(target_browsing_context, *navigation_status)
 
         // 2. Abort these steps.
         retourne

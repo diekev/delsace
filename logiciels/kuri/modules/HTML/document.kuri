@@ -108,6 +108,8 @@ Document :: struct {
     is_initial_about_blank: bool
     latest_entry: *SessionHistoryEntry
 
+    unload_counter: z32
+
     /* CSS. */
     feuille_de_style_agent: *CSS.CSSStyleSheet
     feuilles_de_style: [..]*CSS.CSSStyleSheet
