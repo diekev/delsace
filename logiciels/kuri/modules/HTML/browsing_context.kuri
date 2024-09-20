@@ -448,9 +448,27 @@ crée_nouvelle_origin_opaque :: fonc () -> Origin
     retourne Origin(vrai, valeur_origine_opaque)
 }
 
+/* ------------------------------------------------------------------------- */
+/** \nom Window
+ * https://html.spec.whatwg.org/multipage/nav-history-apis.html#window
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_window := TableVirtuelleEventTarget(
+    classe = Window
+)
+
+#portée_export
+
 Window :: struct {
+    empl event_target: EventTarget
+    table = *table_virtuelle_window
+
     document: *Document
 }
+
+/** \} */
 
 WindowProxy :: struct {
     /* [[Window]] */
