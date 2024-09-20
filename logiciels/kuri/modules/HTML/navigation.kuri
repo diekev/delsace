@@ -2583,10 +2583,10 @@ populate_with_html_head_body :: fonc (document: *Document)
     html := crée_élément_avec_tag(document, TAG_html)
 
     // 2. Let head be the result of creating an element given document, head, and the HTML namespace.
-    head := crée_élément_avec_tag(document, TAG_html)
+    head := crée_élément_avec_tag(document, TAG_head)
 
     // 3. Let body be the result of creating an element given document, body, and the HTML namespace.
-    body := crée_élément_avec_tag(document, TAG_html)
+    body := crée_élément_avec_tag(document, TAG_body)
 
     // 4. Append html to document.
     document.ajoute_enfant(html)
