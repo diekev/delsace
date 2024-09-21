@@ -763,20 +763,6 @@ crée_un_nouveau_browsing_context_group_and_document :: fonc (user_agent: *UserA
     retourne group, document
 }
 
-/* https://w3c.github.io/webappsec-permissions-policy/#policies */
-DeclaredPolicy :: struct {
-}
-
-PermissionsPolicy :: struct {
-}
-
-/* https://w3c.github.io/webappsec-permissions-policy/#algo-create-for-navigable */
-crée_permisions_policy_pour_navigable :: fonc (container: *Élément @inutilisée, origin: Origin @inutilisée) -> PermissionsPolicy
-{
-    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
-    retourne PermissionsPolicy()
-}
-
 /* https://html.spec.whatwg.org/multipage/webappapis.html#obtain-similar-origin-window-agent */
 obtain_similar_origin_window_agent :: fonc (origin: Origin @inutilisée, groupe: *BrowsingContextGroup @inutilisée, requestsOAC: bool @inutilisée) -> *rien
 {

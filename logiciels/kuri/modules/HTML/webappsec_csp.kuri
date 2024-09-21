@@ -1,0 +1,13 @@
+importe Fondation
+
+/* https://w3c.github.io/webappsec-csp/#should-block-inline */
+le_comportement_inline_de_l_élément_doit_être_bloqué_par_csp :: fonc (élément: *Élément, type: chaine @inutilisée, source: chaine @inutilisée) -> chaine
+{
+    assert(élément != nul)
+
+    résultat := "Allowed"
+
+    /* À FAIRE. */
+
+    retourne résultat
+}
