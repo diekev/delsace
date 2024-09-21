@@ -103,6 +103,8 @@ Document :: struct {
 
     referrer: chaine /* Peut être vide. */
 
+    policy_container: *PolicyContainer
+
     current_document_readiness: chaine
 
     is_initial_about_blank: bool
@@ -148,6 +150,8 @@ document_sur_destruction :: fonc (base: *PlatformObject)
         déloge(it.url)
         IMG_detruit_image(*it.données)
     }
+
+    détruit_policy_container(document.policy_container)
 
     détruit_uri(document.url)
     déloge(document.images_disponibles)

@@ -145,8 +145,8 @@ NavigationParams :: struct {
     
     origin: Origin
     
-    //policy container
-    //  a policy container to use for the new Document
+    // a policy container to use for the new Document
+    policy_container: *PolicyContainer
 
     final_sandboxing_flag: SandboxingFlags
     cross_origin_opener_policy: CrossOriginOpenerPolicy
@@ -162,9 +162,10 @@ est_non_fetch_scheme :: fonc (navigation_params: *NavigationParams @inutilisée)
     retourne faux
 }
 
-est_navigation_params :: fonc (navigation_params: *NavigationParams @inutilisée) -> bool
+est_navigation_params :: fonc (navigation_params: *NavigationParams) -> bool
 {
-    retourne vrai
+    /* À FAIRE : non-fetch scheme */
+    retourne navigation_params != nul
 }
 
 détruit_navigation_params :: fonc (navigation_params: *NavigationParams)
@@ -181,10 +182,10 @@ SourceSnapshotParams :: struct {
     sandboxing_flags: SandboxingFlags
     allows_downloading: bool
     fetch_client: *rien // À FAIRE(settings object)
-    source_policy_container: *rien // À FAIRE
+    source_policy_container: *PolicyContainer
 }
 
-snapshot_source_snapshot_params :: fonc (source_document: *Document @inutilisée) -> SourceSnapshotParams
+snapshot_source_snapshot_params :: fonc (source_document: *Document) -> SourceSnapshotParams
 {
     résultat: SourceSnapshotParams
     imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
@@ -192,7 +193,7 @@ snapshot_source_snapshot_params :: fonc (source_document: *Document @inutilisée
     // sandboxing flags = sourceDocument's active sandboxing flag set
     // allows downloading = false if sourceDocument's active sandboxing flag set has the sandboxed downloads browsing context flag set; otherwise true
     // fetch client = sourceDocument's relevant settings object
-    // source policy container = sourceDocument's policy container
+    résultat.source_policy_container = source_document.policy_container
     retourne résultat
 }
 
@@ -987,11 +988,14 @@ attempt_to_populate_the_history_entry_document :: fonc (params: *HistoryEntryPop
                 // 2. Set entry's document state's origin to document's origin.
                 entry.document_state.origin = document.origin
 
-                // À FAIRE : 3. If document's URL requires storing the policy container in history, then:
-
+                // 3. If document's URL requires storing the policy container in history, then:
+                si requires_storing_the_policy_container_in_history(document.url) {
                     // 1. Assert: navigationParams is a navigation params (i.e., neither null nor a non-fetch scheme navigation params).
+                    assert(est_navigation_params(navigation_params))
 
                     // 2. Set entry's document state's history policy container to navigationParams's policy container.
+                    entry.document_state.history_policy_container = navigation_params.policy_container
+                }
             }
             
             // 3. If entry's document state's request referrer is "client", and navigationParams is a navigation params (i.e., neither null nor a non-fetch scheme navigation params), then:
@@ -1146,6 +1150,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
     // final_sandboxing_flags: SandboxingFlags
 
     // 14. Let responsePolicyContainer be null.
+    response_policy_container: *PolicyContainer
 
     // 15. Let responseCOOP be a new cross-origin opener policy.
     response_coop: CrossOriginOpenerPolicy
@@ -1310,7 +1315,9 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
 
     // 22. Assert: locationURL is null and response is not a network error.
 
-    // 23. Let resultPolicyContainer be the result of determining navigation params policy container given response's URL, entry's document state's history policy container, sourceSnapshotParams's source policy container, null, and responsePolicyContainer.
+    // 23. Let resultPolicyContainer be the result of determining navigation params policy container
+    //     given response's URL, entry's document state's history policy container, sourceSnapshotParams's source policy container, null, and responsePolicyContainer.
+    result_policy_container := determine_navigation_params_policy_container(response.donne_url().Quelque, entry.document_state.history_policy_container, source_snapshot_params.source_policy_container, nul, response_policy_container)
 
     // 24. If navigable's container is an iframe, and response's timing allow passed flag is set, then set container's pending resource-timing start time to null.
 
@@ -1339,7 +1346,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
     résultat.cross_origin_opener_policy = response_coop
     //     reserved environment    request's reserved client
     //     origin  responseOrigin
-    //     policy container    resultPolicyContainer
+    résultat.policy_container = result_policy_container
     //     final sandboxing flag set   finalSandboxFlags
     résultat.COOP_enforcement_result = coop_enforcement_result
     //     navigation timing type  navTimingType
@@ -2528,7 +2535,7 @@ create_and_initialize_a_document_object :: fonc (user_agent: *UserAgent, type: c
     document.type_contenu = content_type
     document.origin = navigation_params.origin
     document.browsing_context = browsing_context
-    //     policy container navigationParams's policy container
+    document.policy_container = navigation_params.policy_container
     //     permissions policy permissionsPolicy
     document.active_sandboxing_flags = navigation_params.final_sandboxing_flag
     document.cross_origin_opener_policy = navigation_params.cross_origin_opener_policy

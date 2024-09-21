@@ -11,6 +11,7 @@ NestedHistory :: struct {
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#document-state-2 */
 DocumentState :: struct {
     document: *Document
+    history_policy_container: *PolicyContainer
     initiator_origin: Optionnel(Origin)
     origin: Origin
     navigable_target_name: chaine
@@ -705,7 +706,8 @@ crée_browsing_context_et_document :: fonc (creator: *Document, embedder: *Élé
         // 1. Set document's referrer to the serialization of creator's URL.
         document.referrer = url_serializer(*creator.url)
 
-        // À FAIRE : 2. Set document's policy container to a clone of creator's policy container.
+        // 2. Set document's policy container to a clone of creator's policy container.
+        document.policy_container = clone(creator.policy_container)
 
         // 3. If creator's origin is same origin with creator's relevant settings
         //    object's top-level origin, then set document's cross-origin opener
@@ -781,6 +783,140 @@ crée_un_nouveau_realm :: fonc (agent: *rien @inutilisée) -> *rien
 set_up_window_environnement_context :: fonc (creation_url: URI @inutilisée, execution_context: *rien @inutilisée, reserved_environment: *rien @inutilisée, top_level_creation_url: URI @inutilisée, top_level_origin: Origin @inutilisée)
 {
     imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 7.1.4 Cross-origin embedder policies
+ * \{ */
+
+/* https://html.spec.whatwg.org/multipage/browsers.html#embedder-policy-value */
+EmbedderPolicyValue :: énum n8 {
+    UnsafeNone
+    RequireCorp
+    // Voir commentaire dans la spec avant d'activer ceci.
+    // Credentialless
+}
+
+/* https://html.spec.whatwg.org/multipage/browsers.html#embedder-policy */
+EmbedderPolicy :: struct {
+    value := EmbedderPolicyValue.UnsafeNone
+    reporting_endpoint: chaine
+    report_only_value := EmbedderPolicyValue.UnsafeNone
+    report_only_reporting_endpoint: chaine
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 7.1.6 Policy containers
+ * https://html.spec.whatwg.org/multipage/browsers.html#policy-containers
+ * \{ */
+
+/* https://html.spec.whatwg.org/multipage/browsers.html#policy-container */
+PolicyContainer :: struct {
+    csp_list: [..]ContentSecurityPolicy
+    embedder_policy: EmbedderPolicy
+    referrer_policy := default_referrer_policy
+}
+
+clone :: fonc (source: *PolicyContainer) -> *PolicyContainer
+{
+    saufsi source {
+        retourne nul
+    }
+
+    résultat := loge(PolicyContainer)
+    résultat.embedder_policy = source.embedder_policy
+    résultat.referrer_policy = source.referrer_policy
+    pour source.csp_list {
+        tableau_ajoute(*résultat.csp_list, it)
+    }
+    retourne résultat
+}
+
+détruit_policy_container :: fonc (policy_container: *PolicyContainer)
+{
+    saufsi policy_container {
+        retourne
+    }
+
+    déloge(policy_container.csp_list)
+    déloge(policy_container)
+}
+
+/* https://html.spec.whatwg.org/multipage/browsers.html#requires-storing-the-policy-container-in-history */
+requires_storing_the_policy_container_in_history :: fonc (url: *URL) -> bool
+{
+    // 1. If url's scheme is "blob", then return false.
+    si url.scheme == "blob" {
+        retourne faux
+    }
+
+    // 2. If url is local, then return true.
+    si url.is_local() {
+        retourne vrai
+    }
+
+    // 3. Return false.
+    retourne faux
+}
+
+requires_storing_the_policy_container_in_history :: fonc (url: &URI) -> bool
+{
+    // 1. If url's scheme is "blob", then return false.
+    si url.schéma == "blob" {
+        retourne faux
+    }
+
+    // 2. If url is local, then return true.
+    si is_local_scheme(url.schéma) {
+        retourne vrai
+    }
+
+    // 3. Return false.
+    retourne faux
+}
+
+/* https://html.spec.whatwg.org/multipage/browsers.html#determining-navigation-params-policy-container */
+determine_navigation_params_policy_container :: fonc (response_url: &URI,
+                                                      history_policy_container: *PolicyContainer,
+                                                      initiator_policy_container: *PolicyContainer,
+                                                      parent_policy_container: *PolicyContainer,
+                                                      response_policy_container: *PolicyContainer) -> *PolicyContainer
+{
+    // 1. If historyPolicyContainer is not null, then:
+    si history_policy_container != nul {
+        // 1. Assert: responseURL requires storing the policy container in history.
+        assert(requires_storing_the_policy_container_in_history(response_url))
+
+        // 2. Return a clone of historyPolicyContainer.
+        retourne clone(history_policy_container)
+    }
+
+    // 2. If responseURL is about:srcdoc, then:
+    si response_url.uri == "about:srcdoc" {
+        // 1. Assert: parentPolicyContainer is not null.
+        assert(parent_policy_container != nul)
+
+        // 2. Return a clone of parentPolicyContainer.
+        retourne clone(parent_policy_container)
+    }
+
+    // 3. If responseURL is local and initiatorPolicyContainer is not null, 
+    //    then return a clone of initiatorPolicyContainer.
+    si is_local_scheme(response_url.schéma) && initiator_policy_container != nul {
+        retourne clone(initiator_policy_container)
+    }
+
+    // 4. If responsePolicyContainer is not null, then return responsePolicyContainer.
+    si response_policy_container != nul {
+        retourne response_policy_container
+    }
+
+    // 5. Return a new policy container.
+    retourne loge(PolicyContainer)
 }
 
 /** \} */

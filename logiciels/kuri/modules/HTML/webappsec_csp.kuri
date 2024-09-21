@@ -1,5 +1,15 @@
 importe Fondation
 
+/* ------------------------------------------------------------------------- */
+/** \nom 2.2 Policies
+ * \{ */
+
+/* https://w3c.github.io/webappsec-csp/#content-security-policy-object */
+ContentSecurityPolicy :: struct {
+}
+
+/** \} */
+
 /* https://w3c.github.io/webappsec-csp/#should-block-inline */
 le_comportement_inline_de_l_élément_doit_être_bloqué_par_csp :: fonc (élément: *Élément, type: chaine @inutilisée, source: chaine @inutilisée) -> chaine
 {
