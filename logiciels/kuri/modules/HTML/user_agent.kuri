@@ -135,7 +135,7 @@ lance_requête :: fonc (user_agent: *UserAgent, request: *Request) -> *Response
 {
     rappels := user_agent.rappels_interface
     saufsi rappels && rappels.sur_lancement_requête {
-        retourne network_error()
+        retourne network_error(request)
     }
 
     retourne rappels.sur_lancement_requête(rappels, request)

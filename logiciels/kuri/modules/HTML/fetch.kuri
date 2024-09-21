@@ -207,6 +207,13 @@ Response :: struct {
     // A response has an associated has-cross-origin-redirects (a boolean), which is initially false.
 }
 
+crée_réponse :: fonc (requête: *Request) -> *Response
+{
+    résultat := loge(Response)
+    résultat.définis_url(requête.donne_url_courant())
+    retourne résultat
+}
+
 détruit_response :: fonc (response: *Response)
 {
     si response.body.possède_valeur() {
@@ -220,6 +227,11 @@ détruit_response :: fonc (response: *Response)
 
     déloge(response.body_info)
     déloge(response)
+}
+
+définis_url :: fonc (response: *Response, url: URI)
+{
+    tableau_ajoute(*response.url_list, url)
 }
 
 /* https://fetch.spec.whatwg.org/#concept-response-url */
@@ -252,9 +264,9 @@ possède_entête :: fonc (response: *Response, nom: chaine) -> bool
 }
 
 /* https://fetch.spec.whatwg.org/#concept-network-error */
-network_error :: fonc () -> *Response
+network_error :: fonc (requête: *Request) -> *Response
 {
-    résultat := loge(Response)
+    résultat := crée_réponse(requête)
     résultat.type = "error"
     résultat.status = 0
     résultat.body_info = loge(ResponseBodyInfo)
@@ -262,9 +274,9 @@ network_error :: fonc () -> *Response
 }
 
 /* https://fetch.spec.whatwg.org/#concept-aborted-network-error */
-aborted_network_error :: fonc () -> *Response
+aborted_network_error :: fonc (requête: *Request) -> *Response
 {
-    résultat := network_error()
+    résultat := network_error(requête)
     résultat.aborted_flag = vrai
     retourne résultat
 }
@@ -277,10 +289,10 @@ appropriate_network_error :: fonc (fetch_params: *FetchParams) -> *Response
 
     // 2. Return an aborted network error if fetchParams is aborted; otherwise return a network error.
     si fetch_params.is_aborted() {
-        retourne aborted_network_error()
+        retourne aborted_network_error(fetch_params.request)
     }
 
-    retourne network_error()
+    retourne network_error(fetch_params.request)
 }
 
 /* https://fetch.spec.whatwg.org/#concept-response-location-url */
@@ -650,7 +662,7 @@ main_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, recursiv
 
     // 3. If request’s local-URLs-only flag is set and request’s current URL is not local, then set response to a network error.
     si request.local_urls_only && !is_local_scheme(request.donne_url_courant().schéma) {
-        response = network_error()
+        response = network_error(request)
     }
 
     // 4. Run report Content Security Policy violations for request.
@@ -696,14 +708,14 @@ main_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, recursiv
         // request’s mode is "same-origin"
         sinon si request.mode == "same-origin" {
             // Return a network error.
-            response = network_error()
+            response = network_error(request)
         }
 
         // request’s mode is "no-cors"
         sinon si request.mode == "no-cors" {
             // If request’s redirect mode is not "follow", then return a network error.
             si request.redirect_mode != "follow" {
-                response = network_error()
+                response = network_error(request)
             }
             sinon {
                 // Set request’s response tainting to "opaque".
@@ -717,7 +729,7 @@ main_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, recursiv
         // request’s current URL’s scheme is not an HTTP(S) scheme
         sinon si !is_http_scheme(request.donne_url_courant().schéma) {
             // Return a network error.
-            response = network_error()
+            response = network_error(request)
         }
 
         // request’s use-CORS-preflight flag is set
@@ -842,7 +854,7 @@ scheme_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Re
 
         // 2. If dataURLStruct is failure, then return a network error.
         saufsi opt_data_url_struct.possède_valeur() {
-            retourne network_error()
+            retourne network_error(request)
         }
 
         data_url_struct := opt_data_url_struct.Quelque
@@ -854,7 +866,7 @@ scheme_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Re
         // À FAIRE : entêtes pour les réponses.
         contenu := data_url_struct.body
 
-        response := loge(Response)
+        response := crée_réponse(request)
         response.status = 200
 
         body_info := loge(ResponseBodyInfo)
@@ -875,7 +887,7 @@ scheme_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Re
 
             contenu := contenu_fichier_texte(chemin)
 
-            response := loge(Response)
+            response := crée_réponse(request)
             response.status = 200
 
             body_info := loge(ResponseBodyInfo)
@@ -888,13 +900,13 @@ scheme_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Re
             retourne response
         }
 
-        retourne network_error()
+        retourne network_error(request)
     }
     sinon si schéma == "http" || schéma == "https" {
         retourne user_agent.lance_requête(request)
     }
 
-    retourne network_error()
+    retourne network_error(request)
 }
 
 /** } */

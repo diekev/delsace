@@ -1668,7 +1668,7 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Request) -> *RappelsRequê
     {
         rappels := base comme *RappelsRequête
         imprime("Erreur\n")
-        rappels.response = network_error()
+        rappels.response = network_error(rappels.requête)
     }
 
     sur_prêt_à_lire :: fonc (base: *QT_Rappels_Socket)
@@ -1715,7 +1715,7 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Request) -> *RappelsRequê
             contenu = nouveau_contenu
         }
 
-        response := loge(Response)
+        response := crée_réponse(rappels.requête)
         response.status = message.status
 
         body_info := loge(ResponseBodyInfo)
