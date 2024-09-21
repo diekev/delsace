@@ -249,6 +249,9 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élé
     sinon si tag == TAG_html {
         élément = loge(HTMLHtmlElement)
     }
+    sinon si tag == TAG_iframe {
+        élément = loge(HTMLIFrameElement)
+    }
     sinon si tag == TAG_img {
         élément = loge(HTMLImageElement)
     }
@@ -954,6 +957,38 @@ table_virtuelle_html_element := TableVirtuelleÉlément(
 html_element_sur_destruction :: fonc (base: *PlatformObject)
 {
     élément := base comme *HTMLHtmlElement
+    élément_détruit_données(élément)
+    déloge(élément)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLIFrameElement
+ * https://html.spec.whatwg.org/multipage/iframe-embed-object.html#the-iframe-element
+ * \{ */
+
+#portée_export
+
+HTMLIFrameElement :: struct {
+    empl html_element: HTMLElement
+    table = *table_virtuelle_iframe_element
+
+    /* À FAIRE : remplis depuis l'attribut sandbox
+     * https://html.spec.whatwg.org/multipage/browsers.html#iframe-sandboxing-flag-set */
+    iframe_sandboxing_flags: SandboxingFlags
+}
+
+#portée_fichier
+
+table_virtuelle_iframe_element := TableVirtuelleÉlément(
+    classe = HTMLIFrameElement,
+    sur_destruction = iframe_element_sur_destruction
+)
+
+iframe_element_sur_destruction :: fonc (base: *PlatformObject)
+{
+    élément := base comme *HTMLIFrameElement
     élément_détruit_données(élément)
     déloge(élément)
 }
