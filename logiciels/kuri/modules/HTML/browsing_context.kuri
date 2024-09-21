@@ -376,10 +376,27 @@ SandboxingFlags :: énum_drapeau n16 {
 }
 
 /* https://html.spec.whatwg.org/multipage/browsers.html#determining-the-creation-sandboxing-flags */
-détermine_drapeaux_sandboxing :: fonc (context: *BrowsingContext @inutilisée, embedder: *Élément @inutilisée) -> SandboxingFlags
+détermine_drapeaux_sandboxing :: fonc (context: *BrowsingContext, embedder: *Élément) -> SandboxingFlags
 {
-    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
-    retourne SandboxingFlags.zéro
+    résultat: SandboxingFlags
+        
+    // If embedder is null, then: the flags set on browsing context's popup sandboxing flag set.
+    si embedder == nul {
+        résultat |= context.popup_sandboxing_flags
+    }
+
+    // If embedder is an element, then: the flags set on embedder's iframe sandboxing flag set.
+    si embedder && embedder.local_name == TAG_iframe {
+        iframe := embedder comme *HTMLIFrameElement
+        résultat |= iframe.iframe_sandboxing_flags
+    }
+
+    // If embedder is an element, then: the flags set on embedder's node document's active sandboxing flag set.
+    si embedder {
+        résultat |= embedder.document.active_sandboxing_flags
+    }
+
+    retourne résultat
 }
 
 /* https://html.spec.whatwg.org/multipage/browsers.html#concept-origin-opaque */
@@ -523,6 +540,8 @@ BrowsingContext :: struct {
     popup: bool
     is_auxiliary: bool
     initial_url: Optionnel(URI)
+    /* Seulement pour les contextes de haut-niveau. */
+    popup_sandboxing_flags: SandboxingFlags
 
     virtual_browsing_context_group_id: z32
 
