@@ -205,7 +205,7 @@ TargetSnapshotParams :: struct {
 snapshot_target_snapshot_params :: fonc (target_navigable: *Navigable) -> TargetSnapshotParams
 {
     résultat: TargetSnapshotParams
-    résultat.sandboxing_flags = détermine_drapeaux_sanboxing(target_navigable.donne_active_browsing_context(), target_navigable.donne_container())
+    résultat.sandboxing_flags = détermine_drapeaux_sandboxing(target_navigable.donne_active_browsing_context(), target_navigable.donne_container())
     retourne résultat
 }
 

@@ -376,7 +376,7 @@ SandboxingFlags :: énum_drapeau n16 {
 }
 
 /* https://html.spec.whatwg.org/multipage/browsers.html#determining-the-creation-sandboxing-flags */
-détermine_drapeaux_sanboxing :: fonc (context: *BrowsingContext @inutilisée, embedder: *Élément @inutilisée) -> SandboxingFlags
+détermine_drapeaux_sandboxing :: fonc (context: *BrowsingContext @inutilisée, embedder: *Élément @inutilisée) -> SandboxingFlags
 {
     imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
     retourne SandboxingFlags.zéro
@@ -638,7 +638,7 @@ crée_browsing_context_et_document :: fonc (creator: *Document, embedder: *Élé
     }
 
     // 6. Let sandboxFlags be the result of determining the creation sandboxing flags given browsingContext and embedder.
-    sandbox_flags := détermine_drapeaux_sanboxing(browsing_context, embedder)
+    sandbox_flags := détermine_drapeaux_sandboxing(browsing_context, embedder)
 
     // 7. Let origin be the result of determining the origin given about:blank, sandboxFlags, and creatorOrigin.
     origin := détermine_origin(URI("about:blank"), sandbox_flags, creator_origin)
