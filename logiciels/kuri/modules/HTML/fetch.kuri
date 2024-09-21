@@ -6,6 +6,50 @@ importe MIME
 importe SysFichier
 
 /* ------------------------------------------------------------------------- */
+/** \nom 2.1 URL
+ * https://fetch.spec.whatwg.org/#url
+ * \{ */
+
+/* https://fetch.spec.whatwg.org/#local-scheme */
+is_local_scheme :: fonc (scheme: chaine) -> bool
+{
+    retourne scheme == "about" || scheme == "blob" || scheme == "data"
+}
+
+/* https://fetch.spec.whatwg.org/#is-local */
+is_local :: fonc (url: *URL) -> bool
+{
+    retourne is_local_scheme(url.scheme)
+}
+
+/* https://fetch.spec.whatwg.org/#http-scheme */
+is_http_scheme :: fonc (scheme: chaine) -> bool
+{
+    retourne scheme == "http" || scheme == "https"
+}
+
+/* https://fetch.spec.whatwg.org/#fetch-scheme */
+is_fetch_scheme :: fonc (scheme: chaine) -> bool
+{
+    retourne scheme == "about" || scheme == "blob" || scheme == "data" || scheme == "file" || is_http_scheme(scheme)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 2.2.3 Statuses
+ * https://fetch.spec.whatwg.org/#statuses
+ * \{ */
+
+/* https://fetch.spec.whatwg.org/#redirect-status */
+is_redirect_status :: fonc (status: z32) -> bool
+{
+    retourne status == 301 || status == 302 || status == 303 || status == 307 || status == 308
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom 2.2.5 Request
  * https://fetch.spec.whatwg.org/#requests
  * \{ */
@@ -239,6 +283,24 @@ appropriate_network_error :: fonc (fetch_params: *FetchParams) -> *Response
     }
 
     retourne network_error()
+}
+
+/* https://fetch.spec.whatwg.org/#concept-response-location-url */
+donne_location_url :: fonc (response: *Response, fragment: chaine @inutilisée) -> *URL
+{
+    // 1. If response’s status is not a redirect status, then return null.
+    saufsi is_redirect_status(response.status) {
+        retourne nul
+    }
+
+    panique("Non-implémenté")
+    // 2. Let location be the result of extracting header list values given `Location` and response’s header list.
+
+    // 3. If location is a header value, then set location to the result of parsing location with response’s URL.
+
+    // 4. If location is a URL whose fragment is null, then set location’s fragment to requestFragment.
+
+    // 5. Return location.
 }
 
 /** \} */
@@ -589,6 +651,9 @@ main_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, recursiv
     response: *Response
 
     // 3. If request’s local-URLs-only flag is set and request’s current URL is not local, then set response to a network error.
+    si request.local_urls_only && !is_local_scheme(request.donne_url_courant().schéma) {
+        response = network_error()
+    }
 
     // 4. Run report Content Security Policy violations for request.
 
@@ -621,7 +686,8 @@ main_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, recursiv
         // request’s current URL’s origin is same origin with request’s origin, and request’s response tainting is "basic"
         // request’s current URL’s scheme is "data"
         // request’s mode is "navigate" or "websocket"
-        si request.mode == "navigate" || request.mode == "websocket" {
+        si (request.donne_url_courant().schéma == "data") ||
+           (request.mode == "navigate" || request.mode == "websocket") {
             // Set request’s response tainting to "basic".
             request.response_tainting = "basic"
 
@@ -630,7 +696,10 @@ main_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, recursiv
         }
 
         // request’s mode is "same-origin"
+        sinon si request.mode == "same-origin" {
             // Return a network error.
+            response = network_error()
+        }
 
         // request’s mode is "no-cors"
         sinon si request.mode == "no-cors" {
@@ -648,7 +717,10 @@ main_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, recursiv
         }
 
         // request’s current URL’s scheme is not an HTTP(S) scheme
+        sinon si !is_http_scheme(request.donne_url_courant().schéma) {
             // Return a network error.
+            response = network_error()
+        }
 
         // request’s use-CORS-preflight flag is set
         // request’s unsafe-request flag is set and either request’s method is not a CORS-safelisted method or CORS-unsafe request-header names with request’s header list is not empty

@@ -1151,6 +1151,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
     response_coop: CrossOriginOpenerPolicy
 
     // 16. Let locationURL be null.
+    location_url: *URL
 
     // 17. Let currentURL be request's current URL.
     current_url := request.donne_url_courant()
@@ -1253,9 +1254,12 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
         // 13. If response is not a network error, navigable is a child navigable, and the result of performing a cross-origin resource policy check with navigable's container document's origin, navigable's container document's relevant settings object, request's destination, response, and true is blocked, then set response to a network error and break.
 
         // 14. Set locationURL to response's location URL given currentURL's fragment.
+        location_url = donne_location_url(response, current_url.fragment)
 
         // 15. If locationURL is failure or null, then break.
-        arrête
+        si location_url == nul {
+            arrête
+        }
 
         // 16. Assert: locationURL is a URL.
 
@@ -1275,15 +1279,18 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
         //     navigable target name   oldDocState's navigable target name
 
         // 20. If locationURL's scheme is not an HTTP(S) scheme, then:
-
+        saufsi is_http_scheme(location_url.scheme) {
             // 1. Set entry's document state's resource to null.
 
             // 2. Break.
+            arrête
+        }
 
         // 21. Set currentURL to locationURL.
+        current_url = tente parse_uri_standard(url_serializer(location_url)) piège nonatteignable
 
         // 22. Set entry's URL to currentURL.
-        entry.url = tente parse_uri_standard(recompose_uri(*current_url)) piège nonatteignable
+        entry.url = current_url
     }
 
     // 20. If locationURL is a URL whose scheme is not a fetch scheme, then return a new non-fetch scheme navigation params, with
