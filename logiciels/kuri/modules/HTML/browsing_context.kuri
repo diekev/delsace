@@ -17,7 +17,8 @@ DocumentState :: struct {
     about_base_url: Optionnel(URI)
     // À FAIRE : complète
     request_referrer: chaine
-    request_referrer_policy: chaine
+    /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#document-state-request-referrer-policy */
+    request_referrer_policy := default_referrer_policy
     reload_pending: bool
     ever_populated: bool
 

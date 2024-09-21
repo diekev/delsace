@@ -26,6 +26,7 @@ charge "platform_object"
 charge "tags_html"
 charge "url"
 charge "user_agent"
+charge "webappsec_referrer_policy"
 charge "webcrypto"
 charge "webdriver_bidi"
 

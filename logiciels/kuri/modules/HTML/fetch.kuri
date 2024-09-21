@@ -82,9 +82,7 @@ Request :: struct {
     /* "no-referrer", "client", or a URL */
     referrer := "client"
 
-    /* https://w3c.github.io/webappsec-referrer-policy/#referrer-policy
-     * empty string, "no-referrer", "no-referrer-when-downgrade", "same-origin", "origin", "strict-origin", "origin-when-cross-origin", "strict-origin-when-cross-origin", or "unsafe-url" */
-    referrer_policy := ""
+    referrer_policy := ReferrerPolicy.EmptyString
 
     /* "same-origin", "cors", "no-cors", "navigate", or "websocket" */
     mode := "no-cors"
