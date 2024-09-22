@@ -2174,7 +2174,7 @@ noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Cont
 
     /* À FAIRE : utilise les bonnes formules.
      * https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#Computing_widths_and_margins */
-    calcule_largeur_et_marges(noeud, containing_block)
+    calcule_largeur_et_marges(ctx, noeud, containing_block)
     calcule_hauteur_et_marges(noeud, containing_block)
 
     doit_aligner_les_descendants := ctx.doit_aligner_les_descendants
@@ -2329,7 +2329,7 @@ noeud_disposition_inline_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Co
 {
     noeud := base comme *NoeudDeDispositionInline
     containing_block := donne_containing_block(base, ctx)
-    calcule_largeur_et_marges(noeud, containing_block)
+    calcule_largeur_et_marges(ctx, noeud, containing_block)
     calcule_hauteur_et_marges(noeud, containing_block)
     formatte_intérieur(noeud, ctx, mode)
     calcule_hauteur_et_marges(noeud, containing_block)
@@ -2339,7 +2339,7 @@ noeud_disposition_inline_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition
 {
     noeud := base comme *NoeudDeDispositionInline
     containing_block := donne_containing_block(noeud, ctx)
-    calcule_largeur_et_marges(noeud, containing_block)
+    calcule_largeur_et_marges(ctx, noeud, containing_block)
     calcule_hauteur_et_marges(noeud, containing_block)
 
     propriétés := noeud.propriétés
@@ -2745,7 +2745,7 @@ noeud_disposition_remplacement_sur_mesure :: fonc (base: *NoeudDeDisposition, ct
 
     modifie_marges_pour_alignement_forcé(ctx, noeud)
 
-    calcule_largeur_et_marges(noeud, containing_block)
+    calcule_largeur_et_marges(ctx, noeud, containing_block)
     calcule_hauteur_et_marges(noeud, containing_block)
 }
 

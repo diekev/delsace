@@ -50,32 +50,32 @@ ajourne_boite_pour_calcul_hauteur :: fonc (noeud: *NoeudDeDisposition)
     noeud.modèle_de_boite.contenu.hauteur = height
 }
 
-calcule_largeur_et_marges :: fonc (noeud: *NoeudDeDisposition, containing_block: &ContainingBlock)
+calcule_largeur_et_marges :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition, containing_block: &ContainingBlock)
 {
     résoud_pourcentage_largeurs(noeud, containing_block)
     width_of_containing_block := containing_block.donne_largeur()
 
     fonction_de_calcul := donne_fonction_calcul_largeur_et_marges(noeud)
 
-    fonction_de_calcul(noeud, width_of_containing_block, nul)
+    fonction_de_calcul(ctx, noeud, width_of_containing_block, nul)
 
     width := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width)
 
     max_width := noeud.propriétés.donne_valeur_calculée(IDPropriété.MaxWidth)
     si max_width.est_pixels() && (width.pixels > max_width.pixels) {
-        fonction_de_calcul(noeud, width_of_containing_block, *max_width)
+        fonction_de_calcul(ctx, noeud, width_of_containing_block, *max_width)
     }
 
     width = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width)
     min_width := noeud.propriétés.donne_valeur_calculée(IDPropriété.MinWidth)
     si min_width.est_pixels() && min_width.pixels > 0.0 && (width.pixels < min_width.pixels) {
-        fonction_de_calcul(noeud, width_of_containing_block, *min_width)
+        fonction_de_calcul(ctx, noeud, width_of_containing_block, *min_width)
     }
 
     ajourne_boite_pour_calcul_largeur(noeud)
 }
 
-donne_fonction_calcul_largeur_et_marges :: fonc (noeud: *NoeudDeDisposition) -> fonc(*NoeudDeDisposition,r64,*ValeurDeStyle)(rien)
+donne_fonction_calcul_largeur_et_marges :: fonc (noeud: *NoeudDeDisposition) -> fonc(*ContexteDeFormattage, *NoeudDeDisposition,r64,*ValeurDeStyle)(rien)
 {
     propriétés := noeud.propriétés
     display := propriétés.donne_valeur_calculée(IDPropriété.Display).display
@@ -241,7 +241,7 @@ calcule_hauteur_et_marges_block_level_normal_flow :: fonc (base: *NoeudDeDisposi
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#blockwidth */
-calcule_largeur_et_marges_block_level_normal_flow :: fonc (base: *NoeudDeDisposition, width_of_containing_block: r64, outrepas_largeur: *ValeurDeStyle)
+calcule_largeur_et_marges_block_level_normal_flow :: fonc (ctx: *ContexteDeFormattage @inutilisée, base: *NoeudDeDisposition, width_of_containing_block: r64, outrepas_largeur: *ValeurDeStyle)
 {
     noeud := base comme *NoeudDeDispositionBloc
     propriétés := noeud.propriétés
@@ -382,7 +382,7 @@ calcule_largeur_et_marges_block_level_normal_flow :: fonc (base: *NoeudDeDisposi
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#inline-replaced-width */
-calcule_largeur_et_marges_inline_replaced_element :: fonc (base: *NoeudDeDisposition, width_of_containing_block: r64 @inutilisée, outrepas_largeur: *ValeurDeStyle)
+calcule_largeur_et_marges_inline_replaced_element :: fonc (ctx: *ContexteDeFormattage @inutilisée, base: *NoeudDeDisposition, width_of_containing_block: r64 @inutilisée, outrepas_largeur: *ValeurDeStyle)
 {
     noeud := base comme *NoeudDeDispositionRemplacement
 
@@ -525,20 +525,20 @@ calcule_hauteur_et_marges_inline_replaced_element :: fonc (base: *NoeudDeDisposi
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#block-replaced-width */
-calcule_largeur_et_marges_block_level_replaced_element :: fonc (base: *NoeudDeDisposition, width_of_containing_block: r64, outrepas_largeur: *ValeurDeStyle)
+calcule_largeur_et_marges_block_level_replaced_element :: fonc (ctx: *ContexteDeFormattage, base: *NoeudDeDisposition, width_of_containing_block: r64, outrepas_largeur: *ValeurDeStyle)
 {
     noeud := base comme *NoeudDeDispositionRemplacement
 
     // The used value of 'width' is determined as for inline replaced elements.
-    calcule_largeur_et_marges_inline_replaced_element(noeud, width_of_containing_block, outrepas_largeur)
+    calcule_largeur_et_marges_inline_replaced_element(ctx, noeud, width_of_containing_block, outrepas_largeur)
     width := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width)
 
     // Then the rules for non-replaced block-level elements are applied to determine the margins.
-    calcule_largeur_et_marges_block_level_normal_flow(noeud, width_of_containing_block, *width)
+    calcule_largeur_et_marges_block_level_normal_flow(ctx, noeud, width_of_containing_block, *width)
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#inline-width */
-calcule_largeur_et_marges_inline_non_replaced_element :: fonc (base: *NoeudDeDisposition, width_of_containing_block: r64 @inutilisée, outrepas_largeur: *ValeurDeStyle)
+calcule_largeur_et_marges_inline_non_replaced_element :: fonc (ctx: *ContexteDeFormattage @inutilisée, base: *NoeudDeDisposition, width_of_containing_block: r64 @inutilisée, outrepas_largeur: *ValeurDeStyle)
 {
     noeud := base comme *NoeudDeDispositionBloc
     propriétés := noeud.propriétés
