@@ -30,10 +30,6 @@ donne_initial_containing_block :: fonc (ctx: *ContexteDeFormattage) -> Containin
 
 formatte :: fonc (contexte: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
 {
-    // ancien_noeud := contexte.noeud_contextuel
-    // diffère contexte.définis_noeud_contextuel(ancien_noeud)
-    // contexte.définis_noeud_contextuel(noeud)
-
     contexte.sur_formatte(contexte, noeud, mode)
 }
 
