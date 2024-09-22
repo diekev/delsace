@@ -5,8 +5,16 @@ importe Math
 /** \nom ContexteDeFormattage
  * \{ */
 
+ModeDeFormattage :: énum {
+    Normal
+    /* Pour le calcul de la largeur « préférée ». */
+    BrisureDeLigneExplicite
+    /* Pour le calcul de la largeur « minimale préférée ». */
+    ToutesLesBrisuresDeLigne
+}
+
 ContexteDeFormattage :: struct {
-    sur_formatte: fonc(*ContexteDeFormattage, *NoeudDeDispositionBloc)(rien)
+    sur_formatte: fonc(*ContexteDeFormattage, *NoeudDeDispositionBloc, ModeDeFormattage)(rien)
 
     globales: *GlobalesDessin
     initial_containing_block: *ContainingBlock
@@ -20,13 +28,13 @@ donne_initial_containing_block :: fonc (ctx: *ContexteDeFormattage) -> Containin
     retourne mémoire(ctx.initial_containing_block)
 }
 
-formatte :: fonc (contexte: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc)
+formatte :: fonc (contexte: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
 {
     // ancien_noeud := contexte.noeud_contextuel
     // diffère contexte.définis_noeud_contextuel(ancien_noeud)
     // contexte.définis_noeud_contextuel(noeud)
 
-    contexte.sur_formatte(contexte, noeud)
+    contexte.sur_formatte(contexte, noeud, mode)
 }
 
 modifie_marges_pour_alignement_forcé :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition)
@@ -113,7 +121,7 @@ résoud_pourcentage_insets :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDe
     }
 }
 
-contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc)
+contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
 {
     ctx := base comme *ContexteDeFormattageBloc
 
@@ -153,7 +161,7 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
         //     continue
         // }
 
-        it.mesure(ctx)
+        it.mesure(ctx, mode)
 
         position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position)
         /* À FAIRE : https://drafts.csswg.org/css-position/#abspos-layout */
@@ -296,7 +304,7 @@ donne_alignement_texte :: fonc (noeud: *NoeudDeDispositionBloc) -> AlignementTex
     retourne AlignementTexte.Gauche
 }
 
-contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc)
+contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
 {
     ctx := base comme *ContexteDeFormattageInline
 
@@ -307,7 +315,7 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
     décalage_y := noeud.modèle_de_boite.contenu.y
 
     enligneuse: Enligneuse
-    divise_en_lignes(*enligneuse, noeud, ctx)
+    divise_en_lignes(*enligneuse, noeud, ctx, mode)
 
     hauteur_contenu := 0.0
 
