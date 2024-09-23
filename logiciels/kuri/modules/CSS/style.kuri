@@ -296,7 +296,7 @@ imprime_valeur_de_style :: fonc (enchaineuse: *Enchaineuse, valeur: *ValeurDeSty
             ajoute_au_tampon(enchaineuse, p, "%")
         }
         pixels(p) {
-            ajoute_au_tampon(enchaineuse, p, "%")
+            ajoute_au_tampon(enchaineuse, p, "px")
         }
         text_decoration_line(t) {
             ajoute_au_tampon(enchaineuse, t)
