@@ -266,7 +266,7 @@ balaie_cellules_mortes :: fonc (tas_de_mémoire: *TasDeMémoire)
 
 BlocDeMémoire :: struct {
     TAILLE_BLOC : n64 : 16 * 1024
-    
+
     taille_cellule: n64
     tas_de_mémoire: *TasDeMémoire
 
