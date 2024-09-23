@@ -84,7 +84,7 @@ principale :: fonc () -> z32
     initialise_évènements_personnalisés()
 
     /* Création fenêtre. */
-    rappels_fenêtre : RappelsFenetrePrincipale
+    rappels_fenêtre: RappelsFenetrePrincipale
     rappel_fermeture.rappels_fenêtre = *rappels_fenêtre
 
     fenêtre := QT_cree_fenetre_principale(*rappels_fenêtre)
@@ -345,7 +345,7 @@ RappelFermetureApp :: struct {
 }
 
 sur_fermeture_application :: fonc (base: *QT_Rappel_Generique)
-{    
+{
     rappel := base comme *RappelFermetureApp
     détruit_données_page_web(*rappel.rappels_fenêtre.page_web)
     détruit_données_user_agent(*rappel.rappels_fenêtre.user_agent)
@@ -364,7 +364,7 @@ BarreDeDéfilement :: struct {
     est_survolé: bool
     pos_clique_y: r32
     hauteur: r32
-    ratio: r32 = 1.0
+    ratio : r32 = 1.0
 }
 
 définis_position_y :: fonc (barre: *BarreDeDéfilement, y: r32) -> bool
@@ -477,7 +477,7 @@ WidgetsPage :: struct {
 }
 
 RappelsFenetrePrincipale :: struct {
-    empl base : QT_Rappels_Fenetre_Principale
+    empl base: QT_Rappels_Fenetre_Principale
 
     user_agent: UserAgent
 
@@ -1466,7 +1466,7 @@ FiltreÉvènementThread :: struct {
 filtre_thread_sur_évènement :: fonc (base: *QT_Rappels_Object @inutilisée, évènement: *QT_Evenement) -> z32
 {
     type := QT_evenement_donne_type(évènement) comme n32 comme z32
-    
+
     si type == évènement_sur_tâche_parallèle {
         algorithm := QT_event_perso_donne_donnees(évènement) comme *Algorithm
         run(algorithm)
@@ -1485,7 +1485,7 @@ FiltreÉvènementTraversable :: struct {
 filtre_traversable_sur_évènement :: fonc (base: *QT_Rappels_Object @inutilisée, évènement: *QT_Evenement) -> z32
 {
     type := QT_evenement_donne_type(évènement) comme n32 comme z32
-    
+
     si type == évènement_sur_tâche_traversable {
         algorithm := QT_event_perso_donne_donnees(évènement) comme *Algorithm
         run(algorithm)
@@ -1709,7 +1709,7 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Request) -> *RappelsRequê
         content_type := donne_type_contenu(*message)
         charset := donne_charset(*message)
 
-        si compare_ascii_insensible_à_la_casse(charset,"ISO-8859-1" ) {
+        si compare_ascii_insensible_à_la_casse(charset, "ISO-8859-1") {
             nouveau_contenu := convertis_iso_8859_1_vers_utf8(message.contenu)
             déloge(contenu)
             contenu = nouveau_contenu
