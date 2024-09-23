@@ -300,35 +300,36 @@ calcule_largeur_et_marges_block_level_normal_flow :: fonc (ctx: *ContexteDeForma
     surcontraint += border_right_width.est_auto() comme z32
     surcontraint += margin_right.est_auto() comme z32
 
+    margin_right_pour_équation := margin_right
     si surcontraint == 0 {
         // À FAIRE : direction
-        margin_right = ValeurDeStyle(pixels = 0.0)
+        margin_right_pour_équation = ValeurDeStyle(pixels = 0.0)
     }
 
     // If there is exactly one value specified as 'auto', its used value follows from the equality.
     si surcontraint == 1 {
         si margin_left.est_auto() {
-            résultat := width_of_containing_block - (border_left_width.pixels + padding_left.pixels + width.pixels + padding_right.pixels + border_right_width.pixels + margin_right.pixels)
+            résultat := width_of_containing_block - (border_left_width.pixels + padding_left.pixels + width.pixels + padding_right.pixels + border_right_width.pixels + margin_right_pour_équation.pixels)
             margin_left = ValeurDeStyle(pixels = résultat)
         }
         sinon si border_left_width.est_auto() {
-            résultat := width_of_containing_block - (margin_left.pixels + padding_left.pixels + width.pixels + padding_right.pixels + border_right_width.pixels + margin_right.pixels)
+            résultat := width_of_containing_block - (margin_left.pixels + padding_left.pixels + width.pixels + padding_right.pixels + border_right_width.pixels + margin_right_pour_équation.pixels)
             border_left_width = ValeurDeStyle(pixels = résultat)
         }
         sinon si padding_left.est_auto() {
-            résultat := width_of_containing_block - (margin_left.pixels + border_left_width.pixels + width.pixels + padding_right.pixels + border_right_width.pixels + margin_right.pixels)
+            résultat := width_of_containing_block - (margin_left.pixels + border_left_width.pixels + width.pixels + padding_right.pixels + border_right_width.pixels + margin_right_pour_équation.pixels)
             padding_left = ValeurDeStyle(pixels = résultat)
         }
         sinon si width.est_auto() {
-            résultat := width_of_containing_block - (margin_left.pixels + border_left_width.pixels + padding_left.pixels + padding_right.pixels + border_right_width.pixels + margin_right.pixels)
+            résultat := width_of_containing_block - (margin_left.pixels + border_left_width.pixels + padding_left.pixels + padding_right.pixels + border_right_width.pixels + margin_right_pour_équation.pixels)
             width = ValeurDeStyle(pixels = résultat)
         }
         sinon si padding_right.est_auto() {
-            résultat := width_of_containing_block - (margin_left.pixels + border_left_width.pixels + padding_left.pixels + width.pixels + border_right_width.pixels + margin_right.pixels)
+            résultat := width_of_containing_block - (margin_left.pixels + border_left_width.pixels + padding_left.pixels + width.pixels + border_right_width.pixels + margin_right_pour_équation.pixels)
             padding_right = ValeurDeStyle(pixels = résultat)
         }
         sinon si border_right_width.est_auto() {
-            résultat := width_of_containing_block - (margin_left.pixels + border_left_width.pixels + padding_left.pixels + width.pixels + padding_right.pixels + margin_right.pixels)
+            résultat := width_of_containing_block - (margin_left.pixels + border_left_width.pixels + padding_left.pixels + width.pixels + padding_right.pixels + margin_right_pour_équation.pixels)
             border_right_width = ValeurDeStyle(pixels = résultat)
         }
         sinon si margin_right.est_auto() {
