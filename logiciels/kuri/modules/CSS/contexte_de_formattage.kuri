@@ -247,6 +247,23 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
     }
 
     noeud.propriétés.définis_valeur_calculée(IDPropriété.Height, ValeurDeStyle(pixels = hauteur_contenu))
+
+    discr mode {
+        BrisureDeLigneExplicite,
+        ToutesLesBrisuresDeLigne {
+            largeur_max_enfant : r64 = 0.0
+            pour noeud.enfants {
+                largeur_enfant := it.modèle_de_boite.marge.largeur
+                largeur_max_enfant = max(largeur_max_enfant, largeur_enfant)
+            }
+
+            largeur := noeud.propriétés.donne_valeur_calculée(IDPropriété.Width)
+            si largeur.est_auto() {
+                noeud.propriétés.définis_valeur_utilisée(IDPropriété.Width, ValeurDeStyle(pixels = largeur_max_enfant))
+            }
+        }
+        sinon {}
+    }
 }
 
 /** \} */
