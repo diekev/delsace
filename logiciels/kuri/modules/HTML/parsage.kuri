@@ -193,7 +193,7 @@ crée_élément_pour_lexème :: fonc (parseuse: *Parseuse, lexème: Lexème, esp
 crée_un_élément :: fonc (parseuse: *Parseuse @inutilisée, document: *Document, nom_local: DOMString, espace_de_nom: EspaceDeNom) -> *Élément
 {
     /* INCOMPLET : optional prefix, is, and synchronous custom elements flag */
-    résultat: *Élément = nul
+    résultat : *Élément = nul
 
     /* INCOMPLET : 4. 5. 6. & 7.1 */
 

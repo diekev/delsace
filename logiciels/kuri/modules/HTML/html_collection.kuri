@@ -27,8 +27,8 @@ run_ordered_set_parser :: fonc (chn: DOMString) -> [..]DOMString
  * \{ */
 
 HTMLCollectionFilter :: struct {
-    sur_filtre: fonc (*HTMLCollectionFilter, *HTMLCollection, *Élément)(bool)
-    sur_destruction: fonc (*HTMLCollectionFilter)(rien)
+    sur_filtre: fonc(*HTMLCollectionFilter, *HTMLCollection, *Élément)(bool)
+    sur_destruction: fonc(*HTMLCollectionFilter)(rien)
 }
 
 crée_filtre_pour_class_name :: fonc (classes: [..]DOMString) -> *HTMLCollectionFilter

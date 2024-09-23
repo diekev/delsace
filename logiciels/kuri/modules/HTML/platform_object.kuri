@@ -21,7 +21,7 @@ PlatformObject :: struct {
 détruit :: fonc (object: *PlatformObject)
 {
     si object.table && object.table.sur_destruction {
-       object.table.sur_destruction(object)
+        object.table.sur_destruction(object)
     }
     sinon {
         déloge(object)

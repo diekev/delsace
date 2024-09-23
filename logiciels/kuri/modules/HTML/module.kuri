@@ -112,7 +112,6 @@ traverse_noeud :: fonc (noeud: *Noeud, rappel_traverse: fonc(*Noeud)(DécisionTr
 
 /** \} */
 
-
 /* Résultat du parsage (« parsat », de « parser » + « -at ») d'un document HTML. */
 ParsatHTML :: struct {
     /* Le document qui fut parsé. */

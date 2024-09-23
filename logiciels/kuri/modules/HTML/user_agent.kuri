@@ -87,10 +87,10 @@ RappelsInterface :: struct {
     sur_enfile_une_tâche: fonc(*RappelsInterface, SourceDeTâche, *Algorithm)(rien)
     sur_tâche_parallèle: fonc(*RappelsInterface, *Algorithm)(rien)
     sur_tâche_traversable: fonc(*RappelsInterface, *TraversableNavigable, *Algorithm)(rien)
-    sur_document_est_prêt: fonc (*RappelsInterface, *Document)(rien)
+    sur_document_est_prêt: fonc(*RappelsInterface, *Document)(rien)
     sur_est_exécuté_sur_fil_principal: fonc(*RappelsInterface)(bool)
     sur_est_exécuté_en_parallèle: fonc(*RappelsInterface)(bool)
-    sur_est_exécuté_sur_file_parallèle: fonc(*RappelsInterface,*TraversableNavigable)(bool)
+    sur_est_exécuté_sur_file_parallèle: fonc(*RappelsInterface, *TraversableNavigable)(bool)
     sur_création_file_parallèle_pour_traversable: fonc(*RappelsInterface)(z64)
 }
 

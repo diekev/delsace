@@ -188,7 +188,7 @@ ajoute_enfant :: fonc (parent: *Noeud, enfant: *Noeud)
     }
 
     table := enfant.table comme *TableVirtuelleNoeud
-    si table  {
+    si table {
         si table.sur_insertion {
             table.sur_insertion(enfant)
         }
@@ -385,7 +385,7 @@ donne_contenu_texte_descandants :: fonc (noeud: *Noeud) -> ChaineUTF16
     enchaineuse: EnchaineuseUTF16
     initialise_enchaineuse(enchaineuse)
     diffère détruit_tampons(enchaineuse)
-    
+
     traverse_noeud(noeud, rappel_pour_extraction_texte_descandants, enchaineuse)
 
     retourne chaine_depuis_enchaineuse(enchaineuse)
