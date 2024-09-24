@@ -388,6 +388,7 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
             largeur := noeud.propriétés.donne_valeur_calculée(IDPropriété.Width)
             si largeur.est_auto() {
                 noeud.propriétés.définis_valeur_utilisée(IDPropriété.Width, ValeurDeStyle(pixels = largeur_max_enfant))
+                ajourne_boite_pour_calcul_largeur(noeud)
             }
         }
         sinon {}
