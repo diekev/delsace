@@ -376,6 +376,22 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
             it.x += décalage_x
         }
     }
+
+    discr mode {
+        BrisureDeLigneExplicite,
+        ToutesLesBrisuresDeLigne {
+            largeur_max_enfant : r64 = 0.0
+            pour lignes_tenante.lignes {
+                largeur_max_enfant = max(largeur_max_enfant, it.largeur_courante comme r64)
+            }
+
+            largeur := noeud.propriétés.donne_valeur_calculée(IDPropriété.Width)
+            si largeur.est_auto() {
+                noeud.propriétés.définis_valeur_utilisée(IDPropriété.Width, ValeurDeStyle(pixels = largeur_max_enfant))
+            }
+        }
+        sinon {}
+    }
 }
 
 /** \} */
