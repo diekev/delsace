@@ -447,7 +447,39 @@ calcule_largeur_et_marges_abosolutely_positionned_non_replaced_element :: fonc (
         right.pixels = width_of_containing_block - left.pixels - margin_left.pixels - border_left_width.pixels - padding_left.pixels - width.pixels - padding_right.pixels - border_right_width.pixels - margin_right.pixels
     }
     sinon si !left.est_auto() && !right.est_auto() && !width.est_auto() {
-        panique("!(left.est_auto() && right.est_auto() && width.est_auto()) non-implémenté")
+        // If none of the three is 'auto': If both 'margin-left' and 'margin-right' are 'auto',
+        // solve the equation under the extra constraint that the two margins get equal values,
+        // unless this would make them negative, in which case when direction of the containing
+        // block is 'ltr' ('rtl'), set 'margin-left' ('margin-right') to zero and solve for
+        // 'margin-right' ('margin-left').
+        si margin_left.est_auto() && margin_right.est_auto() {
+            taille_marges := width_of_containing_block - left.pixels - border_left_width.pixels - padding_left.pixels - width.pixels - padding_right.pixels - border_right_width.pixels - right.pixels
+            si taille_marges < 0.0 {
+                // À FAIRE : direction
+                margin_left.pixels = 0.0
+                margin_right.pixels = taille_marges
+            }
+            sinon {
+                taille_marges *= 0.5
+
+                margin_left.pixels = taille_marges
+                margin_right.pixels = taille_marges
+            }
+        }
+        // If one of 'margin-left' or 'margin-right' is 'auto', solve the equation for that value.
+        sinon si margin_left.est_auto() {
+            margin_left.pixels = width_of_containing_block - left.pixels - border_left_width.pixels - padding_left.pixels - width.pixels - padding_right.pixels - border_right_width.pixels - margin_right.pixels - right.pixels
+        }
+        sinon si margin_right.est_auto() {
+            margin_right.pixels = width_of_containing_block - margin_left.pixels - border_left_width.pixels - padding_left.pixels - width.pixels - padding_right.pixels - border_right_width.pixels - right.pixels
+        }
+        // If the values are over-constrained, ignore the value for 'left' (in case the 'direction'
+        // property of the containing block is 'rtl') or 'right' (in case 'direction' is 'ltr') and
+        // solve for that value.
+        sinon {
+            // À FAIRE : direction
+            left.pixels = width_of_containing_block - margin_left.pixels - border_left_width.pixels - padding_left.pixels - width.pixels - padding_right.pixels - border_right_width.pixels - margin_right.pixels - right.pixels
+        }
     }
     sinon {
         si margin_left.est_auto() {
