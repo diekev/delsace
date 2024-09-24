@@ -75,6 +75,7 @@ calcule_largeur_et_marges :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDi
     }
 
     ajourne_boite_pour_calcul_largeur(noeud)
+    résoud_pourcentage_largeur_border_radius(noeud)
 }
 
 donne_fonction_calcul_largeur_et_marges :: fonc (noeud: *NoeudDeDisposition) -> fonc(*ContexteDeFormattage, *NoeudDeDisposition,r64,*ValeurDeStyle)(rien)
@@ -135,6 +136,19 @@ résoud_pourcentage_largeurs :: fonc (noeud: *NoeudDeDisposition, containing_blo
     propriétés.résoud_pourcentage(IDPropriété.Width, width_of_containing_block)
     propriétés.résoud_pourcentage(IDPropriété.PaddingRight, width_of_containing_block)
     propriétés.résoud_pourcentage(IDPropriété.MarginRight, width_of_containing_block)
+}
+
+résoud_pourcentage_largeur_border_radius :: fonc (noeud: *NoeudDeDisposition)
+{
+    largeur := noeud.modèle_de_boite.bordure.largeur
+    propriétés := noeud.propriétés
+
+    empl IDPropriété
+
+    pour [BorderBottomLeftRadius, BorderBottomRightRadius, BorderTopLeftRadius, BorderTopRightRadius] {
+        propriétés.résoud_pourcentage(it, largeur)
+        propriétés.copie_valeur_calculée_vers_utilisée(it)
+    }
 }
 
 résoud_pourcentage_hauteur :: fonc (noeud: *NoeudDeDisposition, containing_block: &ContainingBlock)

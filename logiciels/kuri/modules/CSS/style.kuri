@@ -447,6 +447,11 @@ définis_valeur_utilisée :: fonc (propriétés: *PropriétésDeStyle, id: IDPro
     propriétés.style_utilisée.valeurs[id] = valeur
 }
 
+copie_valeur_calculée_vers_utilisée :: fonc (propriétés: *PropriétésDeStyle, id: IDPropriété)
+{
+    propriétés.définis_valeur_utilisée(id, propriétés.donne_valeur_calculée(id))
+}
+
 résoud_pourcentage :: fonc (propriétés: *PropriétésDeStyle, id: IDPropriété, valeur_de_base: r64)
 {
     valeur := propriétés.donne_valeur_calculée(id)
