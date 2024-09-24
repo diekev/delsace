@@ -108,10 +108,15 @@ donne_fonction_calcul_largeur_et_marges :: fonc (noeud: *NoeudDeDisposition) -> 
         retourne calcule_largeur_et_marges_abosolutely_positionned_non_replaced_element
     }
 
+    // 10.3.5 Floating, non-replaced elements
+    float := propriétés.donne_valeur_utilisée(IDPropriété.Float)
+    saufsi float.est_none() {
+        retourne calcule_largeur_et_marges_floated_non_replaced_element
+    }
+
     // 10.3.3 Block-level, non-replaced elements in normal flow
     retourne calcule_largeur_et_marges_block_level_normal_flow
 
-    // À FAIRE 10.3.5 Floating, non-replaced elements
     // À FAIRE 10.3.9 'Inline-block', non-replaced elements in normal flow
 }
 
@@ -554,6 +559,58 @@ calcule_largeur_et_marges_abosolutely_positionned_non_replaced_element :: fonc (
     propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthRight, border_right_width)
     propriétés.définis_valeur_utilisée(IDPropriété.MarginRight, margin_right)
     propriétés.définis_valeur_utilisée(IDPropriété.Right, right)
+
+    ajourne_boite_pour_calcul_largeur(noeud)
+}
+
+/* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#float-width */
+calcule_largeur_et_marges_floated_non_replaced_element :: fonc (ctx: *ContexteDeFormattage, base: *NoeudDeDisposition, width_of_containing_block: r64, outrepas_largeur: *ValeurDeStyle)
+{
+    noeud := base comme *NoeudDeDispositionRemplacement
+
+    propriétés := noeud.propriétés
+
+    margin_left := propriétés.donne_valeur_calculée(IDPropriété.MarginLeft)
+    border_left_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthLeft)
+    padding_left := propriétés.donne_valeur_calculée(IDPropriété.PaddingLeft)
+    width := propriétés.donne_valeur_calculée(IDPropriété.Width)
+    si outrepas_largeur {
+        width = mémoire(outrepas_largeur)
+    }
+    padding_right := propriétés.donne_valeur_calculée(IDPropriété.PaddingRight)
+    border_right_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthRight)
+    margin_right := propriétés.donne_valeur_calculée(IDPropriété.MarginRight)
+
+    // If 'margin-left', or 'margin-right' are computed as 'auto', their used value is '0'.
+    si margin_left.est_auto() {
+        margin_left.pixels = 0.0
+    }
+    si margin_right.est_auto() {
+        margin_right.pixels = 0.0
+    }
+
+    // If 'width' is computed as 'auto', the used value is the "shrink-to-fit" width.
+    si width.est_auto() {
+        // Calculation of the shrink-to-fit width is similar to calculating the width of a table
+        // cell using the automatic table layout algorithm. Roughly: calculate the preferred width
+        // by formatting the content without breaking lines other than where explicit line breaks
+        // occur, and also calculate the preferred minimum width, e.g., by trying all possible line
+        // breaks. CSS 2.1 does not define the exact algorithm.
+        // Thirdly, find the available width: in this case, this is the width of the containing
+        // block minus the used values of 'margin-left', 'border-left-width', 'padding-left',
+        // 'padding-right', 'border-right-width', 'margin-right', and the widths of any relevant
+        // scroll bars.
+        available_width := width_of_containing_block - margin_left.pixels - border_left_width.pixels - padding_left.pixels - padding_right.pixels - border_right_width.pixels - margin_right.pixels
+        width.pixels = calcule_shrink_to_fit_width(ctx, noeud, available_width)
+    }
+
+    propriétés.définis_valeur_utilisée(IDPropriété.MarginLeft, margin_left)
+    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthLeft, border_left_width)
+    propriétés.définis_valeur_utilisée(IDPropriété.PaddingLeft, padding_left)
+    propriétés.définis_valeur_utilisée(IDPropriété.Width, width)
+    propriétés.définis_valeur_utilisée(IDPropriété.PaddingRight, padding_right)
+    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthRight, border_right_width)
+    propriétés.définis_valeur_utilisée(IDPropriété.MarginRight, margin_right)
 
     ajourne_boite_pour_calcul_largeur(noeud)
 }
