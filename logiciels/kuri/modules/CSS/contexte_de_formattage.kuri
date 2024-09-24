@@ -102,21 +102,6 @@ ContexteDeFormattageBloc :: struct {
     racine: *NoeudDeDispositionBloc
 }
 
-résoud_pourcentage_insets :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage)
-{
-    containing_block := donne_containing_block(noeud, ctx)
-
-    noeud.propriétés.résoud_pourcentage(IDPropriété.Top, containing_block.donne_hauteur())
-    noeud.propriétés.résoud_pourcentage(IDPropriété.Bottom, containing_block.donne_hauteur())
-
-    noeud.propriétés.résoud_pourcentage(IDPropriété.Left, containing_block.donne_largeur())
-    noeud.propriétés.résoud_pourcentage(IDPropriété.Right, containing_block.donne_largeur())
-
-    pour [IDPropriété.Top, IDPropriété.Bottom, IDPropriété.Left, IDPropriété.Right] {
-        noeud.propriétés.définis_valeur_utilisée(it, noeud.propriétés.donne_valeur_calculée(it))
-    }
-}
-
 contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
 {
     ctx := base comme *ContexteDeFormattageBloc
@@ -162,22 +147,10 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
         position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position)
         /* À FAIRE : https://drafts.csswg.org/css-position/#abspos-layout */
         si position.est_mot_clé(PROP_absolute) {
-            résoud_pourcentage_insets(it, ctx)
-
             top := it.propriétés.donne_valeur_utilisée(IDPropriété.Top)
             bottom := it.propriétés.donne_valeur_utilisée(IDPropriété.Bottom)
             left := it.propriétés.donne_valeur_utilisée(IDPropriété.Left)
             right := it.propriétés.donne_valeur_utilisée(IDPropriété.Right)
-
-            si left.est_auto() && right.est_auto() {
-                left = ValeurDeStyle(pixels = 0.0)
-            }
-            sinon si left.est_auto() {
-                left = ValeurDeStyle(pixels = -right.pixels)
-            }
-            sinon saufsi left.est_pixels() {
-                left = ValeurDeStyle(pixels = 0.0)
-            }
 
             si top.est_auto() && bottom.est_auto() {
                 top = ValeurDeStyle(pixels = 0.0)

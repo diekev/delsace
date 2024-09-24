@@ -151,6 +151,21 @@ résoud_pourcentage_hauteur :: fonc (noeud: *NoeudDeDisposition, containing_bloc
     propriétés.résoud_pourcentage(IDPropriété.MarginBottom, width_of_containing_block)
 }
 
+résoud_pourcentage_insets :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage)
+{
+    containing_block := donne_containing_block(noeud, ctx)
+
+    noeud.propriétés.résoud_pourcentage(IDPropriété.Top, containing_block.donne_hauteur())
+    noeud.propriétés.résoud_pourcentage(IDPropriété.Bottom, containing_block.donne_hauteur())
+
+    noeud.propriétés.résoud_pourcentage(IDPropriété.Left, containing_block.donne_largeur())
+    noeud.propriétés.résoud_pourcentage(IDPropriété.Right, containing_block.donne_largeur())
+
+    pour [IDPropriété.Top, IDPropriété.Bottom, IDPropriété.Left, IDPropriété.Right] {
+        noeud.propriétés.définis_valeur_utilisée(it, noeud.propriétés.donne_valeur_calculée(it))
+    }
+}
+
 calcule_hauteur_et_marges :: fonc (noeud: *NoeudDeDisposition, containing_block: &ContainingBlock)
 {
     résoud_pourcentage_hauteur(noeud, containing_block)
@@ -393,6 +408,8 @@ calcule_largeur_et_marges_block_level_normal_flow :: fonc (ctx: *ContexteDeForma
 calcule_largeur_et_marges_abosolutely_positionned_non_replaced_element :: fonc (ctx: *ContexteDeFormattage, base: *NoeudDeDisposition, width_of_containing_block: r64, outrepas_largeur: *ValeurDeStyle)
 {
     noeud := base comme *NoeudDeDispositionBloc
+    résoud_pourcentage_insets(noeud, ctx)
+
     propriétés := noeud.propriétés
 
     left := propriétés.donne_valeur_calculée(IDPropriété.Left)
