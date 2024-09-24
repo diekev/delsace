@@ -150,7 +150,6 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
             top := it.propriétés.donne_valeur_utilisée(IDPropriété.Top)
             bottom := it.propriétés.donne_valeur_utilisée(IDPropriété.Bottom)
             left := it.propriétés.donne_valeur_utilisée(IDPropriété.Left)
-            right := it.propriétés.donne_valeur_utilisée(IDPropriété.Right)
 
             si top.est_auto() && bottom.est_auto() {
                 top = ValeurDeStyle(pixels = 0.0)
