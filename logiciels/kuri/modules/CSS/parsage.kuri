@@ -2727,7 +2727,7 @@ parse_propriété_text_decoration :: fonc (ctx: *ContexteParsageShorthand, value
 
         valeur_color := parse_valeur_couleur(parseuse)
         si valeur_color.possède_valeur() {
-            color = valeur_style.Quelque
+            color = valeur_color.Quelque
             continue
         }
 
