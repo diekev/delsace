@@ -552,45 +552,230 @@ anchor_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DO
     retourne faux
 }
 
-/* À FAIRE : standardise
- * https://html.spec.whatwg.org/multipage/links.html#api-for-a-and-area-elements */
-anchor_element_sur_activation_behavior :: fonc (target: *EventTarget, event: *Event @inutilisée)
+/* https://html.spec.whatwg.org/multipage/links.html#api-for-a-and-area-elements */
+anchor_element_sur_activation_behavior :: fonc (target: *EventTarget, event: *Event)
 {
-    anchor := target comme *HTMLAnchorElement
-    imprime("[%] %\n", #nom_de_cette_fonction, anchor.donne_href())
+    element := target comme *HTMLElement
+    
+    // 1. If element has no href attribute, then return.
+    saufsi possède_attribut(element, ATTR_href) {
+        retourne
+    }
 
-    /* Follow the hyperlink.
-     * https://html.spec.whatwg.org/multipage/links.html#following-hyperlinks-2 */
-    navigable := donne_node_navigable(anchor)
-    saufsi navigable {
+    // 2. Let hyperlinkSuffix be null.
+    hyperlink_suffix := crée_chaine_utf16_unique_vide()
+
+    // À FAIRE : 3. If element is an a element, and event's target is an img with an ismap attribute specified, then:
+
+        // 1. Let x and y be 0.
+
+        // 2. If event's isTrusted attribute is initialized to true, then set x to the distance in CSS pixels from the left edge of the image to the location of the click, and set y to the distance in CSS pixels from the top edge of the image to the location of the click.
+
+        // 3. If x is negative, set x to 0.
+
+        // 4. If y is negative, set y to 0.
+
+        // 5. Set hyperlinkSuffix to the concatenation of U+003F (?), the value of x expressed as a base-ten integer using ASCII digits, U+002C (,), and the value of y expressed as a base-ten integer using ASCII digits.
+
+    // 4. Let userInvolvement be event's user navigation involvement.
+    user_involvement := donne_user_navigation_involvement(event)
+
+    // À FAIRE : 5. If the user has expressed a preference to download the hyperlink, then set userInvolvement to "browser UI".
+
+    // À FAIRE : 6. If element has a download attribute, or if the user has expressed a preference to download the hyperlink, then download the hyperlink created by element with hyperlinkSuffix set to hyperlinkSuffix and userInvolvement set to userInvolvement.
+
+    // 7. Otherwise, follow the hyperlink created by element with hyperlinkSuffix set to hyperlinkSuffix and userInvolvement set to userInvolvement.
+    follow_the_hyperlink(element, hyperlink_suffix, user_involvement)
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#event-uni */
+donne_user_navigation_involvement :: fonc (event: *Event) -> UserNavigationInvolvement
+{
+    // 1. Assert: this algorithm is being called as part of an activation behavior definition.
+    assert(event.est_dans_activation_behavior)
+
+    // 2. Assert: event's type is "click".
+    assert(event.type == EventType.click)
+
+    // 3. If event's isTrusted is initialized to true, then return "activation".
+    si event.is_trusted {
+        retourne UserNavigationInvolvement.Activation
+    }
+
+    // 4. Return "none".
+    retourne UserNavigationInvolvement.None
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 4.6.4 Following Hyperlinks
+ * https://html.spec.whatwg.org/multipage/links.html#following-hyperlinks
+ * \{ */
+
+/* https://html.spec.whatwg.org/multipage/links.html#cannot-navigate */
+cannot_navigate :: fonc (element: *Élément) -> bool
+{
+    // À FAIRE : element's node document is not fully active; or
+    // saufsi element.document.est_fully_active() {
+    //     retourne vrai
+    // }
+
+    // element is not an a element and is not connected.
+    si element.local_name != TAG_a && !element.est_connecté() {
+        retourne vrai
+    }
+
+    retourne faux
+}
+
+/* https://html.spec.whatwg.org/multipage/links.html#get-an-element's-noopener */
+get_an_element_s_noopener :: fonc (element: *Élément, target: DOMString) -> bool
+{
+    assert(element.local_name == TAG_a || element.local_name == TAG_area || element.local_name == TAG_form)
+
+    link_types := donne_link_types(element)
+    diffère déloge(link_types)
+
+    // 1. If element's link types include the noopener or noreferrer keyword, then return true.
+    si link_types_incluent(link_types, ATTR_noopener) || link_types_incluent(link_types, ATTR_noreferrer) {
+        retourne vrai
+    }
+
+    // 2. If element's link types do not include the opener keyword and target is an ASCII
+    //    case-insensitive match for "_blank", then return true.
+    si !link_types_incluent(link_types, ATTR_opener) && compare_ascii_insensible_à_la_casse(target, ATTR__blank) {
+        retourne vrai
+    }
+
+    // 3. Return false.
+    retourne faux
+}
+
+/* https://html.spec.whatwg.org/multipage/links.html#following-hyperlinks-2 */
+follow_the_hyperlink :: fonc (subject: *Élément, hyperlink_suffix := crée_chaine_utf16_unique_vide(), user_involvement := UserNavigationInvolvement.None)
+{
+    // 1. If subject cannot navigate, then return.
+    si cannot_navigate(subject) {
+        imprime("[%] cannot_navigate\n", #nom_de_cette_fonction)
+        retourne
+    }
+
+    // 2. Let replace be false.
+    // replace := faux
+
+    // 3. Let targetAttributeValue be the empty string.
+    target_attribute_value := crée_chaine_utf16_unique_vide()
+
+    // 4. If subject is an a or area element, then set targetAttributeValue to the result of getting an element's target given subject.
+    si subject.local_name == TAG_a || subject.local_name == TAG_area {
+        target_attribute_value = get_an_element_s_target(subject)
+    }
+
+    // 5. Let noopener be the result of getting an element's noopener with subject and targetAttributeValue.
+    // noopener := get_an_element_s_noopener(subject, target_attribute_value)
+
+    // À FAIRE : 6. Let targetNavigable be the first return value of applying the rules for choosing a navigable given targetAttributeValue, subject's node navigable, and noopener.
+    target_navigable := donne_node_navigable(subject)
+
+    // 7. If targetNavigable is null, then return.
+    saufsi target_navigable {
         imprime("[%] pas de navigable\n", #nom_de_cette_fonction)
         retourne
     }
 
-    chn_href := anchor.donne_href().donne_chaine_utf16()
+    // 8. Let urlString be the result of encoding-parsing-and-serializing a URL given subject's href attribute value, relative to subject's node document.
+    chn_href := subject.donne_attribut_ou_chaine_vide(ATTR_href)
+    opt_url_string := encoding_parse_and_serialize_a_url(chn_href, subject.document)
 
-    source_document := anchor.document
-    base_url := donne_base_url(source_document)
+    // 9. If urlString is failure, then return.
+    saufsi opt_url_string.possède_valeur() {
+        retourne
+    }
+    url_string := opt_url_string.Quelque
+
+    // 10. If hyperlinkSuffix is non-null, then append it to urlString.
+    saufsi hyperlink_suffix.est_vide() {
+        chn_hyperlink_suffix := converti_vers_chaine(hyperlink_suffix.donne_chaine_utf16())
+        chaine_ajoute(*url_string, chn_hyperlink_suffix)
+    }
+
+    // À FAIRE : 11. Let referrerPolicy be the current state of subject's referrerpolicy content attribute.
+
+    // À FAIRE : 12. If subject's link types includes the noreferrer keyword, then set referrerPolicy to "no-referrer".
+
+    // 13. Navigate targetNavigable to urlString using subject's node document, with referrerPolicy set to referrerPolicy and userInvolvement set to userInvolvement.
+    url := tente parse_uri_standard(url_string) piège nonatteignable
+    source_document := subject.document
+    navigate(source_document.donne_user_agent(), target_navigable, url, source_document, user_involvement = user_involvement)
+}
+
+/* https://html.spec.whatwg.org/multipage/semantics.html#get-an-element's-target */
+get_an_element_s_target :: fonc (element: *Élément, target := crée_chaine_utf16_unique_vide()) -> DOMString
+{
+    // 1. If target is null, then:
+    si target.est_vide() {
+        // 1. If element has a target attribute, then set target to that attribute's value.
+        attr_target := element.donne_attribut(ATTR_target)
+        si attr_target.possède_valeur() {
+            target = attr_target.Quelque
+        }
+        // À FAIRE : 2. Otherwise, if element's node document contains a base element with a target attribute, set target to the value of the target attribute of the first such base element.
+    }
+
+    // 2. If target is not null, and contains an ASCII tab or newline and a U+003C (<), then set target to "_blank".
+    saufsi target.est_vide() {
+        chn_target := target.donne_chaine_utf16()
+        si chn_target.taille() == 2 && (chn_target.unités[0] == '\t' comme n8 || chn_target.unités[0] == '\n' comme n8) && chn_target.unités[1] == '<' comme n8 {
+            target = ATTR__blank
+        }
+    }
+
+    // 3. Return target.
+    retourne target
+}
+
+/* https://html.spec.whatwg.org/multipage/urls-and-fetching.html#encoding-parsing-and-serializing-a-url */
+encoding_parse_and_serialize_a_url :: fonc (url: DOMString, document: *Document) -> Optionnel(chaine)
+{
+    // À FAIRE : standardise
+    base_url := donne_base_url(document)
     url_document := convertis_uri_url(*base_url)
     diffère détruit_url(url_document)
 
-    url_src := basic_url_parser(chn_href, base = url_document)
+    url_src := basic_url_parser(url.donne_chaine_utf16(), base = url_document)
     diffère détruit_url(url_src)
     saufsi url_src {
         retourne
     }
 
-    url_string := url_serializer(url_src)
-
-    url := tente parse_uri_standard(url_string) piège err {
-        imprime("[%] impossible de parser l'URI : %\n", #nom_de_cette_fonction, err)
-        retourne
-    }
-
-    navigate(source_document.donne_user_agent(), navigable, url, source_document)
+    retourne url_serializer(url_src)
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 4.6.7 Link Types
+ * https://html.spec.whatwg.org/multipage/links.html#linkTypes
+ * \{ */
+
+donne_link_types :: fonc (element: *Élément) -> [..]DOMString
+{
+    rel := element.donne_attribut_ou_chaine_vide(ATTR_rel)
+    retourne run_ordered_set_parser(rel)
+}
+
+link_types_incluent :: fonc (link_types: []DOMString, chn: DOMString) -> bool
+{
+    pour link_types {
+        si compare_ascii_insensible_à_la_casse(it, chn) {
+            retourne vrai
+        }
+    }
+    retourne faux
+}
+
+/** } */
 
 /* ------------------------------------------------------------------------- */
 /** \nom HTMLBodyElement

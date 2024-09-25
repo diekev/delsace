@@ -133,6 +133,7 @@ TAG_xmp : DOMString = ---
 
 /* Atributs */
 
+ATTR__blank : DOMString = ---
 ATTR_action : DOMString = ---
 ATTR_align : DOMString = ---
 ATTR_alt : DOMString = ---
@@ -155,7 +156,10 @@ ATTR_lang : DOMString = ---
 ATTR_language : DOMString = ---
 ATTR_method : DOMString = ---
 ATTR_name : DOMString = ---
+ATTR_noopener : DOMString = ---
 ATTR_nomodule : DOMString = ---
+ATTR_noreferrer : DOMString = ---
+ATTR_opener : DOMString = ---
 ATTR_placeholder : DOMString = ---
 ATTR_rel : DOMString = ---
 ATTR_rows : DOMString = ---
@@ -164,6 +168,7 @@ ATTR_src : DOMString = ---
 ATTR_stylesheet : DOMString = ---
 ATTR_text : DOMString = ---
 ATTR_title : DOMString = ---
+ATTR_target : DOMString = ---
 ATTR_type : DOMString = ---
 ATTR_value : DOMString = ---
 ATTR_width : DOMString = ---

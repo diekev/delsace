@@ -166,6 +166,7 @@ Event :: struct {
 
     /* Attributes. */
     is_trusted: bool
+    est_dans_activation_behavior: bool
 
     /* https://dom.spec.whatwg.org/#event-path */
     Path :: struct {
@@ -323,6 +324,8 @@ possède_activation_behavior :: fonc (target: *EventTarget) -> bool
 
 run_activation_behavior :: fonc (target: *EventTarget, event: *Event)
 {
+    event.est_dans_activation_behavior = vrai
+    diffère event.est_dans_activation_behavior = faux
     table := target.donne_table()
     assert(table != nul)
     assert(table.sur_activation_behavior != nul)

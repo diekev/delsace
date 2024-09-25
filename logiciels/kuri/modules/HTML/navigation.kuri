@@ -261,7 +261,8 @@ navigate :: fonc (user_agent: *UserAgent,
                   navigable: *Navigable,
                   url: &URI,
                   source_document: *Document,
-                  history_handling := NavigationHistoryBehavior.AUTO)
+                  history_handling := NavigationHistoryBehavior.AUTO,
+                  user_involvement := UserNavigationInvolvement.None @inutilisée)
 {
     // 1. Let cspNavigationType be "form-submission" if formDataEntryList is non-null; otherwise "other".
 
