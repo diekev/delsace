@@ -400,30 +400,13 @@ navigate :: fonc (user_agent: *UserAgent,
     Tâche :: struct {
         empl base: Algorithm
 
-        user_agent: *UserAgent
-        navigable: *Navigable
-        url: URI
-        source_snapshot_params: SourceSnapshotParams
-        target_snapshot_params: TargetSnapshotParams
-        history_handling: NavigationHistoryBehavior
-        navigation_id: Optionnel(NavigationID)
-        target_browsing_context: *BrowsingContext
+        params: NavigateParallelStepsParams
     }
 
     sur_run :: fonc (base: *Algorithm)
     {
         tâche := base comme *Tâche
-
-        user_agent := tâche.user_agent
-        navigable := tâche.navigable
-        url := tâche.url
-        source_snapshot_params_ := tâche.source_snapshot_params
-        target_snapshot_params_ := tâche.target_snapshot_params
-        history_handling := tâche.history_handling
-        navigation_id_ := tâche.navigation_id
-        target_browsing_context := tâche.target_browsing_context
-
-        navigate_parallel_steps(user_agent, navigable, url, source_snapshot_params_, target_snapshot_params_, history_handling, navigation_id_, target_browsing_context)
+        navigate_parallel_steps(*tâche.params)
     }
 
     sur_destruction :: fonc (base: *Algorithm)
@@ -435,27 +418,40 @@ navigate :: fonc (user_agent: *UserAgent,
     tâche := loge(Tâche)
     tâche.sur_run = sur_run
     tâche.sur_destruction = sur_destruction
-    tâche.user_agent = user_agent
-    tâche.navigable = navigable
-    tâche.url = url
-    tâche.source_snapshot_params = source_snapshot_params
-    tâche.target_snapshot_params = target_snapshot_params
-    tâche.history_handling = history_handling
-    tâche.navigation_id = navigation_id
-    tâche.target_browsing_context = target_browsing_context
+    tâche.params.user_agent = user_agent
+    tâche.params.navigable = navigable
+    tâche.params.url = url
+    tâche.params.source_snapshot_params = source_snapshot_params
+    tâche.params.target_snapshot_params = target_snapshot_params
+    tâche.params.history_handling = history_handling
+    tâche.params.navigation_id = navigation_id
+    tâche.params.target_browsing_context = target_browsing_context
 
     user_agent.lance_en_parallèle(tâche)
 }
 
-navigate_parallel_steps :: fonc (user_agent: *UserAgent,
-                                 navigable: *Navigable,
-                                 url: &URI,
-                                 source_snapshot_params: &SourceSnapshotParams,
-                                 target_snapshot_params: &TargetSnapshotParams,
-                                 history_handling: NavigationHistoryBehavior,
-                                 navigation_id: NavigationID,
-                                 target_browsing_context: *BrowsingContext)
+NavigateParallelStepsParams :: struct {
+    user_agent: *UserAgent
+    navigable: *Navigable
+    url: URI
+    source_snapshot_params: SourceSnapshotParams
+    target_snapshot_params: TargetSnapshotParams
+    history_handling: NavigationHistoryBehavior
+    navigation_id: NavigationID
+    target_browsing_context: *BrowsingContext
+}
+
+navigate_parallel_steps :: fonc (params: *NavigateParallelStepsParams)
 {
+    user_agent := params.user_agent
+    navigable := params.navigable
+    url := params.url
+    source_snapshot_params := params.source_snapshot_params
+    target_snapshot_params := params.target_snapshot_params
+    history_handling := params.history_handling
+    navigation_id := params.navigation_id
+    target_browsing_context := params.target_browsing_context
+
     // 1. Let unloadPromptCanceled be the result of checking if unloading is
     //    canceled for navigable's active document's inclusive descendant navigables.
 
