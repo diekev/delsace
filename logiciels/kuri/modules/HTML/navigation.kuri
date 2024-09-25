@@ -262,6 +262,7 @@ navigate :: fonc (user_agent: *UserAgent,
                   url: &URI,
                   source_document: *Document,
                   history_handling := NavigationHistoryBehavior.AUTO,
+                  referrer_policy := ReferrerPolicy.EmptyString,
                   user_involvement := UserNavigationInvolvement.None @inutilisée)
 {
     // 1. Let cspNavigationType be "form-submission" if formDataEntryList is non-null; otherwise "other".
@@ -426,6 +427,7 @@ navigate :: fonc (user_agent: *UserAgent,
     tâche.params.history_handling = history_handling
     tâche.params.navigation_id = navigation_id
     tâche.params.target_browsing_context = target_browsing_context
+    tâche.params.referrer_policy = referrer_policy
 
     user_agent.lance_en_parallèle(tâche)
 }
@@ -439,6 +441,7 @@ NavigateParallelStepsParams :: struct {
     history_handling: NavigationHistoryBehavior
     navigation_id: NavigationID
     target_browsing_context: *BrowsingContext
+    referrer_policy: ReferrerPolicy
 }
 
 navigate_parallel_steps :: fonc (params: *NavigateParallelStepsParams)
@@ -478,6 +481,7 @@ navigate_parallel_steps :: fonc (params: *NavigateParallelStepsParams)
     //     resource    documentResource
     //     navigable target name    navigable's target name
     document_state := loge(DocumentState)
+    document_state.request_referrer_policy = params.referrer_policy
 
     // 5. If url matches about:blank or is about:srcdoc, then:
 

@@ -384,6 +384,47 @@ donne_liste_classe :: fonc (élément: *Élément) -> []DOMString
     retourne élément.liste_classes
 }
 
+donne_referrerpolicy_content_attribute_state :: fonc (élément: *Élément) -> ReferrerPolicy
+{
+    referrer_policy := élément.donne_attribut_ou_chaine_vide(ATTR_referrerpolicy)
+    chn_referrer_policy := converti_vers_chaine(referrer_policy.donne_chaine_utf16())
+    diffère déloge(chn_referrer_policy)
+
+    si compare_ascii_insensible_à_la_casse(chn_referrer_policy, "no-referrer") {
+        retourne ReferrerPolicy.NoReferrer
+    }
+
+    si compare_ascii_insensible_à_la_casse(chn_referrer_policy, "no-referrer-when-downgrade") {
+        retourne ReferrerPolicy.NoReferrerWhenDowngrade
+    }
+
+    si compare_ascii_insensible_à_la_casse(chn_referrer_policy, "same-origin") {
+        retourne ReferrerPolicy.SameOrigin
+    }
+
+    si compare_ascii_insensible_à_la_casse(chn_referrer_policy, "origin") {
+        retourne ReferrerPolicy.Origin
+    }
+
+    si compare_ascii_insensible_à_la_casse(chn_referrer_policy, "strict-origin") {
+        retourne ReferrerPolicy.StrictOrigin
+    }
+
+    si compare_ascii_insensible_à_la_casse(chn_referrer_policy, "origin-when-cross-origin") {
+        retourne ReferrerPolicy.OriginWhenCrossOrigin
+    }
+
+    si compare_ascii_insensible_à_la_casse(chn_referrer_policy, "strict-origin-when-cross-origin") {
+        retourne ReferrerPolicy.StrictOriginWhenCrossOrigin
+    }
+
+    si compare_ascii_insensible_à_la_casse(chn_referrer_policy, "unsafe-url") {
+        retourne ReferrerPolicy.UnsafeUrl
+    }
+
+    retourne ReferrerPolicy.EmptyString
+}
+
 /** \} */
 
 fait_partie_de_catégorie_spécial :: fonc (nom: DOMString) -> bool
@@ -700,14 +741,21 @@ follow_the_hyperlink :: fonc (subject: *Élément, hyperlink_suffix := crée_cha
         chaine_ajoute(*url_string, chn_hyperlink_suffix)
     }
 
-    // À FAIRE : 11. Let referrerPolicy be the current state of subject's referrerpolicy content attribute.
+    // 11. Let referrerPolicy be the current state of subject's referrerpolicy content attribute.
+    referrer_policy := donne_referrerpolicy_content_attribute_state(subject)
 
-    // À FAIRE : 12. If subject's link types includes the noreferrer keyword, then set referrerPolicy to "no-referrer".
+    // 12. If subject's link types includes the noreferrer keyword, then set referrerPolicy to "no-referrer".
+    link_types := donne_link_types(subject)
+    diffère déloge(link_types)
+
+    si link_types_incluent(link_types, ATTR_noreferrer) {
+        referrer_policy = ReferrerPolicy.NoReferrer
+    }
 
     // 13. Navigate targetNavigable to urlString using subject's node document, with referrerPolicy set to referrerPolicy and userInvolvement set to userInvolvement.
     url := tente parse_uri_standard(url_string) piège nonatteignable
     source_document := subject.document
-    navigate(source_document.donne_user_agent(), target_navigable, url, source_document, user_involvement = user_involvement)
+    navigate(source_document.donne_user_agent(), target_navigable, url, source_document, referrer_policy = referrer_policy, user_involvement = user_involvement)
 }
 
 /* https://html.spec.whatwg.org/multipage/semantics.html#get-an-element's-target */

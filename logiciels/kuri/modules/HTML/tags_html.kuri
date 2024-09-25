@@ -161,6 +161,7 @@ ATTR_nomodule : DOMString = ---
 ATTR_noreferrer : DOMString = ---
 ATTR_opener : DOMString = ---
 ATTR_placeholder : DOMString = ---
+ATTR_referrerpolicy : DOMString = ---
 ATTR_rel : DOMString = ---
 ATTR_rows : DOMString = ---
 ATTR_size : DOMString = ---
