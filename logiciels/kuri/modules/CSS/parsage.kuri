@@ -1854,7 +1854,8 @@ infos_types_propriétés := [
     InfoTypePropriété(PROP_border_bottom_left_radius, id = IDPropriété.BorderBottomLeftRadius, fonction_de_parsage = parse_propriété_border_radius, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage),
     InfoTypePropriété(PROP_border_bottom_right_radius, id = IDPropriété.BorderBottomRightRadius, fonction_de_parsage = parse_propriété_border_radius, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage),
     InfoTypePropriété(PROP_border_top_left_radius, id = IDPropriété.BorderTopLeftRadius, fonction_de_parsage = parse_propriété_border_radius, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage),
-    InfoTypePropriété(PROP_border_top_right_radius, id = IDPropriété.BorderTopRightRadius, fonction_de_parsage = parse_propriété_border_radius, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage)
+    InfoTypePropriété(PROP_border_top_right_radius, id = IDPropriété.BorderTopRightRadius, fonction_de_parsage = parse_propriété_border_radius, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage),
+    InfoTypePropriété(PROP_clear, id = IDPropriété.Clear, fonction_de_parsage = parse_propriété_clear, genre_valeur_calculée = GenreValeurCalculée.Spécifié)
 ]
 
 donne_info_type_pour_nom :: fonc (nom: CSSOMString) -> *InfoTypePropriété
@@ -4064,3 +4065,17 @@ parse_propriété_vertical_align :: fonc (value: [..]ComponentValue) -> Optionne
 }
 
 /** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Clear
+ * https://www.w3.org/TR/CSS2/visuren.html#propdef-clear
+ * \{ */
+
+parse_propriété_clear :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    mots_clés := [PROP_none, PROP_left, PROP_both, PROP_right]
+    retourne parse_mot_clé(parseuse, mots_clés)
+}
+
+/** \} */

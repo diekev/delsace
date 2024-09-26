@@ -663,6 +663,7 @@ IDPropriété :: énum n16 {
     Display
     Position
     Float
+    Clear
     Color
     Cursor
 
@@ -737,6 +738,7 @@ initialise_style :: fonc (style: *Style)
     style.valeurs[IDPropriété.Cursor] = ValeurDeStyle(cursor = CursorType.auto)
     style.valeurs[IDPropriété.Position] = ValeurDeStyle(mot_clé = PROP_static)
     style.valeurs[IDPropriété.Float] = ValeurDeStyle(mot_clé = PROP_none)
+    style.valeurs[IDPropriété.Clear] = ValeurDeStyle(mot_clé = PROP_none)
 
     /* Marges */
     style.valeurs[IDPropriété.MarginBottom] = ValeurDeStyle(pixels = 0.0)
