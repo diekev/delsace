@@ -115,32 +115,36 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
     hauteur_contenu := 0.0
     décalage_hors_float := 0.0
 
-    // décalage_float_right := décalage_x + noeud.modèle_de_boite.contenu.largeur
-
-    // pour noeud.enfants {
-    //     float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float)
-    //     si float.est_mot_clé(PROP_left) {
-    //         it.mesure(ctx)
-    //         it.décale(décalage_x, décalage_y)
-    //         décalage_x += it.modèle_de_boite.marge.largeur
-    //         hauteur_contenu = max(it.modèle_de_boite.marge.hauteur, hauteur_contenu)
-    //     }
-    //     sinon si float.est_mot_clé(PROP_right) {
-    //         it.mesure(ctx)
-    //         it.décale(décalage_float_right - it.modèle_de_boite.marge.largeur, décalage_y)
-    //         décalage_float_right -= it.modèle_de_boite.marge.largeur
-    //         hauteur_contenu = max(it.modèle_de_boite.marge.hauteur, hauteur_contenu)
-    //     }
-    // }
+    décalage_float_left := décalage_x
+    décalage_float_right := décalage_x + noeud.modèle_de_boite.contenu.largeur
+    hauteur_float_left := 0.0
+    hauteur_float_right := 0.0
 
     pour noeud.enfants {
-        // float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float)
-        // si float.est_mot_clé(PROP_left) {
-        //     continue
-        // }
-        // si float.est_mot_clé(PROP_right) {
-        //     continue
-        // }
+        float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float)
+        si float.est_mot_clé(PROP_none) {
+            continue
+        }
+
+        it.mesure(ctx, mode)
+
+        si float.est_mot_clé(PROP_left) {
+            it.décale(décalage_float_left, décalage_y)
+            décalage_float_left += it.modèle_de_boite.marge.largeur
+            hauteur_float_left = max(hauteur_float_left, it.modèle_de_boite.marge.hauteur)
+        }
+        sinon si float.est_mot_clé(PROP_right) {
+            it.décale(décalage_float_right - it.modèle_de_boite.marge.largeur, décalage_y)
+            décalage_float_right -= it.modèle_de_boite.marge.largeur
+            hauteur_float_right = max(hauteur_float_right, it.modèle_de_boite.marge.hauteur)
+        }
+    }
+
+    pour noeud.enfants {
+        float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float)
+        saufsi float.est_mot_clé(PROP_none) {
+            continue
+        }
 
         it.mesure(ctx, mode)
 
@@ -163,6 +167,20 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
 
             it.décale(décalage_x + left.pixels comme r32, décalage_y + décalage_hors_float + top.pixels comme r32)
             continue
+        }
+
+        clear := it.propriétés.donne_valeur_utilisée(IDPropriété.Clear)
+        si clear.est_mot_clé(PROP_left) {
+            hauteur_contenu += hauteur_float_left
+            décalage_hors_float += hauteur_float_left
+        }
+        sinon si clear.est_mot_clé(PROP_right) {
+            hauteur_contenu += hauteur_float_right
+            décalage_hors_float += hauteur_float_right
+        }
+        sinon si clear.est_mot_clé(PROP_both) {
+            hauteur_contenu += max(hauteur_float_left, hauteur_float_right)
+            décalage_hors_float += max(hauteur_float_left, hauteur_float_right)
         }
 
         hauteur_enfant := it.modèle_de_boite.marge.hauteur
@@ -218,7 +236,22 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
         }
     }
 
+    si noeud == ctx.racine {
+        /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#root-height */
+        pour noeud.enfants {
+            float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float)
+            si float.est_mot_clé(PROP_none) {
+                continue
+            }
+
+            si hauteur_contenu < it.modèle_de_boite.marge.hauteur {
+                hauteur_contenu = it.modèle_de_boite.marge.hauteur
+            }
+        }
+    }
+
     noeud.propriétés.définis_valeur_calculée(IDPropriété.Height, ValeurDeStyle(pixels = hauteur_contenu))
+    noeud.propriétés.définis_valeur_utilisée(IDPropriété.Height, ValeurDeStyle(pixels = hauteur_contenu))
 
     discr mode {
         BrisureDeLigneExplicite,
