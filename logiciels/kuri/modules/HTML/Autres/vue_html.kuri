@@ -63,7 +63,7 @@ principale :: fonc () -> z32
 
     chemin_fichier: chaine
     si arguments.taille > 1 {
-        arg1 := convertis_chaine_c_statique(ChaineC(arguments[1]))
+        arg1 := convertis_chaine_c(ChaineC(arguments[1]))
         chemin_fichier = arg1
     }
 
