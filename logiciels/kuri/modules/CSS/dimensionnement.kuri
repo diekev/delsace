@@ -823,11 +823,13 @@ calcule_largeur_et_marges_abosolutely_positionned_replaced_element :: fonc (ctx:
 
     // 3. If 'left' or 'right' are 'auto', replace any 'auto' on 'margin-left' or
     //    'margin-right' with '0'.
-    si left.est_auto() {
-        margin_left.pixels = 0.0
-    }
-    si right.est_auto() {
-        margin_right.pixels = 0.0
+    si left.est_auto() || right.est_auto() {
+        si margin_left.est_auto() {
+            margin_left.pixels = 0.0
+        }
+        si margin_right.est_auto() {
+            margin_right.pixels = 0.0
+        }
     }
 
     // 4. If at this point both 'margin-left' and 'margin-right' are still 'auto',
