@@ -71,7 +71,13 @@ requiers_contexte_de_formattage_indépendant :: fonc (noeud: *NoeudDeDisposition
 
     // À FAIRE : table cells or elements with display: table-cell, including anonymous table cells created when using the display: table-* properties
     // À FAIRE : table captions or elements with display: table-caption
-    // À FAIRE : block elements where overflow has a value other than visible
+
+    // block elements where overflow has a value other than visible
+    overflow_x := noeud.propriétés.donne_valeur_calculée(IDPropriété.OverflowX)
+    overflow_y := noeud.propriétés.donne_valeur_calculée(IDPropriété.OverflowY)
+    si !overflow_x.est_mot_clé(PROP_visible) || !overflow_y.est_mot_clé(PROP_visible) {
+        retourne vrai
+    }
 
     // elements with display: inline-block
     // elements with display: flow-root or display: flow-root list-item
