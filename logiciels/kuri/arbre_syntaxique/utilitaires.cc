@@ -304,13 +304,11 @@ std::ostream &operator<<(std::ostream &os, VisibilitéSymbole visibilité)
     switch (visibilité) {
         case VisibilitéSymbole::INTERNE:
         {
-            os << "INTERNE";
-            break;
+            return os << "INTERNE";
         }
         case VisibilitéSymbole::EXPORTÉ:
         {
-            os << "EXPORTÉ";
-            break;
+            return os << "EXPORTÉ";
         }
     }
     return os << "VISIBILITÉ INCONNUE";
