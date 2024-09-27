@@ -666,6 +666,8 @@ IDPropriété :: énum n16 {
     Clear
     Color
     Cursor
+    OverflowX
+    OverflowY
 
     BackgroundColor
     BackgroundImage
@@ -739,6 +741,8 @@ initialise_style :: fonc (style: *Style)
     style.valeurs[IDPropriété.Position] = ValeurDeStyle(mot_clé = PROP_static)
     style.valeurs[IDPropriété.Float] = ValeurDeStyle(mot_clé = PROP_none)
     style.valeurs[IDPropriété.Clear] = ValeurDeStyle(mot_clé = PROP_none)
+    style.valeurs[IDPropriété.OverflowX] = ValeurDeStyle(mot_clé = PROP_visible)
+    style.valeurs[IDPropriété.OverflowY] = ValeurDeStyle(mot_clé = PROP_visible)
 
     /* Marges */
     style.valeurs[IDPropriété.MarginBottom] = ValeurDeStyle(pixels = 0.0)
