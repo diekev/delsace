@@ -2115,7 +2115,7 @@ table_virtuelle_array_constructor := TableVirtuelleCellule(classe = ArrayConstru
 
 ArrayConstructor :: struct {
     empl objet: Object
-    table = *table_virtuelle_objet_array
+    table = *table_virtuelle_array_constructor
 }
 
 /* À FAIRE : standardise */
