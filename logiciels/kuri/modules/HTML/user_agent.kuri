@@ -18,6 +18,12 @@ UserAgent :: struct {
     rappels_interface: *RappelsInterface
 }
 
+détruit_user_agent :: fonc (user_agent: *UserAgent)
+{
+    détruit_données_user_agent(user_agent)
+    déloge(user_agent)
+}
+
 détruit_données_user_agent :: fonc (user_agent: *UserAgent)
 {
     déloge_tableau_et_ses_éléments(user_agent.top_level_traversables, détruit_traversable)

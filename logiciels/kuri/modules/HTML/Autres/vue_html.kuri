@@ -85,6 +85,7 @@ principale :: fonc () -> z32
 
     /* Création fenêtre. */
     rappels_fenêtre: RappelsFenetrePrincipale
+    rappels_fenêtre.user_agent = loge(UserAgent)
     rappel_fermeture.rappels_fenêtre = *rappels_fenêtre
 
     fenêtre := QT_cree_fenetre_principale(*rappels_fenêtre)
@@ -94,7 +95,7 @@ principale :: fonc () -> z32
     QT_widget_affiche_maximisee(fenêtre)
 
     rappels_user_agent := crée_rappels_interface_qt(fenêtre)
-    définis_rappels_interface(*rappels_fenêtre.user_agent, rappels_user_agent)
+    définis_rappels_interface(rappels_fenêtre.user_agent, rappels_user_agent)
 
     si chemin_fichier {
         évènement := loge(ÉvènementCréationOnglet)
@@ -163,7 +164,7 @@ sur_filtre_evenement_impl :: fonc (base: *QT_Rappels_Fenetre_Principale, event: 
             uri = tente parse_uri_standard(message.uri) piège nonatteignable
         }
 
-        navigable := crée_un_fresh_top_level_traversable(*rappels.user_agent, uri) comme *TraversableNavigable
+        navigable := crée_un_fresh_top_level_traversable(rappels.user_agent, uri) comme *TraversableNavigable
 
         page_web := crée_page_web(uri, navigable)
         crée_widget_pour_page(rappels.fenetre, page_web)
@@ -348,7 +349,7 @@ sur_fermeture_application :: fonc (base: *QT_Rappel_Generique)
 {
     rappel := base comme *RappelFermetureApp
     détruit_données_page_web(*rappel.rappels_fenêtre.page_web)
-    détruit_données_user_agent(*rappel.rappels_fenêtre.user_agent)
+    détruit_user_agent(rappel.rappels_fenêtre.user_agent)
     détruit_table_chaines_utf16_uniques()
 }
 
@@ -479,7 +480,7 @@ WidgetsPage :: struct {
 RappelsFenetrePrincipale :: struct {
     empl base: QT_Rappels_Fenetre_Principale
 
-    user_agent: UserAgent
+    user_agent: *UserAgent
 
     page_web: PageWeb
     widgets_page: WidgetsPage
@@ -557,7 +558,7 @@ crée_widget_pour_page :: fonc (fenêtre: *QT_Fenetre_Principale, page_web: Page
 
     widget := QT_cree_widget(nul, fenêtre)
 
-    barre_de_navigation := crée_barre_de_navigation(*rappels.user_agent, *rappels.page_web, *rappels.widgets_page, widget)
+    barre_de_navigation := crée_barre_de_navigation(rappels.user_agent, *rappels.page_web, *rappels.widgets_page, widget)
 
     rappels_tabs := loge(RappelsTab)
     rappels_tabs.fenêtre = fenêtre
