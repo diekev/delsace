@@ -1034,6 +1034,7 @@ crée_noeud_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *
     }
     sinon si élément.local_name == HTML.TAG_br {
         bris := arbre.crée_noeud(NoeudDeDispositionNouvelleLigne)
+        bris.élément = élément
         résultat = bris
     }
     sinon {
@@ -1609,6 +1610,9 @@ donne_élément :: fonc (noeud: *NoeudDeDisposition) -> *HTML.Élément
     }
     si noeud.type == NoeudDeDispositionBloc {
         retourne (noeud comme *NoeudDeDispositionBloc).élément
+    }
+    si noeud.type == NoeudDeDispositionNouvelleLigne {
+        retourne (noeud comme *NoeudDeDispositionNouvelleLigne).élément
     }
     retourne nul
 }
@@ -2504,6 +2508,7 @@ noeud_disposition_inline_corrige_hiérarchie :: fonc (base: *NoeudDeDisposition,
 NoeudDeDispositionNouvelleLigne :: struct {
     empl base_bloc: NoeudDeDisposition
     type = #type_de_cette_structure
+    élément: *HTML.Élément
     sur_divise_en_lignes = noeud_disposition_nouvelle_ligne_sur_divise_en_lignes
 }
 
