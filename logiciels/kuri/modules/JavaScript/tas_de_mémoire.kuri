@@ -195,11 +195,18 @@ visite_cellules_vivantes :: fonc (tas_de_mémoire: *TasDeMémoire @inutilisée, 
     }
 
     visiteuse: VisiteuseVivance
+    diffère déloge(visiteuse.valeurs_à_visiter)
+
     visiteuse.sur_a_visité = sur_a_visité
     visiteuse.sur_a_déjà_visité = sur_a_déjà_visité
 
     pour racines {
         visite_cellule_générique(*visiteuse, it)
+    }
+
+    tantque visiteuse.valeurs_à_visiter.taille != 0 {
+        valeur := enlève_dernier_élément(*visiteuse.valeurs_à_visiter)
+        visite_valeur(*visiteuse, valeur)
     }
 
     #si DÉBOGUGE_MÉMOIRE {
@@ -457,6 +464,8 @@ donne_tas_de_mémoire :: fonc (cellule: *Cellule) -> *TasDeMémoire #enligne
 VisiteuseCellule :: struct {
     sur_a_visité: fonc(*VisiteuseCellule, *Cellule)(rien)
     sur_a_déjà_visité: fonc(*VisiteuseCellule, *Cellule)(bool)
+
+    valeurs_à_visiter: [..]eini
 }
 
 a_visité :: fonc (visiteuse: *VisiteuseCellule, cellule: *Cellule)
@@ -504,7 +513,7 @@ visite_structure :: fonc (visiteuse: *VisiteuseCellule, structure: eini)
         si possède_annotation(it, "NeVisitePas") {
             retourne
         }
-        visite_valeur(visiteuse, membre)
+        tableau_ajoute(*visiteuse.valeurs_à_visiter, membre)
     }
 }
 
@@ -565,7 +574,7 @@ visite_valeur :: fonc (visiteuse: *VisiteuseCellule, valeur: eini)
             saufsi élément.est_valide() {
                 arrête
             }
-            visite_valeur(visiteuse, élément)
+            tableau_ajoute(*visiteuse.valeurs_à_visiter, élément)
         }
         retourne
     }
