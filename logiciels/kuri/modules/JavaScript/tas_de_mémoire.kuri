@@ -36,8 +36,11 @@ donne_mv :: fonc (tas_de_mémoire: *TasDeMémoire) -> *MachineVirtuelle
 
 alloue :: fonc (tas_de_mémoire: *TasDeMémoire, $T: type_de_données) -> *T
 {
+    assert(est_struct_ou_employeuse_de(info_de(T), info_de(Cellule)))
     résultat := alloue_cellule(tas_de_mémoire, taille_de(T)) comme *T
     init_de(T)(résultat)
+    assert((résultat comme *Cellule).table != nul)
+    assert((résultat comme *Cellule).table.classe == T)
     retourne résultat
 }
 
@@ -398,6 +401,8 @@ Cellule :: struct {
 donne_info_type_cellule :: fonc (racine: *Cellule) -> *InfoTypeStructure
 {
     résultat := __table_des_types[racine.table.classe] comme *InfoTypeStructure
+    assert(résultat != nul)
+    assert(résultat.id == GenreInfoType.STRUCTURE)
     assert(est_struct_ou_employeuse_de(résultat, info_de(Cellule)))
     retourne résultat
 }
