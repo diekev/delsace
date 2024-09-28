@@ -1628,7 +1628,9 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
         after_potential_unloads_params.completed_change_jobs = *completed_change_jobs
         after_potential_unloads_params.script_history_length = script_history_length
         after_potential_unloads_params.script_history_index = script_history_index
-        after_potential_unloads_params.navigation_type = navigation_type
+        si navigation_type {
+            after_potential_unloads_params.navigation_type = mémoire(navigation_type)
+        }
         after_potential_unloads_params.entries_for_navigation_api = entries_for_navigation_api
         after_potential_unloads_params.displayed_entry = navigable.active_session_history_entry
 
@@ -1696,7 +1698,7 @@ AfterPotentialUnloadsParams :: struct {
     completed_change_jobs: *z32
     script_history_length: n32
     script_history_index: n32
-    navigation_type: *NavigationType
+    navigation_type: Optionnel(NavigationType)
     entries_for_navigation_api: []*SessionHistoryEntry
     displayed_entry: *SessionHistoryEntry
 }
@@ -2325,7 +2327,7 @@ DocumentUpdateParams :: struct {
     do_not_reactivate: bool
     script_history_length: n32
     script_history_index: n32
-    navigation_type: *NavigationType
+    navigation_type: Optionnel(NavigationType)
     entries_for_navigation_api: []*SessionHistoryEntry
     previous_entry_for_activation: Optionnel(*SessionHistoryEntry)
 }
@@ -2362,7 +2364,7 @@ update_document_for_history_step_application :: fonc (empl params: *DocumentUpda
         // 4. If documentIsNew is false, then:
         saufsi document_is_new {
             // 1. Assert: navigationType is not null.
-            assert(navigation_type != nul)
+            assert(navigation_type.possède_valeur())
 
             // À FAIRE : 2. Update the navigation API entries for a same-document navigation given navigation, entry, and navigationType.
 
@@ -2389,7 +2391,7 @@ update_document_for_history_step_application :: fonc (empl params: *DocumentUpda
     // navigationType is non-null; and
     // navigationType is "reload" or previousEntryForActivation's document is not document,
     // then:
-    si previous_entry_for_activation.possède_valeur() && navigation_type != nul && (mémoire(navigation_type) == NavigationType.reload || donne_document(previous_entry_for_activation.Quelque) != document) {
+    si previous_entry_for_activation.possède_valeur() && navigation_type.possède_valeur() && (navigation_type.Quelque == NavigationType.reload || donne_document(previous_entry_for_activation.Quelque) != document) {
         // À FAIRE : 1. If navigation's activation is null, then set navigation's activation to a new NavigationActivation object in navigation's relevant realm.
 
         // 2. Let previousEntryIndex be the result of getting the navigation API entry index of previousEntryForActivation within navigation.
