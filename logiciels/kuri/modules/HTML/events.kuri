@@ -148,6 +148,9 @@ EventPhase :: énum {
 }
 
 Event :: struct {
+    empl platform_object: PlatformObject
+    table = *table_virtuelle_event
+
     type: EventType
     event_phase: EventPhase
 
@@ -181,6 +184,22 @@ Event :: struct {
 
     path: [..]Path
 }
+
+#portée_fichier
+
+table_virtuelle_event := TableVirtuellePlatformObject(
+    classe = Event,
+    sur_destruction = event_sur_destruction
+)
+
+event_sur_destruction :: fonc (base: *PlatformObject)
+{
+    event := base comme *Event
+    déloge(event.touch_target_list)
+    déloge(event.path)
+}
+
+#portée_export
 
 /* https://dom.spec.whatwg.org/#concept-event-path-append */
 append_event_path :: fonc (event: *Event, invocation_target: *EventTarget, shadow_adjusted_target: *EventTarget, related_target: *EventTarget, touch_target_list: [..]*EventTarget, slot_in_closed_tree: bool)
