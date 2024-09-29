@@ -163,7 +163,7 @@ ObjetHTML :: struct {
 
 objet_html_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, enveloppe: *Enveloppe)
 {
-    fonction_native_ouvre_document :: fonc (object: *Object, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    fonction_native_ouvre_document :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     {
         envellope_html := this_value.donne_objet() comme *Enveloppe
         html := envellope_html.enveloppable comme *ObjetHTML
@@ -211,7 +211,7 @@ EnveloppeDocument :: struct {
 
 enveloppe_document_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, enveloppe: *Enveloppe)
 {
-    fonction_native_get_element_by_id :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    fonction_native_get_element_by_id :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     {
         envellope := this_value.donne_objet() comme *Enveloppe
         enveloppe_document := envellope.enveloppable comme *EnveloppeDocument
@@ -258,7 +258,7 @@ EnveloppeÉlément :: struct {
 
 enveloppe_élément_sur_création_enveloppe :: fonc (base: *Enveloppable, enveloppe: *Enveloppe)
 {
-    fonction_native_get_element_by_class_name :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    fonction_native_get_element_by_class_name :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     {
         envellope := this_value.donne_objet() comme *Enveloppe
         enveloppe_élément := envellope.enveloppable comme *EnveloppeÉlément
@@ -284,7 +284,7 @@ enveloppe_élément_sur_création_enveloppe :: fonc (base: *Enveloppable, envelo
         retourne normal_completion(Valeur(Object = résultat))
     }
 
-    fonction_native_get_element_by_tag_name :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    fonction_native_get_element_by_tag_name :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     {
         envellope := this_value.donne_objet() comme *Enveloppe
         enveloppe_élément := envellope.enveloppable comme *EnveloppeÉlément
@@ -341,7 +341,7 @@ EnveloppeHTMLCollection :: struct {
 
 enveloppe_collection_sur_création_enveloppe :: fonc (base: *Enveloppable, enveloppe: *Enveloppe)
 {
-    fonction_native_item :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    fonction_native_item :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     {
         envellope := this_value.donne_objet() comme *Enveloppe
         enveloppe_collection := envellope.enveloppable comme *EnveloppeHTMLCollection
@@ -378,7 +378,7 @@ enveloppe_collection_sur_création_enveloppe :: fonc (base: *Enveloppable, envel
 
 /** \} */
 
-fonction_native_éboue :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur @inutilisée, arguments: []Valeur @inutilisée) -> CompletionRecord
+fonction_native_éboue :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
     imprime("<<<<< ébouage forcé\n")
     éboue(interpréteuse.donne_tas_de_mémoire())
