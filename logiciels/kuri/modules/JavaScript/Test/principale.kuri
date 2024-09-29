@@ -29,7 +29,7 @@ principale :: fonc () -> z32
     QT_core_application_definis_nom_application(vers_qt("JavaScript"))
 
     /* Création fenêtre. */
-    rappels_fenêtre : RappelsFenetrePrincipale
+    rappels_fenêtre: RappelsFenetrePrincipale
 
     fenêtre := QT_cree_fenetre_principale(*rappels_fenêtre)
     diffère QT_detruit_fenetre_principale(fenêtre)
@@ -108,7 +108,7 @@ sur_fermeture_application :: fonc (base: *QT_Rappel_Generique)
  * \{ */
 
 RappelsFenetrePrincipale :: struct {
-    empl base : QT_Rappels_Fenetre_Principale
+    empl base: QT_Rappels_Fenetre_Principale
 
     éditeur: *QT_PlainTextEdit
     sortie: *QT_PlainTextEdit
@@ -180,10 +180,10 @@ objet_html_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, en
         valeur_arg_utf16 := valeur_arg.donne_chaine_utf16()
         chemin := imprime_chaine("%", valeur_arg_utf16)
         diffère déloge(chemin)
-        
+
         contenu := contenu_fichier_texte(chemin)
 
-        parsat := parse_document(contenu)
+        parsat := parse_document(object.donne_tas_de_mémoire(), contenu)
         html.enveloppe_document.document = parsat.document
 
         tas_de_mémoire := object.donne_tas_de_mémoire()
@@ -273,7 +273,7 @@ enveloppe_élément_sur_création_enveloppe :: fonc (base: *Enveloppable, envelo
         }
 
         texte := arguments[0].String.texte
-    
+
         collection := élément.get_elements_by_class_name(texte)
 
         enveloppe_collection := loge(EnveloppeHTMLCollection)
@@ -299,7 +299,7 @@ enveloppe_élément_sur_création_enveloppe :: fonc (base: *Enveloppable, envelo
         }
 
         texte := arguments[0].String.texte
-    
+
         collection := élément.get_elements_by_tag_name(texte)
 
         enveloppe_collection := loge(EnveloppeHTMLCollection)
@@ -393,7 +393,7 @@ RappelsHôteTest :: struct {
     html: ObjetHTML
 }
 
-crée_propriétés_hôte_objet_global :: fonc(base: *RappelsHôte, global: *Object)
+crée_propriétés_hôte_objet_global :: fonc (base: *RappelsHôte, global: *Object)
 {
     rappels := base comme *RappelsHôteTest
 
