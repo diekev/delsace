@@ -1,6 +1,7 @@
 importe Chaine
 importe Ensemble
 importe Fondation
+importe #inemployé JavaScript
 
 /* https://dom.spec.whatwg.org/#concept-ordered-set-parser */
 run_ordered_set_parser :: fonc (chn: DOMString) -> [..]DOMString
@@ -27,8 +28,8 @@ run_ordered_set_parser :: fonc (chn: DOMString) -> [..]DOMString
  * \{ */
 
 HTMLCollectionFilter :: struct {
-    sur_filtre: fonc (*HTMLCollectionFilter, *HTMLCollection, *Élément)(bool)
-    sur_destruction: fonc (*HTMLCollectionFilter)(rien)
+    sur_filtre: fonc(*HTMLCollectionFilter, *HTMLCollection, *Élément)(bool)
+    sur_destruction: fonc(*HTMLCollectionFilter)(rien)
 }
 
 crée_filtre_pour_class_name :: fonc (classes: [..]DOMString) -> *HTMLCollectionFilter
@@ -120,7 +121,25 @@ crée_filtre_pour_tag_name :: fonc (tag_name: DOMString) -> *HTMLCollectionFilte
  * https://dom.spec.whatwg.org/#htmlcollection
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_html_collection := TableVirtuellePlatformObject(
+    classe = HTMLCollection,
+    sur_destruction = html_collection_sur_destruction
+)
+
+html_collection_sur_destruction :: fonc (base: *JavaScript.Cellule)
+{
+    collection := base comme *HTMLCollection
+    détruit_collection(collection)
+}
+
+#portée_export
+
 HTMLCollection :: struct {
+    empl platform_object: PlatformObject
+    table = *table_virtuelle_html_collection
+
     // À FAIRE : la collection est vivante
     root: *Noeud
     filter: *HTMLCollectionFilter
@@ -161,7 +180,6 @@ détruit_collection :: fonc (collection: *HTMLCollection)
     }
 
     déloge(collection.éléments)
-    déloge(collection)
 }
 
 donne_length :: fonc (collection: *HTMLCollection) -> z64
