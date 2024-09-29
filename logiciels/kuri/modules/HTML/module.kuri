@@ -3,6 +3,7 @@
 
 importe Chaine
 importe Fondation
+importe #inemployé JavaScript
 importe Temps
 
 charge "élément"
@@ -22,10 +23,15 @@ charge "liste_éléments_actifs_formattage"
 charge "noeud"
 charge "parsage"
 charge "pile_éléments_ouverts"
+charge "platform_object"
 charge "tags_html"
 charge "url"
 charge "user_agent"
+charge "webappsec_csp"
+charge "webappsec_permissions_policy"
+charge "webappsec_referrer_policy"
 charge "webcrypto"
+charge "webdriver_bidi"
 
 DOMString :: ChaineUTF16Unique
 
@@ -107,7 +113,6 @@ traverse_noeud :: fonc (noeud: *Noeud, rappel_traverse: fonc(*Noeud)(DécisionTr
 
 /** \} */
 
-
 /* Résultat du parsage (« parsat », de « parser » + « -at ») d'un document HTML. */
 ParsatHTML :: struct {
     /* Le document qui fut parsé. */
@@ -120,16 +125,13 @@ ParsatHTML :: struct {
 
 détruit :: fonc (parsat: &ParsatHTML)
 {
-    si parsat.document {
-        détruit_noeud(parsat.document)
-    }
     déloge(parsat.erreurs)
 }
 
 /* Parse un document HTML depuis une chaine de caractère. */
-parse_document :: fonc (document: chaine) -> ParsatHTML
+parse_document :: fonc (tas_de_mémoire: *JavaScript.TasDeMémoire, document: chaine) -> ParsatHTML
 {
-    parseuse := initialise_parseuse(document)
+    parseuse := initialise_parseuse(tas_de_mémoire, document)
     diffère détruit_parseuse(*parseuse)
 
     début := maintenant_précis()

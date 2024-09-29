@@ -38,7 +38,7 @@ initialise_fanions_caractères :: fonc ()
         si ('0' comme z32) <= it <= ('9' comme z32) {
             fanion |= (FanionCaractère.EstChiffre | FanionCaractère.ContinueIdentifiant | FanionCaractère.PeutSuivreChiffre)
             fanion.PeutDébuterLittéraleNumérique = vrai
-            fanion.DébuteLittéraleNumérique =  vrai
+            fanion.DébuteLittéraleNumérique = vrai
         }
 
         si it == '_' comme z32 {

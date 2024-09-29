@@ -444,7 +444,7 @@ throw_completion :: fonc (error: *Error) -> CompletionRecord
     retourne CompletionRecord(CompletionRecord.Type.THROW, valeur)
 }
 
-/** } */
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Interpréteuse
@@ -510,7 +510,7 @@ entre :: fonc (interpréteuse: &Interpréteuse, scope: *NoeudScope)
 
 sors :: fonc (interpréteuse: &Interpréteuse, scope: *NoeudScope)
 {
-    pile_scope := *interpréteuse.pile_scope    
+    pile_scope := *interpréteuse.pile_scope
     assert(pile_scope.taille > 0)
     assert(mémoire(pile_scope)[pile_scope.taille - 1].noeud_scope == scope)
     pile_scope.taille -= 1
@@ -523,7 +523,7 @@ donne_tas_de_mémoire :: fonc (interpréteuse: &Interpréteuse) -> *TasDeMémoir
 
 donne_scope_courant :: fonc (interpréteuse: &Interpréteuse) -> *FrameScope
 {
-    retourne *interpréteuse.pile_scope[interpréteuse.pile_scope.taille -1]
+    retourne *interpréteuse.pile_scope[interpréteuse.pile_scope.taille - 1]
 }
 
 donne_running_execution_context :: fonc (interpréteuse: &Interpréteuse) -> *ExecutionContext
@@ -569,7 +569,7 @@ crée_string_value_completion :: fonc (interpréteuse: &Interpréteuse, texte: E
 
 /* 9.4.2 Resolve Binding
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-resolvebinding */
-resolve_binding :: fonc (interpréteuse: &Interpréteuse, nom: ECMAString, environment: *Environment = nul) -> CompletionRecord
+resolve_binding :: fonc (interpréteuse: &Interpréteuse, nom: ECMAString, environment : *Environment = nul) -> CompletionRecord
 {
     // 1. If env is not present or env is undefined, then
     // À FAIRE : undefined
@@ -597,4 +597,4 @@ get_global_object :: fonc (interpréteuse: &Interpréteuse) -> *Object
     retourne current_realm.global_object
 }
 
-/** } */
+/** \} */

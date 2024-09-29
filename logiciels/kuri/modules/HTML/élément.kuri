@@ -4,6 +4,7 @@ importe #inemployé CSS
 importe Fondation
 importe Image
 importe Internet
+importe #inemployé JavaScript
 importe MIME
 importe Unicode
 
@@ -56,7 +57,7 @@ TableVirtuelleÉlément :: struct {
 #portée_export
 
 Élément :: struct {
-    empl base: Noeud
+    empl base_noeud: Noeud
     table = *table_virtuelle_élément
 
     id: DOMString
@@ -91,18 +92,23 @@ table_virtuelle_élément := TableVirtuelleÉlément(
 
 élément_détruit_données :: fonc (élément: *Élément)
 {
+    noeud_détruit_données(élément)
     CSS.détruit_style_declaration(élément.style)
-    si élément.noeud_de_disposition && élément.noeud_de_disposition.type != CSS.NoeudDeDispositionNouvelleLigne {
-        (élément.noeud_de_disposition comme *CSS.NoeudDeDispositionBloc).élément = nul
+    si élément.noeud_de_disposition {
+        si élément.noeud_de_disposition.type != CSS.NoeudDeDispositionNouvelleLigne {
+            (élément.noeud_de_disposition comme *CSS.NoeudDeDispositionBloc).élément = nul
+        }
+        sinon {
+            (élément.noeud_de_disposition comme *CSS.NoeudDeDispositionNouvelleLigne).élément = nul
+        }
     }
     déloge(élément.liste_classes)
 }
 
-élément_sur_destruction :: fonc (base: *EventTarget)
+élément_sur_destruction :: fonc (base: *JavaScript.Cellule)
 {
     élément := base comme *Élément
     élément_détruit_données(élément)
-    déloge(élément)
 }
 
 élément_sur_changement_attribut :: fonc (élément: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
@@ -226,64 +232,67 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élé
     // les éléments pour les balises SVG ne sont pas présents, espace de noms ?
     élément: *Élément
     si tag == TAG_a {
-        élément = loge(HTMLAnchorElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLAnchorElement)
     }
     sinon si tag == TAG_body {
-        élément = loge(HTMLBodyElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLBodyElement)
     }
     sinon si tag == TAG_font {
-        élément = loge(HTMLFontElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLFontElement)
     }
     sinon si tag == TAG_form {
-        élément = loge(HTMLFormElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLFormElement)
     }
     sinon si tag == TAG_head {
-        élément = loge(HTMLHeadElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLHeadElement)
     }
     sinon si tag == TAG_h1 || tag == TAG_h2 || tag == TAG_h3 || tag == TAG_h4 || tag == TAG_h5 || tag == TAG_h6 {
-        élément = loge(HTMLHeadingElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLHeadingElement)
     }
     sinon si tag == TAG_hr {
-        élément = loge(HTMLHRElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLHRElement)
     }
     sinon si tag == TAG_html {
-        élément = loge(HTMLHtmlElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLHtmlElement)
+    }
+    sinon si tag == TAG_iframe {
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLIFrameElement)
     }
     sinon si tag == TAG_img {
-        élément = loge(HTMLImageElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLImageElement)
     }
     sinon si tag == TAG_input {
-        élément = loge(HTMLInputElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLInputElement)
     }
     sinon si tag == TAG_link {
-        élément = loge(HTMLLinkElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLLinkElement)
     }
     sinon si tag == TAG_script {
-        élément = loge(HTMLScriptElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLScriptElement)
     }
     sinon si tag == TAG_style {
-        élément = loge(HTMLStyleElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLStyleElement)
     }
     sinon si tag == TAG_table {
-        élément = loge(HTMLTableElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLTableElement)
     }
     sinon si tag == TAG_td || tag == TAG_th {
-        élément = loge(HTMLTableCellElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLTableCellElement)
     }
     sinon si tag == TAG_thead || tag == TAG_tbody || tag == TAG_tfoot {
-        élément = loge(HTMLTableSectionElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLTableSectionElement)
     }
     sinon si tag == TAG_tr {
-        élément = loge(HTMLTableRowElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLTableRowElement)
     }
     sinon si tag == TAG_textarea {
-        élément = loge(HTMLTextAreaElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLTextAreaElement)
     }
     sinon si tag == TAG_video {
-        élément = loge(HTMLVideoElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLVideoElement)
     }
     sinon {
-        élément = loge(Élément)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), Élément)
     }
 
     initialise_élément(élément, document, tag)
@@ -333,7 +342,7 @@ get_elements_by_class_name :: fonc (élément: *Élément, class_names: DOMStrin
 
     // 2. If classes is the empty set, return an empty HTMLCollection.
     si classes.taille == 0 {
-        retourne loge(HTMLCollection)
+        retourne JavaScript.alloue(élément.donne_tas_de_mémoire(), HTMLCollection)
     }
 
     // 3. Return an HTMLCollection rooted at root, whose filter matches
@@ -341,7 +350,7 @@ get_elements_by_class_name :: fonc (élément: *Élément, class_names: DOMStrin
     //    The comparisons for the classes must be done in an ASCII
     //    case-insensitive manner if root’s node document’s mode is "quirks";
     //    otherwise in an identical to manner.
-    résultat := loge(HTMLCollection)
+    résultat := JavaScript.alloue(élément.donne_tas_de_mémoire(), HTMLCollection)
     résultat.root = élément
     résultat.filter = crée_filtre_pour_class_name(classes)
     initialise_collection_pour_filtre(résultat)
@@ -351,7 +360,7 @@ get_elements_by_class_name :: fonc (élément: *Élément, class_names: DOMStrin
 /* https://dom.spec.whatwg.org/#concept-getelementsbytagname */
 get_elements_by_tag_name :: fonc (élément: *Élément, qualified_name: DOMString) -> *HTMLCollection
 {   
-    résultat := loge(HTMLCollection)
+    résultat := JavaScript.alloue(élément.donne_tas_de_mémoire(), HTMLCollection)
     résultat.root = élément
 
     // 1. If qualifiedName is U+002A (*), then return an HTMLCollection rooted at root, whose filter matches only descendant elements.
@@ -379,6 +388,47 @@ donne_liste_classe :: fonc (élément: *Élément) -> []DOMString
     }
 
     retourne élément.liste_classes
+}
+
+donne_referrerpolicy_content_attribute_state :: fonc (élément: *Élément) -> ReferrerPolicy
+{
+    referrer_policy := élément.donne_attribut_ou_chaine_vide(ATTR_referrerpolicy)
+    chn_referrer_policy := converti_vers_chaine(referrer_policy.donne_chaine_utf16())
+    diffère déloge(chn_referrer_policy)
+
+    si compare_ascii_insensible_à_la_casse(chn_referrer_policy, "no-referrer") {
+        retourne ReferrerPolicy.NoReferrer
+    }
+
+    si compare_ascii_insensible_à_la_casse(chn_referrer_policy, "no-referrer-when-downgrade") {
+        retourne ReferrerPolicy.NoReferrerWhenDowngrade
+    }
+
+    si compare_ascii_insensible_à_la_casse(chn_referrer_policy, "same-origin") {
+        retourne ReferrerPolicy.SameOrigin
+    }
+
+    si compare_ascii_insensible_à_la_casse(chn_referrer_policy, "origin") {
+        retourne ReferrerPolicy.Origin
+    }
+
+    si compare_ascii_insensible_à_la_casse(chn_referrer_policy, "strict-origin") {
+        retourne ReferrerPolicy.StrictOrigin
+    }
+
+    si compare_ascii_insensible_à_la_casse(chn_referrer_policy, "origin-when-cross-origin") {
+        retourne ReferrerPolicy.OriginWhenCrossOrigin
+    }
+
+    si compare_ascii_insensible_à_la_casse(chn_referrer_policy, "strict-origin-when-cross-origin") {
+        retourne ReferrerPolicy.StrictOriginWhenCrossOrigin
+    }
+
+    si compare_ascii_insensible_à_la_casse(chn_referrer_policy, "unsafe-url") {
+        retourne ReferrerPolicy.UnsafeUrl
+    }
+
+    retourne ReferrerPolicy.EmptyString
 }
 
 /** \} */
@@ -515,17 +565,10 @@ donne_href :: fonc (anchor: *HTMLAnchorElement) -> DOMString
 
 table_virtuelle_anchor_element := TableVirtuelleÉlément(
     classe = HTMLAnchorElement,
-    sur_destruction = anchor_element_sur_destruction,
+    sur_destruction = élément_sur_destruction,
     sur_activation_behavior = anchor_element_sur_activation_behavior,
     sur_changement_attribut = anchor_element_sur_changement_attribut
 )
-
-anchor_element_sur_destruction :: fonc (base: *EventTarget)
-{
-    élément := base comme *HTMLAnchorElement
-    élément_détruit_données(élément)
-    déloge(élément)
-}
 
 anchor_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
 {
@@ -549,45 +592,237 @@ anchor_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DO
     retourne faux
 }
 
-/* À FAIRE : standardise
- * https://html.spec.whatwg.org/multipage/links.html#api-for-a-and-area-elements */
-anchor_element_sur_activation_behavior :: fonc (target: *EventTarget, event: *Event @inutilisée)
+/* https://html.spec.whatwg.org/multipage/links.html#api-for-a-and-area-elements */
+anchor_element_sur_activation_behavior :: fonc (target: *EventTarget, event: *Event)
 {
-    anchor := target comme *HTMLAnchorElement
-    imprime("[%] %\n", #nom_de_cette_fonction, anchor.donne_href())
+    element := target comme *HTMLElement
+    
+    // 1. If element has no href attribute, then return.
+    saufsi possède_attribut(element, ATTR_href) {
+        retourne
+    }
 
-    /* Follow the hyperlink.
-     * https://html.spec.whatwg.org/multipage/links.html#following-hyperlinks-2 */
-    navigable := donne_node_navigable(anchor)
-    saufsi navigable {
+    // 2. Let hyperlinkSuffix be null.
+    hyperlink_suffix := crée_chaine_utf16_unique_vide()
+
+    // À FAIRE : 3. If element is an a element, and event's target is an img with an ismap attribute specified, then:
+
+        // 1. Let x and y be 0.
+
+        // 2. If event's isTrusted attribute is initialized to true, then set x to the distance in CSS pixels from the left edge of the image to the location of the click, and set y to the distance in CSS pixels from the top edge of the image to the location of the click.
+
+        // 3. If x is negative, set x to 0.
+
+        // 4. If y is negative, set y to 0.
+
+        // 5. Set hyperlinkSuffix to the concatenation of U+003F (?), the value of x expressed as a base-ten integer using ASCII digits, U+002C (,), and the value of y expressed as a base-ten integer using ASCII digits.
+
+    // 4. Let userInvolvement be event's user navigation involvement.
+    user_involvement := donne_user_navigation_involvement(event)
+
+    // À FAIRE : 5. If the user has expressed a preference to download the hyperlink, then set userInvolvement to "browser UI".
+
+    // À FAIRE : 6. If element has a download attribute, or if the user has expressed a preference to download the hyperlink, then download the hyperlink created by element with hyperlinkSuffix set to hyperlinkSuffix and userInvolvement set to userInvolvement.
+
+    // 7. Otherwise, follow the hyperlink created by element with hyperlinkSuffix set to hyperlinkSuffix and userInvolvement set to userInvolvement.
+    follow_the_hyperlink(element, hyperlink_suffix, user_involvement)
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#event-uni */
+donne_user_navigation_involvement :: fonc (event: *Event) -> UserNavigationInvolvement
+{
+    // 1. Assert: this algorithm is being called as part of an activation behavior definition.
+    assert(event.est_dans_activation_behavior)
+
+    // 2. Assert: event's type is "click".
+    assert(event.type == EventType.click)
+
+    // 3. If event's isTrusted is initialized to true, then return "activation".
+    si event.is_trusted {
+        retourne UserNavigationInvolvement.Activation
+    }
+
+    // 4. Return "none".
+    retourne UserNavigationInvolvement.None
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 4.6.4 Following Hyperlinks
+ * https://html.spec.whatwg.org/multipage/links.html#following-hyperlinks
+ * \{ */
+
+/* https://html.spec.whatwg.org/multipage/links.html#cannot-navigate */
+cannot_navigate :: fonc (element: *Élément) -> bool
+{
+    // À FAIRE : element's node document is not fully active; or
+    // saufsi element.document.est_fully_active() {
+    //     retourne vrai
+    // }
+
+    // element is not an a element and is not connected.
+    si element.local_name != TAG_a && !element.est_connecté() {
+        retourne vrai
+    }
+
+    retourne faux
+}
+
+/* https://html.spec.whatwg.org/multipage/links.html#get-an-element's-noopener */
+get_an_element_s_noopener :: fonc (element: *Élément, target: DOMString) -> bool
+{
+    assert(element.local_name == TAG_a || element.local_name == TAG_area || element.local_name == TAG_form)
+
+    link_types := donne_link_types(element)
+    diffère déloge(link_types)
+
+    // 1. If element's link types include the noopener or noreferrer keyword, then return true.
+    si link_types_incluent(link_types, ATTR_noopener) || link_types_incluent(link_types, ATTR_noreferrer) {
+        retourne vrai
+    }
+
+    // 2. If element's link types do not include the opener keyword and target is an ASCII
+    //    case-insensitive match for "_blank", then return true.
+    si !link_types_incluent(link_types, ATTR_opener) && compare_ascii_insensible_à_la_casse(target, ATTR__blank) {
+        retourne vrai
+    }
+
+    // 3. Return false.
+    retourne faux
+}
+
+/* https://html.spec.whatwg.org/multipage/links.html#following-hyperlinks-2 */
+follow_the_hyperlink :: fonc (subject: *Élément, hyperlink_suffix := crée_chaine_utf16_unique_vide(), user_involvement := UserNavigationInvolvement.None)
+{
+    // 1. If subject cannot navigate, then return.
+    si cannot_navigate(subject) {
+        imprime("[%] cannot_navigate\n", #nom_de_cette_fonction)
+        retourne
+    }
+
+    // 2. Let replace be false.
+    // replace := faux
+
+    // 3. Let targetAttributeValue be the empty string.
+    target_attribute_value := crée_chaine_utf16_unique_vide()
+
+    // 4. If subject is an a or area element, then set targetAttributeValue to the result of getting an element's target given subject.
+    si subject.local_name == TAG_a || subject.local_name == TAG_area {
+        target_attribute_value = get_an_element_s_target(subject)
+    }
+
+    // 5. Let noopener be the result of getting an element's noopener with subject and targetAttributeValue.
+    // noopener := get_an_element_s_noopener(subject, target_attribute_value)
+
+    // À FAIRE : 6. Let targetNavigable be the first return value of applying the rules for choosing a navigable given targetAttributeValue, subject's node navigable, and noopener.
+    target_navigable := donne_node_navigable(subject)
+
+    // 7. If targetNavigable is null, then return.
+    saufsi target_navigable {
         imprime("[%] pas de navigable\n", #nom_de_cette_fonction)
         retourne
     }
 
-    chn_href := anchor.donne_href().donne_chaine_utf16()
+    // 8. Let urlString be the result of encoding-parsing-and-serializing a URL given subject's href attribute value, relative to subject's node document.
+    chn_href := subject.donne_attribut_ou_chaine_vide(ATTR_href)
+    opt_url_string := encoding_parse_and_serialize_a_url(chn_href, subject.document)
 
-    source_document := anchor.document
-    base_url := donne_base_url(source_document)
+    // 9. If urlString is failure, then return.
+    saufsi opt_url_string.possède_valeur() {
+        retourne
+    }
+    url_string := opt_url_string.Quelque
+
+    // 10. If hyperlinkSuffix is non-null, then append it to urlString.
+    saufsi hyperlink_suffix.est_vide() {
+        chn_hyperlink_suffix := converti_vers_chaine(hyperlink_suffix.donne_chaine_utf16())
+        chaine_ajoute(*url_string, chn_hyperlink_suffix)
+    }
+
+    // 11. Let referrerPolicy be the current state of subject's referrerpolicy content attribute.
+    referrer_policy := donne_referrerpolicy_content_attribute_state(subject)
+
+    // 12. If subject's link types includes the noreferrer keyword, then set referrerPolicy to "no-referrer".
+    link_types := donne_link_types(subject)
+    diffère déloge(link_types)
+
+    si link_types_incluent(link_types, ATTR_noreferrer) {
+        referrer_policy = ReferrerPolicy.NoReferrer
+    }
+
+    // 13. Navigate targetNavigable to urlString using subject's node document, with referrerPolicy set to referrerPolicy and userInvolvement set to userInvolvement.
+    url := tente parse_uri_standard(url_string) piège nonatteignable
+    source_document := subject.document
+    navigate(source_document.donne_user_agent(), target_navigable, url, source_document, referrer_policy = referrer_policy, user_involvement = user_involvement)
+}
+
+/* https://html.spec.whatwg.org/multipage/semantics.html#get-an-element's-target */
+get_an_element_s_target :: fonc (element: *Élément, target := crée_chaine_utf16_unique_vide()) -> DOMString
+{
+    // 1. If target is null, then:
+    si target.est_vide() {
+        // 1. If element has a target attribute, then set target to that attribute's value.
+        attr_target := element.donne_attribut(ATTR_target)
+        si attr_target.possède_valeur() {
+            target = attr_target.Quelque
+        }
+        // À FAIRE : 2. Otherwise, if element's node document contains a base element with a target attribute, set target to the value of the target attribute of the first such base element.
+    }
+
+    // 2. If target is not null, and contains an ASCII tab or newline and a U+003C (<), then set target to "_blank".
+    saufsi target.est_vide() {
+        chn_target := target.donne_chaine_utf16()
+        si chn_target.taille() == 2 && (chn_target.unités[0] == '\t' comme n8 || chn_target.unités[0] == '\n' comme n8) && chn_target.unités[1] == '<' comme n8 {
+            target = ATTR__blank
+        }
+    }
+
+    // 3. Return target.
+    retourne target
+}
+
+/* https://html.spec.whatwg.org/multipage/urls-and-fetching.html#encoding-parsing-and-serializing-a-url */
+encoding_parse_and_serialize_a_url :: fonc (url: DOMString, document: *Document) -> Optionnel(chaine)
+{
+    // À FAIRE : standardise
+    base_url := donne_base_url(document)
     url_document := convertis_uri_url(*base_url)
     diffère détruit_url(url_document)
 
-    url_src := basic_url_parser(chn_href, base = url_document)
+    url_src := basic_url_parser(url.donne_chaine_utf16(), base = url_document)
     diffère détruit_url(url_src)
     saufsi url_src {
         retourne
     }
 
-    url_string := url_serializer(url_src)
-
-    url := tente parse_uri_standard(url_string) piège err {
-        imprime("[%] impossible de parser l'URI : %\n", #nom_de_cette_fonction, err)
-        retourne
-    }
-
-    navigate(source_document.donne_user_agent(), navigable, url, source_document)
+    retourne url_serializer(url_src)
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 4.6.7 Link Types
+ * https://html.spec.whatwg.org/multipage/links.html#linkTypes
+ * \{ */
+
+donne_link_types :: fonc (element: *Élément) -> [..]DOMString
+{
+    rel := element.donne_attribut_ou_chaine_vide(ATTR_rel)
+    retourne run_ordered_set_parser(rel)
+}
+
+link_types_incluent :: fonc (link_types: []DOMString, chn: DOMString) -> bool
+{
+    pour link_types {
+        si compare_ascii_insensible_à_la_casse(it, chn) {
+            retourne vrai
+        }
+    }
+    retourne faux
+}
+
+/** } */
 
 /* ------------------------------------------------------------------------- */
 /** \nom HTMLBodyElement
@@ -606,16 +841,9 @@ HTMLBodyElement :: struct {
 
 table_virtuelle_body_element := TableVirtuelleÉlément(
     classe = HTMLBodyElement,
-    sur_destruction = body_element_sur_destruction,
+    sur_destruction = élément_sur_destruction,
     sur_applique_presentational_hints = body_element_sur_applique_presentational_hints
 )
-
-body_element_sur_destruction :: fonc (base: *EventTarget)
-{
-    élément := base comme *HTMLBodyElement
-    élément_détruit_données(élément)
-    déloge(élément)
-}
 
 /* https://html.spec.whatwg.org/multipage/rendering.html#the-page */
 body_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
@@ -688,16 +916,9 @@ HTMLFontElement :: struct {
 
 table_virtuelle_font_element := TableVirtuelleÉlément(
     classe = HTMLFontElement,
-    sur_destruction = font_element_sur_destruction,
+    sur_destruction = élément_sur_destruction,
     sur_applique_presentational_hints = font_element_sur_applique_presentational_hints
 )
-
-font_element_sur_destruction :: fonc (base: *EventTarget)
-{
-    élément := base comme *HTMLFontElement
-    élément_détruit_données(élément)
-    déloge(élément)
-}
 
 /* https://html.spec.whatwg.org/multipage/rendering.html#phrasing-content-3 */
 font_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
@@ -832,15 +1053,8 @@ HTMLFormElement :: struct {
 
 table_virtuelle_form_element := TableVirtuelleÉlément(
     classe = HTMLFormElement,
-    sur_destruction = form_element_sur_destruction
+    sur_destruction = élément_sur_destruction
 )
-
-form_element_sur_destruction :: fonc (base: *EventTarget)
-{
-    élément := base comme *HTMLFormElement
-    élément_détruit_données(élément)
-    déloge(élément)
-}
 
 /** \} */
 
@@ -861,15 +1075,8 @@ HTMLHeadElement :: struct {
 
 table_virtuelle_head_element := TableVirtuelleÉlément(
     classe = HTMLHeadElement,
-    sur_destruction = head_element_sur_destruction
+    sur_destruction = élément_sur_destruction
 )
-
-head_element_sur_destruction :: fonc (base: *EventTarget)
-{
-    élément := base comme *HTMLHeadElement
-    élément_détruit_données(élément)
-    déloge(élément)
-}
 
 /** \} */
 
@@ -890,15 +1097,8 @@ HTMLHeadingElement :: struct {
 
 table_virtuelle_heading_element := TableVirtuelleÉlément(
     classe = HTMLHeadingElement,
-    sur_destruction = heading_element_sur_destruction
+    sur_destruction = élément_sur_destruction
 )
-
-heading_element_sur_destruction :: fonc (base: *EventTarget)
-{
-    élément := base comme *HTMLHeadingElement
-    élément_détruit_données(élément)
-    déloge(élément)
-}
 
 /** \} */
 
@@ -919,15 +1119,8 @@ HTMLHRElement :: struct {
 
 table_virtuelle_hr_element := TableVirtuelleÉlément(
     classe = HTMLHRElement,
-    sur_destruction = hr_element_sur_destruction
+    sur_destruction = élément_sur_destruction
 )
-
-hr_element_sur_destruction :: fonc (base: *EventTarget)
-{
-    élément := base comme *HTMLHRElement
-    élément_détruit_données(élément)
-    déloge(élément)
-}
 
 /** \} */
 
@@ -948,15 +1141,33 @@ HTMLHtmlElement :: struct {
 
 table_virtuelle_html_element := TableVirtuelleÉlément(
     classe = HTMLHtmlElement,
-    sur_destruction = html_element_sur_destruction
+    sur_destruction = élément_sur_destruction
 )
 
-html_element_sur_destruction :: fonc (base: *EventTarget)
-{
-    élément := base comme *HTMLHtmlElement
-    élément_détruit_données(élément)
-    déloge(élément)
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLIFrameElement
+ * https://html.spec.whatwg.org/multipage/iframe-embed-object.html#the-iframe-element
+ * \{ */
+
+#portée_export
+
+HTMLIFrameElement :: struct {
+    empl html_element: HTMLElement
+    table = *table_virtuelle_iframe_element
+
+    /* À FAIRE : remplis depuis l'attribut sandbox
+     * https://html.spec.whatwg.org/multipage/browsers.html#iframe-sandboxing-flag-set */
+    iframe_sandboxing_flags: SandboxingFlags
 }
+
+#portée_fichier
+
+table_virtuelle_iframe_element := TableVirtuelleÉlément(
+    classe = HTMLIFrameElement,
+    sur_destruction = élément_sur_destruction
+)
 
 /** \} */
 
@@ -1030,12 +1241,11 @@ image_element_sur_applique_presentational_hints :: fonc (base: *Élément, réso
     ajoute_propriété_pour_non_zero_dimension(résolveuse, base, ATTR_height, CSS.PROP_height)
 }
 
-image_element_sur_destruction :: fonc (base: *EventTarget)
+image_element_sur_destruction :: fonc (base: *JavaScript.Cellule)
 {
     élément := base comme *HTMLImageElement
     élément_détruit_données(élément)
     IMG_detruit_image(*élément.image_data)
-    déloge(élément)
 }
 
 /* https://html.spec.whatwg.org/multipage/images.html#update-the-image-data */
@@ -1179,16 +1389,9 @@ is_text_entry_widget :: fonc (input: *HTMLInputElement) -> bool
 
 table_virtuelle_input_element := TableVirtuelleÉlément(
     classe = HTMLInputElement,
-    sur_destruction = input_element_sur_destruction,
+    sur_destruction = élément_sur_destruction,
     sur_changement_attribut = input_element_sur_changement_attribut
 )
-
-input_element_sur_destruction :: fonc (base: *EventTarget)
-{
-    élément := base comme *HTMLInputElement
-    élément_détruit_données(élément)
-    déloge(élément)
-}
 
 input_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
 {
@@ -1235,16 +1438,9 @@ donne_rel :: fonc (link: *HTMLLinkElement) -> DOMString
 
 table_virtuelle_link_element := TableVirtuelleÉlément(
     classe = HTMLLinkElement,
-    sur_destruction = link_element_sur_destruction,
+    sur_destruction = élément_sur_destruction,
     sur_changement_attribut = link_element_sur_changement_attribut
 )
-
-link_element_sur_destruction :: fonc (base: *EventTarget)
-{
-    élément := base comme *HTMLLinkElement
-    élément_détruit_données(élément)
-    déloge(élément)
-}
 
 link_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
 {
@@ -1427,15 +1623,8 @@ HTMLVideoElement :: struct {
 
 table_virtuelle_video_element := TableVirtuelleÉlément(
     classe = HTMLVideoElement,
-    sur_destruction = video_element_sur_destruction
+    sur_destruction = élément_sur_destruction
 )
-
-video_element_sur_destruction :: fonc (base: *EventTarget)
-{
-    élément := base comme *HTMLVideoElement
-    élément_détruit_données(élément)
-    déloge(élément)
-}
 
 /** \} */
 
@@ -1490,15 +1679,8 @@ donne_src :: fonc (script: *HTMLScriptElement) -> DOMString
 
 table_virtuelle_script_element := TableVirtuelleÉlément(
     classe = HTMLScriptElement,
-    sur_destruction = script_element_sur_destruction
+    sur_destruction = élément_sur_destruction
 )
-
-script_element_sur_destruction :: fonc (base: *EventTarget)
-{
-    élément := base comme *HTMLScriptElement
-    élément_détruit_données(élément)
-    déloge(élément)
-}
 
 #portée_export
 
@@ -1703,18 +1885,6 @@ détermine_type_block_script :: fonc (script: *HTMLScriptElement) -> DOMString
     retourne crée_chaine_utf16_unique(chn)
 }
 
-/* https://w3c.github.io/webappsec-csp/#should-block-inline */
-le_comportement_inline_de_l_élément_doit_être_bloqué_par_csp :: fonc (élément: *Élément, type: chaine @inutilisée, source: chaine @inutilisée) -> chaine
-{
-    assert(élément != nul)
-
-    résultat := "Allowed"
-
-    /* À FAIRE. */
-
-    retourne résultat
-}
-
 /* https://html.spec.whatwg.org/multipage/scripting.html#execute-the-script-element */
 execute_the_script_element :: fonc (el: *HTMLScriptElement @inutilisée)
 {
@@ -1740,19 +1910,12 @@ HTMLStyleElement :: struct {
 
 table_virtuelle_style_element := TableVirtuelleÉlément(
     classe = HTMLStyleElement,
-    sur_destruction = style_element_sur_destruction,
+    sur_destruction = élément_sur_destruction,
     sur_connexion = style_element_sur_connexion_ou_déconnexion,
     sur_déconnexion = style_element_sur_connexion_ou_déconnexion,
     sur_dépilement = style_element_sur_dépilement,
     sur_changement_enfants = style_element_sur_changement_enfants
 )
-
-style_element_sur_destruction :: fonc (base: *EventTarget)
-{
-    élément := base comme *HTMLStyleElement
-    élément_détruit_données(élément)
-    déloge(élément)
-}
 
 style_element_sur_connexion_ou_déconnexion :: fonc (base: *Noeud)
 {
@@ -1868,16 +2031,9 @@ HTMLTableElement :: struct {
 
 table_virtuelle_table_element := TableVirtuelleÉlément(
     classe = HTMLTableElement,
-    sur_destruction = table_element_sur_destruction,
+    sur_destruction = élément_sur_destruction,
     sur_applique_presentational_hints = table_element_sur_applique_presentational_hints
 )
-
-table_element_sur_destruction :: fonc (base: *EventTarget)
-{
-    élément := base comme *HTMLTableElement
-    élément_détruit_données(élément)
-    déloge(élément)
-}
 
 table_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
 {
@@ -1903,16 +2059,9 @@ HTMLTableCellElement :: struct {
 
 table_virtuelle_table_cell_element := TableVirtuelleÉlément(
     classe = HTMLTableCellElement,
-    sur_destruction = table_cell_element_sur_destruction,
+    sur_destruction = élément_sur_destruction,
     sur_applique_presentational_hints = table_cell_element_sur_applique_presentational_hints
 )
-
-table_cell_element_sur_destruction :: fonc (base: *EventTarget)
-{
-    élément := base comme *HTMLTableCellElement
-    élément_détruit_données(élément)
-    déloge(élément)
-}
 
 table_cell_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
 {
@@ -1938,16 +2087,9 @@ HTMLTableRowElement :: struct {
 
 table_virtuelle_table_row_element := TableVirtuelleÉlément(
     classe = HTMLTableRowElement,
-    sur_destruction = table_row_element_sur_destruction,
+    sur_destruction = élément_sur_destruction,
     sur_applique_presentational_hints = table_row_element_sur_applique_presentational_hints
 )
-
-table_row_element_sur_destruction :: fonc (base: *EventTarget)
-{
-    élément := base comme *HTMLTableRowElement
-    élément_détruit_données(élément)
-    déloge(élément)
-}
 
 table_row_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
 {
@@ -1973,16 +2115,9 @@ HTMLTableSectionElement :: struct {
 
 table_virtuelle_table_section_element := TableVirtuelleÉlément(
     classe = HTMLTableSectionElement,
-    sur_destruction = table_section_element_sur_destruction,
+    sur_destruction = élément_sur_destruction,
     sur_applique_presentational_hints = table_section_element_sur_applique_presentational_hints
 )
-
-table_section_element_sur_destruction :: fonc (base: *EventTarget)
-{
-    élément := base comme *HTMLTableSectionElement
-    élément_détruit_données(élément)
-    déloge(élément)
-}
 
 table_section_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
 {
@@ -2043,14 +2178,7 @@ donne_character_height :: fonc (textarea: *HTMLTextAreaElement) -> n32
 
 table_virtuelle_textarea_element := TableVirtuelleÉlément(
     classe = HTMLTextAreaElement,
-    sur_destruction = textarea_element_sur_destruction
+    sur_destruction = élément_sur_destruction
 )
-
-textarea_element_sur_destruction :: fonc (base: *EventTarget)
-{
-    élément := base comme *HTMLTextAreaElement
-    élément_détruit_données(élément)
-    déloge(élément)
-}
 
 /** \} */

@@ -1,6 +1,7 @@
 importe Chaine
 importe CSS
 importe Fondation
+importe #inemployé JavaScript
 
 /* ------------------------------------------------------------------------- */
 /** \nom Noeud
@@ -63,20 +64,21 @@ Noeud :: struct {
     document: *Document
 }
 
-détruit_noeud :: fonc (noeud: *Noeud)
+#portée_module
+
+noeud_sur_destruction :: fonc (base: *JavaScript.Cellule)
 {
-    pour noeud.attributs {
-        détruit_noeud(it)
-    }
+    noeud := base comme *Noeud
+    noeud_détruit_données(noeud)
+}
+
+#portée_export
+
+noeud_détruit_données :: fonc (noeud: *Noeud)
+{
+    event_target_détruit_données(noeud)
     déloge(noeud.attributs)
-    déloge_tableau_et_ses_éléments(noeud.enfants, détruit_noeud)
-
-    si noeud.table && noeud.table.sur_destruction {
-        noeud.table.sur_destruction(noeud)
-        retourne
-    }
-
-    déloge(noeud)
+    déloge(noeud.enfants)
 }
 
 est_document :: fonc (noeud: *Noeud) -> bool
@@ -186,7 +188,7 @@ ajoute_enfant :: fonc (parent: *Noeud, enfant: *Noeud)
     }
 
     table := enfant.table comme *TableVirtuelleNoeud
-    si table  {
+    si table {
         si table.sur_insertion {
             table.sur_insertion(enfant)
         }
@@ -383,7 +385,7 @@ donne_contenu_texte_descandants :: fonc (noeud: *Noeud) -> ChaineUTF16
     enchaineuse: EnchaineuseUTF16
     initialise_enchaineuse(enchaineuse)
     diffère détruit_tampons(enchaineuse)
-    
+
     traverse_noeud(noeud, rappel_pour_extraction_texte_descandants, enchaineuse)
 
     retourne chaine_depuis_enchaineuse(enchaineuse)

@@ -1,0 +1,38 @@
+importe Fondation
+importe Internet
+
+/* https://w3c.github.io/webdriver-bidi/#webdriver-bidi-navigable-created */
+webdriver_bidi_navigable_created :: fonc (navigable: *Navigable @inutilisée, opener_navigable: *Navigable @inutilisée)
+{
+    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+}
+
+/* https://w3c.github.io/webdriver-bidi/#webdriver-navigation-status */
+WebDriverNavigationStatus :: struct {
+    id: Optionnel(NavigationID)
+    /* "canceled", "pending", or "complete" */
+    status: chaine
+    url: URI
+}
+
+/* https://w3c.github.io/webdriver-bidi/#webdriver-bidi-navigation-started */
+webdriver_bidi_navigation_started :: fonc (navigable: *Navigable @inutilisée, navigation_status: *WebDriverNavigationStatus @inutilisée)
+{
+    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+}
+
+webdriver_bidi_navigation_started :: fonc (navigable: *BrowsingContext @inutilisée, navigation_status: *WebDriverNavigationStatus @inutilisée)
+{
+    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+}
+
+/* https://w3c.github.io/webdriver-bidi/#webdriver-bidi-navigation-failed */
+webdriver_bidi_navigation_failed :: fonc (navigable: *Navigable @inutilisée, navigation_status: *WebDriverNavigationStatus @inutilisée)
+{
+    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+}
+
+webdriver_bidi_navigation_failed :: fonc (navigable: *BrowsingContext @inutilisée, navigation_status: *WebDriverNavigationStatus @inutilisée)
+{
+    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+}

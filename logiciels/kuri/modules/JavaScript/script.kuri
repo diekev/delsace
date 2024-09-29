@@ -138,7 +138,7 @@ parse_script :: fonc (source_texte: chaine, realm: *Realm, host_defined := HostD
             retourne ErreurCompilation(copie_chaine("Erreur interne : la compilation a échoué pour raison inconnue"))
         }
     }
-    
+
     // 3. Return Script Record { [[Realm]]: realm, [[ECMAScriptCode]]: script, [[LoadedModules]]: « », [[HostDefined]]: hostDefined }.
     initialise_script(résultat, realm, script, host_defined)
     retourne résultat
@@ -207,7 +207,7 @@ script_evaluation :: fonc (script_record: *Script) -> CompletionRecord
     assert(mv.execution_contexts.taille != 0)
 
     // 16. À FAIRE : Resume the context that is now on the top of the execution context stack as the running execution context.
-    
+
     // 17. Return ? result.
     retourne résultat
 }

@@ -23,7 +23,7 @@ Enveloppable :: struct {
 
 #portée_fichier
 
-table_virtuelle_enveloppe := TableVirtuelleCellule(classe = Enveloppe, sur_destruction = enveloppe_sur_destruction)
+table_virtuelle_enveloppe := TableVirtuelleObject(classe = Enveloppe, sur_destruction = enveloppe_sur_destruction)
 
 #portée_export
 

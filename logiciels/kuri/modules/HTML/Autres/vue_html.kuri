@@ -7,6 +7,7 @@ importe Géométrie
 importe HTML
 importe HTTP
 importe Internet
+importe #inemployé JavaScript
 importe OpenGL
 importe PeintureInterface
 importe Qt
@@ -63,7 +64,7 @@ principale :: fonc () -> z32
 
     chemin_fichier: chaine
     si arguments.taille > 1 {
-        arg1 := convertis_chaine_c_statique(ChaineC(arguments[1]))
+        arg1 := convertis_chaine_c(ChaineC(arguments[1]))
         chemin_fichier = arg1
     }
 
@@ -84,7 +85,8 @@ principale :: fonc () -> z32
     initialise_évènements_personnalisés()
 
     /* Création fenêtre. */
-    rappels_fenêtre : RappelsFenetrePrincipale
+    rappels_fenêtre: RappelsFenetrePrincipale
+    rappels_fenêtre.user_agent = loge(UserAgent)
     rappel_fermeture.rappels_fenêtre = *rappels_fenêtre
 
     fenêtre := QT_cree_fenetre_principale(*rappels_fenêtre)
@@ -94,7 +96,8 @@ principale :: fonc () -> z32
     QT_widget_affiche_maximisee(fenêtre)
 
     rappels_user_agent := crée_rappels_interface_qt(fenêtre)
-    définis_rappels_interface(*rappels_fenêtre.user_agent, rappels_user_agent)
+    initialise_user_agent(rappels_fenêtre.user_agent)
+    définis_rappels_interface(rappels_fenêtre.user_agent, rappels_user_agent)
 
     si chemin_fichier {
         évènement := loge(ÉvènementCréationOnglet)
@@ -163,7 +166,7 @@ sur_filtre_evenement_impl :: fonc (base: *QT_Rappels_Fenetre_Principale, event: 
             uri = tente parse_uri_standard(message.uri) piège nonatteignable
         }
 
-        navigable := crée_un_fresh_top_level_traversable(*rappels.user_agent, uri) comme *TraversableNavigable
+        navigable := crée_un_fresh_top_level_traversable(rappels.user_agent, uri) comme *TraversableNavigable
 
         page_web := crée_page_web(uri, navigable)
         crée_widget_pour_page(rappels.fenetre, page_web)
@@ -345,10 +348,10 @@ RappelFermetureApp :: struct {
 }
 
 sur_fermeture_application :: fonc (base: *QT_Rappel_Generique)
-{    
+{
     rappel := base comme *RappelFermetureApp
     détruit_données_page_web(*rappel.rappels_fenêtre.page_web)
-    détruit_données_user_agent(*rappel.rappels_fenêtre.user_agent)
+    détruit_user_agent(rappel.rappels_fenêtre.user_agent)
     détruit_table_chaines_utf16_uniques()
 }
 
@@ -364,7 +367,7 @@ BarreDeDéfilement :: struct {
     est_survolé: bool
     pos_clique_y: r32
     hauteur: r32
-    ratio: r32 = 1.0
+    ratio : r32 = 1.0
 }
 
 définis_position_y :: fonc (barre: *BarreDeDéfilement, y: r32) -> bool
@@ -477,9 +480,9 @@ WidgetsPage :: struct {
 }
 
 RappelsFenetrePrincipale :: struct {
-    empl base : QT_Rappels_Fenetre_Principale
+    empl base: QT_Rappels_Fenetre_Principale
 
-    user_agent: UserAgent
+    user_agent: *UserAgent
 
     page_web: PageWeb
     widgets_page: WidgetsPage
@@ -557,7 +560,7 @@ crée_widget_pour_page :: fonc (fenêtre: *QT_Fenetre_Principale, page_web: Page
 
     widget := QT_cree_widget(nul, fenêtre)
 
-    barre_de_navigation := crée_barre_de_navigation(*rappels.user_agent, *rappels.page_web, *rappels.widgets_page, widget)
+    barre_de_navigation := crée_barre_de_navigation(rappels.user_agent, *rappels.page_web, *rappels.widgets_page, widget)
 
     rappels_tabs := loge(RappelsTab)
     rappels_tabs.fenêtre = fenêtre
@@ -1384,13 +1387,11 @@ vue_rendu_page_sur_relachement_cle :: fonc (base: *QT_Rappels_GLWidget, event: *
 envoie_un_clic :: fonc (élément: *HTML.Élément)
 {
     /* À FAIRE : standardise. */
-    évènement := loge(HTML.Event)
+    évènement := JavaScript.alloue(élément.donne_tas_de_mémoire(), HTML.Event)
     évènement.target = élément
     évènement.type = HTML.EventType.click
 
     _ := dispatch(évènement, élément)
-
-    déloge(évènement)
 }
 
 /** \} */
@@ -1466,7 +1467,7 @@ FiltreÉvènementThread :: struct {
 filtre_thread_sur_évènement :: fonc (base: *QT_Rappels_Object @inutilisée, évènement: *QT_Evenement) -> z32
 {
     type := QT_evenement_donne_type(évènement) comme n32 comme z32
-    
+
     si type == évènement_sur_tâche_parallèle {
         algorithm := QT_event_perso_donne_donnees(évènement) comme *Algorithm
         run(algorithm)
@@ -1485,7 +1486,7 @@ FiltreÉvènementTraversable :: struct {
 filtre_traversable_sur_évènement :: fonc (base: *QT_Rappels_Object @inutilisée, évènement: *QT_Evenement) -> z32
 {
     type := QT_evenement_donne_type(évènement) comme n32 comme z32
-    
+
     si type == évènement_sur_tâche_traversable {
         algorithm := QT_event_perso_donne_donnees(évènement) comme *Algorithm
         run(algorithm)
@@ -1668,7 +1669,7 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Request) -> *RappelsRequê
     {
         rappels := base comme *RappelsRequête
         imprime("Erreur\n")
-        rappels.response = network_error()
+        rappels.response = network_error(rappels.requête)
     }
 
     sur_prêt_à_lire :: fonc (base: *QT_Rappels_Socket)
@@ -1709,13 +1710,13 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Request) -> *RappelsRequê
         content_type := donne_type_contenu(*message)
         charset := donne_charset(*message)
 
-        si compare_ascii_insensible_à_la_casse(charset,"ISO-8859-1" ) {
+        si compare_ascii_insensible_à_la_casse(charset, "ISO-8859-1") {
             nouveau_contenu := convertis_iso_8859_1_vers_utf8(message.contenu)
             déloge(contenu)
             contenu = nouveau_contenu
         }
 
-        response := loge(Response)
+        response := crée_réponse(rappels.requête)
         response.status = message.status
 
         body_info := loge(ResponseBodyInfo)

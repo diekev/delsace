@@ -1789,7 +1789,8 @@ infos_types_propriétés_shorthand := [
     InfoTypePropriété(PROP_text_align, id = IDPropriété.TextAlign, fonction_de_parsage = parse_propriété_text_align, drapeaux = DrapeauxPropriété.Héritée, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
     InfoTypePropriété(PROP_font, sur_parsage_shorthand = parse_propriété_font, drapeaux = DrapeauxPropriété.AffecteDisposition /* | DrapeauxPropriété.Héritée */),
     InfoTypePropriété(PROP_all, sur_parsage_shorthand = parse_propriété_all, drapeaux = DrapeauxPropriété.AffecteConstructionArbre),
-    InfoTypePropriété(PROP_border_radius, sur_parsage_shorthand = parse_propriété_border_radius_shorthand)
+    InfoTypePropriété(PROP_border_radius, sur_parsage_shorthand = parse_propriété_border_radius_shorthand),
+    InfoTypePropriété(PROP_overflow, sur_parsage_shorthand = parse_shorthand_overflow)
 ]
 
 infos_types_propriétés := [
@@ -1854,7 +1855,10 @@ infos_types_propriétés := [
     InfoTypePropriété(PROP_border_bottom_left_radius, id = IDPropriété.BorderBottomLeftRadius, fonction_de_parsage = parse_propriété_border_radius, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage),
     InfoTypePropriété(PROP_border_bottom_right_radius, id = IDPropriété.BorderBottomRightRadius, fonction_de_parsage = parse_propriété_border_radius, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage),
     InfoTypePropriété(PROP_border_top_left_radius, id = IDPropriété.BorderTopLeftRadius, fonction_de_parsage = parse_propriété_border_radius, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage),
-    InfoTypePropriété(PROP_border_top_right_radius, id = IDPropriété.BorderTopRightRadius, fonction_de_parsage = parse_propriété_border_radius, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage)
+    InfoTypePropriété(PROP_border_top_right_radius, id = IDPropriété.BorderTopRightRadius, fonction_de_parsage = parse_propriété_border_radius, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage),
+    InfoTypePropriété(PROP_clear, id = IDPropriété.Clear, fonction_de_parsage = parse_propriété_clear, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
+    InfoTypePropriété(PROP_overflow_x, id = IDPropriété.OverflowX, fonction_de_parsage = parse_propriété_overflow, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
+    InfoTypePropriété(PROP_overflow_y, id = IDPropriété.OverflowY, fonction_de_parsage = parse_propriété_overflow, genre_valeur_calculée = GenreValeurCalculée.Spécifié)
 ]
 
 donne_info_type_pour_nom :: fonc (nom: CSSOMString) -> *InfoTypePropriété
@@ -2727,7 +2731,7 @@ parse_propriété_text_decoration :: fonc (ctx: *ContexteParsageShorthand, value
 
         valeur_color := parse_valeur_couleur(parseuse)
         si valeur_color.possède_valeur() {
-            color = valeur_style.Quelque
+            color = valeur_color.Quelque
             continue
         }
 
@@ -4064,3 +4068,72 @@ parse_propriété_vertical_align :: fonc (value: [..]ComponentValue) -> Optionne
 }
 
 /** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Clear
+ * https://www.w3.org/TR/CSS2/visuren.html#propdef-clear
+ * \{ */
+
+parse_propriété_clear :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    mots_clés := [PROP_none, PROP_left, PROP_both, PROP_right]
+    retourne parse_mot_clé(parseuse, mots_clés)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Overflow
+ * https://drafts.csswg.org/css-overflow/#propdef-overflow
+ * \{ */
+
+parse_shorthand_overflow :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
+{
+    noms_propriétés := [PROP_overflow_x, PROP_overflow_y]
+    si parse_mot_clé_global(ctx, noms_propriétés, value) {
+        retourne vrai
+    }
+
+    parseuse := initialise_une_parseuse(value)
+
+    résultat: [2]ValeurDeStyle
+    nombre_valeurs: z64
+
+    tantque !fini(parseuse) && nombre_valeurs != 2 {
+        parseuse.consomme_espaces_blanches()
+
+        valeur := parse_valeur_overflow(parseuse)
+        si valeur.possède_valeur() {
+            résultat[nombre_valeurs] = valeur.Quelque
+            nombre_valeurs += 1
+            continue
+        }
+
+        opt_valeur := parse_mot_clé_global_ou_var(parseuse)
+        si opt_valeur.possède_valeur() {
+            résultat[nombre_valeurs] = opt_valeur.Quelque
+            nombre_valeurs += 1
+            continue
+        }
+
+        retourne faux
+    }
+
+    ctx.ajoute_propriétés_logique(nombre_valeurs, résultat, noms_propriétés)
+    retourne vrai
+}
+
+parse_propriété_overflow :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    retourne parse_valeur_overflow(parseuse)
+}
+
+parse_valeur_overflow :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+{
+    mots_clés := [PROP_visible, PROP_hidden, PROP_clip, PROP_scroll, PROP_auto]
+    retourne parse_mot_clé(parseuse, mots_clés)
+}
+
+/** \} */

@@ -187,7 +187,7 @@ formatte_lexème :: fonc (enchaineuse: *Enchaineuse, lexème: *Lexème)
         }
         Delim {
             valeur := lexème.point_de_code comme z8
-            chn: chaine = ---
+            chn : chaine = ---
             chn.pointeur = *valeur
             chn.taille = 1
             ajoute_au_tampon(enchaineuse, chn)
@@ -751,7 +751,7 @@ consomme_un_lexème_url :: fonc (lexeuse: &Lexeuse) -> Lexème
             }
 
             si point_de_code == FIN_DE_FICHIER {
-                lexeuse.consomme() 
+                lexeuse.consomme()
                 lexeuse.rapporte_erreur("fin de fichier inattendu")
                 arrête
             }
@@ -780,7 +780,7 @@ consomme_un_lexème_url :: fonc (lexeuse: &Lexeuse) -> Lexème
             genre_lexème = GenreLexème.Bad_Url
             arrête
         }
-        
+
         chaine_ajoute(*lexeuse.tampon_temporaire, point_de_code)
     }
 

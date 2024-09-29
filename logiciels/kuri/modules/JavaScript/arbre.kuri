@@ -2388,7 +2388,7 @@ sur_exécution_typeof_operator :: fonc (base: *NoeudSyntaxique, interpréteuse: 
 
     // À FAIRE : 12. NOTE: This step is replaced in section B.3.6.3.
     // 13. If val has a [[Call]] internal slot, return "function".
-    si objet.sur_call {
+    si objet.donne_table().sur_call {
         retourne crée_string_value_completion(interpréteuse, STR_function)
     }
 
