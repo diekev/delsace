@@ -1,0 +1,25 @@
+importe #inemployé JavaScript
+
+/* ------------------------------------------------------------------------- */
+/** \nom PlatformObject
+ * https://webidl.spec.whatwg.org/#dfn-platform-object
+ * \{ */
+
+#portée_module
+
+TableVirtuellePlatformObject :: struct {
+    empl object: JavaScript.TableVirtuelleObject
+}
+
+#portée_export
+
+PlatformObject :: struct {
+    empl objet: JavaScript.Object
+}
+
+donne_tas_de_mémoire :: fonc (object: *PlatformObject) -> *JavaScript.TasDeMémoire
+{
+    retourne JavaScript.donne_tas_de_mémoire(object)
+}
+
+/** \} */

@@ -1,6 +1,7 @@
 importe HTTP
 importe Internet
 importe Fondation
+importe #inemployé JavaScript
 
 /* ------------------------------------------------------------------------- */
 /** \nom UserAgent
@@ -16,6 +17,25 @@ UserAgent :: struct {
 
     /* Connexion avec l'interface graphique. */
     rappels_interface: *RappelsInterface
+
+    mv: JavaScript.MachineVirtuelle
+}
+
+initialise_user_agent :: fonc (user_agent: *UserAgent)
+{
+    user_agent.mv.user_agent = user_agent
+    JavaScript.initialise_mv(*user_agent.mv)
+}
+
+donne_tas_de_mémoire :: fonc (user_agent: *UserAgent) -> *JavaScript.TasDeMémoire
+{
+    retourne *user_agent.mv.tas_de_mémoire
+}
+
+détruit_user_agent :: fonc (user_agent: *UserAgent)
+{
+    détruit_données_user_agent(user_agent)
+    déloge(user_agent)
 }
 
 détruit_données_user_agent :: fonc (user_agent: *UserAgent)
@@ -26,6 +46,7 @@ détruit_données_user_agent :: fonc (user_agent: *UserAgent)
         détruit_rappels(user_agent.rappels_interface)
         user_agent.rappels_interface = nul
     }
+    JavaScript.détruit_données_mv(*user_agent.mv)
 }
 
 définis_rappels_interface :: fonc (user_agent: *UserAgent, rappels: *RappelsInterface)
@@ -87,10 +108,10 @@ RappelsInterface :: struct {
     sur_enfile_une_tâche: fonc(*RappelsInterface, SourceDeTâche, *Algorithm)(rien)
     sur_tâche_parallèle: fonc(*RappelsInterface, *Algorithm)(rien)
     sur_tâche_traversable: fonc(*RappelsInterface, *TraversableNavigable, *Algorithm)(rien)
-    sur_document_est_prêt: fonc (*RappelsInterface, *Document)(rien)
+    sur_document_est_prêt: fonc(*RappelsInterface, *Document)(rien)
     sur_est_exécuté_sur_fil_principal: fonc(*RappelsInterface)(bool)
     sur_est_exécuté_en_parallèle: fonc(*RappelsInterface)(bool)
-    sur_est_exécuté_sur_file_parallèle: fonc(*RappelsInterface,*TraversableNavigable)(bool)
+    sur_est_exécuté_sur_file_parallèle: fonc(*RappelsInterface, *TraversableNavigable)(bool)
     sur_création_file_parallèle_pour_traversable: fonc(*RappelsInterface)(z64)
 }
 
@@ -135,7 +156,7 @@ lance_requête :: fonc (user_agent: *UserAgent, request: *Request) -> *Response
 {
     rappels := user_agent.rappels_interface
     saufsi rappels && rappels.sur_lancement_requête {
-        retourne network_error()
+        retourne network_error(request)
     }
 
     retourne rappels.sur_lancement_requête(rappels, request)
