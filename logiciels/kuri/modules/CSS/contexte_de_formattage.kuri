@@ -5,8 +5,16 @@ importe Math
 /** \nom ContexteDeFormattage
  * \{ */
 
+ModeDeFormattage :: énum {
+    Normal
+    /* Pour le calcul de la largeur « préférée ». */
+    BrisureDeLigneExplicite
+    /* Pour le calcul de la largeur « minimale préférée ». */
+    ToutesLesBrisuresDeLigne
+}
+
 ContexteDeFormattage :: struct {
-    sur_formatte: fonc(*ContexteDeFormattage, *NoeudDeDispositionBloc)(rien)
+    sur_formatte: fonc(*ContexteDeFormattage, *NoeudDeDispositionBloc, ModeDeFormattage)(rien)
 
     globales: *GlobalesDessin
     initial_containing_block: *ContainingBlock
@@ -20,13 +28,9 @@ donne_initial_containing_block :: fonc (ctx: *ContexteDeFormattage) -> Containin
     retourne mémoire(ctx.initial_containing_block)
 }
 
-formatte :: fonc (contexte: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc)
+formatte :: fonc (contexte: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
 {
-    // ancien_noeud := contexte.noeud_contextuel
-    // diffère contexte.définis_noeud_contextuel(ancien_noeud)
-    // contexte.définis_noeud_contextuel(noeud)
-
-    contexte.sur_formatte(contexte, noeud)
+    contexte.sur_formatte(contexte, noeud, mode)
 }
 
 modifie_marges_pour_alignement_forcé :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition)
@@ -67,7 +71,13 @@ requiers_contexte_de_formattage_indépendant :: fonc (noeud: *NoeudDeDisposition
 
     // À FAIRE : table cells or elements with display: table-cell, including anonymous table cells created when using the display: table-* properties
     // À FAIRE : table captions or elements with display: table-caption
-    // À FAIRE : block elements where overflow has a value other than visible
+
+    // block elements where overflow has a value other than visible
+    overflow_x := noeud.propriétés.donne_valeur_calculée(IDPropriété.OverflowX)
+    overflow_y := noeud.propriétés.donne_valeur_calculée(IDPropriété.OverflowY)
+    si !overflow_x.est_mot_clé(PROP_visible) || !overflow_y.est_mot_clé(PROP_visible) {
+        retourne vrai
+    }
 
     // elements with display: inline-block
     // elements with display: flow-root or display: flow-root list-item
@@ -98,22 +108,7 @@ ContexteDeFormattageBloc :: struct {
     racine: *NoeudDeDispositionBloc
 }
 
-résoud_pourcentage_insets :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage)
-{
-    containing_block := donne_containing_block(noeud, ctx)
-
-    noeud.propriétés.résoud_pourcentage(IDPropriété.Top, containing_block.donne_hauteur())
-    noeud.propriétés.résoud_pourcentage(IDPropriété.Bottom, containing_block.donne_hauteur())
-
-    noeud.propriétés.résoud_pourcentage(IDPropriété.Left, containing_block.donne_largeur())
-    noeud.propriétés.résoud_pourcentage(IDPropriété.Right, containing_block.donne_largeur())
-
-    pour [IDPropriété.Top, IDPropriété.Bottom, IDPropriété.Left, IDPropriété.Right] {
-        noeud.propriétés.définis_valeur_utilisée(it, noeud.propriétés.donne_valeur_calculée(it))
-    }
-}
-
-contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc)
+contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
 {
     ctx := base comme *ContexteDeFormattageBloc
 
@@ -126,54 +121,45 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
     hauteur_contenu := 0.0
     décalage_hors_float := 0.0
 
-    // décalage_float_right := décalage_x + noeud.modèle_de_boite.contenu.largeur
-
-    // pour noeud.enfants {
-    //     float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float)
-    //     si float.est_mot_clé(PROP_left) {
-    //         it.mesure(ctx)
-    //         it.décale(décalage_x, décalage_y)
-    //         décalage_x += it.modèle_de_boite.marge.largeur
-    //         hauteur_contenu = max(it.modèle_de_boite.marge.hauteur, hauteur_contenu)
-    //     }
-    //     sinon si float.est_mot_clé(PROP_right) {
-    //         it.mesure(ctx)
-    //         it.décale(décalage_float_right - it.modèle_de_boite.marge.largeur, décalage_y)
-    //         décalage_float_right -= it.modèle_de_boite.marge.largeur
-    //         hauteur_contenu = max(it.modèle_de_boite.marge.hauteur, hauteur_contenu)
-    //     }
-    // }
+    décalage_float_left := décalage_x
+    décalage_float_right := décalage_x + noeud.modèle_de_boite.contenu.largeur
+    hauteur_float_left := 0.0
+    hauteur_float_right := 0.0
 
     pour noeud.enfants {
-        // float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float)
-        // si float.est_mot_clé(PROP_left) {
-        //     continue
-        // }
-        // si float.est_mot_clé(PROP_right) {
-        //     continue
-        // }
+        float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float)
+        si float.est_mot_clé(PROP_none) {
+            continue
+        }
 
-        it.mesure(ctx)
+        it.mesure(ctx, mode)
+
+        si float.est_mot_clé(PROP_left) {
+            it.décale(décalage_float_left, décalage_y)
+            décalage_float_left += it.modèle_de_boite.marge.largeur
+            hauteur_float_left = max(hauteur_float_left, it.modèle_de_boite.marge.hauteur)
+        }
+        sinon si float.est_mot_clé(PROP_right) {
+            it.décale(décalage_float_right - it.modèle_de_boite.marge.largeur, décalage_y)
+            décalage_float_right -= it.modèle_de_boite.marge.largeur
+            hauteur_float_right = max(hauteur_float_right, it.modèle_de_boite.marge.hauteur)
+        }
+    }
+
+    pour noeud.enfants {
+        float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float)
+        saufsi float.est_mot_clé(PROP_none) {
+            continue
+        }
+
+        it.mesure(ctx, mode)
 
         position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position)
         /* À FAIRE : https://drafts.csswg.org/css-position/#abspos-layout */
         si position.est_mot_clé(PROP_absolute) {
-            résoud_pourcentage_insets(it, ctx)
-
             top := it.propriétés.donne_valeur_utilisée(IDPropriété.Top)
             bottom := it.propriétés.donne_valeur_utilisée(IDPropriété.Bottom)
             left := it.propriétés.donne_valeur_utilisée(IDPropriété.Left)
-            right := it.propriétés.donne_valeur_utilisée(IDPropriété.Right)
-
-            si left.est_auto() && right.est_auto() {
-                left = ValeurDeStyle(pixels = 0.0)
-            }
-            sinon si left.est_auto() {
-                left = ValeurDeStyle(pixels = -right.pixels)
-            }
-            sinon saufsi left.est_pixels() {
-                left = ValeurDeStyle(pixels = 0.0)
-            }
 
             si top.est_auto() && bottom.est_auto() {
                 top = ValeurDeStyle(pixels = 0.0)
@@ -187,6 +173,20 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
 
             it.décale(décalage_x + left.pixels comme r32, décalage_y + décalage_hors_float + top.pixels comme r32)
             continue
+        }
+
+        clear := it.propriétés.donne_valeur_utilisée(IDPropriété.Clear)
+        si clear.est_mot_clé(PROP_left) {
+            hauteur_contenu += hauteur_float_left
+            décalage_hors_float += hauteur_float_left
+        }
+        sinon si clear.est_mot_clé(PROP_right) {
+            hauteur_contenu += hauteur_float_right
+            décalage_hors_float += hauteur_float_right
+        }
+        sinon si clear.est_mot_clé(PROP_both) {
+            hauteur_contenu += max(hauteur_float_left, hauteur_float_right)
+            décalage_hors_float += max(hauteur_float_left, hauteur_float_right)
         }
 
         hauteur_enfant := it.modèle_de_boite.marge.hauteur
@@ -242,7 +242,39 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
         }
     }
 
+    si noeud == ctx.racine {
+        /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#root-height */
+        pour noeud.enfants {
+            float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float)
+            si float.est_mot_clé(PROP_none) {
+                continue
+            }
+
+            si hauteur_contenu < it.modèle_de_boite.marge.hauteur {
+                hauteur_contenu = it.modèle_de_boite.marge.hauteur
+            }
+        }
+    }
+
     noeud.propriétés.définis_valeur_calculée(IDPropriété.Height, ValeurDeStyle(pixels = hauteur_contenu))
+    noeud.propriétés.définis_valeur_utilisée(IDPropriété.Height, ValeurDeStyle(pixels = hauteur_contenu))
+
+    discr mode {
+        BrisureDeLigneExplicite,
+        ToutesLesBrisuresDeLigne {
+            largeur_max_enfant : r64 = 0.0
+            pour noeud.enfants {
+                largeur_enfant := it.modèle_de_boite.marge.largeur
+                largeur_max_enfant = max(largeur_max_enfant, largeur_enfant)
+            }
+
+            largeur := noeud.propriétés.donne_valeur_calculée(IDPropriété.Width)
+            si largeur.est_auto() {
+                noeud.propriétés.définis_valeur_utilisée(IDPropriété.Width, ValeurDeStyle(pixels = largeur_max_enfant))
+            }
+        }
+        sinon {}
+    }
 }
 
 /** \} */
@@ -296,7 +328,7 @@ donne_alignement_texte :: fonc (noeud: *NoeudDeDispositionBloc) -> AlignementTex
     retourne AlignementTexte.Gauche
 }
 
-contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc)
+contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
 {
     ctx := base comme *ContexteDeFormattageInline
 
@@ -307,7 +339,7 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
     décalage_y := noeud.modèle_de_boite.contenu.y
 
     enligneuse: Enligneuse
-    divise_en_lignes(*enligneuse, noeud, ctx)
+    divise_en_lignes(*enligneuse, noeud, ctx, mode)
 
     hauteur_contenu := 0.0
 
@@ -382,6 +414,25 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
         pour * noeud.lignes_tenante.fragments {
             it.x += décalage_x
         }
+    }
+
+    discr mode {
+        BrisureDeLigneExplicite,
+        ToutesLesBrisuresDeLigne {
+            largeur_max_enfant : r64 = 0.0
+            pour lignes_tenante.lignes {
+                largeur_max_enfant = max(largeur_max_enfant, it.largeur_courante comme r64)
+            }
+
+            largeur := noeud.propriétés.donne_valeur_calculée(IDPropriété.Width)
+            si largeur.est_auto() {
+                valeur_largeur_enfant := ValeurDeStyle(pixels = largeur_max_enfant)
+                /* Utilise cette fontcion pour résoudre les valeurs 'auto' pour les autres propriétés. */
+                calcule_largeur_et_marges_inline_non_replaced_element(ctx, noeud, 0.0, *valeur_largeur_enfant)
+                ajourne_boite_pour_calcul_largeur(noeud)
+            }
+        }
+        sinon {}
     }
 }
 
