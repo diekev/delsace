@@ -4,6 +4,7 @@ importe Chaine
 importe Compilatrice
 importe Fondation
 importe HTML
+importe #inemployé JavaScript
 importe SysFichier
 importe Temps
 
@@ -350,8 +351,12 @@ principale :: fonc () -> z32
     contenu := contenu_fichier_texte(chm.chn)
     diffère déloge(contenu)
 
+    mv: JavaScript.MachineVirtuelle
+    JavaScript.initialise_mv(*mv)
+    diffère JavaScript.détruit_données_mv(*mv)
+
     début := maintenant_précis()
-    parsat := parse_document(contenu)
+    parsat := parse_document(JavaScript.donne_tas_de_mémoire(*mv), contenu)
     diffère détruit(parsat)
 
     contexte_vérification: ContexteVérification

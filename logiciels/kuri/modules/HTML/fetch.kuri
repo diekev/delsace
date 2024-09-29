@@ -6,9 +6,76 @@ importe MIME
 importe SysFichier
 
 /* ------------------------------------------------------------------------- */
+/** \nom 2.1 URL
+ * https://fetch.spec.whatwg.org/#url
+ * \{ */
+
+/* https://fetch.spec.whatwg.org/#local-scheme */
+is_local_scheme :: fonc (scheme: chaine) -> bool
+{
+    retourne scheme == "about" || scheme == "blob" || scheme == "data"
+}
+
+/* https://fetch.spec.whatwg.org/#is-local */
+is_local :: fonc (url: *URL) -> bool
+{
+    retourne is_local_scheme(url.scheme)
+}
+
+/* https://fetch.spec.whatwg.org/#http-scheme */
+is_http_scheme :: fonc (scheme: chaine) -> bool
+{
+    retourne scheme == "http" || scheme == "https"
+}
+
+/* https://fetch.spec.whatwg.org/#fetch-scheme */
+is_fetch_scheme :: fonc (scheme: chaine) -> bool
+{
+    retourne scheme == "about" || scheme == "blob" || scheme == "data" || scheme == "file" || is_http_scheme(scheme)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 2.2.3 Statuses
+ * https://fetch.spec.whatwg.org/#statuses
+ * \{ */
+
+/* https://fetch.spec.whatwg.org/#redirect-status */
+is_redirect_status :: fonc (status: z32) -> bool
+{
+    retourne status == 301 || status == 302 || status == 303 || status == 307 || status == 308
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom 2.2.5 Request
  * https://fetch.spec.whatwg.org/#requests
  * \{ */
+
+/* https://fetch.spec.whatwg.org/#concept-request-policy-container */
+RequestPolicyContainer :: union {
+    chn: chaine
+    policy_container: *PolicyContainer
+}
+
+opérateur == :: fonc (policy_container: RequestPolicyContainer, chn: chaine) -> bool
+{
+    discr policy_container {
+        chn(c) {
+            retourne c == chn
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+donne_referrer_policy :: fonc (policy_container: RequestPolicyContainer) -> ReferrerPolicy
+{
+    retourne policy_container.policy_container.referrer_policy
+}
 
 Header :: struct {
     name: chaine
@@ -38,9 +105,9 @@ Request :: struct {
     /* "no-referrer", "client", or a URL */
     referrer := "client"
 
-    /* https://w3c.github.io/webappsec-referrer-policy/#referrer-policy
-     * empty string, "no-referrer", "no-referrer-when-downgrade", "same-origin", "origin", "strict-origin", "origin-when-cross-origin", "strict-origin-when-cross-origin", or "unsafe-url" */
-    referrer_policy := ""
+    referrer_policy := ReferrerPolicy.EmptyString
+
+    policy_container : RequestPolicyContainer = "client"
 
     /* "same-origin", "cors", "no-cors", "navigate", or "websocket" */
     mode := "no-cors"
@@ -72,6 +139,12 @@ détruit_request :: fonc (request: *Request)
     déloge(request.header_list)
     pour request.url_list {
         détruit_uri(it)
+    }
+    discr request.policy_container {
+        policy_container(p) {
+            détruit_policy_container(p)
+        }
+        sinon {}
     }
     déloge(request.url_list)
     déloge(request)
@@ -165,6 +238,13 @@ Response :: struct {
     // A response has an associated has-cross-origin-redirects (a boolean), which is initially false.
 }
 
+crée_réponse :: fonc (requête: *Request) -> *Response
+{
+    résultat := loge(Response)
+    résultat.définis_url(requête.donne_url_courant())
+    retourne résultat
+}
+
 détruit_response :: fonc (response: *Response)
 {
     si response.body.possède_valeur() {
@@ -178,6 +258,11 @@ détruit_response :: fonc (response: *Response)
 
     déloge(response.body_info)
     déloge(response)
+}
+
+définis_url :: fonc (response: *Response, url: URI)
+{
+    tableau_ajoute(*response.url_list, url)
 }
 
 /* https://fetch.spec.whatwg.org/#concept-response-url */
@@ -210,9 +295,9 @@ possède_entête :: fonc (response: *Response, nom: chaine) -> bool
 }
 
 /* https://fetch.spec.whatwg.org/#concept-network-error */
-network_error :: fonc () -> *Response
+network_error :: fonc (requête: *Request) -> *Response
 {
-    résultat := loge(Response)
+    résultat := crée_réponse(requête)
     résultat.type = "error"
     résultat.status = 0
     résultat.body_info = loge(ResponseBodyInfo)
@@ -220,9 +305,9 @@ network_error :: fonc () -> *Response
 }
 
 /* https://fetch.spec.whatwg.org/#concept-aborted-network-error */
-aborted_network_error :: fonc () -> *Response
+aborted_network_error :: fonc (requête: *Request) -> *Response
 {
-    résultat := network_error()
+    résultat := network_error(requête)
     résultat.aborted_flag = vrai
     retourne résultat
 }
@@ -235,10 +320,28 @@ appropriate_network_error :: fonc (fetch_params: *FetchParams) -> *Response
 
     // 2. Return an aborted network error if fetchParams is aborted; otherwise return a network error.
     si fetch_params.is_aborted() {
-        retourne aborted_network_error()
+        retourne aborted_network_error(fetch_params.request)
     }
 
-    retourne network_error()
+    retourne network_error(fetch_params.request)
+}
+
+/* https://fetch.spec.whatwg.org/#concept-response-location-url */
+donne_location_url :: fonc (response: *Response, fragment: chaine @inutilisée) -> *URL
+{
+    // 1. If response’s status is not a redirect status, then return null.
+    saufsi is_redirect_status(response.status) {
+        retourne nul
+    }
+
+    panique("Non-implémenté")
+    // 2. Let location be the result of extracting header list values given `Location` and response’s header list.
+
+    // 3. If location is a header value, then set location to the result of parsing location with response’s URL.
+
+    // 4. If location is a URL whose fragment is null, then set location’s fragment to requestFragment.
+
+    // 5. Return location.
 }
 
 /** \} */
@@ -501,10 +604,17 @@ fetch :: fonc (user_agent: *UserAgent,
         // 4. If foundPreloadedResource is true and fetchParams’s preloaded response candidate is null, then set fetchParams’s preloaded response candidate to "pending".
 
     // 12. If request’s policy container is "client", then:
-
+    si request.policy_container == "client" {
         // 1. If request’s client is non-null, then set request’s policy container to a clone of request’s client’s policy container. [HTML]
-
+        si request.client != nul {
+            imprime("À FAIRE : set request’s policy container to a clone of request’s client’s policy container\n")
+            request.policy_container = loge(PolicyContainer)
+        }
         // 2. Otherwise, set request’s policy container to a new policy container.
+        sinon {
+            request.policy_container = loge(PolicyContainer)
+        }
+    }
 
     // 13. If request’s header list does not contain `Accept`, then:
     saufsi possède_entête(request, "Accept") {
@@ -589,6 +699,9 @@ main_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, recursiv
     response: *Response
 
     // 3. If request’s local-URLs-only flag is set and request’s current URL is not local, then set response to a network error.
+    si request.local_urls_only && !is_local_scheme(request.donne_url_courant().schéma) {
+        response = network_error(request)
+    }
 
     // 4. Run report Content Security Policy violations for request.
 
@@ -598,7 +711,11 @@ main_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, recursiv
 
     // 7. If should request be blocked due to a bad port, should fetching request be blocked as mixed content, or should request be blocked by Content Security Policy returns blocked, then set response to a network error.
 
-    // 8. If request’s referrer policy is the empty string, then set request’s referrer policy to request’s policy container’s referrer policy.
+    // 8. If request’s referrer policy is the empty string, then set request’s
+    //    referrer policy to request’s policy container’s referrer policy.
+    si request.referrer_policy == ReferrerPolicy.EmptyString {
+        request.referrer_policy = request.policy_container.donne_referrer_policy()
+    }
 
     // 9. If request’s referrer is not "no-referrer", then set request’s referrer to the result of invoking determine request’s referrer. [REFERRER]
 
@@ -621,7 +738,8 @@ main_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, recursiv
         // request’s current URL’s origin is same origin with request’s origin, and request’s response tainting is "basic"
         // request’s current URL’s scheme is "data"
         // request’s mode is "navigate" or "websocket"
-        si request.mode == "navigate" || request.mode == "websocket" {
+        si (request.donne_url_courant().schéma == "data") ||
+           (request.mode == "navigate" || request.mode == "websocket") {
             // Set request’s response tainting to "basic".
             request.response_tainting = "basic"
 
@@ -630,13 +748,16 @@ main_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, recursiv
         }
 
         // request’s mode is "same-origin"
+        sinon si request.mode == "same-origin" {
             // Return a network error.
+            response = network_error(request)
+        }
 
         // request’s mode is "no-cors"
         sinon si request.mode == "no-cors" {
             // If request’s redirect mode is not "follow", then return a network error.
             si request.redirect_mode != "follow" {
-                response = network_error()
+                response = network_error(request)
             }
             sinon {
                 // Set request’s response tainting to "opaque".
@@ -648,7 +769,10 @@ main_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, recursiv
         }
 
         // request’s current URL’s scheme is not an HTTP(S) scheme
+        sinon si !is_http_scheme(request.donne_url_courant().schéma) {
             // Return a network error.
+            response = network_error(request)
+        }
 
         // request’s use-CORS-preflight flag is set
         // request’s unsafe-request flag is set and either request’s method is not a CORS-safelisted method or CORS-unsafe request-header names with request’s header list is not empty
@@ -772,7 +896,7 @@ scheme_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Re
 
         // 2. If dataURLStruct is failure, then return a network error.
         saufsi opt_data_url_struct.possède_valeur() {
-            retourne network_error()
+            retourne network_error(request)
         }
 
         data_url_struct := opt_data_url_struct.Quelque
@@ -784,7 +908,7 @@ scheme_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Re
         // À FAIRE : entêtes pour les réponses.
         contenu := data_url_struct.body
 
-        response := loge(Response)
+        response := crée_réponse(request)
         response.status = 200
 
         body_info := loge(ResponseBodyInfo)
@@ -805,7 +929,7 @@ scheme_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Re
 
             contenu := contenu_fichier_texte(chemin)
 
-            response := loge(Response)
+            response := crée_réponse(request)
             response.status = 200
 
             body_info := loge(ResponseBodyInfo)
@@ -818,13 +942,13 @@ scheme_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Re
             retourne response
         }
 
-        retourne network_error()
+        retourne network_error(request)
     }
     sinon si schéma == "http" || schéma == "https" {
         retourne user_agent.lance_requête(request)
     }
 
-    retourne network_error()
+    retourne network_error(request)
 }
 
 /** } */

@@ -41,7 +41,7 @@ prétraite :: fonc (chn: &ChaineUTF32)
     CARRIAGE_RETURN : n32 : 0x0D
     FORM_FEED : n32 : 0x0C
     LINE_FEED : n32 : 0x0A
-    
+
     pour & chn.points_de_code {
         /* À FAIRE : \r\n => \n */
         si it == CARRIAGE_RETURN || it == FORM_FEED {
@@ -897,8 +897,8 @@ imprime_complex_selector :: fonc (enchaineuse: *Enchaineuse, complex_selectors: 
 } @FormattageImpression
 
 Combinator :: énum {
-    DESCENDANT  // " "
-    NEXT_SIBLING    // "+"
+    DESCENDANT // " "
+    NEXT_SIBLING // "+"
     CHILD // ">"
     SUBSEQUENT_SIBLING // "~"
     COLUMN // "||"

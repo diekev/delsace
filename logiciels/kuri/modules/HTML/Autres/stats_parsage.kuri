@@ -16,6 +16,7 @@ importe Allocatrices
 importe Chaine
 importe Fondation
 importe HTML
+importe #inemployé JavaScript
 importe SysFichier
 
 StatistiquesParsage :: struct {
@@ -43,7 +44,12 @@ parse_page_et_accumule_stats :: fonc (chemin: CheminFichier, statistiques: &Stat
     contenu := contenu_fichier_texte(chemin.chn)
     diffère déloge(contenu)
 
-    parsat := parse_document(contenu)
+    mv: JavaScript.MachineVirtuelle
+    JavaScript.initialise_mv(*mv)
+    diffère JavaScript.détruit_données_mv(*mv)
+
+    parsat := parse_document(JavaScript.donne_tas_de_mémoire(*mv), contenu)
+    diffère détruit(parsat)
 
     statistiques.temps += parsat.temps
     statistiques.taille += contenu.taille

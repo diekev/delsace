@@ -645,7 +645,7 @@ is_callable :: fonc (argument: Valeur) -> bool
 
     // 2. If argument has a [[Call]] internal method, return true.
     object := argument.donne_objet()
-    si object.sur_call {
+    si object.donne_table().sur_call {
         retourne vrai
     }
 
@@ -714,9 +714,19 @@ is_data_descriptor :: fonc (desc: &PropertyDescriptor) -> bool
 
 TypeFonctionObjectCall :: fonc(*Object, &Interpréteuse, Valeur, []Valeur)(CompletionRecord)
 
+TableVirtuelleObject :: struct {
+    empl base_virtuelle_cellule: TableVirtuelleCellule
+
+    sur_get_prototype_of := ordinary_get_prototype_of
+    sur_get_own_property := ordinary_get_own_property
+    sur_define_own_property := ordinary_define_own_property
+    sur_get := ordinary_get
+    sur_call: TypeFonctionObjectCall
+}
+
 #portée_fichier
 
-table_virtuelle_objet := TableVirtuelleCellule(classe = Object, sur_destruction = sur_destruction_objet)
+table_virtuelle_objet := TableVirtuelleObject(classe = Object, sur_destruction = sur_destruction_objet)
 
 #portée_export
 
@@ -785,13 +795,11 @@ Object :: struct {
     propriétés: [..]Propriété
 
     prototype: *Object
+}
 
-    /* Table virtuelle. */
-    sur_get_prototype_of := ordinary_get_prototype_of
-    sur_get_own_property := ordinary_get_own_property
-    sur_define_own_property := ordinary_define_own_property
-    sur_get := ordinary_get
-    sur_call: TypeFonctionObjectCall
+donne_table :: fonc (object: *Object) -> *TableVirtuelleObject
+{
+    retourne object.table comme *TableVirtuelleObject
 }
 
 is_data_propery :: fonc (propriété: &Object.Propriété) -> bool
@@ -825,19 +833,19 @@ ajoute_propriété :: fonc (objet: *Object, nom: PropertyKey, valeur: Valeur, dr
 /* [[GetPrototypeOf]] */
 internal_get_prototype_of :: fonc (object: *Object) -> *Object
 {
-    retourne object.sur_get_prototype_of(object)
+    retourne object.donne_table().sur_get_prototype_of(object)
 }
 
 /* [[GetOwnProperty]] */
 internal_get_own_property :: fonc (object: *Object, property_key: PropertyKey) -> CompletionRecord
 {
-    retourne object.sur_get_own_property(object, property_key)
+    retourne object.donne_table().sur_get_own_property(object, property_key)
 }
 
 /* [[DefineOwnProperty]] */
 internal_define_own_property :: fonc (object: *Object, property_key: PropertyKey, desc: &PropertyDescriptor) -> CompletionRecord
 {
-    retourne object.sur_define_own_property(object, property_key, desc)
+    retourne object.donne_table().sur_define_own_property(object, property_key, desc)
 }
 
 /* [[HasProperty]] */
@@ -854,7 +862,7 @@ internal_has_property :: fonc (object: *Object, property_key: PropertyKey) -> Co
 /* [[Get]] */
 internal_get :: fonc (object: *Object, property_key: PropertyKey, receiver: Valeur) -> CompletionRecord
 {
-    retourne object.sur_get(object, property_key, receiver)
+    retourne object.donne_table().sur_get(object, property_key, receiver)
 }
 
 /* [[Set]] */
@@ -874,7 +882,7 @@ internal_set :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur
 /* [[Call]] */
 internal_call :: fonc (object: *Object, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
 {
-    retourne object.sur_call(object, interpréteuse, this_value, arguments)
+    retourne object.donne_table().sur_call(object, interpréteuse, this_value, arguments)
 }
 
 trouve_propriété :: fonc (objet: *Object, nom: PropertyKey) -> *Object.Propriété
@@ -1182,7 +1190,7 @@ ordinary_get :: fonc (object: *Object, property_key: PropertyKey, receiver: Vale
 
 #portée_fichier
 
-table_virtuelle_objet_chaine := TableVirtuelleCellule(classe = ObjetChaine, sur_destruction = sur_destruction_objet)
+table_virtuelle_objet_chaine := TableVirtuelleObject(classe = ObjetChaine, sur_destruction = sur_destruction_objet)
 
 #portée_export
 
@@ -1214,7 +1222,7 @@ crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, string_prototype: *String
 
 #portée_fichier
 
-table_virtuelle_object_prototype := TableVirtuelleCellule(classe = ObjectPrototype, sur_destruction = sur_destruction_objet)
+table_virtuelle_object_prototype := TableVirtuelleObject(classe = ObjectPrototype, sur_destruction = sur_destruction_objet)
 
 #portée_export
 
@@ -1284,7 +1292,7 @@ object_prototype_to_string :: fonc (object: *Object @inutilisée, interpréteuse
     }
     // À FAIRE : 6. Else if O has a [[ParameterMap]] internal slot, let builtinTag be "Arguments".
     // 7. Else if O has a [[Call]] internal method, let builtinTag be "Function".
-    sinon si O.sur_call {
+    sinon si O.donne_table().sur_call {
         builtin_tag = "Function"
     }
     // 8. Else if O has an [[ErrorData]] internal slot, let builtinTag be "Error".
@@ -1323,7 +1331,7 @@ object_prototype_to_string :: fonc (object: *Object @inutilisée, interpréteuse
 
 #portée_fichier
 
-table_virtuelle_string_prototype := TableVirtuelleCellule(classe = StringPrototype, sur_destruction = sur_destruction_objet)
+table_virtuelle_string_prototype := TableVirtuelleObject(classe = StringPrototype, sur_destruction = sur_destruction_objet)
 
 #portée_export
 
@@ -1352,7 +1360,11 @@ crée_string_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Obj
 
 #portée_fichier
 
-table_virtuelle_function := TableVirtuelleCellule(classe = Function, sur_destruction = sur_destruction_objet)
+/* Table virtuelle pour une fonction normale. */
+table_virtuelle_function_instruite := TableVirtuelleObject(classe = Function, sur_destruction = sur_destruction_objet, sur_call = sur_appel_fonction_instruite)
+
+/* Table virtuelle pour "eval()" */
+table_virtuelle_function_eval := TableVirtuelleObject(classe = Function, sur_destruction = sur_destruction_objet, sur_call = eval_sur_call)
 
 #portée_export
 
@@ -1367,7 +1379,7 @@ ThisMode :: énum {
 
 Function :: struct {
     empl objet: Object
-    table = *table_virtuelle_function
+    table = *table_virtuelle_function_instruite
 
     nom: ECMAString
     corps: *NoeudSyntaxique
@@ -1389,7 +1401,6 @@ crée_fonction :: fonc (realm: *Realm, function_prototype: *FunctionPrototype, n
     résultat.nom = nom
     résultat.corps = corps
     résultat.prototype = function_prototype
-    résultat.sur_call = sur_appel_fonction_instruite
     résultat.realm = realm
     retourne résultat
 }
@@ -1407,7 +1418,7 @@ ordinary_function_create :: fonc (realm: *Realm, function_prototype: *FunctionPr
     F.prototype = function_prototype
 
     // 3. Set F.[[Call]] to the definition specified in 10.2.1.
-    F.sur_call = sur_appel_fonction_instruite
+    // Ceci est fait via la table virtuelle.
 
     // 4. Set F.[[SourceText]] to sourceText.
 
@@ -1790,7 +1801,7 @@ evaluate_function_body :: fonc (interpréteuse: &Interpréteuse, function_object
 crée_eval :: fonc (realm: *Realm, function_prototype: *FunctionPrototype) -> *Function
 {
     résultat := crée_fonction(realm, function_prototype, STR_eval, nul)
-    résultat.sur_call = eval_sur_call
+    résultat.table = *table_virtuelle_function_eval
     retourne résultat
 }
 
@@ -1982,7 +1993,7 @@ perform_eval :: fonc (interpréteuse: &Interpréteuse, x: Valeur, strict_caller:
 
 #portée_fichier
 
-table_virtuelle_function_prototype := TableVirtuelleCellule(classe = FunctionPrototype, sur_destruction = sur_destruction_objet)
+table_virtuelle_function_prototype := TableVirtuelleObject(classe = FunctionPrototype, sur_destruction = sur_destruction_objet, sur_call = fonction_prototype_sur_call)
 
 #portée_export
 
@@ -1996,7 +2007,6 @@ crée_function_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *O
 {
     résultat := tas_de_mémoire.alloue(FunctionPrototype)
     résultat.prototype = prototype
-    résultat.sur_call = fonction_prototype_sur_call
     résultat.ajoute_propriété(STR_length, Valeur(Number = 0.0), DrapeauxPropriété.zéro)
     résultat.ajoute_propriété(STR_name, Valeur(String = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(""))), DrapeauxPropriété.zéro)
     retourne résultat
@@ -2015,20 +2025,28 @@ fonction_prototype_sur_call :: fonc (object: *Object @inutilisée, interpréteus
 
 #portée_fichier
 
-table_virtuelle_function_native := TableVirtuelleCellule(classe = FunctionNative, sur_destruction = sur_destruction_objet)
+fonction_native_sur_appel :: fonc (object: *Object, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+{
+    function_native := object comme *FunctionNative
+    retourne function_native.sur_appel(object, interpréteuse, this_value, arguments)
+}
+
+table_virtuelle_function_native := TableVirtuelleObject(classe = FunctionNative, sur_destruction = sur_destruction_objet, sur_call = fonction_native_sur_appel)
 
 #portée_export
 
 FunctionNative :: struct {
     empl function: Function
     table = *table_virtuelle_function_native
+
+    sur_appel: TypeFonctionObjectCall
 }
 
 crée_fonction_native :: fonc (tas_de_mémoire: *TasDeMémoire, nom: ECMAString, sur_appel: TypeFonctionObjectCall, length: z64) -> *FunctionNative
 {
     résultat := tas_de_mémoire.alloue(FunctionNative)
     résultat.nom = nom
-    résultat.sur_call = sur_appel
+    résultat.sur_appel = sur_appel
     résultat.ajoute_propriété(STR_length, Valeur(Number = length comme r64), DrapeauxPropriété.zéro)
     retourne résultat
 }
@@ -2081,7 +2099,7 @@ crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, texte: ECMAString) -> *Pr
 
 #portée_fichier
 
-table_virtuelle_objet_array := TableVirtuelleCellule(classe = ObjetArray, sur_destruction = sur_destruction_objet)
+table_virtuelle_objet_array := TableVirtuelleObject(classe = ObjetArray, sur_destruction = sur_destruction_objet)
 
 #portée_export
 
@@ -2109,13 +2127,13 @@ crée_array :: fonc (tas_de_mémoire: *TasDeMémoire, array_prototype: *ArrayPro
 
 #portée_fichier
 
-table_virtuelle_array_constructor := TableVirtuelleCellule(classe = ArrayConstructor, sur_destruction = sur_destruction_objet)
+table_virtuelle_array_constructor := TableVirtuelleObject(classe = ArrayConstructor, sur_destruction = sur_destruction_objet, sur_call = array_constructor_call)
 
 #portée_export
 
 ArrayConstructor :: struct {
     empl objet: Object
-    table = *table_virtuelle_objet_array
+    table = *table_virtuelle_array_constructor
 }
 
 /* À FAIRE : standardise */
@@ -2126,7 +2144,6 @@ crée_array_constructor :: fonc (tas_de_mémoire: *TasDeMémoire, array_prototyp
     résultat.ajoute_propriété(STR_length, Valeur(Number = 1.0), DrapeauxPropriété.zéro)
     /* https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array.prototype */
     résultat.ajoute_propriété(STR_prototype, Valeur(Object = array_prototype), DrapeauxPropriété.zéro)
-    résultat.sur_call = array_constructor_call
 
     /* https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array.prototype.constructor */
     array_prototype.ajoute_propriété(STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro)
@@ -2167,7 +2184,7 @@ array_constructor_call :: fonc (object: *Object @inutilisée, interpréteuse: &I
 
 #portée_fichier
 
-table_virtuelle_array_prototype := TableVirtuelleCellule(classe = ArrayPrototype, sur_destruction = sur_destruction_objet)
+table_virtuelle_array_prototype := TableVirtuelleObject(classe = ArrayPrototype, sur_destruction = sur_destruction_objet)
 
 #portée_export
 
@@ -2349,7 +2366,7 @@ array_prototype_to_string :: fonc (object: *Object @inutilisée, interpréteuse:
 
 #portée_fichier
 
-table_virtuelle_error := TableVirtuelleCellule(classe = Error, sur_destruction = sur_destruction_objet)
+table_virtuelle_error := TableVirtuelleObject(classe = Error, sur_destruction = sur_destruction_objet)
 
 #portée_export
 
@@ -2367,7 +2384,7 @@ Error :: struct {
 
 #portée_fichier
 
-table_virtuelle_error_prototype := TableVirtuelleCellule(classe = ErrorPrototype, sur_destruction = sur_destruction_objet)
+table_virtuelle_error_prototype := TableVirtuelleObject(classe = ErrorPrototype, sur_destruction = sur_destruction_objet)
 
 #portée_export
 
@@ -2392,7 +2409,7 @@ crée_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Obje
 
 #portée_fichier
 
-table_virtuelle_reference_error := TableVirtuelleCellule(classe = ReferenceError, sur_destruction = sur_destruction_objet)
+table_virtuelle_reference_error := TableVirtuelleObject(classe = ReferenceError, sur_destruction = sur_destruction_objet)
 
 #portée_export
 
@@ -2426,7 +2443,7 @@ lance_reference_error :: fonc (realm: *Realm, message: chaine) -> CompletionReco
 
 #portée_fichier
 
-table_virtuelle_reference_error_prototype := TableVirtuelleCellule(classe = ReferenceErrorPrototype, sur_destruction = sur_destruction_objet)
+table_virtuelle_reference_error_prototype := TableVirtuelleObject(classe = ReferenceErrorPrototype, sur_destruction = sur_destruction_objet)
 
 #portée_export
 
@@ -2451,7 +2468,7 @@ crée_reference_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, protot
 
 #portée_fichier
 
-table_virtuelle_syntax_error := TableVirtuelleCellule(classe = SyntaxError, sur_destruction = sur_destruction_objet)
+table_virtuelle_syntax_error := TableVirtuelleObject(classe = SyntaxError, sur_destruction = sur_destruction_objet)
 
 #portée_export
 
@@ -2490,7 +2507,7 @@ lance_syntax_error :: fonc (realm: *Realm, message: chaine) -> CompletionRecord
 
 #portée_fichier
 
-table_virtuelle_syntax_error_prototype := TableVirtuelleCellule(classe = SyntaxErrorPrototype, sur_destruction = sur_destruction_objet)
+table_virtuelle_syntax_error_prototype := TableVirtuelleObject(classe = SyntaxErrorPrototype, sur_destruction = sur_destruction_objet)
 
 #portée_export
 
@@ -2515,7 +2532,7 @@ crée_syntax_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype
 
 #portée_fichier
 
-table_virtuelle_type_error := TableVirtuelleCellule(classe = TypeError, sur_destruction = sur_destruction_objet)
+table_virtuelle_type_error := TableVirtuelleObject(classe = TypeError, sur_destruction = sur_destruction_objet)
 
 #portée_export
 
@@ -2554,7 +2571,7 @@ lance_type_error :: fonc (realm: *Realm, message: chaine) -> CompletionRecord
 
 #portée_fichier
 
-table_virtuelle_type_error_prototype := TableVirtuelleCellule(classe = TypeErrorPrototype, sur_destruction = sur_destruction_objet)
+table_virtuelle_type_error_prototype := TableVirtuelleObject(classe = TypeErrorPrototype, sur_destruction = sur_destruction_objet)
 
 #portée_export
 

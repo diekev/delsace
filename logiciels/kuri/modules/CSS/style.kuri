@@ -296,7 +296,7 @@ imprime_valeur_de_style :: fonc (enchaineuse: *Enchaineuse, valeur: *ValeurDeSty
             ajoute_au_tampon(enchaineuse, p, "%")
         }
         pixels(p) {
-            ajoute_au_tampon(enchaineuse, p, "%")
+            ajoute_au_tampon(enchaineuse, p, "px")
         }
         text_decoration_line(t) {
             ajoute_au_tampon(enchaineuse, t)
@@ -445,6 +445,11 @@ donne_valeur_utilisée :: fonc (propriétés: *PropriétésDeStyle, id: IDPropri
 définis_valeur_utilisée :: fonc (propriétés: *PropriétésDeStyle, id: IDPropriété, valeur: ValeurDeStyle)
 {
     propriétés.style_utilisée.valeurs[id] = valeur
+}
+
+copie_valeur_calculée_vers_utilisée :: fonc (propriétés: *PropriétésDeStyle, id: IDPropriété)
+{
+    propriétés.définis_valeur_utilisée(id, propriétés.donne_valeur_calculée(id))
 }
 
 résoud_pourcentage :: fonc (propriétés: *PropriétésDeStyle, id: IDPropriété, valeur_de_base: r64)
@@ -658,8 +663,11 @@ IDPropriété :: énum n16 {
     Display
     Position
     Float
+    Clear
     Color
     Cursor
+    OverflowX
+    OverflowY
 
     BackgroundColor
     BackgroundImage
@@ -732,6 +740,9 @@ initialise_style :: fonc (style: *Style)
     style.valeurs[IDPropriété.Cursor] = ValeurDeStyle(cursor = CursorType.auto)
     style.valeurs[IDPropriété.Position] = ValeurDeStyle(mot_clé = PROP_static)
     style.valeurs[IDPropriété.Float] = ValeurDeStyle(mot_clé = PROP_none)
+    style.valeurs[IDPropriété.Clear] = ValeurDeStyle(mot_clé = PROP_none)
+    style.valeurs[IDPropriété.OverflowX] = ValeurDeStyle(mot_clé = PROP_visible)
+    style.valeurs[IDPropriété.OverflowY] = ValeurDeStyle(mot_clé = PROP_visible)
 
     /* Marges */
     style.valeurs[IDPropriété.MarginBottom] = ValeurDeStyle(pixels = 0.0)
