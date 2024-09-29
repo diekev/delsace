@@ -1,6 +1,7 @@
 importe Ensemble
 importe Fondation
 importe Introspection
+importe #inemployé HTML
 
 DÉBOGUGE_MÉMOIRE :: faux
 
@@ -36,8 +37,11 @@ donne_mv :: fonc (tas_de_mémoire: *TasDeMémoire) -> *MachineVirtuelle
 
 alloue :: fonc (tas_de_mémoire: *TasDeMémoire, $T: type_de_données) -> *T
 {
+    assert(est_struct_ou_employeuse_de(info_de(T), info_de(Cellule)))
     résultat := alloue_cellule(tas_de_mémoire, taille_de(T)) comme *T
     init_de(T)(résultat)
+    assert((résultat comme *Cellule).table != nul)
+    assert((résultat comme *Cellule).table.classe == T)
     retourne résultat
 }
 
@@ -175,7 +179,7 @@ ajoute_racine_depuis_cellule_possible :: fonc (tas_de_mémoire: *TasDeMémoire, 
     }
 }
 
-visite_cellules_vivantes :: fonc (tas_de_mémoire: *TasDeMémoire @inutilisée, racines: []*Cellule)
+visite_cellules_vivantes :: fonc (tas_de_mémoire: *TasDeMémoire, racines: []*Cellule)
 {
     VisiteuseVivance :: struct {
         empl base: VisiteuseCellule
@@ -192,11 +196,28 @@ visite_cellules_vivantes :: fonc (tas_de_mémoire: *TasDeMémoire @inutilisée, 
     }
 
     visiteuse: VisiteuseVivance
+    diffère déloge(visiteuse.objets_visités)
+    diffère déloge(visiteuse.valeurs_à_visiter)
+
     visiteuse.sur_a_visité = sur_a_visité
     visiteuse.sur_a_déjà_visité = sur_a_déjà_visité
 
+    mv := tas_de_mémoire.donne_mv()
+    si mv.user_agent {
+        valeur : eini = ---
+        valeur.pointeur = mv.user_agent
+        valeur.info = info_de(HTML.UserAgent)
+        ensemble_ajoute(*visiteuse.objets_visités, mv.user_agent)
+        tableau_ajoute(*visiteuse.valeurs_à_visiter, valeur)
+    }
+
     pour racines {
         visite_cellule_générique(*visiteuse, it)
+    }
+
+    tantque visiteuse.valeurs_à_visiter.taille != 0 {
+        valeur := enlève_dernier_élément(*visiteuse.valeurs_à_visiter)
+        visite_valeur(*visiteuse, valeur)
     }
 
     #si DÉBOGUGE_MÉMOIRE {
@@ -266,7 +287,7 @@ balaie_cellules_mortes :: fonc (tas_de_mémoire: *TasDeMémoire)
 
 BlocDeMémoire :: struct {
     TAILLE_BLOC : n64 : 16 * 1024
-    
+
     taille_cellule: n64
     tas_de_mémoire: *TasDeMémoire
 
@@ -398,6 +419,8 @@ Cellule :: struct {
 donne_info_type_cellule :: fonc (racine: *Cellule) -> *InfoTypeStructure
 {
     résultat := __table_des_types[racine.table.classe] comme *InfoTypeStructure
+    assert(résultat != nul)
+    assert(résultat.id == GenreInfoType.STRUCTURE)
     assert(est_struct_ou_employeuse_de(résultat, info_de(Cellule)))
     retourne résultat
 }
@@ -452,6 +475,9 @@ donne_tas_de_mémoire :: fonc (cellule: *Cellule) -> *TasDeMémoire #enligne
 VisiteuseCellule :: struct {
     sur_a_visité: fonc(*VisiteuseCellule, *Cellule)(rien)
     sur_a_déjà_visité: fonc(*VisiteuseCellule, *Cellule)(bool)
+
+    objets_visités: [..]*rien
+    valeurs_à_visiter: [..]eini
 }
 
 a_visité :: fonc (visiteuse: *VisiteuseCellule, cellule: *Cellule)
@@ -499,7 +525,7 @@ visite_structure :: fonc (visiteuse: *VisiteuseCellule, structure: eini)
         si possède_annotation(it, "NeVisitePas") {
             retourne
         }
-        visite_valeur(visiteuse, membre)
+        tableau_ajoute(*visiteuse.valeurs_à_visiter, membre)
     }
 }
 
@@ -521,18 +547,37 @@ visite_valeur :: fonc (visiteuse: *VisiteuseCellule, valeur: eini)
         infos_pointeur := info comme *InfoTypePointeur
         type_élément := infos_pointeur.type_pointé
 
-        saufsi type_élément.id == GenreInfoType.STRUCTURE && est_struct_ou_employeuse_de(type_élément comme *InfoTypeStructure, info_de(Cellule)) {
+        saufsi type_élément.id == GenreInfoType.STRUCTURE {
             retourne
         }
 
-        /* À FAIRE : la cellule doit être le premier élément. */
-        cellule := mémoire(valeur.pointeur comme **Cellule)
-        visite_cellule_générique(visiteuse, cellule)
+        si est_struct_ou_employeuse_de(type_élément comme *InfoTypeStructure, info_de(Cellule)) {
+            /* À FAIRE : la cellule doit être le premier élément. */
+            cellule := mémoire(valeur.pointeur comme **Cellule)
+            visite_cellule_générique(visiteuse, cellule)
+        }
+        sinon {
+            adresse := mémoire(valeur.pointeur comme **rien)
+            saufsi adresse {
+                retourne
+            }
+
+            si ensemble_possède(*visiteuse.objets_visités, adresse) {
+                retourne
+            }
+
+            ensemble_ajoute(*visiteuse.objets_visités, adresse)
+
+            valeur.pointeur = adresse
+            valeur.info = type_élément
+            tableau_ajoute(*visiteuse.valeurs_à_visiter, valeur)
+        }
+
         retourne
     }
 
     si info.id == GenreInfoType.STRUCTURE {
-        si info == info_de(Cellule) || info == info_de(Lexème) || info == info_de(ECMAString) {
+        si info == info_de(Cellule) || info == info_de(Lexème) || info == info_de(ECMAString) || info == info_de(TasDeMémoire) || info == info_de(MachineVirtuelle) {
             retourne
         }
 
@@ -560,7 +605,7 @@ visite_valeur :: fonc (visiteuse: *VisiteuseCellule, valeur: eini)
             saufsi élément.est_valide() {
                 arrête
             }
-            visite_valeur(visiteuse, élément)
+            tableau_ajoute(*visiteuse.valeurs_à_visiter, élément)
         }
         retourne
     }
