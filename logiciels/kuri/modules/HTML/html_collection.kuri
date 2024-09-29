@@ -1,6 +1,7 @@
 importe Chaine
 importe Ensemble
 importe Fondation
+importe #inemployé JavaScript
 
 /* https://dom.spec.whatwg.org/#concept-ordered-set-parser */
 run_ordered_set_parser :: fonc (chn: DOMString) -> [..]DOMString
@@ -127,7 +128,7 @@ table_virtuelle_html_collection := TableVirtuellePlatformObject(
     sur_destruction = html_collection_sur_destruction
 )
 
-html_collection_sur_destruction :: fonc (base: *PlatformObject)
+html_collection_sur_destruction :: fonc (base: *JavaScript.Cellule)
 {
     collection := base comme *HTMLCollection
     détruit_collection(collection)
@@ -179,7 +180,6 @@ détruit_collection :: fonc (collection: *HTMLCollection)
     }
 
     déloge(collection.éléments)
-    déloge(collection)
 }
 
 donne_length :: fonc (collection: *HTMLCollection) -> z64

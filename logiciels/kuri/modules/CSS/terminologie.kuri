@@ -475,7 +475,7 @@ PRV_webkit : CSSOMString = ---
 
 #portée_module
 
-terminologie_initialisée := faux
+terminologie_css_initialisée := faux
 
 initialise_tags :: fonc ()
 #corps_texte {
@@ -491,8 +491,8 @@ génère_fonction_pour_tags :: fonc (pour_impression: bool) -> chaine
     diffère détruit_tampons(*enchaineuse)
 
     saufsi pour_impression {
-        ajoute_au_tampon(*enchaineuse, "    si terminologie_initialisée { retourne }\n")
-        ajoute_au_tampon(*enchaineuse, "    terminologie_initialisée = vrai\n")
+        ajoute_au_tampon(*enchaineuse, "    si terminologie_css_initialisée { retourne }\n")
+        ajoute_au_tampon(*enchaineuse, "    terminologie_css_initialisée = vrai\n")
     }
 
     lexèmes := compilatrice_lèxe_fichier(#chemin_de_ce_fichier)
@@ -502,7 +502,7 @@ génère_fonction_pour_tags :: fonc (pour_impression: bool) -> chaine
             continue
         }
 
-        si it.texte == "terminologie_initialisée" {
+        si it.texte == "terminologie_css_initialisée" {
             arrête
         }
 

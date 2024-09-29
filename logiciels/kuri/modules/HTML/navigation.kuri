@@ -2533,7 +2533,7 @@ create_and_initialize_a_document_object :: fonc (user_agent: *UserAgent, type: c
     //     current document readiness "loading"
     //     about base URL navigationParams's about base URL
     //     allow declarative shadow roots true
-    document := crée_noeud_document()
+    document := crée_noeud_document(user_agent.donne_tas_de_mémoire())
     document.type = type
     document.type_contenu = content_type
     document.origin = navigation_params.origin
@@ -2636,7 +2636,7 @@ load_an_html_document :: fonc (user_agent: *UserAgent, navigation_params: *Navig
     }
     // 3. Otherwise, create an HTML parser and associate it with the document. Each task that the networking task source places on the task queue while fetching runs must then fill the parser's input byte stream with the fetched bytes and cause the HTML parser to perform the appropriate processing of the input stream.
     sinon {
-        parseuse := initialise_parseuse(response.body.Quelque, document)
+        parseuse := initialise_parseuse(user_agent.donne_tas_de_mémoire(), response.body.Quelque, document)
         diffère détruit_parseuse(*parseuse)
 
         // début := maintenant_précis()

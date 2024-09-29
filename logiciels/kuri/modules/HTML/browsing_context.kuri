@@ -51,7 +51,6 @@ SessionHistoryEntry :: struct {
 
 détruit_session_history_entry :: fonc (she: *SessionHistoryEntry)
 {
-    détruit_noeud(she.document_state.document)
     détruit_uri(she.url)
     déloge(she.document_state)
     déloge(she)
@@ -493,11 +492,10 @@ table_virtuelle_window := TableVirtuelleEventTarget(
     sur_destruction = window_sur_destruction
 )
 
-window_sur_destruction :: fonc (base: *PlatformObject)
+window_sur_destruction :: fonc (base: *JavaScript.Cellule)
 {
     window := base comme *Window
     event_target_détruit_données(window)
-    déloge(window)
 }
 
 #portée_export
@@ -625,7 +623,7 @@ donne_top_level_browsing_context :: fonc (start: *BrowsingContext) -> *BrowsingC
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#creating-browsing-contexts */
-crée_browsing_context_et_document :: fonc (creator: *Document, embedder: *Élément, group: *BrowsingContextGroup) -> *BrowsingContext, *Document
+crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Document, embedder: *Élément, group: *BrowsingContextGroup) -> *BrowsingContext, *Document
 {
     // 1. Let browsingContext be a new browsing context.
     browsing_context := loge(BrowsingContext)
@@ -707,7 +705,7 @@ crée_browsing_context_et_document :: fonc (creator: *Document, embedder: *Élé
     //     is initial about:blank = true
     //     about base URL = creatorBaseURL
     //     allow declarative shadow roots = true
-    document := crée_noeud_document()
+    document := crée_noeud_document(user_agent.donne_tas_de_mémoire())
     document.type = "html"
     document.type_contenu = "text/html"
     document.mode = ModeDocument.QUIRKS
@@ -774,7 +772,7 @@ crée_un_nouveau_browsing_context_group_and_document :: fonc (user_agent: *UserA
     tableau_ajoute(*user_agent.browsing_context_groups, group)
 
     // 3. Let browsingContext and document be the result of creating a new browsing context and document with null, null, and group.
-    browsing_context, document := crée_browsing_context_et_document(nul, nul, group)
+    browsing_context, document := crée_browsing_context_et_document(user_agent, nul, nul, group)
 
     // 4. Append browsingContext to group.
     browsing_context.group = group

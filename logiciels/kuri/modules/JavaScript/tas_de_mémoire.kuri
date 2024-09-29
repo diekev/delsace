@@ -1,6 +1,7 @@
 importe Ensemble
 importe Fondation
 importe Introspection
+importe #inemployé HTML
 
 DÉBOGUGE_MÉMOIRE :: faux
 
@@ -178,7 +179,7 @@ ajoute_racine_depuis_cellule_possible :: fonc (tas_de_mémoire: *TasDeMémoire, 
     }
 }
 
-visite_cellules_vivantes :: fonc (tas_de_mémoire: *TasDeMémoire @inutilisée, racines: []*Cellule)
+visite_cellules_vivantes :: fonc (tas_de_mémoire: *TasDeMémoire, racines: []*Cellule)
 {
     VisiteuseVivance :: struct {
         empl base: VisiteuseCellule
@@ -200,6 +201,15 @@ visite_cellules_vivantes :: fonc (tas_de_mémoire: *TasDeMémoire @inutilisée, 
 
     visiteuse.sur_a_visité = sur_a_visité
     visiteuse.sur_a_déjà_visité = sur_a_déjà_visité
+
+    mv := tas_de_mémoire.donne_mv()
+    si mv.user_agent {
+        valeur : eini = ---
+        valeur.pointeur = mv.user_agent
+        valeur.info = info_de(HTML.UserAgent)
+        ensemble_ajoute(*visiteuse.objets_visités, mv.user_agent)
+        tableau_ajoute(*visiteuse.valeurs_à_visiter, valeur)
+    }
 
     pour racines {
         visite_cellule_générique(*visiteuse, it)

@@ -4,6 +4,7 @@ importe #inemployé CSS
 importe Fondation
 importe Image
 importe Internet
+importe #inemployé JavaScript
 importe MIME
 importe Unicode
 
@@ -56,7 +57,7 @@ TableVirtuelleÉlément :: struct {
 #portée_export
 
 Élément :: struct {
-    empl base: Noeud
+    empl base_noeud: Noeud
     table = *table_virtuelle_élément
 
     id: DOMString
@@ -91,6 +92,7 @@ table_virtuelle_élément := TableVirtuelleÉlément(
 
 élément_détruit_données :: fonc (élément: *Élément)
 {
+    noeud_détruit_données(élément)
     CSS.détruit_style_declaration(élément.style)
     si élément.noeud_de_disposition {
         si élément.noeud_de_disposition.type != CSS.NoeudDeDispositionNouvelleLigne {
@@ -103,11 +105,10 @@ table_virtuelle_élément := TableVirtuelleÉlément(
     déloge(élément.liste_classes)
 }
 
-élément_sur_destruction :: fonc (base: *PlatformObject)
+élément_sur_destruction :: fonc (base: *JavaScript.Cellule)
 {
     élément := base comme *Élément
     élément_détruit_données(élément)
-    déloge(élément)
 }
 
 élément_sur_changement_attribut :: fonc (élément: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
@@ -231,67 +232,67 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élé
     // les éléments pour les balises SVG ne sont pas présents, espace de noms ?
     élément: *Élément
     si tag == TAG_a {
-        élément = loge(HTMLAnchorElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLAnchorElement)
     }
     sinon si tag == TAG_body {
-        élément = loge(HTMLBodyElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLBodyElement)
     }
     sinon si tag == TAG_font {
-        élément = loge(HTMLFontElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLFontElement)
     }
     sinon si tag == TAG_form {
-        élément = loge(HTMLFormElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLFormElement)
     }
     sinon si tag == TAG_head {
-        élément = loge(HTMLHeadElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLHeadElement)
     }
     sinon si tag == TAG_h1 || tag == TAG_h2 || tag == TAG_h3 || tag == TAG_h4 || tag == TAG_h5 || tag == TAG_h6 {
-        élément = loge(HTMLHeadingElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLHeadingElement)
     }
     sinon si tag == TAG_hr {
-        élément = loge(HTMLHRElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLHRElement)
     }
     sinon si tag == TAG_html {
-        élément = loge(HTMLHtmlElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLHtmlElement)
     }
     sinon si tag == TAG_iframe {
-        élément = loge(HTMLIFrameElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLIFrameElement)
     }
     sinon si tag == TAG_img {
-        élément = loge(HTMLImageElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLImageElement)
     }
     sinon si tag == TAG_input {
-        élément = loge(HTMLInputElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLInputElement)
     }
     sinon si tag == TAG_link {
-        élément = loge(HTMLLinkElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLLinkElement)
     }
     sinon si tag == TAG_script {
-        élément = loge(HTMLScriptElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLScriptElement)
     }
     sinon si tag == TAG_style {
-        élément = loge(HTMLStyleElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLStyleElement)
     }
     sinon si tag == TAG_table {
-        élément = loge(HTMLTableElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLTableElement)
     }
     sinon si tag == TAG_td || tag == TAG_th {
-        élément = loge(HTMLTableCellElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLTableCellElement)
     }
     sinon si tag == TAG_thead || tag == TAG_tbody || tag == TAG_tfoot {
-        élément = loge(HTMLTableSectionElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLTableSectionElement)
     }
     sinon si tag == TAG_tr {
-        élément = loge(HTMLTableRowElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLTableRowElement)
     }
     sinon si tag == TAG_textarea {
-        élément = loge(HTMLTextAreaElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLTextAreaElement)
     }
     sinon si tag == TAG_video {
-        élément = loge(HTMLVideoElement)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLVideoElement)
     }
     sinon {
-        élément = loge(Élément)
+        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), Élément)
     }
 
     initialise_élément(élément, document, tag)
@@ -341,7 +342,7 @@ get_elements_by_class_name :: fonc (élément: *Élément, class_names: DOMStrin
 
     // 2. If classes is the empty set, return an empty HTMLCollection.
     si classes.taille == 0 {
-        retourne loge(HTMLCollection)
+        retourne JavaScript.alloue(élément.donne_tas_de_mémoire(), HTMLCollection)
     }
 
     // 3. Return an HTMLCollection rooted at root, whose filter matches
@@ -349,7 +350,7 @@ get_elements_by_class_name :: fonc (élément: *Élément, class_names: DOMStrin
     //    The comparisons for the classes must be done in an ASCII
     //    case-insensitive manner if root’s node document’s mode is "quirks";
     //    otherwise in an identical to manner.
-    résultat := loge(HTMLCollection)
+    résultat := JavaScript.alloue(élément.donne_tas_de_mémoire(), HTMLCollection)
     résultat.root = élément
     résultat.filter = crée_filtre_pour_class_name(classes)
     initialise_collection_pour_filtre(résultat)
@@ -359,7 +360,7 @@ get_elements_by_class_name :: fonc (élément: *Élément, class_names: DOMStrin
 /* https://dom.spec.whatwg.org/#concept-getelementsbytagname */
 get_elements_by_tag_name :: fonc (élément: *Élément, qualified_name: DOMString) -> *HTMLCollection
 {   
-    résultat := loge(HTMLCollection)
+    résultat := JavaScript.alloue(élément.donne_tas_de_mémoire(), HTMLCollection)
     résultat.root = élément
 
     // 1. If qualifiedName is U+002A (*), then return an HTMLCollection rooted at root, whose filter matches only descendant elements.
@@ -564,17 +565,10 @@ donne_href :: fonc (anchor: *HTMLAnchorElement) -> DOMString
 
 table_virtuelle_anchor_element := TableVirtuelleÉlément(
     classe = HTMLAnchorElement,
-    sur_destruction = anchor_element_sur_destruction,
+    sur_destruction = élément_sur_destruction,
     sur_activation_behavior = anchor_element_sur_activation_behavior,
     sur_changement_attribut = anchor_element_sur_changement_attribut
 )
-
-anchor_element_sur_destruction :: fonc (base: *PlatformObject)
-{
-    élément := base comme *HTMLAnchorElement
-    élément_détruit_données(élément)
-    déloge(élément)
-}
 
 anchor_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
 {
@@ -847,16 +841,9 @@ HTMLBodyElement :: struct {
 
 table_virtuelle_body_element := TableVirtuelleÉlément(
     classe = HTMLBodyElement,
-    sur_destruction = body_element_sur_destruction,
+    sur_destruction = élément_sur_destruction,
     sur_applique_presentational_hints = body_element_sur_applique_presentational_hints
 )
-
-body_element_sur_destruction :: fonc (base: *PlatformObject)
-{
-    élément := base comme *HTMLBodyElement
-    élément_détruit_données(élément)
-    déloge(élément)
-}
 
 /* https://html.spec.whatwg.org/multipage/rendering.html#the-page */
 body_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
@@ -929,16 +916,9 @@ HTMLFontElement :: struct {
 
 table_virtuelle_font_element := TableVirtuelleÉlément(
     classe = HTMLFontElement,
-    sur_destruction = font_element_sur_destruction,
+    sur_destruction = élément_sur_destruction,
     sur_applique_presentational_hints = font_element_sur_applique_presentational_hints
 )
-
-font_element_sur_destruction :: fonc (base: *PlatformObject)
-{
-    élément := base comme *HTMLFontElement
-    élément_détruit_données(élément)
-    déloge(élément)
-}
 
 /* https://html.spec.whatwg.org/multipage/rendering.html#phrasing-content-3 */
 font_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
@@ -1073,15 +1053,8 @@ HTMLFormElement :: struct {
 
 table_virtuelle_form_element := TableVirtuelleÉlément(
     classe = HTMLFormElement,
-    sur_destruction = form_element_sur_destruction
+    sur_destruction = élément_sur_destruction
 )
-
-form_element_sur_destruction :: fonc (base: *PlatformObject)
-{
-    élément := base comme *HTMLFormElement
-    élément_détruit_données(élément)
-    déloge(élément)
-}
 
 /** \} */
 
@@ -1102,15 +1075,8 @@ HTMLHeadElement :: struct {
 
 table_virtuelle_head_element := TableVirtuelleÉlément(
     classe = HTMLHeadElement,
-    sur_destruction = head_element_sur_destruction
+    sur_destruction = élément_sur_destruction
 )
-
-head_element_sur_destruction :: fonc (base: *PlatformObject)
-{
-    élément := base comme *HTMLHeadElement
-    élément_détruit_données(élément)
-    déloge(élément)
-}
 
 /** \} */
 
@@ -1131,15 +1097,8 @@ HTMLHeadingElement :: struct {
 
 table_virtuelle_heading_element := TableVirtuelleÉlément(
     classe = HTMLHeadingElement,
-    sur_destruction = heading_element_sur_destruction
+    sur_destruction = élément_sur_destruction
 )
-
-heading_element_sur_destruction :: fonc (base: *PlatformObject)
-{
-    élément := base comme *HTMLHeadingElement
-    élément_détruit_données(élément)
-    déloge(élément)
-}
 
 /** \} */
 
@@ -1160,15 +1119,8 @@ HTMLHRElement :: struct {
 
 table_virtuelle_hr_element := TableVirtuelleÉlément(
     classe = HTMLHRElement,
-    sur_destruction = hr_element_sur_destruction
+    sur_destruction = élément_sur_destruction
 )
-
-hr_element_sur_destruction :: fonc (base: *PlatformObject)
-{
-    élément := base comme *HTMLHRElement
-    élément_détruit_données(élément)
-    déloge(élément)
-}
 
 /** \} */
 
@@ -1189,15 +1141,8 @@ HTMLHtmlElement :: struct {
 
 table_virtuelle_html_element := TableVirtuelleÉlément(
     classe = HTMLHtmlElement,
-    sur_destruction = html_element_sur_destruction
+    sur_destruction = élément_sur_destruction
 )
-
-html_element_sur_destruction :: fonc (base: *PlatformObject)
-{
-    élément := base comme *HTMLHtmlElement
-    élément_détruit_données(élément)
-    déloge(élément)
-}
 
 /** \} */
 
@@ -1221,15 +1166,8 @@ HTMLIFrameElement :: struct {
 
 table_virtuelle_iframe_element := TableVirtuelleÉlément(
     classe = HTMLIFrameElement,
-    sur_destruction = iframe_element_sur_destruction
+    sur_destruction = élément_sur_destruction
 )
-
-iframe_element_sur_destruction :: fonc (base: *PlatformObject)
-{
-    élément := base comme *HTMLIFrameElement
-    élément_détruit_données(élément)
-    déloge(élément)
-}
 
 /** \} */
 
@@ -1303,12 +1241,11 @@ image_element_sur_applique_presentational_hints :: fonc (base: *Élément, réso
     ajoute_propriété_pour_non_zero_dimension(résolveuse, base, ATTR_height, CSS.PROP_height)
 }
 
-image_element_sur_destruction :: fonc (base: *PlatformObject)
+image_element_sur_destruction :: fonc (base: *JavaScript.Cellule)
 {
     élément := base comme *HTMLImageElement
     élément_détruit_données(élément)
     IMG_detruit_image(*élément.image_data)
-    déloge(élément)
 }
 
 /* https://html.spec.whatwg.org/multipage/images.html#update-the-image-data */
@@ -1452,16 +1389,9 @@ is_text_entry_widget :: fonc (input: *HTMLInputElement) -> bool
 
 table_virtuelle_input_element := TableVirtuelleÉlément(
     classe = HTMLInputElement,
-    sur_destruction = input_element_sur_destruction,
+    sur_destruction = élément_sur_destruction,
     sur_changement_attribut = input_element_sur_changement_attribut
 )
-
-input_element_sur_destruction :: fonc (base: *PlatformObject)
-{
-    élément := base comme *HTMLInputElement
-    élément_détruit_données(élément)
-    déloge(élément)
-}
 
 input_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
 {
@@ -1508,16 +1438,9 @@ donne_rel :: fonc (link: *HTMLLinkElement) -> DOMString
 
 table_virtuelle_link_element := TableVirtuelleÉlément(
     classe = HTMLLinkElement,
-    sur_destruction = link_element_sur_destruction,
+    sur_destruction = élément_sur_destruction,
     sur_changement_attribut = link_element_sur_changement_attribut
 )
-
-link_element_sur_destruction :: fonc (base: *PlatformObject)
-{
-    élément := base comme *HTMLLinkElement
-    élément_détruit_données(élément)
-    déloge(élément)
-}
 
 link_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
 {
@@ -1700,15 +1623,8 @@ HTMLVideoElement :: struct {
 
 table_virtuelle_video_element := TableVirtuelleÉlément(
     classe = HTMLVideoElement,
-    sur_destruction = video_element_sur_destruction
+    sur_destruction = élément_sur_destruction
 )
-
-video_element_sur_destruction :: fonc (base: *PlatformObject)
-{
-    élément := base comme *HTMLVideoElement
-    élément_détruit_données(élément)
-    déloge(élément)
-}
 
 /** \} */
 
@@ -1763,15 +1679,8 @@ donne_src :: fonc (script: *HTMLScriptElement) -> DOMString
 
 table_virtuelle_script_element := TableVirtuelleÉlément(
     classe = HTMLScriptElement,
-    sur_destruction = script_element_sur_destruction
+    sur_destruction = élément_sur_destruction
 )
-
-script_element_sur_destruction :: fonc (base: *PlatformObject)
-{
-    élément := base comme *HTMLScriptElement
-    élément_détruit_données(élément)
-    déloge(élément)
-}
 
 #portée_export
 
@@ -2001,19 +1910,12 @@ HTMLStyleElement :: struct {
 
 table_virtuelle_style_element := TableVirtuelleÉlément(
     classe = HTMLStyleElement,
-    sur_destruction = style_element_sur_destruction,
+    sur_destruction = élément_sur_destruction,
     sur_connexion = style_element_sur_connexion_ou_déconnexion,
     sur_déconnexion = style_element_sur_connexion_ou_déconnexion,
     sur_dépilement = style_element_sur_dépilement,
     sur_changement_enfants = style_element_sur_changement_enfants
 )
-
-style_element_sur_destruction :: fonc (base: *PlatformObject)
-{
-    élément := base comme *HTMLStyleElement
-    élément_détruit_données(élément)
-    déloge(élément)
-}
 
 style_element_sur_connexion_ou_déconnexion :: fonc (base: *Noeud)
 {
@@ -2129,16 +2031,9 @@ HTMLTableElement :: struct {
 
 table_virtuelle_table_element := TableVirtuelleÉlément(
     classe = HTMLTableElement,
-    sur_destruction = table_element_sur_destruction,
+    sur_destruction = élément_sur_destruction,
     sur_applique_presentational_hints = table_element_sur_applique_presentational_hints
 )
-
-table_element_sur_destruction :: fonc (base: *PlatformObject)
-{
-    élément := base comme *HTMLTableElement
-    élément_détruit_données(élément)
-    déloge(élément)
-}
 
 table_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
 {
@@ -2164,16 +2059,9 @@ HTMLTableCellElement :: struct {
 
 table_virtuelle_table_cell_element := TableVirtuelleÉlément(
     classe = HTMLTableCellElement,
-    sur_destruction = table_cell_element_sur_destruction,
+    sur_destruction = élément_sur_destruction,
     sur_applique_presentational_hints = table_cell_element_sur_applique_presentational_hints
 )
-
-table_cell_element_sur_destruction :: fonc (base: *PlatformObject)
-{
-    élément := base comme *HTMLTableCellElement
-    élément_détruit_données(élément)
-    déloge(élément)
-}
 
 table_cell_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
 {
@@ -2199,16 +2087,9 @@ HTMLTableRowElement :: struct {
 
 table_virtuelle_table_row_element := TableVirtuelleÉlément(
     classe = HTMLTableRowElement,
-    sur_destruction = table_row_element_sur_destruction,
+    sur_destruction = élément_sur_destruction,
     sur_applique_presentational_hints = table_row_element_sur_applique_presentational_hints
 )
-
-table_row_element_sur_destruction :: fonc (base: *PlatformObject)
-{
-    élément := base comme *HTMLTableRowElement
-    élément_détruit_données(élément)
-    déloge(élément)
-}
 
 table_row_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
 {
@@ -2234,16 +2115,9 @@ HTMLTableSectionElement :: struct {
 
 table_virtuelle_table_section_element := TableVirtuelleÉlément(
     classe = HTMLTableSectionElement,
-    sur_destruction = table_section_element_sur_destruction,
+    sur_destruction = élément_sur_destruction,
     sur_applique_presentational_hints = table_section_element_sur_applique_presentational_hints
 )
-
-table_section_element_sur_destruction :: fonc (base: *PlatformObject)
-{
-    élément := base comme *HTMLTableSectionElement
-    élément_détruit_données(élément)
-    déloge(élément)
-}
 
 table_section_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
 {
@@ -2304,14 +2178,7 @@ donne_character_height :: fonc (textarea: *HTMLTextAreaElement) -> n32
 
 table_virtuelle_textarea_element := TableVirtuelleÉlément(
     classe = HTMLTextAreaElement,
-    sur_destruction = textarea_element_sur_destruction
+    sur_destruction = élément_sur_destruction
 )
-
-textarea_element_sur_destruction :: fonc (base: *PlatformObject)
-{
-    élément := base comme *HTMLTextAreaElement
-    élément_détruit_données(élément)
-    déloge(élément)
-}
 
 /** \} */

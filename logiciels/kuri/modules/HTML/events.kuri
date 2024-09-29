@@ -192,7 +192,7 @@ table_virtuelle_event := TableVirtuellePlatformObject(
     sur_destruction = event_sur_destruction
 )
 
-event_sur_destruction :: fonc (base: *PlatformObject)
+event_sur_destruction :: fonc (base: *JavaScript.Cellule)
 {
     event := base comme *Event
     déloge(event.touch_target_list)
@@ -280,11 +280,10 @@ TableVirtuelleEventTarget :: struct {
     sur_legacy_canceled_activation_behavior: fonc(*EventTarget, *Event)(rien)
 }
 
-event_target_sur_destruction :: fonc (base: *PlatformObject)
+event_target_sur_destruction :: fonc (base: *JavaScript.Cellule)
 {
     target := base comme *EventTarget
     event_target_détruit_données(target)
-    déloge(target)
 }
 
 /* Implémentation défaut pour get_the_parent. */
@@ -769,11 +768,10 @@ table_virtuelle_abort_signal := TableVirtuelleEventTarget(
     sur_destruction = abort_signal_sur_destruction
 )
 
-abort_signal_sur_destruction :: fonc (base: *PlatformObject)
+abort_signal_sur_destruction :: fonc (base: *JavaScript.Cellule)
 {
     abort_signal := base comme *AbortSignal
     event_target_détruit_données(abort_signal)
-    déloge(abort_signal)
 }
 
 #portée_export

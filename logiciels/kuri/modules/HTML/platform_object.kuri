@@ -1,3 +1,5 @@
+importe #inemployé JavaScript
+
 /* ------------------------------------------------------------------------- */
 /** \nom PlatformObject
  * https://webidl.spec.whatwg.org/#dfn-platform-object
@@ -6,26 +8,18 @@
 #portée_module
 
 TableVirtuellePlatformObject :: struct {
-    /* Type de l'objet associé à cette table. */
-    classe: type_de_données
-    /* Appelé quand la cible est détruite. */
-    sur_destruction: fonc(*PlatformObject)(rien)
+    empl object: JavaScript.TableVirtuelleObject
 }
 
 #portée_export
 
 PlatformObject :: struct {
-    table: *TableVirtuellePlatformObject
+    empl objet: JavaScript.Object
 }
 
-détruit :: fonc (object: *PlatformObject)
+donne_tas_de_mémoire :: fonc (object: *PlatformObject) -> *JavaScript.TasDeMémoire
 {
-    si object.table && object.table.sur_destruction {
-        object.table.sur_destruction(object)
-    }
-    sinon {
-        déloge(object)
-    }
+    retourne JavaScript.donne_tas_de_mémoire(object)
 }
 
 /** \} */

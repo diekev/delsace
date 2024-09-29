@@ -3,6 +3,7 @@
 
 importe Chaine
 importe Fondation
+importe #inemployé JavaScript
 importe Temps
 
 charge "élément"
@@ -124,16 +125,13 @@ ParsatHTML :: struct {
 
 détruit :: fonc (parsat: &ParsatHTML)
 {
-    si parsat.document {
-        détruit_noeud(parsat.document)
-    }
     déloge(parsat.erreurs)
 }
 
 /* Parse un document HTML depuis une chaine de caractère. */
-parse_document :: fonc (document: chaine) -> ParsatHTML
+parse_document :: fonc (tas_de_mémoire: *JavaScript.TasDeMémoire, document: chaine) -> ParsatHTML
 {
-    parseuse := initialise_parseuse(document)
+    parseuse := initialise_parseuse(tas_de_mémoire, document)
     diffère détruit_parseuse(*parseuse)
 
     début := maintenant_précis()

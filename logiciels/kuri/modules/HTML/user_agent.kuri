@@ -1,6 +1,7 @@
 importe HTTP
 importe Internet
 importe Fondation
+importe #inemployé JavaScript
 
 /* ------------------------------------------------------------------------- */
 /** \nom UserAgent
@@ -16,6 +17,19 @@ UserAgent :: struct {
 
     /* Connexion avec l'interface graphique. */
     rappels_interface: *RappelsInterface
+
+    mv: JavaScript.MachineVirtuelle
+}
+
+initialise_user_agent :: fonc (user_agent: *UserAgent)
+{
+    user_agent.mv.user_agent = user_agent
+    JavaScript.initialise_mv(*user_agent.mv)
+}
+
+donne_tas_de_mémoire :: fonc (user_agent: *UserAgent) -> *JavaScript.TasDeMémoire
+{
+    retourne *user_agent.mv.tas_de_mémoire
 }
 
 détruit_user_agent :: fonc (user_agent: *UserAgent)
@@ -32,6 +46,7 @@ détruit_données_user_agent :: fonc (user_agent: *UserAgent)
         détruit_rappels(user_agent.rappels_interface)
         user_agent.rappels_interface = nul
     }
+    JavaScript.détruit_données_mv(*user_agent.mv)
 }
 
 définis_rappels_interface :: fonc (user_agent: *UserAgent, rappels: *RappelsInterface)

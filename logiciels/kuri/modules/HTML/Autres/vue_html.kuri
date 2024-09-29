@@ -7,6 +7,7 @@ importe Géométrie
 importe HTML
 importe HTTP
 importe Internet
+importe #inemployé JavaScript
 importe OpenGL
 importe PeintureInterface
 importe Qt
@@ -95,6 +96,7 @@ principale :: fonc () -> z32
     QT_widget_affiche_maximisee(fenêtre)
 
     rappels_user_agent := crée_rappels_interface_qt(fenêtre)
+    initialise_user_agent(rappels_fenêtre.user_agent)
     définis_rappels_interface(rappels_fenêtre.user_agent, rappels_user_agent)
 
     si chemin_fichier {
@@ -1385,13 +1387,11 @@ vue_rendu_page_sur_relachement_cle :: fonc (base: *QT_Rappels_GLWidget, event: *
 envoie_un_clic :: fonc (élément: *HTML.Élément)
 {
     /* À FAIRE : standardise. */
-    évènement := loge(HTML.Event)
+    évènement := JavaScript.alloue(élément.donne_tas_de_mémoire(), HTML.Event)
     évènement.target = élément
     évènement.type = HTML.EventType.click
 
     _ := dispatch(évènement, élément)
-
-    déloge(évènement)
 }
 
 /** \} */

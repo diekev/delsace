@@ -183,7 +183,7 @@ objet_html_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, en
 
         contenu := contenu_fichier_texte(chemin)
 
-        parsat := parse_document(contenu)
+        parsat := parse_document(object.donne_tas_de_mémoire(), contenu)
         html.enveloppe_document.document = parsat.document
 
         tas_de_mémoire := object.donne_tas_de_mémoire()
