@@ -612,6 +612,9 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
         {
             auto inst = noeud->comme_importe();
             imprime_lexème_mot_clé(enchaineuse, inst, true);
+            if (!inst->est_employé) {
+                enchaineuse << "#inemployé ";
+            }
             imprime_arbre(enchaineuse, état, inst->expression);
             break;
         }

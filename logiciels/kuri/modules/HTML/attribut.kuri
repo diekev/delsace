@@ -1,5 +1,6 @@
 importe Chaine
 importe Fondation
+importe #inemployé JavaScript
 
 /* Représentation d'un attribut lors du lexage. */
 AttributLexé :: struct {
@@ -35,7 +36,7 @@ ajoute_attribut :: fonc (attributs: *[..]AttributLexé, nom: DOMString, valeur: 
  * \{ */
 
 Attr :: struct {
-    empl base: Noeud
+    empl base_noeud: Noeud
     table = *table_virtuelle_attr
 
     namespace: Optionnel(DOMString)
@@ -47,7 +48,7 @@ Attr :: struct {
 
 crée_noeud_attr :: fonc (document: *Document, nom: DOMString, valeur: DOMString) -> *Attr
 {
-    résultat := loge(Attr)
+    résultat := JavaScript.alloue(document.donne_tas_de_mémoire(), Attr)
     résultat.document = document
     résultat.genre = GenreNoeud.Attr
     résultat.local_name = nom
@@ -83,14 +84,8 @@ définis_valeur :: fonc (attribut: *Attr, valeur: DOMString)
 
 table_virtuelle_attr := TableVirtuelleÉlément(
     classe = Attr,
-    sur_destruction = attr_sur_destruction
+    sur_destruction = noeud_sur_destruction
 )
-
-attr_sur_destruction :: fonc (base: *EventTarget)
-{
-    attr := base comme *Attr
-    déloge(attr)
-}
 
 #portée_export
 

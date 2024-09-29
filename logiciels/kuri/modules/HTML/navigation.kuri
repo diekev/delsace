@@ -145,8 +145,8 @@ NavigationParams :: struct {
     
     origin: Origin
     
-    //policy container
-    //  a policy container to use for the new Document
+    // a policy container to use for the new Document
+    policy_container: *PolicyContainer
 
     final_sandboxing_flag: SandboxingFlags
     cross_origin_opener_policy: CrossOriginOpenerPolicy
@@ -162,9 +162,10 @@ est_non_fetch_scheme :: fonc (navigation_params: *NavigationParams @inutilisée)
     retourne faux
 }
 
-est_navigation_params :: fonc (navigation_params: *NavigationParams @inutilisée) -> bool
+est_navigation_params :: fonc (navigation_params: *NavigationParams) -> bool
 {
-    retourne vrai
+    /* À FAIRE : non-fetch scheme */
+    retourne navigation_params != nul
 }
 
 détruit_navigation_params :: fonc (navigation_params: *NavigationParams)
@@ -181,10 +182,10 @@ SourceSnapshotParams :: struct {
     sandboxing_flags: SandboxingFlags
     allows_downloading: bool
     fetch_client: *rien // À FAIRE(settings object)
-    source_policy_container: *rien // À FAIRE
+    source_policy_container: *PolicyContainer
 }
 
-snapshot_source_snapshot_params :: fonc (source_document: *Document @inutilisée) -> SourceSnapshotParams
+snapshot_source_snapshot_params :: fonc (source_document: *Document) -> SourceSnapshotParams
 {
     résultat: SourceSnapshotParams
     imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
@@ -192,7 +193,7 @@ snapshot_source_snapshot_params :: fonc (source_document: *Document @inutilisée
     // sandboxing flags = sourceDocument's active sandboxing flag set
     // allows downloading = false if sourceDocument's active sandboxing flag set has the sandboxed downloads browsing context flag set; otherwise true
     // fetch client = sourceDocument's relevant settings object
-    // source policy container = sourceDocument's policy container
+    résultat.source_policy_container = source_document.policy_container
     retourne résultat
 }
 
@@ -204,7 +205,7 @@ TargetSnapshotParams :: struct {
 snapshot_target_snapshot_params :: fonc (target_navigable: *Navigable) -> TargetSnapshotParams
 {
     résultat: TargetSnapshotParams
-    résultat.sandboxing_flags = détermine_drapeaux_sanboxing(target_navigable.donne_active_browsing_context(), target_navigable.donne_container())
+    résultat.sandboxing_flags = détermine_drapeaux_sandboxing(target_navigable.donne_active_browsing_context(), target_navigable.donne_container())
     retourne résultat
 }
 
@@ -260,7 +261,9 @@ navigate :: fonc (user_agent: *UserAgent,
                   navigable: *Navigable,
                   url: &URI,
                   source_document: *Document,
-                  history_handling := NavigationHistoryBehavior.AUTO)
+                  history_handling := NavigationHistoryBehavior.AUTO,
+                  referrer_policy := ReferrerPolicy.EmptyString,
+                  user_involvement := UserNavigationInvolvement.None @inutilisée)
 {
     // 1. Let cspNavigationType be "form-submission" if formDataEntryList is non-null; otherwise "other".
 
@@ -283,7 +286,16 @@ navigate :: fonc (user_agent: *UserAgent,
 
     // 7. If the surrounding agent is equal to navigable's active document's relevant agent, then continue these steps. Otherwise, queue a global task on the navigation and traversal task source given navigable's active window to continue these steps.
 
-    // 8. If navigable's active document's unload counter is greater than 0, then invoke WebDriver BiDi navigation failed with a WebDriver BiDi navigation status whose id is navigationId, status is "canceled", and url is url, and return.
+    // 8. If navigable's active document's unload counter is greater than 0, then
+    //    invoke WebDriver BiDi navigation failed with a WebDriver BiDi navigation
+    //    status whose id is navigationId, status is "canceled", and url is url, and return.
+    si navigable.donne_active_document().unload_counter > 0 {
+        navigation_status: WebDriverNavigationStatus
+        navigation_status.id = navigation_id
+        navigation_status.url = url
+        navigation_status.status = "canceled"
+        webdriver_bidi_navigation_failed(navigable, *navigation_status)
+    }
 
     // 9. Let container be navigable's container.
 
@@ -333,16 +345,27 @@ navigate :: fonc (user_agent: *UserAgent,
     }
 
     // 15. Let targetBrowsingContext be navigable's active browsing context.
-    // target_browsing_context := navigable.donne_active_browsing_context()
+    target_browsing_context := navigable.donne_active_browsing_context()
 
     // 16. Let targetSnapshotParams be the result of snapshotting target snapshot params given navigable.
     target_snapshot_params := snapshot_target_snapshot_params(navigable)
 
-    // 17. Invoke WebDriver BiDi navigation started with targetBrowsingContext, and a new WebDriver BiDi navigation status whose id is navigationId, status is "pending", and url is url.
+    // 17. Invoke WebDriver BiDi navigation started with targetBrowsingContext,
+    //     and a new WebDriver BiDi navigation status whose id is navigationId,
+    //     status is "pending", and url is url.
+    navigation_status: WebDriverNavigationStatus
+    navigation_status.id = navigation_id
+    navigation_status.url = url
+    navigation_status.status = "pending"
+    webdriver_bidi_navigation_started(target_browsing_context, *navigation_status)
 
     // 18. If navigable's ongoing navigation is "traversal", then:
     si navigable.ongoing_navigation == "traversal" {
         // 1. Invoke WebDriver BiDi navigation failed with targetBrowsingContext and a new WebDriver BiDi navigation status whose id is navigationId, status is "canceled", and url is url.
+        navigation_status.id = navigation_id
+        navigation_status.url = url
+        navigation_status.status = "canceled"
+        webdriver_bidi_navigation_failed(target_browsing_context, *navigation_status)
 
         // 2. Return.
         retourne
@@ -378,28 +401,13 @@ navigate :: fonc (user_agent: *UserAgent,
     Tâche :: struct {
         empl base: Algorithm
 
-        user_agent: *UserAgent
-        navigable: *Navigable
-        url: URI
-        source_snapshot_params: SourceSnapshotParams
-        target_snapshot_params: TargetSnapshotParams
-        history_handling: NavigationHistoryBehavior
-        navigation_id: Optionnel(NavigationID)
+        params: NavigateParallelStepsParams
     }
 
     sur_run :: fonc (base: *Algorithm)
     {
         tâche := base comme *Tâche
-
-        user_agent := tâche.user_agent
-        navigable := tâche.navigable
-        url := tâche.url
-        source_snapshot_params_ := tâche.source_snapshot_params
-        target_snapshot_params_ := tâche.target_snapshot_params
-        history_handling := tâche.history_handling
-        navigation_id_ := tâche.navigation_id
-
-        navigate_parallel_steps(user_agent, navigable, url, source_snapshot_params_, target_snapshot_params_, history_handling, navigation_id_)
+        navigate_parallel_steps(*tâche.params)
     }
 
     sur_destruction :: fonc (base: *Algorithm)
@@ -411,31 +419,55 @@ navigate :: fonc (user_agent: *UserAgent,
     tâche := loge(Tâche)
     tâche.sur_run = sur_run
     tâche.sur_destruction = sur_destruction
-    tâche.user_agent = user_agent
-    tâche.navigable = navigable
-    tâche.url = url
-    tâche.source_snapshot_params = source_snapshot_params
-    tâche.target_snapshot_params = target_snapshot_params
-    tâche.history_handling = history_handling
-    tâche.navigation_id = navigation_id
+    tâche.params.user_agent = user_agent
+    tâche.params.navigable = navigable
+    tâche.params.url = url
+    tâche.params.source_snapshot_params = source_snapshot_params
+    tâche.params.target_snapshot_params = target_snapshot_params
+    tâche.params.history_handling = history_handling
+    tâche.params.navigation_id = navigation_id
+    tâche.params.target_browsing_context = target_browsing_context
+    tâche.params.referrer_policy = referrer_policy
 
     user_agent.lance_en_parallèle(tâche)
 }
 
-navigate_parallel_steps :: fonc (user_agent: *UserAgent,
-                                 navigable: *Navigable,
-                                 url: &URI,
-                                 source_snapshot_params: &SourceSnapshotParams,
-                                 target_snapshot_params: &TargetSnapshotParams,
-                                 history_handling: NavigationHistoryBehavior,
-                                 navigation_id: NavigationID)
+NavigateParallelStepsParams :: struct {
+    user_agent: *UserAgent
+    navigable: *Navigable
+    url: URI
+    source_snapshot_params: SourceSnapshotParams
+    target_snapshot_params: TargetSnapshotParams
+    history_handling: NavigationHistoryBehavior
+    navigation_id: NavigationID
+    target_browsing_context: *BrowsingContext
+    referrer_policy: ReferrerPolicy
+}
+
+navigate_parallel_steps :: fonc (params: *NavigateParallelStepsParams)
 {
+    user_agent := params.user_agent
+    navigable := params.navigable
+    url := params.url
+    source_snapshot_params := params.source_snapshot_params
+    target_snapshot_params := params.target_snapshot_params
+    history_handling := params.history_handling
+    navigation_id := params.navigation_id
+    target_browsing_context := params.target_browsing_context
+
     // 1. Let unloadPromptCanceled be the result of checking if unloading is
     //    canceled for navigable's active document's inclusive descendant navigables.
 
     // 2. If unloadPromptCanceled is true, or navigable's ongoing navigation is no longer navigationId, then:
     si navigable.ongoing_navigation != navigation_id {
-        // 1. Invoke WebDriver BiDi navigation failed with targetBrowsingContext and a new WebDriver BiDi navigation status whose id is navigationId, status is "canceled", and url is url.
+        // 1. Invoke WebDriver BiDi navigation failed with targetBrowsingContext
+        //    and a new WebDriver BiDi navigation status whose id is navigationId,
+        //    status is "canceled", and url is url.
+        navigation_status: WebDriverNavigationStatus
+        navigation_status.id = navigation_id
+        navigation_status.url = url
+        navigation_status.status = "canceled"
+        webdriver_bidi_navigation_failed(target_browsing_context, *navigation_status)
 
         // 2. Abort these steps.
         retourne
@@ -449,6 +481,7 @@ navigate_parallel_steps :: fonc (user_agent: *UserAgent,
     //     resource    documentResource
     //     navigable target name    navigable's target name
     document_state := loge(DocumentState)
+    document_state.request_referrer_policy = params.referrer_policy
 
     // 5. If url matches about:blank or is about:srcdoc, then:
 
@@ -956,11 +989,14 @@ attempt_to_populate_the_history_entry_document :: fonc (params: *HistoryEntryPop
                 // 2. Set entry's document state's origin to document's origin.
                 entry.document_state.origin = document.origin
 
-                // À FAIRE : 3. If document's URL requires storing the policy container in history, then:
-
+                // 3. If document's URL requires storing the policy container in history, then:
+                si requires_storing_the_policy_container_in_history(document.url) {
                     // 1. Assert: navigationParams is a navigation params (i.e., neither null nor a non-fetch scheme navigation params).
+                    assert(est_navigation_params(navigation_params))
 
                     // 2. Set entry's document state's history policy container to navigationParams's policy container.
+                    entry.document_state.history_policy_container = navigation_params.policy_container
+                }
             }
             
             // 3. If entry's document state's request referrer is "client", and navigationParams is a navigation params (i.e., neither null nor a non-fetch scheme navigation params), then:
@@ -1115,11 +1151,13 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
     // final_sandboxing_flags: SandboxingFlags
 
     // 14. Let responsePolicyContainer be null.
+    response_policy_container: *PolicyContainer
 
     // 15. Let responseCOOP be a new cross-origin opener policy.
     response_coop: CrossOriginOpenerPolicy
 
     // 16. Let locationURL be null.
+    location_url: *URL
 
     // 17. Let currentURL be request's current URL.
     current_url := request.donne_url_courant()
@@ -1222,9 +1260,12 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
         // 13. If response is not a network error, navigable is a child navigable, and the result of performing a cross-origin resource policy check with navigable's container document's origin, navigable's container document's relevant settings object, request's destination, response, and true is blocked, then set response to a network error and break.
 
         // 14. Set locationURL to response's location URL given currentURL's fragment.
+        location_url = donne_location_url(response, current_url.fragment)
 
         // 15. If locationURL is failure or null, then break.
-        arrête
+        si location_url == nul {
+            arrête
+        }
 
         // 16. Assert: locationURL is a URL.
 
@@ -1244,15 +1285,18 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
         //     navigable target name   oldDocState's navigable target name
 
         // 20. If locationURL's scheme is not an HTTP(S) scheme, then:
-
+        saufsi is_http_scheme(location_url.scheme) {
             // 1. Set entry's document state's resource to null.
 
             // 2. Break.
+            arrête
+        }
 
         // 21. Set currentURL to locationURL.
+        current_url = tente parse_uri_standard(url_serializer(location_url)) piège nonatteignable
 
         // 22. Set entry's URL to currentURL.
-        entry.url = tente parse_uri_standard(recompose_uri(*current_url)) piège nonatteignable
+        entry.url = current_url
     }
 
     // 20. If locationURL is a URL whose scheme is not a fetch scheme, then return a new non-fetch scheme navigation params, with
@@ -1272,7 +1316,9 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
 
     // 22. Assert: locationURL is null and response is not a network error.
 
-    // 23. Let resultPolicyContainer be the result of determining navigation params policy container given response's URL, entry's document state's history policy container, sourceSnapshotParams's source policy container, null, and responsePolicyContainer.
+    // 23. Let resultPolicyContainer be the result of determining navigation params policy container
+    //     given response's URL, entry's document state's history policy container, sourceSnapshotParams's source policy container, null, and responsePolicyContainer.
+    result_policy_container := determine_navigation_params_policy_container(response.donne_url().Quelque, entry.document_state.history_policy_container, source_snapshot_params.source_policy_container, nul, response_policy_container)
 
     // 24. If navigable's container is an iframe, and response's timing allow passed flag is set, then set container's pending resource-timing start time to null.
 
@@ -1301,7 +1347,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
     résultat.cross_origin_opener_policy = response_coop
     //     reserved environment    request's reserved client
     //     origin  responseOrigin
-    //     policy container    resultPolicyContainer
+    résultat.policy_container = result_policy_container
     //     final sandboxing flag set   finalSandboxFlags
     résultat.COOP_enforcement_result = coop_enforcement_result
     //     navigation timing type  navTimingType
@@ -1582,7 +1628,9 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
         after_potential_unloads_params.completed_change_jobs = *completed_change_jobs
         after_potential_unloads_params.script_history_length = script_history_length
         after_potential_unloads_params.script_history_index = script_history_index
-        after_potential_unloads_params.navigation_type = navigation_type
+        si navigation_type {
+            after_potential_unloads_params.navigation_type = mémoire(navigation_type)
+        }
         after_potential_unloads_params.entries_for_navigation_api = entries_for_navigation_api
         after_potential_unloads_params.displayed_entry = navigable.active_session_history_entry
 
@@ -1650,7 +1698,7 @@ AfterPotentialUnloadsParams :: struct {
     completed_change_jobs: *z32
     script_history_length: n32
     script_history_index: n32
-    navigation_type: *NavigationType
+    navigation_type: Optionnel(NavigationType)
     entries_for_navigation_api: []*SessionHistoryEntry
     displayed_entry: *SessionHistoryEntry
 }
@@ -2279,7 +2327,7 @@ DocumentUpdateParams :: struct {
     do_not_reactivate: bool
     script_history_length: n32
     script_history_index: n32
-    navigation_type: *NavigationType
+    navigation_type: Optionnel(NavigationType)
     entries_for_navigation_api: []*SessionHistoryEntry
     previous_entry_for_activation: Optionnel(*SessionHistoryEntry)
 }
@@ -2316,7 +2364,7 @@ update_document_for_history_step_application :: fonc (empl params: *DocumentUpda
         // 4. If documentIsNew is false, then:
         saufsi document_is_new {
             // 1. Assert: navigationType is not null.
-            assert(navigation_type != nul)
+            assert(navigation_type.possède_valeur())
 
             // À FAIRE : 2. Update the navigation API entries for a same-document navigation given navigation, entry, and navigationType.
 
@@ -2343,7 +2391,7 @@ update_document_for_history_step_application :: fonc (empl params: *DocumentUpda
     // navigationType is non-null; and
     // navigationType is "reload" or previousEntryForActivation's document is not document,
     // then:
-    si previous_entry_for_activation.possède_valeur() && navigation_type != nul && (mémoire(navigation_type) == NavigationType.reload || donne_document(previous_entry_for_activation.Quelque) != document) {
+    si previous_entry_for_activation.possède_valeur() && navigation_type.possède_valeur() && (navigation_type.Quelque == NavigationType.reload || donne_document(previous_entry_for_activation.Quelque) != document) {
         // À FAIRE : 1. If navigation's activation is null, then set navigation's activation to a new NavigationActivation object in navigation's relevant realm.
 
         // 2. Let previousEntryIndex be the result of getting the navigation API entry index of previousEntryForActivation within navigation.
@@ -2485,12 +2533,12 @@ create_and_initialize_a_document_object :: fonc (user_agent: *UserAgent, type: c
     //     current document readiness "loading"
     //     about base URL navigationParams's about base URL
     //     allow declarative shadow roots true
-    document := crée_noeud_document()
+    document := crée_noeud_document(user_agent.donne_tas_de_mémoire())
     document.type = type
     document.type_contenu = content_type
     document.origin = navigation_params.origin
     document.browsing_context = browsing_context
-    //     policy container navigationParams's policy container
+    document.policy_container = navigation_params.policy_container
     //     permissions policy permissionsPolicy
     document.active_sandboxing_flags = navigation_params.final_sandboxing_flag
     document.cross_origin_opener_policy = navigation_params.cross_origin_opener_policy
@@ -2552,10 +2600,10 @@ populate_with_html_head_body :: fonc (document: *Document)
     html := crée_élément_avec_tag(document, TAG_html)
 
     // 2. Let head be the result of creating an element given document, head, and the HTML namespace.
-    head := crée_élément_avec_tag(document, TAG_html)
+    head := crée_élément_avec_tag(document, TAG_head)
 
     // 3. Let body be the result of creating an element given document, body, and the HTML namespace.
-    body := crée_élément_avec_tag(document, TAG_html)
+    body := crée_élément_avec_tag(document, TAG_body)
 
     // 4. Append html to document.
     document.ajoute_enfant(html)
@@ -2588,7 +2636,7 @@ load_an_html_document :: fonc (user_agent: *UserAgent, navigation_params: *Navig
     }
     // 3. Otherwise, create an HTML parser and associate it with the document. Each task that the networking task source places on the task queue while fetching runs must then fill the parser's input byte stream with the fetched bytes and cause the HTML parser to perform the appropriate processing of the input stream.
     sinon {
-        parseuse := initialise_parseuse(response.body.Quelque, document)
+        parseuse := initialise_parseuse(user_agent.donne_tas_de_mémoire(), response.body.Quelque, document)
         diffère détruit_parseuse(*parseuse)
 
         // début := maintenant_précis()
