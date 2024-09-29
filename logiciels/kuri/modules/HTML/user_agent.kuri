@@ -19,6 +19,8 @@ UserAgent :: struct {
     rappels_interface: *RappelsInterface
 
     mv: JavaScript.MachineVirtuelle
+
+    supporte_scripting: bool
 }
 
 initialise_user_agent :: fonc (user_agent: *UserAgent)

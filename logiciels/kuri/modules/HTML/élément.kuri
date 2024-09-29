@@ -1845,25 +1845,6 @@ est_inséré_par_parseuse :: fonc (script: *HTMLScriptElement) -> bool
     retourne script.document_parseur != nul
 }
 
-/* https://html.spec.whatwg.org/multipage/webappapis.html#concept-n-noscript */
-scripting_est_activé :: fonc (script: *HTMLScriptElement) -> bool
-{
-    node_document := script.donne_node_document()
-    saufsi node_document {
-        retourne faux
-    }
-    saufsi node_document.browsing_context {
-        retourne faux
-    }
-    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
-    retourne faux
-}
-
-scripting_est_désactivé :: fonc (script: *HTMLScriptElement) -> bool
-{
-    retourne scripting_est_activé(script) == faux
-}
-
 détermine_type_block_script :: fonc (script: *HTMLScriptElement) -> DOMString
 {
     attr_type := script.cherche_attribut(ATTR_type)
