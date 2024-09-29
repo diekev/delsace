@@ -54,7 +54,7 @@ flux_sortie_efface :: fonc (flux_sortie: *FluxSortieConsole)
 
 #portée_fichier
 
-table_virtuelle_console := TableVirtuelleCellule(classe = Console, sur_destruction = console_sur_destruction)
+table_virtuelle_console := TableVirtuelleObject(classe = Console, sur_destruction = console_sur_destruction)
 
 #portée_export
 
@@ -236,7 +236,7 @@ count :: fonc (console: *Console, interpréteuse: &Interpréteuse, nom: ECMAStri
     // 1. Let map be the associated count map.
     // 2. If map[label] exists, set map[label] to map[label] + 1.
     pour & console.compteuses {
-            si it.nom == nom {
+        si it.nom == nom {
             it.compte += 1
             compteuse = it
             arrête

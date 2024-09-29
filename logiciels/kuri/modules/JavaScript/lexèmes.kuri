@@ -76,9 +76,9 @@ GenreLexème :: énum {
     Catch
     Const
     Continue
-    Debugger 
-    Default 
-    Delete 
+    Debugger
+    Default
+    Delete
     Do
     Else
     Enum
