@@ -1,3 +1,4 @@
+importe Fondation
 importe #inemployé JavaScript
 
 /* ------------------------------------------------------------------------- */
@@ -20,6 +21,14 @@ PlatformObject :: struct {
 donne_tas_de_mémoire :: fonc (object: *PlatformObject) -> *JavaScript.TasDeMémoire
 {
     retourne JavaScript.donne_tas_de_mémoire(object)
+}
+
+/* https://html.spec.whatwg.org/multipage/nav-history-apis.html#isplatformobjectsameorigin-(-o-) */
+is_platform_object_same_origin :: fonc (object: *JavaScript.Object @inutilisée) -> bool
+{
+    // 1. Return true if the current settings object's origin is same origin-domain with O's relevant settings object's origin, and false otherwise.
+    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+    retourne faux
 }
 
 /** \} */

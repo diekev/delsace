@@ -509,10 +509,47 @@ Window :: struct {
 
 /** \} */
 
+/* ------------------------------------------------------------------------- */
+/** \nom Window
+ * https://html.spec.whatwg.org/multipage/nav-history-apis.html#windowproxy
+ * À FAIRE : implémente les fonctions virtuelles
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_window_proxy := JavaScript.TableVirtuelleObject(
+    classe = WindowProxy,
+    sur_get_prototype_of = window_proxy_ordinary_get_prototype_of
+)
+
+/* https://html.spec.whatwg.org/multipage/nav-history-apis.html#windowproxy-getprototypeof */
+window_proxy_ordinary_get_prototype_of :: fonc (object: *JavaScript.Object) -> *JavaScript.Object
+{
+    proxy := object comme *WindowProxy
+
+    // 1. Let W be the value of the [[Window]] internal slot of this.
+    w := proxy.window
+
+    // 2. If IsPlatformObjectSameOrigin(W) is true, then return ! OrdinaryGetPrototypeOf(W).
+    si is_platform_object_same_origin(w) {
+        retourne JavaScript.ordinary_get_prototype_of(w)
+    }
+
+    // 3. Return null.
+    retourne nul
+}
+
+#portée_export
+
 WindowProxy :: struct {
+    empl object: JavaScript.Object
+    table = *table_virtuelle_window_proxy
+
     /* [[Window]] */
     window: *Window
 }
+
+/** \} */
 
 BrowsingContextGroup :: struct {
     contexts: [..]*BrowsingContext
