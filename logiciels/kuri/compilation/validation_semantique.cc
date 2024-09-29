@@ -1661,7 +1661,12 @@ RésultatValidation Sémanticienne::valide_accès_membre(NoeudExpressionMembre *
                 return Attente::sur_symbole(expression_membre);
             }
 
-            if (!déclaration_référée->type) {
+            /* À FAIRE : crée un type pour les fonctions polymorphiques (et voir assertion dans la
+             * validation des références). */
+            if (!déclaration_référée->type &&
+                !(déclaration_référée->est_entête_fonction() &&
+                  déclaration_référée->comme_entête_fonction()->possède_drapeau(
+                      DrapeauxNoeudFonction::EST_POLYMORPHIQUE))) {
                 return Attente::sur_type_déclaration(déclaration_référée);
             }
 

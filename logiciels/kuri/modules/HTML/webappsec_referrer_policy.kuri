@@ -1,0 +1,15 @@
+/* https://w3c.github.io/webappsec-referrer-policy/#referrer-policy */
+ReferrerPolicy :: énum n8 {
+    EmptyString // Utilisé pour représenter "".
+    NoReferrer
+    NoReferrerWhenDowngrade
+    SameOrigin
+    Origin
+    StrictOrigin
+    OriginWhenCrossOrigin
+    StrictOriginWhenCrossOrigin
+    UnsafeUrl
+}
+
+/* https://w3c.github.io/webappsec-referrer-policy/#default-referrer-policy */
+default_referrer_policy :: ReferrerPolicy.StrictOriginWhenCrossOrigin
