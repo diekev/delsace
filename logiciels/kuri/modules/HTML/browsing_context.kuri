@@ -888,9 +888,110 @@ crée_un_nouveau_realm :: fonc (agent: *rien @inutilisée, mv: *JavaScript.Machi
 }
 
 /* https://html.spec.whatwg.org/multipage/nav-history-apis.html#set-up-a-window-environment-settings-object */
-set_up_window_environnement_context :: fonc (creation_url: URI @inutilisée, execution_context: *JavaScript.ExecutionContext @inutilisée, reserved_environment: *rien @inutilisée, top_level_creation_url: URI @inutilisée, top_level_origin: Origin @inutilisée)
+set_up_window_environnement_context :: fonc (creation_url: URI,
+                                             execution_context: *JavaScript.ExecutionContext,
+                                             reserved_environment: *rien @inutilisée,
+                                             top_level_creation_url: URI,
+                                             top_level_origin: Origin)
 {
-    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+    // 1. Let realm be the value of execution context's Realm component.
+    realm := execution_context.realm
+
+    // 2. Let window be realm's global object.
+    window := realm.global_object comme *Window
+
+    // 3. Let settings object be a new environment settings object whose algorithms are defined as follows:
+    WindowEnvironment :: struct {
+        empl base_env: EnvironmentSettings
+
+        execution_context: *JavaScript.ExecutionContext
+        window: *Window
+    }
+
+    // The realm execution context
+    sur_donne_realm_execution_context :: fonc (base: *EnvironmentSettings) -> *JavaScript.ExecutionContext
+    {
+        // Return execution context.
+        env := base comme *WindowEnvironment
+        retourne env.execution_context
+    }
+
+    // À FAIRE : The module map
+    // Return the module map of window's associated Document.
+
+    // The API base URL
+    sur_donne_api_base_url :: fonc (base: *EnvironmentSettings) -> URI
+    {
+        // Return the current base URL of window's associated Document.
+        env := base comme *WindowEnvironment
+        window := env.window
+        retourne window.document.donne_base_url()
+    }
+
+    // The origin
+    sur_donne_origin :: fonc (base: *EnvironmentSettings) -> Origin
+    {
+        // Return the origin of window's associated Document.
+        env := base comme *WindowEnvironment
+        window := env.window
+        retourne window.document.origin
+    }
+
+    // The policy container
+    sur_donne_policy_container :: fonc (base: *EnvironmentSettings) -> *PolicyContainer
+    {
+        // Return the policy container of window's associated Document.
+        env := base comme *WindowEnvironment
+        window := env.window
+        retourne window.document.policy_container
+    }
+
+    // The cross-origin isolated capability
+    sur_donne_cross_origin_isolated_capability :: fonc (base: *EnvironmentSettings @inutilisée) -> bool
+    {
+        // À FAIRE
+        // Return true if both of the following hold, and false otherwise:
+        
+        // realm's agent cluster's cross-origin-isolation mode is "concrete", and
+
+        // window's associated Document is allowed to use the "cross-origin-isolated" feature.
+        retourne faux
+    }
+
+    // The time origin
+    sur_donne_time_origin :: fonc (base: *EnvironmentSettings) -> r64
+    {
+        // Return window's associated Document's load timing info's navigation start time.
+        env := base comme *WindowEnvironment
+        window := env.window
+        retourne window.document.load_timing_info.navigation_start_time comme r64
+    }
+
+    settings_object := loge(WindowEnvironment)
+    settings_object.execution_context = execution_context
+    settings_object.window = window
+    settings_object.sur_donne_realm_execution_context = sur_donne_realm_execution_context
+    settings_object.sur_donne_api_base_url = sur_donne_api_base_url
+    settings_object.sur_donne_origin = sur_donne_origin
+    settings_object.sur_donne_policy_container = sur_donne_policy_container
+    settings_object.sur_donne_cross_origin_isolated_capability = sur_donne_cross_origin_isolated_capability
+    settings_object.sur_donne_time_origin = sur_donne_time_origin
+
+    // À FAIRE 4. If reservedEnvironment is non-null, then:
+
+        // 1. Set settings object's id to reservedEnvironment's id, target browsing context to reservedEnvironment's target browsing context, and active service worker to reservedEnvironment's active service worker.
+
+        // 2. Set reservedEnvironment's id to the empty string.
+
+    // 5. Otherwise, set settings object's id to a new unique opaque string, settings object's target browsing context to null, and settings object's active service worker to null.
+
+    // 6. Set settings object's creation URL to creationURL, settings object's top-level creation URL to topLevelCreationURL, and settings object's top-level origin to topLevelOrigin.
+    settings_object.creation_url = creation_url
+    settings_object.top_level_creation_url = top_level_creation_url
+    settings_object.top_level_origin = top_level_origin
+
+    // 7. Set realm's [[HostDefined]] field to settings object.
+    realm.host_defined = JavaScript.crée_host_defined(settings_object)
 }
 
 /** \} */

@@ -1,5 +1,6 @@
 importe Fondation
 importe #inemployé JavaScript
+importe Internet
 
 /* ------------------------------------------------------------------------- */
 /** \nom PlatformObject
@@ -29,6 +30,68 @@ is_platform_object_same_origin :: fonc (object: *JavaScript.Object @inutilisée)
     // 1. Return true if the current settings object's origin is same origin-domain with O's relevant settings object's origin, and false otherwise.
     imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
     retourne faux
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Environment
+ * https://html.spec.whatwg.org/multipage/webappapis.html#environments
+ * \{ */
+
+Environment :: struct {
+    creation_url: URI
+    top_level_creation_url: URI
+    top_level_origin: Origin
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom EnvironmentSettings
+ * https://html.spec.whatwg.org/multipage/webappapis.html#environment-settings-objects
+ * \{ */
+
+EnvironmentSettings :: struct {
+    empl base: Environment
+
+    sur_donne_realm_execution_context: fonc(*EnvironmentSettings)(*JavaScript.ExecutionContext)
+    // sur_donne_module_map
+    sur_donne_api_base_url: fonc(*EnvironmentSettings)(URI)
+    sur_donne_origin: fonc(*EnvironmentSettings)(Origin)
+    sur_donne_policy_container: fonc(*EnvironmentSettings)(*PolicyContainer)
+    sur_donne_cross_origin_isolated_capability: fonc(*EnvironmentSettings)(bool)
+    sur_donne_time_origin: fonc(*EnvironmentSettings)(r64)
+}
+
+donne_realm_execution_context :: fonc (environment: *EnvironmentSettings) -> *JavaScript.ExecutionContext
+{
+    retourne environment.sur_donne_realm_execution_context(environment)
+}
+
+donne_api_base_url :: fonc (environment: *EnvironmentSettings) -> URI
+{
+    retourne environment.sur_donne_api_base_url(environment)
+}
+
+donne_origin :: fonc (environment: *EnvironmentSettings) -> Origin
+{
+    retourne environment.sur_donne_origin(environment)
+}
+
+donne_policy_container :: fonc (environment: *EnvironmentSettings) -> *PolicyContainer
+{
+    retourne environment.sur_donne_policy_container(environment)
+}
+
+donne_cross_origin_isolated_capability :: fonc (environment: *EnvironmentSettings) -> bool
+{
+    retourne environment.sur_donne_cross_origin_isolated_capability(environment)
+}
+
+donne_time_origin :: fonc (environment: *EnvironmentSettings) -> r64
+{
+    retourne environment.sur_donne_time_origin(environment)
 }
 
 /** \} */
