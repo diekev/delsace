@@ -4,6 +4,7 @@ importe Ensemble
 importe Fondation
 importe Image
 importe Internet
+importe #inemployé JavaScript
 
 /* ------------------------------------------------------------------------- */
 /** \nom Document.
@@ -73,7 +74,7 @@ ImageDisponible :: struct {
 }
 
 Document :: struct {
-    empl base: Noeud
+    empl base_noeud: Noeud
     table = *table_virtuelle_document
 
     type_contenu: chaine
@@ -103,10 +104,14 @@ Document :: struct {
 
     referrer: chaine /* Peut être vide. */
 
+    policy_container: *PolicyContainer
+
     current_document_readiness: chaine
 
     is_initial_about_blank: bool
     latest_entry: *SessionHistoryEntry
+
+    unload_counter: z32
 
     /* CSS. */
     feuille_de_style_agent: *CSS.CSSStyleSheet
@@ -134,9 +139,10 @@ table_virtuelle_document := TableVirtuelleÉlément(
     sur_destruction = document_sur_destruction
 )
 
-document_sur_destruction :: fonc (base: *EventTarget)
+document_sur_destruction :: fonc (base: *JavaScript.Cellule)
 {
     document := base comme *Document
+    noeud_détruit_données(document)
     CSS.détruit_arbre(document.arbre_de_disposition)
     CSS.détruit_globales_dessin(document.globales_dessin)
     CSS.détruit_résolveuse(document.résolveuse_style)
@@ -147,16 +153,17 @@ document_sur_destruction :: fonc (base: *EventTarget)
         IMG_detruit_image(*it.données)
     }
 
+    détruit_policy_container(document.policy_container)
+
     détruit_uri(document.url)
     déloge(document.images_disponibles)
-    déloge(document)
 }
 
 #portée_export
 
-crée_noeud_document :: fonc () -> *Document
+crée_noeud_document :: fonc (tas_de_mémoire: *JavaScript.TasDeMémoire) -> *Document
 {
-    document := loge(Document)
+    document := JavaScript.alloue(tas_de_mémoire, Document)
     document.genre = GenreNoeud.Document
     document.encodage = Encodage.UTF8
     document.mode = ModeDocument.NO_QUIRKS
@@ -541,9 +548,14 @@ has_a_style_sheet_that_is_blocking_scripts :: fonc (document: *Document) -> bool
         retourne faux
     }
 
-    // À FAIRE : 3. Let containerDocument be document's node navigable's container document.
+    // 3. Let containerDocument be document's node navigable's container document.
+    container_document := donne_container_document(navigable)
 
-    // À FAIRE : 4. If containerDocument is non-null and containerDocument's script-blocking style sheet set is not empty, then return true.
+    // 4. If containerDocument is non-null and containerDocument's script-blocking
+    //    style sheet set is not empty, then return true.
+    si container_document != nul && container_document.script_blocking_style_sheet_set.taille != 0 {
+        retourne vrai
+    }
 
     // 5. Return false.
     retourne faux
@@ -631,7 +643,7 @@ définis_données_image :: fonc (document: *Document, url: chaine, données: Ima
  * \{ */
 
 NoeudTypeDocument :: struct {
-    empl base: Noeud
+    empl base_noeud: Noeud
     table = *table_virtuelle_type_document
 
     nom: DOMString
@@ -641,7 +653,7 @@ NoeudTypeDocument :: struct {
 
 crée_noeud_doctype :: fonc (document: *Document) -> *NoeudTypeDocument
 {
-    doctype := loge(NoeudTypeDocument)
+    doctype := JavaScript.alloue(document.donne_tas_de_mémoire(), NoeudTypeDocument)
     doctype.genre = GenreNoeud.TypeDocument
     doctype.document = document
 
@@ -652,14 +664,8 @@ crée_noeud_doctype :: fonc (document: *Document) -> *NoeudTypeDocument
 
 table_virtuelle_type_document := TableVirtuelleÉlément(
     classe = NoeudTypeDocument,
-    sur_destruction = type_document_sur_destruction
+    sur_destruction = noeud_sur_destruction
 )
-
-type_document_sur_destruction :: fonc (base: *EventTarget)
-{
-    type_document := base comme *NoeudTypeDocument
-    déloge(type_document)
-}
 
 #portée_export
 
@@ -671,13 +677,13 @@ type_document_sur_destruction :: fonc (base: *EventTarget)
  * \{ */
 
 NoeudFragmentDocument :: struct {
-    empl base: Noeud
+    empl base_noeud: Noeud
     table = *table_virtuelle_fragment_document
 }
 
 crée_noeud_fragment_document :: fonc (document: *Document) -> *NoeudFragmentDocument
 {
-    doctype := loge(NoeudFragmentDocument)
+    doctype := JavaScript.alloue(document.donne_tas_de_mémoire(), NoeudFragmentDocument)
     doctype.genre = GenreNoeud.FragmentDocument
     doctype.document = document
 
@@ -688,14 +694,8 @@ crée_noeud_fragment_document :: fonc (document: *Document) -> *NoeudFragmentDoc
 
 table_virtuelle_fragment_document := TableVirtuelleÉlément(
     classe = NoeudFragmentDocument,
-    sur_destruction = fragment_document_sur_destruction
+    sur_destruction = noeud_sur_destruction
 )
-
-fragment_document_sur_destruction :: fonc (base: *EventTarget)
-{
-    fragment_document := base comme *NoeudFragmentDocument
-    déloge(fragment_document)
-}
 
 #portée_export
 
@@ -708,7 +708,7 @@ fragment_document_sur_destruction :: fonc (base: *EventTarget)
  * \{ */
 
 NoeudDonnéesCaractères :: struct {
-    empl base: Noeud
+    empl base_noeud: Noeud
 
     données: ChaineUTF16
 }
@@ -741,7 +741,7 @@ NoeudTexte :: struct {
 
 crée_noeud_texte :: fonc (document: *Document) -> *NoeudTexte
 {
-    texte := loge(NoeudTexte)
+    texte := JavaScript.alloue(document.donne_tas_de_mémoire(), NoeudTexte)
     texte.genre = GenreNoeud.Texte
     texte.document = document
 
@@ -761,11 +761,11 @@ table_virtuelle_texte := TableVirtuelleÉlément(
     sur_destruction = texte_sur_destruction
 )
 
-texte_sur_destruction :: fonc (base: *EventTarget)
+texte_sur_destruction :: fonc (base: *JavaScript.Cellule)
 {
     texte := base comme *NoeudTexte
+    noeud_détruit_données(texte)
     détruit_chaine(texte.données)
-    déloge(texte)
 }
 
 #portée_export
@@ -784,7 +784,7 @@ NoeudSectionCDATA :: struct {
 
 crée_noeud_section_cdata :: fonc (document: *Document) -> *NoeudTexte
 {
-    texte := loge(NoeudSectionCDATA)
+    texte := JavaScript.alloue(document.donne_tas_de_mémoire(), NoeudSectionCDATA)
     texte.genre = GenreNoeud.Section_CDATA
     texte.document = document
 
@@ -798,11 +798,11 @@ table_virtuelle_section_cdata := TableVirtuelleÉlément(
     sur_destruction = section_cdata_sur_destruction
 )
 
-section_cdata_sur_destruction :: fonc (base: *EventTarget)
+section_cdata_sur_destruction :: fonc (base: *JavaScript.Cellule)
 {
     section_cdata := base comme *NoeudSectionCDATA
+    noeud_détruit_données(section_cdata)
     détruit_chaine(section_cdata.données)
-    déloge(section_cdata)
 }
 
 #portée_export
@@ -821,7 +821,7 @@ NoeudCommentaire :: struct {
 
 crée_noeud_commentaire :: fonc (document: *Document, données: ChaineUTF16) -> *NoeudCommentaire
 {
-    commentaire := loge(NoeudCommentaire)
+    commentaire := JavaScript.alloue(document.donne_tas_de_mémoire(), NoeudCommentaire)
     commentaire.genre = GenreNoeud.Commentaire
     commentaire.document = document
     commentaire.données = copie_chaine(données)
@@ -836,11 +836,11 @@ table_virtuelle_commentaire := TableVirtuelleÉlément(
     sur_destruction = commentaire_sur_destruction
 )
 
-commentaire_sur_destruction :: fonc (base: *EventTarget)
+commentaire_sur_destruction :: fonc (base: *JavaScript.Cellule)
 {
     commentaire := base comme *NoeudCommentaire
+    noeud_détruit_données(commentaire)
     détruit_chaine(commentaire.données)
-    déloge(commentaire)
 }
 
 #portée_export
@@ -861,7 +861,7 @@ NoeudProcessingInstruction :: struct {
 
 crée_noeud_processing_instruction :: fonc (document: *Document, données: ChaineUTF16) -> *NoeudCommentaire
 {
-    résultat := loge(NoeudCommentaire)
+    résultat := JavaScript.alloue(document.donne_tas_de_mémoire(), NoeudCommentaire)
     résultat.genre = GenreNoeud.Commentaire
     résultat.document = document
     résultat.données = copie_chaine(données)
@@ -876,12 +876,12 @@ table_virtuelle_processing_instruction := TableVirtuelleÉlément(
     sur_destruction = processing_instruction_sur_destruction
 )
 
-processing_instruction_sur_destruction :: fonc (base: *EventTarget)
+processing_instruction_sur_destruction :: fonc (base: *JavaScript.Cellule)
 {
     processing_instruction := base comme *NoeudProcessingInstruction
+    noeud_détruit_données(processing_instruction)
     détruit_chaine(processing_instruction.données)
     détruit_chaine(processing_instruction.cible)
-    déloge(processing_instruction)
 }
 
 #portée_export
