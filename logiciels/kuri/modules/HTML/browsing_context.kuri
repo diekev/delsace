@@ -11,13 +11,15 @@ NestedHistory :: struct {
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#document-state-2 */
 DocumentState :: struct {
     document: *Document
+    history_policy_container: *PolicyContainer
     initiator_origin: Optionnel(Origin)
     origin: Origin
     navigable_target_name: chaine
     about_base_url: Optionnel(URI)
     // À FAIRE : complète
     request_referrer: chaine
-    request_referrer_policy: chaine
+    /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#document-state-request-referrer-policy */
+    request_referrer_policy := default_referrer_policy
     reload_pending: bool
     ever_populated: bool
 
@@ -49,7 +51,6 @@ SessionHistoryEntry :: struct {
 
 détruit_session_history_entry :: fonc (she: *SessionHistoryEntry)
 {
-    détruit_noeud(she.document_state.document)
     détruit_uri(she.url)
     déloge(she.document_state)
     déloge(she)
@@ -136,6 +137,19 @@ donne_container :: fonc (navigable: *Navigable @inutilisée) -> *Élément
 {
     imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
     retourne nul
+}
+
+/* https://html.spec.whatwg.org/multipage/document-sequences.html#nav-container-document */
+donne_container_document :: fonc (navigable: *Navigable) -> *Document
+{
+    // 1. If navigable's container is null, then return null.
+    container := donne_container(navigable)
+    saufsi container {
+        retourne nul
+    }
+
+    // 2. Return navigable's container's node document.
+    retourne container.document
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#nav-traversable */
@@ -262,7 +276,7 @@ donne_top_level_traversable :: fonc (input_navigable: *Navigable) -> *Traversabl
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#creating-a-new-top-level-traversable */
-crée_un_nouveau_top_level_traversable :: fonc (user_agent: *UserAgent, opener: *BrowsingContext, target_name: chaine, openerNavigableForWebDriver : *Navigable = nul @inutilisée) -> *TraversableNavigable
+crée_un_nouveau_top_level_traversable :: fonc (user_agent: *UserAgent, opener: *BrowsingContext, target_name: chaine, opener_navigable_for_webdriver : *Navigable = nul) -> *TraversableNavigable
 {
     // 1. Let document be null.
     document: *Document = nul
@@ -313,7 +327,8 @@ crée_un_nouveau_top_level_traversable :: fonc (user_agent: *UserAgent, opener: 
     // 11. Append traversable to the user agent's top-level traversable set.
     tableau_ajoute(*user_agent.top_level_traversables, traversable)
 
-    // À FAIRE 12. Invoke WebDriver BiDi navigable created with traversable and openerNavigableForWebDriver.
+    // 12. Invoke WebDriver BiDi navigable created with traversable and openerNavigableForWebDriver.
+    webdriver_bidi_navigable_created(traversable, opener_navigable_for_webdriver)
 
     // 13. Return traversable.
     retourne traversable
@@ -360,10 +375,27 @@ SandboxingFlags :: énum_drapeau n16 {
 }
 
 /* https://html.spec.whatwg.org/multipage/browsers.html#determining-the-creation-sandboxing-flags */
-détermine_drapeaux_sanboxing :: fonc (context: *BrowsingContext @inutilisée, embedder: *Élément @inutilisée) -> SandboxingFlags
+détermine_drapeaux_sandboxing :: fonc (context: *BrowsingContext, embedder: *Élément) -> SandboxingFlags
 {
-    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
-    retourne SandboxingFlags.zéro
+    résultat: SandboxingFlags
+        
+    // If embedder is null, then: the flags set on browsing context's popup sandboxing flag set.
+    si embedder == nul {
+        résultat |= context.popup_sandboxing_flags
+    }
+
+    // If embedder is an element, then: the flags set on embedder's iframe sandboxing flag set.
+    si embedder && embedder.local_name == TAG_iframe {
+        iframe := embedder comme *HTMLIFrameElement
+        résultat |= iframe.iframe_sandboxing_flags
+    }
+
+    // If embedder is an element, then: the flags set on embedder's node document's active sandboxing flag set.
+    si embedder {
+        résultat |= embedder.document.active_sandboxing_flags
+    }
+
+    retourne résultat
 }
 
 /* https://html.spec.whatwg.org/multipage/browsers.html#concept-origin-opaque */
@@ -448,9 +480,34 @@ crée_nouvelle_origin_opaque :: fonc () -> Origin
     retourne Origin(vrai, valeur_origine_opaque)
 }
 
+/* ------------------------------------------------------------------------- */
+/** \nom Window
+ * https://html.spec.whatwg.org/multipage/nav-history-apis.html#window
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_window := TableVirtuelleEventTarget(
+    classe = Window,
+    sur_destruction = window_sur_destruction
+)
+
+window_sur_destruction :: fonc (base: *JavaScript.Cellule)
+{
+    window := base comme *Window
+    event_target_détruit_données(window)
+}
+
+#portée_export
+
 Window :: struct {
+    empl event_target: EventTarget
+    table = *table_virtuelle_window
+
     document: *Document
 }
+
+/** \} */
 
 WindowProxy :: struct {
     /* [[Window]] */
@@ -481,6 +538,8 @@ BrowsingContext :: struct {
     popup: bool
     is_auxiliary: bool
     initial_url: Optionnel(URI)
+    /* Seulement pour les contextes de haut-niveau. */
+    popup_sandboxing_flags: SandboxingFlags
 
     virtual_browsing_context_group_id: z32
 
@@ -564,7 +623,7 @@ donne_top_level_browsing_context :: fonc (start: *BrowsingContext) -> *BrowsingC
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#creating-browsing-contexts */
-crée_browsing_context_et_document :: fonc (creator: *Document, embedder: *Élément, group: *BrowsingContextGroup) -> *BrowsingContext, *Document
+crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Document, embedder: *Élément, group: *BrowsingContextGroup) -> *BrowsingContext, *Document
 {
     // 1. Let browsingContext be a new browsing context.
     browsing_context := loge(BrowsingContext)
@@ -596,7 +655,7 @@ crée_browsing_context_et_document :: fonc (creator: *Document, embedder: *Élé
     }
 
     // 6. Let sandboxFlags be the result of determining the creation sandboxing flags given browsingContext and embedder.
-    sandbox_flags := détermine_drapeaux_sanboxing(browsing_context, embedder)
+    sandbox_flags := détermine_drapeaux_sandboxing(browsing_context, embedder)
 
     // 7. Let origin be the result of determining the origin given about:blank, sandboxFlags, and creatorOrigin.
     origin := détermine_origin(URI("about:blank"), sandbox_flags, creator_origin)
@@ -646,7 +705,7 @@ crée_browsing_context_et_document :: fonc (creator: *Document, embedder: *Élé
     //     is initial about:blank = true
     //     about base URL = creatorBaseURL
     //     allow declarative shadow roots = true
-    document := crée_noeud_document()
+    document := crée_noeud_document(user_agent.donne_tas_de_mémoire())
     document.type = "html"
     document.type_contenu = "text/html"
     document.mode = ModeDocument.QUIRKS
@@ -664,7 +723,8 @@ crée_browsing_context_et_document :: fonc (creator: *Document, embedder: *Élé
         // 1. Set document's referrer to the serialization of creator's URL.
         document.referrer = url_serializer(*creator.url)
 
-        // À FAIRE : 2. Set document's policy container to a clone of creator's policy container.
+        // 2. Set document's policy container to a clone of creator's policy container.
+        document.policy_container = clone(creator.policy_container)
 
         // 3. If creator's origin is same origin with creator's relevant settings
         //    object's top-level origin, then set document's cross-origin opener
@@ -712,7 +772,7 @@ crée_un_nouveau_browsing_context_group_and_document :: fonc (user_agent: *UserA
     tableau_ajoute(*user_agent.browsing_context_groups, group)
 
     // 3. Let browsingContext and document be the result of creating a new browsing context and document with null, null, and group.
-    browsing_context, document := crée_browsing_context_et_document(nul, nul, group)
+    browsing_context, document := crée_browsing_context_et_document(user_agent, nul, nul, group)
 
     // 4. Append browsingContext to group.
     browsing_context.group = group
@@ -720,20 +780,6 @@ crée_un_nouveau_browsing_context_group_and_document :: fonc (user_agent: *UserA
 
     // 5. Return group and document.
     retourne group, document
-}
-
-/* https://w3c.github.io/webappsec-permissions-policy/#policies */
-DeclaredPolicy :: struct {
-}
-
-PermissionsPolicy :: struct {
-}
-
-/* https://w3c.github.io/webappsec-permissions-policy/#algo-create-for-navigable */
-crée_permisions_policy_pour_navigable :: fonc (container: *Élément @inutilisée, origin: Origin @inutilisée) -> PermissionsPolicy
-{
-    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
-    retourne PermissionsPolicy()
 }
 
 /* https://html.spec.whatwg.org/multipage/webappapis.html#obtain-similar-origin-window-agent */
@@ -754,6 +800,140 @@ crée_un_nouveau_realm :: fonc (agent: *rien @inutilisée) -> *rien
 set_up_window_environnement_context :: fonc (creation_url: URI @inutilisée, execution_context: *rien @inutilisée, reserved_environment: *rien @inutilisée, top_level_creation_url: URI @inutilisée, top_level_origin: Origin @inutilisée)
 {
     imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 7.1.4 Cross-origin embedder policies
+ * \{ */
+
+/* https://html.spec.whatwg.org/multipage/browsers.html#embedder-policy-value */
+EmbedderPolicyValue :: énum n8 {
+    UnsafeNone
+    RequireCorp
+    // Voir commentaire dans la spec avant d'activer ceci.
+    // Credentialless
+}
+
+/* https://html.spec.whatwg.org/multipage/browsers.html#embedder-policy */
+EmbedderPolicy :: struct {
+    value := EmbedderPolicyValue.UnsafeNone
+    reporting_endpoint: chaine
+    report_only_value := EmbedderPolicyValue.UnsafeNone
+    report_only_reporting_endpoint: chaine
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 7.1.6 Policy containers
+ * https://html.spec.whatwg.org/multipage/browsers.html#policy-containers
+ * \{ */
+
+/* https://html.spec.whatwg.org/multipage/browsers.html#policy-container */
+PolicyContainer :: struct {
+    csp_list: [..]ContentSecurityPolicy
+    embedder_policy: EmbedderPolicy
+    referrer_policy := default_referrer_policy
+}
+
+clone :: fonc (source: *PolicyContainer) -> *PolicyContainer
+{
+    saufsi source {
+        retourne nul
+    }
+
+    résultat := loge(PolicyContainer)
+    résultat.embedder_policy = source.embedder_policy
+    résultat.referrer_policy = source.referrer_policy
+    pour source.csp_list {
+        tableau_ajoute(*résultat.csp_list, it)
+    }
+    retourne résultat
+}
+
+détruit_policy_container :: fonc (policy_container: *PolicyContainer)
+{
+    saufsi policy_container {
+        retourne
+    }
+
+    déloge(policy_container.csp_list)
+    déloge(policy_container)
+}
+
+/* https://html.spec.whatwg.org/multipage/browsers.html#requires-storing-the-policy-container-in-history */
+requires_storing_the_policy_container_in_history :: fonc (url: *URL) -> bool
+{
+    // 1. If url's scheme is "blob", then return false.
+    si url.scheme == "blob" {
+        retourne faux
+    }
+
+    // 2. If url is local, then return true.
+    si url.is_local() {
+        retourne vrai
+    }
+
+    // 3. Return false.
+    retourne faux
+}
+
+requires_storing_the_policy_container_in_history :: fonc (url: &URI) -> bool
+{
+    // 1. If url's scheme is "blob", then return false.
+    si url.schéma == "blob" {
+        retourne faux
+    }
+
+    // 2. If url is local, then return true.
+    si is_local_scheme(url.schéma) {
+        retourne vrai
+    }
+
+    // 3. Return false.
+    retourne faux
+}
+
+/* https://html.spec.whatwg.org/multipage/browsers.html#determining-navigation-params-policy-container */
+determine_navigation_params_policy_container :: fonc (response_url: &URI,
+                                                      history_policy_container: *PolicyContainer,
+                                                      initiator_policy_container: *PolicyContainer,
+                                                      parent_policy_container: *PolicyContainer,
+                                                      response_policy_container: *PolicyContainer) -> *PolicyContainer
+{
+    // 1. If historyPolicyContainer is not null, then:
+    si history_policy_container != nul {
+        // 1. Assert: responseURL requires storing the policy container in history.
+        assert(requires_storing_the_policy_container_in_history(response_url))
+
+        // 2. Return a clone of historyPolicyContainer.
+        retourne clone(history_policy_container)
+    }
+
+    // 2. If responseURL is about:srcdoc, then:
+    si response_url.uri == "about:srcdoc" {
+        // 1. Assert: parentPolicyContainer is not null.
+        assert(parent_policy_container != nul)
+
+        // 2. Return a clone of parentPolicyContainer.
+        retourne clone(parent_policy_container)
+    }
+
+    // 3. If responseURL is local and initiatorPolicyContainer is not null, 
+    //    then return a clone of initiatorPolicyContainer.
+    si is_local_scheme(response_url.schéma) && initiator_policy_container != nul {
+        retourne clone(initiator_policy_container)
+    }
+
+    // 4. If responsePolicyContainer is not null, then return responsePolicyContainer.
+    si response_policy_container != nul {
+        retourne response_policy_container
+    }
+
+    // 5. Return a new policy container.
+    retourne loge(PolicyContainer)
 }
 
 /** \} */
