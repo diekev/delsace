@@ -1,5 +1,6 @@
 importe Ensemble
 importe Fondation
+importe #inemployé HTML
 
 /* ------------------------------------------------------------------------- */
 /** \nom HostDefined
@@ -35,6 +36,7 @@ donne_données :: fonc (host_defined: &HostDefined, $T: type_de_données) -> *T
 
 MachineVirtuelle :: struct {
     tas_de_mémoire: TasDeMémoire
+    user_agent: *HTML.UserAgent
     execution_contexts: [..]*ExecutionContext
 }
 
