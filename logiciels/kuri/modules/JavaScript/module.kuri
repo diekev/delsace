@@ -337,7 +337,7 @@ vers_objet :: fonc (realm: *Realm, valeur: Valeur) -> CompletionRecord
 
 /* 7.1.19 ToPropertyKey ( argument )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-topropertykey */
-to_property_key :: fonc (interpréteuse: &Interpréteuse, argument: Valeur) -> CompletionRecord
+to_property_key :: fonc (interpréteuse: *Interpréteuse, argument: Valeur) -> CompletionRecord
 {
     retourne to_property_key(interpréteuse.donne_realm(), argument)
 }
@@ -381,7 +381,7 @@ to_length :: fonc (argument: Valeur) -> CompletionRecord
 
 /* 7.1.1 ToPrimitive ( input [ , preferredType ] )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-toprimitive */
-vers_primitive :: fonc (interpréteuse: &Interpréteuse, valeur: Valeur, type_préféré := TypePréféré.Aucun) -> CompletionRecord
+vers_primitive :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur, type_préféré := TypePréféré.Aucun) -> CompletionRecord
 {
     retourne vers_primitive(interpréteuse.donne_realm(), valeur, type_préféré)
 }
@@ -451,7 +451,7 @@ to_boolean :: fonc (valeur: Valeur) -> Valeur
 
 /* 7.1.3 ToNumeric ( value )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-tonumeric */
-to_numeric :: fonc (interpréteuse: &Interpréteuse, valeur: Valeur) -> CompletionRecord
+to_numeric :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur) -> CompletionRecord
 {
     // 1. Let primValue be ? ToPrimitive(value, NUMBER).
     complétion_valeur_primitive := vers_primitive(interpréteuse, valeur, TypePréféré.Number)
@@ -470,7 +470,7 @@ to_numeric :: fonc (interpréteuse: &Interpréteuse, valeur: Valeur) -> Completi
 }
 
 /* https://tc39.es/ecma262/multipage/abstract-operations.html#sec-tonumber */
-vers_nombre :: fonc (interpréteuse: &Interpréteuse, valeur: Valeur) -> CompletionRecord
+vers_nombre :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur) -> CompletionRecord
 {
     // 1. If argument is a Number, return argument.
     si valeur.est_nombre() {
@@ -564,7 +564,7 @@ string_to_number :: fonc (valeur: Valeur) -> Valeur
 
 /* 7.1.17 ToString ( argument )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-tostring */
-vers_chaine :: fonc (interpréteuse: &Interpréteuse, argument: Valeur) -> CompletionRecord
+vers_chaine :: fonc (interpréteuse: *Interpréteuse, argument: Valeur) -> CompletionRecord
 {
     retourne vers_chaine(interpréteuse.donne_realm(), argument)
 }
@@ -712,7 +712,14 @@ is_data_descriptor :: fonc (desc: &PropertyDescriptor) -> bool
 /** \nom Object
  * \{ */
 
-TypeFonctionObjectCall :: fonc(*Object, &Interpréteuse, Valeur, []Valeur)(CompletionRecord)
+ParamètresObjectCall :: struct {
+    object: *Object
+    interpréteuse: *Interpréteuse
+    this_value: Valeur
+    arguments: []Valeur
+}
+
+TypeFonctionObjectCall :: fonc(*ParamètresObjectCall)(CompletionRecord)
 
 TableVirtuelleObject :: struct {
     empl base_virtuelle_cellule: TableVirtuelleCellule
@@ -787,8 +794,8 @@ Object :: struct {
     Propriété :: struct {
         nom: PropertyKey
         valeur: Valeur
-        get: fonc(*Object)(Valeur)
-        set: fonc(*Object, Valeur)(rien)
+        get: *Object
+        set: *Object
         drapeaux: DrapeauxPropriété
     }
 
@@ -828,6 +835,19 @@ sur_destruction_objet :: fonc (base: *Cellule)
 ajoute_propriété :: fonc (objet: *Object, nom: PropertyKey, valeur: Valeur, drapeaux: DrapeauxPropriété)
 {
     tableau_ajoute(*objet.propriétés, Object.Propriété(nom, valeur, drapeaux = drapeaux))
+}
+
+ajoute_propriété :: fonc (objet: *Object, nom: PropertyKey, get: TypeFonctionObjectCall, set: TypeFonctionObjectCall, drapeaux: DrapeauxPropriété)
+{
+    getter: *Object
+    setter: *Object
+    si get {
+        getter = crée_fonction_native(objet.donne_tas_de_mémoire(), crée_chaine_utf16_unique_vide(), get, 0)
+    }
+    si set {
+        setter = crée_fonction_native(objet.donne_tas_de_mémoire(), crée_chaine_utf16_unique_vide(), set, 0)
+    }
+    tableau_ajoute(*objet.propriétés, Object.Propriété(nom, get = getter, set = setter, drapeaux = drapeaux))
 }
 
 /* [[GetPrototypeOf]] */
@@ -880,9 +900,14 @@ internal_set :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur
 }
 
 /* [[Call]] */
-internal_call :: fonc (object: *Object, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+internal_call :: fonc (object: *Object, interpréteuse: *Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
 {
-    retourne object.donne_table().sur_call(object, interpréteuse, this_value, arguments)
+    params: ParamètresObjectCall = ---
+    params.object = object
+    params.arguments = arguments
+    params.this_value = this_value
+    params.interpréteuse = interpréteuse
+    retourne object.donne_table().sur_call(*params)
 }
 
 trouve_propriété :: fonc (objet: *Object, nom: PropertyKey) -> *Object.Propriété
@@ -1011,14 +1036,14 @@ has_own_property :: fonc (object: *Object, nom: PropertyKey) -> CompletionRecord
 
 /* 7.3.13 Call ( F, V [ , argumentsList ] )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-call */
-call :: fonc (interpréteuse: &Interpréteuse, valeur: Valeur, this_value: Valeur) -> CompletionRecord
+call :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur, this_value: Valeur) -> CompletionRecord
 {
     // 1. If argumentsList is not present, set argumentsList to a new empty List.
     arguments: []Valeur
     retourne call(interpréteuse, valeur, this_value, arguments)
 }
 
-call :: fonc (interpréteuse: &Interpréteuse, valeur: Valeur, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+call :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
 {
     // Continuation de la version sans arguments.
     // 2. If IsCallable(F) is false, throw a TypeError exception.
@@ -1093,10 +1118,16 @@ ordinary_get_own_property :: fonc (object: *Object, property_key: PropertyKey) -
     sinon {
         // a. Assert: X is an accessor property.
         assert(is_accessor_propery(X))
-        panique("accessor property non-implémenté")
 
         // b. Set D.[[Get]] to the value of X's [[Get]] attribute.
+        si propriété.get {
+            D.get = propriété.get
+        }
+
         // c. Set D.[[Set]] to the value of X's [[Set]] attribute.
+        si propriété.set {
+            D.set = propriété.set
+        }
     }
 
     // 6. Set D.[[Enumerable]] to the value of X's [[Enumerable]] attribute.
@@ -1174,11 +1205,20 @@ ordinary_get :: fonc (object: *Object, property_key: PropertyKey, receiver: Vale
         retourne normal_completion(desc.P.value.Quelque)
     }
 
-    panique("accessor property non-implémenté")
     // 4. Assert: IsAccessorDescriptor(desc) is true.
+    assert(is_accessor_descriptor(desc.P))
+
     // 5. Let getter be desc.[[Get]].
+    getter := desc.P.get
+
     // 6. If getter is undefined, return undefined.
+    saufsi getter.possède_valeur() {
+        retourne normal_completion(js_undefined)
+    }
+
     // 7. Return ? Call(getter, Receiver).
+    // À FAIRE : passe une interpréteuse
+    retourne call(nul, getter.Quelque, receiver)
 }
 
 /** \} */
@@ -1241,21 +1281,21 @@ crée_object_prototype :: fonc (tas_de_mémoire: *TasDeMémoire) -> *ObjectProto
 
 /* 20.1.3.2 Object.prototype.hasOwnProperty ( V )
  * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-object.prototype.hasownproperty */ 
-object_prototype_has_own_property :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this: Valeur, args: []Valeur) -> CompletionRecord
+object_prototype_has_own_property :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
-    si args.taille != 1 {
+    si arguments.taille != 1 {
         retourne normal_completion(js_undefined)
     }
 
     // 1. Let P be ? ToPropertyKey(V).
-    complétion_nom := to_property_key(interpréteuse, args[0])
+    complétion_nom := to_property_key(interpréteuse, arguments[0])
     saufsi complétion_nom.est_normal() {
         retourne complétion_nom
     }
     nom := complétion_nom.valeur.V.String.texte
 
     // 2. Let O be ? ToObject(this value).
-    complétion_obj := vers_objet(interpréteuse.donne_realm(), this)
+    complétion_obj := vers_objet(interpréteuse.donne_realm(), this_value)
     saufsi complétion_obj.est_normal() {
         retourne complétion_obj
     }
@@ -1267,20 +1307,20 @@ object_prototype_has_own_property :: fonc (object: *Object @inutilisée, interpr
 
 /* 20.1.3.6 Object.prototype.toString ( )
  * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-object.prototype.tostring */
-object_prototype_to_string :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this: Valeur, args: []Valeur @inutilisée) -> CompletionRecord
+object_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
     // 1. If the this value is undefined, return "[object Undefined]".
-    si this.est_undefined() {
+    si this_value.est_undefined() {
         retourne crée_string_value_completion(interpréteuse, "[object Undefined]")
     }
 
     // 2. If the this value is null, return "[object Null]".
-    si this.est_nulle() {
+    si this_value.est_nulle() {
         retourne crée_string_value_completion(interpréteuse, "[object Null]")
     }
 
     // 3. Let O be ! ToObject(this value).
-    O := vers_objet(interpréteuse.donne_realm(), this).valeur.V.donne_objet()
+    O := vers_objet(interpréteuse.donne_realm(), this_value).valeur.V.donne_objet()
 
     // À FAIRE : 4. Let isArray be ? IsArray(O).
 
@@ -1475,7 +1515,7 @@ ordinary_function_create :: fonc (realm: *Realm, function_prototype: *FunctionPr
 
 /* 10.2.1 [[Call]] ( thisArgument, argumentsList )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ecmascript-function-objects-call-thisargument-argumentslist */
-sur_appel_fonction_instruite :: fonc (object: *Object, interpréteuse: &Interpréteuse, this_argument: Valeur, arguments_list: []Valeur) -> CompletionRecord
+sur_appel_fonction_instruite :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
     assert(object.donne_classe() == Function)
     F := object comme *Function
@@ -1504,10 +1544,10 @@ sur_appel_fonction_instruite :: fonc (object: *Object, interpréteuse: &Interpr�
     }
 
     // 5. Perform OrdinaryCallBindThis(F, calleeContext, thisArgument).
-    ordinary_call_bind_this(F, callee_context, this_argument)
+    ordinary_call_bind_this(F, callee_context, this_value)
 
     // 6. Let result be Completion(OrdinaryCallEvaluateBody(F, argumentsList)).
-    result := ordinary_call_evaluate_body(interpréteuse, F, arguments_list)
+    result := ordinary_call_evaluate_body(interpréteuse, F, arguments)
 
     // 7. Remove calleeContext from the execution context stack and restore callerContext as the running execution context.
     mv.dépile_execution_context()
@@ -1529,7 +1569,7 @@ sur_appel_fonction_instruite :: fonc (object: *Object, interpréteuse: &Interpr�
 
 /* 10.2.1.1 PrepareForOrdinaryCall ( F, newTarget )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-prepareforordinarycall */
-prepare_for_ordinary_call :: fonc (interpréteuse: &Interpréteuse, F: *Function, new_target: Valeur) -> *ExecutionContext
+prepare_for_ordinary_call :: fonc (interpréteuse: *Interpréteuse, F: *Function, new_target: Valeur) -> *ExecutionContext
 {
     // 1. Let callerContext be the running execution context.
     caller_context := interpréteuse.donne_running_execution_context()
@@ -1633,7 +1673,7 @@ ordinary_call_bind_this :: fonc (F: *Function, callee_context: *ExecutionContext
 
 /* 10.2.1.3 Runtime Semantics: EvaluateBody
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-runtime-semantics-evaluatebody */
-evaluate_body :: fonc (interpréteuse: &Interpréteuse, function_object: *Function, arguments_list: []Valeur) -> CompletionRecord
+evaluate_body :: fonc (interpréteuse: *Interpréteuse, function_object: *Function, arguments_list: []Valeur) -> CompletionRecord
 {
     // À FAIRE : tous les cas
     // FunctionBody : FunctionStatementList
@@ -1643,7 +1683,7 @@ evaluate_body :: fonc (interpréteuse: &Interpréteuse, function_object: *Functi
 
 /* 10.2.1.4 OrdinaryCallEvaluateBody ( F, argumentsList )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarycallevaluatebody */
-ordinary_call_evaluate_body :: fonc (interpréteuse: &Interpréteuse, F: *Function, arguments_list: []Valeur) -> CompletionRecord
+ordinary_call_evaluate_body :: fonc (interpréteuse: *Interpréteuse, F: *Function, arguments_list: []Valeur) -> CompletionRecord
 {
     // 1. Return ? EvaluateBody of F.[[ECMAScriptCode]] with arguments F and argumentsList.
     retourne evaluate_body(interpréteuse, F, arguments_list)
@@ -1651,7 +1691,7 @@ ordinary_call_evaluate_body :: fonc (interpréteuse: &Interpréteuse, F: *Functi
 
 /* 10.2.11 FunctionDeclarationInstantiation ( func, argumentsList )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-functiondeclarationinstantiation */
-function_declaration_instantiation :: fonc (interpréteuse: &Interpréteuse @inutilisée, func: *Function @inutilisée, arguments_list: []Valeur @inutilisée) -> CompletionRecord
+function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse @inutilisée, func: *Function @inutilisée, arguments_list: []Valeur @inutilisée) -> CompletionRecord
 {
     // À FAIRE
 
@@ -1781,7 +1821,7 @@ function_declaration_instantiation :: fonc (interpréteuse: &Interpréteuse @inu
 
 /* 15.2.3 Runtime Semantics: EvaluateFunctionBody
  * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-runtime-semantics-evaluatefunctionbody */
-evaluate_function_body :: fonc (interpréteuse: &Interpréteuse, function_object: *Function, arguments_list: []Valeur) -> CompletionRecord
+evaluate_function_body :: fonc (interpréteuse: *Interpréteuse, function_object: *Function, arguments_list: []Valeur) -> CompletionRecord
 {
     // 1. Perform ? FunctionDeclarationInstantiation(functionObject, argumentsList).
     completion := function_declaration_instantiation(interpréteuse, function_object, arguments_list)
@@ -1806,7 +1846,7 @@ crée_eval :: fonc (realm: *Realm, function_prototype: *FunctionPrototype) -> *F
 }
 
 /* https://tc39.es/ecma262/multipage/global-object.html#sec-eval-x */
-eval_sur_call :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur @inutilisée, arguments: []Valeur) -> CompletionRecord
+eval_sur_call :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
     si arguments.taille == 0 {
         retourne normal_completion(js_undefined)
@@ -1817,7 +1857,7 @@ eval_sur_call :: fonc (object: *Object @inutilisée, interpréteuse: &Interprét
 
 /* 19.2.1.1 PerformEval ( x, strictCaller, direct )
  * https://tc39.es/ecma262/multipage/global-object.html#sec-performeval */
-perform_eval :: fonc (interpréteuse: &Interpréteuse, x: Valeur, strict_caller: bool, direct: bool) -> CompletionRecord
+perform_eval :: fonc (interpréteuse: *Interpréteuse, x: Valeur, strict_caller: bool, direct: bool) -> CompletionRecord
 {
     // 1. Assert: If direct is false, then strictCaller is also false.
     assert(direct == vrai || (direct == faux && strict_caller == faux))
@@ -2012,7 +2052,7 @@ crée_function_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *O
     retourne résultat
 }
 
-fonction_prototype_sur_call :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse @inutilisée, this_value: Valeur @inutilisée, arguments: []Valeur @inutilisée) -> CompletionRecord
+fonction_prototype_sur_call :: fonc (params: *ParamètresObjectCall @inutilisée) -> CompletionRecord
 {
     retourne normal_completion(js_undefined)
 }
@@ -2025,10 +2065,10 @@ fonction_prototype_sur_call :: fonc (object: *Object @inutilisée, interpréteus
 
 #portée_fichier
 
-fonction_native_sur_appel :: fonc (object: *Object, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+fonction_native_sur_appel :: fonc (params: *ParamètresObjectCall) -> CompletionRecord
 {
-    function_native := object comme *FunctionNative
-    retourne function_native.sur_appel(object, interpréteuse, this_value, arguments)
+    function_native := params.object comme *FunctionNative
+    retourne function_native.sur_appel(params)
 }
 
 table_virtuelle_function_native := TableVirtuelleObject(classe = FunctionNative, sur_destruction = sur_destruction_objet, sur_call = fonction_native_sur_appel)
@@ -2153,7 +2193,7 @@ crée_array_constructor :: fonc (tas_de_mémoire: *TasDeMémoire, array_prototyp
 
 /* À FAIRE : standardise
  * https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array */
-array_constructor_call :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur @inutilisée, arguments: []Valeur) -> CompletionRecord
+array_constructor_call :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
     realm := interpréteuse.donne_realm()
 
@@ -2208,7 +2248,7 @@ crée_array_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Obje
 
 /* 23.1.3.18 Array.prototype.join ( separator )
  * https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array.prototype.join */
-array_prototype_join :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+array_prototype_join :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
     // 1. Let O be ? ToObject(this value).
     completion := vers_objet(interpréteuse.donne_realm(), this_value)
@@ -2286,7 +2326,7 @@ array_prototype_join :: fonc (object: *Object @inutilisée, interpréteuse: &Int
 
 /* 23.1.3.23 Array.prototype.push ( ...items )
  * https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array.prototype.push */
-array_prototype_push :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+array_prototype_push :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
     // 1. Let O be ? ToObject(this value).
     completion := vers_objet(interpréteuse.donne_realm(), this_value)
@@ -2332,7 +2372,7 @@ array_prototype_push :: fonc (object: *Object @inutilisée, interpréteuse: &Int
 
 /* 23.1.3.36 Array.prototype.toString ( )
  * https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array.prototype.tostring */
-array_prototype_to_string :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur @inutilisée) -> CompletionRecord
+array_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
     // 1. Let array be ? ToObject(this value).
     completion := vers_objet(interpréteuse.donne_realm(), this_value)
@@ -2487,7 +2527,7 @@ crée_syntax_error :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *SyntaxE
     retourne résultat
 }
 
-lance_syntax_error :: fonc (interpréteuse: &Interpréteuse, message: chaine) -> CompletionRecord
+lance_syntax_error :: fonc (interpréteuse: *Interpréteuse, message: chaine) -> CompletionRecord
 {
     retourne lance_syntax_error(interpréteuse.donne_realm(), message)
 }
@@ -2551,7 +2591,7 @@ crée_type_error :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *TypeError
     retourne résultat
 }
 
-lance_type_error :: fonc (interpréteuse: &Interpréteuse, message: chaine) -> CompletionRecord
+lance_type_error :: fonc (interpréteuse: *Interpréteuse, message: chaine) -> CompletionRecord
 {
     retourne lance_type_error(interpréteuse.donne_realm(), message)
 }

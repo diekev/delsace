@@ -43,6 +43,8 @@ est_tag_auto_fermant :: fonc (tag: DOMString) -> bool
 TableVirtuelleÉlément :: struct {
     empl base: TableVirtuelleNoeud
 
+    sur_initialisation_interface = élément_sur_initialisation_interface
+
     /* Appelé quand un élément fut dépilé de la pile des éléments ouverts. */
     sur_dépilement: fonc(*Élément)(rien)
 
@@ -232,67 +234,67 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élé
     // les éléments pour les balises SVG ne sont pas présents, espace de noms ?
     élément: *Élément
     si tag == TAG_a {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLAnchorElement)
+        élément = crée_platform_object(document, HTMLAnchorElement)
     }
     sinon si tag == TAG_body {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLBodyElement)
+        élément = crée_platform_object(document, HTMLBodyElement)
     }
     sinon si tag == TAG_font {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLFontElement)
+        élément = crée_platform_object(document, HTMLFontElement)
     }
     sinon si tag == TAG_form {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLFormElement)
+        élément = crée_platform_object(document, HTMLFormElement)
     }
     sinon si tag == TAG_head {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLHeadElement)
+        élément = crée_platform_object(document, HTMLHeadElement)
     }
     sinon si tag == TAG_h1 || tag == TAG_h2 || tag == TAG_h3 || tag == TAG_h4 || tag == TAG_h5 || tag == TAG_h6 {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLHeadingElement)
+        élément = crée_platform_object(document, HTMLHeadingElement)
     }
     sinon si tag == TAG_hr {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLHRElement)
+        élément = crée_platform_object(document, HTMLHRElement)
     }
     sinon si tag == TAG_html {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLHtmlElement)
+        élément = crée_platform_object(document, HTMLHtmlElement)
     }
     sinon si tag == TAG_iframe {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLIFrameElement)
+        élément = crée_platform_object(document, HTMLIFrameElement)
     }
     sinon si tag == TAG_img {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLImageElement)
+        élément = crée_platform_object(document, HTMLImageElement)
     }
     sinon si tag == TAG_input {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLInputElement)
+        élément = crée_platform_object(document, HTMLInputElement)
     }
     sinon si tag == TAG_link {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLLinkElement)
+        élément = crée_platform_object(document, HTMLLinkElement)
     }
     sinon si tag == TAG_script {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLScriptElement)
+        élément = crée_platform_object(document, HTMLScriptElement)
     }
     sinon si tag == TAG_style {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLStyleElement)
+        élément = crée_platform_object(document, HTMLStyleElement)
     }
     sinon si tag == TAG_table {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLTableElement)
+        élément = crée_platform_object(document, HTMLTableElement)
     }
     sinon si tag == TAG_td || tag == TAG_th {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLTableCellElement)
+        élément = crée_platform_object(document, HTMLTableCellElement)
     }
     sinon si tag == TAG_thead || tag == TAG_tbody || tag == TAG_tfoot {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLTableSectionElement)
+        élément = crée_platform_object(document, HTMLTableSectionElement)
     }
     sinon si tag == TAG_tr {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLTableRowElement)
+        élément = crée_platform_object(document, HTMLTableRowElement)
     }
     sinon si tag == TAG_textarea {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLTextAreaElement)
+        élément = crée_platform_object(document, HTMLTextAreaElement)
     }
     sinon si tag == TAG_video {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLVideoElement)
+        élément = crée_platform_object(document, HTMLVideoElement)
     }
     sinon {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), Élément)
+        élément = crée_platform_object(document, Élément)
     }
 
     initialise_élément(élément, document, tag)
@@ -342,7 +344,7 @@ get_elements_by_class_name :: fonc (élément: *Élément, class_names: DOMStrin
 
     // 2. If classes is the empty set, return an empty HTMLCollection.
     si classes.taille == 0 {
-        retourne JavaScript.alloue(élément.donne_tas_de_mémoire(), HTMLCollection)
+        retourne crée_html_collection(élément)
     }
 
     // 3. Return an HTMLCollection rooted at root, whose filter matches
@@ -350,7 +352,7 @@ get_elements_by_class_name :: fonc (élément: *Élément, class_names: DOMStrin
     //    The comparisons for the classes must be done in an ASCII
     //    case-insensitive manner if root’s node document’s mode is "quirks";
     //    otherwise in an identical to manner.
-    résultat := JavaScript.alloue(élément.donne_tas_de_mémoire(), HTMLCollection)
+    résultat := crée_html_collection(élément)
     résultat.root = élément
     résultat.filter = crée_filtre_pour_class_name(classes)
     initialise_collection_pour_filtre(résultat)
@@ -360,12 +362,12 @@ get_elements_by_class_name :: fonc (élément: *Élément, class_names: DOMStrin
 /* https://dom.spec.whatwg.org/#concept-getelementsbytagname */
 get_elements_by_tag_name :: fonc (élément: *Élément, qualified_name: DOMString) -> *HTMLCollection
 {   
-    résultat := JavaScript.alloue(élément.donne_tas_de_mémoire(), HTMLCollection)
+    résultat := crée_html_collection(élément)
     résultat.root = élément
 
     // 1. If qualifiedName is U+002A (*), then return an HTMLCollection rooted at root, whose filter matches only descendant elements.
 
-    // 2. Otherwise, if root’s node document is an HTML document, return an HTMLCollection rooted at root, whose filter matches the following descendant elements:
+    // 2. Otherwise, if root’s node document is an HTML document, return an  rooted at root, whose filter matches the following descendant elements:
 
     //     Whose namespace is the HTML namespace and whose qualified name is qualifiedName, in ASCII lowercase.
 
@@ -524,6 +526,69 @@ applique_presentational_hints :: fonc (élément: *Élément, résolveuse: *CSS.
     }
     table.sur_applique_presentational_hints(élément, résolveuse)
 }
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Interface JavaScript
+ * \{ */
+
+#portée_module
+
+élément_sur_initialisation_interface :: fonc (base: *PlatformObject)
+{
+    élément := base comme *Élément
+    noeud_sur_initialisation_interface(élément)
+
+    JavaScript.ajoute_fonction_native(élément, "getElementsByClassName", fonction_native_get_element_by_class_name)
+    JavaScript.ajoute_fonction_native(élément, "getElementsByTagName", fonction_native_get_element_by_tag_name)
+
+    si élément.local_name == TAG_img {
+        JavaScript.ajoute_propriété(élément, ATTR_src, fonction_get_pour_attribut_src, nul, JavaScript.DrapeauxPropriété.zéro)
+    }
+}
+
+fonction_get_pour_attribut_src :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord
+{
+    élément := JavaScript.donne_objet(this_value) comme *Élément
+    src := donne_attribut_ou_chaine_vide(élément, ATTR_src)
+    str_src := JavaScript.crée_chaine(élément.donne_tas_de_mémoire(), src)
+    retourne JavaScript.normal_completion(JavaScript.Valeur(String = str_src))
+}
+
+fonction_native_get_element_by_class_name :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord
+{
+    si arguments.taille == 0 {
+        retourne JavaScript.lance_type_error(interpréteuse, "getElementsByClassName requiers 1 argument")
+    }
+
+    saufsi JavaScript.est_chaine(arguments[0]) {
+        retourne JavaScript.lance_type_error(interpréteuse, "argument n'est pas une chaine")
+    }
+
+    texte := arguments[0].String.texte
+    élément := JavaScript.donne_objet(this_value) comme *Élément
+    collection := élément.get_elements_by_class_name(texte)
+    retourne JavaScript.normal_completion(JavaScript.Valeur(Object = collection))
+}
+
+fonction_native_get_element_by_tag_name :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord
+{
+    si arguments.taille != 1 {
+        retourne JavaScript.lance_type_error(interpréteuse, "getElementsByTagName requiers 1 argument")
+    }
+
+    saufsi JavaScript.est_chaine(arguments[0]) {
+        retourne JavaScript.lance_type_error(interpréteuse, "argument n'est pas une chaine")
+    }
+
+    texte := arguments[0].String.texte
+    élément := JavaScript.donne_objet(this_value) comme *Élément
+    collection := élément.get_elements_by_tag_name(texte)
+    retourne JavaScript.normal_completion(JavaScript.Valeur(Object = collection))
+}
+
+#portée_export
 
 /** \} */
 
@@ -1643,16 +1708,6 @@ TypeScript :: énum {
     IMPORTMAP
 }
 
-OptionsFetchScript :: struct {
-    cryptographic_nonce: chaine
-    integrity_metadata: chaine
-    parser_metadata := "not-parser-inserted"
-    credentials_mode := "same-origin"
-    referrer_policy: chaine
-    render_blocking: bool
-    fetch_priority := "auto"
-}
-
 HTMLScriptElement :: struct {
     empl html_element: HTMLElement
     table = *table_virtuelle_script_element
@@ -1665,9 +1720,13 @@ HTMLScriptElement :: struct {
     prêt_à_être_exécuté_par_parseuse := faux
     déjà_commencé := faux
     temporise_évènement_de_charge := faux
+    delaying_the_load_event := faux
 
     type: TypeScript
     // result : "uninitialized", null, scipt, import map parse result
+    result: *rien
+
+    steps_to_run_when_the_result_is_ready: *Algorithm
 }
 
 donne_src :: fonc (script: *HTMLScriptElement) -> DOMString
@@ -1685,51 +1744,51 @@ table_virtuelle_script_element := TableVirtuelleÉlément(
 #portée_export
 
 /* https://html.spec.whatwg.org/multipage/scripting.html#prepare-the-script-element */
-prépare :: fonc (script: *HTMLScriptElement)
+prépare :: fonc (el: *HTMLScriptElement)
 {
     /* 1. */
-    si script.déjà_commencé {
+    si el.déjà_commencé {
         retourne
     }
 
     /* 2. & 3. */
-    document_parseur := script.document_parseur
-    script.document_parseur = nul
+    document_parseur := el.document_parseur
+    el.document_parseur = nul
 
     /* 4. */
-    si document_parseur != nul && !script.possède_attribut(ATTR_async) {
-        script.force_async = vrai
+    si document_parseur != nul && !el.possède_attribut(ATTR_async) {
+        el.force_async = vrai
     }
 
     /* 5. */
-    texte_source := extrait_texte_noeud(script)
+    texte_source := extrait_texte_noeud(el)
     diffère déloge(texte_source)
 
     /* 6. */
-    possède_attr_src := script.possède_attribut(ATTR_src)
+    possède_attr_src := el.possède_attribut(ATTR_src)
     si !possède_attr_src && texte_source == "" {
         retourne
     }
 
     /* 7. */
-    saufsi script.est_connecté() {
+    saufsi el.est_connecté() {
         retourne
     }
 
     /* 8. */
-    type_bloc_script := détermine_type_block_script(script)
+    type_bloc_script := détermine_type_block_script(el)
     
     /* 9. */
     si est_type_mime_javascript(type_bloc_script) {
-        script.type = TypeScript.CLASSIC
+        el.type = TypeScript.CLASSIC
     }
     /* 10. */
     sinon si compare_ascii_insensible_à_la_casse(type_bloc_script, ATTR_module) {
-        script.type = TypeScript.MODULE
+        el.type = TypeScript.MODULE
     }
     /* 11. */
     sinon si compare_ascii_insensible_à_la_casse(type_bloc_script, ATTR_importmap) {
-        script.type = TypeScript.IMPORTMAP
+        el.type = TypeScript.IMPORTMAP
     }
     /* 12. */
     sinon {
@@ -1738,43 +1797,43 @@ prépare :: fonc (script: *HTMLScriptElement)
 
     /* 13. */
     si document_parseur != nul {
-        script.document_parseur = document_parseur
-        script.force_async = faux
+        el.document_parseur = document_parseur
+        el.force_async = faux
     }
 
     /* 14. */
-    script.déjà_commencé = vrai
+    el.déjà_commencé = vrai
 
     /* 15. */
-    script.document_du_temps_de_préparation = script.document
+    el.document_du_temps_de_préparation = el.document
 
     /* 16. */
-    si document_parseur != nul && document_parseur != script.document_du_temps_de_préparation {
+    si document_parseur != nul && document_parseur != el.document_du_temps_de_préparation {
         retourne
     }
 
     /* 17. */
-    si script.scripting_est_désactivé() {
+    si el.scripting_est_désactivé() {
         retourne
     }
 
     /* 18. */
-    si script.possède_attribut(ATTR_nomodule) && script.type == TypeScript.CLASSIC {
+    si el.possède_attribut(ATTR_nomodule) && el.type == TypeScript.CLASSIC {
         retourne
     }
 
     /* 19. */
     saufsi possède_attr_src {
-        bloqué := le_comportement_inline_de_l_élément_doit_être_bloqué_par_csp(script, "script", texte_source)
+        bloqué := le_comportement_inline_de_l_élément_doit_être_bloqué_par_csp(el, "script", texte_source)
         si bloqué == "Blocked" {
             retourne
         }
     }
 
     /* 20. */
-    si script.type == TypeScript.CLASSIC && script.possède_attribut(ATTR_for) && script.possède_attribut(ATTR_event) {
-        valeur_for := script.donne_attribut(ATTR_for).Quelque
-        valeur_event := script.donne_attribut(ATTR_event).Quelque
+    si el.type == TypeScript.CLASSIC && el.possède_attribut(ATTR_for) && el.possède_attribut(ATTR_event) {
+        valeur_for := el.donne_attribut(ATTR_for).Quelque
+        valeur_event := el.donne_attribut(ATTR_event).Quelque
 
         valeur_event = supprime_espace_blanches_autour(valeur_event)
         valeur_for = supprime_espace_blanches_autour(valeur_for)
@@ -1807,7 +1866,7 @@ prépare :: fonc (script: *HTMLScriptElement)
     fetch_priority := ""
 
     /* 28. */
-    métadonnée_parseuse := si script.est_inséré_par_parseuse() {
+    métadonnée_parseuse := si el.est_inséré_par_parseuse() {
         "parser-inserted"
     }
     sinon {
@@ -1823,7 +1882,8 @@ prépare :: fonc (script: *HTMLScriptElement)
     options.referrer_policy = referrer_policy
     options.fetch_priority = fetch_priority
 
-    /* 30. INCOMPLET settings object */
+    /* 30. settings object */
+    settings_object := donne_relevant_settings_object(el.document)
 
     /* 31. */
     si possède_attr_src {
@@ -1831,37 +1891,52 @@ prépare :: fonc (script: *HTMLScriptElement)
     }
     /* 32. */
     sinon {
-        imprime("pas de source\n")
-        imprime("Texte source: %\n", texte_source)
+        // 1. Let base URL be el's node document's document base URL.
+        base_url := el.document.donne_base_url()
+
+        // 2. Switch on el's type:
+        discr el.type {
+            CLASSIC {
+                user_agent := el.document.donne_user_agent()
+                // 1. Let script be the result of creating a classic script using source text, settings object, base URL, and options.
+                script := create_a_classic_script(user_agent, texte_source, settings_object, base_url, options)
+
+                // 2. Mark as ready el given script.
+                mark_as_ready(el, script)
+            }
+            sinon {
+                panique("non-implémenté")
+            }
+        }
     }
 
-    /* 33. INCOMPLET */
+    /* 33. If el's type is "classic" and el has a src attribute, or el's type is "module": */
+    si (el.type == TypeScript.CLASSIC && possède_attr_src) || el.type == TypeScript.MODULE {
+        panique("non-implémenté")
+    }
+    /* 34. Otherwise */
+    sinon {
+        // À FAIRE : 1. Assert: el's result is not "uninitialized".
 
-    /* 34. INCOMPLET */
+        // 2. If all of the following are true:
+        // el's type is "classic";
+        // el is parser-inserted;
+        // el's parser document has a style sheet that is blocking scripts; and
+        // either the parser that created el is an XML parser, or it's an HTML parser whose script nesting level is not greater than one,
+        // then:
+
+            // 1. Set el's parser document's pending parsing-blocking script to el.
+
+            // 2. Set el's ready to be parser-executed to true. (The parser will handle executing the script.)
+
+        // 3. Otherwise, immediately execute the script element el, even if other scripts are already executing.
+        execute_the_script_element(el)
+    }
 }
 
 est_inséré_par_parseuse :: fonc (script: *HTMLScriptElement) -> bool
 {
     retourne script.document_parseur != nul
-}
-
-/* https://html.spec.whatwg.org/multipage/webappapis.html#concept-n-noscript */
-scripting_est_activé :: fonc (script: *HTMLScriptElement) -> bool
-{
-    node_document := script.donne_node_document()
-    saufsi node_document {
-        retourne faux
-    }
-    saufsi node_document.browsing_context {
-        retourne faux
-    }
-    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
-    retourne faux
-}
-
-scripting_est_désactivé :: fonc (script: *HTMLScriptElement) -> bool
-{
-    retourne scripting_est_activé(script) == faux
 }
 
 détermine_type_block_script :: fonc (script: *HTMLScriptElement) -> DOMString
@@ -1886,9 +1961,89 @@ détermine_type_block_script :: fonc (script: *HTMLScriptElement) -> DOMString
 }
 
 /* https://html.spec.whatwg.org/multipage/scripting.html#execute-the-script-element */
-execute_the_script_element :: fonc (el: *HTMLScriptElement @inutilisée)
+execute_the_script_element :: fonc (el: *HTMLScriptElement)
 {
-    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+    // 1. Let document be el's node document.
+    document := el.document
+
+    // 2. If el's preparation-time document is not equal to document, then return.
+    si el.document_du_temps_de_préparation != document {
+        retourne
+    }
+
+    // À FAIRE 3. Unblock rendering on el.
+
+    // 4. If el's result is null, then fire an event named error at el, and return.
+    si el.result == nul {
+        _ := fire_an_event(el, EventType.error)
+        retourne
+    }
+
+    // 5. If el's from an external file is true, or el's type is "module", then increment document's ignore-destructive-writes counter.
+    ignore_destructive_writes_fut_incrémenté := faux 
+    si el.provient_de_fichier_externe || el.type == TypeScript.MODULE {
+        document.ignore_destructive_writes += 1
+        ignore_destructive_writes_fut_incrémenté = vrai
+    }
+
+    // 6. Switch on el's type:
+    discr el.type {
+        CLASSIC {
+            // 1. Let oldCurrentScript be the value to which document's currentScript object was most recently set.
+            old_current_script := document.current_script
+
+            // À FAIRE : shadow root 2. If el's root is not a shadow root, then set document's currentScript attribute to el. Otherwise, set it to null.
+            document.current_script = el
+
+            // 3. Run the classic script given by el's result.
+            run_the_classic_script(el.result comme *ClassicScript)
+
+            // 4. Set document's currentScript attribute to oldCurrentScript.
+            document.current_script = old_current_script
+        }
+        MODULE {
+            // 1. Assert: document's currentScript attribute is null.
+            assert(document.current_script == nul)
+
+            // 2. Run the module script given by el's result.
+            panique("non-implémenté")
+        }
+        IMPORTMAP {
+            panique("non-implémenté")
+            // 1. Register an import map given el's relevant global object and el's result.
+        }
+        sinon {
+            retourne
+        }
+    }
+
+    // 7. Decrement the ignore-destructive-writes counter of document, if it was incremented in the earlier step.
+    si ignore_destructive_writes_fut_incrémenté {
+        document.ignore_destructive_writes -= 1
+    }
+
+    // 8. If el's from an external file is true, then fire an event named load at el.
+    si el.provient_de_fichier_externe {
+        _ := fire_an_event(el, EventType.load)
+    }
+}
+
+/* https://html.spec.whatwg.org/multipage/scripting.html#mark-as-ready */
+mark_as_ready :: fonc (el: *HTMLScriptElement, result : *rien = nul)
+{
+    // 1. Set el's result to result.
+    el.result = result
+
+    // 2. If el's steps to run when the result is ready are not null, then run them.
+    si el.steps_to_run_when_the_result_is_ready {
+        run(el.steps_to_run_when_the_result_is_ready)
+    }
+
+    // 3. Set el's steps to run when the result is ready to null.
+    el.steps_to_run_when_the_result_is_ready = nul
+
+    // 4. Set el's delaying the load event to false.
+    el.delaying_the_load_event = faux
 }
 
 /** \} */

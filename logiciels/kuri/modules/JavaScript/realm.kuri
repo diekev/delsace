@@ -10,7 +10,7 @@ importe #inemployé HTML
 
 HostDefined :: struct {
     données: *rien
-    infos: *InfoType
+    infos: *InfoTypeStructure
 }
 
 crée_host_defined :: fonc (données: *$T) -> HostDefined
@@ -20,7 +20,7 @@ crée_host_defined :: fonc (données: *$T) -> HostDefined
 
 donne_données :: fonc (host_defined: &HostDefined, $T: type_de_données) -> *T
 {
-    assert(host_defined.infos == info_de(T))
+    assert(est_struct_ou_employeuse_de(host_defined.infos, info_de(T)))
     retourne host_defined.données comme *T
 }
 

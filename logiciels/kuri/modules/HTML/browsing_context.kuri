@@ -1,3 +1,4 @@
+importe Chaine
 importe Fondation
 importe Internet
 
@@ -507,12 +508,107 @@ Window :: struct {
     document: *Document
 }
 
+#portée_module
+
+crée_objet_window :: fonc (tas_de_mémoire: *JavaScript.TasDeMémoire, realm: *JavaScript.Realm) -> *Window
+{
+    résultat := crée_platform_object(tas_de_mémoire, realm, Window)
+    résultat.prototype = realm.intrinsics.object_prototype
+    JavaScript.ajoute_propriété(résultat, crée_chaine_utf16_unique("window"), window_window_getter, nul, JavaScript.DrapeauxPropriété.zéro)
+    JavaScript.ajoute_propriété(résultat, crée_chaine_utf16_unique("frames"), window_window_getter, nul, JavaScript.DrapeauxPropriété.zéro)
+    JavaScript.ajoute_propriété(résultat, crée_chaine_utf16_unique("self"), window_window_getter, nul, JavaScript.DrapeauxPropriété.zéro)
+    JavaScript.ajoute_propriété(résultat, crée_chaine_utf16_unique("document"), window_document_getter, nul, JavaScript.DrapeauxPropriété.zéro)
+    JavaScript.ajoute_fonction_native(résultat, "alert", fonction_native_alert)
+    retourne résultat
+}
+
+window_window_getter :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord
+{
+    window := this_value.Object comme *Window
+    assert(window.table.classe == Window)
+    retourne JavaScript.normal_completion(JavaScript.Valeur(Object = window))
+}
+
+window_document_getter :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord
+{
+    window := this_value.Object comme *Window
+    assert(window.table.classe == Window)
+    résultat := JavaScript.js_null
+    si window.document {
+        résultat = JavaScript.Valeur(Object = window.document)
+    }
+    retourne JavaScript.normal_completion(résultat)
+}
+
+/* https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#dom-alert-noargs */
+fonction_native_alert :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord
+{
+    window := this_value.Object comme *Window
+    assert(window.table.classe == Window)
+
+    user_agent := window.document.donne_user_agent()
+    saufsi user_agent {
+        retourne JavaScript.normal_completion(JavaScript.js_undefined)
+    }
+
+    chn := crée_chaine_utf16_unique_vide()
+    si arguments.taille > 0 {
+        complétion := JavaScript.vers_chaine(interpréteuse, arguments[0])
+        saufsi JavaScript.est_normal(complétion) {
+            retourne complétion
+        }
+        chn = complétion.valeur.V.String.texte
+    }
+
+    user_agent.affiche_alerte(chn)
+    retourne JavaScript.normal_completion(JavaScript.js_undefined)
+}
+
+#portée_export
+
 /** \} */
 
+/* ------------------------------------------------------------------------- */
+/** \nom Window
+ * https://html.spec.whatwg.org/multipage/nav-history-apis.html#windowproxy
+ * À FAIRE : implémente les fonctions virtuelles
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_window_proxy := JavaScript.TableVirtuelleObject(
+    classe = WindowProxy,
+    sur_get_prototype_of = window_proxy_ordinary_get_prototype_of
+)
+
+/* https://html.spec.whatwg.org/multipage/nav-history-apis.html#windowproxy-getprototypeof */
+window_proxy_ordinary_get_prototype_of :: fonc (object: *JavaScript.Object) -> *JavaScript.Object
+{
+    proxy := object comme *WindowProxy
+
+    // 1. Let W be the value of the [[Window]] internal slot of this.
+    w := proxy.window
+
+    // 2. If IsPlatformObjectSameOrigin(W) is true, then return ! OrdinaryGetPrototypeOf(W).
+    si is_platform_object_same_origin(w) {
+        retourne JavaScript.ordinary_get_prototype_of(w)
+    }
+
+    // 3. Return null.
+    retourne nul
+}
+
+#portée_export
+
 WindowProxy :: struct {
+    empl object: JavaScript.Object
+    table = *table_virtuelle_window_proxy
+
     /* [[Window]] */
     window: *Window
 }
+
+/** \} */
 
 BrowsingContextGroup :: struct {
     contexts: [..]*BrowsingContext
@@ -669,7 +765,40 @@ crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Do
     // 10. Let realm execution context be the result of creating a new realm given agent and the following customizations:
     //     For the global object, create a new Window object.
     //     For the global this binding, use browsingContext's WindowProxy object.
-    realm_execution_context := crée_un_nouveau_realm(agent)
+    RappelsCréationRealm :: struct {
+        empl base: JavaScript.RappelsHôte
+
+        browsing_context: *BrowsingContext
+        user_agent: *UserAgent
+    }
+
+    crée_objet_global :: fonc(base: *JavaScript.RappelsHôte, realm: *JavaScript.Realm) -> *JavaScript.Object
+    {
+        rappels := base comme *RappelsCréationRealm
+
+        tas_de_mémoire := JavaScript.donne_tas_de_mémoire(realm)
+
+        window := crée_objet_window(tas_de_mémoire, realm)
+
+        window_proxy := JavaScript.alloue(tas_de_mémoire, WindowProxy)
+        rappels.browsing_context.window_proxy = window_proxy
+
+        retourne window
+    }
+
+    donne_this_binding_global :: fonc (base: *JavaScript.RappelsHôte) -> *JavaScript.Object
+    {
+        rappels := base comme *RappelsCréationRealm
+        retourne rappels.browsing_context.window_proxy
+    }
+
+    rappels_création_realm: RappelsCréationRealm
+    rappels_création_realm.browsing_context = browsing_context
+    rappels_création_realm.user_agent = user_agent
+    rappels_création_realm.crée_objet_global = crée_objet_global
+    rappels_création_realm.donne_this_binding_global = donne_this_binding_global
+
+    realm_execution_context := crée_un_nouveau_realm(agent, *user_agent.mv, *rappels_création_realm)
 
     // 11. Let topLevelCreationURL be about:blank if embedder is null; otherwise embedder's relevant settings object's top-level creation URL.
     top_level_creation_url := URI("about:blank")
@@ -705,7 +834,7 @@ crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Do
     //     is initial about:blank = true
     //     about base URL = creatorBaseURL
     //     allow declarative shadow roots = true
-    document := crée_noeud_document(user_agent.donne_tas_de_mémoire())
+    document := crée_noeud_document(user_agent.donne_tas_de_mémoire(), realm_execution_context.realm)
     document.type = "html"
     document.type_contenu = "text/html"
     document.mode = ModeDocument.QUIRKS
@@ -717,6 +846,11 @@ crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Do
     document.is_initial_about_blank = vrai
     document.about_base_url = creator_base_url
     document.permets_racines_shadow_déclaratives = vrai
+
+    // À FAIRE : non-spécifié. load_an_html_document appelé plus tard à besoin que
+    // window soit déjà associée à un document mais ça ne semble être fait nulle part.
+    window := realm_execution_context.realm.global_object comme *Window
+    window.document = document
 
     // 16. If creator is non-null, then:
     si creator {
@@ -790,16 +924,136 @@ obtain_similar_origin_window_agent :: fonc (origin: Origin @inutilisée, groupe:
 }
 
 /* https://html.spec.whatwg.org/multipage/webappapis.html#creating-a-new-javascript-realm */
-crée_un_nouveau_realm :: fonc (agent: *rien @inutilisée) -> *rien
+crée_un_nouveau_realm :: fonc (agent: *rien @inutilisée, mv: *JavaScript.MachineVirtuelle, rappels: *JavaScript.RappelsHôte) -> *JavaScript.ExecutionContext
 {
-    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
-    retourne nul
+    // 1. Perform InitializeHostDefinedRealm() with the provided customizations for creating the global object and the global this binding.
+    _ := JavaScript.initialise_host_defined_realm(mv, rappels)
+
+    // 2. Let realm execution context be the running JavaScript execution context.
+    realm_execution_context := JavaScript.donne_running_execution_context(mv)
+
+    // 3. Remove realm execution context from the JavaScript execution context stack.
+    JavaScript.dépile_execution_context(mv)
+
+    // 4. Let realm be realm execution context's Realm component.
+
+    // À FAIRE 5. If agent's agent cluster's cross-origin isolation mode is "none", then:
+
+        // 1. Let global be realm's global object.
+
+        // 2. Let status be ! global.[[Delete]]("SharedArrayBuffer").
+
+        // 3. Assert: status is true.
+
+    // 6. Return realm execution context.
+    retourne realm_execution_context
 }
 
 /* https://html.spec.whatwg.org/multipage/nav-history-apis.html#set-up-a-window-environment-settings-object */
-set_up_window_environnement_context :: fonc (creation_url: URI @inutilisée, execution_context: *rien @inutilisée, reserved_environment: *rien @inutilisée, top_level_creation_url: URI @inutilisée, top_level_origin: Origin @inutilisée)
+set_up_window_environnement_context :: fonc (creation_url: URI,
+                                             execution_context: *JavaScript.ExecutionContext,
+                                             reserved_environment: *rien @inutilisée,
+                                             top_level_creation_url: URI,
+                                             top_level_origin: Origin)
 {
-    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+    // 1. Let realm be the value of execution context's Realm component.
+    realm := execution_context.realm
+
+    // 2. Let window be realm's global object.
+    window := realm.global_object comme *Window
+
+    // 3. Let settings object be a new environment settings object whose algorithms are defined as follows:
+    WindowEnvironment :: struct {
+        empl base_env: EnvironmentSettings
+
+        execution_context: *JavaScript.ExecutionContext
+        window: *Window
+    }
+
+    // The realm execution context
+    sur_donne_realm_execution_context :: fonc (base: *EnvironmentSettings) -> *JavaScript.ExecutionContext
+    {
+        // Return execution context.
+        env := base comme *WindowEnvironment
+        retourne env.execution_context
+    }
+
+    // À FAIRE : The module map
+    // Return the module map of window's associated Document.
+
+    // The API base URL
+    sur_donne_api_base_url :: fonc (base: *EnvironmentSettings) -> URI
+    {
+        // Return the current base URL of window's associated Document.
+        env := base comme *WindowEnvironment
+        window := env.window
+        retourne window.document.donne_base_url()
+    }
+
+    // The origin
+    sur_donne_origin :: fonc (base: *EnvironmentSettings) -> Origin
+    {
+        // Return the origin of window's associated Document.
+        env := base comme *WindowEnvironment
+        window := env.window
+        retourne window.document.origin
+    }
+
+    // The policy container
+    sur_donne_policy_container :: fonc (base: *EnvironmentSettings) -> *PolicyContainer
+    {
+        // Return the policy container of window's associated Document.
+        env := base comme *WindowEnvironment
+        window := env.window
+        retourne window.document.policy_container
+    }
+
+    // The cross-origin isolated capability
+    sur_donne_cross_origin_isolated_capability :: fonc (base: *EnvironmentSettings @inutilisée) -> bool
+    {
+        // À FAIRE
+        // Return true if both of the following hold, and false otherwise:
+        
+        // realm's agent cluster's cross-origin-isolation mode is "concrete", and
+
+        // window's associated Document is allowed to use the "cross-origin-isolated" feature.
+        retourne faux
+    }
+
+    // The time origin
+    sur_donne_time_origin :: fonc (base: *EnvironmentSettings) -> r64
+    {
+        // Return window's associated Document's load timing info's navigation start time.
+        env := base comme *WindowEnvironment
+        window := env.window
+        retourne window.document.load_timing_info.navigation_start_time comme r64
+    }
+
+    settings_object := loge(WindowEnvironment)
+    settings_object.execution_context = execution_context
+    settings_object.window = window
+    settings_object.sur_donne_realm_execution_context = sur_donne_realm_execution_context
+    settings_object.sur_donne_api_base_url = sur_donne_api_base_url
+    settings_object.sur_donne_origin = sur_donne_origin
+    settings_object.sur_donne_policy_container = sur_donne_policy_container
+    settings_object.sur_donne_cross_origin_isolated_capability = sur_donne_cross_origin_isolated_capability
+    settings_object.sur_donne_time_origin = sur_donne_time_origin
+
+    // À FAIRE 4. If reservedEnvironment is non-null, then:
+
+        // 1. Set settings object's id to reservedEnvironment's id, target browsing context to reservedEnvironment's target browsing context, and active service worker to reservedEnvironment's active service worker.
+
+        // 2. Set reservedEnvironment's id to the empty string.
+
+    // 5. Otherwise, set settings object's id to a new unique opaque string, settings object's target browsing context to null, and settings object's active service worker to null.
+
+    // 6. Set settings object's creation URL to creationURL, settings object's top-level creation URL to topLevelCreationURL, and settings object's top-level origin to topLevelOrigin.
+    settings_object.creation_url = creation_url
+    settings_object.top_level_creation_url = top_level_creation_url
+    settings_object.top_level_origin = top_level_origin
+
+    // 7. Set realm's [[HostDefined]] field to settings object.
+    realm.host_defined = JavaScript.crée_host_defined(settings_object)
 }
 
 /** \} */
