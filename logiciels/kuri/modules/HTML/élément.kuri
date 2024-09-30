@@ -1643,16 +1643,6 @@ TypeScript :: énum {
     IMPORTMAP
 }
 
-OptionsFetchScript :: struct {
-    cryptographic_nonce: chaine
-    integrity_metadata: chaine
-    parser_metadata := "not-parser-inserted"
-    credentials_mode := "same-origin"
-    referrer_policy: chaine
-    render_blocking: bool
-    fetch_priority := "auto"
-}
-
 HTMLScriptElement :: struct {
     empl html_element: HTMLElement
     table = *table_virtuelle_script_element
