@@ -89,8 +89,8 @@ Request :: struct {
     header_list: [..]Header
     unsafe_request: bool
     body: Optionnel(chaine) // À FAIRE : plus complexe
-    client: *rien // À FAIRE(settings object)
-    reserved_client: *rien // À FAIRE(settings object, environment)
+    client: *EnvironmentSettings
+    reserved_client: *Environment
     replaces_client_id: chaine
     window: *rien
     keepalive: bool

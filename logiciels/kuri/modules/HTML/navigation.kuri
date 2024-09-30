@@ -140,8 +140,7 @@ NavigationParams :: struct {
     commit_early_hints: *CommitEarlyHints
     
     COOP_enforcement_result: CrossOriginOpenerPolicyEnforcementResult
-    // reserved environment
-    //    null or an environment reserved for the new Document
+    reserved_environment: *Environment
     
     origin: Origin
     
@@ -2430,9 +2429,21 @@ restore_the_history_object_state :: fonc (document: *Document @inutilisée, entr
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#make-active */
-make_active :: fonc (document: *Document @inutilisée)
+make_active :: fonc (document: *Document)
 {
-    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+    // 1. Let window be document's relevant global object.
+    window := document.donne_relevant_global_object() comme *Window
+
+    // 2. Set document's browsing context's WindowProxy's [[Window]] internal slot value to window.
+    document.browsing_context.window_proxy.window = window
+
+    // À FAIRE 3. Set document's visibility state to document's node navigable's traversable navigable's system visibility state.
+
+    // 4. Queue a new VisibilityStateEntry whose visibility state is document's visibility state and whose timestamp is zero.
+
+    // 5. Set window's relevant settings object's execution ready flag.
+    settings := window.donne_relevant_settings_object()
+    settings.execution_ready = vrai
 }
 
 /** \} */
@@ -2481,31 +2492,65 @@ create_and_initialize_a_document_object :: fonc (user_agent: *UserAgent, type: c
         creation_url = tente parse_uri_standard(recompose_uri(*url)) piège nonatteignable
     }
 
-    // À FAIRE 6. Let window be null.
+    // 6. Let window be null.
+    window: *Window
 
-    // À FAIRE 7. If browsingContext's active document's is initial about:blank is true, and browsingContext's active document's origin is same origin-domain with navigationParams's origin, then set window to browsingContext's active window.
-
-    // À FAIRE 8. Otherwise:
-
-        // 1. Let oacHeader be the result of getting a structured field value given `Origin-Agent-Cluster` and "item" from navigationParams's response's header list.
+    // 7. If browsingContext's active document's is initial about:blank is true, and
+    //    À FAIRE browsingContext's active document's origin is same origin-domain with navigationParams's origin,
+    //    then set window to browsingContext's active window.
+    si browsing_context.donne_active_document().is_initial_about_blank {
+        window = browsing_context.donne_active_window()
+    }
+    // 8. Otherwise:
+    sinon {
+        // 1.  À FAIRE Let oacHeader be the result of getting a structured field value given `Origin-Agent-Cluster` and "item" from navigationParams's response's header list.
 
         // 2. Let requestsOAC be true if oacHeader is not null and oacHeader[0] is the boolean true; otherwise false.
 
         // 3. If navigationParams's reserved environment is a non-secure context, then set requestsOAC to false.
+        request_oac := faux
 
         // 4. Let agent be the result of obtaining a similar-origin window agent given navigationParams's origin, browsingContext's group, and requestsOAC.
+        agent := obtain_similar_origin_window_agent(navigation_params.origin, browsing_context.group, request_oac)
 
         // 5. Let realmExecutionContext be the result of creating a new realm given agent and the following customizations:
             // For the global object, create a new Window object.
             // For the global this binding, use browsingContext's WindowProxy object.
+        RappelsCréationRealm :: struct {
+            empl base: JavaScript.RappelsHôte
+
+            browsing_context: *BrowsingContext
+        }
+
+        crée_objet_global :: fonc(base: *JavaScript.RappelsHôte @inutilisée, realm: *JavaScript.Realm) -> *JavaScript.Object
+        {
+            tas_de_mémoire := JavaScript.donne_tas_de_mémoire(realm)
+            retourne crée_objet_window(tas_de_mémoire, realm)
+        }
+
+        donne_this_binding_global :: fonc (base: *JavaScript.RappelsHôte) -> *JavaScript.Object
+        {
+            rappels := base comme *RappelsCréationRealm
+            retourne rappels.browsing_context.window_proxy
+        }
+
+        rappels_création_realm: RappelsCréationRealm
+        rappels_création_realm.browsing_context = browsing_context
+        rappels_création_realm.crée_objet_global = crée_objet_global
+        rappels_création_realm.donne_this_binding_global = donne_this_binding_global
+
+        realm_execution_context := crée_un_nouveau_realm(agent, *user_agent.mv, *rappels_création_realm)
 
         // 6. Set window to the global object of realmExecutionContext's Realm component.
+        window = realm_execution_context.realm.global_object comme *Window
 
         // 7. Let topLevelCreationURL be creationURL.
+        top_level_creation_url := creation_url
 
         // 8. Let topLevelOrigin be navigationParams's origin.
+        top_level_origin := navigation_params.origin
 
-        // 9. If navigable's container is not null, then:
+        // À FAIRE : 9. If navigable's container is not null, then:
 
             // 1. Let parentEnvironment be navigable's container's relevant settings object.
 
@@ -2514,6 +2559,8 @@ create_and_initialize_a_document_object :: fonc (user_agent: *UserAgent, type: c
             // 3. Set topLevelOrigin to parentEnvironment's top-level origin.
 
         // 10. Set up a window environment settings object with creationURL, realmExecutionContext, navigationParams's reserved environment, topLevelCreationURL, and topLevelOrigin.
+        set_up_window_environnement_context(creation_url, realm_execution_context, navigation_params.reserved_environment, top_level_creation_url, top_level_origin)
+    }
 
     // À FAIRE 9. Let loadTimingInfo be a new document load timing info with its navigation start time set to navigationParams's response's timing info's start time.
 
@@ -2533,7 +2580,7 @@ create_and_initialize_a_document_object :: fonc (user_agent: *UserAgent, type: c
     //     current document readiness "loading"
     //     about base URL navigationParams's about base URL
     //     allow declarative shadow roots true
-    document := crée_noeud_document(user_agent.donne_tas_de_mémoire())
+    document := crée_noeud_document(user_agent.donne_tas_de_mémoire(), window.realm)
     document.type = type
     document.type_contenu = content_type
     document.origin = navigation_params.origin
@@ -2550,7 +2597,8 @@ create_and_initialize_a_document_object :: fonc (user_agent: *UserAgent, type: c
     document.about_base_url = navigation_params.about_base_URL
     document.permets_racines_shadow_déclaratives = vrai
 
-    // À FAIRE 11. Set window's associated Document to document.
+    // 11. Set window's associated Document to document.
+    window.document = document
 
     // À FAIRE 12. Run CSP initialization for a Document given document. [CSP]
 

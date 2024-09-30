@@ -19,6 +19,8 @@ UserAgent :: struct {
     rappels_interface: *RappelsInterface
 
     mv: JavaScript.MachineVirtuelle
+
+    supporte_scripting: bool
 }
 
 initialise_user_agent :: fonc (user_agent: *UserAgent)
@@ -113,6 +115,7 @@ RappelsInterface :: struct {
     sur_est_exécuté_en_parallèle: fonc(*RappelsInterface)(bool)
     sur_est_exécuté_sur_file_parallèle: fonc(*RappelsInterface, *TraversableNavigable)(bool)
     sur_création_file_parallèle_pour_traversable: fonc(*RappelsInterface)(z64)
+    sur_affichage_alerte: fonc(*RappelsInterface, DOMString)(rien)
 }
 
 détruit_rappels :: fonc (rappels: *RappelsInterface)
@@ -237,6 +240,15 @@ crée_file_parallèle_pour_traversable :: fonc (user_agent: *UserAgent) -> z64
         retourne -1
     }
     retourne rappels.sur_création_file_parallèle_pour_traversable(rappels)
+}
+
+affiche_alerte :: fonc (user_agent: *UserAgent, message: DOMString)
+{
+    rappels := user_agent.rappels_interface
+    saufsi rappels && rappels.sur_affichage_alerte {
+        retourne
+    }
+    rappels.sur_affichage_alerte(rappels, message)
 }
 
 /** \} */

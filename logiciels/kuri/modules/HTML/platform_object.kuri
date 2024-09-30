@@ -1,25 +1,219 @@
+importe Fondation
 importe #inemployé JavaScript
+importe Internet
 
 /* ------------------------------------------------------------------------- */
 /** \nom PlatformObject
  * https://webidl.spec.whatwg.org/#dfn-platform-object
+ * https://webidl.spec.whatwg.org/#es-platform-objects
  * \{ */
 
 #portée_module
 
 TableVirtuellePlatformObject :: struct {
     empl object: JavaScript.TableVirtuelleObject
+
+    sur_initialisation_interface: fonc(*PlatformObject)(rien)
 }
 
 #portée_export
 
 PlatformObject :: struct {
     empl objet: JavaScript.Object
+    realm: *JavaScript.Realm
 }
 
 donne_tas_de_mémoire :: fonc (object: *PlatformObject) -> *JavaScript.TasDeMémoire
 {
     retourne JavaScript.donne_tas_de_mémoire(object)
+}
+
+crée_platform_object :: fonc (référence: *PlatformObject, $T: type_de_données) -> *T
+{
+    retourne crée_platform_object(référence.donne_tas_de_mémoire(), référence.realm, T)
+}
+
+crée_platform_object :: fonc (tas_de_mémoire: *JavaScript.TasDeMémoire, realm: *JavaScript.Realm, $T: type_de_données) -> *T
+{
+    résultat := JavaScript.alloue(tas_de_mémoire, T)
+    résultat.realm = realm
+    table := résultat.table comme *TableVirtuellePlatformObject
+    si table && table.sur_initialisation_interface {
+        table.sur_initialisation_interface(résultat)
+    }
+    retourne résultat
+}
+
+/* https://html.spec.whatwg.org/multipage/nav-history-apis.html#isplatformobjectsameorigin-(-o-) */
+is_platform_object_same_origin :: fonc (object: *JavaScript.Object @inutilisée) -> bool
+{
+    // 1. Return true if the current settings object's origin is same origin-domain with O's relevant settings object's origin, and false otherwise.
+    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+    retourne faux
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 8.1.3.3.4 Relevant
+ * https://html.spec.whatwg.org/multipage/webappapis.html#relevant
+ * \{ */
+
+donne_relevant_realm :: fonc (platform_object: *PlatformObject) -> *JavaScript.Realm
+{
+    retourne platform_object.realm
+}
+
+donne_relevant_settings_object :: fonc (platform_object: *PlatformObject) -> *EnvironmentSettings
+{
+    realm := platform_object.donne_relevant_realm()
+    saufsi realm {
+        retourne nul
+    }
+    retourne JavaScript.donne_données(realm.host_defined, EnvironmentSettings)
+}
+
+donne_relevant_global_object :: fonc (platform_object: *PlatformObject) -> *JavaScript.Object
+{
+    realm := platform_object.donne_relevant_realm()
+    saufsi realm {
+        retourne nul
+    }
+    retourne realm.global_object
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Environment
+ * https://html.spec.whatwg.org/multipage/webappapis.html#environments
+ * \{ */
+
+Environment :: struct {
+    creation_url: URI
+    top_level_creation_url: URI
+    top_level_origin: Origin
+    execution_ready: bool
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom EnvironmentSettings
+ * https://html.spec.whatwg.org/multipage/webappapis.html#environment-settings-objects
+ * \{ */
+
+EnvironmentSettings :: struct {
+    empl base: Environment
+
+    sur_donne_realm_execution_context: fonc(*EnvironmentSettings)(*JavaScript.ExecutionContext)
+    // sur_donne_module_map
+    sur_donne_api_base_url: fonc(*EnvironmentSettings)(URI)
+    sur_donne_origin: fonc(*EnvironmentSettings)(Origin)
+    sur_donne_policy_container: fonc(*EnvironmentSettings)(*PolicyContainer)
+    sur_donne_cross_origin_isolated_capability: fonc(*EnvironmentSettings)(bool)
+    sur_donne_time_origin: fonc(*EnvironmentSettings)(r64)
+}
+
+donne_realm :: fonc (environment: *EnvironmentSettings) -> *JavaScript.Realm
+{
+    ctx := environment.donne_realm_execution_context()
+    saufsi ctx {
+        retourne nul
+    }
+    retourne ctx.realm
+}
+
+donne_global_object :: fonc (environment: *EnvironmentSettings) -> *JavaScript.Object
+{
+    realm := environment.donne_realm()
+    saufsi realm {
+        retourne nul
+    }
+    retourne realm.global_object
+}
+
+donne_realm_execution_context :: fonc (environment: *EnvironmentSettings) -> *JavaScript.ExecutionContext
+{
+    retourne environment.sur_donne_realm_execution_context(environment)
+}
+
+donne_api_base_url :: fonc (environment: *EnvironmentSettings) -> URI
+{
+    retourne environment.sur_donne_api_base_url(environment)
+}
+
+donne_origin :: fonc (environment: *EnvironmentSettings) -> Origin
+{
+    retourne environment.sur_donne_origin(environment)
+}
+
+donne_policy_container :: fonc (environment: *EnvironmentSettings) -> *PolicyContainer
+{
+    retourne environment.sur_donne_policy_container(environment)
+}
+
+donne_cross_origin_isolated_capability :: fonc (environment: *EnvironmentSettings) -> bool
+{
+    retourne environment.sur_donne_cross_origin_isolated_capability(environment)
+}
+
+donne_time_origin :: fonc (environment: *EnvironmentSettings) -> r64
+{
+    retourne environment.sur_donne_time_origin(environment)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 8.1.3.4 Enabling and disabling scripting
+ * https://html.spec.whatwg.org/multipage/webappapis.html#enabling-and-disabling-scripting
+ * \{ */
+
+scripting_est_activé :: fonc (user_agent: *UserAgent, environment: *EnvironmentSettings) -> bool
+{
+    // The user agent supports scripting.
+    saufsi user_agent.supporte_scripting {
+        retourne faux
+    }
+
+    // À FAIRE : The user has not disabled scripting for settings at this time. (User agents may provide users with the option to disable scripting globally, or in a finer-grained manner, e.g., on a per-origin basis, down to the level of individual environment settings objects.)
+
+    // Either settings's global object is not a Window object, or settings's global object's associated Document's active sandboxing flag set does not have its sandboxed scripts browsing context flag set.
+    global_object := donne_global_object(environment)
+    saufsi global_object {
+        retourne faux
+    }
+
+    window := global_object comme *Window
+    retourne (global_object.table.classe != Window) || window.document.active_sandboxing_flags.Scripts == faux
+}
+
+scripting_est_désactivé :: fonc (user_agent: *UserAgent, environment: *EnvironmentSettings) -> bool
+{
+    retourne scripting_est_activé(user_agent, environment) == faux
+}
+
+/* https://html.spec.whatwg.org/multipage/webappapis.html#concept-n-noscript */
+scripting_est_activé :: fonc (script: *HTMLScriptElement) -> bool
+{
+    node_document := script.donne_node_document()
+    saufsi node_document {
+        retourne faux
+    }
+    saufsi node_document.browsing_context {
+        retourne faux
+    }
+    settings := script.donne_relevant_settings_object()
+    saufsi settings {
+        retourne faux
+    }
+    retourne scripting_est_activé(node_document.donne_user_agent(), settings)
+}
+
+scripting_est_désactivé :: fonc (script: *HTMLScriptElement) -> bool
+{
+    retourne scripting_est_activé(script) == faux
 }
 
 /** \} */

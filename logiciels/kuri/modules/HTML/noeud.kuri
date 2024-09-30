@@ -13,6 +13,8 @@ importe #inemployé JavaScript
 TableVirtuelleNoeud :: struct {
     empl base_event_target: TableVirtuelleEventTarget
 
+    sur_initialisation_interface = noeud_sur_initialisation_interface
+
     /* Appelé quand le noeud est insérer dans un noeud parent. */
     sur_insertion: fonc(*Noeud)(rien)
     /* Appelé quand le noeud devinent connecté. */
@@ -70,6 +72,11 @@ noeud_sur_destruction :: fonc (base: *JavaScript.Cellule)
 {
     noeud := base comme *Noeud
     noeud_détruit_données(noeud)
+}
+
+noeud_sur_initialisation_interface :: fonc (noeud: *PlatformObject)
+{
+    JavaScript.ajoute_propriété(noeud, crée_chaine_utf16_unique("nodeName"), node_node_name_getter, nul, JavaScript.DrapeauxPropriété.zéro)
 }
 
 #portée_export
@@ -439,6 +446,60 @@ get_element_by_id_recursive :: fonc (noeud: *Noeud, chn: DOMString) -> *Élémen
     }
 
     retourne nul
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Interface JavaScript
+ * \{ */
+
+#portée_fichier
+
+node_node_name_getter :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord
+{
+    noeud := JavaScript.donne_objet(this_value) comme *Noeud
+    node_name := donne_node_name(noeud)
+    str_node_name := JavaScript.crée_chaine(noeud.donne_tas_de_mémoire(), node_name)
+    retourne JavaScript.normal_completion(JavaScript.Valeur(String = str_node_name))
+}
+
+/* https://dom.spec.whatwg.org/#dom-node-nodename */
+donne_node_name :: fonc (noeud: *Noeud) -> DOMString
+{
+    discr noeud.genre {
+        Élément {
+            // À FAIRE : Its HTML-uppercased qualified name.
+            retourne (noeud comme *Élément).local_name
+        }
+        Attr {
+            // À FAIRE : Its qualified name.
+            retourne (noeud comme *Attr).local_name
+        }
+        Texte {
+            retourne crée_chaine_utf16_unique("#text")
+        }
+        Section_CDATA {
+            retourne crée_chaine_utf16_unique("#cdata-section")
+        }
+        ProcessingInstruction {
+            retourne crée_chaine_utf16_unique((noeud comme *NoeudProcessingInstruction).cible)
+        }
+        Commentaire {
+            retourne crée_chaine_utf16_unique("#comment")
+        }
+        Document {
+            retourne crée_chaine_utf16_unique("#document")
+        }
+        TypeDocument {
+            retourne (noeud comme *NoeudTypeDocument).nom
+        }
+        FragmentDocument {  
+            retourne crée_chaine_utf16_unique("#document-fragment")
+        }
+    }
+
+    retourne crée_chaine_utf16_unique_vide()
 }
 
 /** \} */

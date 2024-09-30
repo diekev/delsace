@@ -84,6 +84,7 @@ Document :: struct {
     mode: ModeDocument
     permets_racines_shadow_déclaratives: bool
 
+    current_script: *HTMLScriptElement
     pending_parsing_blocking_script: *HTMLScriptElement
     scripts_that_will_execute_as_soon_as_possible: [..]*HTMLScriptElement
     scripts_that_will_execute_in_order_as_soon_as_possible: [..]*HTMLScriptElement
@@ -112,6 +113,7 @@ Document :: struct {
     latest_entry: *SessionHistoryEntry
 
     unload_counter: z32
+    ignore_destructive_writes: z32
 
     /* CSS. */
     feuille_de_style_agent: *CSS.CSSStyleSheet
@@ -134,9 +136,10 @@ Document :: struct {
 
 #portée_fichier
 
-table_virtuelle_document := TableVirtuelleÉlément(
+table_virtuelle_document := TableVirtuelleNoeud(
     classe = Document,
-    sur_destruction = document_sur_destruction
+    sur_destruction = document_sur_destruction,
+    sur_initialisation_interface = document_sur_initialisation_interface
 )
 
 document_sur_destruction :: fonc (base: *JavaScript.Cellule)
@@ -161,9 +164,9 @@ document_sur_destruction :: fonc (base: *JavaScript.Cellule)
 
 #portée_export
 
-crée_noeud_document :: fonc (tas_de_mémoire: *JavaScript.TasDeMémoire) -> *Document
+crée_noeud_document :: fonc (tas_de_mémoire: *JavaScript.TasDeMémoire, realm: *JavaScript.Realm) -> *Document
 {
-    document := JavaScript.alloue(tas_de_mémoire, Document)
+    document := crée_platform_object(tas_de_mémoire, realm, Document)
     document.genre = GenreNoeud.Document
     document.encodage = Encodage.UTF8
     document.mode = ModeDocument.NO_QUIRKS
@@ -638,6 +641,43 @@ définis_données_image :: fonc (document: *Document, url: chaine, données: Ima
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Interface JavaScript
+ * \{ */
+
+#portée_module
+
+document_sur_initialisation_interface :: fonc (document: *PlatformObject)
+{
+    noeud_sur_initialisation_interface(document)
+    JavaScript.ajoute_fonction_native(document, "getElementById", fonction_native_get_element_by_id)
+}
+
+fonction_native_get_element_by_id :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord
+{
+    si arguments.taille == 0 {
+        retourne JavaScript.lance_type_error(interpréteuse, "getElementByID requiers 1 argument")
+    }
+
+    saufsi JavaScript.est_chaine(arguments[0]) {
+        retourne JavaScript.lance_type_error(interpréteuse, "argument n'est pas une chaine")
+    }
+
+    texte := arguments[0].String.texte
+    document := JavaScript.donne_objet(this_value) comme *Document
+    élément := document.get_element_by_id(texte)
+
+    saufsi élément {
+        retourne JavaScript.normal_completion(JavaScript.js_null)
+    }
+
+    retourne JavaScript.normal_completion(JavaScript.Valeur(Object = élément))
+}
+
+#portée_export
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom NoeudTypeDocument.
  * https://dom.spec.whatwg.org/#documenttype
  * \{ */
@@ -653,7 +693,7 @@ NoeudTypeDocument :: struct {
 
 crée_noeud_doctype :: fonc (document: *Document) -> *NoeudTypeDocument
 {
-    doctype := JavaScript.alloue(document.donne_tas_de_mémoire(), NoeudTypeDocument)
+    doctype := crée_platform_object(document, NoeudTypeDocument)
     doctype.genre = GenreNoeud.TypeDocument
     doctype.document = document
 
@@ -662,7 +702,7 @@ crée_noeud_doctype :: fonc (document: *Document) -> *NoeudTypeDocument
 
 #portée_fichier
 
-table_virtuelle_type_document := TableVirtuelleÉlément(
+table_virtuelle_type_document := TableVirtuelleNoeud(
     classe = NoeudTypeDocument,
     sur_destruction = noeud_sur_destruction
 )
@@ -683,7 +723,7 @@ NoeudFragmentDocument :: struct {
 
 crée_noeud_fragment_document :: fonc (document: *Document) -> *NoeudFragmentDocument
 {
-    doctype := JavaScript.alloue(document.donne_tas_de_mémoire(), NoeudFragmentDocument)
+    doctype := crée_platform_object(document, NoeudFragmentDocument)
     doctype.genre = GenreNoeud.FragmentDocument
     doctype.document = document
 
@@ -692,7 +732,7 @@ crée_noeud_fragment_document :: fonc (document: *Document) -> *NoeudFragmentDoc
 
 #portée_fichier
 
-table_virtuelle_fragment_document := TableVirtuelleÉlément(
+table_virtuelle_fragment_document := TableVirtuelleNoeud(
     classe = NoeudFragmentDocument,
     sur_destruction = noeud_sur_destruction
 )
@@ -741,7 +781,7 @@ NoeudTexte :: struct {
 
 crée_noeud_texte :: fonc (document: *Document) -> *NoeudTexte
 {
-    texte := JavaScript.alloue(document.donne_tas_de_mémoire(), NoeudTexte)
+    texte := crée_platform_object(document, NoeudTexte)
     texte.genre = GenreNoeud.Texte
     texte.document = document
 
@@ -756,7 +796,7 @@ est_espace_blanche_entre_élément :: fonc (texte: *NoeudTexte) -> bool
 
 #portée_fichier
 
-table_virtuelle_texte := TableVirtuelleÉlément(
+table_virtuelle_texte := TableVirtuelleNoeud(
     classe = NoeudTexte,
     sur_destruction = texte_sur_destruction
 )
@@ -784,7 +824,7 @@ NoeudSectionCDATA :: struct {
 
 crée_noeud_section_cdata :: fonc (document: *Document) -> *NoeudTexte
 {
-    texte := JavaScript.alloue(document.donne_tas_de_mémoire(), NoeudSectionCDATA)
+    texte := crée_platform_object(document, NoeudSectionCDATA)
     texte.genre = GenreNoeud.Section_CDATA
     texte.document = document
 
@@ -793,7 +833,7 @@ crée_noeud_section_cdata :: fonc (document: *Document) -> *NoeudTexte
 
 #portée_fichier
 
-table_virtuelle_section_cdata := TableVirtuelleÉlément(
+table_virtuelle_section_cdata := TableVirtuelleNoeud(
     classe = NoeudSectionCDATA,
     sur_destruction = section_cdata_sur_destruction
 )
@@ -821,7 +861,7 @@ NoeudCommentaire :: struct {
 
 crée_noeud_commentaire :: fonc (document: *Document, données: ChaineUTF16) -> *NoeudCommentaire
 {
-    commentaire := JavaScript.alloue(document.donne_tas_de_mémoire(), NoeudCommentaire)
+    commentaire := crée_platform_object(document, NoeudCommentaire)
     commentaire.genre = GenreNoeud.Commentaire
     commentaire.document = document
     commentaire.données = copie_chaine(données)
@@ -831,7 +871,7 @@ crée_noeud_commentaire :: fonc (document: *Document, données: ChaineUTF16) -> 
 
 #portée_fichier
 
-table_virtuelle_commentaire := TableVirtuelleÉlément(
+table_virtuelle_commentaire := TableVirtuelleNoeud(
     classe = NoeudCommentaire,
     sur_destruction = commentaire_sur_destruction
 )
@@ -861,7 +901,7 @@ NoeudProcessingInstruction :: struct {
 
 crée_noeud_processing_instruction :: fonc (document: *Document, données: ChaineUTF16) -> *NoeudCommentaire
 {
-    résultat := JavaScript.alloue(document.donne_tas_de_mémoire(), NoeudCommentaire)
+    résultat := crée_platform_object(document, NoeudCommentaire)
     résultat.genre = GenreNoeud.Commentaire
     résultat.document = document
     résultat.données = copie_chaine(données)
@@ -871,7 +911,7 @@ crée_noeud_processing_instruction :: fonc (document: *Document, données: Chain
 
 #portée_fichier
 
-table_virtuelle_processing_instruction := TableVirtuelleÉlément(
+table_virtuelle_processing_instruction := TableVirtuelleNoeud(
     classe = NoeudProcessingInstruction,
     sur_destruction = processing_instruction_sur_destruction
 )

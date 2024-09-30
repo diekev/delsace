@@ -1387,7 +1387,7 @@ vue_rendu_page_sur_relachement_cle :: fonc (base: *QT_Rappels_GLWidget, event: *
 envoie_un_clic :: fonc (élément: *HTML.Élément)
 {
     /* À FAIRE : standardise. */
-    évènement := JavaScript.alloue(élément.donne_tas_de_mémoire(), HTML.Event)
+    évènement := crée_platform_object(élément, HTML.Event)
     évènement.target = élément
     évènement.type = HTML.EventType.click
 
@@ -1530,6 +1530,7 @@ crée_rappels_interface_qt :: fonc (fenêtre: *QT_Fenetre_Principale) -> *Rappel
     résultat.sur_est_exécuté_en_parallèle = rappels_interface_sur_est_exécuté_en_parallèle
     résultat.sur_est_exécuté_sur_file_parallèle = rappels_interface_sur_est_exécuté_sur_file_parallèle
     résultat.sur_création_file_parallèle_pour_traversable = rappels_interface_crée_file_parallèle_pour_traversable
+    résultat.sur_affichage_alerte = rappels_interface_sur_affichage_alerte
 
     rappels_thread := QT_loge_rappel(RappelsThread)
     rappels_thread.rappels_interface = résultat
@@ -1851,6 +1852,16 @@ rappels_interface_crée_file_parallèle_pour_traversable :: fonc (base: *Rappels
     QT_thread_start(thread)
 
     retourne résultat
+}
+
+rappels_interface_sur_affichage_alerte :: fonc (base: *RappelsInterface, message: DOMString)
+{
+    rappels := base comme *RappelsInterfaceQt
+
+    chn_message := converti_vers_chaine(message.donne_chaine_utf16())
+    diffère déloge(chn_message)
+
+    _ := QT_message_box_affiche_avertissement(rappels.fenêtre, vers_qt("Alerte"), vers_qt(chn_message), QT_StandardButton.OK)
 }
 
 /** \} */

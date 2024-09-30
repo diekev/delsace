@@ -1,0 +1,200 @@
+importe Chaine
+importe Fondation
+importe Internet
+importe #inemployé JavaScript
+
+/* 8.1.4 Script processing model
+ * https://html.spec.whatwg.org/multipage/webappapis.html#scripting-processing-model */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 8.1.4.1 Scripts
+ * https://html.spec.whatwg.org/multipage/webappapis.html#script-structs
+ * \{ */
+
+Script :: struct {
+    settings_object: *EnvironmentSettings
+    record: *JavaScript.Script
+    parse_error: JavaScript.Valeur
+    error_to_rethrow: JavaScript.Valeur
+    fetch_options: Optionnel(OptionsFetchScript)
+    base_url: URI
+}
+
+ClassicScript :: struct {
+    empl base: Script
+
+    muted_errors: bool
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 8.1.4.2 Fetching scripts
+ * https://html.spec.whatwg.org/multipage/webappapis.html#fetching-scripts
+ * \{ */
+
+OptionsFetchScript :: struct {
+    cryptographic_nonce: chaine
+    integrity_metadata: chaine
+    parser_metadata := "not-parser-inserted"
+    credentials_mode := "same-origin"
+    referrer_policy: chaine
+    render_blocking: bool
+    fetch_priority := "auto"
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 8.1.4.3 Creating scripts
+ * https://html.spec.whatwg.org/multipage/webappapis.html#creating-scripts
+ * \{ */
+
+/* https://html.spec.whatwg.org/multipage/webappapis.html#creating-a-classic-script */
+create_a_classic_script :: fonc (user_agent: *UserAgent, source: chaine, settings: *EnvironmentSettings, base_url: &URI, options: &OptionsFetchScript, muted_errors := faux, source_url_for_window_scripts : *URI = nul @inutilisée) -> *ClassicScript
+{
+    // 1. If mutedErrors is true, then set baseURL to about:blank.
+    si muted_errors {
+        base_url = URI("about:blank")
+    }
+
+    // 2. If scripting is disabled for settings, then set source to the empty string.
+    si scripting_est_désactivé(user_agent, settings) {
+        source = ""
+    }
+
+    // 3. Let script be a new classic script that this algorithm will subsequently initialize.
+    script := loge(ClassicScript)
+
+    // 4. Set script's settings object to settings.
+    script.settings_object = settings
+
+    // 5. Set script's base URL to baseURL.
+    script.base_url = base_url
+
+    // 6. Set script's fetch options to options.
+    script.fetch_options.Quelque = options
+
+    // 7. Set script's muted errors to mutedErrors.
+    script.muted_errors = muted_errors
+
+    // 8. Set script's parse error and error to rethrow to null.
+    script.parse_error = JavaScript.js_null
+    script.error_to_rethrow = JavaScript.js_null
+
+    // À FAIRE : 9. Record classic script creation time given script and sourceURLForWindowScripts.
+
+    // 10. Let result be ParseScript(source, settings's realm, script).
+    host_defined := JavaScript.crée_host_defined(script)
+
+    discr JavaScript.parse_script(source, settings.donne_realm(), host_defined) {
+        Erreur(e) {
+            imprime("%\n", e.message)
+
+            // À FAIRE : 11. If result is a list of errors, then:
+
+            // 1. Set script's parse error and its error to rethrow to result[0].
+
+            // 2. Return script.
+            retourne script
+        }
+        Ok(s) {
+            // 12. Set script's record to result.
+            script.record = s
+        }
+        sinon {
+        }
+    }
+
+    // 13. Return script.
+    retourne script
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 8.1.4.4
+ * https://html.spec.whatwg.org/multipage/webappapis.html#calling-scripts
+ * \{ */
+
+run_the_classic_script :: fonc (script: *ClassicScript, rethrow_errors := faux @inutilisée)
+{
+    // 1. Let settings be the settings object of script.
+    settings := script.settings_object
+
+    // À FAIRE 2. Check if we can run script with settings. If this returns "do not run" then return NormalCompletion(empty).
+
+    // 3. Record classic script execution start time given script.
+
+    // 4. Prepare to run script given settings.
+    prepare_to_run_script(settings)
+
+    // 5. Let evaluationStatus be null.
+
+    // 6. If script's error to rethrow is not null, then set evaluationStatus to Completion { [[Type]]: throw, [[Value]]: script's error to rethrow, [[Target]]: empty }.
+
+    // 7. Otherwise, set evaluationStatus to ScriptEvaluation(script's record).
+    evaluation_status := JavaScript.script_evaluation(script.record)
+
+    imprime("[%] %\n", #nom_de_cette_fonction, evaluation_status)
+
+    // If ScriptEvaluation does not complete because the user agent has aborted the running script, leave evaluationStatus as null.
+
+    // 8. If evaluationStatus is an abrupt completion, then:
+
+        // 1. If rethrow errors is true and script's muted errors is false, then:
+
+            // 1. Clean up after running script with settings.
+
+            // 2. Rethrow evaluationStatus.[[Value]].
+
+        // 2. If rethrow errors is true and script's muted errors is true, then:
+
+            // 1. Clean up after running script with settings.
+
+            // 2. Throw a "NetworkError" DOMException.
+
+            // 3. Otherwise, rethrow errors is false. Perform the following steps:
+
+        // 1. Report an exception given by evaluationStatus.[[Value]] for script's settings object's global object.
+
+            // 2. Clean up after running script with settings.
+
+            // 3. Return evaluationStatus.
+
+    // 9. Clean up after running script with settings.
+    cleanup_after_running_script(settings)
+
+    // 10. If evaluationStatus is a normal completion, then return evaluationStatus.
+
+    // 11. If we've reached this point, evaluationStatus was left as null because the script was aborted prematurely during evaluation. Return Completion { [[Type]]: throw, [[Value]]: a new "QuotaExceededError" DOMException, [[Target]]: empty }.
+}
+
+/* https://html.spec.whatwg.org/multipage/webappapis.html#prepare-to-run-script */
+prepare_to_run_script :: fonc (settings: *EnvironmentSettings)
+{
+    execution_context := settings.donne_realm_execution_context()
+    mv := JavaScript.donne_mv(JavaScript.donne_tas_de_mémoire(execution_context))
+
+    // 1. Push settings's realm execution context onto the JavaScript execution context stack; it is now the running JavaScript execution context.
+    JavaScript.empile_execution_context(mv, execution_context)
+
+    // À FAIRE : 2. Add settings to the surrounding agent's event loop's currently running task's script evaluation environment settings object set.
+}
+
+/* https://html.spec.whatwg.org/multipage/webappapis.html#clean-up-after-running-script */
+cleanup_after_running_script :: fonc (settings: *EnvironmentSettings)
+{
+    execution_context := settings.donne_realm_execution_context()
+    mv := JavaScript.donne_mv(JavaScript.donne_tas_de_mémoire(execution_context))
+
+    // 1. Assert: settings's realm execution context is the running JavaScript execution context.
+    assert(execution_context == JavaScript.donne_running_execution_context(mv))
+
+    // 2. Remove settings's realm execution context from the JavaScript execution context stack.
+    JavaScript.dépile_execution_context(mv)
+
+    // À FAIRE 3. If the JavaScript execution context stack is now empty, perform a microtask checkpoint. (If this runs scripts, these algorithms will be invoked reentrantly.)
+}
+
+/** \} */
