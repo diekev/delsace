@@ -178,16 +178,9 @@ scripting_est_activé :: fonc (user_agent: *UserAgent, environment: *Environment
     saufsi global_object {
         retourne faux
     }
-    saufsi global_object.table.classe == Window {
-        retourne faux
-    }
 
     window := global_object comme *Window
-    si window.document.active_sandboxing_flags.Scripts == faux {
-        retourne faux
-    }
-
-    retourne vrai
+    retourne (global_object.table.classe != Window) || window.document.active_sandboxing_flags.Scripts == faux
 }
 
 scripting_est_désactivé :: fonc (user_agent: *UserAgent, environment: *EnvironmentSettings) -> bool
