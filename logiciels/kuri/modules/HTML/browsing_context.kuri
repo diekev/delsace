@@ -1,3 +1,4 @@
+importe Chaine
 importe Fondation
 importe Internet
 
@@ -513,7 +514,33 @@ crée_objet_window :: fonc (tas_de_mémoire: *JavaScript.TasDeMémoire, realm: *
 {
     résultat := crée_platform_object(tas_de_mémoire, realm, Window)
     résultat.prototype = realm.intrinsics.object_prototype
+    JavaScript.ajoute_propriété(résultat, crée_chaine_utf16_unique("window"), JavaScript.Valeur(Object = résultat), JavaScript.DrapeauxPropriété.zéro)
+    JavaScript.ajoute_fonction_native(résultat, "alert", fonction_native_alert)
     retourne résultat
+}
+
+/* https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#dom-alert-noargs */
+fonction_native_alert :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord
+{
+    window := this_value.Object comme *Window
+    assert(window.table.classe == Window)
+
+    user_agent := window.document.donne_user_agent()
+    saufsi user_agent {
+        retourne JavaScript.normal_completion(JavaScript.js_undefined)
+    }
+
+    chn := crée_chaine_utf16_unique_vide()
+    si arguments.taille > 0 {
+        complétion := JavaScript.vers_chaine(interpréteuse, arguments[0])
+        saufsi JavaScript.est_normal(complétion) {
+            retourne complétion
+        }
+        chn = complétion.valeur.V.String.texte
+    }
+
+    user_agent.affiche_alerte(chn)
+    retourne JavaScript.normal_completion(JavaScript.js_undefined)
 }
 
 #portée_export
