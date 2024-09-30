@@ -1685,51 +1685,51 @@ table_virtuelle_script_element := TableVirtuelleÉlément(
 #portée_export
 
 /* https://html.spec.whatwg.org/multipage/scripting.html#prepare-the-script-element */
-prépare :: fonc (script: *HTMLScriptElement)
+prépare :: fonc (el: *HTMLScriptElement)
 {
     /* 1. */
-    si script.déjà_commencé {
+    si el.déjà_commencé {
         retourne
     }
 
     /* 2. & 3. */
-    document_parseur := script.document_parseur
-    script.document_parseur = nul
+    document_parseur := el.document_parseur
+    el.document_parseur = nul
 
     /* 4. */
-    si document_parseur != nul && !script.possède_attribut(ATTR_async) {
-        script.force_async = vrai
+    si document_parseur != nul && !el.possède_attribut(ATTR_async) {
+        el.force_async = vrai
     }
 
     /* 5. */
-    texte_source := extrait_texte_noeud(script)
+    texte_source := extrait_texte_noeud(el)
     diffère déloge(texte_source)
 
     /* 6. */
-    possède_attr_src := script.possède_attribut(ATTR_src)
+    possède_attr_src := el.possède_attribut(ATTR_src)
     si !possède_attr_src && texte_source == "" {
         retourne
     }
 
     /* 7. */
-    saufsi script.est_connecté() {
+    saufsi el.est_connecté() {
         retourne
     }
 
     /* 8. */
-    type_bloc_script := détermine_type_block_script(script)
+    type_bloc_script := détermine_type_block_script(el)
     
     /* 9. */
     si est_type_mime_javascript(type_bloc_script) {
-        script.type = TypeScript.CLASSIC
+        el.type = TypeScript.CLASSIC
     }
     /* 10. */
     sinon si compare_ascii_insensible_à_la_casse(type_bloc_script, ATTR_module) {
-        script.type = TypeScript.MODULE
+        el.type = TypeScript.MODULE
     }
     /* 11. */
     sinon si compare_ascii_insensible_à_la_casse(type_bloc_script, ATTR_importmap) {
-        script.type = TypeScript.IMPORTMAP
+        el.type = TypeScript.IMPORTMAP
     }
     /* 12. */
     sinon {
@@ -1738,43 +1738,43 @@ prépare :: fonc (script: *HTMLScriptElement)
 
     /* 13. */
     si document_parseur != nul {
-        script.document_parseur = document_parseur
-        script.force_async = faux
+        el.document_parseur = document_parseur
+        el.force_async = faux
     }
 
     /* 14. */
-    script.déjà_commencé = vrai
+    el.déjà_commencé = vrai
 
     /* 15. */
-    script.document_du_temps_de_préparation = script.document
+    el.document_du_temps_de_préparation = el.document
 
     /* 16. */
-    si document_parseur != nul && document_parseur != script.document_du_temps_de_préparation {
+    si document_parseur != nul && document_parseur != el.document_du_temps_de_préparation {
         retourne
     }
 
     /* 17. */
-    si script.scripting_est_désactivé() {
+    si el.scripting_est_désactivé() {
         retourne
     }
 
     /* 18. */
-    si script.possède_attribut(ATTR_nomodule) && script.type == TypeScript.CLASSIC {
+    si el.possède_attribut(ATTR_nomodule) && el.type == TypeScript.CLASSIC {
         retourne
     }
 
     /* 19. */
     saufsi possède_attr_src {
-        bloqué := le_comportement_inline_de_l_élément_doit_être_bloqué_par_csp(script, "script", texte_source)
+        bloqué := le_comportement_inline_de_l_élément_doit_être_bloqué_par_csp(el, "script", texte_source)
         si bloqué == "Blocked" {
             retourne
         }
     }
 
     /* 20. */
-    si script.type == TypeScript.CLASSIC && script.possède_attribut(ATTR_for) && script.possède_attribut(ATTR_event) {
-        valeur_for := script.donne_attribut(ATTR_for).Quelque
-        valeur_event := script.donne_attribut(ATTR_event).Quelque
+    si el.type == TypeScript.CLASSIC && el.possède_attribut(ATTR_for) && el.possède_attribut(ATTR_event) {
+        valeur_for := el.donne_attribut(ATTR_for).Quelque
+        valeur_event := el.donne_attribut(ATTR_event).Quelque
 
         valeur_event = supprime_espace_blanches_autour(valeur_event)
         valeur_for = supprime_espace_blanches_autour(valeur_for)
@@ -1807,7 +1807,7 @@ prépare :: fonc (script: *HTMLScriptElement)
     fetch_priority := ""
 
     /* 28. */
-    métadonnée_parseuse := si script.est_inséré_par_parseuse() {
+    métadonnée_parseuse := si el.est_inséré_par_parseuse() {
         "parser-inserted"
     }
     sinon {
