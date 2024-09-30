@@ -794,8 +794,8 @@ Object :: struct {
     Propriété :: struct {
         nom: PropertyKey
         valeur: Valeur
-        get: fonc(*Object)(Valeur)
-        set: fonc(*Object, Valeur)(rien)
+        get: *Object
+        set: *Object
         drapeaux: DrapeauxPropriété
     }
 
@@ -835,6 +835,19 @@ sur_destruction_objet :: fonc (base: *Cellule)
 ajoute_propriété :: fonc (objet: *Object, nom: PropertyKey, valeur: Valeur, drapeaux: DrapeauxPropriété)
 {
     tableau_ajoute(*objet.propriétés, Object.Propriété(nom, valeur, drapeaux = drapeaux))
+}
+
+ajoute_propriété :: fonc (objet: *Object, nom: PropertyKey, get: TypeFonctionObjectCall, set: TypeFonctionObjectCall, drapeaux: DrapeauxPropriété)
+{
+    getter: *Object
+    setter: *Object
+    si get {
+        getter = crée_fonction_native(objet.donne_tas_de_mémoire(), crée_chaine_utf16_unique_vide(), get, 0)
+    }
+    si set {
+        setter = crée_fonction_native(objet.donne_tas_de_mémoire(), crée_chaine_utf16_unique_vide(), set, 0)
+    }
+    tableau_ajoute(*objet.propriétés, Object.Propriété(nom, get = getter, set = setter, drapeaux = drapeaux))
 }
 
 /* [[GetPrototypeOf]] */
@@ -1105,10 +1118,16 @@ ordinary_get_own_property :: fonc (object: *Object, property_key: PropertyKey) -
     sinon {
         // a. Assert: X is an accessor property.
         assert(is_accessor_propery(X))
-        panique("accessor property non-implémenté")
 
         // b. Set D.[[Get]] to the value of X's [[Get]] attribute.
+        si propriété.get {
+            D.get = propriété.get
+        }
+
         // c. Set D.[[Set]] to the value of X's [[Set]] attribute.
+        si propriété.set {
+            D.set = propriété.set
+        }
     }
 
     // 6. Set D.[[Enumerable]] to the value of X's [[Enumerable]] attribute.
@@ -1186,11 +1205,20 @@ ordinary_get :: fonc (object: *Object, property_key: PropertyKey, receiver: Vale
         retourne normal_completion(desc.P.value.Quelque)
     }
 
-    panique("accessor property non-implémenté")
     // 4. Assert: IsAccessorDescriptor(desc) is true.
+    assert(is_accessor_descriptor(desc.P))
+
     // 5. Let getter be desc.[[Get]].
+    getter := desc.P.get
+
     // 6. If getter is undefined, return undefined.
+    saufsi getter.possède_valeur() {
+        retourne normal_completion(js_undefined)
+    }
+
     // 7. Return ? Call(getter, Receiver).
+    // À FAIRE : passe une interpréteuse
+    retourne call(nul, getter.Quelque, receiver)
 }
 
 /** \} */
