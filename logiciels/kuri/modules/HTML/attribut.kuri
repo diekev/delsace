@@ -48,7 +48,7 @@ Attr :: struct {
 
 crée_noeud_attr :: fonc (document: *Document, nom: DOMString, valeur: DOMString) -> *Attr
 {
-    résultat := JavaScript.alloue(document.donne_tas_de_mémoire(), Attr)
+    résultat := crée_platform_object(document.donne_tas_de_mémoire(), document.realm, Attr)
     résultat.document = document
     résultat.genre = GenreNoeud.Attr
     résultat.local_name = nom

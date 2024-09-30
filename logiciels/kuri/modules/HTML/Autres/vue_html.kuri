@@ -1387,7 +1387,7 @@ vue_rendu_page_sur_relachement_cle :: fonc (base: *QT_Rappels_GLWidget, event: *
 envoie_un_clic :: fonc (élément: *HTML.Élément)
 {
     /* À FAIRE : standardise. */
-    évènement := JavaScript.alloue(élément.donne_tas_de_mémoire(), HTML.Event)
+    évènement := crée_platform_object(élément, HTML.Event)
     évènement.target = élément
     évènement.type = HTML.EventType.click
 

@@ -232,67 +232,67 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élé
     // les éléments pour les balises SVG ne sont pas présents, espace de noms ?
     élément: *Élément
     si tag == TAG_a {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLAnchorElement)
+        élément = crée_platform_object(document, HTMLAnchorElement)
     }
     sinon si tag == TAG_body {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLBodyElement)
+        élément = crée_platform_object(document, HTMLBodyElement)
     }
     sinon si tag == TAG_font {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLFontElement)
+        élément = crée_platform_object(document, HTMLFontElement)
     }
     sinon si tag == TAG_form {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLFormElement)
+        élément = crée_platform_object(document, HTMLFormElement)
     }
     sinon si tag == TAG_head {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLHeadElement)
+        élément = crée_platform_object(document, HTMLHeadElement)
     }
     sinon si tag == TAG_h1 || tag == TAG_h2 || tag == TAG_h3 || tag == TAG_h4 || tag == TAG_h5 || tag == TAG_h6 {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLHeadingElement)
+        élément = crée_platform_object(document, HTMLHeadingElement)
     }
     sinon si tag == TAG_hr {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLHRElement)
+        élément = crée_platform_object(document, HTMLHRElement)
     }
     sinon si tag == TAG_html {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLHtmlElement)
+        élément = crée_platform_object(document, HTMLHtmlElement)
     }
     sinon si tag == TAG_iframe {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLIFrameElement)
+        élément = crée_platform_object(document, HTMLIFrameElement)
     }
     sinon si tag == TAG_img {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLImageElement)
+        élément = crée_platform_object(document, HTMLImageElement)
     }
     sinon si tag == TAG_input {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLInputElement)
+        élément = crée_platform_object(document, HTMLInputElement)
     }
     sinon si tag == TAG_link {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLLinkElement)
+        élément = crée_platform_object(document, HTMLLinkElement)
     }
     sinon si tag == TAG_script {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLScriptElement)
+        élément = crée_platform_object(document, HTMLScriptElement)
     }
     sinon si tag == TAG_style {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLStyleElement)
+        élément = crée_platform_object(document, HTMLStyleElement)
     }
     sinon si tag == TAG_table {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLTableElement)
+        élément = crée_platform_object(document, HTMLTableElement)
     }
     sinon si tag == TAG_td || tag == TAG_th {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLTableCellElement)
+        élément = crée_platform_object(document, HTMLTableCellElement)
     }
     sinon si tag == TAG_thead || tag == TAG_tbody || tag == TAG_tfoot {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLTableSectionElement)
+        élément = crée_platform_object(document, HTMLTableSectionElement)
     }
     sinon si tag == TAG_tr {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLTableRowElement)
+        élément = crée_platform_object(document, HTMLTableRowElement)
     }
     sinon si tag == TAG_textarea {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLTextAreaElement)
+        élément = crée_platform_object(document, HTMLTextAreaElement)
     }
     sinon si tag == TAG_video {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), HTMLVideoElement)
+        élément = crée_platform_object(document, HTMLVideoElement)
     }
     sinon {
-        élément = JavaScript.alloue(document.donne_tas_de_mémoire(), Élément)
+        élément = crée_platform_object(document, Élément)
     }
 
     initialise_élément(élément, document, tag)
@@ -342,7 +342,7 @@ get_elements_by_class_name :: fonc (élément: *Élément, class_names: DOMStrin
 
     // 2. If classes is the empty set, return an empty HTMLCollection.
     si classes.taille == 0 {
-        retourne JavaScript.alloue(élément.donne_tas_de_mémoire(), HTMLCollection)
+        retourne crée_platform_object(élément, HTMLCollection)
     }
 
     // 3. Return an HTMLCollection rooted at root, whose filter matches
@@ -350,7 +350,7 @@ get_elements_by_class_name :: fonc (élément: *Élément, class_names: DOMStrin
     //    The comparisons for the classes must be done in an ASCII
     //    case-insensitive manner if root’s node document’s mode is "quirks";
     //    otherwise in an identical to manner.
-    résultat := JavaScript.alloue(élément.donne_tas_de_mémoire(), HTMLCollection)
+    résultat := crée_platform_object(élément, HTMLCollection)
     résultat.root = élément
     résultat.filter = crée_filtre_pour_class_name(classes)
     initialise_collection_pour_filtre(résultat)
@@ -360,7 +360,7 @@ get_elements_by_class_name :: fonc (élément: *Élément, class_names: DOMStrin
 /* https://dom.spec.whatwg.org/#concept-getelementsbytagname */
 get_elements_by_tag_name :: fonc (élément: *Élément, qualified_name: DOMString) -> *HTMLCollection
 {   
-    résultat := JavaScript.alloue(élément.donne_tas_de_mémoire(), HTMLCollection)
+    résultat := crée_platform_object(élément, HTMLCollection)
     résultat.root = élément
 
     // 1. If qualifiedName is U+002A (*), then return an HTMLCollection rooted at root, whose filter matches only descendant elements.

@@ -161,9 +161,9 @@ document_sur_destruction :: fonc (base: *JavaScript.Cellule)
 
 #portée_export
 
-crée_noeud_document :: fonc (tas_de_mémoire: *JavaScript.TasDeMémoire) -> *Document
+crée_noeud_document :: fonc (tas_de_mémoire: *JavaScript.TasDeMémoire, realm: *JavaScript.Realm) -> *Document
 {
-    document := JavaScript.alloue(tas_de_mémoire, Document)
+    document := crée_platform_object(tas_de_mémoire, realm, Document)
     document.genre = GenreNoeud.Document
     document.encodage = Encodage.UTF8
     document.mode = ModeDocument.NO_QUIRKS
@@ -653,7 +653,7 @@ NoeudTypeDocument :: struct {
 
 crée_noeud_doctype :: fonc (document: *Document) -> *NoeudTypeDocument
 {
-    doctype := JavaScript.alloue(document.donne_tas_de_mémoire(), NoeudTypeDocument)
+    doctype := crée_platform_object(document, NoeudTypeDocument)
     doctype.genre = GenreNoeud.TypeDocument
     doctype.document = document
 
@@ -683,7 +683,7 @@ NoeudFragmentDocument :: struct {
 
 crée_noeud_fragment_document :: fonc (document: *Document) -> *NoeudFragmentDocument
 {
-    doctype := JavaScript.alloue(document.donne_tas_de_mémoire(), NoeudFragmentDocument)
+    doctype := crée_platform_object(document, NoeudFragmentDocument)
     doctype.genre = GenreNoeud.FragmentDocument
     doctype.document = document
 
@@ -741,7 +741,7 @@ NoeudTexte :: struct {
 
 crée_noeud_texte :: fonc (document: *Document) -> *NoeudTexte
 {
-    texte := JavaScript.alloue(document.donne_tas_de_mémoire(), NoeudTexte)
+    texte := crée_platform_object(document, NoeudTexte)
     texte.genre = GenreNoeud.Texte
     texte.document = document
 
@@ -784,7 +784,7 @@ NoeudSectionCDATA :: struct {
 
 crée_noeud_section_cdata :: fonc (document: *Document) -> *NoeudTexte
 {
-    texte := JavaScript.alloue(document.donne_tas_de_mémoire(), NoeudSectionCDATA)
+    texte := crée_platform_object(document, NoeudSectionCDATA)
     texte.genre = GenreNoeud.Section_CDATA
     texte.document = document
 
@@ -821,7 +821,7 @@ NoeudCommentaire :: struct {
 
 crée_noeud_commentaire :: fonc (document: *Document, données: ChaineUTF16) -> *NoeudCommentaire
 {
-    commentaire := JavaScript.alloue(document.donne_tas_de_mémoire(), NoeudCommentaire)
+    commentaire := crée_platform_object(document, NoeudCommentaire)
     commentaire.genre = GenreNoeud.Commentaire
     commentaire.document = document
     commentaire.données = copie_chaine(données)
@@ -861,7 +861,7 @@ NoeudProcessingInstruction :: struct {
 
 crée_noeud_processing_instruction :: fonc (document: *Document, données: ChaineUTF16) -> *NoeudCommentaire
 {
-    résultat := JavaScript.alloue(document.donne_tas_de_mémoire(), NoeudCommentaire)
+    résultat := crée_platform_object(document, NoeudCommentaire)
     résultat.genre = GenreNoeud.Commentaire
     résultat.document = document
     résultat.données = copie_chaine(données)

@@ -719,7 +719,7 @@ crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Do
 
         tas_de_mémoire := JavaScript.donne_tas_de_mémoire(realm)
 
-        window := JavaScript.alloue(tas_de_mémoire, Window)
+        window := crée_platform_object(tas_de_mémoire, realm, Window)
         window.prototype = realm.intrinsics.object_prototype
 
         window_proxy := JavaScript.alloue(tas_de_mémoire, WindowProxy)
@@ -777,7 +777,7 @@ crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Do
     //     is initial about:blank = true
     //     about base URL = creatorBaseURL
     //     allow declarative shadow roots = true
-    document := crée_noeud_document(user_agent.donne_tas_de_mémoire())
+    document := crée_noeud_document(user_agent.donne_tas_de_mémoire(), realm_execution_context.realm)
     document.type = "html"
     document.type_contenu = "text/html"
     document.mode = ModeDocument.QUIRKS

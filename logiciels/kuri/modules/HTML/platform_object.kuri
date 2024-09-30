@@ -26,6 +26,18 @@ donne_tas_de_mémoire :: fonc (object: *PlatformObject) -> *JavaScript.TasDeMém
     retourne JavaScript.donne_tas_de_mémoire(object)
 }
 
+crée_platform_object :: fonc (référence: *PlatformObject, $T: type_de_données) -> *T
+{
+    retourne crée_platform_object(référence.donne_tas_de_mémoire(), référence.realm, T)
+}
+
+crée_platform_object :: fonc (tas_de_mémoire: *JavaScript.TasDeMémoire, realm: *JavaScript.Realm, $T: type_de_données) -> *T
+{
+    résultat := JavaScript.alloue(tas_de_mémoire, T)
+    résultat.realm = realm
+    retourne résultat
+}
+
 /* https://html.spec.whatwg.org/multipage/nav-history-apis.html#isplatformobjectsameorigin-(-o-) */
 is_platform_object_same_origin :: fonc (object: *JavaScript.Object @inutilisée) -> bool
 {

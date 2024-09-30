@@ -2533,7 +2533,7 @@ create_and_initialize_a_document_object :: fonc (user_agent: *UserAgent, type: c
     //     current document readiness "loading"
     //     about base URL navigationParams's about base URL
     //     allow declarative shadow roots true
-    document := crée_noeud_document(user_agent.donne_tas_de_mémoire())
+    document := crée_noeud_document(user_agent.donne_tas_de_mémoire(), nul)
     document.type = type
     document.type_contenu = content_type
     document.origin = navigation_params.origin
