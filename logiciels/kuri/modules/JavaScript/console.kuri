@@ -115,7 +115,7 @@ LogLevel :: énum {
 }
 
 /* https://console.spec.whatwg.org/#assert */
-console_assert :: fonc (console: *Console, interpréteuse: &Interpréteuse, condition: bool, arguments: []Valeur) -> CompletionRecord
+console_assert :: fonc (console: *Console, interpréteuse: *Interpréteuse, condition: bool, arguments: []Valeur) -> CompletionRecord
 {
     si condition {
         retourne normal_completion(js_undefined)
@@ -141,12 +141,12 @@ console_assert :: fonc (console: *Console, interpréteuse: &Interpréteuse, cond
     retourne logger(console, interpréteuse, LogLevel.ASSERT, nouveaux_arguments)
 }
 
-logger :: fonc (console: *Console, interpréteuse: &Interpréteuse, log_level: LogLevel, arguments: []Valeur) -> CompletionRecord
+logger :: fonc (console: *Console, interpréteuse: *Interpréteuse, log_level: LogLevel, arguments: []Valeur) -> CompletionRecord
 {
     retourne printer(console, interpréteuse, log_level, arguments)
 }
 
-printer :: fonc (console: *Console, interpréteuse: &Interpréteuse, log_level: LogLevel @inutilisée, arguments: []Valeur) -> CompletionRecord
+printer :: fonc (console: *Console, interpréteuse: *Interpréteuse, log_level: LogLevel @inutilisée, arguments: []Valeur) -> CompletionRecord
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
@@ -193,7 +193,7 @@ time :: fonc (console: *Console, nom: ECMAString)
 }
 
 /* https://console.spec.whatwg.org/#timeend */
-time_end :: fonc (console: *Console, interpréteuse: &Interpréteuse, nom: ECMAString) -> CompletionRecord
+time_end :: fonc (console: *Console, interpréteuse: *Interpréteuse, nom: ECMAString) -> CompletionRecord
 {
     résultat := normal_completion(js_undefined)
 
@@ -229,7 +229,7 @@ time_end :: fonc (console: *Console, interpréteuse: &Interpréteuse, nom: ECMAS
 }
 
 /* https://console.spec.whatwg.org/#count */
-count :: fonc (console: *Console, interpréteuse: &Interpréteuse, nom: ECMAString)
+count :: fonc (console: *Console, interpréteuse: *Interpréteuse, nom: ECMAString)
 {
     compteuse: Console.Compteuse
 
@@ -264,7 +264,7 @@ count :: fonc (console: *Console, interpréteuse: &Interpréteuse, nom: ECMAStri
 }
 
 /* https://console.spec.whatwg.org/#countreset */
-count_reset :: fonc (console: *Console, interpréteuse: &Interpréteuse, nom: ECMAString)
+count_reset :: fonc (console: *Console, interpréteuse: *Interpréteuse, nom: ECMAString)
 {
     // 1. Let map be the associated count map.
     // 2. If map[label] exists, set map[label] to 0.
@@ -296,42 +296,42 @@ count_reset :: fonc (console: *Console, interpréteuse: &Interpréteuse, nom: EC
 initialise_console :: fonc (console: *Console)
 {
     /* https://console.spec.whatwg.org/#log */
-    fonction_native_log :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    fonction_native_log :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     {
         console := this_value.donne_objet() comme *Console
         retourne logger(console, interpréteuse, LogLevel.LOG, arguments)
     }
 
     /* https://console.spec.whatwg.org/#warn */
-    fonction_native_warn :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    fonction_native_warn :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     {
         console := this_value.donne_objet() comme *Console
         retourne logger(console, interpréteuse, LogLevel.WARN, arguments)
     }
 
     /* https://console.spec.whatwg.org/#debug */
-    fonction_native_debug :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    fonction_native_debug :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     {
         console := this_value.donne_objet() comme *Console
         retourne logger(console, interpréteuse, LogLevel.DEBUG, arguments)
     }
 
     /* https://console.spec.whatwg.org/#info */
-    fonction_native_info :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    fonction_native_info :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     {
         console := this_value.donne_objet() comme *Console
         retourne logger(console, interpréteuse, LogLevel.INFO, arguments)
     }
 
     /* https://console.spec.whatwg.org/#error */
-    fonction_native_error :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    fonction_native_error :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     {
         console := this_value.donne_objet() comme *Console
         retourne logger(console, interpréteuse, LogLevel.ERROR, arguments)
     }
 
     /* https://console.spec.whatwg.org/#clear */
-    fonction_native_clear :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse @inutilisée, this_value: Valeur, arguments: []Valeur @inutilisée) -> CompletionRecord
+    fonction_native_clear :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     {
         console := this_value.donne_objet() comme *Console
         flux_sortie_efface(console.flux_sortie)
@@ -339,7 +339,7 @@ initialise_console :: fonc (console: *Console)
     }
 
     /* https://console.spec.whatwg.org/#assert */
-    fonction_native_assert :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    fonction_native_assert :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     {
         console := this_value.donne_objet() comme *Console
 
@@ -355,7 +355,7 @@ initialise_console :: fonc (console: *Console)
         retourne console_assert(console, interpréteuse, condition, arguments)
     }
 
-    fonction_native_time :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    fonction_native_time :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     {
         console := this_value.donne_objet() comme *Console
 
@@ -375,7 +375,7 @@ initialise_console :: fonc (console: *Console)
         retourne normal_completion(js_undefined)
     }
 
-    fonction_native_time_end :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    fonction_native_time_end :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     {
         console := this_value.donne_objet() comme *Console
 
@@ -392,7 +392,7 @@ initialise_console :: fonc (console: *Console)
         retourne console.time_end(interpréteuse, nom)
     }
 
-    fonction_native_count :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    fonction_native_count :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     {
         console := this_value.donne_objet() comme *Console
 
@@ -412,7 +412,7 @@ initialise_console :: fonc (console: *Console)
         retourne normal_completion(js_undefined)
     }
 
-    fonction_native_count_reset :: fonc (object: *Object @inutilisée, interpréteuse: &Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+    fonction_native_count_reset :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     {
         console := this_value.donne_objet() comme *Console
 
