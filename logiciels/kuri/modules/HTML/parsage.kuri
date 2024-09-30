@@ -46,7 +46,7 @@ initialise_parseuse :: fonc (tas_de_mémoire: *JavaScript.TasDeMémoire, entrée
         parseuse.document = document
     }
     sinon {
-        parseuse.document = crée_noeud_document(tas_de_mémoire)
+        parseuse.document = crée_noeud_document(tas_de_mémoire, nul)
         parseuse.document.type = "html"
     }
 
