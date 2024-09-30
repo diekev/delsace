@@ -723,7 +723,6 @@ crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Do
         window.prototype = realm.intrinsics.object_prototype
 
         window_proxy := JavaScript.alloue(tas_de_mémoire, WindowProxy)
-        window_proxy.window = window
         rappels.browsing_context.window_proxy = window_proxy
 
         retourne window

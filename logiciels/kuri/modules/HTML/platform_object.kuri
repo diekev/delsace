@@ -87,6 +87,7 @@ Environment :: struct {
     creation_url: URI
     top_level_creation_url: URI
     top_level_origin: Origin
+    execution_ready: bool
 }
 
 /** \} */

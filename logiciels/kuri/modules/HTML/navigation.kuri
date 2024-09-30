@@ -2430,9 +2430,21 @@ restore_the_history_object_state :: fonc (document: *Document @inutilisée, entr
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#make-active */
-make_active :: fonc (document: *Document @inutilisée)
+make_active :: fonc (document: *Document)
 {
-    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+    // 1. Let window be document's relevant global object.
+    window := document.donne_relevant_global_object() comme *Window
+
+    // 2. Set document's browsing context's WindowProxy's [[Window]] internal slot value to window.
+    document.browsing_context.window_proxy.window = window
+
+    // À FAIRE 3. Set document's visibility state to document's node navigable's traversable navigable's system visibility state.
+
+    // 4. Queue a new VisibilityStateEntry whose visibility state is document's visibility state and whose timestamp is zero.
+
+    // 5. Set window's relevant settings object's execution ready flag.
+    settings := window.donne_relevant_settings_object()
+    settings.execution_ready = vrai
 }
 
 /** \} */
