@@ -789,6 +789,11 @@ crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Do
     document.about_base_url = creator_base_url
     document.permets_racines_shadow_déclaratives = vrai
 
+    // À FAIRE : non-spécifié. load_an_html_document appelé plus tard à besoin que
+    // window soit déjà associée à un document mais ça ne semble être fait nulle part.
+    window := realm_execution_context.realm.global_object comme *Window
+    window.document = document
+
     // 16. If creator is non-null, then:
     si creator {
         // 1. Set document's referrer to the serialization of creator's URL.
