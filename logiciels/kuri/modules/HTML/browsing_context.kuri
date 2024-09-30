@@ -514,9 +514,30 @@ crée_objet_window :: fonc (tas_de_mémoire: *JavaScript.TasDeMémoire, realm: *
 {
     résultat := crée_platform_object(tas_de_mémoire, realm, Window)
     résultat.prototype = realm.intrinsics.object_prototype
-    JavaScript.ajoute_propriété(résultat, crée_chaine_utf16_unique("window"), JavaScript.Valeur(Object = résultat), JavaScript.DrapeauxPropriété.zéro)
+    JavaScript.ajoute_propriété(résultat, crée_chaine_utf16_unique("window"), window_window_getter, nul, JavaScript.DrapeauxPropriété.zéro)
+    JavaScript.ajoute_propriété(résultat, crée_chaine_utf16_unique("frames"), window_window_getter, nul, JavaScript.DrapeauxPropriété.zéro)
+    JavaScript.ajoute_propriété(résultat, crée_chaine_utf16_unique("self"), window_window_getter, nul, JavaScript.DrapeauxPropriété.zéro)
+    JavaScript.ajoute_propriété(résultat, crée_chaine_utf16_unique("document"), window_document_getter, nul, JavaScript.DrapeauxPropriété.zéro)
     JavaScript.ajoute_fonction_native(résultat, "alert", fonction_native_alert)
     retourne résultat
+}
+
+window_window_getter :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord
+{
+    window := this_value.Object comme *Window
+    assert(window.table.classe == Window)
+    retourne JavaScript.normal_completion(JavaScript.Valeur(Object = window))
+}
+
+window_document_getter :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord
+{
+    window := this_value.Object comme *Window
+    assert(window.table.classe == Window)
+    résultat := JavaScript.js_null
+    si window.document {
+        résultat = JavaScript.Valeur(Object = window.document)
+    }
+    retourne JavaScript.normal_completion(résultat)
 }
 
 /* https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#dom-alert-noargs */
