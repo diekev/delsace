@@ -76,6 +76,7 @@ noeud_sur_destruction :: fonc (base: *JavaScript.Cellule)
 
 noeud_sur_initialisation_interface :: fonc (noeud: *PlatformObject)
 {
+    event_target_sur_initialisation_interface(noeud)
     JavaScript.ajoute_propriété(noeud, crée_chaine_utf16_unique("nodeName"), node_node_name_getter, nul, JavaScript.DrapeauxPropriété.zéro)
 }
 

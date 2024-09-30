@@ -1,3 +1,4 @@
+importe Chaine
 importe Fondation
 
 /* ------------------------------------------------------------------------- */
@@ -246,6 +247,7 @@ append_event_path :: fonc (event: *Event, invocation_target: *EventTarget, shado
 
 EventListener :: struct {
     sur_handle_event: fonc(*Event)(rien)
+    function: *JavaScript.Object
 }
 
 EventListenerOptions :: struct {
@@ -272,6 +274,7 @@ TableVirtuelleEventTarget :: struct {
     empl platform_object: TableVirtuellePlatformObject
 
     sur_destruction = event_target_sur_destruction
+    sur_initialisation_interface = event_target_sur_initialisation_interface
 
     /* https://dom.spec.whatwg.org/#get-the-parent */
     sur_get_the_parent: fonc(*EventTarget, *Event)(*EventTarget) = event_target_sur_get_the_parent
@@ -445,7 +448,7 @@ remove_all_listeners :: fonc (target: *EventTarget)
 }
 
 /* https://dom.spec.whatwg.org/#default-passive-value */
-default_passive_value :: fonc (type: EventType, target: *EventTarget) -> bool
+default_passive_value :: fonc (type: EventType @inutilisée, target: *EventTarget @inutilisée) -> bool
 {
     // À FAIRE 1. Return true if all of the following are true:
     //
@@ -504,7 +507,7 @@ add_event_listener :: fonc (target: *EventTarget, type: EventType, callback: *Ev
     // 2. Add an event listener with this and an event listener whose type is type,
     //    callback is callback, capture is capture, passive is passive, once is once,
     //    and signal is signal.
-    event_listener: EventListener.EventListenerEntry
+    event_listener: EventTarget.EventListenerEntry
     event_listener.type = type
     event_listener.callback = callback
     event_listener.capture = capture
@@ -761,9 +764,110 @@ dispatch :: fonc (event: *Event, target: *EventTarget, legacy_target_override : 
 }
 
 /* https://dom.spec.whatwg.org/#concept-event-listener-invoke */
-invoke :: fonc (segment: &Event.Path @inutilisée, event: *Event @inutilisée, phase: chaine @inutilisée, legacy_output_did_listeners_throw : *bool = nul @inutilisée)
+invoke :: fonc (segment: &Event.Path, event: *Event, phase: chaine, legacy_output_did_listeners_throw : *bool = nul @inutilisée)
 {
     imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+    event.current_target = segment.invocation_target
+    inner_invoke(event, segment.invocation_target.listeners, phase)
+}
+
+/* https://dom.spec.whatwg.org/#concept-event-listener-invoke */
+inner_invoke :: fonc (event: *Event, listeners: []EventTarget.EventListenerEntry, phase: chaine)
+{
+    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+
+    arguments: [..]JavaScript.Valeur
+    diffère déloge(arguments)
+    tableau_ajoute(*arguments, JavaScript.Valeur(Object = event))
+
+    pour listeners {
+        si it.removed {
+            continue
+        }
+
+        si it.capture == faux && phase == "capturing" {
+            continue
+        }
+
+        si it.capture == vrai && phase == "bubbling" {
+            continue
+        }
+
+        call_a_user_object_operation(JavaScript.Valeur(Object = it.callback.function), arguments, JavaScript.Valeur(Object = event.current_target))
+    }
+}
+
+/* https://webidl.spec.whatwg.org/#call-a-user-objects-operation */
+call_a_user_object_operation :: fonc (value: JavaScript.Valeur, args: []JavaScript.Valeur, this_arg: JavaScript.Valeur)
+{
+    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+
+    target := JavaScript.donne_objet(this_arg) comme *EventTarget
+
+    realm := target.realm
+    settings := JavaScript.donne_données(realm.host_defined, EnvironmentSettings)
+
+    prepare_to_run_script(settings)
+
+    interpréteuse: JavaScript.Interpréteuse
+    diffère  JavaScript.détruit_données_interpreteuse(*interpréteuse)
+    interpréteuse.mv = JavaScript.donne_mv(realm)
+
+    _ := JavaScript.call(*interpréteuse, value, this_arg, args)
+
+    cleanup_after_running_script(settings)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Interface JavaScript
+ * \{ */
+
+#portée_module
+
+event_target_sur_initialisation_interface :: fonc (base: *PlatformObject)
+{
+    JavaScript.ajoute_fonction_native(base, crée_chaine_utf16_unique("addEventListener"), fonction_native_add_event_listener);
+}
+
+#portée_fichier
+
+fonction_native_add_event_listener :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord
+{
+    si arguments.taille < 2 {
+        retourne JavaScript.lance_type_error(interpréteuse, "addEventListener doit prendre au moins 2 arguments")
+    }
+
+    saufsi JavaScript.est_chaine(arguments[0]) {
+        retourne JavaScript.lance_type_error(interpréteuse, "argument 0 n'est pas une chaine")
+    }
+
+    saufsi JavaScript.is_callable(arguments[1]) {
+        retourne JavaScript.lance_type_error(interpréteuse, "argument 1 n'est pas callable")
+    }
+
+    arg0 := arguments[0].String.texte
+    arg1 := JavaScript.donne_objet(arguments[1])
+
+    chn_arg0 := converti_vers_chaine(arg0.donne_chaine_utf16())
+    diffère déloge(chn_arg0)
+
+    valeur_type, trouvé := donne_valeur_énum_pour_nom(info_de(EventType), chn_arg0)
+    saufsi trouvé {
+        retourne JavaScript.lance_type_error(interpréteuse, "argument 0 n'est pas un type d'évènement")
+    }
+
+    event_type : EventType = valeur_type
+
+    event_listener := loge(EventListener)
+    event_listener.function = arg1
+
+    event_target := JavaScript.donne_objet(this_value) comme *EventTarget
+
+    event_target.add_event_listener(event_type , event_listener)
+
+    retourne JavaScript.normal_completion(JavaScript.js_undefined)
 }
 
 /** \} */
