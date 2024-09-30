@@ -147,6 +147,14 @@ HTMLCollection :: struct {
     éléments: [..]*Élément
 }
 
+crée_html_collection :: fonc (élément: *Élément) -> *HTMLCollection
+{
+    résultat := crée_platform_object(élément, HTMLCollection)
+    JavaScript.ajoute_propriété(résultat, crée_chaine_utf16_unique("length"), htmlcollection_length_getter, nul, JavaScript.DrapeauxPropriété.zéro)
+    JavaScript.ajoute_fonction_native(résultat, "item", fonction_native_item)
+    retourne résultat
+}
+
 ajoute_élément :: fonc (collection: *HTMLCollection, élément: *Élément)
 {
     tableau_ajoute(*collection.éléments, élément)
@@ -190,6 +198,42 @@ donne_length :: fonc (collection: *HTMLCollection) -> z64
 donne_index :: fonc (collection: *HTMLCollection, index: z64) -> *Élément
 {
     retourne collection.éléments[index]
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Interface JavaScript
+ * \{ */
+
+#portée_fichier
+
+fonction_native_item :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord
+{
+    si arguments.taille != 1 {
+        retourne JavaScript.lance_type_error(interpréteuse, "item requiers 1 argument")
+    }
+
+    completion_index := JavaScript.vers_nombre(interpréteuse, arguments[0])
+    saufsi JavaScript.est_normal(completion_index) {
+        retourne completion_index
+    }
+    index := completion_index.valeur.V.Number comme z64
+
+    collection := JavaScript.donne_objet(this_value) comme *HTMLCollection
+
+    si index < 0 || index >= collection.éléments.taille {
+        retourne JavaScript.normal_completion(JavaScript.js_null)
+    }
+
+    élément := collection.éléments[index]
+    retourne JavaScript.normal_completion(JavaScript.Valeur(Object = élément))
+}
+
+htmlcollection_length_getter :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord
+{
+    collection := JavaScript.donne_objet(this_value) comme *HTMLCollection
+    retourne JavaScript.normal_completion(JavaScript.Valeur(Number = collection.éléments.taille comme r64))
 }
 
 /** \} */
