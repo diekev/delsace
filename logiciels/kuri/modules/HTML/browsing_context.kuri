@@ -507,6 +507,17 @@ Window :: struct {
     document: *Document
 }
 
+#portée_module
+
+crée_objet_window :: fonc (tas_de_mémoire: *JavaScript.TasDeMémoire, realm: *JavaScript.Realm) -> *Window
+{
+    résultat := crée_platform_object(tas_de_mémoire, realm, Window)
+    résultat.prototype = realm.intrinsics.object_prototype
+    retourne résultat
+}
+
+#portée_export
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -719,8 +730,7 @@ crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Do
 
         tas_de_mémoire := JavaScript.donne_tas_de_mémoire(realm)
 
-        window := crée_platform_object(tas_de_mémoire, realm, Window)
-        window.prototype = realm.intrinsics.object_prototype
+        window := crée_objet_window(tas_de_mémoire, realm)
 
         window_proxy := JavaScript.alloue(tas_de_mémoire, WindowProxy)
         rappels.browsing_context.window_proxy = window_proxy

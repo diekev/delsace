@@ -2525,10 +2525,7 @@ create_and_initialize_a_document_object :: fonc (user_agent: *UserAgent, type: c
         crée_objet_global :: fonc(base: *JavaScript.RappelsHôte @inutilisée, realm: *JavaScript.Realm) -> *JavaScript.Object
         {
             tas_de_mémoire := JavaScript.donne_tas_de_mémoire(realm)
-
-            window := crée_platform_object(tas_de_mémoire, realm, Window)
-            window.prototype = realm.intrinsics.object_prototype
-            retourne window
+            retourne crée_objet_window(tas_de_mémoire, realm)
         }
 
         donne_this_binding_global :: fonc (base: *JavaScript.RappelsHôte) -> *JavaScript.Object
