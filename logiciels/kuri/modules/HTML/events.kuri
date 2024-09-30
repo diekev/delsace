@@ -465,7 +465,7 @@ donne_document_associé :: fonc (target: *EventTarget) -> *Document
 }
 
 /* https://dom.spec.whatwg.org/#retarget */
-retarget :: fonc (a: *EventTarget @inutilisée, b: *EventTarget @inutilisée) -> *EventTarget
+retarget :: fonc (a: *EventTarget, b: *EventTarget @inutilisée) -> *EventTarget
 {
     // boucle {
         // 1. If one of the following is true
@@ -477,7 +477,7 @@ retarget :: fonc (a: *EventTarget @inutilisée, b: *EventTarget @inutilisée) ->
         // 2. Set A to A’s root’s host.
     //}
     imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
-    retourne nul
+    retourne a
 }
 
 #portée_export
