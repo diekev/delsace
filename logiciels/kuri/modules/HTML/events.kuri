@@ -130,6 +130,9 @@ EventType :: énum n8 {
      * event handler IDL attributes. */
     readystatechange
     visibilitychange
+
+    /* Autres */
+    DOMContentLoaded
 }
 
 /** \} */
