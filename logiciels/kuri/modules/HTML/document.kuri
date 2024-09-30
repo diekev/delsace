@@ -174,6 +174,8 @@ crée_noeud_document :: fonc (tas_de_mémoire: *JavaScript.TasDeMémoire, realm:
     document.url = URI("about:blank")
     document.document = document
 
+    initialise_interface(document)
+
     retourne document
 }
 
@@ -636,6 +638,42 @@ définis_données_image :: fonc (document: *Document, url: chaine, données: Ima
         }
     }
 }
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Interface JavaScript
+ * \{ */
+
+#portée_module
+
+initialise_interface :: fonc (document: *Document)
+{
+    JavaScript.ajoute_fonction_native(document, "getElementById", fonction_native_get_element_by_id)
+}
+
+fonction_native_get_element_by_id :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord
+{
+    si arguments.taille == 0 {
+        retourne JavaScript.lance_type_error(interpréteuse, "getElementByID requiers 1 argument")
+    }
+
+    saufsi JavaScript.est_chaine(arguments[0]) {
+        retourne JavaScript.lance_type_error(interpréteuse, "argument n'est pas une chaine")
+    }
+
+    texte := arguments[0].String.texte
+    document := JavaScript.donne_objet(this_value) comme *Document
+    élément := document.get_element_by_id(texte)
+
+    saufsi élément {
+        retourne JavaScript.normal_completion(JavaScript.js_null)
+    }
+
+    retourne JavaScript.normal_completion(JavaScript.Valeur(Object = élément))
+}
+
+#portée_export
 
 /** \} */
 

@@ -225,6 +225,7 @@ initialise_élément :: fonc (élément: *Élément, document: *Document, texte:
     élément.genre = GenreNoeud.Élément
     élément.document = document
     élément.local_name = texte
+    initialise_interface(élément)
 }
 
 crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élément
@@ -342,7 +343,7 @@ get_elements_by_class_name :: fonc (élément: *Élément, class_names: DOMStrin
 
     // 2. If classes is the empty set, return an empty HTMLCollection.
     si classes.taille == 0 {
-        retourne crée_platform_object(élément, HTMLCollection)
+        retourne crée_html_collection(élément)
     }
 
     // 3. Return an HTMLCollection rooted at root, whose filter matches
@@ -350,7 +351,7 @@ get_elements_by_class_name :: fonc (élément: *Élément, class_names: DOMStrin
     //    The comparisons for the classes must be done in an ASCII
     //    case-insensitive manner if root’s node document’s mode is "quirks";
     //    otherwise in an identical to manner.
-    résultat := crée_platform_object(élément, HTMLCollection)
+    résultat := crée_html_collection(élément)
     résultat.root = élément
     résultat.filter = crée_filtre_pour_class_name(classes)
     initialise_collection_pour_filtre(résultat)
@@ -360,12 +361,12 @@ get_elements_by_class_name :: fonc (élément: *Élément, class_names: DOMStrin
 /* https://dom.spec.whatwg.org/#concept-getelementsbytagname */
 get_elements_by_tag_name :: fonc (élément: *Élément, qualified_name: DOMString) -> *HTMLCollection
 {   
-    résultat := crée_platform_object(élément, HTMLCollection)
+    résultat := crée_html_collection(élément)
     résultat.root = élément
 
     // 1. If qualifiedName is U+002A (*), then return an HTMLCollection rooted at root, whose filter matches only descendant elements.
 
-    // 2. Otherwise, if root’s node document is an HTML document, return an HTMLCollection rooted at root, whose filter matches the following descendant elements:
+    // 2. Otherwise, if root’s node document is an HTML document, return an  rooted at root, whose filter matches the following descendant elements:
 
     //     Whose namespace is the HTML namespace and whose qualified name is qualifiedName, in ASCII lowercase.
 
@@ -524,6 +525,66 @@ applique_presentational_hints :: fonc (élément: *Élément, résolveuse: *CSS.
     }
     table.sur_applique_presentational_hints(élément, résolveuse)
 }
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Interface JavaScript
+ * \{ */
+
+#portée_module
+
+initialise_interface :: fonc (élément: *Élément)
+{
+    JavaScript.ajoute_fonction_native(élément, "getElementsByClassName", fonction_native_get_element_by_class_name)
+    JavaScript.ajoute_fonction_native(élément, "getElementsByTagName", fonction_native_get_element_by_tag_name)
+
+    si élément.local_name == TAG_img {
+        JavaScript.ajoute_propriété(élément, ATTR_src, fonction_get_pour_attribut_src, nul, JavaScript.DrapeauxPropriété.zéro)
+    }
+}
+
+fonction_get_pour_attribut_src :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord
+{
+    élément := JavaScript.donne_objet(this_value) comme *Élément
+    src := donne_attribut_ou_chaine_vide(élément, ATTR_src)
+    str_src := JavaScript.crée_chaine(élément.donne_tas_de_mémoire(), src)
+    retourne JavaScript.normal_completion(JavaScript.Valeur(String = str_src))
+}
+
+fonction_native_get_element_by_class_name :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord
+{
+    si arguments.taille == 0 {
+        retourne JavaScript.lance_type_error(interpréteuse, "getElementsByClassName requiers 1 argument")
+    }
+
+    saufsi JavaScript.est_chaine(arguments[0]) {
+        retourne JavaScript.lance_type_error(interpréteuse, "argument n'est pas une chaine")
+    }
+
+    texte := arguments[0].String.texte
+    élément := JavaScript.donne_objet(this_value) comme *Élément
+    collection := élément.get_elements_by_class_name(texte)
+    retourne JavaScript.normal_completion(JavaScript.Valeur(Object = collection))
+}
+
+fonction_native_get_element_by_tag_name :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord
+{
+    si arguments.taille != 1 {
+        retourne JavaScript.lance_type_error(interpréteuse, "getElementsByTagName requiers 1 argument")
+    }
+
+    saufsi JavaScript.est_chaine(arguments[0]) {
+        retourne JavaScript.lance_type_error(interpréteuse, "argument n'est pas une chaine")
+    }
+
+    texte := arguments[0].String.texte
+    élément := JavaScript.donne_objet(this_value) comme *Élément
+    collection := élément.get_elements_by_tag_name(texte)
+    retourne JavaScript.normal_completion(JavaScript.Valeur(Object = collection))
+}
+
+#portée_export
 
 /** \} */
 
