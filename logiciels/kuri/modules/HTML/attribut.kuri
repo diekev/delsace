@@ -82,7 +82,7 @@ définis_valeur :: fonc (attribut: *Attr, valeur: DOMString)
 
 #portée_fichier
 
-table_virtuelle_attr := TableVirtuelleÉlément(
+table_virtuelle_attr := TableVirtuelleNoeud(
     classe = Attr,
     sur_destruction = noeud_sur_destruction
 )

@@ -136,7 +136,7 @@ Document :: struct {
 
 #portée_fichier
 
-table_virtuelle_document := TableVirtuelleÉlément(
+table_virtuelle_document := TableVirtuelleNoeud(
     classe = Document,
     sur_destruction = document_sur_destruction
 )
@@ -703,7 +703,7 @@ crée_noeud_doctype :: fonc (document: *Document) -> *NoeudTypeDocument
 
 #portée_fichier
 
-table_virtuelle_type_document := TableVirtuelleÉlément(
+table_virtuelle_type_document := TableVirtuelleNoeud(
     classe = NoeudTypeDocument,
     sur_destruction = noeud_sur_destruction
 )
@@ -733,7 +733,7 @@ crée_noeud_fragment_document :: fonc (document: *Document) -> *NoeudFragmentDoc
 
 #portée_fichier
 
-table_virtuelle_fragment_document := TableVirtuelleÉlément(
+table_virtuelle_fragment_document := TableVirtuelleNoeud(
     classe = NoeudFragmentDocument,
     sur_destruction = noeud_sur_destruction
 )
@@ -797,7 +797,7 @@ est_espace_blanche_entre_élément :: fonc (texte: *NoeudTexte) -> bool
 
 #portée_fichier
 
-table_virtuelle_texte := TableVirtuelleÉlément(
+table_virtuelle_texte := TableVirtuelleNoeud(
     classe = NoeudTexte,
     sur_destruction = texte_sur_destruction
 )
@@ -834,7 +834,7 @@ crée_noeud_section_cdata :: fonc (document: *Document) -> *NoeudTexte
 
 #portée_fichier
 
-table_virtuelle_section_cdata := TableVirtuelleÉlément(
+table_virtuelle_section_cdata := TableVirtuelleNoeud(
     classe = NoeudSectionCDATA,
     sur_destruction = section_cdata_sur_destruction
 )
@@ -872,7 +872,7 @@ crée_noeud_commentaire :: fonc (document: *Document, données: ChaineUTF16) -> 
 
 #portée_fichier
 
-table_virtuelle_commentaire := TableVirtuelleÉlément(
+table_virtuelle_commentaire := TableVirtuelleNoeud(
     classe = NoeudCommentaire,
     sur_destruction = commentaire_sur_destruction
 )
@@ -912,7 +912,7 @@ crée_noeud_processing_instruction :: fonc (document: *Document, données: Chain
 
 #portée_fichier
 
-table_virtuelle_processing_instruction := TableVirtuelleÉlément(
+table_virtuelle_processing_instruction := TableVirtuelleNoeud(
     classe = NoeudProcessingInstruction,
     sur_destruction = processing_instruction_sur_destruction
 )
