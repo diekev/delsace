@@ -2782,17 +2782,20 @@ crée_tâche_stop_parsing_étape_9 :: fonc (document: *Document) -> *Algorithm
             retourne
         }
 
-        // À FAIRE : 3. Let window be the Document's relevant global object.
+        // 3. Let window be the Document's relevant global object.
+        window := document.donne_relevant_global_object() comme *Window
 
         // 4. Set the Document's load timing info's load event start time to the current high resolution time given window.
+        document.load_timing_info.load_event_start_time = current_high_resolution_time(window)
 
-        // 5. Fire an event named load at window, with legacy target override flag set.
+        // À FAIRE : 5. Fire an event named load at window, with legacy target override flag set.
 
         // 6. Invoke WebDriver BiDi load complete with the Document's browsing context, and a new WebDriver BiDi navigation status whose id is the Document object's during-loading navigation ID for WebDriver BiDi, status is "complete", and url is the Document object's URL.
 
         // 7. Set the Document object's during-loading navigation ID for WebDriver BiDi to null.
 
         // 8. Set the Document's load timing info's load event end time to the current high resolution time given window.
+        document.load_timing_info.load_event_end_time = current_high_resolution_time(window)
 
         // 9. Assert: Document's page showing is false.
         assert(document.page_showing == faux)
