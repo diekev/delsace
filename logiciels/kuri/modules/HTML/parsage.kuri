@@ -2788,9 +2788,11 @@ crée_tâche_stop_parsing_étape_9 :: fonc (document: *Document) -> *Algorithm
         // 4. Set the Document's load timing info's load event start time to the current high resolution time given window.
         document.load_timing_info.load_event_start_time = current_high_resolution_time(window)
 
-        // À FAIRE : 5. Fire an event named load at window, with legacy target override flag set.
+        // 5. Fire an event named load at window, with legacy target override flag set.
+        legacy_target_override := vrai
+        _ := fire_an_event(window, EventType.load, *legacy_target_override)
 
-        // 6. Invoke WebDriver BiDi load complete with the Document's browsing context, and a new WebDriver BiDi navigation status whose id is the Document object's during-loading navigation ID for WebDriver BiDi, status is "complete", and url is the Document object's URL.
+        // 6. À FAIRE : Invoke WebDriver BiDi load complete with the Document's browsing context, and a new WebDriver BiDi navigation status whose id is the Document object's during-loading navigation ID for WebDriver BiDi, status is "complete", and url is the Document object's URL.
 
         // 7. Set the Document object's during-loading navigation ID for WebDriver BiDi to null.
 

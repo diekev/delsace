@@ -457,10 +457,11 @@ default_passive_value :: fonc (type: EventType, target: *EventTarget) -> bool
 }
 
 /* https://html.spec.whatwg.org/multipage/nav-history-apis.html#concept-document-window */
-donne_document_associé :: fonc (target: *EventTarget @inutilisée) -> *Document
+donne_document_associé :: fonc (target: *EventTarget) -> *Document
 {
-    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
-    retourne nul
+    assert(target.table.classe == Window)
+    window := target comme *Window
+    retourne window.document
 }
 
 /* https://dom.spec.whatwg.org/#retarget */
@@ -540,11 +541,11 @@ remove_event_listener :: fonc (target: *EventTarget, type: EventType, callback: 
 }
 
 /* https://dom.spec.whatwg.org/#concept-event-fire */
-fire_an_event :: fonc (target: *EventTarget, nom: EventType) -> bool
+fire_an_event :: fonc (target: *EventTarget, nom: EventType, legacy_target_override : *bool = nul) -> bool
 {
     event := crée_platform_object(target, Event)
     event.type = nom
-    retourne dispatch(event, target)
+    retourne dispatch(event, target, legacy_target_override)
 }
 
 /* https://dom.spec.whatwg.org/#dom-eventtarget-dispatchevent */
