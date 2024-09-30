@@ -43,6 +43,8 @@ est_tag_auto_fermant :: fonc (tag: DOMString) -> bool
 TableVirtuelleÉlément :: struct {
     empl base: TableVirtuelleNoeud
 
+    sur_initialisation_interface = élément_sur_initialisation_interface
+
     /* Appelé quand un élément fut dépilé de la pile des éléments ouverts. */
     sur_dépilement: fonc(*Élément)(rien)
 
@@ -225,7 +227,6 @@ initialise_élément :: fonc (élément: *Élément, document: *Document, texte:
     élément.genre = GenreNoeud.Élément
     élément.document = document
     élément.local_name = texte
-    initialise_interface(élément)
 }
 
 crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élément
@@ -534,9 +535,10 @@ applique_presentational_hints :: fonc (élément: *Élément, résolveuse: *CSS.
 
 #portée_module
 
-initialise_interface :: fonc (élément: *Élément)
+élément_sur_initialisation_interface :: fonc (base: *PlatformObject)
 {
-    noeud_initialise_interface(élément)
+    élément := base comme *Élément
+    noeud_sur_initialisation_interface(élément)
 
     JavaScript.ajoute_fonction_native(élément, "getElementsByClassName", fonction_native_get_element_by_class_name)
     JavaScript.ajoute_fonction_native(élément, "getElementsByTagName", fonction_native_get_element_by_tag_name)

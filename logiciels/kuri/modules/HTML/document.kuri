@@ -138,7 +138,8 @@ Document :: struct {
 
 table_virtuelle_document := TableVirtuelleNoeud(
     classe = Document,
-    sur_destruction = document_sur_destruction
+    sur_destruction = document_sur_destruction,
+    sur_initialisation_interface = document_sur_initialisation_interface
 )
 
 document_sur_destruction :: fonc (base: *JavaScript.Cellule)
@@ -173,8 +174,6 @@ crée_noeud_document :: fonc (tas_de_mémoire: *JavaScript.TasDeMémoire, realm:
     document.type = "xml"
     document.url = URI("about:blank")
     document.document = document
-
-    initialise_interface(document)
 
     retourne document
 }
@@ -647,9 +646,9 @@ définis_données_image :: fonc (document: *Document, url: chaine, données: Ima
 
 #portée_module
 
-initialise_interface :: fonc (document: *Document)
+document_sur_initialisation_interface :: fonc (document: *PlatformObject)
 {
-    noeud_initialise_interface(document)
+    noeud_sur_initialisation_interface(document)
     JavaScript.ajoute_fonction_native(document, "getElementById", fonction_native_get_element_by_id)
 }
 

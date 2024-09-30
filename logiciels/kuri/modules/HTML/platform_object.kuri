@@ -12,6 +12,8 @@ importe Internet
 
 TableVirtuellePlatformObject :: struct {
     empl object: JavaScript.TableVirtuelleObject
+
+    sur_initialisation_interface: fonc(*PlatformObject)(rien)
 }
 
 #portée_export
@@ -35,6 +37,10 @@ crée_platform_object :: fonc (tas_de_mémoire: *JavaScript.TasDeMémoire, realm
 {
     résultat := JavaScript.alloue(tas_de_mémoire, T)
     résultat.realm = realm
+    table := résultat.table comme *TableVirtuellePlatformObject
+    si table && table.sur_initialisation_interface {
+        table.sur_initialisation_interface(résultat)
+    }
     retourne résultat
 }
 
