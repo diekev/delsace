@@ -536,6 +536,8 @@ applique_presentational_hints :: fonc (élément: *Élément, résolveuse: *CSS.
 
 initialise_interface :: fonc (élément: *Élément)
 {
+    noeud_initialise_interface(élément)
+
     JavaScript.ajoute_fonction_native(élément, "getElementsByClassName", fonction_native_get_element_by_class_name)
     JavaScript.ajoute_fonction_native(élément, "getElementsByTagName", fonction_native_get_element_by_tag_name)
 

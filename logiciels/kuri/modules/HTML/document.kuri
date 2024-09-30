@@ -649,6 +649,7 @@ définis_données_image :: fonc (document: *Document, url: chaine, données: Ima
 
 initialise_interface :: fonc (document: *Document)
 {
+    noeud_initialise_interface(document)
     JavaScript.ajoute_fonction_native(document, "getElementById", fonction_native_get_element_by_id)
 }
 
