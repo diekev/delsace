@@ -178,7 +178,7 @@ is_private_reference :: fonc (reference_record: &ReferenceRecord) -> bool
 
 /* 6.2.5.5 GetValue
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-getvalue */
-get_value :: fonc (interpréteuse: &Interpréteuse, valeur: ValeurCompletion) -> CompletionRecord
+get_value :: fonc (interpréteuse: *Interpréteuse, valeur: ValeurCompletion) -> CompletionRecord
 {
     retourne get_value(interpréteuse.donne_realm(), valeur)
 }
@@ -239,7 +239,7 @@ get_value :: fonc (realm: *Realm, valeur: ValeurCompletion) -> CompletionRecord
 
 /* 6.2.5.6 PutValue
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-putvalue */
-put_value :: fonc (interpréteuse: &Interpréteuse, référence: ValeurCompletion, valeur: Valeur) -> CompletionRecord
+put_value :: fonc (interpréteuse: *Interpréteuse, référence: ValeurCompletion, valeur: Valeur) -> CompletionRecord
 {
     // 1. If V is not a Reference Record, throw a ReferenceError exception.
     saufsi est_reference_record(référence) {
@@ -465,21 +465,21 @@ Interpréteuse :: struct {
     mv: *MachineVirtuelle
 }
 
-initialise_interpréteuse :: fonc (interpréteuse: &Interpréteuse @inutilisée)
+initialise_interpréteuse :: fonc (interpréteuse: *Interpréteuse @inutilisée)
 {
 }
 
-détruit_données_interpreteuse :: fonc (interpréteuse: &Interpréteuse)
+détruit_données_interpreteuse :: fonc (interpréteuse: *Interpréteuse)
 {
     déloge(interpréteuse.pile_scope)
 }
 
-exécute :: fonc (interpréteuse: &Interpréteuse, programme: *Programme) -> CompletionRecord
+exécute :: fonc (interpréteuse: *Interpréteuse, programme: *Programme) -> CompletionRecord
 {
     retourne exécute(interpréteuse, programme, TypeScope.AUCUN)
 }
 
-exécute :: fonc (interpréteuse: &Interpréteuse, noeud: *NoeudSyntaxique, type_scope: TypeScope @inutilisée) -> CompletionRecord
+exécute :: fonc (interpréteuse: *Interpréteuse, noeud: *NoeudSyntaxique, type_scope: TypeScope @inutilisée) -> CompletionRecord
 {
     si noeud.type != NoeudScope && noeud.type != Programme && noeud.type != BlockStatement {
         retourne exécute_noeud(noeud, interpréteuse)
@@ -503,12 +503,12 @@ exécute :: fonc (interpréteuse: &Interpréteuse, noeud: *NoeudSyntaxique, type
     retourne résultat
 }
 
-entre :: fonc (interpréteuse: &Interpréteuse, scope: *NoeudScope)
+entre :: fonc (interpréteuse: *Interpréteuse, scope: *NoeudScope)
 {
     tableau_ajoute(*interpréteuse.pile_scope, FrameScope(scope))
 }
 
-sors :: fonc (interpréteuse: &Interpréteuse, scope: *NoeudScope)
+sors :: fonc (interpréteuse: *Interpréteuse, scope: *NoeudScope)
 {
     pile_scope := *interpréteuse.pile_scope
     assert(pile_scope.taille > 0)
@@ -516,45 +516,45 @@ sors :: fonc (interpréteuse: &Interpréteuse, scope: *NoeudScope)
     pile_scope.taille -= 1
 }
 
-donne_tas_de_mémoire :: fonc (interpréteuse: &Interpréteuse) -> *TasDeMémoire
+donne_tas_de_mémoire :: fonc (interpréteuse: *Interpréteuse) -> *TasDeMémoire
 {
     retourne interpréteuse.mv.donne_tas_de_mémoire()
 }
 
-donne_scope_courant :: fonc (interpréteuse: &Interpréteuse) -> *FrameScope
+donne_scope_courant :: fonc (interpréteuse: *Interpréteuse) -> *FrameScope
 {
     retourne *interpréteuse.pile_scope[interpréteuse.pile_scope.taille - 1]
 }
 
-donne_running_execution_context :: fonc (interpréteuse: &Interpréteuse) -> *ExecutionContext
+donne_running_execution_context :: fonc (interpréteuse: *Interpréteuse) -> *ExecutionContext
 {
     retourne interpréteuse.mv.donne_running_execution_context()
 }
 
-donne_lexical_environement :: fonc (interpréteuse: &Interpréteuse) -> *Environment
+donne_lexical_environement :: fonc (interpréteuse: *Interpréteuse) -> *Environment
 {
     rec := interpréteuse.donne_running_execution_context()
     retourne rec.lexical_environment
 }
 
-donne_realm :: fonc (interpréteuse: &Interpréteuse) -> *Realm
+donne_realm :: fonc (interpréteuse: *Interpréteuse) -> *Realm
 {
     rec := interpréteuse.donne_running_execution_context()
     retourne rec.realm
 }
 
-donne_noeud_évalué_courant :: fonc (interpréteuse: &Interpréteuse @inutilisée) -> *NoeudSyntaxique
+donne_noeud_évalué_courant :: fonc (interpréteuse: *Interpréteuse @inutilisée) -> *NoeudSyntaxique
 {
     // À FAIRE
     retourne nul
 }
 
-crée_string_value_completion :: fonc (interpréteuse: &Interpréteuse, texte: chaine) -> CompletionRecord
+crée_string_value_completion :: fonc (interpréteuse: *Interpréteuse, texte: chaine) -> CompletionRecord
 {
     retourne crée_string_value_completion(interpréteuse, crée_chaine_utf16_unique(texte))
 }
 
-crée_string_value_completion :: fonc (interpréteuse: &Interpréteuse, texte: ECMAString) -> CompletionRecord
+crée_string_value_completion :: fonc (interpréteuse: *Interpréteuse, texte: ECMAString) -> CompletionRecord
 {
     string := crée_chaine(interpréteuse.donne_tas_de_mémoire(), texte)
     value := Valeur(String = string)
@@ -569,7 +569,7 @@ crée_string_value_completion :: fonc (interpréteuse: &Interpréteuse, texte: E
 
 /* 9.4.2 Resolve Binding
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-resolvebinding */
-resolve_binding :: fonc (interpréteuse: &Interpréteuse, nom: ECMAString, environment : *Environment = nul) -> CompletionRecord
+resolve_binding :: fonc (interpréteuse: *Interpréteuse, nom: ECMAString, environment : *Environment = nul) -> CompletionRecord
 {
     // 1. If env is not present or env is undefined, then
     // À FAIRE : undefined
@@ -589,7 +589,7 @@ resolve_binding :: fonc (interpréteuse: &Interpréteuse, nom: ECMAString, envir
 
 /* 9.4.6 GetGlobalObject
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-getglobalobject */
-get_global_object :: fonc (interpréteuse: &Interpréteuse) -> *Object
+get_global_object :: fonc (interpréteuse: *Interpréteuse) -> *Object
 {
     // 1. Let currentRealm be the current Realm Record.
     current_realm := interpréteuse.donne_realm()
