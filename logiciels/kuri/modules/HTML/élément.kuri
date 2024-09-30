@@ -1655,9 +1655,13 @@ HTMLScriptElement :: struct {
     prêt_à_être_exécuté_par_parseuse := faux
     déjà_commencé := faux
     temporise_évènement_de_charge := faux
+    delaying_the_load_event := faux
 
     type: TypeScript
     // result : "uninitialized", null, scipt, import map parse result
+    result: *rien
+
+    steps_to_run_when_the_result_is_ready: *Algorithm
 }
 
 donne_src :: fonc (script: *HTMLScriptElement) -> DOMString
@@ -1813,7 +1817,8 @@ prépare :: fonc (el: *HTMLScriptElement)
     options.referrer_policy = referrer_policy
     options.fetch_priority = fetch_priority
 
-    /* 30. INCOMPLET settings object */
+    /* 30. settings object */
+    settings_object := donne_relevant_settings_object(el.document)
 
     /* 31. */
     si possède_attr_src {
@@ -1821,13 +1826,47 @@ prépare :: fonc (el: *HTMLScriptElement)
     }
     /* 32. */
     sinon {
-        imprime("pas de source\n")
-        imprime("Texte source: %\n", texte_source)
+        // 1. Let base URL be el's node document's document base URL.
+        base_url := el.document.donne_base_url()
+
+        // 2. Switch on el's type:
+        discr el.type {
+            CLASSIC {
+                user_agent := el.document.donne_user_agent()
+                // 1. Let script be the result of creating a classic script using source text, settings object, base URL, and options.
+                script := create_a_classic_script(user_agent, texte_source, settings_object, base_url, options)
+
+                // 2. Mark as ready el given script.
+                mark_as_ready(el, script)
+            }
+            sinon {
+                panique("non-implémenté")
+            }
+        }
     }
 
-    /* 33. INCOMPLET */
+    /* 33. If el's type is "classic" and el has a src attribute, or el's type is "module": */
+    si (el.type == TypeScript.CLASSIC && possède_attr_src) || el.type == TypeScript.MODULE {
+        panique("non-implémenté")
+    }
+    /* 34. Otherwise */
+    sinon {
+        // À FAIRE : 1. Assert: el's result is not "uninitialized".
 
-    /* 34. INCOMPLET */
+        // 2. If all of the following are true:
+        // el's type is "classic";
+        // el is parser-inserted;
+        // el's parser document has a style sheet that is blocking scripts; and
+        // either the parser that created el is an XML parser, or it's an HTML parser whose script nesting level is not greater than one,
+        // then:
+
+            // 1. Set el's parser document's pending parsing-blocking script to el.
+
+            // 2. Set el's ready to be parser-executed to true. (The parser will handle executing the script.)
+
+        // 3. Otherwise, immediately execute the script element el, even if other scripts are already executing.
+        execute_the_script_element(el)
+    }
 }
 
 est_inséré_par_parseuse :: fonc (script: *HTMLScriptElement) -> bool
@@ -1857,9 +1896,89 @@ détermine_type_block_script :: fonc (script: *HTMLScriptElement) -> DOMString
 }
 
 /* https://html.spec.whatwg.org/multipage/scripting.html#execute-the-script-element */
-execute_the_script_element :: fonc (el: *HTMLScriptElement @inutilisée)
+execute_the_script_element :: fonc (el: *HTMLScriptElement)
 {
-    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+    // 1. Let document be el's node document.
+    document := el.document
+
+    // 2. If el's preparation-time document is not equal to document, then return.
+    si el.document_du_temps_de_préparation != document {
+        retourne
+    }
+
+    // À FAIRE 3. Unblock rendering on el.
+
+    // 4. If el's result is null, then fire an event named error at el, and return.
+    si el.result == nul {
+        _ := fire_an_event(el, EventType.error)
+        retourne
+    }
+
+    // 5. If el's from an external file is true, or el's type is "module", then increment document's ignore-destructive-writes counter.
+    ignore_destructive_writes_fut_incrémenté := faux 
+    si el.provient_de_fichier_externe || el.type == TypeScript.MODULE {
+        document.ignore_destructive_writes += 1
+        ignore_destructive_writes_fut_incrémenté = vrai
+    }
+
+    // 6. Switch on el's type:
+    discr el.type {
+        CLASSIC {
+            // 1. Let oldCurrentScript be the value to which document's currentScript object was most recently set.
+            old_current_script := document.current_script
+
+            // À FAIRE : shadow root 2. If el's root is not a shadow root, then set document's currentScript attribute to el. Otherwise, set it to null.
+            document.current_script = el
+
+            // 3. Run the classic script given by el's result.
+            run_the_classic_script(el.result comme *ClassicScript)
+
+            // 4. Set document's currentScript attribute to oldCurrentScript.
+            document.current_script = old_current_script
+        }
+        MODULE {
+            // 1. Assert: document's currentScript attribute is null.
+            assert(document.current_script == nul)
+
+            // 2. Run the module script given by el's result.
+            panique("non-implémenté")
+        }
+        IMPORTMAP {
+            panique("non-implémenté")
+            // 1. Register an import map given el's relevant global object and el's result.
+        }
+        sinon {
+            retourne
+        }
+    }
+
+    // 7. Decrement the ignore-destructive-writes counter of document, if it was incremented in the earlier step.
+    si ignore_destructive_writes_fut_incrémenté {
+        document.ignore_destructive_writes -= 1
+    }
+
+    // 8. If el's from an external file is true, then fire an event named load at el.
+    si el.provient_de_fichier_externe {
+        _ := fire_an_event(el, EventType.load)
+    }
+}
+
+/* https://html.spec.whatwg.org/multipage/scripting.html#mark-as-ready */
+mark_as_ready :: fonc (el: *HTMLScriptElement, result : *rien = nul)
+{
+    // 1. Set el's result to result.
+    el.result = result
+
+    // 2. If el's steps to run when the result is ready are not null, then run them.
+    si el.steps_to_run_when_the_result_is_ready {
+        run(el.steps_to_run_when_the_result_is_ready)
+    }
+
+    // 3. Set el's steps to run when the result is ready to null.
+    el.steps_to_run_when_the_result_is_ready = nul
+
+    // 4. Set el's delaying the load event to false.
+    el.delaying_the_load_event = faux
 }
 
 /** \} */

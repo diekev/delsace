@@ -84,6 +84,7 @@ Document :: struct {
     mode: ModeDocument
     permets_racines_shadow_déclaratives: bool
 
+    current_script: *HTMLScriptElement
     pending_parsing_blocking_script: *HTMLScriptElement
     scripts_that_will_execute_as_soon_as_possible: [..]*HTMLScriptElement
     scripts_that_will_execute_in_order_as_soon_as_possible: [..]*HTMLScriptElement
@@ -112,6 +113,7 @@ Document :: struct {
     latest_entry: *SessionHistoryEntry
 
     unload_counter: z32
+    ignore_destructive_writes: z32
 
     /* CSS. */
     feuille_de_style_agent: *CSS.CSSStyleSheet
