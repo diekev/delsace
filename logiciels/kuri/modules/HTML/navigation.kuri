@@ -2535,6 +2535,7 @@ create_and_initialize_a_document_object :: fonc (user_agent: *UserAgent, type: c
         }
 
         rappels_création_realm: RappelsCréationRealm
+        rappels_création_realm.crée_host_instrinsics = initialise_host_intrinsics
         rappels_création_realm.browsing_context = browsing_context
         rappels_création_realm.crée_objet_global = crée_objet_global
         rappels_création_realm.donne_this_binding_global = donne_this_binding_global
