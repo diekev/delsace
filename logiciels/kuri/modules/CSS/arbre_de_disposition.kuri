@@ -2107,6 +2107,7 @@ formatte_intérieur :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDeFor
     sinon {
         si noeud.requiers_contexte_de_formattage_indépendant() {
             ctx_local: ContexteDeFormattageBloc
+            diffère détruit_données_contexte(*ctx_local)
             ctx_local.racine = noeud
             ctx_local.globales = ctx.globales
             ctx_local.doit_aligner_les_descendants = ctx.doit_aligner_les_descendants
