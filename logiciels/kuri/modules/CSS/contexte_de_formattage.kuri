@@ -186,6 +186,11 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
             continue
         }
 
+        si position.est_mot_clé(PROP_fixed) {
+            ctx.dispose_boite_fixed(it)
+            continue
+        }
+
         clear := it.propriétés.donne_valeur_utilisée(IDPropriété.Clear)
         si clear.est_mot_clé(PROP_left) {
             hauteur_float_left := ctx.donne_hauteur_floats_gauche() - décalage_y
@@ -303,6 +308,29 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
         }
         sinon {}
     }
+}
+
+dispose_boite_fixed :: fonc (empl ctx: *ContexteDeFormattageBloc, noeud: *NoeudDeDisposition)
+{
+    containing_block := donne_containing_block(noeud, ctx)
+    bord_gauche := containing_block.rect.x
+    bord_haut := containing_block.rect.y
+
+    top := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Top)
+    bottom := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Bottom)
+    left := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Left)
+
+    si top.est_auto() && bottom.est_auto() {
+        top = ValeurDeStyle(pixels = 0.0)
+    }
+    sinon si top.est_auto() {
+        top = ValeurDeStyle(pixels = -bottom.pixels)
+    }
+    sinon saufsi top.est_pixels() {
+        top = ValeurDeStyle(pixels = 0.0)
+    }
+
+    noeud.décale(bord_gauche + left.pixels comme r32, bord_haut + top.pixels comme r32)
 }
 
 ajoute_boite_flottante_gauche :: fonc (empl ctx: *ContexteDeFormattageBloc, noeud: *NoeudDeDisposition)
