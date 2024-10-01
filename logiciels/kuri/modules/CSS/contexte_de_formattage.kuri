@@ -121,8 +121,12 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
     hauteur_contenu := 0.0
     décalage_hors_float := 0.0
 
+    largeur := noeud.modèle_de_boite.contenu.largeur
+
     décalage_float_left := décalage_x
+    décalage_float_left_y := décalage_y
     décalage_float_right := décalage_x + noeud.modèle_de_boite.contenu.largeur
+    décalage_float_right_y := décalage_y
     hauteur_float_left := 0.0
     hauteur_float_right := 0.0
 
@@ -134,14 +138,30 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
 
         it.mesure(ctx, mode)
 
+        largeur_it := it.modèle_de_boite.marge.largeur
+
         si float.est_mot_clé(PROP_left) {
-            it.décale(décalage_float_left, décalage_y)
-            décalage_float_left += it.modèle_de_boite.marge.largeur
+            si (décalage_float_left + largeur_it - décalage_x) > largeur {
+                décalage_float_left = décalage_x
+                décalage_float_left_y += hauteur_float_left
+
+                hauteur_float_left = 0
+            }
+
+            it.décale(décalage_float_left, décalage_float_left_y)
+            décalage_float_left += largeur_it
             hauteur_float_left = max(hauteur_float_left, it.modèle_de_boite.marge.hauteur)
         }
         sinon si float.est_mot_clé(PROP_right) {
-            it.décale(décalage_float_right - it.modèle_de_boite.marge.largeur, décalage_y)
-            décalage_float_right -= it.modèle_de_boite.marge.largeur
+            si (décalage_float_right - largeur_it) < décalage_x {
+                décalage_float_right = décalage_x + noeud.modèle_de_boite.contenu.largeur
+                décalage_float_right_y += hauteur_float_right
+
+                hauteur_float_right = 0
+            }
+
+            it.décale(décalage_float_right - largeur_it, décalage_float_right_y)
+            décalage_float_right -= largeur_it
             hauteur_float_right = max(hauteur_float_right, it.modèle_de_boite.marge.hauteur)
         }
     }
