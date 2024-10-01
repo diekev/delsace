@@ -256,8 +256,11 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
         }
     }
 
-    noeud.propriétés.définis_valeur_calculée(IDPropriété.Height, ValeurDeStyle(pixels = hauteur_contenu))
-    noeud.propriétés.définis_valeur_utilisée(IDPropriété.Height, ValeurDeStyle(pixels = hauteur_contenu))
+    prop_height := noeud.propriétés.donne_valeur_calculée(IDPropriété.Height)
+    si prop_height.est_auto() {
+        noeud.propriétés.définis_valeur_calculée(IDPropriété.Height, ValeurDeStyle(pixels = hauteur_contenu))
+        noeud.propriétés.définis_valeur_utilisée(IDPropriété.Height, ValeurDeStyle(pixels = hauteur_contenu))
+    }
 
     discr mode {
         BrisureDeLigneExplicite,
