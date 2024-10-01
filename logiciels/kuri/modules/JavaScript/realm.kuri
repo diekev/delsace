@@ -171,6 +171,8 @@ Intrinsics :: struct {
 
     array: *ArrayConstructor
     eval: *Function
+
+    host_intrinsics: [..]*Object
 }
 
 /* 9.3.2 CreateIntrinsics ( realmRec )
@@ -200,6 +202,7 @@ create_intrinsics :: fonc (realm: *Realm)
 
 RappelsHôte :: struct {
     crée_objet_global: fonc(*RappelsHôte, *Realm)(*Object)
+    crée_host_instrinsics: fonc(*Realm)(rien)
     donne_this_binding_global: fonc(*RappelsHôte)(*Object)
     crée_propriétés_hôte_objet_global: fonc(*RappelsHôte, *Object)(rien)
 }
@@ -234,6 +237,7 @@ realm_sur_destruction :: fonc (base: *Cellule)
 {
     realm := base comme *Realm
     déloge(realm.chaines_littérales)
+    déloge(realm.intrinsics.host_intrinsics)
 }
 
 donne_mv :: fonc (realm: *Realm) -> *MachineVirtuelle
@@ -252,6 +256,10 @@ initialise_host_defined_realm :: fonc (mv: *MachineVirtuelle, rappels : *Rappels
 
     // 2. Perform CreateIntrinsics(realm).
     create_intrinsics(realm)
+
+    si rappels && rappels.crée_host_instrinsics {
+        rappels.crée_host_instrinsics(realm)
+    }
 
     // À FAIRE
     // 3. Set realm.[[AgentSignifier]] to AgentSignifier().
