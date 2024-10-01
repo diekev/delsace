@@ -1,3 +1,4 @@
+importe Chaine
 importe Fondation
 importe #inemployé JavaScript
 importe Internet
@@ -214,6 +215,219 @@ scripting_est_activé :: fonc (script: *HTMLScriptElement) -> bool
 scripting_est_désactivé :: fonc (script: *HTMLScriptElement) -> bool
 {
     retourne scripting_est_activé(script) == faux
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Initialisation interface
+ * \{ */
+
+initialise_host_intrinsics :: fonc (realm: *JavaScript.Realm)
+{
+    tas_de_mémoire := JavaScript.donne_tas_de_mémoire(realm)
+
+    event_target_prototype := crée_event_target_prototype(tas_de_mémoire, realm.intrinsics.object_prototype)
+    node_prototype := crée_node_prototype(tas_de_mémoire, event_target_prototype)
+    document_prototype := crée_document_prototype(tas_de_mémoire, node_prototype)
+    element_prototype := crée_element_prototype(tas_de_mémoire, node_prototype)
+    html_image_element_prototype := crée_html_image_element_prototype(tas_de_mémoire, element_prototype)
+    window_prototype := crée_window_prototype(tas_de_mémoire, event_target_prototype)
+
+    tableau_redimensionne(realm.intrinsics.host_intrinsics, PrototypesPlatformObject.nombre_éléments)
+    realm.intrinsics.host_intrinsics[PrototypesPlatformObject.EventTarget] = event_target_prototype
+    realm.intrinsics.host_intrinsics[PrototypesPlatformObject.Document] = document_prototype
+    realm.intrinsics.host_intrinsics[PrototypesPlatformObject.Node] = node_prototype
+    realm.intrinsics.host_intrinsics[PrototypesPlatformObject.Element] = element_prototype
+    realm.intrinsics.host_intrinsics[PrototypesPlatformObject.HTMLImageElement] = html_image_element_prototype
+    realm.intrinsics.host_intrinsics[PrototypesPlatformObject.Window] = window_prototype
+}
+
+#portée_module
+
+PrototypesPlatformObject :: énum {
+    EventTarget
+    Document
+    Node
+    Element
+    HTMLImageElement
+    Window
+}
+
+donne_prototype :: fonc (realm: *JavaScript.Realm, index: PrototypesPlatformObject) -> *JavaScript.Object
+{
+    saufsi realm {
+        retourne nul
+    }
+    retourne realm.intrinsics.host_intrinsics[index]
+}
+
+définis_prototype :: fonc (object: *PlatformObject, index: PrototypesPlatformObject)
+{
+    object.prototype = donne_prototype(object.realm, index)
+}
+
+#portée_fichier
+
+/* Event Target */
+
+crée_event_target_prototype :: fonc (tas_de_mémoire: *JavaScript.TasDeMémoire, prototype: *JavaScript.Object) -> *JavaScript.Object
+{
+    résultat := JavaScript.crée_objet(tas_de_mémoire, prototype)
+    JavaScript.ajoute_fonction_native(résultat, crée_chaine_utf16_unique("addEventListener"), fonction_native_add_event_listener);
+    retourne résultat
+}
+
+fonction_native_add_event_listener :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord
+{
+    si arguments.taille < 2 {
+        retourne JavaScript.lance_type_error(interpréteuse, "addEventListener doit prendre au moins 2 arguments")
+    }
+
+    saufsi JavaScript.est_chaine(arguments[0]) {
+        retourne JavaScript.lance_type_error(interpréteuse, "argument 0 n'est pas une chaine")
+    }
+
+    saufsi JavaScript.is_callable(arguments[1]) {
+        retourne JavaScript.lance_type_error(interpréteuse, "argument 1 n'est pas callable")
+    }
+
+    arg0 := arguments[0].String.texte
+    arg1 := JavaScript.donne_objet(arguments[1])
+
+    chn_arg0 := converti_vers_chaine(arg0.donne_chaine_utf16())
+    diffère déloge(chn_arg0)
+
+    valeur_type, trouvé := donne_valeur_énum_pour_nom(info_de(EventType), chn_arg0)
+    saufsi trouvé {
+        retourne JavaScript.lance_type_error(interpréteuse, "argument 0 n'est pas un type d'évènement")
+    }
+
+    event_type : EventType = valeur_type
+
+    event_listener := loge(EventListener)
+    event_listener.function = arg1
+
+    event_target := JavaScript.donne_objet(this_value) comme *EventTarget
+
+    event_target.add_event_listener(event_type , event_listener)
+
+    retourne JavaScript.normal_completion(JavaScript.js_undefined)
+}
+
+/* Node */
+
+crée_node_prototype :: fonc (tas_de_mémoire: *JavaScript.TasDeMémoire, prototype: *JavaScript.Object) -> *JavaScript.Object
+{
+    résultat := JavaScript.crée_objet(tas_de_mémoire, prototype)
+    JavaScript.ajoute_propriété(résultat, crée_chaine_utf16_unique("nodeName"), node_node_name_getter, nul, JavaScript.DrapeauxPropriété.zéro)
+    retourne résultat
+}
+
+node_node_name_getter :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord
+{
+    noeud := JavaScript.donne_objet(this_value) comme *Noeud
+    node_name := donne_node_name(noeud)
+    str_node_name := JavaScript.crée_chaine(noeud.donne_tas_de_mémoire(), node_name)
+    retourne JavaScript.normal_completion(JavaScript.Valeur(String = str_node_name))
+}
+
+/* Document */
+
+crée_document_prototype :: fonc (tas_de_mémoire: *JavaScript.TasDeMémoire, prototype: *JavaScript.Object) -> *JavaScript.Object
+{
+    résultat := JavaScript.crée_objet(tas_de_mémoire, prototype)
+    JavaScript.ajoute_fonction_native(résultat, "getElementById", fonction_native_get_element_by_id)
+    retourne résultat
+}
+
+fonction_native_get_element_by_id :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord
+{
+    si arguments.taille == 0 {
+        retourne JavaScript.lance_type_error(interpréteuse, "getElementByID requiers 1 argument")
+    }
+
+    saufsi JavaScript.est_chaine(arguments[0]) {
+        retourne JavaScript.lance_type_error(interpréteuse, "argument n'est pas une chaine")
+    }
+
+    texte := arguments[0].String.texte
+    document := JavaScript.donne_objet(this_value) comme *Document
+    élément := document.get_element_by_id(texte)
+
+    saufsi élément {
+        retourne JavaScript.normal_completion(JavaScript.js_null)
+    }
+
+    retourne JavaScript.normal_completion(JavaScript.Valeur(Object = élément))
+}
+
+/* Element */
+
+crée_element_prototype :: fonc (tas_de_mémoire: *JavaScript.TasDeMémoire, prototype: *JavaScript.Object) -> *JavaScript.Object
+{
+    résultat := JavaScript.crée_objet(tas_de_mémoire, prototype)
+    JavaScript.ajoute_fonction_native(résultat, "getElementsByClassName", fonction_native_get_element_by_class_name)
+    JavaScript.ajoute_fonction_native(résultat, "getElementsByTagName", fonction_native_get_element_by_tag_name)
+    retourne résultat
+}
+
+fonction_native_get_element_by_class_name :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord
+{
+    si arguments.taille == 0 {
+        retourne JavaScript.lance_type_error(interpréteuse, "getElementsByClassName requiers 1 argument")
+    }
+
+    saufsi JavaScript.est_chaine(arguments[0]) {
+        retourne JavaScript.lance_type_error(interpréteuse, "argument n'est pas une chaine")
+    }
+
+    texte := arguments[0].String.texte
+    élément := JavaScript.donne_objet(this_value) comme *Élément
+    collection := élément.get_elements_by_class_name(texte)
+    retourne JavaScript.normal_completion(JavaScript.Valeur(Object = collection))
+}
+
+fonction_native_get_element_by_tag_name :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord
+{
+    si arguments.taille != 1 {
+        retourne JavaScript.lance_type_error(interpréteuse, "getElementsByTagName requiers 1 argument")
+    }
+
+    saufsi JavaScript.est_chaine(arguments[0]) {
+        retourne JavaScript.lance_type_error(interpréteuse, "argument n'est pas une chaine")
+    }
+
+    texte := arguments[0].String.texte
+    élément := JavaScript.donne_objet(this_value) comme *Élément
+    collection := élément.get_elements_by_tag_name(texte)
+    retourne JavaScript.normal_completion(JavaScript.Valeur(Object = collection))
+}
+
+/* HTMLImageElement */
+
+crée_html_image_element_prototype :: fonc (tas_de_mémoire: *JavaScript.TasDeMémoire, prototype: *JavaScript.Object) -> *JavaScript.Object
+{
+    résultat := JavaScript.crée_objet(tas_de_mémoire, prototype)
+    JavaScript.ajoute_propriété(résultat, ATTR_src, fonction_get_pour_attribut_src, nul, JavaScript.DrapeauxPropriété.zéro)
+    retourne résultat
+}
+
+fonction_get_pour_attribut_src :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord
+{
+    élément := JavaScript.donne_objet(this_value) comme *Élément
+    src := donne_attribut_ou_chaine_vide(élément, ATTR_src)
+    str_src := JavaScript.crée_chaine(élément.donne_tas_de_mémoire(), src)
+    retourne JavaScript.normal_completion(JavaScript.Valeur(String = str_src))
+}
+
+/* Window */
+
+crée_window_prototype :: fonc (tas_de_mémoire: *JavaScript.TasDeMémoire, prototype: *JavaScript.Object) -> *JavaScript.Object
+{
+    résultat := JavaScript.crée_objet(tas_de_mémoire, prototype)
+    JavaScript.ajoute_fonction_native(résultat, "alert", fonction_native_alert)
+    retourne résultat
 }
 
 /** \} */

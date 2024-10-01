@@ -129,6 +129,25 @@ détruit :: fonc (parsat: &ParsatHTML)
 }
 
 /* Parse un document HTML depuis une chaine de caractère. */
+parse_document :: fonc (realm: *JavaScript.Realm, source: chaine) -> ParsatHTML
+{
+    tas_de_mémoire := JavaScript.donne_tas_de_mémoire(realm)
+    document := crée_noeud_document(tas_de_mémoire, realm)
+
+    parseuse := initialise_parseuse(tas_de_mémoire, source, document)
+    diffère détruit_parseuse(*parseuse)
+
+    début := maintenant_précis()
+    parse(*parseuse)
+    temps := début.temps_écoulé_microsecondes()
+
+    parsat: ParsatHTML
+    parsat.document = parseuse.document
+    parsat.temps = temps
+    parsat.erreurs = tableau_vole_mémoire(parseuse.erreurs)
+    retourne parsat
+}
+
 parse_document :: fonc (tas_de_mémoire: *JavaScript.TasDeMémoire, document: chaine) -> ParsatHTML
 {
     parseuse := initialise_parseuse(tas_de_mémoire, document)

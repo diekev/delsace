@@ -12,6 +12,12 @@ UnsafeMoment :: #opaque r64
 CoarsenedMoment :: #opaque r64
 Moment :: CoarsenedMoment
 
+/* https://w3c.github.io/hr-time/#dfn-duration-from */
+duration_from :: fonc (a: Moment, b: Moment) -> r64
+{
+    retourne b comme r64 - a comme r64
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -19,24 +25,37 @@ Moment :: CoarsenedMoment
  * https://w3c.github.io/hr-time/#sec-time-origin
  * \{ */
 
+/* https://w3c.github.io/hr-time/#dfn-coarsen-time */
+coarsen_time :: fonc (timestamp: Moment, cross_origin_isolated_capability := faux @inutilisée) -> z64
+{
+    // À FAIRE : implémente.
+    // 1. Let time resolution be 100 microseconds, or a higher implementation-defined value.
+    // 2. If crossOriginIsolatedCapability is true, set time resolution to be 5 microseconds, or a higher implementation-defined value.
+    // 3. In an implementation-defined manner, coarsen and potentially jitter timestamp such that its resolution will not exceed time resolution.
+    // 5. Return timestamp as a moment.
+    retourne timestamp comme r64 comme z64
+}
+
 /* https://w3c.github.io/hr-time/#dfn-relative-high-resolution-time */
-relative_high_resolution_time :: fonc (coarse_time: Moment, global: *rien)
+relative_high_resolution_time :: fonc (coarse_time: Moment, global: *PlatformObject) -> DOMHighResTimeStamp
 {
     /* The relative high resolution coarse time given a moment from the
      * monotonic clock coarseTime and a global object global, is the duration
      * from global's relevant settings object's time origin to coarseTime. */
+    settings := global.donne_relevant_settings_object()
+    retourne duration_from(Moment(settings.donne_time_origin()), coarse_time)
 }
 
 /* https://w3c.github.io/hr-time/#dfn-current-high-resolution-time */
-current_high_resolution_time :: fonc (current_global: *rien)
+current_high_resolution_time :: fonc (current_global: *PlatformObject) -> DOMHighResTimeStamp
 {
     retourne relative_high_resolution_time(unsafe_shared_current_time(), current_global)
 }
 
 /* https://w3c.github.io/hr-time/#dfn-unsafe-shared-current-time */
-unsafe_shared_current_time :: fonc () -> Instantané
+unsafe_shared_current_time :: fonc () -> Moment
 {
-    retourne maintenant()
+    retourne Moment(maintenant().millisecondes() comme r64)
 }
 
 /** \} */

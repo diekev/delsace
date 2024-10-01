@@ -116,7 +116,7 @@ donne_fonction_calcul_largeur_et_marges :: fonc (noeud: *NoeudDeDisposition) -> 
     }
 
     // 10.3.7 Absolutely positioned, non-replaced elements
-    si position.est_mot_clé(PROP_absolute) {
+    si position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_fixed) {
         retourne calcule_largeur_et_marges_abosolutely_positionned_non_replaced_element
     }
 
