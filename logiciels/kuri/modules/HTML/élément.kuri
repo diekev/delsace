@@ -542,10 +542,12 @@ applique_presentational_hints :: fonc (élément: *Élément, résolveuse: *CSS.
 
     JavaScript.ajoute_fonction_native(élément, "getElementsByClassName", fonction_native_get_element_by_class_name)
     JavaScript.ajoute_fonction_native(élément, "getElementsByTagName", fonction_native_get_element_by_tag_name)
+}
 
-    si élément.local_name == TAG_img {
-        JavaScript.ajoute_propriété(élément, ATTR_src, fonction_get_pour_attribut_src, nul, JavaScript.DrapeauxPropriété.zéro)
-    }
+img_élément_sur_initialisation_interface :: fonc (base: *PlatformObject)
+{
+    élément_sur_initialisation_interface(base)
+    JavaScript.ajoute_propriété(base, ATTR_src, fonction_get_pour_attribut_src, nul, JavaScript.DrapeauxPropriété.zéro)
 }
 
 fonction_get_pour_attribut_src :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord
@@ -1279,6 +1281,7 @@ donne_ratio_intrinsèque :: fonc (image: *HTMLImageElement) -> r32 #enligne
 
 table_virtuelle_image_element := TableVirtuelleÉlément(
     classe = HTMLImageElement,
+    sur_initialisation_interface = img_élément_sur_initialisation_interface,
     sur_destruction = image_element_sur_destruction,
     sur_changement_attribut = image_element_sur_changement_attribut,
     sur_applique_presentational_hints = image_element_sur_applique_presentational_hints
