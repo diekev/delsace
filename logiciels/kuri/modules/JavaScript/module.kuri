@@ -819,7 +819,7 @@ is_accessor_propery :: fonc (propriété: &Object.Propriété) -> bool
     retourne !is_data_propery(propriété)
 }
 
-crée_objet :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ObjectPrototype) -> *Object
+crée_objet :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Object) -> *Object
 {
     résultat := tas_de_mémoire.alloue(Object)
     résultat.prototype = prototype
