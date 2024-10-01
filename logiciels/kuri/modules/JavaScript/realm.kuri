@@ -20,6 +20,9 @@ crée_host_defined :: fonc (données: *$T) -> HostDefined
 
 donne_données :: fonc (host_defined: &HostDefined, $T: type_de_données) -> *T
 {
+    saufsi host_defined.données {
+        retourne nul
+    }
     assert(est_struct_ou_employeuse_de(host_defined.infos, info_de(T)))
     retourne host_defined.données comme *T
 }
