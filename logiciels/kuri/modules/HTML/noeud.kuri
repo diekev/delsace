@@ -74,10 +74,9 @@ noeud_sur_destruction :: fonc (base: *JavaScript.Cellule)
     noeud_détruit_données(noeud)
 }
 
-noeud_sur_initialisation_interface :: fonc (noeud: *PlatformObject)
+noeud_sur_initialisation_interface :: fonc (base: *PlatformObject)
 {
-    event_target_sur_initialisation_interface(noeud)
-    JavaScript.ajoute_propriété(noeud, crée_chaine_utf16_unique("nodeName"), node_node_name_getter, nul, JavaScript.DrapeauxPropriété.zéro)
+    définis_prototype(base, PrototypesPlatformObject.Node)
 }
 
 #portée_export
@@ -452,18 +451,8 @@ get_element_by_id_recursive :: fonc (noeud: *Noeud, chn: DOMString) -> *Élémen
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom Interface JavaScript
+/** \nom Interface
  * \{ */
-
-#portée_fichier
-
-node_node_name_getter :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord
-{
-    noeud := JavaScript.donne_objet(this_value) comme *Noeud
-    node_name := donne_node_name(noeud)
-    str_node_name := JavaScript.crée_chaine(noeud.donne_tas_de_mémoire(), node_name)
-    retourne JavaScript.normal_completion(JavaScript.Valeur(String = str_node_name))
-}
 
 /* https://dom.spec.whatwg.org/#dom-node-nodename */
 donne_node_name :: fonc (noeud: *Noeud) -> DOMString

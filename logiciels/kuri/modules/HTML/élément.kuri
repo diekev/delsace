@@ -533,61 +533,16 @@ applique_presentational_hints :: fonc (élément: *Élément, résolveuse: *CSS.
 /** \nom Interface JavaScript
  * \{ */
 
-#portée_module
+#portée_fichier
 
 élément_sur_initialisation_interface :: fonc (base: *PlatformObject)
 {
-    élément := base comme *Élément
-    noeud_sur_initialisation_interface(élément)
-
-    JavaScript.ajoute_fonction_native(élément, "getElementsByClassName", fonction_native_get_element_by_class_name)
-    JavaScript.ajoute_fonction_native(élément, "getElementsByTagName", fonction_native_get_element_by_tag_name)
+    définis_prototype(base, PrototypesPlatformObject.Element)
 }
 
 img_élément_sur_initialisation_interface :: fonc (base: *PlatformObject)
 {
-    élément_sur_initialisation_interface(base)
-    JavaScript.ajoute_propriété(base, ATTR_src, fonction_get_pour_attribut_src, nul, JavaScript.DrapeauxPropriété.zéro)
-}
-
-fonction_get_pour_attribut_src :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord
-{
-    élément := JavaScript.donne_objet(this_value) comme *Élément
-    src := donne_attribut_ou_chaine_vide(élément, ATTR_src)
-    str_src := JavaScript.crée_chaine(élément.donne_tas_de_mémoire(), src)
-    retourne JavaScript.normal_completion(JavaScript.Valeur(String = str_src))
-}
-
-fonction_native_get_element_by_class_name :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord
-{
-    si arguments.taille == 0 {
-        retourne JavaScript.lance_type_error(interpréteuse, "getElementsByClassName requiers 1 argument")
-    }
-
-    saufsi JavaScript.est_chaine(arguments[0]) {
-        retourne JavaScript.lance_type_error(interpréteuse, "argument n'est pas une chaine")
-    }
-
-    texte := arguments[0].String.texte
-    élément := JavaScript.donne_objet(this_value) comme *Élément
-    collection := élément.get_elements_by_class_name(texte)
-    retourne JavaScript.normal_completion(JavaScript.Valeur(Object = collection))
-}
-
-fonction_native_get_element_by_tag_name :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord
-{
-    si arguments.taille != 1 {
-        retourne JavaScript.lance_type_error(interpréteuse, "getElementsByTagName requiers 1 argument")
-    }
-
-    saufsi JavaScript.est_chaine(arguments[0]) {
-        retourne JavaScript.lance_type_error(interpréteuse, "argument n'est pas une chaine")
-    }
-
-    texte := arguments[0].String.texte
-    élément := JavaScript.donne_objet(this_value) comme *Élément
-    collection := élément.get_elements_by_tag_name(texte)
-    retourne JavaScript.normal_completion(JavaScript.Valeur(Object = collection))
+    définis_prototype(base, PrototypesPlatformObject.HTMLImageElement)
 }
 
 #portée_export

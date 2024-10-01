@@ -824,50 +824,11 @@ call_a_user_object_operation :: fonc (value: JavaScript.Valeur, args: []JavaScri
 /** \nom Interface JavaScript
  * \{ */
 
-#portée_module
+#portée_fichier
 
 event_target_sur_initialisation_interface :: fonc (base: *PlatformObject)
 {
-    JavaScript.ajoute_fonction_native(base, crée_chaine_utf16_unique("addEventListener"), fonction_native_add_event_listener);
-}
-
-#portée_fichier
-
-fonction_native_add_event_listener :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord
-{
-    si arguments.taille < 2 {
-        retourne JavaScript.lance_type_error(interpréteuse, "addEventListener doit prendre au moins 2 arguments")
-    }
-
-    saufsi JavaScript.est_chaine(arguments[0]) {
-        retourne JavaScript.lance_type_error(interpréteuse, "argument 0 n'est pas une chaine")
-    }
-
-    saufsi JavaScript.is_callable(arguments[1]) {
-        retourne JavaScript.lance_type_error(interpréteuse, "argument 1 n'est pas callable")
-    }
-
-    arg0 := arguments[0].String.texte
-    arg1 := JavaScript.donne_objet(arguments[1])
-
-    chn_arg0 := converti_vers_chaine(arg0.donne_chaine_utf16())
-    diffère déloge(chn_arg0)
-
-    valeur_type, trouvé := donne_valeur_énum_pour_nom(info_de(EventType), chn_arg0)
-    saufsi trouvé {
-        retourne JavaScript.lance_type_error(interpréteuse, "argument 0 n'est pas un type d'évènement")
-    }
-
-    event_type : EventType = valeur_type
-
-    event_listener := loge(EventListener)
-    event_listener.function = arg1
-
-    event_target := JavaScript.donne_objet(this_value) comme *EventTarget
-
-    event_target.add_event_listener(event_type , event_listener)
-
-    retourne JavaScript.normal_completion(JavaScript.js_undefined)
+    définis_prototype(base, PrototypesPlatformObject.EventTarget)
 }
 
 /** \} */
