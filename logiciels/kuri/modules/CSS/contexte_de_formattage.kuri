@@ -271,8 +271,8 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
                 largeur_max_enfant = max(largeur_max_enfant, largeur_enfant)
             }
 
-            largeur := noeud.propriétés.donne_valeur_calculée(IDPropriété.Width)
-            si largeur.est_auto() {
+            prop_largeur := noeud.propriétés.donne_valeur_calculée(IDPropriété.Width)
+            si prop_largeur.est_auto() {
                 noeud.propriétés.définis_valeur_utilisée(IDPropriété.Width, ValeurDeStyle(pixels = largeur_max_enfant))
             }
         }
