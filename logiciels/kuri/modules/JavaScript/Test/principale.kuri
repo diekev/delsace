@@ -178,7 +178,7 @@ objet_html_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, en
 
         contenu := contenu_fichier_texte(chemin)
 
-        parsat := HTML.parse_document(object.donne_tas_de_mémoire(), contenu)
+        parsat := HTML.parse_document(interpréteuse.donne_realm(), contenu)
         diffère HTML.détruit(parsat)
 
         retourne normal_completion(Valeur(Object = parsat.document))
@@ -271,6 +271,7 @@ sur_rappel_sauvegarde :: fonc (base: *QT_Rappel_Generique)
     diffère éboue(donne_tas_de_mémoire(*mv))
 
     rappels_hôte: RappelsHôteTest
+    rappels_hôte.crée_host_instrinsics = HTML.initialise_host_intrinsics
     rappels_hôte.sortie_console = rappels_fenêtre.sortie_console
     rappels_hôte.crée_propriétés_hôte_objet_global = crée_propriétés_hôte_objet_global
 

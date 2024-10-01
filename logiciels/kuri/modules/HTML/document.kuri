@@ -644,33 +644,11 @@ définis_données_image :: fonc (document: *Document, url: chaine, données: Ima
 /** \nom Interface JavaScript
  * \{ */
 
-#portée_module
+#portée_fichier
 
-document_sur_initialisation_interface :: fonc (document: *PlatformObject)
+document_sur_initialisation_interface :: fonc (base: *PlatformObject)
 {
-    noeud_sur_initialisation_interface(document)
-    JavaScript.ajoute_fonction_native(document, "getElementById", fonction_native_get_element_by_id)
-}
-
-fonction_native_get_element_by_id :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord
-{
-    si arguments.taille == 0 {
-        retourne JavaScript.lance_type_error(interpréteuse, "getElementByID requiers 1 argument")
-    }
-
-    saufsi JavaScript.est_chaine(arguments[0]) {
-        retourne JavaScript.lance_type_error(interpréteuse, "argument n'est pas une chaine")
-    }
-
-    texte := arguments[0].String.texte
-    document := JavaScript.donne_objet(this_value) comme *Document
-    élément := document.get_element_by_id(texte)
-
-    saufsi élément {
-        retourne JavaScript.normal_completion(JavaScript.js_null)
-    }
-
-    retourne JavaScript.normal_completion(JavaScript.Valeur(Object = élément))
+    définis_prototype(base, PrototypesPlatformObject.Document)
 }
 
 #portée_export

@@ -1,3 +1,4 @@
+importe Chaine
 importe Fondation
 
 /* ------------------------------------------------------------------------- */
@@ -130,6 +131,9 @@ EventType :: énum n8 {
      * event handler IDL attributes. */
     readystatechange
     visibilitychange
+
+    /* Autres */
+    DOMContentLoaded
 }
 
 /** \} */
@@ -243,6 +247,7 @@ append_event_path :: fonc (event: *Event, invocation_target: *EventTarget, shado
 
 EventListener :: struct {
     sur_handle_event: fonc(*Event)(rien)
+    function: *JavaScript.Object
 }
 
 EventListenerOptions :: struct {
@@ -269,6 +274,7 @@ TableVirtuelleEventTarget :: struct {
     empl platform_object: TableVirtuellePlatformObject
 
     sur_destruction = event_target_sur_destruction
+    sur_initialisation_interface = event_target_sur_initialisation_interface
 
     /* https://dom.spec.whatwg.org/#get-the-parent */
     sur_get_the_parent: fonc(*EventTarget, *Event)(*EventTarget) = event_target_sur_get_the_parent
@@ -442,7 +448,7 @@ remove_all_listeners :: fonc (target: *EventTarget)
 }
 
 /* https://dom.spec.whatwg.org/#default-passive-value */
-default_passive_value :: fonc (type: EventType, target: *EventTarget) -> bool
+default_passive_value :: fonc (type: EventType @inutilisée, target: *EventTarget @inutilisée) -> bool
 {
     // À FAIRE 1. Return true if all of the following are true:
     //
@@ -457,14 +463,15 @@ default_passive_value :: fonc (type: EventType, target: *EventTarget) -> bool
 }
 
 /* https://html.spec.whatwg.org/multipage/nav-history-apis.html#concept-document-window */
-donne_document_associé :: fonc (target: *EventTarget @inutilisée) -> *Document
+donne_document_associé :: fonc (target: *EventTarget) -> *Document
 {
-    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
-    retourne nul
+    assert(target.table.classe == Window)
+    window := target comme *Window
+    retourne window.document
 }
 
 /* https://dom.spec.whatwg.org/#retarget */
-retarget :: fonc (a: *EventTarget @inutilisée, b: *EventTarget @inutilisée) -> *EventTarget
+retarget :: fonc (a: *EventTarget, b: *EventTarget @inutilisée) -> *EventTarget
 {
     // boucle {
         // 1. If one of the following is true
@@ -476,7 +483,7 @@ retarget :: fonc (a: *EventTarget @inutilisée, b: *EventTarget @inutilisée) ->
         // 2. Set A to A’s root’s host.
     //}
     imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
-    retourne nul
+    retourne a
 }
 
 #portée_export
@@ -500,7 +507,7 @@ add_event_listener :: fonc (target: *EventTarget, type: EventType, callback: *Ev
     // 2. Add an event listener with this and an event listener whose type is type,
     //    callback is callback, capture is capture, passive is passive, once is once,
     //    and signal is signal.
-    event_listener: EventListener.EventListenerEntry
+    event_listener: EventTarget.EventListenerEntry
     event_listener.type = type
     event_listener.callback = callback
     event_listener.capture = capture
@@ -540,11 +547,11 @@ remove_event_listener :: fonc (target: *EventTarget, type: EventType, callback: 
 }
 
 /* https://dom.spec.whatwg.org/#concept-event-fire */
-fire_an_event :: fonc (target: *EventTarget, nom: EventType) -> bool
+fire_an_event :: fonc (target: *EventTarget, nom: EventType, legacy_target_override : *bool = nul) -> bool
 {
     event := crée_platform_object(target, Event)
     event.type = nom
-    retourne dispatch(event, target)
+    retourne dispatch(event, target, legacy_target_override)
 }
 
 /* https://dom.spec.whatwg.org/#dom-eventtarget-dispatchevent */
@@ -757,9 +764,71 @@ dispatch :: fonc (event: *Event, target: *EventTarget, legacy_target_override : 
 }
 
 /* https://dom.spec.whatwg.org/#concept-event-listener-invoke */
-invoke :: fonc (segment: &Event.Path @inutilisée, event: *Event @inutilisée, phase: chaine @inutilisée, legacy_output_did_listeners_throw : *bool = nul @inutilisée)
+invoke :: fonc (segment: &Event.Path, event: *Event, phase: chaine, legacy_output_did_listeners_throw : *bool = nul @inutilisée)
 {
     imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+    event.current_target = segment.invocation_target
+    inner_invoke(event, segment.invocation_target.listeners, phase)
+}
+
+/* https://dom.spec.whatwg.org/#concept-event-listener-invoke */
+inner_invoke :: fonc (event: *Event, listeners: []EventTarget.EventListenerEntry, phase: chaine)
+{
+    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+
+    arguments: [..]JavaScript.Valeur
+    diffère déloge(arguments)
+    tableau_ajoute(*arguments, JavaScript.Valeur(Object = event))
+
+    pour listeners {
+        si it.removed {
+            continue
+        }
+
+        si it.capture == faux && phase == "capturing" {
+            continue
+        }
+
+        si it.capture == vrai && phase == "bubbling" {
+            continue
+        }
+
+        call_a_user_object_operation(JavaScript.Valeur(Object = it.callback.function), arguments, JavaScript.Valeur(Object = event.current_target))
+    }
+}
+
+/* https://webidl.spec.whatwg.org/#call-a-user-objects-operation */
+call_a_user_object_operation :: fonc (value: JavaScript.Valeur, args: []JavaScript.Valeur, this_arg: JavaScript.Valeur)
+{
+    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+
+    target := JavaScript.donne_objet(this_arg) comme *EventTarget
+
+    realm := target.realm
+    settings := JavaScript.donne_données(realm.host_defined, EnvironmentSettings)
+
+    prepare_to_run_script(settings)
+
+    interpréteuse: JavaScript.Interpréteuse
+    diffère  JavaScript.détruit_données_interpreteuse(*interpréteuse)
+    interpréteuse.mv = JavaScript.donne_mv(realm)
+
+    _ := JavaScript.call(*interpréteuse, value, this_arg, args)
+
+    cleanup_after_running_script(settings)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Interface JavaScript
+ * \{ */
+
+#portée_fichier
+
+event_target_sur_initialisation_interface :: fonc (base: *PlatformObject)
+{
+    définis_prototype(base, PrototypesPlatformObject.EventTarget)
 }
 
 /** \} */

@@ -60,19 +60,33 @@ principale :: fonc () -> z32
         }
     }
 
-    arguments := __arguments_ligne_commande
+    arguments := arguments_ligne_commande()
 
+    utilise_javascript := faux
     chemin_fichier: chaine
     si arguments.taille > 1 {
-        arg1 := convertis_chaine_c(ChaineC(arguments[1]))
-        chemin_fichier = arg1
+        si arguments.taille == 3 {
+            si arguments[1] != "--js" {
+                imprime("Argument '%' inconnu\n", arguments[1])
+                retourne 1
+            }
+
+            utilise_javascript = vrai
+            chemin_fichier = copie_chaine(arguments[2])
+        }
+        sinon si arguments[1] == "--js" {
+            utilise_javascript = vrai
+        }
+        sinon {
+            chemin_fichier = copie_chaine(arguments[1])
+        }
     }
 
     diffère QT_détruit_tampon_rappels()
 
     /* Création application. */
     taille_arguments := arguments.taille comme z32
-    app := QT_cree_application(*taille_arguments, arguments.pointeur)
+    app := QT_cree_application(*taille_arguments, __arguments_ligne_commande.pointeur)
     diffère QT_detruit_application(app)
 
     rappel_fermeture: RappelFermetureApp
@@ -87,6 +101,7 @@ principale :: fonc () -> z32
     /* Création fenêtre. */
     rappels_fenêtre: RappelsFenetrePrincipale
     rappels_fenêtre.user_agent = loge(UserAgent)
+    rappels_fenêtre.user_agent.supporte_scripting = utilise_javascript
     rappel_fermeture.rappels_fenêtre = *rappels_fenêtre
 
     fenêtre := QT_cree_fenetre_principale(*rappels_fenêtre)

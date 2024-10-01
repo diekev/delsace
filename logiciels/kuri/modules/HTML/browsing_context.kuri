@@ -490,6 +490,7 @@ crée_nouvelle_origin_opaque :: fonc () -> Origin
 
 table_virtuelle_window := TableVirtuelleEventTarget(
     classe = Window,
+    sur_initialisation_interface =  window_sur_initialisation_interface,
     sur_destruction = window_sur_destruction
 )
 
@@ -497,6 +498,11 @@ window_sur_destruction :: fonc (base: *JavaScript.Cellule)
 {
     window := base comme *Window
     event_target_détruit_données(window)
+}
+
+window_sur_initialisation_interface :: fonc (base: *PlatformObject)
+{
+    définis_prototype(base, PrototypesPlatformObject.Window)
 }
 
 #portée_export
@@ -513,12 +519,10 @@ Window :: struct {
 crée_objet_window :: fonc (tas_de_mémoire: *JavaScript.TasDeMémoire, realm: *JavaScript.Realm) -> *Window
 {
     résultat := crée_platform_object(tas_de_mémoire, realm, Window)
-    résultat.prototype = realm.intrinsics.object_prototype
     JavaScript.ajoute_propriété(résultat, crée_chaine_utf16_unique("window"), window_window_getter, nul, JavaScript.DrapeauxPropriété.zéro)
     JavaScript.ajoute_propriété(résultat, crée_chaine_utf16_unique("frames"), window_window_getter, nul, JavaScript.DrapeauxPropriété.zéro)
     JavaScript.ajoute_propriété(résultat, crée_chaine_utf16_unique("self"), window_window_getter, nul, JavaScript.DrapeauxPropriété.zéro)
     JavaScript.ajoute_propriété(résultat, crée_chaine_utf16_unique("document"), window_document_getter, nul, JavaScript.DrapeauxPropriété.zéro)
-    JavaScript.ajoute_fonction_native(résultat, "alert", fonction_native_alert)
     retourne résultat
 }
 
@@ -725,7 +729,7 @@ crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Do
     browsing_context := loge(BrowsingContext)
 
     // 2. Let unsafeContextCreationTime be the unsafe shared current time.
-    // unsafe_context_creation_time := unsafe_shared_current_time()
+    unsafe_context_creation_time := unsafe_shared_current_time()
 
     // 3. Let creatorOrigin be null.
     creator_origin: Optionnel(Origin)
@@ -793,6 +797,7 @@ crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Do
     }
 
     rappels_création_realm: RappelsCréationRealm
+    rappels_création_realm.crée_host_instrinsics = initialise_host_intrinsics
     rappels_création_realm.browsing_context = browsing_context
     rappels_création_realm.user_agent = user_agent
     rappels_création_realm.crée_objet_global = crée_objet_global
@@ -814,13 +819,14 @@ crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Do
 
     // 13. Set up a window environment settings object with about:blank, realm execution context, null, topLevelCreationURL, and topLevelOrigin.
     set_up_window_environnement_context(URI("about:blank"), realm_execution_context, nul, top_level_creation_url, top_level_origin)
+    environment_settings := JavaScript.donne_données(realm_execution_context.realm.host_defined, EnvironmentSettings)
 
     // 14. Let loadTimingInfo be a new document load timing info with its
     //     navigation start time set to the result of calling coarsen time with
     //     unsafeContextCreationTime and the new environment settings object's
     //     cross-origin isolated capability.
     load_timing_info: DocumentLoadTimingInfo
-    // À FAIRE
+    load_timing_info.navigation_start_time = coarsen_time(unsafe_context_creation_time, environment_settings.donne_cross_origin_isolated_capability())
 
     // 15. Let document be a new Document, with:
     //     type "html"
