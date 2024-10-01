@@ -67,7 +67,18 @@ parse_a_non_zero_dimension :: fonc (string: DOMString) -> Optionnel(r64)
     chn := converti_vers_chaine(string.donne_chaine_utf16())
     diffère déloge(chn)
 
-    résultat := tente extrait_r64(chn) piège _ {
+    chiffres := chn
+    chiffres.taille = 0
+    pour chn {
+        si '0' <= it <= '9' {
+            chiffres.taille += 1
+            continue
+        }
+
+        arrête
+    }
+
+    résultat := tente extrait_r64(chiffres) piège _ {
         retourne
     }
 
