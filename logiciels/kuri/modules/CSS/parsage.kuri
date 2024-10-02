@@ -1945,6 +1945,7 @@ parse_mf_value :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(MediaF
         retourne MediaFeatureValue(ident = lexème.donne_texte())
     }
 
+    // À FAIRE : calc
     // À FAIRE : ratio
 }
 
