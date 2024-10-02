@@ -166,6 +166,16 @@ formatte_component_value :: fonc (enchaineuse: *Enchaineuse, value: *ComponentVa
             }
             ajoute_au_tampon(enchaineuse, ")")
         }
+        bloc(b) {
+            formatte_lexème(enchaineuse, *b.token)
+            pour b.value {
+                ajoute_au_tampon(enchaineuse, it)
+            }
+            lexème_mirroir := donne_genre_lexème_mirroir(b.token)
+            token := b.token
+            token.genre = lexème_mirroir
+            formatte_lexème(enchaineuse, *token)
+        }
         sinon {
             ajoute_au_tampon(enchaineuse, "IMPRESSION À FAIRE")
         }
