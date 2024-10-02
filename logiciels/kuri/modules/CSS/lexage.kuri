@@ -330,11 +330,6 @@ est_lexème_slash :: fonc (lexème: $T) -> bool
     retourne est_lexème_delim(lexème, '/' comme n32)
 }
 
-est_identifiant :: fonc (lexème: $T, ident: chaine) -> bool
-{
-    retourne lexème.est_lexème_de_genre(GenreLexème.Ident) && lexème.donne_texte() == crée_chaine_utf16_unique(ident)
-}
-
 est_identifiant :: fonc (lexème: $T, ident: CSSOMString) -> bool
 {
     retourne lexème.est_lexème_de_genre(GenreLexème.Ident) && lexème.donne_texte() == ident

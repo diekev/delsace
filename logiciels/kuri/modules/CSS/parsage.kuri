@@ -287,7 +287,6 @@ est_mot_clé :: fonc (value: ComponentValue, mot_clé: CSSOMString) -> bool
 Parseuse :: struct ($T: type_de_données) {
     lexèmes: [..]T
     curseur: z64
-    curseur_sauvegardé: z64
     possède_erreur: bool
 }
 
@@ -307,11 +306,6 @@ lexème_courant :: fonc (parseuse: &Parseuse($T)) -> T
     retourne parseuse.lexèmes[parseuse.curseur]
 }
 
-lexème_suivant :: fonc (parseuse: &Parseuse($T)) -> T
-{
-    retourne parseuse.lexèmes[parseuse.curseur + 1]
-}
-
 consomme_le_lexème_en_entrée_suivant :: fonc (parseuse: &Parseuse($T)) -> T
 {
     résultat := parseuse.lexème_courant()
@@ -327,16 +321,6 @@ reconsomme_le_lexème_courant :: fonc (parseuse: &Parseuse($T))
 avance :: fonc (parseuse: &Parseuse($T))
 {
     parseuse.curseur += 1
-}
-
-sauvegarde_position :: fonc (parseuse: &Parseuse($T))
-{
-    parseuse.curseur_sauvegardé = parseuse.curseur
-}
-
-restaure_position :: fonc (parseuse: &Parseuse($T))
-{
-    parseuse.curseur = parseuse.curseur_sauvegardé
 }
 
 consomme_espaces_blanches :: fonc (parseuse: &Parseuse($T))
