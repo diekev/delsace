@@ -1817,7 +1817,7 @@ parse_a_media_in_parens :: fonc (parseuse: &Parseuse(ComponentValue)) -> *MediaQ
     parseuse_locale = initialise_une_parseuse(bloc.value)
     media_feature := parse_a_media_feature(parseuse_locale)
     si media_feature {
-        retourne crée_media_query_in_parens(media_condition)
+        retourne crée_media_query_in_parens(media_feature)
     }
 
     // À FAIRE : <general-enclosed>
