@@ -299,7 +299,7 @@ initialise_résolveuse :: fonc (résolveuse: *RésolveuseStyle)
 
 initialise_cache :: fonc (résolveuse: *RésolveuseStyle)
 {
-    pseudo_classes: PseudoClasses
+    résolveuse.pseudo_classes = PseudoClasses.zéro
     résolveuse.ids_connus.taille = 0
     résolveuse.attrs_connus.taille = 0
     résolveuse.classes_connues.taille = 0
@@ -313,48 +313,50 @@ initialise_cache :: fonc (résolveuse: *RésolveuseStyle)
             }
 
             règle_de_style := règle comme *CSSStyleRule
-            règle_ajoutée := faux
+            ajoute_règle_aux_caches(résolveuse, règle_de_style, index_feuille, index_règle)
+        }
+    }
+}
 
-            règle_appariée: RègleAppariée
-            règle_appariée.règle = règle_de_style
-            règle_appariée.index_feuille_de_style = index_feuille
-            règle_appariée.index_règle = index_règle
+ajoute_règle_aux_caches :: fonc (résolveuse: *RésolveuseStyle, règle_de_style: *CSSStyleRule, index_feuille: z64, index_règle: z64)
+{
+    règle_ajoutée := faux
 
-            pour complex dans règle_de_style.selector_list.complex_selectors {
+    règle_appariée: RègleAppariée
+    règle_appariée.règle = règle_de_style
+    règle_appariée.index_feuille_de_style = index_feuille
+    règle_appariée.index_règle = index_règle
 
-                dernière_classe: Optionnel(CSSOMString)
+    pour complex dans règle_de_style.selector_list.complex_selectors {
+        dernière_classe: Optionnel(CSSOMString)
 
-                pour compound dans complex.compound_selectors {
-                    init_de(Optionnel(CSSOMString))(*dernière_classe)
-                    pour simple dans compound.simple_selectors {
-                        si simple.type == SimpleSelector.Type.PseudoClass {
-                            pseudo_classes |= simple.pseudo_classe
-                        }
-                        sinon si simple.type == SimpleSelector.Type.ID {
-                            ensemble_ajoute(*résolveuse.ids_connus, simple.ident.valeur)
-                        }
-                        sinon si simple.type == SimpleSelector.Type.Attrib {
-                            ensemble_ajoute(*résolveuse.attrs_connus, simple.ident.valeur)
-                        }
-                        sinon si simple.type == SimpleSelector.Type.Class {
-                            ensemble_ajoute(*résolveuse.classes_connues, simple.ident.valeur)
-                            dernière_classe = simple.ident
-                        }
-                    }
+        pour compound dans complex.compound_selectors {
+            init_de(Optionnel(CSSOMString))(*dernière_classe)
+            pour simple dans compound.simple_selectors {
+                si simple.type == SimpleSelector.Type.PseudoClass {
+                    résolveuse.pseudo_classes |= simple.pseudo_classe
                 }
-
-                si dernière_classe.possède_valeur() {
-                    ajoute_règle_pour_classe(résolveuse, dernière_classe.Quelque, règle_appariée)
+                sinon si simple.type == SimpleSelector.Type.ID {
+                    ensemble_ajoute(*résolveuse.ids_connus, simple.ident.valeur)
                 }
-                sinon saufsi règle_ajoutée {
-                    règle_ajoutée = vrai
-                    tableau_ajoute(*résolveuse.autres_règles, règle_appariée)
+                sinon si simple.type == SimpleSelector.Type.Attrib {
+                    ensemble_ajoute(*résolveuse.attrs_connus, simple.ident.valeur)
+                }
+                sinon si simple.type == SimpleSelector.Type.Class {
+                    ensemble_ajoute(*résolveuse.classes_connues, simple.ident.valeur)
+                    dernière_classe = simple.ident
                 }
             }
         }
-    }
 
-    résolveuse.pseudo_classes = pseudo_classes
+        si dernière_classe.possède_valeur() {
+            ajoute_règle_pour_classe(résolveuse, dernière_classe.Quelque, règle_appariée)
+        }
+        sinon saufsi règle_ajoutée {
+            règle_ajoutée = vrai
+            tableau_ajoute(*résolveuse.autres_règles, règle_appariée)
+        }
+    }
 }
 
 ajoute_règle_pour_classe :: fonc (résolveuse: *RésolveuseStyle, classe: CSSOMString, règle: RègleAppariée)
