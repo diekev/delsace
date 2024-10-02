@@ -252,6 +252,8 @@ opérateur < :: fonc (a: RèglesParIdentifiant, b: RèglesParIdentifiant) -> boo
 RésolveuseStyle :: struct {
     globales: *GlobalesDessin
     document: *HTML.Document
+    /* Pour MediaQuery. */
+    largeur_écran: r64
     taille_fonte_racine: r64
     feuilles_de_style: []*CSSStyleSheet
 
@@ -280,7 +282,7 @@ RésolveuseStyle :: struct {
     presentational_hints: [..]*DéclarationPropriété
 }
 
-crée_résolveuse_style :: fonc (document: *HTML.Document) -> *RésolveuseStyle
+crée_résolveuse_style :: fonc (document: *HTML.Document, largeur: z32) -> *RésolveuseStyle
 {
     résultat := loge(RésolveuseStyle)
     initialise_résolveuse(résultat)
@@ -288,6 +290,7 @@ crée_résolveuse_style :: fonc (document: *HTML.Document) -> *RésolveuseStyle
     résultat.taille_fonte_racine = document.globales_dessin.taille_fonte_défaut
     résultat.globales = document.globales_dessin
     résultat.feuilles_de_style = document.feuilles_de_style
+    résultat.largeur_écran = largeur comme r64
     initialise_cache(résultat)
     retourne résultat
 }
@@ -306,16 +309,56 @@ initialise_cache :: fonc (résolveuse: *RésolveuseStyle)
     résolveuse.autres_règles.taille = 0
     résolveuse.règles_par_classe.taille = 0
 
+    user_agent := HTML.donne_user_agent(résolveuse.document)
+    assert(user_agent != nul)
+
+    ctx: ContexteÉvaluationMediaQuery
+    ctx.supporte_scripting = user_agent.supporte_scripting
+    ctx.largeur = résolveuse.largeur_écran
+
     pour feuille, index_feuille dans résolveuse.feuilles_de_style {
-        pour règle, index_règle dans feuille.rules {
-            si règle.type != CSSRuleType.Style {
+        index_règle : z64 = 0
+        pour règle dans feuille.rules {
+            si règle.type == CSSRuleType.Style {
+                règle_de_style := règle comme *CSSStyleRule
+                ajoute_règle_aux_caches(résolveuse, règle_de_style, index_feuille, index_règle)
+                index_règle += 1
                 continue
             }
 
-            règle_de_style := règle comme *CSSStyleRule
-            ajoute_règle_aux_caches(résolveuse, règle_de_style, index_feuille, index_règle)
+            si règle.type == CSSRuleType.Media {
+                règle_de_media := règle comme *CSSMediaRule
+                saufsi évalue_media_list(*ctx, règle_de_media) {
+                    continue
+                }
+
+                pour règle_média dans règle_de_media.css_rules {
+                    si règle_média.type == CSSRuleType.Style {
+                        règle_de_style := règle_média comme *CSSStyleRule
+                        ajoute_règle_aux_caches(résolveuse, règle_de_style, index_feuille, index_règle)
+                        index_règle += 1
+                    }
+                }
+
+                continue
+            }
         }
     }
+}
+
+évalue_media_list :: fonc (ctx: *ContexteÉvaluationMediaQuery, règle_de_media: *CSSMediaRule) -> bool
+{
+    saufsi règle_de_media.media_list {
+        retourne faux
+    }
+
+    pour règle_de_media.media_list.media_queries {
+        saufsi évalue_media_query(ctx, it) {
+            retourne faux
+        }
+    }
+
+    retourne vrai
 }
 
 ajoute_règle_aux_caches :: fonc (résolveuse: *RésolveuseStyle, règle_de_style: *CSSStyleRule, index_feuille: z64, index_règle: z64)
@@ -934,7 +977,7 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, haut
     }
 
     saufsi document.résolveuse_style {
-        document.résolveuse_style = crée_résolveuse_style(document)
+        document.résolveuse_style = crée_résolveuse_style(document, largeur)
     }
 
     résultat := loge(ArbreDeDisposition)
