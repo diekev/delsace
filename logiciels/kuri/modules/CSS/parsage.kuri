@@ -462,6 +462,28 @@ parse_attribut_style :: fonc (valeur: ChaineUTF16) -> *CSSStyleDeclaration
 /* 5.4.10 Parse a list of component values */
 
 /* 5.4.11 Parse a comma-separated list of component values */
+parse_a_comma_separated_list_of_component_values :: fonc (input: [..]ComponentValue) -> [..][..]ComponentValue
+{
+    // 1. Let groups be an empty list.
+    groups: [..][..]ComponentValue
+
+    parseuse := initialise_une_parseuse(input)
+
+    // 2. While input is not empty:
+    tantque !parseuse.fini() {
+        // 1. Consume a list of component values from input, with <comma-token> as the stop token, and append the result to groups.
+        list := consomme_une_lise_de_valeur_composante(parseuse, GenreLexème.Comma)
+        tableau_ajoute(*groups, list)
+
+        // 2. Discard a token from input.
+        saufsi parseuse.fini() {
+            parseuse.avance()
+        }
+    }
+
+    // 3. Return groups.
+    retourne groups
+}
 
 /** \} */
 
@@ -825,6 +847,36 @@ supprime_espaces_blanches_en_fin :: fonc (value: *[..]ComponentValue)
 
     value.taille -= nombre_d_espaces_blanches
     assert(value.taille >= 0)
+}
+
+/* 5.5.7. Consume a list of component values */
+consomme_une_lise_de_valeur_composante :: fonc (parseuse: &Parseuse($T), stop_token: GenreLexème, nested := faux) -> [..]ComponentValue
+{
+    values: [..]ComponentValue
+
+    tantque !fini(parseuse) {
+        lexème := parseuse.consomme_le_lexème_en_entrée_suivant()
+
+        si lexème.est_lexème_de_genre(GenreLexème.EOF) || lexème.est_lexème_de_genre(stop_token) {
+            arrête
+        }
+
+        si lexème.est_lexème_de_genre(GenreLexème.Close_Bracket) {
+            si nested {
+                arrête
+            }
+
+            /* parse-error */
+            lexème = parseuse.consomme_le_lexème_en_entrée_suivant()
+            tableau_ajoute(*values, lexème)
+            continue
+        }
+
+        valeur := consomme_une_valeur_composante(parseuse)
+        tableau_ajoute(*values, valeur)
+    }
+
+    retourne values
 }
 
 /* 5.5.8 Consume a component value */
