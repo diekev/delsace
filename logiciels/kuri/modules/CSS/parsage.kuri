@@ -361,11 +361,11 @@ rapporte_erreur :: fonc (parseuse: &Parseuse($T) @inutilisée, message: chaine)
 /** \nom Parser Entry Points.
  * \{ */
 
-/* 5.3.1 Parse something according to a CSS grammar */
+/* 5.4.1 Parse something according to a CSS grammar */
 
-/* 5.3.2 Parse A Comma-Separated List According To A CSS Grammar */
+/* 5.4.2 Parse A Comma-Separated List According To A CSS Grammar */
 
-/* 5.3.3 Parse a stylesheet */
+/* 5.4.3 Parse a stylesheet */
 parse_a_stylesheet :: fonc (input: [..]Lexème) -> ParsedStyleSheet
 {
     // 1. If input is a byte stream for stylesheet, decode bytes from input, and set input to the result.
@@ -382,13 +382,13 @@ parse_a_stylesheet :: fonc (input: [..]Lexème) -> ParsedStyleSheet
     retourne résultat
 }
 
-/* 5.3.4 Parse a list of rules */
+/* 5.4.4 Parse a list of rules */
 
-/* 5.3.5 Parse a rule */
+/* 5.4.5 Parse a rule */
 
-/* 5.3.6 Parse a declaration */
+/* 5.4.6 Parse a declaration */
 
-/* 5.3.7 Parse a style block’s contents */
+/* 5.4.7 Parse a style block’s contents */
 StyleBlockContent :: struct {
     decls: [..]ParsedDeclaration
     rules: [..]*ParsedRule
@@ -417,7 +417,7 @@ parse_a_style_block_s_contents :: fonc (input: [..]ComponentValue) -> StyleBlock
     retourne consomme_le_contenu_d_un_bloc_de_style(parseuse)
 }
 
-/* 5.3.8 Parse a list of declarations */
+/* 5.4.8 Parse a list of declarations */
 parse_a_list_of_declarations :: fonc (input: [..]Lexème) -> StyleBlockContent
 {
     // 1. Normalize input, and set input to the result.
@@ -447,20 +447,20 @@ parse_attribut_style :: fonc (valeur: ChaineUTF16) -> *CSSStyleDeclaration
     retourne résultat
 }
 
-/* 5.3.9 Parse a component value */
+/* 5.4.9 Parse a component value */
 
-/* 5.3.10 Parse a list of component values */
+/* 5.4.10 Parse a list of component values */
 
-/* 5.3.11 Parse a comma-separated list of component values */
+/* 5.4.11 Parse a comma-separated list of component values */
 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom 5.4 Parser Algorithms.
+/** \nom 5.5 Parser Algorithms.
  * https://www.w3.org/TR/css-syntax-3/#parser-algorithms
  * \{ */
 
-/* 5.4.1 Consume a list of rules */
+/* 5.5.1 Consume a list of rules */
 consomme_une_liste_de_règles :: fonc (parseuse: &Parseuse($T), top_level: bool) -> [..]*ParsedRule
 {
     résultat: [..]*ParsedRule
@@ -508,7 +508,7 @@ consomme_une_liste_de_règles :: fonc (parseuse: &Parseuse($T), top_level: bool)
     retourne résultat
 }
 
-/* 5.4.2 Consume an at-rule */
+/* 5.5.2 Consume an at-rule */
 consomme_une_règle_arobase :: fonc (parseuse: &Parseuse($T)) -> *ParsedAtRule
 {
     _ := parseuse.consomme_le_lexème_en_entrée_suivant()
@@ -548,7 +548,7 @@ consomme_une_règle_arobase :: fonc (parseuse: &Parseuse($T)) -> *ParsedAtRule
     retourne résultat
 }
 
-/* 5.4.3 Consume a qualified rule */
+/* 5.5.3 Consume a qualified rule */
 consomme_une_règle_qualifiée :: fonc (parseuse: &Parseuse($T)) -> *ParsedQualifiedRule
 {
     résultat := loge(ParsedQualifiedRule)
@@ -581,7 +581,7 @@ consomme_une_règle_qualifiée :: fonc (parseuse: &Parseuse($T)) -> *ParsedQuali
     retourne résultat
 }
 
-/* 5.4.4 Consume a style block’s contents */
+/* 5.5.4 Consume a style block’s contents */
 consomme_le_contenu_d_un_bloc_de_style :: fonc (parseuse: &Parseuse($T)) -> StyleBlockContent
 {
     decls: [..]ParsedDeclaration
@@ -664,7 +664,7 @@ consomme_le_contenu_d_un_bloc_de_style :: fonc (parseuse: &Parseuse($T)) -> Styl
     retourne StyleBlockContent(decls, rules)
 }
 
-/* 5.4.5 Consume a list of declarations */
+/* 5.5.5 Consume a list of declarations */
 consomme_une_liste_de_déclarations :: fonc (parseuse: &Parseuse($T)) -> StyleBlockContent
 {
     // Create an initially empty list of declarations.
@@ -740,7 +740,7 @@ consomme_une_liste_de_déclarations :: fonc (parseuse: &Parseuse($T)) -> StyleBl
     retourne StyleBlockContent(decls, rules)
 }
 
-/* 5.4.6 Consume a declaration */
+/* 5.5.6 Consume a declaration */
 consomme_une_déclaration :: fonc (parseuse: &Parseuse($T)) -> Optionnel(ParsedDeclaration)
 {
     lexème := parseuse.consomme_le_lexème_en_entrée_suivant()
@@ -818,7 +818,7 @@ supprime_espaces_blanches_en_fin :: fonc (value: *[..]ComponentValue)
     assert(value.taille >= 0)
 }
 
-/* 5.4.7 Consume a component value */
+/* 5.5.8 Consume a component value */
 consomme_une_valeur_composante :: fonc (parseuse: &Parseuse($T)) -> ComponentValue
 {
     lexème := parseuse.consomme_le_lexème_en_entrée_suivant()
@@ -847,7 +847,7 @@ donne_genre_lexème_mirroir :: fonc (lexème: Lexème) -> GenreLexème
     retourne GenreLexème.Close_Parenthesis
 }
 
-/* 5.4.8 Consume a simple block */
+/* 5.5.9 Consume a simple block */
 consomme_un_bloc_simple :: fonc (parseuse: &Parseuse($T), lexème_associé: T) -> ParsedSimpleBlock
 {
     genre_lexème_fin := donne_genre_lexème_mirroir(lexème_associé)
@@ -875,7 +875,7 @@ consomme_un_bloc_simple :: fonc (parseuse: &Parseuse($T), lexème_associé: T) -
     retourne résultat
 }
 
-/* 5.4.9 Consume a function */
+/* 5.5.10 Consume a function */
 consomme_une_fonction :: fonc (parseuse: &Parseuse($T), lexème_function: T) -> ParsedFunction
 {
     résultat: ParsedFunction
