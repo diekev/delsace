@@ -288,6 +288,7 @@ Parseuse :: struct ($T: type_de_données) {
     lexèmes: [..]T
     curseur: z64
     curseur_sauvegardé: z64
+    possède_erreur: bool
 }
 
 initialise_une_parseuse :: fonc (lexèmes: [..]$T) -> Parseuse(T)
@@ -357,7 +358,7 @@ apparie_lexème_ident :: fonc (parseuse: &Parseuse($T)) -> bool #enligne
 
 fini :: fonc (parseuse: &Parseuse($T)) -> bool
 {
-    retourne parseuse.curseur >= parseuse.lexèmes.taille
+    retourne parseuse.curseur >= parseuse.lexèmes.taille || parseuse.possède_erreur
 }
 
 rapporte_erreur :: fonc (parseuse: &Parseuse($T) @inutilisée, message: chaine)
@@ -1573,7 +1574,7 @@ parse_a_media_query_list :: fonc (values: [..]ComponentValue) -> *MediaList
     pour groups {
         parseuse := initialise_une_parseuse(it)
         media_query := parse_a_media_query(parseuse)
-        saufsi media_query {
+        si media_query == nul || parseuse.possède_erreur {
             /* Si nous ne pouvons pas parser la liste, nous abandonnons, et la règle sera ignoré. */
             détruit_media_list(résultat)
             retourne nul
@@ -1747,7 +1748,7 @@ parse_a_media_not :: fonc (parseuse: &Parseuse(ComponentValue)) -> *MediaQuery
 
     opérande := parse_a_media_in_parens(parseuse)
     saufsi opérande {
-        // À FAIRE : erreur de parsage
+        parseuse.possède_erreur = vrai
         retourne nul
     }
 
@@ -1810,12 +1811,14 @@ parse_a_media_in_parens :: fonc (parseuse: &Parseuse(ComponentValue)) -> *MediaQ
 
     parseuse_locale := initialise_une_parseuse(bloc.value)
     media_condition := parse_a_media_condition(parseuse_locale)
+    parseuse.possède_erreur = parseuse_locale.possède_erreur
     si media_condition {
         retourne crée_media_query_in_parens(media_condition)
     }
 
     parseuse_locale = initialise_une_parseuse(bloc.value)
     media_feature := parse_a_media_feature(parseuse_locale)
+    parseuse.possède_erreur = parseuse_locale.possède_erreur
     si media_feature {
         retourne crée_media_query_in_parens(media_feature)
     }
@@ -1830,6 +1833,7 @@ parse_a_media_feature :: fonc (parseuse: &Parseuse(ComponentValue)) -> *MediaQue
 {
     parseuse_locale : Parseuse(ComponentValue) = parseuse
     opt_mf_plain := parse_mf_plain(parseuse_locale)
+    parseuse.possède_erreur = parseuse_locale.possède_erreur
     si opt_mf_plain.possède_valeur() {
         parseuse.curseur = parseuse_locale.curseur
         retourne crée_media_query_feature(opt_mf_plain.Quelque)
@@ -1837,6 +1841,7 @@ parse_a_media_feature :: fonc (parseuse: &Parseuse(ComponentValue)) -> *MediaQue
 
     parseuse_locale = parseuse
     opt_mf_boolean := parse_mf_boolean(parseuse_locale)
+    parseuse.possède_erreur = parseuse_locale.possède_erreur
     si opt_mf_boolean.possède_valeur() {
         parseuse.curseur = parseuse_locale.curseur
         retourne crée_media_query_feature(opt_mf_boolean.Quelque)
@@ -1869,6 +1874,7 @@ parse_mf_plain :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(MediaF
 
     opt_value := parseuse.parse_mf_value()
     saufsi opt_value.possède_valeur() {
+        parseuse.possède_erreur = vrai
         retourne
     }
 
