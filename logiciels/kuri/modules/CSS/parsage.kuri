@@ -511,11 +511,10 @@ consomme_une_liste_de_règles :: fonc (parseuse: &Parseuse($T), top_level: bool)
 /* 5.5.2 Consume an at-rule */
 consomme_une_règle_arobase :: fonc (parseuse: &Parseuse($T)) -> *ParsedAtRule
 {
-    _ := parseuse.consomme_le_lexème_en_entrée_suivant()
-
     résultat := loge(ParsedAtRule)
     résultat.name = parseuse.lexème_courant().donne_texte()
-    résultat.name = résultat.name
+
+    _ := parseuse.consomme_le_lexème_en_entrée_suivant()
 
     tantque !fini(parseuse) {
         lexème := parseuse.consomme_le_lexème_en_entrée_suivant()
