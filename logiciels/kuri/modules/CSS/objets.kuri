@@ -43,19 +43,27 @@ imprime_style_sheet :: fonc (stylesheet: *CSSStyleSheet)
 
 détruit_feuille_de_style :: fonc (stylesheet: *CSSStyleSheet)
 {
-    pour stylesheet.rules {
-        si it.type == CSSRuleType.Style {
-            détruit_style_rule(it comme *CSSStyleRule)
-        }
-    }
+    détruit_rule_list(stylesheet.rules)
 
     si stylesheet.location.possède_valeur() {
         url := stylesheet.location.Quelque
         détruit_uri(url)
     }
 
-    déloge(stylesheet.rules)
     déloge(stylesheet)
+}
+
+détruit_rule_list :: fonc (list: [..]*CSSRule)
+{
+    pour list {
+        si it.type == CSSRuleType.Style {
+            détruit_style_rule(it comme *CSSStyleRule)
+        }
+        sinon si it.type == CSSRuleType.Media {
+            détruit_media_rule(it comme *CSSMediaRule)
+        }
+    }
+    déloge(list)
 }
 
 /** \} */
@@ -224,6 +232,66 @@ imprime_déclaration :: fonc (déclaration: *DéclarationPropriété)
     }
 
     imprime(";\n")
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom CSSGroupingRule
+ * https://www.w3.org/TR/cssom-1/#cssgroupingrule
+ * \{ */
+
+CSSGroupingRule :: struct {
+    empl base_rule: CSSRule
+
+    css_rules: [..]*CSSRule
+}
+
+détruit_données_grouping_rule :: fonc (rule: *CSSGroupingRule)
+{
+    détruit_rule_list(rule.css_rules)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom CSSConditionalRule
+ * https://www.w3.org/TR/css-conditional-3/#cssconditionrule
+ * \{ */
+
+CSSConditionalRule :: struct {
+    empl grouping: CSSGroupingRule
+}
+
+détruit_données_conditional_rule :: fonc (rule: *CSSConditionalRule)
+{
+    détruit_données_grouping_rule(rule)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom CSSMediaRule
+ * https://www.w3.org/TR/css-conditional-3/#cssmediarule
+ * \{ */
+
+CSSMediaRule :: struct {
+    empl cond: CSSConditionalRule
+    type = CSSRuleType.Media
+
+    media_list: *MediaList
+}
+
+détruit_données_media_rule :: fonc (rule: *CSSMediaRule)
+{
+    détruit_données_conditional_rule(rule)
+}
+
+détruit_media_rule :: fonc (rule: *CSSMediaRule)
+{
+    détruit_media_list(rule.media_list)
+    détruit_données_media_rule(rule)
+    déloge(rule)
 }
 
 /** \} */

@@ -1549,6 +1549,409 @@ parse_combinateur :: fonc (parseuse: &ParseuseSelector) -> Optionnel(Combinator)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Parsage de "media queries".
+ * https://drafts.csswg.org/mediaqueries/#mq-syntax
+ * \{ */
+
+/* https://drafts.csswg.org/mediaqueries/#typedef-media-query-list */
+parse_a_media_query_list :: fonc (values: [..]ComponentValue) -> *MediaList
+{
+    groups := parse_a_comma_separated_list_of_component_values(values)
+    diffère {
+        pour groups {
+            déloge(it)
+        }
+        déloge(groups)
+    }
+
+    si groups.taille == 0 {
+        retourne nul
+    }
+
+    résultat := loge(MediaList)
+
+    pour groups {
+        parseuse := initialise_une_parseuse(it)
+        media_query := parse_a_media_query(parseuse)
+        saufsi media_query {
+            /* Si nous ne pouvons pas parser la liste, nous abandonnons, et la règle sera ignoré. */
+            détruit_media_list(résultat)
+            retourne nul
+        }
+
+        tableau_ajoute(*résultat.media_queries, media_query)
+    }
+
+    retourne résultat
+}
+
+// <media-query> = <media-condition>
+//              | [ not | only ]? <media-type> [ and <media-condition-without-or> ]?
+parse_a_media_query :: fonc (parseuse: &Parseuse(ComponentValue)) -> *MediaQuery
+{
+    condition := parse_a_media_condition(parseuse)
+    si condition {
+        retourne condition
+    }
+
+    parseuse.consomme_espaces_blanches()
+    lexème := parseuse.lexème_courant()
+    si lexème.est_mot_clé(PROP_not) || lexème.est_mot_clé(PROP_only) {
+        imprime("[%] not ou only non supporté\n")
+        retourne nul
+    }
+
+    media_type := parse_a_media_type(parseuse)
+    saufsi media_type {
+        retourne nul
+    }
+
+    parseuse.consomme_espaces_blanches()
+    lexème = parseuse.lexème_courant()
+    si lexème.est_mot_clé(PROP_and) {
+        parseuse.avance()
+
+        droite := parse_a_media_condition_without_or(parseuse)
+        saufsi droite {
+            retourne nul
+        }
+
+        retourne crée_media_query_and(media_type, droite)
+    }
+
+    retourne media_type
+}
+
+// <media-type> = <ident>
+parse_a_media_type :: fonc (parseuse: &Parseuse(ComponentValue)) -> *MediaQuery
+{
+    parseuse.consomme_espaces_blanches()
+    lexème := parseuse.lexème_courant()
+
+    si lexème.est_lexème_de_genre(GenreLexème.Ident) {
+        parseuse.avance()
+        ident := lexème.donne_texte()
+        retourne crée_media_query_type(ident)
+    }
+
+    retourne nul
+}
+
+// <media-condition> = <media-not> | <media-in-parens> [ <media-and>* | <media-or>* ]
+parse_a_media_condition :: fonc (parseuse: &Parseuse(ComponentValue)) -> *MediaQuery
+{
+    media_not := parse_a_media_not(parseuse)
+    si media_not {
+        retourne media_not
+    }
+
+    media_in_parens := parse_a_media_in_parens(parseuse)
+    saufsi media_in_parens {
+        retourne nul
+    }
+
+    gauche := media_in_parens
+
+    tantque !parseuse.fini() {
+        parseuse.consomme_espaces_blanches()
+        lexème := parseuse.lexème_courant()
+
+        si lexème.est_mot_clé(PROP_and) {
+            parseuse.avance()
+
+            media_and := parse_a_media_and(parseuse, gauche)
+            saufsi media_and {
+                retourne nul
+            }
+
+            gauche = media_and
+            continue
+        }
+
+        si lexème.est_mot_clé(PROP_or) {
+            parseuse.avance()
+
+            media_or := parse_a_media_or(parseuse, gauche)
+            saufsi media_or {
+                retourne nul
+            }
+
+            gauche = media_or
+            continue
+        }
+
+        si lexème.est_lexème_de_genre(GenreLexème.EOF) {
+            parseuse.avance()
+            arrête
+        }
+
+        parseuse.consomme_espaces_blanches()
+    }
+
+    retourne gauche
+}
+
+// <media-condition-without-or> = <media-not> | <media-in-parens> <media-and>*
+parse_a_media_condition_without_or :: fonc (parseuse: &Parseuse(ComponentValue)) -> *MediaQuery
+{
+    media_not := parse_a_media_not(parseuse)
+    si media_not {
+        retourne media_not
+    }
+
+    media_in_parens := parse_a_media_in_parens(parseuse)
+    saufsi media_in_parens {
+        retourne nul
+    }
+
+    gauche := media_in_parens
+
+    tantque !parseuse.fini() {
+        parseuse.consomme_espaces_blanches()
+        lexème := parseuse.lexème_courant()
+
+        si lexème.est_mot_clé(PROP_and) {
+            parseuse.avance()
+
+            media_and := parse_a_media_and(parseuse, gauche)
+            saufsi media_and {
+                retourne nul
+            }
+
+            gauche = media_and
+            continue
+        }
+
+        si lexème.est_lexème_de_genre(GenreLexème.EOF) {
+            parseuse.avance()
+            arrête
+        }
+
+        parseuse.consomme_espaces_blanches()
+    }
+
+    retourne gauche
+}
+
+// <media-not> = not <media-in-parens>
+parse_a_media_not :: fonc (parseuse: &Parseuse(ComponentValue)) -> *MediaQuery
+{
+    parseuse.consomme_espaces_blanches()
+    lexème := parseuse.lexème_courant()
+    
+    saufsi lexème.est_mot_clé(PROP_not) {
+        retourne nul
+    }
+
+    parseuse.avance()
+
+    opérande := parse_a_media_in_parens(parseuse)
+    saufsi opérande {
+        // À FAIRE : erreur de parsage
+        retourne nul
+    }
+
+    retourne crée_media_query_not(opérande)
+}
+
+// <media-and> = and <media-in-parens>
+parse_a_media_and :: fonc (parseuse: &Parseuse(ComponentValue), gauche: *MediaQuery) -> *MediaQuery
+{
+    parseuse.consomme_espaces_blanches()
+    lexème := parseuse.lexème_courant()
+    
+    saufsi lexème.est_mot_clé(PROP_and) {
+        retourne nul
+    }
+
+    parseuse.avance()
+
+    droite := parse_a_media_in_parens(parseuse)
+    saufsi droite {
+        retourne nul
+    }
+
+    retourne crée_media_query_and(gauche, droite)
+}
+
+// <media-or> = or <media-in-parens>
+parse_a_media_or :: fonc (parseuse: &Parseuse(ComponentValue), gauche: *MediaQuery) -> *MediaQuery
+{
+    parseuse.consomme_espaces_blanches()
+    lexème := parseuse.lexème_courant()
+    
+    saufsi lexème.est_mot_clé(PROP_or) {
+        retourne nul
+    }
+
+    parseuse.avance()
+
+    droite := parse_a_media_in_parens(parseuse)
+    saufsi droite {
+        retourne nul
+    }
+
+    retourne crée_media_query_or(gauche, droite)
+}
+
+// <media-in-parens> = ( <media-condition> ) | ( <media-feature> ) | <general-enclosed>
+parse_a_media_in_parens :: fonc (parseuse: &Parseuse(ComponentValue)) -> *MediaQuery
+{
+    parseuse.consomme_espaces_blanches()
+    lexème := parseuse.lexème_courant()
+
+    saufsi lexème.est_simple_bloc_de_genre(GenreLexème.Open_Parenthesis) {
+        retourne nul
+    }
+
+    parseuse.avance()
+
+    bloc := lexème.bloc
+
+    parseuse_locale := initialise_une_parseuse(bloc.value)
+    media_condition := parse_a_media_condition(parseuse_locale)
+    si media_condition {
+        retourne crée_media_query_in_parens(media_condition)
+    }
+
+    parseuse_locale = initialise_une_parseuse(bloc.value)
+    media_feature := parse_a_media_feature(parseuse_locale)
+    si media_feature {
+        retourne crée_media_query_in_parens(media_condition)
+    }
+
+    // À FAIRE : <general-enclosed>
+
+    retourne nul
+}
+
+// <media-feature> = [ <mf-plain> | <mf-boolean> | <mf-range> ]
+parse_a_media_feature :: fonc (parseuse: &Parseuse(ComponentValue)) -> *MediaQuery
+{
+    parseuse_locale : Parseuse(ComponentValue) = parseuse
+    opt_mf_plain := parse_mf_plain(parseuse_locale)
+    si opt_mf_plain.possède_valeur() {
+        parseuse.curseur = parseuse_locale.curseur
+        retourne crée_media_query_feature(opt_mf_plain.Quelque)
+    }
+
+    parseuse_locale = parseuse
+    opt_mf_boolean := parse_mf_boolean(parseuse_locale)
+    si opt_mf_boolean.possède_valeur() {
+        parseuse.curseur = parseuse_locale.curseur
+        retourne crée_media_query_feature(opt_mf_boolean.Quelque)
+    }
+
+    // À FAIRE
+    // parseuse_locale = parseuse
+    // opt_mf_range := parse_mf_range(parseuse_locale)
+    // si opt_mf_range.possède_valeur() {
+    //     retourne crée_media_query_feature(opt_mf_range.Quelque)
+    // }
+    
+    retourne nul
+}
+
+// <mf-plain> = <mf-name> : <mf-value>
+parse_mf_plain :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(MediaFeaturePlain)
+{
+    opt_mf_name := parse_mf_name(parseuse)
+    saufsi opt_mf_name.possède_valeur() {
+        retourne
+    }
+
+    parseuse.consomme_espaces_blanches()
+    lexème := parseuse.lexème_courant()
+    saufsi lexème.est_lexème_de_genre(GenreLexème.Colon) {
+        retourne
+    }
+    parseuse.avance()
+
+    opt_value := parseuse.parse_mf_value()
+    saufsi opt_value.possède_valeur() {
+        retourne
+    }
+
+    résultat: MediaFeaturePlain
+    résultat.name = opt_mf_name.Quelque
+    résultat.value = opt_value.Quelque
+    retourne résultat
+}
+
+// <mf-boolean> = <mf-name>
+parse_mf_boolean :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(MediaFeatureBoolean)
+{
+    opt_mf_name := parse_mf_name(parseuse)
+    saufsi opt_mf_name.possède_valeur() {
+        retourne
+    }
+
+    résultat: MediaFeatureBoolean
+    résultat.name = opt_mf_name.Quelque
+    retourne résultat
+}
+
+// <mf-range> = <mf-name> <mf-comparison> <mf-value>
+//            | <mf-value> <mf-comparison> <mf-name>
+//            | <mf-value> <mf-lt> <mf-name> <mf-lt> <mf-value>
+//            | <mf-value> <mf-gt> <mf-name> <mf-gt> <mf-value>
+
+// <mf-name> = <ident>
+parse_mf_name :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(CSSOMString)
+{
+    parseuse.consomme_espaces_blanches()
+    lexème := parseuse.lexème_courant()
+
+    saufsi lexème.est_lexème_de_genre(GenreLexème.Ident) {
+        retourne
+    }
+
+    parseuse.avance()
+    retourne lexème.donne_texte()
+}
+
+// <mf-value> = <number> | <dimension> | <ident> | <ratio>
+parse_mf_value :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(MediaFeatureValue)
+{
+    parseuse.consomme_espaces_blanches()
+    lexème := parseuse.lexème_courant()
+
+    si lexème.est_lexème_de_genre(GenreLexème.Number) {
+        parseuse.avance()
+        retourne MediaFeatureValue(number = lexème.lexème.numeric_value)
+    }
+
+    si lexème.est_lexème_de_genre(GenreLexème.Dimension) {
+        données_lexème := lexème.lexème
+
+        unité := donne_unité_pour_nom(données_lexème.unité)
+        si unité.possède_valeur() {
+            parseuse.avance()
+            longueur := Longueur(données_lexème.numeric_value, unité.Quelque)
+            retourne MediaFeatureValue(dimension = longueur)
+        }
+
+        retourne
+    }
+
+    si lexème.est_lexème_de_genre(GenreLexème.Ident) {
+        parseuse.avance()
+        retourne MediaFeatureValue(ident = lexème.donne_texte())
+    }
+
+    // À FAIRE : ratio
+}
+
+// <mf-lt> = '<' '='?
+// <mf-gt> = '>' '='?
+// <mf-eq> = '='
+// <mf-comparison> = <mf-lt> | <mf-gt> | <mf-eq>
+
+// <general-enclosed> = [ <function-token> <any-value>? ) ] | [ ( <any-value>? ) ]
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Parsage de feuilles de style.
  * \{ */
 
@@ -1607,20 +2010,38 @@ parse_style_rules :: fonc (ctx: *ContexteParsageFeuilleDeStyle, css_stylesheet: 
     diffère détruit_données_stylesheet(*stylesheet)
 
     pour stylesheet.value {
-        si it.type == ParsedQualifiedRule {
-            parse_a_style_rule(ctx, css_stylesheet, it comme *ParsedQualifiedRule)
+        rule := parse_a_rule_generic(ctx, css_stylesheet, it)
+        si rule {
+            tableau_ajoute(*css_stylesheet.rules, rule)
         }
     }
 }
 
+parse_a_rule_generic :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sheet: *CSSStyleSheet, parsed_rule: *ParsedRule) -> *CSSRule
+{
+    si parsed_rule.type == ParsedQualifiedRule {
+        retourne parse_a_style_rule(ctx, parent_style_sheet, parsed_rule comme *ParsedQualifiedRule)
+    }
+
+    si parsed_rule.type == ParsedAtRule {
+        at_rule := parsed_rule comme *ParsedAtRule
+
+        si at_rule.name == PROP_media {
+            retourne parse_a_media_rule(ctx, parent_style_sheet, at_rule)
+        }
+    }
+
+    retourne nul
+}
+
 /* https://www.w3.org/TR/css-syntax-3/#style-rules */
-parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sheet: *CSSStyleSheet, parsed_rule: *ParsedQualifiedRule)
+parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sheet: *CSSStyleSheet, parsed_rule: *ParsedQualifiedRule) -> *CSSStyleRule
 {
     selectors := parse_selector_list(parsed_rule.prelude)
     saufsi selectors.possède_valeur() {
         /* Si nous n'arrivons pas à parser les sélecteurs,
          * nous devons ignorer la règle. */
-        retourne
+        retourne nul
     }
 
     résultat := loge(CSSStyleRule)
@@ -1638,10 +2059,36 @@ parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sh
 
     si style.déclarations.taille == 0 {
         détruit_style_rule(résultat)
-        retourne
+        retourne nul
     }
 
-    tableau_ajoute(*parent_style_sheet.rules, résultat)
+    retourne résultat
+}
+
+/* https://drafts.csswg.org/css-conditional-3/#at-media */
+parse_a_media_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sheet: *CSSStyleSheet, parsed_rule: *ParsedAtRule) -> *CSSMediaRule
+{
+    media_list := parse_a_media_query_list(parsed_rule.prelude)
+    saufsi media_list {
+        retourne nul
+    }
+
+    parseuse := initialise_une_parseuse(parsed_rule.bloc.value)
+    règles := consomme_une_liste_de_règles(parseuse, vrai)
+    diffère déloge(règles)
+
+    résultat := loge(CSSMediaRule)
+    résultat.parent_style_sheet = parent_style_sheet
+    résultat.media_list = media_list
+
+    pour règles {
+        rule := parse_a_rule_generic(ctx, parent_style_sheet, it)
+        si rule {
+            tableau_ajoute(*résultat.css_rules, rule)
+        }
+    }
+
+    retourne résultat
 }
 
 ContexteParsageShorthand :: struct {

@@ -1,0 +1,156 @@
+/* ------------------------------------------------------------------------- */
+/** \nom MediaList
+ * https://www.w3.org/TR/cssom-1/#medialist
+ * \{ */
+
+MediaList :: struct {
+    media_queries: [..]*MediaQuery
+}
+
+détruit_media_list :: fonc (list: *MediaList)
+{
+    déloge_tableau_et_ses_éléments(list.media_queries, détruit_media_query)
+    déloge(list)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom MediaQuery
+ * \{ */
+
+TypeMediaQuery :: énum {
+    Type
+    // Condition
+    // ConditionWithoutOr
+    Not
+    And
+    Or
+    InParens
+    Feature
+}
+
+MediaQuery :: struct {
+    type: TypeMediaQuery
+
+    /* Type */
+    ident: CSSOMString
+
+    /* Not, InParens */
+    opérande: *MediaQuery
+
+    /* And, Or */
+    gauche: *MediaQuery
+    droite: *MediaQuery
+
+    /* Feature */
+    expression: MediaFeatureExpression
+}
+
+crée_media_query_and :: fonc (gauche: *MediaQuery, droite: *MediaQuery) -> *MediaQuery
+{
+    résultat := loge(MediaQuery)
+    résultat.type = TypeMediaQuery.And
+    résultat.gauche = gauche
+    résultat.droite = droite
+    retourne résultat
+}
+
+crée_media_query_or :: fonc (gauche: *MediaQuery, droite: *MediaQuery) -> *MediaQuery
+{
+    résultat := loge(MediaQuery)
+    résultat.type = TypeMediaQuery.Or
+    résultat.gauche = gauche
+    résultat.droite = droite
+    retourne résultat
+}
+
+crée_media_query_type :: fonc (ident: CSSOMString) -> *MediaQuery
+{
+    résultat := loge(MediaQuery)
+    résultat.type = TypeMediaQuery.Type
+    résultat.ident = ident
+    retourne résultat
+}
+
+crée_media_query_not :: fonc (opérande: *MediaQuery) -> *MediaQuery
+{
+    résultat := loge(MediaQuery)
+    résultat.type = TypeMediaQuery.Not
+    résultat.opérande = opérande
+    retourne résultat
+}
+
+crée_media_query_in_parens :: fonc (opérande: *MediaQuery) -> *MediaQuery
+{
+    résultat := loge(MediaQuery)
+    résultat.type = TypeMediaQuery.InParens
+    résultat.opérande = opérande
+    retourne résultat
+}
+
+crée_media_query_feature :: fonc (expression: MediaFeatureExpression) -> *MediaQuery
+{
+    résultat := loge(MediaQuery)
+    résultat.type = TypeMediaQuery.Feature
+    résultat.expression = expression
+    retourne résultat
+}
+
+détruit_media_query :: fonc (query: *MediaQuery)
+{
+    déloge(query)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom MediaFeatureExpression.
+ * Type pour représenter une expression de test de faiture.
+ * \{ */
+
+MediaFeatureExpression :: union {
+    plain: MediaFeaturePlain
+    boolean: MediaFeatureBoolean
+    ranle: MediaFeatureRange
+    comp: MediaFeatureComparaison
+}
+
+MediaFeaturePlain :: struct {
+    name: CSSOMString
+    value: MediaFeatureValue
+}
+
+MediaFeatureBoolean :: struct {
+    name: CSSOMString
+}
+
+MediaFeatureComparaisonType :: énum {
+    Égal
+    Inférieur
+    InférieurÉgal
+    Supérieur
+    SupérieurÉgal
+}
+
+MediaFeatureComparaison :: struct {
+    gauche: MediaFeatureValue
+    droite: MediaFeatureValue
+    comp: MediaFeatureComparaisonType
+}
+
+MediaFeatureRange :: struct {
+    gauche: MediaFeatureValue
+    milieu: MediaFeatureValue
+    droite: MediaFeatureValue
+    comp_gauche: MediaFeatureComparaisonType
+    comp_droite: MediaFeatureComparaisonType
+}
+
+MediaFeatureValue :: union {
+    number: r64
+    dimension: Longueur
+    ident: CSSOMString
+}
+
+/** \} */
