@@ -2149,6 +2149,12 @@ formatte_intérieur :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDeFor
 
         formatte(*ctx_local, noeud, mode)
     }
+    sinon si noeud.donne_display().inner_type == Display.Type.Flex {
+        ctx_local: ContexteDeFormattageFlex
+        ctx_local.globales = ctx.globales
+        ctx_local.initial_containing_block = ctx.initial_containing_block
+        formatte(*ctx_local, noeud, mode)
+    }
     sinon {
         si noeud.requiers_contexte_de_formattage_indépendant() {
             ctx_local: ContexteDeFormattageBloc

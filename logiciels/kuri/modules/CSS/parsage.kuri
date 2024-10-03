@@ -2357,7 +2357,8 @@ infos_types_propriétés := [
     InfoTypePropriété(PROP_border_top_right_radius, id = IDPropriété.BorderTopRightRadius, fonction_de_parsage = parse_propriété_border_radius, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage),
     InfoTypePropriété(PROP_clear, id = IDPropriété.Clear, fonction_de_parsage = parse_propriété_clear, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
     InfoTypePropriété(PROP_overflow_x, id = IDPropriété.OverflowX, fonction_de_parsage = parse_propriété_overflow, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
-    InfoTypePropriété(PROP_overflow_y, id = IDPropriété.OverflowY, fonction_de_parsage = parse_propriété_overflow, genre_valeur_calculée = GenreValeurCalculée.Spécifié)
+    InfoTypePropriété(PROP_overflow_y, id = IDPropriété.OverflowY, fonction_de_parsage = parse_propriété_overflow, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
+    InfoTypePropriété(PROP_justify_content, id = IDPropriété.JustifyContent, fonction_de_parsage = parse_propriété_justify_content, genre_valeur_calculée = GenreValeurCalculée.Spécifié)
 ]
 
 donne_info_type_pour_nom :: fonc (nom: CSSOMString) -> *InfoTypePropriété
@@ -2586,7 +2587,7 @@ parse_propriété_display :: fonc (value: [..]ComponentValue) -> Optionnel(Valeu
 parse_display_inside :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
 {
     /* <display-inside>   = flow | flow-root | table | flex | grid | ruby */
-    mots_clés := [PROP_flow, PROP_flow_root]
+    mots_clés := [PROP_flow, PROP_flow_root, PROP_flex]
     retourne parse_mot_clé(parseuse, mots_clés)
 }
 
@@ -2617,7 +2618,7 @@ parse_display_box :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(Val
 parse_display_legacy :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
 {
     /* <display-legacy>   = inline-block | inline-table | inline-flex | inline-grid */
-    mots_clés := [PROP_inline_block]
+    mots_clés := [PROP_inline_block, PROP_inline_flex]
     retourne parse_mot_clé(parseuse, mots_clés)
 }
 
@@ -4632,6 +4633,20 @@ parse_propriété_overflow :: fonc (value: [..]ComponentValue) -> Optionnel(Vale
 parse_valeur_overflow :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
 {
     mots_clés := [PROP_visible, PROP_hidden, PROP_clip, PROP_scroll, PROP_auto]
+    retourne parse_mot_clé(parseuse, mots_clés)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Justify Content
+ * https://drafts.csswg.org/css-flexbox/#justify-content-property
+ * \{ */
+
+parse_propriété_justify_content :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    mots_clés := [PROP_flex_start, PROP_flex_end, PROP_center, PROP_space_around, PROP_space_between]
+    parseuse := initialise_une_parseuse(value)
     retourne parse_mot_clé(parseuse, mots_clés)
 }
 

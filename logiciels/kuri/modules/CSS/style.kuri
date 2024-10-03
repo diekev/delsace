@@ -728,6 +728,7 @@ IDPropriété :: énum n16 {
     VerticalAlign
 
     TextAlign
+    JustifyContent
 }
 
 Style :: struct {
@@ -804,6 +805,7 @@ initialise_style :: fonc (style: *Style)
     style.valeurs[IDPropriété.VerticalAlign] = ValeurDeStyle(mot_clé = PROP_baseline)
 
     style.valeurs[IDPropriété.TextAlign] = ValeurDeStyle(mot_clé = PROP_start)
+    style.valeurs[IDPropriété.JustifyContent] = ValeurDeStyle(mot_clé = PROP_flex_start)
 
     /* Position */
     style.valeurs[IDPropriété.Top] = ValeurDeStyle(mot_clé = PROP_auto)
@@ -1391,6 +1393,14 @@ calcule_display_pour_mot_clé :: fonc (mot_clé: CSSOMString) -> ValeurDeStyle
     sinon si mot_clé == PROP_flow_root {
         résultat.outer_type = Display.Type.Block
         résultat.inner_type = Display.Type.FlowRoot
+    }
+    sinon si mot_clé == PROP_flex {
+        résultat.outer_type = Display.Type.Block
+        résultat.inner_type = Display.Type.Flex
+    }
+    sinon si mot_clé == PROP_inline_flex {
+        résultat.outer_type = Display.Type.Inline
+        résultat.inner_type = Display.Type.Flex
     }
     sinon {
         assert(mot_clé == PROP_inline)

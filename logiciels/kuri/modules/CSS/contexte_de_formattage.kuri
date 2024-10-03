@@ -87,7 +87,15 @@ requiers_contexte_de_formattage_indépendant :: fonc (noeud: *NoeudDeDisposition
     }
 
     // À FAIRE : elements with contain: layout, content, or strict
-    // À FAIRE : flex items
+
+    // flex items
+    si noeud.parent.donne_display().inner_type == Display.Type.Flex {
+        // À FAIRE : autres cas
+        si noeud.donne_display().inner_type != Display.Type.Flex {
+            retourne vrai
+        }
+    }
+
     // À FAIRE : grid items
     // À FAIRE : multicol containers
     // À FAIRE : elements with column-span set to all
@@ -585,6 +593,74 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
             }
         }
         sinon {}
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Flexbox
+ * \{ */
+
+ContexteDeFormattageFlex :: struct {
+    empl base: ContexteDeFormattage
+    sur_formatte = contexte_formattage_flex_sur_formatte
+}
+
+contexte_formattage_flex_sur_formatte :: fonc (base: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
+{
+    ctx := base comme *ContexteDeFormattageFlex
+
+    containing_block := noeud.donne_containing_block(ctx)
+    largeur_disponible := containing_block.donne_largeur()
+
+    largeur_des_enfants := 0.0
+
+    /* Calcule la taille des noeuds. */
+    pour noeud.enfants {
+        /* calcule_shrink_to_fit_width ne résoud pas les pourcentages... */
+        it.mesure(ctx, mode)
+
+        largeur := calcule_shrink_to_fit_width(ctx, it, largeur_disponible)
+        it.propriétés.définis_valeur_calculée(IDPropriété.Width, ValeurDeStyle(pixels = largeur))
+        it.mesure(ctx, mode)
+
+        largeur_des_enfants += it.modèle_de_boite.marge.largeur
+    }
+
+    /* Dispose les noeuds. */
+    décalage_x := noeud.modèle_de_boite.contenu.x
+    décalage_y := noeud.modèle_de_boite.contenu.y
+
+    justify_content := noeud.propriétés.donne_valeur_utilisée(IDPropriété.JustifyContent).mot_clé
+    si justify_content == PROP_center {
+        espace_disponible := max(0.0, largeur_disponible - largeur_des_enfants)
+        décalage_x += espace_disponible * 0.5
+    }
+    sinon si justify_content == PROP_flex_end {
+        espace_disponible := max(0.0, largeur_disponible - largeur_des_enfants)
+        décalage_x += espace_disponible
+    }
+
+    hauteur_contenu := 0.0
+
+    pour noeud.enfants {
+        it.décale(décalage_x, décalage_y)
+
+        décalage_x += it.modèle_de_boite.marge.largeur
+        hauteur_contenu = max(hauteur_contenu, it.modèle_de_boite.marge.hauteur)
+    }
+
+    /* Ajourne les propriétés du noeud. */
+    prop_largeur := noeud.propriétés.donne_valeur_calculée(IDPropriété.Width)
+    si prop_largeur.est_auto() {
+        noeud.propriétés.définis_valeur_utilisée(IDPropriété.Width, ValeurDeStyle(pixels = largeur_des_enfants))
+    }
+
+    prop_hauteur := noeud.propriétés.donne_valeur_calculée(IDPropriété.Height)
+    si prop_hauteur.est_auto() {
+        noeud.propriétés.définis_valeur_calculée(IDPropriété.Height, ValeurDeStyle(pixels = hauteur_contenu))
+        noeud.propriétés.définis_valeur_utilisée(IDPropriété.Height, ValeurDeStyle(pixels = hauteur_contenu))
     }
 }
 
