@@ -274,6 +274,22 @@ apparie_simple_selector :: fonc (simple: &SimpleSelector, élément: *HTML.Élé
                     retourne apparie_nth_child(simple.nth_child, index_dans_parent)
                 }
 
+                si simple.ident == PROP_nth_last_child {
+                    saufsi élément.parent {
+                        retourne faux
+                    }
+                    index_dans_parent := donne_index_dans_parent_depuis_la_fin(élément)
+                    retourne apparie_nth_child(simple.nth_child, index_dans_parent)
+                }
+
+                si simple.ident == PROP_nth_last_of_type {
+                    saufsi élément.parent {
+                        retourne faux
+                    }
+                    index_dans_parent := donne_index_de_même_type_dans_parent_depuis_la_fin(élément)
+                    retourne apparie_nth_child(simple.nth_child, index_dans_parent)
+                }
+
                 retourne faux
             }
 
@@ -340,6 +356,28 @@ donne_index_dans_parent :: fonc (élément: *HTML.Élément) -> n32
     retourne résultat
 }
 
+donne_index_dans_parent_depuis_la_fin :: fonc (élément: *HTML.Élément) -> n32
+{
+    parent := élément.parent
+    assert(parent != nul)
+
+    résultat : n32 = 1
+
+    pour > parent.enfants {
+        saufsi HTML.est_élément(it) {
+            continue
+        }
+
+        si it == élément {
+            arrête
+        }
+
+        résultat += 1
+    }
+
+    retourne résultat
+}
+
 donne_index_de_même_type_dans_parent :: fonc (élément: *HTML.Élément) -> n32
 {
     parent := élément.parent
@@ -348,6 +386,33 @@ donne_index_de_même_type_dans_parent :: fonc (élément: *HTML.Élément) -> n3
     résultat : n32 = 1
 
     pour parent.enfants {
+        saufsi HTML.est_élément(it) {
+            continue
+        }
+
+        adelphe := it comme *HTML.Élément
+        saufsi adelphe.local_name == élément.local_name {
+            continue
+        }
+
+        si it == élément {
+            arrête
+        }
+
+        résultat += 1
+    }
+
+    retourne résultat
+}
+
+donne_index_de_même_type_dans_parent_depuis_la_fin :: fonc (élément: *HTML.Élément) -> n32
+{
+    parent := élément.parent
+    assert(parent != nul)
+
+    résultat : n32 = 1
+
+    pour > parent.enfants {
         saufsi HTML.est_élément(it) {
             continue
         }
@@ -1147,7 +1212,7 @@ imprime_simple_selector :: fonc (enchaineuse: *Enchaineuse, selector: *SimpleSel
                 si selector.ident == PROP_dir {
                     ajoute_au_tampon(enchaineuse, selector.arg)
                 }
-                sinon si selector.ident == PROP_nth_child || selector.ident == PROP_nth_of_type {
+                sinon si selector.ident == PROP_nth_child || selector.ident == PROP_nth_of_type || selector.ident == PROP_nth_last_child || selector.ident == PROP_nth_last_of_type {
                     nth_child := selector.nth_child
                     si nth_child.A != 0 {
                         imprime_dans_enchaineuse(enchaineuse, "%n", nth_child.A)

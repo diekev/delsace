@@ -1456,7 +1456,7 @@ parse_pseudo_class_selector :: fonc (parseuse: &ParseuseSelector, pour_pseudo_el
                 }
             }
         }
-        sinon si nom_fonction == PROP_nth_child || nom_fonction == PROP_nth_of_type {
+        sinon si nom_fonction == PROP_nth_child || nom_fonction == PROP_nth_of_type || nom_fonction == PROP_nth_last_child || nom_fonction == PROP_nth_last_of_type {
             parseuse_locale.avance()
 
             opt_nth_child := parse_nth_child(fonction.value)
