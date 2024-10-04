@@ -1457,7 +1457,7 @@ parse_pseudo_class_selector :: fonc (parseuse: &ParseuseSelector, pour_pseudo_el
             }
         }
         sinon {
-            imprime("fonction non supporté : %\n", nom_fonction)
+            imprime("fonction non supporté : %, lexème : %\n", nom_fonction, parseuse_locale.lexème_courant())
         }
 
         retourne
