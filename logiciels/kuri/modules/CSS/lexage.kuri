@@ -275,6 +275,11 @@ est_lexème_greater :: fonc (lexème: $T) -> bool
     retourne est_lexème_delim(lexème, '>' comme n32)
 }
 
+est_lexème_moins :: fonc (lexème: $T) -> bool
+{
+    retourne est_lexème_delim(lexème, '-' comme n32)
+}
+
 est_lexème_plus :: fonc (lexème: $T) -> bool
 {
     retourne est_lexème_delim(lexème, '+' comme n32)

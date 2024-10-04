@@ -1456,12 +1456,98 @@ parse_pseudo_class_selector :: fonc (parseuse: &ParseuseSelector, pour_pseudo_el
                 }
             }
         }
+        sinon si nom_fonction == PROP_nth_child {
+            parseuse_locale.avance()
+
+            opt_nth_child := parse_nth_child(fonction.value)
+            saufsi opt_nth_child.possède_valeur() {
+                retourne
+            }
+            
+            parseuse.curseur = parseuse_locale.curseur
+            retourne crée_nth_child_selector(opt_nth_child.Quelque)
+        }
+        sinon si nom_fonction == PROP_nth_of_type {
+            parseuse_locale.avance()
+
+            opt_nth_child := parse_nth_child(fonction.value)
+            saufsi opt_nth_child.possède_valeur() {
+                retourne
+            }
+            
+            parseuse.curseur = parseuse_locale.curseur
+            retourne crée_nth_of_type_selector(opt_nth_child.Quelque)
+        }
         sinon {
             imprime("fonction non supporté : %, lexème : %\n", nom_fonction, parseuse_locale.lexème_courant())
         }
 
         retourne
     }
+}
+
+parse_nth_child :: fonc (value: []ComponentValue) -> Optionnel(SimpleSelector.NthChild)
+{
+    parseuse := initialise_une_parseuse(value)
+    parseuse.consomme_espaces_blanches()
+
+    lexème := parseuse.lexème_courant()
+
+    si lexème.est_mot_clé(PROP_odd) {
+        retourne SimpleSelector.NthChild(2, 1)
+    }
+
+    si lexème.est_mot_clé(PROP_even) {
+        retourne SimpleSelector.NthChild(2)
+    }
+
+    si lexème.est_lexème_de_genre(GenreLexème.Number) {
+        B := lexème.lexème.numeric_value comme z32
+        retourne SimpleSelector.NthChild(0, B)
+    }
+
+    saufsi lexème.est_lexème_de_genre(GenreLexème.Dimension) {
+        retourne
+    }
+    parseuse.avance()
+
+    si lexème.lexème.unité != crée_chaine_utf16_unique("n") {
+        retourne
+    }
+    A := lexème.lexème.numeric_value comme n32
+
+    parseuse.consomme_espaces_blanches()
+    lexème = parseuse.lexème_courant()
+
+    est_négatif := faux
+
+    si lexème.est_lexème_plus() {
+        parseuse.avance()
+    }
+    sinon si lexème.est_lexème_moins() {
+        parseuse.avance()
+        est_négatif = vrai
+    }
+    sinon si parseuse.fini() {
+        retourne SimpleSelector.NthChild(A)
+    }
+
+    // Dans le cas de "2n+1" (sans espaces) il semblerait que le lexage fusionne "+1" en un simple "1".
+    // Donc nous ne n'avortons pas s'il n'y a pas de signe.
+
+    parseuse.consomme_espaces_blanches()
+    lexème = parseuse.lexème_courant()
+    saufsi lexème.est_lexème_de_genre(GenreLexème.Number) {
+        retourne
+    }
+
+    B := lexème.lexème.numeric_value comme z32
+    si est_négatif {
+        B = -B
+    }
+    parseuse.avance()
+
+    retourne SimpleSelector.NthChild(A, B)
 }
 
 /* <pseudo-element-selector> = ':' <pseudo-class-selector> */
