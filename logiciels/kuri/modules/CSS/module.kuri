@@ -310,8 +310,12 @@ apparie_nth_child :: fonc (nth_child: SimpleSelector.NthChild, index: n32) -> bo
         retourne nth_child.B == index comme z32
     }
 
-    index = (index comme z32 + nth_child.B) comme n32
-    retourne (index % nth_child.A) == 0
+    n := (index comme z32 - nth_child.B) / nth_child.A
+    si n < 0 {
+        retourne faux
+    }
+
+    retourne (nth_child.A * n + nth_child.B) == index comme z32
 }
 
 donne_index_dans_parent :: fonc (élément: *HTML.Élément) -> n32
@@ -1038,7 +1042,7 @@ SimpleSelector :: struct {
 
     /* Données pour :nth-child(An + B) et :nth-of-type(An + B). */
     NthChild :: struct {
-        A: n32
+        A: z32
         B: z32
     }
 
