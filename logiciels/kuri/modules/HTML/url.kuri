@@ -91,7 +91,7 @@ convertis_uri_url :: fonc (uri: *URI) -> *URL
     chn16 := crée_chaine_utf16(chn)
     diffère détruit_chaine(chn16)
 
-    retourne basic_url_parser(chn16)
+    retourne url_parser(chn16)
 }
 
 copie_url :: fonc (source: *URL) -> *URL
@@ -427,6 +427,36 @@ commence_par_lettre_stockage_windows :: fonc (chn: ChaineUTF16) -> bool
 /** \nom 4.4 URL Parsing
  * https://url.spec.whatwg.org/#url-parsing
  * \{ */
+
+/* https://url.spec.whatwg.org/#concept-url-parser */
+/* À FAIRE : encoding */
+url_parser :: fonc (input: chaine, base : *URL = nul) -> *URL
+{
+    chn16 := crée_chaine_utf16(input)
+    diffère détruit_chaine(chn16)
+    retourne url_parser(chn16, base)
+}
+
+url_parser :: fonc (input: ChaineUTF16, base : *URL = nul) -> *URL
+{
+    // 1. Let url be the result of running the basic URL parser on input with base and encoding.
+    url := basic_url_parser(input, base = base)
+
+    // 2. If url is failure, return failure.
+    saufsi url {
+        retourne nul
+    }
+
+    // 3. If url’s scheme is not "blob", return url.
+    saufsi url.scheme == "blob" {
+        retourne url
+    }
+
+    // À FAIRE : 4. Set url’s blob URL entry to the result of resolving the blob URL url, if that did not return failure, and null otherwise.
+
+    // 5. Return url.
+    retourne url
+}
 
 ÉtatParsageURL :: énum {
     SchemeStart

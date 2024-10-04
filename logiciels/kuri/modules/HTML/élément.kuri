@@ -773,7 +773,7 @@ follow_the_hyperlink :: fonc (subject: *Élément, hyperlink_suffix := crée_cha
     }
 
     // 13. Navigate targetNavigable to urlString using subject's node document, with referrerPolicy set to referrerPolicy and userInvolvement set to userInvolvement.
-    url := basic_url_parser(url_string)
+    url := url_parser(url_string)
     source_document := subject.document
     navigate(source_document.donne_user_agent(), target_navigable, url, source_document, referrer_policy = referrer_policy, user_involvement = user_involvement)
 }
@@ -809,7 +809,7 @@ encoding_parse_and_serialize_a_url :: fonc (url: DOMString, document: *Document)
     // À FAIRE : standardise
     base_url := donne_base_url(document)
 
-    url_src := basic_url_parser(url.donne_chaine_utf16(), base = base_url)
+    url_src := url_parser(url.donne_chaine_utf16(), base = base_url)
     diffère détruit_url(url_src)
     saufsi url_src {
         retourne
@@ -1289,7 +1289,7 @@ update_image_data :: fonc (image: *HTMLImageElement)
 
     base_url := donne_base_url(document)
 
-    url_src := basic_url_parser(src.donne_chaine_utf16(), base = base_url)
+    url_src := url_parser(src.donne_chaine_utf16(), base = base_url)
     saufsi url_src {
         retourne
     }
@@ -1515,7 +1515,7 @@ process_stylesheet_link :: fonc (link: *HTMLLinkElement)
 
     base_url := donne_base_url(document)
 
-    url_src := basic_url_parser(src.donne_chaine_utf16(), base = base_url)
+    url_src := url_parser(src.donne_chaine_utf16(), base = base_url)
     saufsi url_src {
         retourne
     }
