@@ -493,7 +493,7 @@ consomme_un_lexème :: fonc (lexeuse: &Lexeuse) -> Lexème
     }
 
     si point_de_code == '+' {
-        si est_chiffre_ascii(lexeuse.point_de_code_suivant()) {
+        si vérifie_si_trois_points_de_code_commenceraient_un_nombre(lexeuse, point_de_code) {
             lexeuse.reconsomme_point_de_code()
             retourne lexeuse.consomme_un_lexème_numérique()
         }
