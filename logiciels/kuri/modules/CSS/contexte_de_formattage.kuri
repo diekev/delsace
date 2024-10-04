@@ -1,3 +1,4 @@
+importe Chaine
 importe Fondation
 importe Math
 
@@ -602,53 +603,146 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
 /** \nom Flexbox
  * \{ */
 
+est_espace_blanche_document :: fonc (base: *NoeudDeDisposition) -> bool
+{
+    si base.type == NoeudDeDispositionTexte {
+        noeud := base comme *NoeudDeDispositionTexte
+        retourne est_vide_ou_uniquement_espaces_blanches(noeud.noeud_texte.données)
+    }
+
+    si base.type == NoeudDeDispositionBloc || base.type == NoeudDeDispositionInline {
+        noeud := base comme *NoeudDeDispositionBloc
+
+        si noeud.élément != nul {
+            /* Nous voulons un noeud anonyme. */
+            retourne faux
+        }
+
+        si noeud.enfants.taille != 1 {
+            /* Il ne doit y avoir qu'un seul enfant : le noeud inline anonyme ou le noeud texte. */
+            retourne faux
+        }
+
+        retourne est_espace_blanche_document(noeud.enfants[0])
+    }
+
+    retourne faux
+}
+
 ContexteDeFormattageFlex :: struct {
     empl base: ContexteDeFormattage
     sur_formatte = contexte_formattage_flex_sur_formatte
+}
+
+LigneFlex :: struct {
+    noeuds: [..]*NoeudDeDisposition
+    largeur: r32
 }
 
 contexte_formattage_flex_sur_formatte :: fonc (base: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
 {
     ctx := base comme *ContexteDeFormattageFlex
 
-    containing_block := noeud.donne_containing_block(ctx)
-    largeur_disponible := containing_block.donne_largeur()
+    largeur_disponible := noeud.modèle_de_boite.contenu.largeur
 
     largeur_des_enfants := 0.0
 
     /* Calcule la taille des noeuds. */
     pour noeud.enfants {
-        /* calcule_shrink_to_fit_width ne résoud pas les pourcentages... */
-        it.mesure(ctx, mode)
+        si est_espace_blanche_document(it) {
+            continue
+        }
 
-        largeur := calcule_shrink_to_fit_width(ctx, it, largeur_disponible)
+        flex_basis := it.propriétés.donne_valeur_utilisée(IDPropriété.FlexBasis)
+
+        // À FAIRE : il faut éviter de surécrire les valeurs calculées
+        prop_largeur := it.propriétés.donne_valeur_calculée(IDPropriété.Width)
+        prop_hauteur := it.propriétés.donne_valeur_calculée(IDPropriété.Height)
+
+        largeur : r64 = 0.0
+        si flex_basis.est_mot_clé(PROP_content) || flex_basis.est_mot_clé(PROP_auto) {
+            /* calcule_shrink_to_fit_width ne résoud pas les pourcentages... */
+            it.mesure(ctx, mode)
+            largeur = calcule_shrink_to_fit_width(ctx, it, largeur_disponible)
+            it.propriétés.définis_valeur_calculée(IDPropriété.Width, prop_largeur)
+            it.propriétés.définis_valeur_calculée(IDPropriété.Height, prop_hauteur)
+        }
+        sinon si flex_basis.est_percentage() {
+            largeur = calcule_pourcentage(flex_basis, largeur_disponible).pixels
+        }
+        sinon {
+            largeur = flex_basis.pixels
+        }
+
         it.propriétés.définis_valeur_calculée(IDPropriété.Width, ValeurDeStyle(pixels = largeur))
         it.mesure(ctx, mode)
 
+        it.propriétés.définis_valeur_calculée(IDPropriété.Width, prop_largeur)
+        it.propriétés.définis_valeur_calculée(IDPropriété.Height, prop_hauteur)
+
         largeur_des_enfants += it.modèle_de_boite.marge.largeur
+    }
+
+    /* Crée des lignes. */
+    lignes: [..]LigneFlex
+    diffère {
+        pour lignes {
+            déloge(it.noeuds)
+        }
+        déloge(lignes)
+    }
+
+    ligne_courante := tableau_ajoute_élément(*lignes)
+
+    flex_wrap := noeud.propriétés.donne_valeur_utilisée(IDPropriété.FlexWrap).mot_clé
+
+    pour noeud.enfants {
+        si est_espace_blanche_document(it) {
+            continue
+        }
+
+        largeur := it.modèle_de_boite.marge.largeur
+
+        si flex_wrap == PROP_wrap && (ligne_courante.largeur + largeur) > largeur_disponible {
+            ligne_courante = tableau_ajoute_élément(*lignes)
+        }
+
+        ligne_courante.largeur += largeur
+        tableau_ajoute(*ligne_courante.noeuds, it)
     }
 
     /* Dispose les noeuds. */
     décalage_x := noeud.modèle_de_boite.contenu.x
     décalage_y := noeud.modèle_de_boite.contenu.y
 
-    justify_content := noeud.propriétés.donne_valeur_utilisée(IDPropriété.JustifyContent).mot_clé
-    si justify_content == PROP_center {
-        espace_disponible := max(0.0, largeur_disponible - largeur_des_enfants)
-        décalage_x += espace_disponible * 0.5
-    }
-    sinon si justify_content == PROP_flex_end {
-        espace_disponible := max(0.0, largeur_disponible - largeur_des_enfants)
-        décalage_x += espace_disponible
-    }
-
     hauteur_contenu := 0.0
 
-    pour noeud.enfants {
-        it.décale(décalage_x, décalage_y)
+    pour * ligne dans lignes {
+        justify_content := noeud.propriétés.donne_valeur_utilisée(IDPropriété.JustifyContent).mot_clé
+        espace_disponible := largeur_disponible - ligne.largeur
 
-        décalage_x += it.modèle_de_boite.marge.largeur
-        hauteur_contenu = max(hauteur_contenu, it.modèle_de_boite.marge.hauteur)
+        distribue_espace_disponible(ctx, ligne, espace_disponible, mode)
+
+        espace_disponible = largeur_disponible - ligne.largeur
+
+        si justify_content == PROP_center {
+            décalage_x += espace_disponible * 0.5
+        }
+        sinon si justify_content == PROP_flex_end {
+            décalage_x += espace_disponible
+        }
+
+        hauteur_ligne := 0.0
+        pour ligne.noeuds {
+            it.décale(décalage_x, décalage_y)
+
+            décalage_x += it.modèle_de_boite.marge.largeur
+            hauteur_ligne = max(hauteur_ligne, it.modèle_de_boite.marge.hauteur)
+        }
+
+        décalage_y += hauteur_ligne
+        hauteur_contenu += hauteur_ligne
+        décalage_x = noeud.modèle_de_boite.contenu.x
     }
 
     /* Ajourne les propriétés du noeud. */
@@ -661,6 +755,66 @@ contexte_formattage_flex_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
     si prop_hauteur.est_auto() {
         noeud.propriétés.définis_valeur_calculée(IDPropriété.Height, ValeurDeStyle(pixels = hauteur_contenu))
         noeud.propriétés.définis_valeur_utilisée(IDPropriété.Height, ValeurDeStyle(pixels = hauteur_contenu))
+    }
+}
+
+/* Modifie la taille des items selon leurs facteurs de croissance. */
+distribue_espace_disponible :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneFlex, espace_disponible: r64, mode: ModeDeFormattage)
+{
+    si espace_disponible == 0.0 {
+        retourne
+    }
+
+    utilise_flex_shrink := espace_disponible < 0.0
+
+    somme_flex_grow: r64
+    somme_flex_shrink: r64
+    pour ligne.noeuds {
+        flex_grow := it.propriétés.donne_valeur_utilisée(IDPropriété.FlexGrow)
+        flex_shrink := it.propriétés.donne_valeur_utilisée(IDPropriété.FlexShrink)
+        somme_flex_grow += flex_grow.number
+        somme_flex_shrink += flex_shrink.number
+    }
+
+    si utilise_flex_shrink && somme_flex_shrink == 0.0 {
+        retourne
+    }
+
+    si !utilise_flex_shrink && somme_flex_grow == 0.0 {
+        retourne
+    }
+
+    pour ligne.noeuds {
+        flex_grow := it.propriétés.donne_valeur_utilisée(IDPropriété.FlexGrow)
+        flex_shrink := it.propriétés.donne_valeur_utilisée(IDPropriété.FlexShrink)
+
+        si utilise_flex_shrink && flex_shrink.number == 0.0 {
+            continue
+        }
+
+        si !utilise_flex_shrink && flex_grow.number == 0.0 {
+            continue
+        }
+
+        ancienne_largeur := it.modèle_de_boite.marge.largeur
+        nouvelle_largeur := si utilise_flex_shrink {
+            espace_disponible * flex_shrink.number / somme_flex_shrink
+        }
+        sinon {
+            espace_disponible * flex_grow.number / somme_flex_grow
+        }
+
+        si ancienne_largeur == nouvelle_largeur {
+            continue
+        }
+
+        it.propriétés.définis_valeur_calculée(IDPropriété.Width, ValeurDeStyle(pixels = nouvelle_largeur))
+        it.mesure(ctx, mode)
+    }
+
+    ligne.largeur = 0.0
+    pour ligne.noeuds {
+        ligne.largeur += it.modèle_de_boite.marge.largeur
     }
 }
 

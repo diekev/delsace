@@ -729,6 +729,12 @@ IDPropriété :: énum n16 {
 
     TextAlign
     JustifyContent
+
+    FlexBasis
+    FlexDirection
+    FlexWrap
+    FlexGrow
+    FlexShrink
 }
 
 Style :: struct {
@@ -812,6 +818,13 @@ initialise_style :: fonc (style: *Style)
     style.valeurs[IDPropriété.Bottom] = ValeurDeStyle(mot_clé = PROP_auto)
     style.valeurs[IDPropriété.Left] = ValeurDeStyle(mot_clé = PROP_auto)
     style.valeurs[IDPropriété.Right] = ValeurDeStyle(mot_clé = PROP_auto)
+
+    /* Flex */
+    style.valeurs[IDPropriété.FlexBasis] = ValeurDeStyle(mot_clé = PROP_auto)
+    style.valeurs[IDPropriété.FlexDirection] = ValeurDeStyle(mot_clé = PROP_row)
+    style.valeurs[IDPropriété.FlexWrap] = ValeurDeStyle(mot_clé = PROP_nowrap)
+    style.valeurs[IDPropriété.FlexGrow] = ValeurDeStyle(number = 0.0)
+    style.valeurs[IDPropriété.FlexShrink] = ValeurDeStyle(number = 1.0)
 }
 
 donne_bordure :: fonc (style: *Style) -> Border

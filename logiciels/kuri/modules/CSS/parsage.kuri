@@ -2289,7 +2289,9 @@ infos_types_propriétés_shorthand := [
     InfoTypePropriété(PROP_font, sur_parsage_shorthand = parse_propriété_font, drapeaux = DrapeauxPropriété.AffecteDisposition /* | DrapeauxPropriété.Héritée */),
     InfoTypePropriété(PROP_all, sur_parsage_shorthand = parse_propriété_all, drapeaux = DrapeauxPropriété.AffecteConstructionArbre),
     InfoTypePropriété(PROP_border_radius, sur_parsage_shorthand = parse_propriété_border_radius_shorthand),
-    InfoTypePropriété(PROP_overflow, sur_parsage_shorthand = parse_shorthand_overflow)
+    InfoTypePropriété(PROP_overflow, sur_parsage_shorthand = parse_shorthand_overflow),
+    InfoTypePropriété(PROP_flex, sur_parsage_shorthand = parse_shorthand_flex),
+    InfoTypePropriété(PROP_flex_flow, sur_parsage_shorthand = parse_shorthand_flex_flow)
 ]
 
 infos_types_propriétés := [
@@ -2358,7 +2360,12 @@ infos_types_propriétés := [
     InfoTypePropriété(PROP_clear, id = IDPropriété.Clear, fonction_de_parsage = parse_propriété_clear, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
     InfoTypePropriété(PROP_overflow_x, id = IDPropriété.OverflowX, fonction_de_parsage = parse_propriété_overflow, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
     InfoTypePropriété(PROP_overflow_y, id = IDPropriété.OverflowY, fonction_de_parsage = parse_propriété_overflow, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
-    InfoTypePropriété(PROP_justify_content, id = IDPropriété.JustifyContent, fonction_de_parsage = parse_propriété_justify_content, genre_valeur_calculée = GenreValeurCalculée.Spécifié)
+    InfoTypePropriété(PROP_justify_content, id = IDPropriété.JustifyContent, fonction_de_parsage = parse_propriété_justify_content, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
+    InfoTypePropriété(PROP_flex_basis, id = IDPropriété.FlexBasis, fonction_de_parsage = parse_propriété_flex_basis, genre_valeur_calculée = GenreValeurCalculée.Spécifié | GenreValeurCalculée.LongueurPourcentage),
+    InfoTypePropriété(PROP_flex_direction, id = IDPropriété.FlexDirection, fonction_de_parsage = parse_propriété_flex_direction, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
+    InfoTypePropriété(PROP_flex_wrap, id = IDPropriété.FlexWrap, fonction_de_parsage = parse_propriété_flex_wrap, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
+    InfoTypePropriété(PROP_flex_grow, id = IDPropriété.FlexGrow, fonction_de_parsage = parse_propriété_number, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
+    InfoTypePropriété(PROP_flex_shrink, id = IDPropriété.FlexShrink, fonction_de_parsage = parse_propriété_number, genre_valeur_calculée = GenreValeurCalculée.Spécifié)
 ]
 
 donne_info_type_pour_nom :: fonc (nom: CSSOMString) -> *InfoTypePropriété
@@ -2523,6 +2530,15 @@ parse_variable :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(Valeur
     résultat.nom = nom
 
     retourne ValeurDeStyle(variable = résultat)
+}
+
+parse_propriété_number :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    lexème := parseuse.lexème_courant()
+    si lexème.est_lexème_de_genre(GenreLexème.Number) {
+        retourne ValeurDeStyle(number = lexème.lexème.numeric_value)
+    }
 }
 
 /** \} */
@@ -4649,6 +4665,196 @@ parse_propriété_justify_content :: fonc (value: []ComponentValue) -> Optionnel
     mots_clés := [PROP_flex_start, PROP_flex_end, PROP_center, PROP_space_around, PROP_space_between]
     parseuse := initialise_une_parseuse(value)
     retourne parse_mot_clé(parseuse, mots_clés)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Flex Basis
+ * https://drafts.csswg.org/css-flexbox/#flex-basis-property
+ * \{ */
+
+parse_propriété_flex_basis :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+
+    lexème := parseuse.lexème_courant()
+
+    si lexème.est_mot_clé(PROP_content) {
+        retourne ValeurDeStyle(mot_clé = PROP_content)
+    }
+
+    retourne parse_propriété_height_width(value)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Flex Direction
+ * https://drafts.csswg.org/css-flexbox/#flex-direction-property
+ * \{ */
+
+parse_propriété_flex_direction :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    retourne parse_valeur_flex_direction(parseuse)
+}
+
+parse_valeur_flex_direction :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+{
+    mots_clés := [PROP_row, PROP_row_reverse, PROP_column, PROP_column_reverse]
+    retourne parse_mot_clé(parseuse, mots_clés)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Flex Wrap
+ * https://drafts.csswg.org/css-flexbox/#flex-wrap-property
+ * \{ */
+
+parse_propriété_flex_wrap :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    retourne parse_valeur_flex_wrap(parseuse)
+}
+
+parse_valeur_flex_wrap :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+{
+    mots_clés := [PROP_nowrap, PROP_wrap, PROP_wrap_reverse]
+    retourne parse_mot_clé(parseuse, mots_clés)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Flex
+ * https://drafts.csswg.org/css-flexbox/#flex-property
+ * \{ */
+
+parse_shorthand_flex :: fonc (ctx: *ContexteParsageShorthand, value: []ComponentValue) -> bool
+{
+    noms_propriétés := [PROP_flex_grow, PROP_flex_shrink, PROP_flex_basis]
+    si parse_mot_clé_global(ctx, noms_propriétés, value) {
+        retourne vrai
+    }
+
+    parseuse := initialise_une_parseuse(value)
+
+    lexème := parseuse.lexème_courant()
+
+    flex_grow := ValeurDeStyle(number = 0.0)
+    flex_shrink := ValeurDeStyle(number = 1.0)
+    flex_basis := ValeurDeStyle(mot_clé = PROP_auto)
+
+    eu_flex_grow := faux
+    eu_flex_shrink := faux
+    eu_flex_basis := faux
+
+    si lexème.est_mot_clé(PROP_none) {
+        // flex: 0 0 auto
+        flex_shrink = ValeurDeStyle(number = 0.0)
+    }
+    sinon {
+        tantque !fini(parseuse) {
+            parseuse.consomme_espaces_blanches()
+            lexème = parseuse.lexème_courant()
+
+            si lexème.est_lexème_de_genre(GenreLexème.Number) {
+                /* flex-grow */
+                parseuse.avance()
+
+                si eu_flex_grow == faux {
+                    flex_grow.number = lexème.lexème.numeric_value
+                    eu_flex_grow = vrai
+                }
+                sinon si eu_flex_shrink == faux {
+                    flex_shrink.number = lexème.lexème.numeric_value
+                    eu_flex_shrink = vrai
+                }
+                sinon si eu_flex_basis == faux {
+                    flex_basis.number = lexème.lexème.numeric_value
+                    eu_flex_basis = vrai
+                }
+                sinon {
+                    arrête
+                }
+
+                continue
+            }
+
+            valeur := parse_valeur_length_percentage_ou_auto(parseuse)
+            saufsi valeur.possède_valeur() {
+                retourne faux
+            }
+
+            si eu_flex_basis {
+                retourne faux
+            }
+
+            flex_basis = valeur
+            eu_flex_basis = vrai
+        }
+    }
+
+    /* https://drafts.csswg.org/css-flexbox/#flex-common */
+    si eu_flex_grow && !eu_flex_shrink && !eu_flex_basis {
+        // flex: <number> -> number 1 0%;
+        flex_shrink.number = 1.0
+        flex_basis.percentage = 0.0
+    }
+    sinon si eu_flex_basis && !eu_flex_shrink && !eu_flex_grow {
+        si flex_basis.est_auto() {
+            // flex: auto -> 1 1 auto;
+            flex_grow.number = 1.0
+            flex_shrink.number = 1.0
+        }
+    }
+
+    ctx.ajoute_propriété(PROP_flex_grow, flex_grow)
+    ctx.ajoute_propriété(PROP_flex_shrink, flex_shrink)
+    ctx.ajoute_propriété(PROP_flex_basis, flex_basis)
+    retourne vrai
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Flex Flow
+ * https://drafts.csswg.org/css-flexbox/#flex-flow-property
+ * \{ */
+
+parse_shorthand_flex_flow :: fonc (ctx: *ContexteParsageShorthand, value: []ComponentValue) -> bool
+{
+    noms_propriétés := [PROP_flex_direction, PROP_flex_wrap]
+    si parse_mot_clé_global(ctx, noms_propriétés, value) {
+        retourne vrai
+    }
+
+    parseuse := initialise_une_parseuse(value)
+
+    flex_direction := ValeurDeStyle(mot_clé = PROP_row)
+    flex_wrap := ValeurDeStyle(mot_clé = PROP_nowrap)
+
+    tantque !fini(parseuse) {
+        parseuse.consomme_espaces_blanches()
+
+        valeur_flex_direction := parse_valeur_flex_direction(parseuse)
+        si valeur_flex_direction.possède_valeur() {
+            flex_direction = valeur_flex_direction.Quelque
+            continue
+        }
+
+        valeur_flex_wrap := parse_valeur_flex_wrap(parseuse)
+        si valeur_flex_wrap.possède_valeur() {
+            flex_wrap = valeur_flex_wrap.Quelque
+            continue
+        }
+    }
+
+    ctx.ajoute_propriété(PROP_flex_direction, flex_direction)
+    ctx.ajoute_propriété(PROP_flex_wrap, flex_wrap)
+    retourne vrai
 }
 
 /** \} */
