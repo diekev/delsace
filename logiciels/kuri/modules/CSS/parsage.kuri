@@ -1456,7 +1456,7 @@ parse_pseudo_class_selector :: fonc (parseuse: &ParseuseSelector, pour_pseudo_el
                 }
             }
         }
-        sinon si nom_fonction == PROP_nth_child {
+        sinon si nom_fonction == PROP_nth_child || nom_fonction == PROP_nth_of_type {
             parseuse_locale.avance()
 
             opt_nth_child := parse_nth_child(fonction.value)
@@ -1465,18 +1465,7 @@ parse_pseudo_class_selector :: fonc (parseuse: &ParseuseSelector, pour_pseudo_el
             }
             
             parseuse.curseur = parseuse_locale.curseur
-            retourne crée_nth_child_selector(opt_nth_child.Quelque)
-        }
-        sinon si nom_fonction == PROP_nth_of_type {
-            parseuse_locale.avance()
-
-            opt_nth_child := parse_nth_child(fonction.value)
-            saufsi opt_nth_child.possède_valeur() {
-                retourne
-            }
-            
-            parseuse.curseur = parseuse_locale.curseur
-            retourne crée_nth_of_type_selector(opt_nth_child.Quelque)
+            retourne crée_nth_child_selector(nom_fonction, opt_nth_child.Quelque)
         }
         sinon {
             imprime("fonction non supporté : %, lexème : %\n", nom_fonction, parseuse_locale.lexème_courant())

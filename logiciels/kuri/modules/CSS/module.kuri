@@ -1285,21 +1285,11 @@ crée_function_selector :: fonc (ident: CSSOMString, arg: CSSOMString) -> Simple
     retourne résultat
 }
 
-crée_nth_child_selector :: fonc (nth_child: SimpleSelector.NthChild) -> SimpleSelector
+crée_nth_child_selector :: fonc (ident: CSSOMString, nth_child: SimpleSelector.NthChild) -> SimpleSelector
 {
     résultat: SimpleSelector
     résultat.type = SimpleSelector.Type.PseudoClass
-    résultat.ident = PROP_nth_child
-    résultat.est_fonction = vrai
-    résultat.nth_child = nth_child
-    retourne résultat
-}
-
-crée_nth_of_type_selector :: fonc (nth_child: SimpleSelector.NthChild) -> SimpleSelector
-{
-    résultat: SimpleSelector
-    résultat.type = SimpleSelector.Type.PseudoClass
-    résultat.ident = PROP_nth_of_type
+    résultat.ident = ident
     résultat.est_fonction = vrai
     résultat.nth_child = nth_child
     retourne résultat
