@@ -173,7 +173,7 @@ sur_filtre_evenement_impl :: fonc (base: *QT_Rappels_Fenetre_Principale, event: 
             chaine_uri = enchaine("file://", chaine_uri)
         }
 
-        uri := url_parser(chaine_uri)
+        uri := url_parser(rappels.user_agent, chaine_uri)
         assert(uri != nul)
 
         navigable := crée_un_fresh_top_level_traversable(rappels.user_agent, uri) comme *TraversableNavigable
@@ -635,7 +635,7 @@ rappel_changement_adresse_sur_rappel :: fonc (base: *QT_Rappel_Generique)
         retourne
     }
 
-    url := url_parser(texte)
+    url := url_parser(rappel.user_agent, texte)
     saufsi url {
         retourne
     }

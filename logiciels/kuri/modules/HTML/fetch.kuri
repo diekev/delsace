@@ -887,7 +887,7 @@ scheme_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Re
         panique("about non-implémenté")
     }
     sinon si schéma == "blob" {
-        panique("blob non-implémenté")
+        retourne scheme_fetch_blob(request)
     }
     sinon si schéma == "data" {
         // 1. Let dataURLStruct be the result of running the data: URL processor on request’s current URL.
@@ -950,6 +950,80 @@ scheme_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Re
     }
 
     retourne network_error(request)
+}
+
+scheme_fetch_blob :: fonc (request: *Request) -> *Response
+{
+    // 1. Let blobURLEntry be request’s current URL’s blob URL entry.
+    blob_url_entry := request.donne_url_courant().blob_url_entry
+
+    // 2. If request’s method is not `GET`, blobURLEntry is null, or blobURLEntry’s object is not a Blob object, then return a network error. [FILEAPI]
+    si request.method != "GET" || blob_url_entry == nul || !blob_url_entry.object.est_blob() {
+        retourne network_error(request)
+    }
+
+    // 3. Let blob be blobURLEntry’s object.
+    panique("blob url non-implémenté")
+
+    // 4. Let response be a new response.
+
+    // 5. Let fullLength be blob’s size.
+
+    // 6. Let serializedFullLength be fullLength, serialized and isomorphic encoded.
+
+    // 7. Let type be blob’s type.
+
+    // 8. If request’s header list does not contain `Range`:
+
+        // 1. Let bodyWithType be the result of safely extracting blob.
+
+        // 2. Set response’s status message to `OK`.
+
+        // 3. Set response’s body to bodyWithType’s body.
+
+        // 4. Set response’s header list to « (`Content-Length`, serializedFullLength), (`Content-Type`, type) ».
+
+    // 9. Otherwise:
+
+        // 1. Set response’s range-requested flag.
+
+        // 2. Let rangeHeader be the result of getting `Range` from request’s header list.
+
+        // 3. Let rangeValue be the result of parsing a single range header value given rangeHeader and true.
+
+        // 4. If rangeValue is failure, then return a network error.
+
+        // 5. Let (rangeStart, rangeEnd) be rangeValue.
+
+        // 6. If rangeStart is null:
+
+            // 1. Set rangeStart to fullLength − rangeEnd.
+
+            // 2. Set rangeEnd to rangeStart + rangeEnd − 1.
+
+        // 7. Otherwise:
+
+            // 1. If rangeStart is greater than or equal to fullLength, then return a network error.
+
+            // 2. If rangeEnd is null or rangeEnd is greater than or equal to fullLength, then set rangeEnd to fullLength − 1.
+
+        // 8. Let slicedBlob be the result of invoking slice blob given blob, rangeStart, rangeEnd + 1, and type.
+
+        // 9. Let slicedBodyWithType be the result of safely extracting slicedBlob.
+
+        // 10. Set response’s body to slicedBodyWithType’s body.
+
+        // 11. Let serializedSlicedLength be slicedBlob’s size, serialized and isomorphic encoded.
+
+        // 12. Let contentRange be the result of invoking build a content range given rangeStart, rangeEnd, and fullLength.
+
+        // 13. Set response’s status to 206.
+
+        // 14. Set response’s status message to `Partial Content`.
+
+        // 15. Set response’s header list to « (`Content-Length`, serializedSlicedLength), (`Content-Type`, type), (`Content-Range`, contentRange) ».
+
+    // 10. Return response.
 }
 
 /** } */
