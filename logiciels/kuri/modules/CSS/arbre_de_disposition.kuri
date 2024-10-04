@@ -315,6 +315,7 @@ initialise_cache :: fonc (résolveuse: *RésolveuseStyle)
     ctx: ContexteÉvaluationMediaQuery
     ctx.supporte_scripting = user_agent.supporte_scripting
     ctx.largeur = résolveuse.largeur_écran
+    ctx.taille_fonte = résolveuse.globales.taille_fonte_défaut
 
     pour feuille, index_feuille dans résolveuse.feuilles_de_style {
         index_règle : z64 = 0

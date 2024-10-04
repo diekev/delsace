@@ -164,6 +164,7 @@ MediaFeatureValue :: union {
 
 ContexteÉvaluationMediaQuery :: struct {
     largeur: r64
+    taille_fonte: r64
     supporte_scripting: bool
 }
 
@@ -215,12 +216,16 @@ ContexteÉvaluationMediaQuery :: struct {
                         retourne ctx.largeur >= n
                     }
                     dimension(d) {
-                        si d.unité != Longueur.Unité.Px {
-                            imprime("[%] unité non-supportée : %\n", #nom_de_cette_fonction, d.unité)
-                            retourne faux
+                        si d.unité == Longueur.Unité.Px {
+                            retourne ctx.largeur >= d.valeur
                         }
 
-                        retourne ctx.largeur >= d.valeur
+                        si d.unité == Longueur.Unité.Em {
+                            retourne ctx.largeur >= d.valeur * ctx.taille_fonte
+                        }
+
+                        imprime("[%] unité non-supportée : %\n", #nom_de_cette_fonction, d.unité)
+                        retourne faux
                     }
                     sinon {
                         retourne faux
@@ -235,12 +240,16 @@ ContexteÉvaluationMediaQuery :: struct {
                         retourne ctx.largeur <= n
                     }
                     dimension(d) {
-                        si d.unité != Longueur.Unité.Px {
-                            imprime("[%] unité non-supportée : %\n", #nom_de_cette_fonction, d.unité)
-                            retourne faux
+                        si d.unité == Longueur.Unité.Px {
+                            retourne ctx.largeur <= d.valeur
                         }
 
-                        retourne ctx.largeur <= d.valeur
+                        si d.unité == Longueur.Unité.Em {
+                            retourne ctx.largeur <= d.valeur * ctx.taille_fonte
+                        }
+
+                        imprime("[%] unité non-supportée : %\n", #nom_de_cette_fonction, d.unité)
+                        retourne faux
                     }
                     sinon {
                         retourne faux
