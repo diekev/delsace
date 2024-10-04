@@ -1208,10 +1208,7 @@ donne_image_pour_url :: fonc (ctx: *ContexteDessin, url_string: chaine) -> Optio
         retourne
     }
 
-    url_string_utf16 := crée_chaine_utf16(url_string)
-    diffère détruit_chaine(url_string_utf16)
-
-    url_src := HTML.basic_url_parser(url_string_utf16)
+    url_src := HTML.basic_url_parser(url_string)
 
     HTML.définis_état_requête_image(ctx.document, url_string, HTML.ÉtatRequêteImage.EnCours)
 
@@ -1220,7 +1217,6 @@ donne_image_pour_url :: fonc (ctx: *ContexteDessin, url_string: chaine) -> Optio
 
         document: *HTML.Document
         request: *HTML.Request
-        url_src: *HTML.URL
         url_string: chaine
     }
 
@@ -1275,14 +1271,12 @@ donne_image_pour_url :: fonc (ctx: *ContexteDessin, url_string: chaine) -> Optio
     sur_destruction_process_response :: fonc (base: *HTML.BaseProcessResponse)
     {
         rappel := base comme *RappelProcessResponse
-        HTML.détruit_url(rappel.url_src)
         HTML.détruit_request(rappel.request)
         déloge(rappel)
     }
 
     process_response := loge(RappelProcessResponse)
     process_response.document = ctx.document
-    process_response.url_src = url_src
     process_response.url_string = url_string
     process_response.sur_rappel = sur_rappel_process_response
     process_response.sur_destruction = sur_destruction_process_response
@@ -1291,7 +1285,7 @@ donne_image_pour_url :: fonc (ctx: *ContexteDessin, url_string: chaine) -> Optio
     request.destination = "image"
     request.mode = "no-cors"
     request.redirect_mode = "follow"
-    HTML.définis_url(request, tente parse_uri_standard(copie_chaine(url_string)) piège nonatteignable)
+    HTML.définis_url(request, url_src)
     process_response.request = request
 
     user_agent := HTML.donne_user_agent(ctx.document)

@@ -6,7 +6,6 @@ importe Fondation
 importe Géométrie
 importe HTML
 importe HTTP
-importe Internet
 importe #inemployé JavaScript
 importe OpenGL
 importe PeintureInterface
@@ -168,18 +167,14 @@ sur_filtre_evenement_impl :: fonc (base: *QT_Rappels_Fenetre_Principale, event: 
 
         message := QT_event_perso_donne_donnees(event) comme *ÉvènementCréationOnglet
 
-        uri: URI
+        chaine_uri := message.uri
 
         si est_un_fichier_régulier(CheminFichier(message.uri)) {
-            uri.schéma = "file"
-            uri.schéma_est_défini = vrai
-            uri.autorité_est_définie = vrai
-            uri.chemin = message.uri
-            uri = uri
+            chaine_uri = enchaine("file://", chaine_uri)
         }
-        sinon {
-            uri = tente parse_uri_standard(message.uri) piège nonatteignable
-        }
+
+        uri := basic_url_parser(chaine_uri)
+        assert(uri != nul)
 
         navigable := crée_un_fresh_top_level_traversable(rappels.user_agent, uri) comme *TraversableNavigable
 
@@ -406,7 +401,7 @@ décale_par :: fonc (barre: *BarreDeDéfilement, delta: r32) -> bool
 }
 
 PageWeb :: struct {
-    uri: URI
+    uri: *URL
     parsat: ParsatHTML
     navigable: *TraversableNavigable
     contenu: chaine
@@ -415,7 +410,7 @@ PageWeb :: struct {
     défilement_vertical: BarreDeDéfilement
 }
 
-crée_page_web :: fonc (uri: &URI, contenu: chaine) -> PageWeb
+crée_page_web :: fonc (uri: *URL, contenu: chaine) -> PageWeb
 {
     résultat: PageWeb
     résultat.uri = uri
@@ -425,7 +420,7 @@ crée_page_web :: fonc (uri: &URI, contenu: chaine) -> PageWeb
     retourne résultat
 }
 
-crée_page_web :: fonc (uri: &URI, navigable: *TraversableNavigable) -> PageWeb
+crée_page_web :: fonc (uri: *URL, navigable: *TraversableNavigable) -> PageWeb
 {
     résultat: PageWeb
     résultat.uri = uri
@@ -640,7 +635,8 @@ rappel_changement_adresse_sur_rappel :: fonc (base: *QT_Rappel_Generique)
         retourne
     }
 
-    url := tente parse_uri_standard(texte) piège _ {
+    url := basic_url_parser(texte)
+    saufsi url {
         retourne
     }
 
@@ -1614,15 +1610,15 @@ rappels_interface_sur_lancement_requête :: fonc (base: *RappelsInterface, requ�
     parent : *QT_Object = nul
 
     uri := requête.donne_url_courant()
-    hôte := uri.hôte
-    port := port_pour_uri(uri)
+    hôte := uri.host
+    port := donne_port_ou_défaut(uri)
 
-    si uri.schéma == "http" {
+    si uri.scheme == "http" {
         prise := QT_cree_ssl_socket_rappels(parent, rappels_socket)
         QT_abstract_socket_connect_to_host(prise, hôte.vers_qt(), port)
     }
     sinon {
-        assert(uri.schéma == "https")
+        assert(uri.scheme == "https")
         prise := QT_cree_ssl_socket_rappels(parent, rappels_socket)
         QT_ssl_socket_connect_to_host_encrypted(prise, hôte.vers_qt(), port)
     }
@@ -1649,20 +1645,12 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Request) -> *RappelsRequê
         uri := rappels.requête.donne_url_courant()
 
         ajoute_au_tampon(*enchaineuse, "GET ")
-        si uri.chemin {
-            ajoute_au_tampon(*enchaineuse, uri.chemin)
-        }
-        sinon {
-            ajoute_au_tampon(*enchaineuse, "/")
-        }
-        si uri.requête {
-            ajoute_au_tampon(*enchaineuse, "?")
-            ajoute_au_tampon(*enchaineuse, uri.requête)
-        }
+        sérialise_chemin(*enchaineuse, uri)
+        sérialise_requête(*enchaineuse, uri)
 
         ajoute_au_tampon(*enchaineuse, " HTTP/1.1\r\n")
         ajoute_au_tampon(*enchaineuse, "Host: ")
-        ajoute_au_tampon(*enchaineuse, uri.hôte)
+        ajoute_au_tampon(*enchaineuse, uri.host.Quelque)
         ajoute_au_tampon(*enchaineuse, "\r\n")
 
         pour rappels.requête.header_list {
@@ -1805,7 +1793,7 @@ rappels_interface_sur_document_est_prêt :: fonc (base: *RappelsInterface, docum
     rappels_fenêtre := QT_fenetre_principale_donne_rappels(rappels.fenêtre) comme *RappelsFenetrePrincipale
     ajourne_widget_arbre_dom(rappels_fenêtre)
 
-    chaine_url := recompose_uri(*document.url)
+    chaine_url := url_serializer(document.url)
     diffère déloge(chaine_url)
 
     QT_line_edit_definis_texte(rappels_fenêtre.widgets_page.line_edit, chaine_url.vers_qt())

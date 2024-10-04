@@ -458,25 +458,25 @@ résoud_pourcentage :: fonc (propriétés: *PropriétésDeStyle, id: IDPropriét
     propriétés.définis_valeur_calculée(id, calcule_pourcentage(valeur, valeur_de_base))
 }
 
-donne_url_base_pour_background_image :: fonc (propriétés: *PropriétésDeStyle) -> Optionnel(URI)
+donne_url_base_pour_background_image :: fonc (propriétés: *PropriétésDeStyle) -> *HTML.URL
 {
     déclaration := propriétés.donne_déclaration(PROP_background_image)
     saufsi déclaration {
-        retourne
+        retourne nul
     }
 
     saufsi déclaration.style_parent {
-        retourne
+        retourne nul
     }
     
     style_parent := déclaration.style_parent
     saufsi style_parent.parent_css_rule {
-        retourne
+        retourne nul
     }
 
     parent_css_rule := style_parent.parent_css_rule
     saufsi parent_css_rule.parent_style_sheet {
-        retourne
+        retourne nul
     }
 
     retourne parent_css_rule.parent_style_sheet.location
@@ -1218,14 +1218,11 @@ calcule_valeur_propriété_générique :: fonc (valeur: ValeurDeStyle, genre_val
         url(u) {
             si genre_valeur_calculée.BackgroundImage {
                 base_url := donne_url_base_pour_background_image(ctx.propriétés)
-                saufsi base_url.possède_valeur() {
+                saufsi base_url {
                     base_url = HTML.donne_base_url(ctx.document)
                 }
-                uri_de_base := base_url.Quelque
-                url_de_base := HTML.convertis_uri_url(*uri_de_base)
-                diffère HTML.détruit_url(url_de_base)
 
-                url_src := HTML.basic_url_parser(u.donne_chaine_utf16(), base = url_de_base)
+                url_src := HTML.basic_url_parser(u.donne_chaine_utf16(), base = base_url)
                 saufsi url_src {
                     retourne ValeurDeStyle(mot_clé = PROP_none)
                 }

@@ -94,6 +94,26 @@ convertis_uri_url :: fonc (uri: *URI) -> *URL
     retourne basic_url_parser(chn16)
 }
 
+copie_url :: fonc (source: *URL) -> *URL
+{
+    résultat := loge(URL)
+    résultat.scheme = copie_chaine(source.scheme)
+    résultat.username = copie_chaine(source.username)
+    résultat.password = copie_chaine(source.password)
+    si source.host.possède_valeur() {
+        résultat.host = copie_chaine(source.host.Quelque)
+    }
+    résultat.port = source.port
+    résultat.définis_path(clone(source.path))
+    si source.query.possède_valeur() {
+        résultat.query = copie_chaine(source.query.Quelque)
+    }
+    si source.fragment.possède_valeur() {
+        résultat.fragment = copie_chaine(source.fragment.Quelque)
+    }
+    retourne résultat
+}
+
 détruit_url :: fonc (url: *URL)
 {
     saufsi url {
@@ -176,11 +196,11 @@ ajoute_segment_au_chemin :: fonc (url: *URL, segment: chaine)
 }
 
 /* https://url.spec.whatwg.org/#concept-url-origin */
-donne_origin :: fonc (url: URI) -> Origin
+donne_origin :: fonc (url: *URL) -> Origin
 {
     /* The origin of a URL url is the origin returned by running these steps, switching on url’s scheme: */
 
-    schéma := url.schéma
+    schéma := url.scheme
 
     si schéma == "blob" {
         imprime("À FAIRE : origine pour blob")
@@ -197,7 +217,7 @@ donne_origin :: fonc (url: URI) -> Origin
     }
 
     si schéma == "ftp" || schéma == "http" || schéma == "https" || schéma == "ws" || schéma == "wss" {
-        retourne Origin(scheme = schéma, host = url.hôte, port = port_pour_uri(url))
+        retourne Origin(scheme = schéma, host = url.host, port = url.port)
     }
 
     si schéma == "file" {
@@ -291,6 +311,50 @@ est_port_défaut :: fonc (schéma: ChaineASCII, port: n16) -> bool
 inclus_credentials :: fonc (url: *URL) -> bool
 {
     retourne url.username != "" || url.password != ""
+}
+
+est_about_srcdoc :: fonc (url: *URL) -> bool
+{
+    chn := url_serializer(url)
+    diffère déloge(chn)
+    retourne chn == "about:srcdoc"
+}
+
+est_about_blank :: fonc (url: *URL) -> bool
+{
+    chn := url_serializer(url)
+    diffère déloge(chn)
+    retourne chn == "about:blank"
+}
+
+__about_blank_url: *URL
+donne_about_blank_url :: fonc () -> *URL
+{
+    si __about_blank_url == nul {
+        __about_blank_url = basic_url_parser("about:blank")
+    }
+    retourne __about_blank_url
+}
+
+donne_port_ou_défaut :: fonc (url: *URL) -> n16
+{
+    si url.port.possède_valeur() {
+        retourne url.port
+    }
+
+    pour données_schéma_spécial {
+        saufsi url.scheme == it.nom {
+            continue
+        }
+
+        saufsi it.port.possède_valeur() {
+            arrête
+        }
+
+        retourne it.port.Quelque
+    }
+
+    retourne 0
 }
 
 /** \} */
@@ -390,6 +454,13 @@ commence_par_lettre_stockage_windows :: fonc (chn: ChaineUTF16) -> bool
 
 /* https://url.spec.whatwg.org/#concept-basic-url-parser */
 /* À FAIRE : encoding */
+basic_url_parser :: fonc (input: chaine, base : *URL = nul, url : *URL = nul, state_override : *ÉtatParsageURL = nul) -> *URL
+{
+    chn16 := crée_chaine_utf16(input)
+    diffère détruit_chaine(chn16)
+    retourne basic_url_parser(chn16, base, url, state_override)
+}
+
 basic_url_parser :: fonc (input: ChaineUTF16, base : *URL = nul, url : *URL = nul, state_override : *ÉtatParsageURL = nul) -> *URL
 {
     // si base {
@@ -1479,12 +1550,6 @@ basic_url_parser_fragment :: fonc (parser: *BasicURLParser) -> RésultatParsageU
  * \{ */
 
 /* https://url.spec.whatwg.org/#concept-url-serializer */
-url_serializer :: fonc (url: *URI) -> ChaineASCII
-{
-    // À FAIRE : standardise
-    retourne recompose_uri(url)
-}
-
 url_serializer :: fonc (url: *URL, exclude_fragment := faux) -> ChaineASCII
 {
     // 1. Let output be url’s scheme and U+003A (:) concatenated.
@@ -1528,22 +1593,10 @@ url_serializer :: fonc (url: *URL, exclude_fragment := faux) -> ChaineASCII
     // }
 
     // 4. Append the result of URL path serializing url to output.
-    discr url.path {
-        Segment(s) {
-            ajoute_au_tampon(*output, s)
-        }
-        Path(p) {
-            pour p {
-                ajoute_au_tampon(*output, "/", it)
-            }
-        }
-        sinon {}
-    }
+    sérialise_chemin(*output, url)
 
     // 5. If url’s query is non-null, append U+003F (?), followed by url’s query, to output.
-    si url.query.possède_valeur() {
-        ajoute_au_tampon(*output, "?", url.query.Quelque)
-    }
+    sérialise_requête(*output, url)
 
     // 6. If exclude fragment is false and url’s fragment is non-null, then append U+0023 (#), followed by url’s fragment, to output.
     si exclude_fragment == faux && url.fragment.possède_valeur() {
@@ -1552,6 +1605,44 @@ url_serializer :: fonc (url: *URL, exclude_fragment := faux) -> ChaineASCII
 
     // 7. Return output.
     retourne chaine_depuis_enchaineuse(*output)
+}
+
+donne_chaine_chemin :: fonc (url: *URL) -> chaine
+{
+    enchaineuse: Enchaineuse
+    diffère détruit_tampons(*enchaineuse)
+    initialise_enchaineuse(*enchaineuse)
+    sérialise_chemin(*enchaineuse, url)
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
+sérialise_chemin :: fonc (enchaineuse: *Enchaineuse, url: *URL)
+{
+    discr url.path {
+        Segment(s) {
+            si s.taille == 0 {
+                ajoute_au_tampon(enchaineuse, "/")
+            }
+            sinon {
+                ajoute_au_tampon(enchaineuse, s)
+            }
+        }
+        Path(p) {
+            pour p {
+                ajoute_au_tampon(enchaineuse, "/", it)
+            }
+        }
+        sinon {
+            ajoute_au_tampon(enchaineuse, "/")
+        }
+    }
+}
+
+sérialise_requête :: fonc (enchaineuse: *Enchaineuse, url: *URL)
+{
+    si url.query.possède_valeur() {
+        ajoute_au_tampon(enchaineuse, "?", url.query.Quelque)
+    }
 }
 
 /** \} */

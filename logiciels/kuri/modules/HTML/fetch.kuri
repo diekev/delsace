@@ -1,7 +1,6 @@
 importe Chaine
 importe CodecDonnées
 importe Fondation
-importe Internet
 importe MIME
 importe SysFichier
 
@@ -84,7 +83,7 @@ Header :: struct {
 
 Request :: struct {
     method := "GET"
-    url_list: [..]URI
+    url_list: [..]*URL
     local_urls_only: bool
     header_list: [..]Header
     unsafe_request: bool
@@ -129,7 +128,7 @@ Request :: struct {
     render_blocking: bool
 }
 
-définis_url :: fonc (request: *Request, url: URI)
+définis_url :: fonc (request: *Request, url: *URL)
 {
     tableau_ajoute(*request.url_list, url)
 }
@@ -138,7 +137,7 @@ détruit_request :: fonc (request: *Request)
 {
     déloge(request.header_list)
     pour request.url_list {
-        détruit_uri(it)
+        détruit_url(it)
     }
     discr request.policy_container {
         policy_container(p) {
@@ -150,7 +149,7 @@ détruit_request :: fonc (request: *Request)
     déloge(request)
 }
 
-donne_url_courant :: fonc (request: *Request) -> URI
+donne_url_courant :: fonc (request: *Request) -> *URL
 {
     retourne request.url_list[request.url_list.taille - 1]
 }
@@ -210,7 +209,7 @@ Response :: struct {
     type := "default"
     aborted_flag: bool
 
-    url_list: [..]URI
+    url_list: [..]*URL
 
     /* Entre 0 et 999. */
     status: z32
@@ -260,16 +259,16 @@ détruit_response :: fonc (response: *Response)
     déloge(response)
 }
 
-définis_url :: fonc (response: *Response, url: URI)
+définis_url :: fonc (response: *Response, url: *URL)
 {
     tableau_ajoute(*response.url_list, url)
 }
 
 /* https://fetch.spec.whatwg.org/#concept-response-url */
-donne_url :: fonc (response: *Response) -> Optionnel(URI)
+donne_url :: fonc (response: *Response) -> *URL
 {
     si response.url_list.taille == 0 {
-        retourne
+        retourne nul
     }
     retourne response.url_list[response.url_list.taille - 1]
 }
@@ -327,7 +326,7 @@ appropriate_network_error :: fonc (fetch_params: *FetchParams) -> *Response
 }
 
 /* https://fetch.spec.whatwg.org/#concept-response-location-url */
-donne_location_url :: fonc (response: *Response, fragment: chaine @inutilisée) -> *URL
+donne_location_url :: fonc (response: *Response, fragment: Optionnel(chaine) @inutilisée) -> *URL
 {
     // 1. If response’s status is not a redirect status, then return null.
     saufsi is_redirect_status(response.status) {
@@ -699,7 +698,7 @@ main_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, recursiv
     response: *Response
 
     // 3. If request’s local-URLs-only flag is set and request’s current URL is not local, then set response to a network error.
-    si request.local_urls_only && !is_local_scheme(request.donne_url_courant().schéma) {
+    si request.local_urls_only && !is_local(request.donne_url_courant()) {
         response = network_error(request)
     }
 
@@ -738,7 +737,7 @@ main_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, recursiv
         // request’s current URL’s origin is same origin with request’s origin, and request’s response tainting is "basic"
         // request’s current URL’s scheme is "data"
         // request’s mode is "navigate" or "websocket"
-        si (request.donne_url_courant().schéma == "data") ||
+        si (request.donne_url_courant().scheme == "data") ||
            (request.mode == "navigate" || request.mode == "websocket") {
             // Set request’s response tainting to "basic".
             request.response_tainting = "basic"
@@ -769,7 +768,7 @@ main_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, recursiv
         }
 
         // request’s current URL’s scheme is not an HTTP(S) scheme
-        sinon si !is_http_scheme(request.donne_url_courant().schéma) {
+        sinon si !is_http_scheme(request.donne_url_courant().scheme) {
             // Return a network error.
             response = network_error(request)
         }
@@ -882,7 +881,7 @@ scheme_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Re
     request := fetch_params.request
 
     // 3. Switch on request’s current URL’s scheme and run the associated steps:
-    schéma := request.donne_url_courant().schéma
+    schéma := request.donne_url_courant().scheme
 
     si schéma == "about" {
         panique("about non-implémenté")
@@ -921,7 +920,9 @@ scheme_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Re
         retourne response
     }
     sinon si schéma == "file" {
-        chemin := CheminFichier(request.donne_url_courant().chemin)
+        chaine_chemin := donne_chaine_chemin(request.donne_url_courant())
+        diffère déloge(chaine_chemin)
+        chemin := CheminFichier(chaine_chemin)
 
         /* À FAIRE : permissions. */
         si est_un_fichier_régulier(chemin) {
@@ -965,13 +966,13 @@ DataURLStruct :: struct {
 }
 
 /* https://fetch.spec.whatwg.org/#data-url-processor */
-data_url_processor :: fonc (url: URI) -> Optionnel(DataURLStruct)
+data_url_processor :: fonc (url: *URL) -> Optionnel(DataURLStruct)
 {
     // 1. Assert: dataURL’s scheme is "data".
-    assert(url.schéma == "data")
+    assert(url.scheme == "data")
 
     // 2. Let input be the result of running the URL serializer on dataURL with exclude fragment set to true.
-    input := recompose_uri(*url)
+    input := url_serializer(url)
     input_orig := input
     diffère déloge(input_orig)
 

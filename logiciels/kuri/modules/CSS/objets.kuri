@@ -1,7 +1,6 @@
 importe Chaine
 importe Fondation
 importe #inemployé HTML
-importe Internet
 
 /* CSS Object Model https://www.w3.org/TR/cssom-1/ */
 
@@ -14,7 +13,7 @@ importe Internet
 StyleSheet :: struct {
     /* "text/css" */
     type: CSSOMString
-    location: Optionnel(URI)
+    location: *HTML.URL
 
     origine: OrigineCascade
 }
@@ -44,12 +43,7 @@ imprime_style_sheet :: fonc (stylesheet: *CSSStyleSheet)
 détruit_feuille_de_style :: fonc (stylesheet: *CSSStyleSheet)
 {
     détruit_rule_list(stylesheet.rules)
-
-    si stylesheet.location.possède_valeur() {
-        url := stylesheet.location.Quelque
-        détruit_uri(url)
-    }
-
+    HTML.détruit_url(stylesheet.location)
     déloge(stylesheet)
 }
 
