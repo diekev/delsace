@@ -2052,19 +2052,25 @@ donne_info_type_pour_nom :: fonc (ctx: *ContexteParsageFeuilleDeStyle, nom: CSSO
 {
     résultat := donne_info_type_pour_nom(nom)
     saufsi résultat {
-        préfixes_vendeurs := [PRV_khtml, PRV_moz, PRV_ms, PRV_o, PRV_webkit]
-
-        pour préfixes_vendeurs {
-            préfixe := it.donne_chaine_utf16()
-            si est_préfixe_de(préfixe, nom.donne_chaine_utf16()) {
-                arrête
-            }
-        }
-        sansarrêt {
+        saufsi commence_par_préfixe_vendeur(nom) {
             ensemble_ajoute(*ctx.propriétés_non_supportées, nom)
         }
     }
     retourne résultat
+}
+
+commence_par_préfixe_vendeur :: fonc (nom: CSSOMString) -> bool
+{
+    préfixes_vendeurs := [PRV_khtml, PRV_moz, PRV_ms, PRV_o, PRV_webkit]
+
+    pour préfixes_vendeurs {
+        préfixe := it.donne_chaine_utf16()
+        si est_préfixe_de(préfixe, nom.donne_chaine_utf16()) {
+            retourne vrai
+        }
+    }
+
+    retourne faux
 }
 
 /* https://www.w3.org/TR/css-syntax-3/#parse-a-css-stylesheet */
@@ -2274,7 +2280,7 @@ parse_css_style_declaration :: fonc (ctx: *ContexteParsageFeuilleDeStyle, décla
             ctx_parsage_shorthand.déclaration = résultat
 
             saufsi info_type_propriété.sur_parsage_shorthand(*ctx_parsage_shorthand, it.value) {
-                imprime("Impossible de parser : %\n", it)
+                rapporte_erreur_de_parsage(it)
             }
 
             continue
@@ -2282,7 +2288,7 @@ parse_css_style_declaration :: fonc (ctx: *ContexteParsageFeuilleDeStyle, décla
 
         opt_valeur := parse_valeur_propriété(info_type_propriété, it.value)
         saufsi opt_valeur.possède_valeur() {
-            imprime("Impossible de parser : %\n", it)
+            rapporte_erreur_de_parsage(it)
             continue
         }
 
@@ -2296,6 +2302,21 @@ parse_css_style_declaration :: fonc (ctx: *ContexteParsageFeuilleDeStyle, décla
     }
 
     retourne résultat
+}
+
+rapporte_erreur_de_parsage :: fonc (déclaration: ParsedDeclaration)
+{
+    pour déclaration.value {
+        saufsi it.est_lexème_de_genre(GenreLexème.Ident) {
+            continue
+        }
+
+        si commence_par_préfixe_vendeur(it.lexème.valeur) {
+            retourne
+        }
+    }
+
+    imprime("Impossible de parser : %\n", déclaration)
 }
 
 parse_valeur_propriété :: fonc (info_type_propriété: *InfoTypePropriété, value: []ComponentValue) -> Optionnel(ValeurDeStyle)
