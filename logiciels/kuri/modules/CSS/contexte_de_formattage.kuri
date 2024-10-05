@@ -739,18 +739,31 @@ contexte_formattage_flex_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
 
         espace_disponible = largeur_disponible - ligne.largeur
 
+        décalage_pre := 0.0
+        décalage_post := 0.0
+
         si justify_content == PROP_center {
             décalage_x += espace_disponible * 0.5
         }
         sinon si justify_content == PROP_flex_end {
             décalage_x += espace_disponible
         }
+        sinon si justify_content == PROP_space_between {
+            décalage_post = espace_disponible / (ligne.noeuds.taille - 1) comme r32
+        }
+        sinon si justify_content == PROP_space_around {
+            espace_par_bloc := espace_disponible / (ligne.noeuds.taille) comme r32
+            décalage_pre = espace_par_bloc * 0.5
+            décalage_post = décalage_pre
+        }
 
         hauteur_ligne := 0.0
         pour ligne.noeuds {
+            décalage_x += décalage_pre
+            
             it.décale(décalage_x, décalage_y)
 
-            décalage_x += it.modèle_de_boite.marge.largeur
+            décalage_x += it.modèle_de_boite.marge.largeur + décalage_post
             hauteur_ligne = max(hauteur_ligne, it.modèle_de_boite.marge.hauteur)
         }
 
