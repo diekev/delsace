@@ -252,8 +252,9 @@ opérateur < :: fonc (a: RèglesParIdentifiant, b: RèglesParIdentifiant) -> boo
 RésolveuseStyle :: struct {
     globales: *GlobalesDessin
     document: *HTML.Document
-    /* Pour MediaQuery. */
+    /* Pour MediaQuery et ContexteCalculStyle. */
     largeur_écran: r64
+    hauteur_écran: r64
     taille_fonte_racine: r64
     feuilles_de_style: []*CSSStyleSheet
 
@@ -282,7 +283,7 @@ RésolveuseStyle :: struct {
     presentational_hints: [..]*DéclarationPropriété
 }
 
-crée_résolveuse_style :: fonc (document: *HTML.Document, largeur: z32) -> *RésolveuseStyle
+crée_résolveuse_style :: fonc (document: *HTML.Document, largeur: z32, hauteur: z32) -> *RésolveuseStyle
 {
     résultat := loge(RésolveuseStyle)
     initialise_résolveuse(résultat)
@@ -291,6 +292,7 @@ crée_résolveuse_style :: fonc (document: *HTML.Document, largeur: z32) -> *Ré
     résultat.globales = document.globales_dessin
     résultat.feuilles_de_style = document.feuilles_de_style
     résultat.largeur_écran = largeur comme r64
+    résultat.hauteur_écran = hauteur comme r64
     initialise_cache(résultat)
     retourne résultat
 }
@@ -832,6 +834,8 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
     ctx_calcul_style.taille_fonte_racine = résolveuse.taille_fonte_racine
     ctx_calcul_style.propriétés = propriétés
     ctx_calcul_style.valeurs_initiales = *résolveuse.valeurs_initiales
+    ctx_calcul_style.largeur_canevas = résolveuse.largeur_écran
+    ctx_calcul_style.hauteur_canevas = résolveuse.hauteur_écran
 
     si propriétés_parent {
         ctx_calcul_style.taille_fonte = propriétés_parent.donne_valeur_calculée(IDPropriété.FontSize).pixels
@@ -978,7 +982,7 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, haut
     }
 
     saufsi document.résolveuse_style {
-        document.résolveuse_style = crée_résolveuse_style(document, largeur)
+        document.résolveuse_style = crée_résolveuse_style(document, largeur, hauteur)
     }
 
     résultat := loge(ArbreDeDisposition)
