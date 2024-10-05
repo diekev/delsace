@@ -2840,7 +2840,7 @@ parse_valeur_couleur :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(
             retourne ValeurDeStyle(couleur = opt_couleur.Quelque)
         }
 
-        si lexème.est_mot_clé(PROP_currentColor) {
+        si compare_ascii_insensible_à_la_casse(lexème.donne_texte(), PROP_currentColor) {
             parseuse.avance()
             retourne ValeurDeStyle(mot_clé = PROP_currentColor)
         }
