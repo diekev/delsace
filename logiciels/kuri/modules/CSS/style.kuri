@@ -1552,4 +1552,94 @@ prop_inset_inline_start_sur_calcul_style :: fonc (déclaration: *DéclarationPro
     calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.Left)
 }
 
+prop_inline_size_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.Width)
+}
+
+prop_block_size_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.Height)
+}
+
+prop_max_inline_size_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.MinWidth)
+}
+
+prop_max_block_size_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.MaxHeight)
+}
+
+prop_min_inline_size_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.MinWidth)
+}
+
+prop_min_block_size_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.MinHeight)
+}
+
+prop_border_block_end_color_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.BorderColorBottom)
+}
+
+prop_border_block_end_style_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.BorderStyleBottom)
+}
+
+prop_border_block_end_width_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.BorderWidthBottom)
+}
+
+prop_border_block_start_color_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.BorderColorTop)
+}
+
+prop_border_block_start_style_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.BorderStyleTop)
+}
+
+prop_border_block_start_width_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.BorderWidthTop)
+}
+
+prop_border_inline_end_color_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.BorderColorRight)
+}
+
+prop_border_inline_end_style_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.BorderStyleRight)
+}
+
+prop_border_inline_end_width_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.BorderWidthRight)
+}
+
+prop_border_inline_start_color_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.BorderColorLeft)
+}
+
+prop_border_inline_start_style_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.BorderStyleLeft)
+}
+
+prop_border_inline_start_width_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.BorderWidthLeft)
+}
+
 /** \} */
