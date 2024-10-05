@@ -265,16 +265,30 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
 
             si left.est_auto() && right.est_auto() {
                 left = ValeurDeStyle(pixels = 0.0)
+                right = ValeurDeStyle(pixels = 0.0)
             }
             sinon si left.est_auto() {
                 left = ValeurDeStyle(pixels = -right.pixels)
             }
+            sinon si right.est_auto() {
+                right.pixels = -left.pixels
+            }
+            sinon {
+                right.pixels = 0.0
+            }
 
             si top.est_auto() && bottom.est_auto() {
                 top = ValeurDeStyle(pixels = 0.0)
+                bottom.pixels = 0.0
             }
             sinon si top.est_auto() {
                 top = ValeurDeStyle(pixels = -bottom.pixels)
+            }
+            sinon si bottom.est_auto() {
+                bottom.pixels = -top.pixels
+            }
+            sinon {
+                bottom.pixels = 0.0
             }
 
             it.décale(left.pixels comme r32, top.pixels comme r32)
