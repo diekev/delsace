@@ -1686,11 +1686,18 @@ parse_a_media_query :: fonc (parseuse: &Parseuse(ComponentValue)) -> *MediaQuery
         retourne condition
     }
 
+    not_rencontré := faux
+
     parseuse.consomme_espaces_blanches()
     lexème := parseuse.lexème_courant()
-    si lexème.est_mot_clé(PROP_not) || lexème.est_mot_clé(PROP_only) {
-        imprime("[%] not ou only non supporté\n")
-        retourne nul
+    si lexème.est_mot_clé(PROP_only) {
+        parseuse.avance()
+        /* Rien à faire, 'only' est uniquement utilisé pour désactiver la
+         * requête sur les agents ne supportant pas la nouvelle syntaxe post-HTML4. */
+    }
+    sinon si lexème.est_mot_clé(PROP_not) {
+        parseuse.avance()
+        not_rencontré = vrai
     }
 
     media_type := parse_a_media_type(parseuse)
@@ -1709,6 +1716,10 @@ parse_a_media_query :: fonc (parseuse: &Parseuse(ComponentValue)) -> *MediaQuery
         }
 
         retourne crée_media_query_and(media_type, droite)
+    }
+
+    si not_rencontré {
+        retourne crée_media_query_not(media_type)
     }
 
     retourne media_type
