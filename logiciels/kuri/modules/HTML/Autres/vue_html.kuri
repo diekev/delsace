@@ -160,10 +160,15 @@ initialise_évènements_personnalisés :: fonc ()
 
 fenêtre_principale_sur_création_barre_menu :: fonc (base: *QT_Rappels_Fenetre_Principale, créatrice: *QT_Creatrice_Barre_Menu)
 {
+    rappels_fenêtre := base comme *RappelsFenetrePrincipale
+
     créatrice.commence_menu_env("Débogage")
 
-    action := QT_cree_action(vers_qt("Dessine Tampon ID"), base.fenetre)
-    crée_rappel_pour_dessin_tampon_id(base comme *RappelsFenetrePrincipale, action)
+    action := crée_action_pour_activer_javascript(rappels_fenêtre)
+    créatrice.ajoute_action_env(action)
+
+    action = QT_cree_action(vers_qt("Dessine Tampon ID"), base.fenetre)
+    crée_rappel_pour_dessin_tampon_id(rappels_fenêtre, action)
     QT_action_definis_cochable(action, vrai)
     créatrice.ajoute_action_env(action)
 
@@ -194,6 +199,37 @@ crée_rappel_pour_dessin_tampon_id :: fonc (rappels_fenêtre: *RappelsFenetrePri
     résultat.sur_rappel = sur_rappel
     résultat.action = action
     QT_action_sur_declenchage(action, résultat)
+}
+
+crée_action_pour_activer_javascript :: fonc (rappels_fenêtre: *RappelsFenetrePrincipale) -> *QT_Action
+{
+    Rappel :: struct {
+        empl base: QT_Rappel_Generique
+        action: *QT_Action
+        rappels_fenêtre: *RappelsFenetrePrincipale
+    }
+
+    sur_rappel :: fonc (base: *QT_Rappel_Generique)
+    {
+        rappel := base comme *Rappel
+        rappels_fenêtre := rappel.rappels_fenêtre
+
+        user_agent := rappels_fenêtre.user_agent
+        user_agent.supporte_scripting = QT_action_est_coche(rappel.action)
+    }
+
+    user_agent := rappels_fenêtre.user_agent
+    résultat := QT_cree_action(vers_qt("Active JavaScript"), rappels_fenêtre.fenetre)
+    QT_action_definis_cochable(résultat, vrai)
+    QT_action_definis_coche(résultat, user_agent.supporte_scripting)
+
+    rappel := QT_loge_rappel(Rappel)
+    rappel.rappels_fenêtre = rappels_fenêtre
+    rappel.sur_rappel = sur_rappel
+    rappel.action = résultat
+    QT_action_sur_declenchage(résultat, rappel)
+
+    retourne résultat
 }
 
 sur_filtre_evenement_impl :: fonc (base: *QT_Rappels_Fenetre_Principale, event: *QT_Evenement) -> z32
