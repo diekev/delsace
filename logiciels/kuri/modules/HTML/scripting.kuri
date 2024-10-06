@@ -1,6 +1,5 @@
 importe Chaine
 importe Fondation
-importe Internet
 importe #inemployé JavaScript
 
 /* 8.1.4 Script processing model
@@ -17,7 +16,7 @@ Script :: struct {
     parse_error: JavaScript.Valeur
     error_to_rethrow: JavaScript.Valeur
     fetch_options: Optionnel(OptionsFetchScript)
-    base_url: URI
+    base_url: *URL
 }
 
 ClassicScript :: struct {
@@ -51,11 +50,11 @@ OptionsFetchScript :: struct {
  * \{ */
 
 /* https://html.spec.whatwg.org/multipage/webappapis.html#creating-a-classic-script */
-create_a_classic_script :: fonc (user_agent: *UserAgent, source: chaine, settings: *EnvironmentSettings, base_url: &URI, options: &OptionsFetchScript, muted_errors := faux, source_url_for_window_scripts : *URI = nul @inutilisée) -> *ClassicScript
+create_a_classic_script :: fonc (user_agent: *UserAgent, source: chaine, settings: *EnvironmentSettings, base_url: *URL, options: &OptionsFetchScript, muted_errors := faux, source_url_for_window_scripts : *URL = nul @inutilisée) -> *ClassicScript
 {
     // 1. If mutedErrors is true, then set baseURL to about:blank.
     si muted_errors {
-        base_url = URI("about:blank")
+        base_url = donne_about_blank_url()
     }
 
     // 2. If scripting is disabled for settings, then set source to the empty string.

@@ -140,7 +140,7 @@ rassemble_racines :: fonc (tas_de_mémoire: *TasDeMémoire, racines: *[..]*Cellu
     }
 }
 
-rassemble_racines_en_mémoire :: fonc (tas_de_mémoire: *TasDeMémoire, racines: *[..]*Cellule)
+rassemble_racines_en_mémoire :: fonc (tas_de_mémoire: *TasDeMémoire, racines: *[..]*Cellule) #sansasan
 {
     /* Marqueur pour savoir la fin de la pile de données d'exécution. */
     marqueur_pile: n64
