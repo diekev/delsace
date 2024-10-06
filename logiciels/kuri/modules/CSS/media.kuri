@@ -1,0 +1,278 @@
+importe Fondation
+
+/* ------------------------------------------------------------------------- */
+/** \nom MediaList
+ * https://www.w3.org/TR/cssom-1/#medialist
+ * \{ */
+
+MediaList :: struct {
+    media_queries: [..]*MediaQuery
+}
+
+détruit_media_list :: fonc (list: *MediaList)
+{
+    déloge_tableau_et_ses_éléments(list.media_queries, détruit_media_query)
+    déloge(list)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom MediaQuery
+ * \{ */
+
+TypeMediaQuery :: énum {
+    Type
+    // Condition
+    // ConditionWithoutOr
+    Not
+    And
+    Or
+    InParens
+    Feature
+}
+
+MediaQuery :: struct {
+    type: TypeMediaQuery
+
+    /* Type */
+    ident: CSSOMString
+
+    /* Not, InParens */
+    opérande: *MediaQuery
+
+    /* And, Or */
+    gauche: *MediaQuery
+    droite: *MediaQuery
+
+    /* Feature */
+    expression: MediaFeatureExpression
+}
+
+crée_media_query_and :: fonc (gauche: *MediaQuery, droite: *MediaQuery) -> *MediaQuery
+{
+    résultat := loge(MediaQuery)
+    résultat.type = TypeMediaQuery.And
+    résultat.gauche = gauche
+    résultat.droite = droite
+    retourne résultat
+}
+
+crée_media_query_or :: fonc (gauche: *MediaQuery, droite: *MediaQuery) -> *MediaQuery
+{
+    résultat := loge(MediaQuery)
+    résultat.type = TypeMediaQuery.Or
+    résultat.gauche = gauche
+    résultat.droite = droite
+    retourne résultat
+}
+
+crée_media_query_type :: fonc (ident: CSSOMString) -> *MediaQuery
+{
+    résultat := loge(MediaQuery)
+    résultat.type = TypeMediaQuery.Type
+    résultat.ident = ident
+    retourne résultat
+}
+
+crée_media_query_not :: fonc (opérande: *MediaQuery) -> *MediaQuery
+{
+    résultat := loge(MediaQuery)
+    résultat.type = TypeMediaQuery.Not
+    résultat.opérande = opérande
+    retourne résultat
+}
+
+crée_media_query_in_parens :: fonc (opérande: *MediaQuery) -> *MediaQuery
+{
+    résultat := loge(MediaQuery)
+    résultat.type = TypeMediaQuery.InParens
+    résultat.opérande = opérande
+    retourne résultat
+}
+
+crée_media_query_feature :: fonc (expression: MediaFeatureExpression) -> *MediaQuery
+{
+    résultat := loge(MediaQuery)
+    résultat.type = TypeMediaQuery.Feature
+    résultat.expression = expression
+    retourne résultat
+}
+
+détruit_media_query :: fonc (query: *MediaQuery)
+{
+    déloge(query)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom MediaFeatureExpression.
+ * Type pour représenter une expression de test de faiture.
+ * \{ */
+
+MediaFeatureExpression :: union {
+    plain: MediaFeaturePlain
+    boolean: MediaFeatureBoolean
+    ranle: MediaFeatureRange
+    comp: MediaFeatureComparaison
+}
+
+MediaFeaturePlain :: struct {
+    name: CSSOMString
+    value: MediaFeatureValue
+}
+
+MediaFeatureBoolean :: struct {
+    name: CSSOMString
+}
+
+MediaFeatureComparaisonType :: énum {
+    Égal
+    Inférieur
+    InférieurÉgal
+    Supérieur
+    SupérieurÉgal
+}
+
+MediaFeatureComparaison :: struct {
+    gauche: MediaFeatureValue
+    droite: MediaFeatureValue
+    comp: MediaFeatureComparaisonType
+}
+
+MediaFeatureRange :: struct {
+    gauche: MediaFeatureValue
+    milieu: MediaFeatureValue
+    droite: MediaFeatureValue
+    comp_gauche: MediaFeatureComparaisonType
+    comp_droite: MediaFeatureComparaisonType
+}
+
+MediaFeatureValue :: union {
+    number: r64
+    dimension: Longueur
+    ident: CSSOMString
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Évaluation
+ * https://drafts.csswg.org/mediaqueries/#evaluating
+ * \{ */
+
+ContexteÉvaluationMediaQuery :: struct {
+    largeur: r64
+    taille_fonte: r64
+    supporte_scripting: bool
+}
+
+évalue_media_query :: fonc (ctx: *ContexteÉvaluationMediaQuery, media_query: *MediaQuery) -> bool
+{
+    assert(media_query != nul)
+    discr media_query.type {
+        Type {
+            /* Liste complète : https://drafts.csswg.org/mediaqueries/#media-types
+             * Voir aussi HTML. */
+            retourne media_query.ident == PROP_all || media_query.ident == PROP_screen
+        }
+        Not {
+            a := évalue_media_query(ctx, media_query.opérande)
+            retourne !a
+        }
+        And {
+            a := évalue_media_query(ctx, media_query.gauche)
+            saufsi a {
+                retourne faux
+            }
+            retourne évalue_media_query(ctx, media_query.droite)
+        }
+        Or {
+            a := évalue_media_query(ctx, media_query.gauche)
+            si a {
+                retourne faux
+            }
+            retourne évalue_media_query(ctx, media_query.droite)
+        }
+        InParens {
+            retourne évalue_media_query(ctx, media_query.opérande)
+        }
+        Feature {
+            retourne évalue_media_feature_expression(ctx, media_query.expression)
+        }
+    }
+
+    retourne faux
+}
+
+évalue_media_feature_expression :: fonc (ctx: *ContexteÉvaluationMediaQuery, expression: MediaFeatureExpression) -> bool
+{
+    discr expression {
+        plain(p) {
+            si p.name == PROP_min_width {
+                discr p.value {
+                    number(n) {
+                        retourne ctx.largeur >= n
+                    }
+                    dimension(d) {
+                        si d.unité == Longueur.Unité.Px {
+                            retourne ctx.largeur >= d.valeur
+                        }
+
+                        si d.unité == Longueur.Unité.Em {
+                            retourne ctx.largeur >= d.valeur * ctx.taille_fonte
+                        }
+
+                        imprime("[%] unité non-supportée : %\n", #nom_de_cette_fonction, d.unité)
+                        retourne faux
+                    }
+                    sinon {
+                        retourne faux
+                    }
+                }
+                retourne faux
+            }
+
+            si p.name == PROP_max_width {
+                discr p.value {
+                    number(n) {
+                        retourne ctx.largeur <= n
+                    }
+                    dimension(d) {
+                        si d.unité == Longueur.Unité.Px {
+                            retourne ctx.largeur <= d.valeur
+                        }
+
+                        si d.unité == Longueur.Unité.Em {
+                            retourne ctx.largeur <= d.valeur * ctx.taille_fonte
+                        }
+
+                        imprime("[%] unité non-supportée : %\n", #nom_de_cette_fonction, d.unité)
+                        retourne faux
+                    }
+                    sinon {
+                        retourne faux
+                    }
+                }
+                retourne faux
+            }
+
+            imprime("[%] faiture non-supportée pour 'plain' : %\n", #nom_de_cette_fonction, p.name)
+            retourne faux
+        }
+        boolean(b) {
+            si b.name == PROP_scripting {
+                retourne ctx.supporte_scripting
+            }
+            imprime("[%] faiture non-supportée pour 'boolean' : %\n", #nom_de_cette_fonction, b.name)
+            retourne faux
+        }
+        sinon {
+            retourne faux
+        }
+    }
+    retourne faux
+}
+
+/** \} */
