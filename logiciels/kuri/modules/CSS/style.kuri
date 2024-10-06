@@ -746,6 +746,7 @@ IDPropriété :: énum n16 {
 
     LineHeight
     VerticalAlign
+    WhiteSpace
 
     TextAlign
     JustifyContent
@@ -831,6 +832,7 @@ initialise_style :: fonc (style: *Style)
 
     style.valeurs[IDPropriété.LineHeight] = ValeurDeStyle(mot_clé = PROP_normal)
     style.valeurs[IDPropriété.VerticalAlign] = ValeurDeStyle(mot_clé = PROP_baseline)
+    style.valeurs[IDPropriété.WhiteSpace] = ValeurDeStyle(mot_clé = PROP_normal)
 
     style.valeurs[IDPropriété.TextAlign] = ValeurDeStyle(mot_clé = PROP_start)
     style.valeurs[IDPropriété.JustifyContent] = ValeurDeStyle(mot_clé = PROP_flex_start)
