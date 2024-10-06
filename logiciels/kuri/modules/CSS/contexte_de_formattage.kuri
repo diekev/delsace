@@ -783,6 +783,14 @@ contexte_formattage_flex_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
         noeud.propriétés.définis_valeur_calculée(IDPropriété.Height, ValeurDeStyle(pixels = hauteur_contenu))
         noeud.propriétés.définis_valeur_utilisée(IDPropriété.Height, ValeurDeStyle(pixels = hauteur_contenu))
     }
+
+    discr mode {
+        BrisureDeLigneExplicite,
+        ToutesLesBrisuresDeLigne {
+            noeud.ajourne_boite_pour_calcul_largeur()
+        }
+        sinon {}
+    }
 }
 
 /* Modifie la taille des items selon leurs facteurs de croissance. */
