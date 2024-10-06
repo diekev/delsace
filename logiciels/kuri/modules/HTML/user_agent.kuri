@@ -1,5 +1,4 @@
 importe HTTP
-importe Internet
 importe Fondation
 importe #inemployé JavaScript
 
@@ -19,6 +18,7 @@ UserAgent :: struct {
     rappels_interface: *RappelsInterface
 
     mv: JavaScript.MachineVirtuelle
+    blob_url_store: BlobURLStore
 
     supporte_scripting: bool
 }
@@ -49,6 +49,7 @@ détruit_données_user_agent :: fonc (user_agent: *UserAgent)
         user_agent.rappels_interface = nul
     }
     JavaScript.détruit_données_mv(*user_agent.mv)
+    détruit_données_store(*user_agent.blob_url_store)
 }
 
 définis_rappels_interface :: fonc (user_agent: *UserAgent, rappels: *RappelsInterface)

@@ -1734,6 +1734,10 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
             else if (atome_fonc->decl->ident == ID::__point_de_sortie_dynamique) {
                 os << " __attribute__((destructor)) ";
             }
+
+            if (atome_fonc->decl->possède_drapeau(DrapeauxNoeudFonction::FORCE_SANS_ASAN)) {
+                os << " __attribute__((no_sanitize_address)) ";
+            }
         }
     }
 
