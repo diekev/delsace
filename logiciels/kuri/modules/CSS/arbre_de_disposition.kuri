@@ -1698,6 +1698,23 @@ donne_élément_récursif :: fonc (noeud: *NoeudDeDisposition) -> *HTML.Élémen
     retourne nul
 }
 
+imprime_élément :: fonc (noeud: *NoeudDeDisposition, message: chaine, récursif := faux)
+{
+    élément := si récursif {
+        noeud.donne_élément()
+    }
+    sinon {
+        noeud.donne_élément_récursif()
+    }
+
+    si élément {
+        imprime("% : %#%.%\n", message, élément.local_name, élément.id, HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_class))
+    }
+    sinon {
+        imprime("% : <anonyme>\n")
+    }
+}
+
 décale :: fonc (noeud: *NoeudDeDisposition, x: r32, y: r32)
 {
     décale_horizontalement(noeud.modèle_de_boite, x)
