@@ -458,25 +458,25 @@ résoud_pourcentage :: fonc (propriétés: *PropriétésDeStyle, id: IDPropriét
     propriétés.définis_valeur_calculée(id, calcule_pourcentage(valeur, valeur_de_base))
 }
 
-donne_url_base_pour_background_image :: fonc (propriétés: *PropriétésDeStyle) -> Optionnel(URI)
+donne_url_base_pour_background_image :: fonc (propriétés: *PropriétésDeStyle) -> *HTML.URL
 {
     déclaration := propriétés.donne_déclaration(PROP_background_image)
     saufsi déclaration {
-        retourne
+        retourne nul
     }
 
     saufsi déclaration.style_parent {
-        retourne
+        retourne nul
     }
     
     style_parent := déclaration.style_parent
     saufsi style_parent.parent_css_rule {
-        retourne
+        retourne nul
     }
 
     parent_css_rule := style_parent.parent_css_rule
     saufsi parent_css_rule.parent_style_sheet {
-        retourne
+        retourne nul
     }
 
     retourne parent_css_rule.parent_style_sheet.location
@@ -496,6 +496,8 @@ Longueur :: struct {
         Pc
         Pt
         Px
+        Vh
+        Vw
     }
 
     valeur: r64
@@ -539,6 +541,14 @@ donne_unité_pour_nom :: fonc (nom: CSSOMString) -> Optionnel(Longueur.Unité)
     si nom == PROP_rem {
         retourne Longueur.Unité.Rem
     }
+
+    si nom == PROP_vh {
+        retourne Longueur.Unité.Rem
+    }
+
+    si nom == PROP_vw {
+        retourne Longueur.Unité.Rem
+    }
 }
 
 calcule_longueur :: fonc (l: Longueur, ctx: *ContexteCalculStyle) -> r64
@@ -576,6 +586,14 @@ calcule_longueur :: fonc (l: Longueur, ctx: *ContexteCalculStyle) -> r64
         Pt {
             /* 1pt = 1/72 in */
             retourne l.valeur * 96.0 / 72.0
+        }
+        Vh {
+            /* vh = 1% de la hauteur du canevas. */
+            retourne l.valeur * ctx.hauteur_canevas / 100.0
+        }
+        Vw {
+            /* vw = 1% de la largeur du canevas. */
+            retourne l.valeur * ctx.largeur_canevas / 100.0
         }
     }
 
@@ -657,6 +675,8 @@ ContexteCalculStyle :: struct {
     taille_fonte_racine: r64
     propriétés: *PropriétésDeStyle
     valeurs_initiales: *Style
+    largeur_canevas: r64
+    hauteur_canevas: r64
 }
 
 IDPropriété :: énum n16 {
@@ -726,8 +746,18 @@ IDPropriété :: énum n16 {
 
     LineHeight
     VerticalAlign
+    WhiteSpace
 
     TextAlign
+    JustifyContent
+
+    FlexBasis
+    FlexDirection
+    FlexWrap
+    FlexGrow
+    FlexShrink
+
+    BoxSizing
 }
 
 Style :: struct {
@@ -802,14 +832,25 @@ initialise_style :: fonc (style: *Style)
 
     style.valeurs[IDPropriété.LineHeight] = ValeurDeStyle(mot_clé = PROP_normal)
     style.valeurs[IDPropriété.VerticalAlign] = ValeurDeStyle(mot_clé = PROP_baseline)
+    style.valeurs[IDPropriété.WhiteSpace] = ValeurDeStyle(mot_clé = PROP_normal)
 
     style.valeurs[IDPropriété.TextAlign] = ValeurDeStyle(mot_clé = PROP_start)
+    style.valeurs[IDPropriété.JustifyContent] = ValeurDeStyle(mot_clé = PROP_flex_start)
 
     /* Position */
     style.valeurs[IDPropriété.Top] = ValeurDeStyle(mot_clé = PROP_auto)
     style.valeurs[IDPropriété.Bottom] = ValeurDeStyle(mot_clé = PROP_auto)
     style.valeurs[IDPropriété.Left] = ValeurDeStyle(mot_clé = PROP_auto)
     style.valeurs[IDPropriété.Right] = ValeurDeStyle(mot_clé = PROP_auto)
+
+    /* Flex */
+    style.valeurs[IDPropriété.FlexBasis] = ValeurDeStyle(mot_clé = PROP_auto)
+    style.valeurs[IDPropriété.FlexDirection] = ValeurDeStyle(mot_clé = PROP_row)
+    style.valeurs[IDPropriété.FlexWrap] = ValeurDeStyle(mot_clé = PROP_nowrap)
+    style.valeurs[IDPropriété.FlexGrow] = ValeurDeStyle(number = 0.0)
+    style.valeurs[IDPropriété.FlexShrink] = ValeurDeStyle(number = 1.0)
+
+    style.valeurs[IDPropriété.BoxSizing] = ValeurDeStyle(mot_clé = PROP_content_box)
 }
 
 donne_bordure :: fonc (style: *Style) -> Border
@@ -1216,14 +1257,11 @@ calcule_valeur_propriété_générique :: fonc (valeur: ValeurDeStyle, genre_val
         url(u) {
             si genre_valeur_calculée.BackgroundImage {
                 base_url := donne_url_base_pour_background_image(ctx.propriétés)
-                saufsi base_url.possède_valeur() {
+                saufsi base_url {
                     base_url = HTML.donne_base_url(ctx.document)
                 }
-                uri_de_base := base_url.Quelque
-                url_de_base := HTML.convertis_uri_url(*uri_de_base)
-                diffère HTML.détruit_url(url_de_base)
 
-                url_src := HTML.basic_url_parser(u.donne_chaine_utf16(), base = url_de_base)
+                url_src := HTML.basic_url_parser(u.donne_chaine_utf16(), base = base_url)
                 saufsi url_src {
                     retourne ValeurDeStyle(mot_clé = PROP_none)
                 }
@@ -1302,59 +1340,64 @@ calcule_valeur_propriété_générique :: fonc (valeur: ValeurDeStyle, genre_val
 
 calcule_valeur_propriété_générique :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
 {
+    calcule_valeur_propriété_générique(déclaration, style, ctx, déclaration.info.id)
+}
+
+calcule_valeur_propriété_générique :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle, id: IDPropriété)
+{
     info := déclaration.info
     genre_valeur_calculée := info.genre_valeur_calculée
 
     valeur := déclaration.value[0]
 
     tantque valeur.est_variable() {
-        valeur = résoud_valeur_variable(ctx, info, valeur.variable)
+        valeur = résoud_valeur_variable(ctx, info, valeur.variable, id)
     }
 
     /* "color: currentColor" doit prendre la valeur héritée
      * https://www.w3.org/TR/css-color-4/#resolving-other-colors */
-    si valeur.est_mot_clé(PROP_inherit) || (valeur.est_mot_clé(PROP_currentColor) && info.id == IDPropriété.Color) {
+    si valeur.est_mot_clé(PROP_inherit) || (valeur.est_mot_clé(PROP_currentColor) && id == IDPropriété.Color) {
         /* https://www.w3.org/TR/css-cascade/#inherit */
         si ctx.propriétés.parent {
-            valeur = ctx.propriétés.parent.donne_valeur_calculée(info.id)
+            valeur = ctx.propriétés.parent.donne_valeur_calculée(id)
         }
         sinon {
-            valeur = ctx.valeurs_initiales.valeurs[info.id]
+            valeur = ctx.valeurs_initiales.valeurs[id]
         }
     }
     sinon si valeur.est_mot_clé(PROP_initial) {
         /* https://www.w3.org/TR/css-cascade/#initial */
-        valeur = ctx.valeurs_initiales.valeurs[info.id]
+        valeur = ctx.valeurs_initiales.valeurs[id]
     }
     sinon si valeur.est_mot_clé(PROP_unset) {
         /* https://www.w3.org/TR/css-cascade/#inherit-initial */
         // À FAIRE : unset
-        valeur = ctx.valeurs_initiales.valeurs[info.id]
+        valeur = ctx.valeurs_initiales.valeurs[id]
     }
     sinon si valeur.est_mot_clé(PROP_revert) {
         /* https://www.w3.org/TR/css-cascade/#default */
         // À FAIRE : revert
-        valeur = ctx.valeurs_initiales.valeurs[info.id]
+        valeur = ctx.valeurs_initiales.valeurs[id]
     }
 
     résultat := calcule_valeur_propriété_générique(valeur, genre_valeur_calculée, style, ctx)
     si résultat.possède_valeur() {
-        style.valeurs[info.id] = résultat.Quelque
+        style.valeurs[id] = résultat.Quelque
         retourne
     }
 
     si genre_valeur_calculée.Spécifié {
-        style.valeurs[info.id] = valeur
+        style.valeurs[id] = valeur
         retourne
     }
 }
 
 /* À FAIRE : variables récurives. */
-résoud_valeur_variable :: fonc (ctx: *ContexteCalculStyle, info: *InfoTypePropriété, variable: Variable) -> ValeurDeStyle
+résoud_valeur_variable :: fonc (ctx: *ContexteCalculStyle, info: *InfoTypePropriété, variable: Variable, id: IDPropriété) -> ValeurDeStyle
 {
     déclaration := donne_déclaration_propriété_personnalisée(ctx.propriétés, variable.nom)
     saufsi déclaration {
-        retourne ctx.valeurs_initiales.valeurs[info.id]
+        retourne ctx.valeurs_initiales.valeurs[id]
     }
 
     résultat := parse_valeur_propriété(info, déclaration.valeur_personnalisée)
@@ -1362,7 +1405,7 @@ résoud_valeur_variable :: fonc (ctx: *ContexteCalculStyle, info: *InfoTypePropr
         retourne résultat.Quelque
     }
 
-    retourne ctx.valeurs_initiales.valeurs[info.id]
+    retourne ctx.valeurs_initiales.valeurs[id]
 }
 
 calcule_display_pour_mot_clé :: fonc (mot_clé: CSSOMString) -> ValeurDeStyle
@@ -1391,6 +1434,14 @@ calcule_display_pour_mot_clé :: fonc (mot_clé: CSSOMString) -> ValeurDeStyle
     sinon si mot_clé == PROP_flow_root {
         résultat.outer_type = Display.Type.Block
         résultat.inner_type = Display.Type.FlowRoot
+    }
+    sinon si mot_clé == PROP_flex {
+        résultat.outer_type = Display.Type.Block
+        résultat.inner_type = Display.Type.Flex
+    }
+    sinon si mot_clé == PROP_inline_flex {
+        résultat.outer_type = Display.Type.Inline
+        résultat.inner_type = Display.Type.Flex
     }
     sinon {
         assert(mot_clé == PROP_inline)
@@ -1447,64 +1498,154 @@ calcule_font_size_pour_mot_clé :: fonc (m: CSSOMString, ctx: *ContexteCalculSty
 /* À FAIRE : direction du flux */
 prop_margin_block_end_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
 {
-    style.valeurs[IDPropriété.MarginBottom] = calcule_valeur_propriété_générique(déclaration.value[0], déclaration.info.genre_valeur_calculée, style, ctx)
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.MarginBottom)
 }
 
 prop_margin_block_start_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
 {
-    style.valeurs[IDPropriété.MarginTop] = calcule_valeur_propriété_générique(déclaration.value[0], déclaration.info.genre_valeur_calculée, style, ctx)
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.MarginTop)
 }
 
 prop_margin_inline_end_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
 {
-    style.valeurs[IDPropriété.MarginRight] = calcule_valeur_propriété_générique(déclaration.value[0], déclaration.info.genre_valeur_calculée, style, ctx)
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.MarginRight)
 }
 
 prop_margin_inline_start_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
 {
-    style.valeurs[IDPropriété.MarginLeft] = calcule_valeur_propriété_générique(déclaration.value[0], déclaration.info.genre_valeur_calculée, style, ctx)
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.MarginLeft)
 }
 
 /* À FAIRE : direction du flux */
 prop_padding_block_end_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
 {
-    style.valeurs[IDPropriété.PaddingBottom] = calcule_valeur_propriété_générique(déclaration.value[0], déclaration.info.genre_valeur_calculée, style, ctx)
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.PaddingBottom)
 }
 
 prop_padding_block_start_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
 {
-    style.valeurs[IDPropriété.PaddingTop] = calcule_valeur_propriété_générique(déclaration.value[0], déclaration.info.genre_valeur_calculée, style, ctx)
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.PaddingTop)
 }
 
 prop_padding_inline_end_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
 {
-    style.valeurs[IDPropriété.PaddingRight] = calcule_valeur_propriété_générique(déclaration.value[0], déclaration.info.genre_valeur_calculée, style, ctx)
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.PaddingRight)
 }
 
 prop_padding_inline_start_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
 {
-    style.valeurs[IDPropriété.PaddingLeft] = calcule_valeur_propriété_générique(déclaration.value[0], déclaration.info.genre_valeur_calculée, style, ctx)
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.PaddingLeft)
 }
 
 /* À FAIRE : direction du flux */
 prop_inset_block_end_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
 {
-    style.valeurs[IDPropriété.Bottom] = calcule_valeur_propriété_générique(déclaration.value[0], déclaration.info.genre_valeur_calculée, style, ctx)
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.Bottom)
 }
 
 prop_inset_block_start_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
 {
-    style.valeurs[IDPropriété.Top] = calcule_valeur_propriété_générique(déclaration.value[0], déclaration.info.genre_valeur_calculée, style, ctx)
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.Top)
 }
 
 prop_inset_inline_end_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
 {
-    style.valeurs[IDPropriété.Right] = calcule_valeur_propriété_générique(déclaration.value[0], déclaration.info.genre_valeur_calculée, style, ctx)
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.Right)
 }
 
 prop_inset_inline_start_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
 {
-    style.valeurs[IDPropriété.Left] = calcule_valeur_propriété_générique(déclaration.value[0], déclaration.info.genre_valeur_calculée, style, ctx)
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.Left)
+}
+
+prop_inline_size_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.Width)
+}
+
+prop_block_size_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.Height)
+}
+
+prop_max_inline_size_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.MinWidth)
+}
+
+prop_max_block_size_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.MaxHeight)
+}
+
+prop_min_inline_size_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.MinWidth)
+}
+
+prop_min_block_size_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.MinHeight)
+}
+
+prop_border_block_end_color_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.BorderColorBottom)
+}
+
+prop_border_block_end_style_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.BorderStyleBottom)
+}
+
+prop_border_block_end_width_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.BorderWidthBottom)
+}
+
+prop_border_block_start_color_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.BorderColorTop)
+}
+
+prop_border_block_start_style_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.BorderStyleTop)
+}
+
+prop_border_block_start_width_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.BorderWidthTop)
+}
+
+prop_border_inline_end_color_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.BorderColorRight)
+}
+
+prop_border_inline_end_style_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.BorderStyleRight)
+}
+
+prop_border_inline_end_width_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.BorderWidthRight)
+}
+
+prop_border_inline_start_color_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.BorderColorLeft)
+}
+
+prop_border_inline_start_style_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.BorderStyleLeft)
+}
+
+prop_border_inline_start_width_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
+{
+    calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.BorderWidthLeft)
 }
 
 /** \} */

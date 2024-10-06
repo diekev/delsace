@@ -166,13 +166,23 @@ formatte_component_value :: fonc (enchaineuse: *Enchaineuse, value: *ComponentVa
             }
             ajoute_au_tampon(enchaineuse, ")")
         }
+        bloc(b) {
+            formatte_lexème(enchaineuse, *b.token)
+            pour b.value {
+                ajoute_au_tampon(enchaineuse, it)
+            }
+            lexème_mirroir := donne_genre_lexème_mirroir(b.token)
+            token := b.token
+            token.genre = lexème_mirroir
+            formatte_lexème(enchaineuse, *token)
+        }
         sinon {
             ajoute_au_tampon(enchaineuse, "IMPRESSION À FAIRE")
         }
     }
 } @FormattageImpression
 
-copie_tableau_component_value :: fonc (value: [..]ComponentValue) -> [..]ComponentValue
+copie_tableau_component_value :: fonc (value: []ComponentValue) -> [..]ComponentValue
 {
     résultat: [..]ComponentValue
     tableau_réserve(*résultat, value.taille)
@@ -275,12 +285,12 @@ est_mot_clé :: fonc (value: ComponentValue, mot_clé: CSSOMString) -> bool
 }
 
 Parseuse :: struct ($T: type_de_données) {
-    lexèmes: [..]T
+    lexèmes: []T
     curseur: z64
-    curseur_sauvegardé: z64
+    possède_erreur: bool
 }
 
-initialise_une_parseuse :: fonc (lexèmes: [..]$T) -> Parseuse(T)
+initialise_une_parseuse :: fonc (lexèmes: []$T) -> Parseuse(T)
 {
     résultat: Parseuse(T)
     résultat.lexèmes = lexèmes
@@ -294,11 +304,6 @@ lexème_courant :: fonc (parseuse: &Parseuse($T)) -> T
     }
 
     retourne parseuse.lexèmes[parseuse.curseur]
-}
-
-lexème_suivant :: fonc (parseuse: &Parseuse($T)) -> T
-{
-    retourne parseuse.lexèmes[parseuse.curseur + 1]
 }
 
 consomme_le_lexème_en_entrée_suivant :: fonc (parseuse: &Parseuse($T)) -> T
@@ -316,16 +321,6 @@ reconsomme_le_lexème_courant :: fonc (parseuse: &Parseuse($T))
 avance :: fonc (parseuse: &Parseuse($T))
 {
     parseuse.curseur += 1
-}
-
-sauvegarde_position :: fonc (parseuse: &Parseuse($T))
-{
-    parseuse.curseur_sauvegardé = parseuse.curseur
-}
-
-restaure_position :: fonc (parseuse: &Parseuse($T))
-{
-    parseuse.curseur = parseuse.curseur_sauvegardé
 }
 
 consomme_espaces_blanches :: fonc (parseuse: &Parseuse($T))
@@ -347,7 +342,7 @@ apparie_lexème_ident :: fonc (parseuse: &Parseuse($T)) -> bool #enligne
 
 fini :: fonc (parseuse: &Parseuse($T)) -> bool
 {
-    retourne parseuse.curseur >= parseuse.lexèmes.taille
+    retourne parseuse.curseur >= parseuse.lexèmes.taille || parseuse.possède_erreur
 }
 
 rapporte_erreur :: fonc (parseuse: &Parseuse($T) @inutilisée, message: chaine)
@@ -361,11 +356,11 @@ rapporte_erreur :: fonc (parseuse: &Parseuse($T) @inutilisée, message: chaine)
 /** \nom Parser Entry Points.
  * \{ */
 
-/* 5.3.1 Parse something according to a CSS grammar */
+/* 5.4.1 Parse something according to a CSS grammar */
 
-/* 5.3.2 Parse A Comma-Separated List According To A CSS Grammar */
+/* 5.4.2 Parse A Comma-Separated List According To A CSS Grammar */
 
-/* 5.3.3 Parse a stylesheet */
+/* 5.4.3 Parse a stylesheet */
 parse_a_stylesheet :: fonc (input: [..]Lexème) -> ParsedStyleSheet
 {
     // 1. If input is a byte stream for stylesheet, decode bytes from input, and set input to the result.
@@ -382,13 +377,13 @@ parse_a_stylesheet :: fonc (input: [..]Lexème) -> ParsedStyleSheet
     retourne résultat
 }
 
-/* 5.3.4 Parse a list of rules */
+/* 5.4.4 Parse a list of rules */
 
-/* 5.3.5 Parse a rule */
+/* 5.4.5 Parse a rule */
 
-/* 5.3.6 Parse a declaration */
+/* 5.4.6 Parse a declaration */
 
-/* 5.3.7 Parse a style block’s contents */
+/* 5.4.7 Parse a style block’s contents */
 StyleBlockContent :: struct {
     decls: [..]ParsedDeclaration
     rules: [..]*ParsedRule
@@ -409,7 +404,7 @@ détruit_content :: fonc (content: &StyleBlockContent, détruit_valeurs: bool)
     déloge(content.decls)
 }
 
-parse_a_style_block_s_contents :: fonc (input: [..]ComponentValue) -> StyleBlockContent
+parse_a_style_block_s_contents :: fonc (input: []ComponentValue) -> StyleBlockContent
 {
     // 1. Normalize input, and set input to the result.
     // 2. Consume a style block’s contents from input, and return the result.
@@ -417,7 +412,7 @@ parse_a_style_block_s_contents :: fonc (input: [..]ComponentValue) -> StyleBlock
     retourne consomme_le_contenu_d_un_bloc_de_style(parseuse)
 }
 
-/* 5.3.8 Parse a list of declarations */
+/* 5.4.8 Parse a list of declarations */
 parse_a_list_of_declarations :: fonc (input: [..]Lexème) -> StyleBlockContent
 {
     // 1. Normalize input, and set input to the result.
@@ -447,20 +442,42 @@ parse_attribut_style :: fonc (valeur: ChaineUTF16) -> *CSSStyleDeclaration
     retourne résultat
 }
 
-/* 5.3.9 Parse a component value */
+/* 5.4.9 Parse a component value */
 
-/* 5.3.10 Parse a list of component values */
+/* 5.4.10 Parse a list of component values */
 
-/* 5.3.11 Parse a comma-separated list of component values */
+/* 5.4.11 Parse a comma-separated list of component values */
+parse_a_comma_separated_list_of_component_values :: fonc (input: []ComponentValue) -> [..][..]ComponentValue
+{
+    // 1. Let groups be an empty list.
+    groups: [..][..]ComponentValue
+
+    parseuse := initialise_une_parseuse(input)
+
+    // 2. While input is not empty:
+    tantque !parseuse.fini() {
+        // 1. Consume a list of component values from input, with <comma-token> as the stop token, and append the result to groups.
+        list := consomme_une_lise_de_valeur_composante(parseuse, GenreLexème.Comma)
+        tableau_ajoute(*groups, list)
+
+        // 2. Discard a token from input.
+        saufsi parseuse.fini() {
+            parseuse.avance()
+        }
+    }
+
+    // 3. Return groups.
+    retourne groups
+}
 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom 5.4 Parser Algorithms.
+/** \nom 5.5 Parser Algorithms.
  * https://www.w3.org/TR/css-syntax-3/#parser-algorithms
  * \{ */
 
-/* 5.4.1 Consume a list of rules */
+/* 5.5.1 Consume a list of rules */
 consomme_une_liste_de_règles :: fonc (parseuse: &Parseuse($T), top_level: bool) -> [..]*ParsedRule
 {
     résultat: [..]*ParsedRule
@@ -508,14 +525,13 @@ consomme_une_liste_de_règles :: fonc (parseuse: &Parseuse($T), top_level: bool)
     retourne résultat
 }
 
-/* 5.4.2 Consume an at-rule */
+/* 5.5.2 Consume an at-rule */
 consomme_une_règle_arobase :: fonc (parseuse: &Parseuse($T)) -> *ParsedAtRule
 {
-    _ := parseuse.consomme_le_lexème_en_entrée_suivant()
-
     résultat := loge(ParsedAtRule)
     résultat.name = parseuse.lexème_courant().donne_texte()
-    résultat.name = résultat.name
+
+    _ := parseuse.consomme_le_lexème_en_entrée_suivant()
 
     tantque !fini(parseuse) {
         lexème := parseuse.consomme_le_lexème_en_entrée_suivant()
@@ -548,7 +564,7 @@ consomme_une_règle_arobase :: fonc (parseuse: &Parseuse($T)) -> *ParsedAtRule
     retourne résultat
 }
 
-/* 5.4.3 Consume a qualified rule */
+/* 5.5.3 Consume a qualified rule */
 consomme_une_règle_qualifiée :: fonc (parseuse: &Parseuse($T)) -> *ParsedQualifiedRule
 {
     résultat := loge(ParsedQualifiedRule)
@@ -581,7 +597,7 @@ consomme_une_règle_qualifiée :: fonc (parseuse: &Parseuse($T)) -> *ParsedQuali
     retourne résultat
 }
 
-/* 5.4.4 Consume a style block’s contents */
+/* 5.5.4 Consume a style block’s contents */
 consomme_le_contenu_d_un_bloc_de_style :: fonc (parseuse: &Parseuse($T)) -> StyleBlockContent
 {
     decls: [..]ParsedDeclaration
@@ -664,7 +680,7 @@ consomme_le_contenu_d_un_bloc_de_style :: fonc (parseuse: &Parseuse($T)) -> Styl
     retourne StyleBlockContent(decls, rules)
 }
 
-/* 5.4.5 Consume a list of declarations */
+/* 5.5.5 Consume a list of declarations */
 consomme_une_liste_de_déclarations :: fonc (parseuse: &Parseuse($T)) -> StyleBlockContent
 {
     // Create an initially empty list of declarations.
@@ -740,7 +756,7 @@ consomme_une_liste_de_déclarations :: fonc (parseuse: &Parseuse($T)) -> StyleBl
     retourne StyleBlockContent(decls, rules)
 }
 
-/* 5.4.6 Consume a declaration */
+/* 5.5.6 Consume a declaration */
 consomme_une_déclaration :: fonc (parseuse: &Parseuse($T)) -> Optionnel(ParsedDeclaration)
 {
     lexème := parseuse.consomme_le_lexème_en_entrée_suivant()
@@ -818,7 +834,37 @@ supprime_espaces_blanches_en_fin :: fonc (value: *[..]ComponentValue)
     assert(value.taille >= 0)
 }
 
-/* 5.4.7 Consume a component value */
+/* 5.5.7. Consume a list of component values */
+consomme_une_lise_de_valeur_composante :: fonc (parseuse: &Parseuse($T), stop_token: GenreLexème, nested := faux) -> [..]ComponentValue
+{
+    values: [..]ComponentValue
+
+    tantque !fini(parseuse) {
+        lexème := parseuse.consomme_le_lexème_en_entrée_suivant()
+
+        si lexème.est_lexème_de_genre(GenreLexème.EOF) || lexème.est_lexème_de_genre(stop_token) {
+            arrête
+        }
+
+        si lexème.est_lexème_de_genre(GenreLexème.Close_Bracket) {
+            si nested {
+                arrête
+            }
+
+            /* parse-error */
+            lexème = parseuse.consomme_le_lexème_en_entrée_suivant()
+            tableau_ajoute(*values, lexème)
+            continue
+        }
+
+        valeur := consomme_une_valeur_composante(parseuse)
+        tableau_ajoute(*values, valeur)
+    }
+
+    retourne values
+}
+
+/* 5.5.8 Consume a component value */
 consomme_une_valeur_composante :: fonc (parseuse: &Parseuse($T)) -> ComponentValue
 {
     lexème := parseuse.consomme_le_lexème_en_entrée_suivant()
@@ -847,7 +893,7 @@ donne_genre_lexème_mirroir :: fonc (lexème: Lexème) -> GenreLexème
     retourne GenreLexème.Close_Parenthesis
 }
 
-/* 5.4.8 Consume a simple block */
+/* 5.5.9 Consume a simple block */
 consomme_un_bloc_simple :: fonc (parseuse: &Parseuse($T), lexème_associé: T) -> ParsedSimpleBlock
 {
     genre_lexème_fin := donne_genre_lexème_mirroir(lexème_associé)
@@ -875,7 +921,7 @@ consomme_un_bloc_simple :: fonc (parseuse: &Parseuse($T), lexème_associé: T) -
     retourne résultat
 }
 
-/* 5.4.9 Consume a function */
+/* 5.5.10 Consume a function */
 consomme_une_fonction :: fonc (parseuse: &Parseuse($T), lexème_function: T) -> ParsedFunction
 {
     résultat: ParsedFunction
@@ -912,7 +958,7 @@ consomme_une_fonction :: fonc (parseuse: &Parseuse($T), lexème_function: T) -> 
 ParseuseSelector :: Parseuse(ComponentValue)
 
 /* <selector-list> = <complex-selector-list> */
-parse_selector_list :: fonc (prelude: [..]ComponentValue) -> Optionnel(SelectorList)
+parse_selector_list :: fonc (prelude: []ComponentValue) -> Optionnel(SelectorList)
 {
     parseuse := initialise_une_parseuse(prelude)
     retourne parse_selector_list(parseuse)
@@ -1410,12 +1456,119 @@ parse_pseudo_class_selector :: fonc (parseuse: &ParseuseSelector, pour_pseudo_el
                 }
             }
         }
+        sinon si nom_fonction == PROP_nth_child || nom_fonction == PROP_nth_of_type || nom_fonction == PROP_nth_last_child || nom_fonction == PROP_nth_last_of_type {
+            parseuse_locale.avance()
+
+            opt_nth_child := parse_nth_child(fonction.value)
+            saufsi opt_nth_child.possède_valeur() {
+                retourne
+            }
+            
+            parseuse.curseur = parseuse_locale.curseur
+            retourne crée_nth_child_selector(nom_fonction, opt_nth_child.Quelque)
+        }
         sinon {
-            imprime("fonction non supporté : %\n", nom_fonction)
+            imprime("fonction non supporté : %, lexème : %\n", nom_fonction, parseuse_locale.lexème_courant())
         }
 
         retourne
     }
+}
+
+parse_nth_child :: fonc (value: []ComponentValue) -> Optionnel(SimpleSelector.NthChild)
+{
+    parseuse := initialise_une_parseuse(value)
+    parseuse.consomme_espaces_blanches()
+
+    lexème := parseuse.lexème_courant()
+
+    si lexème.est_mot_clé(PROP_odd) {
+        retourne SimpleSelector.NthChild(2, 1)
+    }
+
+    si lexème.est_mot_clé(PROP_even) {
+        retourne SimpleSelector.NthChild(2)
+    }
+
+    chn_moins_n := crée_chaine_utf16_unique("-n")
+    chn_n := crée_chaine_utf16_unique("n")
+
+    A_est_négatif := faux
+    A: z32
+    si lexème.est_lexème_moins() {
+        /* -n */
+        parseuse.avance()
+        A_est_négatif = vrai
+
+        parseuse.consomme_espaces_blanches()
+        lexème = parseuse.lexème_courant()
+        saufsi lexème.est_lexème_de_genre(GenreLexème.Ident) {
+            retourne
+        }
+        parseuse.avance()
+
+        si lexème.lexème.valeur != chn_n {
+            retourne
+        }
+
+        A = -1
+    }
+    sinon si lexème.est_mot_clé(chn_moins_n) {
+        parseuse.avance()
+        A = -1
+    }
+    sinon si lexème.est_mot_clé(chn_n) {
+        parseuse.avance()
+        A = 1
+    }
+    sinon {
+        si lexème.est_lexème_de_genre(GenreLexème.Number) {
+            B := lexème.lexème.numeric_value comme z32
+            retourne SimpleSelector.NthChild(0, B)
+        }
+
+        saufsi lexème.est_lexème_de_genre(GenreLexème.Dimension) {
+            retourne
+        }
+        parseuse.avance()
+        si lexème.lexème.unité != chn_n {
+            retourne
+        }
+        A = lexème.lexème.numeric_value comme z32
+    }
+
+    parseuse.consomme_espaces_blanches()
+    lexème = parseuse.lexème_courant()
+
+    est_négatif := faux
+
+    si lexème.est_lexème_plus() {
+        parseuse.avance()
+    }
+    sinon si lexème.est_lexème_moins() {
+        parseuse.avance()
+        est_négatif = vrai
+    }
+    sinon si parseuse.fini() {
+        retourne SimpleSelector.NthChild(A)
+    }
+
+    // Dans le cas de "2n+1" (sans espaces) il semblerait que le lexage fusionne "+1" en un simple "1".
+    // Donc nous ne n'avortons pas s'il n'y a pas de signe.
+
+    parseuse.consomme_espaces_blanches()
+    lexème = parseuse.lexème_courant()
+    saufsi lexème.est_lexème_de_genre(GenreLexème.Number) {
+        retourne
+    }
+
+    B := lexème.lexème.numeric_value comme z32
+    si est_négatif {
+        B = -B
+    }
+    parseuse.avance()
+
+    retourne SimpleSelector.NthChild(A, B)
 }
 
 /* <pseudo-element-selector> = ':' <pseudo-class-selector> */
@@ -1488,6 +1641,426 @@ parse_combinateur :: fonc (parseuse: &ParseuseSelector) -> Optionnel(Combinator)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Parsage de "media queries".
+ * https://drafts.csswg.org/mediaqueries/#mq-syntax
+ * \{ */
+
+/* https://drafts.csswg.org/mediaqueries/#typedef-media-query-list */
+parse_a_media_query_list :: fonc (values: []ComponentValue) -> *MediaList
+{
+    groups := parse_a_comma_separated_list_of_component_values(values)
+    diffère {
+        pour groups {
+            déloge(it)
+        }
+        déloge(groups)
+    }
+
+    si groups.taille == 0 {
+        retourne nul
+    }
+
+    résultat := loge(MediaList)
+
+    pour groups {
+        parseuse := initialise_une_parseuse(it)
+        media_query := parse_a_media_query(parseuse)
+        si media_query == nul || parseuse.possède_erreur {
+            /* Si nous ne pouvons pas parser la liste, nous abandonnons, et la règle sera ignoré. */
+            détruit_media_list(résultat)
+            retourne nul
+        }
+
+        tableau_ajoute(*résultat.media_queries, media_query)
+    }
+
+    retourne résultat
+}
+
+// <media-query> = <media-condition>
+//              | [ not | only ]? <media-type> [ and <media-condition-without-or> ]?
+parse_a_media_query :: fonc (parseuse: &Parseuse(ComponentValue)) -> *MediaQuery
+{
+    condition := parse_a_media_condition(parseuse)
+    si condition {
+        retourne condition
+    }
+
+    not_rencontré := faux
+
+    parseuse.consomme_espaces_blanches()
+    lexème := parseuse.lexème_courant()
+    si lexème.est_mot_clé(PROP_only) {
+        parseuse.avance()
+        /* Rien à faire, 'only' est uniquement utilisé pour désactiver la
+         * requête sur les agents ne supportant pas la nouvelle syntaxe post-HTML4. */
+    }
+    sinon si lexème.est_mot_clé(PROP_not) {
+        parseuse.avance()
+        not_rencontré = vrai
+    }
+
+    media_type := parse_a_media_type(parseuse)
+    saufsi media_type {
+        retourne nul
+    }
+
+    parseuse.consomme_espaces_blanches()
+    lexème = parseuse.lexème_courant()
+    si lexème.est_mot_clé(PROP_and) {
+        parseuse.avance()
+
+        droite := parse_a_media_condition_without_or(parseuse)
+        saufsi droite {
+            retourne nul
+        }
+
+        retourne crée_media_query_and(media_type, droite)
+    }
+
+    si not_rencontré {
+        retourne crée_media_query_not(media_type)
+    }
+
+    retourne media_type
+}
+
+// <media-type> = <ident>
+parse_a_media_type :: fonc (parseuse: &Parseuse(ComponentValue)) -> *MediaQuery
+{
+    parseuse.consomme_espaces_blanches()
+    lexème := parseuse.lexème_courant()
+
+    si lexème.est_lexème_de_genre(GenreLexème.Ident) {
+        parseuse.avance()
+        ident := lexème.donne_texte()
+        retourne crée_media_query_type(ident)
+    }
+
+    retourne nul
+}
+
+// <media-condition> = <media-not> | <media-in-parens> [ <media-and>* | <media-or>* ]
+parse_a_media_condition :: fonc (parseuse: &Parseuse(ComponentValue)) -> *MediaQuery
+{
+    media_not := parse_a_media_not(parseuse)
+    si media_not {
+        retourne media_not
+    }
+
+    media_in_parens := parse_a_media_in_parens(parseuse)
+    saufsi media_in_parens {
+        retourne nul
+    }
+
+    gauche := media_in_parens
+
+    tantque !parseuse.fini() {
+        parseuse.consomme_espaces_blanches()
+        lexème := parseuse.lexème_courant()
+
+        si lexème.est_mot_clé(PROP_and) {
+            parseuse.avance()
+
+            media_and := parse_a_media_and(parseuse, gauche)
+            saufsi media_and {
+                retourne nul
+            }
+
+            gauche = media_and
+            continue
+        }
+
+        si lexème.est_mot_clé(PROP_or) {
+            parseuse.avance()
+
+            media_or := parse_a_media_or(parseuse, gauche)
+            saufsi media_or {
+                retourne nul
+            }
+
+            gauche = media_or
+            continue
+        }
+
+        si lexème.est_lexème_de_genre(GenreLexème.EOF) {
+            parseuse.avance()
+            arrête
+        }
+
+        parseuse.consomme_espaces_blanches()
+    }
+
+    retourne gauche
+}
+
+// <media-condition-without-or> = <media-not> | <media-in-parens> <media-and>*
+parse_a_media_condition_without_or :: fonc (parseuse: &Parseuse(ComponentValue)) -> *MediaQuery
+{
+    media_not := parse_a_media_not(parseuse)
+    si media_not {
+        retourne media_not
+    }
+
+    media_in_parens := parse_a_media_in_parens(parseuse)
+    saufsi media_in_parens {
+        retourne nul
+    }
+
+    gauche := media_in_parens
+
+    tantque !parseuse.fini() {
+        parseuse.consomme_espaces_blanches()
+        lexème := parseuse.lexème_courant()
+
+        si lexème.est_mot_clé(PROP_and) {
+            parseuse.avance()
+
+            media_and := parse_a_media_and(parseuse, gauche)
+            saufsi media_and {
+                retourne nul
+            }
+
+            gauche = media_and
+            continue
+        }
+
+        si lexème.est_lexème_de_genre(GenreLexème.EOF) {
+            parseuse.avance()
+            arrête
+        }
+
+        parseuse.consomme_espaces_blanches()
+    }
+
+    retourne gauche
+}
+
+// <media-not> = not <media-in-parens>
+parse_a_media_not :: fonc (parseuse: &Parseuse(ComponentValue)) -> *MediaQuery
+{
+    parseuse.consomme_espaces_blanches()
+    lexème := parseuse.lexème_courant()
+    
+    saufsi lexème.est_mot_clé(PROP_not) {
+        retourne nul
+    }
+
+    parseuse.avance()
+
+    opérande := parse_a_media_in_parens(parseuse)
+    saufsi opérande {
+        parseuse.possède_erreur = vrai
+        retourne nul
+    }
+
+    retourne crée_media_query_not(opérande)
+}
+
+// <media-and> = and <media-in-parens>
+parse_a_media_and :: fonc (parseuse: &Parseuse(ComponentValue), gauche: *MediaQuery) -> *MediaQuery
+{
+    parseuse.consomme_espaces_blanches()
+    lexème := parseuse.lexème_courant()
+    
+    saufsi lexème.est_mot_clé(PROP_and) {
+        retourne nul
+    }
+
+    parseuse.avance()
+
+    droite := parse_a_media_in_parens(parseuse)
+    saufsi droite {
+        retourne nul
+    }
+
+    retourne crée_media_query_and(gauche, droite)
+}
+
+// <media-or> = or <media-in-parens>
+parse_a_media_or :: fonc (parseuse: &Parseuse(ComponentValue), gauche: *MediaQuery) -> *MediaQuery
+{
+    parseuse.consomme_espaces_blanches()
+    lexème := parseuse.lexème_courant()
+    
+    saufsi lexème.est_mot_clé(PROP_or) {
+        retourne nul
+    }
+
+    parseuse.avance()
+
+    droite := parse_a_media_in_parens(parseuse)
+    saufsi droite {
+        retourne nul
+    }
+
+    retourne crée_media_query_or(gauche, droite)
+}
+
+// <media-in-parens> = ( <media-condition> ) | ( <media-feature> ) | <general-enclosed>
+parse_a_media_in_parens :: fonc (parseuse: &Parseuse(ComponentValue)) -> *MediaQuery
+{
+    parseuse.consomme_espaces_blanches()
+    lexème := parseuse.lexème_courant()
+
+    saufsi lexème.est_simple_bloc_de_genre(GenreLexème.Open_Parenthesis) {
+        retourne nul
+    }
+
+    parseuse.avance()
+
+    bloc := lexème.bloc
+
+    parseuse_locale := initialise_une_parseuse(bloc.value)
+    media_condition := parse_a_media_condition(parseuse_locale)
+    parseuse.possède_erreur = parseuse_locale.possède_erreur
+    si media_condition {
+        retourne crée_media_query_in_parens(media_condition)
+    }
+
+    parseuse_locale = initialise_une_parseuse(bloc.value)
+    media_feature := parse_a_media_feature(parseuse_locale)
+    parseuse.possède_erreur = parseuse_locale.possède_erreur
+    si media_feature {
+        retourne crée_media_query_in_parens(media_feature)
+    }
+
+    // À FAIRE : <general-enclosed>
+
+    retourne nul
+}
+
+// <media-feature> = [ <mf-plain> | <mf-boolean> | <mf-range> ]
+parse_a_media_feature :: fonc (parseuse: &Parseuse(ComponentValue)) -> *MediaQuery
+{
+    parseuse_locale : Parseuse(ComponentValue) = parseuse
+    opt_mf_plain := parse_mf_plain(parseuse_locale)
+    parseuse.possède_erreur = parseuse_locale.possède_erreur
+    si opt_mf_plain.possède_valeur() {
+        parseuse.curseur = parseuse_locale.curseur
+        retourne crée_media_query_feature(opt_mf_plain.Quelque)
+    }
+
+    parseuse_locale = parseuse
+    opt_mf_boolean := parse_mf_boolean(parseuse_locale)
+    parseuse.possède_erreur = parseuse_locale.possède_erreur
+    si opt_mf_boolean.possède_valeur() {
+        parseuse.curseur = parseuse_locale.curseur
+        retourne crée_media_query_feature(opt_mf_boolean.Quelque)
+    }
+
+    // À FAIRE
+    // parseuse_locale = parseuse
+    // opt_mf_range := parse_mf_range(parseuse_locale)
+    // si opt_mf_range.possède_valeur() {
+    //     retourne crée_media_query_feature(opt_mf_range.Quelque)
+    // }
+    
+    retourne nul
+}
+
+// <mf-plain> = <mf-name> : <mf-value>
+parse_mf_plain :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(MediaFeaturePlain)
+{
+    opt_mf_name := parse_mf_name(parseuse)
+    saufsi opt_mf_name.possède_valeur() {
+        retourne
+    }
+
+    parseuse.consomme_espaces_blanches()
+    lexème := parseuse.lexème_courant()
+    saufsi lexème.est_lexème_de_genre(GenreLexème.Colon) {
+        retourne
+    }
+    parseuse.avance()
+
+    opt_value := parseuse.parse_mf_value()
+    saufsi opt_value.possède_valeur() {
+        parseuse.possède_erreur = vrai
+        retourne
+    }
+
+    résultat: MediaFeaturePlain
+    résultat.name = opt_mf_name.Quelque
+    résultat.value = opt_value.Quelque
+    retourne résultat
+}
+
+// <mf-boolean> = <mf-name>
+parse_mf_boolean :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(MediaFeatureBoolean)
+{
+    opt_mf_name := parse_mf_name(parseuse)
+    saufsi opt_mf_name.possède_valeur() {
+        retourne
+    }
+
+    résultat: MediaFeatureBoolean
+    résultat.name = opt_mf_name.Quelque
+    retourne résultat
+}
+
+// <mf-range> = <mf-name> <mf-comparison> <mf-value>
+//            | <mf-value> <mf-comparison> <mf-name>
+//            | <mf-value> <mf-lt> <mf-name> <mf-lt> <mf-value>
+//            | <mf-value> <mf-gt> <mf-name> <mf-gt> <mf-value>
+
+// <mf-name> = <ident>
+parse_mf_name :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(CSSOMString)
+{
+    parseuse.consomme_espaces_blanches()
+    lexème := parseuse.lexème_courant()
+
+    saufsi lexème.est_lexème_de_genre(GenreLexème.Ident) {
+        retourne
+    }
+
+    parseuse.avance()
+    retourne lexème.donne_texte()
+}
+
+// <mf-value> = <number> | <dimension> | <ident> | <ratio>
+parse_mf_value :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(MediaFeatureValue)
+{
+    parseuse.consomme_espaces_blanches()
+    lexème := parseuse.lexème_courant()
+
+    si lexème.est_lexème_de_genre(GenreLexème.Number) {
+        parseuse.avance()
+        retourne MediaFeatureValue(number = lexème.lexème.numeric_value)
+    }
+
+    si lexème.est_lexème_de_genre(GenreLexème.Dimension) {
+        données_lexème := lexème.lexème
+
+        unité := donne_unité_pour_nom(données_lexème.unité)
+        si unité.possède_valeur() {
+            parseuse.avance()
+            longueur := Longueur(données_lexème.numeric_value, unité.Quelque)
+            retourne MediaFeatureValue(dimension = longueur)
+        }
+
+        retourne
+    }
+
+    si lexème.est_lexème_de_genre(GenreLexème.Ident) {
+        parseuse.avance()
+        retourne MediaFeatureValue(ident = lexème.donne_texte())
+    }
+
+    // À FAIRE : calc
+    // À FAIRE : ratio
+}
+
+// <mf-lt> = '<' '='?
+// <mf-gt> = '>' '='?
+// <mf-eq> = '='
+// <mf-comparison> = <mf-lt> | <mf-gt> | <mf-eq>
+
+// <general-enclosed> = [ <function-token> <any-value>? ) ] | [ ( <any-value>? ) ]
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Parsage de feuilles de style.
  * \{ */
 
@@ -1511,19 +2084,25 @@ donne_info_type_pour_nom :: fonc (ctx: *ContexteParsageFeuilleDeStyle, nom: CSSO
 {
     résultat := donne_info_type_pour_nom(nom)
     saufsi résultat {
-        préfixes_vendeurs := [PRV_khtml, PRV_moz, PRV_ms, PRV_o, PRV_webkit]
-
-        pour préfixes_vendeurs {
-            préfixe := it.donne_chaine_utf16()
-            si est_préfixe_de(préfixe, nom.donne_chaine_utf16()) {
-                arrête
-            }
-        }
-        sansarrêt {
+        saufsi commence_par_préfixe_vendeur(nom) {
             ensemble_ajoute(*ctx.propriétés_non_supportées, nom)
         }
     }
     retourne résultat
+}
+
+commence_par_préfixe_vendeur :: fonc (nom: CSSOMString) -> bool
+{
+    préfixes_vendeurs := [PRV_khtml, PRV_moz, PRV_ms, PRV_o, PRV_webkit]
+
+    pour préfixes_vendeurs {
+        préfixe := it.donne_chaine_utf16()
+        si est_préfixe_de(préfixe, nom.donne_chaine_utf16()) {
+            retourne vrai
+        }
+    }
+
+    retourne faux
 }
 
 /* https://www.w3.org/TR/css-syntax-3/#parse-a-css-stylesheet */
@@ -1546,20 +2125,38 @@ parse_style_rules :: fonc (ctx: *ContexteParsageFeuilleDeStyle, css_stylesheet: 
     diffère détruit_données_stylesheet(*stylesheet)
 
     pour stylesheet.value {
-        si it.type == ParsedQualifiedRule {
-            parse_a_style_rule(ctx, css_stylesheet, it comme *ParsedQualifiedRule)
+        rule := parse_a_rule_generic(ctx, css_stylesheet, it)
+        si rule {
+            tableau_ajoute(*css_stylesheet.rules, rule)
         }
     }
 }
 
+parse_a_rule_generic :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sheet: *CSSStyleSheet, parsed_rule: *ParsedRule) -> *CSSRule
+{
+    si parsed_rule.type == ParsedQualifiedRule {
+        retourne parse_a_style_rule(ctx, parent_style_sheet, parsed_rule comme *ParsedQualifiedRule)
+    }
+
+    si parsed_rule.type == ParsedAtRule {
+        at_rule := parsed_rule comme *ParsedAtRule
+
+        si at_rule.name == PROP_media {
+            retourne parse_a_media_rule(ctx, parent_style_sheet, at_rule)
+        }
+    }
+
+    retourne nul
+}
+
 /* https://www.w3.org/TR/css-syntax-3/#style-rules */
-parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sheet: *CSSStyleSheet, parsed_rule: *ParsedQualifiedRule)
+parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sheet: *CSSStyleSheet, parsed_rule: *ParsedQualifiedRule) -> *CSSStyleRule
 {
     selectors := parse_selector_list(parsed_rule.prelude)
     saufsi selectors.possède_valeur() {
         /* Si nous n'arrivons pas à parser les sélecteurs,
          * nous devons ignorer la règle. */
-        retourne
+        retourne nul
     }
 
     résultat := loge(CSSStyleRule)
@@ -1577,10 +2174,36 @@ parse_a_style_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sh
 
     si style.déclarations.taille == 0 {
         détruit_style_rule(résultat)
-        retourne
+        retourne nul
     }
 
-    tableau_ajoute(*parent_style_sheet.rules, résultat)
+    retourne résultat
+}
+
+/* https://drafts.csswg.org/css-conditional-3/#at-media */
+parse_a_media_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sheet: *CSSStyleSheet, parsed_rule: *ParsedAtRule) -> *CSSMediaRule
+{
+    media_list := parse_a_media_query_list(parsed_rule.prelude)
+    saufsi media_list {
+        retourne nul
+    }
+
+    parseuse := initialise_une_parseuse(parsed_rule.bloc.value)
+    règles := consomme_une_liste_de_règles(parseuse, vrai)
+    diffère déloge(règles)
+
+    résultat := loge(CSSMediaRule)
+    résultat.parent_style_sheet = parent_style_sheet
+    résultat.media_list = media_list
+
+    pour règles {
+        rule := parse_a_rule_generic(ctx, parent_style_sheet, it)
+        si rule {
+            tableau_ajoute(*résultat.css_rules, rule)
+        }
+    }
+
+    retourne résultat
 }
 
 ContexteParsageShorthand :: struct {
@@ -1648,7 +2271,7 @@ ajoute_propriétés_logique :: fonc (ctx: *ContexteParsageShorthand, nombre_vale
     }
 }
 
-parse_mot_clé_global :: fonc (ctx: *ContexteParsageShorthand, noms_propriétés: []CSSOMString, value: [..]ComponentValue) -> bool
+parse_mot_clé_global :: fonc (ctx: *ContexteParsageShorthand, noms_propriétés: []CSSOMString, value: []ComponentValue) -> bool
 {
     parseuse := initialise_une_parseuse(value)
     valeur := parse_css_wide_keyword(parseuse)
@@ -1689,7 +2312,7 @@ parse_css_style_declaration :: fonc (ctx: *ContexteParsageFeuilleDeStyle, décla
             ctx_parsage_shorthand.déclaration = résultat
 
             saufsi info_type_propriété.sur_parsage_shorthand(*ctx_parsage_shorthand, it.value) {
-                imprime("Impossible de parser : %\n", it)
+                rapporte_erreur_de_parsage(it)
             }
 
             continue
@@ -1697,7 +2320,7 @@ parse_css_style_declaration :: fonc (ctx: *ContexteParsageFeuilleDeStyle, décla
 
         opt_valeur := parse_valeur_propriété(info_type_propriété, it.value)
         saufsi opt_valeur.possède_valeur() {
-            imprime("Impossible de parser : %\n", it)
+            rapporte_erreur_de_parsage(it)
             continue
         }
 
@@ -1713,7 +2336,22 @@ parse_css_style_declaration :: fonc (ctx: *ContexteParsageFeuilleDeStyle, décla
     retourne résultat
 }
 
-parse_valeur_propriété :: fonc (info_type_propriété: *InfoTypePropriété, value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+rapporte_erreur_de_parsage :: fonc (déclaration: ParsedDeclaration)
+{
+    pour déclaration.value {
+        saufsi it.est_lexème_de_genre(GenreLexème.Ident) {
+            continue
+        }
+
+        si commence_par_préfixe_vendeur(it.lexème.valeur) {
+            retourne
+        }
+    }
+
+    imprime("Impossible de parser : %\n", déclaration)
+}
+
+parse_valeur_propriété :: fonc (info_type_propriété: *InfoTypePropriété, value: []ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     opt_valeur := info_type_propriété.fonction_de_parsage(value)
     si opt_valeur.possède_valeur() {
@@ -1761,8 +2399,8 @@ InfoTypePropriété :: struct {
     drapeaux: DrapeauxPropriété
     genre_valeur_calculée: GenreValeurCalculée
     id: IDPropriété
-    fonction_de_parsage: fonc([..]ComponentValue)(Optionnel(ValeurDeStyle))
-    sur_parsage_shorthand: fonc(*ContexteParsageShorthand, [..]ComponentValue)(bool)
+    fonction_de_parsage: fonc([]ComponentValue)(Optionnel(ValeurDeStyle))
+    sur_parsage_shorthand: fonc(*ContexteParsageShorthand, []ComponentValue)(bool)
     sur_calcul_style: fonc(*DéclarationPropriété, *Style, *ContexteCalculStyle)(rien)
 }
 
@@ -1790,7 +2428,9 @@ infos_types_propriétés_shorthand := [
     InfoTypePropriété(PROP_font, sur_parsage_shorthand = parse_propriété_font, drapeaux = DrapeauxPropriété.AffecteDisposition /* | DrapeauxPropriété.Héritée */),
     InfoTypePropriété(PROP_all, sur_parsage_shorthand = parse_propriété_all, drapeaux = DrapeauxPropriété.AffecteConstructionArbre),
     InfoTypePropriété(PROP_border_radius, sur_parsage_shorthand = parse_propriété_border_radius_shorthand),
-    InfoTypePropriété(PROP_overflow, sur_parsage_shorthand = parse_shorthand_overflow)
+    InfoTypePropriété(PROP_overflow, sur_parsage_shorthand = parse_shorthand_overflow),
+    InfoTypePropriété(PROP_flex, sur_parsage_shorthand = parse_shorthand_flex),
+    InfoTypePropriété(PROP_flex_flow, sur_parsage_shorthand = parse_shorthand_flex_flow)
 ]
 
 infos_types_propriétés := [
@@ -1810,14 +2450,26 @@ infos_types_propriétés := [
     InfoTypePropriété(PROP_border_left_color, id = IDPropriété.BorderColorLeft, fonction_de_parsage = parse_propriété_color, genre_valeur_calculée = GenreValeurCalculée.Couleur),
     InfoTypePropriété(PROP_border_bottom_color, id = IDPropriété.BorderColorBottom, fonction_de_parsage = parse_propriété_color, genre_valeur_calculée = GenreValeurCalculée.Couleur),
     InfoTypePropriété(PROP_border_right_color, id = IDPropriété.BorderColorRight, fonction_de_parsage = parse_propriété_color, genre_valeur_calculée = GenreValeurCalculée.Couleur),
+    InfoTypePropriété(PROP_border_block_end_color, fonction_de_parsage = parse_propriété_color, sur_calcul_style = prop_border_block_end_color_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.Couleur),
+    InfoTypePropriété(PROP_border_block_start_color, fonction_de_parsage = parse_propriété_color, sur_calcul_style = prop_border_block_start_color_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.Couleur),
+    InfoTypePropriété(PROP_border_inline_end_color, fonction_de_parsage = parse_propriété_color, sur_calcul_style = prop_border_inline_end_color_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.Couleur),
+    InfoTypePropriété(PROP_border_inline_start_color, fonction_de_parsage = parse_propriété_color, sur_calcul_style = prop_border_inline_start_color_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.Couleur),
     InfoTypePropriété(PROP_border_top_style, id = IDPropriété.BorderStyleTop, fonction_de_parsage = parse_propriété_border_line_style, genre_valeur_calculée = GenreValeurCalculée.LineStyle),
     InfoTypePropriété(PROP_border_bottom_style, id = IDPropriété.BorderStyleBottom, fonction_de_parsage = parse_propriété_border_line_style, genre_valeur_calculée = GenreValeurCalculée.LineStyle),
     InfoTypePropriété(PROP_border_right_style, id = IDPropriété.BorderStyleRight, fonction_de_parsage = parse_propriété_border_line_style, genre_valeur_calculée = GenreValeurCalculée.LineStyle),
     InfoTypePropriété(PROP_border_left_style, id = IDPropriété.BorderStyleLeft, fonction_de_parsage = parse_propriété_border_line_style, genre_valeur_calculée = GenreValeurCalculée.LineStyle),
+    InfoTypePropriété(PROP_border_block_end_style, fonction_de_parsage = parse_propriété_border_line_style, sur_calcul_style = prop_border_block_end_style_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LineStyle),
+    InfoTypePropriété(PROP_border_block_start_style, fonction_de_parsage = parse_propriété_border_line_style, sur_calcul_style = prop_border_block_start_style_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LineStyle),
+    InfoTypePropriété(PROP_border_inline_end_style, fonction_de_parsage = parse_propriété_border_line_style, sur_calcul_style = prop_border_inline_end_style_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LineStyle),
+    InfoTypePropriété(PROP_border_inline_start_style, fonction_de_parsage = parse_propriété_border_line_style, sur_calcul_style = prop_border_inline_start_style_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LineStyle),
     InfoTypePropriété(PROP_border_top_width, id = IDPropriété.BorderWidthTop, fonction_de_parsage = parse_propriété_border_line_width, genre_valeur_calculée = GenreValeurCalculée.BorderWidth, drapeaux = DrapeauxPropriété.AffecteDisposition),
     InfoTypePropriété(PROP_border_bottom_width, id = IDPropriété.BorderWidthBottom, fonction_de_parsage = parse_propriété_border_line_width, genre_valeur_calculée = GenreValeurCalculée.BorderWidth, drapeaux = DrapeauxPropriété.AffecteDisposition),
     InfoTypePropriété(PROP_border_left_width, id = IDPropriété.BorderWidthLeft, fonction_de_parsage = parse_propriété_border_line_width, genre_valeur_calculée = GenreValeurCalculée.BorderWidth, drapeaux = DrapeauxPropriété.AffecteDisposition),
     InfoTypePropriété(PROP_border_right_width, id = IDPropriété.BorderWidthRight, fonction_de_parsage = parse_propriété_border_line_width, genre_valeur_calculée = GenreValeurCalculée.BorderWidth, drapeaux = DrapeauxPropriété.AffecteDisposition),
+    InfoTypePropriété(PROP_border_block_end_width, fonction_de_parsage = parse_propriété_border_line_width, sur_calcul_style = prop_border_block_end_width_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.BorderWidth, drapeaux = DrapeauxPropriété.AffecteDisposition),
+    InfoTypePropriété(PROP_border_block_start_width, fonction_de_parsage = parse_propriété_border_line_width, sur_calcul_style = prop_border_block_start_width_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.BorderWidth, drapeaux = DrapeauxPropriété.AffecteDisposition),
+    InfoTypePropriété(PROP_border_inline_end_width, fonction_de_parsage = parse_propriété_border_line_width, sur_calcul_style = prop_border_inline_end_width_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.BorderWidth, drapeaux = DrapeauxPropriété.AffecteDisposition),
+    InfoTypePropriété(PROP_border_inline_start_width, fonction_de_parsage = parse_propriété_border_line_width, sur_calcul_style = prop_border_inline_start_width_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.BorderWidth, drapeaux = DrapeauxPropriété.AffecteDisposition),
     InfoTypePropriété(PROP_margin_block_end, fonction_de_parsage = parse_propriété_margin_top, sur_calcul_style = prop_margin_block_end_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto, drapeaux = DrapeauxPropriété.AffecteDisposition),
     InfoTypePropriété(PROP_margin_block_start, fonction_de_parsage = parse_propriété_margin_top, sur_calcul_style = prop_margin_block_start_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto, drapeaux = DrapeauxPropriété.AffecteDisposition),
     InfoTypePropriété(PROP_margin_bottom, id = IDPropriété.MarginBottom, fonction_de_parsage = parse_propriété_margin_top, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto, drapeaux = DrapeauxPropriété.AffecteDisposition),
@@ -1840,6 +2492,12 @@ infos_types_propriétés := [
     InfoTypePropriété(PROP_width, id = IDPropriété.Width, fonction_de_parsage = parse_propriété_height_width, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition),
     InfoTypePropriété(PROP_min_width, id = IDPropriété.MinWidth, fonction_de_parsage = parse_propriété_min_height_width, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition),
     InfoTypePropriété(PROP_max_width, id = IDPropriété.MaxWidth, fonction_de_parsage = parse_propriété_max_height_width, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition),
+    InfoTypePropriété(PROP_inline_size, fonction_de_parsage = parse_propriété_height_width, sur_calcul_style = prop_inline_size_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition),
+    InfoTypePropriété(PROP_block_size, fonction_de_parsage = parse_propriété_height_width, sur_calcul_style = prop_block_size_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition),
+    InfoTypePropriété(PROP_max_inline_size, fonction_de_parsage = parse_propriété_min_height_width, sur_calcul_style = prop_max_inline_size_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition),
+    InfoTypePropriété(PROP_max_block_size, fonction_de_parsage = parse_propriété_max_height_width, sur_calcul_style = prop_max_block_size_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition),
+    InfoTypePropriété(PROP_min_inline_size, fonction_de_parsage = parse_propriété_min_height_width, sur_calcul_style = prop_min_inline_size_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition),
+    InfoTypePropriété(PROP_min_block_size, fonction_de_parsage = parse_propriété_max_height_width, sur_calcul_style = prop_min_block_size_sur_calcul_style, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition),
     InfoTypePropriété(PROP_line_height, id = IDPropriété.LineHeight, fonction_de_parsage = parse_propriété_line_height, drapeaux = DrapeauxPropriété.Héritée | DrapeauxPropriété.AffecteDisposition, genre_valeur_calculée = GenreValeurCalculée.Nombre | GenreValeurCalculée.Spécifié),
     InfoTypePropriété(PROP_bottom, id = IDPropriété.Bottom, fonction_de_parsage = parse_propriété_inset, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto, drapeaux = DrapeauxPropriété.AffecteDisposition),
     InfoTypePropriété(PROP_left, id = IDPropriété.Left, fonction_de_parsage = parse_propriété_inset, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage | GenreValeurCalculée.Auto, drapeaux = DrapeauxPropriété.AffecteDisposition),
@@ -1858,7 +2516,15 @@ infos_types_propriétés := [
     InfoTypePropriété(PROP_border_top_right_radius, id = IDPropriété.BorderTopRightRadius, fonction_de_parsage = parse_propriété_border_radius, genre_valeur_calculée = GenreValeurCalculée.LongueurPourcentage),
     InfoTypePropriété(PROP_clear, id = IDPropriété.Clear, fonction_de_parsage = parse_propriété_clear, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
     InfoTypePropriété(PROP_overflow_x, id = IDPropriété.OverflowX, fonction_de_parsage = parse_propriété_overflow, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
-    InfoTypePropriété(PROP_overflow_y, id = IDPropriété.OverflowY, fonction_de_parsage = parse_propriété_overflow, genre_valeur_calculée = GenreValeurCalculée.Spécifié)
+    InfoTypePropriété(PROP_overflow_y, id = IDPropriété.OverflowY, fonction_de_parsage = parse_propriété_overflow, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
+    InfoTypePropriété(PROP_justify_content, id = IDPropriété.JustifyContent, fonction_de_parsage = parse_propriété_justify_content, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
+    InfoTypePropriété(PROP_flex_basis, id = IDPropriété.FlexBasis, fonction_de_parsage = parse_propriété_flex_basis, genre_valeur_calculée = GenreValeurCalculée.Spécifié | GenreValeurCalculée.LongueurPourcentage),
+    InfoTypePropriété(PROP_flex_direction, id = IDPropriété.FlexDirection, fonction_de_parsage = parse_propriété_flex_direction, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
+    InfoTypePropriété(PROP_flex_wrap, id = IDPropriété.FlexWrap, fonction_de_parsage = parse_propriété_flex_wrap, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
+    InfoTypePropriété(PROP_flex_grow, id = IDPropriété.FlexGrow, fonction_de_parsage = parse_propriété_number, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
+    InfoTypePropriété(PROP_flex_shrink, id = IDPropriété.FlexShrink, fonction_de_parsage = parse_propriété_number, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
+    InfoTypePropriété(PROP_box_sizing, id = IDPropriété.BoxSizing, fonction_de_parsage = parse_propriété_box_sizing, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
+    InfoTypePropriété(PROP_white_space, id = IDPropriété.WhiteSpace, fonction_de_parsage = parse_propriétés_white_space, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.Héritée)
 ]
 
 donne_info_type_pour_nom :: fonc (nom: CSSOMString) -> *InfoTypePropriété
@@ -1984,6 +2650,7 @@ parse_valeur_length_percentage_ou_auto :: fonc (parseuse: &Parseuse(ComponentVal
 {
     lexème := parseuse.lexème_courant()
     si lexème.est_mot_clé(PROP_auto) {
+        parseuse.avance()
         retourne ValeurDeStyle(mot_clé = PROP_auto)
     }
     retourne parse_valeur_length_percentage(parseuse)
@@ -2024,6 +2691,15 @@ parse_variable :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(Valeur
     retourne ValeurDeStyle(variable = résultat)
 }
 
+parse_propriété_number :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    lexème := parseuse.lexème_courant()
+    si lexème.est_lexème_de_genre(GenreLexème.Number) {
+        retourne ValeurDeStyle(number = lexème.lexème.numeric_value)
+    }
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -2031,7 +2707,7 @@ parse_variable :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(Valeur
  * https://drafts.csswg.org/css-cascade/#all-shorthand
  * \{ */
 
-parse_propriété_all :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
+parse_propriété_all :: fonc (ctx: *ContexteParsageShorthand, value: []ComponentValue) -> bool
 {
     parseuse := initialise_une_parseuse(value)
     opt_valeur := parse_css_wide_keyword(parseuse)
@@ -2052,7 +2728,7 @@ parse_propriété_all :: fonc (ctx: *ContexteParsageShorthand, value: [..]Compon
  * \{ */
 
 /* https://drafts.csswg.org/css-display/#the-display-properties */
-parse_propriété_display :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_display :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
 
@@ -2087,7 +2763,7 @@ parse_propriété_display :: fonc (value: [..]ComponentValue) -> Optionnel(Valeu
 parse_display_inside :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
 {
     /* <display-inside>   = flow | flow-root | table | flex | grid | ruby */
-    mots_clés := [PROP_flow, PROP_flow_root]
+    mots_clés := [PROP_flow, PROP_flow_root, PROP_flex]
     retourne parse_mot_clé(parseuse, mots_clés)
 }
 
@@ -2118,7 +2794,7 @@ parse_display_box :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(Val
 parse_display_legacy :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
 {
     /* <display-legacy>   = inline-block | inline-table | inline-flex | inline-grid */
-    mots_clés := [PROP_inline_block]
+    mots_clés := [PROP_inline_block, PROP_inline_flex]
     retourne parse_mot_clé(parseuse, mots_clés)
 }
 
@@ -2146,7 +2822,7 @@ valeur_hex_depuis_unité :: fonc (unité: n16) -> n8
 
 #portée_module
 
-parse_propriété_color :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_color :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
 
@@ -2177,10 +2853,12 @@ parse_valeur_couleur :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(
             retourne ValeurDeStyle(couleur = opt_couleur.Quelque)
         }
 
-        si lexème.est_mot_clé(PROP_currentColor) {
+        si compare_ascii_insensible_à_la_casse(lexème.donne_texte(), PROP_currentColor) {
             parseuse.avance()
             retourne ValeurDeStyle(mot_clé = PROP_currentColor)
         }
+
+        retourne
     }
 
     /* https://www.w3.org/TR/css-color-4/#typedef-hex-color */
@@ -2268,7 +2946,7 @@ parse_couleur_rgb :: fonc (function: &ParsedFunction) -> Optionnel(ValeurDeStyle
     }
 }
 
-parse_couleur_rgb_modern :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_couleur_rgb_modern :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
 
@@ -2337,7 +3015,7 @@ parse_couleur_rgb_modern :: fonc (value: [..]ComponentValue) -> Optionnel(Valeur
     retourne ValeurDeStyle(couleur = couleur)
 }
 
-parse_couleur_rgb_legacy :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_couleur_rgb_legacy :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
 
@@ -2400,7 +3078,7 @@ parse_couleur_rgb_legacy :: fonc (value: [..]ComponentValue) -> Optionnel(Valeur
 }
 
 /* https://www.w3.org/TR/css-color-4/#legacy-color-syntax */
-parse_couleur_syntaxe_legacy :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_couleur_syntaxe_legacy :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
 
@@ -2478,7 +3156,7 @@ parse_couleur_hsl :: fonc (function: &ParsedFunction) -> Optionnel(ValeurDeStyle
     }
 }
 
-parse_couleur_hsl_modern :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_couleur_hsl_modern :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
 
@@ -2557,7 +3235,7 @@ parse_couleur_hsl_modern :: fonc (value: [..]ComponentValue) -> Optionnel(Valeur
     retourne ValeurDeStyle(couleur = couleur)
 }
 
-parse_couleur_hsl_legacy :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_couleur_hsl_legacy :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
 
@@ -2692,7 +3370,7 @@ consomme_slash_et_espaces_blanches :: fonc (parseuse: &Parseuse(ComponentValue))
  * https://drafts.csswg.org/css-text-decor/#text-decoration-property
  * \{ */
 
-parse_propriété_text_decoration :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
+parse_propriété_text_decoration :: fonc (ctx: *ContexteParsageShorthand, value: []ComponentValue) -> bool
 {
     noms_propriétés := [PROP_text_decoration_line, PROP_text_decoration_style, PROP_text_decoration_color]
     si parse_mot_clé_global(ctx, noms_propriétés, value) {
@@ -2744,13 +3422,13 @@ parse_propriété_text_decoration :: fonc (ctx: *ContexteParsageShorthand, value
     retourne vrai
 }
 
-parse_propriété_text_decoration_line :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_text_decoration_line :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     retourne parse_valeur_text_decoration_line(parseuse)
 }
 
-parse_propriété_text_decoration_style :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_text_decoration_style :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     retourne parse_valeur_text_decoration_style(parseuse)
@@ -2889,7 +3567,7 @@ donne_type_cursor :: fonc (chn: CSSOMString) -> CursorType
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
-parse_propriété_cursor :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_cursor :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     mots_clés := [
         PROP_auto, PROP_default, PROP_none, PROP_context_menu, PROP_help, PROP_pointer, PROP_progress,
@@ -2916,7 +3594,7 @@ parse_propriété_cursor :: fonc (value: [..]ComponentValue) -> Optionnel(Valeur
  * https://drafts.csswg.org/css-fonts/#font-prop
  * \{ */
 
-parse_propriété_font :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
+parse_propriété_font :: fonc (ctx: *ContexteParsageShorthand, value: []ComponentValue) -> bool
 {
     noms_propriétés := [PROP_font_weight, PROP_line_height, PROP_font_family, PROP_font_size]
     si parse_mot_clé_global(ctx, noms_propriétés, value) {
@@ -2992,7 +3670,7 @@ parse_propriété_font :: fonc (ctx: *ContexteParsageShorthand, value: [..]Compo
  * https://drafts.csswg.org/css-fonts/#font-family-prop
  * \{ */
 
-parse_propriété_font_family :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_font_family :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     retourne parse_valeur_font_family(parseuse, faux)
@@ -3060,7 +3738,7 @@ parse_valeur_font_family :: fonc (parseuse: &Parseuse(ComponentValue), pour_shor
  * https://drafts.csswg.org/css-fonts/#font-weight-prop
  * \{ */
 
-parse_propriété_font_weight :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_font_weight :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     retourne parse_valeur_font_weight(parseuse)
@@ -3091,7 +3769,7 @@ parse_valeur_font_weight :: fonc (parseuse: &Parseuse(ComponentValue)) -> Option
  * https://drafts.csswg.org/css-fonts/#font-size-prop
  * \{ */
 
-parse_propriété_font_size :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_font_size :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     retourne parse_valeur_font_size(parseuse)
@@ -3119,7 +3797,7 @@ parse_valeur_font_size :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionne
  * https://drafts.csswg.org/css-fonts/#font-style-prop
  * \{ */
 
-parse_propriété_font_style :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_font_style :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     /* normal | italic | oblique <angle [-90deg,90deg]>? */
     mots_clés := [
@@ -3137,7 +3815,7 @@ parse_propriété_font_style :: fonc (value: [..]ComponentValue) -> Optionnel(Va
  * https://drafts.csswg.org/css-backgrounds-3/#background
  * \{ */
 
-parse_propriété_background :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
+parse_propriété_background :: fonc (ctx: *ContexteParsageShorthand, value: []ComponentValue) -> bool
 {
     noms_propriétés := [PROP_background_color, PROP_background_image]
     si parse_mot_clé_global(ctx, noms_propriétés, value) {
@@ -3174,7 +3852,7 @@ parse_propriété_background :: fonc (ctx: *ContexteParsageShorthand, value: [..
 }
 
 /* https://drafts.csswg.org/css-backgrounds-3/#background-image */
-parse_propriété_background_image :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_background_image :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
 
@@ -3229,7 +3907,7 @@ ValeursBorder :: struct {
     color: ValeurDeStyle
 }
 
-parse_propriété_border_impl :: fonc (value: [..]ComponentValue) -> Optionnel(ValeursBorder)
+parse_propriété_border_impl :: fonc (value: []ComponentValue) -> Optionnel(ValeursBorder)
 {
     parseuse := initialise_une_parseuse(value)
 
@@ -3290,7 +3968,7 @@ parse_propriété_border_impl :: fonc (value: [..]ComponentValue) -> Optionnel(V
     retourne résultat
 }
 
-parse_propriété_border :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
+parse_propriété_border :: fonc (ctx: *ContexteParsageShorthand, value: []ComponentValue) -> bool
 {
     noms_propriétés := [
         PROP_border_top_width, PROP_border_bottom_width, PROP_border_right_width, PROP_border_left_width,
@@ -3326,7 +4004,7 @@ parse_propriété_border :: fonc (ctx: *ContexteParsageShorthand, value: [..]Com
     retourne vrai
 }
 
-parse_propriété_border_edge :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
+parse_propriété_border_edge :: fonc (ctx: *ContexteParsageShorthand, value: []ComponentValue) -> bool
 {
     noms_propriétés: [3]CSSOMString
     si ctx.déclaration_parsée.name == PROP_border_top {
@@ -3378,7 +4056,7 @@ parse_propriété_border_edge :: fonc (ctx: *ContexteParsageShorthand, value: [.
     retourne vrai
 }
 
-parse_propriété_border_color :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
+parse_propriété_border_color :: fonc (ctx: *ContexteParsageShorthand, value: []ComponentValue) -> bool
 {
     noms_propriétés := [PROP_border_top_color, PROP_border_right_color, PROP_border_bottom_color, PROP_border_left_color]
     si parse_mot_clé_global(ctx, noms_propriétés, value) {
@@ -3414,7 +4092,7 @@ parse_propriété_border_color :: fonc (ctx: *ContexteParsageShorthand, value: [
     retourne vrai
 }
 
-parse_propriété_border_style :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
+parse_propriété_border_style :: fonc (ctx: *ContexteParsageShorthand, value: []ComponentValue) -> bool
 {
     noms_propriétés := [PROP_border_top_style, PROP_border_right_style, PROP_border_bottom_style, PROP_border_left_style]
     si parse_mot_clé_global(ctx, noms_propriétés, value) {
@@ -3450,7 +4128,7 @@ parse_propriété_border_style :: fonc (ctx: *ContexteParsageShorthand, value: [
     retourne vrai
 }
 
-parse_propriété_border_width :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
+parse_propriété_border_width :: fonc (ctx: *ContexteParsageShorthand, value: []ComponentValue) -> bool
 {
     noms_propriétés := [PROP_border_top_width, PROP_border_right_width, PROP_border_bottom_width, PROP_border_left_width]
     si parse_mot_clé_global(ctx, noms_propriétés, value) {
@@ -3486,7 +4164,7 @@ parse_propriété_border_width :: fonc (ctx: *ContexteParsageShorthand, value: [
     retourne vrai
 }
 
-parse_propriété_border_line_style :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_border_line_style :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
 
@@ -3502,7 +4180,7 @@ parse_propriété_border_line_style :: fonc (value: [..]ComponentValue) -> Optio
     }
 }
 
-parse_propriété_border_line_width :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_border_line_width :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
 
@@ -3571,7 +4249,7 @@ parse_valeur_line_style :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionn
  * https://drafts.csswg.org/css-backgrounds-3/#border-radius
  * \{ */
 
-parse_propriété_border_radius_shorthand :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
+parse_propriété_border_radius_shorthand :: fonc (ctx: *ContexteParsageShorthand, value: []ComponentValue) -> bool
 {
     noms_propriétés := [PROP_border_top_left_radius, PROP_border_top_right_radius, PROP_border_bottom_right_radius, PROP_border_bottom_left_radius]
     si parse_mot_clé_global(ctx, noms_propriétés, value) {
@@ -3624,7 +4302,7 @@ parse_propriété_border_radius_shorthand :: fonc (ctx: *ContexteParsageShorthan
     retourne vrai
 }
 
-parse_propriété_border_radius :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_border_radius :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     retourne parse_valeur_length_percentage(parseuse)
@@ -3638,7 +4316,7 @@ parse_propriété_border_radius :: fonc (value: [..]ComponentValue) -> Optionnel
  * https://drafts.csswg.org/css-logical/#margin-properties
  * \{ */
 
-parse_propriété_margin :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
+parse_propriété_margin :: fonc (ctx: *ContexteParsageShorthand, value: []ComponentValue) -> bool
 {
     noms_propriétés := [PROP_margin_top, PROP_margin_right, PROP_margin_bottom, PROP_margin_left]
     si parse_mot_clé_global(ctx, noms_propriétés, value) {
@@ -3675,7 +4353,7 @@ parse_propriété_margin :: fonc (ctx: *ContexteParsageShorthand, value: [..]Com
     retourne vrai
 }
 
-parse_propriété_margin_logique :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
+parse_propriété_margin_logique :: fonc (ctx: *ContexteParsageShorthand, value: []ComponentValue) -> bool
 {
     noms_propriétés: [2]CSSOMString
     si ctx.déclaration_parsée.name == PROP_margin_block {
@@ -3721,7 +4399,7 @@ parse_propriété_margin_logique :: fonc (ctx: *ContexteParsageShorthand, value:
     retourne vrai
 }
 
-parse_propriété_margin_top :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_margin_top :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     parseuse.consomme_espaces_blanches()
@@ -3737,7 +4415,7 @@ parse_propriété_margin_top :: fonc (value: [..]ComponentValue) -> Optionnel(Va
  * https://drafts.csswg.org/css-logical/#padding-properties
  * \{ */
 
-parse_propriété_padding :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
+parse_propriété_padding :: fonc (ctx: *ContexteParsageShorthand, value: []ComponentValue) -> bool
 {
     noms_propriétés := [PROP_padding_top, PROP_padding_right, PROP_padding_bottom, PROP_padding_left]
     si parse_mot_clé_global(ctx, noms_propriétés, value) {
@@ -3774,7 +4452,7 @@ parse_propriété_padding :: fonc (ctx: *ContexteParsageShorthand, value: [..]Co
     retourne vrai
 }
 
-parse_propriété_padding_logique :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
+parse_propriété_padding_logique :: fonc (ctx: *ContexteParsageShorthand, value: []ComponentValue) -> bool
 {
     noms_propriétés: [2]CSSOMString
     si ctx.déclaration_parsée.name == PROP_padding_block {
@@ -3820,7 +4498,7 @@ parse_propriété_padding_logique :: fonc (ctx: *ContexteParsageShorthand, value
     retourne vrai
 }
 
-parse_propriété_padding_top :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_padding_top :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     parseuse.consomme_espaces_blanches()
@@ -3836,7 +4514,7 @@ parse_propriété_padding_top :: fonc (value: [..]ComponentValue) -> Optionnel(V
  * https://drafts.csswg.org/css-sizing-3/#preferred-size-properties
  * \{ */
 
-parse_propriété_height_width :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_height_width :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
 
@@ -3854,7 +4532,7 @@ parse_propriété_height_width :: fonc (value: [..]ComponentValue) -> Optionnel(
     }
 }
 
-parse_propriété_min_height_width :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_min_height_width :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     parseuse.consomme_espaces_blanches()
@@ -3862,7 +4540,7 @@ parse_propriété_min_height_width :: fonc (value: [..]ComponentValue) -> Option
     retourne parse_valeur_length_percentage_ou_auto(parseuse)
 }
 
-parse_propriété_max_height_width :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_max_height_width :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     parseuse.consomme_espaces_blanches()
@@ -3884,7 +4562,7 @@ parse_propriété_max_height_width :: fonc (value: [..]ComponentValue) -> Option
  * \{ */
 
 /* normal | <number> | <length> | <percentage> | inherit */
-parse_propriété_line_height :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_line_height :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     retourne parse_valeur_line_height(parseuse)
@@ -3918,14 +4596,14 @@ parse_valeur_line_height :: fonc (parseuse: &Parseuse(ComponentValue)) -> Option
  * https://drafts.csswg.org/css-position/#insets
  * \{ */
 
-parse_propriété_inset :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_inset :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     /* auto | <length-percentage> */
     retourne parse_valeur_length_percentage_ou_auto(parseuse)
 }
 
-parse_propriété_inset_logique :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
+parse_propriété_inset_logique :: fonc (ctx: *ContexteParsageShorthand, value: []ComponentValue) -> bool
 {
     noms_propriétés: [2]CSSOMString
     si ctx.déclaration_parsée.name == PROP_inset_block {
@@ -3972,7 +4650,7 @@ parse_propriété_inset_logique :: fonc (ctx: *ContexteParsageShorthand, value: 
     retourne vrai
 }
 
-parse_propriété_inset_shorthand :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
+parse_propriété_inset_shorthand :: fonc (ctx: *ContexteParsageShorthand, value: []ComponentValue) -> bool
 {
     noms_propriétés := [PROP_top, PROP_right, PROP_bottom, PROP_left]
     si parse_mot_clé_global(ctx, noms_propriétés, value) {
@@ -4016,7 +4694,7 @@ parse_propriété_inset_shorthand :: fonc (ctx: *ContexteParsageShorthand, value
  * https://drafts.csswg.org/css-text/#text-align-property
  * \{ */
 
-parse_propriété_text_align :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_text_align :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     mots_clés := [PROP_start, PROP_end, PROP_left, PROP_right, PROP_center, PROP_justify, PROP_match_parent, PROP_justify_all]
@@ -4030,7 +4708,7 @@ parse_propriété_text_align :: fonc (value: [..]ComponentValue) -> Optionnel(Va
  * https://drafts.csswg.org/css-position/#position-property
  * \{ */
 
-parse_propriété_position :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_position :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     mots_clés := [PROP_static, PROP_relative, PROP_absolute, PROP_sticky, PROP_fixed]
@@ -4044,7 +4722,7 @@ parse_propriété_position :: fonc (value: [..]ComponentValue) -> Optionnel(Vale
  * https://drafts.csswg.org/css2/#propdef-float
  * \{ */
 
-parse_propriété_float :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_float :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     mots_clés := [PROP_left, PROP_right, PROP_none]
@@ -4060,7 +4738,7 @@ parse_propriété_float :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurD
  * \{ */
 
 /* baseline | sub | super | top | text-top | middle | bottom | text-bottom | <percentage> | <length> */
-parse_propriété_vertical_align :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_vertical_align :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     mots_clés := [PROP_baseline, PROP_top, PROP_bottom]
@@ -4074,7 +4752,7 @@ parse_propriété_vertical_align :: fonc (value: [..]ComponentValue) -> Optionne
  * https://www.w3.org/TR/CSS2/visuren.html#propdef-clear
  * \{ */
 
-parse_propriété_clear :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_clear :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     mots_clés := [PROP_none, PROP_left, PROP_both, PROP_right]
@@ -4088,7 +4766,7 @@ parse_propriété_clear :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurD
  * https://drafts.csswg.org/css-overflow/#propdef-overflow
  * \{ */
 
-parse_shorthand_overflow :: fonc (ctx: *ContexteParsageShorthand, value: [..]ComponentValue) -> bool
+parse_shorthand_overflow :: fonc (ctx: *ContexteParsageShorthand, value: []ComponentValue) -> bool
 {
     noms_propriétés := [PROP_overflow_x, PROP_overflow_y]
     si parse_mot_clé_global(ctx, noms_propriétés, value) {
@@ -4124,7 +4802,7 @@ parse_shorthand_overflow :: fonc (ctx: *ContexteParsageShorthand, value: [..]Com
     retourne vrai
 }
 
-parse_propriété_overflow :: fonc (value: [..]ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_overflow :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     retourne parse_valeur_overflow(parseuse)
@@ -4133,6 +4811,238 @@ parse_propriété_overflow :: fonc (value: [..]ComponentValue) -> Optionnel(Vale
 parse_valeur_overflow :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
 {
     mots_clés := [PROP_visible, PROP_hidden, PROP_clip, PROP_scroll, PROP_auto]
+    retourne parse_mot_clé(parseuse, mots_clés)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Justify Content
+ * https://drafts.csswg.org/css-flexbox/#justify-content-property
+ * \{ */
+
+parse_propriété_justify_content :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    mots_clés := [PROP_flex_start, PROP_flex_end, PROP_center, PROP_space_around, PROP_space_between]
+    parseuse := initialise_une_parseuse(value)
+    retourne parse_mot_clé(parseuse, mots_clés)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Flex Basis
+ * https://drafts.csswg.org/css-flexbox/#flex-basis-property
+ * \{ */
+
+parse_propriété_flex_basis :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+
+    lexème := parseuse.lexème_courant()
+
+    si lexème.est_mot_clé(PROP_content) {
+        retourne ValeurDeStyle(mot_clé = PROP_content)
+    }
+
+    retourne parse_propriété_height_width(value)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Flex Direction
+ * https://drafts.csswg.org/css-flexbox/#flex-direction-property
+ * \{ */
+
+parse_propriété_flex_direction :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    retourne parse_valeur_flex_direction(parseuse)
+}
+
+parse_valeur_flex_direction :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+{
+    mots_clés := [PROP_row, PROP_row_reverse, PROP_column, PROP_column_reverse]
+    retourne parse_mot_clé(parseuse, mots_clés)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Flex Wrap
+ * https://drafts.csswg.org/css-flexbox/#flex-wrap-property
+ * \{ */
+
+parse_propriété_flex_wrap :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    retourne parse_valeur_flex_wrap(parseuse)
+}
+
+parse_valeur_flex_wrap :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+{
+    mots_clés := [PROP_nowrap, PROP_wrap, PROP_wrap_reverse]
+    retourne parse_mot_clé(parseuse, mots_clés)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Flex
+ * https://drafts.csswg.org/css-flexbox/#flex-property
+ * \{ */
+
+parse_shorthand_flex :: fonc (ctx: *ContexteParsageShorthand, value: []ComponentValue) -> bool
+{
+    noms_propriétés := [PROP_flex_grow, PROP_flex_shrink, PROP_flex_basis]
+    si parse_mot_clé_global(ctx, noms_propriétés, value) {
+        retourne vrai
+    }
+
+    parseuse := initialise_une_parseuse(value)
+
+    lexème := parseuse.lexème_courant()
+
+    flex_grow := ValeurDeStyle(number = 0.0)
+    flex_shrink := ValeurDeStyle(number = 1.0)
+    flex_basis := ValeurDeStyle(mot_clé = PROP_auto)
+
+    eu_flex_grow := faux
+    eu_flex_shrink := faux
+    eu_flex_basis := faux
+
+    si lexème.est_mot_clé(PROP_none) {
+        // flex: 0 0 auto
+        flex_shrink = ValeurDeStyle(number = 0.0)
+    }
+    sinon {
+        tantque !fini(parseuse) {
+            parseuse.consomme_espaces_blanches()
+            lexème = parseuse.lexème_courant()
+
+            si lexème.est_lexème_de_genre(GenreLexème.Number) {
+                /* flex-grow */
+                parseuse.avance()
+
+                si eu_flex_grow == faux {
+                    flex_grow.number = lexème.lexème.numeric_value
+                    eu_flex_grow = vrai
+                }
+                sinon si eu_flex_shrink == faux {
+                    flex_shrink.number = lexème.lexème.numeric_value
+                    eu_flex_shrink = vrai
+                }
+                sinon si eu_flex_basis == faux {
+                    flex_basis.number = lexème.lexème.numeric_value
+                    eu_flex_basis = vrai
+                }
+                sinon {
+                    arrête
+                }
+
+                continue
+            }
+
+            valeur := parse_valeur_length_percentage_ou_auto(parseuse)
+            saufsi valeur.possède_valeur() {
+                retourne faux
+            }
+
+            si eu_flex_basis {
+                retourne faux
+            }
+
+            flex_basis = valeur
+            eu_flex_basis = vrai
+        }
+    }
+
+    /* https://drafts.csswg.org/css-flexbox/#flex-common */
+    si eu_flex_grow && !eu_flex_shrink && !eu_flex_basis {
+        // flex: <number> -> number 1 0%;
+        flex_shrink.number = 1.0
+        flex_basis.percentage = 0.0
+    }
+    sinon si eu_flex_basis && !eu_flex_shrink && !eu_flex_grow {
+        si flex_basis.est_auto() {
+            // flex: auto -> 1 1 auto;
+            flex_grow.number = 1.0
+            flex_shrink.number = 1.0
+        }
+    }
+
+    ctx.ajoute_propriété(PROP_flex_grow, flex_grow)
+    ctx.ajoute_propriété(PROP_flex_shrink, flex_shrink)
+    ctx.ajoute_propriété(PROP_flex_basis, flex_basis)
+    retourne vrai
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Flex Flow
+ * https://drafts.csswg.org/css-flexbox/#flex-flow-property
+ * \{ */
+
+parse_shorthand_flex_flow :: fonc (ctx: *ContexteParsageShorthand, value: []ComponentValue) -> bool
+{
+    noms_propriétés := [PROP_flex_direction, PROP_flex_wrap]
+    si parse_mot_clé_global(ctx, noms_propriétés, value) {
+        retourne vrai
+    }
+
+    parseuse := initialise_une_parseuse(value)
+
+    flex_direction := ValeurDeStyle(mot_clé = PROP_row)
+    flex_wrap := ValeurDeStyle(mot_clé = PROP_nowrap)
+
+    tantque !fini(parseuse) {
+        parseuse.consomme_espaces_blanches()
+
+        valeur_flex_direction := parse_valeur_flex_direction(parseuse)
+        si valeur_flex_direction.possède_valeur() {
+            flex_direction = valeur_flex_direction.Quelque
+            continue
+        }
+
+        valeur_flex_wrap := parse_valeur_flex_wrap(parseuse)
+        si valeur_flex_wrap.possède_valeur() {
+            flex_wrap = valeur_flex_wrap.Quelque
+            continue
+        }
+    }
+
+    ctx.ajoute_propriété(PROP_flex_direction, flex_direction)
+    ctx.ajoute_propriété(PROP_flex_wrap, flex_wrap)
+    retourne vrai
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Box Sizing
+ * https://drafts.csswg.org/css-sizing/#box-sizing
+ * \{ */
+
+parse_propriété_box_sizing :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    mots_clés := [PROP_border_box, PROP_content_box]
+    parseuse := initialise_une_parseuse(value)
+    retourne parse_mot_clé(parseuse, mots_clés)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom White Space
+ * https://drafts.csswg.org/css-text/#propdef-white-space
+ * \{ */
+
+parse_propriétés_white_space :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    mots_clés := [PROP_normal, PROP_pre, PROP_nowrap, PROP_pre_wrap, PROP_break_spaces, PROP_pre_line]
+    parseuse := initialise_une_parseuse(value)
     retourne parse_mot_clé(parseuse, mots_clés)
 }
 
