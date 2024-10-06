@@ -755,6 +755,8 @@ IDPropriété :: énum n16 {
     FlexWrap
     FlexGrow
     FlexShrink
+
+    BoxSizing
 }
 
 Style :: struct {
@@ -845,6 +847,8 @@ initialise_style :: fonc (style: *Style)
     style.valeurs[IDPropriété.FlexWrap] = ValeurDeStyle(mot_clé = PROP_nowrap)
     style.valeurs[IDPropriété.FlexGrow] = ValeurDeStyle(number = 0.0)
     style.valeurs[IDPropriété.FlexShrink] = ValeurDeStyle(number = 1.0)
+
+    style.valeurs[IDPropriété.BoxSizing] = ValeurDeStyle(mot_clé = PROP_content_box)
 }
 
 donne_bordure :: fonc (style: *Style) -> Border

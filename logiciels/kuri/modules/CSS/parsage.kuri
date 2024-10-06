@@ -2522,7 +2522,8 @@ infos_types_propriétés := [
     InfoTypePropriété(PROP_flex_direction, id = IDPropriété.FlexDirection, fonction_de_parsage = parse_propriété_flex_direction, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
     InfoTypePropriété(PROP_flex_wrap, id = IDPropriété.FlexWrap, fonction_de_parsage = parse_propriété_flex_wrap, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
     InfoTypePropriété(PROP_flex_grow, id = IDPropriété.FlexGrow, fonction_de_parsage = parse_propriété_number, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
-    InfoTypePropriété(PROP_flex_shrink, id = IDPropriété.FlexShrink, fonction_de_parsage = parse_propriété_number, genre_valeur_calculée = GenreValeurCalculée.Spécifié)
+    InfoTypePropriété(PROP_flex_shrink, id = IDPropriété.FlexShrink, fonction_de_parsage = parse_propriété_number, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
+    InfoTypePropriété(PROP_box_sizing, id = IDPropriété.BoxSizing, fonction_de_parsage = parse_propriété_box_sizing, genre_valeur_calculée = GenreValeurCalculée.Spécifié)
 ]
 
 donne_info_type_pour_nom :: fonc (nom: CSSOMString) -> *InfoTypePropriété
@@ -5014,6 +5015,20 @@ parse_shorthand_flex_flow :: fonc (ctx: *ContexteParsageShorthand, value: []Comp
     ctx.ajoute_propriété(PROP_flex_direction, flex_direction)
     ctx.ajoute_propriété(PROP_flex_wrap, flex_wrap)
     retourne vrai
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Box Sizing
+ * https://drafts.csswg.org/css-sizing/#box-sizing
+ * \{ */
+
+parse_propriété_box_sizing :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    mots_clés := [PROP_border_box, PROP_content_box]
+    parseuse := initialise_une_parseuse(value)
+    retourne parse_mot_clé(parseuse, mots_clés)
 }
 
 /** \} */
