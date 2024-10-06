@@ -59,7 +59,7 @@ détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
         sinon si it.type == NoeudDeDispositionTexte {
             texte := it comme *NoeudDeDispositionTexte
             détruit_chaine(texte.texte)
-            déloge(texte.morceaux)
+            déloge(texte.fragments)
             déloge(texte)
         }
         sinon si it.type == NoeudDeDispositionNouvelleLigne {
@@ -2648,40 +2648,18 @@ NoeudDeDispositionTexte :: struct {
     texte: ChaineUTF16
     fonte: *Fonte
 
-    morceaux: [..]ChaineUTF16
+    fragments: [..]FragmentTexte
 }
 
 noeud_disposition_texte_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, enligneuse: *Enligneuse, ctx: *ContexteDeFormattage, mode: ModeDeFormattage)
 {
     noeud := base comme *NoeudDeDispositionTexte
-    déloge(noeud.morceaux)
+    traite_espaces_blanches(noeud)
 
     fonte := détermine_fonte(noeud, ctx)
     métriques := fonte.donne_métriques_fonte()
 
     définis_hauteur_contenu(noeud.modèle_de_boite, métriques.donne_hauteur_ligne())
-
-    si est_vide_ou_uniquement_espaces_blanches(noeud.noeud_texte.données) {
-        espace := ChaineUTF16Unique(' ' comme n32)
-        largeur_espace := fonte.donne_largeur_texte(espace.donne_chaine_utf16())
-
-        tableau_ajoute(*noeud.morceaux, espace.donne_chaine_utf16())
-
-        /* À FAIRE : hauteur du contenu */
-        _ := enligneuse.ajoute_fragment(noeud, 0, 1, 0.0, largeur_espace comme r32)
-        retourne
-    }
-
-    /* À FAIRE : meilleur algorithme, respect du standard. */
-    morceaux := divise_sur_espaces_blanches_ascii(noeud.noeud_texte.données)
-
-    espace := ChaineUTF16Unique(' ' comme n32)
-    index_espace := morceaux.taille
-    largeur_espace := fonte.donne_largeur_texte(espace.donne_chaine_utf16())
-
-    tableau_ajoute(*morceaux, espace.donne_chaine_utf16())
-
-    noeud.morceaux = morceaux
 
     hauteur_texte := métriques.donne_hauteur_ligne()
 
@@ -2690,29 +2668,249 @@ noeud_disposition_texte_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition,
     /* line-height définis la hauteur minimale. */
     hauteur_texte = max(hauteur_texte, line_height)
 
-    pour morceaux {
-        largeur_morceau := fonte.donne_largeur_texte(it)
+    // À FAIRE : traite proprement la hauteur de ligne pour les noeuds interéléments.
+    // La taille de fonte peut avoir été héritée de l'élément parent des noeuds adelphes.
+    si est_vide_ou_uniquement_espaces_blanches(noeud.noeud_texte.données) {
+        hauteur_texte = 0.0
+    }
 
-        _ := enligneuse.ajoute_fragment(noeud, index_it, index_it + 1, hauteur_texte, largeur_morceau comme r32)
-
-        si index_it >= index_espace - 1 {
+    pour noeud.fragments {
+        si it.ignore_mais_préserve_soft_wrap_opportunity {
             continue
         }
 
+        si it.est_espace_blanche && it.texte.unités[0] == 0x0A {
+            ligne := enligneuse.ajoute_ligne()
+            ligne.garantis_hauteur_minimale(hauteur_texte)
+            continue
+        }
+
+        largeur_morceau := fonte.donne_largeur_texte(it.texte)
+
         discr mode {
             Normal {
-                si enligneuse.peut_ajouter_fragment(largeur_espace comme r32) {
-                    _ := enligneuse.ajoute_fragment(noeud, index_espace, index_espace + 1, hauteur_texte, largeur_espace comme r32)
-                }
+                _ := enligneuse.ajoute_fragment(noeud, index_it, index_it + 1, hauteur_texte, largeur_morceau comme r32)
             }
             ToutesLesBrisuresDeLigne {
+                saufsi it.est_espace_blanche {
+                    _ := enligneuse.ajoute_fragment(noeud, index_it, index_it + 1, hauteur_texte, largeur_morceau comme r32)
+                }
+
                 ligne := enligneuse.ajoute_ligne()
                 ligne.garantis_hauteur_minimale(hauteur_texte)
             }
             BrisureDeLigneExplicite {
-                _ := enligneuse.ajoute_fragment(noeud, index_espace, index_espace + 1, hauteur_texte, largeur_espace comme r32)
+                _ := enligneuse.ajoute_fragment(noeud, index_it, index_it + 1, hauteur_texte, largeur_morceau comme r32)
             }
         }
+    }
+}
+
+/* https://drafts.csswg.org/css-text/#white-space-phase-1 */
+traite_espaces_blanches :: fonc (noeud: *NoeudDeDispositionTexte)
+{
+    noeud.fragments.taille = 0
+    fragmente_texte_avec_espaces_blanches_ascii(noeud.noeud_texte.données, *noeud.fragments)
+
+    propriétés := donne_propriété_parent(noeud)
+    white_space := propriétés.donne_valeur_utilisée(IDPropriété.WhiteSpace).mot_clé
+
+    si white_space == PROP_normal || white_space == PROP_nowrap || white_space == PROP_pre_line {
+        // 1. Any sequence of collapsible spaces and tabs immediately preceding or following a segment
+        //    break is removed.
+        collapse_séquences_d_espaces_blanches_autour_bris_segments(noeud.fragments)
+
+        // 2. Collapsible segment breaks are transformed for rendering according to the segment break
+        //    transformation rules.
+        collapse_bris_segments(noeud.fragments, white_space)
+
+        // 3. Every collapsible tab is converted to a collapsible space (U+0020).
+        convertis_tabulations_en_espaces(noeud.fragments)
+
+        // 4. Any collapsible space immediately following another collapsible space—​even one outside
+        //    the boundary of the inline containing that space, provided both spaces are within the
+        //    same inline formatting context—​is collapsed to have zero advance width. (It is invisible,
+        //    but retains its soft wrap opportunity, if any.)
+        // À FAIRE : collapse également (entre les noeuds) lors de la disposition
+        collapse_espaces_consécutives(noeud.fragments)
+    }
+    sinon {
+        assert(white_space == PROP_wrap || white_space == PROP_pre || white_space == PROP_pre_wrap || white_space == PROP_break_spaces)
+    }
+}
+
+FragmentTexte :: struct {
+    texte: ChaineUTF16
+    est_espace_blanche: bool
+    ignore_mais_préserve_soft_wrap_opportunity: bool
+}
+
+/* Similaire à Chaine.divise_sur_espaces_blanches_ascii mais nous préservons les espaces. */
+fragmente_texte_avec_espaces_blanches_ascii :: fonc (chn: ChaineUTF16, fragments: *[..]FragmentTexte)
+{
+    position := 0
+
+    texte: ChaineUTF16
+
+    tantque position < chn.taille() && est_espace_blanche_ascii(chn.unités.pointeur[position]) {
+        texte.unités.pointeur = chn.unités.pointeur + position
+        texte.unités.taille = 1
+        tableau_ajoute(fragments, FragmentTexte(texte, vrai))
+
+        position += 1
+    }
+
+    tantque position < chn.taille() {
+        texte.unités.pointeur = chn.unités.pointeur + position
+        texte.unités.taille = 0
+
+        tantque position < chn.taille() && !est_espace_blanche_ascii(chn.unités.pointeur[position]) {
+            texte.unités.taille += 1
+            position += 1
+        }
+
+        si texte.taille() != 0 {
+            tableau_ajoute(fragments, FragmentTexte(texte, faux))
+        }
+
+        texte.unités.pointeur = chn.unités.pointeur + position
+        texte.unités.taille = 0
+
+        tantque position < chn.taille() && est_espace_blanche_ascii(chn.unités.pointeur[position]) {
+            texte.unités.pointeur = chn.unités.pointeur + position
+            texte.unités.taille = 1
+            tableau_ajoute(fragments, FragmentTexte(texte, vrai))
+
+            position += 1
+        }
+    }
+}
+
+collapse_séquences_d_espaces_blanches_autour_bris_segments :: fonc (fragments: &[..]FragmentTexte)
+{
+    début := fragments.pointeur
+    fin := fragments.pointeur + fragments.taille
+
+    entrée := début
+    sortie := début
+
+    dernier_fragment_non_collapsible := entrée - 1
+
+    tantque début < fin {
+        si début.texte.unités[0] == 0x0A {
+            sortie = dernier_fragment_non_collapsible + 1
+            assert(sortie < fin)
+
+            mémoire(sortie) = mémoire(début)
+            dernier_fragment_non_collapsible = sortie
+            début += 1
+            sortie += 1
+
+            tantque début < fin && début.est_espace_blanche {
+                si début.texte.unités[0] == 0x0A {
+                    arrête
+                }
+                début += 1
+            }
+
+            continue
+        }
+
+        saufsi début.est_espace_blanche {
+            dernier_fragment_non_collapsible = sortie
+        }
+
+        mémoire(sortie) = mémoire(début)
+        début += 1
+        sortie += 1
+    }
+
+    fragments.taille = (sortie - entrée)
+}
+
+/* https://drafts.csswg.org/css-text/#line-break-transform */
+collapse_bris_segments :: fonc (fragments: &[..]FragmentTexte, white_space: CSSOMString)
+{
+    // When white-space is pre, pre-wrap, break-spaces, or pre-line, segment breaks are
+    // not collapsible and are instead transformed into a preserved line feed (U+000A).
+    si white_space == PROP_pre || white_space == PROP_pre_wrap || white_space == PROP_break_spaces || white_space == PROP_pre_line {
+        retourne
+    }
+
+    // 1. First, any collapsible segment break immediately following another collapsible
+    // segment break is removed.
+    début := fragments.pointeur
+    fin := fragments.pointeur + fragments.taille
+
+    entrée := début
+    sortie := début
+
+    dernier_fut_bris_segment := faux
+
+    tantque début < fin {
+        si début.texte.unités[0] == 0x0A {
+            si dernier_fut_bris_segment {
+                sortie -= 1
+            }
+            dernier_fut_bris_segment = vrai
+        }
+        sinon {
+            dernier_fut_bris_segment = faux
+        }
+
+        mémoire(sortie) = mémoire(début)
+        début += 1
+        sortie += 1
+    }
+
+    fragments.taille = (sortie - entrée)
+
+    // 2. Then any remaining segment break is either transformed into a space (U+0020)
+    // or removed depending on the context before and after the break.
+    // The rules for this operation are UA-defined in this level.
+    chn_espace := crée_chaine_utf16_unique(" ").donne_chaine_utf16()
+
+    début = fragments.pointeur
+    tantque début < fin {
+        si début.texte.unités[0] == 0x0A {
+            début.texte = chn_espace
+        }
+        début += 1
+    }
+}
+
+convertis_tabulations_en_espaces :: fonc (fragments: &[..]FragmentTexte)
+{
+    chn_espace := crée_chaine_utf16_unique(" ").donne_chaine_utf16()
+    début := fragments.pointeur
+    fin := fragments.pointeur + fragments.taille
+
+    tantque début < fin {
+        si début.texte.unités[0] == '\t' comme n32 {
+            début.texte = chn_espace
+        }
+        début += 1
+    }
+}
+
+collapse_espaces_consécutives :: fonc (fragments: &[..]FragmentTexte)
+{
+    début := fragments.pointeur
+    fin := fragments.pointeur + fragments.taille
+
+    dernier_fut_espace_blanche := faux
+
+    tantque début < fin {
+        si début.est_espace_blanche {
+            si dernier_fut_espace_blanche {
+                début.ignore_mais_préserve_soft_wrap_opportunity = vrai
+            }
+            dernier_fut_espace_blanche = vrai
+        }
+        sinon {
+            dernier_fut_espace_blanche = faux
+        }
+        début += 1
     }
 }
 
@@ -2755,7 +2953,7 @@ noeud_disposition_texte_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, 
 
     // peintre.dessine_rectangle(rect, couleur)
 
-    texte := noeud.morceaux[fragment.index_début]
+    texte := noeud.fragments[fragment.index_début].texte
 
     peintre.dessine_texte(fonte, texte, rect, couleur, *effets)
 }
