@@ -258,6 +258,38 @@ apparie_simple_selector :: fonc (simple: &SimpleSelector, élément: *HTML.Élé
                     retourne apparie_sélecteur_fonction(simple.selector_list, élément)
                 }
 
+                si simple.ident == PROP_nth_child {
+                    saufsi élément.parent {
+                        retourne faux
+                    }
+                    index_dans_parent := donne_index_dans_parent(élément)
+                    retourne apparie_nth_child(simple.nth_child, index_dans_parent)
+                }
+
+                si simple.ident == PROP_nth_of_type {
+                    saufsi élément.parent {
+                        retourne faux
+                    }
+                    index_dans_parent := donne_index_de_même_type_dans_parent(élément)
+                    retourne apparie_nth_child(simple.nth_child, index_dans_parent)
+                }
+
+                si simple.ident == PROP_nth_last_child {
+                    saufsi élément.parent {
+                        retourne faux
+                    }
+                    index_dans_parent := donne_index_dans_parent_depuis_la_fin(élément)
+                    retourne apparie_nth_child(simple.nth_child, index_dans_parent)
+                }
+
+                si simple.ident == PROP_nth_last_of_type {
+                    saufsi élément.parent {
+                        retourne faux
+                    }
+                    index_dans_parent := donne_index_de_même_type_dans_parent_depuis_la_fin(élément)
+                    retourne apparie_nth_child(simple.nth_child, index_dans_parent)
+                }
+
                 retourne faux
             }
 
@@ -286,6 +318,118 @@ apparie_simple_selector :: fonc (simple: &SimpleSelector, élément: *HTML.Élé
     }
 
     retourne faux
+}
+
+apparie_nth_child :: fonc (nth_child: SimpleSelector.NthChild, index: n32) -> bool
+{
+    si nth_child.A == 0 {
+        retourne nth_child.B == index comme z32
+    }
+
+    n := (index comme z32 - nth_child.B) / nth_child.A
+    si n < 0 {
+        retourne faux
+    }
+
+    retourne (nth_child.A * n + nth_child.B) == index comme z32
+}
+
+donne_index_dans_parent :: fonc (élément: *HTML.Élément) -> n32
+{
+    parent := élément.parent
+    assert(parent != nul)
+
+    résultat : n32 = 1
+
+    pour parent.enfants {
+        saufsi HTML.est_élément(it) {
+            continue
+        }
+
+        si it == élément {
+            arrête
+        }
+
+        résultat += 1
+    }
+
+    retourne résultat
+}
+
+donne_index_dans_parent_depuis_la_fin :: fonc (élément: *HTML.Élément) -> n32
+{
+    parent := élément.parent
+    assert(parent != nul)
+
+    résultat : n32 = 1
+
+    pour > parent.enfants {
+        saufsi HTML.est_élément(it) {
+            continue
+        }
+
+        si it == élément {
+            arrête
+        }
+
+        résultat += 1
+    }
+
+    retourne résultat
+}
+
+donne_index_de_même_type_dans_parent :: fonc (élément: *HTML.Élément) -> n32
+{
+    parent := élément.parent
+    assert(parent != nul)
+
+    résultat : n32 = 1
+
+    pour parent.enfants {
+        saufsi HTML.est_élément(it) {
+            continue
+        }
+
+        adelphe := it comme *HTML.Élément
+        saufsi adelphe.local_name == élément.local_name {
+            continue
+        }
+
+        si it == élément {
+            arrête
+        }
+
+        résultat += 1
+    }
+
+    retourne résultat
+}
+
+donne_index_de_même_type_dans_parent_depuis_la_fin :: fonc (élément: *HTML.Élément) -> n32
+{
+    parent := élément.parent
+    assert(parent != nul)
+
+    résultat : n32 = 1
+
+    pour > parent.enfants {
+        saufsi HTML.est_élément(it) {
+            continue
+        }
+
+        adelphe := it comme *HTML.Élément
+        saufsi adelphe.local_name == élément.local_name {
+            continue
+        }
+
+        si it == élément {
+            arrête
+        }
+
+        résultat += 1
+    }
+
+    retourne résultat
 }
 
 apparie_sélecteur_fonction :: fonc (selector_list: &SelectorList, élément: *HTML.Élément) -> bool
@@ -961,6 +1105,12 @@ SimpleSelector :: struct {
         S
     }
 
+    /* Données pour :nth-child(An + B) et :nth-of-type(An + B). */
+    NthChild :: struct {
+        A: z32
+        B: z32
+    }
+
     type: Type
     namespace_prefix := crée_chaine_utf16_unique_vide()
     ident := crée_chaine_utf16_unique_vide()
@@ -981,6 +1131,8 @@ SimpleSelector :: struct {
 
     /* Pour :dir. */
     arg := crée_chaine_utf16_unique_vide()
+
+    nth_child: NthChild
 }
 
 détruit_données_simple_selector :: fonc (selector: *SimpleSelector)
@@ -1059,6 +1211,22 @@ imprime_simple_selector :: fonc (enchaineuse: *Enchaineuse, selector: *SimpleSel
 
                 si selector.ident == PROP_dir {
                     ajoute_au_tampon(enchaineuse, selector.arg)
+                }
+                sinon si selector.ident == PROP_nth_child || selector.ident == PROP_nth_of_type || selector.ident == PROP_nth_last_child || selector.ident == PROP_nth_last_of_type {
+                    nth_child := selector.nth_child
+                    si nth_child.A != 0 {
+                        imprime_dans_enchaineuse(enchaineuse, "%n", nth_child.A)
+                    }
+
+                    si nth_child.B < 0 {
+                        imprime_dans_enchaineuse(enchaineuse, " - %", -nth_child.B)
+                    }
+                    sinon si nth_child.B > 0 {
+                        imprime_dans_enchaineuse(enchaineuse, " + %", nth_child.B)
+                    }
+                    sinon {
+                        imprime_dans_enchaineuse(enchaineuse, "%", nth_child.B)
+                    }
                 }
                 sinon {
                     imprime_selector_list(enchaineuse, *selector.selector_list)
@@ -1183,6 +1351,16 @@ crée_function_selector :: fonc (ident: CSSOMString, arg: CSSOMString) -> Simple
     résultat.ident = ident
     résultat.est_fonction = vrai
     résultat.arg = arg
+    retourne résultat
+}
+
+crée_nth_child_selector :: fonc (ident: CSSOMString, nth_child: SimpleSelector.NthChild) -> SimpleSelector
+{
+    résultat: SimpleSelector
+    résultat.type = SimpleSelector.Type.PseudoClass
+    résultat.ident = ident
+    résultat.est_fonction = vrai
+    résultat.nth_child = nth_child
     retourne résultat
 }
 
