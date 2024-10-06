@@ -133,7 +133,7 @@ détruit_url :: fonc (url: *URL)
         déloge_si_logée(url.query.Quelque)
     }
 
-    si url.fragment.possède_valeur() {
+    si url.query.possède_valeur() {
         déloge_si_logée(url.query.Quelque)
     }
 
