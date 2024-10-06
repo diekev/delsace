@@ -1092,7 +1092,7 @@ crée_noeud_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *
     sinon si élément.local_name == HTML.TAG_textarea {
         résultat = crée_noeud_de_remplacement_textarea(arbre, élément comme *HTML.HTMLTextAreaElement)
     }
-    sinon si display.outer_type == Display.Type.Block {
+    sinon si display.outer_type == Display.Type.Block || display.inner_type == Display.Type.Flex {
         bloc := arbre.crée_noeud(NoeudDeDispositionBloc)
         bloc.élément = élément
         résultat = bloc
@@ -1755,7 +1755,18 @@ dessine :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDessin)
 
 dessine_fragment :: fonc (noeud: *NoeudDeDisposition, fragment: *Fragment, lignes_tenante: *LignesTenante, ctx: *ContexteDessin)
 {
-    noeud.sur_dessin_fragment(noeud, fragment, lignes_tenante, ctx)
+    si noeud.sur_dessin_fragment {
+        noeud.sur_dessin_fragment(noeud, fragment, lignes_tenante, ctx)
+    }
+    sinon {
+        /* XXX - ceci devrait sans doute être fait lors de la disposition. */
+        x := fragment.x - noeud.modèle_de_boite.contenu.x
+        y := fragment.y - noeud.modèle_de_boite.contenu.y
+
+        décale_horizontalement(noeud.modèle_de_boite, x)
+        décale_verticalement(noeud.modèle_de_boite, y)
+        noeud.dessine(ctx)
+    }
 }
 
 dessine_tampon_id :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDessin)
@@ -1769,6 +1780,11 @@ dessine_fragment_tampon_id :: fonc (noeud: *NoeudDeDisposition, fragment: *Fragm
 {
     saufsi noeud.sur_dessin_fragment_tampon_id {
         ctx.remplis_rectangle_id(noeud, fragment.donne_rectangle())
+
+        pour noeud.enfants {
+            noeud.dessine_tampon_id(ctx)
+        }
+
         retourne
     }
 
@@ -1791,14 +1807,21 @@ donne_curseur :: fonc (noeud: *NoeudDeDisposition) -> CursorType
 
 divise_en_lignes :: fonc (noeud: *NoeudDeDisposition, enligneuse: *Enligneuse, ctx: *ContexteDeFormattage, mode: ModeDeFormattage)
 {
-    si noeud.sur_divise_en_lignes {
-        noeud.sur_divise_en_lignes(noeud, enligneuse, ctx, mode)
+    si (noeud.type == NoeudDeDispositionTexte || noeud.donne_display().inner_type == Display.Type.Flow) {
+        si noeud.sur_divise_en_lignes {
+            noeud.sur_divise_en_lignes(noeud, enligneuse, ctx, mode)
+            retourne
+        }
+
+        pour noeud.enfants {
+            divise_en_lignes(it, enligneuse, ctx, mode)
+        }
+
         retourne
     }
 
-    pour noeud.enfants {
-        divise_en_lignes(it, enligneuse, ctx, mode)
-    }
+    noeud.mesure(ctx, mode)
+    _ := enligneuse.ajoute_fragment(noeud, noeud.modèle_de_boite.marge.hauteur, noeud.modèle_de_boite.marge.largeur, Fragment.Type.Normal)
 }
 
 corrige_hiérarchie :: fonc (noeud: *NoeudDeDisposition, créatrice: *CréatriceArbre)

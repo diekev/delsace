@@ -107,7 +107,7 @@ donne_fonction_calcul_largeur_et_marges :: fonc (noeud: *NoeudDeDisposition) -> 
     }
 
     // 10.3.1 Inline, non-replaced elements
-    si display.outer_type == Display.Type.Inline {
+    si display.outer_type == Display.Type.Inline && (display.inner_type == Display.Type.Flow || display.inner_type == Display.Type.FlowRoot) {
         // 10.3.9 'Inline-block', non-replaced elements in normal flow
         si display.inner_type == Display.Type.FlowRoot {
             retourne calcule_largeur_et_marges_inline_block_non_replaced_element
