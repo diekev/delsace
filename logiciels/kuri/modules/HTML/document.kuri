@@ -3,7 +3,6 @@ importe #inemployé CSS
 importe Ensemble
 importe Fondation
 importe Image
-importe Internet
 importe #inemployé JavaScript
 
 /* ------------------------------------------------------------------------- */
@@ -79,7 +78,7 @@ Document :: struct {
 
     type_contenu: chaine
     type: chaine
-    url: URI
+    url: *URL
     encodage: Encodage
     mode: ModeDocument
     permets_racines_shadow_déclaratives: bool
@@ -99,7 +98,7 @@ Document :: struct {
     permissions_policy: PermissionsPolicy
     active_sandboxing_flags: SandboxingFlags
     load_timing_info: DocumentLoadTimingInfo
-    about_base_url: Optionnel(URI)
+    about_base_url: *URL
 
     cross_origin_opener_policy: CrossOriginOpenerPolicy
 
@@ -158,7 +157,7 @@ document_sur_destruction :: fonc (base: *JavaScript.Cellule)
 
     détruit_policy_container(document.policy_container)
 
-    détruit_uri(document.url)
+    détruit_url(document.url)
     déloge(document.images_disponibles)
 }
 
@@ -172,7 +171,7 @@ crée_noeud_document :: fonc (tas_de_mémoire: *JavaScript.TasDeMémoire, realm:
     document.mode = ModeDocument.NO_QUIRKS
     document.type_contenu = "application/xml"
     document.type = "xml"
-    document.url = URI("about:blank")
+    document.url = donne_about_blank_url()
     document.document = document
 
     retourne document
@@ -186,7 +185,7 @@ est_en_mode_quirks :: fonc (document: *Document) -> bool
 /* https://html.spec.whatwg.org/multipage/iframe-embed-object.html#an-iframe-srcdoc-document */
 est_iframe_srcdoc :: fonc (document: *Document) -> bool
 {
-    retourne document.url.uri == "about:srcdoc"
+    retourne document.url.est_about_srcdoc()
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#fully-active */
@@ -199,7 +198,7 @@ est_fully_active :: fonc (document: *Document @inutilisée) -> bool
 }
 
 /* https://html.spec.whatwg.org/multipage/urls-and-fetching.html#document-base-url */
-donne_base_url :: fonc (document: *Document) -> URI
+donne_base_url :: fonc (document: *Document) -> *URL
 {
     // À FAIRE : implémente
     retourne document.url
