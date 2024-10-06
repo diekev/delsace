@@ -2641,7 +2641,6 @@ noeud_disposition_nouvelle_ligne_sur_divise_en_lignes :: fonc (base: *NoeudDeDis
 NoeudDeDispositionTexte :: struct {
     empl base: NoeudDeDisposition
     type = #type_de_cette_structure
-    sur_mesure = noeud_disposition_texte_sur_mesure
     sur_dessin_fragment = noeud_disposition_texte_sur_dessin_fragment
     sur_divise_en_lignes = noeud_disposition_texte_sur_divise_en_lignes
 
@@ -2650,44 +2649,6 @@ NoeudDeDispositionTexte :: struct {
     fonte: *Fonte
 
     morceaux: [..]ChaineUTF16
-}
-
-noeud_disposition_texte_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage @inutilisée)
-{
-    noeud := base comme *NoeudDeDispositionTexte
-
-    si est_vide_ou_uniquement_espaces_blanches(noeud.noeud_texte.données) {
-        noeud.sur_dessin = nul
-        retourne
-    }
-
-    fonte := détermine_fonte(noeud, ctx)
-    métriques := fonte.donne_métriques_fonte()
-
-    /* À FAIRE : meilleur algorithme, respect du standard. */
-    morceaux := divise_sur_espaces_blanches_ascii(noeud.noeud_texte.données)
-    diffère déloge(morceaux)
-
-    enchaineuse: EnchaineuseUTF16
-    initialise_enchaineuse(enchaineuse)
-    diffère détruit_tampons(enchaineuse)
-
-    virgule := ChaineUTF16Unique(0x20).donne_chaine_utf16()
-    pour morceaux {
-        si index_it > 0 {
-            ajoute(enchaineuse, virgule)
-        }
-        ajoute(enchaineuse, it)
-    }
-
-    texte := chaine_depuis_enchaineuse(enchaineuse)
-    noeud.texte = texte
-
-    /* XXX */
-    définis_hauteur_contenu(noeud.modèle_de_boite, métriques.donne_hauteur_ligne())
-
-    largeur_texte := fonte.donne_largeur_texte(texte) comme r32
-    définis_largeur_contenu(noeud.modèle_de_boite, largeur_texte)
 }
 
 noeud_disposition_texte_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, enligneuse: *Enligneuse, ctx: *ContexteDeFormattage, mode: ModeDeFormattage)
