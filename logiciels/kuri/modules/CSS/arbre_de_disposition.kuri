@@ -59,7 +59,7 @@ détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
         sinon si it.type == NoeudDeDispositionTexte {
             texte := it comme *NoeudDeDispositionTexte
             détruit_chaine(texte.texte)
-            déloge(texte.morceaux)
+            déloge(texte.fragments)
             déloge(texte)
         }
         sinon si it.type == NoeudDeDispositionNouvelleLigne {
@@ -157,8 +157,23 @@ dessine :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
     ctx.peintre.termine_dessin()
 }
 
+dessine_tampon_id_couleur :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
+{
+    arbre.hauteur_vue = ctx.hauteur_vue
+    arbre.largeur_vue = ctx.largeur_vue
+
+    ctx.tampon_id_couleur = vrai
+
+    IGUMI.réinitialise_données()
+    dessine_tampon_id(arbre.racine, ctx)
+    ctx.peintre.termine_dessin()
+
+    ctx.tampon_id_couleur = faux
+}
+
 dessine_tampon_id :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
 {
+    assert(ctx.tampon_id_couleur == faux)
     /* Tampon ID. */
 
     IGUMI.réinitialise_données_id()
@@ -252,6 +267,9 @@ opérateur < :: fonc (a: RèglesParIdentifiant, b: RèglesParIdentifiant) -> boo
 RésolveuseStyle :: struct {
     globales: *GlobalesDessin
     document: *HTML.Document
+    /* Pour MediaQuery et ContexteCalculStyle. */
+    largeur_écran: r64
+    hauteur_écran: r64
     taille_fonte_racine: r64
     feuilles_de_style: []*CSSStyleSheet
 
@@ -280,7 +298,7 @@ RésolveuseStyle :: struct {
     presentational_hints: [..]*DéclarationPropriété
 }
 
-crée_résolveuse_style :: fonc (document: *HTML.Document) -> *RésolveuseStyle
+crée_résolveuse_style :: fonc (document: *HTML.Document, largeur: z32, hauteur: z32) -> *RésolveuseStyle
 {
     résultat := loge(RésolveuseStyle)
     initialise_résolveuse(résultat)
@@ -288,6 +306,8 @@ crée_résolveuse_style :: fonc (document: *HTML.Document) -> *RésolveuseStyle
     résultat.taille_fonte_racine = document.globales_dessin.taille_fonte_défaut
     résultat.globales = document.globales_dessin
     résultat.feuilles_de_style = document.feuilles_de_style
+    résultat.largeur_écran = largeur comme r64
+    résultat.hauteur_écran = hauteur comme r64
     initialise_cache(résultat)
     retourne résultat
 }
@@ -299,62 +319,105 @@ initialise_résolveuse :: fonc (résolveuse: *RésolveuseStyle)
 
 initialise_cache :: fonc (résolveuse: *RésolveuseStyle)
 {
-    pseudo_classes: PseudoClasses
+    résolveuse.pseudo_classes = PseudoClasses.zéro
     résolveuse.ids_connus.taille = 0
     résolveuse.attrs_connus.taille = 0
     résolveuse.classes_connues.taille = 0
     résolveuse.autres_règles.taille = 0
     résolveuse.règles_par_classe.taille = 0
 
+    user_agent := HTML.donne_user_agent(résolveuse.document)
+    assert(user_agent != nul)
+
+    ctx: ContexteÉvaluationMediaQuery
+    ctx.supporte_scripting = user_agent.supporte_scripting
+    ctx.largeur = résolveuse.largeur_écran
+    ctx.taille_fonte = résolveuse.globales.taille_fonte_défaut
+
     pour feuille, index_feuille dans résolveuse.feuilles_de_style {
-        pour règle, index_règle dans feuille.rules {
-            si règle.type != CSSRuleType.Style {
+        index_règle : z64 = 0
+        pour règle dans feuille.rules {
+            si règle.type == CSSRuleType.Style {
+                règle_de_style := règle comme *CSSStyleRule
+                ajoute_règle_aux_caches(résolveuse, règle_de_style, index_feuille, index_règle)
+                index_règle += 1
                 continue
             }
 
-            règle_de_style := règle comme *CSSStyleRule
-            règle_ajoutée := faux
+            si règle.type == CSSRuleType.Media {
+                règle_de_media := règle comme *CSSMediaRule
+                saufsi évalue_media_list(*ctx, règle_de_media) {
+                    continue
+                }
 
-            règle_appariée: RègleAppariée
-            règle_appariée.règle = règle_de_style
-            règle_appariée.index_feuille_de_style = index_feuille
-            règle_appariée.index_règle = index_règle
-
-            pour complex dans règle_de_style.selector_list.complex_selectors {
-
-                dernière_classe: Optionnel(CSSOMString)
-
-                pour compound dans complex.compound_selectors {
-                    init_de(Optionnel(CSSOMString))(*dernière_classe)
-                    pour simple dans compound.simple_selectors {
-                        si simple.type == SimpleSelector.Type.PseudoClass {
-                            pseudo_classes |= simple.pseudo_classe
-                        }
-                        sinon si simple.type == SimpleSelector.Type.ID {
-                            ensemble_ajoute(*résolveuse.ids_connus, simple.ident.valeur)
-                        }
-                        sinon si simple.type == SimpleSelector.Type.Attrib {
-                            ensemble_ajoute(*résolveuse.attrs_connus, simple.ident.valeur)
-                        }
-                        sinon si simple.type == SimpleSelector.Type.Class {
-                            ensemble_ajoute(*résolveuse.classes_connues, simple.ident.valeur)
-                            dernière_classe = simple.ident
-                        }
+                pour règle_média dans règle_de_media.css_rules {
+                    si règle_média.type == CSSRuleType.Style {
+                        règle_de_style := règle_média comme *CSSStyleRule
+                        ajoute_règle_aux_caches(résolveuse, règle_de_style, index_feuille, index_règle)
+                        index_règle += 1
                     }
                 }
 
-                si dernière_classe.possède_valeur() {
-                    ajoute_règle_pour_classe(résolveuse, dernière_classe.Quelque, règle_appariée)
-                }
-                sinon saufsi règle_ajoutée {
-                    règle_ajoutée = vrai
-                    tableau_ajoute(*résolveuse.autres_règles, règle_appariée)
-                }
+                continue
             }
         }
     }
+}
 
-    résolveuse.pseudo_classes = pseudo_classes
+évalue_media_list :: fonc (ctx: *ContexteÉvaluationMediaQuery, règle_de_media: *CSSMediaRule) -> bool
+{
+    saufsi règle_de_media.media_list {
+        retourne faux
+    }
+
+    pour règle_de_media.media_list.media_queries {
+        saufsi évalue_media_query(ctx, it) {
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
+
+ajoute_règle_aux_caches :: fonc (résolveuse: *RésolveuseStyle, règle_de_style: *CSSStyleRule, index_feuille: z64, index_règle: z64)
+{
+    règle_ajoutée := faux
+
+    règle_appariée: RègleAppariée
+    règle_appariée.règle = règle_de_style
+    règle_appariée.index_feuille_de_style = index_feuille
+    règle_appariée.index_règle = index_règle
+
+    pour complex dans règle_de_style.selector_list.complex_selectors {
+        dernière_classe: Optionnel(CSSOMString)
+
+        pour compound dans complex.compound_selectors {
+            init_de(Optionnel(CSSOMString))(*dernière_classe)
+            pour simple dans compound.simple_selectors {
+                si simple.type == SimpleSelector.Type.PseudoClass {
+                    résolveuse.pseudo_classes |= simple.pseudo_classe
+                }
+                sinon si simple.type == SimpleSelector.Type.ID {
+                    ensemble_ajoute(*résolveuse.ids_connus, simple.ident.valeur)
+                }
+                sinon si simple.type == SimpleSelector.Type.Attrib {
+                    ensemble_ajoute(*résolveuse.attrs_connus, simple.ident.valeur)
+                }
+                sinon si simple.type == SimpleSelector.Type.Class {
+                    ensemble_ajoute(*résolveuse.classes_connues, simple.ident.valeur)
+                    dernière_classe = simple.ident
+                }
+            }
+        }
+
+        si dernière_classe.possède_valeur() {
+            ajoute_règle_pour_classe(résolveuse, dernière_classe.Quelque, règle_appariée)
+        }
+        sinon saufsi règle_ajoutée {
+            règle_ajoutée = vrai
+            tableau_ajoute(*résolveuse.autres_règles, règle_appariée)
+        }
+    }
 }
 
 ajoute_règle_pour_classe :: fonc (résolveuse: *RésolveuseStyle, classe: CSSOMString, règle: RègleAppariée)
@@ -786,6 +849,8 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
     ctx_calcul_style.taille_fonte_racine = résolveuse.taille_fonte_racine
     ctx_calcul_style.propriétés = propriétés
     ctx_calcul_style.valeurs_initiales = *résolveuse.valeurs_initiales
+    ctx_calcul_style.largeur_canevas = résolveuse.largeur_écran
+    ctx_calcul_style.hauteur_canevas = résolveuse.hauteur_écran
 
     si propriétés_parent {
         ctx_calcul_style.taille_fonte = propriétés_parent.donne_valeur_calculée(IDPropriété.FontSize).pixels
@@ -932,7 +997,7 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, haut
     }
 
     saufsi document.résolveuse_style {
-        document.résolveuse_style = crée_résolveuse_style(document)
+        document.résolveuse_style = crée_résolveuse_style(document, largeur, hauteur)
     }
 
     résultat := loge(ArbreDeDisposition)
@@ -1027,7 +1092,7 @@ crée_noeud_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *
     sinon si élément.local_name == HTML.TAG_textarea {
         résultat = crée_noeud_de_remplacement_textarea(arbre, élément comme *HTML.HTMLTextAreaElement)
     }
-    sinon si display.outer_type == Display.Type.Block {
+    sinon si display.outer_type == Display.Type.Block || display.inner_type == Display.Type.Flex {
         bloc := arbre.crée_noeud(NoeudDeDispositionBloc)
         bloc.élément = élément
         résultat = bloc
@@ -1076,6 +1141,8 @@ ContexteDessin :: struct {
     largeur_vue: z32
 
     décalage_y: r32
+
+    tampon_id_couleur: bool
 }
 
 donne_rectangle_corrigé :: fonc (ctx: *ContexteDessin, rect: RectanglePosDim(r32)) -> RectanglePosDim(r32)
@@ -1091,18 +1158,20 @@ donne_rectangle_corrigé :: fonc (ctx: *ContexteDessin, rect: RectanglePosDim(r3
 
 remplis_rectangle_id :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition)
 {
-    // peintre := ctx.peintre
-
-    // entropie := graine_aléatoire(noeud.id + 1)
-
-    // couleur: CouleurRVBA
-    // couleur.r = aléatoire_unilatérale(entropie)
-    // couleur.v = aléatoire_unilatérale(entropie)
-    // couleur.b = aléatoire_unilatérale(entropie)
-    // couleur.a = 1.0
-
     rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
-    // peintre.remplis_rectangle(rect, couleur)
+
+    si ctx.tampon_id_couleur {
+        peintre := ctx.peintre
+        entropie := graine_aléatoire(noeud.id + 1)
+
+        couleur: CouleurRVBA
+        couleur.r = aléatoire_unilatérale(entropie)
+        couleur.v = aléatoire_unilatérale(entropie)
+        couleur.b = aléatoire_unilatérale(entropie)
+        couleur.a = 1.0
+        peintre.remplis_rectangle(rect, couleur)
+        retourne
+    }
 
     IGUMI.commence_immédiat_id(IGUMI.ModeImmédiat.TRIANGLES, IGUMI.nuanceur_id)
 
@@ -1113,18 +1182,20 @@ remplis_rectangle_id :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition)
 
 remplis_rectangle_id :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition, rect: RectanglePosDim(r32))
 {
-    // peintre := ctx.peintre
-
-    // entropie := graine_aléatoire(noeud.id + 1)
-
-    // couleur: CouleurRVBA
-    // couleur.r = aléatoire_unilatérale(entropie)
-    // couleur.v = aléatoire_unilatérale(entropie)
-    // couleur.b = aléatoire_unilatérale(entropie)
-    // couleur.a = 1.0
-
     rect = ctx.donne_rectangle_corrigé(rect)
-    // peintre.remplis_rectangle(rect, couleur)
+
+    si ctx.tampon_id_couleur {
+        peintre := ctx.peintre
+        entropie := graine_aléatoire(noeud.id + 1)
+
+        couleur: CouleurRVBA
+        couleur.r = aléatoire_unilatérale(entropie)
+        couleur.v = aléatoire_unilatérale(entropie)
+        couleur.b = aléatoire_unilatérale(entropie)
+        couleur.a = 1.0
+        peintre.remplis_rectangle(rect, couleur)
+        retourne
+    }
 
     IGUMI.commence_immédiat_id(IGUMI.ModeImmédiat.TRIANGLES, IGUMI.nuanceur_id)
 
@@ -1163,10 +1234,7 @@ donne_image_pour_url :: fonc (ctx: *ContexteDessin, url_string: chaine) -> Optio
         retourne
     }
 
-    url_string_utf16 := crée_chaine_utf16(url_string)
-    diffère détruit_chaine(url_string_utf16)
-
-    url_src := HTML.basic_url_parser(url_string_utf16)
+    url_src := HTML.basic_url_parser(url_string)
 
     HTML.définis_état_requête_image(ctx.document, url_string, HTML.ÉtatRequêteImage.EnCours)
 
@@ -1175,7 +1243,6 @@ donne_image_pour_url :: fonc (ctx: *ContexteDessin, url_string: chaine) -> Optio
 
         document: *HTML.Document
         request: *HTML.Request
-        url_src: *HTML.URL
         url_string: chaine
     }
 
@@ -1230,14 +1297,12 @@ donne_image_pour_url :: fonc (ctx: *ContexteDessin, url_string: chaine) -> Optio
     sur_destruction_process_response :: fonc (base: *HTML.BaseProcessResponse)
     {
         rappel := base comme *RappelProcessResponse
-        HTML.détruit_url(rappel.url_src)
         HTML.détruit_request(rappel.request)
         déloge(rappel)
     }
 
     process_response := loge(RappelProcessResponse)
     process_response.document = ctx.document
-    process_response.url_src = url_src
     process_response.url_string = url_string
     process_response.sur_rappel = sur_rappel_process_response
     process_response.sur_destruction = sur_destruction_process_response
@@ -1246,7 +1311,7 @@ donne_image_pour_url :: fonc (ctx: *ContexteDessin, url_string: chaine) -> Optio
     request.destination = "image"
     request.mode = "no-cors"
     request.redirect_mode = "follow"
-    HTML.définis_url(request, tente parse_uri_standard(copie_chaine(url_string)) piège nonatteignable)
+    HTML.définis_url(request, url_src)
     process_response.request = request
 
     user_agent := HTML.donne_user_agent(ctx.document)
@@ -1633,6 +1698,23 @@ donne_élément_récursif :: fonc (noeud: *NoeudDeDisposition) -> *HTML.Élémen
     retourne nul
 }
 
+imprime_élément :: fonc (noeud: *NoeudDeDisposition, message: chaine, récursif := faux)
+{
+    élément := si récursif {
+        noeud.donne_élément()
+    }
+    sinon {
+        noeud.donne_élément_récursif()
+    }
+
+    si élément {
+        imprime("% : %#%.%\n", message, élément.local_name, élément.id, HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_class))
+    }
+    sinon {
+        imprime("% : <anonyme>\n")
+    }
+}
+
 décale :: fonc (noeud: *NoeudDeDisposition, x: r32, y: r32)
 {
     décale_horizontalement(noeud.modèle_de_boite, x)
@@ -1673,7 +1755,18 @@ dessine :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDessin)
 
 dessine_fragment :: fonc (noeud: *NoeudDeDisposition, fragment: *Fragment, lignes_tenante: *LignesTenante, ctx: *ContexteDessin)
 {
-    noeud.sur_dessin_fragment(noeud, fragment, lignes_tenante, ctx)
+    si noeud.sur_dessin_fragment {
+        noeud.sur_dessin_fragment(noeud, fragment, lignes_tenante, ctx)
+    }
+    sinon {
+        /* XXX - ceci devrait sans doute être fait lors de la disposition. */
+        x := fragment.x - noeud.modèle_de_boite.contenu.x
+        y := fragment.y - noeud.modèle_de_boite.contenu.y
+
+        décale_horizontalement(noeud.modèle_de_boite, x)
+        décale_verticalement(noeud.modèle_de_boite, y)
+        noeud.dessine(ctx)
+    }
 }
 
 dessine_tampon_id :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDessin)
@@ -1687,6 +1780,11 @@ dessine_fragment_tampon_id :: fonc (noeud: *NoeudDeDisposition, fragment: *Fragm
 {
     saufsi noeud.sur_dessin_fragment_tampon_id {
         ctx.remplis_rectangle_id(noeud, fragment.donne_rectangle())
+
+        pour noeud.enfants {
+            noeud.dessine_tampon_id(ctx)
+        }
+
         retourne
     }
 
@@ -1709,14 +1807,21 @@ donne_curseur :: fonc (noeud: *NoeudDeDisposition) -> CursorType
 
 divise_en_lignes :: fonc (noeud: *NoeudDeDisposition, enligneuse: *Enligneuse, ctx: *ContexteDeFormattage, mode: ModeDeFormattage)
 {
-    si noeud.sur_divise_en_lignes {
-        noeud.sur_divise_en_lignes(noeud, enligneuse, ctx, mode)
+    si (noeud.type == NoeudDeDispositionTexte || noeud.donne_display().inner_type == Display.Type.Flow) {
+        si noeud.sur_divise_en_lignes {
+            noeud.sur_divise_en_lignes(noeud, enligneuse, ctx, mode)
+            retourne
+        }
+
+        pour noeud.enfants {
+            divise_en_lignes(it, enligneuse, ctx, mode)
+        }
+
         retourne
     }
 
-    pour noeud.enfants {
-        divise_en_lignes(it, enligneuse, ctx, mode)
-    }
+    noeud.mesure(ctx, mode)
+    _ := enligneuse.ajoute_fragment(noeud, noeud.modèle_de_boite.marge.hauteur, noeud.modèle_de_boite.marge.largeur, Fragment.Type.Normal)
 }
 
 corrige_hiérarchie :: fonc (noeud: *NoeudDeDisposition, créatrice: *CréatriceArbre)
@@ -2102,6 +2207,12 @@ formatte_intérieur :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDeFor
         ctx_local.doit_aligner_les_descendants = ctx.doit_aligner_les_descendants
         ctx_local.initial_containing_block = ctx.initial_containing_block
 
+        formatte(*ctx_local, noeud, mode)
+    }
+    sinon si noeud.donne_display().inner_type == Display.Type.Flex {
+        ctx_local: ContexteDeFormattageFlex
+        ctx_local.globales = ctx.globales
+        ctx_local.initial_containing_block = ctx.initial_containing_block
         formatte(*ctx_local, noeud, mode)
     }
     sinon {
@@ -2530,7 +2641,6 @@ noeud_disposition_nouvelle_ligne_sur_divise_en_lignes :: fonc (base: *NoeudDeDis
 NoeudDeDispositionTexte :: struct {
     empl base: NoeudDeDisposition
     type = #type_de_cette_structure
-    sur_mesure = noeud_disposition_texte_sur_mesure
     sur_dessin_fragment = noeud_disposition_texte_sur_dessin_fragment
     sur_divise_en_lignes = noeud_disposition_texte_sur_divise_en_lignes
 
@@ -2538,78 +2648,18 @@ NoeudDeDispositionTexte :: struct {
     texte: ChaineUTF16
     fonte: *Fonte
 
-    morceaux: [..]ChaineUTF16
-}
-
-noeud_disposition_texte_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage @inutilisée)
-{
-    noeud := base comme *NoeudDeDispositionTexte
-
-    si est_vide_ou_uniquement_espaces_blanches(noeud.noeud_texte.données) {
-        noeud.sur_dessin = nul
-        retourne
-    }
-
-    fonte := détermine_fonte(noeud, ctx)
-    métriques := fonte.donne_métriques_fonte()
-
-    /* À FAIRE : meilleur algorithme, respect du standard. */
-    morceaux := divise_sur_espaces_blanches_ascii(noeud.noeud_texte.données)
-    diffère déloge(morceaux)
-
-    enchaineuse: EnchaineuseUTF16
-    initialise_enchaineuse(enchaineuse)
-    diffère détruit_tampons(enchaineuse)
-
-    virgule := ChaineUTF16Unique(0x20).donne_chaine_utf16()
-    pour morceaux {
-        si index_it > 0 {
-            ajoute(enchaineuse, virgule)
-        }
-        ajoute(enchaineuse, it)
-    }
-
-    texte := chaine_depuis_enchaineuse(enchaineuse)
-    noeud.texte = texte
-
-    /* XXX */
-    définis_hauteur_contenu(noeud.modèle_de_boite, métriques.donne_hauteur_ligne())
-
-    largeur_texte := fonte.donne_largeur_texte(texte) comme r32
-    définis_largeur_contenu(noeud.modèle_de_boite, largeur_texte)
+    fragments: [..]FragmentTexte
 }
 
 noeud_disposition_texte_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, enligneuse: *Enligneuse, ctx: *ContexteDeFormattage, mode: ModeDeFormattage)
 {
     noeud := base comme *NoeudDeDispositionTexte
-    déloge(noeud.morceaux)
+    traite_espaces_blanches(noeud)
 
     fonte := détermine_fonte(noeud, ctx)
     métriques := fonte.donne_métriques_fonte()
 
     définis_hauteur_contenu(noeud.modèle_de_boite, métriques.donne_hauteur_ligne())
-
-    si est_vide_ou_uniquement_espaces_blanches(noeud.noeud_texte.données) {
-        espace := ChaineUTF16Unique(' ' comme n32)
-        largeur_espace := fonte.donne_largeur_texte(espace.donne_chaine_utf16())
-
-        tableau_ajoute(*noeud.morceaux, espace.donne_chaine_utf16())
-
-        /* À FAIRE : hauteur du contenu */
-        _ := enligneuse.ajoute_fragment(noeud, 0, 1, 0.0, largeur_espace comme r32)
-        retourne
-    }
-
-    /* À FAIRE : meilleur algorithme, respect du standard. */
-    morceaux := divise_sur_espaces_blanches_ascii(noeud.noeud_texte.données)
-
-    espace := ChaineUTF16Unique(' ' comme n32)
-    index_espace := morceaux.taille
-    largeur_espace := fonte.donne_largeur_texte(espace.donne_chaine_utf16())
-
-    tableau_ajoute(*morceaux, espace.donne_chaine_utf16())
-
-    noeud.morceaux = morceaux
 
     hauteur_texte := métriques.donne_hauteur_ligne()
 
@@ -2618,29 +2668,249 @@ noeud_disposition_texte_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition,
     /* line-height définis la hauteur minimale. */
     hauteur_texte = max(hauteur_texte, line_height)
 
-    pour morceaux {
-        largeur_morceau := fonte.donne_largeur_texte(it)
+    // À FAIRE : traite proprement la hauteur de ligne pour les noeuds interéléments.
+    // La taille de fonte peut avoir été héritée de l'élément parent des noeuds adelphes.
+    si est_vide_ou_uniquement_espaces_blanches(noeud.noeud_texte.données) {
+        hauteur_texte = 0.0
+    }
 
-        _ := enligneuse.ajoute_fragment(noeud, index_it, index_it + 1, hauteur_texte, largeur_morceau comme r32)
-
-        si index_it >= index_espace - 1 {
+    pour noeud.fragments {
+        si it.ignore_mais_préserve_soft_wrap_opportunity {
             continue
         }
 
+        si it.est_espace_blanche && it.texte.unités[0] == 0x0A {
+            ligne := enligneuse.ajoute_ligne()
+            ligne.garantis_hauteur_minimale(hauteur_texte)
+            continue
+        }
+
+        largeur_morceau := fonte.donne_largeur_texte(it.texte)
+
         discr mode {
             Normal {
-                si enligneuse.peut_ajouter_fragment(largeur_espace comme r32) {
-                    _ := enligneuse.ajoute_fragment(noeud, index_espace, index_espace + 1, hauteur_texte, largeur_espace comme r32)
-                }
+                _ := enligneuse.ajoute_fragment(noeud, index_it, index_it + 1, hauteur_texte, largeur_morceau comme r32)
             }
             ToutesLesBrisuresDeLigne {
+                saufsi it.est_espace_blanche {
+                    _ := enligneuse.ajoute_fragment(noeud, index_it, index_it + 1, hauteur_texte, largeur_morceau comme r32)
+                }
+
                 ligne := enligneuse.ajoute_ligne()
                 ligne.garantis_hauteur_minimale(hauteur_texte)
             }
             BrisureDeLigneExplicite {
-                _ := enligneuse.ajoute_fragment(noeud, index_espace, index_espace + 1, hauteur_texte, largeur_espace comme r32)
+                _ := enligneuse.ajoute_fragment(noeud, index_it, index_it + 1, hauteur_texte, largeur_morceau comme r32)
             }
         }
+    }
+}
+
+/* https://drafts.csswg.org/css-text/#white-space-phase-1 */
+traite_espaces_blanches :: fonc (noeud: *NoeudDeDispositionTexte)
+{
+    noeud.fragments.taille = 0
+    fragmente_texte_avec_espaces_blanches_ascii(noeud.noeud_texte.données, *noeud.fragments)
+
+    propriétés := donne_propriété_parent(noeud)
+    white_space := propriétés.donne_valeur_utilisée(IDPropriété.WhiteSpace).mot_clé
+
+    si white_space == PROP_normal || white_space == PROP_nowrap || white_space == PROP_pre_line {
+        // 1. Any sequence of collapsible spaces and tabs immediately preceding or following a segment
+        //    break is removed.
+        collapse_séquences_d_espaces_blanches_autour_bris_segments(noeud.fragments)
+
+        // 2. Collapsible segment breaks are transformed for rendering according to the segment break
+        //    transformation rules.
+        collapse_bris_segments(noeud.fragments, white_space)
+
+        // 3. Every collapsible tab is converted to a collapsible space (U+0020).
+        convertis_tabulations_en_espaces(noeud.fragments)
+
+        // 4. Any collapsible space immediately following another collapsible space—​even one outside
+        //    the boundary of the inline containing that space, provided both spaces are within the
+        //    same inline formatting context—​is collapsed to have zero advance width. (It is invisible,
+        //    but retains its soft wrap opportunity, if any.)
+        // À FAIRE : collapse également (entre les noeuds) lors de la disposition
+        collapse_espaces_consécutives(noeud.fragments)
+    }
+    sinon {
+        assert(white_space == PROP_wrap || white_space == PROP_pre || white_space == PROP_pre_wrap || white_space == PROP_break_spaces)
+    }
+}
+
+FragmentTexte :: struct {
+    texte: ChaineUTF16
+    est_espace_blanche: bool
+    ignore_mais_préserve_soft_wrap_opportunity: bool
+}
+
+/* Similaire à Chaine.divise_sur_espaces_blanches_ascii mais nous préservons les espaces. */
+fragmente_texte_avec_espaces_blanches_ascii :: fonc (chn: ChaineUTF16, fragments: *[..]FragmentTexte)
+{
+    position := 0
+
+    texte: ChaineUTF16
+
+    tantque position < chn.taille() && est_espace_blanche_ascii(chn.unités.pointeur[position]) {
+        texte.unités.pointeur = chn.unités.pointeur + position
+        texte.unités.taille = 1
+        tableau_ajoute(fragments, FragmentTexte(texte, vrai))
+
+        position += 1
+    }
+
+    tantque position < chn.taille() {
+        texte.unités.pointeur = chn.unités.pointeur + position
+        texte.unités.taille = 0
+
+        tantque position < chn.taille() && !est_espace_blanche_ascii(chn.unités.pointeur[position]) {
+            texte.unités.taille += 1
+            position += 1
+        }
+
+        si texte.taille() != 0 {
+            tableau_ajoute(fragments, FragmentTexte(texte, faux))
+        }
+
+        texte.unités.pointeur = chn.unités.pointeur + position
+        texte.unités.taille = 0
+
+        tantque position < chn.taille() && est_espace_blanche_ascii(chn.unités.pointeur[position]) {
+            texte.unités.pointeur = chn.unités.pointeur + position
+            texte.unités.taille = 1
+            tableau_ajoute(fragments, FragmentTexte(texte, vrai))
+
+            position += 1
+        }
+    }
+}
+
+collapse_séquences_d_espaces_blanches_autour_bris_segments :: fonc (fragments: &[..]FragmentTexte)
+{
+    début := fragments.pointeur
+    fin := fragments.pointeur + fragments.taille
+
+    entrée := début
+    sortie := début
+
+    dernier_fragment_non_collapsible := entrée - 1
+
+    tantque début < fin {
+        si début.texte.unités[0] == 0x0A {
+            sortie = dernier_fragment_non_collapsible + 1
+            assert(sortie < fin)
+
+            mémoire(sortie) = mémoire(début)
+            dernier_fragment_non_collapsible = sortie
+            début += 1
+            sortie += 1
+
+            tantque début < fin && début.est_espace_blanche {
+                si début.texte.unités[0] == 0x0A {
+                    arrête
+                }
+                début += 1
+            }
+
+            continue
+        }
+
+        saufsi début.est_espace_blanche {
+            dernier_fragment_non_collapsible = sortie
+        }
+
+        mémoire(sortie) = mémoire(début)
+        début += 1
+        sortie += 1
+    }
+
+    fragments.taille = (sortie - entrée)
+}
+
+/* https://drafts.csswg.org/css-text/#line-break-transform */
+collapse_bris_segments :: fonc (fragments: &[..]FragmentTexte, white_space: CSSOMString)
+{
+    // When white-space is pre, pre-wrap, break-spaces, or pre-line, segment breaks are
+    // not collapsible and are instead transformed into a preserved line feed (U+000A).
+    si white_space == PROP_pre || white_space == PROP_pre_wrap || white_space == PROP_break_spaces || white_space == PROP_pre_line {
+        retourne
+    }
+
+    // 1. First, any collapsible segment break immediately following another collapsible
+    // segment break is removed.
+    début := fragments.pointeur
+    fin := fragments.pointeur + fragments.taille
+
+    entrée := début
+    sortie := début
+
+    dernier_fut_bris_segment := faux
+
+    tantque début < fin {
+        si début.texte.unités[0] == 0x0A {
+            si dernier_fut_bris_segment {
+                sortie -= 1
+            }
+            dernier_fut_bris_segment = vrai
+        }
+        sinon {
+            dernier_fut_bris_segment = faux
+        }
+
+        mémoire(sortie) = mémoire(début)
+        début += 1
+        sortie += 1
+    }
+
+    fragments.taille = (sortie - entrée)
+
+    // 2. Then any remaining segment break is either transformed into a space (U+0020)
+    // or removed depending on the context before and after the break.
+    // The rules for this operation are UA-defined in this level.
+    chn_espace := crée_chaine_utf16_unique(" ").donne_chaine_utf16()
+
+    début = fragments.pointeur
+    tantque début < fin {
+        si début.texte.unités[0] == 0x0A {
+            début.texte = chn_espace
+        }
+        début += 1
+    }
+}
+
+convertis_tabulations_en_espaces :: fonc (fragments: &[..]FragmentTexte)
+{
+    chn_espace := crée_chaine_utf16_unique(" ").donne_chaine_utf16()
+    début := fragments.pointeur
+    fin := fragments.pointeur + fragments.taille
+
+    tantque début < fin {
+        si début.texte.unités[0] == '\t' comme n32 {
+            début.texte = chn_espace
+        }
+        début += 1
+    }
+}
+
+collapse_espaces_consécutives :: fonc (fragments: &[..]FragmentTexte)
+{
+    début := fragments.pointeur
+    fin := fragments.pointeur + fragments.taille
+
+    dernier_fut_espace_blanche := faux
+
+    tantque début < fin {
+        si début.est_espace_blanche {
+            si dernier_fut_espace_blanche {
+                début.ignore_mais_préserve_soft_wrap_opportunity = vrai
+            }
+            dernier_fut_espace_blanche = vrai
+        }
+        sinon {
+            dernier_fut_espace_blanche = faux
+        }
+        début += 1
     }
 }
 
@@ -2683,7 +2953,7 @@ noeud_disposition_texte_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, 
 
     // peintre.dessine_rectangle(rect, couleur)
 
-    texte := noeud.morceaux[fragment.index_début]
+    texte := noeud.fragments[fragment.index_début].texte
 
     peintre.dessine_texte(fonte, texte, rect, couleur, *effets)
 }
