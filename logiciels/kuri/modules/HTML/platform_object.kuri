@@ -1,7 +1,6 @@
 importe Chaine
 importe Fondation
 importe #inemployé JavaScript
-importe Internet
 
 /* ------------------------------------------------------------------------- */
 /** \nom PlatformObject
@@ -91,8 +90,8 @@ donne_relevant_global_object :: fonc (platform_object: *PlatformObject) -> *Java
  * \{ */
 
 Environment :: struct {
-    creation_url: URI
-    top_level_creation_url: URI
+    creation_url: *URL
+    top_level_creation_url: *URL
     top_level_origin: Origin
     execution_ready: bool
 }
@@ -109,7 +108,7 @@ EnvironmentSettings :: struct {
 
     sur_donne_realm_execution_context: fonc(*EnvironmentSettings)(*JavaScript.ExecutionContext)
     // sur_donne_module_map
-    sur_donne_api_base_url: fonc(*EnvironmentSettings)(URI)
+    sur_donne_api_base_url: fonc(*EnvironmentSettings)(*URL)
     sur_donne_origin: fonc(*EnvironmentSettings)(Origin)
     sur_donne_policy_container: fonc(*EnvironmentSettings)(*PolicyContainer)
     sur_donne_cross_origin_isolated_capability: fonc(*EnvironmentSettings)(bool)
@@ -139,7 +138,7 @@ donne_realm_execution_context :: fonc (environment: *EnvironmentSettings) -> *Ja
     retourne environment.sur_donne_realm_execution_context(environment)
 }
 
-donne_api_base_url :: fonc (environment: *EnvironmentSettings) -> URI
+donne_api_base_url :: fonc (environment: *EnvironmentSettings) -> *URL
 {
     retourne environment.sur_donne_api_base_url(environment)
 }
