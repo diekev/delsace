@@ -217,6 +217,8 @@ enum class DrapeauxNoeudFonction : uint32_t {
     /* La fontion fut marquée avec #cliche format_canon */
     CLICHÉ_FORMAT_CANONIQUE_FUT_REQUIS = (1 << 22),
 
+    FORCE_SANS_ASAN = (1 << 23),
+
     /* Ne copions pas certains bits. */
     BITS_COPIABLES = ~(EST_POLYMORPHIQUE | EST_VARIADIQUE | EST_MONOMORPHISATION |
                        EST_INITIALISATION_TYPE | EST_INTRINSÈQUE | EST_MÉTAPROGRAMME),

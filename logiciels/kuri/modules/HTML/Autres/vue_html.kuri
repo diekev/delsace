@@ -6,7 +6,6 @@ importe Fondation
 importe Géométrie
 importe HTML
 importe HTTP
-importe Internet
 importe #inemployé JavaScript
 importe OpenGL
 importe PeintureInterface
@@ -159,6 +158,80 @@ initialise_évènements_personnalisés :: fonc ()
     évènement_sur_tâche_traversable = QT_enregistre_evenement_personnel()
 }
 
+fenêtre_principale_sur_création_barre_menu :: fonc (base: *QT_Rappels_Fenetre_Principale, créatrice: *QT_Creatrice_Barre_Menu)
+{
+    rappels_fenêtre := base comme *RappelsFenetrePrincipale
+
+    créatrice.commence_menu_env("Débogage")
+
+    action := crée_action_pour_activer_javascript(rappels_fenêtre)
+    créatrice.ajoute_action_env(action)
+
+    action = QT_cree_action(vers_qt("Dessine Tampon ID"), base.fenetre)
+    crée_rappel_pour_dessin_tampon_id(rappels_fenêtre, action)
+    QT_action_definis_cochable(action, vrai)
+    créatrice.ajoute_action_env(action)
+
+    créatrice.termine_menu_env()
+}
+
+crée_rappel_pour_dessin_tampon_id :: fonc (rappels_fenêtre: *RappelsFenetrePrincipale, action: *QT_Action)
+{
+    Rappel :: struct {
+        empl base: QT_Rappel_Generique
+        action: *QT_Action
+        rappels_fenêtre: *RappelsFenetrePrincipale
+    }
+
+    sur_rappel :: fonc (base: *QT_Rappel_Generique)
+    {
+        rappel := base comme *Rappel
+        rappels_fenêtre := rappel.rappels_fenêtre
+
+        vue_rendu_page := QT_glwidget_donne_rappels(rappels_fenêtre.widget_rendu) comme *VueRenduPage
+        vue_rendu_page.dessine_tampon_id = QT_action_est_coche(rappel.action)
+
+        QT_widget_ajourne(rappels_fenêtre.widget_rendu)
+    }
+
+    résultat := QT_loge_rappel(Rappel)
+    résultat.rappels_fenêtre = rappels_fenêtre
+    résultat.sur_rappel = sur_rappel
+    résultat.action = action
+    QT_action_sur_declenchage(action, résultat)
+}
+
+crée_action_pour_activer_javascript :: fonc (rappels_fenêtre: *RappelsFenetrePrincipale) -> *QT_Action
+{
+    Rappel :: struct {
+        empl base: QT_Rappel_Generique
+        action: *QT_Action
+        rappels_fenêtre: *RappelsFenetrePrincipale
+    }
+
+    sur_rappel :: fonc (base: *QT_Rappel_Generique)
+    {
+        rappel := base comme *Rappel
+        rappels_fenêtre := rappel.rappels_fenêtre
+
+        user_agent := rappels_fenêtre.user_agent
+        user_agent.supporte_scripting = QT_action_est_coche(rappel.action)
+    }
+
+    user_agent := rappels_fenêtre.user_agent
+    résultat := QT_cree_action(vers_qt("Active JavaScript"), rappels_fenêtre.fenetre)
+    QT_action_definis_cochable(résultat, vrai)
+    QT_action_definis_coche(résultat, user_agent.supporte_scripting)
+
+    rappel := QT_loge_rappel(Rappel)
+    rappel.rappels_fenêtre = rappels_fenêtre
+    rappel.sur_rappel = sur_rappel
+    rappel.action = résultat
+    QT_action_sur_declenchage(résultat, rappel)
+
+    retourne résultat
+}
+
 sur_filtre_evenement_impl :: fonc (base: *QT_Rappels_Fenetre_Principale, event: *QT_Evenement) -> z32
 {
     type := QT_evenement_donne_type(event) comme n32 comme z32
@@ -168,18 +241,14 @@ sur_filtre_evenement_impl :: fonc (base: *QT_Rappels_Fenetre_Principale, event: 
 
         message := QT_event_perso_donne_donnees(event) comme *ÉvènementCréationOnglet
 
-        uri: URI
+        chaine_uri := message.uri
 
         si est_un_fichier_régulier(CheminFichier(message.uri)) {
-            uri.schéma = "file"
-            uri.schéma_est_défini = vrai
-            uri.autorité_est_définie = vrai
-            uri.chemin = message.uri
-            uri = uri
+            chaine_uri = enchaine("file://", chaine_uri)
         }
-        sinon {
-            uri = tente parse_uri_standard(message.uri) piège nonatteignable
-        }
+
+        uri := url_parser(rappels.user_agent, chaine_uri)
+        assert(uri != nul)
 
         navigable := crée_un_fresh_top_level_traversable(rappels.user_agent, uri) comme *TraversableNavigable
 
@@ -406,7 +475,7 @@ décale_par :: fonc (barre: *BarreDeDéfilement, delta: r32) -> bool
 }
 
 PageWeb :: struct {
-    uri: URI
+    uri: *URL
     parsat: ParsatHTML
     navigable: *TraversableNavigable
     contenu: chaine
@@ -415,7 +484,7 @@ PageWeb :: struct {
     défilement_vertical: BarreDeDéfilement
 }
 
-crée_page_web :: fonc (uri: &URI, contenu: chaine) -> PageWeb
+crée_page_web :: fonc (uri: *URL, contenu: chaine) -> PageWeb
 {
     résultat: PageWeb
     résultat.uri = uri
@@ -425,7 +494,7 @@ crée_page_web :: fonc (uri: &URI, contenu: chaine) -> PageWeb
     retourne résultat
 }
 
-crée_page_web :: fonc (uri: &URI, navigable: *TraversableNavigable) -> PageWeb
+crée_page_web :: fonc (uri: *URL, navigable: *TraversableNavigable) -> PageWeb
 {
     résultat: PageWeb
     résultat.uri = uri
@@ -507,6 +576,7 @@ RappelsFenetrePrincipale :: struct {
 
     /* Données rappels. */
     sur_filtre_evenement = sur_filtre_evenement_impl
+    sur_creation_barre_menu = fenêtre_principale_sur_création_barre_menu
 }
 
 définis_titre_fenêtre :: fonc (fenêtre: *QT_Fenetre_Principale, document: *Document)
@@ -640,7 +710,8 @@ rappel_changement_adresse_sur_rappel :: fonc (base: *QT_Rappel_Generique)
         retourne
     }
 
-    url := tente parse_uri_standard(texte) piège _ {
+    url := url_parser(rappel.user_agent, texte)
+    saufsi url {
         retourne
     }
 
@@ -1070,6 +1141,8 @@ VueRenduPage :: struct {
     hauteur: z32
     largeur: z32
 
+    dessine_tampon_id: bool
+
     peintre: *Peintre
 }
 
@@ -1148,7 +1221,12 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
 
     // début_rendu := maintenant_précis()
 
-    CSS.dessine(arbre, *ctx)
+    si vue_rendu_page.dessine_tampon_id {
+        CSS.dessine_tampon_id_couleur(arbre, *ctx)
+    }
+    sinon {
+        CSS.dessine(arbre, *ctx)
+    }
 
     // imprime("temps de rendu : %\n", début_rendu.temps_écoulé_millisecondes())
 
@@ -1614,15 +1692,15 @@ rappels_interface_sur_lancement_requête :: fonc (base: *RappelsInterface, requ�
     parent : *QT_Object = nul
 
     uri := requête.donne_url_courant()
-    hôte := uri.hôte
-    port := port_pour_uri(uri)
+    hôte := uri.host
+    port := donne_port_ou_défaut(uri)
 
-    si uri.schéma == "http" {
+    si uri.scheme == "http" {
         prise := QT_cree_ssl_socket_rappels(parent, rappels_socket)
         QT_abstract_socket_connect_to_host(prise, hôte.vers_qt(), port)
     }
     sinon {
-        assert(uri.schéma == "https")
+        assert(uri.scheme == "https")
         prise := QT_cree_ssl_socket_rappels(parent, rappels_socket)
         QT_ssl_socket_connect_to_host_encrypted(prise, hôte.vers_qt(), port)
     }
@@ -1649,20 +1727,12 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Request) -> *RappelsRequê
         uri := rappels.requête.donne_url_courant()
 
         ajoute_au_tampon(*enchaineuse, "GET ")
-        si uri.chemin {
-            ajoute_au_tampon(*enchaineuse, uri.chemin)
-        }
-        sinon {
-            ajoute_au_tampon(*enchaineuse, "/")
-        }
-        si uri.requête {
-            ajoute_au_tampon(*enchaineuse, "?")
-            ajoute_au_tampon(*enchaineuse, uri.requête)
-        }
+        sérialise_chemin(*enchaineuse, uri)
+        sérialise_requête(*enchaineuse, uri)
 
         ajoute_au_tampon(*enchaineuse, " HTTP/1.1\r\n")
         ajoute_au_tampon(*enchaineuse, "Host: ")
-        ajoute_au_tampon(*enchaineuse, uri.hôte)
+        ajoute_au_tampon(*enchaineuse, uri.host.Quelque)
         ajoute_au_tampon(*enchaineuse, "\r\n")
 
         pour rappels.requête.header_list {
@@ -1805,7 +1875,7 @@ rappels_interface_sur_document_est_prêt :: fonc (base: *RappelsInterface, docum
     rappels_fenêtre := QT_fenetre_principale_donne_rappels(rappels.fenêtre) comme *RappelsFenetrePrincipale
     ajourne_widget_arbre_dom(rappels_fenêtre)
 
-    chaine_url := recompose_uri(*document.url)
+    chaine_url := url_serializer(document.url)
     diffère déloge(chaine_url)
 
     QT_line_edit_definis_texte(rappels_fenêtre.widgets_page.line_edit, chaine_url.vers_qt())
