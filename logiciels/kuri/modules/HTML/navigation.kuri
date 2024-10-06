@@ -1,6 +1,5 @@
 importe Ensemble
 importe Fondation
-importe Internet
 importe MIME
 
 /* https://html.spec.whatwg.org/multipage/browsers.html#cross-origin-opener-policy-value */
@@ -24,7 +23,7 @@ CrossOriginOpenerPolicyEnforcementResult :: struct {
     needs_a_browsing_context_group_switch := faux
     would_need_a_browsing_context_group_switch_due_to_report_only := faux
     current_context_is_navigation_source := faux
-    url: URI
+    url: *URL
     origin: Origin
     cross_origin_opener_policy: CrossOriginOpenerPolicy
 }
@@ -152,7 +151,7 @@ NavigationParams :: struct {
     
     navigation_timing_type: NavigationTimingType
     
-    about_base_URL: Optionnel(URI)
+    about_base_URL: *URL
 }
 
 /* À FAIRE https://html.spec.whatwg.org/multipage/browsing-the-web.html#non-fetch-scheme-navigation-params */
@@ -224,9 +223,9 @@ NavigationType :: énum {
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#the-navigation-must-be-a-replace */
-navigation_must_be_a_replace :: fonc (url: &URI, document: *Document) -> bool
+navigation_must_be_a_replace :: fonc (url: *URL, document: *Document) -> bool
 {
-    retourne document.is_initial_about_blank || url.schéma == "javascript"
+    retourne document.is_initial_about_blank || url.scheme == "javascript"
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#user-navigation-involvement */
@@ -258,7 +257,7 @@ and an optional user navigation involvement userInvolvement (default "none"):
 */
 navigate :: fonc (user_agent: *UserAgent,
                   navigable: *Navigable,
-                  url: &URI,
+                  url: *URL,
                   source_document: *Document,
                   history_handling := NavigationHistoryBehavior.AUTO,
                   referrer_policy := ReferrerPolicy.EmptyString,
@@ -304,10 +303,10 @@ navigate :: fonc (user_agent: *UserAgent,
     si history_handling == NavigationHistoryBehavior.AUTO {
         active_document := navigable.donne_active_document()
 
-        chn_url := recompose_uri(*url)
+        chn_url := url_serializer(url)
         diffère déloge(chn_url)
 
-        chn_url_active_document := recompose_uri(*active_document.url)
+        chn_url_active_document := url_serializer(active_document.url)
         diffère déloge(chn_url_active_document)
 
         // 1. If url equals navigable's active document's URL,
@@ -434,7 +433,7 @@ navigate :: fonc (user_agent: *UserAgent,
 NavigateParallelStepsParams :: struct {
     user_agent: *UserAgent
     navigable: *Navigable
-    url: URI
+    url: *URL
     source_snapshot_params: SourceSnapshotParams
     target_snapshot_params: TargetSnapshotParams
     history_handling: NavigationHistoryBehavior
@@ -1087,7 +1086,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
     //     referrer    entry's document state's request referrer
     //     referrer policy entry's document state's request referrer policy
     request := loge(Request)
-    request.définis_url(tente parse_uri_standard(recompose_uri(*entry.url)) piège nonatteignable)
+    request.définis_url(copie_url(entry.url))
     request.client = source_snapshot_params.fetch_client
     request.destination = "document"
     request.credentials_mode = "include"
@@ -1292,7 +1291,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
         }
 
         // 21. Set currentURL to locationURL.
-        current_url = tente parse_uri_standard(url_serializer(location_url)) piège nonatteignable
+        current_url = copie_url(location_url)
 
         // 22. Set entry's URL to currentURL.
         entry.url = current_url
@@ -1317,7 +1316,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
 
     // 23. Let resultPolicyContainer be the result of determining navigation params policy container
     //     given response's URL, entry's document state's history policy container, sourceSnapshotParams's source policy container, null, and responsePolicyContainer.
-    result_policy_container := determine_navigation_params_policy_container(response.donne_url().Quelque, entry.document_state.history_policy_container, source_snapshot_params.source_policy_container, nul, response_policy_container)
+    result_policy_container := determine_navigation_params_policy_container(response.donne_url(), entry.document_state.history_policy_container, source_snapshot_params.source_policy_container, nul, response_policy_container)
 
     // 24. If navigable's container is an iframe, and response's timing allow passed flag is set, then set container's pending resource-timing start time to null.
 
@@ -2349,7 +2348,7 @@ update_document_for_history_step_application :: fonc (empl params: *DocumentUpda
     // 6. If documentsEntryChanged is true, then:
     si documents_entry_changed {
         // 1. Let oldURL be document's latest entry's URL.
-        // old_url: URI
+        // old_url: *URL
         // si document.latest_entry {
         //     document.latest_entry.url
         // }
@@ -2488,8 +2487,7 @@ create_and_initialize_a_document_object :: fonc (user_agent: *UserAgent, type: c
 
     // 5. If navigationParams's request is non-null, then set creationURL to navigationParams's request's current URL.
     si navigation_params.request {
-        url := navigation_params.request.donne_url_courant()
-        creation_url = tente parse_uri_standard(recompose_uri(*url)) piège nonatteignable
+        creation_url = navigation_params.request.donne_url_courant()
     }
 
     // 6. Let window be null.
@@ -2593,7 +2591,7 @@ create_and_initialize_a_document_object :: fonc (user_agent: *UserAgent, type: c
     //     load timing info loadTimingInfo
     //     was created via cross-origin redirects navigationParams's response's has cross-origin redirects
     //     during-loading navigation ID for WebDriver BiDi navigationParams's id
-    document.url = creation_url
+    document.url = copie_url(creation_url)
     //     current document readiness "loading"
     document.about_base_url = navigation_params.about_base_URL
     document.permets_racines_shadow_déclaratives = vrai
@@ -2680,7 +2678,7 @@ load_an_html_document :: fonc (user_agent: *UserAgent, navigation_params: *Navig
     document := create_and_initialize_a_document_object(user_agent, "html", "text/html", navigation_params)
 
     // 2. If document's URL is about:blank, then populate with html/head/body given document.
-    si document.url.uri == "about:blank" {
+    si document.url.est_about_blank() {
         populate_with_html_head_body(document)
     }
     // 3. Otherwise, create an HTML parser and associate it with the document. Each task that the networking task source places on the task queue while fetching runs must then fill the parser's input byte stream with the fetched bytes and cause the HTML parser to perform the appropriate processing of the input stream.

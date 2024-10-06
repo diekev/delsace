@@ -1,6 +1,5 @@
 importe Chaine
 importe Fondation
-importe Internet
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#nested-history */
 NestedHistory :: struct {
@@ -16,7 +15,7 @@ DocumentState :: struct {
     initiator_origin: Optionnel(Origin)
     origin: Origin
     navigable_target_name: chaine
-    about_base_url: Optionnel(URI)
+    about_base_url: *URL
     // À FAIRE : complète
     request_referrer: chaine
     /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#document-state-request-referrer-policy */
@@ -32,7 +31,7 @@ SessionHistoryEntry :: struct {
     /* a non-negative integer or "pending", initially "pending" */
     step: n32
 
-    url: URI
+    url: *URL
     document_state: *DocumentState
 
     // classic history API state, which is serialized state, initially StructuredSerializeForStorage(null).
@@ -52,7 +51,7 @@ SessionHistoryEntry :: struct {
 
 détruit_session_history_entry :: fonc (she: *SessionHistoryEntry)
 {
-    détruit_uri(she.url)
+    détruit_url(she.url)
     déloge(she.document_state)
     déloge(she)
 }
@@ -93,7 +92,7 @@ initialise_navigable :: fonc (navigable: *Navigable, document_state: *DocumentSt
 
     // 2. Let entry be a new session history entry, with
     entry := loge(SessionHistoryEntry)
-    entry.url = tente parse_uri_standard(recompose_uri(*document_state.document.url)) piège nonatteignable
+    entry.url = copie_url(document_state.document.url)
     entry.document_state = document_state
 
     // 3. Set navigable's current session history entry to entry.
@@ -337,7 +336,7 @@ crée_un_nouveau_top_level_traversable :: fonc (user_agent: *UserAgent, opener: 
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#create-a-fresh-top-level-traversable
  * À FAIRE :  optional POST resource-or-null initialNavigationPostResource (default null) */
-crée_un_fresh_top_level_traversable :: fonc (user_agent: *UserAgent, initial_navigation_url: URI) -> *Navigable
+crée_un_fresh_top_level_traversable :: fonc (user_agent: *UserAgent, initial_navigation_url: *URL) -> *Navigable
 {
     // 1. Let traversable be the result of creating a new top-level traversable given null and the empty string.
     traversable := crée_un_nouveau_top_level_traversable(user_agent, nul, "")
@@ -411,7 +410,7 @@ Origin :: struct {
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#determining-the-origin */
-détermine_origin :: fonc (opt_url: Optionnel(URI), sandbox_flags: SandboxingFlags, source_origin: Optionnel(Origin)) -> Origin
+détermine_origin :: fonc (url: *URL, sandbox_flags: SandboxingFlags, source_origin: Optionnel(Origin)) -> Origin
 {
     // 1. If sandboxFlags has its sandboxed origin browsing context flag set, then return a new opaque origin.
     si sandbox_flags.Origin {
@@ -419,14 +418,12 @@ détermine_origin :: fonc (opt_url: Optionnel(URI), sandbox_flags: SandboxingFla
     }
 
     // 2. If url is null, then return a new opaque origin.
-    saufsi opt_url.possède_valeur() {
+    saufsi url {
         retourne crée_nouvelle_origin_opaque()
     }
 
-    url := opt_url.Quelque
-
     // 3. If url is about:srcdoc, then:
-    si url.uri == "about:srcdoc" {
+    si url.est_about_srcdoc() {
         // 1. Assert: sourceOrigin is non-null.
         assert(source_origin.possède_valeur())
 
@@ -435,7 +432,7 @@ détermine_origin :: fonc (opt_url: Optionnel(URI), sandbox_flags: SandboxingFla
     }
 
     // 4. If url matches about:blank and sourceOrigin is non-null, then return sourceOrigin.
-    si url.uri == "about:blank" && source_origin.possède_valeur() {
+    si url.est_about_blank() && source_origin.possède_valeur() {
         retourne source_origin.Quelque
     }
 
@@ -637,7 +634,7 @@ BrowsingContext :: struct {
     opener_origin_at_creation: Optionnel(Origin)
     popup: bool
     is_auxiliary: bool
-    initial_url: Optionnel(URI)
+    initial_url: *URL
     /* Seulement pour les contextes de haut-niveau. */
     popup_sandboxing_flags: SandboxingFlags
 
@@ -735,7 +732,7 @@ crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Do
     creator_origin: Optionnel(Origin)
 
     // 4. Let creatorBaseURL be null.
-    creator_base_url: Optionnel(URI)
+    creator_base_url: *URL
 
     // 5. If creator is non-null, then:
     si creator {
@@ -758,7 +755,7 @@ crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Do
     sandbox_flags := détermine_drapeaux_sandboxing(browsing_context, embedder)
 
     // 7. Let origin be the result of determining the origin given about:blank, sandboxFlags, and creatorOrigin.
-    origin := détermine_origin(URI("about:blank"), sandbox_flags, creator_origin)
+    origin := détermine_origin(donne_about_blank_url(), sandbox_flags, creator_origin)
 
     // 8. Let permissionsPolicy be the result of creating a permissions policy given embedder and origin. [PERMISSIONSPOLICY]
     permissions_policy := crée_permisions_policy_pour_navigable(embedder, origin)
@@ -806,7 +803,7 @@ crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Do
     realm_execution_context := crée_un_nouveau_realm(agent, *user_agent.mv, *rappels_création_realm)
 
     // 11. Let topLevelCreationURL be about:blank if embedder is null; otherwise embedder's relevant settings object's top-level creation URL.
-    top_level_creation_url := URI("about:blank")
+    top_level_creation_url := donne_about_blank_url()
     si embedder {
         // À FAIRE(settings object)
     }
@@ -818,7 +815,7 @@ crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Do
     }
 
     // 13. Set up a window environment settings object with about:blank, realm execution context, null, topLevelCreationURL, and topLevelOrigin.
-    set_up_window_environnement_context(URI("about:blank"), realm_execution_context, nul, top_level_creation_url, top_level_origin)
+    set_up_window_environnement_context(donne_about_blank_url(), realm_execution_context, nul, top_level_creation_url, top_level_origin)
     environment_settings := JavaScript.donne_données(realm_execution_context.realm.host_defined, EnvironmentSettings)
 
     // 14. Let loadTimingInfo be a new document load timing info with its
@@ -861,7 +858,7 @@ crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Do
     // 16. If creator is non-null, then:
     si creator {
         // 1. Set document's referrer to the serialization of creator's URL.
-        document.referrer = url_serializer(*creator.url)
+        document.referrer = url_serializer(creator.url)
 
         // 2. Set document's policy container to a clone of creator's policy container.
         document.policy_container = clone(creator.policy_container)
@@ -956,10 +953,10 @@ crée_un_nouveau_realm :: fonc (agent: *rien @inutilisée, mv: *JavaScript.Machi
 }
 
 /* https://html.spec.whatwg.org/multipage/nav-history-apis.html#set-up-a-window-environment-settings-object */
-set_up_window_environnement_context :: fonc (creation_url: URI,
+set_up_window_environnement_context :: fonc (creation_url: *URL,
                                              execution_context: *JavaScript.ExecutionContext,
                                              reserved_environment: *rien @inutilisée,
-                                             top_level_creation_url: URI,
+                                             top_level_creation_url: *URL,
                                              top_level_origin: Origin)
 {
     // 1. Let realm be the value of execution context's Realm component.
@@ -988,7 +985,7 @@ set_up_window_environnement_context :: fonc (creation_url: URI,
     // Return the module map of window's associated Document.
 
     // The API base URL
-    sur_donne_api_base_url :: fonc (base: *EnvironmentSettings) -> URI
+    sur_donne_api_base_url :: fonc (base: *EnvironmentSettings) -> *URL
     {
         // Return the current base URL of window's associated Document.
         env := base comme *WindowEnvironment
@@ -1140,24 +1137,8 @@ requires_storing_the_policy_container_in_history :: fonc (url: *URL) -> bool
     retourne faux
 }
 
-requires_storing_the_policy_container_in_history :: fonc (url: &URI) -> bool
-{
-    // 1. If url's scheme is "blob", then return false.
-    si url.schéma == "blob" {
-        retourne faux
-    }
-
-    // 2. If url is local, then return true.
-    si is_local_scheme(url.schéma) {
-        retourne vrai
-    }
-
-    // 3. Return false.
-    retourne faux
-}
-
 /* https://html.spec.whatwg.org/multipage/browsers.html#determining-navigation-params-policy-container */
-determine_navigation_params_policy_container :: fonc (response_url: &URI,
+determine_navigation_params_policy_container :: fonc (response_url: *URL,
                                                       history_policy_container: *PolicyContainer,
                                                       initiator_policy_container: *PolicyContainer,
                                                       parent_policy_container: *PolicyContainer,
@@ -1173,7 +1154,7 @@ determine_navigation_params_policy_container :: fonc (response_url: &URI,
     }
 
     // 2. If responseURL is about:srcdoc, then:
-    si response_url.uri == "about:srcdoc" {
+    si response_url.est_about_srcdoc() {
         // 1. Assert: parentPolicyContainer is not null.
         assert(parent_policy_container != nul)
 
@@ -1183,7 +1164,7 @@ determine_navigation_params_policy_container :: fonc (response_url: &URI,
 
     // 3. If responseURL is local and initiatorPolicyContainer is not null, 
     //    then return a clone of initiatorPolicyContainer.
-    si is_local_scheme(response_url.schéma) && initiator_policy_container != nul {
+    si response_url.is_local() && initiator_policy_container != nul {
         retourne clone(initiator_policy_container)
     }
 

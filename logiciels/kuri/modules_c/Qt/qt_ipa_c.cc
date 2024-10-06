@@ -809,6 +809,24 @@ void QT_action_sur_declenchage(QT_Action *action, QT_Rappel_Generique *rappel)
     QObject::connect(qaction, &QAction::triggered, [=]() { rappel->sur_rappel(rappel); });
 }
 
+void QT_action_definis_cochable(QT_Action *action, bool ouinon)
+{
+    VERS_QT(action);
+    qaction->setCheckable(ouinon);
+}
+
+void QT_action_definis_coche(QT_Action *action, bool ouinon)
+{
+    VERS_QT(action);
+    qaction->setChecked(ouinon);
+}
+
+bool QT_action_est_coche(QT_Action *action)
+{
+    VERS_QT(action);
+    return qaction->isChecked();
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

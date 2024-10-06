@@ -1,5 +1,4 @@
 importe Fondation
-importe Internet
 
 /* https://w3c.github.io/webdriver-bidi/#webdriver-bidi-navigable-created */
 webdriver_bidi_navigable_created :: fonc (navigable: *Navigable @inutilisée, opener_navigable: *Navigable @inutilisée)
@@ -12,7 +11,7 @@ WebDriverNavigationStatus :: struct {
     id: Optionnel(NavigationID)
     /* "canceled", "pending", or "complete" */
     status: chaine
-    url: URI
+    url: *URL
 }
 
 /* https://w3c.github.io/webdriver-bidi/#webdriver-bidi-navigation-started */

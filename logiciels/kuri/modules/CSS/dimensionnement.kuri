@@ -107,7 +107,7 @@ donne_fonction_calcul_largeur_et_marges :: fonc (noeud: *NoeudDeDisposition) -> 
     }
 
     // 10.3.1 Inline, non-replaced elements
-    si display.outer_type == Display.Type.Inline {
+    si display.outer_type == Display.Type.Inline && (display.inner_type == Display.Type.Flow || display.inner_type == Display.Type.FlowRoot) {
         // 10.3.9 'Inline-block', non-replaced elements in normal flow
         si display.inner_type == Display.Type.FlowRoot {
             retourne calcule_largeur_et_marges_inline_block_non_replaced_element
@@ -259,6 +259,14 @@ calcule_hauteur_et_marges_block_level_normal_flow :: fonc (base: *NoeudDeDisposi
     border_bottom_height := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthBottom)
     margin_bottom := propriétés.donne_valeur_calculée(IDPropriété.MarginBottom)
 
+    box_sizing := propriétés.donne_valeur_calculée(IDPropriété.BoxSizing)
+    si box_sizing.est_mot_clé(PROP_border_box) && !height.est_auto() {
+        height.pixels -= border_top_height.pixels + padding_top.pixels + padding_bottom.pixels + border_bottom_height.pixels
+        si height.pixels < 0 {
+            height.pixels = 0
+        }
+    }
+
     saufsi margin_top.est_pixels() {
         margin_top = ValeurDeStyle(pixels = 0)
     }
@@ -306,6 +314,14 @@ calcule_largeur_et_marges_block_level_normal_flow :: fonc (ctx: *ContexteDeForma
     padding_right := propriétés.donne_valeur_calculée(IDPropriété.PaddingRight)
     border_right_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthRight)
     margin_right := propriétés.donne_valeur_calculée(IDPropriété.MarginRight)
+
+    box_sizing := propriétés.donne_valeur_calculée(IDPropriété.BoxSizing)
+    si box_sizing.est_mot_clé(PROP_border_box) && !width.est_auto() {
+        width.pixels -= border_left_width.pixels + padding_left.pixels + padding_right.pixels + border_right_width.pixels
+        si width.pixels < 0 {
+            width.pixels = 0
+        }
+    }
 
     // If 'width' is not 'auto' and 'border-left-width' + 'padding-left' + 'width' + 'padding-right'
     // + 'border-right-width' (plus any of 'margin-left' or 'margin-right' that are not 'auto') is
@@ -453,6 +469,14 @@ calcule_largeur_et_marges_abosolutely_positionned_non_replaced_element :: fonc (
     margin_right := propriétés.donne_valeur_calculée(IDPropriété.MarginRight)
     right := propriétés.donne_valeur_calculée(IDPropriété.Right)
 
+    box_sizing := propriétés.donne_valeur_calculée(IDPropriété.BoxSizing)
+    si box_sizing.est_mot_clé(PROP_border_box) && !width.est_auto() {
+        width.pixels -= border_left_width.pixels + padding_left.pixels + padding_right.pixels + border_right_width.pixels
+        si width.pixels < 0 {
+            width.pixels = 0
+        }
+    }
+
     // If all three of 'left', 'width', and 'right' are 'auto': First set any 'auto' values
     // for 'margin-left' and 'margin-right' to 0. Then, if the 'direction' property of the
     // element establishing the static-position containing block is 'ltr' set 'left' to the
@@ -589,6 +613,14 @@ calcule_largeur_et_marges_floated_non_replaced_element :: fonc (ctx: *ContexteDe
     padding_right := propriétés.donne_valeur_calculée(IDPropriété.PaddingRight)
     border_right_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthRight)
     margin_right := propriétés.donne_valeur_calculée(IDPropriété.MarginRight)
+
+    box_sizing := propriétés.donne_valeur_calculée(IDPropriété.BoxSizing)
+    si box_sizing.est_mot_clé(PROP_border_box) && !width.est_auto() {
+        width.pixels -= border_left_width.pixels + padding_left.pixels + padding_right.pixels + border_right_width.pixels
+        si width.pixels < 0 {
+            width.pixels = 0
+        }
+    }
 
     // If 'margin-left', or 'margin-right' are computed as 'auto', their used value is '0'.
     si margin_left.est_auto() {
@@ -806,6 +838,14 @@ calcule_largeur_et_marges_abosolutely_positionned_replaced_element :: fonc (ctx:
     margin_right := propriétés.donne_valeur_calculée(IDPropriété.MarginRight)
     right := propriétés.donne_valeur_calculée(IDPropriété.Right)
 
+    box_sizing := propriétés.donne_valeur_calculée(IDPropriété.BoxSizing)
+    si box_sizing.est_mot_clé(PROP_border_box) && !width.est_auto() {
+        width.pixels -= border_left_width.pixels + padding_left.pixels + padding_right.pixels + border_right_width.pixels
+        si width.pixels < 0 {
+            width.pixels = 0
+        }
+    }
+
     // 1. The used value of 'width' is determined as for inline replaced elements.
     //    If 'margin-left' or 'margin-right' is specified as 'auto' its used value
     //    is determined by the rules below.
@@ -979,6 +1019,14 @@ calcule_largeur_et_marges_inline_block_non_replaced_element :: fonc (ctx: *Conte
     padding_right := propriétés.donne_valeur_calculée(IDPropriété.PaddingRight)
     border_right_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthRight)
     margin_right := propriétés.donne_valeur_calculée(IDPropriété.MarginRight)
+
+    box_sizing := propriétés.donne_valeur_calculée(IDPropriété.BoxSizing)
+    si box_sizing.est_mot_clé(PROP_border_box) && !width.est_auto() {
+        width.pixels -= border_left_width.pixels + padding_left.pixels + padding_right.pixels + border_right_width.pixels
+        si width.pixels < 0 {
+            width.pixels = 0
+        }
+    }
 
     /* A computed value of 'auto' for 'margin-left' or 'margin-right' becomes a used value of '0'. */
     si margin_left.est_auto() {
