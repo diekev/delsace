@@ -815,6 +815,12 @@ void QT_action_definis_cochable(QT_Action *action, bool ouinon)
     qaction->setCheckable(ouinon);
 }
 
+void QT_action_definis_coche(QT_Action *action, bool ouinon)
+{
+    VERS_QT(action);
+    qaction->setChecked(ouinon);
+}
+
 bool QT_action_est_coche(QT_Action *action)
 {
     VERS_QT(action);
