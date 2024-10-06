@@ -158,6 +158,44 @@ initialise_évènements_personnalisés :: fonc ()
     évènement_sur_tâche_traversable = QT_enregistre_evenement_personnel()
 }
 
+fenêtre_principale_sur_création_barre_menu :: fonc (base: *QT_Rappels_Fenetre_Principale, créatrice: *QT_Creatrice_Barre_Menu)
+{
+    créatrice.commence_menu_env("Débogage")
+
+    action := QT_cree_action(vers_qt("Dessine Tampon ID"), base.fenetre)
+    crée_rappel_pour_dessin_tampon_id(base comme *RappelsFenetrePrincipale, action)
+    QT_action_definis_cochable(action, vrai)
+    créatrice.ajoute_action_env(action)
+
+    créatrice.termine_menu_env()
+}
+
+crée_rappel_pour_dessin_tampon_id :: fonc (rappels_fenêtre: *RappelsFenetrePrincipale, action: *QT_Action)
+{
+    Rappel :: struct {
+        empl base: QT_Rappel_Generique
+        action: *QT_Action
+        rappels_fenêtre: *RappelsFenetrePrincipale
+    }
+
+    sur_rappel :: fonc (base: *QT_Rappel_Generique)
+    {
+        rappel := base comme *Rappel
+        rappels_fenêtre := rappel.rappels_fenêtre
+
+        vue_rendu_page := QT_glwidget_donne_rappels(rappels_fenêtre.widget_rendu) comme *VueRenduPage
+        vue_rendu_page.dessine_tampon_id = QT_action_est_coche(rappel.action)
+
+        QT_widget_ajourne(rappels_fenêtre.widget_rendu)
+    }
+
+    résultat := QT_loge_rappel(Rappel)
+    résultat.rappels_fenêtre = rappels_fenêtre
+    résultat.sur_rappel = sur_rappel
+    résultat.action = action
+    QT_action_sur_declenchage(action, résultat)
+}
+
 sur_filtre_evenement_impl :: fonc (base: *QT_Rappels_Fenetre_Principale, event: *QT_Evenement) -> z32
 {
     type := QT_evenement_donne_type(event) comme n32 comme z32
@@ -502,6 +540,7 @@ RappelsFenetrePrincipale :: struct {
 
     /* Données rappels. */
     sur_filtre_evenement = sur_filtre_evenement_impl
+    sur_creation_barre_menu = fenêtre_principale_sur_création_barre_menu
 }
 
 définis_titre_fenêtre :: fonc (fenêtre: *QT_Fenetre_Principale, document: *Document)
@@ -1066,6 +1105,8 @@ VueRenduPage :: struct {
     hauteur: z32
     largeur: z32
 
+    dessine_tampon_id: bool
+
     peintre: *Peintre
 }
 
@@ -1144,7 +1185,12 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
 
     // début_rendu := maintenant_précis()
 
-    CSS.dessine(arbre, *ctx)
+    si vue_rendu_page.dessine_tampon_id {
+        CSS.dessine_tampon_id_couleur(arbre, *ctx)
+    }
+    sinon {
+        CSS.dessine(arbre, *ctx)
+    }
 
     // imprime("temps de rendu : %\n", début_rendu.temps_écoulé_millisecondes())
 
