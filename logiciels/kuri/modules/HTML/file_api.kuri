@@ -1,0 +1,89 @@
+importe Fondation
+
+/* ------------------------------------------------------------------------- */
+/** \nom 8.2. Model
+ * https://w3c.github.io/FileAPI/#url-model
+ * \{ */
+
+Blob :: struct {}
+MediaSource :: struct {}
+
+/* https://w3c.github.io/FileAPI/#BlobURLStore */
+BlobURLStore :: struct {
+    Entrée :: struct {
+        url_string: chaine
+        entry: *BlobURLEntry
+    }
+
+    entrées: [..]Entrée
+}
+
+détruit_données_store :: fonc (store: *BlobURLStore)
+{
+    pour store.entrées {
+        déloge(it.url_string)
+        déloge(it.entry)
+    }
+
+    déloge(store.entrées)
+}
+
+donne_entrée_pour :: fonc (store: *BlobURLStore, url_string: chaine) -> *BlobURLEntry
+{
+    pour store.entrées {
+        si it.url_string == url_string {
+            retourne it.entry
+        }
+    }
+    retourne nul
+}
+
+BlobURLEntryObject :: union {
+    blob: *Blob
+    media_source: *MediaSource
+}
+
+est_blob :: fonc (object: BlobURLEntryObject) -> bool
+{
+    discr object {
+        blob {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+    retourne faux
+}
+
+/* https://w3c.github.io/FileAPI/#blob-url-entry */
+BlobURLEntry :: struct {
+    object: BlobURLEntryObject
+    environment: *EnvironmentSettings
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 8.3. Dereferencing Model for blob URLs
+ * https://w3c.github.io/FileAPI/#requestResponseModel
+ * \{ */
+
+/* https://w3c.github.io/FileAPI/#blob-url-resolve */
+resolve_a_blob_url :: fonc (user_agent: *UserAgent, url: *URL) -> *BlobURLEntry
+{
+    // 1. Assert: url’s scheme is "blob".
+    assert(url.scheme == "blob")
+
+    // 2. Let store be the user agent’s blob URL store.
+    store := *user_agent.blob_url_store
+
+    // 3. Let url string be the result of serializing url with the exclude fragment flag set.
+    url_string := url_serializer(url, exclude_fragment = vrai)
+    diffère déloge(url_string)
+
+    // 4. If store[url string] exists, return store[url string]; otherwise return failure.
+    retourne store.donne_entrée_pour(url_string)
+}
+
+/** \} */
