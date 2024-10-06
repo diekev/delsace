@@ -664,6 +664,9 @@ void QT_action_definis_icone(struct QT_Action *action, struct QT_Icon *icon);
 void QT_action_definis_donnee_z32(struct QT_Action *action, int donnee);
 int QT_action_donne_donnee_z32(struct QT_Action *action);
 void QT_action_sur_declenchage(struct QT_Action *action, struct QT_Rappel_Generique *rappel);
+void QT_action_definis_cochable(struct QT_Action *action, bool ouinon);
+void QT_action_definis_coche(struct QT_Action *action, bool ouinon);
+bool QT_action_est_coche(struct QT_Action *action);
 
 /** \} */
 

@@ -61,7 +61,7 @@ chaine_ajoute :: fonc (chn: *ChaineUTF16, chaine_native: chaine)
 en_minuscule :: fonc (unité: rune16) -> rune16
 {
     si ('A' comme n16) <= unité <= ('Z' comme n16) {
-        retourne unité - ('A' comme n16)
+        retourne unité - ('A' comme n16) + ('a' comme n16)
     }
     retourne unité
 }

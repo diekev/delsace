@@ -3,7 +3,6 @@ importe Couleur
 importe #inemployé CSS
 importe Fondation
 importe Image
-importe Internet
 importe #inemployé JavaScript
 importe MIME
 importe Unicode
@@ -774,9 +773,10 @@ follow_the_hyperlink :: fonc (subject: *Élément, hyperlink_suffix := crée_cha
     }
 
     // 13. Navigate targetNavigable to urlString using subject's node document, with referrerPolicy set to referrerPolicy and userInvolvement set to userInvolvement.
-    url := tente parse_uri_standard(url_string) piège nonatteignable
     source_document := subject.document
-    navigate(source_document.donne_user_agent(), target_navigable, url, source_document, referrer_policy = referrer_policy, user_involvement = user_involvement)
+    user_agent := source_document.donne_user_agent()
+    url := url_parser(user_agent, url_string)
+    navigate(user_agent, target_navigable, url, source_document, referrer_policy = referrer_policy, user_involvement = user_involvement)
 }
 
 /* https://html.spec.whatwg.org/multipage/semantics.html#get-an-element's-target */
@@ -809,10 +809,8 @@ encoding_parse_and_serialize_a_url :: fonc (url: DOMString, document: *Document)
 {
     // À FAIRE : standardise
     base_url := donne_base_url(document)
-    url_document := convertis_uri_url(*base_url)
-    diffère détruit_url(url_document)
 
-    url_src := basic_url_parser(url.donne_chaine_utf16(), base = url_document)
+    url_src := url_parser(document.donne_user_agent(), url.donne_chaine_utf16(), base = base_url)
     diffère détruit_url(url_src)
     saufsi url_src {
         retourne
@@ -1291,31 +1289,23 @@ update_image_data :: fonc (image: *HTMLImageElement)
     }
 
     base_url := donne_base_url(document)
-    url_document := convertis_uri_url(*base_url)
-    diffère détruit_url(url_document)
 
-    url_src := basic_url_parser(src.donne_chaine_utf16(), base = url_document)
+    url_src := url_parser(user_agent, src.donne_chaine_utf16(), base = base_url)
     saufsi url_src {
         retourne
     }
-
-    url_string := url_serializer(url_src)
-    // diffère déloge(url_string)
-
-    // imprime("[%] %\n", #nom_de_cette_fonction, url_string)
 
     request := loge(Request)
     request.destination = "image"
     request.mode = "no-cors"
     request.redirect_mode = "follow"
-    request.définis_url(tente parse_uri_standard(url_string) piège nonatteignable)
+    request.définis_url(url_src)
 
     RappelProcessResponse :: struct {
         empl base: BaseProcessResponse
 
         request: *Request
         image: *HTMLImageElement
-        url_src: *URL
     }
 
     sur_rappel_process_response :: fonc (base: *BaseProcessResponse, réponse: *Response)
@@ -1364,14 +1354,12 @@ update_image_data :: fonc (image: *HTMLImageElement)
     sur_destruction_process_response :: fonc (base: *BaseProcessResponse)
     {
         rappel := base comme *RappelProcessResponse
-        détruit_url(rappel.url_src)
         détruit_request(rappel.request)
         déloge(rappel)
     }
 
     process_response := loge(RappelProcessResponse)
     process_response.image = image
-    process_response.url_src = url_src
     process_response.request = request
     process_response.sur_rappel = sur_rappel_process_response
     process_response.sur_destruction = sur_destruction_process_response
@@ -1527,28 +1515,23 @@ process_stylesheet_link :: fonc (link: *HTMLLinkElement)
     }
 
     base_url := donne_base_url(document)
-    url_document := convertis_uri_url(*base_url)
-    diffère détruit_url(url_document)
 
-    url_src := basic_url_parser(src.donne_chaine_utf16(), base = url_document)
+    url_src := url_parser(user_agent, src.donne_chaine_utf16(), base = base_url)
     saufsi url_src {
         retourne
     }
-
-    url_string := url_serializer(url_src)
 
     request := loge(Request)
     request.destination = "style"
     request.mode = "no-cors"
     request.redirect_mode = "follow"
-    request.définis_url(tente parse_uri_standard(url_string) piège nonatteignable)
+    request.définis_url(url_src)
 
     RappelProcessResponse :: struct {
         empl base: BaseProcessResponse
 
         link: *HTMLLinkElement
         request: *Request
-        url_src: *URL
         url_string: ChaineASCII
     }
 
@@ -1571,7 +1554,7 @@ process_stylesheet_link :: fonc (link: *HTMLLinkElement)
         mime_css := crée_chaine_utf16_unique(MIME_text_css)
 
         feuille_de_style := loge(CSS.CSSStyleSheet)
-        feuille_de_style.location = tente parse_uri_standard(copie_chaine(rappel.url_string)) piège nonatteignable
+        feuille_de_style.location = copie_url(rappel.request.donne_url_courant())
         feuille_de_style.origine = CSS.OrigineCascade.Author
         feuille_de_style.type = mime_css
         feuille_de_style.owner_node = rappel.link
@@ -1591,7 +1574,6 @@ process_stylesheet_link :: fonc (link: *HTMLLinkElement)
     sur_destruction_process_response :: fonc (base: *BaseProcessResponse)
     {
         rappel := base comme *RappelProcessResponse
-        détruit_url(rappel.url_src)
         détruit_request(rappel.request)
         déloge(rappel)
     }
@@ -1599,8 +1581,6 @@ process_stylesheet_link :: fonc (link: *HTMLLinkElement)
     process_response := loge(RappelProcessResponse)
     process_response.link = link
     process_response.request = request
-    process_response.url_string = url_string
-    process_response.url_src = url_src
     process_response.sur_rappel = sur_rappel_process_response
     process_response.sur_destruction = sur_destruction_process_response
 

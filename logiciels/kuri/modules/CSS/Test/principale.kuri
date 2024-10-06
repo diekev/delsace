@@ -6,33 +6,74 @@ importe SysFichier
 
 principale :: fonc () -> z32
 {
-    contenu := contenu_fichier_texte("/home/kevin/defaults.css")
-    diffère déloge(contenu)
+    // contenu := contenu_fichier_texte("/home/kevin/defaults.css")
+    // diffère déloge(contenu)
 
-    ctx: ContexteParsageFeuilleDeStyle
-    diffère détruit_données_contexte(*ctx)
+    // ctx: ContexteParsageFeuilleDeStyle
+    // diffère détruit_données_contexte(*ctx)
 
-    stylesheet := parse_a_css_style_sheet(*ctx, contenu)
-    rapporte_propriétés_non_supportées(*ctx, #nom_de_cette_fonction)
+    // stylesheet := parse_a_css_style_sheet(*ctx, contenu)
+    // rapporte_propriétés_non_supportées(*ctx, #nom_de_cette_fonction)
 
-    élément := crée_chaine_utf16("p")
+    // élément := crée_chaine_utf16("p")
 
-    propriétés: PropriétésDeStyle
+    // propriétés: PropriétésDeStyle
 
-    règles := collecte_les_règles_appropriées(stylesheet, élément)
+    // règles := collecte_les_règles_appropriées(stylesheet, élément)
 
-    imprime("% règle(s) pour %\n", règles.taille, élément)
+    // imprime("% règle(s) pour %\n", règles.taille, élément)
+    // // pour règles {
+    // //     imprime_règle(it)
+    // // }
+
     // pour règles {
-    //     imprime_règle(it)
+    //     pour déclaration dans it.déclarations {
+    //         ajoute_déclaration(*propriétés, déclaration)
+    //     }
     // }
 
-    pour règles {
-        pour déclaration dans it.déclarations {
-            ajoute_déclaration(*propriétés, déclaration)
-        }
-    }
+    // imprime("% déclaration(s)\n", propriétés.déclarations.taille)
 
-    imprime("% déclaration(s)\n", propriétés.déclarations.taille)
+    // texte := "début   test  \t   test   \t   \n  \n   \n \t   test \t  fin"
+    texte := "The     \n Effects of CRTs"
+    texte_utf16 := crée_chaine_utf16(texte)
+
+    fragments: [..]FragmentTexte
+    fragmente_texte_avec_espaces_blanches_ascii(texte_utf16, *fragments)
+    imprime_fragments(fragments, "fragmente_texte_avec_espaces_blanches_ascii")
+
+    collapse_séquences_d_espaces_blanches_autour_bris_segments(fragments)
+    imprime_fragments(fragments, "collapse_séquences_d_espaces_blanches_autour_bris_segments")
+
+    collapse_bris_segments(fragments, PROP_normal)
+    imprime_fragments(fragments, "collapse_bris_segments")
+
+    convertis_tabulations_en_espaces(fragments)
+    imprime_fragments(fragments, "convertis_tabulations_en_espaces")
+
+    collapse_espaces_consécutives(fragments)
+    imprime_fragments(fragments, "collapse_espaces_consécutives")
 
     retourne 0
+}
+
+imprime_fragments :: fonc (fragments: []FragmentTexte, message: chaine)
+{
+    imprime("%\n", message)
+    pour fragments {
+        si it.ignore_mais_préserve_soft_wrap_opportunity {
+            continue
+        }
+
+        si it.est_espace_blanche && it.texte.unités[0] == 0x0A {
+            imprime("'\\n'\n")
+            continue
+        }
+        si it.est_espace_blanche && it.texte.unités[0] == '\t' comme n32 {
+            imprime("'\\t'\n")
+            continue
+        }
+        
+        imprime("'%'\n", it.texte)
+    }
 }
