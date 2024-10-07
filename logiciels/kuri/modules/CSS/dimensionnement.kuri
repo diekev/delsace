@@ -194,13 +194,13 @@ résoud_pourcentage_insets :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDe
     }
 }
 
-calcule_hauteur_et_marges :: fonc (noeud: *NoeudDeDisposition, containing_block: &ContainingBlock)
+calcule_hauteur_et_marges :: fonc (noeud: *NoeudDeDisposition, containing_block: &ContainingBlock, outrepas_hauteur: *ValeurDeStyle)
 {
     résoud_pourcentage_hauteur(noeud, containing_block)
 
     fonction_de_calcul := donne_fonction_calcul_hauteur_et_marges(noeud)
 
-    fonction_de_calcul(noeud, nul)
+    fonction_de_calcul(noeud, outrepas_hauteur)
 
     height := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Height)
     max_height := noeud.propriétés.donne_valeur_calculée(IDPropriété.MaxHeight)

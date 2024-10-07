@@ -309,11 +309,9 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
         }
     }
 
-    prop_height := noeud.propriétés.donne_valeur_calculée(IDPropriété.Height)
-    si prop_height.est_auto() {
-        noeud.propriétés.définis_valeur_calculée(IDPropriété.Height, ValeurDeStyle(pixels = hauteur_contenu))
-        noeud.propriétés.définis_valeur_utilisée(IDPropriété.Height, ValeurDeStyle(pixels = hauteur_contenu))
-    }
+    hauteur_finale := ValeurDeStyle(pixels = hauteur_contenu)
+    containing_block := donne_containing_block(noeud, ctx)
+    calcule_hauteur_et_marges(noeud, containing_block, *hauteur_finale)
 
     discr mode {
         BrisureDeLigneExplicite,
@@ -583,7 +581,8 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
         décalage_y += hauteur
     }
 
-    incrémente_hauteur_contenu(noeud.modèle_de_boite, hauteur_contenu)
+    hauteur_finale := ValeurDeStyle(pixels = hauteur_contenu)
+    calcule_hauteur_et_marges(noeud, containing_block, *hauteur_finale)
 
     si décalage_x != 0.0 || décalage_y != 0.0 {
         pour * noeud.lignes_tenante.fragments {
@@ -671,7 +670,6 @@ contexte_formattage_flex_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
 
         // À FAIRE : il faut éviter de surécrire les valeurs calculées
         prop_largeur := it.propriétés.donne_valeur_calculée(IDPropriété.Width)
-        prop_hauteur := it.propriétés.donne_valeur_calculée(IDPropriété.Height)
 
         largeur : r64 = 0.0
         si flex_basis.est_mot_clé(PROP_content) || flex_basis.est_mot_clé(PROP_auto) {
@@ -679,7 +677,6 @@ contexte_formattage_flex_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
             it.mesure(ctx, mode)
             largeur = calcule_shrink_to_fit_width(ctx, it, largeur_disponible)
             it.propriétés.définis_valeur_calculée(IDPropriété.Width, prop_largeur)
-            it.propriétés.définis_valeur_calculée(IDPropriété.Height, prop_hauteur)
         }
         sinon si flex_basis.est_percentage() {
             largeur = calcule_pourcentage(flex_basis, largeur_disponible).pixels
@@ -692,7 +689,6 @@ contexte_formattage_flex_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
         it.mesure(ctx, mode)
 
         it.propriétés.définis_valeur_calculée(IDPropriété.Width, prop_largeur)
-        it.propriétés.définis_valeur_calculée(IDPropriété.Height, prop_hauteur)
 
         largeur_des_enfants += it.modèle_de_boite.marge.largeur
     }
@@ -778,11 +774,9 @@ contexte_formattage_flex_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
         noeud.propriétés.définis_valeur_utilisée(IDPropriété.Width, ValeurDeStyle(pixels = largeur_des_enfants))
     }
 
-    prop_hauteur := noeud.propriétés.donne_valeur_calculée(IDPropriété.Height)
-    si prop_hauteur.est_auto() {
-        noeud.propriétés.définis_valeur_calculée(IDPropriété.Height, ValeurDeStyle(pixels = hauteur_contenu))
-        noeud.propriétés.définis_valeur_utilisée(IDPropriété.Height, ValeurDeStyle(pixels = hauteur_contenu))
-    }
+    hauteur_finale := ValeurDeStyle(pixels = hauteur_contenu)
+    containing_block := donne_containing_block(noeud, ctx)
+    calcule_hauteur_et_marges(noeud, containing_block, *hauteur_finale)
 
     discr mode {
         BrisureDeLigneExplicite,
