@@ -175,23 +175,8 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
         }
 
         position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position)
-        /* À FAIRE : https://drafts.csswg.org/css-position/#abspos-layout */
         si position.est_mot_clé(PROP_absolute) {
-            top := it.propriétés.donne_valeur_utilisée(IDPropriété.Top)
-            bottom := it.propriétés.donne_valeur_utilisée(IDPropriété.Bottom)
-            left := it.propriétés.donne_valeur_utilisée(IDPropriété.Left)
-
-            si top.est_auto() && bottom.est_auto() {
-                top = ValeurDeStyle(pixels = 0.0)
-            }
-            sinon si top.est_auto() {
-                top = ValeurDeStyle(pixels = -bottom.pixels)
-            }
-            sinon saufsi top.est_pixels() {
-                top = ValeurDeStyle(pixels = 0.0)
-            }
-
-            it.décale(décalage_x + left.pixels comme r32, décalage_y + décalage_hors_float + top.pixels comme r32)
+            ctx.dispose_boite_absolute(it)
             continue
         }
 
@@ -332,6 +317,30 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
 }
 
 dispose_boite_fixed :: fonc (empl ctx: *ContexteDeFormattageBloc, noeud: *NoeudDeDisposition)
+{
+    containing_block := donne_containing_block(noeud, ctx)
+    bord_gauche := containing_block.rect.x
+    bord_haut := containing_block.rect.y
+
+    top := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Top)
+    bottom := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Bottom)
+    left := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Left)
+
+    si top.est_auto() && bottom.est_auto() {
+        top = ValeurDeStyle(pixels = 0.0)
+    }
+    sinon si top.est_auto() {
+        top = ValeurDeStyle(pixels = -bottom.pixels)
+    }
+    sinon saufsi top.est_pixels() {
+        top = ValeurDeStyle(pixels = 0.0)
+    }
+
+    noeud.décale(bord_gauche + left.pixels comme r32, bord_haut + top.pixels comme r32)
+}
+
+/* À FAIRE : https://drafts.csswg.org/css-position/#abspos-layout */
+dispose_boite_absolute :: fonc (empl ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition)
 {
     containing_block := donne_containing_block(noeud, ctx)
     bord_gauche := containing_block.rect.x
