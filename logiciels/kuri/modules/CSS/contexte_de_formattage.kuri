@@ -819,17 +819,17 @@ distribue_espace_disponible :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *Lig
             continue
         }
 
-        ancienne_largeur := it.modèle_de_boite.marge.largeur
-        nouvelle_largeur := si utilise_flex_shrink {
+        /* Nous utilisons la largeur du contenu ici car c'est le contenu qui doit
+         * changer sa taille. */
+        ancienne_largeur := it.modèle_de_boite.contenu.largeur
+        delta := si utilise_flex_shrink {
             espace_disponible * flex_shrink.number / somme_flex_shrink
         }
         sinon {
             espace_disponible * flex_grow.number / somme_flex_grow
         }
 
-        si ancienne_largeur == nouvelle_largeur {
-            continue
-        }
+        nouvelle_largeur := ancienne_largeur + delta
 
         largeur_désirée := ValeurDeStyle(pixels = nouvelle_largeur)
         it.mesure(ctx, mode, *largeur_désirée)
