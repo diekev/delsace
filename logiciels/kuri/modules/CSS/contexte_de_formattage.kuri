@@ -162,7 +162,7 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
     }
 
     pour noeud.enfants {
-        it.mesure(ctx, mode)
+        it.mesure(ctx, mode, nul)
 
         float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float)
         si float.est_mot_clé(PROP_left) {
@@ -668,15 +668,11 @@ contexte_formattage_flex_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
 
         flex_basis := it.propriétés.donne_valeur_utilisée(IDPropriété.FlexBasis)
 
-        // À FAIRE : il faut éviter de surécrire les valeurs calculées
-        prop_largeur := it.propriétés.donne_valeur_calculée(IDPropriété.Width)
-
         largeur : r64 = 0.0
         si flex_basis.est_mot_clé(PROP_content) || flex_basis.est_mot_clé(PROP_auto) {
             /* calcule_shrink_to_fit_width ne résoud pas les pourcentages... */
-            it.mesure(ctx, mode)
+            it.mesure(ctx, mode, nul)
             largeur = calcule_shrink_to_fit_width(ctx, it, largeur_disponible)
-            it.propriétés.définis_valeur_calculée(IDPropriété.Width, prop_largeur)
         }
         sinon si flex_basis.est_percentage() {
             largeur = calcule_pourcentage(flex_basis, largeur_disponible).pixels
@@ -685,10 +681,8 @@ contexte_formattage_flex_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
             largeur = flex_basis.pixels
         }
 
-        it.propriétés.définis_valeur_calculée(IDPropriété.Width, ValeurDeStyle(pixels = largeur))
-        it.mesure(ctx, mode)
-
-        it.propriétés.définis_valeur_calculée(IDPropriété.Width, prop_largeur)
+        largeur_désirée := ValeurDeStyle(pixels = largeur)
+        it.mesure(ctx, mode, *largeur_désirée)
 
         largeur_des_enfants += it.modèle_de_boite.marge.largeur
     }
@@ -837,8 +831,8 @@ distribue_espace_disponible :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *Lig
             continue
         }
 
-        it.propriétés.définis_valeur_calculée(IDPropriété.Width, ValeurDeStyle(pixels = nouvelle_largeur))
-        it.mesure(ctx, mode)
+        largeur_désirée := ValeurDeStyle(pixels = nouvelle_largeur)
+        it.mesure(ctx, mode, *largeur_désirée)
     }
 
     ligne.largeur = 0.0

@@ -52,14 +52,14 @@ ajourne_boite_pour_calcul_hauteur :: fonc (noeud: *NoeudDeDisposition)
     noeud.modèle_de_boite.contenu.hauteur = height
 }
 
-calcule_largeur_et_marges :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition, containing_block: &ContainingBlock)
+calcule_largeur_et_marges :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition, containing_block: &ContainingBlock, outrepas_largeur: *ValeurDeStyle)
 {
     résoud_pourcentage_largeurs(noeud, containing_block)
     width_of_containing_block := containing_block.donne_largeur()
 
     fonction_de_calcul := donne_fonction_calcul_largeur_et_marges(noeud)
 
-    fonction_de_calcul(ctx, noeud, width_of_containing_block, nul)
+    fonction_de_calcul(ctx, noeud, width_of_containing_block, outrepas_largeur)
 
     width := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width)
 

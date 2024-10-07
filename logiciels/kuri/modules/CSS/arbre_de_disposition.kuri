@@ -1039,7 +1039,7 @@ dispose_arbre :: fonc (globales: *GlobalesDessin, arbre: *ArbreDeDisposition, la
     ctx.globales = globales
     ctx.initial_containing_block = *initial_containing_block
 
-    mesure(arbre.racine, *ctx, ModeDeFormattage.Normal)
+    mesure(arbre.racine, *ctx, ModeDeFormattage.Normal, nul)
 
     // imprime("taille arbre : %x%\n", résultat.racine.largeur, résultat.racine.hauteur)
 }
@@ -1537,7 +1537,7 @@ NoeudDeDisposition :: struct {
 
     modèle_de_boite: ModèleDeBoite
 
-    sur_mesure: fonc (*NoeudDeDisposition, *ContexteDeFormattage, ModeDeFormattage)(rien)
+    sur_mesure: fonc (*NoeudDeDisposition, *ContexteDeFormattage, ModeDeFormattage, *ValeurDeStyle)(rien)
     sur_dessin: fonc (*NoeudDeDisposition, *ContexteDessin)(rien)
     sur_dessin_fragment: fonc (*NoeudDeDisposition, *Fragment, *LignesTenante, *ContexteDessin)(rien)
     sur_dessin_tampon_id: fonc (*NoeudDeDisposition, *ContexteDessin)(rien)
@@ -1739,10 +1739,10 @@ donne_nom_classe :: fonc (noeud: *NoeudDeDisposition) -> chaine
     retourne infos.nom
 }
 
-mesure :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage)
+mesure :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, outrepas_largeur: *ValeurDeStyle)
 {
     si noeud.sur_mesure {
-        noeud.sur_mesure(noeud, ctx, mode)
+        noeud.sur_mesure(noeud, ctx, mode, outrepas_largeur)
     }
 }
 
@@ -1820,7 +1820,7 @@ divise_en_lignes :: fonc (noeud: *NoeudDeDisposition, enligneuse: *Enligneuse, c
         retourne
     }
 
-    noeud.mesure(ctx, mode)
+    noeud.mesure(ctx, mode, nul)
     _ := enligneuse.ajoute_fragment(noeud, noeud.modèle_de_boite.marge.hauteur, noeud.modèle_de_boite.marge.largeur, Fragment.Type.Normal)
 }
 
@@ -2282,7 +2282,7 @@ donne_alignement_descendants :: fonc (noeud: *NoeudDeDispositionBloc) -> Optionn
     }
 }
 
-noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage)
+noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, outrepas_largeur: *ValeurDeStyle)
 {
     noeud := base comme *NoeudDeDispositionBloc
 
@@ -2292,7 +2292,7 @@ noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Cont
 
     /* À FAIRE : utilise les bonnes formules.
      * https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#Computing_widths_and_margins */
-    calcule_largeur_et_marges(ctx, noeud, containing_block)
+    calcule_largeur_et_marges(ctx, noeud, containing_block, outrepas_largeur)
     calcule_hauteur_et_marges(noeud, containing_block, nul)
 
     doit_aligner_les_descendants := ctx.doit_aligner_les_descendants
@@ -2437,11 +2437,11 @@ NoeudDeDispositionInline :: struct {
     sur_correction_hiérarchie = noeud_disposition_inline_corrige_hiérarchie
 }
 
-noeud_disposition_inline_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage)
+noeud_disposition_inline_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, outrepas_largeur: *ValeurDeStyle)
 {
     noeud := base comme *NoeudDeDispositionInline
     containing_block := donne_containing_block(base, ctx)
-    calcule_largeur_et_marges(ctx, noeud, containing_block)
+    calcule_largeur_et_marges(ctx, noeud, containing_block, outrepas_largeur)
     calcule_hauteur_et_marges(noeud, containing_block, nul)
     formatte_intérieur(noeud, ctx, mode)
 }
@@ -2450,7 +2450,7 @@ noeud_disposition_inline_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition
 {
     noeud := base comme *NoeudDeDispositionInline
     containing_block := donne_containing_block(noeud, ctx)
-    calcule_largeur_et_marges(ctx, noeud, containing_block)
+    calcule_largeur_et_marges(ctx, noeud, containing_block, nul)
     calcule_hauteur_et_marges(noeud, containing_block, nul)
 
     propriétés := noeud.propriétés
@@ -3006,7 +3006,7 @@ donne_hauteur_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> r
     retourne noeud.hauteur_intrinsèque.Quelque
 }
 
-noeud_disposition_remplacement_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage @inutilisée)
+noeud_disposition_remplacement_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage @inutilisée, outrepas_largeur: *ValeurDeStyle @inutilisée)
 {
     noeud := base comme *NoeudDeDispositionRemplacement
 
@@ -3016,13 +3016,13 @@ noeud_disposition_remplacement_sur_mesure :: fonc (base: *NoeudDeDisposition, ct
 
     modifie_marges_pour_alignement_forcé(ctx, noeud)
 
-    calcule_largeur_et_marges(ctx, noeud, containing_block)
+    calcule_largeur_et_marges(ctx, noeud, containing_block, nul)
     calcule_hauteur_et_marges(noeud, containing_block, nul)
 }
 
 noeud_disposition_remplacement_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, enligneuse: *Enligneuse, ctx: *ContexteDeFormattage, mode: ModeDeFormattage)
 {
-    noeud_disposition_remplacement_sur_mesure(base, ctx, mode)
+    noeud_disposition_remplacement_sur_mesure(base, ctx, mode, nul)
 
     noeud := base comme *NoeudDeDispositionRemplacement
     largeur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width).pixels comme r32
