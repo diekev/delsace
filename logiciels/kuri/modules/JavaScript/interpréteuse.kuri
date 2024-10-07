@@ -438,10 +438,14 @@ est_return :: fonc (completion: CompletionRecord) -> bool
     retourne completion.type == CompletionRecord.Type.RETURN
 }
 
-throw_completion :: fonc (error: *Error) -> CompletionRecord
+est_throw :: fonc (completion: CompletionRecord) -> bool
 {
-    valeur := ValeurCompletion(Valeur(Object = error))
-    retourne CompletionRecord(CompletionRecord.Type.THROW, valeur)
+    retourne completion.type == CompletionRecord.Type.THROW
+}
+
+throw_completion :: fonc (valeur: Valeur) -> CompletionRecord
+{
+    retourne CompletionRecord(CompletionRecord.Type.THROW, ValeurCompletion(valeur))
 }
 
 /** \} */

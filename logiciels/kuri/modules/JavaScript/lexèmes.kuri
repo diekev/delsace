@@ -491,7 +491,9 @@ est_lexème_instruction :: fonc (genre: GenreLexème) -> bool
         For,
         Function,
         Return,
-        If {
+        If,
+        Try,
+        Throw {
             retourne vrai
         }
         sinon {

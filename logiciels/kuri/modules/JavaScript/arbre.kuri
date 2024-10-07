@@ -2399,6 +2399,213 @@ sur_exécution_typeof_operator :: fonc (base: *NoeudSyntaxique, interpréteuse: 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom ThrowStatement
+ * https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-throw-statement
+ * \{ */
+
+ThrowStatement :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_throw_statement
+
+    argument: *NoeudSyntaxique
+}
+
+crée_throw_statement :: fonc (argument: *NoeudSyntaxique) -> *ThrowStatement
+{
+    résultat := loge(ThrowStatement)
+    résultat.argument = argument
+    retourne résultat
+}
+
+sur_exécution_throw_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    throw := base comme *ThrowStatement
+
+    // 1. Let exprRef be ? Evaluation of Expression.
+    completion_expr_ref := exécute_noeud(throw.argument, interpréteuse)
+    saufsi completion_expr_ref.est_normal() {
+        retourne completion_expr_ref
+    }
+    expr_ref := completion_expr_ref.valeur
+
+    // 2. Let exprValue be ? GetValue(exprRef).
+    completion_expr_value := get_value(interpréteuse, expr_ref)
+    saufsi completion_expr_value.est_normal() {
+        retourne completion_expr_value
+    }
+    expr_value := completion_expr_value.valeur
+
+    // 3. Return ThrowCompletion(exprValue).
+    retourne throw_completion(expr_value)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom TryStatement
+ * https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-try-statement
+ * \{ */
+
+TryStatement :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_try_statement
+
+    block: *NoeudSyntaxique
+    handler: *CatchClause
+    finalizer: *NoeudSyntaxique
+}
+
+crée_try_statement :: fonc (block: *NoeudSyntaxique, handler: *CatchClause, finalizer: *NoeudSyntaxique) -> *TryStatement
+{
+    résultat := loge(TryStatement)
+    résultat.block = block
+    résultat.handler = handler
+    résultat.finalizer = finalizer
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-try-statement-runtime-semantics-evaluation */
+sur_exécution_try_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    try := base comme *TryStatement
+
+    si try.handler != nul && try.finalizer == nul {
+        // 1. Let B be Completion(Evaluation of Block).
+        B := exécute_noeud(try.block, interpréteuse)
+
+        // 2. If B is a throw completion, let C be Completion(CatchClauseEvaluation of Catch with argument B.[[Value]]).
+        C: CompletionRecord
+        si B.est_throw() {
+            C = catch_clause_evaluation(try.handler, interpréteuse, B.valeur)
+        }
+        // 3. Else, let C be B.
+        sinon {
+            C = B
+        }
+
+        // 4. Return ? UpdateEmpty(C, undefined).
+        retourne update_empty(C, js_undefined)
+    }
+
+    si try.handler == nul && try.finalizer != nul {
+        // 1. Let B be Completion(Evaluation of Block).
+        B := exécute_noeud(try.block, interpréteuse)
+
+        // 2. Let F be Completion(Evaluation of Finally).
+        F := exécute_noeud(try.finalizer, interpréteuse)
+
+        // 3. If F is a normal completion, set F to B.
+        si F.est_normal() {
+            F = B
+        }
+
+        // 4. Return ? UpdateEmpty(F, undefined).
+        retourne update_empty(F, js_undefined)
+    }
+
+    // 1. Let B be Completion(Evaluation of Block).
+    B := exécute_noeud(try.block, interpréteuse)
+
+    // 2. If B is a throw completion, let C be Completion(CatchClauseEvaluation of Catch with argument B.[[Value]]).
+    C: CompletionRecord
+    si B.est_throw() {
+        C = catch_clause_evaluation(try.handler, interpréteuse, B.valeur)
+    }
+    // 3. Else, let C be B.
+    sinon {
+        C = B
+    }
+
+    // 4. Let F be Completion(Evaluation of Finally).
+    F := exécute_noeud(try.finalizer, interpréteuse)
+
+    // 5. If F is a normal completion, set F to C.
+    si F.est_normal() {
+        F = B
+    }
+
+    // 6. Return ? UpdateEmpty(F, undefined).
+    retourne update_empty(F, js_undefined)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom CatchClause
+ * https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-try-statement
+ * \{ */
+
+CatchClause :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+
+    param: *NoeudSyntaxique
+    body: *NoeudSyntaxique
+}
+
+crée_catch_clause :: fonc (param: *NoeudSyntaxique, body: *NoeudSyntaxique) -> *CatchClause
+{
+    résultat := loge(CatchClause)
+    résultat.param = param
+    résultat.body = body
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-runtime-semantics-catchclauseevaluation */
+catch_clause_evaluation :: fonc (catch: *CatchClause, interpréteuse: *Interpréteuse, thrown_value: Valeur) -> CompletionRecord
+{
+    saufsi catch.param {
+        // 1. Return ? Evaluation of Block.
+        retourne exécute_noeud(catch.body, interpréteuse)
+    }
+
+    mv := interpréteuse.mv
+    running_execution_context := mv.donne_running_execution_context()
+
+    // 1. Let oldEnv be the running execution context's LexicalEnvironment.
+    old_env := running_execution_context.lexical_environment
+
+    // 2. Let catchEnv be NewDeclarativeEnvironment(oldEnv).
+    catch_env := new_declarative_environment(old_env.donne_tas_de_mémoire(), old_env)
+
+    // 3. For each element argName of the BoundNames of CatchParameter, do
+    //    a. Perform ! catchEnv.CreateMutableBinding(argName, false).
+    assert(catch.param.type == Identifier)
+    identifier := catch.param comme *Identifier
+
+    arg_name := identifier.nom
+    catch_env.create_mutable_binding(arg_name, faux)
+
+    // 4. Set the running execution context's LexicalEnvironment to catchEnv.
+    running_execution_context.lexical_environment = catch_env
+
+    // À FAIRE : 5. Let status be Completion(BindingInitialization of CatchParameter with arguments thrownValue and catchEnv).
+    status := catch_env.initialize_binding(arg_name, thrown_value)
+
+    // 6. If status is an abrupt completion, then
+    si status.est_abrupt() {
+        // a. Set the running execution context's LexicalEnvironment to oldEnv.
+        running_execution_context.lexical_environment = old_env
+
+        // b. Return ? status.
+        retourne status
+    }
+
+    // 7. Let B be Completion(Evaluation of Block).
+    B := exécute_noeud(catch.body, interpréteuse)
+
+    // 8. Set the running execution context's LexicalEnvironment to oldEnv.
+    running_execution_context.lexical_environment = old_env
+
+    // 9. Return ? B.
+    retourne B
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Visiteuse arbre.
  * \{ */
 
