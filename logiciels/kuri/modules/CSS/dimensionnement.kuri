@@ -14,16 +14,18 @@ ajourne_boite_pour_calcul_largeur :: fonc (noeud: *NoeudDeDisposition)
     border_right_width := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthRight).pixels comme r32
     margin_right := propriétés.donne_valeur_utilisée(IDPropriété.MarginRight).pixels comme r32
 
-    noeud.modèle_de_boite.marge.x = 0.0
+    x := noeud.modèle_de_boite.marge.x
+
+    noeud.modèle_de_boite.marge.x = x
     noeud.modèle_de_boite.marge.largeur = margin_left + border_left_width + padding_left + width + padding_right + border_right_width + margin_right
 
-    noeud.modèle_de_boite.bordure.x = margin_left
+    noeud.modèle_de_boite.bordure.x = x + margin_left
     noeud.modèle_de_boite.bordure.largeur = border_left_width + padding_left + width + padding_right + border_right_width
 
-    noeud.modèle_de_boite.rembourrage.x = margin_left + border_left_width
+    noeud.modèle_de_boite.rembourrage.x = x + margin_left + border_left_width
     noeud.modèle_de_boite.rembourrage.largeur =  padding_left + width + padding_right
 
-    noeud.modèle_de_boite.contenu.x = margin_left + border_left_width + padding_left
+    noeud.modèle_de_boite.contenu.x = x + margin_left + border_left_width + padding_left
     noeud.modèle_de_boite.contenu.largeur = width
 }
 
@@ -39,16 +41,18 @@ ajourne_boite_pour_calcul_hauteur :: fonc (noeud: *NoeudDeDisposition)
     border_bottom_height := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthBottom).pixels comme r32
     margin_bottom := propriétés.donne_valeur_utilisée(IDPropriété.MarginBottom).pixels comme r32
 
-    noeud.modèle_de_boite.marge.y = 0.0
+    y := noeud.modèle_de_boite.marge.y
+
+    noeud.modèle_de_boite.marge.y = y
     noeud.modèle_de_boite.marge.hauteur = margin_top + border_top_height + padding_top + height + padding_bottom + border_bottom_height + margin_bottom
 
-    noeud.modèle_de_boite.bordure.y = margin_top
+    noeud.modèle_de_boite.bordure.y = y + margin_top
     noeud.modèle_de_boite.bordure.hauteur = border_top_height + padding_top + height + padding_bottom + border_bottom_height
 
-    noeud.modèle_de_boite.rembourrage.y = margin_top + border_top_height
+    noeud.modèle_de_boite.rembourrage.y = y + margin_top + border_top_height
     noeud.modèle_de_boite.rembourrage.hauteur =  padding_top + height + padding_bottom
 
-    noeud.modèle_de_boite.contenu.y = margin_top + border_top_height + padding_top
+    noeud.modèle_de_boite.contenu.y = y + margin_top + border_top_height + padding_top
     noeud.modèle_de_boite.contenu.hauteur = height
 }
 

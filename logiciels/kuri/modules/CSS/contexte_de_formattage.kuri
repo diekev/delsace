@@ -162,26 +162,14 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
     }
 
     pour noeud.enfants {
-        it.mesure(ctx, mode, nul)
-
-        float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float)
-        si float.est_mot_clé(PROP_left) {
-            ctx.ajoute_boite_flottante_gauche(it)
-            continue
-        }
-        si float.est_mot_clé(PROP_right) {
-            ctx.ajoute_boite_flottante_droite(it)
-            continue
-        }
-
         position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position)
         si position.est_mot_clé(PROP_absolute) {
-            ctx.dispose_boite_absolute(it)
+            ctx.dispose_boite_absolute(it comme *NoeudDeDispositionBloc)
             continue
         }
 
         si position.est_mot_clé(PROP_fixed) {
-            ctx.dispose_boite_fixed(it)
+            ctx.dispose_boite_fixed(it comme *NoeudDeDispositionBloc)
             continue
         }
 
@@ -213,13 +201,24 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
             ctx.décalage_float_left_y = hauteur_contenu
         }
 
+        it.définis_position(décalage_x, décalage_y + décalage_hors_float)
+        it.mesure(ctx, mode, nul)
+
+        float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float)
+        si float.est_mot_clé(PROP_left) {
+            ctx.ajoute_boite_flottante_gauche(it)
+            continue
+        }
+        si float.est_mot_clé(PROP_right) {
+            ctx.ajoute_boite_flottante_droite(it)
+            continue
+        }
+
         hauteur_enfant := it.modèle_de_boite.marge.hauteur
 
         // marges_enfant := it.marges
         // marge_inter_enfant := max(marges_enfant[BorderEdge.Bottom], dernière_marge)
         // décalage_y := marge_inter_enfant comme r32
-
-        it.décale(décalage_x, décalage_y + décalage_hors_float)
 
         // dernière_marge = marges_enfant[BorderEdge.Bottom]
 
@@ -316,9 +315,12 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
     }
 }
 
-dispose_boite_fixed :: fonc (empl ctx: *ContexteDeFormattageBloc, noeud: *NoeudDeDisposition)
+dispose_boite_fixed :: fonc (empl ctx: *ContexteDeFormattageBloc, noeud: *NoeudDeDispositionBloc)
 {
     containing_block := donne_containing_block(noeud, ctx)
+    calcule_largeur_et_marges(ctx, noeud, containing_block, nul)
+    calcule_hauteur_et_marges(noeud, containing_block, nul)
+
     bord_gauche := containing_block.rect.x
     bord_haut := containing_block.rect.y
 
@@ -336,13 +338,17 @@ dispose_boite_fixed :: fonc (empl ctx: *ContexteDeFormattageBloc, noeud: *NoeudD
         top = ValeurDeStyle(pixels = 0.0)
     }
 
-    noeud.décale(bord_gauche + left.pixels comme r32, bord_haut + top.pixels comme r32)
+    noeud.définis_position(bord_gauche + left.pixels comme r32, bord_haut + top.pixels comme r32)
+    formatte_intérieur(noeud, ctx, ModeDeFormattage.Normal)
 }
 
 /* À FAIRE : https://drafts.csswg.org/css-position/#abspos-layout */
-dispose_boite_absolute :: fonc (empl ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition)
+dispose_boite_absolute :: fonc (empl ctx: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc)
 {
     containing_block := donne_containing_block(noeud, ctx)
+    calcule_largeur_et_marges(ctx, noeud, containing_block, nul)
+    calcule_hauteur_et_marges(noeud, containing_block, nul)
+
     bord_gauche := containing_block.rect.x
     bord_haut := containing_block.rect.y
 
@@ -360,7 +366,8 @@ dispose_boite_absolute :: fonc (empl ctx: *ContexteDeFormattage, noeud: *NoeudDe
         top = ValeurDeStyle(pixels = 0.0)
     }
 
-    noeud.décale(bord_gauche + left.pixels comme r32, bord_haut + top.pixels comme r32)
+    noeud.définis_position(bord_gauche + left.pixels comme r32, bord_haut + top.pixels comme r32)
+    formatte_intérieur(noeud, ctx, ModeDeFormattage.Normal)
 }
 
 ajoute_boite_flottante_gauche :: fonc (empl ctx: *ContexteDeFormattageBloc, noeud: *NoeudDeDisposition)
@@ -399,7 +406,7 @@ ajoute_boite_flottante_gauche :: fonc (empl ctx: *ContexteDeFormattageBloc, noeu
 
     tableau_ajoute(*boites_flottantes_gauche, BoiteFlottante(noeud, position_x, position_y, hauteur_noeud, largeur_noeud))
 
-    noeud.décale(position_x, position_y)
+    noeud.décale_vers_position(position_x, position_y)
 }
 
 ajoute_boite_flottante_droite :: fonc (empl ctx: *ContexteDeFormattageBloc, noeud: *NoeudDeDisposition)
@@ -438,7 +445,7 @@ ajoute_boite_flottante_droite :: fonc (empl ctx: *ContexteDeFormattageBloc, noeu
 
     tableau_ajoute(*boites_flottantes_droite, BoiteFlottante(noeud, position_x, position_y, hauteur_noeud, largeur_noeud))
 
-    noeud.décale(position_x, position_y)
+    noeud.décale_vers_position(position_x, position_y)
 }
 
 donne_hauteur_floats_gauche :: fonc (empl ctx: *ContexteDeFormattageBloc) -> r32
@@ -784,7 +791,7 @@ formatte_flex_row :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispos
                 décalage_x += décalage_pre
             }
 
-            it.décale(décalage_x, décalage_y)
+            it.décale_vers_position(décalage_x, décalage_y)
 
             si reverse {
                 décalage_x -= décalage_post
@@ -871,7 +878,7 @@ formatte_flex_column :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDis
             décalage_y -= it.modèle_de_boite.marge.hauteur
         }
 
-        it.décale(décalage_x, décalage_y)
+        it.décale_vers_position(décalage_x, décalage_y)
 
         largeur_des_enfants += it.modèle_de_boite.marge.largeur
 

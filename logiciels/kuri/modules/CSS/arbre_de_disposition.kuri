@@ -1734,6 +1734,21 @@ imprime_élément :: fonc (noeud: *NoeudDeDisposition, message: chaine, récursi
     }
 }
 
+définis_position :: fonc (noeud: *NoeudDeDisposition, x: r32, y: r32)
+{
+    dx := x - noeud.modèle_de_boite.marge.x
+    dy := y - noeud.modèle_de_boite.marge.y
+    décale_horizontalement(noeud.modèle_de_boite, dx)
+    décale_verticalement(noeud.modèle_de_boite, dy)
+}
+
+décale_vers_position :: fonc (noeud: *NoeudDeDisposition, x: r32, y: r32)
+{
+    dx := x - noeud.modèle_de_boite.marge.x
+    dy := y - noeud.modèle_de_boite.marge.y
+    décale(noeud, dx, dy)
+}
+
 décale :: fonc (noeud: *NoeudDeDisposition, x: r32, y: r32)
 {
     décale_horizontalement(noeud.modèle_de_boite, x)
