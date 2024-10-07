@@ -57,6 +57,12 @@ donne_z_index_pour_tri :: fonc (stacking_context: *StackingContext) -> z32
     retourne z_index.number comme z32
 }
 
+est_position_fixée :: fonc (stacking_context: *StackingContext) -> bool
+{
+    position := stacking_context.racine.propriétés.donne_valeur_calculée(IDPropriété.Position)
+    retourne position.est_mot_clé(PROP_fixed)
+}
+
 imprime_arbre_stacking_context :: fonc (ctx: *StackingContext, profondeur := 0)
 {
     indentation := donne_chaine_indentation(profondeur)
@@ -193,6 +199,10 @@ dessine_stacking_context :: fonc (stacking_context: *StackingContext, ctx: *Cont
 {
     ctx.id_stacking_context = stacking_context.id
 
+    fut_fixé := ctx.est_fixé
+    diffère ctx.est_fixé = fut_fixé
+    ctx.est_fixé |= est_position_fixée(stacking_context)
+
     /* À FAIRE : dessine dans un tampon séparé et mélange le résultat. */
     opacité := donne_opacité(stacking_context)
     si opacité == 0.0 {
@@ -209,6 +219,10 @@ dessine_stacking_context :: fonc (stacking_context: *StackingContext, ctx: *Cont
 dessine_stacking_context_tampon_id :: fonc (stacking_context: *StackingContext, ctx: *ContexteDessin)
 {
     ctx.id_stacking_context = stacking_context.id
+
+    fut_fixé := ctx.est_fixé
+    diffère ctx.est_fixé = fut_fixé
+    ctx.est_fixé |= est_position_fixée(stacking_context)
 
     opacité := donne_opacité(stacking_context)
     si opacité == 0.0 {

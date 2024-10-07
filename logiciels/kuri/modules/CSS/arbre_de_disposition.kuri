@@ -1157,6 +1157,7 @@ ContexteDessin :: struct {
     id_stacking_context: n32
 
     tampon_id_couleur: bool
+    est_fixé: bool
 }
 
 donne_rectangle_corrigé :: fonc (ctx: *ContexteDessin, rect: RectanglePosDim(r32)) -> RectanglePosDim(r32)
@@ -1166,7 +1167,10 @@ donne_rectangle_corrigé :: fonc (ctx: *ContexteDessin, rect: RectanglePosDim(r3
      * coin du bas gauche.
      * De plus, nous devons nous assurer que l'origine du document est le bas
      * gauche de la page et non le haut gauche. */
-    rect.y = ctx.hauteur_vue comme r32 + ctx.décalage_y - rect.y - rect.hauteur
+    rect.y = ctx.hauteur_vue comme r32 - rect.y - rect.hauteur
+    saufsi ctx.est_fixé {
+        rect.y += ctx.décalage_y
+    }
     retourne rect
 }
 
