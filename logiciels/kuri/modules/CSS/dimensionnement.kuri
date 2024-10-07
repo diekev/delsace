@@ -200,9 +200,14 @@ calcule_hauteur_et_marges :: fonc (noeud: *NoeudDeDisposition, containing_block:
 
     fonction_de_calcul := donne_fonction_calcul_hauteur_et_marges(noeud)
 
+    height := noeud.propriétés.donne_valeur_calculée(IDPropriété.Height)
+    saufsi height.est_auto() {
+        outrepas_hauteur = nul
+    }
+
     fonction_de_calcul(noeud, outrepas_hauteur)
 
-    height := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Height)
+    height = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Height)
     max_height := noeud.propriétés.donne_valeur_calculée(IDPropriété.MaxHeight)
     si max_height.est_pixels() && (height.pixels > max_height.pixels) {
         fonction_de_calcul(noeud, *max_height)
