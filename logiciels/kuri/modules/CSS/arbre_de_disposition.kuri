@@ -21,6 +21,7 @@ importe Typographie
 
 ArbreDeDisposition :: struct {
     racine: *NoeudDeDisposition
+    stacking_context: *StackingContext
 
     noeuds: [..]*NoeudDeDisposition
     tampon_id_fut_dessiné: bool
@@ -76,6 +77,7 @@ détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
         }
     }
 
+    détruit_stacking_context(arbre.stacking_context)
     déloge(arbre.tampon_id)
     déloge(arbre.noeuds)
     déloge(arbre)
@@ -153,7 +155,7 @@ dessine :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
     arbre.largeur_vue = ctx.largeur_vue
 
     IGUMI.réinitialise_données()
-    dessine(arbre.racine, ctx)
+    dessine_stacking_context(arbre.stacking_context, ctx)
     ctx.peintre.termine_dessin()
 }
 
@@ -165,7 +167,7 @@ dessine_tampon_id_couleur :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDes
     ctx.tampon_id_couleur = vrai
 
     IGUMI.réinitialise_données()
-    dessine_tampon_id(arbre.racine, ctx)
+    dessine_stacking_context_tampon_id(arbre.stacking_context, ctx)
     ctx.peintre.termine_dessin()
 
     ctx.tampon_id_couleur = faux
@@ -189,7 +191,7 @@ dessine_tampon_id :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, render_buf)
     vérifie_erreur("glFramebufferRenderbuffer")
 
-    dessine_tampon_id(arbre.racine, ctx)
+    dessine_stacking_context_tampon_id(arbre.stacking_context, ctx)
     vérifie_erreur("dessine_tampon_id")
     IGUMI.termine_immédiat_id()
 
@@ -652,6 +654,8 @@ AjournementArbre :: énum_drapeau {
     Disposition
     /* L'arbre doit être construit. */
     Construction
+    /* Les stacking contexts doivent être construit. */
+    StackingContext
 }
 
 donne_ajournement_pour_changement_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élément) -> AjournementArbre
@@ -749,6 +753,9 @@ donne_ajournement_arbre :: fonc (info: *InfoTypePropriété) -> AjournementArbre
     }
     si info.drapeaux.AffecteConstructionArbre {
         retourne AjournementArbre.Construction
+    }
+    si info.drapeaux.AffecteStackingContext {
+        retourne AjournementArbre.StackingContext
     }
     retourne AjournementArbre.Dessin
 }
@@ -979,6 +986,10 @@ donne_arbre_de_disposition_ajourné :: fonc (document: *HTML.Document, largeur: 
     sinon si ajournement.Disposition {
         dispose_arbre(document.globales_dessin, document.arbre_de_disposition, largeur, hauteur)
     }
+    sinon si ajournement.StackingContext {
+        détruit_stacking_context(document.arbre_de_disposition.stacking_context)
+        document.arbre_de_disposition.stacking_context = construit_arbre_de_stacking_contexts(document.arbre_de_disposition.racine)
+    }
 
     document.ajournement_arbre = AjournementArbre.zéro
 
@@ -1026,6 +1037,8 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, haut
     }
 
     document.arbre_de_disposition = résultat
+
+    résultat.stacking_context = construit_arbre_de_stacking_contexts(résultat.racine)
 }
 
 dispose_arbre :: fonc (globales: *GlobalesDessin, arbre: *ArbreDeDisposition, largeur: z32, hauteur: z32)
@@ -1141,6 +1154,7 @@ ContexteDessin :: struct {
     largeur_vue: z32
 
     décalage_y: r32
+    id_stacking_context: n32
 
     tampon_id_couleur: bool
 }
@@ -1530,6 +1544,7 @@ NoeudDeDisposition :: struct {
     type := #type_de_cette_structure
 
     id: n32
+    id_stacking_context: n32
     propriétés: *PropriétésDeStyle
 
     parent: *NoeudDeDisposition
@@ -1748,6 +1763,10 @@ mesure :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: Mo
 
 dessine :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDessin)
 {
+    si noeud.id_stacking_context != ctx.id_stacking_context {
+        retourne
+    }
+
     si noeud.sur_dessin {
         noeud.sur_dessin(noeud, ctx)
     }
@@ -1771,6 +1790,10 @@ dessine_fragment :: fonc (noeud: *NoeudDeDisposition, fragment: *Fragment, ligne
 
 dessine_tampon_id :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDessin)
 {
+    si noeud.id_stacking_context != ctx.id_stacking_context {
+        retourne
+    }
+
     si noeud.sur_dessin_tampon_id {
         noeud.sur_dessin_tampon_id(noeud, ctx)
     }

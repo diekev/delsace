@@ -1,0 +1,225 @@
+importe Fondation
+importe Triage
+
+/* ------------------------------------------------------------------------- */
+/** \nom StackingContext
+ * https://www.w3.org/TR/CSS21/zindex.html
+ * https://drafts.csswg.org/css2/#elaborate-stacking-contexts
+ * \{ */
+
+StackingContext :: struct {
+    parent: *StackingContext
+    enfants: [..]*StackingContext
+
+    id: n32
+    racine: *NoeudDeDisposition
+}
+
+#portée_module
+
+construit_arbre_de_stacking_contexts :: fonc (racine: *NoeudDeDisposition) -> *StackingContext
+{
+    constructrice: ConstructriceStackingContext
+    résultat := construit_arbre_de_stacking_contexts(*constructrice, racine, nul)
+    tri_stacking_contexts(résultat)
+    retourne résultat
+}
+
+détruit_stacking_context :: fonc (ctx: *StackingContext)
+{
+    déloge_tableau_et_ses_éléments(ctx.enfants, détruit_stacking_context)
+    déloge(ctx)
+}
+
+#portée_fichier
+
+donne_z_index :: fonc (stacking_context: *StackingContext) -> ValeurDeStyle
+{
+    retourne stacking_context.racine.propriétés.donne_valeur_calculée(IDPropriété.ZIndex)
+}
+
+donne_opacité :: fonc (stacking_context: *StackingContext) -> r64
+{
+    opacity := stacking_context.racine.propriétés.donne_valeur_calculée(IDPropriété.Opacity)
+    si opacity.est_percentage() {
+        retourne opacity.percentage
+    }
+    retourne opacity.number
+}
+
+donne_z_index_pour_tri :: fonc (stacking_context: *StackingContext) -> z32
+{
+    z_index := donne_z_index(stacking_context)
+    si z_index.est_mot_clé(PROP_auto) {
+        retourne 0
+    }
+
+    retourne z_index.number comme z32
+}
+
+imprime_arbre_stacking_context :: fonc (ctx: *StackingContext, profondeur := 0)
+{
+    indentation := donne_chaine_indentation(profondeur)
+    imprime(indentation)
+    imprime_élément(ctx.racine, "StackingContext")
+
+    pour ctx.enfants {
+        imprime_arbre_stacking_context(it, profondeur + 1)
+    }
+}
+
+#portée_module
+
+/* À FAIRE(langage) : si nous un #portée_fichier ici, nous pouvons échouer
+ * la compilation sur un symbole inconnu, car l'ensemble de surcharge peut
+ * ne pas avoir être initialisé ou autre. */
+ajoute_enfant :: fonc (parent: *StackingContext, enfant: *StackingContext)
+{
+    tableau_ajoute(*parent.enfants, enfant)
+}
+
+#portée_fichier
+
+ConstructriceStackingContext :: struct {
+    id: n32
+}
+
+crée_stacking_context :: fonc (constructrice: *ConstructriceStackingContext) -> *StackingContext
+{
+    résultat := loge(StackingContext)
+    résultat.id = constructrice.id
+    constructrice.id += 1
+    retourne résultat
+}
+
+construit_arbre_de_stacking_contexts :: fonc (constructrice: *ConstructriceStackingContext, racine: *NoeudDeDisposition, parent: *StackingContext) -> *StackingContext
+{
+    résultat := parent
+
+    si doit_générer_un_stacking_context(racine) {
+        résultat = constructrice.crée_stacking_context()
+        résultat.racine = racine
+        si parent {
+            parent.ajoute_enfant(résultat)
+        }
+    }
+
+    racine.id_stacking_context = résultat.id
+
+    pour racine.enfants {
+        _ := construit_arbre_de_stacking_contexts(constructrice, it, résultat)
+    }
+
+    retourne résultat
+}
+
+/* https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_positioned_layout/Understanding_z-index/Stacking_context */
+doit_générer_un_stacking_context :: fonc (noeud: *NoeudDeDisposition) -> bool
+{
+    si noeud.type == NoeudDeDispositionTexte {
+        retourne faux
+    }
+
+    // Root element of the document (<html>).
+    si noeud.parent == nul {
+        retourne vrai
+    }
+
+    position := noeud.propriétés.donne_valeur_calculée(IDPropriété.Position)
+    z_index := noeud.propriétés.donne_valeur_calculée(IDPropriété.ZIndex)
+
+    // Element with a position value absolute or relative and z-index value other than auto.
+    si (position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_relative)) && !z_index.est_auto() {
+        retourne vrai
+    }
+
+    // Element with a position value fixed or sticky (sticky for all mobile browsers, but not older desktop browsers).
+    si position.est_mot_clé(PROP_fixed) {
+        retourne vrai
+    }
+
+    // À FAIRE : Element with a container-type value size or inline-size set, intended for container queries.
+
+    // Element that is a child of a flex container, with z-index value other than auto.
+    si noeud.parent.donne_display().inner_type == Display.Type.Flex && !z_index.est_auto() {
+        retourne vrai
+    }
+
+    // À FAIRE : Element that is a child of a grid container, with z-index value other than auto.
+
+    // Element with an opacity value less than 1.
+    opacity := noeud.propriétés.donne_valeur_calculée(IDPropriété.Opacity)
+    si (opacity.est_nombre() && opacity.number < 1.0) || (opacity.est_percentage() && opacity.percentage < 1.0) {
+        retourne vrai
+    }
+
+    // À FAIRE : Element with a mix-blend-mode value other than normal.
+    // À FAIRE : Element with any of the following properties with value other than none:
+    // transform
+    // scale
+    // rotate
+    // translate
+    // filter
+    // backdrop-filter
+    // perspective
+    // clip-path
+    // mask / mask-image / mask-border
+    // À FAIRE : Element with an isolation value isolate.
+    // À FAIRE : Element with a will-change value specifying any property that would create a stacking context on non-initial value.
+    // À FAIRE : Element with a contain value of layout, or paint, or a composite value that includes either of them (i.e. contain: strict, contain: content).
+    // À FAIRE : Element placed into the top layer and its corresponding ::backdrop. Examples include fullscreen and popover elements.
+    // À FAIRE : Element that has had stacking context-creating properties (such as opacity) animated using @keyframes, with animation-fill-mode set to forwards.
+
+    retourne faux
+}
+
+tri_stacking_contexts :: fonc (racine: *StackingContext)
+{
+    tri_rapide(racine.enfants, compare_stacking_contexts_pour_tri)
+
+    pour racine.enfants {
+        tri_stacking_contexts(it)
+    }
+}
+
+compare_stacking_contexts_pour_tri :: fonc (a: *StackingContext, b: *StackingContext) -> z32
+{
+    retourne a.donne_z_index_pour_tri() - b.donne_z_index_pour_tri()
+}
+
+#portée_module
+
+dessine_stacking_context :: fonc (stacking_context: *StackingContext, ctx: *ContexteDessin)
+{
+    ctx.id_stacking_context = stacking_context.id
+
+    /* À FAIRE : dessine dans un tampon séparé et mélange le résultat. */
+    opacité := donne_opacité(stacking_context)
+    si opacité == 0.0 {
+        retourne
+    }
+
+    dessine(stacking_context.racine, ctx)
+
+    pour stacking_context.enfants {
+        dessine_stacking_context(it, ctx)
+    }
+}
+
+dessine_stacking_context_tampon_id :: fonc (stacking_context: *StackingContext, ctx: *ContexteDessin)
+{
+    ctx.id_stacking_context = stacking_context.id
+
+    opacité := donne_opacité(stacking_context)
+    si opacité == 0.0 {
+        retourne
+    }
+
+    dessine_tampon_id(stacking_context.racine, ctx)
+
+    pour stacking_context.enfants {
+        dessine_stacking_context_tampon_id(it, ctx)
+    }
+}
+
+/** \} */
