@@ -758,6 +758,8 @@ IDPropriété :: énum n16 {
     FlexShrink
 
     BoxSizing
+    Opacity
+    ZIndex
 }
 
 Style :: struct {
@@ -851,6 +853,8 @@ initialise_style :: fonc (style: *Style)
     style.valeurs[IDPropriété.FlexShrink] = ValeurDeStyle(number = 1.0)
 
     style.valeurs[IDPropriété.BoxSizing] = ValeurDeStyle(mot_clé = PROP_content_box)
+    style.valeurs[IDPropriété.Opacity] = ValeurDeStyle(number = 1.0)
+    style.valeurs[IDPropriété.ZIndex] = ValeurDeStyle(mot_clé = PROP_auto)
 }
 
 donne_bordure :: fonc (style: *Style) -> Border

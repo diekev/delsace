@@ -1,0 +1,133 @@
+importe Chaine
+
+/* ------------------------------------------------------------------------- */
+/** \nom Fonction
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-function-objects
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_function_instruite := TableVirtuelleObject(classe = Function, sur_destruction = sur_destruction_objet, sur_call = sur_appel_fonction_instruite, sur_construct = sur_construct_fonction_ecma)
+
+#portée_export
+
+LEXICAL_THIS :: vrai
+NON_LEXICAL_THIS :: faux
+
+ThisMode :: énum {
+    GLOBAL
+    LEXICAL
+    STRICT
+}
+
+ConstructorKind :: énum {
+    Base
+}
+
+Function :: struct {
+    empl objet: Object
+    table = *table_virtuelle_function_instruite
+
+    corps: *NoeudSyntaxique
+    formal_parameters: [..]*NoeudSyntaxique
+
+    environment: *Environment
+    private_environment: *PrivateEnvironment
+    this_mode: ThisMode
+    strict := faux
+    is_class_constructor := faux
+    realm: *Realm
+    script_or_module: *Script // ScriptOrModule
+    constructor_kind: ConstructorKind
+}
+
+crée_fonction :: fonc (realm: *Realm, function_prototype: *FunctionPrototype, corps: *NoeudSyntaxique) -> *Function
+{
+    tas_de_mémoire := function_prototype.donne_tas_de_mémoire()
+    résultat := tas_de_mémoire.alloue(Function)
+    résultat.corps = corps
+    résultat.prototype = function_prototype
+    résultat.realm = realm
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom FunctionPrototype
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-function-prototype-object
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_function_prototype := TableVirtuelleObject(classe = FunctionPrototype, sur_destruction = sur_destruction_objet, sur_call = fonction_prototype_sur_call)
+
+#portée_export
+
+/* À FAIRE : is builtin function object */
+FunctionPrototype :: struct {
+    empl function: Function
+    table = *table_virtuelle_function_prototype
+}
+
+crée_function_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ObjectPrototype) -> *FunctionPrototype
+{
+    résultat := tas_de_mémoire.alloue(FunctionPrototype)
+    résultat.prototype = prototype
+    résultat.ajoute_propriété(STR_length, Valeur(Number = 0.0), DrapeauxPropriété.zéro)
+    résultat.ajoute_propriété(STR_name, Valeur(String = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(""))), DrapeauxPropriété.zéro)
+    retourne résultat
+}
+
+fonction_prototype_sur_call :: fonc (params: *ParamètresObjectCall @inutilisée) -> CompletionRecord
+{
+    retourne normal_completion(js_undefined)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom FunctionNative
+ * \{ */
+
+#portée_fichier
+
+fonction_native_sur_appel :: fonc (params: *ParamètresObjectCall) -> CompletionRecord
+{
+    function_native := params.object comme *FunctionNative
+    retourne function_native.sur_appel(params)
+}
+
+table_virtuelle_function_native := TableVirtuelleObject(classe = FunctionNative, sur_destruction = sur_destruction_objet, sur_call = fonction_native_sur_appel)
+
+#portée_export
+
+FunctionNative :: struct {
+    empl function: Function
+    table = *table_virtuelle_function_native
+
+    sur_appel: TypeFonctionObjectCall
+}
+
+crée_fonction_native :: fonc (tas_de_mémoire: *TasDeMémoire, nom: ECMAString, sur_appel: TypeFonctionObjectCall, length: z64) -> *FunctionNative
+{
+    résultat := tas_de_mémoire.alloue(FunctionNative)
+    set_function_name(résultat, nom)
+    set_function_length(résultat, length comme n64)
+    résultat.sur_appel = sur_appel
+    retourne résultat
+}
+
+ajoute_fonction_native :: fonc (objet: *Object, nom: ECMAString, sur_appel: TypeFonctionObjectCall, length := 0)
+{
+    tas_de_mémoire := objet.donne_tas_de_mémoire()
+    fonction := crée_fonction_native(tas_de_mémoire, nom, sur_appel, length)
+    ajoute_propriété(objet, nom, Valeur(Function = fonction), DrapeauxPropriété.zéro)
+}
+
+ajoute_fonction_native :: fonc (objet: *Object, nom: chaine, sur_appel: TypeFonctionObjectCall, length := 0)
+{
+    ajoute_fonction_native(objet, crée_chaine_utf16_unique(nom), sur_appel, length)
+}
+
+/** \} */
