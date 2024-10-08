@@ -587,6 +587,122 @@ sur_exécution_logical_not :: fonc (base: *NoeudSyntaxique, interpréteuse: *Int
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom LogicalAnd
+ * \{ */
+
+LogicalAnd :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_logical_and
+
+    left: *NoeudSyntaxique
+    right: *NoeudSyntaxique
+}
+
+crée_logical_and :: fonc (left: *NoeudSyntaxique, right: *NoeudSyntaxique) -> *LogicalAnd
+{
+    résultat := loge(LogicalAnd)
+    résultat.left = left
+    résultat.right = right
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#prod-LogicalANDExpression */
+sur_exécution_logical_and :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    noeud := base comme *LogicalAnd
+
+    // 1. Let lRef be ? Evaluation of LogicalANDExpression.
+    completion := exécute_noeud(noeud.left, interpréteuse)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    lref := completion.valeur
+
+    // 2. Let lVal be ? GetValue(lRef).
+    completion = get_value(interpréteuse, lref)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    lval := completion.valeur.V
+
+    // 3. If ToBoolean(lVal) is false, return lVal.
+    si to_boolean(lval).est_false() {
+        retourne normal_completion(lval)
+    }
+
+    // 4. Let rRef be ? Evaluation of BitwiseORExpression.
+    completion = exécute_noeud(noeud.right, interpréteuse)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    rref := completion.valeur
+
+    // 5. Return ? GetValue(rRef).
+    retourne get_value(interpréteuse, rref)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom LogicalOr
+ * \{ */
+
+LogicalOr :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_logical_or
+
+    left: *NoeudSyntaxique
+    right: *NoeudSyntaxique
+}
+
+crée_logical_or :: fonc (left: *NoeudSyntaxique, right: *NoeudSyntaxique) -> *LogicalOr
+{
+    résultat := loge(LogicalOr)
+    résultat.left = left
+    résultat.right = right
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#prod-LogicalORExpression */
+sur_exécution_logical_or :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    noeud := base comme *LogicalOr
+
+    // 1. Let lRef be ? Evaluation of LogicalORExpression.
+    completion := exécute_noeud(noeud.left, interpréteuse)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    lref := completion.valeur
+
+    // 2. Let lVal be ? GetValue(lRef).
+    completion = get_value(interpréteuse, lref)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    lval := completion.valeur.V
+
+    // 3. If ToBoolean(lVal) is true, return lVal.
+    si to_boolean(lval).est_true() {
+        retourne normal_completion(lval)
+    }
+
+    // 4. Let rRef be ? Evaluation of LogicalANDExpression.
+    completion = exécute_noeud(noeud.right, interpréteuse)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    rref := completion.valeur
+
+    // 5. Return ? GetValue(rRef).
+    retourne get_value(interpréteuse, rref)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom BinaryExpression
  * \{ */
 
