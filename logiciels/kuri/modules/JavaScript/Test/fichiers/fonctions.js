@@ -16,3 +16,8 @@ test("fonction peut ne pas avoir de paramètres", function () {
 test("une fonction peut accéder à une variable globale", function () {
     vérifie_égalité(accède_globale(), 13);
 });
+
+test("les fonctions doivent avoir une propriété 'name'", function () {
+    vérifie_égalité(accède_globale.name, "accède_globale")
+    vérifie_égalité(sans_paramètres.name, "sans_paramètres")
+});

@@ -723,6 +723,18 @@ PropertyKey :: union {
     Symbol: *Symbol
 }
 
+est_symbol :: fonc (key: PropertyKey) -> bool
+{
+    discr key {
+        Symbol {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
 opérateur == :: fonc (p1: PropertyKey, p2: PropertyKey) -> bool
 {
     discr p1 {
@@ -1302,6 +1314,52 @@ ordinary_call_evaluate_body :: fonc (interpréteuse: *Interpréteuse, F: *Functi
 {
     // 1. Return ? EvaluateBody of F.[[ECMAScriptCode]] with arguments F and argumentsList.
     retourne evaluate_body(interpréteuse, F, arguments_list)
+}
+
+/* 10.2.9 SetFunctionName ( F, name [ , prefix ] )
+ * https://tc39.es/ecma262/#sec-setfunctionname */
+set_function_name :: fonc (F: *Object, name: PropertyKey)
+{
+    // À FAIRE : 1. Assert: F is an extensible object that does not have a "name" own property.
+    assert(has_own_property(F, STR_name).valeur.V.est_false())
+
+    // 2. If name is a Symbol, then
+    si name.est_symbol() {
+        // a. Let description be name's [[Description]] value.
+        description := name.Symbol.description
+
+        // b. If description is undefined, set name to the empty String.
+        saufsi description.possède_valeur() {
+            name = crée_chaine_utf16_unique_vide()
+        }
+        // c. Else, set name to the string-concatenation of "[", description, and "]".
+        sinon {
+            chn := imprime_chaine("[%]", description.Quelque)
+            diffère déloge(chn)
+
+            name = crée_chaine_utf16_unique(chn)
+        }
+    }
+
+    // À FAIRE : 3. Else if name is a Private Name, then
+        // a. Set name to name.[[Description]].
+
+    // 4. If F has an [[InitialName]] internal slot, then
+        // a. Set F.[[InitialName]] to name.
+
+    // 5. If prefix is present, then
+        // a. Set name to the string-concatenation of prefix, the code unit 0x0020 (SPACE), and name.
+        // b. If F has an [[InitialName]] internal slot, then
+            // i. Optionally, set F.[[InitialName]] to name.
+
+    // 6. Perform ! DefinePropertyOrThrow(F, "name", PropertyDescriptor { [[Value]]: name, [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: true }).
+    desc: PropertyDescriptor
+    desc.value = Valeur(String = crée_chaine(F.donne_tas_de_mémoire(), name.String))
+    desc.configurable = vrai
+    completion := define_property_or_throw(F, STR_name, desc)
+    assert(completion.est_normal())
+
+    // 7. Return unused.
 }
 
 /* 10.2.11 FunctionDeclarationInstantiation ( func, argumentsList )

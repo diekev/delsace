@@ -230,14 +230,16 @@ instantiate_ordinary_function_object :: fonc (realm: *Realm, declaration: *Funct
     // FunctionDeclaration : function BindingIdentifier ( FormalParameters ) { FunctionBody }
     si declaration.id != nul {
         // 1. Let name be the StringValue of BindingIdentifier.
-        // name := declaration.id.nom
+        name := declaration.id.nom
 
         // À FAIRE 2. Let sourceText be the source text matched by FunctionDeclaration.
 
         // 3. Let F be OrdinaryFunctionCreate(%Function.prototype%, sourceText, FormalParameters, FunctionBody, non-lexical-this, env, privateEnv).
         F := ordinary_function_create(realm, realm.intrinsics.function_prototype, declaration.params, declaration.corps, NON_LEXICAL_THIS, env, private_env)
 
-        // 4. À FAIRE Perform SetFunctionName(F, name).
+        // 4. Perform SetFunctionName(F, name).
+        set_function_name(F, name)
+
         // 5. À FAIRE Perform MakeConstructor(F).
 
         // 6. Return F.
@@ -273,7 +275,8 @@ instantiate_ordinary_function_expression :: fonc (interpréteuse: *Interpréteus
         realm := running_execution_context.realm
         closure := ordinary_function_create(realm, realm.intrinsics.function_prototype, expression.params, expression.corps, NON_LEXICAL_THIS, env, private_env)
 
-        // À FAIRE 6. Perform SetFunctionName(closure, name).
+        // 6. Perform SetFunctionName(closure, name).
+        set_function_name(closure, name)
 
         // À FAIRE 7. Perform MakeConstructor(closure).
 
