@@ -162,41 +162,14 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
     }
 
     pour noeud.enfants {
-        it.mesure(ctx, mode)
-
-        float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float)
-        si float.est_mot_clé(PROP_left) {
-            ctx.ajoute_boite_flottante_gauche(it)
-            continue
-        }
-        si float.est_mot_clé(PROP_right) {
-            ctx.ajoute_boite_flottante_droite(it)
-            continue
-        }
-
         position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position)
-        /* À FAIRE : https://drafts.csswg.org/css-position/#abspos-layout */
         si position.est_mot_clé(PROP_absolute) {
-            top := it.propriétés.donne_valeur_utilisée(IDPropriété.Top)
-            bottom := it.propriétés.donne_valeur_utilisée(IDPropriété.Bottom)
-            left := it.propriétés.donne_valeur_utilisée(IDPropriété.Left)
-
-            si top.est_auto() && bottom.est_auto() {
-                top = ValeurDeStyle(pixels = 0.0)
-            }
-            sinon si top.est_auto() {
-                top = ValeurDeStyle(pixels = -bottom.pixels)
-            }
-            sinon saufsi top.est_pixels() {
-                top = ValeurDeStyle(pixels = 0.0)
-            }
-
-            it.décale(décalage_x + left.pixels comme r32, décalage_y + décalage_hors_float + top.pixels comme r32)
+            ctx.dispose_boite_absolute(it comme *NoeudDeDispositionBloc)
             continue
         }
 
         si position.est_mot_clé(PROP_fixed) {
-            ctx.dispose_boite_fixed(it)
+            ctx.dispose_boite_fixed(it comme *NoeudDeDispositionBloc)
             continue
         }
 
@@ -228,13 +201,24 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
             ctx.décalage_float_left_y = hauteur_contenu
         }
 
+        it.définis_position(décalage_x, décalage_y + décalage_hors_float)
+        it.mesure(ctx, mode, nul)
+
+        float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float)
+        si float.est_mot_clé(PROP_left) {
+            ctx.ajoute_boite_flottante_gauche(it)
+            continue
+        }
+        si float.est_mot_clé(PROP_right) {
+            ctx.ajoute_boite_flottante_droite(it)
+            continue
+        }
+
         hauteur_enfant := it.modèle_de_boite.marge.hauteur
 
         // marges_enfant := it.marges
         // marge_inter_enfant := max(marges_enfant[BorderEdge.Bottom], dernière_marge)
         // décalage_y := marge_inter_enfant comme r32
-
-        it.décale(décalage_x, décalage_y + décalage_hors_float)
 
         // dernière_marge = marges_enfant[BorderEdge.Bottom]
 
@@ -309,11 +293,9 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
         }
     }
 
-    prop_height := noeud.propriétés.donne_valeur_calculée(IDPropriété.Height)
-    si prop_height.est_auto() {
-        noeud.propriétés.définis_valeur_calculée(IDPropriété.Height, ValeurDeStyle(pixels = hauteur_contenu))
-        noeud.propriétés.définis_valeur_utilisée(IDPropriété.Height, ValeurDeStyle(pixels = hauteur_contenu))
-    }
+    hauteur_finale := ValeurDeStyle(pixels = hauteur_contenu)
+    containing_block := donne_containing_block(noeud, ctx)
+    calcule_hauteur_et_marges(noeud, containing_block, *hauteur_finale)
 
     discr mode {
         BrisureDeLigneExplicite,
@@ -333,9 +315,12 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
     }
 }
 
-dispose_boite_fixed :: fonc (empl ctx: *ContexteDeFormattageBloc, noeud: *NoeudDeDisposition)
+dispose_boite_fixed :: fonc (empl ctx: *ContexteDeFormattageBloc, noeud: *NoeudDeDispositionBloc)
 {
     containing_block := donne_containing_block(noeud, ctx)
+    calcule_largeur_et_marges(ctx, noeud, containing_block, nul)
+    calcule_hauteur_et_marges(noeud, containing_block, nul)
+
     bord_gauche := containing_block.rect.x
     bord_haut := containing_block.rect.y
 
@@ -353,7 +338,36 @@ dispose_boite_fixed :: fonc (empl ctx: *ContexteDeFormattageBloc, noeud: *NoeudD
         top = ValeurDeStyle(pixels = 0.0)
     }
 
-    noeud.décale(bord_gauche + left.pixels comme r32, bord_haut + top.pixels comme r32)
+    noeud.définis_position(bord_gauche + left.pixels comme r32, bord_haut + top.pixels comme r32)
+    formatte_intérieur(noeud, ctx, ModeDeFormattage.Normal)
+}
+
+/* À FAIRE : https://drafts.csswg.org/css-position/#abspos-layout */
+dispose_boite_absolute :: fonc (empl ctx: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc)
+{
+    containing_block := donne_containing_block(noeud, ctx)
+    calcule_largeur_et_marges(ctx, noeud, containing_block, nul)
+    calcule_hauteur_et_marges(noeud, containing_block, nul)
+
+    bord_gauche := containing_block.rect.x
+    bord_haut := containing_block.rect.y
+
+    top := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Top)
+    bottom := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Bottom)
+    left := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Left)
+
+    si top.est_auto() && bottom.est_auto() {
+        top = ValeurDeStyle(pixels = 0.0)
+    }
+    sinon si top.est_auto() {
+        top = ValeurDeStyle(pixels = -bottom.pixels)
+    }
+    sinon saufsi top.est_pixels() {
+        top = ValeurDeStyle(pixels = 0.0)
+    }
+
+    noeud.définis_position(bord_gauche + left.pixels comme r32, bord_haut + top.pixels comme r32)
+    formatte_intérieur(noeud, ctx, ModeDeFormattage.Normal)
 }
 
 ajoute_boite_flottante_gauche :: fonc (empl ctx: *ContexteDeFormattageBloc, noeud: *NoeudDeDisposition)
@@ -392,7 +406,7 @@ ajoute_boite_flottante_gauche :: fonc (empl ctx: *ContexteDeFormattageBloc, noeu
 
     tableau_ajoute(*boites_flottantes_gauche, BoiteFlottante(noeud, position_x, position_y, hauteur_noeud, largeur_noeud))
 
-    noeud.décale(position_x, position_y)
+    noeud.décale_vers_position(position_x, position_y)
 }
 
 ajoute_boite_flottante_droite :: fonc (empl ctx: *ContexteDeFormattageBloc, noeud: *NoeudDeDisposition)
@@ -431,7 +445,7 @@ ajoute_boite_flottante_droite :: fonc (empl ctx: *ContexteDeFormattageBloc, noeu
 
     tableau_ajoute(*boites_flottantes_droite, BoiteFlottante(noeud, position_x, position_y, hauteur_noeud, largeur_noeud))
 
-    noeud.décale(position_x, position_y)
+    noeud.décale_vers_position(position_x, position_y)
 }
 
 donne_hauteur_floats_gauche :: fonc (empl ctx: *ContexteDeFormattageBloc) -> r32
@@ -583,7 +597,8 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
         décalage_y += hauteur
     }
 
-    incrémente_hauteur_contenu(noeud.modèle_de_boite, hauteur_contenu)
+    hauteur_finale := ValeurDeStyle(pixels = hauteur_contenu)
+    calcule_hauteur_et_marges(noeud, containing_block, *hauteur_finale)
 
     si décalage_x != 0.0 || décalage_y != 0.0 {
         pour * noeud.lignes_tenante.fragments {
@@ -657,6 +672,19 @@ contexte_formattage_flex_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
 {
     ctx := base comme *ContexteDeFormattageFlex
 
+    direction := noeud.propriétés.donne_valeur_calculée(IDPropriété.FlexDirection).mot_clé
+
+    si direction == PROP_row || direction == PROP_row_reverse {
+        formatte_flex_row(ctx, noeud, mode, direction == PROP_row_reverse)
+    }
+    sinon {
+        assert(direction == PROP_column || direction == PROP_column_reverse)
+        formatte_flex_column(ctx, noeud, mode, direction == PROP_column_reverse)
+    }
+}
+
+formatte_flex_row :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage, reverse: bool)
+{
     largeur_disponible := noeud.modèle_de_boite.contenu.largeur
 
     largeur_des_enfants := 0.0
@@ -669,17 +697,11 @@ contexte_formattage_flex_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
 
         flex_basis := it.propriétés.donne_valeur_utilisée(IDPropriété.FlexBasis)
 
-        // À FAIRE : il faut éviter de surécrire les valeurs calculées
-        prop_largeur := it.propriétés.donne_valeur_calculée(IDPropriété.Width)
-        prop_hauteur := it.propriétés.donne_valeur_calculée(IDPropriété.Height)
-
         largeur : r64 = 0.0
         si flex_basis.est_mot_clé(PROP_content) || flex_basis.est_mot_clé(PROP_auto) {
             /* calcule_shrink_to_fit_width ne résoud pas les pourcentages... */
-            it.mesure(ctx, mode)
+            it.mesure(ctx, mode, nul)
             largeur = calcule_shrink_to_fit_width(ctx, it, largeur_disponible)
-            it.propriétés.définis_valeur_calculée(IDPropriété.Width, prop_largeur)
-            it.propriétés.définis_valeur_calculée(IDPropriété.Height, prop_hauteur)
         }
         sinon si flex_basis.est_percentage() {
             largeur = calcule_pourcentage(flex_basis, largeur_disponible).pixels
@@ -688,11 +710,8 @@ contexte_formattage_flex_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
             largeur = flex_basis.pixels
         }
 
-        it.propriétés.définis_valeur_calculée(IDPropriété.Width, ValeurDeStyle(pixels = largeur))
-        it.mesure(ctx, mode)
-
-        it.propriétés.définis_valeur_calculée(IDPropriété.Width, prop_largeur)
-        it.propriétés.définis_valeur_calculée(IDPropriété.Height, prop_hauteur)
+        largeur_désirée := ValeurDeStyle(pixels = largeur)
+        it.mesure(ctx, mode, *largeur_désirée)
 
         largeur_des_enfants += it.modèle_de_boite.marge.largeur
     }
@@ -729,6 +748,12 @@ contexte_formattage_flex_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
     décalage_x := noeud.modèle_de_boite.contenu.x
     décalage_y := noeud.modèle_de_boite.contenu.y
 
+    si reverse {
+        décalage_x += noeud.modèle_de_boite.contenu.largeur
+    }
+
+    décalage_x_original := décalage_x
+
     hauteur_contenu := 0.0
 
     pour * ligne dans lignes {
@@ -759,17 +784,27 @@ contexte_formattage_flex_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
 
         hauteur_ligne := 0.0
         pour ligne.noeuds {
-            décalage_x += décalage_pre
-            
-            it.décale(décalage_x, décalage_y)
+            si reverse {
+                décalage_x -= décalage_pre + it.modèle_de_boite.marge.largeur
+            }
+            sinon {
+                décalage_x += décalage_pre
+            }
 
-            décalage_x += it.modèle_de_boite.marge.largeur + décalage_post
+            it.décale_vers_position(décalage_x, décalage_y)
+
+            si reverse {
+                décalage_x -= décalage_post
+            }
+            sinon {
+                décalage_x += it.modèle_de_boite.marge.largeur + décalage_post
+            }
             hauteur_ligne = max(hauteur_ligne, it.modèle_de_boite.marge.hauteur)
         }
 
         décalage_y += hauteur_ligne
         hauteur_contenu += hauteur_ligne
-        décalage_x = noeud.modèle_de_boite.contenu.x
+        décalage_x = décalage_x_original
     }
 
     /* Ajourne les propriétés du noeud. */
@@ -778,11 +813,89 @@ contexte_formattage_flex_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
         noeud.propriétés.définis_valeur_utilisée(IDPropriété.Width, ValeurDeStyle(pixels = largeur_des_enfants))
     }
 
-    prop_hauteur := noeud.propriétés.donne_valeur_calculée(IDPropriété.Height)
-    si prop_hauteur.est_auto() {
-        noeud.propriétés.définis_valeur_calculée(IDPropriété.Height, ValeurDeStyle(pixels = hauteur_contenu))
-        noeud.propriétés.définis_valeur_utilisée(IDPropriété.Height, ValeurDeStyle(pixels = hauteur_contenu))
+    hauteur_finale := ValeurDeStyle(pixels = hauteur_contenu)
+    containing_block := donne_containing_block(noeud, ctx)
+    calcule_hauteur_et_marges(noeud, containing_block, *hauteur_finale)
+
+    discr mode {
+        BrisureDeLigneExplicite,
+        ToutesLesBrisuresDeLigne {
+            noeud.ajourne_boite_pour_calcul_largeur()
+        }
+        sinon {}
     }
+}
+
+formatte_flex_column :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage, reverse: bool)
+{
+    largeur_disponible := noeud.modèle_de_boite.contenu.largeur
+
+    largeur_des_enfants := 0.0
+    hauteur_des_enfants := 0.0
+
+    /* Calcule la taille des noeuds. */
+    pour noeud.enfants {
+        si est_espace_blanche_document(it) {
+            continue
+        }
+
+        flex_basis := it.propriétés.donne_valeur_utilisée(IDPropriété.FlexBasis)
+
+        largeur : r64 = 0.0
+        si flex_basis.est_mot_clé(PROP_content) || flex_basis.est_mot_clé(PROP_auto) {
+            /* calcule_shrink_to_fit_width ne résoud pas les pourcentages... */
+            it.mesure(ctx, mode, nul)
+            largeur = calcule_shrink_to_fit_width(ctx, it, largeur_disponible)
+        }
+        sinon si flex_basis.est_percentage() {
+            largeur = calcule_pourcentage(flex_basis, largeur_disponible).pixels
+        }
+        sinon {
+            largeur = flex_basis.pixels
+        }
+
+        largeur_désirée := ValeurDeStyle(pixels = largeur)
+        it.mesure(ctx, mode, *largeur_désirée)
+
+        largeur_des_enfants += it.modèle_de_boite.marge.largeur
+        hauteur_des_enfants += it.modèle_de_boite.marge.hauteur
+    }
+
+    /* Dispose les noeuds. */
+    décalage_x := noeud.modèle_de_boite.contenu.x
+    décalage_y := noeud.modèle_de_boite.contenu.y
+
+    si reverse {
+        décalage_y += noeud.modèle_de_boite.contenu.hauteur
+    }
+
+    pour noeud.enfants {
+        si est_espace_blanche_document(it) {
+            continue
+        }
+
+        si reverse {
+            décalage_y -= it.modèle_de_boite.marge.hauteur
+        }
+
+        it.décale_vers_position(décalage_x, décalage_y)
+
+        largeur_des_enfants += it.modèle_de_boite.marge.largeur
+
+        saufsi reverse {
+            décalage_y += it.modèle_de_boite.marge.hauteur
+        }
+    }
+
+    /* Ajourne les propriétés du noeud. */
+    prop_largeur := noeud.propriétés.donne_valeur_calculée(IDPropriété.Width)
+    si prop_largeur.est_auto() {
+        noeud.propriétés.définis_valeur_utilisée(IDPropriété.Width, ValeurDeStyle(pixels = largeur_des_enfants))
+    }
+
+    hauteur_finale := ValeurDeStyle(pixels = hauteur_des_enfants)
+    containing_block := donne_containing_block(noeud, ctx)
+    calcule_hauteur_et_marges(noeud, containing_block, *hauteur_finale)
 
     discr mode {
         BrisureDeLigneExplicite,
@@ -831,20 +944,20 @@ distribue_espace_disponible :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *Lig
             continue
         }
 
-        ancienne_largeur := it.modèle_de_boite.marge.largeur
-        nouvelle_largeur := si utilise_flex_shrink {
+        /* Nous utilisons la largeur du contenu ici car c'est le contenu qui doit
+         * changer sa taille. */
+        ancienne_largeur := it.modèle_de_boite.contenu.largeur
+        delta := si utilise_flex_shrink {
             espace_disponible * flex_shrink.number / somme_flex_shrink
         }
         sinon {
             espace_disponible * flex_grow.number / somme_flex_grow
         }
 
-        si ancienne_largeur == nouvelle_largeur {
-            continue
-        }
+        nouvelle_largeur := ancienne_largeur + delta
 
-        it.propriétés.définis_valeur_calculée(IDPropriété.Width, ValeurDeStyle(pixels = nouvelle_largeur))
-        it.mesure(ctx, mode)
+        largeur_désirée := ValeurDeStyle(pixels = nouvelle_largeur)
+        it.mesure(ctx, mode, *largeur_désirée)
     }
 
     ligne.largeur = 0.0

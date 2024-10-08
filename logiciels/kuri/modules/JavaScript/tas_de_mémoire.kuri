@@ -2,6 +2,7 @@ importe Ensemble
 importe Fondation
 importe Introspection
 importe #inemployé HTML
+importe Temps
 
 DÉBOGUGE_MÉMOIRE :: faux
 
@@ -15,14 +16,30 @@ TasDeMémoire :: struct {
     blocs: [..]*BlocDeMémoire
 
     doit_ébouer_à_chaque_allocation := faux
-    allocations_entre_ébouages := 1000
+    allocations_entre_ébouages := 10_000
     allocations_depuis_dernier_ébouage := 0
 
     imprime_statistiques := faux
+    temps_allocations: z64
+}
+
+/* Fonction native pour forcer un ébouage
+ * Cette fonction peut être ajoutée à un objet pour être appelée depuis les scripts. */
+fonction_native_éboue :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    #si DÉBOGUGE_MÉMOIRE {
+        imprime("<<<<< ébouage forcé\n")
+    }
+    éboue(interpréteuse.donne_tas_de_mémoire())
+    #si DÉBOGUGE_MÉMOIRE {
+        imprime(">>>>> ébouage forcé\n")
+    }
+    retourne normal_completion(js_undefined)
 }
 
 détruit_données_tas_de_mémoire :: fonc (tas_de_mémoire: *TasDeMémoire)
 {
+    // imprime("[%] %ms\n", #nom_de_cette_fonction, tas_de_mémoire.temps_allocations)
     pour tas_de_mémoire.blocs {
         détruit_bloc(it)
     }
@@ -53,6 +70,9 @@ alloue_cellule :: fonc (tas_de_mémoire: *TasDeMémoire, taille: n64) -> *rien
     sinon si tas_de_mémoire.allocations_depuis_dernier_ébouage > tas_de_mémoire.allocations_entre_ébouages {
         éboue(tas_de_mémoire)
     }
+
+    début := maintenant_précis()
+    diffère tas_de_mémoire.temps_allocations += début.temps_écoulé_millisecondes()
 
     tas_de_mémoire.allocations_depuis_dernier_ébouage += 1
 
@@ -88,6 +108,9 @@ TypeÉbouage :: énum {
 /* Ramasse les miettes. */
 éboue :: fonc (tas_de_mémoire: *TasDeMémoire, type_ébouage := TypeÉbouage.RAMASSE_MIETTES)
 {
+    // début := maintenant_précis()
+    // diffère imprime("[%] %ms\n", #nom_de_cette_fonction, début.temps_écoulé_millisecondes())
+
     racines: [..]*Cellule
     diffère déloge(racines)
     si type_ébouage == TypeÉbouage.RAMASSE_MIETTES {
@@ -581,6 +604,23 @@ visite_valeur :: fonc (visiteuse: *VisiteuseCellule, valeur: eini)
             retourne
         }
 
+        si info == info_de(Chaine.ChaineUTF16) {
+            retourne
+        }
+
+        si info == info_de(HostDefined) {
+            host_defined := mémoire(valeur.pointeur comme *HostDefined)
+
+            si host_defined.données == nul {
+                retourne
+            }
+
+            valeur.pointeur = host_defined.données
+            valeur.info = host_defined.infos
+            tableau_ajoute(*visiteuse.valeurs_à_visiter, valeur)
+            retourne
+        }
+
         visite_structure(visiteuse, valeur)
         retourne
     }
@@ -597,7 +637,7 @@ visite_valeur :: fonc (visiteuse: *VisiteuseCellule, valeur: eini)
 
     si info.id == GenreInfoType.TABLEAU_FIXE || info.id == GenreInfoType.TABLEAU {
         itératrice := crée_itératrice_tableau(valeur)
-        si itératrice.type_pointé == info == info_de(Lexème) {
+        si itératrice.type_pointé == info_de(Lexème) {
             retourne
         }
         boucle {

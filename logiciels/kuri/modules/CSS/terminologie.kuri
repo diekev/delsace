@@ -194,6 +194,7 @@ PROP_nw_resize : CSSOMString = ---
 PROP_nwse_resize : CSSOMString = ---
 PROP_odd : CSSOMString = ---
 PROP_only : CSSOMString = ---
+PROP_opacity : CSSOMString = ---
 PROP_or : CSSOMString = ---
 PROP_outset : CSSOMString = ---
 PROP_overflow : CSSOMString = ---
@@ -293,6 +294,7 @@ PROP_x_large : CSSOMString = ---
 PROP_x_small : CSSOMString = ---
 PROP_zoom_in : CSSOMString = ---
 PROP_zoom_out : CSSOMString = ---
+PROP_z_index : CSSOMString = ---
 PROP_Q : CSSOMString = ---
 
 PC_active : CSSOMString = ---
