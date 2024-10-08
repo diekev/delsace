@@ -9,12 +9,12 @@ test("wat-arithmérique-string", function () {
     vérifie_égalité('<scrip' + !0, "<scriptrue");
 });
 
-// test("wat-arithmétique-object", function () {
-//     assert([] + [] == "");
-//     assert([] + {} == "[object Object]");
-//     assert({} + [] == 0.0);
-//     assert({} + {} == Nan);
-// });
+test("wat-arithmétique-object", function () {
+    vérifie_égalité([] + [], "");
+    // vérifie_égalité([] + {}, "[object Object]");
+    // vérifie_égalité({} + [], 0.0);
+    // vérifie_égalité({} + {}, Nan);
+});
 
 test("wat-array", function () {
     vérifie_égalité(Array(16).toString(), ",,,,,,,,,,,,,,,");
