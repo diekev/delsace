@@ -17,6 +17,11 @@ test("array-literal", function () {
     vérifie_égalité(push_result, 4)
 });
 
+test("array-literal vide", function () {
+    var a = [];
+    vérifie_égalité(a.length, 0)
+});
+
 test("array-constructor", function () {
     var b = Array(16);
     vérifie_égalité(b.length, 16)

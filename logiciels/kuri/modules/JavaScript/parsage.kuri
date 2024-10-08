@@ -581,6 +581,12 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
         CrochetOuvrant {
             parseuse.consomme()
 
+            si apparie(parseuse, GenreLexème.CrochetFermant) {
+                parseuse.consomme()
+                éléments: [..]*NoeudSyntaxique
+                retourne crée_array_literal(éléments)
+            }
+
             éléments := parseuse.parse_expression_virgule()
 
             saufsi apparie(parseuse, GenreLexème.CrochetFermant) {
