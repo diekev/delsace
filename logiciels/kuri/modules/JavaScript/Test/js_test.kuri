@@ -1,0 +1,117 @@
+importe Chaine
+importe Compilatrice
+importe Fondation
+importe JavaScript
+importe SysFichier
+
+change_nom_sortie :: fonc ()
+{
+    options := compilatrice_obtiens_options()
+    options.nom_sortie = "js_test"
+    compilatrice_ajourne_options(options)
+}
+
+#exécute change_nom_sortie()
+
+principale :: fonc () -> z32
+{
+    args := arguments_ligne_commande()
+
+    si args.taille == 2 {
+        évalue_test(CheminFichier(args[1]))
+        retourne 0
+    }
+
+    pour ExploratriceFichier(CheminFichier("fichiers")) {
+        si it.extension() == ".js" {
+            évalue_test(it)
+        }
+    }
+
+    retourne 0
+}
+
+évalue_test :: fonc (chemin: CheminFichier)
+{
+    contenu := contenu_fichier_texte(chemin)
+    diffère déloge(contenu)
+
+    mv: MachineVirtuelle
+    diffère détruit_données_mv(*mv)
+    initialise_mv(*mv)
+
+    diffère éboue(donne_tas_de_mémoire(*mv))
+
+    rappels_hôte: RappelsHôte
+    rappels_hôte.crée_propriétés_hôte_objet_global = crée_propriétés_hôte_objet_global
+
+    realm := initialise_host_defined_realm(*mv, *rappels_hôte)
+
+    crée_environnement_de_test(realm)
+
+    résultat := exécute_script(realm, contenu)
+    si résultat {
+        imprime("[ \x1b[32mPASSE\x1b[37m ] : %\n", chemin)
+    }
+}
+
+crée_environnement_de_test :: fonc (realm: *Realm)
+{
+    source := contenu_fichier_texte("environnement_test.js")
+    _ := exécute_script(realm, source)
+}
+
+exécute_script :: fonc (realm: *Realm, source: chaine) -> bool
+{
+    script: *Script
+    /* À FAIRE(langage) : host_defined n'est pas initialisée à sa valeur défaut. */
+    host_defined: HostDefined
+    discr parse_script(source, realm, host_defined) {
+        Ok(s) {
+            script = s
+        }
+        Erreur(e) {
+            imprime("[ \x1b[31mÉCHEC\x1b[37m ] : %\n", e)
+            retourne faux
+        }
+        sinon {
+            imprime("[ \x1b[31mÉCHEC\x1b[37m ] : erreur inconnue\n")
+            retourne faux
+        }
+    }
+
+    résultat := script_evaluation(script)
+    si résultat.est_normal() {
+        retourne vrai
+    }
+
+    imprime("[ \x1b[31mÉCHEC\x1b[37m ] : %\n", get_value(realm, résultat.valeur))
+    retourne faux
+}
+
+crée_propriétés_hôte_objet_global :: fonc (base: *RappelsHôte @inutilisée, global: *Object)
+{
+    flux_sortie_sur_destruction :: fonc (base: *FluxSortieConsole)
+    {
+        déloge(base)
+    }
+
+    flux_sortie_sur_log :: fonc (base: *FluxSortieConsole @inutilisée, texte: chaine)
+    {
+        imprime("[JS] %\n", texte)
+    }
+
+    flux_sortie_sur_efface :: fonc (base: *FluxSortieConsole @inutilisée)
+    {
+    }
+
+    flux := loge(FluxSortieConsole)
+    flux.sur_destruction = flux_sortie_sur_destruction
+    flux.sur_log = flux_sortie_sur_log
+    flux.sur_efface = flux_sortie_sur_efface
+
+    console := crée_console(global.donne_tas_de_mémoire(), flux, nul)
+
+    global.ajoute_fonction_native("rm", fonction_native_éboue)
+    global.ajoute_propriété(crée_chaine_utf16_unique("console"), Valeur(Object = console), Enumerable | Configurable | Writable)
+}
