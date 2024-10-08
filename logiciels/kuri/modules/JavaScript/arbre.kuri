@@ -240,7 +240,8 @@ instantiate_ordinary_function_object :: fonc (realm: *Realm, declaration: *Funct
         // 4. Perform SetFunctionName(F, name).
         set_function_name(F, name)
 
-        // 5. À FAIRE Perform MakeConstructor(F).
+        // 5. Perform MakeConstructor(F).
+        make_constructor(F)
 
         // 6. Return F.
         retourne F
@@ -278,7 +279,8 @@ instantiate_ordinary_function_expression :: fonc (interpréteuse: *Interpréteus
         // 6. Perform SetFunctionName(closure, name).
         set_function_name(closure, name)
 
-        // À FAIRE 7. Perform MakeConstructor(closure).
+        // 7. Perform MakeConstructor(closure).
+        make_constructor(closure)
 
         // 8. Return closure.
         retourne closure

@@ -1234,6 +1234,29 @@ ordinary_function_create :: fonc (realm: *Realm, function_prototype: *FunctionPr
     retourne F
 }
 
+/* 10.2.5 MakeConstructor ( F [ , writablePrototype [ , prototype ] ] )
+ * https://tc39.es/ecma262/#sec-makeconstructor */
+make_constructor :: fonc (F: *Function)
+{
+    // À FAIRE : complète
+    // 1. If F is an ECMAScript function object, then
+        // a. Assert: IsConstructor(F) is false.
+        // b. Assert: F is an extensible object that does not have a "prototype" own property.
+        // c. Set F.[[Construct]] to the definition specified in 10.2.2.
+    // 2. Else,
+       // a. Set F.[[Construct]] to the definition specified in 10.3.2.
+
+    // 3. Set F.[[ConstructorKind]] to base.
+    F.constructor_kind = ConstructorKind.Base
+
+    // 4. If writablePrototype is not present, set writablePrototype to true.
+    // 5. If prototype is not present, then
+        // a. Set prototype to OrdinaryObjectCreate(%Object.prototype%).
+    // b. Perform ! DefinePropertyOrThrow(prototype, "constructor", PropertyDescriptor { [[Value]]: F, [[Writable]]: writablePrototype, [[Enumerable]]: false, [[Configurable]]: true }).
+    // 6. Perform ! DefinePropertyOrThrow(F, "prototype", PropertyDescriptor { [[Value]]: prototype, [[Writable]]: writablePrototype, [[Enumerable]]: false, [[Configurable]]: false }).
+    // 7. Return unused.
+}
+
 /* 10.2.1 [[Call]] ( thisArgument, argumentsList )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ecmascript-function-objects-call-thisargument-argumentslist */
 sur_appel_fonction_instruite :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
