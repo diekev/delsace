@@ -108,8 +108,8 @@ crée_fonction_native :: fonc (tas_de_mémoire: *TasDeMémoire, nom: ECMAString,
 {
     résultat := tas_de_mémoire.alloue(FunctionNative)
     set_function_name(résultat, nom)
+    set_function_length(résultat, length comme n64)
     résultat.sur_appel = sur_appel
-    résultat.ajoute_propriété(STR_length, Valeur(Number = length comme r64), DrapeauxPropriété.zéro)
     retourne résultat
 }
 
