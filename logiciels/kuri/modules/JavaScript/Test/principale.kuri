@@ -189,14 +189,6 @@ objet_html_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, en
 
 /** \} */
 
-fonction_native_éboue :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
-{
-    imprime("<<<<< ébouage forcé\n")
-    éboue(interpréteuse.donne_tas_de_mémoire())
-    imprime(">>>>> ébouage forcé\n")
-    retourne normal_completion(js_undefined)
-}
-
 RappelsHôteTest :: struct {
     empl base: RappelsHôte
 
