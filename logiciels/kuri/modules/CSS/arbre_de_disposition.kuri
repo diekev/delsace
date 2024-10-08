@@ -21,6 +21,7 @@ importe Typographie
 
 ArbreDeDisposition :: struct {
     racine: *NoeudDeDisposition
+    stacking_context: *StackingContext
 
     noeuds: [..]*NoeudDeDisposition
     tampon_id_fut_dessiné: bool
@@ -76,6 +77,7 @@ détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
         }
     }
 
+    détruit_stacking_context(arbre.stacking_context)
     déloge(arbre.tampon_id)
     déloge(arbre.noeuds)
     déloge(arbre)
@@ -153,7 +155,7 @@ dessine :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
     arbre.largeur_vue = ctx.largeur_vue
 
     IGUMI.réinitialise_données()
-    dessine(arbre.racine, ctx)
+    dessine_stacking_context(arbre.stacking_context, ctx)
     ctx.peintre.termine_dessin()
 }
 
@@ -165,7 +167,7 @@ dessine_tampon_id_couleur :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDes
     ctx.tampon_id_couleur = vrai
 
     IGUMI.réinitialise_données()
-    dessine_tampon_id(arbre.racine, ctx)
+    dessine_stacking_context_tampon_id(arbre.stacking_context, ctx)
     ctx.peintre.termine_dessin()
 
     ctx.tampon_id_couleur = faux
@@ -189,7 +191,7 @@ dessine_tampon_id :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, render_buf)
     vérifie_erreur("glFramebufferRenderbuffer")
 
-    dessine_tampon_id(arbre.racine, ctx)
+    dessine_stacking_context_tampon_id(arbre.stacking_context, ctx)
     vérifie_erreur("dessine_tampon_id")
     IGUMI.termine_immédiat_id()
 
@@ -652,6 +654,8 @@ AjournementArbre :: énum_drapeau {
     Disposition
     /* L'arbre doit être construit. */
     Construction
+    /* Les stacking contexts doivent être construit. */
+    StackingContext
 }
 
 donne_ajournement_pour_changement_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élément) -> AjournementArbre
@@ -749,6 +753,9 @@ donne_ajournement_arbre :: fonc (info: *InfoTypePropriété) -> AjournementArbre
     }
     si info.drapeaux.AffecteConstructionArbre {
         retourne AjournementArbre.Construction
+    }
+    si info.drapeaux.AffecteStackingContext {
+        retourne AjournementArbre.StackingContext
     }
     retourne AjournementArbre.Dessin
 }
@@ -979,6 +986,10 @@ donne_arbre_de_disposition_ajourné :: fonc (document: *HTML.Document, largeur: 
     sinon si ajournement.Disposition {
         dispose_arbre(document.globales_dessin, document.arbre_de_disposition, largeur, hauteur)
     }
+    sinon si ajournement.StackingContext {
+        détruit_stacking_context(document.arbre_de_disposition.stacking_context)
+        document.arbre_de_disposition.stacking_context = construit_arbre_de_stacking_contexts(document.arbre_de_disposition.racine)
+    }
 
     document.ajournement_arbre = AjournementArbre.zéro
 
@@ -1026,6 +1037,8 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, haut
     }
 
     document.arbre_de_disposition = résultat
+
+    résultat.stacking_context = construit_arbre_de_stacking_contexts(résultat.racine)
 }
 
 dispose_arbre :: fonc (globales: *GlobalesDessin, arbre: *ArbreDeDisposition, largeur: z32, hauteur: z32)
@@ -1039,7 +1052,7 @@ dispose_arbre :: fonc (globales: *GlobalesDessin, arbre: *ArbreDeDisposition, la
     ctx.globales = globales
     ctx.initial_containing_block = *initial_containing_block
 
-    mesure(arbre.racine, *ctx, ModeDeFormattage.Normal)
+    mesure(arbre.racine, *ctx, ModeDeFormattage.Normal, nul)
 
     // imprime("taille arbre : %x%\n", résultat.racine.largeur, résultat.racine.hauteur)
 }
@@ -1141,8 +1154,10 @@ ContexteDessin :: struct {
     largeur_vue: z32
 
     décalage_y: r32
+    id_stacking_context: n32
 
     tampon_id_couleur: bool
+    est_fixé: bool
 }
 
 donne_rectangle_corrigé :: fonc (ctx: *ContexteDessin, rect: RectanglePosDim(r32)) -> RectanglePosDim(r32)
@@ -1152,7 +1167,10 @@ donne_rectangle_corrigé :: fonc (ctx: *ContexteDessin, rect: RectanglePosDim(r3
      * coin du bas gauche.
      * De plus, nous devons nous assurer que l'origine du document est le bas
      * gauche de la page et non le haut gauche. */
-    rect.y = ctx.hauteur_vue comme r32 + ctx.décalage_y - rect.y - rect.hauteur
+    rect.y = ctx.hauteur_vue comme r32 - rect.y - rect.hauteur
+    saufsi ctx.est_fixé {
+        rect.y += ctx.décalage_y
+    }
     retourne rect
 }
 
@@ -1530,6 +1548,7 @@ NoeudDeDisposition :: struct {
     type := #type_de_cette_structure
 
     id: n32
+    id_stacking_context: n32
     propriétés: *PropriétésDeStyle
 
     parent: *NoeudDeDisposition
@@ -1537,7 +1556,7 @@ NoeudDeDisposition :: struct {
 
     modèle_de_boite: ModèleDeBoite
 
-    sur_mesure: fonc (*NoeudDeDisposition, *ContexteDeFormattage, ModeDeFormattage)(rien)
+    sur_mesure: fonc (*NoeudDeDisposition, *ContexteDeFormattage, ModeDeFormattage, *ValeurDeStyle)(rien)
     sur_dessin: fonc (*NoeudDeDisposition, *ContexteDessin)(rien)
     sur_dessin_fragment: fonc (*NoeudDeDisposition, *Fragment, *LignesTenante, *ContexteDessin)(rien)
     sur_dessin_tampon_id: fonc (*NoeudDeDisposition, *ContexteDessin)(rien)
@@ -1715,6 +1734,21 @@ imprime_élément :: fonc (noeud: *NoeudDeDisposition, message: chaine, récursi
     }
 }
 
+définis_position :: fonc (noeud: *NoeudDeDisposition, x: r32, y: r32)
+{
+    dx := x - noeud.modèle_de_boite.marge.x
+    dy := y - noeud.modèle_de_boite.marge.y
+    décale_horizontalement(noeud.modèle_de_boite, dx)
+    décale_verticalement(noeud.modèle_de_boite, dy)
+}
+
+décale_vers_position :: fonc (noeud: *NoeudDeDisposition, x: r32, y: r32)
+{
+    dx := x - noeud.modèle_de_boite.marge.x
+    dy := y - noeud.modèle_de_boite.marge.y
+    décale(noeud, dx, dy)
+}
+
 décale :: fonc (noeud: *NoeudDeDisposition, x: r32, y: r32)
 {
     décale_horizontalement(noeud.modèle_de_boite, x)
@@ -1739,15 +1773,19 @@ donne_nom_classe :: fonc (noeud: *NoeudDeDisposition) -> chaine
     retourne infos.nom
 }
 
-mesure :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage)
+mesure :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, outrepas_largeur: *ValeurDeStyle)
 {
     si noeud.sur_mesure {
-        noeud.sur_mesure(noeud, ctx, mode)
+        noeud.sur_mesure(noeud, ctx, mode, outrepas_largeur)
     }
 }
 
 dessine :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDessin)
 {
+    si noeud.id_stacking_context != ctx.id_stacking_context {
+        retourne
+    }
+
     si noeud.sur_dessin {
         noeud.sur_dessin(noeud, ctx)
     }
@@ -1771,6 +1809,10 @@ dessine_fragment :: fonc (noeud: *NoeudDeDisposition, fragment: *Fragment, ligne
 
 dessine_tampon_id :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDessin)
 {
+    si noeud.id_stacking_context != ctx.id_stacking_context {
+        retourne
+    }
+
     si noeud.sur_dessin_tampon_id {
         noeud.sur_dessin_tampon_id(noeud, ctx)
     }
@@ -1820,7 +1862,7 @@ divise_en_lignes :: fonc (noeud: *NoeudDeDisposition, enligneuse: *Enligneuse, c
         retourne
     }
 
-    noeud.mesure(ctx, mode)
+    noeud.mesure(ctx, mode, nul)
     _ := enligneuse.ajoute_fragment(noeud, noeud.modèle_de_boite.marge.hauteur, noeud.modèle_de_boite.marge.largeur, Fragment.Type.Normal)
 }
 
@@ -2282,7 +2324,7 @@ donne_alignement_descendants :: fonc (noeud: *NoeudDeDispositionBloc) -> Optionn
     }
 }
 
-noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage)
+noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, outrepas_largeur: *ValeurDeStyle)
 {
     noeud := base comme *NoeudDeDispositionBloc
 
@@ -2292,8 +2334,8 @@ noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Cont
 
     /* À FAIRE : utilise les bonnes formules.
      * https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#Computing_widths_and_margins */
-    calcule_largeur_et_marges(ctx, noeud, containing_block)
-    calcule_hauteur_et_marges(noeud, containing_block)
+    calcule_largeur_et_marges(ctx, noeud, containing_block, outrepas_largeur)
+    calcule_hauteur_et_marges(noeud, containing_block, nul)
 
     doit_aligner_les_descendants := ctx.doit_aligner_les_descendants
     alignement := donne_alignement_descendants(noeud)
@@ -2302,12 +2344,6 @@ noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Cont
     }
 
     formatte_intérieur(noeud, ctx, mode)
-
-    saufsi noeud.est_disposition_inline {
-        /* À FAIRE : une disposition inline interfère avec la hauteur du bloc.
-         * Il faudra réviser l'interaction entre la disposition inline et le type de noeud (block ou inline). */
-        calcule_hauteur_et_marges(noeud, containing_block)
-    }
 
     ctx.doit_aligner_les_descendants = doit_aligner_les_descendants
 }
@@ -2443,22 +2479,21 @@ NoeudDeDispositionInline :: struct {
     sur_correction_hiérarchie = noeud_disposition_inline_corrige_hiérarchie
 }
 
-noeud_disposition_inline_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage)
+noeud_disposition_inline_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, outrepas_largeur: *ValeurDeStyle)
 {
     noeud := base comme *NoeudDeDispositionInline
     containing_block := donne_containing_block(base, ctx)
-    calcule_largeur_et_marges(ctx, noeud, containing_block)
-    calcule_hauteur_et_marges(noeud, containing_block)
+    calcule_largeur_et_marges(ctx, noeud, containing_block, outrepas_largeur)
+    calcule_hauteur_et_marges(noeud, containing_block, nul)
     formatte_intérieur(noeud, ctx, mode)
-    calcule_hauteur_et_marges(noeud, containing_block)
 }
 
 noeud_disposition_inline_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, enligneuse: *Enligneuse, ctx: *ContexteDeFormattage, mode: ModeDeFormattage)
 {
     noeud := base comme *NoeudDeDispositionInline
     containing_block := donne_containing_block(noeud, ctx)
-    calcule_largeur_et_marges(ctx, noeud, containing_block)
-    calcule_hauteur_et_marges(noeud, containing_block)
+    calcule_largeur_et_marges(ctx, noeud, containing_block, nul)
+    calcule_hauteur_et_marges(noeud, containing_block, nul)
 
     propriétés := noeud.propriétés
 
@@ -3013,7 +3048,7 @@ donne_hauteur_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> r
     retourne noeud.hauteur_intrinsèque.Quelque
 }
 
-noeud_disposition_remplacement_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage @inutilisée)
+noeud_disposition_remplacement_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage @inutilisée, outrepas_largeur: *ValeurDeStyle @inutilisée)
 {
     noeud := base comme *NoeudDeDispositionRemplacement
 
@@ -3023,13 +3058,13 @@ noeud_disposition_remplacement_sur_mesure :: fonc (base: *NoeudDeDisposition, ct
 
     modifie_marges_pour_alignement_forcé(ctx, noeud)
 
-    calcule_largeur_et_marges(ctx, noeud, containing_block)
-    calcule_hauteur_et_marges(noeud, containing_block)
+    calcule_largeur_et_marges(ctx, noeud, containing_block, nul)
+    calcule_hauteur_et_marges(noeud, containing_block, nul)
 }
 
 noeud_disposition_remplacement_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, enligneuse: *Enligneuse, ctx: *ContexteDeFormattage, mode: ModeDeFormattage)
 {
-    noeud_disposition_remplacement_sur_mesure(base, ctx, mode)
+    noeud_disposition_remplacement_sur_mesure(base, ctx, mode, nul)
 
     noeud := base comme *NoeudDeDispositionRemplacement
     largeur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width).pixels comme r32
