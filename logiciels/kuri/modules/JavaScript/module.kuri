@@ -1913,7 +1913,7 @@ perform_eval :: fonc (interpréteuse: *Interpréteuse, x: Valeur, strict_caller:
     // À FAIRE : 5. Perform ? HostEnsureCanCompileStrings(evalRealm, « », x, direct).
 
     // 6. Let inFunction be false.
-    // in_function := faux
+    in_function := faux
 
     // 7. Let inMethod be false.
     // in_method := faux
@@ -1927,14 +1927,20 @@ perform_eval :: fonc (interpréteuse: *Interpréteuse, x: Valeur, strict_caller:
     // 10. If direct is true, then
     si direct {
         // a. Let thisEnvRec be GetThisEnvironment().
+        this_env_rec := get_this_environment(interpréteuse)
+
         // b. If thisEnvRec is a Function Environment Record, then
-            // i. Let F be thisEnvRec.[[FunctionObject]].
+        si this_env_rec.table.classe == FunctionEnvironment {
+            // À FAIRE : i. Let F be thisEnvRec.[[FunctionObject]].
+
             // ii. Set inFunction to true.
+            in_function = vrai
+
             // iii. Set inMethod to thisEnvRec.HasSuperBinding().
             // iv. If F.[[ConstructorKind]] is DERIVED, set inDerivedConstructor to true.
             // v. Let classFieldInitializerName be F.[[ClassFieldInitializerName]].
             // vi. If classFieldInitializerName is not EMPTY, set inClassFieldInitializer to true.
-        panique("direct eval non-implémenté")
+        }
     }
 
     // À FAIRE : 11. Perform the following substeps in an implementation-defined order, possibly interleaving parsing and error detection:
