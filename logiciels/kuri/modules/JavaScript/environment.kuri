@@ -16,6 +16,7 @@ Environment :: struct {
     sur_get_binding_value: fonc(*Environment, ECMAString, bool)(CompletionRecord)
     sur_set_mutable_binding: fonc(*Environment, ECMAString, Valeur, bool)(CompletionRecord)
     sur_with_base_object: fonc(*Environment)(Valeur)
+    sur_create_global_function_binding: fonc(*Environment, ECMAString, Valeur, bool)(CompletionRecord)
 }
 
 has_binding :: fonc (environment: *Environment, nom: ECMAString) -> CompletionRecord
@@ -53,6 +54,12 @@ with_base_object :: fonc (environment: *Environment) -> Valeur
 {
     assert(environment.sur_with_base_object != nul)
     retourne environment.sur_with_base_object(environment)
+}
+
+create_global_function_binding :: fonc (environment: *Environment, N: ECMAString, V: Valeur, D: bool) -> CompletionRecord
+{
+    assert(environment.sur_create_global_function_binding != nul)
+    retourne environment.sur_create_global_function_binding(environment, N, V, D)
 }
 
 /* 9.1.2.1 GetIdentifierReference
@@ -527,6 +534,7 @@ GlobalEnvironment :: struct {
     sur_get_binding_value = global_environment_get_binding_value
     sur_set_mutable_binding = global_environment_set_mutable_binding
     sur_with_base_object = global_environment_with_base_object
+    sur_create_global_function_binding = global_environment_create_global_function_binding
 }
 
 /* 9.1.2.5 NewGlobalEnvironment ( G, thisValue )
@@ -631,6 +639,38 @@ global_environment_with_base_object :: fonc (base: *Environment @inutilisée) ->
 {
     // 1. Return undefined.
     retourne js_undefined
+}
+
+/* 9.1.1.4.18 CreateGlobalFunctionBinding ( N, V, D )
+ * https://tc39.es/ecma262/#sec-createglobalfunctionbinding */
+global_environment_create_global_function_binding :: fonc (base: *Environment, N: ECMAString, V: Valeur, D: bool @inutilisée) -> CompletionRecord
+{
+    env_rec := base comme *GlobalEnvironment
+
+    // 1. Let ObjRec be envRec.[[ObjectRecord]].
+    obj_rec := env_rec.object_record
+
+    // 2. Let globalObject be ObjRec.[[BindingObject]].
+    global_object := obj_rec.binding_object
+
+    // À FAIRE : 3. Let existingProp be ? globalObject.[[GetOwnProperty]](N).
+    // 4. If existingProp is undefined or existingProp.[[Configurable]] is true, then
+        // a. Let desc be the PropertyDescriptor { [[Value]]: V, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: D }.
+    // 5. Else,
+        // a. Let desc be the PropertyDescriptor { [[Value]]: V }.
+    // 6. Perform ? DefinePropertyOrThrow(globalObject, N, desc).
+
+    // 7. Perform ? Set(globalObject, N, V, false).
+    completion := set(global_object, N, V, faux)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+
+    // À FAIRE : 8. If envRec.[[VarNames]] does not contain N, then
+        // a. Append N to envRec.[[VarNames]].
+
+    // 9. Return unused.
+    retourne normal_completion(js_undefined)
 }
 
 /** \} */
