@@ -1949,13 +1949,11 @@ VariableDeclaration :: struct {
     expressions: [..]*NoeudSyntaxique
 }
 
-crée_variable_declaration :: fonc (nature: VariableDeclarationKind, expressions: ...*NoeudSyntaxique) -> *VariableDeclaration
+crée_variable_declaration :: fonc (nature: VariableDeclarationKind, declarators: [..]*NoeudSyntaxique) -> *VariableDeclaration
 {
     résultat := loge(VariableDeclaration)
     résultat.nature = nature
-    pour expressions {
-        tableau_ajoute(*résultat.expressions, it)
-    }
+    résultat.expressions = declarators
     retourne résultat
 }
 

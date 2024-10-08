@@ -208,8 +208,39 @@ parse_variable_declaration :: fonc (parseuse: *Parseuse, nature: VariableDeclara
 {
     parseuse.consomme()
 
+    declarators: [..]*NoeudSyntaxique
+
+    tantque !fini(parseuse) {
+        declarator := parse_variable_declarator(parseuse)
+        saufsi declarator {
+            déloge(declarators)
+            retourne nul
+        }
+
+        tableau_ajoute(*declarators, declarator)
+
+        si apparie(parseuse, GenreLexème.Virgule) {
+            parseuse.consomme()
+            continue
+        }
+
+        si apparie(parseuse, GenreLexème.PointVirgule) {
+            parseuse.consomme()
+            arrête
+        }
+
+        si apparie(parseuse, GenreLexème.Of) || apparie(parseuse, GenreLexème.In) {
+            arrête
+        }
+    }
+
+    retourne crée_variable_declaration(nature, declarators)
+}
+
+parse_variable_declarator :: fonc (parseuse: *Parseuse) -> *VariableDeclarator
+{
     saufsi apparie(parseuse, GenreLexème.Identifiant) {
-        parseuse.rapporte_erreur("Attendu un identifiant après 'var'")
+        parseuse.rapporte_erreur("Attendu un identifiant")
         retourne nul
     }
 
@@ -221,17 +252,8 @@ parse_variable_declaration :: fonc (parseuse: *Parseuse, nature: VariableDeclara
         parseuse.consomme()
         init = parseuse.parse_expression()
     }
-    sinon si apparie(parseuse, GenreLexème.PointVirgule) {
-        parseuse.consomme()
-    }
-    sinon si !apparie(parseuse, GenreLexème.Of) && !apparie(parseuse, GenreLexème.In) {
-        parseuse.rapporte_erreur("Attendu '=' ou ';' après l'identifiant")
-        retourne nul
-    }
 
-    declarator := crée_variable_declarator(id, init)
-
-    retourne crée_variable_declaration(nature, declarator)
+    retourne crée_variable_declarator(id, init)
 }
 
 parse_return_statement :: fonc (parseuse: *Parseuse) -> *ReturnStatement
