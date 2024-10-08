@@ -7,7 +7,7 @@ importe Chaine
 
 #portée_fichier
 
-table_virtuelle_function_instruite := TableVirtuelleObject(classe = Function, sur_destruction = sur_destruction_objet, sur_call = sur_appel_fonction_instruite)
+table_virtuelle_function_instruite := TableVirtuelleObject(classe = Function, sur_destruction = sur_destruction_objet, sur_call = sur_appel_fonction_instruite, sur_construct = sur_construct_fonction_ecma)
 
 #portée_export
 
@@ -18,6 +18,10 @@ ThisMode :: énum {
     GLOBAL
     LEXICAL
     STRICT
+}
+
+ConstructorKind :: énum {
+    Base
 }
 
 Function :: struct {
@@ -34,6 +38,7 @@ Function :: struct {
     is_class_constructor := faux
     realm: *Realm
     script_or_module: *Script // ScriptOrModule
+    constructor_kind: ConstructorKind
 }
 
 crée_fonction :: fonc (realm: *Realm, function_prototype: *FunctionPrototype, corps: *NoeudSyntaxique) -> *Function

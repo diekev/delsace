@@ -1164,6 +1164,92 @@ ordinary_get :: fonc (object: *Object, property_key: PropertyKey, receiver: Vale
 
 /** \} */
 
+/* 10.2.2 [[Construct]] ( argumentsList, newTarget )
+ * https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget */
+sur_construct_fonction_ecma :: fonc (empl params: *ParamètresObjectConstruct) -> CompletionRecord
+{
+    assert(object.donne_classe() == Function)
+    F := object comme *Function
+
+    mv := interpréteuse.mv
+    realm := interpréteuse.donne_realm()
+
+    // 1. Let callerContext be the running execution context.
+    caller_context := interpréteuse.donne_running_execution_context()
+
+    // 2. Let kind be F.[[ConstructorKind]].
+    kind := F.constructor_kind
+
+    // 3. If kind is base, then
+    this_argument: Valeur
+    si kind == ConstructorKind.Base {
+        // À FAIRE : a. Let thisArgument be ? OrdinaryCreateFromConstructor(newTarget, "%Object.prototype%").
+        this_argument.Object = crée_objet(realm.donne_tas_de_mémoire(), realm.intrinsics.object_prototype)
+    }
+
+    // 4. Let calleeContext be PrepareForOrdinaryCall(F, newTarget).
+    callee_context := prepare_for_ordinary_call(interpréteuse, F, new_target)
+
+    // 5. Assert: calleeContext is now the running execution context.
+    assert(mv.donne_running_execution_context() == callee_context)
+
+    // 6. If kind is base, then
+    si kind == ConstructorKind.Base {
+        // a. Perform OrdinaryCallBindThis(F, calleeContext, thisArgument).
+        ordinary_call_bind_this(F, callee_context, this_argument)
+
+        // À FAIRE : b. Let initializeResult be Completion(InitializeInstanceElements(thisArgument, F)).
+        // c. If initializeResult is an abrupt completion, then
+            // i. Remove calleeContext from the execution context stack and restore callerContext as the running execution context.
+            // ii. Return ? initializeResult.
+    }
+
+    // 7. Let constructorEnv be the LexicalEnvironment of calleeContext.
+    constructor_env := callee_context.lexical_environment
+
+    // 8. Let result be Completion(OrdinaryCallEvaluateBody(F, argumentsList)).
+    result := ordinary_call_evaluate_body(interpréteuse, F, arguments)
+
+    // 9. Remove calleeContext from the execution context stack and restore callerContext as the running execution context.
+    mv.dépile_execution_context()
+    assert(mv.donne_running_execution_context() == caller_context)
+    
+    // 10. If result is a return completion, then
+    si result.est_return() {
+        result_value := result.valeur.V
+
+        // a. If result.[[Value]] is an Object, return result.[[Value]].
+        si result_value.est_object() {
+            retourne normal_completion(result_value)
+        }
+
+        // b. If kind is base, return thisArgument.
+
+        // c. If result.[[Value]] is not undefined, throw a TypeError exception.
+        saufsi result_value.est_undefined() {
+            retourne lance_type_error(interpréteuse, "unexpected return value from constructor")
+        }
+    }
+    // 11. Else,
+    sinon si result.est_abrupt() {
+        // a. ReturnIfAbrupt(result).
+        retourne result
+    }
+
+    // 12. Let thisBinding be ? constructorEnv.GetThisBinding().
+    completion := constructor_env.get_this_binding()
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    this_binding := completion.valeur.V
+
+    // 13. Assert: thisBinding is an Object.
+    assert(this_binding.est_object())
+    
+    // 14. Return thisBinding.
+    retourne normal_completion(this_binding)
+}
+
 /* 10.2.3 OrdinaryFunctionCreate ( functionPrototype, sourceText, ParameterList, Body, thisMode, env, privateEnv )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinaryfunctioncreate 
  * À FAIRE : paramètres et étapes manquants */
