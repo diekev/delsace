@@ -2,6 +2,7 @@ importe Ensemble
 importe Fondation
 importe Introspection
 importe #inemployé HTML
+importe Temps
 
 DÉBOGUGE_MÉMOIRE :: faux
 
@@ -19,10 +20,12 @@ TasDeMémoire :: struct {
     allocations_depuis_dernier_ébouage := 0
 
     imprime_statistiques := faux
+    temps_allocations: z64
 }
 
 détruit_données_tas_de_mémoire :: fonc (tas_de_mémoire: *TasDeMémoire)
 {
+    // imprime("[%] %ms\n", #nom_de_cette_fonction, tas_de_mémoire.temps_allocations)
     pour tas_de_mémoire.blocs {
         détruit_bloc(it)
     }
@@ -53,6 +56,9 @@ alloue_cellule :: fonc (tas_de_mémoire: *TasDeMémoire, taille: n64) -> *rien
     sinon si tas_de_mémoire.allocations_depuis_dernier_ébouage > tas_de_mémoire.allocations_entre_ébouages {
         éboue(tas_de_mémoire)
     }
+
+    début := maintenant_précis()
+    diffère tas_de_mémoire.temps_allocations += début.temps_écoulé_millisecondes()
 
     tas_de_mémoire.allocations_depuis_dernier_ébouage += 1
 
@@ -88,6 +94,9 @@ TypeÉbouage :: énum {
 /* Ramasse les miettes. */
 éboue :: fonc (tas_de_mémoire: *TasDeMémoire, type_ébouage := TypeÉbouage.RAMASSE_MIETTES)
 {
+    // début := maintenant_précis()
+    // diffère imprime("[%] %ms\n", #nom_de_cette_fonction, début.temps_écoulé_millisecondes())
+
     racines: [..]*Cellule
     diffère déloge(racines)
     si type_ébouage == TypeÉbouage.RAMASSE_MIETTES {
