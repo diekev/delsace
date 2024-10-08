@@ -29,6 +29,7 @@ STR_undefined : ChaineUTF16Unique = ---
 STR_valueOf : ChaineUTF16Unique = ---
 STR_Array : ChaineUTF16Unique = ---
 STR_Error : ChaineUTF16Unique = ---
+STR_NaN : ChaineUTF16Unique = ---
 STR_ReferenceError : ChaineUTF16Unique = ---
 STR_SyntaxError : ChaineUTF16Unique = ---
 STR_TypeError : ChaineUTF16Unique = ---
