@@ -859,6 +859,73 @@ is_loosely_equal :: fonc (interpréteuse: *Interpréteuse @inutilisée, x: Valeu
     // 14. Return false.
 }
 
+/* 7.2.8 SameType ( x, y )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-sametype */
+same_type :: fonc (x: Valeur, y: Valeur) -> bool
+{
+    // 1. If x is undefined and y is undefined, return true.
+    si x.est_undefined() && y.est_undefined() {
+        retourne vrai
+    }
+
+    // 2. If x is null and y is null, return true.
+    si x.est_nulle() && y.est_nulle() {
+        retourne vrai
+    }
+
+    // 3. If x is a Boolean and y is a Boolean, return true.
+    si x.est_boolean() && y.est_boolean() {
+        retourne vrai
+    }
+
+    // 4. If x is a Number and y is a Number, return true.
+    si x.est_nombre() && y.est_nombre() {
+        retourne vrai
+    }
+
+    // 5. If x is a BigInt and y is a BigInt, return true.
+    si x.est_big_int() && y.est_big_int() {
+        retourne vrai
+    }
+
+    // 6. If x is a Symbol and y is a Symbol, return true.
+    si x.est_symbol() && y.est_symbol() {
+        retourne vrai
+    }
+
+    // 7. If x is a String and y is a String, return true.
+    si x.est_chaine() && y.est_chaine() {
+        retourne vrai
+    }
+
+    // 8. If x is an Object and y is an Object, return true.
+    si x.est_object() && y.est_object() {
+        retourne vrai
+    }
+
+    // 9. Return false.
+    retourne faux
+}
+
+/* 7.2.9 SameValue ( x, y )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-samevalue */
+same_value :: fonc (x: Valeur, y: Valeur) -> Valeur
+{
+    // 1. If SameType(x, y) is false, return false.
+    saufsi same_type(x, y) {
+        retourne faux
+    }
+
+    // 2. If x is a Number, then
+    si x.est_nombre() {
+        // a. Return Number::sameValue(x, y).
+        panique("Number::sameValue non-implémentée")
+    }
+
+    // 3. Return SameValueNonNumber(x, y).
+    retourne same_value_non_number(x, y)
+}
+
 /* 7.2.10 SameValueNonNumber ( x, y )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-samevaluenonnumber */
 same_value_non_number :: fonc (x: Valeur, y: Valeur) -> Valeur
