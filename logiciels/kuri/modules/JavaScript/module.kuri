@@ -392,29 +392,83 @@ vers_primitive :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur, type_pr
     retourne vers_primitive(interpréteuse.donne_realm(), valeur, type_préféré)
 }
 
-vers_primitive :: fonc (realm: *Realm @inutilisée, valeur: Valeur, type_préféré := TypePréféré.Aucun @inutilisée) -> CompletionRecord
+vers_primitive :: fonc (realm: *Realm, valeur: Valeur, type_préféré := TypePréféré.Aucun) -> CompletionRecord
 {
     // 1. If input is an Object, then
     si valeur.est_object() {
-        panique("to_primitive non-implémenté")
-        // a. Let exoticToPrim be ? GetMethod(input, %Symbol.toPrimitive%).
+        // À FAIRE : a. Let exoticToPrim be ? GetMethod(input, %Symbol.toPrimitive%).
         // b. If exoticToPrim is not undefined, then
-        // i. If preferredType is not present, then
-        // 1. Let hint be "default".
-        // ii. Else if preferredType is STRING, then
-        // 1. Let hint be "string".
-        // iii. Else,
-        // 1. Assert: preferredType is NUMBER.
-        // 2. Let hint be "number".
-        // iv. Let result be ? Call(exoticToPrim, input, « hint »).
-        // v. If result is not an Object, return result.
-        // vi. Throw a TypeError exception.
+            // i. If preferredType is not present, then
+                // 1. Let hint be "default".
+            // ii. Else if preferredType is STRING, then
+                // 1. Let hint be "string".
+            // iii. Else,
+                // 1. Assert: preferredType is NUMBER.
+                // 2. Let hint be "number".
+            // iv. Let result be ? Call(exoticToPrim, input, « hint »).
+            // v. If result is not an Object, return result.
+            // vi. Throw a TypeError exception.
+
         // c. If preferredType is not present, let preferredType be NUMBER.
+        si type_préféré == TypePréféré.Aucun {
+            type_préféré = TypePréféré.Number
+        }
+
         // d. Return ? OrdinaryToPrimitive(input, preferredType).
+        retourne ordinary_to_primitive(realm, valeur.donne_objet(), type_préféré)
     }
 
     // 2. Return input.
     retourne normal_completion(valeur)
+}
+
+/* 7.1.1.1 OrdinaryToPrimitive ( O, hint )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-ordinarytoprimitive */
+ordinary_to_primitive :: fonc (realm: *Realm, object: *Object, hint: TypePréféré) -> CompletionRecord
+{
+    method_names: [2]ECMAString
+
+    // 1. If hint is string, then
+    si hint == TypePréféré.String {
+        // a. Let methodNames be « "toString", "valueOf" ».
+        method_names = [STR_toString, STR_valueOf]
+    }
+    // 2. Else,
+    sinon {
+        // a. Let methodNames be « "valueOf", "toString" ».
+        method_names = [STR_valueOf, STR_toString]
+    }
+
+    // 3. For each element name of methodNames, do
+    pour method_names {
+        // a. Let method be ? Get(O, name).
+        completion := get(object, it)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        method := completion.valeur.V
+
+        // b. If IsCallable(method) is true, then
+        si is_callable(method) {
+            // i. Let result be ? Call(method, O).
+            interpréteuse: Interpréteuse
+            diffère détruit_données_interpreteuse(*interpréteuse)
+            interpréteuse.mv = realm.donne_tas_de_mémoire().donne_mv()
+            completion = call(*interpréteuse, method, object)
+            saufsi completion.est_normal() {
+                retourne completion
+            }
+            result := completion.valeur.V
+
+            // ii. If result is not an Object, return result.
+            saufsi result.est_object() {
+                retourne normal_completion(result)
+            }
+        }
+    }
+
+    // 4. Throw a TypeError exception.
+    retourne lance_type_error(realm, "object cannot be made into a primitive")
 }
 
 /* 7.1.2 ToBoolean ( argument )

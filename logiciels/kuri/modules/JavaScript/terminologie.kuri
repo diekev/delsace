@@ -25,6 +25,7 @@ STR_symbol : ChaineUTF16Unique = ---
 STR_toString : ChaineUTF16Unique = ---
 STR_true : ChaineUTF16Unique = ---
 STR_undefined : ChaineUTF16Unique = ---
+STR_valueOf : ChaineUTF16Unique = ---
 STR_Array : ChaineUTF16Unique = ---
 
 /* Ceci doit être après les tags, car nous l'utilions comme sentinelle dans les
