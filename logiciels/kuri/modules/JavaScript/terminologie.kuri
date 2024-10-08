@@ -14,6 +14,7 @@ STR_globalThis : ChaineUTF16Unique = ---
 STR_hasOwnProperty : ChaineUTF16Unique = ---
 STR_join : ChaineUTF16Unique = ---
 STR_length : ChaineUTF16Unique = ---
+STR_message : ChaineUTF16Unique = ---
 STR_name : ChaineUTF16Unique = ---
 STR_null : ChaineUTF16Unique = ---
 STR_number : ChaineUTF16Unique = ---
@@ -27,6 +28,7 @@ STR_true : ChaineUTF16Unique = ---
 STR_undefined : ChaineUTF16Unique = ---
 STR_valueOf : ChaineUTF16Unique = ---
 STR_Array : ChaineUTF16Unique = ---
+STR_Error : ChaineUTF16Unique = ---
 
 /* Ceci doit être après les tags, car nous l'utilions comme sentinelle dans les
  * métaprogrammes plus bas. */
