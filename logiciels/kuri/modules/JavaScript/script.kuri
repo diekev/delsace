@@ -184,8 +184,8 @@ script_evaluation :: fonc (script_record: *Script) -> CompletionRecord
     // 11. Let script be scriptRecord.[[ECMAScriptCode]].
     script := script_record.ecma_script_code
 
-    // À FAIRE : 12. Let result be Completion(GlobalDeclarationInstantiation(script, globalEnv)).
-    résultat := normal_completion(js_undefined)
+    // 12. Let result be Completion(GlobalDeclarationInstantiation(script, globalEnv)).
+    résultat := global_declaration_instantiation(script_record.realm, script, global_env)
 
     // 13. If result is a normal completion, then
     si résultat.est_normal() {
@@ -210,6 +210,88 @@ script_evaluation :: fonc (script_record: *Script) -> CompletionRecord
 
     // 17. Return ? result.
     retourne résultat
+}
+
+/* 16.1.7 GlobalDeclarationInstantiation( script, env )
+ * https://tc39.es/ecma262/#sec-globaldeclarationinstantiation */
+global_declaration_instantiation :: fonc (realm: *Realm, script: *Programme, env: *GlobalEnvironment) -> CompletionRecord
+{
+    // À FAIRE : complète
+    // 1. Let lexNames be the LexicallyDeclaredNames of script.
+    // 2. Let varNames be the VarDeclaredNames of script.
+    // 3. For each element name of lexNames, do
+        // a. If env.HasVarDeclaration(name) is true, throw a SyntaxError exception.
+        // b. If env.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
+        // c. Let hasRestrictedGlobal be ? env.HasRestrictedGlobalProperty(name).
+        // d. If hasRestrictedGlobal is true, throw a SyntaxError exception.
+    // 4. For each element name of varNames, do
+        // a. If env.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
+    // 5. Let varDeclarations be the VarScopedDeclarations of script.
+    // 6. Let functionsToInitialize be a new empty List.
+    // 7. Let declaredFunctionNames be a new empty List.
+    // 8. For each element d of varDeclarations, in reverse List order, do
+        // a. If d is not either a VariableDeclaration, a ForBinding, or a BindingIdentifier, then
+            // i. Assert: d is either a FunctionDeclaration, a GeneratorDeclaration, an AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration.
+            // ii. NOTE: If there are multiple function declarations for the same name, the last declaration is used.
+            // iii. Let fn be the sole element of the BoundNames of d.
+            // iv. If declaredFunctionNames does not contain fn, then
+                // 1. Let fnDefinable be ? env.CanDeclareGlobalFunction(fn).
+                // 2. If fnDefinable is false, throw a TypeError exception.
+                // 3. Append fn to declaredFunctionNames.
+                // 4. Insert d as the first element of functionsToInitialize.
+    // 9. Let declaredVarNames be a new empty List.
+    // 10. For each element d of varDeclarations, do
+        // a. If d is either a VariableDeclaration, a ForBinding, or a BindingIdentifier, then
+            // i. For each String vn of the BoundNames of d, do
+                // 1. If declaredFunctionNames does not contain vn, then
+                    // a. Let vnDefinable be ? env.CanDeclareGlobalVar(vn).
+                    // b. If vnDefinable is false, throw a TypeError exception.
+                    // c. If declaredVarNames does not contain vn, then
+                        // i. Append vn to declaredVarNames.
+    // 11. NOTE: No abnormal terminations occur after this algorithm step if the global object is an ordinary object. However, if the global object is a Proxy exotic object it may exhibit behaviours that cause abnormal terminations in some of the following steps.
+    // 12. NOTE: Annex B.3.2.2 adds additional steps at this point.
+    // 13. Let lexDeclarations be the LexicallyScopedDeclarations of script.
+
+    // 14. Let privateEnv be null.
+    private_env: *PrivateEnvironment
+
+    // 15. For each element d of lexDeclarations, do
+        // a. NOTE: Lexically declared names are only instantiated here but not initialized.
+        // b. For each element dn of the BoundNames of d, do
+            // i. If IsConstantDeclaration of d is true, then
+            // 1. Perform ? env.CreateImmutableBinding(dn, true).
+            // ii. Else,
+    // 1. Perform ? env.CreateMutableBinding(dn, false).
+
+    // 16. For each Parse Node f of functionsToInitialize, do
+    pour script.enfants {
+        saufsi it.type == FunctionDeclaration {
+            continue
+        }
+
+        function := it comme *FunctionDeclaration
+        si function.id == nul {
+            continue
+        }
+
+        // a. Let fn be the sole element of the BoundNames of f.
+        fn := function.id.nom
+
+        // b. Let fo be InstantiateFunctionObject of f with arguments env and privateEnv.
+        fo := instantiate_ordinary_function_object(realm, function, env, private_env)
+    
+        // c. Perform ? env.CreateGlobalFunctionBinding(fn, fo, false).
+        completion := env.create_global_function_binding(fn, Valeur(Object = fo), faux)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+    }
+
+    // 17. For each String vn of declaredVarNames, do
+        // a. Perform ? env.CreateGlobalVarBinding(vn, false).
+
+    // 18. Return unused.
+    retourne normal_completion(js_undefined)
 }
 
 /** \} */
