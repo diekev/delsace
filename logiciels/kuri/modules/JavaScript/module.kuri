@@ -713,6 +713,25 @@ is_callable :: fonc (argument: Valeur) -> bool
     retourne faux
 }
 
+/* 7.2.4 IsConstructor ( argument )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-isconstructor */
+is_constructor :: fonc (argument: Valeur) -> bool
+{
+    // 1. If argument is not an Object, return false.
+    saufsi argument.est_object() {
+        retourne faux
+    }
+
+    // 2. If argument has a [[Construct]] internal method, return true.
+    object := argument.donne_objet()
+    si object.donne_table().sur_construct {
+        retourne vrai
+    }
+
+    // 3. Return false.
+    retourne faux
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -959,6 +978,25 @@ call :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur, this_value: Valeu
 
     // 3. Return ? F.[[Call]](V, argumentsList).
     retourne object.internal_call(interpréteuse, this_value, arguments)
+}
+
+
+/* 7.3.14 Construct ( F [ , argumentsList [ , newTarget ] ] )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-call */
+construct :: fonc (interpréteuse: *Interpréteuse, F: Valeur, arguments: []Valeur) -> CompletionRecord
+{
+    // 1. If newTarget is not present, set newTarget to F.
+    new_target := F
+    retourne construct(interpréteuse, F, arguments, new_target)
+}
+
+construct :: fonc (interpréteuse: *Interpréteuse, F: Valeur, arguments: []Valeur, new_target: Valeur) -> CompletionRecord
+{
+    // Continuation de la version sans new_target.
+    // 2. If argumentsList is not present, set argumentsList to a new empty List.
+    // 3. Return ? F.[[Construct]](argumentsList, newTarget).
+    object := F.donne_objet()
+    retourne object.internal_construct(interpréteuse, arguments, new_target)
 }
 
 /*7.3.18 LengthOfArrayLike ( obj )

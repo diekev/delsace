@@ -14,6 +14,15 @@ ParamètresObjectCall :: struct {
 
 TypeFonctionObjectCall :: fonc(*ParamètresObjectCall)(CompletionRecord)
 
+ParamètresObjectConstruct :: struct {
+    object: *Object
+    interpréteuse: *Interpréteuse
+    new_target: Valeur
+    arguments: []Valeur
+}
+
+TypeFonctionObjectConstruct :: fonc(*ParamètresObjectConstruct)(CompletionRecord)
+
 TableVirtuelleObject :: struct {
     empl base_virtuelle_cellule: TableVirtuelleCellule
 
@@ -22,6 +31,7 @@ TableVirtuelleObject :: struct {
     sur_define_own_property := ordinary_define_own_property
     sur_get := ordinary_get
     sur_call: TypeFonctionObjectCall
+    sur_construct: TypeFonctionObjectConstruct
 }
 
 #portée_fichier
@@ -162,6 +172,17 @@ internal_call :: fonc (object: *Object, interpréteuse: *Interpréteuse, this_va
     params.this_value = this_value
     params.interpréteuse = interpréteuse
     retourne object.donne_table().sur_call(*params)
+}
+
+/* [[Construct]] */
+internal_construct :: fonc (object: *Object, interpréteuse: *Interpréteuse, arguments: []Valeur, new_target: Valeur) -> CompletionRecord
+{
+    params: ParamètresObjectConstruct = ---
+    params.object = object
+    params.arguments = arguments
+    params.new_target = new_target
+    params.interpréteuse = interpréteuse
+    retourne object.donne_table().sur_construct(*params)
 }
 
 trouve_propriété :: fonc (objet: *Object, nom: PropertyKey) -> *Object.Propriété
