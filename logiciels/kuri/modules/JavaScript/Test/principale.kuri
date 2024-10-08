@@ -278,7 +278,9 @@ sur_rappel_sauvegarde :: fonc (base: *QT_Rappel_Generique)
     realm := initialise_host_defined_realm(*mv, *rappels_hôte)
 
     script: *Script
-    discr parse_script(contenu, realm) {
+    /* À FAIRE(langage) : host_defined n'est pas initialisée à sa valeur défaut. */
+    host_defined: HostDefined
+    discr parse_script(contenu, realm, host_defined) {
         Ok(s) {
             script = s
         }
