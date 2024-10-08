@@ -40,10 +40,23 @@ crée_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Obje
     résultat := tas_de_mémoire.alloue(ErrorPrototype)
     résultat.prototype = prototype
     résultat.ajoute_fonction_native(STR_toString, error_prototype_to_string)
+    initialise_error_object(résultat, STR_Error, "")
     retourne résultat
 }
 
 #portée_fichier
+
+initialise_error_object :: fonc (object: *Object, nom: ECMAString, message: chaine)
+{
+    desc: PropertyDescriptor
+    desc.configurable = vrai
+
+    desc.value = Valeur(String = crée_chaine(object.donne_tas_de_mémoire(), nom))
+    _ := define_property_or_throw(object, STR_name, desc)
+
+    desc.value = Valeur(String = crée_chaine(object.donne_tas_de_mémoire(), crée_chaine_utf16_unique(message)))
+    _ := define_property_or_throw(object, STR_message, desc)
+}
 
 /* 20.5.3.4 Error.prototype.toString ( )
  * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-error.prototype.tostring */
@@ -138,6 +151,7 @@ crée_reference_error :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Refe
     résultat := tas_de_mémoire.alloue(ReferenceError)
     résultat.prototype = prototype
     résultat.message = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(message))
+    initialise_error_object(résultat, STR_ReferenceError, message)
     retourne résultat
 }
 
@@ -197,6 +211,7 @@ crée_syntax_error :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *SyntaxE
     résultat := tas_de_mémoire.alloue(SyntaxError)
     résultat.prototype = prototype
     résultat.message = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(message))
+    initialise_error_object(résultat, STR_SyntaxError, message)
     retourne résultat
 }
 
@@ -261,6 +276,7 @@ crée_type_error :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *TypeError
     résultat := tas_de_mémoire.alloue(TypeError)
     résultat.prototype = prototype
     résultat.message = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(message))
+    initialise_error_object(résultat, STR_TypeError, message)
     retourne résultat
 }
 
