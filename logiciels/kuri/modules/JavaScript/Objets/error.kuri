@@ -1,0 +1,319 @@
+importe Chaine
+importe Fondation
+
+/* ------------------------------------------------------------------------- */
+/** \nom Error
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-error-objects
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_error := TableVirtuelleObject(classe = Error, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
+Error :: struct {
+    empl objet: Object
+    table = *table_virtuelle_error
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ErrorPrototype
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-error-prototype-object
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_error_prototype := TableVirtuelleObject(classe = ErrorPrototype, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
+ErrorPrototype :: struct {
+    empl objet: Object
+    table = *table_virtuelle_error_prototype
+}
+
+crée_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ObjectPrototype) -> *ErrorPrototype
+{
+    résultat := tas_de_mémoire.alloue(ErrorPrototype)
+    résultat.prototype = prototype
+    résultat.ajoute_fonction_native(STR_toString, error_prototype_to_string)
+    initialise_error_object(résultat, STR_Error, "")
+    retourne résultat
+}
+
+#portée_fichier
+
+initialise_error_object :: fonc (object: *Object, nom: ECMAString, message: chaine)
+{
+    desc: PropertyDescriptor
+    desc.configurable = vrai
+
+    desc.value = Valeur(String = crée_chaine(object.donne_tas_de_mémoire(), nom))
+    _ := define_property_or_throw(object, STR_name, desc)
+
+    desc.value = Valeur(String = crée_chaine(object.donne_tas_de_mémoire(), crée_chaine_utf16_unique(message)))
+    _ := define_property_or_throw(object, STR_message, desc)
+}
+
+/* 20.5.3.4 Error.prototype.toString ( )
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-error.prototype.tostring */
+error_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    // 1. Let O be the this value.
+    O := this_value
+
+    // 2. If O is not an Object, throw a TypeError exception.
+    saufsi O.est_object() {
+        retourne lance_type_error(interpréteuse, "not an Object")
+    }
+
+    // 3. Let name be ? Get(O, "name").
+    completion := get(O.donne_objet(), STR_name)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    name := completion.valeur.V
+
+    // 4. If name is undefined, set name to "Error"; otherwise set name to ? ToString(name).
+    si name.est_undefined() {
+        name = crée_chaine(O.donne_objet().donne_tas_de_mémoire(), STR_Error)
+    }
+    sinon {
+        completion = vers_chaine(interpréteuse, name)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        name = completion.valeur.V
+    }
+
+    // 5. Let msg be ? Get(O, "message").
+    completion = get(O.donne_objet(), STR_message)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    msg := completion.valeur.V
+
+    // 6. If msg is undefined, set msg to the empty String; otherwise set msg to ? ToString(msg).
+    si msg.est_undefined() {
+        msg = crée_chaine(O.donne_objet().donne_tas_de_mémoire(), crée_chaine_utf16_unique_vide())
+    }
+    sinon {
+        completion = vers_chaine(interpréteuse, msg)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        msg = completion.valeur.V
+    }
+
+    // 7. If name is the empty String, return msg.
+    si name.String.texte.est_vide() {
+        retourne normal_completion(msg)
+    }
+
+    // 8. If msg is the empty String, return name.
+    si msg.String.texte.est_vide() {
+        retourne normal_completion(name)
+    }
+
+    // 9. Return the string-concatenation of name, the code unit 0x003A (COLON), the code unit 0x0020 (SPACE), and msg.
+    chn_name := name.String.texte
+    chn_msg := msg.String.texte
+    chn_résultat := imprime_chaine("%: %", chn_name, chn_msg)
+
+    retourne normal_completion(crée_chaine(O.donne_objet().donne_tas_de_mémoire(), crée_chaine_utf16_unique(chn_résultat)))
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ReferenceError
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-native-error-types-used-in-this-standard-referenceerror
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_reference_error := TableVirtuelleObject(classe = ReferenceError, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
+ReferenceError :: struct {
+    empl error: Error
+    table = *table_virtuelle_reference_error
+
+    message: *PrimitiveChaine
+}
+
+crée_reference_error :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ReferenceErrorPrototype, message: chaine) -> *ReferenceError
+{
+    résultat := tas_de_mémoire.alloue(ReferenceError)
+    résultat.prototype = prototype
+    résultat.message = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(message))
+    initialise_error_object(résultat, STR_ReferenceError, message)
+    retourne résultat
+}
+
+lance_reference_error :: fonc (realm: *Realm, message: chaine) -> CompletionRecord
+{
+    exception := crée_reference_error(realm.donne_tas_de_mémoire(), realm.intrinsics.reference_error_prototype, message)
+    retourne throw_completion(exception)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ReferenceErrorPrototype
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-nativeerror-prototype-objects
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_reference_error_prototype := TableVirtuelleObject(classe = ReferenceErrorPrototype, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
+ReferenceErrorPrototype :: struct {
+    empl objet: Object
+    table = *table_virtuelle_reference_error_prototype
+}
+
+crée_reference_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ErrorPrototype) -> *ReferenceErrorPrototype
+{
+    résultat := tas_de_mémoire.alloue(ReferenceErrorPrototype)
+    résultat.prototype = prototype
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom SyntaxError
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-native-error-types-used-in-this-standard-syntaxerror
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_syntax_error := TableVirtuelleObject(classe = SyntaxError, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
+SyntaxError :: struct {
+    empl error: Error
+    table = *table_virtuelle_syntax_error
+
+    message: *PrimitiveChaine
+}
+
+crée_syntax_error :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *SyntaxErrorPrototype, message: chaine) -> *SyntaxError
+{
+    résultat := tas_de_mémoire.alloue(SyntaxError)
+    résultat.prototype = prototype
+    résultat.message = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(message))
+    initialise_error_object(résultat, STR_SyntaxError, message)
+    retourne résultat
+}
+
+lance_syntax_error :: fonc (interpréteuse: *Interpréteuse, message: chaine) -> CompletionRecord
+{
+    retourne lance_syntax_error(interpréteuse.donne_realm(), message)
+}
+
+lance_syntax_error :: fonc (realm: *Realm, message: chaine) -> CompletionRecord
+{
+    exception := crée_syntax_error(realm.donne_tas_de_mémoire(), realm.intrinsics.syntax_error_prototype, message)
+    retourne throw_completion(exception)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom SyntaxErrorPrototype
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-nativeerror-prototype-objects
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_syntax_error_prototype := TableVirtuelleObject(classe = SyntaxErrorPrototype, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
+SyntaxErrorPrototype :: struct {
+    empl objet: Object
+    table = *table_virtuelle_syntax_error_prototype
+}
+
+crée_syntax_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ErrorPrototype) -> *SyntaxErrorPrototype
+{
+    résultat := tas_de_mémoire.alloue(SyntaxErrorPrototype)
+    résultat.prototype = prototype
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom TypeError
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-native-error-types-used-in-this-standard-typeerror
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_type_error := TableVirtuelleObject(classe = TypeError, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
+TypeError :: struct {
+    empl error: Error
+    table = *table_virtuelle_type_error
+
+    message: *PrimitiveChaine
+}
+
+crée_type_error :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *TypeErrorPrototype, message: chaine) -> *TypeError
+{
+    résultat := tas_de_mémoire.alloue(TypeError)
+    résultat.prototype = prototype
+    résultat.message = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(message))
+    initialise_error_object(résultat, STR_TypeError, message)
+    retourne résultat
+}
+
+lance_type_error :: fonc (interpréteuse: *Interpréteuse, message: chaine) -> CompletionRecord
+{
+    retourne lance_type_error(interpréteuse.donne_realm(), message)
+}
+
+lance_type_error :: fonc (realm: *Realm, message: chaine) -> CompletionRecord
+{
+    exception := crée_type_error(realm.donne_tas_de_mémoire(), realm.intrinsics.type_error_prototype, message)
+    retourne throw_completion(exception)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom TypeErrorPrototype
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-nativeerror-prototype-objects
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_type_error_prototype := TableVirtuelleObject(classe = TypeErrorPrototype, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
+TypeErrorPrototype :: struct {
+    empl objet: Object
+    table = *table_virtuelle_type_error_prototype
+}
+
+crée_type_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ErrorPrototype) -> *TypeErrorPrototype
+{
+    résultat := tas_de_mémoire.alloue(TypeErrorPrototype)
+    résultat.prototype = prototype
+    retourne résultat
+}
+
+/** \} */

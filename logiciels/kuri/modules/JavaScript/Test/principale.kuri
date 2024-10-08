@@ -189,14 +189,6 @@ objet_html_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, en
 
 /** \} */
 
-fonction_native_éboue :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
-{
-    imprime("<<<<< ébouage forcé\n")
-    éboue(interpréteuse.donne_tas_de_mémoire())
-    imprime(">>>>> ébouage forcé\n")
-    retourne normal_completion(js_undefined)
-}
-
 RappelsHôteTest :: struct {
     empl base: RappelsHôte
 
@@ -278,7 +270,9 @@ sur_rappel_sauvegarde :: fonc (base: *QT_Rappel_Generique)
     realm := initialise_host_defined_realm(*mv, *rappels_hôte)
 
     script: *Script
-    discr parse_script(contenu, realm) {
+    /* À FAIRE(langage) : host_defined n'est pas initialisée à sa valeur défaut. */
+    host_defined: HostDefined
+    discr parse_script(contenu, realm, host_defined) {
         Ok(s) {
             script = s
         }

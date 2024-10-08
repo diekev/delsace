@@ -13,6 +13,12 @@ charge "script"
 charge "tas_de_mémoire"
 charge "terminologie"
 
+charge "Objets/array"
+charge "Objets/error"
+charge "Objets/function"
+charge "Objets/object"
+charge "Objets/string"
+
 ECMAString :: ChaineUTF16Unique
 
 /* ------------------------------------------------------------------------- */
@@ -386,29 +392,83 @@ vers_primitive :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur, type_pr
     retourne vers_primitive(interpréteuse.donne_realm(), valeur, type_préféré)
 }
 
-vers_primitive :: fonc (realm: *Realm @inutilisée, valeur: Valeur, type_préféré := TypePréféré.Aucun @inutilisée) -> CompletionRecord
+vers_primitive :: fonc (realm: *Realm, valeur: Valeur, type_préféré := TypePréféré.Aucun) -> CompletionRecord
 {
     // 1. If input is an Object, then
     si valeur.est_object() {
-        panique("to_primitive non-implémenté")
-        // a. Let exoticToPrim be ? GetMethod(input, %Symbol.toPrimitive%).
+        // À FAIRE : a. Let exoticToPrim be ? GetMethod(input, %Symbol.toPrimitive%).
         // b. If exoticToPrim is not undefined, then
-        // i. If preferredType is not present, then
-        // 1. Let hint be "default".
-        // ii. Else if preferredType is STRING, then
-        // 1. Let hint be "string".
-        // iii. Else,
-        // 1. Assert: preferredType is NUMBER.
-        // 2. Let hint be "number".
-        // iv. Let result be ? Call(exoticToPrim, input, « hint »).
-        // v. If result is not an Object, return result.
-        // vi. Throw a TypeError exception.
+            // i. If preferredType is not present, then
+                // 1. Let hint be "default".
+            // ii. Else if preferredType is STRING, then
+                // 1. Let hint be "string".
+            // iii. Else,
+                // 1. Assert: preferredType is NUMBER.
+                // 2. Let hint be "number".
+            // iv. Let result be ? Call(exoticToPrim, input, « hint »).
+            // v. If result is not an Object, return result.
+            // vi. Throw a TypeError exception.
+
         // c. If preferredType is not present, let preferredType be NUMBER.
+        si type_préféré == TypePréféré.Aucun {
+            type_préféré = TypePréféré.Number
+        }
+
         // d. Return ? OrdinaryToPrimitive(input, preferredType).
+        retourne ordinary_to_primitive(realm, valeur.donne_objet(), type_préféré)
     }
 
     // 2. Return input.
     retourne normal_completion(valeur)
+}
+
+/* 7.1.1.1 OrdinaryToPrimitive ( O, hint )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-ordinarytoprimitive */
+ordinary_to_primitive :: fonc (realm: *Realm, object: *Object, hint: TypePréféré) -> CompletionRecord
+{
+    method_names: [2]ECMAString
+
+    // 1. If hint is string, then
+    si hint == TypePréféré.String {
+        // a. Let methodNames be « "toString", "valueOf" ».
+        method_names = [STR_toString, STR_valueOf]
+    }
+    // 2. Else,
+    sinon {
+        // a. Let methodNames be « "valueOf", "toString" ».
+        method_names = [STR_valueOf, STR_toString]
+    }
+
+    // 3. For each element name of methodNames, do
+    pour method_names {
+        // a. Let method be ? Get(O, name).
+        completion := get(object, it)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        method := completion.valeur.V
+
+        // b. If IsCallable(method) is true, then
+        si is_callable(method) {
+            // i. Let result be ? Call(method, O).
+            interpréteuse: Interpréteuse
+            diffère détruit_données_interpreteuse(*interpréteuse)
+            interpréteuse.mv = realm.donne_tas_de_mémoire().donne_mv()
+            completion = call(*interpréteuse, method, object)
+            saufsi completion.est_normal() {
+                retourne completion
+            }
+            result := completion.valeur.V
+
+            // ii. If result is not an Object, return result.
+            saufsi result.est_object() {
+                retourne normal_completion(result)
+            }
+        }
+    }
+
+    // 4. Throw a TypeError exception.
+    retourne lance_type_error(realm, "object cannot be made into a primitive")
 }
 
 /* 7.1.2 ToBoolean ( argument )
@@ -653,6 +713,25 @@ is_callable :: fonc (argument: Valeur) -> bool
     retourne faux
 }
 
+/* 7.2.4 IsConstructor ( argument )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-isconstructor */
+is_constructor :: fonc (argument: Valeur) -> bool
+{
+    // 1. If argument is not an Object, return false.
+    saufsi argument.est_object() {
+        retourne faux
+    }
+
+    // 2. If argument has a [[Construct]] internal method, return true.
+    object := argument.donne_objet()
+    si object.donne_table().sur_construct {
+        retourne vrai
+    }
+
+    // 3. Return false.
+    retourne faux
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -709,47 +788,24 @@ is_data_descriptor :: fonc (desc: &PropertyDescriptor) -> bool
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom Object
+/** \nom PropertyKey
  * \{ */
-
-ParamètresObjectCall :: struct {
-    object: *Object
-    interpréteuse: *Interpréteuse
-    this_value: Valeur
-    arguments: []Valeur
-}
-
-TypeFonctionObjectCall :: fonc(*ParamètresObjectCall)(CompletionRecord)
-
-TableVirtuelleObject :: struct {
-    empl base_virtuelle_cellule: TableVirtuelleCellule
-
-    sur_get_prototype_of := ordinary_get_prototype_of
-    sur_get_own_property := ordinary_get_own_property
-    sur_define_own_property := ordinary_define_own_property
-    sur_get := ordinary_get
-    sur_call: TypeFonctionObjectCall
-}
-
-#portée_fichier
-
-table_virtuelle_objet := TableVirtuelleObject(classe = Object, sur_destruction = sur_destruction_objet)
-
-#portée_export
-
-DrapeauxPropriété :: énum_drapeau n8 {
-    WRITABLE
-    ENUMERABLE
-    CONFIGURABLE
-}
-
-Configurable :: DrapeauxPropriété.CONFIGURABLE
-Enumerable :: DrapeauxPropriété.ENUMERABLE
-Writable :: DrapeauxPropriété.WRITABLE
 
 PropertyKey :: union {
     String: ECMAString
     Symbol: *Symbol
+}
+
+est_symbol :: fonc (key: PropertyKey) -> bool
+{
+    discr key {
+        Symbol {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
 }
 
 opérateur == :: fonc (p1: PropertyKey, p2: PropertyKey) -> bool
@@ -784,140 +840,6 @@ opérateur == :: fonc (p1: PropertyKey, p2: PropertyKey) -> bool
 opérateur != :: fonc (p1: PropertyKey, p2: PropertyKey) -> bool
 {
     retourne !(p1 == p2)
-}
-
-Object :: struct {
-    empl base: Cellule
-    table = *table_virtuelle_objet
-
-    /* https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-property-attributes */
-    Propriété :: struct {
-        nom: PropertyKey
-        valeur: Valeur
-        get: *Object
-        set: *Object
-        drapeaux: DrapeauxPropriété
-    }
-
-    propriétés: [..]Propriété
-
-    prototype: *Object
-}
-
-donne_table :: fonc (object: *Object) -> *TableVirtuelleObject
-{
-    retourne object.table comme *TableVirtuelleObject
-}
-
-is_data_propery :: fonc (propriété: &Object.Propriété) -> bool
-{
-    retourne propriété.get == nul && propriété.set == nul
-}
-
-is_accessor_propery :: fonc (propriété: &Object.Propriété) -> bool
-{
-    retourne !is_data_propery(propriété)
-}
-
-crée_objet :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Object) -> *Object
-{
-    résultat := tas_de_mémoire.alloue(Object)
-    résultat.prototype = prototype
-    retourne résultat
-}
-
-sur_destruction_objet :: fonc (base: *Cellule)
-{
-    objet := base comme *Object
-    déloge(objet.propriétés)
-}
-
-ajoute_propriété :: fonc (objet: *Object, nom: PropertyKey, valeur: Valeur, drapeaux: DrapeauxPropriété)
-{
-    tableau_ajoute(*objet.propriétés, Object.Propriété(nom, valeur, drapeaux = drapeaux))
-}
-
-ajoute_propriété :: fonc (objet: *Object, nom: PropertyKey, get: TypeFonctionObjectCall, set: TypeFonctionObjectCall, drapeaux: DrapeauxPropriété)
-{
-    getter: *Object
-    setter: *Object
-    si get {
-        getter = crée_fonction_native(objet.donne_tas_de_mémoire(), crée_chaine_utf16_unique_vide(), get, 0)
-    }
-    si set {
-        setter = crée_fonction_native(objet.donne_tas_de_mémoire(), crée_chaine_utf16_unique_vide(), set, 0)
-    }
-    tableau_ajoute(*objet.propriétés, Object.Propriété(nom, get = getter, set = setter, drapeaux = drapeaux))
-}
-
-/* [[GetPrototypeOf]] */
-internal_get_prototype_of :: fonc (object: *Object) -> *Object
-{
-    retourne object.donne_table().sur_get_prototype_of(object)
-}
-
-/* [[GetOwnProperty]] */
-internal_get_own_property :: fonc (object: *Object, property_key: PropertyKey) -> CompletionRecord
-{
-    retourne object.donne_table().sur_get_own_property(object, property_key)
-}
-
-/* [[DefineOwnProperty]] */
-internal_define_own_property :: fonc (object: *Object, property_key: PropertyKey, desc: &PropertyDescriptor) -> CompletionRecord
-{
-    retourne object.donne_table().sur_define_own_property(object, property_key, desc)
-}
-
-/* [[HasProperty]] */
-internal_has_property :: fonc (object: *Object, property_key: PropertyKey) -> CompletionRecord
-{
-    // À FAIRE : sur_has_property
-    propriété := trouve_propriété(object, property_key)
-    si propriété {
-        retourne normal_completion(Valeur(Boolean = vrai))
-    }
-    retourne normal_completion(Valeur(Boolean = faux))
-}
-
-/* [[Get]] */
-internal_get :: fonc (object: *Object, property_key: PropertyKey, receiver: Valeur) -> CompletionRecord
-{
-    retourne object.donne_table().sur_get(object, property_key, receiver)
-}
-
-/* [[Set]] */
-internal_set :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur, receiver: Valeur @inutilisée) -> CompletionRecord
-{
-    // À FAIRE : sur_set
-    propriété := trouve_propriété(object, property_key)
-    si propriété {
-        propriété.valeur = valeur
-        retourne normal_completion(Valeur(Boolean = vrai))
-    }
-
-    tableau_ajoute(*object.propriétés, Object.Propriété(property_key, valeur))
-    retourne normal_completion(Valeur(Boolean = vrai))
-}
-
-/* [[Call]] */
-internal_call :: fonc (object: *Object, interpréteuse: *Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
-{
-    params: ParamètresObjectCall = ---
-    params.object = object
-    params.arguments = arguments
-    params.this_value = this_value
-    params.interpréteuse = interpréteuse
-    retourne object.donne_table().sur_call(*params)
-}
-
-trouve_propriété :: fonc (objet: *Object, nom: PropertyKey) -> *Object.Propriété
-{
-    pour * objet.propriétés {
-        si it.nom == nom {
-            retourne it
-        }
-    }
-    retourne nul
 }
 
 /** \} */
@@ -1056,6 +978,25 @@ call :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur, this_value: Valeu
 
     // 3. Return ? F.[[Call]](V, argumentsList).
     retourne object.internal_call(interpréteuse, this_value, arguments)
+}
+
+
+/* 7.3.14 Construct ( F [ , argumentsList [ , newTarget ] ] )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-call */
+construct :: fonc (interpréteuse: *Interpréteuse, F: Valeur, arguments: []Valeur) -> CompletionRecord
+{
+    // 1. If newTarget is not present, set newTarget to F.
+    new_target := F
+    retourne construct(interpréteuse, F, arguments, new_target)
+}
+
+construct :: fonc (interpréteuse: *Interpréteuse, F: Valeur, arguments: []Valeur, new_target: Valeur) -> CompletionRecord
+{
+    // Continuation de la version sans new_target.
+    // 2. If argumentsList is not present, set argumentsList to a new empty List.
+    // 3. Return ? F.[[Construct]](argumentsList, newTarget).
+    object := F.donne_objet()
+    retourne object.internal_construct(interpréteuse, arguments, new_target)
 }
 
 /*7.3.18 LengthOfArrayLike ( obj )
@@ -1223,226 +1164,90 @@ ordinary_get :: fonc (object: *Object, property_key: PropertyKey, receiver: Vale
 
 /** \} */
 
-/* ------------------------------------------------------------------------- */
-/** \nom ObjetChaine
- * https://tc39.es/ecma262/multipage/text-processing.html#sec-string-objects
- * \{ */
-
-#portée_fichier
-
-table_virtuelle_objet_chaine := TableVirtuelleObject(classe = ObjetChaine, sur_destruction = sur_destruction_objet)
-
-#portée_export
-
-ObjetChaine :: struct {
-    empl objet: Object
-    table = *table_virtuelle_objet_chaine
-
-    chn: *PrimitiveChaine
-}
-
-crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, string_prototype: *StringPrototype, chn: *PrimitiveChaine) -> *ObjetChaine
+/* 10.2.2 [[Construct]] ( argumentsList, newTarget )
+ * https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget */
+sur_construct_fonction_ecma :: fonc (empl params: *ParamètresObjectConstruct) -> CompletionRecord
 {
-    résultat := tas_de_mémoire.alloue(ObjetChaine)
-    résultat.prototype = string_prototype
-    résultat.chn = chn
+    assert(object.donne_classe() == Function)
+    F := object comme *Function
 
-    résultat.ajoute_propriété(STR_length, Valeur(Number = chn.texte.donne_chaine_utf16().taille() comme r64), DrapeauxPropriété.zéro)
-    résultat.ajoute_propriété(STR_prototype, Valeur(Object = string_prototype), DrapeauxPropriété.zéro)
+    mv := interpréteuse.mv
+    realm := interpréteuse.donne_realm()
 
-    retourne résultat
-}
+    // 1. Let callerContext be the running execution context.
+    caller_context := interpréteuse.donne_running_execution_context()
 
-/** \} */
+    // 2. Let kind be F.[[ConstructorKind]].
+    kind := F.constructor_kind
 
-/* ------------------------------------------------------------------------- */
-/** \nom ObjectPrototype
- * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-object-prototype-object
- * \{ */
-
-#portée_fichier
-
-table_virtuelle_object_prototype := TableVirtuelleObject(classe = ObjectPrototype, sur_destruction = sur_destruction_objet)
-
-#portée_export
-
-ObjectPrototype :: struct {
-    empl objet: Object
-    table = *table_virtuelle_object_prototype
-}
-
-crée_object_prototype :: fonc (tas_de_mémoire: *TasDeMémoire) -> *ObjectPrototype
-{
-    résultat := tas_de_mémoire.alloue(ObjectPrototype)
-    résultat.ajoute_fonction_native(STR_hasOwnProperty, object_prototype_has_own_property)
-    résultat.ajoute_fonction_native(STR_toString, object_prototype_to_string)
-    retourne résultat
-}
-
-/* 20.1.3.2 Object.prototype.hasOwnProperty ( V )
- * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-object.prototype.hasownproperty */ 
-object_prototype_has_own_property :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
-{
-    si arguments.taille != 1 {
-        retourne normal_completion(js_undefined)
+    // 3. If kind is base, then
+    this_argument: Valeur
+    si kind == ConstructorKind.Base {
+        // À FAIRE : a. Let thisArgument be ? OrdinaryCreateFromConstructor(newTarget, "%Object.prototype%").
+        this_argument.Object = crée_objet(realm.donne_tas_de_mémoire(), realm.intrinsics.object_prototype)
     }
 
-    // 1. Let P be ? ToPropertyKey(V).
-    complétion_nom := to_property_key(interpréteuse, arguments[0])
-    saufsi complétion_nom.est_normal() {
-        retourne complétion_nom
-    }
-    nom := complétion_nom.valeur.V.String.texte
+    // 4. Let calleeContext be PrepareForOrdinaryCall(F, newTarget).
+    callee_context := prepare_for_ordinary_call(interpréteuse, F, new_target)
 
-    // 2. Let O be ? ToObject(this value).
-    complétion_obj := vers_objet(interpréteuse.donne_realm(), this_value)
-    saufsi complétion_obj.est_normal() {
-        retourne complétion_obj
-    }
-    obj := complétion_obj.valeur.V.donne_objet()
+    // 5. Assert: calleeContext is now the running execution context.
+    assert(mv.donne_running_execution_context() == callee_context)
 
-    // 3. Return ? HasOwnProperty(O, P).
-    retourne has_own_property(obj, nom)
-}
+    // 6. If kind is base, then
+    si kind == ConstructorKind.Base {
+        // a. Perform OrdinaryCallBindThis(F, calleeContext, thisArgument).
+        ordinary_call_bind_this(F, callee_context, this_argument)
 
-/* 20.1.3.6 Object.prototype.toString ( )
- * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-object.prototype.tostring */
-object_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
-{
-    // 1. If the this value is undefined, return "[object Undefined]".
-    si this_value.est_undefined() {
-        retourne crée_string_value_completion(interpréteuse, "[object Undefined]")
+        // À FAIRE : b. Let initializeResult be Completion(InitializeInstanceElements(thisArgument, F)).
+        // c. If initializeResult is an abrupt completion, then
+            // i. Remove calleeContext from the execution context stack and restore callerContext as the running execution context.
+            // ii. Return ? initializeResult.
     }
 
-    // 2. If the this value is null, return "[object Null]".
-    si this_value.est_nulle() {
-        retourne crée_string_value_completion(interpréteuse, "[object Null]")
+    // 7. Let constructorEnv be the LexicalEnvironment of calleeContext.
+    constructor_env := callee_context.lexical_environment
+
+    // 8. Let result be Completion(OrdinaryCallEvaluateBody(F, argumentsList)).
+    result := ordinary_call_evaluate_body(interpréteuse, F, arguments)
+
+    // 9. Remove calleeContext from the execution context stack and restore callerContext as the running execution context.
+    mv.dépile_execution_context()
+    assert(mv.donne_running_execution_context() == caller_context)
+    
+    // 10. If result is a return completion, then
+    si result.est_return() {
+        result_value := result.valeur.V
+
+        // a. If result.[[Value]] is an Object, return result.[[Value]].
+        si result_value.est_object() {
+            retourne normal_completion(result_value)
+        }
+
+        // b. If kind is base, return thisArgument.
+
+        // c. If result.[[Value]] is not undefined, throw a TypeError exception.
+        saufsi result_value.est_undefined() {
+            retourne lance_type_error(interpréteuse, "unexpected return value from constructor")
+        }
+    }
+    // 11. Else,
+    sinon si result.est_abrupt() {
+        // a. ReturnIfAbrupt(result).
+        retourne result
     }
 
-    // 3. Let O be ! ToObject(this value).
-    O := vers_objet(interpréteuse.donne_realm(), this_value).valeur.V.donne_objet()
-
-    // À FAIRE : 4. Let isArray be ? IsArray(O).
-
-    builtin_tag: chaine
-
-    // 5. If isArray is true, let builtinTag be "Array".
-    si O.donne_classe() == ObjetArray {
-        builtin_tag = "Array"
+    // 12. Let thisBinding be ? constructorEnv.GetThisBinding().
+    completion := constructor_env.get_this_binding(interpréteuse.donne_realm())
+    saufsi completion.est_normal() {
+        retourne completion
     }
-    // À FAIRE : 6. Else if O has a [[ParameterMap]] internal slot, let builtinTag be "Arguments".
-    // 7. Else if O has a [[Call]] internal method, let builtinTag be "Function".
-    sinon si O.donne_table().sur_call {
-        builtin_tag = "Function"
-    }
-    // 8. Else if O has an [[ErrorData]] internal slot, let builtinTag be "Error".
-    sinon si O.donne_classe() == Error || O.donne_classe() == ReferenceError || O.donne_classe() == TypeError {
-        builtin_tag = "Error"
-    }
-    // À FAIRE : 9. Else if O has a [[BooleanData]] internal slot, let builtinTag be "Boolean".
-    // À FAIRE : 10. Else if O has a [[NumberData]] internal slot, let builtinTag be "Number".
-    // 11. Else if O has a [[StringData]] internal slot, let builtinTag be "String".
-    sinon si O.donne_classe() == ObjetChaine {
-        builtin_tag = "String"
-    }
-    // À FAIRE : 12. Else if O has a [[DateValue]] internal slot, let builtinTag be "Date".
-    // À FAIRE : 13. Else if O has a [[RegExpMatcher]] internal slot, let builtinTag be "RegExp".
-    // 14. Else, let builtinTag be "Object".
-    sinon {
-        builtin_tag = "Object"
-    }
+    this_binding := completion.valeur.V
 
-    // À FAIRE : 15. Let tag be ? Get(O, %Symbol.toStringTag%).
-    // 16. If tag is not a String, set tag to builtinTag.
-    tag := builtin_tag
-
-    // 17. Return the string-concatenation of "[object ", tag, and "]".
-    résultat := enchaine("[object ", tag, "]")
-    diffère déloge(résultat)
-    retourne crée_string_value_completion(interpréteuse, résultat)
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom StringPrototype
- * https://tc39.es/ecma262/multipage/text-processing.html#sec-properties-of-the-string-prototype-object
- * \{ */
-
-#portée_fichier
-
-table_virtuelle_string_prototype := TableVirtuelleObject(classe = StringPrototype, sur_destruction = sur_destruction_objet)
-
-#portée_export
-
-StringPrototype :: struct {
-    empl objet: Object
-    table = *table_virtuelle_string_prototype
-
-    string_data: *PrimitiveChaine
-}
-
-crée_string_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ObjectPrototype) -> *StringPrototype
-{
-    résultat := tas_de_mémoire.alloue(StringPrototype)
-    résultat.prototype = prototype
-    résultat.string_data = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(""))
-    résultat.ajoute_propriété(STR_length, Valeur(Number = 0.0), DrapeauxPropriété.zéro)
-
-    retourne résultat
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Fonction
- * \{ */
-
-#portée_fichier
-
-/* Table virtuelle pour une fonction normale. */
-table_virtuelle_function_instruite := TableVirtuelleObject(classe = Function, sur_destruction = sur_destruction_objet, sur_call = sur_appel_fonction_instruite)
-
-/* Table virtuelle pour "eval()" */
-table_virtuelle_function_eval := TableVirtuelleObject(classe = Function, sur_destruction = sur_destruction_objet, sur_call = eval_sur_call)
-
-#portée_export
-
-LEXICAL_THIS :: vrai
-NON_LEXICAL_THIS :: faux
-
-ThisMode :: énum {
-    GLOBAL
-    LEXICAL
-    STRICT
-}
-
-Function :: struct {
-    empl objet: Object
-    table = *table_virtuelle_function_instruite
-
-    nom: ECMAString
-    corps: *NoeudSyntaxique
-    formal_parameters: [..]*NoeudSyntaxique
-
-    environment: *Environment
-    private_environment: *PrivateEnvironment
-    this_mode: ThisMode
-    strict := faux
-    is_class_constructor := faux
-    realm: *Realm
-    script_or_module: *Script // ScriptOrModule
-}
-
-crée_fonction :: fonc (realm: *Realm, function_prototype: *FunctionPrototype, nom: ECMAString, corps: *NoeudSyntaxique) -> *Function
-{
-    tas_de_mémoire := function_prototype.donne_tas_de_mémoire()
-    résultat := tas_de_mémoire.alloue(Function)
-    résultat.nom = nom
-    résultat.corps = corps
-    résultat.prototype = function_prototype
-    résultat.realm = realm
-    retourne résultat
+    // 13. Assert: thisBinding is an Object.
+    assert(this_binding.est_object())
+    
+    // 14. Return thisBinding.
+    retourne normal_completion(this_binding)
 }
 
 /* 10.2.3 OrdinaryFunctionCreate ( functionPrototype, sourceText, ParameterList, Body, thisMode, env, privateEnv )
@@ -1509,8 +1314,33 @@ ordinary_function_create :: fonc (realm: *Realm, function_prototype: *FunctionPr
     // 21. Let len be the ExpectedArgumentCount of ParameterList.
 
     // 22. Perform SetFunctionLength(F, len).
+    set_function_length(F, params.taille comme n64)
+
     // 23. Return F.
     retourne F
+}
+
+/* 10.2.5 MakeConstructor ( F [ , writablePrototype [ , prototype ] ] )
+ * https://tc39.es/ecma262/#sec-makeconstructor */
+make_constructor :: fonc (F: *Function)
+{
+    // À FAIRE : complète
+    // 1. If F is an ECMAScript function object, then
+        // a. Assert: IsConstructor(F) is false.
+        // b. Assert: F is an extensible object that does not have a "prototype" own property.
+        // c. Set F.[[Construct]] to the definition specified in 10.2.2.
+    // 2. Else,
+       // a. Set F.[[Construct]] to the definition specified in 10.3.2.
+
+    // 3. Set F.[[ConstructorKind]] to base.
+    F.constructor_kind = ConstructorKind.Base
+
+    // 4. If writablePrototype is not present, set writablePrototype to true.
+    // 5. If prototype is not present, then
+        // a. Set prototype to OrdinaryObjectCreate(%Object.prototype%).
+    // b. Perform ! DefinePropertyOrThrow(prototype, "constructor", PropertyDescriptor { [[Value]]: F, [[Writable]]: writablePrototype, [[Enumerable]]: false, [[Configurable]]: true }).
+    // 6. Perform ! DefinePropertyOrThrow(F, "prototype", PropertyDescriptor { [[Value]]: prototype, [[Writable]]: writablePrototype, [[Enumerable]]: false, [[Configurable]]: false }).
+    // 7. Return unused.
 }
 
 /* 10.2.1 [[Call]] ( thisArgument, argumentsList )
@@ -1689,29 +1519,105 @@ ordinary_call_evaluate_body :: fonc (interpréteuse: *Interpréteuse, F: *Functi
     retourne evaluate_body(interpréteuse, F, arguments_list)
 }
 
+/* 10.2.9 SetFunctionName ( F, name [ , prefix ] )
+ * https://tc39.es/ecma262/#sec-setfunctionname */
+set_function_name :: fonc (F: *Object, name: PropertyKey)
+{
+    // À FAIRE : 1. Assert: F is an extensible object that does not have a "name" own property.
+    assert(has_own_property(F, STR_name).valeur.V.est_false())
+
+    // 2. If name is a Symbol, then
+    si name.est_symbol() {
+        // a. Let description be name's [[Description]] value.
+        description := name.Symbol.description
+
+        // b. If description is undefined, set name to the empty String.
+        saufsi description.possède_valeur() {
+            name = crée_chaine_utf16_unique_vide()
+        }
+        // c. Else, set name to the string-concatenation of "[", description, and "]".
+        sinon {
+            chn := imprime_chaine("[%]", description.Quelque)
+            diffère déloge(chn)
+
+            name = crée_chaine_utf16_unique(chn)
+        }
+    }
+
+    // À FAIRE : 3. Else if name is a Private Name, then
+        // a. Set name to name.[[Description]].
+
+    // 4. If F has an [[InitialName]] internal slot, then
+        // a. Set F.[[InitialName]] to name.
+
+    // 5. If prefix is present, then
+        // a. Set name to the string-concatenation of prefix, the code unit 0x0020 (SPACE), and name.
+        // b. If F has an [[InitialName]] internal slot, then
+            // i. Optionally, set F.[[InitialName]] to name.
+
+    // 6. Perform ! DefinePropertyOrThrow(F, "name", PropertyDescriptor { [[Value]]: name, [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: true }).
+    desc: PropertyDescriptor
+    desc.value = Valeur(String = crée_chaine(F.donne_tas_de_mémoire(), name.String))
+    desc.configurable = vrai
+    completion := define_property_or_throw(F, STR_name, desc)
+    assert(completion.est_normal())
+
+    // 7. Return unused.
+}
+
+/* 10.2.10 SetFunctionLength ( F, length )
+ * https://tc39.es/ecma262/#sec-setfunctionname */
+set_function_length :: fonc (F: *Object, length: n64)
+{
+    // 1. Assert: F is an extensible object that does not have a "length" own property.
+    // À FAIRE : extensible object
+    assert(has_own_property(F, STR_length).valeur.V.est_false())
+
+    // 2. Perform ! DefinePropertyOrThrow(F, "length", PropertyDescriptor { [[Value]]: 𝔽(length), [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: true }).
+    desc: PropertyDescriptor
+    desc.value = Valeur(Number = length comme r64)
+    desc.configurable = vrai
+    completion := define_property_or_throw(F, STR_length, desc)
+    assert(completion.est_normal())
+
+    // 3. Return unused.
+}
+
 /* 10.2.11 FunctionDeclarationInstantiation ( func, argumentsList )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-functiondeclarationinstantiation */
-function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse @inutilisée, func: *Function @inutilisée, arguments_list: []Valeur @inutilisée) -> CompletionRecord
+function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, func: *Function, arguments_list: []Valeur) -> CompletionRecord
 {
     // À FAIRE
 
     // 1. Let calleeContext be the running execution context.
-    // callee_context := interpréteuse.donne_running_execution_context()
+    callee_context := interpréteuse.donne_running_execution_context()
 
     // 2. Let code be func.[[ECMAScriptCode]].
     // code := func.corps
 
     // 3. Let strict be func.[[Strict]].
-    // strict := func.strict
+    strict := func.strict
 
     // 4. Let formals be func.[[FormalParameters]].
-    // formals := func.formal_parameters
+    formals := func.formal_parameters
 
     // 5. Let parameterNames be the BoundNames of formals.
+    // À FAIRE : BoundNames
+    parameter_names: [..]ECMAString
+    diffère déloge(parameter_names)
+
+    pour formals {
+        assert(it.type == Identifier)
+        tableau_ajoute(*parameter_names, (it comme *Identifier).nom)
+    }
 
     // 6. If parameterNames has any duplicate entries, let hasDuplicates be true. Otherwise, let hasDuplicates be false.
     // 7. Let simpleParameterList be IsSimpleParameterList of formals.
+
     // 8. Let hasParameterExpressions be ContainsExpression of formals.
+    // À FAIRE : ContainsExpression
+    has_parameter_expression := faux
+
     // 9. Let varNames be the VarDeclaredNames of code.
     // 10. Let varDeclarations be the VarScopedDeclarations of code.
     // 11. Let lexicalNames be the LexicallyDeclaredNames of code.
@@ -1734,22 +1640,40 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse @inu
     // 18. Else if hasParameterExpressions is false, then
         // a. If functionNames contains "arguments" or lexicalNames contains "arguments", then
             // i. Set argumentsObjectNeeded to false.
+
+    env: *Environment
     // 19. If strict is true or hasParameterExpressions is false, then
+    si strict || has_parameter_expression == faux {
         // a. NOTE: Only a single Environment Record is needed for the parameters, since calls to eval in strict mode code cannot create new bindings which are visible outside of the eval.
         // b. Let env be the LexicalEnvironment of calleeContext.
+        env = callee_context.lexical_environment
+    }
     // 20. Else,
+    sinon {
         // a. NOTE: A separate Environment Record is needed to ensure that bindings created by direct eval calls in the formal parameter list are outside the environment where parameters are declared.
         // b. Let calleeEnv be the LexicalEnvironment of calleeContext.
         // c. Let env be NewDeclarativeEnvironment(calleeEnv).
         // d. Assert: The VariableEnvironment of calleeContext and calleeEnv are the same Environment Record.
         // e. Set the LexicalEnvironment of calleeContext to env.
+    }
+
     // 21. For each String paramName of parameterNames, do
+    pour param_name dans parameter_names {
         // a. Let alreadyDeclared be ! env.HasBinding(paramName).
+        already_declared := env.has_binding(param_name).valeur.V
+
         // b. NOTE: Early errors ensure that duplicate parameter names can only occur in non-strict functions that do not have parameter default values or rest parameters.
+
         // c. If alreadyDeclared is false, then
+        si already_declared.est_false() {
             // i. Perform ! env.CreateMutableBinding(paramName, false).
+            env.create_mutable_binding(param_name, faux)
+
             // ii. If hasDuplicates is true, then
                 // 1. Perform ! env.InitializeBinding(paramName, undefined).
+        }
+    }
+
     // 22. If argumentsObjectNeeded is true, then
         // a. If strict is true or simpleParameterList is false, then
             // i. Let ao be CreateUnmappedArgumentsObject(argumentsList).
@@ -1765,11 +1689,20 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse @inu
         // f. Let parameterBindings be the list-concatenation of parameterNames and « "arguments" ».
     // 23. Else,
         // a. Let parameterBindings be parameterNames.
+
     // 24. Let iteratorRecord be CreateListIteratorRecord(argumentsList).
     // 25. If hasDuplicates is true, then
         // a. Perform ? IteratorBindingInitialization of formals with arguments iteratorRecord and undefined.
     // 26. Else,
         // a. Perform ? IteratorBindingInitialization of formals with arguments iteratorRecord and env.
+    pour parameter_names {
+        si index_it >= arguments_list.taille {
+            arrête
+        }
+
+        _ := env.initialize_binding(it, arguments_list[index_it])
+    }
+
     // 27. If hasParameterExpressions is false, then
         // a. NOTE: Only a single Environment Record is needed for the parameters and top-level vars.
         // b. Let instantiatedVarNames be a copy of the List parameterBindings.
@@ -1832,15 +1765,21 @@ evaluate_function_body :: fonc (interpréteuse: *Interpréteuse, function_object
     retourne interpréteuse.exécute(function_object.corps, TypeScope.FUNCTION)
 }
 
-/** \} */
-
 /* ------------------------------------------------------------------------- */
 /** \nom 19.2.1 eval ( x )
  * \{ */
 
+#portée_fichier
+
+/* Table virtuelle pour "eval()" */
+table_virtuelle_function_eval := TableVirtuelleObject(classe = Function, sur_destruction = sur_destruction_objet, sur_call = eval_sur_call)
+
+#portée_export
+
 crée_eval :: fonc (realm: *Realm, function_prototype: *FunctionPrototype) -> *Function
 {
-    résultat := crée_fonction(realm, function_prototype, STR_eval, nul)
+    résultat := crée_fonction(realm, function_prototype, nul)
+    set_function_name(résultat, STR_eval)
     résultat.table = *table_virtuelle_function_eval
     retourne résultat
 }
@@ -1874,7 +1813,7 @@ perform_eval :: fonc (interpréteuse: *Interpréteuse, x: Valeur, strict_caller:
     // À FAIRE : 5. Perform ? HostEnsureCanCompileStrings(evalRealm, « », x, direct).
 
     // 6. Let inFunction be false.
-    // in_function := faux
+    in_function := faux
 
     // 7. Let inMethod be false.
     // in_method := faux
@@ -1888,14 +1827,20 @@ perform_eval :: fonc (interpréteuse: *Interpréteuse, x: Valeur, strict_caller:
     // 10. If direct is true, then
     si direct {
         // a. Let thisEnvRec be GetThisEnvironment().
+        this_env_rec := get_this_environment(interpréteuse)
+
         // b. If thisEnvRec is a Function Environment Record, then
-            // i. Let F be thisEnvRec.[[FunctionObject]].
+        si this_env_rec.table.classe == FunctionEnvironment {
+            // À FAIRE : i. Let F be thisEnvRec.[[FunctionObject]].
+
             // ii. Set inFunction to true.
+            in_function = vrai
+
             // iii. Set inMethod to thisEnvRec.HasSuperBinding().
             // iv. If F.[[ConstructorKind]] is DERIVED, set inDerivedConstructor to true.
             // v. Let classFieldInitializerName be F.[[ClassFieldInitializerName]].
             // vi. If classFieldInitializerName is not EMPTY, set inClassFieldInitializer to true.
-        panique("direct eval non-implémenté")
+        }
     }
 
     // À FAIRE : 11. Perform the following substeps in an implementation-defined order, possibly interleaving parsing and error detection:
@@ -2027,85 +1972,6 @@ perform_eval :: fonc (interpréteuse: *Interpréteuse, x: Valeur, strict_caller:
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom FunctionPrototype
- * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-function-prototype-object
- * \{ */
-
-#portée_fichier
-
-table_virtuelle_function_prototype := TableVirtuelleObject(classe = FunctionPrototype, sur_destruction = sur_destruction_objet, sur_call = fonction_prototype_sur_call)
-
-#portée_export
-
-/* À FAIRE : is builtin function object */
-FunctionPrototype :: struct {
-    empl function: Function
-    table = *table_virtuelle_function_prototype
-}
-
-crée_function_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ObjectPrototype) -> *FunctionPrototype
-{
-    résultat := tas_de_mémoire.alloue(FunctionPrototype)
-    résultat.prototype = prototype
-    résultat.ajoute_propriété(STR_length, Valeur(Number = 0.0), DrapeauxPropriété.zéro)
-    résultat.ajoute_propriété(STR_name, Valeur(String = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(""))), DrapeauxPropriété.zéro)
-    retourne résultat
-}
-
-fonction_prototype_sur_call :: fonc (params: *ParamètresObjectCall @inutilisée) -> CompletionRecord
-{
-    retourne normal_completion(js_undefined)
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom FunctionNative
- * \{ */
-
-#portée_fichier
-
-fonction_native_sur_appel :: fonc (params: *ParamètresObjectCall) -> CompletionRecord
-{
-    function_native := params.object comme *FunctionNative
-    retourne function_native.sur_appel(params)
-}
-
-table_virtuelle_function_native := TableVirtuelleObject(classe = FunctionNative, sur_destruction = sur_destruction_objet, sur_call = fonction_native_sur_appel)
-
-#portée_export
-
-FunctionNative :: struct {
-    empl function: Function
-    table = *table_virtuelle_function_native
-
-    sur_appel: TypeFonctionObjectCall
-}
-
-crée_fonction_native :: fonc (tas_de_mémoire: *TasDeMémoire, nom: ECMAString, sur_appel: TypeFonctionObjectCall, length: z64) -> *FunctionNative
-{
-    résultat := tas_de_mémoire.alloue(FunctionNative)
-    résultat.nom = nom
-    résultat.sur_appel = sur_appel
-    résultat.ajoute_propriété(STR_length, Valeur(Number = length comme r64), DrapeauxPropriété.zéro)
-    retourne résultat
-}
-
-ajoute_fonction_native :: fonc (objet: *Object, nom: ECMAString, sur_appel: TypeFonctionObjectCall, length := 0)
-{
-    tas_de_mémoire := objet.donne_tas_de_mémoire()
-    fonction := crée_fonction_native(tas_de_mémoire, nom, sur_appel, length)
-    ajoute_propriété(objet, nom, Valeur(Function = fonction), DrapeauxPropriété.zéro)
-}
-
-ajoute_fonction_native :: fonc (objet: *Object, nom: chaine, sur_appel: TypeFonctionObjectCall, length := 0)
-{
-    ajoute_fonction_native(objet, crée_chaine_utf16_unique(nom), sur_appel, length)
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
 /** \nom PrimitiveChaine
  * \{ */
 
@@ -2127,503 +1993,6 @@ crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, texte: ECMAString) -> *Pr
 {
     résultat := tas_de_mémoire.alloue(PrimitiveChaine)
     résultat.texte = texte
-    retourne résultat
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom ObjetArray
- * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-array-exotic-objects
- * \{ */
-
-#portée_fichier
-
-table_virtuelle_objet_array := TableVirtuelleObject(classe = ObjetArray, sur_destruction = sur_destruction_objet)
-
-#portée_export
-
-ObjetArray :: struct {
-    empl objet: Object
-    table = *table_virtuelle_objet_array
-}
-
-crée_array :: fonc (tas_de_mémoire: *TasDeMémoire, array_prototype: *ArrayPrototype, nombre_éléments: z64) -> *ObjetArray
-{
-    résultat := tas_de_mémoire.alloue(ObjetArray)
-    résultat.prototype = array_prototype
-
-    résultat.ajoute_propriété(STR_length, Valeur(Number = nombre_éléments comme r64), DrapeauxPropriété.zéro)
-
-    retourne résultat
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom ArrayConstructor
- * https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array-constructor
- * \{ */
-
-#portée_fichier
-
-table_virtuelle_array_constructor := TableVirtuelleObject(classe = ArrayConstructor, sur_destruction = sur_destruction_objet, sur_call = array_constructor_call)
-
-#portée_export
-
-ArrayConstructor :: struct {
-    empl objet: Object
-    table = *table_virtuelle_array_constructor
-}
-
-/* À FAIRE : standardise */
-crée_array_constructor :: fonc (tas_de_mémoire: *TasDeMémoire, array_prototype: *ArrayPrototype) -> *ArrayConstructor
-{
-    résultat := tas_de_mémoire.alloue(ArrayConstructor)
-    /* https://tc39.es/ecma262/multipage/indexed-collections.html#sec-properties-of-the-array-constructor */
-    résultat.ajoute_propriété(STR_length, Valeur(Number = 1.0), DrapeauxPropriété.zéro)
-    /* https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array.prototype */
-    résultat.ajoute_propriété(STR_prototype, Valeur(Object = array_prototype), DrapeauxPropriété.zéro)
-
-    /* https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array.prototype.constructor */
-    array_prototype.ajoute_propriété(STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro)
-
-    retourne résultat
-}
-
-/* À FAIRE : standardise
- * https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array */
-array_constructor_call :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
-{
-    realm := interpréteuse.donne_realm()
-
-    résultat := crée_array(realm.donne_tas_de_mémoire(), realm.intrinsics.array_prototype, 0)
-
-    si arguments.taille != 0 {
-        completion := vers_nombre(interpréteuse, arguments[0])
-        saufsi completion.est_normal() {
-            retourne completion
-        }
-        len := completion.valeur.V.Number
-
-        completion = set(résultat, STR_length, Valeur(Number = len), vrai)
-        saufsi completion.est_normal() {
-            retourne completion
-        }
-    }
-
-    retourne normal_completion(Valeur(Object = résultat))
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom ArrayPrototype
- * https://tc39.es/ecma262/multipage/indexed-collections.html#sec-properties-of-the-array-prototype-object
- * \{ */
-
-#portée_fichier
-
-table_virtuelle_array_prototype := TableVirtuelleObject(classe = ArrayPrototype, sur_destruction = sur_destruction_objet)
-
-#portée_export
-
-ArrayPrototype :: struct {
-    empl objet: Object
-    table = *table_virtuelle_array_prototype
-}
-
-crée_array_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ObjectPrototype) -> *ArrayPrototype
-{
-    résultat := tas_de_mémoire.alloue(ArrayPrototype)
-    résultat.prototype = prototype
-
-    résultat.ajoute_propriété(STR_length, Valeur(Number = 0.0), Writable)
-    résultat.ajoute_fonction_native(STR_join, array_prototype_join)
-    résultat.ajoute_fonction_native(STR_push, array_prototype_push, 1)
-    résultat.ajoute_fonction_native(STR_toString, array_prototype_to_string)
-
-    retourne résultat
-}
-
-/* 23.1.3.18 Array.prototype.join ( separator )
- * https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array.prototype.join */
-array_prototype_join :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
-{
-    // 1. Let O be ? ToObject(this value).
-    completion := vers_objet(interpréteuse.donne_realm(), this_value)
-    saufsi completion.est_normal() {
-        retourne completion
-    }
-    O := completion.valeur.V.donne_objet()
-
-    // 2. Let len be ? LengthOfArrayLike(O).
-    completion = length_of_array_like(O)
-    saufsi completion.est_normal() {
-        retourne completion
-    }
-    len := completion.valeur.V.Number
-
-    // 3. If separator is undefined, let sep be ",".
-    sep: ECMAString
-    si arguments.taille == 0 {
-        sep = crée_chaine_utf16_unique(",")
-    }
-    // 4. Else, let sep be ? ToString(separator).
-    sinon {
-        completion = vers_chaine(interpréteuse, arguments[0])
-        saufsi completion.est_normal() {
-            retourne completion
-        }
-        sep = completion.valeur.V.String.texte
-    }
-
-    // 5. Let R be the empty String.
-    R: EnchaineuseUTF16
-    initialise_enchaineuse(R)
-    diffère détruit_tampons(R)
-
-    // 6. Let k be 0.
-    k := 0.0
-
-    // 7. Repeat, while k < len,
-    tantque k < len {
-        // a. If k > 0, set R to the string-concatenation of R and sep.
-        si k > 0.0 {
-            ajoute(R, sep.donne_chaine_utf16())
-        }
-
-        // b. Let element be ? Get(O, ! ToString(𝔽(k))).
-        nom_propriété := vers_chaine(interpréteuse, Valeur(Number = k)).valeur.V.String.texte
-        completion = get(O, nom_propriété)
-        saufsi completion.est_normal() {
-            retourne completion
-        }
-        element := completion.valeur.V
-
-        // c. If element is neither undefined nor null, then
-        saufsi element.est_nulle() || element.est_undefined() {
-            // i. Let S be ? ToString(element).
-            completion = vers_chaine(interpréteuse, element)
-            saufsi completion.est_normal() {
-                retourne completion
-            }
-            S := completion.valeur.V.String.texte
-
-            // ii. Set R to the string-concatenation of R and S.
-            ajoute(R, S.donne_chaine_utf16())
-        }
-
-        // d. Set k to k + 1.
-        k += 1.0
-    }
-
-    // 8. Return R.
-    résultat := chaine_depuis_enchaineuse(R)
-    valeur_résultat := crée_chaine(interpréteuse.donne_tas_de_mémoire(), crée_chaine_utf16_unique(résultat))
-    retourne normal_completion(Valeur(String = valeur_résultat))
-}
-
-/* 23.1.3.23 Array.prototype.push ( ...items )
- * https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array.prototype.push */
-array_prototype_push :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
-{
-    // 1. Let O be ? ToObject(this value).
-    completion := vers_objet(interpréteuse.donne_realm(), this_value)
-    saufsi completion.est_normal() {
-        retourne completion
-    }
-    O := completion.valeur.V.donne_objet()
-
-    // 2. Let len be ? LengthOfArrayLike(O).
-    completion = length_of_array_like(O)
-    saufsi completion.est_normal() {
-        retourne completion
-    }
-    len := completion.valeur.V.Number
-
-    // 3. Let argCount be the number of elements in items.
-    // arg_count := arguments.taille
-
-    // À FAIRE : 4. If len + argCount > 2**53 - 1, throw a TypeError exception.
-
-    // 5. For each element E of items, do
-    pour arguments {
-        // a. Perform ? Set(O, ! ToString(𝔽(len)), E, true).
-        nom_propriété := vers_chaine(interpréteuse, Valeur(Number = len)).valeur.V.String.texte
-        completion = set(O, nom_propriété, it, vrai)
-        saufsi completion.est_normal() {
-            retourne completion
-        }
-
-        // b. Set len to len + 1.
-        len += 1.0
-    }
-
-    // 6. Perform ? Set(O, "length", 𝔽(len), true).
-    completion = set(O, STR_length, Valeur(Number = len), vrai)
-    saufsi completion.est_normal() {
-        retourne completion
-    }
-
-    // 7. Return 𝔽(len).
-    retourne normal_completion(Valeur(Number = len))
-}
-
-/* 23.1.3.36 Array.prototype.toString ( )
- * https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array.prototype.tostring */
-array_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
-{
-    // 1. Let array be ? ToObject(this value).
-    completion := vers_objet(interpréteuse.donne_realm(), this_value)
-    saufsi completion.est_normal() {
-        retourne completion
-    }
-    array := completion.valeur.V.donne_objet()
-
-    // 2. Let func be ? Get(array, "join").
-    completion = get(array, STR_join)
-    saufsi completion.est_normal() {
-        retourne completion
-    }
-    func := completion.valeur.V
-
-    // 3. If IsCallable(func) is false, set func to the intrinsic function %Object.prototype.toString%.
-    saufsi is_callable(func) {
-        panique("%Object.prototype.toString% non-implémenté")
-    }
-
-    // 4. Return ? Call(func, array).
-    retourne call(interpréteuse, func, Valeur(Object = array))
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Error
- * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-error-objects
- * \{ */
-
-#portée_fichier
-
-table_virtuelle_error := TableVirtuelleObject(classe = Error, sur_destruction = sur_destruction_objet)
-
-#portée_export
-
-Error :: struct {
-    empl objet: Object
-    table = *table_virtuelle_error
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom ErrorPrototype
- * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-error-prototype-object
- * \{ */
-
-#portée_fichier
-
-table_virtuelle_error_prototype := TableVirtuelleObject(classe = ErrorPrototype, sur_destruction = sur_destruction_objet)
-
-#portée_export
-
-ErrorPrototype :: struct {
-    empl objet: Object
-    table = *table_virtuelle_error_prototype
-}
-
-crée_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ObjectPrototype) -> *ErrorPrototype
-{
-    résultat := tas_de_mémoire.alloue(ErrorPrototype)
-    résultat.prototype = prototype
-    retourne résultat
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom ReferenceError
- * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-native-error-types-used-in-this-standard-referenceerror
- * \{ */
-
-#portée_fichier
-
-table_virtuelle_reference_error := TableVirtuelleObject(classe = ReferenceError, sur_destruction = sur_destruction_objet)
-
-#portée_export
-
-ReferenceError :: struct {
-    empl error: Error
-    table = *table_virtuelle_reference_error
-
-    message: *PrimitiveChaine
-}
-
-crée_reference_error :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ReferenceErrorPrototype, message: chaine) -> *ReferenceError
-{
-    résultat := tas_de_mémoire.alloue(ReferenceError)
-    résultat.prototype = prototype
-    résultat.message = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(message))
-    retourne résultat
-}
-
-lance_reference_error :: fonc (realm: *Realm, message: chaine) -> CompletionRecord
-{
-    exception := crée_reference_error(realm.donne_tas_de_mémoire(), realm.intrinsics.reference_error_prototype, message)
-    retourne throw_completion(exception)
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom ReferenceErrorPrototype
- * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-nativeerror-prototype-objects
- * \{ */
-
-#portée_fichier
-
-table_virtuelle_reference_error_prototype := TableVirtuelleObject(classe = ReferenceErrorPrototype, sur_destruction = sur_destruction_objet)
-
-#portée_export
-
-ReferenceErrorPrototype :: struct {
-    empl objet: Object
-    table = *table_virtuelle_reference_error_prototype
-}
-
-crée_reference_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ErrorPrototype) -> *ReferenceErrorPrototype
-{
-    résultat := tas_de_mémoire.alloue(ReferenceErrorPrototype)
-    résultat.prototype = prototype
-    retourne résultat
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom SyntaxError
- * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-native-error-types-used-in-this-standard-syntaxerror
- * \{ */
-
-#portée_fichier
-
-table_virtuelle_syntax_error := TableVirtuelleObject(classe = SyntaxError, sur_destruction = sur_destruction_objet)
-
-#portée_export
-
-SyntaxError :: struct {
-    empl error: Error
-    table = *table_virtuelle_syntax_error
-
-    message: *PrimitiveChaine
-}
-
-crée_syntax_error :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *SyntaxErrorPrototype, message: chaine) -> *SyntaxError
-{
-    résultat := tas_de_mémoire.alloue(SyntaxError)
-    résultat.prototype = prototype
-    résultat.message = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(message))
-    retourne résultat
-}
-
-lance_syntax_error :: fonc (interpréteuse: *Interpréteuse, message: chaine) -> CompletionRecord
-{
-    retourne lance_syntax_error(interpréteuse.donne_realm(), message)
-}
-
-lance_syntax_error :: fonc (realm: *Realm, message: chaine) -> CompletionRecord
-{
-    exception := crée_syntax_error(realm.donne_tas_de_mémoire(), realm.intrinsics.syntax_error_prototype, message)
-    retourne throw_completion(exception)
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom SyntaxErrorPrototype
- * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-nativeerror-prototype-objects
- * \{ */
-
-#portée_fichier
-
-table_virtuelle_syntax_error_prototype := TableVirtuelleObject(classe = SyntaxErrorPrototype, sur_destruction = sur_destruction_objet)
-
-#portée_export
-
-SyntaxErrorPrototype :: struct {
-    empl objet: Object
-    table = *table_virtuelle_syntax_error_prototype
-}
-
-crée_syntax_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ErrorPrototype) -> *SyntaxErrorPrototype
-{
-    résultat := tas_de_mémoire.alloue(SyntaxErrorPrototype)
-    résultat.prototype = prototype
-    retourne résultat
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom TypeError
- * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-native-error-types-used-in-this-standard-typeerror
- * \{ */
-
-#portée_fichier
-
-table_virtuelle_type_error := TableVirtuelleObject(classe = TypeError, sur_destruction = sur_destruction_objet)
-
-#portée_export
-
-TypeError :: struct {
-    empl error: Error
-    table = *table_virtuelle_type_error
-
-    message: *PrimitiveChaine
-}
-
-crée_type_error :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *TypeErrorPrototype, message: chaine) -> *TypeError
-{
-    résultat := tas_de_mémoire.alloue(TypeError)
-    résultat.prototype = prototype
-    résultat.message = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(message))
-    retourne résultat
-}
-
-lance_type_error :: fonc (interpréteuse: *Interpréteuse, message: chaine) -> CompletionRecord
-{
-    retourne lance_type_error(interpréteuse.donne_realm(), message)
-}
-
-lance_type_error :: fonc (realm: *Realm, message: chaine) -> CompletionRecord
-{
-    exception := crée_type_error(realm.donne_tas_de_mémoire(), realm.intrinsics.type_error_prototype, message)
-    retourne throw_completion(exception)
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom TypeErrorPrototype
- * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-nativeerror-prototype-objects
- * \{ */
-
-#portée_fichier
-
-table_virtuelle_type_error_prototype := TableVirtuelleObject(classe = TypeErrorPrototype, sur_destruction = sur_destruction_objet)
-
-#portée_export
-
-TypeErrorPrototype :: struct {
-    empl objet: Object
-    table = *table_virtuelle_type_error_prototype
-}
-
-crée_type_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ErrorPrototype) -> *TypeErrorPrototype
-{
-    résultat := tas_de_mémoire.alloue(TypeErrorPrototype)
-    résultat.prototype = prototype
     retourne résultat
 }
 

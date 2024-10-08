@@ -344,6 +344,14 @@ set_default_global_bindings :: fonc (realm: *Realm)
     _ := define_property_or_throw(global, STR_globalThis, desc)
 
     desc = PropertyDescriptor()
+    desc.value = js_undefined
+    _ := define_property_or_throw(global, STR_undefined, desc)
+
+    desc = PropertyDescriptor()
+    desc.value = Valeur(Number = NaN)
+    _ := define_property_or_throw(global, STR_NaN, desc)
+
+    desc = PropertyDescriptor()
     desc.value = Valeur(Object = realm.intrinsics.array)
     _ := define_property_or_throw(global, STR_Array, desc)
 

@@ -167,65 +167,59 @@ fenêtre_principale_sur_création_barre_menu :: fonc (base: *QT_Rappels_Fenetre_
     action := crée_action_pour_activer_javascript(rappels_fenêtre)
     créatrice.ajoute_action_env(action)
 
-    action = QT_cree_action(vers_qt("Dessine Tampon ID"), base.fenetre)
-    crée_rappel_pour_dessin_tampon_id(rappels_fenêtre, action)
-    QT_action_definis_cochable(action, vrai)
+    action = crée_action_pour_dessin_tampon_id(rappels_fenêtre)
     créatrice.ajoute_action_env(action)
 
     créatrice.termine_menu_env()
 }
 
-crée_rappel_pour_dessin_tampon_id :: fonc (rappels_fenêtre: *RappelsFenetrePrincipale, action: *QT_Action)
+crée_action_pour_dessin_tampon_id :: fonc (rappels_fenêtre: *RappelsFenetrePrincipale) -> *QT_Action
 {
-    Rappel :: struct {
-        empl base: QT_Rappel_Generique
-        action: *QT_Action
-        rappels_fenêtre: *RappelsFenetrePrincipale
-    }
-
-    sur_rappel :: fonc (base: *QT_Rappel_Generique)
+    sur_rappel :: fonc (rappels: *RappelsFenetrePrincipale, action: *QT_Action)
     {
-        rappel := base comme *Rappel
-        rappels_fenêtre := rappel.rappels_fenêtre
-
-        vue_rendu_page := QT_glwidget_donne_rappels(rappels_fenêtre.widget_rendu) comme *VueRenduPage
-        vue_rendu_page.dessine_tampon_id = QT_action_est_coche(rappel.action)
-
-        QT_widget_ajourne(rappels_fenêtre.widget_rendu)
+        vue_rendu_page := QT_glwidget_donne_rappels(rappels.widget_rendu) comme *VueRenduPage
+        vue_rendu_page.dessine_tampon_id = QT_action_est_coche(action)
+        QT_widget_ajourne(rappels.widget_rendu)
     }
 
-    résultat := QT_loge_rappel(Rappel)
-    résultat.rappels_fenêtre = rappels_fenêtre
-    résultat.sur_rappel = sur_rappel
-    résultat.action = action
-    QT_action_sur_declenchage(action, résultat)
+    retourne crée_action_cochable(rappels_fenêtre, "Dessine Tampon ID", faux, sur_rappel)
 }
 
 crée_action_pour_activer_javascript :: fonc (rappels_fenêtre: *RappelsFenetrePrincipale) -> *QT_Action
 {
-    Rappel :: struct {
-        empl base: QT_Rappel_Generique
-        action: *QT_Action
-        rappels_fenêtre: *RappelsFenetrePrincipale
-    }
-
-    sur_rappel :: fonc (base: *QT_Rappel_Generique)
+    sur_rappel :: fonc (rappels: *RappelsFenetrePrincipale, action: *QT_Action)
     {
-        rappel := base comme *Rappel
-        rappels_fenêtre := rappel.rappels_fenêtre
-
-        user_agent := rappels_fenêtre.user_agent
-        user_agent.supporte_scripting = QT_action_est_coche(rappel.action)
+        user_agent := rappels.user_agent
+        user_agent.supporte_scripting = QT_action_est_coche(action)
     }
 
     user_agent := rappels_fenêtre.user_agent
-    résultat := QT_cree_action(vers_qt("Active JavaScript"), rappels_fenêtre.fenetre)
-    QT_action_definis_cochable(résultat, vrai)
-    QT_action_definis_coche(résultat, user_agent.supporte_scripting)
+    retourne crée_action_cochable(rappels_fenêtre, "Active JavaScript", user_agent.supporte_scripting, sur_rappel)
+}
 
-    rappel := QT_loge_rappel(Rappel)
+crée_action_cochable :: fonc (rappels_fenêtre: *RappelsFenetrePrincipale, nom: chaine, est_cochée: bool, sur_rappel: fonc(*RappelsFenetrePrincipale, *QT_Action)(rien)) -> *QT_Action
+{
+    RappelActionMenu :: struct {
+        empl base: QT_Rappel_Generique
+        action: *QT_Action
+        rappels_fenêtre: *RappelsFenetrePrincipale
+        sur_rappel_local: fonc(*RappelsFenetrePrincipale, *QT_Action)(rien)
+    }
+
+    envellope_rappel :: fonc (base: *QT_Rappel_Generique)
+    {
+        rappel := base comme *RappelActionMenu
+        rappel.sur_rappel_local(rappel.rappels_fenêtre, rappel.action)
+    }
+
+    résultat := QT_cree_action(vers_qt(nom), rappels_fenêtre.fenetre)
+    QT_action_definis_cochable(résultat, vrai)
+    QT_action_definis_coche(résultat, est_cochée)
+
+    rappel := QT_loge_rappel(RappelActionMenu)
     rappel.rappels_fenêtre = rappels_fenêtre
-    rappel.sur_rappel = sur_rappel
+    rappel.sur_rappel = envellope_rappel
+    rappel.sur_rappel_local = sur_rappel
     rappel.action = résultat
     QT_action_sur_declenchage(résultat, rappel)
 

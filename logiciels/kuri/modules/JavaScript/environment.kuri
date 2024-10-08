@@ -11,9 +11,14 @@ Environment :: struct {
     outer_environment: *Environment
 
     sur_has_binding: fonc(*Environment, ECMAString)(bool)
-    sur_get_binding_value: fonc(*Environment, ECMAString, bool)(CompletionRecord)
-    sur_set_mutable_binding: fonc(*Environment, ECMAString, Valeur, bool)(CompletionRecord)
+    sur_create_mutable_binding: fonc(*Environment, ECMAString, bool)(rien)
+    sur_initialize_binding: fonc(*Environment, ECMAString, Valeur)(CompletionRecord)
+    sur_get_binding_value: fonc(*Environment, *Realm, ECMAString, bool)(CompletionRecord)
+    sur_set_mutable_binding: fonc(*Environment, *Realm, ECMAString, Valeur, bool)(CompletionRecord)
     sur_with_base_object: fonc(*Environment)(Valeur)
+    sur_create_global_function_binding: fonc(*Environment, ECMAString, Valeur, bool)(CompletionRecord)
+    sur_has_this_binding: fonc(*Environment)(bool)
+    sur_get_this_binding: fonc(*Environment, *Realm)(CompletionRecord)
 }
 
 has_binding :: fonc (environment: *Environment, nom: ECMAString) -> CompletionRecord
@@ -23,22 +28,52 @@ has_binding :: fonc (environment: *Environment, nom: ECMAString) -> CompletionRe
     retourne normal_completion(Valeur(Boolean = résultat))
 }
 
-set_mutable_binding :: fonc (environment: *Environment, nom: ECMAString, valeur: Valeur, strict: bool) -> CompletionRecord
+set_mutable_binding :: fonc (environment: *Environment, realm: *Realm, nom: ECMAString, valeur: Valeur, strict: bool) -> CompletionRecord
 {
     assert(environment.sur_set_mutable_binding != nul)
-    retourne environment.sur_set_mutable_binding(environment, nom, valeur, strict)
+    retourne environment.sur_set_mutable_binding(environment, realm, nom, valeur, strict)
 }
 
-get_binding_value :: fonc (environment: *Environment, nom: ECMAString, strict: bool) -> CompletionRecord
+create_mutable_binding :: fonc (environment: *Environment, nom: ECMAString, supprimable: bool)
+{
+    assert(environment.sur_create_mutable_binding != nul)
+    environment.sur_create_mutable_binding(environment, nom, supprimable)
+}
+
+initialize_binding :: fonc (environment: *Environment, nom: ECMAString, valeur: Valeur) -> CompletionRecord
+{
+    assert(environment.sur_initialize_binding != nul)
+    retourne environment.sur_initialize_binding(environment, nom, valeur)
+}
+
+get_binding_value :: fonc (environment: *Environment, realm: *Realm, nom: ECMAString, strict: bool) -> CompletionRecord
 {
     assert(environment.sur_get_binding_value != nul)
-    retourne environment.sur_get_binding_value(environment, nom, strict)
+    retourne environment.sur_get_binding_value(environment, realm, nom, strict)
 }
 
 with_base_object :: fonc (environment: *Environment) -> Valeur
 {
     assert(environment.sur_with_base_object != nul)
     retourne environment.sur_with_base_object(environment)
+}
+
+create_global_function_binding :: fonc (environment: *Environment, N: ECMAString, V: Valeur, D: bool) -> CompletionRecord
+{
+    assert(environment.sur_create_global_function_binding != nul)
+    retourne environment.sur_create_global_function_binding(environment, N, V, D)
+}
+
+has_this_binding :: fonc (environment: *Environment) -> bool
+{
+    assert(environment.sur_has_this_binding != nul)
+    retourne environment.sur_has_this_binding(environment)
+}
+
+get_this_binding :: fonc (environment: *Environment, realm: *Realm) -> CompletionRecord
+{
+    assert(environment.sur_get_this_binding != nul)
+    retourne environment.sur_get_this_binding(environment, realm)
 }
 
 /* 9.1.2.1 GetIdentifierReference
@@ -92,14 +127,27 @@ table_virtuelle_decl_env := TableVirtuelleCellule(classe = DeclarativeEnvironmen
 DeclarativeEnvironment :: struct {
     empl base: Environment
 
+    Binding :: struct {
+        nom: ECMAString
+        valeur: Valeur
+        mutable: bool
+        initialisé: bool
+        peut_être_détruit_par_delete: bool
+    }
+
+    bindings: [..]Binding
+
     /* Cellule */
     table = *table_virtuelle_decl_env
 
     /* Environment */
     sur_has_binding = declarative_environment_has_binding
+    sur_create_mutable_binding = declarative_environment_create_mutable_binding
+    sur_initialize_binding = declarative_environment_initialize_binding
     sur_get_binding_value = declarative_environment_get_binding_value
     sur_set_mutable_binding = declarative_environment_set_mutable_binding
     sur_with_base_object = declarative_environment_with_base_object
+    sur_has_this_binding = declarative_environment_has_this_binding
 }
 
 /* 9.1.2.2 NewDeclarativeEnvironment ( E )
@@ -118,29 +166,103 @@ new_declarative_environment :: fonc (tas_de_mémoire: *TasDeMémoire, environmen
 
 /* 9.1.1.2.1 HasBinding
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-object-environment-records-hasbinding-n */
-declarative_environment_has_binding :: fonc (base: *Environment @inutilisée, nom: ECMAString @inutilisée) -> bool
+declarative_environment_has_binding :: fonc (base: *Environment, nom: ECMAString) -> bool
 {
-    // environment := base comme *DeclarativeEnvironment
+    env_rec := base comme *DeclarativeEnvironment
 
     // 1. If envRec has a binding for N, return true.
-    // À FAIRE : comprend ce qui se passe ici
+    pour env_rec.bindings {
+        si it.nom == nom {
+            retourne vrai
+        }
+    }
 
     // 2. Return false.
     retourne faux
 }
 
+/* 9.1.1.1.2 CreateMutableBinding ( N, D )
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-declarative-environment-records-createmutablebinding-n-d */
+declarative_environment_create_mutable_binding :: fonc (base: *Environment, N: ECMAString, D: bool)
+{
+    env_rec := base comme *DeclarativeEnvironment
+
+    // 1. Assert: envRec does not already have a binding for N.
+    assert(env_rec.donne_binding(N) == nul)
+
+    // 2. Create a mutable binding in envRec for N and record that it is uninitialized. If D is true, record that the newly created binding may be deleted by a subsequent DeleteBinding call.
+    binding := tableau_ajoute_élément(*env_rec.bindings)
+    binding.nom = N
+    binding.mutable = vrai
+    binding.initialisé = faux
+    binding.peut_être_détruit_par_delete = D
+
+    // 3. Return unused.
+}
+
+/* 9.1.1.1.4 InitializeBinding ( N, V )
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-declarative-environment-records-initializebinding-n-v */
+declarative_environment_initialize_binding :: fonc (base: *Environment, N: ECMAString, V: Valeur) -> CompletionRecord
+{
+    env_rec := base comme *DeclarativeEnvironment
+    binding := donne_binding(env_rec, N)
+
+    // 1. Assert: envRec must have an uninitialized binding for N.
+    assert(binding != nul && binding.initialisé == faux)
+
+    // 2. Set the bound value for N in envRec to V.
+    binding.valeur = V
+
+    // 3. Record that the binding for N in envRec has been initialized.
+    binding.initialisé = vrai
+    
+    // 4. Return unused.
+    retourne normal_completion(js_undefined)
+}
+
+donne_binding :: fonc (env: *DeclarativeEnvironment, nom: ECMAString) -> *DeclarativeEnvironment.Binding
+{
+    pour * env.bindings {
+        si it.nom == nom {
+            retourne it
+        }
+    }
+
+    retourne nul
+}
+
 /* 9.1.1.1.5 SetMutableBinding ( N, V, S )
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-declarative-environment-records-setmutablebinding-n-v-s */
-declarative_environment_set_mutable_binding :: fonc (base: *Environment @inutilisée, nom: ECMAString @inutilisée, valeur: Valeur @inutilisée, strict: bool @inutilisée) -> CompletionRecord
+declarative_environment_set_mutable_binding :: fonc (base: *Environment @inutilisée, realm: *Realm @inutilisée, nom: ECMAString @inutilisée, valeur: Valeur @inutilisée, strict: bool @inutilisée) -> CompletionRecord
 {
     panique("declarative_environment_get_binding_value non-implémentée")
 }
 
 /* 9.1.1.1.6 GetBindingValue ( N, S )
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-declarative-environment-records-getbindingvalue-n-s */
-declarative_environment_get_binding_value :: fonc (environment: *Environment @inutilisée, nom: ECMAString @inutilisée, strict: bool @inutilisée) -> CompletionRecord
+declarative_environment_get_binding_value :: fonc (base: *Environment, realm: *Realm, nom: ECMAString, strict: bool @inutilisée) -> CompletionRecord
 {
-    panique("declarative_environment_get_binding_value non-implémentée")
+    env_rec := base comme *DeclarativeEnvironment
+    binding := donne_binding(env_rec, nom)
+
+    // 1. Assert: envRec has a binding for N.
+    assert(binding != nul)
+
+    // 2. If the binding for N in envRec is an uninitialized binding, throw a ReferenceError exception.
+    saufsi binding.initialisé {
+        retourne lance_reference_error(realm, "unknown variable")
+    }
+
+    // 3. Return the value currently bound to N in envRec.
+    retourne normal_completion(binding.valeur)
+}
+
+/* 9.1.1.1.8 HasThisBinding ( )
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-declarative-environment-records-hasthisbinding */
+declarative_environment_has_this_binding :: fonc (base: *Environment @inutilisée) -> bool
+{
+    // 1. Return false.
+    retourne faux
 }
 
 /* 9.1.1.1.10 WithBaseObject ( )
@@ -179,6 +301,9 @@ FunctionEnvironment :: struct {
     new_target: Valeur
     this_value: Valeur
     this_binding_status: ThisBindingStatus
+
+    sur_has_this_binding = function_environment_has_this_binding
+    sur_get_this_binding = function_environment_get_this_binding
 }
 
 /* 9.1.2.4 NewFunctionEnvironment ( F, newTarget )
@@ -234,6 +359,33 @@ bind_this_value :: fonc (env_rec: *FunctionEnvironment, V: Valeur) -> Completion
     retourne normal_completion(V)
 }
 
+/* 9.1.1.3.2 HasThisBinding ( )
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-function-environment-records-hasthisbinding */
+function_environment_has_this_binding :: fonc (base: *Environment) -> bool
+{
+    env_rec := base comme *FunctionEnvironment
+    // 1. If envRec.[[ThisBindingStatus]] is lexical, return false; otherwise, return true.
+    retourne env_rec.this_binding_status != ThisBindingStatus.LEXICAL
+}
+
+/* 9.1.1.3.4 GetThisBinding ( )
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-function-environment-records-getthisbinding */
+function_environment_get_this_binding :: fonc (base: *Environment, realm: *Realm) -> CompletionRecord
+{
+    env_rec := base comme *FunctionEnvironment
+
+    // 1. Assert: envRec.[[ThisBindingStatus]] is not lexical.
+    assert(env_rec.this_binding_status != ThisBindingStatus.LEXICAL)
+
+    // 2. If envRec.[[ThisBindingStatus]] is uninitialized, throw a ReferenceError exception.
+    si env_rec.this_binding_status == ThisBindingStatus.UNINITIALIZED {
+        retourne lance_reference_error(realm, "unknown reference to 'this'")
+    }
+
+    // 3. Return envRec.[[ThisValue]].
+    retourne normal_completion(env_rec.this_value)
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -272,6 +424,7 @@ ObjectEnvironment :: struct {
     sur_get_binding_value = object_environment_get_binding_value
     sur_set_mutable_binding = object_environment_set_mutable_binding
     sur_with_base_object = object_environment_with_base_object
+    sur_has_this_binding = object_environment_has_this_binding
 }
 
 /* 9.1.2.3 NewObjectEnvironment ( O, W, E )
@@ -332,7 +485,7 @@ object_environment_has_binding :: fonc (base: *Environment, nom: ECMAString) -> 
 
 /* 9.1.1.2.5 SetMutableBinding ( N, V, S )
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-object-environment-records-setmutablebinding-n-v-s */
-object_environment_set_mutable_binding :: fonc (base: *Environment, nom: ECMAString, valeur: Valeur, strict: bool) -> CompletionRecord
+object_environment_set_mutable_binding :: fonc (base: *Environment, realm: *Realm, nom: ECMAString, valeur: Valeur, strict: bool) -> CompletionRecord
 {
     environment := base comme *ObjectEnvironment
 
@@ -348,7 +501,7 @@ object_environment_set_mutable_binding :: fonc (base: *Environment, nom: ECMAStr
 
     // 3. If stillExists is false and S is true, throw a ReferenceError exception.
     si still_exists.est_false() && strict == vrai {
-        panique("exceptions non-implémentées")
+        retourne lance_reference_error(realm, "cannot create property")
     }
 
     // 4. Perform ? Set(bindingObject, N, V, S).
@@ -363,7 +516,7 @@ object_environment_set_mutable_binding :: fonc (base: *Environment, nom: ECMAStr
 
 /* 9.1.1.2.6 GetBindingValue ( N, S ) 
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-object-environment-records-getbindingvalue-n-s */
-object_environment_get_binding_value :: fonc (base: *Environment, nom: ECMAString, strict: bool) -> CompletionRecord
+object_environment_get_binding_value :: fonc (base: *Environment, realm: *Realm, nom: ECMAString, strict: bool) -> CompletionRecord
 {
     environment := base comme *ObjectEnvironment
 
@@ -384,11 +537,19 @@ object_environment_get_binding_value :: fonc (base: *Environment, nom: ECMAStrin
             retourne normal_completion(js_undefined)
         }
 
-        panique("exceptions non-implémentées")
+        retourne lance_reference_error(realm, "unknown property")
     }
 
     // 4. Return ? Get(bindingObject, N).
     retourne get(binding_object, nom)
+}
+
+/* 9.1.1.2.8 HasThisBinding ( )
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-object-environment-records-hasthisbinding */
+object_environment_has_this_binding :: fonc (base: *Environment @inutilisée) -> bool
+{
+    // 1. Return false.
+    retourne faux
 }
 
 /* 9.1.1.2.10 WithBaseObject ( )
@@ -434,6 +595,9 @@ GlobalEnvironment :: struct {
     sur_get_binding_value = global_environment_get_binding_value
     sur_set_mutable_binding = global_environment_set_mutable_binding
     sur_with_base_object = global_environment_with_base_object
+    sur_create_global_function_binding = global_environment_create_global_function_binding
+    sur_has_this_binding = global_environment_has_this_binding
+    sur_get_this_binding = global_environment_get_this_binding
 }
 
 /* 9.1.2.5 NewGlobalEnvironment ( G, thisValue )
@@ -490,7 +654,7 @@ global_environment_has_binding :: fonc (base: *Environment, nom: ECMAString) -> 
 
 /* 9.1.1.4.5 SetMutableBinding ( N, V, S )
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-global-environment-records-setmutablebinding-n-v-s */
-global_environment_set_mutable_binding :: fonc (base: *Environment, nom: ECMAString, valeur: Valeur, strict: bool) -> CompletionRecord
+global_environment_set_mutable_binding :: fonc (base: *Environment, realm: *Realm, nom: ECMAString, valeur: Valeur, strict: bool) -> CompletionRecord
 {
     environment := base comme *GlobalEnvironment
 
@@ -500,19 +664,19 @@ global_environment_set_mutable_binding :: fonc (base: *Environment, nom: ECMAStr
     // 2. If ! DclRec.HasBinding(N) is true, then
     si has_binding(dclrec, nom).valeur.V.Boolean {
         // a. Return ? DclRec.SetMutableBinding(N, V, S).
-        retourne set_mutable_binding(dclrec, nom, valeur, strict)
+        retourne set_mutable_binding(dclrec, realm, nom, valeur, strict)
     }
 
     // 3. Let ObjRec be envRec.[[ObjectRecord]].
     objrec := environment.object_record
 
     // 4. Return ? ObjRec.SetMutableBinding(N, V, S).
-    retourne set_mutable_binding(objrec, nom, valeur, strict)
+    retourne set_mutable_binding(objrec, realm, nom, valeur, strict)
 }
 
 /* 9.1.1.4.6 GetBindingValue ( N, S )
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-global-environment-records-getbindingvalue-n-s */
-global_environment_get_binding_value :: fonc (base: *Environment, nom: ECMAString, strict: bool) -> CompletionRecord
+global_environment_get_binding_value :: fonc (base: *Environment, realm: *Realm, nom: ECMAString, strict: bool) -> CompletionRecord
 {
     environment := base comme *GlobalEnvironment
 
@@ -522,14 +686,22 @@ global_environment_get_binding_value :: fonc (base: *Environment, nom: ECMAStrin
     // 2. If ! DclRec.HasBinding(N) is true, then
     si has_binding(dclrec, nom).valeur.V.Boolean {
         // a. Return ? DclRec.GetBindingValue(N, S).
-        retourne get_binding_value(dclrec, nom, strict)
+        retourne get_binding_value(dclrec, realm, nom, strict)
     }
 
     // 3. Let ObjRec be envRec.[[ObjectRecord]].
     objrec := environment.object_record
 
     // 4. Return ? ObjRec.GetBindingValue(N, S).
-    retourne get_binding_value(objrec, nom, strict)
+    retourne get_binding_value(objrec, realm, nom, strict)
+}
+
+/* 9.1.1.4.8 HasThisBinding ( )
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-global-environment-records-hasthisbinding */
+global_environment_has_this_binding :: fonc (base: *Environment @inutilisée) -> bool
+{
+    // 1. Return true.
+    retourne vrai
 }
 
 /* 9.1.1.4.10 WithBaseObject ( )
@@ -538,6 +710,47 @@ global_environment_with_base_object :: fonc (base: *Environment @inutilisée) ->
 {
     // 1. Return undefined.
     retourne js_undefined
+}
+
+/* 9.1.1.4.11 GetThisBinding ( )
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-global-environment-records-getthisbindinghttps://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-global-environment-records-getthisbinding */
+global_environment_get_this_binding :: fonc (base: *Environment, realm: *Realm @inutilisée) -> CompletionRecord
+{
+    env_rec := base comme *GlobalEnvironment
+    // 1. Return envRec.[[GlobalThisValue]].
+    retourne normal_completion(env_rec.global_this_value)
+}
+
+/* 9.1.1.4.18 CreateGlobalFunctionBinding ( N, V, D )
+ * https://tc39.es/ecma262/#sec-createglobalfunctionbinding */
+global_environment_create_global_function_binding :: fonc (base: *Environment, N: ECMAString, V: Valeur, D: bool @inutilisée) -> CompletionRecord
+{
+    env_rec := base comme *GlobalEnvironment
+
+    // 1. Let ObjRec be envRec.[[ObjectRecord]].
+    obj_rec := env_rec.object_record
+
+    // 2. Let globalObject be ObjRec.[[BindingObject]].
+    global_object := obj_rec.binding_object
+
+    // À FAIRE : 3. Let existingProp be ? globalObject.[[GetOwnProperty]](N).
+    // 4. If existingProp is undefined or existingProp.[[Configurable]] is true, then
+        // a. Let desc be the PropertyDescriptor { [[Value]]: V, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: D }.
+    // 5. Else,
+        // a. Let desc be the PropertyDescriptor { [[Value]]: V }.
+    // 6. Perform ? DefinePropertyOrThrow(globalObject, N, desc).
+
+    // 7. Perform ? Set(globalObject, N, V, false).
+    completion := set(global_object, N, V, faux)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+
+    // À FAIRE : 8. If envRec.[[VarNames]] does not contain N, then
+        // a. Append N to envRec.[[VarNames]].
+
+    // 9. Return unused.
+    retourne normal_completion(js_undefined)
 }
 
 /** \} */

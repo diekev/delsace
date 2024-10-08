@@ -2392,6 +2392,8 @@ DrapeauxPropriété :: énum_drapeau {
     AffecteDisposition
     /* Un changement de valeur requiers une reconstruction de l'arbre. */
     AffecteConstructionArbre
+    /* Un changement de valeur requiers la reconstruction des stacking contexts. */
+    AffecteStackingContext
 }
 
 InfoTypePropriété :: struct {
@@ -2524,7 +2526,9 @@ infos_types_propriétés := [
     InfoTypePropriété(PROP_flex_grow, id = IDPropriété.FlexGrow, fonction_de_parsage = parse_propriété_number, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
     InfoTypePropriété(PROP_flex_shrink, id = IDPropriété.FlexShrink, fonction_de_parsage = parse_propriété_number, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
     InfoTypePropriété(PROP_box_sizing, id = IDPropriété.BoxSizing, fonction_de_parsage = parse_propriété_box_sizing, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
-    InfoTypePropriété(PROP_white_space, id = IDPropriété.WhiteSpace, fonction_de_parsage = parse_propriétés_white_space, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.Héritée)
+    InfoTypePropriété(PROP_white_space, id = IDPropriété.WhiteSpace, fonction_de_parsage = parse_propriétés_white_space, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.Héritée),
+    InfoTypePropriété(PROP_opacity, id = IDPropriété.Opacity, fonction_de_parsage = parse_propriété_number_ou_pourcentage, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteStackingContext),
+    InfoTypePropriété(PROP_z_index, id = IDPropriété.ZIndex, fonction_de_parsage = parse_propriété_number_ou_auto, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteStackingContext)
 ]
 
 donne_info_type_pour_nom :: fonc (nom: CSSOMString) -> *InfoTypePropriété
@@ -2697,6 +2701,30 @@ parse_propriété_number :: fonc (value: []ComponentValue) -> Optionnel(ValeurDe
     lexème := parseuse.lexème_courant()
     si lexème.est_lexème_de_genre(GenreLexème.Number) {
         retourne ValeurDeStyle(number = lexème.lexème.numeric_value)
+    }
+}
+
+parse_propriété_number_ou_pourcentage :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    lexème := parseuse.lexème_courant()
+    si lexème.est_lexème_de_genre(GenreLexème.Number) {
+        retourne ValeurDeStyle(number = lexème.lexème.numeric_value)
+    }
+    si lexème.est_lexème_de_genre(GenreLexème.Percentage) {
+        retourne ValeurDeStyle(percentage = lexème.lexème.numeric_value / 100.0)
+    }
+}
+
+parse_propriété_number_ou_auto :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    lexème := parseuse.lexème_courant()
+    si lexème.est_lexème_de_genre(GenreLexème.Number) {
+        retourne ValeurDeStyle(number = lexème.lexème.numeric_value)
+    }
+    si lexème.est_mot_clé(PROP_auto) {
+        retourne ValeurDeStyle(mot_clé = PROP_auto)
     }
 }
 

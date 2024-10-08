@@ -300,6 +300,9 @@ associativité_pour_opérateur :: fonc (genre: GenreLexème) -> Associativité
         MoinsMoins {
             retourne Associativité.Gauche // N/A
         }
+        New {
+            retourne Associativité.Gauche // N/A
+        }
         sinon {
             retourne Associativité.Gauche
         }
@@ -376,7 +379,8 @@ précédence_pour_opérateur :: fonc (genre: GenreLexème) -> z32
         }
         Point,
         ParenthèseOuvrante,
-        CrochetOuvrant {
+        CrochetOuvrant,
+        New {
             retourne 15
         }
         sinon {
@@ -400,7 +404,8 @@ est_lexème_expression :: fonc (genre: GenreLexème) -> bool
         False,
         Function,
         Null, 
-        CrochetOuvrant {
+        CrochetOuvrant,
+        This {
             retourne vrai
         }
         sinon {
@@ -491,7 +496,9 @@ est_lexème_instruction :: fonc (genre: GenreLexème) -> bool
         For,
         Function,
         Return,
-        If {
+        If,
+        Try,
+        Throw {
             retourne vrai
         }
         sinon {
