@@ -581,6 +581,10 @@ visite_valeur :: fonc (visiteuse: *VisiteuseCellule, valeur: eini)
             retourne
         }
 
+        si info == info_de(Chaine.ChaineUTF16) {
+            retourne
+        }
+
         si info == info_de(HostDefined) {
             host_defined := mémoire(valeur.pointeur comme *HostDefined)
 
