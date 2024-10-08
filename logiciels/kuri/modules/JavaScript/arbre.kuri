@@ -96,6 +96,14 @@ prop_name :: fonc (noeud: *NoeudSyntaxique) -> ECMAString
     retourne crée_chaine_utf16_unique_vide()
 }
 
+/* 15.10.1 Static Semantics: IsInTailPosition ( call )
+ * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-isintailposition */
+is_in_tail_position :: fonc (call: *NoeudSyntaxique @inutilisée) -> bool
+{
+    // À FAIRE
+    retourne faux
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -169,24 +177,10 @@ crée_function_déclaration :: fonc (id: *Identifier, params: []*NoeudSyntaxique
     retourne résultat
 }
 
-sur_exécution_function_declaration :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_function_declaration :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *Interpréteuse @inutilisée) -> CompletionRecord
 {
-    noeud := base comme *FunctionDeclaration
-
-    mv := interpréteuse.mv
-    running_execution_context := mv.donne_running_execution_context()
-    realm := running_execution_context.realm
-
-    fonction := crée_fonction(realm, realm.intrinsics.function_prototype, noeud.id.nom, noeud.corps)
-    fonction.environment = running_execution_context.lexical_environment
-
-    objet_global := interpréteuse.get_global_object()
-    completion := set(objet_global, noeud.id.nom, Valeur(Function = fonction), vrai)
-    saufsi completion.est_normal() {
-        retourne completion
-    }
-
-    retourne normal_completion(Valeur(Function = fonction))
+    // 1. Return empty.
+    retourne normal_completion(js_undefined)
 }
 
 /** \} */
@@ -229,6 +223,33 @@ sur_exécution_function_expression :: fonc (base: *NoeudSyntaxique, interpréteu
     retourne normal_completion(Valeur(Function = closure))
 }
 
+/* 15.2.4 Runtime Semantics: InstantiateOrdinaryFunctionObject
+ * https://tc39.es/ecma262/#sec-runtime-semantics-instantiateordinaryfunctionobject */
+instantiate_ordinary_function_object :: fonc (realm: *Realm, declaration: *FunctionDeclaration, env: *Environment, private_env: *PrivateEnvironment) -> *Function
+{
+    // FunctionDeclaration : function BindingIdentifier ( FormalParameters ) { FunctionBody }
+    si declaration.id != nul {
+        // 1. Let name be the StringValue of BindingIdentifier.
+        name := declaration.id.nom
+
+        // À FAIRE 2. Let sourceText be the source text matched by FunctionDeclaration.
+
+        // 3. Let F be OrdinaryFunctionCreate(%Function.prototype%, sourceText, FormalParameters, FunctionBody, non-lexical-this, env, privateEnv).
+        F := ordinary_function_create(realm, realm.intrinsics.function_prototype, declaration.params, declaration.corps, NON_LEXICAL_THIS, env, private_env)
+
+        // 4. Perform SetFunctionName(F, name).
+        set_function_name(F, name)
+
+        // 5. Perform MakeConstructor(F).
+        make_constructor(F)
+
+        // 6. Return F.
+        retourne F
+    }
+
+    panique("instantiate_ordinary_function_object non-implémenté")
+}
+
 /* 15.2.5 Runtime Semantics: InstantiateOrdinaryFunctionExpression
  * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-runtime-semantics-instantiateordinaryfunctionexpression */
 instantiate_ordinary_function_expression :: fonc (interpréteuse: *Interpréteuse, expression: *FunctionExpression, opt_name : *ECMAString = nul) -> *Function
@@ -255,15 +276,40 @@ instantiate_ordinary_function_expression :: fonc (interpréteuse: *Interpréteus
         realm := running_execution_context.realm
         closure := ordinary_function_create(realm, realm.intrinsics.function_prototype, expression.params, expression.corps, NON_LEXICAL_THIS, env, private_env)
 
-        // À FAIRE 6. Perform SetFunctionName(closure, name).
+        // 6. Perform SetFunctionName(closure, name).
+        set_function_name(closure, name)
 
-        // À FAIRE 7. Perform MakeConstructor(closure).
+        // 7. Perform MakeConstructor(closure).
+        make_constructor(closure)
 
         // 8. Return closure.
         retourne closure
     }
 
     panique("instantiate_ordinary_function_expression non-implémenté")
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom This
+ * \{ */
+
+ThisExpression :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_this_expression
+}
+
+crée_this_expression :: fonc () -> *ThisExpression
+{
+    retourne loge(ThisExpression)
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-this-keyword-runtime-semantics-evaluation */
+sur_exécution_this_expression :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    retourne resolve_this_binding(interpréteuse)
 }
 
 /** \} */
@@ -536,6 +582,122 @@ sur_exécution_logical_not :: fonc (base: *NoeudSyntaxique, interpréteuse: *Int
 
     // 4. Return true.
     retourne normal_completion(Valeur(Boolean = vrai))
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom LogicalAnd
+ * \{ */
+
+LogicalAnd :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_logical_and
+
+    left: *NoeudSyntaxique
+    right: *NoeudSyntaxique
+}
+
+crée_logical_and :: fonc (left: *NoeudSyntaxique, right: *NoeudSyntaxique) -> *LogicalAnd
+{
+    résultat := loge(LogicalAnd)
+    résultat.left = left
+    résultat.right = right
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#prod-LogicalANDExpression */
+sur_exécution_logical_and :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    noeud := base comme *LogicalAnd
+
+    // 1. Let lRef be ? Evaluation of LogicalANDExpression.
+    completion := exécute_noeud(noeud.left, interpréteuse)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    lref := completion.valeur
+
+    // 2. Let lVal be ? GetValue(lRef).
+    completion = get_value(interpréteuse, lref)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    lval := completion.valeur.V
+
+    // 3. If ToBoolean(lVal) is false, return lVal.
+    si to_boolean(lval).est_false() {
+        retourne normal_completion(lval)
+    }
+
+    // 4. Let rRef be ? Evaluation of BitwiseORExpression.
+    completion = exécute_noeud(noeud.right, interpréteuse)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    rref := completion.valeur
+
+    // 5. Return ? GetValue(rRef).
+    retourne get_value(interpréteuse, rref)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom LogicalOr
+ * \{ */
+
+LogicalOr :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_logical_or
+
+    left: *NoeudSyntaxique
+    right: *NoeudSyntaxique
+}
+
+crée_logical_or :: fonc (left: *NoeudSyntaxique, right: *NoeudSyntaxique) -> *LogicalOr
+{
+    résultat := loge(LogicalOr)
+    résultat.left = left
+    résultat.right = right
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#prod-LogicalORExpression */
+sur_exécution_logical_or :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    noeud := base comme *LogicalOr
+
+    // 1. Let lRef be ? Evaluation of LogicalORExpression.
+    completion := exécute_noeud(noeud.left, interpréteuse)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    lref := completion.valeur
+
+    // 2. Let lVal be ? GetValue(lRef).
+    completion = get_value(interpréteuse, lref)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    lval := completion.valeur.V
+
+    // 3. If ToBoolean(lVal) is true, return lVal.
+    si to_boolean(lval).est_true() {
+        retourne normal_completion(lval)
+    }
+
+    // 4. Let rRef be ? Evaluation of LogicalANDExpression.
+    completion = exécute_noeud(noeud.right, interpréteuse)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    rref := completion.valeur
+
+    // 5. Return ? GetValue(rRef).
+    retourne get_value(interpréteuse, rref)
 }
 
 /** \} */
@@ -847,6 +1009,73 @@ is_loosely_equal :: fonc (interpréteuse: *Interpréteuse @inutilisée, x: Valeu
     //     a. If x is not finite or y is not finite, return false.
     //     b. If ℝ(x) = ℝ(y), return true; otherwise return false.
     // 14. Return false.
+}
+
+/* 7.2.8 SameType ( x, y )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-sametype */
+same_type :: fonc (x: Valeur, y: Valeur) -> bool
+{
+    // 1. If x is undefined and y is undefined, return true.
+    si x.est_undefined() && y.est_undefined() {
+        retourne vrai
+    }
+
+    // 2. If x is null and y is null, return true.
+    si x.est_nulle() && y.est_nulle() {
+        retourne vrai
+    }
+
+    // 3. If x is a Boolean and y is a Boolean, return true.
+    si x.est_boolean() && y.est_boolean() {
+        retourne vrai
+    }
+
+    // 4. If x is a Number and y is a Number, return true.
+    si x.est_nombre() && y.est_nombre() {
+        retourne vrai
+    }
+
+    // 5. If x is a BigInt and y is a BigInt, return true.
+    si x.est_big_int() && y.est_big_int() {
+        retourne vrai
+    }
+
+    // 6. If x is a Symbol and y is a Symbol, return true.
+    si x.est_symbol() && y.est_symbol() {
+        retourne vrai
+    }
+
+    // 7. If x is a String and y is a String, return true.
+    si x.est_chaine() && y.est_chaine() {
+        retourne vrai
+    }
+
+    // 8. If x is an Object and y is an Object, return true.
+    si x.est_object() && y.est_object() {
+        retourne vrai
+    }
+
+    // 9. Return false.
+    retourne faux
+}
+
+/* 7.2.9 SameValue ( x, y )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-samevalue */
+same_value :: fonc (x: Valeur, y: Valeur) -> Valeur
+{
+    // 1. If SameType(x, y) is false, return false.
+    saufsi same_type(x, y) {
+        retourne faux
+    }
+
+    // 2. If x is a Number, then
+    si x.est_nombre() {
+        // a. Return Number::sameValue(x, y).
+        panique("Number::sameValue non-implémentée")
+    }
+
+    // 3. Return SameValueNonNumber(x, y).
+    retourne same_value_non_number(x, y)
 }
 
 /* 7.2.10 SameValueNonNumber ( x, y )
@@ -1329,11 +1558,75 @@ crée_call_expression :: fonc (appelé: *NoeudSyntaxique, arguments: ...*NoeudSy
  * https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-function-calls-runtime-semantics-evaluation */
 sur_exécution_call_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
 {
-    // À FAIRE : CoverCallExpressionAndAsyncArrowHead
+    noeud := base comme *CallExpression
+
+    // CallExpression : CoverCallExpressionAndAsyncArrowHead
+    si noeud.appelé.type != CallExpression {
+        // 1. Let expr be the CallMemberExpression that is covered by CoverCallExpressionAndAsyncArrowHead.
+        expr := noeud
+
+        // 2. Let memberExpr be the MemberExpression of expr.
+        member_expr := noeud.appelé
+
+        // 3. Let arguments be the Arguments of expr.
+        arguments := expr.arguments
+
+        // 4. Let ref be ? Evaluation of memberExpr.
+        completion_ref := exécute_noeud(member_expr, interpréteuse)
+        saufsi completion_ref.est_normal() {
+            retourne completion_ref
+        }
+        ref := completion_ref.valeur
+
+        // 5. Let func be ? GetValue(ref).
+        complétion_func := get_value(interpréteuse, ref)
+        saufsi complétion_func.est_normal() {
+            retourne complétion_func
+        }
+        func := complétion_func.valeur.V
+        
+        // 6. If ref is a Reference Record, IsPropertyReference(ref) is false, and ref.[[ReferencedName]] is "eval", then
+        si ref.est_reference_record() && est_référence_propriété(ref) == faux && ref.R.referenced_name.valeur.String.texte == STR_eval {
+            realm := interpréteuse.donne_realm()
+
+            // a. If SameValue(func, %eval%) is true, then
+            saufsi same_value(func, Valeur(Object = realm.intrinsics.eval)).est_false() {
+                //  i. Let argList be ? ArgumentListEvaluation of arguments.
+                arg_list: [..]Valeur
+                diffère déloge(arg_list)
+
+                completion_arg_list := argument_list_evaluation(interpréteuse, arguments, *arg_list)
+                saufsi completion_arg_list.est_normal() {
+                    retourne completion_arg_list
+                }
+
+                //  ii. If argList has no elements, return undefined.
+                si arg_list.taille == 0 {
+                    retourne normal_completion(js_undefined)
+                }
+
+                //  iii. Let evalArg be the first element of argList.
+                eval_arg := arg_list[0]
+
+                //  iv. If IsStrict(this CallExpression) is true, let strictCaller be true. Otherwise let strictCaller be false.
+                strict_caller := is_strict(noeud)
+
+                //  v. Return ? PerformEval(evalArg, strictCaller, true).
+                retourne perform_eval(interpréteuse, eval_arg, strict_caller, vrai)
+            }
+        }
+
+        // 7. Let thisCall be this CallExpression.
+        this_call := noeud
+
+        // 8. Let tailCall be IsInTailPosition(thisCall).
+        tail_call := is_in_tail_position(this_call)
+
+        // 9. Return ? EvaluateCall(func, ref, arguments, tailCall).
+        retourne evaluate_call(interpréteuse, func, ref, arguments, tail_call)
+    }
 
     // CallExpression : CallExpression Arguments
-
-    noeud := base comme *CallExpression
 
     // 1. Let ref be ? Evaluation of CallExpression.
     completion_ref := exécute_noeud(noeud.appelé, interpréteuse)
@@ -1352,10 +1645,10 @@ sur_exécution_call_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: 
     func := complétion_func.valeur.V
 
     // 3. Let thisCall be this CallExpression.
-    // this_call := noeud
+    this_call := noeud
 
-    // À FAIRE 4. Let tailCall be IsInTailPosition(thisCall).
-    tail_call := faux
+    // 4. Let tailCall be IsInTailPosition(thisCall).
+    tail_call := is_in_tail_position(this_call)
 
     // 5. Return ? EvaluateCall(func, ref, Arguments, tailCall).
     retourne evaluate_call(interpréteuse, func, ref, noeud.arguments, tail_call)
@@ -1391,20 +1684,10 @@ evaluate_call :: fonc (interpréteuse: *Interpréteuse, func: Valeur, ref: Valeu
     // 3. Let argList be ? ArgumentListEvaluation of arguments.
     // À FAIRE : fuite de mémoire
     arg_list: [..]Valeur
-
-    pour arguments {
-        complétion_arg := exécute_noeud(it, interpréteuse)
-        saufsi complétion_arg.est_normal() {
-            déloge(arg_list)
-            retourne complétion_arg
-        }
-        complétion_valeur := get_value(interpréteuse, complétion_arg.valeur)
-        saufsi complétion_valeur.est_normal() {
-            déloge(arg_list)
-            retourne complétion_valeur
-        }
-        valeur_arg := complétion_valeur.valeur.V
-        tableau_ajoute(*arg_list, valeur_arg)
+    completion_arg_list := argument_list_evaluation(interpréteuse, arguments, *arg_list)
+    saufsi completion_arg_list.est_normal() {
+        déloge(arg_list)
+        retourne completion_arg_list
     }
 
     // 4. If func is not an Object, throw a TypeError exception.
@@ -1426,6 +1709,26 @@ evaluate_call :: fonc (interpréteuse: *Interpréteuse, func: Valeur, ref: Valeu
 
     // 7. Return ? Call(func, thisValue, argList).
     retourne call(interpréteuse, func, this_value, arg_list)
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-runtime-semantics-argumentlistevaluation */
+argument_list_evaluation :: fonc (interpréteuse: *Interpréteuse, arguments: []*NoeudSyntaxique, résultat: *[..]Valeur) -> CompletionRecord
+{
+    // À FAIRE : standardise
+    pour arguments {
+        complétion_arg := exécute_noeud(it, interpréteuse)
+        saufsi complétion_arg.est_normal() {
+            retourne complétion_arg
+        }
+        complétion_valeur := get_value(interpréteuse, complétion_arg.valeur)
+        saufsi complétion_valeur.est_normal() {
+            retourne complétion_valeur
+        }
+        valeur_arg := complétion_valeur.valeur.V
+        tableau_ajoute(résultat, valeur_arg)
+    }
+
+    retourne normal_completion(js_undefined)
 }
 
 /** \} */
@@ -2394,6 +2697,294 @@ sur_exécution_typeof_operator :: fonc (base: *NoeudSyntaxique, interpréteuse: 
 
     // 14. Return "object".
     retourne crée_string_value_completion(interpréteuse, STR_object)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ThrowStatement
+ * https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-throw-statement
+ * \{ */
+
+ThrowStatement :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_throw_statement
+
+    argument: *NoeudSyntaxique
+}
+
+crée_throw_statement :: fonc (argument: *NoeudSyntaxique) -> *ThrowStatement
+{
+    résultat := loge(ThrowStatement)
+    résultat.argument = argument
+    retourne résultat
+}
+
+sur_exécution_throw_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    throw := base comme *ThrowStatement
+
+    // 1. Let exprRef be ? Evaluation of Expression.
+    completion_expr_ref := exécute_noeud(throw.argument, interpréteuse)
+    saufsi completion_expr_ref.est_normal() {
+        retourne completion_expr_ref
+    }
+    expr_ref := completion_expr_ref.valeur
+
+    // 2. Let exprValue be ? GetValue(exprRef).
+    completion_expr_value := get_value(interpréteuse, expr_ref)
+    saufsi completion_expr_value.est_normal() {
+        retourne completion_expr_value
+    }
+    expr_value := completion_expr_value.valeur
+
+    // 3. Return ThrowCompletion(exprValue).
+    retourne throw_completion(expr_value)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom TryStatement
+ * https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-try-statement
+ * \{ */
+
+TryStatement :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_try_statement
+
+    block: *NoeudSyntaxique
+    handler: *CatchClause
+    finalizer: *NoeudSyntaxique
+}
+
+crée_try_statement :: fonc (block: *NoeudSyntaxique, handler: *CatchClause, finalizer: *NoeudSyntaxique) -> *TryStatement
+{
+    résultat := loge(TryStatement)
+    résultat.block = block
+    résultat.handler = handler
+    résultat.finalizer = finalizer
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-try-statement-runtime-semantics-evaluation */
+sur_exécution_try_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    try := base comme *TryStatement
+
+    si try.handler != nul && try.finalizer == nul {
+        // 1. Let B be Completion(Evaluation of Block).
+        B := exécute_noeud(try.block, interpréteuse)
+
+        // 2. If B is a throw completion, let C be Completion(CatchClauseEvaluation of Catch with argument B.[[Value]]).
+        C: CompletionRecord
+        si B.est_throw() {
+            C = catch_clause_evaluation(try.handler, interpréteuse, B.valeur)
+        }
+        // 3. Else, let C be B.
+        sinon {
+            C = B
+        }
+
+        // 4. Return ? UpdateEmpty(C, undefined).
+        retourne update_empty(C, js_undefined)
+    }
+
+    si try.handler == nul && try.finalizer != nul {
+        // 1. Let B be Completion(Evaluation of Block).
+        B := exécute_noeud(try.block, interpréteuse)
+
+        // 2. Let F be Completion(Evaluation of Finally).
+        F := exécute_noeud(try.finalizer, interpréteuse)
+
+        // 3. If F is a normal completion, set F to B.
+        si F.est_normal() {
+            F = B
+        }
+
+        // 4. Return ? UpdateEmpty(F, undefined).
+        retourne update_empty(F, js_undefined)
+    }
+
+    // 1. Let B be Completion(Evaluation of Block).
+    B := exécute_noeud(try.block, interpréteuse)
+
+    // 2. If B is a throw completion, let C be Completion(CatchClauseEvaluation of Catch with argument B.[[Value]]).
+    C: CompletionRecord
+    si B.est_throw() {
+        C = catch_clause_evaluation(try.handler, interpréteuse, B.valeur)
+    }
+    // 3. Else, let C be B.
+    sinon {
+        C = B
+    }
+
+    // 4. Let F be Completion(Evaluation of Finally).
+    F := exécute_noeud(try.finalizer, interpréteuse)
+
+    // 5. If F is a normal completion, set F to C.
+    si F.est_normal() {
+        F = B
+    }
+
+    // 6. Return ? UpdateEmpty(F, undefined).
+    retourne update_empty(F, js_undefined)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom CatchClause
+ * https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-try-statement
+ * \{ */
+
+CatchClause :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+
+    param: *NoeudSyntaxique
+    body: *NoeudSyntaxique
+}
+
+crée_catch_clause :: fonc (param: *NoeudSyntaxique, body: *NoeudSyntaxique) -> *CatchClause
+{
+    résultat := loge(CatchClause)
+    résultat.param = param
+    résultat.body = body
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-runtime-semantics-catchclauseevaluation */
+catch_clause_evaluation :: fonc (catch: *CatchClause, interpréteuse: *Interpréteuse, thrown_value: Valeur) -> CompletionRecord
+{
+    saufsi catch.param {
+        // 1. Return ? Evaluation of Block.
+        retourne exécute_noeud(catch.body, interpréteuse)
+    }
+
+    mv := interpréteuse.mv
+    running_execution_context := mv.donne_running_execution_context()
+
+    // 1. Let oldEnv be the running execution context's LexicalEnvironment.
+    old_env := running_execution_context.lexical_environment
+
+    // 2. Let catchEnv be NewDeclarativeEnvironment(oldEnv).
+    catch_env := new_declarative_environment(old_env.donne_tas_de_mémoire(), old_env)
+
+    // 3. For each element argName of the BoundNames of CatchParameter, do
+    //    a. Perform ! catchEnv.CreateMutableBinding(argName, false).
+    assert(catch.param.type == Identifier)
+    identifier := catch.param comme *Identifier
+
+    arg_name := identifier.nom
+    catch_env.create_mutable_binding(arg_name, faux)
+
+    // 4. Set the running execution context's LexicalEnvironment to catchEnv.
+    running_execution_context.lexical_environment = catch_env
+
+    // À FAIRE : 5. Let status be Completion(BindingInitialization of CatchParameter with arguments thrownValue and catchEnv).
+    status := catch_env.initialize_binding(arg_name, thrown_value)
+
+    // 6. If status is an abrupt completion, then
+    si status.est_abrupt() {
+        // a. Set the running execution context's LexicalEnvironment to oldEnv.
+        running_execution_context.lexical_environment = old_env
+
+        // b. Return ? status.
+        retourne status
+    }
+
+    // 7. Let B be Completion(Evaluation of Block).
+    B := exécute_noeud(catch.body, interpréteuse)
+
+    // 8. Set the running execution context's LexicalEnvironment to oldEnv.
+    running_execution_context.lexical_environment = old_env
+
+    // 9. Return ? B.
+    retourne B
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom NewExpression
+ * \{ */
+
+NewExpression :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_new_expression
+
+    argument: *NoeudSyntaxique
+}
+
+crée_new_expression :: fonc (argument: *NoeudSyntaxique) -> *NewExpression
+{
+    résultat := loge(NewExpression)
+    résultat.argument = argument
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-new-operator-runtime-semantics-evaluation */
+sur_exécution_new_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    new := base comme *NewExpression
+
+    construct_expr: *NoeudSyntaxique
+    arguments: []*NoeudSyntaxique
+
+    si new.argument.type == CallExpression {
+        call := new.argument comme *CallExpression
+        construct_expr = call.appelé
+        arguments = call.arguments
+    }
+    sinon {
+        construct_expr = new.argument
+    }
+
+    retourne evaluate_new(interpréteuse, construct_expr, arguments)
+}
+
+/* 13.3.5.1.1 EvaluateNew ( constructExpr, arguments )
+ * https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-new-operator-runtime-semantics-evaluation */
+evaluate_new :: fonc (interpréteuse: *Interpréteuse, construct_expr: *NoeudSyntaxique, arguments: []*NoeudSyntaxique) -> CompletionRecord
+{
+    // 1. Let ref be ? Evaluation of constructExpr.
+    completion_ref := exécute_noeud(construct_expr, interpréteuse)
+    saufsi completion_ref.est_normal() {
+        retourne completion_ref
+    }
+    ref := completion_ref.valeur
+
+    // 2. Let constructor be ? GetValue(ref).
+    completion_constructor := get_value(interpréteuse, ref)
+    saufsi completion_constructor.est_normal() {
+        retourne completion_constructor
+    }
+    constructor := completion_constructor.valeur
+
+    arg_list: [..]Valeur
+    diffère déloge(arg_list)
+    // 3. If arguments is empty, then
+        // a. Let argList be a new empty List.
+    // 4. Else,
+    si arguments.taille != 0 {
+        // a. Let argList be ? ArgumentListEvaluation of arguments.
+        completion_arg_list := argument_list_evaluation(interpréteuse, arguments, *arg_list)
+        saufsi completion_arg_list.est_normal() {
+            retourne completion_arg_list
+        }
+    }
+
+    // 5. If IsConstructor(constructor) is false, throw a TypeError exception.
+    saufsi is_constructor(constructor) {
+        retourne lance_type_error(interpréteuse, "expression is not a constructor")
+    }
+
+    // 6. Return ? Construct(constructor, argList).
+    retourne construct(interpréteuse, constructor, arg_list)
 }
 
 /** \} */

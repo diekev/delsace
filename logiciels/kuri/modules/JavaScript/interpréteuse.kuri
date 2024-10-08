@@ -234,7 +234,7 @@ get_value :: fonc (realm: *Realm, valeur: ValeurCompletion) -> CompletionRecord
     // b. Assert: base is an Environment Record.
 
     // c. Return ? base.GetBindingValue(V.[[ReferencedName]], V.[[Strict]]) (see 9.1).
-    retourne base.get_binding_value(V.referenced_name.donne_property_key(), V.strict)
+    retourne base.get_binding_value(realm, V.referenced_name.donne_property_key(), V.strict)
 }
 
 /* 6.2.5.6 PutValue
@@ -243,7 +243,7 @@ put_value :: fonc (interpréteuse: *Interpréteuse, référence: ValeurCompletio
 {
     // 1. If V is not a Reference Record, throw a ReferenceError exception.
     saufsi est_reference_record(référence) {
-        panique("exceptions non-implémentées")
+        retourne lance_reference_error(interpréteuse.donne_realm(), "cannot put value")
     }
 
     record := référence.R
@@ -302,7 +302,7 @@ put_value :: fonc (interpréteuse: *Interpréteuse, référence: ValeurCompletio
         succeeded := completion.valeur.V
         // e. If succeeded is false and V.[[Strict]] is true, throw a TypeError exception.
         si succeeded.est_false() && record.strict {
-            panique("exceptions non-implémentées")
+            retourne lance_type_error(interpréteuse.donne_realm(), "cannot add property on type")
         }
         // f. Return UNUSED.
         retourne normal_completion(js_undefined)
@@ -314,7 +314,7 @@ put_value :: fonc (interpréteuse: *Interpréteuse, référence: ValeurCompletio
     // b. Assert: base is an Environment Record.
 
     // c. Return ? base.SetMutableBinding(V.[[ReferencedName]], W, V.[[Strict]]) (see 9.1).
-    retourne base.set_mutable_binding(record.referenced_name.donne_property_key(), valeur, record.strict)
+    retourne base.set_mutable_binding(interpréteuse.donne_realm(), record.referenced_name.donne_property_key(), valeur, record.strict)
 }
 
 /* 6.2.5.7 GetThisValue ( V )
@@ -438,10 +438,14 @@ est_return :: fonc (completion: CompletionRecord) -> bool
     retourne completion.type == CompletionRecord.Type.RETURN
 }
 
-throw_completion :: fonc (error: *Error) -> CompletionRecord
+est_throw :: fonc (completion: CompletionRecord) -> bool
 {
-    valeur := ValeurCompletion(Valeur(Object = error))
-    retourne CompletionRecord(CompletionRecord.Type.THROW, valeur)
+    retourne completion.type == CompletionRecord.Type.THROW
+}
+
+throw_completion :: fonc (valeur: Valeur) -> CompletionRecord
+{
+    retourne CompletionRecord(CompletionRecord.Type.THROW, ValeurCompletion(valeur))
 }
 
 /** \} */
@@ -585,6 +589,47 @@ resolve_binding :: fonc (interpréteuse: *Interpréteuse, nom: ECMAString, envir
 
     // 4. Return ? GetIdentifierReference(env, name, strict).
     retourne get_identifier_reference(interpréteuse.donne_tas_de_mémoire(), environment, nom, strict)
+}
+
+/* 9.4.3 GetThisEnvironment ( )
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-getthisenvironment */
+get_this_environment :: fonc (interpréteuse: *Interpréteuse) -> *Environment
+{
+    // 1. Let env be the running execution context's LexicalEnvironment.
+    env := interpréteuse.donne_running_execution_context().lexical_environment
+
+    // 2. Repeat,
+    boucle {
+        // a. Let exists be env.HasThisBinding().
+        exists := env.has_this_binding()
+
+        // b. If exists is true, return env.
+        si exists {
+            arrête
+        }
+
+        // c. Let outer be env.[[OuterEnv]].
+        outer := env.outer_environment
+
+        // d. Assert: outer is not null.
+        assert(outer != nul)
+    
+        // e. Set env to outer.
+        env = outer
+    }
+
+    retourne env
+}
+
+/* 9.4.4 ResolveThisBinding ( )
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-resolvethisbinding */
+resolve_this_binding :: fonc (interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    // 1. Let envRec be GetThisEnvironment().
+    env_rec := get_this_environment(interpréteuse)
+
+    // 2. Return ? envRec.GetThisBinding().
+    retourne env_rec.get_this_binding(interpréteuse.donne_realm())
 }
 
 /* 9.4.6 GetGlobalObject
