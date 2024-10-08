@@ -515,6 +515,10 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
             parseuse.consomme()
             retourne crée_null_literal()
         }
+        This {
+            parseuse.consomme()
+            retourne crée_this_expression()
+        }
         Identifiant {
             parseuse.consomme()
             retourne crée_identifier(lexème.texte)

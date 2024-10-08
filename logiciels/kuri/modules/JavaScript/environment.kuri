@@ -18,6 +18,7 @@ Environment :: struct {
     sur_with_base_object: fonc(*Environment)(Valeur)
     sur_create_global_function_binding: fonc(*Environment, ECMAString, Valeur, bool)(CompletionRecord)
     sur_has_this_binding: fonc(*Environment)(bool)
+    sur_get_this_binding: fonc(*Environment)(CompletionRecord)
 }
 
 has_binding :: fonc (environment: *Environment, nom: ECMAString) -> CompletionRecord
@@ -67,6 +68,12 @@ has_this_binding :: fonc (environment: *Environment) -> bool
 {
     assert(environment.sur_has_this_binding != nul)
     retourne environment.sur_has_this_binding(environment)
+}
+
+get_this_binding :: fonc (environment: *Environment) -> CompletionRecord
+{
+    assert(environment.sur_get_this_binding != nul)
+    retourne environment.sur_get_this_binding(environment)
 }
 
 /* 9.1.2.1 GetIdentifierReference
@@ -297,6 +304,7 @@ FunctionEnvironment :: struct {
     this_binding_status: ThisBindingStatus
 
     sur_has_this_binding = function_environment_has_this_binding
+    sur_get_this_binding = function_environment_get_this_binding
 }
 
 /* 9.1.2.4 NewFunctionEnvironment ( F, newTarget )
@@ -359,6 +367,24 @@ function_environment_has_this_binding :: fonc (base: *Environment) -> bool
     env_rec := base comme *FunctionEnvironment
     // 1. If envRec.[[ThisBindingStatus]] is lexical, return false; otherwise, return true.
     retourne env_rec.this_binding_status != ThisBindingStatus.LEXICAL
+}
+
+/* 9.1.1.3.4 GetThisBinding ( )
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-function-environment-records-getthisbinding */
+function_environment_get_this_binding :: fonc (base: *Environment) -> CompletionRecord
+{
+    env_rec := base comme *FunctionEnvironment
+
+    // 1. Assert: envRec.[[ThisBindingStatus]] is not lexical.
+    assert(env_rec.this_binding_status != ThisBindingStatus.LEXICAL)
+
+    // 2. If envRec.[[ThisBindingStatus]] is uninitialized, throw a ReferenceError exception.
+    si env_rec.this_binding_status == ThisBindingStatus.UNINITIALIZED {
+        panique("exception non implémentée\n")
+    }
+
+    // 3. Return envRec.[[ThisValue]].
+    retourne normal_completion(env_rec.this_value)
 }
 
 /** \} */
@@ -572,6 +598,7 @@ GlobalEnvironment :: struct {
     sur_with_base_object = global_environment_with_base_object
     sur_create_global_function_binding = global_environment_create_global_function_binding
     sur_has_this_binding = global_environment_has_this_binding
+    sur_get_this_binding = global_environment_get_this_binding
 }
 
 /* 9.1.2.5 NewGlobalEnvironment ( G, thisValue )
@@ -684,6 +711,15 @@ global_environment_with_base_object :: fonc (base: *Environment @inutilisée) ->
 {
     // 1. Return undefined.
     retourne js_undefined
+}
+
+/* 9.1.1.4.11 GetThisBinding ( )
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-global-environment-records-getthisbindinghttps://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-global-environment-records-getthisbinding */
+global_environment_get_this_binding :: fonc (base: *Environment) -> CompletionRecord
+{
+    env_rec := base comme *GlobalEnvironment
+    // 1. Return envRec.[[GlobalThisValue]].
+    retourne normal_completion(env_rec.global_this_value)
 }
 
 /* 9.1.1.4.18 CreateGlobalFunctionBinding ( N, V, D )

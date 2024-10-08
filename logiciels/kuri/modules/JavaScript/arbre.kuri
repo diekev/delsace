@@ -290,6 +290,29 @@ instantiate_ordinary_function_expression :: fonc (interpréteuse: *Interpréteus
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom This
+ * \{ */
+
+ThisExpression :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_this_expression
+}
+
+crée_this_expression :: fonc () -> *ThisExpression
+{
+    retourne loge(ThisExpression)
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-this-keyword-runtime-semantics-evaluation */
+sur_exécution_this_expression :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    retourne resolve_this_binding(interpréteuse)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Identifier
  * \{ */
 
