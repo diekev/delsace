@@ -1,0 +1,63 @@
+importe Chaine
+
+/* ------------------------------------------------------------------------- */
+/** \nom StringPrototype
+ * https://tc39.es/ecma262/multipage/text-processing.html#sec-properties-of-the-string-prototype-object
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_string_prototype := TableVirtuelleObject(classe = StringPrototype, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
+StringPrototype :: struct {
+    empl objet: Object
+    table = *table_virtuelle_string_prototype
+
+    string_data: *PrimitiveChaine
+}
+
+crée_string_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ObjectPrototype) -> *StringPrototype
+{
+    résultat := tas_de_mémoire.alloue(StringPrototype)
+    résultat.prototype = prototype
+    résultat.string_data = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(""))
+    résultat.ajoute_propriété(STR_length, Valeur(Number = 0.0), DrapeauxPropriété.zéro)
+
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ObjetChaine
+ * https://tc39.es/ecma262/multipage/text-processing.html#sec-string-objects
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_objet_chaine := TableVirtuelleObject(classe = ObjetChaine, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
+ObjetChaine :: struct {
+    empl objet: Object
+    table = *table_virtuelle_objet_chaine
+
+    chn: *PrimitiveChaine
+}
+
+crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, string_prototype: *StringPrototype, chn: *PrimitiveChaine) -> *ObjetChaine
+{
+    résultat := tas_de_mémoire.alloue(ObjetChaine)
+    résultat.prototype = string_prototype
+    résultat.chn = chn
+
+    résultat.ajoute_propriété(STR_length, Valeur(Number = chn.texte.donne_chaine_utf16().taille() comme r64), DrapeauxPropriété.zéro)
+    résultat.ajoute_propriété(STR_prototype, Valeur(Object = string_prototype), DrapeauxPropriété.zéro)
+
+    retourne résultat
+}
+
+/** \} */

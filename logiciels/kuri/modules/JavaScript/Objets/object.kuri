@@ -1,0 +1,286 @@
+importe Chaine
+importe Fondation
+
+/* ------------------------------------------------------------------------- */
+/** \nom Object
+ * \{ */
+
+ParamètresObjectCall :: struct {
+    object: *Object
+    interpréteuse: *Interpréteuse
+    this_value: Valeur
+    arguments: []Valeur
+}
+
+TypeFonctionObjectCall :: fonc(*ParamètresObjectCall)(CompletionRecord)
+
+TableVirtuelleObject :: struct {
+    empl base_virtuelle_cellule: TableVirtuelleCellule
+
+    sur_get_prototype_of := ordinary_get_prototype_of
+    sur_get_own_property := ordinary_get_own_property
+    sur_define_own_property := ordinary_define_own_property
+    sur_get := ordinary_get
+    sur_call: TypeFonctionObjectCall
+}
+
+#portée_fichier
+
+table_virtuelle_objet := TableVirtuelleObject(classe = Object, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
+DrapeauxPropriété :: énum_drapeau n8 {
+    WRITABLE
+    ENUMERABLE
+    CONFIGURABLE
+}
+
+Configurable :: DrapeauxPropriété.CONFIGURABLE
+Enumerable :: DrapeauxPropriété.ENUMERABLE
+Writable :: DrapeauxPropriété.WRITABLE
+
+Object :: struct {
+    empl base: Cellule
+    table = *table_virtuelle_objet
+
+    /* https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-property-attributes */
+    Propriété :: struct {
+        nom: PropertyKey
+        valeur: Valeur
+        get: *Object
+        set: *Object
+        drapeaux: DrapeauxPropriété
+    }
+
+    propriétés: [..]Propriété
+
+    prototype: *Object
+}
+
+donne_table :: fonc (object: *Object) -> *TableVirtuelleObject
+{
+    retourne object.table comme *TableVirtuelleObject
+}
+
+is_data_propery :: fonc (propriété: &Object.Propriété) -> bool
+{
+    retourne propriété.get == nul && propriété.set == nul
+}
+
+is_accessor_propery :: fonc (propriété: &Object.Propriété) -> bool
+{
+    retourne !is_data_propery(propriété)
+}
+
+crée_objet :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Object) -> *Object
+{
+    résultat := tas_de_mémoire.alloue(Object)
+    résultat.prototype = prototype
+    retourne résultat
+}
+
+sur_destruction_objet :: fonc (base: *Cellule)
+{
+    objet := base comme *Object
+    déloge(objet.propriétés)
+}
+
+ajoute_propriété :: fonc (objet: *Object, nom: PropertyKey, valeur: Valeur, drapeaux: DrapeauxPropriété)
+{
+    tableau_ajoute(*objet.propriétés, Object.Propriété(nom, valeur, drapeaux = drapeaux))
+}
+
+ajoute_propriété :: fonc (objet: *Object, nom: PropertyKey, get: TypeFonctionObjectCall, set: TypeFonctionObjectCall, drapeaux: DrapeauxPropriété)
+{
+    getter: *Object
+    setter: *Object
+    si get {
+        getter = crée_fonction_native(objet.donne_tas_de_mémoire(), crée_chaine_utf16_unique_vide(), get, 0)
+    }
+    si set {
+        setter = crée_fonction_native(objet.donne_tas_de_mémoire(), crée_chaine_utf16_unique_vide(), set, 0)
+    }
+    tableau_ajoute(*objet.propriétés, Object.Propriété(nom, get = getter, set = setter, drapeaux = drapeaux))
+}
+
+/* [[GetPrototypeOf]] */
+internal_get_prototype_of :: fonc (object: *Object) -> *Object
+{
+    retourne object.donne_table().sur_get_prototype_of(object)
+}
+
+/* [[GetOwnProperty]] */
+internal_get_own_property :: fonc (object: *Object, property_key: PropertyKey) -> CompletionRecord
+{
+    retourne object.donne_table().sur_get_own_property(object, property_key)
+}
+
+/* [[DefineOwnProperty]] */
+internal_define_own_property :: fonc (object: *Object, property_key: PropertyKey, desc: &PropertyDescriptor) -> CompletionRecord
+{
+    retourne object.donne_table().sur_define_own_property(object, property_key, desc)
+}
+
+/* [[HasProperty]] */
+internal_has_property :: fonc (object: *Object, property_key: PropertyKey) -> CompletionRecord
+{
+    // À FAIRE : sur_has_property
+    propriété := trouve_propriété(object, property_key)
+    si propriété {
+        retourne normal_completion(Valeur(Boolean = vrai))
+    }
+    retourne normal_completion(Valeur(Boolean = faux))
+}
+
+/* [[Get]] */
+internal_get :: fonc (object: *Object, property_key: PropertyKey, receiver: Valeur) -> CompletionRecord
+{
+    retourne object.donne_table().sur_get(object, property_key, receiver)
+}
+
+/* [[Set]] */
+internal_set :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur, receiver: Valeur @inutilisée) -> CompletionRecord
+{
+    // À FAIRE : sur_set
+    propriété := trouve_propriété(object, property_key)
+    si propriété {
+        propriété.valeur = valeur
+        retourne normal_completion(Valeur(Boolean = vrai))
+    }
+
+    tableau_ajoute(*object.propriétés, Object.Propriété(property_key, valeur))
+    retourne normal_completion(Valeur(Boolean = vrai))
+}
+
+/* [[Call]] */
+internal_call :: fonc (object: *Object, interpréteuse: *Interpréteuse, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+{
+    params: ParamètresObjectCall = ---
+    params.object = object
+    params.arguments = arguments
+    params.this_value = this_value
+    params.interpréteuse = interpréteuse
+    retourne object.donne_table().sur_call(*params)
+}
+
+trouve_propriété :: fonc (objet: *Object, nom: PropertyKey) -> *Object.Propriété
+{
+    pour * objet.propriétés {
+        si it.nom == nom {
+            retourne it
+        }
+    }
+    retourne nul
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ObjectPrototype
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-object-prototype-object
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_object_prototype := TableVirtuelleObject(classe = ObjectPrototype, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
+ObjectPrototype :: struct {
+    empl objet: Object
+    table = *table_virtuelle_object_prototype
+}
+
+crée_object_prototype :: fonc (tas_de_mémoire: *TasDeMémoire) -> *ObjectPrototype
+{
+    résultat := tas_de_mémoire.alloue(ObjectPrototype)
+    résultat.ajoute_fonction_native(STR_hasOwnProperty, object_prototype_has_own_property)
+    résultat.ajoute_fonction_native(STR_toString, object_prototype_to_string)
+    retourne résultat
+}
+
+/* 20.1.3.2 Object.prototype.hasOwnProperty ( V )
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-object.prototype.hasownproperty */ 
+object_prototype_has_own_property :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    si arguments.taille != 1 {
+        retourne normal_completion(js_undefined)
+    }
+
+    // 1. Let P be ? ToPropertyKey(V).
+    complétion_nom := to_property_key(interpréteuse, arguments[0])
+    saufsi complétion_nom.est_normal() {
+        retourne complétion_nom
+    }
+    nom := complétion_nom.valeur.V.String.texte
+
+    // 2. Let O be ? ToObject(this value).
+    complétion_obj := vers_objet(interpréteuse.donne_realm(), this_value)
+    saufsi complétion_obj.est_normal() {
+        retourne complétion_obj
+    }
+    obj := complétion_obj.valeur.V.donne_objet()
+
+    // 3. Return ? HasOwnProperty(O, P).
+    retourne has_own_property(obj, nom)
+}
+
+/* 20.1.3.6 Object.prototype.toString ( )
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-object.prototype.tostring */
+object_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    // 1. If the this value is undefined, return "[object Undefined]".
+    si this_value.est_undefined() {
+        retourne crée_string_value_completion(interpréteuse, "[object Undefined]")
+    }
+
+    // 2. If the this value is null, return "[object Null]".
+    si this_value.est_nulle() {
+        retourne crée_string_value_completion(interpréteuse, "[object Null]")
+    }
+
+    // 3. Let O be ! ToObject(this value).
+    O := vers_objet(interpréteuse.donne_realm(), this_value).valeur.V.donne_objet()
+
+    // À FAIRE : 4. Let isArray be ? IsArray(O).
+
+    builtin_tag: chaine
+
+    // 5. If isArray is true, let builtinTag be "Array".
+    si O.donne_classe() == ObjetArray {
+        builtin_tag = "Array"
+    }
+    // À FAIRE : 6. Else if O has a [[ParameterMap]] internal slot, let builtinTag be "Arguments".
+    // 7. Else if O has a [[Call]] internal method, let builtinTag be "Function".
+    sinon si O.donne_table().sur_call {
+        builtin_tag = "Function"
+    }
+    // 8. Else if O has an [[ErrorData]] internal slot, let builtinTag be "Error".
+    sinon si O.donne_classe() == Error || O.donne_classe() == ReferenceError || O.donne_classe() == TypeError {
+        builtin_tag = "Error"
+    }
+    // À FAIRE : 9. Else if O has a [[BooleanData]] internal slot, let builtinTag be "Boolean".
+    // À FAIRE : 10. Else if O has a [[NumberData]] internal slot, let builtinTag be "Number".
+    // 11. Else if O has a [[StringData]] internal slot, let builtinTag be "String".
+    sinon si O.donne_classe() == ObjetChaine {
+        builtin_tag = "String"
+    }
+    // À FAIRE : 12. Else if O has a [[DateValue]] internal slot, let builtinTag be "Date".
+    // À FAIRE : 13. Else if O has a [[RegExpMatcher]] internal slot, let builtinTag be "RegExp".
+    // 14. Else, let builtinTag be "Object".
+    sinon {
+        builtin_tag = "Object"
+    }
+
+    // À FAIRE : 15. Let tag be ? Get(O, %Symbol.toStringTag%).
+    // 16. If tag is not a String, set tag to builtinTag.
+    tag := builtin_tag
+
+    // 17. Return the string-concatenation of "[object ", tag, and "]".
+    résultat := enchaine("[object ", tag, "]")
+    diffère déloge(résultat)
+    retourne crée_string_value_completion(interpréteuse, résultat)
+}
+
+/** \} */
