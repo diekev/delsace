@@ -14,16 +14,18 @@ ajourne_boite_pour_calcul_largeur :: fonc (noeud: *NoeudDeDisposition)
     border_right_width := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthRight).pixels comme r32
     margin_right := propriétés.donne_valeur_utilisée(IDPropriété.MarginRight).pixels comme r32
 
-    noeud.modèle_de_boite.marge.x = 0.0
+    x := noeud.modèle_de_boite.marge.x
+
+    noeud.modèle_de_boite.marge.x = x
     noeud.modèle_de_boite.marge.largeur = margin_left + border_left_width + padding_left + width + padding_right + border_right_width + margin_right
 
-    noeud.modèle_de_boite.bordure.x = margin_left
+    noeud.modèle_de_boite.bordure.x = x + margin_left
     noeud.modèle_de_boite.bordure.largeur = border_left_width + padding_left + width + padding_right + border_right_width
 
-    noeud.modèle_de_boite.rembourrage.x = margin_left + border_left_width
+    noeud.modèle_de_boite.rembourrage.x = x + margin_left + border_left_width
     noeud.modèle_de_boite.rembourrage.largeur =  padding_left + width + padding_right
 
-    noeud.modèle_de_boite.contenu.x = margin_left + border_left_width + padding_left
+    noeud.modèle_de_boite.contenu.x = x + margin_left + border_left_width + padding_left
     noeud.modèle_de_boite.contenu.largeur = width
 }
 
@@ -39,27 +41,29 @@ ajourne_boite_pour_calcul_hauteur :: fonc (noeud: *NoeudDeDisposition)
     border_bottom_height := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthBottom).pixels comme r32
     margin_bottom := propriétés.donne_valeur_utilisée(IDPropriété.MarginBottom).pixels comme r32
 
-    noeud.modèle_de_boite.marge.y = 0.0
+    y := noeud.modèle_de_boite.marge.y
+
+    noeud.modèle_de_boite.marge.y = y
     noeud.modèle_de_boite.marge.hauteur = margin_top + border_top_height + padding_top + height + padding_bottom + border_bottom_height + margin_bottom
 
-    noeud.modèle_de_boite.bordure.y = margin_top
+    noeud.modèle_de_boite.bordure.y = y + margin_top
     noeud.modèle_de_boite.bordure.hauteur = border_top_height + padding_top + height + padding_bottom + border_bottom_height
 
-    noeud.modèle_de_boite.rembourrage.y = margin_top + border_top_height
+    noeud.modèle_de_boite.rembourrage.y = y + margin_top + border_top_height
     noeud.modèle_de_boite.rembourrage.hauteur =  padding_top + height + padding_bottom
 
-    noeud.modèle_de_boite.contenu.y = margin_top + border_top_height + padding_top
+    noeud.modèle_de_boite.contenu.y = y + margin_top + border_top_height + padding_top
     noeud.modèle_de_boite.contenu.hauteur = height
 }
 
-calcule_largeur_et_marges :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition, containing_block: &ContainingBlock)
+calcule_largeur_et_marges :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition, containing_block: &ContainingBlock, outrepas_largeur: *ValeurDeStyle)
 {
     résoud_pourcentage_largeurs(noeud, containing_block)
     width_of_containing_block := containing_block.donne_largeur()
 
     fonction_de_calcul := donne_fonction_calcul_largeur_et_marges(noeud)
 
-    fonction_de_calcul(ctx, noeud, width_of_containing_block, nul)
+    fonction_de_calcul(ctx, noeud, width_of_containing_block, outrepas_largeur)
 
     width := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width)
 
@@ -194,15 +198,20 @@ résoud_pourcentage_insets :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDe
     }
 }
 
-calcule_hauteur_et_marges :: fonc (noeud: *NoeudDeDisposition, containing_block: &ContainingBlock)
+calcule_hauteur_et_marges :: fonc (noeud: *NoeudDeDisposition, containing_block: &ContainingBlock, outrepas_hauteur: *ValeurDeStyle)
 {
     résoud_pourcentage_hauteur(noeud, containing_block)
 
     fonction_de_calcul := donne_fonction_calcul_hauteur_et_marges(noeud)
 
-    fonction_de_calcul(noeud, nul)
+    height := noeud.propriétés.donne_valeur_calculée(IDPropriété.Height)
+    saufsi height.est_auto() {
+        outrepas_hauteur = nul
+    }
 
-    height := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Height)
+    fonction_de_calcul(noeud, outrepas_hauteur)
+
+    height = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Height)
     max_height := noeud.propriétés.donne_valeur_calculée(IDPropriété.MaxHeight)
     si max_height.est_pixels() && (height.pixels > max_height.pixels) {
         fonction_de_calcul(noeud, *max_height)

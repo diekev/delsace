@@ -10,6 +10,7 @@ charge "globales"
 charge "lexage"
 charge "objets"
 charge "parsage"
+charge "stacking_context"
 charge "style"
 charge "terminologie"
 
