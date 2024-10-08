@@ -1691,27 +1691,39 @@ ordinary_call_evaluate_body :: fonc (interpréteuse: *Interpréteuse, F: *Functi
 
 /* 10.2.11 FunctionDeclarationInstantiation ( func, argumentsList )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-functiondeclarationinstantiation */
-function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse @inutilisée, func: *Function @inutilisée, arguments_list: []Valeur @inutilisée) -> CompletionRecord
+function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, func: *Function, arguments_list: []Valeur) -> CompletionRecord
 {
     // À FAIRE
 
     // 1. Let calleeContext be the running execution context.
-    // callee_context := interpréteuse.donne_running_execution_context()
+    callee_context := interpréteuse.donne_running_execution_context()
 
     // 2. Let code be func.[[ECMAScriptCode]].
     // code := func.corps
 
     // 3. Let strict be func.[[Strict]].
-    // strict := func.strict
+    strict := func.strict
 
     // 4. Let formals be func.[[FormalParameters]].
-    // formals := func.formal_parameters
+    formals := func.formal_parameters
 
     // 5. Let parameterNames be the BoundNames of formals.
+    // À FAIRE : BoundNames
+    parameter_names: [..]ECMAString
+    diffère déloge(parameter_names)
+
+    pour formals {
+        assert(it.type == Identifier)
+        tableau_ajoute(*parameter_names, (it comme *Identifier).nom)
+    }
 
     // 6. If parameterNames has any duplicate entries, let hasDuplicates be true. Otherwise, let hasDuplicates be false.
     // 7. Let simpleParameterList be IsSimpleParameterList of formals.
+
     // 8. Let hasParameterExpressions be ContainsExpression of formals.
+    // À FAIRE : ContainsExpression
+    has_parameter_expression := faux
+
     // 9. Let varNames be the VarDeclaredNames of code.
     // 10. Let varDeclarations be the VarScopedDeclarations of code.
     // 11. Let lexicalNames be the LexicallyDeclaredNames of code.
@@ -1734,22 +1746,40 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse @inu
     // 18. Else if hasParameterExpressions is false, then
         // a. If functionNames contains "arguments" or lexicalNames contains "arguments", then
             // i. Set argumentsObjectNeeded to false.
+
+    env: *Environment
     // 19. If strict is true or hasParameterExpressions is false, then
+    si strict || has_parameter_expression == faux {
         // a. NOTE: Only a single Environment Record is needed for the parameters, since calls to eval in strict mode code cannot create new bindings which are visible outside of the eval.
         // b. Let env be the LexicalEnvironment of calleeContext.
+        env = callee_context.lexical_environment
+    }
     // 20. Else,
+    sinon {
         // a. NOTE: A separate Environment Record is needed to ensure that bindings created by direct eval calls in the formal parameter list are outside the environment where parameters are declared.
         // b. Let calleeEnv be the LexicalEnvironment of calleeContext.
         // c. Let env be NewDeclarativeEnvironment(calleeEnv).
         // d. Assert: The VariableEnvironment of calleeContext and calleeEnv are the same Environment Record.
         // e. Set the LexicalEnvironment of calleeContext to env.
+    }
+
     // 21. For each String paramName of parameterNames, do
+    pour param_name dans parameter_names {
         // a. Let alreadyDeclared be ! env.HasBinding(paramName).
+        already_declared := env.has_binding(param_name).valeur.V
+
         // b. NOTE: Early errors ensure that duplicate parameter names can only occur in non-strict functions that do not have parameter default values or rest parameters.
+
         // c. If alreadyDeclared is false, then
+        si already_declared.est_false() {
             // i. Perform ! env.CreateMutableBinding(paramName, false).
+            env.create_mutable_binding(param_name, faux)
+
             // ii. If hasDuplicates is true, then
                 // 1. Perform ! env.InitializeBinding(paramName, undefined).
+        }
+    }
+
     // 22. If argumentsObjectNeeded is true, then
         // a. If strict is true or simpleParameterList is false, then
             // i. Let ao be CreateUnmappedArgumentsObject(argumentsList).
@@ -1765,11 +1795,20 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse @inu
         // f. Let parameterBindings be the list-concatenation of parameterNames and « "arguments" ».
     // 23. Else,
         // a. Let parameterBindings be parameterNames.
+
     // 24. Let iteratorRecord be CreateListIteratorRecord(argumentsList).
     // 25. If hasDuplicates is true, then
         // a. Perform ? IteratorBindingInitialization of formals with arguments iteratorRecord and undefined.
     // 26. Else,
         // a. Perform ? IteratorBindingInitialization of formals with arguments iteratorRecord and env.
+    pour parameter_names {
+        si index_it >= arguments_list.taille {
+            arrête
+        }
+
+        _ := env.initialize_binding(it, arguments_list[index_it])
+    }
+
     // 27. If hasParameterExpressions is false, then
         // a. NOTE: Only a single Environment Record is needed for the parameters and top-level vars.
         // b. Let instantiatedVarNames be a copy of the List parameterBindings.
