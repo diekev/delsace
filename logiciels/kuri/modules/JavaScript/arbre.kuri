@@ -96,6 +96,14 @@ prop_name :: fonc (noeud: *NoeudSyntaxique) -> ECMAString
     retourne crée_chaine_utf16_unique_vide()
 }
 
+/* 15.10.1 Static Semantics: IsInTailPosition ( call )
+ * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-isintailposition */
+is_in_tail_position :: fonc (call: *NoeudSyntaxique @inutilisée) -> bool
+{
+    // À FAIRE
+    retourne faux
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1406,11 +1414,75 @@ crée_call_expression :: fonc (appelé: *NoeudSyntaxique, arguments: ...*NoeudSy
  * https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-function-calls-runtime-semantics-evaluation */
 sur_exécution_call_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
 {
-    // À FAIRE : CoverCallExpressionAndAsyncArrowHead
+    noeud := base comme *CallExpression
+
+    // CallExpression : CoverCallExpressionAndAsyncArrowHead
+    si noeud.appelé.type != CallExpression {
+        // 1. Let expr be the CallMemberExpression that is covered by CoverCallExpressionAndAsyncArrowHead.
+        expr := noeud
+
+        // 2. Let memberExpr be the MemberExpression of expr.
+        member_expr := noeud.appelé
+
+        // 3. Let arguments be the Arguments of expr.
+        arguments := expr.arguments
+
+        // 4. Let ref be ? Evaluation of memberExpr.
+        completion_ref := exécute_noeud(member_expr, interpréteuse)
+        saufsi completion_ref.est_normal() {
+            retourne completion_ref
+        }
+        ref := completion_ref.valeur
+
+        // 5. Let func be ? GetValue(ref).
+        complétion_func := get_value(interpréteuse, ref)
+        saufsi complétion_func.est_normal() {
+            retourne complétion_func
+        }
+        func := complétion_func.valeur.V
+        
+        // 6. If ref is a Reference Record, IsPropertyReference(ref) is false, and ref.[[ReferencedName]] is "eval", then
+        si ref.est_reference_record() && est_référence_propriété(ref) == faux && ref.R.referenced_name.valeur.String.texte == STR_eval {
+            realm := interpréteuse.donne_realm()
+
+            // a. If SameValue(func, %eval%) is true, then
+            saufsi same_value(func, Valeur(Object = realm.intrinsics.eval)).est_false() {
+                //  i. Let argList be ? ArgumentListEvaluation of arguments.
+                arg_list: [..]Valeur
+                diffère déloge(arg_list)
+
+                completion_arg_list := argument_list_evaluation(interpréteuse, arguments, *arg_list)
+                saufsi completion_arg_list.est_normal() {
+                    retourne completion_arg_list
+                }
+
+                //  ii. If argList has no elements, return undefined.
+                si arg_list.taille == 0 {
+                    retourne normal_completion(js_undefined)
+                }
+
+                //  iii. Let evalArg be the first element of argList.
+                eval_arg := arg_list[0]
+
+                //  iv. If IsStrict(this CallExpression) is true, let strictCaller be true. Otherwise let strictCaller be false.
+                strict_caller := is_strict(noeud)
+
+                //  v. Return ? PerformEval(evalArg, strictCaller, true).
+                retourne perform_eval(interpréteuse, eval_arg, strict_caller, vrai)
+            }
+        }
+
+        // 7. Let thisCall be this CallExpression.
+        this_call := noeud
+
+        // 8. Let tailCall be IsInTailPosition(thisCall).
+        tail_call := is_in_tail_position(this_call)
+
+        // 9. Return ? EvaluateCall(func, ref, arguments, tailCall).
+        retourne evaluate_call(interpréteuse, func, ref, arguments, tail_call)
+    }
 
     // CallExpression : CallExpression Arguments
-
-    noeud := base comme *CallExpression
 
     // 1. Let ref be ? Evaluation of CallExpression.
     completion_ref := exécute_noeud(noeud.appelé, interpréteuse)
@@ -1429,10 +1501,10 @@ sur_exécution_call_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: 
     func := complétion_func.valeur.V
 
     // 3. Let thisCall be this CallExpression.
-    // this_call := noeud
+    this_call := noeud
 
-    // À FAIRE 4. Let tailCall be IsInTailPosition(thisCall).
-    tail_call := faux
+    // 4. Let tailCall be IsInTailPosition(thisCall).
+    tail_call := is_in_tail_position(this_call)
 
     // 5. Return ? EvaluateCall(func, ref, Arguments, tailCall).
     retourne evaluate_call(interpréteuse, func, ref, noeud.arguments, tail_call)
@@ -1468,20 +1540,10 @@ evaluate_call :: fonc (interpréteuse: *Interpréteuse, func: Valeur, ref: Valeu
     // 3. Let argList be ? ArgumentListEvaluation of arguments.
     // À FAIRE : fuite de mémoire
     arg_list: [..]Valeur
-
-    pour arguments {
-        complétion_arg := exécute_noeud(it, interpréteuse)
-        saufsi complétion_arg.est_normal() {
-            déloge(arg_list)
-            retourne complétion_arg
-        }
-        complétion_valeur := get_value(interpréteuse, complétion_arg.valeur)
-        saufsi complétion_valeur.est_normal() {
-            déloge(arg_list)
-            retourne complétion_valeur
-        }
-        valeur_arg := complétion_valeur.valeur.V
-        tableau_ajoute(*arg_list, valeur_arg)
+    completion_arg_list := argument_list_evaluation(interpréteuse, arguments, *arg_list)
+    saufsi completion_arg_list.est_normal() {
+        déloge(arg_list)
+        retourne completion_arg_list
     }
 
     // 4. If func is not an Object, throw a TypeError exception.
@@ -1503,6 +1565,26 @@ evaluate_call :: fonc (interpréteuse: *Interpréteuse, func: Valeur, ref: Valeu
 
     // 7. Return ? Call(func, thisValue, argList).
     retourne call(interpréteuse, func, this_value, arg_list)
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-runtime-semantics-argumentlistevaluation */
+argument_list_evaluation :: fonc (interpréteuse: *Interpréteuse, arguments: []*NoeudSyntaxique, résultat: *[..]Valeur) -> CompletionRecord
+{
+    // À FAIRE : standardise
+    pour arguments {
+        complétion_arg := exécute_noeud(it, interpréteuse)
+        saufsi complétion_arg.est_normal() {
+            retourne complétion_arg
+        }
+        complétion_valeur := get_value(interpréteuse, complétion_arg.valeur)
+        saufsi complétion_valeur.est_normal() {
+            retourne complétion_valeur
+        }
+        valeur_arg := complétion_valeur.valeur.V
+        tableau_ajoute(résultat, valeur_arg)
+    }
+
+    retourne normal_completion(js_undefined)
 }
 
 /** \} */
