@@ -610,7 +610,7 @@ visite_valeur :: fonc (visiteuse: *VisiteuseCellule, valeur: eini)
 
     si info.id == GenreInfoType.TABLEAU_FIXE || info.id == GenreInfoType.TABLEAU {
         itératrice := crée_itératrice_tableau(valeur)
-        si itératrice.type_pointé == info == info_de(Lexème) {
+        si itératrice.type_pointé == info_de(Lexème) {
             retourne
         }
         boucle {
