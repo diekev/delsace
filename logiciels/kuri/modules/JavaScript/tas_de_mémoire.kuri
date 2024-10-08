@@ -581,6 +581,19 @@ visite_valeur :: fonc (visiteuse: *VisiteuseCellule, valeur: eini)
             retourne
         }
 
+        si info == info_de(HostDefined) {
+            host_defined := mémoire(valeur.pointeur comme *HostDefined)
+
+            si host_defined.données == nul {
+                retourne
+            }
+
+            valeur.pointeur = host_defined.données
+            valeur.info = host_defined.infos
+            tableau_ajoute(*visiteuse.valeurs_à_visiter, valeur)
+            retourne
+        }
+
         visite_structure(visiteuse, valeur)
         retourne
     }
