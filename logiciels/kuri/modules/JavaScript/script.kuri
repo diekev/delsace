@@ -78,15 +78,15 @@ Script :: struct {
     empl base: Cellule
     table = *table_virtuelle_script
 
-    source: TexteSource
+    source: TexteSource @NeVisitePas
 
     /* Les lexèmes du script, les lexèmes des noeuds sont des adresses dans ce tableau. */
-    lexèmes: [..]Lexème
+    lexèmes: [..]Lexème @NeVisitePas
 
     realm: *Realm
 
     /* Arbre syntaxique. */
-    ecma_script_code: *Programme
+    ecma_script_code: *Programme @NeVisitePas
 
     host_defined: HostDefined
 }
