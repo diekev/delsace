@@ -1557,7 +1557,8 @@ table_virtuelle_function_eval := TableVirtuelleObject(classe = Function, sur_des
 
 crée_eval :: fonc (realm: *Realm, function_prototype: *FunctionPrototype) -> *Function
 {
-    résultat := crée_fonction(realm, function_prototype, STR_eval, nul)
+    résultat := crée_fonction(realm, function_prototype, nul)
+    set_function_name(résultat, STR_eval)
     résultat.table = *table_virtuelle_function_eval
     retourne résultat
 }

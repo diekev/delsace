@@ -24,7 +24,6 @@ Function :: struct {
     empl objet: Object
     table = *table_virtuelle_function_instruite
 
-    nom: ECMAString
     corps: *NoeudSyntaxique
     formal_parameters: [..]*NoeudSyntaxique
 
@@ -37,11 +36,10 @@ Function :: struct {
     script_or_module: *Script // ScriptOrModule
 }
 
-crée_fonction :: fonc (realm: *Realm, function_prototype: *FunctionPrototype, nom: ECMAString, corps: *NoeudSyntaxique) -> *Function
+crée_fonction :: fonc (realm: *Realm, function_prototype: *FunctionPrototype, corps: *NoeudSyntaxique) -> *Function
 {
     tas_de_mémoire := function_prototype.donne_tas_de_mémoire()
     résultat := tas_de_mémoire.alloue(Function)
-    résultat.nom = nom
     résultat.corps = corps
     résultat.prototype = function_prototype
     résultat.realm = realm
@@ -109,7 +107,7 @@ FunctionNative :: struct {
 crée_fonction_native :: fonc (tas_de_mémoire: *TasDeMémoire, nom: ECMAString, sur_appel: TypeFonctionObjectCall, length: z64) -> *FunctionNative
 {
     résultat := tas_de_mémoire.alloue(FunctionNative)
-    résultat.nom = nom
+    set_function_name(résultat, nom)
     résultat.sur_appel = sur_appel
     résultat.ajoute_propriété(STR_length, Valeur(Number = length comme r64), DrapeauxPropriété.zéro)
     retourne résultat
