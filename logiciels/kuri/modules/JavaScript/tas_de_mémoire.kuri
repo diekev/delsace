@@ -15,7 +15,7 @@ TasDeMémoire :: struct {
     blocs: [..]*BlocDeMémoire
 
     doit_ébouer_à_chaque_allocation := faux
-    allocations_entre_ébouages := 1000
+    allocations_entre_ébouages := 10_000
     allocations_depuis_dernier_ébouage := 0
 
     imprime_statistiques := faux
