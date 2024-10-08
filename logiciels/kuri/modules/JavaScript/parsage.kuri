@@ -865,6 +865,11 @@ parse_expression_unaire :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
             argument := parseuse.parse_expression_primaire()
             retourne crée_typeof_operator(argument)
         }
+        New {
+            parseuse.consomme()
+            argument := parseuse.parse_expression()
+            retourne crée_new_expression(argument);
+        }
         sinon {
             parseuse.rapporte_erreur("genre de lexème non géré dans parse_expression_unaire")
         }

@@ -2791,6 +2791,87 @@ catch_clause_evaluation :: fonc (catch: *CatchClause, interpréteuse: *Interpré
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom NewExpression
+ * \{ */
+
+NewExpression :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_new_expression
+
+    argument: *NoeudSyntaxique
+}
+
+crée_new_expression :: fonc (argument: *NoeudSyntaxique) -> *NewExpression
+{
+    résultat := loge(NewExpression)
+    résultat.argument = argument
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-new-operator-runtime-semantics-evaluation */
+sur_exécution_new_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    new := base comme *NewExpression
+
+    construct_expr: *NoeudSyntaxique
+    arguments: []*NoeudSyntaxique
+
+    si new.argument.type == CallExpression {
+        call := new.argument comme *CallExpression
+        construct_expr = call.appelé
+        arguments = call.arguments
+    }
+    sinon {
+        construct_expr = new.argument
+    }
+
+    retourne evaluate_new(interpréteuse, construct_expr, arguments)
+}
+
+/* 13.3.5.1.1 EvaluateNew ( constructExpr, arguments )
+ * https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-new-operator-runtime-semantics-evaluation */
+evaluate_new :: fonc (interpréteuse: *Interpréteuse, construct_expr: *NoeudSyntaxique, arguments: []*NoeudSyntaxique) -> CompletionRecord
+{
+    // 1. Let ref be ? Evaluation of constructExpr.
+    completion_ref := exécute_noeud(construct_expr, interpréteuse)
+    saufsi completion_ref.est_normal() {
+        retourne completion_ref
+    }
+    ref := completion_ref.valeur
+
+    // 2. Let constructor be ? GetValue(ref).
+    completion_constructor := get_value(interpréteuse, ref)
+    saufsi completion_constructor.est_normal() {
+        retourne completion_constructor
+    }
+    constructor := completion_constructor.valeur
+
+    arg_list: [..]Valeur
+    diffère déloge(arg_list)
+    // 3. If arguments is empty, then
+        // a. Let argList be a new empty List.
+    // 4. Else,
+    si arguments.taille != 0 {
+        // a. Let argList be ? ArgumentListEvaluation of arguments.
+        completion_arg_list := argument_list_evaluation(interpréteuse, arguments, *arg_list)
+        saufsi completion_arg_list.est_normal() {
+            retourne completion_arg_list
+        }
+    }
+
+    // 5. If IsConstructor(constructor) is false, throw a TypeError exception.
+    saufsi is_constructor(constructor) {
+        retourne lance_type_error(interpréteuse, "expression is not a constructor")
+    }
+
+    // 6. Return ? Construct(constructor, argList).
+    retourne construct(interpréteuse, constructor, arg_list)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Visiteuse arbre.
  * \{ */
 
