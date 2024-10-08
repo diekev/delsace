@@ -1237,7 +1237,7 @@ sur_construct_fonction_ecma :: fonc (empl params: *ParamètresObjectConstruct) -
     }
 
     // 12. Let thisBinding be ? constructorEnv.GetThisBinding().
-    completion := constructor_env.get_this_binding()
+    completion := constructor_env.get_this_binding(interpréteuse.donne_realm())
     saufsi completion.est_normal() {
         retourne completion
     }
