@@ -1,0 +1,268 @@
+importe Chaine
+
+/* ------------------------------------------------------------------------- */
+/** \nom ObjetArray
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-array-exotic-objects
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_objet_array := TableVirtuelleObject(classe = ObjetArray, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
+ObjetArray :: struct {
+    empl objet: Object
+    table = *table_virtuelle_objet_array
+}
+
+crée_array :: fonc (tas_de_mémoire: *TasDeMémoire, array_prototype: *ArrayPrototype, nombre_éléments: z64) -> *ObjetArray
+{
+    résultat := tas_de_mémoire.alloue(ObjetArray)
+    résultat.prototype = array_prototype
+
+    résultat.ajoute_propriété(STR_length, Valeur(Number = nombre_éléments comme r64), DrapeauxPropriété.zéro)
+
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ArrayConstructor
+ * https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array-constructor
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_array_constructor := TableVirtuelleObject(classe = ArrayConstructor, sur_destruction = sur_destruction_objet, sur_call = array_constructor_call)
+
+#portée_export
+
+ArrayConstructor :: struct {
+    empl objet: Object
+    table = *table_virtuelle_array_constructor
+}
+
+/* À FAIRE : standardise */
+crée_array_constructor :: fonc (tas_de_mémoire: *TasDeMémoire, array_prototype: *ArrayPrototype) -> *ArrayConstructor
+{
+    résultat := tas_de_mémoire.alloue(ArrayConstructor)
+    /* https://tc39.es/ecma262/multipage/indexed-collections.html#sec-properties-of-the-array-constructor */
+    résultat.ajoute_propriété(STR_length, Valeur(Number = 1.0), DrapeauxPropriété.zéro)
+    /* https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array.prototype */
+    résultat.ajoute_propriété(STR_prototype, Valeur(Object = array_prototype), DrapeauxPropriété.zéro)
+
+    /* https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array.prototype.constructor */
+    array_prototype.ajoute_propriété(STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro)
+
+    retourne résultat
+}
+
+/* À FAIRE : standardise
+ * https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array */
+array_constructor_call :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    realm := interpréteuse.donne_realm()
+
+    résultat := crée_array(realm.donne_tas_de_mémoire(), realm.intrinsics.array_prototype, 0)
+
+    si arguments.taille != 0 {
+        completion := vers_nombre(interpréteuse, arguments[0])
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        len := completion.valeur.V.Number
+
+        completion = set(résultat, STR_length, Valeur(Number = len), vrai)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+    }
+
+    retourne normal_completion(Valeur(Object = résultat))
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ArrayPrototype
+ * https://tc39.es/ecma262/multipage/indexed-collections.html#sec-properties-of-the-array-prototype-object
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_array_prototype := TableVirtuelleObject(classe = ArrayPrototype, sur_destruction = sur_destruction_objet)
+
+#portée_export
+
+ArrayPrototype :: struct {
+    empl objet: Object
+    table = *table_virtuelle_array_prototype
+}
+
+crée_array_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ObjectPrototype) -> *ArrayPrototype
+{
+    résultat := tas_de_mémoire.alloue(ArrayPrototype)
+    résultat.prototype = prototype
+
+    résultat.ajoute_propriété(STR_length, Valeur(Number = 0.0), Writable)
+    résultat.ajoute_fonction_native(STR_join, array_prototype_join)
+    résultat.ajoute_fonction_native(STR_push, array_prototype_push, 1)
+    résultat.ajoute_fonction_native(STR_toString, array_prototype_to_string)
+
+    retourne résultat
+}
+
+/* 23.1.3.18 Array.prototype.join ( separator )
+ * https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array.prototype.join */
+array_prototype_join :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    // 1. Let O be ? ToObject(this value).
+    completion := vers_objet(interpréteuse.donne_realm(), this_value)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    O := completion.valeur.V.donne_objet()
+
+    // 2. Let len be ? LengthOfArrayLike(O).
+    completion = length_of_array_like(O)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    len := completion.valeur.V.Number
+
+    // 3. If separator is undefined, let sep be ",".
+    sep: ECMAString
+    si arguments.taille == 0 {
+        sep = crée_chaine_utf16_unique(",")
+    }
+    // 4. Else, let sep be ? ToString(separator).
+    sinon {
+        completion = vers_chaine(interpréteuse, arguments[0])
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        sep = completion.valeur.V.String.texte
+    }
+
+    // 5. Let R be the empty String.
+    R: EnchaineuseUTF16
+    initialise_enchaineuse(R)
+    diffère détruit_tampons(R)
+
+    // 6. Let k be 0.
+    k := 0.0
+
+    // 7. Repeat, while k < len,
+    tantque k < len {
+        // a. If k > 0, set R to the string-concatenation of R and sep.
+        si k > 0.0 {
+            ajoute(R, sep.donne_chaine_utf16())
+        }
+
+        // b. Let element be ? Get(O, ! ToString(𝔽(k))).
+        nom_propriété := vers_chaine(interpréteuse, Valeur(Number = k)).valeur.V.String.texte
+        completion = get(O, nom_propriété)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        element := completion.valeur.V
+
+        // c. If element is neither undefined nor null, then
+        saufsi element.est_nulle() || element.est_undefined() {
+            // i. Let S be ? ToString(element).
+            completion = vers_chaine(interpréteuse, element)
+            saufsi completion.est_normal() {
+                retourne completion
+            }
+            S := completion.valeur.V.String.texte
+
+            // ii. Set R to the string-concatenation of R and S.
+            ajoute(R, S.donne_chaine_utf16())
+        }
+
+        // d. Set k to k + 1.
+        k += 1.0
+    }
+
+    // 8. Return R.
+    résultat := chaine_depuis_enchaineuse(R)
+    valeur_résultat := crée_chaine(interpréteuse.donne_tas_de_mémoire(), crée_chaine_utf16_unique(résultat))
+    retourne normal_completion(Valeur(String = valeur_résultat))
+}
+
+/* 23.1.3.23 Array.prototype.push ( ...items )
+ * https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array.prototype.push */
+array_prototype_push :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    // 1. Let O be ? ToObject(this value).
+    completion := vers_objet(interpréteuse.donne_realm(), this_value)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    O := completion.valeur.V.donne_objet()
+
+    // 2. Let len be ? LengthOfArrayLike(O).
+    completion = length_of_array_like(O)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    len := completion.valeur.V.Number
+
+    // 3. Let argCount be the number of elements in items.
+    // arg_count := arguments.taille
+
+    // À FAIRE : 4. If len + argCount > 2**53 - 1, throw a TypeError exception.
+
+    // 5. For each element E of items, do
+    pour arguments {
+        // a. Perform ? Set(O, ! ToString(𝔽(len)), E, true).
+        nom_propriété := vers_chaine(interpréteuse, Valeur(Number = len)).valeur.V.String.texte
+        completion = set(O, nom_propriété, it, vrai)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+
+        // b. Set len to len + 1.
+        len += 1.0
+    }
+
+    // 6. Perform ? Set(O, "length", 𝔽(len), true).
+    completion = set(O, STR_length, Valeur(Number = len), vrai)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+
+    // 7. Return 𝔽(len).
+    retourne normal_completion(Valeur(Number = len))
+}
+
+/* 23.1.3.36 Array.prototype.toString ( )
+ * https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array.prototype.tostring */
+array_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    // 1. Let array be ? ToObject(this value).
+    completion := vers_objet(interpréteuse.donne_realm(), this_value)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    array := completion.valeur.V.donne_objet()
+
+    // 2. Let func be ? Get(array, "join").
+    completion = get(array, STR_join)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    func := completion.valeur.V
+
+    // 3. If IsCallable(func) is false, set func to the intrinsic function %Object.prototype.toString%.
+    saufsi is_callable(func) {
+        panique("%Object.prototype.toString% non-implémenté")
+    }
+
+    // 4. Return ? Call(func, array).
+    retourne call(interpréteuse, func, Valeur(Object = array))
+}
+
+/** \} */
