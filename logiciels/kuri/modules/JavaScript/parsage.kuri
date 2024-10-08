@@ -149,6 +149,12 @@ parse_instruction :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
         If {
             retourne parse_if_statement(parseuse)
         }
+        Try {
+            retourne parse_try_statement(parseuse)
+        }
+        Throw {
+            retourne parse_throw_statement(parseuse)
+        }
         sinon {
             panique("Instruction inconnue")
         }
@@ -396,6 +402,50 @@ parse_if_statement :: fonc (parseuse: *Parseuse) -> *IfStatement
     retourne crée_if_statement(test, consequent, alternate)
 }
 
+parse_try_statement :: fonc (parseuse: *Parseuse) -> *TryStatement
+{
+    parseuse.consomme()
+
+    block := parse_bloc_statement_ou_expression(parseuse)
+
+    handler: *CatchClause
+    si parseuse.apparie(GenreLexème.Catch) {
+        parseuse.consomme()
+
+        param: *NoeudSyntaxique
+        si parseuse.apparie(GenreLexème.ParenthèseOuvrante) {
+            parseuse.consomme()
+
+            param = parseuse.parse_expression()
+
+            saufsi parseuse.apparie(GenreLexème.ParenthèseFermante) {
+                parseuse.rapporte_erreur("Attendu une parenthèse fermante")
+                retourne nul
+            }
+            parseuse.consomme()
+        }
+
+        body := parse_bloc_statement_ou_expression(parseuse)
+
+        handler = crée_catch_clause(param, body)
+    }
+
+    finalizer: *NoeudSyntaxique
+    si parseuse.apparie(GenreLexème.Finally) {
+        parseuse.consomme()
+        finalizer = parse_bloc_statement_ou_expression(parseuse)
+    }
+
+    retourne crée_try_statement(block, handler, finalizer)
+}
+
+parse_throw_statement :: fonc (parseuse: *Parseuse) -> *ThrowStatement
+{
+    parseuse.consomme()
+    argument := parse_expression(parseuse)
+    retourne crée_throw_statement(argument)
+}
+
 parse_bloc_statement_ou_expression :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
 {
     si parseuse.apparie(GenreLexème.AccoladeOuvrante) {
@@ -465,6 +515,10 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
             parseuse.consomme()
             retourne crée_null_literal()
         }
+        This {
+            parseuse.consomme()
+            retourne crée_this_expression()
+        }
         Identifiant {
             parseuse.consomme()
             retourne crée_identifier(lexème.texte)
@@ -526,6 +580,12 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
         }
         CrochetOuvrant {
             parseuse.consomme()
+
+            si apparie(parseuse, GenreLexème.CrochetFermant) {
+                parseuse.consomme()
+                éléments: [..]*NoeudSyntaxique
+                retourne crée_array_literal(éléments)
+            }
 
             éléments := parseuse.parse_expression_virgule()
 
@@ -747,6 +807,16 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxiq
 
             retourne crée_member_expression(gauche, propriété, vrai)
         }
+        EtLogique {
+            parseuse.consomme()
+            droite := parseuse.parse_expression()
+            retourne crée_logical_and(gauche, droite)
+        }
+        OuLogique {
+            parseuse.consomme()
+            droite := parseuse.parse_expression()
+            retourne crée_logical_or(gauche, droite)
+        }
         sinon {
             rapporte_erreur(parseuse, lexème, "Genre de lexème non géré dans parse_expression_secondaire\n")
         }
@@ -810,6 +880,11 @@ parse_expression_unaire :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
             parseuse.consomme()
             argument := parseuse.parse_expression_primaire()
             retourne crée_typeof_operator(argument)
+        }
+        New {
+            parseuse.consomme()
+            argument := parseuse.parse_expression()
+            retourne crée_new_expression(argument);
         }
         sinon {
             parseuse.rapporte_erreur("genre de lexème non géré dans parse_expression_unaire")
