@@ -295,6 +295,11 @@ lèxe_chaine_littérale :: fonc (empl lexeuse: &Lexeuse, caractère_final: z8) -
     tantque !fini(lexeuse) {
         c := lexeuse.caractère_courant()
 
+        si c == '\\' {
+            début_source += 2
+            continue
+        }
+
         si c == caractère_final {
             eu_guillemet_fermant = vrai
             arrête
