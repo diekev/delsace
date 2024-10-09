@@ -225,7 +225,6 @@ parse_variable_declaration :: fonc (parseuse: *Parseuse, nature: VariableDeclara
         }
 
         si apparie(parseuse, GenreLexème.PointVirgule) {
-            parseuse.consomme()
             arrête
         }
 
