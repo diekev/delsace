@@ -255,13 +255,7 @@ parse_variable_declaration :: fonc (parseuse: *Parseuse, nature: VariableDeclara
 
 parse_variable_declarator :: fonc (parseuse: *Parseuse) -> *VariableDeclarator
 {
-    saufsi apparie(parseuse, GenreLexème.Identifiant) {
-        parseuse.rapporte_erreur("Attendu un identifiant")
-        retourne nul
-    }
-
-    id := crée_identifier(parseuse, lexème_courant(parseuse).texte)
-    parseuse.consomme()
+    id := parse_binding_identifier(parseuse)
 
     init: *NoeudSyntaxique
     si apparie(parseuse, GenreLexème.Égal) {
@@ -541,12 +535,7 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
                     arrête
                 }
 
-                saufsi apparie(parseuse, GenreLexème.Identifiant) {
-                    rapporte_erreur(parseuse, "Attendu un identifiant pour le nom du membre")
-                    arrête
-                }
-                nom_membre := crée_identifier(parseuse, lexème_courant(parseuse).texte)
-                parseuse.consomme()
+                nom_membre := parse_identifier_reference(parseuse)
 
                 parseuse.consomme(GenreLexème.DoublePoint)
 
@@ -598,6 +587,58 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
         }
     }
 
+    retourne nul
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#prod-IdentifierReference */
+parse_identifier_reference :: fonc (parseuse: *Parseuse) -> *Identifier
+{
+    retourne parse_identifiant_yield_ou_await(parseuse)
+}
+
+parse_binding_identifier :: fonc (parseuse: *Parseuse) -> *Identifier
+{
+    retourne parse_identifiant_yield_ou_await(parseuse)
+}
+
+parse_label_identifier :: fonc (parseuse: *Parseuse) -> *Identifier
+{
+    retourne parse_identifiant_yield_ou_await(parseuse)
+}
+
+parse_identifier :: fonc (parseuse: *Parseuse) -> *Identifier
+{
+    lexème := parseuse.lexème_courant()
+
+    si lexème.genre == GenreLexème.Identifiant {
+        parseuse.consomme()
+        retourne crée_identifier(parseuse, lexème.texte)
+    }
+
+    parseuse.rapporte_erreur("expected an identifier")
+    retourne nul
+}
+
+parse_identifiant_yield_ou_await :: fonc (parseuse: *Parseuse) -> *Identifier
+{
+    lexème := parseuse.lexème_courant()
+
+    si lexème.genre == GenreLexème.Identifiant {
+        parseuse.consomme()
+        retourne crée_identifier(parseuse, lexème.texte)
+    }
+
+    si lexème.genre == GenreLexème.Yield {
+        parseuse.consomme()
+        retourne crée_identifier(parseuse, lexème.texte)
+    }
+
+    si lexème.genre == GenreLexème.Await {
+        parseuse.consomme()
+        retourne crée_identifier(parseuse, lexème.texte)
+    }
+
+    parseuse.rapporte_erreur("expected an identifier")
     retourne nul
 }
 
