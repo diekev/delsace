@@ -3189,7 +3189,7 @@ visite_noeud_générique :: fonc (visiteuse: *VisiteuseNoeud, racine: *NoeudSynt
     valeur_eini.info = info
 
     pour info.membres {
-        si it.id == info_de(*NoeudSyntaxique) {
+        si est_type_adresse_noeud_syntaxique(it.id) {
             membre := eini_depuis_info_membre(valeur_eini, it)
             expression := mémoire(membre.pointeur comme **NoeudSyntaxique)
             si expression == nul {
@@ -3206,7 +3206,7 @@ visite_noeud_générique :: fonc (visiteuse: *VisiteuseNoeud, racine: *NoeudSynt
             continue
         }
 
-        si it.id == info_de([..]*NoeudSyntaxique) {
+        si est_type_adresse_tableau_noeud_syntaxique(it.id) {
             membre := eini_depuis_info_membre(valeur_eini, it)
 
             tableau := mémoire(membre.pointeur comme *[..]*NoeudSyntaxique)
@@ -3250,6 +3250,42 @@ visite_noeud_générique :: fonc (visiteuse: *VisiteuseNoeud, racine: *NoeudSynt
     si visiteuse.direction_visite == DirectionVisiteNoeud.POST_ORDRE && visiteuse.rappel_pour_noeud {
         visiteuse.rappel_pour_noeud(visiteuse, racine, info)
     }
+}
+
+est_type_adresse_noeud_syntaxique :: fonc (infos: *InfoType) -> bool
+{
+    si infos == info_de(*NoeudSyntaxique) {
+        retourne vrai
+    }
+
+    saufsi infos.id == GenreInfoType.POINTEUR {
+        retourne faux
+    }
+
+    type_pointeur := infos comme *InfoTypePointeur
+    saufsi type_pointeur.type_pointé {
+        retourne faux
+    }
+    saufsi type_pointeur.type_pointé.id == GenreInfoType.STRUCTURE {
+        retourne faux
+    }
+
+    type_structure := type_pointeur.type_pointé comme *InfoTypeStructure
+    retourne est_struct_ou_employeuse_de(type_structure, info_de(NoeudSyntaxique))
+}
+
+est_type_adresse_tableau_noeud_syntaxique :: fonc (infos: *InfoType) -> bool
+{
+    si infos == info_de([..]*NoeudSyntaxique) {
+        retourne vrai
+    }
+
+    saufsi infos.id == GenreInfoType.TABLEAU {
+        retourne faux
+    }
+
+    type_tableau := infos comme *InfoTypeTableau
+    retourne est_type_adresse_noeud_syntaxique(type_tableau.type_pointé)
 }
 
 /** \} */
