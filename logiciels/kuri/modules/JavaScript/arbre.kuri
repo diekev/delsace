@@ -2633,6 +2633,65 @@ sur_exécution_for_in_statement :: fonc (base: *NoeudSyntaxique @inutilisée, in
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom WhileStatement
+ * \{ */
+
+WhileStatement :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_while_statement
+
+    test: *NoeudSyntaxique
+    body: *NoeudSyntaxique
+}
+
+crée_while_statement :: fonc (parseuse: *Parseuse, test: *NoeudSyntaxique, body: *NoeudSyntaxique) -> *WhileStatement
+{
+    résultat := parseuse.crée_noeud(WhileStatement)
+    résultat.test = test
+    résultat.body = body
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-runtime-semantics-whileloopevaluation */
+sur_exécution_while_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    // À FAIRE : standardise
+    while := base comme *WhileStatement
+
+    boucle {
+        doit_continuer := exécute_noeud(while.test, interpréteuse)
+        saufsi doit_continuer.est_normal() {
+            retourne doit_continuer
+        }
+        valeur_complétion := get_value(interpréteuse, doit_continuer.valeur)
+        saufsi valeur_complétion.est_normal() {
+            retourne valeur_complétion
+        }
+
+        valeur := to_boolean(valeur_complétion.valeur.V)
+        si valeur.est_false() {
+            arrête
+        }
+
+        doit_continuer = exécute_noeud(while.body, interpréteuse)
+        si doit_continuer.est_continue() {
+            // OK.
+        }
+        sinon si doit_continuer.est_break() {
+            arrête
+        }
+        sinon saufsi doit_continuer.est_normal() {
+            retourne doit_continuer
+        }
+    }
+    
+    retourne normal_completion(js_undefined)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom ConditionalExpression
  * \{ */
 
