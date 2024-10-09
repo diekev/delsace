@@ -3149,6 +3149,332 @@ evaluate_new :: fonc (interpréteuse: *Interpréteuse, construct_expr: *NoeudSyn
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom SwitchStatement
+ * \{ */
+
+SwitchStatement :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_switch_statement
+
+    discriminant: *NoeudSyntaxique
+    cases: [..]*CaseClause
+    index_default_clause: z64
+}
+
+crée_switch_statement :: fonc (parseuse: *Parseuse, discriminant: *NoeudSyntaxique, cases: [..]*CaseClause, index_default_clause: z64) -> *SwitchStatement
+{
+    résultat := parseuse.crée_noeud(SwitchStatement)
+    résultat.discriminant = discriminant
+    résultat.cases = cases
+    résultat.index_default_clause = index_default_clause
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-switch-statement-runtime-semantics-evaluation */
+sur_exécution_switch_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    switch := base comme *SwitchStatement
+
+    // 1. Let exprRef be ? Evaluation of Expression.
+    completion := exécute_noeud(switch.discriminant, interpréteuse)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    expr_ref := completion.valeur
+
+    // 2. Let switchValue be ? GetValue(exprRef).
+    completion = get_value(interpréteuse, expr_ref)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    switch_value := completion.valeur.V
+
+    // 3. Let oldEnv be the running execution context's LexicalEnvironment.
+    mv := interpréteuse.mv
+    running_execution_context := mv.donne_running_execution_context()
+    old_env := running_execution_context.lexical_environment
+
+    // 4. Let blockEnv be NewDeclarativeEnvironment(oldEnv).
+    block_env := new_declarative_environment(old_env.donne_tas_de_mémoire(), old_env)
+
+    //  À FAIRE : 5. Perform BlockDeclarationInstantiation(CaseBlock, blockEnv).
+
+    // 6. Set the running execution context's LexicalEnvironment to blockEnv.
+    running_execution_context.lexical_environment = block_env
+
+    // 7. Let R be Completion(CaseBlockEvaluation of CaseBlock with argument switchValue).
+    R := case_block_evaluation(switch, interpréteuse, switch_value)
+
+    // 8. Set the running execution context's LexicalEnvironment to oldEnv.
+    running_execution_context.lexical_environment = old_env
+
+    // À FAIRE : ceci n'est pas spécifié, mais une complétion de BREAK est
+    // propagée car abrupte et fait échouer les programmes.
+    si R.est_break() {
+        R.type = CompletionRecord.Type.NORMAL
+    }
+
+    // 9. Return R.
+    retourne R
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-runtime-semantics-caseblockevaluation */
+case_block_evaluation :: fonc (switch: *SwitchStatement, interpréteuse: *Interpréteuse, input: Valeur) -> CompletionRecord
+{
+    si switch.cases.taille == 0 {
+        // 1. Return undefined.
+        retourne normal_completion(js_undefined)
+    }
+
+    si switch.index_default_clause == -1 {
+        // 1. Let V be undefined.
+        V := js_undefined
+
+        // 2. Let A be the List of CaseClause items in CaseClauses, in source text order.
+        A := switch.cases
+
+        // 3. Let found be false.
+        found := faux
+
+        // 4. For each CaseClause C of A, do
+        pour A {
+            // a. If found is false, then
+            saufsi found {
+                // i. Set found to ? CaseClauseIsSelected(C, input).
+                completion := case_clause_is_selected(interpréteuse, it, input)
+                saufsi completion.est_normal() {
+                    retourne completion
+                }
+
+                found = completion.valeur.V.est_true()
+            }
+            // b. If found is true, then
+            si found {
+                // i. Let R be Completion(Evaluation of C).
+                R := exécute_noeud(it, interpréteuse)
+
+                // ii. If R.[[Value]] is not empty, set V to R.[[Value]].
+                saufsi R.valeur.est_empty() {
+                    V = R.valeur.V
+                }
+
+                // iii. If R is an abrupt completion, return ? UpdateEmpty(R, V).
+                si R.est_abrupt() {
+                    retourne update_empty(R, V)
+                }
+            }
+        }
+
+        // 5. Return V.
+        retourne normal_completion(V)
+    }
+
+    // 1. Let V be undefined.
+    V := js_undefined
+
+    // 2. If the first CaseClauses is present, then
+        // a. Let A be the List of CaseClause items in the first CaseClauses, in source text order.
+    // 3. Else,
+        // a. Let A be a new empty List.
+    A := tableau_donne_tranche(switch.cases, 0, switch.index_default_clause - 1)
+
+    // 4. Let found be false.
+    found := faux
+
+    // 5. For each CaseClause C of A, do
+    pour A {
+        // a. If found is false, then
+        saufsi found {
+            // i. Set found to ? CaseClauseIsSelected(C, input).
+            completion := case_clause_is_selected(interpréteuse, it, input)
+            saufsi completion.est_normal() {
+                retourne completion
+            }
+
+            found = completion.valeur.V.est_true()
+        }
+        // b. If found is true, then
+        si found {
+            // i. Let R be Completion(Evaluation of C).
+            R := exécute_noeud(it, interpréteuse)
+
+            // ii. If R.[[Value]] is not empty, set V to R.[[Value]].
+            saufsi R.valeur.est_empty() {
+                V = R.valeur.V
+            }
+
+            // iii. If R is an abrupt completion, return ? UpdateEmpty(R, V).
+            si R.est_abrupt() {
+                retourne update_empty(R, V)
+            }
+        }
+    }
+
+    // 6. Let foundInB be false.
+    found_in_b := faux
+
+    // 7. If the second CaseClauses is present, then
+        // a. Let B be the List of CaseClause items in the second CaseClauses, in source text order.
+    // 8. Else,
+        // a. Let B be a new empty List.
+    B := tableau_donne_tranche(switch.cases, switch.index_default_clause + 1, switch.cases.taille - 1)
+
+    // 9. If found is false, then
+    saufsi found {
+        // a. For each CaseClause C of B, do
+        pour B {
+            // i. If foundInB is false, then
+            saufsi found_in_b {
+                // 1. Set foundInB to ? CaseClauseIsSelected(C, input).
+                completion := case_clause_is_selected(interpréteuse, it, input)
+                saufsi completion.est_normal() {
+                    retourne completion
+                }
+
+                found_in_b = completion.valeur.V.est_true()
+            }
+            // ii. If foundInB is true, then
+            si found_in_b {
+                // 1. Let R be Completion(Evaluation of CaseClause C).
+                R := exécute_noeud(it, interpréteuse)
+
+                // 2. If R.[[Value]] is not empty, set V to R.[[Value]].
+                saufsi R.valeur.est_empty() {
+                    V = R.valeur.V
+                }
+
+                // 3. If R is an abrupt completion, return ? UpdateEmpty(R, V).
+                si R.est_abrupt() {
+                    retourne update_empty(R, V)
+                }
+            }
+        }
+    }
+
+    // 10. If foundInB is true, return V.
+    si found_in_b {
+        retourne normal_completion(V)
+    }
+
+    // 11. Let defaultR be Completion(Evaluation of DefaultClause).
+    default_r := exécute_noeud(switch.cases[switch.index_default_clause], interpréteuse)
+    saufsi default_r.est_normal() {
+        retourne default_r
+    }
+
+    // 12. If defaultR.[[Value]] is not empty, set V to defaultR.[[Value]].
+    saufsi default_r.valeur.est_empty() {
+        V = default_r.valeur.V
+    }
+
+    // 13. If defaultR is an abrupt completion, return ? UpdateEmpty(defaultR, V).
+    si default_r.est_abrupt() {
+        retourne update_empty(default_r, V)
+    }
+
+    // 14. NOTE: The following is another complete iteration of the second CaseClauses.
+    // 15. For each CaseClause C of B, do
+    pour B {
+        // a. Let R be Completion(Evaluation of CaseClause C).
+        R := exécute_noeud(it, interpréteuse)
+
+        // b. If R.[[Value]] is not empty, set V to R.[[Value]].
+        saufsi R.valeur.est_empty() {
+            V = R.valeur.V
+        }
+
+        // c. If R is an abrupt completion, return ? UpdateEmpty(R, V).
+        si R.est_abrupt() {
+            retourne update_empty(R, V)
+        }
+    }
+
+    // 16. Return V.
+    retourne normal_completion(V)
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-runtime-semantics-caseclauseisselected */
+case_clause_is_selected :: fonc (interpréteuse: *Interpréteuse, clause: *CaseClause, input: Valeur) -> CompletionRecord
+{
+    // 1. Assert: C is an instance of the production CaseClause : case Expression : StatementListopt .
+    // NOTE : nous pouvons avoir default close
+    assert(clause.type == CaseClause)
+
+    // 2. Let exprRef be ? Evaluation of the Expression of C.
+    completion := exécute_noeud(clause.test, interpréteuse)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    expr_ref := completion.valeur
+
+    // 3. Let clauseSelector be ? GetValue(exprRef).
+    completion = get_value(interpréteuse, expr_ref)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    clause_selector := completion.valeur.V
+
+    // 4. Return IsStrictlyEqual(input, clauseSelector).
+    retourne normal_completion(is_strictly_equal(input, clause_selector))
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom CaseClause
+ * \{ */
+
+CaseClause :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_case_clause
+
+    test: *NoeudSyntaxique
+    consequent: *BlockStatement // StatementList
+}
+
+crée_case_clause :: fonc (parseuse: *Parseuse, test: *NoeudSyntaxique, consequent: *BlockStatement) -> *CaseClause
+{
+    résultat := parseuse.crée_noeud(CaseClause)
+    résultat.test = test
+    résultat.consequent = consequent
+    retourne résultat
+}
+
+sur_exécution_case_clause :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    case := base comme *CaseClause
+
+    si case.consequent == nul {
+        // 1. Return empty.
+        retourne normal_completion(js_undefined)
+    }
+
+    retourne exécute_noeud(case.consequent, interpréteuse)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom DefaultClause
+ * \{ */
+
+DefaultClause :: struct {
+    empl case_clause: CaseClause
+    type = #type_de_cette_structure
+}
+
+crée_default_clause :: fonc (parseuse: *Parseuse, consequent: *BlockStatement) -> *DefaultClause
+{
+    résultat := parseuse.crée_noeud(DefaultClause)
+    résultat.consequent = consequent
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Visiteuse arbre.
  * \{ */
 

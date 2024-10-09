@@ -188,6 +188,9 @@ parse_instruction :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
         Break {
             retourne parse_break_statement(parseuse)
         }
+        Switch {
+            retourne parse_switch_statement(parseuse)
+        }
         sinon {
             panique("Instruction inconnue")
         }
@@ -457,6 +460,75 @@ parse_break_statement :: fonc (parseuse: *Parseuse) -> *BreakStatement
     parseuse.consomme()
     target := parse_label_identifier(parseuse, faux)
     retourne crée_break_statement(parseuse, target)
+}
+
+parse_switch_statement :: fonc (parseuse: *Parseuse) -> *SwitchStatement
+{
+    parseuse.consomme()
+
+    parseuse.consomme(GenreLexème.ParenthèseOuvrante)
+    discriminant := parseuse.parse_expression()
+    parseuse.consomme(GenreLexème.ParenthèseFermante)
+
+    parseuse.consomme(GenreLexème.AccoladeOuvrante)
+    cases: [..]*CaseClause
+    index_default_clause : z64 = -1
+
+    tantque !parseuse.fini() {
+        si apparie(parseuse, GenreLexème.Case) {
+            case := parseuse.parse_case_clause()
+            tableau_ajoute(*cases, case)
+            continue
+        }
+
+        si apparie(parseuse, GenreLexème.Default) {
+            si index_default_clause != -1 {
+                parseuse.rapporte_erreur("duplicate default case")
+                arrête
+            }
+
+            case := parseuse.parse_default_clause()
+            index_default_clause = cases.taille
+            tableau_ajoute(*cases, case)
+            continue
+        }
+
+        arrête
+    }
+
+    parseuse.consomme(GenreLexème.AccoladeFermante)
+
+    retourne crée_switch_statement(parseuse, discriminant, cases, index_default_clause)
+}
+
+parse_case_clause :: fonc (parseuse: *Parseuse) -> *CaseClause
+{
+    parseuse.consomme()
+
+    test := parseuse.parse_expression()
+    parseuse.consomme(GenreLexème.DoublePoint)
+
+    consequent: *BlockStatement
+    si apparie_expression(parseuse) || apparie_instruction(parseuse) {
+        expressions := parse_bloc(parseuse, parseuse.apparie(GenreLexème.AccoladeOuvrante))
+        consequent = crée_block_statement(parseuse, expressions)
+    }
+
+    retourne crée_case_clause(parseuse, test, consequent)
+}
+
+parse_default_clause :: fonc (parseuse: *Parseuse) -> *DefaultClause
+{
+    parseuse.consomme()
+    parseuse.consomme(GenreLexème.DoublePoint)
+
+    consequent: *BlockStatement
+    si apparie_expression(parseuse) || apparie_instruction(parseuse) {
+        expressions := parse_bloc(parseuse, parseuse.apparie(GenreLexème.AccoladeOuvrante))
+        consequent = crée_block_statement(parseuse, expressions)
+    }
+
+    retourne crée_default_clause(parseuse, consequent)
 }
 
 parse_bloc_statement_ou_expression :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique

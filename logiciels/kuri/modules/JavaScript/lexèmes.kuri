@@ -502,7 +502,8 @@ est_lexème_instruction :: fonc (genre: GenreLexème) -> bool
         Try,
         Throw,
         Continue,
-        Break {
+        Break,
+        Switch {
             retourne vrai
         }
         sinon {
