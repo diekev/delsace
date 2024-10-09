@@ -434,7 +434,20 @@ donne_lexème_suivant :: fonc (lexeuse: &Lexeuse) -> Résultat(Lexème, ErreurCo
     si fanion.Opérateur {
         lexeuse.débute_lexème()
 
-        tantque !fini(lexeuse) {
+        /* Pour le lexage des opérateurs, nous considérons l'opérateur le plus long possible valide.
+         * Ceci nous permet d'éviter les erreurs si le code source est, p.e., "a>=-1" où nous avons
+         * deux opérateurs (">=" et "-"). */
+        dernier_opérateur: Optionnel(GenreLexème)
+
+        répète {
+            opt_genre := rafine_genre_lexème_opérateur(lexeuse.donne_texte_courant())
+            saufsi opt_genre.possède_valeur() {
+                lexeuse.recule()
+                arrête
+            }
+
+            dernier_opérateur = opt_genre
+
             c = lexeuse.caractère_courant()
             fanion = fanions_caractères[c comme n8]
 
@@ -443,15 +456,14 @@ donne_lexème_suivant :: fonc (lexeuse: &Lexeuse) -> Résultat(Lexème, ErreurCo
             }
 
             lexeuse.avance()
-        }
+        } tantque !fini(lexeuse)
 
-        opt_genre := rafine_genre_lexème_opérateur(lexeuse.donne_texte_courant())
-        saufsi opt_genre.possède_valeur() {
+        saufsi dernier_opérateur.possède_valeur() {
             lexeuse.début_source = lexeuse.début_mot
             retourne rapporte_erreur(lexeuse, "Opérateur inconnu")
         }
 
-        retourne crée_lexème(lexeuse, opt_genre.Quelque)
+        retourne crée_lexème(lexeuse, dernier_opérateur.Quelque)
     }
 
     // cas à gérer : caractères littéraux
