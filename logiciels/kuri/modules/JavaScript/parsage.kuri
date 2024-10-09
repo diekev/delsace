@@ -256,13 +256,7 @@ parse_variable_declaration :: fonc (parseuse: *Parseuse, nature: VariableDeclara
             continue
         }
 
-        si apparie(parseuse, GenreLexème.PointVirgule) {
-            arrête
-        }
-
-        si apparie(parseuse, GenreLexème.Of) || apparie(parseuse, GenreLexème.In) {
-            arrête
-        }
+        arrête
     }
 
     retourne crée_variable_declaration(parseuse, nature, declarators)
@@ -744,6 +738,7 @@ parse_identifier :: fonc (parseuse: *Parseuse, émets_erreur_si_manquant: bool) 
 
     si émets_erreur_si_manquant {
         parseuse.rapporte_erreur("expected an identifier")
+        panique("expected an identifier")
     }
     retourne nul
 }
@@ -758,6 +753,17 @@ apparie_lexème_identifier :: fonc (parseuse: *Parseuse) -> bool
         si lexème.genre == it {
             retourne vrai
         }
+    }
+    retourne faux
+}
+
+apparie_lexème_identifier_property :: fonc (parseuse: *Parseuse) -> bool
+{
+    si apparie_lexème_identifier(parseuse) {
+        retourne vrai
+    }
+    si apparie(parseuse, GenreLexème.Delete) {
+        retourne vrai
     }
     retourne faux
 }
@@ -927,7 +933,7 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxiq
         Point {
             parseuse.consomme()
 
-            saufsi apparie_lexème_identifier(parseuse) {
+            saufsi apparie_lexème_identifier_property(parseuse) {
                 parseuse.rapporte_erreur("Attendu un identifiant après '.'")
                 retourne nul
             }
