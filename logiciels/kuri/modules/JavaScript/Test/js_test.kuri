@@ -17,22 +17,36 @@ principale :: fonc () -> z32
 {
     args := arguments_ligne_commande()
 
+    stats: StatistiquesTests
+
     si args.taille == 2 {
-        évalue_test(CheminFichier(args[1]))
-        retourne 0
+        évalue_test(CheminFichier(args[1]), *stats)
+    }
+    sinon pour ExploratriceFichier(CheminFichier("fichiers")) {
+        si it.extension() == ".js" {
+            évalue_test(it, *stats)
+        }
     }
 
-    pour ExploratriceFichier(CheminFichier("fichiers")) {
-        si it.extension() == ".js" {
-            évalue_test(it)
-        }
+    imprime("\n")
+    imprime("Test(s) réussi(s) : % / %\n", stats.nombre_de_tests - stats.nombre_de_tests_échouants, stats.nombre_de_tests)
+
+    si stats.nombre_de_tests_échouants != 0 {
+        imprime("[ \x1b[31mÉCHEC\x1b[37m ]\n")
     }
 
     retourne 0
 }
 
-évalue_test :: fonc (chemin: CheminFichier)
+StatistiquesTests :: struct {
+    nombre_de_tests_échouants: z32
+    nombre_de_tests: z32
+}
+
+évalue_test :: fonc (chemin: CheminFichier, stats: *StatistiquesTests)
 {
+    stats.nombre_de_tests += 1
+
     contenu := contenu_fichier_texte(chemin)
     diffère déloge(contenu)
 
@@ -52,6 +66,9 @@ principale :: fonc () -> z32
     résultat := exécute_script(realm, contenu)
     si résultat {
         imprime("[ \x1b[32mPASSE\x1b[37m ] : %\n", chemin)
+    }
+    sinon {
+        stats.nombre_de_tests_échouants += 1
     }
 }
 
