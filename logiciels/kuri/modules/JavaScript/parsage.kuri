@@ -960,7 +960,6 @@ parse_bloc :: fonc (parseuse: *Parseuse, requiers_accolades: bool) -> [..]*Noeud
     }
 
     expressions: [..]*NoeudSyntaxique
-    eu_accolade_fermante := faux
 
     tantque !fini(parseuse) {
         parseuse.consome_point_virgule_potentiel()
@@ -978,21 +977,11 @@ parse_bloc :: fonc (parseuse: *Parseuse, requiers_accolades: bool) -> [..]*Noeud
             continue
         }
 
-        si apparie(parseuse, GenreLexème.AccoladeFermante) {
-            saufsi requiers_accolades {
-                parseuse.rapporte_erreur("accolade fermante trouvée dans le bloc alors qu'aucune accolade ouvrante ne fut requise")
-            }
-            eu_accolade_fermante = vrai
-            parseuse.consomme()
-            arrête
-        }
-
-        parseuse.rapporte_erreur("Expression inattendue dans le bloc !")
-        retourne expressions
+        arrête
     }
 
-    si requiers_accolades && !eu_accolade_fermante {
-        parseuse.rapporte_erreur("Attendu une accolade fermante pour terminer le bloc")
+    si requiers_accolades {
+        parseuse.consomme(GenreLexème.AccoladeFermante)
     }
 
     retourne expressions
