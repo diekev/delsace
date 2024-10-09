@@ -84,6 +84,17 @@ named_evaluation :: fonc (interpréteuse: *Interpréteuse, noeud: *NoeudSyntaxiq
     panique("name_evaluation non-implémenté")
 }
 
+/* 8.6.1 Runtime Semantics: InstantiateFunctionObject
+ * https://tc39.es/ecma262/multipage/syntax-directed-operations.html#sec-runtime-semantics-instantiatefunctionobject */
+instantiate_function_object :: fonc (realm: *Realm, noeud: *NoeudSyntaxique, env: *Environment, private_env: *PrivateEnvironment) -> *Function
+{
+    si noeud.type == FunctionDeclaration {
+        retourne instantiate_ordinary_function_object(realm, noeud comme *FunctionDeclaration, env, private_env)
+    }
+
+    panique("instantiate_function_object non-implémenté")
+}
+
 /* 8.6.5 Static Semantics: PropName
  * https://tc39.es/ecma262/multipage/syntax-directed-operations.html#sec-static-semantics-propname */
 prop_name :: fonc (noeud: *NoeudSyntaxique) -> ECMAString

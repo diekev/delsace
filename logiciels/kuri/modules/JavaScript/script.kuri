@@ -278,7 +278,7 @@ global_declaration_instantiation :: fonc (realm: *Realm, script: *Programme, env
         fn := function.id.nom
 
         // b. Let fo be InstantiateFunctionObject of f with arguments env and privateEnv.
-        fo := instantiate_ordinary_function_object(realm, function, env, private_env)
+        fo := instantiate_function_object(realm, function, env, private_env)
     
         // c. Perform ? env.CreateGlobalFunctionBinding(fn, fo, false).
         completion := env.create_global_function_binding(fn, Valeur(Object = fo), faux)
