@@ -2328,8 +2328,10 @@ evaluate_property_access_with_identifier_key :: fonc (interpréteuse: *Interpré
  * \{ */
 
 UpdateOperation :: énum {
-    Increment
-    Decrement
+    PrefixIncrement
+    PrefixDecrement
+    PostfixIncrement
+    PostfixDecrement
 }
 
 UpdateExpression :: struct {
@@ -2380,7 +2382,7 @@ sur_exécution_update_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
     si est_nombre(old_value) {
         // a. Let newValue be Number::add(oldValue, 1𝔽).
         // NOTE : nous faison ++ et -- directement.
-        si update.operation == UpdateOperation.Increment {
+        si update.operation == UpdateOperation.PostfixIncrement || update.operation == UpdateOperation.PrefixIncrement {
             nouvelle_valeur = ajoute_valeurs(old_value, Valeur(Number = 1))
         }
         sinon {
@@ -2398,6 +2400,10 @@ sur_exécution_update_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
     complétion_update := put_value(interpréteuse, lhs, nouvelle_valeur)
     saufsi complétion_update.est_normal() {
         retourne complétion_update
+    }
+
+    si update.operation == UpdateOperation.PrefixIncrement || update.operation == UpdateOperation.PrefixDecrement {
+        retourne normal_completion(nouvelle_valeur)
     }
 
     // 6. Return oldValue.

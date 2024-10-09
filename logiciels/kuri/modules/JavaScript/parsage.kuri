@@ -769,7 +769,7 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxiq
         MoinsMoins {
             parseuse.consomme()
 
-            operation := si lexème.genre == GenreLexème.PlusPlus { UpdateOperation.Increment } sinon { UpdateOperation.Decrement }
+            operation := si lexème.genre == GenreLexème.PlusPlus { UpdateOperation.PostfixIncrement } sinon { UpdateOperation.PostfixDecrement }
             update := crée_update_expression(parseuse, gauche, operation)
 
             si parseuse.apparie_expression_secondaire() {
@@ -922,7 +922,10 @@ parse_expression_unaire :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
         }
         PlusPlus,
         MoinsMoins {
-            parseuse.rapporte_erreur("++/-- unaire non-géré")
+            parseuse.consomme()
+            argument := parseuse.parse_expression_primaire()
+            operation := si lexème.genre == GenreLexème.PlusPlus { UpdateOperation.PrefixIncrement } sinon { UpdateOperation.PrefixDecrement }
+            retourne crée_update_expression(parseuse, argument, operation)
         }
         Typeof {
             parseuse.consomme()
