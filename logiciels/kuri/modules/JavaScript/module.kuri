@@ -1703,7 +1703,9 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
         _ := env.initialize_binding(it, arguments_list[index_it])
     }
 
+    var_env: *Environment
     // 27. If hasParameterExpressions is false, then
+    si has_parameter_expression == faux {
         // a. NOTE: Only a single Environment Record is needed for the parameters and top-level vars.
         // b. Let instantiatedVarNames be a copy of the List parameterBindings.
         // c. For each element n of varNames, do
@@ -1712,7 +1714,11 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
                 // 2. Perform ! env.CreateMutableBinding(n, false).
                 // 3. Perform ! env.InitializeBinding(n, undefined).
         // d. Let varEnv be env.
+        var_env = env
+    }
     // 28. Else,
+    sinon {
+        panique("has_parameter_expression non-implémenté")
         // a. NOTE: A separate Environment Record is needed to ensure that closures created by expressions in the formal parameter list do not have visibility of declarations in the function body.
         // b. Let varEnv be NewDeclarativeEnvironment(env).
         // c. Set the VariableEnvironment of calleeContext to varEnv.
@@ -1727,13 +1733,26 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
                     // a. Let initialValue be ! env.GetBindingValue(n, false).
                 // 5. Perform ! varEnv.InitializeBinding(n, initialValue).
                 // 6. NOTE: A var with the same name as a formal parameter initially has the same value as the corresponding initialized parameter.
+    }
+
     // 29. NOTE: Annex B.3.2.1 adds additional steps at this point.
+
     // 30. If strict is false, then
+    lex_env: *Environment
+    si strict == faux {
         // a. Let lexEnv be NewDeclarativeEnvironment(varEnv).
+        lex_env = new_declarative_environment(func.donne_tas_de_mémoire(), var_env)
         // b. NOTE: Non-strict functions use a separate Environment Record for top-level lexical declarations so that a direct eval can determine whether any var scoped declarations introduced by the eval code conflict with pre-existing top-level lexically scoped declarations. This is not needed for strict functions because a strict direct eval always places all declarations into a new Environment Record.
+    }
     // 31. Else,
+    sinon {
         // a. Let lexEnv be varEnv.
+        lex_env = var_env
+    }
+
     // 32. Set the LexicalEnvironment of calleeContext to lexEnv.
+    callee_context.lexical_environment = lex_env
+
     // 33. Let lexDeclarations be the LexicallyScopedDeclarations of code.
     // 34. For each element d of lexDeclarations, do
         // a. NOTE: A lexically declared name cannot be the same as a function/generator declaration, formal parameter, or a var name. Lexically declared names are only instantiated here but not initialized.
@@ -1742,11 +1761,33 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
                 // 1. Perform ! lexEnv.CreateImmutableBinding(dn, true).
             // ii. Else,
                 // 1. Perform ! lexEnv.CreateMutableBinding(dn, false).
+
     // 35. Let privateEnv be the PrivateEnvironment of calleeContext.
+    private_env := callee_context.private_environment
+
     // 36. For each Parse Node f of functionsToInitialize, do
+    assert(func.corps != nul && func.corps.type == BlockStatement)
+    bloc := func.corps comme *BlockStatement
+    pour bloc.enfants {
+        saufsi it.type == FunctionDeclaration {
+            continue
+        }
+
+        function := it comme *FunctionDeclaration
+        si function.id == nul {
+            continue
+        }
+
         // a. Let fn be the sole element of the BoundNames of f.
+        fn := function.id.nom
+
         // b. Let fo be InstantiateFunctionObject of f with arguments lexEnv and privateEnv.
+        fo := instantiate_function_object(interpréteuse.donne_realm(), function, lex_env, private_env)
+    
         // c. Perform ! varEnv.SetMutableBinding(fn, fo, false).
+        completion := var_env.set_mutable_binding(interpréteuse.donne_realm(), fn, Valeur(Object = fo), faux)
+        assert(completion.est_normal())
+    }
 
     // 37. Return UNUSED.
     retourne normal_completion(js_undefined)
