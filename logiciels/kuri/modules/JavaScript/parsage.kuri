@@ -388,6 +388,8 @@ parse_if_statement :: fonc (parseuse: *Parseuse) -> *IfStatement
 
     consequent := parseuse.parse_bloc_statement_ou_expression()
 
+    consome_point_virgule_potentiel(parseuse)
+
     alternate: *NoeudSyntaxique
     si parseuse.apparie(GenreLexème.Else) {
         parseuse.consomme()
