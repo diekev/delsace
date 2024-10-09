@@ -341,16 +341,7 @@ parse_for_statement :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
     }
     parseuse.consomme()
 
-    body: *NoeudSyntaxique
-
-    si parseuse.apparie(GenreLexème.AccoladeOuvrante) {
-        expressions := parse_bloc(parseuse, vrai)
-        body = crée_block_statement(...expressions)
-        déloge(expressions)
-    }
-    sinon {
-        body = parseuse.parse_expression()
-    }
+    body := parse_bloc_statement_ou_expression(parseuse)
 
     retourne crée_for_statement(init, test, update, body)
 }
