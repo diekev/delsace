@@ -628,27 +628,38 @@ parse_label_identifier :: fonc (parseuse: *Parseuse, émets_erreur_si_manquant: 
     retourne parse_identifiant_yield_ou_await(parseuse, émets_erreur_si_manquant)
 }
 
-parse_identifier :: fonc (parseuse: *Parseuse) -> *Identifier
+parse_identifier :: fonc (parseuse: *Parseuse, émets_erreur_si_manquant: bool) -> *Identifier
 {
     lexème := parseuse.lexème_courant()
 
-    si lexème.genre == GenreLexème.Identifiant {
+    si apparie_lexème_identifier(parseuse) {
         parseuse.consomme()
         retourne crée_identifier(parseuse, lexème.texte)
     }
 
-    parseuse.rapporte_erreur("expected an identifier")
+    si émets_erreur_si_manquant {
+        parseuse.rapporte_erreur("expected an identifier")
+    }
     retourne nul
+}
+
+apparie_lexème_identifier :: fonc (parseuse: *Parseuse) -> bool
+{
+    lexème := parseuse.lexème_courant()
+
+    // as, async, from, get, meta, of, set, and target
+    lexèmes_autorisés := [GenreLexème.Identifiant, GenreLexème.As, GenreLexème.Async, GenreLexème.From, GenreLexème.Get, GenreLexème.Meta, GenreLexème.Of, GenreLexème.Set, GenreLexème.Target]
+    pour lexèmes_autorisés {
+        si lexème.genre == it {
+            retourne vrai
+        }
+    }
+    retourne faux
 }
 
 parse_identifiant_yield_ou_await :: fonc (parseuse: *Parseuse, émets_erreur_si_manquant: bool) -> *Identifier
 {
     lexème := parseuse.lexème_courant()
-
-    si lexème.genre == GenreLexème.Identifiant {
-        parseuse.consomme()
-        retourne crée_identifier(parseuse, lexème.texte)
-    }
 
     si lexème.genre == GenreLexème.Yield {
         parseuse.consomme()
@@ -660,10 +671,7 @@ parse_identifiant_yield_ou_await :: fonc (parseuse: *Parseuse, émets_erreur_si_
         retourne crée_identifier(parseuse, lexème.texte)
     }
 
-    si émets_erreur_si_manquant {
-        parseuse.rapporte_erreur("expected an identifier")
-    }
-    retourne nul
+    retourne parse_identifier(parseuse, émets_erreur_si_manquant)
 }
 
 donne_opération_binaire_pour_genre_lexème :: fonc (genre: GenreLexème) -> BinaryOperation
@@ -814,7 +822,7 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxiq
         Point {
             parseuse.consomme()
 
-            saufsi apparie(parseuse, GenreLexème.Identifiant) {
+            saufsi apparie_lexème_identifier(parseuse) {
                 parseuse.rapporte_erreur("Attendu un identifiant après '.'")
                 retourne nul
             }
