@@ -137,12 +137,10 @@ Programme :: struct {
     type_source := "script"
 }
 
-crée_programme :: fonc (parseuse: *Parseuse, expressions: ...*NoeudSyntaxique) -> *Programme
+crée_programme :: fonc (parseuse: *Parseuse, expressions: [..]*NoeudSyntaxique) -> *Programme
 {
     résultat := parseuse.crée_noeud(Programme)
-    pour expressions {
-        tableau_ajoute(*résultat.enfants, it)
-    }
+    résultat.enfants = expressions
     retourne résultat
 }
 
@@ -1538,13 +1536,11 @@ CallExpression :: struct {
     arguments: [..]*NoeudSyntaxique
 }
 
-crée_call_expression :: fonc (parseuse: *Parseuse, appelé: *NoeudSyntaxique, arguments: ...*NoeudSyntaxique) -> *CallExpression
+crée_call_expression :: fonc (parseuse: *Parseuse, appelé: *NoeudSyntaxique, arguments: [..]*NoeudSyntaxique) -> *CallExpression
 {
     résultat := parseuse.crée_noeud(CallExpression)
     résultat.appelé = appelé
-    pour arguments {
-        tableau_ajoute(*résultat.arguments, it)
-    }
+    résultat.arguments = arguments
     retourne résultat
 }
 

@@ -14,13 +14,12 @@ parse :: fonc (script: *Script) -> Résultat(*Programme, ErreurCompilation)
     parseuse.lexèmes = script.lexèmes
 
     expressions := parse_bloc(*parseuse, faux)
-    diffère déloge(expressions)
 
     si parseuse.possède_erreur {
         retourne parseuse.erreur_de_compilation
     }
 
-    retourne crée_programme(*parseuse, ...expressions)
+    retourne crée_programme(*parseuse, expressions)
 }
 
 Parseuse :: struct {
@@ -765,14 +764,13 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxiq
             parseuse.consomme()
 
             arguments: [..]*NoeudSyntaxique
-            diffère déloge(arguments)
             saufsi parseuse.apparie(GenreLexème.ParenthèseFermante) {
                 arguments = parse_expression_virgule(parseuse)
             }
 
             parseuse.consomme(GenreLexème.ParenthèseFermante)
 
-            retourne crée_call_expression(parseuse, gauche, ...arguments)
+            retourne crée_call_expression(parseuse, gauche, arguments)
         }
         CrochetOuvrant {
             parseuse.consomme()
