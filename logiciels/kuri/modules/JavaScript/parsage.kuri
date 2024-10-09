@@ -476,7 +476,11 @@ parse_bloc_statement_ou_expression :: fonc (parseuse: *Parseuse) -> *NoeudSyntax
         retourne crée_block_statement(...expressions)
     }
 
-    retourne parseuse.parse_expression()
+    si parseuse.apparie_expression() {
+        retourne parseuse.parse_expression()
+    }
+
+    retourne parseuse.parse_instruction()
 }
 
 parse_expression :: fonc (parseuse: *Parseuse, précédence : z32 = 0, associativité : Associativité = Associativité.Gauche) -> *NoeudSyntaxique
