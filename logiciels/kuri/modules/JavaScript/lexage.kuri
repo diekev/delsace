@@ -541,9 +541,36 @@ consomme_commentaire_bloc :: fonc (lexeuse: &Lexeuse)
     }
 }
 
-rapporte_erreur :: fonc (lexeuse: &Lexeuse @inutilisée, message: chaine) -> ErreurCompilation
+rapporte_erreur :: fonc (lexeuse: &Lexeuse, message: chaine) -> ErreurCompilation
 {
     position: PositionSource
-    /* À FAIRE : ligne, colonne */
+    
+    curseur := lexeuse.source.texte.pointeur
+    position.texte_ligne.pointeur = curseur
+    début_source := lexeuse.début_source
+    tantque curseur < début_source {
+        si mémoire(curseur) == '\n' {
+            position.ligne += 1
+            position.colonne = 0
+            position.texte_ligne.pointeur = curseur + 1
+            position.texte_ligne.taille = 0
+            curseur += 1
+            continue
+        }
+
+        position.colonne += 1
+        position.texte_ligne.taille += 1
+        curseur += 1
+    }
+
+    tantque curseur < lexeuse.fin_source {
+        si mémoire(curseur) == '\n' {
+            arrête
+        }
+
+        position.texte_ligne.taille += 1
+        curseur += 1
+    }
+
     retourne crée_erreur_de_compilation("Erreur de lexage", message, position)
 }
