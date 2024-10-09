@@ -176,6 +176,9 @@ parse_instruction :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
         While {
             retourne parse_while_statement(parseuse)
         }
+        Do {
+            retourne parse_do_while_statement(parseuse)
+        }
         If {
             retourne parse_if_statement(parseuse)
         }
@@ -393,6 +396,20 @@ parse_while_statement :: fonc (parseuse: *Parseuse) -> *WhileStatement
     body := parse_bloc_statement_ou_expression(parseuse)
 
     retourne crée_while_statement(parseuse, test, body)
+}
+
+parse_do_while_statement :: fonc (parseuse: *Parseuse) -> *DoWhileStatement
+{
+    parseuse.consomme()
+    
+    body := parse_bloc_statement_ou_expression(parseuse)
+
+    parseuse.consomme(GenreLexème.While)
+    parseuse.consomme(GenreLexème.ParenthèseOuvrante)
+    test := parseuse.parse_expression()
+    parseuse.consomme(GenreLexème.ParenthèseFermante)
+
+    retourne crée_do_while_statement(parseuse, body, test)
 }
 
 parse_if_statement :: fonc (parseuse: *Parseuse) -> *IfStatement

@@ -2692,6 +2692,65 @@ sur_exécution_while_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom DoWhileStatement
+ * \{ */
+
+DoWhileStatement :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_do_while_statement
+
+    body: *NoeudSyntaxique
+    test: *NoeudSyntaxique
+}
+
+crée_do_while_statement :: fonc (parseuse: *Parseuse, body: *NoeudSyntaxique, test: *NoeudSyntaxique) -> *DoWhileStatement
+{
+    résultat := parseuse.crée_noeud(DoWhileStatement)
+    résultat.body = body
+    résultat.test = test
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-runtime-semantics-do_whileloopevaluation */
+sur_exécution_do_while_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    // À FAIRE : standardise
+    do_while := base comme *DoWhileStatement
+
+    boucle {
+        doit_continuer := exécute_noeud(do_while.body, interpréteuse)
+        si doit_continuer.est_continue() {
+            // OK.
+        }
+        sinon si doit_continuer.est_break() {
+            arrête
+        }
+        sinon saufsi doit_continuer.est_normal() {
+            retourne doit_continuer
+        }
+
+        doit_continuer = exécute_noeud(do_while.test, interpréteuse)
+        saufsi doit_continuer.est_normal() {
+            retourne doit_continuer
+        }
+        valeur_complétion := get_value(interpréteuse, doit_continuer.valeur)
+        saufsi valeur_complétion.est_normal() {
+            retourne valeur_complétion
+        }
+
+        valeur := to_boolean(valeur_complétion.valeur.V)
+        si valeur.est_false() {
+            arrête
+        }
+    }
+    
+    retourne normal_completion(js_undefined)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom ConditionalExpression
  * \{ */
 
