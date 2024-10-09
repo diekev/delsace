@@ -2043,7 +2043,7 @@ sur_exécution_variable_declarator :: fonc (base: *NoeudSyntaxique, interpréteu
     }
 
     // 6. Return EMPTY.
-    retourne normal_completion(js_undefined)
+    retourne empty_completion()
 }
 
 /** \} */

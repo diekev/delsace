@@ -387,6 +387,11 @@ normal_completion :: fonc (valeur: Valeur) -> CompletionRecord
     retourne CompletionRecord(CompletionRecord.Type.NORMAL, valeur)
 }
 
+empty_completion :: fonc () -> CompletionRecord
+{
+    retourne CompletionRecord(CompletionRecord.Type.NORMAL)
+}
+
 normal_completion :: fonc (valeur: ValeurCompletion) -> CompletionRecord
 {
     retourne CompletionRecord(CompletionRecord.Type.NORMAL, valeur)
