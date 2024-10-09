@@ -94,15 +94,6 @@ consomme :: fonc (parseuse: *Parseuse, genre_lexème: GenreLexème)
     parseuse.consomme()
 }
 
-consomme :: fonc (parseuse: *Parseuse, genre_lexème: GenreLexème, message: chaine)
-{
-    si parseuse.lexèmes[parseuse.position].genre != genre_lexème {
-        parseuse.rapporte_erreur(message)
-    }
-
-    parseuse.consomme()
-}
-
 consome_point_virgule_potentiel :: fonc (parseuse: *Parseuse)
 {
     si parseuse.apparie(GenreLexème.PointVirgule) {
@@ -116,11 +107,6 @@ apparie :: fonc (parseuse: *Parseuse, genre_lexème: GenreLexème) -> bool
         retourne faux
     }
     retourne parseuse.lexème_courant().genre == genre_lexème
-}
-
-apparie :: fonc (parseuse: *Parseuse, chn: chaine) -> bool
-{
-    retourne apparie(parseuse, GenreLexème.Identifiant) && parseuse.lexème_courant().texte == chn
 }
 
 apparie_expression :: fonc (parseuse: *Parseuse) -> bool
