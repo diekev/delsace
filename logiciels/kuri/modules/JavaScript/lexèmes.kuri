@@ -293,7 +293,9 @@ associativité_pour_opérateur :: fonc (genre: GenreLexème) -> Associativité
         MoinsUnaire,
         NonBinaire,
         NonLogique,
-        PlusUnaire {
+        PlusUnaire,
+        Interrogation,
+        DoublePoint {
             retourne Associativité.Droite
         }
         PlusPlus,
@@ -323,7 +325,8 @@ précédence_pour_opérateur :: fonc (genre: GenreLexème) -> z32
         DécalageDroiteÉgal,
         EtBinaireÉgal,
         OuBinaireÉgal,
-        OuExclusifÉgal {
+        OuExclusifÉgal,
+        Interrogation {
             retourne 2
         }
         OuLogique {
@@ -475,7 +478,6 @@ est_lexème_expression_secondaire :: fonc (genre: GenreLexème) -> bool
         ParenthèseOuvrante,
         CrochetOuvrant,
         Interrogation,
-        DoublePoint,
         Coalesce,
         EtLogiqueÉgal,
         OuLogiqueÉgal,

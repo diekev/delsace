@@ -833,6 +833,19 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxiq
             droite := parseuse.parse_expression()
             retourne crée_logical_or(gauche, droite)
         }
+        Interrogation {
+            parseuse.consomme()
+
+            consequent := parseuse.parse_expression()
+            saufsi parseuse.apparie(GenreLexème.DoublePoint) {
+                parseuse.rapporte_erreur("Attendu un double point")
+                retourne nul
+            }
+            parseuse.consomme()
+
+            alternate := parseuse.parse_expression()
+            retourne crée_conditionnal_expression(gauche, consequent, alternate)
+        }
         sinon {
             rapporte_erreur(parseuse, lexème, "Genre de lexème non géré dans parse_expression_secondaire\n")
         }

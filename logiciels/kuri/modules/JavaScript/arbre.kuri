@@ -2538,6 +2538,72 @@ sur_exécution_for_in_statement :: fonc (base: *NoeudSyntaxique @inutilisée, in
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom ConditionalExpression
+ * \{ */
+
+ConditionalExpression :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_conditional_expression
+
+    test: *NoeudSyntaxique
+    consequent: *NoeudSyntaxique
+    alternate: *NoeudSyntaxique
+}
+
+crée_conditionnal_expression :: fonc (test: *NoeudSyntaxique, consequent: *NoeudSyntaxique, alternate: *NoeudSyntaxique) -> *ConditionalExpression
+{
+    résultat := loge(ConditionalExpression)
+    résultat.test = test
+    résultat.consequent = consequent
+    résultat.alternate = alternate
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-conditional-operator-runtime-semantics-evaluation */
+sur_exécution_conditional_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    conditional := base comme *ConditionalExpression
+
+    // 1. Let lRef be ? Evaluation of ShortCircuitExpression.
+    completion := exécute_noeud(conditional.test, interpréteuse)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    lref := completion.valeur
+
+    // 2. Let lVal be ToBoolean(? GetValue(lRef)).
+    completion = get_value(interpréteuse, lref)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    lval := to_boolean(completion.valeur.V)
+
+    expr: *NoeudSyntaxique
+    // 3. If lVal is true, then
+    si lval.est_true() {
+        // a. Let trueRef be ? Evaluation of the first AssignmentExpression.
+        // b. Return ? GetValue(trueRef).
+        expr = conditional.consequent
+    }
+    // 4. Else,
+    sinon {
+        // a. Let falseRef be ? Evaluation of the second AssignmentExpression.
+        // b. Return ? GetValue(falseRef).
+        expr = conditional.alternate
+    }
+
+    completion = exécute_noeud(expr, interpréteuse)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    ref := completion.valeur
+    retourne get_value(interpréteuse, ref)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom IfStatement
  * \{ */
 
