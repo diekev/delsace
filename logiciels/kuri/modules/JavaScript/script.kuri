@@ -313,7 +313,33 @@ crée_erreur_de_compilation :: fonc (classe: chaine, message: chaine, position: 
     ligne := position.texte_ligne
 
     ajoute_au_tampon(*enchaineuse, classe, " :\n\n")
-    imprime_dans_enchaineuse(*enchaineuse, " % | %\n", position.ligne + 1, ligne)
+
+    index_colonne := 0
+
+    MAX_CARACTÈRES_PAR_LIGNE :: 80
+
+    si ligne.taille > MAX_CARACTÈRES_PAR_LIGNE {
+        décalage := MAX_CARACTÈRES_PAR_LIGNE / 2
+        si position.colonne < décalage {
+            ligne_coupée: chaine
+            ligne_coupée.pointeur = ligne.pointeur
+            ligne_coupée.taille = MAX_CARACTÈRES_PAR_LIGNE
+
+            imprime_dans_enchaineuse(*enchaineuse, " % | % ... \n", position.ligne + 1, ligne_coupée)
+        }
+        sinon {
+            /* Enlève 5 pour le " ... " au début de l'impression. */
+            index_colonne = position.colonne - décalage - 5
+            ligne_coupée: chaine
+            ligne_coupée.pointeur = ligne.pointeur + position.colonne - décalage
+            ligne_coupée.taille = décalage * 2
+
+            imprime_dans_enchaineuse(*enchaineuse, " % | ... % ... \n", position.ligne + 1, ligne_coupée)
+        }
+    }
+    sinon {
+        imprime_dans_enchaineuse(*enchaineuse, " % | %\n", position.ligne + 1, ligne)
+    }
 
     /* +2 pour les espaces autour du nombre de la ligne. */
     pour magnitude_décimale(position.ligne + 1) + 2 {
@@ -321,7 +347,6 @@ crée_erreur_de_compilation :: fonc (classe: chaine, message: chaine, position: 
     }
     ajoute_au_tampon(*enchaineuse, "| ")
 
-    index_colonne := 0
     tantque index_colonne < position.colonne {
         nombre_octets := nombre_octets_utf8(*ligne[index_colonne])
         si nombre_octets == 0 {
