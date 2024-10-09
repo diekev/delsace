@@ -166,14 +166,12 @@ FunctionDeclaration :: struct {
     async := faux
 }
 
-crée_function_déclaration :: fonc (id: *Identifier, params: []*NoeudSyntaxique, corps: *NoeudSyntaxique) -> *FunctionDeclaration
+crée_function_déclaration :: fonc (id: *Identifier, params: [..]*NoeudSyntaxique, corps: *NoeudSyntaxique) -> *FunctionDeclaration
 {
     résultat := loge(FunctionDeclaration)
     résultat.id = id
     résultat.corps = corps
-    pour params {
-        tableau_ajoute(*résultat.params, it)
-    }
+    résultat.params = params
     retourne résultat
 }
 
@@ -203,14 +201,12 @@ FunctionExpression :: struct {
     async := faux
 }
 
-crée_function_expression :: fonc (id: *Identifier, params: []*NoeudSyntaxique, corps: *NoeudSyntaxique) -> *FunctionExpression
+crée_function_expression :: fonc (id: *Identifier, params: [..]*NoeudSyntaxique, corps: *NoeudSyntaxique) -> *FunctionExpression
 {
     résultat := loge(FunctionExpression)
     résultat.id = id
     résultat.corps = corps
-    pour params {
-        tableau_ajoute(*résultat.params, it)
-    }
+    résultat.params = params
     retourne résultat
 }
 
@@ -356,12 +352,10 @@ BlockStatement :: struct {
     type = #type_de_cette_structure
 }
 
-crée_block_statement :: fonc (expressions: ...*NoeudSyntaxique) -> *BlockStatement
+crée_block_statement :: fonc (expressions: [..]*NoeudSyntaxique) -> *BlockStatement
 {
     résultat := loge(BlockStatement)
-    pour expressions {
-        tableau_ajoute(*résultat.enfants, it)
-    }
+    résultat.enfants = expressions
     retourne résultat
 }
 

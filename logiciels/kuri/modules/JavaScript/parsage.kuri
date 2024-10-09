@@ -197,7 +197,6 @@ parse_function_declaration :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
     parseuse.consomme(GenreLexème.ParenthèseOuvrante)
 
     paramètres: [..]*NoeudSyntaxique
-    diffère déloge(paramètres)
     saufsi parseuse.apparie(GenreLexème.ParenthèseFermante) {
         paramètres = parse_expression_virgule(parseuse)
     }
@@ -205,9 +204,8 @@ parse_function_declaration :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
     parseuse.consomme(GenreLexème.ParenthèseFermante)
 
     expressions := parse_bloc(parseuse, vrai)
-    diffère déloge(expressions)
 
-    bloc := crée_block_statement(...expressions)
+    bloc := crée_block_statement(expressions)
 
     si id {
         retourne crée_function_déclaration(id, paramètres, bloc)
@@ -442,8 +440,7 @@ parse_bloc_statement_ou_expression :: fonc (parseuse: *Parseuse) -> *NoeudSyntax
 {
     si parseuse.apparie(GenreLexème.AccoladeOuvrante) {
         expressions := parse_bloc(parseuse, vrai)
-        diffère déloge(expressions)
-        retourne crée_block_statement(...expressions)
+        retourne crée_block_statement(expressions)
     }
 
     si parseuse.apparie_expression() {
