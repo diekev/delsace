@@ -120,7 +120,13 @@ get_identifier_reference :: fonc (tas_de_mémoire: *TasDeMémoire, environment: 
 
 #portée_fichier
 
-table_virtuelle_decl_env := TableVirtuelleCellule(classe = DeclarativeEnvironment)
+table_virtuelle_decl_env := TableVirtuelleCellule(classe = DeclarativeEnvironment, sur_destruction = declarative_environment_sur_destruction)
+
+declarative_environment_sur_destruction :: fonc (base: *Cellule)
+{
+    env := base comme *DeclarativeEnvironment
+    déloge(env.bindings)
+}
 
 #portée_export
 
@@ -332,7 +338,7 @@ declarative_environment_with_base_object :: fonc (base: *Environment @inutilisé
 
 #portée_fichier
 
-table_virtuelle_func_env := TableVirtuelleCellule(classe = FunctionEnvironment)
+table_virtuelle_func_env := TableVirtuelleCellule(classe = FunctionEnvironment, sur_destruction = declarative_environment_sur_destruction)
 
 #portée_export
 
