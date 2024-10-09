@@ -182,6 +182,12 @@ parse_instruction :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
         Throw {
             retourne parse_throw_statement(parseuse)
         }
+        Continue {
+            retourne parse_continue_statement(parseuse)
+        }
+        Break {
+            retourne parse_break_statement(parseuse)
+        }
         sinon {
             panique("Instruction inconnue")
         }
@@ -437,6 +443,20 @@ parse_throw_statement :: fonc (parseuse: *Parseuse) -> *ThrowStatement
     retourne crée_throw_statement(parseuse, argument)
 }
 
+parse_continue_statement :: fonc (parseuse: *Parseuse) -> *ContinueStatement
+{
+    parseuse.consomme()
+    target := parse_label_identifier(parseuse, faux)
+    retourne crée_continue_statement(parseuse, target)
+}
+
+parse_break_statement :: fonc (parseuse: *Parseuse) -> *BreakStatement
+{
+    parseuse.consomme()
+    target := parse_label_identifier(parseuse, faux)
+    retourne crée_break_statement(parseuse, target)
+}
+
 parse_bloc_statement_ou_expression :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
 {
     si parseuse.apparie(GenreLexème.AccoladeOuvrante) {
@@ -593,17 +613,17 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#prod-IdentifierReference */
 parse_identifier_reference :: fonc (parseuse: *Parseuse) -> *Identifier
 {
-    retourne parse_identifiant_yield_ou_await(parseuse)
+    retourne parse_identifiant_yield_ou_await(parseuse, vrai)
 }
 
 parse_binding_identifier :: fonc (parseuse: *Parseuse) -> *Identifier
 {
-    retourne parse_identifiant_yield_ou_await(parseuse)
+    retourne parse_identifiant_yield_ou_await(parseuse, vrai)
 }
 
-parse_label_identifier :: fonc (parseuse: *Parseuse) -> *Identifier
+parse_label_identifier :: fonc (parseuse: *Parseuse, émets_erreur_si_manquant: bool) -> *Identifier
 {
-    retourne parse_identifiant_yield_ou_await(parseuse)
+    retourne parse_identifiant_yield_ou_await(parseuse, émets_erreur_si_manquant)
 }
 
 parse_identifier :: fonc (parseuse: *Parseuse) -> *Identifier
@@ -619,7 +639,7 @@ parse_identifier :: fonc (parseuse: *Parseuse) -> *Identifier
     retourne nul
 }
 
-parse_identifiant_yield_ou_await :: fonc (parseuse: *Parseuse) -> *Identifier
+parse_identifiant_yield_ou_await :: fonc (parseuse: *Parseuse, émets_erreur_si_manquant: bool) -> *Identifier
 {
     lexème := parseuse.lexème_courant()
 
@@ -638,7 +658,9 @@ parse_identifiant_yield_ou_await :: fonc (parseuse: *Parseuse) -> *Identifier
         retourne crée_identifier(parseuse, lexème.texte)
     }
 
-    parseuse.rapporte_erreur("expected an identifier")
+    si émets_erreur_si_manquant {
+        parseuse.rapporte_erreur("expected an identifier")
+    }
     retourne nul
 }
 

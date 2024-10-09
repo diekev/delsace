@@ -348,7 +348,7 @@ CompletionRecord :: struct {
 
     type: Type
     valeur: ValeurCompletion
-    cible: chaine
+    cible: ECMAString
 }
 
 imprime_complétion :: fonc (enchaineuse: *Enchaineuse, completion: *CompletionRecord)
@@ -402,6 +402,16 @@ return_completion :: fonc (valeur: ValeurCompletion) -> CompletionRecord
     retourne CompletionRecord(CompletionRecord.Type.RETURN, valeur)
 }
 
+continue_completion :: fonc (cible: ECMAString) -> CompletionRecord
+{
+    retourne CompletionRecord(CompletionRecord.Type.CONTINUE, cible = cible)
+}
+
+break_completion :: fonc (cible: ECMAString) -> CompletionRecord
+{
+    retourne CompletionRecord(CompletionRecord.Type.BREAK, cible = cible)
+}
+
 /* 6.2.4.3 UpdateEmpty ( completionRecord, value )
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-updateempty */
 update_empty :: fonc (completion: CompletionRecord, valeur: Valeur) -> CompletionRecord
@@ -436,6 +446,16 @@ est_abrupt :: fonc (completion: CompletionRecord) -> bool
 est_return :: fonc (completion: CompletionRecord) -> bool
 {
     retourne completion.type == CompletionRecord.Type.RETURN
+}
+
+est_continue :: fonc (completion: CompletionRecord) -> bool
+{
+    retourne completion.type == CompletionRecord.Type.CONTINUE
+}
+
+est_break :: fonc (completion: CompletionRecord) -> bool
+{
+    retourne completion.type == CompletionRecord.Type.BREAK
 }
 
 est_throw :: fonc (completion: CompletionRecord) -> bool

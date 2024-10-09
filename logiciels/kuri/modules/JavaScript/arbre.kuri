@@ -2396,6 +2396,88 @@ sur_exécution_update_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom ContinueStatement
+ * \{ */
+
+ContinueStatement :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_continue_statement
+
+    target: *NoeudSyntaxique
+}
+
+crée_continue_statement :: fonc (parseuse: *Parseuse, target: *NoeudSyntaxique) -> *ContinueStatement
+{
+    résultat := parseuse.crée_noeud(ContinueStatement)
+    résultat.target = target
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-continue-statement-runtime-semantics-evaluation */
+sur_exécution_continue_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse @inutilisée) -> CompletionRecord
+{
+    statement := base comme *ContinueStatement
+
+    si statement.target {
+        assert(statement.target.type == Identifier)
+        cible := statement.target comme *Identifier
+
+        // 1. Let label be the StringValue of LabelIdentifier.
+        label := cible.nom
+
+        // 2. Return Completion Record { [[Type]]: continue, [[Value]]: empty, [[Target]]: label }.
+        retourne continue_completion(label)
+    }
+
+    // 1. Return Completion Record { [[Type]]: continue, [[Value]]: empty, [[Target]]: empty }.
+    retourne continue_completion(crée_chaine_utf16_unique_vide())
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom BreakStatement
+ * \{ */
+
+BreakStatement :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_break_statement
+
+    target: *NoeudSyntaxique
+}
+
+crée_break_statement :: fonc (parseuse: *Parseuse, target: *NoeudSyntaxique) -> *BreakStatement
+{
+    résultat := parseuse.crée_noeud(BreakStatement)
+    résultat.target = target
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-break-statement-runtime-semantics-evaluation */
+sur_exécution_break_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse @inutilisée) -> CompletionRecord
+{
+    statement := base comme *BreakStatement
+
+    si statement.target {
+        assert(statement.target.type == Identifier)
+        cible := statement.target comme *Identifier
+
+        // 1. Let label be the StringValue of LabelIdentifier.
+        label := cible.nom
+
+        // 2. Return Completion Record { [[Type]]: break, [[Value]]: empty, [[Target]]: label }.
+        retourne break_completion(label)
+    }
+
+    // 1. Return Completion Record { [[Type]]: break, [[Value]]: empty, [[Target]]: empty }.
+    retourne break_completion(crée_chaine_utf16_unique_vide())
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom ForStatement
  * \{ */
 
@@ -2450,7 +2532,13 @@ sur_exécution_for_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *I
         }
 
         doit_continuer := exécute_noeud(for.body, interpréteuse)
-        saufsi doit_continuer.est_normal() {
+        si doit_continuer.est_continue() {
+            // OK.
+        }
+        sinon si doit_continuer.est_break() {
+            arrête
+        }
+        sinon saufsi doit_continuer.est_normal() {
             retourne doit_continuer
         }
 
