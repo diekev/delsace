@@ -82,7 +82,7 @@ initialise_fanions_caractères :: fonc ()
             fanion |= FanionCaractère.Opérateur
         }
 
-        si it == '<' || it == '>' || it == '&' || it == '|' || it == '+' {
+        si it == '<' || it == '>' || it == '&' || it == '|' || it == '+' || it == '-' {
             fanion |= (FanionCaractère.PeutSuivreOpérateur)
         }
 
