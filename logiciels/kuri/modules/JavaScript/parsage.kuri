@@ -60,6 +60,40 @@ consomme :: fonc (parseuse: *Parseuse)
     parseuse.position += 1
 }
 
+consomme :: fonc (parseuse: *Parseuse, genre_lexème: GenreLexème)
+{
+    saufsi apparie(parseuse, genre_lexème) {
+        si genre_lexème == GenreLexème.ParenthèseOuvrante {
+            parseuse.rapporte_erreur("expected a '('")
+        }
+        sinon si genre_lexème == GenreLexème.ParenthèseFermante {
+            parseuse.rapporte_erreur("expected a ')'")
+        }
+        sinon si genre_lexème == GenreLexème.AccoladeOuvrante {
+            parseuse.rapporte_erreur("expected a '{'")
+        }
+        sinon si genre_lexème == GenreLexème.AccoladeFermante {
+            parseuse.rapporte_erreur("expected a '}'")
+        }
+        sinon si genre_lexème == GenreLexème.CrochetOuvrant {
+            parseuse.rapporte_erreur("expected a '['")
+        }
+        sinon si genre_lexème == GenreLexème.CrochetFermant {
+            parseuse.rapporte_erreur("expected a ']'")
+        }
+        sinon si genre_lexème == GenreLexème.PointVirgule {
+            parseuse.rapporte_erreur("expected a ';'")
+        }
+        sinon si genre_lexème == GenreLexème.DoublePoint {
+            parseuse.rapporte_erreur("expected a ':'")
+        }
+        sinon  {
+            parseuse.rapporte_erreur("unexpected token")
+        }
+    }
+    parseuse.consomme()
+}
+
 consomme :: fonc (parseuse: *Parseuse, genre_lexème: GenreLexème, message: chaine)
 {
     si parseuse.lexèmes[parseuse.position].genre != genre_lexème {
@@ -174,11 +208,7 @@ parse_function_declaration :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
         parseuse.consomme()
     }
 
-    saufsi apparie(parseuse, GenreLexème.ParenthèseOuvrante) {
-        parseuse.rapporte_erreur("Attendu une parenthèse ouvrante après le nom de la fonction")
-        retourne nul
-    }
-    parseuse.consomme()
+    parseuse.consomme(GenreLexème.ParenthèseOuvrante)
 
     paramètres: [..]*NoeudSyntaxique
     diffère déloge(paramètres)
@@ -186,11 +216,7 @@ parse_function_declaration :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
         paramètres = parse_expression_virgule(parseuse)
     }
 
-    saufsi parseuse.apparie(GenreLexème.ParenthèseFermante) {
-        parseuse.rapporte_erreur("Attendu une parenthèse fermante à la fin de l'expression d'appel")
-        retourne nul
-    }
-    parseuse.consomme()
+    parseuse.consomme(GenreLexème.ParenthèseFermante)
 
     expressions := parse_bloc(parseuse, vrai)
     diffère déloge(expressions)
@@ -299,11 +325,7 @@ parse_for_statement :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
 {
     parseuse.consomme()
 
-    saufsi parseuse.apparie(GenreLexème.ParenthèseOuvrante) {
-        parseuse.rapporte_erreur("Attendu une parenthèse ouvrante")
-        retourne nul
-    }
-    parseuse.consomme()
+    parseuse.consomme(GenreLexème.ParenthèseOuvrante)
 
     type_for := détermine_type_for(parseuse)
 
@@ -315,31 +337,19 @@ parse_for_statement :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
     si parseuse.apparie_expression() {
         init = parseuse.parse_expression()
     }
-    saufsi parseuse.apparie(GenreLexème.PointVirgule) {
-        parseuse.rapporte_erreur("Attendu un point-virgule")
-        retourne nul
-    }
-    parseuse.consomme()
+    parseuse.consomme(GenreLexème.PointVirgule)
 
     test: *NoeudSyntaxique
     si parseuse.apparie_expression() {
         test = parseuse.parse_expression()
     }
-    saufsi parseuse.apparie(GenreLexème.PointVirgule) {
-        parseuse.rapporte_erreur("Attendu un point-virgule")
-        retourne nul
-    }
-    parseuse.consomme()
+    parseuse.consomme(GenreLexème.PointVirgule)
 
     update: *NoeudSyntaxique
     si parseuse.apparie_expression() {
         update = parseuse.parse_expression()
     }
-    saufsi parseuse.apparie(GenreLexème.ParenthèseFermante) {
-        parseuse.rapporte_erreur("Attendu une parenthèse fermante")
-        retourne nul
-    }
-    parseuse.consomme()
+    parseuse.consomme(GenreLexème.ParenthèseFermante)
 
     body := parse_bloc_statement_ou_expression(parseuse)
 
@@ -364,11 +374,7 @@ parse_for_of_in_statement :: fonc (parseuse: *Parseuse, type_for: TypeFor) -> *N
 
     right := parseuse.parse_expression()
 
-    saufsi parseuse.apparie(GenreLexème.ParenthèseFermante) {
-        parseuse.rapporte_erreur("Attendu une parenthèse fermante")
-        retourne nul
-    }
-    parseuse.consomme()
+    parseuse.consomme(GenreLexème.ParenthèseFermante)
 
     body := parseuse.parse_bloc_statement_ou_expression()
 
@@ -383,19 +389,11 @@ parse_if_statement :: fonc (parseuse: *Parseuse) -> *IfStatement
 {
     parseuse.consomme()
 
-    saufsi parseuse.apparie(GenreLexème.ParenthèseOuvrante) {
-        parseuse.rapporte_erreur("Attendu une parenthèse ouvrante")
-        retourne nul
-    }
-    parseuse.consomme()
+    parseuse.consomme(GenreLexème.ParenthèseOuvrante)
 
     test := parseuse.parse_expression()
 
-    saufsi parseuse.apparie(GenreLexème.ParenthèseFermante) {
-        parseuse.rapporte_erreur("Attendu une parenthèse fermante")
-        retourne nul
-    }
-    parseuse.consomme()
+    parseuse.consomme(GenreLexème.ParenthèseFermante)
 
     consequent := parseuse.parse_bloc_statement_ou_expression()
 
@@ -430,11 +428,7 @@ parse_try_statement :: fonc (parseuse: *Parseuse) -> *TryStatement
 
             param = parseuse.parse_expression()
 
-            saufsi parseuse.apparie(GenreLexème.ParenthèseFermante) {
-                parseuse.rapporte_erreur("Attendu une parenthèse fermante")
-                retourne nul
-            }
-            parseuse.consomme()
+            parseuse.consomme(GenreLexème.ParenthèseFermante)
         }
 
         body := parse_bloc_statement_ou_expression(parseuse)
@@ -544,11 +538,7 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
 
             expression := parseuse.parse_expression()
 
-            saufsi parseuse.apparie(GenreLexème.ParenthèseFermante) {
-                parseuse.rapporte_erreur("Attendu une parenthèse fermante à la fin de l'expression parenthèse")
-                retourne nul
-            }
-            parseuse.consomme()
+            parseuse.consomme(GenreLexème.ParenthèseFermante)
             retourne expression
         }
         AccoladeOuvrante {
@@ -568,11 +558,7 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
                 nom_membre := crée_identifier(lexème_courant(parseuse).texte)
                 parseuse.consomme()
 
-                saufsi apparie(parseuse, GenreLexème.DoublePoint) {
-                    rapporte_erreur(parseuse, "Attendu un double point")
-                    arrête
-                }
-                parseuse.consomme()
+                parseuse.consomme(GenreLexème.DoublePoint)
 
                 expression := parseuse.parse_expression()
 
@@ -586,11 +572,7 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
                 parseuse.consomme()
             }
 
-            saufsi apparie(parseuse, GenreLexème.AccoladeFermante) {
-                parseuse.rapporte_erreur("Attendu une accolade fermante à la fin de l'expression d'objet")
-                retourne nul
-            }
-            parseuse.consomme()
+            parseuse.consomme(GenreLexème.AccoladeFermante)
 
             retourne crée_object_expression(properties)
         }
@@ -605,12 +587,7 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
 
             éléments := parseuse.parse_expression_virgule()
 
-            saufsi apparie(parseuse, GenreLexème.CrochetFermant) {
-                déloge(éléments)
-                parseuse.rapporte_erreur("Attendu un crochet fermant à la fin de l'expression d'objet")
-                retourne nul
-            }
-            parseuse.consomme()
+            parseuse.consomme(GenreLexème.CrochetFermant)
 
             retourne crée_array_literal(éléments)
         }
@@ -802,11 +779,7 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxiq
                 arguments = parse_expression_virgule(parseuse)
             }
 
-            saufsi parseuse.apparie(GenreLexème.ParenthèseFermante) {
-                parseuse.rapporte_erreur("Attendu une parenthèse fermante à la fin de l'expression d'appel")
-                retourne nul
-            }
-            parseuse.consomme()
+            parseuse.consomme(GenreLexème.ParenthèseFermante)
 
             retourne crée_call_expression(gauche, ...arguments)
         }
@@ -815,11 +788,7 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxiq
 
             propriété := parseuse.parse_expression()
 
-            saufsi parseuse.apparie(GenreLexème.CrochetFermant) {
-                parseuse.rapporte_erreur("Attendu un crochet fermant à la fin de l'expression d'appel")
-                retourne nul
-            }
-            parseuse.consomme()
+            parseuse.consomme(GenreLexème.CrochetFermant)
 
             retourne crée_member_expression(gauche, propriété, vrai)
         }
@@ -837,11 +806,7 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxiq
             parseuse.consomme()
 
             consequent := parseuse.parse_expression()
-            saufsi parseuse.apparie(GenreLexème.DoublePoint) {
-                parseuse.rapporte_erreur("Attendu un double point")
-                retourne nul
-            }
-            parseuse.consomme()
+            parseuse.consomme(GenreLexème.DoublePoint)
 
             alternate := parseuse.parse_expression()
             retourne crée_conditionnal_expression(gauche, consequent, alternate)
@@ -926,10 +891,7 @@ parse_expression_unaire :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
 parse_bloc :: fonc (parseuse: *Parseuse, requiers_accolades: bool) -> [..]*NoeudSyntaxique
 {
     si requiers_accolades {
-        saufsi apparie(parseuse, GenreLexème.AccoladeOuvrante) {
-            parseuse.rapporte_erreur("Attendu une accolade ouvrante pour commencer le bloc")
-        }
-        parseuse.consomme()
+        parseuse.consomme(GenreLexème.AccoladeOuvrante)
     }
 
     expressions: [..]*NoeudSyntaxique
