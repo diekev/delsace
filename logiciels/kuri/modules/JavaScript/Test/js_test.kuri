@@ -75,6 +75,7 @@ StatistiquesTests :: struct {
 crée_environnement_de_test :: fonc (realm: *Realm)
 {
     source := contenu_fichier_texte("environnement_test.js")
+    diffère déloge(source)
     _ := exécute_script(realm, source)
 }
 
