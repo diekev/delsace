@@ -2837,3 +2837,162 @@ crée_tâche_stop_parsing_étape_9 :: fonc (document: *Document) -> *Algorithm
 }
 
 /** \} */
+
+#portée_module
+
+/* https://html.spec.whatwg.org/multipage/parsing.html#html-fragment-serialisation-algorithm */
+HTML_fragment_serialization :: fonc (node: *Noeud, serializable_shadow_roots: bool) -> ChaineUTF16
+{
+    enchaineuse: EnchaineuseUTF16
+    initialise_enchaineuse(enchaineuse)
+    diffère détruit_tampons(enchaineuse)
+    
+    HTML_fragment_serialization_récursif(enchaineuse, node, serializable_shadow_roots)
+
+    retourne chaine_depuis_enchaineuse(enchaineuse)
+}
+
+#portée_fichier
+
+HTML_fragment_serialization_récursif :: fonc (enchaineuse: &EnchaineuseUTF16, node: *Noeud, serializable_shadow_roots: bool)
+{
+    // À FAIRE : 1. If the node serializes as void, then return the empty string.
+
+    // 2. Let s be a string, and initialize it to the empty string.
+    // Nous utilisons l'enchaineuse.
+
+    // 3. If the node is a template element, then let the node instead be the template element's template contents (a DocumentFragment node).
+
+    // 4. If current node is a shadow host, then:
+
+        // Let shadow be current node's shadow root.
+
+        // If one of the following is true:
+
+        // serializableShadowRoots is true and shadow's serializable is true; or
+
+        // shadowRoots contains shadow,
+
+        // then:
+
+        // Append "<template shadowrootmode="".
+
+        // If shadow's mode is "open", then append "open". Otherwise, append "closed".
+
+        // Append """.
+
+        // If shadow's delegates focus is set, then append " shadowrootdelegatesfocus=""".
+
+        // If shadow's serializable is set, then append " shadowrootserializable=""".
+
+        // If shadow's clonable is set, then append " shadowrootclonable=""".
+
+        // Append ">".
+
+        // Append the value of running the HTML fragment serialization algorithm with shadow, serializableShadowRoots, and shadowRoots (thus recursing into this algorithm for that element).
+
+        // Append "</template>".
+
+    // 5. For each child node of the node, in tree order, run the following steps:
+    pour node.enfants {
+        sérialise_noeud(enchaineuse, it, serializable_shadow_roots)
+    }
+
+    // 6. Return s.
+    // Nous sommes récursif
+}
+
+sérialise_noeud :: fonc (enchaineuse: &EnchaineuseUTF16, noeud: *Noeud, serializable_shadow_roots: bool)
+{
+    // À FAIRE : complète
+    // 1. Let current node be the child node being processed.
+    current_node := noeud
+
+    // 2. Append the appropriate string from the following list to s:
+
+    // If current node is an Element
+    si current_node.est_élément() {
+        élément := current_node comme *Élément
+
+        // If current node is an element in the HTML namespace, the MathML namespace, or the SVG namespace, then let tagname be current node's local name. Otherwise, let tagname be current node's qualified name.
+        tagname := élément.local_name
+
+        // Append a U+003C LESS-THAN SIGN character (<), followed by tagname.
+        ajoute(enchaineuse, "<")
+        ajoute(enchaineuse, tagname)
+
+        // For HTML elements created by the HTML parser or createElement(), tagname will be lowercase.
+
+        // If current node's is value is not null, and the element does not have an is attribute in its attribute list, then append the string " is="", followed by current node's is value escaped as described below in attribute mode, followed by a U+0022 QUOTATION MARK character (").
+
+        // For each attribute that the element has, append a U+0020 SPACE character, the attribute's serialized name as described below, a U+003D EQUALS SIGN character (=), a U+0022 QUOTATION MARK character ("), the attribute's value, escaped as described below in attribute mode, and a second U+0022 QUOTATION MARK character (").
+        pour élément.attributs {
+            ajoute(enchaineuse, " ")
+            ajoute(enchaineuse, it.local_name)
+            ajoute(enchaineuse, "=\"")
+            ajoute(enchaineuse, it.valeur)
+            ajoute(enchaineuse, "\"")
+        }
+
+        // An attribute's serialized name for the purposes of the previous paragraph must be determined as follows:
+
+        // If the attribute has no namespace
+        // The attribute's serialized name is the attribute's local name.
+
+        // For attributes on HTML elements set by the HTML parser or by setAttribute(), the local name will be lowercase.
+
+        // If the attribute is in the XML namespace
+        // The attribute's serialized name is the string "xml:" followed by the attribute's local name.
+
+        // If the attribute is in the XMLNS namespace and the attribute's local name is xmlns
+        // The attribute's serialized name is the string "xmlns".
+
+        // If the attribute is in the XMLNS namespace and the attribute's local name is not xmlns
+        // The attribute's serialized name is the string "xmlns:" followed by the attribute's local name.
+
+        // If the attribute is in the XLink namespace
+        // The attribute's serialized name is the string "xlink:" followed by the attribute's local name.
+
+        // If the attribute is in some other namespace
+        // The attribute's serialized name is the attribute's qualified name.
+
+        // While the exact order of attributes is implementation-defined, and may depend on factors such as the order that the attributes were given in the original markup, the sort order must be stable, such that consecutive invocations of this algorithm serialize an element's attributes in the same order.
+
+        // Append a U+003E GREATER-THAN SIGN character (>).
+        ajoute(enchaineuse, ">")
+
+        // If current node serializes as void, then continue on to the next child node at this point.
+
+        // Append the value of running the HTML fragment serialization algorithm with current node, serializableShadowRoots, and shadowRoots (thus recursing into this algorithm for that node), followed by a U+003C LESS-THAN SIGN character (<), a U+002F SOLIDUS character (/), tagname again, and finally a U+003E GREATER-THAN SIGN character (>).
+        HTML_fragment_serialization_récursif(enchaineuse, current_node, serializable_shadow_roots)
+
+        ajoute(enchaineuse, "</")
+        ajoute(enchaineuse, tagname)
+        ajoute(enchaineuse, ">")
+
+        retourne
+    }
+
+    // If current node is a Text node
+    si current_node.est_texte() {
+        texte := noeud comme *NoeudTexte
+        ajoute(enchaineuse, texte.données)
+
+        // À FAIRE : If the parent of current node is a style, script, xmp, iframe, noembed, noframes, or plaintext element, or if the parent of current node is a noscript element and scripting is enabled for the node, then append the value of current node's data literally.
+
+        // Otherwise, append the value of current node's data, escaped as described below.
+
+        retourne
+    }
+
+    // If current node is a Comment
+        // Append "<!--" (U+003C LESS-THAN SIGN, U+0021 EXCLAMATION MARK, U+002D HYPHEN-MINUS, U+002D HYPHEN-MINUS), followed by the value of current node's data, followed by the literal string "-->" (U+002D HYPHEN-MINUS, U+002D HYPHEN-MINUS, U+003E GREATER-THAN SIGN).
+
+    // If current node is a ProcessingInstruction
+        // Append "<?" (U+003C LESS-THAN SIGN, U+003F QUESTION MARK), followed by the value of current node's target IDL attribute, followed by a single U+0020 SPACE character, followed by the value of current node's data, followed by a single U+003E GREATER-THAN SIGN character (>).
+
+    // If current node is a DocumentType
+        // Append "<!DOCTYPE" (U+003C LESS-THAN SIGN, U+0021 EXCLAMATION MARK, U+0044 LATIN CAPITAL LETTER D, U+004F LATIN CAPITAL LETTER O, U+0043 LATIN CAPITAL LETTER C, U+0054 LATIN CAPITAL LETTER T, U+0059 LATIN CAPITAL LETTER Y, U+0050 LATIN CAPITAL LETTER P, U+0045 LATIN CAPITAL LETTER E), followed by a space (U+0020 SPACE), followed by the value of current node's name, followed by ">" (U+003E GREATER-THAN SIGN).
+
+    retourne
+}

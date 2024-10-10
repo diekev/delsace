@@ -368,6 +368,7 @@ crée_element_prototype :: fonc (tas_de_mémoire: *JavaScript.TasDeMémoire, pro
     résultat := JavaScript.crée_objet(tas_de_mémoire, prototype)
     JavaScript.ajoute_fonction_native(résultat, "getElementsByClassName", fonction_native_get_element_by_class_name)
     JavaScript.ajoute_fonction_native(résultat, "getElementsByTagName", fonction_native_get_element_by_tag_name)
+    JavaScript.ajoute_propriété(résultat, crée_chaine_utf16_unique("innerHTML"), element_innerhtml_getter, nul, JavaScript.DrapeauxPropriété.zéro)
     retourne résultat
 }
 
@@ -401,6 +402,17 @@ fonction_native_get_element_by_tag_name :: fonc (empl params: *JavaScript.Param�
     élément := JavaScript.donne_objet(this_value) comme *Élément
     collection := élément.get_elements_by_tag_name(texte)
     retourne JavaScript.normal_completion(JavaScript.Valeur(Object = collection))
+}
+
+element_innerhtml_getter :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord
+{
+    élément := JavaScript.donne_objet(this_value) comme *Élément
+
+    chn_innerhtml := élément.donne_innerhtml()
+    diffère détruit_chaine(chn_innerhtml)
+
+    résultat := JavaScript.crée_chaine(élément.donne_tas_de_mémoire(), crée_chaine_utf16_unique(chn_innerhtml))
+    retourne JavaScript.normal_completion(JavaScript.Valeur(String = résultat))
 }
 
 /* HTMLImageElement */
