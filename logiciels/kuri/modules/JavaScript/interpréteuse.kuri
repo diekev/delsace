@@ -187,7 +187,7 @@ get_value :: fonc (realm: *Realm, valeur: ValeurCompletion) -> CompletionRecord
 {
     // 1. If V is not a Reference Record, return V.
     saufsi valeur.est_reference_record() {
-        retourne normal_completion(valeur.V)
+        retourne normal_completion(valeur)
     }
 
     // 2. If IsUnresolvableReference(V) is true, throw a ReferenceError exception.
