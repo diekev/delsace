@@ -40,14 +40,16 @@ table_virtuelle_array_constructor := TableVirtuelleObject(classe = ArrayConstruc
 #portée_export
 
 ArrayConstructor :: struct {
-    empl objet: Object
+    empl builtin_function: BuiltInFunction
     table = *table_virtuelle_array_constructor
 }
 
-/* À FAIRE : standardise */
-crée_array_constructor :: fonc (tas_de_mémoire: *TasDeMémoire, array_prototype: *ArrayPrototype) -> *ArrayConstructor
+/* À FAIRE : standardise (CreateBuiltInFunction) */
+crée_array_constructor :: fonc (tas_de_mémoire: *TasDeMémoire, function_prototype: *FunctionPrototype , array_prototype: *ArrayPrototype) -> *ArrayConstructor
 {
     résultat := tas_de_mémoire.alloue(ArrayConstructor)
+    résultat.prototype = function_prototype
+
     /* https://tc39.es/ecma262/multipage/indexed-collections.html#sec-properties-of-the-array-constructor */
     résultat.ajoute_propriété(STR_length, Valeur(Number = 1.0), DrapeauxPropriété.zéro)
     /* https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array.prototype */
