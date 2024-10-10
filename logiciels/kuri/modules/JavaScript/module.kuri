@@ -1345,7 +1345,7 @@ make_constructor :: fonc (F: *Function)
 
 /* 10.2.1 [[Call]] ( thisArgument, argumentsList )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ecmascript-function-objects-call-thisargument-argumentslist */
-sur_appel_fonction_instruite :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+sur_appel_fonction_ecma :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
     assert(object.donne_classe() == Function)
     F := object comme *Function
