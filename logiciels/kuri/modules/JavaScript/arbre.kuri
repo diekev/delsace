@@ -3632,6 +3632,17 @@ visite_noeud_générique :: fonc (visiteuse: *VisiteuseNoeud, racine: *NoeudSynt
     valeur_eini.pointeur = racine
     valeur_eini.info = info
 
+    visite_structure(visiteuse, valeur_eini)
+
+    si visiteuse.direction_visite == DirectionVisiteNoeud.POST_ORDRE && visiteuse.rappel_pour_noeud {
+        visiteuse.rappel_pour_noeud(visiteuse, racine, info)
+    }
+}
+
+visite_structure :: fonc (visiteuse: *VisiteuseNoeud, valeur_eini: eini)
+{
+    info := valeur_eini.info comme *InfoTypeStructure
+
     pour info.membres {
         si est_type_adresse_noeud_syntaxique(it.id) {
             membre := eini_depuis_info_membre(valeur_eini, it)
@@ -3670,29 +3681,13 @@ visite_noeud_générique :: fonc (visiteuse: *VisiteuseNoeud, racine: *NoeudSynt
             continue
         }
 
-        si it.id == info_de(NoeudScope) {
-            // À FAIRE : assert(est_base)
-            scope := racine comme *NoeudScope
-            tableau := scope.enfants
-
-            pour noeud dans tableau {
-                visiteuse.profondeur += 1
-                visite_noeud(visiteuse, noeud, visite_noeud_générique)
-                visiteuse.profondeur -= 1
-            }
-
-            si visiteuse.rappel_pour_tableau {
-                visiteuse.profondeur += 1
-                visiteuse.rappel_pour_tableau(visiteuse, tableau)
-                visiteuse.profondeur -= 1
-            }
-
+        si it.id.id == GenreInfoType.STRUCTURE && est_struct_ou_employeuse_de(it.id comme *InfoTypeStructure, info_de(NoeudSyntaxique)) {
+            membre := eini_depuis_info_membre(valeur_eini, it)
+            visiteuse.profondeur -= 1
+            visite_structure(visiteuse, membre)
+            visiteuse.profondeur += 1
             continue
         }
-    }
-
-    si visiteuse.direction_visite == DirectionVisiteNoeud.POST_ORDRE && visiteuse.rappel_pour_noeud {
-        visiteuse.rappel_pour_noeud(visiteuse, racine, info)
     }
 }
 
