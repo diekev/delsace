@@ -487,15 +487,8 @@ crée_nouvelle_origin_opaque :: fonc () -> Origin
 
 table_virtuelle_window := TableVirtuelleEventTarget(
     classe = Window,
-    sur_initialisation_interface =  window_sur_initialisation_interface,
-    sur_destruction = window_sur_destruction
+    sur_initialisation_interface =  window_sur_initialisation_interface
 )
-
-window_sur_destruction :: fonc (base: *JavaScript.Cellule)
-{
-    window := base comme *Window
-    event_target_détruit_données(window)
-}
 
 window_sur_initialisation_interface :: fonc (base: *PlatformObject)
 {

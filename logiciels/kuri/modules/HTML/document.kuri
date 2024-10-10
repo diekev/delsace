@@ -143,8 +143,8 @@ table_virtuelle_document := TableVirtuelleNoeud(
 
 document_sur_destruction :: fonc (base: *JavaScript.Cellule)
 {
+    noeud_sur_destruction(base)
     document := base comme *Document
-    noeud_détruit_données(document)
     CSS.détruit_arbre(document.arbre_de_disposition)
     CSS.détruit_globales_dessin(document.globales_dessin)
     CSS.détruit_résolveuse(document.résolveuse_style)
@@ -780,8 +780,8 @@ table_virtuelle_texte := TableVirtuelleNoeud(
 
 texte_sur_destruction :: fonc (base: *JavaScript.Cellule)
 {
+    noeud_sur_destruction(base)
     texte := base comme *NoeudTexte
-    noeud_détruit_données(texte)
     détruit_chaine(texte.données)
 }
 
@@ -817,8 +817,8 @@ table_virtuelle_section_cdata := TableVirtuelleNoeud(
 
 section_cdata_sur_destruction :: fonc (base: *JavaScript.Cellule)
 {
+    noeud_sur_destruction(base)
     section_cdata := base comme *NoeudSectionCDATA
-    noeud_détruit_données(section_cdata)
     détruit_chaine(section_cdata.données)
 }
 
@@ -855,8 +855,8 @@ table_virtuelle_commentaire := TableVirtuelleNoeud(
 
 commentaire_sur_destruction :: fonc (base: *JavaScript.Cellule)
 {
+    noeud_sur_destruction(base)
     commentaire := base comme *NoeudCommentaire
-    noeud_détruit_données(commentaire)
     détruit_chaine(commentaire.données)
 }
 
@@ -895,8 +895,8 @@ table_virtuelle_processing_instruction := TableVirtuelleNoeud(
 
 processing_instruction_sur_destruction :: fonc (base: *JavaScript.Cellule)
 {
+    noeud_sur_destruction(base)
     processing_instruction := base comme *NoeudProcessingInstruction
-    noeud_détruit_données(processing_instruction)
     détruit_chaine(processing_instruction.données)
     détruit_chaine(processing_instruction.cible)
 }

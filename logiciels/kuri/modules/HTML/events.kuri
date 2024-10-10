@@ -288,8 +288,9 @@ TableVirtuelleEventTarget :: struct {
 
 event_target_sur_destruction :: fonc (base: *JavaScript.Cellule)
 {
+    platform_object_sur_destruction(base)
     target := base comme *EventTarget
-    event_target_détruit_données(target)
+    déloge(target.listeners)
 }
 
 /* Implémentation défaut pour get_the_parent. */
@@ -315,15 +316,6 @@ EventTarget :: struct {
 
     listeners: [..]EventListenerEntry
 }
-
-#portée_module
-
-event_target_détruit_données :: fonc (event_target: *EventTarget)
-{
-    déloge(event_target.listeners)
-}
-
-#portée_fichier
 
 donne_table :: fonc (event_target: *EventTarget) -> *TableVirtuelleEventTarget #enligne
 {
@@ -841,15 +833,8 @@ event_target_sur_initialisation_interface :: fonc (base: *PlatformObject)
 #portée_fichier
 
 table_virtuelle_abort_signal := TableVirtuelleEventTarget(
-    classe = AbortSignal,
-    sur_destruction = abort_signal_sur_destruction
+    classe = AbortSignal
 )
-
-abort_signal_sur_destruction :: fonc (base: *JavaScript.Cellule)
-{
-    abort_signal := base comme *AbortSignal
-    event_target_détruit_données(abort_signal)
-}
 
 #portée_export
 

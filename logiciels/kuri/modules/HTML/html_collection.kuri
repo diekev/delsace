@@ -130,6 +130,7 @@ table_virtuelle_html_collection := TableVirtuellePlatformObject(
 
 html_collection_sur_destruction :: fonc (base: *JavaScript.Cellule)
 {
+    platform_object_sur_destruction(base)
     collection := base comme *HTMLCollection
     détruit_collection(collection)
 }

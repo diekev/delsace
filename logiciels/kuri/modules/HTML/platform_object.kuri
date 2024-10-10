@@ -13,7 +13,13 @@ importe #inemployé JavaScript
 TableVirtuellePlatformObject :: struct {
     empl object: JavaScript.TableVirtuelleObject
 
+    sur_destruction = platform_object_sur_destruction
     sur_initialisation_interface: fonc(*PlatformObject)(rien)
+}
+
+platform_object_sur_destruction :: fonc (base: *JavaScript.Cellule)
+{
+    JavaScript.sur_destruction_objet(base)
 }
 
 #portée_export

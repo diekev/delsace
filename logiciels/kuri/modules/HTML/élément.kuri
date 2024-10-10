@@ -93,7 +93,7 @@ table_virtuelle_élément := TableVirtuelleÉlément(
 
 élément_détruit_données :: fonc (élément: *Élément)
 {
-    noeud_détruit_données(élément)
+    noeud_sur_destruction(élément)
     CSS.détruit_style_declaration(élément.style)
     si élément.noeud_de_disposition {
         si élément.noeud_de_disposition.type != CSS.NoeudDeDispositionNouvelleLigne {
