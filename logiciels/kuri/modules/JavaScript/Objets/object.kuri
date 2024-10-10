@@ -326,13 +326,15 @@ ObjectConstructor :: struct {
 }
 
 /* À FAIRE : standardise (CreateBuiltInFunction) */
-crée_object_constructor :: fonc (tas_de_mémoire: *TasDeMémoire, function_prototype: *FunctionPrototype, prototype: *ObjectPrototype) -> *ObjectConstructor
+crée_object_constructor :: fonc (tas_de_mémoire: *TasDeMémoire, function_prototype: *FunctionPrototype, object_prototype: *ObjectPrototype) -> *ObjectConstructor
 {
     résultat := tas_de_mémoire.alloue(ObjectConstructor)
     résultat.prototype = function_prototype
 
     résultat.ajoute_propriété(STR_length, Valeur(Number = 1.0), DrapeauxPropriété.zéro)
-    résultat.ajoute_propriété(STR_prototype, Valeur(Object = prototype), DrapeauxPropriété.zéro)
+    résultat.ajoute_propriété(STR_prototype, Valeur(Object = object_prototype), DrapeauxPropriété.zéro)
+
+    object_prototype.ajoute_propriété(STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro)
 
     retourne résultat
 }
