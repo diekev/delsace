@@ -1266,7 +1266,7 @@ ordinary_set_with_own_descriptor :: fonc (object: *Object, property_key: Propert
     interpréteuse.mv = receiver.donne_objet().donne_tas_de_mémoire().donne_mv()
     diffère détruit_données_interpreteuse(*interpréteuse)
 
-    arguments: [..]Valeur
+    arguments: []Valeur
     arguments.pointeur = *valeur
     arguments.taille = 1
 
