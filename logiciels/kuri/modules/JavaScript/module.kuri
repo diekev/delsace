@@ -300,6 +300,7 @@ concatène :: fonc (str_gauche: *PrimitiveChaine, str_droite: *PrimitiveChaine) 
     ajoute(enchaineuse, chn2)
 
     chn := chaine_depuis_enchaineuse(enchaineuse)
+    diffère détruit_chaine(chn)
     chn_résultat := crée_chaine_utf16_unique(chn)
 
     retourne Valeur(String = crée_chaine(str_gauche.donne_tas_de_mémoire(), chn_résultat))

@@ -190,6 +190,7 @@ array_prototype_join :: fonc (empl params: *ParamètresObjectCall) -> Completion
 
     // 8. Return R.
     résultat := chaine_depuis_enchaineuse(R)
+    diffère détruit_chaine(résultat)
     valeur_résultat := crée_chaine(interpréteuse.donne_tas_de_mémoire(), crée_chaine_utf16_unique(résultat))
     retourne normal_completion(Valeur(String = valeur_résultat))
 }
