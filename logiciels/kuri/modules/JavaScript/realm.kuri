@@ -173,6 +173,7 @@ Intrinsics :: struct {
     eval: *Function
     function: *FunctionConstructor
     object: *ObjectConstructor
+    string: *StringConstructor
 
     host_intrinsics: [..]*Object
 }
@@ -196,6 +197,7 @@ create_intrinsics :: fonc (realm: *Realm)
     realm.intrinsics.eval = crée_eval(realm.intrinsics.function_prototype)
     realm.intrinsics.function = crée_function_constructor(tas_de_mémoire, realm.intrinsics.function_prototype)
     realm.intrinsics.object = crée_object_constructor(tas_de_mémoire, realm.intrinsics.function_prototype, realm.intrinsics.object_prototype)
+    realm.intrinsics.string = crée_string_constructor(tas_de_mémoire, realm.intrinsics.function_prototype, realm.intrinsics.string_prototype)
 }
 
 /** \} */
@@ -370,6 +372,10 @@ set_default_global_bindings :: fonc (realm: *Realm)
     desc = PropertyDescriptor()
     desc.value = Valeur(Object = realm.intrinsics.object)
     _ := define_property_or_throw(global, STR_Object, desc)
+
+    desc = PropertyDescriptor()
+    desc.value = Valeur(Object = realm.intrinsics.string)
+    _ := define_property_or_throw(global, STR_String, desc)
 
     // 3. Return UNUSED.
 }

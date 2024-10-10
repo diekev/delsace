@@ -33,6 +33,7 @@ STR_Function : ChaineUTF16Unique = ---
 STR_NaN : ChaineUTF16Unique = ---
 STR_Object : ChaineUTF16Unique = ---
 STR_ReferenceError : ChaineUTF16Unique = ---
+STR_String : ChaineUTF16Unique = ---
 STR_SyntaxError : ChaineUTF16Unique = ---
 STR_TypeError : ChaineUTF16Unique = ---
 
