@@ -1,0 +1,3 @@
+interface Node : EventTarget {
+    readonly attribute DOMString nodeName;
+}

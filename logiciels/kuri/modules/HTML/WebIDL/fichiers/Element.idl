@@ -1,0 +1,6 @@
+interface Element : Node {
+    HTMLCollection getElementsByTagName(DOMString qualifiedName);
+    HTMLCollection getElementsByClassName(DOMString classNames);
+
+    attribute DOMString innerHTML;
+}

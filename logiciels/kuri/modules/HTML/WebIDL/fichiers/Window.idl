@@ -1,0 +1,8 @@
+interface Window : EventTarget {
+    readonly attribute WindowProxy window;
+    readonly attribute WindowProxy self;
+    readonly attribute WindowProxy frames;
+    readonly attribute Document document;
+
+    undefined alert(DOMString message);
+}
