@@ -157,14 +157,51 @@ insère_élément_étranger :: fonc (parseuse: *Parseuse, lexème: Lexème, espa
     position_ajustée_d_insertion := trouve_position_appropriée_pour_insertion(parseuse)
     /* 2. */
     élément := parseuse.crée_élément_pour_lexème(lexème, espace_de_nom, position_ajustée_d_insertion)
-    /* 3. INCOMPLET */
+    /* 3. */
     saufsi ajoute_seulement_à_pile_élément {
-        position_ajustée_d_insertion.ajoute_enfant(élément)
+        insert_an_element_at_the_adjusted_insertion_location(parseuse, élément)
     }
     /* 4. */
     empile(*parseuse.pile_éléments_ouvert, élément)
     /* 5.  */
     retourne élément
+}
+
+/* https://html.spec.whatwg.org/multipage/parsing.html#insert-an-element-at-the-adjusted-insertion-location */
+insert_an_element_at_the_adjusted_insertion_location :: fonc (parseuse: *Parseuse, élément: *Élément)
+{
+    // 1. Let the adjusted insertion location be the appropriate place for inserting a node.
+    adjusted_insertion_location := trouve_position_appropriée_pour_insertion(parseuse)
+
+    // 2. If it is not possible to insert element at the adjusted insertion location, abort these steps.
+    saufsi peut_insérer_élément(adjusted_insertion_location, élément) {
+        retourne
+    }
+
+    // À FAIRE : 3. If the parser was not created as part of the HTML fragment parsing algorithm, then push a new element queue onto element's relevant agent's custom element reactions stack.
+
+    // 4. Insert element at the adjusted insertion location.
+    adjusted_insertion_location.ajoute_enfant(élément)
+
+    // À FAIRE : 5. If the parser was not created as part of the HTML fragment parsing algorithm, then pop the element queue from element's relevant agent's custom element reactions stack, and invoke custom element reactions in that queue.    
+}
+
+peut_insérer_élément :: fonc (noeud: *Noeud, élément: *Élément @inutilisée) -> bool
+{
+    // À FAIRE : utilise les modèle de contenu
+    // https://html.spec.whatwg.org/multipage/dom.html#content-models
+
+    saufsi noeud.est_élément() {
+        retourne vrai
+    }
+
+    élément_parent := noeud comme *Élément
+
+    si élément_parent.local_name == TAG_iframe {
+        retourne faux
+    }
+
+    retourne vrai
 }
 
 /* https://html.spec.whatwg.org/multipage/parsing.html#create-an-element-for-the-token */
