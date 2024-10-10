@@ -1111,6 +1111,12 @@ ordinary_define_own_property :: fonc (object: *Object, property_key: PropertyKey
         }
     }
 
+    propriété := trouve_propriété(object, property_key)
+    si propriété {
+        propriété.valeur = valeur
+        retourne normal_completion(Valeur(Boolean = vrai))
+    }
+
     object.ajoute_propriété(property_key, valeur, drapeaux)
     retourne normal_completion(Valeur(Boolean = vrai))
 }
@@ -1160,6 +1166,117 @@ ordinary_get :: fonc (object: *Object, property_key: PropertyKey, receiver: Vale
     // 7. Return ? Call(getter, Receiver).
     // À FAIRE : passe une interpréteuse
     retourne call(nul, getter.Quelque, receiver)
+}
+
+/* 10.1.9.1 OrdinarySet ( O, P, V, Receiver )
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinaryset */
+ordinary_set :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur, receiver: Valeur) -> CompletionRecord
+{
+    // 1. Let ownDesc be ? O.[[GetOwnProperty]](P).
+    completion_desc := internal_get_own_property(object, property_key)
+    saufsi completion_desc.est_normal() {
+        retourne completion_desc
+    }
+    own_desc := completion_desc.valeur
+
+    // 2. Return ? OrdinarySetWithOwnDescriptor(O, P, V, Receiver, ownDesc).
+    retourne ordinary_set_with_own_descriptor(object, property_key, valeur, receiver, own_desc)
+}
+
+/* 10.1.9.2 OrdinarySetWithOwnDescriptor ( O, P, V, Receiver, ownDesc )
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarysetwithowndescriptor */
+ordinary_set_with_own_descriptor :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur, receiver: Valeur, own_desc: ValeurCompletion) -> CompletionRecord
+{
+    // 1. If ownDesc is undefined, then
+    si own_desc.est_undefined() {
+        // a. Let parent be ? O.[[GetPrototypeOf]]().
+        parent := internal_get_prototype_of(object)
+
+        // b. If parent is not null, then
+        si parent {
+            // i. Return ? parent.[[Set]](P, V, Receiver).
+            retourne internal_set(parent, property_key, valeur, receiver)
+        }
+        // c. Else,
+        sinon {
+            // i. Set ownDesc to the PropertyDescriptor { [[Value]]: undefined, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: true }.
+            own_desc = PropertyDescriptor(value = js_undefined, writable = vrai, enumerable = vrai, configurable = vrai)
+        }
+    }
+
+    // 2. If IsDataDescriptor(ownDesc) is true, then
+    si is_data_descriptor(own_desc.P) {
+        // a. If ownDesc.[[Writable]] is false, return false.
+        si own_desc.P.writable == faux {
+            retourne normal_completion(Valeur(Boolean = faux))
+        }
+
+        // b. If Receiver is not an Object, return false.
+        saufsi receiver.est_object() {
+            retourne normal_completion(Valeur(Boolean = faux))
+        }
+
+        // c. Let existingDescriptor be ? Receiver.[[GetOwnProperty]](P).
+        completion := internal_get_own_property(receiver.donne_objet(), property_key)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        existing_descriptor := completion.valeur
+
+        // d. If existingDescriptor is not undefined, then
+        saufsi existing_descriptor.est_undefined() {
+            // i. If IsAccessorDescriptor(existingDescriptor) is true, return false.
+            si is_accessor_descriptor(existing_descriptor.P) {
+                retourne normal_completion(Valeur(Boolean = faux))
+            }
+
+            // ii. If existingDescriptor.[[Writable]] is false, return false.
+            si existing_descriptor.P.writable == faux {
+                retourne normal_completion(Valeur(Boolean = faux))
+            }
+
+            // iii. Let valueDesc be the PropertyDescriptor { [[Value]]: V }.
+            value_desc := PropertyDescriptor(value = valeur)
+
+            // iv. Return ? Receiver.[[DefineOwnProperty]](P, valueDesc).
+            retourne internal_define_own_property(receiver.donne_objet(), property_key, value_desc)
+        }
+        // e. Else,
+        sinon {
+            // À FAIRE : i. Assert: Receiver does not currently have a property P.
+
+            // ii. Return ? CreateDataProperty(Receiver, P, V).
+            retourne create_data_property(receiver, property_key, valeur)
+        }
+    }
+
+    // 3. Assert: IsAccessorDescriptor(ownDesc) is true.
+    assert(is_accessor_descriptor(own_desc.P))
+
+    // 4. Let setter be ownDesc.[[Set]].
+    setter := own_desc.P.set
+
+    // 5. If setter is undefined, return false.
+    saufsi setter.possède_valeur() {
+        retourne normal_completion(Valeur(Boolean = faux))
+    }
+
+    // 6. Perform ? Call(setter, Receiver, « V »).
+    interpréteuse: Interpréteuse
+    interpréteuse.mv = receiver.donne_objet().donne_tas_de_mémoire().donne_mv()
+    diffère détruit_données_interpreteuse(*interpréteuse)
+
+    arguments: [..]Valeur
+    arguments.pointeur = *valeur
+    arguments.taille = 1
+
+    completion := call(*interpréteuse, setter.Quelque, receiver, arguments)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+
+    // 7. Return true.
+    retourne normal_completion(Valeur(Boolean = vrai))
 }
 
 /** \} */

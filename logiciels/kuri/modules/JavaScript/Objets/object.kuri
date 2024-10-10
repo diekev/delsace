@@ -30,6 +30,7 @@ TableVirtuelleObject :: struct {
     sur_get_own_property := ordinary_get_own_property
     sur_define_own_property := ordinary_define_own_property
     sur_get := ordinary_get
+    sur_set := ordinary_set
     sur_call: TypeFonctionObjectCall
     sur_construct: TypeFonctionObjectConstruct
 }
@@ -150,17 +151,9 @@ internal_get :: fonc (object: *Object, property_key: PropertyKey, receiver: Vale
 }
 
 /* [[Set]] */
-internal_set :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur, receiver: Valeur @inutilisée) -> CompletionRecord
+internal_set :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur, receiver: Valeur) -> CompletionRecord
 {
-    // À FAIRE : sur_set
-    propriété := trouve_propriété(object, property_key)
-    si propriété {
-        propriété.valeur = valeur
-        retourne normal_completion(Valeur(Boolean = vrai))
-    }
-
-    tableau_ajoute(*object.propriétés, Object.Propriété(property_key, valeur))
-    retourne normal_completion(Valeur(Boolean = vrai))
+    retourne object.donne_table().sur_set(object, property_key, valeur, receiver)
 }
 
 /* [[Call]] */
