@@ -739,6 +739,8 @@ crée_function_constructor :: fonc (tas_de_mémoire: *TasDeMémoire, function_pr
     résultat.ajoute_propriété(STR_length, Valeur(Number = 1.0), DrapeauxPropriété.zéro)
     résultat.ajoute_propriété(STR_prototype, Valeur(Object = function_prototype), DrapeauxPropriété.zéro)
 
+    function_prototype.ajoute_propriété(STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro)
+
     retourne résultat
 }
 
