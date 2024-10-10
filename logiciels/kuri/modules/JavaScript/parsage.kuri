@@ -101,7 +101,7 @@ consomme :: fonc (parseuse: *Parseuse, genre_lexème: GenreLexème)
     parseuse.consomme()
 }
 
-consome_point_virgule_potentiel :: fonc (parseuse: *Parseuse)
+consomme_point_virgule_potentiel :: fonc (parseuse: *Parseuse)
 {
     si parseuse.apparie(GenreLexème.PointVirgule) {
         parseuse.consomme()
@@ -418,7 +418,7 @@ parse_if_statement :: fonc (parseuse: *Parseuse) -> *IfStatement
 
     consequent := parseuse.parse_bloc_statement_ou_expression()
 
-    consome_point_virgule_potentiel(parseuse)
+    consomme_point_virgule_potentiel(parseuse)
 
     alternate: *NoeudSyntaxique
     si parseuse.apparie(GenreLexème.Else) {
@@ -1073,11 +1073,11 @@ parse_bloc :: fonc (parseuse: *Parseuse, requiers_accolades: bool) -> [..]*Noeud
     expressions: [..]*NoeudSyntaxique
 
     tantque !fini(parseuse) {
-        parseuse.consome_point_virgule_potentiel()
+        parseuse.consomme_point_virgule_potentiel()
 
         si apparie_expression(parseuse) {
             expression := parse_expression(parseuse)
-            parseuse.consome_point_virgule_potentiel()
+            parseuse.consomme_point_virgule_potentiel()
             tableau_ajoute(*expressions, expression)
             continue
         }
