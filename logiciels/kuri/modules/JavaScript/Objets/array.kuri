@@ -21,7 +21,7 @@ crée_array :: fonc (tas_de_mémoire: *TasDeMémoire, array_prototype: *ArrayPro
     résultat := tas_de_mémoire.alloue(ObjetArray)
     résultat.prototype = array_prototype
 
-    résultat.ajoute_propriété(STR_length, Valeur(Number = nombre_éléments comme r64), DrapeauxPropriété.zéro)
+    résultat.ajoute_propriété(STR_length, Valeur(Number = nombre_éléments comme r64), Writable)
 
     retourne résultat
 }
