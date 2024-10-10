@@ -448,6 +448,27 @@ get_element_by_id_recursive :: fonc (noeud: *Noeud, chn: DOMString) -> *Élémen
     retourne nul
 }
 
+/* https://dom.spec.whatwg.org/#concept-node-append */
+append :: fonc (parent: *Noeud, node: *Noeud)
+{
+    // À FAIRE : standardise
+    tableau_ajoute(*parent.enfants, node)
+
+    pile: [..]*Noeud
+    diffère déloge(pile)
+
+    tableau_ajoute(*pile, node)
+
+    tantque pile.taille != 0 {
+        noeud := enlève_dernier_élément(*pile)
+        noeud.document = parent.document
+
+        pour noeud.enfants {
+            tableau_ajoute(*pile, it)
+        }
+    }
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

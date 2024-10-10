@@ -563,9 +563,50 @@ fragment_serializing_algorithm_steps :: fonc (node: *Noeud, well_formed: bool @i
     panique("XML non pris en charge")
 }
 
+/* https://html.spec.whatwg.org/multipage/dynamic-markup-insertion.html#fragment-parsing-algorithm-steps */
+fragment_parsing_algorithm_steps :: fonc (context: *Élément, markup: ChaineUTF16) -> *NoeudFragmentDocument
+{
+    // À FAIRE(XML) : 1. Let algorithm be the HTML fragment parsing algorithm.
+
+    // 2. If context's node document is an XML document, then set algorithm to the XML fragment parsing algorithm.
+
+    // 3. Let new children be the result of invoking algorithm given markup, with context set to context.
+    new_children := HTML_fragment_parsing(markup, context)
+
+    // 4. Let fragment be a new DocumentFragment whose node document is context's node document.
+    fragment := crée_noeud_fragment_document(context.document)
+
+    // 5. Append each Node in new children to fragment (in tree order).
+    pour new_children {
+        append(fragment, it)
+    }
+
+    // 6. Return fragment.
+    retourne fragment
+}
+
 donne_innerhtml :: fonc (élément: *Élément) -> ChaineUTF16
 {
     retourne fragment_serializing_algorithm_steps(élément, vrai)
+}
+
+définis_innerhtml :: fonc (élément: *Élément, texte: DOMString)
+{
+    // À FAIRE : 1. Let compliantString be the result of invoking the Get Trusted Type compliant string algorithm with TrustedHTML, this's relevant global object, the given value, "Element innerHTML", and "script".
+    compliant_string := texte.donne_chaine_utf16()
+
+    // 2. Let context be this.
+    context := élément
+
+    // 3. Let fragment be the result of invoking the fragment parsing algorithm steps with context and compliantString.
+    fragment := fragment_parsing_algorithm_steps(context, compliant_string)
+
+    // À FAIRE : 4. If context is a template element, then set context to the template element's template contents (a DocumentFragment).
+
+    // À FAIRE : 5. Replace all with fragment within context.
+    enfants := context.enfants
+    context.enfants = fragment.enfants
+    fragment.enfants = enfants
 }
 
 /** \} */
