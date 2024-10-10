@@ -352,7 +352,7 @@ FunctionEnvironment :: struct {
     empl base_decl: DeclarativeEnvironment
     table = *table_virtuelle_func_env
 
-    function_object: *Function
+    function_object: *ECMAScriptFunction
     new_target: Valeur
     this_value: Valeur
     this_binding_status: ThisBindingStatus
@@ -363,7 +363,7 @@ FunctionEnvironment :: struct {
 
 /* 9.1.2.4 NewFunctionEnvironment ( F, newTarget )
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-newfunctionenvironment */
-new_function_environment :: fonc (F: *Function, new_target: Valeur) -> *FunctionEnvironment
+new_function_environment :: fonc (F: *ECMAScriptFunction, new_target: Valeur) -> *FunctionEnvironment
 {
     tas_de_mémoire := F.donne_tas_de_mémoire()
 
