@@ -1657,7 +1657,7 @@ sur_exécution_call_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: 
 
 /* 13.3.6.2 EvaluateCall ( func, ref, arguments, tailPosition )
  * https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-evaluatecall */
-evaluate_call :: fonc (interpréteuse: *Interpréteuse, func: Valeur, ref: ValeurCompletion, arguments: [..]*NoeudSyntaxique, tail_position: bool) -> CompletionRecord
+evaluate_call :: fonc (interpréteuse: *Interpréteuse, func: Valeur, ref: ValeurCompletion, arguments: []*NoeudSyntaxique, tail_position: bool) -> CompletionRecord
 {
     this_value: Valeur = ---
     // 1. If ref is a Reference Record, then
