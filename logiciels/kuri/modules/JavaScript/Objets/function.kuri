@@ -701,6 +701,17 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom 10.3 BuiltInFunction
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-built-in-function-objects
+ * \{ */
+
+BuiltInFunction :: struct {
+    empl function: Function
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom FunctionPrototype
  * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-function-prototype-object
  * \{ */
@@ -711,9 +722,8 @@ table_virtuelle_function_prototype := TableVirtuelleObject(classe = FunctionProt
 
 #portée_export
 
-/* À FAIRE : is builtin function object */
 FunctionPrototype :: struct {
-    empl function: Function
+    empl builtin_function: BuiltInFunction
     table = *table_virtuelle_function_prototype
 }
 
