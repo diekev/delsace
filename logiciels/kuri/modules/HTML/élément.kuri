@@ -221,6 +221,27 @@ gère_changement_attribute :: fonc (attribut: *Attr, élément: *Élément, viei
     élément.document.invalide_style_pour_attribut(élément, attribut.local_name)
 }
 
+/* https://dom.spec.whatwg.org/#concept-element-attributes-get-value */
+get_an_attribute_value :: fonc (élément: *Élément, nom: DOMString) -> DOMString
+{
+    // À FAIRE : standardise
+    retourne donne_attribut_ou_chaine_vide(élément, nom)
+}
+
+/* https://dom.spec.whatwg.org/#concept-element-attributes-set-value */
+set_an_attribute_value :: fonc (élément: *Élément, nom: DOMString, valeur: DOMString)
+{
+    // À FAIRE : standardise
+    attribut := cherche_attribut(élément, nom)
+    saufsi attribut {
+        attribut_lexé := AttributLexé(nom, valeur)
+        ajoute_attribut(élément, attribut_lexé)
+        retourne
+    }
+
+    change_attribut(attribut, valeur)
+}
+
 initialise_élément :: fonc (élément: *Élément, document: *Document, texte: DOMString) -> rien
 {
     élément.genre = GenreNoeud.Élément
