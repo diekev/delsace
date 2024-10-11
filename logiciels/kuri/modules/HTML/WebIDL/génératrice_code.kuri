@@ -205,6 +205,8 @@ Attribut :: struct {
     nom: chaine
     lecture_seule: bool
     reflect: bool
+    /* 'nom' de [Reflect=nom] */
+    attribut_réfléchis: chaine
 }
 
 Paramètre :: struct {
@@ -378,7 +380,11 @@ génère_enveloppe_javascript_getter :: fonc (enchaineuse: *Enchaineuse, interfa
 
     // Appel de la fonction
     si attribut.reflect {
-        ajoute_au_tampon(enchaineuse, "    résultat := get_an_attribute_value(object_this, ATTR_", nom_snake_case, ")\n")
+        attribut_réfléchis := nom_snake_case
+        si attribut.attribut_réfléchis {
+            attribut_réfléchis = donne_nom_snake_case(attribut.attribut_réfléchis, griffonier)
+        }
+        ajoute_au_tampon(enchaineuse, "    résultat := get_an_attribute_value(object_this, ATTR_", attribut_réfléchis, ")\n")
     }
     sinon {
         ajoute_au_tampon(enchaineuse, "    résultat := donne_", nom_snake_case, "(object_this)\n")
@@ -406,7 +412,11 @@ génère_enveloppe_javascript_setter :: fonc (enchaineuse: *Enchaineuse, interfa
 
     // Appel de la fonction
     si attribut.reflect {
-        ajoute_au_tampon(enchaineuse, "    set_an_attribute_value(object_this, ATTR_", nom_snake_case, ", ", attribut.nom, ")\n")
+        attribut_réfléchis := nom_snake_case
+        si attribut.attribut_réfléchis {
+            attribut_réfléchis = donne_nom_snake_case(attribut.attribut_réfléchis, griffonier)
+        }
+        ajoute_au_tampon(enchaineuse, "    set_an_attribute_value(object_this, ATTR_", attribut_réfléchis, ", ", attribut.nom, ")\n")
     }
     sinon {
         ajoute_au_tampon(enchaineuse, "    définis_", nom_snake_case, "(object_this, ", attribut.nom, ")\n")
@@ -588,6 +598,10 @@ parse_un_attribut :: fonc (parseuse: *ParseuseInterface, interface: *Interface)
         }
         sinon {
             rapporte_erreur("attribut inconnu", lexème)
+        }
+
+        si parseuse.consomme_caractère('=') {
+            résultat.attribut_réfléchis = parseuse.donne_lexème_suivant()
         }
 
         saufsi parseuse.consomme_caractère(']') {
