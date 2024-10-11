@@ -587,6 +587,11 @@ img_élément_sur_initialisation_interface :: fonc (base: *PlatformObject)
     définis_prototype(base, PrototypesPlatformObject.HTMLImageElement)
 }
 
+anchor_élément_sur_initialisation_interface :: fonc (base: *PlatformObject)
+{
+    définis_prototype(base, PrototypesPlatformObject.HTMLAnchorElement)
+}
+
 #portée_export
 
 /* https://html.spec.whatwg.org/multipage/dynamic-markup-insertion.html#fragment-serializing-algorithm-steps */
@@ -685,7 +690,12 @@ est_hyperlien :: fonc (anchor: *HTMLAnchorElement) -> bool
 
 donne_href :: fonc (anchor: *HTMLAnchorElement) -> DOMString
 {
-    retourne donne_attribut_ou_chaine_vide(anchor, ATTR_href)
+    retourne get_an_attribute_value(anchor, ATTR_href)
+}
+
+définis_href :: fonc (anchor: *HTMLAnchorElement, valeur: DOMString)
+{
+    set_an_attribute_value(anchor, ATTR_href, valeur)
 }
 
 #portée_fichier
@@ -694,7 +704,8 @@ table_virtuelle_anchor_element := TableVirtuelleÉlément(
     classe = HTMLAnchorElement,
     sur_destruction = élément_sur_destruction,
     sur_activation_behavior = anchor_element_sur_activation_behavior,
-    sur_changement_attribut = anchor_element_sur_changement_attribut
+    sur_changement_attribut = anchor_element_sur_changement_attribut,
+    sur_initialisation_interface = anchor_élément_sur_initialisation_interface
 )
 
 anchor_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool

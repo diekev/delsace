@@ -240,6 +240,7 @@ PrototypesPlatformObject :: énum {
     Document
     Node
     Element
+    HTMLAnchorElement
     HTMLCollection
     HTMLElement
     HTMLImageElement
