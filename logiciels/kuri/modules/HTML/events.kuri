@@ -480,6 +480,21 @@ retarget :: fonc (a: *EventTarget, b: *EventTarget @inutilisée) -> *EventTarget
 
 #portée_export
 
+/* Enveloppe pour IDL où EventType n'est pas convertis. */
+add_event_listener :: fonc (target: *EventTarget, type: ChaineUTF16Unique, callback: *EventListener, options : *AddEventListenerOptions = nul)
+{
+    chn_type := converti_vers_chaine(type.donne_chaine_utf16())
+    diffère déloge(chn_type)
+
+    valeur_type, trouvé := donne_valeur_énum_pour_nom(info_de(EventType), chn_type)
+    saufsi trouvé {
+        // À FAIRE : que faire ?
+        retourne
+    }
+
+    add_event_listener(target, valeur_type comme EventType, callback, options)
+}
+
 /* https://dom.spec.whatwg.org/#dom-eventtarget-addeventlistener */
 add_event_listener :: fonc (target: *EventTarget, type: EventType, callback: *EventListener, options : *AddEventListenerOptions = nul)
 {

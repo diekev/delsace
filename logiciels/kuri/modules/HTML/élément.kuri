@@ -585,12 +585,12 @@ fragment_parsing_algorithm_steps :: fonc (context: *Élément, markup: ChaineUTF
     retourne fragment
 }
 
-donne_innerhtml :: fonc (élément: *Élément) -> ChaineUTF16
+donne_inner_html :: fonc (élément: *Élément) -> ChaineUTF16
 {
     retourne fragment_serializing_algorithm_steps(élément, vrai)
 }
 
-définis_innerhtml :: fonc (élément: *Élément, texte: DOMString)
+définis_inner_html :: fonc (élément: *Élément, texte: DOMString)
 {
     // À FAIRE : 1. Let compliantString be the result of invoking the Get Trusted Type compliant string algorithm with TrustedHTML, this's relevant global object, the given value, "Element innerHTML", and "script".
     compliant_string := texte.donne_chaine_utf16()

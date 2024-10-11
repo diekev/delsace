@@ -34,6 +34,8 @@ charge "webappsec_referrer_policy"
 charge "webcrypto"
 charge "webdriver_bidi"
 
+charge "WebIDL/génératrice_code"
+
 DOMString :: ChaineUTF16Unique
 
 imprime_noeud :: fonc (noeud: *Noeud, tab: z32) -> rien

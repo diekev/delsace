@@ -508,54 +508,38 @@ Window :: struct {
 
 crée_objet_window :: fonc (tas_de_mémoire: *JavaScript.TasDeMémoire, realm: *JavaScript.Realm) -> *Window
 {
-    résultat := crée_platform_object(tas_de_mémoire, realm, Window)
-    JavaScript.ajoute_propriété(résultat, crée_chaine_utf16_unique("window"), window_window_getter, nul, JavaScript.DrapeauxPropriété.zéro)
-    JavaScript.ajoute_propriété(résultat, crée_chaine_utf16_unique("frames"), window_window_getter, nul, JavaScript.DrapeauxPropriété.zéro)
-    JavaScript.ajoute_propriété(résultat, crée_chaine_utf16_unique("self"), window_window_getter, nul, JavaScript.DrapeauxPropriété.zéro)
-    JavaScript.ajoute_propriété(résultat, crée_chaine_utf16_unique("document"), window_document_getter, nul, JavaScript.DrapeauxPropriété.zéro)
-    retourne résultat
+    retourne crée_platform_object(tas_de_mémoire, realm, Window)
 }
 
-window_window_getter :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord
+donne_document :: fonc (window: *Window) -> *Document
 {
-    window := this_value.Object comme *Window
-    assert(window.table.classe == Window)
-    retourne JavaScript.normal_completion(JavaScript.Valeur(Object = window))
+    retourne window.document
 }
 
-window_document_getter :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord
+donne_window :: fonc (window: *Window) -> *Window
 {
-    window := this_value.Object comme *Window
-    assert(window.table.classe == Window)
-    résultat := JavaScript.js_null
-    si window.document {
-        résultat = JavaScript.Valeur(Object = window.document)
-    }
-    retourne JavaScript.normal_completion(résultat)
+    retourne window
+}
+
+donne_frames :: fonc (window: *Window) -> *Window
+{
+    retourne window
+}
+
+donne_self :: fonc (window: *Window) -> *Window
+{
+    retourne window
 }
 
 /* https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#dom-alert-noargs */
-fonction_native_alert :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord
+alert :: fonc (window: *Window, message: DOMString)
 {
-    window := this_value.Object comme *Window
-    assert(window.table.classe == Window)
-
     user_agent := window.document.donne_user_agent()
     saufsi user_agent {
-        retourne JavaScript.normal_completion(JavaScript.js_undefined)
+        retourne
     }
 
-    chn := crée_chaine_utf16_unique_vide()
-    si arguments.taille > 0 {
-        complétion := JavaScript.vers_chaine(interpréteuse, arguments[0])
-        saufsi JavaScript.est_normal(complétion) {
-            retourne complétion
-        }
-        chn = complétion.valeur.V.String.texte
-    }
-
-    user_agent.affiche_alerte(chn)
-    retourne JavaScript.normal_completion(JavaScript.js_undefined)
+    user_agent.affiche_alerte(message)
 }
 
 #portée_export

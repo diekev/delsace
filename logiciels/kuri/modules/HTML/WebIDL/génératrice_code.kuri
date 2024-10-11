@@ -1,8 +1,10 @@
+importe Compilatrice
 importe Ensemble
 importe Fondation
-importe GlibC
 importe Sérialisation
 importe SysFichier
+
+#portée_fichier
 
 Griffonier :: TamponFixe(T = z8, N = 128)
 
@@ -57,11 +59,10 @@ opérateur == :: fonc (a: NomEtIndex, b: NomEtIndex) -> bool
     retourne a.nom == b.nom
 }
 
-principale :: fonc () -> z32
-{
-    mémoire_début := mémoire_utilisée()
-    diffère imprime("mémoire utilisée : %o\n", mémoire_utilisée() - mémoire_début)
+#portée_module
 
+compile_interfaces_idl :: fonc () -> chaine
+{
     interfaces: [..]Interface
     diffère {
         pour interfaces {
@@ -85,6 +86,15 @@ principale :: fonc () -> z32
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
+
+    ajoute_au_tampon(*enchaineuse, "importe Chaine\n")
+    ajoute_au_tampon(*enchaineuse, "importe #inemployé JavaScript\n")
+
+    // À FAIRE : renomme nos types
+    ajoute_au_tampon(*enchaineuse, "#portée_fichier\n")
+    ajoute_au_tampon(*enchaineuse, "Node :: Noeud\n")
+    ajoute_au_tampon(*enchaineuse, "Element :: Élément\n")
+    ajoute_au_tampon(*enchaineuse, "#portée_module\n")
 
     chemin_fichier := CheminFichier(#chemin_de_ce_fichier)
     chemin_parent := chemin_fichier.chemin_parent()
@@ -127,7 +137,7 @@ principale :: fonc () -> z32
     }
 
     source := chaine_depuis_enchaineuse(*enchaineuse)
-    imprime("%\n", source)
+    ajoute_chaine_au_module(compilatrice_espace_courant(), compilatrice_module_courant(), source)
     déloge(source)
 
     détruit_tampons(*enchaineuse)
@@ -145,12 +155,10 @@ principale :: fonc () -> z32
         ajoute_au_tampon(*enchaineuse, "    realm.intrinsics.host_intrinsics[PrototypesPlatformObject.", it.nom, "] = ", it.nom, "_prototype\n")
     }
 
-    source = chaine_depuis_enchaineuse(*enchaineuse)
-    imprime("%\n", source)
-    déloge(source)
-
-    retourne 0
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
+
+#portée_fichier
 
 génère_création_prototype :: fonc (enchaineuse: *Enchaineuse, interfaces: []Interface, interface: *Interface, noms_et_index_parents: *[..]NomEtIndex)
 {
@@ -309,26 +317,6 @@ génère_création_prototype :: fonc (enchaineuse: *Enchaineuse, interface: *Int
     ajoute_au_tampon(enchaineuse, "    retourne résultat\n")
     ajoute_au_tampon(enchaineuse, "}\n")
 }
-
-/*
-
-donne_platform_object :: fonc (interpréteuse: *JavaScript.Interpréteuse, value: Value, $Type: type_de_données)
-{
-    completion := JavaScript.vers_objet(value)
-    saufsi JavaScript.est_normal(completion) {
-        retourne completion;
-    }
-    object := JavaScript.donne_objet(completion.valeur.V)
-    info_type := info_de(Type)
-    saufsi est_struct_ou_employeuse_de(JavaScript.donne_info_type_cellule(object), info_type) {
-        message := imprime_chaine("object is not a '%', info_type.nom)
-        diffère déloge(message)
-        retourne JavaScript.lance_type_error(interpréteuse, message)
-    }
-    retourne JavaScript.normal_completion(Valeur(Object = object));
-}
-
-*/
 
 génère_enveloppe_javascript :: fonc (enchaineuse: *Enchaineuse, interface: *Interface, fonction: *Fonction, griffonier: *Griffonier)
 {
@@ -597,8 +585,8 @@ parse_un_attribut :: fonc (parseuse: *ParseuseInterface, interface: *Interface, 
 
 rapporte_erreur :: fonc (message: chaine, lexème_obtenu: chaine)
 {
-    imprime("%, obtenu %\n", message, lexème_obtenu)
-    exit(1)
+    message_erreur := imprime_chaine("%, obtenu %\n", message, lexème_obtenu)
+    compilatrice_rapporte_erreur(message_erreur)
 }
 
 ParseuseInterface :: struct {
