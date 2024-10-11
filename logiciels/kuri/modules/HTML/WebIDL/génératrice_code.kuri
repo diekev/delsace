@@ -532,20 +532,15 @@ parse_interface :: fonc (texte: chaine, résultat: *Interface)
             parse_un_attribut(*parseuse, résultat)
         }
         sinon {
-            lexème = donne_lexème_suivant(*parseuse)
-            parse_une_fonction(*parseuse, résultat, lexème)
+            parse_une_fonction(*parseuse, résultat)
         }
     }
 }
 
-parse_une_fonction :: fonc (parseuse: *ParseuseInterface, interface: *Interface, lexème: chaine)
+parse_une_fonction :: fonc (parseuse: *ParseuseInterface, interface: *Interface)
 {
-    type_retour: Type
-    type_retour.nom = lexème
-    type_retour.nulifiable = consomme_caractère(parseuse, '?')
-
     résultat: Fonction
-    résultat.type_retour = type_retour
+    parse_type(parseuse, *résultat.type_retour)
     résultat.nom = donne_lexème_suivant(parseuse)
     résultat.premier_paramètre = interface.paramètres.taille
 
@@ -558,12 +553,8 @@ parse_une_fonction :: fonc (parseuse: *ParseuseInterface, interface: *Interface,
             arrête
         }
 
-        type: Type
-        type.nom = donne_lexème_suivant(parseuse)
-        type.nulifiable = consomme_caractère(parseuse, '?')
-
         paramètre: Paramètre
-        paramètre.type = type
+        parse_type(parseuse, *paramètre.type)
         paramètre.nom = donne_lexème_suivant(parseuse)
 
         tableau_ajoute(*interface.paramètres, paramètre)
@@ -619,9 +610,7 @@ parse_un_attribut :: fonc (parseuse: *ParseuseInterface, interface: *Interface)
         rapporte_erreur("attendu 'attribute'", lexème)
     }
 
-    lexème = donne_lexème_suivant(parseuse)
-    résultat.type.nom = lexème
-    résultat.type.nulifiable = consomme_caractère(parseuse, '?')
+    parse_type(parseuse, *résultat.type)
 
     lexème = donne_lexème_suivant(parseuse)
 
@@ -676,6 +665,12 @@ apparie :: fonc (parseuse: *ParseuseInterface, c: z8) -> bool
         retourne faux
     }
     retourne mémoire(parseuse.début) == c
+}
+
+parse_type :: fonc (parseuse: *ParseuseInterface, résultat: *Type)
+{
+    résultat.nom = donne_lexème_suivant(parseuse)
+    résultat.nulifiable = consomme_caractère(parseuse, '?')
 }
 
 donne_lexème_suivant :: fonc (parseuse: *ParseuseInterface) -> chaine
