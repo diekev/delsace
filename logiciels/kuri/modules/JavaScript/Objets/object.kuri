@@ -29,6 +29,7 @@ TableVirtuelleObject :: struct {
     sur_get_prototype_of := ordinary_get_prototype_of
     sur_get_own_property := ordinary_get_own_property
     sur_define_own_property := ordinary_define_own_property
+    sur_has_property := ordinary_has_property
     sur_get := ordinary_get
     sur_set := ordinary_set
     sur_call: TypeFonctionObjectCall
@@ -136,12 +137,7 @@ internal_define_own_property :: fonc (object: *Object, property_key: PropertyKey
 /* [[HasProperty]] */
 internal_has_property :: fonc (object: *Object, property_key: PropertyKey) -> CompletionRecord
 {
-    // À FAIRE : sur_has_property
-    propriété := trouve_propriété(object, property_key)
-    si propriété {
-        retourne normal_completion(Valeur(Boolean = vrai))
-    }
-    retourne normal_completion(Valeur(Boolean = faux))
+    retourne object.donne_table().sur_has_property(object, property_key)
 }
 
 /* [[Get]] */

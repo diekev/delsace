@@ -1122,6 +1122,35 @@ ordinary_define_own_property :: fonc (object: *Object, property_key: PropertyKey
     retourne normal_completion(Valeur(Boolean = vrai))
 }
 
+/* 10.1.7.1 OrdinaryHasProperty ( O, P )
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinaryhasproperty */
+ordinary_has_property :: fonc (object: *Object, property_key: PropertyKey) -> CompletionRecord
+{
+    // 1. Let hasOwn be ? O.[[GetOwnProperty]](P).
+    completion := internal_get_own_property(object, property_key)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    has_own := completion.valeur
+
+    // 2. If hasOwn is not undefined, return true.
+    saufsi has_own.est_undefined() {
+        retourne normal_completion(Valeur(Boolean = vrai))
+    }
+
+    // 3. Let parent be ? O.[[GetPrototypeOf]]().
+    parent := internal_get_prototype_of(object)
+
+    // 4. If parent is not null, then
+    si parent {
+        // a. Return ? parent.[[HasProperty]](P).
+        retourne internal_has_property(parent, property_key)
+    }
+
+    // 5. Return false.
+    retourne normal_completion(Valeur(Boolean = faux))
+}
+
 /* 10.1.8.1 OrdinaryGet ( O, P, Receiver )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinary-object-internal-methods-and-internal-slots-get-p-receiver */
 ordinary_get :: fonc (object: *Object, property_key: PropertyKey, receiver: Valeur) -> CompletionRecord
