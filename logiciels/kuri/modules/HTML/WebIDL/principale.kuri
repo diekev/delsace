@@ -82,6 +82,10 @@ principale :: fonc () -> z32
         déloge(interface_tampon.attributs)
     }
 
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
     pour ExploratriceFichier(CheminFichier("fichiers")) {
         saufsi it.extension() == ".idl" {
             continue
@@ -100,7 +104,7 @@ principale :: fonc () -> z32
         
         // imprime_interface(*interface)
 
-        génère_enveloppes_javascript(*interface_tampon)
+        génère_enveloppes_javascript(*enchaineuse, *interface_tampon)
 
         interface: Interface
         interface.nom = copie_chaine(interface_tampon.nom)
@@ -116,9 +120,12 @@ principale :: fonc () -> z32
         }
     }
 
-    enchaineuse: Enchaineuse
+    source := chaine_depuis_enchaineuse(*enchaineuse)
+    imprime("%\n", source)
+    déloge(source)
+
+    détruit_tampons(*enchaineuse)
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     ajoute_au_tampon(*enchaineuse, "    tas_de_mémoire := JavaScript.donne_tas_de_mémoire(realm)\n\n")
 
@@ -132,7 +139,7 @@ principale :: fonc () -> z32
         ajoute_au_tampon(*enchaineuse, "    realm.intrinsics.host_intrinsics[PrototypesPlatformObject.", it.nom, "] = ", it.nom, "_prototype\n")
     }
 
-    source := chaine_depuis_enchaineuse(*enchaineuse)
+    source = chaine_depuis_enchaineuse(*enchaineuse)
     imprime("%\n", source)
     déloge(source)
 
@@ -251,31 +258,23 @@ imprime_interface :: fonc (interface: *Interface)
     imprime("}\n")
 }
 
-génère_enveloppes_javascript :: fonc (interface: *Interface)
+génère_enveloppes_javascript :: fonc (enchaineuse: *Enchaineuse, interface: *Interface)
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
-
     griffonier: Griffonier
 
     pour * interface.fonctions {
-        génère_enveloppe_javascript(*enchaineuse, interface, it, *griffonier)
+        génère_enveloppe_javascript(enchaineuse, interface, it, *griffonier)
     }
 
     pour * interface.attributs {
-        génère_enveloppe_javascript_getter(*enchaineuse, interface, it, *griffonier)
+        génère_enveloppe_javascript_getter(enchaineuse, interface, it, *griffonier)
 
         saufsi it.lecture_seule {
-            génère_enveloppe_javascript_setter(*enchaineuse, interface, it, *griffonier)
+            génère_enveloppe_javascript_setter(enchaineuse, interface, it, *griffonier)
         }
     }
 
-    génère_création_prototype(*enchaineuse, interface)
-
-    source := chaine_depuis_enchaineuse(*enchaineuse)
-    diffère déloge(source)
-    imprime("%\n", source)
+    génère_création_prototype(enchaineuse, interface)
 }
 
 génère_création_prototype :: fonc (enchaineuse: *Enchaineuse, interface: *Interface)
