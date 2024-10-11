@@ -1,9 +1,48 @@
+importe Ensemble
 importe Fondation
 importe GlibC
 importe SysFichier
 
+NomEtIndex :: struct {
+    nom: chaine
+    index: z64
+}
+
+opérateur < :: fonc (a: NomEtIndex, b: NomEtIndex) -> bool
+{
+    retourne a.nom < b.nom
+}
+
+opérateur == :: fonc (a: NomEtIndex, b: NomEtIndex) -> bool
+{
+    retourne a.nom == b.nom
+}
+
 principale :: fonc () -> z32
 {
+    mémoire_début := mémoire_utilisée()
+    diffère imprime("mémoire utilisée : %o\n", mémoire_utilisée() - mémoire_début)
+
+    interfaces: [..]Interface
+    diffère {
+        pour interfaces {
+            déloge(it.nom)
+            déloge(it.parent)
+        }
+        déloge(interfaces)
+    }
+
+    noms_et_index_parents: [..]NomEtIndex
+    diffère déloge(noms_et_index_parents)
+
+    /* Interface pour réutiliser la mémoire entre les parsages. */
+    interface_tampon: Interface
+    diffère {
+        déloge(interface_tampon.fonctions)
+        déloge(interface_tampon.paramètres)
+        déloge(interface_tampon.attributs)
+    }
+
     pour ExploratriceFichier(CheminFichier("fichiers")) {
         saufsi it.extension() == ".idl" {
             continue
@@ -12,18 +51,82 @@ principale :: fonc () -> z32
         texte := contenu_fichier_texte(it)
         diffère déloge(texte)
 
-        opt_interface := parse_interface(texte)
-        saufsi opt_interface.possède_valeur() {
-            retourne 1
-        }
-        interface := opt_interface.Quelque
+        interface_tampon.nom = ""
+        interface_tampon.parent = ""
+        interface_tampon.paramètres.taille = 0
+        interface_tampon.fonctions.taille = 0
+        interface_tampon.attributs.taille = 0
+
+        parse_interface(texte, *interface_tampon)
         
         // imprime_interface(*interface)
 
-        génère_enveloppes_javascript(*interface)
+        génère_enveloppes_javascript(*interface_tampon)
+
+        interface: Interface
+        interface.nom = copie_chaine(interface_tampon.nom)
+        interface.parent = copie_chaine(interface_tampon.parent)
+        tableau_ajoute(*interfaces, interface)
+
+        nom_et_index_parent: NomEtIndex
+        nom_et_index_parent.nom = interface.nom
+
+        saufsi ensemble_possède(*noms_et_index_parents, nom_et_index_parent) {
+            nom_et_index_parent.index = interfaces.taille - 1
+            ensemble_ajoute(*noms_et_index_parents, nom_et_index_parent)
+        }
     }
 
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    ajoute_au_tampon(*enchaineuse, "    tas_de_mémoire := JavaScript.donne_tas_de_mémoire(realm)\n\n")
+
+    pour * interfaces {
+        génère_création_prototype(*enchaineuse, interfaces, it, *noms_et_index_parents)
+    }
+
+    ajoute_au_tampon(*enchaineuse, "\n    tableau_redimensionne(realm.intrinsics.host_intrinsics, PrototypesPlatformObject.nombre_éléments)\n")
+
+    pour interfaces {
+        ajoute_au_tampon(*enchaineuse, "    realm.intrinsics.host_intrinsics[PrototypesPlatformObject.", it.nom, "] = ", it.nom, "_prototype\n")
+    }
+
+    source := chaine_depuis_enchaineuse(*enchaineuse)
+    imprime("%\n", source)
+    déloge(source)
+
     retourne 0
+}
+
+génère_création_prototype :: fonc (enchaineuse: *Enchaineuse, interfaces: []Interface, interface: *Interface, noms_et_index_parents: *[..]NomEtIndex)
+{
+    si interface.création_générée {
+        retourne
+    }
+
+    interface.création_générée = vrai
+
+    si interface.parent {
+        nom_et_index_parent: NomEtIndex
+        nom_et_index_parent.nom = interface.parent
+
+        adresse_nom_et_index_parent := ensemble_possède_retourne_index(noms_et_index_parents, nom_et_index_parent)
+        assert(adresse_nom_et_index_parent != -1)
+
+        parent := *interfaces[noms_et_index_parents.pointeur[adresse_nom_et_index_parent].index]
+
+        génère_création_prototype(enchaineuse, interfaces, parent, noms_et_index_parents)
+    }
+
+    ajoute_au_tampon(enchaineuse, "    ", interface.nom, "_prototype := crée_prototype_", interface.nom, "(tas_de_mémoire, ")
+    si interface.parent {
+        ajoute_au_tampon(enchaineuse, interface.parent, "_prototype)\n")
+    }
+    sinon {
+        ajoute_au_tampon(enchaineuse, "realm.intrinsics.object_prototype)\n")
+    }
 }
 
 Type :: struct {
@@ -42,17 +145,30 @@ Paramètre :: struct {
     type: Type
 }
 
-Function :: struct {
+Fonction :: struct {
     type_retour: Type
     nom: chaine
-    paramètres: [..]Paramètre
+
+    premier_paramètre: z64
+    dernier_paramètre: z64
 }
 
 Interface :: struct {
     nom: chaine
     parent: chaine
+    paramètres: [..]Paramètre
     attributs: [..]Attribut
-    fonctions: [..]Function
+    fonctions: [..]Fonction
+
+    création_générée := faux
+}
+
+donne_paramètres :: fonc (interface: *Interface, fonction: *Fonction) -> []Paramètre
+{
+    résultat: []Paramètre
+    résultat.pointeur = interface.paramètres.pointeur + fonction.premier_paramètre
+    résultat.taille = fonction.dernier_paramètre - fonction.premier_paramètre
+    retourne résultat
 }
 
 imprime_interface :: fonc (interface: *Interface)
@@ -168,21 +284,23 @@ donne_platform_object :: fonc (interpréteuse: *JavaScript.Interpréteuse, value
 
 */
 
-génère_enveloppe_javascript :: fonc (enchaineuse: *Enchaineuse, interface: *Interface, fonction: *Function)
+génère_enveloppe_javascript :: fonc (enchaineuse: *Enchaineuse, interface: *Interface, fonction: *Fonction)
 {
+    paramètres := interface.donne_paramètres(fonction)
+
     ajoute_au_tampon(enchaineuse, interface.nom, "_", fonction.nom, " :: fonc (empl params: JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord\n")
     ajoute_au_tampon(enchaineuse, "{\n")
 
     génère_code_conversion_this(enchaineuse, interface)
 
     // Validation et conversion des paramètres
-    si fonction.paramètres.taille != 0 {
-        ajoute_au_tampon(enchaineuse, "    si arguments.taille < ", fonction.paramètres.taille, " {\n")
-        ajoute_au_tampon(enchaineuse, "        retourne JavaScript.lance_type_error(interpréteuse, \"", fonction.nom, " takes ", fonction.paramètres.taille, " arguments\")\n")
+    si paramètres.taille != 0 {
+        ajoute_au_tampon(enchaineuse, "    si arguments.taille < ", paramètres.taille, " {\n")
+        ajoute_au_tampon(enchaineuse, "        retourne JavaScript.lance_type_error(interpréteuse, \"", fonction.nom, " takes ", paramètres.taille, " arguments\")\n")
         ajoute_au_tampon(enchaineuse, "    }\n")
     }
 
-    pour fonction.paramètres {
+    pour paramètres {
         génère_code_conversion_argument(enchaineuse, it.nom, index_it, *it.type)
     }
 
@@ -195,10 +313,10 @@ génère_enveloppe_javascript :: fonc (enchaineuse: *Enchaineuse, interface: *In
     ajoute_au_tampon(enchaineuse, fonction.nom)
 
     virgule := "(object, "
-    si fonction.paramètres.taille == 0 {
+    si paramètres.taille == 0 {
         ajoute_au_tampon(enchaineuse, "(object")
     }
-    sinon pour fonction.paramètres {
+    sinon pour paramètres {
         ajoute_au_tampon(enchaineuse, virgule, it.nom)
         virgule = ", "
     }
@@ -302,7 +420,7 @@ imprime_type :: fonc (type: *Type)
     }
 }
 
-parse_interface :: fonc (texte: chaine) -> Optionnel(Interface)
+parse_interface :: fonc (texte: chaine, résultat: *Interface)
 {
     parseuse := crée_parseuse(texte)
 
@@ -310,10 +428,8 @@ parse_interface :: fonc (texte: chaine) -> Optionnel(Interface)
 
     si lexème != "interface" {
         rapporte_erreur("attendu 'interface'", lexème)
-        retourne
     }
 
-    résultat: Interface
     résultat.nom = donne_lexème_suivant(*parseuse)
 
     lexème = donne_lexème_suivant(*parseuse)
@@ -324,7 +440,6 @@ parse_interface :: fonc (texte: chaine) -> Optionnel(Interface)
 
     si lexème != "{" {
         rapporte_erreur("attendu '{'", lexème)
-        retourne
     }
 
     boucle {
@@ -334,14 +449,12 @@ parse_interface :: fonc (texte: chaine) -> Optionnel(Interface)
         }
 
         si lexème == "readonly" || lexème == "attribute" {
-            parse_un_attribut(*parseuse, *résultat, lexème)
+            parse_un_attribut(*parseuse, résultat, lexème)
         }
         sinon {
-            parse_une_fonction(*parseuse, *résultat, lexème)
+            parse_une_fonction(*parseuse, résultat, lexème)
         }
     }
-
-    retourne résultat
 }
 
 parse_une_fonction :: fonc (parseuse: *ParseuseInterface, interface: *Interface, lexème: chaine)
@@ -355,9 +468,10 @@ parse_une_fonction :: fonc (parseuse: *ParseuseInterface, interface: *Interface,
         lexème = donne_lexème_suivant(parseuse)
     }
 
-    résultat: Function
+    résultat: Fonction
     résultat.type_retour = type_retour
     résultat.nom = lexème
+    résultat.premier_paramètre = interface.paramètres.taille
 
     lexème = donne_lexème_suivant(parseuse)
     saufsi lexème == "(" {
@@ -383,7 +497,7 @@ parse_une_fonction :: fonc (parseuse: *ParseuseInterface, interface: *Interface,
         paramètre.type = type
         paramètre.nom = lexème
 
-        tableau_ajoute(*résultat.paramètres, paramètre)
+        tableau_ajoute(*interface.paramètres, paramètre)
 
         lexème = donne_lexème_suivant(parseuse)
         si lexème == "," {
@@ -397,6 +511,7 @@ parse_une_fonction :: fonc (parseuse: *ParseuseInterface, interface: *Interface,
         arrête
     }
 
+    résultat.dernier_paramètre = interface.paramètres.taille
     tableau_ajoute(*interface.fonctions, résultat)
 
     lexème = donne_lexème_suivant(parseuse)
