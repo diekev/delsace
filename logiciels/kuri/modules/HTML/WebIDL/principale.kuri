@@ -482,22 +482,20 @@ parse_interface :: fonc (texte: chaine, résultat: *Interface)
 
     résultat.nom = donne_lexème_suivant(*parseuse)
 
-    lexème = donne_lexème_suivant(*parseuse)
-    si lexème == ":" {
+    si consomme_caractère(*parseuse, ':') {
         résultat.parent = donne_lexème_suivant(*parseuse)
-        lexème = donne_lexème_suivant(*parseuse)
     }
 
-    si lexème != "{" {
-        rapporte_erreur("attendu '{'", lexème)
+    saufsi consomme_caractère(*parseuse, '{') {
+        rapporte_erreur("attendu '{'", donne_lexème_suivant(*parseuse))
     }
 
     boucle {
-        lexème = donne_lexème_suivant(*parseuse)
-        si lexème == "}" {
+        si consomme_caractère(*parseuse, '}') {
             arrête
         }
 
+        lexème = donne_lexème_suivant(*parseuse)
         si lexème == "readonly" || lexème == "attribute" {
             parse_un_attribut(*parseuse, résultat, lexème)
         }
@@ -511,51 +509,38 @@ parse_une_fonction :: fonc (parseuse: *ParseuseInterface, interface: *Interface,
 {
     type_retour: Type
     type_retour.nom = lexème
-
-    lexème = donne_lexème_suivant(parseuse)
-    si lexème == "?" {
-        type_retour.nulifiable = vrai
-        lexème = donne_lexème_suivant(parseuse)
-    }
+    type_retour.nulifiable = consomme_caractère(parseuse, '?')
 
     résultat: Fonction
     résultat.type_retour = type_retour
-    résultat.nom = lexème
+    résultat.nom = donne_lexème_suivant(parseuse)
     résultat.premier_paramètre = interface.paramètres.taille
 
-    lexème = donne_lexème_suivant(parseuse)
-    saufsi lexème == "(" {
-        rapporte_erreur("attendu '(", lexème)
+    saufsi consomme_caractère(parseuse, '(') {
+        rapporte_erreur("attendu '('", donne_lexème_suivant(parseuse))
     }
 
     boucle {
-        lexème = donne_lexème_suivant(parseuse)
-        si lexème == ")" {
+        si consomme_caractère(parseuse, ')') {
             arrête
         }
 
         type: Type
-        type.nom = lexème
-
-        lexème = donne_lexème_suivant(parseuse)
-        si lexème == "?" {
-            type.nulifiable = vrai
-            lexème = donne_lexème_suivant(parseuse)
-        }
+        type.nom = donne_lexème_suivant(parseuse)
+        type.nulifiable = consomme_caractère(parseuse, '?')
 
         paramètre: Paramètre
         paramètre.type = type
-        paramètre.nom = lexème
+        paramètre.nom = donne_lexème_suivant(parseuse)
 
         tableau_ajoute(*interface.paramètres, paramètre)
 
-        lexème = donne_lexème_suivant(parseuse)
-        si lexème == "," {
+        si consomme_caractère(parseuse, ',') {
             continue
         }
 
-        saufsi lexème == ")" {
-            rapporte_erreur("attendu ')", lexème)
+        saufsi consomme_caractère(parseuse, ')') {
+            rapporte_erreur("attendu ')", donne_lexème_suivant(parseuse))
         }
 
         arrête
@@ -564,9 +549,8 @@ parse_une_fonction :: fonc (parseuse: *ParseuseInterface, interface: *Interface,
     résultat.dernier_paramètre = interface.paramètres.taille
     tableau_ajoute(*interface.fonctions, résultat)
 
-    lexème = donne_lexème_suivant(parseuse)
-    saufsi lexème == ";" {
-        rapporte_erreur("attendu ';", lexème)
+    saufsi consomme_caractère(parseuse, ';') {
+        rapporte_erreur("attendu ';", donne_lexème_suivant(parseuse))
     }
 }
 
@@ -585,20 +569,16 @@ parse_un_attribut :: fonc (parseuse: *ParseuseInterface, interface: *Interface, 
 
     lexème = donne_lexème_suivant(parseuse)
     résultat.type.nom = lexème
+    résultat.type.nulifiable = consomme_caractère(parseuse, '?')
 
     lexème = donne_lexème_suivant(parseuse)
-    si lexème == "?" {
-        résultat.type.nulifiable = vrai
-        lexème = donne_lexème_suivant(parseuse)
-    }
 
     résultat.nom = lexème
 
     tableau_ajoute(*interface.attributs, résultat)
 
-    lexème = donne_lexème_suivant(parseuse)
-    saufsi lexème == ";" {
-        rapporte_erreur("attendu ';", lexème)
+    saufsi consomme_caractère(parseuse, ';') {
+        rapporte_erreur("attendu ';", donne_lexème_suivant(parseuse))
     }
 }
 
@@ -629,53 +609,12 @@ donne_lexème_suivant :: fonc (parseuse: *ParseuseInterface) -> chaine
         retourne ""
     }
 
-    c := mémoire(parseuse.début)
-    si c == '?' {
-        parseuse.début += 1
-        retourne "?"
-    }
-
-    si c == '(' {
-        parseuse.début += 1
-        retourne "("
-    }
-
-    si c == ')' {
-        parseuse.début += 1
-        retourne ")"
-    }
-
-    si c == ':' {
-        parseuse.début += 1
-        retourne ":"
-    }
-
-    si c == ';' {
-        parseuse.début += 1
-        retourne ";"
-    }
-
-    si c == '{' {
-        parseuse.début += 1
-        retourne "{"
-    }
-
-    si c == '}' {
-        parseuse.début += 1
-        retourne "}"
-    }
-
-    si c == ',' {
-        parseuse.début += 1
-        retourne ","
-    }
-
     résultat : chaine = ---
     résultat.pointeur = parseuse.début
     résultat.taille = 0
 
     tantque parseuse.début < parseuse.fin {
-        c = mémoire(parseuse.début)
+        c := mémoire(parseuse.début)
         si ('a' <= c <= 'z') || ('A' <= c <= 'Z') {
             parseuse.début += 1
             résultat.taille += 1
@@ -686,6 +625,22 @@ donne_lexème_suivant :: fonc (parseuse: *ParseuseInterface) -> chaine
     }
 
     retourne résultat
+}
+
+consomme_caractère :: fonc (parseuse: *ParseuseInterface, c: z8) -> bool
+{
+    consomme_espaces_blanches(parseuse)
+    si parseuse.début >= parseuse.fin {
+        retourne faux
+    }
+
+    caractère := mémoire(parseuse.début)
+    si c != caractère {
+        retourne faux
+    }
+
+    parseuse.début += 1
+    retourne vrai
 }
 
 consomme_espaces_blanches :: fonc (parseuse: *ParseuseInterface)
