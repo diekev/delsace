@@ -473,6 +473,11 @@ throw_completion :: fonc (valeur: Valeur) -> CompletionRecord
     retourne CompletionRecord(CompletionRecord.Type.THROW, ValeurCompletion(valeur))
 }
 
+donne_object :: fonc (completion: &CompletionRecord) -> *Object
+{
+    retourne completion.valeur.V.donne_objet()
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

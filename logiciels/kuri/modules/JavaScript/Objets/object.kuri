@@ -303,7 +303,7 @@ object_prototype_proto_get :: fonc (empl params: *ParamètresObjectCall) -> Comp
     saufsi completion.est_normal() {
         retourne completion
     }
-    O := completion.valeur.V.Object
+    O := completion.donne_object()
 
     // 2. Return ? O.[[GetPrototypeOf]]().
     retourne normal_completion(Valeur(Object = internal_get_prototype_of(O)))
@@ -374,7 +374,7 @@ object_get_prototype_of :: fonc (empl params: *ParamètresObjectCall) -> Complet
     saufsi completion.est_normal() {
         retourne completion
     }
-    obj := completion.valeur.V.Object
+    obj := completion.donne_object()
 
     // 2. Return ? obj.[[GetPrototypeOf]]().
     retourne normal_completion(Valeur(Object = internal_get_prototype_of(obj)))

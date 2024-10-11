@@ -125,7 +125,7 @@ array_prototype_join :: fonc (empl params: *ParamètresObjectCall) -> Completion
     saufsi completion.est_normal() {
         retourne completion
     }
-    O := completion.valeur.V.donne_objet()
+    O := completion.donne_object()
 
     // 2. Let len be ? LengthOfArrayLike(O).
     completion = length_of_array_like(O)
@@ -204,7 +204,7 @@ array_prototype_push :: fonc (empl params: *ParamètresObjectCall) -> Completion
     saufsi completion.est_normal() {
         retourne completion
     }
-    O := completion.valeur.V.donne_objet()
+    O := completion.donne_object()
 
     // 2. Let len be ? LengthOfArrayLike(O).
     completion = length_of_array_like(O)
@@ -250,7 +250,7 @@ array_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> Compl
     saufsi completion.est_normal() {
         retourne completion
     }
-    array := completion.valeur.V.donne_objet()
+    array := completion.donne_object()
 
     // 2. Let func be ? Get(array, "join").
     completion = get(array, STR_join)
