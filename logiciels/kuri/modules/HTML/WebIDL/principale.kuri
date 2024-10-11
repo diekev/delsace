@@ -86,7 +86,13 @@ principale :: fonc () -> z32
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
 
-    pour ExploratriceFichier(CheminFichier("fichiers")) {
+    chemin_fichier := CheminFichier(#chemin_de_ce_fichier)
+    chemin_parent := chemin_fichier.chemin_parent()
+    diffère détruit_chemin(chemin_parent)
+    chemin := crée_chemin_absolu(chemin_parent, CheminFichier("fichiers"))
+    diffère détruit_chemin(chemin)
+
+    pour ExploratriceFichier(chemin) {
         saufsi it.extension() == ".idl" {
             continue
         }
