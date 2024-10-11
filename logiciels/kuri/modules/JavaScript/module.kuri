@@ -1165,8 +1165,10 @@ ordinary_get :: fonc (object: *Object, property_key: PropertyKey, receiver: Vale
     }
 
     // 7. Return ? Call(getter, Receiver).
-    // À FAIRE : passe une interpréteuse
-    retourne call(nul, getter.Quelque, receiver)
+    interpréteuse: Interpréteuse
+    interpréteuse.mv = receiver.donne_objet().donne_tas_de_mémoire().donne_mv()
+    diffère détruit_données_interpreteuse(*interpréteuse)
+    retourne call(*interpréteuse, getter.Quelque, receiver)
 }
 
 /* 10.1.9.1 OrdinarySet ( O, P, V, Receiver )
