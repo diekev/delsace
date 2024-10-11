@@ -748,7 +748,6 @@ parse_identifier :: fonc (parseuse: *Parseuse, émets_erreur_si_manquant: bool) 
 
     si émets_erreur_si_manquant {
         parseuse.rapporte_erreur("expected an identifier")
-        panique("expected an identifier")
     }
     retourne nul
 }
