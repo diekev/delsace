@@ -1,7 +1,46 @@
 importe Ensemble
 importe Fondation
 importe GlibC
+importe Sérialisation
 importe SysFichier
+
+Griffonier :: TamponFixe(T = z8, N = 128)
+
+donne_nom_snake_case :: fonc (chn: chaine, griffonier: *Griffonier) -> chaine
+{
+    premier := vrai
+
+    griffonier.curseur = 0
+
+    curseur := 0
+
+    tantque curseur < chn.taille {
+        it := chn[curseur]
+
+        si 'A' <= it <= 'Z' {
+            saufsi premier {
+                ajoute(griffonier, '_')
+            }
+
+            ajoute(griffonier, it - 'A' + 'a')
+
+            si it == 'H' && curseur < chn.taille - 3 && sous_chaine(chn, curseur, curseur + 4) == "HTML" {
+                ajoute(griffonier, 't')
+                ajoute(griffonier, 'm')
+                ajoute(griffonier, 'l')
+                curseur += 3
+            }
+        }
+        sinon {
+            ajoute(griffonier, it)
+        }
+
+        premier = faux
+        curseur += 1
+    }
+
+    retourne construit_chaine(*griffonier.données[0], griffonier.curseur)
+}
 
 NomEtIndex :: struct {
     nom: chaine
@@ -218,15 +257,17 @@ génère_enveloppes_javascript :: fonc (interface: *Interface)
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
 
+    griffonier: Griffonier
+
     pour * interface.fonctions {
-        génère_enveloppe_javascript(*enchaineuse, interface, it)
+        génère_enveloppe_javascript(*enchaineuse, interface, it, *griffonier)
     }
 
     pour * interface.attributs {
-        génère_enveloppe_javascript_getter(*enchaineuse, interface, it)
+        génère_enveloppe_javascript_getter(*enchaineuse, interface, it, *griffonier)
 
         saufsi it.lecture_seule {
-            génère_enveloppe_javascript_setter(*enchaineuse, interface, it)
+            génère_enveloppe_javascript_setter(*enchaineuse, interface, it, *griffonier)
         }
     }
 
@@ -284,7 +325,7 @@ donne_platform_object :: fonc (interpréteuse: *JavaScript.Interpréteuse, value
 
 */
 
-génère_enveloppe_javascript :: fonc (enchaineuse: *Enchaineuse, interface: *Interface, fonction: *Fonction)
+génère_enveloppe_javascript :: fonc (enchaineuse: *Enchaineuse, interface: *Interface, fonction: *Fonction, griffonier: *Griffonier)
 {
     paramètres := interface.donne_paramètres(fonction)
 
@@ -309,8 +350,7 @@ génère_enveloppe_javascript :: fonc (enchaineuse: *Enchaineuse, interface: *In
     si fonction.type_retour.nom != "undefined" {
         ajoute_au_tampon(enchaineuse, "résultat := ")
     }
-    // À FAIRE : snake case
-    ajoute_au_tampon(enchaineuse, fonction.nom)
+    ajoute_au_tampon(enchaineuse, donne_nom_snake_case(fonction.nom, griffonier))
 
     virgule := "(object, "
     si paramètres.taille == 0 {
@@ -327,23 +367,22 @@ génère_enveloppe_javascript :: fonc (enchaineuse: *Enchaineuse, interface: *In
     ajoute_au_tampon(enchaineuse, "}\n")
 }
 
-génère_enveloppe_javascript_getter :: fonc (enchaineuse: *Enchaineuse, interface: *Interface, attribut: *Attribut)
+génère_enveloppe_javascript_getter :: fonc (enchaineuse: *Enchaineuse, interface: *Interface, attribut: *Attribut, griffonier: *Griffonier)
 {
     ajoute_au_tampon(enchaineuse, "get_", interface.nom, "_", attribut.nom, " :: fonc (empl params: JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord\n")
     ajoute_au_tampon(enchaineuse, "{\n")
 
     génère_code_conversion_this(enchaineuse, interface)
 
-    // À FAIRE : snake case
     // Appel de la fonction
-    ajoute_au_tampon(enchaineuse, "    résultat := donne_", attribut.nom, "(object)\n")
+    ajoute_au_tampon(enchaineuse, "    résultat := donne_", donne_nom_snake_case(attribut.nom, griffonier), "(object)\n")
 
     génère_code_conversion_résultat(enchaineuse, *attribut.type)
 
     ajoute_au_tampon(enchaineuse, "}\n")
 }
 
-génère_enveloppe_javascript_setter :: fonc (enchaineuse: *Enchaineuse, interface: *Interface, attribut: *Attribut)
+génère_enveloppe_javascript_setter :: fonc (enchaineuse: *Enchaineuse, interface: *Interface, attribut: *Attribut, griffonier: *Griffonier)
 {
     ajoute_au_tampon(enchaineuse, "set_", interface.nom, "_", attribut.nom, " :: fonc (empl params: JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord\n")
     ajoute_au_tampon(enchaineuse, "{\n")
@@ -356,9 +395,8 @@ génère_enveloppe_javascript_setter :: fonc (enchaineuse: *Enchaineuse, interfa
 
     génère_code_conversion_argument(enchaineuse, attribut.nom, 0, *attribut.type)
 
-    // À FAIRE : snake case
     // Appel de la fonction
-    ajoute_au_tampon(enchaineuse, "    définis_", attribut.nom, "(object, ", attribut.nom, ")\n")
+    ajoute_au_tampon(enchaineuse, "    définis_", donne_nom_snake_case(attribut.nom, griffonier), "(object, ", attribut.nom, ")\n")
     ajoute_au_tampon(enchaineuse, "    retourne JavaScript.normal_completion(JavaScript.js_undefined)\n")
     ajoute_au_tampon(enchaineuse, "}\n")
 }
