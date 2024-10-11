@@ -328,7 +328,7 @@ génère_enveloppe_javascript :: fonc (enchaineuse: *Enchaineuse, interface: *In
 {
     paramètres := interface.donne_paramètres(fonction)
 
-    ajoute_au_tampon(enchaineuse, interface.nom, "_", fonction.nom, " :: fonc (empl params: JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord\n")
+    ajoute_au_tampon(enchaineuse, interface.nom, "_", fonction.nom, " :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord\n")
     ajoute_au_tampon(enchaineuse, "{\n")
 
     génère_code_conversion_this(enchaineuse, interface)
@@ -351,9 +351,9 @@ génère_enveloppe_javascript :: fonc (enchaineuse: *Enchaineuse, interface: *In
     }
     ajoute_au_tampon(enchaineuse, donne_nom_snake_case(fonction.nom, griffonier))
 
-    virgule := "(object, "
+    virgule := "(object_this, "
     si paramètres.taille == 0 {
-        ajoute_au_tampon(enchaineuse, "(object")
+        ajoute_au_tampon(enchaineuse, "(object_this")
     }
     sinon pour paramètres {
         ajoute_au_tampon(enchaineuse, virgule, it.nom)
@@ -368,13 +368,13 @@ génère_enveloppe_javascript :: fonc (enchaineuse: *Enchaineuse, interface: *In
 
 génère_enveloppe_javascript_getter :: fonc (enchaineuse: *Enchaineuse, interface: *Interface, attribut: *Attribut, griffonier: *Griffonier)
 {
-    ajoute_au_tampon(enchaineuse, "get_", interface.nom, "_", attribut.nom, " :: fonc (empl params: JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord\n")
+    ajoute_au_tampon(enchaineuse, "get_", interface.nom, "_", attribut.nom, " :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord\n")
     ajoute_au_tampon(enchaineuse, "{\n")
 
     génère_code_conversion_this(enchaineuse, interface)
 
     // Appel de la fonction
-    ajoute_au_tampon(enchaineuse, "    résultat := donne_", donne_nom_snake_case(attribut.nom, griffonier), "(object)\n")
+    ajoute_au_tampon(enchaineuse, "    résultat := donne_", donne_nom_snake_case(attribut.nom, griffonier), "(object_this)\n")
 
     génère_code_conversion_résultat(enchaineuse, *attribut.type)
 
@@ -383,7 +383,7 @@ génère_enveloppe_javascript_getter :: fonc (enchaineuse: *Enchaineuse, interfa
 
 génère_enveloppe_javascript_setter :: fonc (enchaineuse: *Enchaineuse, interface: *Interface, attribut: *Attribut, griffonier: *Griffonier)
 {
-    ajoute_au_tampon(enchaineuse, "set_", interface.nom, "_", attribut.nom, " :: fonc (empl params: JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord\n")
+    ajoute_au_tampon(enchaineuse, "set_", interface.nom, "_", attribut.nom, " :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord\n")
     ajoute_au_tampon(enchaineuse, "{\n")
 
     génère_code_conversion_this(enchaineuse, interface)
@@ -395,7 +395,7 @@ génère_enveloppe_javascript_setter :: fonc (enchaineuse: *Enchaineuse, interfa
     génère_code_conversion_argument(enchaineuse, attribut.nom, 0, *attribut.type)
 
     // Appel de la fonction
-    ajoute_au_tampon(enchaineuse, "    définis_", donne_nom_snake_case(attribut.nom, griffonier), "(object, ", attribut.nom, ")\n")
+    ajoute_au_tampon(enchaineuse, "    définis_", donne_nom_snake_case(attribut.nom, griffonier), "(object_this, ", attribut.nom, ")\n")
     ajoute_au_tampon(enchaineuse, "    retourne JavaScript.normal_completion(JavaScript.js_undefined)\n")
     ajoute_au_tampon(enchaineuse, "}\n")
 }
@@ -404,7 +404,7 @@ génère_code_conversion_this :: fonc (enchaineuse: *Enchaineuse, interface: *In
 {
     ajoute_au_tampon(enchaineuse, "    completion := donne_platform_object(interpréteuse, this_value, ", interface.nom, ")\n")
     ajoute_au_tampon(enchaineuse, "    saufsi JavaScript.est_normal(completion) {\n        retourne completion;\n    }\n")
-    ajoute_au_tampon(enchaineuse, "    object := JavaScript.donne_objet(completion.valeur.V) comme *", interface.nom, "\n")
+    ajoute_au_tampon(enchaineuse, "    object_this := JavaScript.donne_objet(completion.valeur.V) comme *", interface.nom, "\n")
 }
 
 génère_code_conversion_argument :: fonc (enchaineuse: *Enchaineuse, nom: chaine, index: z64, type: *Type)
@@ -414,7 +414,7 @@ génère_code_conversion_argument :: fonc (enchaineuse: *Enchaineuse, nom: chain
         ajoute_au_tampon(enchaineuse, "    saufsi JavaScript.est_chaine(valeur_", nom, ") {\n")
         ajoute_au_tampon(enchaineuse, "        retourne JavaScript.lance_type_error(interpréteuse, \"argument ", index, " is not a String\")\n")
         ajoute_au_tampon(enchaineuse, "    }\n")
-        ajoute_au_tampon(enchaineuse, "    ", nom, " := valeur_", nom, ".String.text\n")
+        ajoute_au_tampon(enchaineuse, "    ", nom, " := valeur_", nom, ".String.texte\n")
     }
     sinon si type.nom == "EventListener" {
         // Convertis entre callback et notre EventListener
@@ -448,8 +448,15 @@ génère_code_conversion_résultat :: fonc (enchaineuse: *Enchaineuse, type: *Ty
         ajoute_au_tampon(enchaineuse, "    retourne JavaScript.normal_completion(JavaScript.js_undefined)\n")
     }
     sinon si type.nom == "DOMString" {
-        ajoute_au_tampon(enchaineuse, "    str := JavaScript.crée_chaine(object.donne_tas_de_mémoire(), crée_chaine_utf16_unique(résultat))\n")
-        ajoute_au_tampon(enchaineuse, "    retourne JavaScript.normal_completion(JavaScript.Valeur(String = résultat))\n")
+        ajoute_au_tampon(enchaineuse, "    str_unique: ChaineUTF16Unique\n")
+        ajoute_au_tampon(enchaineuse, "    #si type_de(résultat) != type_de(ChaineUTF16Unique) {\n")
+        ajoute_au_tampon(enchaineuse, "        str_unique = crée_chaine_utf16_unique(résultat)\n")
+        ajoute_au_tampon(enchaineuse, "    }\n")
+        ajoute_au_tampon(enchaineuse, "    sinon {\n")
+        ajoute_au_tampon(enchaineuse, "        str_unique = résultat\n")
+        ajoute_au_tampon(enchaineuse, "    }\n")
+        ajoute_au_tampon(enchaineuse, "    str := JavaScript.crée_chaine(object_this.donne_tas_de_mémoire(), str_unique)\n")
+        ajoute_au_tampon(enchaineuse, "    retourne JavaScript.normal_completion(JavaScript.Valeur(String = str))\n")
     }
     sinon {
         si type.nulifiable {
