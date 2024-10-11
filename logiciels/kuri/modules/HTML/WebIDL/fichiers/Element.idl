@@ -2,5 +2,7 @@ interface Element : Node {
     HTMLCollection getElementsByTagName(DOMString qualifiedName);
     HTMLCollection getElementsByClassName(DOMString classNames);
 
+    attribute DOMString id;
+    attribute DOMString className;
     attribute DOMString innerHTML;
 }
