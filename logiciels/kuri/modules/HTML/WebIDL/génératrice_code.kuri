@@ -455,6 +455,13 @@ génère_code_conversion_argument :: fonc (enchaineuse: *Enchaineuse, nom: chain
         ajoute_au_tampon(enchaineuse, "    }\n")
         ajoute_au_tampon(enchaineuse, "    ", nom, " := valeur_", nom, ".String.texte\n")
     }
+    sinon si type.nom == "unsigned long" {
+        // À FAIRE : ConvertToInt(valeur_nom, 32, "unsigned")
+        // https://webidl.spec.whatwg.org/#abstract-opdef-converttoint
+        ajoute_au_tampon(enchaineuse, "    completion = JavaScript.vers_nombre(interpréteuse, valeur_", nom, ")\n")
+        ajoute_au_tampon(enchaineuse, "    saufsi JavaScript.est_normal(completion) {\n        retourne completion;\n    }\n")
+        ajoute_au_tampon(enchaineuse, "    ", nom, " := completion.valeur.V.Number comme n32\n")
+    }
     sinon si type.nom == "EventListener" {
         // Convertis entre callback et notre EventListener
         ajoute_au_tampon(enchaineuse, "    ", nom, " := loge(EventListener)\n")
@@ -496,6 +503,9 @@ génère_code_conversion_résultat :: fonc (enchaineuse: *Enchaineuse, type: *Ty
         ajoute_au_tampon(enchaineuse, "    }\n")
         ajoute_au_tampon(enchaineuse, "    str := JavaScript.crée_chaine(object_this.donne_tas_de_mémoire(), str_unique)\n")
         ajoute_au_tampon(enchaineuse, "    retourne JavaScript.normal_completion(JavaScript.Valeur(String = str))\n")
+    }
+    sinon si type.nom == "unsigned long" {
+        ajoute_au_tampon(enchaineuse, "    retourne JavaScript.normal_completion(JavaScript.Valeur(Number = résultat comme r64))\n")
     }
     sinon {
         si type.nulifiable {
@@ -691,7 +701,20 @@ apparie :: fonc (parseuse: *ParseuseInterface, c: z8) -> bool
 
 parse_type :: fonc (parseuse: *ParseuseInterface, résultat: *Type)
 {
-    résultat.nom = donne_lexème_suivant(parseuse)
+    nom_type := donne_lexème_suivant(parseuse)
+
+    si nom_type == "unsigned" {
+        nom_mot := donne_lexème_suivant(parseuse)
+
+        si nom_mot == "long" {
+            nom_type = "unsigned long"
+        }
+        sinon {
+            rapporte_erreur("attendu 'long'", nom_mot)
+        }
+    }
+
+    résultat.nom = nom_type
     résultat.nulifiable = consomme_caractère(parseuse, '?')
 }
 
