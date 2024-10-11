@@ -207,6 +207,7 @@ crée_object_prototype :: fonc (tas_de_mémoire: *TasDeMémoire) -> *ObjectProto
     résultat := tas_de_mémoire.alloue(ObjectPrototype)
     résultat.ajoute_fonction_native(STR_hasOwnProperty, object_prototype_has_own_property)
     résultat.ajoute_fonction_native(STR_toString, object_prototype_to_string)
+    résultat.ajoute_propriété(STR___proto__, object_prototype_proto_get, object_prototype_proto_set, Configurable)
     retourne résultat
 }
 
@@ -291,6 +292,32 @@ object_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> Comp
     résultat := enchaine("[object ", tag, "]")
     diffère déloge(résultat)
     retourne crée_string_value_completion(interpréteuse, résultat)
+}
+
+/* 20.1.3.8 Object.prototype.__proto__
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-object.prototype.__proto__ */
+object_prototype_proto_get :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    // 1. Let O be ? ToObject(this value).
+    completion := vers_objet(interpréteuse.donne_realm(), this_value)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    O := completion.valeur.V.Object
+
+    // 2. Return ? O.[[GetPrototypeOf]]().
+    retourne normal_completion(Valeur(Object = internal_get_prototype_of(O)))
+}
+
+object_prototype_proto_set :: fonc (empl params: *ParamètresObjectCall @inutilisée) -> CompletionRecord
+{
+    // 1. Let O be ? RequireObjectCoercible(this value).
+    // 2. If proto is not an Object and proto is not null, return undefined.
+    // 3. If O is not an Object, return undefined.
+    // 4. Let status be ? O.[[SetPrototypeOf]](proto).
+    // 5. If status is false, throw a TypeError exception.
+    // 6. Return undefined.
+    panique("set __proto__ non-implémenté")
 }
 
 /** \} */
