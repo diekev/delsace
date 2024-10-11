@@ -210,6 +210,12 @@ ajoute_enfant :: fonc (parent: *Noeud, enfant: *Noeud)
     }
 }
 
+/* https://dom.spec.whatwg.org/#dom-node-appendchild */
+append_child :: fonc (noeud: *Noeud, enfant: *Noeud) -> *Noeud
+{
+    retourne append(noeud, enfant)
+}
+
 ajoute_attribut :: fonc (noeud: *Noeud, nom: DOMString, valeur: DOMString) -> *Attr
 {
     résultat := crée_noeud_attr(noeud.document, nom, valeur)
