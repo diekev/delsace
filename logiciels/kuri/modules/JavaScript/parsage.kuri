@@ -269,7 +269,7 @@ parse_variable_declarator :: fonc (parseuse: *Parseuse) -> *VariableDeclarator
     init: *NoeudSyntaxique
     si apparie(parseuse, GenreLexème.Égal) {
         parseuse.consomme()
-        init = parseuse.parse_expression()
+        init = parseuse.parse_expression(ParamètresParsageExpression(lexème_final = GenreLexème.Virgule))
     }
 
     retourne crée_variable_declarator(parseuse, id, init)
@@ -282,7 +282,7 @@ parse_return_statement :: fonc (parseuse: *Parseuse) -> *ReturnStatement
     argument: *NoeudSyntaxique
 
     si parseuse.apparie_expression() {
-        argument = parse_expression(parseuse)
+        argument = parse_expression(parseuse, ParamètresParsageExpression())
     }
 
     retourne crée_return_statement(parseuse, argument)
@@ -329,19 +329,19 @@ parse_for_statement :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
 
     init: *NoeudSyntaxique
     si parseuse.apparie_expression() {
-        init = parseuse.parse_expression()
+        init = parseuse.parse_expression(ParamètresParsageExpression())
     }
     parseuse.consomme(GenreLexème.PointVirgule)
 
     test: *NoeudSyntaxique
     si parseuse.apparie_expression() {
-        test = parseuse.parse_expression()
+        test = parseuse.parse_expression(ParamètresParsageExpression())
     }
     parseuse.consomme(GenreLexème.PointVirgule)
 
     update: *NoeudSyntaxique
     si parseuse.apparie_expression() {
-        update = parseuse.parse_expression()
+        update = parseuse.parse_expression(ParamètresParsageExpression())
     }
     parseuse.consomme(GenreLexème.ParenthèseFermante)
 
@@ -352,7 +352,7 @@ parse_for_statement :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
 
 parse_for_of_in_statement :: fonc (parseuse: *Parseuse, type_for: TypeFor) -> *NoeudSyntaxique
 {
-    left := parseuse.parse_expression()
+    left := parseuse.parse_expression(ParamètresParsageExpression())
 
     si type_for == TypeFor.ForOf && !apparie(parseuse, GenreLexème.Of) {
         parseuse.rapporte_erreur("Attendu 'of'")
@@ -366,7 +366,7 @@ parse_for_of_in_statement :: fonc (parseuse: *Parseuse, type_for: TypeFor) -> *N
     /* Consomme in/of */
     parseuse.consomme()
 
-    right := parseuse.parse_expression()
+    right := parseuse.parse_expression(ParamètresParsageExpression())
 
     parseuse.consomme(GenreLexème.ParenthèseFermante)
 
@@ -384,7 +384,7 @@ parse_while_statement :: fonc (parseuse: *Parseuse) -> *WhileStatement
     parseuse.consomme()
 
     parseuse.consomme(GenreLexème.ParenthèseOuvrante)
-    test := parseuse.parse_expression()
+    test := parseuse.parse_expression(ParamètresParsageExpression())
     parseuse.consomme(GenreLexème.ParenthèseFermante)
 
     body := parse_bloc_statement_ou_expression(parseuse)
@@ -400,7 +400,7 @@ parse_do_while_statement :: fonc (parseuse: *Parseuse) -> *DoWhileStatement
 
     parseuse.consomme(GenreLexème.While)
     parseuse.consomme(GenreLexème.ParenthèseOuvrante)
-    test := parseuse.parse_expression()
+    test := parseuse.parse_expression(ParamètresParsageExpression())
     parseuse.consomme(GenreLexème.ParenthèseFermante)
 
     retourne crée_do_while_statement(parseuse, body, test)
@@ -412,7 +412,7 @@ parse_if_statement :: fonc (parseuse: *Parseuse) -> *IfStatement
 
     parseuse.consomme(GenreLexème.ParenthèseOuvrante)
 
-    test := parseuse.parse_expression()
+    test := parseuse.parse_expression(ParamètresParsageExpression())
 
     parseuse.consomme(GenreLexème.ParenthèseFermante)
 
@@ -449,7 +449,7 @@ parse_try_statement :: fonc (parseuse: *Parseuse) -> *TryStatement
         si parseuse.apparie(GenreLexème.ParenthèseOuvrante) {
             parseuse.consomme()
 
-            param = parseuse.parse_expression()
+            param = parseuse.parse_expression(ParamètresParsageExpression())
 
             parseuse.consomme(GenreLexème.ParenthèseFermante)
         }
@@ -471,7 +471,7 @@ parse_try_statement :: fonc (parseuse: *Parseuse) -> *TryStatement
 parse_throw_statement :: fonc (parseuse: *Parseuse) -> *ThrowStatement
 {
     parseuse.consomme()
-    argument := parse_expression(parseuse)
+    argument := parse_expression(parseuse, ParamètresParsageExpression())
     retourne crée_throw_statement(parseuse, argument)
 }
 
@@ -494,7 +494,7 @@ parse_switch_statement :: fonc (parseuse: *Parseuse) -> *SwitchStatement
     parseuse.consomme()
 
     parseuse.consomme(GenreLexème.ParenthèseOuvrante)
-    discriminant := parseuse.parse_expression()
+    discriminant := parseuse.parse_expression(ParamètresParsageExpression())
     parseuse.consomme(GenreLexème.ParenthèseFermante)
 
     parseuse.consomme(GenreLexème.AccoladeOuvrante)
@@ -532,7 +532,7 @@ parse_case_clause :: fonc (parseuse: *Parseuse) -> *CaseClause
 {
     parseuse.consomme()
 
-    test := parseuse.parse_expression()
+    test := parseuse.parse_expression(ParamètresParsageExpression())
     parseuse.consomme(GenreLexème.DoublePoint)
 
     consequent: *BlockStatement
@@ -566,13 +566,19 @@ parse_bloc_statement_ou_expression :: fonc (parseuse: *Parseuse) -> *NoeudSyntax
     }
 
     si parseuse.apparie_expression() {
-        retourne parseuse.parse_expression()
+        retourne parseuse.parse_expression(ParamètresParsageExpression())
     }
 
     retourne parseuse.parse_instruction()
 }
 
-parse_expression :: fonc (parseuse: *Parseuse, précédence : z32 = 0, associativité : Associativité = Associativité.Gauche) -> *NoeudSyntaxique
+ParamètresParsageExpression :: struct {
+    précédence : z32 = 0
+    associativité : Associativité = Associativité.Gauche
+    lexème_final := GenreLexème.PointVirgule
+}
+
+parse_expression :: fonc (parseuse: *Parseuse, params: ParamètresParsageExpression) -> *NoeudSyntaxique
 {
     saufsi parseuse.apparie_expression() {
         parseuse.rapporte_erreur("Attendu une expression primaire")
@@ -581,20 +587,24 @@ parse_expression :: fonc (parseuse: *Parseuse, précédence : z32 = 0, associati
 
     expression := parseuse.parse_expression_primaire()
 
-    tantque !parseuse.fini() && parseuse.apparie_expression_secondaire() {
+    tantque !parseuse.fini() && parseuse.apparie_expression_secondaire() && !apparie(parseuse, params.lexème_final) {
         données := données_lexèmes_pour_parsage[parseuse.lexème_courant().genre]
 
         nouvelle_précédence := données.précédence
 
-        si nouvelle_précédence < précédence {
+        si nouvelle_précédence < params.précédence {
             arrête
         }
 
-        si nouvelle_précédence == précédence && associativité == Associativité.Gauche {
+        si nouvelle_précédence == params.précédence && params.associativité == Associativité.Gauche {
             arrête
         }
 
-        expression = parseuse.parse_expression_secondaire(expression, nouvelle_précédence, données.associativité)
+        nouveau_params := params
+        nouveau_params.précédence = nouvelle_précédence
+        nouveau_params.associativité = données.associativité
+
+        expression = parseuse.parse_expression_secondaire(expression, nouveau_params)
     }
 
     retourne expression
@@ -641,7 +651,7 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
         ParenthèseOuvrante {
             parseuse.consomme()
 
-            expression := parseuse.parse_expression()
+            expression := parseuse.parse_expression(ParamètresParsageExpression())
 
             parseuse.consomme(GenreLexème.ParenthèseFermante)
             retourne expression
@@ -660,7 +670,7 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
 
                 parseuse.consomme(GenreLexème.DoublePoint)
 
-                expression := parseuse.parse_expression()
+                expression := parseuse.parse_expression(ParamètresParsageExpression(lexème_final = GenreLexème.Virgule))
 
                 property := crée_property_definition(parseuse, nom_membre, expression)
                 tableau_ajoute(*properties, property)
@@ -852,7 +862,7 @@ donne_opération_relationnelle_pour_genre_lexème :: fonc (genre: GenreLexème) 
 
     retourne RelationalOperation.Inférieur
 }
-parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxique, précédence: z32, associativité: Associativité) -> *NoeudSyntaxique
+parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxique, params: ParamètresParsageExpression) -> *NoeudSyntaxique
 {
     lexème := parseuse.lexème_courant()
 
@@ -863,7 +873,7 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxiq
         Slash {
             opération := donne_opération_binaire_pour_genre_lexème(lexème.genre)
             parseuse.consomme()
-            opérande_droite := parseuse.parse_expression(précédence, associativité)
+            opérande_droite := parseuse.parse_expression(params)
             retourne crée_binary_expression(parseuse, opération, gauche, opérande_droite)
         }
         Inférieur,
@@ -872,7 +882,7 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxiq
         SupérieurÉgal {
             opération := donne_opération_relationnelle_pour_genre_lexème(lexème.genre)
             parseuse.consomme()
-            opérande_droite := parseuse.parse_expression(précédence, associativité)
+            opérande_droite := parseuse.parse_expression(params)
             retourne crée_relational_expression(parseuse, opération, gauche, opérande_droite)
         }
         EstÉgal,
@@ -881,7 +891,7 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxiq
         NEspaPasÉgalStrict {
             opération := donne_opération_égalitaire_pour_genre_lexème(lexème.genre)
             parseuse.consomme()
-            opérande_droite := parseuse.parse_expression(précédence, associativité)
+            opérande_droite := parseuse.parse_expression(params)
             retourne crée_equality_expression(parseuse, opération, gauche, opérande_droite)
         }
         PlusPlus,
@@ -892,43 +902,43 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxiq
             update := crée_update_expression(parseuse, gauche, operation)
 
             si parseuse.apparie_expression_secondaire() {
-                retourne parseuse.parse_expression_secondaire(update, précédence, associativité)
+                retourne parseuse.parse_expression_secondaire(update, params)
             }
 
             retourne update
         }
         Égal {
-            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.Assigne, précédence, associativité)
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.Assigne, params)
         }
         PlusÉgal {
-            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.Ajoute, précédence, associativité)
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.Ajoute, params)
         }
         MoinsÉgal {
-            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.Soustrait, précédence, associativité)
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.Soustrait, params)
         }
         ÉtoileÉgal {
-            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.Multiplie, précédence, associativité)
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.Multiplie, params)
         }
         SlashÉgal {
-            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.Divise, précédence, associativité)
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.Divise, params)
         }
         PourcentÉgal {
-            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.Modulo, précédence, associativité)
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.Modulo, params)
         }
         DécalageGaucheÉgal {
-            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.DécalageGauche, précédence, associativité)
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.DécalageGauche, params)
         }
         DécalageDroiteÉgal {
-            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.DécalageDroite, précédence, associativité)
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.DécalageDroite, params)
         }
         EtBinaireÉgal {
-            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.EtBinaire, précédence, associativité)
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.EtBinaire, params)
         }
         OuBinaireÉgal {
-            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.OuBinaire, précédence, associativité)
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.OuBinaire, params)
         }
         OuExclusifÉgal {
-            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.OuExBinaire, précédence, associativité)
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.OuExBinaire, params)
         }
         Point {
             parseuse.consomme()
@@ -959,7 +969,7 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxiq
         CrochetOuvrant {
             parseuse.consomme()
 
-            propriété := parseuse.parse_expression()
+            propriété := parseuse.parse_expression(ParamètresParsageExpression())
 
             parseuse.consomme(GenreLexème.CrochetFermant)
 
@@ -967,21 +977,21 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxiq
         }
         EtLogique {
             parseuse.consomme()
-            droite := parseuse.parse_expression()
+            droite := parseuse.parse_expression(params)
             retourne crée_logical_and(parseuse, gauche, droite)
         }
         OuLogique {
             parseuse.consomme()
-            droite := parseuse.parse_expression()
+            droite := parseuse.parse_expression(params)
             retourne crée_logical_or(parseuse, gauche, droite)
         }
         Interrogation {
             parseuse.consomme()
 
-            consequent := parseuse.parse_expression()
+            consequent := parseuse.parse_expression(params)
             parseuse.consomme(GenreLexème.DoublePoint)
 
-            alternate := parseuse.parse_expression()
+            alternate := parseuse.parse_expression(params)
             retourne crée_conditionnal_expression(parseuse, gauche, consequent, alternate)
         }
         sinon {
@@ -992,10 +1002,10 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxiq
     retourne nul
 }
 
-parse_assignement_expression :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxique, opération: AssignmentOperation, précédence: z32, associativité: Associativité) -> *AssignmentExpression
+parse_assignement_expression :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxique, opération: AssignmentOperation, params: ParamètresParsageExpression) -> *AssignmentExpression
 {
     parseuse.consomme()
-    expression := parseuse.parse_expression(précédence, associativité)
+    expression := parseuse.parse_expression(params)
     retourne crée_assignment_expression(parseuse, opération, gauche, expression)
 }
 
@@ -1003,7 +1013,7 @@ parse_expression_virgule :: fonc (parseuse: *Parseuse) -> [..]*NoeudSyntaxique
 {
     résultat: [..]*NoeudSyntaxique
     tantque !fini(parseuse) {
-        expr := parseuse.parse_expression()
+        expr := parseuse.parse_expression(ParamètresParsageExpression(lexème_final = GenreLexème.Virgule))
 
         tableau_ajoute(*résultat, expr)
 
@@ -1053,7 +1063,7 @@ parse_expression_unaire :: fonc (parseuse: *Parseuse) -> *NoeudSyntaxique
         }
         New {
             parseuse.consomme()
-            argument := parseuse.parse_expression()
+            argument := parseuse.parse_expression(ParamètresParsageExpression())
             retourne crée_new_expression(parseuse, argument);
         }
         sinon {
@@ -1076,7 +1086,7 @@ parse_bloc :: fonc (parseuse: *Parseuse, requiers_accolades: bool) -> [..]*Noeud
         parseuse.consomme_point_virgule_potentiel()
 
         si apparie_expression(parseuse) {
-            expression := parse_expression(parseuse)
+            expression := parse_expression(parseuse, ParamètresParsageExpression())
             parseuse.consomme_point_virgule_potentiel()
             tableau_ajoute(*expressions, expression)
             continue
