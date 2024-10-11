@@ -323,9 +323,34 @@ crée_object_constructor :: fonc (tas_de_mémoire: *TasDeMémoire, function_prot
     résultat.ajoute_propriété(STR_length, Valeur(Number = 1.0), DrapeauxPropriété.zéro)
     résultat.ajoute_propriété(STR_prototype, Valeur(Object = object_prototype), DrapeauxPropriété.zéro)
 
+    résultat.ajoute_fonction_native(STR_getPrototypeOf, object_get_prototype_of, 1)
+
     object_prototype.ajoute_propriété(STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro)
 
     retourne résultat
+}
+
+#portée_fichier
+
+/* 20.1.2.12 Object.getPrototypeOf ( O )
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-object.getprototypeof */
+object_get_prototype_of :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    // À FAIRE : remplis les paramètres manquants avec undefined
+    O := Valeur(js_undefined)
+    si arguments.taille > 0 {
+        O = arguments[0]
+    }
+
+    // 1. Let obj be ? ToObject(O).
+    completion := vers_objet(interpréteuse.donne_realm(), O)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    obj := completion.valeur.V.Object
+
+    // 2. Return ? obj.[[GetPrototypeOf]]().
+    retourne normal_completion(Valeur(Object = internal_get_prototype_of(obj)))
 }
 
 /** \} */
