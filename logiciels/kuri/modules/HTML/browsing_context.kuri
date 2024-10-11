@@ -486,14 +486,8 @@ crée_nouvelle_origin_opaque :: fonc () -> Origin
 #portée_fichier
 
 table_virtuelle_window := TableVirtuelleEventTarget(
-    classe = Window,
-    sur_initialisation_interface =  window_sur_initialisation_interface
+    classe = Window
 )
-
-window_sur_initialisation_interface :: fonc (base: *PlatformObject)
-{
-    définis_prototype(base, PrototypesPlatformObject.Window)
-}
 
 #portée_export
 

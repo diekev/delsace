@@ -91,10 +91,9 @@ compile_interfaces_idl :: fonc () -> chaine
     ajoute_au_tampon(*enchaineuse, "importe #inemployé JavaScript\n")
 
     // À FAIRE : renomme nos types
-    ajoute_au_tampon(*enchaineuse, "#portée_fichier\n")
+    ajoute_au_tampon(*enchaineuse, "#portée_module\n")
     ajoute_au_tampon(*enchaineuse, "Node :: Noeud\n")
     ajoute_au_tampon(*enchaineuse, "Element :: Élément\n")
-    ajoute_au_tampon(*enchaineuse, "#portée_module\n")
 
     chemin_fichier := CheminFichier(#chemin_de_ce_fichier)
     chemin_parent := chemin_fichier.chemin_parent()
@@ -149,10 +148,17 @@ compile_interfaces_idl :: fonc () -> chaine
         génère_création_prototype(*enchaineuse, interfaces, it, *noms_et_index_parents)
     }
 
-    ajoute_au_tampon(*enchaineuse, "\n    tableau_redimensionne(realm.intrinsics.host_intrinsics, PrototypesPlatformObject.nombre_éléments)\n")
+    ajoute_au_tampon(*enchaineuse, "\n    si __table_indexage_prototypes.taille == 0 {\n")
+    ajoute_au_tampon(*enchaineuse, "        tableau_redimensionne(__table_indexage_prototypes, ", interfaces.taille, ")\n")
+    pour interfaces {
+        ajoute_au_tampon(*enchaineuse, "        __table_indexage_prototypes[", index_it, "] = IndexPrototype(", it.nom, ", ", index_it, ")\n")
+    }
+    ajoute_au_tampon(*enchaineuse, "    }\n")
+
+    ajoute_au_tampon(*enchaineuse, "\n    tableau_redimensionne(realm.intrinsics.host_intrinsics, ", interfaces.taille, ")\n")
 
     pour interfaces {
-        ajoute_au_tampon(*enchaineuse, "    realm.intrinsics.host_intrinsics[PrototypesPlatformObject.", it.nom, "] = ", it.nom, "_prototype\n")
+        ajoute_au_tampon(*enchaineuse, "    realm.intrinsics.host_intrinsics[", index_it, "] = ", it.nom, "_prototype\n")
     }
 
     retourne chaine_depuis_enchaineuse(*enchaineuse)

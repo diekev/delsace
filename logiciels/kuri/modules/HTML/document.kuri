@@ -137,8 +137,7 @@ Document :: struct {
 
 table_virtuelle_document := TableVirtuelleNoeud(
     classe = Document,
-    sur_destruction = document_sur_destruction,
-    sur_initialisation_interface = document_sur_initialisation_interface
+    sur_destruction = document_sur_destruction
 )
 
 document_sur_destruction :: fonc (base: *JavaScript.Cellule)
@@ -636,21 +635,6 @@ définis_données_image :: fonc (document: *Document, url: chaine, données: Ima
         }
     }
 }
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Interface JavaScript
- * \{ */
-
-#portée_fichier
-
-document_sur_initialisation_interface :: fonc (base: *PlatformObject)
-{
-    définis_prototype(base, PrototypesPlatformObject.Document)
-}
-
-#portée_export
 
 /** \} */
 

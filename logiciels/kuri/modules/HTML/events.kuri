@@ -274,7 +274,6 @@ TableVirtuelleEventTarget :: struct {
     empl platform_object: TableVirtuellePlatformObject
 
     sur_destruction = event_target_sur_destruction
-    sur_initialisation_interface = event_target_sur_initialisation_interface
 
     /* https://dom.spec.whatwg.org/#get-the-parent */
     sur_get_the_parent: fonc(*EventTarget, *Event)(*EventTarget) = event_target_sur_get_the_parent
@@ -823,19 +822,6 @@ call_a_user_object_operation :: fonc (value: JavaScript.Valeur, args: []JavaScri
     _ := JavaScript.call(*interpréteuse, value, this_arg, args)
 
     cleanup_after_running_script(settings)
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Interface JavaScript
- * \{ */
-
-#portée_fichier
-
-event_target_sur_initialisation_interface :: fonc (base: *PlatformObject)
-{
-    définis_prototype(base, PrototypesPlatformObject.EventTarget)
 }
 
 /** \} */

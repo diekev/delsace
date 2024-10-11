@@ -14,7 +14,6 @@ TableVirtuellePlatformObject :: struct {
     empl object: JavaScript.TableVirtuelleObject
 
     sur_destruction = platform_object_sur_destruction
-    sur_initialisation_interface: fonc(*PlatformObject)(rien)
 }
 
 platform_object_sur_destruction :: fonc (base: *JavaScript.Cellule)
@@ -43,10 +42,7 @@ crée_platform_object :: fonc (tas_de_mémoire: *JavaScript.TasDeMémoire, realm
 {
     résultat := JavaScript.alloue(tas_de_mémoire, T)
     résultat.realm = realm
-    table := résultat.table comme *TableVirtuellePlatformObject
-    si table && table.sur_initialisation_interface {
-        table.sur_initialisation_interface(résultat)
-    }
+    définis_prototype(résultat, T)
     retourne résultat
 }
 
@@ -235,19 +231,7 @@ initialise_host_intrinsics :: fonc (realm: *JavaScript.Realm)
 
 #portée_module
 
-PrototypesPlatformObject :: énum {
-    EventTarget
-    Document
-    Node
-    Element
-    HTMLAnchorElement
-    HTMLCollection
-    HTMLElement
-    HTMLImageElement
-    Window
-}
-
-donne_prototype :: fonc (realm: *JavaScript.Realm, index: PrototypesPlatformObject) -> *JavaScript.Object
+donne_prototype :: fonc (realm: *JavaScript.Realm, index: z64) -> *JavaScript.Object
 {
     saufsi realm {
         retourne nul
@@ -255,8 +239,30 @@ donne_prototype :: fonc (realm: *JavaScript.Realm, index: PrototypesPlatformObje
     retourne realm.intrinsics.host_intrinsics[index]
 }
 
-définis_prototype :: fonc (object: *PlatformObject, index: PrototypesPlatformObject)
+/* Table pour mapper le type d'un objet Kuri à l'index de son prototype dans realm.intrinsics.host_intrinsics. */
+IndexPrototype :: struct {
+    type: type_de_données
+    index: z64
+}
+
+__table_indexage_prototypes: [..]IndexPrototype
+
+donne_index_prototype :: fonc (type: type_de_données) -> z64
 {
+    pour __table_indexage_prototypes {
+        si it.type == type {
+            retourne it.index
+        }
+    }
+    retourne -1
+}
+
+définis_prototype :: fonc (object: *PlatformObject, type: type_de_données)
+{
+    index := donne_index_prototype(type)
+    si index == -1 {
+        retourne
+    }
     object.prototype = donne_prototype(object.realm, index)
 }
 

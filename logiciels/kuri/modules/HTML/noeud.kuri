@@ -13,8 +13,6 @@ importe #inemployé JavaScript
 TableVirtuelleNoeud :: struct {
     empl base_event_target: TableVirtuelleEventTarget
 
-    sur_initialisation_interface = noeud_sur_initialisation_interface
-
     /* Appelé quand le noeud est insérer dans un noeud parent. */
     sur_insertion: fonc(*Noeud)(rien)
     /* Appelé quand le noeud devinent connecté. */
@@ -73,11 +71,6 @@ noeud_sur_destruction :: fonc (base: *JavaScript.Cellule)
     event_target_sur_destruction(base)
     noeud := base comme *Noeud
     noeud_détruit_données(noeud)
-}
-
-noeud_sur_initialisation_interface :: fonc (base: *PlatformObject)
-{
-    définis_prototype(base, PrototypesPlatformObject.Node)
 }
 
 #portée_export
