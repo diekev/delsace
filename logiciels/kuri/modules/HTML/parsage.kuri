@@ -3110,7 +3110,7 @@ HTML_fragment_parsing :: fonc (input: ChaineUTF16, context: *Élément, allow_de
     initialise_élément(root, document, TAG_html)
 
     // 7. Append the element root to the Document node created above.
-    append(document, root)
+    _ := append(document, root)
 
     // 8. Set up the parser's stack of open elements so that it contains just the single element root.
     empile(*parseuse.pile_éléments_ouvert, root)

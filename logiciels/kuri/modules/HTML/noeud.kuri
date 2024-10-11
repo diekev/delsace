@@ -449,7 +449,7 @@ get_element_by_id_recursive :: fonc (noeud: *Noeud, chn: DOMString) -> *Élémen
 }
 
 /* https://dom.spec.whatwg.org/#concept-node-append */
-append :: fonc (parent: *Noeud, node: *Noeud)
+append :: fonc (parent: *Noeud, node: *Noeud) -> *Noeud
 {
     // À FAIRE : standardise
     tableau_ajoute(*parent.enfants, node)
@@ -467,6 +467,8 @@ append :: fonc (parent: *Noeud, node: *Noeud)
             tableau_ajoute(*pile, it)
         }
     }
+
+    retourne node
 }
 
 /** \} */

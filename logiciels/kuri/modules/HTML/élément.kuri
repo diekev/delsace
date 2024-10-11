@@ -578,7 +578,7 @@ fragment_parsing_algorithm_steps :: fonc (context: *Élément, markup: ChaineUTF
 
     // 5. Append each Node in new children to fragment (in tree order).
     pour new_children {
-        append(fragment, it)
+        _ := append(fragment, it)
     }
 
     // 6. Return fragment.
