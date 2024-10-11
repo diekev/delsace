@@ -556,7 +556,9 @@ alert :: fonc (window: *Window, message: DOMString)
 
 table_virtuelle_window_proxy := JavaScript.TableVirtuelleObject(
     classe = WindowProxy,
-    sur_get_prototype_of = window_proxy_ordinary_get_prototype_of
+    sur_get_prototype_of = window_proxy_ordinary_get_prototype_of,
+    sur_get = window_proxy_sur_get,
+    sur_get_own_property = window_proxy_sur_get_own_property
 )
 
 /* https://html.spec.whatwg.org/multipage/nav-history-apis.html#windowproxy-getprototypeof */
@@ -575,6 +577,86 @@ window_proxy_ordinary_get_prototype_of :: fonc (object: *JavaScript.Object) -> *
     // 3. Return null.
     retourne nul
 }
+
+// 7.2.3.2 [[SetPrototypeOf]] ( V )
+// 7.2.3.3 [[IsExtensible]] ( )
+// 7.2.3.4 [[PreventExtensions]] ( )
+
+/* 7.2.3.5 [[GetOwnProperty]] ( P )
+ * https://html.spec.whatwg.org/multipage/nav-history-apis.html#windowproxy-getownproperty */
+window_proxy_sur_get_own_property :: fonc (object: *JavaScript.Object, property_key: JavaScript.PropertyKey) -> JavaScript.CompletionRecord
+{
+    proxy := object comme *WindowProxy
+
+    // 1. Let W be the value of the [[Window]] internal slot of this.
+    w := proxy.window
+
+    // À FAIRE 2. If P is an array index property name, then:
+
+        // 1. Let index be ! ToUint32(P).
+
+        // 2. Let children be the document-tree child navigables of W's associated Document.
+
+        // 3. Let value be undefined.
+
+        // 4. If index is less than children's size, then:
+
+            // 1. Sort children in ascending order, with navigableA being less than navigableB if navigableA's container was inserted into W's associated Document earlier than navigableB's container was.
+
+            // 2. Set value to children[index]'s active WindowProxy.
+
+        // 5. If value is undefined, then:
+
+            // 1. If IsPlatformObjectSameOrigin(W) is true, then return undefined.
+
+            // 2. Throw a "SecurityError" DOMException.
+
+        // 6. Return PropertyDescriptor{ [[Value]]: value, [[Writable]]: false, [[Enumerable]]: true, [[Configurable]]: true }.
+
+    // 3. If IsPlatformObjectSameOrigin(W) is true, then return ! OrdinaryGetOwnProperty(W, P).
+    si is_platform_object_same_origin(w) {
+        retourne JavaScript.ordinary_get_own_property(w, property_key)
+    }
+
+    // 4. Let property be CrossOriginGetOwnPropertyHelper(W, P).
+    panique("window_proxy_sur_get_own_property non-implémenté")
+
+    // 5. If property is not undefined, then return property.
+
+    // 6. If property is undefined and P is in W's document-tree child navigable target name property set, then:
+
+        // 1. Let value be the active WindowProxy of the named object of W with the name P.
+
+        // 2. Return PropertyDescriptor{ [[Value]]: value, [[Enumerable]]: false, [[Writable]]: false, [[Configurable]]: true }.
+
+    // 7. Return ? CrossOriginPropertyFallback(P).
+}
+
+// 7.2.3.6 [[DefineOwnProperty]] ( P, Desc )
+
+/* 7.2.3.7 [[Get]] ( P, Receiver )
+ * https://html.spec.whatwg.org/multipage/nav-history-apis.html#windowproxy-get */
+window_proxy_sur_get :: fonc (object: *JavaScript.Object, property_key: JavaScript.PropertyKey, receiver: JavaScript.Valeur) -> JavaScript.CompletionRecord
+{
+    proxy := object comme *WindowProxy
+
+    // 1. Let W be the value of the [[Window]] internal slot of this.
+    w := proxy.window
+
+    // À FAIRE : 2. Check if an access between two browsing contexts should be reported, given the current global object's browsing context, W's browsing context, P, and the current settings object.
+
+    // 3. If IsPlatformObjectSameOrigin(W) is true, then return ? OrdinaryGet(this, P, Receiver).
+    si is_platform_object_same_origin(w) {
+        retourne JavaScript.ordinary_get(object, property_key, receiver)
+    }
+
+    // 4. Return ? CrossOriginGet(this, P, Receiver).
+    panique("cross_origin_get non-implémenté")
+}
+
+// 7.2.3.8 [[Set]] ( P, V, Receiver )
+// 7.2.3.9 [[Delete]] ( P )
+// 7.2.3.10 [[OwnPropertyKeys]] ( )
 
 #portée_export
 
