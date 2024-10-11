@@ -398,28 +398,6 @@ get_elements_by_tag_name :: fonc (élément: *Élément, qualified_name: DOMStri
     retourne résultat
 }
 
-/* https://dom.spec.whatwg.org/#dom-element-id */
-donne_id :: fonc (élément: *Élément) -> DOMString
-{
-    retourne get_an_attribute_value(élément, ATTR_id)
-}
-
-définis_id :: fonc (élément: *Élément, id: DOMString)
-{
-    set_an_attribute_value(élément, ATTR_id, id)
-}
-
-/* https://dom.spec.whatwg.org/#dom-element-classname */
-donne_class_name :: fonc (élément: *Élément) -> DOMString
-{
-    retourne get_an_attribute_value(élément, ATTR_class)
-}
-
-définis_class_name :: fonc (élément: *Élément, class: DOMString)
-{
-    set_an_attribute_value(élément, ATTR_class, class)
-}
-
 donne_liste_classe :: fonc (élément: *Élément) -> []DOMString
 {
     saufsi élément.liste_classes {
