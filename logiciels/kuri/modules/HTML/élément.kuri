@@ -674,11 +674,6 @@ donne_href :: fonc (anchor: *HTMLAnchorElement) -> DOMString
     retourne get_an_attribute_value(anchor, ATTR_href)
 }
 
-définis_href :: fonc (anchor: *HTMLAnchorElement, valeur: DOMString)
-{
-    set_an_attribute_value(anchor, ATTR_href, valeur)
-}
-
 #portée_fichier
 
 table_virtuelle_anchor_element := TableVirtuelleÉlément(
@@ -1306,11 +1301,6 @@ HTMLImageElement :: struct {
 donne_src :: fonc (image: *HTMLImageElement) -> DOMString
 {
     retourne donne_attribut_ou_chaine_vide(image, ATTR_src)
-}
-
-définis_src :: fonc (image: *HTMLImageElement, valeur: DOMString)
-{
-    set_an_attribute_value(image, ATTR_src, valeur)
 }
 
 donne_hauteur_intrinsèque :: fonc (image: *HTMLImageElement) -> z32 #enligne

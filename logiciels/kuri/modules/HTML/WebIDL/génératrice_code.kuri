@@ -204,6 +204,7 @@ Attribut :: struct {
     type: Type
     nom: chaine
     lecture_seule: bool
+    reflect: bool
 }
 
 Paramètre :: struct {
@@ -368,13 +369,20 @@ génère_enveloppe_javascript :: fonc (enchaineuse: *Enchaineuse, interface: *In
 
 génère_enveloppe_javascript_getter :: fonc (enchaineuse: *Enchaineuse, interface: *Interface, attribut: *Attribut, griffonier: *Griffonier)
 {
+    nom_snake_case := donne_nom_snake_case(attribut.nom, griffonier)
+
     ajoute_au_tampon(enchaineuse, "get_", interface.nom, "_", attribut.nom, " :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord\n")
     ajoute_au_tampon(enchaineuse, "{\n")
 
     génère_code_conversion_this(enchaineuse, interface)
 
     // Appel de la fonction
-    ajoute_au_tampon(enchaineuse, "    résultat := donne_", donne_nom_snake_case(attribut.nom, griffonier), "(object_this)\n")
+    si attribut.reflect {
+        ajoute_au_tampon(enchaineuse, "    résultat := get_an_attribute_value(object_this, ATTR_", nom_snake_case, ")\n")
+    }
+    sinon {
+        ajoute_au_tampon(enchaineuse, "    résultat := donne_", nom_snake_case, "(object_this)\n")
+    }
 
     génère_code_conversion_résultat(enchaineuse, *attribut.type)
 
@@ -383,6 +391,8 @@ génère_enveloppe_javascript_getter :: fonc (enchaineuse: *Enchaineuse, interfa
 
 génère_enveloppe_javascript_setter :: fonc (enchaineuse: *Enchaineuse, interface: *Interface, attribut: *Attribut, griffonier: *Griffonier)
 {
+    nom_snake_case := donne_nom_snake_case(attribut.nom, griffonier)
+
     ajoute_au_tampon(enchaineuse, "set_", interface.nom, "_", attribut.nom, " :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord\n")
     ajoute_au_tampon(enchaineuse, "{\n")
 
@@ -395,7 +405,13 @@ génère_enveloppe_javascript_setter :: fonc (enchaineuse: *Enchaineuse, interfa
     génère_code_conversion_argument(enchaineuse, attribut.nom, 0, *attribut.type)
 
     // Appel de la fonction
-    ajoute_au_tampon(enchaineuse, "    définis_", donne_nom_snake_case(attribut.nom, griffonier), "(object_this, ", attribut.nom, ")\n")
+    si attribut.reflect {
+        ajoute_au_tampon(enchaineuse, "    set_an_attribute_value(object_this, ATTR_", nom_snake_case, ", ", attribut.nom, ")\n")
+    }
+    sinon {
+        ajoute_au_tampon(enchaineuse, "    définis_", nom_snake_case, "(object_this, ", attribut.nom, ")\n")
+    }
+
     ajoute_au_tampon(enchaineuse, "    retourne JavaScript.normal_completion(JavaScript.js_undefined)\n")
     ajoute_au_tampon(enchaineuse, "}\n")
 }
@@ -502,11 +518,11 @@ parse_interface :: fonc (texte: chaine, résultat: *Interface)
             arrête
         }
 
-        lexème = donne_lexème_suivant(*parseuse)
-        si lexème == "readonly" || lexème == "attribute" {
-            parse_un_attribut(*parseuse, résultat, lexème)
+        si apparie(*parseuse, '[') || apparie(*parseuse, "readonly") || apparie(*parseuse, "attribute") {
+            parse_un_attribut(*parseuse, résultat)
         }
         sinon {
+            lexème = donne_lexème_suivant(*parseuse)
             parse_une_fonction(*parseuse, résultat, lexème)
         }
     }
@@ -561,10 +577,25 @@ parse_une_fonction :: fonc (parseuse: *ParseuseInterface, interface: *Interface,
     }
 }
 
-parse_un_attribut :: fonc (parseuse: *ParseuseInterface, interface: *Interface, lexème: chaine)
+parse_un_attribut :: fonc (parseuse: *ParseuseInterface, interface: *Interface)
 {
     résultat: Attribut
 
+    si parseuse.consomme_caractère('[') {
+        lexème := donne_lexème_suivant(parseuse)
+        si lexème == "Reflect" {
+            résultat.reflect = vrai
+        }
+        sinon {
+            rapporte_erreur("attribut inconnu", lexème)
+        }
+
+        saufsi parseuse.consomme_caractère(']') {
+            rapporte_erreur("attendu ']'", parseuse.donne_lexème_suivant())
+        }
+    }
+
+    lexème := donne_lexème_suivant(parseuse)
     si lexème == "readonly" {
         résultat.lecture_seule = vrai
         lexème = donne_lexème_suivant(parseuse)
@@ -606,6 +637,31 @@ crée_parseuse :: fonc (texte: chaine) -> ParseuseInterface
     résultat.début = texte.pointeur
     résultat.fin = texte.pointeur + texte.taille
     retourne résultat
+}
+
+apparie :: fonc (parseuse: *ParseuseInterface, texte: chaine) -> bool
+{
+    consomme_espaces_blanches(parseuse)
+    si parseuse.début >= parseuse.fin {
+        retourne faux
+    }
+
+    taille := parseuse.fin - parseuse.début
+    si taille < texte.taille {
+        retourne faux
+    }
+
+    chn := construit_chaine(parseuse.début, texte.taille)
+    retourne chn == texte
+}
+
+apparie :: fonc (parseuse: *ParseuseInterface, c: z8) -> bool
+{
+    consomme_espaces_blanches(parseuse)
+    si parseuse.début >= parseuse.fin {
+        retourne faux
+    }
+    retourne mémoire(parseuse.début) == c
 }
 
 donne_lexème_suivant :: fonc (parseuse: *ParseuseInterface) -> chaine
