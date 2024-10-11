@@ -305,6 +305,9 @@ associativité_pour_opérateur :: fonc (genre: GenreLexème) -> Associativité
         New {
             retourne Associativité.Gauche // N/A
         }
+        Virgule {
+            retourne Associativité.Gauche
+        }
         sinon {
             retourne Associativité.Gauche
         }
@@ -315,6 +318,9 @@ associativité_pour_opérateur :: fonc (genre: GenreLexème) -> Associativité
 précédence_pour_opérateur :: fonc (genre: GenreLexème) -> z32
 {
     discr genre {
+        Virgule {
+            retourne 1
+        }
         Égal,
         PlusÉgal,
         MoinsÉgal,
@@ -483,7 +489,8 @@ est_lexème_expression_secondaire :: fonc (genre: GenreLexème) -> bool
         OuLogiqueÉgal,
         CoalesceÉgal,
         DécalageDroiteNaturel,
-        DécalageDroiteNaturelÉgal {
+        DécalageDroiteNaturelÉgal,
+        Virgule {
             retourne vrai
         }
         sinon {

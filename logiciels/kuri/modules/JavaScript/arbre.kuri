@@ -3593,6 +3593,56 @@ crée_default_clause :: fonc (parseuse: *Parseuse, consequent: *BlockStatement) 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom CommaExpression
+ * \{ */
+
+CommaExpression :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_comma_expression
+
+    left: *NoeudSyntaxique
+    right: *NoeudSyntaxique
+}
+
+crée_comma_expression :: fonc (parseuse: *Parseuse, left: *NoeudSyntaxique, right: *NoeudSyntaxique) -> *CommaExpression
+{
+    résultat := parseuse.crée_noeud(CommaExpression)
+    résultat.left = left
+    résultat.right = right
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-comma-operator-runtime-semantics-evaluation */
+sur_exécution_comma_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    comma := base comme *CommaExpression
+
+    // 1. Let lRef be ? Evaluation of Expression.
+    completion := exécute_noeud(comma.left, interpréteuse)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+
+    // 2. Perform ? GetValue(lRef).
+    completion = get_value(interpréteuse, completion.valeur)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+
+    // 3. Let rRef be ? Evaluation of AssignmentExpression.
+    completion = exécute_noeud(comma.right, interpréteuse)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+
+    // 4. Return ? GetValue(rRef).
+    retourne get_value(interpréteuse, completion.valeur)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Visiteuse arbre.
  * \{ */
 

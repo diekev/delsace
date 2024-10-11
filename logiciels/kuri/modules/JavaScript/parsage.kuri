@@ -993,6 +993,11 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *NoeudSyntaxiq
             alternate := parseuse.parse_expression(params)
             retourne crée_conditionnal_expression(parseuse, gauche, consequent, alternate)
         }
+        Virgule {
+            parseuse.consomme()
+            droite := parseuse.parse_expression(params)
+            retourne crée_comma_expression(parseuse, gauche, droite)
+        }
         sinon {
             rapporte_erreur(parseuse, lexème, "Genre de lexème non géré dans parse_expression_secondaire\n")
         }
