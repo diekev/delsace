@@ -220,6 +220,10 @@ Fonction :: struct {
 
     premier_paramètre: z64
     dernier_paramètre: z64
+
+    /* Voir index properties et named properties https://webidl.spec.whatwg.org/#dfn-supported-property-indices */
+    est_getter := faux
+    est_setter := faux
 }
 
 Interface :: struct {
@@ -352,7 +356,16 @@ génère_enveloppe_javascript :: fonc (enchaineuse: *Enchaineuse, interface: *In
     si fonction.type_retour.nom != "undefined" {
         ajoute_au_tampon(enchaineuse, "résultat := ")
     }
-    ajoute_au_tampon(enchaineuse, donne_nom_snake_case(fonction.nom, griffonier))
+
+    préfixe := ""
+    si fonction.est_getter {
+        préfixe = "donne_"
+    }
+    sinon si fonction.est_setter {
+        préfixe = "définis_"
+    }
+
+    ajoute_au_tampon(enchaineuse, préfixe, donne_nom_snake_case(fonction.nom, griffonier))
 
     virgule := "(object_this, "
     si paramètres.taille == 0 {
@@ -540,6 +553,15 @@ parse_interface :: fonc (texte: chaine, résultat: *Interface)
 parse_une_fonction :: fonc (parseuse: *ParseuseInterface, interface: *Interface)
 {
     résultat: Fonction
+
+    si parseuse.apparie("getter") {
+        résultat.est_getter = vrai
+        _ := donne_lexème_suivant(parseuse)
+    }
+    sinon si parseuse.apparie("setter") {
+        _ := donne_lexème_suivant(parseuse)
+    }
+
     parse_type(parseuse, *résultat.type_retour)
     résultat.nom = donne_lexème_suivant(parseuse)
     résultat.premier_paramètre = interface.paramètres.taille
