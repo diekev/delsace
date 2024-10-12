@@ -17,6 +17,7 @@ charge "Objets/array"
 charge "Objets/error"
 charge "Objets/function"
 charge "Objets/object"
+charge "Objets/math"
 charge "Objets/string"
 
 ECMAString :: ChaineUTF16Unique

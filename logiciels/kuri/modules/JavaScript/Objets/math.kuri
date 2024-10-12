@@ -1,0 +1,44 @@
+importe Aléa
+
+/* ------------------------------------------------------------------------- */
+/** \nom Math
+ * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math-object
+ * \{ */
+
+MathObject :: struct {
+    empl object: Object
+    table = *table_virtuelle_math
+
+    entropie: SérieAléatoire
+}
+
+#portée_fichier
+
+table_virtuelle_math := TableVirtuelleObject(classe = MathObject, sur_destruction = sur_destruction_objet)
+
+#portée_module
+
+crée_math_object :: fonc (object_prototype: *ObjectPrototype) -> *MathObject
+{
+    résultat := object_prototype.donne_tas_de_mémoire().alloue(MathObject)
+    résultat.prototype = object_prototype
+    résultat.ajoute_fonction_native(STR_random, math_random)
+
+    /* Chaque realm doit avoir sa propre série. */
+    graine := object_prototype comme n64 comme n32
+    résultat.entropie = graine_aléatoire(graine)
+
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.random */
+math_random :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    math := this_value.donne_objet() comme *MathObject
+    résultat := aléatoire_unilatérale(math.entropie)
+    retourne normal_completion(Valeur(Number = résultat))
+}
+
+#portée_fichier
+
+/** \} */
