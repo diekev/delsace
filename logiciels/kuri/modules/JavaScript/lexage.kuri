@@ -204,10 +204,6 @@ lèxe_nombre :: fonc (empl lexeuse: &Lexeuse) -> Résultat(Lexème, ErreurCompil
         fanion := fanions_caractères[c comme n8]
 
         saufsi fanion.PeutSuivreChiffre {
-            si dernier_caractère_est_point {
-                retourne rapporte_erreur(lexeuse, "Attendu un chiffre après le point décimal")
-            }
-
             arrête
         }
 
