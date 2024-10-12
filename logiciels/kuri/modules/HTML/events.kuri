@@ -473,7 +473,7 @@ retarget :: fonc (a: *EventTarget, b: *EventTarget @inutilisée) -> *EventTarget
 
         // 2. Set A to A’s root’s host.
     //}
-    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+    // imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
     retourne a
 }
 
@@ -772,7 +772,7 @@ dispatch :: fonc (event: *Event, target: *EventTarget, legacy_target_override : 
 /* https://dom.spec.whatwg.org/#concept-event-listener-invoke */
 invoke :: fonc (segment: &Event.Path, event: *Event, phase: chaine, legacy_output_did_listeners_throw : *bool = nul @inutilisée)
 {
-    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+    // imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
     event.current_target = segment.invocation_target
     inner_invoke(event, segment.invocation_target.listeners, phase)
 }
@@ -780,7 +780,7 @@ invoke :: fonc (segment: &Event.Path, event: *Event, phase: chaine, legacy_outpu
 /* https://dom.spec.whatwg.org/#concept-event-listener-invoke */
 inner_invoke :: fonc (event: *Event, listeners: []EventTarget.EventListenerEntry, phase: chaine)
 {
-    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+    // imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
 
     arguments: [..]JavaScript.Valeur
     diffère déloge(arguments)
@@ -806,7 +806,7 @@ inner_invoke :: fonc (event: *Event, listeners: []EventTarget.EventListenerEntry
 /* https://webidl.spec.whatwg.org/#call-a-user-objects-operation */
 call_a_user_object_operation :: fonc (value: JavaScript.Valeur, args: []JavaScript.Valeur, this_arg: JavaScript.Valeur)
 {
-    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+    // imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
 
     target := JavaScript.donne_objet(this_arg) comme *EventTarget
 
