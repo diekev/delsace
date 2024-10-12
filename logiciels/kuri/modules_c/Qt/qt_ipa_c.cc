@@ -1707,6 +1707,12 @@ QT_Style *QT_widget_donne_style(union QT_Generic_Widget widget)
     return vers_ipa(qwidget->style());
 }
 
+QT_Window *QT_widget_donne_window_handle(union QT_Generic_Widget widget)
+{
+    VERS_QT(widget);
+    return vers_ipa(qwidget->windowHandle());
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
