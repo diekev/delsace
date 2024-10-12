@@ -564,6 +564,28 @@ ajoute :: fonc (enchaineuse: &EnchaineuseUTF16, rune: rune16)
     }
 }
 
+ajoute :: fonc (enchaineuse: &EnchaineuseUTF16, chn: chaine)
+{
+    ptr_source := chn.pointeur
+    curseur := 0
+    tantque curseur < chn.taille {
+        no := nombre_octets_utf8_rapide(*ptr_source[curseur])
+
+        si no == 0 {
+            curseur += 1
+            continue
+        }
+
+        enchaineuse.ajoute(converti_utf8_utf32(*ptr_source[curseur]) comme n32)
+        curseur += no comme z32
+    }
+}
+
+ajoute :: fonc (enchaineuse: &EnchaineuseUTF16, chn: ChaineUTF16Unique)
+{
+    ajoute(enchaineuse, chn.donne_chaine_utf16())
+}
+
 ajoute :: fonc (enchaineuse: &EnchaineuseUTF16, chn: ChaineUTF16)
 {
     pour chn.unités {
@@ -619,21 +641,7 @@ crée_chaine_utf16 :: fonc (chn: chaine) -> ChaineUTF16
     enchaineuse: EnchaineuseUTF16
     initialise_enchaineuse(enchaineuse)
     diffère détruit_tampons(enchaineuse)
-
-    ptr_source := chn.pointeur
-    curseur := 0
-    tantque curseur < chn.taille {
-        no := nombre_octets_utf8_rapide(*ptr_source[curseur])
-
-        si no == 0 {
-            curseur += 1
-            continue
-        }
-
-        enchaineuse.ajoute(converti_utf8_utf32(*ptr_source[curseur]) comme n32)
-        curseur += no comme z32
-    }
-
+    enchaineuse.ajoute(chn)
     retourne chaine_depuis_enchaineuse(enchaineuse)
 }
 

@@ -1,7 +1,9 @@
 importe Chaine
 importe Couleur
 importe #inemployé CSS
+importe Dessin
 importe Fondation
+importe Géométrie
 importe Image
 importe #inemployé JavaScript
 importe MIME
@@ -41,8 +43,6 @@ est_tag_auto_fermant :: fonc (tag: DOMString) -> bool
 
 TableVirtuelleÉlément :: struct {
     empl base: TableVirtuelleNoeud
-
-    sur_initialisation_interface = élément_sur_initialisation_interface
 
     /* Appelé quand un élément fut dépilé de la pile des éléments ouverts. */
     sur_dépilement: fonc(*Élément)(rien)
@@ -93,7 +93,7 @@ table_virtuelle_élément := TableVirtuelleÉlément(
 
 élément_détruit_données :: fonc (élément: *Élément)
 {
-    noeud_détruit_données(élément)
+    noeud_sur_destruction(élément)
     CSS.détruit_style_declaration(élément.style)
     si élément.noeud_de_disposition {
         si élément.noeud_de_disposition.type != CSS.NoeudDeDispositionNouvelleLigne {
@@ -192,13 +192,13 @@ ajoute_attribut :: fonc (élément: *Élément, attribut_lexé: AttributLexé)
 change_attribut :: fonc (attribut: *Attr, valeur: DOMString)
 {
     // 1. Let oldValue be attribute’s value.
-    vieille_valeur := attr.valeur
+    vieille_valeur := attribut.valeur
 
     // 2. Set attribute’s value to value.
     attribut.valeur = valeur
 
     // 3. Handle attribute changes for attribute with attribute’s element, oldValue, and value.
-    gère_changement_attribute(attribut, attribut.élément, vieille_valeur, valeur)
+    gère_changement_attribute(attribut, attribut.élément, *vieille_valeur, *valeur)
 }
 
 /* https://dom.spec.whatwg.org/#handle-attribute-changes */
@@ -221,6 +221,27 @@ gère_changement_attribute :: fonc (attribut: *Attr, élément: *Élément, viei
     élément.document.invalide_style_pour_attribut(élément, attribut.local_name)
 }
 
+/* https://dom.spec.whatwg.org/#concept-element-attributes-get-value */
+get_an_attribute_value :: fonc (élément: *Élément, nom: DOMString) -> DOMString
+{
+    // À FAIRE : standardise
+    retourne donne_attribut_ou_chaine_vide(élément, nom)
+}
+
+/* https://dom.spec.whatwg.org/#concept-element-attributes-set-value */
+set_an_attribute_value :: fonc (élément: *Élément, nom: DOMString, valeur: DOMString)
+{
+    // À FAIRE : standardise
+    attribut := cherche_attribut(élément, nom)
+    saufsi attribut {
+        attribut_lexé := AttributLexé(nom, valeur)
+        ajoute_attribut(élément, attribut_lexé)
+        retourne
+    }
+
+    change_attribut(attribut, valeur)
+}
+
 initialise_élément :: fonc (élément: *Élément, document: *Document, texte: DOMString) -> rien
 {
     élément.genre = GenreNoeud.Élément
@@ -237,6 +258,9 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élé
     }
     sinon si tag == TAG_body {
         élément = crée_platform_object(document, HTMLBodyElement)
+    }
+    sinon si tag == TAG_canvas {
+        élément = crée_platform_object(document, HTMLCanvasElement)
     }
     sinon si tag == TAG_font {
         élément = crée_platform_object(document, HTMLFontElement)
@@ -532,19 +556,70 @@ applique_presentational_hints :: fonc (élément: *Élément, résolveuse: *CSS.
 /** \nom Interface JavaScript
  * \{ */
 
-#portée_fichier
-
-élément_sur_initialisation_interface :: fonc (base: *PlatformObject)
-{
-    définis_prototype(base, PrototypesPlatformObject.Element)
-}
-
-img_élément_sur_initialisation_interface :: fonc (base: *PlatformObject)
-{
-    définis_prototype(base, PrototypesPlatformObject.HTMLImageElement)
-}
-
 #portée_export
+
+/* https://html.spec.whatwg.org/multipage/dynamic-markup-insertion.html#fragment-serializing-algorithm-steps */
+fragment_serializing_algorithm_steps :: fonc (node: *Noeud, well_formed: bool @inutilisée) -> ChaineUTF16
+{
+    // À FAIRE assert : Document, DocumentFragment, Element
+
+    // 1. Let context document be node's node document.
+    context_document := node.document
+
+    // 2. If context document is an HTML document, return the result of HTML fragment serialization algorithm with node, false, and « ».
+    si context_document.type != "xml" {
+        retourne HTML_fragment_serialization(node, faux)
+    }
+
+    // 3. Return the XML serialization of node given require well-formed.
+    panique("XML non pris en charge")
+}
+
+/* https://html.spec.whatwg.org/multipage/dynamic-markup-insertion.html#fragment-parsing-algorithm-steps */
+fragment_parsing_algorithm_steps :: fonc (context: *Élément, markup: ChaineUTF16) -> *NoeudFragmentDocument
+{
+    // À FAIRE(XML) : 1. Let algorithm be the HTML fragment parsing algorithm.
+
+    // 2. If context's node document is an XML document, then set algorithm to the XML fragment parsing algorithm.
+
+    // 3. Let new children be the result of invoking algorithm given markup, with context set to context.
+    new_children := HTML_fragment_parsing(markup, context)
+
+    // 4. Let fragment be a new DocumentFragment whose node document is context's node document.
+    fragment := crée_noeud_fragment_document(context.document)
+
+    // 5. Append each Node in new children to fragment (in tree order).
+    pour new_children {
+        _ := append(fragment, it)
+    }
+
+    // 6. Return fragment.
+    retourne fragment
+}
+
+donne_inner_html :: fonc (élément: *Élément) -> ChaineUTF16
+{
+    retourne fragment_serializing_algorithm_steps(élément, vrai)
+}
+
+définis_inner_html :: fonc (élément: *Élément, texte: DOMString)
+{
+    // À FAIRE : 1. Let compliantString be the result of invoking the Get Trusted Type compliant string algorithm with TrustedHTML, this's relevant global object, the given value, "Element innerHTML", and "script".
+    compliant_string := texte.donne_chaine_utf16()
+
+    // 2. Let context be this.
+    context := élément
+
+    // 3. Let fragment be the result of invoking the fragment parsing algorithm steps with context and compliantString.
+    fragment := fragment_parsing_algorithm_steps(context, compliant_string)
+
+    // À FAIRE : 4. If context is a template element, then set context to the template element's template contents (a DocumentFragment).
+
+    // À FAIRE : 5. Replace all with fragment within context.
+    enfants := context.enfants
+    context.enfants = fragment.enfants
+    fragment.enfants = enfants
+}
 
 /** \} */
 
@@ -579,7 +654,7 @@ est_hyperlien :: fonc (anchor: *HTMLAnchorElement) -> bool
 
 donne_href :: fonc (anchor: *HTMLAnchorElement) -> DOMString
 {
-    retourne donne_attribut_ou_chaine_vide(anchor, ATTR_href)
+    retourne get_an_attribute_value(anchor, ATTR_href)
 }
 
 #portée_fichier
@@ -819,6 +894,13 @@ encoding_parse_and_serialize_a_url :: fonc (url: DOMString, document: *Document)
     retourne url_serializer(url_src)
 }
 
+encoding_parse_a_url :: fonc (url: DOMString, document: *Document) -> *URL
+{
+    // À FAIRE : standardise
+    base_url := donne_base_url(document)
+    retourne url_parser(document.donne_user_agent(), url.donne_chaine_utf16(), base = base_url)
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -918,6 +1000,118 @@ ajoute_propriété_pour_nombre :: fonc (résolveuse: *CSS.RésolveuseStyle, nom_
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLCanvasElement
+ * https://html.spec.whatwg.org/multipage/canvas.html#the-canvas-element
+ * \{ */
+
+#portée_export
+
+HTMLCanvasElement :: struct {
+    empl html_element: HTMLElement
+    table = *table_virtuelle_canvas_element
+
+    ctx: *RenderingContext
+    context_id: DOMString
+
+    tampon_de_rendu: TamponDeRendu
+}
+
+#portée_fichier
+
+table_virtuelle_canvas_element := TableVirtuelleÉlément(
+    classe = HTMLCanvasElement,
+    sur_destruction = canvas_element_sur_destruction
+)
+
+canvas_element_sur_destruction :: fonc (base: *JavaScript.Cellule)
+{
+    élément_sur_destruction(base)
+    canvas := base comme *HTMLCanvasElement
+    détruit_tampon_de_rendu(*canvas.tampon_de_rendu)
+}
+
+#portée_export
+
+get_context :: fonc (canvas: *HTMLCanvasElement, context_id: DOMString) -> *RenderingContext
+{
+    si context_id == canvas.context_id {
+        retourne canvas.ctx
+    }
+
+    si context_id.donne_chaine_utf16() == "2d" {
+        résultat := crée_canvas_rendering_context_2d(canvas)
+        canvas.ctx = résultat
+        canvas.context_id = context_id
+        retourne résultat
+    }
+
+    retourne nul
+}
+
+donne_largeur_intrinsèque :: fonc (canvas: *HTMLCanvasElement) -> r64
+{
+    opt_attribut := canvas.donne_attribut(ATTR_width)
+    si opt_attribut.possède_valeur() {
+        valeur := parse_a_non_zero_dimension(opt_attribut.Quelque)
+        si valeur.possède_valeur() {
+            retourne valeur
+        }
+    }
+
+    retourne 300
+}
+
+donne_hauteur_intrinsèque :: fonc (canvas: *HTMLCanvasElement) -> r64
+{
+    opt_attribut := canvas.donne_attribut(ATTR_height)
+    si opt_attribut.possède_valeur() {
+        valeur := parse_a_non_zero_dimension(opt_attribut.Quelque)
+        si valeur.possède_valeur() {
+            retourne valeur
+        }
+    }
+
+    retourne 150
+}
+
+donne_tampon_de_rendu :: fonc (canvas: *HTMLCanvasElement) -> TamponDeRendu
+{
+    hauteur := canvas.donne_hauteur_intrinsèque()
+    largeur := canvas.donne_largeur_intrinsèque()
+    rect: RectanglePosDim(z32)
+    rect.hauteur = hauteur comme z32
+    rect.largeur = largeur comme z32
+
+    si canvas.tampon_de_rendu.rect.largeur != rect.largeur || canvas.tampon_de_rendu.rect.hauteur != rect.hauteur {
+        redimensionne_tampon_de_rendu(*canvas.tampon_de_rendu, rect)
+
+        pour & canvas.tampon_de_rendu.données {
+            it = CouleurRVBAN8(0, 0, 0, 0)
+        }
+    }
+
+    retourne canvas.tampon_de_rendu
+}
+
+// À FAIRE : [Reflect]
+donne_width :: fonc (canvas: *HTMLCanvasElement) -> n32
+{
+    retourne canvas.donne_largeur_intrinsèque() comme n32
+}
+définis_width :: fonc (canvas: *HTMLCanvasElement @inutilisée, valeur: n32 @inutilisée)
+{
+}
+donne_height :: fonc (canvas: *HTMLCanvasElement) -> n32
+{
+    retourne canvas.donne_hauteur_intrinsèque() comme n32
+}
+définis_height :: fonc (canvas: *HTMLCanvasElement @inutilisée, valeur: n32 @inutilisée)
+{
+}
+
+/** } */
 
 /* ------------------------------------------------------------------------- */
 /** \nom HTMLFontElement
@@ -1192,7 +1386,7 @@ table_virtuelle_iframe_element := TableVirtuelleÉlément(
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom HTMLAnchorElement
+/** \nom HTMLImageElement
  * https://html.spec.whatwg.org/multipage/embedded-content.html#htmlimageelement
  * https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement
  * \{ */
@@ -1234,7 +1428,6 @@ donne_ratio_intrinsèque :: fonc (image: *HTMLImageElement) -> r32 #enligne
 
 table_virtuelle_image_element := TableVirtuelleÉlément(
     classe = HTMLImageElement,
-    sur_initialisation_interface = img_élément_sur_initialisation_interface,
     sur_destruction = image_element_sur_destruction,
     sur_changement_attribut = image_element_sur_changement_attribut,
     sur_applique_presentational_hints = image_element_sur_applique_presentational_hints
@@ -1823,9 +2016,71 @@ prépare :: fonc (el: *HTMLScriptElement)
     /* 30. settings object */
     settings_object := donne_relevant_settings_object(el.document)
 
+    user_agent := el.document.donne_user_agent()
+
     /* 31. */
     si possède_attr_src {
-        imprime("source\n")
+        // 1. If el's type is "importmap", then queue an element task on the DOM manipulation task source given el to fire an event named error at el, and return.
+        si el.type == TypeScript.IMPORTMAP {
+            queue_a_task_to_fire_error_at_element(user_agent, el)
+            retourne
+        }
+
+        // 2. Let src be the value of el's src attribute.
+        src := el.donne_src()
+
+        // 3. If src is the empty string, then queue an element task on the DOM manipulation task source given el to fire an event named error at el, and return.
+        si src.est_vide() {
+            queue_a_task_to_fire_error_at_element(user_agent, el)
+            retourne
+        }
+
+        // 4. Set el's from an external file to true.
+        el.provient_de_fichier_externe = vrai
+
+        // 5. Let url be the result of encoding-parsing a URL given src, relative to el's node document.
+        url := encoding_parse_a_url(src, el.document)
+
+        // 6. If url is failure, then queue an element task on the DOM manipulation task source given el to fire an event named error at el, and return.
+        saufsi url {
+            queue_a_task_to_fire_error_at_element(user_agent, el)
+            retourne
+        }
+
+        // À FAIRE : 7. If el is potentially render-blocking, then block rendering on el.
+
+        // 8. Set el's delaying the load event to true.
+        el.delaying_the_load_event = vrai
+
+        // À FAIRE : 9. If el is currently render-blocking, then set options's render-blocking to true.
+
+        // 10. Let onComplete given result be the following steps:
+        OnComplete :: struct {
+            empl base: ScriptFetchComplete
+            élément: *HTMLScriptElement
+        }
+        sur_run :: fonc (base: *ScriptFetchComplete, result: *rien)
+        {
+            on_complete := base comme *OnComplete
+            // 1. Mark as ready el given result.
+            mark_as_ready(on_complete.élément, result)
+        }
+
+        on_complete := crée_script_fetch_on_complete(OnComplete)
+        on_complete.élément = el
+        on_complete.sur_run = sur_run
+
+        // 11. Switch on el's type:
+        si el.type == TypeScript.CLASSIC {
+            // Fetch a classic script given url, settings object, options, classic script CORS setting, encoding, and onComplete.
+            fetch_a_classic_script(user_agent, url, settings_object, options, on_complete)
+        }
+        sinon si el.type == TypeScript.MODULE {
+            // If el does not have an integrity attribute, then set options's integrity metadata to the result of resolving a module integrity metadata with url and settings object.
+
+            // Fetch an external module script graph given url, settings object, options, and onComplete.
+            panique("module non-implémenté")
+        }
     }
     /* 32. */
     sinon {
@@ -1835,7 +2090,6 @@ prépare :: fonc (el: *HTMLScriptElement)
         // 2. Switch on el's type:
         discr el.type {
             CLASSIC {
-                user_agent := el.document.donne_user_agent()
                 // 1. Let script be the result of creating a classic script using source text, settings object, base URL, and options.
                 script := create_a_classic_script(user_agent, texte_source, settings_object, base_url, options)
 
@@ -1850,7 +2104,56 @@ prépare :: fonc (el: *HTMLScriptElement)
 
     /* 33. If el's type is "classic" and el has a src attribute, or el's type is "module": */
     si (el.type == TypeScript.CLASSIC && possède_attr_src) || el.type == TypeScript.MODULE {
-        panique("non-implémenté")
+        si el.result {
+            execute_the_script_element(el)
+            retourne
+        }
+
+        panique("non-implémenté\n")
+
+        // 1. Assert: el's result is "uninitialized".
+
+        // 2. If el has an async attribute or el's force async is true:
+
+            // 1. Let scripts be el's preparation-time document's set of scripts that will execute as soon as possible.
+
+            // 2. Append el to scripts.
+
+            // 3. Set el's steps to run when the result is ready to the following:
+
+                // 1. Execute the script element el.
+
+                // 2. Remove el from scripts.
+
+        // 3. Otherwise, if el is not parser-inserted:
+
+            // 1. Let scripts be el's preparation-time document's list of scripts that will execute in order as soon as possible.
+
+            // 2. Append el to scripts.
+
+            // 3. Set el's steps to run when the result is ready to the following:
+
+                // 1. If scripts[0] is not el, then abort these steps.
+
+                // 2. While scripts is not empty, and scripts[0]'s result is not "uninitialized":
+
+                    // 1. Execute the script element scripts[0].
+
+                    // 2. Remove scripts[0].
+
+        // 4. Otherwise, if el has a defer attribute or el's type is "module":
+
+            // 1. Append el to its parser document's list of scripts that will execute when the document has finished parsing.
+
+            // 2. Set el's steps to run when the result is ready to the following: set el's ready to be parser-executed to true. (The parser will handle executing the script.)
+
+        // 5. Otherwise:
+
+            // 1. Set el's parser document's pending parsing-blocking script to el.
+
+            // 2. Block rendering on el.
+
+            // 3. Set el's steps to run when the result is ready to the following: set el's ready to be parser-executed to true. (The parser will handle executing the script.)
     }
     /* 34. Otherwise */
     sinon {
@@ -1934,7 +2237,7 @@ execute_the_script_element :: fonc (el: *HTMLScriptElement)
             document.current_script = el
 
             // 3. Run the classic script given by el's result.
-            run_the_classic_script(el.result comme *ClassicScript)
+            _ := run_the_classic_script(el.result comme *ClassicScript)
 
             // 4. Set document's currentScript attribute to oldCurrentScript.
             document.current_script = old_current_script
@@ -1982,6 +2285,101 @@ mark_as_ready :: fonc (el: *HTMLScriptElement, result : *rien = nul)
 
     // 4. Set el's delaying the load event to false.
     el.delaying_the_load_event = faux
+}
+
+queue_a_task_to_fire_error_at_element :: fonc (user_agent: *UserAgent @inutilisée, élément: *Élément @inutilisée)
+{
+    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+}
+
+ScriptFetchComplete :: struct {
+    sur_run: fonc(*ScriptFetchComplete, *rien)(rien)
+    sur_destruction: fonc(*ScriptFetchComplete)(rien)
+}
+
+crée_script_fetch_on_complete :: fonc ($T: type_de_données) -> *T
+{
+    sur_destruction :: fonc (base: *ScriptFetchComplete)
+    {
+        on_complete := base comme *T
+        déloge(on_complete)
+    }
+
+    résultat := loge(T)
+    résultat.sur_destruction = sur_destruction
+    retourne résultat
+}
+
+run :: fonc (on_complete: *ScriptFetchComplete, result: *rien)
+{
+    on_complete.sur_run(on_complete, result)
+    on_complete.sur_destruction(on_complete)
+}
+
+/* https://html.spec.whatwg.org/multipage/webappapis.html#fetch-a-classic-script */
+fetch_a_classic_script :: fonc (user_agent: *UserAgent, url: *URL, settings_object: *EnvironmentSettings, options: OptionsFetchScript, on_complete: *ScriptFetchComplete)
+{
+    // À FAIRE : standardise
+
+    request := loge(Request)
+    request.destination = "script"
+    request.mode = "no-cors"
+    request.redirect_mode = "follow"
+    request.définis_url(url)
+
+    RappelProcessResponse :: struct {
+        empl base: BaseProcessResponse
+
+        request: *Request
+        user_agent: *UserAgent
+        on_complete: *ScriptFetchComplete
+        settings_object: *EnvironmentSettings
+        options: OptionsFetchScript
+    }
+
+    sur_rappel_process_response :: fonc (base: *BaseProcessResponse, réponse: *Response)
+    {
+        diffère détruit_response(réponse)
+
+        rappel := base comme *RappelProcessResponse
+
+        saufsi réponse.body_info {
+            rappel.on_complete.run(nul)
+            retourne
+        }
+
+        content_type := réponse.body_info.content_type
+        saufsi est_type_mime_javascript(crée_chaine_utf16_unique(content_type)) {
+            rappel.on_complete.run(nul)
+            retourne
+        }
+
+        contenu := réponse.body.Quelque
+
+        url := rappel.request.donne_url_courant()
+
+        script := create_a_classic_script(rappel.user_agent, contenu, rappel.settings_object, url, rappel.options)
+        rappel.on_complete.run(script)
+    }
+
+    sur_destruction_process_response :: fonc (base: *BaseProcessResponse)
+    {
+        rappel := base comme *RappelProcessResponse
+        détruit_request(rappel.request)
+        déloge(rappel)
+    }
+
+    process_response := loge(RappelProcessResponse)
+    process_response.user_agent = user_agent
+    process_response.settings_object = settings_object
+    process_response.on_complete = on_complete
+    process_response.options = options
+    process_response.request = request
+    process_response.sur_rappel = sur_rappel_process_response
+    process_response.sur_destruction = sur_destruction_process_response
+
+    fetch_controller := fetch(user_agent, request, process_response = process_response)
+    diffère détruit_fetch_controller(fetch_controller)
 }
 
 /** \} */
