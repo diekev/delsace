@@ -750,7 +750,7 @@ donne_lexème_suivant :: fonc (parseuse: *ParseuseInterface) -> chaine
 
     tantque parseuse.début < parseuse.fin {
         c := mémoire(parseuse.début)
-        si ('a' <= c <= 'z') || ('A' <= c <= 'Z') {
+        si ('a' <= c <= 'z') || ('A' <= c <= 'Z') || ('0' <= c <= '9') {
             parseuse.début += 1
             résultat.taille += 1
             continue
