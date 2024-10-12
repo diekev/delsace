@@ -481,7 +481,7 @@ génère_code_conversion_argument :: fonc (enchaineuse: *Enchaineuse, nom: chain
         ajoute_au_tampon(enchaineuse, "    saufsi JavaScript.est_normal(completion) {\n        retourne completion;\n    }\n")
         ajoute_au_tampon(enchaineuse, "    ", nom, " := completion.valeur.V.Number comme z32\n")
     }
-    sinon si type.nom == "unrestricted double" {
+    sinon si type.nom == "double" type.nom == "unrestricted double" {
         ajoute_au_tampon(enchaineuse, "    completion = JavaScript.vers_nombre(interpréteuse, valeur_", nom, ")\n")
         ajoute_au_tampon(enchaineuse, "    saufsi JavaScript.est_normal(completion) {\n        retourne completion;\n    }\n")
         ajoute_au_tampon(enchaineuse, "    ", nom, " := completion.valeur.V.Number\n")
@@ -547,7 +547,7 @@ génère_code_conversion_résultat :: fonc (enchaineuse: *Enchaineuse, type: *Ty
     sinon si type.nom == "unsigned long" || type.nom == "long" {
         ajoute_au_tampon(enchaineuse, "    retourne JavaScript.normal_completion(JavaScript.Valeur(Number = résultat comme r64))\n")
     }
-    sinon si type.nom == "unrestricted double" {
+    sinon si type.nom == "double" || type.nom == "unrestricted double" {
         ajoute_au_tampon(enchaineuse, "    retourne JavaScript.normal_completion(JavaScript.Valeur(Number = résultat))\n")
     }
     sinon {
