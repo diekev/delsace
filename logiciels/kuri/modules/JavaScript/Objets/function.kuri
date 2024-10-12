@@ -739,9 +739,97 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-built-in-function-objects
  * \{ */
 
+ParamètresCallOrConstruct :: struct {
+    object: *BuiltInFunction
+    interpréteuse: *Interpréteuse
+    this_value: Valeur
+    arguments: []Valeur
+    new_target: Valeur
+}
+
+TableVirtuelleBuiltinFunction :: struct {
+    empl object: TableVirtuelleObject
+
+    sur_call = builtin_function_sur_call
+    sur_construct = builtin_function_sur_construct
+}
+
 BuiltInFunction :: struct {
     empl function: Function
+
+    realm: *Realm
+    sur_call_or_construct: fonc(*ParamètresCallOrConstruct)(CompletionRecord)
 }
+
+#portée_fichier
+
+/* 10.3.1 [[Call]] ( thisArgument, argumentsList )
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-built-in-function-objects-call-thisargument-argumentslist */
+builtin_function_sur_call :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    // 1. Return ? BuiltinCallOrConstruct(F, thisArgument, argumentsList, undefined).
+    retourne builtin_call_or_construct(object comme *BuiltInFunction, interpréteuse, this_value, arguments, js_undefined)
+}
+
+/* 10.3.2 [[Construct]] ( argumentsList, newTarget )
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-built-in-function-objects-construct-argumentslist-newtarget */
+builtin_function_sur_construct :: fonc (empl params: *ParamètresObjectConstruct) -> CompletionRecord
+{
+    // 1. Return ? BuiltinCallOrConstruct(F, uninitialized, argumentsList, newTarget).
+    retourne builtin_call_or_construct(object comme *BuiltInFunction, interpréteuse, js_undefined, arguments, new_target)
+}
+
+/* 10.3.3 BuiltinCallOrConstruct ( F, thisArgument, argumentsList, newTarget ) */
+builtin_call_or_construct :: fonc (F: *BuiltInFunction, interpréteuse: *Interpréteuse, this_argument: Valeur, arguments: []Valeur, new_target: Valeur) -> CompletionRecord
+{
+    mv := interpréteuse.mv
+
+    // 1. Let callerContext be the running execution context.
+    caller_context := mv.donne_running_execution_context()
+
+    // 2. If callerContext is not already suspended, suspend callerContext.
+    suspend(caller_context)
+
+    // 3. Let calleeContext be a new execution context.
+    callee_context := crée_execution_context(interpréteuse.donne_tas_de_mémoire())
+
+    // 4. Set the Function of calleeContext to F.
+    callee_context.function = F
+
+    // 5. Let calleeRealm be F.[[Realm]].
+    callee_realm := F.realm
+
+    // 6. Set the Realm of calleeContext to calleeRealm.
+    callee_context.realm = callee_realm
+
+    // 7. Set the ScriptOrModule of calleeContext to null.
+    callee_context.script_or_module = nul
+
+    // 8. Perform any necessary implementation-defined initialization of calleeContext.
+
+    // 9. Push calleeContext onto the execution context stack; calleeContext is now the running execution context.
+    mv.empile_execution_context(callee_context)
+
+    // 10. Let result be the Completion Record that is the result of evaluating F in a manner that conforms to the specification of F. If thisArgument is uninitialized, the this value is uninitialized; otherwise, thisArgument provides the this value. argumentsList provides the named parameters. newTarget provides the NewTarget value.
+    // 11. NOTE: If F is defined in this document, “the specification of F” is the behaviour specified for it via algorithm steps or other means.
+    params: ParamètresCallOrConstruct
+    params.object = F
+    params.interpréteuse = interpréteuse
+    params.this_value = this_argument
+    params.arguments = arguments
+    params.new_target = new_target
+
+    result := F.sur_call_or_construct(*params)
+
+    // 12. Remove calleeContext from the execution context stack and restore callerContext as the running execution context.
+    mv.dépile_execution_context()
+    assert(mv.donne_running_execution_context() == caller_context)
+
+    // 13. Return ? result.
+    retourne result
+}
+
+#portée_export
 
 /** \} */
 
