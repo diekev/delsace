@@ -840,7 +840,7 @@ consomme_une_lise_de_valeur_composante :: fonc (parseuse: &Parseuse($T), stop_to
     values: [..]ComponentValue
 
     tantque !fini(parseuse) {
-        lexème := parseuse.consomme_le_lexème_en_entrée_suivant()
+        lexème := parseuse.lexème_courant()
 
         si lexème.est_lexème_de_genre(GenreLexème.EOF) || lexème.est_lexème_de_genre(stop_token) {
             arrête
