@@ -495,6 +495,7 @@ window_sur_destruction :: fonc (base: *JavaScript.Cellule)
     event_target_sur_destruction(base)
     window := base comme *Window
     déloge(window.chronomètres)
+    déloge(window.animation_frames)
 }
 
 #portée_export
@@ -513,6 +514,47 @@ Window :: struct {
     }
 
     chronomètres: [..]Chronomètres
+
+    AnimationFrame :: struct {
+        id: z32
+        callback: *JavaScript.Object
+    }
+
+    animation_frames: [..]AnimationFrame
+    id_suivant_animation_frame: z32
+}
+
+exécute_animation_frames :: fonc (window: *Window)
+{
+    animation_frames := window.animation_frames
+    diffère déloge(animation_frames)
+
+    window.animation_frames.pointeur = nul
+    window.animation_frames.taille = 0
+    window.animation_frames.capacité = 0
+
+    pour animation_frames {
+        callback := it.callback
+
+        realm := window.realm
+        settings := JavaScript.donne_données(realm.host_defined, EnvironmentSettings)
+
+        prepare_to_run_script(settings)
+
+        this_arg := JavaScript.js_undefined
+        value := JavaScript.Valeur(Object = callback)
+
+        interpréteuse: JavaScript.Interpréteuse
+        diffère  JavaScript.détruit_données_interpreteuse(*interpréteuse)
+        interpréteuse.mv = JavaScript.donne_mv(realm)
+
+        evaluation_status := JavaScript.call(*interpréteuse, value, this_arg)
+        saufsi JavaScript.est_normal(evaluation_status) {
+            imprime("[%] %\n", #nom_de_cette_fonction, evaluation_status)
+        }
+
+        cleanup_after_running_script(settings)
+    }
 }
 
 #portée_module
@@ -598,6 +640,33 @@ set_interval :: fonc (window: *Window, handler: *JavaScript.Object, time_out: z3
 clear_interval :: fonc (window: *Window, id: z32)
 {
     clear_timeout(window, id)
+}
+
+request_animation_frame :: fonc (window: *Window, callback: *JavaScript.Object) -> z32
+{
+    user_agent := window.document.donne_user_agent()
+    saufsi user_agent {
+        retourne -1
+    }
+
+    animation_frame := tableau_ajoute_élément(*window.animation_frames)
+    animation_frame.callback = callback
+    animation_frame.id = window.id_suivant_animation_frame
+    window.id_suivant_animation_frame += 1
+
+    user_agent.request_animation_frame()
+
+    retourne animation_frame.id
+}
+
+clear_animation_frame :: fonc (window: *Window, id: z32)
+{
+    pour window.animation_frames {
+        si it.id == id {
+            tableau_supprime_index(*window.animation_frames, index_it)
+            retourne
+        }
+    }
 }
 
 crée_algorithm_pour_timeout :: fonc (window: *Window, handler: *JavaScript.Object) -> *Algorithm

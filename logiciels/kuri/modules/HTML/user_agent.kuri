@@ -119,6 +119,7 @@ RappelsInterface :: struct {
     sur_affichage_alerte: fonc(*RappelsInterface, DOMString)(rien)
     sur_création_timeout: fonc(*RappelsInterface, *Algorithm, z32)(z32)
     sur_destruction_timeout: fonc(*RappelsInterface, z32)(rien)
+    sur_request_animation_frame: fonc(*RappelsInterface)(rien)
 }
 
 détruit_rappels :: fonc (rappels: *RappelsInterface)
@@ -273,6 +274,15 @@ détruit_timeout :: fonc (user_agent: *UserAgent, id: z32)
         retourne
     }
     rappels.sur_destruction_timeout(rappels, id)
+}
+
+request_animation_frame :: fonc (user_agent: *UserAgent)
+{
+    rappels := user_agent.rappels_interface
+    saufsi rappels && rappels.sur_request_animation_frame {
+        retourne
+    }
+    rappels.sur_request_animation_frame(rappels)
 }
 
 /** \} */

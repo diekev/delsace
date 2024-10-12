@@ -1194,6 +1194,9 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
         retourne
     }
 
+    window := document.realm.global_object comme *Window
+    exécute_animation_frames(window)
+
     arbre := crée_arbre_de_disposition(page, vue_rendu_page.largeur, vue_rendu_page.hauteur)
     saufsi arbre && arbre.racine {
         retourne
@@ -1681,6 +1684,7 @@ crée_rappels_interface_qt :: fonc (fenêtre: *QT_Fenetre_Principale) -> *Rappel
     résultat.sur_affichage_alerte = rappels_interface_sur_affichage_alerte
     résultat.sur_création_timeout = rappels_interface_sur_création_timeout
     résultat.sur_destruction_timeout = rappels_interface_sur_destruction_timeout
+    résultat.sur_request_animation_frame = rappels_interface_sur_request_animation_frame
 
     rappels_thread := QT_loge_rappel(RappelsThread)
     rappels_thread.rappels_interface = résultat
@@ -2057,6 +2061,13 @@ rappels_interface_sur_destruction_timeout :: fonc (base: *RappelsInterface, id: 
             retourne
         }
     }
+}
+
+rappels_interface_sur_request_animation_frame :: fonc (base: *RappelsInterface)
+{
+    rappels := base comme *RappelsInterfaceQt
+    window := QT_widget_donne_window_handle(rappels.fenêtre)
+    QT_window_request_update(window)
 }
 
 /** \} */

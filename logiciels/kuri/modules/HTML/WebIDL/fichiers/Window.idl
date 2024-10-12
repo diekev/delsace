@@ -10,4 +10,7 @@ interface Window : EventTarget {
     undefined clearTimeout(long id);
     long setInterval(Function handler, long timeOut);
     undefined clearInterval(long id);
+
+    long requestAnimationFrame(Function callback);
+    undefined clearAnimationFrame(long id);
 }
