@@ -1308,6 +1308,9 @@ vue_rendu_page_sur_déplacement_souris :: fonc (base: *QT_Rappels_GLWidget, even
 
     élément := CSS.donne_élément_pour_position(arbre, position.x, position.y)
     document.définis_noeud_survolé(élément)
+    si élément {
+        envoie_mousemove(élément, position.x, position.y)
+    }
 
     défilement := *vue_rendu_page.page.défilement_vertical
 
@@ -1361,6 +1364,7 @@ vue_rendu_page_sur_pression_souris :: fonc (base: *QT_Rappels_GLWidget, event: *
     élément := CSS.donne_élément_pour_position(arbre, position.x, position.y)
     si élément {
         élément.est_en_train_d_être_activé(vrai)
+        envoie_mousedown(élément, position.x, position.y)
     }
     document.élément_en_cours_d_activation = élément
 }
@@ -1391,6 +1395,7 @@ vue_rendu_page_sur_relachement_souris :: fonc (base: *QT_Rappels_GLWidget, event
     élément := CSS.donne_élément_pour_position(arbre, position.x, position.y)
     si élément {
         élément.est_en_train_d_être_activé(faux)
+        envoie_mouseup(élément, position.x, position.y)
     }
     si document.élément_en_cours_d_activation {
         si document.élément_en_cours_d_activation != élément {
@@ -1477,6 +1482,54 @@ envoie_un_clic :: fonc (élément: *HTML.Élément)
     évènement := crée_platform_object(élément, HTML.Event)
     évènement.target = élément
     évènement.type = HTML.EventType.click
+
+    _ := dispatch(évènement, élément)
+}
+
+envoie_mousedown :: fonc (élément: *HTML.Élément, position_x: z32, position_y: z32)
+{
+    évènement := crée_platform_object(élément, HTML.MouseEvent)
+    évènement.target = élément
+    évènement.type = HTML.EventType.mousedown
+    évènement.bubbles = vrai
+    évènement.screen_x = position_x comme r64
+    évènement.screen_y = position_y comme r64
+
+    rect := CSS.donne_rectangle_rembourrage(élément.noeud_de_disposition)
+    évènement.offset_x = évènement.screen_x - rect.x
+    évènement.offset_y = évènement.screen_y - rect.y
+
+    _ := dispatch(évènement, élément)
+}
+
+envoie_mousemove :: fonc (élément: *HTML.Élément, position_x: z32, position_y: z32)
+{
+    évènement := crée_platform_object(élément, HTML.MouseEvent)
+    évènement.target = élément
+    évènement.type = HTML.EventType.mousemove
+    évènement.bubbles = vrai
+    évènement.screen_x = position_x comme r64
+    évènement.screen_y = position_y comme r64
+
+    rect := CSS.donne_rectangle_rembourrage(élément.noeud_de_disposition)
+    évènement.offset_x = évènement.screen_x - rect.x
+    évènement.offset_y = évènement.screen_y - rect.y
+
+    _ := dispatch(évènement, élément)
+}
+
+envoie_mouseup :: fonc (élément: *HTML.Élément, position_x: z32, position_y: z32)
+{
+    évènement := crée_platform_object(élément, HTML.MouseEvent)
+    évènement.target = élément
+    évènement.type = HTML.EventType.mouseup
+    évènement.bubbles = vrai
+    évènement.screen_x = position_x comme r64
+    évènement.screen_y = position_y comme r64
+
+    rect := CSS.donne_rectangle_rembourrage(élément.noeud_de_disposition)
+    évènement.offset_x = évènement.screen_x - rect.x
+    évènement.offset_y = évènement.screen_y - rect.y
 
     _ := dispatch(évènement, élément)
 }
