@@ -1,5 +1,6 @@
 importe Allocatrices
 importe Chaine
+importe Compilatrice
 importe Couleur
 importe #inemployé CSS
 importe Fondation
@@ -15,6 +16,8 @@ importe Temps
 importe Typographie
 
 DÉBOGUE_ALLOCATIONS :: faux
+
+// #exécute compile_pour_débogage_avec_asan()
 
 /* ------------------------------------------------------------------------- */
 /** \nom Fonction principale.
@@ -1194,9 +1197,6 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
         retourne
     }
 
-    window := document.realm.global_object comme *Window
-    exécute_animation_frames(window)
-
     arbre := crée_arbre_de_disposition(page, vue_rendu_page.largeur, vue_rendu_page.hauteur)
     saufsi arbre && arbre.racine {
         retourne
@@ -1273,6 +1273,10 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
     }
 
     CSS.dessine_tampon_id(arbre, *ctx)
+
+    /* Nous devrions faire ça plus haut mais il semblerait qu'il manque, ou qu'il y a une préemption, des ajournements. */
+    window := document.realm.global_object comme *Window
+    exécute_animation_frames(window)
 }
 
 vue_rendu_page_sur_redimensionnement :: fonc (rappels: *QT_Rappels_GLWidget, taille: QT_Taille)
