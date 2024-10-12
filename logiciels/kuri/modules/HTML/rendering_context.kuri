@@ -81,6 +81,9 @@ fill_rect :: fonc (ctx: *CanvasRenderingContext2D, x: r64, y: r64, w: r64, h: r6
     initialise_peintre_dessin(*peintre)
     peintre.tampon_de_rendu = ctx.canvas.donne_tampon_de_rendu()
     remplis_rectangle(*peintre, rect, ctx.fill_style)
+
+    document := ctx.canvas.document
+    requiers_redessin(document)
 }
 
 /** \} */
