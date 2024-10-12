@@ -1612,6 +1612,11 @@ détermine_fonte :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage
     retourne résultat
 }
 
+donne_rectangle_rembourrage :: fonc (noeud: *NoeudDeDisposition) -> RectanglePosDim(r32)
+{
+    retourne noeud.modèle_de_boite.rembourrage
+}
+
 donne_rectangle_bordure :: fonc (noeud: *NoeudDeDisposition) -> RectanglePosDim(r32)
 {
     retourne noeud.modèle_de_boite.bordure
