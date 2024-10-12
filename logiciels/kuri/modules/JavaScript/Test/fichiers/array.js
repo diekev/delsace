@@ -27,3 +27,9 @@ test("array-constructor", function () {
     vérifie_égalité(b.length, 16)
     vérifie_égalité(b.toString(), ",,,,,,,,,,,,,,,")
 });
+
+test("array-constructor new", function () {
+    var b = new Array(16);
+    vérifie_égalité(b.length, 16)
+    vérifie_égalité(b.toString(), ",,,,,,,,,,,,,,,")
+});
