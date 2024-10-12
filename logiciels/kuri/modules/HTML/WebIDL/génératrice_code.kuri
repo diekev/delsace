@@ -234,6 +234,8 @@ Interface :: struct {
     fonctions: [..]Fonction
 
     création_générée := faux
+    /* vrai si nom == "Window" pour éviter de faire trop de comparaisons de chaines. */
+    est_window := faux
 }
 
 donne_paramètres :: fonc (interface: *Interface, fonction: *Fonction) -> []Paramètre
@@ -288,6 +290,8 @@ imprime_interface :: fonc (interface: *Interface)
 génère_enveloppes_javascript :: fonc (enchaineuse: *Enchaineuse, interface: *Interface)
 {
     griffonier: Griffonier
+
+    interface.est_window = interface.nom == "Window"
 
     pour * interface.fonctions {
         génère_enveloppe_javascript(enchaineuse, interface, it, *griffonier)
@@ -441,6 +445,14 @@ génère_enveloppe_javascript_setter :: fonc (enchaineuse: *Enchaineuse, interfa
 
 génère_code_conversion_this :: fonc (enchaineuse: *Enchaineuse, interface: *Interface)
 {
+    si interface.est_window {
+        /* Puisque Window est l'objet global, si this est undefined, nous utilisons l'objet global du realm courant. */
+        ajoute_au_tampon(enchaineuse, "    si JavaScript.est_undefined(this_value) {\n")
+        ajoute_au_tampon(enchaineuse, "        realm := JavaScript.donne_realm(interpréteuse)\n")
+        ajoute_au_tampon(enchaineuse, "        this_value.Object = realm.global_object\n")
+        ajoute_au_tampon(enchaineuse, "    }\n")
+    }
+
     ajoute_au_tampon(enchaineuse, "    completion := donne_platform_object(interpréteuse, this_value, ", interface.nom, ")\n")
     ajoute_au_tampon(enchaineuse, "    saufsi JavaScript.est_normal(completion) {\n        retourne completion;\n    }\n")
     ajoute_au_tampon(enchaineuse, "    object_this := JavaScript.donne_objet(completion.valeur.V) comme *", interface.nom, "\n")
