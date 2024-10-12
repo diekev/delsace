@@ -486,8 +486,16 @@ crée_nouvelle_origin_opaque :: fonc () -> Origin
 #portée_fichier
 
 table_virtuelle_window := TableVirtuelleEventTarget(
-    classe = Window
+    classe = Window,
+    sur_destruction = window_sur_destruction
 )
+
+window_sur_destruction :: fonc (base: *JavaScript.Cellule)
+{
+    event_target_sur_destruction(base)
+    window := base comme *Window
+    déloge(window.chronomètres)
+}
 
 #portée_export
 
@@ -496,6 +504,15 @@ Window :: struct {
     table = *table_virtuelle_window
 
     document: *Document
+
+    Chronomètres :: struct {
+        id: z32
+        time_out: z32
+        algorithm: *Algorithm
+        handler: *JavaScript.Object
+    }
+
+    chronomètres: [..]Chronomètres
 }
 
 #portée_module
@@ -534,6 +551,99 @@ alert :: fonc (window: *Window, message: DOMString)
     }
 
     user_agent.affiche_alerte(message)
+}
+
+set_timeout :: fonc (window: *Window, handler: *JavaScript.Object, time_out: z32) -> z32
+{
+    user_agent := window.document.donne_user_agent()
+    saufsi user_agent {
+        retourne -1
+    }
+
+    algorithm := crée_algorithm_pour_timeout(window, handler)
+
+    chronomètre: Window.Chronomètres
+    chronomètre.handler = handler
+    chronomètre.time_out = time_out
+    chronomètre.id = user_agent.crée_timeout(algorithm, time_out)
+    tableau_ajoute(*window.chronomètres, chronomètre)
+    retourne chronomètre.id
+}
+
+clear_timeout :: fonc (window: *Window, id: z32)
+{
+    user_agent := window.document.donne_user_agent()
+    saufsi user_agent {
+        retourne
+    }
+
+    pour window.chronomètres {
+        si it.id == id {
+            si it.algorithm.sur_destruction {
+                it.algorithm.sur_destruction(it.algorithm)
+            }
+            tableau_supprime_index(*window.chronomètres, index_it)
+            retourne
+        }
+    }
+
+    user_agent.détruit_timeout(id)
+}
+
+set_interval :: fonc (window: *Window, handler: *JavaScript.Object, time_out: z32) -> z32
+{
+    retourne set_timeout(window, handler, time_out)
+}
+
+clear_interval :: fonc (window: *Window, id: z32)
+{
+    clear_timeout(window, id)
+}
+
+crée_algorithm_pour_timeout :: fonc (window: *Window, handler: *JavaScript.Object) -> *Algorithm
+{
+    SurTimeout :: struct {
+        empl base: Algorithm
+
+        window: *Window
+        handler: *JavaScript.Object
+    }
+
+    sur_run :: fonc (base: *Algorithm)
+    {
+        sur_timeout := base comme *SurTimeout
+        window := sur_timeout.window
+        handler := sur_timeout.handler
+
+        realm := window.realm
+        settings := JavaScript.donne_données(realm.host_defined, EnvironmentSettings)
+
+        prepare_to_run_script(settings)
+
+        this_arg := JavaScript.js_undefined
+        value := JavaScript.Valeur(Object = handler)
+
+        interpréteuse: JavaScript.Interpréteuse
+        diffère  JavaScript.détruit_données_interpreteuse(*interpréteuse)
+        interpréteuse.mv = JavaScript.donne_mv(realm)
+
+        _ := JavaScript.call(*interpréteuse, value, this_arg)
+
+        cleanup_after_running_script(settings)
+    }
+
+    sur_destruction :: fonc (base: *Algorithm)
+    {
+        sur_timeout := base comme *SurTimeout
+        déloge(sur_timeout)
+    }
+
+    résultat := loge(SurTimeout)
+    résultat.window = window
+    résultat.handler = handler
+    résultat.sur_run = sur_run
+    résultat.sur_destruction = sur_destruction
+    retourne résultat
 }
 
 #portée_export

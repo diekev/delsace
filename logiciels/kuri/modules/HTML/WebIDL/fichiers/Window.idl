@@ -5,4 +5,9 @@ interface Window : EventTarget {
     readonly attribute Document document;
 
     undefined alert(DOMString message);
+
+    long setTimeout(Function handler, long timeOut);
+    undefined clearTimeout(long id);
+    long setInterval(Function handler, long timeOut);
+    undefined clearInterval(long id);
 }
