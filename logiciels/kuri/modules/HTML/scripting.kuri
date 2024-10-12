@@ -116,7 +116,7 @@ create_a_classic_script :: fonc (user_agent: *UserAgent, source: chaine, setting
  * https://html.spec.whatwg.org/multipage/webappapis.html#calling-scripts
  * \{ */
 
-run_the_classic_script :: fonc (script: *ClassicScript, rethrow_errors := faux @inutilisée)
+run_the_classic_script :: fonc (script: *ClassicScript, rethrow_errors := faux @inutilisée) -> JavaScript.CompletionRecord
 {
     // 1. Let settings be the settings object of script.
     settings := script.settings_object
@@ -134,13 +134,12 @@ run_the_classic_script :: fonc (script: *ClassicScript, rethrow_errors := faux @
 
     // 7. Otherwise, set evaluationStatus to ScriptEvaluation(script's record).
     evaluation_status := JavaScript.script_evaluation(script.record)
-    saufsi JavaScript.est_normal(evaluation_status) {
-        imprime("[%] %\n", #nom_de_cette_fonction, evaluation_status)
-    }
 
     // If ScriptEvaluation does not complete because the user agent has aborted the running script, leave evaluationStatus as null.
 
     // 8. If evaluationStatus is an abrupt completion, then:
+    si JavaScript.est_abrupt(evaluation_status) {
+        imprime("[%] %\n", #nom_de_cette_fonction, evaluation_status)
 
         // 1. If rethrow errors is true and script's muted errors is false, then:
 
@@ -162,12 +161,20 @@ run_the_classic_script :: fonc (script: *ClassicScript, rethrow_errors := faux @
 
             // 3. Return evaluationStatus.
 
+        cleanup_after_running_script(settings)
+        retourne evaluation_status
+    }
+
     // 9. Clean up after running script with settings.
     cleanup_after_running_script(settings)
 
     // 10. If evaluationStatus is a normal completion, then return evaluationStatus.
+    si JavaScript.est_normal(evaluation_status) {
+        retourne evaluation_status
+    }
 
-    // 11. If we've reached this point, evaluationStatus was left as null because the script was aborted prematurely during evaluation. Return Completion { [[Type]]: throw, [[Value]]: a new "QuotaExceededError" DOMException, [[Target]]: empty }.
+    // À FAIRE : 11. If we've reached this point, evaluationStatus was left as null because the script was aborted prematurely during evaluation. Return Completion { [[Type]]: throw, [[Value]]: a new "QuotaExceededError" DOMException, [[Target]]: empty }.
+    retourne evaluation_status
 }
 
 /* https://html.spec.whatwg.org/multipage/webappapis.html#prepare-to-run-script */

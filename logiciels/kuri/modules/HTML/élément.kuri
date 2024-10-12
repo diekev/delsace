@@ -2237,7 +2237,7 @@ execute_the_script_element :: fonc (el: *HTMLScriptElement)
             document.current_script = el
 
             // 3. Run the classic script given by el's result.
-            run_the_classic_script(el.result comme *ClassicScript)
+            _ := run_the_classic_script(el.result comme *ClassicScript)
 
             // 4. Set document's currentScript attribute to oldCurrentScript.
             document.current_script = old_current_script
