@@ -3,6 +3,12 @@ test("nous pouvons déclarer des variables avec 'var'", function () {
     vérifie_égalité(x, 5);
 });
 
+test("nous pouvons déclarer des variables sans initialisation", function () {
+    var x;
+    x = 5;
+    vérifie_égalité(x, 5);
+});
+
 test("nous pouvons déclarer des variables avec 'let'", function () {
     let x = 5;
     vérifie_égalité(x, 5);

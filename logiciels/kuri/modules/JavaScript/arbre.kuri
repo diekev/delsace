@@ -2002,8 +2002,10 @@ sur_exécution_variable_declarator :: fonc (base: *NoeudSyntaxique, interpréteu
     assert(noeud.id.type == Identifier)
     identifier := noeud.id comme *Identifier
 
-    // À FAIRE : cas sans init
-    assert(noeud.init != nul)
+    saufsi noeud.init {
+        // 1. Return EMPTY
+        retourne empty_completion()
+    }
 
     // 1. Let bindingId be the StringValue of BindingIdentifier.
     binding_id := identifier.nom
