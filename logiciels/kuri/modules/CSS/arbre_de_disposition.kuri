@@ -1105,6 +1105,9 @@ crée_noeud_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *
     sinon si élément.local_name == HTML.TAG_textarea {
         résultat = crée_noeud_de_remplacement_textarea(arbre, élément comme *HTML.HTMLTextAreaElement)
     }
+    sinon si élément.local_name == HTML.TAG_canvas {
+        résultat = crée_noeud_de_remplacement_canvas(arbre, élément comme *HTML.HTMLCanvasElement)
+    }
     sinon si display.outer_type == Display.Type.Block || display.inner_type == Display.Type.Flex {
         bloc := arbre.crée_noeud(NoeudDeDispositionBloc)
         bloc.élément = élément
@@ -1607,6 +1610,11 @@ détermine_fonte :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage
         noeud_texte.fonte = résultat
     }
     retourne résultat
+}
+
+donne_rectangle_rembourrage :: fonc (noeud: *NoeudDeDisposition) -> RectanglePosDim(r32)
+{
+    retourne noeud.modèle_de_boite.rembourrage
 }
 
 donne_rectangle_bordure :: fonc (noeud: *NoeudDeDisposition) -> RectanglePosDim(r32)
@@ -3341,6 +3349,64 @@ noeud_textarea_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment:
     décale_verticalement(base.modèle_de_boite, y)
 
     noeud_textarea_sur_dessin(base, ctx)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom NoeudDeDispositionRemplacement pour canvas
+ * \{ */
+
+#portée_fichier
+
+crée_noeud_de_remplacement_canvas :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLCanvasElement) -> *NoeudDeDispositionRemplacement
+{
+    résultat := arbre.crée_noeud(NoeudDeDispositionRemplacement)
+    résultat.élément = élément
+    résultat.sur_dessin = noeud_canvas_sur_dessin
+    résultat.sur_dessin_fragment = noeud_canvas_sur_dessin_fragment
+    résultat.sur_calcul_dimensions_intrinsèques = noeud_canvas_calcul_dimensions_intrinsèques
+    retourne résultat
+}
+
+noeud_canvas_calcul_dimensions_intrinsèques :: fonc (noeud: *NoeudDeDispositionRemplacement, ctx: *ContexteDeFormattage @inutilisée)
+{
+    élément := noeud.élément comme *HTML.HTMLCanvasElement
+    assert(élément.local_name == HTML.TAG_canvas)
+    noeud.largeur_intrinsèque = HTML.donne_largeur_intrinsèque(élément) comme r32
+    noeud.hauteur_intrinsèque = HTML.donne_hauteur_intrinsèque(élément) comme r32
+}
+
+noeud_canvas_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+{
+    noeud := base comme *NoeudDeDispositionRemplacement
+    élément := noeud.élément comme *HTML.HTMLCanvasElement
+    assert(noeud.élément.local_name == HTML.TAG_canvas)
+
+    dessine_arrière_plan(ctx, noeud)
+    dessine_bordure(ctx, noeud)
+
+    tampon_de_rendu := HTML.donne_tampon_de_rendu(élément)
+
+    image: TamponImageRVBA8Bit
+    image.données = tampon_de_rendu.données.pointeur
+    image.largeur = tampon_de_rendu.rect.largeur
+    image.hauteur = tampon_de_rendu.rect.hauteur
+    
+    rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
+    ctx.peintre.dessine_image(image, rect)
+}
+
+noeud_canvas_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
+{
+    /* XXX - ceci devrait sans doute être fait lors de la disposition. */
+    x := fragment.x - base.modèle_de_boite.contenu.x
+    y := fragment.y - base.modèle_de_boite.contenu.y
+
+    décale_horizontalement(base.modèle_de_boite, x)
+    décale_verticalement(base.modèle_de_boite, y)
+
+    noeud_canvas_sur_dessin(base, ctx)
 }
 
 /** \} */
