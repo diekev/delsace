@@ -627,7 +627,10 @@ crée_algorithm_pour_timeout :: fonc (window: *Window, handler: *JavaScript.Obje
         diffère  JavaScript.détruit_données_interpreteuse(*interpréteuse)
         interpréteuse.mv = JavaScript.donne_mv(realm)
 
-        _ := JavaScript.call(*interpréteuse, value, this_arg)
+        evaluation_status := JavaScript.call(*interpréteuse, value, this_arg)
+        saufsi JavaScript.est_normal(evaluation_status) {
+            imprime("[%] %\n", #nom_de_cette_fonction, evaluation_status)
+        }
 
         cleanup_after_running_script(settings)
     }

@@ -134,8 +134,9 @@ run_the_classic_script :: fonc (script: *ClassicScript, rethrow_errors := faux @
 
     // 7. Otherwise, set evaluationStatus to ScriptEvaluation(script's record).
     evaluation_status := JavaScript.script_evaluation(script.record)
-
-    imprime("[%] %\n", #nom_de_cette_fonction, evaluation_status)
+    saufsi JavaScript.est_normal(evaluation_status) {
+        imprime("[%] %\n", #nom_de_cette_fonction, evaluation_status)
+    }
 
     // If ScriptEvaluation does not complete because the user agent has aborted the running script, leave evaluationStatus as null.
 

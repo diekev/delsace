@@ -851,8 +851,9 @@ call_a_user_object_operation :: fonc (value: JavaScript.Valeur, args: []JavaScri
     interpréteuse.mv = JavaScript.donne_mv(realm)
 
     evaluation_status := JavaScript.call(*interpréteuse, value, this_arg, args)
-
-    imprime("[%] %\n", #nom_de_cette_fonction, evaluation_status)
+    saufsi JavaScript.est_normal(evaluation_status) {
+        imprime("[%] %\n", #nom_de_cette_fonction, evaluation_status)
+    }
 
     cleanup_after_running_script(settings)
 }
