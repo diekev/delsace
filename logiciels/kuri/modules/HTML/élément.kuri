@@ -1088,6 +1088,22 @@ donne_tampon_de_rendu :: fonc (canvas: *HTMLCanvasElement) -> TamponDeRendu
     retourne canvas.tampon_de_rendu
 }
 
+// À FAIRE : [Reflect]
+donne_width :: fonc (canvas: *HTMLCanvasElement) -> n32
+{
+    retourne canvas.donne_largeur_intrinsèque() comme n32
+}
+définis_width :: fonc (canvas: *HTMLCanvasElement @inutilisée, valeur: n32 @inutilisée)
+{
+}
+donne_height :: fonc (canvas: *HTMLCanvasElement) -> n32
+{
+    retourne canvas.donne_hauteur_intrinsèque() comme n32
+}
+définis_height :: fonc (canvas: *HTMLCanvasElement @inutilisée, valeur: n32 @inutilisée)
+{
+}
+
 /** } */
 
 /* ------------------------------------------------------------------------- */

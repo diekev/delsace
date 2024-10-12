@@ -1,3 +1,6 @@
 interface HTMLCanvasElement : HTMLElement {
     RenderingContext? getContext(DOMString contextID);
+
+    attribute unsigned long width;
+    attribute unsigned long height;
 }
