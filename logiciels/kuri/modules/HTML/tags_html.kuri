@@ -25,6 +25,7 @@ TAG_blockquote : DOMString = ---
 TAG_body : DOMString = ---
 TAG_br : DOMString = ---
 TAG_button : DOMString = ---
+TAG_canvas : DOMString = ---
 TAG_caption : DOMString = ---
 TAG_center : DOMString = ---
 TAG_code : DOMString = ---
