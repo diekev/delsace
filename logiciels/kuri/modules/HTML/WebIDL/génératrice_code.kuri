@@ -665,7 +665,7 @@ parse_un_attribut :: fonc (parseuse: *ParseuseInterface, interface: *Interface)
 
 rapporte_erreur :: fonc (message: chaine, lexème_obtenu: chaine)
 {
-    message_erreur := imprime_chaine("%, obtenu %\n", message, lexème_obtenu)
+    message_erreur := imprime_chaine("%, obtenu '%'\n", message, lexème_obtenu)
     compilatrice_rapporte_erreur(message_erreur)
 }
 
