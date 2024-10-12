@@ -21,7 +21,7 @@ crée_array :: fonc (tas_de_mémoire: *TasDeMémoire, array_prototype: *ArrayPro
     résultat := tas_de_mémoire.alloue(ObjetArray)
     résultat.prototype = array_prototype
 
-    résultat.ajoute_propriété(STR_length, Valeur(Number = nombre_éléments comme r64), DrapeauxPropriété.zéro)
+    résultat.ajoute_propriété(STR_length, Valeur(Number = nombre_éléments comme r64), Writable)
 
     retourne résultat
 }
@@ -40,14 +40,16 @@ table_virtuelle_array_constructor := TableVirtuelleObject(classe = ArrayConstruc
 #portée_export
 
 ArrayConstructor :: struct {
-    empl objet: Object
+    empl builtin_function: BuiltInFunction
     table = *table_virtuelle_array_constructor
 }
 
-/* À FAIRE : standardise */
-crée_array_constructor :: fonc (tas_de_mémoire: *TasDeMémoire, array_prototype: *ArrayPrototype) -> *ArrayConstructor
+/* À FAIRE : standardise (CreateBuiltInFunction) */
+crée_array_constructor :: fonc (tas_de_mémoire: *TasDeMémoire, function_prototype: *FunctionPrototype , array_prototype: *ArrayPrototype) -> *ArrayConstructor
 {
     résultat := tas_de_mémoire.alloue(ArrayConstructor)
+    résultat.prototype = function_prototype
+
     /* https://tc39.es/ecma262/multipage/indexed-collections.html#sec-properties-of-the-array-constructor */
     résultat.ajoute_propriété(STR_length, Valeur(Number = 1.0), DrapeauxPropriété.zéro)
     /* https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array.prototype */
@@ -123,7 +125,7 @@ array_prototype_join :: fonc (empl params: *ParamètresObjectCall) -> Completion
     saufsi completion.est_normal() {
         retourne completion
     }
-    O := completion.valeur.V.donne_objet()
+    O := completion.donne_object()
 
     // 2. Let len be ? LengthOfArrayLike(O).
     completion = length_of_array_like(O)
@@ -188,6 +190,7 @@ array_prototype_join :: fonc (empl params: *ParamètresObjectCall) -> Completion
 
     // 8. Return R.
     résultat := chaine_depuis_enchaineuse(R)
+    diffère détruit_chaine(résultat)
     valeur_résultat := crée_chaine(interpréteuse.donne_tas_de_mémoire(), crée_chaine_utf16_unique(résultat))
     retourne normal_completion(Valeur(String = valeur_résultat))
 }
@@ -201,7 +204,7 @@ array_prototype_push :: fonc (empl params: *ParamètresObjectCall) -> Completion
     saufsi completion.est_normal() {
         retourne completion
     }
-    O := completion.valeur.V.donne_objet()
+    O := completion.donne_object()
 
     // 2. Let len be ? LengthOfArrayLike(O).
     completion = length_of_array_like(O)
@@ -247,7 +250,7 @@ array_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> Compl
     saufsi completion.est_normal() {
         retourne completion
     }
-    array := completion.valeur.V.donne_objet()
+    array := completion.donne_object()
 
     // 2. Let func be ? Get(array, "join").
     completion = get(array, STR_join)
