@@ -1,4 +1,5 @@
 importe Aléa
+importe Math
 
 /* ------------------------------------------------------------------------- */
 /** \nom Math
@@ -22,13 +23,114 @@ crée_math_object :: fonc (object_prototype: *ObjectPrototype) -> *MathObject
 {
     résultat := object_prototype.donne_tas_de_mémoire().alloue(MathObject)
     résultat.prototype = object_prototype
+    résultat.ajoute_fonction_native(STR_max, math_max)
+    résultat.ajoute_fonction_native(STR_min, math_min)
     résultat.ajoute_fonction_native(STR_random, math_random)
+    résultat.ajoute_fonction_native(STR_sqrt, math_sqrt)
 
     /* Chaque realm doit avoir sa propre série. */
     graine := object_prototype comme n64 comme n32
     résultat.entropie = graine_aléatoire(graine)
 
     retourne résultat
+}
+
+#portée_fichier
+
+/* À FAIRE(langage) : erreur de compilation */
+// R64_INFINITÉ : r64 : 0r7ff0000000000000
+// R64_INFINITÉ_NÉGATIVE : r64 : 0rfff0000000000000
+R64_INFINITÉ : r64 : 1000000000.0
+R64_INFINITÉ_NÉGATIVE : r64 : -1000000000.0
+
+/* https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.min */
+math_max :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    // 1. Let coerced be a new empty List.
+    coerced: [..]r64
+    diffère déloge(coerced)
+
+    // 2. For each element arg of args, do
+    pour arguments {
+        // a. Let n be ? ToNumber(arg).
+        completion := vers_nombre(interpréteuse, it)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+
+        // b. Append n to coerced.
+        tableau_ajoute(*coerced, completion.valeur.V.Number)
+    }
+
+    // 3. Let highest be -∞𝔽.
+    highest := R64_INFINITÉ_NÉGATIVE
+
+    // 4. For each element number of coerced, do
+    pour coerced {
+        // a. If number is NaN, return NaN.
+        si est_nan(it) {
+            retourne normal_completion(Valeur(Number = NaN))
+        }
+
+        // b. b. If number is +0𝔽 and highest is -0𝔽, set highest to +0𝔽.
+        si it == 0.0 && highest == -0.0 {
+            highest = 0.0
+            continue
+        }
+        
+        // c. If number > highest, set highest to number.
+        si it > highest {
+            highest = it
+        }
+    }
+
+    // 5. Return highest.
+    retourne normal_completion(Valeur(Number = highest))
+}
+
+/* https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.min */
+math_min :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    // 1. Let coerced be a new empty List.
+    coerced: [..]r64
+    diffère déloge(coerced)
+
+    // 2. For each element arg of args, do
+    pour arguments {
+        // a. Let n be ? ToNumber(arg).
+        completion := vers_nombre(interpréteuse, it)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+
+        // b. Append n to coerced.
+        tableau_ajoute(*coerced, completion.valeur.V.Number)
+    }
+
+    // 3. Let lowest be +∞𝔽.
+    lowest := R64_INFINITÉ
+
+    // 4. For each element number of coerced, do
+    pour coerced {
+        // a. If number is NaN, return NaN.
+        si est_nan(it) {
+            retourne normal_completion(Valeur(Number = NaN))
+        }
+
+        // b. If number is -0𝔽 and lowest is +0𝔽, set lowest to -0𝔽.
+        si it == -0.0 && lowest == 0.0 {
+            lowest = -0.0
+            continue
+        }
+        
+        // c. If number < lowest, set lowest to number.
+        si it < lowest {
+            lowest = it
+        }
+    }
+
+    // 5. Return lowest.
+    retourne normal_completion(Valeur(Number = lowest))
 }
 
 /* https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.random */
@@ -39,6 +141,28 @@ math_random :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     retourne normal_completion(Valeur(Number = résultat))
 }
 
-#portée_fichier
+/* https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.random */
+math_sqrt :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    // 1. Let n be ? ToNumber(x).
+    completion := vers_nombre(interpréteuse, params.donne_argument(0))
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    n := completion.valeur.V.Number
+
+    // 2. If n is one of NaN, +0𝔽, -0𝔽, or +∞𝔽, return n.
+    si est_nan(n) || n == 0.0 || n == -0.0 || n == R64_INFINITÉ {
+        retourne normal_completion(Valeur(Number = n))
+    }
+
+    // 3. If n < -0𝔽, return NaN.
+    si n < -0.0 {
+        retourne normal_completion(Valeur(Number = NaN))
+    }
+
+    // 4. Return 𝔽(the square root of ℝ(n)).
+    retourne normal_completion(Valeur(Number = racine_carrée(n)))
+}
 
 /** \} */
