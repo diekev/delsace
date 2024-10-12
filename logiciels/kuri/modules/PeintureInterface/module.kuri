@@ -185,7 +185,7 @@ dessine_image :: fonc (peintre: *Peintre, image: TamponImageGrise8Bit, rectangle
 
 dessine_image :: fonc (peintre: *Peintre, image: TamponImageRVBA8Bit, rectangle: RectanglePeintre) -> rien #enligne
 {
-    peintre.rappel_dessine_image_rvba_8bit(peintre, TamponImageRVBA32Bit, rectangle)
+    peintre.rappel_dessine_image_rvba_8bit(peintre, image, rectangle)
 }
 
 dessine_image :: fonc (peintre: *Peintre, image: TamponImageRVBA32Bit, rectangle: RectanglePeintre) -> rien #enligne
