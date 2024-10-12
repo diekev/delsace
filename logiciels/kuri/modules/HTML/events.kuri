@@ -819,7 +819,9 @@ call_a_user_object_operation :: fonc (value: JavaScript.Valeur, args: []JavaScri
     diffère  JavaScript.détruit_données_interpreteuse(*interpréteuse)
     interpréteuse.mv = JavaScript.donne_mv(realm)
 
-    _ := JavaScript.call(*interpréteuse, value, this_arg, args)
+    evaluation_status := JavaScript.call(*interpréteuse, value, this_arg, args)
+
+    imprime("[%] %\n", #nom_de_cette_fonction, evaluation_status)
 
     cleanup_after_running_script(settings)
 }
