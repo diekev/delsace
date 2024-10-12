@@ -30,3 +30,11 @@ test("les fonctions doivent avoir une propriété 'length'", function () {
     vérifie_égalité(sans_paramètres.length, 0)
     vérifie_égalité(avec_paramètres.length, 2)
 });
+
+test("une fonction peut être définie dans une autre", function () {
+    function locale() {
+        return 17;
+    }
+
+    vérifie_égalité(locale(), 17.0)
+});

@@ -121,6 +121,10 @@ détruit_url :: fonc (url: *URL)
         retourne
     }
 
+    si url == *__about_blank_url {
+        retourne
+    }
+
     si url.host.possède_valeur() {
         déloge_si_logée(url.host.Quelque)
     }
@@ -328,13 +332,22 @@ est_about_blank :: fonc (url: *URL) -> bool
     retourne chn == "about:blank"
 }
 
-__about_blank_url: *URL
+#portée_fichier
+
+/* À FAIRE(langage) : erreur de compilation si ceci est initialisé */
+__about_blank_url: URL = ---
+__about_blank_url_est_initialisé := faux
+
+#portée_export
+
 donne_about_blank_url :: fonc () -> *URL
 {
-    si __about_blank_url == nul {
-        __about_blank_url = basic_url_parser("about:blank")
+    saufsi __about_blank_url_est_initialisé {
+        __about_blank_url.scheme = "about"
+        __about_blank_url.path.Segment = "blank"
+        __about_blank_url_est_initialisé = vrai
     }
-    retourne __about_blank_url
+    retourne *__about_blank_url
 }
 
 donne_port_ou_défaut :: fonc (url: *URL) -> n16
