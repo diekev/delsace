@@ -1,4 +1,5 @@
 importe Chaine
+importe Ensemble
 importe Fondation
 
 /* ------------------------------------------------------------------------- */
@@ -614,10 +615,43 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
         // a. NOTE: Only a single Environment Record is needed for the parameters and top-level vars.
         // b. Let instantiatedVarNames be a copy of the List parameterBindings.
         // c. For each element n of varNames, do
+        assert(func.corps != nul && func.corps.type == BlockStatement)
+        bloc := func.corps comme *BlockStatement
+
+        instantiated_names: [..]ECMAString
+        diffère déloge(instantiated_names)
+
+        pour bloc.enfants {
+            si it.type != VariableDeclaration {
+                continue
+            }
+
+            var_decl := it comme *VariableDeclaration
+            si var_decl.nature != VariableDeclarationKind.Var {
+                continue
+            }
+
             // i. If instantiatedVarNames does not contain n, then
                 // 1. Append n to instantiatedVarNames.
                 // 2. Perform ! env.CreateMutableBinding(n, false).
                 // 3. Perform ! env.InitializeBinding(n, undefined).
+
+            pour expr dans var_decl.expressions {
+                declarator := expr comme *VariableDeclarator
+                assert(declarator.id.type == Identifier)
+                id := declarator.id comme *Identifier
+
+                si ensemble_possède(*instantiated_names, id.nom) {
+                    continue
+                }
+
+                env.create_mutable_binding(id.nom, faux)
+                _ := env.initialize_binding(id.nom, js_undefined)
+
+                ensemble_ajoute(*instantiated_names, id.nom)
+            }
+        }
+
         // d. Let varEnv be env.
         var_env = env
     }

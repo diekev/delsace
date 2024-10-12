@@ -39,3 +39,9 @@ test("nous pouvons déclarer plusieurs variables avec un seul 'const'", function
     vérifie_égalité(y, 6);
     vérifie_égalité(z, 11);
 });
+
+test("les variables sont hissées au début de la fonction", function () {
+    var b = a;
+    var a = 5;
+    vérifie_égalité(a, 5);
+});
