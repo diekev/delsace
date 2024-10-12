@@ -241,6 +241,33 @@ append_event_path :: fonc (event: *Event, invocation_target: *EventTarget, shado
 /** } */
 
 /* ------------------------------------------------------------------------- */
+/** \nom MouseEvent
+ * https://w3c.github.io/uievents/#mouseevent
+ * https://drafts.csswg.org/cssom-view/#extensions-to-the-mouseevent-interface
+ * \{ */
+
+MouseEvent :: struct {
+    empl event: Event
+    table = *table_virtuelle_mouse_event
+
+    screen_x: r64
+    screen_y: r64
+    offset_x: r64
+    offset_y: r64
+}
+
+#portée_fichier
+
+table_virtuelle_mouse_event := TableVirtuellePlatformObject(
+    classe = MouseEvent,
+    sur_destruction = event_sur_destruction
+)
+
+#portée_export
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom EventListener
  * https://dom.spec.whatwg.org/#callbackdef-eventlistener
  * \{ */
