@@ -373,10 +373,14 @@ navigate :: fonc (user_agent: *UserAgent,
     navigable.définis_ongoing_navigation(navigation_id)
 
     // 20. If url's scheme is "javascript", then:
-
+    si url.scheme == "javascript" {
         // 1. Queue a global task on the navigation and traversal task source given navigable's active window to navigate to a javascript: URL given navigable, url, historyHandling, initiatorOriginSnapshot, and cspNavigationType.
+        tâche := crée_tâche_pour_navigate_to_javascript_url(user_agent, navigable, url, history_handling, initiator_origin_snapshot)
+        user_agent.enfile_une_tâche(SourceDeTâche.NavigationEtTraversée, tâche)
 
         // 2. Return.
+        retourne
+    }
 
     // 21. If all of the following are true:
     //     userInvolvement is not "browser UI";
@@ -656,6 +660,172 @@ finalize_a_cross_document_navigation :: fonc (user_agent: *UserAgent, navigable:
 }
 
 /** } */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 7.4.2.3.2 The javascript: URL special case
+ * https://html.spec.whatwg.org/multipage/browsing-the-web.html#navigate-to-a-javascript:-url
+ * \{ */
+
+navigate_to_a_javascript_url :: fonc (user_agent: *UserAgent, target_navigable: *Navigable, url: *URL, history_handling: NavigationHistoryBehavior, initiator_origin: Origin)
+{
+    // 1. Assert: historyHandling is "replace".
+    assert(history_handling == NavigationHistoryBehavior.REPLACE)
+
+    // 2. Set the ongoing navigation for targetNavigable to null.
+    init_de(OngoingNavigationType)(*target_navigable.ongoing_navigation)
+
+    // 3. If initiatorOrigin is not same origin-domain with targetNavigable's active document's origin, then return.
+
+    // 4. Let request be a new request whose URL is url.
+
+    // 5. If the result of should navigation request of type be blocked by Content Security Policy? given request and cspNavigationType is "Blocked", then return. [CSP]
+
+    // 6. Let newDocument be the result of evaluating a javascript: URL given targetNavigable, url, and initiatorOrigin.
+    new_document := evaluate_a_javascript_url(user_agent, target_navigable, url, initiator_origin)
+
+    // 7. If newDocument is null, then return.
+    saufsi new_document {
+        retourne
+    }
+
+    // 8. Assert: initiatorOrigin is newDocument's origin.
+    panique("non-implémenté")
+
+    // 9. Let entryToReplace be targetNavigable's active session history entry.
+
+    // 10. Let oldDocState be entryToReplace's document state.
+
+    // 11. Let documentState be a new document state with
+    // document  newDocument
+    // history policy container  a clone of the oldDocState's history policy container if it is non-null; null otherwise
+    // request referrer  oldDocState's request referrer
+    // request referrer policy oldDocState's request referrer policy or should this be the referrerPolicy that was passed to navigate?
+    // initiator origin  initiatorOrigin
+    // origin  initiatorOrigin
+    // about base URL oldDocState's about base URL
+    // resource  null
+    // ever populated  true
+    // navigable target name  oldDocState's navigable target name
+
+    // 12. Let historyEntry be a new session history entry, with
+    // URL  entryToReplace's URL
+    // document state  documentState
+
+    // 13. Append session history traversal steps to targetNavigable's traversable to finalize a cross-document navigation with targetNavigable, historyHandling, and historyEntry.
+}
+
+evaluate_a_javascript_url :: fonc (user_agent: *UserAgent, target_navigable: *Navigable, url: *URL, initiator_origin: Origin @inutilisée) -> *Document
+{
+    // 1. Let urlString be the result of running the URL serializer on url.
+    url_string := url_serializer(url)
+    diffère déloge(url_string)
+
+    // 2. Let encodedScriptSource be the result of removing the leading "javascript:" from urlString.
+    encoded_script_source := url_string.avance("javascript:".taille)
+
+    // À FAIRE : 3. Let scriptSource be the UTF-8 decoding of the percent-decoding of encodedScriptSource.
+    script_source := encoded_script_source
+
+    // 4. Let settings be targetNavigable's active document's relevant settings object.
+    settings := target_navigable.donne_active_document().donne_relevant_settings_object()
+
+    // 5. Let baseURL be settings's API base URL.
+    base_url := settings.donne_api_base_url()
+
+    // 6. Let script be the result of creating a classic script given scriptSource, settings, baseURL, and the default script fetch options.
+    options: OptionsFetchScript
+    script := create_a_classic_script(user_agent, script_source, settings, base_url, options)
+
+    // 7. Let evaluationStatus be the result of running the classic script script.
+    evaluation_status := run_the_classic_script(script)
+
+    // 8. Let result be null.
+
+    // 9. If evaluationStatus is a normal completion, and evaluationStatus.[[Value]] is a String, then set result to evaluationStatus.[[Value]].
+    si JavaScript.est_normal(evaluation_status) && JavaScript.est_chaine(evaluation_status.valeur.V) {
+        panique("non-implémenté")
+    }
+    // 10. Otherwise, return null.
+    sinon {
+        retourne nul
+    }
+
+    // 11. Let response be a new response with
+    // URL    targetNavigable's active document's URL
+    // header list  « (`Content-Type`, `text/html;charset=utf-8`) »
+    // body  the UTF-8 encoding of result, as a body
+    panique("non-implémenté")
+
+    // 12. Let policyContainer be targetNavigable's active document's policy container.
+
+    // 13. Let finalSandboxFlags be policyContainer's CSP list's CSP-derived sandboxing flags.
+
+    // 14. Let coop be targetNavigable's active document's opener policy.
+
+    // 15. Let coopEnforcementResult be a new opener policy enforcement result with
+    // url  url
+    // origin  newDocumentOrigin
+    // opener policy / coop
+
+    // 16. Let navigationParams be a new navigation params, with
+    // id   navigationId
+    // navigable  targetNavigable
+    // request null this will cause the referrer of the resulting Document to be null; is that correct?
+    // response  response
+    // fetch controller  null
+    // commit early hints  null
+    // COOP enforcement result coopEnforcementResult
+    // reserved environment    null
+    // origin    newDocumentOrigin
+    // policy container   policyContainer
+    // final sandboxing flag set  finalSandboxFlags
+    // opener policy  coop
+    // navigation timing type  "navigate"
+    // about base URL targetNavigable's active document's about base URL
+
+    // 17. Return the result of loading an HTML document given navigationParams.
+}
+
+#portée_fichier
+
+crée_tâche_pour_navigate_to_javascript_url :: fonc (user_agent: *UserAgent, target_navigable: *Navigable, url: *URL, history_handling: NavigationHistoryBehavior, initiator_origin: Origin) -> *Algorithm
+{
+    Tâche :: struct {
+        empl base: Algorithm
+
+        user_agent: *UserAgent
+        target_navigable: *Navigable
+        url: *URL
+        history_handling: NavigationHistoryBehavior
+        initiator_origin: Origin
+    }
+
+    sur_run :: fonc (base: *Algorithm)
+    {
+        tâche := base comme *Tâche
+        navigate_to_a_javascript_url(tâche.user_agent, tâche.target_navigable, tâche.url, tâche.history_handling, tâche.initiator_origin)
+    }
+
+    sur_destruction :: fonc (base: *Algorithm)
+    {
+        tâche := base comme *Tâche
+        déloge(tâche)
+    }
+
+    tâche := loge(Tâche)
+    tâche.sur_run = sur_run
+    tâche.sur_destruction = sur_destruction
+    tâche.user_agent = user_agent
+    tâche.target_navigable = target_navigable
+    tâche.url = url
+    tâche.history_handling = history_handling
+    tâche.initiator_origin = initiator_origin
+    retourne tâche
+}
+
+#portée_export
+
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom 7.4.3 Reloading and traversing

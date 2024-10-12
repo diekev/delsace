@@ -357,6 +357,22 @@ rapporte_erreur :: fonc (parseuse: &Parseuse($T) @inutilisée, message: chaine)
  * \{ */
 
 /* 5.4.1 Parse something according to a CSS grammar */
+parse_according_to_a_css_grammar :: fonc (input: CSSOMString, grammar: fonc([]ComponentValue)(Optionnel(ValeurDeStyle))) -> Optionnel(ValeurDeStyle)
+{
+    // 1. Normalize input, and set input to the result.
+    chn_input := input.donne_chaine_utf16().converti_vers_chaine()
+    diffère déloge(chn_input)
+
+    lexèmes := lèxe_style(chn_input)
+    diffère détruit_lexèmes(*lexèmes)
+
+    // 2. Parse a list of component values from input, and let result be the return value.
+    result := parse_a_list_of_component_values(lexèmes)
+    diffère détruit_tableau_component_value(*result)
+
+    // 3. Attempt to match result against grammar. If this is successful, return the matched result; otherwise, return failure.
+    retourne grammar(result)
+}
 
 /* 5.4.2 Parse A Comma-Separated List According To A CSS Grammar */
 
@@ -445,6 +461,14 @@ parse_attribut_style :: fonc (valeur: ChaineUTF16) -> *CSSStyleDeclaration
 /* 5.4.9 Parse a component value */
 
 /* 5.4.10 Parse a list of component values */
+parse_a_list_of_component_values :: fonc (input: []Lexème) -> [..]ComponentValue
+{
+    // 1. Normalize input, and set input to the result.
+    parseuse := initialise_une_parseuse(input)
+
+    // 2. Consume a list of component values from input, and return the result.
+    retourne consomme_une_lise_de_valeur_composante(parseuse, GenreLexème.EOF)
+}
 
 /* 5.4.11 Parse a comma-separated list of component values */
 parse_a_comma_separated_list_of_component_values :: fonc (input: []ComponentValue) -> [..][..]ComponentValue
@@ -468,6 +492,32 @@ parse_a_comma_separated_list_of_component_values :: fonc (input: []ComponentValu
 
     // 3. Return groups.
     retourne groups
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Color
+ * \{ */
+
+/* https://drafts.csswg.org/css-color/#parse-a-css-color-value */
+parse_a_css_color :: fonc (input: CSSOMString, context: *HTML.Élément @inutilisée) -> Optionnel(CouleurRVBAN8)
+{
+    // 1. Parse input as a <color>. If the result is failure, return failure; otherwise, let color be the result.
+    opt_color := parse_according_to_a_css_grammar(input, parse_propriété_color)
+    saufsi opt_color.possède_valeur() {
+        retourne
+    }
+
+    color := opt_color.Quelque
+    saufsi color.est_couleur() {
+        retourne
+    }
+
+    // À FAIRE : 2. Let used color be the result of resolving color to a used color. If the value of other properties on the element a <color> is on is required to do the resolution (such as resolving a currentcolor or system color), use element if it was passed, or the initial values of the properties if not.
+
+    // 3. Return used color.
+    retourne color.couleur
 }
 
 /** \} */
@@ -840,7 +890,7 @@ consomme_une_lise_de_valeur_composante :: fonc (parseuse: &Parseuse($T), stop_to
     values: [..]ComponentValue
 
     tantque !fini(parseuse) {
-        lexème := parseuse.consomme_le_lexème_en_entrée_suivant()
+        lexème := parseuse.lexème_courant()
 
         si lexème.est_lexème_de_genre(GenreLexème.EOF) || lexème.est_lexème_de_genre(stop_token) {
             arrête

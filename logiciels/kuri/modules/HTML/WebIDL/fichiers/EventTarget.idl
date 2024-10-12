@@ -1,0 +1,4 @@
+
+interface EventTarget {
+    undefined addEventListener(DOMString name, EventListener? callback);
+}

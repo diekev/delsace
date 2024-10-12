@@ -34,6 +34,8 @@ charge "webappsec_referrer_policy"
 charge "webcrypto"
 charge "webdriver_bidi"
 
+charge "WebIDL/génératrice_code"
+
 DOMString :: ChaineUTF16Unique
 
 imprime_noeud :: fonc (noeud: *Noeud, tab: z32) -> rien
@@ -134,6 +136,7 @@ parse_document :: fonc (realm: *JavaScript.Realm, source: chaine) -> ParsatHTML
 {
     tas_de_mémoire := JavaScript.donne_tas_de_mémoire(realm)
     document := crée_noeud_document(tas_de_mémoire, realm)
+    document.type = "html"
 
     parseuse := initialise_parseuse(tas_de_mémoire, source, document)
     diffère détruit_parseuse(*parseuse)

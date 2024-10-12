@@ -1,0 +1,3 @@
+interface HTMLScriptElement : HTMLElement {
+    [Reflect] attribute DOMString src;
+}

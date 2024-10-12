@@ -61,3 +61,37 @@ crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, string_prototype: *String
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom StringConstructor
+ * https://tc39.es/ecma262/multipage/text-processing.html#sec-properties-of-the-string-constructor
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_string_constructor := TableVirtuelleObject(
+    classe = StringConstructor,
+    sur_destruction = sur_destruction_objet
+)
+
+#portée_export
+
+StringConstructor :: struct {
+    empl builtin_function: BuiltInFunction
+    table = *table_virtuelle_string_constructor
+}
+
+/* À FAIRE : standardise (CreateBuiltInFunction) */
+crée_string_constructor :: fonc (tas_de_mémoire: *TasDeMémoire, function_prototype: *FunctionPrototype, string_prototype: *StringPrototype) -> *StringConstructor
+{
+    résultat := tas_de_mémoire.alloue(StringConstructor)
+    résultat.prototype = function_prototype
+
+    résultat.ajoute_propriété(STR_prototype, Valeur(Object = string_prototype), DrapeauxPropriété.zéro)
+
+    string_prototype.ajoute_propriété(STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro)
+
+    retourne résultat
+}
+
+/** \} */

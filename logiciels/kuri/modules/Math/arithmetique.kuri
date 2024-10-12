@@ -58,6 +58,8 @@ exp :: fonc (a: r64) -> r64 #externe libcmath
 mod :: fonc (a: r32, b: r32) -> r32 #externe libcmath "fmodf"
 mod :: fonc (a: r64, b: r64) -> r64 #externe libcmath "fmod"
 
+est_nan :: fonc (a: r64) -> z32 #externe libcmath "isnan"
+
 arc_sinus_borné :: fonc (a: $T) -> T #enligne
 {
     si a <= -1.0 {

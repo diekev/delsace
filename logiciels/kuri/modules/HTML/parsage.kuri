@@ -26,6 +26,8 @@ Parseuse :: struct {
     scripting_flag := faux
     frameset_ok := vrai
     pause := faux
+    crée_par_html_fragment_parsing := faux
+    fragment_context: *Élément
 
     niveau_imbrication_script := 0
 
@@ -155,14 +157,51 @@ insère_élément_étranger :: fonc (parseuse: *Parseuse, lexème: Lexème, espa
     position_ajustée_d_insertion := trouve_position_appropriée_pour_insertion(parseuse)
     /* 2. */
     élément := parseuse.crée_élément_pour_lexème(lexème, espace_de_nom, position_ajustée_d_insertion)
-    /* 3. INCOMPLET */
+    /* 3. */
     saufsi ajoute_seulement_à_pile_élément {
-        position_ajustée_d_insertion.ajoute_enfant(élément)
+        insert_an_element_at_the_adjusted_insertion_location(parseuse, élément)
     }
     /* 4. */
     empile(*parseuse.pile_éléments_ouvert, élément)
     /* 5.  */
     retourne élément
+}
+
+/* https://html.spec.whatwg.org/multipage/parsing.html#insert-an-element-at-the-adjusted-insertion-location */
+insert_an_element_at_the_adjusted_insertion_location :: fonc (parseuse: *Parseuse, élément: *Élément)
+{
+    // 1. Let the adjusted insertion location be the appropriate place for inserting a node.
+    adjusted_insertion_location := trouve_position_appropriée_pour_insertion(parseuse)
+
+    // 2. If it is not possible to insert element at the adjusted insertion location, abort these steps.
+    saufsi peut_insérer_élément(adjusted_insertion_location, élément) {
+        retourne
+    }
+
+    // À FAIRE : 3. If the parser was not created as part of the HTML fragment parsing algorithm, then push a new element queue onto element's relevant agent's custom element reactions stack.
+
+    // 4. Insert element at the adjusted insertion location.
+    adjusted_insertion_location.ajoute_enfant(élément)
+
+    // À FAIRE : 5. If the parser was not created as part of the HTML fragment parsing algorithm, then pop the element queue from element's relevant agent's custom element reactions stack, and invoke custom element reactions in that queue.    
+}
+
+peut_insérer_élément :: fonc (noeud: *Noeud, élément: *Élément @inutilisée) -> bool
+{
+    // À FAIRE : utilise les modèle de contenu
+    // https://html.spec.whatwg.org/multipage/dom.html#content-models
+
+    saufsi noeud.est_élément() {
+        retourne vrai
+    }
+
+    élément_parent := noeud comme *Élément
+
+    si élément_parent.local_name == TAG_iframe {
+        retourne faux
+    }
+
+    retourne vrai
 }
 
 /* https://html.spec.whatwg.org/multipage/parsing.html#create-an-element-for-the-token */
@@ -599,8 +638,11 @@ insère_mode_DansHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
             élément.document_parseur = parseuse.document
             élément.force_async = faux
 
-            /* À FAIRE : 4. If the parser was created as part of the HTML fragment parsing algorithm,
+            /* 4. If the parser was created as part of the HTML fragment parsing algorithm,
              * then set the script element's already started to true. (fragment case) */
+            si parseuse.crée_par_html_fragment_parsing {
+                élément.déjà_commencé = vrai
+            }
 
             /* À FAIRE : 5. If the parser was invoked via the document.write() or document.writeln() methods,
              * then optionally set the script element's already started to true. */
@@ -2185,8 +2227,10 @@ insère_mode_AprèsBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 
     si lexème.genre == GenreLexème.FinTag && lexème.nom == TAG_html {
-        // À FAIRE : ignore si nous sommes dans un parsage de fragment html
-        parseuse.mode_insertion = insère_mode_AprèsAprèsBody
+        // ignore si nous sommes dans un parsage de fragment html
+        saufsi parseuse.crée_par_html_fragment_parsing {
+            parseuse.mode_insertion = insère_mode_AprèsAprèsBody
+        }
         retourne
     }
 
@@ -2522,7 +2566,9 @@ restaure_mode_insertion_appropriemment :: fonc (parseuse: *Parseuse)
         si index == 0 {
             dernier = vrai
 
-            // À FAIRE : si fragment, noeud = élément_contexte
+            si parseuse.crée_par_html_fragment_parsing {
+                noeud = parseuse.fragment_context
+            }
         }
 
         si noeud.local_name == TAG_select {
@@ -2834,6 +2880,272 @@ crée_tâche_stop_parsing_étape_9 :: fonc (document: *Document) -> *Algorithm
     tâche.sur_run = sur_run
     tâche.sur_destruction = sur_destruction
     retourne tâche
+}
+
+/** \} */
+
+#portée_module
+
+/* https://html.spec.whatwg.org/multipage/parsing.html#html-fragment-serialisation-algorithm */
+HTML_fragment_serialization :: fonc (node: *Noeud, serializable_shadow_roots: bool) -> ChaineUTF16
+{
+    enchaineuse: EnchaineuseUTF16
+    initialise_enchaineuse(enchaineuse)
+    diffère détruit_tampons(enchaineuse)
+    
+    HTML_fragment_serialization_récursif(enchaineuse, node, serializable_shadow_roots)
+
+    retourne chaine_depuis_enchaineuse(enchaineuse)
+}
+
+#portée_fichier
+
+HTML_fragment_serialization_récursif :: fonc (enchaineuse: &EnchaineuseUTF16, node: *Noeud, serializable_shadow_roots: bool)
+{
+    // À FAIRE : 1. If the node serializes as void, then return the empty string.
+
+    // 2. Let s be a string, and initialize it to the empty string.
+    // Nous utilisons l'enchaineuse.
+
+    // 3. If the node is a template element, then let the node instead be the template element's template contents (a DocumentFragment node).
+
+    // 4. If current node is a shadow host, then:
+
+        // Let shadow be current node's shadow root.
+
+        // If one of the following is true:
+
+        // serializableShadowRoots is true and shadow's serializable is true; or
+
+        // shadowRoots contains shadow,
+
+        // then:
+
+        // Append "<template shadowrootmode="".
+
+        // If shadow's mode is "open", then append "open". Otherwise, append "closed".
+
+        // Append """.
+
+        // If shadow's delegates focus is set, then append " shadowrootdelegatesfocus=""".
+
+        // If shadow's serializable is set, then append " shadowrootserializable=""".
+
+        // If shadow's clonable is set, then append " shadowrootclonable=""".
+
+        // Append ">".
+
+        // Append the value of running the HTML fragment serialization algorithm with shadow, serializableShadowRoots, and shadowRoots (thus recursing into this algorithm for that element).
+
+        // Append "</template>".
+
+    // 5. For each child node of the node, in tree order, run the following steps:
+    pour node.enfants {
+        sérialise_noeud(enchaineuse, it, serializable_shadow_roots)
+    }
+
+    // 6. Return s.
+    // Nous sommes récursif
+}
+
+sérialise_noeud :: fonc (enchaineuse: &EnchaineuseUTF16, noeud: *Noeud, serializable_shadow_roots: bool)
+{
+    // À FAIRE : complète
+    // 1. Let current node be the child node being processed.
+    current_node := noeud
+
+    // 2. Append the appropriate string from the following list to s:
+
+    // If current node is an Element
+    si current_node.est_élément() {
+        élément := current_node comme *Élément
+
+        // If current node is an element in the HTML namespace, the MathML namespace, or the SVG namespace, then let tagname be current node's local name. Otherwise, let tagname be current node's qualified name.
+        tagname := élément.local_name
+
+        // Append a U+003C LESS-THAN SIGN character (<), followed by tagname.
+        ajoute(enchaineuse, "<")
+        ajoute(enchaineuse, tagname)
+
+        // For HTML elements created by the HTML parser or createElement(), tagname will be lowercase.
+
+        // If current node's is value is not null, and the element does not have an is attribute in its attribute list, then append the string " is="", followed by current node's is value escaped as described below in attribute mode, followed by a U+0022 QUOTATION MARK character (").
+
+        // For each attribute that the element has, append a U+0020 SPACE character, the attribute's serialized name as described below, a U+003D EQUALS SIGN character (=), a U+0022 QUOTATION MARK character ("), the attribute's value, escaped as described below in attribute mode, and a second U+0022 QUOTATION MARK character (").
+        pour élément.attributs {
+            ajoute(enchaineuse, " ")
+            ajoute(enchaineuse, it.local_name)
+            ajoute(enchaineuse, "=\"")
+            ajoute(enchaineuse, it.valeur)
+            ajoute(enchaineuse, "\"")
+        }
+
+        // An attribute's serialized name for the purposes of the previous paragraph must be determined as follows:
+
+        // If the attribute has no namespace
+        // The attribute's serialized name is the attribute's local name.
+
+        // For attributes on HTML elements set by the HTML parser or by setAttribute(), the local name will be lowercase.
+
+        // If the attribute is in the XML namespace
+        // The attribute's serialized name is the string "xml:" followed by the attribute's local name.
+
+        // If the attribute is in the XMLNS namespace and the attribute's local name is xmlns
+        // The attribute's serialized name is the string "xmlns".
+
+        // If the attribute is in the XMLNS namespace and the attribute's local name is not xmlns
+        // The attribute's serialized name is the string "xmlns:" followed by the attribute's local name.
+
+        // If the attribute is in the XLink namespace
+        // The attribute's serialized name is the string "xlink:" followed by the attribute's local name.
+
+        // If the attribute is in some other namespace
+        // The attribute's serialized name is the attribute's qualified name.
+
+        // While the exact order of attributes is implementation-defined, and may depend on factors such as the order that the attributes were given in the original markup, the sort order must be stable, such that consecutive invocations of this algorithm serialize an element's attributes in the same order.
+
+        // Append a U+003E GREATER-THAN SIGN character (>).
+        ajoute(enchaineuse, ">")
+
+        // If current node serializes as void, then continue on to the next child node at this point.
+
+        // Append the value of running the HTML fragment serialization algorithm with current node, serializableShadowRoots, and shadowRoots (thus recursing into this algorithm for that node), followed by a U+003C LESS-THAN SIGN character (<), a U+002F SOLIDUS character (/), tagname again, and finally a U+003E GREATER-THAN SIGN character (>).
+        HTML_fragment_serialization_récursif(enchaineuse, current_node, serializable_shadow_roots)
+
+        ajoute(enchaineuse, "</")
+        ajoute(enchaineuse, tagname)
+        ajoute(enchaineuse, ">")
+
+        retourne
+    }
+
+    // If current node is a Text node
+    si current_node.est_texte() {
+        texte := noeud comme *NoeudTexte
+        ajoute(enchaineuse, texte.données)
+
+        // À FAIRE : If the parent of current node is a style, script, xmp, iframe, noembed, noframes, or plaintext element, or if the parent of current node is a noscript element and scripting is enabled for the node, then append the value of current node's data literally.
+
+        // Otherwise, append the value of current node's data, escaped as described below.
+
+        retourne
+    }
+
+    // If current node is a Comment
+        // Append "<!--" (U+003C LESS-THAN SIGN, U+0021 EXCLAMATION MARK, U+002D HYPHEN-MINUS, U+002D HYPHEN-MINUS), followed by the value of current node's data, followed by the literal string "-->" (U+002D HYPHEN-MINUS, U+002D HYPHEN-MINUS, U+003E GREATER-THAN SIGN).
+
+    // If current node is a ProcessingInstruction
+        // Append "<?" (U+003C LESS-THAN SIGN, U+003F QUESTION MARK), followed by the value of current node's target IDL attribute, followed by a single U+0020 SPACE character, followed by the value of current node's data, followed by a single U+003E GREATER-THAN SIGN character (>).
+
+    // If current node is a DocumentType
+        // Append "<!DOCTYPE" (U+003C LESS-THAN SIGN, U+0021 EXCLAMATION MARK, U+0044 LATIN CAPITAL LETTER D, U+004F LATIN CAPITAL LETTER O, U+0043 LATIN CAPITAL LETTER C, U+0054 LATIN CAPITAL LETTER T, U+0059 LATIN CAPITAL LETTER Y, U+0050 LATIN CAPITAL LETTER P, U+0045 LATIN CAPITAL LETTER E), followed by a space (U+0020 SPACE), followed by the value of current node's name, followed by ">" (U+003E GREATER-THAN SIGN).
+
+    retourne
+}
+
+/* ------------------------------------------------------------------------- */
+/** \nom 13.4 Parsing HTML fragments
+ * https://html.spec.whatwg.org/multipage/parsing.html#parsing-html-fragments
+ * \{ */
+
+#portée_module
+
+HTML_fragment_parsing :: fonc (input: ChaineUTF16, context: *Élément, allow_declarative_shadow_roots := faux) -> [..]*Noeud
+{
+    // 1. Create a new Document node, and mark it as being an HTML document.
+    document := crée_noeud_document(context.donne_tas_de_mémoire(), context.realm)
+    document.type = "html"
+
+    // 2. If the node document of the context element is in quirks mode, then let the Document be in quirks mode. Otherwise, if the node document of the context element is in limited-quirks mode, then let the Document be in limited-quirks mode. Otherwise, leave the Document in no-quirks mode.
+    document.mode = context.document.mode
+
+    // 3. If allowDeclarativeShadowRoots is true, then set the Document's allow declarative shadow roots to true.
+    document.permets_racines_shadow_déclaratives = allow_declarative_shadow_roots
+
+    // 4. Create a new HTML parser, and associate it with the just created Document node.
+    parseuse: Parseuse
+    diffère détruit_parseuse(*parseuse)
+
+    parseuse.crée_par_html_fragment_parsing = vrai
+    parseuse.fragment_context = context
+    parseuse.document = document
+
+    // 5. Set the state of the HTML parser's tokenization stage as follows, switching on the context element:
+    tag := context.local_name
+    // title
+    // textarea
+    si tag == TAG_title || tag == TAG_textarea {
+        // Switch the tokenizer to the RCDATA state.
+        parseuse.lexeuse.état = ÉtatLexage.RCDATA
+    }
+    // style
+    // xmp
+    // iframe
+    // noembed
+    // noframes
+    sinon si tag == TAG_style || tag == TAG_xmp || tag == TAG_iframe || tag == TAG_noembed || tag == TAG_noframes {
+        // Switch the tokenizer to the RAWTEXT state.
+        parseuse.lexeuse.état = ÉtatLexage.RAWTEXT
+    }
+    // script
+    sinon si tag == TAG_script {
+        // Switch the tokenizer to the script data state.
+        parseuse.lexeuse.état = ÉtatLexage.ScriptData
+    }
+    // noscript
+    sinon si tag == TAG_noscript {
+        // À FAIRE : If the scripting flag is enabled, switch the tokenizer to the RAWTEXT state. Otherwise, leave the tokenizer in the data state.
+        parseuse.lexeuse.état = ÉtatLexage.RAWTEXT
+    }
+    // plaintext
+    sinon si tag == TAG_plaintext {
+        // Switch the tokenizer to the PLAINTEXT state.
+        parseuse.lexeuse.état = ÉtatLexage.PLAINTEXT
+    }
+    // Any other element
+    // Leave the tokenizer in the data state.
+
+    // 6. Let root be a new html element with no attributes.
+    root := crée_platform_object(document, HTMLHtmlElement)
+    initialise_élément(root, document, TAG_html)
+
+    // 7. Append the element root to the Document node created above.
+    _ := append(document, root)
+
+    // 8. Set up the parser's stack of open elements so that it contains just the single element root.
+    empile(*parseuse.pile_éléments_ouvert, root)
+
+    // 9. If the context element is a template element, push "in template" onto the stack of template insertion modes so that it is the new current template insertion mode.
+    si context.local_name == TAG_template {
+        panique("template non-géré")
+    }
+
+    // 10. Create a start tag token whose name is the local name of context and whose attributes are the attributes of context.
+    // Let this start tag token be the start tag token of the context node, e.g. for the purposes of determining if it is an HTML integration point.
+
+    // 11. Reset the parser's insertion mode appropriately.
+    restaure_mode_insertion_appropriemment(*parseuse)
+
+    // 12. Set the parser's form element pointer to the nearest node to the context element that is a form element (going straight up the ancestor chain, and including the element itself, if it is a form element), if any. (If there is no such form element, the form element pointer keeps its initial value, null.)
+    parent : *Noeud = context
+    tantque parent != nul && parent.est_élément() {
+        élément_parent := parent comme *Élément
+        si élément_parent.local_name == TAG_form {
+            parseuse.élément_form = parent comme *HTMLFormElement
+            arrête
+        }
+
+        parent = parent.parent
+    }
+
+    // 13. Place the input into the input stream for the HTML parser just created. The encoding confidence is irrelevant.
+    initialise_flux_entrée(*parseuse.lexeuse, input)
+
+    // 14. Start the parser and let it run until it has consumed all the characters just inserted into the input stream.
+    parse(*parseuse)
+
+    // 15. Return the child nodes of root, in tree order.
+    retourne root.enfants
 }
 
 /** \} */

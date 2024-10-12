@@ -177,6 +177,7 @@ objet_html_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, en
         diffère déloge(chemin)
 
         contenu := contenu_fichier_texte(chemin)
+        diffère déloge(contenu)
 
         parsat := HTML.parse_document(interpréteuse.donne_realm(), contenu)
         diffère HTML.détruit(parsat)
@@ -250,6 +251,8 @@ sur_rappel_sauvegarde :: fonc (base: *QT_Rappel_Generique)
     sortie := rappels_fenêtre.sortie
 
     texte := QT_plain_text_edit_donne_texte(éditeur)
+    diffère QT_chaine_detruit(*texte)
+
     contenu := texte.vers_kuri()
 
     sauvegarde_fichier(contenu)

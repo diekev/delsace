@@ -357,6 +357,27 @@ tranche :: fonc (tableau: []$T, début: z64, fin: z64) -> [..]T
     retourne résultat
 }
 
+tableau_donne_tranche :: fonc (tableau: []$T, début: z64, fin: z64) -> []T
+{
+    résultat: []T
+
+    si début > fin {
+        retourne résultat
+    }
+
+    si début >= tableau.taille {
+        retourne résultat
+    }
+
+    si fin >= tableau.taille {
+        retourne résultat
+    }
+
+    résultat.pointeur = *tableau.pointeur[début]
+    résultat.taille = fin - début + 1
+    retourne résultat
+}
+
 dernier_élément :: fonc (tableau: [..]$T) -> *T
 {
     si tableau.taille == 0 {
