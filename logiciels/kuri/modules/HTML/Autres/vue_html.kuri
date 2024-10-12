@@ -1598,6 +1598,14 @@ RappelsInterfaceQt :: struct {
     filtre_évènement_thread: *QT_Object
 
     files_parallèle_pour_traversable: [..]FileParallèlePourTraversable
+
+    DonnéesTimer :: struct {
+        timer: *QT_Timer
+        id: z32
+    }
+
+    timers: [..]DonnéesTimer
+    id_timer: z32
 }
 
 crée_rappels_interface_qt :: fonc (fenêtre: *QT_Fenetre_Principale) -> *RappelsInterfaceQt
@@ -1618,6 +1626,8 @@ crée_rappels_interface_qt :: fonc (fenêtre: *QT_Fenetre_Principale) -> *Rappel
     résultat.sur_est_exécuté_sur_file_parallèle = rappels_interface_sur_est_exécuté_sur_file_parallèle
     résultat.sur_création_file_parallèle_pour_traversable = rappels_interface_crée_file_parallèle_pour_traversable
     résultat.sur_affichage_alerte = rappels_interface_sur_affichage_alerte
+    résultat.sur_création_timeout = rappels_interface_sur_création_timeout
+    résultat.sur_destruction_timeout = rappels_interface_sur_destruction_timeout
 
     rappels_thread := QT_loge_rappel(RappelsThread)
     rappels_thread.rappels_interface = résultat
@@ -1648,7 +1658,12 @@ rappels_interface_sur_destruction :: fonc (base: *RappelsInterface)
         QT_thread_wait(it.thread)
     }
 
+    pour rappels.timers {
+        QT_timer_arrete(it.timer)
+    }
+
     déloge(rappels.files_parallèle_pour_traversable)
+    déloge(rappels.timers)
     déloge(rappels)
 }
 
@@ -1941,6 +1956,54 @@ rappels_interface_sur_affichage_alerte :: fonc (base: *RappelsInterface, message
     diffère déloge(chn_message)
 
     _ := QT_message_box_affiche_avertissement(rappels.fenêtre, vers_qt("Alerte"), vers_qt(chn_message), QT_StandardButton.OK)
+}
+
+rappels_interface_sur_création_timeout :: fonc (base: *RappelsInterface, algorithm: *Algorithm, time_out: z32) -> z32
+{
+    RappelTimer :: struct {
+        empl base: QT_Rappels_Timer
+        algorithm: *Algorithm
+    }
+
+    sur_timeout :: fonc (base: *QT_Rappels_Timer)
+    {
+        rappel := base comme *RappelTimer
+        si rappel.algorithm.sur_run {
+            rappel.algorithm.sur_run(rappel.algorithm)
+        }
+    }
+
+    rappel_timer := QT_loge_rappel(RappelTimer)
+    rappel_timer.algorithm = algorithm
+    rappel_timer.sur_timeout = sur_timeout
+
+    timer := QT_cree_timer(rappel_timer)
+
+    rappels := base comme *RappelsInterfaceQt
+
+    id := rappels.id_timer
+    rappels.id_timer += 1
+
+    données := tableau_ajoute_élément(*rappels.timers)
+    données.timer = timer
+    données.id = id
+
+    QT_timer_debute(timer, time_out)
+
+    retourne id
+}
+
+rappels_interface_sur_destruction_timeout :: fonc (base: *RappelsInterface, id: z32)
+{
+    rappels := base comme *RappelsInterfaceQt
+
+    pour rappels.timers {
+        si it.id == id {
+            QT_timer_arrete(it.timer)
+            tableau_supprime_index(*rappels.timers, index_it)
+            retourne
+        }
+    }
 }
 
 /** \} */
