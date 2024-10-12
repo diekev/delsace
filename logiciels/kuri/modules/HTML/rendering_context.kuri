@@ -1,0 +1,108 @@
+importe Couleur
+importe #inemployé CSS
+importe Fondation
+importe Géométrie
+importe PeintureInterface
+
+/* ------------------------------------------------------------------------- */
+/** \nom Contexte de rendu pour HTMLCanvasElement
+ * \{ */
+
+RenderingContext :: struct {
+    empl platform_objet: PlatformObject
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom CanvasRenderingContext2D
+ * \{ */
+
+CanvasRenderingContext2D :: struct {
+    empl rendering_context: RenderingContext
+    table = *table_virtuelle_canvas_rendering_context_2d
+
+    canvas: *HTMLCanvasElement
+    fill_style_string := CSS.COL_black
+    fill_style: CouleurRVBAN8
+}
+
+crée_canvas_rendering_context_2d :: fonc (canvas: *HTMLCanvasElement) -> *CanvasRenderingContext2D
+{
+    résultat := crée_platform_object(canvas, CanvasRenderingContext2D)
+    résultat.canvas = canvas
+    retourne résultat
+}
+
+donne_canvas :: fonc (ctx: *CanvasRenderingContext2D) -> *HTMLCanvasElement
+{
+    retourne ctx.canvas
+}
+
+#portée_fichier
+
+table_virtuelle_canvas_rendering_context_2d := TableVirtuellePlatformObject(
+    classe = CanvasRenderingContext2D
+)
+
+#portée_export
+
+/* https://html.spec.whatwg.org/multipage/canvas.html#dom-context-2d-fillstyle */
+définis_fill_style :: fonc (ctx: *CanvasRenderingContext2D, style: DOMString)
+{
+    // À FAIRE : standardise
+    opt_couleur := CSS.parse_a_css_color(style, ctx.canvas)
+    saufsi opt_couleur.possède_valeur() {
+        retourne
+    }
+
+    ctx.fill_style_string = style
+    ctx.fill_style = opt_couleur.Quelque
+}
+
+donne_fill_style :: fonc (ctx: *CanvasRenderingContext2D) -> DOMString
+{
+    retourne ctx.fill_style_string
+}
+
+fill_rect :: fonc (ctx: *CanvasRenderingContext2D, x: r64, y: r64, w: r64, h: r64)
+{
+    saufsi ctx.canvas {
+        retourne
+    }
+
+    rect: RectanglePosDim(z32)
+    rect.x = x comme z32
+    rect.y = y comme z32
+    rect.largeur = w comme z32
+    rect.hauteur = h comme z32
+
+    tampon := ctx.canvas.donne_tampon_de_rendu()
+    rect_tampon := tampon.rect.donne_rectangle_pur()
+    rect_pur := rect.donne_rectangle_pur()
+
+    si rect_pur.gauche < rect_tampon.gauche {
+        rect_pur.gauche = rect_tampon.gauche
+    }
+    si rect_pur.bas < rect_tampon.bas {
+        rect_pur.bas = rect_tampon.bas
+    }
+    si rect_pur.haut > rect_tampon.haut {
+        rect_pur.haut = rect_tampon.haut
+    }
+    si rect_pur.droite > rect_tampon.droite {
+        rect_pur.droite = rect_tampon.droite
+    }
+
+    rect = rect_pur.donne_rectangle_pos_dim()
+
+    peintre: PeintreDessin
+    initialise_peintre_dessin(*peintre)
+    peintre.tampon_de_rendu = tampon
+    remplis_rectangle(*peintre, rect, ctx.fill_style)
+
+    document := ctx.canvas.document
+    requiers_redessin(document)
+}
+
+/** \} */

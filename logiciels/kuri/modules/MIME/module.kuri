@@ -85,5 +85,9 @@ type_mime_pour_extension :: fonc (extension: chaine) -> chaine
         retourne MIME_image_png
     }
 
+    si compare_ascii_insensible_à_la_casse(extension, ".js") {
+        retourne MIME_text_javascript
+    }
+
     retourne MIME_application_octet_stream
 }
