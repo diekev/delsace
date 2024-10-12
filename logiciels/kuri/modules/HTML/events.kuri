@@ -787,6 +787,10 @@ inner_invoke :: fonc (event: *Event, listeners: []EventTarget.EventListenerEntry
     tableau_ajoute(*arguments, JavaScript.Valeur(Object = event))
 
     pour listeners {
+        si it.type != event.type {
+            continue
+        }
+
         si it.removed {
             continue
         }
