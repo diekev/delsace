@@ -12,6 +12,14 @@ ParamètresObjectCall :: struct {
     arguments: []Valeur
 }
 
+donne_argument :: fonc (params: *ParamètresObjectCall, index: z64) -> Valeur
+{
+    si index < 0 || index >= params.arguments.taille {
+        retourne js_undefined
+    }
+    retourne params.arguments[index]
+}
+
 TypeFonctionObjectCall :: fonc(*ParamètresObjectCall)(CompletionRecord)
 
 ParamètresObjectConstruct :: struct {
