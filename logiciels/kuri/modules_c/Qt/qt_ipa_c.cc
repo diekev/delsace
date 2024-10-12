@@ -46,6 +46,7 @@
 #include <QTimer>
 #include <QToolButton>
 #include <QToolTip>
+#include <QWindow>
 #if defined(__GNUC__)
 #    pragma GCC diagnostic pop
 #endif
@@ -1105,6 +1106,18 @@ void QT_thread_wait(QT_Thread *thread)
 {
     VERS_QT(thread);
     qthread->wait();
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Window
+ * \{ */
+
+void QT_window_request_update(struct QT_Window *window)
+{
+    VERS_QT(window);
+    qwindow->requestUpdate();
 }
 
 /** \} */

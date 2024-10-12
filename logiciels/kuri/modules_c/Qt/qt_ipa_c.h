@@ -1265,6 +1265,14 @@ void QT_thread_wait(struct QT_Thread *thread);
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Window
+ * \{ */
+
+void QT_window_request_update(struct QT_Window *window);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Position
  * \{ */
 
