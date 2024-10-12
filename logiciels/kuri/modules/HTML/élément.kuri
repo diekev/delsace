@@ -1,7 +1,9 @@
 importe Chaine
 importe Couleur
 importe #inemployé CSS
+importe Dessin
 importe Fondation
+importe Géométrie
 importe Image
 importe #inemployé JavaScript
 importe MIME
@@ -256,6 +258,9 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élé
     }
     sinon si tag == TAG_body {
         élément = crée_platform_object(document, HTMLBodyElement)
+    }
+    sinon si tag == TAG_canvas {
+        élément = crée_platform_object(document, HTMLCanvasElement)
     }
     sinon si tag == TAG_font {
         élément = crée_platform_object(document, HTMLFontElement)
@@ -988,6 +993,102 @@ ajoute_propriété_pour_nombre :: fonc (résolveuse: *CSS.RésolveuseStyle, nom_
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLCanvasElement
+ * https://html.spec.whatwg.org/multipage/canvas.html#the-canvas-element
+ * \{ */
+
+#portée_export
+
+HTMLCanvasElement :: struct {
+    empl html_element: HTMLElement
+    table = *table_virtuelle_canvas_element
+
+    ctx: *RenderingContext
+    context_id: DOMString
+
+    tampon_de_rendu: TamponDeRendu
+}
+
+#portée_fichier
+
+table_virtuelle_canvas_element := TableVirtuelleÉlément(
+    classe = HTMLCanvasElement,
+    sur_destruction = canvas_element_sur_destruction
+)
+
+canvas_element_sur_destruction :: fonc (base: *JavaScript.Cellule)
+{
+    élément_sur_destruction(base)
+    canvas := base comme *HTMLCanvasElement
+    détruit_tampon_de_rendu(*canvas.tampon_de_rendu)
+}
+
+#portée_export
+
+get_context :: fonc (canvas: *HTMLCanvasElement, context_id: DOMString) -> *RenderingContext
+{
+    si context_id == canvas.context_id {
+        retourne canvas.ctx
+    }
+
+    si context_id.donne_chaine_utf16() == "2d" {
+        résultat := crée_canvas_rendering_context_2d(canvas)
+        canvas.ctx = résultat
+        canvas.context_id = context_id
+        retourne résultat
+    }
+
+    retourne nul
+}
+
+donne_largeur_intrinsèque :: fonc (canvas: *HTMLCanvasElement) -> r64
+{
+    opt_attribut := canvas.donne_attribut(ATTR_width)
+    si opt_attribut.possède_valeur() {
+        valeur := parse_a_non_zero_dimension(opt_attribut.Quelque)
+        si valeur.possède_valeur() {
+            retourne valeur
+        }
+    }
+
+    retourne 300
+}
+
+donne_hauteur_intrinsèque :: fonc (canvas: *HTMLCanvasElement) -> r64
+{
+    opt_attribut := canvas.donne_attribut(ATTR_height)
+    si opt_attribut.possède_valeur() {
+        valeur := parse_a_non_zero_dimension(opt_attribut.Quelque)
+        si valeur.possède_valeur() {
+            retourne valeur
+        }
+    }
+
+    retourne 150
+}
+
+donne_tampon_de_rendu :: fonc (canvas: *HTMLCanvasElement) -> TamponDeRendu
+{
+    hauteur := canvas.donne_hauteur_intrinsèque()
+    largeur := canvas.donne_largeur_intrinsèque()
+    rect: RectanglePosDim(z32)
+    rect.hauteur = hauteur comme z32
+    rect.largeur = largeur comme z32
+
+    si canvas.tampon_de_rendu.rect.largeur != rect.largeur || canvas.tampon_de_rendu.rect.hauteur != rect.hauteur {
+        redimensionne_tampon_de_rendu(*canvas.tampon_de_rendu, rect)
+
+        pour & canvas.tampon_de_rendu.données {
+            it = CouleurRVBAN8(0, 0, 0, 0)
+        }
+    }
+
+    retourne canvas.tampon_de_rendu
+}
+
+/** } */
 
 /* ------------------------------------------------------------------------- */
 /** \nom HTMLFontElement
