@@ -267,6 +267,18 @@ est_variable :: fonc (valeur: ValeurDeStyle) -> bool
     }
 }
 
+est_couleur :: fonc (valeur: ValeurDeStyle) -> bool
+{
+    discr valeur {
+        couleur {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
 imprime_valeur_de_style :: fonc (enchaineuse: *Enchaineuse, valeur: *ValeurDeStyle)
 {
     saufsi valeur {

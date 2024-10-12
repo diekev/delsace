@@ -381,6 +381,17 @@ intersecte_ligne_rectangle :: fonc (p1: Point2D($T), p2: Point2D(T), r: Rectangl
 
     retourne contient(r, p1) || contient(r, p2)
 }
+
+donne_rectangle_pur :: fonc (rect: RectanglePosDim($T)) -> RectanglePur(T)
+{
+    résultat: RectanglePur(T)
+    résultat.gauche = rect.x
+    résultat.droite = rect.x + rect.largeur
+    résultat.haut = rect.y + rect.hauteur
+    résultat.bas = rect.y
+    retourne résultat
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -422,6 +433,16 @@ découpe_selon :: fonc (rect: &RectanglePur($T), bornes: RectanglePur(T))
         rect.bas = bornes.bas
         rect.haut = bornes.haut
     }
+}
+
+donne_rectangle_pos_dim :: fonc (rect: RectanglePur($T)) -> RectanglePosDim(T)
+{
+    résultat: RectanglePosDim(T)
+    résultat.x = rect.gauche
+    résultat.y = rect.bas
+    résultat.hauteur = rect.donne_hauteur()
+    résultat.largeur = rect.donne_largeur()
+    retourne résultat
 }
 
 /** \} */

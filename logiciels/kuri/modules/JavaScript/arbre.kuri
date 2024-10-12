@@ -84,6 +84,17 @@ named_evaluation :: fonc (interpréteuse: *Interpréteuse, noeud: *NoeudSyntaxiq
     panique("name_evaluation non-implémenté")
 }
 
+/* 8.6.1 Runtime Semantics: InstantiateFunctionObject
+ * https://tc39.es/ecma262/multipage/syntax-directed-operations.html#sec-runtime-semantics-instantiatefunctionobject */
+instantiate_function_object :: fonc (realm: *Realm, noeud: *NoeudSyntaxique, env: *Environment, private_env: *PrivateEnvironment) -> *Function
+{
+    si noeud.type == FunctionDeclaration {
+        retourne instantiate_ordinary_function_object(realm, noeud comme *FunctionDeclaration, env, private_env)
+    }
+
+    panique("instantiate_function_object non-implémenté")
+}
+
 /* 8.6.5 Static Semantics: PropName
  * https://tc39.es/ecma262/multipage/syntax-directed-operations.html#sec-static-semantics-propname */
 prop_name :: fonc (noeud: *NoeudSyntaxique) -> ECMAString
@@ -137,12 +148,10 @@ Programme :: struct {
     type_source := "script"
 }
 
-crée_programme :: fonc (expressions: ...*NoeudSyntaxique) -> *Programme
+crée_programme :: fonc (parseuse: *Parseuse, expressions: [..]*NoeudSyntaxique) -> *Programme
 {
-    résultat := loge(Programme)
-    pour expressions {
-        tableau_ajoute(*résultat.enfants, it)
-    }
+    résultat := parseuse.crée_noeud(Programme)
+    résultat.enfants = expressions
     retourne résultat
 }
 
@@ -166,14 +175,12 @@ FunctionDeclaration :: struct {
     async := faux
 }
 
-crée_function_déclaration :: fonc (id: *Identifier, params: []*NoeudSyntaxique, corps: *NoeudSyntaxique) -> *FunctionDeclaration
+crée_function_déclaration :: fonc (parseuse: *Parseuse, id: *Identifier, params: [..]*NoeudSyntaxique, corps: *NoeudSyntaxique) -> *FunctionDeclaration
 {
-    résultat := loge(FunctionDeclaration)
+    résultat := parseuse.crée_noeud(FunctionDeclaration)
     résultat.id = id
     résultat.corps = corps
-    pour params {
-        tableau_ajoute(*résultat.params, it)
-    }
+    résultat.params = params
     retourne résultat
 }
 
@@ -203,14 +210,12 @@ FunctionExpression :: struct {
     async := faux
 }
 
-crée_function_expression :: fonc (id: *Identifier, params: []*NoeudSyntaxique, corps: *NoeudSyntaxique) -> *FunctionExpression
+crée_function_expression :: fonc (parseuse: *Parseuse, id: *Identifier, params: [..]*NoeudSyntaxique, corps: *NoeudSyntaxique) -> *FunctionExpression
 {
-    résultat := loge(FunctionExpression)
+    résultat := parseuse.crée_noeud(FunctionExpression)
     résultat.id = id
     résultat.corps = corps
-    pour params {
-        tableau_ajoute(*résultat.params, it)
-    }
+    résultat.params = params
     retourne résultat
 }
 
@@ -301,9 +306,9 @@ ThisExpression :: struct {
     sur_exécution = sur_exécution_this_expression
 }
 
-crée_this_expression :: fonc () -> *ThisExpression
+crée_this_expression :: fonc (parseuse: *Parseuse) -> *ThisExpression
 {
-    retourne loge(ThisExpression)
+    retourne parseuse.crée_noeud(ThisExpression)
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-this-keyword-runtime-semantics-evaluation */
@@ -326,16 +331,16 @@ Identifier :: struct {
     nom: ECMAString
 }
 
-crée_identifier :: fonc (nom: ECMAString) -> *Identifier
+crée_identifier :: fonc (parseuse: *Parseuse, nom: ECMAString) -> *Identifier
 {
-    résultat := loge(Identifier)
+    résultat := parseuse.crée_noeud(Identifier)
     résultat.nom = nom
     retourne résultat
 }
 
-crée_identifier :: fonc (nom: chaine) -> *Identifier
+crée_identifier :: fonc (parseuse: *Parseuse, nom: chaine) -> *Identifier
 {
-    retourne crée_identifier(crée_chaine_utf16_unique(nom))
+    retourne crée_identifier(parseuse, crée_chaine_utf16_unique(nom))
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-identifiers-runtime-semantics-evaluation */
@@ -356,12 +361,10 @@ BlockStatement :: struct {
     type = #type_de_cette_structure
 }
 
-crée_block_statement :: fonc (expressions: ...*NoeudSyntaxique) -> *BlockStatement
+crée_block_statement :: fonc (parseuse: *Parseuse, expressions: [..]*NoeudSyntaxique) -> *BlockStatement
 {
-    résultat := loge(BlockStatement)
-    pour expressions {
-        tableau_ajoute(*résultat.enfants, it)
-    }
+    résultat := parseuse.crée_noeud(BlockStatement)
+    résultat.enfants = expressions
     retourne résultat
 }
 
@@ -379,9 +382,9 @@ ReturnStatement :: struct {
     argument: *NoeudSyntaxique
 }
 
-crée_return_statement :: fonc (argument: *NoeudSyntaxique) -> *ReturnStatement
+crée_return_statement :: fonc (parseuse: *Parseuse, argument: *NoeudSyntaxique) -> *ReturnStatement
 {
-    résultat := loge(ReturnStatement)
+    résultat := parseuse.crée_noeud(ReturnStatement)
     résultat.argument = argument
     retourne résultat
 }
@@ -433,9 +436,9 @@ UnaryPlusOperator :: struct {
     argument: *NoeudSyntaxique
 }
 
-crée_unary_plus_operator :: fonc (argument: *NoeudSyntaxique) -> *UnaryPlusOperator
+crée_unary_plus_operator :: fonc (parseuse: *Parseuse, argument: *NoeudSyntaxique) -> *UnaryPlusOperator
 {
-    résultat := loge(UnaryPlusOperator)
+    résultat := parseuse.crée_noeud(UnaryPlusOperator)
     résultat.argument = argument
     retourne résultat
 }
@@ -476,9 +479,9 @@ UnaryMinusOperator :: struct {
     argument: *NoeudSyntaxique
 }
 
-crée_unary_minus_operator :: fonc (argument: *NoeudSyntaxique) -> *UnaryMinusOperator
+crée_unary_minus_operator :: fonc (parseuse: *Parseuse, argument: *NoeudSyntaxique) -> *UnaryMinusOperator
 {
-    résultat := loge(UnaryMinusOperator)
+    résultat := parseuse.crée_noeud(UnaryMinusOperator)
     résultat.argument = argument
     retourne résultat
 }
@@ -548,9 +551,9 @@ LogicalNot :: struct {
     argument: *NoeudSyntaxique
 }
 
-crée_logical_not :: fonc (argument: *NoeudSyntaxique) -> *LogicalNot
+crée_logical_not :: fonc (parseuse: *Parseuse, argument: *NoeudSyntaxique) -> *LogicalNot
 {
-    résultat := loge(LogicalNot)
+    résultat := parseuse.crée_noeud(LogicalNot)
     résultat.argument = argument
     retourne résultat
 }
@@ -599,9 +602,9 @@ LogicalAnd :: struct {
     right: *NoeudSyntaxique
 }
 
-crée_logical_and :: fonc (left: *NoeudSyntaxique, right: *NoeudSyntaxique) -> *LogicalAnd
+crée_logical_and :: fonc (parseuse: *Parseuse, left: *NoeudSyntaxique, right: *NoeudSyntaxique) -> *LogicalAnd
 {
-    résultat := loge(LogicalAnd)
+    résultat := parseuse.crée_noeud(LogicalAnd)
     résultat.left = left
     résultat.right = right
     retourne résultat
@@ -657,9 +660,9 @@ LogicalOr :: struct {
     right: *NoeudSyntaxique
 }
 
-crée_logical_or :: fonc (left: *NoeudSyntaxique, right: *NoeudSyntaxique) -> *LogicalOr
+crée_logical_or :: fonc (parseuse: *Parseuse, left: *NoeudSyntaxique, right: *NoeudSyntaxique) -> *LogicalOr
 {
-    résultat := loge(LogicalOr)
+    résultat := parseuse.crée_noeud(LogicalOr)
     résultat.left = left
     résultat.right = right
     retourne résultat
@@ -723,9 +726,9 @@ BinaryExpression :: struct {
     droite: *NoeudSyntaxique
 }
 
-crée_binary_expression :: fonc (opération: BinaryOperation, gauche: *NoeudSyntaxique, droite: *NoeudSyntaxique) -> *BinaryExpression
+crée_binary_expression :: fonc (parseuse: *Parseuse, opération: BinaryOperation, gauche: *NoeudSyntaxique, droite: *NoeudSyntaxique) -> *BinaryExpression
 {
-    résultat := loge(BinaryExpression)
+    résultat := parseuse.crée_noeud(BinaryExpression)
     résultat.opération = opération
     résultat.gauche = gauche
     résultat.droite = droite
@@ -902,9 +905,9 @@ EqualityExpression :: struct {
     droite: *NoeudSyntaxique
 }
 
-crée_equality_expression :: fonc (opération: EqualityOperation, gauche: *NoeudSyntaxique, droite: *NoeudSyntaxique) -> *EqualityExpression
+crée_equality_expression :: fonc (parseuse: *Parseuse, opération: EqualityOperation, gauche: *NoeudSyntaxique, droite: *NoeudSyntaxique) -> *EqualityExpression
 {
-    résultat := loge(EqualityExpression)
+    résultat := parseuse.crée_noeud(EqualityExpression)
     résultat.opération = opération
     résultat.gauche = gauche
     résultat.droite = droite
@@ -1161,9 +1164,9 @@ RelationalExpression :: struct {
     droite: *NoeudSyntaxique
 }
 
-crée_relational_expression :: fonc (opération: RelationalOperation, gauche: *NoeudSyntaxique, droite: *NoeudSyntaxique) -> *RelationalExpression
+crée_relational_expression :: fonc (parseuse: *Parseuse, opération: RelationalOperation, gauche: *NoeudSyntaxique, droite: *NoeudSyntaxique) -> *RelationalExpression
 {
-    résultat := loge(RelationalExpression)
+    résultat := parseuse.crée_noeud(RelationalExpression)
     résultat.opération = opération
     résultat.gauche = gauche
     résultat.droite = droite
@@ -1390,9 +1393,9 @@ NumericLiteral :: struct {
     // raw: ECMAString
 }
 
-crée_literal :: fonc (valeur: r64) -> *NumericLiteral
+crée_literal :: fonc (parseuse: *Parseuse, valeur: r64) -> *NumericLiteral
 {
-    résultat := loge(NumericLiteral)
+    résultat := parseuse.crée_noeud(NumericLiteral)
     résultat.valeur = valeur
     retourne résultat
 }
@@ -1417,9 +1420,9 @@ BooleanLiteral :: struct {
     valeur: bool
 }
 
-crée_boolean_literal :: fonc (valeur: bool) -> *BooleanLiteral
+crée_boolean_literal :: fonc (parseuse: *Parseuse, valeur: bool) -> *BooleanLiteral
 {
-    résultat := loge(BooleanLiteral)
+    résultat := parseuse.crée_noeud(BooleanLiteral)
     résultat.valeur = valeur
     retourne résultat
 }
@@ -1442,9 +1445,9 @@ NullLiteral :: struct {
     sur_exécution = sur_exécution_null_literal
 }
 
-crée_null_literal :: fonc () -> *NullLiteral
+crée_null_literal :: fonc (parseuse: *Parseuse) -> *NullLiteral
 {
-    résultat := loge(NullLiteral)
+    résultat := parseuse.crée_noeud(NullLiteral)
     retourne résultat
 }
 
@@ -1468,16 +1471,16 @@ StringLiteral :: struct {
     index_chaine : z64 = -1
 }
 
-crée_literal :: fonc (valeur: ECMAString) -> *StringLiteral
+crée_literal :: fonc (parseuse: *Parseuse, valeur: ECMAString) -> *StringLiteral
 {
-    résultat := loge(StringLiteral)
+    résultat := parseuse.crée_noeud(StringLiteral)
     résultat.valeur = valeur
     retourne résultat
 }
 
-crée_literal :: fonc (valeur: chaine) -> *StringLiteral
+crée_literal :: fonc (parseuse: *Parseuse, valeur: chaine) -> *StringLiteral
 {
-    retourne crée_literal(crée_chaine_utf16_unique(valeur))
+    retourne crée_literal(parseuse, crée_chaine_utf16_unique(valeur))
 }
 
 sur_exécution_string_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
@@ -1513,9 +1516,9 @@ ExpressionStatement :: struct {
     expression: *NoeudSyntaxique
 }
 
-crée_expression_statement :: fonc (expression: *NoeudSyntaxique) -> *NoeudSyntaxique
+crée_expression_statement :: fonc (parseuse: *Parseuse, expression: *NoeudSyntaxique) -> *NoeudSyntaxique
 {
-    résultat := loge(ExpressionStatement)
+    résultat := parseuse.crée_noeud(ExpressionStatement)
     résultat.expression = expression
     retourne résultat
 }
@@ -1544,13 +1547,11 @@ CallExpression :: struct {
     arguments: [..]*NoeudSyntaxique
 }
 
-crée_call_expression :: fonc (appelé: *NoeudSyntaxique, arguments: ...*NoeudSyntaxique) -> *CallExpression
+crée_call_expression :: fonc (parseuse: *Parseuse, appelé: *NoeudSyntaxique, arguments: [..]*NoeudSyntaxique) -> *CallExpression
 {
-    résultat := loge(CallExpression)
+    résultat := parseuse.crée_noeud(CallExpression)
     résultat.appelé = appelé
-    pour arguments {
-        tableau_ajoute(*résultat.arguments, it)
-    }
+    résultat.arguments = arguments
     retourne résultat
 }
 
@@ -1656,7 +1657,7 @@ sur_exécution_call_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: 
 
 /* 13.3.6.2 EvaluateCall ( func, ref, arguments, tailPosition )
  * https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-evaluatecall */
-evaluate_call :: fonc (interpréteuse: *Interpréteuse, func: Valeur, ref: ValeurCompletion, arguments: [..]*NoeudSyntaxique, tail_position: bool) -> CompletionRecord
+evaluate_call :: fonc (interpréteuse: *Interpréteuse, func: Valeur, ref: ValeurCompletion, arguments: []*NoeudSyntaxique, tail_position: bool) -> CompletionRecord
 {
     this_value: Valeur = ---
     // 1. If ref is a Reference Record, then
@@ -1682,11 +1683,11 @@ evaluate_call :: fonc (interpréteuse: *Interpréteuse, func: Valeur, ref: Valeu
     }
 
     // 3. Let argList be ? ArgumentListEvaluation of arguments.
-    // À FAIRE : fuite de mémoire
     arg_list: [..]Valeur
+    diffère déloge(arg_list)
+
     completion_arg_list := argument_list_evaluation(interpréteuse, arguments, *arg_list)
     saufsi completion_arg_list.est_normal() {
-        déloge(arg_list)
         retourne completion_arg_list
     }
 
@@ -1763,9 +1764,9 @@ AssignmentExpression :: struct {
     droite: *NoeudSyntaxique
 }
 
-crée_assignment_expression :: fonc (opération: AssignmentOperation, gauche: *NoeudSyntaxique, droite: *NoeudSyntaxique) -> *AssignmentExpression
+crée_assignment_expression :: fonc (parseuse: *Parseuse, opération: AssignmentOperation, gauche: *NoeudSyntaxique, droite: *NoeudSyntaxique) -> *AssignmentExpression
 {
-    résultat := loge(AssignmentExpression)
+    résultat := parseuse.crée_noeud(AssignmentExpression)
     résultat.opération = opération
     résultat.gauche = gauche
     résultat.droite = droite
@@ -1949,13 +1950,11 @@ VariableDeclaration :: struct {
     expressions: [..]*NoeudSyntaxique
 }
 
-crée_variable_declaration :: fonc (nature: VariableDeclarationKind, expressions: ...*NoeudSyntaxique) -> *VariableDeclaration
+crée_variable_declaration :: fonc (parseuse: *Parseuse, nature: VariableDeclarationKind, declarators: [..]*NoeudSyntaxique) -> *VariableDeclaration
 {
-    résultat := loge(VariableDeclaration)
+    résultat := parseuse.crée_noeud(VariableDeclaration)
     résultat.nature = nature
-    pour expressions {
-        tableau_ajoute(*résultat.expressions, it)
-    }
+    résultat.expressions = declarators
     retourne résultat
 }
 
@@ -1988,9 +1987,9 @@ VariableDeclarator :: struct {
     init: *NoeudSyntaxique
 }
 
-crée_variable_declarator :: fonc (id: *NoeudSyntaxique, init: *NoeudSyntaxique) -> *VariableDeclarator
+crée_variable_declarator :: fonc (parseuse: *Parseuse, id: *NoeudSyntaxique, init: *NoeudSyntaxique) -> *VariableDeclarator
 {
-    résultat := loge(VariableDeclarator)
+    résultat := parseuse.crée_noeud(VariableDeclarator)
     résultat.id = id
     résultat.init = init
     retourne résultat
@@ -2003,8 +2002,10 @@ sur_exécution_variable_declarator :: fonc (base: *NoeudSyntaxique, interpréteu
     assert(noeud.id.type == Identifier)
     identifier := noeud.id comme *Identifier
 
-    // À FAIRE : cas sans init
-    assert(noeud.init != nul)
+    saufsi noeud.init {
+        // 1. Return EMPTY
+        retourne empty_completion()
+    }
 
     // 1. Let bindingId be the StringValue of BindingIdentifier.
     binding_id := identifier.nom
@@ -2044,7 +2045,7 @@ sur_exécution_variable_declarator :: fonc (base: *NoeudSyntaxique, interpréteu
     }
 
     // 6. Return EMPTY.
-    retourne normal_completion(js_undefined)
+    retourne empty_completion()
 }
 
 /** \} */
@@ -2061,9 +2062,9 @@ PropertyDefinition :: struct {
     expression: *NoeudSyntaxique
 }
 
-crée_property_definition :: fonc (property_name: *NoeudSyntaxique, expression: *NoeudSyntaxique) -> *PropertyDefinition
+crée_property_definition :: fonc (parseuse: *Parseuse, property_name: *NoeudSyntaxique, expression: *NoeudSyntaxique) -> *PropertyDefinition
 {
-    résultat := loge(PropertyDefinition)
+    résultat := parseuse.crée_noeud(PropertyDefinition)
     résultat.property_name = property_name
     résultat.expression = expression
     retourne résultat
@@ -2083,9 +2084,9 @@ ObjectExpression :: struct {
     properties: [..]*PropertyDefinition
 }
 
-crée_object_expression :: fonc (properties: [..]*PropertyDefinition) -> *ObjectExpression
+crée_object_expression :: fonc (parseuse: *Parseuse, properties: [..]*PropertyDefinition) -> *ObjectExpression
 {
-    résultat := loge(ObjectExpression)
+    résultat := parseuse.crée_noeud(ObjectExpression)
     résultat.properties = properties
     retourne résultat
 }
@@ -2177,9 +2178,9 @@ ArrayLiteral :: struct {
     éléments: [..]*NoeudSyntaxique
 }
 
-crée_array_literal :: fonc (éléments: [..]*NoeudSyntaxique) -> *ArrayLiteral
+crée_array_literal :: fonc (parseuse: *Parseuse, éléments: [..]*NoeudSyntaxique) -> *ArrayLiteral
 {
-    résultat := loge(ArrayLiteral)
+    résultat := parseuse.crée_noeud(ArrayLiteral)
     résultat.éléments = éléments
     retourne résultat
 }
@@ -2234,9 +2235,9 @@ MemberExpression :: struct {
     calculé := faux
 }
 
-crée_member_expression :: fonc (objet: *NoeudSyntaxique, propriété: *NoeudSyntaxique, calculé: bool) -> *MemberExpression
+crée_member_expression :: fonc (parseuse: *Parseuse, objet: *NoeudSyntaxique, propriété: *NoeudSyntaxique, calculé: bool) -> *MemberExpression
 {
-    résultat := loge(MemberExpression)
+    résultat := parseuse.crée_noeud(MemberExpression)
     résultat.objet = objet
     résultat.propriété = propriété
     résultat.calculé = calculé
@@ -2329,8 +2330,10 @@ evaluate_property_access_with_identifier_key :: fonc (interpréteuse: *Interpré
  * \{ */
 
 UpdateOperation :: énum {
-    Increment
-    Decrement
+    PrefixIncrement
+    PrefixDecrement
+    PostfixIncrement
+    PostfixDecrement
 }
 
 UpdateExpression :: struct {
@@ -2342,9 +2345,9 @@ UpdateExpression :: struct {
     operation: UpdateOperation
 }
 
-crée_update_expression :: fonc (argument: *NoeudSyntaxique, operation: UpdateOperation) -> *UpdateExpression
+crée_update_expression :: fonc (parseuse: *Parseuse, argument: *NoeudSyntaxique, operation: UpdateOperation) -> *UpdateExpression
 {
-    résultat := loge(UpdateExpression)
+    résultat := parseuse.crée_noeud(UpdateExpression)
     résultat.argument = argument
     résultat.operation = operation
     retourne résultat
@@ -2381,7 +2384,7 @@ sur_exécution_update_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
     si est_nombre(old_value) {
         // a. Let newValue be Number::add(oldValue, 1𝔽).
         // NOTE : nous faison ++ et -- directement.
-        si update.operation == UpdateOperation.Increment {
+        si update.operation == UpdateOperation.PostfixIncrement || update.operation == UpdateOperation.PrefixIncrement {
             nouvelle_valeur = ajoute_valeurs(old_value, Valeur(Number = 1))
         }
         sinon {
@@ -2401,8 +2404,94 @@ sur_exécution_update_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
         retourne complétion_update
     }
 
+    si update.operation == UpdateOperation.PrefixIncrement || update.operation == UpdateOperation.PrefixDecrement {
+        retourne normal_completion(nouvelle_valeur)
+    }
+
     // 6. Return oldValue.
     retourne normal_completion(old_value)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ContinueStatement
+ * \{ */
+
+ContinueStatement :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_continue_statement
+
+    target: *NoeudSyntaxique
+}
+
+crée_continue_statement :: fonc (parseuse: *Parseuse, target: *NoeudSyntaxique) -> *ContinueStatement
+{
+    résultat := parseuse.crée_noeud(ContinueStatement)
+    résultat.target = target
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-continue-statement-runtime-semantics-evaluation */
+sur_exécution_continue_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse @inutilisée) -> CompletionRecord
+{
+    statement := base comme *ContinueStatement
+
+    si statement.target {
+        assert(statement.target.type == Identifier)
+        cible := statement.target comme *Identifier
+
+        // 1. Let label be the StringValue of LabelIdentifier.
+        label := cible.nom
+
+        // 2. Return Completion Record { [[Type]]: continue, [[Value]]: empty, [[Target]]: label }.
+        retourne continue_completion(label)
+    }
+
+    // 1. Return Completion Record { [[Type]]: continue, [[Value]]: empty, [[Target]]: empty }.
+    retourne continue_completion(crée_chaine_utf16_unique_vide())
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom BreakStatement
+ * \{ */
+
+BreakStatement :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_break_statement
+
+    target: *NoeudSyntaxique
+}
+
+crée_break_statement :: fonc (parseuse: *Parseuse, target: *NoeudSyntaxique) -> *BreakStatement
+{
+    résultat := parseuse.crée_noeud(BreakStatement)
+    résultat.target = target
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-break-statement-runtime-semantics-evaluation */
+sur_exécution_break_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse @inutilisée) -> CompletionRecord
+{
+    statement := base comme *BreakStatement
+
+    si statement.target {
+        assert(statement.target.type == Identifier)
+        cible := statement.target comme *Identifier
+
+        // 1. Let label be the StringValue of LabelIdentifier.
+        label := cible.nom
+
+        // 2. Return Completion Record { [[Type]]: break, [[Value]]: empty, [[Target]]: label }.
+        retourne break_completion(label)
+    }
+
+    // 1. Return Completion Record { [[Type]]: break, [[Value]]: empty, [[Target]]: empty }.
+    retourne break_completion(crée_chaine_utf16_unique_vide())
 }
 
 /** \} */
@@ -2422,9 +2511,9 @@ ForStatement :: struct {
     body: *NoeudSyntaxique
 }
 
-crée_for_statement :: fonc (init: *NoeudSyntaxique, test: *NoeudSyntaxique, update: *NoeudSyntaxique, body: *NoeudSyntaxique) -> *ForStatement
+crée_for_statement :: fonc (parseuse: *Parseuse, init: *NoeudSyntaxique, test: *NoeudSyntaxique, update: *NoeudSyntaxique, body: *NoeudSyntaxique) -> *ForStatement
 {
-    résultat := loge(ForStatement)
+    résultat := parseuse.crée_noeud(ForStatement)
     résultat.init = init
     résultat.test = test
     résultat.update = update
@@ -2462,7 +2551,13 @@ sur_exécution_for_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *I
         }
 
         doit_continuer := exécute_noeud(for.body, interpréteuse)
-        saufsi doit_continuer.est_normal() {
+        si doit_continuer.est_continue() {
+            // OK.
+        }
+        sinon si doit_continuer.est_break() {
+            arrête
+        }
+        sinon saufsi doit_continuer.est_normal() {
             retourne doit_continuer
         }
 
@@ -2493,9 +2588,9 @@ ForOfStatement :: struct {
     body: *NoeudSyntaxique
 }
 
-crée_for_of_statement :: fonc (left: *NoeudSyntaxique, right: *NoeudSyntaxique, body: *NoeudSyntaxique) -> *ForOfStatement
+crée_for_of_statement :: fonc (parseuse: *Parseuse, left: *NoeudSyntaxique, right: *NoeudSyntaxique, body: *NoeudSyntaxique) -> *ForOfStatement
 {
-    résultat := loge(ForOfStatement)
+    résultat := parseuse.crée_noeud(ForOfStatement)
     résultat.left = left
     résultat.right = right
     résultat.body = body
@@ -2523,9 +2618,9 @@ ForInStatement :: struct {
     body: *NoeudSyntaxique
 }
 
-crée_for_in_statement :: fonc (left: *NoeudSyntaxique, right: *NoeudSyntaxique, body: *NoeudSyntaxique) -> *ForInStatement
+crée_for_in_statement :: fonc (parseuse: *Parseuse, left: *NoeudSyntaxique, right: *NoeudSyntaxique, body: *NoeudSyntaxique) -> *ForInStatement
 {
-    résultat := loge(ForInStatement)
+    résultat := parseuse.crée_noeud(ForInStatement)
     résultat.left = left
     résultat.right = right
     résultat.body = body
@@ -2535,6 +2630,190 @@ crée_for_in_statement :: fonc (left: *NoeudSyntaxique, right: *NoeudSyntaxique,
 sur_exécution_for_in_statement :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *Interpréteuse @inutilisée) -> CompletionRecord
 {
     retourne normal_completion(js_undefined)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom WhileStatement
+ * \{ */
+
+WhileStatement :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_while_statement
+
+    test: *NoeudSyntaxique
+    body: *NoeudSyntaxique
+}
+
+crée_while_statement :: fonc (parseuse: *Parseuse, test: *NoeudSyntaxique, body: *NoeudSyntaxique) -> *WhileStatement
+{
+    résultat := parseuse.crée_noeud(WhileStatement)
+    résultat.test = test
+    résultat.body = body
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-runtime-semantics-whileloopevaluation */
+sur_exécution_while_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    // À FAIRE : standardise
+    while := base comme *WhileStatement
+
+    boucle {
+        doit_continuer := exécute_noeud(while.test, interpréteuse)
+        saufsi doit_continuer.est_normal() {
+            retourne doit_continuer
+        }
+        valeur_complétion := get_value(interpréteuse, doit_continuer.valeur)
+        saufsi valeur_complétion.est_normal() {
+            retourne valeur_complétion
+        }
+
+        valeur := to_boolean(valeur_complétion.valeur.V)
+        si valeur.est_false() {
+            arrête
+        }
+
+        doit_continuer = exécute_noeud(while.body, interpréteuse)
+        si doit_continuer.est_continue() {
+            // OK.
+        }
+        sinon si doit_continuer.est_break() {
+            arrête
+        }
+        sinon saufsi doit_continuer.est_normal() {
+            retourne doit_continuer
+        }
+    }
+    
+    retourne normal_completion(js_undefined)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom DoWhileStatement
+ * \{ */
+
+DoWhileStatement :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_do_while_statement
+
+    body: *NoeudSyntaxique
+    test: *NoeudSyntaxique
+}
+
+crée_do_while_statement :: fonc (parseuse: *Parseuse, body: *NoeudSyntaxique, test: *NoeudSyntaxique) -> *DoWhileStatement
+{
+    résultat := parseuse.crée_noeud(DoWhileStatement)
+    résultat.body = body
+    résultat.test = test
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-runtime-semantics-do_whileloopevaluation */
+sur_exécution_do_while_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    // À FAIRE : standardise
+    do_while := base comme *DoWhileStatement
+
+    boucle {
+        doit_continuer := exécute_noeud(do_while.body, interpréteuse)
+        si doit_continuer.est_continue() {
+            // OK.
+        }
+        sinon si doit_continuer.est_break() {
+            arrête
+        }
+        sinon saufsi doit_continuer.est_normal() {
+            retourne doit_continuer
+        }
+
+        doit_continuer = exécute_noeud(do_while.test, interpréteuse)
+        saufsi doit_continuer.est_normal() {
+            retourne doit_continuer
+        }
+        valeur_complétion := get_value(interpréteuse, doit_continuer.valeur)
+        saufsi valeur_complétion.est_normal() {
+            retourne valeur_complétion
+        }
+
+        valeur := to_boolean(valeur_complétion.valeur.V)
+        si valeur.est_false() {
+            arrête
+        }
+    }
+    
+    retourne normal_completion(js_undefined)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ConditionalExpression
+ * \{ */
+
+ConditionalExpression :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_conditional_expression
+
+    test: *NoeudSyntaxique
+    consequent: *NoeudSyntaxique
+    alternate: *NoeudSyntaxique
+}
+
+crée_conditionnal_expression :: fonc (parseuse: *Parseuse, test: *NoeudSyntaxique, consequent: *NoeudSyntaxique, alternate: *NoeudSyntaxique) -> *ConditionalExpression
+{
+    résultat := parseuse.crée_noeud(ConditionalExpression)
+    résultat.test = test
+    résultat.consequent = consequent
+    résultat.alternate = alternate
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-conditional-operator-runtime-semantics-evaluation */
+sur_exécution_conditional_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    conditional := base comme *ConditionalExpression
+
+    // 1. Let lRef be ? Evaluation of ShortCircuitExpression.
+    completion := exécute_noeud(conditional.test, interpréteuse)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    lref := completion.valeur
+
+    // 2. Let lVal be ToBoolean(? GetValue(lRef)).
+    completion = get_value(interpréteuse, lref)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    lval := to_boolean(completion.valeur.V)
+
+    expr: *NoeudSyntaxique
+    // 3. If lVal is true, then
+    si lval.est_true() {
+        // a. Let trueRef be ? Evaluation of the first AssignmentExpression.
+        // b. Return ? GetValue(trueRef).
+        expr = conditional.consequent
+    }
+    // 4. Else,
+    sinon {
+        // a. Let falseRef be ? Evaluation of the second AssignmentExpression.
+        // b. Return ? GetValue(falseRef).
+        expr = conditional.alternate
+    }
+
+    completion = exécute_noeud(expr, interpréteuse)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    ref := completion.valeur
+    retourne get_value(interpréteuse, ref)
 }
 
 /** \} */
@@ -2553,9 +2832,9 @@ IfStatement :: struct {
     alternate: *NoeudSyntaxique
 }
 
-crée_if_statement :: fonc (test: *NoeudSyntaxique, consequent: *NoeudSyntaxique, alternate: *NoeudSyntaxique) -> *IfStatement
+crée_if_statement :: fonc (parseuse: *Parseuse, test: *NoeudSyntaxique, consequent: *NoeudSyntaxique, alternate: *NoeudSyntaxique) -> *IfStatement
 {
-    résultat := loge(IfStatement)
+    résultat := parseuse.crée_noeud(IfStatement)
     résultat.test = test
     résultat.consequent = consequent
     résultat.alternate = alternate
@@ -2617,9 +2896,9 @@ TypeofOperator :: struct {
     argument: *NoeudSyntaxique
 }
 
-crée_typeof_operator :: fonc (argument: *NoeudSyntaxique) -> *TypeofOperator
+crée_typeof_operator :: fonc (parseuse: *Parseuse, argument: *NoeudSyntaxique) -> *TypeofOperator
 {
-    résultat := loge(TypeofOperator)
+    résultat := parseuse.crée_noeud(TypeofOperator)
     résultat.argument = argument
     retourne résultat
 }
@@ -2714,9 +2993,9 @@ ThrowStatement :: struct {
     argument: *NoeudSyntaxique
 }
 
-crée_throw_statement :: fonc (argument: *NoeudSyntaxique) -> *ThrowStatement
+crée_throw_statement :: fonc (parseuse: *Parseuse, argument: *NoeudSyntaxique) -> *ThrowStatement
 {
-    résultat := loge(ThrowStatement)
+    résultat := parseuse.crée_noeud(ThrowStatement)
     résultat.argument = argument
     retourne résultat
 }
@@ -2760,9 +3039,9 @@ TryStatement :: struct {
     finalizer: *NoeudSyntaxique
 }
 
-crée_try_statement :: fonc (block: *NoeudSyntaxique, handler: *CatchClause, finalizer: *NoeudSyntaxique) -> *TryStatement
+crée_try_statement :: fonc (parseuse: *Parseuse, block: *NoeudSyntaxique, handler: *CatchClause, finalizer: *NoeudSyntaxique) -> *TryStatement
 {
-    résultat := loge(TryStatement)
+    résultat := parseuse.crée_noeud(TryStatement)
     résultat.block = block
     résultat.handler = handler
     résultat.finalizer = finalizer
@@ -2848,9 +3127,9 @@ CatchClause :: struct {
     body: *NoeudSyntaxique
 }
 
-crée_catch_clause :: fonc (param: *NoeudSyntaxique, body: *NoeudSyntaxique) -> *CatchClause
+crée_catch_clause :: fonc (parseuse: *Parseuse, param: *NoeudSyntaxique, body: *NoeudSyntaxique) -> *CatchClause
 {
-    résultat := loge(CatchClause)
+    résultat := parseuse.crée_noeud(CatchClause)
     résultat.param = param
     résultat.body = body
     retourne résultat
@@ -2920,9 +3199,9 @@ NewExpression :: struct {
     argument: *NoeudSyntaxique
 }
 
-crée_new_expression :: fonc (argument: *NoeudSyntaxique) -> *NewExpression
+crée_new_expression :: fonc (parseuse: *Parseuse, argument: *NoeudSyntaxique) -> *NewExpression
 {
-    résultat := loge(NewExpression)
+    résultat := parseuse.crée_noeud(NewExpression)
     résultat.argument = argument
     retourne résultat
 }
@@ -2990,6 +3269,382 @@ evaluate_new :: fonc (interpréteuse: *Interpréteuse, construct_expr: *NoeudSyn
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom SwitchStatement
+ * \{ */
+
+SwitchStatement :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_switch_statement
+
+    discriminant: *NoeudSyntaxique
+    cases: [..]*CaseClause
+    index_default_clause: z64
+}
+
+crée_switch_statement :: fonc (parseuse: *Parseuse, discriminant: *NoeudSyntaxique, cases: [..]*CaseClause, index_default_clause: z64) -> *SwitchStatement
+{
+    résultat := parseuse.crée_noeud(SwitchStatement)
+    résultat.discriminant = discriminant
+    résultat.cases = cases
+    résultat.index_default_clause = index_default_clause
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-switch-statement-runtime-semantics-evaluation */
+sur_exécution_switch_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    switch := base comme *SwitchStatement
+
+    // 1. Let exprRef be ? Evaluation of Expression.
+    completion := exécute_noeud(switch.discriminant, interpréteuse)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    expr_ref := completion.valeur
+
+    // 2. Let switchValue be ? GetValue(exprRef).
+    completion = get_value(interpréteuse, expr_ref)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    switch_value := completion.valeur.V
+
+    // 3. Let oldEnv be the running execution context's LexicalEnvironment.
+    mv := interpréteuse.mv
+    running_execution_context := mv.donne_running_execution_context()
+    old_env := running_execution_context.lexical_environment
+
+    // 4. Let blockEnv be NewDeclarativeEnvironment(oldEnv).
+    block_env := new_declarative_environment(old_env.donne_tas_de_mémoire(), old_env)
+
+    //  À FAIRE : 5. Perform BlockDeclarationInstantiation(CaseBlock, blockEnv).
+
+    // 6. Set the running execution context's LexicalEnvironment to blockEnv.
+    running_execution_context.lexical_environment = block_env
+
+    // 7. Let R be Completion(CaseBlockEvaluation of CaseBlock with argument switchValue).
+    R := case_block_evaluation(switch, interpréteuse, switch_value)
+
+    // 8. Set the running execution context's LexicalEnvironment to oldEnv.
+    running_execution_context.lexical_environment = old_env
+
+    // À FAIRE : ceci n'est pas spécifié, mais une complétion de BREAK est
+    // propagée car abrupte et fait échouer les programmes.
+    si R.est_break() {
+        R.type = CompletionRecord.Type.NORMAL
+    }
+
+    // 9. Return R.
+    retourne R
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-runtime-semantics-caseblockevaluation */
+case_block_evaluation :: fonc (switch: *SwitchStatement, interpréteuse: *Interpréteuse, input: Valeur) -> CompletionRecord
+{
+    si switch.cases.taille == 0 {
+        // 1. Return undefined.
+        retourne normal_completion(js_undefined)
+    }
+
+    si switch.index_default_clause == -1 {
+        // 1. Let V be undefined.
+        V := js_undefined
+
+        // 2. Let A be the List of CaseClause items in CaseClauses, in source text order.
+        A := switch.cases
+
+        // 3. Let found be false.
+        found := faux
+
+        // 4. For each CaseClause C of A, do
+        pour A {
+            // a. If found is false, then
+            saufsi found {
+                // i. Set found to ? CaseClauseIsSelected(C, input).
+                completion := case_clause_is_selected(interpréteuse, it, input)
+                saufsi completion.est_normal() {
+                    retourne completion
+                }
+
+                found = completion.valeur.V.est_true()
+            }
+            // b. If found is true, then
+            si found {
+                // i. Let R be Completion(Evaluation of C).
+                R := exécute_noeud(it, interpréteuse)
+
+                // ii. If R.[[Value]] is not empty, set V to R.[[Value]].
+                saufsi R.valeur.est_empty() {
+                    V = R.valeur.V
+                }
+
+                // iii. If R is an abrupt completion, return ? UpdateEmpty(R, V).
+                si R.est_abrupt() {
+                    retourne update_empty(R, V)
+                }
+            }
+        }
+
+        // 5. Return V.
+        retourne normal_completion(V)
+    }
+
+    // 1. Let V be undefined.
+    V := js_undefined
+
+    // 2. If the first CaseClauses is present, then
+        // a. Let A be the List of CaseClause items in the first CaseClauses, in source text order.
+    // 3. Else,
+        // a. Let A be a new empty List.
+    A := tableau_donne_tranche(switch.cases, 0, switch.index_default_clause - 1)
+
+    // 4. Let found be false.
+    found := faux
+
+    // 5. For each CaseClause C of A, do
+    pour A {
+        // a. If found is false, then
+        saufsi found {
+            // i. Set found to ? CaseClauseIsSelected(C, input).
+            completion := case_clause_is_selected(interpréteuse, it, input)
+            saufsi completion.est_normal() {
+                retourne completion
+            }
+
+            found = completion.valeur.V.est_true()
+        }
+        // b. If found is true, then
+        si found {
+            // i. Let R be Completion(Evaluation of C).
+            R := exécute_noeud(it, interpréteuse)
+
+            // ii. If R.[[Value]] is not empty, set V to R.[[Value]].
+            saufsi R.valeur.est_empty() {
+                V = R.valeur.V
+            }
+
+            // iii. If R is an abrupt completion, return ? UpdateEmpty(R, V).
+            si R.est_abrupt() {
+                retourne update_empty(R, V)
+            }
+        }
+    }
+
+    // 6. Let foundInB be false.
+    found_in_b := faux
+
+    // 7. If the second CaseClauses is present, then
+        // a. Let B be the List of CaseClause items in the second CaseClauses, in source text order.
+    // 8. Else,
+        // a. Let B be a new empty List.
+    B := tableau_donne_tranche(switch.cases, switch.index_default_clause + 1, switch.cases.taille - 1)
+
+    // 9. If found is false, then
+    saufsi found {
+        // a. For each CaseClause C of B, do
+        pour B {
+            // i. If foundInB is false, then
+            saufsi found_in_b {
+                // 1. Set foundInB to ? CaseClauseIsSelected(C, input).
+                completion := case_clause_is_selected(interpréteuse, it, input)
+                saufsi completion.est_normal() {
+                    retourne completion
+                }
+
+                found_in_b = completion.valeur.V.est_true()
+            }
+            // ii. If foundInB is true, then
+            si found_in_b {
+                // 1. Let R be Completion(Evaluation of CaseClause C).
+                R := exécute_noeud(it, interpréteuse)
+
+                // 2. If R.[[Value]] is not empty, set V to R.[[Value]].
+                saufsi R.valeur.est_empty() {
+                    V = R.valeur.V
+                }
+
+                // 3. If R is an abrupt completion, return ? UpdateEmpty(R, V).
+                si R.est_abrupt() {
+                    retourne update_empty(R, V)
+                }
+            }
+        }
+    }
+
+    // 10. If foundInB is true, return V.
+    si found_in_b {
+        retourne normal_completion(V)
+    }
+
+    // 11. Let defaultR be Completion(Evaluation of DefaultClause).
+    default_r := exécute_noeud(switch.cases[switch.index_default_clause], interpréteuse)
+    saufsi default_r.est_normal() {
+        retourne default_r
+    }
+
+    // 12. If defaultR.[[Value]] is not empty, set V to defaultR.[[Value]].
+    saufsi default_r.valeur.est_empty() {
+        V = default_r.valeur.V
+    }
+
+    // 13. If defaultR is an abrupt completion, return ? UpdateEmpty(defaultR, V).
+    si default_r.est_abrupt() {
+        retourne update_empty(default_r, V)
+    }
+
+    // 14. NOTE: The following is another complete iteration of the second CaseClauses.
+    // 15. For each CaseClause C of B, do
+    pour B {
+        // a. Let R be Completion(Evaluation of CaseClause C).
+        R := exécute_noeud(it, interpréteuse)
+
+        // b. If R.[[Value]] is not empty, set V to R.[[Value]].
+        saufsi R.valeur.est_empty() {
+            V = R.valeur.V
+        }
+
+        // c. If R is an abrupt completion, return ? UpdateEmpty(R, V).
+        si R.est_abrupt() {
+            retourne update_empty(R, V)
+        }
+    }
+
+    // 16. Return V.
+    retourne normal_completion(V)
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-runtime-semantics-caseclauseisselected */
+case_clause_is_selected :: fonc (interpréteuse: *Interpréteuse, clause: *CaseClause, input: Valeur) -> CompletionRecord
+{
+    // 1. Assert: C is an instance of the production CaseClause : case Expression : StatementListopt .
+    // NOTE : nous pouvons avoir default close
+    assert(clause.type == CaseClause)
+
+    // 2. Let exprRef be ? Evaluation of the Expression of C.
+    completion := exécute_noeud(clause.test, interpréteuse)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    expr_ref := completion.valeur
+
+    // 3. Let clauseSelector be ? GetValue(exprRef).
+    completion = get_value(interpréteuse, expr_ref)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    clause_selector := completion.valeur.V
+
+    // 4. Return IsStrictlyEqual(input, clauseSelector).
+    retourne normal_completion(is_strictly_equal(input, clause_selector))
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom CaseClause
+ * \{ */
+
+CaseClause :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_case_clause
+
+    test: *NoeudSyntaxique
+    consequent: *BlockStatement // StatementList
+}
+
+crée_case_clause :: fonc (parseuse: *Parseuse, test: *NoeudSyntaxique, consequent: *BlockStatement) -> *CaseClause
+{
+    résultat := parseuse.crée_noeud(CaseClause)
+    résultat.test = test
+    résultat.consequent = consequent
+    retourne résultat
+}
+
+sur_exécution_case_clause :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    case := base comme *CaseClause
+
+    si case.consequent == nul {
+        // 1. Return empty.
+        retourne normal_completion(js_undefined)
+    }
+
+    retourne exécute_noeud(case.consequent, interpréteuse)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom DefaultClause
+ * \{ */
+
+DefaultClause :: struct {
+    empl case_clause: CaseClause
+    type = #type_de_cette_structure
+}
+
+crée_default_clause :: fonc (parseuse: *Parseuse, consequent: *BlockStatement) -> *DefaultClause
+{
+    résultat := parseuse.crée_noeud(DefaultClause)
+    résultat.consequent = consequent
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom CommaExpression
+ * \{ */
+
+CommaExpression :: struct {
+    empl base: NoeudSyntaxique
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_comma_expression
+
+    left: *NoeudSyntaxique
+    right: *NoeudSyntaxique
+}
+
+crée_comma_expression :: fonc (parseuse: *Parseuse, left: *NoeudSyntaxique, right: *NoeudSyntaxique) -> *CommaExpression
+{
+    résultat := parseuse.crée_noeud(CommaExpression)
+    résultat.left = left
+    résultat.right = right
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-comma-operator-runtime-semantics-evaluation */
+sur_exécution_comma_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    comma := base comme *CommaExpression
+
+    // 1. Let lRef be ? Evaluation of Expression.
+    completion := exécute_noeud(comma.left, interpréteuse)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+
+    // 2. Perform ? GetValue(lRef).
+    completion = get_value(interpréteuse, completion.valeur)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+
+    // 3. Let rRef be ? Evaluation of AssignmentExpression.
+    completion = exécute_noeud(comma.right, interpréteuse)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+
+    // 4. Return ? GetValue(rRef).
+    retourne get_value(interpréteuse, completion.valeur)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Visiteuse arbre.
  * \{ */
 
@@ -3029,8 +3684,19 @@ visite_noeud_générique :: fonc (visiteuse: *VisiteuseNoeud, racine: *NoeudSynt
     valeur_eini.pointeur = racine
     valeur_eini.info = info
 
+    visite_structure(visiteuse, valeur_eini)
+
+    si visiteuse.direction_visite == DirectionVisiteNoeud.POST_ORDRE && visiteuse.rappel_pour_noeud {
+        visiteuse.rappel_pour_noeud(visiteuse, racine, info)
+    }
+}
+
+visite_structure :: fonc (visiteuse: *VisiteuseNoeud, valeur_eini: eini)
+{
+    info := valeur_eini.info comme *InfoTypeStructure
+
     pour info.membres {
-        si it.id == info_de(*NoeudSyntaxique) {
+        si est_type_adresse_noeud_syntaxique(it.id) {
             membre := eini_depuis_info_membre(valeur_eini, it)
             expression := mémoire(membre.pointeur comme **NoeudSyntaxique)
             si expression == nul {
@@ -3047,7 +3713,7 @@ visite_noeud_générique :: fonc (visiteuse: *VisiteuseNoeud, racine: *NoeudSynt
             continue
         }
 
-        si it.id == info_de([..]*NoeudSyntaxique) {
+        si est_type_adresse_tableau_noeud_syntaxique(it.id) {
             membre := eini_depuis_info_membre(valeur_eini, it)
 
             tableau := mémoire(membre.pointeur comme *[..]*NoeudSyntaxique)
@@ -3067,30 +3733,50 @@ visite_noeud_générique :: fonc (visiteuse: *VisiteuseNoeud, racine: *NoeudSynt
             continue
         }
 
-        si it.id == info_de(NoeudScope) {
-            // À FAIRE : assert(est_base)
-            scope := racine comme *NoeudScope
-            tableau := scope.enfants
-
-            pour noeud dans tableau {
-                visiteuse.profondeur += 1
-                visite_noeud(visiteuse, noeud, visite_noeud_générique)
-                visiteuse.profondeur -= 1
-            }
-
-            si visiteuse.rappel_pour_tableau {
-                visiteuse.profondeur += 1
-                visiteuse.rappel_pour_tableau(visiteuse, tableau)
-                visiteuse.profondeur -= 1
-            }
-
+        si it.id.id == GenreInfoType.STRUCTURE && est_struct_ou_employeuse_de(it.id comme *InfoTypeStructure, info_de(NoeudSyntaxique)) {
+            membre := eini_depuis_info_membre(valeur_eini, it)
+            visiteuse.profondeur -= 1
+            visite_structure(visiteuse, membre)
+            visiteuse.profondeur += 1
             continue
         }
     }
+}
 
-    si visiteuse.direction_visite == DirectionVisiteNoeud.POST_ORDRE && visiteuse.rappel_pour_noeud {
-        visiteuse.rappel_pour_noeud(visiteuse, racine, info)
+est_type_adresse_noeud_syntaxique :: fonc (infos: *InfoType) -> bool
+{
+    si infos == info_de(*NoeudSyntaxique) {
+        retourne vrai
     }
+
+    saufsi infos.id == GenreInfoType.POINTEUR {
+        retourne faux
+    }
+
+    type_pointeur := infos comme *InfoTypePointeur
+    saufsi type_pointeur.type_pointé {
+        retourne faux
+    }
+    saufsi type_pointeur.type_pointé.id == GenreInfoType.STRUCTURE {
+        retourne faux
+    }
+
+    type_structure := type_pointeur.type_pointé comme *InfoTypeStructure
+    retourne est_struct_ou_employeuse_de(type_structure, info_de(NoeudSyntaxique))
+}
+
+est_type_adresse_tableau_noeud_syntaxique :: fonc (infos: *InfoType) -> bool
+{
+    si infos == info_de([..]*NoeudSyntaxique) {
+        retourne vrai
+    }
+
+    saufsi infos.id == GenreInfoType.TABLEAU {
+        retourne faux
+    }
+
+    type_tableau := infos comme *InfoTypeTableau
+    retourne est_type_adresse_noeud_syntaxique(type_tableau.type_pointé)
 }
 
 /** \} */

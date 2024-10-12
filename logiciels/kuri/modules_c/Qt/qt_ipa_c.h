@@ -256,7 +256,8 @@ union QT_AbstractSocket {
     O(QMimeData, QT_MimeData, mimedata)                                                           \
     O(QClipboard, QT_Clipboard, clipboard)                                                        \
     O(QShortcut, QT_Shortcut, shortcut)                                                           \
-    O(QThread, QT_Thread, thread)
+    O(QThread, QT_Thread, thread)                                                                 \
+    O(QWindow, QT_Window, window)
 
 #define PRODECLARE_TYPES_OBJETS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_OBJETS(PRODECLARE_TYPES_OBJETS)
@@ -1264,6 +1265,14 @@ void QT_thread_wait(struct QT_Thread *thread);
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Window
+ * \{ */
+
+void QT_window_request_update(struct QT_Window *window);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Position
  * \{ */
 
@@ -1752,6 +1761,8 @@ void QT_widget_definis_comportement_focus(union QT_Generic_Widget widget,
 void QT_widget_accepte_drop(union QT_Generic_Widget widget, bool ouinon);
 
 struct QT_Style *QT_widget_donne_style(union QT_Generic_Widget widget);
+
+struct QT_Window *QT_widget_donne_window_handle(union QT_Generic_Widget widget);
 
 /** \} */
 

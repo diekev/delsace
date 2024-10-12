@@ -117,6 +117,9 @@ RappelsInterface :: struct {
     sur_est_exécuté_sur_file_parallèle: fonc(*RappelsInterface, *TraversableNavigable)(bool)
     sur_création_file_parallèle_pour_traversable: fonc(*RappelsInterface)(z64)
     sur_affichage_alerte: fonc(*RappelsInterface, DOMString)(rien)
+    sur_création_timeout: fonc(*RappelsInterface, *Algorithm, z32)(z32)
+    sur_destruction_timeout: fonc(*RappelsInterface, z32)(rien)
+    sur_request_animation_frame: fonc(*RappelsInterface)(rien)
 }
 
 détruit_rappels :: fonc (rappels: *RappelsInterface)
@@ -250,6 +253,36 @@ affiche_alerte :: fonc (user_agent: *UserAgent, message: DOMString)
         retourne
     }
     rappels.sur_affichage_alerte(rappels, message)
+}
+
+crée_timeout :: fonc (user_agent: *UserAgent, algorithm: *Algorithm, time_out: z32) -> z32
+{
+    rappels := user_agent.rappels_interface
+    saufsi rappels && rappels.sur_création_timeout {
+        retourne -1
+    }
+    retourne rappels.sur_création_timeout(rappels, algorithm, time_out)
+}
+
+détruit_timeout :: fonc (user_agent: *UserAgent, id: z32)
+{
+    si id == -1 {
+        retourne
+    }
+    rappels := user_agent.rappels_interface
+    saufsi rappels && rappels.sur_destruction_timeout {
+        retourne
+    }
+    rappels.sur_destruction_timeout(rappels, id)
+}
+
+request_animation_frame :: fonc (user_agent: *UserAgent)
+{
+    rappels := user_agent.rappels_interface
+    saufsi rappels && rappels.sur_request_animation_frame {
+        retourne
+    }
+    rappels.sur_request_animation_frame(rappels)
 }
 
 /** \} */

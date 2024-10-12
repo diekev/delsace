@@ -241,6 +241,33 @@ append_event_path :: fonc (event: *Event, invocation_target: *EventTarget, shado
 /** } */
 
 /* ------------------------------------------------------------------------- */
+/** \nom MouseEvent
+ * https://w3c.github.io/uievents/#mouseevent
+ * https://drafts.csswg.org/cssom-view/#extensions-to-the-mouseevent-interface
+ * \{ */
+
+MouseEvent :: struct {
+    empl event: Event
+    table = *table_virtuelle_mouse_event
+
+    screen_x: r64
+    screen_y: r64
+    offset_x: r64
+    offset_y: r64
+}
+
+#portée_fichier
+
+table_virtuelle_mouse_event := TableVirtuellePlatformObject(
+    classe = MouseEvent,
+    sur_destruction = event_sur_destruction
+)
+
+#portée_export
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom EventListener
  * https://dom.spec.whatwg.org/#callbackdef-eventlistener
  * \{ */
@@ -274,7 +301,6 @@ TableVirtuelleEventTarget :: struct {
     empl platform_object: TableVirtuellePlatformObject
 
     sur_destruction = event_target_sur_destruction
-    sur_initialisation_interface = event_target_sur_initialisation_interface
 
     /* https://dom.spec.whatwg.org/#get-the-parent */
     sur_get_the_parent: fonc(*EventTarget, *Event)(*EventTarget) = event_target_sur_get_the_parent
@@ -288,8 +314,9 @@ TableVirtuelleEventTarget :: struct {
 
 event_target_sur_destruction :: fonc (base: *JavaScript.Cellule)
 {
+    platform_object_sur_destruction(base)
     target := base comme *EventTarget
-    event_target_détruit_données(target)
+    déloge(target.listeners)
 }
 
 /* Implémentation défaut pour get_the_parent. */
@@ -315,15 +342,6 @@ EventTarget :: struct {
 
     listeners: [..]EventListenerEntry
 }
-
-#portée_module
-
-event_target_détruit_données :: fonc (event_target: *EventTarget)
-{
-    déloge(event_target.listeners)
-}
-
-#portée_fichier
 
 donne_table :: fonc (event_target: *EventTarget) -> *TableVirtuelleEventTarget #enligne
 {
@@ -482,11 +500,26 @@ retarget :: fonc (a: *EventTarget, b: *EventTarget @inutilisée) -> *EventTarget
 
         // 2. Set A to A’s root’s host.
     //}
-    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+    // imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
     retourne a
 }
 
 #portée_export
+
+/* Enveloppe pour IDL où EventType n'est pas convertis. */
+add_event_listener :: fonc (target: *EventTarget, type: ChaineUTF16Unique, callback: *EventListener, options : *AddEventListenerOptions = nul)
+{
+    chn_type := converti_vers_chaine(type.donne_chaine_utf16())
+    diffère déloge(chn_type)
+
+    valeur_type, trouvé := donne_valeur_énum_pour_nom(info_de(EventType), chn_type)
+    saufsi trouvé {
+        // À FAIRE : que faire ?
+        retourne
+    }
+
+    add_event_listener(target, valeur_type comme EventType, callback, options)
+}
 
 /* https://dom.spec.whatwg.org/#dom-eventtarget-addeventlistener */
 add_event_listener :: fonc (target: *EventTarget, type: EventType, callback: *EventListener, options : *AddEventListenerOptions = nul)
@@ -766,7 +799,7 @@ dispatch :: fonc (event: *Event, target: *EventTarget, legacy_target_override : 
 /* https://dom.spec.whatwg.org/#concept-event-listener-invoke */
 invoke :: fonc (segment: &Event.Path, event: *Event, phase: chaine, legacy_output_did_listeners_throw : *bool = nul @inutilisée)
 {
-    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+    // imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
     event.current_target = segment.invocation_target
     inner_invoke(event, segment.invocation_target.listeners, phase)
 }
@@ -774,13 +807,17 @@ invoke :: fonc (segment: &Event.Path, event: *Event, phase: chaine, legacy_outpu
 /* https://dom.spec.whatwg.org/#concept-event-listener-invoke */
 inner_invoke :: fonc (event: *Event, listeners: []EventTarget.EventListenerEntry, phase: chaine)
 {
-    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+    // imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
 
     arguments: [..]JavaScript.Valeur
     diffère déloge(arguments)
     tableau_ajoute(*arguments, JavaScript.Valeur(Object = event))
 
     pour listeners {
+        si it.type != event.type {
+            continue
+        }
+
         si it.removed {
             continue
         }
@@ -800,7 +837,7 @@ inner_invoke :: fonc (event: *Event, listeners: []EventTarget.EventListenerEntry
 /* https://webidl.spec.whatwg.org/#call-a-user-objects-operation */
 call_a_user_object_operation :: fonc (value: JavaScript.Valeur, args: []JavaScript.Valeur, this_arg: JavaScript.Valeur)
 {
-    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+    // imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
 
     target := JavaScript.donne_objet(this_arg) comme *EventTarget
 
@@ -813,22 +850,12 @@ call_a_user_object_operation :: fonc (value: JavaScript.Valeur, args: []JavaScri
     diffère  JavaScript.détruit_données_interpreteuse(*interpréteuse)
     interpréteuse.mv = JavaScript.donne_mv(realm)
 
-    _ := JavaScript.call(*interpréteuse, value, this_arg, args)
+    evaluation_status := JavaScript.call(*interpréteuse, value, this_arg, args)
+    saufsi JavaScript.est_normal(evaluation_status) {
+        imprime("[%] %\n", #nom_de_cette_fonction, evaluation_status)
+    }
 
     cleanup_after_running_script(settings)
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Interface JavaScript
- * \{ */
-
-#portée_fichier
-
-event_target_sur_initialisation_interface :: fonc (base: *PlatformObject)
-{
-    définis_prototype(base, PrototypesPlatformObject.EventTarget)
 }
 
 /** \} */
@@ -841,15 +868,8 @@ event_target_sur_initialisation_interface :: fonc (base: *PlatformObject)
 #portée_fichier
 
 table_virtuelle_abort_signal := TableVirtuelleEventTarget(
-    classe = AbortSignal,
-    sur_destruction = abort_signal_sur_destruction
+    classe = AbortSignal
 )
-
-abort_signal_sur_destruction :: fonc (base: *JavaScript.Cellule)
-{
-    abort_signal := base comme *AbortSignal
-    event_target_détruit_données(abort_signal)
-}
 
 #portée_export
 

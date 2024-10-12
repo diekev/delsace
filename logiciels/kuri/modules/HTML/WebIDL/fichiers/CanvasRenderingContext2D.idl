@@ -1,0 +1,6 @@
+interface CanvasRenderingContext2D {
+    readonly attribute HTMLCanvasElement canvas;
+
+    attribute DOMString fillStyle;
+    undefined fillRect(unrestricted double x, unrestricted double y, unrestricted double w, unrestricted double h);
+}

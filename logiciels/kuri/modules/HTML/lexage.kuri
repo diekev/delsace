@@ -226,6 +226,19 @@ initialise_lexeuse :: fonc (document: &ChaineUTF32) -> Lexeuse
     retourne Lexeuse(document = document)
 }
 
+initialise_flux_entrée :: fonc (lexeuse: *Lexeuse, entrée: ChaineUTF16)
+{
+    chn := converti_vers_chaine(entrée)
+    diffère déloge(chn)
+
+    document := crée_chaine_utf32(chn)
+    /* Ajout un point de code pour signifer la fin du fichier, ceci
+     * nous évite d'avoir un test pour pour chaque point_de_code. */
+    tableau_ajoute(*document.points_de_code, FIN_DE_FICHIER)
+
+    lexeuse.document = document
+}
+
 détruit_lexeuse :: fonc (lexeuse: *Lexeuse)
 {
     détruit_chaine(lexeuse.nom_lexème_courant)

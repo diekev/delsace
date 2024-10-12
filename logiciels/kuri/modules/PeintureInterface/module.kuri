@@ -185,7 +185,7 @@ dessine_image :: fonc (peintre: *Peintre, image: TamponImageGrise8Bit, rectangle
 
 dessine_image :: fonc (peintre: *Peintre, image: TamponImageRVBA8Bit, rectangle: RectanglePeintre) -> rien #enligne
 {
-    peintre.rappel_dessine_image_rvba_8bit(peintre, TamponImageRVBA32Bit, rectangle)
+    peintre.rappel_dessine_image_rvba_8bit(peintre, image, rectangle)
 }
 
 dessine_image :: fonc (peintre: *Peintre, image: TamponImageRVBA32Bit, rectangle: RectanglePeintre) -> rien #enligne
@@ -245,6 +245,13 @@ PeintreDessin :: struct {
 crée_peintre_module_dessin :: fonc (taille_cannevas: Taille) -> *PeintreDessin
 {
     peintre := loge(PeintreDessin)
+    initialise_peintre_dessin(peintre)
+    définis_taille_cannevas(peintre, taille_cannevas)
+    retourne peintre
+}
+
+initialise_peintre_dessin :: fonc (peintre: *PeintreDessin)
+{
     peintre.rappel_définis_taille_cannevas = définis_taille_cannevas_dessin
     peintre.rappel_donne_taille_cannevas = donne_taille_cannevas_dessin
     peintre.rappel_remplis_arrière_plan = remplis_arrière_plan_dessin
@@ -264,8 +271,6 @@ crée_peintre_module_dessin :: fonc (taille_cannevas: Taille) -> *PeintreDessin
     peintre.rappel_donne_fonte = donne_fonte_dessin
     peintre.rappel_dessine_tampon_sur_écran = dessine_tampon_sur_écran_dessin
     peintre.rappel_définis_ciseau = définis_ciseau_dessin
-    définis_taille_cannevas(peintre, taille_cannevas)
-    retourne peintre
 }
 
 donne_cercle_dessin :: fonc (cercle: CerclePeintre) -> Cercle(z32)

@@ -124,10 +124,9 @@ pour_chaque_chemin :: fonc (chemin: CheminFichier, données: *$T, rappel: fonc(C
 
 opérateur pour :: fonc (exploratrice: ExploratriceFichier) -> CheminFichier
 {
-    // À FAIRE : cas pour ExploratriceFichier temporaire
-    // diffère détruit(exploratrice)
-
     exploratrice = crée_exploratrice_fichier(exploratrice.racine)
+    diffère détruit(exploratrice)
+
     index := 0
 
     tantque !exploratrice.exploration_finie() {
