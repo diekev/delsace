@@ -293,7 +293,9 @@ associativité_pour_opérateur :: fonc (genre: GenreLexème) -> Associativité
         MoinsUnaire,
         NonBinaire,
         NonLogique,
-        PlusUnaire {
+        PlusUnaire,
+        Interrogation,
+        DoublePoint {
             retourne Associativité.Droite
         }
         PlusPlus,
@@ -302,6 +304,9 @@ associativité_pour_opérateur :: fonc (genre: GenreLexème) -> Associativité
         }
         New {
             retourne Associativité.Gauche // N/A
+        }
+        Virgule {
+            retourne Associativité.Gauche
         }
         sinon {
             retourne Associativité.Gauche
@@ -313,6 +318,9 @@ associativité_pour_opérateur :: fonc (genre: GenreLexème) -> Associativité
 précédence_pour_opérateur :: fonc (genre: GenreLexème) -> z32
 {
     discr genre {
+        Virgule {
+            retourne 1
+        }
         Égal,
         PlusÉgal,
         MoinsÉgal,
@@ -323,7 +331,8 @@ précédence_pour_opérateur :: fonc (genre: GenreLexème) -> z32
         DécalageDroiteÉgal,
         EtBinaireÉgal,
         OuBinaireÉgal,
-        OuExclusifÉgal {
+        OuExclusifÉgal,
+        Interrogation {
             retourne 2
         }
         OuLogique {
@@ -475,13 +484,13 @@ est_lexème_expression_secondaire :: fonc (genre: GenreLexème) -> bool
         ParenthèseOuvrante,
         CrochetOuvrant,
         Interrogation,
-        DoublePoint,
         Coalesce,
         EtLogiqueÉgal,
         OuLogiqueÉgal,
         CoalesceÉgal,
         DécalageDroiteNaturel,
-        DécalageDroiteNaturelÉgal {
+        DécalageDroiteNaturelÉgal,
+        Virgule {
             retourne vrai
         }
         sinon {
@@ -498,7 +507,12 @@ est_lexème_instruction :: fonc (genre: GenreLexème) -> bool
         Return,
         If,
         Try,
-        Throw {
+        Throw,
+        Continue,
+        Break,
+        Switch,
+        While,
+        Do {
             retourne vrai
         }
         sinon {
