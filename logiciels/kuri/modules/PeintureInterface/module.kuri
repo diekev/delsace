@@ -261,6 +261,7 @@ initialise_peintre_dessin :: fonc (peintre: *PeintreDessin)
 {
     peintre.rappel_définis_taille_cannevas = définis_taille_cannevas_dessin
     peintre.rappel_donne_taille_cannevas = donne_taille_cannevas_dessin
+    peintre.rappel_termine_dessin = termine_dessin_dessin
     peintre.rappel_remplis_arrière_plan = remplis_arrière_plan_dessin
     peintre.rappel_dessine_rectangle = dessine_rectangle_dessin
     peintre.rappel_remplis_rectangle = remplis_rectangle_dessin
@@ -372,6 +373,10 @@ donne_taille_cannevas_dessin :: fonc (peintre: *Peintre) -> Taille
     peintre_dessin := peintre comme *PeintreDessin
     rect := peintre_dessin.tampon_de_rendu.rect
     retourne Taille(Largeur(rect.largeur), Hauteur(rect.hauteur))
+}
+
+termine_dessin_dessin :: fonc (peintre: *Peintre @inutilisée)
+{
 }
 
 remplis_arrière_plan_dessin :: fonc (peintre: *Peintre, couleur_peintre: CouleurPeintre)
