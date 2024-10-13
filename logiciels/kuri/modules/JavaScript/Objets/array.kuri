@@ -1,4 +1,6 @@
 importe Chaine
+importe Fondation
+importe Numérique
 
 /* ------------------------------------------------------------------------- */
 /** \nom ObjetArray
@@ -7,7 +9,7 @@ importe Chaine
 
 #portée_fichier
 
-table_virtuelle_objet_array := TableVirtuelleObject(classe = ObjetArray, sur_destruction = sur_destruction_objet)
+table_virtuelle_objet_array := TableVirtuelleObject(classe = ObjetArray, sur_destruction = sur_destruction_objet, sur_define_own_property = array_instance_define_own_property)
 
 #portée_export
 
@@ -24,6 +26,124 @@ crée_array :: fonc (tas_de_mémoire: *TasDeMémoire, array_prototype: *ArrayPro
     résultat.ajoute_propriété(STR_length, Valeur(Number = nombre_éléments comme r64), Writable)
 
     retourne résultat
+}
+
+#portée_fichier
+
+is_non_negative_integral_number :: fonc (valeur: Valeur) -> bool
+{
+    saufsi valeur.est_nombre() {
+        retourne faux
+    }
+    n := valeur.Number
+    si n < 0.0 {
+        retourne faux
+    }
+    in := n comme n64
+    retourne n == in comme r64
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#array-index */
+is_array_index :: fonc (property_key: PropertyKey) -> bool
+{
+    saufsi property_key.est_chaine() {
+        retourne faux
+    }
+
+    /* À FAIRE */
+    texte := property_key.String.donne_chaine_utf16()
+
+    texte_utf8 := converti_vers_chaine(texte)
+    diffère déloge(texte_utf8)
+
+    résultat := tente extrait_r64(texte_utf8) piège _ {
+        retourne faux
+    }
+
+    retourne is_non_negative_integral_number(résultat)
+}
+
+to_uint32 :: fonc (property_key: PropertyKey) -> n32
+{
+    texte := property_key.String.donne_chaine_utf16()
+
+    /* À FAIRE */
+    texte_utf8 := converti_vers_chaine(texte)
+    diffère déloge(texte_utf8)
+
+    résultat := tente extrait_r64(texte_utf8) piège nonatteignable
+    retourne résultat comme n32
+}
+
+/* 10.4.2.1 [[DefineOwnProperty]] ( P, Desc )
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-array-exotic-objects-defineownproperty-p-desc */
+array_instance_define_own_property :: fonc (object: *Object, property_key: PropertyKey, desc: &PropertyDescriptor) -> CompletionRecord
+{
+    A := object comme *ObjetArray
+
+    // 1. If P is "length", then
+    si property_key == STR_length {
+        // a. Return ? ArraySetLength(A, Desc).
+        retourne array_set_length(A, desc)
+    }
+
+    // 2. Else if P is an array index, then
+    si is_array_index(property_key) {
+        // a. Let lengthDesc be OrdinaryGetOwnProperty(A, "length").
+        length_desc := ordinary_get_own_property(A, STR_length).valeur.P
+
+        // b. Assert: IsDataDescriptor(lengthDesc) is true.
+        assert(is_data_descriptor(length_desc))
+
+        // c. Assert: lengthDesc.[[Configurable]] is false.
+        assert(length_desc.configurable == faux)
+
+        // d. Let length be lengthDesc.[[Value]].
+        length := length_desc.value.Quelque
+
+        // e. Assert: length is a non-negative integral Number.
+        assert(is_non_negative_integral_number(length))
+
+        // f. Let index be ! ToUint32(P).
+        index := to_uint32(property_key)
+
+        // g. If index ≥ length and lengthDesc.[[Writable]] is false, return false.
+        si index >= length.Number comme n32 && length_desc.writable == faux {
+            retourne normal_completion(Valeur(Boolean = faux))
+        }
+
+        // h. Let succeeded be ! OrdinaryDefineOwnProperty(A, P, Desc).
+        succeeded := ordinary_define_own_property(A, property_key, desc).valeur.V   
+
+        // i. If succeeded is false, return false.
+        si succeeded.est_false() {
+            retourne normal_completion(Valeur(Boolean = faux))
+        }
+
+        // j. If index ≥ length, then
+        si index >= length.Number comme n32 {
+            // i. Set lengthDesc.[[Value]] to index + 1𝔽.
+            length_desc.value = Valeur(Number = (index + 1) comme r64)
+            // ii. Set succeeded to ! OrdinaryDefineOwnProperty(A, "length", lengthDesc).
+            succeeded = ordinary_define_own_property(A, STR_length, length_desc).valeur.V
+            // iii. Assert: succeeded is true.
+            assert(succeeded.est_true())
+        }
+
+        // k. Return true.
+        retourne normal_completion(Valeur(Boolean = vrai))
+    }
+
+    // 3. Return ? OrdinaryDefineOwnProperty(A, P, Desc).
+    retourne ordinary_define_own_property(object, property_key, desc)
+}
+
+/* 10.4.2.4 ArraySetLength ( A, Desc ) 
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-arraysetlength */
+array_set_length :: fonc (A: *ObjetArray, desc: &PropertyDescriptor) -> CompletionRecord
+{
+    /* À FAIRE */
+    retourne ordinary_define_own_property(A, STR_length, desc)
 }
 
 /** \} */

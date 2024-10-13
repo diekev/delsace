@@ -808,6 +808,18 @@ PropertyKey :: union {
     Symbol: *Symbol
 }
 
+est_chaine :: fonc (key: PropertyKey) -> bool
+{
+    discr key {
+        String {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
 est_symbol :: fonc (key: PropertyKey) -> bool
 {
     discr key {
