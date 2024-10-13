@@ -515,7 +515,7 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
     callee_context := interpréteuse.donne_running_execution_context()
 
     // 2. Let code be func.[[ECMAScriptCode]].
-    // code := func.corps
+    code := func.corps
 
     // 3. Let strict be func.[[Strict]].
     strict := func.strict
@@ -541,6 +541,9 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
     has_parameter_expression := faux
 
     // 9. Let varNames be the VarDeclaredNames of code.
+    var_names := donne_var_declared_names(code)
+    diffère déloge(var_names)
+
     // 10. Let varDeclarations be the VarScopedDeclarations of code.
     // 11. Let lexicalNames be the LexicallyDeclaredNames of code.
     // 12. Let functionNames be a new empty List.
@@ -629,42 +632,25 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
     // 27. If hasParameterExpressions is false, then
     si has_parameter_expression == faux {
         // a. NOTE: Only a single Environment Record is needed for the parameters and top-level vars.
-        // b. Let instantiatedVarNames be a copy of the List parameterBindings.
-        // c. For each element n of varNames, do
-        assert(func.corps != nul && func.corps.type == BlockStatement)
-        bloc := func.corps comme *BlockStatement
 
+        // b. Let instantiatedVarNames be a copy of the List parameterBindings.
         instantiated_names: [..]ECMAString
         diffère déloge(instantiated_names)
 
-        pour bloc.enfants {
-            si it.type != VariableDeclaration {
-                continue
-            }
+        pour parameter_names {
+            ensemble_ajoute(*instantiated_names, it)
+        }
 
-            var_decl := it comme *VariableDeclaration
-            si var_decl.nature != VariableDeclarationKind.Var {
-                continue
-            }
-
+        // c. For each element n of varNames, do
+        pour var_names {
             // i. If instantiatedVarNames does not contain n, then
+            saufsi ensemble_possède(*instantiated_names, it) {
                 // 1. Append n to instantiatedVarNames.
+                ensemble_ajoute(*instantiated_names, it)
                 // 2. Perform ! env.CreateMutableBinding(n, false).
+                env.create_mutable_binding(it, faux)
                 // 3. Perform ! env.InitializeBinding(n, undefined).
-
-            pour expr dans var_decl.expressions {
-                declarator := expr comme *VariableDeclarator
-                assert(declarator.id.type == Identifier)
-                id := declarator.id comme *Identifier
-
-                si ensemble_possède(*instantiated_names, id.nom) {
-                    continue
-                }
-
-                env.create_mutable_binding(id.nom, faux)
-                _ := env.initialize_binding(id.nom, js_undefined)
-
-                ensemble_ajoute(*instantiated_names, id.nom)
+                _ := env.initialize_binding(it, js_undefined)
             }
         }
 

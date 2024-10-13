@@ -3916,3 +3916,55 @@ imprime_mémoire_arbre :: fonc (noeud: *NoeudSyntaxique)
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Rassemblement des noms des déclarations de variables.
+ * \{ */
+
+VisteuseDéclarationVar :: struct {
+    empl base: VisiteuseNoeud
+    noms: [..]ECMAString
+}
+
+crée_visiteuse_pour_déclarations_var :: fonc (résultat: *VisteuseDéclarationVar, noeud: *NoeudSyntaxique)
+{
+    rappel_pour_noeud :: fonc (base: *VisiteuseNoeud, noeud: *NoeudSyntaxique, info: *InfoTypeStructure @inutilisée) -> VisiteEnfants
+    {
+        visiteuse := base comme *VisteuseDéclarationVar
+
+        si noeud.type == FunctionDeclaration || noeud.type == FunctionExpression {
+            retourne VisiteEnfants.Non
+        }
+
+        si noeud.type == VariableDeclaration {
+            var_decl := noeud comme *VariableDeclaration
+            si var_decl.nature != VariableDeclarationKind.Var {
+                retourne VisiteEnfants.Non
+            }
+        }
+
+        si noeud.type == VariableDeclarator {
+            declarator := noeud comme *VariableDeclarator
+            assert(declarator.id.type == Identifier)
+            id := declarator.id comme *Identifier
+            tableau_ajoute(*visiteuse.noms, id.nom)
+        }
+
+        retourne VisiteEnfants.Oui
+    }
+
+    résultat.arbre = noeud
+    résultat.rappel_pour_noeud = rappel_pour_noeud
+    résultat.direction_visite = DirectionVisiteNoeud.PRÉ_ORDRE
+}
+
+/* https://tc39.es/ecma262/multipage/syntax-directed-operations.html#sec-static-semantics-vardeclarednames */
+donne_var_declared_names :: fonc (noeud: *NoeudSyntaxique) -> [..]ECMAString
+{
+    visiteuse: VisteuseDéclarationVar
+    crée_visiteuse_pour_déclarations_var(*visiteuse, noeud)
+    visite_noeud(*visiteuse, noeud, visite_noeud_générique)
+    retourne visiteuse.noms
+}
+
+/** \} */
