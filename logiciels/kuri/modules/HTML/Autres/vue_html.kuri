@@ -1141,6 +1141,7 @@ VueRenduPage :: struct {
     dessine_tampon_id: bool
 
     peintre: *Peintre
+    peintre_id: *Peintre
 }
 
 crée_vue_rendu_page :: fonc (fenêtre_principale: *QT_Fenetre_Principale, parent: QT_Generic_Widget, page: *PageWeb) -> *QT_GLWidget
@@ -1159,6 +1160,9 @@ vue_rendu_page_sur_destruction :: fonc (rappels: *QT_Rappels_GLWidget)
     vue_rendu_page := rappels comme *VueRenduPage
     si vue_rendu_page.peintre {
         détruit_peintre(vue_rendu_page.peintre)
+    }
+    si vue_rendu_page.peintre_id {
+        détruit_peintre(vue_rendu_page.peintre_id)
     }
     déloge(vue_rendu_page)
 }
@@ -1182,6 +1186,10 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
 
     saufsi vue_rendu_page.peintre {
         vue_rendu_page.peintre = crée_peintre_igumi(taille_cannevas)
+    }
+
+    saufsi vue_rendu_page.peintre_id {
+        vue_rendu_page.peintre_id = crée_peintre_igumi(taille_cannevas)
     }
 
     peintre := vue_rendu_page.peintre
@@ -1272,6 +1280,7 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
         }
     }
 
+    ctx.peintre = vue_rendu_page.peintre_id
     CSS.dessine_tampon_id(arbre, *ctx)
 
     /* Nous devrions faire ça plus haut mais il semblerait qu'il manque, ou qu'il y a une préemption, des ajournements. */
