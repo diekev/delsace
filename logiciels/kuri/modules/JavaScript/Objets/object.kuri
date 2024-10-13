@@ -76,6 +76,7 @@ Object :: struct {
     propriétés: [..]Propriété
 
     prototype: *Object
+    extensible := vrai
 }
 
 donne_table :: fonc (object: *Object) -> *TableVirtuelleObject
