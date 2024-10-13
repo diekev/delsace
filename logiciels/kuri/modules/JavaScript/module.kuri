@@ -673,6 +673,10 @@ vers_chaine :: fonc (realm: *Realm, argument: Valeur) -> CompletionRecord
     si argument.est_nombre() {
         // À FAIRE : implémente selon le standard.
         n := argument.Number
+        si est_nan(n) {
+            retourne normal_completion(crée_chaine(realm, STR_NaN))
+        }
+
         chn := imprime_chaine("%", n)
         diffère déloge(chn)
 
