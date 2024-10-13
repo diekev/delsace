@@ -8,7 +8,7 @@ importe Temps
 
 #portée_fichier
 
-table_virtuelle_objet_date := TableVirtuelleObject(classe = DateObject, sur_destruction = sur_destruction_objet)
+table_virtuelle_objet_date := TableVirtuelleObject(classe = DateObject)
 
 #portée_export
 
@@ -34,7 +34,7 @@ crée_date :: fonc (tas_de_mémoire: *TasDeMémoire, date_prototype: *DateProtot
 
 #portée_fichier
 
-table_virtuelle_date_constructor := TableVirtuelleBuiltinFunction(classe = DateConstructor, sur_destruction = sur_destruction_objet)
+table_virtuelle_date_constructor := TableVirtuelleBuiltinFunction(classe = DateConstructor)
 
 #portée_export
 
@@ -131,7 +131,7 @@ date_constructor_call_or_construct :: fonc (empl params: *ParamètresCallOrConst
 
 #portée_fichier
 
-table_virtuelle_date_prototype := TableVirtuelleObject(classe = DatePrototype, sur_destruction = sur_destruction_objet)
+table_virtuelle_date_prototype := TableVirtuelleObject(classe = DatePrototype)
 
 #portée_export
 

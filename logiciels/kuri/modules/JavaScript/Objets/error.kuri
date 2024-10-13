@@ -8,7 +8,7 @@ importe Fondation
 
 #portée_fichier
 
-table_virtuelle_error := TableVirtuelleObject(classe = Error, sur_destruction = sur_destruction_objet)
+table_virtuelle_error := TableVirtuelleObject(classe = Error)
 
 #portée_export
 
@@ -26,7 +26,7 @@ Error :: struct {
 
 #portée_fichier
 
-table_virtuelle_error_prototype := TableVirtuelleObject(classe = ErrorPrototype, sur_destruction = sur_destruction_objet)
+table_virtuelle_error_prototype := TableVirtuelleObject(classe = ErrorPrototype)
 
 #portée_export
 
@@ -216,7 +216,7 @@ error_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> Compl
 
 #portée_fichier
 
-table_virtuelle_reference_error := TableVirtuelleObject(classe = ReferenceError, sur_destruction = sur_destruction_objet)
+table_virtuelle_reference_error := TableVirtuelleObject(classe = ReferenceError)
 
 #portée_export
 
@@ -251,7 +251,7 @@ lance_reference_error :: fonc (realm: *Realm, message: chaine) -> CompletionReco
 
 #portée_fichier
 
-table_virtuelle_reference_error_prototype := TableVirtuelleObject(classe = ReferenceErrorPrototype, sur_destruction = sur_destruction_objet)
+table_virtuelle_reference_error_prototype := TableVirtuelleObject(classe = ReferenceErrorPrototype)
 
 #portée_export
 
@@ -276,7 +276,7 @@ crée_reference_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, protot
 
 #portée_fichier
 
-table_virtuelle_syntax_error := TableVirtuelleObject(classe = SyntaxError, sur_destruction = sur_destruction_objet)
+table_virtuelle_syntax_error := TableVirtuelleObject(classe = SyntaxError)
 
 #portée_export
 
@@ -311,7 +311,7 @@ lance_syntax_error :: fonc (realm: *Realm, message: chaine) -> CompletionRecord
 
 #portée_fichier
 
-table_virtuelle_syntax_error_prototype := TableVirtuelleObject(classe = SyntaxErrorPrototype, sur_destruction = sur_destruction_objet)
+table_virtuelle_syntax_error_prototype := TableVirtuelleObject(classe = SyntaxErrorPrototype)
 
 #portée_export
 
@@ -336,7 +336,7 @@ crée_syntax_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype
 
 #portée_fichier
 
-table_virtuelle_type_error := TableVirtuelleObject(classe = TypeError, sur_destruction = sur_destruction_objet)
+table_virtuelle_type_error := TableVirtuelleObject(classe = TypeError)
 
 #portée_export
 
@@ -371,7 +371,7 @@ lance_type_error :: fonc (realm: *Realm, message: chaine) -> CompletionRecord
 
 #portée_fichier
 
-table_virtuelle_type_error_prototype := TableVirtuelleObject(classe = TypeErrorPrototype, sur_destruction = sur_destruction_objet)
+table_virtuelle_type_error_prototype := TableVirtuelleObject(classe = TypeErrorPrototype)
 
 #portée_export
 

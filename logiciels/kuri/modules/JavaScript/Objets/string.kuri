@@ -7,7 +7,7 @@ importe Chaine
 
 #portée_fichier
 
-table_virtuelle_string_prototype := TableVirtuelleObject(classe = StringPrototype, sur_destruction = sur_destruction_objet)
+table_virtuelle_string_prototype := TableVirtuelleObject(classe = StringPrototype)
 
 #portée_export
 
@@ -38,7 +38,7 @@ crée_string_prototype :: fonc (realm: *Realm, prototype: *ObjectPrototype) -> *
 
 #portée_fichier
 
-table_virtuelle_objet_chaine := TableVirtuelleObject(classe = ObjetChaine, sur_destruction = sur_destruction_objet)
+table_virtuelle_objet_chaine := TableVirtuelleObject(classe = ObjetChaine)
 
 #portée_export
 
@@ -71,8 +71,7 @@ crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, string_prototype: *String
 #portée_fichier
 
 table_virtuelle_string_constructor := TableVirtuelleObject(
-    classe = StringConstructor,
-    sur_destruction = sur_destruction_objet
+    classe = StringConstructor
 )
 
 #portée_export

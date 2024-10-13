@@ -9,7 +9,7 @@ importe Numérique
 
 #portée_fichier
 
-table_virtuelle_objet_array := TableVirtuelleObject(classe = ObjetArray, sur_destruction = sur_destruction_objet, sur_define_own_property = array_instance_define_own_property)
+table_virtuelle_objet_array := TableVirtuelleObject(classe = ObjetArray, sur_define_own_property = array_instance_define_own_property)
 
 #portée_export
 
@@ -155,7 +155,7 @@ array_set_length :: fonc (A: *ObjetArray, desc: &PropertyDescriptor) -> Completi
 
 #portée_fichier
 
-table_virtuelle_array_constructor := TableVirtuelleBuiltinFunction(classe = ArrayConstructor, sur_destruction = sur_destruction_objet)
+table_virtuelle_array_constructor := TableVirtuelleBuiltinFunction(classe = ArrayConstructor)
 
 #portée_export
 
@@ -214,7 +214,7 @@ array_constructor_call_or_construct :: fonc (empl params: *ParamètresCallOrCons
 
 #portée_fichier
 
-table_virtuelle_array_prototype := TableVirtuelleObject(classe = ArrayPrototype, sur_destruction = sur_destruction_objet)
+table_virtuelle_array_prototype := TableVirtuelleObject(classe = ArrayPrototype)
 
 #portée_export
 

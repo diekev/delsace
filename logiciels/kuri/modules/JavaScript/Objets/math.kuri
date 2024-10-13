@@ -15,7 +15,7 @@ MathObject :: struct {
 
 #portée_fichier
 
-table_virtuelle_math := TableVirtuelleObject(classe = MathObject, sur_destruction = sur_destruction_objet)
+table_virtuelle_math := TableVirtuelleObject(classe = MathObject)
 
 #portée_module
 

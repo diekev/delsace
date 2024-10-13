@@ -34,6 +34,8 @@ TypeFonctionObjectConstruct :: fonc(*ParamètresObjectConstruct)(CompletionRecor
 TableVirtuelleObject :: struct {
     empl base_virtuelle_cellule: TableVirtuelleCellule
 
+    sur_destruction = sur_destruction_objet
+
     sur_get_prototype_of := ordinary_get_prototype_of
     sur_get_own_property := ordinary_get_own_property
     sur_define_own_property := ordinary_define_own_property
@@ -46,7 +48,7 @@ TableVirtuelleObject :: struct {
 
 #portée_fichier
 
-table_virtuelle_objet := TableVirtuelleObject(classe = Object, sur_destruction = sur_destruction_objet)
+table_virtuelle_objet := TableVirtuelleObject(classe = Object)
 
 #portée_export
 
@@ -202,7 +204,7 @@ trouve_propriété :: fonc (objet: *Object, nom: PropertyKey) -> *Object.Propri�
 
 #portée_fichier
 
-table_virtuelle_object_prototype := TableVirtuelleObject(classe = ObjectPrototype, sur_destruction = sur_destruction_objet)
+table_virtuelle_object_prototype := TableVirtuelleObject(classe = ObjectPrototype)
 
 #portée_export
 
@@ -339,8 +341,7 @@ object_prototype_proto_set :: fonc (empl params: *ParamètresObjectCall @inutili
 #portée_fichier
 
 table_virtuelle_object_constructor := TableVirtuelleObject(
-    classe = ObjectConstructor,
-    sur_destruction = sur_destruction_objet
+    classe = ObjectConstructor
 )
 
 #portée_export

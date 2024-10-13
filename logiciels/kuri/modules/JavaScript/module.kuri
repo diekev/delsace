@@ -1354,7 +1354,7 @@ evaluate_function_body :: fonc (interpréteuse: *Interpréteuse, function_object
 #portée_fichier
 
 /* Table virtuelle pour "eval()" */
-table_virtuelle_function_eval := TableVirtuelleObject(classe = Function, sur_destruction = sur_destruction_objet, sur_call = eval_sur_call)
+table_virtuelle_function_eval := TableVirtuelleObject(classe = Function, sur_call = eval_sur_call)
 
 #portée_export
 
