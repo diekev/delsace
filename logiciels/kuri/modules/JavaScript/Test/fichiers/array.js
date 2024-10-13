@@ -36,6 +36,17 @@ test("assignation array-literal vide", function () {
     vérifie_égalité(a[3], 1.0)
 });
 
+test("assignation array-literal vide 2", function () {
+    var a = [];
+    vérifie_égalité(a.length, 0)
+    a[0] = a[1] = a[2] = a[3] = 123;
+    vérifie_égalité(a.length, 4)
+    vérifie_égalité(a[0], 123)
+    vérifie_égalité(a[1], 123)
+    vérifie_égalité(a[2], 123)
+    vérifie_égalité(a[3], 123)
+});
+
 test("array-constructor", function () {
     var b = Array(16);
     vérifie_égalité(b.length, 16)

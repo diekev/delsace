@@ -267,7 +267,9 @@ associativité_pour_opérateur :: fonc (genre: GenreLexème) -> Associativité
         EtLogique,
         OuBinaire,
         OuLogique,
-        OuExclusif,
+        OuExclusif {
+            retourne Associativité.Gauche
+        }
         Égal,
         PlusÉgal,
         MoinsÉgal,
@@ -280,7 +282,9 @@ associativité_pour_opérateur :: fonc (genre: GenreLexème) -> Associativité
         DécalageDroiteÉgal,
         EtBinaireÉgal,
         OuBinaireÉgal,
-        OuExclusifÉgal,
+        OuExclusifÉgal {
+            retourne Associativité.Droite
+        }
         EstÉgal,
         NEspaPasÉgal,
         EstÉgalStrict,
