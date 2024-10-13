@@ -547,6 +547,15 @@ object_environment_set_mutable_binding :: fonc (base: *Environment, realm: *Real
     // 1. Let bindingObject be envRec.[[BindingObject]].
     binding_object := environment.binding_object
 
+    // OPTIMISATION : si nous ne sommes pas en mode strict, appelons directement "set"
+    //                car "has_property" est redondant avec "set" et n'est utile qu'en
+    //                mode strict.
+    //                Peut-être que "set" pourrait être modifié afin de retourner plus
+    //                d'information quant la présence de la propriété.
+    saufsi strict {
+        retourne set(binding_object, nom, valeur, faux)
+    }
+
     // 2. Let stillExists be ? HasProperty(bindingObject, N).
     completion := has_property(binding_object, nom)
     saufsi completion.est_normal() {
@@ -577,6 +586,15 @@ object_environment_get_binding_value :: fonc (base: *Environment, realm: *Realm,
 
     // 1. Let bindingObject be envRec.[[BindingObject]].
     binding_object := environment.binding_object
+
+    // OPTIMISATION : si nous ne sommes pas en mode strict, appelons directement "get"
+    //                car "has_property" est redondant avec "get" et n'est utile qu'en
+    //                mode strict.
+    //                Peut-être que "get" pourrait être modifié afin de retourner plus
+    //                d'information quant la présence de la propriété.
+    saufsi strict {
+        retourne get(binding_object, nom)
+    }
 
     // 2. Let value be ? HasProperty(bindingObject, N).
     completion := has_property(binding_object, nom)
