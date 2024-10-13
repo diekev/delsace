@@ -526,7 +526,9 @@ sur_exécution_unary_minus_operator :: fonc (base: *NoeudSyntaxique, interpréte
 number_unary_minus :: fonc (x: Valeur) -> Valeur
 {
     // 1. If x is NaN, return NaN.
-    // À FAIRE : est_nan
+    si est_nan(x) {
+        retourne Valeur(Number = NaN)
+    }
 
     // 2. Return the negation of x; that is, compute a Number with the same magnitude but opposite sign.
     retourne Valeur(Number = -x.Number)
@@ -1370,7 +1372,12 @@ is_less_than :: fonc (interpréteuse: *Interpréteuse, x: Valeur, y: Valeur, lef
         }
 
         // g. Assert: nx is a BigInt and ny is a Number, or nx is a Number and ny is a BigInt.
+
         // h. If nx or ny is NaN, return undefined.
+        si nx.est_nan() || ny.est_nan() {
+            retourne normal_completion(js_undefined)
+        }
+
         // i. If nx is -∞𝔽 or ny is +∞𝔽, return true.
         // j. If nx is +∞𝔽 or ny is -∞𝔽, return false.
         // k. If ℝ(nx) < ℝ(ny), return true; otherwise return false.

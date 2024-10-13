@@ -1,5 +1,6 @@
 importe Chaine
 importe Fondation
+importe Math
 
 charge "arbre"
 charge "enveloppe"
@@ -190,6 +191,11 @@ est_nombre :: fonc (valeur: Valeur) -> bool
             retourne faux
         }
     }
+}
+
+est_nan :: fonc (valeur: Valeur) -> bool
+{
+    retourne est_nombre(valeur) && est_nan(valeur.Number)
 }
 
 est_chaine :: fonc (valeur: Valeur) -> bool
@@ -495,7 +501,11 @@ to_boolean :: fonc (valeur: Valeur) -> Valeur
                 retourne Valeur(Boolean = faux)
             }
 
-            // À FAIRE : NaN, 0ℤ
+            si est_nan(n) {
+                retourne faux
+            }
+
+            // À FAIRE : 0ℤ
         }
         String(s) {
             si s.texte == crée_chaine_utf16_unique("") {
