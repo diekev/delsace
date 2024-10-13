@@ -191,7 +191,6 @@ script_evaluation :: fonc (script_record: *Script) -> CompletionRecord
     si résultat.est_normal() {
         // a. Set result to Completion(Evaluation of script).
         interpréteuse: Interpréteuse
-        diffère détruit_données_interpreteuse(*interpréteuse)
         interpréteuse.mv = mv
         résultat = exécute(*interpréteuse, script)
 

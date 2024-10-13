@@ -461,7 +461,6 @@ ordinary_to_primitive :: fonc (realm: *Realm, object: *Object, hint: TypePréfé
         si is_callable(method) {
             // i. Let result be ? Call(method, O).
             interpréteuse: Interpréteuse
-            diffère détruit_données_interpreteuse(*interpréteuse)
             interpréteuse.mv = realm.donne_tas_de_mémoire().donne_mv()
             completion = call(*interpréteuse, method, object)
             saufsi completion.est_normal() {
@@ -1208,7 +1207,6 @@ ordinary_get :: fonc (object: *Object, property_key: PropertyKey, receiver: Vale
     // 7. Return ? Call(getter, Receiver).
     interpréteuse: Interpréteuse
     interpréteuse.mv = receiver.donne_objet().donne_tas_de_mémoire().donne_mv()
-    diffère détruit_données_interpreteuse(*interpréteuse)
     retourne call(*interpréteuse, getter.Quelque, receiver)
 }
 
@@ -1308,7 +1306,6 @@ ordinary_set_with_own_descriptor :: fonc (object: *Object, property_key: Propert
     // 6. Perform ? Call(setter, Receiver, « V »).
     interpréteuse: Interpréteuse
     interpréteuse.mv = receiver.donne_objet().donne_tas_de_mémoire().donne_mv()
-    diffère détruit_données_interpreteuse(*interpréteuse)
 
     arguments: []Valeur
     arguments.pointeur = *valeur
@@ -1335,7 +1332,7 @@ evaluate_function_body :: fonc (interpréteuse: *Interpréteuse, function_object
         retourne completion
     }
     // 2. Return ? Evaluation of FunctionStatementList.
-    retourne interpréteuse.exécute(function_object.corps, TypeScope.FUNCTION)
+    retourne interpréteuse.exécute(function_object.corps)
 }
 
 /* ------------------------------------------------------------------------- */

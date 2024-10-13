@@ -132,7 +132,7 @@ NoeudScope :: struct {
 
 sur_exécution_scope :: fonc (noeud: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
 {
-    retourne interpréteuse.exécute(noeud comme *NoeudScope, TypeScope.BLOC)
+    retourne interpréteuse.exécute(noeud comme *NoeudScope)
 }
 
 /** \} */
