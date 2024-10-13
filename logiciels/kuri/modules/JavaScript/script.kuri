@@ -130,11 +130,9 @@ parse_script :: fonc (source_texte: chaine, realm: *Realm, host_defined := HostD
             script = programme
         }
         Erreur(e) {
-            détruit_données_script(résultat)
             retourne e
         }
         sinon {
-            détruit_données_script(résultat)
             retourne ErreurCompilation(copie_chaine("Erreur interne : la compilation a échoué pour raison inconnue"))
         }
     }
