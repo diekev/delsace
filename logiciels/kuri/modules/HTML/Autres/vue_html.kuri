@@ -1186,6 +1186,7 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
 
     saufsi vue_rendu_page.peintre {
         vue_rendu_page.peintre = crée_peintre_igumi(taille_cannevas)
+        // vue_rendu_page.peintre = crée_peintre_module_dessin(taille_cannevas)
     }
 
     saufsi vue_rendu_page.peintre_id {
@@ -1225,6 +1226,8 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
     }
 
     // début_rendu := maintenant_précis()
+
+    ctx.peintre.remplis_arrière_plan(CouleurRVBAN8(255, 255, 255, 255))
 
     si vue_rendu_page.dessine_tampon_id {
         CSS.dessine_tampon_id_couleur(arbre, *ctx)
@@ -1279,6 +1282,8 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
             peintre.termine_dessin()
         }
     }
+
+    ctx.peintre.dessine_tampon_sur_écran()
 
     ctx.peintre = vue_rendu_page.peintre_id
     CSS.dessine_tampon_id(arbre, *ctx)
