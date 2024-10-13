@@ -193,8 +193,7 @@ get_value :: fonc (realm: *Realm, valeur: ValeurCompletion) -> CompletionRecord
     // 2. If IsUnresolvableReference(V) is true, throw a ReferenceError exception.
     si est_référence_non_résolvable(valeur) {
         message := imprime_chaine("\"%\" is not defined", valeur.R.referenced_name)
-        exception := crée_reference_error(realm.donne_tas_de_mémoire(), realm.intrinsics.reference_error_prototype, message)
-        retourne throw_completion(exception)
+        retourne lance_reference_error(realm, message)
     }
 
     // 3. If IsPropertyReference(V) is true, then
@@ -254,8 +253,7 @@ put_value :: fonc (interpréteuse: *Interpréteuse, référence: ValeurCompletio
         // a. If V.[[Strict]] is true, throw a ReferenceError exception.
         si record.strict {
             message := imprime_chaine("assignment to undeclared variable \"%\"", record.referenced_name)
-            exception := crée_reference_error(interpréteuse.donne_tas_de_mémoire(), interpréteuse.donne_realm().intrinsics.reference_error_prototype, message)
-            retourne throw_completion(exception)
+            retourne lance_reference_error(interpréteuse, message)
         }
 
         // b. Let globalObj be GetGlobalObject().

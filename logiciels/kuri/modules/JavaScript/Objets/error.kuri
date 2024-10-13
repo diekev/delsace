@@ -146,19 +146,19 @@ ReferenceError :: struct {
     message: *PrimitiveChaine
 }
 
-crée_reference_error :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ReferenceErrorPrototype, message: chaine) -> *ReferenceError
+lance_reference_error :: fonc (interpréteuse: *Interpréteuse, message: chaine) -> CompletionRecord
 {
-    résultat := tas_de_mémoire.alloue(ReferenceError)
-    résultat.prototype = prototype
-    résultat.message = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(message))
-    initialise_error_object(résultat, STR_ReferenceError, message)
-    retourne résultat
+    retourne lance_reference_error(interpréteuse.donne_realm(), message)
 }
 
 lance_reference_error :: fonc (realm: *Realm, message: chaine) -> CompletionRecord
 {
-    exception := crée_reference_error(realm.donne_tas_de_mémoire(), realm.intrinsics.reference_error_prototype, message)
-    retourne throw_completion(exception)
+    tas_de_mémoire := realm.donne_tas_de_mémoire()
+    résultat := tas_de_mémoire.alloue(ReferenceError)
+    résultat.prototype = realm.intrinsics.reference_error_prototype
+    résultat.message = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(message))
+    initialise_error_object(résultat, STR_ReferenceError, message)
+    retourne throw_completion(résultat)
 }
 
 /** \} */
@@ -206,15 +206,6 @@ SyntaxError :: struct {
     message: *PrimitiveChaine
 }
 
-crée_syntax_error :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *SyntaxErrorPrototype, message: chaine) -> *SyntaxError
-{
-    résultat := tas_de_mémoire.alloue(SyntaxError)
-    résultat.prototype = prototype
-    résultat.message = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(message))
-    initialise_error_object(résultat, STR_SyntaxError, message)
-    retourne résultat
-}
-
 lance_syntax_error :: fonc (interpréteuse: *Interpréteuse, message: chaine) -> CompletionRecord
 {
     retourne lance_syntax_error(interpréteuse.donne_realm(), message)
@@ -222,8 +213,12 @@ lance_syntax_error :: fonc (interpréteuse: *Interpréteuse, message: chaine) ->
 
 lance_syntax_error :: fonc (realm: *Realm, message: chaine) -> CompletionRecord
 {
-    exception := crée_syntax_error(realm.donne_tas_de_mémoire(), realm.intrinsics.syntax_error_prototype, message)
-    retourne throw_completion(exception)
+    tas_de_mémoire := realm.donne_tas_de_mémoire()
+    résultat := tas_de_mémoire.alloue(SyntaxError)
+    résultat.prototype = realm.intrinsics.syntax_error_prototype
+    résultat.message = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(message))
+    initialise_error_object(résultat, STR_SyntaxError, message)
+    retourne throw_completion(résultat)
 }
 
 /** \} */
@@ -271,15 +266,6 @@ TypeError :: struct {
     message: *PrimitiveChaine
 }
 
-crée_type_error :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *TypeErrorPrototype, message: chaine) -> *TypeError
-{
-    résultat := tas_de_mémoire.alloue(TypeError)
-    résultat.prototype = prototype
-    résultat.message = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(message))
-    initialise_error_object(résultat, STR_TypeError, message)
-    retourne résultat
-}
-
 lance_type_error :: fonc (interpréteuse: *Interpréteuse, message: chaine) -> CompletionRecord
 {
     retourne lance_type_error(interpréteuse.donne_realm(), message)
@@ -287,8 +273,12 @@ lance_type_error :: fonc (interpréteuse: *Interpréteuse, message: chaine) -> C
 
 lance_type_error :: fonc (realm: *Realm, message: chaine) -> CompletionRecord
 {
-    exception := crée_type_error(realm.donne_tas_de_mémoire(), realm.intrinsics.type_error_prototype, message)
-    retourne throw_completion(exception)
+    tas_de_mémoire := realm.donne_tas_de_mémoire()
+    résultat := tas_de_mémoire.alloue(TypeError)
+    résultat.prototype = realm.intrinsics.type_error_prototype
+    résultat.message = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(message))
+    initialise_error_object(résultat, STR_TypeError, message)
+    retourne throw_completion(résultat)
 }
 
 /** \} */
