@@ -248,7 +248,7 @@ instantiate_ordinary_function_object :: fonc (realm: *Realm, declaration: *Funct
         F := ordinary_function_create(realm, realm.intrinsics.function_prototype, declaration.params, declaration.corps, NON_LEXICAL_THIS, env, private_env)
 
         // 4. Perform SetFunctionName(F, name).
-        set_function_name(F, name)
+        set_function_name(realm, F, name)
 
         // 5. Perform MakeConstructor(F).
         make_constructor(F)
@@ -287,7 +287,7 @@ instantiate_ordinary_function_expression :: fonc (interpréteuse: *Interpréteus
         closure := ordinary_function_create(realm, realm.intrinsics.function_prototype, expression.params, expression.corps, NON_LEXICAL_THIS, env, private_env)
 
         // 6. Perform SetFunctionName(closure, name).
-        set_function_name(closure, name)
+        set_function_name(realm, closure, name)
 
         // 7. Perform MakeConstructor(closure).
         make_constructor(closure)
@@ -799,7 +799,7 @@ apply_string_or_numeric_binary_operator :: fonc (interpréteuse: *Interpréteuse
             }
             rstr := completion_rstr.valeur.V
             // iii. Return the string-concatenation of lstr and rstr.
-            retourne normal_completion(Valeur(String = concatène(lstr.String, rstr.String)))
+            retourne normal_completion(Valeur(String = concatène(interpréteuse.donne_realm(), lstr.String, rstr.String)))
         }
     
         // d. Set lval to lprim.
@@ -1503,7 +1503,7 @@ sur_exécution_string_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: *
 
     chn: *PrimitiveChaine
     si noeud.index_chaine == -1 {
-        chn = crée_chaine(interpréteuse.donne_tas_de_mémoire(), noeud.valeur)
+        chn = crée_chaine(realm, noeud.valeur)
         tableau_ajoute(*realm.chaines_littérales, chn)
         noeud.index_chaine = realm.chaines_littérales.taille - 1
     }
@@ -2325,7 +2325,7 @@ evaluate_property_access_with_expression_key :: fonc (interpréteuse: *Interpré
 evaluate_property_access_with_identifier_key :: fonc (interpréteuse: *Interpréteuse, base_value: Valeur, identifier_name: *Identifier, strict: bool) -> CompletionRecord
 {
     // 1. Let propertyNameString be the StringValue of identifierName.
-    property_name_string := crée_chaine(interpréteuse.donne_tas_de_mémoire(), identifier_name.nom)
+    property_name_string := crée_chaine(interpréteuse.donne_realm(), identifier_name.nom)
 
     // 2. Return the Reference Record { [[Base]]: baseValue, [[ReferencedName]]: propertyNameString, [[Strict]]: strict, [[ThisValue]]: EMPTY }.
     résultat: ReferenceRecord

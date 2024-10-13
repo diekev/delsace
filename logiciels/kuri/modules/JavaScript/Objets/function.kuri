@@ -436,7 +436,7 @@ make_constructor :: fonc (F: *ECMAScriptFunction)
 
 /* 10.2.9 SetFunctionName ( F, name [ , prefix ] )
  * https://tc39.es/ecma262/#sec-setfunctionname */
-set_function_name :: fonc (F: *Object, name: PropertyKey, prefix := crée_chaine_utf16_unique_vide() @inutilisée)
+set_function_name :: fonc (realm: *Realm, F: *Object, name: PropertyKey, prefix := crée_chaine_utf16_unique_vide() @inutilisée)
 {
     // À FAIRE : 1. Assert: F is an extensible object that does not have a "name" own property.
     assert(has_own_property(F, STR_name).valeur.V.est_false())
@@ -472,7 +472,12 @@ set_function_name :: fonc (F: *Object, name: PropertyKey, prefix := crée_chaine
 
     // 6. Perform ! DefinePropertyOrThrow(F, "name", PropertyDescriptor { [[Value]]: name, [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: true }).
     desc: PropertyDescriptor
-    desc.value = Valeur(String = crée_chaine(F.donne_tas_de_mémoire(), name.String))
+    si realm {
+        desc.value = Valeur(String = crée_chaine(realm, name.String))
+    }
+    sinon {
+        desc.value = Valeur(String = crée_chaine(F.donne_tas_de_mémoire(), name.String))
+    }
     desc.configurable = vrai
     completion := define_property_or_throw(F, STR_name, desc)
     assert(completion.est_normal())
@@ -878,12 +883,12 @@ create_builtin_function :: fonc (func: *BuiltInFunction, length: r64, name: ECMA
     // 11. If prefix is not present, then
     si prefix.est_vide() {
         // a. Perform SetFunctionName(func, name).
-        set_function_name(func, name)
+        set_function_name(realm, func, name)
     }
     // 12. Else,
     sinon {
         // a. Perform SetFunctionName(func, name, prefix).
-        set_function_name(func, name, prefix)
+        set_function_name(realm, func, name, prefix)
     }
 
     // 13. Return func.
@@ -941,12 +946,13 @@ FunctionPrototype :: struct {
     table = *table_virtuelle_function_prototype
 }
 
-crée_function_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ObjectPrototype) -> *FunctionPrototype
+crée_function_prototype :: fonc (realm: *Realm, prototype: *ObjectPrototype) -> *FunctionPrototype
 {
+    tas_de_mémoire := realm.donne_tas_de_mémoire()
     résultat := tas_de_mémoire.alloue(FunctionPrototype)
     résultat.prototype = prototype
     résultat.ajoute_propriété(STR_length, Valeur(Number = 0.0), DrapeauxPropriété.zéro)
-    résultat.ajoute_propriété(STR_name, Valeur(String = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(""))), DrapeauxPropriété.zéro)
+    résultat.ajoute_propriété(STR_name, Valeur(String = crée_chaine(realm, crée_chaine_utf16_unique(""))), DrapeauxPropriété.zéro)
     retourne résultat
 }
 
@@ -983,7 +989,7 @@ FunctionNative :: struct {
 crée_fonction_native :: fonc (tas_de_mémoire: *TasDeMémoire, nom: ECMAString, sur_appel: TypeFonctionObjectCall, length: z64) -> *FunctionNative
 {
     résultat := tas_de_mémoire.alloue(FunctionNative)
-    set_function_name(résultat, nom)
+    set_function_name(nul, résultat, nom)
     set_function_length(résultat, length comme r64)
     résultat.sur_appel = sur_appel
     retourne résultat

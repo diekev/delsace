@@ -291,7 +291,7 @@ est_symbol :: fonc (valeur: Valeur) -> bool
     }
 }
 
-concatène :: fonc (str_gauche: *PrimitiveChaine, str_droite: *PrimitiveChaine) -> Valeur
+concatène :: fonc (realm: *Realm, str_gauche: *PrimitiveChaine, str_droite: *PrimitiveChaine) -> Valeur
 {
     chn1 := str_gauche.texte.donne_chaine_utf16()
     chn2 := str_droite.texte.donne_chaine_utf16()
@@ -307,7 +307,7 @@ concatène :: fonc (str_gauche: *PrimitiveChaine, str_droite: *PrimitiveChaine) 
     diffère détruit_chaine(chn)
     chn_résultat := crée_chaine_utf16_unique(chn)
 
-    retourne Valeur(String = crée_chaine(str_gauche.donne_tas_de_mémoire(), chn_résultat))
+    retourne Valeur(String = crée_chaine(realm, chn_résultat))
 }
 
 js_null := Valeur(Null = NullType(0))
@@ -651,22 +651,22 @@ vers_chaine :: fonc (realm: *Realm, argument: Valeur) -> CompletionRecord
 
     // 3. If argument is undefined, return "undefined".
     si argument.est_undefined() {
-        retourne normal_completion(crée_chaine(realm.donne_tas_de_mémoire(), STR_undefined))
+        retourne normal_completion(crée_chaine(realm, STR_undefined))
     }
 
     // 4. If argument is null, return "null".
     si argument.est_nulle() {
-        retourne normal_completion(crée_chaine(realm.donne_tas_de_mémoire(), STR_null))
+        retourne normal_completion(crée_chaine(realm, STR_null))
     }
 
     // 5. If argument is true, return "true".
     si argument.est_true() {
-        retourne normal_completion(crée_chaine(realm.donne_tas_de_mémoire(), STR_true))
+        retourne normal_completion(crée_chaine(realm, STR_true))
     }
 
     // 6. If argument is false, return "false".
     si argument.est_false() {
-        retourne normal_completion(crée_chaine(realm.donne_tas_de_mémoire(), STR_false))
+        retourne normal_completion(crée_chaine(realm, STR_false))
     }
 
     // 7. If argument is a Number, return Number::toString(argument, 10).
@@ -677,7 +677,7 @@ vers_chaine :: fonc (realm: *Realm, argument: Valeur) -> CompletionRecord
         diffère déloge(chn)
 
         résultat := crée_chaine_utf16_unique(chn)
-        retourne normal_completion(crée_chaine(realm.donne_tas_de_mémoire(), résultat))
+        retourne normal_completion(crée_chaine(realm, résultat))
     }
 
     // 8. If argument is a BigInt, return BigInt::toString(argument, 10).
@@ -1354,10 +1354,10 @@ table_virtuelle_function_eval := TableVirtuelleObject(classe = Function, sur_des
 
 #portée_export
 
-crée_eval :: fonc (function_prototype: *FunctionPrototype) -> *Function
+crée_eval :: fonc (realm: *Realm) -> *Function
 {
-    résultat := crée_fonction(function_prototype)
-    set_function_name(résultat, STR_eval)
+    résultat := crée_fonction(realm.intrinsics.function_prototype)
+    set_function_name(realm, résultat, STR_eval)
     résultat.table = *table_virtuelle_function_eval
     retourne résultat
 }
@@ -1565,6 +1565,14 @@ PrimitiveChaine :: struct {
 
     texte: ECMAString
     objet: *Object
+}
+
+crée_chaine :: fonc (realm: *Realm, texte: ECMAString) -> *PrimitiveChaine
+{
+    tas_de_mémoire := realm.donne_tas_de_mémoire()
+    résultat := tas_de_mémoire.alloue(PrimitiveChaine)
+    résultat.texte = texte
+    retourne résultat
 }
 
 crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, texte: ECMAString) -> *PrimitiveChaine

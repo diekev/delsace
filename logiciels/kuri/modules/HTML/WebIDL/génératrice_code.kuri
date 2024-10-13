@@ -626,7 +626,7 @@ génère_code_conversion_résultat :: fonc (enchaineuse: *Enchaineuse, type: *Ty
         ajoute_au_tampon(enchaineuse, "    sinon {\n")
         ajoute_au_tampon(enchaineuse, "        str_unique = résultat\n")
         ajoute_au_tampon(enchaineuse, "    }\n")
-        ajoute_au_tampon(enchaineuse, "    str := JavaScript.crée_chaine(object_this.donne_tas_de_mémoire(), str_unique)\n")
+        ajoute_au_tampon(enchaineuse, "    str := JavaScript.crée_chaine(JavaScript.donne_realm(interpréteuse), str_unique)\n")
         ajoute_au_tampon(enchaineuse, "    retourne JavaScript.normal_completion(JavaScript.Valeur(String = str))\n")
     }
     sinon si type.nom == "unsigned long" || type.nom == "long" {

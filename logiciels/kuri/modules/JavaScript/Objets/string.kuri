@@ -18,11 +18,12 @@ StringPrototype :: struct {
     string_data: *PrimitiveChaine
 }
 
-crée_string_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ObjectPrototype) -> *StringPrototype
+crée_string_prototype :: fonc (realm: *Realm, prototype: *ObjectPrototype) -> *StringPrototype
 {
+    tas_de_mémoire := realm.donne_tas_de_mémoire()
     résultat := tas_de_mémoire.alloue(StringPrototype)
     résultat.prototype = prototype
-    résultat.string_data = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(""))
+    résultat.string_data = crée_chaine(realm, crée_chaine_utf16_unique(""))
     résultat.ajoute_propriété(STR_length, Valeur(Number = 0.0), DrapeauxPropriété.zéro)
 
     retourne résultat

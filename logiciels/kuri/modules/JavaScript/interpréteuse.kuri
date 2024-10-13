@@ -551,7 +551,7 @@ crée_string_value_completion :: fonc (interpréteuse: *Interpréteuse, texte: c
 
 crée_string_value_completion :: fonc (interpréteuse: *Interpréteuse, texte: ECMAString) -> CompletionRecord
 {
-    string := crée_chaine(interpréteuse.donne_tas_de_mémoire(), texte)
+    string := crée_chaine(interpréteuse.donne_realm(), texte)
     value := Valeur(String = string)
     retourne normal_completion(value)
 }
@@ -579,7 +579,7 @@ resolve_binding :: fonc (interpréteuse: *Interpréteuse, nom: ECMAString, envir
     strict := is_strict(interpréteuse.donne_noeud_évalué_courant())
 
     // 4. Return ? GetIdentifierReference(env, name, strict).
-    retourne get_identifier_reference(interpréteuse.donne_tas_de_mémoire(), environment, nom, strict)
+    retourne get_identifier_reference(interpréteuse.donne_realm(), environment, nom, strict)
 }
 
 /* 9.4.3 GetThisEnvironment ( )
