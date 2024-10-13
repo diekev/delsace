@@ -33,6 +33,7 @@ STR_true : ChaineUTF16Unique = ---
 STR_undefined : ChaineUTF16Unique = ---
 STR_valueOf : ChaineUTF16Unique = ---
 STR_Array : ChaineUTF16Unique = ---
+STR_Date : ChaineUTF16Unique = ---
 STR_Error : ChaineUTF16Unique = ---
 STR_Function : ChaineUTF16Unique = ---
 STR_Infinity : ChaineUTF16Unique = ---

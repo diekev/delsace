@@ -15,6 +15,7 @@ charge "tas_de_mémoire"
 charge "terminologie"
 
 charge "Objets/array"
+charge "Objets/date"
 charge "Objets/error"
 charge "Objets/function"
 charge "Objets/object"
