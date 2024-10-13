@@ -3795,10 +3795,14 @@ est_type_adresse_tableau_noeud_syntaxique :: fonc (infos: *InfoType) -> bool
 
 crée_visiteuse_pour_impression :: fonc (noeud: *NoeudSyntaxique) -> VisiteuseNoeud
 {
-    rappel_pour_noeud :: fonc (visiteuse: *VisiteuseNoeud, noeud: *NoeudSyntaxique @inutilisée, info: *InfoTypeStructure)
+    rappel_pour_noeud :: fonc (visiteuse: *VisiteuseNoeud, noeud: *NoeudSyntaxique, info: *InfoTypeStructure)
     {
         imprime_tabulation(visiteuse.profondeur)
-        imprime("%\n", info.nom)
+        texte := ""
+        si noeud.lexème {
+            texte = noeud.lexème.texte
+        }
+        imprime("% : %\n", info.nom, texte)
     }
 
     résultat: VisiteuseNoeud
