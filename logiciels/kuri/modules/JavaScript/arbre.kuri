@@ -3665,9 +3665,14 @@ DirectionVisiteNoeud :: énum {
     POST_ORDRE
 }
 
+VisiteEnfants :: énum {
+    Oui
+    Non
+}
+
 VisiteuseNoeud :: struct {
     arbre: *NoeudSyntaxique
-    rappel_pour_noeud: fonc(*VisiteuseNoeud, *NoeudSyntaxique, *InfoTypeStructure)(rien)
+    rappel_pour_noeud: fonc(*VisiteuseNoeud, *NoeudSyntaxique, *InfoTypeStructure)(VisiteEnfants)
     rappel_pour_tableau: fonc(*VisiteuseNoeud, [..]*NoeudSyntaxique)(rien)
     profondeur: z32
     direction_visite: DirectionVisiteNoeud
@@ -3689,7 +3694,9 @@ visite_noeud :: fonc (visiteuse: *VisiteuseNoeud, racine: *NoeudSyntaxique, $Rap
 visite_noeud_générique :: fonc (visiteuse: *VisiteuseNoeud, racine: *NoeudSyntaxique, info: *InfoTypeStructure)
 {
     si visiteuse.direction_visite == DirectionVisiteNoeud.PRÉ_ORDRE && visiteuse.rappel_pour_noeud {
-        visiteuse.rappel_pour_noeud(visiteuse, racine, info)
+        si visiteuse.rappel_pour_noeud(visiteuse, racine, info) == VisiteEnfants.Non {
+            retourne
+        }
     }
 
     valeur_eini : eini = ---
@@ -3699,7 +3706,7 @@ visite_noeud_générique :: fonc (visiteuse: *VisiteuseNoeud, racine: *NoeudSynt
     visite_structure(visiteuse, valeur_eini)
 
     si visiteuse.direction_visite == DirectionVisiteNoeud.POST_ORDRE && visiteuse.rappel_pour_noeud {
-        visiteuse.rappel_pour_noeud(visiteuse, racine, info)
+        _ := visiteuse.rappel_pour_noeud(visiteuse, racine, info)
     }
 }
 
@@ -3799,7 +3806,7 @@ est_type_adresse_tableau_noeud_syntaxique :: fonc (infos: *InfoType) -> bool
 
 crée_visiteuse_pour_impression :: fonc (noeud: *NoeudSyntaxique) -> VisiteuseNoeud
 {
-    rappel_pour_noeud :: fonc (visiteuse: *VisiteuseNoeud, noeud: *NoeudSyntaxique, info: *InfoTypeStructure)
+    rappel_pour_noeud :: fonc (visiteuse: *VisiteuseNoeud, noeud: *NoeudSyntaxique, info: *InfoTypeStructure) -> VisiteEnfants
     {
         imprime_tabulation(visiteuse.profondeur)
         texte := ""
@@ -3807,6 +3814,7 @@ crée_visiteuse_pour_impression :: fonc (noeud: *NoeudSyntaxique) -> VisiteuseNo
             texte = noeud.lexème.texte
         }
         imprime("% : %\n", info.nom, texte)
+        retourne VisiteEnfants.Oui
     }
 
     résultat: VisiteuseNoeud
@@ -3830,9 +3838,10 @@ imprime_arbre :: fonc (noeud: *NoeudSyntaxique)
 
 crée_visiteuse_pour_destruction :: fonc (noeud: *NoeudSyntaxique) -> VisiteuseNoeud
 {
-    rappel_pour_noeud :: fonc (visiteuse: *VisiteuseNoeud @inutilisée, noeud: *NoeudSyntaxique, info: *InfoTypeStructure)
+    rappel_pour_noeud :: fonc (visiteuse: *VisiteuseNoeud @inutilisée, noeud: *NoeudSyntaxique, info: *InfoTypeStructure) -> VisiteEnfants
     {
         déloge_mémoire(info.taille_en_octet comme z64, noeud, info, PositionCodeSource())
+        retourne VisiteEnfants.Oui
     }
 
     rappel_pour_tableau :: fonc (visiteuse: *VisiteuseNoeud @inutilisée, tableau: [..]*NoeudSyntaxique)
@@ -3868,7 +3877,7 @@ VisteuseMémoire :: struct {
 
 crée_visiteuse_pour_mémoire :: fonc (résultat: *VisteuseMémoire, noeud: *NoeudSyntaxique)
 {
-    rappel_pour_noeud :: fonc (base: *VisiteuseNoeud, noeud: *NoeudSyntaxique @inutilisée, info: *InfoTypeStructure)
+    rappel_pour_noeud :: fonc (base: *VisiteuseNoeud, noeud: *NoeudSyntaxique @inutilisée, info: *InfoTypeStructure) -> VisiteEnfants
     {
         visiteuse := base comme *VisteuseMémoire
         visiteuse.total += info.taille_en_octet comme z64
@@ -3881,6 +3890,8 @@ crée_visiteuse_pour_mémoire :: fonc (résultat: *VisteuseMémoire, noeud: *Noe
                 visiteuse.total_compressé += it.id.taille_en_octet comme z64
             }
         }
+
+        retourne VisiteEnfants.Oui
     }
 
     rappel_pour_tableau :: fonc (base: *VisiteuseNoeud, tableau: [..]*NoeudSyntaxique)
