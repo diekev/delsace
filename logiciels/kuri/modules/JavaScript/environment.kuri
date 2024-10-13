@@ -80,35 +80,39 @@ get_this_binding :: fonc (environment: *Environment, realm: *Realm) -> Completio
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-getidentifierreference */
 get_identifier_reference :: fonc (realm: *Realm, environment: *Environment, nom: ECMAString, strict: bool) -> CompletionRecord
 {
+    // NOTE : Nous utilisons une boucle au lieu d'appels récursifs comme spécifié.
+    //        La première étape spécifiée est faite à la fin.
+
+    tantque environment != nul {
+        // 2. Let exists be ? env.HasBinding(name).
+        completion_exists := has_binding(environment, nom)
+        saufsi completion_exists.est_normal() {
+            retourne completion_exists
+        }
+        exists := completion_exists.valeur.V.Boolean
+
+        // 3. If exists is true, then
+        si exists {
+            // a. Return the Reference Record { [[Base]]: env, [[ReferencedName]]: name, [[Strict]]: strict, [[ThisValue]]: EMPTY }.
+            résultat: ReferenceRecord
+            résultat.base = environment
+            résultat.referenced_name = Valeur(String = crée_chaine(realm, nom))
+            résultat.strict = strict
+            retourne normal_completion(résultat)
+        }
+
+        // 4. Else,
+        // a. Let outer be env.[[OuterEnv]].
+        outer := environment.outer_environment
+        // b. Return ? GetIdentifierReference(outer, name, strict).
+        // retourne get_identifier_reference(realm, outer, nom, strict, récursion)
+        environment = outer
+    }
+
     // 1. If env is null, then
-    saufsi environment {
-        // a. Return the Reference Record { [[Base]]: UNRESOLVABLE, [[ReferencedName]]: name, [[Strict]]: strict, [[ThisValue]]: EMPTY }.
-        chn := crée_chaine(realm, nom)
-        retourne normal_completion(référence_non_résolvable(Valeur(String = chn), strict))
-    }
-
-    // 2. Let exists be ? env.HasBinding(name).
-    completion_exists := has_binding(environment, nom)
-    saufsi completion_exists.est_normal() {
-        retourne completion_exists
-    }
-    exists := completion_exists.valeur.V.Boolean
-
-    // 3. If exists is true, then
-    si exists {
-        // a. Return the Reference Record { [[Base]]: env, [[ReferencedName]]: name, [[Strict]]: strict, [[ThisValue]]: EMPTY }.
-        résultat: ReferenceRecord
-        résultat.base = environment
-        résultat.referenced_name = Valeur(String = crée_chaine(realm, nom))
-        résultat.strict = strict
-        retourne normal_completion(résultat)
-    }
-
-    // 4. Else,
-    // a. Let outer be env.[[OuterEnv]].
-    outer := environment.outer_environment
-    // b. Return ? GetIdentifierReference(outer, name, strict).
-    retourne get_identifier_reference(realm, outer, nom, strict)
+    // a. Return the Reference Record { [[Base]]: UNRESOLVABLE, [[ReferencedName]]: name, [[Strict]]: strict, [[ThisValue]]: EMPTY }.
+    chn := crée_chaine(realm, nom)
+    retourne normal_completion(référence_non_résolvable(Valeur(String = chn), strict))
 }
 
 /** \} */
