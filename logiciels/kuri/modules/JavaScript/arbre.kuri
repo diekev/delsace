@@ -3855,3 +3855,53 @@ détruit_arbre :: fonc (noeud: *NoeudSyntaxique)
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Destruction arbre.
+ * \{ */
+
+VisteuseMémoire :: struct {
+    empl base: VisiteuseNoeud
+    total: z64
+    total_compressé: z64
+}
+
+crée_visiteuse_pour_mémoire :: fonc (résultat: *VisteuseMémoire, noeud: *NoeudSyntaxique)
+{
+    rappel_pour_noeud :: fonc (base: *VisiteuseNoeud, noeud: *NoeudSyntaxique @inutilisée, info: *InfoTypeStructure)
+    {
+        visiteuse := base comme *VisteuseMémoire
+        visiteuse.total += info.taille_en_octet comme z64
+
+        pour info.membres {
+            si est_type_adresse_noeud_syntaxique(it.id) {
+                visiteuse.total_compressé += 4
+            }
+            sinon saufsi est_type_adresse_tableau_noeud_syntaxique(it.id) {
+                visiteuse.total_compressé += it.id.taille_en_octet comme z64
+            }
+        }
+    }
+
+    rappel_pour_tableau :: fonc (base: *VisiteuseNoeud, tableau: [..]*NoeudSyntaxique)
+    {
+        visiteuse := base comme *VisteuseMémoire
+        visiteuse.total += tableau.capacité * 8
+        visiteuse.total_compressé += (tableau.taille + 1) * 4
+    }
+
+    résultat.arbre = noeud
+    résultat.rappel_pour_noeud = rappel_pour_noeud
+    résultat.rappel_pour_tableau = rappel_pour_tableau
+    résultat.direction_visite = DirectionVisiteNoeud.POST_ORDRE
+}
+
+imprime_mémoire_arbre :: fonc (noeud: *NoeudSyntaxique)
+{
+    visiteuse: VisteuseMémoire
+    crée_visiteuse_pour_mémoire(*visiteuse, noeud)
+    visite_noeud(*visiteuse, noeud, visite_noeud_générique)
+    imprime("Mémoire arbre : % (compressé ~= %, %)\n", visiteuse.total, visiteuse.total_compressé, 1.0 - (visiteuse.total_compressé comme r64) / (visiteuse.total comme r64))
+}
+
+/** \} */
