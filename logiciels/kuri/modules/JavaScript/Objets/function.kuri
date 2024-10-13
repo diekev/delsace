@@ -396,7 +396,7 @@ ordinary_function_create :: fonc (realm: *Realm, function_prototype: *FunctionPr
     // 21. Let len be the ExpectedArgumentCount of ParameterList.
 
     // 22. Perform SetFunctionLength(F, len).
-    set_function_length(F, params.taille comme n64)
+    set_function_length(F, params.taille comme r64)
 
     // 23. Return F.
     retourne F
@@ -473,15 +473,17 @@ set_function_name :: fonc (F: *Object, name: PropertyKey)
 
 /* 10.2.10 SetFunctionLength ( F, length )
  * https://tc39.es/ecma262/#sec-setfunctionname */
-set_function_length :: fonc (F: *Object, length: n64)
+set_function_length :: fonc (F: *Object, length: r64)
 {
+    assert(length >= 0.0)
+
     // 1. Assert: F is an extensible object that does not have a "length" own property.
     assert(F.extensible)
     assert(has_own_property(F, STR_length).valeur.V.est_false())
 
     // 2. Perform ! DefinePropertyOrThrow(F, "length", PropertyDescriptor { [[Value]]: 𝔽(length), [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: true }).
     desc: PropertyDescriptor
-    desc.value = Valeur(Number = length comme r64)
+    desc.value = Valeur(Number = length)
     desc.configurable = vrai
     completion := define_property_or_throw(F, STR_length, desc)
     assert(completion.est_normal())
@@ -927,7 +929,7 @@ crée_fonction_native :: fonc (tas_de_mémoire: *TasDeMémoire, nom: ECMAString,
 {
     résultat := tas_de_mémoire.alloue(FunctionNative)
     set_function_name(résultat, nom)
-    set_function_length(résultat, length comme n64)
+    set_function_length(résultat, length comme r64)
     résultat.sur_appel = sur_appel
     retourne résultat
 }
