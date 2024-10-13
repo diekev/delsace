@@ -1569,9 +1569,16 @@ PrimitiveChaine :: struct {
 
 crée_chaine :: fonc (realm: *Realm, texte: ECMAString) -> *PrimitiveChaine
 {
+    pour realm.chaines {
+        si it.texte == texte {
+            retourne it
+        }
+    }
+
     tas_de_mémoire := realm.donne_tas_de_mémoire()
     résultat := tas_de_mémoire.alloue(PrimitiveChaine)
     résultat.texte = texte
+    tableau_ajoute(*realm.chaines, résultat)
     retourne résultat
 }
 

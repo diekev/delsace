@@ -244,12 +244,15 @@ Realm :: struct {
 
     /* Cache pour toutes les chaines littérales. */
     chaines_littérales: [..]*PrimitiveChaine
+    /* Cache pour les autres chaines. */
+    chaines: [..]*PrimitiveChaine
 }
 
 realm_sur_destruction :: fonc (base: *Cellule)
 {
     realm := base comme *Realm
     déloge(realm.chaines_littérales)
+    déloge(realm.chaines)
     déloge(realm.intrinsics.host_intrinsics)
 }
 
