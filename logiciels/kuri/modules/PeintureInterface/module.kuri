@@ -264,6 +264,7 @@ initialise_peintre_dessin :: fonc (peintre: *PeintreDessin)
     peintre.rappel_dessine_segment = dessine_segment_dessin
     peintre.rappel_dessine_segments = dessine_segments_dessin
     peintre.rappel_dessine_texte = dessine_texte_dessin
+    peintre.rappel_dessine_texte_utf16 = dessine_texte_utf16_dessin
     peintre.rappel_dessine_image = dessine_image_dessin
     peintre.rappel_dessine_image_grise_8bit = dessine_image_grise_8bit_dessin
     peintre.rappel_dessine_image_rvba_8bit = dessine_image_rvba_8bit_dessin
@@ -443,6 +444,14 @@ dessine_segments_dessin :: fonc (peintre: *Peintre, segments_peintre: [..]LigneP
 }
 
 dessine_texte_dessin :: fonc (peintre: *Peintre, fonte: *Fonte, texte: chaine, rectangle_peintre: RectanglePeintre, couleur_peintre: CouleurPeintre)
+{
+    peintre_dessin := peintre comme *PeintreDessin
+    rect := donne_rectangle_dessin(rectangle_peintre)
+    couleur := donne_couleur_dessin(couleur_peintre)
+    dessine_texte(*peintre_dessin.tampon_de_rendu, texte, fonte, rect, couleur)
+}
+
+dessine_texte_utf16_dessin :: fonc (peintre: *Peintre, fonte: *Fonte, texte: ChaineUTF16, rectangle_peintre: RectanglePeintre, couleur_peintre: CouleurPeintre, effets: *EffetsTexte @inutilisée)
 {
     peintre_dessin := peintre comme *PeintreDessin
     rect := donne_rectangle_dessin(rectangle_peintre)

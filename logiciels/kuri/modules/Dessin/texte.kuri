@@ -1,5 +1,6 @@
 /* Extensions de Dessin. */
 
+importe Chaine
 importe Couleur
 importe FTGL
 importe Géométrie
@@ -12,7 +13,6 @@ importe Typographie
 dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: chaine, fonte: *Fonte, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8)
 {
     source_atlas := fonte.atlas.data
-    enjambée_atlas := fonte.atlas.width comme z32
 
     décalage_x := rect.x comme r32
 
@@ -31,55 +31,88 @@ dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: chaine, fonte: *F
         }
         dernier_glyphe = glyph
 
-        x0_glyphe := (fonte.atlas.width comme r32 * glyph.s0) comme z32
-        y0_glyphe := (fonte.atlas.height comme r32 * glyph.t0) comme z32
-
-        source_glyphe := source_atlas + y0_glyphe * enjambée_atlas + x0_glyphe
-        largeur_glyphe := glyph.width comme z32
-        hauteur_glyphe := glyph.height comme z32
-
-        /* `rect.y` fournit la ligne de base du dessin du texte. */
-        dest := tampon_de_rendu.données.pointeur + (rect.y + glyph.offset_y - 1) * tampon_de_rendu.rect.largeur + (décalage_x comme z32)
-        ligne_dest := dest
-
-        pour _ dans hauteur_glyphe {
-            pixel := ligne_dest
-            source := source_glyphe
-
-            pour _ dans largeur_glyphe {
-                valeur := mémoire(source)
-
-                // si valeur != 0 {
-                //     mémoire(pixel) = couleur // CouleurRVBAN8(valeur, valeur, valeur, 255)
-                // }
-                {
-                    r_dest := (pixel.r comme r32) / 255.0
-                    v_dest := (pixel.v comme r32) / 255.0
-                    b_dest := (pixel.b comme r32) / 255.0
-
-                    r_source := (couleur.r comme r32) / 255.0
-                    v_source := (couleur.v comme r32) / 255.0
-                    b_source := (couleur.b comme r32) / 255.0
-
-                    alpha := (valeur comme r32) / 255.0
-
-                    r := (((1.0 - alpha) * r_dest + alpha * r_source) * 255.0) comme n8
-                    v := (((1.0 - alpha) * v_dest + alpha * v_source) * 255.0) comme n8
-                    b := (((1.0 - alpha) * b_dest + alpha * b_source) * 255.0) comme n8
-                    a := 255 comme n8
-
-                    mémoire(pixel) = CouleurRVBAN8(r, v, b, a)
-                }
-
-                source += 1
-                pixel += 1
-            }
-
-            ligne_dest -= tampon_de_rendu.rect.largeur
-            source_glyphe += enjambée_atlas
-        }
+        dessine_glyphe(tampon_de_rendu, fonte, glyph, décalage_x, couleur, source_atlas, rect)
 
         décalage_x += glyph.advance_x
+    }
+}
+
+dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: ChaineUTF16, fonte: *Fonte, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8)
+{
+    source_atlas := fonte.atlas.data
+
+    décalage_x := rect.x comme r32
+
+    utilise_crénage := fonte.font.kerning != 0
+    dernier_glyphe: *texture_glyph_t
+
+    pour texte.unités {
+        glyph := fonte.donne_glyphe(it)
+        saufsi glyph {
+            continue
+        }
+
+        si utilise_crénage {
+            crénage := donne_crénage_avec(glyph, dernier_glyphe)
+            décalage_x += crénage
+        }
+        dernier_glyphe = glyph
+
+        dessine_glyphe(tampon_de_rendu, fonte, glyph, décalage_x, couleur, source_atlas, rect)
+
+        décalage_x += glyph.advance_x
+    }
+}
+
+dessine_glyphe :: fonc (tampon_de_rendu: *TamponDeRendu, fonte: *Fonte, glyph: *texture_glyph_t, décalage_x: r32, couleur: CouleurRVBAN8, source_atlas: *n8, rect: RectanglePosDim(z32))
+{
+    x0_glyphe := (fonte.atlas.width comme r32 * glyph.s0) comme z32
+    y0_glyphe := (fonte.atlas.height comme r32 * glyph.t0) comme z32
+    enjambée_atlas := fonte.atlas.width comme z32
+
+    source_glyphe := source_atlas + y0_glyphe * enjambée_atlas + x0_glyphe
+    largeur_glyphe := glyph.width comme z32
+    hauteur_glyphe := glyph.height comme z32
+
+    /* `rect.y` fournit la ligne de base du dessin du texte. */
+    dest := tampon_de_rendu.données.pointeur + (rect.y + glyph.offset_y - 1) * tampon_de_rendu.rect.largeur + (décalage_x comme z32)
+    ligne_dest := dest
+
+    pour _ dans hauteur_glyphe {
+        pixel := ligne_dest
+        source := source_glyphe
+
+        pour _ dans largeur_glyphe {
+            valeur := mémoire(source)
+
+            // si valeur != 0 {
+            //     mémoire(pixel) = couleur // CouleurRVBAN8(valeur, valeur, valeur, 255)
+            // }
+            {
+                r_dest := (pixel.r comme r32) / 255.0
+                v_dest := (pixel.v comme r32) / 255.0
+                b_dest := (pixel.b comme r32) / 255.0
+
+                r_source := (couleur.r comme r32) / 255.0
+                v_source := (couleur.v comme r32) / 255.0
+                b_source := (couleur.b comme r32) / 255.0
+
+                alpha := (valeur comme r32) / 255.0
+
+                r := (((1.0 - alpha) * r_dest + alpha * r_source) * 255.0) comme n8
+                v := (((1.0 - alpha) * v_dest + alpha * v_source) * 255.0) comme n8
+                b := (((1.0 - alpha) * b_dest + alpha * b_source) * 255.0) comme n8
+                a := 255 comme n8
+
+                mémoire(pixel) = CouleurRVBAN8(r, v, b, a)
+            }
+
+            source += 1
+            pixel += 1
+        }
+
+        ligne_dest -= tampon_de_rendu.rect.largeur
+        source_glyphe += enjambée_atlas
     }
 }
 
