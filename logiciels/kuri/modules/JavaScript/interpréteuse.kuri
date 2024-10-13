@@ -381,37 +381,38 @@ imprime_complétion :: fonc (enchaineuse: *Enchaineuse, completion: *CompletionR
     }
 } @FormattageImpression
 
+/* À FAIRE(langage) : enligner cette fonction résulte en un crash lors de l'exécution. */
 normal_completion :: fonc (valeur: Valeur) -> CompletionRecord
 {
     retourne CompletionRecord(CompletionRecord.Type.NORMAL, valeur)
 }
 
-empty_completion :: fonc () -> CompletionRecord
+empty_completion :: fonc () -> CompletionRecord #enligne
 {
     retourne CompletionRecord(CompletionRecord.Type.NORMAL)
 }
 
-normal_completion :: fonc (valeur: ValeurCompletion) -> CompletionRecord
+normal_completion :: fonc (valeur: ValeurCompletion) -> CompletionRecord #enligne
 {
     retourne CompletionRecord(CompletionRecord.Type.NORMAL, valeur)
 }
 
-return_completion :: fonc (valeur: Valeur) -> CompletionRecord
+return_completion :: fonc (valeur: Valeur) -> CompletionRecord #enligne
 {
     retourne CompletionRecord(CompletionRecord.Type.RETURN, valeur)
 }
 
-return_completion :: fonc (valeur: ValeurCompletion) -> CompletionRecord
+return_completion :: fonc (valeur: ValeurCompletion) -> CompletionRecord #enligne
 {
     retourne CompletionRecord(CompletionRecord.Type.RETURN, valeur)
 }
 
-continue_completion :: fonc (cible: ECMAString) -> CompletionRecord
+continue_completion :: fonc (cible: ECMAString) -> CompletionRecord #enligne
 {
     retourne CompletionRecord(CompletionRecord.Type.CONTINUE, cible = cible)
 }
 
-break_completion :: fonc (cible: ECMAString) -> CompletionRecord
+break_completion :: fonc (cible: ECMAString) -> CompletionRecord #enligne
 {
     retourne CompletionRecord(CompletionRecord.Type.BREAK, cible = cible)
 }
@@ -432,47 +433,47 @@ update_empty :: fonc (completion: CompletionRecord, valeur: Valeur) -> Completio
     retourne completion
 }
 
-est_normal :: fonc (completion: CompletionRecord) -> bool
+est_normal :: fonc (completion: CompletionRecord) -> bool #enligne
 {
     retourne completion.type == CompletionRecord.Type.NORMAL
 }
 
-est_undefined :: fonc (completion: CompletionRecord) -> bool
+est_undefined :: fonc (completion: CompletionRecord) -> bool #enligne
 {
     retourne est_normal(completion) && est_undefined(completion.valeur)
 }
 
-est_abrupt :: fonc (completion: CompletionRecord) -> bool
+est_abrupt :: fonc (completion: CompletionRecord) -> bool #enligne
 {
     retourne !est_normal(completion)
 }
 
-est_return :: fonc (completion: CompletionRecord) -> bool
+est_return :: fonc (completion: CompletionRecord) -> bool #enligne
 {
     retourne completion.type == CompletionRecord.Type.RETURN
 }
 
-est_continue :: fonc (completion: CompletionRecord) -> bool
+est_continue :: fonc (completion: CompletionRecord) -> bool #enligne
 {
     retourne completion.type == CompletionRecord.Type.CONTINUE
 }
 
-est_break :: fonc (completion: CompletionRecord) -> bool
+est_break :: fonc (completion: CompletionRecord) -> bool #enligne
 {
     retourne completion.type == CompletionRecord.Type.BREAK
 }
 
-est_throw :: fonc (completion: CompletionRecord) -> bool
+est_throw :: fonc (completion: CompletionRecord) -> bool #enligne
 {
     retourne completion.type == CompletionRecord.Type.THROW
 }
 
-throw_completion :: fonc (valeur: Valeur) -> CompletionRecord
+throw_completion :: fonc (valeur: Valeur) -> CompletionRecord #enligne
 {
     retourne CompletionRecord(CompletionRecord.Type.THROW, ValeurCompletion(valeur))
 }
 
-donne_object :: fonc (completion: &CompletionRecord) -> *Object
+donne_object :: fonc (completion: &CompletionRecord) -> *Object #enligne
 {
     retourne completion.valeur.V.donne_objet()
 }
