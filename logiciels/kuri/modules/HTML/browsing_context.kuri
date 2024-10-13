@@ -596,19 +596,7 @@ alert :: fonc (window: *Window, message: DOMString)
 
 set_timeout :: fonc (window: *Window, handler: *JavaScript.Object, time_out: z32) -> z32
 {
-    user_agent := window.document.donne_user_agent()
-    saufsi user_agent {
-        retourne -1
-    }
-
-    algorithm := crée_algorithm_pour_timeout(window, handler)
-
-    chronomètre: Window.Chronomètres
-    chronomètre.handler = handler
-    chronomètre.time_out = time_out
-    chronomètre.id = user_agent.crée_timeout(algorithm, time_out)
-    tableau_ajoute(*window.chronomètres, chronomètre)
-    retourne chronomètre.id
+    retourne crée_chronomètre(window, handler, time_out, faux)
 }
 
 clear_timeout :: fonc (window: *Window, id: z32)
@@ -633,7 +621,7 @@ clear_timeout :: fonc (window: *Window, id: z32)
 
 set_interval :: fonc (window: *Window, handler: *JavaScript.Object, time_out: z32) -> z32
 {
-    retourne set_timeout(window, handler, time_out)
+    retourne crée_chronomètre(window, handler, time_out, vrai)
 }
 
 clear_interval :: fonc (window: *Window, id: z32)
@@ -666,6 +654,23 @@ clear_animation_frame :: fonc (window: *Window, id: z32)
             retourne
         }
     }
+}
+
+crée_chronomètre :: fonc (window: *Window, handler: *JavaScript.Object, time_out: z32, se_répète: bool) -> z32
+{
+    user_agent := window.document.donne_user_agent()
+    saufsi user_agent {
+        retourne -1
+    }
+
+    algorithm := crée_algorithm_pour_timeout(window, handler)
+
+    chronomètre: Window.Chronomètres
+    chronomètre.handler = handler
+    chronomètre.time_out = time_out
+    chronomètre.id = user_agent.crée_timeout(algorithm, time_out, se_répète)
+    tableau_ajoute(*window.chronomètres, chronomètre)
+    retourne chronomètre.id
 }
 
 crée_algorithm_pour_timeout :: fonc (window: *Window, handler: *JavaScript.Object) -> *Algorithm

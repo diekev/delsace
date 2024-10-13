@@ -2019,7 +2019,7 @@ rappels_interface_sur_affichage_alerte :: fonc (base: *RappelsInterface, message
     _ := QT_message_box_affiche_avertissement(rappels.fenêtre, vers_qt("Alerte"), vers_qt(chn_message), QT_StandardButton.OK)
 }
 
-rappels_interface_sur_création_timeout :: fonc (base: *RappelsInterface, algorithm: *Algorithm, time_out: z32) -> z32
+rappels_interface_sur_création_timeout :: fonc (base: *RappelsInterface, algorithm: *Algorithm, time_out: z32, se_répète: bool) -> z32
 {
     RappelTimer :: struct {
         empl base: QT_Rappels_Timer
@@ -2039,6 +2039,7 @@ rappels_interface_sur_création_timeout :: fonc (base: *RappelsInterface, algori
     rappel_timer.sur_timeout = sur_timeout
 
     timer := QT_cree_timer(rappel_timer)
+    QT_timer_definis_se_repete(timer, se_répète)
 
     rappels := base comme *RappelsInterfaceQt
 
