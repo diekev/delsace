@@ -1,5 +1,6 @@
 test("properties of the Object constructor", function () {
     vérifie_égalité(Object.length, 1)
+    vérifie_égalité(Object.name, "Object")
 });
 
 test("properties of the Object prototype", function () {

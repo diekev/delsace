@@ -350,13 +350,12 @@ ObjectConstructor :: struct {
     table = *table_virtuelle_object_constructor
 }
 
-/* À FAIRE : standardise (CreateBuiltInFunction) */
-crée_object_constructor :: fonc (tas_de_mémoire: *TasDeMémoire, function_prototype: *FunctionPrototype, object_prototype: *ObjectPrototype) -> *ObjectConstructor
+crée_object_constructor :: fonc (realm: *Realm, function_prototype: *FunctionPrototype, object_prototype: *ObjectPrototype) -> *ObjectConstructor
 {
+    tas_de_mémoire := realm.donne_tas_de_mémoire()
     résultat := tas_de_mémoire.alloue(ObjectConstructor)
-    résultat.prototype = function_prototype
+    create_builtin_function(résultat, 1, STR_Object, realm, function_prototype)
 
-    résultat.ajoute_propriété(STR_length, Valeur(Number = 1.0), DrapeauxPropriété.zéro)
     résultat.ajoute_propriété(STR_prototype, Valeur(Object = object_prototype), DrapeauxPropriété.zéro)
 
     résultat.ajoute_fonction_native(STR_getPrototypeOf, object_get_prototype_of, 1)

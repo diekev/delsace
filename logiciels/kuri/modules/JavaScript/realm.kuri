@@ -196,10 +196,10 @@ create_intrinsics :: fonc (realm: *Realm)
 
     realm.intrinsics.array = crée_array_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.array_prototype)
     realm.intrinsics.eval = crée_eval(realm.intrinsics.function_prototype)
-    realm.intrinsics.function = crée_function_constructor(tas_de_mémoire, realm.intrinsics.function_prototype)
+    realm.intrinsics.function = crée_function_constructor(realm, realm.intrinsics.function_prototype)
     realm.intrinsics.math = crée_math_object(realm.intrinsics.object_prototype)
-    realm.intrinsics.object = crée_object_constructor(tas_de_mémoire, realm.intrinsics.function_prototype, realm.intrinsics.object_prototype)
-    realm.intrinsics.string = crée_string_constructor(tas_de_mémoire, realm.intrinsics.function_prototype, realm.intrinsics.string_prototype)
+    realm.intrinsics.object = crée_object_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.object_prototype)
+    realm.intrinsics.string = crée_string_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.string_prototype)
 }
 
 /** \} */

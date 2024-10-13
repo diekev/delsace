@@ -46,16 +46,12 @@ ArrayConstructor :: struct {
     sur_call_or_construct = array_constructor_call_or_construct
 }
 
-/* À FAIRE : standardise (CreateBuiltInFunction) */
 crée_array_constructor :: fonc (realm: *Realm, function_prototype: *FunctionPrototype , array_prototype: *ArrayPrototype) -> *ArrayConstructor
 {
     tas_de_mémoire := realm.donne_tas_de_mémoire()
     résultat := tas_de_mémoire.alloue(ArrayConstructor)
-    résultat.prototype = function_prototype
-    résultat.realm = realm
+    create_builtin_function(résultat, 1, STR_Array, realm, function_prototype)
 
-    /* https://tc39.es/ecma262/multipage/indexed-collections.html#sec-properties-of-the-array-constructor */
-    résultat.ajoute_propriété(STR_length, Valeur(Number = 1.0), DrapeauxPropriété.zéro)
     /* https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array.prototype */
     résultat.ajoute_propriété(STR_prototype, Valeur(Object = array_prototype), DrapeauxPropriété.zéro)
 
