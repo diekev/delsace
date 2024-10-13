@@ -27,6 +27,15 @@ crée_fonction :: fonc (function_prototype: *FunctionPrototype) -> *Function
     retourne résultat
 }
 
+donne_nom :: fonc (function: *Function) -> ECMAString
+{
+    propriété := trouve_propriété(function, STR_name)
+    si propriété {
+        retourne propriété.valeur.String.texte
+    }
+    retourne crée_chaine_utf16_unique("<anonyme>")
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
