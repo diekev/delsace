@@ -345,13 +345,7 @@ génère_enveloppe_javascript :: fonc (enchaineuse: *Enchaineuse, interface: *In
 
     génère_code_conversion_this(enchaineuse, interface)
 
-    // Validation et conversion des paramètres
-    si paramètres.taille != 0 {
-        ajoute_au_tampon(enchaineuse, "    si arguments.taille < ", paramètres.taille, " {\n")
-        ajoute_au_tampon(enchaineuse, "        retourne JavaScript.lance_type_error(interpréteuse, \"", fonction.nom, " takes ", paramètres.taille, " arguments\")\n")
-        ajoute_au_tampon(enchaineuse, "    }\n")
-    }
-
+    // Conversion des paramètres
     pour paramètres {
         génère_code_conversion_argument(enchaineuse, it.nom, index_it, *it.type)
     }
@@ -425,10 +419,6 @@ génère_enveloppe_javascript_setter :: fonc (enchaineuse: *Enchaineuse, interfa
 
     génère_code_conversion_this(enchaineuse, interface)
 
-    ajoute_au_tampon(enchaineuse, "    si arguments.taille != 1 {\n")
-    ajoute_au_tampon(enchaineuse, "        retourne JavaScript.lance_type_error(interpréteuse, \"", attribut.nom, " takes 1 arguments\")\n")
-    ajoute_au_tampon(enchaineuse, "    }\n")
-
     génère_code_conversion_argument(enchaineuse, attribut.nom, 0, *attribut.type)
 
     // Appel de la fonction
@@ -467,7 +457,7 @@ génère_code_conversion_this :: fonc (enchaineuse: *Enchaineuse, interface: *In
 
 génère_code_conversion_argument :: fonc (enchaineuse: *Enchaineuse, nom: chaine, index: z64, type: *Type)
 {
-    ajoute_au_tampon(enchaineuse, "    valeur_", nom, " := arguments[", index, "]\n")
+    ajoute_au_tampon(enchaineuse, "    valeur_", nom, " := JavaScript.donne_argument(params, ", index, ")\n")
     si type.nom == "DOMString" {
         ajoute_au_tampon(enchaineuse, "    saufsi JavaScript.est_chaine(valeur_", nom, ") {\n")
         ajoute_au_tampon(enchaineuse, "        retourne JavaScript.lance_type_error(interpréteuse, \"argument ", index, " is not a String\")\n")
