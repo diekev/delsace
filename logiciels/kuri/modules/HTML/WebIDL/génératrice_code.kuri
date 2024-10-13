@@ -1,8 +1,100 @@
 importe Compilatrice
 importe Ensemble
 importe Fondation
+importe Math
 importe Sérialisation
 importe SysFichier
+
+/* https://webidl.spec.whatwg.org/#abstract-opdef-integerpart */
+integer_part :: fonc (n: r64) -> r64
+{
+    // 1. Let r be floor(abs(n)).
+    r := plancher(abs(n))
+
+    // 2. If n < 0, then return -1 × r.
+    si n < 0.0 {
+        retourne -1.0 * r
+    }
+
+    // 3. Otherwise, return r.
+    retourne r
+}
+
+Signedness :: énum {
+    Signed
+    Unsigned
+}
+
+/* https://webidl.spec.whatwg.org/#abstract-opdef-converttoint */
+convert_to_int :: fonc (interpréteuse: *JavaScript.Interpréteuse, valeur: JavaScript.Valeur, bit_length: n32 @inutilisée, signedness: Signedness @inutilisée) -> JavaScript.CompletionRecord
+{
+    // À FAIRE : complète
+    // 1. If bitLength is 64, then:
+
+        // 1. Let upperBound be 2^53 − 1.
+
+        // 2. If signedness is "unsigned", then let lowerBound be 0.
+
+        // 3. Otherwise let lowerBound be −2^53 + 1.
+
+    // 2. Otherwise, if signedness is "unsigned", then:
+
+        // 1. Let lowerBound be 0.
+
+        // 2. Let upperBound be 2^bitLength − 1.
+
+    // 3. Otherwise:
+
+        // 1. Let lowerBound be -2^bitLength − 1.
+
+        // 2. Let upperBound be 2^bitLength − 1 − 1.
+
+    // 4. Let x be ? ToNumber(V).
+    completion := JavaScript.vers_nombre(interpréteuse, valeur)
+    saufsi JavaScript.est_normal(completion) {
+        retourne completion
+    }
+
+    x := completion.valeur.V.Number
+
+    // 5. If x is −0, then set x to +0.
+    si x == -0.0 {
+        x = 0.0
+    }
+
+    // 6. If the conversion is to an IDL type associated with the [EnforceRange] extended attribute, then:
+
+        // 1. If x is NaN, +∞, or −∞, then throw a TypeError.
+
+        // 2. Set x to IntegerPart(x).
+
+        // 3. If x < lowerBound or x > upperBound, then throw a TypeError.
+
+        // 4. Return x.
+
+    // 7. If x is not NaN and the conversion is to an IDL type associated with the [Clamp] extended attribute, then:
+
+        // 1. Set x to min(max(x, lowerBound), upperBound).
+
+        // 2. Round x to the nearest integer, choosing the even integer if it lies halfway between two, and choosing +0 rather than −0.
+
+        // 3. Return x.
+
+    // 8. If x is NaN, +0, +∞, or −∞, then return +0.
+    si est_nan(x) || x == 0.0 || est_infini(x) {
+        retourne JavaScript.normal_completion(JavaScript.Valeur(Number = 0.0))
+    }
+
+    // 9. Set x to IntegerPart(x).
+    x = integer_part(x)
+
+    // 10. Set x to x modulo 2^bitLength.
+
+    // 11. If signedness is "signed" and x ≥ 2^bitLength − 1, then return x − 2^bitLength.
+
+    // 12. Otherwise, return x.
+    retourne JavaScript.normal_completion(JavaScript.Valeur(Number = x))
+}
 
 #portée_fichier
 
@@ -465,16 +557,12 @@ génère_code_conversion_argument :: fonc (enchaineuse: *Enchaineuse, nom: chain
         ajoute_au_tampon(enchaineuse, "    ", nom, " := valeur_", nom, ".String.texte\n")
     }
     sinon si type.nom == "unsigned long" {
-        // À FAIRE : ConvertToInt(valeur_nom, 32, "unsigned")
-        // https://webidl.spec.whatwg.org/#abstract-opdef-converttoint
-        ajoute_au_tampon(enchaineuse, "    completion = JavaScript.vers_nombre(interpréteuse, valeur_", nom, ")\n")
+        ajoute_au_tampon(enchaineuse, "    completion = convert_to_int(interpréteuse, valeur_", nom, ", 32, Signedness.Unsigned)\n")
         ajoute_au_tampon(enchaineuse, "    saufsi JavaScript.est_normal(completion) {\n        retourne completion;\n    }\n")
         ajoute_au_tampon(enchaineuse, "    ", nom, " := completion.valeur.V.Number comme n32\n")
     }
     sinon si type.nom == "long" {
-        // À FAIRE : ConvertToInt(valeur_nom, 32, "signed")
-        // https://webidl.spec.whatwg.org/#abstract-opdef-converttoint
-        ajoute_au_tampon(enchaineuse, "    completion = JavaScript.vers_nombre(interpréteuse, valeur_", nom, ")\n")
+        ajoute_au_tampon(enchaineuse, "    completion = convert_to_int(interpréteuse, valeur_", nom, ", 32, Signedness.Signed)\n")
         ajoute_au_tampon(enchaineuse, "    saufsi JavaScript.est_normal(completion) {\n        retourne completion;\n    }\n")
         ajoute_au_tampon(enchaineuse, "    ", nom, " := completion.valeur.V.Number comme z32\n")
     }
