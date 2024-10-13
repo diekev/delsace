@@ -360,6 +360,10 @@ set_default_global_bindings :: fonc (realm: *Realm)
     _ := define_property_or_throw(global, STR_NaN, desc)
 
     desc = PropertyDescriptor()
+    desc.value = Valeur(Number = R64_INFINITÉ)
+    _ := define_property_or_throw(global, STR_Infinity, desc)
+
+    desc = PropertyDescriptor()
     desc.value = Valeur(Object = realm.intrinsics.array)
     _ := define_property_or_throw(global, STR_Array, desc)
 
