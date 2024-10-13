@@ -243,7 +243,8 @@ put_value :: fonc (interpréteuse: *Interpréteuse, référence: ValeurCompletio
 {
     // 1. If V is not a Reference Record, throw a ReferenceError exception.
     saufsi est_reference_record(référence) {
-        retourne lance_reference_error(interpréteuse.donne_realm(), "cannot put value")
+        message := imprime_chaine("'%' is not assignable", référence)
+        retourne lance_reference_error(interpréteuse.donne_realm(), message)
     }
 
     record := référence.R
