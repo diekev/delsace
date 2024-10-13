@@ -107,6 +107,7 @@ ExecutionContext :: struct {
     realm: *Realm
     function: *Function
     script_or_module: *Script // ScriptOrModule
+    noeud_exécuté_courant: *NoeudSyntaxique @NeVisitePas
 
     /* https://tc39.es/ecma262/#table-additional-state-components-for-ecmascript-code-execution-contexts */
     lexical_environment: *Environment

@@ -15,6 +15,10 @@ NoeudSyntaxique :: struct {
 
 exécute_noeud :: fonc (noeud: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
 {
+    ancien_noeud_courant := mémoire(interpréteuse.noeud_exécuté_courant)
+    diffère mémoire(interpréteuse.noeud_exécuté_courant) = ancien_noeud_courant
+
+    mémoire(interpréteuse.noeud_exécuté_courant) = noeud
     // imprime("Exécution de %\n", noeud.type)
     retourne noeud.sur_exécution(noeud, interpréteuse)
 }

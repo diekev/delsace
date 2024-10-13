@@ -487,6 +487,7 @@ donne_object :: fonc (completion: &CompletionRecord) -> *Object
 
 Interpréteuse :: struct {
     mv: *MachineVirtuelle
+    noeud_exécuté_courant: **NoeudSyntaxique
 }
 
 initialise_interpréteuse :: fonc (interpréteuse: *Interpréteuse @inutilisée)
@@ -500,6 +501,9 @@ exécute :: fonc (interpréteuse: *Interpréteuse, noeud: *NoeudSyntaxique) -> C
     }
 
     résultat := normal_completion(js_undefined)
+
+    ctx := interpréteuse.donne_running_execution_context()
+    interpréteuse.noeud_exécuté_courant = *ctx.noeud_exécuté_courant
 
     scope := noeud comme *NoeudScope
 
@@ -537,10 +541,9 @@ donne_realm :: fonc (interpréteuse: *Interpréteuse) -> *Realm
     retourne rec.realm
 }
 
-donne_noeud_évalué_courant :: fonc (interpréteuse: *Interpréteuse @inutilisée) -> *NoeudSyntaxique
+donne_noeud_évalué_courant :: fonc (interpréteuse: *Interpréteuse) -> *NoeudSyntaxique
 {
-    // À FAIRE
-    retourne nul
+    retourne interpréteuse.donne_running_execution_context().noeud_exécuté_courant
 }
 
 crée_string_value_completion :: fonc (interpréteuse: *Interpréteuse, texte: chaine) -> CompletionRecord
