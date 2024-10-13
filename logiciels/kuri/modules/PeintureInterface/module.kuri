@@ -84,7 +84,14 @@ Peintre :: struct {
      * limites d'une zone hors de laquelle rien n'est dessiné. */
     rappel_définis_ciseau: fonc(*Peintre, RectanglePeintre)(rien)
 
+    rappel_destruction: fonc(*Peintre)(rien)
+
     ciseaux: [..]RectanglePeintre
+}
+
+détruit_peintre :: fonc (peintre: *Peintre)
+{
+    peintre.rappel_destruction(peintre)
 }
 
 définis_taille_cannevas :: fonc (peintre: *Peintre, taille: Taille) -> rien #enligne
@@ -272,6 +279,7 @@ initialise_peintre_dessin :: fonc (peintre: *PeintreDessin)
     peintre.rappel_donne_fonte = donne_fonte_dessin
     peintre.rappel_dessine_tampon_sur_écran = dessine_tampon_sur_écran_dessin
     peintre.rappel_définis_ciseau = définis_ciseau_dessin
+    peintre.rappel_destruction = détruit_peintre_dessin
 }
 
 donne_cercle_dessin :: fonc (cercle: CerclePeintre) -> Cercle(z32)
@@ -504,13 +512,14 @@ dessine_tampon_sur_écran_dessin :: fonc (peintre: *Peintre)
     dessine_tampon_texture(peintre_dessin.tampon_texture)
 }
 
-détruit_peintre_dessin :: fonc (peintre: *PeintreDessin)
+détruit_peintre_dessin :: fonc (base: *Peintre)
 {
-    détruit_tampon_de_rendu(*peintre.tampon_de_rendu)
+    peintre_dessin := base comme *PeintreDessin
+    détruit_tampon_de_rendu(*peintre_dessin.tampon_de_rendu)
     si peintre_dessin.tampon_texture {
-        détruit_tampon_texture(peintre.tampon_texture)
+        détruit_tampon_texture(peintre_dessin.tampon_texture)
     }
-    déloge(peintre)
+    déloge(peintre_dessin)
 }
 
 définis_ciseau_dessin :: fonc (peintre: *Peintre @inutilisée, rectangle: RectanglePeintre @inutilisée)
@@ -553,6 +562,7 @@ crée_peintre_igumi :: fonc (taille_cannevas: Taille) -> *Peintre
     peintre.rappel_donne_fonte = donne_fonte_igumi
     peintre.rappel_dessine_tampon_sur_écran = dessine_tampon_sur_écran_igumi
     peintre.rappel_définis_ciseau = définis_ciseau_igumi
+    peintre.rappel_destruction = détruit_peintre_igumi
     définis_taille_cannevas(peintre, taille_cannevas)
     retourne peintre
 }

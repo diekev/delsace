@@ -1158,7 +1158,7 @@ vue_rendu_page_sur_destruction :: fonc (rappels: *QT_Rappels_GLWidget)
 {
     vue_rendu_page := rappels comme *VueRenduPage
     si vue_rendu_page.peintre {
-        détruit_peintre_igumi(vue_rendu_page.peintre)
+        détruit_peintre(vue_rendu_page.peintre)
     }
     déloge(vue_rendu_page)
 }
