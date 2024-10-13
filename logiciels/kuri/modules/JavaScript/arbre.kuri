@@ -8,6 +8,7 @@ importe Introspection
 
 NoeudSyntaxique :: struct {
     type := #type_de_cette_structure
+    lexème: *Lexème
 
     sur_exécution: fonc(*NoeudSyntaxique, *Interpréteuse)(CompletionRecord)
 }
@@ -148,9 +149,9 @@ Programme :: struct {
     type_source := "script"
 }
 
-crée_programme :: fonc (parseuse: *Parseuse, expressions: [..]*NoeudSyntaxique) -> *Programme
+crée_programme :: fonc (parseuse: *Parseuse, lexème: *Lexème, expressions: [..]*NoeudSyntaxique) -> *Programme
 {
-    résultat := parseuse.crée_noeud(Programme)
+    résultat := parseuse.crée_noeud(lexème, Programme)
     résultat.enfants = expressions
     retourne résultat
 }
@@ -175,9 +176,9 @@ FunctionDeclaration :: struct {
     async := faux
 }
 
-crée_function_déclaration :: fonc (parseuse: *Parseuse, id: *Identifier, params: [..]*NoeudSyntaxique, corps: *NoeudSyntaxique) -> *FunctionDeclaration
+crée_function_déclaration :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *Identifier, params: [..]*NoeudSyntaxique, corps: *NoeudSyntaxique) -> *FunctionDeclaration
 {
-    résultat := parseuse.crée_noeud(FunctionDeclaration)
+    résultat := parseuse.crée_noeud(lexème, FunctionDeclaration)
     résultat.id = id
     résultat.corps = corps
     résultat.params = params
@@ -210,9 +211,9 @@ FunctionExpression :: struct {
     async := faux
 }
 
-crée_function_expression :: fonc (parseuse: *Parseuse, id: *Identifier, params: [..]*NoeudSyntaxique, corps: *NoeudSyntaxique) -> *FunctionExpression
+crée_function_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *Identifier, params: [..]*NoeudSyntaxique, corps: *NoeudSyntaxique) -> *FunctionExpression
 {
-    résultat := parseuse.crée_noeud(FunctionExpression)
+    résultat := parseuse.crée_noeud(lexème, FunctionExpression)
     résultat.id = id
     résultat.corps = corps
     résultat.params = params
@@ -306,9 +307,9 @@ ThisExpression :: struct {
     sur_exécution = sur_exécution_this_expression
 }
 
-crée_this_expression :: fonc (parseuse: *Parseuse) -> *ThisExpression
+crée_this_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *ThisExpression
 {
-    retourne parseuse.crée_noeud(ThisExpression)
+    retourne parseuse.crée_noeud(lexème, ThisExpression)
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-this-keyword-runtime-semantics-evaluation */
@@ -331,16 +332,16 @@ Identifier :: struct {
     nom: ECMAString
 }
 
-crée_identifier :: fonc (parseuse: *Parseuse, nom: ECMAString) -> *Identifier
+crée_identifier :: fonc (parseuse: *Parseuse, lexème: *Lexème, nom: ECMAString) -> *Identifier
 {
-    résultat := parseuse.crée_noeud(Identifier)
+    résultat := parseuse.crée_noeud(lexème, Identifier)
     résultat.nom = nom
     retourne résultat
 }
 
-crée_identifier :: fonc (parseuse: *Parseuse, nom: chaine) -> *Identifier
+crée_identifier :: fonc (parseuse: *Parseuse, lexème: *Lexème, nom: chaine) -> *Identifier
 {
-    retourne crée_identifier(parseuse, crée_chaine_utf16_unique(nom))
+    retourne crée_identifier(parseuse, lexème, crée_chaine_utf16_unique(nom))
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-identifiers-runtime-semantics-evaluation */
@@ -361,9 +362,9 @@ BlockStatement :: struct {
     type = #type_de_cette_structure
 }
 
-crée_block_statement :: fonc (parseuse: *Parseuse, expressions: [..]*NoeudSyntaxique) -> *BlockStatement
+crée_block_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, expressions: [..]*NoeudSyntaxique) -> *BlockStatement
 {
-    résultat := parseuse.crée_noeud(BlockStatement)
+    résultat := parseuse.crée_noeud(lexème, BlockStatement)
     résultat.enfants = expressions
     retourne résultat
 }
@@ -382,9 +383,9 @@ ReturnStatement :: struct {
     argument: *NoeudSyntaxique
 }
 
-crée_return_statement :: fonc (parseuse: *Parseuse, argument: *NoeudSyntaxique) -> *ReturnStatement
+crée_return_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *NoeudSyntaxique) -> *ReturnStatement
 {
-    résultat := parseuse.crée_noeud(ReturnStatement)
+    résultat := parseuse.crée_noeud(lexème, ReturnStatement)
     résultat.argument = argument
     retourne résultat
 }
@@ -436,9 +437,9 @@ UnaryPlusOperator :: struct {
     argument: *NoeudSyntaxique
 }
 
-crée_unary_plus_operator :: fonc (parseuse: *Parseuse, argument: *NoeudSyntaxique) -> *UnaryPlusOperator
+crée_unary_plus_operator :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *NoeudSyntaxique) -> *UnaryPlusOperator
 {
-    résultat := parseuse.crée_noeud(UnaryPlusOperator)
+    résultat := parseuse.crée_noeud(lexème, UnaryPlusOperator)
     résultat.argument = argument
     retourne résultat
 }
@@ -479,9 +480,9 @@ UnaryMinusOperator :: struct {
     argument: *NoeudSyntaxique
 }
 
-crée_unary_minus_operator :: fonc (parseuse: *Parseuse, argument: *NoeudSyntaxique) -> *UnaryMinusOperator
+crée_unary_minus_operator :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *NoeudSyntaxique) -> *UnaryMinusOperator
 {
-    résultat := parseuse.crée_noeud(UnaryMinusOperator)
+    résultat := parseuse.crée_noeud(lexème, UnaryMinusOperator)
     résultat.argument = argument
     retourne résultat
 }
@@ -553,9 +554,9 @@ LogicalNot :: struct {
     argument: *NoeudSyntaxique
 }
 
-crée_logical_not :: fonc (parseuse: *Parseuse, argument: *NoeudSyntaxique) -> *LogicalNot
+crée_logical_not :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *NoeudSyntaxique) -> *LogicalNot
 {
-    résultat := parseuse.crée_noeud(LogicalNot)
+    résultat := parseuse.crée_noeud(lexème, LogicalNot)
     résultat.argument = argument
     retourne résultat
 }
@@ -604,9 +605,9 @@ LogicalAnd :: struct {
     right: *NoeudSyntaxique
 }
 
-crée_logical_and :: fonc (parseuse: *Parseuse, left: *NoeudSyntaxique, right: *NoeudSyntaxique) -> *LogicalAnd
+crée_logical_and :: fonc (parseuse: *Parseuse, lexème: *Lexème, left: *NoeudSyntaxique, right: *NoeudSyntaxique) -> *LogicalAnd
 {
-    résultat := parseuse.crée_noeud(LogicalAnd)
+    résultat := parseuse.crée_noeud(lexème, LogicalAnd)
     résultat.left = left
     résultat.right = right
     retourne résultat
@@ -662,9 +663,9 @@ LogicalOr :: struct {
     right: *NoeudSyntaxique
 }
 
-crée_logical_or :: fonc (parseuse: *Parseuse, left: *NoeudSyntaxique, right: *NoeudSyntaxique) -> *LogicalOr
+crée_logical_or :: fonc (parseuse: *Parseuse, lexème: *Lexème, left: *NoeudSyntaxique, right: *NoeudSyntaxique) -> *LogicalOr
 {
-    résultat := parseuse.crée_noeud(LogicalOr)
+    résultat := parseuse.crée_noeud(lexème, LogicalOr)
     résultat.left = left
     résultat.right = right
     retourne résultat
@@ -728,9 +729,9 @@ BinaryExpression :: struct {
     droite: *NoeudSyntaxique
 }
 
-crée_binary_expression :: fonc (parseuse: *Parseuse, opération: BinaryOperation, gauche: *NoeudSyntaxique, droite: *NoeudSyntaxique) -> *BinaryExpression
+crée_binary_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, opération: BinaryOperation, gauche: *NoeudSyntaxique, droite: *NoeudSyntaxique) -> *BinaryExpression
 {
-    résultat := parseuse.crée_noeud(BinaryExpression)
+    résultat := parseuse.crée_noeud(lexème, BinaryExpression)
     résultat.opération = opération
     résultat.gauche = gauche
     résultat.droite = droite
@@ -907,9 +908,9 @@ EqualityExpression :: struct {
     droite: *NoeudSyntaxique
 }
 
-crée_equality_expression :: fonc (parseuse: *Parseuse, opération: EqualityOperation, gauche: *NoeudSyntaxique, droite: *NoeudSyntaxique) -> *EqualityExpression
+crée_equality_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, opération: EqualityOperation, gauche: *NoeudSyntaxique, droite: *NoeudSyntaxique) -> *EqualityExpression
 {
-    résultat := parseuse.crée_noeud(EqualityExpression)
+    résultat := parseuse.crée_noeud(lexème, EqualityExpression)
     résultat.opération = opération
     résultat.gauche = gauche
     résultat.droite = droite
@@ -1166,9 +1167,9 @@ RelationalExpression :: struct {
     droite: *NoeudSyntaxique
 }
 
-crée_relational_expression :: fonc (parseuse: *Parseuse, opération: RelationalOperation, gauche: *NoeudSyntaxique, droite: *NoeudSyntaxique) -> *RelationalExpression
+crée_relational_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, opération: RelationalOperation, gauche: *NoeudSyntaxique, droite: *NoeudSyntaxique) -> *RelationalExpression
 {
-    résultat := parseuse.crée_noeud(RelationalExpression)
+    résultat := parseuse.crée_noeud(lexème, RelationalExpression)
     résultat.opération = opération
     résultat.gauche = gauche
     résultat.droite = droite
@@ -1400,9 +1401,9 @@ NumericLiteral :: struct {
     // raw: ECMAString
 }
 
-crée_literal :: fonc (parseuse: *Parseuse, valeur: r64) -> *NumericLiteral
+crée_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème, valeur: r64) -> *NumericLiteral
 {
-    résultat := parseuse.crée_noeud(NumericLiteral)
+    résultat := parseuse.crée_noeud(lexème, NumericLiteral)
     résultat.valeur = valeur
     retourne résultat
 }
@@ -1427,9 +1428,9 @@ BooleanLiteral :: struct {
     valeur: bool
 }
 
-crée_boolean_literal :: fonc (parseuse: *Parseuse, valeur: bool) -> *BooleanLiteral
+crée_boolean_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème, valeur: bool) -> *BooleanLiteral
 {
-    résultat := parseuse.crée_noeud(BooleanLiteral)
+    résultat := parseuse.crée_noeud(lexème, BooleanLiteral)
     résultat.valeur = valeur
     retourne résultat
 }
@@ -1452,9 +1453,9 @@ NullLiteral :: struct {
     sur_exécution = sur_exécution_null_literal
 }
 
-crée_null_literal :: fonc (parseuse: *Parseuse) -> *NullLiteral
+crée_null_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *NullLiteral
 {
-    résultat := parseuse.crée_noeud(NullLiteral)
+    résultat := parseuse.crée_noeud(lexème, NullLiteral)
     retourne résultat
 }
 
@@ -1478,16 +1479,16 @@ StringLiteral :: struct {
     index_chaine : z64 = -1
 }
 
-crée_literal :: fonc (parseuse: *Parseuse, valeur: ECMAString) -> *StringLiteral
+crée_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème, valeur: ECMAString) -> *StringLiteral
 {
-    résultat := parseuse.crée_noeud(StringLiteral)
+    résultat := parseuse.crée_noeud(lexème, StringLiteral)
     résultat.valeur = valeur
     retourne résultat
 }
 
-crée_literal :: fonc (parseuse: *Parseuse, valeur: chaine) -> *StringLiteral
+crée_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème, valeur: chaine) -> *StringLiteral
 {
-    retourne crée_literal(parseuse, crée_chaine_utf16_unique(valeur))
+    retourne crée_literal(parseuse, lexème, crée_chaine_utf16_unique(valeur))
 }
 
 sur_exécution_string_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
@@ -1523,9 +1524,9 @@ ExpressionStatement :: struct {
     expression: *NoeudSyntaxique
 }
 
-crée_expression_statement :: fonc (parseuse: *Parseuse, expression: *NoeudSyntaxique) -> *NoeudSyntaxique
+crée_expression_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, expression: *NoeudSyntaxique) -> *NoeudSyntaxique
 {
-    résultat := parseuse.crée_noeud(ExpressionStatement)
+    résultat := parseuse.crée_noeud(lexème, ExpressionStatement)
     résultat.expression = expression
     retourne résultat
 }
@@ -1554,9 +1555,9 @@ CallExpression :: struct {
     arguments: [..]*NoeudSyntaxique
 }
 
-crée_call_expression :: fonc (parseuse: *Parseuse, appelé: *NoeudSyntaxique, arguments: [..]*NoeudSyntaxique) -> *CallExpression
+crée_call_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, appelé: *NoeudSyntaxique, arguments: [..]*NoeudSyntaxique) -> *CallExpression
 {
-    résultat := parseuse.crée_noeud(CallExpression)
+    résultat := parseuse.crée_noeud(lexème, CallExpression)
     résultat.appelé = appelé
     résultat.arguments = arguments
     retourne résultat
@@ -1771,9 +1772,9 @@ AssignmentExpression :: struct {
     droite: *NoeudSyntaxique
 }
 
-crée_assignment_expression :: fonc (parseuse: *Parseuse, opération: AssignmentOperation, gauche: *NoeudSyntaxique, droite: *NoeudSyntaxique) -> *AssignmentExpression
+crée_assignment_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, opération: AssignmentOperation, gauche: *NoeudSyntaxique, droite: *NoeudSyntaxique) -> *AssignmentExpression
 {
-    résultat := parseuse.crée_noeud(AssignmentExpression)
+    résultat := parseuse.crée_noeud(lexème, AssignmentExpression)
     résultat.opération = opération
     résultat.gauche = gauche
     résultat.droite = droite
@@ -1957,9 +1958,9 @@ VariableDeclaration :: struct {
     expressions: [..]*NoeudSyntaxique
 }
 
-crée_variable_declaration :: fonc (parseuse: *Parseuse, nature: VariableDeclarationKind, declarators: [..]*NoeudSyntaxique) -> *VariableDeclaration
+crée_variable_declaration :: fonc (parseuse: *Parseuse, lexème: *Lexème, nature: VariableDeclarationKind, declarators: [..]*NoeudSyntaxique) -> *VariableDeclaration
 {
-    résultat := parseuse.crée_noeud(VariableDeclaration)
+    résultat := parseuse.crée_noeud(lexème, VariableDeclaration)
     résultat.nature = nature
     résultat.expressions = declarators
     retourne résultat
@@ -1994,9 +1995,9 @@ VariableDeclarator :: struct {
     init: *NoeudSyntaxique
 }
 
-crée_variable_declarator :: fonc (parseuse: *Parseuse, id: *NoeudSyntaxique, init: *NoeudSyntaxique) -> *VariableDeclarator
+crée_variable_declarator :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *NoeudSyntaxique, init: *NoeudSyntaxique) -> *VariableDeclarator
 {
-    résultat := parseuse.crée_noeud(VariableDeclarator)
+    résultat := parseuse.crée_noeud(lexème, VariableDeclarator)
     résultat.id = id
     résultat.init = init
     retourne résultat
@@ -2069,9 +2070,9 @@ PropertyDefinition :: struct {
     expression: *NoeudSyntaxique
 }
 
-crée_property_definition :: fonc (parseuse: *Parseuse, property_name: *NoeudSyntaxique, expression: *NoeudSyntaxique) -> *PropertyDefinition
+crée_property_definition :: fonc (parseuse: *Parseuse, lexème: *Lexème, property_name: *NoeudSyntaxique, expression: *NoeudSyntaxique) -> *PropertyDefinition
 {
-    résultat := parseuse.crée_noeud(PropertyDefinition)
+    résultat := parseuse.crée_noeud(lexème, PropertyDefinition)
     résultat.property_name = property_name
     résultat.expression = expression
     retourne résultat
@@ -2091,9 +2092,9 @@ ObjectExpression :: struct {
     properties: [..]*PropertyDefinition
 }
 
-crée_object_expression :: fonc (parseuse: *Parseuse, properties: [..]*PropertyDefinition) -> *ObjectExpression
+crée_object_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, properties: [..]*PropertyDefinition) -> *ObjectExpression
 {
-    résultat := parseuse.crée_noeud(ObjectExpression)
+    résultat := parseuse.crée_noeud(lexème, ObjectExpression)
     résultat.properties = properties
     retourne résultat
 }
@@ -2185,9 +2186,9 @@ ArrayLiteral :: struct {
     éléments: [..]*NoeudSyntaxique
 }
 
-crée_array_literal :: fonc (parseuse: *Parseuse, éléments: [..]*NoeudSyntaxique) -> *ArrayLiteral
+crée_array_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème, éléments: [..]*NoeudSyntaxique) -> *ArrayLiteral
 {
-    résultat := parseuse.crée_noeud(ArrayLiteral)
+    résultat := parseuse.crée_noeud(lexème, ArrayLiteral)
     résultat.éléments = éléments
     retourne résultat
 }
@@ -2242,9 +2243,9 @@ MemberExpression :: struct {
     calculé := faux
 }
 
-crée_member_expression :: fonc (parseuse: *Parseuse, objet: *NoeudSyntaxique, propriété: *NoeudSyntaxique, calculé: bool) -> *MemberExpression
+crée_member_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, objet: *NoeudSyntaxique, propriété: *NoeudSyntaxique, calculé: bool) -> *MemberExpression
 {
-    résultat := parseuse.crée_noeud(MemberExpression)
+    résultat := parseuse.crée_noeud(lexème, MemberExpression)
     résultat.objet = objet
     résultat.propriété = propriété
     résultat.calculé = calculé
@@ -2352,9 +2353,9 @@ UpdateExpression :: struct {
     operation: UpdateOperation
 }
 
-crée_update_expression :: fonc (parseuse: *Parseuse, argument: *NoeudSyntaxique, operation: UpdateOperation) -> *UpdateExpression
+crée_update_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *NoeudSyntaxique, operation: UpdateOperation) -> *UpdateExpression
 {
-    résultat := parseuse.crée_noeud(UpdateExpression)
+    résultat := parseuse.crée_noeud(lexème, UpdateExpression)
     résultat.argument = argument
     résultat.operation = operation
     retourne résultat
@@ -2433,9 +2434,9 @@ ContinueStatement :: struct {
     target: *NoeudSyntaxique
 }
 
-crée_continue_statement :: fonc (parseuse: *Parseuse, target: *NoeudSyntaxique) -> *ContinueStatement
+crée_continue_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, target: *NoeudSyntaxique) -> *ContinueStatement
 {
-    résultat := parseuse.crée_noeud(ContinueStatement)
+    résultat := parseuse.crée_noeud(lexème, ContinueStatement)
     résultat.target = target
     retourne résultat
 }
@@ -2474,9 +2475,9 @@ BreakStatement :: struct {
     target: *NoeudSyntaxique
 }
 
-crée_break_statement :: fonc (parseuse: *Parseuse, target: *NoeudSyntaxique) -> *BreakStatement
+crée_break_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, target: *NoeudSyntaxique) -> *BreakStatement
 {
-    résultat := parseuse.crée_noeud(BreakStatement)
+    résultat := parseuse.crée_noeud(lexème, BreakStatement)
     résultat.target = target
     retourne résultat
 }
@@ -2518,9 +2519,9 @@ ForStatement :: struct {
     body: *NoeudSyntaxique
 }
 
-crée_for_statement :: fonc (parseuse: *Parseuse, init: *NoeudSyntaxique, test: *NoeudSyntaxique, update: *NoeudSyntaxique, body: *NoeudSyntaxique) -> *ForStatement
+crée_for_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, init: *NoeudSyntaxique, test: *NoeudSyntaxique, update: *NoeudSyntaxique, body: *NoeudSyntaxique) -> *ForStatement
 {
-    résultat := parseuse.crée_noeud(ForStatement)
+    résultat := parseuse.crée_noeud(lexème, ForStatement)
     résultat.init = init
     résultat.test = test
     résultat.update = update
@@ -2595,9 +2596,9 @@ ForOfStatement :: struct {
     body: *NoeudSyntaxique
 }
 
-crée_for_of_statement :: fonc (parseuse: *Parseuse, left: *NoeudSyntaxique, right: *NoeudSyntaxique, body: *NoeudSyntaxique) -> *ForOfStatement
+crée_for_of_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, left: *NoeudSyntaxique, right: *NoeudSyntaxique, body: *NoeudSyntaxique) -> *ForOfStatement
 {
-    résultat := parseuse.crée_noeud(ForOfStatement)
+    résultat := parseuse.crée_noeud(lexème, ForOfStatement)
     résultat.left = left
     résultat.right = right
     résultat.body = body
@@ -2625,9 +2626,9 @@ ForInStatement :: struct {
     body: *NoeudSyntaxique
 }
 
-crée_for_in_statement :: fonc (parseuse: *Parseuse, left: *NoeudSyntaxique, right: *NoeudSyntaxique, body: *NoeudSyntaxique) -> *ForInStatement
+crée_for_in_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, left: *NoeudSyntaxique, right: *NoeudSyntaxique, body: *NoeudSyntaxique) -> *ForInStatement
 {
-    résultat := parseuse.crée_noeud(ForInStatement)
+    résultat := parseuse.crée_noeud(lexème, ForInStatement)
     résultat.left = left
     résultat.right = right
     résultat.body = body
@@ -2654,9 +2655,9 @@ WhileStatement :: struct {
     body: *NoeudSyntaxique
 }
 
-crée_while_statement :: fonc (parseuse: *Parseuse, test: *NoeudSyntaxique, body: *NoeudSyntaxique) -> *WhileStatement
+crée_while_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, test: *NoeudSyntaxique, body: *NoeudSyntaxique) -> *WhileStatement
 {
-    résultat := parseuse.crée_noeud(WhileStatement)
+    résultat := parseuse.crée_noeud(lexème, WhileStatement)
     résultat.test = test
     résultat.body = body
     retourne résultat
@@ -2713,9 +2714,9 @@ DoWhileStatement :: struct {
     test: *NoeudSyntaxique
 }
 
-crée_do_while_statement :: fonc (parseuse: *Parseuse, body: *NoeudSyntaxique, test: *NoeudSyntaxique) -> *DoWhileStatement
+crée_do_while_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, body: *NoeudSyntaxique, test: *NoeudSyntaxique) -> *DoWhileStatement
 {
-    résultat := parseuse.crée_noeud(DoWhileStatement)
+    résultat := parseuse.crée_noeud(lexème, DoWhileStatement)
     résultat.body = body
     résultat.test = test
     retourne résultat
@@ -2773,9 +2774,9 @@ ConditionalExpression :: struct {
     alternate: *NoeudSyntaxique
 }
 
-crée_conditionnal_expression :: fonc (parseuse: *Parseuse, test: *NoeudSyntaxique, consequent: *NoeudSyntaxique, alternate: *NoeudSyntaxique) -> *ConditionalExpression
+crée_conditionnal_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, test: *NoeudSyntaxique, consequent: *NoeudSyntaxique, alternate: *NoeudSyntaxique) -> *ConditionalExpression
 {
-    résultat := parseuse.crée_noeud(ConditionalExpression)
+    résultat := parseuse.crée_noeud(lexème, ConditionalExpression)
     résultat.test = test
     résultat.consequent = consequent
     résultat.alternate = alternate
@@ -2839,9 +2840,9 @@ IfStatement :: struct {
     alternate: *NoeudSyntaxique
 }
 
-crée_if_statement :: fonc (parseuse: *Parseuse, test: *NoeudSyntaxique, consequent: *NoeudSyntaxique, alternate: *NoeudSyntaxique) -> *IfStatement
+crée_if_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, test: *NoeudSyntaxique, consequent: *NoeudSyntaxique, alternate: *NoeudSyntaxique) -> *IfStatement
 {
-    résultat := parseuse.crée_noeud(IfStatement)
+    résultat := parseuse.crée_noeud(lexème, IfStatement)
     résultat.test = test
     résultat.consequent = consequent
     résultat.alternate = alternate
@@ -2903,9 +2904,9 @@ TypeofOperator :: struct {
     argument: *NoeudSyntaxique
 }
 
-crée_typeof_operator :: fonc (parseuse: *Parseuse, argument: *NoeudSyntaxique) -> *TypeofOperator
+crée_typeof_operator :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *NoeudSyntaxique) -> *TypeofOperator
 {
-    résultat := parseuse.crée_noeud(TypeofOperator)
+    résultat := parseuse.crée_noeud(lexème, TypeofOperator)
     résultat.argument = argument
     retourne résultat
 }
@@ -3000,9 +3001,9 @@ ThrowStatement :: struct {
     argument: *NoeudSyntaxique
 }
 
-crée_throw_statement :: fonc (parseuse: *Parseuse, argument: *NoeudSyntaxique) -> *ThrowStatement
+crée_throw_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *NoeudSyntaxique) -> *ThrowStatement
 {
-    résultat := parseuse.crée_noeud(ThrowStatement)
+    résultat := parseuse.crée_noeud(lexème, ThrowStatement)
     résultat.argument = argument
     retourne résultat
 }
@@ -3046,9 +3047,9 @@ TryStatement :: struct {
     finalizer: *NoeudSyntaxique
 }
 
-crée_try_statement :: fonc (parseuse: *Parseuse, block: *NoeudSyntaxique, handler: *CatchClause, finalizer: *NoeudSyntaxique) -> *TryStatement
+crée_try_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, block: *NoeudSyntaxique, handler: *CatchClause, finalizer: *NoeudSyntaxique) -> *TryStatement
 {
-    résultat := parseuse.crée_noeud(TryStatement)
+    résultat := parseuse.crée_noeud(lexème, TryStatement)
     résultat.block = block
     résultat.handler = handler
     résultat.finalizer = finalizer
@@ -3134,9 +3135,9 @@ CatchClause :: struct {
     body: *NoeudSyntaxique
 }
 
-crée_catch_clause :: fonc (parseuse: *Parseuse, param: *NoeudSyntaxique, body: *NoeudSyntaxique) -> *CatchClause
+crée_catch_clause :: fonc (parseuse: *Parseuse, lexème: *Lexème, param: *NoeudSyntaxique, body: *NoeudSyntaxique) -> *CatchClause
 {
-    résultat := parseuse.crée_noeud(CatchClause)
+    résultat := parseuse.crée_noeud(lexème, CatchClause)
     résultat.param = param
     résultat.body = body
     retourne résultat
@@ -3206,9 +3207,9 @@ NewExpression :: struct {
     argument: *NoeudSyntaxique
 }
 
-crée_new_expression :: fonc (parseuse: *Parseuse, argument: *NoeudSyntaxique) -> *NewExpression
+crée_new_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *NoeudSyntaxique) -> *NewExpression
 {
-    résultat := parseuse.crée_noeud(NewExpression)
+    résultat := parseuse.crée_noeud(lexème, NewExpression)
     résultat.argument = argument
     retourne résultat
 }
@@ -3289,9 +3290,9 @@ SwitchStatement :: struct {
     index_default_clause: z64
 }
 
-crée_switch_statement :: fonc (parseuse: *Parseuse, discriminant: *NoeudSyntaxique, cases: [..]*CaseClause, index_default_clause: z64) -> *SwitchStatement
+crée_switch_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, discriminant: *NoeudSyntaxique, cases: [..]*CaseClause, index_default_clause: z64) -> *SwitchStatement
 {
-    résultat := parseuse.crée_noeud(SwitchStatement)
+    résultat := parseuse.crée_noeud(lexème, SwitchStatement)
     résultat.discriminant = discriminant
     résultat.cases = cases
     résultat.index_default_clause = index_default_clause
@@ -3561,9 +3562,9 @@ CaseClause :: struct {
     consequent: *BlockStatement // StatementList
 }
 
-crée_case_clause :: fonc (parseuse: *Parseuse, test: *NoeudSyntaxique, consequent: *BlockStatement) -> *CaseClause
+crée_case_clause :: fonc (parseuse: *Parseuse, lexème: *Lexème, test: *NoeudSyntaxique, consequent: *BlockStatement) -> *CaseClause
 {
-    résultat := parseuse.crée_noeud(CaseClause)
+    résultat := parseuse.crée_noeud(lexème, CaseClause)
     résultat.test = test
     résultat.consequent = consequent
     retourne résultat
@@ -3592,9 +3593,9 @@ DefaultClause :: struct {
     type = #type_de_cette_structure
 }
 
-crée_default_clause :: fonc (parseuse: *Parseuse, consequent: *BlockStatement) -> *DefaultClause
+crée_default_clause :: fonc (parseuse: *Parseuse, lexème: *Lexème, consequent: *BlockStatement) -> *DefaultClause
 {
-    résultat := parseuse.crée_noeud(DefaultClause)
+    résultat := parseuse.crée_noeud(lexème, DefaultClause)
     résultat.consequent = consequent
     retourne résultat
 }
@@ -3614,9 +3615,9 @@ CommaExpression :: struct {
     right: *NoeudSyntaxique
 }
 
-crée_comma_expression :: fonc (parseuse: *Parseuse, left: *NoeudSyntaxique, right: *NoeudSyntaxique) -> *CommaExpression
+crée_comma_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, left: *NoeudSyntaxique, right: *NoeudSyntaxique) -> *CommaExpression
 {
-    résultat := parseuse.crée_noeud(CommaExpression)
+    résultat := parseuse.crée_noeud(lexème, CommaExpression)
     résultat.left = left
     résultat.right = right
     retourne résultat
