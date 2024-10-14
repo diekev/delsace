@@ -472,9 +472,11 @@ dessine_texte_utf16_dessin :: fonc (peintre: *Peintre, fonte: *Fonte, texte: Cha
     dessine_texte(*peintre_dessin.tampon_de_rendu, texte, fonte, rect, couleur, effets)
 }
 
-dessine_image_dessin :: fonc (peintre: *Peintre @inutilisée, image: ImageIO @inutilisée, rectangle_peintre: RectanglePeintre @inutilisée)
+dessine_image_dessin :: fonc (peintre: *Peintre, image: ImageIO, rectangle_peintre: RectanglePeintre)
 {
-    // À FAIRE
+    peintre_dessin := peintre comme *PeintreDessin
+    rect := donne_rectangle_dessin(rectangle_peintre)
+    dessine_image(*peintre_dessin.tampon_de_rendu, image, rect)
 }
 
 dessine_image_grise_8bit_dessin :: fonc (peintre: *Peintre, image: TamponImageGrise8Bit, rectangle_peintre: RectanglePeintre)
