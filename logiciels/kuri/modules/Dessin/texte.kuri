@@ -103,7 +103,7 @@ dessine_glyphe :: fonc (tampon_de_rendu: *TamponDeRendu, fonte: *Fonte, glyph: *
                 v_source := (couleur.v comme r32) / 255.0
                 b_source := (couleur.b comme r32) / 255.0
 
-                alpha := (valeur comme r32) / 255.0
+                alpha := (valeur comme r32) / 255.0 * (couleur.a comme r32) / 255.0
 
                 r := (((1.0 - alpha) * r_dest + alpha * r_source) * 255.0) comme n8
                 v := (((1.0 - alpha) * v_dest + alpha * v_source) * 255.0) comme n8
