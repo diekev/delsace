@@ -513,7 +513,7 @@ sur_exécution_unary_plus_operator :: fonc (base: *NoeudSyntaxique, interpréteu
         retourne completion
     }
 
-    retourne vers_nombre(interpréteuse, completion.valeur.V)
+    retourne to_number(interpréteuse, completion.valeur.V)
 }
 
 /** \} */
@@ -819,13 +819,13 @@ apply_string_or_numeric_binary_operator :: fonc (interpréteuse: *Interpréteuse
     // 1. If opText is +, then
     si opération == BinaryOperation.Plus {
         // a. Let lprim be ? ToPrimitive(lval).
-        complétion_lprim := vers_primitive(interpréteuse, gauche)
+        complétion_lprim := to_primitive(interpréteuse, gauche)
         saufsi complétion_lprim.est_normal() {
             retourne complétion_lprim
         }
         lprim := complétion_lprim.valeur.V
         // b. Let rprim be ? ToPrimitive(rval).
-        complétion_rprim := vers_primitive(interpréteuse, droite)
+        complétion_rprim := to_primitive(interpréteuse, droite)
         saufsi complétion_rprim.est_normal() {
             retourne complétion_rprim
         }
@@ -833,13 +833,13 @@ apply_string_or_numeric_binary_operator :: fonc (interpréteuse: *Interpréteuse
         // c. If lprim is a String or rprim is a String, then
         si lprim.est_chaine() || rprim.est_chaine() {
             // i. Let lstr be ? ToString(lprim).
-            completion_lstr := vers_chaine(interpréteuse, gauche)
+            completion_lstr := to_string(interpréteuse, gauche)
             saufsi completion_lstr.est_normal() {
                 retourne completion_lstr
             }
             lstr := completion_lstr.valeur.V
             // ii. Let rstr be ? ToString(rprim).
-            completion_rstr := vers_chaine(interpréteuse, droite)
+            completion_rstr := to_string(interpréteuse, droite)
             saufsi completion_rstr.est_normal() {
                 retourne completion_rstr
             }
@@ -1980,7 +1980,7 @@ sur_exécution_array_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: *I
         }
         valeur := completion.valeur.V
 
-        nom_propriété := vers_chaine(interpréteuse, Valeur(Number = index_it comme r64)).valeur.V.String.texte
+        nom_propriété := to_string(interpréteuse, Valeur(Number = index_it comme r64)).valeur.V.String.texte
 
         _ := create_data_property(résultat, nom_propriété, valeur)
     }

@@ -51,7 +51,7 @@ math_ceil :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     x := params.donne_argument(0)
 
     // 1. Let n be ? ToNumber(x).
-    completion := vers_nombre(interpréteuse, x)
+    completion := to_number(interpréteuse, x)
     saufsi completion.est_normal() {
         retourne completion
     }
@@ -79,7 +79,7 @@ math_floor :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     x := params.donne_argument(0)
 
     // 1. Let n be ? ToNumber(x).
-    completion := vers_nombre(interpréteuse, x)
+    completion := to_number(interpréteuse, x)
     saufsi completion.est_normal() {
         retourne completion
     }
@@ -111,7 +111,7 @@ math_max :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     // 2. For each element arg of args, do
     pour arguments {
         // a. Let n be ? ToNumber(arg).
-        completion := vers_nombre(interpréteuse, it)
+        completion := to_number(interpréteuse, it)
         saufsi completion.est_normal() {
             retourne completion
         }
@@ -156,7 +156,7 @@ math_min :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     // 2. For each element arg of args, do
     pour arguments {
         // a. Let n be ? ToNumber(arg).
-        completion := vers_nombre(interpréteuse, it)
+        completion := to_number(interpréteuse, it)
         saufsi completion.est_normal() {
             retourne completion
         }
@@ -203,7 +203,7 @@ math_random :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 math_sqrt :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
     // 1. Let n be ? ToNumber(x).
-    completion := vers_nombre(interpréteuse, params.donne_argument(0))
+    completion := to_number(interpréteuse, params.donne_argument(0))
     saufsi completion.est_normal() {
         retourne completion
     }

@@ -283,7 +283,7 @@ object_prototype_has_own_property :: fonc (empl params: *ParamètresObjectCall) 
     nom := complétion_nom.valeur.V.String.texte
 
     // 2. Let O be ? ToObject(this value).
-    complétion_obj := vers_objet(interpréteuse.donne_realm(), this_value)
+    complétion_obj := to_object(interpréteuse.donne_realm(), this_value)
     saufsi complétion_obj.est_normal() {
         retourne complétion_obj
     }
@@ -308,7 +308,7 @@ object_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> Comp
     }
 
     // 3. Let O be ! ToObject(this value).
-    O := vers_objet(interpréteuse.donne_realm(), this_value).valeur.V.donne_objet()
+    O := to_object(interpréteuse.donne_realm(), this_value).valeur.V.donne_objet()
 
     // À FAIRE : 4. Let isArray be ? IsArray(O).
 
@@ -355,7 +355,7 @@ object_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> Comp
 object_prototype_proto_get :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
     // 1. Let O be ? ToObject(this value).
-    completion := vers_objet(interpréteuse.donne_realm(), this_value)
+    completion := to_object(interpréteuse.donne_realm(), this_value)
     saufsi completion.est_normal() {
         retourne completion
     }
@@ -424,7 +424,7 @@ object_get_prototype_of :: fonc (empl params: *ParamètresObjectCall) -> Complet
     }
 
     // 1. Let obj be ? ToObject(O).
-    completion := vers_objet(interpréteuse.donne_realm(), O)
+    completion := to_object(interpréteuse.donne_realm(), O)
     saufsi completion.est_normal() {
         retourne completion
     }

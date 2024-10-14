@@ -286,12 +286,12 @@ to_uint32 :: fonc (valeur: Valeur) -> n32
 
 /* 7.1.1 ToPrimitive ( input [ , preferredType ] )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-toprimitive */
-vers_primitive :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur, type_préféré := TypePréféré.Aucun) -> CompletionRecord
+to_primitive :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur, type_préféré := TypePréféré.Aucun) -> CompletionRecord
 {
-    retourne vers_primitive(interpréteuse.donne_realm(), valeur, type_préféré)
+    retourne to_primitive(interpréteuse.donne_realm(), valeur, type_préféré)
 }
 
-vers_primitive :: fonc (realm: *Realm, valeur: Valeur, type_préféré := TypePréféré.Aucun) -> CompletionRecord
+to_primitive :: fonc (realm: *Realm, valeur: Valeur, type_préféré := TypePréféré.Aucun) -> CompletionRecord
 {
     // 1. If input is an Object, then
     si valeur.est_object() {
@@ -416,7 +416,7 @@ to_boolean :: fonc (valeur: Valeur) -> Valeur
 to_numeric :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur) -> CompletionRecord
 {
     // 1. Let primValue be ? ToPrimitive(value, NUMBER).
-    complétion_valeur_primitive := vers_primitive(interpréteuse, valeur, TypePréféré.Number)
+    complétion_valeur_primitive := to_primitive(interpréteuse, valeur, TypePréféré.Number)
     saufsi complétion_valeur_primitive.est_normal() {
         retourne complétion_valeur_primitive
     }
@@ -428,12 +428,12 @@ to_numeric :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur) -> Completi
     }
 
     // 3. Return ? ToNumber(primValue).
-    retourne vers_nombre(interpréteuse, valeur_primitive)
+    retourne to_number(interpréteuse, valeur_primitive)
 }
 
 /* 7.1.4 ToNumber ( argument )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-tonumber */
-vers_nombre :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur) -> CompletionRecord
+to_number :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur) -> CompletionRecord
 {
     // 1. If argument is a Number, return argument.
     si valeur.est_nombre() {
@@ -472,7 +472,7 @@ vers_nombre :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur) -> Complet
     assert(valeur.est_object())
 
     // 8. Let primValue be ? ToPrimitive(argument, NUMBER).
-    completion_primitive := vers_primitive(interpréteuse, valeur, TypePréféré.Number)
+    completion_primitive := to_primitive(interpréteuse, valeur, TypePréféré.Number)
     saufsi completion_primitive.est_normal() {
         retourne completion_primitive
     }
@@ -482,7 +482,7 @@ vers_nombre :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur) -> Complet
     assert(prim_value.est_object() == faux)
 
     // 10. Return ? ToNumber(primValue).
-    retourne vers_nombre(interpréteuse, prim_value)
+    retourne to_number(interpréteuse, prim_value)
 }
 
 /* 7.1.4.1.1 StringToNumber ( str )
@@ -527,12 +527,12 @@ string_to_number :: fonc (valeur: Valeur) -> Valeur
 
 /* 7.1.17 ToString ( argument )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-tostring */
-vers_chaine :: fonc (interpréteuse: *Interpréteuse, argument: Valeur) -> CompletionRecord
+to_string :: fonc (interpréteuse: *Interpréteuse, argument: Valeur) -> CompletionRecord
 {
-    retourne vers_chaine(interpréteuse.donne_realm(), argument)
+    retourne to_string(interpréteuse.donne_realm(), argument)
 }
 
-vers_chaine :: fonc (realm: *Realm, argument: Valeur) -> CompletionRecord
+to_string :: fonc (realm: *Realm, argument: Valeur) -> CompletionRecord
 {
     // 1. If argument is a String, return argument.
     si argument.est_chaine() {
@@ -581,14 +581,14 @@ vers_chaine :: fonc (realm: *Realm, argument: Valeur) -> CompletionRecord
 
     // 8. If argument is a BigInt, return BigInt::toString(argument, 10).
     si argument.est_big_int() {
-        panique("vers_chaine sur big_int non-implémenté")
+        panique("to_string sur big_int non-implémenté")
     }
 
     // 9. Assert: argument is an Object.
     assert(argument.est_object())
 
     // 10. Let primValue be ? ToPrimitive(argument, STRING).
-    completion_prim_value := vers_primitive(realm, argument, TypePréféré.String)
+    completion_prim_value := to_primitive(realm, argument, TypePréféré.String)
     saufsi completion_prim_value.est_normal() {
         retourne completion_prim_value
     }
@@ -598,7 +598,7 @@ vers_chaine :: fonc (realm: *Realm, argument: Valeur) -> CompletionRecord
     assert(!prim_value.est_object())
 
     // 12. Return ? ToString(primValue).
-    retourne vers_chaine(realm, prim_value)
+    retourne to_string(realm, prim_value)
 }
 
 TypePréféré :: énum {
@@ -609,7 +609,7 @@ TypePréféré :: énum {
 
 /* 7.1.18 ToObject ( argument )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-toobject */
-vers_objet :: fonc (realm: *Realm, valeur: Valeur) -> CompletionRecord
+to_object :: fonc (realm: *Realm, valeur: Valeur) -> CompletionRecord
 {
     si valeur.est_undefined() {
         retourne lance_type_error(realm, "undefined is not an Object")
@@ -631,7 +631,7 @@ vers_objet :: fonc (realm: *Realm, valeur: Valeur) -> CompletionRecord
         retourne normal_completion(Valeur(Object = chn.objet))
     }
 
-    panique("vers_objet non-implémenté pour type")
+    panique("to_object non-implémenté pour type")
 }
 
 /* 7.1.19 ToPropertyKey ( argument )
@@ -644,7 +644,7 @@ to_property_key :: fonc (interpréteuse: *Interpréteuse, argument: Valeur) -> C
 to_property_key :: fonc (realm: *Realm, argument: Valeur) -> CompletionRecord
 {
     // 1. Let key be ? ToPrimitive(argument, STRING).
-    completion := vers_primitive(realm, argument, TypePréféré.String)
+    completion := to_primitive(realm, argument, TypePréféré.String)
     saufsi completion.est_normal() {
         retourne completion
     }
@@ -657,7 +657,7 @@ to_property_key :: fonc (realm: *Realm, argument: Valeur) -> CompletionRecord
     }
 
     // 3. Return ! ToString(key).
-    retourne vers_chaine(realm, key)
+    retourne to_string(realm, key)
 }
 
 /* 7.1.20 ToLength ( argument )
@@ -838,14 +838,14 @@ is_less_than :: fonc (interpréteuse: *Interpréteuse, x: Valeur, y: Valeur, lef
     // 1. If LeftFirst is true, then
     si left_first {
         // a. Let px be ? ToPrimitive(x, NUMBER).
-        completion := vers_primitive(interpréteuse, x, TypePréféré.Number)
+        completion := to_primitive(interpréteuse, x, TypePréféré.Number)
         saufsi completion.est_normal() {
             retourne completion
         }
         px = completion.valeur.V
 
         // b. Let py be ? ToPrimitive(y, NUMBER).
-        completion = vers_primitive(interpréteuse, y, TypePréféré.Number)
+        completion = to_primitive(interpréteuse, y, TypePréféré.Number)
         saufsi completion.est_normal() {
             retourne completion
         }
@@ -855,14 +855,14 @@ is_less_than :: fonc (interpréteuse: *Interpréteuse, x: Valeur, y: Valeur, lef
     sinon {
         // a. NOTE: The order of evaluation needs to be reversed to preserve left to right evaluation.
         // b. Let py be ? ToPrimitive(y, NUMBER).
-        completion := vers_primitive(interpréteuse, y, TypePréféré.Number)
+        completion := to_primitive(interpréteuse, y, TypePréféré.Number)
         saufsi completion.est_normal() {
             retourne completion
         }
         py = completion.valeur.V
 
         // c. Let px be ? ToPrimitive(x, NUMBER).
-        completion = vers_primitive(interpréteuse, x, TypePréféré.Number)
+        completion = to_primitive(interpréteuse, x, TypePréféré.Number)
         saufsi completion.est_normal() {
             retourne completion
         }

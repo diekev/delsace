@@ -50,7 +50,7 @@ convert_to_int :: fonc (interpréteuse: *JavaScript.Interpréteuse, valeur: Java
         // 2. Let upperBound be 2^bitLength − 1 − 1.
 
     // 4. Let x be ? ToNumber(V).
-    completion := JavaScript.vers_nombre(interpréteuse, valeur)
+    completion := JavaScript.to_number(interpréteuse, valeur)
     saufsi JavaScript.est_normal(completion) {
         retourne completion
     }
@@ -567,7 +567,7 @@ génère_code_conversion_argument :: fonc (enchaineuse: *Enchaineuse, nom: chain
         ajoute_au_tampon(enchaineuse, "    ", nom, " := completion.valeur.V.Number comme z32\n")
     }
     sinon si type.nom == "double" || type.nom == "unrestricted double" {
-        ajoute_au_tampon(enchaineuse, "    completion = JavaScript.vers_nombre(interpréteuse, valeur_", nom, ")\n")
+        ajoute_au_tampon(enchaineuse, "    completion = JavaScript.to_number(interpréteuse, valeur_", nom, ")\n")
         ajoute_au_tampon(enchaineuse, "    saufsi JavaScript.est_normal(completion) {\n        retourne completion;\n    }\n")
         ajoute_au_tampon(enchaineuse, "    ", nom, " := completion.valeur.V.Number\n")
     }

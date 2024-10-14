@@ -153,7 +153,7 @@ array_constructor_call_or_construct :: fonc (empl params: *ParamètresCallOrCons
     résultat := crée_array(realm.donne_tas_de_mémoire(), realm.intrinsics.array_prototype, 0)
 
     si arguments.taille != 0 {
-        completion := vers_nombre(interpréteuse, arguments[0])
+        completion := to_number(interpréteuse, arguments[0])
         saufsi completion.est_normal() {
             retourne completion
         }
@@ -204,7 +204,7 @@ crée_array_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Obje
 array_prototype_join :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
     // 1. Let O be ? ToObject(this value).
-    completion := vers_objet(interpréteuse.donne_realm(), this_value)
+    completion := to_object(interpréteuse.donne_realm(), this_value)
     saufsi completion.est_normal() {
         retourne completion
     }
@@ -224,7 +224,7 @@ array_prototype_join :: fonc (empl params: *ParamètresObjectCall) -> Completion
     }
     // 4. Else, let sep be ? ToString(separator).
     sinon {
-        completion = vers_chaine(interpréteuse, arguments[0])
+        completion = to_string(interpréteuse, arguments[0])
         saufsi completion.est_normal() {
             retourne completion
         }
@@ -256,7 +256,7 @@ array_prototype_join :: fonc (empl params: *ParamètresObjectCall) -> Completion
         // c. If element is neither undefined nor null, then
         saufsi element.est_nulle() || element.est_undefined() {
             // i. Let S be ? ToString(element).
-            completion = vers_chaine(interpréteuse, element)
+            completion = to_string(interpréteuse, element)
             saufsi completion.est_normal() {
                 retourne completion
             }
@@ -282,7 +282,7 @@ array_prototype_join :: fonc (empl params: *ParamètresObjectCall) -> Completion
 array_prototype_push :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
     // 1. Let O be ? ToObject(this value).
-    completion := vers_objet(interpréteuse.donne_realm(), this_value)
+    completion := to_object(interpréteuse.donne_realm(), this_value)
     saufsi completion.est_normal() {
         retourne completion
     }
@@ -303,7 +303,7 @@ array_prototype_push :: fonc (empl params: *ParamètresObjectCall) -> Completion
     // 5. For each element E of items, do
     pour arguments {
         // a. Perform ? Set(O, ! ToString(𝔽(len)), E, true).
-        nom_propriété := vers_chaine(interpréteuse, Valeur(Number = len)).valeur.V.String.texte
+        nom_propriété := to_string(interpréteuse, Valeur(Number = len)).valeur.V.String.texte
         completion = set(O, nom_propriété, it, vrai)
         saufsi completion.est_normal() {
             retourne completion
@@ -328,7 +328,7 @@ array_prototype_push :: fonc (empl params: *ParamètresObjectCall) -> Completion
 array_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
     // 1. Let array be ? ToObject(this value).
-    completion := vers_objet(interpréteuse.donne_realm(), this_value)
+    completion := to_object(interpréteuse.donne_realm(), this_value)
     saufsi completion.est_normal() {
         retourne completion
     }

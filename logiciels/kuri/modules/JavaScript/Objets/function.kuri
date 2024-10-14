@@ -221,7 +221,7 @@ ordinary_call_bind_this :: fonc (F: *ECMAScriptFunction, callee_context: *Execut
         sinon {
             // i. Let thisValue be ! ToObject(thisArgument).
             // ii. NOTE: ToObject produces wrapper objects using calleeRealm.
-            this_value = vers_objet(callee_realm, this_argument).valeur.V
+            this_value = to_object(callee_realm, this_argument).valeur.V
         }
     }
 

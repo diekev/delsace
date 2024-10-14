@@ -163,7 +163,7 @@ error_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> Compl
         name = crée_chaine(interpréteuse.donne_realm(), STR_Error)
     }
     sinon {
-        completion = vers_chaine(interpréteuse, name)
+        completion = to_string(interpréteuse, name)
         saufsi completion.est_normal() {
             retourne completion
         }
@@ -182,7 +182,7 @@ error_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> Compl
         msg = crée_chaine(interpréteuse.donne_realm(), crée_chaine_utf16_unique_vide())
     }
     sinon {
-        completion = vers_chaine(interpréteuse, msg)
+        completion = to_string(interpréteuse, msg)
         saufsi completion.est_normal() {
             retourne completion
         }
