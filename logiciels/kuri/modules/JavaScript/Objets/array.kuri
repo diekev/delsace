@@ -28,52 +28,15 @@ crée_array :: fonc (tas_de_mémoire: *TasDeMémoire, array_prototype: *ArrayPro
     retourne résultat
 }
 
+array_set_length :: fonc (array: *ObjetArray, len: n32)
+{
+    desc: PropertyDescriptor
+    desc.value = Valeur(Number = len comme r64)
+    desc.writable = vrai
+    _ := ordinary_define_own_property(array, STR_length, desc)
+}
+
 #portée_fichier
-
-is_non_negative_integral_number :: fonc (valeur: Valeur) -> bool
-{
-    saufsi valeur.est_nombre() {
-        retourne faux
-    }
-    n := valeur.Number
-    si n < 0.0 {
-        retourne faux
-    }
-    in := n comme n64
-    retourne n == in comme r64
-}
-
-/* https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#array-index */
-is_array_index :: fonc (property_key: PropertyKey) -> bool
-{
-    saufsi property_key.est_chaine() {
-        retourne faux
-    }
-
-    /* À FAIRE */
-    texte := property_key.String.donne_chaine_utf16()
-
-    texte_utf8 := converti_vers_chaine(texte)
-    diffère déloge(texte_utf8)
-
-    résultat := tente extrait_r64(texte_utf8) piège _ {
-        retourne faux
-    }
-
-    retourne is_non_negative_integral_number(résultat)
-}
-
-to_uint32 :: fonc (property_key: PropertyKey) -> n32
-{
-    texte := property_key.String.donne_chaine_utf16()
-
-    /* À FAIRE */
-    texte_utf8 := converti_vers_chaine(texte)
-    diffère déloge(texte_utf8)
-
-    résultat := tente extrait_r64(texte_utf8) piège nonatteignable
-    retourne résultat comme n32
-}
 
 /* 10.4.2.1 [[DefineOwnProperty]] ( P, Desc )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-array-exotic-objects-defineownproperty-p-desc */
@@ -113,7 +76,7 @@ array_instance_define_own_property :: fonc (object: *Object, property_key: Prope
         }
 
         // h. Let succeeded be ! OrdinaryDefineOwnProperty(A, P, Desc).
-        succeeded := ordinary_define_own_property(A, property_key, desc).valeur.V   
+        succeeded := internal_define_own_property_by_index(A, index, desc).valeur.V  
 
         // i. If succeeded is false, return false.
         si succeeded.est_false() {
@@ -252,7 +215,7 @@ array_prototype_join :: fonc (empl params: *ParamètresObjectCall) -> Completion
     saufsi completion.est_normal() {
         retourne completion
     }
-    len := completion.valeur.V.Number
+    len := completion.valeur.V.Number comme n32
 
     // 3. If separator is undefined, let sep be ",".
     sep: ECMAString
@@ -274,18 +237,17 @@ array_prototype_join :: fonc (empl params: *ParamètresObjectCall) -> Completion
     diffère détruit_tampons(R)
 
     // 6. Let k be 0.
-    k := 0.0
+    k : n32 = 0
 
     // 7. Repeat, while k < len,
     tantque k < len {
         // a. If k > 0, set R to the string-concatenation of R and sep.
-        si k > 0.0 {
+        si k > 0 {
             ajoute(R, sep.donne_chaine_utf16())
         }
 
         // b. Let element be ? Get(O, ! ToString(𝔽(k))).
-        nom_propriété := vers_chaine(interpréteuse, Valeur(Number = k)).valeur.V.String.texte
-        completion = get(O, nom_propriété)
+        completion = get_by_index(O, k)
         saufsi completion.est_normal() {
             retourne completion
         }
@@ -305,7 +267,7 @@ array_prototype_join :: fonc (empl params: *ParamètresObjectCall) -> Completion
         }
 
         // d. Set k to k + 1.
-        k += 1.0
+        k += 1
     }
 
     // 8. Return R.

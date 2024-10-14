@@ -1,6 +1,7 @@
 importe Chaine
 importe Fondation
 importe Math
+importe Numérique
 
 charge "arbre"
 charge "enveloppe"
@@ -388,6 +389,33 @@ to_length :: fonc (argument: Valeur) -> CompletionRecord
 
     // 3. Return 𝔽(min(len, 2**53 - 1)).
     retourne normal_completion(argument)
+}
+
+is_non_negative_integral_number :: fonc (valeur: Valeur) -> bool
+{
+    saufsi valeur.est_nombre() {
+        retourne faux
+    }
+    n := valeur.Number
+    si n < 0.0 {
+        retourne faux
+    }
+    in := n comme n64
+    retourne n == in comme r64
+}
+
+is_array_index :: fonc (valeur: Valeur) -> bool
+{
+    retourne is_non_negative_integral_number(valeur)
+}
+
+to_uint32 :: fonc (valeur: Valeur) -> n32
+{
+    assert(valeur.est_nombre())
+    n := valeur.Number
+    assert(n >= 0.0)
+    in := n comme n64
+    retourne in comme n32
 }
 
 /* 7.1.1 ToPrimitive ( input [ , preferredType ] )
@@ -866,6 +894,38 @@ opérateur != :: fonc (p1: PropertyKey, p2: PropertyKey) -> bool
     retourne !(p1 == p2)
 }
 
+/* https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#array-index */
+is_array_index :: fonc (property_key: PropertyKey) -> bool
+{
+    saufsi property_key.est_chaine() {
+        retourne faux
+    }
+
+    /* À FAIRE */
+    texte := property_key.String.donne_chaine_utf16()
+
+    texte_utf8 := converti_vers_chaine(texte)
+    diffère déloge(texte_utf8)
+
+    résultat := tente extrait_r64(texte_utf8) piège _ {
+        retourne faux
+    }
+
+    retourne is_non_negative_integral_number(résultat)
+}
+
+to_uint32 :: fonc (property_key: PropertyKey) -> n32
+{
+    texte := property_key.String.donne_chaine_utf16()
+
+    /* À FAIRE */
+    texte_utf8 := converti_vers_chaine(texte)
+    diffère déloge(texte_utf8)
+
+    résultat := tente extrait_r64(texte_utf8) piège nonatteignable
+    retourne résultat comme n32
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -877,8 +937,18 @@ opérateur != :: fonc (p1: PropertyKey, p2: PropertyKey) -> bool
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-get-o-p */
 get :: fonc (object: *Object, property_key: PropertyKey) -> CompletionRecord
 {
+    si is_array_index(property_key) {
+        index := to_uint32(property_key)
+        retourne object.internal_get_by_index(index, Valeur(Object = object))
+    }
+
     // 1. Return ? O.[[Get]](P, O).
     retourne object.internal_get(property_key, Valeur(Object = object))
+}
+
+get_by_index :: fonc (object: *Object, index: n32) -> CompletionRecord
+{
+    retourne object.internal_get_by_index(index, Valeur(Object = object))
 }
 
 /* 7.3.4 Set

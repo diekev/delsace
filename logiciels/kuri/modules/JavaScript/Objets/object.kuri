@@ -75,10 +75,31 @@ Object :: struct {
         drapeaux: DrapeauxPropriété
     }
 
+    /* Ceci stocke les valeurs indexées par des chaines. */
     propriétés: [..]Propriété
+    /* Ceci stocke les valeurs indexées par des nombres. */
+    éléments_indexés: [..]Propriété
 
     prototype: *Object
     extensible := vrai
+}
+
+garantis_taille_tableau_élément_pour_index :: fonc (object: *Object, index: n32)
+{
+    si index comme z64 >= object.éléments_indexés.taille {
+        ancienne_taille := object.éléments_indexés.taille
+        tableau_redimensionne(object.éléments_indexés, index comme z64 + 1)
+
+        pour ancienne_taille ... object.éléments_indexés.taille - 1 {
+            init_de(Object.Propriété)(*object.éléments_indexés[it])
+            object.éléments_indexés[it].valeur = js_undefined
+        }
+
+        si object.donne_classe() == ObjetArray {
+            array := object comme *ObjetArray
+            array_set_length(array, index + 1)
+        }
+    }
 }
 
 donne_table :: fonc (object: *Object) -> *TableVirtuelleObject
@@ -107,6 +128,7 @@ sur_destruction_objet :: fonc (base: *Cellule)
 {
     objet := base comme *Object
     déloge(objet.propriétés)
+    déloge(objet.éléments_indexés)
 }
 
 ajoute_propriété :: fonc (objet: *Object, nom: PropertyKey, valeur: Valeur, drapeaux: DrapeauxPropriété)
@@ -145,6 +167,13 @@ internal_define_own_property :: fonc (object: *Object, property_key: PropertyKey
     retourne object.donne_table().sur_define_own_property(object, property_key, desc)
 }
 
+internal_define_own_property_by_index :: fonc (object: *Object, index: n32, desc: &PropertyDescriptor) -> CompletionRecord
+{
+    garantis_taille_tableau_élément_pour_index(object, index)
+    object.éléments_indexés[index comme z64].valeur = desc.value
+    retourne normal_completion(Valeur(Boolean = vrai))
+}
+
 /* [[HasProperty]] */
 internal_has_property :: fonc (object: *Object, property_key: PropertyKey) -> CompletionRecord
 {
@@ -157,10 +186,26 @@ internal_get :: fonc (object: *Object, property_key: PropertyKey, receiver: Vale
     retourne object.donne_table().sur_get(object, property_key, receiver)
 }
 
+internal_get_by_index :: fonc (object: *Object, index: n32, receiver: Valeur @inutilisée) -> CompletionRecord
+{
+    si index comme z64 >= object.éléments_indexés.taille {
+        retourne normal_completion(js_undefined)
+    }
+
+    retourne normal_completion(object.éléments_indexés[index comme z64].valeur)
+}
+
 /* [[Set]] */
 internal_set :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur, receiver: Valeur) -> CompletionRecord
 {
     retourne object.donne_table().sur_set(object, property_key, valeur, receiver)
+}
+
+internal_set_by_index :: fonc (object: *Object, index: n32, valeur: Valeur, receiver: Valeur @inutilisée) -> CompletionRecord
+{
+    garantis_taille_tableau_élément_pour_index(object, index)
+    object.éléments_indexés[index comme z64].valeur = valeur
+    retourne normal_completion(Valeur(Boolean = vrai))
 }
 
 /* [[Call]] */

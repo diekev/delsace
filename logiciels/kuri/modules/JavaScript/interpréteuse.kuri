@@ -15,6 +15,18 @@ ReferencedName :: union {
     private_name: *PrivateName
 }
 
+is_array_key :: fonc (referenced_name: ReferencedName) -> bool
+{
+    discr referenced_name {
+        valeur(v) {
+            retourne is_array_index(v)
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
 is_property_key :: fonc (referenced_name: ReferencedName) -> bool
 {
     discr referenced_name {
@@ -211,6 +223,12 @@ get_value :: fonc (realm: *Realm, valeur: ValeurCompletion) -> CompletionRecord
             // i. Return ? PrivateGet(baseObj, V.[[ReferencedName]]).
             panique("get_value depuis private_reference non-implémenté")
         }
+
+        si is_array_key(V.referenced_name) {
+            index := to_uint32(V.referenced_name.valeur)
+            retourne base_object.internal_get_by_index(index, get_this_value(V))
+        }
+
         // c. If V.[[ReferencedName]] is not a property key, then
         saufsi is_property_key(V.referenced_name) {
             // i. Set V.[[ReferencedName]] to ? ToPropertyKey(V.[[ReferencedName]]).
@@ -283,22 +301,33 @@ put_value :: fonc (interpréteuse: *Interpréteuse, référence: ValeurCompletio
             // i. Return ? PrivateSet(baseObj, V.[[ReferencedName]], W).
             panique("put_valeur avec private_reference non-implémenté")
         }
-        // c. If V.[[ReferencedName]] is not a property key, then
-        saufsi is_property_key(record.referenced_name) {
-            // i. Set V.[[ReferencedName]] to ? ToPropertyKey(V.[[ReferencedName]]).
-            completion := to_property_key(interpréteuse.donne_realm(), record.referenced_name.valeur)
-            saufsi completion.est_normal() {
-                retourne completion
+
+        completion: CompletionRecord
+
+        si is_array_key(record.referenced_name) {
+            index := to_uint32(record.referenced_name.valeur)
+            completion = base_obj.internal_set_by_index(index, valeur, get_this_value(record))
+        }
+        sinon {
+            // c. If V.[[ReferencedName]] is not a property key, then
+            saufsi is_property_key(record.referenced_name) {
+                // i. Set V.[[ReferencedName]] to ? ToPropertyKey(V.[[ReferencedName]]).
+                completion = to_property_key(interpréteuse.donne_realm(), record.referenced_name.valeur)
+                saufsi completion.est_normal() {
+                    retourne completion
+                }
+                record.referenced_name.valeur = completion.valeur.V
             }
-            record.referenced_name.valeur = completion.valeur.V
+
+            completion = base_obj.internal_set(record.referenced_name.donne_property_key(), valeur, get_this_value(record))
         }
 
         // d. Let succeeded be ? baseObj.[[Set]](V.[[ReferencedName]], W, GetThisValue(V)).
-        completion := base_obj.internal_set(record.referenced_name.donne_property_key(), valeur, get_this_value(record))
         saufsi completion.est_normal() {
             retourne completion
         }
         succeeded := completion.valeur.V
+
         // e. If succeeded is false and V.[[Strict]] is true, throw a TypeError exception.
         si succeeded.est_false() && record.strict {
             retourne lance_type_error(interpréteuse.donne_realm(), "cannot add property on type")
