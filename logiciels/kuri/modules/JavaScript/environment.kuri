@@ -105,7 +105,6 @@ get_identifier_reference :: fonc (environment: *Environment, nom: *PrimitiveChai
         // a. Let outer be env.[[OuterEnv]].
         outer := environment.outer_environment
         // b. Return ? GetIdentifierReference(outer, name, strict).
-        // retourne get_identifier_reference(realm, outer, nom, strict, récursion)
         environment = outer
     }
 
