@@ -74,36 +74,49 @@ dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: ChaineUTF16, font
 
 dessine_glyphe :: fonc (tampon_de_rendu: *TamponDeRendu, fonte: *Fonte, glyph: *texture_glyph_t, décalage_x: r32, couleur: CouleurRVBAN8, source_atlas: *n8, rect: RectanglePosDim(z32))
 {
+    rect_glyphe: RectanglePosDim(z32)
+    rect_glyphe.x = décalage_x comme z32
+    rect_glyphe.y = rect.y + glyph.offset_y - glyph.height comme z32
+    rect_glyphe.largeur = glyph.width comme z32
+    rect_glyphe.hauteur = glyph.height comme z32
+
+    rect_sauf := tampon_de_rendu.donne_rect_sûr(rect_glyphe)
+    si rect_sauf.largeur == 0 || rect_sauf.hauteur == 0 {
+        retourne
+    }
+
+    décalage_y := rect_sauf.y - rect_glyphe.y
+
+    enjambée_dest := tampon_de_rendu.rect.largeur
+    ligne_dest := tampon_de_rendu.données.pointeur + rect_sauf.y * enjambée_dest + rect_sauf.x
+
+    enjambée_source := fonte.atlas.width comme z32
     x0_glyphe := (fonte.atlas.width comme r32 * glyph.s0) comme z32
     y0_glyphe := (fonte.atlas.height comme r32 * glyph.t0) comme z32
     enjambée_atlas := fonte.atlas.width comme z32
 
-    source_glyphe := source_atlas + y0_glyphe * enjambée_atlas + x0_glyphe
-    largeur_glyphe := glyph.width comme z32
-    hauteur_glyphe := glyph.height comme z32
+    ligne_source := source_atlas + (y0_glyphe + rect_glyphe.hauteur - décalage_y - 1) * enjambée_atlas + x0_glyphe
 
-    /* `rect.y` fournit la ligne de base du dessin du texte. */
-    dest := tampon_de_rendu.données.pointeur + (rect.y + glyph.offset_y - 1) * tampon_de_rendu.rect.largeur + (décalage_x comme z32)
-    ligne_dest := dest
+    pour _ dans rect_sauf.y ... rect_sauf.y + rect_sauf.hauteur - 1 {
+        pixel_dest := ligne_dest
+        pixel_source := ligne_source
 
-    pour _ dans hauteur_glyphe {
-        pixel := ligne_dest
-        source := source_glyphe
-
-        pour _ dans largeur_glyphe {
-            valeur := mémoire(source)
+        pour _ dans rect_sauf.x ... rect_sauf.x + rect_sauf.largeur - 1 {
+            valeur := mémoire(pixel_source)
 
             couleur_pixel := couleur
             couleur_pixel.a = (((valeur comme r32) / 255.0 * (couleur.a comme r32) / 255.0) * 255.0) comme n8
 
-            fusionne_pixels(couleur_pixel, pixel)
+            fusionne_pixels(couleur_pixel, pixel_dest)
 
-            source += 1
-            pixel += 1
+            // Fondation.assert(tampon_de_rendu.données.pointeur <= pixel_dest < tampon_de_rendu.données.pointeur + tampon_de_rendu.données.taille)
+
+            pixel_source += 1
+            pixel_dest += 1
         }
 
-        ligne_dest -= tampon_de_rendu.rect.largeur
-        source_glyphe += enjambée_atlas
+        ligne_source -= enjambée_source
+        ligne_dest += enjambée_dest
     }
 }
 
