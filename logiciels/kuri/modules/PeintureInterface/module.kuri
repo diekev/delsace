@@ -344,7 +344,7 @@ donne_couleur_dessin :: fonc (couleur_peintre: CouleurPeintre) -> CouleurRVBAN8
 {
     discr couleur_peintre {
         CouleurRVBA(couleur) {
-            retourne CouleurRVBAN8((couleur.r * 255.0) comme n8, (couleur.v * 255.0) comme n8, (couleur.b * 255.0) comme n8, (couleur.a * 255.0) comme n8)
+            retourne depuis_couleur_rvba(couleur)
         }
         CouleurRVBAN8(couleur) {
             retourne couleur
