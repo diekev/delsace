@@ -54,6 +54,16 @@ donne_property_key :: fonc (referenced_name: ReferencedName) -> PropertyKey
     }
 }
 
+/* Donne des informations sur où fut trouvée une référence, dans un DeclarativeEnvironment,
+ * par rapport à l'environnement courant. */
+CoordonnéeEnvironnement :: struct {
+    /* L'index de la référence dans DeclarativeEnvironment.bindings. */
+    index: z32
+    /* Le nombre de sauts à effectuer pour aller de l'environnement courant à celui où se
+     * trouve la référence. */
+    sauts: z32
+}
+
 ReferenceRecord :: struct {
     Base :: union {
         V: Valeur
@@ -65,6 +75,7 @@ ReferenceRecord :: struct {
     referenced_name: ReferencedName
     strict: bool
     valeur_this: Optionnel(Valeur)
+    coordonnée: Optionnel(CoordonnéeEnvironnement)
 }
 
 est_référence_propriété :: fonc (référence: ReferenceRecord) -> bool
@@ -250,6 +261,13 @@ get_value :: fonc (realm: *Realm, valeur: ValeurCompletion) -> CompletionRecord
     base := V.base.E
     // b. Assert: base is an Environment Record.
 
+    si V.coordonnée.possède_valeur() {
+        coordonnée := V.coordonnée.Quelque
+        assert(base.est_declarative_environment())
+        declarative_environment := base comme *DeclarativeEnvironment
+        retourne normal_completion(declarative_environment.bindings[coordonnée.index].valeur)
+    }
+
     // c. Return ? base.GetBindingValue(V.[[ReferencedName]], V.[[Strict]]) (see 9.1).
     retourne base.get_binding_value(realm, V.referenced_name.donne_property_key(), V.strict)
 }
@@ -340,6 +358,14 @@ put_value :: fonc (interpréteuse: *Interpréteuse, référence: ValeurCompletio
     // a. Let base be V.[[Base]].
     base := record.base.E
     // b. Assert: base is an Environment Record.
+
+    si record.coordonnée.possède_valeur() {
+        coordonnée := record.coordonnée.Quelque
+        assert(base.est_declarative_environment())
+        declarative_environment := base comme *DeclarativeEnvironment
+        declarative_environment.bindings[coordonnée.index].valeur = valeur
+        retourne normal_completion(Valeur(Boolean = vrai))
+    }
 
     // c. Return ? base.SetMutableBinding(V.[[ReferencedName]], W, V.[[Strict]]) (see 9.1).
     retourne base.set_mutable_binding(interpréteuse.donne_realm(), record.referenced_name.donne_property_key(), valeur, record.strict)

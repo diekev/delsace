@@ -335,6 +335,7 @@ Identifier :: struct {
 
     nom: ECMAString
     index_chaine_en_cache := -1
+    coordonnée: Optionnel(CoordonnéeEnvironnement)
 }
 
 crée_identifier :: fonc (parseuse: *Parseuse, lexème: *Lexème, nom: ECMAString) -> *Identifier
@@ -353,7 +354,33 @@ crée_identifier :: fonc (parseuse: *Parseuse, lexème: *Lexème, nom: chaine) -
 sur_exécution_identifier :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
 {
     noeud := base comme *Identifier
-    retourne resolve_binding(interpréteuse, noeud.donne_chaine_primitive(interpréteuse.donne_realm()))
+
+    si noeud.coordonnée.possède_valeur() {
+        coordonnée := noeud.coordonnée.Quelque
+
+        environment := interpréteuse.donne_lexical_environement()
+        tantque coordonnée.sauts != 0 {
+            environment = environment.outer_environment
+            coordonnée.sauts -= 1
+        }
+        assert(environment != nul)
+        assert(est_declarative_environment(environment))
+
+        reference: ReferenceRecord
+        reference.base = environment
+        reference.referenced_name = Valeur(String = noeud.donne_chaine_primitive(interpréteuse.donne_realm()))
+        reference.strict = is_strict(noeud)
+        reference.coordonnée = noeud.coordonnée
+        retourne normal_completion(reference)
+    }
+
+    résultat := resolve_binding(interpréteuse, noeud.donne_chaine_primitive(interpréteuse.donne_realm()))
+    si résultat.est_normal() {
+        référence := résultat.valeur.R
+        noeud.coordonnée = référence.coordonnée
+    }
+
+    retourne résultat
 }
 
 donne_chaine_primitive :: fonc (identifier: *Identifier, realm: *Realm) -> *PrimitiveChaine

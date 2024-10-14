@@ -10,7 +10,7 @@ Environment :: struct {
 
     outer_environment: *Environment
 
-    sur_has_binding: fonc(*Environment, ECMAString)(bool)
+    sur_has_binding: fonc(*Environment, ECMAString, *z32)(bool)
     sur_create_mutable_binding: fonc(*Environment, ECMAString, bool)(rien)
     sur_initialize_binding: fonc(*Environment, ECMAString, Valeur)(CompletionRecord)
     sur_get_binding_value: fonc(*Environment, *Realm, ECMAString, bool)(CompletionRecord)
@@ -21,10 +21,10 @@ Environment :: struct {
     sur_get_this_binding: fonc(*Environment, *Realm)(CompletionRecord)
 }
 
-has_binding :: fonc (environment: *Environment, nom: ECMAString) -> CompletionRecord
+has_binding :: fonc (environment: *Environment, nom: ECMAString, index : *z32 = nul) -> CompletionRecord
 {
     assert(environment.sur_has_binding != nul)
-    résultat := environment.sur_has_binding(environment, nom)
+    résultat := environment.sur_has_binding(environment, nom, index)
     retourne normal_completion(Valeur(Boolean = résultat))
 }
 
@@ -83,9 +83,13 @@ get_identifier_reference :: fonc (environment: *Environment, nom: *PrimitiveChai
     // NOTE : Nous utilisons une boucle au lieu d'appels récursifs comme spécifié.
     //        La première étape spécifiée est faite à la fin.
 
+    récursion := 0
+
     tantque environment != nul {
+        index := -1
+
         // 2. Let exists be ? env.HasBinding(name).
-        completion_exists := has_binding(environment, nom.texte)
+        completion_exists := has_binding(environment, nom.texte, *index)
         saufsi completion_exists.est_normal() {
             retourne completion_exists
         }
@@ -98,6 +102,15 @@ get_identifier_reference :: fonc (environment: *Environment, nom: *PrimitiveChai
             résultat.base = environment
             résultat.referenced_name = Valeur(String = nom)
             résultat.strict = strict
+
+            si index != -1 {
+                assert(est_declarative_environment(environment))
+                coordonnée: CoordonnéeEnvironnement
+                coordonnée.index = index
+                coordonnée.sauts = récursion
+                résultat.coordonnée = coordonnée
+            }
+
             retourne normal_completion(résultat)
         }
 
@@ -106,6 +119,8 @@ get_identifier_reference :: fonc (environment: *Environment, nom: *PrimitiveChai
         outer := environment.outer_environment
         // b. Return ? GetIdentifierReference(outer, name, strict).
         environment = outer
+
+        récursion += 1
     }
 
     // 1. If env is null, then
@@ -159,6 +174,11 @@ DeclarativeEnvironment :: struct {
     sur_has_this_binding = declarative_environment_has_this_binding
 }
 
+est_declarative_environment :: fonc (environment: *Environment) -> bool
+{
+    retourne environment.donne_classe() == FunctionEnvironment
+}
+
 /* 9.1.2.2 NewDeclarativeEnvironment ( E )
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-newdeclarativeenvironment */
 new_declarative_environment :: fonc (tas_de_mémoire: *TasDeMémoire, environment: *Environment) -> *DeclarativeEnvironment
@@ -175,12 +195,12 @@ new_declarative_environment :: fonc (tas_de_mémoire: *TasDeMémoire, environmen
 
 /* 9.1.1.2.1 HasBinding
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-object-environment-records-hasbinding-n */
-declarative_environment_has_binding :: fonc (base: *Environment, nom: ECMAString) -> bool
+declarative_environment_has_binding :: fonc (base: *Environment, nom: ECMAString, index: *z32) -> bool
 {
     env_rec := base comme *DeclarativeEnvironment
 
     // 1. If envRec has a binding for N, return true.
-    si donne_binding(env_rec, nom) {
+    si donne_binding(env_rec, nom, index) {
         retourne vrai
     }
 
@@ -227,10 +247,13 @@ declarative_environment_initialize_binding :: fonc (base: *Environment, N: ECMAS
     retourne normal_completion(js_undefined)
 }
 
-donne_binding :: fonc (env: *DeclarativeEnvironment, nom: ECMAString) -> *DeclarativeEnvironment.Binding
+donne_binding :: fonc (env: *DeclarativeEnvironment, nom: ECMAString, index : *z32 = nul) -> *DeclarativeEnvironment.Binding
 {
     pour * env.bindings {
         si it.nom == nom {
+            si index {
+                mémoire(index) = index_it comme z32
+            }
             retourne it
         }
     }
@@ -504,7 +527,7 @@ new_object_environment :: fonc (tas_de_mémoire: *TasDeMémoire, global: *Object
 
 /* 9.1.1.2.1 HasBinding
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-object-environment-records-hasbinding-n */
-object_environment_has_binding :: fonc (base: *Environment, nom: ECMAString) -> bool
+object_environment_has_binding :: fonc (base: *Environment, nom: ECMAString, index: *z32 @inutilisée) -> bool
 {
     environment := base comme *ObjectEnvironment
 
@@ -706,7 +729,7 @@ new_global_environment :: fonc (tas_de_mémoire: *TasDeMémoire, global: *Object
 
 /* 9.1.1.4.1 HasBinding
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-global-environment-records-hasbinding-n */
-global_environment_has_binding :: fonc (base: *Environment, nom: ECMAString) -> bool
+global_environment_has_binding :: fonc (base: *Environment, nom: ECMAString, index: *z32 @inutilisée) -> bool
 {
     environment := base comme *GlobalEnvironment
 
