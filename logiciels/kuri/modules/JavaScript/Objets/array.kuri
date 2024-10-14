@@ -153,7 +153,7 @@ array_constructor_call_or_construct :: fonc (empl params: *ParamètresCallOrCons
     résultat := crée_array(realm.donne_tas_de_mémoire(), realm.intrinsics.array_prototype, 0)
 
     si arguments.taille != 0 {
-        completion := to_number(interpréteuse, arguments[0])
+        completion := to_number(interpréteuse, params.donne_argument(0))
         saufsi completion.est_normal() {
             retourne completion
         }
@@ -224,7 +224,7 @@ array_prototype_join :: fonc (empl params: *ParamètresObjectCall) -> Completion
     }
     // 4. Else, let sep be ? ToString(separator).
     sinon {
-        completion = to_string(interpréteuse, arguments[0])
+        completion = to_string(interpréteuse, params.donne_argument(0))
         saufsi completion.est_normal() {
             retourne completion
         }

@@ -29,6 +29,14 @@ ParamètresObjectConstruct :: struct {
     arguments: []Valeur
 }
 
+donne_argument :: fonc (params: *ParamètresObjectConstruct, index: z64) -> Valeur
+{
+    si index < 0 || index >= params.arguments.taille {
+        retourne js_undefined
+    }
+    retourne params.arguments[index]
+}
+
 TypeFonctionObjectConstruct :: fonc(*ParamètresObjectConstruct)(CompletionRecord)
 
 TableVirtuelleObject :: struct {
@@ -283,7 +291,7 @@ object_prototype_has_own_property :: fonc (empl params: *ParamètresObjectCall) 
     }
 
     // 1. Let P be ? ToPropertyKey(V).
-    complétion_nom := to_property_key(interpréteuse, arguments[0])
+    complétion_nom := to_property_key(interpréteuse, params.donne_argument(0))
     saufsi complétion_nom.est_normal() {
         retourne complétion_nom
     }
@@ -447,11 +455,7 @@ crée_object_constructor :: fonc (realm: *Realm, function_prototype: *FunctionPr
  * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-object.getprototypeof */
 object_get_prototype_of :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
-    // À FAIRE : remplis les paramètres manquants avec undefined
-    O := Valeur(js_undefined)
-    si arguments.taille > 0 {
-        O = arguments[0]
-    }
+    O := params.donne_argument(0)
 
     // 1. Let obj be ? ToObject(O).
     completion := to_object(interpréteuse.donne_realm(), O)

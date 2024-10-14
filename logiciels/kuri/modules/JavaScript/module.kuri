@@ -809,7 +809,7 @@ eval_sur_call :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
         retourne normal_completion(js_undefined)
     }
 
-    retourne perform_eval(interpréteuse, arguments[0], faux, faux)
+    retourne perform_eval(interpréteuse, params.donne_argument(0), faux, faux)
 }
 
 /* 19.2.1.1 PerformEval ( x, strictCaller, direct )

@@ -167,11 +167,11 @@ objet_html_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, en
             retourne lance_type_error(interpréteuse, "ouvre_document requiers 1 argument")
         }
 
-        saufsi arguments[0].est_chaine() {
+        saufsi params.donne_argument(0).est_chaine() {
             retourne lance_type_error(interpréteuse, "argument n'est pas une chaine")
         }
 
-        valeur_arg := arguments[0].String.texte
+        valeur_arg := params.donne_argument(0).String.texte
         valeur_arg_utf16 := valeur_arg.donne_chaine_utf16()
         chemin := imprime_chaine("%", valeur_arg_utf16)
         diffère déloge(chemin)

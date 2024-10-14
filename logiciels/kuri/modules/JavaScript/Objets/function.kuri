@@ -749,6 +749,14 @@ ParamètresCallOrConstruct :: struct {
     new_target: Valeur
 }
 
+donne_argument :: fonc (params: *ParamètresCallOrConstruct, index: z64) -> Valeur
+{
+    si index < 0 || index >= params.arguments.taille {
+        retourne js_undefined
+    }
+    retourne params.arguments[index]
+}
+
 TableVirtuelleBuiltinFunction :: struct {
     empl object: TableVirtuelleObject
 
