@@ -12,6 +12,11 @@ importe Typographie
 
 dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: chaine, fonte: *Fonte, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8, effets: *EffetsTexte = nul)
 {
+    rect_sauf := donne_rect_sûr(tampon_de_rendu, rect)
+    si rect_sauf.largeur == 0 || rect_sauf.hauteur == 0 {
+        retourne
+    }
+
     source_atlas := fonte.atlas.data
 
     décalage_x := rect.x comme r32
@@ -42,6 +47,11 @@ dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: chaine, fonte: *F
 
 dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: ChaineUTF16, fonte: *Fonte, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8, effets: *EffetsTexte)
 {
+    rect_sauf := donne_rect_sûr(tampon_de_rendu, rect)
+    si rect_sauf.largeur == 0 || rect_sauf.hauteur == 0 {
+        retourne
+    }
+
     source_atlas := fonte.atlas.data
 
     décalage_x := rect.x comme r32
