@@ -115,11 +115,11 @@ Document :: struct {
     ignore_destructive_writes: z32
 
     /* CSS. */
-    feuille_de_style_agent: *CSS.CSSStyleSheet
-    feuilles_de_style: [..]*CSS.CSSStyleSheet
-    arbre_de_disposition: *CSS.ArbreDeDisposition
-    globales_dessin: *CSS.GlobalesDessin
-    résolveuse_style: *CSS.RésolveuseStyle
+    feuille_de_style_agent: *CSS.CSSStyleSheet @NeVisitePas
+    feuilles_de_style: [..]*CSS.CSSStyleSheet @NeVisitePas
+    arbre_de_disposition: *CSS.ArbreDeDisposition @NeVisitePas
+    globales_dessin: *CSS.GlobalesDessin @NeVisitePas
+    résolveuse_style: *CSS.RésolveuseStyle @NeVisitePas
     /* Nous accumulons les changements via les différentes fonctions d'ajournement/invalidation,
      * et remettons ceci à zéro lors des rendus via "CSS.donne_arbre_de_disposition_ajourné". */
     ajournement_arbre := CSS.AjournementArbre.Construction
@@ -128,9 +128,9 @@ Document :: struct {
     /* L'élément sous la souris lors des pressions et relâchement. */
     élément_en_cours_d_activation: *Élément
 
-    images_disponibles: [..]ImageDisponible
+    images_disponibles: [..]ImageDisponible @NeVisitePas
 
-    script_blocking_style_sheet_set: [..]*CSS.CSSStyleSheet
+    script_blocking_style_sheet_set: [..]*CSS.CSSStyleSheet @NeVisitePas
 }
 
 #portée_fichier
