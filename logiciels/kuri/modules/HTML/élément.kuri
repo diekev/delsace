@@ -2356,7 +2356,7 @@ fetch_a_classic_script :: fonc (user_agent: *UserAgent, url: *URL, settings_obje
 
         contenu := réponse.body.Quelque
 
-        url := rappel.request.donne_url_courant()
+        url := copie_url(rappel.request.donne_url_courant())
 
         script := create_a_classic_script(rappel.user_agent, contenu, rappel.settings_object, url, rappel.options)
         rappel.on_complete.run(script)
