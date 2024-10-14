@@ -339,52 +339,73 @@ remplis_cercle :: fonc (tampon_de_rendu: *TamponDeRendu, cercle: Cercle(z32), co
 
 dessine_image :: fonc (tampon_de_rendu: *TamponDeRendu, image: TamponImageGrise8Bit, rect: RectanglePosDim(z32))
 {
-    largeur := image.largeur
-    hauteur := image.hauteur
-    source := image.données
+    si image.largeur != rect.largeur || image.hauteur != rect.hauteur {
+        imprime("[Dessin] dessin de TamponImageRVBA8Bit à l'échelle non supporté\n")
+        retourne
+    }
 
-    dest := tampon_de_rendu.données.pointeur
-    ligne_dest := dest + tampon_de_rendu.rect.largeur * (rect.hauteur - 1) + rect.x
+    rect_sauf := donne_rect_sûr(tampon_de_rendu, rect)
+    si rect_sauf.largeur == 0 || rect_sauf.hauteur == 0 {
+        retourne
+    }
 
-    pour _ dans hauteur {
-        pixel := ligne_dest
+    décalage_x := rect_sauf.x - rect.x
+    décalage_y := rect_sauf.y - rect.y
 
-        pour _ dans largeur {
-            valeur := mémoire(source)
+    enjambée_dest := tampon_de_rendu.rect.largeur
+    ligne_dest := tampon_de_rendu.données.pointeur + rect_sauf.y * enjambée_dest + rect_sauf.x
+
+    /* Dessine l'image du bas vers le haut. */
+    enjambée_source := image.largeur
+    ligne_source := image.données + (image.hauteur - décalage_y - 1) * enjambée_source + décalage_x
+
+    pour _ dans rect_sauf.y ... rect_sauf.y + rect_sauf.hauteur - 1 {
+        pixel_dest := ligne_dest
+        pixel_source := ligne_source
+
+        pour _ dans rect_sauf.x ... rect_sauf.x + rect_sauf.largeur - 1 {
+            valeur := mémoire(pixel_source)
 
             si valeur != 0 {
-                mémoire(pixel) = CouleurRVBAN8(valeur, valeur, valeur, 255)
+                mémoire(pixel_dest) = CouleurRVBAN8(valeur, valeur, valeur, 255)
             }
 
-            source += 1
-            pixel += 1
+            pixel_source += 1
+            pixel_dest += 1
         }
 
-        ligne_dest -= tampon_de_rendu.rect.largeur
+        ligne_source -= enjambée_source
+        ligne_dest += enjambée_dest
     }
 }
 
 dessine_image :: fonc (tampon_de_rendu: *TamponDeRendu, image: TamponImageRVBA8Bit, rect: RectanglePosDim(z32))
 {
-    source := image.données
-    largeur_source := image.largeur
+    si image.largeur != rect.largeur || image.hauteur != rect.hauteur {
+        imprime("[Dessin] dessin de TamponImageRVBA8Bit à l'échelle non supporté\n")
+        retourne
+    }
 
-    dest := tampon_de_rendu.données.pointeur
-    largeur_dest := tampon_de_rendu.rect.largeur
+    rect_sauf := donne_rect_sûr(tampon_de_rendu, rect)
+    si rect_sauf.largeur == 0 || rect_sauf.hauteur == 0 {
+        retourne
+    }
+
+    décalage_x := rect_sauf.x - rect.x
+    décalage_y := rect_sauf.y - rect.y
+
+    enjambée_dest := tampon_de_rendu.rect.largeur
+    ligne_dest := tampon_de_rendu.données.pointeur + rect_sauf.y * enjambée_dest + rect_sauf.x
 
     /* Dessine l'image du bas vers le haut. */
-    ligne_source := source + (image.hauteur - 1) * largeur_source
+    enjambée_source := image.largeur
+    ligne_source := image.données + (image.hauteur - décalage_y - 1) * enjambée_source + décalage_x
 
-    largeur_image_à_dessiner := min(image.largeur, rect.largeur)
-    hauteur_image_à_dessiner := min(image.hauteur, rect.hauteur)
-
-    pour y dans hauteur_image_à_dessiner {
-        ligne_dest := dest + (rect.y + y) * largeur_dest
-
+    pour _ dans rect_sauf.y ... rect_sauf.y + rect_sauf.hauteur - 1 {
+        pixel_dest := ligne_dest
         pixel_source := ligne_source
-        pixel_dest := ligne_dest + rect.x
 
-        pour _ dans largeur_image_à_dessiner {
+        pour _ dans rect_sauf.x ... rect_sauf.x + rect_sauf.largeur - 1 {
             pixel := mémoire(pixel_source)
 
             si pixel.a == 255 {
@@ -413,7 +434,8 @@ dessine_image :: fonc (tampon_de_rendu: *TamponDeRendu, image: TamponImageRVBA8B
             pixel_dest += 1
         }
 
-        ligne_source -= largeur_source
+        ligne_source -= enjambée_source
+        ligne_dest += enjambée_dest
     }
 }
 
