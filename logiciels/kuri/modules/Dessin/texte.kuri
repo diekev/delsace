@@ -101,27 +101,10 @@ dessine_glyphe :: fonc (tampon_de_rendu: *TamponDeRendu, fonte: *Fonte, glyph: *
         pour _ dans largeur_glyphe {
             valeur := mémoire(source)
 
-            // si valeur != 0 {
-            //     mémoire(pixel) = couleur // CouleurRVBAN8(valeur, valeur, valeur, 255)
-            // }
-            {
-                r_dest := (pixel.r comme r32) / 255.0
-                v_dest := (pixel.v comme r32) / 255.0
-                b_dest := (pixel.b comme r32) / 255.0
+            couleur_pixel := couleur
+            couleur_pixel.a = (((valeur comme r32) / 255.0 * (couleur.a comme r32) / 255.0) * 255.0) comme n8
 
-                r_source := (couleur.r comme r32) / 255.0
-                v_source := (couleur.v comme r32) / 255.0
-                b_source := (couleur.b comme r32) / 255.0
-
-                alpha := (valeur comme r32) / 255.0 * (couleur.a comme r32) / 255.0
-
-                r := (((1.0 - alpha) * r_dest + alpha * r_source) * 255.0) comme n8
-                v := (((1.0 - alpha) * v_dest + alpha * v_source) * 255.0) comme n8
-                b := (((1.0 - alpha) * b_dest + alpha * b_source) * 255.0) comme n8
-                a := 255 comme n8
-
-                mémoire(pixel) = CouleurRVBAN8(r, v, b, a)
-            }
+            fusionne_pixels(couleur_pixel, pixel)
 
             source += 1
             pixel += 1

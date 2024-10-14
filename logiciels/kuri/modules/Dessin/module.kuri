@@ -64,6 +64,45 @@ donne_rect_sûr :: fonc (tampon: *TamponDeRendu, rect: RectanglePosDim(z32)) -> 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Utilitaires
+ * \{ */
+
+#portée_module
+
+fusionne_pixels :: fonc (src: CouleurRVBAN8, dst: *CouleurRVBAN8)
+{
+    si src.a == 0 {
+        retourne
+    }
+
+    si src.a == 255 {
+        mémoire(dst) = src
+        retourne
+    }
+
+    r_dest := (dst.r comme r32) / 255.0
+    v_dest := (dst.v comme r32) / 255.0
+    b_dest := (dst.b comme r32) / 255.0
+
+    r_source := (src.r comme r32) / 255.0
+    v_source := (src.v comme r32) / 255.0
+    b_source := (src.b comme r32) / 255.0
+
+    alpha := (src.a comme r32) / 255.0
+
+    r := (((1.0 - alpha) * r_dest + alpha * r_source) * 255.0) comme n8
+    v := (((1.0 - alpha) * v_dest + alpha * v_source) * 255.0) comme n8
+    b := (((1.0 - alpha) * b_dest + alpha * b_source) * 255.0) comme n8
+    a := 255 comme n8
+
+    mémoire(dst) = CouleurRVBAN8(r, v, b, a)
+}
+
+#portée_export
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Ligne(z32)
  * \{ */
 
@@ -93,7 +132,7 @@ dessine_ligne :: fonc (tampon_de_rendu: *TamponDeRendu, ligne: Ligne(z32), coule
         dest := tampon_de_rendu.données.pointeur + y_min * tampon_de_rendu.rect.largeur + x_min
 
         tantque y_min < y_max {
-            mémoire(dest) = couleur
+            fusionne_pixels(couleur, dest)
             dest += tampon_de_rendu.rect.largeur
             y_min += 1
         }
@@ -107,7 +146,7 @@ dessine_ligne :: fonc (tampon_de_rendu: *TamponDeRendu, ligne: Ligne(z32), coule
         dest := tampon_de_rendu.données.pointeur + y_min * tampon_de_rendu.rect.largeur + x_min
 
         tantque x_min < x_max {
-            mémoire(dest) = couleur
+            fusionne_pixels(couleur, dest)
             dest += 1
             x_min += 1
         }
@@ -154,7 +193,7 @@ dessine_ligne_bresenham :: fonc (
         xi := x comme z32
         yi := y comme z32
         index := xi + yi * enjambée_dest
-        dest[index] = couleur
+        fusionne_pixels(couleur, dest + index)
 
         x += dx
         y += dy
@@ -212,7 +251,7 @@ remplis_rectangle :: fonc (tampon_de_rendu: *TamponDeRendu, rect: RectanglePosDi
         pixel_dest := ligne_dest
 
         pour _ dans rect_sauf.x ... rect_sauf.x + rect_sauf.largeur - 1 {
-            mémoire(pixel_dest) = couleur
+            fusionne_pixels(couleur, pixel_dest)
             pixel_dest += 1
         }
 
@@ -418,27 +457,7 @@ dessine_image :: fonc (tampon_de_rendu: *TamponDeRendu, image: TamponImageRVBA8B
         pour _ dans rect_sauf.x ... rect_sauf.x + rect_sauf.largeur - 1 {
             pixel := mémoire(pixel_source)
 
-            si pixel.a == 255 {
-                mémoire(pixel_dest) = pixel
-            }
-            sinon {
-                r_dest := (pixel_dest.r comme r32) / 255.0
-                v_dest := (pixel_dest.v comme r32) / 255.0
-                b_dest := (pixel_dest.b comme r32) / 255.0
-
-                r_source := (pixel.r comme r32) / 255.0
-                v_source := (pixel.v comme r32) / 255.0
-                b_source := (pixel.b comme r32) / 255.0
-
-                alpha := (pixel.a comme r32) / 255.0
-
-                r := (((1.0 - alpha) * r_dest + alpha * r_source) * 255.0) comme n8
-                v := (((1.0 - alpha) * v_dest + alpha * v_source) * 255.0) comme n8
-                b := (((1.0 - alpha) * b_dest + alpha * b_source) * 255.0) comme n8
-                a := 255 comme n8
-
-                mémoire(pixel_dest) = CouleurRVBAN8(r, v, b, a)
-            }
+            fusionne_pixels(pixel, pixel_dest)
 
             pixel_source += 1
             pixel_dest += 1
