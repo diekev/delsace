@@ -668,6 +668,10 @@ finalize_a_cross_document_navigation :: fonc (user_agent: *UserAgent, navigable:
 
 navigate_to_a_javascript_url :: fonc (user_agent: *UserAgent, target_navigable: *Navigable, url: *URL, history_handling: NavigationHistoryBehavior, initiator_origin: Origin)
 {
+    saufsi user_agent.supporte_scripting {
+        retourne
+    }
+
     // 1. Assert: historyHandling is "replace".
     assert(history_handling == NavigationHistoryBehavior.REPLACE)
 
