@@ -196,17 +196,27 @@ dessine_rectangle :: fonc (tampon_de_rendu: *TamponDeRendu, rect: RectanglePosDi
 
 remplis_rectangle :: fonc (tampon_de_rendu: *TamponDeRendu, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8)
 {
-    // À FAIRE : intersection du rectangle
-    pointeur_source := tampon_de_rendu.données.pointeur
-    largeur_source := tampon_de_rendu.rect.largeur
+    rect_sauf := donne_rect_sûr(tampon_de_rendu, rect)
+    si rect_sauf.largeur == 0 || rect_sauf.hauteur == 0 {
+        retourne
+    }
 
-    pour y dans rect.hauteur {
-        pointeur := pointeur_source + (rect.y + y) * largeur_source + rect.x
+    si couleur.a == 0 {
+        retourne
+    }
 
-        pour rect.largeur {
-            mémoire(pointeur) = couleur
-            pointeur += 1
+    enjambée_dest := tampon_de_rendu.rect.largeur
+    ligne_dest := tampon_de_rendu.données.pointeur + rect_sauf.y * enjambée_dest + rect_sauf.x
+
+    pour _ dans rect_sauf.y ... rect_sauf.y + rect_sauf.hauteur - 1 {
+        pixel_dest := ligne_dest
+
+        pour _ dans rect_sauf.x ... rect_sauf.x + rect_sauf.largeur - 1 {
+            mémoire(pixel_dest) = couleur
+            pixel_dest += 1
         }
+
+        ligne_dest += enjambée_dest
     }
 }
 
