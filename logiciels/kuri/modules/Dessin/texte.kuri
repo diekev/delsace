@@ -22,7 +22,6 @@ dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: chaine, fonte: *F
     décalage_x := rect.x comme r32
     début_effets := décalage_x
 
-    utilise_crénage := fonte.font.kerning != 0
     dernier_glyphe: *texture_glyph_t
 
     pour * texte {
@@ -31,15 +30,12 @@ dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: chaine, fonte: *F
             continue
         }
 
-        si utilise_crénage {
-            crénage := donne_crénage_avec(glyph, dernier_glyphe)
-            décalage_x += crénage
-        }
-        dernier_glyphe = glyph
+        décalage_x += donne_crénage_avec(glyph, dernier_glyphe)
 
         dessine_glyphe(tampon_de_rendu, fonte, glyph, décalage_x, couleur, source_atlas, rect)
 
         décalage_x += glyph.advance_x
+        dernier_glyphe = glyph
     }
 
     dessine_effets(tampon_de_rendu, fonte, effets, début_effets comme z32, décalage_x comme z32, rect.y)
@@ -57,7 +53,6 @@ dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: ChaineUTF16, font
     décalage_x := rect.x comme r32
     début_effets := décalage_x
 
-    utilise_crénage := fonte.font.kerning != 0
     dernier_glyphe: *texture_glyph_t
 
     pour texte.unités {
@@ -66,15 +61,12 @@ dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: ChaineUTF16, font
             continue
         }
 
-        si utilise_crénage {
-            crénage := donne_crénage_avec(glyph, dernier_glyphe)
-            décalage_x += crénage
-        }
-        dernier_glyphe = glyph
+        décalage_x += donne_crénage_avec(glyph, dernier_glyphe)
 
         dessine_glyphe(tampon_de_rendu, fonte, glyph, décalage_x, couleur, source_atlas, rect)
 
         décalage_x += glyph.advance_x
+        dernier_glyphe = glyph
     }
 
     dessine_effets(tampon_de_rendu, fonte, effets, début_effets comme z32, décalage_x comme z32, rect.y)
