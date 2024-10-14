@@ -334,6 +334,7 @@ Identifier :: struct {
     sur_exécution = sur_exécution_identifier
 
     nom: ECMAString
+    index_chaine_en_cache := -1
 }
 
 crée_identifier :: fonc (parseuse: *Parseuse, lexème: *Lexème, nom: ECMAString) -> *Identifier
@@ -352,7 +353,25 @@ crée_identifier :: fonc (parseuse: *Parseuse, lexème: *Lexème, nom: chaine) -
 sur_exécution_identifier :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
 {
     noeud := base comme *Identifier
-    retourne resolve_binding(interpréteuse, noeud.nom)
+    retourne resolve_binding(interpréteuse, noeud.donne_chaine_primitive(interpréteuse.donne_realm()))
+}
+
+donne_chaine_primitive :: fonc (identifier: *Identifier, realm: *Realm) -> *PrimitiveChaine
+{
+    si identifier.index_chaine_en_cache == -1 {
+        pour realm.chaines {
+            si it.texte == identifier.nom {
+                identifier.index_chaine_en_cache = index_it comme z32
+                retourne it
+            }
+        }
+
+        résultat := realm.crée_chaine(identifier.nom)
+        identifier.index_chaine_en_cache = realm.chaines.taille comme z32 - 1
+        retourne résultat
+    }
+
+    retourne realm.chaines[identifier.index_chaine_en_cache]
 }
 
 /** \} */
@@ -2020,7 +2039,7 @@ sur_exécution_variable_declarator :: fonc (base: *NoeudSyntaxique, interpréteu
     }
 
     // 1. Let bindingId be the StringValue of BindingIdentifier.
-    binding_id := identifier.nom
+    binding_id := identifier.donne_chaine_primitive(interpréteuse.donne_realm())
 
     // 2. Let lhs be ? ResolveBinding(bindingId).
     completion_lhs := interpréteuse.resolve_binding(binding_id)
