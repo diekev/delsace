@@ -546,7 +546,7 @@ visite_structure :: fonc (visiteuse: *VisiteuseCellule, structure: eini)
     pour info.membres {
         membre := eini_depuis_info_membre(structure, it)
         si possède_annotation(it, "NeVisitePas") {
-            retourne
+            continue
         }
         tableau_ajoute(*visiteuse.valeurs_à_visiter, membre)
     }
