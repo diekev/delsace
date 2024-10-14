@@ -1502,7 +1502,9 @@ perform_eval :: fonc (interpréteuse: *Interpréteuse, x: Valeur, strict_caller:
     contenu := converti_vers_chaine(x.String.texte.donne_chaine_utf16())
     diffère déloge(contenu)
 
-    discr parse_script(contenu, eval_realm) {
+    /* À FAIRE(langage) : host_defined n'est pas initialisée à sa valeur défaut. */
+    host_defined: HostDefined
+    discr parse_script(contenu, eval_realm, host_defined) {
         Ok(s) {
             script = s
         }
