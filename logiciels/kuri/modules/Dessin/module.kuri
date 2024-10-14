@@ -31,6 +31,34 @@ redimensionne_tampon_de_rendu :: fonc (tampon: *TamponDeRendu, rect: RectanglePo
     tableau_redimensionne(tampon.données, rect.hauteur * rect.largeur)
 }
 
+/* Ceci remplis inconditionnellement le tampon avec la couleur (pas de fusion, etc.).
+ * Cette fonction est à utiliser pour réinitialiser le tampon. */
+remplis_avec :: fonc (tampon: *TamponDeRendu, couleur: CouleurRVBAN8)
+{
+    pointeur := tampon.données.pointeur
+    taille := tampon.données.taille
+
+    /* Déroulage manuel. */
+    pour taille / 8 {
+        /* À FAIRE(langage) : erreur de compilation C si mémoire(pointeur + x) = y */
+        pointeur[0] = couleur
+        pointeur[1] = couleur
+        pointeur[2] = couleur
+        pointeur[3] = couleur
+        pointeur[4] = couleur
+        pointeur[5] = couleur
+        pointeur[6] = couleur
+        pointeur[7] = couleur
+
+        pointeur += 8
+    }
+
+    pour taille % 8 {
+        mémoire(pointeur) = couleur
+        pointeur += 1
+    }
+}
+
 détruit_tampon_de_rendu :: fonc (tampon: *TamponDeRendu)
 {
     déloge(tampon.données)

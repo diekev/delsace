@@ -383,8 +383,7 @@ remplis_arrière_plan_dessin :: fonc (peintre: *Peintre, couleur_peintre: Couleu
 {
     peintre_dessin := peintre comme *PeintreDessin
     couleur := donne_couleur_dessin(couleur_peintre)
-    rect := peintre_dessin.tampon_de_rendu.rect
-    remplis_rectangle(*peintre_dessin.tampon_de_rendu, rect, couleur)
+    remplis_avec(*peintre_dessin.tampon_de_rendu, couleur)
 }
 
 dessine_rectangle_dessin :: fonc (peintre: *Peintre, rectangle_peintre: RectanglePeintre, couleur_peintre: CouleurPeintre)
