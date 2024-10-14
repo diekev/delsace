@@ -180,10 +180,8 @@ declarative_environment_has_binding :: fonc (base: *Environment, nom: ECMAString
     env_rec := base comme *DeclarativeEnvironment
 
     // 1. If envRec has a binding for N, return true.
-    pour env_rec.bindings {
-        si it.nom == nom {
-            retourne vrai
-        }
+    si donne_binding(env_rec, nom) {
+        retourne vrai
     }
 
     // 2. Return false.
