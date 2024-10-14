@@ -544,6 +544,9 @@ visite_structure :: fonc (visiteuse: *VisiteuseCellule, structure: eini)
 {
     info := structure.info comme *InfoTypeStructure
     pour info.membres {
+        saufsi type_est_intéressant_pour_visite(it.id, faux) {
+            continue
+        }
         membre := eini_depuis_info_membre(structure, it)
         si possède_annotation(it, "NeVisitePas") {
             continue
@@ -600,14 +603,6 @@ visite_valeur :: fonc (visiteuse: *VisiteuseCellule, valeur: eini)
     }
 
     si info.id == GenreInfoType.STRUCTURE {
-        si info == info_de(Cellule) || info == info_de(Lexème) || info == info_de(ECMAString) || info == info_de(TasDeMémoire) || info == info_de(MachineVirtuelle) {
-            retourne
-        }
-
-        si info == info_de(Chaine.ChaineUTF16) {
-            retourne
-        }
-
         si info == info_de(HostDefined) {
             host_defined := mémoire(valeur.pointeur comme *HostDefined)
 
@@ -640,6 +635,9 @@ visite_valeur :: fonc (visiteuse: *VisiteuseCellule, valeur: eini)
         si itératrice.type_pointé == info_de(Lexème) {
             retourne
         }
+        saufsi type_est_intéressant_pour_visite(itératrice.type_pointé, faux) {
+            retourne
+        }
         boucle {
             élément := itératrice.valeur_suivante()
             saufsi élément.est_valide() {
@@ -649,6 +647,52 @@ visite_valeur :: fonc (visiteuse: *VisiteuseCellule, valeur: eini)
         }
         retourne
     }
+}
+
+type_est_intéressant_pour_visite :: fonc (info: *InfoType, est_récurif: bool) -> bool
+{
+    discr info.id {
+        ENTIER,
+        RÉEL,
+        BOOLÉEN,
+        CHAINE,
+        ADRESSE_FONCTION,
+        FONCTION,
+        EINI,
+        RIEN,
+        ÉNUM,
+        OCTET,
+        TYPE_DE_DONNÉES {
+            retourne faux
+        }
+        TABLEAU {
+            info_tableau := info comme *InfoTypeTableau
+            retourne type_est_intéressant_pour_visite(info_tableau.type_pointé, vrai)
+        }
+        POINTEUR {
+            info_pointeur := info comme *InfoTypePointeur
+            retourne type_est_intéressant_pour_visite(info_pointeur.type_pointé, vrai)
+        }
+        UNION,
+        OPAQUE,
+        TRANCHE,
+        TABLEAU_FIXE,
+        VARIADIQUE {}
+        STRUCTURE {
+            si info == info_de(Cellule) {
+                retourne !est_récurif
+            }
+
+            si info == info_de(Lexème) || info == info_de(ECMAString) || info == info_de(TasDeMémoire) || info == info_de(MachineVirtuelle) {
+                retourne faux
+            }
+
+            si info == info_de(Chaine.ChaineUTF16) {
+                retourne faux
+            }
+        }
+    }
+    retourne vrai
 }
 
 /** \} */
