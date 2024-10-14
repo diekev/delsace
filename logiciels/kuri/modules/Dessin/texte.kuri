@@ -10,11 +10,12 @@ importe Typographie
 /** \nom Dessin de texte.
  * \{ */
 
-dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: chaine, fonte: *Fonte, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8)
+dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: chaine, fonte: *Fonte, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8, effets: *EffetsTexte = nul)
 {
     source_atlas := fonte.atlas.data
 
     décalage_x := rect.x comme r32
+    début_effets := décalage_x
 
     utilise_crénage := fonte.font.kerning != 0
     dernier_glyphe: *texture_glyph_t
@@ -35,13 +36,16 @@ dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: chaine, fonte: *F
 
         décalage_x += glyph.advance_x
     }
+
+    dessine_effets(tampon_de_rendu, fonte, effets, début_effets comme z32, décalage_x comme z32, rect.y)
 }
 
-dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: ChaineUTF16, fonte: *Fonte, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8)
+dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: ChaineUTF16, fonte: *Fonte, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8, effets: *EffetsTexte)
 {
     source_atlas := fonte.atlas.data
 
     décalage_x := rect.x comme r32
+    début_effets := décalage_x
 
     utilise_crénage := fonte.font.kerning != 0
     dernier_glyphe: *texture_glyph_t
@@ -62,6 +66,8 @@ dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: ChaineUTF16, font
 
         décalage_x += glyph.advance_x
     }
+
+    dessine_effets(tampon_de_rendu, fonte, effets, début_effets comme z32, décalage_x comme z32, rect.y)
 }
 
 dessine_glyphe :: fonc (tampon_de_rendu: *TamponDeRendu, fonte: *Fonte, glyph: *texture_glyph_t, décalage_x: r32, couleur: CouleurRVBAN8, source_atlas: *n8, rect: RectanglePosDim(z32))
@@ -113,6 +119,33 @@ dessine_glyphe :: fonc (tampon_de_rendu: *TamponDeRendu, fonte: *Fonte, glyph: *
 
         ligne_dest -= tampon_de_rendu.rect.largeur
         source_glyphe += enjambée_atlas
+    }
+}
+
+dessine_effets :: fonc (tampon_de_rendu: *TamponDeRendu, fonte: *Fonte, effets: *EffetsTexte, x0: z32, x1: z32, y0: z32)
+{
+    saufsi effets {
+        retourne
+    }
+
+    ligne: Ligne(z32)
+    ligne.p0.x = x0
+    ligne.p1.x = x1
+
+    si effets.surlignage {
+        ligne.p0.y = y0 + fonte.font.ascender comme z32
+        ligne.p1.y = ligne.p0.y + fonte.font.underline_thickness comme z32
+        dessine_ligne(tampon_de_rendu, ligne, depuis_couleur_rvba(effets.couleur_surlignage))
+    }
+    si effets.souslignage {
+        ligne.p0.y = y0 + fonte.font.underline_position comme z32
+        ligne.p1.y = ligne.p0.y + fonte.font.underline_thickness comme z32
+        dessine_ligne(tampon_de_rendu, ligne, depuis_couleur_rvba(effets.couleur_souslignage))
+    }
+    si effets.barrage {
+        ligne.p0.y = y0 + (fonte.font.ascender * 0.33) comme z32
+        ligne.p1.y = ligne.p0.y + fonte.font.underline_thickness comme z32
+        dessine_ligne(tampon_de_rendu, ligne, depuis_couleur_rvba(effets.couleur_barrage))
     }
 }
 

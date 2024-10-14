@@ -464,12 +464,12 @@ dessine_texte_dessin :: fonc (peintre: *Peintre, fonte: *Fonte, texte: chaine, r
     dessine_texte(*peintre_dessin.tampon_de_rendu, texte, fonte, rect, couleur)
 }
 
-dessine_texte_utf16_dessin :: fonc (peintre: *Peintre, fonte: *Fonte, texte: ChaineUTF16, rectangle_peintre: RectanglePeintre, couleur_peintre: CouleurPeintre, effets: *EffetsTexte @inutilisée)
+dessine_texte_utf16_dessin :: fonc (peintre: *Peintre, fonte: *Fonte, texte: ChaineUTF16, rectangle_peintre: RectanglePeintre, couleur_peintre: CouleurPeintre, effets: *EffetsTexte)
 {
     peintre_dessin := peintre comme *PeintreDessin
     rect := donne_rectangle_dessin(rectangle_peintre)
     couleur := donne_couleur_dessin(couleur_peintre)
-    dessine_texte(*peintre_dessin.tampon_de_rendu, texte, fonte, rect, couleur)
+    dessine_texte(*peintre_dessin.tampon_de_rendu, texte, fonte, rect, couleur, effets)
 }
 
 dessine_image_dessin :: fonc (peintre: *Peintre @inutilisée, image: ImageIO @inutilisée, rectangle_peintre: RectanglePeintre @inutilisée)
