@@ -76,7 +76,7 @@ donne_tas_de_mémoire :: fonc (mv: *MachineVirtuelle) -> *TasDeMémoire
     retourne *mv.tas_de_mémoire
 }
 
-donne_running_execution_context :: fonc (mv: *MachineVirtuelle) -> *ExecutionContext
+donne_running_execution_context :: fonc (mv: *MachineVirtuelle) -> *ExecutionContext #enligne
 {
     retourne mv.execution_contexts[mv.execution_contexts.taille - 1]
 }

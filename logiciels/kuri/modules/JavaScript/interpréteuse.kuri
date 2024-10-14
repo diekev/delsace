@@ -436,8 +436,7 @@ imprime_complétion :: fonc (enchaineuse: *Enchaineuse, completion: *CompletionR
     }
 } @FormattageImpression
 
-/* À FAIRE(langage) : enligner cette fonction résulte en un crash lors de l'exécution. */
-normal_completion :: fonc (valeur: Valeur) -> CompletionRecord
+normal_completion :: fonc (valeur: Valeur) -> CompletionRecord #enligne
 {
     retourne CompletionRecord(CompletionRecord.Type.NORMAL, valeur)
 }
@@ -578,18 +577,18 @@ donne_tas_de_mémoire :: fonc (interpréteuse: *Interpréteuse) -> *TasDeMémoir
     retourne interpréteuse.mv.donne_tas_de_mémoire()
 }
 
-donne_running_execution_context :: fonc (interpréteuse: *Interpréteuse) -> *ExecutionContext
+donne_running_execution_context :: fonc (interpréteuse: *Interpréteuse) -> *ExecutionContext #enligne
 {
     retourne interpréteuse.mv.donne_running_execution_context()
 }
 
-donne_lexical_environement :: fonc (interpréteuse: *Interpréteuse) -> *Environment
+donne_lexical_environement :: fonc (interpréteuse: *Interpréteuse) -> *Environment #enligne
 {
     rec := interpréteuse.donne_running_execution_context()
     retourne rec.lexical_environment
 }
 
-donne_realm :: fonc (interpréteuse: *Interpréteuse) -> *Realm
+donne_realm :: fonc (interpréteuse: *Interpréteuse) -> *Realm #enligne
 {
     rec := interpréteuse.donne_running_execution_context()
     retourne rec.realm
