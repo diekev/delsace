@@ -685,6 +685,19 @@ to_length :: fonc (argument: Valeur) -> CompletionRecord
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-testing-and-comparison-operations
  * \{ */
 
+/* 7.2.1 RequireObjectCoercible ( argument )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-requireobjectcoercible */
+require_object_coercible :: fonc (realm: *Realm, value: Valeur) -> CompletionRecord
+{
+    si value.est_nulle() {
+        retourne lance_type_error(realm, "null is not an Object")
+    }
+    si value.est_undefined() {
+        retourne lance_type_error(realm, "undefined is not an Object")
+    }
+    retourne normal_completion(value)
+}
+
 /* 7.2.3 IsCallable ( argument )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-iscallable */
 is_callable :: fonc (argument: Valeur) -> bool

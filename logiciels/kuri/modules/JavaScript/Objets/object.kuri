@@ -37,6 +37,7 @@ TableVirtuelleObject :: struct {
     sur_destruction = sur_destruction_objet
 
     sur_get_prototype_of := ordinary_get_prototype_of
+    sur_set_prototype_of := ordinary_set_prototype_of
     sur_get_own_property := ordinary_get_own_property
     sur_define_own_property := ordinary_define_own_property
     sur_has_property := ordinary_has_property
@@ -153,6 +154,12 @@ ajoute_propriété :: fonc (objet: *Object, nom: PropertyKey, get: TypeFonctionO
 internal_get_prototype_of :: fonc (object: *Object) -> *Object
 {
     retourne object.donne_table().sur_get_prototype_of(object)
+}
+
+/* [[SetPrototypeOf]] */
+internal_set_prototype_of :: fonc (object: *Object, valeur: Valeur) -> bool
+{
+    retourne object.donne_table().sur_set_prototype_of(object, valeur)
 }
 
 /* [[GetOwnProperty]] */
@@ -365,15 +372,37 @@ object_prototype_proto_get :: fonc (empl params: *ParamètresObjectCall) -> Comp
     retourne normal_completion(Valeur(Object = internal_get_prototype_of(O)))
 }
 
-object_prototype_proto_set :: fonc (empl params: *ParamètresObjectCall @inutilisée) -> CompletionRecord
+object_prototype_proto_set :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
     // 1. Let O be ? RequireObjectCoercible(this value).
+    completion := require_object_coercible(interpréteuse.donne_realm(), this_value)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+
+    O := completion.valeur.V
+
     // 2. If proto is not an Object and proto is not null, return undefined.
+    proto := params.donne_argument(0)
+    saufsi proto.est_object() || proto.est_nulle() {
+        retourne normal_completion(js_undefined)
+    }
+
     // 3. If O is not an Object, return undefined.
+    saufsi O.est_object() {
+        retourne normal_completion(js_undefined)
+    }
+
     // 4. Let status be ? O.[[SetPrototypeOf]](proto).
+    status := internal_set_prototype_of(O.donne_objet(), proto)
+
     // 5. If status is false, throw a TypeError exception.
+    saufsi status {
+        retourne lance_type_error(interpréteuse.donne_realm(), "Object does not accept prototype")
+    }
+
     // 6. Return undefined.
-    panique("set __proto__ non-implémenté")
+    retourne normal_completion(js_undefined)
 }
 
 /** \} */
@@ -405,6 +434,7 @@ crée_object_constructor :: fonc (realm: *Realm, function_prototype: *FunctionPr
     résultat.ajoute_propriété(STR_prototype, Valeur(Object = object_prototype), DrapeauxPropriété.zéro)
 
     résultat.ajoute_fonction_native(STR_getPrototypeOf, object_get_prototype_of, 1)
+    résultat.ajoute_fonction_native(STR_setPrototypeOf, object_set_prototype_of, 1)
 
     object_prototype.ajoute_propriété(STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro)
 
@@ -432,6 +462,43 @@ object_get_prototype_of :: fonc (empl params: *ParamètresObjectCall) -> Complet
 
     // 2. Return ? obj.[[GetPrototypeOf]]().
     retourne normal_completion(Valeur(Object = internal_get_prototype_of(obj)))
+}
+
+/* 20.1.2.23 Object.setPrototypeOf ( O, proto )
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-object.setprototypeof */
+object_set_prototype_of :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    O := params.donne_argument(0)
+
+    // 1. Set O to ? RequireObjectCoercible(O).
+    completion := require_object_coercible(interpréteuse.donne_realm(), this_value)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+
+    O = completion.valeur.V
+
+    // 2. If proto is not an Object and proto is not null, throw a TypeError exception.
+    proto := params.donne_argument(1)
+    saufsi proto.est_object() || proto.est_nulle() {
+        retourne lance_type_error(interpréteuse.donne_realm(), "prototype is not an Object")
+    }
+
+    // 3. If O is not an Object, return O.
+    saufsi O.est_object() {
+        retourne normal_completion(O)
+    }
+
+    // 4. Let status be ? O.[[SetPrototypeOf]](proto).
+    status := internal_set_prototype_of(O.donne_objet(), proto)
+
+    // 5. If status is false, throw a TypeError exception.
+    saufsi status {
+        retourne lance_type_error(interpréteuse.donne_realm(), "Object does not accept prototype")
+    }
+
+    // 6. Return O.
+    retourne normal_completion(O)
 }
 
 /** \} */

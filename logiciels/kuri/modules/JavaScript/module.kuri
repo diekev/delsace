@@ -423,6 +423,73 @@ ordinary_get_prototype_of :: fonc (object: *Object) -> *Object
     retourne object.prototype
 }
 
+/* 10.1.2.1 OrdinarySetPrototypeOf ( O, V )
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarysetprototypeof */
+ordinary_set_prototype_of :: fonc (object: *Object, valeur: Valeur) -> bool
+{
+    // 1. Let current be O.[[Prototype]].
+    current := object.prototype
+
+    // 2. If SameValue(V, current) is true, return true.
+    si same_value(valeur, current).est_true() {
+        retourne vrai
+    }
+
+    // 3. Let extensible be O.[[Extensible]].
+    extensible := object.extensible
+
+    // 4. If extensible is false, return false.
+    saufsi extensible {
+        retourne faux
+    }
+
+    // 5. Let p be V.
+    p : *Object
+    saufsi valeur.est_nulle() {
+        p = valeur.donne_objet()
+    }
+
+    // 6. Let done be false.
+    done := faux
+
+    // 7. Repeat, while done is false,
+    tantque done == faux {
+        // a. If p is null, then
+        si p == nul {
+            // i. Set done to true.
+            done = vrai
+        }
+        // b. Else if SameValue(p, O) is true, then
+        sinon si same_value(p, object).est_true() {
+            // i. Return false.
+            retourne faux
+        }
+        // c. Else,
+        sinon {
+            // i. If p.[[GetPrototypeOf]] is not the ordinary object internal method defined in 10.1.1, set done to true.
+            si p.donne_table().sur_get_prototype_of != ordinary_get_prototype_of {
+                done = vrai
+            }
+            // ii. Else, set p to p.[[Prototype]].
+            sinon {
+                p = p.prototype
+            }
+        }
+    }
+
+    // 8. Set O.[[Prototype]] to V.
+    si valeur.est_nulle() {
+        object.prototype = nul
+    }
+    sinon {
+        assert(valeur.est_object())
+        object.prototype = valeur.donne_objet()
+    }
+
+    // 9. Return true.
+    retourne vrai
+}
+
 /* 10.1.5.1 OrdinaryGetOwnProperty ( O, P )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarygetownproperty */
 ordinary_get_own_property :: fonc (object: *Object, property_key: PropertyKey) -> CompletionRecord
