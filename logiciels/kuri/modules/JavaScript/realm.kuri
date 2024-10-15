@@ -170,6 +170,7 @@ Intrinsics :: struct {
     type_error_prototype: *TypeErrorPrototype
     syntax_error_prototype: *SyntaxErrorPrototype
     date_prototype: *DatePrototype
+    number_prototype: *NumberPrototype
 
     array: *ArrayConstructor
     date: *DateConstructor
@@ -178,6 +179,7 @@ Intrinsics :: struct {
     math: *MathObject
     object: *ObjectConstructor
     string: *StringConstructor
+    number: *NumberConstructor
 
     host_intrinsics: [..]*Object
 }
@@ -197,6 +199,7 @@ create_intrinsics :: fonc (realm: *Realm)
     realm.intrinsics.type_error_prototype = crée_type_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype)
     realm.intrinsics.syntax_error_prototype = crée_syntax_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype)
     realm.intrinsics.date_prototype = crée_date_prototype(tas_de_mémoire, realm.intrinsics.object_prototype)
+    realm.intrinsics.number_prototype = crée_number_prototype(realm, realm.intrinsics.object_prototype)
 
     realm.intrinsics.array = crée_array_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.array_prototype)
     realm.intrinsics.date = crée_date_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.date_prototype)
@@ -205,6 +208,7 @@ create_intrinsics :: fonc (realm: *Realm)
     realm.intrinsics.math = crée_math_object(realm.intrinsics.object_prototype)
     realm.intrinsics.object = crée_object_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.object_prototype)
     realm.intrinsics.string = crée_string_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.string_prototype)
+    realm.intrinsics.number = crée_number_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.number_prototype)
 }
 
 /** \} */
@@ -398,6 +402,10 @@ set_default_global_bindings :: fonc (realm: *Realm)
     desc = PropertyDescriptor()
     desc.value = Valeur(Object = realm.intrinsics.string)
     _ := define_property_or_throw(global, STR_String, desc)
+
+    desc = PropertyDescriptor()
+    desc.value = Valeur(Object = realm.intrinsics.number)
+    _ := define_property_or_throw(global, STR_Number, desc)
 
     // 3. Return UNUSED.
 }

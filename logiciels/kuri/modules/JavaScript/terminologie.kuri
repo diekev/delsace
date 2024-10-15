@@ -44,6 +44,7 @@ STR_Function : ChaineUTF16Unique = ---
 STR_Infinity : ChaineUTF16Unique = ---
 STR_Math : ChaineUTF16Unique = ---
 STR_NaN : ChaineUTF16Unique = ---
+STR_Number : ChaineUTF16Unique = ---
 STR_Object : ChaineUTF16Unique = ---
 STR_ReferenceError : ChaineUTF16Unique = ---
 STR_String : ChaineUTF16Unique = ---

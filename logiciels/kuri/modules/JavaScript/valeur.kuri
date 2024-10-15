@@ -631,6 +631,11 @@ to_object :: fonc (realm: *Realm, valeur: Valeur) -> CompletionRecord
         retourne normal_completion(Valeur(Object = chn.objet))
     }
 
+    si valeur.est_nombre() {
+        object := crée_number_object(realm.donne_tas_de_mémoire(), realm.intrinsics.number_prototype, valeur.Number)
+        retourne normal_completion(Valeur(Object = object))
+    }
+
     panique("to_object non-implémenté pour type")
 }
 
