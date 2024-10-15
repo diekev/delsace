@@ -2692,12 +2692,14 @@ create_and_initialize_a_document_object :: fonc (user_agent: *UserAgent, type: c
             empl base: JavaScript.RappelsHôte
 
             browsing_context: *BrowsingContext
+            user_agent: *UserAgent
         }
 
-        crée_objet_global :: fonc(base: *JavaScript.RappelsHôte @inutilisée, realm: *JavaScript.Realm) -> *JavaScript.Object
+        crée_objet_global :: fonc(base: *JavaScript.RappelsHôte, realm: *JavaScript.Realm) -> *JavaScript.Object
         {
+            rappels := base comme *RappelsCréationRealm
             tas_de_mémoire := JavaScript.donne_tas_de_mémoire(realm)
-            retourne crée_objet_window(tas_de_mémoire, realm)
+            retourne crée_objet_window(rappels.user_agent, tas_de_mémoire, realm)
         }
 
         donne_this_binding_global :: fonc (base: *JavaScript.RappelsHôte) -> *JavaScript.Object
@@ -2709,6 +2711,7 @@ create_and_initialize_a_document_object :: fonc (user_agent: *UserAgent, type: c
         rappels_création_realm: RappelsCréationRealm
         rappels_création_realm.crée_host_instrinsics = initialise_host_intrinsics
         rappels_création_realm.browsing_context = browsing_context
+        rappels_création_realm.user_agent = user_agent
         rappels_création_realm.crée_objet_global = crée_objet_global
         rappels_création_realm.donne_this_binding_global = donne_this_binding_global
 

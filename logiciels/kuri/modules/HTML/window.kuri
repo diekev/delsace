@@ -1,3 +1,4 @@
+importe Chaine
 importe Fondation
 
 /* ------------------------------------------------------------------------- */
@@ -27,6 +28,7 @@ Window :: struct {
     table = *table_virtuelle_window
 
     document: *Document
+    navigator: *Navigator
 
     Chronomètres :: struct {
         id: z32
@@ -80,9 +82,11 @@ exécute_animation_frames :: fonc (window: *Window)
 
 #portée_module
 
-crée_objet_window :: fonc (tas_de_mémoire: *JavaScript.TasDeMémoire, realm: *JavaScript.Realm) -> *Window
+crée_objet_window :: fonc (user_agent: *UserAgent, tas_de_mémoire: *JavaScript.TasDeMémoire, realm: *JavaScript.Realm) -> *Window
 {
-    retourne crée_platform_object(tas_de_mémoire, realm, Window)
+    résultat := crée_platform_object(tas_de_mémoire, realm, Window)
+    crée_navigator(résultat, user_agent)
+    retourne résultat
 }
 
 donne_document :: fonc (window: *Window) -> *Document
@@ -367,6 +371,57 @@ WindowProxy :: struct {
 
     /* [[Window]] */
     window: *Window
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Navigator
+ * https://html.spec.whatwg.org/multipage/system-state.html#the-navigator-object
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_navigator := TableVirtuellePlatformObject(
+    classe = Navigator
+)
+
+#portée_export
+
+Navigator :: struct {
+    empl platform_object: PlatformObject
+    table = *table_virtuelle_navigator
+
+    app_code_name: DOMString
+    app_name: DOMString
+    platform: DOMString
+    product: DOMString
+    user_agent: DOMString
+    vendor: DOMString
+    vendor_sub: DOMString
+}
+
+#portée_fichier
+
+crée_navigator :: fonc (window: *Window, user_agent: *UserAgent)
+{
+    résultat := crée_platform_object(window.donne_tas_de_mémoire(), window.realm, Navigator)
+    résultat.app_code_name = crée_chaine_utf16_unique("Mozilla")
+    résultat.app_name = crée_chaine_utf16_unique("Netscape")
+    résultat.platform = crée_chaine_utf16_unique("Linux x86_64")
+    résultat.product = crée_chaine_utf16_unique("Gecko")
+
+    si user_agent {
+        résultat.user_agent = user_agent.user_agent_string
+    }
+    sinon {
+        résultat.user_agent = crée_chaine_utf16_unique("Mozilla/5.0 (X11; Linux x86_64) UserAgent/1.0")
+    }
+
+    résultat.vendor = crée_chaine_utf16_unique_vide()
+    résultat.vendor_sub = crée_chaine_utf16_unique_vide()
+
+    window.navigator = résultat
 }
 
 /** \} */

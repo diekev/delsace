@@ -646,7 +646,7 @@ crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Do
 
         tas_de_mémoire := JavaScript.donne_tas_de_mémoire(realm)
 
-        window := crée_objet_window(tas_de_mémoire, realm)
+        window := crée_objet_window(rappels.user_agent, tas_de_mémoire, realm)
 
         window_proxy := JavaScript.alloue(tas_de_mémoire, WindowProxy)
         rappels.browsing_context.window_proxy = window_proxy
