@@ -54,3 +54,11 @@ test("le constructeur des prototypes des fonctions est la fonction", function ()
     vérifie(locale.prototype.hasOwnProperty("constructor"))
     vérifie_égalité(locale.prototype.constructor, locale)
 });
+
+test("les paramètres manquants sont initialisés à 'undefined'", function () {
+    function locale(x) {
+        if (x) throw "erreur"
+        return 17;
+    }
+    vérifie_égalité(locale(), 17.0)
+});
