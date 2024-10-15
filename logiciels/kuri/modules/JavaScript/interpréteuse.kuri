@@ -556,7 +556,7 @@ donne_object :: fonc (completion: &CompletionRecord) -> *Object #enligne
 
 Interpréteuse :: struct {
     mv: *MachineVirtuelle
-    noeud_exécuté_courant: **NoeudSyntaxique
+    noeud_exécuté_courant: **NoeudSyntaxique @NeVisitePas
 }
 
 initialise_interpréteuse :: fonc (interpréteuse: *Interpréteuse @inutilisée)

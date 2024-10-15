@@ -66,8 +66,8 @@ ECMAScriptFunction :: struct {
     empl function: Function
     table = *table_virtuelle_function_ecma
 
-    corps: *Statement
-    formal_parameters: [..]*Expression
+    corps: *Statement @NeVisitePas
+    formal_parameters: [..]*Expression @NeVisitePas
 
     environment: *Environment
     private_environment: *PrivateEnvironment
