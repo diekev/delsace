@@ -1837,7 +1837,12 @@ sur_exécution_variable_declarator :: fonc (base: *NoeudSyntaxique, interpréteu
     // 3. If IsAnonymousFunctionDefinition(Initializer) is true, then
     si is_anonymous_function_definition(noeud.init) {
         // a. Let value be ? NamedEvaluation of Initializer with argument bindingId.
-        panique("init avec is_anonymous_function non-implémenté")
+        completion_valeur := named_evaluation(interpréteuse, noeud.init, binding_id.texte)
+        saufsi completion_valeur.est_normal() {
+            retourne completion_valeur
+        }
+
+        valeur = completion_valeur.valeur.V
     }
     // 4. Else,
     sinon {
