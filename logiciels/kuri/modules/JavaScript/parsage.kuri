@@ -260,7 +260,7 @@ parse_variable_declaration :: fonc (parseuse: *Parseuse, nature: VariableDeclara
     lexème := parseuse.lexème_courant()
     parseuse.consomme()
 
-    declarators: [..]*Expression
+    declarators: [..]*VariableDeclarator
 
     tantque !fini(parseuse) {
         declarator := parse_variable_declarator(parseuse)

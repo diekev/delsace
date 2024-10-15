@@ -1763,10 +1763,10 @@ VariableDeclaration :: struct {
     sur_exécution = sur_exécution_variable_declaration
 
     nature: VariableDeclarationKind
-    expressions: [..]*Expression
+    expressions: [..]*VariableDeclarator
 }
 
-crée_variable_declaration :: fonc (parseuse: *Parseuse, lexème: *Lexème, nature: VariableDeclarationKind, declarators: [..]*Expression) -> *VariableDeclaration
+crée_variable_declaration :: fonc (parseuse: *Parseuse, lexème: *Lexème, nature: VariableDeclarationKind, declarators: [..]*VariableDeclarator) -> *VariableDeclaration
 {
     résultat := parseuse.crée_noeud(lexème, VariableDeclaration)
     résultat.nature = nature
