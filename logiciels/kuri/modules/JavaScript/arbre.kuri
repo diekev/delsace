@@ -1,6 +1,7 @@
 importe Chaine
 importe Fondation
 importe Introspection
+importe Math
 
 /* ------------------------------------------------------------------------- */
 /** \nom NoeudSyntaxique
@@ -839,6 +840,7 @@ BinaryOperation :: énum {
     Moins
     Multiplie
     Divise
+    Modulo
 }
 
 BinaryExpression :: struct {
@@ -974,6 +976,9 @@ apply_string_or_numeric_binary_operator :: fonc (interpréteuse: *Interpréteuse
         Divise {
             valeur = divise_valeurs(gauche, droite)
         }
+        Modulo {
+            valeur = modulo_valeurs(gauche, droite)
+        }
     }
 
     retourne normal_completion(valeur)
@@ -1005,6 +1010,13 @@ divise_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
     assert(gauche.est_nombre())
     assert(droite.est_nombre())
     retourne Valeur(Number = gauche.Number / droite.Number)
+}
+
+modulo_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    retourne Valeur(Number = mod(gauche.Number, droite.Number))
 }
 
 /** \} */
