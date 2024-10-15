@@ -17,6 +17,8 @@ importe Typographie
 
 DÉBOGUE_ALLOCATIONS :: faux
 
+CHAINE_USER_AGENT :: "Mozilla/5.0 (X11; Linux x86_64) Version/0.0 (KHTML, like Gecko) VueHTML/0.0"
+
 // #exécute compile_pour_débogage_avec_asan()
 
 /* ------------------------------------------------------------------------- */
@@ -104,6 +106,7 @@ principale :: fonc () -> z32
     rappels_fenêtre: RappelsFenetrePrincipale
     rappels_fenêtre.user_agent = loge(UserAgent)
     rappels_fenêtre.user_agent.supporte_scripting = utilise_javascript
+    rappels_fenêtre.user_agent.user_agent_string = crée_chaine_utf16_unique(CHAINE_USER_AGENT)
     rappel_fermeture.rappels_fenêtre = *rappels_fenêtre
 
     fenêtre := QT_cree_fenetre_principale(*rappels_fenêtre)
@@ -1824,7 +1827,7 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Request) -> *RappelsRequê
         }
 
         ajoute_au_tampon(*enchaineuse, "Accept-Encoding: identity\r\n")
-        ajoute_au_tampon(*enchaineuse, "User-Agent: delsace\r\n")
+        ajoute_au_tampon(*enchaineuse, "User-Agent: ", CHAINE_USER_AGENT, "\r\n")
         ajoute_au_tampon(*enchaineuse, "Connection: close\r\n")
         ajoute_au_tampon(*enchaineuse, "\r\n")
 

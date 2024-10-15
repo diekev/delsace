@@ -21,6 +21,10 @@ UserAgent :: struct {
     blob_url_store: BlobURLStore
 
     supporte_scripting: bool
+
+    /* Valeur par défaut pour l'entête 'User-Agent'.
+     * https://fetch.spec.whatwg.org/#default-user-agent-value */
+    user_agent_string: DOMString
 }
 
 initialise_user_agent :: fonc (user_agent: *UserAgent)
