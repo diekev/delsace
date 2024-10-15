@@ -29,6 +29,7 @@ crée_math_object :: fonc (object_prototype: *ObjectPrototype) -> *MathObject
     résultat.ajoute_fonction_native(STR_max, math_max)
     résultat.ajoute_fonction_native(STR_min, math_min)
     résultat.ajoute_fonction_native(STR_random, math_random)
+    résultat.ajoute_fonction_native(STR_round, math_round)
     résultat.ajoute_fonction_native(STR_sqrt, math_sqrt)
 
     /* Chaque realm doit avoir sa propre série. */
@@ -232,6 +233,38 @@ math_random :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
     math := this_value.donne_objet() comme *MathObject
     résultat := aléatoire_unilatérale(math.entropie)
+    retourne normal_completion(Valeur(Number = résultat))
+}
+
+/* 21.3.2.28 Math.round ( x )
+ * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.round */
+math_round :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    // 1. Let n be ? ToNumber(x).
+    completion := to_number(interpréteuse, params.donne_argument(0))
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    n := completion.valeur.V.Number
+
+    // 2. If n is not finite or n is an integral Number, return n.
+    // À FAIRE : is an integral Number
+    si est_infini(n) {
+        retourne normal_completion(Valeur(Number = n))
+    }
+
+    // 3. If n < 0.5𝔽 and n > +0𝔽, return +0𝔽.
+    si n < 0.5 && n > 0.0 {
+        retourne normal_completion(Valeur(Number = 0.0))
+    }
+
+    // 4. If n < -0𝔽 and n ≥ -0.5𝔽, return -0𝔽.
+    si n < -0.0 && n >= -0.5 {
+        retourne normal_completion(Valeur(Number = -0.0))
+    }
+
+    // 5. Return the integral Number closest to n, preferring the Number closer to +∞ in the case of a tie.
+    résultat := arrondis(n)
     retourne normal_completion(Valeur(Number = résultat))
 }
 

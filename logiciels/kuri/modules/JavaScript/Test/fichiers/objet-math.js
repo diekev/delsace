@@ -42,6 +42,23 @@ test("Math.min", function () {
     vérifie_égalité(x, -5.0);
 });
 
+test("Math.round", function () {
+    var x = Math.round(4.0);
+    vérifie_égalité(x, 4.0);
+
+    x = Math.round(4.5);
+    vérifie_égalité(x, 5.0);
+
+    x = Math.round(3.5);
+    vérifie_égalité(x, 4.0);
+
+    x = Math.round(-0.0);
+    vérifie_égalité(x, -0.0);
+
+    x = Math.round(-0.2);
+    vérifie_égalité(x, -0.0);
+});
+
 test("Math.sqrt", function () {
     var x = Math.sqrt(4.0);
     vérifie_égalité(x, 2.0);
