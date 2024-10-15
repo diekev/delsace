@@ -13,8 +13,7 @@ test("Math.ceil", function () {
     x = Math.ceil(-1.5);
     vérifie_égalité(x, -1.0);
 
-    var fx = Math.floor(-1.5);
-    vérifie_égalité(Math.ceil(1.5), -fx);
+    vérifie_égalité(Math.ceil(1.5), -Math.floor(-1.5));
 });
 
 test("Math.floor", function () {
@@ -24,9 +23,7 @@ test("Math.floor", function () {
     x = Math.floor(-1.5);
     vérifie_égalité(x, -2.0);
 
-    /* À FAIRE : -Math.ceil(x) fait crasher. */
-    var cx = Math.ceil(-1.5);
-    vérifie_égalité(Math.floor(1.5), -cx);
+    vérifie_égalité(Math.floor(1.5), -Math.ceil(-1.5));
 });
 
 test("Math.max", function () {

@@ -1071,12 +1071,14 @@ parse_expression_unaire :: fonc (parseuse: *Parseuse) -> *Expression
     discr lexème.genre {
         Plus {
             parseuse.consomme()
-            argument := parseuse.parse_expression_primaire()
+            params := donne_paramètres_parsage_expression_pour_lexème_unaire(GenreLexème.PlusUnaire)
+            argument := parseuse.parse_expression(params)
             retourne crée_unary_plus_operator(parseuse, lexème, argument)
         }
         Moins {
             parseuse.consomme()
-            argument := parseuse.parse_expression_primaire()
+            params := donne_paramètres_parsage_expression_pour_lexème_unaire(GenreLexème.MoinsUnaire)
+            argument := parseuse.parse_expression(params)
             retourne crée_unary_minus_operator(parseuse, lexème, argument)
         }
         NonBinaire {
@@ -1084,27 +1086,31 @@ parse_expression_unaire :: fonc (parseuse: *Parseuse) -> *Expression
         }
         NonLogique {
             parseuse.consomme()
-            argument := parseuse.parse_expression_primaire()
+            params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre)
+            argument := parseuse.parse_expression(params)
             retourne crée_logical_not(parseuse, lexème, argument)
         }
-        PlusPlus,
+        PlusPlus {
+            parseuse.consomme()
+            params := donne_paramètres_parsage_expression_pour_lexème_unaire(GenreLexème.PreIncrement)
+            argument := parseuse.parse_expression(params)
+            retourne crée_update_expression(parseuse, lexème, argument, UpdateOperation.PrefixIncrement)
+        }
         MoinsMoins {
             parseuse.consomme()
-            argument := parseuse.parse_expression_primaire()
-            operation := si lexème.genre == GenreLexème.PlusPlus { UpdateOperation.PrefixIncrement } sinon { UpdateOperation.PrefixDecrement }
-            retourne crée_update_expression(parseuse, lexème, argument, operation)
+            params := donne_paramètres_parsage_expression_pour_lexème_unaire(GenreLexème.PreDecrement)
+            argument := parseuse.parse_expression(params)
+            retourne crée_update_expression(parseuse, lexème, argument, UpdateOperation.PrefixDecrement)
         }
         Typeof {
             parseuse.consomme()
-            argument := parseuse.parse_expression_primaire()
+            params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre)
+            argument := parseuse.parse_expression(params)
             retourne crée_typeof_operator(parseuse, lexème, argument)
         }
         New {
             parseuse.consomme()
-            données := données_lexèmes_pour_parsage[GenreLexème.New]
-            params: ParamètresParsageExpression
-            params.précédence = données.précédence
-            params.associativité = données.associativité
+            params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre)
             params.lexème_final = GenreLexème.Point
             argument := parseuse.parse_expression(params)
             retourne crée_new_expression(parseuse, lexème, argument);
@@ -1115,6 +1121,15 @@ parse_expression_unaire :: fonc (parseuse: *Parseuse) -> *Expression
     }
 
     retourne nul
+}
+
+donne_paramètres_parsage_expression_pour_lexème_unaire :: fonc (genre: GenreLexème) -> ParamètresParsageExpression
+{
+    données := données_lexèmes_pour_parsage[genre]
+    résultat: ParamètresParsageExpression
+    résultat.précédence = données.précédence
+    résultat.associativité = données.associativité
+    retourne résultat
 }
 
 parse_statement_list :: fonc (parseuse: *Parseuse) -> [..]*Statement
