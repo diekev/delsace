@@ -1,3 +1,11 @@
+test("Math.abs", function () {
+    var x = Math.abs(1.5);
+    vérifie_égalité(x, 1.5);
+
+    x = Math.abs(-1.5);
+    vérifie_égalité(x, 1.5);
+});
+
 test("Math.ceil", function () {
     var x = Math.ceil(1.5);
     vérifie_égalité(x, 2.0);

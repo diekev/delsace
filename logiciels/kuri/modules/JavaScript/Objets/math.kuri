@@ -23,6 +23,7 @@ crée_math_object :: fonc (object_prototype: *ObjectPrototype) -> *MathObject
 {
     résultat := object_prototype.donne_tas_de_mémoire().alloue(MathObject)
     résultat.prototype = object_prototype
+    résultat.ajoute_fonction_native(STR_abs, math_abs)
     résultat.ajoute_fonction_native(STR_ceil, math_ceil)
     résultat.ajoute_fonction_native(STR_floor, math_floor)
     résultat.ajoute_fonction_native(STR_max, math_max)
@@ -44,6 +45,41 @@ R64_INFINITÉ : r64 : 1000000000.0
 R64_INFINITÉ_NÉGATIVE : r64 : -1000000000.0
 
 #portée_fichier
+/* 21.3.2.1 Math.abs ( x )
+ * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.abs */
+math_abs :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    x := params.donne_argument(0)
+    // 1. Let n be ? ToNumber(x).
+    completion := to_number(interpréteuse, x)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    n := completion.valeur.V.Number
+
+    // 2. If n is NaN, return NaN.
+    si est_nan(n) {
+        retourne normal_completion(Valeur(Number = NaN))
+    }
+
+    // 3. If n is -0𝔽, return +0𝔽.
+    si n == 0.0 {
+        retourne normal_completion(Valeur(Number = 0.0))
+    }
+
+    // 4. If n is -∞𝔽, return +∞𝔽.
+    si n == R64_INFINITÉ_NÉGATIVE {
+        retourne normal_completion(Valeur(Number = R64_INFINITÉ))
+    }
+
+    // 5. If n < -0𝔽, return -n.
+    si n < 0.0 {
+        retourne normal_completion(Valeur(Number = -n))
+    }
+
+    // 6. Return n.
+    retourne normal_completion(Valeur(Number = n))
+}
 
 /* https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.ceil */
 math_ceil :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
