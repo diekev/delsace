@@ -428,7 +428,7 @@ object_prototype_proto_set :: fonc (empl params: *ParamètresObjectCall) -> Comp
 
 #portée_fichier
 
-table_virtuelle_object_constructor := TableVirtuelleObject(
+table_virtuelle_object_constructor := TableVirtuelleBuiltinFunction(
     classe = ObjectConstructor
 )
 
@@ -437,6 +437,8 @@ table_virtuelle_object_constructor := TableVirtuelleObject(
 ObjectConstructor :: struct {
     empl builtin_function: BuiltInFunction
     table = *table_virtuelle_object_constructor
+
+    sur_call_or_construct = object_constructor_call_or_construct
 }
 
 crée_object_constructor :: fonc (realm: *Realm, function_prototype: *FunctionPrototype, object_prototype: *ObjectPrototype) -> *ObjectConstructor
@@ -456,6 +458,31 @@ crée_object_constructor :: fonc (realm: *Realm, function_prototype: *FunctionPr
 }
 
 #portée_fichier
+
+/* 20.1.1.1 Object ( [ value ] )
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-object-value 
+ * À FAIRE : tests */
+object_constructor_call_or_construct :: fonc (empl params: *ParamètresCallOrConstruct) -> CompletionRecord
+{
+    realm := interpréteuse.donne_realm()
+
+    // 1. If NewTarget is neither undefined nor the active function object, then
+    si !new_target.est_undefined() && !(new_target.est_object() && new_target.donne_objet() == interpréteuse.donne_active_function_object()) {
+        // a. Return ? OrdinaryCreateFromConstructor(NewTarget, "%Object.prototype%").
+        func_new_target := new_target.donne_objet() comme *Function
+        retourne ordinary_create_from_constructor(realm, func_new_target, realm.intrinsics.object_prototype, object_instance_crée)
+    }
+
+    // 2. If value is either undefined or null, return OrdinaryObjectCreate(%Object.prototype%).
+    value := params.donne_argument(0)
+    si value.est_undefined() || value.est_nulle() {
+        résultat := ordinary_object_create(realm, realm.intrinsics.object_prototype, object_instance_crée)
+        retourne normal_completion(Valeur(Object = résultat))
+    }
+
+    // 3. Return ! ToObject(value).
+    retourne to_object(realm, value)
+}
 
 /* 20.1.2.12 Object.getPrototypeOf ( O )
  * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-object.getprototypeof */
