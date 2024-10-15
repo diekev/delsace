@@ -247,6 +247,7 @@ Lexème :: struct {
 }
 
 Associativité :: énum {
+    Aucune
     Gauche
     Droite
 }
@@ -290,7 +291,6 @@ associativité_pour_opérateur :: fonc (genre: GenreLexème) -> Associativité
         EstÉgalStrict,
         NEspaPasÉgalStrict,
         Point,
-        ParenthèseOuvrante,
         CrochetOuvrant {
             retourne Associativité.Gauche
         }
@@ -306,8 +306,9 @@ associativité_pour_opérateur :: fonc (genre: GenreLexème) -> Associativité
         MoinsMoins {
             retourne Associativité.Gauche // N/A
         }
+        ParenthèseOuvrante,
         New {
-            retourne Associativité.Gauche // N/A
+            retourne Associativité.Aucune
         }
         Virgule {
             retourne Associativité.Gauche

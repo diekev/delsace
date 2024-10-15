@@ -32,3 +32,8 @@ test("une fonction utilise comme construteur retourne un objet configurable", fu
     vérifie_égalité(voiture1.couleur, "noir")
     // vérifie_égalité(voiture1.couleur, "couleur standard")
 });
+
+test("parsage de new avec appel de membre", function () {
+    var x = new Array(16).push(5);
+    vérifie_égalité(x, 17);
+});

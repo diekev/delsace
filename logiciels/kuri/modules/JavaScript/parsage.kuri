@@ -1101,7 +1101,12 @@ parse_expression_unaire :: fonc (parseuse: *Parseuse) -> *Expression
         }
         New {
             parseuse.consomme()
-            argument := parseuse.parse_expression(ParamètresParsageExpression())
+            données := données_lexèmes_pour_parsage[GenreLexème.New]
+            params: ParamètresParsageExpression
+            params.précédence = données.précédence
+            params.associativité = données.associativité
+            params.lexème_final = GenreLexème.Point
+            argument := parseuse.parse_expression(params)
             retourne crée_new_expression(parseuse, lexème, argument);
         }
         sinon {
