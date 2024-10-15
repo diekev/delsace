@@ -874,6 +874,7 @@ BinaryOperation :: énum {
     Multiplie
     Divise
     Modulo
+    OuExclusif
 }
 
 BinaryExpression :: struct {
@@ -1012,6 +1013,9 @@ apply_string_or_numeric_binary_operator :: fonc (interpréteuse: *Interpréteuse
         Modulo {
             valeur = modulo_valeurs(gauche, droite)
         }
+        OuExclusif {
+            valeur = ou_exclusif_valeurs(gauche, droite)
+        }
     }
 
     retourne normal_completion(valeur)
@@ -1050,6 +1054,16 @@ modulo_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
     assert(gauche.est_nombre())
     assert(droite.est_nombre())
     retourne Valeur(Number = mod(gauche.Number, droite.Number))
+}
+
+ou_exclusif_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    g := gauche.Number comme z32
+    d := droite.Number comme z32
+    r := g ^ d
+    retourne Valeur(Number = r comme r64)
 }
 
 /** \} */

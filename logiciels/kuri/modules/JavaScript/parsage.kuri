@@ -833,6 +833,9 @@ donne_opération_binaire_pour_genre_lexème :: fonc (genre: GenreLexème) -> Bin
         Pourcent {
             retourne BinaryOperation.Modulo
         }
+        OuExclusif {
+            retourne BinaryOperation.OuExclusif
+        }
         sinon {
             panique("genre opérateur non-géré")
         }
@@ -895,7 +898,8 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
         Moins,
         Étoile,
         Slash,
-        Pourcent {
+        Pourcent,
+        OuExclusif {
             opération := donne_opération_binaire_pour_genre_lexème(lexème.genre)
             parseuse.consomme()
             opérande_droite := parseuse.parse_expression(params)
