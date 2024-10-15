@@ -228,12 +228,7 @@ parse_function_declaration :: fonc (parseuse: *Parseuse) -> *FunctionDeclaration
     lexème := parseuse.lexème_courant()
     parseuse.consomme()
 
-    id: *Identifier
-    si apparie(parseuse, GenreLexème.Identifiant) {
-        lexème = parseuse.lexème_courant()
-        id = crée_identifier(parseuse, lexème, lexème.texte)
-        parseuse.consomme()
-    }
+    id := parse_binding_identifier(parseuse, vrai)
 
     parseuse.consomme(GenreLexème.ParenthèseOuvrante)
     paramètres := parse_expressions_séparées_par_des_virgules(parseuse)
@@ -249,12 +244,7 @@ parse_function_expression :: fonc (parseuse: *Parseuse) -> *FunctionExpression
     lexème := parseuse.lexème_courant()
     parseuse.consomme()
 
-    id: *Identifier
-    si apparie(parseuse, GenreLexème.Identifiant) {
-        lexème = parseuse.lexème_courant()
-        id = crée_identifier(parseuse, lexème, lexème.texte)
-        parseuse.consomme()
-    }
+    id := parse_binding_identifier(parseuse, faux)
 
     parseuse.consomme(GenreLexème.ParenthèseOuvrante)
     paramètres := parse_expressions_séparées_par_des_virgules(parseuse)
@@ -295,7 +285,7 @@ parse_variable_declaration :: fonc (parseuse: *Parseuse, nature: VariableDeclara
 parse_variable_declarator :: fonc (parseuse: *Parseuse) -> *VariableDeclarator
 {
     lexème := parseuse.lexème_courant()
-    id := parse_binding_identifier(parseuse)
+    id := parse_binding_identifier(parseuse, vrai)
 
     init: *Expression
     si apparie(parseuse, GenreLexème.Égal) {
@@ -758,9 +748,9 @@ parse_identifier_reference :: fonc (parseuse: *Parseuse) -> *Identifier
     retourne parse_identifiant_yield_ou_await(parseuse, vrai)
 }
 
-parse_binding_identifier :: fonc (parseuse: *Parseuse) -> *Identifier
+parse_binding_identifier :: fonc (parseuse: *Parseuse, émets_erreur_si_manquant: bool) -> *Identifier
 {
-    retourne parse_identifiant_yield_ou_await(parseuse, vrai)
+    retourne parse_identifiant_yield_ou_await(parseuse, émets_erreur_si_manquant)
 }
 
 parse_label_identifier :: fonc (parseuse: *Parseuse, émets_erreur_si_manquant: bool) -> *Identifier
