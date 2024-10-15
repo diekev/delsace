@@ -19,6 +19,9 @@ exécute_noeud :: fonc (noeud: *NoeudSyntaxique, interpréteuse: *Interpréteuse
     ancien_noeud_courant := mémoire(interpréteuse.noeud_exécuté_courant)
     diffère mémoire(interpréteuse.noeud_exécuté_courant) = ancien_noeud_courant
 
+    running_execution_context := interpréteuse.donne_running_execution_context()
+    assert(interpréteuse.noeud_exécuté_courant == *running_execution_context.noeud_exécuté_courant)
+
     mémoire(interpréteuse.noeud_exécuté_courant) = noeud
     // imprime("Exécution de %\n", noeud.type)
     retourne noeud.sur_exécution(noeud, interpréteuse)

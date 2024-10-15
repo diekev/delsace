@@ -985,6 +985,8 @@ perform_eval :: fonc (interpréteuse: *Interpréteuse, x: Valeur, strict_caller:
     mv.dépile_execution_context()
 
     // À FAIRE : 32. Resume the context that is now on the top of the execution context stack as the running execution context.
+    running_context = mv.donne_running_execution_context()
+    interpréteuse.noeud_exécuté_courant = *running_context.noeud_exécuté_courant
 
     // 33. Return ? result.
     retourne result

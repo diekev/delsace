@@ -118,6 +118,7 @@ sur_appel_fonction_ecma :: fonc (empl params: *ParamètresObjectCall) -> Complet
     // 7. Remove calleeContext from the execution context stack and restore callerContext as the running execution context.
     mv.dépile_execution_context()
     assert(caller_context == mv.donne_running_execution_context())
+    interpréteuse.noeud_exécuté_courant = *caller_context.noeud_exécuté_courant
 
     // 8. If result is a return completion, return result.[[Value]].
     si result.est_return() {
@@ -173,6 +174,7 @@ prepare_for_ordinary_call :: fonc (interpréteuse: *Interpréteuse, F: *ECMAScri
     // 12. Push calleeContext onto the execution context stack; calleeContext is now the running execution context.
     mv := interpréteuse.mv
     mv.empile_execution_context(callee_context)
+    interpréteuse.noeud_exécuté_courant = *callee_context.noeud_exécuté_courant
 
     // 13. NOTE: Any exception objects produced after this point are associated with calleeRealm.
 
@@ -304,6 +306,7 @@ sur_construct_fonction_ecma :: fonc (empl params: *ParamètresObjectConstruct) -
     // 9. Remove calleeContext from the execution context stack and restore callerContext as the running execution context.
     mv.dépile_execution_context()
     assert(mv.donne_running_execution_context() == caller_context)
+    interpréteuse.noeud_exécuté_courant = *caller_context.noeud_exécuté_courant
     
     // 10. If result is a return completion, then
     si result.est_return() {
@@ -864,6 +867,7 @@ builtin_call_or_construct :: fonc (F: *BuiltInFunction, interpréteuse: *Interpr
 
     // 9. Push calleeContext onto the execution context stack; calleeContext is now the running execution context.
     mv.empile_execution_context(callee_context)
+    interpréteuse.noeud_exécuté_courant = *callee_context.noeud_exécuté_courant
 
     // 10. Let result be the Completion Record that is the result of evaluating F in a manner that conforms to the specification of F. If thisArgument is uninitialized, the this value is uninitialized; otherwise, thisArgument provides the this value. argumentsList provides the named parameters. newTarget provides the NewTarget value.
     // 11. NOTE: If F is defined in this document, “the specification of F” is the behaviour specified for it via algorithm steps or other means.
@@ -879,6 +883,7 @@ builtin_call_or_construct :: fonc (F: *BuiltInFunction, interpréteuse: *Interpr
     // 12. Remove calleeContext from the execution context stack and restore callerContext as the running execution context.
     mv.dépile_execution_context()
     assert(mv.donne_running_execution_context() == caller_context)
+    interpréteuse.noeud_exécuté_courant = *caller_context.noeud_exécuté_courant
 
     // 13. Return ? result.
     retourne result
