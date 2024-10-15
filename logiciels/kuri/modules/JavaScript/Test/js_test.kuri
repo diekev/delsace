@@ -56,10 +56,10 @@ StatistiquesTests :: struct {
 
     diffère éboue(donne_tas_de_mémoire(*mv))
 
-    rappels_hôte: RappelsHôte
-    rappels_hôte.crée_propriétés_hôte_objet_global = crée_propriétés_hôte_objet_global
+    configuration: ConfigurationRealm
+    configuration.crée_propriétés_hôte_objet_global = crée_propriétés_hôte_objet_global
 
-    realm := initialise_host_defined_realm(*mv, *rappels_hôte)
+    realm := initialise_host_defined_realm(*mv, *configuration)
 
     crée_environnement_de_test(realm)
 
@@ -108,7 +108,7 @@ exécute_script :: fonc (realm: *Realm, source: chaine, chemin: chaine) -> bool
     retourne faux
 }
 
-crée_propriétés_hôte_objet_global :: fonc (base: *RappelsHôte @inutilisée, global: *Object)
+crée_propriétés_hôte_objet_global :: fonc (base: *ConfigurationRealm @inutilisée, global: *Object)
 {
     flux_sortie_sur_destruction :: fonc (base: *FluxSortieConsole)
     {

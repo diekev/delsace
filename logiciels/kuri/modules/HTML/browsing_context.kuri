@@ -633,41 +633,41 @@ crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Do
     // 10. Let realm execution context be the result of creating a new realm given agent and the following customizations:
     //     For the global object, create a new Window object.
     //     For the global this binding, use browsingContext's WindowProxy object.
-    RappelsCréationRealm :: struct {
-        empl base: JavaScript.RappelsHôte
+    ConfigurationRealmBrowsingContext :: struct {
+        empl base: JavaScript.ConfigurationRealm
 
         browsing_context: *BrowsingContext
         user_agent: *UserAgent
     }
 
-    crée_objet_global :: fonc(base: *JavaScript.RappelsHôte, realm: *JavaScript.Realm) -> *JavaScript.Object
+    crée_objet_global :: fonc(base: *JavaScript.ConfigurationRealm, realm: *JavaScript.Realm) -> *JavaScript.Object
     {
-        rappels := base comme *RappelsCréationRealm
+        configuration := base comme *ConfigurationRealmBrowsingContext
 
         tas_de_mémoire := JavaScript.donne_tas_de_mémoire(realm)
 
-        window := crée_objet_window(rappels.user_agent, tas_de_mémoire, realm)
+        window := crée_objet_window(configuration.user_agent, tas_de_mémoire, realm)
 
         window_proxy := JavaScript.alloue(tas_de_mémoire, WindowProxy)
-        rappels.browsing_context.window_proxy = window_proxy
+        configuration.browsing_context.window_proxy = window_proxy
 
         retourne window
     }
 
-    donne_this_binding_global :: fonc (base: *JavaScript.RappelsHôte) -> *JavaScript.Object
+    donne_this_binding_global :: fonc (base: *JavaScript.ConfigurationRealm) -> *JavaScript.Object
     {
-        rappels := base comme *RappelsCréationRealm
-        retourne rappels.browsing_context.window_proxy
+        configuration := base comme *ConfigurationRealmBrowsingContext
+        retourne configuration.browsing_context.window_proxy
     }
 
-    rappels_création_realm: RappelsCréationRealm
-    rappels_création_realm.crée_host_instrinsics = initialise_host_intrinsics
-    rappels_création_realm.browsing_context = browsing_context
-    rappels_création_realm.user_agent = user_agent
-    rappels_création_realm.crée_objet_global = crée_objet_global
-    rappels_création_realm.donne_this_binding_global = donne_this_binding_global
+    configuration: ConfigurationRealmBrowsingContext
+    configuration.crée_host_instrinsics = initialise_host_intrinsics
+    configuration.browsing_context = browsing_context
+    configuration.user_agent = user_agent
+    configuration.crée_objet_global = crée_objet_global
+    configuration.donne_this_binding_global = donne_this_binding_global
 
-    realm_execution_context := crée_un_nouveau_realm(agent, *user_agent.mv, *rappels_création_realm)
+    realm_execution_context := crée_un_nouveau_realm(agent, *user_agent.mv, *configuration)
 
     // 11. Let topLevelCreationURL be about:blank if embedder is null; otherwise embedder's relevant settings object's top-level creation URL.
     top_level_creation_url := donne_about_blank_url()
@@ -794,10 +794,10 @@ obtain_similar_origin_window_agent :: fonc (origin: Origin @inutilisée, groupe:
 }
 
 /* https://html.spec.whatwg.org/multipage/webappapis.html#creating-a-new-javascript-realm */
-crée_un_nouveau_realm :: fonc (agent: *rien @inutilisée, mv: *JavaScript.MachineVirtuelle, rappels: *JavaScript.RappelsHôte) -> *JavaScript.ExecutionContext
+crée_un_nouveau_realm :: fonc (agent: *rien @inutilisée, mv: *JavaScript.MachineVirtuelle, configuration: *JavaScript.ConfigurationRealm) -> *JavaScript.ExecutionContext
 {
     // 1. Perform InitializeHostDefinedRealm() with the provided customizations for creating the global object and the global this binding.
-    _ := JavaScript.initialise_host_defined_realm(mv, rappels)
+    _ := JavaScript.initialise_host_defined_realm(mv, configuration)
 
     // 2. Let realm execution context be the running JavaScript execution context.
     realm_execution_context := JavaScript.donne_running_execution_context(mv)

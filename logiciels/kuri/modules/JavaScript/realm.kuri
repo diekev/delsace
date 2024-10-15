@@ -218,14 +218,14 @@ create_intrinsics :: fonc (realm: *Realm)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom RappelsHôte
+/** \nom ConfigurationRealm
  * \{ */
 
-RappelsHôte :: struct {
-    crée_objet_global: fonc(*RappelsHôte, *Realm)(*Object)
+ConfigurationRealm :: struct {
+    crée_objet_global: fonc(*ConfigurationRealm, *Realm)(*Object)
     crée_host_instrinsics: fonc(*Realm)(rien)
-    donne_this_binding_global: fonc(*RappelsHôte)(*Object)
-    crée_propriétés_hôte_objet_global: fonc(*RappelsHôte, *Object)(rien)
+    donne_this_binding_global: fonc(*ConfigurationRealm)(*Object)
+    crée_propriétés_hôte_objet_global: fonc(*ConfigurationRealm, *Object)(rien)
 }
 
 /** \} */
@@ -297,7 +297,7 @@ donne_mv :: fonc (realm: *Realm) -> *MachineVirtuelle
 
 /* 9.3.1 InitializeHostDefinedRealm ( )
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-initializehostdefinedrealm */
-initialise_host_defined_realm :: fonc (mv: *MachineVirtuelle, rappels : *RappelsHôte = nul) -> *Realm
+initialise_host_defined_realm :: fonc (mv: *MachineVirtuelle, configuration : *ConfigurationRealm = nul) -> *Realm
 {
     tas_de_mémoire := mv.donne_tas_de_mémoire()
 
@@ -307,8 +307,8 @@ initialise_host_defined_realm :: fonc (mv: *MachineVirtuelle, rappels : *Rappels
     // 2. Perform CreateIntrinsics(realm).
     create_intrinsics(realm)
 
-    si rappels && rappels.crée_host_instrinsics {
-        rappels.crée_host_instrinsics(realm)
+    si configuration && configuration.crée_host_instrinsics {
+        configuration.crée_host_instrinsics(realm)
     }
 
     // À FAIRE
@@ -334,9 +334,9 @@ initialise_host_defined_realm :: fonc (mv: *MachineVirtuelle, rappels : *Rappels
 
     global : *Object = ---
     // 12. If the host requires use of an exotic object to serve as realm's global object, then
-    si rappels && rappels.crée_objet_global {
+    si configuration && configuration.crée_objet_global {
         // a. Let global be such an object created in a host-defined manner.
-        global = rappels.crée_objet_global(rappels, realm)
+        global = configuration.crée_objet_global(configuration, realm)
     }
     // 13. Else,
     sinon {
@@ -346,9 +346,9 @@ initialise_host_defined_realm :: fonc (mv: *MachineVirtuelle, rappels : *Rappels
 
     this_value : *Object = ---
     // 14. If the host requires that the this binding in realm's global scope return an object other than the global object, then
-    si rappels && rappels.donne_this_binding_global {
+    si configuration && configuration.donne_this_binding_global {
         // a. Let thisValue be such an object created in a host-defined manner.
-        this_value = rappels.donne_this_binding_global(rappels)
+        this_value = configuration.donne_this_binding_global(configuration)
     }
     // 15. Else,
     sinon {
@@ -366,8 +366,8 @@ initialise_host_defined_realm :: fonc (mv: *MachineVirtuelle, rappels : *Rappels
     set_default_global_bindings(realm)
 
     // 19. Create any host-defined global object properties on global.
-    si rappels && rappels.crée_propriétés_hôte_objet_global {
-        rappels.crée_propriétés_hôte_objet_global(rappels, global)
+    si configuration && configuration.crée_propriétés_hôte_objet_global {
+        configuration.crée_propriétés_hôte_objet_global(configuration, global)
     }
 
     // 20. Return UNUSED.
