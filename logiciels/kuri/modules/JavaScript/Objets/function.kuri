@@ -66,8 +66,8 @@ ECMAScriptFunction :: struct {
     empl function: Function
     table = *table_virtuelle_function_ecma
 
-    corps: *NoeudSyntaxique
-    formal_parameters: [..]*NoeudSyntaxique
+    corps: *Statement
+    formal_parameters: [..]*Expression
 
     environment: *Environment
     private_environment: *PrivateEnvironment
@@ -344,7 +344,7 @@ sur_construct_fonction_ecma :: fonc (empl params: *ParamètresObjectConstruct) -
 /* 10.2.3 OrdinaryFunctionCreate ( functionPrototype, sourceText, ParameterList, Body, thisMode, env, privateEnv )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinaryfunctioncreate 
  * À FAIRE : paramètres et étapes manquants */
-ordinary_function_create :: fonc (realm: *Realm, function_prototype: *FunctionPrototype, params: [..]*NoeudSyntaxique, corps: *NoeudSyntaxique, this_mode: bool, env: *Environment, private_env: *PrivateEnvironment) -> *ECMAScriptFunction
+ordinary_function_create :: fonc (realm: *Realm, function_prototype: *FunctionPrototype, params: [..]*Expression, corps: *Statement, this_mode: bool, env: *Environment, private_env: *PrivateEnvironment) -> *ECMAScriptFunction
 {
     tas_de_mémoire := function_prototype.donne_tas_de_mémoire()
 

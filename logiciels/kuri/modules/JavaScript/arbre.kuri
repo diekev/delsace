@@ -123,16 +123,88 @@ is_in_tail_position :: fonc (call: *NoeudSyntaxique @inutilisée) -> bool
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Statement
+ * Structure de base pour les statements.
+ * \{ */
+
+Statement :: struct {
+    empl noeud: NoeudSyntaxique
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Expression
+ * Structure de base pour les expressions.
+ * \{ */
+
+Expression :: struct {
+    empl noeud: NoeudSyntaxique
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ExpressionStatement
+ * Structure de base pour les expressions.
+ * \{ */
+
+ExpressionStatement :: struct {
+    empl statement: Statement
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_expression_statement
+
+    expression: *Expression
+}
+
+crée_expression_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, expression: *Expression) -> *ExpressionStatement
+{
+    résultat := parseuse.crée_noeud(lexème, ExpressionStatement)
+    résultat.expression = expression
+    retourne résultat
+}
+
+sur_exécution_expression_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    statement := base comme *ExpressionStatement
+    retourne exécute_noeud(statement.expression, interpréteuse)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom EmptyStatement
+ * \{ */
+
+EmptyStatement :: struct {
+    empl statement: Statement
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_empty_statement
+}
+
+crée_empty_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *EmptyStatement
+{
+    retourne parseuse.crée_noeud(lexème, EmptyStatement)
+}
+
+sur_exécution_empty_statement :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *Interpréteuse @inutilisée) -> CompletionRecord
+{
+    // 1. Return empty.
+    retourne normal_completion(js_undefined)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom NoeudScope
- * Type Utilisé pour Interpréteuse.exécute
  * \{ */
 
 NoeudScope :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Statement
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_scope
 
-    enfants: [..]*NoeudSyntaxique
+    enfants: [..]*Statement
 }
 
 sur_exécution_scope :: fonc (noeud: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
@@ -153,7 +225,7 @@ Programme :: struct {
     type_source := "script"
 }
 
-crée_programme :: fonc (parseuse: *Parseuse, lexème: *Lexème, expressions: [..]*NoeudSyntaxique) -> *Programme
+crée_programme :: fonc (parseuse: *Parseuse, lexème: *Lexème, expressions: [..]*Statement) -> *Programme
 {
     résultat := parseuse.crée_noeud(lexème, Programme)
     résultat.enfants = expressions
@@ -167,20 +239,20 @@ crée_programme :: fonc (parseuse: *Parseuse, lexème: *Lexème, expressions: [.
  * \{ */
 
 FunctionDeclaration :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Statement
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_function_declaration
 
     id: *Identifier
-    params: [..]*NoeudSyntaxique
-    corps: *NoeudSyntaxique
+    params: [..]*Expression
+    corps: *Statement
 
     generator := faux
     expression := faux
     async := faux
 }
 
-crée_function_déclaration :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *Identifier, params: [..]*NoeudSyntaxique, corps: *NoeudSyntaxique) -> *FunctionDeclaration
+crée_function_déclaration :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *Identifier, params: [..]*Expression, corps: *Statement) -> *FunctionDeclaration
 {
     résultat := parseuse.crée_noeud(lexème, FunctionDeclaration)
     résultat.id = id
@@ -202,20 +274,20 @@ sur_exécution_function_declaration :: fonc (base: *NoeudSyntaxique @inutilisée
  * \{ */
 
 FunctionExpression :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Expression
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_function_expression
 
     id: *Identifier
-    params: [..]*NoeudSyntaxique
-    corps: *NoeudSyntaxique
+    params: [..]*Expression
+    corps: *Statement
 
     generator := faux
     expression := faux
     async := faux
 }
 
-crée_function_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *Identifier, params: [..]*NoeudSyntaxique, corps: *NoeudSyntaxique) -> *FunctionExpression
+crée_function_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *Identifier, params: [..]*Expression, corps: *Statement) -> *FunctionExpression
 {
     résultat := parseuse.crée_noeud(lexème, FunctionExpression)
     résultat.id = id
@@ -306,7 +378,7 @@ instantiate_ordinary_function_expression :: fonc (interpréteuse: *Interpréteus
  * \{ */
 
 ThisExpression :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Expression
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_this_expression
 }
@@ -329,7 +401,7 @@ sur_exécution_this_expression :: fonc (base: *NoeudSyntaxique @inutilisée, int
  * \{ */
 
 Identifier :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Expression
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_identifier
 
@@ -412,7 +484,7 @@ BlockStatement :: struct {
     type = #type_de_cette_structure
 }
 
-crée_block_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, expressions: [..]*NoeudSyntaxique) -> *BlockStatement
+crée_block_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, expressions: [..]*Statement) -> *BlockStatement
 {
     résultat := parseuse.crée_noeud(lexème, BlockStatement)
     résultat.enfants = expressions
@@ -426,7 +498,7 @@ crée_block_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, expressio
  * \{ */
 
 ReturnStatement :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Statement
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_return
 
@@ -480,14 +552,14 @@ sur_exécution_return :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpr�
  * \{ */
 
 UnaryPlusOperator :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Expression
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_unary_plus_operator
 
-    argument: *NoeudSyntaxique
+    argument: *Expression
 }
 
-crée_unary_plus_operator :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *NoeudSyntaxique) -> *UnaryPlusOperator
+crée_unary_plus_operator :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression) -> *UnaryPlusOperator
 {
     résultat := parseuse.crée_noeud(lexème, UnaryPlusOperator)
     résultat.argument = argument
@@ -523,14 +595,14 @@ sur_exécution_unary_plus_operator :: fonc (base: *NoeudSyntaxique, interpréteu
  * \{ */
 
 UnaryMinusOperator :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Expression
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_unary_minus_operator
 
-    argument: *NoeudSyntaxique
+    argument: *Expression
 }
 
-crée_unary_minus_operator :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *NoeudSyntaxique) -> *UnaryMinusOperator
+crée_unary_minus_operator :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression) -> *UnaryMinusOperator
 {
     résultat := parseuse.crée_noeud(lexème, UnaryMinusOperator)
     résultat.argument = argument
@@ -597,14 +669,14 @@ bigint_unary_minus :: fonc (x: Valeur @inutilisée) -> Valeur
  * \{ */
 
 LogicalNot :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Expression
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_logical_not
 
-    argument: *NoeudSyntaxique
+    argument: *Expression
 }
 
-crée_logical_not :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *NoeudSyntaxique) -> *LogicalNot
+crée_logical_not :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression) -> *LogicalNot
 {
     résultat := parseuse.crée_noeud(lexème, LogicalNot)
     résultat.argument = argument
@@ -647,15 +719,15 @@ sur_exécution_logical_not :: fonc (base: *NoeudSyntaxique, interpréteuse: *Int
  * \{ */
 
 LogicalAnd :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Expression
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_logical_and
 
-    left: *NoeudSyntaxique
-    right: *NoeudSyntaxique
+    left: *Expression
+    right: *Expression
 }
 
-crée_logical_and :: fonc (parseuse: *Parseuse, lexème: *Lexème, left: *NoeudSyntaxique, right: *NoeudSyntaxique) -> *LogicalAnd
+crée_logical_and :: fonc (parseuse: *Parseuse, lexème: *Lexème, left: *Expression, right: *Expression) -> *LogicalAnd
 {
     résultat := parseuse.crée_noeud(lexème, LogicalAnd)
     résultat.left = left
@@ -705,15 +777,15 @@ sur_exécution_logical_and :: fonc (base: *NoeudSyntaxique, interpréteuse: *Int
  * \{ */
 
 LogicalOr :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Expression
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_logical_or
 
-    left: *NoeudSyntaxique
-    right: *NoeudSyntaxique
+    left: *Expression
+    right: *Expression
 }
 
-crée_logical_or :: fonc (parseuse: *Parseuse, lexème: *Lexème, left: *NoeudSyntaxique, right: *NoeudSyntaxique) -> *LogicalOr
+crée_logical_or :: fonc (parseuse: *Parseuse, lexème: *Lexème, left: *Expression, right: *Expression) -> *LogicalOr
 {
     résultat := parseuse.crée_noeud(lexème, LogicalOr)
     résultat.left = left
@@ -770,16 +842,16 @@ BinaryOperation :: énum {
 }
 
 BinaryExpression :: struct {
-    empl  base: NoeudSyntaxique
+    empl  base: Expression
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_binary_expression
 
     opération: BinaryOperation
-    gauche: *NoeudSyntaxique
-    droite: *NoeudSyntaxique
+    gauche: *Expression
+    droite: *Expression
 }
 
-crée_binary_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, opération: BinaryOperation, gauche: *NoeudSyntaxique, droite: *NoeudSyntaxique) -> *BinaryExpression
+crée_binary_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, opération: BinaryOperation, gauche: *Expression, droite: *Expression) -> *BinaryExpression
 {
     résultat := parseuse.crée_noeud(lexème, BinaryExpression)
     résultat.opération = opération
@@ -949,16 +1021,16 @@ EqualityOperation :: énum {
 }
 
 EqualityExpression :: struct {
-    empl  base: NoeudSyntaxique
+    empl  base: Expression
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_equality_expression
 
     opération: EqualityOperation
-    gauche: *NoeudSyntaxique
-    droite: *NoeudSyntaxique
+    gauche: *Expression
+    droite: *Expression
 }
 
-crée_equality_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, opération: EqualityOperation, gauche: *NoeudSyntaxique, droite: *NoeudSyntaxique) -> *EqualityExpression
+crée_equality_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, opération: EqualityOperation, gauche: *Expression, droite: *Expression) -> *EqualityExpression
 {
     résultat := parseuse.crée_noeud(lexème, EqualityExpression)
     résultat.opération = opération
@@ -1035,16 +1107,16 @@ RelationalOperation :: énum {
 }
 
 RelationalExpression :: struct {
-    empl  base: NoeudSyntaxique
+    empl  base: Expression
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_relational_expression
 
     opération: RelationalOperation
-    gauche: *NoeudSyntaxique
-    droite: *NoeudSyntaxique
+    gauche: *Expression
+    droite: *Expression
 }
 
-crée_relational_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, opération: RelationalOperation, gauche: *NoeudSyntaxique, droite: *NoeudSyntaxique) -> *RelationalExpression
+crée_relational_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, opération: RelationalOperation, gauche: *Expression, droite: *Expression) -> *RelationalExpression
 {
     résultat := parseuse.crée_noeud(lexème, RelationalExpression)
     résultat.opération = opération
@@ -1159,7 +1231,7 @@ sur_exécution_relational_expression :: fonc (base: *NoeudSyntaxique, interprét
  * \{ */
 
 NumericLiteral :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Expression
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_numeric_literal
 
@@ -1187,7 +1259,7 @@ sur_exécution_numeric_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: 
  * \{ */
 
 BooleanLiteral :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Expression
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_boolean_literal
 
@@ -1214,7 +1286,7 @@ sur_exécution_boolean_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: 
  * \{ */
 
 NullLiteral :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Expression
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_null_literal
 }
@@ -1237,7 +1309,7 @@ sur_exécution_null_literal :: fonc (base: *NoeudSyntaxique @inutilisée, interp
  * \{ */
 
 StringLiteral :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Expression
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_string_literal
 
@@ -1279,49 +1351,19 @@ sur_exécution_string_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: *
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom ExpressionStatement
- * \{ */
-
-ExpressionStatement :: struct {
-    empl base: NoeudSyntaxique
-    type = #type_de_cette_structure
-    sur_exécution = sur_exécution_expression_statement
-
-    expression: *NoeudSyntaxique
-}
-
-crée_expression_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, expression: *NoeudSyntaxique) -> *NoeudSyntaxique
-{
-    résultat := parseuse.crée_noeud(lexème, ExpressionStatement)
-    résultat.expression = expression
-    retourne résultat
-}
-
-sur_exécution_expression_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
-{
-    noeud := base comme *ExpressionStatement
-    si noeud.expression {
-        retourne exécute_noeud(noeud.expression, interpréteuse)
-    }
-    retourne normal_completion(js_undefined)
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
 /** \nom CallExpression
  * \{ */
 
 CallExpression :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Expression
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_call_expression
 
-    appelé: *NoeudSyntaxique
-    arguments: [..]*NoeudSyntaxique
+    appelé: *Expression
+    arguments: [..]*Expression
 }
 
-crée_call_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, appelé: *NoeudSyntaxique, arguments: [..]*NoeudSyntaxique) -> *CallExpression
+crée_call_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, appelé: *Expression, arguments: [..]*Expression) -> *CallExpression
 {
     résultat := parseuse.crée_noeud(lexème, CallExpression)
     résultat.appelé = appelé
@@ -1431,7 +1473,7 @@ sur_exécution_call_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: 
 
 /* 13.3.6.2 EvaluateCall ( func, ref, arguments, tailPosition )
  * https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-evaluatecall */
-evaluate_call :: fonc (interpréteuse: *Interpréteuse, func: Valeur, ref: ValeurCompletion, arguments: []*NoeudSyntaxique, tail_position: bool) -> CompletionRecord
+evaluate_call :: fonc (interpréteuse: *Interpréteuse, func: Valeur, ref: ValeurCompletion, arguments: []*Expression, tail_position: bool) -> CompletionRecord
 {
     this_value: Valeur = ---
     // 1. If ref is a Reference Record, then
@@ -1487,7 +1529,7 @@ evaluate_call :: fonc (interpréteuse: *Interpréteuse, func: Valeur, ref: Valeu
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-runtime-semantics-argumentlistevaluation */
-argument_list_evaluation :: fonc (interpréteuse: *Interpréteuse, arguments: []*NoeudSyntaxique, résultat: *[..]Valeur) -> CompletionRecord
+argument_list_evaluation :: fonc (interpréteuse: *Interpréteuse, arguments: []*Expression, résultat: *[..]Valeur) -> CompletionRecord
 {
     // À FAIRE : standardise
     pour arguments {
@@ -1529,16 +1571,16 @@ AssignmentOperation :: énum {
 }
 
 AssignmentExpression :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Expression
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_assignment_expression
 
     opération: AssignmentOperation
-    gauche: *NoeudSyntaxique
-    droite: *NoeudSyntaxique
+    gauche: *Expression
+    droite: *Expression
 }
 
-crée_assignment_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, opération: AssignmentOperation, gauche: *NoeudSyntaxique, droite: *NoeudSyntaxique) -> *AssignmentExpression
+crée_assignment_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, opération: AssignmentOperation, gauche: *Expression, droite: *Expression) -> *AssignmentExpression
 {
     résultat := parseuse.crée_noeud(lexème, AssignmentExpression)
     résultat.opération = opération
@@ -1716,15 +1758,15 @@ VariableDeclarationKind :: énum {
 }
 
 VariableDeclaration :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Expression
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_variable_declaration
 
     nature: VariableDeclarationKind
-    expressions: [..]*NoeudSyntaxique
+    expressions: [..]*Expression
 }
 
-crée_variable_declaration :: fonc (parseuse: *Parseuse, lexème: *Lexème, nature: VariableDeclarationKind, declarators: [..]*NoeudSyntaxique) -> *VariableDeclaration
+crée_variable_declaration :: fonc (parseuse: *Parseuse, lexème: *Lexème, nature: VariableDeclarationKind, declarators: [..]*Expression) -> *VariableDeclaration
 {
     résultat := parseuse.crée_noeud(lexème, VariableDeclaration)
     résultat.nature = nature
@@ -1753,15 +1795,15 @@ sur_exécution_variable_declaration :: fonc (base: *NoeudSyntaxique, interpréte
  * \{ */
 
 VariableDeclarator :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Expression
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_variable_declarator
 
-    id: *NoeudSyntaxique
-    init: *NoeudSyntaxique
+    id: *Expression
+    init: *Expression
 }
 
-crée_variable_declarator :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *NoeudSyntaxique, init: *NoeudSyntaxique) -> *VariableDeclarator
+crée_variable_declarator :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *Expression, init: *Expression) -> *VariableDeclarator
 {
     résultat := parseuse.crée_noeud(lexème, VariableDeclarator)
     résultat.id = id
@@ -1829,14 +1871,14 @@ sur_exécution_variable_declarator :: fonc (base: *NoeudSyntaxique, interpréteu
  * \{ */
 
 PropertyDefinition :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Expression
     type = #type_de_cette_structure
 
-    property_name: *NoeudSyntaxique
-    expression: *NoeudSyntaxique
+    property_name: *Expression
+    expression: *Expression
 }
 
-crée_property_definition :: fonc (parseuse: *Parseuse, lexème: *Lexème, property_name: *NoeudSyntaxique, expression: *NoeudSyntaxique) -> *PropertyDefinition
+crée_property_definition :: fonc (parseuse: *Parseuse, lexème: *Lexème, property_name: *Expression, expression: *Expression) -> *PropertyDefinition
 {
     résultat := parseuse.crée_noeud(lexème, PropertyDefinition)
     résultat.property_name = property_name
@@ -1851,7 +1893,7 @@ crée_property_definition :: fonc (parseuse: *Parseuse, lexème: *Lexème, prope
  * \{ */
 
 ObjectExpression :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Expression
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_object_expression
 
@@ -1945,14 +1987,14 @@ property_definition_evaluation :: fonc (interpréteuse: *Interpréteuse, propert
  * \{ */
 
 ArrayLiteral :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Expression
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_array_literal
 
-    éléments: [..]*NoeudSyntaxique
+    éléments: [..]*Expression
 }
 
-crée_array_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème, éléments: [..]*NoeudSyntaxique) -> *ArrayLiteral
+crée_array_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème, éléments: [..]*Expression) -> *ArrayLiteral
 {
     résultat := parseuse.crée_noeud(lexème, ArrayLiteral)
     résultat.éléments = éléments
@@ -2000,16 +2042,16 @@ sur_exécution_array_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: *I
  * \{ */
 
 MemberExpression :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Expression
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_member_expression
 
-    objet: *NoeudSyntaxique
-    propriété: *NoeudSyntaxique
+    objet: *Expression
+    propriété: *Expression
     calculé := faux
 }
 
-crée_member_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, objet: *NoeudSyntaxique, propriété: *NoeudSyntaxique, calculé: bool) -> *MemberExpression
+crée_member_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, objet: *Expression, propriété: *Expression, calculé: bool) -> *MemberExpression
 {
     résultat := parseuse.crée_noeud(lexème, MemberExpression)
     résultat.objet = objet
@@ -2111,15 +2153,15 @@ UpdateOperation :: énum {
 }
 
 UpdateExpression :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Expression
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_update_expression
 
-    argument: *NoeudSyntaxique
+    argument: *Expression
     operation: UpdateOperation
 }
 
-crée_update_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *NoeudSyntaxique, operation: UpdateOperation) -> *UpdateExpression
+crée_update_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression, operation: UpdateOperation) -> *UpdateExpression
 {
     résultat := parseuse.crée_noeud(lexème, UpdateExpression)
     résultat.argument = argument
@@ -2193,14 +2235,14 @@ sur_exécution_update_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
  * \{ */
 
 ContinueStatement :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Statement
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_continue_statement
 
-    target: *NoeudSyntaxique
+    target: *Expression
 }
 
-crée_continue_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, target: *NoeudSyntaxique) -> *ContinueStatement
+crée_continue_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, target: *Expression) -> *ContinueStatement
 {
     résultat := parseuse.crée_noeud(lexème, ContinueStatement)
     résultat.target = target
@@ -2234,14 +2276,14 @@ sur_exécution_continue_statement :: fonc (base: *NoeudSyntaxique, interpréteus
  * \{ */
 
 BreakStatement :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Statement
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_break_statement
 
-    target: *NoeudSyntaxique
+    target: *Expression
 }
 
-crée_break_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, target: *NoeudSyntaxique) -> *BreakStatement
+crée_break_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, target: *Expression) -> *BreakStatement
 {
     résultat := parseuse.crée_noeud(lexème, BreakStatement)
     résultat.target = target
@@ -2275,17 +2317,17 @@ sur_exécution_break_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: 
  * \{ */
 
 ForStatement :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Statement
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_for_statement
 
-    init: *NoeudSyntaxique
-    test: *NoeudSyntaxique
-    update: *NoeudSyntaxique
-    body: *NoeudSyntaxique
+    init: *Expression
+    test: *Expression
+    update: *Expression
+    body: *Statement
 }
 
-crée_for_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, init: *NoeudSyntaxique, test: *NoeudSyntaxique, update: *NoeudSyntaxique, body: *NoeudSyntaxique) -> *ForStatement
+crée_for_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, init: *Expression, test: *Expression, update: *Expression, body: *Statement) -> *ForStatement
 {
     résultat := parseuse.crée_noeud(lexème, ForStatement)
     résultat.init = init
@@ -2353,16 +2395,16 @@ sur_exécution_for_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *I
  * \{ */
 
 ForOfStatement :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Statement
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_for_of_statement
 
-    left: *NoeudSyntaxique
-    right: *NoeudSyntaxique
-    body: *NoeudSyntaxique
+    left: *Expression
+    right: *Expression
+    body: *Statement
 }
 
-crée_for_of_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, left: *NoeudSyntaxique, right: *NoeudSyntaxique, body: *NoeudSyntaxique) -> *ForOfStatement
+crée_for_of_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, left: *Expression, right: *Expression, body: *Statement) -> *ForOfStatement
 {
     résultat := parseuse.crée_noeud(lexème, ForOfStatement)
     résultat.left = left
@@ -2383,16 +2425,16 @@ sur_exécution_for_of_statement :: fonc (base: *NoeudSyntaxique @inutilisée, in
  * \{ */
 
 ForInStatement :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Statement
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_for_in_statement
 
-    left: *NoeudSyntaxique
-    right: *NoeudSyntaxique
-    body: *NoeudSyntaxique
+    left: *Expression
+    right: *Expression
+    body: *Statement
 }
 
-crée_for_in_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, left: *NoeudSyntaxique, right: *NoeudSyntaxique, body: *NoeudSyntaxique) -> *ForInStatement
+crée_for_in_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, left: *Expression, right: *Expression, body: *Statement) -> *ForInStatement
 {
     résultat := parseuse.crée_noeud(lexème, ForInStatement)
     résultat.left = left
@@ -2413,15 +2455,15 @@ sur_exécution_for_in_statement :: fonc (base: *NoeudSyntaxique @inutilisée, in
  * \{ */
 
 WhileStatement :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Statement
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_while_statement
 
-    test: *NoeudSyntaxique
-    body: *NoeudSyntaxique
+    test: *Expression
+    body: *Statement
 }
 
-crée_while_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, test: *NoeudSyntaxique, body: *NoeudSyntaxique) -> *WhileStatement
+crée_while_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, test: *Expression, body: *Statement) -> *WhileStatement
 {
     résultat := parseuse.crée_noeud(lexème, WhileStatement)
     résultat.test = test
@@ -2472,15 +2514,15 @@ sur_exécution_while_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: 
  * \{ */
 
 DoWhileStatement :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Statement
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_do_while_statement
 
-    body: *NoeudSyntaxique
-    test: *NoeudSyntaxique
+    body: *Statement
+    test: *Expression
 }
 
-crée_do_while_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, body: *NoeudSyntaxique, test: *NoeudSyntaxique) -> *DoWhileStatement
+crée_do_while_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, body: *Statement, test: *Expression) -> *DoWhileStatement
 {
     résultat := parseuse.crée_noeud(lexème, DoWhileStatement)
     résultat.body = body
@@ -2531,16 +2573,16 @@ sur_exécution_do_while_statement :: fonc (base: *NoeudSyntaxique, interpréteus
  * \{ */
 
 ConditionalExpression :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Expression
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_conditional_expression
 
-    test: *NoeudSyntaxique
-    consequent: *NoeudSyntaxique
-    alternate: *NoeudSyntaxique
+    test: *Expression
+    consequent: *Expression
+    alternate: *Expression
 }
 
-crée_conditionnal_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, test: *NoeudSyntaxique, consequent: *NoeudSyntaxique, alternate: *NoeudSyntaxique) -> *ConditionalExpression
+crée_conditionnal_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, test: *Expression, consequent: *Expression, alternate: *Expression) -> *ConditionalExpression
 {
     résultat := parseuse.crée_noeud(lexème, ConditionalExpression)
     résultat.test = test
@@ -2597,16 +2639,16 @@ sur_exécution_conditional_expression :: fonc (base: *NoeudSyntaxique, interpré
  * \{ */
 
 IfStatement :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Statement
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_if_statement
 
-    test: *NoeudSyntaxique
-    consequent: *NoeudSyntaxique
-    alternate: *NoeudSyntaxique
+    test: *Expression
+    consequent: *Statement
+    alternate: *Statement
 }
 
-crée_if_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, test: *NoeudSyntaxique, consequent: *NoeudSyntaxique, alternate: *NoeudSyntaxique) -> *IfStatement
+crée_if_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, test: *Expression, consequent: *Statement, alternate: *Statement) -> *IfStatement
 {
     résultat := parseuse.crée_noeud(lexème, IfStatement)
     résultat.test = test
@@ -2663,14 +2705,14 @@ sur_exécution_if_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *In
  * \{ */
 
 TypeofOperator :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Expression
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_typeof_operator
 
-    argument: *NoeudSyntaxique
+    argument: *Expression
 }
 
-crée_typeof_operator :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *NoeudSyntaxique) -> *TypeofOperator
+crée_typeof_operator :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression) -> *TypeofOperator
 {
     résultat := parseuse.crée_noeud(lexème, TypeofOperator)
     résultat.argument = argument
@@ -2760,14 +2802,14 @@ sur_exécution_typeof_operator :: fonc (base: *NoeudSyntaxique, interpréteuse: 
  * \{ */
 
 ThrowStatement :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Statement
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_throw_statement
 
-    argument: *NoeudSyntaxique
+    argument: *Expression
 }
 
-crée_throw_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *NoeudSyntaxique) -> *ThrowStatement
+crée_throw_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression) -> *ThrowStatement
 {
     résultat := parseuse.crée_noeud(lexème, ThrowStatement)
     résultat.argument = argument
@@ -2804,16 +2846,16 @@ sur_exécution_throw_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: 
  * \{ */
 
 TryStatement :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Statement
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_try_statement
 
-    block: *NoeudSyntaxique
+    block: *Statement
     handler: *CatchClause
-    finalizer: *NoeudSyntaxique
+    finalizer: *Statement
 }
 
-crée_try_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, block: *NoeudSyntaxique, handler: *CatchClause, finalizer: *NoeudSyntaxique) -> *TryStatement
+crée_try_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, block: *Statement, handler: *CatchClause, finalizer: *Statement) -> *TryStatement
 {
     résultat := parseuse.crée_noeud(lexème, TryStatement)
     résultat.block = block
@@ -2894,14 +2936,14 @@ sur_exécution_try_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *I
  * \{ */
 
 CatchClause :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Statement
     type = #type_de_cette_structure
 
-    param: *NoeudSyntaxique
-    body: *NoeudSyntaxique
+    param: *Expression
+    body: *Statement
 }
 
-crée_catch_clause :: fonc (parseuse: *Parseuse, lexème: *Lexème, param: *NoeudSyntaxique, body: *NoeudSyntaxique) -> *CatchClause
+crée_catch_clause :: fonc (parseuse: *Parseuse, lexème: *Lexème, param: *Expression, body: *Statement) -> *CatchClause
 {
     résultat := parseuse.crée_noeud(lexème, CatchClause)
     résultat.param = param
@@ -2966,14 +3008,14 @@ catch_clause_evaluation :: fonc (catch: *CatchClause, interpréteuse: *Interpré
  * \{ */
 
 NewExpression :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Expression
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_new_expression
 
-    argument: *NoeudSyntaxique
+    argument: *Expression
 }
 
-crée_new_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *NoeudSyntaxique) -> *NewExpression
+crée_new_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression) -> *NewExpression
 {
     résultat := parseuse.crée_noeud(lexème, NewExpression)
     résultat.argument = argument
@@ -2986,7 +3028,7 @@ sur_exécution_new_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *
     new := base comme *NewExpression
 
     construct_expr: *NoeudSyntaxique
-    arguments: []*NoeudSyntaxique
+    arguments: []*Expression
 
     si new.argument.type == CallExpression {
         call := new.argument comme *CallExpression
@@ -3002,7 +3044,7 @@ sur_exécution_new_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *
 
 /* 13.3.5.1.1 EvaluateNew ( constructExpr, arguments )
  * https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-new-operator-runtime-semantics-evaluation */
-evaluate_new :: fonc (interpréteuse: *Interpréteuse, construct_expr: *NoeudSyntaxique, arguments: []*NoeudSyntaxique) -> CompletionRecord
+evaluate_new :: fonc (interpréteuse: *Interpréteuse, construct_expr: *NoeudSyntaxique, arguments: []*Expression) -> CompletionRecord
 {
     // 1. Let ref be ? Evaluation of constructExpr.
     completion_ref := exécute_noeud(construct_expr, interpréteuse)
@@ -3047,16 +3089,16 @@ evaluate_new :: fonc (interpréteuse: *Interpréteuse, construct_expr: *NoeudSyn
  * \{ */
 
 SwitchStatement :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Statement
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_switch_statement
 
-    discriminant: *NoeudSyntaxique
+    discriminant: *Expression
     cases: [..]*CaseClause
     index_default_clause: z64
 }
 
-crée_switch_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, discriminant: *NoeudSyntaxique, cases: [..]*CaseClause, index_default_clause: z64) -> *SwitchStatement
+crée_switch_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, discriminant: *Expression, cases: [..]*CaseClause, index_default_clause: z64) -> *SwitchStatement
 {
     résultat := parseuse.crée_noeud(lexème, SwitchStatement)
     résultat.discriminant = discriminant
@@ -3320,15 +3362,15 @@ case_clause_is_selected :: fonc (interpréteuse: *Interpréteuse, clause: *CaseC
  * \{ */
 
 CaseClause :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Statement
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_case_clause
 
-    test: *NoeudSyntaxique
-    consequent: *BlockStatement // StatementList
+    test: *Expression
+    consequent: *Statement // StatementList
 }
 
-crée_case_clause :: fonc (parseuse: *Parseuse, lexème: *Lexème, test: *NoeudSyntaxique, consequent: *BlockStatement) -> *CaseClause
+crée_case_clause :: fonc (parseuse: *Parseuse, lexème: *Lexème, test: *Expression, consequent: *Statement) -> *CaseClause
 {
     résultat := parseuse.crée_noeud(lexème, CaseClause)
     résultat.test = test
@@ -3359,7 +3401,7 @@ DefaultClause :: struct {
     type = #type_de_cette_structure
 }
 
-crée_default_clause :: fonc (parseuse: *Parseuse, lexème: *Lexème, consequent: *BlockStatement) -> *DefaultClause
+crée_default_clause :: fonc (parseuse: *Parseuse, lexème: *Lexème, consequent: *Statement) -> *DefaultClause
 {
     résultat := parseuse.crée_noeud(lexème, DefaultClause)
     résultat.consequent = consequent
@@ -3373,15 +3415,15 @@ crée_default_clause :: fonc (parseuse: *Parseuse, lexème: *Lexème, consequent
  * \{ */
 
 CommaExpression :: struct {
-    empl base: NoeudSyntaxique
+    empl base: Expression
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_comma_expression
 
-    left: *NoeudSyntaxique
-    right: *NoeudSyntaxique
+    left: *Expression
+    right: *Expression
 }
 
-crée_comma_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, left: *NoeudSyntaxique, right: *NoeudSyntaxique) -> *CommaExpression
+crée_comma_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, left: *Expression, right: *Expression) -> *CommaExpression
 {
     résultat := parseuse.crée_noeud(lexème, CommaExpression)
     résultat.left = left
