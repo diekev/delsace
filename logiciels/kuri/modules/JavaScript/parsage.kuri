@@ -236,12 +236,7 @@ parse_function_declaration :: fonc (parseuse: *Parseuse) -> *FunctionDeclaration
     }
 
     parseuse.consomme(GenreLexème.ParenthèseOuvrante)
-
-    paramètres: [..]*Expression
-    saufsi parseuse.apparie(GenreLexème.ParenthèseFermante) {
-        paramètres = parse_expression_virgule(parseuse)
-    }
-
+    paramètres := parse_expressions_séparées_par_des_virgules(parseuse)
     parseuse.consomme(GenreLexème.ParenthèseFermante)
 
     body := parse_statement(parseuse)
@@ -262,12 +257,7 @@ parse_function_expression :: fonc (parseuse: *Parseuse) -> *FunctionExpression
     }
 
     parseuse.consomme(GenreLexème.ParenthèseOuvrante)
-
-    paramètres: [..]*Expression
-    saufsi parseuse.apparie(GenreLexème.ParenthèseFermante) {
-        paramètres = parse_expression_virgule(parseuse)
-    }
-
+    paramètres := parse_expressions_séparées_par_des_virgules(parseuse)
     parseuse.consomme(GenreLexème.ParenthèseFermante)
 
     body := parse_statement(parseuse)
@@ -736,13 +726,7 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
         CrochetOuvrant {
             parseuse.consomme()
 
-            si apparie(parseuse, GenreLexème.CrochetFermant) {
-                parseuse.consomme()
-                éléments: [..]*Expression
-                retourne crée_array_literal(parseuse, lexème, éléments)
-            }
-
-            éléments := parseuse.parse_expression_virgule()
+            éléments := parse_expressions_séparées_par_des_virgules(parseuse)
 
             parseuse.consomme(GenreLexème.CrochetFermant)
 
@@ -1004,10 +988,7 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
         ParenthèseOuvrante {
             parseuse.consomme()
 
-            arguments: [..]*Expression
-            saufsi parseuse.apparie(GenreLexème.ParenthèseFermante) {
-                arguments = parse_expression_virgule(parseuse)
-            }
+            arguments := parse_expressions_séparées_par_des_virgules(parseuse)
 
             parseuse.consomme(GenreLexème.ParenthèseFermante)
 
@@ -1062,9 +1043,15 @@ parse_assignement_expression :: fonc (parseuse: *Parseuse, gauche: *Expression, 
     retourne crée_assignment_expression(parseuse, lexème, opération, gauche, expression)
 }
 
-parse_expression_virgule :: fonc (parseuse: *Parseuse) -> [..]*Expression
+parse_expressions_séparées_par_des_virgules :: fonc (parseuse: *Parseuse) -> [..]*Expression
 {
     résultat: [..]*Expression
+    /* Permet de ne pas avoir d'expression pour que, par exemple, le parsage des parenthèses
+     * d'expressions d'appels vides n'est pas à le vérifier. */
+    saufsi apparie_expression(parseuse) {
+        retourne résultat
+    }
+
     tantque !fini(parseuse) {
         expr := parseuse.parse_expression(ParamètresParsageExpression(lexème_final = GenreLexème.Virgule))
 
