@@ -413,7 +413,7 @@ ordinary_function_create :: fonc (realm: *Realm, function_prototype: *FunctionPr
 
 /* 10.2.5 MakeConstructor ( F [ , writablePrototype [ , prototype ] ] )
  * https://tc39.es/ecma262/#sec-makeconstructor */
-make_constructor :: fonc (F: *ECMAScriptFunction)
+make_constructor :: fonc (F: *ECMAScriptFunction, opt_writable_prototype : *bool = nul, prototype : *Object = nul)
 {
     // À FAIRE : complète
     // 1. If F is an ECMAScript function object, then
@@ -427,10 +427,32 @@ make_constructor :: fonc (F: *ECMAScriptFunction)
     F.constructor_kind = ConstructorKind.Base
 
     // 4. If writablePrototype is not present, set writablePrototype to true.
+    writable_prototype := vrai
+    si opt_writable_prototype {
+        writable_prototype = mémoire(opt_writable_prototype)
+    }
+
     // 5. If prototype is not present, then
+    saufsi prototype {
         // a. Set prototype to OrdinaryObjectCreate(%Object.prototype%).
+        prototype = crée_objet(F.realm.donne_tas_de_mémoire(), F.realm.intrinsics.object_prototype)
+    }
+
     // b. Perform ! DefinePropertyOrThrow(prototype, "constructor", PropertyDescriptor { [[Value]]: F, [[Writable]]: writablePrototype, [[Enumerable]]: false, [[Configurable]]: true }).
+    desc: PropertyDescriptor
+    desc.value = Valeur(Object = F)
+    desc.writable = writable_prototype
+    desc.enumerable = faux
+    desc.configurable = vrai
+    _ := define_property_or_throw(prototype, STR_constructor, desc)
+
     // 6. Perform ! DefinePropertyOrThrow(F, "prototype", PropertyDescriptor { [[Value]]: prototype, [[Writable]]: writablePrototype, [[Enumerable]]: false, [[Configurable]]: false }).
+    desc.value = Valeur(Object = prototype)
+    desc.writable = writable_prototype
+    desc.enumerable = faux
+    desc.configurable = faux
+    _ := define_property_or_throw(F, STR_prototype, desc)
+
     // 7. Return unused.
 }
 

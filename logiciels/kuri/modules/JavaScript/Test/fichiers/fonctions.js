@@ -38,3 +38,19 @@ test("une fonction peut être définie dans une autre", function () {
 
     vérifie_égalité(locale(), 17.0)
 });
+
+test("les fonctions ont une propriété 'prototype'", function () {
+    function locale() {
+        return 17;
+    }
+    vérifie(locale.hasOwnProperty("prototype"))
+    vérifie(locale.prototype !== null)
+});
+
+test("le constructeur des prototypes des fonctions est la fonction", function () {
+    function locale() {
+        return 17;
+    }
+    vérifie(locale.prototype.hasOwnProperty("constructor"))
+    vérifie_égalité(locale.prototype.constructor, locale)
+});
