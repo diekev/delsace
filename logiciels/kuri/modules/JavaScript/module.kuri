@@ -17,6 +17,7 @@ charge "terminologie"
 charge "valeur"
 
 charge "Objets/array"
+charge "Objets/boolean"
 charge "Objets/date"
 charge "Objets/error"
 charge "Objets/function"

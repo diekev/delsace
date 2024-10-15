@@ -662,6 +662,11 @@ to_object :: fonc (realm: *Realm, valeur: Valeur) -> CompletionRecord
         retourne normal_completion(Valeur(Object = object))
     }
 
+    si valeur.est_boolean() {
+        object := crée_boolean_object(realm, valeur.Boolean)
+        retourne normal_completion(Valeur(Object = object))
+    }
+
     panique("to_object non-implémenté pour type")
 }
 
