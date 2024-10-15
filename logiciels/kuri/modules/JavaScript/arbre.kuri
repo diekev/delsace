@@ -337,10 +337,11 @@ instantiate_ordinary_function_object :: fonc (realm: *Realm, declaration: *Funct
  * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-runtime-semantics-instantiateordinaryfunctionexpression */
 instantiate_ordinary_function_expression :: fonc (interpréteuse: *Interpréteuse, expression: *FunctionExpression, opt_name : *ECMAString = nul) -> *Function
 {
-    si expression.id == nul {
-        mv := interpréteuse.mv
-        running_execution_context := mv.donne_running_execution_context()
+    mv := interpréteuse.mv
+    running_execution_context := mv.donne_running_execution_context()
+    realm := running_execution_context.realm
 
+    si expression.id == nul {
         // 1. If name is not present, set name to "".
         name: ECMAString
         si opt_name {
@@ -356,7 +357,6 @@ instantiate_ordinary_function_expression :: fonc (interpréteuse: *Interpréteus
         // À FAIRE 4. Let sourceText be the source text matched by FunctionExpression.
 
         // 5. Let closure be OrdinaryFunctionCreate(%Function.prototype%, sourceText, FormalParameters, FunctionBody, NON-LEXICAL-THIS, env, privateEnv).
-        realm := running_execution_context.realm
         closure := ordinary_function_create(realm, realm.intrinsics.function_prototype, expression.params, expression.corps, NON_LEXICAL_THIS, env, private_env)
 
         // 6. Perform SetFunctionName(closure, name).
@@ -369,7 +369,40 @@ instantiate_ordinary_function_expression :: fonc (interpréteuse: *Interpréteus
         retourne closure
     }
 
-    panique("instantiate_ordinary_function_expression non-implémenté")
+    // 1. Assert: name is not present.
+    assert(opt_name == nul)
+
+    // 2. Set name to the StringValue of BindingIdentifier.
+    name := expression.id.nom
+
+    // 3. Let outerEnv be the running execution context's LexicalEnvironment.
+    outer_env := running_execution_context.lexical_environment
+
+    // 4. Let funcEnv be NewDeclarativeEnvironment(outerEnv).
+    func_env := new_declarative_environment(outer_env.donne_tas_de_mémoire(), outer_env)
+
+    // 5. Perform ! funcEnv.CreateImmutableBinding(name, false).
+    _ := func_env.create_immutable_binding(realm, name, faux)
+
+    // 6. Let privateEnv be the running execution context's PrivateEnvironment.
+    private_env := running_execution_context.private_environment
+
+    // À FAIRE : 7. Let sourceText be the source text matched by FunctionExpression.
+
+    // 8. Let closure be OrdinaryFunctionCreate(%Function.prototype%, sourceText, FormalParameters, FunctionBody, non-lexical-this, funcEnv, privateEnv).
+    closure := ordinary_function_create(realm, realm.intrinsics.function_prototype, expression.params, expression.corps, NON_LEXICAL_THIS, func_env, private_env)
+
+    // 9. Perform SetFunctionName(closure, name).
+    set_function_name(realm, closure, name)
+
+    // 10. Perform MakeConstructor(closure).
+    make_constructor(closure)
+
+    // 11. Perform ! funcEnv.InitializeBinding(name, closure).
+    _ := func_env.initialize_binding(name, Valeur(Function = closure))
+
+    // 12. Return closure.
+    retourne closure
 }
 
 /** \} */
