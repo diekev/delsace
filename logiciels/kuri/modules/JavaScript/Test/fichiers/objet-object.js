@@ -17,17 +17,16 @@ test("Object.getPrototypeOf", function () {
     vérifie_égalité(Object.getPrototypeOf(o), Object.prototype)
 });
 
-// À FAIRE
-// test("Object.setPrototypeOf", function () {
-//     var obj = {};
-//     var proto = { ok: 5 };
+test("Object.setPrototypeOf", function () {
+    var obj = {};
+    var proto = { ok: 5 };
 
-//     vérifie_égalité(Object.getPrototypeOf(obj), Object.prototype);
-//     vérifie_égalité(obj.hasOwnProperty("ok"), false);
-//     vérifie_égalité(proto.hasOwnProperty("ok"), true);
+    vérifie_égalité(Object.getPrototypeOf(obj), Object.prototype);
+    vérifie_égalité(obj.hasOwnProperty("ok"), false);
+    vérifie_égalité(proto.hasOwnProperty("ok"), true);
 
-//     Object.setPrototypeOf(obj, proto);
-//     vérifie_égalité(Object.getPrototypeOf(obj), proto);
-//     vérifie_égalité(obj.hasOwnProperty("ok"), false);
-//     vérifie_égalité(obj.ok, 5);
-// });
+    Object.setPrototypeOf(obj, proto);
+    vérifie_égalité(Object.getPrototypeOf(obj), proto);
+    vérifie_égalité(obj.hasOwnProperty("ok"), false);
+    vérifie_égalité(obj.ok, 5);
+});

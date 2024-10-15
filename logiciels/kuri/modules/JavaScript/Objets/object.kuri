@@ -475,7 +475,7 @@ object_set_prototype_of :: fonc (empl params: *ParamètresObjectCall) -> Complet
     O := params.donne_argument(0)
 
     // 1. Set O to ? RequireObjectCoercible(O).
-    completion := require_object_coercible(interpréteuse.donne_realm(), this_value)
+    completion := require_object_coercible(interpréteuse.donne_realm(), O)
     saufsi completion.est_normal() {
         retourne completion
     }
