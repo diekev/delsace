@@ -602,6 +602,14 @@ donne_user_agent :: fonc (document: *Document) -> *UserAgent
     retourne browsing_context.group.user_agent
 }
 
+create_text_node :: fonc (document: *Document, data: DOMString) -> *NoeudTexte
+{
+    résultat := crée_noeud_texte(document)
+    src := data.donne_chaine_utf16()
+    résultat.données = copie_chaine(src)
+    retourne résultat
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
