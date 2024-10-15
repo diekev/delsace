@@ -149,7 +149,7 @@ crée_date_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Objec
 }
 
 /* 21.4.4.44 Date.prototype.valueOf ( )
- * */
+ * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-date.prototype.valueof */
 date_prototype_value_of :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
     // 1. Let dateObject be the this value.
