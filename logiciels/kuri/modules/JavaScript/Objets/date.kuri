@@ -144,8 +144,25 @@ crée_date_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Objec
 {
     résultat := tas_de_mémoire.alloue(DatePrototype)
     résultat.prototype = prototype
+    résultat.ajoute_fonction_native(STR_getTime, date_prototype_get_time)
     résultat.ajoute_fonction_native(STR_valueOf, date_prototype_value_of)
     retourne résultat
+}
+
+/* 21.4.4.10 Date.prototype.getTime ( )
+ * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-date.prototype.gettime */
+date_prototype_get_time :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    // 1. Let dateObject be the this value.
+    date_object := this_value.donne_objet() comme *DateObject
+
+    // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
+    saufsi date_object.donne_classe() == DateObject {
+        retourne lance_type_error(interpréteuse, "object is not a Date")
+    }
+
+    // 3. Return dateObject.[[DateValue]].
+    retourne normal_completion(Valeur(Number = date_object.date_value.millisecondes() comme r64))
 }
 
 /* 21.4.4.44 Date.prototype.valueOf ( )
