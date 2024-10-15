@@ -233,6 +233,28 @@ to_uint32 :: fonc (property_key: PropertyKey) -> n32
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-operations-on-objects
  * \{ */
 
+TypeFonctionAllocationObjet :: fonc(*Realm)(*Object)
+
+/* 7.3.1 MakeBasicObject ( internalSlotsList )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-makebasicobject */
+make_basic_object :: fonc (realm: *Realm, rappel_allocation_objet: TypeFonctionAllocationObjet) -> *Object
+{
+    // 1. Set internalSlotsList to the list-concatenation of internalSlotsList and « [[PrivateElements]] ».
+
+    // 2. Let obj be a newly created object with an internal slot for each name in internalSlotsList.
+    obj := rappel_allocation_objet(realm)
+
+    // 3. Set obj.[[PrivateElements]] to a new empty List.
+    // 4. Set obj's essential internal methods to the default ordinary object definitions specified in 10.1.
+    // 5. Assert: If the caller will not be overriding both obj's [[GetPrototypeOf]] and [[SetPrototypeOf]] essential internal methods, then internalSlotsList contains [[Prototype]].
+    // 6. Assert: If the caller will not be overriding all of obj's [[SetPrototypeOf]], [[IsExtensible]], and [[PreventExtensions]] essential internal methods, then internalSlotsList contains [[Extensible]].
+    // À FAIRE : 7. If internalSlotsList contains [[Extensible]], set obj.[[Extensible]] to true.
+    obj.extensible = vrai
+
+    // 8. Return obj.
+    retourne obj
+}
+
 /* 7.3.2 Get
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-get-o-p */
 get :: fonc (object: *Object, property_key: PropertyKey) -> CompletionRecord
@@ -767,6 +789,74 @@ ordinary_set_with_own_descriptor :: fonc (object: *Object, property_key: Propert
 
     // 7. Return true.
     retourne normal_completion(Valeur(Boolean = vrai))
+}
+
+/* 10.1.12 OrdinaryObjectCreate ( proto [ , additionalInternalSlotsList ] )
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinaryobjectcreate */
+ordinary_object_create :: fonc (realm: *Realm, prototype: *Object, rappel_allocation_objet: TypeFonctionAllocationObjet) -> *Object
+{
+    // 1. Let internalSlotsList be « [[Prototype]], [[Extensible]] ».
+    // 2. If additionalInternalSlotsList is present, set internalSlotsList to the list-concatenation of internalSlotsList and additionalInternalSlotsList.
+
+    // 3. Let O be MakeBasicObject(internalSlotsList).
+    O := make_basic_object(realm, rappel_allocation_objet)
+
+    // 4. Set O.[[Prototype]] to proto.
+    O.prototype = prototype
+
+    // 5. Return O.
+    retourne O
+}
+
+/* 10.1.13 OrdinaryCreateFromConstructor ( constructor, intrinsicDefaultProto [ , internalSlotsList ] )
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinaryobjectcreate */
+ordinary_create_from_constructor :: fonc (realm: *Realm, constructor: *Function, intrinsic_default_proto: *Object, rappel_allocation_objet: TypeFonctionAllocationObjet) -> CompletionRecord
+{
+    // 1. Assert: intrinsicDefaultProto is this specification's name of an intrinsic object.
+    //    The corresponding object must be an intrinsic that is intended to be used as the
+    //    [[Prototype]] value of an object.
+    assert(est_intrinsics(realm, intrinsic_default_proto))
+
+    // 2. Let proto be ? GetPrototypeFromConstructor(constructor, intrinsicDefaultProto).
+    completion := get_prototype_from_constructor(realm, constructor, intrinsic_default_proto)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    proto := completion.valeur.V.donne_objet()
+
+    // 3. If internalSlotsList is present, let slotsList be internalSlotsList.
+    // 4. Else, let slotsList be a new empty List.
+
+    // 5. Return OrdinaryObjectCreate(proto, slotsList).
+    résultat := ordinary_object_create(realm, proto, rappel_allocation_objet)
+    retourne normal_completion(Valeur(Object = résultat))
+}
+
+/* 10.1.14 GetPrototypeFromConstructor ( constructor, intrinsicDefaultProto )
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-getprototypefromconstructor */
+get_prototype_from_constructor :: fonc (realm: *Realm, constructor: *Function, intrinsic_default_proto: *Object) -> CompletionRecord
+{
+    // 1. Assert: intrinsicDefaultProto is this specification's name of an intrinsic object.
+    //    The corresponding object must be an intrinsic that is intended to be used as the
+    //    [[Prototype]] value of an object.
+    assert(est_intrinsics(realm, intrinsic_default_proto))
+
+    // 2. Let proto be ? Get(constructor, "prototype").
+    completion := get(constructor, STR_prototype)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    proto := completion.valeur.V
+
+    // 3. If proto is not an Object, then
+    saufsi proto.est_object() {
+        // À FAIRE : a. Let realm be ? GetFunctionRealm(constructor).
+        // b. Set proto to realm's intrinsic object named intrinsicDefaultProto.
+        proto.Object = intrinsic_default_proto
+    }
+
+    // 4. Return proto.
+    retourne normal_completion(proto)
 }
 
 /** \} */

@@ -2038,8 +2038,9 @@ sur_exécution_object_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
 {
     noeud := base comme *ObjectExpression
 
-    // À FAIRE : 1. Let obj be OrdinaryObjectCreate(%Object.prototype%).
-    objet := crée_objet(interpréteuse.donne_tas_de_mémoire(), interpréteuse.donne_realm().intrinsics.object_prototype)
+    // 1. Let obj be OrdinaryObjectCreate(%Object.prototype%).
+    realm := interpréteuse.donne_realm()
+    objet := ordinary_object_create(realm, realm.intrinsics.object_prototype, object_instance_crée)
 
     // 2. Perform ? PropertyDefinitionEvaluation of PropertyDefinitionList with argument obj.
     completion := property_definition_evaluation(interpréteuse, noeud.properties, objet)

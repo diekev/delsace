@@ -252,6 +252,32 @@ Realm :: struct {
     chaines: [..]*PrimitiveChaine
 }
 
+est_intrinsics :: fonc (realm: *Realm, object: *Object) -> bool
+{
+    info := info_de(Intrinsics)
+    base := *realm.intrinsics comme *octet
+
+    pour info.membres {
+        saufsi it.id.id == GenreInfoType.POINTEUR {
+            continue
+        }
+
+        /* Charge le membre. */
+        adresse := mémoire((base + it.décalage) comme **rien)
+        si object == adresse {
+            retourne vrai
+        }
+    }
+
+    pour realm.intrinsics.host_intrinsics {
+        si object == it {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}
+
 realm_sur_destruction :: fonc (base: *Cellule)
 {
     realm := base comme *Realm
@@ -311,7 +337,7 @@ initialise_host_defined_realm :: fonc (mv: *MachineVirtuelle, rappels : *Rappels
     // 13. Else,
     sinon {
         // a. Let global be OrdinaryObjectCreate(realm.[[Intrinsics]].[[%Object.prototype%]]).
-        global = crée_objet(tas_de_mémoire, realm.intrinsics.object_prototype)
+        global = ordinary_object_create(realm, realm.intrinsics.object_prototype, object_instance_crée)
     }
 
     this_value : *Object = ---

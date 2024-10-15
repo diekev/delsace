@@ -79,6 +79,11 @@ ECMAScriptFunction :: struct {
     constructor_kind: ConstructorKind
 }
 
+ecma_script_function_instance_crée :: fonc (realm: *Realm) -> *Object
+{
+    retourne realm.donne_tas_de_mémoire().alloue(ECMAScriptFunction)
+}
+
 /* 10.2.1 [[Call]] ( thisArgument, argumentsList )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ecmascript-function-objects-call-thisargument-argumentslist */
 sur_appel_fonction_ecma :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
@@ -276,8 +281,14 @@ sur_construct_fonction_ecma :: fonc (empl params: *ParamètresObjectConstruct) -
     // 3. If kind is base, then
     this_argument: Valeur
     si kind == ConstructorKind.Base {
-        // À FAIRE : a. Let thisArgument be ? OrdinaryCreateFromConstructor(newTarget, "%Object.prototype%").
-        this_argument.Object = crée_objet(realm.donne_tas_de_mémoire(), realm.intrinsics.object_prototype)
+        // a. Let thisArgument be ? OrdinaryCreateFromConstructor(newTarget, "%Object.prototype%").
+        new_target_func := new_target.donne_objet() comme *Function
+        completion := ordinary_create_from_constructor(realm, new_target_func, realm.intrinsics.object_prototype, object_instance_crée)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+
+        this_argument = completion.valeur.V
     }
 
     // 4. Let calleeContext be PrepareForOrdinaryCall(F, newTarget).
@@ -349,12 +360,9 @@ sur_construct_fonction_ecma :: fonc (empl params: *ParamètresObjectConstruct) -
  * À FAIRE : paramètres et étapes manquants */
 ordinary_function_create :: fonc (realm: *Realm, function_prototype: *FunctionPrototype, params: [..]*Expression, corps: *Statement, this_mode: bool, env: *Environment, private_env: *PrivateEnvironment) -> *ECMAScriptFunction
 {
-    tas_de_mémoire := function_prototype.donne_tas_de_mémoire()
-
     // 1. Let internalSlotsList be the internal slots listed in Table 30.
     // 2. Let F be OrdinaryObjectCreate(functionPrototype, internalSlotsList).
-    F := tas_de_mémoire.alloue(ECMAScriptFunction)
-    F.prototype = function_prototype
+    F := ordinary_object_create(realm, function_prototype, ecma_script_function_instance_crée) comme *ECMAScriptFunction
 
     // 3. Set F.[[Call]] to the definition specified in 10.2.1.
     // Ceci est fait via la table virtuelle.
@@ -438,7 +446,7 @@ make_constructor :: fonc (F: *ECMAScriptFunction, opt_writable_prototype : *bool
     // 5. If prototype is not present, then
     saufsi prototype {
         // a. Set prototype to OrdinaryObjectCreate(%Object.prototype%).
-        prototype = crée_objet(F.realm.donne_tas_de_mémoire(), F.realm.intrinsics.object_prototype)
+        prototype = ordinary_object_create(F.realm, F.realm.intrinsics.object_prototype, object_instance_crée)
     }
 
     // b. Perform ! DefinePropertyOrThrow(prototype, "constructor", PropertyDescriptor { [[Value]]: F, [[Writable]]: writablePrototype, [[Enumerable]]: false, [[Configurable]]: true }).

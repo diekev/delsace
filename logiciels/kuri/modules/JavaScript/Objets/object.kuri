@@ -126,11 +126,17 @@ is_accessor_propery :: fonc (propriété: &Object.Propriété) -> bool
     retourne !is_data_propery(propriété)
 }
 
+// À FAIRE : supprime
 crée_objet :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Object) -> *Object
 {
     résultat := tas_de_mémoire.alloue(Object)
     résultat.prototype = prototype
     retourne résultat
+}
+
+object_instance_crée :: fonc (realm: *Realm) -> *Object
+{
+    retourne realm.donne_tas_de_mémoire().alloue(Object)
 }
 
 sur_destruction_objet :: fonc (base: *Cellule)
