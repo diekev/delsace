@@ -384,6 +384,22 @@ get_this_value :: fonc (reference: ReferenceRecord) -> Valeur
     retourne reference.base.V
 }
 
+/* 6.2.5.8 InitializeReferencedBinding ( V, W )
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-initializereferencedbinding */
+initialize_reference_binding :: fonc (reference: ReferenceRecord, valeur: Valeur) -> CompletionRecord
+{
+    // 1. Assert: IsUnresolvableReference(V) is false.
+    assert(!est_référence_non_résolvable(reference))
+
+    // 2. Let base be V.[[Base]].
+    base := reference.base.E
+
+    // 3. Assert: base is an Environment Record.
+
+    // 4. Return ? base.InitializeBinding(V.[[ReferencedName]], W).
+    retourne base.initialize_binding(reference.referenced_name.valeur.String.texte, valeur)
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

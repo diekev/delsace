@@ -695,13 +695,32 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
     callee_context.lexical_environment = lex_env
 
     // 33. Let lexDeclarations be the LexicallyScopedDeclarations of code.
+    lex_declarations := donne_lexically_scoped_declarations(code)
+    diffère déloge(lex_declarations)
+
     // 34. For each element d of lexDeclarations, do
-        // a. NOTE: A lexically declared name cannot be the same as a function/generator declaration, formal parameter, or a var name. Lexically declared names are only instantiated here but not initialized.
+    pour lex_declarations {
+        // a. NOTE: A lexically declared name cannot be the same as a function/generator declaration,
+        // formal parameter, or a var name. Lexically declared names are only instantiated here but
+        // not initialized.
+
         // b. For each element dn of the BoundNames of d, do
+        pour dn dans it.expressions {
+            assert(dn.id.type == Identifier)
+            name := (dn.id comme *Identifier).nom
+
             // i. If IsConstantDeclaration of d is true, then
+            si it.nature == VariableDeclarationKind.Const {
                 // 1. Perform ! lexEnv.CreateImmutableBinding(dn, true).
+                _ := lex_env.create_immutable_binding(interpréteuse.donne_realm(), name, vrai)
+            }
             // ii. Else,
+            sinon {
                 // 1. Perform ! lexEnv.CreateMutableBinding(dn, false).
+                lex_env.create_mutable_binding(name, faux)
+            }
+        }
+    }
 
     // 35. Let privateEnv be the PrivateEnvironment of calleeContext.
     private_env := callee_context.private_environment

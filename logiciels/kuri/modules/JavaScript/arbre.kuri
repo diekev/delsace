@@ -1780,9 +1780,15 @@ sur_exécution_variable_declaration :: fonc (base: *NoeudSyntaxique, interpréte
     
     dernière_valeur := normal_completion(js_undefined)
 
-    /* À FAIRE : différence entre let et var. */
-    pour noeud.expressions {
-        dernière_valeur = exécute_noeud(it, interpréteuse)
+    si noeud.nature == VariableDeclarationKind.Var {
+        pour noeud.expressions {
+            dernière_valeur = évalue_variable_declaration(interpréteuse, it)
+        }
+    }
+    sinon {
+        pour noeud.expressions {
+            dernière_valeur = évalue_lexical_declaration(interpréteuse, it)
+        }
     }
 
     retourne dernière_valeur
@@ -1797,7 +1803,6 @@ sur_exécution_variable_declaration :: fonc (base: *NoeudSyntaxique, interpréte
 VariableDeclarator :: struct {
     empl base: Expression
     type = #type_de_cette_structure
-    sur_exécution = sur_exécution_variable_declarator
 
     id: *Expression
     init: *Expression
@@ -1812,9 +1817,8 @@ crée_variable_declarator :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-variable-statement */
-sur_exécution_variable_declarator :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+évalue_variable_declaration :: fonc (interpréteuse: *Interpréteuse, noeud: *VariableDeclarator) -> CompletionRecord
 {
-    noeud := base comme *VariableDeclarator
     assert(noeud.id.type == Identifier)
     identifier := noeud.id comme *Identifier
 
@@ -1866,6 +1870,61 @@ sur_exécution_variable_declarator :: fonc (base: *NoeudSyntaxique, interpréteu
     }
 
     // 6. Return EMPTY.
+    retourne empty_completion()
+}
+
+évalue_lexical_declaration :: fonc (interpréteuse: *Interpréteuse, noeud: *VariableDeclarator) -> CompletionRecord
+{
+    assert(noeud.id.type == Identifier)
+    binding_identifier := noeud.id comme *Identifier
+
+    saufsi noeud.init {
+        // 1. Let lhs be ! ResolveBinding(StringValue of BindingIdentifier).
+        lhs := resolve_binding(interpréteuse, binding_identifier.donne_chaine_primitive(interpréteuse.donne_realm())).valeur.R
+
+        // 2. Perform ! InitializeReferencedBinding(lhs, undefined).
+        _ := initialize_reference_binding(lhs, js_undefined)
+
+        // 3. Return empty.
+        retourne empty_completion()
+    }
+
+    // 1. Let bindingId be the StringValue of BindingIdentifier.
+    binding_id := binding_identifier.donne_chaine_primitive(interpréteuse.donne_realm())
+
+    // 2. Let lhs be ! ResolveBinding(bindingId).
+    lhs := resolve_binding(interpréteuse, binding_identifier.donne_chaine_primitive(interpréteuse.donne_realm())).valeur.R
+
+    valeur := js_undefined
+    // 3. If IsAnonymousFunctionDefinition(Initializer) is true, then
+    si is_anonymous_function_definition(noeud.init) {
+        // a. Let value be ? NamedEvaluation of Initializer with argument bindingId.
+        completion_valeur := named_evaluation(interpréteuse, noeud.init, binding_id.texte)
+        saufsi completion_valeur.est_normal() {
+            retourne completion_valeur
+        }
+
+        valeur = completion_valeur.valeur.V
+    }
+    // 4. Else,
+    sinon {
+        // a. Let rhs be ? Evaluation of Initializer.
+        completion_valeur := exécute_noeud(noeud.init, interpréteuse)
+        saufsi completion_valeur.est_normal() {
+            retourne completion_valeur
+        }
+        // b. Let value be ? GetValue(rhs).
+        valeur_complétion := get_value(interpréteuse, completion_valeur.valeur)
+        saufsi valeur_complétion.est_normal() {
+            retourne valeur_complétion
+        }
+        valeur = valeur_complétion.valeur.V
+    }
+
+    // 5. Perform ! InitializeReferencedBinding(lhs, value).
+    _ := initialize_reference_binding(lhs, valeur)
+
+    // 6. Return empty.
     retourne empty_completion()
 }
 
@@ -3774,6 +3833,52 @@ donne_var_declared_names :: fonc (noeud: *NoeudSyntaxique) -> [..]ECMAString
     crée_visiteuse_pour_déclarations_var(*visiteuse, noeud)
     visite_noeud(*visiteuse, noeud, visite_noeud_générique)
     retourne visiteuse.noms
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Rassemblement les déclarations lexicales.
+ * \{ */
+
+VisteuseDéclarationsLexicales :: struct {
+    empl base: VisiteuseNoeud
+    déclarations: [..]*VariableDeclaration
+}
+
+crée_visiteuse_pour_déclarations_lexicales :: fonc (résultat: *VisteuseDéclarationsLexicales, noeud: *NoeudSyntaxique)
+{
+    rappel_pour_noeud :: fonc (base: *VisiteuseNoeud, noeud: *NoeudSyntaxique, info: *InfoTypeStructure @inutilisée) -> VisiteEnfants
+    {
+        visiteuse := base comme *VisteuseDéclarationsLexicales
+
+        si noeud.type == FunctionDeclaration || noeud.type == FunctionExpression {
+            retourne VisiteEnfants.Non
+        }
+
+        si noeud.type == VariableDeclaration {
+            var_decl := noeud comme *VariableDeclaration
+            si var_decl.nature != VariableDeclarationKind.Var {
+                tableau_ajoute(*visiteuse.déclarations, var_decl)
+            }
+            retourne VisiteEnfants.Non
+        }
+
+        retourne VisiteEnfants.Oui
+    }
+
+    résultat.arbre = noeud
+    résultat.rappel_pour_noeud = rappel_pour_noeud
+    résultat.direction_visite = DirectionVisiteNoeud.PRÉ_ORDRE
+}
+
+/* https://tc39.es/ecma262/multipage/syntax-directed-operations.html#sec-static-semantics-lexicallydeclarednames */
+donne_lexically_scoped_declarations :: fonc (noeud: *NoeudSyntaxique) -> [..]*VariableDeclaration
+{
+    visiteuse: VisteuseDéclarationsLexicales
+    crée_visiteuse_pour_déclarations_lexicales(*visiteuse, noeud)
+    visite_noeud(*visiteuse, noeud, visite_noeud_générique)
+    retourne visiteuse.déclarations
 }
 
 /** \} */

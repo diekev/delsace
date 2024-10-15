@@ -11,6 +11,7 @@ Environment :: struct {
     outer_environment: *Environment
 
     sur_has_binding: fonc(*Environment, ECMAString, *z32)(bool)
+    sur_create_immutable_binding: fonc(*Environment, *Realm, ECMAString, bool)(CompletionRecord)
     sur_create_mutable_binding: fonc(*Environment, ECMAString, bool)(rien)
     sur_initialize_binding: fonc(*Environment, ECMAString, Valeur)(CompletionRecord)
     sur_get_binding_value: fonc(*Environment, *Realm, ECMAString, bool)(CompletionRecord)
@@ -32,6 +33,12 @@ set_mutable_binding :: fonc (environment: *Environment, realm: *Realm, nom: ECMA
 {
     assert(environment.sur_set_mutable_binding != nul)
     retourne environment.sur_set_mutable_binding(environment, realm, nom, valeur, strict)
+}
+
+create_immutable_binding :: fonc (environment: *Environment, realm: *Realm, nom: ECMAString, strict: bool) -> CompletionRecord
+{
+    assert(environment.sur_create_immutable_binding != nul)
+    retourne environment.sur_create_immutable_binding(environment, realm, nom, strict)
 }
 
 create_mutable_binding :: fonc (environment: *Environment, nom: ECMAString, supprimable: bool)
@@ -166,6 +173,7 @@ DeclarativeEnvironment :: struct {
 
     /* Environment */
     sur_has_binding = declarative_environment_has_binding
+    sur_create_immutable_binding = declarative_environment_create_immutable_binding
     sur_create_mutable_binding = declarative_environment_create_mutable_binding
     sur_initialize_binding = declarative_environment_initialize_binding
     sur_get_binding_value = declarative_environment_get_binding_value
@@ -176,7 +184,7 @@ DeclarativeEnvironment :: struct {
 
 est_declarative_environment :: fonc (environment: *Environment) -> bool
 {
-    retourne environment.donne_classe() == FunctionEnvironment
+    retourne environment.donne_classe() == DeclarativeEnvironment || environment.donne_classe() == FunctionEnvironment
 }
 
 /* 9.1.2.2 NewDeclarativeEnvironment ( E )
@@ -225,6 +233,27 @@ declarative_environment_create_mutable_binding :: fonc (base: *Environment, N: E
     binding.peut_être_détruit_par_delete = D
 
     // 3. Return unused.
+}
+
+/* 9.1.1.1.2 CreateImmutableBinding ( N, D )
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-declarative-environment-records-createimmutablebinding-n-s */
+declarative_environment_create_immutable_binding :: fonc (base: *Environment, realm: *Realm @inutilisée, N: ECMAString, S: bool) -> CompletionRecord
+{
+    env_rec := base comme *DeclarativeEnvironment
+
+    // 1. Assert: envRec does not already have a binding for N.
+    assert(env_rec.donne_binding(N) == nul)
+
+    // 2. Create an immutable binding in envRec for N and record that it is uninitialized.
+    //    If S is true, record that the newly created binding is a strict binding.
+    binding := tableau_ajoute_élément(*env_rec.bindings)
+    binding.nom = N
+    binding.mutable = faux
+    binding.initialisé = faux
+    binding.strict = S
+
+    // 3. Return unused.
+    retourne normal_completion(js_undefined)
 }
 
 /* 9.1.1.1.4 InitializeBinding ( N, V )
@@ -688,6 +717,7 @@ GlobalEnvironment :: struct {
     var_names: [..]ECMAString
 
     sur_has_binding = global_environment_has_binding
+    sur_create_immutable_binding = global_environment_create_immutable_binding
     sur_get_binding_value = global_environment_get_binding_value
     sur_set_mutable_binding = global_environment_set_mutable_binding
     sur_with_base_object = global_environment_with_base_object
@@ -746,6 +776,25 @@ global_environment_has_binding :: fonc (base: *Environment, nom: ECMAString, ind
 
     // 4. Return ? ObjRec.HasBinding(N).
     retourne has_binding(objrec, nom).valeur.V.Boolean
+}
+
+/* 9.1.1.4.3 CreateImmutableBinding ( N, D )
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-declarative-environment-records-createimmutablebinding-n-s */
+global_environment_create_immutable_binding :: fonc (base: *Environment, realm: *Realm, N: ECMAString, S: bool) -> CompletionRecord
+{
+    env_rec := base comme *GlobalEnvironment
+
+    // 1. Let DclRec be envRec.[[DeclarativeRecord]].
+    decl_rec := env_rec.declarative_record
+
+    // 2. If ! DclRec.HasBinding(N) is true, throw a TypeError exception.
+    si decl_rec.has_binding(N).valeur.V.est_true() {
+        message := imprime_chaine("redefinition of immutable variable '%'", N)
+        retourne lance_type_error(realm, message)
+    }
+
+    // 3. Return ! DclRec.CreateImmutableBinding(N, S).
+    retourne decl_rec.create_immutable_binding(realm, N, S)
 }
 
 /* 9.1.1.4.5 SetMutableBinding ( N, V, S )
