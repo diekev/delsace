@@ -525,6 +525,32 @@ string_to_number :: fonc (valeur: Valeur) -> Valeur
     retourne Valeur(Number = parse_nombre_depuis_lexème(*lexèmes[0]))
 }
 
+/* 7.1.5 ToIntegerOrInfinity ( argument )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-tointegerorinfinity */
+to_integer_or_infinity :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur) -> CompletionRecord
+{
+    // 1. Let number be ? ToNumber(argument).
+    completion := to_number(interpréteuse, valeur)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    number := completion.valeur.V.Number
+
+    // 2. If number is one of NaN, +0𝔽, or -0𝔽, return 0.
+    si est_nan(number) || number == 0.0 || number == -0.0 {
+        retourne normal_completion(Valeur(Number = 0))
+    }
+
+    // À FAIRE : 3. If number is +∞𝔽, return +∞.
+    // 4. If number is -∞𝔽, return -∞.
+    si est_infini(number) {
+        retourne normal_completion(Valeur(Number = number))
+    }
+
+    // À FAIRE : 5. Return truncate(ℝ(number)).
+    retourne normal_completion(Valeur(Number = (number comme z64) comme r64))
+}
+
 /* 7.1.17 ToString ( argument )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-tostring */
 to_string :: fonc (interpréteuse: *Interpréteuse, argument: Valeur) -> CompletionRecord
