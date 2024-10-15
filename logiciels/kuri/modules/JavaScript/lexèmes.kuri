@@ -55,6 +55,8 @@ GenreLexème :: énum {
     // opérateurs unaires
     PlusUnaire
     MoinsUnaire
+    PreIncrement
+    PreDecrement
 
     // ponctuation
     Point
@@ -470,8 +472,8 @@ initialise_données_lexèmes_pour_parsage :: fonc ()
     // définis_données_précédence(GenreLexème.Void, 14, Associativité.Aucune)
     // définis_données_précédence(GenreLexème.Delete, 14, Associativité.Aucune)
     // définis_données_précédence(GenreLexème.Await, 14, Associativité.Aucune)
-    // définis_données_précédence(GenreLexème.PreIncrement, 14, Associativité.Aucune)
-    // définis_données_précédence(GenreLexème.PreDecrement, 14, Associativité.Aucune)
+    définis_données_précédence(GenreLexème.PreIncrement, 14, Associativité.Aucune)
+    définis_données_précédence(GenreLexème.PreDecrement, 14, Associativité.Aucune)
 
     définis_données_précédence(GenreLexème.PlusPlus, 15, Associativité.Aucune)
     définis_données_précédence(GenreLexème.MoinsMoins, 15, Associativité.Aucune)
