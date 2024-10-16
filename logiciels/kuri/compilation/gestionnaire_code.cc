@@ -225,6 +225,14 @@ static bool ajoute_dépendances_au_programme(GrapheDépendance &graphe,
         programme.ajoute_type(type, RaisonAjoutType::DÉPENDANCE_DIRECTE, noeud);
         return kuri::DécisionItération::Continue;
     });
+    kuri::pour_chaque_élément(dépendances.init_de_utilisés, [&](auto &type) {
+        programme.ajoute_init_de(type);
+        return kuri::DécisionItération::Continue;
+    });
+    kuri::pour_chaque_élément(dépendances.info_de_utilisés, [&](auto &type) {
+        programme.ajoute_info_de(type);
+        return kuri::DécisionItération::Continue;
+    });
 
     auto dépendances_manquantes = programme.dépendances_manquantes();
     programme.dépendances_manquantes().efface();
@@ -286,6 +294,16 @@ struct RassembleuseDependances {
         dépendances.globales_utilisées.insère(globale);
     }
 
+    void ajoute_init_de(Type *type)
+    {
+        dépendances.init_de_utilisés.insère(type);
+    }
+
+    void ajoute_info_de(Type *type)
+    {
+        dépendances.info_de_utilisés.insère(type);
+    }
+
     void rassemble_dépendances()
     {
         rassemble_dépendances(racine_);
@@ -325,6 +343,9 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
         else if (transformation.type == TypeTransformation::R64_VERS_R16) {
             assert(interface->decl_dls_depuis_r64);
             ajoute_fonction(interface->decl_dls_depuis_r64);
+        }
+        else if (transformation.type == TypeTransformation::CONSTRUIT_EINI) {
+            ajoute_info_de(type);
         }
 
         /* Nous avons besoin d'un type pointeur pour le type cible pour la génération de
@@ -537,6 +558,11 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
                               [&]() { dbg() << "Type nul pour " << declaration->ident->nom; });
                 ajoute_type(declaration->type);
                 rassemble_dépendances(declaration->expression);
+
+                if (!declaration->expression &&
+                    !declaration->possède_drapeau(DrapeauxNoeud::EST_PARAMETRE)) {
+                    ajoute_init_de(declaration->type);
+                }
             }
             else if (noeud->est_déclaration_variable_multiple()) {
                 auto declaration = noeud->comme_déclaration_variable_multiple();
@@ -549,6 +575,16 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
                     auto type_expression = it.expression ? it.expression->type : Type::nul();
                     rassemble_dépendances_transformations(it.transformations, type_expression);
                 }
+            }
+            else if (noeud->est_init_de()) {
+                auto init_de = noeud->comme_init_de();
+                ajoute_init_de(
+                    init_de->expression->type->comme_type_type_de_données()->type_connu);
+            }
+            else if (noeud->est_info_de()) {
+                auto info_de = noeud->comme_info_de();
+                ajoute_info_de(
+                    info_de->expression->type->comme_type_type_de_données()->type_connu);
             }
 
             return DecisionVisiteNoeud::CONTINUE;

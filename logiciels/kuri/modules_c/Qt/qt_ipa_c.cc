@@ -683,6 +683,12 @@ void QT_timer_arrete(QT_Timer *timer)
     qtimer->stop();
 }
 
+void QT_timer_definis_se_repete(QT_Timer *timer, bool ouinon)
+{
+    auto qtimer = vers_qt(timer);
+    qtimer->setSingleShot(!ouinon);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
