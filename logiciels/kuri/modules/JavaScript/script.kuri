@@ -100,7 +100,7 @@ initialise_script :: fonc (résultat: *Script, realm: *Realm, script: *Programme
 
 sur_destruction_script :: fonc (base: *Cellule)
 {
-    script := base comme *Script
+    script := base.vérifie_comme(Script)
     détruit_données_script(script)
 }
 

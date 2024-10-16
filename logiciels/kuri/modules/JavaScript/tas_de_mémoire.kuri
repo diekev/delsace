@@ -452,6 +452,17 @@ Cellule :: struct {
     vivante := vrai
 }
 
+vérifie_comme :: fonc (cellule: *Cellule, $T: type_de_données) -> *T
+{
+    assert(cellule.est_classe(info_de(T)))
+    retourne cellule comme *T
+}
+
+est_classe :: fonc (cellule: *Cellule, info: *InfoTypeStructure) -> bool
+{
+    retourne est_struct_ou_employeuse_de(cellule.donne_info_type_cellule(), info)
+}
+
 donne_info_type_cellule :: fonc (racine: *Cellule) -> *InfoTypeStructure
 {
     résultat := __table_des_types[racine.table.classe] comme *InfoTypeStructure

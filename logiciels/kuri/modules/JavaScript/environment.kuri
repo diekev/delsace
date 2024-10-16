@@ -148,7 +148,7 @@ table_virtuelle_decl_env := TableVirtuelleCellule(classe = DeclarativeEnvironmen
 
 declarative_environment_sur_destruction :: fonc (base: *Cellule)
 {
-    env := base comme *DeclarativeEnvironment
+    env := base.vérifie_comme(DeclarativeEnvironment)
     déloge(env.bindings)
 }
 
@@ -205,7 +205,7 @@ new_declarative_environment :: fonc (tas_de_mémoire: *TasDeMémoire, environmen
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-object-environment-records-hasbinding-n */
 declarative_environment_has_binding :: fonc (base: *Environment, nom: ECMAString, index: *z32) -> bool
 {
-    env_rec := base comme *DeclarativeEnvironment
+    env_rec := base.vérifie_comme(DeclarativeEnvironment)
 
     // 1. If envRec has a binding for N, return true.
     si donne_binding(env_rec, nom, index) {
@@ -220,7 +220,7 @@ declarative_environment_has_binding :: fonc (base: *Environment, nom: ECMAString
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-declarative-environment-records-createmutablebinding-n-d */
 declarative_environment_create_mutable_binding :: fonc (base: *Environment, N: ECMAString, D: bool)
 {
-    env_rec := base comme *DeclarativeEnvironment
+    env_rec := base.vérifie_comme(DeclarativeEnvironment)
 
     // 1. Assert: envRec does not already have a binding for N.
     assert(env_rec.donne_binding(N) == nul)
@@ -239,7 +239,7 @@ declarative_environment_create_mutable_binding :: fonc (base: *Environment, N: E
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-declarative-environment-records-createimmutablebinding-n-s */
 declarative_environment_create_immutable_binding :: fonc (base: *Environment, realm: *Realm @inutilisée, N: ECMAString, S: bool) -> CompletionRecord
 {
-    env_rec := base comme *DeclarativeEnvironment
+    env_rec := base.vérifie_comme(DeclarativeEnvironment)
 
     // 1. Assert: envRec does not already have a binding for N.
     assert(env_rec.donne_binding(N) == nul)
@@ -260,7 +260,7 @@ declarative_environment_create_immutable_binding :: fonc (base: *Environment, re
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-declarative-environment-records-initializebinding-n-v */
 declarative_environment_initialize_binding :: fonc (base: *Environment, N: ECMAString, V: Valeur) -> CompletionRecord
 {
-    env_rec := base comme *DeclarativeEnvironment
+    env_rec := base.vérifie_comme(DeclarativeEnvironment)
     binding := donne_binding(env_rec, N)
 
     // 1. Assert: envRec must have an uninitialized binding for N.
@@ -294,7 +294,7 @@ donne_binding :: fonc (env: *DeclarativeEnvironment, nom: ECMAString, index : *z
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-declarative-environment-records-setmutablebinding-n-v-s */
 declarative_environment_set_mutable_binding :: fonc (base: *Environment, realm: *Realm, nom: ECMAString, valeur: Valeur, strict: bool) -> CompletionRecord
 {
-    env_rec := base comme *DeclarativeEnvironment
+    env_rec := base.vérifie_comme(DeclarativeEnvironment)
     binding := donne_binding(env_rec, nom)
 
     // 1. If envRec does not have a binding for N, then
@@ -349,7 +349,7 @@ declarative_environment_set_mutable_binding :: fonc (base: *Environment, realm: 
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-declarative-environment-records-getbindingvalue-n-s */
 declarative_environment_get_binding_value :: fonc (base: *Environment, realm: *Realm, nom: ECMAString, strict: bool @inutilisée) -> CompletionRecord
 {
-    env_rec := base comme *DeclarativeEnvironment
+    env_rec := base.vérifie_comme(DeclarativeEnvironment)
     binding := donne_binding(env_rec, nom)
 
     // 1. Assert: envRec has a binding for N.
@@ -470,7 +470,7 @@ bind_this_value :: fonc (env_rec: *FunctionEnvironment, V: Valeur) -> Completion
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-function-environment-records-hasthisbinding */
 function_environment_has_this_binding :: fonc (base: *Environment) -> bool
 {
-    env_rec := base comme *FunctionEnvironment
+    env_rec := base.vérifie_comme(FunctionEnvironment)
     // 1. If envRec.[[ThisBindingStatus]] is lexical, return false; otherwise, return true.
     retourne env_rec.this_binding_status != ThisBindingStatus.LEXICAL
 }
@@ -479,7 +479,7 @@ function_environment_has_this_binding :: fonc (base: *Environment) -> bool
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-function-environment-records-getthisbinding */
 function_environment_get_this_binding :: fonc (base: *Environment, realm: *Realm) -> CompletionRecord
 {
-    env_rec := base comme *FunctionEnvironment
+    env_rec := base.vérifie_comme(FunctionEnvironment)
 
     // 1. Assert: envRec.[[ThisBindingStatus]] is not lexical.
     assert(env_rec.this_binding_status != ThisBindingStatus.LEXICAL)
@@ -558,7 +558,7 @@ new_object_environment :: fonc (tas_de_mémoire: *TasDeMémoire, global: *Object
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-object-environment-records-hasbinding-n */
 object_environment_has_binding :: fonc (base: *Environment, nom: ECMAString, index: *z32 @inutilisée) -> bool
 {
-    environment := base comme *ObjectEnvironment
+    environment := base.vérifie_comme(ObjectEnvironment)
 
     // 1. Let bindingObject be envRec.[[BindingObject]].
     binding_object := environment.binding_object
@@ -594,7 +594,7 @@ object_environment_has_binding :: fonc (base: *Environment, nom: ECMAString, ind
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-object-environment-records-setmutablebinding-n-v-s */
 object_environment_set_mutable_binding :: fonc (base: *Environment, realm: *Realm, nom: ECMAString, valeur: Valeur, strict: bool) -> CompletionRecord
 {
-    environment := base comme *ObjectEnvironment
+    environment := base.vérifie_comme(ObjectEnvironment)
 
     // 1. Let bindingObject be envRec.[[BindingObject]].
     binding_object := environment.binding_object
@@ -634,7 +634,7 @@ object_environment_set_mutable_binding :: fonc (base: *Environment, realm: *Real
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-object-environment-records-getbindingvalue-n-s */
 object_environment_get_binding_value :: fonc (base: *Environment, realm: *Realm, nom: ECMAString, strict: bool) -> CompletionRecord
 {
-    environment := base comme *ObjectEnvironment
+    environment := base.vérifie_comme(ObjectEnvironment)
 
     // 1. Let bindingObject be envRec.[[BindingObject]].
     binding_object := environment.binding_object
@@ -681,7 +681,7 @@ object_environment_has_this_binding :: fonc (base: *Environment @inutilisée) ->
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-object-environment-records-withbaseobject */
 object_environment_with_base_object :: fonc (base: *Environment) -> Valeur
 {
-    environment := base comme *ObjectEnvironment
+    environment := base.vérifie_comme(ObjectEnvironment)
 
     // 1. If envRec.[[IsWithEnvironment]] is true, return envRec.[[BindingObject]].
     si environment.is_with_environment {
@@ -761,7 +761,7 @@ new_global_environment :: fonc (tas_de_mémoire: *TasDeMémoire, global: *Object
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-global-environment-records-hasbinding-n */
 global_environment_has_binding :: fonc (base: *Environment, nom: ECMAString, index: *z32 @inutilisée) -> bool
 {
-    environment := base comme *GlobalEnvironment
+    environment := base.vérifie_comme(GlobalEnvironment)
 
     // 1. Let DclRec be envRec.[[DeclarativeRecord]].
     dclrec := environment.declarative_record
@@ -782,7 +782,7 @@ global_environment_has_binding :: fonc (base: *Environment, nom: ECMAString, ind
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-declarative-environment-records-createimmutablebinding-n-s */
 global_environment_create_immutable_binding :: fonc (base: *Environment, realm: *Realm, N: ECMAString, S: bool) -> CompletionRecord
 {
-    env_rec := base comme *GlobalEnvironment
+    env_rec := base.vérifie_comme(GlobalEnvironment)
 
     // 1. Let DclRec be envRec.[[DeclarativeRecord]].
     decl_rec := env_rec.declarative_record
@@ -801,7 +801,7 @@ global_environment_create_immutable_binding :: fonc (base: *Environment, realm: 
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-global-environment-records-setmutablebinding-n-v-s */
 global_environment_set_mutable_binding :: fonc (base: *Environment, realm: *Realm, nom: ECMAString, valeur: Valeur, strict: bool) -> CompletionRecord
 {
-    environment := base comme *GlobalEnvironment
+    environment := base.vérifie_comme(GlobalEnvironment)
 
     // 1. Let DclRec be envRec.[[DeclarativeRecord]].
     dclrec := environment.declarative_record
@@ -823,7 +823,7 @@ global_environment_set_mutable_binding :: fonc (base: *Environment, realm: *Real
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-global-environment-records-getbindingvalue-n-s */
 global_environment_get_binding_value :: fonc (base: *Environment, realm: *Realm, nom: ECMAString, strict: bool) -> CompletionRecord
 {
-    environment := base comme *GlobalEnvironment
+    environment := base.vérifie_comme(GlobalEnvironment)
 
     // 1. Let DclRec be envRec.[[DeclarativeRecord]].
     dclrec := environment.declarative_record
@@ -861,7 +861,7 @@ global_environment_with_base_object :: fonc (base: *Environment @inutilisée) ->
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-global-environment-records-getthisbindinghttps://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-global-environment-records-getthisbinding */
 global_environment_get_this_binding :: fonc (base: *Environment, realm: *Realm @inutilisée) -> CompletionRecord
 {
-    env_rec := base comme *GlobalEnvironment
+    env_rec := base.vérifie_comme(GlobalEnvironment)
     // 1. Return envRec.[[GlobalThisValue]].
     retourne normal_completion(env_rec.global_this_value)
 }
@@ -870,7 +870,7 @@ global_environment_get_this_binding :: fonc (base: *Environment, realm: *Realm @
  * https://tc39.es/ecma262/#sec-createglobalfunctionbinding */
 global_environment_create_global_function_binding :: fonc (base: *Environment, N: ECMAString, V: Valeur, D: bool @inutilisée) -> CompletionRecord
 {
-    env_rec := base comme *GlobalEnvironment
+    env_rec := base.vérifie_comme(GlobalEnvironment)
 
     // 1. Let ObjRec be envRec.[[ObjectRecord]].
     obj_rec := env_rec.object_record
