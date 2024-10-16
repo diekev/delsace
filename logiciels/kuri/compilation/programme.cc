@@ -139,6 +139,16 @@ void Programme::ajoute_type(Type *type, RaisonAjoutType raison, NoeudExpression 
     }
 }
 
+void Programme::ajoute_init_de(Type *type)
+{
+    m_init_de.insère(type);
+}
+
+void Programme::ajoute_info_de(Type *type)
+{
+    m_info_de.insère(type);
+}
+
 bool Programme::typages_terminés(DiagnostiqueÉtatCompilation &diagnostique) const
 {
     if (m_éléments_sont_sales[FONCTIONS][POUR_TYPAGE]) {

@@ -17,6 +17,8 @@ importe Typographie
 
 DÉBOGUE_ALLOCATIONS :: faux
 
+CHAINE_USER_AGENT :: "Mozilla/5.0 (X11; Linux x86_64) Version/0.0 (KHTML, like Gecko) VueHTML/0.0"
+
 // #exécute compile_pour_débogage_avec_asan()
 
 /* ------------------------------------------------------------------------- */
@@ -104,6 +106,7 @@ principale :: fonc () -> z32
     rappels_fenêtre: RappelsFenetrePrincipale
     rappels_fenêtre.user_agent = loge(UserAgent)
     rappels_fenêtre.user_agent.supporte_scripting = utilise_javascript
+    rappels_fenêtre.user_agent.user_agent_string = crée_chaine_utf16_unique(CHAINE_USER_AGENT)
     rappel_fermeture.rappels_fenêtre = *rappels_fenêtre
 
     fenêtre := QT_cree_fenetre_principale(*rappels_fenêtre)
@@ -1141,6 +1144,7 @@ VueRenduPage :: struct {
     dessine_tampon_id: bool
 
     peintre: *Peintre
+    peintre_id: *Peintre
 }
 
 crée_vue_rendu_page :: fonc (fenêtre_principale: *QT_Fenetre_Principale, parent: QT_Generic_Widget, page: *PageWeb) -> *QT_GLWidget
@@ -1158,7 +1162,10 @@ vue_rendu_page_sur_destruction :: fonc (rappels: *QT_Rappels_GLWidget)
 {
     vue_rendu_page := rappels comme *VueRenduPage
     si vue_rendu_page.peintre {
-        détruit_peintre_igumi(vue_rendu_page.peintre)
+        détruit_peintre(vue_rendu_page.peintre)
+    }
+    si vue_rendu_page.peintre_id {
+        détruit_peintre(vue_rendu_page.peintre_id)
     }
     déloge(vue_rendu_page)
 }
@@ -1182,6 +1189,11 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
 
     saufsi vue_rendu_page.peintre {
         vue_rendu_page.peintre = crée_peintre_igumi(taille_cannevas)
+        // vue_rendu_page.peintre = crée_peintre_module_dessin(taille_cannevas)
+    }
+
+    saufsi vue_rendu_page.peintre_id {
+        vue_rendu_page.peintre_id = crée_peintre_igumi(taille_cannevas)
     }
 
     peintre := vue_rendu_page.peintre
@@ -1217,6 +1229,8 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
     }
 
     // début_rendu := maintenant_précis()
+
+    ctx.peintre.remplis_arrière_plan(CouleurRVBAN8(255, 255, 255, 255))
 
     si vue_rendu_page.dessine_tampon_id {
         CSS.dessine_tampon_id_couleur(arbre, *ctx)
@@ -1272,6 +1286,9 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
         }
     }
 
+    ctx.peintre.dessine_tampon_sur_écran()
+
+    ctx.peintre = vue_rendu_page.peintre_id
     CSS.dessine_tampon_id(arbre, *ctx)
 
     /* Nous devrions faire ça plus haut mais il semblerait qu'il manque, ou qu'il y a une préemption, des ajournements. */
@@ -1810,7 +1827,7 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Request) -> *RappelsRequê
         }
 
         ajoute_au_tampon(*enchaineuse, "Accept-Encoding: identity\r\n")
-        ajoute_au_tampon(*enchaineuse, "User-Agent: delsace\r\n")
+        ajoute_au_tampon(*enchaineuse, "User-Agent: ", CHAINE_USER_AGENT, "\r\n")
         ajoute_au_tampon(*enchaineuse, "Connection: close\r\n")
         ajoute_au_tampon(*enchaineuse, "\r\n")
 
@@ -2019,7 +2036,7 @@ rappels_interface_sur_affichage_alerte :: fonc (base: *RappelsInterface, message
     _ := QT_message_box_affiche_avertissement(rappels.fenêtre, vers_qt("Alerte"), vers_qt(chn_message), QT_StandardButton.OK)
 }
 
-rappels_interface_sur_création_timeout :: fonc (base: *RappelsInterface, algorithm: *Algorithm, time_out: z32) -> z32
+rappels_interface_sur_création_timeout :: fonc (base: *RappelsInterface, algorithm: *Algorithm, time_out: z32, se_répète: bool) -> z32
 {
     RappelTimer :: struct {
         empl base: QT_Rappels_Timer
@@ -2039,6 +2056,7 @@ rappels_interface_sur_création_timeout :: fonc (base: *RappelsInterface, algori
     rappel_timer.sur_timeout = sur_timeout
 
     timer := QT_cree_timer(rappel_timer)
+    QT_timer_definis_se_repete(timer, se_répète)
 
     rappels := base comme *RappelsInterfaceQt
 

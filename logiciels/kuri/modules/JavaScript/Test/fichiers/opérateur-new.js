@@ -15,20 +15,24 @@ function VoitureOpaque() { }
 
 test("une fonction utilise comme construteur retourne un objet configurable", function () {
     var voiture1 = new VoitureOpaque();
-    // var voiture2 = new VoitureOpaque();
+    var voiture2 = new VoitureOpaque();
 
     vérifie_égalité(voiture1.hasOwnProperty("couleur"), false);
 
-    // À FAIRE
-    // Voiture.prototype.couleur = "couleur standard";
-    // vérifie_égalité(voiture1.hasOwnProperty("couleur"), false);
-    // vérifie_égalité(voiture1.couleur, "couleur standard");
+    VoitureOpaque.prototype.couleur = "couleur standard";
+    vérifie_égalité(voiture1.hasOwnProperty("couleur"), false);
+    vérifie_égalité(voiture1.couleur, "couleur standard");
 
     voiture1.couleur = "noir";
     vérifie_égalité(voiture1.hasOwnProperty("couleur"), true);
 
-    // vérifie_égalité(voiture1.__proto__.couleur, "couleur standard");
-    // vérifie_égalité(voiture2.__proto__.couleur, "couleur standard");
+    vérifie_égalité(voiture1.__proto__.couleur, "couleur standard");
+    vérifie_égalité(voiture2.__proto__.couleur, "couleur standard");
     vérifie_égalité(voiture1.couleur, "noir")
-    // vérifie_égalité(voiture1.couleur, "couleur standard")
+    vérifie_égalité(voiture2.couleur, "couleur standard")
+});
+
+test("parsage de new avec appel de membre", function () {
+    var x = new Array(16).push(5);
+    vérifie_égalité(x, 17);
 });
