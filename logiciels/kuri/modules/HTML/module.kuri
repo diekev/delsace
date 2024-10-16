@@ -33,6 +33,7 @@ charge "webappsec_permissions_policy"
 charge "webappsec_referrer_policy"
 charge "webcrypto"
 charge "webdriver_bidi"
+charge "window"
 
 charge "WebIDL/génératrice_code"
 
