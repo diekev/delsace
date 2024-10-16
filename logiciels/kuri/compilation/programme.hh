@@ -126,8 +126,6 @@ struct Programme {
     kuri::rassembleuse<Type *> m_init_de{};
     kuri::rassembleuse<Type *> m_info_de{};
 
-    kuri::rassembleuse<Type *> m_init_types{};
-
     /* Tous les fichiers utilisés dans le programme. */
     kuri::rassembleuse<Fichier *> m_fichiers{};
     mutable bool m_fichiers_sont_sales = true;
