@@ -56,14 +56,14 @@ StatistiquesTests :: struct {
 
     diffère éboue(donne_tas_de_mémoire(*mv))
 
-    rappels_hôte: RappelsHôte
-    rappels_hôte.crée_propriétés_hôte_objet_global = crée_propriétés_hôte_objet_global
+    configuration: ConfigurationRealm
+    configuration.crée_propriétés_hôte_objet_global = crée_propriétés_hôte_objet_global
 
-    realm := initialise_host_defined_realm(*mv, *rappels_hôte)
+    realm := initialise_host_defined_realm(*mv, *configuration)
 
     crée_environnement_de_test(realm)
 
-    résultat := exécute_script(realm, contenu)
+    résultat := exécute_script(realm, contenu, chemin.chn)
     si résultat {
         imprime("[ \x1b[32mPASSE\x1b[37m ] : %\n", chemin)
     }
@@ -74,12 +74,13 @@ StatistiquesTests :: struct {
 
 crée_environnement_de_test :: fonc (realm: *Realm)
 {
-    source := contenu_fichier_texte("environnement_test.js")
+    chemin := "environnement_test.js"
+    source := contenu_fichier_texte(chemin)
     diffère déloge(source)
-    _ := exécute_script(realm, source)
+    _ := exécute_script(realm, source, chemin)
 }
 
-exécute_script :: fonc (realm: *Realm, source: chaine) -> bool
+exécute_script :: fonc (realm: *Realm, source: chaine, chemin: chaine) -> bool
 {
     script: *Script
     /* À FAIRE(langage) : host_defined n'est pas initialisée à sa valeur défaut. */
@@ -89,11 +90,11 @@ exécute_script :: fonc (realm: *Realm, source: chaine) -> bool
             script = s
         }
         Erreur(e) {
-            imprime("[ \x1b[31mÉCHEC\x1b[37m ] : %\n", e)
+            imprime("[ \x1b[31mÉCHEC\x1b[37m ] : %\n%\n", chemin, e)
             retourne faux
         }
         sinon {
-            imprime("[ \x1b[31mÉCHEC\x1b[37m ] : erreur inconnue\n")
+            imprime("[ \x1b[31mÉCHEC\x1b[37m ] : %\n     erreur inconnue\n", chemin)
             retourne faux
         }
     }
@@ -103,11 +104,11 @@ exécute_script :: fonc (realm: *Realm, source: chaine) -> bool
         retourne vrai
     }
 
-    imprime("[ \x1b[31mÉCHEC\x1b[37m ] : %\n", get_value(realm, résultat.valeur))
+    imprime("[ \x1b[31mÉCHEC\x1b[37m ] : %\n%\n", chemin, get_value(realm, résultat.valeur))
     retourne faux
 }
 
-crée_propriétés_hôte_objet_global :: fonc (base: *RappelsHôte @inutilisée, global: *Object)
+crée_propriétés_hôte_objet_global :: fonc (base: *ConfigurationRealm @inutilisée, global: *Object)
 {
     flux_sortie_sur_destruction :: fonc (base: *FluxSortieConsole)
     {

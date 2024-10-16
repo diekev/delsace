@@ -123,6 +123,8 @@ struct Programme {
     kuri::rassembleuse<NoeudDéclarationVariable *> m_globales{};
 
     kuri::rassembleuse<Type *> m_types{};
+    kuri::rassembleuse<Type *> m_init_de{};
+    kuri::rassembleuse<Type *> m_info_de{};
 
     /* Tous les fichiers utilisés dans le programme. */
     kuri::rassembleuse<Fichier *> m_fichiers{};
@@ -183,6 +185,8 @@ struct Programme {
     void ajoute_globale(NoeudDéclarationVariable *globale);
 
     void ajoute_type(Type *type, RaisonAjoutType raison, NoeudExpression *noeud);
+    void ajoute_init_de(Type *type);
+    void ajoute_info_de(Type *type);
 
     bool possède(NoeudDéclarationEntêteFonction *fonction) const
     {

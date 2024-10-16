@@ -1855,7 +1855,7 @@ HTMLScriptElement :: struct {
 
     type: TypeScript
     // result : "uninitialized", null, scipt, import map parse result
-    result: *rien
+    result: *Script
 
     steps_to_run_when_the_result_is_ready: *Algorithm
 }
@@ -2059,7 +2059,7 @@ prépare :: fonc (el: *HTMLScriptElement)
             empl base: ScriptFetchComplete
             élément: *HTMLScriptElement
         }
-        sur_run :: fonc (base: *ScriptFetchComplete, result: *rien)
+        sur_run :: fonc (base: *ScriptFetchComplete, result: *Script)
         {
             on_complete := base comme *OnComplete
             // 1. Mark as ready el given result.
@@ -2270,7 +2270,7 @@ execute_the_script_element :: fonc (el: *HTMLScriptElement)
 }
 
 /* https://html.spec.whatwg.org/multipage/scripting.html#mark-as-ready */
-mark_as_ready :: fonc (el: *HTMLScriptElement, result : *rien = nul)
+mark_as_ready :: fonc (el: *HTMLScriptElement, result : *Script = nul)
 {
     // 1. Set el's result to result.
     el.result = result
@@ -2293,7 +2293,7 @@ queue_a_task_to_fire_error_at_element :: fonc (user_agent: *UserAgent @inutilis�
 }
 
 ScriptFetchComplete :: struct {
-    sur_run: fonc(*ScriptFetchComplete, *rien)(rien)
+    sur_run: fonc(*ScriptFetchComplete, *Script)(rien)
     sur_destruction: fonc(*ScriptFetchComplete)(rien)
 }
 
@@ -2356,7 +2356,7 @@ fetch_a_classic_script :: fonc (user_agent: *UserAgent, url: *URL, settings_obje
 
         contenu := réponse.body.Quelque
 
-        url := rappel.request.donne_url_courant()
+        url := copie_url(rappel.request.donne_url_courant())
 
         script := create_a_classic_script(rappel.user_agent, contenu, rappel.settings_object, url, rappel.options)
         rappel.on_complete.run(script)
