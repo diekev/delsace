@@ -2287,11 +2287,6 @@ mark_as_ready :: fonc (el: *HTMLScriptElement, result : *Script = nul)
     el.delaying_the_load_event = faux
 }
 
-queue_a_task_to_fire_error_at_element :: fonc (user_agent: *UserAgent @inutilisée, élément: *Élément @inutilisée)
-{
-    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
-}
-
 ScriptFetchComplete :: struct {
     sur_run: fonc(*ScriptFetchComplete, *Script)(rien)
     sur_destruction: fonc(*ScriptFetchComplete)(rien)
