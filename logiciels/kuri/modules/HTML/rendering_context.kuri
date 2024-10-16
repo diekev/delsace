@@ -100,23 +100,6 @@ fill_rect :: fonc (ctx: *CanvasRenderingContext2D, x: r64, y: r64, w: r64, h: r6
     rect.hauteur = h comme z32
 
     tampon := ctx.canvas.donne_tampon_de_rendu()
-    rect_tampon := tampon.rect.donne_rectangle_pur()
-    rect_pur := rect.donne_rectangle_pur()
-
-    si rect_pur.gauche < rect_tampon.gauche {
-        rect_pur.gauche = rect_tampon.gauche
-    }
-    si rect_pur.bas < rect_tampon.bas {
-        rect_pur.bas = rect_tampon.bas
-    }
-    si rect_pur.haut > rect_tampon.haut {
-        rect_pur.haut = rect_tampon.haut
-    }
-    si rect_pur.droite > rect_tampon.droite {
-        rect_pur.droite = rect_tampon.droite
-    }
-
-    rect = rect_pur.donne_rectangle_pos_dim()
 
     peintre: PeintreDessin
     initialise_peintre_dessin(*peintre)
