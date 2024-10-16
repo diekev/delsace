@@ -21,7 +21,8 @@ using Type = NoeudDéclarationType;
 
 namespace kuri {
 struct chaine;
-}
+struct chaine_statique;
+}  // namespace kuri
 
 /**
  * GrapheDependance de dépendance entre les fonctions et les types.
@@ -146,6 +147,8 @@ struct DonnéesDépendance {
         résultat += globales_utilisées.mémoire_utilisée();
         return résultat;
     }
+
+    kuri::chaine imprime(kuri::chaine_statique message) const;
 };
 
 void imprime_dépendances(const DonnéesDépendance &dépendances,

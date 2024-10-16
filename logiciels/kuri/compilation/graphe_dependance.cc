@@ -435,6 +435,36 @@ void DonnéesDépendance::fusionne(const DonnéesDépendance &autre)
     });
 }
 
+kuri::chaine DonnéesDépendance::imprime(kuri::chaine_statique message) const
+{
+    Enchaineuse enchaineuse;
+
+    enchaineuse << "------------------------------------\n";
+    if (message.taille() != 0) {
+        enchaineuse << message << "\n\n";
+    }
+
+    enchaineuse << "Fonctions utilisées :\n";
+    kuri::pour_chaque_élément(fonctions_utilisées, [&](auto &fonction) {
+        enchaineuse << "    " << nom_humainement_lisible(fonction) << '\n';
+        return kuri::DécisionItération::Continue;
+    });
+
+    enchaineuse << "\nGlobales utilisées :\n";
+    kuri::pour_chaque_élément(globales_utilisées, [&](auto &globale) {
+        enchaineuse << "    " << nom_humainement_lisible(globale) << '\n';
+        return kuri::DécisionItération::Continue;
+    });
+
+    enchaineuse << "\nTypes utilisés :\n";
+    kuri::pour_chaque_élément(types_utilisés, [&](auto &type) {
+        enchaineuse << "    " << chaine_type(type) << '\n';
+        return kuri::DécisionItération::Continue;
+    });
+
+    return enchaineuse.chaine();
+}
+
 static void imprime_dépendances(NoeudDépendance const *noeud_dep,
                                 kuri::chaine_statique nom,
                                 void const *adresse,
