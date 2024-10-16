@@ -130,11 +130,9 @@ parse_script :: fonc (source_texte: chaine, realm: *Realm, host_defined := HostD
             script = programme
         }
         Erreur(e) {
-            détruit_données_script(résultat)
             retourne e
         }
         sinon {
-            détruit_données_script(résultat)
             retourne ErreurCompilation(copie_chaine("Erreur interne : la compilation a échoué pour raison inconnue"))
         }
     }
@@ -191,7 +189,6 @@ script_evaluation :: fonc (script_record: *Script) -> CompletionRecord
     si résultat.est_normal() {
         // a. Set result to Completion(Evaluation of script).
         interpréteuse: Interpréteuse
-        diffère détruit_données_interpreteuse(*interpréteuse)
         interpréteuse.mv = mv
         résultat = exécute(*interpréteuse, script)
 

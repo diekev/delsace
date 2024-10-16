@@ -29,12 +29,23 @@ ParamètresObjectConstruct :: struct {
     arguments: []Valeur
 }
 
+donne_argument :: fonc (params: *ParamètresObjectConstruct, index: z64) -> Valeur
+{
+    si index < 0 || index >= params.arguments.taille {
+        retourne js_undefined
+    }
+    retourne params.arguments[index]
+}
+
 TypeFonctionObjectConstruct :: fonc(*ParamètresObjectConstruct)(CompletionRecord)
 
 TableVirtuelleObject :: struct {
     empl base_virtuelle_cellule: TableVirtuelleCellule
 
+    sur_destruction = sur_destruction_objet
+
     sur_get_prototype_of := ordinary_get_prototype_of
+    sur_set_prototype_of := ordinary_set_prototype_of
     sur_get_own_property := ordinary_get_own_property
     sur_define_own_property := ordinary_define_own_property
     sur_has_property := ordinary_has_property
@@ -46,7 +57,7 @@ TableVirtuelleObject :: struct {
 
 #portée_fichier
 
-table_virtuelle_objet := TableVirtuelleObject(classe = Object, sur_destruction = sur_destruction_objet)
+table_virtuelle_objet := TableVirtuelleObject(classe = Object)
 
 #portée_export
 
@@ -73,9 +84,31 @@ Object :: struct {
         drapeaux: DrapeauxPropriété
     }
 
+    /* Ceci stocke les valeurs indexées par des chaines. */
     propriétés: [..]Propriété
+    /* Ceci stocke les valeurs indexées par des nombres. */
+    éléments_indexés: [..]Propriété
 
     prototype: *Object
+    extensible := vrai
+}
+
+garantis_taille_tableau_élément_pour_index :: fonc (object: *Object, index: n32)
+{
+    si index comme z64 >= object.éléments_indexés.taille {
+        ancienne_taille := object.éléments_indexés.taille
+        tableau_redimensionne(object.éléments_indexés, index comme z64 + 1)
+
+        pour ancienne_taille ... object.éléments_indexés.taille - 1 {
+            init_de(Object.Propriété)(*object.éléments_indexés[it])
+            object.éléments_indexés[it].valeur = js_undefined
+        }
+
+        si object.donne_classe() == ObjetArray {
+            array := object comme *ObjetArray
+            array_set_length(array, index + 1)
+        }
+    }
 }
 
 donne_table :: fonc (object: *Object) -> *TableVirtuelleObject
@@ -93,6 +126,7 @@ is_accessor_propery :: fonc (propriété: &Object.Propriété) -> bool
     retourne !is_data_propery(propriété)
 }
 
+// À FAIRE : supprime
 crée_objet :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Object) -> *Object
 {
     résultat := tas_de_mémoire.alloue(Object)
@@ -100,10 +134,16 @@ crée_objet :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Object) -> *Ob
     retourne résultat
 }
 
+object_instance_crée :: fonc (realm: *Realm) -> *Object
+{
+    retourne realm.donne_tas_de_mémoire().alloue(Object)
+}
+
 sur_destruction_objet :: fonc (base: *Cellule)
 {
     objet := base comme *Object
     déloge(objet.propriétés)
+    déloge(objet.éléments_indexés)
 }
 
 ajoute_propriété :: fonc (objet: *Object, nom: PropertyKey, valeur: Valeur, drapeaux: DrapeauxPropriété)
@@ -130,6 +170,12 @@ internal_get_prototype_of :: fonc (object: *Object) -> *Object
     retourne object.donne_table().sur_get_prototype_of(object)
 }
 
+/* [[SetPrototypeOf]] */
+internal_set_prototype_of :: fonc (object: *Object, valeur: Valeur) -> bool
+{
+    retourne object.donne_table().sur_set_prototype_of(object, valeur)
+}
+
 /* [[GetOwnProperty]] */
 internal_get_own_property :: fonc (object: *Object, property_key: PropertyKey) -> CompletionRecord
 {
@@ -140,6 +186,13 @@ internal_get_own_property :: fonc (object: *Object, property_key: PropertyKey) -
 internal_define_own_property :: fonc (object: *Object, property_key: PropertyKey, desc: &PropertyDescriptor) -> CompletionRecord
 {
     retourne object.donne_table().sur_define_own_property(object, property_key, desc)
+}
+
+internal_define_own_property_by_index :: fonc (object: *Object, index: n32, desc: &PropertyDescriptor) -> CompletionRecord
+{
+    garantis_taille_tableau_élément_pour_index(object, index)
+    object.éléments_indexés[index comme z64].valeur = desc.value
+    retourne normal_completion(Valeur(Boolean = vrai))
 }
 
 /* [[HasProperty]] */
@@ -154,10 +207,26 @@ internal_get :: fonc (object: *Object, property_key: PropertyKey, receiver: Vale
     retourne object.donne_table().sur_get(object, property_key, receiver)
 }
 
+internal_get_by_index :: fonc (object: *Object, index: n32, receiver: Valeur @inutilisée) -> CompletionRecord
+{
+    si index comme z64 >= object.éléments_indexés.taille {
+        retourne normal_completion(js_undefined)
+    }
+
+    retourne normal_completion(object.éléments_indexés[index comme z64].valeur)
+}
+
 /* [[Set]] */
 internal_set :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur, receiver: Valeur) -> CompletionRecord
 {
     retourne object.donne_table().sur_set(object, property_key, valeur, receiver)
+}
+
+internal_set_by_index :: fonc (object: *Object, index: n32, valeur: Valeur, receiver: Valeur @inutilisée) -> CompletionRecord
+{
+    garantis_taille_tableau_élément_pour_index(object, index)
+    object.éléments_indexés[index comme z64].valeur = valeur
+    retourne normal_completion(Valeur(Boolean = vrai))
 }
 
 /* [[Call]] */
@@ -201,7 +270,7 @@ trouve_propriété :: fonc (objet: *Object, nom: PropertyKey) -> *Object.Propri�
 
 #portée_fichier
 
-table_virtuelle_object_prototype := TableVirtuelleObject(classe = ObjectPrototype, sur_destruction = sur_destruction_objet)
+table_virtuelle_object_prototype := TableVirtuelleObject(classe = ObjectPrototype)
 
 #portée_export
 
@@ -228,14 +297,14 @@ object_prototype_has_own_property :: fonc (empl params: *ParamètresObjectCall) 
     }
 
     // 1. Let P be ? ToPropertyKey(V).
-    complétion_nom := to_property_key(interpréteuse, arguments[0])
+    complétion_nom := to_property_key(interpréteuse, params.donne_argument(0))
     saufsi complétion_nom.est_normal() {
         retourne complétion_nom
     }
     nom := complétion_nom.valeur.V.String.texte
 
     // 2. Let O be ? ToObject(this value).
-    complétion_obj := vers_objet(interpréteuse.donne_realm(), this_value)
+    complétion_obj := to_object(interpréteuse.donne_realm(), this_value)
     saufsi complétion_obj.est_normal() {
         retourne complétion_obj
     }
@@ -260,7 +329,7 @@ object_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> Comp
     }
 
     // 3. Let O be ! ToObject(this value).
-    O := vers_objet(interpréteuse.donne_realm(), this_value).valeur.V.donne_objet()
+    O := to_object(interpréteuse.donne_realm(), this_value).valeur.V.donne_objet()
 
     // À FAIRE : 4. Let isArray be ? IsArray(O).
 
@@ -307,7 +376,7 @@ object_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> Comp
 object_prototype_proto_get :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
     // 1. Let O be ? ToObject(this value).
-    completion := vers_objet(interpréteuse.donne_realm(), this_value)
+    completion := to_object(interpréteuse.donne_realm(), this_value)
     saufsi completion.est_normal() {
         retourne completion
     }
@@ -317,15 +386,37 @@ object_prototype_proto_get :: fonc (empl params: *ParamètresObjectCall) -> Comp
     retourne normal_completion(Valeur(Object = internal_get_prototype_of(O)))
 }
 
-object_prototype_proto_set :: fonc (empl params: *ParamètresObjectCall @inutilisée) -> CompletionRecord
+object_prototype_proto_set :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
     // 1. Let O be ? RequireObjectCoercible(this value).
+    completion := require_object_coercible(interpréteuse.donne_realm(), this_value)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+
+    O := completion.valeur.V
+
     // 2. If proto is not an Object and proto is not null, return undefined.
+    proto := params.donne_argument(0)
+    saufsi proto.est_object() || proto.est_nulle() {
+        retourne normal_completion(js_undefined)
+    }
+
     // 3. If O is not an Object, return undefined.
+    saufsi O.est_object() {
+        retourne normal_completion(js_undefined)
+    }
+
     // 4. Let status be ? O.[[SetPrototypeOf]](proto).
+    status := internal_set_prototype_of(O.donne_objet(), proto)
+
     // 5. If status is false, throw a TypeError exception.
+    saufsi status {
+        retourne lance_type_error(interpréteuse.donne_realm(), "Object does not accept prototype")
+    }
+
     // 6. Return undefined.
-    panique("set __proto__ non-implémenté")
+    retourne normal_completion(js_undefined)
 }
 
 /** \} */
@@ -337,9 +428,8 @@ object_prototype_proto_set :: fonc (empl params: *ParamètresObjectCall @inutili
 
 #portée_fichier
 
-table_virtuelle_object_constructor := TableVirtuelleObject(
-    classe = ObjectConstructor,
-    sur_destruction = sur_destruction_objet
+table_virtuelle_object_constructor := TableVirtuelleBuiltinFunction(
+    classe = ObjectConstructor
 )
 
 #portée_export
@@ -347,18 +437,20 @@ table_virtuelle_object_constructor := TableVirtuelleObject(
 ObjectConstructor :: struct {
     empl builtin_function: BuiltInFunction
     table = *table_virtuelle_object_constructor
+
+    sur_call_or_construct = object_constructor_call_or_construct
 }
 
-/* À FAIRE : standardise (CreateBuiltInFunction) */
-crée_object_constructor :: fonc (tas_de_mémoire: *TasDeMémoire, function_prototype: *FunctionPrototype, object_prototype: *ObjectPrototype) -> *ObjectConstructor
+crée_object_constructor :: fonc (realm: *Realm, function_prototype: *FunctionPrototype, object_prototype: *ObjectPrototype) -> *ObjectConstructor
 {
+    tas_de_mémoire := realm.donne_tas_de_mémoire()
     résultat := tas_de_mémoire.alloue(ObjectConstructor)
-    résultat.prototype = function_prototype
+    create_builtin_function(résultat, 1, STR_Object, realm, function_prototype)
 
-    résultat.ajoute_propriété(STR_length, Valeur(Number = 1.0), DrapeauxPropriété.zéro)
     résultat.ajoute_propriété(STR_prototype, Valeur(Object = object_prototype), DrapeauxPropriété.zéro)
 
     résultat.ajoute_fonction_native(STR_getPrototypeOf, object_get_prototype_of, 1)
+    résultat.ajoute_fonction_native(STR_setPrototypeOf, object_set_prototype_of, 1)
 
     object_prototype.ajoute_propriété(STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro)
 
@@ -367,18 +459,39 @@ crée_object_constructor :: fonc (tas_de_mémoire: *TasDeMémoire, function_prot
 
 #portée_fichier
 
+/* 20.1.1.1 Object ( [ value ] )
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-object-value 
+ * À FAIRE : tests */
+object_constructor_call_or_construct :: fonc (empl params: *ParamètresCallOrConstruct) -> CompletionRecord
+{
+    realm := interpréteuse.donne_realm()
+
+    // 1. If NewTarget is neither undefined nor the active function object, then
+    si !new_target.est_undefined() && !(new_target.est_object() && new_target.donne_objet() == interpréteuse.donne_active_function_object()) {
+        // a. Return ? OrdinaryCreateFromConstructor(NewTarget, "%Object.prototype%").
+        func_new_target := new_target.donne_objet() comme *Function
+        retourne ordinary_create_from_constructor(realm, func_new_target, realm.intrinsics.object_prototype, object_instance_crée)
+    }
+
+    // 2. If value is either undefined or null, return OrdinaryObjectCreate(%Object.prototype%).
+    value := params.donne_argument(0)
+    si value.est_undefined() || value.est_nulle() {
+        résultat := ordinary_object_create(realm, realm.intrinsics.object_prototype, object_instance_crée)
+        retourne normal_completion(Valeur(Object = résultat))
+    }
+
+    // 3. Return ! ToObject(value).
+    retourne to_object(realm, value)
+}
+
 /* 20.1.2.12 Object.getPrototypeOf ( O )
  * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-object.getprototypeof */
 object_get_prototype_of :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
-    // À FAIRE : remplis les paramètres manquants avec undefined
-    O := Valeur(js_undefined)
-    si arguments.taille > 0 {
-        O = arguments[0]
-    }
+    O := params.donne_argument(0)
 
     // 1. Let obj be ? ToObject(O).
-    completion := vers_objet(interpréteuse.donne_realm(), O)
+    completion := to_object(interpréteuse.donne_realm(), O)
     saufsi completion.est_normal() {
         retourne completion
     }
@@ -386,6 +499,43 @@ object_get_prototype_of :: fonc (empl params: *ParamètresObjectCall) -> Complet
 
     // 2. Return ? obj.[[GetPrototypeOf]]().
     retourne normal_completion(Valeur(Object = internal_get_prototype_of(obj)))
+}
+
+/* 20.1.2.23 Object.setPrototypeOf ( O, proto )
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-object.setprototypeof */
+object_set_prototype_of :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    O := params.donne_argument(0)
+
+    // 1. Set O to ? RequireObjectCoercible(O).
+    completion := require_object_coercible(interpréteuse.donne_realm(), O)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+
+    O = completion.valeur.V
+
+    // 2. If proto is not an Object and proto is not null, throw a TypeError exception.
+    proto := params.donne_argument(1)
+    saufsi proto.est_object() || proto.est_nulle() {
+        retourne lance_type_error(interpréteuse.donne_realm(), "prototype is not an Object")
+    }
+
+    // 3. If O is not an Object, return O.
+    saufsi O.est_object() {
+        retourne normal_completion(O)
+    }
+
+    // 4. Let status be ? O.[[SetPrototypeOf]](proto).
+    status := internal_set_prototype_of(O.donne_objet(), proto)
+
+    // 5. If status is false, throw a TypeError exception.
+    saufsi status {
+        retourne lance_type_error(interpréteuse.donne_realm(), "Object does not accept prototype")
+    }
+
+    // 6. Return O.
+    retourne normal_completion(O)
 }
 
 /** \} */

@@ -230,8 +230,11 @@ visite_cellules_vivantes :: fonc (tas_de_mémoire: *TasDeMémoire, racines: []*C
         valeur : eini = ---
         valeur.pointeur = mv.user_agent
         valeur.info = info_de(HTML.UserAgent)
+        valeur_à_visiter: InfoValeurÀVisiter
+        valeur_à_visiter.valeur = valeur
+        valeur_à_visiter.structure = info_de(HTML.UserAgent)
         ensemble_ajoute(*visiteuse.objets_visités, mv.user_agent)
-        tableau_ajoute(*visiteuse.valeurs_à_visiter, valeur)
+        tableau_ajoute(*visiteuse.valeurs_à_visiter, valeur_à_visiter)
     }
 
     pour racines {
@@ -495,12 +498,18 @@ donne_tas_de_mémoire :: fonc (cellule: *Cellule) -> *TasDeMémoire #enligne
 /** \nom VisiteuseCellule
  * \{ */
 
+InfoValeurÀVisiter :: struct {
+    structure: *InfoTypeStructure
+    membre: chaine
+    valeur: eini
+}
+
 VisiteuseCellule :: struct {
     sur_a_visité: fonc(*VisiteuseCellule, *Cellule)(rien)
     sur_a_déjà_visité: fonc(*VisiteuseCellule, *Cellule)(bool)
 
     objets_visités: [..]*rien
-    valeurs_à_visiter: [..]eini
+    valeurs_à_visiter: [..]InfoValeurÀVisiter
 }
 
 a_visité :: fonc (visiteuse: *VisiteuseCellule, cellule: *Cellule)
@@ -544,17 +553,31 @@ visite_structure :: fonc (visiteuse: *VisiteuseCellule, structure: eini)
 {
     info := structure.info comme *InfoTypeStructure
     pour info.membres {
+        saufsi type_est_intéressant_pour_visite(it.id, faux) {
+            continue
+        }
         membre := eini_depuis_info_membre(structure, it)
         si possède_annotation(it, "NeVisitePas") {
-            retourne
+            continue
         }
-        tableau_ajoute(*visiteuse.valeurs_à_visiter, membre)
+        tableau_ajoute(*visiteuse.valeurs_à_visiter, InfoValeurÀVisiter(info, it.nom, membre))
     }
 }
 
-visite_valeur :: fonc (visiteuse: *VisiteuseCellule, valeur: eini)
+visite_valeur :: fonc (visiteuse: *VisiteuseCellule, valeur_à_visiter: InfoValeurÀVisiter)
 {
+    valeur := valeur_à_visiter.valeur
     info := valeur.info
+
+    // chaine_type := chaine_pour_type(info)
+    // diffère déloge(chaine_type)
+
+    // si valeur_à_visiter.membre {
+    //     imprime("[%] %.%: % (%)\n", #nom_de_cette_fonction, valeur_à_visiter.structure.nom, valeur_à_visiter.membre, chaine_type, valeur.pointeur)
+    // }
+    // sinon {
+    //     imprime("[%] %: % (%)\n", #nom_de_cette_fonction, valeur_à_visiter.structure.nom, chaine_type, valeur.pointeur)
+    // }
 
     si info == info_de(*Cellule) {
         cellule := mémoire(valeur.pointeur comme **Cellule)
@@ -577,6 +600,7 @@ visite_valeur :: fonc (visiteuse: *VisiteuseCellule, valeur: eini)
         si est_struct_ou_employeuse_de(type_élément comme *InfoTypeStructure, info_de(Cellule)) {
             /* À FAIRE : la cellule doit être le premier élément. */
             cellule := mémoire(valeur.pointeur comme **Cellule)
+            // imprime("[visite_cellule_générique] % -> %\n", valeur.pointeur, cellule comme *rien)
             visite_cellule_générique(visiteuse, cellule)
         }
         sinon {
@@ -591,23 +615,15 @@ visite_valeur :: fonc (visiteuse: *VisiteuseCellule, valeur: eini)
 
             ensemble_ajoute(*visiteuse.objets_visités, adresse)
 
-            valeur.pointeur = adresse
-            valeur.info = type_élément
-            tableau_ajoute(*visiteuse.valeurs_à_visiter, valeur)
+            valeur_à_visiter.valeur.pointeur = adresse
+            valeur_à_visiter.valeur.info = type_élément
+            tableau_ajoute(*visiteuse.valeurs_à_visiter, valeur_à_visiter)
         }
 
         retourne
     }
 
     si info.id == GenreInfoType.STRUCTURE {
-        si info == info_de(Cellule) || info == info_de(Lexème) || info == info_de(ECMAString) || info == info_de(TasDeMémoire) || info == info_de(MachineVirtuelle) {
-            retourne
-        }
-
-        si info == info_de(Chaine.ChaineUTF16) {
-            retourne
-        }
-
         si info == info_de(HostDefined) {
             host_defined := mémoire(valeur.pointeur comme *HostDefined)
 
@@ -615,9 +631,9 @@ visite_valeur :: fonc (visiteuse: *VisiteuseCellule, valeur: eini)
                 retourne
             }
 
-            valeur.pointeur = host_defined.données
-            valeur.info = host_defined.infos
-            tableau_ajoute(*visiteuse.valeurs_à_visiter, valeur)
+            valeur_à_visiter.valeur.pointeur = host_defined.données
+            valeur_à_visiter.valeur.info = host_defined.infos
+            tableau_ajoute(*visiteuse.valeurs_à_visiter, valeur_à_visiter)
             retourne
         }
 
@@ -640,15 +656,65 @@ visite_valeur :: fonc (visiteuse: *VisiteuseCellule, valeur: eini)
         si itératrice.type_pointé == info_de(Lexème) {
             retourne
         }
+        saufsi type_est_intéressant_pour_visite(itératrice.type_pointé, faux) {
+            retourne
+        }
         boucle {
             élément := itératrice.valeur_suivante()
             saufsi élément.est_valide() {
                 arrête
             }
-            tableau_ajoute(*visiteuse.valeurs_à_visiter, élément)
+            valeur_à_visiter.valeur = élément
+            tableau_ajoute(*visiteuse.valeurs_à_visiter, valeur_à_visiter)
         }
         retourne
     }
+}
+
+type_est_intéressant_pour_visite :: fonc (info: *InfoType, est_récurif: bool) -> bool
+{
+    discr info.id {
+        ENTIER,
+        RÉEL,
+        BOOLÉEN,
+        CHAINE,
+        ADRESSE_FONCTION,
+        FONCTION,
+        EINI,
+        RIEN,
+        ÉNUM,
+        OCTET,
+        TYPE_DE_DONNÉES {
+            retourne faux
+        }
+        TABLEAU {
+            info_tableau := info comme *InfoTypeTableau
+            retourne type_est_intéressant_pour_visite(info_tableau.type_pointé, vrai)
+        }
+        POINTEUR {
+            info_pointeur := info comme *InfoTypePointeur
+            retourne type_est_intéressant_pour_visite(info_pointeur.type_pointé, vrai)
+        }
+        UNION,
+        OPAQUE,
+        TRANCHE,
+        TABLEAU_FIXE,
+        VARIADIQUE {}
+        STRUCTURE {
+            si info == info_de(Cellule) {
+                retourne !est_récurif
+            }
+
+            si info == info_de(Lexème) || info == info_de(ECMAString) || info == info_de(TasDeMémoire) || info == info_de(MachineVirtuelle) {
+                retourne faux
+            }
+
+            si info == info_de(Chaine.ChaineUTF16) {
+                retourne faux
+            }
+        }
+    }
+    retourne vrai
 }
 
 /** \} */

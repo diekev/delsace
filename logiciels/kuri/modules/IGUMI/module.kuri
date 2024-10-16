@@ -51,12 +51,20 @@ issitialise_igumi :: fonc ()
     glDeleteBuffers(1, *données_tampon_id.vbo_immédiat)
     glDeleteBuffers(1, *données_tampon_id.vbo_immédiat_index)
 
-    détruit_fonte(fonte_globale)
+    si fonte_globale {
+        détruit_fonte(fonte_globale)
+        fonte_globale = nul
+    }
 
     détruit_nuanceur(nuanceur_base)
     détruit_nuanceur(nuanceur_texte)
     détruit_nuanceur(nuanceur_image)
     détruit_nuanceur(nuanceur_id)
+
+    nuanceur_base = nul
+    nuanceur_texte = nul
+    nuanceur_image = nul
+    nuanceur_id = nul
 }
 
 définis_fenêtre :: fonc (largeur: z32, hauteur: z32)
@@ -146,6 +154,9 @@ détruit_données_nuanceur :: fonc (nuanceur: *NuanceurGL)
 
 détruit_nuanceur :: fonc (nuanceur: *NuanceurGL)
 {
+    saufsi nuanceur {
+        retourne
+    }
     détruit_programme(nuanceur.programme)
     déloge(nuanceur)
 }

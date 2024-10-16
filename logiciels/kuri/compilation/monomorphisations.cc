@@ -118,7 +118,7 @@ void Monomorphisations::imprime(Enchaineuse &os, int indentations) const
 
     auto nombre_monomorphisations = monomorphisations_->taille();
 
-    if (nombre_monomorphisations) {
+    if (nombre_monomorphisations == 1) {
         os << chaine_indentations(indentations) << "Une monomorphisation connue :\n";
     }
     else {

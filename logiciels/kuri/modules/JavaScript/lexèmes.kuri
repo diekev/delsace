@@ -55,6 +55,8 @@ GenreLexème :: énum {
     // opérateurs unaires
     PlusUnaire
     MoinsUnaire
+    PreIncrement
+    PreDecrement
 
     // ponctuation
     Point
@@ -247,155 +249,9 @@ Lexème :: struct {
 }
 
 Associativité :: énum {
+    Aucune
     Gauche
     Droite
-}
-
-associativité_pour_opérateur :: fonc (genre: GenreLexème) -> Associativité
-{
-    discr genre {
-        Plus,
-        Moins,
-        Étoile,
-        Slash,
-        Pourcent,
-        Inférieur,
-        Supérieur,
-        DécalageGauche,
-        DécalageDroite,
-        EtBinaire,
-        EtLogique,
-        OuBinaire,
-        OuLogique,
-        OuExclusif,
-        Égal,
-        PlusÉgal,
-        MoinsÉgal,
-        ÉtoileÉgal,
-        SlashÉgal,
-        PourcentÉgal,
-        InférieurÉgal,
-        SupérieurÉgal,
-        DécalageGaucheÉgal,
-        DécalageDroiteÉgal,
-        EtBinaireÉgal,
-        OuBinaireÉgal,
-        OuExclusifÉgal,
-        EstÉgal,
-        NEspaPasÉgal,
-        EstÉgalStrict,
-        NEspaPasÉgalStrict,
-        Point,
-        ParenthèseOuvrante,
-        CrochetOuvrant {
-            retourne Associativité.Gauche
-        }
-        MoinsUnaire,
-        NonBinaire,
-        NonLogique,
-        PlusUnaire,
-        Interrogation,
-        DoublePoint {
-            retourne Associativité.Droite
-        }
-        PlusPlus,
-        MoinsMoins {
-            retourne Associativité.Gauche // N/A
-        }
-        New {
-            retourne Associativité.Gauche // N/A
-        }
-        Virgule {
-            retourne Associativité.Gauche
-        }
-        sinon {
-            retourne Associativité.Gauche
-        }
-    }
-}
-
-/* https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_precedence */
-précédence_pour_opérateur :: fonc (genre: GenreLexème) -> z32
-{
-    discr genre {
-        Virgule {
-            retourne 1
-        }
-        Égal,
-        PlusÉgal,
-        MoinsÉgal,
-        ÉtoileÉgal,
-        SlashÉgal,
-        PourcentÉgal,
-        DécalageGaucheÉgal,
-        DécalageDroiteÉgal,
-        EtBinaireÉgal,
-        OuBinaireÉgal,
-        OuExclusifÉgal,
-        Interrogation {
-            retourne 2
-        }
-        OuLogique {
-            retourne 3
-        }
-        EtLogique {
-            retourne 4
-        }
-        OuBinaire {
-            retourne 5
-        }
-        OuExclusif {
-            retourne 6
-        }
-        EtBinaire {
-            retourne 7
-        }
-        EstÉgal,
-        NEspaPasÉgal,
-        EstÉgalStrict,
-        NEspaPasÉgalStrict {
-            retourne 8
-        }
-        Inférieur,
-        InférieurÉgal,
-        Supérieur,
-        SupérieurÉgal {
-            retourne 9
-        }
-        DécalageGauche,
-        DécalageDroite {
-            retourne 10
-        }
-        Plus,
-        Moins {
-            retourne 11
-        }
-        Étoile,
-        Slash,
-        Pourcent {
-            retourne 12
-        }
-        MoinsUnaire,
-        NonBinaire,
-        NonLogique,
-        PlusUnaire {
-            retourne 13
-        }
-        PlusPlus,
-        MoinsMoins,
-        Typeof {
-            retourne 14
-        }
-        Point,
-        ParenthèseOuvrante,
-        CrochetOuvrant,
-        New {
-            retourne 15
-        }
-        sinon {
-            retourne -1
-        }
-    }
 }
 
 est_lexème_expression :: fonc (genre: GenreLexème) -> bool
@@ -541,14 +397,103 @@ initialise_données_lexèmes_pour_parsage :: fonc ()
     pour & données_lexèmes_pour_parsage {
         genre_lexème := (index_it comme z32) comme GenreLexème
 
-        it.associativité = associativité_pour_opérateur(genre_lexème)
-        it.précédence = précédence_pour_opérateur(genre_lexème)
-
         it.drapeaux.EstExpression = est_lexème_expression(genre_lexème)
         it.drapeaux.EstExpressionUnaire = est_lexème_expression_unaire(genre_lexème)
         it.drapeaux.EstExpressionSecondaire = est_lexème_expression_secondaire(genre_lexème)
         it.drapeaux.EstInstruction = est_lexème_instruction(genre_lexème)
     }
+
+    /* https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_precedence */
+    définis_données_précédence(GenreLexème.Virgule, 1, Associativité.Gauche)
+
+    définis_données_précédence(GenreLexème.Égal, 2, Associativité.Droite)
+    définis_données_précédence(GenreLexème.PlusÉgal, 2, Associativité.Droite)
+    définis_données_précédence(GenreLexème.MoinsÉgal, 2, Associativité.Droite)
+    définis_données_précédence(GenreLexème.ÉtoileÉgal, 2, Associativité.Droite)
+    définis_données_précédence(GenreLexème.SlashÉgal, 2, Associativité.Droite)
+    définis_données_précédence(GenreLexème.PourcentÉgal, 2, Associativité.Droite)
+    définis_données_précédence(GenreLexème.DécalageGaucheÉgal, 2, Associativité.Droite)
+    définis_données_précédence(GenreLexème.DécalageDroiteÉgal, 2, Associativité.Droite)
+    définis_données_précédence(GenreLexème.EtBinaireÉgal, 2, Associativité.Droite)
+    définis_données_précédence(GenreLexème.OuBinaireÉgal, 2, Associativité.Droite)
+    définis_données_précédence(GenreLexème.OuExclusifÉgal, 2, Associativité.Droite)
+    définis_données_précédence(GenreLexème.Interrogation, 2, Associativité.Droite)
+    // définis_données_précédence(GenreLexème.ExponentiationÉgal, 2, Associativité.Droite)
+    // définis_données_précédence(GenreLexème.DécalageDroiteNaturelÉgal, 2, Associativité.Droite)
+    // définis_données_précédence(GenreLexème.EtLogiqueÉgal, 2, Associativité.Droite)
+    // définis_données_précédence(GenreLexème.OuLogiqueÉgal, 2, Associativité.Droite)
+    // définis_données_précédence(GenreLexème.NullishCoalescingÉgal, 2, Associativité.Droite)
+    // définis_données_précédence(GenreLexème.Arrow, 2, Associativité.Droite)
+    // définis_données_précédence(GenreLexème.Yield, 2, Associativité.Aucune)
+    // définis_données_précédence(GenreLexème.YieldStar, 2, Associativité.Aucune)
+    // définis_données_précédence(GenreLexème.Spread, 2, Associativité.Aucune)
+
+    définis_données_précédence(GenreLexème.OuLogique, 3, Associativité.Gauche)
+    // définis_données_précédence(GenreLexème.NullishCoalescing, 3, Associativité.Gauche)
+
+    définis_données_précédence(GenreLexème.EtLogique, 4, Associativité.Gauche)
+
+    définis_données_précédence(GenreLexème.OuBinaire, 5, Associativité.Gauche)
+
+    définis_données_précédence(GenreLexème.OuExclusif, 6, Associativité.Gauche)
+
+    définis_données_précédence(GenreLexème.EtBinaire, 7, Associativité.Gauche)
+
+    définis_données_précédence(GenreLexème.EstÉgal, 8, Associativité.Gauche)
+    définis_données_précédence(GenreLexème.NEspaPasÉgal, 8, Associativité.Gauche)
+    définis_données_précédence(GenreLexème.EstÉgalStrict, 8, Associativité.Gauche)
+    définis_données_précédence(GenreLexème.NEspaPasÉgalStrict, 8, Associativité.Gauche)
+
+    définis_données_précédence(GenreLexème.Inférieur, 9, Associativité.Gauche)
+    définis_données_précédence(GenreLexème.InférieurÉgal, 9, Associativité.Gauche)
+    définis_données_précédence(GenreLexème.Supérieur, 9, Associativité.Gauche)
+    définis_données_précédence(GenreLexème.SupérieurÉgal, 9, Associativité.Gauche)
+    // définis_données_précédence(GenreLexème.In, 9, Associativité.Gauche)
+    // définis_données_précédence(GenreLexème.InstanceOf, 9, Associativité.Gauche)
+
+    définis_données_précédence(GenreLexème.DécalageGauche, 10, Associativité.Gauche)
+    définis_données_précédence(GenreLexème.DécalageDroite, 10, Associativité.Gauche)
+    // définis_données_précédence(GenreLexème.DécalageDroiteNaturel, 10, Associativité.Gauche)
+
+    définis_données_précédence(GenreLexème.Plus, 11, Associativité.Gauche)
+    définis_données_précédence(GenreLexème.Moins, 11, Associativité.Gauche)
+
+    définis_données_précédence(GenreLexème.Étoile, 12, Associativité.Gauche)
+    définis_données_précédence(GenreLexème.Slash, 12, Associativité.Gauche)
+    définis_données_précédence(GenreLexème.Pourcent, 12, Associativité.Gauche)
+
+    // définis_données_précédence(GenreLexème.Exponentiation, 13, Associativité.Droite)
+
+    définis_données_précédence(GenreLexème.MoinsUnaire, 14, Associativité.Aucune)
+    définis_données_précédence(GenreLexème.PlusUnaire, 14, Associativité.Aucune)
+    définis_données_précédence(GenreLexème.NonBinaire, 14, Associativité.Aucune)
+    définis_données_précédence(GenreLexème.NonLogique, 14, Associativité.Aucune)
+    définis_données_précédence(GenreLexème.Typeof, 14, Associativité.Aucune)
+    // définis_données_précédence(GenreLexème.Void, 14, Associativité.Aucune)
+    // définis_données_précédence(GenreLexème.Delete, 14, Associativité.Aucune)
+    // définis_données_précédence(GenreLexème.Await, 14, Associativité.Aucune)
+    définis_données_précédence(GenreLexème.PreIncrement, 14, Associativité.Aucune)
+    définis_données_précédence(GenreLexème.PreDecrement, 14, Associativité.Aucune)
+
+    définis_données_précédence(GenreLexème.PlusPlus, 15, Associativité.Aucune)
+    définis_données_précédence(GenreLexème.MoinsMoins, 15, Associativité.Aucune)
+
+    // définis_données_précédence(GenreLexème.NewSansArgument, 16, Associativité.Aucune)
+
+    // définis_données_précédence(GenreLexème.Import, 17, Associativité.Aucune)
+    définis_données_précédence(GenreLexème.ParenthèseOuvrante, 17, Associativité.Aucune)
+    définis_données_précédence(GenreLexème.New, 17, Associativité.Aucune)
+    définis_données_précédence(GenreLexème.CrochetOuvrant, 17, Associativité.Aucune)
+    définis_données_précédence(GenreLexème.Point, 17, Associativité.Gauche)
+    // définis_données_précédence(GenreLexème.OptionalChaining, 17, Associativité.Gauche)
+
+    // définis_données_précédence(GenreLexème.Grouping, 18, Associativité.Aucune)
 }
 
 #ajoute_init initialise_données_lexèmes_pour_parsage()
+
+définis_données_précédence :: fonc (genre: GenreLexème, précédence: z32, associativité: Associativité)
+{
+    données_lexèmes_pour_parsage[genre].associativité = associativité
+    données_lexèmes_pour_parsage[genre].précédence = précédence
+}

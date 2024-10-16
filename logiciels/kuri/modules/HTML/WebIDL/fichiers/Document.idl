@@ -1,3 +1,5 @@
 interface Document : Node {
     Element? getElementById(DOMString id);
+
+    Text createTextNode(DOMString data);
 }

@@ -105,4 +105,14 @@ fill_rect :: fonc (ctx: *CanvasRenderingContext2D, x: r64, y: r64, w: r64, h: r6
     requiers_redessin(document)
 }
 
+scale :: fonc (ctx: *CanvasRenderingContext2D @inutilisée, x: r64 @inutilisée, y: r64 @inutilisée)
+{
+    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+}
+
+translate :: fonc (ctx: *CanvasRenderingContext2D @inutilisée, x: r64 @inutilisée, y: r64 @inutilisée)
+{
+    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+}
+
 /** \} */

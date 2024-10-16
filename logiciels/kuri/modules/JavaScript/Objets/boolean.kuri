@@ -1,0 +1,93 @@
+importe Chaine
+
+/* ------------------------------------------------------------------------- */
+/** \nom BooleanPrototype
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-boolean-prototype-object
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_boolean_prototype := TableVirtuelleObject(classe = BooleanPrototype)
+
+#portée_export
+
+BooleanPrototype :: struct {
+    empl objet: Object
+    table = *table_virtuelle_boolean_prototype
+}
+
+crée_boolean_prototype :: fonc (realm: *Realm, prototype: *ObjectPrototype) -> *BooleanPrototype
+{
+    tas_de_mémoire := realm.donne_tas_de_mémoire()
+    résultat := tas_de_mémoire.alloue(BooleanPrototype)
+    résultat.prototype = prototype
+
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom BooleanObject
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-boolean-instances
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_boolean_object := TableVirtuelleObject(classe = BooleanObject)
+
+#portée_export
+
+BooleanObject :: struct {
+    empl objet: Object
+    table = *table_virtuelle_boolean_object
+
+    boolean_value: bool
+}
+
+boolean_instance_crée :: fonc (realm: *Realm) -> *Object
+{
+    retourne realm.donne_tas_de_mémoire().alloue(BooleanObject)
+}
+
+crée_boolean_object :: fonc (realm: *Realm, valeur: bool) -> *BooleanObject
+{
+    résultat := ordinary_object_create(realm, realm.intrinsics.boolean_prototype, boolean_instance_crée) comme *BooleanObject
+    résultat.boolean_value = valeur
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom BooleanConstructor
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-boolean-constructor
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_boolean_constructor := TableVirtuelleObject(
+    classe = BooleanConstructor
+)
+
+#portée_export
+
+BooleanConstructor :: struct {
+    empl builtin_function: BuiltInFunction
+    table = *table_virtuelle_boolean_constructor
+}
+
+crée_boolean_constructor :: fonc (realm: *Realm, function_prototype: *FunctionPrototype, boolean_prototype: *BooleanPrototype) -> *BooleanConstructor
+{
+    tas_de_mémoire := realm.donne_tas_de_mémoire()
+    résultat := tas_de_mémoire.alloue(BooleanConstructor)
+    create_builtin_function(résultat, 1, STR_Boolean, realm, function_prototype)
+
+    résultat.ajoute_propriété(STR_prototype, Valeur(Object = boolean_prototype), DrapeauxPropriété.zéro)
+
+    boolean_prototype.ajoute_propriété(STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro)
+
+    retourne résultat
+}
+
+/** \} */
