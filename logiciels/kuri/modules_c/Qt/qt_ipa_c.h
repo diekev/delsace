@@ -616,6 +616,7 @@ struct QT_Rappels_Timer {
 struct QT_Timer *QT_cree_timer(struct QT_Rappels_Timer *rappels);
 void QT_timer_debute(struct QT_Timer *timer, int millisecondes);
 void QT_timer_arrete(struct QT_Timer *timer);
+void QT_timer_definis_se_repete(struct QT_Timer *timer, bool ouinon);
 
 /** \} */
 

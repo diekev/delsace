@@ -156,7 +156,7 @@ printer :: fonc (console: *Console, interpréteuse: *Interpréteuse, log_level: 
 
     virgule := ""
     pour arguments {
-        complétion := vers_chaine(interpréteuse, it)
+        complétion := to_string(interpréteuse, it)
         saufsi complétion.est_normal() {
             retourne complétion
         }
@@ -347,7 +347,7 @@ initialise_console :: fonc (console: *Console)
             retourne normal_completion(js_undefined)
         }
 
-        condition := to_boolean(arguments[0]).Boolean
+        condition := to_boolean(params.donne_argument(0)).Boolean
 
         arguments.pointeur += 1
         arguments.taille -= 1
@@ -363,7 +363,7 @@ initialise_console :: fonc (console: *Console)
             retourne normal_completion(js_undefined)
         }
 
-        complétion := vers_chaine(interpréteuse, arguments[0])
+        complétion := to_string(interpréteuse, params.donne_argument(0))
         saufsi complétion.est_normal() {
             retourne complétion
         }
@@ -383,7 +383,7 @@ initialise_console :: fonc (console: *Console)
             retourne normal_completion(js_undefined)
         }
 
-        complétion := vers_chaine(interpréteuse, arguments[0])
+        complétion := to_string(interpréteuse, params.donne_argument(0))
         saufsi complétion.est_normal() {
             retourne complétion
         }
@@ -400,7 +400,7 @@ initialise_console :: fonc (console: *Console)
             retourne normal_completion(js_undefined)
         }
 
-        complétion := vers_chaine(interpréteuse, arguments[0])
+        complétion := to_string(interpréteuse, params.donne_argument(0))
         saufsi complétion.est_normal() {
             retourne complétion
         }
@@ -420,7 +420,7 @@ initialise_console :: fonc (console: *Console)
             retourne normal_completion(js_undefined)
         }
 
-        complétion := vers_chaine(interpréteuse, arguments[0])
+        complétion := to_string(interpréteuse, params.donne_argument(0))
         saufsi complétion.est_normal() {
             retourne complétion
         }
