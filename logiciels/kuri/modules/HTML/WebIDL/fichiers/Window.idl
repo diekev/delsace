@@ -4,6 +4,8 @@ interface Window : EventTarget {
     readonly attribute WindowProxy frames;
     readonly attribute Document document;
 
+    [Member] readonly attribute Navigator navigator;
+
     undefined alert(DOMString message);
 
     long setTimeout(Function handler, long timeOut);
