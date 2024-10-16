@@ -84,7 +84,14 @@ Peintre :: struct {
      * limites d'une zone hors de laquelle rien n'est dessiné. */
     rappel_définis_ciseau: fonc(*Peintre, RectanglePeintre)(rien)
 
+    rappel_destruction: fonc(*Peintre)(rien)
+
     ciseaux: [..]RectanglePeintre
+}
+
+détruit_peintre :: fonc (peintre: *Peintre)
+{
+    peintre.rappel_destruction(peintre)
 }
 
 définis_taille_cannevas :: fonc (peintre: *Peintre, taille: Taille) -> rien #enligne
@@ -254,6 +261,7 @@ initialise_peintre_dessin :: fonc (peintre: *PeintreDessin)
 {
     peintre.rappel_définis_taille_cannevas = définis_taille_cannevas_dessin
     peintre.rappel_donne_taille_cannevas = donne_taille_cannevas_dessin
+    peintre.rappel_termine_dessin = termine_dessin_dessin
     peintre.rappel_remplis_arrière_plan = remplis_arrière_plan_dessin
     peintre.rappel_dessine_rectangle = dessine_rectangle_dessin
     peintre.rappel_remplis_rectangle = remplis_rectangle_dessin
@@ -264,6 +272,7 @@ initialise_peintre_dessin :: fonc (peintre: *PeintreDessin)
     peintre.rappel_dessine_segment = dessine_segment_dessin
     peintre.rappel_dessine_segments = dessine_segments_dessin
     peintre.rappel_dessine_texte = dessine_texte_dessin
+    peintre.rappel_dessine_texte_utf16 = dessine_texte_utf16_dessin
     peintre.rappel_dessine_image = dessine_image_dessin
     peintre.rappel_dessine_image_grise_8bit = dessine_image_grise_8bit_dessin
     peintre.rappel_dessine_image_rvba_8bit = dessine_image_rvba_8bit_dessin
@@ -271,6 +280,7 @@ initialise_peintre_dessin :: fonc (peintre: *PeintreDessin)
     peintre.rappel_donne_fonte = donne_fonte_dessin
     peintre.rappel_dessine_tampon_sur_écran = dessine_tampon_sur_écran_dessin
     peintre.rappel_définis_ciseau = définis_ciseau_dessin
+    peintre.rappel_destruction = détruit_peintre_dessin
 }
 
 donne_cercle_dessin :: fonc (cercle: CerclePeintre) -> Cercle(z32)
@@ -334,7 +344,7 @@ donne_couleur_dessin :: fonc (couleur_peintre: CouleurPeintre) -> CouleurRVBAN8
 {
     discr couleur_peintre {
         CouleurRVBA(couleur) {
-            retourne CouleurRVBAN8((couleur.r * 255.0) comme n8, (couleur.v * 255.0) comme n8, (couleur.b * 255.0) comme n8, (couleur.a * 255.0) comme n8)
+            retourne depuis_couleur_rvba(couleur)
         }
         CouleurRVBAN8(couleur) {
             retourne couleur
@@ -365,12 +375,15 @@ donne_taille_cannevas_dessin :: fonc (peintre: *Peintre) -> Taille
     retourne Taille(Largeur(rect.largeur), Hauteur(rect.hauteur))
 }
 
+termine_dessin_dessin :: fonc (peintre: *Peintre @inutilisée)
+{
+}
+
 remplis_arrière_plan_dessin :: fonc (peintre: *Peintre, couleur_peintre: CouleurPeintre)
 {
     peintre_dessin := peintre comme *PeintreDessin
     couleur := donne_couleur_dessin(couleur_peintre)
-    rect := peintre_dessin.tampon_de_rendu.rect
-    remplis_rectangle(*peintre_dessin.tampon_de_rendu, rect, couleur)
+    remplis_avec(*peintre_dessin.tampon_de_rendu, couleur)
 }
 
 dessine_rectangle_dessin :: fonc (peintre: *Peintre, rectangle_peintre: RectanglePeintre, couleur_peintre: CouleurPeintre)
@@ -450,9 +463,19 @@ dessine_texte_dessin :: fonc (peintre: *Peintre, fonte: *Fonte, texte: chaine, r
     dessine_texte(*peintre_dessin.tampon_de_rendu, texte, fonte, rect, couleur)
 }
 
-dessine_image_dessin :: fonc (peintre: *Peintre @inutilisée, image: ImageIO @inutilisée, rectangle_peintre: RectanglePeintre @inutilisée)
+dessine_texte_utf16_dessin :: fonc (peintre: *Peintre, fonte: *Fonte, texte: ChaineUTF16, rectangle_peintre: RectanglePeintre, couleur_peintre: CouleurPeintre, effets: *EffetsTexte)
 {
-    // À FAIRE
+    peintre_dessin := peintre comme *PeintreDessin
+    rect := donne_rectangle_dessin(rectangle_peintre)
+    couleur := donne_couleur_dessin(couleur_peintre)
+    dessine_texte(*peintre_dessin.tampon_de_rendu, texte, fonte, rect, couleur, effets)
+}
+
+dessine_image_dessin :: fonc (peintre: *Peintre, image: ImageIO, rectangle_peintre: RectanglePeintre)
+{
+    peintre_dessin := peintre comme *PeintreDessin
+    rect := donne_rectangle_dessin(rectangle_peintre)
+    dessine_image(*peintre_dessin.tampon_de_rendu, image, rect)
 }
 
 dessine_image_grise_8bit_dessin :: fonc (peintre: *Peintre, image: TamponImageGrise8Bit, rectangle_peintre: RectanglePeintre)
@@ -495,13 +518,14 @@ dessine_tampon_sur_écran_dessin :: fonc (peintre: *Peintre)
     dessine_tampon_texture(peintre_dessin.tampon_texture)
 }
 
-détruit_peintre_dessin :: fonc (peintre: *PeintreDessin)
+détruit_peintre_dessin :: fonc (base: *Peintre)
 {
-    détruit_tampon_de_rendu(*peintre.tampon_de_rendu)
+    peintre_dessin := base comme *PeintreDessin
+    détruit_tampon_de_rendu(*peintre_dessin.tampon_de_rendu)
     si peintre_dessin.tampon_texture {
-        détruit_tampon_texture(peintre.tampon_texture)
+        détruit_tampon_texture(peintre_dessin.tampon_texture)
     }
-    déloge(peintre)
+    déloge(peintre_dessin)
 }
 
 définis_ciseau_dessin :: fonc (peintre: *Peintre @inutilisée, rectangle: RectanglePeintre @inutilisée)
@@ -544,6 +568,7 @@ crée_peintre_igumi :: fonc (taille_cannevas: Taille) -> *Peintre
     peintre.rappel_donne_fonte = donne_fonte_igumi
     peintre.rappel_dessine_tampon_sur_écran = dessine_tampon_sur_écran_igumi
     peintre.rappel_définis_ciseau = définis_ciseau_igumi
+    peintre.rappel_destruction = détruit_peintre_igumi
     définis_taille_cannevas(peintre, taille_cannevas)
     retourne peintre
 }
