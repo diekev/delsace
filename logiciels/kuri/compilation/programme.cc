@@ -142,7 +142,7 @@ void Programme::ajoute_type(Type *type, RaisonAjoutType raison, NoeudExpression 
     }
 }
 
-void Programme::ajoute_init_type(Type *type)
+void Programme::ajoute_init_de(Type *type)
 {
     m_éléments_sont_sales[TYPES][POUR_RI] |= m_init_types.insère(type);
     m_éléments_sont_sales[TYPES][POUR_RI] |= type->fonction_init == nullptr;
@@ -150,6 +150,13 @@ void Programme::ajoute_init_type(Type *type)
     if (type->fonction_init) {
         ajoute_fonction(type->fonction_init);
     }
+
+    m_init_de.insère(type);
+}
+
+void Programme::ajoute_info_de(Type *type)
+{
+    m_info_de.insère(type);
 }
 
 bool Programme::typages_terminés(DiagnostiqueÉtatCompilation &diagnostique) const
