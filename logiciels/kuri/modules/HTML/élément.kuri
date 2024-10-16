@@ -1498,6 +1498,7 @@ update_image_data :: fonc (image: *HTMLImageElement)
         empl base: BaseProcessResponse
 
         request: *Request
+        user_agent: *UserAgent
         image: *HTMLImageElement
     }
 
@@ -1508,11 +1509,13 @@ update_image_data :: fonc (image: *HTMLImageElement)
         rappel := base comme *RappelProcessResponse
 
         saufsi réponse.body_info {
+            enfile_une_tâche_pour_lancer_évènement_à_élément(rappel.user_agent, rappel.image, EventType.error)
             retourne
         }
 
         content_type := réponse.body_info.content_type
         saufsi est_type_mime_image(content_type) {
+            enfile_une_tâche_pour_lancer_évènement_à_élément(rappel.user_agent, rappel.image, EventType.error)
             retourne
         }
 
@@ -1542,6 +1545,7 @@ update_image_data :: fonc (image: *HTMLImageElement)
         }
 
         invalide_style(rappel.image.document)
+        enfile_une_tâche_pour_lancer_évènement_à_élément(rappel.user_agent, rappel.image, EventType.load)
     }
 
     sur_destruction_process_response :: fonc (base: *BaseProcessResponse)
@@ -1553,6 +1557,7 @@ update_image_data :: fonc (image: *HTMLImageElement)
 
     process_response := loge(RappelProcessResponse)
     process_response.image = image
+    process_response.user_agent = user_agent
     process_response.request = request
     process_response.sur_rappel = sur_rappel_process_response
     process_response.sur_destruction = sur_destruction_process_response
