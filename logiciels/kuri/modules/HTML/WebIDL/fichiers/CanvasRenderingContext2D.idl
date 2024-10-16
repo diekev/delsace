@@ -3,4 +3,7 @@ interface CanvasRenderingContext2D {
 
     attribute DOMString fillStyle;
     undefined fillRect(unrestricted double x, unrestricted double y, unrestricted double w, unrestricted double h);
+
+    undefined scale(double sx, double sy);
+    undefined translate(double tx, double ty);
 }

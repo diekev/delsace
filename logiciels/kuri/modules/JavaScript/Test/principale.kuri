@@ -167,11 +167,11 @@ objet_html_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, en
             retourne lance_type_error(interpréteuse, "ouvre_document requiers 1 argument")
         }
 
-        saufsi arguments[0].est_chaine() {
+        saufsi params.donne_argument(0).est_chaine() {
             retourne lance_type_error(interpréteuse, "argument n'est pas une chaine")
         }
 
-        valeur_arg := arguments[0].String.texte
+        valeur_arg := params.donne_argument(0).String.texte
         valeur_arg_utf16 := valeur_arg.donne_chaine_utf16()
         chemin := imprime_chaine("%", valeur_arg_utf16)
         diffère déloge(chemin)
@@ -190,16 +190,16 @@ objet_html_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, en
 
 /** \} */
 
-RappelsHôteTest :: struct {
-    empl base: RappelsHôte
+ConfigurationRealmTest :: struct {
+    empl base: ConfigurationRealm
 
     sortie_console: *QT_PlainTextEdit
     html: ObjetHTML
 }
 
-crée_propriétés_hôte_objet_global :: fonc (base: *RappelsHôte, global: *Object)
+crée_propriétés_hôte_objet_global :: fonc (base: *ConfigurationRealm, global: *Object)
 {
-    rappels := base comme *RappelsHôteTest
+    configuration := base comme *ConfigurationRealmTest
 
     FluxSortieConsoleQt :: struct {
         empl base: FluxSortieConsole
@@ -230,7 +230,7 @@ crée_propriétés_hôte_objet_global :: fonc (base: *RappelsHôte, global: *Obj
     }
 
     flux := loge(FluxSortieConsoleQt)
-    flux.sortie_console = rappels.sortie_console
+    flux.sortie_console = configuration.sortie_console
     flux.sur_destruction = flux_sortie_sur_destruction
     flux.sur_log = flux_sortie_sur_log
     flux.sur_efface = flux_sortie_sur_efface
@@ -239,7 +239,7 @@ crée_propriétés_hôte_objet_global :: fonc (base: *RappelsHôte, global: *Obj
 
     global.ajoute_fonction_native("rm", fonction_native_éboue)
     global.ajoute_propriété(crée_chaine_utf16_unique("console"), Valeur(Object = console), Enumerable | Configurable | Writable)
-    global.ajoute_objet_natif("html", *rappels.html)
+    global.ajoute_objet_natif("html", *configuration.html)
 }
 
 sur_rappel_sauvegarde :: fonc (base: *QT_Rappel_Generique)
@@ -265,7 +265,7 @@ sur_rappel_sauvegarde :: fonc (base: *QT_Rappel_Generique)
 
     diffère éboue(donne_tas_de_mémoire(*mv))
 
-    rappels_hôte: RappelsHôteTest
+    rappels_hôte: ConfigurationRealmTest
     rappels_hôte.crée_host_instrinsics = HTML.initialise_host_intrinsics
     rappels_hôte.sortie_console = rappels_fenêtre.sortie_console
     rappels_hôte.crée_propriétés_hôte_objet_global = crée_propriétés_hôte_objet_global

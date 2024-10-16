@@ -15,7 +15,7 @@ MathObject :: struct {
 
 #portée_fichier
 
-table_virtuelle_math := TableVirtuelleObject(classe = MathObject, sur_destruction = sur_destruction_objet)
+table_virtuelle_math := TableVirtuelleObject(classe = MathObject)
 
 #portée_module
 
@@ -23,9 +23,13 @@ crée_math_object :: fonc (object_prototype: *ObjectPrototype) -> *MathObject
 {
     résultat := object_prototype.donne_tas_de_mémoire().alloue(MathObject)
     résultat.prototype = object_prototype
+    résultat.ajoute_fonction_native(STR_abs, math_abs)
+    résultat.ajoute_fonction_native(STR_ceil, math_ceil)
+    résultat.ajoute_fonction_native(STR_floor, math_floor)
     résultat.ajoute_fonction_native(STR_max, math_max)
     résultat.ajoute_fonction_native(STR_min, math_min)
     résultat.ajoute_fonction_native(STR_random, math_random)
+    résultat.ajoute_fonction_native(STR_round, math_round)
     résultat.ajoute_fonction_native(STR_sqrt, math_sqrt)
 
     /* Chaque realm doit avoir sa propre série. */
@@ -35,13 +39,104 @@ crée_math_object :: fonc (object_prototype: *ObjectPrototype) -> *MathObject
     retourne résultat
 }
 
-#portée_fichier
-
 /* À FAIRE(langage) : erreur de compilation */
 // R64_INFINITÉ : r64 : 0r7ff0000000000000
 // R64_INFINITÉ_NÉGATIVE : r64 : 0rfff0000000000000
 R64_INFINITÉ : r64 : 1000000000.0
 R64_INFINITÉ_NÉGATIVE : r64 : -1000000000.0
+
+#portée_fichier
+/* 21.3.2.1 Math.abs ( x )
+ * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.abs */
+math_abs :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    x := params.donne_argument(0)
+    // 1. Let n be ? ToNumber(x).
+    completion := to_number(interpréteuse, x)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    n := completion.valeur.V.Number
+
+    // 2. If n is NaN, return NaN.
+    si est_nan(n) {
+        retourne normal_completion(Valeur(Number = NaN))
+    }
+
+    // 3. If n is -0𝔽, return +0𝔽.
+    si n == 0.0 {
+        retourne normal_completion(Valeur(Number = 0.0))
+    }
+
+    // 4. If n is -∞𝔽, return +∞𝔽.
+    si n == R64_INFINITÉ_NÉGATIVE {
+        retourne normal_completion(Valeur(Number = R64_INFINITÉ))
+    }
+
+    // 5. If n < -0𝔽, return -n.
+    si n < 0.0 {
+        retourne normal_completion(Valeur(Number = -n))
+    }
+
+    // 6. Return n.
+    retourne normal_completion(Valeur(Number = n))
+}
+
+/* https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.ceil */
+math_ceil :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    x := params.donne_argument(0)
+
+    // 1. Let n be ? ToNumber(x).
+    completion := to_number(interpréteuse, x)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    n := completion.valeur.V.Number
+
+    // 2. If n is not finite or n is either +0𝔽 or -0𝔽, return n.
+    si !est_fini(n) || (n == 0.0 || n == -0.0) {
+        retourne completion
+    }
+
+    // 3. If n < -0𝔽 and n > -1𝔽, return -0𝔽.
+    si n < -0.0 && n > -1.0 {
+        retourne normal_completion(Valeur(Number = -0.0))
+    }
+
+    // À FAIRE : 4. If n is an integral Number, return n.
+    
+    // 5. Return the smallest (closest to -∞) integral Number value that is not less than n.
+    retourne normal_completion(plafond(n))
+}
+
+/* https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.floor */
+math_floor :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    x := params.donne_argument(0)
+
+    // 1. Let n be ? ToNumber(x).
+    completion := to_number(interpréteuse, x)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    n := completion.valeur.V.Number
+
+    // 2. If n is not finite or n is either +0𝔽 or -0𝔽, return n.
+    si !est_fini(n) || (n == 0.0 || n == -0.0) {
+        retourne completion
+    }
+
+    // 3. If n < 1𝔽 and n > +0𝔽, return +0𝔽.
+    si n < 1.0 && n > 0.0 {
+        retourne normal_completion(Valeur(Number = 0))
+    }
+
+    // À FAIRE : 4. If n is an integral Number, return n.
+
+    // 5. Return the greatest (closest to +∞) integral Number value that is not greater than n.
+    retourne normal_completion(plancher(n))
+}
 
 /* https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.min */
 math_max :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
@@ -53,7 +148,7 @@ math_max :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     // 2. For each element arg of args, do
     pour arguments {
         // a. Let n be ? ToNumber(arg).
-        completion := vers_nombre(interpréteuse, it)
+        completion := to_number(interpréteuse, it)
         saufsi completion.est_normal() {
             retourne completion
         }
@@ -98,7 +193,7 @@ math_min :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     // 2. For each element arg of args, do
     pour arguments {
         // a. Let n be ? ToNumber(arg).
-        completion := vers_nombre(interpréteuse, it)
+        completion := to_number(interpréteuse, it)
         saufsi completion.est_normal() {
             retourne completion
         }
@@ -141,11 +236,43 @@ math_random :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     retourne normal_completion(Valeur(Number = résultat))
 }
 
+/* 21.3.2.28 Math.round ( x )
+ * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.round */
+math_round :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    // 1. Let n be ? ToNumber(x).
+    completion := to_number(interpréteuse, params.donne_argument(0))
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    n := completion.valeur.V.Number
+
+    // 2. If n is not finite or n is an integral Number, return n.
+    // À FAIRE : is an integral Number
+    si est_infini(n) {
+        retourne normal_completion(Valeur(Number = n))
+    }
+
+    // 3. If n < 0.5𝔽 and n > +0𝔽, return +0𝔽.
+    si n < 0.5 && n > 0.0 {
+        retourne normal_completion(Valeur(Number = 0.0))
+    }
+
+    // 4. If n < -0𝔽 and n ≥ -0.5𝔽, return -0𝔽.
+    si n < -0.0 && n >= -0.5 {
+        retourne normal_completion(Valeur(Number = -0.0))
+    }
+
+    // 5. Return the integral Number closest to n, preferring the Number closer to +∞ in the case of a tie.
+    résultat := arrondis(n)
+    retourne normal_completion(Valeur(Number = résultat))
+}
+
 /* https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.random */
 math_sqrt :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
     // 1. Let n be ? ToNumber(x).
-    completion := vers_nombre(interpréteuse, params.donne_argument(0))
+    completion := to_number(interpréteuse, params.donne_argument(0))
     saufsi completion.est_normal() {
         retourne completion
     }
