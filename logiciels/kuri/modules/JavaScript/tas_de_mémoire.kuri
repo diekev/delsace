@@ -1,5 +1,6 @@
 importe Ensemble
 importe Fondation
+importe GlibC
 importe Introspection
 importe #inemployé HTML
 importe Temps
@@ -167,6 +168,15 @@ rassemble_racines_en_mémoire :: fonc (tas_de_mémoire: *TasDeMémoire, racines:
 {
     /* Marqueur pour savoir la fin de la pile de données d'exécution. */
     marqueur_pile: n64
+
+    /* Vérifie la présence de cellules dans les registres. */
+    buf: __jmp_buf_tag
+    _ := setjmp(*buf)
+
+    pour buf.__jmpbuf {
+        cellule_possible := it comme *Cellule
+        ajoute_racine_depuis_cellule_possible(tas_de_mémoire, cellule_possible, racines)
+    }
 
     /* Rassemble les cellules sur la pile d'exécution. */
     début_pile := (*marqueur_pile) - 1
