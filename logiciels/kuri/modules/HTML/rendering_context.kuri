@@ -65,6 +65,28 @@ donne_fill_style :: fonc (ctx: *CanvasRenderingContext2D) -> DOMString
     retourne ctx.fill_style_string
 }
 
+/* NOTE : cette interface n'est pas standarde, mais est utilisée par certains
+ * scripts pour définir la couleur sans avoir à générer de chaines pour
+ * setFillStyle. */
+set_fill_color :: fonc (ctx: *CanvasRenderingContext2D, r: r64, v: r64, b: r64)
+{
+    convertis_canal :: fonc (v: r64) -> n8 #enligne
+    {
+        si v < 0.0 {
+            retourne 0
+        }
+        si v > 1.0 {
+            retourne 255
+        }
+        retourne (v * 255.0) comme n8
+    }
+
+    ctx.fill_style.r = convertis_canal(r)
+    ctx.fill_style.v = convertis_canal(v)
+    ctx.fill_style.b = convertis_canal(b)
+    ctx.fill_style.a = 255
+}
+
 fill_rect :: fonc (ctx: *CanvasRenderingContext2D, x: r64, y: r64, w: r64, h: r64)
 {
     saufsi ctx.canvas {
