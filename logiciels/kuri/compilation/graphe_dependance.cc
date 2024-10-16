@@ -462,6 +462,18 @@ kuri::chaine DonnéesDépendance::imprime(kuri::chaine_statique message) const
         return kuri::DécisionItération::Continue;
     });
 
+    enchaineuse << "\ninit_de utilisés :\n";
+    kuri::pour_chaque_élément(init_de_utilisés, [&](auto &type) {
+        enchaineuse << "    " << chaine_type(type) << '\n';
+        return kuri::DécisionItération::Continue;
+    });
+
+    enchaineuse << "\ninfo_de utilisés :\n";
+    kuri::pour_chaque_élément(info_de_utilisés, [&](auto &type) {
+        enchaineuse << "    " << chaine_type(type) << '\n';
+        return kuri::DécisionItération::Continue;
+    });
+
     return enchaineuse.chaine();
 }
 
