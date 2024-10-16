@@ -1469,7 +1469,19 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == TAG_br {
-            panique("algorithm d'insertion incomplet")
+            // parse error
+            reconstruit_liste_des_éléments_de_formattage_actifs(parseuse)
+
+            lexème_br: Lexème
+            lexème_br.genre = GenreLexème.DébutTag
+            lexème_br.nom = TAG_br
+            _ := insère_élément_html(parseuse, lexème_br)
+            dépile(*parseuse.pile_éléments_ouvert)
+
+            reconnait_drapeau_auto_fermant(*lexème)
+
+            parseuse.frameset_ok = faux
+            retourne
         }
 
         tout_autre_tag_fin_DansBody(parseuse, lexème)

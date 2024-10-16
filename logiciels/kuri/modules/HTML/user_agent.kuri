@@ -21,6 +21,10 @@ UserAgent :: struct {
     blob_url_store: BlobURLStore
 
     supporte_scripting: bool
+
+    /* Valeur par défaut pour l'entête 'User-Agent'.
+     * https://fetch.spec.whatwg.org/#default-user-agent-value */
+    user_agent_string: DOMString
 }
 
 initialise_user_agent :: fonc (user_agent: *UserAgent)
@@ -117,7 +121,7 @@ RappelsInterface :: struct {
     sur_est_exécuté_sur_file_parallèle: fonc(*RappelsInterface, *TraversableNavigable)(bool)
     sur_création_file_parallèle_pour_traversable: fonc(*RappelsInterface)(z64)
     sur_affichage_alerte: fonc(*RappelsInterface, DOMString)(rien)
-    sur_création_timeout: fonc(*RappelsInterface, *Algorithm, z32)(z32)
+    sur_création_timeout: fonc(*RappelsInterface, *Algorithm, z32, bool)(z32)
     sur_destruction_timeout: fonc(*RappelsInterface, z32)(rien)
     sur_request_animation_frame: fonc(*RappelsInterface)(rien)
 }
@@ -255,13 +259,13 @@ affiche_alerte :: fonc (user_agent: *UserAgent, message: DOMString)
     rappels.sur_affichage_alerte(rappels, message)
 }
 
-crée_timeout :: fonc (user_agent: *UserAgent, algorithm: *Algorithm, time_out: z32) -> z32
+crée_timeout :: fonc (user_agent: *UserAgent, algorithm: *Algorithm, time_out: z32, se_répète: bool) -> z32
 {
     rappels := user_agent.rappels_interface
     saufsi rappels && rappels.sur_création_timeout {
         retourne -1
     }
-    retourne rappels.sur_création_timeout(rappels, algorithm, time_out)
+    retourne rappels.sur_création_timeout(rappels, algorithm, time_out, se_répète)
 }
 
 détruit_timeout :: fonc (user_agent: *UserAgent, id: z32)

@@ -27,6 +27,15 @@ crée_fonction :: fonc (function_prototype: *FunctionPrototype) -> *Function
     retourne résultat
 }
 
+donne_nom :: fonc (function: *Function) -> ECMAString
+{
+    propriété := trouve_propriété(function, STR_name)
+    si propriété {
+        retourne propriété.valeur.String.texte
+    }
+    retourne crée_chaine_utf16_unique("<anonyme>")
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -36,7 +45,7 @@ crée_fonction :: fonc (function_prototype: *FunctionPrototype) -> *Function
 
 #portée_fichier
 
-table_virtuelle_function_ecma := TableVirtuelleObject(classe = ECMAScriptFunction, sur_destruction = sur_destruction_objet, sur_call = sur_appel_fonction_ecma, sur_construct = sur_construct_fonction_ecma)
+table_virtuelle_function_ecma := TableVirtuelleObject(classe = ECMAScriptFunction, sur_call = sur_appel_fonction_ecma, sur_construct = sur_construct_fonction_ecma)
 
 #portée_export
 
@@ -57,8 +66,8 @@ ECMAScriptFunction :: struct {
     empl function: Function
     table = *table_virtuelle_function_ecma
 
-    corps: *NoeudSyntaxique
-    formal_parameters: [..]*NoeudSyntaxique
+    corps: *Statement @NeVisitePas
+    formal_parameters: [..]*Expression @NeVisitePas
 
     environment: *Environment
     private_environment: *PrivateEnvironment
@@ -68,6 +77,11 @@ ECMAScriptFunction :: struct {
     realm: *Realm
     script_or_module: *Script // ScriptOrModule
     constructor_kind: ConstructorKind
+}
+
+ecma_script_function_instance_crée :: fonc (realm: *Realm) -> *Object
+{
+    retourne realm.donne_tas_de_mémoire().alloue(ECMAScriptFunction)
 }
 
 /* 10.2.1 [[Call]] ( thisArgument, argumentsList )
@@ -109,6 +123,7 @@ sur_appel_fonction_ecma :: fonc (empl params: *ParamètresObjectCall) -> Complet
     // 7. Remove calleeContext from the execution context stack and restore callerContext as the running execution context.
     mv.dépile_execution_context()
     assert(caller_context == mv.donne_running_execution_context())
+    interpréteuse.noeud_exécuté_courant = *caller_context.noeud_exécuté_courant
 
     // 8. If result is a return completion, return result.[[Value]].
     si result.est_return() {
@@ -164,6 +179,7 @@ prepare_for_ordinary_call :: fonc (interpréteuse: *Interpréteuse, F: *ECMAScri
     // 12. Push calleeContext onto the execution context stack; calleeContext is now the running execution context.
     mv := interpréteuse.mv
     mv.empile_execution_context(callee_context)
+    interpréteuse.noeud_exécuté_courant = *callee_context.noeud_exécuté_courant
 
     // 13. NOTE: Any exception objects produced after this point are associated with calleeRealm.
 
@@ -212,7 +228,7 @@ ordinary_call_bind_this :: fonc (F: *ECMAScriptFunction, callee_context: *Execut
         sinon {
             // i. Let thisValue be ! ToObject(thisArgument).
             // ii. NOTE: ToObject produces wrapper objects using calleeRealm.
-            this_value = vers_objet(callee_realm, this_argument).valeur.V
+            this_value = to_object(callee_realm, this_argument).valeur.V
         }
     }
 
@@ -265,8 +281,14 @@ sur_construct_fonction_ecma :: fonc (empl params: *ParamètresObjectConstruct) -
     // 3. If kind is base, then
     this_argument: Valeur
     si kind == ConstructorKind.Base {
-        // À FAIRE : a. Let thisArgument be ? OrdinaryCreateFromConstructor(newTarget, "%Object.prototype%").
-        this_argument.Object = crée_objet(realm.donne_tas_de_mémoire(), realm.intrinsics.object_prototype)
+        // a. Let thisArgument be ? OrdinaryCreateFromConstructor(newTarget, "%Object.prototype%").
+        new_target_func := new_target.donne_objet() comme *Function
+        completion := ordinary_create_from_constructor(realm, new_target_func, realm.intrinsics.object_prototype, object_instance_crée)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+
+        this_argument = completion.valeur.V
     }
 
     // 4. Let calleeContext be PrepareForOrdinaryCall(F, newTarget).
@@ -295,6 +317,7 @@ sur_construct_fonction_ecma :: fonc (empl params: *ParamètresObjectConstruct) -
     // 9. Remove calleeContext from the execution context stack and restore callerContext as the running execution context.
     mv.dépile_execution_context()
     assert(mv.donne_running_execution_context() == caller_context)
+    interpréteuse.noeud_exécuté_courant = *caller_context.noeud_exécuté_courant
     
     // 10. If result is a return completion, then
     si result.est_return() {
@@ -335,14 +358,11 @@ sur_construct_fonction_ecma :: fonc (empl params: *ParamètresObjectConstruct) -
 /* 10.2.3 OrdinaryFunctionCreate ( functionPrototype, sourceText, ParameterList, Body, thisMode, env, privateEnv )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinaryfunctioncreate 
  * À FAIRE : paramètres et étapes manquants */
-ordinary_function_create :: fonc (realm: *Realm, function_prototype: *FunctionPrototype, params: [..]*NoeudSyntaxique, corps: *NoeudSyntaxique, this_mode: bool, env: *Environment, private_env: *PrivateEnvironment) -> *ECMAScriptFunction
+ordinary_function_create :: fonc (realm: *Realm, function_prototype: *FunctionPrototype, params: [..]*Expression, corps: *Statement, this_mode: bool, env: *Environment, private_env: *PrivateEnvironment) -> *ECMAScriptFunction
 {
-    tas_de_mémoire := function_prototype.donne_tas_de_mémoire()
-
     // 1. Let internalSlotsList be the internal slots listed in Table 30.
     // 2. Let F be OrdinaryObjectCreate(functionPrototype, internalSlotsList).
-    F := tas_de_mémoire.alloue(ECMAScriptFunction)
-    F.prototype = function_prototype
+    F := ordinary_object_create(realm, function_prototype, ecma_script_function_instance_crée) comme *ECMAScriptFunction
 
     // 3. Set F.[[Call]] to the definition specified in 10.2.1.
     // Ceci est fait via la table virtuelle.
@@ -396,7 +416,7 @@ ordinary_function_create :: fonc (realm: *Realm, function_prototype: *FunctionPr
     // 21. Let len be the ExpectedArgumentCount of ParameterList.
 
     // 22. Perform SetFunctionLength(F, len).
-    set_function_length(F, params.taille comme n64)
+    set_function_length(F, params.taille comme r64)
 
     // 23. Return F.
     retourne F
@@ -404,7 +424,7 @@ ordinary_function_create :: fonc (realm: *Realm, function_prototype: *FunctionPr
 
 /* 10.2.5 MakeConstructor ( F [ , writablePrototype [ , prototype ] ] )
  * https://tc39.es/ecma262/#sec-makeconstructor */
-make_constructor :: fonc (F: *ECMAScriptFunction)
+make_constructor :: fonc (F: *ECMAScriptFunction, opt_writable_prototype : *bool = nul, prototype : *Object = nul)
 {
     // À FAIRE : complète
     // 1. If F is an ECMAScript function object, then
@@ -418,16 +438,38 @@ make_constructor :: fonc (F: *ECMAScriptFunction)
     F.constructor_kind = ConstructorKind.Base
 
     // 4. If writablePrototype is not present, set writablePrototype to true.
+    writable_prototype := vrai
+    si opt_writable_prototype {
+        writable_prototype = mémoire(opt_writable_prototype)
+    }
+
     // 5. If prototype is not present, then
+    saufsi prototype {
         // a. Set prototype to OrdinaryObjectCreate(%Object.prototype%).
+        prototype = ordinary_object_create(F.realm, F.realm.intrinsics.object_prototype, object_instance_crée)
+    }
+
     // b. Perform ! DefinePropertyOrThrow(prototype, "constructor", PropertyDescriptor { [[Value]]: F, [[Writable]]: writablePrototype, [[Enumerable]]: false, [[Configurable]]: true }).
+    desc: PropertyDescriptor
+    desc.value = Valeur(Object = F)
+    desc.writable = writable_prototype
+    desc.enumerable = faux
+    desc.configurable = vrai
+    _ := define_property_or_throw(prototype, STR_constructor, desc)
+
     // 6. Perform ! DefinePropertyOrThrow(F, "prototype", PropertyDescriptor { [[Value]]: prototype, [[Writable]]: writablePrototype, [[Enumerable]]: false, [[Configurable]]: false }).
+    desc.value = Valeur(Object = prototype)
+    desc.writable = writable_prototype
+    desc.enumerable = faux
+    desc.configurable = faux
+    _ := define_property_or_throw(F, STR_prototype, desc)
+
     // 7. Return unused.
 }
 
 /* 10.2.9 SetFunctionName ( F, name [ , prefix ] )
  * https://tc39.es/ecma262/#sec-setfunctionname */
-set_function_name :: fonc (F: *Object, name: PropertyKey)
+set_function_name :: fonc (realm: *Realm, F: *Object, name: PropertyKey, prefix := crée_chaine_utf16_unique_vide() @inutilisée)
 {
     // À FAIRE : 1. Assert: F is an extensible object that does not have a "name" own property.
     assert(has_own_property(F, STR_name).valeur.V.est_false())
@@ -463,7 +505,12 @@ set_function_name :: fonc (F: *Object, name: PropertyKey)
 
     // 6. Perform ! DefinePropertyOrThrow(F, "name", PropertyDescriptor { [[Value]]: name, [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: true }).
     desc: PropertyDescriptor
-    desc.value = Valeur(String = crée_chaine(F.donne_tas_de_mémoire(), name.String))
+    si realm {
+        desc.value = Valeur(String = crée_chaine(realm, name.String))
+    }
+    sinon {
+        desc.value = Valeur(String = crée_chaine(F.donne_tas_de_mémoire(), name.String))
+    }
     desc.configurable = vrai
     completion := define_property_or_throw(F, STR_name, desc)
     assert(completion.est_normal())
@@ -473,15 +520,17 @@ set_function_name :: fonc (F: *Object, name: PropertyKey)
 
 /* 10.2.10 SetFunctionLength ( F, length )
  * https://tc39.es/ecma262/#sec-setfunctionname */
-set_function_length :: fonc (F: *Object, length: n64)
+set_function_length :: fonc (F: *Object, length: r64)
 {
+    assert(length >= 0.0)
+
     // 1. Assert: F is an extensible object that does not have a "length" own property.
-    // À FAIRE : extensible object
+    assert(F.extensible)
     assert(has_own_property(F, STR_length).valeur.V.est_false())
 
     // 2. Perform ! DefinePropertyOrThrow(F, "length", PropertyDescriptor { [[Value]]: 𝔽(length), [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: true }).
     desc: PropertyDescriptor
-    desc.value = Valeur(Number = length comme r64)
+    desc.value = Valeur(Number = length)
     desc.configurable = vrai
     completion := define_property_or_throw(F, STR_length, desc)
     assert(completion.est_normal())
@@ -499,7 +548,7 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
     callee_context := interpréteuse.donne_running_execution_context()
 
     // 2. Let code be func.[[ECMAScriptCode]].
-    // code := func.corps
+    code := func.corps
 
     // 3. Let strict be func.[[Strict]].
     strict := func.strict
@@ -525,6 +574,9 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
     has_parameter_expression := faux
 
     // 9. Let varNames be the VarDeclaredNames of code.
+    var_names := donne_var_declared_names(code)
+    diffère déloge(var_names)
+
     // 10. Let varDeclarations be the VarScopedDeclarations of code.
     // 11. Let lexicalNames be the LexicallyDeclaredNames of code.
     // 12. Let functionNames be a new empty List.
@@ -602,53 +654,39 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
     // 26. Else,
         // a. Perform ? IteratorBindingInitialization of formals with arguments iteratorRecord and env.
     pour parameter_names {
-        si index_it >= arguments_list.taille {
-            arrête
+        valeur := si index_it >= arguments_list.taille {
+            js_undefined
+        }
+        sinon {
+            arguments_list[index_it]
         }
 
-        _ := env.initialize_binding(it, arguments_list[index_it])
+        _ := env.initialize_binding(it, valeur)
     }
 
     var_env: *Environment
     // 27. If hasParameterExpressions is false, then
     si has_parameter_expression == faux {
         // a. NOTE: Only a single Environment Record is needed for the parameters and top-level vars.
-        // b. Let instantiatedVarNames be a copy of the List parameterBindings.
-        // c. For each element n of varNames, do
-        assert(func.corps != nul && func.corps.type == BlockStatement)
-        bloc := func.corps comme *BlockStatement
 
+        // b. Let instantiatedVarNames be a copy of the List parameterBindings.
         instantiated_names: [..]ECMAString
         diffère déloge(instantiated_names)
 
-        pour bloc.enfants {
-            si it.type != VariableDeclaration {
-                continue
-            }
+        pour parameter_names {
+            ensemble_ajoute(*instantiated_names, it)
+        }
 
-            var_decl := it comme *VariableDeclaration
-            si var_decl.nature != VariableDeclarationKind.Var {
-                continue
-            }
-
+        // c. For each element n of varNames, do
+        pour var_names {
             // i. If instantiatedVarNames does not contain n, then
+            saufsi ensemble_possède(*instantiated_names, it) {
                 // 1. Append n to instantiatedVarNames.
+                ensemble_ajoute(*instantiated_names, it)
                 // 2. Perform ! env.CreateMutableBinding(n, false).
+                env.create_mutable_binding(it, faux)
                 // 3. Perform ! env.InitializeBinding(n, undefined).
-
-            pour expr dans var_decl.expressions {
-                declarator := expr comme *VariableDeclarator
-                assert(declarator.id.type == Identifier)
-                id := declarator.id comme *Identifier
-
-                si ensemble_possède(*instantiated_names, id.nom) {
-                    continue
-                }
-
-                env.create_mutable_binding(id.nom, faux)
-                _ := env.initialize_binding(id.nom, js_undefined)
-
-                ensemble_ajoute(*instantiated_names, id.nom)
+                _ := env.initialize_binding(it, js_undefined)
             }
         }
 
@@ -693,13 +731,32 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
     callee_context.lexical_environment = lex_env
 
     // 33. Let lexDeclarations be the LexicallyScopedDeclarations of code.
+    lex_declarations := donne_lexically_scoped_declarations(code)
+    diffère déloge(lex_declarations)
+
     // 34. For each element d of lexDeclarations, do
-        // a. NOTE: A lexically declared name cannot be the same as a function/generator declaration, formal parameter, or a var name. Lexically declared names are only instantiated here but not initialized.
+    pour lex_declarations {
+        // a. NOTE: A lexically declared name cannot be the same as a function/generator declaration,
+        // formal parameter, or a var name. Lexically declared names are only instantiated here but
+        // not initialized.
+
         // b. For each element dn of the BoundNames of d, do
+        pour dn dans it.expressions {
+            assert(dn.id.type == Identifier)
+            name := (dn.id comme *Identifier).nom
+
             // i. If IsConstantDeclaration of d is true, then
+            si it.nature == VariableDeclarationKind.Const {
                 // 1. Perform ! lexEnv.CreateImmutableBinding(dn, true).
+                _ := lex_env.create_immutable_binding(interpréteuse.donne_realm(), name, vrai)
+            }
             // ii. Else,
+            sinon {
                 // 1. Perform ! lexEnv.CreateMutableBinding(dn, false).
+                lex_env.create_mutable_binding(name, faux)
+            }
+        }
+    }
 
     // 35. Let privateEnv be the PrivateEnvironment of calleeContext.
     private_env := callee_context.private_environment
@@ -739,8 +796,153 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-built-in-function-objects
  * \{ */
 
+ParamètresCallOrConstruct :: struct {
+    object: *BuiltInFunction
+    interpréteuse: *Interpréteuse
+    this_value: Valeur
+    arguments: []Valeur
+    new_target: Valeur
+}
+
+donne_argument :: fonc (params: *ParamètresCallOrConstruct, index: z64) -> Valeur
+{
+    si index < 0 || index >= params.arguments.taille {
+        retourne js_undefined
+    }
+    retourne params.arguments[index]
+}
+
+TableVirtuelleBuiltinFunction :: struct {
+    empl object: TableVirtuelleObject
+
+    sur_call = builtin_function_sur_call
+    sur_construct = builtin_function_sur_construct
+}
+
 BuiltInFunction :: struct {
     empl function: Function
+
+    realm: *Realm
+    initial_name: ECMAString
+    sur_call_or_construct: fonc(*ParamètresCallOrConstruct)(CompletionRecord)
+}
+
+#portée_fichier
+
+/* 10.3.1 [[Call]] ( thisArgument, argumentsList )
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-built-in-function-objects-call-thisargument-argumentslist */
+builtin_function_sur_call :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    // 1. Return ? BuiltinCallOrConstruct(F, thisArgument, argumentsList, undefined).
+    retourne builtin_call_or_construct(object comme *BuiltInFunction, interpréteuse, this_value, arguments, js_undefined)
+}
+
+/* 10.3.2 [[Construct]] ( argumentsList, newTarget )
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-built-in-function-objects-construct-argumentslist-newtarget */
+builtin_function_sur_construct :: fonc (empl params: *ParamètresObjectConstruct) -> CompletionRecord
+{
+    // 1. Return ? BuiltinCallOrConstruct(F, uninitialized, argumentsList, newTarget).
+    retourne builtin_call_or_construct(object comme *BuiltInFunction, interpréteuse, js_undefined, arguments, new_target)
+}
+
+/* 10.3.3 BuiltinCallOrConstruct ( F, thisArgument, argumentsList, newTarget ) */
+builtin_call_or_construct :: fonc (F: *BuiltInFunction, interpréteuse: *Interpréteuse, this_argument: Valeur, arguments: []Valeur, new_target: Valeur) -> CompletionRecord
+{
+    mv := interpréteuse.mv
+
+    // 1. Let callerContext be the running execution context.
+    caller_context := mv.donne_running_execution_context()
+
+    // 2. If callerContext is not already suspended, suspend callerContext.
+    suspend(caller_context)
+
+    // 3. Let calleeContext be a new execution context.
+    callee_context := crée_execution_context(interpréteuse.donne_tas_de_mémoire())
+
+    // 4. Set the Function of calleeContext to F.
+    callee_context.function = F
+
+    // 5. Let calleeRealm be F.[[Realm]].
+    callee_realm := F.realm
+
+    // 6. Set the Realm of calleeContext to calleeRealm.
+    callee_context.realm = callee_realm
+
+    // 7. Set the ScriptOrModule of calleeContext to null.
+    callee_context.script_or_module = nul
+
+    // 8. Perform any necessary implementation-defined initialization of calleeContext.
+
+    // 9. Push calleeContext onto the execution context stack; calleeContext is now the running execution context.
+    mv.empile_execution_context(callee_context)
+    interpréteuse.noeud_exécuté_courant = *callee_context.noeud_exécuté_courant
+
+    // 10. Let result be the Completion Record that is the result of evaluating F in a manner that conforms to the specification of F. If thisArgument is uninitialized, the this value is uninitialized; otherwise, thisArgument provides the this value. argumentsList provides the named parameters. newTarget provides the NewTarget value.
+    // 11. NOTE: If F is defined in this document, “the specification of F” is the behaviour specified for it via algorithm steps or other means.
+    params: ParamètresCallOrConstruct
+    params.object = F
+    params.interpréteuse = interpréteuse
+    params.this_value = this_argument
+    params.arguments = arguments
+    params.new_target = new_target
+
+    result := F.sur_call_or_construct(*params)
+
+    // 12. Remove calleeContext from the execution context stack and restore callerContext as the running execution context.
+    mv.dépile_execution_context()
+    assert(mv.donne_running_execution_context() == caller_context)
+    interpréteuse.noeud_exécuté_courant = *caller_context.noeud_exécuté_courant
+
+    // 13. Return ? result.
+    retourne result
+}
+
+#portée_export
+
+/* 10.3.4 CreateBuiltinFunction ( behaviour, length, name, additionalInternalSlotsList [ , realm [ , prototype [ , prefix ] ] ] )
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-createbuiltinfunction */
+create_builtin_function :: fonc (func: *BuiltInFunction, length: r64, name: ECMAString, realm : *Realm = nul, prototype : *Object = nul, prefix := crée_chaine_utf16_unique_vide())
+{
+    // 1. If realm is not present, set realm to the current Realm Record.
+    assert(realm != nul)
+
+    // 2. If prototype is not present, set prototype to realm.[[Intrinsics]].[[%Function.prototype%]].
+    saufsi prototype {
+        prototype = realm.intrinsics.function_prototype
+    }
+
+    // 3. Let internalSlotsList be a List containing the names of all the internal slots that 10.3 requires for the built-in function object that is about to be created.
+    // 4. Append to internalSlotsList the elements of additionalInternalSlotsList.
+    // 5. Let func be a new built-in function object that, when called, performs the action described by behaviour using the provided arguments as the values of the corresponding parameters specified by behaviour. The new function object has internal slots whose names are the elements of internalSlotsList, and an [[InitialName]] internal slot.
+    // NOTE : nous précréons la fonction
+
+    // 6. Set func.[[Prototype]] to prototype.
+    func.prototype = prototype
+
+    // 7. Set func.[[Extensible]] to true.
+    func.extensible = vrai
+
+    // 8. Set func.[[Realm]] to realm.
+    func.realm = realm
+
+    // 9. Set func.[[InitialName]] to null.
+    func.initial_name = crée_chaine_utf16_unique_vide()
+
+    // 10. Perform SetFunctionLength(func, length).
+    set_function_length(func, length)
+
+    // 11. If prefix is not present, then
+    si prefix.est_vide() {
+        // a. Perform SetFunctionName(func, name).
+        set_function_name(realm, func, name)
+    }
+    // 12. Else,
+    sinon {
+        // a. Perform SetFunctionName(func, name, prefix).
+        set_function_name(realm, func, name, prefix)
+    }
+
+    // 13. Return func.
 }
 
 /** \} */
@@ -753,8 +955,7 @@ BuiltInFunction :: struct {
 #portée_fichier
 
 table_virtuelle_function_constructor := TableVirtuelleObject(
-    classe = FunctionConstructor,
-    sur_destruction = sur_destruction_objet
+    classe = FunctionConstructor
 )
 
 #portée_export
@@ -764,13 +965,12 @@ FunctionConstructor :: struct {
     table = *table_virtuelle_function_constructor
 }
 
-/* À FAIRE : standardise (CreateBuiltInFunction) */
-crée_function_constructor :: fonc (tas_de_mémoire: *TasDeMémoire, function_prototype: *FunctionPrototype) -> *FunctionConstructor
+crée_function_constructor :: fonc (realm: *Realm, function_prototype: *FunctionPrototype) -> *FunctionConstructor
 {
+    tas_de_mémoire := realm.donne_tas_de_mémoire()
     résultat := tas_de_mémoire.alloue(FunctionConstructor)
-    résultat.prototype = function_prototype
+    create_builtin_function(résultat, 1, STR_Function, realm, function_prototype)
 
-    résultat.ajoute_propriété(STR_length, Valeur(Number = 1.0), DrapeauxPropriété.zéro)
     résultat.ajoute_propriété(STR_prototype, Valeur(Object = function_prototype), DrapeauxPropriété.zéro)
 
     function_prototype.ajoute_propriété(STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro)
@@ -787,7 +987,7 @@ crée_function_constructor :: fonc (tas_de_mémoire: *TasDeMémoire, function_pr
 
 #portée_fichier
 
-table_virtuelle_function_prototype := TableVirtuelleObject(classe = FunctionPrototype, sur_destruction = sur_destruction_objet, sur_call = fonction_prototype_sur_call)
+table_virtuelle_function_prototype := TableVirtuelleObject(classe = FunctionPrototype, sur_call = fonction_prototype_sur_call)
 
 #portée_export
 
@@ -796,12 +996,13 @@ FunctionPrototype :: struct {
     table = *table_virtuelle_function_prototype
 }
 
-crée_function_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ObjectPrototype) -> *FunctionPrototype
+crée_function_prototype :: fonc (realm: *Realm, prototype: *ObjectPrototype) -> *FunctionPrototype
 {
+    tas_de_mémoire := realm.donne_tas_de_mémoire()
     résultat := tas_de_mémoire.alloue(FunctionPrototype)
     résultat.prototype = prototype
     résultat.ajoute_propriété(STR_length, Valeur(Number = 0.0), DrapeauxPropriété.zéro)
-    résultat.ajoute_propriété(STR_name, Valeur(String = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(""))), DrapeauxPropriété.zéro)
+    résultat.ajoute_propriété(STR_name, Valeur(String = crée_chaine(realm, crée_chaine_utf16_unique(""))), DrapeauxPropriété.zéro)
     retourne résultat
 }
 
@@ -824,7 +1025,7 @@ fonction_native_sur_appel :: fonc (params: *ParamètresObjectCall) -> Completion
     retourne function_native.sur_appel(params)
 }
 
-table_virtuelle_function_native := TableVirtuelleObject(classe = FunctionNative, sur_destruction = sur_destruction_objet, sur_call = fonction_native_sur_appel)
+table_virtuelle_function_native := TableVirtuelleObject(classe = FunctionNative, sur_call = fonction_native_sur_appel)
 
 #portée_export
 
@@ -838,8 +1039,8 @@ FunctionNative :: struct {
 crée_fonction_native :: fonc (tas_de_mémoire: *TasDeMémoire, nom: ECMAString, sur_appel: TypeFonctionObjectCall, length: z64) -> *FunctionNative
 {
     résultat := tas_de_mémoire.alloue(FunctionNative)
-    set_function_name(résultat, nom)
-    set_function_length(résultat, length comme n64)
+    set_function_name(nul, résultat, nom)
+    set_function_length(résultat, length comme r64)
     résultat.sur_appel = sur_appel
     retourne résultat
 }

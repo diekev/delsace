@@ -1,5 +1,7 @@
 importe Chaine
 importe Fondation
+importe Math
+importe Numérique
 
 charge "arbre"
 charge "enveloppe"
@@ -12,20 +14,19 @@ charge "realm"
 charge "script"
 charge "tas_de_mémoire"
 charge "terminologie"
+charge "valeur"
 
 charge "Objets/array"
+charge "Objets/boolean"
+charge "Objets/date"
 charge "Objets/error"
 charge "Objets/function"
 charge "Objets/object"
 charge "Objets/math"
+charge "Objets/number"
 charge "Objets/string"
 
 ECMAString :: ChaineUTF16Unique
-
-/* ------------------------------------------------------------------------- */
-/** \nom Valeur
- * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof
- * \{ */
 
 NaN : r64 : 0r7ff8000000000000
 
@@ -55,240 +56,7 @@ Symbol :: struct {
 
 /** \} */
 
-Valeur :: union {
-    Undefined: UndefinedType
-    Null: NullType
-    Boolean: bool
-    Number: r64
-    BigInt: BigInt
-    String: *PrimitiveChaine
-    Symbol: *Symbol
-    Function: *Function
-    Object: *Object
-}
-
-imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: *Valeur)
-{
-    saufsi valeur {
-        ajoute_au_tampon(enchaineuse, "nul")
-        retourne
-    }
-
-    discr mémoire(valeur) {
-        Undefined {
-            ajoute_au_tampon(enchaineuse, "undefined")
-        }
-        Null {
-            ajoute_au_tampon(enchaineuse, "null")
-        }
-        Boolean(b) {
-            si b {
-                ajoute_au_tampon(enchaineuse, "true")
-            }
-            sinon {
-                ajoute_au_tampon(enchaineuse, "false")
-            }
-        }
-        Number(n) {
-            ajoute_au_tampon(enchaineuse, n)
-        }
-        Object(o) {
-            si o.donne_classe() == ReferenceError {
-                error := o comme *ReferenceError
-                ajoute_au_tampon(enchaineuse, error.donne_nom_classe(), ": ", error.message.texte)
-            }
-            sinon si o.donne_classe() == TypeError {
-                error := o comme *TypeError
-                ajoute_au_tampon(enchaineuse, error.donne_nom_classe(), ": ", error.message.texte)
-            }
-            sinon {
-                ajoute_au_tampon(enchaineuse, "[object ", o.donne_nom_classe(), "]")
-            }
-        }
-        Function(o) {
-            ajoute_au_tampon(enchaineuse, "[object ", o.donne_nom_classe(), "]")
-        }
-        String(s) {
-            ajoute_au_tampon(enchaineuse, "\"", s.texte, "\"")
-        }
-        sinon {
-            ajoute_au_tampon(enchaineuse, "Valeur inconnue.")
-        }
-    }
-} @FormattageImpression
-
-/* À FAIRE(language) : index_de(valeur) == Number  */
-est_fonction :: fonc (valeur: Valeur) -> bool
-{
-    discr valeur {
-        Function {
-            retourne vrai
-        }
-        sinon {
-            retourne faux
-        }
-    }
-}
-
-est_object :: fonc (valeur: Valeur) -> bool
-{
-    discr valeur {
-        Object {
-            retourne vrai
-        }
-        sinon {
-            retourne est_fonction(valeur)
-        }
-    }
-}
-
-donne_objet :: fonc (valeur: Valeur) -> *Object
-{
-    discr valeur {
-        Object(objet) {
-            retourne objet
-        }
-        Function(function) {
-            retourne function
-        }
-        sinon {
-            retourne nul
-        }
-    }
-}
-
-est_cellule :: fonc (valeur: Valeur) -> bool
-{
-    retourne valeur.est_object() || valeur.est_chaine()
-}
-
-donne_cellule :: fonc (valeur: Valeur) -> *Cellule
-{
-    discr valeur {
-        Object(o) {
-            retourne o
-        }
-        Function(f) {
-            retourne f
-        }
-        String(s) {
-            retourne s
-        }
-        sinon {
-            retourne nul
-        }
-    }
-}
-
-est_nombre :: fonc (valeur: Valeur) -> bool
-{
-    discr valeur {
-        Number {
-            retourne vrai
-        }
-        sinon {
-            retourne faux
-        }
-    }
-}
-
-est_chaine :: fonc (valeur: Valeur) -> bool
-{
-    discr valeur {
-        String {
-            retourne vrai
-        }
-        sinon {
-            retourne faux
-        }
-    }
-}
-
-est_nulle :: fonc (valeur: Valeur) -> bool
-{
-    discr valeur {
-        Null {
-            retourne vrai
-        }
-        sinon {
-            retourne faux
-        }
-    }
-}
-
-est_undefined :: fonc (valeur: Valeur) -> bool
-{
-    discr valeur {
-        Undefined {
-            retourne vrai
-        }
-        sinon {
-            retourne faux
-        }
-    }
-}
-
-est_boolean :: fonc (valeur: Valeur) -> bool
-{
-    discr valeur {
-        Boolean {
-            retourne vrai
-        }
-        sinon {
-            retourne faux
-        }
-    }
-}
-
-est_true :: fonc (valeur: Valeur) -> bool
-{
-    discr valeur {
-        Boolean {
-            retourne valeur.Boolean
-        }
-        sinon {
-            retourne faux
-        }
-    }
-}
-
-est_false :: fonc (valeur: Valeur) -> bool
-{
-    discr valeur {
-        Boolean {
-            retourne !valeur.Boolean
-        }
-        sinon {
-            retourne faux
-        }
-    }
-}
-
-est_big_int :: fonc (valeur: Valeur) -> bool
-{
-    discr valeur {
-        BigInt {
-            retourne vrai
-        }
-        sinon {
-            retourne faux
-        }
-    }
-}
-
-est_symbol :: fonc (valeur: Valeur) -> bool
-{
-    discr valeur {
-        Symbol {
-            retourne vrai
-        }
-        sinon {
-            retourne faux
-        }
-    }
-}
-
-concatène :: fonc (str_gauche: *PrimitiveChaine, str_droite: *PrimitiveChaine) -> Valeur
+concatène :: fonc (realm: *Realm, str_gauche: *PrimitiveChaine, str_droite: *PrimitiveChaine) -> Valeur
 {
     chn1 := str_gauche.texte.donne_chaine_utf16()
     chn2 := str_droite.texte.donne_chaine_utf16()
@@ -304,437 +72,8 @@ concatène :: fonc (str_gauche: *PrimitiveChaine, str_droite: *PrimitiveChaine) 
     diffère détruit_chaine(chn)
     chn_résultat := crée_chaine_utf16_unique(chn)
 
-    retourne Valeur(String = crée_chaine(str_gauche.donne_tas_de_mémoire(), chn_résultat))
+    retourne Valeur(String = crée_chaine(realm, chn_résultat))
 }
-
-js_null := Valeur(Null = NullType(0))
-js_undefined := Valeur(Undefined = UndefinedType(0))
-
-TypePréféré :: énum {
-    Aucun
-    Number
-    String
-}
-
-/* 7.1.18 ToObject ( argument )
- * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-toobject */
-vers_objet :: fonc (realm: *Realm, valeur: Valeur) -> CompletionRecord
-{
-    si valeur.est_undefined() {
-        retourne lance_type_error(realm, "undefined is not an Object")
-    }
-
-    si valeur.est_nulle() {
-        retourne lance_type_error(realm, "null is not an Object")
-    }
-
-    si valeur.est_object() {
-        retourne normal_completion(Valeur(Object = valeur.donne_objet()))
-    }
-
-    si valeur.est_chaine() {
-        chn := valeur.String
-        saufsi chn.objet {
-            chn.objet = crée_chaine(realm.donne_tas_de_mémoire(), realm.intrinsics.string_prototype, valeur.String)
-        }
-        retourne normal_completion(Valeur(Object = chn.objet))
-    }
-
-    panique("vers_objet non-implémenté pour type")
-}
-
-/* 7.1.19 ToPropertyKey ( argument )
- * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-topropertykey */
-to_property_key :: fonc (interpréteuse: *Interpréteuse, argument: Valeur) -> CompletionRecord
-{
-    retourne to_property_key(interpréteuse.donne_realm(), argument)
-}
-
-to_property_key :: fonc (realm: *Realm, argument: Valeur) -> CompletionRecord
-{
-    // 1. Let key be ? ToPrimitive(argument, STRING).
-    completion := vers_primitive(realm, argument, TypePréféré.String)
-    saufsi completion.est_normal() {
-        retourne completion
-    }
-    key := completion.valeur.V
-
-    // 2. If key is a Symbol, then
-    si key.est_symbol() {
-        // a. Return key.
-        retourne normal_completion(key)
-    }
-
-    // 3. Return ! ToString(key).
-    retourne vers_chaine(realm, key)
-}
-
-/* 7.1.20 ToLength ( argument )
- * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-tolength */
-to_length :: fonc (argument: Valeur) -> CompletionRecord
-{
-    assert(argument.est_nombre())
-    /* À FAIRE : ToIntegerOrInfinity. */
-    // 1. Let len be ? ToIntegerOrInfinity(argument).
-    len := argument.Number
-
-    // 2. If len ≤ 0, return +0𝔽.
-    si len <= 0.0 {
-        retourne normal_completion(Valeur(Number = 0.0))
-    }
-
-    // 3. Return 𝔽(min(len, 2**53 - 1)).
-    retourne normal_completion(argument)
-}
-
-/* 7.1.1 ToPrimitive ( input [ , preferredType ] )
- * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-toprimitive */
-vers_primitive :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur, type_préféré := TypePréféré.Aucun) -> CompletionRecord
-{
-    retourne vers_primitive(interpréteuse.donne_realm(), valeur, type_préféré)
-}
-
-vers_primitive :: fonc (realm: *Realm, valeur: Valeur, type_préféré := TypePréféré.Aucun) -> CompletionRecord
-{
-    // 1. If input is an Object, then
-    si valeur.est_object() {
-        // À FAIRE : a. Let exoticToPrim be ? GetMethod(input, %Symbol.toPrimitive%).
-        // b. If exoticToPrim is not undefined, then
-            // i. If preferredType is not present, then
-                // 1. Let hint be "default".
-            // ii. Else if preferredType is STRING, then
-                // 1. Let hint be "string".
-            // iii. Else,
-                // 1. Assert: preferredType is NUMBER.
-                // 2. Let hint be "number".
-            // iv. Let result be ? Call(exoticToPrim, input, « hint »).
-            // v. If result is not an Object, return result.
-            // vi. Throw a TypeError exception.
-
-        // c. If preferredType is not present, let preferredType be NUMBER.
-        si type_préféré == TypePréféré.Aucun {
-            type_préféré = TypePréféré.Number
-        }
-
-        // d. Return ? OrdinaryToPrimitive(input, preferredType).
-        retourne ordinary_to_primitive(realm, valeur.donne_objet(), type_préféré)
-    }
-
-    // 2. Return input.
-    retourne normal_completion(valeur)
-}
-
-/* 7.1.1.1 OrdinaryToPrimitive ( O, hint )
- * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-ordinarytoprimitive */
-ordinary_to_primitive :: fonc (realm: *Realm, object: *Object, hint: TypePréféré) -> CompletionRecord
-{
-    method_names: [2]ECMAString
-
-    // 1. If hint is string, then
-    si hint == TypePréféré.String {
-        // a. Let methodNames be « "toString", "valueOf" ».
-        method_names = [STR_toString, STR_valueOf]
-    }
-    // 2. Else,
-    sinon {
-        // a. Let methodNames be « "valueOf", "toString" ».
-        method_names = [STR_valueOf, STR_toString]
-    }
-
-    // 3. For each element name of methodNames, do
-    pour method_names {
-        // a. Let method be ? Get(O, name).
-        completion := get(object, it)
-        saufsi completion.est_normal() {
-            retourne completion
-        }
-        method := completion.valeur.V
-
-        // b. If IsCallable(method) is true, then
-        si is_callable(method) {
-            // i. Let result be ? Call(method, O).
-            interpréteuse: Interpréteuse
-            diffère détruit_données_interpreteuse(*interpréteuse)
-            interpréteuse.mv = realm.donne_tas_de_mémoire().donne_mv()
-            completion = call(*interpréteuse, method, object)
-            saufsi completion.est_normal() {
-                retourne completion
-            }
-            result := completion.valeur.V
-
-            // ii. If result is not an Object, return result.
-            saufsi result.est_object() {
-                retourne normal_completion(result)
-            }
-        }
-    }
-
-    // 4. Throw a TypeError exception.
-    retourne lance_type_error(realm, "object cannot be made into a primitive")
-}
-
-/* 7.1.2 ToBoolean ( argument )
- * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-toboolean */
-to_boolean :: fonc (valeur: Valeur) -> Valeur
-{
-    // 1. If argument is a Boolean, return argument.
-    si valeur.est_boolean() {
-        retourne valeur
-    }
-
-    // 2. If argument is one of undefined, null, +0𝔽, -0𝔽, NaN, 0ℤ, or the empty String, return false.
-    discr valeur {
-        Null {
-            retourne Valeur(Boolean = faux)
-        }
-        Undefined {
-            retourne Valeur(Boolean = faux)
-        }
-        Number(n) {
-            si n == 0.0 || n == -0.0 {
-                retourne Valeur(Boolean = faux)
-            }
-
-            // À FAIRE : NaN, 0ℤ
-        }
-        String(s) {
-            si s.texte == crée_chaine_utf16_unique("") {
-                retourne Valeur(Boolean = faux)
-            }
-        }
-        sinon {}
-    }
-
-    // À FAIRE : 3. If argument is an Object and argument has an [[IsHTMLDDA]] internal slot, return false.
-
-    // 4. Return true.
-    retourne Valeur(Boolean = vrai)
-}
-
-/* 7.1.3 ToNumeric ( value )
- * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-tonumeric */
-to_numeric :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur) -> CompletionRecord
-{
-    // 1. Let primValue be ? ToPrimitive(value, NUMBER).
-    complétion_valeur_primitive := vers_primitive(interpréteuse, valeur, TypePréféré.Number)
-    saufsi complétion_valeur_primitive.est_normal() {
-        retourne complétion_valeur_primitive
-    }
-    valeur_primitive := complétion_valeur_primitive.valeur.V
-
-    // 2. If primValue is a BigInt, return primValue.
-    si valeur_primitive.est_big_int() {
-        retourne normal_completion(valeur_primitive)
-    }
-
-    // 3. Return ? ToNumber(primValue).
-    retourne vers_nombre(interpréteuse, valeur_primitive)
-}
-
-/* https://tc39.es/ecma262/multipage/abstract-operations.html#sec-tonumber */
-vers_nombre :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur) -> CompletionRecord
-{
-    // 1. If argument is a Number, return argument.
-    si valeur.est_nombre() {
-        retourne normal_completion(valeur)
-    }
-
-    // 2. If argument is either a Symbol or a BigInt, throw a TypeError exception.
-    si valeur.est_symbol() {
-        retourne lance_type_error(interpréteuse, "can't convert Symbol to number")
-    }
-    si valeur.est_big_int() {
-        retourne lance_type_error(interpréteuse, "can't convert BigInt to number")
-    }
-
-    // 3. If argument is undefined, return NaN.
-    si valeur.est_undefined() {
-        retourne normal_completion(Valeur(Number = NaN))
-    }
-
-    // 4. If argument is either null or false, return +0𝔽.
-    si valeur.est_nulle() || valeur.est_false() {
-        retourne normal_completion(Valeur(Number = 0.0))
-    }
-
-    // 5. If argument is true, return 1𝔽.
-    si valeur.est_true() {
-        retourne normal_completion(Valeur(Number = 1.0))
-    }
-
-    // 6. If argument is a String, return StringToNumber(argument).
-    si valeur.est_chaine() {
-        retourne normal_completion(string_to_number(valeur))
-    }
-
-    // 7. Assert: argument is an Object.
-    assert(valeur.est_object())
-
-    // 8. Let primValue be ? ToPrimitive(argument, NUMBER).
-    completion_primitive := vers_primitive(interpréteuse, valeur, TypePréféré.Number)
-    saufsi completion_primitive.est_normal() {
-        retourne completion_primitive
-    }
-    prim_value := completion_primitive.valeur.V
-
-    // 9. Assert: primValue is not an Object.
-    assert(prim_value.est_object() == faux)
-
-    // 10. Return ? ToNumber(primValue).
-    retourne vers_nombre(interpréteuse, prim_value)
-}
-
-/* 7.1.4.1.1 StringToNumber ( str )
- * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-stringtonumber */
-string_to_number :: fonc (valeur: Valeur) -> Valeur
-{
-    str := valeur.String.texte
-
-    // À FAIRE : standardise
-    // 1. Let literal be ParseText(str, StringNumericLiteral).
-    // 2. If literal is a List of errors, return NaN.
-    // 3. Return the StringNumericValue of literal.
-
-    source: TexteSource
-    source.texte = converti_vers_chaine(str.donne_chaine_utf16())
-    diffère déloge(source.texte)
-
-    lexèmes: [..]Lexème
-    diffère déloge(lexèmes)
-
-    résultat_lexage := lèxe(source)
-    discr résultat_lexage {
-        Ok(l) {
-            lexèmes = l
-        }
-        sinon {
-            retourne Valeur(Number = NaN)
-        }
-    }
-
-    si lexèmes.taille != 1 {
-        retourne Valeur(Number = NaN)
-    }
-
-    /* À FAIRE : prend en compte les signes +/-. */
-    si lexèmes[0].genre != GenreLexème.NombreLittéral {
-        retourne Valeur(Number = NaN)
-    }
-
-    retourne Valeur(Number = parse_nombre_depuis_lexème(*lexèmes[0]))
-}
-
-/* 7.1.17 ToString ( argument )
- * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-tostring */
-vers_chaine :: fonc (interpréteuse: *Interpréteuse, argument: Valeur) -> CompletionRecord
-{
-    retourne vers_chaine(interpréteuse.donne_realm(), argument)
-}
-
-vers_chaine :: fonc (realm: *Realm, argument: Valeur) -> CompletionRecord
-{
-    // 1. If argument is a String, return argument.
-    si argument.est_chaine() {
-        retourne normal_completion(argument)
-    }
-
-    // 2. If argument is a Symbol, throw a TypeError exception.
-    si argument.est_symbol() {
-        retourne lance_type_error(realm, "can't convert Symbol to string")
-    }
-
-    // 3. If argument is undefined, return "undefined".
-    si argument.est_undefined() {
-        retourne normal_completion(crée_chaine(realm.donne_tas_de_mémoire(), STR_undefined))
-    }
-
-    // 4. If argument is null, return "null".
-    si argument.est_nulle() {
-        retourne normal_completion(crée_chaine(realm.donne_tas_de_mémoire(), STR_null))
-    }
-
-    // 5. If argument is true, return "true".
-    si argument.est_true() {
-        retourne normal_completion(crée_chaine(realm.donne_tas_de_mémoire(), STR_true))
-    }
-
-    // 6. If argument is false, return "false".
-    si argument.est_false() {
-        retourne normal_completion(crée_chaine(realm.donne_tas_de_mémoire(), STR_false))
-    }
-
-    // 7. If argument is a Number, return Number::toString(argument, 10).
-    si argument.est_nombre() {
-        // À FAIRE : implémente selon le standard.
-        n := argument.Number
-        chn := imprime_chaine("%", n)
-        diffère déloge(chn)
-
-        résultat := crée_chaine_utf16_unique(chn)
-        retourne normal_completion(crée_chaine(realm.donne_tas_de_mémoire(), résultat))
-    }
-
-    // 8. If argument is a BigInt, return BigInt::toString(argument, 10).
-    si argument.est_big_int() {
-        panique("vers_chaine sur big_int non-implémenté")
-    }
-
-    // 9. Assert: argument is an Object.
-    assert(argument.est_object())
-
-    // 10. Let primValue be ? ToPrimitive(argument, STRING).
-    completion_prim_value := vers_primitive(realm, argument, TypePréféré.String)
-    saufsi completion_prim_value.est_normal() {
-        retourne completion_prim_value
-    }
-    prim_value := completion_prim_value.valeur.V
-
-    // 11. Assert: primValue is not an Object.
-    assert(!prim_value.est_object())
-
-    // 12. Return ? ToString(primValue).
-    retourne vers_chaine(realm, prim_value)
-}
-
-/* 7.2.3 IsCallable ( argument )
- * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-iscallable */
-is_callable :: fonc (argument: Valeur) -> bool
-{
-    // 1. If argument is not an Object, return false.
-    saufsi argument.est_object() {
-        retourne faux
-    }
-
-    // 2. If argument has a [[Call]] internal method, return true.
-    object := argument.donne_objet()
-    si object.donne_table().sur_call {
-        retourne vrai
-    }
-
-    // 3. Return false.
-    retourne faux
-}
-
-/* 7.2.4 IsConstructor ( argument )
- * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-isconstructor */
-is_constructor :: fonc (argument: Valeur) -> bool
-{
-    // 1. If argument is not an Object, return false.
-    saufsi argument.est_object() {
-        retourne faux
-    }
-
-    // 2. If argument has a [[Construct]] internal method, return true.
-    object := argument.donne_objet()
-    si object.donne_table().sur_construct {
-        retourne vrai
-    }
-
-    // 3. Return false.
-    retourne faux
-}
-
-/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom PropertyDescriptor
@@ -798,6 +137,18 @@ PropertyKey :: union {
     Symbol: *Symbol
 }
 
+est_chaine :: fonc (key: PropertyKey) -> bool
+{
+    discr key {
+        String {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
 est_symbol :: fonc (key: PropertyKey) -> bool
 {
     discr key {
@@ -844,6 +195,38 @@ opérateur != :: fonc (p1: PropertyKey, p2: PropertyKey) -> bool
     retourne !(p1 == p2)
 }
 
+/* https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#array-index */
+is_array_index :: fonc (property_key: PropertyKey) -> bool
+{
+    saufsi property_key.est_chaine() {
+        retourne faux
+    }
+
+    /* À FAIRE */
+    texte := property_key.String.donne_chaine_utf16()
+
+    texte_utf8 := converti_vers_chaine(texte)
+    diffère déloge(texte_utf8)
+
+    résultat := tente extrait_r64(texte_utf8) piège _ {
+        retourne faux
+    }
+
+    retourne is_non_negative_integral_number(résultat)
+}
+
+to_uint32 :: fonc (property_key: PropertyKey) -> n32
+{
+    texte := property_key.String.donne_chaine_utf16()
+
+    /* À FAIRE */
+    texte_utf8 := converti_vers_chaine(texte)
+    diffère déloge(texte_utf8)
+
+    résultat := tente extrait_r64(texte_utf8) piège nonatteignable
+    retourne résultat comme n32
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -851,12 +234,44 @@ opérateur != :: fonc (p1: PropertyKey, p2: PropertyKey) -> bool
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-operations-on-objects
  * \{ */
 
+TypeFonctionAllocationObjet :: fonc(*Realm)(*Object)
+
+/* 7.3.1 MakeBasicObject ( internalSlotsList )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-makebasicobject */
+make_basic_object :: fonc (realm: *Realm, rappel_allocation_objet: TypeFonctionAllocationObjet) -> *Object
+{
+    // 1. Set internalSlotsList to the list-concatenation of internalSlotsList and « [[PrivateElements]] ».
+
+    // 2. Let obj be a newly created object with an internal slot for each name in internalSlotsList.
+    obj := rappel_allocation_objet(realm)
+
+    // 3. Set obj.[[PrivateElements]] to a new empty List.
+    // 4. Set obj's essential internal methods to the default ordinary object definitions specified in 10.1.
+    // 5. Assert: If the caller will not be overriding both obj's [[GetPrototypeOf]] and [[SetPrototypeOf]] essential internal methods, then internalSlotsList contains [[Prototype]].
+    // 6. Assert: If the caller will not be overriding all of obj's [[SetPrototypeOf]], [[IsExtensible]], and [[PreventExtensions]] essential internal methods, then internalSlotsList contains [[Extensible]].
+    // À FAIRE : 7. If internalSlotsList contains [[Extensible]], set obj.[[Extensible]] to true.
+    obj.extensible = vrai
+
+    // 8. Return obj.
+    retourne obj
+}
+
 /* 7.3.2 Get
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-get-o-p */
 get :: fonc (object: *Object, property_key: PropertyKey) -> CompletionRecord
 {
+    si is_array_index(property_key) {
+        index := to_uint32(property_key)
+        retourne object.internal_get_by_index(index, Valeur(Object = object))
+    }
+
     // 1. Return ? O.[[Get]](P, O).
     retourne object.internal_get(property_key, Valeur(Object = object))
+}
+
+get_by_index :: fonc (object: *Object, index: n32) -> CompletionRecord
+{
+    retourne object.internal_get_by_index(index, Valeur(Object = object))
 }
 
 /* 7.3.4 Set
@@ -1032,6 +447,73 @@ ordinary_get_prototype_of :: fonc (object: *Object) -> *Object
     retourne object.prototype
 }
 
+/* 10.1.2.1 OrdinarySetPrototypeOf ( O, V )
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarysetprototypeof */
+ordinary_set_prototype_of :: fonc (object: *Object, valeur: Valeur) -> bool
+{
+    // 1. Let current be O.[[Prototype]].
+    current := object.prototype
+
+    // 2. If SameValue(V, current) is true, return true.
+    si same_value(valeur, current).est_true() {
+        retourne vrai
+    }
+
+    // 3. Let extensible be O.[[Extensible]].
+    extensible := object.extensible
+
+    // 4. If extensible is false, return false.
+    saufsi extensible {
+        retourne faux
+    }
+
+    // 5. Let p be V.
+    p : *Object
+    saufsi valeur.est_nulle() {
+        p = valeur.donne_objet()
+    }
+
+    // 6. Let done be false.
+    done := faux
+
+    // 7. Repeat, while done is false,
+    tantque done == faux {
+        // a. If p is null, then
+        si p == nul {
+            // i. Set done to true.
+            done = vrai
+        }
+        // b. Else if SameValue(p, O) is true, then
+        sinon si same_value(p, object).est_true() {
+            // i. Return false.
+            retourne faux
+        }
+        // c. Else,
+        sinon {
+            // i. If p.[[GetPrototypeOf]] is not the ordinary object internal method defined in 10.1.1, set done to true.
+            si p.donne_table().sur_get_prototype_of != ordinary_get_prototype_of {
+                done = vrai
+            }
+            // ii. Else, set p to p.[[Prototype]].
+            sinon {
+                p = p.prototype
+            }
+        }
+    }
+
+    // 8. Set O.[[Prototype]] to V.
+    si valeur.est_nulle() {
+        object.prototype = nul
+    }
+    sinon {
+        assert(valeur.est_object())
+        object.prototype = valeur.donne_objet()
+    }
+
+    // 9. Return true.
+    retourne vrai
+}
+
 /* 10.1.5.1 OrdinaryGetOwnProperty ( O, P )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarygetownproperty */
 ordinary_get_own_property :: fonc (object: *Object, property_key: PropertyKey) -> CompletionRecord
@@ -1197,7 +679,6 @@ ordinary_get :: fonc (object: *Object, property_key: PropertyKey, receiver: Vale
     // 7. Return ? Call(getter, Receiver).
     interpréteuse: Interpréteuse
     interpréteuse.mv = receiver.donne_objet().donne_tas_de_mémoire().donne_mv()
-    diffère détruit_données_interpreteuse(*interpréteuse)
     retourne call(*interpréteuse, getter.Quelque, receiver)
 }
 
@@ -1297,7 +778,6 @@ ordinary_set_with_own_descriptor :: fonc (object: *Object, property_key: Propert
     // 6. Perform ? Call(setter, Receiver, « V »).
     interpréteuse: Interpréteuse
     interpréteuse.mv = receiver.donne_objet().donne_tas_de_mémoire().donne_mv()
-    diffère détruit_données_interpreteuse(*interpréteuse)
 
     arguments: []Valeur
     arguments.pointeur = *valeur
@@ -1312,6 +792,74 @@ ordinary_set_with_own_descriptor :: fonc (object: *Object, property_key: Propert
     retourne normal_completion(Valeur(Boolean = vrai))
 }
 
+/* 10.1.12 OrdinaryObjectCreate ( proto [ , additionalInternalSlotsList ] )
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinaryobjectcreate */
+ordinary_object_create :: fonc (realm: *Realm, prototype: *Object, rappel_allocation_objet: TypeFonctionAllocationObjet) -> *Object
+{
+    // 1. Let internalSlotsList be « [[Prototype]], [[Extensible]] ».
+    // 2. If additionalInternalSlotsList is present, set internalSlotsList to the list-concatenation of internalSlotsList and additionalInternalSlotsList.
+
+    // 3. Let O be MakeBasicObject(internalSlotsList).
+    O := make_basic_object(realm, rappel_allocation_objet)
+
+    // 4. Set O.[[Prototype]] to proto.
+    O.prototype = prototype
+
+    // 5. Return O.
+    retourne O
+}
+
+/* 10.1.13 OrdinaryCreateFromConstructor ( constructor, intrinsicDefaultProto [ , internalSlotsList ] )
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinaryobjectcreate */
+ordinary_create_from_constructor :: fonc (realm: *Realm, constructor: *Function, intrinsic_default_proto: *Object, rappel_allocation_objet: TypeFonctionAllocationObjet) -> CompletionRecord
+{
+    // 1. Assert: intrinsicDefaultProto is this specification's name of an intrinsic object.
+    //    The corresponding object must be an intrinsic that is intended to be used as the
+    //    [[Prototype]] value of an object.
+    assert(est_intrinsics(realm, intrinsic_default_proto))
+
+    // 2. Let proto be ? GetPrototypeFromConstructor(constructor, intrinsicDefaultProto).
+    completion := get_prototype_from_constructor(realm, constructor, intrinsic_default_proto)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    proto := completion.valeur.V.donne_objet()
+
+    // 3. If internalSlotsList is present, let slotsList be internalSlotsList.
+    // 4. Else, let slotsList be a new empty List.
+
+    // 5. Return OrdinaryObjectCreate(proto, slotsList).
+    résultat := ordinary_object_create(realm, proto, rappel_allocation_objet)
+    retourne normal_completion(Valeur(Object = résultat))
+}
+
+/* 10.1.14 GetPrototypeFromConstructor ( constructor, intrinsicDefaultProto )
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-getprototypefromconstructor */
+get_prototype_from_constructor :: fonc (realm: *Realm, constructor: *Function, intrinsic_default_proto: *Object) -> CompletionRecord
+{
+    // 1. Assert: intrinsicDefaultProto is this specification's name of an intrinsic object.
+    //    The corresponding object must be an intrinsic that is intended to be used as the
+    //    [[Prototype]] value of an object.
+    assert(est_intrinsics(realm, intrinsic_default_proto))
+
+    // 2. Let proto be ? Get(constructor, "prototype").
+    completion := get(constructor, STR_prototype)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    proto := completion.valeur.V
+
+    // 3. If proto is not an Object, then
+    saufsi proto.est_object() {
+        // À FAIRE : a. Let realm be ? GetFunctionRealm(constructor).
+        // b. Set proto to realm's intrinsic object named intrinsicDefaultProto.
+        proto.Object = intrinsic_default_proto
+    }
+
+    // 4. Return proto.
+    retourne normal_completion(proto)
+}
+
 /** \} */
 
 /* 15.2.3 Runtime Semantics: EvaluateFunctionBody
@@ -1324,7 +872,7 @@ evaluate_function_body :: fonc (interpréteuse: *Interpréteuse, function_object
         retourne completion
     }
     // 2. Return ? Evaluation of FunctionStatementList.
-    retourne interpréteuse.exécute(function_object.corps, TypeScope.FUNCTION)
+    retourne interpréteuse.exécute(function_object.corps)
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1334,14 +882,14 @@ evaluate_function_body :: fonc (interpréteuse: *Interpréteuse, function_object
 #portée_fichier
 
 /* Table virtuelle pour "eval()" */
-table_virtuelle_function_eval := TableVirtuelleObject(classe = Function, sur_destruction = sur_destruction_objet, sur_call = eval_sur_call)
+table_virtuelle_function_eval := TableVirtuelleObject(classe = Function, sur_call = eval_sur_call)
 
 #portée_export
 
-crée_eval :: fonc (function_prototype: *FunctionPrototype) -> *Function
+crée_eval :: fonc (realm: *Realm) -> *Function
 {
-    résultat := crée_fonction(function_prototype)
-    set_function_name(résultat, STR_eval)
+    résultat := crée_fonction(realm.intrinsics.function_prototype)
+    set_function_name(realm, résultat, STR_eval)
     résultat.table = *table_virtuelle_function_eval
     retourne résultat
 }
@@ -1353,7 +901,7 @@ eval_sur_call :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
         retourne normal_completion(js_undefined)
     }
 
-    retourne perform_eval(interpréteuse, arguments[0], faux, faux)
+    retourne perform_eval(interpréteuse, params.donne_argument(0), faux, faux)
 }
 
 /* 19.2.1.1 PerformEval ( x, strictCaller, direct )
@@ -1412,7 +960,9 @@ perform_eval :: fonc (interpréteuse: *Interpréteuse, x: Valeur, strict_caller:
     contenu := converti_vers_chaine(x.String.texte.donne_chaine_utf16())
     diffère déloge(contenu)
 
-    discr parse_script(contenu, eval_realm) {
+    /* À FAIRE(langage) : host_defined n'est pas initialisée à sa valeur défaut. */
+    host_defined: HostDefined
+    discr parse_script(contenu, eval_realm, host_defined) {
         Ok(s) {
             script = s
         }
@@ -1526,6 +1076,8 @@ perform_eval :: fonc (interpréteuse: *Interpréteuse, x: Valeur, strict_caller:
     mv.dépile_execution_context()
 
     // À FAIRE : 32. Resume the context that is now on the top of the execution context stack as the running execution context.
+    running_context = mv.donne_running_execution_context()
+    interpréteuse.noeud_exécuté_courant = *running_context.noeud_exécuté_courant
 
     // 33. Return ? result.
     retourne result
@@ -1549,6 +1101,21 @@ PrimitiveChaine :: struct {
 
     texte: ECMAString
     objet: *Object
+}
+
+crée_chaine :: fonc (realm: *Realm, texte: ECMAString) -> *PrimitiveChaine
+{
+    pour realm.chaines {
+        si it.texte == texte {
+            retourne it
+        }
+    }
+
+    tas_de_mémoire := realm.donne_tas_de_mémoire()
+    résultat := tas_de_mémoire.alloue(PrimitiveChaine)
+    résultat.texte = texte
+    tableau_ajoute(*realm.chaines, résultat)
+    retourne résultat
 }
 
 crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, texte: ECMAString) -> *PrimitiveChaine

@@ -1,0 +1,89 @@
+importe Chaine
+
+/* ------------------------------------------------------------------------- */
+/** \nom NumberPrototype
+ * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-properties-of-the-number-prototype-object
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_number_prototype := TableVirtuelleObject(classe = NumberPrototype)
+
+#portée_export
+
+NumberPrototype :: struct {
+    empl objet: Object
+    table = *table_virtuelle_number_prototype
+}
+
+crée_number_prototype :: fonc (realm: *Realm, prototype: *ObjectPrototype) -> *NumberPrototype
+{
+    tas_de_mémoire := realm.donne_tas_de_mémoire()
+    résultat := tas_de_mémoire.alloue(NumberPrototype)
+    résultat.prototype = prototype
+
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom NumberObject
+ * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-properties-of-number-instances
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_number_object := TableVirtuelleObject(classe = NumberObject)
+
+#portée_export
+
+NumberObject :: struct {
+    empl objet: Object
+    table = *table_virtuelle_number_object
+
+    number_value: r64
+}
+
+crée_number_object :: fonc (tas_de_mémoire: *TasDeMémoire, number_prototype: *NumberPrototype, valeur: r64) -> *NumberObject
+{
+    résultat := tas_de_mémoire.alloue(NumberObject)
+    résultat.prototype = number_prototype
+    résultat.number_value = valeur
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom NumberConstructor
+ * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-number-constructor
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_number_constructor := TableVirtuelleObject(
+    classe = NumberConstructor
+)
+
+#portée_export
+
+NumberConstructor :: struct {
+    empl builtin_function: BuiltInFunction
+    table = *table_virtuelle_number_constructor
+}
+
+crée_number_constructor :: fonc (realm: *Realm, function_prototype: *FunctionPrototype, number_prototype: *NumberPrototype) -> *NumberConstructor
+{
+    tas_de_mémoire := realm.donne_tas_de_mémoire()
+    résultat := tas_de_mémoire.alloue(NumberConstructor)
+    create_builtin_function(résultat, 1, STR_Number, realm, function_prototype)
+
+    résultat.ajoute_propriété(STR_prototype, Valeur(Object = number_prototype), DrapeauxPropriété.zéro)
+
+    number_prototype.ajoute_propriété(STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro)
+
+    retourne résultat
+}
+
+/** \} */

@@ -1,4 +1,5 @@
 importe Chaine
+importe Fondation
 
 /* ------------------------------------------------------------------------- */
 /** \nom StringPrototype
@@ -7,7 +8,7 @@ importe Chaine
 
 #portée_fichier
 
-table_virtuelle_string_prototype := TableVirtuelleObject(classe = StringPrototype, sur_destruction = sur_destruction_objet)
+table_virtuelle_string_prototype := TableVirtuelleObject(classe = StringPrototype)
 
 #portée_export
 
@@ -18,14 +19,75 @@ StringPrototype :: struct {
     string_data: *PrimitiveChaine
 }
 
-crée_string_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ObjectPrototype) -> *StringPrototype
+crée_string_prototype :: fonc (realm: *Realm, prototype: *ObjectPrototype) -> *StringPrototype
 {
+    tas_de_mémoire := realm.donne_tas_de_mémoire()
     résultat := tas_de_mémoire.alloue(StringPrototype)
     résultat.prototype = prototype
-    résultat.string_data = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(""))
+    résultat.string_data = crée_chaine(realm, crée_chaine_utf16_unique(""))
     résultat.ajoute_propriété(STR_length, Valeur(Number = 0.0), DrapeauxPropriété.zéro)
 
+    résultat.ajoute_fonction_native(STR_indexOf, string_prototype_index_of, 1)
+
     retourne résultat
+}
+
+#portée_fichier
+
+/* 22.1.3.9 String.prototype.indexOf ( searchString [ , position ] )
+ * https://tc39.es/ecma262/multipage/text-processing.html#sec-string.prototype.indexof */
+string_prototype_index_of :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    // 1. Let O be ? RequireObjectCoercible(this value).
+    completion := require_object_coercible(interpréteuse.donne_realm(), this_value)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    O := completion.valeur.V
+
+    // 2. Let S be ? ToString(O).
+    completion = to_string(interpréteuse, O)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    S := completion.valeur.V.String.texte
+
+    // 3. Let searchStr be ? ToString(searchString).
+    completion = to_string(interpréteuse, params.donne_argument(0))
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    search_str := completion.valeur.V.String.texte
+
+    // 4. Let pos be ? ToIntegerOrInfinity(position).
+    position := params.donne_argument(1)
+    completion = to_integer_or_infinity(interpréteuse, position)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    pos := completion.valeur.V.Number
+
+    // 5. Assert: If position is undefined, then pos is 0.
+    assert(!position.est_undefined() || pos == 0.0)
+
+    // 6. Let len be the length of S.
+    len := S.taille()
+
+    // 7. Let start be the result of clamping pos between 0 and len.
+    start := pos
+    si start < 0.0 {
+        start = 0.0
+    }
+    sinon si start > len comme r64 {
+        start = len comme r64
+    }
+
+    // 8. Let result be StringIndexOf(S, searchStr, start).
+    result := string_index_of(S, search_str, start comme z64)
+
+    // 9. If result is not-found, return -1𝔽.
+    // 10. Return 𝔽(result).
+    retourne normal_completion(Valeur(Number = result comme r64))
 }
 
 /** \} */
@@ -37,7 +99,7 @@ crée_string_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Obj
 
 #portée_fichier
 
-table_virtuelle_objet_chaine := TableVirtuelleObject(classe = ObjetChaine, sur_destruction = sur_destruction_objet)
+table_virtuelle_objet_chaine := TableVirtuelleObject(classe = ObjetChaine)
 
 #portée_export
 
@@ -60,6 +122,47 @@ crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, string_prototype: *String
     retourne résultat
 }
 
+/* 6.1.4.1 StringIndexOf ( string, searchValue, fromIndex )
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-stringindexof */
+string_index_of :: fonc (string: ECMAString, search_value: ECMAString, from_index: z64) -> z64
+{
+    // 1. Let len be the length of string.
+    len := string.taille()
+
+    // 2. If searchValue is the empty String and fromIndex ≤ len, return fromIndex.
+    si search_value.est_vide() && from_index <= len {
+        retourne from_index
+    }
+
+    // 3. Let searchLen be the length of searchValue.
+    search_len := search_value.taille()
+
+    // 4. For each integer i such that fromIndex ≤ i ≤ len - searchLen, in ascending order, do
+    string_utf16 := string.donne_chaine_utf16()
+    search_value_utf16 := search_value.donne_chaine_utf16()
+
+    index := from_index
+    index_final := len - search_len
+
+    candidate: ChaineUTF16
+    candidate.unités.pointeur = string_utf16.unités.pointeur + from_index
+    candidate.unités.taille = search_len
+
+    tantque index <= index_final {
+        // a. Let candidate be the substring of string from i to i + searchLen.
+        // b. If candidate is searchValue, return i.
+        si candidate == search_value_utf16 {
+            retourne index
+        }
+
+        candidate.unités.pointeur += 1
+        index += 1
+    }
+
+    // 5. Return not-found.
+    retourne -1
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -70,8 +173,7 @@ crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, string_prototype: *String
 #portée_fichier
 
 table_virtuelle_string_constructor := TableVirtuelleObject(
-    classe = StringConstructor,
-    sur_destruction = sur_destruction_objet
+    classe = StringConstructor
 )
 
 #portée_export
@@ -81,11 +183,11 @@ StringConstructor :: struct {
     table = *table_virtuelle_string_constructor
 }
 
-/* À FAIRE : standardise (CreateBuiltInFunction) */
-crée_string_constructor :: fonc (tas_de_mémoire: *TasDeMémoire, function_prototype: *FunctionPrototype, string_prototype: *StringPrototype) -> *StringConstructor
+crée_string_constructor :: fonc (realm: *Realm, function_prototype: *FunctionPrototype, string_prototype: *StringPrototype) -> *StringConstructor
 {
+    tas_de_mémoire := realm.donne_tas_de_mémoire()
     résultat := tas_de_mémoire.alloue(StringConstructor)
-    résultat.prototype = function_prototype
+    create_builtin_function(résultat, 1, STR_String, realm, function_prototype)
 
     résultat.ajoute_propriété(STR_prototype, Valeur(Object = string_prototype), DrapeauxPropriété.zéro)
 

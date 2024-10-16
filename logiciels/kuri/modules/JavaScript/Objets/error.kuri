@@ -8,7 +8,7 @@ importe Fondation
 
 #portée_fichier
 
-table_virtuelle_error := TableVirtuelleObject(classe = Error, sur_destruction = sur_destruction_objet)
+table_virtuelle_error := TableVirtuelleObject(classe = Error)
 
 #portée_export
 
@@ -26,7 +26,7 @@ Error :: struct {
 
 #portée_fichier
 
-table_virtuelle_error_prototype := TableVirtuelleObject(classe = ErrorPrototype, sur_destruction = sur_destruction_objet)
+table_virtuelle_error_prototype := TableVirtuelleObject(classe = ErrorPrototype)
 
 #portée_export
 
@@ -35,27 +35,108 @@ ErrorPrototype :: struct {
     table = *table_virtuelle_error_prototype
 }
 
-crée_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ObjectPrototype) -> *ErrorPrototype
+crée_error_prototype :: fonc (realm: *Realm, prototype: *ObjectPrototype) -> *ErrorPrototype
 {
+    tas_de_mémoire := realm.donne_tas_de_mémoire()
     résultat := tas_de_mémoire.alloue(ErrorPrototype)
     résultat.prototype = prototype
     résultat.ajoute_fonction_native(STR_toString, error_prototype_to_string)
-    initialise_error_object(résultat, STR_Error, "")
+    initialise_error_object(realm, résultat, STR_Error, "")
     retourne résultat
 }
 
 #portée_fichier
 
-initialise_error_object :: fonc (object: *Object, nom: ECMAString, message: chaine)
+initialise_error_object :: fonc (realm: *Realm, object: *Object, nom: ECMAString, message: chaine)
 {
+    si realm {
+        enchaineuse: Enchaineuse
+        initialise_enchaineuse(*enchaineuse)
+        diffère détruit_tampons(*enchaineuse)
+
+        ajoute_au_tampon(*enchaineuse, message, "\n")
+
+        imprime_traceback(*enchaineuse, realm)
+
+        message = chaine_depuis_enchaineuse(*enchaineuse)
+    }
+
     desc: PropertyDescriptor
     desc.configurable = vrai
 
-    desc.value = Valeur(String = crée_chaine(object.donne_tas_de_mémoire(), nom))
+    desc.value = Valeur(String = crée_chaine(realm, nom))
     _ := define_property_or_throw(object, STR_name, desc)
 
-    desc.value = Valeur(String = crée_chaine(object.donne_tas_de_mémoire(), crée_chaine_utf16_unique(message)))
+    desc.value = Valeur(String = crée_chaine(realm, crée_chaine_utf16_unique(message)))
     _ := define_property_or_throw(object, STR_message, desc)
+}
+
+imprime_traceback :: fonc (enchaineuse: *Enchaineuse, realm: *Realm)
+{
+    mv := realm.donne_mv()
+
+    pour > mv.execution_contexts {
+        si it.noeud_exécuté_courant {
+            si it.script_or_module {
+                texte := it.script_or_module.donne_ligne_pour_lexème(it.noeud_exécuté_courant.lexème)
+                ajoute_au_tampon(enchaineuse, "    at '", texte, "'\n")
+                continue
+            }
+        }
+
+        si it.function {
+            ajoute_au_tampon(enchaineuse, "    at ", it.function.donne_nom(), "\n")
+        }
+        sinon si it.script_or_module {
+            ajoute_au_tampon(enchaineuse, "    at script\n")
+        }
+        sinon {
+            ajoute_au_tampon(enchaineuse, "    at sans fonction ou script\n")
+        }
+    }
+}
+
+donne_ligne_pour_lexème :: fonc (script: *Script, lexème: *Lexème) -> chaine
+{
+    premier_lexème := script.lexèmes.pointeur
+    dernier_lexème := script.lexèmes.pointeur + script.lexèmes.taille
+
+    saufsi premier_lexème <= lexème < dernier_lexème {
+        retourne "le lexème ne vient pas du script"
+    }
+
+    début_source := script.source.texte.pointeur
+    fin_source := début_source + script.source.texte.taille
+
+    curseur := lexème.texte.pointeur
+    tantque curseur >= début_source {
+        si mémoire(curseur) == '\n' {
+            curseur += 1
+            arrête
+        }
+
+        curseur -= 1
+    }
+
+    résultat : chaine = ---
+    résultat.pointeur = curseur
+    résultat.taille = lexème.texte.pointeur - curseur
+
+    curseur = lexème.texte.pointeur
+    tantque curseur < fin_source {
+        si mémoire(curseur) == '\n' {
+            arrête
+        }
+
+        résultat.taille += 1
+        curseur += 1
+    }
+
+    si résultat.taille == 0 {
+        retourne "pas de texte trouvé"
+    }
+
+    retourne résultat
 }
 
 /* 20.5.3.4 Error.prototype.toString ( )
@@ -79,10 +160,10 @@ error_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> Compl
 
     // 4. If name is undefined, set name to "Error"; otherwise set name to ? ToString(name).
     si name.est_undefined() {
-        name = crée_chaine(O.donne_objet().donne_tas_de_mémoire(), STR_Error)
+        name = crée_chaine(interpréteuse.donne_realm(), STR_Error)
     }
     sinon {
-        completion = vers_chaine(interpréteuse, name)
+        completion = to_string(interpréteuse, name)
         saufsi completion.est_normal() {
             retourne completion
         }
@@ -98,10 +179,10 @@ error_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> Compl
 
     // 6. If msg is undefined, set msg to the empty String; otherwise set msg to ? ToString(msg).
     si msg.est_undefined() {
-        msg = crée_chaine(O.donne_objet().donne_tas_de_mémoire(), crée_chaine_utf16_unique_vide())
+        msg = crée_chaine(interpréteuse.donne_realm(), crée_chaine_utf16_unique_vide())
     }
     sinon {
-        completion = vers_chaine(interpréteuse, msg)
+        completion = to_string(interpréteuse, msg)
         saufsi completion.est_normal() {
             retourne completion
         }
@@ -123,7 +204,7 @@ error_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> Compl
     chn_msg := msg.String.texte
     chn_résultat := imprime_chaine("%: %", chn_name, chn_msg)
 
-    retourne normal_completion(crée_chaine(O.donne_objet().donne_tas_de_mémoire(), crée_chaine_utf16_unique(chn_résultat)))
+    retourne normal_completion(crée_chaine(interpréteuse.donne_realm(), crée_chaine_utf16_unique(chn_résultat)))
 }
 
 /** \} */
@@ -135,7 +216,7 @@ error_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> Compl
 
 #portée_fichier
 
-table_virtuelle_reference_error := TableVirtuelleObject(classe = ReferenceError, sur_destruction = sur_destruction_objet)
+table_virtuelle_reference_error := TableVirtuelleObject(classe = ReferenceError)
 
 #portée_export
 
@@ -146,19 +227,19 @@ ReferenceError :: struct {
     message: *PrimitiveChaine
 }
 
-crée_reference_error :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ReferenceErrorPrototype, message: chaine) -> *ReferenceError
+lance_reference_error :: fonc (interpréteuse: *Interpréteuse, message: chaine) -> CompletionRecord
 {
-    résultat := tas_de_mémoire.alloue(ReferenceError)
-    résultat.prototype = prototype
-    résultat.message = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(message))
-    initialise_error_object(résultat, STR_ReferenceError, message)
-    retourne résultat
+    retourne lance_reference_error(interpréteuse.donne_realm(), message)
 }
 
 lance_reference_error :: fonc (realm: *Realm, message: chaine) -> CompletionRecord
 {
-    exception := crée_reference_error(realm.donne_tas_de_mémoire(), realm.intrinsics.reference_error_prototype, message)
-    retourne throw_completion(exception)
+    tas_de_mémoire := realm.donne_tas_de_mémoire()
+    résultat := tas_de_mémoire.alloue(ReferenceError)
+    résultat.prototype = realm.intrinsics.reference_error_prototype
+    résultat.message = crée_chaine(realm, crée_chaine_utf16_unique(message))
+    initialise_error_object(realm, résultat, STR_ReferenceError, message)
+    retourne throw_completion(résultat)
 }
 
 /** \} */
@@ -170,7 +251,7 @@ lance_reference_error :: fonc (realm: *Realm, message: chaine) -> CompletionReco
 
 #portée_fichier
 
-table_virtuelle_reference_error_prototype := TableVirtuelleObject(classe = ReferenceErrorPrototype, sur_destruction = sur_destruction_objet)
+table_virtuelle_reference_error_prototype := TableVirtuelleObject(classe = ReferenceErrorPrototype)
 
 #portée_export
 
@@ -195,7 +276,7 @@ crée_reference_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, protot
 
 #portée_fichier
 
-table_virtuelle_syntax_error := TableVirtuelleObject(classe = SyntaxError, sur_destruction = sur_destruction_objet)
+table_virtuelle_syntax_error := TableVirtuelleObject(classe = SyntaxError)
 
 #portée_export
 
@@ -206,15 +287,6 @@ SyntaxError :: struct {
     message: *PrimitiveChaine
 }
 
-crée_syntax_error :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *SyntaxErrorPrototype, message: chaine) -> *SyntaxError
-{
-    résultat := tas_de_mémoire.alloue(SyntaxError)
-    résultat.prototype = prototype
-    résultat.message = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(message))
-    initialise_error_object(résultat, STR_SyntaxError, message)
-    retourne résultat
-}
-
 lance_syntax_error :: fonc (interpréteuse: *Interpréteuse, message: chaine) -> CompletionRecord
 {
     retourne lance_syntax_error(interpréteuse.donne_realm(), message)
@@ -222,8 +294,12 @@ lance_syntax_error :: fonc (interpréteuse: *Interpréteuse, message: chaine) ->
 
 lance_syntax_error :: fonc (realm: *Realm, message: chaine) -> CompletionRecord
 {
-    exception := crée_syntax_error(realm.donne_tas_de_mémoire(), realm.intrinsics.syntax_error_prototype, message)
-    retourne throw_completion(exception)
+    tas_de_mémoire := realm.donne_tas_de_mémoire()
+    résultat := tas_de_mémoire.alloue(SyntaxError)
+    résultat.prototype = realm.intrinsics.syntax_error_prototype
+    résultat.message = crée_chaine(realm, crée_chaine_utf16_unique(message))
+    initialise_error_object(realm, résultat, STR_SyntaxError, message)
+    retourne throw_completion(résultat)
 }
 
 /** \} */
@@ -235,7 +311,7 @@ lance_syntax_error :: fonc (realm: *Realm, message: chaine) -> CompletionRecord
 
 #portée_fichier
 
-table_virtuelle_syntax_error_prototype := TableVirtuelleObject(classe = SyntaxErrorPrototype, sur_destruction = sur_destruction_objet)
+table_virtuelle_syntax_error_prototype := TableVirtuelleObject(classe = SyntaxErrorPrototype)
 
 #portée_export
 
@@ -260,7 +336,7 @@ crée_syntax_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype
 
 #portée_fichier
 
-table_virtuelle_type_error := TableVirtuelleObject(classe = TypeError, sur_destruction = sur_destruction_objet)
+table_virtuelle_type_error := TableVirtuelleObject(classe = TypeError)
 
 #portée_export
 
@@ -271,15 +347,6 @@ TypeError :: struct {
     message: *PrimitiveChaine
 }
 
-crée_type_error :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *TypeErrorPrototype, message: chaine) -> *TypeError
-{
-    résultat := tas_de_mémoire.alloue(TypeError)
-    résultat.prototype = prototype
-    résultat.message = crée_chaine(tas_de_mémoire, crée_chaine_utf16_unique(message))
-    initialise_error_object(résultat, STR_TypeError, message)
-    retourne résultat
-}
-
 lance_type_error :: fonc (interpréteuse: *Interpréteuse, message: chaine) -> CompletionRecord
 {
     retourne lance_type_error(interpréteuse.donne_realm(), message)
@@ -287,8 +354,12 @@ lance_type_error :: fonc (interpréteuse: *Interpréteuse, message: chaine) -> C
 
 lance_type_error :: fonc (realm: *Realm, message: chaine) -> CompletionRecord
 {
-    exception := crée_type_error(realm.donne_tas_de_mémoire(), realm.intrinsics.type_error_prototype, message)
-    retourne throw_completion(exception)
+    tas_de_mémoire := realm.donne_tas_de_mémoire()
+    résultat := tas_de_mémoire.alloue(TypeError)
+    résultat.prototype = realm.intrinsics.type_error_prototype
+    résultat.message = crée_chaine(realm, crée_chaine_utf16_unique(message))
+    initialise_error_object(realm, résultat, STR_TypeError, message)
+    retourne throw_completion(résultat)
 }
 
 /** \} */
@@ -300,7 +371,7 @@ lance_type_error :: fonc (realm: *Realm, message: chaine) -> CompletionRecord
 
 #portée_fichier
 
-table_virtuelle_type_error_prototype := TableVirtuelleObject(classe = TypeErrorPrototype, sur_destruction = sur_destruction_objet)
+table_virtuelle_type_error_prototype := TableVirtuelleObject(classe = TypeErrorPrototype)
 
 #portée_export
 

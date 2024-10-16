@@ -268,7 +268,7 @@ définis_prototype :: fonc (object: *PlatformObject, type: type_de_données)
 
 donne_platform_object :: fonc (interpréteuse: *JavaScript.Interpréteuse, value: JavaScript.Valeur, $Type: type_de_données) -> JavaScript.CompletionRecord
 {
-    completion := JavaScript.vers_objet(JavaScript.donne_realm(interpréteuse), value)
+    completion := JavaScript.to_object(JavaScript.donne_realm(interpréteuse), value)
     saufsi JavaScript.est_normal(completion) {
         retourne completion;
     }

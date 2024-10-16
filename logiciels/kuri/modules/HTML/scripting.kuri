@@ -16,7 +16,7 @@ Script :: struct {
     parse_error: JavaScript.Valeur
     error_to_rethrow: JavaScript.Valeur
     fetch_options: Optionnel(OptionsFetchScript)
-    base_url: *URL
+    base_url: *URL @NeVisitePas
 }
 
 ClassicScript :: struct {

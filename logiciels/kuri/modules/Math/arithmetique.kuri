@@ -59,6 +59,12 @@ mod :: fonc (a: r32, b: r32) -> r32 #externe libcmath "fmodf"
 mod :: fonc (a: r64, b: r64) -> r64 #externe libcmath "fmod"
 
 est_nan :: fonc (a: r64) -> z32 #externe libcmath "isnan"
+est_infini :: fonc (a: r64) -> z32 #externe libcmath "isinf"
+
+est_fini :: fonc (a: r64) -> bool
+{
+    retourne est_infini(a) == 0
+}
 
 arc_sinus_borné :: fonc (a: $T) -> T #enligne
 {

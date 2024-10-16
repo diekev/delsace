@@ -1,0 +1,9 @@
+interface Navigator {
+    [Member] readonly attribute DOMString appCodeName;
+    [Member] readonly attribute DOMString appName;
+    [Member] readonly attribute DOMString platform;
+    [Member] readonly attribute DOMString product;
+    [Member] readonly attribute DOMString userAgent;
+    [Member] readonly attribute DOMString vendor;
+    [Member] readonly attribute DOMString vendorSub;
+}

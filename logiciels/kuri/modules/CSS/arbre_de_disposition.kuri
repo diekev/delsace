@@ -3393,7 +3393,7 @@ noeud_canvas_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin
     image.largeur = tampon_de_rendu.rect.largeur
     image.hauteur = tampon_de_rendu.rect.hauteur
     
-    rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
+    rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_contenu())
     ctx.peintre.dessine_image(image, rect)
 }
 
