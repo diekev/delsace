@@ -2957,6 +2957,49 @@ sur_exécution_typeof_operator :: fonc (base: *NoeudSyntaxique, interpréteuse: 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom VoidOperator
+ * \{ */
+
+VoidOperator :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_void_operator
+
+    argument: *Expression
+}
+
+crée_void_operator :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression) -> *VoidOperator
+{
+    résultat := parseuse.crée_noeud(lexème, VoidOperator)
+    résultat.argument = argument
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-void-operator-runtime-semantics-evaluation */
+sur_exécution_void_operator :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    void := base comme *VoidOperator
+
+    // 1. Let expr be ? Evaluation of UnaryExpression.
+    completion := exécute_noeud(void.argument, interpréteuse)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    expr := completion.valeur
+
+    // 2. Perform ? GetValue(expr).
+    completion = get_value(interpréteuse, expr)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+
+    // 3. Return undefined.
+    retourne normal_completion(js_undefined)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom ThrowStatement
  * https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-throw-statement
  * \{ */
