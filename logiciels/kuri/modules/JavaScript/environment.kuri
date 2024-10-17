@@ -718,6 +718,7 @@ GlobalEnvironment :: struct {
 
     sur_has_binding = global_environment_has_binding
     sur_create_immutable_binding = global_environment_create_immutable_binding
+    sur_initialize_binding = global_environment_initialize_binding
     sur_get_binding_value = global_environment_get_binding_value
     sur_set_mutable_binding = global_environment_set_mutable_binding
     sur_with_base_object = global_environment_with_base_object
@@ -795,6 +796,30 @@ global_environment_create_immutable_binding :: fonc (base: *Environment, realm: 
 
     // 3. Return ! DclRec.CreateImmutableBinding(N, S).
     retourne decl_rec.create_immutable_binding(realm, N, S)
+}
+
+/* 9.1.1.4.4 InitializeBinding ( N, V )
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-global-environment-records-initializebinding-n-v */
+global_environment_initialize_binding :: fonc (base: *Environment, N: ECMAString, V: Valeur) -> CompletionRecord
+{
+    env_rec := base.vérifie_comme(GlobalEnvironment)
+
+    // 1. Let DclRec be envRec.[[DeclarativeRecord]].
+    decl_rec := env_rec.declarative_record
+
+    // 2. If ! DclRec.HasBinding(N) is true, then
+    si decl_rec.has_binding(N).valeur.V.Boolean {
+        // a. Return ! DclRec.InitializeBinding(N, V).
+        retourne decl_rec.initialize_binding(N, V)
+    }
+
+    // 3. Assert: If the binding exists, it must be in the Object Environment Record.
+
+    // 4. Let ObjRec be envRec.[[ObjectRecord]].
+    obj_rec := env_rec.object_record
+
+    // 5. Return ? ObjRec.InitializeBinding(N, V).
+    retourne obj_rec.initialize_binding(N, V)
 }
 
 /* 9.1.1.4.5 SetMutableBinding ( N, V, S )
