@@ -1,0 +1,104 @@
+importe Chaine
+importe Compilatrice
+importe Fondation
+importe JavaScript
+importe SysFichier
+
+change_nom_sortie :: fonc ()
+{
+    options := compilatrice_obtiens_options()
+    options.nom_sortie = "js"
+    compilatrice_ajourne_options(options)
+}
+
+#exécute change_nom_sortie()
+
+principale :: fonc () -> z32
+{
+    args := arguments_ligne_commande()
+
+    si args.taille != 2 {
+        imprime("Utilisation : % FICHIER\n", args[0])
+        retourne 1
+    }
+
+    retourne évalue_fichier(CheminFichier(args[1]))
+}
+
+évalue_fichier :: fonc (chemin: CheminFichier) -> z32
+{
+    contenu := contenu_fichier_texte(chemin)
+    diffère déloge(contenu)
+
+    mv: MachineVirtuelle
+    diffère détruit_données_mv(*mv)
+    initialise_mv(nul, *mv)
+
+    diffère éboue(donne_tas_de_mémoire(*mv))
+
+    configuration: ConfigurationRealm
+    configuration.crée_propriétés_hôte_objet_global = crée_propriétés_hôte_objet_global
+
+    realm := initialise_host_defined_realm(*mv, *configuration)
+
+    résultat := exécute_script(realm, contenu)
+    si résultat {
+        retourne 0
+    }
+    retourne 1
+}
+
+exécute_script :: fonc (realm: *Realm, source: chaine) -> bool
+{
+    script: *Script
+    /* À FAIRE(langage) : host_defined n'est pas initialisée à sa valeur défaut. */
+    host_defined: HostDefined
+    discr parse_script(source, realm, host_defined) {
+        Ok(s) {
+            script = s
+        }
+        Erreur(e) {
+            imprime("%\n", e)
+            retourne faux
+        }
+        sinon {
+            imprime("erreur inconnue\n")
+            retourne faux
+        }
+    }
+
+    résultat := script_evaluation(script)
+    si résultat.est_normal() {
+        retourne vrai
+    }
+
+    imprime("%\n", résultat)
+    retourne faux
+}
+
+crée_propriétés_hôte_objet_global :: fonc (base: *ConfigurationRealm @inutilisée, global: *Object)
+{
+    flux_sortie_sur_destruction :: fonc (base: *FluxSortieConsole)
+    {
+        déloge(base)
+    }
+
+    flux_sortie_sur_log :: fonc (base: *FluxSortieConsole @inutilisée, texte: chaine)
+    {
+        imprime("[JS] %\n", texte)
+    }
+
+    flux_sortie_sur_efface :: fonc (base: *FluxSortieConsole @inutilisée)
+    {
+    }
+
+    flux := loge(FluxSortieConsole)
+    flux.sur_destruction = flux_sortie_sur_destruction
+    flux.sur_log = flux_sortie_sur_log
+    flux.sur_efface = flux_sortie_sur_efface
+
+    console := crée_console(global.donne_tas_de_mémoire(), flux, nul)
+
+    global.ajoute_fonction_native("rm", fonction_native_éboue)
+    global.ajoute_propriété(crée_chaine_utf16_unique("console"), Valeur(Object = console), Enumerable | Configurable | Writable)
+}
