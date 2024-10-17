@@ -3998,6 +3998,12 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
 
     ConstructriceMembresTypeComposé constructrice(*type_compose, decl->bloc);
 
+    if (decl->est_monomorphisation) {
+        POUR (*decl->bloc_constantes->membres.verrou_lecture()) {
+            constructrice.ajoute_constante(it->comme_déclaration_constante());
+        }
+    }
+
     POUR (*decl->bloc->membres.verrou_lecture()) {
         if (it->est_déclaration_type()) {
             constructrice.ajoute_type_de_données(it->comme_déclaration_type(),

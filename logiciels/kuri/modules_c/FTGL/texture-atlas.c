@@ -10,10 +10,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "ftgl.h"
+
 // ------------------------------------------------------ texture_atlas_new ---
 texture_atlas_t *texture_atlas_new(const size_t width, const size_t height, const size_t depth)
 {
-    texture_atlas_t *self = (texture_atlas_t *)malloc(sizeof(texture_atlas_t));
+    texture_atlas_t *self = (texture_atlas_t *)FTGL_malloc(sizeof(texture_atlas_t));
 
     // We want a one pixel border around the whole atlas to avoid any artefact when
     // sampling texture
@@ -32,7 +34,7 @@ texture_atlas_t *texture_atlas_new(const size_t width, const size_t height, cons
     self->id = 0;
 
     vector_push_back(self->nodes, &node);
-    self->data = (unsigned char *)calloc(width * height * depth, sizeof(unsigned char));
+    self->data = (unsigned char *)FTGL_calloc(width * height * depth, sizeof(unsigned char));
 
     if (self->data == NULL) {
         fprintf(stderr, "line %d: No more memory for allocating data\n", __LINE__);
@@ -48,9 +50,9 @@ void texture_atlas_delete(texture_atlas_t *self)
     assert(self);
     vector_delete(self->nodes);
     if (self->data) {
-        free(self->data);
+        FTGL_free(self->data, self->width * self->height * self->depth * sizeof(unsigned char));
     }
-    free(self);
+    FTGL_free(self, sizeof(texture_atlas_t));
 }
 
 // ----------------------------------------------- texture_atlas_set_region ---
@@ -179,7 +181,7 @@ ivec4 texture_atlas_get_region(texture_atlas_t *self, const size_t width, const 
         return region;
     }
 
-    node = (ivec3 *)malloc(sizeof(ivec3));
+    node = (ivec3 *)FTGL_malloc(sizeof(ivec3));
     if (node == NULL) {
         fprintf(stderr, "line %d: No more memory for allocating data\n", __LINE__);
         exit(EXIT_FAILURE);
@@ -188,7 +190,7 @@ ivec4 texture_atlas_get_region(texture_atlas_t *self, const size_t width, const 
     node->y = region.y + height;
     node->z = width;
     vector_insert(self->nodes, best_index, node);
-    free(node);
+    FTGL_free(node, sizeof(ivec3));
 
     for (i = best_index + 1; i < self->nodes->size; ++i) {
         node = (ivec3 *)vector_get(self->nodes, i);

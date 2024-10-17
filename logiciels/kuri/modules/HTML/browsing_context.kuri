@@ -132,6 +132,26 @@ donne_active_browsing_context :: fonc (navigable: *Navigable) -> *BrowsingContex
     retourne document.browsing_context
 }
 
+/* https://html.spec.whatwg.org/multipage/document-sequences.html#nav-wp */
+donne_active_window_proxy :: fonc (navigable: *Navigable) -> *WindowProxy
+{
+    bc := donne_active_browsing_context(navigable)
+    saufsi bc {
+        retourne nul
+    }
+    retourne bc.window_proxy
+}
+
+/* https://html.spec.whatwg.org/multipage/document-sequences.html#nav-window */
+donne_active_window :: fonc (navigable: *Navigable) -> *Window
+{
+    window_proxy := donne_active_window_proxy(navigable)
+    saufsi window_proxy {
+        retourne nul
+    }
+    retourne window_proxy.window
+}
+
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#nav-container */
 donne_container :: fonc (navigable: *Navigable @inutilisée) -> *Élément
 {

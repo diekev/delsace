@@ -2303,6 +2303,49 @@ NoeudExpression *Simplificatrice::simplifie_référence_membre(NoeudExpressionMe
     auto &membre = type_composé->membres[ref_membre->index_membre];
 
     if (membre.drapeaux == MembreTypeComposé::EST_CONSTANT) {
+        if (!membre.expression_valeur_defaut) {
+            /* Les membres provenant d'une monomorphisation n'ont pas d'expression. */
+            if (membre.type->est_type_type_de_données()) {
+                ref_membre->substitution = assem->crée_référence_type(lexème, membre.type);
+                return ref_membre;
+            }
+
+            auto valeur = membre.decl->comme_déclaration_constante()->valeur_expression;
+
+            if (valeur.est_booléenne()) {
+                ref_membre->substitution = assem->crée_littérale_bool(
+                    lexème, TypeBase::BOOL, valeur.booléenne());
+            }
+            else if (valeur.est_chaine()) {
+                ref_membre->substitution = valeur.chaine();
+            }
+            else if (valeur.est_entière()) {
+                ref_membre->substitution = assem->crée_littérale_entier(
+                    lexème, membre.type, uint64_t(valeur.entière()));
+            }
+            else if (valeur.est_fonction()) {
+                ref_membre->substitution = assem->crée_référence_déclaration(lexème,
+                                                                             valeur.fonction());
+            }
+            else if (valeur.est_réelle()) {
+                ref_membre->substitution = assem->crée_littérale_réel(
+                    lexème, membre.type, valeur.réelle());
+            }
+            else if (valeur.est_tableau_fixe()) {
+                ref_membre->substitution = valeur.tableau_fixe();
+            }
+            else if (valeur.est_type()) {
+                ref_membre->substitution = assem->crée_référence_type(lexème, valeur.type());
+            }
+            else {
+                assert_rappel(false, [&]() {
+                    dbg() << "La valeur de l'expression du membre constant est invalide\n";
+                });
+            }
+
+            return ref_membre;
+        }
+
         simplifie(membre.expression_valeur_defaut);
         ref_membre->substitution = membre.expression_valeur_defaut;
         if (ref_membre->substitution->type->est_type_entier_constant()) {
