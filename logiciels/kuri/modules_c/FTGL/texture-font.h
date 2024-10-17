@@ -205,8 +205,12 @@ typedef struct texture_font_t {
     union {
         /**
          * Font filename, for when location == TEXTURE_FONT_FILE
+         * filename_size includes the null terminator.
          */
-        char *filename;
+        struct {
+            char *filename;
+            size_t filename_size;
+        };
 
         /**
          * Font memory address, for when location == TEXTURE_FONT_MEMORY
