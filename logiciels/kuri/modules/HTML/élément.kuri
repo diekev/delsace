@@ -553,6 +553,47 @@ applique_presentational_hints :: fonc (élément: *Élément, résolveuse: *CSS.
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom 3.5 Render-blocking mechanisms
+ * https://html.spec.whatwg.org/multipage/dom.html#render-blocking-mechanism
+ * \{ */
+
+/* https://html.spec.whatwg.org/multipage/dom.html#render-blocking */
+is_render_blocking :: fonc (el: *Élément @inutilisée) -> bool
+{
+    // À FAIRE
+    retourne faux
+}
+
+/* https://html.spec.whatwg.org/multipage/dom.html#block-rendering */
+block_rendering_on :: fonc (el: *Élément @inutilisée)
+{
+    // À FAIRE
+}
+
+/* https://html.spec.whatwg.org/multipage/dom.html#unblock-rendering */
+unblock_rendering_on :: fonc (el: *Élément @inutilisée)
+{
+    // À FAIRE
+}
+
+/* https://html.spec.whatwg.org/multipage/urls-and-fetching.html#potentially-render-blocking */
+is_potentially_render_blocking :: fonc (el: *Élément @inutilisée) -> bool
+{
+    // À FAIRE
+    retourne faux    
+}
+
+block_rendering_if_potentially_render_blocking :: fonc (el: *Élément)
+{
+    saufsi is_potentially_render_blocking(el) {
+        retourne
+    }
+    block_rendering_on(el)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Interface JavaScript
  * \{ */
 
@@ -2051,12 +2092,16 @@ prépare :: fonc (el: *HTMLScriptElement)
             retourne
         }
 
-        // À FAIRE : 7. If el is potentially render-blocking, then block rendering on el.
+        // 7. If el is potentially render-blocking, then block rendering on el.
+        block_rendering_if_potentially_render_blocking(el)
 
         // 8. Set el's delaying the load event to true.
         el.delaying_the_load_event = vrai
 
-        // À FAIRE : 9. If el is currently render-blocking, then set options's render-blocking to true.
+        // 9. If el is currently render-blocking, then set options's render-blocking to true.
+        si is_render_blocking(el) {
+            options.render_blocking = vrai
+        }
 
         // 10. Let onComplete given result be the following steps:
         OnComplete :: struct {
@@ -2216,7 +2261,8 @@ execute_the_script_element :: fonc (el: *HTMLScriptElement)
         retourne
     }
 
-    // À FAIRE 3. Unblock rendering on el.
+    // 3. Unblock rendering on el.
+    unblock_rendering_on(el)
 
     // 4. If el's result is null, then fire an event named error at el, and return.
     si el.result == nul {
