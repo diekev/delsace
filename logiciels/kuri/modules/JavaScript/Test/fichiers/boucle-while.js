@@ -16,3 +16,11 @@ test("while avec break", function () {
     }
     vérifie_égalité(x, 5)
 });
+
+test("while avec continue seul", function () {
+    let i = 0;
+    while (i++ < 5) {
+        continue;
+    }
+    vérifie_égalité(i, 6)
+})

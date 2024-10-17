@@ -263,8 +263,7 @@ get_value :: fonc (realm: *Realm, valeur: ValeurCompletion) -> CompletionRecord
 
     si V.coordonnée.possède_valeur() {
         coordonnée := V.coordonnée.Quelque
-        assert(base.est_declarative_environment())
-        declarative_environment := base comme *DeclarativeEnvironment
+        declarative_environment := base.vérifie_comme(DeclarativeEnvironment)
         retourne normal_completion(declarative_environment.bindings[coordonnée.index].valeur)
     }
 
@@ -361,8 +360,7 @@ put_value :: fonc (interpréteuse: *Interpréteuse, référence: ValeurCompletio
 
     si record.coordonnée.possède_valeur() {
         coordonnée := record.coordonnée.Quelque
-        assert(base.est_declarative_environment())
-        declarative_environment := base comme *DeclarativeEnvironment
+        declarative_environment := base.vérifie_comme(DeclarativeEnvironment)
         declarative_environment.bindings[coordonnée.index].valeur = valeur
         retourne normal_completion(Valeur(Boolean = vrai))
     }

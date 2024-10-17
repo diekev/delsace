@@ -376,7 +376,7 @@ navigate :: fonc (user_agent: *UserAgent,
     si url.scheme == "javascript" {
         // 1. Queue a global task on the navigation and traversal task source given navigable's active window to navigate to a javascript: URL given navigable, url, historyHandling, initiatorOriginSnapshot, and cspNavigationType.
         tâche := crée_tâche_pour_navigate_to_javascript_url(user_agent, navigable, url, history_handling, initiator_origin_snapshot)
-        user_agent.enfile_une_tâche(SourceDeTâche.NavigationEtTraversée, tâche)
+        user_agent.queue_a_globask_task(SourceDeTâche.NavigationEtTraversée, navigable.donne_active_window(), tâche)
 
         // 2. Return.
         retourne
@@ -412,15 +412,7 @@ navigate :: fonc (user_agent: *UserAgent,
         navigate_parallel_steps(*tâche.params)
     }
 
-    sur_destruction :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        déloge(tâche)
-    }
-
-    tâche := loge(Tâche)
-    tâche.sur_run = sur_run
-    tâche.sur_destruction = sur_destruction
+    tâche := crée_algorithm(sur_run, Tâche)
     tâche.params.user_agent = user_agent
     tâche.params.navigable = navigable
     tâche.params.url = url
@@ -549,19 +541,11 @@ navigate_parallel_steps :: fonc (params: *NavigateParallelStepsParams)
         finalize_a_cross_document_navigation(steps.user_agent, steps.navigable, steps.history_handling, steps.history_entry)
     }
 
-    tâche_détruit :: fonc (base: *Algorithm)
-    {
-        steps := base comme *Tâche
-        déloge(steps)
-    }
-
-    tâche := loge(Tâche)
+    tâche := crée_algorithm(tâche_run, Tâche)
     tâche.user_agent = user_agent
     tâche.navigable = navigable
     tâche.history_handling = history_handling
     tâche.history_entry = history_entry
-    tâche.sur_run = tâche_run
-    tâche.sur_destruction = tâche_détruit
 
     completion_steps := crée_tâche_pour_traversable(user_agent, tâche, navigable.donne_traversable_navigable())
 
@@ -810,15 +794,7 @@ crée_tâche_pour_navigate_to_javascript_url :: fonc (user_agent: *UserAgent, ta
         navigate_to_a_javascript_url(tâche.user_agent, tâche.target_navigable, tâche.url, tâche.history_handling, tâche.initiator_origin)
     }
 
-    sur_destruction :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        déloge(tâche)
-    }
-
-    tâche := loge(Tâche)
-    tâche.sur_run = sur_run
-    tâche.sur_destruction = sur_destruction
+    tâche := crée_algorithm(sur_run, Tâche)
     tâche.user_agent = user_agent
     tâche.target_navigable = target_navigable
     tâche.url = url
@@ -884,17 +860,9 @@ crée_tâche_pour_reload_history_step :: fonc (user_agent: *UserAgent, traversab
         tâche.user_agent.document_est_prêt(document)
     }
 
-    sur_destruction :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        déloge(tâche)
-    }
-
-    tâche := loge(Tâche)
+    tâche := crée_algorithm(sur_run, Tâche)
     tâche.user_agent = user_agent
     tâche.traversable = traversable
-    tâche.sur_run = sur_run
-    tâche.sur_destruction = sur_destruction
     retourne tâche
 }
 
@@ -976,21 +944,13 @@ crée_tâche_pour_traverse_history_step :: fonc (user_agent: *UserAgent,
         tâche.user_agent.document_est_prêt(document)
     }
 
-    sur_destruction :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        déloge(tâche)
-    }
-
-    tâche := loge(Tâche)
+    tâche := crée_algorithm(sur_run, Tâche)
     tâche.user_agent = user_agent
     tâche.traversable = traversable
     tâche.source_snapshot_params = source_snapshot_params
     tâche.initiator_to_check = initiator_to_check
     tâche.user_involvement = user_involvement
     tâche.delta = delta
-    tâche.sur_run = sur_run
-    tâche.sur_destruction = sur_destruction
     retourne tâche
 }
 
@@ -1185,51 +1145,16 @@ attempt_to_populate_the_history_entry_document :: fonc (params: *HistoryEntryPop
         run(completion_steps)
     }
 
-    sur_destruction :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        déloge(tâche)
-    }
-
-    tâche := loge(Tâche)
-    tâche.sur_run = sur_run
+    tâche := crée_algorithm(sur_run, Tâche)
     tâche.navigable = navigable
     tâche.navigation_id = navigation_id
-    tâche.sur_destruction = sur_destruction
     tâche.user_agent = user_agent
     tâche.completion_steps = completion_steps
     tâche.entry = entry
     tâche.navigation_params = navigation_params
     tâche.source_snapshot_params = source_snapshot_params
 
-    user_agent.enfile_une_tâche(SourceDeTâche.NavigationEtTraversée, tâche)
-}
-
-crée_tâche_pour_entry_population_attempt :: fonc (params: *HistoryEntryPopulationParams) -> *Algorithm
-{
-    Tâche :: struct {
-        empl base: Algorithm
-
-        params: HistoryEntryPopulationParams
-    }
-
-    sur_run :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        attempt_to_populate_the_history_entry_document(*tâche.params)
-    }
-
-    sur_destruction :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        déloge(tâche)
-    }
-
-    tâche := loge(Tâche)
-    tâche.params = mémoire(params)
-    tâche.sur_run = sur_run
-    tâche.sur_destruction = sur_destruction
-    retourne tâche
+    user_agent.queue_a_globask_task(SourceDeTâche.NavigationEtTraversée, navigable.donne_active_window(), tâche)
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#create-navigation-params-by-fetching
@@ -1739,7 +1664,7 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
     // 12. For each navigable of changingNavigables, queue a global task on the navigation and traversal task source of navigable's active window to run the steps:
     pour navigable dans changing_navigables {
         tâche := crée_tâche_pour_changing_navigable_continuations_steps(user_agent, navigable, traversable, navigation_type, source_snapshot_params, *changing_navigable_continuations)
-        user_agent.enfile_une_tâche(SourceDeTâche.NavigationEtTraversée, tâche)
+        user_agent.queue_a_globask_task(SourceDeTâche.NavigationEtTraversée, navigable.donne_active_window(), tâche)
     }
 
     // 13. Let navigablesThatMustWaitBeforeHandlingSyncNavigation be an empty set.
@@ -1793,6 +1718,7 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
         entries_for_navigation_api: [..]*SessionHistoryEntry
 
         after_potential_unloads_params: AfterPotentialUnloadsParams
+        after_potential_unloads_params.user_agent = user_agent
         after_potential_unloads_params.target_entry = target_entry
         after_potential_unloads_params.displayed_document = displayed_document
         after_potential_unloads_params.navigable = navigable
@@ -1806,7 +1732,7 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
         after_potential_unloads_params.entries_for_navigation_api = entries_for_navigation_api
         after_potential_unloads_params.displayed_entry = navigable.active_session_history_entry
 
-        tâche_after_potential_unloads := crée_tâche_pour_after_potential_unloads(user_agent, *after_potential_unloads_params)
+        tâche_after_potential_unloads := crée_algorithm_pour_fonction(*after_potential_unloads_params, after_potential_unloads)
 
         // 10. If changingNavigableContinuation's update-only is true, or targetEntry's document is displayedDocument, then:
         si changing_navigable_continuation.update_only || target_entry.donne_document() == displayed_document {
@@ -1814,7 +1740,7 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
             init_de(OngoingNavigationType)(*navigable.ongoing_navigation)
 
             // 2. Queue a global task on the navigation and traversal task source given navigable's active window to perform afterPotentialUnloads.
-            user_agent.enfile_une_tâche(SourceDeTâche.NavigationEtTraversée, tâche_after_potential_unloads)
+            user_agent.queue_a_globask_task(SourceDeTâche.NavigationEtTraversée, navigable.donne_active_window(), tâche_after_potential_unloads)
         }
         // 11. Otherwise:
         sinon {
@@ -1863,6 +1789,7 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
 }
 
 AfterPotentialUnloadsParams :: struct {
+    user_agent: *UserAgent
     target_entry: *SessionHistoryEntry
     displayed_document: *Document
     navigable: *Navigable
@@ -1875,7 +1802,7 @@ AfterPotentialUnloadsParams :: struct {
     displayed_entry: *SessionHistoryEntry
 }
 
-after_potential_unloads :: fonc (user_agent: *UserAgent, params: *AfterPotentialUnloadsParams)
+after_potential_unloads :: fonc (params: *AfterPotentialUnloadsParams)
 {
     target_entry := params.target_entry
 
@@ -1903,68 +1830,12 @@ after_potential_unloads :: fonc (user_agent: *UserAgent, params: *AfterPotential
     // 4. Otherwise, queue a global task on the navigation and traversal task source given targetEntry's document's relevant global object to perform updateDocument.
     sinon {
         // À FAIRE : relevant global object
-        tâche := crée_tâche_pour_update_document(*document_update_params)
-        user_agent.enfile_une_tâche(SourceDeTâche.NavigationEtTraversée,  tâche)
+        tâche := crée_algorithm_pour_fonction(*document_update_params, update_document_for_history_step_application)
+        params.user_agent.queue_a_globask_task(SourceDeTâche.NavigationEtTraversée, target_entry.donne_document().donne_relevant_global_object(),  tâche)
     }
 
     // 5. Increment completedChangeJobs.
     mémoire(params.completed_change_jobs) += 1
-}
-
-crée_tâche_pour_after_potential_unloads :: fonc (user_agent: *UserAgent, params: *AfterPotentialUnloadsParams) -> *Algorithm
-{
-    Tâche :: struct {
-        empl base: Algorithm
-
-        user_agent: *UserAgent
-        params: AfterPotentialUnloadsParams
-    }
-
-    sur_run :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        after_potential_unloads(tâche.user_agent, *tâche.params)
-    }
-
-    sur_destruction :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        déloge(tâche)
-    }
-
-    tâche := loge(Tâche)
-    tâche.user_agent = user_agent
-    tâche.params = mémoire(params)
-    tâche.sur_run = sur_run
-    tâche.sur_destruction = sur_destruction
-    retourne tâche
-}
-
-crée_tâche_pour_update_document :: fonc (params: *DocumentUpdateParams) -> *Algorithm
-{
-    Tâche :: struct {
-        empl base: Algorithm
-
-        params: DocumentUpdateParams
-    }
-
-    sur_run :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        update_document_for_history_step_application(*tâche.params)
-    }
-
-    sur_destruction :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        déloge(tâche)
-    }
-
-    tâche := loge(Tâche)
-    tâche.params = mémoire(params)
-    tâche.sur_run = sur_run
-    tâche.sur_destruction = sur_destruction
-    retourne tâche
 }
 
 crée_tâche_pour_changing_navigable_continuations_steps :: fonc (user_agent: *UserAgent,
@@ -1999,21 +1870,13 @@ crée_tâche_pour_changing_navigable_continuations_steps :: fonc (user_agent: *U
         changing_navigable_continuations_steps(user_agent, navigable, traversable, navigation_type, source_snapshot_params, changing_navigable_continuations)
     }
 
-    sur_destruction :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        déloge(tâche)
-    }
-
-    tâche := loge(Tâche)
+    tâche := crée_algorithm(sur_run, Tâche)
     tâche.user_agent = user_agent
     tâche.navigable = navigable
     tâche.traversable = traversable
     tâche.navigation_type = navigation_type
     tâche.source_snapshot_params = source_snapshot_params
     tâche.changing_navigable_continuations = changing_navigable_continuations
-    tâche.sur_run = sur_run
-    tâche.sur_destruction = sur_destruction
     retourne tâche
 }
 
@@ -2141,7 +2004,7 @@ changing_navigable_continuations_steps :: fonc (user_agent: *UserAgent,
         history_entry_population_params.allow_post = allow_post
         history_entry_population_params.nav_timing_type = nav_timing_type
 
-        tâche_pour_entry_population_attempt := crée_tâche_pour_entry_population_attempt(*history_entry_population_params)
+        tâche_pour_entry_population_attempt := crée_algorithm_pour_fonction(*history_entry_population_params, attempt_to_populate_the_history_entry_document)
         user_agent.lance_en_parallèle(tâche_pour_entry_population_attempt)
         retourne
     }
@@ -2176,19 +2039,11 @@ crée_tâche_pour_after_document_populated :: fonc (target_entry: *SessionHistor
         after_document_populated(target_entry, navigable, changing_navigable_continuation, changing_navigable_continuations)
     }
 
-    sur_destruction :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        déloge(tâche)
-    }
-
-    tâche := loge(Tâche)
+    tâche := crée_algorithm(sur_run, Tâche)
     tâche.target_entry = target_entry
     tâche.navigable = navigable
     tâche.changing_navigable_continuation = changing_navigable_continuation
     tâche.changing_navigable_continuations = changing_navigable_continuations
-    tâche.sur_run = sur_run
-    tâche.sur_destruction = sur_destruction
     retourne tâche
 }
 
@@ -2982,7 +2837,7 @@ unload_a_document_and_its_descendants :: fonc (user_agent: *UserAgent, document:
     pour child_navigable dans child_navigables {
         // queue a global task on the navigation and traversal task source given childNavigable's active window to perform the following steps:
         tâche := crée_tâche_unload_étape_4(user_agent, child_navigable.donne_active_document(), *number_unloaded)
-        user_agent.enfile_une_tâche(SourceDeTâche.NavigationEtTraversée, tâche)
+        user_agent.queue_a_globask_task(SourceDeTâche.NavigationEtTraversée, child_navigable.donne_active_window(), tâche)
     }
 
     // 5. Wait until numberUnloaded equals childNavigable's size.
@@ -2992,7 +2847,7 @@ unload_a_document_and_its_descendants :: fonc (user_agent: *UserAgent, document:
 
     // 6. Queue a global task on the navigation and traversal task source given document's relevant global object to perform the following steps:
     tâche := crée_tâche_unload_étape_6(user_agent, document, new_document, after_all_unloads, fire_page_swap_steps)
-    user_agent.enfile_une_tâche(SourceDeTâche.NavigationEtTraversée, tâche)
+    user_agent.queue_a_globask_task(SourceDeTâche.NavigationEtTraversée, document.donne_relevant_global_object(), tâche)
 }
 
 crée_tâche_unload_étape_4 :: fonc (user_agent: *UserAgent, document: *Document, number_unloaded: *z32) -> *Algorithm
@@ -3016,18 +2871,10 @@ crée_tâche_unload_étape_4 :: fonc (user_agent: *UserAgent, document: *Documen
         unload_a_document_and_its_descendants(tâche.user_agent, tâche.document, nul, increment_unloaded)
     }
 
-    sur_destruction :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        déloge(tâche)
-    }
-
-    tâche := loge(Tâche)
+    tâche := crée_algorithm(sur_run, Tâche)
     tâche.user_agent = user_agent
     tâche.document = document
     tâche.number_unloaded = number_unloaded
-    tâche.sur_run = sur_run
-    tâche.sur_destruction = sur_destruction
     retourne tâche
 }
 
@@ -3061,20 +2908,12 @@ crée_tâche_unload_étape_6 :: fonc (user_agent: *UserAgent, document: *Documen
         }
     }
 
-    sur_destruction :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        déloge(tâche)
-    }
-
-    tâche := loge(Tâche)
+    tâche := crée_algorithm(sur_run, Tâche)
     tâche.user_agent = user_agent
     tâche.document = document
     tâche.new_document = new_document
     tâche.after_all_unloads = after_all_unloads
     tâche.fire_page_swap_steps = fire_page_swap_steps
-    tâche.sur_run = sur_run
-    tâche.sur_destruction = sur_destruction
     retourne tâche
 }
 
@@ -3092,16 +2931,8 @@ crée_tâche_incrément_entier :: fonc (nombre: *z32) -> *Algorithm
         mémoire(tâche.nombre) += 1
     }
 
-    sur_destruction :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        déloge(tâche)
-    }
-
-    tâche := loge(Tâche)
+    tâche := crée_algorithm(sur_run, Tâche)
     tâche.nombre = nombre
-    tâche.sur_run = sur_run
-    tâche.sur_destruction = sur_destruction
     retourne tâche
 }
 
