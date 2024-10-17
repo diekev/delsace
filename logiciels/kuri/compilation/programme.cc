@@ -306,6 +306,23 @@ void Programme::rassemble_statistiques(Statistiques &stats)
     if (m_coulisse) {
         m_coulisse->rassemble_statistiques(stats);
     }
+
+    EntréeProgramme entrée;
+
+    if (pour_métaprogramme()) {
+        entrée.nom = pour_métaprogramme()->donne_nom_pour_fichier_log();
+    }
+    else {
+        entrée.nom = m_espace->nom;
+    }
+
+    entrée.fonctions_utilisées = m_fonctions.donne_éléments().taille();
+    entrée.globales_utilisées = m_globales.donne_éléments().taille();
+    entrée.types_utilisés = m_types.donne_éléments().taille();
+    entrée.init_de_utilisés = m_init_de.donne_éléments().taille();
+    entrée.info_de_utilisés = m_info_de.donne_éléments().taille();
+
+    stats.stats_programmes.ajoute_entrée(entrée);
 }
 
 kuri::ensemble<Module *> Programme::modules_utilisés() const

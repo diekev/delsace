@@ -261,7 +261,7 @@ sur_rappel_sauvegarde :: fonc (base: *QT_Rappel_Generique)
 
     mv: MachineVirtuelle
     diffère détruit_données_mv(*mv)
-    initialise_mv(*mv)
+    initialise_mv(nul, *mv)
 
     diffère éboue(donne_tas_de_mémoire(*mv))
 
