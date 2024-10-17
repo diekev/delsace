@@ -1462,29 +1462,33 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
         case GenreInstruction::BRANCHE_CONDITION:
         {
             auto branche = instruction->comme_branche_cond();
-            if (auto atome = est_comparaison_égal_zéro_ou_nul(
-                    branche->condition->comme_instruction())) {
-                génère_code_pour_atome(atome, chunk);
-                chunk.émets_branche_si_zéro(branche->site,
-                                            patchs_labels,
-                                            atome->type->taille_octet,
-                                            branche->label_si_vrai->id,
-                                            branche->label_si_faux->id);
 
-                break;
-            }
+            /* À FAIRE : évite de générer une branche si nous avons une constante. */
+            if (branche->condition->est_instruction()) {
+                if (auto atome = est_comparaison_égal_zéro_ou_nul(
+                        branche->condition->comme_instruction())) {
+                    génère_code_pour_atome(atome, chunk);
+                    chunk.émets_branche_si_zéro(branche->site,
+                                                patchs_labels,
+                                                atome->type->taille_octet,
+                                                branche->label_si_vrai->id,
+                                                branche->label_si_faux->id);
 
-            if (auto atome = est_comparaison_inégal_zéro_ou_nul(
-                    branche->condition->comme_instruction())) {
-                génère_code_pour_atome(atome, chunk);
-                /* Utilise branche_si_zéro, mais inverse les labels. */
-                chunk.émets_branche_si_zéro(branche->site,
-                                            patchs_labels,
-                                            atome->type->taille_octet,
-                                            branche->label_si_faux->id,
-                                            branche->label_si_vrai->id);
+                    break;
+                }
 
-                break;
+                if (auto atome = est_comparaison_inégal_zéro_ou_nul(
+                        branche->condition->comme_instruction())) {
+                    génère_code_pour_atome(atome, chunk);
+                    /* Utilise branche_si_zéro, mais inverse les labels. */
+                    chunk.émets_branche_si_zéro(branche->site,
+                                                patchs_labels,
+                                                atome->type->taille_octet,
+                                                branche->label_si_faux->id,
+                                                branche->label_si_vrai->id);
+
+                    break;
+                }
             }
 
             génère_code_pour_atome(branche->condition, chunk);
