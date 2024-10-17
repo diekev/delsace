@@ -1157,25 +1157,6 @@ attempt_to_populate_the_history_entry_document :: fonc (params: *HistoryEntryPop
     user_agent.enfile_une_tâche(SourceDeTâche.NavigationEtTraversée, tâche)
 }
 
-crée_tâche_pour_entry_population_attempt :: fonc (params: *HistoryEntryPopulationParams) -> *Algorithm
-{
-    Tâche :: struct {
-        empl base: Algorithm
-
-        params: HistoryEntryPopulationParams
-    }
-
-    sur_run :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        attempt_to_populate_the_history_entry_document(*tâche.params)
-    }
-
-    tâche := crée_algorithm(sur_run, Tâche)
-    tâche.params = mémoire(params)
-    retourne tâche
-}
-
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#create-navigation-params-by-fetching
     To create navigation params by fetching given a session history entry entry, a navigable navigable, a source snapshot params sourceSnapshotParams, a target snapshot params targetSnapshotParams, a string cspNavigationType, a navigation ID-or-null navigationId, and a NavigationTimingType navTimingType, perform the following steps. They return a navigation params, a non-fetch scheme navigation params, or null.
  */
@@ -1737,6 +1718,7 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
         entries_for_navigation_api: [..]*SessionHistoryEntry
 
         after_potential_unloads_params: AfterPotentialUnloadsParams
+        after_potential_unloads_params.user_agent = user_agent
         after_potential_unloads_params.target_entry = target_entry
         after_potential_unloads_params.displayed_document = displayed_document
         after_potential_unloads_params.navigable = navigable
@@ -1750,7 +1732,7 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
         after_potential_unloads_params.entries_for_navigation_api = entries_for_navigation_api
         after_potential_unloads_params.displayed_entry = navigable.active_session_history_entry
 
-        tâche_after_potential_unloads := crée_tâche_pour_after_potential_unloads(user_agent, *after_potential_unloads_params)
+        tâche_after_potential_unloads := crée_algorithm_pour_fonction(*after_potential_unloads_params, after_potential_unloads)
 
         // 10. If changingNavigableContinuation's update-only is true, or targetEntry's document is displayedDocument, then:
         si changing_navigable_continuation.update_only || target_entry.donne_document() == displayed_document {
@@ -1807,6 +1789,7 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
 }
 
 AfterPotentialUnloadsParams :: struct {
+    user_agent: *UserAgent
     target_entry: *SessionHistoryEntry
     displayed_document: *Document
     navigable: *Navigable
@@ -1819,7 +1802,7 @@ AfterPotentialUnloadsParams :: struct {
     displayed_entry: *SessionHistoryEntry
 }
 
-after_potential_unloads :: fonc (user_agent: *UserAgent, params: *AfterPotentialUnloadsParams)
+after_potential_unloads :: fonc (params: *AfterPotentialUnloadsParams)
 {
     target_entry := params.target_entry
 
@@ -1847,52 +1830,12 @@ after_potential_unloads :: fonc (user_agent: *UserAgent, params: *AfterPotential
     // 4. Otherwise, queue a global task on the navigation and traversal task source given targetEntry's document's relevant global object to perform updateDocument.
     sinon {
         // À FAIRE : relevant global object
-        tâche := crée_tâche_pour_update_document(*document_update_params)
-        user_agent.enfile_une_tâche(SourceDeTâche.NavigationEtTraversée,  tâche)
+        tâche := crée_algorithm_pour_fonction(*document_update_params, update_document_for_history_step_application)
+        params.user_agent.enfile_une_tâche(SourceDeTâche.NavigationEtTraversée,  tâche)
     }
 
     // 5. Increment completedChangeJobs.
     mémoire(params.completed_change_jobs) += 1
-}
-
-crée_tâche_pour_after_potential_unloads :: fonc (user_agent: *UserAgent, params: *AfterPotentialUnloadsParams) -> *Algorithm
-{
-    Tâche :: struct {
-        empl base: Algorithm
-
-        user_agent: *UserAgent
-        params: AfterPotentialUnloadsParams
-    }
-
-    sur_run :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        after_potential_unloads(tâche.user_agent, *tâche.params)
-    }
-
-    tâche := crée_algorithm(sur_run, Tâche)
-    tâche.user_agent = user_agent
-    tâche.params = mémoire(params)
-    retourne tâche
-}
-
-crée_tâche_pour_update_document :: fonc (params: *DocumentUpdateParams) -> *Algorithm
-{
-    Tâche :: struct {
-        empl base: Algorithm
-
-        params: DocumentUpdateParams
-    }
-
-    sur_run :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        update_document_for_history_step_application(*tâche.params)
-    }
-
-    tâche := crée_algorithm(sur_run, Tâche)
-    tâche.params = mémoire(params)
-    retourne tâche
 }
 
 crée_tâche_pour_changing_navigable_continuations_steps :: fonc (user_agent: *UserAgent,
@@ -2061,7 +2004,7 @@ changing_navigable_continuations_steps :: fonc (user_agent: *UserAgent,
         history_entry_population_params.allow_post = allow_post
         history_entry_population_params.nav_timing_type = nav_timing_type
 
-        tâche_pour_entry_population_attempt := crée_tâche_pour_entry_population_attempt(*history_entry_population_params)
+        tâche_pour_entry_population_attempt := crée_algorithm_pour_fonction(*history_entry_population_params, attempt_to_populate_the_history_entry_document)
         user_agent.lance_en_parallèle(tâche_pour_entry_population_attempt)
         retourne
     }

@@ -90,6 +90,27 @@ crée_algorithm :: fonc (sur_run: fonc(*Algorithm)(rien), $T: type_de_données) 
     retourne résultat
 }
 
+crée_algorithm_pour_fonction :: fonc (params: *$T, fonction: fonc(*T)(rien)) -> *Algorithm
+{
+    Tâche :: struct {
+        empl base: Algorithm
+
+        params: T
+        fonction: fonc(*T)(rien)
+    }
+
+    sur_run :: fonc (base: *Algorithm)
+    {
+        tâche := base comme *Tâche
+        tâche.fonction(*tâche.params)
+    }
+
+    tâche := crée_algorithm(sur_run, Tâche)
+    tâche.params = mémoire(params)
+    tâche.fonction = fonction
+    retourne tâche
+}
+
 run :: fonc (algorithm: *Algorithm)
 {
     saufsi algorithm {
