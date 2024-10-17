@@ -68,3 +68,12 @@ test("boucle for avec break", function () {
 
     vérifie_égalité(résultat, 10);
 });
+
+test("for avec continue seul", function () {
+    let i = 0;
+    for (; i++ < 5;) {
+        continue;
+    }
+    vérifie_égalité(i, 6)
+})
+
