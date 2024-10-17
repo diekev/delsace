@@ -412,15 +412,7 @@ navigate :: fonc (user_agent: *UserAgent,
         navigate_parallel_steps(*tâche.params)
     }
 
-    sur_destruction :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        déloge(tâche)
-    }
-
-    tâche := loge(Tâche)
-    tâche.sur_run = sur_run
-    tâche.sur_destruction = sur_destruction
+    tâche := crée_algorithm(sur_run, Tâche)
     tâche.params.user_agent = user_agent
     tâche.params.navigable = navigable
     tâche.params.url = url
@@ -549,19 +541,11 @@ navigate_parallel_steps :: fonc (params: *NavigateParallelStepsParams)
         finalize_a_cross_document_navigation(steps.user_agent, steps.navigable, steps.history_handling, steps.history_entry)
     }
 
-    tâche_détruit :: fonc (base: *Algorithm)
-    {
-        steps := base comme *Tâche
-        déloge(steps)
-    }
-
-    tâche := loge(Tâche)
+    tâche := crée_algorithm(tâche_run, Tâche)
     tâche.user_agent = user_agent
     tâche.navigable = navigable
     tâche.history_handling = history_handling
     tâche.history_entry = history_entry
-    tâche.sur_run = tâche_run
-    tâche.sur_destruction = tâche_détruit
 
     completion_steps := crée_tâche_pour_traversable(user_agent, tâche, navigable.donne_traversable_navigable())
 
@@ -810,15 +794,7 @@ crée_tâche_pour_navigate_to_javascript_url :: fonc (user_agent: *UserAgent, ta
         navigate_to_a_javascript_url(tâche.user_agent, tâche.target_navigable, tâche.url, tâche.history_handling, tâche.initiator_origin)
     }
 
-    sur_destruction :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        déloge(tâche)
-    }
-
-    tâche := loge(Tâche)
-    tâche.sur_run = sur_run
-    tâche.sur_destruction = sur_destruction
+    tâche := crée_algorithm(sur_run, Tâche)
     tâche.user_agent = user_agent
     tâche.target_navigable = target_navigable
     tâche.url = url
@@ -884,17 +860,9 @@ crée_tâche_pour_reload_history_step :: fonc (user_agent: *UserAgent, traversab
         tâche.user_agent.document_est_prêt(document)
     }
 
-    sur_destruction :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        déloge(tâche)
-    }
-
-    tâche := loge(Tâche)
+    tâche := crée_algorithm(sur_run, Tâche)
     tâche.user_agent = user_agent
     tâche.traversable = traversable
-    tâche.sur_run = sur_run
-    tâche.sur_destruction = sur_destruction
     retourne tâche
 }
 
@@ -976,21 +944,13 @@ crée_tâche_pour_traverse_history_step :: fonc (user_agent: *UserAgent,
         tâche.user_agent.document_est_prêt(document)
     }
 
-    sur_destruction :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        déloge(tâche)
-    }
-
-    tâche := loge(Tâche)
+    tâche := crée_algorithm(sur_run, Tâche)
     tâche.user_agent = user_agent
     tâche.traversable = traversable
     tâche.source_snapshot_params = source_snapshot_params
     tâche.initiator_to_check = initiator_to_check
     tâche.user_involvement = user_involvement
     tâche.delta = delta
-    tâche.sur_run = sur_run
-    tâche.sur_destruction = sur_destruction
     retourne tâche
 }
 
@@ -1185,17 +1145,9 @@ attempt_to_populate_the_history_entry_document :: fonc (params: *HistoryEntryPop
         run(completion_steps)
     }
 
-    sur_destruction :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        déloge(tâche)
-    }
-
-    tâche := loge(Tâche)
-    tâche.sur_run = sur_run
+    tâche := crée_algorithm(sur_run, Tâche)
     tâche.navigable = navigable
     tâche.navigation_id = navigation_id
-    tâche.sur_destruction = sur_destruction
     tâche.user_agent = user_agent
     tâche.completion_steps = completion_steps
     tâche.entry = entry
@@ -1219,16 +1171,8 @@ crée_tâche_pour_entry_population_attempt :: fonc (params: *HistoryEntryPopulat
         attempt_to_populate_the_history_entry_document(*tâche.params)
     }
 
-    sur_destruction :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        déloge(tâche)
-    }
-
-    tâche := loge(Tâche)
+    tâche := crée_algorithm(sur_run, Tâche)
     tâche.params = mémoire(params)
-    tâche.sur_run = sur_run
-    tâche.sur_destruction = sur_destruction
     retourne tâche
 }
 
@@ -1926,17 +1870,9 @@ crée_tâche_pour_after_potential_unloads :: fonc (user_agent: *UserAgent, param
         after_potential_unloads(tâche.user_agent, *tâche.params)
     }
 
-    sur_destruction :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        déloge(tâche)
-    }
-
-    tâche := loge(Tâche)
+    tâche := crée_algorithm(sur_run, Tâche)
     tâche.user_agent = user_agent
     tâche.params = mémoire(params)
-    tâche.sur_run = sur_run
-    tâche.sur_destruction = sur_destruction
     retourne tâche
 }
 
@@ -1954,16 +1890,8 @@ crée_tâche_pour_update_document :: fonc (params: *DocumentUpdateParams) -> *Al
         update_document_for_history_step_application(*tâche.params)
     }
 
-    sur_destruction :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        déloge(tâche)
-    }
-
-    tâche := loge(Tâche)
+    tâche := crée_algorithm(sur_run, Tâche)
     tâche.params = mémoire(params)
-    tâche.sur_run = sur_run
-    tâche.sur_destruction = sur_destruction
     retourne tâche
 }
 
@@ -1999,21 +1927,13 @@ crée_tâche_pour_changing_navigable_continuations_steps :: fonc (user_agent: *U
         changing_navigable_continuations_steps(user_agent, navigable, traversable, navigation_type, source_snapshot_params, changing_navigable_continuations)
     }
 
-    sur_destruction :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        déloge(tâche)
-    }
-
-    tâche := loge(Tâche)
+    tâche := crée_algorithm(sur_run, Tâche)
     tâche.user_agent = user_agent
     tâche.navigable = navigable
     tâche.traversable = traversable
     tâche.navigation_type = navigation_type
     tâche.source_snapshot_params = source_snapshot_params
     tâche.changing_navigable_continuations = changing_navigable_continuations
-    tâche.sur_run = sur_run
-    tâche.sur_destruction = sur_destruction
     retourne tâche
 }
 
@@ -2176,19 +2096,11 @@ crée_tâche_pour_after_document_populated :: fonc (target_entry: *SessionHistor
         after_document_populated(target_entry, navigable, changing_navigable_continuation, changing_navigable_continuations)
     }
 
-    sur_destruction :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        déloge(tâche)
-    }
-
-    tâche := loge(Tâche)
+    tâche := crée_algorithm(sur_run, Tâche)
     tâche.target_entry = target_entry
     tâche.navigable = navigable
     tâche.changing_navigable_continuation = changing_navigable_continuation
     tâche.changing_navigable_continuations = changing_navigable_continuations
-    tâche.sur_run = sur_run
-    tâche.sur_destruction = sur_destruction
     retourne tâche
 }
 
@@ -3016,18 +2928,10 @@ crée_tâche_unload_étape_4 :: fonc (user_agent: *UserAgent, document: *Documen
         unload_a_document_and_its_descendants(tâche.user_agent, tâche.document, nul, increment_unloaded)
     }
 
-    sur_destruction :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        déloge(tâche)
-    }
-
-    tâche := loge(Tâche)
+    tâche := crée_algorithm(sur_run, Tâche)
     tâche.user_agent = user_agent
     tâche.document = document
     tâche.number_unloaded = number_unloaded
-    tâche.sur_run = sur_run
-    tâche.sur_destruction = sur_destruction
     retourne tâche
 }
 
@@ -3061,20 +2965,12 @@ crée_tâche_unload_étape_6 :: fonc (user_agent: *UserAgent, document: *Documen
         }
     }
 
-    sur_destruction :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        déloge(tâche)
-    }
-
-    tâche := loge(Tâche)
+    tâche := crée_algorithm(sur_run, Tâche)
     tâche.user_agent = user_agent
     tâche.document = document
     tâche.new_document = new_document
     tâche.after_all_unloads = after_all_unloads
     tâche.fire_page_swap_steps = fire_page_swap_steps
-    tâche.sur_run = sur_run
-    tâche.sur_destruction = sur_destruction
     retourne tâche
 }
 
@@ -3092,16 +2988,8 @@ crée_tâche_incrément_entier :: fonc (nombre: *z32) -> *Algorithm
         mémoire(tâche.nombre) += 1
     }
 
-    sur_destruction :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        déloge(tâche)
-    }
-
-    tâche := loge(Tâche)
+    tâche := crée_algorithm(sur_run, Tâche)
     tâche.nombre = nombre
-    tâche.sur_run = sur_run
-    tâche.sur_destruction = sur_destruction
     retourne tâche
 }
 

@@ -76,6 +76,20 @@ Algorithm :: struct {
     sur_destruction: fonc(*Algorithm)(rien)
 }
 
+crée_algorithm :: fonc (sur_run: fonc(*Algorithm)(rien), $T: type_de_données) -> *T
+{
+    sur_destruction :: fonc (base: *Algorithm)
+    {
+        algorithm := base comme *T
+        déloge(algorithm)
+    }
+
+    résultat := loge(T)
+    résultat.sur_run = sur_run
+    résultat.sur_destruction = sur_destruction
+    retourne résultat
+}
+
 run :: fonc (algorithm: *Algorithm)
 {
     saufsi algorithm {
@@ -316,18 +330,10 @@ crée_tâche_pour_enfiler_tâche :: fonc (user_agent: *UserAgent, tâche_à_enfi
         user_agent.enfile_une_tâche(source, tâche_à_enfiler)
     }
 
-    sur_destruction :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        déloge(tâche)
-    }
-
-    tâche := loge(Tâche)
+    tâche := crée_algorithm(sur_run, Tâche)
     tâche.user_agent = user_agent
     tâche.tâche_à_enfiler = tâche_à_enfiler
     tâche.source = source
-    tâche.sur_run = sur_run
-    tâche.sur_destruction = sur_destruction
     retourne tâche
 }
 
@@ -352,18 +358,10 @@ crée_tâche_pour_traversable :: fonc (user_agent: *UserAgent, tâche_à_enfiler
         user_agent.lance_sur_file_parallèle(traversable, tâche_à_enfiler)
     }
 
-    sur_destruction :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        déloge(tâche)
-    }
-
-    tâche := loge(Tâche)
+    tâche := crée_algorithm(sur_run, Tâche)
     tâche.user_agent = user_agent
     tâche.tâche_à_enfiler = tâche_à_enfiler
     tâche.traversable = traversable
-    tâche.sur_run = sur_run
-    tâche.sur_destruction = sur_destruction
     retourne tâche
 }
 
@@ -383,18 +381,10 @@ enfile_une_tâche_pour_lancer_évènement_à_élément :: fonc (user_agent: *Use
         _ := fire_an_event(tâche.élément, tâche.nom)
     }
 
-    sur_destruction :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        déloge(tâche)
-    }
-
-    tâche := loge(Tâche)
+    tâche := crée_algorithm(sur_run, Tâche)
     tâche.user_agent = user_agent
     tâche.élément = élément
     tâche.nom = nom
-    tâche.sur_destruction = sur_destruction
-    tâche.sur_run = sur_run
 
     user_agent.enfile_une_tâche(SourceDeTâche.ManipulationDOM, tâche)
 }
@@ -422,18 +412,10 @@ crée_tâche_pour_fetch_parallèle :: fonc (user_agent: *UserAgent, request: *Re
         diffère détruit_fetch_controller(fetch_controller)
     }
 
-    sur_destruction :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        déloge(tâche)
-    }
-
-    tâche := loge(Tâche)
+    tâche := crée_algorithm(sur_run, Tâche)
     tâche.user_agent = user_agent
     tâche.request = request
     tâche.process_response = process_response
-    tâche.sur_destruction = sur_destruction
-    tâche.sur_run = sur_run
 
     user_agent.lance_en_parallèle(tâche)
 }

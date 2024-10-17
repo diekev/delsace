@@ -2816,15 +2816,7 @@ crée_tâche_stop_parsing_étape_6 :: fonc (document: *Document) -> *Algorithm
         //    is "pending", and url is the Document object's URL.
     }
 
-    sur_destruction :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        déloge(tâche)
-    }
-
-    tâche := loge(Tâche)
-    tâche.sur_run = sur_run
-    tâche.sur_destruction = sur_destruction
+    tâche := crée_algorithm(sur_run, Tâche)
     tâche.document = document
     retourne tâche
 }
@@ -2881,16 +2873,8 @@ crée_tâche_stop_parsing_étape_9 :: fonc (document: *Document) -> *Algorithm
         // 13. Queue the navigation timing entry for the Document.
     }
 
-    sur_destruction :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-        déloge(tâche)
-    }
-
-    tâche := loge(Tâche)
+    tâche := crée_algorithm(sur_run, Tâche)
     tâche.document = document
-    tâche.sur_run = sur_run
-    tâche.sur_destruction = sur_destruction
     retourne tâche
 }
 
