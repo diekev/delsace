@@ -1670,7 +1670,6 @@ RappelsInterfaceQt :: struct {
     empl base: RappelsInterface
     fenêtre: *QT_Fenetre_Principale
 
-    thread_fut_commencé: bool
     thread: *QT_Thread
     filtre_évènement_thread: *QT_Object
 
