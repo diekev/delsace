@@ -702,6 +702,32 @@ bigint_unary_minus :: fonc (x: Valeur @inutilisée) -> Valeur
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom BinaryNot
+ * \{ */
+
+BinaryNot :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_binary_not
+
+    argument: *Expression
+}
+
+crée_binary_not :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression) -> *BinaryNot
+{
+    résultat := parseuse.crée_noeud(lexème, BinaryNot)
+    résultat.argument = argument
+    retourne résultat
+}
+
+sur_exécution_binary_not :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *Interpréteuse @inutilisée) -> CompletionRecord
+{
+    panique("non-implémenté")
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom LogicalNot
  * \{ */
 

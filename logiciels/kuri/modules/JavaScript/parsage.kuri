@@ -1112,7 +1112,10 @@ parse_expression_unaire :: fonc (parseuse: *Parseuse) -> *Expression
             retourne crée_unary_minus_operator(parseuse, lexème, argument)
         }
         NonBinaire {
-            parseuse.rapporte_erreur("opérateur unaire non-géré")
+            parseuse.consomme()
+            params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre)
+            argument := parseuse.parse_expression(params)
+            retourne crée_binary_not(parseuse, lexème, argument)
         }
         NonLogique {
             parseuse.consomme()
