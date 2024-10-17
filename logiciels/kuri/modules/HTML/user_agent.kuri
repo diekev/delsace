@@ -9,6 +9,8 @@ importe #inemployé JavaScript
  * \{ */
 
 UserAgent :: struct {
+    empl hôte: JavaScript.Hôte
+
     /* https://html.spec.whatwg.org/multipage/document-sequences.html#top-level-traversable-set */
     top_level_traversables: [..]*TraversableNavigable
     /* https://html.spec.whatwg.org/multipage/document-sequences.html#browsing-context-group-set */
@@ -29,8 +31,8 @@ UserAgent :: struct {
 
 initialise_user_agent :: fonc (user_agent: *UserAgent)
 {
-    user_agent.mv.user_agent = user_agent
-    JavaScript.initialise_mv(*user_agent.mv)
+    user_agent.sur_visite_cellules = sur_visite_cellules_hôte
+    JavaScript.initialise_mv(user_agent, *user_agent.mv)
 }
 
 donne_tas_de_mémoire :: fonc (user_agent: *UserAgent) -> *JavaScript.TasDeMémoire
@@ -63,6 +65,22 @@ définis_rappels_interface :: fonc (user_agent: *UserAgent, rappels: *RappelsInt
     }
     user_agent.rappels_interface = rappels
 }
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom JavaScript
+ * \{ */
+
+#portée_fichier
+
+sur_visite_cellules_hôte :: fonc (base: *JavaScript.Hôte, visiteuse: *JavaScript.VisiteuseCellule)
+{
+    user_agent := base comme *UserAgent
+    JavaScript.visite_objet(visiteuse, user_agent)
+}
+
+#portée_export
 
 /** \} */
 

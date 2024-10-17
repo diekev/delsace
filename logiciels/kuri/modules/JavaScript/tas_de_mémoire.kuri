@@ -2,7 +2,6 @@ importe Ensemble
 importe Fondation
 importe GlibC
 importe Introspection
-importe #inemployé HTML
 importe Temps
 
 DÉBOGUGE_MÉMOIRE :: faux
@@ -236,15 +235,8 @@ visite_cellules_vivantes :: fonc (tas_de_mémoire: *TasDeMémoire, racines: []*C
     visiteuse.sur_a_déjà_visité = sur_a_déjà_visité
 
     mv := tas_de_mémoire.donne_mv()
-    si mv.user_agent {
-        valeur : eini = ---
-        valeur.pointeur = mv.user_agent
-        valeur.info = info_de(HTML.UserAgent)
-        valeur_à_visiter: InfoValeurÀVisiter
-        valeur_à_visiter.valeur = valeur
-        valeur_à_visiter.structure = info_de(HTML.UserAgent)
-        ensemble_ajoute(*visiteuse.objets_visités, mv.user_agent)
-        tableau_ajoute(*visiteuse.valeurs_à_visiter, valeur_à_visiter)
+    si mv.hôte {
+        visite_cellules_hôte(mv.hôte, *visiteuse)
     }
 
     pour racines {
@@ -531,6 +523,20 @@ VisiteuseCellule :: struct {
 
     objets_visités: [..]*rien
     valeurs_à_visiter: [..]InfoValeurÀVisiter
+}
+
+visite_objet :: fonc (visiteuse: *VisiteuseCellule, objet: *$T)
+{
+    valeur : eini = ---
+    valeur.pointeur = objet
+    valeur.info = info_de(T)
+
+    valeur_à_visiter: InfoValeurÀVisiter
+    valeur_à_visiter.valeur = valeur
+    valeur_à_visiter.structure = valeur.info comme *InfoTypeStructure
+
+    ensemble_ajoute(*visiteuse.objets_visités, objet)
+    tableau_ajoute(*visiteuse.valeurs_à_visiter, valeur_à_visiter)
 }
 
 a_visité :: fonc (visiteuse: *VisiteuseCellule, cellule: *Cellule)

@@ -52,7 +52,7 @@ StatistiquesTests :: struct {
 
     mv: MachineVirtuelle
     diffère détruit_données_mv(*mv)
-    initialise_mv(*mv)
+    initialise_mv(nul, *mv)
 
     diffère éboue(donne_tas_de_mémoire(*mv))
 

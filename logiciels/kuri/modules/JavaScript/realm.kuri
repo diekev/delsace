@@ -1,6 +1,24 @@
 importe Ensemble
 importe Fondation
-importe #inemployé HTML
+
+/* ------------------------------------------------------------------------- */
+/** \nom Hôte
+ * Structure de base pour les applications clientes.
+ * \{ */
+
+Hôte :: struct {
+    sur_visite_cellules: fonc(*Hôte, *VisiteuseCellule)(rien)
+}
+
+visite_cellules_hôte :: fonc (hôte: *Hôte, visiteuse: *VisiteuseCellule)
+{
+    saufsi hôte.sur_visite_cellules {
+        retourne
+    }
+    hôte.sur_visite_cellules(hôte, visiteuse)
+}
+
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom HostDefined
@@ -39,12 +57,13 @@ donne_données :: fonc (host_defined: &HostDefined, $T: type_de_données) -> *T
 
 MachineVirtuelle :: struct {
     tas_de_mémoire: TasDeMémoire
-    user_agent: *HTML.UserAgent
+    hôte: *Hôte
     execution_contexts: [..]*ExecutionContext
 }
 
-initialise_mv :: fonc (mv: *MachineVirtuelle)
+initialise_mv :: fonc (hôte: *Hôte, mv: *MachineVirtuelle)
 {
+    mv.hôte = hôte
     mv.tas_de_mémoire.mv = mv
 }
 
