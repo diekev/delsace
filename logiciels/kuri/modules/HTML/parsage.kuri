@@ -26,6 +26,7 @@ Parseuse :: struct {
     scripting_flag := faux
     frameset_ok := vrai
     pause := faux
+    aborted := faux
     crée_par_html_fragment_parsing := faux
     fragment_context: *Élément
 
@@ -1564,11 +1565,66 @@ finalise_insertion_script_mode_texte :: fonc (parseuse: *Parseuse)
 
     // À FAIRE : restore point d'insertion
 
-    si parseuse.document.pending_parsing_blocking_script == nul {
+    document := parseuse.document
+    si document.pending_parsing_blocking_script == nul {
         retourne
     }
 
-    panique("pending_parsing_blocking_script non-implémente")
+    // If the script nesting level is not zero:
+    si parseuse.niveau_imbrication_script != 0 {
+        // Set the parser pause flag to true, and abort the processing of any nested invocations of the tokenizer,
+        // yielding control back to the caller. (Tokenization will resume when the caller returns to the "outer"
+        // tree construction stage.)
+        parseuse.pause = vrai
+        // À FAIRE : and abort the processing of any nested invocations of the tokenizer...
+    }
+    sinon tantque document.pending_parsing_blocking_script != nul {
+        // 1. Let the script be the pending parsing-blocking script.
+        the_script := document.pending_parsing_blocking_script
+
+        // 2. Set the pending parsing-blocking script to null.
+        document.pending_parsing_blocking_script = nul
+
+        // À FAIRE : 3. Start the speculative HTML parser for this instance of the HTML parser.
+
+        // 4. Block the tokenizer for this instance of the HTML parser, such that the event loop will not run tasks that invoke the tokenizer.
+
+        // 5. If the parser's Document has a style sheet that is blocking scripts or the script's ready to be parser-executed
+        //    is false: spin the event loop until the parser's Document has no style sheet that is blocking scripts and
+        //    the script's ready to be parser-executed becomes true.
+        user_agent := document.donne_user_agent()
+        si user_agent {
+            tantque (has_a_style_sheet_that_is_blocking_scripts(document) || script.prêt_à_être_exécuté_par_parseuse == faux) {
+                user_agent.spin_event_loop()
+            }
+        }
+
+        // 6. If this parser has been aborted in the meantime, return.
+        si parseuse.aborted {
+            retourne
+        }
+
+        // 7. Stop the speculative HTML parser for this instance of the HTML parser.
+
+        // 8. Unblock the tokenizer for this instance of the HTML parser, such that tasks that invoke the tokenizer can again be run.
+
+        // 9. Let the insertion point be just before the next input character.
+
+        // 10. Increment the parser's script nesting level by one (it should be zero before this step, so this sets it to one).
+        assert(parseuse.niveau_imbrication_script == 0)
+        parseuse.niveau_imbrication_script = 1
+
+        // 11. Execute the script element the script.
+        execute_the_script_element(the_script)
+
+        // 12. Decrement the parser's script nesting level by one. If the parser's script nesting level is zero (which it always should be at this point), then set the parser pause flag to false.
+        parseuse.niveau_imbrication_script -= 1
+        si parseuse.niveau_imbrication_script == 0 {
+            parseuse.pause = faux
+        }
+
+        // 13. Let the insertion point be undefined again.
+    }
 }
 
 insère_mode_DansTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
