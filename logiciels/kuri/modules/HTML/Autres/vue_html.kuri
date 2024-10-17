@@ -1626,13 +1626,15 @@ rappels_thread_sur_lancement_thread :: fonc (base: *QT_Rappels_Thread @inutilis�
 FiltreÉvènementThread :: struct {
     empl base: QT_Rappels_Object
     sur_evenement = filtre_thread_sur_évènement
+    type_évènement: z32
 }
 
-filtre_thread_sur_évènement :: fonc (base: *QT_Rappels_Object @inutilisée, évènement: *QT_Evenement) -> z32
+filtre_thread_sur_évènement :: fonc (base: *QT_Rappels_Object, évènement: *QT_Evenement) -> z32
 {
+    rappels := base comme *FiltreÉvènementThread
     type := QT_evenement_donne_type(évènement) comme n32 comme z32
 
-    si type == évènement_sur_tâche_parallèle {
+    si type == rappels.type_évènement {
         algorithm := QT_event_perso_donne_donnees(évènement) comme *Algorithm
         run(algorithm)
         QT_evenement_accepte(évènement)
@@ -1642,26 +1644,7 @@ filtre_thread_sur_évènement :: fonc (base: *QT_Rappels_Object @inutilisée, é
     retourne 0
 }
 
-FiltreÉvènementTraversable :: struct {
-    empl base: QT_Rappels_Object
-    sur_evenement = filtre_traversable_sur_évènement
-}
-
-filtre_traversable_sur_évènement :: fonc (base: *QT_Rappels_Object @inutilisée, évènement: *QT_Evenement) -> z32
-{
-    type := QT_evenement_donne_type(évènement) comme n32 comme z32
-
-    si type == évènement_sur_tâche_traversable {
-        algorithm := QT_event_perso_donne_donnees(évènement) comme *Algorithm
-        run(algorithm)
-        QT_evenement_accepte(évènement)
-        retourne 1
-    }
-
-    retourne 0
-}
-
-FileParallèlePourTraversable :: struct {
+FileParallèle :: struct {
     thread: *QT_Thread
     filtre_évènement: *QT_Object
 }
@@ -1670,11 +1653,8 @@ RappelsInterfaceQt :: struct {
     empl base: RappelsInterface
     fenêtre: *QT_Fenetre_Principale
 
-    thread_fut_commencé: bool
-    thread: *QT_Thread
-    filtre_évènement_thread: *QT_Object
-
-    files_parallèle_pour_traversable: [..]FileParallèlePourTraversable
+    files_parallèles: [..]FileParallèle
+    files_parallèle_pour_traversable: [..]FileParallèle
 
     DonnéesTimer :: struct {
         timer: *QT_Timer
@@ -1707,29 +1687,46 @@ crée_rappels_interface_qt :: fonc (fenêtre: *QT_Fenetre_Principale) -> *Rappel
     résultat.sur_destruction_timeout = rappels_interface_sur_destruction_timeout
     résultat.sur_request_animation_frame = rappels_interface_sur_request_animation_frame
 
+    // À FAIRE : paramétrise le nombre de threads
+    nombres_de_threads := 2
+
+    pour nombres_de_threads {
+        file := crée_file_parallèle(résultat, évènement_sur_tâche_parallèle)
+        tableau_ajoute(*résultat.files_parallèles, file)
+    }
+
+    retourne résultat
+}
+
+crée_file_parallèle :: fonc (rappels_interface: *RappelsInterfaceQt, type_évènement: z32) -> FileParallèle
+{
     rappels_thread := QT_loge_rappel(RappelsThread)
-    rappels_thread.rappels_interface = résultat
+    rappels_thread.rappels_interface = rappels_interface
 
     thread := QT_thread_cree(rappels_thread)
-    résultat.thread = thread
 
     rappels_filtre_évènement := QT_loge_rappel(FiltreÉvènementThread)
+    rappels_filtre_évènement.type_évènement = type_évènement
     parent: *QT_Object
     filtre_évènement := QT_object_cree(rappels_filtre_évènement, parent)
     QT_object_move_to_thread(filtre_évènement, thread)
 
-    résultat.filtre_évènement_thread = filtre_évènement
-
     QT_thread_start(thread)
 
+    résultat: FileParallèle
+    résultat.thread = thread
+    résultat.filtre_évènement = filtre_évènement
     retourne résultat
 }
 
 rappels_interface_sur_destruction :: fonc (base: *RappelsInterface)
 {
     rappels := base comme *RappelsInterfaceQt
-    QT_thread_quit(rappels.thread)
-    QT_thread_wait(rappels.thread)
+
+    pour rappels.files_parallèles {
+        QT_thread_quit(it.thread)
+        QT_thread_wait(it.thread)
+    }
 
     pour rappels.files_parallèle_pour_traversable {
         QT_thread_quit(it.thread)
@@ -1945,7 +1942,16 @@ rappels_interface_sur_enfile_une_tâche :: fonc (base: *RappelsInterface, source
 rappels_interface_sur_tâche_parallèle :: fonc (base: *RappelsInterface, algorithm: *Algorithm)
 {
     rappels := base comme *RappelsInterfaceQt
-    QT_application_poste_evenement_et_donnees(rappels.filtre_évènement_thread, évènement_sur_tâche_parallèle, algorithm)
+
+    /* Donne la tâche au premier thread qui n'est pas le nôtre. */
+    pour rappels.files_parallèles {
+        si it.thread != QT_thread_courant() {
+            QT_application_poste_evenement_et_donnees(it.filtre_évènement, évènement_sur_tâche_parallèle, algorithm)
+            retourne
+        }
+    }
+
+    panique("pas assez de threads")
 }
 
 rappels_interface_sur_tâche_traversable :: fonc (base: *RappelsInterface, traversable: *TraversableNavigable, algorithm: *Algorithm)
@@ -1988,10 +1994,9 @@ rappels_interface_sur_est_exécuté_sur_fil_principal :: fonc (base: *RappelsInt
     retourne QT_thread_courant() == QT_application_thread()
 }
 
-rappels_interface_sur_est_exécuté_en_parallèle :: fonc (base: *RappelsInterface) -> bool
+rappels_interface_sur_est_exécuté_en_parallèle :: fonc (base: *RappelsInterface @inutilisée) -> bool
 {
-    rappels := base comme *RappelsInterfaceQt
-    retourne QT_thread_courant() == rappels.thread
+    retourne QT_thread_courant() != QT_application_thread()
 }
 
 rappels_interface_sur_est_exécuté_sur_file_parallèle :: fonc (base: *RappelsInterface, traversable: *TraversableNavigable) -> bool
@@ -2007,21 +2012,8 @@ rappels_interface_crée_file_parallèle_pour_traversable :: fonc (base: *Rappels
 
     résultat := rappels.files_parallèle_pour_traversable.taille
 
-    rappels_thread := QT_loge_rappel(RappelsThread)
-    thread := QT_thread_cree(rappels_thread)
-
-    rappels_filtre_évènement := QT_loge_rappel(FiltreÉvènementTraversable)
-    parent: *QT_Object
-    filtre_évènement := QT_object_cree(rappels_filtre_évènement, parent)
-    QT_object_move_to_thread(filtre_évènement, thread)
-
-    file: FileParallèlePourTraversable
-    file.thread = thread
-    file.filtre_évènement = filtre_évènement
-
+    file := crée_file_parallèle(rappels, évènement_sur_tâche_traversable)
     tableau_ajoute(*rappels.files_parallèle_pour_traversable, file)
-
-    QT_thread_start(thread)
 
     retourne résultat
 }
