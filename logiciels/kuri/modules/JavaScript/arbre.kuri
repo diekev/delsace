@@ -3024,6 +3024,31 @@ sur_exécution_void_operator :: fonc (base: *NoeudSyntaxique, interpréteuse: *I
 }
 
 /** \} */
+/* ------------------------------------------------------------------------- */
+/** \nom DeleteOperator
+ * \{ */
+
+DeleteOperator :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_delete_operator
+
+    argument: *Expression
+}
+
+crée_delete_operator :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression) -> *DeleteOperator
+{
+    résultat := parseuse.crée_noeud(lexème, DeleteOperator)
+    résultat.argument = argument
+    retourne résultat
+}
+
+sur_exécution_delete_operator :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *Interpréteuse @inutilisée) -> CompletionRecord
+{
+    panique("non-implémenté")
+}
+
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom ThrowStatement

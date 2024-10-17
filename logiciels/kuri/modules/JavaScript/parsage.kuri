@@ -1147,6 +1147,12 @@ parse_expression_unaire :: fonc (parseuse: *Parseuse) -> *Expression
             argument := parseuse.parse_expression(params)
             retourne crée_void_operator(parseuse, lexème, argument)
         }
+        Delete {
+            parseuse.consomme()
+            params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre)
+            argument := parseuse.parse_expression(params)
+            retourne crée_delete_operator(parseuse, lexème, argument)
+        }
         New {
             parseuse.consomme()
             params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre)

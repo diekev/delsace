@@ -290,7 +290,8 @@ est_lexème_expression_unaire :: fonc (genre: GenreLexème) -> bool
         NonLogique,
         New,
         Typeof,
-        Void  {
+        Void,
+        Delete  {
             retourne vrai
         }
         sinon {
@@ -472,7 +473,7 @@ initialise_données_lexèmes_pour_parsage :: fonc ()
     définis_données_précédence(GenreLexème.NonLogique, 14, Associativité.Aucune)
     définis_données_précédence(GenreLexème.Typeof, 14, Associativité.Aucune)
     définis_données_précédence(GenreLexème.Void, 14, Associativité.Aucune)
-    // définis_données_précédence(GenreLexème.Delete, 14, Associativité.Aucune)
+    définis_données_précédence(GenreLexème.Delete, 14, Associativité.Aucune)
     // définis_données_précédence(GenreLexème.Await, 14, Associativité.Aucune)
     définis_données_précédence(GenreLexème.PreIncrement, 14, Associativité.Aucune)
     définis_données_précédence(GenreLexème.PreDecrement, 14, Associativité.Aucune)
