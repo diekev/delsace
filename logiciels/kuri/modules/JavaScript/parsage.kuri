@@ -692,7 +692,7 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
                     arrête
                 }
 
-                nom_membre := parse_identifier_reference(parseuse)
+                nom_membre := parse_property_name(parseuse)
 
                 lexème_déf := parseuse.lexème_courant()
                 parseuse.consomme(GenreLexème.DoublePoint)
@@ -740,6 +740,24 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
     }
 
     retourne nul
+}
+
+parse_property_name :: fonc (parseuse: *Parseuse) -> *Expression
+{
+    lexème := parseuse.lexème_courant()
+
+    si parseuse.apparie(GenreLexème.ChaineLittérale) {
+        parseuse.consomme()
+        retourne crée_literal(parseuse, lexème, lexème.texte)
+    }
+
+    si parseuse.apparie(GenreLexème.NombreLittéral) {
+        parseuse.consomme()
+        valeur := parse_nombre_depuis_lexème(lexème)
+        retourne crée_literal(parseuse, lexème, valeur)
+    }
+
+    retourne parse_identifier_reference(parseuse)
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#prod-IdentifierReference */

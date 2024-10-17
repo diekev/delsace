@@ -10,3 +10,17 @@ test("littérale objet avec paramètres", function () {
     vérifie_égalité(o.y, "chaine")
     vérifie_égalité(o.z, false)
 });
+
+test("littérale avec des chaines comme noms de propriétés", function () {
+    var o = { "x": 5, "y": "chaine", "z": false };
+    vérifie_égalité(o.x, 5)
+    vérifie_égalité(o.y, "chaine")
+    vérifie_égalité(o.z, false)
+});
+
+test("littérale avec des index comme noms de propriétés", function () {
+    var o = { 1: 5, 2: "chaine", 3: false };
+    vérifie_égalité(o[1], 5)
+    vérifie_égalité(o[2], "chaine")
+    vérifie_égalité(o[3], false)
+});

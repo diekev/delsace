@@ -2057,8 +2057,7 @@ property_definition_evaluation :: fonc (interpréteuse: *Interpréteuse, propert
 {
     pour properties {
         // 1. Let propKey be ? Evaluation of PropertyName.
-        assert(it.property_name.type == Identifier)
-        prop_key := (it.property_name comme *Identifier).nom
+        prop_key := évalue_property_name(interpréteuse.donne_realm(), it.property_name)
 
         // À FAIRE : complète
         is_proto_setter := faux
@@ -2105,6 +2104,24 @@ property_definition_evaluation :: fonc (interpréteuse: *Interpréteuse, propert
     }
 
     retourne normal_completion(js_undefined)
+}
+
+évalue_property_name :: fonc (realm: *Realm, prop_name: *Expression) -> PropertyKey
+{
+    si prop_name.type == StringLiteral {
+        string := prop_name comme *StringLiteral
+        retourne string.valeur
+    }
+
+    si prop_name.type == NumericLiteral {
+        number := prop_name comme *NumericLiteral
+        valeur := Valeur(Number = number.valeur)
+        retourne to_string(realm, valeur).valeur.V.String.texte
+    }
+
+    assert(prop_name.type == Identifier)
+    ident := prop_name comme *Identifier
+    retourne ident.nom
 }
 
 /** \} */
