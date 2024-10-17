@@ -1,5 +1,41 @@
+importe Fondation
+importe GlibC
+
 charge "interface_ftgl"
 
 libfreetype :: #bibliothèque "freetype"
 
 #dépendance_bibliothèque libmodule_c_ftgl libfreetype
+
+#portée_fichier
+
+#ajoute_init définis_allocatrices_ftgl()
+
+définis_allocatrices_ftgl :: fonc ()
+{
+    ftgl_malloc_func :: fonc (size: n64) -> *rien
+    {
+        retourne loge_mémoire(size comme z64, nul, PositionCodeSource())
+    }
+
+    ftgl_calloc_func :: fonc (nmemb: n64, size: n64) -> *rien
+    {
+        résultat := ftgl_malloc_func(nmemb * size)
+        si résultat {
+            _ := memset(résultat, 0, nmemb * size)
+        }
+        retourne résultat
+    }
+
+    ftgl_realloc_func :: fonc (old: *rien, old_size: n64, new_size: n64) -> *rien
+    {
+        retourne reloge_mémoire(old_size comme z64, new_size comme z64, old, nul, PositionCodeSource())
+    }
+
+    ftgl_free_func :: fonc (old: *rien, size: n64)
+    {
+        déloge_mémoire(size comme z64, old, nul, PositionCodeSource())
+    }
+
+    _ := FTGL_set_allocators(ftgl_malloc_func, ftgl_calloc_func, ftgl_realloc_func, ftgl_free_func)
+}

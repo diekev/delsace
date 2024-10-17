@@ -42,7 +42,7 @@ array_set_length :: fonc (array: *ObjetArray, len: n32)
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-array-exotic-objects-defineownproperty-p-desc */
 array_instance_define_own_property :: fonc (object: *Object, property_key: PropertyKey, desc: &PropertyDescriptor) -> CompletionRecord
 {
-    A := object comme *ObjetArray
+    A := object.vérifie_comme(ObjetArray)
 
     // 1. If P is "length", then
     si property_key == STR_length {

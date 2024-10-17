@@ -141,7 +141,7 @@ object_instance_crée :: fonc (realm: *Realm) -> *Object
 
 sur_destruction_objet :: fonc (base: *Cellule)
 {
-    objet := base comme *Object
+    objet := base.vérifie_comme(Object)
     déloge(objet.propriétés)
     déloge(objet.éléments_indexés)
 }
@@ -185,6 +185,11 @@ internal_get_own_property :: fonc (object: *Object, property_key: PropertyKey) -
 /* [[DefineOwnProperty]] */
 internal_define_own_property :: fonc (object: *Object, property_key: PropertyKey, desc: &PropertyDescriptor) -> CompletionRecord
 {
+    si is_array_index(property_key) {
+        index := to_uint32(property_key)
+        retourne internal_define_own_property_by_index(object, index, desc)
+    }
+
     retourne object.donne_table().sur_define_own_property(object, property_key, desc)
 }
 
@@ -469,7 +474,7 @@ object_constructor_call_or_construct :: fonc (empl params: *ParamètresCallOrCon
     // 1. If NewTarget is neither undefined nor the active function object, then
     si !new_target.est_undefined() && !(new_target.est_object() && new_target.donne_objet() == interpréteuse.donne_active_function_object()) {
         // a. Return ? OrdinaryCreateFromConstructor(NewTarget, "%Object.prototype%").
-        func_new_target := new_target.donne_objet() comme *Function
+        func_new_target := new_target.donne_objet().vérifie_comme(Function)
         retourne ordinary_create_from_constructor(realm, func_new_target, realm.intrinsics.object_prototype, object_instance_crée)
     }
 

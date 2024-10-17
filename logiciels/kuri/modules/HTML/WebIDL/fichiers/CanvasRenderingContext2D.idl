@@ -2,6 +2,8 @@ interface CanvasRenderingContext2D {
     readonly attribute HTMLCanvasElement canvas;
 
     attribute DOMString fillStyle;
+
+    undefined setFillColor(unrestricted double r, unrestricted double g, unrestricted double b);
     undefined fillRect(unrestricted double x, unrestricted double y, unrestricted double w, unrestricted double h);
 
     undefined scale(double sx, double sy);

@@ -233,17 +233,9 @@ crée_algorithm_pour_timeout :: fonc (window: *Window, handler: *JavaScript.Obje
         cleanup_after_running_script(settings)
     }
 
-    sur_destruction :: fonc (base: *Algorithm)
-    {
-        sur_timeout := base comme *SurTimeout
-        déloge(sur_timeout)
-    }
-
-    résultat := loge(SurTimeout)
+    résultat := crée_algorithm(sur_run, SurTimeout)
     résultat.window = window
     résultat.handler = handler
-    résultat.sur_run = sur_run
-    résultat.sur_destruction = sur_destruction
     retourne résultat
 }
 

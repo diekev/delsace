@@ -149,6 +149,8 @@ struct DonnéesDépendance {
         résultat += fonctions_utilisées.mémoire_utilisée();
         résultat += types_utilisés.mémoire_utilisée();
         résultat += globales_utilisées.mémoire_utilisée();
+        résultat += init_de_utilisés.mémoire_utilisée();
+        résultat += info_de_utilisés.mémoire_utilisée();
         return résultat;
     }
 

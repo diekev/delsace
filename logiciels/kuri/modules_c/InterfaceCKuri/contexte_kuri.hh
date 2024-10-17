@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "stdint.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -63,5 +65,62 @@ void kuri_déloge_tableau(ContexteKuri *ctx_kuri, T *tableau, uint64_t taille)
         return;
     }
     ctx_kuri->deloge_memoire(ctx_kuri, tableau, sizeof(T) * taille);
+}
+#else
+inline void *kuri_loge(struct ContexteKuri *ctx_kuri, uint64_t taille)
+{
+    return ctx_kuri->loge_memoire(ctx_kuri, taille);
+}
+
+inline void *kuri_loge_zero(struct ContexteKuri *ctx_kuri, uint64_t taille)
+{
+    void *result = ctx_kuri->loge_memoire(ctx_kuri, taille);
+    if (result == NULL) {
+        return NULL;
+    }
+    memset(result, 0, taille);
+    return result;
+}
+
+inline void *kuri_loge_tableau(struct ContexteKuri *ctx_kuri,
+                               uint64_t taille,
+                               uint64_t taille_élément)
+{
+    return ctx_kuri->loge_memoire(ctx_kuri, taille_élément * taille);
+}
+
+inline void *kuri_loge_tableau_zero(struct ContexteKuri *ctx_kuri,
+                                    uint64_t taille,
+                                    uint64_t taille_élément)
+{
+    void *result = ctx_kuri->loge_memoire(ctx_kuri, taille_élément * taille);
+    if (result == NULL) {
+        return NULL;
+    }
+    memset(result, 0, taille_élément * taille);
+    return result;
+}
+
+inline void *kuri_reloge_tableau(struct ContexteKuri *ctx_kuri,
+                                 void *pointer,
+                                 uint64_t ancienne_taille,
+                                 uint64_t nouvelle_taille,
+                                 uint64_t taille_élément)
+{
+    return ctx_kuri->reloge_memoire(
+        ctx_kuri, poniter, taille_élément * ancienne_taille, taille_élément * nouvelle_taille);
+}
+
+inline void kuri_deloge(struct ContexteKuri *ctx_kuri, void *pointer, uint64_t taille)
+{
+    ctx_kuri->deloge_memoire(ctx_kuri, pointer, taille)
+}
+
+inline void kuri_deloge_tableau(struct ContexteKuri *ctx_kuri,
+                                void *pointer,
+                                uint64_t taille,
+                                uint64_t taille_élément)
+{
+    ctx_kuri->deloge_memoire(ctx_kuri, pointer, taille_élément * taille)
 }
 #endif

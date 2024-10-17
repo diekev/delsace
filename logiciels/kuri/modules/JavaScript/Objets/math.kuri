@@ -39,11 +39,8 @@ crée_math_object :: fonc (object_prototype: *ObjectPrototype) -> *MathObject
     retourne résultat
 }
 
-/* À FAIRE(langage) : erreur de compilation */
-// R64_INFINITÉ : r64 : 0r7ff0000000000000
-// R64_INFINITÉ_NÉGATIVE : r64 : 0rfff0000000000000
-R64_INFINITÉ : r64 : 1000000000.0
-R64_INFINITÉ_NÉGATIVE : r64 : -1000000000.0
+R64_INFINITÉ : r64 : 0r7ff0000000000000
+R64_INFINITÉ_NÉGATIVE : r64 : 0rfff0000000000000
 
 #portée_fichier
 /* 21.3.2.1 Math.abs ( x )
@@ -231,7 +228,7 @@ math_min :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 /* https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.random */
 math_random :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
-    math := this_value.donne_objet() comme *MathObject
+    math := this_value.donne_objet().vérifie_comme(MathObject)
     résultat := aléatoire_unilatérale(math.entropie)
     retourne normal_completion(Valeur(Number = résultat))
 }

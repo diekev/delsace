@@ -9,10 +9,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "ftgl.h"
+
 // ------------------------------------------------------------- vector_new ---
 vector_t *vector_new(size_t item_size)
 {
-    vector_t *self = (vector_t *)malloc(sizeof(vector_t));
+    vector_t *self = (vector_t *)FTGL_malloc(sizeof(vector_t));
     assert(item_size);
 
     if (!self) {
@@ -22,7 +24,7 @@ vector_t *vector_new(size_t item_size)
     self->item_size = item_size;
     self->size = 0;
     self->capacity = 1;
-    self->items = malloc(self->item_size * self->capacity);
+    self->items = FTGL_malloc(self->item_size);
     return self;
 }
 
@@ -31,8 +33,8 @@ void vector_delete(vector_t *self)
 {
     assert(self);
 
-    free(self->items);
-    free(self);
+    FTGL_free(self->items, self->capacity * self->item_size);
+    FTGL_free(self, sizeof(vector_t));
 }
 
 // ------------------------------------------------------------- vector_get ---
@@ -99,7 +101,8 @@ void vector_reserve(vector_t *self, const size_t size)
     assert(self);
 
     if (self->capacity < size) {
-        self->items = realloc(self->items, size * self->item_size);
+        self->items = FTGL_realloc(
+            self->items, self->capacity * self->item_size, size * self->item_size);
         self->capacity = size;
     }
 }
@@ -118,7 +121,8 @@ void vector_shrink(vector_t *self)
     assert(self);
 
     if (self->capacity > self->size) {
-        self->items = realloc(self->items, self->size * self->item_size);
+        self->items = FTGL_realloc(
+            self->items, self->capacity * self->item_size, self->size * self->item_size);
     }
     self->capacity = self->size;
 }
