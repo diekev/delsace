@@ -567,7 +567,8 @@ fetch :: fonc (user_agent: *UserAgent,
     //    task destination is taskDestination, and
     //    cross-origin isolated capability is crossOriginIsolatedCapability.
     fetch_params := loge(FetchParams)
-    diffère détruit_fetch_params(fetch_params)
+    // À FAIRE : trouve quand détruire ces fetch_params
+    // diffère détruit_fetch_params(fetch_params)
 
     fetch_params.request = request
     fetch_params.timing_info = timing_info
@@ -670,7 +671,7 @@ fetch :: fonc (user_agent: *UserAgent,
     //}
 
     // 17. Run main fetch given fetchParams.
-    _ := main_fetch(user_agent, fetch_params)
+    main_fetch(user_agent, fetch_params)
 
     // 18. Return fetchParams’s controller.
     retourne fetch_params.controller
@@ -689,7 +690,7 @@ donne_document_accept_header_value :: fonc () -> chaine
  * https://fetch.spec.whatwg.org/#main-fetch
  * \{ */
 
-main_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, recursive := faux) -> *Response
+main_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, recursive := faux)
 {
     // 1. Let request be fetchParams’s request.
     request := fetch_params.request
@@ -724,7 +725,32 @@ main_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, recursiv
     //     Matching request’s current URL’s host per Known HSTS Host Domain Name Matching results in either a superdomain match with an asserted includeSubDomains directive or a congruent match (with or without an asserted includeSubDomains directive) [HSTS]; or DNS resolution for the request finds a matching HTTPS RR per section 9.5 of [SVCB]. [HSTS] [SVCB]
 
     // 11. If recursive is false, then run the remaining steps in parallel.
+    params: ParamètresMainFetch
+    params.user_agent = user_agent
+    params.request = request
+    params.response = response
+    params.fetch_params = fetch_params
+    params.recursive = recursive
 
+    saufsi recursive {
+        tâche := crée_algorithm_pour_fonction(*params, main_fetch_parallel_steps)
+        user_agent.lance_en_parallèle(tâche)
+        retourne
+    }
+
+    main_fetch_parallel_steps(*params)
+}
+
+ParamètresMainFetch :: struct {
+    user_agent: *UserAgent
+    request: *Request
+    response: *Response
+    fetch_params: *FetchParams
+    recursive: bool
+}
+
+main_fetch_parallel_steps :: fonc (empl params: *ParamètresMainFetch)
+{
     // 12. If response is null, then set response to the result of running the steps corresponding to the first matching statement:
     si response == nul {
         // fetchParams’s preloaded response candidate is non-null
@@ -791,7 +817,7 @@ main_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, recursiv
 
     // 13. If recursive is true, then return response.
     si recursive {
-        retourne response
+        retourne
     }
 
     // 14. If response is not a network error and response is not a filtered response, then:
@@ -848,19 +874,48 @@ main_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, recursiv
         // 4. Fully read response’s body given processBody and processBodyError.
 
     // 23. Otherwise, run fetch response handover given fetchParams and response.
-    response_handover(fetch_params, response)
-
-    // Non-spécifié
-    retourne response
+    response_handover(user_agent, fetch_params, response)
 }
 
 /* https://fetch.spec.whatwg.org/#fetch-finale */
-response_handover :: fonc (fetch_params: *FetchParams, response: *Response)
+response_handover :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, response: *Response)
 {
     // À FAIRE : implémente
     si fetch_params.process_response {
+        queue_a_fetch_task_to_run_process_response(user_agent, fetch_params, response)
+    }
+}
+
+queue_a_fetch_task_to_run_process_response :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, response: *Response)
+{
+    Tâche :: struct {
+        empl base: Algorithm
+
+        fetch_params: *FetchParams
+        response: *Response
+    }
+
+    sur_run :: fonc (base: *Algorithm)
+    {
+        empl tâche := base comme *Tâche
         fetch_params.process_response.sur_rappel(fetch_params.process_response, response)
     }
+
+    tâche := crée_algorithm(sur_run, Tâche)
+    tâche.fetch_params = fetch_params
+    tâche.response = response
+    queue_a_fetch_task(user_agent, tâche, fetch_params.task_destination)
+}
+
+/* https://fetch.spec.whatwg.org/#queue-a-fetch-task */
+queue_a_fetch_task :: fonc (user_agent: *UserAgent, algorithm: *Algorithm, task_destination: *rien)
+{
+    // À FAIRE : utilise task_destination
+
+    // 1. If taskDestination is a parallel queue, then enqueue algorithm to taskDestination.
+
+    // 2. Otherwise, queue a global task on the networking task source with taskDestination and algorithm.
+    queue_a_globask_task(user_agent, SourceDeTâche.Réseautage, task_destination comme *JavaScript.Object, algorithm)
 }
 
 /** \} */
