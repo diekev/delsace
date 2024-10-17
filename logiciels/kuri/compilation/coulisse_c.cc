@@ -1196,9 +1196,33 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
             auto type = constante_réelle->type;
 
             if (type->taille_octet == 4) {
+                auto valeur = static_cast<float>(constante_réelle->valeur);
+
+                if (isnanf(valeur)) {
+                    return "__builtin_nanf(\"\")";
+                }
+
+                if (isinff(valeur)) {
+                    if (valeur < 0.0f) {
+                        return "-__builtin_inff()";
+                    }
+
+                    return "__builtin_inff()";
+                }
                 return enchaine(constante_réelle->valeur, "f");
             }
 
+            if (isnanl(constante_réelle->valeur)) {
+                return "__builtin_nanl(\"\")";
+            }
+
+            if (isinfl(constante_réelle->valeur)) {
+                if (constante_réelle->valeur < 0.0) {
+                    return "-__builtin_infl()";
+                }
+
+                return "__builtin_infl()";
+            }
             return enchaine(constante_réelle->valeur);
         }
         case Atome::Genre::CONSTANTE_ENTIÈRE:

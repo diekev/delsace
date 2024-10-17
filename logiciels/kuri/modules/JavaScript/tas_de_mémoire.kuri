@@ -1,7 +1,7 @@
 importe Ensemble
 importe Fondation
+importe GlibC
 importe Introspection
-importe #inemployé HTML
 importe Temps
 
 DÉBOGUGE_MÉMOIRE :: faux
@@ -168,6 +168,15 @@ rassemble_racines_en_mémoire :: fonc (tas_de_mémoire: *TasDeMémoire, racines:
     /* Marqueur pour savoir la fin de la pile de données d'exécution. */
     marqueur_pile: n64
 
+    /* Vérifie la présence de cellules dans les registres. */
+    buf: __jmp_buf_tag
+    _ := setjmp(*buf)
+
+    pour buf.__jmpbuf {
+        cellule_possible := it comme *Cellule
+        ajoute_racine_depuis_cellule_possible(tas_de_mémoire, cellule_possible, racines)
+    }
+
     /* Rassemble les cellules sur la pile d'exécution. */
     début_pile := (*marqueur_pile) - 1
     fin_pile := __début_pile
@@ -226,15 +235,8 @@ visite_cellules_vivantes :: fonc (tas_de_mémoire: *TasDeMémoire, racines: []*C
     visiteuse.sur_a_déjà_visité = sur_a_déjà_visité
 
     mv := tas_de_mémoire.donne_mv()
-    si mv.user_agent {
-        valeur : eini = ---
-        valeur.pointeur = mv.user_agent
-        valeur.info = info_de(HTML.UserAgent)
-        valeur_à_visiter: InfoValeurÀVisiter
-        valeur_à_visiter.valeur = valeur
-        valeur_à_visiter.structure = info_de(HTML.UserAgent)
-        ensemble_ajoute(*visiteuse.objets_visités, mv.user_agent)
-        tableau_ajoute(*visiteuse.valeurs_à_visiter, valeur_à_visiter)
+    si mv.hôte {
+        visite_cellules_hôte(mv.hôte, *visiteuse)
     }
 
     pour racines {
@@ -442,6 +444,17 @@ Cellule :: struct {
     vivante := vrai
 }
 
+vérifie_comme :: fonc (cellule: *Cellule, $T: type_de_données) -> *T
+{
+    assert(cellule.est_classe(info_de(T)))
+    retourne cellule comme *T
+}
+
+est_classe :: fonc (cellule: *Cellule, info: *InfoTypeStructure) -> bool
+{
+    retourne est_struct_ou_employeuse_de(cellule.donne_info_type_cellule(), info)
+}
+
 donne_info_type_cellule :: fonc (racine: *Cellule) -> *InfoTypeStructure
 {
     résultat := __table_des_types[racine.table.classe] comme *InfoTypeStructure
@@ -510,6 +523,20 @@ VisiteuseCellule :: struct {
 
     objets_visités: [..]*rien
     valeurs_à_visiter: [..]InfoValeurÀVisiter
+}
+
+visite_objet :: fonc (visiteuse: *VisiteuseCellule, objet: *$T)
+{
+    valeur : eini = ---
+    valeur.pointeur = objet
+    valeur.info = info_de(T)
+
+    valeur_à_visiter: InfoValeurÀVisiter
+    valeur_à_visiter.valeur = valeur
+    valeur_à_visiter.structure = valeur.info comme *InfoTypeStructure
+
+    ensemble_ajoute(*visiteuse.objets_visités, objet)
+    tableau_ajoute(*visiteuse.valeurs_à_visiter, valeur_à_visiter)
 }
 
 a_visité :: fonc (visiteuse: *VisiteuseCellule, cellule: *Cellule)

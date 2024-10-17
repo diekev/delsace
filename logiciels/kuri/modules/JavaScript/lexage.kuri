@@ -316,6 +316,68 @@ lèxe_chaine_littérale :: fonc (empl lexeuse: &Lexeuse, caractère_final: z8) -
     retourne résultat
 }
 
+droit_traité_slash_comme_début_regex :: fonc (empl lexeuse: &Lexeuse) -> bool
+{
+    si lexèmes.taille == 0 {
+        retourne vrai
+    }
+
+    dernier_lexème := lexèmes[lexèmes.taille - 1]
+
+    discr dernier_lexème.genre {
+        Égal,
+        AccoladeOuvrante,
+        ParenthèseOuvrante,
+        CrochetOuvrant,
+        Virgule,
+        PointVirgule,
+        Interrogation,
+        DoublePoint {
+            retourne vrai
+        }
+        sinon {}
+    }
+
+    retourne faux
+}
+
+/* À FAIRE : https://tc39.es/ecma262/multipage/ecmascript-language-lexical-grammar.html#sec-literals-regular-expression-literals */
+lèxe_regex_littérale :: fonc (empl lexeuse: &Lexeuse) -> Résultat(Lexème, ErreurCompilation)
+{
+    lexeuse.débute_lexème()
+
+    /* BodyText */
+    tantque !fini(lexeuse) {
+        c := lexeuse.caractère_courant()
+
+        si c == '\\' {
+            début_source += 2
+            continue
+        }
+
+        si c == '/' {
+            début_source += 1
+            arrête
+        }
+
+        début_source += 1
+    }
+
+    /* FlagText */
+    tantque !fini(lexeuse) {
+        c := lexeuse.caractère_courant()
+        fanion := fanions_caractères[c comme n8]
+
+        saufsi fanion.ContinueIdentifiant {
+            arrête
+        }
+        début_source += 1
+    }
+
+    résultat := crée_lexème(lexeuse, GenreLexème.ChaineLittérale)
+    retourne résultat
+}
+
 lèxe_identifiant :: fonc (empl lexeuse: &Lexeuse) -> Résultat(Lexème, ErreurCompilation)
 {
     lexeuse.débute_lexème()
@@ -433,6 +495,10 @@ donne_lexème_suivant :: fonc (lexeuse: &Lexeuse) -> Résultat(Lexème, ErreurCo
     }
 
     si fanion.Opérateur {
+        si c == '/' && droit_traité_slash_comme_début_regex(lexeuse) {
+            retourne lèxe_regex_littérale(lexeuse)
+        }
+
         lexeuse.débute_lexème()
 
         /* Pour le lexage des opérateurs, nous considérons l'opérateur le plus long possible valide.

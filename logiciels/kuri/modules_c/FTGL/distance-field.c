@@ -10,14 +10,16 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "ftgl.h"
+
 double *make_distance_mapd(double *data, uint32_t width, uint32_t height)
 {
-    short *xdist = (short *)malloc(width * height * sizeof(short));
-    short *ydist = (short *)malloc(width * height * sizeof(short));
-    double *gx = (double *)calloc(width * height, sizeof(double));
-    double *gy = (double *)calloc(width * height, sizeof(double));
-    double *outside = (double *)calloc(width * height, sizeof(double));
-    double *inside = (double *)calloc(width * height, sizeof(double));
+    short *xdist = (short *)FTGL_malloc(width * height * sizeof(short));
+    short *ydist = (short *)FTGL_malloc(width * height * sizeof(short));
+    double *gx = (double *)FTGL_calloc(width * height, sizeof(double));
+    double *gy = (double *)FTGL_calloc(width * height, sizeof(double));
+    double *outside = (double *)FTGL_calloc(width * height, sizeof(double));
+    double *inside = (double *)FTGL_calloc(width * height, sizeof(double));
     double vmin = DBL_MAX;
     uint32_t i;
 
@@ -57,19 +59,19 @@ double *make_distance_mapd(double *data, uint32_t width, uint32_t height)
         data[i] = (outside[i] + vmin) / (2 * vmin);
     }
 
-    free(xdist);
-    free(ydist);
-    free(gx);
-    free(gy);
-    free(outside);
-    free(inside);
+    FTGL_free(xdist, width * height * sizeof(short));
+    FTGL_free(ydist, width * height * sizeof(short));
+    FTGL_free(gx, width * height * sizeof(double));
+    FTGL_free(gy, width * height * sizeof(double));
+    FTGL_free(outside, width * height * sizeof(double));
+    FTGL_free(inside, width * height * sizeof(double));
     return data;
 }
 
 unsigned char *make_distance_mapb(unsigned char *img, uint32_t width, uint32_t height)
 {
-    double *data = (double *)calloc(width * height, sizeof(double));
-    unsigned char *out = (unsigned char *)malloc(width * height * sizeof(unsigned char));
+    double *data = (double *)FTGL_calloc(width * height, sizeof(double));
+    unsigned char *out = (unsigned char *)FTGL_malloc(width * height * sizeof(unsigned char));
     uint32_t i;
 
     // find minimimum and maximum values
@@ -95,7 +97,7 @@ unsigned char *make_distance_mapb(unsigned char *img, uint32_t width, uint32_t h
     for (i = 0; i < width * height; ++i)
         out[i] = (unsigned char)(255 * (1 - data[i]));
 
-    free(data);
+    FTGL_free(data, width * height * sizeof(double));
 
     return out;
 }
