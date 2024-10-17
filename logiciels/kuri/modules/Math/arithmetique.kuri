@@ -66,6 +66,11 @@ est_fini :: fonc (a: r64) -> bool
     retourne est_infini(a) == 0
 }
 
+est_infini_ou_nan :: fonc (a: r64) -> bool
+{
+    retourne est_infini(a) || est_nan(a)
+}
+
 arc_sinus_borné :: fonc (a: $T) -> T #enligne
 {
     si a <= -1.0 {
