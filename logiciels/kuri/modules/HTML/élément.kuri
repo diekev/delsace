@@ -1902,7 +1902,7 @@ HTMLScriptElement :: struct {
     // result : "uninitialized", null, scipt, import map parse result
     result: *Script
 
-    steps_to_run_when_the_result_is_ready: *Algorithm
+    steps_to_run_when_the_result_is_ready: fonc(*HTMLScriptElement)(rien)
 }
 
 donne_src :: fonc (script: *HTMLScriptElement) -> DOMString
@@ -2153,16 +2153,12 @@ prépare :: fonc (el: *HTMLScriptElement)
 
     /* 33. If el's type is "classic" and el has a src attribute, or el's type is "module": */
     si (el.type == TypeScript.CLASSIC && possède_attr_src) || el.type == TypeScript.MODULE {
-        si el.result {
-            execute_the_script_element(el)
-            retourne
-        }
-
-        panique("non-implémenté\n")
-
         // 1. Assert: el's result is "uninitialized".
+        assert(el.result == nul)
 
         // 2. If el has an async attribute or el's force async is true:
+        si el.possède_attribut(ATTR_async) || el.force_async {
+            panique("el.possède_attribut(ATTR_async) || el.force_async non-implémenté\n")
 
             // 1. Let scripts be el's preparation-time document's set of scripts that will execute as soon as possible.
 
@@ -2173,9 +2169,10 @@ prépare :: fonc (el: *HTMLScriptElement)
                 // 1. Execute the script element el.
 
                 // 2. Remove el from scripts.
-
+        }
         // 3. Otherwise, if el is not parser-inserted:
-
+        sinon saufsi el.est_inséré_par_parseuse() {
+            panique("saufsi el.est_inséré_par_parseuse()\n")
             // 1. Let scripts be el's preparation-time document's list of scripts that will execute in order as soon as possible.
 
             // 2. Append el to scripts.
@@ -2189,26 +2186,34 @@ prépare :: fonc (el: *HTMLScriptElement)
                     // 1. Execute the script element scripts[0].
 
                     // 2. Remove scripts[0].
-
+        }
         // 4. Otherwise, if el has a defer attribute or el's type is "module":
-
+        sinon si el.possède_attribut(ATTR_defer) || el.type == TypeScript.MODULE {
             // 1. Append el to its parser document's list of scripts that will execute when the document has finished parsing.
+            tableau_ajoute(*el.document.scripts_that_will_execute_when_the_document_has_finished_parsing, el)
 
             // 2. Set el's steps to run when the result is ready to the following: set el's ready to be parser-executed to true. (The parser will handle executing the script.)
-
+            el.steps_to_run_when_the_result_is_ready = mark_script_as_ready_to_be_parser_executed
+        }
         // 5. Otherwise:
-
+        sinon {
             // 1. Set el's parser document's pending parsing-blocking script to el.
+            el.document_parseur.pending_parsing_blocking_script = el
 
             // 2. Block rendering on el.
+            block_rendering_on(el)
 
-            // 3. Set el's steps to run when the result is ready to the following: set el's ready to be parser-executed to true. (The parser will handle executing the script.)
+            // 3. Set el's steps to run when the result is ready to the following:
+            //    set el's ready to be parser-executed to true. (The parser will handle executing the script.)
+            el.steps_to_run_when_the_result_is_ready = mark_script_as_ready_to_be_parser_executed
+        }
     }
     /* 34. Otherwise */
     sinon {
-        // À FAIRE : 1. Assert: el's result is not "uninitialized".
+        // 1. Assert: el's result is not "uninitialized".
+        assert(el.result != nul)
 
-        // 2. If all of the following are true:
+        // À FAIRE : 2. If all of the following are true:
         // el's type is "classic";
         // el is parser-inserted;
         // el's parser document has a style sheet that is blocking scripts; and
@@ -2227,6 +2232,11 @@ prépare :: fonc (el: *HTMLScriptElement)
 est_inséré_par_parseuse :: fonc (script: *HTMLScriptElement) -> bool
 {
     retourne script.document_parseur != nul
+}
+
+mark_script_as_ready_to_be_parser_executed :: fonc (script: *HTMLScriptElement)
+{
+    script.prêt_à_être_exécuté_par_parseuse = vrai
 }
 
 détermine_type_block_script :: fonc (script: *HTMLScriptElement) -> DOMString
@@ -2327,7 +2337,7 @@ mark_as_ready :: fonc (el: *HTMLScriptElement, result : *Script = nul)
 
     // 2. If el's steps to run when the result is ready are not null, then run them.
     si el.steps_to_run_when_the_result_is_ready {
-        run(el.steps_to_run_when_the_result_is_ready)
+        el.steps_to_run_when_the_result_is_ready(el)
     }
 
     // 3. Set el's steps to run when the result is ready to null.
