@@ -132,6 +132,30 @@ struct EntréeTemps {
     }
 };
 
+struct EntréeProgramme {
+    kuri::chaine_statique nom{};
+    int64_t fonctions_utilisées = 0;
+    int64_t globales_utilisées = 0;
+    int64_t types_utilisés = 0;
+    int64_t init_de_utilisés = 0;
+    int64_t info_de_utilisés = 0;
+
+    EntréeProgramme &operator+=(EntréeProgramme const &autre)
+    {
+        fonctions_utilisées += autre.fonctions_utilisées;
+        globales_utilisées += autre.globales_utilisées;
+        types_utilisés += autre.types_utilisés;
+        init_de_utilisés += autre.init_de_utilisés;
+        info_de_utilisés += autre.info_de_utilisés;
+        return *this;
+    }
+
+    bool peut_fusionner_avec(EntréeProgramme const &autre) const
+    {
+        return autre.nom == nom;
+    }
+};
+
 template <TypeEntréesStats T>
 struct EntréesStats {
     kuri::chaine_statique nom{};
@@ -189,6 +213,7 @@ using StatistiquesNoeudCode = EntréesStats<EntréeNombreMémoire>;
 using StatistiquesMessage = EntréesStats<EntréeNombreMémoire>;
 using StatistiquesRI = EntréesStats<EntréeNombreMémoire>;
 using StatistiquesTableaux = EntréesStats<EntréeTailleTableau>;
+using StatistiquesProgrammes = EntréesStats<EntréeProgramme>;
 using StatistiquesGaspillage = EntréesStats<EntréeNombreMémoire>;
 
 struct MémoireUtilisée {
@@ -225,6 +250,7 @@ struct Statistiques {
     StatistiquesMessage stats_messages{"Messages"};
     StatistiquesRI stats_ri{"Représentation Intermédiaire"};
     StatistiquesTableaux stats_tableaux{"Tableaux"};
+    StatistiquesProgrammes stats_programmes{"Programmes"};
     StatistiquesGaspillage stats_gaspillage{"Gaspillage"};
 
     kuri::tableau<MémoireUtilisée> const &donne_mémoire_utilisée_pour_impression() const;
@@ -235,10 +261,7 @@ struct Statistiques {
 #define EXTRAIT_CHAINE_ENUM(ident, chaine) chaine,
 #define EXTRAIT_IDENT_ENUM(ident, chaine) ident,
 
-#define INIT_NOMS_ENTREES_IMPL(MACRO)                                                             \
-    {                                                                                             \
-        MACRO(EXTRAIT_CHAINE_ENUM)                                                                \
-    }
+#define INIT_NOMS_ENTREES_IMPL(MACRO) {MACRO(EXTRAIT_CHAINE_ENUM)}
 #define INIT_NOMS_ENTREES(NOM) INIT_NOMS_ENTREES_IMPL(ENTREES_POUR_##NOM)
 
 #define DEFINIS_ENUM_IMPL(NOM, MACRO) enum { MACRO(EXTRAIT_IDENT_ENUM) NOM##__COMPTE };

@@ -282,7 +282,7 @@ sur_construct_fonction_ecma :: fonc (empl params: *ParamètresObjectConstruct) -
     this_argument: Valeur
     si kind == ConstructorKind.Base {
         // a. Let thisArgument be ? OrdinaryCreateFromConstructor(newTarget, "%Object.prototype%").
-        new_target_func := new_target.donne_objet() comme *Function
+        new_target_func := new_target.donne_objet().vérifie_comme(Function)
         completion := ordinary_create_from_constructor(realm, new_target_func, realm.intrinsics.object_prototype, object_instance_crée)
         saufsi completion.est_normal() {
             retourne completion
@@ -834,7 +834,7 @@ BuiltInFunction :: struct {
 builtin_function_sur_call :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
     // 1. Return ? BuiltinCallOrConstruct(F, thisArgument, argumentsList, undefined).
-    retourne builtin_call_or_construct(object comme *BuiltInFunction, interpréteuse, this_value, arguments, js_undefined)
+    retourne builtin_call_or_construct(object.vérifie_comme(BuiltInFunction), interpréteuse, this_value, arguments, js_undefined)
 }
 
 /* 10.3.2 [[Construct]] ( argumentsList, newTarget )
@@ -842,7 +842,7 @@ builtin_function_sur_call :: fonc (empl params: *ParamètresObjectCall) -> Compl
 builtin_function_sur_construct :: fonc (empl params: *ParamètresObjectConstruct) -> CompletionRecord
 {
     // 1. Return ? BuiltinCallOrConstruct(F, uninitialized, argumentsList, newTarget).
-    retourne builtin_call_or_construct(object comme *BuiltInFunction, interpréteuse, js_undefined, arguments, new_target)
+    retourne builtin_call_or_construct(object.vérifie_comme(BuiltInFunction), interpréteuse, js_undefined, arguments, new_target)
 }
 
 /* 10.3.3 BuiltinCallOrConstruct ( F, thisArgument, argumentsList, newTarget ) */
@@ -1021,7 +1021,7 @@ fonction_prototype_sur_call :: fonc (params: *ParamètresObjectCall @inutilisée
 
 fonction_native_sur_appel :: fonc (params: *ParamètresObjectCall) -> CompletionRecord
 {
-    function_native := params.object comme *FunctionNative
+    function_native := params.object.vérifie_comme(FunctionNative)
     retourne function_native.sur_appel(params)
 }
 

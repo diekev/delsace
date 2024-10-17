@@ -2,6 +2,7 @@ importe Couleur
 importe #inemployé CSS
 importe Fondation
 importe Géométrie
+importe Math
 importe PeintureInterface
 
 /* ------------------------------------------------------------------------- */
@@ -25,6 +26,8 @@ CanvasRenderingContext2D :: struct {
     canvas: *HTMLCanvasElement
     fill_style_string := CSS.COL_black
     fill_style: CouleurRVBAN8
+
+    matrice := matrice_neutre(3, r64)
 }
 
 crée_canvas_rendering_context_2d :: fonc (canvas: *HTMLCanvasElement) -> *CanvasRenderingContext2D
@@ -65,11 +68,61 @@ donne_fill_style :: fonc (ctx: *CanvasRenderingContext2D) -> DOMString
     retourne ctx.fill_style_string
 }
 
+/* NOTE : cette interface n'est pas standarde, mais est utilisée par certains
+ * scripts pour définir la couleur sans avoir à générer de chaines pour
+ * setFillStyle. */
+set_fill_color :: fonc (ctx: *CanvasRenderingContext2D, r: r64, v: r64, b: r64)
+{
+    convertis_canal :: fonc (v: r64) -> n8 #enligne
+    {
+        si v < 0.0 {
+            retourne 0
+        }
+        si v > 1.0 {
+            retourne 255
+        }
+        retourne (v * 255.0) comme n8
+    }
+
+    ctx.fill_style.r = convertis_canal(r)
+    ctx.fill_style.v = convertis_canal(v)
+    ctx.fill_style.b = convertis_canal(b)
+    ctx.fill_style.a = 255
+}
+
 fill_rect :: fonc (ctx: *CanvasRenderingContext2D, x: r64, y: r64, w: r64, h: r64)
 {
     saufsi ctx.canvas {
         retourne
     }
+
+    p0 := VecteurN(3, r64)(x, y, 1.0)
+    p1 := VecteurN(3, r64)(x + w, y + h, 1.0)
+
+    p0 = transforme(ctx.matrice, p0)
+    p1 = transforme(ctx.matrice, p1)
+
+    x0 := p0.x
+    x1 := p1.x
+    si x1 < x0 {
+        tmp := x0
+        x0 = x1
+        x1 = tmp
+    }
+
+    y0 := p0.y
+    y1 := p1.y
+    si y1 < y0 {
+        tmp := y0
+        y0 = y1
+        y1 = tmp
+    }
+
+    x = x0
+    y = y0
+
+    w = x1 - x0
+    h = y1 - y0
 
     rect: RectanglePosDim(z32)
     rect.x = x comme z32
@@ -78,23 +131,6 @@ fill_rect :: fonc (ctx: *CanvasRenderingContext2D, x: r64, y: r64, w: r64, h: r6
     rect.hauteur = h comme z32
 
     tampon := ctx.canvas.donne_tampon_de_rendu()
-    rect_tampon := tampon.rect.donne_rectangle_pur()
-    rect_pur := rect.donne_rectangle_pur()
-
-    si rect_pur.gauche < rect_tampon.gauche {
-        rect_pur.gauche = rect_tampon.gauche
-    }
-    si rect_pur.bas < rect_tampon.bas {
-        rect_pur.bas = rect_tampon.bas
-    }
-    si rect_pur.haut > rect_tampon.haut {
-        rect_pur.haut = rect_tampon.haut
-    }
-    si rect_pur.droite > rect_tampon.droite {
-        rect_pur.droite = rect_tampon.droite
-    }
-
-    rect = rect_pur.donne_rectangle_pos_dim()
 
     peintre: PeintreDessin
     initialise_peintre_dessin(*peintre)
@@ -105,14 +141,43 @@ fill_rect :: fonc (ctx: *CanvasRenderingContext2D, x: r64, y: r64, w: r64, h: r6
     requiers_redessin(document)
 }
 
-scale :: fonc (ctx: *CanvasRenderingContext2D @inutilisée, x: r64 @inutilisée, y: r64 @inutilisée)
+/* https://html.spec.whatwg.org/multipage/canvas.html#dom-context-2d-scale */
+scale :: fonc (ctx: *CanvasRenderingContext2D, x: r64, y: r64)
 {
-    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+    // 1. If either of the arguments are infinite or NaN, then return.
+    si est_infini_ou_nan(x) || est_infini_ou_nan(y) {
+        retourne
+    }
+
+    // 2. Add the scaling transformation described by the arguments to the
+    //    current transformation matrix. The x argument represents the scale
+    //    factor in the horizontal direction and the y argument represents
+    //    the scale factor in the vertical direction. The factors are multiples.
+    mat := matrice_neutre(3, r64)
+    mat.m[0][0] *= x
+    mat.m[1][1] *= y
+
+    ctx.matrice = multiplie(ctx.matrice, mat)
 }
 
-translate :: fonc (ctx: *CanvasRenderingContext2D @inutilisée, x: r64 @inutilisée, y: r64 @inutilisée)
+/* https://html.spec.whatwg.org/multipage/canvas.html#dom-context-2d-translate */
+translate :: fonc (ctx: *CanvasRenderingContext2D, x: r64, y: r64)
 {
-    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+    // 1. If either of the arguments are infinite or NaN, then return.
+    si est_infini_ou_nan(x) || est_infini_ou_nan(y) {
+        retourne
+    }
+
+    // 2. Add the translation transformation described by the arguments to
+    //    the current transformation matrix. The x argument represents the
+    //    translation distance in the horizontal direction and the y argument
+    //    represents the translation distance in the vertical direction.
+    //    The arguments are in coordinate space units.
+    mat := matrice_neutre(3, r64)
+    mat.m[2][0] += x
+    mat.m[2][1] += y
+
+    ctx.matrice = multiplie(ctx.matrice, mat)
 }
 
 /** \} */
