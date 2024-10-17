@@ -903,7 +903,11 @@ BinaryOperation :: énum {
     Multiplie
     Divise
     Modulo
+    EtBinaire
+    OuBinaire
     OuExclusif
+    DécalageGauche
+    DécalageDroite
 }
 
 BinaryExpression :: struct {
@@ -1044,6 +1048,18 @@ apply_string_or_numeric_binary_operator :: fonc (interpréteuse: *Interpréteuse
         }
         OuExclusif {
             valeur = ou_exclusif_valeurs(gauche, droite)
+        }
+        DécalageGauche {
+            panique("<< non-implémenté")
+        }
+        DécalageDroite {
+            panique(">> non-implémenté")
+        }
+        EtBinaire {
+            panique("& non-implémenté")
+        }
+        OuBinaire {
+            panique("| non-implémenté")
         }
     }
 
