@@ -1208,6 +1208,7 @@ RelationalOperation :: énum {
     Inférieur
     SupérieurÉgal
     InférieurÉgal
+    InstanceOf
     In
 }
 
@@ -1323,6 +1324,9 @@ sur_exécution_relational_expression :: fonc (base: *NoeudSyntaxique, interprét
             sinon {
                 r = Valeur(Boolean = vrai)
             }
+        }
+        InstanceOf {
+            panique("instanceof non-implémenté")
         }
         In {
             // 5. If rVal is not an Object, throw a TypeError exception.

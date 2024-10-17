@@ -919,6 +919,9 @@ donne_opération_relationnelle_pour_genre_lexème :: fonc (genre: GenreLexème) 
         SupérieurÉgal {
             retourne RelationalOperation.SupérieurÉgal
         }
+        InstanceOf {
+            retourne RelationalOperation.InstanceOf
+        }
         In {
             retourne RelationalOperation.In
         }
@@ -954,6 +957,7 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
         Supérieur,
         InférieurÉgal,
         SupérieurÉgal,
+        InstanceOf,
         In {
             opération := donne_opération_relationnelle_pour_genre_lexème(lexème.genre)
             parseuse.consomme()

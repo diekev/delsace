@@ -95,7 +95,7 @@ GenreLexème :: énum {
     If
     Import
     In
-    Instanceof
+    InstanceOf
     Let
     Meta
     New
@@ -180,7 +180,7 @@ rafine_genre_lexème_identifiant :: fonc (identifiant: chaine) -> GenreLexème
         si identifiant == "function" { retourne GenreLexème.Function }
     }
     sinon si identifiant.taille == 10 {
-        si identifiant == "instanceof" { retourne GenreLexème.Instanceof }
+        si identifiant == "instanceof" { retourne GenreLexème.InstanceOf }
     }
 
     retourne GenreLexème.Identifiant
@@ -349,7 +349,8 @@ est_lexème_expression_secondaire :: fonc (genre: GenreLexème) -> bool
         DécalageDroiteNaturel,
         DécalageDroiteNaturelÉgal,
         Virgule,
-        In {
+        In,
+        InstanceOf {
             retourne vrai
         }
         sinon {
@@ -452,7 +453,7 @@ initialise_données_lexèmes_pour_parsage :: fonc ()
     définis_données_précédence(GenreLexème.Supérieur, 9, Associativité.Gauche)
     définis_données_précédence(GenreLexème.SupérieurÉgal, 9, Associativité.Gauche)
     définis_données_précédence(GenreLexème.In, 9, Associativité.Gauche)
-    // définis_données_précédence(GenreLexème.InstanceOf, 9, Associativité.Gauche)
+    définis_données_précédence(GenreLexème.InstanceOf, 9, Associativité.Gauche)
 
     définis_données_précédence(GenreLexème.DécalageGauche, 10, Associativité.Gauche)
     définis_données_précédence(GenreLexème.DécalageDroite, 10, Associativité.Gauche)
