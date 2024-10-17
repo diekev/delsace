@@ -18,6 +18,71 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "ftgl.h"
+
+static void *FTGL_default_malloc(uint64_t size)
+{
+    return malloc(size);
+}
+
+static void *FTGL_default_calloc(uint64_t nmemb, uint64_t size)
+{
+    return calloc(nmemb, size);
+}
+
+static void *FTGL_default_realloc(void *ptr, uint64_t old_size, uint64_t new_size)
+{
+    (void)old_size;
+    return realloc(ptr, new_size);
+}
+
+static void FTGL_default_free(void *ptr, uint64_t size)
+{
+    (void)size;
+    free(ptr);
+}
+
+static malloc_func_t g_malloc_func = FTGL_default_malloc;
+static calloc_func_t g_calloc_func = FTGL_default_calloc;
+static realloc_func_t g_realloc_func = FTGL_default_realloc;
+static free_func_t g_free_func = FTGL_default_free;
+
+int FTGL_set_allocators(malloc_func_t malloc_func,
+                        calloc_func_t calloc_func,
+                        realloc_func_t realloc_func,
+                        free_func_t free_func)
+{
+    if (malloc_func == NULL || calloc_func == NULL || realloc_func == NULL || free_func == NULL) {
+        return 1;
+    }
+
+    g_malloc_func = malloc_func;
+    g_calloc_func = calloc_func;
+    g_realloc_func = realloc_func;
+    g_free_func = free_func;
+    return 0;
+}
+
+void *FTGL_malloc(uint64_t size)
+{
+    return g_malloc_func(size);
+}
+
+void *FTGL_calloc(uint64_t nmemb, uint64_t size)
+{
+    return g_calloc_func(nmemb, size);
+}
+
+void *FTGL_realloc(void *ptr, uint64_t old_size, uint64_t new_size)
+{
+    return g_realloc_func(ptr, old_size, new_size);
+}
+
+void FTGL_free(void *ptr, uint64_t size)
+{
+    return g_free_func(ptr, size);
+}
+
 #define HRES 64
 #define HRESf 64.f
 #define DPI 72
@@ -118,7 +183,7 @@ cleanup:
 // ------------------------------------------------------ texture_glyph_new ---
 texture_glyph_t *texture_glyph_new(void)
 {
-    texture_glyph_t *self = (texture_glyph_t *)malloc(sizeof(texture_glyph_t));
+    texture_glyph_t *self = (texture_glyph_t *)FTGL_malloc(sizeof(texture_glyph_t));
     if (self == NULL) {
         fprintf(stderr, "line %d: No more memory for allocating data\n", __LINE__);
         return NULL;
@@ -146,7 +211,7 @@ void texture_glyph_delete(texture_glyph_t *self)
 {
     assert(self);
     vector_delete(self->kerning);
-    free(self);
+    FTGL_free(self, sizeof(texture_glyph_t));
 }
 
 // ---------------------------------------------- texture_glyph_get_kerning_impl ---
@@ -291,7 +356,7 @@ texture_font_t *texture_font_new_from_file(texture_atlas_t *atlas,
 
     assert(filename);
 
-    self = calloc(1, sizeof(*self));
+    self = FTGL_calloc(1, sizeof(*self));
     if (!self) {
         fprintf(stderr, "line %d: No more memory for allocating data\n", __LINE__);
         return NULL;
@@ -301,7 +366,9 @@ texture_font_t *texture_font_new_from_file(texture_atlas_t *atlas,
     self->size = pt_size;
 
     self->location = TEXTURE_FONT_FILE;
-    self->fileinfo.filename = strdup(filename);
+    self->fileinfo.filename_size = strlen(filename) + 1;
+    self->fileinfo.filename = FTGL_malloc(self->fileinfo.filename_size);
+    memcpy(self->fileinfo.filename, filename, self->fileinfo.filename_size);
 
     if (texture_font_init(self)) {
         texture_font_delete(self);
@@ -322,7 +389,7 @@ texture_font_t *texture_font_new_from_memory(texture_atlas_t *atlas,
     assert(memory_base);
     assert(memory_size);
 
-    self = calloc(1, sizeof(*self));
+    self = FTGL_calloc(1, sizeof(*self));
     if (!self) {
         fprintf(stderr, "line %d: No more memory for allocating data\n", __LINE__);
         return NULL;
@@ -352,7 +419,7 @@ void texture_font_delete(texture_font_t *self)
     assert(self);
 
     if (self->location == TEXTURE_FONT_FILE && self->fileinfo.filename)
-        free(self->fileinfo.filename);
+        FTGL_free(self->fileinfo.filename, self->fileinfo.filename_size);
 
     for (i = 0; i < vector_size(self->glyphs); ++i) {
         glyph = *(texture_glyph_t **)vector_get(self->glyphs, i);
@@ -360,7 +427,7 @@ void texture_font_delete(texture_font_t *self)
     }
 
     vector_delete(self->glyphs);
-    free(self);
+    FTGL_free(self, sizeof(texture_font_t));
 }
 
 texture_glyph_t *texture_font_find_glyph(texture_font_t *self, const char *codepoint)
@@ -611,7 +678,7 @@ int texture_font_load_glyph_codepoint(texture_font_t *self, uint32_t codepoint)
     x = region.x;
     y = region.y;
 
-    unsigned char *buffer = calloc(tgt_w * tgt_h * self->atlas->depth, sizeof(unsigned char));
+    unsigned char *buffer = FTGL_calloc(tgt_w * tgt_h * self->atlas->depth, sizeof(unsigned char));
 
     unsigned char *dst_ptr = buffer + (padding.top * tgt_w + padding.left) * self->atlas->depth;
     unsigned char *src_ptr = ft_bitmap.buffer;
@@ -625,13 +692,13 @@ int texture_font_load_glyph_codepoint(texture_font_t *self, uint32_t codepoint)
 
     if (self->rendermode == RENDER_SIGNED_DISTANCE_FIELD) {
         unsigned char *sdf = make_distance_mapb(buffer, tgt_w, tgt_h);
-        free(buffer);
+        FTGL_free(buffer, tgt_w * tgt_h * self->atlas->depth * sizeof(unsigned char));
         buffer = sdf;
     }
 
     texture_atlas_set_region(self->atlas, x, y, tgt_w, tgt_h, buffer, tgt_w * self->atlas->depth);
 
-    free(buffer);
+    FTGL_free(buffer, tgt_w * tgt_h * self->atlas->depth * sizeof(unsigned char));
 
     glyph = texture_glyph_new();
     glyph->codepoint = codepoint;
@@ -719,7 +786,7 @@ void texture_font_enlarge_atlas(texture_font_t *self, size_t width_new, size_t h
     size_t height_old = ta->height;
     // allocate new buffer
     unsigned char *data_old = ta->data;
-    ta->data = calloc(1, width_new * height_new * sizeof(char) * ta->depth);
+    ta->data = FTGL_calloc(1, width_new * height_new * sizeof(char) * ta->depth);
     // update atlas size
     ta->width = width_new;
     ta->height = height_new;
@@ -741,7 +808,7 @@ void texture_font_enlarge_atlas(texture_font_t *self, size_t width_new, size_t h
                              height_old - 2,
                              data_old + old_row_size + pixel_size,
                              old_row_size);
-    free(data_old);
+    FTGL_free(data_old, width_old * height_old * sizeof(char) * ta->depth);
     // change uv coordinates of existing glyphs to reflect size change
     float mulw = (float)width_old / width_new;
     float mulh = (float)height_old / height_new;
