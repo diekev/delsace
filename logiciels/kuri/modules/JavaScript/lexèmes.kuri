@@ -95,7 +95,7 @@ GenreLexème :: énum {
     If
     Import
     In
-    Instanceof
+    InstanceOf
     Let
     Meta
     New
@@ -180,7 +180,7 @@ rafine_genre_lexème_identifiant :: fonc (identifiant: chaine) -> GenreLexème
         si identifiant == "function" { retourne GenreLexème.Function }
     }
     sinon si identifiant.taille == 10 {
-        si identifiant == "instanceof" { retourne GenreLexème.Instanceof }
+        si identifiant == "instanceof" { retourne GenreLexème.InstanceOf }
     }
 
     retourne GenreLexème.Identifiant
@@ -289,7 +289,9 @@ est_lexème_expression_unaire :: fonc (genre: GenreLexème) -> bool
         NonBinaire,
         NonLogique,
         New,
-        Typeof  {
+        Typeof,
+        Void,
+        Delete  {
             retourne vrai
         }
         sinon {
@@ -346,7 +348,9 @@ est_lexème_expression_secondaire :: fonc (genre: GenreLexème) -> bool
         CoalesceÉgal,
         DécalageDroiteNaturel,
         DécalageDroiteNaturelÉgal,
-        Virgule {
+        Virgule,
+        In,
+        InstanceOf {
             retourne vrai
         }
         sinon {
@@ -448,8 +452,8 @@ initialise_données_lexèmes_pour_parsage :: fonc ()
     définis_données_précédence(GenreLexème.InférieurÉgal, 9, Associativité.Gauche)
     définis_données_précédence(GenreLexème.Supérieur, 9, Associativité.Gauche)
     définis_données_précédence(GenreLexème.SupérieurÉgal, 9, Associativité.Gauche)
-    // définis_données_précédence(GenreLexème.In, 9, Associativité.Gauche)
-    // définis_données_précédence(GenreLexème.InstanceOf, 9, Associativité.Gauche)
+    définis_données_précédence(GenreLexème.In, 9, Associativité.Gauche)
+    définis_données_précédence(GenreLexème.InstanceOf, 9, Associativité.Gauche)
 
     définis_données_précédence(GenreLexème.DécalageGauche, 10, Associativité.Gauche)
     définis_données_précédence(GenreLexème.DécalageDroite, 10, Associativité.Gauche)
@@ -469,8 +473,8 @@ initialise_données_lexèmes_pour_parsage :: fonc ()
     définis_données_précédence(GenreLexème.NonBinaire, 14, Associativité.Aucune)
     définis_données_précédence(GenreLexème.NonLogique, 14, Associativité.Aucune)
     définis_données_précédence(GenreLexème.Typeof, 14, Associativité.Aucune)
-    // définis_données_précédence(GenreLexème.Void, 14, Associativité.Aucune)
-    // définis_données_précédence(GenreLexème.Delete, 14, Associativité.Aucune)
+    définis_données_précédence(GenreLexème.Void, 14, Associativité.Aucune)
+    définis_données_précédence(GenreLexème.Delete, 14, Associativité.Aucune)
     // définis_données_précédence(GenreLexème.Await, 14, Associativité.Aucune)
     définis_données_précédence(GenreLexème.PreIncrement, 14, Associativité.Aucune)
     définis_données_précédence(GenreLexème.PreDecrement, 14, Associativité.Aucune)

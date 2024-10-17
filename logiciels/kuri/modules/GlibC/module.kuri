@@ -813,3 +813,27 @@ LOCK_NB :: 4 /* Don't block when locking.  */
 /* Apply or remove an advisory lock, according to OPERATION,
  * on the file FD refers to.  */
 flock :: fonc (__fd: z32, __operation: z32) -> z32 #externe libc
+
+/* ------------------------------------------------------------------------- */
+/** \nom setjmp.h
+ * \{ */
+
+__jmp_buf_tag :: struct {
+    /* NOTE: The machine-dependent definitions of `__sigsetjmp'
+       assume that a `jmp_buf' begins with a `__jmp_buf' and that
+       `__mask_was_saved' follows it.  Do not move these members
+       or add others before it.  */
+    __jmpbuf: __jmp_buf ;		/* Calling environment.  */
+    __mask_was_saved: z32;	/* Saved the signal mask?  */
+    __saved_mask: __sigset_t ;	/* Saved signal mask.  */
+}
+
+__sigset_t :: struct {
+    __val: [16]n64
+}
+
+__jmp_buf :: [8]n64
+
+setjmp :: fonc (buf: *__jmp_buf_tag) -> z32 #externe libc
+
+/** \} */
