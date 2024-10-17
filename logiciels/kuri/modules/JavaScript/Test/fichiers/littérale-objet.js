@@ -24,3 +24,11 @@ test("littérale avec des index comme noms de propriétés", function () {
     vérifie_égalité(o[2], "chaine")
     vérifie_égalité(o[3], false)
 });
+
+test("accès des propriétés avec des expressions calculées", function () {
+    var o = { 1: 5, "deux": "chaine", 3: false };
+    vérifie_égalité(o[2 / 2], 5)
+    vérifie_égalité(o["de" + "ux"], "chaine")
+    vérifie_égalité(o[1 + 2], false)
+});
+
