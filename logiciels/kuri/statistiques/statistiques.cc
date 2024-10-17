@@ -274,6 +274,28 @@ static void imprime_stats_tableaux(EntréesStats<EntréeTailleTableau> const &st
     imprime_tableau(tableau);
 }
 
+static void imprime_stats_programme(EntréesStats<EntréeProgramme> const &stats)
+{
+    std::sort(stats.entrées.begin(),
+              stats.entrées.end(),
+              [](const EntréeProgramme &a, const EntréeProgramme &b) {
+                  return a.fonctions_utilisées > b.fonctions_utilisées;
+              });
+
+    auto tableau = Tableau({"Nom", "Fonctions", "Globales", "Types", "init_de()", "info_de()"});
+
+    POUR (stats.entrées) {
+        tableau.ajoute_ligne({dls::chaine(it.nom.pointeur(), it.nom.taille()),
+                              formatte_nombre(it.fonctions_utilisées),
+                              formatte_nombre(it.globales_utilisées),
+                              formatte_nombre(it.types_utilisés),
+                              formatte_nombre(it.init_de_utilisés),
+                              formatte_nombre(it.info_de_utilisés)});
+    }
+
+    imprime_tableau(tableau);
+}
+
 void imprime_stats_détaillées(Statistiques const &stats)
 {
     std::cout << "Arbre Syntaxique :\n";
@@ -290,6 +312,8 @@ void imprime_stats_détaillées(Statistiques const &stats)
     imprime_stats_tableaux(stats.stats_tableaux);
     std::cout << "Gaspillage :\n";
     imprime_stats_tableau(stats.stats_gaspillage);
+    std::cout << "Programmes :\n";
+    imprime_stats_programme(stats.stats_programmes);
 }
 
 static void imprime_stats_temps(EntréesStats<EntréeTemps> const &stats)

@@ -52,7 +52,7 @@ boolean_instance_crée :: fonc (realm: *Realm) -> *Object
 
 crée_boolean_object :: fonc (realm: *Realm, valeur: bool) -> *BooleanObject
 {
-    résultat := ordinary_object_create(realm, realm.intrinsics.boolean_prototype, boolean_instance_crée) comme *BooleanObject
+    résultat := ordinary_object_create(realm, realm.intrinsics.boolean_prototype, boolean_instance_crée).vérifie_comme(BooleanObject)
     résultat.boolean_value = valeur
     retourne résultat
 }

@@ -54,7 +54,7 @@ crée_enveloppe :: fonc (tas_de_mémoire: *TasDeMémoire, objet: *Enveloppable) 
 
 enveloppe_sur_destruction :: fonc (base: *Cellule)
 {
-    enveloppe := base comme *Enveloppe
+    enveloppe := base.vérifie_comme(Enveloppe)
     sur_destruction_objet(enveloppe)
     enveloppe.enveloppable.enveloppe = nul
 }

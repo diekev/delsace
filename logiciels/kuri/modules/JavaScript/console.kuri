@@ -94,7 +94,7 @@ crée_console :: fonc (tas_de_mémoire: *TasDeMémoire, flux_sortie: *FluxSortie
 
 console_sur_destruction :: fonc (base: *Cellule)
 {
-    console := base comme *Console
+    console := base.vérifie_comme(Console)
     sur_destruction_objet(console)
     flux_sortie_détruit(console.flux_sortie)
     déloge(console.historique)
@@ -298,42 +298,42 @@ initialise_console :: fonc (console: *Console)
     /* https://console.spec.whatwg.org/#log */
     fonction_native_log :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     {
-        console := this_value.donne_objet() comme *Console
+        console := this_value.donne_objet().vérifie_comme(Console)
         retourne logger(console, interpréteuse, LogLevel.LOG, arguments)
     }
 
     /* https://console.spec.whatwg.org/#warn */
     fonction_native_warn :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     {
-        console := this_value.donne_objet() comme *Console
+        console := this_value.donne_objet().vérifie_comme(Console)
         retourne logger(console, interpréteuse, LogLevel.WARN, arguments)
     }
 
     /* https://console.spec.whatwg.org/#debug */
     fonction_native_debug :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     {
-        console := this_value.donne_objet() comme *Console
+        console := this_value.donne_objet().vérifie_comme(Console)
         retourne logger(console, interpréteuse, LogLevel.DEBUG, arguments)
     }
 
     /* https://console.spec.whatwg.org/#info */
     fonction_native_info :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     {
-        console := this_value.donne_objet() comme *Console
+        console := this_value.donne_objet().vérifie_comme(Console)
         retourne logger(console, interpréteuse, LogLevel.INFO, arguments)
     }
 
     /* https://console.spec.whatwg.org/#error */
     fonction_native_error :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     {
-        console := this_value.donne_objet() comme *Console
+        console := this_value.donne_objet().vérifie_comme(Console)
         retourne logger(console, interpréteuse, LogLevel.ERROR, arguments)
     }
 
     /* https://console.spec.whatwg.org/#clear */
     fonction_native_clear :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     {
-        console := this_value.donne_objet() comme *Console
+        console := this_value.donne_objet().vérifie_comme(Console)
         flux_sortie_efface(console.flux_sortie)
         retourne normal_completion(js_undefined)
     }
@@ -341,7 +341,7 @@ initialise_console :: fonc (console: *Console)
     /* https://console.spec.whatwg.org/#assert */
     fonction_native_assert :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     {
-        console := this_value.donne_objet() comme *Console
+        console := this_value.donne_objet().vérifie_comme(Console)
 
         si arguments.taille == 0 {
             retourne normal_completion(js_undefined)
@@ -357,7 +357,7 @@ initialise_console :: fonc (console: *Console)
 
     fonction_native_time :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     {
-        console := this_value.donne_objet() comme *Console
+        console := this_value.donne_objet().vérifie_comme(Console)
 
         si arguments.taille == 0 {
             retourne normal_completion(js_undefined)
@@ -377,7 +377,7 @@ initialise_console :: fonc (console: *Console)
 
     fonction_native_time_end :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     {
-        console := this_value.donne_objet() comme *Console
+        console := this_value.donne_objet().vérifie_comme(Console)
 
         si arguments.taille == 0 {
             retourne normal_completion(js_undefined)
@@ -394,7 +394,7 @@ initialise_console :: fonc (console: *Console)
 
     fonction_native_count :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     {
-        console := this_value.donne_objet() comme *Console
+        console := this_value.donne_objet().vérifie_comme(Console)
 
         si arguments.taille == 0 {
             retourne normal_completion(js_undefined)
@@ -414,7 +414,7 @@ initialise_console :: fonc (console: *Console)
 
     fonction_native_count_reset :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     {
-        console := this_value.donne_objet() comme *Console
+        console := this_value.donne_objet().vérifie_comme(Console)
 
         si arguments.taille == 0 {
             retourne normal_completion(js_undefined)

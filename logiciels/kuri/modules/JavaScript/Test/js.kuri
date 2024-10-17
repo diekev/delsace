@@ -7,7 +7,7 @@ importe SysFichier
 change_nom_sortie :: fonc ()
 {
     options := compilatrice_obtiens_options()
-    options.nom_sortie = "js_test"
+    options.nom_sortie = "js"
     compilatrice_ajourne_options(options)
 }
 
@@ -17,36 +17,16 @@ principale :: fonc () -> z32
 {
     args := arguments_ligne_commande()
 
-    stats: StatistiquesTests
-
-    si args.taille == 2 {
-        évalue_test(CheminFichier(args[1]), *stats)
-    }
-    sinon pour ExploratriceFichier(CheminFichier("fichiers")) {
-        si it.extension() == ".js" {
-            évalue_test(it, *stats)
-        }
+    si args.taille != 2 {
+        imprime("Utilisation : % FICHIER\n", args[0])
+        retourne 1
     }
 
-    imprime("\n")
-    imprime("Test(s) réussi(s) : % / %\n", stats.nombre_de_tests - stats.nombre_de_tests_échouants, stats.nombre_de_tests)
-
-    si stats.nombre_de_tests_échouants != 0 {
-        imprime("[ \x1b[31mÉCHEC\x1b[37m ]\n")
-    }
-
-    retourne 0
+    retourne évalue_fichier(CheminFichier(args[1]))
 }
 
-StatistiquesTests :: struct {
-    nombre_de_tests_échouants: z32
-    nombre_de_tests: z32
-}
-
-évalue_test :: fonc (chemin: CheminFichier, stats: *StatistiquesTests)
+évalue_fichier :: fonc (chemin: CheminFichier) -> z32
 {
-    stats.nombre_de_tests += 1
-
     contenu := contenu_fichier_texte(chemin)
     diffère déloge(contenu)
 
@@ -61,26 +41,14 @@ StatistiquesTests :: struct {
 
     realm := initialise_host_defined_realm(*mv, *configuration)
 
-    crée_environnement_de_test(realm)
-
-    résultat := exécute_script(realm, contenu, chemin.chn)
+    résultat := exécute_script(realm, contenu)
     si résultat {
-        imprime("[ \x1b[32mPASSE\x1b[37m ] : %\n", chemin)
+        retourne 0
     }
-    sinon {
-        stats.nombre_de_tests_échouants += 1
-    }
+    retourne 1
 }
 
-crée_environnement_de_test :: fonc (realm: *Realm)
-{
-    chemin := "environnement_test.js"
-    source := contenu_fichier_texte(chemin)
-    diffère déloge(source)
-    _ := exécute_script(realm, source, chemin)
-}
-
-exécute_script :: fonc (realm: *Realm, source: chaine, chemin: chaine) -> bool
+exécute_script :: fonc (realm: *Realm, source: chaine) -> bool
 {
     script: *Script
     /* À FAIRE(langage) : host_defined n'est pas initialisée à sa valeur défaut. */
@@ -90,11 +58,11 @@ exécute_script :: fonc (realm: *Realm, source: chaine, chemin: chaine) -> bool
             script = s
         }
         Erreur(e) {
-            imprime("[ \x1b[31mÉCHEC\x1b[37m ] : %\n%\n", chemin, e)
+            imprime("%\n", e)
             retourne faux
         }
         sinon {
-            imprime("[ \x1b[31mÉCHEC\x1b[37m ] : %\n     erreur inconnue\n", chemin)
+            imprime("erreur inconnue\n")
             retourne faux
         }
     }
@@ -104,7 +72,7 @@ exécute_script :: fonc (realm: *Realm, source: chaine, chemin: chaine) -> bool
         retourne vrai
     }
 
-    imprime("[ \x1b[31mÉCHEC\x1b[37m ] : %\n%\n", chemin, get_value(realm, résultat.valeur))
+    imprime("%\n", résultat)
     retourne faux
 }
 

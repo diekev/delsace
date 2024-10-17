@@ -176,6 +176,7 @@ ATTR_value : DOMString = ---
 ATTR_width : DOMString = ---
 
 ATTR_description : DOMString = ---
+ATTR_defer : DOMString = ---
 ATTR_hidden : DOMString = ---
 ATTR_importmap : DOMString = ---
 ATTR_module : DOMString = ---

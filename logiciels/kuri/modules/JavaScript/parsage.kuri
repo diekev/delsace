@@ -376,7 +376,15 @@ parse_for_statement :: fonc (parseuse: *Parseuse) -> *Statement
 parse_for_of_in_statement :: fonc (parseuse: *Parseuse, type_for: TypeFor) -> *Statement
 {
     lexème := parseuse.lexème_courant()
-    left := parseuse.parse_expression(ParamètresParsageExpression())
+
+    lexème_final := si type_for == TypeFor.ForOf {
+        GenreLexème.Of
+    }
+    sinon {
+        GenreLexème.In
+    }
+
+    left := parseuse.parse_expression(ParamètresParsageExpression(lexème_final = lexème_final))
 
     si type_for == TypeFor.ForOf && !apparie(parseuse, GenreLexème.Of) {
         parseuse.rapporte_erreur("Attendu 'of'")
@@ -692,7 +700,7 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
                     arrête
                 }
 
-                nom_membre := parse_identifier_reference(parseuse)
+                nom_membre := parse_property_name(parseuse)
 
                 lexème_déf := parseuse.lexème_courant()
                 parseuse.consomme(GenreLexème.DoublePoint)
@@ -740,6 +748,24 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
     }
 
     retourne nul
+}
+
+parse_property_name :: fonc (parseuse: *Parseuse) -> *Expression
+{
+    lexème := parseuse.lexème_courant()
+
+    si parseuse.apparie(GenreLexème.ChaineLittérale) {
+        parseuse.consomme()
+        retourne crée_literal(parseuse, lexème, lexème.texte)
+    }
+
+    si parseuse.apparie(GenreLexème.NombreLittéral) {
+        parseuse.consomme()
+        valeur := parse_nombre_depuis_lexème(lexème)
+        retourne crée_literal(parseuse, lexème, valeur)
+    }
+
+    retourne parse_identifier_reference(parseuse)
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#prod-IdentifierReference */
@@ -833,8 +859,20 @@ donne_opération_binaire_pour_genre_lexème :: fonc (genre: GenreLexème) -> Bin
         Pourcent {
             retourne BinaryOperation.Modulo
         }
+        EtBinaire {
+            retourne BinaryOperation.EtBinaire
+        }
+        OuBinaire {
+            retourne BinaryOperation.OuBinaire
+        }
         OuExclusif {
             retourne BinaryOperation.OuExclusif
+        }
+        DécalageGauche {
+            retourne BinaryOperation.DécalageGauche
+        }
+        DécalageDroite {
+            retourne BinaryOperation.DécalageDroite
         }
         sinon {
             panique("genre opérateur non-géré")
@@ -881,6 +919,12 @@ donne_opération_relationnelle_pour_genre_lexème :: fonc (genre: GenreLexème) 
         SupérieurÉgal {
             retourne RelationalOperation.SupérieurÉgal
         }
+        InstanceOf {
+            retourne RelationalOperation.InstanceOf
+        }
+        In {
+            retourne RelationalOperation.In
+        }
         sinon {
             panique("genre opérateur non-géré")
         }
@@ -899,7 +943,11 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
         Étoile,
         Slash,
         Pourcent,
-        OuExclusif {
+        EtBinaire,
+        OuBinaire,
+        OuExclusif,
+        DécalageGauche,
+        DécalageDroite {
             opération := donne_opération_binaire_pour_genre_lexème(lexème.genre)
             parseuse.consomme()
             opérande_droite := parseuse.parse_expression(params)
@@ -908,7 +956,9 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
         Inférieur,
         Supérieur,
         InférieurÉgal,
-        SupérieurÉgal {
+        SupérieurÉgal,
+        InstanceOf,
+        In {
             opération := donne_opération_relationnelle_pour_genre_lexème(lexème.genre)
             parseuse.consomme()
             opérande_droite := parseuse.parse_expression(params)
@@ -1082,7 +1132,10 @@ parse_expression_unaire :: fonc (parseuse: *Parseuse) -> *Expression
             retourne crée_unary_minus_operator(parseuse, lexème, argument)
         }
         NonBinaire {
-            parseuse.rapporte_erreur("opérateur unaire non-géré")
+            parseuse.consomme()
+            params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre)
+            argument := parseuse.parse_expression(params)
+            retourne crée_binary_not(parseuse, lexème, argument)
         }
         NonLogique {
             parseuse.consomme()
@@ -1107,6 +1160,18 @@ parse_expression_unaire :: fonc (parseuse: *Parseuse) -> *Expression
             params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre)
             argument := parseuse.parse_expression(params)
             retourne crée_typeof_operator(parseuse, lexème, argument)
+        }
+        Void {
+            parseuse.consomme()
+            params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre)
+            argument := parseuse.parse_expression(params)
+            retourne crée_void_operator(parseuse, lexème, argument)
+        }
+        Delete {
+            parseuse.consomme()
+            params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre)
+            argument := parseuse.parse_expression(params)
+            retourne crée_delete_operator(parseuse, lexème, argument)
         }
         New {
             parseuse.consomme()
