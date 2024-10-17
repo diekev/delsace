@@ -346,7 +346,8 @@ est_lexème_expression_secondaire :: fonc (genre: GenreLexème) -> bool
         CoalesceÉgal,
         DécalageDroiteNaturel,
         DécalageDroiteNaturelÉgal,
-        Virgule {
+        Virgule,
+        In {
             retourne vrai
         }
         sinon {
@@ -448,7 +449,7 @@ initialise_données_lexèmes_pour_parsage :: fonc ()
     définis_données_précédence(GenreLexème.InférieurÉgal, 9, Associativité.Gauche)
     définis_données_précédence(GenreLexème.Supérieur, 9, Associativité.Gauche)
     définis_données_précédence(GenreLexème.SupérieurÉgal, 9, Associativité.Gauche)
-    // définis_données_précédence(GenreLexème.In, 9, Associativité.Gauche)
+    définis_données_précédence(GenreLexème.In, 9, Associativité.Gauche)
     // définis_données_précédence(GenreLexème.InstanceOf, 9, Associativité.Gauche)
 
     définis_données_précédence(GenreLexème.DécalageGauche, 10, Associativité.Gauche)

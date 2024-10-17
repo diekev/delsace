@@ -32,3 +32,10 @@ test("accès des propriétés avec des expressions calculées", function () {
     vérifie_égalité(o[1 + 2], false)
 });
 
+test("accès présence propriétés avec l'opérateur 'in'", function () {
+    var o = { 1: 5, "deux": "chaine", 3: false };
+    // À FAIRE : to_string sur des nombres inclu ".0"
+    // vérifie(1 in o)
+    vérifie("deux" in o)
+    //vérifie(3 in o)
+});

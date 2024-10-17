@@ -376,7 +376,15 @@ parse_for_statement :: fonc (parseuse: *Parseuse) -> *Statement
 parse_for_of_in_statement :: fonc (parseuse: *Parseuse, type_for: TypeFor) -> *Statement
 {
     lexème := parseuse.lexème_courant()
-    left := parseuse.parse_expression(ParamètresParsageExpression())
+
+    lexème_final := si type_for == TypeFor.ForOf {
+        GenreLexème.Of
+    }
+    sinon {
+        GenreLexème.In
+    }
+
+    left := parseuse.parse_expression(ParamètresParsageExpression(lexème_final = lexème_final))
 
     si type_for == TypeFor.ForOf && !apparie(parseuse, GenreLexème.Of) {
         parseuse.rapporte_erreur("Attendu 'of'")
@@ -899,6 +907,9 @@ donne_opération_relationnelle_pour_genre_lexème :: fonc (genre: GenreLexème) 
         SupérieurÉgal {
             retourne RelationalOperation.SupérieurÉgal
         }
+        In {
+            retourne RelationalOperation.In
+        }
         sinon {
             panique("genre opérateur non-géré")
         }
@@ -926,7 +937,8 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
         Inférieur,
         Supérieur,
         InférieurÉgal,
-        SupérieurÉgal {
+        SupérieurÉgal,
+        In {
             opération := donne_opération_relationnelle_pour_genre_lexème(lexème.genre)
             parseuse.consomme()
             opérande_droite := parseuse.parse_expression(params)

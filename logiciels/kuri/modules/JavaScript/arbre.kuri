@@ -1166,6 +1166,7 @@ RelationalOperation :: énum {
     Inférieur
     SupérieurÉgal
     InférieurÉgal
+    In
 }
 
 RelationalExpression :: struct {
@@ -1280,6 +1281,21 @@ sur_exécution_relational_expression :: fonc (base: *NoeudSyntaxique, interprét
             sinon {
                 r = Valeur(Boolean = vrai)
             }
+        }
+        In {
+            // 5. If rVal is not an Object, throw a TypeError exception.
+            saufsi rval.est_object() {
+                message := imprime_chaine("'%' is not an Object", rval)
+                retourne lance_type_error(interpréteuse, message)
+            }
+
+            // 6. Return ? HasProperty(rVal, ? ToPropertyKey(lVal)).
+            completion := to_property_key(interpréteuse, lval)
+            saufsi completion.est_normal() {
+                retourne completion
+            }
+
+            retourne has_property(rval.donne_objet(), completion.valeur.V.String.texte)
         }
     }
 
