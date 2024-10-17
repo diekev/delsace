@@ -671,7 +671,7 @@ fetch :: fonc (user_agent: *UserAgent,
     //}
 
     // 17. Run main fetch given fetchParams.
-    _ := main_fetch(user_agent, fetch_params)
+    main_fetch(user_agent, fetch_params)
 
     // 18. Return fetchParams’s controller.
     retourne fetch_params.controller
@@ -690,7 +690,7 @@ donne_document_accept_header_value :: fonc () -> chaine
  * https://fetch.spec.whatwg.org/#main-fetch
  * \{ */
 
-main_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, recursive := faux) -> *Response
+main_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, recursive := faux)
 {
     // 1. Let request be fetchParams’s request.
     request := fetch_params.request
@@ -725,7 +725,32 @@ main_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, recursiv
     //     Matching request’s current URL’s host per Known HSTS Host Domain Name Matching results in either a superdomain match with an asserted includeSubDomains directive or a congruent match (with or without an asserted includeSubDomains directive) [HSTS]; or DNS resolution for the request finds a matching HTTPS RR per section 9.5 of [SVCB]. [HSTS] [SVCB]
 
     // 11. If recursive is false, then run the remaining steps in parallel.
+    params: ParamètresMainFetch
+    params.user_agent = user_agent
+    params.request = request
+    params.response = response
+    params.fetch_params = fetch_params
+    params.recursive = recursive
 
+    saufsi recursive {
+        tâche := crée_algorithm_pour_fonction(*params, main_fetch_parallel_steps)
+        user_agent.lance_en_parallèle(tâche)
+        retourne
+    }
+
+    main_fetch_parallel_steps(*params)
+}
+
+ParamètresMainFetch :: struct {
+    user_agent: *UserAgent
+    request: *Request
+    response: *Response
+    fetch_params: *FetchParams
+    recursive: bool
+}
+
+main_fetch_parallel_steps :: fonc (empl params: *ParamètresMainFetch)
+{
     // 12. If response is null, then set response to the result of running the steps corresponding to the first matching statement:
     si response == nul {
         // fetchParams’s preloaded response candidate is non-null
@@ -792,7 +817,7 @@ main_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, recursiv
 
     // 13. If recursive is true, then return response.
     si recursive {
-        retourne response
+        retourne
     }
 
     // 14. If response is not a network error and response is not a filtered response, then:
@@ -850,9 +875,6 @@ main_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, recursiv
 
     // 23. Otherwise, run fetch response handover given fetchParams and response.
     response_handover(user_agent, fetch_params, response)
-
-    // Non-spécifié
-    retourne response
 }
 
 /* https://fetch.spec.whatwg.org/#fetch-finale */

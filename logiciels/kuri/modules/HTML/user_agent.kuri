@@ -415,30 +415,4 @@ queue_a_task_to_fire_error_at_element :: fonc (user_agent: *UserAgent, élément
     enfile_une_tâche_pour_lancer_évènement_à_élément(user_agent, élément, EventType.error)
 }
 
-crée_tâche_pour_fetch_parallèle :: fonc (user_agent: *UserAgent, request: *Request, process_response: *BaseProcessResponse)
-{
-    Tâche :: struct {
-        empl base: Algorithm
-
-        user_agent: *UserAgent
-        request: *Request
-        process_response: *BaseProcessResponse
-    }
-
-    sur_run :: fonc (base: *Algorithm)
-    {
-        tâche := base comme *Tâche
-
-        fetch_controller := fetch(tâche.user_agent, tâche.request, process_response = tâche.process_response)
-        diffère détruit_fetch_controller(fetch_controller)
-    }
-
-    tâche := crée_algorithm(sur_run, Tâche)
-    tâche.user_agent = user_agent
-    tâche.request = request
-    tâche.process_response = process_response
-
-    user_agent.lance_en_parallèle(tâche)
-}
-
 /** \} */
