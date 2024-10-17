@@ -425,12 +425,85 @@ enfile_une_tâche_pour_lancer_évènement_à_élément :: fonc (user_agent: *Use
     tâche.élément = élément
     tâche.nom = nom
 
-    user_agent.enfile_une_tâche(SourceDeTâche.ManipulationDOM, tâche)
+    user_agent.queue_an_element_task(SourceDeTâche.ManipulationDOM, élément, tâche)
 }
 
 queue_a_task_to_fire_error_at_element :: fonc (user_agent: *UserAgent, élément: *Élément)
 {
     enfile_une_tâche_pour_lancer_évènement_à_élément(user_agent, élément, EventType.error)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 8.1.7.2 Queuing tasks
+ * https://html.spec.whatwg.org/multipage/webappapis.html#queuing-tasks
+ * \{ */
+
+/* https://html.spec.whatwg.org/multipage/webappapis.html#queue-a-task */
+queue_a_task :: fonc (user_agent: *UserAgent, source: SourceDeTâche, steps: *Algorithm, event_loop : *rien = nul @inutilisée, document : *Document = nul @inutilisée)
+{
+    // À FAIRE : 1. If event loop was not given, set event loop to the implied event loop.
+
+    // 2. If document was not given, set document to the implied document.
+
+    // 3. Let task be a new task.
+
+    // 4. Set task's steps to steps.
+
+    // 5. Set task's source to source.
+
+    // 6. Set task's document to the document.
+
+    // 7. Set task's script evaluation environment settings object set to an empty set.
+
+    // 8. Let queue be the task queue to which source is associated on event loop.
+
+    // 9. Append task to queue.
+    user_agent.enfile_une_tâche(source, steps)
+}
+
+/* https://html.spec.whatwg.org/multipage/webappapis.html#queue-a-global-task */
+queue_a_globask_task :: fonc (user_agent: *UserAgent, source: SourceDeTâche, global_object: *JavaScript.Object @inutilisée, steps: *Algorithm)
+{
+    // À FAIRE : 1. Let event loop be global's relevant agent's event loop.
+
+    // 2. Let document be global's associated Document, if global is a Window object; otherwise null.
+
+    // 3. Queue a task given source, event loop, document, and steps.
+    queue_a_task(user_agent, source, steps)
+}
+
+/* https://html.spec.whatwg.org/multipage/webappapis.html#queue-an-element-task */
+queue_an_element_task :: fonc (user_agent: *UserAgent, source: SourceDeTâche, élément: *Élément, steps: *Algorithm)
+{
+    // 1. Let global be element's relevant global object.
+    global := donne_relevant_global_object(élément)
+
+    // 2. Queue a global task given source, global, and steps.
+    queue_a_globask_task(user_agent, source, global, steps)
+}
+
+/* https://html.spec.whatwg.org/multipage/webappapis.html#queue-a-microtask */
+queue_a_microtask :: fonc (user_agent: *UserAgent, steps: *Algorithm, document : *Document = nul)
+{
+    // À FAIRE : 1. Assert: there is a surrounding agent. I.e., this algorithm is not called while in parallel.
+
+    // 2. Let eventLoop be the surrounding agent's event loop.
+
+    // 3. If document was not given, set document to the implied document.
+
+    // 4. Let microtask be a new task.
+
+    // 5. Set microtask's steps to steps.
+
+    // 6. Set microtask's source to the microtask task source.
+
+    // 7. Set microtask's document to document.
+
+    // 8. Set microtask's script evaluation environment settings object set to an empty set.
+
+    // 9. Enqueue microtask on eventLoop's microtask queue.
 }
 
 /** \} */

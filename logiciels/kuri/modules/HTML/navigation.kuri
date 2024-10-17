@@ -376,7 +376,7 @@ navigate :: fonc (user_agent: *UserAgent,
     si url.scheme == "javascript" {
         // 1. Queue a global task on the navigation and traversal task source given navigable's active window to navigate to a javascript: URL given navigable, url, historyHandling, initiatorOriginSnapshot, and cspNavigationType.
         tâche := crée_tâche_pour_navigate_to_javascript_url(user_agent, navigable, url, history_handling, initiator_origin_snapshot)
-        user_agent.enfile_une_tâche(SourceDeTâche.NavigationEtTraversée, tâche)
+        user_agent.queue_a_globask_task(SourceDeTâche.NavigationEtTraversée, navigable.donne_active_window(), tâche)
 
         // 2. Return.
         retourne
@@ -1154,7 +1154,7 @@ attempt_to_populate_the_history_entry_document :: fonc (params: *HistoryEntryPop
     tâche.navigation_params = navigation_params
     tâche.source_snapshot_params = source_snapshot_params
 
-    user_agent.enfile_une_tâche(SourceDeTâche.NavigationEtTraversée, tâche)
+    user_agent.queue_a_globask_task(SourceDeTâche.NavigationEtTraversée, navigable.donne_active_window(), tâche)
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#create-navigation-params-by-fetching
@@ -1664,7 +1664,7 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
     // 12. For each navigable of changingNavigables, queue a global task on the navigation and traversal task source of navigable's active window to run the steps:
     pour navigable dans changing_navigables {
         tâche := crée_tâche_pour_changing_navigable_continuations_steps(user_agent, navigable, traversable, navigation_type, source_snapshot_params, *changing_navigable_continuations)
-        user_agent.enfile_une_tâche(SourceDeTâche.NavigationEtTraversée, tâche)
+        user_agent.queue_a_globask_task(SourceDeTâche.NavigationEtTraversée, navigable.donne_active_window(), tâche)
     }
 
     // 13. Let navigablesThatMustWaitBeforeHandlingSyncNavigation be an empty set.
@@ -1740,7 +1740,7 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
             init_de(OngoingNavigationType)(*navigable.ongoing_navigation)
 
             // 2. Queue a global task on the navigation and traversal task source given navigable's active window to perform afterPotentialUnloads.
-            user_agent.enfile_une_tâche(SourceDeTâche.NavigationEtTraversée, tâche_after_potential_unloads)
+            user_agent.queue_a_globask_task(SourceDeTâche.NavigationEtTraversée, navigable.donne_active_window(), tâche_after_potential_unloads)
         }
         // 11. Otherwise:
         sinon {
@@ -1831,7 +1831,7 @@ after_potential_unloads :: fonc (params: *AfterPotentialUnloadsParams)
     sinon {
         // À FAIRE : relevant global object
         tâche := crée_algorithm_pour_fonction(*document_update_params, update_document_for_history_step_application)
-        params.user_agent.enfile_une_tâche(SourceDeTâche.NavigationEtTraversée,  tâche)
+        params.user_agent.queue_a_globask_task(SourceDeTâche.NavigationEtTraversée, target_entry.donne_document().donne_relevant_global_object(),  tâche)
     }
 
     // 5. Increment completedChangeJobs.
@@ -2837,7 +2837,7 @@ unload_a_document_and_its_descendants :: fonc (user_agent: *UserAgent, document:
     pour child_navigable dans child_navigables {
         // queue a global task on the navigation and traversal task source given childNavigable's active window to perform the following steps:
         tâche := crée_tâche_unload_étape_4(user_agent, child_navigable.donne_active_document(), *number_unloaded)
-        user_agent.enfile_une_tâche(SourceDeTâche.NavigationEtTraversée, tâche)
+        user_agent.queue_a_globask_task(SourceDeTâche.NavigationEtTraversée, child_navigable.donne_active_window(), tâche)
     }
 
     // 5. Wait until numberUnloaded equals childNavigable's size.
@@ -2847,7 +2847,7 @@ unload_a_document_and_its_descendants :: fonc (user_agent: *UserAgent, document:
 
     // 6. Queue a global task on the navigation and traversal task source given document's relevant global object to perform the following steps:
     tâche := crée_tâche_unload_étape_6(user_agent, document, new_document, after_all_unloads, fire_page_swap_steps)
-    user_agent.enfile_une_tâche(SourceDeTâche.NavigationEtTraversée, tâche)
+    user_agent.queue_a_globask_task(SourceDeTâche.NavigationEtTraversée, document.donne_relevant_global_object(), tâche)
 }
 
 crée_tâche_unload_étape_4 :: fonc (user_agent: *UserAgent, document: *Document, number_unloaded: *z32) -> *Algorithm

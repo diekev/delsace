@@ -2803,7 +2803,7 @@ stop_parsing :: fonc (empl parseuse: *Parseuse)
     //    to run the following substeps:
     si user_agent {
         tâche := crée_tâche_stop_parsing_étape_6(document)
-        user_agent.enfile_une_tâche(SourceDeTâche.ManipulationDOM, tâche)
+        user_agent.queue_a_globask_task(SourceDeTâche.ManipulationDOM, document.donne_relevant_global_object(), tâche)
     }
 
     // 7. Spin the event loop until the set of scripts that will execute as soon as possible and the list of scripts that will execute in order as soon as possible are empty.
@@ -2826,7 +2826,7 @@ stop_parsing :: fonc (empl parseuse: *Parseuse)
     // 9. Queue a global task on the DOM manipulation task source given the Document's relevant global object to run the following steps:
     si user_agent {
         tâche := crée_tâche_stop_parsing_étape_9(document)
-        user_agent.enfile_une_tâche(SourceDeTâche.ManipulationDOM, tâche)
+        user_agent.queue_a_globask_task(SourceDeTâche.ManipulationDOM, document.donne_relevant_global_object(), tâche)
     }
 
     // 10. If the Document's print when loaded flag is set, then run the printing steps.

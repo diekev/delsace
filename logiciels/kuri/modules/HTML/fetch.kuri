@@ -908,14 +908,14 @@ queue_a_fetch_task_to_run_process_response :: fonc (user_agent: *UserAgent, fetc
 }
 
 /* https://fetch.spec.whatwg.org/#queue-a-fetch-task */
-queue_a_fetch_task :: fonc (user_agent: *UserAgent, algorithm: *Algorithm, task_destination: *rien @inutilisée)
+queue_a_fetch_task :: fonc (user_agent: *UserAgent, algorithm: *Algorithm, task_destination: *rien)
 {
     // À FAIRE : utilise task_destination
 
     // 1. If taskDestination is a parallel queue, then enqueue algorithm to taskDestination.
 
     // 2. Otherwise, queue a global task on the networking task source with taskDestination and algorithm.
-    user_agent.enfile_une_tâche(SourceDeTâche.Réseautage, algorithm)
+    queue_a_globask_task(user_agent, SourceDeTâche.Réseautage, task_destination comme *JavaScript.Object, algorithm)
 }
 
 /** \} */
