@@ -1,0 +1,206 @@
+importe Fondation
+
+/* ------------------------------------------------------------------------- */
+/** \nom 7.3 Operations on Objects
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-operations-on-objects
+ * \{ */
+
+TypeFonctionAllocationObjet :: fonc(*Realm)(*Object)
+
+/* 7.3.1 MakeBasicObject ( internalSlotsList )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-makebasicobject */
+make_basic_object :: fonc (realm: *Realm, rappel_allocation_objet: TypeFonctionAllocationObjet) -> *Object
+{
+    // 1. Set internalSlotsList to the list-concatenation of internalSlotsList and « [[PrivateElements]] ».
+
+    // 2. Let obj be a newly created object with an internal slot for each name in internalSlotsList.
+    obj := rappel_allocation_objet(realm)
+
+    // 3. Set obj.[[PrivateElements]] to a new empty List.
+    // 4. Set obj's essential internal methods to the default ordinary object definitions specified in 10.1.
+    // 5. Assert: If the caller will not be overriding both obj's [[GetPrototypeOf]] and [[SetPrototypeOf]] essential internal methods, then internalSlotsList contains [[Prototype]].
+    // 6. Assert: If the caller will not be overriding all of obj's [[SetPrototypeOf]], [[IsExtensible]], and [[PreventExtensions]] essential internal methods, then internalSlotsList contains [[Extensible]].
+    // À FAIRE : 7. If internalSlotsList contains [[Extensible]], set obj.[[Extensible]] to true.
+    obj.extensible = vrai
+
+    // 8. Return obj.
+    retourne obj
+}
+
+/* 7.3.2 Get
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-get-o-p */
+get :: fonc (object: *Object, property_key: PropertyKey) -> CompletionRecord
+{
+    si is_array_index(property_key) {
+        index := to_uint32(property_key)
+        retourne object.internal_get_by_index(index, Valeur(Object = object))
+    }
+
+    // 1. Return ? O.[[Get]](P, O).
+    retourne object.internal_get(property_key, Valeur(Object = object))
+}
+
+get_by_index :: fonc (object: *Object, index: n32) -> CompletionRecord
+{
+    retourne object.internal_get_by_index(index, Valeur(Object = object))
+}
+
+/* 7.3.4 Set
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-set-o-p-v-throw */
+set :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur, throw: bool) -> CompletionRecord
+{
+    // 1. Let success be ? O.[[Set]](P, V, O).
+    completion := object.internal_set(property_key, valeur, Valeur(Object = object))
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    succès := completion.valeur.V
+    // 2. If success is false and Throw is true, throw a TypeError exception.
+    si succès.est_false() && throw == vrai {
+        panique("exceptions non-implémentées")
+    }
+
+    // 3. Return UNUSED.
+    retourne normal_completion(js_undefined)
+}
+
+/* 7.3.5 CreateDataProperty ( O, P, V )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-createdataproperty */
+create_data_property :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur) -> CompletionRecord
+{
+    // 1. Let newDesc be the PropertyDescriptor { [[Value]]: V, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: true }.
+    new_desc: PropertyDescriptor
+    new_desc.value = valeur
+    new_desc.writable = vrai
+    new_desc.enumerable = vrai
+    new_desc.configurable = vrai
+
+    // 2. Return ? O.[[DefineOwnProperty]](P, newDesc).
+    retourne internal_define_own_property(object, property_key, new_desc)
+}
+
+/* 7.3.6 CreateDataPropertyOrThrow ( O, P, V )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-createdatapropertyorthrow */
+create_data_property_or_throw :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur) -> CompletionRecord
+{
+    // 1. Let success be ? CreateDataProperty(O, P, V).
+    completion := create_data_property(object, property_key, valeur)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    success := completion.valeur.V
+
+    // 2. If success is false, throw a TypeError exception.
+    si success.est_false() {
+        panique("Exception non-implémentée")
+    }
+
+    // 3. Return UNUSED.
+    retourne normal_completion(js_undefined)
+}
+
+/* 7.3.8 DefinePropertyOrThrow ( O, P, desc )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-definepropertyorthrow */
+define_property_or_throw :: fonc (object: *Object, property_key: PropertyKey, desc: &PropertyDescriptor) -> CompletionRecord
+{
+    // 1. Let success be ? O.[[DefineOwnProperty]](P, desc).
+    completion := internal_define_own_property(object, property_key, desc)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    success := completion.valeur.V
+
+    // 2. If success is false, throw a TypeError exception.
+    si success.est_false() {
+        panique("Exception non-implémentée")
+    }
+
+    // 3. Return UNUSED.
+    retourne normal_completion(js_undefined)
+}
+
+/* 7.3.11 HasProperty ( O, P ) 
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-hasproperty */
+has_property :: fonc (object: *Object, property_key: PropertyKey) -> CompletionRecord
+{
+    // 1. Return ? O.[[HasProperty]](P).
+    retourne internal_has_property(object, property_key)
+}
+
+/* 7.3.12 HasOwnProperty ( O, P )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-hasownproperty */
+has_own_property :: fonc (object: *Object, nom: PropertyKey) -> CompletionRecord
+{
+    completion_desc := internal_get_own_property(object, nom)
+    saufsi completion_desc.est_normal() {
+        retourne completion_desc
+    }
+
+    desc := completion_desc.valeur
+    si desc.est_undefined() {
+        retourne normal_completion(Valeur(Boolean = faux))
+    }
+
+    retourne normal_completion(Valeur(Boolean = vrai))
+}
+
+/* 7.3.13 Call ( F, V [ , argumentsList ] )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-call */
+call :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur, this_value: Valeur) -> CompletionRecord
+{
+    // 1. If argumentsList is not present, set argumentsList to a new empty List.
+    arguments: []Valeur
+    retourne call(interpréteuse, valeur, this_value, arguments)
+}
+
+call :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+{
+    // Continuation de la version sans arguments.
+    // 2. If IsCallable(F) is false, throw a TypeError exception.
+    saufsi is_callable(valeur) {
+        message := imprime_chaine("'%' is not callable", valeur)
+        retourne lance_type_error(interpréteuse, message)
+    }
+
+    object := valeur.donne_objet()
+
+    // 3. Return ? F.[[Call]](V, argumentsList).
+    retourne object.internal_call(interpréteuse, this_value, arguments)
+}
+
+
+/* 7.3.14 Construct ( F [ , argumentsList [ , newTarget ] ] )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-call */
+construct :: fonc (interpréteuse: *Interpréteuse, F: Valeur, arguments: []Valeur) -> CompletionRecord
+{
+    // 1. If newTarget is not present, set newTarget to F.
+    new_target := F
+    retourne construct(interpréteuse, F, arguments, new_target)
+}
+
+construct :: fonc (interpréteuse: *Interpréteuse, F: Valeur, arguments: []Valeur, new_target: Valeur) -> CompletionRecord
+{
+    // Continuation de la version sans new_target.
+    // 2. If argumentsList is not present, set argumentsList to a new empty List.
+    // 3. Return ? F.[[Construct]](argumentsList, newTarget).
+    object := F.donne_objet()
+    retourne object.internal_construct(interpréteuse, arguments, new_target)
+}
+
+/*7.3.18 LengthOfArrayLike ( obj )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-lengthofarraylike */
+length_of_array_like :: fonc (obj: *Object) -> CompletionRecord
+{
+    // 1. Return ℝ(? ToLength(? Get(obj, "length"))).
+    completion := get(obj, STR_length)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    completion = to_length(completion.valeur.V)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    retourne normal_completion(completion.valeur.V)
+}
+
+/** \} */
