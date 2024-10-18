@@ -999,12 +999,45 @@ crée_function_prototype :: fonc (realm: *Realm, prototype: *ObjectPrototype) ->
     résultat.prototype = prototype
     résultat.ajoute_propriété(STR_length, Valeur(Number = 0.0), DrapeauxPropriété.zéro)
     résultat.ajoute_propriété(STR_name, Valeur(String = crée_chaine(realm, crée_chaine_utf16_unique(""))), DrapeauxPropriété.zéro)
+
+    résultat.ajoute_fonction_native(STR_call, function_prototype_call)
+
     retourne résultat
 }
 
+/* [[Call]] */
 fonction_prototype_sur_call :: fonc (params: *ParamètresObjectCall @inutilisée) -> CompletionRecord
 {
     retourne normal_completion(js_undefined)
+}
+
+/* 20.2.3.3 Function.prototype.call ( thisArg, ...args )
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-function.prototype.call */
+function_prototype_call :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    // 1. Let func be the this value.
+    func := this_value
+
+    // 2. If IsCallable(func) is false, throw a TypeError exception.
+    saufsi is_callable(func) {
+        message := imprime_chaine("'%' is not callable", func)
+        retourne lance_type_error(interpréteuse, message)
+    }
+
+    // À FAIRE 3. Perform PrepareForTailCall().
+
+    // 4. Return ? Call(func, thisArg, args).
+    this_arg := params.donne_argument(0)
+
+    nouveaux_arguments := arguments
+    nouveaux_arguments.pointeur += 1
+    nouveaux_arguments.taille -= 1
+    si nouveaux_arguments.taille <= 0 {
+        nouveaux_arguments.pointeur = nul
+        nouveaux_arguments.taille = 0
+    }
+
+    retourne call(interpréteuse, func, this_arg, nouveaux_arguments)
 }
 
 /** \} */
