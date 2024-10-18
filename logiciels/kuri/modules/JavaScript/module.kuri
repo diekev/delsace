@@ -4,6 +4,7 @@ importe Math
 importe Numérique
 
 charge "arbre"
+charge "console"
 charge "enveloppe"
 charge "environment"
 charge "interpréteuse"
