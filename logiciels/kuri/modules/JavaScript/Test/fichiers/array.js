@@ -58,3 +58,12 @@ test("array-constructor new", function () {
     vérifie_égalité(b.length, 16)
     vérifie_égalité(b.toString(), ",,,,,,,,,,,,,,,")
 });
+
+test("array-constructor multiples valeurs", function () {
+    var b = Array(0, 1, 2, 3, 4, 5);
+    vérifie_égalité(b.length, 6)
+
+    for (var i = 0; i < 6; i++) {
+        vérifie_égalité(b[i], i)
+    }
+});

@@ -18,6 +18,11 @@ ObjetArray :: struct {
     table = *table_virtuelle_objet_array
 }
 
+array_instance_crée :: fonc (realm: *Realm) -> *Object
+{
+    retourne realm.donne_tas_de_mémoire().alloue(ObjetArray)
+}
+
 crée_array :: fonc (tas_de_mémoire: *TasDeMémoire, array_prototype: *ArrayPrototype, nombre_éléments: z64) -> *ObjetArray
 {
     résultat := tas_de_mémoire.alloue(ObjetArray)
@@ -101,6 +106,38 @@ array_instance_define_own_property :: fonc (object: *Object, property_key: Prope
     retourne ordinary_define_own_property(object, property_key, desc)
 }
 
+/* 10.4.2.2 ArrayCreate ( length [ , proto ] )
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-arraycreate */
+array_create :: fonc (realm: *Realm, length: r64, proto : *Object = nul) -> *Object
+{
+    // À FAIRE : 1. If length > 2**32 - 1, throw a RangeError exception.
+
+    // 2. If proto is not present, set proto to %Array.prototype%.
+    saufsi proto {
+        proto = realm.intrinsics.array_prototype
+    }
+
+    // 3. Let A be MakeBasicObject(« [[Prototype]], [[Extensible]] »).
+    A := make_basic_object(realm, array_instance_crée)
+
+    // 4. Set A.[[Prototype]] to proto.
+    A.prototype = proto
+
+    // 5. Set A.[[DefineOwnProperty]] as specified in 10.4.2.1.
+    // Fait via array_instance_crée.
+
+    // 6. Perform ! OrdinaryDefineOwnProperty(A, "length", PropertyDescriptor { [[Value]]: 𝔽(length), [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
+    desc: PropertyDescriptor
+    desc.value = Valeur(Number = length)
+    desc.writable = vrai
+    desc.enumerable = faux
+    desc.configurable = faux
+    _ := ordinary_define_own_property(A, STR_length, desc)
+
+    // 7. Return A.
+    retourne A
+}
+
 /* 10.4.2.4 ArraySetLength ( A, Desc ) 
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-arraysetlength */
 array_set_length :: fonc (A: *ObjetArray, desc: &PropertyDescriptor) -> CompletionRecord
@@ -144,25 +181,95 @@ crée_array_constructor :: fonc (realm: *Realm, function_prototype: *FunctionPro
     retourne résultat
 }
 
-/* À FAIRE : standardise
+/* 23.1.1.1 Array ( ...values )
  * https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array */
 array_constructor_call_or_construct :: fonc (empl params: *ParamètresCallOrConstruct) -> CompletionRecord
 {
     realm := interpréteuse.donne_realm()
 
-    résultat := crée_array(realm.donne_tas_de_mémoire(), realm.intrinsics.array_prototype, 0)
+    // 1. If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.
+    si new_target.est_undefined() {
+        new_target.Object = donne_active_function_object(interpréteuse)
+    }
 
-    si arguments.taille != 0 {
-        completion := to_number(interpréteuse, params.donne_argument(0))
-        saufsi completion.est_normal() {
-            retourne completion
-        }
-        len := completion.valeur.V.Number
+    // 2. Let proto be ? GetPrototypeFromConstructor(newTarget, "%Array.prototype%").
+    completion := get_prototype_from_constructor(realm, new_target.donne_objet().vérifie_comme(Function), realm.intrinsics.array_prototype)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    proto := completion.valeur.V.donne_objet()
 
-        completion = set(résultat, STR_length, Valeur(Number = len), vrai)
-        saufsi completion.est_normal() {
-            retourne completion
+    // 3. Let numberOfArgs be the number of elements in values.
+    number_of_args := arguments.taille
+
+    résultat: *Object
+
+    // 4. If numberOfArgs = 0, then
+    si number_of_args == 0 {
+        // a. Return ! ArrayCreate(0, proto).
+        résultat = array_create(realm, 0, realm.intrinsics.array_prototype)
+    }
+    // 5. Else if numberOfArgs = 1, then
+    sinon si number_of_args == 1 {
+        // a. Let len be values[0].
+        len := params.donne_argument(0)
+
+        // b. Let array be ! ArrayCreate(0, proto).
+        array := array_create(realm, 0, proto)
+
+        int_len: n32
+        // c. If len is not a Number, then
+        saufsi len.est_nombre() {
+            // i. Perform ! CreateDataPropertyOrThrow(array, "0", len).
+            _ := create_data_property_or_throw(array, crée_chaine_utf16_unique("0"), len)
+
+            // ii. Let intLen be 1𝔽.
+            int_len = 1
         }
+        // d. Else,
+        sinon {
+            // i. Let intLen be ! ToUint32(len).
+            int_len = to_uint32(len)
+    
+            // À FAIRE : ii. If SameValueZero(intLen, len) is false, throw a RangeError exception.
+        }
+
+        // e. Perform ! Set(array, "length", intLen, true).
+        _ := set(array, STR_length, Valeur(Number = int_len comme r64), vrai)
+
+        // f. Return array.
+        résultat = array
+    }
+    // 6. Else,
+    sinon {
+        // a. Assert: numberOfArgs ≥ 2.
+        assert(number_of_args >= 2)
+
+        // b. Let array be ? ArrayCreate(numberOfArgs, proto).
+        array := array_create(realm, number_of_args comme r64, proto)
+
+        // c. Let k be 0.
+        k : z64 = 0
+
+        // d. Repeat, while k < numberOfArgs,
+        tantque k < number_of_args {
+            // i. Let Pk be ! ToString(𝔽(k)).
+            pk := to_string(interpréteuse, Valeur(Number = k comme r64)).valeur.V.String.texte
+
+            // ii. Let itemK be values[k].
+            item_k := params.donne_argument(k)
+
+            // iii. Perform ! CreateDataPropertyOrThrow(array, Pk, itemK).
+            _ := create_data_property_or_throw(array, pk, item_k)
+        
+            // iv. Set k to k + 1.
+            k += 1
+        }
+
+        // e. Assert: The mathematical value of array's "length" property is numberOfArgs.
+
+        // f. Return array.
+        résultat = array
     }
 
     retourne normal_completion(Valeur(Object = résultat))
