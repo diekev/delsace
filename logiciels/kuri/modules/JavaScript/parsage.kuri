@@ -1,34 +1,44 @@
 importe Fondation
 importe Structures
 
-parse :: fonc (script: *Script) -> Résultat(*Programme, ErreurCompilation)
+parse :: fonc (realm: *Realm, source_text: *TexteSource, goal_symbol: GoalSymbol) -> Résultat(*NoeudSyntaxique, *SyntaxError)
 {
-    saufsi script.lexèmes {
-        retourne ErreurCompilation(message = copie_chaine("Le texte est vide"))
-    }
-
     parseuse: Parseuse
     diffère détruit_données_parseuse(*parseuse)
 
-    parseuse.script = script
-    parseuse.lexèmes = script.lexèmes
+    parseuse.realm = realm
+    parseuse.source_text = source_text
+    parseuse.lexèmes = source_text.lexèmes
 
-    statements := parse_statement_list(*parseuse)
+    résultat: *NoeudSyntaxique
 
-    si parseuse.possède_erreur {
+    discr goal_symbol {
+        Script {
+            statements := parse_statement_list(*parseuse)
+            résultat = crée_programme(*parseuse, nul, statements)
+        }
+        StringNumericLiteral {
+            résultat = parse_expression(*parseuse, ParamètresParsageExpression())
+            si résultat.type != NumericLiteral {
+                rapporte_erreur(*parseuse, "expected a numeric literal")
+            }
+        }
+    }
+
+    si parseuse.erreur_de_compilation {
+        détruit_arbre(résultat)
         retourne parseuse.erreur_de_compilation
     }
 
-    résultat := crée_programme(*parseuse, nul, statements)
     retourne résultat
 }
 
 Parseuse :: struct {
-    script: *Script
+    realm: *Realm
+    source_text: *TexteSource
     lexèmes: [..]Lexème
     position := 0
-    erreur_de_compilation: ErreurCompilation
-    possède_erreur: bool
+    erreur_de_compilation: *SyntaxError
 
     noeuds: [..]*NoeudSyntaxique
 }
@@ -61,7 +71,7 @@ lexème_courant :: fonc (parseuse: *Parseuse) -> *Lexème
 
 fini :: fonc (parseuse: *Parseuse) -> bool
 {
-    retourne parseuse.possède_erreur || parseuse.position >= parseuse.lexèmes.taille
+    retourne parseuse.erreur_de_compilation != nul || parseuse.position >= parseuse.lexèmes.taille
 }
 
 consomme :: fonc (parseuse: *Parseuse)
@@ -1226,14 +1236,13 @@ rapporte_erreur :: fonc (parseuse: *Parseuse, message: chaine)
 
 rapporte_erreur :: fonc (parseuse: *Parseuse, lexème: *Lexème, message: chaine)
 {
-    si parseuse.possède_erreur {
+    si parseuse.erreur_de_compilation {
         parseuse.consomme()
         retourne
     }
 
-    position := donne_position_source(parseuse.script.source, mémoire(lexème))
+    position := donne_position_source(parseuse.source_text, mémoire(lexème))
 
-    erreur_de_compilation := crée_erreur_de_compilation("Erreur de parsage", message, position)
+    erreur_de_compilation := crée_erreur_de_compilation(parseuse.realm, message, position)
     parseuse.erreur_de_compilation = erreur_de_compilation
-    parseuse.possède_erreur = vrai
 }

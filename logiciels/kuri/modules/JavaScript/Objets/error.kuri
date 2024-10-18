@@ -62,10 +62,10 @@ initialise_error_object :: fonc (realm: *Realm, object: *Object, nom: ECMAString
     }
 
     desc: PropertyDescriptor
-    initialise_property_descriptor(*desc, Valeur(String = crée_chaine(realm, nom)), Configurable)
+    initialise_property_descriptor(*desc, Valeur(String = crée_chaine(object.donne_tas_de_mémoire(), nom)), Configurable)
     _ := define_property_or_throw(object, STR_name, desc)
 
-    initialise_property_descriptor(*desc, Valeur(String = crée_chaine(realm, crée_chaine_utf16_unique(message))), DrapeauxPropriété.zéro)
+    initialise_property_descriptor(*desc, Valeur(String = crée_chaine(object.donne_tas_de_mémoire(), crée_chaine_utf16_unique(message))), DrapeauxPropriété.zéro)
     _ := define_property_or_throw(object, STR_message, desc)
 }
 
@@ -77,7 +77,7 @@ imprime_traceback :: fonc (enchaineuse: *Enchaineuse, realm: *Realm)
         si it.noeud_exécuté_courant {
             si it.script_or_module {
                 lexème := it.noeud_exécuté_courant.lexème
-                texte := it.script_or_module.donne_ligne_pour_lexème(lexème)
+                texte := it.script_or_module.source.donne_ligne_pour_lexème(lexème)
 
                 ligne_pour_erreur := donne_ligne_pour_erreur(texte, lexème.texte.pointeur - texte.pointeur)
 
@@ -98,17 +98,17 @@ imprime_traceback :: fonc (enchaineuse: *Enchaineuse, realm: *Realm)
     }
 }
 
-donne_ligne_pour_lexème :: fonc (script: *Script, lexème: *Lexème) -> chaine
+donne_ligne_pour_lexème :: fonc (source: &TexteSource, lexème: *Lexème) -> chaine
 {
-    premier_lexème := script.lexèmes.pointeur
-    dernier_lexème := script.lexèmes.pointeur + script.lexèmes.taille
+    premier_lexème := source.lexèmes.pointeur
+    dernier_lexème := source.lexèmes.pointeur + source.lexèmes.taille
 
     saufsi premier_lexème <= lexème < dernier_lexème {
         retourne "le lexème ne vient pas du script"
     }
 
-    début_source := script.source.texte.pointeur
-    fin_source := début_source + script.source.texte.taille
+    début_source := source.texte.pointeur
+    fin_source := début_source + source.texte.taille
 
     curseur := lexème.texte.pointeur
     tantque curseur >= début_source {
@@ -287,6 +287,16 @@ SyntaxError :: struct {
     table = *table_virtuelle_syntax_error
 
     message: *PrimitiveChaine
+}
+
+crée_erreur_de_parsage :: fonc (realm: *Realm, message: chaine) -> *SyntaxError
+{
+    tas_de_mémoire := realm.donne_tas_de_mémoire()
+    résultat := tas_de_mémoire.alloue(SyntaxError)
+    résultat.prototype = realm.intrinsics.syntax_error_prototype
+    résultat.message = crée_chaine(realm, crée_chaine_utf16_unique(message))
+    initialise_error_object(nul, résultat, STR_SyntaxError, message)
+    retourne résultat
 }
 
 lance_syntax_error :: fonc (interpréteuse: *Interpréteuse, message: chaine) -> CompletionRecord

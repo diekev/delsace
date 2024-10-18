@@ -93,12 +93,9 @@ perform_eval :: fonc (interpréteuse: *Interpréteuse, x: Valeur, strict_caller:
             script = s
         }
         Erreur(e) {
-            diffère déloge(e.message)
-            retourne interpréteuse.lance_syntax_error(e.message)
+            retourne throw_completion(Valeur(Object = e))
         }
         sinon {
-            chn := "Erreur inconnue"
-            retourne interpréteuse.lance_syntax_error(chn)
         }
     }
 

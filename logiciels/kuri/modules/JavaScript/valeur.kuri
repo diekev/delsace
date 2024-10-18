@@ -465,7 +465,7 @@ to_number :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur) -> Completio
 
     // 6. If argument is a String, return StringToNumber(argument).
     si valeur.est_chaine() {
-        retourne normal_completion(string_to_number(valeur))
+        retourne normal_completion(string_to_number(interpréteuse.donne_realm(), valeur))
     }
 
     // 7. Assert: argument is an Object.
@@ -487,42 +487,32 @@ to_number :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur) -> Completio
 
 /* 7.1.4.1.1 StringToNumber ( str )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-stringtonumber */
-string_to_number :: fonc (valeur: Valeur) -> Valeur
+string_to_number :: fonc (realm: *Realm, valeur: Valeur) -> Valeur
 {
     str := valeur.String.texte
-
-    // À FAIRE : standardise
-    // 1. Let literal be ParseText(str, StringNumericLiteral).
-    // 2. If literal is a List of errors, return NaN.
-    // 3. Return the StringNumericValue of literal.
-
     source: TexteSource
     source.texte = converti_vers_chaine(str.donne_chaine_utf16())
-    diffère déloge(source.texte)
+    diffère détruit_données_texte_source(*source)
 
-    lexèmes: [..]Lexème
-    diffère déloge(lexèmes)
+    // 1. Let literal be ParseText(str, StringNumericLiteral).
+    literal := parse_text(realm, *source, GoalSymbol.StringNumericLiteral)
 
-    résultat_lexage := lèxe(source)
-    discr résultat_lexage {
-        Ok(l) {
-            lexèmes = l
-        }
-        sinon {
+    discr literal {
+        Erreur {
+            // 2. If literal is a List of errors, return NaN.
             retourne Valeur(Number = NaN)
         }
+        Ok(noeud) {
+            diffère détruit_arbre(noeud)
+
+            // 3. Return the StringNumericValue of literal.
+            numeric := noeud comme *NumericLiteral
+            retourne Valeur(Number = numeric.valeur)
+        }
+        sinon {}
     }
 
-    si lexèmes.taille != 1 {
-        retourne Valeur(Number = NaN)
-    }
-
-    /* À FAIRE : prend en compte les signes +/-. */
-    si lexèmes[0].genre != GenreLexème.NombreLittéral {
-        retourne Valeur(Number = NaN)
-    }
-
-    retourne Valeur(Number = parse_nombre_depuis_lexème(*lexèmes[0]))
+    retourne Valeur(Number = NaN)
 }
 
 /* 7.1.5 ToIntegerOrInfinity ( argument )

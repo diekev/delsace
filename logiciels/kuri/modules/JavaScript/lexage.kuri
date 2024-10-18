@@ -123,7 +123,9 @@ finalise_lexèmes :: fonc (lexèmes: [..]Lexème)
 }
 
 Lexeuse :: struct {
-    source: TexteSource
+    realm: *Realm
+    erreur_de_compilation: *SyntaxError
+    source: *TexteSource
 
     début_mot: *z8
     début_source: *z8
@@ -132,7 +134,7 @@ Lexeuse :: struct {
     lexèmes: [..]Lexème
 }
 
-initialise_lexeuse_depuis_source :: fonc (lexeuse: &Lexeuse, source: TexteSource)
+initialise_lexeuse_depuis_source :: fonc (lexeuse: &Lexeuse, source: *TexteSource)
 {
     début_source := source.texte.pointeur
     fin_source := début_source + source.texte.taille
@@ -146,7 +148,7 @@ initialise_lexeuse_depuis_source :: fonc (lexeuse: &Lexeuse, source: TexteSource
 
 fini :: fonc (lexeuse: &Lexeuse) -> bool #enligne
 {
-    retourne lexeuse.début_source >= lexeuse.fin_source
+    retourne lexeuse.erreur_de_compilation != nul || lexeuse.début_source >= lexeuse.fin_source
 }
 
 caractère_courant :: fonc (lexeuse: &Lexeuse) -> z8 #enligne
@@ -196,7 +198,7 @@ crée_lexème_pour_caractère :: fonc (lexeuse: &Lexeuse, genre: GenreLexème) -
     retourne crée_lexème(lexeuse, genre)
 }
 
-lèxe_nombre :: fonc (empl lexeuse: &Lexeuse) -> Résultat(Lexème, ErreurCompilation)
+lèxe_nombre :: fonc (empl lexeuse: &Lexeuse) -> Lexème
 {
     lexeuse.débute_lexème()
 
@@ -213,14 +215,16 @@ lèxe_nombre :: fonc (empl lexeuse: &Lexeuse) -> Résultat(Lexème, ErreurCompil
 
         si c == '.' {
             si eu_point {
-                retourne rapporte_erreur(lexeuse, "Seulement un seul point peut suivre un chiffre")
+                rapporte_erreur(lexeuse, "Seulement un seul point peut suivre un chiffre")
+                arrête
             }
 
             eu_point = vrai
         }
         sinon si c == 'e' || c == 'E' {
             si eu_exposant {
-                retourne rapporte_erreur(lexeuse, "Seulement un seul exposant peut se trouver dans une nombre")
+                rapporte_erreur(lexeuse, "Seulement un seul exposant peut se trouver dans une nombre")
+                arrête
             }
 
             eu_exposant = vrai
@@ -287,7 +291,7 @@ parse_nombre_depuis_lexème :: fonc (lexème: *Lexème) -> r64
     retourne convertis_nombre_scientifique_en_réel(données_nombre)
 }
 
-lèxe_chaine_littérale :: fonc (empl lexeuse: &Lexeuse, caractère_final: z8) -> Résultat(Lexème, ErreurCompilation)
+lèxe_chaine_littérale :: fonc (empl lexeuse: &Lexeuse, caractère_final: z8) -> Lexème
 {
     lexeuse.débute_lexème()
     /* N'incluons pas les guillemets. */
@@ -313,7 +317,7 @@ lèxe_chaine_littérale :: fonc (empl lexeuse: &Lexeuse, caractère_final: z8) -
 
     saufsi eu_guillemet_fermant {
         lexeuse.début_source = lexeuse.début_mot - 1
-        retourne rapporte_erreur(lexeuse, "Guillemet fermant manquant pour le guillemet ouvrant")
+        rapporte_erreur(lexeuse, "Guillemet fermant manquant pour le guillemet ouvrant")
     }
 
     résultat := crée_lexème(lexeuse, GenreLexème.ChaineLittérale)
@@ -352,7 +356,7 @@ droit_traité_slash_comme_début_regex :: fonc (empl lexeuse: &Lexeuse) -> bool
 }
 
 /* À FAIRE : https://tc39.es/ecma262/multipage/ecmascript-language-lexical-grammar.html#sec-literals-regular-expression-literals */
-lèxe_regex_littérale :: fonc (empl lexeuse: &Lexeuse) -> Résultat(Lexème, ErreurCompilation)
+lèxe_regex_littérale :: fonc (empl lexeuse: &Lexeuse) -> Lexème
 {
     lexeuse.débute_lexème()
 
@@ -388,14 +392,15 @@ lèxe_regex_littérale :: fonc (empl lexeuse: &Lexeuse) -> Résultat(Lexème, Er
     retourne résultat
 }
 
-lèxe_identifiant :: fonc (empl lexeuse: &Lexeuse) -> Résultat(Lexème, ErreurCompilation)
+lèxe_identifiant :: fonc (empl lexeuse: &Lexeuse) -> Lexème
 {
     lexeuse.débute_lexème()
 
     tantque !fini(lexeuse) {
         n := nombre_octets_utf8_rapide(lexeuse.début_source)
         si n == 0 {
-            retourne rapporte_erreur(lexeuse, "Le codec Unicode ne peut décoder le caractère")
+            rapporte_erreur(lexeuse, "Le codec Unicode ne peut décoder le caractère")
+            arrête
         }
 
         si n == 1 {
@@ -421,43 +426,33 @@ lèxe_identifiant :: fonc (empl lexeuse: &Lexeuse) -> Résultat(Lexème, ErreurC
     retourne crée_lexème(lexeuse, GenreLexème.Identifiant)
 }
 
-lèxe :: fonc (source: TexteSource) -> Résultat([..]Lexème, ErreurCompilation)
+lèxe :: fonc (realm: *Realm, source: *TexteSource) -> Optionnel(*SyntaxError)
 {
     lexeuse: Lexeuse
+    lexeuse.realm = realm
     initialise_lexeuse_depuis_source(lexeuse, source)
 
-    diffère si __ret0.possède_erreur() {
-        déloge(lexeuse.lexèmes)
-    }
-
     tantque !fini(lexeuse) {
-        erreur_potentielle := consomme_espaces_blanches(lexeuse)
-        si erreur_potentielle.possède_valeur() {
-            retourne erreur_potentielle.Quelque
-        }
+        consomme_espaces_blanches(lexeuse)
 
         si fini(lexeuse) {
             arrête
         }
 
-        discr donne_lexème_suivant(lexeuse) {
-            Ok(lexème) {
-                tableau_ajoute(*lexeuse.lexèmes, lexème)
-            }
-            Erreur(erreur_de_compilation) {
-                retourne erreur_de_compilation
-            }
-            sinon {
-                retourne rapporte_erreur(lexeuse, "Impossible de lexer le texte pour raison inconnue")
-            }
-        }
+        lexème := donne_lexème_suivant(lexeuse)
+        tableau_ajoute(*lexeuse.lexèmes, lexème)
     }
 
     finalise_lexèmes(lexeuse.lexèmes)
-    retourne lexeuse.lexèmes
+
+    source.lexèmes = lexeuse.lexèmes
+
+    si lexeuse.erreur_de_compilation {
+        retourne lexeuse.erreur_de_compilation
+    }
 }
 
-donne_lexème_suivant :: fonc (lexeuse: &Lexeuse) -> Résultat(Lexème, ErreurCompilation)
+donne_lexème_suivant :: fonc (lexeuse: &Lexeuse) -> Lexème
 {
     c := lexeuse.caractère_courant()
     fanion := fanions_caractères[c comme n8]
@@ -497,7 +492,7 @@ donne_lexème_suivant :: fonc (lexeuse: &Lexeuse) -> Résultat(Lexème, ErreurCo
             '[' { genre_lexème = GenreLexème.CrochetOuvrant }
             ']' { genre_lexème = GenreLexème.CrochetFermant }
             sinon {
-                retourne rapporte_erreur(lexeuse, "Caractère ponctuant inconnu")
+                rapporte_erreur(lexeuse, "Caractère ponctuant inconnu")
             }
         }
 
@@ -537,7 +532,7 @@ donne_lexème_suivant :: fonc (lexeuse: &Lexeuse) -> Résultat(Lexème, ErreurCo
 
         saufsi dernier_opérateur.possède_valeur() {
             lexeuse.début_source = lexeuse.début_mot
-            retourne rapporte_erreur(lexeuse, "Opérateur inconnu")
+            rapporte_erreur(lexeuse, "Opérateur inconnu")
         }
 
         retourne crée_lexème(lexeuse, dernier_opérateur.Quelque)
@@ -549,13 +544,13 @@ donne_lexème_suivant :: fonc (lexeuse: &Lexeuse) -> Résultat(Lexème, ErreurCo
     n := nombre_octets_utf8_rapide(lexeuse.début_source)
 
     si n == 0 {
-        retourne rapporte_erreur(lexeuse, "Le codec Unicode ne peut décoder le texte")
+        rapporte_erreur(lexeuse, "Le codec Unicode ne peut décoder le texte")
     }
 
     retourne lèxe_identifiant(lexeuse)
 }
 
-consomme_espaces_blanches :: fonc (lexeuse: &Lexeuse) -> Optionnel(ErreurCompilation)
+consomme_espaces_blanches :: fonc (lexeuse: &Lexeuse)
 {
     tantque !fini(lexeuse) {
         c := lexeuse.caractère_courant()
@@ -585,7 +580,8 @@ consomme_espaces_blanches :: fonc (lexeuse: &Lexeuse) -> Optionnel(ErreurCompila
         n := nombre_octets_utf8_rapide(lexeuse.début_source)
 
         si n == 0 {
-            retourne rapporte_erreur(lexeuse, "Le codec Unicode ne peut décoder le texte")
+            rapporte_erreur(lexeuse, "Le codec Unicode ne peut décoder le texte")
+            retourne
         }
 
         si n == 1 {
@@ -630,8 +626,12 @@ consomme_commentaire_bloc :: fonc (lexeuse: &Lexeuse)
     }
 }
 
-rapporte_erreur :: fonc (lexeuse: &Lexeuse, message: chaine) -> ErreurCompilation
+rapporte_erreur :: fonc (lexeuse: &Lexeuse, message: chaine)
 {
+    si lexeuse.erreur_de_compilation {
+        retourne
+    }
+
     position: PositionSource
     
     curseur := lexeuse.source.texte.pointeur
@@ -661,5 +661,5 @@ rapporte_erreur :: fonc (lexeuse: &Lexeuse, message: chaine) -> ErreurCompilatio
         curseur += 1
     }
 
-    retourne crée_erreur_de_compilation("Erreur de lexage", message, position)
+    lexeuse.erreur_de_compilation = crée_erreur_de_compilation(lexeuse.realm, message, position)
 }
