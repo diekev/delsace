@@ -2419,7 +2419,6 @@ crée_update_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, argumen
 sur_exécution_update_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
 {
     update := base comme *UpdateExpression
-    assert(update.argument.type == Identifier)
 
     // 1. Let lhs be ? Evaluation of LeftHandSideExpression.
     complétion_lhs := exécute_noeud(update.argument, interpréteuse)
