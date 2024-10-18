@@ -36,6 +36,7 @@ crée_math_object :: fonc (object_prototype: *ObjectPrototype) -> *MathObject
     résultat.ajoute_fonction_native(STR_log, math_log)
     résultat.ajoute_fonction_native(STR_max, math_max)
     résultat.ajoute_fonction_native(STR_min, math_min)
+    résultat.ajoute_fonction_native(STR_pow, math_pow)
     résultat.ajoute_fonction_native(STR_random, math_random)
     résultat.ajoute_fonction_native(STR_round, math_round)
     résultat.ajoute_fonction_native(STR_sqrt, math_sqrt)
@@ -293,6 +294,36 @@ math_min :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 
     // 5. Return lowest.
     retourne normal_completion(Valeur(Number = lowest))
+}
+
+/* 21.3.2.26 Math.pow ( base, exponent )
+ * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.pow */
+math_pow :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    // 1. Set base to ? ToNumber(base).
+    completion := to_number(interpréteuse, params.donne_argument(0))
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    base := completion.valeur.V
+
+    // 2. Set exponent to ? ToNumber(exponent).
+    completion = to_number(interpréteuse, params.donne_argument(1))
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    exponent := completion.valeur.V
+
+    // 3. Return Number::exponentiate(base, exponent).
+    retourne normal_completion(number_exponentiate(base, exponent))
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-exponentiate */
+number_exponentiate :: fonc (base: Valeur, exponent: Valeur) -> Valeur
+{
+    b := base.Number
+    e := exponent.Number
+    retourne Valeur(Number = puissance(b, e))
 }
 
 /* https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.random */
