@@ -273,6 +273,10 @@ est_lexème_expression :: fonc (genre: GenreLexème) -> bool
         This {
             retourne vrai
         }
+        /* Toujours permis comme identifiant. */
+        As, Async, From, Get, Meta, Of, Set, Target {
+            retourne vrai
+        }
         sinon {
             retourne faux
         }
