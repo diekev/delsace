@@ -14,6 +14,7 @@ charge "realm"
 charge "script"
 charge "tas_de_mémoire"
 charge "terminologie"
+charge "types"
 charge "valeur"
 
 charge "Objets/array"
@@ -30,32 +31,6 @@ charge "Objets/string"
 ECMAString :: ChaineUTF16Unique
 
 NaN : r64 : 0r7ff8000000000000
-
-/* Ceux-là ne sont pas dans le standard, ce n'est que pour avoir des types pour l'union. */
-UndefinedType :: #opaque z32
-NullType :: #opaque z32
-
-BigInt :: struct {
-    // À FAIRE : implémente proprement
-    valeur: z64
-}
-
-big_int_equal :: fonc (x: Valeur @inutilisée, y: Valeur @inutilisée) -> bool
-{
-    panique("big_int equal non-implémenté")
-}
-
-/* ------------------------------------------------------------------------- */
-/** \nom 6.1.5 The Symbol Type
- * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-ecmascript-language-types-symbol-type
- * \{ */
-
-Symbol :: struct {
-    /* Soit undefined ou une chaine. */
-    description: Optionnel(ECMAString)
-}
-
-/** \} */
 
 concatène :: fonc (realm: *Realm, str_gauche: *PrimitiveChaine, str_droite: *PrimitiveChaine) -> Valeur
 {
@@ -75,160 +50,6 @@ concatène :: fonc (realm: *Realm, str_gauche: *PrimitiveChaine, str_droite: *Pr
 
     retourne Valeur(String = crée_chaine(realm, chn_résultat))
 }
-
-/* ------------------------------------------------------------------------- */
-/** \nom PropertyDescriptor
- * 6.2.6 The Property Descriptor Specification Type
- * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-property-descriptor-specification-type
- * \{ */
-
-PropertyDescriptor :: struct {
-    value: Optionnel(Valeur)
-    get: Optionnel(*Object) // ou undefined
-    set: Optionnel(*Object) // ou undefined
-    writable: Optionnel(bool)
-    configurable: Optionnel(bool)
-    enumerable: Optionnel(bool)
-}
-
-/* 6.2.6.1 IsAccessorDescriptor ( Desc )
- * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-isaccessordescriptor */
-is_accessor_descriptor :: fonc (desc: &PropertyDescriptor) -> bool
-{
-    // À FAIRE 1. If Desc is undefined, return false.
-
-    // 2. If Desc has a [[Get]] field, return true.
-    si desc.get.possède_valeur() {
-        retourne vrai
-    }
-    // 3. If Desc has a [[Set]] field, return true.
-    si desc.set.possède_valeur() {
-        retourne vrai
-    }
-    // 4. Return false.
-    retourne faux
-}
-
-/* 6.2.6.2 IsDataDescriptor ( Desc )
- * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-isdatadescriptor */
-is_data_descriptor :: fonc (desc: &PropertyDescriptor) -> bool
-{
-    // À FAIRE 1. If Desc is undefined, return false.
-
-    // 2. If Desc has a [[Value]] field, return true.
-    si desc.value.possède_valeur() {
-        retourne vrai
-    }
-    // 3. If Desc has a [[Writable]] field, return true.
-    si desc.writable.possède_valeur() {
-        retourne vrai
-    }
-    // 4. Return false.
-    retourne faux
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom PropertyKey
- * \{ */
-
-PropertyKey :: union {
-    String: ECMAString
-    Symbol: *Symbol
-}
-
-est_chaine :: fonc (key: PropertyKey) -> bool
-{
-    discr key {
-        String {
-            retourne vrai
-        }
-        sinon {
-            retourne faux
-        }
-    }
-}
-
-est_symbol :: fonc (key: PropertyKey) -> bool
-{
-    discr key {
-        Symbol {
-            retourne vrai
-        }
-        sinon {
-            retourne faux
-        }
-    }
-}
-
-opérateur == :: fonc (p1: PropertyKey, p2: PropertyKey) -> bool
-{
-    discr p1 {
-        String(s1) {
-            discr p2 {
-                String(s2) {
-                    retourne s1 == s2
-                }
-                sinon {
-                    retourne faux
-                }
-            }
-        }
-        Symbol(s1) {
-            discr p2 {
-                Symbol(s2) {
-                    retourne s1 == s2
-                }
-                sinon {
-                    retourne faux
-                }
-            }
-        }
-        sinon {
-            retourne faux
-        }
-    }
-}
-
-opérateur != :: fonc (p1: PropertyKey, p2: PropertyKey) -> bool
-{
-    retourne !(p1 == p2)
-}
-
-/* https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#array-index */
-is_array_index :: fonc (property_key: PropertyKey) -> bool
-{
-    saufsi property_key.est_chaine() {
-        retourne faux
-    }
-
-    /* À FAIRE */
-    texte := property_key.String.donne_chaine_utf16()
-
-    texte_utf8 := converti_vers_chaine(texte)
-    diffère déloge(texte_utf8)
-
-    résultat := tente extrait_r64(texte_utf8) piège _ {
-        retourne faux
-    }
-
-    retourne is_non_negative_integral_number(résultat)
-}
-
-to_uint32 :: fonc (property_key: PropertyKey) -> n32
-{
-    texte := property_key.String.donne_chaine_utf16()
-
-    /* À FAIRE */
-    texte_utf8 := converti_vers_chaine(texte)
-    diffère déloge(texte_utf8)
-
-    résultat := tente extrait_r64(texte_utf8) piège nonatteignable
-    retourne résultat comme n32
-}
-
-/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom 7.3 Operations on Objects
@@ -875,45 +696,3 @@ evaluate_function_body :: fonc (interpréteuse: *Interpréteuse, function_object
     // 2. Return ? Evaluation of FunctionStatementList.
     retourne interpréteuse.exécute(function_object.corps)
 }
-
-/* ------------------------------------------------------------------------- */
-/** \nom PrimitiveChaine
- * \{ */
-
-#portée_fichier
-
-table_virtuelle_primitive_chaine := TableVirtuelleCellule(classe = PrimitiveChaine)
-
-#portée_export
-
-PrimitiveChaine :: struct {
-    empl cellule: Cellule
-    table = *table_virtuelle_primitive_chaine
-
-    texte: ECMAString
-    objet: *Object
-}
-
-crée_chaine :: fonc (realm: *Realm, texte: ECMAString) -> *PrimitiveChaine
-{
-    pour realm.chaines {
-        si it.texte == texte {
-            retourne it
-        }
-    }
-
-    tas_de_mémoire := realm.donne_tas_de_mémoire()
-    résultat := tas_de_mémoire.alloue(PrimitiveChaine)
-    résultat.texte = texte
-    tableau_ajoute(*realm.chaines, résultat)
-    retourne résultat
-}
-
-crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, texte: ECMAString) -> *PrimitiveChaine
-{
-    résultat := tas_de_mémoire.alloue(PrimitiveChaine)
-    résultat.texte = texte
-    retourne résultat
-}
-
-/** \} */
