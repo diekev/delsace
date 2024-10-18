@@ -355,41 +355,262 @@ droit_traité_slash_comme_début_regex :: fonc (empl lexeuse: &Lexeuse) -> bool
     retourne faux
 }
 
-/* À FAIRE : https://tc39.es/ecma262/multipage/ecmascript-language-lexical-grammar.html#sec-literals-regular-expression-literals */
+RésultatLexageRegex :: énum {
+    Oui
+    Non
+    Erreur
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-lexical-grammar.html#sec-literals-regular-expression-literals */
+// RegularExpressionLiteral ::
+//     / RegularExpressionBody / RegularExpressionFlags
 lèxe_regex_littérale :: fonc (empl lexeuse: &Lexeuse) -> Lexème
 {
     lexeuse.débute_lexème()
 
-    /* BodyText */
-    tantque !fini(lexeuse) {
-        c := lexeuse.caractère_courant()
-
-        si c == '\\' {
-            début_source += 2
-            continue
-        }
-
-        si c == '/' {
-            début_source += 1
-            arrête
-        }
-
-        début_source += 1
+    /* Nous ne vérifions pas si le résultat est différent de Oui, car Non sera retourné
+     * lorsque qu'aucune fonction ne pourra apparier le '/' final. */
+    si lèxe_regular_expression_body(lexeuse) == RésultatLexageRegex.Erreur {
+        rapporte_erreur(lexeuse, "could not parse regular expression")
+        retourne Lexème()
     }
 
-    /* FlagText */
+    si fini(lexeuse) {
+        rapporte_erreur(lexeuse, "unexpected end of input")
+        retourne Lexème()
+    }
+
+    c := lexeuse.caractère_courant()
+    si c != '/' {
+        rapporte_erreur(lexeuse, "expected '/'")
+    }
+    lexeuse.avance()
+
+    lèxe_regular_expression_flags(lexeuse)
+
+    résultat := crée_lexème(lexeuse, GenreLexème.ChaineLittérale)
+    retourne résultat
+}
+
+// RegularExpressionBody ::
+//     RegularExpressionFirstChar RegularExpressionChars
+lèxe_regular_expression_body :: fonc (lexeuse: &Lexeuse) -> RésultatLexageRegex
+{
+    résultat := lèxe_regular_expression_first_char(lexeuse) 
+    si résultat != RésultatLexageRegex.Oui {
+        retourne résultat
+    }
+
+    retourne lèxe_regular_expression_chars(lexeuse)
+}
+
+// RegularExpressionChars ::
+//     [empty]
+//     RegularExpressionChars RegularExpressionChar
+lèxe_regular_expression_chars :: fonc (lexeuse: &Lexeuse) -> RésultatLexageRegex
+{
+    tantque !fini(lexeuse) {
+        résultat := lèxe_regular_expression_char(lexeuse)
+        si résultat != RésultatLexageRegex.Oui {
+            retourne résultat
+        }
+    }
+    retourne RésultatLexageRegex.Erreur
+}
+
+// RegularExpressionFirstChar ::
+//     RegularExpressionNonTerminator but not one of * or \ or / or [
+//     RegularExpressionBackslashSequence
+//     RegularExpressionClass
+lèxe_regular_expression_first_char :: fonc (lexeuse: &Lexeuse) -> RésultatLexageRegex
+{
+    résultat := lèxe_regular_expression_non_terminator(lexeuse, ['*', '\\', '/', '['])
+    si résultat == RésultatLexageRegex.Erreur || résultat == RésultatLexageRegex.Oui {
+        retourne résultat
+    }
+
+    résultat = lèxe_regular_expression_backslash_sequence(lexeuse)
+    si résultat == RésultatLexageRegex.Erreur || résultat == RésultatLexageRegex.Oui {
+        retourne résultat
+    }
+
+    résultat = lèxe_regular_expression_class(lexeuse)
+    si résultat == RésultatLexageRegex.Erreur || résultat == RésultatLexageRegex.Oui {
+        retourne résultat
+    }
+
+    rapporte_erreur(lexeuse, "unexpected character at the begining of the regular expression literal")
+    retourne RésultatLexageRegex.Erreur
+}
+
+// RegularExpressionChar ::
+//     RegularExpressionNonTerminator but not one of \ or / or [
+//     RegularExpressionBackslashSequence
+//     RegularExpressionClass
+lèxe_regular_expression_char :: fonc (lexeuse: &Lexeuse) -> RésultatLexageRegex
+{
+    si fini(lexeuse) {
+        rapporte_erreur(lexeuse, "unexpected end of input")
+        retourne RésultatLexageRegex.Erreur
+    }
+
+    résultat := lèxe_regular_expression_non_terminator(lexeuse, ['\\', '/', '['])
+    si résultat != RésultatLexageRegex.Non {
+        retourne résultat
+    }
+
+    résultat = lèxe_regular_expression_backslash_sequence(lexeuse)
+    si résultat != RésultatLexageRegex.Non {
+        retourne résultat
+    }
+
+    retourne lèxe_regular_expression_class(lexeuse)
+}
+
+// RegularExpressionBackslashSequence ::
+//     \ RegularExpressionNonTerminator
+lèxe_regular_expression_backslash_sequence :: fonc (lexeuse: &Lexeuse) -> RésultatLexageRegex
+{
+    si fini(lexeuse) {
+        rapporte_erreur(lexeuse, "unexpected end of input")
+        retourne RésultatLexageRegex.Erreur
+    }
+
+    c := lexeuse.caractère_courant()
+    si c != '\\' {
+        retourne RésultatLexageRegex.Non
+    }
+    lexeuse.avance()
+
+    exclus: []z8
+    retourne lèxe_regular_expression_non_terminator(lexeuse, exclus)
+}
+
+// RegularExpressionNonTerminator ::
+//     SourceCharacter but not LineTerminator
+lèxe_regular_expression_non_terminator :: fonc (lexeuse: &Lexeuse, exclus: []z8) -> RésultatLexageRegex
+{
+    si fini(lexeuse) {
+        rapporte_erreur(lexeuse, "unexpected end of input")
+        retourne RésultatLexageRegex.Erreur
+    }
+
+    c := lexeuse.caractère_courant()
+
+    si c == '\n' {
+        rapporte_erreur(lexeuse, "unexpected end of regular expression")
+        retourne RésultatLexageRegex.Erreur
+    }
+
+    pour exclus {
+        si it == c {
+            retourne RésultatLexageRegex.Non
+        }
+    }
+
+    lexeuse.avance()
+    retourne RésultatLexageRegex.Oui
+}
+
+// RegularExpressionClass ::
+//     [ RegularExpressionClassChars ]
+lèxe_regular_expression_class :: fonc (lexeuse: &Lexeuse) -> RésultatLexageRegex
+{
+    si fini(lexeuse) {
+        rapporte_erreur(lexeuse, "unexpected end of input")
+        retourne RésultatLexageRegex.Erreur
+    }
+
+    c := lexeuse.caractère_courant()
+    si c != '[' {
+        retourne RésultatLexageRegex.Non
+    }
+    lexeuse.avance()
+
+    résultat := lèxe_regular_expression_class_chars(lexeuse)
+    si résultat != RésultatLexageRegex.Oui {
+        rapporte_erreur(lexeuse, "invalid regular expression class")
+        retourne RésultatLexageRegex.Erreur
+    }
+
+    si fini(lexeuse) {
+        rapporte_erreur(lexeuse, "unexpected end of input")
+        retourne RésultatLexageRegex.Erreur
+    }
+
+    c = lexeuse.caractère_courant()
+    si c != ']' {
+        rapporte_erreur(lexeuse, "expected ']'")
+        retourne RésultatLexageRegex.Erreur
+    }
+    lexeuse.avance()
+
+    retourne RésultatLexageRegex.Oui
+}
+
+// RegularExpressionClassChars ::
+//     [empty]
+//     RegularExpressionClassChars RegularExpressionClassChar
+lèxe_regular_expression_class_chars :: fonc (lexeuse: &Lexeuse) -> RésultatLexageRegex
+{
+    tantque !fini(lexeuse) {
+        c := lexeuse.caractère_courant()
+        si c == ']' {
+            /* Ne consommons pas le caractère, c'est le travail de la fonction qui nous appèle. */
+            retourne RésultatLexageRegex.Oui
+        }
+
+        résultat := lèxe_regular_expression_class_char(lexeuse)
+        si résultat != RésultatLexageRegex.Oui {
+            retourne résultat
+        }
+    }
+
+    retourne RésultatLexageRegex.Non
+}
+
+// RegularExpressionClassChar ::
+//     RegularExpressionNonTerminator but not one of ] or \
+//     RegularExpressionBackslashSequence
+lèxe_regular_expression_class_char :: fonc (lexeuse: &Lexeuse) -> RésultatLexageRegex
+{
+    si fini(lexeuse) {
+        rapporte_erreur(lexeuse, "unexpected end of input")
+        retourne RésultatLexageRegex.Erreur
+    }
+
+    résultat := lèxe_regular_expression_non_terminator(lexeuse, [']', '\\'])
+    si résultat != RésultatLexageRegex.Non {
+        retourne résultat
+    }
+
+    retourne lèxe_regular_expression_backslash_sequence(lexeuse)
+}
+
+// RegularExpressionFlags ::
+//     [empty]
+//     RegularExpressionFlags IdentifierPartChar
+lèxe_regular_expression_flags :: fonc (lexeuse: &Lexeuse)
+{
+    premier_caractère := vrai
+
     tantque !fini(lexeuse) {
         c := lexeuse.caractère_courant()
         fanion := fanions_caractères[c comme n8]
 
-        saufsi fanion.ContinueIdentifiant {
-            arrête
-        }
-        début_source += 1
-    }
+        si premier_caractère {
+            si fanion.DébuteIdentifiant == faux {
+                retourne
+            }
+            premier_caractère = faux
+        } 
 
-    résultat := crée_lexème(lexeuse, GenreLexème.ChaineLittérale)
-    retourne résultat
+        saufsi fanion.ContinueIdentifiant {
+            retourne
+        }
+
+        lexeuse.avance()
+    }
 }
 
 lèxe_identifiant :: fonc (empl lexeuse: &Lexeuse) -> Lexème

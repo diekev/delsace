@@ -4,5 +4,6 @@ test("lexage des littérales regex", function () {
     var re3 = /ab+c/;
     var re4 = /ab+c/i;
     var re5 = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g;
-    var re6 = /^<(\w+)\s*\/?>(?:<\/\1>|)$/
+    var re6 = /^<(\w+)\s*\/?>(?:<\/\1>|)$/;
+    var re7 = /:\/\/(www[0-9]?\.)?(.[^/:]+)/i;
 })
