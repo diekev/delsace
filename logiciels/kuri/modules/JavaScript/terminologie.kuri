@@ -35,6 +35,7 @@ STR_push : ChaineUTF16Unique = ---
 STR_random : ChaineUTF16Unique = ---
 STR_round : ChaineUTF16Unique = ---
 STR_setPrototypeOf : ChaineUTF16Unique = ---
+STR_sin : ChaineUTF16Unique = ---
 STR_sqrt : ChaineUTF16Unique = ---
 STR_string : ChaineUTF16Unique = ---
 STR_symbol : ChaineUTF16Unique = ---

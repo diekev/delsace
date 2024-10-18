@@ -39,6 +39,7 @@ crée_math_object :: fonc (object_prototype: *ObjectPrototype) -> *MathObject
     résultat.ajoute_fonction_native(STR_pow, math_pow)
     résultat.ajoute_fonction_native(STR_random, math_random)
     résultat.ajoute_fonction_native(STR_round, math_round)
+    résultat.ajoute_fonction_native(STR_sin, math_sin)
     résultat.ajoute_fonction_native(STR_sqrt, math_sqrt)
 
     /* Chaque realm doit avoir sa propre série. */
@@ -364,6 +365,31 @@ math_round :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     // 5. Return the integral Number closest to n, preferring the Number closer to +∞ in the case of a tie.
     résultat := arrondis(n)
     retourne normal_completion(Valeur(Number = résultat))
+}
+
+/* 21.3.2.30 Math.sin ( x )
+ * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.sin */
+math_sin :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    // 1. Let n be ? ToNumber(x).
+    completion := to_number(interpréteuse, params.donne_argument(0))
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    n := completion.valeur.V.Number
+
+    // 2. If n is one of NaN, +0𝔽, or -0𝔽, return n.
+    si est_nan(n) || n == 0.0 || n == -0.0 {
+        retourne normal_completion(Valeur(Number = n))
+    }
+
+    // 3. If n is either +∞𝔽 or -∞𝔽, return NaN.
+    si est_infini(n) {
+        retourne normal_completion(Valeur(Number = NaN))
+    }
+
+    // 4. Return an implementation-approximated Number value representing the sine of ℝ(n).
+    retourne normal_completion(Valeur(Number = sinus(n)))
 }
 
 /* https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.random */
