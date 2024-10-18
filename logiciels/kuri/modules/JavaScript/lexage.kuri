@@ -42,8 +42,14 @@ initialise_fanions_caractères :: fonc ()
         }
 
         si it == '_' comme z32 {
+            fanion |= FanionCaractère.DébuteIdentifiant
             fanion |= FanionCaractère.ContinueIdentifiant
             fanion |= FanionCaractère.PeutSuivreChiffre
+        }
+
+        si it == '$' comme z32 {
+            fanion |= FanionCaractère.DébuteIdentifiant
+            fanion |= FanionCaractère.ContinueIdentifiant
         }
 
         // si it == 'n' {
@@ -63,6 +69,7 @@ initialise_fanions_caractères :: fonc ()
 
         // À FAIRE : début de caractère Unicode
         si it > 127 {
+            fanion |= FanionCaractère.DébuteIdentifiant
             fanion |= FanionCaractère.ContinueIdentifiant
         }
 
