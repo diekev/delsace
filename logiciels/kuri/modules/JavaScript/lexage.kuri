@@ -57,6 +57,10 @@ initialise_fanions_caractères :: fonc ()
         //     fanion |= FanionCaractère.PeutSuivreZéro
         // }
 
+        si it == 'e' comme z32 || it == 'E' comme z32 {
+            fanion |= FanionCaractère.PeutSuivreChiffre
+        }
+
         // À FAIRE : début de caractère Unicode
         si it > 127 {
             fanion |= FanionCaractère.ContinueIdentifiant
@@ -197,7 +201,7 @@ lèxe_nombre :: fonc (empl lexeuse: &Lexeuse) -> Résultat(Lexème, ErreurCompil
     lexeuse.débute_lexème()
 
     eu_point := faux
-    dernier_caractère_est_point := faux
+    eu_exposant := faux
 
     tantque !fini(lexeuse) {
         c := lexeuse.caractère_courant()
@@ -213,10 +217,13 @@ lèxe_nombre :: fonc (empl lexeuse: &Lexeuse) -> Résultat(Lexème, ErreurCompil
             }
 
             eu_point = vrai
-            dernier_caractère_est_point = vrai
         }
-        sinon {
-            dernier_caractère_est_point = faux
+        sinon si c == 'e' || c == 'E' {
+            si eu_exposant {
+                retourne rapporte_erreur(lexeuse, "Seulement un seul exposant peut se trouver dans une nombre")
+            }
+
+            eu_exposant = vrai
         }
 
         lexeuse.avance()
