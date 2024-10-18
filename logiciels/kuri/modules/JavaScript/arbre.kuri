@@ -3697,6 +3697,10 @@ donne_info_pour_type_noeud :: fonc (racine: *NoeudSyntaxique) -> *InfoTypeStruct
 
 visite_noeud :: fonc (visiteuse: *VisiteuseNoeud, racine: *NoeudSyntaxique, $Rappel: fonc(*VisiteuseNoeud, *NoeudSyntaxique, *InfoTypeStructure)(rien))
 {
+    /* Les noeuds peuvent être nuls, même dans les tableaux lorsqu'il y a une erreur de compilation. */
+    saufsi racine {
+        retourne
+    }
     infos := donne_info_pour_type_noeud(racine)
     Rappel(visiteuse, racine, infos)
 }
