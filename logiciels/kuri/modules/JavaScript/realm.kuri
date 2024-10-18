@@ -195,6 +195,7 @@ Intrinsics :: struct {
     array: *ArrayConstructor
     date: *DateConstructor
     eval: *Function
+    parse_int: *Function
     function: *FunctionConstructor
     math: *MathObject
     object: *ObjectConstructor
@@ -226,6 +227,7 @@ create_intrinsics :: fonc (realm: *Realm)
     realm.intrinsics.array = crée_array_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.array_prototype)
     realm.intrinsics.date = crée_date_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.date_prototype)
     realm.intrinsics.eval = crée_eval(realm)
+    realm.intrinsics.parse_int = crée_parse_int(realm)
     realm.intrinsics.function = crée_function_constructor(realm, realm.intrinsics.function_prototype)
     realm.intrinsics.math = crée_math_object(realm.intrinsics.object_prototype)
     realm.intrinsics.object = crée_object_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.object_prototype)
@@ -435,6 +437,10 @@ set_default_global_bindings :: fonc (realm: *Realm)
     desc = PropertyDescriptor()
     desc.value = Valeur(Function = realm.intrinsics.eval)
     _ := define_property_or_throw(global, STR_eval, desc)
+
+    desc = PropertyDescriptor()
+    desc.value = Valeur(Function = realm.intrinsics.parse_int)
+    _ := define_property_or_throw(global, STR_parseInt, desc)
 
     desc = PropertyDescriptor()
     desc.value = Valeur(Object = realm.intrinsics.function)

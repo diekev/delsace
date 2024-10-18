@@ -1086,6 +1086,54 @@ perform_eval :: fonc (interpréteuse: *Interpréteuse, x: Valeur, strict_caller:
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom 19.2.5 parseInt ( string, radix )
+ * \{ */
+
+#portée_fichier
+
+/* Table virtuelle pour "parseInt()" */
+table_virtuelle_function_parse_int := TableVirtuelleObject(classe = Function, sur_call = eval_sur_call)
+
+#portée_export
+
+crée_parse_int :: fonc (realm: *Realm) -> *Function
+{
+    résultat := crée_fonction(realm.intrinsics.function_prototype)
+    set_function_name(realm, résultat, STR_parseInt)
+    résultat.table = *table_virtuelle_function_parse_int
+    retourne résultat
+}
+
+parse_int_sur_call :: fonc (params: *ParamètresObjectCall) -> CompletionRecord
+{
+    retourne parse_int(params)
+}
+
+/* https://tc39.es/ecma262/multipage/global-object.html#sec-parseint-string-radix */
+parse_int :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    // À FAIRE : standardise, tests
+
+    completion := to_string(interpréteuse, params.donne_argument(0))
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+
+    string := completion.valeur.V.String.texte
+
+    chn := converti_vers_chaine(string.donne_chaine_utf16())
+    diffère déloge(chn)
+
+    résultat := tente extrait_r64(chn) piège _ {
+        retourne lance_type_error(interpréteuse, "value is not a Number")
+    }
+
+    retourne normal_completion(Valeur(Number = résultat))
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom PrimitiveChaine
  * \{ */
 
