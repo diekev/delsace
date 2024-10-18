@@ -378,16 +378,7 @@ set_default_global_bindings :: fonc (realm: *Realm) -> CompletionRecord
         
         // b. Let desc be the fully populated data Property Descriptor for the property, containing the specified attributes for the property. For properties listed in 19.2, 19.3, or 19.4 the value of the [[Value]] attribute is the corresponding intrinsic object from realmRec.
         desc: PropertyDescriptor
-        desc.value = it.valeur
-        si it.drapeaux.CONFIGURABLE {
-            desc.configurable = vrai
-        }
-        si it.drapeaux.ENUMERABLE {
-            desc.enumerable = vrai
-        }
-        si it.drapeaux.WRITABLE {
-            desc.writable = vrai
-        }
+        initialise_property_descriptor(*desc, it.valeur, it.drapeaux)
 
         // c. Perform ? DefinePropertyOrThrow(global, name, desc).
         completion := define_property_or_throw(global, name, desc)

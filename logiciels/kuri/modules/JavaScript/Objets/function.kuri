@@ -450,18 +450,15 @@ make_constructor :: fonc (F: *ECMAScriptFunction, opt_writable_prototype : *bool
     }
 
     // b. Perform ! DefinePropertyOrThrow(prototype, "constructor", PropertyDescriptor { [[Value]]: F, [[Writable]]: writablePrototype, [[Enumerable]]: false, [[Configurable]]: true }).
+    drapeau_writable_prototype: DrapeauxPropriété
+    drapeau_writable_prototype.WRITABLE = writable_prototype != faux
+
     desc: PropertyDescriptor
-    desc.value = Valeur(Object = F)
-    desc.writable = writable_prototype
-    desc.enumerable = faux
-    desc.configurable = vrai
+    initialise_property_descriptor(*desc, Valeur(Object = F), drapeau_writable_prototype | Configurable)
     _ := define_property_or_throw(prototype, STR_constructor, desc)
 
     // 6. Perform ! DefinePropertyOrThrow(F, "prototype", PropertyDescriptor { [[Value]]: prototype, [[Writable]]: writablePrototype, [[Enumerable]]: false, [[Configurable]]: false }).
-    desc.value = Valeur(Object = prototype)
-    desc.writable = writable_prototype
-    desc.enumerable = faux
-    desc.configurable = faux
+    initialise_property_descriptor(*desc, Valeur(Object = prototype), drapeau_writable_prototype)
     _ := define_property_or_throw(F, STR_prototype, desc)
 
     // 7. Return unused.
@@ -530,8 +527,7 @@ set_function_length :: fonc (F: *Object, length: r64)
 
     // 2. Perform ! DefinePropertyOrThrow(F, "length", PropertyDescriptor { [[Value]]: 𝔽(length), [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: true }).
     desc: PropertyDescriptor
-    desc.value = Valeur(Number = length)
-    desc.configurable = vrai
+    initialise_property_descriptor(*desc, Valeur(Number = length), Configurable)
     completion := define_property_or_throw(F, STR_length, desc)
     assert(completion.est_normal())
 

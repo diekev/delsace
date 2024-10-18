@@ -50,6 +50,24 @@ PropertyDescriptor :: struct {
     enumerable: Optionnel(bool)
 }
 
+initialise_property_descriptor :: fonc (desc: *PropertyDescriptor, valeur: Valeur, drapeaux: DrapeauxPropriété)
+{
+    /* Pour les réutilisation de variable. */
+    init_de(PropertyDescriptor)(desc)
+
+    desc.value = valeur
+
+    si drapeaux.CONFIGURABLE {
+        desc.configurable = vrai
+    }
+    si drapeaux.ENUMERABLE {
+        desc.enumerable = vrai
+    }
+    si drapeaux.WRITABLE {
+        desc.writable = vrai
+    }
+}
+
 /* 6.2.6.1 IsAccessorDescriptor ( Desc )
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-isaccessordescriptor */
 is_accessor_descriptor :: fonc (desc: &PropertyDescriptor) -> bool

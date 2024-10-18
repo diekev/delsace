@@ -62,12 +62,10 @@ initialise_error_object :: fonc (realm: *Realm, object: *Object, nom: ECMAString
     }
 
     desc: PropertyDescriptor
-    desc.configurable = vrai
-
-    desc.value = Valeur(String = crée_chaine(realm, nom))
+    initialise_property_descriptor(*desc, Valeur(String = crée_chaine(realm, nom)), Configurable)
     _ := define_property_or_throw(object, STR_name, desc)
 
-    desc.value = Valeur(String = crée_chaine(realm, crée_chaine_utf16_unique(message)))
+    initialise_property_descriptor(*desc, Valeur(String = crée_chaine(realm, crée_chaine_utf16_unique(message))), DrapeauxPropriété.zéro)
     _ := define_property_or_throw(object, STR_message, desc)
 }
 

@@ -128,10 +128,7 @@ array_create :: fonc (realm: *Realm, length: r64, proto : *Object = nul) -> *Obj
 
     // 6. Perform ! OrdinaryDefineOwnProperty(A, "length", PropertyDescriptor { [[Value]]: 𝔽(length), [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
     desc: PropertyDescriptor
-    desc.value = Valeur(Number = length)
-    desc.writable = vrai
-    desc.enumerable = faux
-    desc.configurable = faux
+    initialise_property_descriptor(*desc, Valeur(Number = length), Writable)
     _ := ordinary_define_own_property(A, STR_length, desc)
 
     // 7. Return A.
