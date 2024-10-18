@@ -1,7 +1,4 @@
 importe Chaine
-importe Fondation
-importe Math
-importe Numérique
 
 charge "arbre"
 charge "console"
