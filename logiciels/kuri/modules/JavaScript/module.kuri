@@ -1,4 +1,6 @@
 importe Chaine
+importe Ensemble
+importe Fondation
 
 charge "arbre"
 charge "enveloppe"
@@ -32,3 +34,111 @@ charge "Objets/string"
 ECMAString :: ChaineUTF16Unique
 
 NaN : r64 : 0r7ff8000000000000
+
+/* ------------------------------------------------------------------------- */
+/** \nom Hôte
+ * Structure de base pour les applications clientes.
+ * \{ */
+
+Hôte :: struct {
+    sur_visite_cellules: fonc(*Hôte, *VisiteuseCellule)(rien)
+}
+
+visite_cellules_hôte :: fonc (hôte: *Hôte, visiteuse: *VisiteuseCellule)
+{
+    saufsi hôte.sur_visite_cellules {
+        retourne
+    }
+    hôte.sur_visite_cellules(hôte, visiteuse)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HostDefined
+ * Cette structutre, non-spécifiée, nous sers à tenir les données définis par
+ * les hôtes pour les champs [[HostDefined]] définis par le standard.
+ * \{ */
+
+HostDefined :: struct {
+    données: *rien
+    infos: *InfoTypeStructure
+}
+
+crée_host_defined :: fonc (données: *$T) -> HostDefined
+{
+    retourne HostDefined(données, info_de(T))
+}
+
+donne_données :: fonc (host_defined: &HostDefined, $T: type_de_données) -> *T
+{
+    saufsi host_defined.données {
+        retourne nul
+    }
+    assert(est_struct_ou_employeuse_de(host_defined.infos, info_de(T)))
+    retourne host_defined.données comme *T
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom MachineVirtuelle
+ * Cette structure, non-spécifiée, nous sers à tenir les données pour exécuter
+ * des scripts.
+ * Chaque client souhaitant exécuter du code JavaScript doit le faire via une
+ * instance de MachineVirtuelle.
+ * \{ */
+
+MachineVirtuelle :: struct {
+    tas_de_mémoire: TasDeMémoire
+    hôte: *Hôte
+    execution_contexts: [..]*ExecutionContext
+}
+
+initialise_mv :: fonc (hôte: *Hôte, mv: *MachineVirtuelle)
+{
+    mv.hôte = hôte
+    mv.tas_de_mémoire.mv = mv
+}
+
+détruit_données_mv :: fonc (mv: *MachineVirtuelle)
+{
+    éboue(*mv.tas_de_mémoire, TypeÉbouage.RAMASSE_TOUT)
+    détruit_données_tas_de_mémoire(*mv.tas_de_mémoire)
+    déloge(mv.execution_contexts)
+}
+
+empile_execution_context :: fonc (mv: *MachineVirtuelle, execution_context: *ExecutionContext)
+{
+    tableau_ajoute(*mv.execution_contexts, execution_context)
+}
+
+dépile_execution_context :: fonc (mv: *MachineVirtuelle)
+{
+    assert(mv.execution_contexts.taille > 0)
+    mv.execution_contexts.taille -= 1
+}
+
+suspend_running_execution_context :: fonc (mv: *MachineVirtuelle)
+{
+    suspend(mv.donne_running_execution_context())
+}
+
+donne_tas_de_mémoire :: fonc (mv: *MachineVirtuelle) -> *TasDeMémoire
+{
+    retourne *mv.tas_de_mémoire
+}
+
+donne_running_execution_context :: fonc (mv: *MachineVirtuelle) -> *ExecutionContext #enligne
+{
+    retourne mv.execution_contexts[mv.execution_contexts.taille - 1]
+}
+
+rassemble_racines :: fonc (mv: *MachineVirtuelle, racines: *[..]*Cellule)
+{
+    pour mv.execution_contexts {
+        ensemble_ajoute(racines, it)
+    }
+}
+
+/** \} */
