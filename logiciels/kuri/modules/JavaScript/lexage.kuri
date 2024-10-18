@@ -339,7 +339,10 @@ droit_traité_slash_comme_début_regex :: fonc (empl lexeuse: &Lexeuse) -> bool
         Virgule,
         PointVirgule,
         Interrogation,
-        DoublePoint {
+        DoublePoint,
+        OuLogique,
+        EtLogique,
+        NonLogique {
             retourne vrai
         }
         sinon {}
