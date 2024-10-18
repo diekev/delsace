@@ -35,25 +35,6 @@ ECMAString :: ChaineUTF16Unique
 
 NaN : r64 : 0r7ff8000000000000
 
-concatène :: fonc (realm: *Realm, str_gauche: *PrimitiveChaine, str_droite: *PrimitiveChaine) -> Valeur
-{
-    chn1 := str_gauche.texte.donne_chaine_utf16()
-    chn2 := str_droite.texte.donne_chaine_utf16()
-
-    enchaineuse: EnchaineuseUTF16
-    initialise_enchaineuse(enchaineuse)
-    diffère détruit_tampons(enchaineuse)
-
-    ajoute(enchaineuse, chn1)
-    ajoute(enchaineuse, chn2)
-
-    chn := chaine_depuis_enchaineuse(enchaineuse)
-    diffère détruit_chaine(chn)
-    chn_résultat := crée_chaine_utf16_unique(chn)
-
-    retourne Valeur(String = crée_chaine(realm, chn_résultat))
-}
-
 /* 15.2.3 Runtime Semantics: EvaluateFunctionBody
  * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-runtime-semantics-evaluatefunctionbody */
 evaluate_function_body :: fonc (interpréteuse: *Interpréteuse, function_object: *ECMAScriptFunction, arguments_list: []Valeur) -> CompletionRecord

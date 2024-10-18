@@ -229,4 +229,23 @@ crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, texte: ECMAString) -> *Pr
     retourne résultat
 }
 
+concatène :: fonc (realm: *Realm, str_gauche: *PrimitiveChaine, str_droite: *PrimitiveChaine) -> Valeur
+{
+    chn1 := str_gauche.texte.donne_chaine_utf16()
+    chn2 := str_droite.texte.donne_chaine_utf16()
+
+    enchaineuse: EnchaineuseUTF16
+    initialise_enchaineuse(enchaineuse)
+    diffère détruit_tampons(enchaineuse)
+
+    ajoute(enchaineuse, chn1)
+    ajoute(enchaineuse, chn2)
+
+    chn := chaine_depuis_enchaineuse(enchaineuse)
+    diffère détruit_chaine(chn)
+    chn_résultat := crée_chaine_utf16_unique(chn)
+
+    retourne Valeur(String = crée_chaine(realm, chn_résultat))
+}
+
 /** \} */
