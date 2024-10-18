@@ -21,6 +21,7 @@ STR_hasOwnProperty : ChaineUTF16Unique = ---
 STR_indexOf : ChaineUTF16Unique = ---
 STR_join : ChaineUTF16Unique = ---
 STR_length : ChaineUTF16Unique = ---
+STR_log : ChaineUTF16Unique = ---
 STR_max : ChaineUTF16Unique = ---
 STR_message : ChaineUTF16Unique = ---
 STR_min : ChaineUTF16Unique = ---
