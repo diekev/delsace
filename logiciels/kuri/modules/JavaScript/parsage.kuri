@@ -775,7 +775,31 @@ parse_property_name :: fonc (parseuse: *Parseuse) -> *Expression
         retourne crée_literal(parseuse, lexème, valeur)
     }
 
-    retourne parse_identifier_reference(parseuse)
+    retourne parse_identifier_name(parseuse)
+}
+
+parse_identifier_name :: fonc (parseuse: *Parseuse) -> *Identifier
+{
+    si parseuse.fini() {
+        rapporte_erreur(parseuse, "unexpected end of input")
+        retourne nul
+    }
+
+    lexème := parseuse.lexème_courant()
+    si lexème.texte.taille == 0 {
+        rapporte_erreur(parseuse, "empty token")
+        retourne nul
+    }
+
+    c := lexème.texte[0]
+    fanion := fanions_caractères[c comme n8]
+
+    saufsi fanion.DébuteIdentifiant {
+        rapporte_erreur(parseuse, "expected an identifier name")
+    }
+
+    parseuse.consomme()
+    retourne crée_identifier(parseuse, lexème, lexème.texte)
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#prod-IdentifierReference */
@@ -1031,16 +1055,7 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
         }
         Point {
             parseuse.consomme()
-
-            saufsi apparie_lexème_identifier_property(parseuse) {
-                parseuse.rapporte_erreur("Attendu un identifiant après '.'")
-                retourne nul
-            }
-
-            lexème_ident := parseuse.lexème_courant()
-            parseuse.consomme()
-
-            propriété := crée_identifier(parseuse, lexème_ident, lexème_ident.texte)
+            propriété := parse_identifier_name(parseuse)
             retourne crée_member_expression(parseuse, lexème, gauche, propriété, faux)
         }
         ParenthèseOuvrante {
