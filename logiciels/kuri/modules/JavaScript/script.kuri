@@ -333,32 +333,8 @@ crée_erreur_de_compilation :: fonc (classe: chaine, message: chaine, position: 
 
     ajoute_au_tampon(*enchaineuse, classe, " :\n\n")
 
-    index_colonne := 0
-
-    MAX_CARACTÈRES_PAR_LIGNE :: 80
-
-    si ligne.taille > MAX_CARACTÈRES_PAR_LIGNE {
-        décalage := MAX_CARACTÈRES_PAR_LIGNE / 2
-        si position.colonne < décalage {
-            ligne_coupée: chaine
-            ligne_coupée.pointeur = ligne.pointeur
-            ligne_coupée.taille = MAX_CARACTÈRES_PAR_LIGNE
-
-            imprime_dans_enchaineuse(*enchaineuse, " % | % ... \n", position.ligne + 1, ligne_coupée)
-        }
-        sinon {
-            /* Enlève 5 pour le " ... " au début de l'impression. */
-            index_colonne = position.colonne - décalage - 5
-            ligne_coupée: chaine
-            ligne_coupée.pointeur = ligne.pointeur + position.colonne - décalage
-            ligne_coupée.taille = décalage * 2
-
-            imprime_dans_enchaineuse(*enchaineuse, " % | ... % ... \n", position.ligne + 1, ligne_coupée)
-        }
-    }
-    sinon {
-        imprime_dans_enchaineuse(*enchaineuse, " % | %\n", position.ligne + 1, ligne)
-    }
+    ligne_pour_erreur := donne_ligne_pour_erreur(ligne, position.colonne)
+    imprime_dans_enchaineuse(*enchaineuse, " % |%\n", position.ligne + 1, ligne_pour_erreur)
 
     /* +2 pour les espaces autour du nombre de la ligne. */
     pour magnitude_décimale(position.ligne + 1) + 2 {
@@ -366,6 +342,7 @@ crée_erreur_de_compilation :: fonc (classe: chaine, message: chaine, position: 
     }
     ajoute_au_tampon(*enchaineuse, "| ")
 
+    index_colonne := ligne_pour_erreur.index_colonne
     tantque index_colonne < position.colonne {
         nombre_octets := nombre_octets_utf8(*ligne[index_colonne])
         si nombre_octets == 0 {
@@ -388,6 +365,71 @@ crée_erreur_de_compilation :: fonc (classe: chaine, message: chaine, position: 
 
     résultat: ErreurCompilation
     résultat.message = chaine_depuis_enchaineuse(*enchaineuse)
+    retourne résultat
+}
+
+TroncageLigne :: énum {
+    /* La ligne ne fut pas tronquée. */
+    AUCUN
+    /* La ligne fut tronquée à la fin. */
+    FIN
+    /* La ligne fut tronquée au début et à la fin. */
+    AUTOUR
+}
+
+LignePourErreur :: struct {
+    texte: chaine
+    index_colonne: z64
+    troncage: TroncageLigne
+}
+
+imprime_ligne_pour_erreur :: fonc (enchaineuse: *Enchaineuse, ligne: *LignePourErreur)
+{
+    saufsi ligne {
+        retourne
+    }
+
+    si ligne.troncage == TroncageLigne.AUTOUR {
+        ajoute_au_tampon(enchaineuse, " ... ")
+    }
+    ajoute_au_tampon(enchaineuse, ligne.texte)
+    si ligne.troncage != TroncageLigne.AUCUN {
+        ajoute_au_tampon(enchaineuse, " ... ")
+    }
+} @FormattageImpression
+
+donne_ligne_pour_erreur :: fonc (texte: chaine, colonne: z64) -> LignePourErreur
+{
+    résultat: LignePourErreur
+
+    MAX_CARACTÈRES_PAR_LIGNE :: 80
+
+    si texte.taille > MAX_CARACTÈRES_PAR_LIGNE {
+        décalage := MAX_CARACTÈRES_PAR_LIGNE / 2
+
+        si colonne < décalage {
+            ligne_coupée: chaine
+            ligne_coupée.pointeur = texte.pointeur
+            ligne_coupée.taille = MAX_CARACTÈRES_PAR_LIGNE
+
+            résultat.texte = ligne_coupée
+            résultat.troncage = TroncageLigne.FIN
+            retourne résultat
+        }
+
+        /* Enlève 5 pour le " ... " au début de l'impression. */
+        index_colonne := colonne - décalage - 5
+        ligne_coupée: chaine
+        ligne_coupée.pointeur = texte.pointeur + colonne - décalage
+        ligne_coupée.taille = décalage * 2
+
+        résultat.texte = ligne_coupée
+        résultat.index_colonne = index_colonne
+        résultat.troncage = TroncageLigne.AUTOUR
+        retourne résultat
+    }
+
+    résultat.texte = texte
     retourne résultat
 }
 

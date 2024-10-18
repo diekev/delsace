@@ -76,8 +76,12 @@ imprime_traceback :: fonc (enchaineuse: *Enchaineuse, realm: *Realm)
     pour > mv.execution_contexts {
         si it.noeud_exécuté_courant {
             si it.script_or_module {
-                texte := it.script_or_module.donne_ligne_pour_lexème(it.noeud_exécuté_courant.lexème)
-                ajoute_au_tampon(enchaineuse, "    at '", texte, "'\n")
+                lexème := it.noeud_exécuté_courant.lexème
+                texte := it.script_or_module.donne_ligne_pour_lexème(lexème)
+
+                ligne_pour_erreur := donne_ligne_pour_erreur(texte, lexème.texte.pointeur - texte.pointeur)
+
+                ajoute_au_tampon(enchaineuse, "    at '", ligne_pour_erreur, "'\n")
                 continue
             }
         }
