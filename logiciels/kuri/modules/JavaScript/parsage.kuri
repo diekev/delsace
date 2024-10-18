@@ -220,6 +220,20 @@ parse_statement :: fonc (parseuse: *Parseuse) -> *Statement
             retourne crée_empty_statement(parseuse, lexème)
         }
         sinon {
+            sauvegarde := parseuse.position
+            label_identifier := parse_label_identifier(parseuse, faux)
+            si label_identifier {
+                si parseuse.apparie(GenreLexème.DoublePoint) {
+                    parseuse.consomme()
+
+                    statement := parse_statement(parseuse)
+
+                    retourne crée_labelled_statement(parseuse, lexème, label_identifier.nom, statement)
+                }
+
+                parseuse.position = sauvegarde
+            }
+
             si parseuse.apparie_expression() {
                 expression := parseuse.parse_expression(ParamètresParsageExpression())
                 parseuse.consomme_point_virgule_potentiel()

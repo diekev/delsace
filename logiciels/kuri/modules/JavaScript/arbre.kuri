@@ -3667,6 +3667,35 @@ sur_exécution_comma_expression :: fonc (base: *NoeudSyntaxique, interpréteuse:
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom LabelledStatement
+ * \{ */
+
+LabelledStatement :: struct {
+    empl base: Statement
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_labelled_statement
+
+    identifier: ECMAString
+    statement: *Statement
+}
+
+crée_labelled_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, identifier: ECMAString, statement: *Statement) -> *LabelledStatement
+{
+    résultat := parseuse.crée_noeud(lexème, LabelledStatement)
+    résultat.identifier = identifier
+    résultat.statement = statement
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-labelled-statements-runtime-semantics-evaluation */
+sur_exécution_labelled_statement :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *Interpréteuse @inutilisée) -> CompletionRecord
+{
+    panique("non-implémené")
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Visiteuse arbre.
  * \{ */
 
