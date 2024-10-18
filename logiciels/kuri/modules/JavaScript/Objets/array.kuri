@@ -3,29 +3,29 @@ importe Fondation
 importe Numérique
 
 /* ------------------------------------------------------------------------- */
-/** \nom ObjetArray
+/** \nom ArrayObject
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-array-exotic-objects
  * \{ */
 
 #portée_fichier
 
-table_virtuelle_objet_array := TableVirtuelleObject(classe = ObjetArray, sur_define_own_property = array_instance_define_own_property)
+table_virtuelle_objet_array := TableVirtuelleObject(classe = ArrayObject, sur_define_own_property = array_instance_define_own_property)
 
 #portée_export
 
-ObjetArray :: struct {
+ArrayObject :: struct {
     empl objet: Object
     table = *table_virtuelle_objet_array
 }
 
 array_instance_crée :: fonc (realm: *Realm) -> *Object
 {
-    retourne realm.donne_tas_de_mémoire().alloue(ObjetArray)
+    retourne realm.donne_tas_de_mémoire().alloue(ArrayObject)
 }
 
-crée_array :: fonc (tas_de_mémoire: *TasDeMémoire, array_prototype: *ArrayPrototype, nombre_éléments: z64) -> *ObjetArray
+crée_array :: fonc (tas_de_mémoire: *TasDeMémoire, array_prototype: *ArrayPrototype, nombre_éléments: z64) -> *ArrayObject
 {
-    résultat := tas_de_mémoire.alloue(ObjetArray)
+    résultat := tas_de_mémoire.alloue(ArrayObject)
     résultat.prototype = array_prototype
 
     résultat.ajoute_propriété(STR_length, Valeur(Number = nombre_éléments comme r64), Writable)
@@ -33,7 +33,7 @@ crée_array :: fonc (tas_de_mémoire: *TasDeMémoire, array_prototype: *ArrayPro
     retourne résultat
 }
 
-array_set_length :: fonc (array: *ObjetArray, len: n32)
+array_set_length :: fonc (array: *ArrayObject, len: n32)
 {
     desc: PropertyDescriptor
     desc.value = Valeur(Number = len comme r64)
@@ -47,7 +47,7 @@ array_set_length :: fonc (array: *ObjetArray, len: n32)
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-array-exotic-objects-defineownproperty-p-desc */
 array_instance_define_own_property :: fonc (object: *Object, property_key: PropertyKey, desc: &PropertyDescriptor) -> CompletionRecord
 {
-    A := object.vérifie_comme(ObjetArray)
+    A := object.vérifie_comme(ArrayObject)
 
     // 1. If P is "length", then
     si property_key == STR_length {
@@ -140,7 +140,7 @@ array_create :: fonc (realm: *Realm, length: r64, proto : *Object = nul) -> *Obj
 
 /* 10.4.2.4 ArraySetLength ( A, Desc ) 
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-arraysetlength */
-array_set_length :: fonc (A: *ObjetArray, desc: &PropertyDescriptor) -> CompletionRecord
+array_set_length :: fonc (A: *ArrayObject, desc: &PropertyDescriptor) -> CompletionRecord
 {
     /* À FAIRE */
     retourne ordinary_define_own_property(A, STR_length, desc)
