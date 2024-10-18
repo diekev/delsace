@@ -1050,16 +1050,16 @@ apply_string_or_numeric_binary_operator :: fonc (interpréteuse: *Interpréteuse
             valeur = ou_exclusif_valeurs(gauche, droite)
         }
         DécalageGauche {
-            panique("<< non-implémenté")
+            valeur = décalage_gauche_valeurs(gauche, droite)
         }
         DécalageDroite {
-            panique(">> non-implémenté")
+            valeur = décalage_droite_valeurs(gauche, droite)
         }
         EtBinaire {
-            panique("& non-implémenté")
+            valeur = et_binaire_valeurs(gauche, droite)
         }
         OuBinaire {
-            panique("| non-implémenté")
+            valeur = ou_binaire_valeurs(gauche, droite)
         }
     }
 
@@ -1108,6 +1108,46 @@ ou_exclusif_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
     g := gauche.Number comme z32
     d := droite.Number comme z32
     r := g ^ d
+    retourne Valeur(Number = r comme r64)
+}
+
+et_binaire_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    g := gauche.Number comme z32
+    d := droite.Number comme z32
+    r := g & d
+    retourne Valeur(Number = r comme r64)
+}
+
+ou_binaire_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    g := gauche.Number comme z32
+    d := droite.Number comme z32
+    r := g | d
+    retourne Valeur(Number = r comme r64)
+}
+
+décalage_gauche_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    g := gauche.Number comme z32
+    d := droite.Number comme z32
+    r := g << d
+    retourne Valeur(Number = r comme r64)
+}
+
+décalage_droite_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    g := gauche.Number comme z32
+    d := droite.Number comme z32
+    r := g >> d
     retourne Valeur(Number = r comme r64)
 }
 
@@ -1833,22 +1873,22 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
             opérateur_binaire = BinaryOperation.Divise
         }
         Modulo {
-            panique("%= non-implémenté")
+            opérateur_binaire = BinaryOperation.Modulo
         }
         DécalageGauche {
-            panique("<<= non-implémenté")
+            opérateur_binaire = BinaryOperation.DécalageGauche
         }
         DécalageDroite {
-            panique(">>= non-implémenté")
+            opérateur_binaire = BinaryOperation.DécalageDroite
         }
         EtBinaire {
-            panique("&= non-implémenté")
+            opérateur_binaire = BinaryOperation.EtBinaire
         }
         OuBinaire {
-            panique("|= non-implémenté")
+            opérateur_binaire = BinaryOperation.OuBinaire
         }
         OuExBinaire {
-            panique("^= non-implémenté")
+            opérateur_binaire = BinaryOperation.OuExclusif
         }
     }
 
