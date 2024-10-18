@@ -275,7 +275,9 @@ initialise_host_defined_realm :: fonc (mv: *MachineVirtuelle, configuration : *C
     realm.global_environment = new_global_environment(tas_de_mémoire, global, this_value)
 
     // 18. Perform ? SetDefaultGlobalBindings(realm).
-    set_default_global_bindings(realm)
+    completion := set_default_global_bindings(realm)
+    // À FAIRE : retourne la completion au lieu du Realm (standard).
+    assert(completion.est_normal())
 
     // 19. Create any host-defined global object properties on global.
     si configuration && configuration.crée_propriétés_hôte_objet_global {
@@ -288,76 +290,114 @@ initialise_host_defined_realm :: fonc (mv: *MachineVirtuelle, configuration : *C
 
 /* 9.3.3 SetDefaultGlobalBindings ( realmRec )
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-setdefaultglobalbindings */
-set_default_global_bindings :: fonc (realm: *Realm)
+set_default_global_bindings :: fonc (realm: *Realm) -> CompletionRecord
 {
     // 1. Let global be realmRec.[[GlobalObject]].
     global := realm.global_object
 
-    // À FAIRE : implémente le reste
     // 2. For each property of the Global Object specified in clause 19, do
-    // a. Let name be the String value of the property name.
-    // b. Let desc be the fully populated data Property Descriptor for the property, containing the specified attributes for the property. For properties listed in 19.2, 19.3, or 19.4 the value of the [[Value]] attribute is the corresponding intrinsic object from realmRec.
-    // c. Perform ? DefinePropertyOrThrow(global, name, desc).
+    GlobalObjectProperty :: struct {
+        nom: ECMAString
+        valeur: Valeur
+        drapeaux: DrapeauxPropriété
+    }
 
-    // À FAIRE : utilise la valeur de retour
-    desc: PropertyDescriptor
-    desc.value = Valeur(Object = realm.global_environment.global_this_value)
-    desc.configurable = vrai
-    _ := define_property_or_throw(global, STR_globalThis, desc)
+    global_object_properties := [
+        /* 19.1 Value Properties of the Global Object */
+        GlobalObjectProperty(STR_globalThis, Valeur(Object = realm.global_environment.global_this_value), Configurable | Writable),
+        GlobalObjectProperty(STR_Infinity, Valeur(Number = R64_INFINITÉ)),
+        GlobalObjectProperty(STR_NaN, Valeur(Number = NaN)),
+        GlobalObjectProperty(STR_undefined, js_undefined),
 
-    desc = PropertyDescriptor()
-    desc.value = js_undefined
-    _ := define_property_or_throw(global, STR_undefined, desc)
+        /* 19.2 Function Properties of the Global Object */
+        GlobalObjectProperty(STR_eval, Valeur(Function = realm.intrinsics.eval)),
+        // isFinite
+        // isNaN
+        // parseFloat
+        GlobalObjectProperty(STR_parseInt, Valeur(Function = realm.intrinsics.parse_int)),
+        // decodeURI
+        // decodeURIComponent
+        // encodeURI
+        // encodeURIComponent
+        // Encode
+        // Decode
+        // ParseHexOctet
 
-    desc = PropertyDescriptor()
-    desc.value = Valeur(Number = NaN)
-    _ := define_property_or_throw(global, STR_NaN, desc)
+        /* 19.3 Constructor Properties of the Global Object */
+        // AggregateError
+        GlobalObjectProperty(STR_Array, Valeur(Object = realm.intrinsics.array)),
+        // ArrayBuffer
+        // BigInt
+        // BigInt64Array
+        // BigUint64Array
+        GlobalObjectProperty(STR_Boolean, Valeur(Object = realm.intrinsics.boolean)),
+        // DataView
+        GlobalObjectProperty(STR_Date, Valeur(Object = realm.intrinsics.date)),
+        // Error
+        // EvalError
+        // FinalizationRegistry
+        // Float32Array
+        // Float64Array
+        GlobalObjectProperty(STR_Function, Valeur(Object = realm.intrinsics.function)),
+        // Int8Array
+        // Int16Array
+        // Int32Array
+        // Map
+        GlobalObjectProperty(STR_Number, Valeur(Object = realm.intrinsics.number)),
+        GlobalObjectProperty(STR_Object, Valeur(Object = realm.intrinsics.object)),
+        // Promise
+        // Proxy
+        // RangeError
+        // ReferenceError
+        // RegExp
+        // Set
+        // SharedArrayBuffer
+        GlobalObjectProperty(STR_String, Valeur(Object = realm.intrinsics.string)),
+        // Symbol
+        // SyntaxError
+        // TypeError
+        // Uint8Array
+        // Uint8ClampedArray
+        // Uint16Array
+        // Uint32Array
+        // URIError
+        // WeakMap
+        // WeakRef
+        // WeakSet
 
-    desc = PropertyDescriptor()
-    desc.value = Valeur(Number = R64_INFINITÉ)
-    _ := define_property_or_throw(global, STR_Infinity, desc)
+        /* 19.4 Other Properties of the Global Object */
+        // Atomics
+        // JSON
+        GlobalObjectProperty(STR_Math, Valeur(Object = realm.intrinsics.math))
+        // Reflect
+    ]
 
-    desc = PropertyDescriptor()
-    desc.value = Valeur(Object = realm.intrinsics.array)
-    _ := define_property_or_throw(global, STR_Array, desc)
+    pour global_object_properties {
+        // a. Let name be the String value of the property name.
+        name := it.nom
+        
+        // b. Let desc be the fully populated data Property Descriptor for the property, containing the specified attributes for the property. For properties listed in 19.2, 19.3, or 19.4 the value of the [[Value]] attribute is the corresponding intrinsic object from realmRec.
+        desc: PropertyDescriptor
+        desc.value = it.valeur
+        si it.drapeaux.CONFIGURABLE {
+            desc.configurable = vrai
+        }
+        si it.drapeaux.ENUMERABLE {
+            desc.enumerable = vrai
+        }
+        si it.drapeaux.WRITABLE {
+            desc.writable = vrai
+        }
 
-    desc = PropertyDescriptor()
-    desc.value = Valeur(Object = realm.intrinsics.date)
-    _ := define_property_or_throw(global, STR_Date, desc)
-
-    desc = PropertyDescriptor()
-    desc.value = Valeur(Function = realm.intrinsics.eval)
-    _ := define_property_or_throw(global, STR_eval, desc)
-
-    desc = PropertyDescriptor()
-    desc.value = Valeur(Function = realm.intrinsics.parse_int)
-    _ := define_property_or_throw(global, STR_parseInt, desc)
-
-    desc = PropertyDescriptor()
-    desc.value = Valeur(Object = realm.intrinsics.function)
-    _ := define_property_or_throw(global, STR_Function, desc)
-
-    desc = PropertyDescriptor()
-    desc.value = Valeur(Object = realm.intrinsics.math)
-    _ := define_property_or_throw(global, STR_Math, desc)
-
-    desc = PropertyDescriptor()
-    desc.value = Valeur(Object = realm.intrinsics.object)
-    _ := define_property_or_throw(global, STR_Object, desc)
-
-    desc = PropertyDescriptor()
-    desc.value = Valeur(Object = realm.intrinsics.string)
-    _ := define_property_or_throw(global, STR_String, desc)
-
-    desc = PropertyDescriptor()
-    desc.value = Valeur(Object = realm.intrinsics.number)
-    _ := define_property_or_throw(global, STR_Number, desc)
-
-    desc = PropertyDescriptor()
-    desc.value = Valeur(Object = realm.intrinsics.boolean)
-    _ := define_property_or_throw(global, STR_Boolean, desc)
+        // c. Perform ? DefinePropertyOrThrow(global, name, desc).
+        completion := define_property_or_throw(global, name, desc)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+    }
 
     // 3. Return UNUSED.
+    retourne normal_completion(js_undefined)
 }
 
 /** \} */
