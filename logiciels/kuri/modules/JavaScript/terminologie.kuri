@@ -9,6 +9,7 @@ STR_bigint : ChaineUTF16Unique = ---
 STR_boolean : ChaineUTF16Unique = ---
 STR_ceil : ChaineUTF16Unique = ---
 STR_constructor : ChaineUTF16Unique = ---
+STR_cos : ChaineUTF16Unique = ---
 STR_eval : ChaineUTF16Unique = ---
 STR_false : ChaineUTF16Unique = ---
 STR_floor : ChaineUTF16Unique = ---
