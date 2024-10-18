@@ -4,6 +4,7 @@ charge "arbre"
 charge "console"
 charge "enveloppe"
 charge "environment"
+charge "évaluation"
 charge "interpréteuse"
 charge "lexage"
 charge "lexèmes"
@@ -31,16 +32,3 @@ charge "Objets/string"
 ECMAString :: ChaineUTF16Unique
 
 NaN : r64 : 0r7ff8000000000000
-
-/* 15.2.3 Runtime Semantics: EvaluateFunctionBody
- * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-runtime-semantics-evaluatefunctionbody */
-evaluate_function_body :: fonc (interpréteuse: *Interpréteuse, function_object: *ECMAScriptFunction, arguments_list: []Valeur) -> CompletionRecord
-{
-    // 1. Perform ? FunctionDeclarationInstantiation(functionObject, argumentsList).
-    completion := function_declaration_instantiation(interpréteuse, function_object, arguments_list)
-    saufsi completion.est_normal() {
-        retourne completion
-    }
-    // 2. Return ? Evaluation of FunctionStatementList.
-    retourne interpréteuse.exécute(function_object.corps)
-}

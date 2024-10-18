@@ -1,0 +1,128 @@
+importe Fondation
+
+/* ------------------------------------------------------------------------- */
+/** \nom 15 ECMAScript Language: Functions and Classes
+ * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-ecmascript-language-functions-and-classes
+ * \{ */
+
+/* 15.2.3 Runtime Semantics: EvaluateFunctionBody
+ * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-runtime-semantics-evaluatefunctionbody */
+evaluate_function_body :: fonc (interpréteuse: *Interpréteuse, function_object: *ECMAScriptFunction, arguments_list: []Valeur) -> CompletionRecord
+{
+    // 1. Perform ? FunctionDeclarationInstantiation(functionObject, argumentsList).
+    completion := function_declaration_instantiation(interpréteuse, function_object, arguments_list)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    // 2. Return ? Evaluation of FunctionStatementList.
+    retourne interpréteuse.exécute(function_object.corps)
+}
+
+/* 15.2.4 Runtime Semantics: InstantiateOrdinaryFunctionObject
+ * https://tc39.es/ecma262/#sec-runtime-semantics-instantiateordinaryfunctionobject */
+instantiate_ordinary_function_object :: fonc (realm: *Realm, declaration: *FunctionDeclaration, env: *Environment, private_env: *PrivateEnvironment) -> *Function
+{
+    // FunctionDeclaration : function BindingIdentifier ( FormalParameters ) { FunctionBody }
+    si declaration.id != nul {
+        // 1. Let name be the StringValue of BindingIdentifier.
+        name := declaration.id.nom
+
+        // À FAIRE 2. Let sourceText be the source text matched by FunctionDeclaration.
+
+        // 3. Let F be OrdinaryFunctionCreate(%Function.prototype%, sourceText, FormalParameters, FunctionBody, non-lexical-this, env, privateEnv).
+        F := ordinary_function_create(realm, realm.intrinsics.function_prototype, declaration.params, declaration.corps, NON_LEXICAL_THIS, env, private_env)
+
+        // 4. Perform SetFunctionName(F, name).
+        set_function_name(realm, F, name)
+
+        // 5. Perform MakeConstructor(F).
+        make_constructor(F)
+
+        // 6. Return F.
+        retourne F
+    }
+
+    panique("instantiate_ordinary_function_object non-implémenté")
+}
+
+/* 15.2.5 Runtime Semantics: InstantiateOrdinaryFunctionExpression
+ * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-runtime-semantics-instantiateordinaryfunctionexpression */
+instantiate_ordinary_function_expression :: fonc (interpréteuse: *Interpréteuse, expression: *FunctionExpression, opt_name : *ECMAString = nul) -> *Function
+{
+    mv := interpréteuse.mv
+    running_execution_context := mv.donne_running_execution_context()
+    realm := running_execution_context.realm
+
+    si expression.id == nul {
+        // 1. If name is not present, set name to "".
+        name: ECMAString
+        si opt_name {
+            name = mémoire(opt_name)
+        }
+
+        // 2. Let env be the LexicalEnvironment of the running execution context.
+        env := running_execution_context.lexical_environment
+
+        // 3. Let privateEnv be the running execution context's PrivateEnvironment.
+        private_env := running_execution_context.private_environment
+
+        // À FAIRE 4. Let sourceText be the source text matched by FunctionExpression.
+
+        // 5. Let closure be OrdinaryFunctionCreate(%Function.prototype%, sourceText, FormalParameters, FunctionBody, NON-LEXICAL-THIS, env, privateEnv).
+        closure := ordinary_function_create(realm, realm.intrinsics.function_prototype, expression.params, expression.corps, NON_LEXICAL_THIS, env, private_env)
+
+        // 6. Perform SetFunctionName(closure, name).
+        set_function_name(realm, closure, name)
+
+        // 7. Perform MakeConstructor(closure).
+        make_constructor(closure)
+
+        // 8. Return closure.
+        retourne closure
+    }
+
+    // 1. Assert: name is not present.
+    assert(opt_name == nul)
+
+    // 2. Set name to the StringValue of BindingIdentifier.
+    name := expression.id.nom
+
+    // 3. Let outerEnv be the running execution context's LexicalEnvironment.
+    outer_env := running_execution_context.lexical_environment
+
+    // 4. Let funcEnv be NewDeclarativeEnvironment(outerEnv).
+    func_env := new_declarative_environment(outer_env.donne_tas_de_mémoire(), outer_env)
+
+    // 5. Perform ! funcEnv.CreateImmutableBinding(name, false).
+    _ := func_env.create_immutable_binding(realm, name, faux)
+
+    // 6. Let privateEnv be the running execution context's PrivateEnvironment.
+    private_env := running_execution_context.private_environment
+
+    // À FAIRE : 7. Let sourceText be the source text matched by FunctionExpression.
+
+    // 8. Let closure be OrdinaryFunctionCreate(%Function.prototype%, sourceText, FormalParameters, FunctionBody, non-lexical-this, funcEnv, privateEnv).
+    closure := ordinary_function_create(realm, realm.intrinsics.function_prototype, expression.params, expression.corps, NON_LEXICAL_THIS, func_env, private_env)
+
+    // 9. Perform SetFunctionName(closure, name).
+    set_function_name(realm, closure, name)
+
+    // 10. Perform MakeConstructor(closure).
+    make_constructor(closure)
+
+    // 11. Perform ! funcEnv.InitializeBinding(name, closure).
+    _ := func_env.initialize_binding(name, Valeur(Function = closure))
+
+    // 12. Return closure.
+    retourne closure
+}
+
+/* 15.10.1 Static Semantics: IsInTailPosition ( call )
+ * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-isintailposition */
+is_in_tail_position :: fonc (call: *NoeudSyntaxique @inutilisée) -> bool
+{
+    // À FAIRE
+    retourne faux
+}
+
+/** \} */
