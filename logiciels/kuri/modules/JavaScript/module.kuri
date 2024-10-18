@@ -1,7 +1,6 @@
 importe Chaine
 
 charge "arbre"
-charge "console"
 charge "enveloppe"
 charge "environment"
 charge "évaluation"
@@ -20,6 +19,7 @@ charge "valeur"
 
 charge "Objets/array"
 charge "Objets/boolean"
+charge "Objets/console"
 charge "Objets/date"
 charge "Objets/error"
 charge "Objets/function"
