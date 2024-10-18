@@ -801,6 +801,7 @@ BinaryOperation :: énum {
     OuExclusif
     DécalageGauche
     DécalageDroite
+    DécalageDroiteNaturel
 }
 
 BinaryExpression :: struct {
@@ -948,6 +949,9 @@ apply_string_or_numeric_binary_operator :: fonc (interpréteuse: *Interpréteuse
         DécalageDroite {
             valeur = décalage_droite_valeurs(gauche, droite)
         }
+        DécalageDroiteNaturel {
+            valeur = décalage_droite_naturel_valeurs(gauche, droite)
+        }
         EtBinaire {
             valeur = et_binaire_valeurs(gauche, droite)
         }
@@ -1040,6 +1044,16 @@ décalage_droite_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
     assert(droite.est_nombre())
     g := gauche.Number comme z32
     d := droite.Number comme z32
+    r := g >> d
+    retourne Valeur(Number = r comme r64)
+}
+
+décalage_droite_naturel_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    g := gauche.Number comme n32
+    d := droite.Number comme n32
     r := g >> d
     retourne Valeur(Number = r comme r64)
 }
@@ -1621,7 +1635,7 @@ AssignmentOperation :: énum {
     Modulo /* %= */
     DécalageGauche /* <<= */
     DécalageDroite /* >>= */
-    // À FAIRE : DécalageDroiteNaturel /* >>>= */
+    DécalageDroiteNaturel /* >>>= */
     EtBinaire /* &= */
     OuBinaire /* |= */
     OuExBinaire /* ^= */
@@ -1773,6 +1787,9 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
         }
         DécalageDroite {
             opérateur_binaire = BinaryOperation.DécalageDroite
+        }
+        DécalageDroiteNaturel {
+            opérateur_binaire = BinaryOperation.DécalageDroiteNaturel
         }
         EtBinaire {
             opérateur_binaire = BinaryOperation.EtBinaire

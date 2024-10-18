@@ -922,6 +922,9 @@ donne_opération_binaire_pour_genre_lexème :: fonc (genre: GenreLexème) -> Bin
         DécalageDroite {
             retourne BinaryOperation.DécalageDroite
         }
+        DécalageDroiteNaturel {
+            retourne BinaryOperation.DécalageDroiteNaturel
+        }
         sinon {
             panique("genre opérateur non-géré")
         }
@@ -995,7 +998,8 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
         OuBinaire,
         OuExclusif,
         DécalageGauche,
-        DécalageDroite {
+        DécalageDroite,
+        DécalageDroiteNaturel {
             opération := donne_opération_binaire_pour_genre_lexème(lexème.genre)
             parseuse.consomme()
             opérande_droite := parseuse.parse_expression(params)
@@ -1057,6 +1061,9 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
         }
         DécalageDroiteÉgal {
             retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.DécalageDroite, params)
+        }
+        DécalageDroiteNaturelÉgal {
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.DécalageDroiteNaturel, params)
         }
         EtBinaireÉgal {
             retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.EtBinaire, params)
