@@ -760,7 +760,7 @@ ordinary_set_with_own_descriptor :: fonc (object: *Object, property_key: Propert
             // À FAIRE : i. Assert: Receiver does not currently have a property P.
 
             // ii. Return ? CreateDataProperty(Receiver, P, V).
-            retourne create_data_property(receiver, property_key, valeur)
+            retourne create_data_property(receiver.donne_objet(), property_key, valeur)
         }
     }
 
