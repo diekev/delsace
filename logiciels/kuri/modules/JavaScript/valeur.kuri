@@ -67,7 +67,7 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: *Valeur)
             ajoute_au_tampon(enchaineuse, "[object ", o.donne_nom_classe(), "]")
         }
         String(s) {
-            ajoute_au_tampon(enchaineuse, "\"", s.texte, "\"")
+            ajoute_au_tampon(enchaineuse, s.texte)
         }
         sinon {
             ajoute_au_tampon(enchaineuse, "Valeur inconnue.")
