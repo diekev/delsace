@@ -23,6 +23,12 @@ crée_math_object :: fonc (object_prototype: *ObjectPrototype) -> *MathObject
 {
     résultat := object_prototype.donne_tas_de_mémoire().alloue(MathObject)
     résultat.prototype = object_prototype
+
+    constantes: Constantes(r64)
+
+    résultat.ajoute_propriété(STR_LN2, Valeur(Number = 0.6931471805599453), DrapeauxPropriété.zéro)
+    résultat.ajoute_propriété(STR_PI, Valeur(Number = constantes.PI), DrapeauxPropriété.zéro)
+
     résultat.ajoute_fonction_native(STR_abs, math_abs)
     résultat.ajoute_fonction_native(STR_ceil, math_ceil)
     résultat.ajoute_fonction_native(STR_floor, math_floor)
