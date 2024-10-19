@@ -209,6 +209,11 @@ parse_statement :: fonc (parseuse: *Parseuse) -> *Statement
         Switch {
             retourne parse_switch_statement(parseuse)
         }
+        Debugger {
+            parseuse.consomme()
+            parseuse.consomme_point_virgule_potentiel()
+            retourne crée_debugger_statement(parseuse, lexème)
+        }
         AccoladeOuvrante {
             parseuse.consomme(GenreLexème.AccoladeOuvrante)
             statements := parse_statement_list(parseuse)

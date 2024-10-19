@@ -3713,6 +3713,31 @@ sur_exécution_labelled_statement :: fonc (base: *NoeudSyntaxique @inutilisée, 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom DebuggerStatement
+ * \{ */
+
+DebuggerStatement :: struct {
+    empl base: Statement
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_debugger_statement
+}
+
+crée_debugger_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *DebuggerStatement
+{
+    résultat := parseuse.crée_noeud(lexème, DebuggerStatement)
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-debugger-statements-runtime-semantics-evaluation */
+sur_exécution_debugger_statement :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *Interpréteuse @inutilisée) -> CompletionRecord
+{
+    // À FAIRE : supporte debugger
+    retourne normal_completion(js_undefined)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Visiteuse arbre.
  * \{ */
 

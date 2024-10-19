@@ -376,7 +376,8 @@ est_lexème_instruction :: fonc (genre: GenreLexème) -> bool
         Break,
         Switch,
         While,
-        Do {
+        Do,
+        Debugger {
             retourne vrai
         }
         sinon {
