@@ -280,9 +280,10 @@ sur_rappel_sauvegarde :: fonc (base: *QT_Rappel_Generique)
             script = s
         }
         Erreur(e) {
-            chn := e.message.vers_qt()
-            QT_plain_text_edit_definis_texte(sortie, *chn)
-            déloge(e.message)
+            chn := imprime_chaine("%", Valeur(Object = e))
+            diffère déloge(chn)
+            chn_qt := chn.vers_qt()
+            QT_plain_text_edit_definis_texte(sortie, *chn_qt)
             retourne
         }
         sinon {
