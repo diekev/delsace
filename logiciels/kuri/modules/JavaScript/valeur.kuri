@@ -489,9 +489,7 @@ to_number :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur) -> Completio
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-stringtonumber */
 string_to_number :: fonc (realm: *Realm, valeur: Valeur) -> Valeur
 {
-    str := valeur.String.texte
-    source: TexteSource
-    source.texte = converti_vers_chaine(str.donne_chaine_utf16())
+    source := crée_texte_source(valeur.String.texte)
     diffère détruit_données_texte_source(*source)
 
     // 1. Let literal be ParseText(str, StringNumericLiteral).

@@ -1,3 +1,4 @@
+importe Chaine
 importe Fondation
 importe Numérique
 importe Unicode
@@ -69,6 +70,13 @@ crée_texte_source :: fonc (texte: chaine) -> TexteSource
 {
     résultat : TexteSource = ---
     résultat.texte = copie_chaine(texte)
+    retourne résultat
+}
+
+crée_texte_source :: fonc (texte: ECMAString) -> TexteSource
+{
+    résultat : TexteSource = ---
+    résultat.texte = converti_vers_chaine(texte.donne_chaine_utf16())
     retourne résultat
 }
 
