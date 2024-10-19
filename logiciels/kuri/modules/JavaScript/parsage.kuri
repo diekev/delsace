@@ -1088,6 +1088,9 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
         OuExclusifÉgal {
             retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.OuExBinaire, params)
         }
+        CoalesceÉgal {
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.Coalesce, params)
+        }
         Point {
             parseuse.consomme()
             propriété := parse_identifier_name(parseuse)

@@ -26,3 +26,15 @@ test("?? retourne la valeur non-nulle et non-undefined", function () {
     const baz = 0 ?? 42;
     vérifie_égalité(baz, 0)
 });
+
+test("??= peut créer des membres qui n'existent pas", function () {
+    const a = { duration: 50 };
+    a.speed ??= 25;
+    vérifie_égalité(a.speed, 25);
+});
+
+test("??= ne remplace pas les membres qui existent", function () {
+    const a = { duration: 50 };
+    a.duration ??= 10;
+    vérifie_égalité(a.duration, 50);
+});
