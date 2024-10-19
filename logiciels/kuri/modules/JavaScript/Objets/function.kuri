@@ -450,18 +450,15 @@ make_constructor :: fonc (F: *ECMAScriptFunction, opt_writable_prototype : *bool
     }
 
     // b. Perform ! DefinePropertyOrThrow(prototype, "constructor", PropertyDescriptor { [[Value]]: F, [[Writable]]: writablePrototype, [[Enumerable]]: false, [[Configurable]]: true }).
+    drapeau_writable_prototype: DrapeauxPropriété
+    drapeau_writable_prototype.WRITABLE = writable_prototype != faux
+
     desc: PropertyDescriptor
-    desc.value = Valeur(Object = F)
-    desc.writable = writable_prototype
-    desc.enumerable = faux
-    desc.configurable = vrai
+    initialise_property_descriptor(*desc, Valeur(Object = F), drapeau_writable_prototype | Configurable)
     _ := define_property_or_throw(prototype, STR_constructor, desc)
 
     // 6. Perform ! DefinePropertyOrThrow(F, "prototype", PropertyDescriptor { [[Value]]: prototype, [[Writable]]: writablePrototype, [[Enumerable]]: false, [[Configurable]]: false }).
-    desc.value = Valeur(Object = prototype)
-    desc.writable = writable_prototype
-    desc.enumerable = faux
-    desc.configurable = faux
+    initialise_property_descriptor(*desc, Valeur(Object = prototype), drapeau_writable_prototype)
     _ := define_property_or_throw(F, STR_prototype, desc)
 
     // 7. Return unused.
@@ -530,8 +527,7 @@ set_function_length :: fonc (F: *Object, length: r64)
 
     // 2. Perform ! DefinePropertyOrThrow(F, "length", PropertyDescriptor { [[Value]]: 𝔽(length), [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: true }).
     desc: PropertyDescriptor
-    desc.value = Valeur(Number = length)
-    desc.configurable = vrai
+    initialise_property_descriptor(*desc, Valeur(Number = length), Configurable)
     completion := define_property_or_throw(F, STR_length, desc)
     assert(completion.est_normal())
 
@@ -1003,12 +999,45 @@ crée_function_prototype :: fonc (realm: *Realm, prototype: *ObjectPrototype) ->
     résultat.prototype = prototype
     résultat.ajoute_propriété(STR_length, Valeur(Number = 0.0), DrapeauxPropriété.zéro)
     résultat.ajoute_propriété(STR_name, Valeur(String = crée_chaine(realm, crée_chaine_utf16_unique(""))), DrapeauxPropriété.zéro)
+
+    résultat.ajoute_fonction_native(STR_call, function_prototype_call)
+
     retourne résultat
 }
 
+/* [[Call]] */
 fonction_prototype_sur_call :: fonc (params: *ParamètresObjectCall @inutilisée) -> CompletionRecord
 {
     retourne normal_completion(js_undefined)
+}
+
+/* 20.2.3.3 Function.prototype.call ( thisArg, ...args )
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-function.prototype.call */
+function_prototype_call :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    // 1. Let func be the this value.
+    func := this_value
+
+    // 2. If IsCallable(func) is false, throw a TypeError exception.
+    saufsi is_callable(func) {
+        message := imprime_chaine("'%' is not callable", func)
+        retourne lance_type_error(interpréteuse, message)
+    }
+
+    // À FAIRE 3. Perform PrepareForTailCall().
+
+    // 4. Return ? Call(func, thisArg, args).
+    this_arg := params.donne_argument(0)
+
+    nouveaux_arguments := arguments
+    nouveaux_arguments.pointeur += 1
+    nouveaux_arguments.taille -= 1
+    si nouveaux_arguments.taille <= 0 {
+        nouveaux_arguments.pointeur = nul
+        nouveaux_arguments.taille = 0
+    }
+
+    retourne call(interpréteuse, func, this_arg, nouveaux_arguments)
 }
 
 /** \} */
