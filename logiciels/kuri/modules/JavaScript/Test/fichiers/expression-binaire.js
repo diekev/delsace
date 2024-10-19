@@ -248,3 +248,27 @@ test("a instanceof b", function () {
     vérifieQue(auto instanceof Object).doitÊtre(true);
     vérifieQue(auto instanceof Array).doitÊtre(false);
 });
+
+test("a >= b", function () {
+    vérifieQue(5 >= 3).doitÊtre(true);
+    vérifieQue(3 >= 3).doitÊtre(true);
+    vérifieQue('ab' >= 'aa').doitÊtre(true);
+});
+
+test("a > b", function () {
+    vérifieQue(5 > 3).doitÊtre(true);
+    vérifieQue(3 > 3).doitÊtre(false);
+    vérifieQue('ab' > 'aa').doitÊtre(true);
+});
+
+test("a <= b", function () {
+    vérifieQue(5 <= 3).doitÊtre(false);
+    vérifieQue(3 <= 3).doitÊtre(true);
+    vérifieQue('aa' <= 'ab').doitÊtre(true);
+});
+
+test("a < b", function () {
+    vérifieQue(5 < 3).doitÊtre(false);
+    vérifieQue(3 < 3).doitÊtre(false);
+    vérifieQue('aa' < 'ab').doitÊtre(true);
+});
