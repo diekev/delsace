@@ -172,3 +172,16 @@ test("a **= b", function () {
     vérifieQue((a **= 0)).doitÊtre(1);
     vérifieQue((a **= 'hello')).doitÊtreNaN();
 });
+
+test("a - b", function () {
+    vérifieQue(5 - 3).doitÊtre(2);
+    vérifieQue(3.5 - 5).doitÊtre(-1.5);
+    vérifieQue(5 - 'hello').doitÊtreNaN();
+    vérifieQue(5 - true).doitÊtre(4);
+});
+
+test("a -= b", function () {
+    let a = 2;
+    vérifieQue((a -= 3)).doitÊtre(-1);
+    vérifieQue((a -= 'Hello')).doitÊtreNaN();
+});
