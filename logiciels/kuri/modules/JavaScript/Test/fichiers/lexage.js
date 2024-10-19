@@ -11,3 +11,11 @@ test("les caractères échappées ne compte pas comme des caractères finaux", f
     var s = '*([^\\]\'"]*?)';
     var t = '\\';
 });
+
+test("les identifiants peuvent avoir '_' et '$' au début et au milieu", function() {
+    var _ = "*([^\\]'\"]*?)";
+    var $ = "\\";
+    var _$ = '*([^\\]\'"]*?)';
+    var x$3_v1 = '\\';
+});
+

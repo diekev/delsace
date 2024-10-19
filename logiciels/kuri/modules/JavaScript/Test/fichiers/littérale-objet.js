@@ -39,3 +39,11 @@ test("accès présence propriétés avec l'opérateur 'in'", function () {
     vérifie("deux" in o)
     //vérifie(3 in o)
 });
+
+test("expression littérale avec postincrément", function () {
+    var i = 0;
+    var o = { x: i++, y: 2 };
+    vérifie_égalité(i, 1);
+    vérifie_égalité(o.x, 0);
+    vérifie_égalité(o.y, 2);
+})

@@ -15,6 +15,25 @@ ReferencedName :: union {
     private_name: *PrivateName
 }
 
+imprime_refereced_name :: fonc (enchaineuse: *Enchaineuse, ref: *ReferencedName)
+{
+    saufsi ref {
+        retourne
+    }
+
+    discr mémoire(ref) {
+        valeur(v) {
+            ajoute_au_tampon(enchaineuse, v)
+        }
+        private_name(p) {
+            ajoute_au_tampon(enchaineuse, p.description)
+        }
+        sinon {
+            ajoute_au_tampon(enchaineuse, "ReferencedName non initialisé")
+        }
+    }
+} @FormattageImpression
+
 is_array_key :: fonc (referenced_name: ReferencedName) -> bool
 {
     discr referenced_name {

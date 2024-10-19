@@ -1,34 +1,50 @@
 importe Fondation
 importe Structures
 
-parse :: fonc (script: *Script) -> Résultat(*Programme, ErreurCompilation)
+parse :: fonc (realm: *Realm, source_text: *TexteSource, goal_symbol: GoalSymbol) -> Résultat(*NoeudSyntaxique, *SyntaxError)
 {
-    saufsi script.lexèmes {
-        retourne ErreurCompilation(message = copie_chaine("Le texte est vide"))
-    }
-
     parseuse: Parseuse
     diffère détruit_données_parseuse(*parseuse)
 
-    parseuse.script = script
-    parseuse.lexèmes = script.lexèmes
+    parseuse.realm = realm
+    parseuse.source_text = source_text
+    parseuse.lexèmes = source_text.lexèmes
 
-    statements := parse_statement_list(*parseuse)
+    résultat: *NoeudSyntaxique
 
-    si parseuse.possède_erreur {
+    discr goal_symbol {
+        Script {
+            statements := parse_statement_list(*parseuse)
+            résultat = crée_programme(*parseuse, nul, statements)
+        }
+        StringNumericLiteral {
+            /* A StringNumericLiteral that is empty or contains only white space is converted to +0𝔽. */
+            si source_text.lexèmes.taille == 0 {
+                résultat = crée_literal(*parseuse, nul, 0.0)
+            }
+            sinon {
+                résultat = parse_expression(*parseuse, ParamètresParsageExpression())
+                si résultat.type != NumericLiteral {
+                    rapporte_erreur(*parseuse, "expected a numeric literal")
+                }
+            }
+        }
+    }
+
+    si parseuse.erreur_de_compilation {
+        détruit_arbre(résultat)
         retourne parseuse.erreur_de_compilation
     }
 
-    résultat := crée_programme(*parseuse, nul, statements)
     retourne résultat
 }
 
 Parseuse :: struct {
-    script: *Script
+    realm: *Realm
+    source_text: *TexteSource
     lexèmes: [..]Lexème
     position := 0
-    erreur_de_compilation: ErreurCompilation
-    possède_erreur: bool
+    erreur_de_compilation: *SyntaxError
 
     noeuds: [..]*NoeudSyntaxique
 }
@@ -61,7 +77,7 @@ lexème_courant :: fonc (parseuse: *Parseuse) -> *Lexème
 
 fini :: fonc (parseuse: *Parseuse) -> bool
 {
-    retourne parseuse.possède_erreur || parseuse.position >= parseuse.lexèmes.taille
+    retourne parseuse.erreur_de_compilation != nul || parseuse.position >= parseuse.lexèmes.taille
 }
 
 consomme :: fonc (parseuse: *Parseuse)
@@ -199,6 +215,11 @@ parse_statement :: fonc (parseuse: *Parseuse) -> *Statement
         Switch {
             retourne parse_switch_statement(parseuse)
         }
+        Debugger {
+            parseuse.consomme()
+            parseuse.consomme_point_virgule_potentiel()
+            retourne crée_debugger_statement(parseuse, lexème)
+        }
         AccoladeOuvrante {
             parseuse.consomme(GenreLexème.AccoladeOuvrante)
             statements := parse_statement_list(parseuse)
@@ -210,6 +231,20 @@ parse_statement :: fonc (parseuse: *Parseuse) -> *Statement
             retourne crée_empty_statement(parseuse, lexème)
         }
         sinon {
+            sauvegarde := parseuse.position
+            label_identifier := parse_label_identifier(parseuse, faux)
+            si label_identifier {
+                si parseuse.apparie(GenreLexème.DoublePoint) {
+                    parseuse.consomme()
+
+                    statement := parse_statement(parseuse)
+
+                    retourne crée_labelled_statement(parseuse, lexème, label_identifier.nom, statement)
+                }
+
+                parseuse.position = sauvegarde
+            }
+
             si parseuse.apparie_expression() {
                 expression := parseuse.parse_expression(ParamètresParsageExpression())
                 parseuse.consomme_point_virgule_potentiel()
@@ -678,6 +713,14 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
             parseuse.consomme()
             retourne crée_this_expression(parseuse, lexème)
         }
+        As,
+        Async,
+        From,
+        Get,
+        Meta,
+        Of,
+        Set,
+        Target,
         Identifiant {
             parseuse.consomme()
             retourne crée_identifier(parseuse, lexème, lexème.texte)
@@ -765,7 +808,31 @@ parse_property_name :: fonc (parseuse: *Parseuse) -> *Expression
         retourne crée_literal(parseuse, lexème, valeur)
     }
 
-    retourne parse_identifier_reference(parseuse)
+    retourne parse_identifier_name(parseuse)
+}
+
+parse_identifier_name :: fonc (parseuse: *Parseuse) -> *Identifier
+{
+    si parseuse.fini() {
+        rapporte_erreur(parseuse, "unexpected end of input")
+        retourne nul
+    }
+
+    lexème := parseuse.lexème_courant()
+    si lexème.texte.taille == 0 {
+        rapporte_erreur(parseuse, "empty token")
+        retourne nul
+    }
+
+    c := lexème.texte[0]
+    fanion := fanions_caractères[c comme n8]
+
+    saufsi fanion.DébuteIdentifiant {
+        rapporte_erreur(parseuse, "expected an identifier name")
+    }
+
+    parseuse.consomme()
+    retourne crée_identifier(parseuse, lexème, lexème.texte)
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#prod-IdentifierReference */
@@ -874,6 +941,12 @@ donne_opération_binaire_pour_genre_lexème :: fonc (genre: GenreLexème) -> Bin
         DécalageDroite {
             retourne BinaryOperation.DécalageDroite
         }
+        DécalageDroiteNaturel {
+            retourne BinaryOperation.DécalageDroiteNaturel
+        }
+        Exponentiation {
+            retourne BinaryOperation.Exponentiation
+        }
         sinon {
             panique("genre opérateur non-géré")
         }
@@ -947,7 +1020,9 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
         OuBinaire,
         OuExclusif,
         DécalageGauche,
-        DécalageDroite {
+        DécalageDroite,
+        DécalageDroiteNaturel,
+        Exponentiation {
             opération := donne_opération_binaire_pour_genre_lexème(lexème.genre)
             parseuse.consomme()
             opérande_droite := parseuse.parse_expression(params)
@@ -980,7 +1055,8 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
             operation := si lexème.genre == GenreLexème.PlusPlus { UpdateOperation.PostfixIncrement } sinon { UpdateOperation.PostfixDecrement }
             update := crée_update_expression(parseuse, lexème, gauche, operation)
 
-            si parseuse.apparie_expression_secondaire() {
+            /* Les expressions de style var o = {x:i++,y:2} doivent s'arrêter à la virgule (qui est une expression secondaire). */
+            si parseuse.apparie_expression_secondaire() && !parseuse.apparie(params.lexème_final) {
                 retourne parseuse.parse_expression_secondaire(update, params)
             }
 
@@ -1010,6 +1086,9 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
         DécalageDroiteÉgal {
             retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.DécalageDroite, params)
         }
+        DécalageDroiteNaturelÉgal {
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.DécalageDroiteNaturel, params)
+        }
         EtBinaireÉgal {
             retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.EtBinaire, params)
         }
@@ -1019,18 +1098,21 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
         OuExclusifÉgal {
             retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.OuExBinaire, params)
         }
+        EtLogiqueÉgal {
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.EtLogique, params)
+        }
+        OuLogiqueÉgal {
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.OuLogique, params)
+        }
+        CoalesceÉgal {
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.Coalesce, params)
+        }
+        ExponentiationÉgal {
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.Exponentiation, params)
+        }
         Point {
             parseuse.consomme()
-
-            saufsi apparie_lexème_identifier_property(parseuse) {
-                parseuse.rapporte_erreur("Attendu un identifiant après '.'")
-                retourne nul
-            }
-
-            lexème_ident := parseuse.lexème_courant()
-            parseuse.consomme()
-
-            propriété := crée_identifier(parseuse, lexème_ident, lexème_ident.texte)
+            propriété := parse_identifier_name(parseuse)
             retourne crée_member_expression(parseuse, lexème, gauche, propriété, faux)
         }
         ParenthèseOuvrante {
@@ -1060,6 +1142,11 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
             parseuse.consomme()
             droite := parseuse.parse_expression(params)
             retourne crée_logical_or(parseuse, lexème, gauche, droite)
+        }
+        Coalesce {
+            parseuse.consomme()
+            droite := parseuse.parse_expression(params)
+            retourne crée_coalesce(parseuse, lexème, gauche, droite)
         }
         Interrogation {
             parseuse.consomme()
@@ -1226,14 +1313,13 @@ rapporte_erreur :: fonc (parseuse: *Parseuse, message: chaine)
 
 rapporte_erreur :: fonc (parseuse: *Parseuse, lexème: *Lexème, message: chaine)
 {
-    si parseuse.possède_erreur {
+    si parseuse.erreur_de_compilation {
         parseuse.consomme()
         retourne
     }
 
-    position := donne_position_source(parseuse.script.source, mémoire(lexème))
+    position := donne_position_source(parseuse.source_text, mémoire(lexème))
 
-    erreur_de_compilation := crée_erreur_de_compilation("Erreur de parsage", message, position)
+    erreur_de_compilation := crée_erreur_de_compilation(parseuse.realm, message, position)
     parseuse.erreur_de_compilation = erreur_de_compilation
-    parseuse.possède_erreur = vrai
 }

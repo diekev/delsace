@@ -1,0 +1,400 @@
+importe Chaine
+importe Fondation
+importe Math
+importe Numérique
+
+/* Ceux-là ne sont pas dans le standard, ce n'est que pour avoir des types pour l'union. */
+UndefinedType :: #opaque z32
+NullType :: #opaque z32
+
+/* ------------------------------------------------------------------------- */
+/** \nom The BigInt Type
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-ecmascript-language-types-symbol-type
+ * \{ */
+
+BigInt :: struct {
+    // À FAIRE : implémente proprement
+    valeur: z64
+}
+
+big_int_equal :: fonc (x: Valeur @inutilisée, y: Valeur @inutilisée) -> bool
+{
+    panique("big_int equal non-implémenté")
+}
+
+big_int_bitwise_not :: fonc (x: Valeur @inutilisée) -> Valeur
+{
+    panique("big_int_bitwise_not non-implémenté")
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 6.1.5 The Symbol Type
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-ecmascript-language-types-symbol-type
+ * \{ */
+
+Symbol :: struct {
+    /* Soit undefined ou une chaine. */
+    description: Optionnel(ECMAString)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 6.1.6.1 The Number Type
+ * \{ */
+
+/* 6.1.6.1.2 Number::bitwiseNOT ( x )
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-bitwiseNOT */
+number_bitwise_not :: fonc (x: Valeur) -> Valeur
+{
+    // 1. Let oldValue be ! ToInt32(x).
+    old_value := to_int32(x).Number comme z32
+
+    // 2. Return the bitwise complement of oldValue.
+    // The mathematical value of the result is exactly representable as a 32-bit two's complement bit string.
+    retourne Valeur(Number = ~old_value comme r64)
+}
+
+/* 6.1.6.1.3 Number::exponentiate
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-exponentiate */
+number_exponentiate :: fonc (b: Valeur, e: Valeur) -> Valeur
+{
+    // À FAIRE : standardise le reste
+    base := b.Number
+    exponent := e.Number
+
+    // 1. If exponent is NaN, return NaN.
+    si est_nan(exponent) {
+        retourne Valeur(Number = NaN)
+    }
+
+    // 2. If exponent is either +0𝔽 or -0𝔽, return 1𝔽.
+    si exponent == 0.0 || exponent == -0.0 {
+        retourne Valeur(Number = 1.0)
+    }
+
+    // 3. If base is NaN, return NaN.
+    si est_nan(base) {
+        retourne Valeur(Number = NaN)
+    }
+
+    retourne Valeur(Number = puissance(b, e))
+}
+
+/* 6.1.6.1.13 Number::equal ( x, y )
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-equal */
+number_equal :: fonc (vx: Valeur, vy: Valeur) -> bool
+{
+    x := vx.Number
+    y := vy.Number
+
+    // 1. If x is NaN, return false.
+    si est_nan(x) {
+        retourne faux
+    }
+
+    // 2. If y is NaN, return false.
+    si est_nan(y) {
+        retourne faux
+    }
+
+    // 3. If x is y, return true.
+    // NOTE : la comparaison x == y est pour les valeurs infinies.
+    si abs(x - y) <= 1e-15 || (x == y) {
+        retourne vrai
+    }
+
+    // 4. If x is +0𝔽 and y is -0𝔽, return true.
+    si x == 0.0 && y == -0.0 {
+        retourne vrai
+    }
+
+    // 5. If x is -0𝔽 and y is +0𝔽, return true.
+    si x == -0.0 && y == 0.0 {
+        retourne vrai
+    }
+
+    // 6. Return false.
+    retourne faux
+}
+
+/* 6.1.6.1.20 Number::toString ( x, radix )
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-tostring */
+number_to_string :: fonc (realm: *Realm, valeur: Valeur, radix: n32) -> Valeur
+{
+    x := valeur.Number
+    // 1. If x is NaN, return "NaN".
+    si est_nan(x) {
+        retourne crée_chaine(realm, STR_NaN)
+    }
+
+    // 2. If x is either +0𝔽 or -0𝔽, return "0".
+    si x == 0.0 || x == -0.0 {
+        retourne crée_chaine(realm, crée_chaine_utf16_unique("0"))
+    }
+
+    // 3. If x < -0𝔽, return the string-concatenation of "-" and Number::toString(-x, radix).
+    si x < -0.0 {
+        chn_moins := crée_chaine(realm, crée_chaine_utf16_unique("-"))
+        chn_x := number_to_string(realm, Valeur(Number = -x), radix)
+        retourne concatène(realm, chn_moins, chn_x.String)
+    }
+
+    // 4. If x is +∞𝔽, return "Infinity".
+    si x == R64_INFINITÉ {
+        retourne crée_chaine(realm, STR_Infinity)
+    }
+
+    // À FAIRE : implémente selon le standard.
+    chn: chaine
+    diffère déloge(chn)
+
+    /* Évite d'inclure ".0" à la fin. */
+    ix := x comme n64
+    si x == ix comme r64 {
+        chn = imprime_chaine("%", ix)
+    }
+    sinon {
+        chn = imprime_chaine("%", x)
+    }
+
+    résultat := crée_chaine_utf16_unique(chn)
+    retourne crée_chaine(realm, résultat)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom PropertyDescriptor
+ * 6.2.6 The Property Descriptor Specification Type
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-property-descriptor-specification-type
+ * \{ */
+
+PropertyDescriptor :: struct {
+    value: Optionnel(Valeur)
+    get: Optionnel(*Object) // ou undefined
+    set: Optionnel(*Object) // ou undefined
+    writable: Optionnel(bool)
+    configurable: Optionnel(bool)
+    enumerable: Optionnel(bool)
+}
+
+initialise_property_descriptor :: fonc (desc: *PropertyDescriptor, valeur: Valeur, drapeaux: DrapeauxPropriété)
+{
+    /* Pour les réutilisation de variable. */
+    init_de(PropertyDescriptor)(desc)
+
+    desc.value = valeur
+
+    si drapeaux.CONFIGURABLE {
+        desc.configurable = vrai
+    }
+    si drapeaux.ENUMERABLE {
+        desc.enumerable = vrai
+    }
+    si drapeaux.WRITABLE {
+        desc.writable = vrai
+    }
+}
+
+/* 6.2.6.1 IsAccessorDescriptor ( Desc )
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-isaccessordescriptor */
+is_accessor_descriptor :: fonc (desc: &PropertyDescriptor) -> bool
+{
+    // À FAIRE 1. If Desc is undefined, return false.
+
+    // 2. If Desc has a [[Get]] field, return true.
+    si desc.get.possède_valeur() {
+        retourne vrai
+    }
+    // 3. If Desc has a [[Set]] field, return true.
+    si desc.set.possède_valeur() {
+        retourne vrai
+    }
+    // 4. Return false.
+    retourne faux
+}
+
+/* 6.2.6.2 IsDataDescriptor ( Desc )
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-isdatadescriptor */
+is_data_descriptor :: fonc (desc: &PropertyDescriptor) -> bool
+{
+    // À FAIRE 1. If Desc is undefined, return false.
+
+    // 2. If Desc has a [[Value]] field, return true.
+    si desc.value.possède_valeur() {
+        retourne vrai
+    }
+    // 3. If Desc has a [[Writable]] field, return true.
+    si desc.writable.possède_valeur() {
+        retourne vrai
+    }
+    // 4. Return false.
+    retourne faux
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom PropertyKey
+ * \{ */
+
+PropertyKey :: union {
+    String: ECMAString
+    Symbol: *Symbol
+}
+
+est_chaine :: fonc (key: PropertyKey) -> bool
+{
+    discr key {
+        String {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+est_symbol :: fonc (key: PropertyKey) -> bool
+{
+    discr key {
+        Symbol {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+opérateur == :: fonc (p1: PropertyKey, p2: PropertyKey) -> bool
+{
+    discr p1 {
+        String(s1) {
+            discr p2 {
+                String(s2) {
+                    retourne s1 == s2
+                }
+                sinon {
+                    retourne faux
+                }
+            }
+        }
+        Symbol(s1) {
+            discr p2 {
+                Symbol(s2) {
+                    retourne s1 == s2
+                }
+                sinon {
+                    retourne faux
+                }
+            }
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+opérateur != :: fonc (p1: PropertyKey, p2: PropertyKey) -> bool
+{
+    retourne !(p1 == p2)
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#array-index */
+is_array_index :: fonc (property_key: PropertyKey) -> bool
+{
+    saufsi property_key.est_chaine() {
+        retourne faux
+    }
+
+    /* À FAIRE */
+    texte := property_key.String.donne_chaine_utf16()
+
+    texte_utf8 := converti_vers_chaine(texte)
+    diffère déloge(texte_utf8)
+
+    résultat := tente extrait_r64(texte_utf8) piège _ {
+        retourne faux
+    }
+
+    retourne is_non_negative_integral_number(résultat)
+}
+
+to_uint32 :: fonc (property_key: PropertyKey) -> n32
+{
+    texte := property_key.String.donne_chaine_utf16()
+
+    /* À FAIRE */
+    texte_utf8 := converti_vers_chaine(texte)
+    diffère déloge(texte_utf8)
+
+    résultat := tente extrait_r64(texte_utf8) piège nonatteignable
+    retourne résultat comme n32
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom PrimitiveChaine
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_primitive_chaine := TableVirtuelleCellule(classe = PrimitiveChaine)
+
+#portée_export
+
+PrimitiveChaine :: struct {
+    empl cellule: Cellule
+    table = *table_virtuelle_primitive_chaine
+
+    texte: ECMAString
+    objet: *Object
+}
+
+crée_chaine :: fonc (realm: *Realm, texte: ECMAString) -> *PrimitiveChaine
+{
+    pour realm.chaines {
+        si it.texte == texte {
+            retourne it
+        }
+    }
+
+    tas_de_mémoire := realm.donne_tas_de_mémoire()
+    résultat := tas_de_mémoire.alloue(PrimitiveChaine)
+    résultat.texte = texte
+    tableau_ajoute(*realm.chaines, résultat)
+    retourne résultat
+}
+
+crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, texte: ECMAString) -> *PrimitiveChaine
+{
+    résultat := tas_de_mémoire.alloue(PrimitiveChaine)
+    résultat.texte = texte
+    retourne résultat
+}
+
+concatène :: fonc (realm: *Realm, str_gauche: *PrimitiveChaine, str_droite: *PrimitiveChaine) -> Valeur
+{
+    chn1 := str_gauche.texte.donne_chaine_utf16()
+    chn2 := str_droite.texte.donne_chaine_utf16()
+
+    enchaineuse: EnchaineuseUTF16
+    initialise_enchaineuse(enchaineuse)
+    diffère détruit_tampons(enchaineuse)
+
+    ajoute(enchaineuse, chn1)
+    ajoute(enchaineuse, chn2)
+
+    chn := chaine_depuis_enchaineuse(enchaineuse)
+    diffère détruit_chaine(chn)
+    chn_résultat := crée_chaine_utf16_unique(chn)
+
+    retourne Valeur(String = crée_chaine(realm, chn_résultat))
+}
+
+/** \} */

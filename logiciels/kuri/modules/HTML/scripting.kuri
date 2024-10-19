@@ -88,11 +88,13 @@ create_a_classic_script :: fonc (user_agent: *UserAgent, source: chaine, setting
 
     discr JavaScript.parse_script(source, settings.donne_realm(), host_defined) {
         Erreur(e) {
-            imprime("%\n", e.message)
+            error := JavaScript.Valeur(Object = e)
+            imprime("%\n", error)
 
-            // À FAIRE : 11. If result is a list of errors, then:
-
+            // 11. If result is a list of errors, then:
             // 1. Set script's parse error and its error to rethrow to result[0].
+            script.parse_error = error
+            script.error_to_rethrow = error
 
             // 2. Return script.
             retourne script

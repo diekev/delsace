@@ -67,7 +67,7 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: *Valeur)
             ajoute_au_tampon(enchaineuse, "[object ", o.donne_nom_classe(), "]")
         }
         String(s) {
-            ajoute_au_tampon(enchaineuse, "\"", s.texte, "\"")
+            ajoute_au_tampon(enchaineuse, s.texte)
         }
         sinon {
             ajoute_au_tampon(enchaineuse, "Valeur inconnue.")
@@ -465,7 +465,7 @@ to_number :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur) -> Completio
 
     // 6. If argument is a String, return StringToNumber(argument).
     si valeur.est_chaine() {
-        retourne normal_completion(string_to_number(valeur))
+        retourne normal_completion(string_to_number(interpréteuse.donne_realm(), valeur))
     }
 
     // 7. Assert: argument is an Object.
@@ -487,42 +487,30 @@ to_number :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur) -> Completio
 
 /* 7.1.4.1.1 StringToNumber ( str )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-stringtonumber */
-string_to_number :: fonc (valeur: Valeur) -> Valeur
+string_to_number :: fonc (realm: *Realm, valeur: Valeur) -> Valeur
 {
-    str := valeur.String.texte
+    source := crée_texte_source(valeur.String.texte)
+    diffère détruit_données_texte_source(*source)
 
-    // À FAIRE : standardise
     // 1. Let literal be ParseText(str, StringNumericLiteral).
-    // 2. If literal is a List of errors, return NaN.
-    // 3. Return the StringNumericValue of literal.
+    literal := parse_text(realm, *source, GoalSymbol.StringNumericLiteral)
 
-    source: TexteSource
-    source.texte = converti_vers_chaine(str.donne_chaine_utf16())
-    diffère déloge(source.texte)
-
-    lexèmes: [..]Lexème
-    diffère déloge(lexèmes)
-
-    résultat_lexage := lèxe(source)
-    discr résultat_lexage {
-        Ok(l) {
-            lexèmes = l
-        }
-        sinon {
+    discr literal {
+        Erreur {
+            // 2. If literal is a List of errors, return NaN.
             retourne Valeur(Number = NaN)
         }
+        Ok(noeud) {
+            diffère détruit_arbre(noeud)
+
+            // 3. Return the StringNumericValue of literal.
+            numeric := noeud comme *NumericLiteral
+            retourne Valeur(Number = numeric.valeur)
+        }
+        sinon {}
     }
 
-    si lexèmes.taille != 1 {
-        retourne Valeur(Number = NaN)
-    }
-
-    /* À FAIRE : prend en compte les signes +/-. */
-    si lexèmes[0].genre != GenreLexème.NombreLittéral {
-        retourne Valeur(Number = NaN)
-    }
-
-    retourne Valeur(Number = parse_nombre_depuis_lexème(*lexèmes[0]))
+    retourne Valeur(Number = NaN)
 }
 
 /* 7.1.5 ToIntegerOrInfinity ( argument )
@@ -549,6 +537,15 @@ to_integer_or_infinity :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur)
 
     // À FAIRE : 5. Return truncate(ℝ(number)).
     retourne normal_completion(Valeur(Number = (number comme z64) comme r64))
+}
+
+/* 7.1.6 ToInt32 ( argument )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-toint32 */
+to_int32 :: fonc (argument: Valeur) -> Valeur
+{
+    // À FAIRE : standardise
+    x := argument.Number comme z32
+    retourne Valeur(Number = x comme r64)
 }
 
 /* 7.1.17 ToString ( argument )
@@ -592,17 +589,7 @@ to_string :: fonc (realm: *Realm, argument: Valeur) -> CompletionRecord
 
     // 7. If argument is a Number, return Number::toString(argument, 10).
     si argument.est_nombre() {
-        // À FAIRE : implémente selon le standard.
-        n := argument.Number
-        si est_nan(n) {
-            retourne normal_completion(crée_chaine(realm, STR_NaN))
-        }
-
-        chn := imprime_chaine("%", n)
-        diffère déloge(chn)
-
-        résultat := crée_chaine_utf16_unique(chn)
-        retourne normal_completion(crée_chaine(realm, résultat))
+        retourne normal_completion(number_to_string(realm, argument, 10))
     }
 
     // 8. If argument is a BigInt, return BigInt::toString(argument, 10).
@@ -920,7 +907,7 @@ is_less_than :: fonc (interpréteuse: *Interpréteuse, x: Valeur, y: Valeur, lef
 
     // 3. If px is a String and py is a String, then
     si px.est_chaine() && py.est_chaine() {
-        panique("is_less_than non-implémenté pour chaine < chaine")
+        // À FAIRE : standardise
         // a. Let lx be the length of px.
         // b. Let ly be the length of py.
         // c. For each integer i such that 0 ≤ i < min(lx, ly), in ascending order, do
@@ -929,6 +916,9 @@ is_less_than :: fonc (interpréteuse: *Interpréteuse, x: Valeur, y: Valeur, lef
             // iii. If cx < cy, return true.
             // iv. If cx > cy, return false.
         // d. If lx < ly, return true. Otherwise, return false.   
+        chn_px := px.String.texte
+        chn_py := py.String.texte
+        retourne normal_completion(Valeur(Boolean = chn_px < chn_py))
     }
     // 4. Else,
     sinon {
@@ -990,7 +980,7 @@ is_less_than :: fonc (interpréteuse: *Interpréteuse, x: Valeur, y: Valeur, lef
 
 /* 7.2.12 IsLooselyEqual ( x, y )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-islooselyequal */
-is_loosely_equal :: fonc (interpréteuse: *Interpréteuse @inutilisée, x: Valeur, y: Valeur) -> CompletionRecord
+is_loosely_equal :: fonc (interpréteuse: *Interpréteuse, x: Valeur, y: Valeur) -> CompletionRecord
 {
     // 1. If Type(x) is Type(y), then
     si x.donne_type() == y.donne_type() {
@@ -1012,12 +1002,14 @@ is_loosely_equal :: fonc (interpréteuse: *Interpréteuse @inutilisée, x: Valeu
 
     // 5. If x is a Number and y is a String, return ! IsLooselyEqual(x, ! ToNumber(y)).
     si x.est_nombre() && y.est_chaine() {
-        panique("is_loosely_equal non-implémenté")
+        ny := to_number(interpréteuse, y).valeur.V
+        retourne is_loosely_equal(interpréteuse, x, ny)
     }
 
     // 6. If x is a String and y is a Number, return ! IsLooselyEqual(! ToNumber(x), y).
     si x.est_chaine() && y.est_nombre() {
-        panique("is_loosely_equal non-implémenté")
+        nx := to_number(interpréteuse, x).valeur.V
+        retourne is_loosely_equal(interpréteuse, nx, y)
     }
 
     // 7. If x is a BigInt and y is a String, then
@@ -1035,12 +1027,14 @@ is_loosely_equal :: fonc (interpréteuse: *Interpréteuse @inutilisée, x: Valeu
 
     // 9. If x is a Boolean, return ! IsLooselyEqual(! ToNumber(x), y).
     si x.est_boolean() {
-        panique("is_loosely_equal non-implémenté")
+        nx := to_number(interpréteuse, x).valeur.V
+        retourne is_loosely_equal(interpréteuse, nx, y)
     }
 
     // 10. If y is a Boolean, return ! IsLooselyEqual(x, ! ToNumber(y)).
     si y.est_boolean() {
-        panique("is_loosely_equal non-implémenté")
+        ny := to_number(interpréteuse, y).valeur.V
+        retourne is_loosely_equal(interpréteuse, x, ny)
     }
 
     // 11. If x is either a String, a Number, a BigInt, or a Symbol and y is an Object, return ! IsLooselyEqual(x, ? ToPrimitive(y)).
@@ -1076,10 +1070,7 @@ is_strictly_equal :: fonc (x: Valeur, y: Valeur) -> Valeur
     // 2. If x is a Number, then
     si x.est_nombre() {
         // a. Return Number::equal(x, y).
-        // À FAIRE : Numer::equal
-        valx := x.Number
-        valy := y.Number
-        retourne valx == valy
+        retourne number_equal(x, y)
     }
 
     // 3. Return SameValueNonNumber(x, y).
