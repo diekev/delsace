@@ -199,3 +199,39 @@ test("a += b", function () {
     vérifieQue((a += 3)).doitÊtre(5); // Addition
     vérifieQue((b += ' world')).doitÊtre("hello world"); // Concatenation
 });
+
+test("a !== b", function () {
+    vérifieQue(1 !== 1).doitÊtre(false);
+    vérifieQue('hello' !== 'hello').doitÊtre(false);
+    vérifieQue('1' !== 1).doitÊtre(true);
+    vérifieQue(1 !== '1').doitÊtre(true);
+    vérifieQue(0 !== false).doitÊtre(true);
+    vérifieQue(false !== 0).doitÊtre(true);
+});
+
+test("a === b", function () {
+    vérifieQue(1 === 1).doitÊtre(true);
+    vérifieQue('hello' === 'hello').doitÊtre(true);
+    vérifieQue('1' === 1).doitÊtre(false);
+    vérifieQue(1 === '1').doitÊtre(false);
+    vérifieQue(0 === false).doitÊtre(false);
+    vérifieQue(false === 0).doitÊtre(false);
+});
+
+test("a != b", function () {
+    vérifieQue(1 != 1).doitÊtre(false);
+    vérifieQue('hello' != 'hello').doitÊtre(false);
+    vérifieQue('1' != 1).doitÊtre(false);
+    vérifieQue(1 != '1').doitÊtre(false);
+    vérifieQue(0 != false).doitÊtre(false);
+    vérifieQue(false != 0).doitÊtre(false);
+});
+
+test("a == b", function () {
+    vérifieQue(1 == 1).doitÊtre(true);
+    vérifieQue('hello' == 'hello').doitÊtre(true);
+    vérifieQue('1' == 1).doitÊtre(true);
+    vérifieQue(1 == '1').doitÊtre(true);
+    vérifieQue(0 == false).doitÊtre(true);
+    vérifieQue(false == 0).doitÊtre(true);
+});
