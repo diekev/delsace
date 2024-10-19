@@ -1,9 +1,19 @@
+importe Chaine
 importe Fondation
 importe Numérique
 importe Unicode
 
 TexteSource :: struct {
     texte: chaine
+
+    /* Les lexèmes du script, les lexèmes des noeuds sont des adresses dans ce tableau. */
+    lexèmes: [..]Lexème @NeVisitePas
+}
+
+détruit_données_texte_source :: fonc (source: *TexteSource)
+{
+    déloge(source.texte)
+    déloge(source.lexèmes)
 }
 
 PositionSource :: struct {
@@ -12,7 +22,7 @@ PositionSource :: struct {
     colonne: z32
 }
 
-donne_position_source :: fonc (texte: &TexteSource, lexème: &Lexème) -> PositionSource
+donne_position_source :: fonc (texte: *TexteSource, lexème: &Lexème) -> PositionSource
 {
     résultat: PositionSource
 
@@ -63,6 +73,13 @@ crée_texte_source :: fonc (texte: chaine) -> TexteSource
     retourne résultat
 }
 
+crée_texte_source :: fonc (texte: ECMAString) -> TexteSource
+{
+    résultat : TexteSource = ---
+    résultat.texte = converti_vers_chaine(texte.donne_chaine_utf16())
+    retourne résultat
+}
+
 /* ------------------------------------------------------------------------- */
 /** \nom 16.1.4 Script Record.
  * https://tc39.es/ecma262/#sec-script-records
@@ -80,9 +97,6 @@ Script :: struct {
 
     source: TexteSource @NeVisitePas
 
-    /* Les lexèmes du script, les lexèmes des noeuds sont des adresses dans ce tableau. */
-    lexèmes: [..]Lexème @NeVisitePas
-
     realm: *Realm
 
     /* Arbre syntaxique. */
@@ -91,8 +105,9 @@ Script :: struct {
     host_defined: HostDefined
 }
 
-initialise_script :: fonc (résultat: *Script, realm: *Realm, script: *Programme, host_defined: HostDefined)
+initialise_script :: fonc (résultat: *Script, realm: *Realm, source: TexteSource, script: *Programme, host_defined: HostDefined)
 {
+    résultat.source = source
     résultat.realm = realm
     résultat.ecma_script_code = script
     résultat.host_defined = host_defined
@@ -106,8 +121,7 @@ sur_destruction_script :: fonc (base: *Cellule)
 
 détruit_données_script :: fonc (script: *Script)
 {
-    déloge(script.source.texte)
-    déloge(script.lexèmes)
+    détruit_données_texte_source(*script.source)
     si script.ecma_script_code {
         détruit_arbre(script.ecma_script_code)
     }
@@ -115,31 +129,30 @@ détruit_données_script :: fonc (script: *Script)
 
 /* 16.1.5 ParseScript ( sourceText, realm, hostDefined )
  * https://tc39.es/ecma262/#sec-parse-script */
-parse_script :: fonc (source_texte: chaine, realm: *Realm, host_defined := HostDefined()) -> Résultat(*Script, ErreurCompilation)
+parse_script :: fonc (source_texte: chaine, realm: *Realm, host_defined := HostDefined()) -> Résultat(*Script, *SyntaxError)
 {
     tas_de_mémoire := realm.donne_tas_de_mémoire()
-    résultat := tas_de_mémoire.alloue(Script)
 
-    // À FAIRE : standardise parseText
+    source := crée_texte_source(source_texte)
+
     // 1. Let script be ParseText(sourceText, Script).
-    // 2. If script is a List of errors, return script.
-
-    script: *Programme
-    discr compile_script(source_texte, résultat) {
-        Ok(programme) {
-            script = programme
-        }
+    script := parse_text(realm, *source, GoalSymbol.Script)
+    discr (script) {
         Erreur(e) {
+            // 2. If script is a List of errors, return script.
             retourne e
         }
-        sinon {
-            retourne ErreurCompilation(copie_chaine("Erreur interne : la compilation a échoué pour raison inconnue"))
+        Ok(noeud) {
+            assert(noeud.type == Programme)
+            // 3. Return Script Record { [[Realm]]: realm, [[ECMAScriptCode]]: script, [[LoadedModules]]: « », [[HostDefined]]: hostDefined }.
+            résultat := tas_de_mémoire.alloue(Script)
+            initialise_script(résultat, realm, source, noeud comme *Programme, host_defined)
+            retourne résultat
         }
+        sinon {}
     }
 
-    // 3. Return Script Record { [[Realm]]: realm, [[ECMAScriptCode]]: script, [[LoadedModules]]: « », [[HostDefined]]: hostDefined }.
-    initialise_script(résultat, realm, script, host_defined)
-    retourne résultat
+    panique("aucune valeur de retour pour parse_script")
 }
 
 /* 16.1.6 ScriptEvaluation ( scriptRecord )
@@ -319,11 +332,7 @@ global_declaration_instantiation :: fonc (realm: *Realm, script: *Programme, env
 /** \nom Erreur de compilation.
  * \{ */
 
-ErreurCompilation :: struct {
-    message: chaine
-}
-
-crée_erreur_de_compilation :: fonc (classe: chaine, message: chaine, position: PositionSource) -> ErreurCompilation
+crée_erreur_de_compilation :: fonc (realm: *Realm, message: chaine, position: PositionSource) -> *SyntaxError
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
@@ -331,34 +340,10 @@ crée_erreur_de_compilation :: fonc (classe: chaine, message: chaine, position: 
 
     ligne := position.texte_ligne
 
-    ajoute_au_tampon(*enchaineuse, classe, " :\n\n")
+    ajoute_au_tampon(*enchaineuse, message, "\n\n")
 
-    index_colonne := 0
-
-    MAX_CARACTÈRES_PAR_LIGNE :: 80
-
-    si ligne.taille > MAX_CARACTÈRES_PAR_LIGNE {
-        décalage := MAX_CARACTÈRES_PAR_LIGNE / 2
-        si position.colonne < décalage {
-            ligne_coupée: chaine
-            ligne_coupée.pointeur = ligne.pointeur
-            ligne_coupée.taille = MAX_CARACTÈRES_PAR_LIGNE
-
-            imprime_dans_enchaineuse(*enchaineuse, " % | % ... \n", position.ligne + 1, ligne_coupée)
-        }
-        sinon {
-            /* Enlève 5 pour le " ... " au début de l'impression. */
-            index_colonne = position.colonne - décalage - 5
-            ligne_coupée: chaine
-            ligne_coupée.pointeur = ligne.pointeur + position.colonne - décalage
-            ligne_coupée.taille = décalage * 2
-
-            imprime_dans_enchaineuse(*enchaineuse, " % | ... % ... \n", position.ligne + 1, ligne_coupée)
-        }
-    }
-    sinon {
-        imprime_dans_enchaineuse(*enchaineuse, " % | %\n", position.ligne + 1, ligne)
-    }
+    ligne_pour_erreur := donne_ligne_pour_erreur(ligne, position.colonne)
+    imprime_dans_enchaineuse(*enchaineuse, " % |%\n", position.ligne + 1, ligne_pour_erreur)
 
     /* +2 pour les espaces autour du nombre de la ligne. */
     pour magnitude_décimale(position.ligne + 1) + 2 {
@@ -366,6 +351,7 @@ crée_erreur_de_compilation :: fonc (classe: chaine, message: chaine, position: 
     }
     ajoute_au_tampon(*enchaineuse, "| ")
 
+    index_colonne := ligne_pour_erreur.index_colonne
     tantque index_colonne < position.colonne {
         nombre_octets := nombre_octets_utf8(*ligne[index_colonne])
         si nombre_octets == 0 {
@@ -384,46 +370,99 @@ crée_erreur_de_compilation :: fonc (classe: chaine, message: chaine, position: 
     }
     ajoute_au_tampon(*enchaineuse, "^\n\n")
 
-    ajoute_au_tampon(*enchaineuse, message, "\n\n")
+    retourne crée_erreur_de_parsage(realm, chaine_depuis_enchaineuse(*enchaineuse))
+}
 
-    résultat: ErreurCompilation
-    résultat.message = chaine_depuis_enchaineuse(*enchaineuse)
+TroncageLigne :: énum {
+    /* La ligne ne fut pas tronquée. */
+    AUCUN
+    /* La ligne fut tronquée à la fin. */
+    FIN
+    /* La ligne fut tronquée au début et à la fin. */
+    AUTOUR
+}
+
+LignePourErreur :: struct {
+    texte: chaine
+    index_colonne: z64
+    troncage: TroncageLigne
+}
+
+imprime_ligne_pour_erreur :: fonc (enchaineuse: *Enchaineuse, ligne: *LignePourErreur)
+{
+    saufsi ligne {
+        retourne
+    }
+
+    si ligne.troncage == TroncageLigne.AUTOUR {
+        ajoute_au_tampon(enchaineuse, " ... ")
+    }
+    ajoute_au_tampon(enchaineuse, ligne.texte)
+    si ligne.troncage != TroncageLigne.AUCUN {
+        ajoute_au_tampon(enchaineuse, " ... ")
+    }
+} @FormattageImpression
+
+donne_ligne_pour_erreur :: fonc (texte: chaine, colonne: z64) -> LignePourErreur
+{
+    résultat: LignePourErreur
+
+    MAX_CARACTÈRES_PAR_LIGNE :: 80
+
+    si texte.taille > MAX_CARACTÈRES_PAR_LIGNE {
+        décalage := MAX_CARACTÈRES_PAR_LIGNE / 2
+
+        si colonne < décalage {
+            ligne_coupée: chaine
+            ligne_coupée.pointeur = texte.pointeur
+            ligne_coupée.taille = MAX_CARACTÈRES_PAR_LIGNE
+
+            résultat.texte = ligne_coupée
+            résultat.troncage = TroncageLigne.FIN
+            retourne résultat
+        }
+
+        /* Enlève 5 pour le " ... " au début de l'impression. */
+        index_colonne := colonne - décalage - 5
+        ligne_coupée: chaine
+        ligne_coupée.pointeur = texte.pointeur + colonne - décalage
+        ligne_coupée.taille = décalage * 2
+
+        résultat.texte = ligne_coupée
+        résultat.index_colonne = index_colonne
+        résultat.troncage = TroncageLigne.AUTOUR
+        retourne résultat
+    }
+
+    résultat.texte = texte
     retourne résultat
 }
 
 /** \} */
 
-compile_script :: fonc (texte: chaine, script: *Script) -> Résultat(*Programme, ErreurCompilation)
+GoalSymbol :: énum {
+    Script
+    StringNumericLiteral
+}
+
+/* 11.1.6 Static Semantics: ParseText ( sourceText, goalSymbol )
+ * https://tc39.es/ecma262/#sec-parsetext */
+parse_text :: fonc (realm: *Realm, source_text: *TexteSource, goal_symbol: GoalSymbol) -> Résultat(*NoeudSyntaxique, *SyntaxError)
 {
-    script.source = crée_texte_source(texte)
-
-    discr lèxe(script.source) {
-        Ok(lexèmes) {
-            script.lexèmes = lexèmes
-        }
-        Erreur(erreur_de_compilation) {
-            détruit_données_script(script)
-            retourne erreur_de_compilation
-        }
-        sinon {
-            détruit_données_script(script)
-            retourne ErreurCompilation(copie_chaine("Erreur interne : le lexage n'a rien retourné"))
-        }
+    opt_erreur := lèxe(realm, source_text)
+    si opt_erreur.possède_valeur() {
+        retourne opt_erreur.Quelque
     }
 
-    discr parse(script) {
-        Ok(programme) {
-            script.ecma_script_code = programme
+    discr parse(realm, source_text, goal_symbol) {
+        Ok(noeud) {
+            retourne noeud
         }
-        Erreur(erreur_de_compilation) {
-            détruit_données_script(script)
-            retourne erreur_de_compilation
-        }
-        sinon {
-            détruit_données_script(script)
-            retourne ErreurCompilation(copie_chaine("Erreur interne : le syntaxage n'a rien retourné"))
-        }
+        Erreur(e) {
+            retourne e
+        } 
+        sinon {}
     }
 
-    retourne script.ecma_script_code
+    panique("Aucun résultat dans parse_text")
 }
