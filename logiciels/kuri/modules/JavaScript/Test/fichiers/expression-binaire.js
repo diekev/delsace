@@ -235,3 +235,16 @@ test("a == b", function () {
     vérifieQue(0 == false).doitÊtre(true);
     vérifieQue(false == 0).doitÊtre(true);
 });
+
+test("a instanceof b", function () {
+    function Car(make, model, year) {
+        this.make = make;
+        this.model = model;
+        this.year = year;
+    }
+    const auto = new Car('Honda', 'Accord', 1998);
+
+    vérifieQue(auto instanceof Car).doitÊtre(true);
+    vérifieQue(auto instanceof Object).doitÊtre(true);
+    vérifieQue(auto instanceof Array).doitÊtre(false);
+});

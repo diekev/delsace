@@ -1336,7 +1336,7 @@ sur_exécution_relational_expression :: fonc (base: *NoeudSyntaxique, interprét
             }
         }
         InstanceOf {
-            panique("instanceof non-implémenté")
+            retourne instanceof_operator(interpréteuse, lval, rval)
         }
         In {
             // 5. If rVal is not an Object, throw a TypeError exception.
@@ -1356,6 +1356,28 @@ sur_exécution_relational_expression :: fonc (base: *NoeudSyntaxique, interprét
     }
 
     retourne normal_completion(r)
+}
+
+/* 13.10.2 InstanceofOperator ( V, target )
+ * https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-instanceofoperator */
+instanceof_operator :: fonc (interpréteuse: *Interpréteuse, V: Valeur, target: Valeur) -> CompletionRecord
+{
+    // 1. If target is not an Object, throw a TypeError exception.
+    saufsi target.est_object() {
+        retourne lance_type_error(interpréteuse, "target is not an Object")
+    }
+
+    // À FAIRE : 2. Let instOfHandler be ? GetMethod(target, %Symbol.hasInstance%).
+    // 3. If instOfHandler is not undefined, then
+    //    a. Return ToBoolean(? Call(instOfHandler, target, « V »)).
+
+    // 4. If IsCallable(target) is false, throw a TypeError exception.
+    si is_callable(target).est_false() {
+        retourne lance_type_error(interpréteuse, "target is not callable")
+    }
+
+    // 5. Return ? OrdinaryHasInstance(target, V).
+    retourne ordinary_has_instance(interpréteuse, target, V)
 }
 
 /** \} */

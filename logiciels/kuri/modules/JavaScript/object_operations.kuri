@@ -203,4 +203,55 @@ length_of_array_like :: fonc (obj: *Object) -> CompletionRecord
     retourne normal_completion(completion.valeur.V)
 }
 
+/* 7.3.21 OrdinaryHasInstance ( C, O )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-ordinaryhasinstance */
+ordinary_has_instance :: fonc (interpréteuse: *Interpréteuse, C: Valeur, O: Valeur) -> CompletionRecord
+{
+    // 1. If IsCallable(C) is false, return false.
+    si is_callable(C).est_false() {
+        retourne normal_completion(Valeur(Boolean = faux))
+    }
+
+    // À FAIRE : 2. If C has a [[BoundTargetFunction]] internal slot, then
+    //    a. Let BC be C.[[BoundTargetFunction]].
+    //    b. Return ? InstanceofOperator(O, BC).
+
+    // 3. If O is not an Object, return false.
+    saufsi O.est_object() {
+        retourne normal_completion(Valeur(Boolean = faux))
+    }
+
+    // 4. Let P be ? Get(C, "prototype").
+    completion := get(C.donne_objet(), STR_prototype)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    P := completion.valeur.V
+
+    // 5. If P is not an Object, throw a TypeError exception.
+    saufsi P.est_object() {
+        retourne lance_type_error(interpréteuse, "prototype is not an Object")
+    }
+
+    obj := O.donne_objet()
+
+    // 6. Repeat,
+    boucle {
+        // a. Set O to ? O.[[GetPrototypeOf]]().
+        obj = internal_get_prototype_of(obj)
+
+        // b. If O is null, return false.
+        saufsi obj {
+            arrête
+        }
+
+        // c. If SameValue(P, O) is true, return true.
+        si same_value(P, Valeur(Object = obj)).est_true() {
+            retourne normal_completion(Valeur(Boolean = vrai))
+        }
+    }
+
+    retourne normal_completion(Valeur(Boolean = faux))
+}
+
 /** \} */
