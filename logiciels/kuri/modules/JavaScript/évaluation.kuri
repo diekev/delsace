@@ -1,3 +1,4 @@
+importe Chaine
 importe Fondation
 
 /* ------------------------------------------------------------------------- */
@@ -55,7 +56,7 @@ instantiate_ordinary_function_expression :: fonc (interpréteuse: *Interpréteus
 
     si expression.id == nul {
         // 1. If name is not present, set name to "".
-        name: ECMAString
+        name := crée_chaine_utf16_unique_vide()
         si opt_name {
             name = mémoire(opt_name)
         }
