@@ -18,9 +18,15 @@ parse :: fonc (realm: *Realm, source_text: *TexteSource, goal_symbol: GoalSymbol
             résultat = crée_programme(*parseuse, nul, statements)
         }
         StringNumericLiteral {
-            résultat = parse_expression(*parseuse, ParamètresParsageExpression())
-            si résultat.type != NumericLiteral {
-                rapporte_erreur(*parseuse, "expected a numeric literal")
+            /* A StringNumericLiteral that is empty or contains only white space is converted to +0𝔽. */
+            si source_text.lexèmes.taille == 0 {
+                résultat = crée_literal(*parseuse, nul, 0.0)
+            }
+            sinon {
+                résultat = parse_expression(*parseuse, ParamètresParsageExpression())
+                si résultat.type != NumericLiteral {
+                    rapporte_erreur(*parseuse, "expected a numeric literal")
+                }
             }
         }
     }
