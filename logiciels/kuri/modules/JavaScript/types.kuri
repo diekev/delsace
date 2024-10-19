@@ -103,6 +103,50 @@ number_equal :: fonc (vx: Valeur, vy: Valeur) -> bool
     retourne faux
 }
 
+/* 6.1.6.1.20 Number::toString ( x, radix )
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-tostring */
+number_to_string :: fonc (realm: *Realm, valeur: Valeur, radix: n32) -> Valeur
+{
+    x := valeur.Number
+    // 1. If x is NaN, return "NaN".
+    si est_nan(x) {
+        retourne crée_chaine(realm, STR_NaN)
+    }
+
+    // 2. If x is either +0𝔽 or -0𝔽, return "0".
+    si x == 0.0 || x == -0.0 {
+        retourne crée_chaine(realm, crée_chaine_utf16_unique("0"))
+    }
+
+    // 3. If x < -0𝔽, return the string-concatenation of "-" and Number::toString(-x, radix).
+    si x < -0.0 {
+        chn_moins := crée_chaine(realm, crée_chaine_utf16_unique("-"))
+        chn_x := number_to_string(realm, Valeur(Number = -x), radix)
+        retourne concatène(realm, chn_moins, chn_x.String)
+    }
+
+    // 4. If x is +∞𝔽, return "Infinity".
+    si x == R64_INFINITÉ {
+        retourne crée_chaine(realm, STR_Infinity)
+    }
+
+    // À FAIRE : implémente selon le standard.
+    chn: chaine
+    diffère déloge(chn)
+
+    /* Évite d'inclure ".0" à la fin. */
+    ix := x comme n64
+    si x == ix comme r64 {
+        chn = imprime_chaine("%", ix)
+    }
+    sinon {
+        chn = imprime_chaine("%", x)
+    }
+
+    résultat := crée_chaine_utf16_unique(chn)
+    retourne crée_chaine(realm, résultat)
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

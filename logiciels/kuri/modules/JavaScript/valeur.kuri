@@ -580,17 +580,7 @@ to_string :: fonc (realm: *Realm, argument: Valeur) -> CompletionRecord
 
     // 7. If argument is a Number, return Number::toString(argument, 10).
     si argument.est_nombre() {
-        // À FAIRE : implémente selon le standard.
-        n := argument.Number
-        si est_nan(n) {
-            retourne normal_completion(crée_chaine(realm, STR_NaN))
-        }
-
-        chn := imprime_chaine("%", n)
-        diffère déloge(chn)
-
-        résultat := crée_chaine_utf16_unique(chn)
-        retourne normal_completion(crée_chaine(realm, résultat))
+        retourne normal_completion(number_to_string(realm, argument, 10))
     }
 
     // 8. If argument is a BigInt, return BigInt::toString(argument, 10).

@@ -1,7 +1,7 @@
 test("array-literal", function () {
     var a = [1, 2, 3];
     vérifie_égalité(a.length, 3)
-    vérifie_égalité(a.toString(), "1.0,2.0,3.0")
+    vérifie_égalité(a.toString(), "1,2,3")
 
     a[1] = 5;
     vérifie_égalité(a[1], 5)
