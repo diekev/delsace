@@ -1,26 +1,31 @@
 importe Chaine
+importe Ensemble
 importe Fondation
-importe Math
-importe Numérique
 
 charge "arbre"
 charge "enveloppe"
 charge "environment"
+charge "évaluation"
 charge "interpréteuse"
 charge "lexage"
 charge "lexèmes"
+charge "object_operations"
+charge "ordinary_object"
 charge "parsage"
 charge "realm"
 charge "script"
 charge "tas_de_mémoire"
 charge "terminologie"
+charge "types"
 charge "valeur"
 
 charge "Objets/array"
 charge "Objets/boolean"
+charge "Objets/console"
 charge "Objets/date"
 charge "Objets/error"
 charge "Objets/function"
+charge "Objets/global_object"
 charge "Objets/object"
 charge "Objets/math"
 charge "Objets/number"
@@ -30,1099 +35,110 @@ ECMAString :: ChaineUTF16Unique
 
 NaN : r64 : 0r7ff8000000000000
 
-/* Ceux-là ne sont pas dans le standard, ce n'est que pour avoir des types pour l'union. */
-UndefinedType :: #opaque z32
-NullType :: #opaque z32
-
-BigInt :: struct {
-    // À FAIRE : implémente proprement
-    valeur: z64
-}
-
-big_int_equal :: fonc (x: Valeur @inutilisée, y: Valeur @inutilisée) -> bool
-{
-    panique("big_int equal non-implémenté")
-}
-
 /* ------------------------------------------------------------------------- */
-/** \nom 6.1.5 The Symbol Type
- * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-ecmascript-language-types-symbol-type
+/** \nom Hôte
+ * Structure de base pour les applications clientes.
  * \{ */
 
-Symbol :: struct {
-    /* Soit undefined ou une chaine. */
-    description: Optionnel(ECMAString)
+Hôte :: struct {
+    sur_visite_cellules: fonc(*Hôte, *VisiteuseCellule)(rien)
 }
 
-/** \} */
-
-concatène :: fonc (realm: *Realm, str_gauche: *PrimitiveChaine, str_droite: *PrimitiveChaine) -> Valeur
+visite_cellules_hôte :: fonc (hôte: *Hôte, visiteuse: *VisiteuseCellule)
 {
-    chn1 := str_gauche.texte.donne_chaine_utf16()
-    chn2 := str_droite.texte.donne_chaine_utf16()
-
-    enchaineuse: EnchaineuseUTF16
-    initialise_enchaineuse(enchaineuse)
-    diffère détruit_tampons(enchaineuse)
-
-    ajoute(enchaineuse, chn1)
-    ajoute(enchaineuse, chn2)
-
-    chn := chaine_depuis_enchaineuse(enchaineuse)
-    diffère détruit_chaine(chn)
-    chn_résultat := crée_chaine_utf16_unique(chn)
-
-    retourne Valeur(String = crée_chaine(realm, chn_résultat))
-}
-
-/* ------------------------------------------------------------------------- */
-/** \nom PropertyDescriptor
- * 6.2.6 The Property Descriptor Specification Type
- * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-property-descriptor-specification-type
- * \{ */
-
-PropertyDescriptor :: struct {
-    value: Optionnel(Valeur)
-    get: Optionnel(*Object) // ou undefined
-    set: Optionnel(*Object) // ou undefined
-    writable: Optionnel(bool)
-    configurable: Optionnel(bool)
-    enumerable: Optionnel(bool)
-}
-
-/* 6.2.6.1 IsAccessorDescriptor ( Desc )
- * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-isaccessordescriptor */
-is_accessor_descriptor :: fonc (desc: &PropertyDescriptor) -> bool
-{
-    // À FAIRE 1. If Desc is undefined, return false.
-
-    // 2. If Desc has a [[Get]] field, return true.
-    si desc.get.possède_valeur() {
-        retourne vrai
+    saufsi hôte.sur_visite_cellules {
+        retourne
     }
-    // 3. If Desc has a [[Set]] field, return true.
-    si desc.set.possède_valeur() {
-        retourne vrai
-    }
-    // 4. Return false.
-    retourne faux
-}
-
-/* 6.2.6.2 IsDataDescriptor ( Desc )
- * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-isdatadescriptor */
-is_data_descriptor :: fonc (desc: &PropertyDescriptor) -> bool
-{
-    // À FAIRE 1. If Desc is undefined, return false.
-
-    // 2. If Desc has a [[Value]] field, return true.
-    si desc.value.possède_valeur() {
-        retourne vrai
-    }
-    // 3. If Desc has a [[Writable]] field, return true.
-    si desc.writable.possède_valeur() {
-        retourne vrai
-    }
-    // 4. Return false.
-    retourne faux
+    hôte.sur_visite_cellules(hôte, visiteuse)
 }
 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom PropertyKey
+/** \nom HostDefined
+ * Cette structutre, non-spécifiée, nous sers à tenir les données définis par
+ * les hôtes pour les champs [[HostDefined]] définis par le standard.
  * \{ */
 
-PropertyKey :: union {
-    String: ECMAString
-    Symbol: *Symbol
+HostDefined :: struct {
+    données: *rien
+    infos: *InfoTypeStructure
 }
 
-est_chaine :: fonc (key: PropertyKey) -> bool
+crée_host_defined :: fonc (données: *$T) -> HostDefined
 {
-    discr key {
-        String {
-            retourne vrai
-        }
-        sinon {
-            retourne faux
-        }
+    retourne HostDefined(données, info_de(T))
+}
+
+donne_données :: fonc (host_defined: &HostDefined, $T: type_de_données) -> *T
+{
+    saufsi host_defined.données {
+        retourne nul
     }
-}
-
-est_symbol :: fonc (key: PropertyKey) -> bool
-{
-    discr key {
-        Symbol {
-            retourne vrai
-        }
-        sinon {
-            retourne faux
-        }
-    }
-}
-
-opérateur == :: fonc (p1: PropertyKey, p2: PropertyKey) -> bool
-{
-    discr p1 {
-        String(s1) {
-            discr p2 {
-                String(s2) {
-                    retourne s1 == s2
-                }
-                sinon {
-                    retourne faux
-                }
-            }
-        }
-        Symbol(s1) {
-            discr p2 {
-                Symbol(s2) {
-                    retourne s1 == s2
-                }
-                sinon {
-                    retourne faux
-                }
-            }
-        }
-        sinon {
-            retourne faux
-        }
-    }
-}
-
-opérateur != :: fonc (p1: PropertyKey, p2: PropertyKey) -> bool
-{
-    retourne !(p1 == p2)
-}
-
-/* https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#array-index */
-is_array_index :: fonc (property_key: PropertyKey) -> bool
-{
-    saufsi property_key.est_chaine() {
-        retourne faux
-    }
-
-    /* À FAIRE */
-    texte := property_key.String.donne_chaine_utf16()
-
-    texte_utf8 := converti_vers_chaine(texte)
-    diffère déloge(texte_utf8)
-
-    résultat := tente extrait_r64(texte_utf8) piège _ {
-        retourne faux
-    }
-
-    retourne is_non_negative_integral_number(résultat)
-}
-
-to_uint32 :: fonc (property_key: PropertyKey) -> n32
-{
-    texte := property_key.String.donne_chaine_utf16()
-
-    /* À FAIRE */
-    texte_utf8 := converti_vers_chaine(texte)
-    diffère déloge(texte_utf8)
-
-    résultat := tente extrait_r64(texte_utf8) piège nonatteignable
-    retourne résultat comme n32
+    assert(est_struct_ou_employeuse_de(host_defined.infos, info_de(T)))
+    retourne host_defined.données comme *T
 }
 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom 7.3 Operations on Objects
- * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-operations-on-objects
+/** \nom MachineVirtuelle
+ * Cette structure, non-spécifiée, nous sers à tenir les données pour exécuter
+ * des scripts.
+ * Chaque client souhaitant exécuter du code JavaScript doit le faire via une
+ * instance de MachineVirtuelle.
  * \{ */
 
-TypeFonctionAllocationObjet :: fonc(*Realm)(*Object)
-
-/* 7.3.1 MakeBasicObject ( internalSlotsList )
- * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-makebasicobject */
-make_basic_object :: fonc (realm: *Realm, rappel_allocation_objet: TypeFonctionAllocationObjet) -> *Object
-{
-    // 1. Set internalSlotsList to the list-concatenation of internalSlotsList and « [[PrivateElements]] ».
-
-    // 2. Let obj be a newly created object with an internal slot for each name in internalSlotsList.
-    obj := rappel_allocation_objet(realm)
-
-    // 3. Set obj.[[PrivateElements]] to a new empty List.
-    // 4. Set obj's essential internal methods to the default ordinary object definitions specified in 10.1.
-    // 5. Assert: If the caller will not be overriding both obj's [[GetPrototypeOf]] and [[SetPrototypeOf]] essential internal methods, then internalSlotsList contains [[Prototype]].
-    // 6. Assert: If the caller will not be overriding all of obj's [[SetPrototypeOf]], [[IsExtensible]], and [[PreventExtensions]] essential internal methods, then internalSlotsList contains [[Extensible]].
-    // À FAIRE : 7. If internalSlotsList contains [[Extensible]], set obj.[[Extensible]] to true.
-    obj.extensible = vrai
-
-    // 8. Return obj.
-    retourne obj
+MachineVirtuelle :: struct {
+    tas_de_mémoire: TasDeMémoire
+    hôte: *Hôte
+    execution_contexts: [..]*ExecutionContext
 }
 
-/* 7.3.2 Get
- * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-get-o-p */
-get :: fonc (object: *Object, property_key: PropertyKey) -> CompletionRecord
+initialise_mv :: fonc (hôte: *Hôte, mv: *MachineVirtuelle)
 {
-    si is_array_index(property_key) {
-        index := to_uint32(property_key)
-        retourne object.internal_get_by_index(index, Valeur(Object = object))
-    }
-
-    // 1. Return ? O.[[Get]](P, O).
-    retourne object.internal_get(property_key, Valeur(Object = object))
+    mv.hôte = hôte
+    mv.tas_de_mémoire.mv = mv
 }
 
-get_by_index :: fonc (object: *Object, index: n32) -> CompletionRecord
+détruit_données_mv :: fonc (mv: *MachineVirtuelle)
 {
-    retourne object.internal_get_by_index(index, Valeur(Object = object))
+    éboue(*mv.tas_de_mémoire, TypeÉbouage.RAMASSE_TOUT)
+    détruit_données_tas_de_mémoire(*mv.tas_de_mémoire)
+    déloge(mv.execution_contexts)
 }
 
-/* 7.3.4 Set
- * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-set-o-p-v-throw */
-set :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur, throw: bool) -> CompletionRecord
+empile_execution_context :: fonc (mv: *MachineVirtuelle, execution_context: *ExecutionContext)
 {
-    // 1. Let success be ? O.[[Set]](P, V, O).
-    completion := object.internal_set(property_key, valeur, Valeur(Object = object))
-    saufsi completion.est_normal() {
-        retourne completion
-    }
-    succès := completion.valeur.V
-    // 2. If success is false and Throw is true, throw a TypeError exception.
-    si succès.est_false() && throw == vrai {
-        panique("exceptions non-implémentées")
-    }
-
-    // 3. Return UNUSED.
-    retourne normal_completion(js_undefined)
+    tableau_ajoute(*mv.execution_contexts, execution_context)
 }
 
-/* 7.3.5 CreateDataProperty ( O, P, V )
- * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-createdataproperty */
-create_data_property :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur) -> CompletionRecord
+dépile_execution_context :: fonc (mv: *MachineVirtuelle)
 {
-    // 1. Let newDesc be the PropertyDescriptor { [[Value]]: V, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: true }.
-    new_desc: PropertyDescriptor
-    new_desc.value = valeur
-    new_desc.writable = vrai
-    new_desc.enumerable = vrai
-    new_desc.configurable = vrai
-
-    // 2. Return ? O.[[DefineOwnProperty]](P, newDesc).
-    retourne internal_define_own_property(object, property_key, new_desc)
+    assert(mv.execution_contexts.taille > 0)
+    mv.execution_contexts.taille -= 1
 }
 
-/* 7.3.6 CreateDataPropertyOrThrow ( O, P, V )
- * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-createdatapropertyorthrow */
-create_data_property_or_throw :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur) -> CompletionRecord
+suspend_running_execution_context :: fonc (mv: *MachineVirtuelle)
 {
-    // 1. Let success be ? CreateDataProperty(O, P, V).
-    completion := create_data_property(object, property_key, valeur)
-    saufsi completion.est_normal() {
-        retourne completion
-    }
-    success := completion.valeur.V
-
-    // 2. If success is false, throw a TypeError exception.
-    si success.est_false() {
-        panique("Exception non-implémentée")
-    }
-
-    // 3. Return UNUSED.
-    retourne normal_completion(js_undefined)
+    suspend(mv.donne_running_execution_context())
 }
 
-/* 7.3.8 DefinePropertyOrThrow ( O, P, desc )
- * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-definepropertyorthrow */
-define_property_or_throw :: fonc (object: *Object, property_key: PropertyKey, desc: &PropertyDescriptor) -> CompletionRecord
+donne_tas_de_mémoire :: fonc (mv: *MachineVirtuelle) -> *TasDeMémoire
 {
-    // 1. Let success be ? O.[[DefineOwnProperty]](P, desc).
-    completion := internal_define_own_property(object, property_key, desc)
-    saufsi completion.est_normal() {
-        retourne completion
-    }
-    success := completion.valeur.V
-
-    // 2. If success is false, throw a TypeError exception.
-    si success.est_false() {
-        panique("Exception non-implémentée")
-    }
-
-    // 3. Return UNUSED.
-    retourne normal_completion(js_undefined)
+    retourne *mv.tas_de_mémoire
 }
 
-/* 7.3.11 HasProperty ( O, P ) 
- * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-hasproperty */
-has_property :: fonc (object: *Object, property_key: PropertyKey) -> CompletionRecord
+donne_running_execution_context :: fonc (mv: *MachineVirtuelle) -> *ExecutionContext #enligne
 {
-    // 1. Return ? O.[[HasProperty]](P).
-    retourne internal_has_property(object, property_key)
+    retourne mv.execution_contexts[mv.execution_contexts.taille - 1]
 }
 
-/* 7.3.12 HasOwnProperty ( O, P )
- * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-hasownproperty */
-has_own_property :: fonc (object: *Object, nom: PropertyKey) -> CompletionRecord
+rassemble_racines :: fonc (mv: *MachineVirtuelle, racines: *[..]*Cellule)
 {
-    completion_desc := internal_get_own_property(object, nom)
-    saufsi completion_desc.est_normal() {
-        retourne completion_desc
+    pour mv.execution_contexts {
+        ensemble_ajoute(racines, it)
     }
-
-    desc := completion_desc.valeur
-    si desc.est_undefined() {
-        retourne normal_completion(Valeur(Boolean = faux))
-    }
-
-    retourne normal_completion(Valeur(Boolean = vrai))
-}
-
-/* 7.3.13 Call ( F, V [ , argumentsList ] )
- * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-call */
-call :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur, this_value: Valeur) -> CompletionRecord
-{
-    // 1. If argumentsList is not present, set argumentsList to a new empty List.
-    arguments: []Valeur
-    retourne call(interpréteuse, valeur, this_value, arguments)
-}
-
-call :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
-{
-    // Continuation de la version sans arguments.
-    // 2. If IsCallable(F) is false, throw a TypeError exception.
-    saufsi is_callable(valeur) {
-        message := imprime_chaine("'%' is not callable", valeur)
-        retourne lance_type_error(interpréteuse, message)
-    }
-
-    object := valeur.donne_objet()
-
-    // 3. Return ? F.[[Call]](V, argumentsList).
-    retourne object.internal_call(interpréteuse, this_value, arguments)
-}
-
-
-/* 7.3.14 Construct ( F [ , argumentsList [ , newTarget ] ] )
- * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-call */
-construct :: fonc (interpréteuse: *Interpréteuse, F: Valeur, arguments: []Valeur) -> CompletionRecord
-{
-    // 1. If newTarget is not present, set newTarget to F.
-    new_target := F
-    retourne construct(interpréteuse, F, arguments, new_target)
-}
-
-construct :: fonc (interpréteuse: *Interpréteuse, F: Valeur, arguments: []Valeur, new_target: Valeur) -> CompletionRecord
-{
-    // Continuation de la version sans new_target.
-    // 2. If argumentsList is not present, set argumentsList to a new empty List.
-    // 3. Return ? F.[[Construct]](argumentsList, newTarget).
-    object := F.donne_objet()
-    retourne object.internal_construct(interpréteuse, arguments, new_target)
-}
-
-/*7.3.18 LengthOfArrayLike ( obj )
- * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-lengthofarraylike */
-length_of_array_like :: fonc (obj: *Object) -> CompletionRecord
-{
-    // 1. Return ℝ(? ToLength(? Get(obj, "length"))).
-    completion := get(obj, STR_length)
-    saufsi completion.est_normal() {
-        retourne completion
-    }
-    completion = to_length(completion.valeur.V)
-    saufsi completion.est_normal() {
-        retourne completion
-    }
-    retourne normal_completion(completion.valeur.V)
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom 10.1 Ordinary Object Internal Methods and Internal Slots
- * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinary-object-internal-methods-and-internal-slots
- * \{ */
-
-/* 10.1.1.1 OrdinaryGetPrototypeOf ( O )
- * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarygetprototypeof */
-ordinary_get_prototype_of :: fonc (object: *Object) -> *Object
-{
-    // Return O.[[Prototype]].
-    retourne object.prototype
-}
-
-/* 10.1.2.1 OrdinarySetPrototypeOf ( O, V )
- * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarysetprototypeof */
-ordinary_set_prototype_of :: fonc (object: *Object, valeur: Valeur) -> bool
-{
-    // 1. Let current be O.[[Prototype]].
-    current := object.prototype
-
-    // 2. If SameValue(V, current) is true, return true.
-    si same_value(valeur, current).est_true() {
-        retourne vrai
-    }
-
-    // 3. Let extensible be O.[[Extensible]].
-    extensible := object.extensible
-
-    // 4. If extensible is false, return false.
-    saufsi extensible {
-        retourne faux
-    }
-
-    // 5. Let p be V.
-    p : *Object
-    saufsi valeur.est_nulle() {
-        p = valeur.donne_objet()
-    }
-
-    // 6. Let done be false.
-    done := faux
-
-    // 7. Repeat, while done is false,
-    tantque done == faux {
-        // a. If p is null, then
-        si p == nul {
-            // i. Set done to true.
-            done = vrai
-        }
-        // b. Else if SameValue(p, O) is true, then
-        sinon si same_value(p, object).est_true() {
-            // i. Return false.
-            retourne faux
-        }
-        // c. Else,
-        sinon {
-            // i. If p.[[GetPrototypeOf]] is not the ordinary object internal method defined in 10.1.1, set done to true.
-            si p.donne_table().sur_get_prototype_of != ordinary_get_prototype_of {
-                done = vrai
-            }
-            // ii. Else, set p to p.[[Prototype]].
-            sinon {
-                p = p.prototype
-            }
-        }
-    }
-
-    // 8. Set O.[[Prototype]] to V.
-    si valeur.est_nulle() {
-        object.prototype = nul
-    }
-    sinon {
-        assert(valeur.est_object())
-        object.prototype = valeur.donne_objet()
-    }
-
-    // 9. Return true.
-    retourne vrai
-}
-
-/* 10.1.5.1 OrdinaryGetOwnProperty ( O, P )
- * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarygetownproperty */
-ordinary_get_own_property :: fonc (object: *Object, property_key: PropertyKey) -> CompletionRecord
-{
-    propriété := object.trouve_propriété(property_key)
-
-    // 1. If O does not have an own property with key P, return undefined.
-    saufsi propriété {
-        retourne normal_completion(js_undefined)
-    }
-
-    // 2. Let D be a newly created Property Descriptor with no fields.
-    D: PropertyDescriptor
-
-    // 3. Let X be O's own property whose key is P.
-    X := mémoire(propriété)
-
-    // 4. If X is a data property, then
-    si is_data_propery(X) {
-        // a. Set D.[[Value]] to the value of X's [[Value]] attribute.
-        D.value = propriété.valeur
-
-        // b. Set D.[[Writable]] to the value of X's [[Writable]] attribute.
-        D.writable = propriété.drapeaux.WRITABLE == vrai
-    }
-    // 5. Else,
-    sinon {
-        // a. Assert: X is an accessor property.
-        assert(is_accessor_propery(X))
-
-        // b. Set D.[[Get]] to the value of X's [[Get]] attribute.
-        si propriété.get {
-            D.get = propriété.get
-        }
-
-        // c. Set D.[[Set]] to the value of X's [[Set]] attribute.
-        si propriété.set {
-            D.set = propriété.set
-        }
-    }
-
-    // 6. Set D.[[Enumerable]] to the value of X's [[Enumerable]] attribute.
-    D.enumerable = propriété.drapeaux.ENUMERABLE == vrai
-
-    // 7. Set D.[[Configurable]] to the value of X's [[Configurable]] attribute.
-    D.configurable = propriété.drapeaux.CONFIGURABLE == vrai
-
-    // 8. Return D.
-    retourne normal_completion(D)
-}
-
-/* 10.1.6 [[DefineOwnProperty]] ( P, Desc )
- * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarydefineownproperty */
-ordinary_define_own_property :: fonc (object: *Object, property_key: PropertyKey, desc: &PropertyDescriptor) -> CompletionRecord
-{
-    // À FAIRE : standardise
-    saufsi desc.value.possède_valeur() {
-        retourne normal_completion(Valeur(Boolean = faux))
-    }
-
-    valeur := desc.value.Quelque
-    drapeaux: DrapeauxPropriété
-    si desc.writable.possède_valeur() {
-        writable := desc.writable.Quelque
-        si writable {
-            drapeaux.WRITABLE = vrai
-        }
-    }
-    si desc.configurable.possède_valeur() {
-        configurable := desc.configurable.Quelque
-        si configurable {
-            drapeaux.CONFIGURABLE = vrai
-        }
-    }
-    si desc.enumerable.possède_valeur() {
-        enumerable := desc.enumerable.Quelque
-        si enumerable {
-            drapeaux.ENUMERABLE = vrai
-        }
-    }
-
-    propriété := trouve_propriété(object, property_key)
-    si propriété {
-        propriété.valeur = valeur
-        retourne normal_completion(Valeur(Boolean = vrai))
-    }
-
-    object.ajoute_propriété(property_key, valeur, drapeaux)
-    retourne normal_completion(Valeur(Boolean = vrai))
-}
-
-/* 10.1.7.1 OrdinaryHasProperty ( O, P )
- * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinaryhasproperty */
-ordinary_has_property :: fonc (object: *Object, property_key: PropertyKey) -> CompletionRecord
-{
-    // 1. Let hasOwn be ? O.[[GetOwnProperty]](P).
-    completion := internal_get_own_property(object, property_key)
-    saufsi completion.est_normal() {
-        retourne completion
-    }
-    has_own := completion.valeur
-
-    // 2. If hasOwn is not undefined, return true.
-    saufsi has_own.est_undefined() {
-        retourne normal_completion(Valeur(Boolean = vrai))
-    }
-
-    // 3. Let parent be ? O.[[GetPrototypeOf]]().
-    parent := internal_get_prototype_of(object)
-
-    // 4. If parent is not null, then
-    si parent {
-        // a. Return ? parent.[[HasProperty]](P).
-        retourne internal_has_property(parent, property_key)
-    }
-
-    // 5. Return false.
-    retourne normal_completion(Valeur(Boolean = faux))
-}
-
-/* 10.1.8.1 OrdinaryGet ( O, P, Receiver )
- * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinary-object-internal-methods-and-internal-slots-get-p-receiver */
-ordinary_get :: fonc (object: *Object, property_key: PropertyKey, receiver: Valeur) -> CompletionRecord
-{
-    // 1. Let desc be ? O.[[GetOwnProperty]](P).
-    completion_desc := internal_get_own_property(object, property_key)
-    saufsi completion_desc.est_normal() {
-        retourne completion_desc
-    }
-
-    desc := completion_desc.valeur
-
-    // 2. If desc is undefined, then
-    si desc.est_undefined() {
-        // a. Let parent be ? O.[[GetPrototypeOf]]().
-        parent := internal_get_prototype_of(object)
-
-        // b. If parent is null, return undefined.
-        si parent == nul {
-            retourne normal_completion(desc)
-        }
-
-        // c. Return ? parent.[[Get]](P, Receiver).
-        retourne parent.internal_get(property_key, receiver)
-    }
-
-    // 3. If IsDataDescriptor(desc) is true, return desc.[[Value]].
-    si is_data_descriptor(desc.P) {
-        retourne normal_completion(desc.P.value.Quelque)
-    }
-
-    // 4. Assert: IsAccessorDescriptor(desc) is true.
-    assert(is_accessor_descriptor(desc.P))
-
-    // 5. Let getter be desc.[[Get]].
-    getter := desc.P.get
-
-    // 6. If getter is undefined, return undefined.
-    saufsi getter.possède_valeur() {
-        retourne normal_completion(js_undefined)
-    }
-
-    // 7. Return ? Call(getter, Receiver).
-    interpréteuse: Interpréteuse
-    interpréteuse.mv = receiver.donne_objet().donne_tas_de_mémoire().donne_mv()
-    retourne call(*interpréteuse, getter.Quelque, receiver)
-}
-
-/* 10.1.9.1 OrdinarySet ( O, P, V, Receiver )
- * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinaryset */
-ordinary_set :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur, receiver: Valeur) -> CompletionRecord
-{
-    // 1. Let ownDesc be ? O.[[GetOwnProperty]](P).
-    completion_desc := internal_get_own_property(object, property_key)
-    saufsi completion_desc.est_normal() {
-        retourne completion_desc
-    }
-    own_desc := completion_desc.valeur
-
-    // 2. Return ? OrdinarySetWithOwnDescriptor(O, P, V, Receiver, ownDesc).
-    retourne ordinary_set_with_own_descriptor(object, property_key, valeur, receiver, own_desc)
-}
-
-/* 10.1.9.2 OrdinarySetWithOwnDescriptor ( O, P, V, Receiver, ownDesc )
- * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarysetwithowndescriptor */
-ordinary_set_with_own_descriptor :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur, receiver: Valeur, own_desc: ValeurCompletion) -> CompletionRecord
-{
-    // 1. If ownDesc is undefined, then
-    si own_desc.est_undefined() {
-        // a. Let parent be ? O.[[GetPrototypeOf]]().
-        parent := internal_get_prototype_of(object)
-
-        // b. If parent is not null, then
-        si parent {
-            // i. Return ? parent.[[Set]](P, V, Receiver).
-            retourne internal_set(parent, property_key, valeur, receiver)
-        }
-        // c. Else,
-        sinon {
-            // i. Set ownDesc to the PropertyDescriptor { [[Value]]: undefined, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: true }.
-            own_desc = PropertyDescriptor(value = js_undefined, writable = vrai, enumerable = vrai, configurable = vrai)
-        }
-    }
-
-    // 2. If IsDataDescriptor(ownDesc) is true, then
-    si is_data_descriptor(own_desc.P) {
-        // a. If ownDesc.[[Writable]] is false, return false.
-        si own_desc.P.writable == faux {
-            retourne normal_completion(Valeur(Boolean = faux))
-        }
-
-        // b. If Receiver is not an Object, return false.
-        saufsi receiver.est_object() {
-            retourne normal_completion(Valeur(Boolean = faux))
-        }
-
-        // c. Let existingDescriptor be ? Receiver.[[GetOwnProperty]](P).
-        completion := internal_get_own_property(receiver.donne_objet(), property_key)
-        saufsi completion.est_normal() {
-            retourne completion
-        }
-        existing_descriptor := completion.valeur
-
-        // d. If existingDescriptor is not undefined, then
-        saufsi existing_descriptor.est_undefined() {
-            // i. If IsAccessorDescriptor(existingDescriptor) is true, return false.
-            si is_accessor_descriptor(existing_descriptor.P) {
-                retourne normal_completion(Valeur(Boolean = faux))
-            }
-
-            // ii. If existingDescriptor.[[Writable]] is false, return false.
-            si existing_descriptor.P.writable == faux {
-                retourne normal_completion(Valeur(Boolean = faux))
-            }
-
-            // iii. Let valueDesc be the PropertyDescriptor { [[Value]]: V }.
-            value_desc := PropertyDescriptor(value = valeur)
-
-            // iv. Return ? Receiver.[[DefineOwnProperty]](P, valueDesc).
-            retourne internal_define_own_property(receiver.donne_objet(), property_key, value_desc)
-        }
-        // e. Else,
-        sinon {
-            // À FAIRE : i. Assert: Receiver does not currently have a property P.
-
-            // ii. Return ? CreateDataProperty(Receiver, P, V).
-            retourne create_data_property(receiver, property_key, valeur)
-        }
-    }
-
-    // 3. Assert: IsAccessorDescriptor(ownDesc) is true.
-    assert(is_accessor_descriptor(own_desc.P))
-
-    // 4. Let setter be ownDesc.[[Set]].
-    setter := own_desc.P.set
-
-    // 5. If setter is undefined, return false.
-    saufsi setter.possède_valeur() {
-        retourne normal_completion(Valeur(Boolean = faux))
-    }
-
-    // 6. Perform ? Call(setter, Receiver, « V »).
-    interpréteuse: Interpréteuse
-    interpréteuse.mv = receiver.donne_objet().donne_tas_de_mémoire().donne_mv()
-
-    arguments: []Valeur
-    arguments.pointeur = *valeur
-    arguments.taille = 1
-
-    completion := call(*interpréteuse, setter.Quelque, receiver, arguments)
-    saufsi completion.est_normal() {
-        retourne completion
-    }
-
-    // 7. Return true.
-    retourne normal_completion(Valeur(Boolean = vrai))
-}
-
-/* 10.1.12 OrdinaryObjectCreate ( proto [ , additionalInternalSlotsList ] )
- * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinaryobjectcreate */
-ordinary_object_create :: fonc (realm: *Realm, prototype: *Object, rappel_allocation_objet: TypeFonctionAllocationObjet) -> *Object
-{
-    // 1. Let internalSlotsList be « [[Prototype]], [[Extensible]] ».
-    // 2. If additionalInternalSlotsList is present, set internalSlotsList to the list-concatenation of internalSlotsList and additionalInternalSlotsList.
-
-    // 3. Let O be MakeBasicObject(internalSlotsList).
-    O := make_basic_object(realm, rappel_allocation_objet)
-
-    // 4. Set O.[[Prototype]] to proto.
-    O.prototype = prototype
-
-    // 5. Return O.
-    retourne O
-}
-
-/* 10.1.13 OrdinaryCreateFromConstructor ( constructor, intrinsicDefaultProto [ , internalSlotsList ] )
- * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinaryobjectcreate */
-ordinary_create_from_constructor :: fonc (realm: *Realm, constructor: *Function, intrinsic_default_proto: *Object, rappel_allocation_objet: TypeFonctionAllocationObjet) -> CompletionRecord
-{
-    // 1. Assert: intrinsicDefaultProto is this specification's name of an intrinsic object.
-    //    The corresponding object must be an intrinsic that is intended to be used as the
-    //    [[Prototype]] value of an object.
-    assert(est_intrinsics(realm, intrinsic_default_proto))
-
-    // 2. Let proto be ? GetPrototypeFromConstructor(constructor, intrinsicDefaultProto).
-    completion := get_prototype_from_constructor(realm, constructor, intrinsic_default_proto)
-    saufsi completion.est_normal() {
-        retourne completion
-    }
-    proto := completion.valeur.V.donne_objet()
-
-    // 3. If internalSlotsList is present, let slotsList be internalSlotsList.
-    // 4. Else, let slotsList be a new empty List.
-
-    // 5. Return OrdinaryObjectCreate(proto, slotsList).
-    résultat := ordinary_object_create(realm, proto, rappel_allocation_objet)
-    retourne normal_completion(Valeur(Object = résultat))
-}
-
-/* 10.1.14 GetPrototypeFromConstructor ( constructor, intrinsicDefaultProto )
- * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-getprototypefromconstructor */
-get_prototype_from_constructor :: fonc (realm: *Realm, constructor: *Function, intrinsic_default_proto: *Object) -> CompletionRecord
-{
-    // 1. Assert: intrinsicDefaultProto is this specification's name of an intrinsic object.
-    //    The corresponding object must be an intrinsic that is intended to be used as the
-    //    [[Prototype]] value of an object.
-    assert(est_intrinsics(realm, intrinsic_default_proto))
-
-    // 2. Let proto be ? Get(constructor, "prototype").
-    completion := get(constructor, STR_prototype)
-    saufsi completion.est_normal() {
-        retourne completion
-    }
-    proto := completion.valeur.V
-
-    // 3. If proto is not an Object, then
-    saufsi proto.est_object() {
-        // À FAIRE : a. Let realm be ? GetFunctionRealm(constructor).
-        // b. Set proto to realm's intrinsic object named intrinsicDefaultProto.
-        proto.Object = intrinsic_default_proto
-    }
-
-    // 4. Return proto.
-    retourne normal_completion(proto)
-}
-
-/** \} */
-
-/* 15.2.3 Runtime Semantics: EvaluateFunctionBody
- * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-runtime-semantics-evaluatefunctionbody */
-evaluate_function_body :: fonc (interpréteuse: *Interpréteuse, function_object: *ECMAScriptFunction, arguments_list: []Valeur) -> CompletionRecord
-{
-    // 1. Perform ? FunctionDeclarationInstantiation(functionObject, argumentsList).
-    completion := function_declaration_instantiation(interpréteuse, function_object, arguments_list)
-    saufsi completion.est_normal() {
-        retourne completion
-    }
-    // 2. Return ? Evaluation of FunctionStatementList.
-    retourne interpréteuse.exécute(function_object.corps)
-}
-
-/* ------------------------------------------------------------------------- */
-/** \nom 19.2.1 eval ( x )
- * \{ */
-
-#portée_fichier
-
-/* Table virtuelle pour "eval()" */
-table_virtuelle_function_eval := TableVirtuelleObject(classe = Function, sur_call = eval_sur_call)
-
-#portée_export
-
-crée_eval :: fonc (realm: *Realm) -> *Function
-{
-    résultat := crée_fonction(realm.intrinsics.function_prototype)
-    set_function_name(realm, résultat, STR_eval)
-    résultat.table = *table_virtuelle_function_eval
-    retourne résultat
-}
-
-/* https://tc39.es/ecma262/multipage/global-object.html#sec-eval-x */
-eval_sur_call :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
-{
-    si arguments.taille == 0 {
-        retourne normal_completion(js_undefined)
-    }
-
-    retourne perform_eval(interpréteuse, params.donne_argument(0), faux, faux)
-}
-
-/* 19.2.1.1 PerformEval ( x, strictCaller, direct )
- * https://tc39.es/ecma262/multipage/global-object.html#sec-performeval */
-perform_eval :: fonc (interpréteuse: *Interpréteuse, x: Valeur, strict_caller: bool, direct: bool) -> CompletionRecord
-{
-    // 1. Assert: If direct is false, then strictCaller is also false.
-    assert(direct == vrai || (direct == faux && strict_caller == faux))
-
-    // 2. If x is not a String, return x.
-    saufsi x.est_chaine() {
-        retourne normal_completion(x)
-    }
-
-    // 3. Let evalRealm be the current Realm Record.
-    // 4. NOTE: In the case of a direct eval, evalRealm is the realm of both the caller of eval and of the eval function itself.
-    eval_realm := interpréteuse.donne_realm()
-
-    // À FAIRE : 5. Perform ? HostEnsureCanCompileStrings(evalRealm, « », x, direct).
-
-    // 6. Let inFunction be false.
-    in_function := faux
-
-    // 7. Let inMethod be false.
-    // in_method := faux
-
-    // 8. Let inDerivedConstructor be false.
-    // in_derived_constructor := faux
-
-    // 9. Let inClassFieldInitializer be false.
-    // in_class_field_initializer := faux
-
-    // 10. If direct is true, then
-    si direct {
-        // a. Let thisEnvRec be GetThisEnvironment().
-        this_env_rec := get_this_environment(interpréteuse)
-
-        // b. If thisEnvRec is a Function Environment Record, then
-        si this_env_rec.table.classe == FunctionEnvironment {
-            // À FAIRE : i. Let F be thisEnvRec.[[FunctionObject]].
-
-            // ii. Set inFunction to true.
-            in_function = vrai
-
-            // iii. Set inMethod to thisEnvRec.HasSuperBinding().
-            // iv. If F.[[ConstructorKind]] is DERIVED, set inDerivedConstructor to true.
-            // v. Let classFieldInitializerName be F.[[ClassFieldInitializerName]].
-            // vi. If classFieldInitializerName is not EMPTY, set inClassFieldInitializer to true.
-        }
-    }
-
-    // À FAIRE : 11. Perform the following substeps in an implementation-defined order, possibly interleaving parsing and error detection:
-    // À FAIRE : a. Let script be ParseText(x, Script).
-    // b. If script is a List of errors, throw a SyntaxError exception.
-    script: *Script
-    contenu := converti_vers_chaine(x.String.texte.donne_chaine_utf16())
-    diffère déloge(contenu)
-
-    /* À FAIRE(langage) : host_defined n'est pas initialisée à sa valeur défaut. */
-    host_defined: HostDefined
-    discr parse_script(contenu, eval_realm, host_defined) {
-        Ok(s) {
-            script = s
-        }
-        Erreur(e) {
-            diffère déloge(e.message)
-            retourne interpréteuse.lance_syntax_error(e.message)
-        }
-        sinon {
-            chn := "Erreur inconnue"
-            retourne interpréteuse.lance_syntax_error(chn)
-        }
-    }
-
-    // À FAIRE : c. If script Contains ScriptBody is false, return undefined.
-    // À FAIRE : d. Let body be the ScriptBody of script.
-    body := script.ecma_script_code
-
-    // À FAIRE : e. If inFunction is false and body Contains NewTarget, throw a SyntaxError exception.
-    // À FAIRE : f. If inMethod is false and body Contains SuperProperty, throw a SyntaxError exception.
-    // À FAIRE : g. If inDerivedConstructor is false and body Contains SuperCall, throw a SyntaxError exception.
-    // À FAIRE : h. If inClassFieldInitializer is true and ContainsArguments of body is true, throw a SyntaxError exception.
-
-    // 12. If strictCaller is true, let strictEval be true.
-    strict_eval := si strict_caller {
-        vrai
-    }
-    // 13. Else, let strictEval be ScriptIsStrict of script.
-    sinon {
-        // À FAIRE : ScriptIsStrict
-        faux
-    }
-
-    // 14. Let runningContext be the running execution context.
-    // 15. NOTE: If direct is true, runningContext will be the execution context that performed the direct eval. If direct is false, runningContext will be the execution context for the invocation of the eval function.
-    running_context := interpréteuse.donne_running_execution_context()
-
-    lex_env: *Environment
-    var_env: *Environment
-    private_env: *PrivateEnvironment
-
-    // 16. If direct is true, then
-    si direct {
-        // a. Let lexEnv be NewDeclarativeEnvironment(runningContext's LexicalEnvironment).
-        lex_env = new_declarative_environment(interpréteuse.donne_tas_de_mémoire(), running_context.lexical_environment)
-
-        // b. Let varEnv be runningContext's VariableEnvironment.
-        var_env = running_context.variable_environment
-    
-        // c. Let privateEnv be runningContext's PrivateEnvironment.
-        private_env = running_context.private_environment
-    }
-    // 17. Else,
-    sinon {
-        // a. Let lexEnv be NewDeclarativeEnvironment(evalRealm.[[GlobalEnv]]).
-        lex_env = new_declarative_environment(interpréteuse.donne_tas_de_mémoire(), eval_realm.global_environment)
-
-        // b. Let varEnv be evalRealm.[[GlobalEnv]].
-        var_env = eval_realm.global_environment
-
-        // c. Let privateEnv be null.
-        private_env = nul
-    }
-
-    // 18. If strictEval is true, set varEnv to lexEnv.
-    si strict_eval {
-        var_env = lex_env
-    }
-
-    // 19. If runningContext is not already suspended, suspend runningContext.
-    mv := interpréteuse.mv
-    mv.suspend_running_execution_context()
-
-    // 20. Let evalContext be a new ECMAScript code execution context.
-    eval_context := crée_execution_context(interpréteuse.donne_tas_de_mémoire())
-
-    // 21. Set evalContext's Function to null.
-    eval_context.function = nul
-
-    // 22. Set evalContext's Realm to evalRealm.
-    eval_context.realm = eval_realm
-
-    // 23. Set evalContext's ScriptOrModule to runningContext's ScriptOrModule.
-    eval_context.script_or_module = running_context.script_or_module
-
-    // 24. Set evalContext's VariableEnvironment to varEnv.
-    eval_context.variable_environment = var_env
-
-    // 25. Set evalContext's LexicalEnvironment to lexEnv.
-    eval_context.lexical_environment = lex_env
-
-    // 26. Set evalContext's PrivateEnvironment to privateEnv.
-    eval_context.private_environment = private_env
-
-    // 27. Push evalContext onto the execution context stack; evalContext is now the running execution context.
-    mv.empile_execution_context(eval_context)
-
-    // À FAIRE : 28. Let result be Completion(EvalDeclarationInstantiation(body, varEnv, lexEnv, privateEnv, strictEval)).
-    result := normal_completion(js_undefined)
-
-    // 29. If result is a normal completion, then
-    si result.est_normal() {
-        // a. Set result to Completion(Evaluation of body).
-        result = interpréteuse.exécute(body)
-    }
-
-    // 30. If result is a normal completion and result.[[Value]] is EMPTY, then
-        // a. Set result to NormalCompletion(undefined).
-
-    // 31. Suspend evalContext and remove it from the execution context stack.
-    mv.suspend_running_execution_context()
-    mv.dépile_execution_context()
-
-    // À FAIRE : 32. Resume the context that is now on the top of the execution context stack as the running execution context.
-    running_context = mv.donne_running_execution_context()
-    interpréteuse.noeud_exécuté_courant = *running_context.noeud_exécuté_courant
-
-    // 33. Return ? result.
-    retourne result
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom PrimitiveChaine
- * \{ */
-
-#portée_fichier
-
-table_virtuelle_primitive_chaine := TableVirtuelleCellule(classe = PrimitiveChaine)
-
-#portée_export
-
-PrimitiveChaine :: struct {
-    empl cellule: Cellule
-    table = *table_virtuelle_primitive_chaine
-
-    texte: ECMAString
-    objet: *Object
-}
-
-crée_chaine :: fonc (realm: *Realm, texte: ECMAString) -> *PrimitiveChaine
-{
-    pour realm.chaines {
-        si it.texte == texte {
-            retourne it
-        }
-    }
-
-    tas_de_mémoire := realm.donne_tas_de_mémoire()
-    résultat := tas_de_mémoire.alloue(PrimitiveChaine)
-    résultat.texte = texte
-    tableau_ajoute(*realm.chaines, résultat)
-    retourne résultat
-}
-
-crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, texte: ECMAString) -> *PrimitiveChaine
-{
-    résultat := tas_de_mémoire.alloue(PrimitiveChaine)
-    résultat.texte = texte
-    retourne résultat
 }
 
 /** \} */

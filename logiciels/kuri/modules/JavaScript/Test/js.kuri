@@ -58,7 +58,7 @@ exécute_script :: fonc (realm: *Realm, source: chaine) -> bool
             script = s
         }
         Erreur(e) {
-            imprime("%\n", e)
+            imprime("%\n", Valeur(Object = e))
             retourne faux
         }
         sinon {
