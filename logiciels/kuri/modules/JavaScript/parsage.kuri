@@ -1040,7 +1040,8 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
             operation := si lexème.genre == GenreLexème.PlusPlus { UpdateOperation.PostfixIncrement } sinon { UpdateOperation.PostfixDecrement }
             update := crée_update_expression(parseuse, lexème, gauche, operation)
 
-            si parseuse.apparie_expression_secondaire() {
+            /* Les expressions de style var o = {x:i++,y:2} doivent s'arrêter à la virgule (qui est une expression secondaire). */
+            si parseuse.apparie_expression_secondaire() && !parseuse.apparie(params.lexème_final) {
                 retourne parseuse.parse_expression_secondaire(update, params)
             }
 
