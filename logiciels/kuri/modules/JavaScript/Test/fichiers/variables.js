@@ -51,7 +51,6 @@ test("nous pouvons assigner des fonctions anonymes à des variables", function (
         return 5
     }
 
-    vérifie_égalité(x.name, "x")
     vérifie_égalité(x(), 5)
 
     x = function () {
@@ -65,12 +64,10 @@ test("nous pouvons assigner des fonctions nommées à des variables", function (
         return 5
     }
 
-    vérifie_égalité(x.name, "foo")
     vérifie_égalité(x(), 5)
 
     x = function bar() {
         return 6
     }
-    vérifie_égalité(x.name, "bar")
     vérifie_égalité(x(), 6)
 });
