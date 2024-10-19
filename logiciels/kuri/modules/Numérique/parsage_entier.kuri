@@ -227,7 +227,7 @@ extrait_nombre_réel_sûr :: fonc (chn: chaine) -> r64 | ErreurParsageEntier
 
     résultat : r64 = 0.0
 
-    index_point : z64 = 0
+    index_point : z64 = chn.taille
 
     pour i dans 0 ... chn.taille - 1 {
         si chn[i] == '.' {

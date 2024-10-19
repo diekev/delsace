@@ -104,8 +104,8 @@ garantis_taille_tableau_élément_pour_index :: fonc (object: *Object, index: n3
             object.éléments_indexés[it].valeur = js_undefined
         }
 
-        si object.donne_classe() == ObjetArray {
-            array := object comme *ObjetArray
+        si object.donne_classe() == ArrayObject {
+            array := object comme *ArrayObject
             array_set_length(array, index + 1)
         }
     }
@@ -341,7 +341,7 @@ object_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> Comp
     builtin_tag: chaine
 
     // 5. If isArray is true, let builtinTag be "Array".
-    si O.donne_classe() == ObjetArray {
+    si O.donne_classe() == ArrayObject {
         builtin_tag = "Array"
     }
     // À FAIRE : 6. Else if O has a [[ParameterMap]] internal slot, let builtinTag be "Arguments".
@@ -353,13 +353,22 @@ object_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> Comp
     sinon si O.donne_classe() == Error || O.donne_classe() == ReferenceError || O.donne_classe() == TypeError {
         builtin_tag = "Error"
     }
-    // À FAIRE : 9. Else if O has a [[BooleanData]] internal slot, let builtinTag be "Boolean".
-    // À FAIRE : 10. Else if O has a [[NumberData]] internal slot, let builtinTag be "Number".
+    // 9. Else if O has a [[BooleanData]] internal slot, let builtinTag be "Boolean".
+    sinon si O.donne_classe() == BooleanObject {
+        builtin_tag = "Boolean"
+    }
+    // 10. Else if O has a [[NumberData]] internal slot, let builtinTag be "Number".
+    sinon si O.donne_classe() == NumberObject {
+        builtin_tag = "Number"
+    }
     // 11. Else if O has a [[StringData]] internal slot, let builtinTag be "String".
-    sinon si O.donne_classe() == ObjetChaine {
+    sinon si O.donne_classe() == StringObject {
         builtin_tag = "String"
     }
-    // À FAIRE : 12. Else if O has a [[DateValue]] internal slot, let builtinTag be "Date".
+    // 12. Else if O has a [[DateValue]] internal slot, let builtinTag be "Date".
+    sinon si O.donne_classe() == DateObject {
+        builtin_tag = "Date"
+    }
     // À FAIRE : 13. Else if O has a [[RegExpMatcher]] internal slot, let builtinTag be "RegExp".
     // 14. Else, let builtinTag be "Object".
     sinon {

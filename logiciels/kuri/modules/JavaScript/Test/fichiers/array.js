@@ -1,7 +1,7 @@
 test("array-literal", function () {
     var a = [1, 2, 3];
     vérifie_égalité(a.length, 3)
-    vérifie_égalité(a.toString(), "1.0,2.0,3.0")
+    vérifie_égalité(a.toString(), "1,2,3")
 
     a[1] = 5;
     vérifie_égalité(a[1], 5)
@@ -57,4 +57,13 @@ test("array-constructor new", function () {
     var b = new Array(16);
     vérifie_égalité(b.length, 16)
     vérifie_égalité(b.toString(), ",,,,,,,,,,,,,,,")
+});
+
+test("array-constructor multiples valeurs", function () {
+    var b = Array(0, 1, 2, 3, 4, 5);
+    vérifie_égalité(b.length, 6)
+
+    for (var i = 0; i < 6; i++) {
+        vérifie_égalité(b[i], i)
+    }
 });

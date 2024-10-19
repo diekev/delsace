@@ -90,7 +90,7 @@ exécute_script :: fonc (realm: *Realm, source: chaine, chemin: chaine) -> bool
             script = s
         }
         Erreur(e) {
-            imprime("[ \x1b[31mÉCHEC\x1b[37m ] : %\n%\n", chemin, e)
+            imprime("[ \x1b[31mÉCHEC\x1b[37m ] : %\n%\n", chemin, Valeur(Object = e))
             retourne faux
         }
         sinon {
