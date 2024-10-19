@@ -517,11 +517,13 @@ droit_traité_slash_comme_début_regex :: fonc (empl lexeuse: &Lexeuse) -> bool
         OuLogique,
         EtLogique,
         NonLogique,
-        Return {
+        Return,
+        Else,
+        Plus {
             retourne vrai
         }
         Identifiant {
-            retourne dernier_lexème.texte == "return"
+            retourne dernier_lexème.texte == "return" || dernier_lexème.texte == "else"
         }
         sinon {}
     }
