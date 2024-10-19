@@ -123,3 +123,23 @@ test("a <<= b", function () {
     a <<= 2; // 00000000000000000000000000010100
     vérifie_égalité(a, 20);
 });
+
+test("a / b", function () {
+    vérifieQue(12 / 2).doitÊtre(6);
+    vérifieQue(3 / 2).doitÊtre(1.5);
+    vérifieQue(6 / '3').doitÊtre(2);
+    vérifieQue(2 / 0).doitÊtre(Infinity);
+});
+
+test("a /= b", function () {
+    let a = 3;
+
+    a /= 2;
+    vérifieQue(a).doitÊtre(1.5);
+
+    a /= 0;
+    vérifieQue(a).doitÊtre(Infinity);
+
+    a /= 'hello';
+    vérifieQue(a).doitÊtreNaN();
+});
