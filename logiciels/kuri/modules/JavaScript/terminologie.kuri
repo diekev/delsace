@@ -20,6 +20,7 @@ STR_globalThis : ChaineUTF16Unique = ---
 STR_getPrototypeOf : ChaineUTF16Unique = ---
 STR_hasOwnProperty : ChaineUTF16Unique = ---
 STR_indexOf : ChaineUTF16Unique = ---
+STR_isNaN : ChaineUTF16Unique = ---
 STR_join : ChaineUTF16Unique = ---
 STR_length : ChaineUTF16Unique = ---
 STR_log : ChaineUTF16Unique = ---

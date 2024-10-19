@@ -86,6 +86,7 @@ Intrinsics :: struct {
     array: *ArrayConstructor
     date: *DateConstructor
     eval: *Function
+    isnan: *Function
     parse_int: *Function
     function: *FunctionConstructor
     math: *MathObject
@@ -118,6 +119,7 @@ create_intrinsics :: fonc (realm: *Realm)
     realm.intrinsics.array = crée_array_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.array_prototype)
     realm.intrinsics.date = crée_date_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.date_prototype)
     realm.intrinsics.eval = crée_eval(realm)
+    realm.intrinsics.isnan = crée_isnan(realm)
     realm.intrinsics.parse_int = crée_parse_int(realm)
     realm.intrinsics.function = crée_function_constructor(realm, realm.intrinsics.function_prototype)
     realm.intrinsics.math = crée_math_object(realm.intrinsics.object_prototype)
@@ -312,7 +314,7 @@ set_default_global_bindings :: fonc (realm: *Realm) -> CompletionRecord
         /* 19.2 Function Properties of the Global Object */
         GlobalObjectProperty(STR_eval, Valeur(Function = realm.intrinsics.eval)),
         // isFinite
-        // isNaN
+        GlobalObjectProperty(STR_isNaN, Valeur(Function = realm.intrinsics.isnan)),
         // parseFloat
         GlobalObjectProperty(STR_parseInt, Valeur(Function = realm.intrinsics.parse_int)),
         // decodeURI

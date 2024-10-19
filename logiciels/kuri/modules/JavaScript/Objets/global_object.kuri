@@ -1,5 +1,6 @@
 importe Chaine
 importe Fondation
+importe Math
 
 /* ------------------------------------------------------------------------- */
 /** \nom 19.2.1 eval ( x )
@@ -206,6 +207,46 @@ perform_eval :: fonc (interpréteuse: *Interpréteuse, x: Valeur, strict_caller:
 
     // 33. Return ? result.
     retourne result
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 19.2.3 isNaN ( number )
+ * https://tc39.es/ecma262/multipage/global-object.html#sec-isnan-number
+ * \{ */
+
+#portée_fichier
+
+/* Table virtuelle pour "parseInt()" */
+table_virtuelle_function_is_nan := TableVirtuelleObject(classe = Function, sur_call = isnan_sur_call)
+
+#portée_export
+
+crée_isnan :: fonc (realm: *Realm) -> *Function
+{
+    résultat := crée_fonction(realm.intrinsics.function_prototype)
+    set_function_name(realm, résultat, STR_isNaN)
+    résultat.table = *table_virtuelle_function_is_nan
+    retourne résultat
+}
+
+isnan_sur_call :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    // 1. Let num be ? ToNumber(number).
+    completion := to_number(interpréteuse, donne_argument(params, 0))
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    num := completion.valeur.V.Number
+
+    // 2. If num is NaN, return true.
+    si est_nan(num) {
+        retourne normal_completion(Valeur(Boolean = vrai))
+    }
+
+    // 3. Otherwise, return false.
+    retourne normal_completion(Valeur(Boolean = faux))
 }
 
 /** \} */

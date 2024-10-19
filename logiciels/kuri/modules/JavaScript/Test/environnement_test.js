@@ -29,6 +29,11 @@ function vérifieQue(v) {
                 // throw new ExpectationError("doitÊtre", this.valeur, nv);
                 throw "ExpectationError: " + "doitÊtre" + ": expected _" + this.valeur + "_, got _" + nv + "_";
             }
+        },
+        doitÊtreNaN: function () {
+            if (!isNaN(this.valeur)) {
+                throw "ExpectationError: " + "doitÊtreNaN" + ": got _" + this.valeur + "_";
+            }
         }
     }
 
