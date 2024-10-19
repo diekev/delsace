@@ -1,9 +1,21 @@
-test("modulo", function () {
-    vérifie_égalité(0 % 3, 0);
-    vérifie_égalité(1 % 3, 1);
-    vérifie_égalité(2 % 3, 2);
-    vérifie_égalité(3 % 3, 0);
-    vérifie_égalité(4 % 3, 1);
+test("a % b", function () {
+    vérifieQue(0 % 3).doitÊtre(0);
+    vérifieQue(1 % 3).doitÊtre(1);
+    vérifieQue(2 % 3).doitÊtre(2);
+    vérifieQue(3 % 3).doitÊtre(0);
+    vérifieQue(4 % 3).doitÊtre(1);
+
+    vérifieQue(13 % 5).doitÊtre(3);
+    vérifieQue(-13 % 5).doitÊtre(-3);
+    vérifieQue(4 % 2).doitÊtre(0.0);
+    vérifieQue(-4 % 2).doitÊtre(-0.0);
+});
+
+test("a %= b", function () {
+    let a = 3;
+    vérifieQue(a %= 2).doitÊtre(1);
+    vérifieQue(a %= NaN).doitÊtreNaN();
+    vérifieQue(a %= "Hello").doitÊtreNaN();
 });
 
 test("a & b", function () {
