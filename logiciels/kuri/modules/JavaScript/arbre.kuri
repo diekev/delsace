@@ -613,9 +613,42 @@ crée_binary_not :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Exp
     retourne résultat
 }
 
-sur_exécution_binary_not :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *Interpréteuse @inutilisée) -> CompletionRecord
+sur_exécution_binary_not :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
 {
-    panique("non-implémenté")
+    noeud := base comme *BinaryNot
+
+    // 1. Let expr be ? Evaluation of UnaryExpression.
+    completion := exécute_noeud(noeud.argument, interpréteuse)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    expr := completion.valeur
+
+    // 2. Let oldValue be ? ToNumeric(? GetValue(expr)).
+    completion = get_value(interpréteuse, expr)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+
+    completion = to_numeric(interpréteuse, completion.valeur.V)
+    saufsi  completion.est_normal() {
+        retourne completion
+    }
+
+    old_value := completion.valeur.V
+
+    // 3. If oldValue is a Number, then
+    si old_value.est_nombre() {
+        // a. Return Number::bitwiseNOT(oldValue).
+        retourne normal_completion(number_bitwise_not(old_value))
+    }
+
+    // 4. Else,
+    //    a. Assert: oldValue is a BigInt.
+    assert(old_value.est_big_int())
+
+    //    b. Return BigInt::bitwiseNOT(oldValue).
+    retourne normal_completion(big_int_bitwise_not(old_value))
 }
 
 /** \} */

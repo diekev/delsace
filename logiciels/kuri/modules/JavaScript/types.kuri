@@ -22,6 +22,11 @@ big_int_equal :: fonc (x: Valeur @inutilisée, y: Valeur @inutilisée) -> bool
     panique("big_int equal non-implémenté")
 }
 
+big_int_bitwise_not :: fonc (x: Valeur @inutilisée) -> Valeur
+{
+    panique("big_int_bitwise_not non-implémenté")
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -39,6 +44,18 @@ Symbol :: struct {
 /* ------------------------------------------------------------------------- */
 /** \nom 6.1.6.1 The Number Type
  * \{ */
+
+/* 6.1.6.1.2 Number::bitwiseNOT ( x )
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-bitwiseNOT */
+number_bitwise_not :: fonc (x: Valeur) -> Valeur
+{
+    // 1. Let oldValue be ! ToInt32(x).
+    old_value := to_int32(x).Number comme z32
+
+    // 2. Return the bitwise complement of oldValue.
+    // The mathematical value of the result is exactly representable as a 32-bit two's complement bit string.
+    retourne Valeur(Number = ~old_value comme r64)
+}
 
 /* 6.1.6.1.3 Number::exponentiate
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-exponentiate */
