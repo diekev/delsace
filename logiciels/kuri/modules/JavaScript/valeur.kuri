@@ -1064,10 +1064,7 @@ is_strictly_equal :: fonc (x: Valeur, y: Valeur) -> Valeur
     // 2. If x is a Number, then
     si x.est_nombre() {
         // a. Return Number::equal(x, y).
-        // À FAIRE : Numer::equal
-        valx := x.Number
-        valy := y.Number
-        retourne valx == valy
+        retourne number_equal(x, y)
     }
 
     // 3. Return SameValueNonNumber(x, y).

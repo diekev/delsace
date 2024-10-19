@@ -36,6 +36,48 @@ Symbol :: struct {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom 6.1.6.1 The Number Type
+ * \{ */
+
+/* 6.1.6.1.13 Number::equal ( x, y )
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-equal */
+number_equal :: fonc (vx: Valeur, vy: Valeur) -> bool
+{
+    x := vx.Number
+    y := vy.Number
+
+    // 1. If x is NaN, return false.
+    si est_nan(x) {
+        retourne faux
+    }
+
+    // 2. If y is NaN, return false.
+    si est_nan(y) {
+        retourne faux
+    }
+
+    // 3. If x is y, return true.
+    si x == y {
+        retourne vrai
+    }
+
+    // 4. If x is +0𝔽 and y is -0𝔽, return true.
+    si x == 0.0 && y == -0.0 {
+        retourne vrai
+    }
+
+    // 5. If x is -0𝔽 and y is +0𝔽, return true.
+    si x == -0.0 && y == 0.0 {
+        retourne vrai
+    }
+
+    // 6. Return false.
+    retourne faux
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom PropertyDescriptor
  * 6.2.6 The Property Descriptor Specification Type
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-property-descriptor-specification-type
