@@ -18,3 +18,11 @@ test("|| retourne vrai si au moins une branche retourne vrai", function () {
     vérifie_égalité(false || false || false || false, false)
     vérifie_égalité(true || false || false || false, true)
 });
+
+test("?? retourne la valeur non-nulle et non-undefined", function () {
+    const foo = null ?? 'default string';
+    vérifie_égalité(foo, 'default string')
+
+    const baz = 0 ?? 42;
+    vérifie_égalité(baz, 0)
+});

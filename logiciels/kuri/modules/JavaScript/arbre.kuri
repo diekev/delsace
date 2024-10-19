@@ -787,6 +787,65 @@ sur_exécution_logical_or :: fonc (base: *NoeudSyntaxique, interpréteuse: *Inte
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Coalesce
+ * \{ */
+
+Coalesce :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_coalesce
+
+    left: *Expression
+    right: *Expression
+}
+
+crée_coalesce :: fonc (parseuse: *Parseuse, lexème: *Lexème, left: *Expression, right: *Expression) -> *Coalesce
+{
+    résultat := parseuse.crée_noeud(lexème, Coalesce)
+    résultat.left = left
+    résultat.right = right
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#prod-LogicalORExpression */
+sur_exécution_coalesce :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    noeud := base comme *Coalesce
+
+    // 1. Let lRef be ? Evaluation of CoalesceExpressionHead.
+    completion := exécute_noeud(noeud.left, interpréteuse)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    lref := completion.valeur
+    // 2. Let lVal be ? GetValue(lRef).
+    completion = get_value(interpréteuse, lref)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    lval := completion.valeur.V
+
+    // 3. If lVal is either undefined or null, then
+    si lval.est_nulle() || lval.est_undefined() {
+        // a. Let rRef be ? Evaluation of BitwiseORExpression.
+        completion = exécute_noeud(noeud.right, interpréteuse)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        rref := completion.valeur
+
+        // b. Return ? GetValue(rRef).
+        retourne get_value(interpréteuse, rref)
+    }
+
+    // 4. Else,
+    //    a. Return lVal.
+    retourne normal_completion(lval)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom BinaryExpression
  * \{ */
 

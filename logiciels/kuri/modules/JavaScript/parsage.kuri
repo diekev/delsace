@@ -1121,6 +1121,11 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
             droite := parseuse.parse_expression(params)
             retourne crée_logical_or(parseuse, lexème, gauche, droite)
         }
+        Coalesce {
+            parseuse.consomme()
+            droite := parseuse.parse_expression(params)
+            retourne crée_coalesce(parseuse, lexème, gauche, droite)
+        }
         Interrogation {
             parseuse.consomme()
 

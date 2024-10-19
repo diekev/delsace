@@ -431,14 +431,14 @@ initialise_données_lexèmes_pour_parsage :: fonc ()
     définis_données_précédence(GenreLexème.DécalageDroiteNaturelÉgal, 2, Associativité.Droite)
     // définis_données_précédence(GenreLexème.EtLogiqueÉgal, 2, Associativité.Droite)
     // définis_données_précédence(GenreLexème.OuLogiqueÉgal, 2, Associativité.Droite)
-    // définis_données_précédence(GenreLexème.NullishCoalescingÉgal, 2, Associativité.Droite)
+    // définis_données_précédence(GenreLexème.CoalesceÉgal, 2, Associativité.Droite)
     // définis_données_précédence(GenreLexème.Arrow, 2, Associativité.Droite)
     // définis_données_précédence(GenreLexème.Yield, 2, Associativité.Aucune)
     // définis_données_précédence(GenreLexème.YieldStar, 2, Associativité.Aucune)
     // définis_données_précédence(GenreLexème.Spread, 2, Associativité.Aucune)
 
     définis_données_précédence(GenreLexème.OuLogique, 3, Associativité.Gauche)
-    // définis_données_précédence(GenreLexème.NullishCoalescing, 3, Associativité.Gauche)
+    définis_données_précédence(GenreLexème.Coalesce, 3, Associativité.Gauche)
 
     définis_données_précédence(GenreLexème.EtLogique, 4, Associativité.Gauche)
 
