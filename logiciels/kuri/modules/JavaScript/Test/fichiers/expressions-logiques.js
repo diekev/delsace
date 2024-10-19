@@ -19,6 +19,18 @@ test("|| retourne vrai si au moins une branche retourne vrai", function () {
     vérifie_égalité(true || false || false || false, true)
 });
 
+test("||= ne change pas la valeur des membres qui sont 'vrai'", function () {
+    const a = { duration: 50, title: '' };
+    a.duration ||= 10;
+    vérifie_égalité(a.duration, 50);
+});
+
+test("||= change la valeur des membres qui sont 'faux'", function () {
+    const a = { duration: 50, title: '' };
+    a.title ||= 'title is empty.';
+    vérifie_égalité(a.title, 'title is empty.');
+});
+
 test("?? retourne la valeur non-nulle et non-undefined", function () {
     const foo = null ?? 'default string';
     vérifie_égalité(foo, 'default string')
