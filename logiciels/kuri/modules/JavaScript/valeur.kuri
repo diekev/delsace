@@ -898,7 +898,7 @@ is_less_than :: fonc (interpréteuse: *Interpréteuse, x: Valeur, y: Valeur, lef
 
     // 3. If px is a String and py is a String, then
     si px.est_chaine() && py.est_chaine() {
-        panique("is_less_than non-implémenté pour chaine < chaine")
+        // À FAIRE : standardise
         // a. Let lx be the length of px.
         // b. Let ly be the length of py.
         // c. For each integer i such that 0 ≤ i < min(lx, ly), in ascending order, do
@@ -907,6 +907,9 @@ is_less_than :: fonc (interpréteuse: *Interpréteuse, x: Valeur, y: Valeur, lef
             // iii. If cx < cy, return true.
             // iv. If cx > cy, return false.
         // d. If lx < ly, return true. Otherwise, return false.   
+        chn_px := px.String.texte
+        chn_py := py.String.texte
+        retourne normal_completion(Valeur(Boolean = chn_px < chn_py))
     }
     // 4. Else,
     sinon {
