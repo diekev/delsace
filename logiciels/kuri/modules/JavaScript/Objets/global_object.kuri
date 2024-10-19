@@ -79,29 +79,31 @@ perform_eval :: fonc (interpréteuse: *Interpréteuse, x: Valeur, strict_caller:
         }
     }
 
-    // À FAIRE : 11. Perform the following substeps in an implementation-defined order, possibly interleaving parsing and error detection:
-    // À FAIRE : a. Let script be ParseText(x, Script).
-    // b. If script is a List of errors, throw a SyntaxError exception.
-    script: *Script
-    contenu := converti_vers_chaine(x.String.texte.donne_chaine_utf16())
-    diffère déloge(contenu)
+    // 11. Perform the following substeps in an implementation-defined order, possibly interleaving parsing and error detection:
+    source := crée_texte_source(x.String.texte)
+    diffère détruit_données_texte_source(*source)
 
-    /* À FAIRE(langage) : host_defined n'est pas initialisée à sa valeur défaut. */
-    host_defined: HostDefined
-    discr parse_script(contenu, eval_realm, host_defined) {
-        Ok(s) {
-            script = s
-        }
+    // a. Let script be ParseText(x, Script).
+    script := parse_text(interpréteuse.donne_realm(), *source, GoalSymbol.Script)
+
+    body: *Programme
+    diffère détruit_arbre(body)
+    discr script {
         Erreur(e) {
+            // b. If script is a List of errors, throw a SyntaxError exception.
             retourne throw_completion(Valeur(Object = e))
         }
-        sinon {
-        }
-    }
+        Ok(noeud) {
+            // c. If script Contains ScriptBody is false, return undefined.
+            si noeud.type != Programme {
+                retourne normal_completion(js_undefined)
+            }
 
-    // À FAIRE : c. If script Contains ScriptBody is false, return undefined.
-    // À FAIRE : d. Let body be the ScriptBody of script.
-    body := script.ecma_script_code
+            // d. Let body be the ScriptBody of script.
+            body = noeud comme *Programme
+        }
+        sinon {}
+    }
 
     // À FAIRE : e. If inFunction is false and body Contains NewTarget, throw a SyntaxError exception.
     // À FAIRE : f. If inMethod is false and body Contains SuperProperty, throw a SyntaxError exception.
