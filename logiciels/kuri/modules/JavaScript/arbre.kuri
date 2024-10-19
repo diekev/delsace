@@ -1700,6 +1700,7 @@ AssignmentOperation :: énum {
     OuExBinaire /* ^= */
     Coalesce /* ??= */
     OuLogique /* ||= */
+    EtLogique /* &&=*/
 }
 
 AssignmentExpression :: struct {
@@ -1733,6 +1734,9 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
     }
     si noeud.opération == AssignmentOperation.OuLogique {
         retourne évalue_logical_or_assignemnt(noeud, interpréteuse)
+    }
+    si noeud.opération == AssignmentOperation.EtLogique {
+        retourne évalue_logical_and_assignemnt(noeud, interpréteuse)
     }
     retourne évalue_assignement_opéré(noeud, interpréteuse)
 }
@@ -1839,6 +1843,9 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
         }
         OuLogique {
             panique("Assignement opéré via '||=' qui devrait être un chemin différent.")
+        }
+        EtLogique {
+            panique("Assignement opéré via '&&=' qui devrait être un chemin différent.")
         }
         Ajoute {
             opérateur_binaire = BinaryOperation.Plus
@@ -1972,6 +1979,68 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
 
     // 3. If ToBoolean(lVal) is true, return lVal.
     si to_boolean(lval).est_true() {
+        retourne normal_completion(lval)
+    }
+
+    rval: Valeur
+    // 4. If IsAnonymousFunctionDefinition(AssignmentExpression) is true and IsIdentifierRef of LeftHandSideExpression is true, then
+    si is_anonymous_function_definition(noeud.droite) && is_identifier_ref(noeud.gauche) {
+        // a. Let lhs be the StringValue of LeftHandSideExpression.
+        lhs := (noeud.gauche comme *Identifier).nom
+
+        // b. Let rVal be ? NamedEvaluation of AssignmentExpression with argument lhs.
+        completion_rval := named_evaluation(interpréteuse, noeud.droite, lhs)
+        saufsi completion_rval.est_normal() {
+            retourne completion_rval
+        }
+
+        rval = completion_rval.valeur.V
+    }
+    // 5. Else,
+    sinon {
+        // a. Let rRef be ? Evaluation of AssignmentExpression.
+        completion_rref := exécute_noeud(noeud.droite, interpréteuse)
+        saufsi completion_rref.est_normal() {
+            retourne completion_rref
+        }
+        rref := completion_rref.valeur
+
+        // b. Let rVal be ? GetValue(rRef).
+        completion_rval := get_value(interpréteuse, rref)
+        saufsi completion_rval.est_normal() {
+            retourne completion_rval
+        }
+        rval = completion_rval.valeur.V
+    }
+
+    // 6. Perform ? PutValue(lRef, rVal).
+    completion := put_value(interpréteuse, lref, rval)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+
+    // 7. Return rVal.
+    retourne normal_completion(rval)
+}
+
+évalue_logical_and_assignemnt :: fonc (noeud: *AssignmentExpression, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    // 1. Let lRef be ? Evaluation of LeftHandSideExpression.
+    completion_lref := exécute_noeud(noeud.gauche, interpréteuse)
+    saufsi completion_lref.est_normal() {
+        retourne completion_lref
+    }
+    lref := completion_lref.valeur
+
+    // 2. Let lVal be ? GetValue(lRef).
+    completion_lval := get_value(interpréteuse, lref)
+    saufsi completion_lval.est_normal() {
+        retourne completion_lval
+    }
+    lval := completion_lval.valeur.V
+
+    // 3. If ToBoolean(lVal) is false, return lVal.
+    si to_boolean(lval).est_false() {
         retourne normal_completion(lval)
     }
 

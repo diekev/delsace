@@ -9,6 +9,18 @@ test("&& possède un court circuit", function () {
     vérifie_égalité(0.0 && variable_inconnue, 0.0)
 });
 
+test("&&= ne change la valeur d'une variable que si elle est 'vrai'", function () {
+    let a = 1;
+    a &&= 2;
+    vérifie_égalité(a, 2);
+});
+
+test("&&= ne change pas la valeur d'une variable si elle est 'fausse'", function () {
+    let b = 0;
+    b &&= 2;
+    vérifie_égalité(b, 0);
+});
+
 test("|| possède un court circuit", function () {
     vérifie_égalité(6.0 || 0.0, 6.0)
     vérifie_égalité(6.0 || variable_inconnue, 6.0)
