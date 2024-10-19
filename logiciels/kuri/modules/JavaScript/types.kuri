@@ -57,7 +57,8 @@ number_equal :: fonc (vx: Valeur, vy: Valeur) -> bool
     }
 
     // 3. If x is y, return true.
-    si x == y {
+    // NOTE : la comparaison x == y est pour les valeurs infinies.
+    si abs(x - y) <= 1e-15 || (x == y) {
         retourne vrai
     }
 
