@@ -185,3 +185,17 @@ test("a -= b", function () {
     vérifieQue((a -= 3)).doitÊtre(-1);
     vérifieQue((a -= 'Hello')).doitÊtreNaN();
 });
+
+test("a + b", function () {
+    vérifieQue(2 + 2).doitÊtre(4);
+    vérifieQue(2 + true).doitÊtre(3);
+    vérifieQue('hello ' + 'everyone').doitÊtre("hello everyone");
+    vérifieQue(2001 + ': A Space Odyssey').doitÊtre("2001: A Space Odyssey");
+});
+
+test("a += b", function () {
+    let a = 2;
+    let b = 'hello';
+    vérifieQue((a += 3)).doitÊtre(5); // Addition
+    vérifieQue((b += ' world')).doitÊtre("hello world"); // Concatenation
+});
