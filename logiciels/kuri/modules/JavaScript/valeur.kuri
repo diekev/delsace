@@ -968,7 +968,7 @@ is_less_than :: fonc (interpréteuse: *Interpréteuse, x: Valeur, y: Valeur, lef
 
 /* 7.2.12 IsLooselyEqual ( x, y )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-islooselyequal */
-is_loosely_equal :: fonc (interpréteuse: *Interpréteuse @inutilisée, x: Valeur, y: Valeur) -> CompletionRecord
+is_loosely_equal :: fonc (interpréteuse: *Interpréteuse, x: Valeur, y: Valeur) -> CompletionRecord
 {
     // 1. If Type(x) is Type(y), then
     si x.donne_type() == y.donne_type() {
@@ -990,12 +990,14 @@ is_loosely_equal :: fonc (interpréteuse: *Interpréteuse @inutilisée, x: Valeu
 
     // 5. If x is a Number and y is a String, return ! IsLooselyEqual(x, ! ToNumber(y)).
     si x.est_nombre() && y.est_chaine() {
-        panique("is_loosely_equal non-implémenté")
+        ny := to_number(interpréteuse, y).valeur.V
+        retourne is_loosely_equal(interpréteuse, x, ny)
     }
 
     // 6. If x is a String and y is a Number, return ! IsLooselyEqual(! ToNumber(x), y).
     si x.est_chaine() && y.est_nombre() {
-        panique("is_loosely_equal non-implémenté")
+        nx := to_number(interpréteuse, x).valeur.V
+        retourne is_loosely_equal(interpréteuse, nx, y)
     }
 
     // 7. If x is a BigInt and y is a String, then
@@ -1013,12 +1015,14 @@ is_loosely_equal :: fonc (interpréteuse: *Interpréteuse @inutilisée, x: Valeu
 
     // 9. If x is a Boolean, return ! IsLooselyEqual(! ToNumber(x), y).
     si x.est_boolean() {
-        panique("is_loosely_equal non-implémenté")
+        nx := to_number(interpréteuse, x).valeur.V
+        retourne is_loosely_equal(interpréteuse, nx, y)
     }
 
     // 10. If y is a Boolean, return ! IsLooselyEqual(x, ! ToNumber(y)).
     si y.est_boolean() {
-        panique("is_loosely_equal non-implémenté")
+        ny := to_number(interpréteuse, y).valeur.V
+        retourne is_loosely_equal(interpréteuse, x, ny)
     }
 
     // 11. If x is either a String, a Number, a BigInt, or a Symbol and y is an Object, return ! IsLooselyEqual(x, ? ToPrimitive(y)).
