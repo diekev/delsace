@@ -143,3 +143,17 @@ test("a /= b", function () {
     a /= 'hello';
     vérifieQue(a).doitÊtreNaN();
 });
+
+test("a * b", function () {
+    vérifieQue(3 * 4).doitÊtre(12);
+    vérifieQue(-3 * 4).doitÊtre(-12);
+    vérifieQue('3' * 2).doitÊtre(6);
+    vérifieQue('foo' * 2).doitÊtreNaN();
+});
+
+test("a *= b", function () {
+    let a = 2;
+
+    vérifieQue((a *= 3)).doitÊtre(6);
+    vérifieQue((a *= 'hello')).doitÊtreNaN();
+});
