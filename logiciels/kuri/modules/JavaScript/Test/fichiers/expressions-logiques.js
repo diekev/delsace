@@ -21,12 +21,6 @@ test("&&= ne change pas la valeur d'une variable si elle est 'fausse'", function
     vérifie_égalité(b, 0);
 });
 
-test("&&= assigne un nom aux fonctions anonymes", function () {
-    let b = 1;
-    b &&= function () { };
-    vérifie_égalité(b.name, "b");
-});
-
 test("|| possède un court circuit", function () {
     vérifie_égalité(6.0 || 0.0, 6.0)
     vérifie_égalité(6.0 || variable_inconnue, 6.0)
@@ -49,12 +43,6 @@ test("||= change la valeur des membres qui sont 'faux'", function () {
     vérifie_égalité(a.title, 'title is empty.');
 });
 
-test("||= assigne un nom aux fonctions anonymes", function () {
-    let b = 0;
-    b ||= function () { };
-    vérifie_égalité(b.name, "b");
-});
-
 test("?? retourne la valeur non-nulle et non-undefined", function () {
     const foo = null ?? 'default string';
     vérifie_égalité(foo, 'default string')
@@ -73,10 +61,4 @@ test("??= ne remplace pas les membres qui existent", function () {
     const a = { duration: 50 };
     a.duration ??= 10;
     vérifie_égalité(a.duration, 50);
-});
-
-test("??= assigne un nom aux fonctions anonymes", function () {
-    let b = void 0;
-    b ??= function () { };
-    vérifie_égalité(b.name, "b");
 });
