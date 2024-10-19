@@ -6,6 +6,25 @@ test("modulo", function () {
     vérifie_égalité(4 % 3, 1);
 });
 
+test("a & b", function () {
+    let a = 3;
+    let b = 5;
+    vérifie_égalité(a & b, 1);
+
+    vérifie_égalité(0 & 0, 0);
+    vérifie_égalité(0 & 1, 0);
+    vérifie_égalité(1 & 0, 0);
+    vérifie_égalité(1 & 1, 1);
+});
+
+test("a &= b a le même résultat que a & b", function () {
+    let a = 3;
+    let b = 5;
+    let c = a & b;
+    a &= b
+    vérifie_égalité(a, c);
+});
+
 test("a ^ b", function () {
     let a = 3;
     let b = 5;
