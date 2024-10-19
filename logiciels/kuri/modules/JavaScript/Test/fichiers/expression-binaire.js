@@ -157,3 +157,18 @@ test("a *= b", function () {
     vérifieQue((a *= 3)).doitÊtre(6);
     vérifieQue((a *= 'hello')).doitÊtreNaN();
 });
+
+test("a ** b", function () {
+    vérifieQue(3 ** 4).doitÊtre(81);
+    vérifieQue(10 ** -2).doitÊtre(0.01);
+    vérifieQue(2 ** (3 ** 2)).doitÊtre(512);
+    vérifieQue((2 ** 3) ** 2).doitÊtre(64);
+});
+
+test("a **= b", function () {
+    let a = 3;
+
+    vérifieQue((a **= 2)).doitÊtre(9);
+    vérifieQue((a **= 0)).doitÊtre(1);
+    vérifieQue((a **= 'hello')).doitÊtreNaN();
+});

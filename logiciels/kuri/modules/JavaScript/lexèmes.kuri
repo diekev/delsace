@@ -51,6 +51,8 @@ GenreLexème :: énum {
     CoalesceÉgal
     DécalageDroiteNaturel
     DécalageDroiteNaturelÉgal
+    Exponentiation
+    ExponentiationÉgal
 
     // opérateurs unaires
     PlusUnaire
@@ -211,6 +213,7 @@ rafine_genre_lexème_opérateur :: fonc (identifiant: chaine) -> Optionnel(Genre
         si identifiant == "+=" { retourne GenreLexème.PlusÉgal }
         si identifiant == "-=" { retourne GenreLexème.MoinsÉgal }
         si identifiant == "*=" { retourne GenreLexème.ÉtoileÉgal }
+        si identifiant == "**" { retourne GenreLexème.Exponentiation }
         si identifiant == "/=" { retourne GenreLexème.SlashÉgal }
         si identifiant == "%=" { retourne GenreLexème.PourcentÉgal }
         si identifiant == "<=" { retourne GenreLexème.InférieurÉgal }
@@ -237,6 +240,7 @@ rafine_genre_lexème_opérateur :: fonc (identifiant: chaine) -> Optionnel(Genre
         si identifiant == "&&=" { retourne GenreLexème.EtLogiqueÉgal }
         si identifiant == "||=" { retourne GenreLexème.OuLogiqueÉgal }
         si identifiant == "??=" { retourne GenreLexème.CoalesceÉgal }
+        si identifiant == "**=" { retourne GenreLexème.ExponentiationÉgal }
     }
     sinon si identifiant.taille == 4 {
         si identifiant == ">>>=" { retourne GenreLexème.DécalageDroiteNaturelÉgal }
@@ -354,7 +358,9 @@ est_lexème_expression_secondaire :: fonc (genre: GenreLexème) -> bool
         DécalageDroiteNaturelÉgal,
         Virgule,
         In,
-        InstanceOf {
+        InstanceOf,
+        Exponentiation,
+        ExponentiationÉgal {
             retourne vrai
         }
         sinon {
@@ -427,7 +433,7 @@ initialise_données_lexèmes_pour_parsage :: fonc ()
     définis_données_précédence(GenreLexème.OuBinaireÉgal, 2, Associativité.Droite)
     définis_données_précédence(GenreLexème.OuExclusifÉgal, 2, Associativité.Droite)
     définis_données_précédence(GenreLexème.Interrogation, 2, Associativité.Droite)
-    // définis_données_précédence(GenreLexème.ExponentiationÉgal, 2, Associativité.Droite)
+    définis_données_précédence(GenreLexème.ExponentiationÉgal, 2, Associativité.Droite)
     définis_données_précédence(GenreLexème.DécalageDroiteNaturelÉgal, 2, Associativité.Droite)
     définis_données_précédence(GenreLexème.EtLogiqueÉgal, 2, Associativité.Droite)
     définis_données_précédence(GenreLexème.OuLogiqueÉgal, 2, Associativité.Droite)
@@ -471,7 +477,7 @@ initialise_données_lexèmes_pour_parsage :: fonc ()
     définis_données_précédence(GenreLexème.Slash, 12, Associativité.Gauche)
     définis_données_précédence(GenreLexème.Pourcent, 12, Associativité.Gauche)
 
-    // définis_données_précédence(GenreLexème.Exponentiation, 13, Associativité.Droite)
+    définis_données_précédence(GenreLexème.Exponentiation, 13, Associativité.Droite)
 
     définis_données_précédence(GenreLexème.MoinsUnaire, 14, Associativité.Aucune)
     définis_données_précédence(GenreLexème.PlusUnaire, 14, Associativité.Aucune)

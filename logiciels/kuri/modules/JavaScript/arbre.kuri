@@ -861,6 +861,7 @@ BinaryOperation :: énum {
     DécalageGauche
     DécalageDroite
     DécalageDroiteNaturel
+    Exponentiation
 }
 
 BinaryExpression :: struct {
@@ -1016,6 +1017,9 @@ apply_string_or_numeric_binary_operator :: fonc (interpréteuse: *Interpréteuse
         }
         OuBinaire {
             valeur = ou_binaire_valeurs(gauche, droite)
+        }
+        Exponentiation {
+            valeur = number_exponentiate(gauche, droite)
         }
     }
 
@@ -1688,7 +1692,7 @@ AssignmentOperation :: énum {
     Assigne /* = */
     Ajoute /* += */
     Soustrait /* -= */
-    // À FAIRE : Exponentiation /* **= */
+    Exponentiation /* **= */
     Multiplie /* *= */
     Divise /* /= */
     Modulo /* %= */
@@ -1879,6 +1883,9 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
         }
         OuExBinaire {
             opérateur_binaire = BinaryOperation.OuExclusif
+        }
+        Exponentiation {
+            opérateur_binaire = BinaryOperation.Exponentiation
         }
     }
 

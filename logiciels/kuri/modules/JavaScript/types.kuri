@@ -1,5 +1,6 @@
 importe Chaine
 importe Fondation
+importe Math
 importe Numérique
 
 /* Ceux-là ne sont pas dans le standard, ce n'est que pour avoir des types pour l'union. */
@@ -38,6 +39,32 @@ Symbol :: struct {
 /* ------------------------------------------------------------------------- */
 /** \nom 6.1.6.1 The Number Type
  * \{ */
+
+/* 6.1.6.1.3 Number::exponentiate
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-exponentiate */
+number_exponentiate :: fonc (b: Valeur, e: Valeur) -> Valeur
+{
+    // À FAIRE : standardise le reste
+    base := b.Number
+    exponent := e.Number
+
+    // 1. If exponent is NaN, return NaN.
+    si est_nan(exponent) {
+        retourne Valeur(Number = NaN)
+    }
+
+    // 2. If exponent is either +0𝔽 or -0𝔽, return 1𝔽.
+    si exponent == 0.0 || exponent == -0.0 {
+        retourne Valeur(Number = 1.0)
+    }
+
+    // 3. If base is NaN, return NaN.
+    si est_nan(base) {
+        retourne Valeur(Number = NaN)
+    }
+
+    retourne Valeur(Number = puissance(b, e))
+}
 
 /* 6.1.6.1.13 Number::equal ( x, y )
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-equal */

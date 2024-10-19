@@ -319,14 +319,6 @@ math_pow :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     retourne normal_completion(number_exponentiate(base, exponent))
 }
 
-/* https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-exponentiate */
-number_exponentiate :: fonc (base: Valeur, exponent: Valeur) -> Valeur
-{
-    b := base.Number
-    e := exponent.Number
-    retourne Valeur(Number = puissance(b, e))
-}
-
 /* https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.random */
 math_random :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
