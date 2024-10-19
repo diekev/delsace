@@ -23,13 +23,23 @@ crée_math_object :: fonc (object_prototype: *ObjectPrototype) -> *MathObject
 {
     résultat := object_prototype.donne_tas_de_mémoire().alloue(MathObject)
     résultat.prototype = object_prototype
+
+    constantes: Constantes(r64)
+
+    résultat.ajoute_propriété(STR_LN2, Valeur(Number = 0.6931471805599453), DrapeauxPropriété.zéro)
+    résultat.ajoute_propriété(STR_PI, Valeur(Number = constantes.PI), DrapeauxPropriété.zéro)
+
     résultat.ajoute_fonction_native(STR_abs, math_abs)
     résultat.ajoute_fonction_native(STR_ceil, math_ceil)
+    résultat.ajoute_fonction_native(STR_cos, math_cos)
     résultat.ajoute_fonction_native(STR_floor, math_floor)
+    résultat.ajoute_fonction_native(STR_log, math_log)
     résultat.ajoute_fonction_native(STR_max, math_max)
     résultat.ajoute_fonction_native(STR_min, math_min)
+    résultat.ajoute_fonction_native(STR_pow, math_pow)
     résultat.ajoute_fonction_native(STR_random, math_random)
     résultat.ajoute_fonction_native(STR_round, math_round)
+    résultat.ajoute_fonction_native(STR_sin, math_sin)
     résultat.ajoute_fonction_native(STR_sqrt, math_sqrt)
 
     /* Chaque realm doit avoir sa propre série. */
@@ -107,6 +117,31 @@ math_ceil :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     retourne normal_completion(plafond(n))
 }
 
+/* 21.3.2.30 Math.cos ( x )
+ * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.cos */
+math_cos :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    // 1. Let n be ? ToNumber(x).
+    completion := to_number(interpréteuse, params.donne_argument(0))
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    n := completion.valeur.V.Number
+
+    // 2. If n is not finite, return NaN.
+    si est_infini(n) {
+        retourne normal_completion(Valeur(Number = NaN))
+    }
+
+    // 3. If n is either +0𝔽 or -0𝔽, return 1𝔽.
+    si n == 0.0 || n == -0.0 {
+        retourne normal_completion(Valeur(Number = 1))
+    }
+
+    // 4. Return an implementation-approximated Number value representing the cosine of ℝ(n).
+    retourne normal_completion(Valeur(Number = cosinus(n)))
+}
+
 /* https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.floor */
 math_floor :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
@@ -133,6 +168,43 @@ math_floor :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 
     // 5. Return the greatest (closest to +∞) integral Number value that is not greater than n.
     retourne normal_completion(plancher(n))
+}
+
+/* 21.3.2.20 Math.log ( x )
+ * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.log */
+math_log :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    x := params.donne_argument(0)
+
+    // 1. Let n be ? ToNumber(x).
+    completion := to_number(interpréteuse, x)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    n := completion.valeur.V.Number
+
+    // 2. If n is either NaN or +∞𝔽, return n.
+    si est_nan(n) || n == -R64_INFINITÉ {
+        retourne normal_completion(Valeur(Number = n))
+    }
+
+    // 3. If n is 1𝔽, return +0𝔽.
+    si n == 1.0 {
+        retourne normal_completion(Valeur(Number = 0.0))
+    }
+
+    // 4. If n is either +0𝔽 or -0𝔽, return -∞𝔽.
+    si n == 0.0 || n == -0.0 {
+        retourne normal_completion(Valeur(Number = R64_INFINITÉ_NÉGATIVE))
+    }
+
+    // 5. If n < -0𝔽, return NaN.
+    si n < -0.0 {
+        retourne normal_completion(Valeur(Number = NaN))
+    }
+
+    // 6. Return an implementation-approximated Number value representing the natural logarithm of ℝ(n).
+    retourne normal_completion(Valeur(Number = log(n)))
 }
 
 /* https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.min */
@@ -225,6 +297,28 @@ math_min :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     retourne normal_completion(Valeur(Number = lowest))
 }
 
+/* 21.3.2.26 Math.pow ( base, exponent )
+ * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.pow */
+math_pow :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    // 1. Set base to ? ToNumber(base).
+    completion := to_number(interpréteuse, params.donne_argument(0))
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    base := completion.valeur.V
+
+    // 2. Set exponent to ? ToNumber(exponent).
+    completion = to_number(interpréteuse, params.donne_argument(1))
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    exponent := completion.valeur.V
+
+    // 3. Return Number::exponentiate(base, exponent).
+    retourne normal_completion(number_exponentiate(base, exponent))
+}
+
 /* https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.random */
 math_random :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
@@ -263,6 +357,31 @@ math_round :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     // 5. Return the integral Number closest to n, preferring the Number closer to +∞ in the case of a tie.
     résultat := arrondis(n)
     retourne normal_completion(Valeur(Number = résultat))
+}
+
+/* 21.3.2.30 Math.sin ( x )
+ * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.sin */
+math_sin :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    // 1. Let n be ? ToNumber(x).
+    completion := to_number(interpréteuse, params.donne_argument(0))
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    n := completion.valeur.V.Number
+
+    // 2. If n is one of NaN, +0𝔽, or -0𝔽, return n.
+    si est_nan(n) || n == 0.0 || n == -0.0 {
+        retourne normal_completion(Valeur(Number = n))
+    }
+
+    // 3. If n is either +∞𝔽 or -∞𝔽, return NaN.
+    si est_infini(n) {
+        retourne normal_completion(Valeur(Number = NaN))
+    }
+
+    // 4. Return an implementation-approximated Number value representing the sine of ℝ(n).
+    retourne normal_completion(Valeur(Number = sinus(n)))
 }
 
 /* https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.random */
