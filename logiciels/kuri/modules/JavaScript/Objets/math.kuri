@@ -32,6 +32,7 @@ crée_math_object :: fonc (object_prototype: *ObjectPrototype) -> *MathObject
     résultat.ajoute_fonction_native(STR_abs, math_abs)
     résultat.ajoute_fonction_native(STR_ceil, math_ceil)
     résultat.ajoute_fonction_native(STR_cos, math_cos)
+    résultat.ajoute_fonction_native(STR_exp, math_exp)
     résultat.ajoute_fonction_native(STR_floor, math_floor)
     résultat.ajoute_fonction_native(STR_log, math_log)
     résultat.ajoute_fonction_native(STR_max, math_max)
@@ -141,6 +142,36 @@ math_cos :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 
     // 4. Return an implementation-approximated Number value representing the cosine of ℝ(n).
     retourne normal_completion(Valeur(Number = cosinus(n)))
+}
+
+/* 21.3.2.14 Math.exp ( x )
+ * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.exp */
+math_exp :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    // 1. Let n be ? ToNumber(x).
+    completion := to_number(interpréteuse, params.donne_argument(0))
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    n := completion.valeur.V.Number
+
+    // 2. If n is either NaN or +∞𝔽, return n.
+    si est_nan(n) || n == R64_INFINITÉ {
+        retourne normal_completion(Valeur(Number = n))
+    }
+
+    // 3. If n is either +0𝔽 or -0𝔽, return 1𝔽.
+    si n == 0.0 || n == -0.0 {
+        retourne normal_completion(Valeur(Number = 1.0))
+    }
+
+    // 4. If n is -∞𝔽, return +0𝔽.
+    si n == R64_INFINITÉ_NÉGATIVE {
+        retourne normal_completion(Valeur(Number = 0.0))
+    }
+
+    // 5. Return an implementation-approximated Number value representing the exponential function of ℝ(n).
+    retourne normal_completion(Valeur(Number = exp(n)))
 }
 
 /* https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.floor */
