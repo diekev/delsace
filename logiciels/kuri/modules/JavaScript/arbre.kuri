@@ -27,6 +27,21 @@ exécute_noeud :: fonc (noeud: *NoeudSyntaxique, interpréteuse: *Interpréteuse
     retourne noeud.sur_exécution(noeud, interpréteuse)
 }
 
+/* https://tc39.es/ecma262/multipage/notational-conventions.html#sec-algorithm-conventions-syntax-directed-operations
+ *
+ * The source text matched by a grammar production or Parse Node derived from
+ * it is the portion of the source text that starts at the beginning of the
+ * first terminal that participated in the match and ends at the end of the
+ * last terminal that participated in the match. */
+donne_texte_source :: fonc (noeud: *NoeudSyntaxique) -> chaine
+{
+    // À FAIRE : retourne tout le code dans la portée du noeud
+    saufsi noeud.lexème {
+        retourne ""
+    }
+    retourne noeud.lexème.texte
+}
+
 /* 11.2.2.1 Static Semantics: IsStrict ( node )
  * https://tc39.es/ecma262/multipage/ecmascript-language-source-code.html#sec-isstrict */
 is_strict :: fonc (noeud: *NoeudSyntaxique @inutilisée) -> bool

@@ -71,6 +71,7 @@ ECMAScriptFunction :: struct {
 
     environment: *Environment
     private_environment: *PrivateEnvironment
+    source_texte: chaine
     this_mode: ThisMode
     strict := faux
     is_class_constructor := faux
@@ -372,7 +373,7 @@ sur_construct_fonction_ecma :: fonc (empl params: *ParamètresObjectConstruct) -
 /* 10.2.3 OrdinaryFunctionCreate ( functionPrototype, sourceText, ParameterList, Body, thisMode, env, privateEnv )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinaryfunctioncreate 
  * À FAIRE : paramètres et étapes manquants */
-ordinary_function_create :: fonc (realm: *Realm, function_prototype: *FunctionPrototype, params: [..]*Expression, corps: *Statement, this_mode: bool, env: *Environment, private_env: *PrivateEnvironment) -> *ECMAScriptFunction
+ordinary_function_create :: fonc (realm: *Realm, function_prototype: *FunctionPrototype, source_texte: chaine, params: [..]*Expression, corps: *Statement, this_mode: bool, env: *Environment, private_env: *PrivateEnvironment) -> *ECMAScriptFunction
 {
     // 1. Let internalSlotsList be the internal slots listed in Table 30.
     // 2. Let F be OrdinaryObjectCreate(functionPrototype, internalSlotsList).
@@ -382,6 +383,7 @@ ordinary_function_create :: fonc (realm: *Realm, function_prototype: *FunctionPr
     // Ceci est fait via la table virtuelle.
 
     // 4. Set F.[[SourceText]] to sourceText.
+    F.source_texte = source_texte
 
     // 5. Set F.[[FormalParameters]] to ParameterList.
     F.formal_parameters = params
