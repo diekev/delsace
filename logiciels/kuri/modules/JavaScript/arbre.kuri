@@ -1797,7 +1797,7 @@ evaluate_call :: fonc (interpréteuse: *Interpréteuse, func: Valeur, ref: Valeu
 
     // 6. If tailPosition is true, perform PrepareForTailCall().
     si tail_position {
-        panique("tail position non-implémeté")
+        prepare_for_tail_call(interpréteuse)
     }
 
     // 7. Return ? Call(func, thisValue, argList).

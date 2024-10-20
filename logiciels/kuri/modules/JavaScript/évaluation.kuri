@@ -178,4 +178,12 @@ is_in_tail_position :: fonc (call: *NoeudSyntaxique @inutilisée) -> bool
     retourne faux
 }
 
+/* 15.10.3 PrepareForTailCall ( )
+ * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-preparefortailcall */
+prepare_for_tail_call :: fonc (interpréteuse: *Interpréteuse @inutilisée)
+{
+    // À FAIRE
+    retourne
+}
+
 /** \} */

@@ -1060,7 +1060,8 @@ function_prototype_call :: fonc (empl params: *ParamètresObjectCall) -> Complet
         retourne lance_type_error(interpréteuse, message)
     }
 
-    // À FAIRE 3. Perform PrepareForTailCall().
+    // 3. Perform PrepareForTailCall().
+    prepare_for_tail_call(interpréteuse)
 
     // 4. Return ? Call(func, thisArg, args).
     this_arg := params.donne_argument(0)
