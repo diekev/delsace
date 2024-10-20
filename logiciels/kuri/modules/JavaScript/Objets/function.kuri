@@ -334,6 +334,9 @@ sur_construct_fonction_ecma :: fonc (empl params: *ParamètresObjectConstruct) -
         }
 
         // b. If kind is base, return thisArgument.
+        si kind == ConstructorKind.Base {
+            retourne normal_completion(this_argument)
+        }
 
         // c. If result.[[Value]] is not undefined, throw a TypeError exception.
         saufsi result_value.est_undefined() {
