@@ -529,7 +529,7 @@ to_integer_or_infinity :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur)
         retourne normal_completion(Valeur(Number = 0))
     }
 
-    // À FAIRE : 3. If number is +∞𝔽, return +∞.
+    // 3. If number is +∞𝔽, return +∞.
     // 4. If number is -∞𝔽, return -∞.
     si est_infini(number) {
         retourne normal_completion(Valeur(Number = number))
