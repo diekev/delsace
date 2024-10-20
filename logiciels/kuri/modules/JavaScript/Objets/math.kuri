@@ -53,6 +53,7 @@ R64_INFINITÉ : r64 : 0r7ff0000000000000
 R64_INFINITÉ_NÉGATIVE : r64 : 0rfff0000000000000
 
 #portée_fichier
+
 /* 21.3.2.1 Math.abs ( x )
  * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.abs */
 math_abs :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
@@ -117,7 +118,7 @@ math_ceil :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     retourne normal_completion(plafond(n))
 }
 
-/* 21.3.2.30 Math.cos ( x )
+/* 21.3.2.12 Math.cos ( x )
  * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.cos */
 math_cos :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
