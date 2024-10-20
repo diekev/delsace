@@ -207,6 +207,40 @@ Expression :: struct {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom ParenthesizedExpression
+ * \{ */
+
+ParenthesizedExpression :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_parenthesized_expression
+
+    expression: *Expression
+}
+
+crée_parenthesized_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, expression: *Expression) -> *ParenthesizedExpression
+{
+    résultat := parseuse.crée_noeud(lexème, ParenthesizedExpression)
+    résultat.expression = expression
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-grouping-operator-runtime-semantics-evaluation */
+sur_exécution_parenthesized_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    parenthèse := base comme *ParenthesizedExpression
+
+    saufsi parenthèse.expression {
+        retourne normal_completion(js_undefined)
+    }
+
+    // 1. Return ? Evaluation of Expression. This may be of type Reference.
+    retourne exécute_noeud(parenthèse.expression, interpréteuse)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom ExpressionStatement
  * Structure de base pour les expressions.
  * \{ */
