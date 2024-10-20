@@ -16,7 +16,8 @@ evaluate_function_body :: fonc (interpréteuse: *Interpréteuse, function_object
         retourne completion
     }
     // 2. Return ? Evaluation of FunctionStatementList.
-    retourne interpréteuse.exécute(function_object.corps)
+    assert(function_object.corps.type == FunctionBody)
+    retourne interpréteuse.exécute((function_object.corps comme *FunctionBody).statement)
 }
 
 /* 15.2.4 Runtime Semantics: InstantiateOrdinaryFunctionObject

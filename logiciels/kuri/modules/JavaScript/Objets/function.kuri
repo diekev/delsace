@@ -248,10 +248,15 @@ ordinary_call_bind_this :: fonc (F: *ECMAScriptFunction, callee_context: *Execut
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-runtime-semantics-evaluatebody */
 evaluate_body :: fonc (interpréteuse: *Interpréteuse, function_object: *ECMAScriptFunction, arguments_list: []Valeur) -> CompletionRecord
 {
-    // À FAIRE : tous les cas
-    // FunctionBody : FunctionStatementList
-    // 1. Return ? EvaluateFunctionBody of FunctionBody with arguments functionObject and argumentsList.
-    retourne evaluate_function_body(interpréteuse, function_object, arguments_list)
+    body := function_object.corps
+
+    si body.type == FunctionBody {
+        // FunctionBody : FunctionStatementList
+        // 1. Return ? EvaluateFunctionBody of FunctionBody with arguments functionObject and argumentsList.
+        retourne evaluate_function_body(interpréteuse, function_object, arguments_list)
+    }
+
+    panique("evaluate_body non-implémenté")
 }
 
 /* 10.2.1.4 OrdinaryCallEvaluateBody ( F, argumentsList )
@@ -758,8 +763,10 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
     private_env := callee_context.private_environment
 
     // 36. For each Parse Node f of functionsToInitialize, do
-    assert(func.corps != nul && func.corps.type == BlockStatement)
-    bloc := func.corps comme *BlockStatement
+    assert(func.corps != nul && func.corps.type == FunctionBody)
+    body := func.corps comme *FunctionBody
+    assert(body.statement.type == BlockStatement)
+    bloc := body.statement comme *BlockStatement
     pour bloc.enfants {
         saufsi it.type == FunctionDeclaration {
             continue

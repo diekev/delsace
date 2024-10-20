@@ -280,7 +280,7 @@ parse_function_declaration :: fonc (parseuse: *Parseuse) -> *FunctionDeclaration
     paramètres := parse_expressions_séparées_par_des_virgules(parseuse)
     parseuse.consomme(GenreLexème.ParenthèseFermante)
 
-    body := parse_statement(parseuse)
+    body := parse_function_body(parseuse)
 
     retourne crée_function_déclaration(parseuse, lexème, id, paramètres, body)
 }
@@ -296,9 +296,15 @@ parse_function_expression :: fonc (parseuse: *Parseuse) -> *FunctionExpression
     paramètres := parse_expressions_séparées_par_des_virgules(parseuse)
     parseuse.consomme(GenreLexème.ParenthèseFermante)
 
-    body := parse_statement(parseuse)
+    body := parse_function_body(parseuse)
 
     retourne crée_function_expression(parseuse, lexème, id, paramètres, body)
+}
+
+parse_function_body :: fonc (parseuse: *Parseuse) -> *FunctionBody
+{
+    statement := parse_statement(parseuse)
+    retourne crée_function_body(parseuse, statement)
 }
 
 parse_variable_declaration :: fonc (parseuse: *Parseuse, nature: VariableDeclarationKind) -> *VariableDeclaration

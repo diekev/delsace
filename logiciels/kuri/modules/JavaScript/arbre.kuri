@@ -268,14 +268,14 @@ FunctionDeclaration :: struct {
 
     id: *Identifier
     params: [..]*Expression
-    corps: *Statement
+    corps: *FunctionBody
 
     generator := faux
     expression := faux
     async := faux
 }
 
-crée_function_déclaration :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *Identifier, params: [..]*Expression, corps: *Statement) -> *FunctionDeclaration
+crée_function_déclaration :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *Identifier, params: [..]*Expression, corps: *FunctionBody) -> *FunctionDeclaration
 {
     résultat := parseuse.crée_noeud(lexème, FunctionDeclaration)
     résultat.id = id
@@ -303,14 +303,14 @@ FunctionExpression :: struct {
 
     id: *Identifier
     params: [..]*Expression
-    corps: *Statement
+    corps: *FunctionBody
 
     generator := faux
     expression := faux
     async := faux
 }
 
-crée_function_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *Identifier, params: [..]*Expression, corps: *Statement) -> *FunctionExpression
+crée_function_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *Identifier, params: [..]*Expression, corps: *FunctionBody) -> *FunctionExpression
 {
     résultat := parseuse.crée_noeud(lexème, FunctionExpression)
     résultat.id = id
@@ -326,6 +326,26 @@ sur_exécution_function_expression :: fonc (base: *NoeudSyntaxique, interpréteu
     /* 1. Return InstantiateOrdinaryFunctionExpression of FunctionExpression. */
     closure := instantiate_ordinary_function_expression(interpréteuse, expression)
     retourne normal_completion(Valeur(Function = closure))
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom FunctionBody
+ * \{ */
+
+FunctionBody :: struct {
+    empl base_statement: Statement
+    type = #type_de_cette_structure
+
+    statement: *Statement
+}
+
+crée_function_body :: fonc (parseuse: *Parseuse, statement: *Statement) -> *FunctionBody
+{
+    résultat := parseuse.crée_noeud(nul, FunctionBody)
+    résultat.statement = statement
+    retourne résultat
 }
 
 /** \} */
