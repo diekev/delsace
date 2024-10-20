@@ -579,17 +579,44 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
     diffère déloge(var_names)
 
     // 10. Let varDeclarations be the VarScopedDeclarations of code.
+    var_declarations := donne_var_scoped_declarations(code)
+    diffère déloge(var_declarations)
+
     // 11. Let lexicalNames be the LexicallyDeclaredNames of code.
+
     // 12. Let functionNames be a new empty List.
+    function_names: [..]ECMAString
+    diffère déloge(function_names)
+
     // 13. Let functionsToInitialize be a new empty List.
+    functions_to_initialize: [..]*NoeudSyntaxique
+    diffère déloge(functions_to_initialize)
+
     // 14. For each element d of varDeclarations, in reverse List order, do
+    pour > d dans var_declarations {
         // a. If d is neither a VariableDeclaration nor a ForBinding nor a BindingIdentifier, then
+        saufsi d.type == VariableDeclaration {
             // i. Assert: d is either a FunctionDeclaration, a GeneratorDeclaration, an AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration.
+            assert(d.type == FunctionDeclaration)
+
             // ii. Let fn be the sole element of the BoundNames of d.
+            decl := d comme *FunctionDeclaration
+            assert(decl.id != nul)
+            fn := decl.id.nom
+
             // iii. If functionNames does not contain fn, then
+            saufsi ensemble_possède(*function_names, fn) {
                 // 1. Insert fn as the first element of functionNames.
-                // 2. NOTE: If there are multiple function declarations for the same name, the last declaration is used.
+                ensemble_ajoute(*function_names, fn)
+
+                // À FAIRE : test 2. NOTE: If there are multiple function declarations for the same name, the last declaration is used.
+
                 // 3. Insert d as the first element of functionsToInitialize.
+                tableau_insère_index(*functions_to_initialize, d, 0)
+            }
+        }
+    }
+
     // 15. Let argumentsObjectNeeded be true.
     // 16. If func.[[ThisMode]] is LEXICAL, then
         // a. NOTE: Arrow functions never have an arguments object.
@@ -763,19 +790,10 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
     private_env := callee_context.private_environment
 
     // 36. For each Parse Node f of functionsToInitialize, do
-    assert(func.corps != nul && func.corps.type == FunctionBody)
-    body := func.corps comme *FunctionBody
-    assert(body.statement.type == BlockStatement)
-    bloc := body.statement comme *BlockStatement
-    pour bloc.enfants {
-        saufsi it.type == FunctionDeclaration {
-            continue
-        }
+    pour functions_to_initialize {
+        assert(it.type == FunctionDeclaration)
 
         function := it comme *FunctionDeclaration
-        si function.id == nul {
-            continue
-        }
 
         // a. Let fn be the sole element of the BoundNames of f.
         fn := function.id.nom
