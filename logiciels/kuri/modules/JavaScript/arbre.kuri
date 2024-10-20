@@ -4529,7 +4529,7 @@ crée_visiteuse_pour_déclarations_var :: fonc (résultat: *VisteuseDéclaration
             retourne VisiteEnfants.Non
         }
 
-        si noeud.type == FunctionExpression {
+        si noeud.type == FunctionExpression || noeud.type == ArrowFunction {
             retourne VisiteEnfants.Non
         }
 
@@ -4604,7 +4604,7 @@ crée_visiteuse_pour_déclarations_lexicales :: fonc (résultat: *VisteuseDécla
     {
         visiteuse := base comme *VisteuseDéclarationsLexicales
 
-        si noeud.type == FunctionDeclaration || noeud.type == FunctionExpression {
+        si noeud.type == FunctionDeclaration || noeud.type == FunctionExpression || noeud.type == ArrowFunction {
             retourne VisiteEnfants.Non
         }
 
