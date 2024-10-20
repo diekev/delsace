@@ -662,7 +662,7 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
         // c. If alreadyDeclared is false, then
         si already_declared.est_false() {
             // i. Perform ! env.CreateMutableBinding(paramName, false).
-            env.create_mutable_binding(param_name, faux)
+            _ := env.create_mutable_binding(interpréteuse.donne_realm(), param_name, faux)
 
             // ii. If hasDuplicates is true, then
                 // 1. Perform ! env.InitializeBinding(paramName, undefined).
@@ -721,7 +721,7 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
                 // 1. Append n to instantiatedVarNames.
                 ensemble_ajoute(*instantiated_names, it)
                 // 2. Perform ! env.CreateMutableBinding(n, false).
-                env.create_mutable_binding(it, faux)
+                _ := env.create_mutable_binding(interpréteuse.donne_realm(), it, faux)
                 // 3. Perform ! env.InitializeBinding(n, undefined).
                 _ := env.initialize_binding(it, js_undefined)
             }
@@ -790,7 +790,7 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
             // ii. Else,
             sinon {
                 // 1. Perform ! lexEnv.CreateMutableBinding(dn, false).
-                lex_env.create_mutable_binding(name, faux)
+                _ := lex_env.create_mutable_binding(interpréteuse.donne_realm(), name, faux)
             }
         }
     }

@@ -319,7 +319,10 @@ global_declaration_instantiation :: fonc (realm: *Realm, script: *NoeudScript, e
             // ii. Else,
             sinon {
                 // 1. Perform ? env.CreateMutableBinding(dn, false).
-                env.create_mutable_binding(name, faux)
+                completion := env.create_mutable_binding(realm, name, faux)
+                saufsi completion.est_normal() {
+                    retourne completion
+                }
             }
         }
     }

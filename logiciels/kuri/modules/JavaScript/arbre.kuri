@@ -3704,7 +3704,7 @@ catch_clause_evaluation :: fonc (catch: *CatchClause, interpréteuse: *Interpré
     identifier := catch.param comme *Identifier
 
     arg_name := identifier.nom
-    catch_env.create_mutable_binding(arg_name, faux)
+    _ := catch_env.create_mutable_binding(interpréteuse.donne_realm(), arg_name, faux)
 
     // 4. Set the running execution context's LexicalEnvironment to catchEnv.
     running_execution_context.lexical_environment = catch_env
