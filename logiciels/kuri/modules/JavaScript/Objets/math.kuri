@@ -113,7 +113,10 @@ math_ceil :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
         retourne normal_completion(Valeur(Number = -0.0))
     }
 
-    // À FAIRE : 4. If n is an integral Number, return n.
+    // 4. If n is an integral Number, return n.
+    si est_intégral(n) {
+        retourne normal_completion(Valeur(Number = n))
+    }
     
     // 5. Return the smallest (closest to -∞) integral Number value that is not less than n.
     retourne normal_completion(plafond(n))
@@ -196,7 +199,10 @@ math_floor :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
         retourne normal_completion(Valeur(Number = 0))
     }
 
-    // À FAIRE : 4. If n is an integral Number, return n.
+    // 4. If n is an integral Number, return n.
+    si est_intégral(n) {
+        retourne normal_completion(Valeur(Number = n))
+    }
 
     // 5. Return the greatest (closest to +∞) integral Number value that is not greater than n.
     retourne normal_completion(plancher(n))
@@ -371,8 +377,7 @@ math_round :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     n := completion.valeur.V.Number
 
     // 2. If n is not finite or n is an integral Number, return n.
-    // À FAIRE : is an integral Number
-    si est_infini(n) {
+    si est_infini(n) || est_intégral(n) {
         retourne normal_completion(Valeur(Number = n))
     }
 

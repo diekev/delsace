@@ -368,6 +368,17 @@ number_to_string :: fonc (realm: *Realm, valeur: Valeur, radix: n32) -> Valeur
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Utilitaire
+ * \{ */
+
+est_intégral :: fonc (n: r64) -> bool
+{
+    retourne (n comme n64) comme r64 == n
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom PropertyDescriptor
  * 6.2.6 The Property Descriptor Specification Type
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-property-descriptor-specification-type
