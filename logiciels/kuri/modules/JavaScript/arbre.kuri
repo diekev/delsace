@@ -4616,7 +4616,11 @@ crée_visiteuse_pour_déclarations_lexicales :: fonc (résultat: *VisteuseDécla
             retourne VisiteEnfants.Non
         }
 
-        retourne VisiteEnfants.Oui
+        si noeud.type == ExpressionStatement || noeud.type == LabelledStatement || noeud.type == BlockStatement || noeud.type == ScriptBody || noeud.type == NoeudScript || noeud.type == ConciseBody || noeud.type == FunctionBody {
+            retourne VisiteEnfants.Oui
+        }
+
+        retourne VisiteEnfants.Non
     }
 
     résultat.arbre = noeud
