@@ -819,7 +819,7 @@ same_value :: fonc (x: Valeur, y: Valeur) -> Valeur
     // 2. If x is a Number, then
     si x.est_nombre() {
         // a. Return Number::sameValue(x, y).
-        panique("Number::sameValue non-implémentée")
+        retourne number_same_value(x, y)
     }
 
     // 3. Return SameValueNonNumber(x, y).
@@ -956,7 +956,7 @@ is_less_than :: fonc (interpréteuse: *Interpréteuse, x: Valeur, y: Valeur, lef
             // i. If nx is a Number, then
             si nx.est_nombre() {
                 // 1. Return Number::lessThan(nx, ny).
-                retourne normal_completion(Valeur(Boolean = nx.Number < ny.Number))
+                retourne normal_completion(number_less_than(nx, ny))
             }
             // ii. Else,
                 // 1. Assert: nx is a BigInt.

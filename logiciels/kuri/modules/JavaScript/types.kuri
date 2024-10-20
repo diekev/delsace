@@ -45,6 +45,19 @@ Symbol :: struct {
 /** \nom 6.1.6.1 The Number Type
  * \{ */
 
+/* 6.1.6.1.1 Number::unaryMinus ( x )
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-unaryMinus */
+number_unary_minus :: fonc (x: Valeur) -> Valeur
+{
+    // 1. If x is NaN, return NaN.
+    si est_nan(x) {
+        retourne Valeur(Number = NaN)
+    }
+
+    // 2. Return the negation of x; that is, compute a Number with the same magnitude but opposite sign.
+    retourne Valeur(Number = -x.Number)
+}
+
 /* 6.1.6.1.2 Number::bitwiseNOT ( x )
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-bitwiseNOT */
 number_bitwise_not :: fonc (x: Valeur) -> Valeur
@@ -83,6 +96,96 @@ number_exponentiate :: fonc (b: Valeur, e: Valeur) -> Valeur
     retourne Valeur(Number = puissance(b, e))
 }
 
+/* 6.1.6.1.4 Number::multiply ( x, y )
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-multiply */
+number_multiply :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    // À FAIRE : standardise
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    retourne Valeur(Number = gauche.Number * droite.Number)
+}
+
+/* 6.1.6.1.5 Number::divide ( x, y )
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-divide */
+number_divide :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    // À FAIRE : standardise
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    retourne Valeur(Number = gauche.Number / droite.Number)
+}
+
+/* 6.1.6.1.6 Number::remainder ( n, d )
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-remainder */
+number_remainder :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    retourne Valeur(Number = mod(gauche.Number, droite.Number))
+}
+
+/* 6.1.6.1.7 Number::add ( x, y )
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-add */
+number_add :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    retourne Valeur(Number = gauche.Number + droite.Number)
+}
+
+/* 6.1.6.1.8 Number::subtract ( x, y )
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-subtract */
+number_subtract :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    retourne Valeur(Number = gauche.Number - droite.Number)
+}
+
+/* 6.1.6.1.9 Number::leftShift ( x, y )
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-leftShift */
+number_left_shift :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    g := gauche.Number comme z32
+    d := droite.Number comme z32
+    r := g << d
+    retourne Valeur(Number = r comme r64)
+}
+
+/* 6.1.6.1.10 Number::signedRightShift ( x, y )
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-signedRightShift */
+number_signed_right_shift :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    g := gauche.Number comme z32
+    d := droite.Number comme z32
+    r := g >> d
+    retourne Valeur(Number = r comme r64)
+}
+
+/* 6.1.6.1.11 Number::unsignedRightShift ( x, y )
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-unsignedRightShift */
+number_unsigned_right_shift :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    g := gauche.Number comme n32
+    d := droite.Number comme n32
+    r := g >> d
+    retourne Valeur(Number = r comme r64)
+}
+
+/* 6.1.6.1.12 Number::lessThan ( x, y )
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-lessThan */
+number_less_than :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    retourne Valeur(Boolean = gauche.Number < droite.Number)
+}
+
 /* 6.1.6.1.13 Number::equal ( x, y )
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-equal */
 number_equal :: fonc (vx: Valeur, vy: Valeur) -> bool
@@ -118,6 +221,104 @@ number_equal :: fonc (vx: Valeur, vy: Valeur) -> bool
 
     // 6. Return false.
     retourne faux
+}
+
+/* 6.1.6.1.14 Number::sameValue ( x, y )
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-sameValue */
+number_same_value :: fonc (vx: Valeur, vy: Valeur) -> Valeur
+{
+    x := vx.Number
+    y := vy.Number
+
+    // 1. If x is NaN and y is NaN, return true.
+    si est_nan(x) && est_nan(y) {
+        retourne vrai
+    }
+
+    // 2. If x is +0𝔽 and y is -0𝔽, return false.
+    si x == 0.0 && y == -0.0 {
+        retourne faux
+    }
+
+    // 3. If x is -0𝔽 and y is +0𝔽, return false.
+    si x == -0.0 && y == 0.0 {
+        retourne faux
+    }
+
+    // 4. If x is y, return true.
+    si x == y {
+        retourne vrai
+    }
+
+    // 5. Return false.
+    retourne faux
+}
+
+/* 6.1.6.1.15 Number::sameValueZero ( x, y )
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-sameValueZero */
+number_same_value_zero :: fonc (vx: Valeur, vy: Valeur) -> Valeur
+{
+    x := vx.Number
+    y := vy.Number
+
+    // 1. If x is NaN and y is NaN, return true.
+    si est_nan(x) && est_nan(y) {
+        retourne vrai
+    }
+
+    // 2. If x is +0𝔽 and y is -0𝔽, return true.
+    si x == 0.0 && y == -0.0 {
+        retourne vrai
+    }
+
+    // 3. If x is -0𝔽 and y is +0𝔽, return true.
+    si x == -0.0 && y == 0.0 {
+        retourne vrai
+    }
+
+    // 4. If x is y, return true.
+    si x == y {
+        retourne vrai
+    }
+
+    // 5. Return false.
+    retourne faux
+}
+
+/* 6.1.6.1.17 Number::bitwiseAND ( x, y )
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-bitwiseAND */
+number_bitwise_and :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    g := gauche.Number comme z32
+    d := droite.Number comme z32
+    r := g & d
+    retourne Valeur(Number = r comme r64)
+}
+
+/* 6.1.6.1.18 Number::bitwiseXOR ( x, y )
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-bitwiseXOR */
+number_bitwise_xor :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    g := gauche.Number comme z32
+    d := droite.Number comme z32
+    r := g ^ d
+    retourne Valeur(Number = r comme r64)
+}
+
+/* 6.1.6.1.19 Number::bitwiseOR ( x, y )
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-bitwiseOR */
+number_bitwise_or :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
+{
+    assert(gauche.est_nombre())
+    assert(droite.est_nombre())
+    g := gauche.Number comme z32
+    d := droite.Number comme z32
+    r := g | d
+    retourne Valeur(Number = r comme r64)
 }
 
 /* 6.1.6.1.20 Number::toString ( x, radix )
