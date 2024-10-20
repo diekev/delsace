@@ -685,12 +685,14 @@ to_property_key :: fonc (realm: *Realm, argument: Valeur) -> CompletionRecord
 
 /* 7.1.20 ToLength ( argument )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-tolength */
-to_length :: fonc (argument: Valeur) -> CompletionRecord
+to_length :: fonc (interpréteuse: *Interpréteuse, argument: Valeur) -> CompletionRecord
 {
-    assert(argument.est_nombre())
-    /* À FAIRE : ToIntegerOrInfinity. */
     // 1. Let len be ? ToIntegerOrInfinity(argument).
-    len := argument.Number
+    completion := to_integer_or_infinity(interpréteuse, argument)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    len := completion.valeur.V.Number
 
     // 2. If len ≤ 0, return +0𝔽.
     si len <= 0.0 {
@@ -698,7 +700,8 @@ to_length :: fonc (argument: Valeur) -> CompletionRecord
     }
 
     // 3. Return 𝔽(min(len, 2**53 - 1)).
-    retourne normal_completion(argument)
+    maximum := ((2 comme n64) << 53 - 1) comme r64
+    retourne normal_completion(Valeur(Number = min(len, maximum)))
 }
 
 /** \} */
