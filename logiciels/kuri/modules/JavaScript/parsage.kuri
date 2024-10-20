@@ -164,18 +164,6 @@ apparie_expression_secondaire :: fonc (parseuse: *Parseuse) -> bool #enligne
     retourne faux
 }
 
-apparie_instruction :: fonc (parseuse: *Parseuse) -> bool #enligne
-{
-    si parseuse.fini() {
-        retourne faux
-    }
-    genre := parseuse.lexème_courant().genre
-    si données_lexèmes_pour_parsage[genre].drapeaux.EstInstruction == vrai {
-        retourne vrai
-    }
-    retourne faux
-}
-
 parse_script :: fonc (parseuse: *Parseuse) -> *NoeudScript
 {
     script_body: *ScriptBody
