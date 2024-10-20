@@ -119,6 +119,72 @@ prop_name :: fonc (noeud: *NoeudSyntaxique) -> ECMAString
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom NoeudScope
+ * \{ */
+
+NoeudScope :: struct {
+    empl base: Statement
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_scope
+
+    enfants: [..]*Statement
+}
+
+sur_exécution_scope :: fonc (noeud: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    retourne interpréteuse.exécute(noeud comme *NoeudScope)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom NoeudScript
+ * \{ */
+
+NoeudScript :: struct {
+    empl noeud: NoeudSyntaxique
+    type = #type_de_cette_structure
+
+    script_body: *ScriptBody
+}
+
+exécute :: fonc (script: *NoeudScript, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    si script.script_body {
+        retourne interpréteuse.exécute(script.script_body)
+    }
+
+    retourne normal_completion(js_undefined)
+}
+
+crée_script :: fonc (parseuse: *Parseuse, script_body: *ScriptBody) -> *NoeudScript
+{
+    résultat := parseuse.crée_noeud(nul, NoeudScript)
+    résultat.script_body = script_body
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ScriptBody
+ * \{ */
+
+ScriptBody :: struct {
+    empl scope: NoeudScope
+    type = #type_de_cette_structure
+}
+
+crée_script_body :: fonc (parseuse: *Parseuse, expressions: [..]*Statement) -> *ScriptBody
+{
+    résultat := parseuse.crée_noeud(nul, ScriptBody)
+    résultat.enfants = expressions
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Statement
  * Structure de base pour les statements.
  * \{ */
@@ -187,45 +253,6 @@ sur_exécution_empty_statement :: fonc (base: *NoeudSyntaxique @inutilisée, int
 {
     // 1. Return empty.
     retourne normal_completion(js_undefined)
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom NoeudScope
- * \{ */
-
-NoeudScope :: struct {
-    empl base: Statement
-    type = #type_de_cette_structure
-    sur_exécution = sur_exécution_scope
-
-    enfants: [..]*Statement
-}
-
-sur_exécution_scope :: fonc (noeud: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
-{
-    retourne interpréteuse.exécute(noeud comme *NoeudScope)
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Programme
- * \{ */
-
-Programme :: struct {
-    empl scope: NoeudScope
-    type = #type_de_cette_structure
-
-    type_source := "script"
-}
-
-crée_programme :: fonc (parseuse: *Parseuse, lexème: *Lexème, expressions: [..]*Statement) -> *Programme
-{
-    résultat := parseuse.crée_noeud(lexème, Programme)
-    résultat.enfants = expressions
-    retourne résultat
 }
 
 /** \} */

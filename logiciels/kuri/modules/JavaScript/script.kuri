@@ -100,12 +100,12 @@ Script :: struct {
     realm: *Realm
 
     /* Arbre syntaxique. */
-    ecma_script_code: *Programme @NeVisitePas
+    ecma_script_code: *NoeudScript @NeVisitePas
 
     host_defined: HostDefined
 }
 
-initialise_script :: fonc (résultat: *Script, realm: *Realm, source: TexteSource, script: *Programme, host_defined: HostDefined)
+initialise_script :: fonc (résultat: *Script, realm: *Realm, source: TexteSource, script: *NoeudScript, host_defined: HostDefined)
 {
     résultat.source = source
     résultat.realm = realm
@@ -143,10 +143,10 @@ parse_script :: fonc (source_texte: chaine, realm: *Realm, host_defined := HostD
             retourne e
         }
         Ok(noeud) {
-            assert(noeud.type == Programme)
+            assert(noeud.type == NoeudScript)
             // 3. Return Script Record { [[Realm]]: realm, [[ECMAScriptCode]]: script, [[LoadedModules]]: « », [[HostDefined]]: hostDefined }.
             résultat := tas_de_mémoire.alloue(Script)
-            initialise_script(résultat, realm, source, noeud comme *Programme, host_defined)
+            initialise_script(résultat, realm, source, noeud comme *NoeudScript, host_defined)
             retourne résultat
         }
         sinon {}
@@ -224,7 +224,7 @@ script_evaluation :: fonc (script_record: *Script) -> CompletionRecord
 
 /* 16.1.7 GlobalDeclarationInstantiation( script, env )
  * https://tc39.es/ecma262/#sec-globaldeclarationinstantiation */
-global_declaration_instantiation :: fonc (realm: *Realm, script: *Programme, env: *GlobalEnvironment) -> CompletionRecord
+global_declaration_instantiation :: fonc (realm: *Realm, script: *NoeudScript, env: *GlobalEnvironment) -> CompletionRecord
 {
     // À FAIRE : complète
     // 1. Let lexNames be the LexicallyDeclaredNames of script.
@@ -296,26 +296,28 @@ global_declaration_instantiation :: fonc (realm: *Realm, script: *Programme, env
     }
 
     // 16. For each Parse Node f of functionsToInitialize, do
-    pour script.enfants {
-        saufsi it.type == FunctionDeclaration {
-            continue
-        }
+    si script.script_body {
+        pour script.script_body.enfants {
+            saufsi it.type == FunctionDeclaration {
+                continue
+            }
 
-        function := it comme *FunctionDeclaration
-        si function.id == nul {
-            continue
-        }
+            function := it comme *FunctionDeclaration
+            si function.id == nul {
+                continue
+            }
 
-        // a. Let fn be the sole element of the BoundNames of f.
-        fn := function.id.nom
+            // a. Let fn be the sole element of the BoundNames of f.
+            fn := function.id.nom
 
-        // b. Let fo be InstantiateFunctionObject of f with arguments env and privateEnv.
-        fo := instantiate_function_object(realm, function, env, private_env)
-    
-        // c. Perform ? env.CreateGlobalFunctionBinding(fn, fo, false).
-        completion := env.create_global_function_binding(fn, Valeur(Object = fo), faux)
-        saufsi completion.est_normal() {
-            retourne completion
+            // b. Let fo be InstantiateFunctionObject of f with arguments env and privateEnv.
+            fo := instantiate_function_object(realm, function, env, private_env)
+        
+            // c. Perform ? env.CreateGlobalFunctionBinding(fn, fo, false).
+            completion := env.create_global_function_binding(fn, Valeur(Object = fo), faux)
+            saufsi completion.est_normal() {
+                retourne completion
+            }
         }
     }
 

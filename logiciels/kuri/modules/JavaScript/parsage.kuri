@@ -14,8 +14,7 @@ parse :: fonc (realm: *Realm, source_text: *TexteSource, goal_symbol: GoalSymbol
 
     discr goal_symbol {
         Script {
-            statements := parse_statement_list(*parseuse)
-            résultat = crée_programme(*parseuse, nul, statements)
+            résultat = parse_script(*parseuse)
         }
         StringNumericLiteral {
             /* A StringNumericLiteral that is empty or contains only white space is converted to +0𝔽. */
@@ -175,6 +174,18 @@ apparie_instruction :: fonc (parseuse: *Parseuse) -> bool #enligne
         retourne vrai
     }
     retourne faux
+}
+
+parse_script :: fonc (parseuse: *Parseuse) -> *NoeudScript
+{
+    script_body: *ScriptBody
+    statements := parse_statement_list(parseuse)
+
+    si statements.taille != 0 {
+        script_body = crée_script_body(parseuse, statements)
+    }
+
+    retourne crée_script(parseuse, script_body)
 }
 
 parse_statement :: fonc (parseuse: *Parseuse) -> *Statement
