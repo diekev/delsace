@@ -745,10 +745,19 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
         ParenthèseOuvrante {
             parseuse.consomme()
 
-            expression := parseuse.parse_expression(ParamètresParsageExpression())
+            expression: *Expression
+            si parseuse.apparie_expression() {
+                expression = parseuse.parse_expression(ParamètresParsageExpression())
+            }
 
             parseuse.consomme(GenreLexème.ParenthèseFermante)
-            retourne expression
+
+            si expression {
+                retourne expression
+            }
+
+            /* NOTE : pour l'instant ces expressions ne servent que pour les fonctions-arrow */
+            retourne parseuse.crée_parenthesized_expression(lexème, expression)
         }
         AccoladeOuvrante {
             parseuse.consomme()
@@ -1179,12 +1188,58 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
             droite := parseuse.parse_expression(params)
             retourne crée_comma_expression(parseuse, lexème, gauche, droite)
         }
+        Arrow {
+            parseuse.consomme()
+            droite := parseuse.parse_statement()
+
+            // À FAIRE : nous pouvons avoir une expression virgule alors que les fonctions doivent avoir un tableau
+            // pour les paramètres.
+            arrow_params := aplatis_expression_et_détruit_virgules(gauche)
+
+            concise_body := parseuse.crée_concise_body(droite)
+            retourne crée_arrow_function(parseuse, lexème, arrow_params, concise_body)
+        }
         sinon {
             rapporte_erreur(parseuse, lexème, "Genre de lexème non géré dans parse_expression_secondaire\n")
         }
     }
 
     retourne nul
+}
+
+aplatis_expression_et_détruit_virgules :: fonc (expression: *Expression) -> [..]*Expression
+{
+    résultat: [..]*Expression
+
+    si expression.type == ParenthesizedExpression {
+        assert((expression comme *ParenthesizedExpression).expression == nul)
+        détruit_arbre(expression)
+        retourne résultat
+    }
+
+    si expression.type == CommaExpression {
+        aplatis_virgule(expression comme *CommaExpression, *résultat)
+        détruit_arbre(expression)
+    }
+    sinon {
+        tableau_ajoute(*résultat, expression)
+    }
+
+    retourne résultat
+}
+
+aplatis_virgule :: fonc (virgule: *CommaExpression, résultat: *[..]*Expression)
+{
+    si virgule.left.type == CommaExpression {
+        aplatis_virgule(virgule.left comme *CommaExpression, résultat)
+    }
+    sinon {
+        tableau_ajoute(résultat, virgule.left)
+        virgule.left = nul
+    }
+
+    tableau_ajoute(résultat, virgule.right)
+    virgule.right = nul
 }
 
 parse_assignement_expression :: fonc (parseuse: *Parseuse, gauche: *Expression, opération: AssignmentOperation, params: ParamètresParsageExpression) -> *AssignmentExpression

@@ -519,7 +519,8 @@ droit_traité_slash_comme_début_regex :: fonc (empl lexeuse: &Lexeuse) -> bool
         NonLogique,
         Return,
         Else,
-        Plus {
+        Plus,
+        Arrow {
             retourne vrai
         }
         Identifiant {

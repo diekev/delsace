@@ -51,7 +51,7 @@ has_name :: fonc (noeud: *NoeudSyntaxique) -> bool
 is_function_definition :: fonc (noeud: *NoeudSyntaxique) -> bool
 {
     // À FAIRE : implémente tous les cas
-    retourne noeud.type == FunctionExpression
+    retourne noeud.type == FunctionExpression || noeud.type == ArrowFunction
 }
 
 /* 8.4.3 Static Semantics: IsAnonymousFunctionDefinition
@@ -87,6 +87,12 @@ named_evaluation :: fonc (interpréteuse: *Interpréteuse, noeud: *NoeudSyntaxiq
     si noeud.type == FunctionExpression {
         // 1. Return InstantiateOrdinaryFunctionExpression of FunctionExpression with argument name.
         résultat := instantiate_ordinary_function_expression(interpréteuse, noeud comme *FunctionExpression, *name)
+        retourne normal_completion(Valeur(Function = résultat))
+    }
+
+    si noeud.type == ArrowFunction {
+        // 1. Return InstantiateArrowFunctionExpression of ArrowFunction with argument name.
+        résultat := instantiate_arrow_function_expression(interpréteuse, noeud comme *ArrowFunction, *name)
         retourne normal_completion(Valeur(Function = résultat))
     }
 
@@ -390,6 +396,88 @@ crée_function_body :: fonc (parseuse: *Parseuse, statement: *Statement) -> *Fun
     résultat := parseuse.crée_noeud(nul, FunctionBody)
     résultat.statement = statement
     retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ArrowFunction
+ * \{ */
+
+ArrowFunction :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_arrow_function
+
+    params: [..]*Expression
+    corps: *ConciseBody
+}
+
+crée_arrow_function :: fonc (parseuse: *Parseuse, lexème: *Lexème, params: [..]*Expression, corps: *ConciseBody) -> *ArrowFunction
+{
+    résultat := parseuse.crée_noeud(lexème, ArrowFunction)
+    résultat.corps = corps
+    résultat.params = params
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-arrow-function-definitions-runtime-semantics-evaluation */
+sur_exécution_arrow_function :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    expression := base comme *ArrowFunction
+    /* 1. Return InstantiateOrdinaryFunctionExpression of FunctionExpression. */
+    closure := instantiate_arrow_function_expression(interpréteuse, expression)
+    retourne normal_completion(Valeur(Function = closure))
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom FunctionBody
+ * \{ */
+
+ConciseBody :: struct {
+    empl base_statement: Statement
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_concise_body
+
+    statement: *Statement
+}
+
+crée_concise_body :: fonc (parseuse: *Parseuse, statement: *Statement) -> *ConciseBody
+{
+    résultat := parseuse.crée_noeud(nul, ConciseBody)
+    résultat.statement = statement
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-arrow-function-definitions-runtime-semantics-evaluation */
+sur_exécution_concise_body :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    concise_body := base comme *ConciseBody
+
+    // ExpressionBody : FunctionBody
+    si concise_body.statement.type == BlockStatement {
+        retourne interpréteuse.exécute(concise_body.statement)
+    }
+
+    // ExpressionBody : AssignmentExpression
+    // 1. Let exprRef be ? Evaluation of AssignmentExpression.
+    completion := exécute_noeud(concise_body.statement, interpréteuse)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    expr_ref := completion.valeur
+
+    // 2. Let exprValue be ? GetValue(exprRef).
+    completion = get_value(interpréteuse, expr_ref)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    expr_value := completion.valeur.V
+
+    // 3. Return ReturnCompletion(exprValue).
+    retourne return_completion(expr_value)
 }
 
 /** \} */

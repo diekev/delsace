@@ -256,6 +256,12 @@ evaluate_body :: fonc (interpréteuse: *Interpréteuse, function_object: *ECMASc
         retourne evaluate_function_body(interpréteuse, function_object, arguments_list)
     }
 
+    si body.type == ConciseBody {
+        // ConciseBody : ExpressionBody
+        // 1. Return ? EvaluateConciseBody of ConciseBody with arguments functionObject and argumentsList.
+        retourne evaluate_concise_body(interpréteuse, function_object, arguments_list)
+    }
+
     panique("evaluate_body non-implémenté")
 }
 
