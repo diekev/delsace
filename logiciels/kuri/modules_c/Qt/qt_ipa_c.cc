@@ -1257,6 +1257,85 @@ bool QT_window_is_exposed(struct QT_Window *window)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Event_Loop
+ * \{ */
+
+class EventLoop : public QEventLoop {
+    QT_Rappels_Event_Loop *m_rappels = nullptr;
+
+  public:
+    EventLoop(QT_Rappels_Event_Loop *rappels) : m_rappels(rappels)
+    {
+        if (!m_rappels) {
+            return;
+        }
+
+        m_rappels->event_loop = vers_ipa(this);
+    }
+
+    EMPECHE_COPIE(EventLoop);
+
+    ~EventLoop() override
+    {
+        if (m_rappels && m_rappels->sur_destruction) {
+            m_rappels->sur_destruction(m_rappels);
+        }
+    }
+
+    QT_Rappels_Event_Loop *donne_rappels() const
+    {
+        return m_rappels;
+    }
+
+    bool event(QEvent *event) override
+    {
+        if (m_rappels && m_rappels->sur_evenement) {
+            QT_Generic_Event generic_event;
+            generic_event.event = reinterpret_cast<QT_Evenement *>(event);
+            if (m_rappels->sur_evenement(m_rappels, generic_event)) {
+                return true;
+            }
+        }
+
+        return QEventLoop::event(event);
+    }
+};
+
+struct QT_Event_Loop *QT_Event_Loop_cree_avec_rappels(struct QT_Rappels_Event_Loop *rappels)
+{
+    auto résultat = new EventLoop(rappels);
+    return vers_ipa(résultat);
+}
+
+void QT_Event_Loop_detruit(struct QT_Event_Loop *event_loop)
+{
+    VERS_QT(event_loop);
+    delete qevent_loop;
+}
+
+struct QT_Rappels_Event_Loop *QT_Event_Loop_donne_rappels(struct QT_Event_Loop *event_loop)
+{
+    VERS_QT(event_loop);
+    if (auto ipa_event_loop = dynamic_cast<EventLoop *>(qevent_loop)) {
+        return ipa_event_loop->donne_rappels();
+    }
+    return nullptr;
+}
+
+int QT_Event_Loop_exec(struct QT_Event_Loop *event_loop)
+{
+    VERS_QT(event_loop);
+    return qevent_loop->exec();
+}
+
+void QT_Event_Loop_exit(struct QT_Event_Loop *event_loop)
+{
+    CONVERTIS_ET_APPEL(event_loop, exit);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_OpenGL_Context
  * \{ */
 

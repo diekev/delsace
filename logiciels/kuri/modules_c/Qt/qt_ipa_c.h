@@ -258,7 +258,8 @@ union QT_AbstractSocket {
     O(QShortcut, QT_Shortcut, shortcut)                                                           \
     O(QThread, QT_Thread, thread)                                                                 \
     O(QWindow, QT_Window, window)                                                                 \
-    O(QOpenGLContext, QT_OpenGL_Context, opengl_context)
+    O(QOpenGLContext, QT_OpenGL_Context, opengl_context)                                          \
+    O(QEventLoop, QT_Event_Loop, event_loop)
 
 #define PRODECLARE_TYPES_OBJETS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_OBJETS(PRODECLARE_TYPES_OBJETS)
@@ -1299,6 +1300,26 @@ void QT_window_resize(struct QT_Window *window, int width, int height);
 int QT_window_height(struct QT_Window *window);
 int QT_window_width(struct QT_Window *window);
 bool QT_window_is_exposed(struct QT_Window *window);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Event_Loop
+ * \{ */
+
+struct QT_Rappels_Event_Loop {
+    bool (*sur_evenement)(struct QT_Rappels_Event_Loop *, union QT_Generic_Event);
+    void (*sur_destruction)(struct QT_Rappels_Event_Loop *);
+    struct QT_Event_Loop *event_loop;
+};
+
+struct QT_Event_Loop *QT_Event_Loop_cree_avec_rappels(struct QT_Rappels_Event_Loop *rappels);
+void QT_Event_Loop_detruit(struct QT_Event_Loop *event_loop);
+
+struct QT_Rappels_Event_Loop *QT_Event_Loop_donne_rappels(struct QT_Event_Loop *event_loop);
+
+int QT_Event_Loop_exec(struct QT_Event_Loop *event_loop);
+void QT_Event_Loop_exit(struct QT_Event_Loop *event_loop);
 
 /** \} */
 
