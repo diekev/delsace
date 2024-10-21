@@ -64,14 +64,11 @@ struct Syntaxeuse : BaseSyntaxeuse {
     /* NOTE: lexème_final n'est utilisé que pour éviter de traiter les virgules comme des
      * opérateurs dans les expressions des appels et déclarations de paramètres de fonctions. */
     NoeudExpression *analyse_expression(DonnéesPrécédence const &donnees_precedence,
-                                        GenreLexème racine_expression,
                                         GenreLexème lexème_final);
     NoeudExpression *analyse_expression_unaire(GenreLexème lexème_final);
-    NoeudExpression *analyse_expression_primaire(GenreLexème racine_expression,
-                                                 GenreLexème lexème_final);
+    NoeudExpression *analyse_expression_primaire(GenreLexème lexème_final);
     NoeudExpression *analyse_expression_secondaire(NoeudExpression *gauche,
                                                    DonnéesPrécédence const &donnees_precedence,
-                                                   GenreLexème racine_expression,
                                                    GenreLexème lexème_final);
 
     NoeudBloc *analyse_bloc(TypeBloc type_bloc, bool accolade_requise = true);
@@ -109,22 +106,17 @@ struct Syntaxeuse : BaseSyntaxeuse {
     NoeudExpression *analyse_instruction_tantque();
 
     /* Analyse une série d'expressions séparées par des virgules. */
-    NoeudExpression *analyse_expression_avec_virgule(GenreLexème lexème_racine,
-                                                     bool force_noeud_virgule);
+    NoeudExpression *analyse_expression_avec_virgule(bool force_noeud_virgule);
 
     bool est_déclaration_type_tableau();
 
     NoeudExpression *analyse_expression_crochet_ouvrant(Lexème const *lexème,
-                                                        GenreLexème racine_expression,
                                                         GenreLexème lexème_final);
 
     NoeudExpressionTypeTableauFixe *parse_type_tableau_fixe(Lexème const *lexème,
-                                                            GenreLexème racine_expression,
                                                             GenreLexème lexème_final);
 
-    NoeudExpressionConstructionTableau *parse_construction_tableau(Lexème const *lexème,
-                                                                   GenreLexème racine_expression,
-                                                                   GenreLexème lexème_final);
+    NoeudExpressionConstructionTableau *parse_construction_tableau(Lexème const *lexème);
 
     NoeudExpression *analyse_référence_déclaration(Lexème const *lexème_référence);
 
