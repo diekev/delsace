@@ -16,7 +16,8 @@ evaluate_function_body :: fonc (interpréteuse: *Interpréteuse, function_object
         retourne completion
     }
     // 2. Return ? Evaluation of FunctionStatementList.
-    retourne interpréteuse.exécute(function_object.corps)
+    assert(function_object.corps.type == FunctionBody)
+    retourne interpréteuse.exécute((function_object.corps comme *FunctionBody).statement)
 }
 
 /* 15.2.4 Runtime Semantics: InstantiateOrdinaryFunctionObject
@@ -28,10 +29,11 @@ instantiate_ordinary_function_object :: fonc (realm: *Realm, declaration: *Funct
         // 1. Let name be the StringValue of BindingIdentifier.
         name := declaration.id.nom
 
-        // À FAIRE 2. Let sourceText be the source text matched by FunctionDeclaration.
+        // 2. Let sourceText be the source text matched by FunctionDeclaration.
+        source_texte := donne_texte_source(declaration)
 
         // 3. Let F be OrdinaryFunctionCreate(%Function.prototype%, sourceText, FormalParameters, FunctionBody, non-lexical-this, env, privateEnv).
-        F := ordinary_function_create(realm, realm.intrinsics.function_prototype, declaration.params, declaration.corps, NON_LEXICAL_THIS, env, private_env)
+        F := ordinary_function_create(realm, realm.intrinsics.function_prototype, source_texte, declaration.params, declaration.corps, NON_LEXICAL_THIS, env, private_env)
 
         // 4. Perform SetFunctionName(F, name).
         set_function_name(realm, F, name)
@@ -67,10 +69,11 @@ instantiate_ordinary_function_expression :: fonc (interpréteuse: *Interpréteus
         // 3. Let privateEnv be the running execution context's PrivateEnvironment.
         private_env := running_execution_context.private_environment
 
-        // À FAIRE 4. Let sourceText be the source text matched by FunctionExpression.
+        // 4. Let sourceText be the source text matched by FunctionExpression.
+        source_texte := donne_texte_source(expression)
 
         // 5. Let closure be OrdinaryFunctionCreate(%Function.prototype%, sourceText, FormalParameters, FunctionBody, NON-LEXICAL-THIS, env, privateEnv).
-        closure := ordinary_function_create(realm, realm.intrinsics.function_prototype, expression.params, expression.corps, NON_LEXICAL_THIS, env, private_env)
+        closure := ordinary_function_create(realm, realm.intrinsics.function_prototype, source_texte, expression.params, expression.corps, NON_LEXICAL_THIS, env, private_env)
 
         // 6. Perform SetFunctionName(closure, name).
         set_function_name(realm, closure, name)
@@ -100,10 +103,11 @@ instantiate_ordinary_function_expression :: fonc (interpréteuse: *Interpréteus
     // 6. Let privateEnv be the running execution context's PrivateEnvironment.
     private_env := running_execution_context.private_environment
 
-    // À FAIRE : 7. Let sourceText be the source text matched by FunctionExpression.
+    // 7. Let sourceText be the source text matched by FunctionExpression.
+    source_texte := donne_texte_source(expression)
 
     // 8. Let closure be OrdinaryFunctionCreate(%Function.prototype%, sourceText, FormalParameters, FunctionBody, non-lexical-this, funcEnv, privateEnv).
-    closure := ordinary_function_create(realm, realm.intrinsics.function_prototype, expression.params, expression.corps, NON_LEXICAL_THIS, func_env, private_env)
+    closure := ordinary_function_create(realm, realm.intrinsics.function_prototype, source_texte, expression.params, expression.corps, NON_LEXICAL_THIS, func_env, private_env)
 
     // 9. Perform SetFunctionName(closure, name).
     set_function_name(realm, closure, name)
@@ -118,12 +122,68 @@ instantiate_ordinary_function_expression :: fonc (interpréteuse: *Interpréteus
     retourne closure
 }
 
+/* 15.3.3 Runtime Semantics: EvaluateConciseBody
+ * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-runtime-semantics-evaluateconcisebody */
+evaluate_concise_body :: fonc (interpréteuse: *Interpréteuse, function_object: *ECMAScriptFunction, arguments_list: []Valeur) -> CompletionRecord
+{
+    // 1. Perform ? FunctionDeclarationInstantiation(functionObject, argumentsList).
+    completion := function_declaration_instantiation(interpréteuse, function_object, arguments_list)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+
+    // 2. Return ? Evaluation of ExpressionBody.
+    assert(function_object.corps.type == ConciseBody)
+    retourne interpréteuse.exécute(function_object.corps)
+}
+
+/* 15.3.4 Runtime Semantics: InstantiateArrowFunctionExpression
+ * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-runtime-semantics-instantiatearrowfunctionexpression */
+instantiate_arrow_function_expression :: fonc (interpréteuse: *Interpréteuse, arrow: *ArrowFunction, opt_name : *ECMAString = nul) -> *Function
+{
+    mv := interpréteuse.mv
+    running_execution_context := mv.donne_running_execution_context()
+    realm := running_execution_context.realm
+
+    // 1. If name is not present, set name to "".
+    name := crée_chaine_utf16_unique_vide()
+    si opt_name {
+        name = mémoire(opt_name)
+    }
+
+    // 2. Let env be the LexicalEnvironment of the running execution context.
+    env := running_execution_context.lexical_environment
+
+    // 3. Let privateEnv be the running execution context's PrivateEnvironment.
+    private_env := running_execution_context.private_environment
+
+    // 4. Let sourceText be the source text matched by ArrowFunction.
+    source_texte := donne_texte_source(arrow)
+
+    // 5. Let closure be OrdinaryFunctionCreate(%Function.prototype%, sourceText, ArrowParameters, ConciseBody, lexical-this, env, privateEnv).
+    closure := ordinary_function_create(realm, realm.intrinsics.function_prototype, source_texte, arrow.params, arrow.corps, LEXICAL_THIS, env, private_env)
+
+    // 6. Perform SetFunctionName(closure, name).
+    set_function_name(realm, closure, name)
+
+    // 7. Return closure.
+    retourne closure
+}
+
 /* 15.10.1 Static Semantics: IsInTailPosition ( call )
  * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-isintailposition */
 is_in_tail_position :: fonc (call: *NoeudSyntaxique @inutilisée) -> bool
 {
     // À FAIRE
     retourne faux
+}
+
+/* 15.10.3 PrepareForTailCall ( )
+ * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-preparefortailcall */
+prepare_for_tail_call :: fonc (interpréteuse: *Interpréteuse @inutilisée)
+{
+    // À FAIRE
+    retourne
 }
 
 /** \} */

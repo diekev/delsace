@@ -14,8 +14,7 @@ parse :: fonc (realm: *Realm, source_text: *TexteSource, goal_symbol: GoalSymbol
 
     discr goal_symbol {
         Script {
-            statements := parse_statement_list(*parseuse)
-            résultat = crée_programme(*parseuse, nul, statements)
+            résultat = parse_script(*parseuse)
         }
         StringNumericLiteral {
             /* A StringNumericLiteral that is empty or contains only white space is converted to +0𝔽. */
@@ -144,15 +143,6 @@ apparie_expression :: fonc (parseuse: *Parseuse) -> bool
     retourne drapeaux.EstExpression == vrai || drapeaux.EstExpressionUnaire == vrai
 }
 
-apparie_expression_unaire :: fonc (parseuse: *Parseuse) -> bool #enligne
-{
-    genre := parseuse.lexème_courant().genre
-    si données_lexèmes_pour_parsage[genre].drapeaux.EstExpressionUnaire == vrai {
-        retourne vrai
-    }
-    retourne faux
-}
-
 apparie_expression_secondaire :: fonc (parseuse: *Parseuse) -> bool #enligne
 {
     si parseuse.fini() {
@@ -165,16 +155,16 @@ apparie_expression_secondaire :: fonc (parseuse: *Parseuse) -> bool #enligne
     retourne faux
 }
 
-apparie_instruction :: fonc (parseuse: *Parseuse) -> bool #enligne
+parse_script :: fonc (parseuse: *Parseuse) -> *NoeudScript
 {
-    si parseuse.fini() {
-        retourne faux
+    script_body: *ScriptBody
+    statements := parse_statement_list(parseuse)
+
+    si statements.taille != 0 {
+        script_body = crée_script_body(parseuse, statements)
     }
-    genre := parseuse.lexème_courant().genre
-    si données_lexèmes_pour_parsage[genre].drapeaux.EstInstruction == vrai {
-        retourne vrai
-    }
-    retourne faux
+
+    retourne crée_script(parseuse, script_body)
 }
 
 parse_statement :: fonc (parseuse: *Parseuse) -> *Statement
@@ -269,7 +259,7 @@ parse_function_declaration :: fonc (parseuse: *Parseuse) -> *FunctionDeclaration
     paramètres := parse_expressions_séparées_par_des_virgules(parseuse)
     parseuse.consomme(GenreLexème.ParenthèseFermante)
 
-    body := parse_statement(parseuse)
+    body := parse_function_body(parseuse)
 
     retourne crée_function_déclaration(parseuse, lexème, id, paramètres, body)
 }
@@ -285,9 +275,15 @@ parse_function_expression :: fonc (parseuse: *Parseuse) -> *FunctionExpression
     paramètres := parse_expressions_séparées_par_des_virgules(parseuse)
     parseuse.consomme(GenreLexème.ParenthèseFermante)
 
-    body := parse_statement(parseuse)
+    body := parse_function_body(parseuse)
 
     retourne crée_function_expression(parseuse, lexème, id, paramètres, body)
+}
+
+parse_function_body :: fonc (parseuse: *Parseuse) -> *FunctionBody
+{
+    statement := parse_statement(parseuse)
+    retourne crée_function_body(parseuse, statement)
 }
 
 parse_variable_declaration :: fonc (parseuse: *Parseuse, nature: VariableDeclarationKind) -> *VariableDeclaration
@@ -386,19 +382,19 @@ parse_for_statement :: fonc (parseuse: *Parseuse) -> *Statement
     }
 
     init: *Expression
-    si parseuse.apparie_expression() {
+    saufsi parseuse.apparie(GenreLexème.PointVirgule) {
         init = parseuse.parse_expression(ParamètresParsageExpression())
     }
     parseuse.consomme(GenreLexème.PointVirgule)
 
     test: *Expression
-    si parseuse.apparie_expression() {
+    saufsi parseuse.apparie(GenreLexème.PointVirgule) {
         test = parseuse.parse_expression(ParamètresParsageExpression())
     }
     parseuse.consomme(GenreLexème.PointVirgule)
 
     update: *Expression
-    si parseuse.apparie_expression() {
+    saufsi parseuse.apparie(GenreLexème.ParenthèseFermante) {
         update = parseuse.parse_expression(ParamètresParsageExpression())
     }
     parseuse.consomme(GenreLexème.ParenthèseFermante)
@@ -649,11 +645,6 @@ ParamètresParsageExpression :: struct {
 
 parse_expression :: fonc (parseuse: *Parseuse, params: ParamètresParsageExpression) -> *Expression
 {
-    saufsi parseuse.apparie_expression() {
-        parseuse.rapporte_erreur("Attendu une expression primaire")
-        retourne nul
-    }
-
     expression := parseuse.parse_expression_primaire()
 
     tantque !parseuse.fini() && parseuse.apparie_expression_secondaire() && !apparie(parseuse, params.lexème_final) {
@@ -682,10 +673,6 @@ parse_expression :: fonc (parseuse: *Parseuse, params: ParamètresParsageExpress
 parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
 {
     lexème := parseuse.lexème_courant()
-
-    si parseuse.apparie_expression_unaire() {
-        retourne parseuse.parse_expression_unaire()
-    }
 
     discr lexème.genre {
         ChaineLittérale {
@@ -728,10 +715,19 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
         ParenthèseOuvrante {
             parseuse.consomme()
 
-            expression := parseuse.parse_expression(ParamètresParsageExpression())
+            expression: *Expression
+            saufsi parseuse.apparie(GenreLexème.ParenthèseFermante) {
+                expression = parseuse.parse_expression(ParamètresParsageExpression())
+            }
 
             parseuse.consomme(GenreLexème.ParenthèseFermante)
-            retourne expression
+
+            si expression {
+                retourne expression
+            }
+
+            /* NOTE : pour l'instant ces expressions ne servent que pour les fonctions-arrow */
+            retourne parseuse.crée_parenthesized_expression(lexème, expression)
         }
         AccoladeOuvrante {
             parseuse.consomme()
@@ -785,8 +781,69 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
         Function {
             retourne parse_function_expression(parseuse)
         }
+        Plus {
+            parseuse.consomme()
+            params := donne_paramètres_parsage_expression_pour_lexème_unaire(GenreLexème.PlusUnaire)
+            argument := parseuse.parse_expression(params)
+            retourne crée_unary_plus_operator(parseuse, lexème, argument)
+        }
+        Moins {
+            parseuse.consomme()
+            params := donne_paramètres_parsage_expression_pour_lexème_unaire(GenreLexème.MoinsUnaire)
+            argument := parseuse.parse_expression(params)
+            retourne crée_unary_minus_operator(parseuse, lexème, argument)
+        }
+        NonBinaire {
+            parseuse.consomme()
+            params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre)
+            argument := parseuse.parse_expression(params)
+            retourne crée_binary_not(parseuse, lexème, argument)
+        }
+        NonLogique {
+            parseuse.consomme()
+            params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre)
+            argument := parseuse.parse_expression(params)
+            retourne crée_logical_not(parseuse, lexème, argument)
+        }
+        PlusPlus {
+            parseuse.consomme()
+            params := donne_paramètres_parsage_expression_pour_lexème_unaire(GenreLexème.PreIncrement)
+            argument := parseuse.parse_expression(params)
+            retourne crée_update_expression(parseuse, lexème, argument, UpdateOperation.PrefixIncrement)
+        }
+        MoinsMoins {
+            parseuse.consomme()
+            params := donne_paramètres_parsage_expression_pour_lexème_unaire(GenreLexème.PreDecrement)
+            argument := parseuse.parse_expression(params)
+            retourne crée_update_expression(parseuse, lexème, argument, UpdateOperation.PrefixDecrement)
+        }
+        Typeof {
+            parseuse.consomme()
+            params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre)
+            argument := parseuse.parse_expression(params)
+            retourne crée_typeof_operator(parseuse, lexème, argument)
+        }
+        Void {
+            parseuse.consomme()
+            params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre)
+            argument := parseuse.parse_expression(params)
+            retourne crée_void_operator(parseuse, lexème, argument)
+        }
+        Delete {
+            parseuse.consomme()
+            params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre)
+            argument := parseuse.parse_expression(params)
+            retourne crée_delete_operator(parseuse, lexème, argument)
+        }
+        New {
+            parseuse.consomme()
+            params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre)
+            params.lexème_final = GenreLexème.Point
+            argument := parseuse.parse_expression(params)
+            retourne crée_new_expression(parseuse, lexème, argument);
+        }
         sinon {
-            parseuse.rapporte_erreur("lexème non géré dans parse_expression_primaire")
+            parseuse.rapporte_erreur("Attendu une expression primaire")
         }
     }
 
@@ -1162,12 +1219,58 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
             droite := parseuse.parse_expression(params)
             retourne crée_comma_expression(parseuse, lexème, gauche, droite)
         }
+        Arrow {
+            parseuse.consomme()
+            droite := parseuse.parse_statement()
+
+            // À FAIRE : nous pouvons avoir une expression virgule alors que les fonctions doivent avoir un tableau
+            // pour les paramètres.
+            arrow_params := aplatis_expression_et_détruit_virgules(gauche)
+
+            concise_body := parseuse.crée_concise_body(droite)
+            retourne crée_arrow_function(parseuse, lexème, arrow_params, concise_body)
+        }
         sinon {
             rapporte_erreur(parseuse, lexème, "Genre de lexème non géré dans parse_expression_secondaire\n")
         }
     }
 
     retourne nul
+}
+
+aplatis_expression_et_détruit_virgules :: fonc (expression: *Expression) -> [..]*Expression
+{
+    résultat: [..]*Expression
+
+    si expression.type == ParenthesizedExpression {
+        assert((expression comme *ParenthesizedExpression).expression == nul)
+        détruit_arbre(expression)
+        retourne résultat
+    }
+
+    si expression.type == CommaExpression {
+        aplatis_virgule(expression comme *CommaExpression, *résultat)
+        détruit_arbre(expression)
+    }
+    sinon {
+        tableau_ajoute(*résultat, expression)
+    }
+
+    retourne résultat
+}
+
+aplatis_virgule :: fonc (virgule: *CommaExpression, résultat: *[..]*Expression)
+{
+    si virgule.left.type == CommaExpression {
+        aplatis_virgule(virgule.left comme *CommaExpression, résultat)
+    }
+    sinon {
+        tableau_ajoute(résultat, virgule.left)
+        virgule.left = nul
+    }
+
+    tableau_ajoute(résultat, virgule.right)
+    virgule.right = nul
 }
 
 parse_assignement_expression :: fonc (parseuse: *Parseuse, gauche: *Expression, opération: AssignmentOperation, params: ParamètresParsageExpression) -> *AssignmentExpression
@@ -1199,80 +1302,6 @@ parse_expressions_séparées_par_des_virgules :: fonc (parseuse: *Parseuse) -> [
         parseuse.consomme()
     }
     retourne résultat
-}
-
-parse_expression_unaire :: fonc (parseuse: *Parseuse) -> *Expression
-{
-    lexème := parseuse.lexème_courant()
-
-    discr lexème.genre {
-        Plus {
-            parseuse.consomme()
-            params := donne_paramètres_parsage_expression_pour_lexème_unaire(GenreLexème.PlusUnaire)
-            argument := parseuse.parse_expression(params)
-            retourne crée_unary_plus_operator(parseuse, lexème, argument)
-        }
-        Moins {
-            parseuse.consomme()
-            params := donne_paramètres_parsage_expression_pour_lexème_unaire(GenreLexème.MoinsUnaire)
-            argument := parseuse.parse_expression(params)
-            retourne crée_unary_minus_operator(parseuse, lexème, argument)
-        }
-        NonBinaire {
-            parseuse.consomme()
-            params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre)
-            argument := parseuse.parse_expression(params)
-            retourne crée_binary_not(parseuse, lexème, argument)
-        }
-        NonLogique {
-            parseuse.consomme()
-            params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre)
-            argument := parseuse.parse_expression(params)
-            retourne crée_logical_not(parseuse, lexème, argument)
-        }
-        PlusPlus {
-            parseuse.consomme()
-            params := donne_paramètres_parsage_expression_pour_lexème_unaire(GenreLexème.PreIncrement)
-            argument := parseuse.parse_expression(params)
-            retourne crée_update_expression(parseuse, lexème, argument, UpdateOperation.PrefixIncrement)
-        }
-        MoinsMoins {
-            parseuse.consomme()
-            params := donne_paramètres_parsage_expression_pour_lexème_unaire(GenreLexème.PreDecrement)
-            argument := parseuse.parse_expression(params)
-            retourne crée_update_expression(parseuse, lexème, argument, UpdateOperation.PrefixDecrement)
-        }
-        Typeof {
-            parseuse.consomme()
-            params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre)
-            argument := parseuse.parse_expression(params)
-            retourne crée_typeof_operator(parseuse, lexème, argument)
-        }
-        Void {
-            parseuse.consomme()
-            params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre)
-            argument := parseuse.parse_expression(params)
-            retourne crée_void_operator(parseuse, lexème, argument)
-        }
-        Delete {
-            parseuse.consomme()
-            params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre)
-            argument := parseuse.parse_expression(params)
-            retourne crée_delete_operator(parseuse, lexème, argument)
-        }
-        New {
-            parseuse.consomme()
-            params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre)
-            params.lexème_final = GenreLexème.Point
-            argument := parseuse.parse_expression(params)
-            retourne crée_new_expression(parseuse, lexème, argument);
-        }
-        sinon {
-            parseuse.rapporte_erreur("genre de lexème non géré dans parse_expression_unaire")
-        }
-    }
-
-    retourne nul
 }
 
 donne_paramètres_parsage_expression_pour_lexème_unaire :: fonc (genre: GenreLexème) -> ParamètresParsageExpression
