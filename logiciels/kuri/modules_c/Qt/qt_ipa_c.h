@@ -257,7 +257,8 @@ union QT_AbstractSocket {
     O(QClipboard, QT_Clipboard, clipboard)                                                        \
     O(QShortcut, QT_Shortcut, shortcut)                                                           \
     O(QThread, QT_Thread, thread)                                                                 \
-    O(QWindow, QT_Window, window)
+    O(QWindow, QT_Window, window)                                                                 \
+    O(QOpenGLContext, QT_OpenGL_Context, opengl_context)
 
 #define PRODECLARE_TYPES_OBJETS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_OBJETS(PRODECLARE_TYPES_OBJETS)
@@ -1298,6 +1299,24 @@ void QT_window_resize(struct QT_Window *window, int width, int height);
 int QT_window_height(struct QT_Window *window);
 int QT_window_width(struct QT_Window *window);
 bool QT_window_is_exposed(struct QT_Window *window);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_OpenGL_Context
+ * \{ */
+
+struct QT_OpenGL_Context *QT_OpenGL_Context_cree_avec_parent(union QT_Generic_Object parent);
+void QT_OpenGL_detruit(struct QT_OpenGL_Context *context);
+
+bool QT_OpenGL_Context_create(struct QT_OpenGL_Context *context);
+bool QT_OpenGL_Context_make_current(struct QT_OpenGL_Context *context, struct QT_Window *window);
+void QT_OpenGL_Context_donne_current(struct QT_OpenGL_Context *context);
+void QT_OpenGL_Context_swap_buffers(struct QT_OpenGL_Context *context, struct QT_Window *window);
+void QT_OpenGL_Context_set_share_context(struct QT_OpenGL_Context *context,
+                                         struct QT_OpenGL_Context *share_context);
+bool QT_OpenGL_Context_are_sharing(struct QT_OpenGL_Context *context1,
+                                   struct QT_OpenGL_Context *context2);
 
 /** \} */
 

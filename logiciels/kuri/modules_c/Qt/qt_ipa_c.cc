@@ -28,6 +28,7 @@
 #include <QMessageBox>
 #include <QMimeData>
 #include <QMouseEvent>
+#include <QOpenGLContext>
 #include <QProgressBar>
 #include <QPushButton>
 #include <QScreen>
@@ -1251,6 +1252,66 @@ bool QT_window_is_exposed(struct QT_Window *window)
 {
     VERS_QT(window);
     return qwindow->isExposed();
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_OpenGL_Context
+ * \{ */
+
+QT_OpenGL_Context *QT_OpenGL_Context_cree_avec_parent(QT_Generic_Object parent)
+{
+    VERS_QT(parent);
+    auto résultat = new QOpenGLContext(qparent);
+    return vers_ipa(résultat);
+}
+
+void QT_OpenGL_detruit(QT_OpenGL_Context *context)
+{
+    VERS_QT(context);
+    delete qcontext;
+}
+
+bool QT_OpenGL_Context_create(QT_OpenGL_Context *context)
+{
+    VERS_QT(context);
+    return qcontext->create();
+}
+
+bool QT_OpenGL_Context_make_current(QT_OpenGL_Context *context, QT_Window *window)
+{
+    VERS_QT(context);
+    VERS_QT(window);
+    return qcontext->makeCurrent(qwindow);
+}
+
+void QT_OpenGL_Context_donne_current(QT_OpenGL_Context *context)
+{
+    CONVERTIS_ET_APPEL(context, doneCurrent);
+}
+
+void QT_OpenGL_Context_swap_buffers(QT_OpenGL_Context *context, QT_Window *window)
+{
+    VERS_QT(context);
+    VERS_QT(window);
+    qcontext->swapBuffers(qwindow);
+}
+
+void QT_OpenGL_Context_set_share_context(struct QT_OpenGL_Context *context,
+                                         struct QT_OpenGL_Context *share_context)
+{
+    VERS_QT(context);
+    VERS_QT(share_context);
+    qcontext->setShareContext(qshare_context);
+}
+
+bool QT_OpenGL_Context_are_sharing(struct QT_OpenGL_Context *context1,
+                                   struct QT_OpenGL_Context *context2)
+{
+    VERS_QT(context1);
+    VERS_QT(context2);
+    return QOpenGLContext::areSharing(qcontext1, qcontext2);
 }
 
 /** \} */
