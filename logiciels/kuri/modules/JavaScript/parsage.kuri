@@ -382,19 +382,19 @@ parse_for_statement :: fonc (parseuse: *Parseuse) -> *Statement
     }
 
     init: *Expression
-    si parseuse.apparie_expression() {
+    saufsi parseuse.apparie(GenreLexème.PointVirgule) {
         init = parseuse.parse_expression(ParamètresParsageExpression())
     }
     parseuse.consomme(GenreLexème.PointVirgule)
 
     test: *Expression
-    si parseuse.apparie_expression() {
+    saufsi parseuse.apparie(GenreLexème.PointVirgule) {
         test = parseuse.parse_expression(ParamètresParsageExpression())
     }
     parseuse.consomme(GenreLexème.PointVirgule)
 
     update: *Expression
-    si parseuse.apparie_expression() {
+    saufsi parseuse.apparie(GenreLexème.ParenthèseFermante) {
         update = parseuse.parse_expression(ParamètresParsageExpression())
     }
     parseuse.consomme(GenreLexème.ParenthèseFermante)
@@ -716,7 +716,7 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
             parseuse.consomme()
 
             expression: *Expression
-            si parseuse.apparie_expression() {
+            saufsi parseuse.apparie(GenreLexème.ParenthèseFermante) {
                 expression = parseuse.parse_expression(ParamètresParsageExpression())
             }
 
