@@ -53,6 +53,7 @@ GenreLexème :: énum {
     DécalageDroiteNaturelÉgal
     Exponentiation
     ExponentiationÉgal
+    Arrow
 
     // opérateurs unaires
     PlusUnaire
@@ -230,6 +231,7 @@ rafine_genre_lexème_opérateur :: fonc (identifiant: chaine) -> Optionnel(Genre
         si identifiant == "&&" { retourne GenreLexème.EtLogique }
         si identifiant == "||" { retourne GenreLexème.OuLogique }
         si identifiant == "??" { retourne GenreLexème.Coalesce }
+        si identifiant == "=>" { retourne GenreLexème.Arrow }
     }
     sinon si identifiant.taille == 3 {
         si identifiant == "<<=" { retourne GenreLexème.DécalageGaucheÉgal }
@@ -360,7 +362,8 @@ est_lexème_expression_secondaire :: fonc (genre: GenreLexème) -> bool
         In,
         InstanceOf,
         Exponentiation,
-        ExponentiationÉgal {
+        ExponentiationÉgal,
+        Arrow {
             retourne vrai
         }
         sinon {
@@ -438,7 +441,7 @@ initialise_données_lexèmes_pour_parsage :: fonc ()
     définis_données_précédence(GenreLexème.EtLogiqueÉgal, 2, Associativité.Droite)
     définis_données_précédence(GenreLexème.OuLogiqueÉgal, 2, Associativité.Droite)
     définis_données_précédence(GenreLexème.CoalesceÉgal, 2, Associativité.Droite)
-    // définis_données_précédence(GenreLexème.Arrow, 2, Associativité.Droite)
+    définis_données_précédence(GenreLexème.Arrow, 2, Associativité.Droite)
     // définis_données_précédence(GenreLexème.Yield, 2, Associativité.Aucune)
     // définis_données_précédence(GenreLexème.YieldStar, 2, Associativité.Aucune)
     // définis_données_précédence(GenreLexème.Spread, 2, Associativité.Aucune)

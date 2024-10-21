@@ -315,7 +315,7 @@ array_prototype_join :: fonc (empl params: *ParamètresObjectCall) -> Completion
     O := completion.donne_object()
 
     // 2. Let len be ? LengthOfArrayLike(O).
-    completion = length_of_array_like(O)
+    completion = length_of_array_like(interpréteuse, O)
     saufsi completion.est_normal() {
         retourne completion
     }
@@ -393,7 +393,7 @@ array_prototype_push :: fonc (empl params: *ParamètresObjectCall) -> Completion
     O := completion.donne_object()
 
     // 2. Let len be ? LengthOfArrayLike(O).
-    completion = length_of_array_like(O)
+    completion = length_of_array_like(interpréteuse, O)
     saufsi completion.est_normal() {
         retourne completion
     }

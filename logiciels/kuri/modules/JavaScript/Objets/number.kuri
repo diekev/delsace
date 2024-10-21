@@ -22,7 +22,73 @@ crée_number_prototype :: fonc (realm: *Realm, prototype: *ObjectPrototype) -> *
     résultat := tas_de_mémoire.alloue(NumberPrototype)
     résultat.prototype = prototype
 
+    résultat.ajoute_fonction_native(STR_toString, number_prototype_to_string, 1)
+    résultat.ajoute_fonction_native(STR_valueOf, number_prototype_value_of, 1)
+
     retourne résultat
+}
+
+#portée_fichier
+
+/* 21.1.3.6 Number.prototype.toString ( [ radix ] )
+ * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-number.prototype.tostring */
+number_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    // 1. Let x be ? ThisNumberValue(this value).
+    completion := this_number_value(interpréteuse, this_value)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    x := completion.valeur.V
+
+    // 2. If radix is undefined, let radixMV be 10.
+    // 3. Else, let radixMV be ? ToIntegerOrInfinity(radix).
+    radix : n32 = 10
+
+    radix_arg := params.donne_argument(0)
+    saufsi radix_arg.est_undefined() {
+        completion = to_integer_or_infinity(interpréteuse, radix_arg)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        radix_mv := completion.valeur.V.Number
+        radix = radix_mv comme n32
+    }
+
+    // À FAIRE : 4. If radixMV is not in the inclusive interval from 2 to 36, throw a RangeError exception.
+
+    // 5. Return Number::toString(x, radixMV).
+    retourne normal_completion(number_to_string(interpréteuse.donne_realm(), x, radix))
+}
+
+/* 21.1.3.7 Number.prototype.valueOf ( )
+ * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-number.prototype.valueof */
+number_prototype_value_of :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    // 1. Return ? ThisNumberValue(this value).
+    retourne this_number_value(interpréteuse, this_value)
+}
+
+/* 21.1.3.7.1 ThisNumberValue ( value )
+ * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-thisnumbervalue */
+this_number_value :: fonc (interpréteuse: *Interpréteuse, value: Valeur) -> CompletionRecord
+{
+    // 1. If value is a Number, return value.
+    si value.est_nombre() {
+        retourne normal_completion(value)
+    }
+
+    // 2. If value is an Object and value has a [[NumberData]] internal slot, then
+    si value.est_object() && value.donne_objet().donne_classe() == NumberObject {
+        // a. Let n be value.[[NumberData]].
+        // b. Assert: n is a Number.
+        // c. Return n.
+        value.Number = (value.donne_objet() comme *NumberObject).number_value
+        retourne normal_completion(value)
+    }
+
+    // 3. Throw a TypeError exception.
+    retourne lance_type_error(interpréteuse, "value is not a Number")
 }
 
 /** \} */

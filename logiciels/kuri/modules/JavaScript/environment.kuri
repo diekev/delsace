@@ -12,7 +12,7 @@ Environment :: struct {
 
     sur_has_binding: fonc(*Environment, ECMAString, *z32)(bool)
     sur_create_immutable_binding: fonc(*Environment, *Realm, ECMAString, bool)(CompletionRecord)
-    sur_create_mutable_binding: fonc(*Environment, ECMAString, bool)(rien)
+    sur_create_mutable_binding: fonc(*Environment, *Realm, ECMAString, bool)(CompletionRecord)
     sur_initialize_binding: fonc(*Environment, ECMAString, Valeur)(CompletionRecord)
     sur_get_binding_value: fonc(*Environment, *Realm, ECMAString, bool)(CompletionRecord)
     sur_set_mutable_binding: fonc(*Environment, *Realm, ECMAString, Valeur, bool)(CompletionRecord)
@@ -41,10 +41,10 @@ create_immutable_binding :: fonc (environment: *Environment, realm: *Realm, nom:
     retourne environment.sur_create_immutable_binding(environment, realm, nom, strict)
 }
 
-create_mutable_binding :: fonc (environment: *Environment, nom: ECMAString, supprimable: bool)
+create_mutable_binding :: fonc (environment: *Environment, realm: *Realm, nom: ECMAString, supprimable: bool) -> CompletionRecord
 {
     assert(environment.sur_create_mutable_binding != nul)
-    environment.sur_create_mutable_binding(environment, nom, supprimable)
+    retourne environment.sur_create_mutable_binding(environment, realm, nom, supprimable)
 }
 
 initialize_binding :: fonc (environment: *Environment, nom: ECMAString, valeur: Valeur) -> CompletionRecord
@@ -218,7 +218,7 @@ declarative_environment_has_binding :: fonc (base: *Environment, nom: ECMAString
 
 /* 9.1.1.1.2 CreateMutableBinding ( N, D )
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-declarative-environment-records-createmutablebinding-n-d */
-declarative_environment_create_mutable_binding :: fonc (base: *Environment, N: ECMAString, D: bool)
+declarative_environment_create_mutable_binding :: fonc (base: *Environment, realm: *Realm @inutilisée, N: ECMAString, D: bool) -> CompletionRecord
 {
     env_rec := base.vérifie_comme(DeclarativeEnvironment)
 
@@ -233,6 +233,7 @@ declarative_environment_create_mutable_binding :: fonc (base: *Environment, N: E
     binding.peut_être_détruit_par_delete = D
 
     // 3. Return unused.
+    retourne normal_completion(js_undefined)
 }
 
 /* 9.1.1.1.2 CreateImmutableBinding ( N, D )
@@ -306,7 +307,7 @@ declarative_environment_set_mutable_binding :: fonc (base: *Environment, realm: 
         }
 
         // b. Perform ! envRec.CreateMutableBinding(N, true).
-        env_rec.create_mutable_binding(nom, vrai)
+        _ := env_rec.create_mutable_binding(realm, nom, vrai)
 
         // c. Perform ! envRec.InitializeBinding(N, V).
         _ := env_rec.initialize_binding(nom, valeur)
@@ -717,6 +718,7 @@ GlobalEnvironment :: struct {
     var_names: [..]ECMAString
 
     sur_has_binding = global_environment_has_binding
+    sur_create_mutable_binding = global_environment_create_mutable_binding
     sur_create_immutable_binding = global_environment_create_immutable_binding
     sur_initialize_binding = global_environment_initialize_binding
     sur_get_binding_value = global_environment_get_binding_value
@@ -777,6 +779,25 @@ global_environment_has_binding :: fonc (base: *Environment, nom: ECMAString, ind
 
     // 4. Return ? ObjRec.HasBinding(N).
     retourne has_binding(objrec, nom).valeur.V.Boolean
+}
+
+/* 9.1.1.4.2 CreateMmutableBinding ( N, D )
+ * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-global-environment-records-createmutablebinding-n-d */
+global_environment_create_mutable_binding :: fonc (base: *Environment, realm: *Realm, N: ECMAString, S: bool) -> CompletionRecord
+{
+    env_rec := base.vérifie_comme(GlobalEnvironment)
+
+    // 1. Let DclRec be envRec.[[DeclarativeRecord]].
+    decl_rec := env_rec.declarative_record
+
+    // 2. If ! DclRec.HasBinding(N) is true, throw a TypeError exception.
+    si decl_rec.has_binding(N).valeur.V.est_true() {
+        message := imprime_chaine("redefinition of mutable variable '%'", N)
+        retourne lance_type_error(realm, message)
+    }
+
+    // 3. Return ! DclRec.CreateMutableBinding(N, S).
+    retourne decl_rec.create_mutable_binding(realm, N, S)
 }
 
 /* 9.1.1.4.3 CreateImmutableBinding ( N, D )
