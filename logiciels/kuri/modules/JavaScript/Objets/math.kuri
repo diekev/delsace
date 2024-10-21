@@ -32,6 +32,7 @@ crée_math_object :: fonc (object_prototype: *ObjectPrototype) -> *MathObject
     résultat.ajoute_fonction_native(STR_abs, math_abs)
     résultat.ajoute_fonction_native(STR_ceil, math_ceil)
     résultat.ajoute_fonction_native(STR_cos, math_cos)
+    résultat.ajoute_fonction_native(STR_exp, math_exp)
     résultat.ajoute_fonction_native(STR_floor, math_floor)
     résultat.ajoute_fonction_native(STR_log, math_log)
     résultat.ajoute_fonction_native(STR_max, math_max)
@@ -53,6 +54,7 @@ R64_INFINITÉ : r64 : 0r7ff0000000000000
 R64_INFINITÉ_NÉGATIVE : r64 : 0rfff0000000000000
 
 #portée_fichier
+
 /* 21.3.2.1 Math.abs ( x )
  * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.abs */
 math_abs :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
@@ -89,7 +91,8 @@ math_abs :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     retourne normal_completion(Valeur(Number = n))
 }
 
-/* https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.ceil */
+/* 21.3.2.10 Math.ceil ( x )
+ * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.ceil */
 math_ceil :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
     x := params.donne_argument(0)
@@ -111,13 +114,16 @@ math_ceil :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
         retourne normal_completion(Valeur(Number = -0.0))
     }
 
-    // À FAIRE : 4. If n is an integral Number, return n.
+    // 4. If n is an integral Number, return n.
+    si est_intégral(n) {
+        retourne normal_completion(Valeur(Number = n))
+    }
     
     // 5. Return the smallest (closest to -∞) integral Number value that is not less than n.
     retourne normal_completion(plafond(n))
 }
 
-/* 21.3.2.30 Math.cos ( x )
+/* 21.3.2.12 Math.cos ( x )
  * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.cos */
 math_cos :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
@@ -142,7 +148,38 @@ math_cos :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     retourne normal_completion(Valeur(Number = cosinus(n)))
 }
 
-/* https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.floor */
+/* 21.3.2.14 Math.exp ( x )
+ * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.exp */
+math_exp :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    // 1. Let n be ? ToNumber(x).
+    completion := to_number(interpréteuse, params.donne_argument(0))
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    n := completion.valeur.V.Number
+
+    // 2. If n is either NaN or +∞𝔽, return n.
+    si est_nan(n) || n == R64_INFINITÉ {
+        retourne normal_completion(Valeur(Number = n))
+    }
+
+    // 3. If n is either +0𝔽 or -0𝔽, return 1𝔽.
+    si n == 0.0 || n == -0.0 {
+        retourne normal_completion(Valeur(Number = 1.0))
+    }
+
+    // 4. If n is -∞𝔽, return +0𝔽.
+    si n == R64_INFINITÉ_NÉGATIVE {
+        retourne normal_completion(Valeur(Number = 0.0))
+    }
+
+    // 5. Return an implementation-approximated Number value representing the exponential function of ℝ(n).
+    retourne normal_completion(Valeur(Number = exp(n)))
+}
+
+/* 21.3.2.16 Math.floor ( x )
+ * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.floor */
 math_floor :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
     x := params.donne_argument(0)
@@ -164,7 +201,10 @@ math_floor :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
         retourne normal_completion(Valeur(Number = 0))
     }
 
-    // À FAIRE : 4. If n is an integral Number, return n.
+    // 4. If n is an integral Number, return n.
+    si est_intégral(n) {
+        retourne normal_completion(Valeur(Number = n))
+    }
 
     // 5. Return the greatest (closest to +∞) integral Number value that is not greater than n.
     retourne normal_completion(plancher(n))
@@ -207,7 +247,8 @@ math_log :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     retourne normal_completion(Valeur(Number = log(n)))
 }
 
-/* https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.min */
+/* 21.3.2.24 Math.max ( ...args )
+ * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.min */
 math_max :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
     // 1. Let coerced be a new empty List.
@@ -252,7 +293,8 @@ math_max :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     retourne normal_completion(Valeur(Number = highest))
 }
 
-/* https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.min */
+/* 21.3.2.25 Math.min ( ...args )
+ * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.min */
 math_min :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
     // 1. Let coerced be a new empty List.
@@ -319,7 +361,8 @@ math_pow :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     retourne normal_completion(number_exponentiate(base, exponent))
 }
 
-/* https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.random */
+/* 21.3.2.27 Math.random ( )
+ * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.random */
 math_random :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
     math := this_value.donne_objet().vérifie_comme(MathObject)
@@ -339,8 +382,7 @@ math_round :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     n := completion.valeur.V.Number
 
     // 2. If n is not finite or n is an integral Number, return n.
-    // À FAIRE : is an integral Number
-    si est_infini(n) {
+    si est_infini(n) || est_intégral(n) {
         retourne normal_completion(Valeur(Number = n))
     }
 
@@ -384,7 +426,8 @@ math_sin :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     retourne normal_completion(Valeur(Number = sinus(n)))
 }
 
-/* https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.random */
+/* 21.3.2.32 Math.sqrt ( x )
+ * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.random */
 math_sqrt :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
     // 1. Let n be ? ToNumber(x).

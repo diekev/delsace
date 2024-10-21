@@ -62,3 +62,40 @@ test("??= assigne un nom aux fonctions anonymes", function () {
 });
 
 // À FAIRE : fonctions dans les objets
+
+test("fonction arrow assignée à une variable", function () {
+    let foo = () => { }
+    vérifieQue(foo.name).doitÊtre("foo");
+    vérifieQue((foo.name = "bar")).doitÊtre("bar");
+    vérifieQue(foo.name).doitÊtre("foo");
+
+    let a, b;
+    a = b = () => { }
+    vérifieQue(a.name).doitÊtre("b");
+    vérifieQue(b.name).doitÊtre("b");
+});
+
+test("fonctions arrow dans un tableau assigné à une variable", function () {
+    const arr = [() => { }, () => { }, () => { }]
+    vérifieQue(arr[0].name).doitÊtre("");
+    vérifieQue(arr[1].name).doitÊtre("");
+    vérifieQue(arr[2].name).doitÊtre("");
+});
+
+test("&&= assigne un nom aux fonctions arrow", function () {
+    let b = 1;
+    b &&= () => { };
+    vérifieQue(b.name).doitÊtre("b");
+});
+
+test("||= assigne un nom aux fonctions arrow", function () {
+    let b = 0;
+    b ||= () => { };
+    vérifieQue(b.name).doitÊtre("b");
+});
+
+test("??= assigne un nom aux fonctions arrow", function () {
+    let b = void 0;
+    b ??= () => { };
+    vérifieQue(b.name).doitÊtre("b");
+});
