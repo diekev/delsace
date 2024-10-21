@@ -13,12 +13,15 @@ function vérifie_égalité(a, b) {
 }
 
 function test(cas, rappel) {
+    tests_éffectués += 1
     try {
         rappel()
+        tests_passants += 1;
     }
     catch (e) {
-        throw cas + "\n    " + e;
+        capte_erreur.ajoute_erreur(cas, e)
     }
+    console.log('.');
 }
 
 function vérifieQue(v) {

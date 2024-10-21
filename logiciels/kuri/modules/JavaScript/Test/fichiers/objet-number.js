@@ -24,3 +24,7 @@ test("nombres littéraux", function () {
     // vérifie_égalité(255, 0.255e3);
     vérifie_égalité(255, 255.0);
 });
+
+test("Number.prototype.toString sur une littérale", () => {
+    vérifieQue(1..toString()).doitÊtre("1");
+});

@@ -189,14 +189,14 @@ construct :: fonc (interpréteuse: *Interpréteuse, F: Valeur, arguments: []Vale
 
 /*7.3.18 LengthOfArrayLike ( obj )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-lengthofarraylike */
-length_of_array_like :: fonc (obj: *Object) -> CompletionRecord
+length_of_array_like :: fonc (interpréteuse: *Interpréteuse, obj: *Object) -> CompletionRecord
 {
     // 1. Return ℝ(? ToLength(? Get(obj, "length"))).
     completion := get(obj, STR_length)
     saufsi completion.est_normal() {
         retourne completion
     }
-    completion = to_length(completion.valeur.V)
+    completion = to_length(interpréteuse, completion.valeur.V)
     saufsi completion.est_normal() {
         retourne completion
     }

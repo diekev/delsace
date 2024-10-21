@@ -27,6 +27,21 @@ exécute_noeud :: fonc (noeud: *NoeudSyntaxique, interpréteuse: *Interpréteuse
     retourne noeud.sur_exécution(noeud, interpréteuse)
 }
 
+/* https://tc39.es/ecma262/multipage/notational-conventions.html#sec-algorithm-conventions-syntax-directed-operations
+ *
+ * The source text matched by a grammar production or Parse Node derived from
+ * it is the portion of the source text that starts at the beginning of the
+ * first terminal that participated in the match and ends at the end of the
+ * last terminal that participated in the match. */
+donne_texte_source :: fonc (noeud: *NoeudSyntaxique) -> chaine
+{
+    // À FAIRE : retourne tout le code dans la portée du noeud
+    saufsi noeud.lexème {
+        retourne ""
+    }
+    retourne noeud.lexème.texte
+}
+
 /* 11.2.2.1 Static Semantics: IsStrict ( node )
  * https://tc39.es/ecma262/multipage/ecmascript-language-source-code.html#sec-isstrict */
 is_strict :: fonc (noeud: *NoeudSyntaxique @inutilisée) -> bool
@@ -51,7 +66,7 @@ has_name :: fonc (noeud: *NoeudSyntaxique) -> bool
 is_function_definition :: fonc (noeud: *NoeudSyntaxique) -> bool
 {
     // À FAIRE : implémente tous les cas
-    retourne noeud.type == FunctionExpression
+    retourne noeud.type == FunctionExpression || noeud.type == ArrowFunction
 }
 
 /* 8.4.3 Static Semantics: IsAnonymousFunctionDefinition
@@ -90,6 +105,12 @@ named_evaluation :: fonc (interpréteuse: *Interpréteuse, noeud: *NoeudSyntaxiq
         retourne normal_completion(Valeur(Function = résultat))
     }
 
+    si noeud.type == ArrowFunction {
+        // 1. Return InstantiateArrowFunctionExpression of ArrowFunction with argument name.
+        résultat := instantiate_arrow_function_expression(interpréteuse, noeud comme *ArrowFunction, *name)
+        retourne normal_completion(Valeur(Function = résultat))
+    }
+
     panique("name_evaluation non-implémenté")
 }
 
@@ -119,6 +140,72 @@ prop_name :: fonc (noeud: *NoeudSyntaxique) -> ECMAString
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom NoeudScope
+ * \{ */
+
+NoeudScope :: struct {
+    empl base: Statement
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_scope
+
+    enfants: [..]*Statement
+}
+
+sur_exécution_scope :: fonc (noeud: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    retourne interpréteuse.exécute(noeud comme *NoeudScope)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom NoeudScript
+ * \{ */
+
+NoeudScript :: struct {
+    empl noeud: NoeudSyntaxique
+    type = #type_de_cette_structure
+
+    script_body: *ScriptBody
+}
+
+exécute :: fonc (script: *NoeudScript, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    si script.script_body {
+        retourne interpréteuse.exécute(script.script_body)
+    }
+
+    retourne normal_completion(js_undefined)
+}
+
+crée_script :: fonc (parseuse: *Parseuse, script_body: *ScriptBody) -> *NoeudScript
+{
+    résultat := parseuse.crée_noeud(nul, NoeudScript)
+    résultat.script_body = script_body
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ScriptBody
+ * \{ */
+
+ScriptBody :: struct {
+    empl scope: NoeudScope
+    type = #type_de_cette_structure
+}
+
+crée_script_body :: fonc (parseuse: *Parseuse, expressions: [..]*Statement) -> *ScriptBody
+{
+    résultat := parseuse.crée_noeud(nul, ScriptBody)
+    résultat.enfants = expressions
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Statement
  * Structure de base pour les statements.
  * \{ */
@@ -136,6 +223,40 @@ Statement :: struct {
 
 Expression :: struct {
     empl noeud: NoeudSyntaxique
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ParenthesizedExpression
+ * \{ */
+
+ParenthesizedExpression :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_parenthesized_expression
+
+    expression: *Expression
+}
+
+crée_parenthesized_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, expression: *Expression) -> *ParenthesizedExpression
+{
+    résultat := parseuse.crée_noeud(lexème, ParenthesizedExpression)
+    résultat.expression = expression
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-grouping-operator-runtime-semantics-evaluation */
+sur_exécution_parenthesized_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    parenthèse := base comme *ParenthesizedExpression
+
+    saufsi parenthèse.expression {
+        retourne normal_completion(js_undefined)
+    }
+
+    // 1. Return ? Evaluation of Expression. This may be of type Reference.
+    retourne exécute_noeud(parenthèse.expression, interpréteuse)
 }
 
 /** \} */
@@ -160,10 +281,20 @@ crée_expression_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, expr
     retourne résultat
 }
 
+/* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-expression-statement */
 sur_exécution_expression_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
 {
     statement := base comme *ExpressionStatement
-    retourne exécute_noeud(statement.expression, interpréteuse)
+
+    // 1. Let exprRef be ? Evaluation of Expression.
+    completion := exécute_noeud(statement.expression, interpréteuse)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    expr_ref := completion.valeur
+
+    // 2. Return ? GetValue(exprRef).
+    retourne get_value(interpréteuse, expr_ref)
 }
 
 /** \} */
@@ -192,45 +323,6 @@ sur_exécution_empty_statement :: fonc (base: *NoeudSyntaxique @inutilisée, int
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom NoeudScope
- * \{ */
-
-NoeudScope :: struct {
-    empl base: Statement
-    type = #type_de_cette_structure
-    sur_exécution = sur_exécution_scope
-
-    enfants: [..]*Statement
-}
-
-sur_exécution_scope :: fonc (noeud: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
-{
-    retourne interpréteuse.exécute(noeud comme *NoeudScope)
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Programme
- * \{ */
-
-Programme :: struct {
-    empl scope: NoeudScope
-    type = #type_de_cette_structure
-
-    type_source := "script"
-}
-
-crée_programme :: fonc (parseuse: *Parseuse, lexème: *Lexème, expressions: [..]*Statement) -> *Programme
-{
-    résultat := parseuse.crée_noeud(lexème, Programme)
-    résultat.enfants = expressions
-    retourne résultat
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
 /** \nom FunctionDeclaration
  * \{ */
 
@@ -241,14 +333,14 @@ FunctionDeclaration :: struct {
 
     id: *Identifier
     params: [..]*Expression
-    corps: *Statement
+    corps: *FunctionBody
 
     generator := faux
     expression := faux
     async := faux
 }
 
-crée_function_déclaration :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *Identifier, params: [..]*Expression, corps: *Statement) -> *FunctionDeclaration
+crée_function_déclaration :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *Identifier, params: [..]*Expression, corps: *FunctionBody) -> *FunctionDeclaration
 {
     résultat := parseuse.crée_noeud(lexème, FunctionDeclaration)
     résultat.id = id
@@ -276,14 +368,14 @@ FunctionExpression :: struct {
 
     id: *Identifier
     params: [..]*Expression
-    corps: *Statement
+    corps: *FunctionBody
 
     generator := faux
     expression := faux
     async := faux
 }
 
-crée_function_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *Identifier, params: [..]*Expression, corps: *Statement) -> *FunctionExpression
+crée_function_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *Identifier, params: [..]*Expression, corps: *FunctionBody) -> *FunctionExpression
 {
     résultat := parseuse.crée_noeud(lexème, FunctionExpression)
     résultat.id = id
@@ -299,6 +391,108 @@ sur_exécution_function_expression :: fonc (base: *NoeudSyntaxique, interpréteu
     /* 1. Return InstantiateOrdinaryFunctionExpression of FunctionExpression. */
     closure := instantiate_ordinary_function_expression(interpréteuse, expression)
     retourne normal_completion(Valeur(Function = closure))
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom FunctionBody
+ * \{ */
+
+FunctionBody :: struct {
+    empl base_statement: Statement
+    type = #type_de_cette_structure
+
+    statement: *Statement
+}
+
+crée_function_body :: fonc (parseuse: *Parseuse, statement: *Statement) -> *FunctionBody
+{
+    résultat := parseuse.crée_noeud(nul, FunctionBody)
+    résultat.statement = statement
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ArrowFunction
+ * \{ */
+
+ArrowFunction :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_arrow_function
+
+    params: [..]*Expression
+    corps: *ConciseBody
+}
+
+crée_arrow_function :: fonc (parseuse: *Parseuse, lexème: *Lexème, params: [..]*Expression, corps: *ConciseBody) -> *ArrowFunction
+{
+    résultat := parseuse.crée_noeud(lexème, ArrowFunction)
+    résultat.corps = corps
+    résultat.params = params
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-arrow-function-definitions-runtime-semantics-evaluation */
+sur_exécution_arrow_function :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    expression := base comme *ArrowFunction
+    /* 1. Return InstantiateOrdinaryFunctionExpression of FunctionExpression. */
+    closure := instantiate_arrow_function_expression(interpréteuse, expression)
+    retourne normal_completion(Valeur(Function = closure))
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom FunctionBody
+ * \{ */
+
+ConciseBody :: struct {
+    empl base_statement: Statement
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_concise_body
+
+    statement: *Statement
+}
+
+crée_concise_body :: fonc (parseuse: *Parseuse, statement: *Statement) -> *ConciseBody
+{
+    résultat := parseuse.crée_noeud(nul, ConciseBody)
+    résultat.statement = statement
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-arrow-function-definitions-runtime-semantics-evaluation */
+sur_exécution_concise_body :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    concise_body := base comme *ConciseBody
+
+    // ExpressionBody : FunctionBody
+    si concise_body.statement.type == BlockStatement {
+        retourne interpréteuse.exécute(concise_body.statement)
+    }
+
+    // ExpressionBody : AssignmentExpression
+    // 1. Let exprRef be ? Evaluation of AssignmentExpression.
+    completion := exécute_noeud(concise_body.statement, interpréteuse)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    expr_ref := completion.valeur
+
+    // 2. Let exprValue be ? GetValue(exprRef).
+    completion = get_value(interpréteuse, expr_ref)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    expr_value := completion.valeur.V
+
+    // 3. Return ReturnCompletion(exprValue).
+    retourne return_completion(expr_value)
 }
 
 /** \} */
@@ -573,18 +767,6 @@ sur_exécution_unary_minus_operator :: fonc (base: *NoeudSyntaxique, interpréte
     assert(old_value.est_big_int())
     // b. Return BigInt::unaryMinus(oldValue).
     retourne normal_completion(bigint_unary_minus(old_value))
-}
-
-/* https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-unaryMinus */
-number_unary_minus :: fonc (x: Valeur) -> Valeur
-{
-    // 1. If x is NaN, return NaN.
-    si est_nan(x) {
-        retourne Valeur(Number = NaN)
-    }
-
-    // 2. Return the negation of x; that is, compute a Number with the same magnitude but opposite sign.
-    retourne Valeur(Number = -x.Number)
 }
 
 bigint_unary_minus :: fonc (x: Valeur @inutilisée) -> Valeur
@@ -1019,37 +1201,37 @@ apply_string_or_numeric_binary_operator :: fonc (interpréteuse: *Interpréteuse
 
     discr opération {
         Plus {
-            valeur = ajoute_valeurs(gauche, droite)
+            valeur = number_add(gauche, droite)
         }
         Moins {
-            valeur = soustrait_valeurs(gauche, droite)
+            valeur = number_subtract(gauche, droite)
         }
         Multiplie {
-            valeur = multiplie_valeurs(gauche, droite)
+            valeur = number_multiply(gauche, droite)
         }
         Divise {
-            valeur = divise_valeurs(gauche, droite)
+            valeur = number_divide(gauche, droite)
         }
         Modulo {
-            valeur = modulo_valeurs(gauche, droite)
+            valeur = number_remainder(gauche, droite)
         }
         OuExclusif {
-            valeur = ou_exclusif_valeurs(gauche, droite)
+            valeur = number_bitwise_xor(gauche, droite)
         }
         DécalageGauche {
-            valeur = décalage_gauche_valeurs(gauche, droite)
+            valeur = number_left_shift(gauche, droite)
         }
         DécalageDroite {
-            valeur = décalage_droite_valeurs(gauche, droite)
+            valeur = number_signed_right_shift(gauche, droite)
         }
         DécalageDroiteNaturel {
-            valeur = décalage_droite_naturel_valeurs(gauche, droite)
+            valeur = number_unsigned_right_shift(gauche, droite)
         }
         EtBinaire {
-            valeur = et_binaire_valeurs(gauche, droite)
+            valeur = number_bitwise_and(gauche, droite)
         }
         OuBinaire {
-            valeur = ou_binaire_valeurs(gauche, droite)
+            valeur = number_bitwise_or(gauche, droite)
         }
         Exponentiation {
             valeur = number_exponentiate(gauche, droite)
@@ -1057,101 +1239,6 @@ apply_string_or_numeric_binary_operator :: fonc (interpréteuse: *Interpréteuse
     }
 
     retourne normal_completion(valeur)
-}
-
-ajoute_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
-{
-    assert(gauche.est_nombre())
-    assert(droite.est_nombre())
-    retourne Valeur(Number = gauche.Number + droite.Number)
-}
-
-soustrait_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
-{
-    assert(gauche.est_nombre())
-    assert(droite.est_nombre())
-    retourne Valeur(Number = gauche.Number - droite.Number)
-}
-
-multiplie_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
-{
-    assert(gauche.est_nombre())
-    assert(droite.est_nombre())
-    retourne Valeur(Number = gauche.Number * droite.Number)
-}
-
-divise_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
-{
-    assert(gauche.est_nombre())
-    assert(droite.est_nombre())
-    retourne Valeur(Number = gauche.Number / droite.Number)
-}
-
-modulo_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
-{
-    assert(gauche.est_nombre())
-    assert(droite.est_nombre())
-    retourne Valeur(Number = mod(gauche.Number, droite.Number))
-}
-
-ou_exclusif_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
-{
-    assert(gauche.est_nombre())
-    assert(droite.est_nombre())
-    g := gauche.Number comme z32
-    d := droite.Number comme z32
-    r := g ^ d
-    retourne Valeur(Number = r comme r64)
-}
-
-et_binaire_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
-{
-    assert(gauche.est_nombre())
-    assert(droite.est_nombre())
-    g := gauche.Number comme z32
-    d := droite.Number comme z32
-    r := g & d
-    retourne Valeur(Number = r comme r64)
-}
-
-ou_binaire_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
-{
-    assert(gauche.est_nombre())
-    assert(droite.est_nombre())
-    g := gauche.Number comme z32
-    d := droite.Number comme z32
-    r := g | d
-    retourne Valeur(Number = r comme r64)
-}
-
-décalage_gauche_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
-{
-    assert(gauche.est_nombre())
-    assert(droite.est_nombre())
-    g := gauche.Number comme z32
-    d := droite.Number comme z32
-    r := g << d
-    retourne Valeur(Number = r comme r64)
-}
-
-décalage_droite_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
-{
-    assert(gauche.est_nombre())
-    assert(droite.est_nombre())
-    g := gauche.Number comme z32
-    d := droite.Number comme z32
-    r := g >> d
-    retourne Valeur(Number = r comme r64)
-}
-
-décalage_droite_naturel_valeurs :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
-{
-    assert(gauche.est_nombre())
-    assert(droite.est_nombre())
-    g := gauche.Number comme n32
-    d := droite.Number comme n32
-    r := g >> d
-    retourne Valeur(Number = r comme r64)
 }
 
 /** \} */
@@ -1710,7 +1797,7 @@ evaluate_call :: fonc (interpréteuse: *Interpréteuse, func: Valeur, ref: Valeu
 
     // 6. If tailPosition is true, perform PrepareForTailCall().
     si tail_position {
-        panique("tail position non-implémeté")
+        prepare_for_tail_call(interpréteuse)
     }
 
     // 7. Return ? Call(func, thisValue, argList).
@@ -2684,10 +2771,10 @@ sur_exécution_update_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
         // a. Let newValue be Number::add(oldValue, 1𝔽).
         // NOTE : nous faison ++ et -- directement.
         si update.operation == UpdateOperation.PostfixIncrement || update.operation == UpdateOperation.PrefixIncrement {
-            nouvelle_valeur = ajoute_valeurs(old_value, Valeur(Number = 1))
+            nouvelle_valeur = number_add(old_value, Valeur(Number = 1))
         }
         sinon {
-            nouvelle_valeur = soustrait_valeurs(old_value, Valeur(Number = 1))
+            nouvelle_valeur = number_subtract(old_value, Valeur(Number = 1))
         }
     }
     // 4. Else,
@@ -3525,7 +3612,7 @@ catch_clause_evaluation :: fonc (catch: *CatchClause, interpréteuse: *Interpré
     identifier := catch.param comme *Identifier
 
     arg_name := identifier.nom
-    catch_env.create_mutable_binding(arg_name, faux)
+    _ := catch_env.create_mutable_binding(interpréteuse.donne_realm(), arg_name, faux)
 
     // 4. Set the running execution context's LexicalEnvironment to catchEnv.
     running_execution_context.lexical_environment = catch_env
@@ -4336,7 +4423,7 @@ imprime_mémoire_arbre :: fonc (noeud: *NoeudSyntaxique)
 
 VisteuseDéclarationVar :: struct {
     empl base: VisiteuseNoeud
-    noms: [..]ECMAString
+    déclarations: [..]*NoeudSyntaxique
 }
 
 crée_visiteuse_pour_déclarations_var :: fonc (résultat: *VisteuseDéclarationVar, noeud: *NoeudSyntaxique)
@@ -4345,7 +4432,12 @@ crée_visiteuse_pour_déclarations_var :: fonc (résultat: *VisteuseDéclaration
     {
         visiteuse := base comme *VisteuseDéclarationVar
 
-        si noeud.type == FunctionDeclaration || noeud.type == FunctionExpression {
+        si noeud.type == FunctionDeclaration {
+            tableau_ajoute(*visiteuse.déclarations, noeud)
+            retourne VisiteEnfants.Non
+        }
+
+        si noeud.type == FunctionExpression || noeud.type == ArrowFunction {
             retourne VisiteEnfants.Non
         }
 
@@ -4354,13 +4446,8 @@ crée_visiteuse_pour_déclarations_var :: fonc (résultat: *VisteuseDéclaration
             si var_decl.nature != VariableDeclarationKind.Var {
                 retourne VisiteEnfants.Non
             }
-        }
 
-        si noeud.type == VariableDeclarator {
-            declarator := noeud comme *VariableDeclarator
-            assert(declarator.id.type == Identifier)
-            id := declarator.id comme *Identifier
-            tableau_ajoute(*visiteuse.noms, id.nom)
+            tableau_ajoute(*visiteuse.déclarations, noeud)
         }
 
         retourne VisiteEnfants.Oui
@@ -4371,13 +4458,41 @@ crée_visiteuse_pour_déclarations_var :: fonc (résultat: *VisteuseDéclaration
     résultat.direction_visite = DirectionVisiteNoeud.PRÉ_ORDRE
 }
 
-/* https://tc39.es/ecma262/multipage/syntax-directed-operations.html#sec-static-semantics-vardeclarednames */
-donne_var_declared_names :: fonc (noeud: *NoeudSyntaxique) -> [..]ECMAString
+/* https://tc39.es/ecma262/multipage/syntax-directed-operations.html#sec-static-semantics-varscopeddeclarations */
+donne_var_scoped_declarations :: fonc (noeud: *NoeudSyntaxique) -> [..]*NoeudSyntaxique
 {
     visiteuse: VisteuseDéclarationVar
     crée_visiteuse_pour_déclarations_var(*visiteuse, noeud)
     visite_noeud(*visiteuse, noeud, visite_noeud_générique)
-    retourne visiteuse.noms
+    retourne visiteuse.déclarations
+}
+
+/* https://tc39.es/ecma262/multipage/syntax-directed-operations.html#sec-static-semantics-vardeclarednames */
+donne_var_declared_names :: fonc (noeud: *NoeudSyntaxique) -> [..]ECMAString
+{
+    visiteuse: VisteuseDéclarationVar
+    diffère déloge(visiteuse.déclarations)
+
+    crée_visiteuse_pour_déclarations_var(*visiteuse, noeud)
+    visite_noeud(*visiteuse, noeud, visite_noeud_générique)
+
+    résultat: [..]ECMAString
+    pour visiteuse.déclarations {
+        saufsi it.type == VariableDeclaration {
+            continue
+        }
+
+        var_decl := it comme *VariableDeclaration
+        si var_decl.nature != VariableDeclarationKind.Var {
+            continue
+        }
+
+        pour decl dans var_decl.expressions {
+            tableau_ajoute(*résultat, (decl.id comme *Identifier).nom)
+        }
+    }
+
+    retourne résultat
 }
 
 /** \} */
@@ -4397,7 +4512,7 @@ crée_visiteuse_pour_déclarations_lexicales :: fonc (résultat: *VisteuseDécla
     {
         visiteuse := base comme *VisteuseDéclarationsLexicales
 
-        si noeud.type == FunctionDeclaration || noeud.type == FunctionExpression {
+        si noeud.type == FunctionDeclaration || noeud.type == FunctionExpression || noeud.type == ArrowFunction {
             retourne VisiteEnfants.Non
         }
 
@@ -4409,7 +4524,11 @@ crée_visiteuse_pour_déclarations_lexicales :: fonc (résultat: *VisteuseDécla
             retourne VisiteEnfants.Non
         }
 
-        retourne VisiteEnfants.Oui
+        si noeud.type == ExpressionStatement || noeud.type == LabelledStatement || noeud.type == BlockStatement || noeud.type == ScriptBody || noeud.type == NoeudScript || noeud.type == ConciseBody || noeud.type == FunctionBody {
+            retourne VisiteEnfants.Oui
+        }
+
+        retourne VisiteEnfants.Non
     }
 
     résultat.arbre = noeud

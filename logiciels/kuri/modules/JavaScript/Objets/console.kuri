@@ -64,8 +64,6 @@ Console :: struct {
 
     flux_sortie: *FluxSortieConsole
 
-    historique: chaine
-
     Chronomètre :: struct {
         nom: ECMAString
         début: Instantané
@@ -97,7 +95,6 @@ console_sur_destruction :: fonc (base: *Cellule)
     console := base.vérifie_comme(Console)
     sur_destruction_objet(console)
     flux_sortie_détruit(console.flux_sortie)
-    déloge(console.historique)
     déloge(console.chronomètres)
     déloge(console.compteuses)
 }
@@ -152,8 +149,6 @@ printer :: fonc (console: *Console, interpréteuse: *Interpréteuse, log_level: 
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
 
-    ajoute_au_tampon(*enchaineuse, console.historique)
-
     virgule := ""
     pour arguments {
         complétion := to_string(interpréteuse, it)
@@ -165,11 +160,9 @@ printer :: fonc (console: *Console, interpréteuse: *Interpréteuse, log_level: 
         ajoute_au_tampon(*enchaineuse, virgule, valeur.String.texte.donne_chaine_utf16())
         virgule = " "
     }
-    ajoute_au_tampon(*enchaineuse, "\n")
 
     texte := chaine_depuis_enchaineuse(*enchaineuse)
-    déloge(console.historique)
-    console.historique = texte
+    diffère déloge(texte)
 
     flux_sortie_log(console.flux_sortie, texte)
 
