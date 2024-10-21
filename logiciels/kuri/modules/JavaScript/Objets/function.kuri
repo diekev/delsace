@@ -71,6 +71,7 @@ ECMAScriptFunction :: struct {
 
     environment: *Environment
     private_environment: *PrivateEnvironment
+    source_texte: chaine
     this_mode: ThisMode
     strict := faux
     is_class_constructor := faux
@@ -248,10 +249,21 @@ ordinary_call_bind_this :: fonc (F: *ECMAScriptFunction, callee_context: *Execut
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-runtime-semantics-evaluatebody */
 evaluate_body :: fonc (interpréteuse: *Interpréteuse, function_object: *ECMAScriptFunction, arguments_list: []Valeur) -> CompletionRecord
 {
-    // À FAIRE : tous les cas
-    // FunctionBody : FunctionStatementList
-    // 1. Return ? EvaluateFunctionBody of FunctionBody with arguments functionObject and argumentsList.
-    retourne evaluate_function_body(interpréteuse, function_object, arguments_list)
+    body := function_object.corps
+
+    si body.type == FunctionBody {
+        // FunctionBody : FunctionStatementList
+        // 1. Return ? EvaluateFunctionBody of FunctionBody with arguments functionObject and argumentsList.
+        retourne evaluate_function_body(interpréteuse, function_object, arguments_list)
+    }
+
+    si body.type == ConciseBody {
+        // ConciseBody : ExpressionBody
+        // 1. Return ? EvaluateConciseBody of ConciseBody with arguments functionObject and argumentsList.
+        retourne evaluate_concise_body(interpréteuse, function_object, arguments_list)
+    }
+
+    panique("evaluate_body non-implémenté")
 }
 
 /* 10.2.1.4 OrdinaryCallEvaluateBody ( F, argumentsList )
@@ -329,6 +341,9 @@ sur_construct_fonction_ecma :: fonc (empl params: *ParamètresObjectConstruct) -
         }
 
         // b. If kind is base, return thisArgument.
+        si kind == ConstructorKind.Base {
+            retourne normal_completion(this_argument)
+        }
 
         // c. If result.[[Value]] is not undefined, throw a TypeError exception.
         saufsi result_value.est_undefined() {
@@ -358,7 +373,7 @@ sur_construct_fonction_ecma :: fonc (empl params: *ParamètresObjectConstruct) -
 /* 10.2.3 OrdinaryFunctionCreate ( functionPrototype, sourceText, ParameterList, Body, thisMode, env, privateEnv )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinaryfunctioncreate 
  * À FAIRE : paramètres et étapes manquants */
-ordinary_function_create :: fonc (realm: *Realm, function_prototype: *FunctionPrototype, params: [..]*Expression, corps: *Statement, this_mode: bool, env: *Environment, private_env: *PrivateEnvironment) -> *ECMAScriptFunction
+ordinary_function_create :: fonc (realm: *Realm, function_prototype: *FunctionPrototype, source_texte: chaine, params: [..]*Expression, corps: *Statement, this_mode: bool, env: *Environment, private_env: *PrivateEnvironment) -> *ECMAScriptFunction
 {
     // 1. Let internalSlotsList be the internal slots listed in Table 30.
     // 2. Let F be OrdinaryObjectCreate(functionPrototype, internalSlotsList).
@@ -368,6 +383,7 @@ ordinary_function_create :: fonc (realm: *Realm, function_prototype: *FunctionPr
     // Ceci est fait via la table virtuelle.
 
     // 4. Set F.[[SourceText]] to sourceText.
+    F.source_texte = source_texte
 
     // 5. Set F.[[FormalParameters]] to ParameterList.
     F.formal_parameters = params
@@ -574,17 +590,44 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
     diffère déloge(var_names)
 
     // 10. Let varDeclarations be the VarScopedDeclarations of code.
+    var_declarations := donne_var_scoped_declarations(code)
+    diffère déloge(var_declarations)
+
     // 11. Let lexicalNames be the LexicallyDeclaredNames of code.
+
     // 12. Let functionNames be a new empty List.
+    function_names: [..]ECMAString
+    diffère déloge(function_names)
+
     // 13. Let functionsToInitialize be a new empty List.
+    functions_to_initialize: [..]*NoeudSyntaxique
+    diffère déloge(functions_to_initialize)
+
     // 14. For each element d of varDeclarations, in reverse List order, do
+    pour > d dans var_declarations {
         // a. If d is neither a VariableDeclaration nor a ForBinding nor a BindingIdentifier, then
+        saufsi d.type == VariableDeclaration {
             // i. Assert: d is either a FunctionDeclaration, a GeneratorDeclaration, an AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration.
+            assert(d.type == FunctionDeclaration)
+
             // ii. Let fn be the sole element of the BoundNames of d.
+            decl := d comme *FunctionDeclaration
+            assert(decl.id != nul)
+            fn := decl.id.nom
+
             // iii. If functionNames does not contain fn, then
+            saufsi ensemble_possède(*function_names, fn) {
                 // 1. Insert fn as the first element of functionNames.
-                // 2. NOTE: If there are multiple function declarations for the same name, the last declaration is used.
+                ensemble_ajoute(*function_names, fn)
+
+                // À FAIRE : test 2. NOTE: If there are multiple function declarations for the same name, the last declaration is used.
+
                 // 3. Insert d as the first element of functionsToInitialize.
+                tableau_insère_index(*functions_to_initialize, d, 0)
+            }
+        }
+    }
+
     // 15. Let argumentsObjectNeeded be true.
     // 16. If func.[[ThisMode]] is LEXICAL, then
         // a. NOTE: Arrow functions never have an arguments object.
@@ -621,7 +664,7 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
         // c. If alreadyDeclared is false, then
         si already_declared.est_false() {
             // i. Perform ! env.CreateMutableBinding(paramName, false).
-            env.create_mutable_binding(param_name, faux)
+            _ := env.create_mutable_binding(interpréteuse.donne_realm(), param_name, faux)
 
             // ii. If hasDuplicates is true, then
                 // 1. Perform ! env.InitializeBinding(paramName, undefined).
@@ -680,7 +723,7 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
                 // 1. Append n to instantiatedVarNames.
                 ensemble_ajoute(*instantiated_names, it)
                 // 2. Perform ! env.CreateMutableBinding(n, false).
-                env.create_mutable_binding(it, faux)
+                _ := env.create_mutable_binding(interpréteuse.donne_realm(), it, faux)
                 // 3. Perform ! env.InitializeBinding(n, undefined).
                 _ := env.initialize_binding(it, js_undefined)
             }
@@ -749,7 +792,7 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
             // ii. Else,
             sinon {
                 // 1. Perform ! lexEnv.CreateMutableBinding(dn, false).
-                lex_env.create_mutable_binding(name, faux)
+                _ := lex_env.create_mutable_binding(interpréteuse.donne_realm(), name, faux)
             }
         }
     }
@@ -758,17 +801,10 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
     private_env := callee_context.private_environment
 
     // 36. For each Parse Node f of functionsToInitialize, do
-    assert(func.corps != nul && func.corps.type == BlockStatement)
-    bloc := func.corps comme *BlockStatement
-    pour bloc.enfants {
-        saufsi it.type == FunctionDeclaration {
-            continue
-        }
+    pour functions_to_initialize {
+        assert(it.type == FunctionDeclaration)
 
         function := it comme *FunctionDeclaration
-        si function.id == nul {
-            continue
-        }
 
         // a. Let fn be the sole element of the BoundNames of f.
         fn := function.id.nom
@@ -1024,7 +1060,8 @@ function_prototype_call :: fonc (empl params: *ParamètresObjectCall) -> Complet
         retourne lance_type_error(interpréteuse, message)
     }
 
-    // À FAIRE 3. Perform PrepareForTailCall().
+    // 3. Perform PrepareForTailCall().
+    prepare_for_tail_call(interpréteuse)
 
     // 4. Return ? Call(func, thisArg, args).
     this_arg := params.donne_argument(0)
