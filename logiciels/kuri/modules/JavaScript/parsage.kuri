@@ -654,11 +654,6 @@ ParamètresParsageExpression :: struct {
 
 parse_expression :: fonc (parseuse: *Parseuse, params: ParamètresParsageExpression) -> *Expression
 {
-    saufsi parseuse.apparie_expression() {
-        parseuse.rapporte_erreur("Attendu une expression primaire")
-        retourne nul
-    }
-
     expression := parseuse.parse_expression_primaire()
 
     tantque !parseuse.fini() && parseuse.apparie_expression_secondaire() && !apparie(parseuse, params.lexème_final) {
@@ -800,7 +795,7 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
             retourne parse_function_expression(parseuse)
         }
         sinon {
-            parseuse.rapporte_erreur("lexème non géré dans parse_expression_primaire")
+            parseuse.rapporte_erreur("Attendu une expression primaire")
         }
     }
 
