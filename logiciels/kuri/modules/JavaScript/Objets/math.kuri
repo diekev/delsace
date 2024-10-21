@@ -91,7 +91,8 @@ math_abs :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     retourne normal_completion(Valeur(Number = n))
 }
 
-/* https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.ceil */
+/* 21.3.2.10 Math.ceil ( x )
+ * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.ceil */
 math_ceil :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
     x := params.donne_argument(0)
@@ -177,7 +178,8 @@ math_exp :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     retourne normal_completion(Valeur(Number = exp(n)))
 }
 
-/* https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.floor */
+/* 21.3.2.16 Math.floor ( x )
+ * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.floor */
 math_floor :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
     x := params.donne_argument(0)
@@ -245,7 +247,8 @@ math_log :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     retourne normal_completion(Valeur(Number = log(n)))
 }
 
-/* https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.min */
+/* 21.3.2.24 Math.max ( ...args )
+ * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.min */
 math_max :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
     // 1. Let coerced be a new empty List.
@@ -290,7 +293,8 @@ math_max :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     retourne normal_completion(Valeur(Number = highest))
 }
 
-/* https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.min */
+/* 21.3.2.25 Math.min ( ...args )
+ * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.min */
 math_min :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
     // 1. Let coerced be a new empty List.
@@ -357,7 +361,8 @@ math_pow :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     retourne normal_completion(number_exponentiate(base, exponent))
 }
 
-/* https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.random */
+/* 21.3.2.27 Math.random ( )
+ * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.random */
 math_random :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
     math := this_value.donne_objet().vérifie_comme(MathObject)
@@ -421,7 +426,8 @@ math_sin :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     retourne normal_completion(Valeur(Number = sinus(n)))
 }
 
-/* https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.random */
+/* 21.3.2.32 Math.sqrt ( x )
+ * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.random */
 math_sqrt :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 {
     // 1. Let n be ? ToNumber(x).
