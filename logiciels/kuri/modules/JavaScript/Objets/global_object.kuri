@@ -85,26 +85,31 @@ perform_eval :: fonc (interpréteuse: *Interpréteuse, x: Valeur, strict_caller:
     diffère détruit_données_texte_source(*source)
 
     // a. Let script be ParseText(x, Script).
-    script := parse_text(interpréteuse.donne_realm(), *source, GoalSymbol.Script)
+    opt_script := parse_text(interpréteuse.donne_realm(), *source, GoalSymbol.Script)
 
-    body: *Programme
-    diffère détruit_arbre(body)
-    discr script {
+    script: *NoeudScript
+    diffère détruit_arbre(script)
+    discr opt_script {
         Erreur(e) {
             // b. If script is a List of errors, throw a SyntaxError exception.
             retourne throw_completion(Valeur(Object = e))
         }
         Ok(noeud) {
             // c. If script Contains ScriptBody is false, return undefined.
-            si noeud.type != Programme {
+            si noeud.type != NoeudScript {
                 retourne normal_completion(js_undefined)
             }
 
-            // d. Let body be the ScriptBody of script.
-            body = noeud comme *Programme
+            script = noeud comme *NoeudScript
+            si script.script_body == nul {
+                retourne normal_completion(js_undefined)
+            }
         }
         sinon {}
     }
+
+    // d. Let body be the ScriptBody of script.
+    body := script.script_body
 
     // À FAIRE : e. If inFunction is false and body Contains NewTarget, throw a SyntaxError exception.
     // À FAIRE : f. If inMethod is false and body Contains SuperProperty, throw a SyntaxError exception.
