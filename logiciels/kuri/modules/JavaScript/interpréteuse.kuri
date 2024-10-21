@@ -582,7 +582,12 @@ initialise_interpréteuse :: fonc (interpréteuse: *Interpréteuse @inutilisée)
 
 exécute :: fonc (interpréteuse: *Interpréteuse, noeud: *NoeudSyntaxique) -> CompletionRecord
 {
-    si noeud.type != NoeudScope && noeud.type != Programme && noeud.type != BlockStatement {
+    si noeud.type == NoeudScript {
+        script := noeud comme *NoeudScript
+        retourne exécute(script, interpréteuse)
+    }
+
+    si noeud.type != NoeudScope && noeud.type != ScriptBody && noeud.type != BlockStatement {
         retourne exécute_noeud(noeud, interpréteuse)
     }
 

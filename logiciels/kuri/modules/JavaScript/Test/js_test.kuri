@@ -3,6 +3,7 @@ importe Compilatrice
 importe Fondation
 importe JavaScript
 importe SysFichier
+importe Temps
 
 change_nom_sortie :: fonc ()
 {
@@ -18,6 +19,9 @@ principale :: fonc () -> z32
     args := arguments_ligne_commande()
 
     stats: StatistiquesTests
+    diffère détruit_données_stats(*stats)
+
+    début := maintenant_précis()
 
     si args.taille == 2 {
         évalue_test(CheminFichier(args[1]), *stats)
@@ -28,24 +32,54 @@ principale :: fonc () -> z32
         }
     }
 
-    imprime("\n")
-    imprime("Test(s) réussi(s) : % / %\n", stats.nombre_de_tests - stats.nombre_de_tests_échouants, stats.nombre_de_tests)
+    fin := début.temps_écoulé_millisecondes()
 
-    si stats.nombre_de_tests_échouants != 0 {
-        imprime("[ \x1b[31mÉCHEC\x1b[37m ]\n")
+    imprime("\n\n")
+    si stats.nombre_de_tests_passants != stats.nombre_de_tests {
+        pour stats.erreurs_captées {
+            imprime("[ \x1b[31mÉCHEC\x1b[37m ] : %\n", it.fichier)
+            imprime("          Cas : %\n", it.cas)
+            imprime("                %\n", it.message)
+        }
     }
+    sinon {
+        imprime("[ \x1b[32mPASSE\x1b[37m ]\n")
+    }
+
+    imprime("\n")
+    imprime("Tests    : % réussis, % en tout\n", stats.nombre_de_tests_passants, stats.nombre_de_tests)
+    imprime("Fichiers : % en tout\n", stats.nombre_de_fichiers)
+    imprime("Temps    : %ms\n", fin)
+    imprime("\n")
 
     retourne 0
 }
 
+ErreurCaptée :: struct {
+    fichier: chaine
+    cas: ECMAString
+    message: ECMAString
+}
+
 StatistiquesTests :: struct {
-    nombre_de_tests_échouants: z32
+    nombre_de_tests_passants: z32
     nombre_de_tests: z32
+    nombre_de_fichiers: z32
+
+    erreurs_captées: [..]ErreurCaptée
+}
+
+détruit_données_stats :: fonc (stats: *StatistiquesTests)
+{
+    pour stats.erreurs_captées {
+        déloge(it.fichier)
+    }
+    déloge(stats.erreurs_captées)
 }
 
 évalue_test :: fonc (chemin: CheminFichier, stats: *StatistiquesTests)
 {
-    stats.nombre_de_tests += 1
+    stats.nombre_de_fichiers += 1
 
     contenu := contenu_fichier_texte(chemin)
     diffère déloge(contenu)
@@ -63,13 +97,23 @@ StatistiquesTests :: struct {
 
     crée_environnement_de_test(realm)
 
-    résultat := exécute_script(realm, contenu, chemin.chn)
-    si résultat {
-        imprime("[ \x1b[32mPASSE\x1b[37m ] : %\n", chemin)
+    _ := exécute_script(realm, contenu, chemin.chn)
+
+    prop_tests_passants := realm.global_object.trouve_propriété(crée_chaine_utf16_unique("tests_passants"))
+    prop_tests_éffectués := realm.global_object.trouve_propriété(crée_chaine_utf16_unique("tests_éffectués"))
+
+    prop_capte_erreur := realm.global_object.trouve_propriété(crée_chaine_utf16_unique("capte_erreur"))
+    capte_erreur := prop_capte_erreur.valeur.donne_objet().vérifie_comme(CapteErreur)
+
+    pour capte_erreur.erreurs {
+        erreur_captée := tableau_ajoute_élément(*stats.erreurs_captées)
+        erreur_captée.fichier = copie_chaine(chemin.chn)
+        erreur_captée.cas = it.cas
+        erreur_captée.message = it.message
     }
-    sinon {
-        stats.nombre_de_tests_échouants += 1
-    }
+
+    stats.nombre_de_tests += prop_tests_éffectués.valeur.Number comme z32
+    stats.nombre_de_tests_passants += prop_tests_passants.valeur.Number comme z32
 }
 
 crée_environnement_de_test :: fonc (realm: *Realm)
@@ -99,13 +143,58 @@ exécute_script :: fonc (realm: *Realm, source: chaine, chemin: chaine) -> bool
         }
     }
 
-    résultat := script_evaluation(script)
-    si résultat.est_normal() {
-        retourne vrai
+    _ := script_evaluation(script)
+    retourne vrai
+}
+
+table_virtuelle_capte_erreur := TableVirtuelleObject(classe = CapteErreur, sur_destruction = capte_erreur_sur_destruction)
+
+CapteErreur :: struct {
+    empl object: Object
+    table = *table_virtuelle_capte_erreur
+
+    Erreur :: struct {
+        cas: ECMAString
+        message: ECMAString
     }
 
-    imprime("[ \x1b[31mÉCHEC\x1b[37m ] : %\n%\n", chemin, get_value(realm, résultat.valeur))
-    retourne faux
+    erreurs: [..]Erreur
+}
+
+crée_capte_erreur :: fonc (tas_de_mémoire: *TasDeMémoire) -> *CapteErreur
+{
+    résultat := tas_de_mémoire.alloue(CapteErreur)
+    ajoute_fonction_native(résultat, crée_chaine_utf16_unique("ajoute_erreur"), capte_erreur_ajoute_erreur)
+    retourne résultat
+}
+
+capte_erreur_sur_destruction :: fonc (base: *Cellule)
+{
+    sur_destruction_objet(base)
+
+    capte_erreur := base.vérifie_comme(CapteErreur)
+    déloge(capte_erreur.erreurs)
+}
+
+capte_erreur_ajoute_erreur :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    capte_erreur := this_value.donne_objet().vérifie_comme(CapteErreur)
+
+    completion := to_string(interpréteuse, params.donne_argument(0))
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    cas := completion.valeur.V.String.texte
+
+    completion = to_string(interpréteuse, params.donne_argument(1))
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    message := completion.valeur.V.String.texte
+
+    tableau_ajoute(*capte_erreur.erreurs, CapteErreur.Erreur(cas, message))
+
+    retourne normal_completion(js_undefined)
 }
 
 crée_propriétés_hôte_objet_global :: fonc (base: *ConfigurationRealm @inutilisée, global: *Object)
@@ -117,7 +206,7 @@ crée_propriétés_hôte_objet_global :: fonc (base: *ConfigurationRealm @inutil
 
     flux_sortie_sur_log :: fonc (base: *FluxSortieConsole @inutilisée, texte: chaine)
     {
-        imprime("[JS] %\n", texte)
+        imprime("%", texte)
     }
 
     flux_sortie_sur_efface :: fonc (base: *FluxSortieConsole @inutilisée)
@@ -133,4 +222,10 @@ crée_propriétés_hôte_objet_global :: fonc (base: *ConfigurationRealm @inutil
 
     global.ajoute_fonction_native("rm", fonction_native_éboue)
     global.ajoute_propriété(crée_chaine_utf16_unique("console"), Valeur(Object = console), Enumerable | Configurable | Writable)
+
+    global.ajoute_propriété(crée_chaine_utf16_unique("tests_éffectués"), Valeur(Number = 0), Writable)
+    global.ajoute_propriété(crée_chaine_utf16_unique("tests_passants"), Valeur(Number = 0), Writable)
+
+    capte_erreur := crée_capte_erreur(global.donne_tas_de_mémoire())
+    global.ajoute_propriété(crée_chaine_utf16_unique("capte_erreur"), Valeur(Object = capte_erreur), Configurable)
 }
