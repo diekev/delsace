@@ -56,13 +56,15 @@ crée_panneau_bouton :: fonc (ctx: *ContexteInterface, parent: *Panneau, bouton:
             panneau_bouton.souris_pressée = vrai
         }
         sinon si clique.action == ActionSouris.RELACHÉE {
-            si panneau_bouton.souris_pressée {
+            fut_pressé := panneau_bouton.souris_pressée
+            panneau_bouton.souris_pressée = faux
+
+            si fut_pressé {
                 bouton := panneau_bouton.bouton
                 si bouton.sur_clique {
                     bouton.sur_clique(bouton)
                 }
             }
-            panneau_bouton.souris_pressée = faux
         }
 
         retourne vrai
