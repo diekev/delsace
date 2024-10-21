@@ -261,35 +261,43 @@ lèxe_nombre :: fonc (empl lexeuse: &Lexeuse) -> Lexème
         retourne lèxe_nombre_hexadécimal(lexeuse)
     }
 
-    eu_point := faux
-    eu_exposant := faux
+    /* Partie entière. */
+    lexeuse.avance_tantque(FanionCaractère.EstChiffre | FanionCaractère.EstSéparateurChiffre)
+    si lexeuse.fini() {
+        retourne crée_lexème(lexeuse, GenreLexème.NombreLittéral)
+    }
 
-    tantque !fini(lexeuse) {
-        c = lexeuse.caractère_courant()
-        fanion = fanions_caractères[c comme n8]
+    /* Partie décimale. */
+    c = lexeuse.caractère_courant()
 
-        saufsi fanion.PeutSuivreChiffre {
-            arrête
-        }
-
-        si c == '.' {
-            si eu_point {
-                rapporte_erreur(lexeuse, "Seulement un seul point peut suivre un chiffre")
-                arrête
-            }
-
-            eu_point = vrai
-        }
-        sinon si c == 'e' || c == 'E' {
-            si eu_exposant {
-                rapporte_erreur(lexeuse, "Seulement un seul exposant peut se trouver dans une nombre")
-                arrête
-            }
-
-            eu_exposant = vrai
-        }
-
+    si c == '.' {
         lexeuse.avance()
+        lexeuse.avance_tantque(FanionCaractère.EstChiffre | FanionCaractère.EstSéparateurChiffre)
+        si lexeuse.fini() {
+            retourne crée_lexème(lexeuse, GenreLexème.NombreLittéral)
+        }
+
+        c = lexeuse.caractère_courant()
+    }
+
+    /* Partie exposant. */
+    si c == 'e' || c == 'E' {
+        lexeuse.avance()
+        si lexeuse.fini() {
+            lexeuse.rapporte_erreur("unexpeced end of input")
+            retourne crée_lexème(lexeuse, GenreLexème.NombreLittéral)
+        }
+
+        c = lexeuse.caractère_courant()
+        si c == '+' || c == '-' {
+            lexeuse.avance()
+            si lexeuse.fini() {
+                lexeuse.rapporte_erreur("unexpeced end of input")
+                retourne crée_lexème(lexeuse, GenreLexème.NombreLittéral)
+            }
+        }
+
+        lexeuse.avance_tantque(FanionCaractère.EstChiffre | FanionCaractère.EstSéparateurChiffre)
     }
 
     retourne crée_lexème(lexeuse, GenreLexème.NombreLittéral)
@@ -313,7 +321,12 @@ lèxe_nombre_hexadécimal :: fonc (lexeuse: &Lexeuse) -> Lexème
 lèxe_nombre_avec_drapeaux :: fonc (lexeuse: &Lexeuse, drapeaux: FanionCaractère) -> Lexème
 {
     lexeuse.avance()
+    lexeuse.avance_tantque(drapeaux)
+    retourne crée_lexème(lexeuse, GenreLexème.NombreLittéral)
+}
 
+avance_tantque :: fonc (lexeuse: &Lexeuse, drapeaux: FanionCaractère)
+{
     tantque !fini(lexeuse) {
         c := lexeuse.caractère_courant()
         fanion := fanions_caractères[c comme n8]
@@ -324,8 +337,6 @@ lèxe_nombre_avec_drapeaux :: fonc (lexeuse: &Lexeuse, drapeaux: FanionCaractèr
 
         lexeuse.avance()
     }
-
-    retourne crée_lexème(lexeuse, GenreLexème.NombreLittéral)
 }
 
 // nombres valides
