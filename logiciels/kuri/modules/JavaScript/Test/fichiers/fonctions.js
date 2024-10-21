@@ -57,3 +57,27 @@ test("les paramètres manquants sont initialisés à 'undefined'", function () {
     }
     vérifie_égalité(locale(), 17.0)
 });
+
+test("fonction arrow sans paramètres", function () {
+    var a = () => { return 5; }
+    var b = () => 6;
+
+    vérifieQue(a()).doitÊtre(5)
+    vérifieQue(b()).doitÊtre(6)
+});
+
+test("fonction arrow un paramètre sans parenthèse", function () {
+    var a = x => { return x; }
+    var b = x => x;
+
+    vérifieQue(a(5)).doitÊtre(5)
+    vérifieQue(b(6)).doitÊtre(6)
+});
+
+test("fonction arrow plusieurs paramètres", function () {
+    var a = (x, y, z) => { return x + y + z; }
+    var b = (x, y, z) => x + y + z;
+
+    vérifieQue(a(5, 6, 7)).doitÊtre(18)
+    vérifieQue(b(6, 7, 8)).doitÊtre(21)
+});
