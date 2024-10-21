@@ -1120,10 +1120,137 @@ void QT_thread_wait(QT_Thread *thread)
 /** \name QT_Window
  * \{ */
 
-void QT_window_request_update(struct QT_Window *window)
+static QSurface::SurfaceType convertis_surface_type(QT_Surface_Type surface_type)
+{
+    switch (surface_type) {
+        ENUMERE_SURFACE_TYPE(ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT)
+    }
+    return QSurface::RasterSurface;
+}
+
+class Window : public QWindow {
+    QT_Rappels_Window *m_rappels = nullptr;
+
+  public:
+    Window(QT_Rappels_Window *rappels) : m_rappels(rappels)
+    {
+        if (!m_rappels) {
+            return;
+        }
+
+        m_rappels->window = vers_ipa(this);
+
+        if (m_rappels->sur_creation) {
+            m_rappels->sur_creation(m_rappels);
+        }
+    }
+
+    EMPECHE_COPIE(Window);
+
+    ~Window() override
+    {
+        if (m_rappels && m_rappels->sur_destruction) {
+            m_rappels->sur_destruction(m_rappels);
+        }
+    }
+
+    QT_Rappels_Window *donne_rappels() const
+    {
+        return m_rappels;
+    }
+
+    bool event(QEvent *event) override
+    {
+        if (m_rappels && m_rappels->sur_evenement) {
+            QT_Generic_Event generic_event;
+            generic_event.event = reinterpret_cast<QT_Evenement *>(event);
+            if (m_rappels->sur_evenement(m_rappels, generic_event)) {
+                return true;
+            }
+        }
+
+        return QWindow::event(event);
+    }
+};
+
+struct QT_Window *QT_window_cree_avec_rappels(struct QT_Rappels_Window *rappels)
+{
+    auto résultat = new Window(rappels);
+    return vers_ipa(résultat);
+}
+
+void QT_window_detruit(struct QT_Window *window)
 {
     VERS_QT(window);
-    qwindow->requestUpdate();
+    delete qwindow;
+}
+
+struct QT_Rappels_Window *QT_window_donne_rappels(struct QT_Window *window)
+{
+    VERS_QT(window);
+
+    if (auto ipa_window = dynamic_cast<Window *>(qwindow)) {
+        return ipa_window->donne_rappels();
+    }
+    return nullptr;
+}
+
+#define CONVERTIS_ET_APPEL(objet, fonction, ...)                                                  \
+    VERS_QT(objet);                                                                               \
+    q##objet->fonction(__VA_ARGS__);
+
+void QT_window_request_update(struct QT_Window *window)
+{
+    CONVERTIS_ET_APPEL(window, requestUpdate);
+}
+
+void QT_window_show(struct QT_Window *window)
+{
+    CONVERTIS_ET_APPEL(window, show);
+}
+
+void QT_window_show_maximized(struct QT_Window *window)
+{
+    CONVERTIS_ET_APPEL(window, showMaximized);
+}
+
+void QT_window_show_minimized(struct QT_Window *window)
+{
+    CONVERTIS_ET_APPEL(window, showMinimized);
+}
+
+void QT_window_set_surface_type(struct QT_Window *window, enum QT_Surface_Type surface_type)
+{
+    auto qsurface_type = convertis_surface_type(surface_type);
+    CONVERTIS_ET_APPEL(window, setSurfaceType, qsurface_type);
+}
+
+void QT_window_set_title(struct QT_Window *window, struct QT_Chaine title)
+{
+    CONVERTIS_ET_APPEL(window, setTitle, vers_qt(title));
+}
+
+int QT_window_height(struct QT_Window *window)
+{
+    VERS_QT(window);
+    return qwindow->height();
+}
+
+int QT_window_width(struct QT_Window *window)
+{
+    VERS_QT(window);
+    return qwindow->width();
+}
+
+void QT_window_resize(struct QT_Window *window, int width, int height)
+{
+    CONVERTIS_ET_APPEL(window, resize, width, height);
+}
+
+bool QT_window_is_exposed(struct QT_Window *window)
+{
+    VERS_QT(window);
+    return qwindow->isExposed();
 }
 
 /** \} */
