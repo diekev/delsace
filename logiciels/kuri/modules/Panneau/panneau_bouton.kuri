@@ -34,8 +34,8 @@ PanneauBouton :: struct {
     empl base: Panneau
 
     bouton: *Bouton
-    souris_pressée := faux
     souris_dans_rect := faux
+    souris_pressée := faux
 }
 
 crée_panneau_bouton :: fonc (ctx: *ContexteInterface, parent: *Panneau, bouton: *Bouton) -> *PanneauBouton
@@ -48,23 +48,14 @@ crée_panneau_bouton :: fonc (ctx: *ContexteInterface, parent: *Panneau, bouton:
     sur_clique_souris :: fonc (panneau_bouton: *PanneauBouton, clique: CliqueSouris) -> bool
     {
         saufsi panneau_bouton.rect.contient(clique.état.où) {
-            panneau_bouton.souris_pressée = faux
             retourne faux
         }
 
         si clique.action == ActionSouris.PRESSÉE {
             panneau_bouton.souris_pressée = vrai
-        }
-        sinon si clique.action == ActionSouris.RELACHÉE {
-            fut_pressé := panneau_bouton.souris_pressée
-            panneau_bouton.souris_pressée = faux
-
-            si fut_pressé {
-                bouton := panneau_bouton.bouton
-                si bouton.sur_clique {
-                    bouton.sur_clique(bouton)
-                }
-            }
+            guetteuse: GuetteusePanneauBouton
+            guetteuse.panneau_bouton = panneau_bouton
+            commence_guettage(*guetteuse, panneau_bouton.contexte)
         }
 
         retourne vrai
@@ -124,6 +115,44 @@ crée_panneau_bouton :: fonc (ctx: *ContexteInterface, parent: *Panneau, bouton:
     résultat.sur_clique_souris = enveloppe_rappel(sur_clique_souris)
     résultat.sur_dessin = enveloppe_rappel(sur_dessin)
     retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom GuetteusePanneauBouton
+ * \{ */
+
+#portée_fichier
+
+GuetteusePanneauBouton :: struct {
+    empl base: Guetteuse
+
+    panneau_bouton: *PanneauBouton
+
+    sur_clic = guetteuse_bouton_sur_clic
+}
+
+guetteuse_bouton_sur_clic :: fonc (base: *Guetteuse, clic: CliqueSouris)
+{
+    empl guetteuse := base comme *GuetteusePanneauBouton
+
+    panneau_bouton.souris_dans_rect = panneau_bouton.rect.contient(clic.état.où)
+
+    si clic.action == ActionSouris.RELACHÉE {
+        panneau_bouton.souris_pressée = faux
+
+        si panneau_bouton.souris_dans_rect {
+            bouton := panneau_bouton.bouton
+            si bouton.sur_clique {
+                bouton.sur_clique(bouton)
+            }
+        }
+
+        termine_guettage(guetteuse)
+    }
+
+    retourne
 }
 
 /** \} */
