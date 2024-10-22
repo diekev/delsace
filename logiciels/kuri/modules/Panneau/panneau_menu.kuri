@@ -166,13 +166,9 @@ observe_souris :: fonc (empl panneau: *PanneauBarreDeMenu, souris: ÉtatSouris)
         retourne
     }
 
-    pour éléments {
-        rect_élément := donne_rect_élément_pour_clique(panneau, index_it)
-        saufsi rect_élément.contient(souris.où) {
-            continue
-        }
-
-        définis_élément_pressé(panneau, index_it, faux)
+    index_élément := donne_élément_sous_souris(panneau, souris)
+    si index_élément != -1 {
+        définis_élément_pressé(panneau, index_élément, faux)
     }
 }
 
@@ -186,17 +182,26 @@ observe_clique :: fonc (empl panneau: *PanneauBarreDeMenu, souris: CliqueSouris)
         retourne vrai
     }
 
-    pour éléments {
-        rect_élément := donne_rect_élément_pour_clique(panneau, index_it)
-        saufsi rect_élément.contient(souris.état.où) {
-            continue
-        }
-
-        définis_élément_pressé(panneau, index_it, vrai)
-        arrête
+    index_élément := donne_élément_sous_souris(panneau, souris.état)
+    si index_élément != -1 {
+        définis_élément_pressé(panneau, index_élément, vrai)
     }
 
     retourne vrai
+}
+
+donne_élément_sous_souris :: fonc (empl panneau: *PanneauBarreDeMenu, souris: ÉtatSouris) -> z64
+{
+    pour éléments {
+        rect_élément := donne_rect_élément_pour_clique(panneau, index_it)
+        saufsi rect_élément.contient(souris.où) {
+            continue
+        }
+
+        retourne index_it
+    }
+
+    retourne -1
 }
 
 définis_élément_pressé :: fonc (empl panneau: *PanneauBarreDeMenu, index_élément: z64, indéfinis_élément: bool)
