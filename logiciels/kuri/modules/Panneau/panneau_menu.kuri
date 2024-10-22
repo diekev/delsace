@@ -32,15 +32,12 @@ PanneauBarreDeMenu :: struct {
     décalage_élément_y: z32
 
     état: État
+
+    menus_affichés: [..]*PanneauMenu
 }
 
 crée_panneau_barre_de_menu :: fonc (ctx: *ContexteInterface, barre_de_menu: *BarreDeMenu) -> *PanneauBarreDeMenu
 {
-    sur_déplacement_souris :: fonc (panneau_menu: *PanneauBarreDeMenu, souris: ÉtatSouris)
-    {
-        observe_souris(panneau_menu, souris)
-    }
-
     sur_clique_souris :: fonc (panneau_menu: *PanneauBarreDeMenu, clique: CliqueSouris) -> bool
     {
         retourne observe_clique(panneau_menu, clique)
@@ -64,7 +61,6 @@ crée_panneau_barre_de_menu :: fonc (ctx: *ContexteInterface, barre_de_menu: *Ba
 
     /* Rappels. */
     résultat.sur_clique_souris = enveloppe_rappel(sur_clique_souris)
-    résultat.sur_déplacement_souris = enveloppe_rappel(sur_déplacement_souris)
     résultat.sur_dessin = enveloppe_rappel(sur_dessin)
     résultat.sur_destruction = sur_destruction
 
@@ -154,21 +150,9 @@ dessine :: fonc (empl panneau: *PanneauBarreDeMenu, ctx: *ContexteAffichage)
         menu := barre_de_menu.menus[index_it]
         dessine_texte(ctx.peintre, ctx.fonte, menu.texte, rect_élément, thème.couleur_texte)
     }
-}
 
-observe_souris :: fonc (empl panneau: *PanneauBarreDeMenu, souris: ÉtatSouris)
-{
-    saufsi rect.contient(souris.où) {
-        retourne
-    }
-
-    si état.élément_pressé == -1 {
-        retourne
-    }
-
-    index_élément := donne_élément_sous_souris(panneau, souris)
-    si index_élément != -1 {
-        définis_élément_pressé(panneau, index_élément, faux)
+    pour menus_affichés {
+        it.sur_dessin(it, ctx)
     }
 }
 
@@ -185,6 +169,10 @@ observe_clique :: fonc (empl panneau: *PanneauBarreDeMenu, souris: CliqueSouris)
     index_élément := donne_élément_sous_souris(panneau, souris.état)
     si index_élément != -1 {
         définis_élément_pressé(panneau, index_élément, vrai)
+
+        guetteuse: GuetteuseBarreDeMenu
+        guetteuse.barre_de_menu = panneau
+        commence_guettage(*guetteuse, panneau.contexte)
     }
 
     retourne vrai
@@ -213,21 +201,21 @@ définis_élément_pressé :: fonc (empl panneau: *PanneauBarreDeMenu, index_él
         si indéfinis_élément {
             anime_élément_pour_dépression(panneau)
             état.élément_pressé = -1
-            contexte.détruit_panneau_menu()
+            panneau.détruit_panneau_menu()
         }
     }
     sinon {
         anime_élément_pour_dépression(panneau)
 
+        panneau.détruit_panneau_menu()
         état.élément_pressé = index_élément comme z32
-        contexte.détruit_panneau_menu()
 
         si index_élément != -1 {
             anime_élément_pour_pression(panneau)
             rect_élément := donne_rect_élément_pour_clique(panneau, index_élément)
             panneau_menu := crée_panneau_menu(contexte, barre_de_menu.menus[index_élément], Point2D(z32)(rect_élément.x, rect_élément.y))
             panneau_menu.panneau_barre_de_menu = panneau
-            contexte.affiche_panneau_menu(panneau_menu)
+            panneau.affiche_panneau_menu(panneau_menu)
         }
     }
 }
@@ -248,7 +236,6 @@ donne_rect_élément_pour_clique :: fonc (empl panneau: *PanneauBarreDeMenu, ind
     retourne résultat
 }
 
-/* Appelé par PanneauInterface quand le menu actif est fermé. */
 sur_menu_fermé :: fonc (empl panneau: *PanneauBarreDeMenu)
 {
     anime_élément_pour_dépression(panneau)
@@ -272,6 +259,97 @@ anime_élément_pour_dépression :: fonc (empl panneau: *PanneauBarreDeMenu)
         élément.animation.temps = 64
         élément.animation.cible = 0
         élément.animation.vitesse = 1.0 / 8.0
+    }
+}
+
+affiche_panneau_menu :: fonc (panneau: *PanneauBarreDeMenu, panneau_menu: *PanneauMenu)
+{
+    tableau_ajoute(*panneau.menus_affichés, panneau_menu)
+}
+
+dépile_panneau_menu :: fonc (panneau: *PanneauBarreDeMenu)
+{
+    panneau_menu := enlève_dernier_élément(*panneau.menus_affichés)
+    détruit_panneau_menu(panneau_menu)
+}
+
+détruit_panneau_menu :: fonc (empl panneau: *PanneauBarreDeMenu)
+{
+    pour menus_affichés {
+        détruit_panneau_menu(it)
+    }
+
+    déloge(menus_affichés)
+
+    panneau.sur_menu_fermé()
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom GuetteuseBarreDeMenu
+ * \{ */
+
+GuetteuseBarreDeMenu :: struct {
+    empl base: Guetteuse
+
+    barre_de_menu: *PanneauBarreDeMenu
+
+    sur_clic = guetteuse_barre_de_menu_sur_clic
+    sur_déplacement_souris = guetteuse_barre_de_menu_sur_déplacement_souris
+}
+
+guetteuse_barre_de_menu_sur_clic :: fonc (base: *Guetteuse, clic: CliqueSouris)
+{
+    guetteuse := base comme *GuetteuseBarreDeMenu
+    panneau := guetteuse.barre_de_menu
+
+    si clic.action == ActionSouris.PRESSÉE {
+        index_élément := donne_élément_sous_souris(panneau, clic.état)
+        si index_élément == -1 {
+            pour panneau.menus_affichés {
+                si it.gère_clique_souris(clic) {
+                    retourne
+                }
+            }
+        }
+    }
+    sinon si clic.action == ActionSouris.RELACHÉE {
+        index_élément := donne_élément_sous_souris(panneau, clic.état)
+        si index_élément != -1 {
+            retourne
+        }
+
+        pour panneau.menus_affichés {
+            si it.gère_clique_souris(clic) {
+                arrête
+            }
+        }
+        sansarrêt {
+            retourne
+        }
+    }
+
+    /* Soit nous avons cliqué sur une action, soit en dehors de la zone des menus, fermons tout. */
+    définis_élément_pressé(panneau, -1, vrai)
+    détruit_panneau_menu(panneau)
+    termine_guettage(guetteuse)
+}
+
+guetteuse_barre_de_menu_sur_déplacement_souris :: fonc (base: *Guetteuse, souris: ÉtatSouris)
+{
+    guetteuse := base comme *GuetteuseBarreDeMenu
+    panneau := guetteuse.barre_de_menu
+
+    index_élément := donne_élément_sous_souris(panneau, souris)
+    si index_élément != -1 {
+        définis_élément_pressé(panneau, index_élément, faux)
+    }
+    sinon {
+        // regarde dans les menus ouverts
+        pour panneau.menus_affichés {
+            it.sur_déplacement_souris(it, souris)
+        }
     }
 }
 
@@ -335,14 +413,16 @@ crée_panneau_menu :: fonc (ctx: *ContexteInterface, menu: *Menu, position: Poin
         }
 
         si clique.action == ActionSouris.RELACHÉE {
+            si état.élément_pressé == -1 && état.élément_survolé != -1 {
+                état.élément_pressé = état.élément_survolé
+            }
+
             élément := menu.éléments[état.élément_pressé]
             gère_clique_souris(élément)
             si panneau_barre_de_menu {
                 panneau_barre_de_menu.définis_élément_pressé(-1, vrai)
             }
-            sinon {
-                contexte.détruit_panneau_menu()
-            }
+
             retourne vrai
         }
 
@@ -562,7 +642,7 @@ définis_index_élément_survolé :: fonc (empl panneau: *PanneauMenu, index_él
     si état.élément_survolé != -1 {
         élément := éléments[état.élément_survolé]
         si élément.est_sous_menu {
-            contexte.dépile_panneau_menu()
+            panneau_barre_de_menu.dépile_panneau_menu()
             menu_fut_affiché = nul
         }
     }
@@ -577,7 +657,7 @@ définis_index_élément_survolé :: fonc (empl panneau: *PanneauMenu, index_él
 
             panneau_menu := crée_panneau_menu(contexte, menu.éléments[état.élément_survolé].données.SousMenu, Point2D(z32)(rect_élément.x + rect_élément.largeur, rect_élément.y + rect_élément.hauteur))
             panneau_menu.panneau_barre_de_menu = panneau_barre_de_menu
-            contexte.affiche_panneau_menu(panneau_menu)
+            panneau_barre_de_menu.affiche_panneau_menu(panneau_menu)
 
             menu_fut_affiché = panneau_menu
         }
