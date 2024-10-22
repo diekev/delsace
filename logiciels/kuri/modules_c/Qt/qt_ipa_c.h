@@ -1314,6 +1314,7 @@ bool QT_window_is_exposed(struct QT_Window *window);
 
 struct QT_Rappels_Event_Loop {
     bool (*sur_evenement)(struct QT_Rappels_Event_Loop *, union QT_Generic_Event);
+    bool (*sur_filtre_evenement)(struct QT_Rappels_Event_Loop *, union QT_Generic_Event);
     void (*sur_destruction)(struct QT_Rappels_Event_Loop *);
     struct QT_Event_Loop *event_loop;
 };

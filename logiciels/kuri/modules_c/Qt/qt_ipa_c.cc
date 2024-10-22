@@ -1301,6 +1301,19 @@ class EventLoop : public QEventLoop {
         return m_rappels;
     }
 
+    bool eventFilter(QObject *obj, QEvent *event) override
+    {
+        if (m_rappels && m_rappels->sur_filtre_evenement) {
+            QT_Generic_Event generic_event;
+            generic_event.event = reinterpret_cast<QT_Evenement *>(event);
+            if (m_rappels->sur_filtre_evenement(m_rappels, generic_event)) {
+                return true;
+            }
+        }
+
+        return QEventLoop::eventFilter(obj, event);
+    }
+
     bool event(QEvent *event) override
     {
         if (m_rappels && m_rappels->sur_evenement) {
