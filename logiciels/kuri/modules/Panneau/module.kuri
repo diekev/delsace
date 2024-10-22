@@ -95,7 +95,6 @@ ContexteInterface :: struct {
 
     panneau_racine: *Panneau
 
-    panneau_cliqué: *Panneau
     panneau_survolé: *Panneau
 
     rappel_définis_curseur_souris: fonc(*ContexteInterface, TypeCurseurSystème)(rien)
@@ -123,23 +122,13 @@ crée_panneau :: fonc (contexte: *ContexteInterface, $TypePanneau: type_de_donn�
 
 gère_clique_souris :: fonc (empl contexte: *ContexteInterface, clique: CliqueSouris)
 {
-    diffère si clique.action == ActionSouris.RELACHÉE {
-        panneau_cliqué = nul
+    nouveau_panneau_survolé := trouve_panneau_survolé(contexte, clique.état)
+    si nouveau_panneau_survolé != panneau_survolé {
+        fini_survol_panneau(panneau_survolé, clique.état)
+        débute_survol_panneau(nouveau_panneau_survolé)
     }
 
-    si gère_clique_souris(panneau_cliqué, clique) {
-        // imprime("Clique géré par %\n", panneau_cliqué.identifiant)
-        retourne
-    }
-
-    saufsi panneau_survolé {
-        nouveau_panneau_survolé := trouve_panneau_survolé(contexte, clique.état)
-        si nouveau_panneau_survolé != panneau_survolé {
-            fini_survol_panneau(panneau_survolé, clique.état)
-            débute_survol_panneau(nouveau_panneau_survolé)
-        }
-        nouveau_panneau_survolé = panneau_survolé
-    }
+    panneau_cliqué: *Panneau
 
     si panneau_survolé && gère_clique_souris(panneau_survolé, clique) {
         panneau_cliqué = panneau_survolé
@@ -155,14 +144,6 @@ gère_clique_souris :: fonc (empl contexte: *ContexteInterface, clique: CliqueSo
 
 sur_déplacement_souris :: fonc (empl contexte: *ContexteInterface, état: ÉtatSouris)
 {
-    si panneau_cliqué {
-        si panneau_cliqué.sur_déplacement_souris {
-            panneau_cliqué.sur_déplacement_souris(panneau_cliqué, état)
-        }
-
-        retourne
-    }
-
     nouveau_panneau_survolé := trouve_panneau_survolé(contexte, état)
     si nouveau_panneau_survolé != panneau_survolé {
         fini_survol_panneau(panneau_survolé, état)
