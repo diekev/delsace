@@ -31,7 +31,7 @@ charge "menu"
 ContexteAffichage :: struct {
     peintre: *Peintre
     fonte: *Fonte
-    thème: *Thème
+    thème : *Thème = *__thème_défaut
 }
 
 /** \} */

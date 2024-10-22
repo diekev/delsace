@@ -28,4 +28,21 @@ Thème :: struct {
     couleur_table_ligne_impaire: CouleurRVBAN8
 }
 
+#portée_module
+
+__thème_défaut := Thème(
+    couleur_arrière_plan = couleur_blanche,
+    couleur_texte = couleur_noire,
+    couleur_contour = couleur_grise,
+    couleur_menu_survolé = couleur_grise_claire,
+    couleur_menu_pressé = couleur_grise_claire,
+    couleur_bouton_survolé = couleur_grise_claire,
+    couleur_bouton_pressé = couleur_grise,
+    couleur_bouton = couleur_blanche,
+    couleur_diviseur = couleur_grise,
+    couleur_diviseur_survolé = couleur_blanche,
+    couleur_table_ligne_paire = couleur_blanche,
+    couleur_table_ligne_impaire = couleur_grise_claire
+)
+
 /** \} */
