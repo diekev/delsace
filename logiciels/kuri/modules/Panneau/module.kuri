@@ -37,6 +37,43 @@ ContexteAffichage :: struct {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Guetteuse.
+ * Les guetteuses servent à traquer les évènements survenant sur un panneau.
+ * Quant un panneau veut traquer les évènements suite à un évènement, il peut
+ * créer une guetteuse locale pour suivre les évènements suivants sans quitter
+ * la fonction où la guetteuse fut créer.
+ *
+ * Les applications clientes sont responsable de créer les conditions nécessaires
+ * au guettage via ContexteInterface.
+ * \{ */
+
+Guetteuse :: struct {
+    contexte: *ContexteInterface
+
+    sur_clic: fonc(*Guetteuse, CliqueSouris)(rien)
+    sur_déplacement_souris: fonc(*Guetteuse, ÉtatSouris)(rien)
+}
+
+commence_guettage :: fonc (guetteuse: *Guetteuse, ctx: *ContexteInterface)
+{
+    saufsi ctx.sur_commence_guettage {
+        retourne
+    }
+    guetteuse.contexte = ctx
+    ctx.sur_commence_guettage(ctx, guetteuse)
+}
+
+termine_guettage :: fonc (guetteuse: *Guetteuse)
+{
+    saufsi guetteuse.contexte && guetteuse.contexte.sur_termine_guettage {
+        retourne
+    }
+    guetteuse.contexte.sur_termine_guettage(guetteuse.contexte)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom ContexteInterface.
  * \{ */
 
@@ -64,6 +101,11 @@ ContexteInterface :: struct {
     panneau_survolé: *Panneau
 
     rappel_définis_curseur_souris: fonc(*ContexteInterface, TypeCurseurSystème)(rien)
+
+    /* Doit commencer une boucle locale pour guetter les évènements. */
+    sur_commence_guettage: fonc (*ContexteInterface, *Guetteuse)(rien)
+    /* Termine la boucle locale commencée via sur_commence_guettage. */
+    sur_termine_guettage: fonc (*ContexteInterface)(rien)
 }
 
 initialise_le_contexte_interface :: fonc (contexte: *ContexteInterface, fonte: *Fonte)
