@@ -446,6 +446,20 @@ void QT_object_move_to_thread(QT_Generic_Object object, QT_Thread *thread)
     qobject->moveToThread(qthread);
 }
 
+void QT_Object_install_event_filter(QT_Generic_Object object, QT_Generic_Object filter)
+{
+    VERS_QT(object);
+    VERS_QT(filter);
+    qobject->installEventFilter(qfilter);
+}
+
+void QT_Object_remove_event_filter(QT_Generic_Object object, QT_Generic_Object filter)
+{
+    VERS_QT(object);
+    VERS_QT(filter);
+    qobject->removeEventFilter(qfilter);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

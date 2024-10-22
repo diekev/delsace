@@ -291,6 +291,11 @@ bool QT_object_bloque_signaux(union QT_Generic_Object object, bool ouinon);
 
 void QT_object_move_to_thread(union QT_Generic_Object object, struct QT_Thread *thread);
 
+void QT_Object_install_event_filter(union QT_Generic_Object object,
+                                    union QT_Generic_Object filter);
+
+void QT_Object_remove_event_filter(union QT_Generic_Object object, union QT_Generic_Object filter);
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
