@@ -124,63 +124,63 @@ ctrl_maj :: fonc (clé: CléClavier) -> RaccourcisClavier
  * \{ */
 
 CléClavier :: énum {
-    CLÉ_INCONNUE
+    INCONNUE
 
-    CLÉ_A
-    CLÉ_B
-    CLÉ_C
-    CLÉ_D
-    CLÉ_E
-    CLÉ_F
-    CLÉ_G
-    CLÉ_H
-    CLÉ_I
-    CLÉ_J
-    CLÉ_K
-    CLÉ_L
-    CLÉ_M
-    CLÉ_N
-    CLÉ_O
-    CLÉ_P
-    CLÉ_Q
-    CLÉ_R
-    CLÉ_S
-    CLÉ_T
-    CLÉ_U
-    CLÉ_V
-    CLÉ_W
-    CLÉ_Y
-    CLÉ_X
-    CLÉ_Z
+    A
+    B
+    C
+    D
+    E
+    F
+    G
+    H
+    I
+    J
+    K
+    L
+    M
+    N
+    O
+    P
+    Q
+    R
+    S
+    T
+    U
+    V
+    W
+    Y
+    X
+    Z
 
-    CLÉ_0
-    CLÉ_1
-    CLÉ_2
-    CLÉ_3
-    CLÉ_4
-    CLÉ_5
-    CLÉ_6
-    CLÉ_7
-    CLÉ_8
-    CLÉ_9
+    _0
+    _1
+    _2
+    _3
+    _4
+    _5
+    _6
+    _7
+    _8
+    _9
 
-    CLÉ_ENTRÉE
-    CLÉ_RETOUR
-    CLÉ_ÉCHAPPE
-    CLÉ_TAB
+    ENTRÉE
+    RETOUR
+    ÉCHAPPE
+    TAB
 
-    CLÉ_VIRGULE
-    CLÉ_ESPACE
-    CLÉ_POINT_VIRGULE
-    CLÉ_DOUBLE_POINT
-    CLÉ_POINT_EXCLAMATION
+    VIRGULE
+    ESPACE
+    POINT_VIRGULE
+    DOUBLE_POINT
+    POINT_EXCLAMATION
 
-    CLÉ_FLÈCHE_GAUCHE
-    CLÉ_FLÈCHE_DROITE
-    CLÉ_FLÈCHE_HAUT
-    CLÉ_FLÈCHE_BAS
+    FLÈCHE_GAUCHE
+    FLÈCHE_DROITE
+    FLÈCHE_HAUT
+    FLÈCHE_BAS
 
-    CLÉ_SUPPRIMER
+    SUPPRIMER
 }
 
 __caractères_clé_clavier: [CléClavier.nombre_éléments]z8
@@ -192,56 +192,56 @@ caractère_pour_clé_clavier :: fonc (clé_clavier: CléClavier) -> z8
 
 initialise_caractères_clé_clavier :: fonc ()
 {
-    __caractères_clé_clavier[CléClavier.CLÉ_INCONNUE] = 0
+    __caractères_clé_clavier[CléClavier.INCONNUE] = 0
 
-    __caractères_clé_clavier[CléClavier.CLÉ_A] = 'a'
-    __caractères_clé_clavier[CléClavier.CLÉ_B] = 'b'
-    __caractères_clé_clavier[CléClavier.CLÉ_C] = 'c'
-    __caractères_clé_clavier[CléClavier.CLÉ_D] = 'd'
-    __caractères_clé_clavier[CléClavier.CLÉ_E] = 'e'
-    __caractères_clé_clavier[CléClavier.CLÉ_F] = 'f'
-    __caractères_clé_clavier[CléClavier.CLÉ_G] = 'g'
-    __caractères_clé_clavier[CléClavier.CLÉ_H] = 'h'
-    __caractères_clé_clavier[CléClavier.CLÉ_I] = 'i'
-    __caractères_clé_clavier[CléClavier.CLÉ_J] = 'j'
-    __caractères_clé_clavier[CléClavier.CLÉ_K] = 'k'
-    __caractères_clé_clavier[CléClavier.CLÉ_L] = 'l'
-    __caractères_clé_clavier[CléClavier.CLÉ_M] = 'm'
-    __caractères_clé_clavier[CléClavier.CLÉ_N] = 'n'
-    __caractères_clé_clavier[CléClavier.CLÉ_O] = 'o'
-    __caractères_clé_clavier[CléClavier.CLÉ_P] = 'p'
-    __caractères_clé_clavier[CléClavier.CLÉ_Q] = 'q'
-    __caractères_clé_clavier[CléClavier.CLÉ_R] = 'r'
-    __caractères_clé_clavier[CléClavier.CLÉ_S] = 's'
-    __caractères_clé_clavier[CléClavier.CLÉ_T] = 't'
-    __caractères_clé_clavier[CléClavier.CLÉ_U] = 'u'
-    __caractères_clé_clavier[CléClavier.CLÉ_V] = 'v'
-    __caractères_clé_clavier[CléClavier.CLÉ_W] = 'w'
-    __caractères_clé_clavier[CléClavier.CLÉ_X] = 'x'
-    __caractères_clé_clavier[CléClavier.CLÉ_Y] = 'y'
-    __caractères_clé_clavier[CléClavier.CLÉ_Z] = 'z'
+    __caractères_clé_clavier[CléClavier.A] = 'a'
+    __caractères_clé_clavier[CléClavier.B] = 'b'
+    __caractères_clé_clavier[CléClavier.C] = 'c'
+    __caractères_clé_clavier[CléClavier.D] = 'd'
+    __caractères_clé_clavier[CléClavier.E] = 'e'
+    __caractères_clé_clavier[CléClavier.F] = 'f'
+    __caractères_clé_clavier[CléClavier.G] = 'g'
+    __caractères_clé_clavier[CléClavier.H] = 'h'
+    __caractères_clé_clavier[CléClavier.I] = 'i'
+    __caractères_clé_clavier[CléClavier.J] = 'j'
+    __caractères_clé_clavier[CléClavier.K] = 'k'
+    __caractères_clé_clavier[CléClavier.L] = 'l'
+    __caractères_clé_clavier[CléClavier.M] = 'm'
+    __caractères_clé_clavier[CléClavier.N] = 'n'
+    __caractères_clé_clavier[CléClavier.O] = 'o'
+    __caractères_clé_clavier[CléClavier.P] = 'p'
+    __caractères_clé_clavier[CléClavier.Q] = 'q'
+    __caractères_clé_clavier[CléClavier.R] = 'r'
+    __caractères_clé_clavier[CléClavier.S] = 's'
+    __caractères_clé_clavier[CléClavier.T] = 't'
+    __caractères_clé_clavier[CléClavier.U] = 'u'
+    __caractères_clé_clavier[CléClavier.V] = 'v'
+    __caractères_clé_clavier[CléClavier.W] = 'w'
+    __caractères_clé_clavier[CléClavier.X] = 'x'
+    __caractères_clé_clavier[CléClavier.Y] = 'y'
+    __caractères_clé_clavier[CléClavier.Z] = 'z'
 
-    __caractères_clé_clavier[CléClavier.CLÉ_0] = '0'
-    __caractères_clé_clavier[CléClavier.CLÉ_1] = '1'
-    __caractères_clé_clavier[CléClavier.CLÉ_2] = '2'
-    __caractères_clé_clavier[CléClavier.CLÉ_3] = '3'
-    __caractères_clé_clavier[CléClavier.CLÉ_4] = '4'
-    __caractères_clé_clavier[CléClavier.CLÉ_5] = '5'
-    __caractères_clé_clavier[CléClavier.CLÉ_6] = '6'
-    __caractères_clé_clavier[CléClavier.CLÉ_7] = '7'
-    __caractères_clé_clavier[CléClavier.CLÉ_8] = '8'
-    __caractères_clé_clavier[CléClavier.CLÉ_9] = '9'
+    __caractères_clé_clavier[CléClavier._0] = '0'
+    __caractères_clé_clavier[CléClavier._1] = '1'
+    __caractères_clé_clavier[CléClavier._2] = '2'
+    __caractères_clé_clavier[CléClavier._3] = '3'
+    __caractères_clé_clavier[CléClavier._4] = '4'
+    __caractères_clé_clavier[CléClavier._5] = '5'
+    __caractères_clé_clavier[CléClavier._6] = '6'
+    __caractères_clé_clavier[CléClavier._7] = '7'
+    __caractères_clé_clavier[CléClavier._8] = '8'
+    __caractères_clé_clavier[CléClavier._9] = '9'
 
-    __caractères_clé_clavier[CléClavier.CLÉ_ENTRÉE] = '\n'
-    __caractères_clé_clavier[CléClavier.CLÉ_RETOUR] = 0
-    __caractères_clé_clavier[CléClavier.CLÉ_ÉCHAPPE] = 0
-    __caractères_clé_clavier[CléClavier.CLÉ_TAB] = '\t'
-    __caractères_clé_clavier[CléClavier.CLÉ_ESPACE] = ' '
+    __caractères_clé_clavier[CléClavier.ENTRÉE] = '\n'
+    __caractères_clé_clavier[CléClavier.RETOUR] = 0
+    __caractères_clé_clavier[CléClavier.ÉCHAPPE] = 0
+    __caractères_clé_clavier[CléClavier.TAB] = '\t'
+    __caractères_clé_clavier[CléClavier.ESPACE] = ' '
 
-    __caractères_clé_clavier[CléClavier.CLÉ_VIRGULE] = ','
-    __caractères_clé_clavier[CléClavier.CLÉ_POINT_VIRGULE] = ';'
-    __caractères_clé_clavier[CléClavier.CLÉ_DOUBLE_POINT] = ':'
-    __caractères_clé_clavier[CléClavier.CLÉ_POINT_EXCLAMATION] = '!'
+    __caractères_clé_clavier[CléClavier.VIRGULE] = ','
+    __caractères_clé_clavier[CléClavier.POINT_VIRGULE] = ';'
+    __caractères_clé_clavier[CléClavier.DOUBLE_POINT] = ':'
+    __caractères_clé_clavier[CléClavier.POINT_EXCLAMATION] = '!'
 }
 
 /** \} */
