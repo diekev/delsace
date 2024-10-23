@@ -74,6 +74,35 @@ termine_guettage :: fonc (guetteuse: *Guetteuse)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Chronomètre
+ * \{ */
+
+IDChronomètre :: #opaque z32
+
+est_invalide :: fonc (id: IDChronomètre) -> bool
+{
+    retourne id comme z32 == -1
+}
+
+Chronomètre :: struct {
+    rappel: fonc(*Chronomètre)(rien)
+    sur_destruction: fonc(*Chronomètre)(rien)
+    délai: z32
+}
+
+sur_décompte :: fonc (chronomètre: *Chronomètre)
+{
+    chronomètre.rappel(chronomètre)
+}
+
+détruit :: fonc (chronomètre: *Chronomètre)
+{
+    chronomètre.sur_destruction(chronomètre)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom ContexteInterface.
  * \{ */
 
@@ -103,6 +132,9 @@ ContexteInterface :: struct {
     sur_commence_guettage: fonc (*ContexteInterface, *Guetteuse)(rien)
     /* Termine la boucle locale commencée via sur_commence_guettage. */
     sur_termine_guettage: fonc (*ContexteInterface)(rien)
+
+    sur_création_chronomètre: fonc(*ContexteInterface, *Chronomètre)(IDChronomètre)
+    sur_arrêt_chronomètre: fonc(*ContexteInterface, IDChronomètre)(rien)
 }
 
 initialise_le_contexte_interface :: fonc (contexte: *ContexteInterface, fonte: *Fonte)
@@ -215,6 +247,27 @@ définis_curseur_souris :: fonc (empl contexte: *ContexteInterface, type_curseur
     }
 
     rappel_définis_curseur_souris(contexte, type_curseur)
+}
+
+crée_chronomètre :: fonc (contexte: *ContexteInterface, chronomètre: *Chronomètre) -> IDChronomètre
+{
+    saufsi contexte.sur_création_chronomètre {
+        détruit(chronomètre)
+        retourne IDChronomètre(-1)
+    }
+
+    retourne contexte.sur_création_chronomètre(contexte, chronomètre)
+}
+
+arrête_chronomètre :: fonc (contexte: *ContexteInterface, id: IDChronomètre)
+{
+    si id.est_invalide() {
+        retourne
+    }
+
+    si contexte.sur_arrêt_chronomètre {
+        contexte.sur_arrêt_chronomètre(contexte, id)
+    }
 }
 
 /** \} */
