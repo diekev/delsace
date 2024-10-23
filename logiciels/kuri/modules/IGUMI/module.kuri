@@ -788,6 +788,68 @@ dessine_texte :: fonc (fonte: *Fonte, texte: ChaineUTF16, x: r32, y: r32, couleu
     }
 }
 
+dessine_texte :: fonc (fonte: *Fonte, texte: ChaineUTF32, x: r32, y: r32, couleur: CouleurRVBA, effets: *EffetsTexte)
+{
+    commence_immédiat(ModeImmédiat.TRIANGLES, nuanceur_texte, fonte)
+
+    // ancienne_fonction_mélange: z32
+    // glGetIntegerv(GL_BLEND_SRC_ALPHA, *ancienne_fonction_mélange)
+    // diffère glBlendFunc(GL_SRC_ALPHA, ancienne_fonction_mélange comme n32)
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+    // gl_blend_est_actif := glIsEnabled(GL_BLEND) != 0
+    // diffère saufsi gl_blend_est_actif { glDisable(GL_BLEND) }
+    glEnable(GL_BLEND)
+
+    // met en place la texture de la fonte sur le nuanceur
+    saufsi glIsTexture(fonte.atlas.id) {
+        glGenTextures(1, *fonte.atlas.id)
+        // À FAIRE : libère la texture quand la police n'est plus requise
+        // diffère glDeleteTextures(1, *fonte.atlas.id)
+
+        params := donne_paramètres_texture_atlas_fonte(fonte.atlas)
+        définis_texture_2d(fonte.atlas.id, *params)
+    }
+
+    glUseProgram(nuanceur_texte.programme)
+
+    glBindTexture(GL_TEXTURE_2D, fonte.atlas.id)
+
+    définis_uniforme(nuanceur_texte.loc_atlas, 0 comme z32)
+
+    caractère_nul := fonte.donne_glyphe_nul()
+
+    dernier_caractère : *texture_glyph_t = nul
+    pour texte.points_de_code {
+        glyph := fonte.donne_glyphe(it)
+
+        si glyph == nul {
+            continue
+        }
+
+        kerning := glyph.donne_crénage_avec(dernier_caractère)
+        x += kerning
+
+        glyphe_immédiat(glyph, x, y, couleur)
+
+        si effets {
+            si effets.surlignage {
+                surlignage_glyphe_immédiat(fonte, glyph, caractère_nul, x - kerning, y, effets.couleur_surlignage)
+            }
+            si effets.souslignage {
+                souslignage_glyphe_immédiat(fonte, glyph, caractère_nul, x - kerning, y, effets.couleur_souslignage)
+            }
+            si effets.barrage {
+                barrage_glyphe_immédiat(fonte, glyph, caractère_nul, x - kerning, y, effets.couleur_barrage)
+            }
+        }
+
+        x += glyph.advance_x
+
+        dernier_caractère = glyph
+    }
+}
+
 glyphe_immédiat :: fonc (glyph: *texture_glyph_t, x: r32, y: r32, couleur: CouleurRVBA)
 {
     /* Arrondis les valeurs pour éviter d'interpoler ou rendre des données nulles (l'espace entre les glyphes). */
