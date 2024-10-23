@@ -76,7 +76,7 @@ initialise_mappage_clé_clavier_sdl2 :: fonc ()
 
     __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_RETURN] = CléClavier.ENTRÉE
     __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_KP_ENTER] = CléClavier.ENTRÉE
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_BACKSPACE] = CléClavier.RETOUR
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_BACKSPACE] = CléClavier.EFFACE
     __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_ESCAPE] = CléClavier.ÉCHAPPE
 } @FonctionLongue
 

@@ -430,7 +430,7 @@ initialise_table_conversion_clé :: fonc ()
     table_conversion_clé[QT_Key.Escape] = CléClavier.ÉCHAPPE
     table_conversion_clé[QT_Key.Tab] = CléClavier.TAB
     table_conversion_clé[QT_Key.Backtab] = CléClavier.INCONNUE
-    table_conversion_clé[QT_Key.Backspace] = CléClavier.RETOUR
+    table_conversion_clé[QT_Key.Backspace] = CléClavier.EFFACE
     table_conversion_clé[QT_Key.Return] = CléClavier.ENTRÉE
     table_conversion_clé[QT_Key.Enter] = CléClavier.ENTRÉE
     table_conversion_clé[QT_Key.Insert] = CléClavier.INSÉRER

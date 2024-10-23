@@ -165,7 +165,7 @@ CléClavier :: énum {
     _9
 
     ENTRÉE
-    RETOUR
+    EFFACE
     ÉCHAPPE
     TAB
 
@@ -274,7 +274,7 @@ initialise_caractères_clé_clavier :: fonc ()
     __caractères_clé_clavier[CléClavier._9] = '9'
 
     __caractères_clé_clavier[CléClavier.ENTRÉE] = '\n'
-    __caractères_clé_clavier[CléClavier.RETOUR] = 0
+    __caractères_clé_clavier[CléClavier.EFFACE] = 0
     __caractères_clé_clavier[CléClavier.ÉCHAPPE] = 0
     __caractères_clé_clavier[CléClavier.TAB] = '\t'
     __caractères_clé_clavier[CléClavier.ESPACE] = ' '
