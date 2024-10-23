@@ -110,6 +110,31 @@ donne_largeur_texte :: fonc (fonte: *Fonte, texte: ChaineUTF32) -> z32
     retourne résultat comme z32
 }
 
+donne_index_caractère_pour_position :: fonc (fonte: *Fonte, texte: ChaineUTF32, position: r32) -> z64
+{
+    utilise_crénage := fonte.font.kerning != 0
+    dernier_glyphe: *texture_glyph_t
+    pour texte.points_de_code {
+        glyph := donne_glyphe(fonte, it)
+        saufsi glyph {
+            continue
+        }
+
+        si utilise_crénage {
+            crénage := donne_crénage_avec(glyph, dernier_glyphe)
+            position -= crénage
+        }
+        dernier_glyphe = glyph
+        position -= glyph.advance_x
+
+        si position <= 0.0 {
+            retourne index_it
+        }
+    }
+
+    retourne -1
+}
+
 donne_largeur_texte :: fonc (fonte: *Fonte, texte: ChaineUTF16Unique) -> z32
 {
     retourne donne_largeur_texte(fonte, texte.donne_chaine_utf16())
