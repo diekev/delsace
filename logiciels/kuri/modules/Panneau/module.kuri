@@ -50,6 +50,7 @@ ContexteAffichage :: struct {
 Guetteuse :: struct {
     contexte: *ContexteInterface
 
+    sur_termine_guettage: fonc(*Guetteuse)(rien)
     sur_clic: fonc(*Guetteuse, CliqueSouris)(rien)
     sur_déplacement_souris: fonc(*Guetteuse, ÉtatSouris)(rien)
     sur_touche_clavier: fonc(*Guetteuse, ToucheClavier)(rien)
@@ -66,6 +67,10 @@ commence_guettage :: fonc (guetteuse: *Guetteuse, ctx: *ContexteInterface)
 
 termine_guettage :: fonc (guetteuse: *Guetteuse)
 {
+    si guetteuse.sur_termine_guettage {
+        guetteuse.sur_termine_guettage(guetteuse)
+    }
+
     saufsi guetteuse.contexte && guetteuse.contexte.sur_termine_guettage {
         retourne
     }
