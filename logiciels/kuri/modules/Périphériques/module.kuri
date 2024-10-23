@@ -90,6 +90,17 @@ CliqueSouris :: struct {
 /** \nom RaccourcisClavier
  * \{ */
 
+ToucheClavier :: struct {
+    type: CléClavier
+    texte: chaine
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom RaccourcisClavier
+ * \{ */
+
 RaccourcisClavier :: struct {
     clé: CléClavier
     modificateur: ModificateurClavier
