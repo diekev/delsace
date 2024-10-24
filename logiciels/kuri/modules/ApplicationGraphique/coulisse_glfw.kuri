@@ -313,21 +313,21 @@ clé_clavier_depuis_glfw :: fonc (clé: type_cle) -> CléClavier
     // À FAIRE : complète
     discr clé {
         RIGHT {
-            retourne CléClavier.CLÉ_FLÈCHE_DROITE
+            retourne CléClavier.FLÈCHE_DROITE
         }
         LEFT {
-            retourne CléClavier.CLÉ_FLÈCHE_GAUCHE
+            retourne CléClavier.FLÈCHE_GAUCHE
         }
         UP {
-            retourne CléClavier.CLÉ_FLÈCHE_HAUT
+            retourne CléClavier.FLÈCHE_HAUT
         }
         DOWN {
-            retourne CléClavier.CLÉ_FLÈCHE_BAS
+            retourne CléClavier.FLÈCHE_BAS
         }
         sinon {}
     }
 
-    retourne CléClavier.CLÉ_INCONNUE
+    retourne CléClavier.INCONNUE
 }
 
 VG_file_évènements: File(T = Évènement)
