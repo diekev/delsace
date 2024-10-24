@@ -257,7 +257,9 @@ union QT_AbstractSocket {
     O(QClipboard, QT_Clipboard, clipboard)                                                        \
     O(QShortcut, QT_Shortcut, shortcut)                                                           \
     O(QThread, QT_Thread, thread)                                                                 \
-    O(QWindow, QT_Window, window)
+    O(QWindow, QT_Window, window)                                                                 \
+    O(QOpenGLContext, QT_OpenGL_Context, opengl_context)                                          \
+    O(QEventLoop, QT_Event_Loop, event_loop)
 
 #define PRODECLARE_TYPES_OBJETS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_OBJETS(PRODECLARE_TYPES_OBJETS)
@@ -288,6 +290,11 @@ void QT_object_definis_propriete_bool(union QT_Generic_Object object,
 bool QT_object_bloque_signaux(union QT_Generic_Object object, bool ouinon);
 
 void QT_object_move_to_thread(union QT_Generic_Object object, struct QT_Thread *thread);
+
+void QT_Object_install_event_filter(union QT_Generic_Object object,
+                                    union QT_Generic_Object filter);
+
+void QT_Object_remove_event_filter(union QT_Generic_Object object, union QT_Generic_Object filter);
 
 /** \} */
 
@@ -1269,7 +1276,74 @@ void QT_thread_wait(struct QT_Thread *thread);
 /** \name QT_Window
  * \{ */
 
+#define ENUMERE_SURFACE_TYPE(O)                                                                   \
+    O(QT_SURFACE_TYPE_RasterSurface, QSurface::RasterSurface)                                     \
+    O(QT_SURFACE_TYPE_OpenGLSurface, QSurface::OpenGLSurface)
+
+enum QT_Surface_Type { ENUMERE_SURFACE_TYPE(ENUMERE_DECLARATION_ENUM_IPA) };
+
+struct QT_Rappels_Window {
+    void (*sur_creation)(struct QT_Rappels_Window *);
+    bool (*sur_evenement)(struct QT_Rappels_Window *, union QT_Generic_Event);
+    void (*sur_destruction)(struct QT_Rappels_Window *);
+
+    struct QT_Window *window;
+};
+
+struct QT_Window *QT_window_cree_avec_rappels(struct QT_Rappels_Window *rappels);
+void QT_window_detruit(struct QT_Window *window);
+
+struct QT_Rappels_Window *QT_window_donne_rappels(struct QT_Window *window);
+
 void QT_window_request_update(struct QT_Window *window);
+void QT_window_show(struct QT_Window *window);
+void QT_window_show_maximized(struct QT_Window *window);
+void QT_window_show_minimized(struct QT_Window *window);
+void QT_window_set_surface_type(struct QT_Window *window, enum QT_Surface_Type surface_type);
+void QT_window_set_title(struct QT_Window *window, struct QT_Chaine title);
+void QT_window_resize(struct QT_Window *window, int width, int height);
+int QT_window_height(struct QT_Window *window);
+int QT_window_width(struct QT_Window *window);
+bool QT_window_is_exposed(struct QT_Window *window);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Event_Loop
+ * \{ */
+
+struct QT_Rappels_Event_Loop {
+    bool (*sur_evenement)(struct QT_Rappels_Event_Loop *, union QT_Generic_Event);
+    bool (*sur_filtre_evenement)(struct QT_Rappels_Event_Loop *, union QT_Generic_Event);
+    void (*sur_destruction)(struct QT_Rappels_Event_Loop *);
+    struct QT_Event_Loop *event_loop;
+};
+
+struct QT_Event_Loop *QT_Event_Loop_cree_avec_rappels(struct QT_Rappels_Event_Loop *rappels);
+void QT_Event_Loop_detruit(struct QT_Event_Loop *event_loop);
+
+struct QT_Rappels_Event_Loop *QT_Event_Loop_donne_rappels(struct QT_Event_Loop *event_loop);
+
+int QT_Event_Loop_exec(struct QT_Event_Loop *event_loop);
+void QT_Event_Loop_exit(struct QT_Event_Loop *event_loop);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_OpenGL_Context
+ * \{ */
+
+struct QT_OpenGL_Context *QT_OpenGL_Context_cree_avec_parent(union QT_Generic_Object parent);
+void QT_OpenGL_detruit(struct QT_OpenGL_Context *context);
+
+bool QT_OpenGL_Context_create(struct QT_OpenGL_Context *context);
+bool QT_OpenGL_Context_make_current(struct QT_OpenGL_Context *context, struct QT_Window *window);
+void QT_OpenGL_Context_donne_current(struct QT_OpenGL_Context *context);
+void QT_OpenGL_Context_swap_buffers(struct QT_OpenGL_Context *context, struct QT_Window *window);
+void QT_OpenGL_Context_set_share_context(struct QT_OpenGL_Context *context,
+                                         struct QT_OpenGL_Context *share_context);
+bool QT_OpenGL_Context_are_sharing(struct QT_OpenGL_Context *context1,
+                                   struct QT_OpenGL_Context *context2);
 
 /** \} */
 

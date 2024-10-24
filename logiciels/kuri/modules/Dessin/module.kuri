@@ -272,6 +272,11 @@ remplis_rectangle :: fonc (tampon_de_rendu: *TamponDeRendu, rect: RectanglePosDi
         retourne
     }
 
+    si couleur.a == 255 {
+        remplis_rectangle_couleur_opaque(tampon_de_rendu, rect_sauf, couleur)
+        retourne
+    }
+
     enjambée_dest := tampon_de_rendu.rect.largeur
     ligne_dest := tampon_de_rendu.données.pointeur + rect_sauf.y * enjambée_dest + rect_sauf.x
 
@@ -280,6 +285,39 @@ remplis_rectangle :: fonc (tampon_de_rendu: *TamponDeRendu, rect: RectanglePosDi
 
         pour _ dans rect_sauf.x ... rect_sauf.x + rect_sauf.largeur - 1 {
             fusionne_pixels(couleur, pixel_dest)
+            pixel_dest += 1
+        }
+
+        ligne_dest += enjambée_dest
+    }
+}
+
+remplis_rectangle_couleur_opaque :: fonc (tampon_de_rendu: *TamponDeRendu, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8)
+{
+    enjambée_dest := tampon_de_rendu.rect.largeur
+    ligne_dest := tampon_de_rendu.données.pointeur + rect.y * enjambée_dest + rect.x
+
+    pour _ dans rect.y ... rect.y + rect.hauteur - 1 {
+        pixel_dest := ligne_dest
+
+        taille := rect.largeur
+
+        /* Déroulage manuel. */
+        pour taille / 8 {
+            pixel_dest[0] = couleur
+            pixel_dest[1] = couleur
+            pixel_dest[2] = couleur
+            pixel_dest[3] = couleur
+            pixel_dest[4] = couleur
+            pixel_dest[5] = couleur
+            pixel_dest[6] = couleur
+            pixel_dest[7] = couleur
+
+            pixel_dest += 8
+        }
+
+        pour taille % 8 {
+            mémoire(pixel_dest) = couleur
             pixel_dest += 1
         }
 

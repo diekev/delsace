@@ -28,6 +28,7 @@
 #include <QMessageBox>
 #include <QMimeData>
 #include <QMouseEvent>
+#include <QOpenGLContext>
 #include <QProgressBar>
 #include <QPushButton>
 #include <QScreen>
@@ -443,6 +444,20 @@ void QT_object_move_to_thread(QT_Generic_Object object, QT_Thread *thread)
     VERS_QT(object);
     VERS_QT(thread);
     qobject->moveToThread(qthread);
+}
+
+void QT_Object_install_event_filter(QT_Generic_Object object, QT_Generic_Object filter)
+{
+    VERS_QT(object);
+    VERS_QT(filter);
+    qobject->installEventFilter(qfilter);
+}
+
+void QT_Object_remove_event_filter(QT_Generic_Object object, QT_Generic_Object filter)
+{
+    VERS_QT(object);
+    VERS_QT(filter);
+    qobject->removeEventFilter(qfilter);
 }
 
 /** \} */
@@ -1120,10 +1135,289 @@ void QT_thread_wait(QT_Thread *thread)
 /** \name QT_Window
  * \{ */
 
-void QT_window_request_update(struct QT_Window *window)
+static QSurface::SurfaceType convertis_surface_type(QT_Surface_Type surface_type)
+{
+    switch (surface_type) {
+        ENUMERE_SURFACE_TYPE(ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT)
+    }
+    return QSurface::RasterSurface;
+}
+
+class Window : public QWindow {
+    QT_Rappels_Window *m_rappels = nullptr;
+
+  public:
+    Window(QT_Rappels_Window *rappels) : m_rappels(rappels)
+    {
+        if (!m_rappels) {
+            return;
+        }
+
+        m_rappels->window = vers_ipa(this);
+
+        if (m_rappels->sur_creation) {
+            m_rappels->sur_creation(m_rappels);
+        }
+    }
+
+    EMPECHE_COPIE(Window);
+
+    ~Window() override
+    {
+        if (m_rappels && m_rappels->sur_destruction) {
+            m_rappels->sur_destruction(m_rappels);
+        }
+    }
+
+    QT_Rappels_Window *donne_rappels() const
+    {
+        return m_rappels;
+    }
+
+    bool event(QEvent *event) override
+    {
+        if (m_rappels && m_rappels->sur_evenement) {
+            QT_Generic_Event generic_event;
+            generic_event.event = reinterpret_cast<QT_Evenement *>(event);
+            if (m_rappels->sur_evenement(m_rappels, generic_event)) {
+                return true;
+            }
+        }
+
+        return QWindow::event(event);
+    }
+};
+
+struct QT_Window *QT_window_cree_avec_rappels(struct QT_Rappels_Window *rappels)
+{
+    auto résultat = new Window(rappels);
+    return vers_ipa(résultat);
+}
+
+void QT_window_detruit(struct QT_Window *window)
 {
     VERS_QT(window);
-    qwindow->requestUpdate();
+    delete qwindow;
+}
+
+struct QT_Rappels_Window *QT_window_donne_rappels(struct QT_Window *window)
+{
+    VERS_QT(window);
+
+    if (auto ipa_window = dynamic_cast<Window *>(qwindow)) {
+        return ipa_window->donne_rappels();
+    }
+    return nullptr;
+}
+
+#define CONVERTIS_ET_APPEL(objet, fonction, ...)                                                  \
+    VERS_QT(objet);                                                                               \
+    q##objet->fonction(__VA_ARGS__);
+
+void QT_window_request_update(struct QT_Window *window)
+{
+    CONVERTIS_ET_APPEL(window, requestUpdate);
+}
+
+void QT_window_show(struct QT_Window *window)
+{
+    CONVERTIS_ET_APPEL(window, show);
+}
+
+void QT_window_show_maximized(struct QT_Window *window)
+{
+    CONVERTIS_ET_APPEL(window, showMaximized);
+}
+
+void QT_window_show_minimized(struct QT_Window *window)
+{
+    CONVERTIS_ET_APPEL(window, showMinimized);
+}
+
+void QT_window_set_surface_type(struct QT_Window *window, enum QT_Surface_Type surface_type)
+{
+    auto qsurface_type = convertis_surface_type(surface_type);
+    CONVERTIS_ET_APPEL(window, setSurfaceType, qsurface_type);
+}
+
+void QT_window_set_title(struct QT_Window *window, struct QT_Chaine title)
+{
+    CONVERTIS_ET_APPEL(window, setTitle, vers_qt(title));
+}
+
+int QT_window_height(struct QT_Window *window)
+{
+    VERS_QT(window);
+    return qwindow->height();
+}
+
+int QT_window_width(struct QT_Window *window)
+{
+    VERS_QT(window);
+    return qwindow->width();
+}
+
+void QT_window_resize(struct QT_Window *window, int width, int height)
+{
+    CONVERTIS_ET_APPEL(window, resize, width, height);
+}
+
+bool QT_window_is_exposed(struct QT_Window *window)
+{
+    VERS_QT(window);
+    return qwindow->isExposed();
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Event_Loop
+ * \{ */
+
+class EventLoop : public QEventLoop {
+    QT_Rappels_Event_Loop *m_rappels = nullptr;
+
+  public:
+    EventLoop(QT_Rappels_Event_Loop *rappels) : m_rappels(rappels)
+    {
+        if (!m_rappels) {
+            return;
+        }
+
+        m_rappels->event_loop = vers_ipa(this);
+    }
+
+    EMPECHE_COPIE(EventLoop);
+
+    ~EventLoop() override
+    {
+        if (m_rappels && m_rappels->sur_destruction) {
+            m_rappels->sur_destruction(m_rappels);
+        }
+    }
+
+    QT_Rappels_Event_Loop *donne_rappels() const
+    {
+        return m_rappels;
+    }
+
+    bool eventFilter(QObject *obj, QEvent *event) override
+    {
+        if (m_rappels && m_rappels->sur_filtre_evenement) {
+            QT_Generic_Event generic_event;
+            generic_event.event = reinterpret_cast<QT_Evenement *>(event);
+            if (m_rappels->sur_filtre_evenement(m_rappels, generic_event)) {
+                return true;
+            }
+        }
+
+        return QEventLoop::eventFilter(obj, event);
+    }
+
+    bool event(QEvent *event) override
+    {
+        if (m_rappels && m_rappels->sur_evenement) {
+            QT_Generic_Event generic_event;
+            generic_event.event = reinterpret_cast<QT_Evenement *>(event);
+            if (m_rappels->sur_evenement(m_rappels, generic_event)) {
+                return true;
+            }
+        }
+
+        return QEventLoop::event(event);
+    }
+};
+
+struct QT_Event_Loop *QT_Event_Loop_cree_avec_rappels(struct QT_Rappels_Event_Loop *rappels)
+{
+    auto résultat = new EventLoop(rappels);
+    return vers_ipa(résultat);
+}
+
+void QT_Event_Loop_detruit(struct QT_Event_Loop *event_loop)
+{
+    VERS_QT(event_loop);
+    delete qevent_loop;
+}
+
+struct QT_Rappels_Event_Loop *QT_Event_Loop_donne_rappels(struct QT_Event_Loop *event_loop)
+{
+    VERS_QT(event_loop);
+    if (auto ipa_event_loop = dynamic_cast<EventLoop *>(qevent_loop)) {
+        return ipa_event_loop->donne_rappels();
+    }
+    return nullptr;
+}
+
+int QT_Event_Loop_exec(struct QT_Event_Loop *event_loop)
+{
+    VERS_QT(event_loop);
+    return qevent_loop->exec();
+}
+
+void QT_Event_Loop_exit(struct QT_Event_Loop *event_loop)
+{
+    CONVERTIS_ET_APPEL(event_loop, exit);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_OpenGL_Context
+ * \{ */
+
+QT_OpenGL_Context *QT_OpenGL_Context_cree_avec_parent(QT_Generic_Object parent)
+{
+    VERS_QT(parent);
+    auto résultat = new QOpenGLContext(qparent);
+    return vers_ipa(résultat);
+}
+
+void QT_OpenGL_detruit(QT_OpenGL_Context *context)
+{
+    VERS_QT(context);
+    delete qcontext;
+}
+
+bool QT_OpenGL_Context_create(QT_OpenGL_Context *context)
+{
+    VERS_QT(context);
+    return qcontext->create();
+}
+
+bool QT_OpenGL_Context_make_current(QT_OpenGL_Context *context, QT_Window *window)
+{
+    VERS_QT(context);
+    VERS_QT(window);
+    return qcontext->makeCurrent(qwindow);
+}
+
+void QT_OpenGL_Context_donne_current(QT_OpenGL_Context *context)
+{
+    CONVERTIS_ET_APPEL(context, doneCurrent);
+}
+
+void QT_OpenGL_Context_swap_buffers(QT_OpenGL_Context *context, QT_Window *window)
+{
+    VERS_QT(context);
+    VERS_QT(window);
+    qcontext->swapBuffers(qwindow);
+}
+
+void QT_OpenGL_Context_set_share_context(struct QT_OpenGL_Context *context,
+                                         struct QT_OpenGL_Context *share_context)
+{
+    VERS_QT(context);
+    VERS_QT(share_context);
+    qcontext->setShareContext(qshare_context);
+}
+
+bool QT_OpenGL_Context_are_sharing(struct QT_OpenGL_Context *context1,
+                                   struct QT_OpenGL_Context *context2)
+{
+    VERS_QT(context1);
+    VERS_QT(context2);
+    return QOpenGLContext::areSharing(qcontext1, qcontext2);
 }
 
 /** \} */
