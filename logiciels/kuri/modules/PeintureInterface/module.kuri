@@ -62,6 +62,7 @@ Peintre :: struct {
     /* Dessine le texte avec la fonte et la couleur données. */
     rappel_dessine_texte: fonc(*Peintre, *Fonte, chaine, RectanglePeintre, CouleurPeintre)(rien)
     rappel_dessine_texte_utf16: fonc(*Peintre, *Fonte, ChaineUTF16, RectanglePeintre, CouleurPeintre, *EffetsTexte)(rien)
+    rappel_dessine_texte_utf32: fonc(*Peintre, *Fonte, ChaineUTF32, RectanglePeintre, CouleurPeintre, *EffetsTexte)(rien)
 
     /* Dessine l'image dans le rectangle donné. */
     rappel_dessine_image: fonc(*Peintre, ImageIO, RectanglePeintre)(rien)
@@ -169,6 +170,11 @@ dessine_texte :: fonc (peintre: *Peintre, fonte: *Fonte, texte: ChaineUTF16, rec
     peintre.rappel_dessine_texte_utf16(peintre, fonte, texte, rectangle, couleur, effets)
 }
 
+dessine_texte :: fonc (peintre: *Peintre, fonte: *Fonte, texte: ChaineUTF32, rectangle: RectanglePeintre, couleur: CouleurPeintre, effets : *EffetsTexte = nul) -> rien #enligne
+{
+    peintre.rappel_dessine_texte_utf32(peintre, fonte, texte, rectangle, couleur, effets)
+}
+
 dessine_image :: fonc (peintre: *Peintre, image: ImageIO, rectangle: RectanglePeintre) -> rien #enligne
 {
     peintre.rappel_dessine_image(peintre, image, rectangle)
@@ -273,6 +279,7 @@ initialise_peintre_dessin :: fonc (peintre: *PeintreDessin)
     peintre.rappel_dessine_segments = dessine_segments_dessin
     peintre.rappel_dessine_texte = dessine_texte_dessin
     peintre.rappel_dessine_texte_utf16 = dessine_texte_utf16_dessin
+    peintre.rappel_dessine_texte_utf32 = dessine_texte_utf32_dessin
     peintre.rappel_dessine_image = dessine_image_dessin
     peintre.rappel_dessine_image_grise_8bit = dessine_image_grise_8bit_dessin
     peintre.rappel_dessine_image_rvba_8bit = dessine_image_rvba_8bit_dessin
@@ -471,6 +478,14 @@ dessine_texte_utf16_dessin :: fonc (peintre: *Peintre, fonte: *Fonte, texte: Cha
     dessine_texte(*peintre_dessin.tampon_de_rendu, texte, fonte, rect, couleur, effets)
 }
 
+dessine_texte_utf32_dessin :: fonc (peintre: *Peintre, fonte: *Fonte, texte: ChaineUTF32, rectangle_peintre: RectanglePeintre, couleur_peintre: CouleurPeintre, effets: *EffetsTexte)
+{
+    peintre_dessin := peintre comme *PeintreDessin
+    rect := donne_rectangle_dessin(rectangle_peintre)
+    couleur := donne_couleur_dessin(couleur_peintre)
+    dessine_texte(*peintre_dessin.tampon_de_rendu, texte, fonte, rect, couleur, effets)
+}
+
 dessine_image_dessin :: fonc (peintre: *Peintre, image: ImageIO, rectangle_peintre: RectanglePeintre)
 {
     peintre_dessin := peintre comme *PeintreDessin
@@ -560,6 +575,7 @@ crée_peintre_igumi :: fonc (taille_cannevas: Taille) -> *Peintre
     peintre.rappel_dessine_segments = dessine_segments_igumi
     peintre.rappel_dessine_texte = dessine_texte_igumi
     peintre.rappel_dessine_texte_utf16 = dessine_texte_utf16_igumi
+    peintre.rappel_dessine_texte_utf32 = dessine_texte_utf32_igumi
     peintre.rappel_dessine_image = dessine_image_igumi
     peintre.rappel_dessine_sous_image = dessine_sous_image_igumi
     peintre.rappel_dessine_image_grise_8bit = dessine_image_grise_8bit_igumi
@@ -780,6 +796,13 @@ dessine_texte_igumi :: fonc (peintre: *Peintre @inutilisée, fonte: *Fonte, text
 }
 
 dessine_texte_utf16_igumi :: fonc (peintre: *Peintre @inutilisée, fonte: *Fonte, texte: ChaineUTF16, rectangle_peintre: RectanglePeintre, couleur_peintre: CouleurPeintre, effets: *EffetsTexte)
+{
+    rect := donne_rectangle_igumi(rectangle_peintre)
+    couleur := donne_couleur_igumi(couleur_peintre)
+    dessine_texte(fonte, texte, rect.x, rect.y, couleur, effets)
+}
+
+dessine_texte_utf32_igumi :: fonc (peintre: *Peintre @inutilisée, fonte: *Fonte, texte: ChaineUTF32, rectangle_peintre: RectanglePeintre, couleur_peintre: CouleurPeintre, effets: *EffetsTexte)
 {
     rect := donne_rectangle_igumi(rectangle_peintre)
     couleur := donne_couleur_igumi(couleur_peintre)
