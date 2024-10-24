@@ -2822,3 +2822,16 @@ kuri::tableau<char> donne_tableau_valeurs_énum(NoeudEnum const &noeud)
 
     return résultat;
 }
+
+NoeudDéclaration *donne_déclaration_employée(NoeudExpression *noeud)
+{
+    if (noeud->est_déclaration_variable()) {
+        return noeud->comme_déclaration_variable();
+    }
+
+    if (noeud->est_référence_déclaration()) {
+        return noeud->comme_référence_déclaration()->déclaration_référée;
+    }
+
+    return nullptr;
+}

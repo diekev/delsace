@@ -6996,19 +6996,6 @@ RésultatValidation Sémanticienne::valide_construction_tableau_typé(
 /** \name Expression « empl ».
  * \{ */
 
-static NoeudDéclaration *donne_déclaration_employée(NoeudExpression *noeud)
-{
-    if (noeud->est_déclaration_variable()) {
-        return noeud->comme_déclaration_variable();
-    }
-
-    if (noeud->est_référence_déclaration()) {
-        return noeud->comme_référence_déclaration()->déclaration_référée;
-    }
-
-    return nullptr;
-}
-
 RésultatValidation Sémanticienne::valide_instruction_empl(NoeudInstructionEmpl *empl)
 {
     auto déclaration_employée = donne_déclaration_employée(empl->expression);
