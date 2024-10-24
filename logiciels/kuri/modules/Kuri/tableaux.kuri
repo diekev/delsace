@@ -195,6 +195,33 @@ tableau_supprime_index :: fonc (tabl: *[..]$T, index: z64) -> rien
     mémoire(tabl) = tmp
 }
 
+tableau_supprime_entre :: fonc (tableau: *[..]$T, index_début: z64, index_fin: z64)
+{
+    si index_début >= index_fin {
+        retourne
+    }
+
+    si index_début < 0 {
+        index_début = 0
+    }
+
+    si index_fin > tableau.taille {
+        index_fin = tableau.taille
+    }
+
+    pointeur_début := tableau.pointeur + index_début
+    pointeur_fin := tableau.pointeur + index_fin
+    fin := tableau.pointeur + tableau.taille
+
+    tantque pointeur_fin < fin {
+        mémoire(pointeur_début) = mémoire(pointeur_fin)
+        pointeur_début += 1
+        pointeur_fin += 1
+    }
+
+    tableau.taille = pointeur_début - tableau.pointeur
+}
+
 tableau_supprime_si :: fonc (tableau: *[..]$T, prédicat: fonc(T)(bool))
 {
     temp := mémoire(tableau)
