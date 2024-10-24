@@ -1677,10 +1677,12 @@ RésultatValidation Sémanticienne::valide_accès_membre(NoeudExpressionMembre *
     }
 
     auto type = donne_type_accédé_effectif(structure->type);
+    auto est_accès_type_de_données = false;
 
     // Il est possible d'avoir une chaine de type : Struct1.Struct2.Struct3...
     if (type->est_type_type_de_données()) {
         auto type_de_donnees = type->comme_type_type_de_données();
+        est_accès_type_de_données = true;
 
         if (type_de_donnees->type_connu != nullptr) {
             type = type_de_donnees->type_connu;
@@ -1741,11 +1743,20 @@ RésultatValidation Sémanticienne::valide_accès_membre(NoeudExpressionMembre *
                 }
             }
         }
-        else if (membre_est_constant) {
-            expression_membre->genre_valeur = GenreValeur::DROITE;
-        }
-        else if (type->est_type_union()) {
-            expression_membre->genre = GenreNoeud::EXPRESSION_RÉFÉRENCE_MEMBRE_UNION;
+        else {
+            if (membre_est_constant) {
+                expression_membre->genre_valeur = GenreValeur::DROITE;
+            }
+            else if (type->est_type_union()) {
+                expression_membre->genre = GenreNoeud::EXPRESSION_RÉFÉRENCE_MEMBRE_UNION;
+            }
+
+            if (est_accès_type_de_données && !membre_est_constant) {
+                m_espace->rapporte_erreur(
+                    expression_membre,
+                    "Ne peut pas accéder à un membre non-constant d'un type de données.");
+                return CodeRetourValidation::Erreur;
+            }
         }
 
         return CodeRetourValidation::OK;
