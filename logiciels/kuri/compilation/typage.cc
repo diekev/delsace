@@ -719,7 +719,13 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, int taille, bool 
     auto membres = kuri::tableau<MembreTypeComposé, int>();
     membres.ajoute(
         {nullptr, type_pointeur_pour(type_pointe, false, insere_dans_graphe), ID::pointeur, 0});
-    membres.ajoute({nullptr, TypeBase::Z64, ID::taille, 0});
+    membres.ajoute({nullptr,
+                    TypeBase::Z64,
+                    ID::taille,
+                    0,
+                    uint64_t(taille),
+                    nullptr,
+                    MembreTypeComposé::EST_CONSTANT});
 
     auto type = alloc->m_noeuds_type_tableau_fixe.ajoute_élément();
     initialise_type_tableau_fixe(type, type_pointe, taille, std::move(membres));

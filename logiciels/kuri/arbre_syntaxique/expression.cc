@@ -545,12 +545,6 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
                 return ValeurExpression(type_composé->membres[ref_membre->index_membre].valeur);
             }
 
-            if (type_accede->est_type_tableau_fixe()) {
-                if (ref_membre->ident == ID::taille) {
-                    return ValeurExpression(type_accede->comme_type_tableau_fixe()->taille);
-                }
-            }
-
             return erreur_évaluation(
                 b, "L'expression n'est pas constante et ne peut être calculée !");
         }

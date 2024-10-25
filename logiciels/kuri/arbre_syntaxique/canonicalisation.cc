@@ -2277,13 +2277,6 @@ NoeudExpression *Simplificatrice::simplifie_référence_membre(NoeudExpressionMe
         }
     }
 
-    if (type_accédé->est_type_tableau_fixe()) {
-        auto taille = type_accédé->comme_type_tableau_fixe()->taille;
-        ref_membre->substitution = assem->crée_littérale_entier(
-            lexème, ref_membre->type, static_cast<uint64_t>(taille));
-        return ref_membre;
-    }
-
     auto type_composé = type_accédé->comme_type_composé();
     auto &membre = type_composé->membres[ref_membre->index_membre];
 
