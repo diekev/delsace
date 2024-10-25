@@ -59,7 +59,6 @@ std::ostream &operator<<(std::ostream &os, DrapeauxNoeud const drapeaux)
     SI_DRAPEAU_UTILISE(POUR_CUISSON)
     SI_DRAPEAU_UTILISE(ACCES_EST_ENUM_DRAPEAU)
     SI_DRAPEAU_UTILISE(EST_UTILISEE)
-    SI_DRAPEAU_UTILISE(METAPROGRAMME_CORPS_TEXTE_FUT_CREE)
     SI_DRAPEAU_UTILISE(NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE)
     SI_DRAPEAU_UTILISE(DÉPENDANCES_FURENT_RÉSOLUES)
     SI_DRAPEAU_UTILISE(IDENTIFIANT_EST_ACCENTUÉ_GRAVE)
@@ -2824,4 +2823,17 @@ kuri::tableau<char> donne_tableau_valeurs_énum(NoeudEnum const &noeud)
     }
 
     return résultat;
+}
+
+NoeudDéclaration *donne_déclaration_employée(NoeudExpression *noeud)
+{
+    if (noeud->est_déclaration_variable()) {
+        return noeud->comme_déclaration_variable();
+    }
+
+    if (noeud->est_référence_déclaration()) {
+        return noeud->comme_référence_déclaration()->déclaration_référée;
+    }
+
+    return nullptr;
 }
