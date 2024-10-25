@@ -2064,6 +2064,11 @@ kuri::chaine nom_humainement_lisible(NoeudExpression const *noeud)
         return chaine_type(noeud->comme_déclaration_type());
     }
 
+    if (noeud->est_corps_fonction()) {
+        return enchaine("corps de ",
+                        nom_humainement_lisible(noeud->comme_corps_fonction()->entête));
+    }
+
     if (noeud->ident) {
         return noeud->ident->nom;
     }
@@ -2767,7 +2772,7 @@ static void remplis_tableau_valeurs_énum(NoeudEnum const &noeud, kuri::tableau<
     auto pointeur_tampon = reinterpret_cast<T *>(&résultat[0]);
 
     POUR (noeud.membres) {
-        if (it.drapeaux == MembreTypeComposé::EST_IMPLICITE) {
+        if (it.est_implicite()) {
             continue;
         }
 
@@ -2779,7 +2784,7 @@ kuri::tableau<char> donne_tableau_valeurs_énum(NoeudEnum const &noeud)
 {
     int nombre_de_membres_non_implicite = 0;
     POUR (noeud.membres) {
-        if (it.drapeaux == MembreTypeComposé::EST_IMPLICITE) {
+        if (it.est_implicite()) {
             continue;
         }
 

@@ -2293,28 +2293,20 @@ NoeudExpression *Simplificatrice::simplifie_référence_membre(NoeudExpressionMe
         }
     }
 
-    if (type_accédé->est_type_tableau_fixe()) {
-        auto taille = type_accédé->comme_type_tableau_fixe()->taille;
-        ref_membre->substitution = assem->crée_littérale_entier(
-            lexème, ref_membre->type, static_cast<uint64_t>(taille));
-        return ref_membre;
-    }
-
-    if (type_accédé->est_type_énum() || type_accédé->est_type_erreur()) {
-        auto type_enum = static_cast<TypeEnum *>(type_accédé);
-        auto valeur_énum = type_enum->membres[ref_membre->index_membre].valeur;
-        ref_membre->substitution = assem->crée_littérale_entier(lexème, type_enum, valeur_énum);
-        return ref_membre;
-    }
-
     auto type_composé = type_accédé->comme_type_composé();
     auto &membre = type_composé->membres[ref_membre->index_membre];
 
-    if (membre.drapeaux == MembreTypeComposé::EST_CONSTANT) {
+    if (membre.est_constant()) {
         if (!membre.expression_valeur_defaut) {
             /* Les membres provenant d'une monomorphisation n'ont pas d'expression. */
             if (membre.type->est_type_type_de_données()) {
                 ref_membre->substitution = assem->crée_référence_type(lexème, membre.type);
+                return ref_membre;
+            }
+
+            if (!membre.decl) {
+                ref_membre->substitution = assem->crée_littérale_entier(
+                    lexème, membre.type, membre.valeur);
                 return ref_membre;
             }
 

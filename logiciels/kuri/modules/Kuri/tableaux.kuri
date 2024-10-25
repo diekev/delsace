@@ -94,7 +94,7 @@ tableau_réserve :: fonc (tabl: *[..]$T, taille: z64) -> rien
     mémoire(tabl) = tmp
 }
 
-tableau_redimensionne :: fonc (tabl: &[..]$T, taille: z64) -> rien
+tableau_redimensionne_sans_init :: fonc (tabl: &[..]$T, taille: z64) -> rien
 {
     si taille == tabl.capacité {
         tabl.taille = tabl.capacité
@@ -108,6 +108,26 @@ tableau_redimensionne :: fonc (tabl: &[..]$T, taille: z64) -> rien
 
     reloge_tableau(tabl, taille)
     tabl.taille = taille
+}
+
+tableau_redimensionne :: fonc (tabl: &[..]$T, taille: z64) -> rien
+{
+    ancienne_taille := tabl.taille
+    tableau_redimensionne_sans_init(tabl, taille)
+
+    pour ancienne_taille ... tabl.taille - 1 {
+        init_de(T)(*tabl.pointeur[it])
+    }
+}
+
+tableau_redimensionne_défaut :: fonc (tabl: &[..]$T, taille: z64, défaut: T) -> rien
+{
+    ancienne_taille := tabl.taille
+    tableau_redimensionne_sans_init(tabl, taille)
+
+    pour ancienne_taille ... tabl.taille - 1 {
+        tabl.pointeur[it] = défaut
+    }
 }
 
 tableau_copie :: fonc (tabl: [..]$T) -> [..]T
