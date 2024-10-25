@@ -71,3 +71,9 @@ test("nous pouvons assigner des fonctions nommées à des variables", function (
     }
     vérifie_égalité(x(), 6)
 });
+
+test("une variable peut être initialisée après sa déclaration", function () {
+    var x;
+    x = 5;
+    vérifie_égalité(x, 5);
+});

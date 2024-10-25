@@ -71,7 +71,7 @@ génère_suite_prouet_thue_morse_remplacement :: fonc (n: n32) -> chaine
         résultat = tmp
     }
 
-    retourne chaine_depuis_tableau_octets(résultat)
+    retourne chaine_depuis_tranche_octets(résultat)
 }
 
 génère_suite_prouet_thue_morse_double_et_inverse :: fonc (n: n32) -> chaine
@@ -103,7 +103,7 @@ génère_suite_prouet_thue_morse_double_et_inverse :: fonc (n: n32) -> chaine
         permute(résultat, tmp)
     }
 
-    retourne chaine_depuis_tableau_octets(résultat)
+    retourne chaine_depuis_tranche_octets(résultat)
 }
 
 /*
