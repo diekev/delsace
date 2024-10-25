@@ -1,0 +1,20 @@
+/* #portée_fichier empêche le code généré par #corps_texte d'accéder à des variables du même fichier
+ * Catégories : [validation sémantique]
+ */
+
+importe Fondation
+
+fonction_corps_texte :: fonc ()
+#corps_texte {
+    retourne copie_chaine("imprime(\"%\", message)")
+}
+
+principale :: fonc () -> z32
+{
+    fonction_corps_texte()
+    retourne 0
+}
+
+#portée_fichier
+
+message :: "ok"

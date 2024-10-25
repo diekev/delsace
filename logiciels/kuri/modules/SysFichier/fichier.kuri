@@ -345,7 +345,7 @@ lis_tout :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
         retourne erreur_potentielle
     }
 
-    retourne chaine_depuis_tableau_octets(résultat)
+    retourne chaine_depuis_tranche_octets(résultat)
 }
 
 lis_tout :: fonc (fichier: *Fichier, résultat: &[..]octet) -> ErreurFichier
@@ -441,7 +441,7 @@ lis_tout_depuis_fichier :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
     retourne système_écris(fichier.desc, chn.pointeur, chn.taille)
 }
 
-écris :: fonc (fichier: *Fichier, octets: [..]octet) -> RésultatOpérationFichier
+écris :: fonc (fichier: *Fichier, octets: []octet) -> RésultatOpérationFichier
 {
     retourne système_écris(fichier.desc, octets.pointeur comme *z8, octets.taille)
 }
