@@ -46,7 +46,7 @@ principale :: fonc () -> z32
     taille_contenu := contenu.taille
 
     mv: JavaScript.MachineVirtuelle
-    JavaScript.initialise_mv(*mv)
+    JavaScript.initialise_mv(nul, *mv)
     diffère JavaScript.détruit_données_mv(*mv)
 
     début := maintenant_précis()
