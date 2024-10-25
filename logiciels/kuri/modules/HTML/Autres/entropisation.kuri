@@ -1,13 +1,18 @@
 importe HTML
+importe #inemployé JavaScript
 
 principale :: fonc () -> z32
 {
+    mv: JavaScript.MachineVirtuelle
+    JavaScript.initialise_mv(nul, *mv)
+    diffère JavaScript.détruit_données_mv(*mv)
+
     paramètres: ParamètresEntropisation
     paramètres.limite_haute_profondeur = 5
     paramètres.limite_haute_enfants = 10
     paramètres.limite_haute_éléments = 100
 
-    programme_entropisation(paramètres)
+    programme_entropisation(paramètres, *mv)
 
     retourne 0
 }

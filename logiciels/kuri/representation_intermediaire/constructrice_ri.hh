@@ -313,7 +313,11 @@ struct CompilatriceRI {
     /* cette pile est utilisée pour stocker les valeurs des noeuds, quand nous
      * appelons les génère_ri_*, il faut dépiler la valeur que nous désirons, si
      * nous en désirons une */
-    kuri::tablet<Atome *, 8> m_pile{};
+    struct ValeurEmpilée {
+        Atome *valeur = nullptr;
+        NoeudExpression const *site = nullptr;
+    };
+    kuri::tablet<ValeurEmpilée, 8> m_pile{};
 
     bool m_est_dans_diffère = false;
     kuri::tableau<NoeudExpression *> m_instructions_diffères{};
@@ -497,7 +501,7 @@ struct CompilatriceRI {
     AtomeConstante *crée_constante_pour_chaine(kuri::chaine_statique chaine);
     AtomeGlobale *crée_globale_pour_chaine(kuri::chaine_statique chaine);
 
-    void empile_valeur(Atome *valeur);
+    void empile_valeur(Atome *valeur, NoeudExpression const *site);
     Atome *depile_valeur();
 
     AtomeConstante *crée_tableau_annotations_pour_info_membre(

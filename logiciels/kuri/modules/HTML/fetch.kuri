@@ -648,7 +648,7 @@ fetch :: fonc (user_agent: *UserAgent,
                     value = "application/json,*/*;q=0.5"
                 }
                 "style" {
-                    "text/css,*/*;q=0.1"
+                    value = "text/css,*/*;q=0.1"
                 }
                 sinon {}
             }

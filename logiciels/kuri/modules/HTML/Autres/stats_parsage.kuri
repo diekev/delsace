@@ -45,7 +45,7 @@ parse_page_et_accumule_stats :: fonc (chemin: CheminFichier, statistiques: &Stat
     diffère déloge(contenu)
 
     mv: JavaScript.MachineVirtuelle
-    JavaScript.initialise_mv(*mv)
+    JavaScript.initialise_mv(nul, *mv)
     diffère JavaScript.détruit_données_mv(*mv)
 
     parsat := parse_document(JavaScript.donne_tas_de_mémoire(*mv), contenu)
