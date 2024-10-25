@@ -786,6 +786,21 @@ static RésultatAppariement apparie_appel_pointeur(
         poids_args, decl_pointeur_fonction, type, std::move(exprs), std::move(transformations));
 }
 
+static bool type_est_compatible_pour_init_de(Type const *type_initialisé,
+                                             Type const *type_expression)
+{
+    if (type_initialisé == type_expression) {
+        return true;
+    }
+
+    if (type_initialisé == TypeBase::PTR_RIEN &&
+        (type_expression->est_type_pointeur() || type_expression->est_type_fonction())) {
+        return true;
+    }
+
+    return false;
+}
+
 static RésultatAppariement apparie_appel_init_de(
     NoeudExpression const *expr, kuri::tableau<IdentifiantEtExpression> const &args)
 {
@@ -796,7 +811,19 @@ static RésultatAppariement apparie_appel_init_de(
     auto type_fonction = expr->type->comme_type_fonction();
     auto type_pointeur = type_fonction->types_entrées[0];
 
-    if (type_pointeur != args[0].expr->type) {
+    auto type_initialisé = type_pointeur->comme_type_pointeur()->type_pointé;
+    auto type_expression = args[0].expr->type;
+
+    if (!type_expression->est_type_pointeur()) {
+        /* À FAIRE : nous pourrions avoir une erreur disant 'un pointeur est requis pour init_de()'
+         */
+        return ErreurAppariement::métypage_argument(
+            args[0].expr, type_pointeur, args[0].expr->type);
+    }
+
+    type_expression = type_expression->comme_type_pointeur()->type_pointé;
+
+    if (!type_est_compatible_pour_init_de(type_initialisé, type_expression)) {
         return ErreurAppariement::métypage_argument(
             args[0].expr, type_pointeur, args[0].expr->type);
     }
@@ -804,7 +831,14 @@ static RésultatAppariement apparie_appel_init_de(
     auto exprs = kuri::crée_tablet<NoeudExpression *, 10>(args[0].expr);
 
     auto transformations = kuri::tableau<TransformationType, int>(1);
-    transformations[0] = TransformationType{TypeTransformation::INUTILE};
+
+    if (type_initialisé != type_expression) {
+        transformations[0] = TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE,
+                                                type_pointeur};
+    }
+    else {
+        transformations[0] = TransformationType{TypeTransformation::INUTILE};
+    }
 
     return CandidateAppariement::appel_init_de(
         1.0, expr->type, std::move(exprs), std::move(transformations));
@@ -2311,6 +2345,7 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     else if (candidate->note == CANDIDATE_EST_APPEL_INIT_DE) {
         // le type du retour
         expr->type = TypeBase::RIEN;
+        applique_transformations(contexte, candidate, expr);
     }
     else if (candidate->note == CANDIDATE_EST_INITIALISATION_OPAQUE) {
         if (!expr->possède_drapeau(PositionCodeNoeud::DROITE_ASSIGNATION)) {

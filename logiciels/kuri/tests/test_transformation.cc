@@ -85,9 +85,11 @@ int main()
     reussite &= verifie_transformation(compilatrice, TypeBase::R64, TypeBase::EINI, true);
     reussite &= verifie_transformation(compilatrice, TypeBase::EINI, TypeBase::R64, true);
     reussite &= verifie_transformation(compilatrice, TypeBase::EINI, TypeBase::EINI, true);
-    // test [..]octet -> eini => CONSTRUIT_EINI et non EXTRAIT_TABL_OCTET
-    reussite &= verifie_transformation(compilatrice, TypeBase::TABL_OCTET, TypeBase::EINI, true);
-    reussite &= verifie_transformation(compilatrice, TypeBase::EINI, TypeBase::TABL_OCTET, true);
+    // test []octet -> eini => CONSTRUIT_EINI et non EXTRAIT_TABL_OCTET
+    reussite &= verifie_transformation(
+        compilatrice, TypeBase::TRANCHE_OCTET, TypeBase::EINI, true);
+    reussite &= verifie_transformation(
+        compilatrice, TypeBase::EINI, TypeBase::TRANCHE_OCTET, true);
 
     reussite &= verifie_transformation(compilatrice, TypeBase::PTR_Z8, TypeBase::PTR_NUL, true);
     reussite &= verifie_transformation(compilatrice, TypeBase::PTR_Z8, TypeBase::PTR_RIEN, true);
@@ -96,9 +98,8 @@ int main()
     reussite &= verifie_transformation(compilatrice, TypeBase::PTR_NUL, TypeBase::PTR_Z8, true);
     reussite &= verifie_transformation(compilatrice, TypeBase::PTR_RIEN, TypeBase::PTR_Z8, true);
 
-    // test [4]z32 -> [..]z32 et [4]z32 -> eini
     reussite &= verifie_transformation(
-        compilatrice, TypeBase::TABL_N8, TypeBase::TABL_OCTET, true);
+        compilatrice, TypeBase::TABL_N8, TypeBase::TRANCHE_OCTET, true);
 
     reussite &= verifie_transformation(compilatrice, dt_tabl_fixe, dt_tranche, true);
 
@@ -106,7 +107,7 @@ int main()
 
     reussite &= verifie_transformation(compilatrice, dt_tabl_fixe, dt_eini, true);
 
-    auto dt_tabl_octet = TypeBase::TABL_OCTET;
+    auto dt_tabl_octet = TypeBase::TRANCHE_OCTET;
     reussite &= verifie_transformation(compilatrice, dt_tabl_fixe, dt_tabl_octet, true);
 
     /* test : appel fonction */
