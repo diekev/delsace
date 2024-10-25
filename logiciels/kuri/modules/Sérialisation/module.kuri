@@ -277,21 +277,21 @@ détruit_tampon :: fonc (tampon: *TamponOctetDynamique)
 sérialise_entier :: fonc (tampon: *TamponOctetDynamique, entier: z32)
 {
     curseur := tampon.données.taille
-    tableau_redimensionne(tampon.données, curseur + 4)
+    tableau_redimensionne_sans_init(tampon.données, curseur + 4)
     sérialise_entier(tampon.données, curseur, entier)
 }
 
 sérialise_entier :: fonc (tampon: *TamponOctetDynamique, entier: z64)
 {
     curseur := tampon.données.taille
-    tableau_redimensionne(tampon.données, curseur + 8)
+    tableau_redimensionne_sans_init(tampon.données, curseur + 8)
     sérialise_entier(tampon.données, curseur, entier)
 }
 
 sérialise_chaine_sans_taille :: fonc (tampon: *TamponOctetDynamique, chn: chaine)
 {
     curseur := tampon.données.taille
-    tableau_redimensionne(tampon.données, curseur + chn.taille)
+    tableau_redimensionne_sans_init(tampon.données, curseur + chn.taille)
     sérialise_chaine_sans_taille(tampon.données, curseur, chn)
 }
 
