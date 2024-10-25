@@ -274,6 +274,11 @@ class GestionnaireCode {
 
     UniteCompilation *requiers_noeud_code(EspaceDeTravail *espace, NoeudExpression *noeud);
 
+    MetaProgramme *crée_métaprogramme_corps_texte(EspaceDeTravail *espace,
+                                                  NoeudBloc *bloc_corps_texte,
+                                                  NoeudBloc *bloc_parent,
+                                                  const Lexème *lexème);
+
     /* Ajoute l'unité à la liste d'attente, et change son état vers EN_ATTENTE. */
     void ajoute_unité_à_liste_attente(UniteCompilation *unité);
 
