@@ -2056,6 +2056,11 @@ kuri::chaine nom_humainement_lisible(NoeudExpression const *noeud)
         return chaine_type(noeud->comme_déclaration_type());
     }
 
+    if (noeud->est_corps_fonction()) {
+        return enchaine("corps de ",
+                        nom_humainement_lisible(noeud->comme_corps_fonction()->entête));
+    }
+
     if (noeud->ident) {
         return noeud->ident->nom;
     }
