@@ -276,10 +276,6 @@ struct Sémanticienne {
 
     NoeudExpression *racine_validation() const;
 
-    MetaProgramme *crée_métaprogramme_corps_texte(NoeudBloc *bloc_corps_texte,
-                                                  NoeudBloc *bloc_parent,
-                                                  const Lexème *lexème);
-
     MetaProgramme *crée_métaprogramme_pour_directive(NoeudDirectiveExécute *directive);
 
     CodeRetourValidation valide_expression_pour_condition(NoeudExpression const *condition,
