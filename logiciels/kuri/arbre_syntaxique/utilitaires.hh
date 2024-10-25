@@ -59,7 +59,7 @@ enum class DrapeauxNoeud : uint32_t {
     ACCES_EST_ENUM_DRAPEAU = (1 << 16),              // accès membre
     EST_UTILISEE = (1 << 17),                        // decl var
     EST_MARQUÉE_INUTILISÉE = (1 << 18),              // decl var
-    METAPROGRAMME_CORPS_TEXTE_FUT_CREE = (1 << 19),
+    /* DISPONIBLE = (1 << 19), */
     NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE = (1 << 20),
     DÉPENDANCES_FURENT_RÉSOLUES = (1 << 21),
     IDENTIFIANT_EST_ACCENTUÉ_GRAVE = (1u << 22),
@@ -535,3 +535,5 @@ struct InformationMembreTypeCompose {
 };
 
 kuri::tableau<char> donne_tableau_valeurs_énum(NoeudEnum const &noeud);
+
+NoeudDéclaration *donne_déclaration_employée(NoeudExpression *noeud);
