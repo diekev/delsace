@@ -1,0 +1,15 @@
+/* Aucune erreur si un pointeur de fonction n'a pas le bon nombre d'argument.
+ * Catégorie : [validation sémantique]
+ */
+
+Struct :: struct {
+    rappel1: fonc(z32)(rien)
+    rappel2: fonc(z32, z32)(rien)
+}
+
+principale :: fonc () -> z32
+{
+    s: Struct
+    s.rappel1(0, 0)
+    retourne 0
+}
