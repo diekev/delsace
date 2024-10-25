@@ -717,8 +717,6 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, int taille, bool 
 
     // les décalages sont à zéros car ceci n'est pas vraiment une structure
     auto membres = kuri::tableau<MembreTypeComposé, int>();
-    membres.ajoute(
-        {nullptr, type_pointeur_pour(type_pointe, false, insere_dans_graphe), ID::pointeur, 0});
     membres.ajoute({nullptr,
                     TypeBase::Z64,
                     ID::taille,
