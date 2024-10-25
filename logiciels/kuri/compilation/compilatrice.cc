@@ -608,13 +608,15 @@ MetaProgramme *Compilatrice::metaprogramme_pour_fonction(
 
 Fichier *Compilatrice::crée_fichier_pour_metaprogramme(MetaProgramme *metaprogramme_)
 {
-    auto fichier_racine = this->fichier(metaprogramme_->corps_texte->lexème->fichier);
+    auto const id_source_corps_texte = metaprogramme_->corps_texte->lexème->fichier;
+    auto fichier_racine = this->fichier(id_source_corps_texte);
     auto module = fichier_racine->module;
     auto nom_fichier = enchaine(metaprogramme_);
     auto résultat_fichier = this->trouve_ou_crée_fichier(module, nom_fichier, nom_fichier, false);
     assert(std::holds_alternative<FichierNeuf>(résultat_fichier));
     auto résultat = static_cast<Fichier *>(std::get<FichierNeuf>(résultat_fichier));
     résultat->métaprogramme_corps_texte = metaprogramme_;
+    résultat->id_source_corps_texte = id_source_corps_texte;
     résultat->source = SourceFichier::CHAINE_AJOUTÉE;
     metaprogramme_->fichier = résultat;
     /* Hérite des modules importés par le fichier où se trouve le métaprogramme afin de pouvoir
