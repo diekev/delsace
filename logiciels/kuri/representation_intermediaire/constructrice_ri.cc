@@ -3500,7 +3500,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
             valeur = m_constructrice.crée_charge_mem(noeud, valeur);
             break;
         }
-        case TypeTransformation::CONSTRUIT_TABL_OCTET:
+        case TypeTransformation::CONSTRUIT_TRANCHE_OCTET:
         {
             auto valeur_pointeur = static_cast<Atome *>(nullptr);
             auto valeur_taille = static_cast<Atome *>(nullptr);
@@ -3610,7 +3610,8 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
 
             auto tabl_octet = place;
             if (!tabl_octet) {
-                tabl_octet = m_constructrice.crée_allocation(noeud, TypeBase::TABL_OCTET, nullptr);
+                tabl_octet = m_constructrice.crée_allocation(
+                    noeud, TypeBase::TRANCHE_OCTET, nullptr);
             }
 
             auto pointeur_tabl_octet = m_constructrice.crée_référence_membre(noeud, tabl_octet, 0);

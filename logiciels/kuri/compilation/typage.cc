@@ -452,6 +452,8 @@ Typeuse::Typeuse(dls::outils::Synchrone<GrapheDépendance> &g,
     CREE_TYPE_SIMPLE(OCTET);
     CREE_TYPE_SIMPLE(ADRESSE_FONCTION);
 
+    TypeBase::TRANCHE_OCTET = crée_type_tranche(TypeBase::OCTET, true);
+
 #undef CREE_TYPE_SIMPLE
 
     TypeBase::RIEN->drapeaux_type |= (DrapeauxTypes::TYPE_NE_REQUIERS_PAS_D_INITIALISATION |
@@ -543,6 +545,7 @@ void Typeuse::crée_tâches_précompilation(Compilatrice &compilatrice)
     gestionnaire->requiers_initialisation_type(espace, TypeBase::Z64);
     gestionnaire->requiers_initialisation_type(espace, TypeBase::PTR_RIEN);
     gestionnaire->requiers_initialisation_type(espace, TypeBase::ADRESSE_FONCTION);
+    gestionnaire->requiers_initialisation_type(espace, TypeBase::TRANCHE_OCTET);
 }
 
 Type *Typeuse::type_pour_lexeme(GenreLexème lexeme)

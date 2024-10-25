@@ -5277,8 +5277,8 @@ void Sémanticienne::crée_transtypage_implicite_au_besoin(NoeudExpression *&exp
         else if (transformation.type == TypeTransformation::DEREFERENCE) {
             type_cible = type_déréférencé_pour(expression->type);
         }
-        else if (transformation.type == TypeTransformation::CONSTRUIT_TABL_OCTET) {
-            type_cible = TypeBase::TABL_OCTET;
+        else if (transformation.type == TypeTransformation::CONSTRUIT_TRANCHE_OCTET) {
+            type_cible = TypeBase::TRANCHE_OCTET;
         }
         else if (transformation.type == TypeTransformation::CONVERTI_TABLEAU_FIXE_VERS_TRANCHE) {
             auto type_tableau_fixe = expression->type->comme_type_tableau_fixe();
