@@ -99,7 +99,7 @@ génère_données_aléatoires :: fonc (génératrice: &GénératriceDonnéesAlé
             continue
         }
 
-        tampon: [..]octet
+        tampon: []octet
         tampon.pointeur = (*résultat comme *z8 + it.décalage)
         tampon.taille = it.id.taille_en_octet comme z64
 

@@ -45,7 +45,7 @@ construit_chaine :: fonc (ptr: *z8, taille: z64) -> chaine
     retourne ret
 }
 
-chaine_depuis_tableau_octets :: fonc (données: [..]octet) -> chaine
+chaine_depuis_tranche_octets :: fonc (données: []octet) -> chaine
 {
     retourne construit_chaine(données.pointeur comme *z8, données.taille)
 }

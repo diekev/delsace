@@ -118,9 +118,9 @@ quand_ouverture :: fonc (prise: *Prise, est_client: bool @inutilisée)
     }
 }
 
-quand_données_reçues :: fonc (prise: *Prise, données: [..]octet)
+quand_données_reçues :: fonc (prise: *Prise, données: []octet)
 {
-    contenu := chaine_depuis_tableau_octets(données)
+    contenu := chaine_depuis_tranche_octets(données)
 
     si !contenu {
         // délai en cas de non-écriture

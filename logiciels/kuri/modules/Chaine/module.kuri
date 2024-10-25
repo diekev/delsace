@@ -137,3 +137,38 @@ converti_vers_chaine :: fonc (chn: &ChaineFixe) -> chaine
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ItératriceUTF32
+ * \{ */
+
+ItératriceUTF32 :: struct {
+    chn: chaine
+}
+
+opérateur pour :: fonc (itératrice: ItératriceUTF32) -> rune32
+{
+    ptr_source := itératrice.chn.pointeur
+    curseur := 0
+
+    index := 0
+
+    tantque curseur < itératrice.chn.taille {
+        no := nombre_octets_utf8_rapide(*ptr_source[curseur])
+
+        si no == 0 {
+            curseur += 1
+            continue
+        }
+
+        `it = converti_utf8_utf32(*ptr_source[curseur]) comme n32
+        `index_it = index
+
+        #corps_boucle
+
+        index += 1
+        curseur += no comme z32
+    }
+}
+
+/** \} */

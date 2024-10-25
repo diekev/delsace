@@ -116,7 +116,8 @@ contenu_fichier_binaire :: fonc (chemin: &CheminFichier) -> [..]octet
 
     discr lis_tout(*fichier) {
         c(c_) {
-            contenu = c_
+            contenu.pointeur = c_.pointeur
+            contenu.taille = c_.taille
         }
         sinon {
         }

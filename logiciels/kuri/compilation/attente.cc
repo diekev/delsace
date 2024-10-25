@@ -159,7 +159,7 @@ RAPPEL_POUR_UNITÉ(déclaration)
 
 RAPPEL_POUR_COMMENTAIRE(déclaration)
 {
-    return enchaine("(decl) ", attente.déclaration()->ident->nom);
+    return enchaine("(decl) ", nom_humainement_lisible(attente.déclaration()));
 }
 
 RAPPEL_POUR_EST_RÉSOLUE(déclaration)

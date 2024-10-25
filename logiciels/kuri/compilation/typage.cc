@@ -452,6 +452,8 @@ Typeuse::Typeuse(dls::outils::Synchrone<GrapheDépendance> &g,
     CREE_TYPE_SIMPLE(OCTET);
     CREE_TYPE_SIMPLE(ADRESSE_FONCTION);
 
+    TypeBase::TRANCHE_OCTET = crée_type_tranche(TypeBase::OCTET, true);
+
 #undef CREE_TYPE_SIMPLE
 
     TypeBase::RIEN->drapeaux_type |= (DrapeauxTypes::TYPE_NE_REQUIERS_PAS_D_INITIALISATION |
@@ -543,6 +545,7 @@ void Typeuse::crée_tâches_précompilation(Compilatrice &compilatrice)
     gestionnaire->requiers_initialisation_type(espace, TypeBase::Z64);
     gestionnaire->requiers_initialisation_type(espace, TypeBase::PTR_RIEN);
     gestionnaire->requiers_initialisation_type(espace, TypeBase::ADRESSE_FONCTION);
+    gestionnaire->requiers_initialisation_type(espace, TypeBase::TRANCHE_OCTET);
 }
 
 Type *Typeuse::type_pour_lexeme(GenreLexème lexeme)
@@ -714,9 +717,13 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, int taille, bool 
 
     // les décalages sont à zéros car ceci n'est pas vraiment une structure
     auto membres = kuri::tableau<MembreTypeComposé, int>();
-    membres.ajoute(
-        {nullptr, type_pointeur_pour(type_pointe, false, insere_dans_graphe), ID::pointeur, 0});
-    membres.ajoute({nullptr, TypeBase::Z64, ID::taille, 0});
+    membres.ajoute({nullptr,
+                    TypeBase::Z64,
+                    ID::taille,
+                    0,
+                    uint64_t(taille),
+                    nullptr,
+                    MembreTypeComposé::EST_CONSTANT});
 
     auto type = alloc->m_noeuds_type_tableau_fixe.ajoute_élément();
     initialise_type_tableau_fixe(type, type_pointe, taille, std::move(membres));

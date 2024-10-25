@@ -121,7 +121,7 @@ trouve_table :: fonc (cm: *CoulisseMémoire, nom_table: chaine) -> *Table
     retourne nul
 }
 
-imprime_tampon :: fonc (tampon: [..]octet, message: chaine)
+imprime_tampon :: fonc (tampon: []octet, message: chaine)
 {
     imprime("% :\n", message)
     pour tampon {
