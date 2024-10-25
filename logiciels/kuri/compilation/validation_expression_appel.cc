@@ -711,6 +711,11 @@ static RésultatAppariement apparie_appel_pointeur(
         apparieuse.ajoute_param(nullptr, nullptr, type_prm->est_type_variadique());
     }
 
+    if (args.taille() > type_fonction->types_entrées.taille() && !fonction_variadique) {
+        return ErreurAppariement::mécomptage_arguments(
+            b, type_fonction->types_entrées.taille(), args.taille());
+    }
+
     POUR (args) {
         if (!apparieuse.ajoute_expression(it.ident, it.expr, it.expr_ident)) {
             return apparieuse.erreur;
