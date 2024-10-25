@@ -71,7 +71,7 @@ crée_jeu :: fonc () -> Jeu
 traite_touche_clavier :: fonc (jeu: *Jeu, clé_clavier: CléClavier)
 {
     discr clé_clavier {
-        CLÉ_FLÈCHE_GAUCHE {
+        FLÈCHE_GAUCHE {
             jeu.personnage.pos_x -= TAILLE_TUILE
 
             // vérifie collision
@@ -79,7 +79,7 @@ traite_touche_clavier :: fonc (jeu: *Jeu, clé_clavier: CléClavier)
                 jeu.personnage.pos_x = 0
             }
         }
-        CLÉ_FLÈCHE_DROITE {
+        FLÈCHE_DROITE {
             jeu.personnage.pos_x += TAILLE_TUILE
 
             // vérifie collision
@@ -87,7 +87,7 @@ traite_touche_clavier :: fonc (jeu: *Jeu, clé_clavier: CléClavier)
                 jeu.personnage.pos_x = jeu.largeur - TAILLE_TUILE
             }
         }
-        CLÉ_FLÈCHE_HAUT {
+        FLÈCHE_HAUT {
             jeu.personnage.pos_y += TAILLE_TUILE
 
             // vérifie collision
@@ -95,7 +95,7 @@ traite_touche_clavier :: fonc (jeu: *Jeu, clé_clavier: CléClavier)
                 jeu.personnage.pos_y = jeu.hauteur - TAILLE_TUILE
             }
         }
-        CLÉ_FLÈCHE_BAS {
+        FLÈCHE_BAS {
             jeu.personnage.pos_y -= TAILLE_TUILE
 
             // vérifie collision
