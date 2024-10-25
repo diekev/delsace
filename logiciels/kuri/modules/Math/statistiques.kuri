@@ -297,7 +297,7 @@ covariance :: fonc (données1: [..]$T, esp1: T, données2: [..]T, esp2: T) -> T,
     retourne résultat, taille
 }
 
-calcule_table_occurences :: fonc (données: [..]octet) -> [256]z32
+calcule_table_occurences :: fonc (données: []octet) -> [256]z32
 {
     table_occurence: [256]z32
 
@@ -312,7 +312,7 @@ calcule_table_occurences :: fonc (données: [..]octet) -> [256]z32
     retourne table_occurence
 }
 
-calcule_entropie_de_shannon :: fonc (données: [..]octet) -> r32
+calcule_entropie_de_shannon :: fonc (données: []octet) -> r32
 {
     table_occurence := calcule_table_occurences(données)
 
@@ -331,7 +331,7 @@ calcule_entropie_de_shannon :: fonc (données: [..]octet) -> r32
 }
 
 // https://dridk.me/shannon-entropy.html
-calcule_entropie_de_shannon_croisée :: fonc (données1: [..]octet, données2: [..]octet) -> r32
+calcule_entropie_de_shannon_croisée :: fonc (données1: []octet, données2: []octet) -> r32
 {
     table_occurence1 := calcule_table_occurences(données1)
     table_occurence2 := calcule_table_occurences(données2)

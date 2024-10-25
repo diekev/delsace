@@ -379,7 +379,7 @@ sélectionne :: fonc (table: &TableMySQL, $T: type_de_données, colonnes: ...cha
 
             chn := colonne_suivante(*curseur)
 
-            tampon: [..]octet
+            tampon: []octet
             tampon.pointeur = valeur_membre.pointeur comme *z8
             tampon.taille = membre.id.taille_en_octet comme z64
 
@@ -503,7 +503,7 @@ exécute :: fonc (pilote: *PiloteMySQL, requête: chaine, $T: type_de_données, 
 
             chn := colonne_suivante(*curseur)
 
-            tampon: [..]octet
+            tampon: []octet
             tampon.pointeur = valeur_membre.pointeur comme *z8
             tampon.taille = membre.id.taille_en_octet comme z64
 
@@ -738,7 +738,7 @@ génère_fonction_enveloppe :: fonc (enchaineuse: *Enchaineuse, données: Donné
 {
     nom_enveloppe := enchaine("parsage_mysql_", données.fonction.nom)
 
-    ajoute_au_tampon(enchaineuse, nom_enveloppe, " :: fonc (chn: chaine, tampon: [..]octet) -> bool\n")
+    ajoute_au_tampon(enchaineuse, nom_enveloppe, " :: fonc (chn: chaine, tampon: []octet) -> bool\n")
     ajoute_au_tampon(enchaineuse, "{\n")
     ajoute_au_tampon(enchaineuse, "\tsuccès, valeur := ", données.fonction.nom, "(chn)\n")
     ajoute_au_tampon(enchaineuse, "\tsaufsi succès {\n\t\tretourne faux\n\t}\n")

@@ -17,8 +17,16 @@ static bool peut_sélectionner_déclaration(NoeudDéclaration const *déclaratio
 
     if (déclaration->est_déclaration_symbole()) {
         auto symbole = déclaration->comme_déclaration_symbole();
-        if (symbole->portée == PortéeSymbole::FICHIER &&
-            déclaration->lexème->fichier != fichier->id()) {
+        if (symbole->portée == PortéeSymbole::FICHIER) {
+            auto const id_fichier_symbole = déclaration->lexème->fichier;
+            if (id_fichier_symbole == fichier->id()) {
+                return true;
+            }
+
+            if (id_fichier_symbole == fichier->id_source_corps_texte) {
+                return true;
+            }
+
             return false;
         }
 

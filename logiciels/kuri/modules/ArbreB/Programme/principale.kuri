@@ -139,10 +139,6 @@ crée_hash :: fonc (capacité: z32) -> *Hash
 
     tableau_redimensionne(h.noeuds, capacité)
 
-    pour & noeud dans h.noeuds {
-        noeud = nul
-    }
-
     retourne h
 }
 

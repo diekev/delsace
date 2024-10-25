@@ -386,7 +386,7 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
             noms.réserve(type_enum->membres.taille());
 
             POUR (type_enum->membres) {
-                if (it.drapeaux == MembreTypeComposé::EST_IMPLICITE) {
+                if (it.est_implicite()) {
                     continue;
                 }
 

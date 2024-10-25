@@ -85,13 +85,6 @@ RésultatValidation Sémanticienne::valide_discr_énum(NoeudDiscr *inst, Type *t
                 return CodeRetourValidation::Erreur;
             }
 
-            if (membre.est_constant()) {
-                m_espace->rapporte_erreur(f,
-                                          "Les membres constants des énumérations ne peuvent être "
-                                          "utilisés comme expression de discrimination");
-                return CodeRetourValidation::Erreur;
-            }
-
             if (membres_rencontrés.possède(membre.nom)) {
                 rapporte_erreur("Redéfinition de l'expression", f);
                 return CodeRetourValidation::Erreur;

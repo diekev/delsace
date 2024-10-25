@@ -136,7 +136,7 @@ sauvegarde_paramètres :: fonc (sauvegardeuse: *Sauvegardeuse, table_paramètres
             sinon {
                 /* Écris la valeur.
                  * À FAIRE : courbes et rampes. */
-                octets: [..]octet
+                octets: []octet
                 octets.pointeur = it.valeur.pointeur
                 octets.taille = infos.taille_en_octet comme z64
 

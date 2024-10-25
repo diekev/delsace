@@ -290,7 +290,7 @@ initialise_rappels_pour_contexte_vide :: fonc (ctx: *Contexte)
     {
     }
 
-    rappel_vide_quand_données_reçues :: fonc (prise: *Prise @inutilisée, données: [..]octet @inutilisée)
+    rappel_vide_quand_données_reçues :: fonc (prise: *Prise @inutilisée, données: []octet @inutilisée)
     {
     }
 

@@ -847,17 +847,17 @@ test_valeur_types :: fonc () -> bool
 #assert test_valeur_types()
 
 // ----------------------------------------------------------------------------
-// Tests tableau octet
+// Tests tranche octet
 
-taille_tableau_octet :: fonc (tableau: [..]octet) -> z64
+taille_tranche_octet :: fonc (tranche: []octet) -> z64
 {
-    retourne tableau.taille
+    retourne tranche.taille
 }
 
-#assert taille_tableau_octet(4) == 4
-#assert taille_tableau_octet(6.0 comme r64) == 8
-#assert taille_tableau_octet("kuri") == 4
-#assert taille_tableau_octet([ 0, 1, 2, 3 ]) == 16
+#assert taille_tranche_octet(4) == 4
+#assert taille_tranche_octet(6.0 comme r64) == 8
+#assert taille_tranche_octet("kuri") == 4
+#assert taille_tranche_octet([ 0, 1, 2, 3 ]) == 16
 
 // À FAIRE : contenu du tableau, conversion depuis d'autres types (tableaux dynamiques)
 

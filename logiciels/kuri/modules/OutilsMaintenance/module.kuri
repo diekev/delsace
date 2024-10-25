@@ -98,7 +98,7 @@ exécute_rappel_pour_fichier :: fonc (racine: CheminFichier, chemin: CheminFichi
     contenu_fichier_binaire(chemin, données.contenu)
 
     données.racine_exécution = racine
-    divise(chaine_depuis_tableau_octets(données.contenu), '\n', *données.lignes)
+    divise(chaine_depuis_tranche_octets(données.contenu), '\n', *données.lignes)
     données.chemin = chemin
     données.données_utilisateurs = données_utilisateurs
 

@@ -98,6 +98,9 @@ struct Fichier {
     kuri::chaine chemin_{""};
 
     int64_t id_ = 0;
+    /* Si le fichier est le résultat d'un #corps_texte, ceci est l'id du fichier contenant le corps
+     * texte. */
+    int64_t id_source_corps_texte = -1;
 
     std::mutex mutex{};
 

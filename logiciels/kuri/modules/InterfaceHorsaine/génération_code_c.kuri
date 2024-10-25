@@ -135,16 +135,7 @@ ajoute_type :: fonc (système: *SystèmeTypeC, ipa: &IPA, type: *InfoType) -> *I
 
     /* Redimensionne la table de types au besoin. */
     index_dans_table_des_types := (type.index_dans_table_des_types comme z64)
-    taille_tableau := système.types.taille
-    si taille_tableau < index_dans_table_des_types {
-        tableau_redimensionne(système.types, index_dans_table_des_types)
-        système.types.taille = index_dans_table_des_types
-
-        /* Garantis que les éléments n'ayant pas encore été renseignés sont nuls. */
-        pour taille_tableau ... système.types.taille - 1 {
-            système.types[it] = nul
-        }
-    }
+    tableau_redimensionne(système.types, index_dans_table_des_types)
 
     /* À FAIRE(langage) : table des types. */
     index := index_dans_table_des_types - 1

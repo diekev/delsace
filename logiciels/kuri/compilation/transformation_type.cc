@@ -154,6 +154,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
         case GenreNoeud::VARIADIQUE:
         case GenreNoeud::ENTIER_CONSTANT:
         case GenreNoeud::TYPE_DE_DONNÉES:
+        case GenreNoeud::TABLEAU_DYNAMIQUE:
         {
             break;
         }
@@ -179,25 +180,6 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
             }
             break;
         }
-        case GenreNoeud::TABLEAU_DYNAMIQUE:
-        {
-            auto type_pointe = type_vers->comme_type_tableau_dynamique()->type_pointé;
-
-            if (type_pointe->est_type_octet()) {
-                // a : [..]octet = nul, voir bug19
-                if (type_de->est_type_pointeur()) {
-                    auto type_pointe_de = type_de->comme_type_pointeur()->type_pointé;
-
-                    if (type_pointe_de == nullptr) {
-                        return TransformationType(TypeTransformation::IMPOSSIBLE);
-                    }
-                }
-
-                return TransformationType(TypeTransformation::CONSTRUIT_TABL_OCTET);
-            }
-
-            break;
-        }
         case GenreNoeud::TYPE_TRANCHE:
         {
             auto type_élément = type_vers->comme_type_tranche()->type_élément;
@@ -206,7 +188,6 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
                     return TransformationType(
                         TypeTransformation::CONVERTI_TABLEAU_FIXE_VERS_TRANCHE, type_vers);
                 }
-                return TransformationType(TypeTransformation::IMPOSSIBLE);
             }
 
             if (type_de->est_type_tableau_dynamique()) {
@@ -214,10 +195,22 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
                     return TransformationType(
                         TypeTransformation::CONVERTI_TABLEAU_DYNAMIQUE_VERS_TRANCHE, type_vers);
                 }
-                return TransformationType(TypeTransformation::IMPOSSIBLE);
             }
 
-            break;
+            if (type_élément->est_type_octet()) {
+                // a : []octet = nul, voir bug19
+                if (type_de->est_type_pointeur()) {
+                    auto type_pointe_de = type_de->comme_type_pointeur()->type_pointé;
+
+                    if (type_pointe_de == nullptr) {
+                        return TransformationType(TypeTransformation::IMPOSSIBLE);
+                    }
+                }
+
+                return TransformationType(TypeTransformation::CONSTRUIT_TRANCHE_OCTET);
+            }
+
+            return TransformationType(TypeTransformation::IMPOSSIBLE);
         }
         case GenreNoeud::BOOL:
         {
