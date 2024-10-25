@@ -713,9 +713,7 @@ static bool doit_ajouter_les_dépendances_au_programme(NoeudExpression *noeud, P
 
 /* Construit les dépendances de l'unité (fonctions, globales, types) et crée des unités de typage
  * pour chacune des dépendances non-encore typée. */
-void GestionnaireCode::détermine_dépendances(NoeudExpression *noeud,
-                                             EspaceDeTravail *espace,
-                                             GrapheDépendance &graphe)
+void GestionnaireCode::détermine_dépendances(NoeudExpression *noeud, EspaceDeTravail *espace)
 {
     DÉBUTE_STAT(DÉTERMINE_DÉPENDANCES);
     dépendances.reinitialise();
@@ -728,8 +726,9 @@ void GestionnaireCode::détermine_dépendances(NoeudExpression *noeud,
      * relations dans le graphe. */
     if (!noeud->est_ajoute_fini() && !noeud->est_ajoute_init()) {
         DÉBUTE_STAT(AJOUTE_DÉPENDANCES);
-        NoeudDépendance *noeud_dépendance = graphe.garantie_noeud_dépendance(espace, noeud);
-        graphe.ajoute_dépendances(*noeud_dépendance, dépendances.dépendances);
+        auto graphe = m_compilatrice->graphe_dépendance.verrou_ecriture();
+        NoeudDépendance *noeud_dépendance = graphe->garantie_noeud_dépendance(espace, noeud);
+        graphe->ajoute_dépendances(*noeud_dépendance, dépendances.dépendances);
         TERMINE_STAT(AJOUTE_DÉPENDANCES);
     }
 
@@ -758,7 +757,8 @@ void GestionnaireCode::détermine_dépendances(NoeudExpression *noeud,
         if (!doit_ajouter_les_dépendances_au_programme(noeud, it)) {
             continue;
         }
-        if (!ajoute_dépendances_au_programme(graphe, dépendances, espace, *it, noeud)) {
+        auto graphe = m_compilatrice->graphe_dépendance.verrou_ecriture();
+        if (!ajoute_dépendances_au_programme(*graphe, dépendances, espace, *it, noeud)) {
             break;
         }
         dépendances_ajoutees = true;
@@ -830,8 +830,205 @@ void GestionnaireCode::requiers_parsage(EspaceDeTravail *espace, Fichier *fichie
     m_état_chargement_fichiers.ajoute_unité_pour_chargement_fichier(unité);
 }
 
+static bool est_corps_texte(NoeudExpression *noeud)
+{
+    if (noeud->est_corps_fonction()) {
+        auto corps_fonction = noeud->comme_corps_fonction();
+        return corps_fonction->est_corps_texte &&
+               !corps_fonction->entête->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE);
+    }
+
+    if (noeud->est_type_structure()) {
+        auto type_structure = noeud->comme_type_structure();
+        return type_structure->est_corps_texte && !type_structure->est_polymorphe;
+    }
+
+    if (noeud->est_type_union()) {
+        auto type_union = noeud->comme_type_union();
+        return type_union->est_corps_texte && !type_union->est_polymorphe;
+    }
+
+    return false;
+}
+
+static void échange_corps_entêtes(NoeudDéclarationEntêteFonction *ancienne_fonction,
+                                  NoeudDéclarationEntêteFonction *nouvelle_fonction)
+{
+    auto nouveau_corps = nouvelle_fonction->corps;
+    auto ancien_corps = ancienne_fonction->corps;
+
+    /* Échange les corps. */
+    nouvelle_fonction->corps = ancien_corps;
+    ancien_corps->entête = nouvelle_fonction;
+    ancien_corps->bloc_parent = nouvelle_fonction->bloc_parent;
+    ancien_corps->bloc->bloc_parent = nouvelle_fonction->bloc_paramètres;
+
+    ancienne_fonction->corps = nouveau_corps;
+    nouveau_corps->entête = ancienne_fonction;
+    nouveau_corps->bloc_parent = ancienne_fonction->bloc_parent;
+    nouveau_corps->bloc->bloc_parent = ancienne_fonction->bloc_paramètres;
+
+    /* Remplace les références à ancienne_fonction dans nouvelle_fonction->corps par
+     * nouvelle_fonction. */
+    visite_noeud(nouvelle_fonction->corps,
+                 PreferenceVisiteNoeud::ORIGINAL,
+                 false,
+                 [&](NoeudExpression const *noeud) -> DecisionVisiteNoeud {
+                     if (noeud->est_bloc()) {
+                         auto bloc = noeud->comme_bloc();
+                         assert(bloc->appartiens_à_fonction == ancienne_fonction);
+                         const_cast<NoeudBloc *>(bloc)->appartiens_à_fonction = nouvelle_fonction;
+                     }
+                     return DecisionVisiteNoeud::CONTINUE;
+                 });
+}
+
+static void définis_fonction_courante_pour_corps_texte(NoeudDéclarationCorpsFonction *corps)
+{
+    visite_noeud(corps,
+                 PreferenceVisiteNoeud::ORIGINAL,
+                 false,
+                 [&](NoeudExpression const *noeud) -> DecisionVisiteNoeud {
+                     if (noeud->est_bloc()) {
+                         auto bloc = noeud->comme_bloc();
+                         assert(bloc->appartiens_à_fonction == nullptr);
+                         const_cast<NoeudBloc *>(bloc)->appartiens_à_fonction = corps->entête;
+                     }
+                     return DecisionVisiteNoeud::CONTINUE;
+                 });
+}
+
+MetaProgramme *GestionnaireCode::crée_métaprogramme_corps_texte(EspaceDeTravail *espace,
+                                                                NoeudBloc *bloc_corps_texte,
+                                                                NoeudBloc *bloc_parent,
+                                                                const Lexème *lexème)
+{
+    auto fonction = m_assembleuse->crée_entête_fonction(lexème);
+    auto nouveau_corps = fonction->corps;
+
+    assert(m_assembleuse->bloc_courant() == nullptr);
+    m_assembleuse->bloc_courant(bloc_parent);
+
+    fonction->bloc_constantes = m_assembleuse->empile_bloc(lexème, fonction, TypeBloc::CONSTANTES);
+    fonction->bloc_paramètres = m_assembleuse->empile_bloc(lexème, fonction, TypeBloc::PARAMÈTRES);
+
+    fonction->bloc_parent = bloc_parent;
+    nouveau_corps->bloc_parent = fonction->bloc_paramètres;
+    /* Le corps de la fonction pour les #corps_texte des structures est celui de la déclaration. */
+    nouveau_corps->bloc = bloc_corps_texte;
+
+    /* mise en place du type de la fonction : () -> chaine */
+    fonction->drapeaux_fonction |= (DrapeauxNoeudFonction::EST_MÉTAPROGRAMME |
+                                    DrapeauxNoeudFonction::FUT_GÉNÉRÉE_PAR_LA_COMPILATRICE);
+
+    auto decl_sortie = m_assembleuse->crée_déclaration_variable(lexème, nullptr, nullptr);
+    decl_sortie->ident = m_compilatrice->table_identifiants->identifiant_pour_chaine("__ret0");
+    decl_sortie->type = TypeBase::CHAINE;
+    decl_sortie->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+
+    fonction->params_sorties.ajoute(decl_sortie);
+    fonction->param_sortie = decl_sortie;
+
+    auto types_entrees = kuri::tablet<Type *, 6>(0);
+
+    auto type_sortie = TypeBase::CHAINE;
+
+    fonction->type = m_compilatrice->typeuse.type_fonction(types_entrees, type_sortie);
+    fonction->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+
+    auto metaprogramme = m_compilatrice->crée_metaprogramme(espace);
+    metaprogramme->corps_texte = bloc_corps_texte;
+    metaprogramme->fonction = fonction;
+
+    m_assembleuse->dépile_bloc();
+    m_assembleuse->dépile_bloc();
+    m_assembleuse->dépile_bloc();
+    assert(m_assembleuse->bloc_courant() == nullptr);
+
+    return metaprogramme;
+}
+
 void GestionnaireCode::requiers_typage(EspaceDeTravail *espace, NoeudExpression *noeud)
 {
+    if (est_corps_texte(noeud)) {
+        if (noeud->est_corps_fonction()) {
+            auto corps_fonction = noeud->comme_corps_fonction();
+            auto entête = corps_fonction->entête;
+
+            auto métaprogramme = crée_métaprogramme_corps_texte(
+                espace, corps_fonction->bloc, entête->bloc_parent, entête->lexème);
+            métaprogramme->corps_texte_pour_fonction = entête;
+
+            auto fonction = métaprogramme->fonction;
+            échange_corps_entêtes(entête, fonction);
+
+            if (entête->possède_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
+                fonction->drapeaux_fonction |= DrapeauxNoeudFonction::EST_MONOMORPHISATION;
+            }
+            else {
+                fonction->drapeaux_fonction &= ~DrapeauxNoeudFonction::EST_MONOMORPHISATION;
+            }
+            fonction->site_monomorphisation = entête->site_monomorphisation;
+
+            // préserve les constantes polymorphiques
+            if (fonction->possède_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
+                POUR (*entête->bloc_constantes->membres.verrou_lecture()) {
+                    fonction->bloc_constantes->ajoute_membre(it);
+                }
+            }
+
+            /* Puisque nous avons échangé les corps, le noeud pointe vers le corps de la fonction
+             * du métaprogramme, dont la validation sera requise plus bas. Nous devons tout de même
+             * requérir la validation de l'« ancien corps », mais la faire attendre sur le parsage
+             * du fichier du métaprogramme. */
+            auto ancien_corps = entête->corps;
+
+            /* Annule le bloc du corps pour détecter les erreurs. Il sera ajourné après le
+             * syntaxage du code source retourné par le métaprogramme. */
+            ancien_corps->bloc = nullptr;
+
+            TACHE_AJOUTEE(TYPAGE);
+            crée_unité_pour_noeud(espace, ancien_corps, RaisonDÊtre::TYPAGE, true);
+
+            auto fichier = m_compilatrice->crée_fichier_pour_metaprogramme(métaprogramme);
+            ancien_corps->unité->ajoute_attente(Attente::sur_parsage(fichier));
+        }
+        else if (noeud->est_déclaration_classe()) {
+            auto decl = noeud->comme_déclaration_classe();
+            auto métaprogramme = crée_métaprogramme_corps_texte(
+                espace, decl->bloc, decl->bloc_parent, decl->lexème);
+            auto fonction = métaprogramme->fonction;
+            assert(fonction->corps->bloc);
+            fonction->corps->est_corps_texte = true;
+            définis_fonction_courante_pour_corps_texte(fonction->corps);
+
+            decl->métaprogramme_corps_texte = métaprogramme;
+            métaprogramme->corps_texte_pour_structure = decl;
+
+            if (decl->est_monomorphisation) {
+                decl->bloc_constantes->membres.avec_verrou_ecriture(
+                    [fonction](kuri::tableau<NoeudDéclaration *, int> &membres) {
+                        POUR (membres) {
+                            fonction->bloc_constantes->ajoute_membre(it);
+                        }
+                    });
+            }
+
+            /* Annule le bloc du type pour détecter les erreurs. Il sera ajourné après le
+             * syntaxage du code source retourné par le métaprogramme. */
+            decl->bloc = nullptr;
+
+            TACHE_AJOUTEE(TYPAGE);
+            crée_unité_pour_noeud(espace, decl, RaisonDÊtre::TYPAGE, true);
+
+            auto fichier = m_compilatrice->crée_fichier_pour_metaprogramme(métaprogramme);
+            decl->unité->ajoute_attente(Attente::sur_parsage(fichier));
+
+            /* Pour requérir le typage du corps de métaprogramme plus bas. */
+            noeud = fonction->corps;
+        }
+    }
+
     TACHE_AJOUTEE(TYPAGE);
     crée_unité_pour_noeud(espace, noeud, RaisonDÊtre::TYPAGE, true);
 }
@@ -908,8 +1105,7 @@ void GestionnaireCode::ajoute_unité_à_liste_attente(UniteCompilation *unité)
 }
 
 bool GestionnaireCode::tente_de_garantir_présence_création_contexte(EspaceDeTravail *espace,
-                                                                    Programme *programme,
-                                                                    GrapheDépendance &graphe)
+                                                                    Programme *programme)
 {
     /* NOTE : la déclaration sera automatiquement ajoutée au programme si elle n'existe pas déjà
      * lors de la complétion de son typage. Si elle existe déjà, il faut l'ajouter manuellement.
@@ -929,7 +1125,7 @@ bool GestionnaireCode::tente_de_garantir_présence_création_contexte(EspaceDeTr
         return false;
     }
 
-    détermine_dépendances(decl_creation_contexte, espace, graphe);
+    détermine_dépendances(decl_creation_contexte, espace);
 
     if (!decl_creation_contexte->corps->unité) {
         requiers_typage(espace, decl_creation_contexte->corps);
@@ -940,7 +1136,7 @@ bool GestionnaireCode::tente_de_garantir_présence_création_contexte(EspaceDeTr
         return false;
     }
 
-    détermine_dépendances(decl_creation_contexte->corps, espace, graphe);
+    détermine_dépendances(decl_creation_contexte->corps, espace);
 
     if (!decl_creation_contexte->corps->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE)) {
         return false;
@@ -965,34 +1161,13 @@ void GestionnaireCode::requiers_compilation_métaprogramme(EspaceDeTravail *espa
     auto programme = metaprogramme->programme;
     programme->ajoute_fonction(metaprogramme->fonction);
 
-    auto graphe = m_compilatrice->graphe_dépendance.verrou_ecriture();
-    détermine_dépendances(metaprogramme->fonction, espace, *graphe);
-    détermine_dépendances(metaprogramme->fonction->corps, espace, *graphe);
+    détermine_dépendances(metaprogramme->fonction, espace);
+    détermine_dépendances(metaprogramme->fonction->corps, espace);
 
-    auto ri_crée_contexte_est_disponible = tente_de_garantir_présence_création_contexte(
-        espace, programme, *graphe);
+    auto ri_crée_contexte_est_disponible = tente_de_garantir_présence_création_contexte(espace,
+                                                                                        programme);
     requiers_génération_ri_principale_métaprogramme(
         espace, metaprogramme, ri_crée_contexte_est_disponible);
-
-    if (metaprogramme->corps_texte) {
-        if (metaprogramme->corps_texte_pour_fonction) {
-            auto recipiente = metaprogramme->corps_texte_pour_fonction;
-            assert(!recipiente->corps->unité);
-            requiers_typage(espace, recipiente->corps);
-
-            /* Crée un fichier pour le métaprogramme, et fait dépendre le corps de la fonction
-             * recipiente du #corps_texte sur le parsage du fichier. Nous faisons ça ici pour nous
-             * assurer que personne n'essayera de performer le typage du corps recipient avant que
-             * les sources du fichiers ne soient générées, lexées, et parsées. */
-            auto fichier = m_compilatrice->crée_fichier_pour_metaprogramme(metaprogramme);
-            recipiente->corps->unité->ajoute_attente(Attente::sur_parsage(fichier));
-        }
-        else if (metaprogramme->corps_texte_pour_structure) {
-            /* Les fichiers pour les #corps_texte des structures sont créés lors de la validation
-             * sémantique. */
-            assert(metaprogramme->fichier);
-        }
-    }
 }
 
 void GestionnaireCode::requiers_exécution(EspaceDeTravail *espace, MetaProgramme *metaprogramme)
@@ -1439,13 +1614,12 @@ void GestionnaireCode::typage_terminé(UniteCompilation *unité)
     }
 
     // rassemble toutes les dépendances de la fonction ou de la globale
-    auto graphe = m_compilatrice->graphe_dépendance.verrou_ecriture();
     auto noeud = unité->noeud;
     DÉBUTE_STAT(DOIT_DÉTERMINER_DÉPENDANCES);
     auto const détermine_les_dépendances = doit_déterminer_les_dépendances(unité->noeud);
     TERMINE_STAT(DOIT_DÉTERMINER_DÉPENDANCES);
     if (détermine_les_dépendances) {
-        détermine_dépendances(unité->noeud, unité->espace, *graphe);
+        détermine_dépendances(unité->noeud, unité->espace);
     }
 
     /* Envoi un message, nous attendrons dessus si nécessaire. */
@@ -1631,9 +1805,8 @@ void GestionnaireCode::fonction_initialisation_type_créée(UniteCompilation *un
         }
     }
 
-    auto graphe = m_compilatrice->graphe_dépendance.verrou_ecriture();
-    détermine_dépendances(fonction, unité->espace, *graphe);
-    détermine_dépendances(fonction->corps, unité->espace, *graphe);
+    détermine_dépendances(fonction, unité->espace);
+    détermine_dépendances(fonction->corps, unité->espace);
 
     unité->mute_raison_d_être(RaisonDÊtre::GENERATION_RI);
     auto espace = unité->espace;
