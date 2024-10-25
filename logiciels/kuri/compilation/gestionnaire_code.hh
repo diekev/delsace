@@ -283,14 +283,11 @@ class GestionnaireCode {
 
     void enleve_programme(Programme *programme);
 
-    void détermine_dépendances(NoeudExpression *noeud,
-                               EspaceDeTravail *espace,
-                               GrapheDépendance &graphe);
+    void détermine_dépendances(NoeudExpression *noeud, EspaceDeTravail *espace);
 
     bool plus_rien_n_est_à_faire();
     bool tente_de_garantir_présence_création_contexte(EspaceDeTravail *espace,
-                                                      Programme *programme,
-                                                      GrapheDépendance &graphe);
+                                                      Programme *programme);
 
     void tente_de_garantir_fonction_point_d_entrée(EspaceDeTravail *espace);
 

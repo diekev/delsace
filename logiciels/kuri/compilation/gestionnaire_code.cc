@@ -713,9 +713,7 @@ static bool doit_ajouter_les_dépendances_au_programme(NoeudExpression *noeud, P
 
 /* Construit les dépendances de l'unité (fonctions, globales, types) et crée des unités de typage
  * pour chacune des dépendances non-encore typée. */
-void GestionnaireCode::détermine_dépendances(NoeudExpression *noeud,
-                                             EspaceDeTravail *espace,
-                                             GrapheDépendance &graphe)
+void GestionnaireCode::détermine_dépendances(NoeudExpression *noeud, EspaceDeTravail *espace)
 {
     DÉBUTE_STAT(DÉTERMINE_DÉPENDANCES);
     dépendances.reinitialise();
@@ -728,8 +726,9 @@ void GestionnaireCode::détermine_dépendances(NoeudExpression *noeud,
      * relations dans le graphe. */
     if (!noeud->est_ajoute_fini() && !noeud->est_ajoute_init()) {
         DÉBUTE_STAT(AJOUTE_DÉPENDANCES);
-        NoeudDépendance *noeud_dépendance = graphe.garantie_noeud_dépendance(espace, noeud);
-        graphe.ajoute_dépendances(*noeud_dépendance, dépendances.dépendances);
+        auto graphe = m_compilatrice->graphe_dépendance.verrou_ecriture();
+        NoeudDépendance *noeud_dépendance = graphe->garantie_noeud_dépendance(espace, noeud);
+        graphe->ajoute_dépendances(*noeud_dépendance, dépendances.dépendances);
         TERMINE_STAT(AJOUTE_DÉPENDANCES);
     }
 
@@ -758,7 +757,8 @@ void GestionnaireCode::détermine_dépendances(NoeudExpression *noeud,
         if (!doit_ajouter_les_dépendances_au_programme(noeud, it)) {
             continue;
         }
-        if (!ajoute_dépendances_au_programme(graphe, dépendances, espace, *it, noeud)) {
+        auto graphe = m_compilatrice->graphe_dépendance.verrou_ecriture();
+        if (!ajoute_dépendances_au_programme(*graphe, dépendances, espace, *it, noeud)) {
             break;
         }
         dépendances_ajoutees = true;
@@ -908,8 +908,7 @@ void GestionnaireCode::ajoute_unité_à_liste_attente(UniteCompilation *unité)
 }
 
 bool GestionnaireCode::tente_de_garantir_présence_création_contexte(EspaceDeTravail *espace,
-                                                                    Programme *programme,
-                                                                    GrapheDépendance &graphe)
+                                                                    Programme *programme)
 {
     /* NOTE : la déclaration sera automatiquement ajoutée au programme si elle n'existe pas déjà
      * lors de la complétion de son typage. Si elle existe déjà, il faut l'ajouter manuellement.
@@ -929,7 +928,7 @@ bool GestionnaireCode::tente_de_garantir_présence_création_contexte(EspaceDeTr
         return false;
     }
 
-    détermine_dépendances(decl_creation_contexte, espace, graphe);
+    détermine_dépendances(decl_creation_contexte, espace);
 
     if (!decl_creation_contexte->corps->unité) {
         requiers_typage(espace, decl_creation_contexte->corps);
@@ -940,7 +939,7 @@ bool GestionnaireCode::tente_de_garantir_présence_création_contexte(EspaceDeTr
         return false;
     }
 
-    détermine_dépendances(decl_creation_contexte->corps, espace, graphe);
+    détermine_dépendances(decl_creation_contexte->corps, espace);
 
     if (!decl_creation_contexte->corps->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE)) {
         return false;
@@ -965,12 +964,11 @@ void GestionnaireCode::requiers_compilation_métaprogramme(EspaceDeTravail *espa
     auto programme = metaprogramme->programme;
     programme->ajoute_fonction(metaprogramme->fonction);
 
-    auto graphe = m_compilatrice->graphe_dépendance.verrou_ecriture();
-    détermine_dépendances(metaprogramme->fonction, espace, *graphe);
-    détermine_dépendances(metaprogramme->fonction->corps, espace, *graphe);
+    détermine_dépendances(metaprogramme->fonction, espace);
+    détermine_dépendances(metaprogramme->fonction->corps, espace);
 
-    auto ri_crée_contexte_est_disponible = tente_de_garantir_présence_création_contexte(
-        espace, programme, *graphe);
+    auto ri_crée_contexte_est_disponible = tente_de_garantir_présence_création_contexte(espace,
+                                                                                        programme);
     requiers_génération_ri_principale_métaprogramme(
         espace, metaprogramme, ri_crée_contexte_est_disponible);
 
@@ -1439,13 +1437,12 @@ void GestionnaireCode::typage_terminé(UniteCompilation *unité)
     }
 
     // rassemble toutes les dépendances de la fonction ou de la globale
-    auto graphe = m_compilatrice->graphe_dépendance.verrou_ecriture();
     auto noeud = unité->noeud;
     DÉBUTE_STAT(DOIT_DÉTERMINER_DÉPENDANCES);
     auto const détermine_les_dépendances = doit_déterminer_les_dépendances(unité->noeud);
     TERMINE_STAT(DOIT_DÉTERMINER_DÉPENDANCES);
     if (détermine_les_dépendances) {
-        détermine_dépendances(unité->noeud, unité->espace, *graphe);
+        détermine_dépendances(unité->noeud, unité->espace);
     }
 
     /* Envoi un message, nous attendrons dessus si nécessaire. */
@@ -1631,9 +1628,8 @@ void GestionnaireCode::fonction_initialisation_type_créée(UniteCompilation *un
         }
     }
 
-    auto graphe = m_compilatrice->graphe_dépendance.verrou_ecriture();
-    détermine_dépendances(fonction, unité->espace, *graphe);
-    détermine_dépendances(fonction->corps, unité->espace, *graphe);
+    détermine_dépendances(fonction, unité->espace);
+    détermine_dépendances(fonction->corps, unité->espace);
 
     unité->mute_raison_d_être(RaisonDÊtre::GENERATION_RI);
     auto espace = unité->espace;
