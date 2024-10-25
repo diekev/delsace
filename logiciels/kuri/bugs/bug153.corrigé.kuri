@@ -1,0 +1,19 @@
+/* Aucune erreur si un membre non-constant d'un type de donnée est accédé.
+ * Catégorie : [validation sémantique]
+ */
+
+Struct :: struct {
+    rappel1: fonc(z32)(rien)
+    rappel2: fonc(z32, z32)(rien)
+}
+
+fonction :: fonc (a: z32 @inutilisée, b: z32 @inutilisée)
+{
+}
+
+principale :: fonc () -> z32
+{
+    s := Struct
+    s.rappel2 = fonction
+    retourne 0
+}

@@ -1677,10 +1677,12 @@ RésultatValidation Sémanticienne::valide_accès_membre(NoeudExpressionMembre *
     }
 
     auto type = donne_type_accédé_effectif(structure->type);
+    auto est_accès_type_de_données = false;
 
     // Il est possible d'avoir une chaine de type : Struct1.Struct2.Struct3...
     if (type->est_type_type_de_données()) {
         auto type_de_donnees = type->comme_type_type_de_données();
+        est_accès_type_de_données = true;
 
         if (type_de_donnees->type_connu != nullptr) {
             type = type_de_donnees->type_connu;
@@ -1741,11 +1743,20 @@ RésultatValidation Sémanticienne::valide_accès_membre(NoeudExpressionMembre *
                 }
             }
         }
-        else if (membre_est_constant) {
-            expression_membre->genre_valeur = GenreValeur::DROITE;
-        }
-        else if (type->est_type_union()) {
-            expression_membre->genre = GenreNoeud::EXPRESSION_RÉFÉRENCE_MEMBRE_UNION;
+        else {
+            if (membre_est_constant) {
+                expression_membre->genre_valeur = GenreValeur::DROITE;
+            }
+            else if (type->est_type_union()) {
+                expression_membre->genre = GenreNoeud::EXPRESSION_RÉFÉRENCE_MEMBRE_UNION;
+            }
+
+            if (est_accès_type_de_données && !membre_est_constant) {
+                m_espace->rapporte_erreur(
+                    expression_membre,
+                    "Ne peut pas accéder à un membre non-constant d'un type de données.");
+                return CodeRetourValidation::Erreur;
+            }
         }
 
         return CodeRetourValidation::OK;
@@ -3052,55 +3063,6 @@ RésultatValidation Sémanticienne::valide_type_opaque(NoeudDéclarationTypeOpaq
     return CodeRetourValidation::OK;
 }
 
-MetaProgramme *Sémanticienne::crée_métaprogramme_corps_texte(NoeudBloc *bloc_corps_texte,
-                                                             NoeudBloc *bloc_parent,
-                                                             const Lexème *lexème)
-{
-    auto fonction = m_assembleuse->crée_entête_fonction(lexème);
-    auto nouveau_corps = fonction->corps;
-
-    assert(m_assembleuse->bloc_courant() == nullptr);
-    m_assembleuse->bloc_courant(bloc_parent);
-
-    fonction->bloc_constantes = m_assembleuse->empile_bloc(lexème, fonction, TypeBloc::CONSTANTES);
-    fonction->bloc_paramètres = m_assembleuse->empile_bloc(lexème, fonction, TypeBloc::PARAMÈTRES);
-
-    fonction->bloc_parent = bloc_parent;
-    nouveau_corps->bloc_parent = fonction->bloc_paramètres;
-    /* Le corps de la fonction pour les #corps_texte des structures est celui de la déclaration. */
-    nouveau_corps->bloc = bloc_corps_texte;
-
-    /* mise en place du type de la fonction : () -> chaine */
-    fonction->drapeaux_fonction |= (DrapeauxNoeudFonction::EST_MÉTAPROGRAMME |
-                                    DrapeauxNoeudFonction::FUT_GÉNÉRÉE_PAR_LA_COMPILATRICE);
-
-    auto decl_sortie = m_assembleuse->crée_déclaration_variable(lexème, nullptr, nullptr);
-    decl_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine("__ret0");
-    decl_sortie->type = TypeBase::CHAINE;
-    decl_sortie->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-
-    fonction->params_sorties.ajoute(decl_sortie);
-    fonction->param_sortie = decl_sortie;
-
-    auto types_entrees = kuri::tablet<Type *, 6>(0);
-
-    auto type_sortie = TypeBase::CHAINE;
-
-    fonction->type = m_compilatrice.typeuse.type_fonction(types_entrees, type_sortie);
-    fonction->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-
-    auto metaprogramme = m_compilatrice.crée_metaprogramme(m_espace);
-    metaprogramme->corps_texte = bloc_corps_texte;
-    metaprogramme->fonction = fonction;
-
-    m_assembleuse->dépile_bloc();
-    m_assembleuse->dépile_bloc();
-    m_assembleuse->dépile_bloc();
-    assert(m_assembleuse->bloc_courant() == nullptr);
-
-    return metaprogramme;
-}
-
 NoeudExpression *Sémanticienne::racine_validation() const
 {
     assert(m_unité->noeud);
@@ -3249,38 +3211,6 @@ static void avertis_déclarations_inutilisées(EspaceDeTravail const &espace,
                  });
 }
 
-static void échange_corps_entêtes(NoeudDéclarationEntêteFonction *ancienne_fonction,
-                                  NoeudDéclarationEntêteFonction *nouvelle_fonction)
-{
-    auto nouveau_corps = nouvelle_fonction->corps;
-    auto ancien_corps = ancienne_fonction->corps;
-
-    /* Échange les corps. */
-    nouvelle_fonction->corps = ancien_corps;
-    ancien_corps->entête = nouvelle_fonction;
-    ancien_corps->bloc_parent = nouvelle_fonction->bloc_parent;
-    ancien_corps->bloc->bloc_parent = nouvelle_fonction->bloc_paramètres;
-
-    ancienne_fonction->corps = nouveau_corps;
-    nouveau_corps->entête = ancienne_fonction;
-    nouveau_corps->bloc_parent = ancienne_fonction->bloc_parent;
-    nouveau_corps->bloc->bloc_parent = ancienne_fonction->bloc_paramètres;
-
-    /* Remplace les références à ancienne_fonction dans nouvelle_fonction->corps par
-     * nouvelle_fonction. */
-    visite_noeud(nouvelle_fonction->corps,
-                 PreferenceVisiteNoeud::ORIGINAL,
-                 false,
-                 [&](NoeudExpression const *noeud) -> DecisionVisiteNoeud {
-                     if (noeud->est_bloc()) {
-                         auto bloc = noeud->comme_bloc();
-                         assert(bloc->appartiens_à_fonction == ancienne_fonction);
-                         const_cast<NoeudBloc *>(bloc)->appartiens_à_fonction = nouvelle_fonction;
-                     }
-                     return DecisionVisiteNoeud::CONTINUE;
-                 });
-}
-
 enum MéthodeRetourFonction {
     RETOURNE_MANQUANT,
     RETOURNE_EXPLICITE,
@@ -3328,37 +3258,6 @@ RésultatValidation Sémanticienne::valide_fonction(NoeudDéclarationCorpsFoncti
     decl->type = entete->type;
 
     auto est_corps_texte = decl->est_corps_texte;
-
-    if (est_corps_texte &&
-        !decl->possède_drapeau(DrapeauxNoeud::METAPROGRAMME_CORPS_TEXTE_FUT_CREE)) {
-        auto metaprogramme = crée_métaprogramme_corps_texte(
-            decl->bloc, entete->bloc_parent, decl->lexème);
-        metaprogramme->corps_texte_pour_fonction = entete;
-
-        auto fonction = metaprogramme->fonction;
-        échange_corps_entêtes(entete, fonction);
-
-        if (entete->possède_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
-            fonction->drapeaux_fonction |= DrapeauxNoeudFonction::EST_MONOMORPHISATION;
-        }
-        else {
-            fonction->drapeaux_fonction &= ~DrapeauxNoeudFonction::EST_MONOMORPHISATION;
-        }
-        fonction->site_monomorphisation = entete->site_monomorphisation;
-
-        // préserve les constantes polymorphiques
-        if (fonction->possède_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
-            POUR (*entete->bloc_constantes->membres.verrou_lecture()) {
-                fonction->bloc_constantes->ajoute_membre(it);
-            }
-        }
-
-        decl->drapeaux |= DrapeauxNoeud::METAPROGRAMME_CORPS_TEXTE_FUT_CREE;
-
-        /* Puisque nous validons le #corps_texte, l'entête pour la fonction courante doit être
-         * celle de la fonction de métaprogramme. */
-        entete = fonction;
-    }
 
     CHRONO_TYPAGE(m_stats_typage.corps_fonctions, CORPS_FONCTION__VALIDATION);
 
@@ -3409,9 +3308,7 @@ RésultatValidation Sémanticienne::valide_fonction(NoeudDéclarationCorpsFoncti
     simplifie_arbre(m_unité->espace, m_assembleuse, m_compilatrice.typeuse, entete);
 
     if (est_corps_texte) {
-        /* Puisque la validation du #corps_texte peut être interrompue, nous devons retrouver le
-         * métaprogramme : nous ne pouvons pas prendre l'adresse du métaprogramme créé ci-dessus.
-         * À FAIRE : considère réusiner la gestion des métaprogrammes dans le GestionnaireCode afin
+        /* À FAIRE : considère réusiner la gestion des métaprogrammes dans le GestionnaireCode afin
          * de pouvoir requérir la compilation du métaprogramme dès sa création, mais d'attendre que
          * la fonction soit validée afin de le compiler.
          */
@@ -3964,36 +3861,7 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
         return CodeRetourValidation::OK;
     }
 
-    if (decl->est_corps_texte) {
-        /* Nous devons avoir deux passes : une pour créer la fonction du métaprogramme, une autre
-         * pour requérir la compilation dudit métaprogramme. */
-        if (!decl->métaprogramme_corps_texte) {
-            auto metaprogramme = crée_métaprogramme_corps_texte(
-                decl->bloc, decl->bloc_parent, decl->lexème);
-            auto fonction = metaprogramme->fonction;
-            assert(fonction->corps->bloc);
-
-            decl->métaprogramme_corps_texte = metaprogramme;
-            metaprogramme->corps_texte_pour_structure = decl;
-
-            if (decl->est_monomorphisation) {
-                decl->bloc_constantes->membres.avec_verrou_ecriture(
-                    [fonction](kuri::tableau<NoeudDéclaration *, int> &membres) {
-                        POUR (membres) {
-                            fonction->bloc_constantes->ajoute_membre(it);
-                        }
-                    });
-            }
-
-            return Attente::sur_déclaration(fonction->corps);
-        }
-
-        auto metaprogramme = decl->métaprogramme_corps_texte;
-        auto fichier = m_compilatrice.crée_fichier_pour_metaprogramme(metaprogramme);
-        m_compilatrice.gestionnaire_code->requiers_compilation_métaprogramme(m_espace,
-                                                                             metaprogramme);
-        return Attente::sur_parsage(fichier);
-    }
+    assert(!decl->est_corps_texte);
 
     TENTE(valide_arbre_aplatis(decl));
 
@@ -4205,36 +4073,7 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
         return CodeRetourValidation::OK;
     }
 
-    if (decl->est_corps_texte) {
-        /* Nous devons avoir deux passes : une pour créer la fonction du métaprogramme, une autre
-         * pour requérir la compilation dudit métaprogramme. */
-        if (!decl->métaprogramme_corps_texte) {
-            auto metaprogramme = crée_métaprogramme_corps_texte(
-                decl->bloc, decl->bloc_parent, decl->lexème);
-            auto fonction = metaprogramme->fonction;
-            assert(fonction->corps->bloc);
-
-            decl->métaprogramme_corps_texte = metaprogramme;
-            metaprogramme->corps_texte_pour_structure = decl;
-
-            if (decl->est_monomorphisation) {
-                decl->bloc_constantes->membres.avec_verrou_ecriture(
-                    [fonction](kuri::tableau<NoeudDéclaration *, int> &membres) {
-                        POUR (membres) {
-                            fonction->bloc_constantes->ajoute_membre(it);
-                        }
-                    });
-            }
-
-            return Attente::sur_déclaration(fonction->corps);
-        }
-
-        auto metaprogramme = decl->métaprogramme_corps_texte;
-        auto fichier = m_compilatrice.crée_fichier_pour_metaprogramme(metaprogramme);
-        m_compilatrice.gestionnaire_code->requiers_compilation_métaprogramme(m_espace,
-                                                                             metaprogramme);
-        return Attente::sur_parsage(fichier);
-    }
+    assert(!decl->est_corps_texte);
 
     TENTE(valide_arbre_aplatis(decl));
 
@@ -6984,19 +6823,6 @@ RésultatValidation Sémanticienne::valide_construction_tableau_typé(
 /* ------------------------------------------------------------------------- */
 /** \name Expression « empl ».
  * \{ */
-
-static NoeudDéclaration *donne_déclaration_employée(NoeudExpression *noeud)
-{
-    if (noeud->est_déclaration_variable()) {
-        return noeud->comme_déclaration_variable();
-    }
-
-    if (noeud->est_référence_déclaration()) {
-        return noeud->comme_référence_déclaration()->déclaration_référée;
-    }
-
-    return nullptr;
-}
 
 RésultatValidation Sémanticienne::valide_instruction_empl(NoeudInstructionEmpl *empl)
 {
