@@ -533,10 +533,16 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
                 }
             }
 
-            if (type_accede->est_type_énum() || type_accede->est_type_erreur()) {
-                auto type_enum = static_cast<TypeEnum *>(type_accede);
-                auto valeur_enum = type_enum->membres[ref_membre->index_membre].valeur;
-                return ValeurExpression(valeur_enum);
+            if (!type_accede->est_type_composé()) {
+                return erreur_évaluation(
+                    b, "L'expression ne référence pas le membre d'un type composé.");
+            }
+
+            auto type_composé = type_accede->comme_type_composé();
+            auto &membre = type_composé->membres[ref_membre->index_membre];
+
+            if (membre.est_constant()) {
+                return ValeurExpression(type_composé->membres[ref_membre->index_membre].valeur);
             }
 
             if (type_accede->est_type_tableau_fixe()) {

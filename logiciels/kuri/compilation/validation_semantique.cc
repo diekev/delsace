@@ -3486,7 +3486,13 @@ RésultatValidation Sémanticienne::valide_énum_impl(NoeudEnum *decl)
             valeurs_legales |= valeur.entière();
         }
 
-        membres.ajoute({nullptr, decl, it->ident, 0, uint64_t(valeur.entière())});
+        membres.ajoute({nullptr,
+                        decl,
+                        it->ident,
+                        0,
+                        uint64_t(valeur.entière()),
+                        nullptr,
+                        MembreTypeComposé::EST_CONSTANT});
 
         derniere_valeur = valeur;
     }
@@ -3497,21 +3503,21 @@ RésultatValidation Sémanticienne::valide_énum_impl(NoeudEnum *decl)
                     0,
                     uint64_t(membres.taille()),
                     nullptr,
-                    MembreTypeComposé::EST_IMPLICITE});
+                    MembreTypeComposé::EST_IMPLICITE | MembreTypeComposé::EST_CONSTANT});
     membres.ajoute({nullptr,
                     decl,
                     ID::min,
                     0,
                     uint64_t(valeur_enum_min),
                     nullptr,
-                    MembreTypeComposé::EST_IMPLICITE});
+                    MembreTypeComposé::EST_IMPLICITE | MembreTypeComposé::EST_CONSTANT});
     membres.ajoute({nullptr,
                     decl,
                     ID::max,
                     0,
                     uint64_t(valeur_enum_max),
                     nullptr,
-                    MembreTypeComposé::EST_IMPLICITE});
+                    MembreTypeComposé::EST_IMPLICITE | MembreTypeComposé::EST_CONSTANT});
 
     if (N == VALIDE_ENUM_DRAPEAU) {
         membres.ajoute({nullptr,
@@ -3520,15 +3526,21 @@ RésultatValidation Sémanticienne::valide_énum_impl(NoeudEnum *decl)
                         0,
                         uint64_t(valeurs_legales),
                         nullptr,
-                        MembreTypeComposé::EST_IMPLICITE});
+                        MembreTypeComposé::EST_IMPLICITE | MembreTypeComposé::EST_CONSTANT});
         membres.ajoute({nullptr,
                         decl,
                         ID::valeurs_illegales,
                         0,
                         uint64_t(~valeurs_legales),
                         nullptr,
-                        MembreTypeComposé::EST_IMPLICITE});
-        membres.ajoute({nullptr, decl, ID::zero, 0, 0, nullptr, MembreTypeComposé::EST_IMPLICITE});
+                        MembreTypeComposé::EST_IMPLICITE | MembreTypeComposé::EST_CONSTANT});
+        membres.ajoute({nullptr,
+                        decl,
+                        ID::zero,
+                        0,
+                        0,
+                        nullptr,
+                        MembreTypeComposé::EST_IMPLICITE | MembreTypeComposé::EST_CONSTANT});
     }
 
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
