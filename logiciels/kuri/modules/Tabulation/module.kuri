@@ -51,8 +51,7 @@ crée_tabuleuse :: fonc (ligne_titre: LigneTabuleuse) -> Tabuleuse
 
     ajoute_ligne(*tabuleuse, ligne_titre)
 
-    tableau_redimensionne(tabuleuse.alignements, ligne_titre.colonnes.taille)
-    tableau_remplis_avec(tabuleuse.alignements, Alignement.GAUCHE)
+    tableau_redimensionne_défaut(tabuleuse.alignements, ligne_titre.colonnes.taille, Alignement.GAUCHE)
 
     retourne tabuleuse
 }
