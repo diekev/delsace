@@ -92,8 +92,7 @@ initialise_murs_pseudo_labyrinthe :: fonc (labyrinthe: *Labyrinthe, entropie: &S
 
     est_poste: [..]bool
     diffère déloge(est_poste)
-    tableau_redimensionne(est_poste, nombre_de_cellules)
-    tableau_remplis_avec(est_poste, faux)
+    tableau_redimensionne_défaut(est_poste, nombre_de_cellules, faux)
 
     /* Remplis chaque cellule de colonne impaire pour chaque ligne paire. */
     pour y dans taille_y {

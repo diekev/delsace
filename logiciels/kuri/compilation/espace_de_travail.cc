@@ -255,7 +255,11 @@ SiteSource EspaceDeTravail::site_source_pour(const NoeudExpression *noeud) const
         return {};
     }
 
-    auto const lexeme = noeud->lexème;
+    auto lexeme = noeud->lexème;
+    if (!lexeme && noeud->est_corps_fonction()) {
+        lexeme = noeud->comme_corps_fonction()->entête->lexème;
+    }
+
     auto const fichier = compilatrice().fichier(lexeme->fichier);
     return SiteSource::cree(fichier, lexeme);
 }
