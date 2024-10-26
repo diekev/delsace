@@ -5,57 +5,6 @@ importe Périphériques
 /** \nom Fonction pour envelopper les rappels afin de ne pas avoir à transtyper manuellement.
  * \{ */
 
-/* enveloppe pour sur_déplacement_souris */
-enveloppe_rappel :: fonc ($rappel: fonc(*$T, ÉtatSouris)(rien)) -> fonc(*Panneau, ÉtatSouris)(rien)
-{
-    fonction_enveloppe :: fonc (panneau: *Panneau, état: ÉtatSouris) -> rien
-    {
-        rappel(panneau comme *T, état)
-    }
-    retourne fonction_enveloppe
-}
-
-/* enveloppe pour sur_clique_souris */
-enveloppe_rappel :: fonc ($rappel: fonc(*$T, CliqueSouris)(bool)) -> fonc(*Panneau, CliqueSouris)(bool)
-{
-    fonction_enveloppe :: fonc (panneau: *Panneau, clique: CliqueSouris) -> bool
-    {
-        retourne rappel(panneau comme *T, clique)
-    }
-    retourne fonction_enveloppe
-}
-
-/* enveloppe pour sur_dessin */
-enveloppe_rappel :: fonc ($rappel: fonc(*$T, *ContexteAffichage)(rien)) -> fonc(*Panneau, *ContexteAffichage)(rien)
-{
-    fonction_enveloppe :: fonc (panneau: *Panneau, ctx: *ContexteAffichage) -> rien
-    {
-        rappel(panneau comme *T, ctx)
-    }
-    retourne fonction_enveloppe
-}
-
-/* enveloppe pour sur_début_survol, sur_fin_survol */
-enveloppe_rappel :: fonc ($rappel: fonc(*$T)(rien)) -> fonc(*Panneau)(rien)
-{
-    fonction_enveloppe :: fonc (panneau: *Panneau) -> rien
-    {
-        rappel(panneau comme *T)
-    }
-    retourne fonction_enveloppe
-}
-
-/* enveloppe pour sur_redimension */
-TypeRectangle :: RectanglePosDim(z32)
-enveloppe_rappel :: fonc ($rappel: fonc(*$T, TypeRectangle)(rien)) -> fonc(*Panneau, RectanglePosDim(z32))(rien)
-{
-    fonction_enveloppe :: fonc (panneau: *Panneau, rect: RectanglePosDim(z32)) -> rien
-    {
-        rappel(panneau comme *T, rect)
-    }
-    retourne fonction_enveloppe
-}
-
 sur_destruction_générique :: fonc ($TypePanneau: type_de_données) -> fonc(*Panneau)(rien)
 {
     rappel_sur_destruction :: fonc (panneau: *Panneau) -> rien

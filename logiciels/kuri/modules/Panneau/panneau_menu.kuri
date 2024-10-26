@@ -60,8 +60,8 @@ crée_panneau_barre_de_menu :: fonc (ctx: *ContexteInterface, barre_de_menu: *Ba
     résultat.barre_de_menu = barre_de_menu
 
     /* Rappels. */
-    résultat.sur_clique_souris = enveloppe_rappel(sur_clique_souris)
-    résultat.sur_dessin = enveloppe_rappel(sur_dessin)
+    résultat.sur_clique_souris = sur_clique_souris
+    résultat.sur_dessin = sur_dessin
     résultat.sur_destruction = sur_destruction
 
     retourne résultat
@@ -447,9 +447,9 @@ crée_panneau_menu :: fonc (ctx: *ContexteInterface, menu: *Menu, position: Poin
     résultat.position = position
 
     /* Rappels. */
-    résultat.sur_clique_souris = enveloppe_rappel(sur_clique_souris)
-    résultat.sur_déplacement_souris = enveloppe_rappel(sur_déplacement_souris)
-    résultat.sur_dessin = enveloppe_rappel(sur_dessin)
+    résultat.sur_clique_souris = sur_clique_souris
+    résultat.sur_déplacement_souris = sur_déplacement_souris
+    résultat.sur_dessin = sur_dessin
     résultat.sur_destruction = sur_destruction
 
     retourne résultat
