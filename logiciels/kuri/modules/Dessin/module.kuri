@@ -634,9 +634,6 @@ dessine_image_rvb_à_l_échelle :: fonc (tampon_de_rendu: *TamponDeRendu, image:
         retourne
     }
 
-    décalage_x := rect_sauf.x - rect.x
-    décalage_y := rect_sauf.y - rect.y
-
     ratio_largeur := image.largeur comme r32 / rect.largeur comme r32
     ratio_hauteur := image.hauteur comme r32 / rect.hauteur comme r32
 
@@ -644,11 +641,34 @@ dessine_image_rvb_à_l_échelle :: fonc (tampon_de_rendu: *TamponDeRendu, image:
     enjambée_dest := tampon_de_rendu.rect.largeur
 
     source := image.donnees
-    enjambée_source := image.largeur * image.nombre_composants
+    enjambée_source := image.largeur
 
-    ligne_source := source + (image.hauteur - décalage_y - 1) * enjambée_source + décalage_x * image.nombre_composants
+    copie_données_image_rvb(source, enjambée_source, ratio_largeur, ratio_hauteur, dest + (rect_sauf.hauteur - rect_sauf.y - 1) * enjambée_dest + rect_sauf.x, enjambée_dest, rect_sauf)
+}
 
-    copie_données_image_rvb(ligne_source, enjambée_source * ratio_hauteur comme z32, 3 * ratio_largeur comme z32, dest + rect_sauf.y * enjambée_dest + rect_sauf.x, enjambée_dest, rect_sauf)
+copie_données_image_rvb :: fonc (ligne_source: *r32, enjambée_source: z32, ratio_largeur: r32, ratio_hauteur: r32, ligne_dest: *CouleurRVBAN8, enjambée_dest: z32, rect_sauf: RectanglePosDim(z32))
+{
+    y := 0.0
+
+    pour _ dans rect_sauf.y ... rect_sauf.y + rect_sauf.hauteur - 1 {
+        pixel_dest := ligne_dest
+        pixel_source := ligne_source
+
+        x := 0.0
+        enjambée_y := y comme z32 * enjambée_source
+
+        pour _ dans rect_sauf.x ... rect_sauf.x + rect_sauf.largeur - 1 {
+            index := x comme z32 + enjambée_y
+
+            copie_pixel_rvb(pixel_source + index * 3, pixel_dest)
+
+            pixel_dest += 1
+            x += ratio_largeur
+        }
+
+        ligne_dest -= enjambée_dest
+        y += ratio_hauteur
+    }
 }
 
 copie_données_image_rvb :: fonc (ligne_source: *r32, enjambée_source: z32, enjambée_pixel_source: z32, ligne_dest: *CouleurRVBAN8, enjambée_dest: z32, rect_sauf: RectanglePosDim(z32))
