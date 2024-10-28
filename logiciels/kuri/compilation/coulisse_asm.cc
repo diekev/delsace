@@ -404,10 +404,16 @@ static void donne_classe_argument(Type const *type, kuri::tableau<Huitoctet> &r�
 struct ArgumentPassé {
     uint32_t premier_huitoctet_inclusif = 0;
     uint32_t dernier_huitoctet_exclusif = 0;
+    bool est_en_mémoire = false;
+};
+
+struct RegistreHuitoctet {
+    Registre registre;
 };
 
 struct ClassementArgument {
     kuri::tableau<Huitoctet> huitoctets{};
+    kuri::tableau<RegistreHuitoctet> registres_huitoctets{};
     kuri::tableau<ArgumentPassé> arguments{};
     ArgumentPassé sortie{};
 };
@@ -433,18 +439,144 @@ static ClassementArgument détermine_classes_arguments(TypeFonction const *type)
     return résultat;
 }
 
+class AllocatriceRegistreArgument {
+    kuri::tablet<Registre, 6> registres_integer{};
+    kuri::tablet<Registre, 8> registres_sse{};
+
+    int premier_registre_integer = 0;
+    int premier_registre_sse = 0;
+
+    int ancien_premier_registre_integer = 0;
+    int ancien_premier_registre_sse = 0;
+
+  public:
+    AllocatriceRegistreArgument()
+    {
+        registres_integer.ajoute(Registre::RDI);
+        registres_integer.ajoute(Registre::RSI);
+        registres_integer.ajoute(Registre::RDX);
+        registres_integer.ajoute(Registre::RCX);
+        registres_integer.ajoute(Registre::R8);
+        registres_integer.ajoute(Registre::R9);
+
+        registres_sse.ajoute(Registre::XMM0);
+        registres_sse.ajoute(Registre::XMM1);
+        registres_sse.ajoute(Registre::XMM2);
+        registres_sse.ajoute(Registre::XMM3);
+        registres_sse.ajoute(Registre::XMM4);
+        registres_sse.ajoute(Registre::XMM5);
+        registres_sse.ajoute(Registre::XMM6);
+        registres_sse.ajoute(Registre::XMM7);
+    }
+
+    void enregistre_état()
+    {
+        ancien_premier_registre_integer = premier_registre_integer;
+        ancien_premier_registre_sse = premier_registre_sse;
+    }
+
+    void restaure_état()
+    {
+        premier_registre_integer = ancien_premier_registre_integer;
+        premier_registre_sse = ancien_premier_registre_sse;
+    }
+
+    bool peut_passer_integer() const
+    {
+        return premier_registre_integer < registres_integer.taille();
+    }
+
+    bool peut_passer_sse() const
+    {
+        return premier_registre_sse < registres_sse.taille();
+    }
+
+    Registre donne_registre_integer()
+    {
+        auto résultat = registres_integer[premier_registre_integer];
+        premier_registre_integer += 1;
+        return résultat;
+    }
+
+    Registre donne_registre_sse()
+    {
+        auto résultat = registres_sse[premier_registre_sse];
+        premier_registre_sse += 1;
+        return résultat;
+    }
+
+    Registre donne_dernier_registre_sse()
+    {
+        return registres_sse[premier_registre_sse - 1];
+    }
+};
+
 void classifie_arguments(AtomeFonction const *fonction)
 {
     dbg() << "------------------------------------------";
     auto classes = détermine_classes_arguments(fonction->type->comme_type_fonction());
 
-    auto index_arg = 0;
+    auto allocatrice_registre = AllocatriceRegistreArgument();
 
+    classes.registres_huitoctets.redimensionne(classes.huitoctets.taille());
+
+    auto index_arg = 0;
+    POUR (classes.arguments) {
+        allocatrice_registre.enregistre_état();
+
+        for (auto i = it.premier_huitoctet_inclusif; i < it.dernier_huitoctet_exclusif; i++) {
+            auto classe = classes.huitoctets[i].classe;
+
+            // 1. If the class is MEMORY, pass the argument on the stack.
+            if (classe == ClasseArgument::MEMORY) {
+                it.est_en_mémoire = true;
+            }
+            // 2. If the class is INTEGER, the next available register of the sequence %rdi, %rsi,
+            //    %rdx, %rcx, %r8 and %r9 is used.
+            else if (classe == ClasseArgument::INTEGER) {
+                if (!allocatrice_registre.peut_passer_integer()) {
+                    it.est_en_mémoire = true;
+                    allocatrice_registre.restaure_état();
+                    break;
+                }
+
+                classes.registres_huitoctets[i].registre =
+                    allocatrice_registre.donne_registre_integer();
+            }
+            // 3. If the class is SSE, the next available vector register is used, the registers
+            //    are taken in the order from %xmm0 to %xmm7.
+            else if (classe == ClasseArgument::SSE) {
+                if (!allocatrice_registre.peut_passer_sse()) {
+                    it.est_en_mémoire = true;
+                    allocatrice_registre.restaure_état();
+                    break;
+                }
+
+                classes.registres_huitoctets[i].registre =
+                    allocatrice_registre.donne_registre_sse();
+            }
+            // 4. If the class is SSEUP, the eightbyte is passed in the next available eightbyte
+            //    chunk of the last used vector register.
+            else if (classe == ClasseArgument::SSEUP) {
+                // À FAIRE : next available eightbytes
+                classes.registres_huitoctets[i].registre =
+                    allocatrice_registre.donne_dernier_registre_sse();
+            }
+            // 5. If the class is X87, X87UP or COMPLEX_X87, it is passed in memory.
+            else {
+                it.est_en_mémoire = true;
+            }
+        }
+    }
+
+    index_arg = 0;
     POUR (classes.arguments) {
         dbg() << fonction->params_entrée[index_arg++]->ident->nom;
 
         for (auto i = it.premier_huitoctet_inclusif; i < it.dernier_huitoctet_exclusif; i++) {
-            dbg() << " => " << classes.huitoctets[i].classe;
+            auto registre = classes.registres_huitoctets[i].registre;
+            dbg() << " => " << classes.huitoctets[i].classe << " ("
+                  << chaine_pour_registre(registre, 8) << ")";
         }
     }
 }
