@@ -44,15 +44,35 @@
  * \{ */
 
 enum class ClasseArgument : uint8_t {
+    NO_CLASS,
     INTEGER,
     SSE,
     SSEUP,
     X87,
     X87UP,
     COMPLEX_X87,
-    NO_CLASS,
     MEMORY,
 };
+
+static std::ostream &operator<<(std::ostream &os, ClasseArgument arg)
+{
+#define IMPRIME_CAS(x)                                                                            \
+    case ClasseArgument::x:                                                                       \
+        os << #x;                                                                                 \
+        break
+    switch (arg) {
+        IMPRIME_CAS(NO_CLASS);
+        IMPRIME_CAS(INTEGER);
+        IMPRIME_CAS(SSE);
+        IMPRIME_CAS(SSEUP);
+        IMPRIME_CAS(X87);
+        IMPRIME_CAS(X87UP);
+        IMPRIME_CAS(COMPLEX_X87);
+        IMPRIME_CAS(MEMORY);
+    }
+#undef IMPRIME_CAS
+    return os;
+}
 
 /* La taille de chaque type doit être alignée sur 8 octets. */
 static uint32_t donne_taille_alignée(Type const *type)
@@ -60,28 +80,187 @@ static uint32_t donne_taille_alignée(Type const *type)
     return (type->taille_octet + 7u) & ~7u;
 }
 
-static ClasseArgument détermine_classe_argument_aggrégé(TypeCompose const *type)
+struct Huitoctet {
+    ClasseArgument classe = ClasseArgument::NO_CLASS;
+    uint32_t premier_membre_inclusif = 0;
+    uint32_t dernier_membre_exclusif = 0;
+    uint32_t taille_membres = 0;
+};
+
+static void donne_classe_argument(Type const *type, kuri::tableau<Huitoctet> &résultat);
+
+static void détermine_classe_argument_aggrégé(TypeCompose const *type,
+                                              kuri::tableau<Huitoctet> &résultat)
 {
     auto const taille = donne_taille_alignée(type);
+    auto nombre_huitoctets = (taille + 7) / 8;
+    dbg() << chaine_type(type) << " taille octet " << type->taille_octet << " taille alignée "
+          << taille;
+    dbg() << "Nombre de huitoctets : " << nombre_huitoctets;
+
     /* 1. If the size of an object is larger than four eightbytes, or it contains unaligned fields,
-     * it has class MEMORY. */
+     *    it has class MEMORY. */
     // À FAIRE : champs non-aligné.
-    if (taille > (8 * 4)) {
-        return ClasseArgument::MEMORY;
+    if (nombre_huitoctets > 4) {
+        résultat.ajoute(Huitoctet{ClasseArgument::MEMORY});
+        return;
     }
 
-    // À FAIRE : termine ça.
-    assert(false);
-    return ClasseArgument::NO_CLASS;
+    /* 3. If the size of the aggregate exceeds a single eightbyte, each is classified separately.
+     *    Each eightbyte gets initialized to class NO_CLASS. */
+    auto huitoctets = kuri::tablet<Huitoctet, 4>();
+    for (auto i = 0; i < nombre_huitoctets; i++) {
+        huitoctets.ajoute({ClasseArgument::NO_CLASS});
+    }
+
+    // 4. Each field of an object is classified recursively so that always two fields are
+    //    considered. The resulting class is calculated according to the classes of the
+    //    fields in the eightbyte:
+    auto membres = type->donne_membres_pour_code_machine();
+
+    auto index_huitoctet = 0;
+    POUR_INDEX (membres) {
+        assert(it.type->taille_octet <= 8);
+
+        if (huitoctets[index_huitoctet].taille_membres == 8 ||
+            (huitoctets[index_huitoctet].taille_membres + it.type->taille_octet > 8)) {
+            index_huitoctet += 1;
+            huitoctets[index_huitoctet].premier_membre_inclusif = uint32_t(index_it);
+        }
+
+        huitoctets[index_huitoctet].dernier_membre_exclusif = uint32_t(index_it + 1);
+        huitoctets[index_huitoctet].taille_membres += it.type->taille_octet;
+    }
+
+    dbg() << "Membres huitoctets :";
+    POUR (huitoctets) {
+        dbg() << "-- " << it.premier_membre_inclusif << ", " << it.dernier_membre_exclusif << ", "
+              << it.taille_membres;
+    }
+
+    auto classes_pour_membres = kuri::tablet<ClasseArgument, 32>();
+
+    dbg() << "Classement des membres :";
+    POUR (membres) {
+        // À FAIRE : huitoctets pour les membres des structures
+        kuri::tableau<Huitoctet> tmp;
+        donne_classe_argument(it.type, tmp);
+        classes_pour_membres.ajoute(tmp[0].classe);
+
+        dbg() << "-- " << it.nom->nom << " : " << classes_pour_membres.back();
+    }
+
+    dbg() << "Classement des huitoctets :";
+    POUR (huitoctets) {
+        auto classe_huitoctet = classes_pour_membres[it.premier_membre_inclusif];
+        auto classe1 = classe_huitoctet;
+
+        for (auto i = it.premier_membre_inclusif + 1; i < it.dernier_membre_exclusif; i++) {
+            auto classe2 = classes_pour_membres[i];
+
+            // (a) If both classes are equal, this is the resulting class.
+            if (classe1 == classe2) {
+                classe_huitoctet = classe1;
+            }
+            // (b) If one of the classes is NO_CLASS, the resulting class is the other class.
+            else if (classe1 == ClasseArgument::NO_CLASS) {
+                classe_huitoctet = classe2;
+            }
+            else if (classe2 == ClasseArgument::NO_CLASS) {
+                classe_huitoctet = classe1;
+            }
+            // (c) If one of the classes is MEMORY, the result is the MEMORY class.
+            else if (classe1 == ClasseArgument::MEMORY || classe2 == ClasseArgument::MEMORY) {
+                classe_huitoctet = ClasseArgument::MEMORY;
+            }
+            // (d) If one of the classes is INTEGER, the result is the INTEGER.
+            else if (classe1 == ClasseArgument::INTEGER || classe2 == ClasseArgument::INTEGER) {
+                classe_huitoctet = ClasseArgument::INTEGER;
+            }
+            // (e) If one of the classes is X87, X87UP, COMPLEX_X87 class, MEMORY is used as class.
+            else if (classe1 == ClasseArgument::X87 || classe2 == ClasseArgument::X87 ||
+                     classe1 == ClasseArgument::X87UP || classe2 == ClasseArgument::X87UP ||
+                     classe1 == ClasseArgument::COMPLEX_X87 ||
+                     classe2 == ClasseArgument::COMPLEX_X87) {
+                classe_huitoctet = ClasseArgument::MEMORY;
+            }
+            // (f) Otherwise class SSE is used.
+            else {
+                classe_huitoctet = ClasseArgument::SSE;
+            }
+
+            classe1 = classe_huitoctet;
+        }
+
+        it.classe = classe_huitoctet;
+    }
+
+    // 5. Then a post merger cleanup is done:
+    auto classe_précédente = ClasseArgument::NO_CLASS;
+
+    POUR (huitoctets) {
+        // (a) If one of the classes is MEMORY, the whole argument is passed in memory.
+        if (it.classe == ClasseArgument::MEMORY) {
+            résultat.ajoute(Huitoctet{ClasseArgument::MEMORY});
+            return;
+        }
+
+        // (b) If X87UP is not preceded by X87, the whole argument is passed in memory.
+        if (it.classe == ClasseArgument::X87UP && classe_précédente != ClasseArgument::X87) {
+            résultat.ajoute(Huitoctet{ClasseArgument::MEMORY});
+            return;
+        }
+
+        classe_précédente = it.classe;
+    }
+
+    // (c) If the size of the aggregate exceeds two eightbytes and the first eightbyte isn’t
+    //     SSE or any other eightbyte isn’t SSEUP, the whole argument is passed in memory.
+    if (huitoctets.taille() > 2) {
+        if (huitoctets[0].classe != ClasseArgument::SSE) {
+            résultat.ajoute(Huitoctet{ClasseArgument::MEMORY});
+            return;
+        }
+
+        auto sseup_rencontré = false;
+        for (int i = 1; i < huitoctets.taille(); i++) {
+            if (huitoctets[i].classe == ClasseArgument::SSEUP) {
+                sseup_rencontré = true;
+                break;
+            }
+        }
+
+        if (!sseup_rencontré) {
+            résultat.ajoute(Huitoctet{ClasseArgument::MEMORY});
+            return;
+        }
+    }
+
+    // (d) If SSEUP is not preceded by SSE or SSEUP, it is converted to SSE.
+    classe_précédente = ClasseArgument::NO_CLASS;
+    POUR (huitoctets) {
+        if (it.classe == ClasseArgument::SSEUP && (classe_précédente != ClasseArgument::SSE &&
+                                                   classe_précédente != ClasseArgument::SSEUP)) {
+            it.classe = ClasseArgument::SSE;
+        }
+
+        classe_précédente = it.classe;
+    }
+
+    POUR (huitoctets) {
+        dbg() << "-- " << it.classe;
+        résultat.ajoute(it);
+    }
 }
 
-static ClasseArgument donne_classe_argument(Type const *type)
+static void donne_classe_argument(Type const *type, kuri::tableau<Huitoctet> &résultat)
 {
     switch (type->genre) {
         case GenreNoeud::RIEN:
         case GenreNoeud::POLYMORPHIQUE:
         {
-            return ClasseArgument::NO_CLASS;
+            résultat.ajoute({ClasseArgument::NO_CLASS});
+            return;
         }
         case GenreNoeud::BOOL:
         case GenreNoeud::OCTET:
@@ -97,29 +276,41 @@ static ClasseArgument donne_classe_argument(Type const *type)
         case GenreNoeud::TYPE_DE_DONNÉES:
         case GenreNoeud::TYPE_ADRESSE_FONCTION:
         {
-            return ClasseArgument::INTEGER;
+            résultat.ajoute({ClasseArgument::INTEGER});
+            return;
         }
         case GenreNoeud::RÉEL:
         {
             /* @Incomplet : __m128, __m256, etc. */
-            return ClasseArgument::SSE;
+            résultat.ajoute({ClasseArgument::SSE});
+            return;
         }
         case GenreNoeud::DÉCLARATION_OPAQUE:
         {
             auto const type_opaque = type->comme_type_opaque();
-            return donne_classe_argument(type_opaque->type_opacifié);
+            donne_classe_argument(type_opaque->type_opacifié, résultat);
+            return;
         }
         case GenreNoeud::DÉCLARATION_STRUCTURE:
         case GenreNoeud::TABLEAU_DYNAMIQUE:
         case GenreNoeud::TABLEAU_FIXE:
         case GenreNoeud::TUPLE:
         case GenreNoeud::VARIADIQUE:
-        case GenreNoeud::DÉCLARATION_UNION:
         case GenreNoeud::EINI:
         case GenreNoeud::CHAINE:
         case GenreNoeud::TYPE_TRANCHE:
         {
-            return détermine_classe_argument_aggrégé(type->comme_type_composé());
+            // À FAIRE : tableaux fixes, types variadiques externes
+            return détermine_classe_argument_aggrégé(type->comme_type_composé(), résultat);
+        }
+        case GenreNoeud::DÉCLARATION_UNION:
+        {
+            auto type_union = type->comme_type_union();
+            if (type_union->est_nonsure) {
+                donne_classe_argument(type_union->type_le_plus_grand, résultat);
+                return;
+            }
+            return détermine_classe_argument_aggrégé(type_union->type_structure, résultat);
         }
         CAS_POUR_NOEUDS_HORS_TYPES:
         {
@@ -127,26 +318,54 @@ static ClasseArgument donne_classe_argument(Type const *type)
             break;
         }
     }
-
-    return ClasseArgument::NO_CLASS;
 }
 
-struct ClasseArgumentAppel {
-    kuri::tableau<ClasseArgument> entrées{};
-    ClasseArgument sorties{};
+struct ArgumentPassé {
+    uint32_t premier_huitoctet_inclusif = 0;
+    uint32_t dernier_huitoctet_exclusif = 0;
 };
 
-static ClasseArgumentAppel détermine_classes_arguments(TypeFonction const *type)
+struct ClassementArgument {
+    kuri::tableau<Huitoctet> huitoctets{};
+    kuri::tableau<ArgumentPassé> arguments{};
+    ArgumentPassé sortie{};
+};
+
+static ClassementArgument détermine_classes_arguments(TypeFonction const *type)
 {
-    auto résultat = ClasseArgumentAppel{};
+    auto résultat = ClassementArgument{};
 
     POUR (type->types_entrées) {
-        résultat.entrées.ajoute(donne_classe_argument(it));
+        auto argument = ArgumentPassé{};
+        argument.premier_huitoctet_inclusif = uint32_t(résultat.huitoctets.taille());
+
+        donne_classe_argument(it, résultat.huitoctets);
+
+        argument.dernier_huitoctet_exclusif = uint32_t(résultat.huitoctets.taille());
+        résultat.arguments.ajoute(argument);
     }
 
-    résultat.sorties = donne_classe_argument(type->type_sortie);
+    résultat.sortie.premier_huitoctet_inclusif = uint32_t(résultat.huitoctets.taille());
+    donne_classe_argument(type->type_sortie, résultat.huitoctets);
+    résultat.sortie.dernier_huitoctet_exclusif = uint32_t(résultat.huitoctets.taille());
 
     return résultat;
+}
+
+void classifie_arguments(AtomeFonction const *fonction)
+{
+    dbg() << "------------------------------------------";
+    auto classes = détermine_classes_arguments(fonction->type->comme_type_fonction());
+
+    auto index_arg = 0;
+
+    POUR (classes.arguments) {
+        dbg() << fonction->params_entrée[index_arg++]->ident->nom;
+
+        for (auto i = it.premier_huitoctet_inclusif; i < it.dernier_huitoctet_exclusif; i++) {
+            dbg() << " => " << classes.huitoctets[i].classe;
+        }
+    }
 }
 
 /** \} */
@@ -986,7 +1205,8 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
                     source, assembleuse, UtilisationAtome::AUCUNE);
                 assert(adresse_source.type == AssembleuseASM::TypeOpérande::MÉMOIRE);
 
-                auto classe = classes_args.entrées[index_it];
+                // À FAIRE
+                auto classe = ClasseArgument::INTEGER;  // classes_args.entrées[index_it];
                 assert(classe == ClasseArgument::INTEGER);
 
                 auto registre = *pointeur_registre++;
@@ -1704,7 +1924,8 @@ void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonc
         auto adresse = donne_adresse_stack();
         table_valeurs[it->numero] = adresse;
 
-        auto classe = classes_args.entrées[index_it];
+        // À FAIRE
+        auto classe = ClasseArgument::INTEGER;  // classes_args.entrées[index_it];
         assert(classe == ClasseArgument::INTEGER);
 
         auto registre = *pointeur_registre++;
