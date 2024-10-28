@@ -581,11 +581,11 @@ dessine :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage)
             p0 := Point2D(z32)(rect.x, rect_élément.y)
             p1 := Point2D(z32)(rect.x + rect.largeur, rect_élément.y)
             dessine_segment(ctx.peintre, Ligne(z32)(p0, p1), thème.couleur_contour)
+            continue
         }
-        sinon {
-            texte := menu.éléments[index_it].texte
-            dessine_texte(ctx.peintre, ctx.fonte, texte, rect_élément, thème.couleur_texte)
-        }
+
+        texte := menu.éléments[index_it].texte
+        dessine_texte(ctx.peintre, ctx.fonte, texte, rect_élément, thème.couleur_texte)
     }
 
     /* À FAIRE : les lignes du bas et du côté gauche sont manquantes. Peut-être à cause du ciseau ? */
