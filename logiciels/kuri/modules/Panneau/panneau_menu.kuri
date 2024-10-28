@@ -368,6 +368,7 @@ PanneauMenu :: struct {
         largeur: z32
         est_séparateur: bool
         est_sous_menu: bool
+        est_coche: bool
     }
 
     État :: struct {
@@ -494,13 +495,14 @@ ajourne_disposition :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage
             élément.largeur = largeur_requise
         }
 
-        si élément.largeur > largeur_max_élément {
-            largeur_max_élément = élément.largeur
-        }
-
         discr it.données {
             Action {
                 hauteur_panneau += hauteur_élément_texte
+            }
+            Cochage {
+                hauteur_panneau += hauteur_élément_texte
+                élément.largeur += hauteur_de_ligne + espaçage_élément
+                élément.est_coche = vrai
             }
             SousMenu {
                 hauteur_panneau += hauteur_élément_texte
@@ -511,6 +513,10 @@ ajourne_disposition :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage
                 élément.est_séparateur = vrai
             }
             sinon {}
+        }
+
+        si élément.largeur > largeur_max_élément {
+            largeur_max_élément = élément.largeur
         }
 
         éléments[index_it] = élément
@@ -527,6 +533,12 @@ ajourne_disposition :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage
 
         discr it.données {
             Action {
+                décalage_élément -= hauteur_élément_texte
+
+                élément.décalage_y = décalage_élément + 5
+                élément.hauteur = hauteur_élément
+            }
+            Cochage {
                 décalage_élément -= hauteur_élément_texte
 
                 élément.décalage_y = décalage_élément + 5
@@ -568,6 +580,7 @@ dessine :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage)
     }
 
     métriques := donne_métriques_fonte(ctx.fonte)
+    hauteur_de_ligne := métriques.donne_hauteur_ligne() comme z32
 
     rect_élément: RectanglePosDim(z32)
     rect_élément.x = rect.x + décalage_élément_x
@@ -587,6 +600,25 @@ dessine :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage)
         texte := menu.éléments[index_it].texte
         rect_texte := rect_élément
         rect_texte.y -= métriques.jambage_inférieur comme z32
+
+        si it.est_coche {
+            /* À FAIRE : image pour la coche. */
+            rect_coche := rect_élément
+            rect_coche.largeur = rect_coche.hauteur
+            dessine_rectangle(ctx.peintre, rect_coche, thème.couleur_texte)
+
+            élément_coche := menu.éléments[index_it].données.Cochage
+
+            si élément_coche.est_coché() {
+                rect_coche.réduis(2)
+                rect_coche.x += 1
+                rect_coche.y += 1
+                remplis_rectangle(ctx.peintre, rect_coche, thème.couleur_texte)
+            }
+
+            rect_texte.x += hauteur_de_ligne + décalage_élément_x / 2
+        }
+
         dessine_texte(ctx.peintre, ctx.fonte, texte, rect_texte, thème.couleur_texte)
     }
 
