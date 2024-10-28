@@ -305,7 +305,7 @@ struct AssembleuseASM {
         Mémoire mémoire{};
         Fonction fonction{};
 
-        Opérande(){};
+        Opérande() {};
 
         Opérande(Mémoire mém) : type(TypeOpérande::MÉMOIRE), mémoire(mém)
         {
