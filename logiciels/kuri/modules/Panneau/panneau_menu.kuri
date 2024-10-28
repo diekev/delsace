@@ -363,7 +363,7 @@ PanneauMenu :: struct {
     empl base: Panneau
 
     Élément :: struct {
-        décalage: z32
+        décalage_y: z32
         hauteur: z32
         largeur: z32
         est_séparateur: bool
@@ -529,19 +529,19 @@ ajourne_disposition :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage
             Action {
                 décalage_élément -= hauteur_élément_texte
 
-                élément.décalage = décalage_élément + 5
+                élément.décalage_y = décalage_élément + 5
                 élément.hauteur = hauteur_élément
             }
             SousMenu {
                 décalage_élément -= hauteur_élément_texte
 
-                élément.décalage = décalage_élément + 5
+                élément.décalage_y = décalage_élément + 5
                 élément.hauteur = hauteur_élément
             }
             Séparateur {
                 décalage_élément -= hauteur_élément_séparateur
 
-                élément.décalage = décalage_élément + 5
+                élément.décalage_y = décalage_élément + 5
                 élément.hauteur = hauteur_élément_séparateur
                 élément.largeur = largeur_panneau
             }
@@ -575,7 +575,7 @@ dessine :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage)
 
     pour éléments {
         rect_élément.largeur = it.largeur
-        rect_élément.y = rect.y + it.décalage
+        rect_élément.y = rect.y + it.décalage_y
 
         si it.est_séparateur {
             p0 := Point2D(z32)(rect.x, rect_élément.y)
@@ -626,7 +626,7 @@ donne_rect_élément_pour_clique :: fonc (empl panneau: *PanneauMenu, index_él�
 
     résultat: RectanglePosDim(z32)
     résultat.x = rect.x
-    résultat.y = rect.y + élément.décalage - 5
+    résultat.y = rect.y + élément.décalage_y - 5
     résultat.hauteur = élément.hauteur
     résultat.largeur = rect.largeur
     retourne résultat
