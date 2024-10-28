@@ -39,6 +39,87 @@
 /* clang-format on */
 
 /* ------------------------------------------------------------------------- */
+/** \name Registres x64
+ * \{ */
+
+enum class Registre {
+    RAX,
+    RBX,
+    RCX,
+    RDX,
+    RSI,
+    RDI,
+    RBP,
+    RSP,
+    R8,
+    R9,
+    R10,
+    R11,
+    R12,
+    R13,
+    R14,
+    R15,
+
+    XMM0,
+    XMM1,
+    XMM2,
+    XMM3,
+    XMM4,
+    XMM5,
+    XMM6,
+    XMM7,
+};
+
+static kuri::chaine_statique chaine_pour_registre(Registre registre, uint32_t taille_octet)
+{
+#define APPARIE_REGISTRE(type, nom1, nom2, nom4, nom8)                                            \
+    case Registre::type:                                                                          \
+    {                                                                                             \
+        if (taille_octet == 1)                                                                    \
+            return nom1;                                                                          \
+        if (taille_octet == 2)                                                                    \
+            return nom2;                                                                          \
+        if (taille_octet == 4)                                                                    \
+            return nom4;                                                                          \
+        return nom8;                                                                              \
+    }
+
+    switch (registre) {
+        APPARIE_REGISTRE(RAX, "al", "ax", "eax", "rax")
+        APPARIE_REGISTRE(RBX, "bl", "bx", "ebx", "rbx")
+        APPARIE_REGISTRE(RCX, "cl", "cx", "ecx", "rcx")
+        APPARIE_REGISTRE(RDX, "dl", "dx", "edx", "rdx")
+        APPARIE_REGISTRE(RSI, "sil", "si", "esi", "rsi")
+        APPARIE_REGISTRE(RDI, "dil", "di", "edi", "rdi")
+        APPARIE_REGISTRE(RBP, "bpl", "bp", "ebp", "rbp")
+        APPARIE_REGISTRE(RSP, "spl", "sp", "esp", "rsp")
+        APPARIE_REGISTRE(R8, "r8b", "r8w", "r8d", "r8")
+        APPARIE_REGISTRE(R9, "r9b", "r9w", "r9d", "r9")
+        APPARIE_REGISTRE(R10, "r10b", "r10w", "r10d", "r10")
+        APPARIE_REGISTRE(R11, "r11b", "r11w", "r11d", "r11")
+        APPARIE_REGISTRE(R12, "r12b", "r12w", "r12d", "r12")
+        APPARIE_REGISTRE(R13, "r13b", "r13w", "r13d", "r13")
+        APPARIE_REGISTRE(R14, "r14b", "r14W", "r14d", "r14")
+        APPARIE_REGISTRE(R15, "r15b", "r15w", "r15d", "r15")
+
+        APPARIE_REGISTRE(XMM0, "xmm0", "xmm0", "xmm0", "xmm0")
+        APPARIE_REGISTRE(XMM1, "xmm1", "xmm1", "xmm1", "xmm1")
+        APPARIE_REGISTRE(XMM2, "xmm2", "xmm2", "xmm2", "xmm2")
+        APPARIE_REGISTRE(XMM3, "xmm3", "xmm3", "xmm3", "xmm3")
+        APPARIE_REGISTRE(XMM4, "xmm4", "xmm4", "xmm4", "xmm4")
+        APPARIE_REGISTRE(XMM5, "xmm5", "xmm5", "xmm5", "xmm5")
+        APPARIE_REGISTRE(XMM6, "xmm6", "xmm6", "xmm6", "xmm6")
+        APPARIE_REGISTRE(XMM7, "xmm7", "xmm7", "xmm7", "xmm7")
+    }
+
+#undef APPARIE_REGISTRE
+
+    return "registre_invalide";
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name ABI x64 pour passer des paramètres
  *  https://refspecs.linuxfoundation.org/elf/x86_64-abi-0.99.pdf section 3.2.3
  * \{ */
@@ -431,63 +512,6 @@ struct AssembleuseASM {
     struct Fonction {
         kuri::chaine_statique valeur;
     };
-
-    enum class Registre {
-        RAX,
-        RBX,
-        RCX,
-        RDX,
-        RSI,
-        RDI,
-        RBP,
-        RSP,
-        R8,
-        R9,
-        R10,
-        R11,
-        R12,
-        R13,
-        R14,
-        R15,
-    };
-
-    static kuri::chaine_statique chaine_pour_registre(Registre registre, uint32_t taille_octet)
-    {
-#define APPARIE_REGISTRE(type, nom1, nom2, nom4, nom8)                                            \
-    case Registre::type:                                                                          \
-    {                                                                                             \
-        if (taille_octet == 1)                                                                    \
-            return nom1;                                                                          \
-        if (taille_octet == 2)                                                                    \
-            return nom2;                                                                          \
-        if (taille_octet == 4)                                                                    \
-            return nom4;                                                                          \
-        return nom8;                                                                              \
-    }
-
-        switch (registre) {
-            APPARIE_REGISTRE(RAX, "al", "ax", "eax", "rax")
-            APPARIE_REGISTRE(RBX, "bl", "bx", "ebx", "rbx")
-            APPARIE_REGISTRE(RCX, "cl", "cx", "ecx", "rcx")
-            APPARIE_REGISTRE(RDX, "dl", "dx", "edx", "rdx")
-            APPARIE_REGISTRE(RSI, "sil", "si", "esi", "rsi")
-            APPARIE_REGISTRE(RDI, "dil", "di", "edi", "rdi")
-            APPARIE_REGISTRE(RBP, "bpl", "bp", "ebp", "rbp")
-            APPARIE_REGISTRE(RSP, "spl", "sp", "esp", "rsp")
-            APPARIE_REGISTRE(R8, "r8b", "r8w", "r8d", "r8")
-            APPARIE_REGISTRE(R9, "r9b", "r9w", "r9d", "r9")
-            APPARIE_REGISTRE(R10, "r10b", "r10w", "r10d", "r10")
-            APPARIE_REGISTRE(R11, "r11b", "r11w", "r11d", "r11")
-            APPARIE_REGISTRE(R12, "r12b", "r12w", "r12d", "r12")
-            APPARIE_REGISTRE(R13, "r13b", "r13w", "r13d", "r13")
-            APPARIE_REGISTRE(R14, "r14b", "r14W", "r14d", "r14")
-            APPARIE_REGISTRE(R15, "r15b", "r15w", "r15d", "r15")
-        }
-
-#undef APPARIE_REGISTRE
-
-        return "registre_invalide";
-    }
 
     static bool est_immédiate(TypeOpérande type)
     {
@@ -937,7 +961,7 @@ struct GestionnaireRegistres {
         réinitialise();
     }
 
-    AssembleuseASM::Registre donne_registre_inoccupé()
+    Registre donne_registre_inoccupé()
     {
         auto index_registre = 0;
 
@@ -950,22 +974,22 @@ struct GestionnaireRegistres {
             index_registre += 1;
         }
 
-        return static_cast<AssembleuseASM::Registre>(index_registre);
+        return static_cast<Registre>(index_registre);
     }
 
-    bool registre_est_occupé(AssembleuseASM::Registre registre) const
+    bool registre_est_occupé(Registre registre) const
     {
         return registres[static_cast<int>(registre)];
     }
 
-    void marque_registre_occupé(AssembleuseASM::Registre registre)
+    void marque_registre_occupé(Registre registre)
     {
         registres[static_cast<int>(registre)] = true;
     }
 
-    void marque_registre_inoccupé(AssembleuseASM::Registre registre)
+    void marque_registre_inoccupé(Registre registre)
     {
-        assert(registre != AssembleuseASM::Registre::RSP);
+        assert(registre != Registre::RSP);
         registres[static_cast<int>(registre)] = false;
     }
 
@@ -975,7 +999,7 @@ struct GestionnaireRegistres {
             it = false;
         }
 
-        marque_registre_occupé(AssembleuseASM::Registre::RSP);
+        marque_registre_occupé(Registre::RSP);
     }
 };
 
@@ -1185,13 +1209,13 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
 
             auto classes_args = détermine_classes_arguments(
                 atome_appelée->type->comme_type_fonction());
-            const AssembleuseASM::Registre registres_disponibles[6] = {
-                AssembleuseASM::Registre::RDI,
-                AssembleuseASM::Registre::RSI,
-                AssembleuseASM::Registre::RDX,
-                AssembleuseASM::Registre::RCX,
-                AssembleuseASM::Registre::R8,
-                AssembleuseASM::Registre::R9,
+            const Registre registres_disponibles[6] = {
+                Registre::RDI,
+                Registre::RSI,
+                Registre::RDX,
+                Registre::RCX,
+                Registre::R8,
+                Registre::R9,
             };
 
             auto pointeur_registre = registres_disponibles;
@@ -1221,23 +1245,21 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
             assert(appelée.type == AssembleuseASM::TypeOpérande::FONCTION);
 
             /* Préserve note pile. */
-            assembleuse.sub(
-                AssembleuseASM::Registre::RSP, AssembleuseASM::Immédiate64{taille_allouée}, 8);
+            assembleuse.sub(Registre::RSP, AssembleuseASM::Immédiate64{taille_allouée}, 8);
 
             assembleuse.call(appelée);
 
             /* Restaure note pile. */
-            assembleuse.add(
-                AssembleuseASM::Registre::RSP, AssembleuseASM::Immédiate64{taille_allouée}, 8);
+            assembleuse.add(Registre::RSP, AssembleuseASM::Immédiate64{taille_allouée}, 8);
 
             auto type_retour = appel->type;
             if (!type_retour->est_type_rien()) {
                 /* À FAIRE : structures. */
                 assert(type_retour->taille_octet <= 8);
                 /* La valeur de retour est dans RAX. */
-                table_valeurs[inst->numero] = AssembleuseASM::Registre::RAX;
+                table_valeurs[inst->numero] = Registre::RAX;
                 registres.réinitialise();
-                registres.marque_registre_occupé(AssembleuseASM::Registre::RAX);
+                registres.marque_registre_occupé(Registre::RAX);
             }
 
             break;
@@ -1373,7 +1395,7 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
                     // À FAIRE mov dans rax
                 }
                 else {
-                    if (valeur.registre != AssembleuseASM::Registre::RAX) {
+                    if (valeur.registre != Registre::RAX) {
                         // À FAIRE mov dans rax
                     }
                 }
@@ -1383,7 +1405,7 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
             assembleuse.ret();
 
             /* À FAIRE : marque plus de registres inoccupés ? */
-            registres.marque_registre_inoccupé(AssembleuseASM::Registre::RAX);
+            registres.marque_registre_inoccupé(Registre::RAX);
             break;
         }
         case GenreInstruction::ACCEDE_INDEX:
@@ -1460,14 +1482,14 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
     registres.marque_registre_occupé(registre_résultat.registre)
 
 #define GENERE_CODE_INST_DECALAGE_BIT(nom_inst)                                                   \
-    std::optional<AssembleuseASM::Registre> registre_sauvegarde_rcx;                              \
+    std::optional<Registre> registre_sauvegarde_rcx;                                              \
     if (!assembleuse.est_immédiate(opérande_droite.type)) {                                       \
-        if (registres.registre_est_occupé(AssembleuseASM::Registre::RCX)) {                       \
+        if (registres.registre_est_occupé(Registre::RCX)) {                                       \
             registre_sauvegarde_rcx = registres.donne_registre_inoccupé();                        \
-            assembleuse.mov(registre_sauvegarde_rcx.value(), AssembleuseASM::Registre::RCX, 8);   \
+            assembleuse.mov(registre_sauvegarde_rcx.value(), Registre::RCX, 8);                   \
         }                                                                                         \
-        assembleuse.mov(AssembleuseASM::Registre::RCX, opérande_droite, 1);                       \
-        opérande_droite = AssembleuseASM::Registre::RCX;                                          \
+        assembleuse.mov(Registre::RCX, opérande_droite, 1);                                       \
+        opérande_droite = Registre::RCX;                                                          \
     }                                                                                             \
     else {                                                                                        \
         opérande_droite = AssembleuseASM::donne_immédiate8(opérande_droite);                      \
@@ -1475,7 +1497,7 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
     assembleuse.nom_inst(opérande_gauche, opérande_droite, inst_bin->type->taille_octet);         \
     table_valeurs[inst_bin->numero] = opérande_gauche;                                            \
     if (registre_sauvegarde_rcx.has_value()) {                                                    \
-        assembleuse.mov(AssembleuseASM::Registre::RCX, registre_sauvegarde_rcx.value(), 8);       \
+        assembleuse.mov(Registre::RCX, registre_sauvegarde_rcx.value(), 8);                       \
     }                                                                                             \
     registres.réinitialise();                                                                     \
     registres.marque_registre_occupé(opérande_gauche.registre)
@@ -1885,10 +1907,10 @@ void GénératriceCodeASM::génère_code(kuri::tableau_statique<AtomeGlobale *> 
 
     assembleuse.call(AssembleuseASM::Fonction{"principale"});
     /* Déplace le résultat de princpale dans RDI pour exit. */
-    assembleuse.mov(AssembleuseASM::Registre::RDI, AssembleuseASM::Registre::RAX, 4);
+    assembleuse.mov(Registre::RDI, Registre::RAX, 4);
 
     /* 60 = exit */
-    assembleuse.mov(AssembleuseASM::Registre::RAX, AssembleuseASM::Immédiate32{60}, 4);
+    assembleuse.mov(Registre::RAX, AssembleuseASM::Immédiate32{60}, 4);
     assembleuse.syscall();
 }
 
@@ -1907,13 +1929,13 @@ void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonc
     sauvegarde_registres_appel(assembleuse);
 
     auto classes_args = détermine_classes_arguments(fonction->type->comme_type_fonction());
-    const AssembleuseASM::Registre registres_disponibles[6] = {
-        AssembleuseASM::Registre::RDI,
-        AssembleuseASM::Registre::RSI,
-        AssembleuseASM::Registre::RDX,
-        AssembleuseASM::Registre::RCX,
-        AssembleuseASM::Registre::R8,
-        AssembleuseASM::Registre::R9,
+    const Registre registres_disponibles[6] = {
+        Registre::RDI,
+        Registre::RSI,
+        Registre::RDX,
+        Registre::RCX,
+        Registre::R8,
+        Registre::R9,
     };
 
     auto pointeur_registre = registres_disponibles;
@@ -1956,24 +1978,24 @@ void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonc
 void GénératriceCodeASM::sauvegarde_registres_appel(AssembleuseASM &assembleuse)
 {
     /* r12, r13, r14, r15, rbx, rsp, rbp */
-    assembleuse.push(AssembleuseASM::Registre::R12);
-    assembleuse.push(AssembleuseASM::Registre::R13);
-    assembleuse.push(AssembleuseASM::Registre::R14);
-    assembleuse.push(AssembleuseASM::Registre::R15);
-    assembleuse.push(AssembleuseASM::Registre::RBX);
-    assembleuse.push(AssembleuseASM::Registre::RSP);
-    assembleuse.push(AssembleuseASM::Registre::RBP);
+    assembleuse.push(Registre::R12);
+    assembleuse.push(Registre::R13);
+    assembleuse.push(Registre::R14);
+    assembleuse.push(Registre::R15);
+    assembleuse.push(Registre::RBX);
+    assembleuse.push(Registre::RSP);
+    assembleuse.push(Registre::RBP);
 }
 
 void GénératriceCodeASM::restaure_registres_appel(AssembleuseASM &assembleuse)
 {
-    assembleuse.pop(AssembleuseASM::Registre::RBP);
-    assembleuse.pop(AssembleuseASM::Registre::RSP);
-    assembleuse.pop(AssembleuseASM::Registre::RBX);
-    assembleuse.pop(AssembleuseASM::Registre::R15);
-    assembleuse.pop(AssembleuseASM::Registre::R14);
-    assembleuse.pop(AssembleuseASM::Registre::R13);
-    assembleuse.pop(AssembleuseASM::Registre::R12);
+    assembleuse.pop(Registre::RBP);
+    assembleuse.pop(Registre::RSP);
+    assembleuse.pop(Registre::RBX);
+    assembleuse.pop(Registre::R15);
+    assembleuse.pop(Registre::R14);
+    assembleuse.pop(Registre::R13);
+    assembleuse.pop(Registre::R12);
 }
 
 void GénératriceCodeASM::définis_fonction_courante(AtomeFonction const *fonction)
@@ -1991,7 +2013,7 @@ void GénératriceCodeASM::définis_fonction_courante(AtomeFonction const *fonct
 
 AssembleuseASM::Mémoire GénératriceCodeASM::donne_adresse_stack()
 {
-    return {AssembleuseASM::Registre::RSP, -int32_t(taille_allouée)};
+    return {Registre::RSP, -int32_t(taille_allouée)};
 }
 
 void GénératriceCodeASM::imprime_inst_en_commentaire(Enchaineuse &os, Instruction const *inst)
