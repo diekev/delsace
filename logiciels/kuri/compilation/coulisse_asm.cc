@@ -511,21 +511,19 @@ class AllocatriceRegistreArgument {
     }
 };
 
-void classifie_arguments(AtomeFonction const *fonction)
+static ClassementArgument donne_classement_arguments(TypeFonction const *type_fonction)
 {
-    dbg() << "------------------------------------------";
-    auto classes = détermine_classes_arguments(fonction->type->comme_type_fonction());
+    auto classement = détermine_classes_arguments(type_fonction);
 
     auto allocatrice_registre = AllocatriceRegistreArgument();
 
-    classes.registres_huitoctets.redimensionne(classes.huitoctets.taille());
+    classement.registres_huitoctets.redimensionne(classement.huitoctets.taille());
 
-    auto index_arg = 0;
-    POUR (classes.arguments) {
+    POUR (classement.arguments) {
         allocatrice_registre.enregistre_état();
 
         for (auto i = it.premier_huitoctet_inclusif; i < it.dernier_huitoctet_exclusif; i++) {
-            auto classe = classes.huitoctets[i].classe;
+            auto classe = classement.huitoctets[i].classe;
 
             // 1. If the class is MEMORY, pass the argument on the stack.
             if (classe == ClasseArgument::MEMORY) {
@@ -540,7 +538,7 @@ void classifie_arguments(AtomeFonction const *fonction)
                     break;
                 }
 
-                classes.registres_huitoctets[i].registre =
+                classement.registres_huitoctets[i].registre =
                     allocatrice_registre.donne_registre_integer();
             }
             // 3. If the class is SSE, the next available vector register is used, the registers
@@ -552,14 +550,14 @@ void classifie_arguments(AtomeFonction const *fonction)
                     break;
                 }
 
-                classes.registres_huitoctets[i].registre =
+                classement.registres_huitoctets[i].registre =
                     allocatrice_registre.donne_registre_sse();
             }
             // 4. If the class is SSEUP, the eightbyte is passed in the next available eightbyte
             //    chunk of the last used vector register.
             else if (classe == ClasseArgument::SSEUP) {
                 // À FAIRE : next available eightbytes
-                classes.registres_huitoctets[i].registre =
+                classement.registres_huitoctets[i].registre =
                     allocatrice_registre.donne_dernier_registre_sse();
             }
             // 5. If the class is X87, X87UP or COMPLEX_X87, it is passed in memory.
@@ -569,13 +567,22 @@ void classifie_arguments(AtomeFonction const *fonction)
         }
     }
 
-    index_arg = 0;
-    POUR (classes.arguments) {
+    return classement;
+}
+
+void classifie_arguments(AtomeFonction const *fonction)
+{
+    dbg() << "------------------------------------------";
+
+    auto classement = donne_classement_arguments(fonction->type->comme_type_fonction());
+
+    auto index_arg = 0;
+    POUR (classement.arguments) {
         dbg() << fonction->params_entrée[index_arg++]->ident->nom;
 
         for (auto i = it.premier_huitoctet_inclusif; i < it.dernier_huitoctet_exclusif; i++) {
-            auto registre = classes.registres_huitoctets[i].registre;
-            dbg() << " => " << classes.huitoctets[i].classe << " ("
+            auto registre = classement.registres_huitoctets[i].registre;
+            dbg() << " => " << classement.huitoctets[i].classe << " ("
                   << chaine_pour_registre(registre, 8) << ")";
         }
     }
@@ -1339,18 +1346,8 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
 
             auto atome_appelée = appel->appelé;
 
-            auto classes_args = détermine_classes_arguments(
+            auto classement = donne_classement_arguments(
                 atome_appelée->type->comme_type_fonction());
-            const Registre registres_disponibles[6] = {
-                Registre::RDI,
-                Registre::RSI,
-                Registre::RDX,
-                Registre::RCX,
-                Registre::R8,
-                Registre::R9,
-            };
-
-            auto pointeur_registre = registres_disponibles;
 
             /* À FAIRE: chargement des paramètres dans les registres */
             POUR_INDEX (appel->args) {
@@ -1361,11 +1358,17 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
                     source, assembleuse, UtilisationAtome::AUCUNE);
                 assert(adresse_source.type == AssembleuseASM::TypeOpérande::MÉMOIRE);
 
-                // À FAIRE
-                auto classe = ClasseArgument::INTEGER;  // classes_args.entrées[index_it];
+                auto classement_arg = classement.arguments[index_it];
+                assert(classement_arg.premier_huitoctet_inclusif ==
+                       classement_arg.dernier_huitoctet_exclusif - 1);
+
+                auto huitoctet = classement.huitoctets[classement_arg.premier_huitoctet_inclusif];
+                auto classe = huitoctet.classe;
                 assert(classe == ClasseArgument::INTEGER);
 
-                auto registre = *pointeur_registre++;
+                auto registre =
+                    classement.registres_huitoctets[classement_arg.premier_huitoctet_inclusif]
+                        .registre;
                 assembleuse.mov(registre, adresse_source, it->type->taille_octet);
 
                 // génère_code_pour_atome(it, assembleuse, false);
@@ -2060,17 +2063,7 @@ void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonc
 
     sauvegarde_registres_appel(assembleuse);
 
-    auto classes_args = détermine_classes_arguments(fonction->type->comme_type_fonction());
-    const Registre registres_disponibles[6] = {
-        Registre::RDI,
-        Registre::RSI,
-        Registre::RDX,
-        Registre::RCX,
-        Registre::R8,
-        Registre::R9,
-    };
-
-    auto pointeur_registre = registres_disponibles;
+    auto classement = donne_classement_arguments(fonction->type->comme_type_fonction());
 
     POUR_INDEX (fonction->params_entrée) {
         auto type_alloué = it->donne_type_alloué();
@@ -2078,11 +2071,17 @@ void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonc
         auto adresse = donne_adresse_stack();
         table_valeurs[it->numero] = adresse;
 
-        // À FAIRE
-        auto classe = ClasseArgument::INTEGER;  // classes_args.entrées[index_it];
+        auto classement_arg = classement.arguments[index_it];
+        assert(classement_arg.premier_huitoctet_inclusif ==
+               classement_arg.dernier_huitoctet_exclusif - 1);
+
+        auto huitoctet = classement.huitoctets[classement_arg.premier_huitoctet_inclusif];
+        auto classe = huitoctet.classe;
         assert(classe == ClasseArgument::INTEGER);
 
-        auto registre = *pointeur_registre++;
+        auto registre =
+            classement.registres_huitoctets[classement_arg.premier_huitoctet_inclusif].registre;
+
         assembleuse.mov(adresse, registre, type_alloué->taille_octet);
     }
 
