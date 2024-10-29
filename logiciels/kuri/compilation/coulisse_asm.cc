@@ -1501,15 +1501,39 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
 
     /* À FAIRE: chargement des paramètres dans les registres */
     POUR_INDEX (appel->args) {
-        assert(it->est_instruction() && it->comme_instruction()->est_charge());
-        auto chargement = it->comme_instruction()->comme_charge();
-        auto source = chargement->chargée;
-        auto adresse_source = génère_code_pour_atome(
-            source, assembleuse, UtilisationAtome::AUCUNE);
-        assert(adresse_source.type == AssembleuseASM::TypeOpérande::MÉMOIRE);
+        assert(it->est_instruction());
 
         auto classement_arg = classement.arguments[index_it];
         assert(classement_arg.est_en_mémoire == false);
+
+        auto adresse_source = AssembleuseASM::Opérande{};
+        if (it->est_instruction()) {
+            auto instruction = it->comme_instruction();
+            if (instruction->est_alloc()) {
+                assert(classement_arg.premier_huitoctet_inclusif ==
+                       classement_arg.dernier_huitoctet_exclusif - 1);
+                auto registre =
+                    classement.registres_huitoctets[classement_arg.premier_huitoctet_inclusif]
+                        .registre;
+                // Nous prenons l'adresse d'une variable.
+                adresse_source = génère_code_pour_atome(
+                    instruction, assembleuse, UtilisationAtome::AUCUNE);
+                assembleuse.lea(registre, adresse_source);
+                continue;
+            }
+
+            if (instruction->est_charge()) {
+                auto chargement = instruction->comme_charge();
+                auto source = chargement->chargée;
+                adresse_source = génère_code_pour_atome(
+                    source, assembleuse, UtilisationAtome::AUCUNE);
+            }
+            else {
+                assert(false);
+            }
+        }
+
+        assert(adresse_source.type == AssembleuseASM::TypeOpérande::MÉMOIRE);
 
         auto taille_en_octet = it->type->taille_octet;
 
@@ -1528,6 +1552,7 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
                 taille_en_octet -= 8;
             }
 
+            registres.marque_registre_occupé(registre);
             assembleuse.mov(registre, adresse_source, taille_à_copier);
 
             adresse_source.mémoire.décalage += int32_t(taille_à_copier);
