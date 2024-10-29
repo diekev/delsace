@@ -1162,6 +1162,10 @@ struct GénératriceCodeASM {
                                       AssembleuseASM &assembleuse,
                                       const UtilisationAtome utilisation);
 
+    void génère_code_pour_appel(const InstructionAppel *appel,
+                                AssembleuseASM &assembleuse,
+                                UtilisationAtome const utilisation);
+
     void génère_code_pour_opération_binaire(const InstructionOpBinaire *inst_bin,
                                             AssembleuseASM &assembleuse,
                                             const UtilisationAtome utilisation);
@@ -1193,8 +1197,19 @@ struct GénératriceCodeASM {
                                    AssembleuseASM &assembleuse,
                                    Enchaineuse &os);
 
+    void génère_code_pour_retourne(const InstructionRetour *inst_retour,
+                                   AssembleuseASM &assembleuse);
+
     void génère_code_pour_branche_condition(const InstructionBrancheCondition *inst_branche,
                                             AssembleuseASM &assembleuse);
+
+    void génère_code_pour_charge_mémoire(InstructionChargeMem const *inst_charge,
+                                         AssembleuseASM &assembleuse,
+                                         UtilisationAtome utilisation);
+
+    void génère_code_pour_stocke_mémoire(InstructionStockeMem const *inst_stocke,
+                                         AssembleuseASM &assembleuse,
+                                         UtilisationAtome utilisation);
 };
 
 AssembleuseASM::Opérande GénératriceCodeASM::génère_code_pour_atome(
@@ -1334,81 +1349,7 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
         }
         case GenreInstruction::APPEL:
         {
-            auto appel = inst->comme_appel();
-
-            /* Évite de générer deux fois le code pour les appels : une fois dans la boucle sur les
-             * instructions, une fois pour l'opérande. Les fonctions retournant « rien » ne peuvent
-             * être opérandes. */
-            if (!appel->type->est_type_rien() &&
-                ((utilisation & UtilisationAtome::POUR_OPÉRANDE) == UtilisationAtome::AUCUNE)) {
-                return;
-            }
-
-            auto atome_appelée = appel->appelé;
-
-            auto classement = donne_classement_arguments(
-                atome_appelée->type->comme_type_fonction());
-
-            /* À FAIRE: chargement des paramètres dans les registres */
-            POUR_INDEX (appel->args) {
-                assert(it->est_instruction() && it->comme_instruction()->est_charge());
-                auto chargement = it->comme_instruction()->comme_charge();
-                auto source = chargement->chargée;
-                auto adresse_source = génère_code_pour_atome(
-                    source, assembleuse, UtilisationAtome::AUCUNE);
-                assert(adresse_source.type == AssembleuseASM::TypeOpérande::MÉMOIRE);
-
-                auto classement_arg = classement.arguments[index_it];
-                assert(classement_arg.est_en_mémoire == false);
-
-                auto taille_en_octet = it->type->taille_octet;
-
-                for (auto i = classement_arg.premier_huitoctet_inclusif;
-                     i < classement_arg.dernier_huitoctet_exclusif;
-                     i++) {
-                    auto huitoctet = classement.huitoctets[i];
-                    auto classe = huitoctet.classe;
-                    assert(classe == ClasseArgument::INTEGER);
-
-                    auto registre = classement.registres_huitoctets[i].registre;
-
-                    auto taille_à_copier = taille_en_octet;
-                    if (taille_à_copier > 8) {
-                        taille_à_copier = 8;
-                        taille_en_octet -= 8;
-                    }
-
-                    assembleuse.mov(registre, adresse_source, taille_à_copier);
-
-                    adresse_source.mémoire.décalage += int32_t(taille_à_copier);
-                }
-
-                // génère_code_pour_atome(it, assembleuse, false);
-            }
-
-            auto appelée = génère_code_pour_atome(
-                appel->appelé, assembleuse, UtilisationAtome::AUCUNE);
-            /* À FAIRE : appel pointeur. */
-            assert(appelée.type == AssembleuseASM::TypeOpérande::FONCTION);
-
-            /* Préserve note pile. */
-            assembleuse.sub(Registre::RSP, AssembleuseASM::Immédiate64{taille_allouée}, 8);
-
-            assembleuse.call(appelée);
-
-            /* Restaure note pile. */
-            assembleuse.add(Registre::RSP, AssembleuseASM::Immédiate64{taille_allouée}, 8);
-
-            auto type_retour = appel->type;
-            if (!type_retour->est_type_rien()) {
-                /* À FAIRE : structures. */
-                assert(type_retour->taille_octet <= 8);
-                /* La valeur de retour est dans RAX. */
-                table_valeurs[inst->numero] = Registre::RAX;
-                registres.réinitialise();
-                registres.marque_registre_occupé(Registre::RAX);
-            }
-
+            génère_code_pour_appel(inst->comme_appel(), assembleuse, utilisation);
             break;
         }
         case GenreInstruction::BRANCHE:
@@ -1431,56 +1372,12 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
         }
         case GenreInstruction::CHARGE_MEMOIRE:
         {
-            auto inst_charge = inst->comme_charge();
-
-            /* À FAIRE: charge vers où? */
-            /* À FAIRE: movss/movsd pour les réels. */
-            /* À FAIRE: vérifie la taille de la structure. */
-            auto src = génère_code_pour_atome(
-                inst_charge->chargée, assembleuse, UtilisationAtome::AUCUNE);
-
-            auto registre = registres.donne_registre_inoccupé();
-
-            assembleuse.mov(registre, src, inst_charge->type->taille_octet);
-
-            /* Déréférencement de pointeur. */
-            AssembleuseASM::Opérande résultat = registre;
-            if (inst_charge->type->est_type_pointeur()) {
-                résultat = AssembleuseASM::Mémoire{registre, 0};
-            }
-
-            table_valeurs[inst->numero] = résultat;
+            génère_code_pour_charge_mémoire(inst->comme_charge(), assembleuse, utilisation);
             break;
         }
         case GenreInstruction::STOCKE_MEMOIRE:
         {
-            auto inst_stocke = inst->comme_stocke_mem();
-
-            auto dest = génère_code_pour_atome(
-                inst_stocke->destination, assembleuse, UtilisationAtome::AUCUNE);
-            auto src = génère_code_pour_atome(
-                inst_stocke->source, assembleuse, UtilisationAtome::AUCUNE);
-
-            auto type_stocké = inst_stocke->source->type;
-
-            if (src.type == AssembleuseASM::TypeOpérande::MÉMOIRE) {
-                /* Stockage d'une adresse. */
-                auto registre = registres.donne_registre_inoccupé();
-                assembleuse.lea(registre, src);
-                assembleuse.mov(dest, registre, type_stocké->taille_octet);
-                table_valeurs[inst->numero] = dest;
-                registres.marque_registre_inoccupé(registre);
-                return;
-            }
-
-            if (src.type == AssembleuseASM::TypeOpérande::REGISTRE) {
-                registres.marque_registre_inoccupé(src.registre);
-            }
-
-            /* À FAIRE: met où? */
-            /* À FAIRE: movss/movsd pour les réels. */
-            assembleuse.mov(dest, src, type_stocké->taille_octet);
-            table_valeurs[inst->numero] = dest;
+            génère_code_pour_stocke_mémoire(inst->comme_stocke_mem(), assembleuse, utilisation);
             break;
         }
         case GenreInstruction::LABEL:
@@ -1532,27 +1429,7 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
         }
         case GenreInstruction::RETOUR:
         {
-            auto inst_retour = inst->comme_retour();
-
-            if (inst_retour->valeur != nullptr) {
-                auto valeur = génère_code_pour_atome(
-                    inst_retour->valeur, assembleuse, UtilisationAtome::AUCUNE);
-
-                if (valeur.type != AssembleuseASM::TypeOpérande::REGISTRE) {
-                    // À FAIRE mov dans rax
-                }
-                else {
-                    if (valeur.registre != Registre::RAX) {
-                        // À FAIRE mov dans rax
-                    }
-                }
-            }
-
-            restaure_registres_appel(assembleuse);
-            assembleuse.ret();
-
-            /* À FAIRE : marque plus de registres inoccupés ? */
-            registres.marque_registre_inoccupé(Registre::RAX);
+            génère_code_pour_retourne(inst->comme_retour(), assembleuse);
             break;
         }
         case GenreInstruction::ACCEDE_INDEX:
@@ -1603,6 +1480,82 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
             VERIFIE_NON_ATTEINT;
             break;
         }
+    }
+}
+
+void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appel,
+                                                AssembleuseASM &assembleuse,
+                                                UtilisationAtome const utilisation)
+{
+    /* Évite de générer deux fois le code pour les appels : une fois dans la boucle sur les
+     * instructions, une fois pour l'opérande. Les fonctions retournant « rien » ne peuvent
+     * être opérandes. */
+    if (!appel->type->est_type_rien() &&
+        ((utilisation & UtilisationAtome::POUR_OPÉRANDE) == UtilisationAtome::AUCUNE)) {
+        return;
+    }
+
+    auto atome_appelée = appel->appelé;
+
+    auto classement = donne_classement_arguments(atome_appelée->type->comme_type_fonction());
+
+    /* À FAIRE: chargement des paramètres dans les registres */
+    POUR_INDEX (appel->args) {
+        assert(it->est_instruction() && it->comme_instruction()->est_charge());
+        auto chargement = it->comme_instruction()->comme_charge();
+        auto source = chargement->chargée;
+        auto adresse_source = génère_code_pour_atome(
+            source, assembleuse, UtilisationAtome::AUCUNE);
+        assert(adresse_source.type == AssembleuseASM::TypeOpérande::MÉMOIRE);
+
+        auto classement_arg = classement.arguments[index_it];
+        assert(classement_arg.est_en_mémoire == false);
+
+        auto taille_en_octet = it->type->taille_octet;
+
+        for (auto i = classement_arg.premier_huitoctet_inclusif;
+             i < classement_arg.dernier_huitoctet_exclusif;
+             i++) {
+            auto huitoctet = classement.huitoctets[i];
+            auto classe = huitoctet.classe;
+            assert(classe == ClasseArgument::INTEGER);
+
+            auto registre = classement.registres_huitoctets[i].registre;
+
+            auto taille_à_copier = taille_en_octet;
+            if (taille_à_copier > 8) {
+                taille_à_copier = 8;
+                taille_en_octet -= 8;
+            }
+
+            assembleuse.mov(registre, adresse_source, taille_à_copier);
+
+            adresse_source.mémoire.décalage += int32_t(taille_à_copier);
+        }
+
+        // génère_code_pour_atome(it, assembleuse, false);
+    }
+
+    auto appelée = génère_code_pour_atome(appel->appelé, assembleuse, UtilisationAtome::AUCUNE);
+    /* À FAIRE : appel pointeur. */
+    assert(appelée.type == AssembleuseASM::TypeOpérande::FONCTION);
+
+    /* Préserve note pile. */
+    assembleuse.sub(Registre::RSP, AssembleuseASM::Immédiate64{taille_allouée}, 8);
+
+    assembleuse.call(appelée);
+
+    /* Restaure note pile. */
+    assembleuse.add(Registre::RSP, AssembleuseASM::Immédiate64{taille_allouée}, 8);
+
+    auto type_retour = appel->type;
+    if (!type_retour->est_type_rien()) {
+        /* À FAIRE : structures. */
+        assert(type_retour->taille_octet <= 8);
+        /* La valeur de retour est dans RAX. */
+        table_valeurs[appel->numero] = Registre::RAX;
+        registres.réinitialise();
+        registres.marque_registre_occupé(Registre::RAX);
     }
 }
 
@@ -1878,6 +1831,30 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
 #undef GENERE_CODE_INST_ENTIER
 }
 
+void GénératriceCodeASM::génère_code_pour_retourne(const InstructionRetour *inst_retour,
+                                                   AssembleuseASM &assembleuse)
+{
+    if (inst_retour->valeur != nullptr) {
+        auto valeur = génère_code_pour_atome(
+            inst_retour->valeur, assembleuse, UtilisationAtome::AUCUNE);
+
+        if (valeur.type != AssembleuseASM::TypeOpérande::REGISTRE) {
+            // À FAIRE mov dans rax
+        }
+        else {
+            if (valeur.registre != Registre::RAX) {
+                // À FAIRE mov dans rax
+            }
+        }
+    }
+
+    restaure_registres_appel(assembleuse);
+    assembleuse.ret();
+
+    /* À FAIRE : marque plus de registres inoccupés ? */
+    registres.marque_registre_inoccupé(Registre::RAX);
+}
+
 void GénératriceCodeASM::génère_code_pour_branche_condition(
     const InstructionBrancheCondition *inst_branche, AssembleuseASM &assembleuse)
 {
@@ -1967,6 +1944,58 @@ void GénératriceCodeASM::génère_code_pour_branche_condition(
         assembleuse.jump_si_zéro(inst_branche->label_si_faux->id);
         assembleuse.jump(inst_branche->label_si_vrai->id);
     }
+}
+
+void GénératriceCodeASM::génère_code_pour_charge_mémoire(InstructionChargeMem const *inst_charge,
+                                                         AssembleuseASM &assembleuse,
+                                                         UtilisationAtome utilisation)
+{
+    /* À FAIRE: charge vers où? */
+    /* À FAIRE: movss/movsd pour les réels. */
+    /* À FAIRE: vérifie la taille de la structure. */
+    auto src = génère_code_pour_atome(inst_charge->chargée, assembleuse, UtilisationAtome::AUCUNE);
+
+    auto registre = registres.donne_registre_inoccupé();
+
+    assembleuse.mov(registre, src, inst_charge->type->taille_octet);
+
+    /* Déréférencement de pointeur. */
+    AssembleuseASM::Opérande résultat = registre;
+    if (inst_charge->type->est_type_pointeur()) {
+        résultat = AssembleuseASM::Mémoire{registre, 0};
+    }
+
+    table_valeurs[inst_charge->numero] = résultat;
+}
+
+void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeMem const *inst_stocke,
+                                                         AssembleuseASM &assembleuse,
+                                                         UtilisationAtome utilisation)
+{
+    auto dest = génère_code_pour_atome(
+        inst_stocke->destination, assembleuse, UtilisationAtome::AUCUNE);
+    auto src = génère_code_pour_atome(inst_stocke->source, assembleuse, UtilisationAtome::AUCUNE);
+
+    auto type_stocké = inst_stocke->source->type;
+
+    if (src.type == AssembleuseASM::TypeOpérande::MÉMOIRE) {
+        /* Stockage d'une adresse. */
+        auto registre = registres.donne_registre_inoccupé();
+        assembleuse.lea(registre, src);
+        assembleuse.mov(dest, registre, type_stocké->taille_octet);
+        table_valeurs[inst_stocke->numero] = dest;
+        registres.marque_registre_inoccupé(registre);
+        return;
+    }
+
+    if (src.type == AssembleuseASM::TypeOpérande::REGISTRE) {
+        registres.marque_registre_inoccupé(src.registre);
+    }
+
+    /* À FAIRE: met où? */
+    /* À FAIRE: movss/movsd pour les réels. */
+    assembleuse.mov(dest, src, type_stocké->taille_octet);
+    table_valeurs[inst_stocke->numero] = dest;
 }
 
 static kuri::tableau<AtomeFonction *> donne_fonctions_à_compiler(
