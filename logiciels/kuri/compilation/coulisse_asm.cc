@@ -1359,17 +1359,29 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
                 assert(adresse_source.type == AssembleuseASM::TypeOpérande::MÉMOIRE);
 
                 auto classement_arg = classement.arguments[index_it];
-                assert(classement_arg.premier_huitoctet_inclusif ==
-                       classement_arg.dernier_huitoctet_exclusif - 1);
+                assert(classement_arg.est_en_mémoire == false);
 
-                auto huitoctet = classement.huitoctets[classement_arg.premier_huitoctet_inclusif];
-                auto classe = huitoctet.classe;
-                assert(classe == ClasseArgument::INTEGER);
+                auto taille_en_octet = it->type->taille_octet;
 
-                auto registre =
-                    classement.registres_huitoctets[classement_arg.premier_huitoctet_inclusif]
-                        .registre;
-                assembleuse.mov(registre, adresse_source, it->type->taille_octet);
+                for (auto i = classement_arg.premier_huitoctet_inclusif;
+                     i < classement_arg.dernier_huitoctet_exclusif;
+                     i++) {
+                    auto huitoctet = classement.huitoctets[i];
+                    auto classe = huitoctet.classe;
+                    assert(classe == ClasseArgument::INTEGER);
+
+                    auto registre = classement.registres_huitoctets[i].registre;
+
+                    auto taille_à_copier = taille_en_octet;
+                    if (taille_à_copier > 8) {
+                        taille_à_copier = 8;
+                        taille_en_octet -= 8;
+                    }
+
+                    assembleuse.mov(registre, adresse_source, taille_à_copier);
+
+                    adresse_source.mémoire.décalage += int32_t(taille_à_copier);
+                }
 
                 // génère_code_pour_atome(it, assembleuse, false);
             }
@@ -2072,17 +2084,29 @@ void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonc
         table_valeurs[it->numero] = adresse;
 
         auto classement_arg = classement.arguments[index_it];
-        assert(classement_arg.premier_huitoctet_inclusif ==
-               classement_arg.dernier_huitoctet_exclusif - 1);
+        assert(classement_arg.est_en_mémoire == false);
 
-        auto huitoctet = classement.huitoctets[classement_arg.premier_huitoctet_inclusif];
-        auto classe = huitoctet.classe;
-        assert(classe == ClasseArgument::INTEGER);
+        auto taille_en_octet = type_alloué->taille_octet;
 
-        auto registre =
-            classement.registres_huitoctets[classement_arg.premier_huitoctet_inclusif].registre;
+        for (auto i = classement_arg.premier_huitoctet_inclusif;
+             i < classement_arg.dernier_huitoctet_exclusif;
+             i++) {
+            auto huitoctet = classement.huitoctets[i];
+            auto classe = huitoctet.classe;
+            assert(classe == ClasseArgument::INTEGER);
 
-        assembleuse.mov(adresse, registre, type_alloué->taille_octet);
+            auto registre = classement.registres_huitoctets[i].registre;
+
+            auto taille_à_copier = taille_en_octet;
+            if (taille_à_copier > 8) {
+                taille_à_copier = 8;
+                taille_en_octet -= 8;
+            }
+
+            assembleuse.mov(adresse, registre, taille_à_copier);
+
+            adresse.décalage += int32_t(taille_à_copier);
+        }
     }
 
     if (!fonction->param_sortie->type->est_type_rien()) {
