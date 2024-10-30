@@ -1188,9 +1188,7 @@ struct GénératriceCodeASM {
                                             AssembleuseASM &assembleuse,
                                             const UtilisationAtome utilisation);
 
-    void génère_code(kuri::tableau_statique<AtomeGlobale *> globales,
-                     kuri::tableau_statique<AtomeFonction *> fonctions,
-                     Enchaineuse &os);
+    void génère_code(ProgrammeRepreInter const &repr_inter_programme, Enchaineuse &os);
 
     /* Sauvegarde/restaure les registres devant être préservés à travers un appel.
      * @Long-terme : ne préserve que les registres que nous modifions. */
@@ -2233,10 +2231,57 @@ static kuri::tableau<AtomeFonction *> donne_fonctions_à_compiler(
     return résultat;
 }
 
-void GénératriceCodeASM::génère_code(kuri::tableau_statique<AtomeGlobale *> globales,
-                                     kuri::tableau_statique<AtomeFonction *> fonctions,
+void GénératriceCodeASM::génère_code(ProgrammeRepreInter const &repr_inter_programme,
                                      Enchaineuse &os)
 {
+    auto opt_données_constantes = repr_inter_programme.donne_données_constantes();
+    if (opt_données_constantes.has_value()) {
+        os << "section .data" << NOUVELLE_LIGNE;
+
+        auto données_constantes = opt_données_constantes.value();
+
+        os << TABULATION << TABULATION << "align " << données_constantes->alignement_désiré
+           << NOUVELLE_LIGNE;
+        os << TABULATION << "DC:" << NOUVELLE_LIGNE << TABULATION << TABULATION << "db ";
+
+        auto virgule = " ";
+        auto compteur = 0;
+        POUR (données_constantes->tableaux_constants) {
+            auto tableau = it.tableau->donne_données();
+
+            for (auto i = 0; i < it.rembourrage; ++i) {
+                compteur++;
+                if ((compteur % 20) == 0) {
+                    os << NOUVELLE_LIGNE << TABULATION << TABULATION << "db ";
+                }
+                else {
+                    os << virgule;
+                }
+                os << "0x0";
+                virgule = ", ";
+            }
+
+            POUR_NOMME (octet, tableau) {
+                compteur++;
+                if ((compteur % 20) == 0) {
+                    os << NOUVELLE_LIGNE << TABULATION << TABULATION << "db ";
+                }
+                else {
+                    os << virgule;
+                }
+                os << "0x";
+                os << dls::num::char_depuis_hex((octet & 0xf0) >> 4);
+                os << dls::num::char_depuis_hex(octet & 0x0f);
+                virgule = ", ";
+            }
+        }
+
+        os << NOUVELLE_LIGNE << NOUVELLE_LIGNE;
+    }
+
+    auto fonctions = repr_inter_programme.donne_fonctions();
+    auto globales = repr_inter_programme.donne_globales();
+
     auto broyeuse = Broyeuse();
 
     auto fonctions_à_compiler = donne_fonctions_à_compiler(fonctions);
@@ -2435,9 +2480,7 @@ std::optional<ErreurCoulisse> CoulisseASM::crée_fichier_objet_impl(
     // génère_code_debut_fichier(enchaineuse, compilatrice.racine_kuri);
 
     auto génératrice = GénératriceCodeASM{};
-    génératrice.génère_code(repr_inter_programme.donne_globales(),
-                            repr_inter_programme.donne_fonctions(),
-                            enchaineuse);
+    génératrice.génère_code(repr_inter_programme, enchaineuse);
 
     std::ofstream of;
     of.open("/tmp/compilation_kuri_asm.asm");
