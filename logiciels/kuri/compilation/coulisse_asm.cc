@@ -630,6 +630,7 @@ struct AssembleuseASM {
         IMMÉDIATE64,
         MÉMOIRE,
         FONCTION,
+        GLOBALE,
     };
 
     struct Immédiate8 {
@@ -652,6 +653,10 @@ struct AssembleuseASM {
         kuri::chaine_statique valeur;
     };
 
+    struct Globale {
+        kuri::chaine_statique valeur;
+    };
+
     static bool est_immédiate(TypeOpérande type)
     {
         switch (type) {
@@ -665,6 +670,7 @@ struct AssembleuseASM {
             case TypeOpérande::REGISTRE:
             case TypeOpérande::MÉMOIRE:
             case TypeOpérande::FONCTION:
+            case TypeOpérande::GLOBALE:
             {
                 return false;
             }
@@ -686,6 +692,7 @@ struct AssembleuseASM {
         Immédiate64 immédiate64{};
         Mémoire mémoire{};
         Fonction fonction{};
+        Globale globale{};
 
         Opérande() {};
 
@@ -714,6 +721,10 @@ struct AssembleuseASM {
         }
 
         Opérande(Fonction fonct) : type(TypeOpérande::FONCTION), fonction(fonct)
+        {
+        }
+
+        Opérande(Globale glob) : type(TypeOpérande::GLOBALE), globale(glob)
         {
         }
     };
@@ -1054,6 +1065,11 @@ struct AssembleuseASM {
                 m_sortie << opérande.fonction.valeur;
                 return;
             }
+            case TypeOpérande::GLOBALE:
+            {
+                m_sortie << "[" << opérande.globale.valeur << "]";
+                return;
+            }
         }
 
         m_sortie << "opérande_invalide";
@@ -1314,8 +1330,8 @@ AssembleuseASM::Opérande GénératriceCodeASM::génère_code_pour_atome(
         }
         case Atome::Genre::GLOBALE:
         {
-            VERIFIE_NON_ATTEINT;
-            return {};
+            auto globale = atome->comme_globale();
+            return AssembleuseASM::Globale{globale->ident->nom_broye};
         }
     }
 
