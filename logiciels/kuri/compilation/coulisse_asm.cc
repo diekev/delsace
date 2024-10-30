@@ -29,6 +29,8 @@
 #include "typage.hh"
 
 #define TABULATION "  "
+#define TABULATION2 "    "
+#define TABULATION3 "      "
 #define NOUVELLE_LIGNE "\n"
 
 #define VERIFIE_NON_ATTEINT assert(false)
@@ -1174,7 +1176,8 @@ struct GénératriceCodeASM {
                                                     AssembleuseASM &assembleuse,
                                                     const UtilisationAtome utilisation);
 
-    void génère_code_pour_initialisation_globale(Atome const *atome, Enchaineuse &enchaineuse);
+    void génère_code_pour_initialisation_globale(Atome const *initialisateur,
+                                                 Enchaineuse &enchaineuse);
 
     void génère_code_pour_instruction(Instruction const *inst,
                                       AssembleuseASM &assembleuse,
@@ -1369,10 +1372,10 @@ bool est_initialisateur_supporté(Atome const *atome)
     return false;
 }
 
-void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const *atome,
+void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const *initialisateur,
                                                                  Enchaineuse &enchaineuse)
 {
-    switch (atome->genre_atome) {
+    switch (initialisateur->genre_atome) {
         case Atome::Genre::FONCTION:
         {
             VERIFIE_NON_ATTEINT;
@@ -1385,7 +1388,9 @@ void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const
         }
         case Atome::Genre::ACCÈS_INDEX_CONSTANT:
         {
-            VERIFIE_NON_ATTEINT;
+            auto index_constant = initialisateur->comme_accès_index_constant();
+            assert(index_constant->index == 0);
+            génère_code_pour_initialisation_globale(index_constant->accédé, enchaineuse);
             return;
         }
         case Atome::Genre::CONSTANTE_NULLE:
@@ -1415,7 +1420,7 @@ void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const
         }
         case Atome::Genre::CONSTANTE_ENTIÈRE:
         {
-            auto constante_entière = atome->comme_constante_entière();
+            auto constante_entière = initialisateur->comme_constante_entière();
             auto const type = constante_entière->type;
             if (type->taille_octet == 1) {
                 enchaineuse << "db " << uint8_t(constante_entière->valeur) << NOUVELLE_LIGNE;
@@ -1434,19 +1439,40 @@ void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const
         }
         case Atome::Genre::CONSTANTE_BOOLÉENNE:
         {
-            auto constante_booléenne = atome->comme_constante_booléenne();
+            auto constante_booléenne = initialisateur->comme_constante_booléenne();
             enchaineuse << "db " << uint8_t(constante_booléenne->valeur) << NOUVELLE_LIGNE;
             return;
         }
         case Atome::Genre::CONSTANTE_CARACTÈRE:
         {
-            auto caractère = atome->comme_constante_caractère();
+            auto caractère = initialisateur->comme_constante_caractère();
             enchaineuse << "db " << uint8_t(caractère->valeur) << NOUVELLE_LIGNE;
             return;
         }
         case Atome::Genre::CONSTANTE_STRUCTURE:
         {
-            VERIFIE_NON_ATTEINT;
+            auto structure = initialisateur->comme_constante_structure();
+            auto type = structure->type->comme_type_composé();
+            auto tableau_valeur = structure->donne_atomes_membres();
+            auto nom_structure = chaine_type(type);
+
+            enchaineuse << TABULATION2 << "istruc " << nom_structure << NOUVELLE_LIGNE;
+
+            POUR_INDEX (type->donne_membres_pour_code_machine()) {
+                enchaineuse << TABULATION3 << "at " << nom_structure << ".";
+
+                if (it.nom == ID::chaine_vide) {
+                    enchaineuse << "membre_invisible";
+                }
+                else {
+                    enchaineuse << it.nom->nom;
+                }
+
+                enchaineuse << ", ";
+                génère_code_pour_initialisation_globale(tableau_valeur[index_it], enchaineuse);
+            }
+
+            enchaineuse << TABULATION2 << "iend" << NOUVELLE_LIGNE;
             return;
         }
         case Atome::Genre::CONSTANTE_TABLEAU_FIXE:
@@ -1476,7 +1502,7 @@ void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const
         }
         case Atome::Genre::GLOBALE:
         {
-            VERIFIE_NON_ATTEINT;
+            enchaineuse << "dq " << table_globales.valeur_ou(initialisateur, "") << NOUVELLE_LIGNE;
             return;
         }
     }
@@ -2234,6 +2260,13 @@ static kuri::tableau<AtomeFonction *> donne_fonctions_à_compiler(
 void GénératriceCodeASM::génère_code(ProgrammeRepreInter const &repr_inter_programme,
                                      Enchaineuse &os)
 {
+    /* Déclaration des types. */
+
+    os << "struc " << "chaine" << NOUVELLE_LIGNE;
+    os << TABULATION << ".pointeur " << "resq 1" << NOUVELLE_LIGNE;
+    os << TABULATION << ".taille " << "resq 1" << NOUVELLE_LIGNE;
+    os << "endstruc " << NOUVELLE_LIGNE;
+
     auto opt_données_constantes = repr_inter_programme.donne_données_constantes();
     if (opt_données_constantes.has_value()) {
         os << "section .data" << NOUVELLE_LIGNE;
@@ -2277,6 +2310,11 @@ void GénératriceCodeASM::génère_code(ProgrammeRepreInter const &repr_inter_p
         }
 
         os << NOUVELLE_LIGNE << NOUVELLE_LIGNE;
+
+        POUR (données_constantes->tableaux_constants) {
+            auto nom_globale = enchaine("DC + ", it.décalage_dans_données_constantes);
+            table_globales.insère(it.globale, nom_globale);
+        }
     }
 
     auto fonctions = repr_inter_programme.donne_fonctions();
@@ -2284,12 +2322,37 @@ void GénératriceCodeASM::génère_code(ProgrammeRepreInter const &repr_inter_p
 
     auto broyeuse = Broyeuse();
 
+    POUR (globales) {
+        if (it->est_externe) {
+            continue;
+        }
+
+        if (!it->est_constante) {
+            continue;
+        }
+
+        auto type = it->donne_type_alloué();
+        if (!type->est_type_chaine()) {
+            continue;
+        }
+
+        auto nom = broyeuse.broye_nom_simple(it->ident);
+        os << TABULATION << nom << ":" << NOUVELLE_LIGNE;
+        génère_code_pour_initialisation_globale(it->initialisateur, os);
+    }
+
     auto fonctions_à_compiler = donne_fonctions_à_compiler(fonctions);
 
     os << "section .bss\n";
 
     POUR (globales) {
         if (it->est_externe) {
+            continue;
+        }
+
+        auto type = it->donne_type_alloué();
+
+        if (it->est_constante && type->est_type_chaine()) {
             continue;
         }
 
