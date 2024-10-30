@@ -1174,6 +1174,8 @@ struct GénératriceCodeASM {
                                                     AssembleuseASM &assembleuse,
                                                     const UtilisationAtome utilisation);
 
+    void génère_code_pour_initialisation_globale(Atome const *atome, Enchaineuse &enchaineuse);
+
     void génère_code_pour_instruction(Instruction const *inst,
                                       AssembleuseASM &assembleuse,
                                       const UtilisationAtome utilisation);
@@ -1336,6 +1338,150 @@ AssembleuseASM::Opérande GénératriceCodeASM::génère_code_pour_atome(
     }
 
     return {};
+}
+
+bool est_initialisateur_supporté(Atome const *atome)
+{
+    switch (atome->genre_atome) {
+        case Atome::Genre::FONCTION:
+        case Atome::Genre::TRANSTYPE_CONSTANT:
+        case Atome::Genre::ACCÈS_INDEX_CONSTANT:
+        case Atome::Genre::CONSTANTE_TYPE:
+        case Atome::Genre::CONSTANTE_INDEX_TABLE_TYPE:
+        case Atome::Genre::CONSTANTE_TAILLE_DE:
+        case Atome::Genre::CONSTANTE_RÉELLE:
+        case Atome::Genre::CONSTANTE_STRUCTURE:
+        case Atome::Genre::CONSTANTE_TABLEAU_FIXE:
+        case Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES:
+        case Atome::Genre::INITIALISATION_TABLEAU:
+        case Atome::Genre::NON_INITIALISATION:
+        case Atome::Genre::INSTRUCTION:
+        case Atome::Genre::GLOBALE:
+        {
+            return false;
+        }
+        case Atome::Genre::CONSTANTE_ENTIÈRE:
+        case Atome::Genre::CONSTANTE_BOOLÉENNE:
+        case Atome::Genre::CONSTANTE_CARACTÈRE:
+        case Atome::Genre::CONSTANTE_NULLE:
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const *atome,
+                                                                 Enchaineuse &enchaineuse)
+{
+    switch (atome->genre_atome) {
+        case Atome::Genre::FONCTION:
+        {
+            VERIFIE_NON_ATTEINT;
+            return;
+        }
+        case Atome::Genre::TRANSTYPE_CONSTANT:
+        {
+            VERIFIE_NON_ATTEINT;
+            return;
+        }
+        case Atome::Genre::ACCÈS_INDEX_CONSTANT:
+        {
+            VERIFIE_NON_ATTEINT;
+            return;
+        }
+        case Atome::Genre::CONSTANTE_NULLE:
+        {
+            enchaineuse << "dq 0" << NOUVELLE_LIGNE;
+            return;
+        }
+        case Atome::Genre::CONSTANTE_TYPE:
+        {
+            VERIFIE_NON_ATTEINT;
+            return;
+        }
+        case Atome::Genre::CONSTANTE_INDEX_TABLE_TYPE:
+        {
+            VERIFIE_NON_ATTEINT;
+            return;
+        }
+        case Atome::Genre::CONSTANTE_TAILLE_DE:
+        {
+            VERIFIE_NON_ATTEINT;
+            return;
+        }
+        case Atome::Genre::CONSTANTE_RÉELLE:
+        {
+            VERIFIE_NON_ATTEINT;
+            return;
+        }
+        case Atome::Genre::CONSTANTE_ENTIÈRE:
+        {
+            auto constante_entière = atome->comme_constante_entière();
+            auto const type = constante_entière->type;
+            if (type->taille_octet == 1) {
+                enchaineuse << "db " << uint8_t(constante_entière->valeur) << NOUVELLE_LIGNE;
+                return;
+            }
+            if (type->taille_octet == 2) {
+                enchaineuse << "dw " << uint16_t(constante_entière->valeur) << NOUVELLE_LIGNE;
+                return;
+            }
+            if (type->taille_octet == 4) {
+                enchaineuse << "dd " << uint32_t(constante_entière->valeur) << NOUVELLE_LIGNE;
+                return;
+            }
+            enchaineuse << "dq " << constante_entière->valeur << NOUVELLE_LIGNE;
+            return;
+        }
+        case Atome::Genre::CONSTANTE_BOOLÉENNE:
+        {
+            auto constante_booléenne = atome->comme_constante_booléenne();
+            enchaineuse << "db " << uint8_t(constante_booléenne->valeur) << NOUVELLE_LIGNE;
+            return;
+        }
+        case Atome::Genre::CONSTANTE_CARACTÈRE:
+        {
+            auto caractère = atome->comme_constante_caractère();
+            enchaineuse << "db " << uint8_t(caractère->valeur) << NOUVELLE_LIGNE;
+            return;
+        }
+        case Atome::Genre::CONSTANTE_STRUCTURE:
+        {
+            VERIFIE_NON_ATTEINT;
+            return;
+        }
+        case Atome::Genre::CONSTANTE_TABLEAU_FIXE:
+        {
+            VERIFIE_NON_ATTEINT;
+            return;
+        }
+        case Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES:
+        {
+            VERIFIE_NON_ATTEINT;
+            return;
+        }
+        case Atome::Genre::INITIALISATION_TABLEAU:
+        {
+            VERIFIE_NON_ATTEINT;
+            return;
+        }
+        case Atome::Genre::NON_INITIALISATION:
+        {
+            VERIFIE_NON_ATTEINT;
+            return;
+        }
+        case Atome::Genre::INSTRUCTION:
+        {
+            VERIFIE_NON_ATTEINT;
+            return;
+        }
+        case Atome::Genre::GLOBALE:
+        {
+            VERIFIE_NON_ATTEINT;
+            return;
+        }
+    }
 }
 
 void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *inst,
@@ -2103,8 +2249,14 @@ void GénératriceCodeASM::génère_code(kuri::tableau_statique<AtomeGlobale *> 
         }
 
         auto nom = broyeuse.broye_nom_simple(it->ident);
-        os << TABULATION << nom << ": resb " << it->donne_type_alloué()->taille_octet
-           << NOUVELLE_LIGNE;
+        os << TABULATION << nom << ": ";
+
+        if (it->initialisateur && est_initialisateur_supporté(it->initialisateur)) {
+            génère_code_pour_initialisation_globale(it->initialisateur, os);
+        }
+        else {
+            os << "resb " << it->donne_type_alloué()->taille_octet << NOUVELLE_LIGNE;
+        }
     }
 
     os << NOUVELLE_LIGNE;
