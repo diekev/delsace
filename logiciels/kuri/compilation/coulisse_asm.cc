@@ -2075,9 +2075,30 @@ void GénératriceCodeASM::génère_code(kuri::tableau_statique<AtomeGlobale *> 
                                      kuri::tableau_statique<AtomeFonction *> fonctions,
                                      Enchaineuse &os)
 {
+    auto broyeuse = Broyeuse();
+
     auto fonctions_à_compiler = donne_fonctions_à_compiler(fonctions);
 
+    os << "section .bss\n";
+
+    POUR (globales) {
+        if (it->est_externe) {
+            continue;
+        }
+
+        auto nom = broyeuse.broye_nom_simple(it->ident);
+        os << TABULATION << nom << ": resb " << it->donne_type_alloué()->taille_octet
+           << NOUVELLE_LIGNE;
+    }
+
+    os << NOUVELLE_LIGNE;
     os << "section .text\n";
+
+    POUR (globales) {
+        if (it->est_externe) {
+            os << "extern " << it->ident->nom << "\n";
+        }
+    }
 
     /* Prodéclaration des fonctions. */
     POUR (fonctions_à_compiler) {
