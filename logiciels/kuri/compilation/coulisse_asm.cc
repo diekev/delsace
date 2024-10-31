@@ -681,8 +681,20 @@ struct AssembleuseASM {
     }
 
     struct Mémoire {
-        Registre registre{};
+        /* Un registre ou le nom d'une globale. */
+        kuri::chaine_statique adresse{};
         int32_t décalage = 0;
+
+        Mémoire() = default;
+
+        Mémoire(Registre registre, int32_t décalage_ = 0)
+            : adresse(chaine_pour_registre(registre, 8)), décalage(décalage_)
+        {
+        }
+
+        Mémoire(kuri::chaine_statique globale) : adresse(globale)
+        {
+        }
     };
 
     struct Opérande {
@@ -1045,9 +1057,9 @@ struct AssembleuseASM {
             }
             case TypeOpérande::MÉMOIRE:
             {
-                auto const registre = opérande.mémoire.registre;
+                auto const adresse = opérande.mémoire.adresse;
                 auto const décalage = opérande.mémoire.décalage;
-                m_sortie << "[" << chaine_pour_registre(registre, 8);
+                m_sortie << "[" << adresse;
                 if (décalage < 0) {
                     m_sortie << " - ";
                 }
@@ -1334,7 +1346,7 @@ AssembleuseASM::Opérande GénératriceCodeASM::génère_code_pour_atome(
         case Atome::Genre::GLOBALE:
         {
             auto globale = atome->comme_globale();
-            return AssembleuseASM::Globale{globale->ident->nom_broye};
+            return AssembleuseASM::Mémoire{globale->ident->nom_broye};
         }
     }
 
@@ -1635,10 +1647,8 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
 
             auto const &membre = accès->donne_membre_accédé();
 
-            auto registre = valeur_accédé.mémoire.registre;
-            auto décalage = valeur_accédé.mémoire.décalage + int32_t(membre.decalage);
-            auto résultat = AssembleuseASM::Mémoire{registre, décalage};
-
+            auto résultat = valeur_accédé.mémoire;
+            résultat.décalage += int32_t(membre.decalage);
             table_valeurs[accès->numero] = résultat;
             break;
         }
@@ -2173,7 +2183,7 @@ void GénératriceCodeASM::génère_code_pour_charge_mémoire(InstructionChargeM
     /* Déréférencement de pointeur. */
     AssembleuseASM::Opérande résultat = registre;
     if (inst_charge->type->est_type_pointeur()) {
-        résultat = AssembleuseASM::Mémoire{registre, 0};
+        résultat = AssembleuseASM::Mémoire(registre);
     }
 
     table_valeurs[inst_charge->numero] = résultat;
@@ -2519,7 +2529,7 @@ void GénératriceCodeASM::définis_fonction_courante(AtomeFonction const *fonct
 
 AssembleuseASM::Mémoire GénératriceCodeASM::donne_adresse_stack()
 {
-    return {Registre::RSP, -int32_t(taille_allouée)};
+    return AssembleuseASM::Mémoire(Registre::RSP, -int32_t(taille_allouée));
 }
 
 void GénératriceCodeASM::imprime_inst_en_commentaire(Enchaineuse &os, Instruction const *inst)
