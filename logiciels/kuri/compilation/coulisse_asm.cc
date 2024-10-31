@@ -152,6 +152,11 @@ static kuri::chaine_statique chaine_pour_registre(Registre registre, uint32_t ta
     return "registre_invalide";
 }
 
+static std::ostream &operator<<(std::ostream &os, Registre reg)
+{
+    return os << chaine_pour_registre(reg, 8);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
