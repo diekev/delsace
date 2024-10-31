@@ -1756,8 +1756,6 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
 
             adresse_source.mémoire.décalage += int32_t(taille_à_copier);
         }
-
-        // génère_code_pour_atome(it, assembleuse, false);
     }
 
     auto appelée = génère_code_pour_atome(appel->appelé, assembleuse, UtilisationAtome::AUCUNE);
@@ -2252,7 +2250,6 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
         registres.marque_registre_inoccupé(src.registre);
     }
 
-    /* À FAIRE: met où? */
     /* À FAIRE: movss/movsd pour les réels. */
     assembleuse.mov(dest, src, type_stocké->taille_octet);
     table_valeurs[inst_stocke->numero] = dest;
