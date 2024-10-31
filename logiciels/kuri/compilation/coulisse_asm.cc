@@ -2544,8 +2544,13 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
     auto registre_tmp = registres.donne_registre_inoccupé();
 
     if (type_stocké->taille_octet <= 8) {
-        assembleuse.mov(registre_tmp, src, type_stocké->taille_octet);
-        assembleuse.mov(dest, registre_tmp, type_stocké->taille_octet);
+        if (assembleuse.est_immédiate(src.type)) {
+            assembleuse.mov(dest, src, type_stocké->taille_octet);
+        }
+        else {
+            assembleuse.mov(registre_tmp, src, type_stocké->taille_octet);
+            assembleuse.mov(dest, registre_tmp, type_stocké->taille_octet);
+        }
     }
     else {
         assert(src.type == AssembleuseASM::TypeOpérande::MÉMOIRE);
