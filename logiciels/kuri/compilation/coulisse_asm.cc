@@ -777,6 +777,9 @@ struct AssembleuseASM {
         }
 
         m_sortie << TABULATION << "mov ";
+        if (dst.type == AssembleuseASM::TypeOpérande::MÉMOIRE) {
+            m_sortie << donne_chaine_taille_opérande(taille) << " ";
+        }
         imprime_opérande(dst, taille);
         m_sortie << ", ";
         imprime_opérande(src, taille);
