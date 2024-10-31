@@ -2449,16 +2449,11 @@ void GénératriceCodeASM::génère_code(ProgrammeRepreInter const &repr_inter_p
     }
 
     // Fonction de test.
-    os << "global _start\n";
-    os << "_start:\n";
+    os << "global main\n";
+    os << "main:\n";
 
     assembleuse.call(AssembleuseASM::Fonction{"principale"});
-    /* Déplace le résultat de princpale dans RDI pour exit. */
-    assembleuse.mov(Registre::RDI, Registre::RAX, 4);
-
-    /* 60 = exit */
-    assembleuse.mov(Registre::RAX, AssembleuseASM::Immédiate32{60}, 4);
-    assembleuse.syscall();
+    assembleuse.ret();
 }
 
 void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonction,
@@ -2610,7 +2605,7 @@ std::optional<ErreurCoulisse> CoulisseASM::crée_fichier_objet_impl(
 
 std::optional<ErreurCoulisse> CoulisseASM::crée_exécutable_impl(const ArgsLiaisonObjets &args)
 {
-    auto commande = "ld -o a.out /tmp/compilation_kuri_asm.o";
+    auto commande = "gcc -no-pie -lc -o a.out /tmp/compilation_kuri_asm.o";
     if (system(commande) != 0) {
         return ErreurCoulisse{"Impossible de lier le fichier objet."};
     }
