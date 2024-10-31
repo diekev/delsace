@@ -2198,9 +2198,45 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
 {
     auto dest = génère_code_pour_atome(
         inst_stocke->destination, assembleuse, UtilisationAtome::AUCUNE);
-    auto src = génère_code_pour_atome(inst_stocke->source, assembleuse, UtilisationAtome::AUCUNE);
 
     auto type_stocké = inst_stocke->source->type;
+
+    if (inst_stocke->source->est_instruction() &&
+        inst_stocke->source->comme_instruction()->est_charge()) {
+        auto charge = inst_stocke->source->comme_instruction()->comme_charge();
+
+        auto src = génère_code_pour_atome(charge->chargée, assembleuse, UtilisationAtome::AUCUNE);
+        assert(dest.type == AssembleuseASM::TypeOpérande::MÉMOIRE);
+
+        auto registre_tmp = registres.donne_registre_inoccupé();
+
+        if (type_stocké->taille_octet <= 8) {
+            assembleuse.mov(registre_tmp, src, type_stocké->taille_octet);
+            assembleuse.mov(dest, registre_tmp, type_stocké->taille_octet);
+        }
+        else {
+            assert(src.type == AssembleuseASM::TypeOpérande::MÉMOIRE);
+
+            auto taille_à_copier = int32_t(type_stocké->taille_octet);
+            while (taille_à_copier > 0) {
+                auto taille = taille_à_copier;
+                if (taille > 8) {
+                    taille = 8;
+                }
+
+                assembleuse.mov(registre_tmp, src, uint32_t(taille));
+                assembleuse.mov(dest, registre_tmp, uint32_t(taille));
+                taille_à_copier -= taille;
+                dest.mémoire.décalage += taille;
+                src.mémoire.décalage += taille;
+            }
+        }
+
+        registres.marque_registre_inoccupé(registre_tmp);
+        return;
+    }
+
+    auto src = génère_code_pour_atome(inst_stocke->source, assembleuse, UtilisationAtome::AUCUNE);
 
     if (src.type == AssembleuseASM::TypeOpérande::MÉMOIRE) {
         /* Stockage d'une adresse. */
