@@ -1061,6 +1061,15 @@ struct AssembleuseASM {
         m_sortie << NOUVELLE_LIGNE;
     }
 
+    void cvtsd2ss(Opérande dst, Opérande src)
+    {
+        m_sortie << TABULATION << "cvtsd2ss ";
+        imprime_opérande(dst, 4);
+        m_sortie << ", ";
+        imprime_opérande(src, 8);
+        m_sortie << NOUVELLE_LIGNE;
+    }
+
     void test(Opérande dst, Opérande src)
     {
         m_sortie << TABULATION << "test ";
