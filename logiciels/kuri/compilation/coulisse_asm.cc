@@ -2532,7 +2532,7 @@ void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonc
             continue;
         }
 
-        // imprime_inst_en_commentaire(os, inst);
+        // imprime_inst_en_commentaire(os, it);
         génère_code_pour_instruction(it, assembleuse, UtilisationAtome::AUCUNE);
     }
 
@@ -2595,8 +2595,7 @@ AssembleuseASM::Mémoire GénératriceCodeASM::donne_adresse_stack()
 
 void GénératriceCodeASM::imprime_inst_en_commentaire(Enchaineuse &os, Instruction const *inst)
 {
-    os << "  ; ";
-    os << imprime_instruction(inst);
+    os << "  ; " << imprime_instruction(inst) << NOUVELLE_LIGNE;
 }
 
 std::optional<ErreurCoulisse> CoulisseASM::génère_code_impl(const ArgsGénérationCode & /*args*/)
