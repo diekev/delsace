@@ -820,6 +820,20 @@ struct AssembleuseASM {
         m_sortie << NOUVELLE_LIGNE;
     }
 
+    void movss(Opérande dst, Opérande src)
+    {
+        assert(!est_immédiate(dst.type));
+        assert(dst.type != AssembleuseASM::TypeOpérande::MÉMOIRE ||
+               src.type != AssembleuseASM::TypeOpérande::MÉMOIRE);
+
+        m_sortie << TABULATION << "movss ";
+        imprime_opérande(dst, 4);
+        m_sortie << ", ";
+        imprime_opérande(src, 4);
+
+        m_sortie << NOUVELLE_LIGNE;
+    }
+
     void lea(Opérande dst, Opérande src)
     {
         assert(src.type == TypeOpérande::MÉMOIRE);
@@ -922,7 +936,11 @@ struct AssembleuseASM {
 
     void addss(Opérande dst, Opérande src)
     {
-        m_sortie << TABULATION << "addss" << NOUVELLE_LIGNE;
+        m_sortie << TABULATION << "addss ";
+        imprime_opérande(dst, 4);
+        m_sortie << ", ";
+        imprime_opérande(src, 4);
+        m_sortie << NOUVELLE_LIGNE;
     }
 
     void addsd(Opérande dst, Opérande src)
@@ -1332,8 +1350,19 @@ AssembleuseASM::Opérande GénératriceCodeASM::génère_code_pour_atome(
         }
         case Atome::Genre::CONSTANTE_RÉELLE:
         {
-            VERIFIE_NON_ATTEINT;
-            return {};
+            auto constante_réelle = atome->comme_constante_réelle();
+            auto const type = constante_réelle->type;
+            if (type->taille_octet == 2) {
+                return AssembleuseASM::Immédiate16{
+                    static_cast<uint16_t>(constante_réelle->valeur)};
+            }
+            if (type->taille_octet == 4) {
+                auto valeur_float = float(constante_réelle->valeur);
+                auto bits = *reinterpret_cast<uint32_t *>(&valeur_float);
+                return AssembleuseASM::Immédiate32{bits};
+            }
+            auto bits = *reinterpret_cast<const uint64_t *>(&constante_réelle->valeur);
+            return AssembleuseASM::Immédiate64{bits};
         }
         case Atome::Genre::CONSTANTE_ENTIÈRE:
         {
@@ -1812,6 +1841,28 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
                                                             AssembleuseASM &assembleuse,
                                                             UtilisationAtome const utilisation)
 {
+    if (inst_bin->op == OpérateurBinaire::Genre::Addition_Reel) {
+        assert(inst_bin->type == TypeBase::R32);
+        auto valeur_droite = donne_source_charge_ou_atome(inst_bin->valeur_droite);
+        auto valeur_gauche = donne_source_charge_ou_atome(inst_bin->valeur_gauche);
+
+        auto opérande_droite = génère_code_pour_atome(
+            valeur_droite, assembleuse, UtilisationAtome::AUCUNE);
+        auto opérande_gauche = génère_code_pour_atome(
+            valeur_gauche, assembleuse, UtilisationAtome::AUCUNE);
+
+        assembleuse.movss(Registre::XMM0, opérande_gauche);
+        assembleuse.movss(Registre::XMM1, opérande_droite);
+
+        assembleuse.addss(Registre::XMM0, Registre::XMM1);
+
+        auto dest = alloue_variable(inst_bin->type);
+
+        assembleuse.movss(dest, Registre::XMM0);
+
+        table_valeurs[inst_bin->numero] = dest;
+        return;
+    }
 
     auto opérande_droite = génère_code_pour_atome(
         inst_bin->valeur_droite, assembleuse, UtilisationAtome::AUCUNE);
