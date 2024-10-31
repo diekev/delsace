@@ -1225,6 +1225,7 @@ struct GénératriceCodeASM {
     void imprime_inst_en_commentaire(Enchaineuse &os, const Instruction *inst);
     void définis_fonction_courante(const AtomeFonction *fonction);
 
+    AssembleuseASM::Mémoire alloue_variable(Type const *type_alloué);
     AssembleuseASM::Mémoire donne_adresse_stack();
 
     void génère_code_pour_fonction(const AtomeFonction *it,
@@ -1534,18 +1535,8 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
                 return;
             }
 
-            /* Il faut faire de la place sur la pile. */
             auto type_alloué = inst->comme_alloc()->donne_type_alloué();
-
-            if ((taille_allouée % type_alloué->alignement) != 0) {
-                taille_allouée += (taille_allouée % type_alloué->alignement);
-            }
-
-            auto taille_requise = type_alloué->taille_octet;
-            taille_allouée += taille_requise;
-            auto adresse = donne_adresse_stack();
-
-            table_valeurs[inst->numero] = AssembleuseASM::Mémoire{adresse};
+            table_valeurs[inst->numero] = alloue_variable(type_alloué);
             break;
         }
         case GenreInstruction::APPEL:
@@ -2471,8 +2462,7 @@ void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonc
 
     POUR_INDEX (fonction->params_entrée) {
         auto type_alloué = it->donne_type_alloué();
-        taille_allouée += type_alloué->taille_octet;  // XXX : alignement
-        auto adresse = donne_adresse_stack();
+        auto adresse = alloue_variable(type_alloué);
         table_valeurs[it->numero] = adresse;
 
         auto classement_arg = classement.arguments[index_it];
@@ -2501,11 +2491,10 @@ void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonc
         }
     }
 
-    if (!fonction->param_sortie->type->est_type_rien()) {
-        /* À FAIRE : multiple types de retour. */
-        auto type_pointeur = fonction->param_sortie->type->comme_type_pointeur();
-        taille_allouée += type_pointeur->type_pointé->taille_octet;
-        table_valeurs[fonction->param_sortie->numero] = donne_adresse_stack();
+    auto type_fonction = fonction->type->comme_type_fonction();
+    if (!type_fonction->type_sortie->est_type_rien()) {
+        auto type_alloué = type_fonction->type_sortie;
+        table_valeurs[fonction->param_sortie->numero] = alloue_variable(type_alloué);
     }
 
     POUR (fonction->instructions) {
@@ -2556,6 +2545,17 @@ void GénératriceCodeASM::définis_fonction_courante(AtomeFonction const *fonct
     POUR (table_valeurs) {
         it = valeur_défaut;
     }
+}
+
+AssembleuseASM::Mémoire GénératriceCodeASM::alloue_variable(Type const *type_alloué)
+{
+    if ((taille_allouée % type_alloué->alignement) != 0) {
+        taille_allouée += (taille_allouée % type_alloué->alignement);
+    }
+
+    auto taille_requise = type_alloué->taille_octet;
+    taille_allouée += taille_requise;
+    return donne_adresse_stack();
 }
 
 AssembleuseASM::Mémoire GénératriceCodeASM::donne_adresse_stack()
