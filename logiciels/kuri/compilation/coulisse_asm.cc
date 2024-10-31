@@ -1235,6 +1235,9 @@ struct GénératriceCodeASM {
     void génère_code_pour_retourne(const InstructionRetour *inst_retour,
                                    AssembleuseASM &assembleuse);
 
+    void génère_code_pour_transtype(InstructionTranstype const *transtype,
+                                    AssembleuseASM &assembleuse);
+
     void génère_code_pour_branche_condition(const InstructionBrancheCondition *inst_branche,
                                             AssembleuseASM &assembleuse);
 
@@ -1648,16 +1651,7 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
         }
         case GenreInstruction::TRANSTYPE:
         {
-            /* À FAIRE: les types de transtypage */
-            auto transtype = inst->comme_transtype();
-            auto valeur = génère_code_pour_atome(
-                transtype->valeur, assembleuse, UtilisationAtome::AUCUNE);
-            table_valeurs[inst->numero] = valeur;
-
-            if (!transtype->valeur->type->est_type_entier_constant()) {
-                VERIFIE_NON_ATTEINT;
-            }
-
+            génère_code_pour_transtype(inst->comme_transtype(), assembleuse);
             break;
         }
         case GenreInstruction::INATTEIGNABLE:
@@ -2066,6 +2060,18 @@ void GénératriceCodeASM::génère_code_pour_retourne(const InstructionRetour *
 
     /* À FAIRE : marque plus de registres inoccupés ? */
     registres.marque_registre_inoccupé(Registre::RAX);
+}
+
+void GénératriceCodeASM::génère_code_pour_transtype(InstructionTranstype const *transtype,
+                                                    AssembleuseASM &assembleuse)
+{
+    /* À FAIRE: les types de transtypage */
+    auto valeur = génère_code_pour_atome(transtype->valeur, assembleuse, UtilisationAtome::AUCUNE);
+    table_valeurs[transtype->numero] = valeur;
+
+    if (!transtype->valeur->type->est_type_entier_constant()) {
+        VERIFIE_NON_ATTEINT;
+    }
 }
 
 void GénératriceCodeASM::génère_code_pour_branche_condition(
