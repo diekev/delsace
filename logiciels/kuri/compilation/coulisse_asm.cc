@@ -1034,6 +1034,15 @@ struct AssembleuseASM {
         génère_code_opération_binaire(dst, src, "cmovge", 8);
     }
 
+    void cvttss2si(Opérande dst, Opérande src, uint32_t taille_octet)
+    {
+        m_sortie << TABULATION << "cvttss2si ";
+        imprime_opérande(dst, taille_octet);
+        m_sortie << ", ";
+        imprime_opérande(src, taille_octet);
+        m_sortie << NOUVELLE_LIGNE;
+    }
+
     void test(Opérande dst, Opérande src)
     {
         m_sortie << TABULATION << "test ";
@@ -2098,13 +2107,118 @@ void GénératriceCodeASM::génère_code_pour_retourne(const InstructionRetour *
 void GénératriceCodeASM::génère_code_pour_transtype(InstructionTranstype const *transtype,
                                                     AssembleuseASM &assembleuse)
 {
-    /* À FAIRE: les types de transtypage */
+    auto const type_de = transtype->valeur->type;
+    auto const type_vers = transtype->type;
     auto valeur = génère_code_pour_atome(transtype->valeur, assembleuse, UtilisationAtome::AUCUNE);
-    table_valeurs[transtype->numero] = valeur;
 
-    if (!transtype->valeur->type->est_type_entier_constant()) {
-        VERIFIE_NON_ATTEINT;
+    switch (transtype->op) {
+        case TypeTranstypage::BITS:
+        {
+            break;
+        }
+        case TypeTranstypage::AUGMENTE_NATUREL:
+        {
+            VERIFIE_NON_ATTEINT;
+            break;
+        }
+        case TypeTranstypage::AUGMENTE_RELATIF:
+        {
+            VERIFIE_NON_ATTEINT;
+            break;
+        }
+        case TypeTranstypage::AUGMENTE_REEL:
+        {
+            VERIFIE_NON_ATTEINT;
+            break;
+        }
+        case TypeTranstypage::DIMINUE_NATUREL:
+        {
+            VERIFIE_NON_ATTEINT;
+            break;
+        }
+        case TypeTranstypage::DIMINUE_RELATIF:
+        {
+            VERIFIE_NON_ATTEINT;
+            break;
+        }
+        case TypeTranstypage::DIMINUE_REEL:
+        {
+            VERIFIE_NON_ATTEINT;
+            break;
+        }
+        case TypeTranstypage::AUGMENTE_NATUREL_VERS_RELATIF:
+        {
+            VERIFIE_NON_ATTEINT;
+            break;
+        }
+        case TypeTranstypage::AUGMENTE_RELATIF_VERS_NATUREL:
+        {
+            VERIFIE_NON_ATTEINT;
+            break;
+        }
+        case TypeTranstypage::DIMINUE_NATUREL_VERS_RELATIF:
+        {
+            VERIFIE_NON_ATTEINT;
+            break;
+        }
+        case TypeTranstypage::DIMINUE_RELATIF_VERS_NATUREL:
+        {
+            VERIFIE_NON_ATTEINT;
+            break;
+        }
+        case TypeTranstypage::POINTEUR_VERS_ENTIER:
+        {
+            VERIFIE_NON_ATTEINT;
+            break;
+        }
+        case TypeTranstypage::ENTIER_VERS_POINTEUR:
+        {
+            VERIFIE_NON_ATTEINT;
+            break;
+        }
+        case TypeTranstypage::REEL_VERS_ENTIER_RELATIF:
+        {
+            if (type_de->taille_octet != 4 || type_vers->taille_octet != 4) {
+                VERIFIE_NON_ATTEINT;
+            }
+
+            auto registre = registres.donne_registre_inoccupé();
+            auto dst = alloue_variable(type_vers);
+
+            /* À FAIRE : convertis directement les constantes réelles vers des entiers constants.
+             */
+            if (assembleuse.est_immédiate(valeur.type)) {
+                auto tmp = alloue_variable(type_de);
+                assembleuse.mov(tmp, valeur, type_de->taille_octet);
+                valeur = tmp;
+            }
+
+            assembleuse.cvttss2si(registre, valeur, type_vers->taille_octet);
+            assembleuse.mov(dst, registre, type_vers->taille_octet);
+
+            registres.marque_registre_inoccupé(registre);
+
+            valeur = dst;
+            break;
+        }
+        case TypeTranstypage::REEL_VERS_ENTIER_NATUREL:
+        {
+            VERIFIE_NON_ATTEINT;
+            break;
+        }
+        case TypeTranstypage::ENTIER_RELATIF_VERS_REEL:
+        {
+            VERIFIE_NON_ATTEINT;
+            break;
+        }
+        case TypeTranstypage::ENTIER_NATUREL_VERS_REEL:
+        {
+            VERIFIE_NON_ATTEINT;
+            break;
+        }
     }
+
+    table_valeurs[transtype->numero] = valeur;
 }
 
 void GénératriceCodeASM::génère_code_pour_branche_condition(
