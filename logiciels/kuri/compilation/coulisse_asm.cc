@@ -486,6 +486,12 @@ class AllocatriceRegistreArgument {
     int premier_registre_integer = 0;
     int premier_registre_sse = 0;
 
+    kuri::tablet<Registre, 6> registres_integer_retour{};
+    kuri::tablet<Registre, 8> registres_sse_retour{};
+
+    int premier_registre_integer_retour = 0;
+    int premier_registre_sse_retour = 0;
+
     int ancien_premier_registre_integer = 0;
     int ancien_premier_registre_sse = 0;
 
@@ -507,6 +513,12 @@ class AllocatriceRegistreArgument {
         registres_sse.ajoute(Registre::XMM5);
         registres_sse.ajoute(Registre::XMM6);
         registres_sse.ajoute(Registre::XMM7);
+
+        registres_integer_retour.ajoute(Registre::RAX);
+        registres_integer_retour.ajoute(Registre::RDX);
+
+        registres_sse_retour.ajoute(Registre::XMM0);
+        registres_sse_retour.ajoute(Registre::XMM1);
     }
 
     void enregistre_état()
@@ -549,6 +561,25 @@ class AllocatriceRegistreArgument {
     {
         return registres_sse[premier_registre_sse - 1];
     }
+
+    Registre donne_registre_integer_retour()
+    {
+        auto résultat = registres_integer_retour[premier_registre_integer_retour];
+        premier_registre_integer_retour += 1;
+        return résultat;
+    }
+
+    Registre donne_registre_sse_retour()
+    {
+        auto résultat = registres_sse_retour[premier_registre_sse_retour];
+        premier_registre_sse_retour += 1;
+        return résultat;
+    }
+
+    Registre donne_dernier_registre_sse_retour()
+    {
+        return registres_sse_retour[premier_registre_sse_retour - 1];
+    }
 };
 
 static ClassementArgument donne_classement_arguments(TypeFonction const *type_fonction)
@@ -558,6 +589,52 @@ static ClassementArgument donne_classement_arguments(TypeFonction const *type_fo
     auto allocatrice_registre = AllocatriceRegistreArgument();
 
     classement.registres_huitoctets.redimensionne(classement.huitoctets.taille());
+
+    if (!type_fonction->type_sortie->est_type_rien()) {
+        for (auto i = classement.sortie.premier_huitoctet_inclusif;
+             i < classement.sortie.dernier_huitoctet_exclusif;
+             i++) {
+            // 1. Classify the return type with the classification algorithm.
+            auto classe = classement.huitoctets[i].classe;
+
+            // 2. If the type has class MEMORY, then the caller provides space for the return
+            //    value and passes the address of this storage in %rdi as if it were the first
+            //    argument to the function. In effect, this address becomes a “hidden” first
+            //    argument. This storage must not overlap any data visible to the callee
+            //    through other names than this argument. On return %rax will contain the
+            //    address that has been passed in by the caller in %rdi.
+            if (classe == ClasseArgument::MEMORY) {
+                classement.sortie.est_en_mémoire = true;
+                /* réserve %rdi pour l'adresse retour. */
+                allocatrice_registre.donne_registre_integer();
+            }
+            // 3. If the class is INTEGER, the next available register of the sequence %rax,
+            //    %rdx is used.
+            else if (classe == ClasseArgument::INTEGER) {
+                classement.registres_huitoctets[i].registre =
+                    allocatrice_registre.donne_registre_integer_retour();
+            }
+            // 4. If the class is SSE, the next available vector register of the sequence
+            //    %xmm0, %xmm1 is used.
+            else if (classe == ClasseArgument::SSE) {
+                classement.registres_huitoctets[i].registre =
+                    allocatrice_registre.donne_registre_sse_retour();
+            }
+            // 5. If the class is SSEUP, the eightbyte is returned in the next available
+            //    eightbyte chunk of the last used vector register.
+            else {
+                VERIFIE_NON_ATTEINT;
+            }
+            // 6. If the class is X87, the value is returned on the X87 stack in %st0 as 80-bit
+            //    x87 number.
+
+            // 7. If the class is X87UP, the value is returned together with the previous X87
+            //    value in %st0.
+
+            // 8. If the class is COMPLEX_X87, the real part of the value is returned in
+            //    %st0 and the imaginary part in %st1.
+        }
+    }
 
     POUR (classement.arguments) {
         allocatrice_registre.enregistre_état();
