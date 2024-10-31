@@ -41,6 +41,39 @@
 /* clang-format on */
 
 /* ------------------------------------------------------------------------- */
+/** \name Utilitaires
+ * \{ */
+
+inline bool est_adresse(Atome *atome)
+{
+    if (atome->est_fonction() || atome->est_globale()) {
+        return true;
+    }
+
+    if (!atome->est_instruction()) {
+        return false;
+    }
+
+    auto inst = atome->comme_instruction();
+
+    if (inst->est_alloc() || inst->est_acces_membre() || inst->est_acces_index()) {
+        return true;
+    }
+
+    return false;
+}
+
+static Atome *donne_source_charge_ou_atome(Atome *atome)
+{
+    if (atome->est_instruction() && atome->comme_instruction()->est_charge()) {
+        return atome->comme_instruction()->comme_charge()->chargée;
+    }
+    return atome;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name Registres x64
  * \{ */
 
@@ -2196,60 +2229,51 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
 
     auto type_stocké = inst_stocke->source->type;
 
-    if (inst_stocke->source->est_instruction() &&
-        inst_stocke->source->comme_instruction()->est_charge()) {
-        auto charge = inst_stocke->source->comme_instruction()->comme_charge();
-
-        auto src = génère_code_pour_atome(charge->chargée, assembleuse, UtilisationAtome::AUCUNE);
-        assert(dest.type == AssembleuseASM::TypeOpérande::MÉMOIRE);
-
-        auto registre_tmp = registres.donne_registre_inoccupé();
-
-        if (type_stocké->taille_octet <= 8) {
-            assembleuse.mov(registre_tmp, src, type_stocké->taille_octet);
-            assembleuse.mov(dest, registre_tmp, type_stocké->taille_octet);
-        }
-        else {
-            assert(src.type == AssembleuseASM::TypeOpérande::MÉMOIRE);
-
-            auto taille_à_copier = int32_t(type_stocké->taille_octet);
-            while (taille_à_copier > 0) {
-                auto taille = taille_à_copier;
-                if (taille > 8) {
-                    taille = 8;
-                }
-
-                assembleuse.mov(registre_tmp, src, uint32_t(taille));
-                assembleuse.mov(dest, registre_tmp, uint32_t(taille));
-                taille_à_copier -= taille;
-                dest.mémoire.décalage += taille;
-                src.mémoire.décalage += taille;
-            }
-        }
-
-        registres.marque_registre_inoccupé(registre_tmp);
-        return;
-    }
-
-    auto src = génère_code_pour_atome(inst_stocke->source, assembleuse, UtilisationAtome::AUCUNE);
-
-    if (src.type == AssembleuseASM::TypeOpérande::MÉMOIRE) {
+    if (est_adresse(inst_stocke->source)) {
         /* Stockage d'une adresse. */
+        auto src = génère_code_pour_atome(
+            inst_stocke->source, assembleuse, UtilisationAtome::AUCUNE);
         auto registre = registres.donne_registre_inoccupé();
         assembleuse.lea(registre, src);
         assembleuse.mov(dest, registre, type_stocké->taille_octet);
-        table_valeurs[inst_stocke->numero] = dest;
         registres.marque_registre_inoccupé(registre);
         return;
     }
 
+    auto const atome_source = donne_source_charge_ou_atome(inst_stocke->source);
+
+    auto src = génère_code_pour_atome(atome_source, assembleuse, UtilisationAtome::AUCUNE);
+
+    /* À FAIRE: movss/movsd pour les réels. */
+    auto registre_tmp = registres.donne_registre_inoccupé();
+
+    if (type_stocké->taille_octet <= 8) {
+        assembleuse.mov(registre_tmp, src, type_stocké->taille_octet);
+        assembleuse.mov(dest, registre_tmp, type_stocké->taille_octet);
+    }
+    else {
+        assert(src.type == AssembleuseASM::TypeOpérande::MÉMOIRE);
+
+        auto taille_à_copier = int32_t(type_stocké->taille_octet);
+        while (taille_à_copier > 0) {
+            auto taille = taille_à_copier;
+            if (taille > 8) {
+                taille = 8;
+            }
+
+            assembleuse.mov(registre_tmp, src, uint32_t(taille));
+            assembleuse.mov(dest, registre_tmp, uint32_t(taille));
+            taille_à_copier -= taille;
+            dest.mémoire.décalage += taille;
+            src.mémoire.décalage += taille;
+        }
+    }
+
+    registres.marque_registre_inoccupé(registre_tmp);
+
     if (src.type == AssembleuseASM::TypeOpérande::REGISTRE) {
         registres.marque_registre_inoccupé(src.registre);
     }
-
-    /* À FAIRE: movss/movsd pour les réels. */
-    assembleuse.mov(dest, src, type_stocké->taille_octet);
-    table_valeurs[inst_stocke->numero] = dest;
 }
 
 static kuri::tableau<AtomeFonction *> donne_fonctions_à_compiler(
