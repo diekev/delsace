@@ -358,6 +358,36 @@ ordinary_set_with_own_descriptor :: fonc (object: *Object, property_key: Propert
     retourne normal_completion(Valeur(Boolean = vrai))
 }
 
+/* 10.1.10.1 OrdinaryDelete ( O, P )
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarydelete */
+ordinary_delete :: fonc (O: *Object, P: PropertyKey) -> CompletionRecord
+{
+    // 1. Let desc be ? O.[[GetOwnProperty]](P).
+    completion := internal_get_own_property(O, P)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    desc := completion.valeur
+
+    // 2. If desc is undefined, return true.
+    si desc.est_undefined() {
+        retourne normal_completion(Valeur(Boolean = vrai))
+    }
+
+    // 3. If desc.[[Configurable]] is true, then
+    configurable := desc.P.configurable
+    si configurable.possède_valeur() && configurable.Quelque == vrai {
+        // a. Remove the own property with name P from O.
+        supprime_propriété(O, P)
+
+        // b. Return true.
+        retourne normal_completion(Valeur(Boolean = vrai))
+    }
+
+    // 4. Return false.
+    retourne normal_completion(Valeur(Boolean = faux))
+}
+
 /* 10.1.12 OrdinaryObjectCreate ( proto [ , additionalInternalSlotsList ] )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinaryobjectcreate */
 ordinary_object_create :: fonc (realm: *Realm, prototype: *Object, rappel_allocation_objet: TypeFonctionAllocationObjet) -> *Object
