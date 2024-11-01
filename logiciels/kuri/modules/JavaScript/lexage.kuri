@@ -531,7 +531,23 @@ droit_traité_slash_comme_début_regex :: fonc (empl lexeuse: &Lexeuse) -> bool
         Return,
         Else,
         Plus,
-        Arrow {
+        Arrow,
+        PlusÉgal,
+        MoinsÉgal,
+        ÉtoileÉgal,
+        SlashÉgal,
+        PourcentÉgal,
+        InférieurÉgal,
+        SupérieurÉgal,
+        DécalageGaucheÉgal,
+        DécalageDroiteÉgal,
+        EtBinaireÉgal,
+        OuBinaireÉgal,
+        OuExclusifÉgal,
+        EstÉgal,
+        NEspaPasÉgal,
+        EstÉgalStrict,
+        NEspaPasÉgalStrict {
             retourne vrai
         }
         Identifiant {
