@@ -448,8 +448,8 @@ crée_panneau_interface :: fonc (ctx: *ContexteInterface, rect: RectanglePosDim(
     ajoute_enfant(résultat, élément_central)
 
     /* Rappels. */
-    résultat.sur_clique_souris = enveloppe_rappel(sur_clique_souris)
-    résultat.sur_dessin = enveloppe_rappel(sur_dessin)
+    résultat.sur_clique_souris = sur_clique_souris
+    résultat.sur_dessin = sur_dessin
     résultat.sur_redimension = sur_redimension
 
     résultat.redimensionne_panneau(rect)
