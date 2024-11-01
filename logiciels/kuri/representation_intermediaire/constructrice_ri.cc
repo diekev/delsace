@@ -4231,7 +4231,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             }
 
             auto ident_valeurs = m_compilatrice.donne_identifiant_pour_globale("valeurs_énums");
-            auto ident_noms = m_compilatrice.donne_identifiant_pour_globale("noms_valeus_énums");
+            auto ident_noms = m_compilatrice.donne_identifiant_pour_globale("noms_valeurs_énums");
             auto tableau_valeurs = m_constructrice.crée_tranche_globale(
                 *ident_valeurs, tableau, TypeBase::OCTET);
             auto tableau_noms = m_constructrice.crée_tranche_globale(
