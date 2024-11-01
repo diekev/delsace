@@ -1212,6 +1212,7 @@ struct AssembleuseASM {
             case TypeOpérande::MÉMOIRE:
             {
                 auto const adresse = opérande.mémoire.adresse;
+                assert(adresse.taille() != 0);
                 auto const décalage = opérande.mémoire.décalage;
                 m_sortie << "[" << adresse;
                 if (décalage < 0) {
