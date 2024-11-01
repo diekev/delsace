@@ -314,7 +314,7 @@ static void initialise_type_variadique(TypeVariadique *résultat,
 
     résultat->membres = std::move(membres_);
     résultat->nombre_de_membres_réels = résultat->membres.taille();
-    résultat->taille_octet = 24;
+    résultat->taille_octet = 16;
     résultat->alignement = 8;
     résultat->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
 }
@@ -825,7 +825,6 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
     auto membres = kuri::tableau<MembreTypeComposé, int>();
     membres.ajoute({nullptr, type_pointeur_pour(type_pointe), ID::pointeur, 0});
     membres.ajoute({nullptr, TypeBase::Z64, ID::taille, 8});
-    membres.ajoute({nullptr, TypeBase::Z64, ID::capacite, 16});
 
     auto type = alloc->m_noeuds_type_variadique.ajoute_élément();
     initialise_type_variadique(type, type_pointe, std::move(membres));
