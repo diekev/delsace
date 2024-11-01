@@ -2356,7 +2356,12 @@ void GénératriceCodeASM::génère_code_pour_transtype(InstructionTranstype con
         }
         case TypeTranstypage::DIMINUE_RELATIF:
         {
-            VERIFIE_NON_ATTEINT;
+            auto registre = registres.donne_registre_inoccupé();
+            auto dst = alloue_variable(type_vers);
+            assembleuse.mov(registre, valeur, type_de->taille_octet);
+            assembleuse.mov(dst, registre, type_vers->taille_octet);
+            valeur = dst;
+            registres.marque_registre_inoccupé(registre);
             break;
         }
         case TypeTranstypage::DIMINUE_REEL:
