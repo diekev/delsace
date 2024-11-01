@@ -458,7 +458,93 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
                 type_de->comme_type_pointeur()->type_pointé == nullptr) {
                 return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
             }
-            break;
+
+            if (!type_de->est_type_fonction()) {
+                return TransformationType(TypeTransformation::IMPOSSIBLE);
+            }
+
+            /* Autorisons les transtypages entre types de fonctions si tous les paramètres sont
+             * compatibles selon les règles suivantes :
+             *
+             * - les types de sortie doivent être les mêmes
+             * - les types d'entrées hors pointeurs doivent être les mêmes
+             * - les types d'entrées pointeurs peuvent différer si :
+             *     - le type de destination est *rien, ou
+             *     - le type de destination est un pointeur vers un type employé au début de la
+             *       structure du type source
+             *
+             * Soit les deux cas suivants :
+             * - fonc(*rien)() = fonc(*T)()
+             * - fonc(*Base)() = fonc(*Dérivée)()
+             *
+             * Avec pour le deuxième cas :
+             *
+             *    Base :: struct {}
+             *
+             *    Dérivée :: struct {
+             *        // Pas d'autres membres avant !
+             *        empl base: Base
+             *        ...
+             *    }
+             */
+            auto type_fonction_de = type_de->comme_type_fonction();
+            auto type_fonction_vers = type_vers->comme_type_fonction();
+
+            if (type_fonction_de->type_sortie != type_fonction_vers->type_sortie) {
+                return TransformationType(TypeTransformation::IMPOSSIBLE);
+            }
+
+            if (type_fonction_de->types_entrées.taille() !=
+                type_fonction_vers->types_entrées.taille()) {
+                return TransformationType(TypeTransformation::IMPOSSIBLE);
+            }
+
+            for (auto i = 0; i < type_fonction_de->types_entrées.taille(); i++) {
+                auto type_entrée_de = type_fonction_de->types_entrées[i];
+                auto type_entrée_vers = type_fonction_vers->types_entrées[i];
+
+                if (type_entrée_vers == type_entrée_de) {
+                    continue;
+                }
+
+                if (type_entrée_vers->genre != type_entrée_de->genre) {
+                    return TransformationType(TypeTransformation::IMPOSSIBLE);
+                }
+
+                if (!type_entrée_vers->est_type_pointeur()) {
+                    return TransformationType(TypeTransformation::IMPOSSIBLE);
+                }
+
+                /* fonc(*rien)() = fonc(*T)(). */
+                if (type_entrée_vers == TypeBase::PTR_RIEN) {
+                    continue;
+                }
+
+                /* fonc(*TypeBase)() = fonc(*TypeDérivé)(). */
+                auto type_pointé_de = type_entrée_de->comme_type_pointeur()->type_pointé;
+                auto type_pointé_vers = type_entrée_vers->comme_type_pointeur()->type_pointé;
+
+                if (!type_pointé_de->est_type_structure() ||
+                    !type_pointé_vers->est_type_structure()) {
+                    return TransformationType(TypeTransformation::IMPOSSIBLE);
+                }
+
+                auto ts_de = type_pointé_de->comme_type_structure();
+                auto ts_vers = type_pointé_vers->comme_type_structure();
+
+                /* N'autorisons ce transtypage que la base est début de la dérivée. */
+                /* À FAIRE : nous devons requérir que les types sont validés !
+                 * Mais ceci empêcherai la compilation pour les types ayant des assignations de
+                 * pointeurs de fonction dans leurs blocs. Il faudra séparer la validation des
+                 * membres de la validation des expressions par défaut de remplacement pour les
+                 * membres existants. */
+                auto décalage_type_base = est_type_de_base(ts_de, ts_vers);
+                if (!décalage_type_base.has_value() || décalage_type_base.value() != 0) {
+                    return TransformationType(TypeTransformation::IMPOSSIBLE);
+                }
+            }
+
+            return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
         }
         case GenreNoeud::TYPE_ADRESSE_FONCTION:
         {
