@@ -54,12 +54,194 @@ donne_mv :: fonc (tas_de_mémoire: *TasDeMémoire) -> *MachineVirtuelle
 
 alloue :: fonc (tas_de_mémoire: *TasDeMémoire, $T: type_de_données) -> *T
 {
+    // génère_fonction_visite(info_de(T))
     assert(est_struct_ou_employeuse_de(info_de(T), info_de(Cellule)))
     résultat := alloue_cellule(tas_de_mémoire, taille_de(T)) comme *T
     init_de(T)(résultat)
     assert((résultat comme *Cellule).table != nul)
     assert((résultat comme *Cellule).table.classe == T)
     retourne résultat
+}
+
+// importe Compilatrice
+
+// alloue :: fonc (tas_de_mémoire: *TasDeMémoire, $T: type_de_données) -> *T
+// {
+//     #exécute génère_fonction_visite(info_de(T))
+
+//     résultat := alloue_cellule(tas_de_mémoire, taille_de(T)) comme *T
+//     init_de(T)(résultat)
+//     assert((résultat comme *Cellule).table != nul)
+//     assert((résultat comme *Cellule).table.classe == T)
+//     retourne résultat
+// }
+
+// alloue :: fonc (tas_de_mémoire: *TasDeMémoire, $T: type_de_données) -> *T
+// #corps_texte {
+//     génère_fonction_visite(info_de(T))
+
+//     texte := «
+//     assert(est_struct_ou_employeuse_de(info_de(T), info_de(Cellule)))
+//     résultat := alloue_cellule(tas_de_mémoire, taille_de(T)) comme *T
+//     init_de(T)(résultat)
+//     assert((résultat comme *Cellule).table != nul)
+//     assert((résultat comme *Cellule).table.classe == T)
+//     retourne résultat
+// »
+//     retourne copie_chaine(texte)
+// }
+
+__structures_connues: [..]*InfoTypeStructure
+
+génère_fonction_visite :: fonc (infos: *InfoTypeStructure)
+{
+    si ensemble_possède(*__structures_connues, infos) {
+        retourne
+    }
+    ensemble_ajoute(*__structures_connues, infos)
+
+    // saufsi est_struct_ou_employeuse_de(infos, info_de(Cellule)) {
+    //     compilatrice_rapporte_erreur("Allocation d'une structure qui n'est pas une cellule.")
+    // }
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    ajoute_au_tampon(*enchaineuse, "\n", infos.nom, "_visite_cellule :: fonc (v: *VisiteuseCellule, c: *", infos.nom, ")\n{\n")
+
+    types_en_visite: [..]*InfoType
+    diffère déloge(types_en_visite)
+
+    pour infos.membres {
+        si it.id == info_de(Cellule) {
+            continue
+        }
+
+        types_en_visite.taille = 0
+        saufsi type_possède_une_cellule(it.id, *types_en_visite) {
+            continue
+        }
+
+        // ajoute_au_tampon(*enchaineuse, "    // visite ", it.nom, "\n")
+        accesseur := enchaine("c.", it.nom)
+        diffère déloge(accesseur)
+
+        génère_visite_membre(*enchaineuse, it.id, accesseur)
+    }
+
+    ajoute_au_tampon(*enchaineuse, "}\n")
+
+    chn := chaine_depuis_enchaineuse(*enchaineuse)
+    imprime("%\n", chn)
+
+    // ajoute_chaine_au_module(compilatrice_espace_courant(), compilatrice_module_courant(), chn)
+}
+
+génère_visite_membre :: fonc (enchaineuse: *Enchaineuse, info: *InfoType, accesseur: chaine)
+{
+    discr info.id {
+        ENTIER,
+        RÉEL,
+        BOOLÉEN,
+        CHAINE,
+        ADRESSE_FONCTION,
+        FONCTION,
+        EINI,
+        RIEN,
+        ÉNUM,
+        OCTET,
+        TYPE_DE_DONNÉES {
+            retourne
+        }
+        TABLEAU {
+            info_tableau := info comme *InfoTypeTableau
+            
+            ajoute_au_tampon(enchaineuse, "    pour ", accesseur, " {\n")
+            génère_visite_membre(enchaineuse, info_tableau.type_pointé, "it")
+            ajoute_au_tampon(enchaineuse, "    }\n")
+        }
+        POINTEUR {
+            type_pointé := (info comme *InfoTypePointeur).type_pointé
+
+            si est_struct_ou_employeuse_de(type_pointé comme *InfoTypeStructure, info_de(Cellule)) {
+                ajoute_au_tampon(enchaineuse, "    visite_cellule(v, ", accesseur, ")\n")
+            }
+            sinon {
+                ajoute_au_tampon(enchaineuse, "    si ", accesseur, " {\n")
+                génère_visite_membre(enchaineuse, type_pointé, "it")
+                ajoute_au_tampon(enchaineuse, "    }\n")
+            }
+        }
+        UNION,
+        OPAQUE,
+        TRANCHE,
+        TABLEAU_FIXE,
+        VARIADIQUE {}
+        STRUCTURE {
+            structure := info comme *InfoTypeStructure
+
+            pour structure.membres {
+                accesseur_membre := enchaine(accesseur, ".", it.nom)
+                diffère déloge(accesseur_membre)
+
+                génère_visite_membre(enchaineuse, it.id, accesseur_membre)
+            }
+        }
+    }
+}
+
+type_possède_une_cellule :: fonc (info: *InfoType, types_en_visite: *[..]*InfoType) -> bool
+{
+    si ensemble_possède(types_en_visite, info) {
+        retourne faux
+    }
+    ensemble_ajoute(types_en_visite, info)
+
+    discr info.id {
+        ENTIER,
+        RÉEL,
+        BOOLÉEN,
+        CHAINE,
+        ADRESSE_FONCTION,
+        FONCTION,
+        EINI,
+        RIEN,
+        ÉNUM,
+        OCTET,
+        TYPE_DE_DONNÉES {
+            retourne faux
+        }
+        TABLEAU {
+            info_tableau := info comme *InfoTypeTableau
+            retourne type_possède_une_cellule(info_tableau.type_pointé, types_en_visite)
+        }
+        POINTEUR {
+            info_pointeur := info comme *InfoTypePointeur
+            retourne type_possède_une_cellule(info_pointeur.type_pointé, types_en_visite)
+        }
+        UNION,
+        OPAQUE,
+        TRANCHE,
+        TABLEAU_FIXE,
+        VARIADIQUE {}
+        STRUCTURE {
+            structure := info comme *InfoTypeStructure
+            si est_struct_ou_employeuse_de(structure, info_de(Cellule)) {
+                retourne vrai
+            }
+
+            pour structure.membres {
+                si type_possède_une_cellule(it.id, types_en_visite) {
+                    retourne vrai
+                }
+            }
+
+            retourne faux
+        }
+    }
+
+    retourne faux
 }
 
 alloue_cellule :: fonc (tas_de_mémoire: *TasDeMémoire, taille: n64) -> *rien
