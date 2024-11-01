@@ -47,6 +47,7 @@ TableVirtuelleObject :: struct {
     sur_get_prototype_of := ordinary_get_prototype_of
     sur_set_prototype_of := ordinary_set_prototype_of
     sur_get_own_property := ordinary_get_own_property
+    sur_delete := ordinary_delete
     sur_define_own_property := ordinary_define_own_property
     sur_has_property := ordinary_has_property
     sur_get := ordinary_get
@@ -164,6 +165,16 @@ ajoute_propriété :: fonc (objet: *Object, nom: PropertyKey, get: TypeFonctionO
     tableau_ajoute(*objet.propriétés, Object.Propriété(nom, get = getter, set = setter, drapeaux = drapeaux))
 }
 
+supprime_propriété :: fonc (object: *Object, nom: PropertyKey)
+{
+    pour object.propriétés {
+        si it.nom == nom {
+            tableau_supprime_index(*object.propriétés, index_it)
+            retourne
+        }
+    }
+}
+
 /* [[GetPrototypeOf]] */
 internal_get_prototype_of :: fonc (object: *Object) -> *Object
 {
@@ -198,6 +209,12 @@ internal_define_own_property_by_index :: fonc (object: *Object, index: n32, desc
     garantis_taille_tableau_élément_pour_index(object, index)
     object.éléments_indexés[index comme z64].valeur = desc.value
     retourne normal_completion(Valeur(Boolean = vrai))
+}
+
+/* [[Delete]] */
+internal_delete :: fonc (object: *Object, P: PropertyKey) -> CompletionRecord
+{
+    retourne object.donne_table().sur_delete(object, P)
 }
 
 /* [[HasProperty]] */
