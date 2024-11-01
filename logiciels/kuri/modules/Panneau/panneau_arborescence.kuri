@@ -191,9 +191,9 @@ crée_panneau_arborescence :: fonc (ctx: *ContexteInterface, parent: *Panneau) -
     résultat := ctx.crée_panneau(PanneauArborescence)
     ajoute_enfant(parent, résultat)
 
-    résultat.sur_déplacement_souris = enveloppe_rappel(sur_déplacement_souris)
-    résultat.sur_clique_souris = enveloppe_rappel(sur_clique_souris)
-    résultat.sur_dessin = enveloppe_rappel(sur_dessin)
+    résultat.sur_déplacement_souris = sur_déplacement_souris
+    résultat.sur_clique_souris = sur_clique_souris
+    résultat.sur_dessin = sur_dessin
     retourne résultat
 }
 
