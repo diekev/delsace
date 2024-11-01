@@ -36,9 +36,9 @@ PanneauDossier :: struct {
 crée_panneau_dossier :: fonc (contexte: *ContexteInterface, parent: *Panneau) -> *PanneauDossier
 {
     résultat := contexte.crée_panneau(PanneauDossier)
-    résultat.sur_dessin = enveloppe_rappel(sur_dessin_panneau_dossier)
-    résultat.sur_clique_souris = enveloppe_rappel(sur_clique_souris_panneau_dossier)
-    résultat.sur_déplacement_souris = enveloppe_rappel(sur_déplacement_souris_panneau_dossier)
+    résultat.sur_dessin = sur_dessin_panneau_dossier
+    résultat.sur_clique_souris = sur_clique_souris_panneau_dossier
+    résultat.sur_déplacement_souris = sur_déplacement_souris_panneau_dossier
     parent.ajoute_enfant(résultat)
     retourne résultat
 }

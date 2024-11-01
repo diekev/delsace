@@ -16,3 +16,6 @@ struct CoulisseASM final : public Coulisse {
 
     int64_t mémoire_utilisée() const override;
 };
+
+struct AtomeFonction;
+void classifie_arguments(AtomeFonction const *fonction);

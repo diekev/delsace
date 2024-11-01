@@ -29,9 +29,9 @@ crée_panneau_édition_texte :: fonc (contexte: *ContexteInterface, texte: chain
     si parent {
         parent.ajoute_enfant(résultat)
     }
-    résultat.sur_dessin = enveloppe_rappel(sur_dessin_panneau_édition_texte)
+    résultat.sur_dessin = sur_dessin_panneau_édition_texte
     résultat.sur_redimension = sur_redimension_panneau_édition_texte
-    résultat.sur_clique_souris = enveloppe_rappel(sur_clic_panneau_édition_texte)
+    résultat.sur_clique_souris = sur_clic_panneau_édition_texte
     résultat.texte = crée_chaine_utf32(texte)
     résultat.curseur.texte = *résultat.texte
     retourne résultat
