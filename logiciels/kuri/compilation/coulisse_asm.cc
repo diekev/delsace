@@ -1333,6 +1333,10 @@ struct GénératriceCodeASM {
     kuri::table_hachage<Atome const *, kuri::chaine> table_globales{"Valeurs globales ASM"};
     AtomeFonction const *m_fonction_courante = nullptr;
     ClassementArgument m_classement_fonction_courante{};
+
+    /* Si la valeur de retour doit être retournée en mémoire. */
+    AssembleuseASM::Mémoire m_adresse_retour{};
+
     Enchaineuse enchaineuse_tmp{};
     Enchaineuse stockage_chn{};
 
@@ -1851,6 +1855,7 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
     auto adresse_retour = AssembleuseASM::Mémoire{};
     if (!type_retour->est_type_rien()) {
         adresse_retour = alloue_variable(type_retour);
+        table_valeurs[appel->numero] = adresse_retour;
     }
 
     /* À FAIRE: chargement des paramètres dans les registres */
@@ -1917,6 +1922,11 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
     /* À FAIRE : appel pointeur. */
     assert(appelée.type == AssembleuseASM::TypeOpérande::FONCTION);
 
+    if (classement.sortie.est_en_mémoire) {
+        /* Charge l'adresse dans %rdi. */
+        assembleuse.lea(Registre::RDI, adresse_retour);
+    }
+
     /* Préserve note pile. */
     assembleuse.sub(Registre::RSP, AssembleuseASM::Immédiate64{taille_allouée}, 8);
 
@@ -1925,12 +1935,8 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
     /* Restaure note pile. */
     assembleuse.add(Registre::RSP, AssembleuseASM::Immédiate64{taille_allouée}, 8);
 
-    if (!type_retour->est_type_rien()) {
-        auto classement_arg = classement.sortie;
-        assert(classement_arg.est_en_mémoire == false);
-
+    if (!type_retour->est_type_rien() && !classement.sortie.est_en_mémoire) {
         auto taille_en_octet = type_retour->taille_octet;
-        table_valeurs[appel->numero] = adresse_retour;
 
         for (auto i = classement.sortie.premier_huitoctet_inclusif;
              i < classement.sortie.dernier_huitoctet_exclusif;
@@ -2258,28 +2264,57 @@ void GénératriceCodeASM::génère_code_pour_retourne(const InstructionRetour *
         assert(valeur.type == AssembleuseASM::TypeOpérande::MÉMOIRE);
 
         auto sortie = m_classement_fonction_courante.sortie;
-        assert(sortie.est_en_mémoire == false);
 
         auto taille_en_octet = inst_retour->valeur->type->taille_octet;
-        for (auto i = sortie.premier_huitoctet_inclusif; i < sortie.dernier_huitoctet_exclusif;
-             i++) {
+        if (sortie.est_en_mémoire) {
+            assert(valeur.type == AssembleuseASM::TypeOpérande::MÉMOIRE);
 
-            auto huitoctet = m_classement_fonction_courante.huitoctets[i];
-            auto classe = huitoctet.classe;
-            assert(classe == ClasseArgument::INTEGER);
+            assembleuse.mov(Registre::RAX, m_adresse_retour, 8);
 
-            auto registre = m_classement_fonction_courante.registres_huitoctets[i].registre;
+            auto adresse_retour = AssembleuseASM::Mémoire(Registre::RAX);
 
-            auto taille_à_copier = taille_en_octet;
-            if (taille_à_copier > 8) {
-                taille_à_copier = 8;
-                taille_en_octet -= 8;
+            registres.marque_registre_occupé(Registre::RAX);
+            auto registre_tmp = registres.donne_registre_inoccupé();
+
+            auto taille_à_copier = int32_t(taille_en_octet);
+            while (taille_à_copier > 0) {
+                auto taille = taille_à_copier;
+                if (taille > 8) {
+                    taille = 8;
+                }
+                taille_à_copier -= taille;
+
+                assembleuse.mov(registre_tmp, valeur, uint32_t(taille));
+                assembleuse.mov(adresse_retour, registre_tmp, uint32_t(taille));
+
+                adresse_retour.décalage += taille;
+                valeur.mémoire.décalage += taille;
             }
 
-            registres.marque_registre_occupé(registre);
-            assembleuse.mov(registre, valeur, taille_à_copier);
+            registres.marque_registre_inoccupé(Registre::RAX);
+            registres.marque_registre_inoccupé(registre_tmp);
+        }
+        else {
+            for (auto i = sortie.premier_huitoctet_inclusif; i < sortie.dernier_huitoctet_exclusif;
+                 i++) {
 
-            valeur.mémoire.décalage += int32_t(taille_à_copier);
+                auto huitoctet = m_classement_fonction_courante.huitoctets[i];
+                auto classe = huitoctet.classe;
+                assert(classe == ClasseArgument::INTEGER);
+
+                auto registre = m_classement_fonction_courante.registres_huitoctets[i].registre;
+
+                auto taille_à_copier = taille_en_octet;
+                if (taille_à_copier > 8) {
+                    taille_à_copier = 8;
+                    taille_en_octet -= 8;
+                }
+
+                registres.marque_registre_occupé(registre);
+                assembleuse.mov(registre, valeur, taille_à_copier);
+
+                valeur.mémoire.décalage += int32_t(taille_à_copier);
+            }
         }
     }
 
@@ -2792,6 +2827,11 @@ void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonc
 
     auto classement = donne_classement_arguments(fonction->type->comme_type_fonction());
     m_classement_fonction_courante = classement;
+
+    if (classement.sortie.est_en_mémoire) {
+        m_adresse_retour = alloue_variable(TypeBase::PTR_RIEN);
+        assembleuse.mov(m_adresse_retour, Registre::RDI, 8);
+    }
 
     POUR_INDEX (fonction->params_entrée) {
         auto type_alloué = it->donne_type_alloué();
