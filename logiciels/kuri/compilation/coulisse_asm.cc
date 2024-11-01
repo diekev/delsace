@@ -271,7 +271,6 @@ static void détermine_classe_argument_aggrégé(TypeCompose const *type,
         dbg() << "-- " << it.nom->nom << " : " << classes_pour_membres.back();
     }
 
-    dbg() << "Classement des huitoctets :";
     POUR (huitoctets) {
         auto classe_huitoctet = classes_pour_membres[it.premier_membre_inclusif];
         auto classe1 = classe_huitoctet;
@@ -368,6 +367,7 @@ static void détermine_classe_argument_aggrégé(TypeCompose const *type,
         classe_précédente = it.classe;
     }
 
+    dbg() << "Classement des huitoctets :";
     POUR (huitoctets) {
         dbg() << "-- " << it.classe;
         résultat.ajoute(it);
@@ -2821,6 +2821,8 @@ void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonc
                                                    Enchaineuse &os)
 {
     fonction->numérote_instructions();
+
+    dbg() << "Compilation de " << fonction->nom;
 
     os << fonction->nom << ":\n";
     définis_fonction_courante(fonction);
