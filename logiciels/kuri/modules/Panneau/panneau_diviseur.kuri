@@ -95,12 +95,12 @@ crée_panneau_diviseur :: fonc (ctx: *ContexteInterface) -> *PanneauDiviseur
 
     résultat := ctx.crée_panneau(PanneauDiviseur)
     tableau_ajoute(*ctx.diviseurs, résultat)
-    résultat.sur_déplacement_souris = enveloppe_rappel(sur_déplacement_souris)
-    résultat.sur_clique_souris = enveloppe_rappel(sur_clique_souris)
-    résultat.sur_dessin = enveloppe_rappel(sur_dessin)
+    résultat.sur_déplacement_souris = sur_déplacement_souris
+    résultat.sur_clique_souris = sur_clique_souris
+    résultat.sur_dessin = sur_dessin
     résultat.sur_redimension = sur_redimension
-    résultat.sur_début_survol = enveloppe_rappel(sur_début_survol)
-    résultat.sur_fin_survol = enveloppe_rappel(sur_fin_survol)
+    résultat.sur_début_survol = sur_début_survol
+    résultat.sur_fin_survol = sur_fin_survol
     retourne résultat
 }
 

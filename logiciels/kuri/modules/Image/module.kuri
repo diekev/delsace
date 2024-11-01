@@ -8,6 +8,103 @@ libtbb :: #bibliothèque "tbb"
 
 #dépendance_bibliothèque libmodule_c_image libtbb
 
+FormatPixel :: énum {
+    Gris_8
+    Gris_32
+
+    RVB_8
+    RVB_32
+
+    RVBA_8
+    RVBA_32
+}
+
+DescriptriceImage :: struct {
+    largeur: n32
+    hauteur: n32
+    format: FormatPixel
+}
+
+donne_taille_données :: fonc (desc: *DescriptriceImage) -> z64
+{
+    résultat := (desc.largeur comme n64) * (desc.hauteur comme n64)
+
+    discr desc.format {
+        Gris_8 {
+            résultat *= taille_de(n8)
+        }
+        Gris_32 {
+            résultat *= taille_de(r32)
+        }
+        RVB_8 {
+            résultat *= taille_de(n8) * 3
+        }
+        RVB_32 {
+            résultat *= taille_de(r32) * 3
+        }
+        RVBA_8 {
+            résultat *= taille_de(n8) * 4
+        }
+        RVBA_32 {
+            résultat *= taille_de(r32) * 4
+        }
+    }
+
+    retourne résultat comme z64
+}
+
+SourceDonnéesImage :: énum n8 {
+    /* L'image possède les données. */
+    Interne
+    /* Les données de l'image appartiennent à quelqu'un d'autres et ne peuvent
+     * être détruites avec l'image. */
+    Externe
+}
+
+NouvelleImage :: struct {
+    données: *octet
+    desc: DescriptriceImage
+    source_données: SourceDonnéesImage
+}
+
+crée_image :: fonc (desc: *DescriptriceImage) -> NouvelleImage
+{
+    taille_données := donne_taille_données(desc)
+    données := loge_tableau(taille_donnees, octet)
+
+    résultat: NouvelleImage
+    résultat.données = données.pointeur
+    résultat.desc = mémoire(desc)
+    résultat.source_données = SourceDonnéesImage.Interne
+    retourne résultat
+}
+
+crée_image_pour_données_externe :: fonc (données: *octet, largeur: n32, hauteur: n32, format: FormatPixel) -> NouvelleImage
+{
+    résultat: NouvelleImage
+    résultat.données = données
+    résultat.desc.largeur = largeur
+    résultat.desc.hauteur = hauteur
+    résultat.desc.format = format
+    résultat.source_données = SourceDonnéesImage.Externe
+    retourne résultat
+}
+
+détruit_données_image :: fonc (image: *NouvelleImage)
+{
+    si image.source_données == SourceDonnéesImage.Externe {
+        retourne
+    }
+
+    taille_données := donne_taille_données(*image.desc)
+    données: [..]octet
+    données.pointeur = image.données
+    données.capacité = taille_données
+
+    déloge(données)
+    image.données = nul
+}
+
 Image :: struct {
     tampon: [..]CouleurRVBA
     largeur: z32

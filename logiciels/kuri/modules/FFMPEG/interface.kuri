@@ -1,0 +1,1599 @@
+/* stats-code ignore fichier */
+
+importe Chaine
+importe GlibC
+
+libavformat :: #bibliothèque "avformat"
+libavcodec :: #bibliothèque "avcodec"
+libavutil :: #bibliothèque "avutil"
+libswscale :: #bibliothèque "swscale"
+
+av_register_all :: fonc () -> rien #externe libavformat
+
+AVClass :: struct #externe;
+AVInputFormat :: struct #externe;
+AVOutputFormat :: struct #externe;
+AVIOContext :: struct #externe;
+AVCodecInternal :: struct #externe;
+AVHWAccel :: struct #externe;
+AVCodecDescriptor :: struct #externe;
+
+AV_NUM_DATA_POINTERS :: 8
+
+AVPixelFormat :: énum z32 {
+    AV_PIX_FMT_NONE :: -1
+    AV_PIX_FMT_YUV420P   ///< planar YUV 4:2:0, 12bpp, (1 Cr & Cb sample per 2x2 Y samples)
+    AV_PIX_FMT_YUYV422   ///< packed YUV 4:2:2, 16bpp, Y0 Cb Y1 Cr
+    AV_PIX_FMT_RGB24     ///< packed RGB 8:8:8, 24bpp, RGBRGB...
+    AV_PIX_FMT_BGR24     ///< packed RGB 8:8:8, 24bpp, BGRBGR...
+    AV_PIX_FMT_YUV422P   ///< planar YUV 4:2:2, 16bpp, (1 Cr & Cb sample per 2x1 Y samples)
+    AV_PIX_FMT_YUV444P   ///< planar YUV 4:4:4, 24bpp, (1 Cr & Cb sample per 1x1 Y samples)
+    AV_PIX_FMT_YUV410P   ///< planar YUV 4:1:0,  9bpp, (1 Cr & Cb sample per 4x4 Y samples)
+    AV_PIX_FMT_YUV411P   ///< planar YUV 4:1:1, 12bpp, (1 Cr & Cb sample per 4x1 Y samples)
+    AV_PIX_FMT_GRAY8     ///<        Y        ,  8bpp
+    AV_PIX_FMT_MONOWHITE ///<        Y        ,  1bpp, 0 is white, 1 is black, in each byte pixels are ordered from the msb to the lsb
+    AV_PIX_FMT_MONOBLACK ///<        Y        ,  1bpp, 0 is black, 1 is white, in each byte pixels are ordered from the msb to the lsb
+    AV_PIX_FMT_PAL8      ///< 8 bits with AV_PIX_FMT_RGB32 palette
+    AV_PIX_FMT_YUVJ420P  ///< planar YUV 4:2:0, 12bpp, full scale (JPEG), deprecated in favor of AV_PIX_FMT_YUV420P and setting color_range
+    AV_PIX_FMT_YUVJ422P  ///< planar YUV 4:2:2, 16bpp, full scale (JPEG), deprecated in favor of AV_PIX_FMT_YUV422P and setting color_range
+    AV_PIX_FMT_YUVJ444P  ///< planar YUV 4:4:4, 24bpp, full scale (JPEG), deprecated in favor of AV_PIX_FMT_YUV444P and setting color_range
+    AV_PIX_FMT_UYVY422   ///< packed YUV 4:2:2, 16bpp, Cb Y0 Cr Y1
+    AV_PIX_FMT_UYYVYY411 ///< packed YUV 4:1:1, 12bpp, Cb Y0 Y1 Cr Y2 Y3
+    AV_PIX_FMT_BGR8      ///< packed RGB 3:3:2,  8bpp, (msb)2B 3G 3R(lsb)
+    AV_PIX_FMT_BGR4      ///< packed RGB 1:2:1 bitstream,  4bpp, (msb)1B 2G 1R(lsb), a byte contains two pixels, the first pixel in the byte is the one composed by the 4 msb bits
+    AV_PIX_FMT_BGR4_BYTE ///< packed RGB 1:2:1,  8bpp, (msb)1B 2G 1R(lsb)
+    AV_PIX_FMT_RGB8      ///< packed RGB 3:3:2,  8bpp, (msb)2R 3G 3B(lsb)
+    AV_PIX_FMT_RGB4      ///< packed RGB 1:2:1 bitstream,  4bpp, (msb)1R 2G 1B(lsb), a byte contains two pixels, the first pixel in the byte is the one composed by the 4 msb bits
+    AV_PIX_FMT_RGB4_BYTE ///< packed RGB 1:2:1,  8bpp, (msb)1R 2G 1B(lsb)
+    AV_PIX_FMT_NV12      ///< planar YUV 4:2:0, 12bpp, 1 plane for Y and 1 plane for the UV components, which are interleaved (first byte U and the following byte V)
+    AV_PIX_FMT_NV21      ///< as above, but U and V bytes are swapped
+
+    AV_PIX_FMT_ARGB      ///< packed ARGB 8:8:8:8, 32bpp, ARGBARGB...
+    AV_PIX_FMT_RGBA      ///< packed RGBA 8:8:8:8, 32bpp, RGBARGBA...
+    AV_PIX_FMT_ABGR      ///< packed ABGR 8:8:8:8, 32bpp, ABGRABGR...
+    AV_PIX_FMT_BGRA      ///< packed BGRA 8:8:8:8, 32bpp, BGRABGRA...
+
+    AV_PIX_FMT_GRAY16BE  ///<        Y        , 16bpp, big-endian
+    AV_PIX_FMT_GRAY16LE  ///<        Y        , 16bpp, little-endian
+    AV_PIX_FMT_YUV440P   ///< planar YUV 4:4:0 (1 Cr & Cb sample per 1x2 Y samples)
+    AV_PIX_FMT_YUVJ440P  ///< planar YUV 4:4:0 full scale (JPEG), deprecated in favor of AV_PIX_FMT_YUV440P and setting color_range
+    AV_PIX_FMT_YUVA420P  ///< planar YUV 4:2:0, 20bpp, (1 Cr & Cb sample per 2x2 Y & A samples)
+    AV_PIX_FMT_RGB48BE   ///< packed RGB 16:16:16, 48bpp, 16R, 16G, 16B, the 2-byte value for each R/G/B component is stored as big-endian
+    AV_PIX_FMT_RGB48LE   ///< packed RGB 16:16:16, 48bpp, 16R, 16G, 16B, the 2-byte value for each R/G/B component is stored as little-endian
+
+    AV_PIX_FMT_RGB565BE  ///< packed RGB 5:6:5, 16bpp, (msb)   5R 6G 5B(lsb), big-endian
+    AV_PIX_FMT_RGB565LE  ///< packed RGB 5:6:5, 16bpp, (msb)   5R 6G 5B(lsb), little-endian
+    AV_PIX_FMT_RGB555BE  ///< packed RGB 5:5:5, 16bpp, (msb)1X 5R 5G 5B(lsb), big-endian   , X=unused/undefined
+    AV_PIX_FMT_RGB555LE  ///< packed RGB 5:5:5, 16bpp, (msb)1X 5R 5G 5B(lsb), little-endian, X=unused/undefined
+
+    AV_PIX_FMT_BGR565BE  ///< packed BGR 5:6:5, 16bpp, (msb)   5B 6G 5R(lsb), big-endian
+    AV_PIX_FMT_BGR565LE  ///< packed BGR 5:6:5, 16bpp, (msb)   5B 6G 5R(lsb), little-endian
+    AV_PIX_FMT_BGR555BE  ///< packed BGR 5:5:5, 16bpp, (msb)1X 5B 5G 5R(lsb), big-endian   , X=unused/undefined
+    AV_PIX_FMT_BGR555LE  ///< packed BGR 5:5:5, 16bpp, (msb)1X 5B 5G 5R(lsb), little-endian, X=unused/undefined
+
+//#if FF_API_VAAPI
+    /** @name Deprecated pixel formats */
+    /**@{*/
+    AV_PIX_FMT_VAAPI_MOCO ///< HW acceleration through VA API at motion compensation entry-point, Picture.data[3] contains a vaapi_render_state struct which contains macroblocks as well as various fields extracted from headers
+    AV_PIX_FMT_VAAPI_IDCT ///< HW acceleration through VA API at IDCT entry-point, Picture.data[3] contains a vaapi_render_state struct which contains fields extracted from headers
+    AV_PIX_FMT_VAAPI_VLD  ///< HW decoding through VA API, Picture.data[3] contains a VASurfaceID
+    /**@}*/
+    AV_PIX_FMT_VAAPI :: AV_PIX_FMT_VAAPI_VLD
+// #else
+//     /**
+//      *  Hardware acceleration through VA-API, data[3] contains a
+//      *  VASurfaceID.
+//      */
+//     AV_PIX_FMT_VAAPI
+// #endif
+
+    AV_PIX_FMT_YUV420P16LE  ///< planar YUV 4:2:0, 24bpp, (1 Cr & Cb sample per 2x2 Y samples), little-endian
+    AV_PIX_FMT_YUV420P16BE  ///< planar YUV 4:2:0, 24bpp, (1 Cr & Cb sample per 2x2 Y samples), big-endian
+    AV_PIX_FMT_YUV422P16LE  ///< planar YUV 4:2:2, 32bpp, (1 Cr & Cb sample per 2x1 Y samples), little-endian
+    AV_PIX_FMT_YUV422P16BE  ///< planar YUV 4:2:2, 32bpp, (1 Cr & Cb sample per 2x1 Y samples), big-endian
+    AV_PIX_FMT_YUV444P16LE  ///< planar YUV 4:4:4, 48bpp, (1 Cr & Cb sample per 1x1 Y samples), little-endian
+    AV_PIX_FMT_YUV444P16BE  ///< planar YUV 4:4:4, 48bpp, (1 Cr & Cb sample per 1x1 Y samples), big-endian
+    AV_PIX_FMT_DXVA2_VLD    ///< HW decoding through DXVA2, Picture.data[3] contains a LPDIRECT3DSURFACE9 pointer
+
+    AV_PIX_FMT_RGB444LE  ///< packed RGB 4:4:4, 16bpp, (msb)4X 4R 4G 4B(lsb), little-endian, X=unused/undefined
+    AV_PIX_FMT_RGB444BE  ///< packed RGB 4:4:4, 16bpp, (msb)4X 4R 4G 4B(lsb), big-endian,    X=unused/undefined
+    AV_PIX_FMT_BGR444LE  ///< packed BGR 4:4:4, 16bpp, (msb)4X 4B 4G 4R(lsb), little-endian, X=unused/undefined
+    AV_PIX_FMT_BGR444BE  ///< packed BGR 4:4:4, 16bpp, (msb)4X 4B 4G 4R(lsb), big-endian,    X=unused/undefined
+    AV_PIX_FMT_YA8       ///< 8 bits gray, 8 bits alpha
+
+    AV_PIX_FMT_Y400A :: AV_PIX_FMT_YA8 ///< alias for AV_PIX_FMT_YA8
+    AV_PIX_FMT_GRAY8A :: AV_PIX_FMT_YA8 ///< alias for AV_PIX_FMT_YA8
+
+    AV_PIX_FMT_BGR48BE   ///< packed RGB 16:16:16, 48bpp, 16B, 16G, 16R, the 2-byte value for each R/G/B component is stored as big-endian
+    AV_PIX_FMT_BGR48LE   ///< packed RGB 16:16:16, 48bpp, 16B, 16G, 16R, the 2-byte value for each R/G/B component is stored as little-endian
+
+    /**
+     * The following 12 formats have the disadvantage of needing 1 format for each bit depth.
+     * Notice that each 9/10 bits sample is stored in 16 bits with extra padding.
+     * If you want to support multiple bit depths, then using AV_PIX_FMT_YUV420P16* with the bpp stored separately is better.
+     */
+    AV_PIX_FMT_YUV420P9BE ///< planar YUV 4:2:0, 13.5bpp, (1 Cr & Cb sample per 2x2 Y samples), big-endian
+    AV_PIX_FMT_YUV420P9LE ///< planar YUV 4:2:0, 13.5bpp, (1 Cr & Cb sample per 2x2 Y samples), little-endian
+    AV_PIX_FMT_YUV420P10BE///< planar YUV 4:2:0, 15bpp, (1 Cr & Cb sample per 2x2 Y samples), big-endian
+    AV_PIX_FMT_YUV420P10LE///< planar YUV 4:2:0, 15bpp, (1 Cr & Cb sample per 2x2 Y samples), little-endian
+    AV_PIX_FMT_YUV422P10BE///< planar YUV 4:2:2, 20bpp, (1 Cr & Cb sample per 2x1 Y samples), big-endian
+    AV_PIX_FMT_YUV422P10LE///< planar YUV 4:2:2, 20bpp, (1 Cr & Cb sample per 2x1 Y samples), little-endian
+    AV_PIX_FMT_YUV444P9BE ///< planar YUV 4:4:4, 27bpp, (1 Cr & Cb sample per 1x1 Y samples), big-endian
+    AV_PIX_FMT_YUV444P9LE ///< planar YUV 4:4:4, 27bpp, (1 Cr & Cb sample per 1x1 Y samples), little-endian
+    AV_PIX_FMT_YUV444P10BE///< planar YUV 4:4:4, 30bpp, (1 Cr & Cb sample per 1x1 Y samples), big-endian
+    AV_PIX_FMT_YUV444P10LE///< planar YUV 4:4:4, 30bpp, (1 Cr & Cb sample per 1x1 Y samples), little-endian
+    AV_PIX_FMT_YUV422P9BE ///< planar YUV 4:2:2, 18bpp, (1 Cr & Cb sample per 2x1 Y samples), big-endian
+    AV_PIX_FMT_YUV422P9LE ///< planar YUV 4:2:2, 18bpp, (1 Cr & Cb sample per 2x1 Y samples), little-endian
+    AV_PIX_FMT_GBRP      ///< planar GBR 4:4:4 24bpp
+    AV_PIX_FMT_GBR24P :: AV_PIX_FMT_GBRP // alias for #AV_PIX_FMT_GBRP
+    AV_PIX_FMT_GBRP9BE   ///< planar GBR 4:4:4 27bpp, big-endian
+    AV_PIX_FMT_GBRP9LE   ///< planar GBR 4:4:4 27bpp, little-endian
+    AV_PIX_FMT_GBRP10BE  ///< planar GBR 4:4:4 30bpp, big-endian
+    AV_PIX_FMT_GBRP10LE  ///< planar GBR 4:4:4 30bpp, little-endian
+    AV_PIX_FMT_GBRP16BE  ///< planar GBR 4:4:4 48bpp, big-endian
+    AV_PIX_FMT_GBRP16LE  ///< planar GBR 4:4:4 48bpp, little-endian
+    AV_PIX_FMT_YUVA422P  ///< planar YUV 4:2:2 24bpp, (1 Cr & Cb sample per 2x1 Y & A samples)
+    AV_PIX_FMT_YUVA444P  ///< planar YUV 4:4:4 32bpp, (1 Cr & Cb sample per 1x1 Y & A samples)
+    AV_PIX_FMT_YUVA420P9BE  ///< planar YUV 4:2:0 22.5bpp, (1 Cr & Cb sample per 2x2 Y & A samples), big-endian
+    AV_PIX_FMT_YUVA420P9LE  ///< planar YUV 4:2:0 22.5bpp, (1 Cr & Cb sample per 2x2 Y & A samples), little-endian
+    AV_PIX_FMT_YUVA422P9BE  ///< planar YUV 4:2:2 27bpp, (1 Cr & Cb sample per 2x1 Y & A samples), big-endian
+    AV_PIX_FMT_YUVA422P9LE  ///< planar YUV 4:2:2 27bpp, (1 Cr & Cb sample per 2x1 Y & A samples), little-endian
+    AV_PIX_FMT_YUVA444P9BE  ///< planar YUV 4:4:4 36bpp, (1 Cr & Cb sample per 1x1 Y & A samples), big-endian
+    AV_PIX_FMT_YUVA444P9LE  ///< planar YUV 4:4:4 36bpp, (1 Cr & Cb sample per 1x1 Y & A samples), little-endian
+    AV_PIX_FMT_YUVA420P10BE ///< planar YUV 4:2:0 25bpp, (1 Cr & Cb sample per 2x2 Y & A samples, big-endian)
+    AV_PIX_FMT_YUVA420P10LE ///< planar YUV 4:2:0 25bpp, (1 Cr & Cb sample per 2x2 Y & A samples, little-endian)
+    AV_PIX_FMT_YUVA422P10BE ///< planar YUV 4:2:2 30bpp, (1 Cr & Cb sample per 2x1 Y & A samples, big-endian)
+    AV_PIX_FMT_YUVA422P10LE ///< planar YUV 4:2:2 30bpp, (1 Cr & Cb sample per 2x1 Y & A samples, little-endian)
+    AV_PIX_FMT_YUVA444P10BE ///< planar YUV 4:4:4 40bpp, (1 Cr & Cb sample per 1x1 Y & A samples, big-endian)
+    AV_PIX_FMT_YUVA444P10LE ///< planar YUV 4:4:4 40bpp, (1 Cr & Cb sample per 1x1 Y & A samples, little-endian)
+    AV_PIX_FMT_YUVA420P16BE ///< planar YUV 4:2:0 40bpp, (1 Cr & Cb sample per 2x2 Y & A samples, big-endian)
+    AV_PIX_FMT_YUVA420P16LE ///< planar YUV 4:2:0 40bpp, (1 Cr & Cb sample per 2x2 Y & A samples, little-endian)
+    AV_PIX_FMT_YUVA422P16BE ///< planar YUV 4:2:2 48bpp, (1 Cr & Cb sample per 2x1 Y & A samples, big-endian)
+    AV_PIX_FMT_YUVA422P16LE ///< planar YUV 4:2:2 48bpp, (1 Cr & Cb sample per 2x1 Y & A samples, little-endian)
+    AV_PIX_FMT_YUVA444P16BE ///< planar YUV 4:4:4 64bpp, (1 Cr & Cb sample per 1x1 Y & A samples, big-endian)
+    AV_PIX_FMT_YUVA444P16LE ///< planar YUV 4:4:4 64bpp, (1 Cr & Cb sample per 1x1 Y & A samples, little-endian)
+
+    AV_PIX_FMT_VDPAU     ///< HW acceleration through VDPAU, Picture.data[3] contains a VdpVideoSurface
+
+    AV_PIX_FMT_XYZ12LE      ///< packed XYZ 4:4:4, 36 bpp, (msb) 12X, 12Y, 12Z (lsb), the 2-byte value for each X/Y/Z is stored as little-endian, the 4 lower bits are set to 0
+    AV_PIX_FMT_XYZ12BE      ///< packed XYZ 4:4:4, 36 bpp, (msb) 12X, 12Y, 12Z (lsb), the 2-byte value for each X/Y/Z is stored as big-endian, the 4 lower bits are set to 0
+    AV_PIX_FMT_NV16         ///< interleaved chroma YUV 4:2:2, 16bpp, (1 Cr & Cb sample per 2x1 Y samples)
+    AV_PIX_FMT_NV20LE       ///< interleaved chroma YUV 4:2:2, 20bpp, (1 Cr & Cb sample per 2x1 Y samples), little-endian
+    AV_PIX_FMT_NV20BE       ///< interleaved chroma YUV 4:2:2, 20bpp, (1 Cr & Cb sample per 2x1 Y samples), big-endian
+
+    AV_PIX_FMT_RGBA64BE     ///< packed RGBA 16:16:16:16, 64bpp, 16R, 16G, 16B, 16A, the 2-byte value for each R/G/B/A component is stored as big-endian
+    AV_PIX_FMT_RGBA64LE     ///< packed RGBA 16:16:16:16, 64bpp, 16R, 16G, 16B, 16A, the 2-byte value for each R/G/B/A component is stored as little-endian
+    AV_PIX_FMT_BGRA64BE     ///< packed RGBA 16:16:16:16, 64bpp, 16B, 16G, 16R, 16A, the 2-byte value for each R/G/B/A component is stored as big-endian
+    AV_PIX_FMT_BGRA64LE     ///< packed RGBA 16:16:16:16, 64bpp, 16B, 16G, 16R, 16A, the 2-byte value for each R/G/B/A component is stored as little-endian
+
+    AV_PIX_FMT_YVYU422   ///< packed YUV 4:2:2, 16bpp, Y0 Cr Y1 Cb
+
+    AV_PIX_FMT_YA16BE       ///< 16 bits gray, 16 bits alpha (big-endian)
+    AV_PIX_FMT_YA16LE       ///< 16 bits gray, 16 bits alpha (little-endian)
+
+    AV_PIX_FMT_GBRAP        ///< planar GBRA 4:4:4:4 32bpp
+    AV_PIX_FMT_GBRAP16BE    ///< planar GBRA 4:4:4:4 64bpp, big-endian
+    AV_PIX_FMT_GBRAP16LE    ///< planar GBRA 4:4:4:4 64bpp, little-endian
+    /**
+     *  HW acceleration through QSV, data[3] contains a pointer to the
+     *  mfxFrameSurface1 structure.
+     */
+    AV_PIX_FMT_QSV
+    /**
+     * HW acceleration though MMAL, data[3] contains a pointer to the
+     * MMAL_BUFFER_HEADER_T structure.
+     */
+    AV_PIX_FMT_MMAL
+
+    AV_PIX_FMT_D3D11VA_VLD  ///< HW decoding through Direct3D11 via old API, Picture.data[3] contains a ID3D11VideoDecoderOutputView pointer
+
+    /**
+     * HW acceleration through CUDA. data[i] contain CUdeviceptr pointers
+     * exactly as for system memory frames.
+     */
+    AV_PIX_FMT_CUDA
+
+    AV_PIX_FMT_0RGB        ///< packed RGB 8:8:8, 32bpp, XRGBXRGB...   X=unused/undefined
+    AV_PIX_FMT_RGB0        ///< packed RGB 8:8:8, 32bpp, RGBXRGBX...   X=unused/undefined
+    AV_PIX_FMT_0BGR        ///< packed BGR 8:8:8, 32bpp, XBGRXBGR...   X=unused/undefined
+    AV_PIX_FMT_BGR0        ///< packed BGR 8:8:8, 32bpp, BGRXBGRX...   X=unused/undefined
+
+    AV_PIX_FMT_YUV420P12BE ///< planar YUV 4:2:0,18bpp, (1 Cr & Cb sample per 2x2 Y samples), big-endian
+    AV_PIX_FMT_YUV420P12LE ///< planar YUV 4:2:0,18bpp, (1 Cr & Cb sample per 2x2 Y samples), little-endian
+    AV_PIX_FMT_YUV420P14BE ///< planar YUV 4:2:0,21bpp, (1 Cr & Cb sample per 2x2 Y samples), big-endian
+    AV_PIX_FMT_YUV420P14LE ///< planar YUV 4:2:0,21bpp, (1 Cr & Cb sample per 2x2 Y samples), little-endian
+    AV_PIX_FMT_YUV422P12BE ///< planar YUV 4:2:2,24bpp, (1 Cr & Cb sample per 2x1 Y samples), big-endian
+    AV_PIX_FMT_YUV422P12LE ///< planar YUV 4:2:2,24bpp, (1 Cr & Cb sample per 2x1 Y samples), little-endian
+    AV_PIX_FMT_YUV422P14BE ///< planar YUV 4:2:2,28bpp, (1 Cr & Cb sample per 2x1 Y samples), big-endian
+    AV_PIX_FMT_YUV422P14LE ///< planar YUV 4:2:2,28bpp, (1 Cr & Cb sample per 2x1 Y samples), little-endian
+    AV_PIX_FMT_YUV444P12BE ///< planar YUV 4:4:4,36bpp, (1 Cr & Cb sample per 1x1 Y samples), big-endian
+    AV_PIX_FMT_YUV444P12LE ///< planar YUV 4:4:4,36bpp, (1 Cr & Cb sample per 1x1 Y samples), little-endian
+    AV_PIX_FMT_YUV444P14BE ///< planar YUV 4:4:4,42bpp, (1 Cr & Cb sample per 1x1 Y samples), big-endian
+    AV_PIX_FMT_YUV444P14LE ///< planar YUV 4:4:4,42bpp, (1 Cr & Cb sample per 1x1 Y samples), little-endian
+    AV_PIX_FMT_GBRP12BE    ///< planar GBR 4:4:4 36bpp, big-endian
+    AV_PIX_FMT_GBRP12LE    ///< planar GBR 4:4:4 36bpp, little-endian
+    AV_PIX_FMT_GBRP14BE    ///< planar GBR 4:4:4 42bpp, big-endian
+    AV_PIX_FMT_GBRP14LE    ///< planar GBR 4:4:4 42bpp, little-endian
+    AV_PIX_FMT_YUVJ411P    ///< planar YUV 4:1:1, 12bpp, (1 Cr & Cb sample per 4x1 Y samples) full scale (JPEG), deprecated in favor of AV_PIX_FMT_YUV411P and setting color_range
+
+    AV_PIX_FMT_BAYER_BGGR8    ///< bayer, BGBG..(odd line), GRGR..(even line), 8-bit samples */
+    AV_PIX_FMT_BAYER_RGGB8    ///< bayer, RGRG..(odd line), GBGB..(even line), 8-bit samples */
+    AV_PIX_FMT_BAYER_GBRG8    ///< bayer, GBGB..(odd line), RGRG..(even line), 8-bit samples */
+    AV_PIX_FMT_BAYER_GRBG8    ///< bayer, GRGR..(odd line), BGBG..(even line), 8-bit samples */
+    AV_PIX_FMT_BAYER_BGGR16LE ///< bayer, BGBG..(odd line), GRGR..(even line), 16-bit samples, little-endian */
+    AV_PIX_FMT_BAYER_BGGR16BE ///< bayer, BGBG..(odd line), GRGR..(even line), 16-bit samples, big-endian */
+    AV_PIX_FMT_BAYER_RGGB16LE ///< bayer, RGRG..(odd line), GBGB..(even line), 16-bit samples, little-endian */
+    AV_PIX_FMT_BAYER_RGGB16BE ///< bayer, RGRG..(odd line), GBGB..(even line), 16-bit samples, big-endian */
+    AV_PIX_FMT_BAYER_GBRG16LE ///< bayer, GBGB..(odd line), RGRG..(even line), 16-bit samples, little-endian */
+    AV_PIX_FMT_BAYER_GBRG16BE ///< bayer, GBGB..(odd line), RGRG..(even line), 16-bit samples, big-endian */
+    AV_PIX_FMT_BAYER_GRBG16LE ///< bayer, GRGR..(odd line), BGBG..(even line), 16-bit samples, little-endian */
+    AV_PIX_FMT_BAYER_GRBG16BE ///< bayer, GRGR..(odd line), BGBG..(even line), 16-bit samples, big-endian */
+
+    AV_PIX_FMT_XVMC///< XVideo Motion Acceleration via common packet passing
+
+    AV_PIX_FMT_YUV440P10LE ///< planar YUV 4:4:0,20bpp, (1 Cr & Cb sample per 1x2 Y samples), little-endian
+    AV_PIX_FMT_YUV440P10BE ///< planar YUV 4:4:0,20bpp, (1 Cr & Cb sample per 1x2 Y samples), big-endian
+    AV_PIX_FMT_YUV440P12LE ///< planar YUV 4:4:0,24bpp, (1 Cr & Cb sample per 1x2 Y samples), little-endian
+    AV_PIX_FMT_YUV440P12BE ///< planar YUV 4:4:0,24bpp, (1 Cr & Cb sample per 1x2 Y samples), big-endian
+    AV_PIX_FMT_AYUV64LE    ///< packed AYUV 4:4:4,64bpp (1 Cr & Cb sample per 1x1 Y & A samples), little-endian
+    AV_PIX_FMT_AYUV64BE    ///< packed AYUV 4:4:4,64bpp (1 Cr & Cb sample per 1x1 Y & A samples), big-endian
+
+    AV_PIX_FMT_VIDEOTOOLBOX ///< hardware decoding through Videotoolbox
+
+    AV_PIX_FMT_P010LE ///< like NV12, with 10bpp per component, data in the high bits, zeros in the low bits, little-endian
+    AV_PIX_FMT_P010BE ///< like NV12, with 10bpp per component, data in the high bits, zeros in the low bits, big-endian
+
+    AV_PIX_FMT_GBRAP12BE  ///< planar GBR 4:4:4:4 48bpp, big-endian
+    AV_PIX_FMT_GBRAP12LE  ///< planar GBR 4:4:4:4 48bpp, little-endian
+
+    AV_PIX_FMT_GBRAP10BE  ///< planar GBR 4:4:4:4 40bpp, big-endian
+    AV_PIX_FMT_GBRAP10LE  ///< planar GBR 4:4:4:4 40bpp, little-endian
+
+    AV_PIX_FMT_MEDIACODEC ///< hardware decoding through MediaCodec
+
+    AV_PIX_FMT_GRAY12BE   ///<        Y        , 12bpp, big-endian
+    AV_PIX_FMT_GRAY12LE   ///<        Y        , 12bpp, little-endian
+    AV_PIX_FMT_GRAY10BE   ///<        Y        , 10bpp, big-endian
+    AV_PIX_FMT_GRAY10LE   ///<        Y        , 10bpp, little-endian
+
+    AV_PIX_FMT_P016LE ///< like NV12, with 16bpp per component, little-endian
+    AV_PIX_FMT_P016BE ///< like NV12, with 16bpp per component, big-endian
+
+    /**
+     * Hardware surfaces for Direct3D11.
+     *
+     * This is preferred over the legacy AV_PIX_FMT_D3D11VA_VLD. The new D3D11
+     * hwaccel API and filtering support AV_PIX_FMT_D3D11 only.
+     *
+     * data[0] contains a ID3D11Texture2D pointer, and data[1] contains the
+     * texture array index of the frame as intptr_t if the ID3D11Texture2D is
+     * an array texture (or always 0 if it's a normal texture).
+     */
+    AV_PIX_FMT_D3D11
+
+    AV_PIX_FMT_GRAY9BE   ///<        Y        , 9bpp, big-endian
+    AV_PIX_FMT_GRAY9LE   ///<        Y        , 9bpp, little-endian
+
+    AV_PIX_FMT_GBRPF32BE  ///< IEEE-754 single precision planar GBR 4:4:4,     96bpp, big-endian
+    AV_PIX_FMT_GBRPF32LE  ///< IEEE-754 single precision planar GBR 4:4:4,     96bpp, little-endian
+    AV_PIX_FMT_GBRAPF32BE ///< IEEE-754 single precision planar GBRA 4:4:4:4, 128bpp, big-endian
+    AV_PIX_FMT_GBRAPF32LE ///< IEEE-754 single precision planar GBRA 4:4:4:4, 128bpp, little-endian
+
+    /**
+     * DRM-managed buffers exposed through PRIME buffer sharing.
+     *
+     * data[0] points to an AVDRMFrameDescriptor.
+     */
+    AV_PIX_FMT_DRM_PRIME
+    /**
+     * Hardware surfaces for OpenCL.
+     *
+     * data[i] contain 2D image objects (typed in C as cl_mem, used
+     * in OpenCL as image2d_t) for each plane of the surface.
+     */
+    AV_PIX_FMT_OPENCL
+
+    AV_PIX_FMT_GRAY14BE   ///<        Y        , 14bpp, big-endian
+    AV_PIX_FMT_GRAY14LE   ///<        Y        , 14bpp, little-endian
+
+    AV_PIX_FMT_GRAYF32BE  ///< IEEE-754 single precision Y, 32bpp, big-endian
+    AV_PIX_FMT_GRAYF32LE  ///< IEEE-754 single precision Y, 32bpp, little-endian
+
+    AV_PIX_FMT_YUVA422P12BE ///< planar YUV 4:2:2,24bpp, (1 Cr & Cb sample per 2x1 Y samples), 12b alpha, big-endian
+    AV_PIX_FMT_YUVA422P12LE ///< planar YUV 4:2:2,24bpp, (1 Cr & Cb sample per 2x1 Y samples), 12b alpha, little-endian
+    AV_PIX_FMT_YUVA444P12BE ///< planar YUV 4:4:4,36bpp, (1 Cr & Cb sample per 1x1 Y samples), 12b alpha, big-endian
+    AV_PIX_FMT_YUVA444P12LE ///< planar YUV 4:4:4,36bpp, (1 Cr & Cb sample per 1x1 Y samples), 12b alpha, little-endian
+
+    AV_PIX_FMT_NV24      ///< planar YUV 4:4:4, 24bpp, 1 plane for Y and 1 plane for the UV components, which are interleaved (first byte U and the following byte V)
+    AV_PIX_FMT_NV42      ///< as above, but U and V bytes are swapped
+
+    AV_PIX_FMT_NB         ///< number of pixel formats, DO NOT USE THIS if you want to link with shared libav* because the number of formats might differ between versions
+}
+
+AVColorPrimaries :: énum z32 {
+    AVCOL_PRI_RESERVED0   :: 0
+    AVCOL_PRI_BT709       :: 1  ///< also ITU-R BT1361 / IEC 61966-2-4 / SMPTE RP177 Annex B
+    AVCOL_PRI_UNSPECIFIED :: 2
+    AVCOL_PRI_RESERVED    :: 3
+    AVCOL_PRI_BT470M      :: 4  ///< also FCC Title 47 Code of Federal Regulations 73.682 (a)(20)
+
+    AVCOL_PRI_BT470BG     :: 5  ///< also ITU-R BT601-6 625 / ITU-R BT1358 625 / ITU-R BT1700 625 PAL & SECAM
+    AVCOL_PRI_SMPTE170M   :: 6  ///< also ITU-R BT601-6 525 / ITU-R BT1358 525 / ITU-R BT1700 NTSC
+    AVCOL_PRI_SMPTE240M   :: 7  ///< functionally identical to above
+    AVCOL_PRI_FILM        :: 8  ///< colour filters using Illuminant C
+    AVCOL_PRI_BT2020      :: 9  ///< ITU-R BT2020
+    AVCOL_PRI_SMPTE428    :: 10 ///< SMPTE ST 428-1 (CIE 1931 XYZ)
+    AVCOL_PRI_SMPTEST428_1 :: AVCOL_PRI_SMPTE428
+    AVCOL_PRI_SMPTE431    :: 11 ///< SMPTE ST 431-2 (2011) / DCI P3
+    AVCOL_PRI_SMPTE432    :: 12 ///< SMPTE ST 432-1 (2010) / P3 D65 / Display P3
+    AVCOL_PRI_JEDEC_P22   :: 22 ///< JEDEC P22 phosphors
+    AVCOL_PRI_NB                ///< Not part of ABI
+}
+
+AVColorTransferCharacteristic :: énum z32 {
+    AVCOL_TRC_RESERVED0    :: 0
+    AVCOL_TRC_BT709        :: 1  ///< also ITU-R BT1361
+    AVCOL_TRC_UNSPECIFIED  :: 2
+    AVCOL_TRC_RESERVED     :: 3
+    AVCOL_TRC_GAMMA22      :: 4  ///< also ITU-R BT470M / ITU-R BT1700 625 PAL & SECAM
+    AVCOL_TRC_GAMMA28      :: 5  ///< also ITU-R BT470BG
+    AVCOL_TRC_SMPTE170M    :: 6  ///< also ITU-R BT601-6 525 or 625 / ITU-R BT1358 525 or 625 / ITU-R BT1700 NTSC
+    AVCOL_TRC_SMPTE240M    :: 7
+    AVCOL_TRC_LINEAR       :: 8  ///< "Linear transfer characteristics"
+    AVCOL_TRC_LOG          :: 9  ///< "Logarithmic transfer characteristic (100:1 range)"
+    AVCOL_TRC_LOG_SQRT     :: 10 ///< "Logarithmic transfer characteristic (100 * Sqrt(10) : 1 range)"
+    AVCOL_TRC_IEC61966_2_4 :: 11 ///< IEC 61966-2-4
+    AVCOL_TRC_BT1361_ECG   :: 12 ///< ITU-R BT1361 Extended Colour Gamut
+    AVCOL_TRC_IEC61966_2_1 :: 13 ///< IEC 61966-2-1 (sRGB or sYCC)
+    AVCOL_TRC_BT2020_10    :: 14 ///< ITU-R BT2020 for 10-bit system
+    AVCOL_TRC_BT2020_12    :: 15 ///< ITU-R BT2020 for 12-bit system
+    AVCOL_TRC_SMPTE2084    :: 16 ///< SMPTE ST 2084 for 10-, 12-, 14- and 16-bit systems
+    AVCOL_TRC_SMPTEST2084  :: AVCOL_TRC_SMPTE2084
+    AVCOL_TRC_SMPTE428     :: 17 ///< SMPTE ST 428-1
+    AVCOL_TRC_SMPTEST428_1 :: AVCOL_TRC_SMPTE428
+    AVCOL_TRC_ARIB_STD_B67 :: 18 ///< ARIB STD-B67, known as "Hybrid log-gamma"
+    AVCOL_TRC_NB                 ///< Not part of ABI
+}
+
+AVColorSpace :: énum z32 {
+    AVCOL_SPC_RGB         :: 0  ///< order of coefficients is actually GBR, also IEC 61966-2-1 (sRGB)
+    AVCOL_SPC_BT709       :: 1  ///< also ITU-R BT1361 / IEC 61966-2-4 xvYCC709 / SMPTE RP177 Annex B
+    AVCOL_SPC_UNSPECIFIED :: 2
+    AVCOL_SPC_RESERVED    :: 3
+    AVCOL_SPC_FCC         :: 4  ///< FCC Title 47 Code of Federal Regulations 73.682 (a)(20)
+    AVCOL_SPC_BT470BG     :: 5  ///< also ITU-R BT601-6 625 / ITU-R BT1358 625 / ITU-R BT1700 625 PAL & SECAM / IEC 61966-2-4 xvYCC601
+    AVCOL_SPC_SMPTE170M   :: 6  ///< also ITU-R BT601-6 525 / ITU-R BT1358 525 / ITU-R BT1700 NTSC
+    AVCOL_SPC_SMPTE240M   :: 7  ///< functionally identical to above
+    AVCOL_SPC_YCGCO       :: 8  ///< Used by Dirac / VC-2 and H.264 FRext, see ITU-T SG16
+    AVCOL_SPC_YCOCG       :: AVCOL_SPC_YCGCO
+    AVCOL_SPC_BT2020_NCL  :: 9  ///< ITU-R BT2020 non-constant luminance system
+    AVCOL_SPC_BT2020_CL   :: 10 ///< ITU-R BT2020 constant luminance system
+    AVCOL_SPC_SMPTE2085   :: 11 ///< SMPTE 2085, Y'D'zD'x
+    AVCOL_SPC_CHROMA_DERIVED_NCL :: 12 ///< Chromaticity-derived non-constant luminance system
+    AVCOL_SPC_CHROMA_DERIVED_CL :: 13 ///< Chromaticity-derived constant luminance system
+    AVCOL_SPC_ICTCP       :: 14 ///< ITU-R BT.2100-0, ICtCp
+    AVCOL_SPC_NB                ///< Not part of ABI
+}
+
+AVColorRange :: énum z32 {
+    AVCOL_RANGE_UNSPECIFIED :: 0
+    AVCOL_RANGE_MPEG        :: 1 ///< the normal 219*2^(n-8) "MPEG" YUV ranges
+    AVCOL_RANGE_JPEG        :: 2 ///< the normal     2^n-1   "JPEG" YUV ranges
+    AVCOL_RANGE_NB               ///< Not part of ABI
+}
+
+AVChromaLocation :: énum z32 {
+    AVCHROMA_LOC_UNSPECIFIED :: 0
+    AVCHROMA_LOC_LEFT        :: 1 ///< MPEG-2/4 4:2:0, H.264 default for 4:2:0
+    AVCHROMA_LOC_CENTER      :: 2 ///< MPEG-1 4:2:0, JPEG 4:2:0, H.263 4:2:0
+    AVCHROMA_LOC_TOPLEFT     :: 3 ///< ITU-R 601, SMPTE 274M 296M S314M(DV 4:1:1), mpeg2 4:2:2
+    AVCHROMA_LOC_TOP         :: 4
+    AVCHROMA_LOC_BOTTOMLEFT  :: 5
+    AVCHROMA_LOC_BOTTOM      :: 6
+    AVCHROMA_LOC_NB               ///< Not part of ABI
+}
+
+AVFieldOrder :: énum z32 {
+    AV_FIELD_UNKNOWN
+    AV_FIELD_PROGRESSIVE
+    AV_FIELD_TT          //< Top coded_first, top displayed first
+    AV_FIELD_BB          //< Bottom coded first, bottom displayed first
+    AV_FIELD_TB          //< Top coded first, bottom displayed first
+    AV_FIELD_BT          //< Bottom coded first, top displayed first
+}
+
+AVSampleFormat :: énum z32 {
+    AV_SAMPLE_FMT_NONE :: -1
+    AV_SAMPLE_FMT_U8          ///< unsigned 8 bits
+    AV_SAMPLE_FMT_S16         ///< signed 16 bits
+    AV_SAMPLE_FMT_S32         ///< signed 32 bits
+    AV_SAMPLE_FMT_FLT         ///< float
+    AV_SAMPLE_FMT_DBL         ///< double
+
+    AV_SAMPLE_FMT_U8P         ///< unsigned 8 bits, planar
+    AV_SAMPLE_FMT_S16P        ///< signed 16 bits, planar
+    AV_SAMPLE_FMT_S32P        ///< signed 32 bits, planar
+    AV_SAMPLE_FMT_FLTP        ///< float, planar
+    AV_SAMPLE_FMT_DBLP        ///< double, planar
+    AV_SAMPLE_FMT_S64         ///< signed 64 bits
+    AV_SAMPLE_FMT_S64P        ///< signed 64 bits, planar
+
+    AV_SAMPLE_FMT_NB           ///< Number of sample formats. DO NOT USE if linking dynamically
+}
+
+AVAudioServiceType :: énum z32 {
+    AV_AUDIO_SERVICE_TYPE_MAIN              :: 0
+    AV_AUDIO_SERVICE_TYPE_EFFECTS           :: 1
+    AV_AUDIO_SERVICE_TYPE_VISUALLY_IMPAIRED :: 2
+    AV_AUDIO_SERVICE_TYPE_HEARING_IMPAIRED  :: 3
+    AV_AUDIO_SERVICE_TYPE_DIALOGUE          :: 4
+    AV_AUDIO_SERVICE_TYPE_COMMENTARY        :: 5
+    AV_AUDIO_SERVICE_TYPE_EMERGENCY         :: 6
+    AV_AUDIO_SERVICE_TYPE_VOICE_OVER        :: 7
+    AV_AUDIO_SERVICE_TYPE_KARAOKE           :: 8
+    AV_AUDIO_SERVICE_TYPE_NB                    ///< Not part of ABI
+}
+
+RcOverride :: struct {
+    start_frame: z32
+    end_frame: z32
+    qscale: z32 // If this is 0 then quality_factor will be used instead.
+    quality_factor: r32
+}
+
+AVCodecContext :: struct #externe {
+    av_class: *AVClass
+    log_level_offset: z32
+
+    codec_type: AVMediaType /* see AVMEDIA_TYPE_xxx */
+    codec: *AVCodec
+    codec_id: AVCodecID /* see AV_CODEC_ID_xxx */
+
+    codec_tag: n32
+
+    priv_data: *rien
+
+    internal: *AVCodecInternal
+
+    opaque: *rien
+
+    bit_rate: z64
+
+    bit_rate_tolerance: z32
+
+    global_quality: z32
+
+    compression_level: z32
+    FF_COMPRESSION_DEFAULT ::-1
+
+    flags: z32
+
+    flags2: z32
+
+    extradata: *n8
+    extradata_size: z32
+
+    time_base: AVRational
+
+    ticks_per_frame: z32
+
+    delay: z32
+
+    width: z32
+    height: z32
+
+    coded_width: z32
+    coded_height: z32
+
+    gop_size: z32
+
+    pix_fmt: AVPixelFormat
+
+    // void (*draw_horiz_band)(struct AVCodecContext *s, AVFrame *src, int offset[AV_NUM_DATA_POINTERS], int y, int type, int height);
+    draw_horiz_band: adresse_fonction
+
+    // AVPixelFormat (*get_format)(struct AVCodecContext *s, const enum AVPixelFormat * fmt);
+    get_format: adresse_fonction
+
+    max_b_frames: z32
+
+    b_quant_factor: r32
+
+    // #if FF_API_PRIVATE_OPT
+    b_frame_strategy: z32
+    // #endif
+
+    b_quant_offset: r32
+
+    has_b_frames: z32
+
+    // #if FF_API_PRIVATE_OPT
+    mpeg_quant: z32
+    // #endif
+
+    i_quant_factor: r32
+
+    i_quant_offset: r32
+
+    lumi_masking: r32
+
+    temporal_cplx_masking: r32
+
+    spatial_cplx_masking: r32
+
+    p_masking: r32
+
+    dark_masking: r32
+
+    slice_count: z32
+
+    // #if FF_API_PRIVATE_OPT
+    prediction_method: z32
+    FF_PRED_LEFT ::  0
+    FF_PRED_PLANE :: 1
+    FF_PRED_MEDIAN ::2
+    // #endif
+
+    slice_offset: *z32
+
+    sample_aspect_ratio: AVRational
+
+    me_cmp: z32
+    me_sub_cmp: z32
+    mb_cmp: z32
+    ildct_cmp: z32
+    FF_CMP_SAD ::         0
+    FF_CMP_SSE ::         1
+    FF_CMP_SATD ::        2
+    FF_CMP_DCT ::         3
+    FF_CMP_PSNR ::        4
+    FF_CMP_BIT ::         5
+    FF_CMP_RD ::          6
+    FF_CMP_ZERO ::        7
+    FF_CMP_VSAD ::        8
+    FF_CMP_VSSE ::        9
+    FF_CMP_NSSE ::        10
+    FF_CMP_W53 ::         11
+    FF_CMP_W97 ::         12
+    FF_CMP_DCTMAX ::      13
+    FF_CMP_DCT264 ::      14
+    FF_CMP_MEDIAN_SAD ::  15
+    FF_CMP_CHROMA ::      256
+
+    dia_size: z32
+
+    last_predictor_count: z32
+
+    // #if FF_API_PRIVATE_OPT
+    pre_me: z32
+    // #endif
+
+    me_pre_cmp: z32
+
+    pre_dia_size: z32
+
+    me_subpel_quality: z32
+
+    me_range: z32
+
+    slice_flags: z32
+    SLICE_FLAG_CODED_ORDER ::   0x0001 ///< draw_horiz_band() is called in coded order instead of display
+    SLICE_FLAG_ALLOW_FIELD ::   0x0002 ///< allow draw_horiz_band() with field slices (MPEG-2 field pics)
+    SLICE_FLAG_ALLOW_PLANE ::   0x0004 ///< allow draw_horiz_band() with 1 component at a time (SVQ1)
+
+    mb_decision: z32
+    FF_MB_DECISION_SIMPLE ::0        ///< uses mb_cmp
+    FF_MB_DECISION_BITS ::  1        ///< chooses the one which needs the fewest bits
+    FF_MB_DECISION_RD ::    2        ///< rate distortion
+
+    intra_matrix: *n16
+
+    inter_matrix: *n16
+
+    // #if FF_API_PRIVATE_OPT
+    scenechange_threshold: z32
+
+    noise_reduction: z32
+    // #endif
+
+    intra_dc_precision: z32
+
+    skip_top: z32
+
+    skip_bottom: z32
+
+    mb_lmin: z32
+
+    mb_lmax: z32
+
+    // #if FF_API_PRIVATE_OPT
+    me_penalty_compensation: z32
+    // #endif
+
+    bidir_refine: z32
+
+    // #if FF_API_PRIVATE_OPT
+    brd_scale: z32
+    // #endif
+
+    keyint_min: z32
+
+    refs: z32
+
+    // #if FF_API_PRIVATE_OPT
+    chromaoffset: z32
+    // #endif
+
+    mv0_threshold: z32
+
+    // #if FF_API_PRIVATE_OPT
+    b_sensitivity: z32
+    // #endif
+
+    color_primaries: AVColorPrimaries
+
+    color_trc: AVColorTransferCharacteristic
+
+    colorspace: AVColorSpace
+
+    color_range: AVColorRange
+
+    chroma_sample_location: AVChromaLocation
+
+    slices: z32
+
+    field_order: AVFieldOrder
+
+    sample_rate: z32 ///< samples per second
+    channels: z32    ///< number of audio channels
+
+    sample_fmt: AVSampleFormat  ///< sample format
+
+    frame_size: z32
+
+    frame_number: z32
+
+    block_align: z32
+
+    cutoff: z32
+
+    channel_layout: n64
+
+    request_channel_layout: n64
+
+    audio_service_type: AVAudioServiceType
+
+    request_sample_fmt: AVSampleFormat
+
+    // int (*get_buffer2)(struct AVCodecContext *s, AVFrame *frame, int flags);
+    get_buffer2: adresse_fonction
+
+    refcounted_frames: z32
+
+    qcompress: r32  ///< amount of qscale change between easy & hard scenes (0.0-1.0)
+    qblur: r32      ///< amount of qscale smoothing over time (0.0-1.0)
+
+    qmin: z32
+
+    qmax: z32
+
+    max_qdiff: z32
+
+    rc_buffer_size: z32
+
+    rc_override_count: z32
+    rc_override: *RcOverride
+
+    rc_max_rate: z64
+
+    rc_min_rate: z64
+
+    rc_max_available_vbv_use: r32
+
+    rc_min_vbv_overflow_use: r32
+
+    rc_initial_buffer_occupancy: z32
+
+    // #if FF_API_CODER_TYPE
+    FF_CODER_TYPE_VLC ::      0
+    FF_CODER_TYPE_AC ::       1
+    FF_CODER_TYPE_RAW ::      2
+    FF_CODER_TYPE_RLE ::      3
+    coder_type: z32
+    // #endif /* FF_API_CODER_TYPE */
+
+    // #if FF_API_PRIVATE_OPT
+    context_model: z32
+    // #endif
+
+    // #if FF_API_PRIVATE_OPT
+    frame_skip_threshold: z32
+
+    frame_skip_factor: z32
+
+    frame_skip_exp: z32
+
+    frame_skip_cmp: z32
+    // #endif /* FF_API_PRIVATE_OPT */
+
+    trellis: z32
+
+    // #if FF_API_PRIVATE_OPT
+    min_prediction_order: z32
+
+    max_prediction_order: z32
+
+    timecode_frame_start: z64
+    // #endif
+
+    // #if FF_API_RTP_CALLBACK
+    // void (*rtp_callback)(struct AVCodecContext *avctx, void *data, int size, int mb_nb);
+    rtp_callback: adresse_fonction
+    // #endif
+
+    // #if FF_API_PRIVATE_OPT
+    rtp_payload_size: z32   /* The size of the RTP payload: the coder will  */
+                            /* do its best to deliver a chunk with size     */
+                            /* below rtp_payload_size, the chunk will start */
+                            /* with a start code on some codecs like H.263. */
+                            /* This doesn't take account of any particular  */
+                            /* headers inside the transmitted RTP payload.  */
+    // #endif
+
+    // #if FF_API_STAT_BITS
+    mv_bits: z32
+    header_bits: z32
+    i_tex_bits: z32
+    p_tex_bits: z32
+    i_count: z32
+    p_count: z32
+    skip_count: z32
+    misc_bits: z32
+
+    frame_bits: z32
+    // #endif
+
+    stats_out: ChaineC
+
+    stats_in: ChaineC
+
+    workaround_bugs: z32
+    FF_BUG_AUTODETECT ::      1  ///< autodetection
+    FF_BUG_XVID_ILACE ::      4
+    FF_BUG_UMP4 ::            8
+    FF_BUG_NO_PADDING ::      16
+    FF_BUG_AMV ::             32
+    FF_BUG_QPEL_CHROMA ::     64
+    FF_BUG_STD_QPEL ::        128
+    FF_BUG_QPEL_CHROMA2 ::    256
+    FF_BUG_DIRECT_BLOCKSIZE ::512
+    FF_BUG_EDGE ::            1024
+    FF_BUG_HPEL_CHROMA ::     2048
+    FF_BUG_DC_CLIP ::         4096
+    FF_BUG_MS ::              8192 ///< Work around various bugs in Microsoft's broken decoders.
+    FF_BUG_TRUNCATED ::      16384
+    FF_BUG_IEDGE ::          32768
+
+    strict_std_compliance: z32
+    FF_COMPLIANCE_VERY_STRICT ::  2 ///< Strictly conform to an older more strict version of the spec or reference software.
+    FF_COMPLIANCE_STRICT ::       1 ///< Strictly conform to all the things in the spec no matter what consequences.
+    FF_COMPLIANCE_NORMAL ::       0
+    FF_COMPLIANCE_UNOFFICIAL ::  -1 ///< Allow unofficial extensions
+    FF_COMPLIANCE_EXPERIMENTAL ::-2 ///< Allow nonstandardized experimental things.
+
+    error_concealment: z32
+    FF_EC_GUESS_MVS ::  1
+    FF_EC_DEBLOCK ::    2
+    FF_EC_FAVOR_INTER ::256
+
+    debug: z32
+    FF_DEBUG_PICT_INFO ::  1
+    FF_DEBUG_RC ::         2
+    FF_DEBUG_BITSTREAM ::  4
+    FF_DEBUG_MB_TYPE ::    8
+    FF_DEBUG_QP ::         16
+    // #if FF_API_DEBUG_MV
+    FF_DEBUG_MV ::         32
+    // #endif
+    FF_DEBUG_DCT_COEFF ::  0x00000040
+    FF_DEBUG_SKIP ::       0x00000080
+    FF_DEBUG_STARTCODE ::  0x00000100
+    FF_DEBUG_ER ::         0x00000400
+    FF_DEBUG_MMCO ::       0x00000800
+    FF_DEBUG_BUGS ::       0x00001000
+    // #if FF_API_DEBUG_MV
+    FF_DEBUG_VIS_QP ::     0x00002000
+    FF_DEBUG_VIS_MB_TYPE ::0x00004000
+    // #endif
+    FF_DEBUG_BUFFERS ::    0x00008000
+    FF_DEBUG_THREADS ::    0x00010000
+    FF_DEBUG_GREEN_MD ::   0x00800000
+    FF_DEBUG_NOMC ::       0x01000000
+
+    // #if FF_API_DEBUG_MV
+    debug_mv: z32
+    FF_DEBUG_VIS_MV_P_FOR :: 0x00000001 // visualize forward predicted MVs of P-frames
+    FF_DEBUG_VIS_MV_B_FOR :: 0x00000002 // visualize forward predicted MVs of B-frames
+    FF_DEBUG_VIS_MV_B_BACK ::0x00000004 // visualize backward predicted MVs of B-frames
+    // #endif
+
+    err_recognition: z32
+
+    AV_EF_CRCCHECK :: (1<<0)
+    AV_EF_BITSTREAM ::(1<<1)          ///< detect bitstream specification deviations
+    AV_EF_BUFFER ::   (1<<2)          ///< detect improper bitstream length
+    AV_EF_EXPLODE ::  (1<<3)          ///< abort decoding on minor error detection
+
+    AV_EF_IGNORE_ERR ::(1<<15)        ///< ignore errors and continue
+    AV_EF_CAREFUL ::   (1<<16)        ///< consider things that violate the spec, are fast to calculate and have not been seen in the wild as errors
+    AV_EF_COMPLIANT :: (1<<17)        ///< consider all spec non compliances as errors
+    AV_EF_AGGRESSIVE ::(1<<18)        ///< consider things that a sane encoder should not do as an error
+
+    reordered_opaque: z64
+
+    hwaccel: *AVHWAccel
+
+    hwaccel_context: *rien
+
+    error: [AV_NUM_DATA_POINTERS]n64
+
+    dct_algo: z32
+    FF_DCT_AUTO ::   0
+    FF_DCT_FASTINT ::1
+    FF_DCT_INT ::    2
+    FF_DCT_MMX ::    3
+    FF_DCT_ALTIVEC ::5
+    FF_DCT_FAAN ::   6
+
+    idct_algo: z32
+    FF_IDCT_AUTO ::         0
+    FF_IDCT_INT ::          1
+    FF_IDCT_SIMPLE ::       2
+    FF_IDCT_SIMPLEMMX ::    3
+    FF_IDCT_ARM ::          7
+    FF_IDCT_ALTIVEC ::      8
+    FF_IDCT_SIMPLEARM ::    10
+    FF_IDCT_XVID ::         14
+    FF_IDCT_SIMPLEARMV5TE ::16
+    FF_IDCT_SIMPLEARMV6 ::  17
+    FF_IDCT_FAAN ::         20
+    FF_IDCT_SIMPLENEON ::   22
+    FF_IDCT_NONE ::         24 /* Used by XvMC to extract IDCT coefficients with FF_IDCT_PERM_NONE */
+    FF_IDCT_SIMPLEAUTO ::   128
+
+    bits_per_coded_sample: z32
+
+    bits_per_raw_sample: z32
+
+    // #if FF_API_LOWRES
+    lowres: z32
+    // #endif
+
+    // #if FF_API_CODED_FRAME
+    coded_frame: *AVFrame
+    // #endif
+
+    thread_count: z32
+
+    thread_type: z32
+    FF_THREAD_FRAME ::  1 ///< Decode more than one frame at once
+    FF_THREAD_SLICE ::  2 ///< Decode more than one part of a single frame at once
+
+    active_thread_type: z32
+
+    thread_safe_callbacks: z32
+
+    // int (*execute)(struct AVCodecContext *c, int (*func)(struct AVCodecContext *c2, void *arg), void *arg2, int *ret, int count, int size);
+    execute: adresse_fonction
+
+    // int (*execute2)(struct AVCodecContext *c, int (*func)(struct AVCodecContext *c2, void *arg, int jobnr, int threadnr), void *arg2, int *ret, int count);
+    execute2: adresse_fonction
+
+    nsse_weight: z32
+
+    profile: z32
+    FF_PROFILE_UNKNOWN ::-99
+    FF_PROFILE_RESERVED ::-100
+
+    FF_PROFILE_AAC_MAIN ::0
+    FF_PROFILE_AAC_LOW :: 1
+    FF_PROFILE_AAC_SSR :: 2
+    FF_PROFILE_AAC_LTP :: 3
+    FF_PROFILE_AAC_HE ::  4
+    FF_PROFILE_AAC_HE_V2 ::28
+    FF_PROFILE_AAC_LD ::  22
+    FF_PROFILE_AAC_ELD :: 38
+    FF_PROFILE_MPEG2_AAC_LOW ::128
+    FF_PROFILE_MPEG2_AAC_HE :: 131
+
+    FF_PROFILE_DNXHD ::        0
+    FF_PROFILE_DNXHR_LB ::     1
+    FF_PROFILE_DNXHR_SQ ::     2
+    FF_PROFILE_DNXHR_HQ ::     3
+    FF_PROFILE_DNXHR_HQX ::    4
+    FF_PROFILE_DNXHR_444 ::    5
+
+    FF_PROFILE_DTS ::        20
+    FF_PROFILE_DTS_ES ::     30
+    FF_PROFILE_DTS_96_24 ::  40
+    FF_PROFILE_DTS_HD_HRA :: 50
+    FF_PROFILE_DTS_HD_MA ::  60
+    FF_PROFILE_DTS_EXPRESS ::70
+
+    FF_PROFILE_MPEG2_422 ::   0
+    FF_PROFILE_MPEG2_HIGH ::  1
+    FF_PROFILE_MPEG2_SS ::    2
+    FF_PROFILE_MPEG2_SNR_SCALABLE :: 3
+    FF_PROFILE_MPEG2_MAIN ::  4
+    FF_PROFILE_MPEG2_SIMPLE ::5
+
+    FF_PROFILE_H264_CONSTRAINED :: (1<<9)  // 8+1; constraint_set1_flag
+    FF_PROFILE_H264_INTRA ::       (1<<11) // 8+3; constraint_set3_flag
+
+    FF_PROFILE_H264_BASELINE ::            66
+    FF_PROFILE_H264_CONSTRAINED_BASELINE ::(66|FF_PROFILE_H264_CONSTRAINED)
+    FF_PROFILE_H264_MAIN ::                77
+    FF_PROFILE_H264_EXTENDED ::            88
+    FF_PROFILE_H264_HIGH ::                100
+    FF_PROFILE_H264_HIGH_10 ::             110
+    FF_PROFILE_H264_HIGH_10_INTRA ::       (110|FF_PROFILE_H264_INTRA)
+    FF_PROFILE_H264_MULTIVIEW_HIGH ::      118
+    FF_PROFILE_H264_HIGH_422 ::            122
+    FF_PROFILE_H264_HIGH_422_INTRA ::      (122|FF_PROFILE_H264_INTRA)
+    FF_PROFILE_H264_STEREO_HIGH ::         128
+    FF_PROFILE_H264_HIGH_444 ::            144
+    FF_PROFILE_H264_HIGH_444_PREDICTIVE :: 244
+    FF_PROFILE_H264_HIGH_444_INTRA ::      (244|FF_PROFILE_H264_INTRA)
+    FF_PROFILE_H264_CAVLC_444 ::           44
+
+    FF_PROFILE_VC1_SIMPLE ::  0
+    FF_PROFILE_VC1_MAIN ::    1
+    FF_PROFILE_VC1_COMPLEX :: 2
+    FF_PROFILE_VC1_ADVANCED ::3
+
+    FF_PROFILE_MPEG4_SIMPLE ::                    0
+    FF_PROFILE_MPEG4_SIMPLE_SCALABLE ::           1
+    FF_PROFILE_MPEG4_CORE ::                      2
+    FF_PROFILE_MPEG4_MAIN ::                      3
+    FF_PROFILE_MPEG4_N_BIT ::                     4
+    FF_PROFILE_MPEG4_SCALABLE_TEXTURE ::          5
+    FF_PROFILE_MPEG4_SIMPLE_FACE_ANIMATION ::     6
+    FF_PROFILE_MPEG4_BASIC_ANIMATED_TEXTURE ::    7
+    FF_PROFILE_MPEG4_HYBRID ::                    8
+    FF_PROFILE_MPEG4_ADVANCED_REAL_TIME ::        9
+    FF_PROFILE_MPEG4_CORE_SCALABLE ::            10
+    FF_PROFILE_MPEG4_ADVANCED_CODING ::          11
+    FF_PROFILE_MPEG4_ADVANCED_CORE ::            12
+    FF_PROFILE_MPEG4_ADVANCED_SCALABLE_TEXTURE ::13
+    FF_PROFILE_MPEG4_SIMPLE_STUDIO ::            14
+    FF_PROFILE_MPEG4_ADVANCED_SIMPLE ::          15
+
+    FF_PROFILE_JPEG2000_CSTREAM_RESTRICTION_0 ::  1
+    FF_PROFILE_JPEG2000_CSTREAM_RESTRICTION_1 ::  2
+    FF_PROFILE_JPEG2000_CSTREAM_NO_RESTRICTION :: 32768
+    FF_PROFILE_JPEG2000_DCINEMA_2K ::             3
+    FF_PROFILE_JPEG2000_DCINEMA_4K ::             4
+
+    FF_PROFILE_VP9_0 ::                           0
+    FF_PROFILE_VP9_1 ::                           1
+    FF_PROFILE_VP9_2 ::                           2
+    FF_PROFILE_VP9_3 ::                           3
+
+    FF_PROFILE_HEVC_MAIN ::                       1
+    FF_PROFILE_HEVC_MAIN_10 ::                    2
+    FF_PROFILE_HEVC_MAIN_STILL_PICTURE ::         3
+    FF_PROFILE_HEVC_REXT ::                       4
+
+    FF_PROFILE_AV1_MAIN ::                        0
+    FF_PROFILE_AV1_HIGH ::                        1
+    FF_PROFILE_AV1_PROFESSIONAL ::                2
+
+    FF_PROFILE_MJPEG_HUFFMAN_BASELINE_DCT ::           0xc0
+    FF_PROFILE_MJPEG_HUFFMAN_EXTENDED_SEQUENTIAL_DCT ::0xc1
+    FF_PROFILE_MJPEG_HUFFMAN_PROGRESSIVE_DCT ::        0xc2
+    FF_PROFILE_MJPEG_HUFFMAN_LOSSLESS ::               0xc3
+    FF_PROFILE_MJPEG_JPEG_LS ::                        0xf7
+
+    FF_PROFILE_SBC_MSBC ::                        1
+
+    FF_PROFILE_PRORES_PROXY ::    0
+    FF_PROFILE_PRORES_LT ::       1
+    FF_PROFILE_PRORES_STANDARD :: 2
+    FF_PROFILE_PRORES_HQ ::       3
+    FF_PROFILE_PRORES_4444 ::     4
+    FF_PROFILE_PRORES_XQ ::       5
+
+    FF_PROFILE_ARIB_PROFILE_A ::0
+    FF_PROFILE_ARIB_PROFILE_C ::1
+
+    level: z32
+    FF_LEVEL_UNKNOWN ::-99
+
+    skip_loop_filter: AVDiscard
+
+    skip_idct: AVDiscard
+
+    skip_frame: AVDiscard
+
+    subtitle_header: *n8
+    subtitle_header_size: z32
+
+    // #if FF_API_VBV_DELAY
+    vbv_delay: n64
+    // #endif
+
+    // #if FF_API_SIDEDATA_ONLY_PKT
+    side_data_only_packets: z32
+    // #endif
+
+    initial_padding: z32
+
+    framerate: AVRational
+
+    sw_pix_fmt: AVPixelFormat
+
+    pkt_timebase: AVRational
+
+    codec_descriptor: *AVCodecDescriptor
+
+    // #if !FF_API_LOWRES
+    // lowres: z32
+    // #endif
+
+    pts_correction_num_faulty_pts: z64 /// Number of incorrect PTS values so far
+    pts_correction_num_faulty_dts: z64 /// Number of incorrect DTS values so far
+    pts_correction_last_pts: z64       /// PTS of the last frame
+    pts_correction_last_dts: z64       /// DTS of the last frame
+
+    sub_charenc: ChaineC
+
+    sub_charenc_mode: z32
+    FF_SUB_CHARENC_MODE_DO_NOTHING :: -1  ///< do nothing (demuxer outputs a stream supposed to be already in UTF-8, or the codec is bitmap for instance)
+    FF_SUB_CHARENC_MODE_AUTOMATIC ::   0  ///< libavcodec will select the mode itself
+    FF_SUB_CHARENC_MODE_PRE_DECODER :: 1  ///< the AVPacket data needs to be recoded to UTF-8 before being fed to the decoder, requires iconv
+    FF_SUB_CHARENC_MODE_IGNORE ::      2  ///< neither convert the subtitles, nor check them for valid UTF-8
+
+    skip_alpha: z32
+
+    seek_preroll: z32
+
+    // #if !FF_API_DEBUG_MV
+    // debug_mv: z32
+    // FF_DEBUG_VIS_MV_P_FOR :: 0x00000001 //visualize forward predicted MVs of P frames
+    // FF_DEBUG_VIS_MV_B_FOR :: 0x00000002 //visualize forward predicted MVs of B frames
+    // FF_DEBUG_VIS_MV_B_BACK ::0x00000004 //visualize backward predicted MVs of B frames
+    // #endif
+
+    chroma_intra_matrix: *n16
+
+    dump_separator: *n8
+
+    codec_whitelist: ChaineC
+
+    properties: n32
+    FF_CODEC_PROPERTY_LOSSLESS ::       0x00000001
+    FF_CODEC_PROPERTY_CLOSED_CAPTIONS ::0x00000002
+
+    coded_side_data: *AVPacketSideData
+    nb_coded_side_data: z32
+
+    hw_frames_ctx: *AVBufferRef
+
+    sub_text_format: z32
+    FF_SUB_TEXT_FMT_ASS ::             0
+    // #if FF_API_ASS_TIMING
+    FF_SUB_TEXT_FMT_ASS_WITH_TIMINGS ::1
+    // #endif
+
+    trailing_padding: z32
+
+    max_pixels: z64
+
+    hw_device_ctx: *AVBufferRef
+
+    hwaccel_flags: z32
+
+    apply_cropping: z32
+
+    extra_hw_frames: z32
+
+    discard_damaged_percentage: z32
+}
+
+AVRational :: struct {
+    num: z32 ///< Numerator
+    den: z32 ///< Denominator
+}
+
+AVDiscard :: énum z32 {
+    /* We leave some space between them for extensions (drop some
+     * keyframes for intra-only or drop just some bidir frames). */
+    AVDISCARD_NONE    :: -16 ///< discard nothing
+    AVDISCARD_DEFAULT ::  0 ///< discard useless packets like 0 size packets in avi
+    AVDISCARD_NONREF  ::  8 ///< discard all non reference
+    AVDISCARD_BIDIR   :: 16 ///< discard all bidirectional frames
+    AVDISCARD_NONINTRA:: 24 ///< discard all non intra frames
+    AVDISCARD_NONKEY  :: 32 ///< discard all frames except keyframes
+    AVDISCARD_ALL     :: 48 ///< discard all
+}
+
+AVBufferRef :: struct #externe;
+AVPacketSideData :: struct #externe;
+
+AVPacket :: struct {
+    buf: *AVBufferRef
+    pts: z64
+    dts: z64
+    data: *octet
+    size: z32
+    stream_index: z32
+    flags: z32
+    side_data: *AVPacketSideData
+    side_data_elems: z32
+
+    duration: z64
+
+    pos: z64                            ///< byte position in stream, -1 if unknown
+
+    // #if FF_API_CONVERGENCE_DURATION
+    convergence_duration: z64
+    // #endif
+}
+
+
+AVMediaType :: énum z32 {
+    AVMEDIA_TYPE_UNKNOWN :: -1  ///< Usually treated as AVMEDIA_TYPE_DATA
+    AVMEDIA_TYPE_VIDEO :: 0
+    AVMEDIA_TYPE_AUDIO :: 1
+    AVMEDIA_TYPE_DATA :: 2         ///< Opaque data information usually continuous
+    AVMEDIA_TYPE_SUBTITLE :: 3
+    AVMEDIA_TYPE_ATTACHMENT :: 4   ///< Opaque data information usually sparse
+    AVMEDIA_TYPE_NB :: 5
+}
+
+AVCodecParameters :: struct #externe {
+    codec_type: AVMediaType
+    codec_id: AVCodecID
+}
+
+AVStream :: struct #externe {
+    index: z32    /**< stream index in AVFormatContext */
+    id: z32
+
+    // #if FF_API_LAVF_AVCTX
+    codec: *AVCodecContext
+    // #endif
+
+    priv_data: *rien
+
+    time_base: AVRational
+
+    start_time: z64
+
+    duration: z64
+
+    nb_frames: z64                 ///< number of frames in this stream if known or 0
+
+    disposition: z32 /**< AV_DISPOSITION_* bit field */
+
+    discard: AVDiscard ///< Selects which packets can be discarded at will and do not need to be demuxed.
+
+    sample_aspect_ratio: AVRational
+
+    metadata: *AVDictionary
+
+    avg_frame_rate: AVRational
+
+    attached_pic: AVPacket
+
+    side_data: *AVPacketSideData
+    nb_side_data: z32
+
+    event_flags: z32
+    AVSTREAM_EVENT_FLAG_METADATA_UPDATED :: 0x0001 ///< The call resulted in updated metadata.
+
+    r_frame_rate: AVRational
+
+    // #if FF_API_LAVF_FFSERVER
+    recommended_encoder_configuration: ChaineC
+    // #endif
+
+    codecpar: *AVCodecParameters
+
+    // Des membres sensés être privés viennent après.
+}
+
+AVProgram :: struct #externe;
+AVChapter :: struct #externe;
+AVDictionary :: struct #externe;
+AVFormatInternal :: struct #externe;
+AVCodec :: struct #externe;
+
+AVCodecID :: énum n32 {
+    AV_CODEC_ID_NONE :: 0
+}
+
+AVIOInterruptCB :: adresse_fonction
+
+av_format_control_message :: adresse_fonction
+
+AVDurationEstimationMethod :: énum n32 {
+    XXX :: 0
+}
+
+AVFormatContext :: struct #externe {
+    av_class: *AVClass
+
+    iformat: *AVInputFormat
+    oformat: *AVOutputFormat
+
+    priv_data: *rien
+
+    pb: *AVIOContext
+
+    ctx_flags: z32
+
+    nb_streams: n32
+
+    streams: **AVStream
+
+    // #if FF_API_FORMAT_FILENAME
+    filename: [1024]z8
+    // #endif
+
+    url: ChaineC
+
+    start_time: z64
+
+    duration: z64
+
+    bit_rate: z64
+
+    packet_size: n32
+    max_delay: z32
+
+    flags: z32
+    AVFMT_FLAG_GENPTS      :: 0x0001 ///< Generate missing pts even if it requires parsing future frames.
+    AVFMT_FLAG_IGNIDX     ::  0x0002 ///< Ignore index.
+    AVFMT_FLAG_NONBLOCK   ::  0x0004 ///< Do not block when reading packets from input.
+    AVFMT_FLAG_IGNDTS     ::  0x0008 ///< Ignore DTS on frames that contain both DTS & PTS
+    AVFMT_FLAG_NOFILLIN   ::  0x0010 ///< Do not infer any values from other values, just return what is stored in the container
+    AVFMT_FLAG_NOPARSE    ::  0x0020 ///< Do not use AVParsers, you also must set AVFMT_FLAG_NOFILLIN as the fillin code works on frames and no parsing -> no frames. Also seeking to frames can not work if parsing to find frame boundaries has been disabled
+    AVFMT_FLAG_NOBUFFER   ::  0x0040 ///< Do not buffer frames when possible
+    AVFMT_FLAG_CUSTOM_IO  ::  0x0080 ///< The caller has supplied a custom AVIOContext, don't avio_close() it.
+    AVFMT_FLAG_DISCARD_CORRUPT :: 0x0100 ///< Discard frames marked corrupted
+    AVFMT_FLAG_FLUSH_PACKETS  ::  0x0200 ///< Flush the AVIOContext every packet.
+
+    AVFMT_FLAG_BITEXACT       ::  0x0400
+    AVFMT_FLAG_MP4A_LATM  ::  0x8000 ///< Deprecated, does nothing.
+    AVFMT_FLAG_SORT_DTS  ::  0x10000 ///< try to interleave outputted packets by dts (using this flag can slow demuxing down)
+    AVFMT_FLAG_PRIV_OPT  ::  0x20000 ///< Enable use of private options by delaying codec open (this could be made default once all code is converted)
+    AVFMT_FLAG_KEEP_SIDE_DATA :: 0x40000 ///< Deprecated, does nothing.
+    AVFMT_FLAG_FAST_SEEK ::  0x80000 ///< Enable fast, but inaccurate seeks for some formats
+    AVFMT_FLAG_SHORTEST  :: 0x100000 ///< Stop muxing when the shortest stream stops.
+    AVFMT_FLAG_AUTO_BSF ::  0x200000 ///< Add bitstream filters as requested by the muxer
+
+    probesize: z64
+
+    max_analyze_duration: z64
+
+    key: *n8
+    keylen: z32
+
+    nb_programs: n32
+    programs: **AVProgram
+
+    video_codec_id: AVCodecID
+
+    audio_codec_id: AVCodecID
+
+    subtitle_codec_id: AVCodecID
+
+    max_index_size: n32
+
+    max_picture_buffer: n32
+
+    nb_chapters: n32
+    chapters: **AVChapter
+
+    metadata: *AVDictionary
+
+    start_time_realtime: z64
+
+    fps_probe_size: z32
+
+    error_recognition: z32
+
+    interrupt_callback: AVIOInterruptCB
+
+    debug: z32
+    FF_FDEBUG_TS       :: 0x0001
+
+    max_interleave_delta: z64
+
+    strict_std_compliance: z32
+
+    event_flags: z32
+    AVFMT_EVENT_FLAG_METADATA_UPDATED :: 0x0001 ///< The call resulted in updated metadata.
+
+    max_ts_probe: z32
+
+    avoid_negative_ts: z32
+    AVFMT_AVOID_NEG_TS_AUTO            :: -1 ///< Enabled when required by target format
+    AVFMT_AVOID_NEG_TS_MAKE_NON_NEGATIVE :: 1 ///< Shift timestamps so they are non negative
+    AVFMT_AVOID_NEG_TS_MAKE_ZERO       ::  2 ///< Shift timestamps so that they start at 0
+
+    ts_id: z32
+
+    audio_preload: z32
+
+    max_chunk_duration: z32
+
+    max_chunk_size: z32
+
+    use_wallclock_as_timestamps: z32
+
+    avio_flags: z32
+
+    duration_estimation_method: AVDurationEstimationMethod
+
+    skip_initial_bytes: z64
+
+    correct_ts_overflow: n32
+
+    seek2any: z32
+
+    flush_packets: z32
+
+    probe_score: z32
+
+    format_probesize: z32
+
+    codec_whitelist: ChaineC
+
+    format_whitelist: ChaineC
+
+    internal: *AVFormatInternal
+
+    io_repositioned: z32
+
+    video_codec: *AVCodec
+
+    audio_codec: *AVCodec
+
+    subtitle_codec: *AVCodec
+
+    data_codec: *AVCodec
+
+    metadata_header_padding: z32
+
+    opaque: *rien
+
+    control_message_cb: av_format_control_message
+
+    output_ts_offset: z64
+
+    dump_separator: ChaineC
+
+    data_codec_id: AVCodecID
+
+    // #if FF_API_OLD_OPEN_CALLBACKS
+    // int (*open_cb)(struct AVFormatContext *s, AVIOContext **p, const char *url, int flags, const AVIOInterruptCB *int_cb, AVDictionary **options);
+    open_cb: *rien
+    // #endif
+
+    protocol_whitelist: ChaineC
+
+    // int (*io_open)(struct AVFormatContext *s, AVIOContext **pb, const char *url,
+    //                int flags, AVDictionary **options);
+    io_open: *rien
+
+    // void (*io_close)(struct AVFormatContext *s, AVIOContext *pb);
+    io_close: *rien
+
+    protocol_blacklist: ChaineC
+
+    max_streams: z32
+
+    skip_estimate_duration_from_pts: z32
+}
+
+avformat_open_input :: fonc (format_ctx: **AVFormatContext, input_file: ChaineC, ptr: *rien, ptr2: *rien) -> z32 #externe libavformat
+avformat_close_input :: fonc (format_ctx: **AVFormatContext) -> rien #externe libavformat
+
+avformat_find_stream_info :: fonc (format_ctx: *AVFormatContext, ptr: *rien) -> z32 #externe libavformat
+
+avcodec_find_decoder :: fonc (codecid: AVCodecID) -> *AVCodec #externe libavcodec
+avcodec_alloc_context3 :: fonc (codec: *AVCodec) -> *AVCodecContext #externe libavcodec
+avcodec_free_context :: fonc (codec_ctx: **AVCodecContext) -> rien #externe libavcodec
+
+avcodec_parameters_to_context :: fonc (codec_ctx: *AVCodecContext, codecpar: *AVCodecParameters) -> rien #externe libavcodec
+
+avcodec_open2 :: fonc (codec_ctx: *AVCodecContext, codec: *AVCodec, ptr: *rien) -> z32 #externe libavcodec
+
+avcodec_send_packet :: fonc (codec_ctx: *AVCodecContext, packet: *AVPacket) -> z32 #externe libavcodec
+avcodec_receive_frame :: fonc (codec_ctx: *AVCodecContext, frame: *AVFrame) -> z32 #externe libavcodec
+
+AVPictureType :: énum z32 {
+    AV_PICTURE_TYPE_NONE :: 0 ///< Undefined
+    AV_PICTURE_TYPE_I     ///< Intra
+    AV_PICTURE_TYPE_P     ///< Predicted
+    AV_PICTURE_TYPE_B     ///< Bi-dir predicted
+    AV_PICTURE_TYPE_S     ///< S(GMC)-VOP MPEG-4
+    AV_PICTURE_TYPE_SI    ///< Switching Intra
+    AV_PICTURE_TYPE_SP    ///< Switching Predicted
+    AV_PICTURE_TYPE_BI    ///< BI type
+}
+
+AVFrameSideData :: struct #externe
+
+AVFrame :: struct #externe {
+    data: [AV_NUM_DATA_POINTERS]*n8
+
+    linesize: [AV_NUM_DATA_POINTERS]z32
+
+    extended_data: **n8
+
+    width: z32
+    height: z32
+
+    nb_samples: z32
+
+    format: z32
+
+    key_frame: z32
+
+    pict_type: AVPictureType
+
+    sample_aspect_ratio: AVRational
+
+    pts: z64
+
+    // #if FF_API_PKT_PTS
+    pkt_pts: z64
+    // #endif
+
+    pkt_dts: z64
+
+    coded_picture_number: z32
+    display_picture_number: z32
+
+    quality: z32
+
+    opaque: *rien
+
+    // #if FF_API_ERROR_FRAME
+    error: [AV_NUM_DATA_POINTERS]n64
+    // #endif
+
+    repeat_pict: z32
+
+    interlaced_frame: z32
+
+    top_field_first: z32
+
+    palette_has_changed: z32
+
+    reordered_opaque: z64
+
+    sample_rate: z32
+
+    channel_layout: n64
+
+    buf: [AV_NUM_DATA_POINTERS]*AVBufferRef
+
+    extended_buf: **AVBufferRef
+    nb_extended_buf: z32
+
+    side_data: **AVFrameSideData
+    nb_side_data: z32
+
+    AV_FRAME_FLAG_CORRUPT ::       (1 << 0)
+
+    AV_FRAME_FLAG_DISCARD ::   (1 << 2)
+
+    flags: z32
+
+    color_range: AVColorRange
+
+    color_primaries: AVColorPrimaries
+
+    color_trc: AVColorTransferCharacteristic
+
+    colorspace: AVColorSpace
+
+    chroma_location: AVChromaLocation
+
+    best_effort_timestamp: z64
+
+    pkt_pos: z64
+
+    pkt_duration: z64
+
+    metadata: *AVDictionary
+
+    decode_error_flags: z32
+    FF_DECODE_ERROR_INVALID_BITSTREAM ::   1
+    FF_DECODE_ERROR_MISSING_REFERENCE ::   2
+    FF_DECODE_ERROR_CONCEALMENT_ACTIVE ::  4
+    FF_DECODE_ERROR_DECODE_SLICES ::       8
+
+    channels: z32
+
+    pkt_size: z32
+
+    // #if FF_API_FRAME_QP
+    qscale_table: *n8
+
+    qstride: z32
+
+    qscale_type: z32
+
+    qp_table_buf: *AVBufferRef
+    // #endif
+
+    hw_frames_ctx: *AVBufferRef
+
+    opaque_ref: *AVBufferRef
+
+    crop_top: n64
+    crop_bottom: n64
+    crop_left: n64
+    crop_right: n64
+
+    private_ref: *AVBufferRef
+}
+
+av_frame_alloc :: fonc () -> *AVFrame #externe libavutil
+av_frame_free :: fonc (frame: **AVFrame) -> rien #externe libavutil
+
+av_init_packet :: fonc (packet: *AVPacket) -> rien #externe libavutil
+av_packet_unref :: fonc (frame: *AVPacket) -> rien #externe libavutil
+
+av_read_frame :: fonc (format_ctx: *AVFormatContext, packet: *AVPacket) -> z32 #externe libavutil
+
+av_image_get_buffer_size :: fonc (pixel_format: AVPixelFormat, width: z32, height: z32, depth: z32) -> z32 #externe libavutil
+
+av_malloc :: fonc (size: n64) -> *rien #externe libavutil
+
+av_image_fill_arrays :: fonc (data: **n8, linesize: *z32, buffer: *n8, pixel_format: AVPixelFormat, width: z32, height: z32, depth: z32) -> rien #externe libavutil
+
+// #define AVERROR(e) (-(e))
+AVERROR :: fonc (e: $T) -> T
+{
+    retourne -e
+}
+
+// #define AVERROR_EOF                FFERRTAG( 'E','O','F',' ')
+AVERROR_EOF :: -0x20464F45 // 541478725
+
+FFERRTAG :: fonc (a: z8, b: z8, c: z8, d: z8) -> z32
+{
+    retourne (a comme z32) | (b comme z32) << 8 | (c comme z32) << 16 | ((d comme n32) << 24) comme z32
+}
+
+SWS_FAST_BILINEAR ::     1
+SWS_BILINEAR ::          2
+SWS_BICUBIC ::           4
+SWS_X ::                 8
+SWS_POINT ::          0x10
+SWS_AREA ::           0x20
+SWS_BICUBLIN ::       0x40
+SWS_GAUSS ::          0x80
+SWS_SINC ::          0x100
+SWS_LANCZOS ::       0x200
+SWS_SPLINE ::        0x400
+
+SwsContext :: struct #externe;
+SwsFilter :: struct #externe;
+
+sws_getContext :: fonc (srcW: z32, srcH: z32, srcFormat: AVPixelFormat,
+                        dstW: z32, dstH: z32, dstFormat: AVPixelFormat,
+                        flags: z32, srcFilter: *SwsFilter,
+                        dstFilter: *SwsFilter, param: *r64) -> *SwsContext #externe libswscale
+
+sws_freeContext :: fonc (c: *SwsContext) -> rien #externe libswscale
+
+sws_scale :: fonc (c: *SwsContext, srcSlice: **n8,
+                   srcStride: *z32, srcSliceY: z32, srcSliceH: z32,
+                   dst: **n8, dstStride: *z32) -> z32 #externe libswscale

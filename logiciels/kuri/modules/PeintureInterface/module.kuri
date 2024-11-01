@@ -66,6 +66,7 @@ Peintre :: struct {
 
     /* Dessine l'image dans le rectangle donné. */
     rappel_dessine_image: fonc(*Peintre, ImageIO, RectanglePeintre)(rien)
+    rappel_dessine_nouvelle_image: fonc(*Peintre, *NouvelleImage, RectanglePeintre)(rien)
     rappel_dessine_sous_image: fonc(*Peintre, ImageIO, RectanglePeintre, RectanglePeintre, RépétitionImage)(rien)
     rappel_dessine_image_grise_8bit: fonc(*Peintre, TamponImageGrise8Bit, RectanglePeintre)(rien)
     rappel_dessine_image_rvba_8bit: fonc(*Peintre, TamponImageRVBA8Bit, RectanglePeintre)(rien)
@@ -180,6 +181,11 @@ dessine_image :: fonc (peintre: *Peintre, image: ImageIO, rectangle: RectanglePe
     peintre.rappel_dessine_image(peintre, image, rectangle)
 }
 
+dessine_image :: fonc (peintre: *Peintre, image: *NouvelleImage, rectangle: RectanglePeintre) -> rien #enligne
+{
+    peintre.rappel_dessine_nouvelle_image(peintre, image, rectangle)
+}
+
 dessine_image :: fonc (peintre: *Peintre, image: ImageIO, rectangle_image: RectanglePeintre, rectangle_sous_image: RectanglePeintre, répétition: RépétitionImage) -> rien #enligne
 {
     peintre.rappel_dessine_sous_image(peintre, image, rectangle_image, rectangle_sous_image, répétition)
@@ -281,6 +287,7 @@ initialise_peintre_dessin :: fonc (peintre: *PeintreDessin)
     peintre.rappel_dessine_texte_utf16 = dessine_texte_utf16_dessin
     peintre.rappel_dessine_texte_utf32 = dessine_texte_utf32_dessin
     peintre.rappel_dessine_image = dessine_image_dessin
+    peintre.rappel_dessine_nouvelle_image = dessine_nouvelle_image_dessin
     peintre.rappel_dessine_image_grise_8bit = dessine_image_grise_8bit_dessin
     peintre.rappel_dessine_image_rvba_8bit = dessine_image_rvba_8bit_dessin
     peintre.rappel_dessine_image_rvba_32bit = dessine_image_rvba_32bit_dessin
@@ -491,6 +498,12 @@ dessine_image_dessin :: fonc (peintre: *Peintre, image: ImageIO, rectangle_peint
     peintre_dessin := peintre comme *PeintreDessin
     rect := donne_rectangle_dessin(rectangle_peintre)
     dessine_image(*peintre_dessin.tampon_de_rendu, image, rect)
+}
+
+dessine_nouvelle_image_dessin :: fonc (peintre: *PeintreDessin, image: *NouvelleImage, rectangle_peintre: RectanglePeintre)
+{
+    rect := donne_rectangle_dessin(rectangle_peintre)
+    dessine_image(*peintre.tampon_de_rendu, image, rect)
 }
 
 dessine_image_grise_8bit_dessin :: fonc (peintre: *Peintre, image: TamponImageGrise8Bit, rectangle_peintre: RectanglePeintre)
