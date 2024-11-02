@@ -1974,6 +1974,7 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
                 adresse_source = génère_code_pour_atome(
                     instruction, assembleuse, UtilisationAtome::AUCUNE);
                 assembleuse.lea(registre, adresse_source);
+                registres.marque_registre_occupé(registre);
                 continue;
             }
 
@@ -2014,13 +2015,20 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
         }
     }
 
-    auto appelée = génère_code_pour_atome(appel->appelé, assembleuse, UtilisationAtome::AUCUNE);
-    /* À FAIRE : appel pointeur. */
-    assert(appelée.type == AssembleuseASM::TypeOpérande::FONCTION);
+    atome_appelée = donne_source_charge_ou_atome(atome_appelée);
+
+    auto appelée = génère_code_pour_atome(atome_appelée, assembleuse, UtilisationAtome::AUCUNE);
 
     if (classement.sortie.est_en_mémoire) {
         /* Charge l'adresse dans %rdi. */
         assembleuse.lea(Registre::RDI, adresse_retour);
+        registres.marque_registre_occupé(Registre::RDI);
+    }
+
+    if (appelée.type == TypeOpérande::MÉMOIRE) {
+        auto registre = registres.donne_registre_inoccupé();
+        assembleuse.mov(registre, appelée, 8);
+        appelée = registre;
     }
 
     /* Préserve note pile. */
@@ -2754,13 +2762,20 @@ static kuri::tableau<AtomeFonction *> donne_fonctions_à_compiler(
         fonctions_visitées.insère(fonction);
 
         POUR (fonction->instructions) {
-            if (!it->est_appel()) {
+            if (it->est_appel()) {
+                auto appel = it->comme_appel();
+                if (appel->appelé->est_fonction()) {
+                    fonctions_à_visiter.empile(appel->appelé->comme_fonction());
+                }
                 continue;
             }
 
-            auto appel = it->comme_appel();
-            if (appel->appelé->est_fonction()) {
-                fonctions_à_visiter.empile(appel->appelé->comme_fonction());
+            if (it->est_stocke_mem()) {
+                auto stocke = it->comme_stocke_mem();
+                if (stocke->source->est_fonction()) {
+                    fonctions_à_visiter.empile(stocke->source->comme_fonction());
+                }
+                continue;
             }
         }
     }
