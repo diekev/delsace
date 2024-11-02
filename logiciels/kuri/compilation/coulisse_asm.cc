@@ -734,22 +734,42 @@ static kuri::chaine_statique donne_chaine_taille_opérande(uint32_t taille)
     return "qword";
 }
 
+enum class TypeOpérande {
+    REGISTRE,
+    IMMÉDIATE8,
+    IMMÉDIATE16,
+    IMMÉDIATE32,
+    IMMÉDIATE64,
+    MÉMOIRE,
+    FONCTION,
+    GLOBALE,
+};
+
+static std::ostream &operator<<(std::ostream &os, TypeOpérande type)
+{
+#define IMPRIME_CAS(x)                                                                            \
+    case TypeOpérande::x:                                                                         \
+        os << #x;                                                                                 \
+        break
+    switch (type) {
+        IMPRIME_CAS(REGISTRE);
+        IMPRIME_CAS(IMMÉDIATE8);
+        IMPRIME_CAS(IMMÉDIATE16);
+        IMPRIME_CAS(IMMÉDIATE32);
+        IMPRIME_CAS(IMMÉDIATE64);
+        IMPRIME_CAS(MÉMOIRE);
+        IMPRIME_CAS(FONCTION);
+        IMPRIME_CAS(GLOBALE);
+    }
+#undef IMPRIME_CAS
+    return os;
+}
+
 struct AssembleuseASM {
   private:
     Enchaineuse &m_sortie;
 
   public:
-    enum class TypeOpérande {
-        REGISTRE,
-        IMMÉDIATE8,
-        IMMÉDIATE16,
-        IMMÉDIATE32,
-        IMMÉDIATE64,
-        MÉMOIRE,
-        FONCTION,
-        GLOBALE,
-    };
-
     struct Immédiate8 {
         uint8_t valeur;
     };
@@ -887,12 +907,12 @@ struct AssembleuseASM {
         assert(!est_immédiate(dst.type));
         assert(taille <= 8);
 
-        if (dst.type == AssembleuseASM::TypeOpérande::MÉMOIRE) {
-            assert(src.type != AssembleuseASM::TypeOpérande::MÉMOIRE);
+        if (dst.type == TypeOpérande::MÉMOIRE) {
+            assert(src.type != TypeOpérande::MÉMOIRE);
         }
 
         m_sortie << TABULATION << "mov ";
-        if (dst.type == AssembleuseASM::TypeOpérande::MÉMOIRE) {
+        if (dst.type == TypeOpérande::MÉMOIRE) {
             m_sortie << donne_chaine_taille_opérande(taille) << " ";
         }
         imprime_opérande(dst, taille);
@@ -905,8 +925,7 @@ struct AssembleuseASM {
     void movss(Opérande dst, Opérande src)
     {
         assert(!est_immédiate(dst.type));
-        assert(dst.type != AssembleuseASM::TypeOpérande::MÉMOIRE ||
-               src.type != AssembleuseASM::TypeOpérande::MÉMOIRE);
+        assert(dst.type != TypeOpérande::MÉMOIRE || src.type != TypeOpérande::MÉMOIRE);
 
         m_sortie << TABULATION << "movss ";
         imprime_opérande(dst, 4);
@@ -1880,7 +1899,7 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
 
             auto const valeur_accédé = génère_code_pour_atome(
                 accédé, assembleuse, UtilisationAtome::AUCUNE);
-            assert(valeur_accédé.type == AssembleuseASM::TypeOpérande::MÉMOIRE);
+            assert(valeur_accédé.type == TypeOpérande::MÉMOIRE);
 
             auto const &membre = accès->donne_membre_accédé();
 
@@ -1964,7 +1983,7 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
             }
         }
 
-        assert(adresse_source.type == AssembleuseASM::TypeOpérande::MÉMOIRE);
+        assert(adresse_source.type == TypeOpérande::MÉMOIRE);
 
         auto taille_en_octet = it->type->taille_octet;
 
@@ -2066,7 +2085,7 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
 
 #define GENERE_CODE_INST_ENTIER(nom_inst)                                                         \
     auto registre_résultat = opérande_gauche;                                                     \
-    if (opérande_gauche.type != AssembleuseASM::TypeOpérande::REGISTRE) {                         \
+    if (opérande_gauche.type != TypeOpérande::REGISTRE) {                                         \
         registre_résultat = registres.donne_registre_inoccupé();                                  \
         assembleuse.mov(                                                                          \
             registre_résultat, opérande_gauche, inst_bin->valeur_gauche->type->taille_octet);     \
@@ -2333,13 +2352,13 @@ void GénératriceCodeASM::génère_code_pour_retourne(const InstructionRetour *
         auto atome_source = donne_source_charge_ou_atome(inst_retour->valeur);
 
         auto valeur = génère_code_pour_atome(atome_source, assembleuse, UtilisationAtome::AUCUNE);
-        assert(valeur.type == AssembleuseASM::TypeOpérande::MÉMOIRE);
+        assert(valeur.type == TypeOpérande::MÉMOIRE);
 
         auto sortie = m_classement_fonction_courante.sortie;
 
         auto taille_en_octet = inst_retour->valeur->type->taille_octet;
         if (sortie.est_en_mémoire) {
-            assert(valeur.type == AssembleuseASM::TypeOpérande::MÉMOIRE);
+            assert(valeur.type == TypeOpérande::MÉMOIRE);
 
             assembleuse.mov(Registre::RAX, m_adresse_retour, 8);
 
@@ -2666,7 +2685,7 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
         }
     }
     else {
-        assert(src.type == AssembleuseASM::TypeOpérande::MÉMOIRE);
+        assert(src.type == TypeOpérande::MÉMOIRE);
 
         auto taille_à_copier = int32_t(type_stocké->taille_octet);
         while (taille_à_copier > 0) {
@@ -2685,7 +2704,7 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
 
     registres.marque_registre_inoccupé(registre_tmp);
 
-    if (src.type == AssembleuseASM::TypeOpérande::REGISTRE) {
+    if (src.type == TypeOpérande::REGISTRE) {
         registres.marque_registre_inoccupé(src.registre);
     }
 }
