@@ -1945,6 +1945,7 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
     }
 
     auto atome_appelée = appel->appelé;
+    auto registres_à_libérer = kuri::tablet<Registre, 32>();
 
     auto classement = donne_classement_arguments(atome_appelée->type->comme_type_fonction());
 
@@ -1975,6 +1976,7 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
                     instruction, assembleuse, UtilisationAtome::AUCUNE);
                 assembleuse.lea(registre, adresse_source);
                 registres.marque_registre_occupé(registre);
+                registres_à_libérer.ajoute(registre);
                 continue;
             }
 
@@ -2009,6 +2011,7 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
             }
 
             registres.marque_registre_occupé(registre);
+            registres_à_libérer.ajoute(registre);
             assembleuse.mov(registre, adresse_source, taille_à_copier);
 
             adresse_source.mémoire.décalage += int32_t(taille_à_copier);
@@ -2023,10 +2026,12 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
         /* Charge l'adresse dans %rdi. */
         assembleuse.lea(Registre::RDI, adresse_retour);
         registres.marque_registre_occupé(Registre::RDI);
+        registres_à_libérer.ajoute(Registre::RDI);
     }
 
     if (appelée.type == TypeOpérande::MÉMOIRE) {
         auto registre = registres.donne_registre_inoccupé();
+        registres_à_libérer.ajoute(registre);
         assembleuse.mov(registre, appelée, 8);
         appelée = registre;
     }
@@ -2058,9 +2063,14 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
             }
 
             assembleuse.mov(adresse_retour, registre, taille_à_copier);
+            registres_à_libérer.ajoute(registre);
 
             adresse_retour.décalage += int32_t(taille_à_copier);
         }
+    }
+
+    POUR (registres_à_libérer) {
+        registres.marque_registre_inoccupé(it);
     }
 }
 
