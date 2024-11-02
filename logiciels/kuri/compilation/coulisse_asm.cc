@@ -2666,15 +2666,71 @@ static kuri::tableau<AtomeFonction *> donne_fonctions_à_compiler(
     return résultat;
 }
 
+static void déclare_structure(TypeCompose const *type,
+                              Broyeuse &broyeuse,
+                              Enchaineuse &enchaineuse)
+{
+    auto nom_type = chaine_type(type);
+
+    nom_type = broyeuse.broye_nom_simple(nom_type);
+
+    enchaineuse << "struc " << nom_type << NOUVELLE_LIGNE;
+
+    auto décalage = uint32_t(0);
+    auto nombre_rembourrage = 0;
+
+    POUR (type->donne_membres_pour_code_machine()) {
+        auto nom_membre = broyeuse.broye_nom_simple(it.nom);
+
+        if (it.decalage != décalage) {
+            auto rembourrage = it.decalage - décalage;
+
+            enchaineuse << TABULATION << ".rembourrage" << nombre_rembourrage << " resb "
+                        << rembourrage << NOUVELLE_LIGNE;
+
+            décalage += rembourrage;
+            nombre_rembourrage++;
+        }
+
+        enchaineuse << TABULATION << "." << nom_membre << " resb " << it.type->taille_octet
+                    << NOUVELLE_LIGNE;
+
+        décalage += it.type->taille_octet;
+    }
+
+    if (type->taille_octet != décalage) {
+        auto rembourrage = type->taille_octet - décalage;
+        enchaineuse << TABULATION << ".rembourrage" << nombre_rembourrage << " resb "
+                    << rembourrage << NOUVELLE_LIGNE;
+    }
+
+    enchaineuse << "endstruc" << NOUVELLE_LIGNE;
+}
+
 void GénératriceCodeASM::génère_code(ProgrammeRepreInter const &repr_inter_programme,
                                      Enchaineuse &os)
 {
     /* Déclaration des types. */
+    kuri::rassembleuse<TypeCompose const *> types_pour_globales;
+    auto visiteuse_type = VisiteuseType{};
 
-    os << "struc " << "chaine" << NOUVELLE_LIGNE;
-    os << TABULATION << ".pointeur " << "resq 1" << NOUVELLE_LIGNE;
-    os << TABULATION << ".taille " << "resq 1" << NOUVELLE_LIGNE;
-    os << "endstruc " << NOUVELLE_LIGNE;
+    auto broyeuse = Broyeuse();
+
+    POUR (repr_inter_programme.donne_globales()) {
+        if (!it->est_constante) {
+            continue;
+        }
+
+        visiteuse_type.visite_type(const_cast<Type *>(it->donne_type_alloué()), [&](Type *type) {
+            if (type->est_type_structure() || type->est_type_chaine()) {
+                types_pour_globales.insère(type->comme_type_composé());
+            }
+        });
+    }
+
+    POUR (types_pour_globales.donne_éléments()) {
+        déclare_structure(it, broyeuse, os);
+    }
 
     auto opt_données_constantes = repr_inter_programme.donne_données_constantes();
     if (opt_données_constantes.has_value()) {
@@ -2728,8 +2784,6 @@ void GénératriceCodeASM::génère_code(ProgrammeRepreInter const &repr_inter_p
 
     auto fonctions = repr_inter_programme.donne_fonctions();
     auto globales = repr_inter_programme.donne_globales();
-
-    auto broyeuse = Broyeuse();
 
     POUR (globales) {
         if (it->est_externe) {
