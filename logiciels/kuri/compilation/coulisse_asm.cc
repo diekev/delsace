@@ -1955,7 +1955,6 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
         table_valeurs[appel->numero] = adresse_retour;
     }
 
-    /* À FAIRE: chargement des paramètres dans les registres */
     POUR_INDEX (appel->args) {
         assert(it->est_instruction());
 
