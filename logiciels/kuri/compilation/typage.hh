@@ -524,3 +524,16 @@ std::optional<Attente> attente_sur_type_si_drapeau_manquant(
 
 std::optional<Attente> attente_sur_type_si_drapeau_manquant(
     kuri::ensemblon<Type *, 16> const &types, DrapeauxTypes drapeau);
+
+/* ------------------------------------------------------------------------- */
+/** \name VisiteuseType.
+ * \{ */
+
+struct VisiteuseType {
+    kuri::ensemble<Type *> visites{};
+    bool visite_types_fonctions_init = true;
+
+    void visite_type(Type *type, std::function<void(Type *)> rappel);
+};
+
+/** \} */
