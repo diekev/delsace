@@ -1575,7 +1575,9 @@ void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const
     switch (initialisateur->genre_atome) {
         case Atome::Genre::FONCTION:
         {
-            VERIFIE_NON_ATTEINT;
+            auto atome_fonc = initialisateur->comme_fonction();
+            enchaineuse << chaine_indentations_espace(profondeur) << "dq " << atome_fonc->nom
+                        << NOUVELLE_LIGNE;
             return;
         }
         case Atome::Genre::TRANSTYPE_CONSTANT:
@@ -2806,6 +2808,19 @@ void GénératriceCodeASM::génère_code(ProgrammeRepreInter const &repr_inter_p
         déclare_structure(it, broyeuse, os);
     }
 
+    /* Prodéclaration des fonctions. */
+    auto fonctions = repr_inter_programme.donne_fonctions();
+    auto fonctions_à_compiler = donne_fonctions_à_compiler(fonctions);
+
+    POUR (fonctions) {
+        if (it->est_externe) {
+            os << "extern " << it->nom << "\n";
+        }
+        else {
+            os << "global " << it->nom << "\n";
+        }
+    }
+
     auto opt_données_constantes = repr_inter_programme.donne_données_constantes();
     if (opt_données_constantes.has_value()) {
         os << "section .data" << NOUVELLE_LIGNE;
@@ -2856,7 +2871,6 @@ void GénératriceCodeASM::génère_code(ProgrammeRepreInter const &repr_inter_p
         }
     }
 
-    auto fonctions = repr_inter_programme.donne_fonctions();
     auto globales = repr_inter_programme.donne_globales();
 
     POUR (globales) {
@@ -2868,8 +2882,6 @@ void GénératriceCodeASM::génère_code(ProgrammeRepreInter const &repr_inter_p
         os << TABULATION << nom << ":" << NOUVELLE_LIGNE;
         génère_code_pour_initialisation_globale(it->initialisateur, os, 1);
     }
-
-    auto fonctions_à_compiler = donne_fonctions_à_compiler(fonctions);
 
     os << "section .bss\n";
 
@@ -2895,16 +2907,6 @@ void GénératriceCodeASM::génère_code(ProgrammeRepreInter const &repr_inter_p
     POUR (globales) {
         if (it->est_externe) {
             os << "extern " << it->ident->nom << "\n";
-        }
-    }
-
-    /* Prodéclaration des fonctions. */
-    POUR (fonctions_à_compiler) {
-        if (it->est_externe) {
-            os << "extern " << it->nom << "\n";
-        }
-        else {
-            os << "global " << it->nom << "\n";
         }
     }
 
