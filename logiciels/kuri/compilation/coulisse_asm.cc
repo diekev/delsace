@@ -1343,13 +1343,16 @@ struct GénératriceCodeASM {
     GestionnaireRegistres registres{};
     uint32_t taille_allouée = 0;
 
+    Broyeuse broyeuse{};
+
   public:
     AssembleuseASM::Opérande génère_code_pour_atome(Atome *atome,
                                                     AssembleuseASM &assembleuse,
                                                     const UtilisationAtome utilisation);
 
     void génère_code_pour_initialisation_globale(Atome const *initialisateur,
-                                                 Enchaineuse &enchaineuse);
+                                                 Enchaineuse &enchaineuse,
+                                                 int profondeur);
 
     void génère_code_pour_instruction(Instruction const *inst,
                                       AssembleuseASM &assembleuse,
@@ -1559,8 +1562,15 @@ bool est_initialisateur_supporté(Atome const *atome)
     return false;
 }
 
+static kuri::chaine_statique chaine_indentations_espace(int indentations)
+{
+    static std::string chaine = std::string(1024, ' ');
+    return {chaine.c_str(), static_cast<int64_t>(indentations * 4)};
+}
+
 void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const *initialisateur,
-                                                                 Enchaineuse &enchaineuse)
+                                                                 Enchaineuse &enchaineuse,
+                                                                 int profondeur)
 {
     switch (initialisateur->genre_atome) {
         case Atome::Genre::FONCTION:
@@ -1570,19 +1580,21 @@ void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const
         }
         case Atome::Genre::TRANSTYPE_CONSTANT:
         {
-            VERIFIE_NON_ATTEINT;
+            auto transtype = initialisateur->comme_transtype_constant();
+            génère_code_pour_initialisation_globale(transtype->valeur, enchaineuse, profondeur);
             return;
         }
         case Atome::Genre::ACCÈS_INDEX_CONSTANT:
         {
             auto index_constant = initialisateur->comme_accès_index_constant();
             assert(index_constant->index == 0);
-            génère_code_pour_initialisation_globale(index_constant->accédé, enchaineuse);
+            génère_code_pour_initialisation_globale(
+                index_constant->accédé, enchaineuse, profondeur);
             return;
         }
         case Atome::Genre::CONSTANTE_NULLE:
         {
-            enchaineuse << "dq 0" << NOUVELLE_LIGNE;
+            enchaineuse << chaine_indentations_espace(profondeur) << "dq 0" << NOUVELLE_LIGNE;
             return;
         }
         case Atome::Genre::CONSTANTE_TYPE:
@@ -1592,12 +1604,16 @@ void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const
         }
         case Atome::Genre::CONSTANTE_INDEX_TABLE_TYPE:
         {
-            VERIFIE_NON_ATTEINT;
+            auto type = initialisateur->comme_index_table_type()->type_de_données;
+            enchaineuse << chaine_indentations_espace(profondeur) << "dd "
+                        << type->index_dans_table_types << NOUVELLE_LIGNE;
             return;
         }
         case Atome::Genre::CONSTANTE_TAILLE_DE:
         {
-            VERIFIE_NON_ATTEINT;
+            auto type = initialisateur->comme_taille_de()->type_de_données;
+            enchaineuse << chaine_indentations_espace(profondeur) << "dd " << type->taille_octet
+                        << NOUVELLE_LIGNE;
             return;
         }
         case Atome::Genre::CONSTANTE_RÉELLE:
@@ -1609,6 +1625,7 @@ void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const
         {
             auto constante_entière = initialisateur->comme_constante_entière();
             auto const type = constante_entière->type;
+            enchaineuse << chaine_indentations_espace(profondeur);
             if (type->taille_octet == 1) {
                 enchaineuse << "db " << uint8_t(constante_entière->valeur) << NOUVELLE_LIGNE;
                 return;
@@ -1627,13 +1644,15 @@ void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const
         case Atome::Genre::CONSTANTE_BOOLÉENNE:
         {
             auto constante_booléenne = initialisateur->comme_constante_booléenne();
-            enchaineuse << "db " << uint8_t(constante_booléenne->valeur) << NOUVELLE_LIGNE;
+            enchaineuse << chaine_indentations_espace(profondeur) << "db "
+                        << uint8_t(constante_booléenne->valeur) << NOUVELLE_LIGNE;
             return;
         }
         case Atome::Genre::CONSTANTE_CARACTÈRE:
         {
             auto caractère = initialisateur->comme_constante_caractère();
-            enchaineuse << "db " << uint8_t(caractère->valeur) << NOUVELLE_LIGNE;
+            enchaineuse << chaine_indentations_espace(profondeur) << "db "
+                        << uint8_t(caractère->valeur) << NOUVELLE_LIGNE;
             return;
         }
         case Atome::Genre::CONSTANTE_STRUCTURE:
@@ -1642,29 +1661,79 @@ void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const
             auto type = structure->type->comme_type_composé();
             auto tableau_valeur = structure->donne_atomes_membres();
             auto nom_structure = chaine_type(type);
+            nom_structure = broyeuse.broye_nom_simple(nom_structure);
 
-            enchaineuse << TABULATION2 << "istruc " << nom_structure << NOUVELLE_LIGNE;
+            if (type->est_type_tranche()) {
+                nom_structure = "tranche";
+            }
+
+            enchaineuse << chaine_indentations_espace(profondeur) << "istruc " << nom_structure
+                        << NOUVELLE_LIGNE;
+
+            auto décalage = uint32_t(0);
+            auto nombre_rembourrage = 0;
 
             POUR_INDEX (type->donne_membres_pour_code_machine()) {
-                enchaineuse << TABULATION3 << "at " << nom_structure << ".";
+                if (it.decalage != décalage) {
+                    auto rembourrage = it.decalage - décalage;
+                    enchaineuse << chaine_indentations_espace(profondeur + 1) << "at "
+                                << nom_structure << ".rembourrage" << nombre_rembourrage;
+
+                    auto virgule = ", db ";
+                    for (int i = 0; i < rembourrage; i++) {
+                        enchaineuse << virgule << "0";
+                        virgule = ", ";
+                    }
+
+                    enchaineuse << NOUVELLE_LIGNE;
+
+                    décalage += rembourrage;
+                    nombre_rembourrage++;
+                }
+
+                enchaineuse << chaine_indentations_espace(profondeur + 1) << "at " << nom_structure
+                            << ".";
 
                 if (it.nom == ID::chaine_vide) {
                     enchaineuse << "membre_invisible";
                 }
                 else {
-                    enchaineuse << it.nom->nom;
+                    enchaineuse << broyeuse.broye_nom_simple(it.nom);
                 }
 
-                enchaineuse << ", ";
-                génère_code_pour_initialisation_globale(tableau_valeur[index_it], enchaineuse);
+                enchaineuse << NOUVELLE_LIGNE;
+                génère_code_pour_initialisation_globale(
+                    tableau_valeur[index_it], enchaineuse, profondeur + 2);
+
+                décalage += it.type->taille_octet;
             }
 
-            enchaineuse << TABULATION2 << "iend" << NOUVELLE_LIGNE;
+            if (type->taille_octet != décalage) {
+                auto rembourrage = type->taille_octet - décalage;
+                enchaineuse << chaine_indentations_espace(profondeur + 1) << "at " << nom_structure
+                            << ".rembourrage" << nombre_rembourrage;
+
+                auto virgule = ", db ";
+                for (int i = 0; i < rembourrage; i++) {
+                    enchaineuse << virgule << "0";
+                    virgule = ", ";
+                }
+
+                enchaineuse << NOUVELLE_LIGNE;
+            }
+
+            enchaineuse << chaine_indentations_espace(profondeur) << "iend" << NOUVELLE_LIGNE;
             return;
         }
         case Atome::Genre::CONSTANTE_TABLEAU_FIXE:
         {
-            VERIFIE_NON_ATTEINT;
+            auto tableau = initialisateur->comme_constante_tableau();
+            auto éléments = tableau->donne_atomes_éléments();
+
+            POUR (éléments) {
+                génère_code_pour_initialisation_globale(it, enchaineuse, profondeur + 1);
+            }
+
             return;
         }
         case Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES:
@@ -1689,7 +1758,8 @@ void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const
         }
         case Atome::Genre::GLOBALE:
         {
-            enchaineuse << "dq " << table_globales.valeur_ou(initialisateur, "") << NOUVELLE_LIGNE;
+            enchaineuse << chaine_indentations_espace(profondeur) << "dq "
+                        << table_globales.valeur_ou(initialisateur, "") << NOUVELLE_LIGNE;
             return;
         }
     }
@@ -2714,12 +2784,12 @@ void GénératriceCodeASM::génère_code(ProgrammeRepreInter const &repr_inter_p
     kuri::rassembleuse<TypeCompose const *> types_pour_globales;
     auto visiteuse_type = VisiteuseType{};
 
-    auto broyeuse = Broyeuse();
-
     POUR (repr_inter_programme.donne_globales()) {
         if (!it->est_constante) {
             continue;
         }
+
+        table_globales.insère(it, broyeuse.broye_nom_simple(it->ident));
 
         visiteuse_type.visite_type(const_cast<Type *>(it->donne_type_alloué()), [&](Type *type) {
             if (type->est_type_structure() || type->est_type_chaine()) {
@@ -2728,6 +2798,10 @@ void GénératriceCodeASM::génère_code(ProgrammeRepreInter const &repr_inter_p
         });
     }
 
+    os << "struc " << "tranche" << NOUVELLE_LIGNE;
+    os << TABULATION << ".pointeur resq 1" << NOUVELLE_LIGNE;
+    os << TABULATION << ".taille resq 1" << NOUVELLE_LIGNE;
+    os << "endstruc" << NOUVELLE_LIGNE;
     POUR (types_pour_globales.donne_éléments()) {
         déclare_structure(it, broyeuse, os);
     }
@@ -2786,22 +2860,13 @@ void GénératriceCodeASM::génère_code(ProgrammeRepreInter const &repr_inter_p
     auto globales = repr_inter_programme.donne_globales();
 
     POUR (globales) {
-        if (it->est_externe) {
-            continue;
-        }
-
-        if (!it->est_constante) {
-            continue;
-        }
-
-        auto type = it->donne_type_alloué();
-        if (!type->est_type_chaine()) {
+        if (it->est_externe || !it->est_constante) {
             continue;
         }
 
         auto nom = broyeuse.broye_nom_simple(it->ident);
         os << TABULATION << nom << ":" << NOUVELLE_LIGNE;
-        génère_code_pour_initialisation_globale(it->initialisateur, os);
+        génère_code_pour_initialisation_globale(it->initialisateur, os, 1);
     }
 
     auto fonctions_à_compiler = donne_fonctions_à_compiler(fonctions);
@@ -2809,13 +2874,7 @@ void GénératriceCodeASM::génère_code(ProgrammeRepreInter const &repr_inter_p
     os << "section .bss\n";
 
     POUR (globales) {
-        if (it->est_externe) {
-            continue;
-        }
-
-        auto type = it->donne_type_alloué();
-
-        if (it->est_constante && type->est_type_chaine()) {
+        if (it->est_externe || it->est_constante) {
             continue;
         }
 
@@ -2823,7 +2882,7 @@ void GénératriceCodeASM::génère_code(ProgrammeRepreInter const &repr_inter_p
         os << TABULATION << nom << ": ";
 
         if (it->initialisateur && est_initialisateur_supporté(it->initialisateur)) {
-            génère_code_pour_initialisation_globale(it->initialisateur, os);
+            génère_code_pour_initialisation_globale(it->initialisateur, os, 1);
         }
         else {
             os << "resb " << it->donne_type_alloué()->taille_octet << NOUVELLE_LIGNE;
