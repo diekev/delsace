@@ -44,9 +44,14 @@
 /** \name Utilitaires
  * \{ */
 
+inline bool est_adresse_globale(Atome const *atome)
+{
+    return atome->est_fonction() || atome->est_globale();
+}
+
 inline bool est_adresse(Atome *atome)
 {
-    if (atome->est_fonction() || atome->est_globale()) {
+    if (est_adresse_globale(atome)) {
         return true;
     }
 
@@ -2662,6 +2667,12 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
         /* Stockage d'une adresse. */
         auto src = génère_code_pour_atome(
             inst_stocke->source, assembleuse, UtilisationAtome::AUCUNE);
+
+        if (est_adresse_globale(inst_stocke->source)) {
+            assembleuse.mov(dest, src, type_stocké->taille_octet);
+            return;
+        }
+
         auto registre = registres.donne_registre_inoccupé();
         assembleuse.lea(registre, src);
         assembleuse.mov(dest, registre, type_stocké->taille_octet);
