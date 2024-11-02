@@ -937,7 +937,8 @@ struct AssembleuseASM {
 
     void lea(Opérande dst, Opérande src)
     {
-        assert(src.type == TypeOpérande::MÉMOIRE);
+        assert_rappel(src.type == TypeOpérande::MÉMOIRE,
+                      [&]() { dbg() << "La source est de type " << src.type; });
         assert(dst.type == TypeOpérande::REGISTRE);
 
         m_sortie << TABULATION << "lea ";
