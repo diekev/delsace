@@ -2910,14 +2910,8 @@ void GénératriceCodeASM::génère_code(ProgrammeRepreInter const &repr_inter_p
         }
 
         auto nom = broyeuse.broye_nom_simple(it->ident);
-        os << TABULATION << nom << ": ";
-
-        if (it->initialisateur && est_initialisateur_supporté(it->initialisateur)) {
-            génère_code_pour_initialisation_globale(it->initialisateur, os, 1);
-        }
-        else {
-            os << "resb " << it->donne_type_alloué()->taille_octet << NOUVELLE_LIGNE;
-        }
+        os << TABULATION << nom << ": resb " << it->donne_type_alloué()->taille_octet
+           << NOUVELLE_LIGNE;
     }
 
     os << NOUVELLE_LIGNE;
