@@ -49,12 +49,8 @@ inline bool est_adresse_globale(Atome const *atome)
     return atome->est_fonction() || atome->est_globale();
 }
 
-inline bool est_adresse(Atome *atome)
+inline bool est_adresse_locale(Atome const *atome)
 {
-    if (est_adresse_globale(atome)) {
-        return true;
-    }
-
     if (!atome->est_instruction()) {
         return false;
     }
@@ -66,6 +62,11 @@ inline bool est_adresse(Atome *atome)
     }
 
     return false;
+}
+
+inline bool est_adresse(Atome *atome)
+{
+    return est_adresse_globale(atome) || est_adresse_locale(atome);
 }
 
 static Atome *donne_source_charge_ou_atome(Atome *atome)
@@ -1982,41 +1983,61 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
     }
 
     POUR_INDEX (appel->args) {
-        assert(it->est_instruction());
-
         auto classement_arg = classement.arguments[index_it];
         assert(classement_arg.est_en_mémoire == false);
 
-        auto adresse_source = AssembleuseASM::Opérande{};
-        if (it->est_instruction()) {
-            auto instruction = it->comme_instruction();
-            if (instruction->est_alloc()) {
-                assert(classement_arg.premier_huitoctet_inclusif ==
-                       classement_arg.dernier_huitoctet_exclusif - 1);
-                auto registre =
-                    classement.registres_huitoctets[classement_arg.premier_huitoctet_inclusif]
-                        .registre;
-                // Nous prenons l'adresse d'une variable.
-                adresse_source = génère_code_pour_atome(
-                    instruction, assembleuse, UtilisationAtome::AUCUNE);
-                assembleuse.lea(registre, adresse_source);
-                registres.marque_registre_occupé(registre);
-                registres_à_libérer.ajoute(registre);
-                continue;
-            }
-
-            if (instruction->est_charge()) {
-                auto chargement = instruction->comme_charge();
-                auto source = chargement->chargée;
-                adresse_source = génère_code_pour_atome(
-                    source, assembleuse, UtilisationAtome::AUCUNE);
-            }
-            else {
-                assert(false);
-            }
+        if (est_adresse_locale(it)) {
+            assert(classement_arg.premier_huitoctet_inclusif ==
+                   classement_arg.dernier_huitoctet_exclusif - 1);
+            auto registre = classement
+                                .registres_huitoctets[classement_arg.premier_huitoctet_inclusif]
+                                .registre;
+            // Nous prenons l'adresse d'une variable.
+            auto adresse_source = génère_code_pour_atome(
+                it, assembleuse, UtilisationAtome::AUCUNE);
+            assembleuse.lea(registre, adresse_source);
+            registres.marque_registre_occupé(registre);
+            registres_à_libérer.ajoute(registre);
+            continue;
         }
 
-        assert(adresse_source.type == TypeOpérande::MÉMOIRE);
+        if (est_adresse_globale(it)) {
+            assert(classement_arg.premier_huitoctet_inclusif ==
+                   classement_arg.dernier_huitoctet_exclusif - 1);
+            auto registre = classement
+                                .registres_huitoctets[classement_arg.premier_huitoctet_inclusif]
+                                .registre;
+            auto adresse_source = génère_code_pour_atome(
+                it, assembleuse, UtilisationAtome::AUCUNE);
+            assembleuse.mov(registre, adresse_source, 8);
+            registres.marque_registre_occupé(registre);
+            registres_à_libérer.ajoute(registre);
+            continue;
+        }
+
+        auto atome_argument = donne_source_charge_ou_atome(it);
+        auto adresse_source = génère_code_pour_atome(
+            atome_argument, assembleuse, UtilisationAtome::AUCUNE);
+
+        if (AssembleuseASM::est_immédiate(adresse_source.type)) {
+            assert(classement_arg.premier_huitoctet_inclusif ==
+                   classement_arg.dernier_huitoctet_exclusif - 1);
+            auto registre = classement
+                                .registres_huitoctets[classement_arg.premier_huitoctet_inclusif]
+                                .registre;
+
+            if (it->type->est_type_réel()) {
+                assert(it->type == TypeBase::R32);
+                assembleuse.movss(registre, adresse_source);
+            }
+            else {
+                assembleuse.mov(registre, adresse_source, it->type->taille_octet);
+            }
+
+            registres.marque_registre_occupé(registre);
+            registres_à_libérer.ajoute(registre);
+            continue;
+        }
 
         auto taille_en_octet = it->type->taille_octet;
 
