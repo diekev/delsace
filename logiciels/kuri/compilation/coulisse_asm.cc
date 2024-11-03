@@ -1080,6 +1080,13 @@ struct AssembleuseASM {
         génère_code_opération_binaire(dst, src, "idiv", taille_octet);
     }
 
+    void neg(Opérande dst, uint32_t taille_octet)
+    {
+        m_sortie << TABULATION << "neg ";
+        imprime_opérande(dst, taille_octet);
+        m_sortie << NOUVELLE_LIGNE;
+    }
+
     void addss(Opérande dst, Opérande src)
     {
         m_sortie << TABULATION << "addss ";
@@ -1149,6 +1156,15 @@ struct AssembleuseASM {
         imprime_opérande(dst, 8);
         m_sortie << ", ";
         imprime_opérande(src, 8);
+        m_sortie << NOUVELLE_LIGNE;
+    }
+
+    void xorps(Opérande dst, Opérande src)
+    {
+        m_sortie << TABULATION << "xorps ";
+        imprime_opérande(dst, 4);
+        m_sortie << ", ";
+        imprime_opérande(src, 4);
         m_sortie << NOUVELLE_LIGNE;
     }
 
@@ -2005,7 +2021,29 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
                 }
                 case OpérateurUnaire::Genre::Négation:
                 {
-                    VERIFIE_NON_ATTEINT;
+                    auto valeur = génère_code_pour_atome_opérande(
+                        inst_un->valeur, assembleuse, UtilisationAtome::AUCUNE);
+                    auto dest = alloue_variable(inst_un->type);
+                    table_valeurs[inst->numero] = dest;
+
+                    if (est_type_entier(inst_un->type)) {
+                        auto registre = registres.donne_registre_inoccupé();
+                        assembleuse.mov(registre, valeur, inst_un->type->taille_octet);
+                        assembleuse.neg(registre, inst_un->type->taille_octet);
+                        assembleuse.mov(dest, registre, inst_un->type->taille_octet);
+                        registres.marque_registre_inoccupé(registre);
+                    }
+                    else if (inst_un->type == TypeBase::R32) {
+                        assembleuse.movss(Registre::XMM0, valeur);
+                        assembleuse.movss(Registre::XMM1,
+                                          AssembleuseASM::Immédiate64{uint64_t(-2147483648)});
+                        assembleuse.xorps(Registre::XMM0, Registre::XMM1);
+                        assembleuse.movss(dest, Registre::XMM0);
+                    }
+                    else {
+                        VERIFIE_NON_ATTEINT;
+                    }
+
                     break;
                 }
                 case OpérateurUnaire::Genre::Négation_Binaire:
