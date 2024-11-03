@@ -924,6 +924,23 @@ struct AssembleuseASM {
         m_sortie << NOUVELLE_LIGNE;
     }
 
+    void movsx(Opérande dst, uint32_t taille_dst, Opérande src, uint32_t taille_src)
+    {
+        assert(!est_immédiate(dst.type) && !est_immédiate(src.type));
+        assert(taille_dst <= 8 && taille_src <= 8);
+        assert(!dst.est_mémoire() || !src.est_mémoire());
+
+        m_sortie << TABULATION << "movsx ";
+        if (dst.type == TypeOpérande::MÉMOIRE) {
+            m_sortie << donne_chaine_taille_opérande(taille_dst) << " ";
+        }
+        imprime_opérande(dst, taille_dst);
+        m_sortie << ", ";
+        imprime_opérande(src, taille_src);
+
+        m_sortie << NOUVELLE_LIGNE;
+    }
+
     void movss(Opérande dst, Opérande src)
     {
         assert(!est_immédiate(dst.type));
@@ -2452,7 +2469,12 @@ void GénératriceCodeASM::génère_code_pour_transtype(InstructionTranstype con
         }
         case TypeTranstypage::AUGMENTE_RELATIF:
         {
-            VERIFIE_NON_ATTEINT;
+            auto registre = registres.donne_registre_inoccupé();
+            auto dst = alloue_variable(type_vers);
+            assembleuse.movsx(registre, type_vers->taille_octet, valeur, type_de->taille_octet);
+            assembleuse.mov(dst, registre, type_vers->taille_octet);
+            valeur = dst;
+            registres.marque_registre_inoccupé(registre);
             break;
         }
         case TypeTranstypage::AUGMENTE_REEL:
