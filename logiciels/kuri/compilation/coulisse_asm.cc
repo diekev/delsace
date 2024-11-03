@@ -3231,7 +3231,6 @@ void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonc
              i++) {
             auto huitoctet = classement.huitoctets[i];
             auto classe = huitoctet.classe;
-            assert(classe == ClasseArgument::INTEGER);
 
             auto registre = classement.registres_huitoctets[i].registre;
 
@@ -3241,7 +3240,19 @@ void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonc
                 taille_en_octet -= 8;
             }
 
-            assembleuse.mov(adresse, registre, taille_à_copier);
+            if (classe == ClasseArgument::SSE) {
+                if (taille_à_copier == 4) {
+                    assembleuse.movss(adresse, registre);
+                }
+                else {
+                    assert(taille_à_copier == 8);
+                    assembleuse.movsd(adresse, registre);
+                }
+            }
+            else {
+                assert(classe == ClasseArgument::INTEGER);
+                assembleuse.mov(adresse, registre, taille_à_copier);
+            }
 
             adresse.décalage += int32_t(taille_à_copier);
         }
