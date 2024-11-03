@@ -77,6 +77,11 @@ static Atome *donne_source_charge_ou_atome(Atome *atome)
     return atome;
 }
 
+inline bool est_accès_index(Atome const *atome)
+{
+    return atome->est_instruction() && atome->comme_instruction()->est_acces_index();
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1446,6 +1451,9 @@ struct GénératriceCodeASM {
     void génère_code_pour_retourne(const InstructionRetour *inst_retour,
                                    AssembleuseASM &assembleuse);
 
+    void génère_code_pour_accès_index(InstructionAccèdeIndex const *accès,
+                                      AssembleuseASM &assembleuse);
+
     void génère_code_pour_transtype(InstructionTranstype const *transtype,
                                     AssembleuseASM &assembleuse);
 
@@ -1920,8 +1928,7 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
         }
         case GenreInstruction::ACCEDE_INDEX:
         {
-            /* À FAIRE: [ptr + décalage] */
-            VERIFIE_NON_ATTEINT;
+            génère_code_pour_accès_index(inst->comme_acces_index(), assembleuse);
             break;
         }
         case GenreInstruction::ACCEDE_MEMBRE:
@@ -2482,6 +2489,52 @@ void GénératriceCodeASM::génère_code_pour_retourne(const InstructionRetour *
     assembleuse.ret();
 }
 
+void GénératriceCodeASM::génère_code_pour_accès_index(InstructionAccèdeIndex const *accès,
+                                                      AssembleuseASM &assembleuse)
+{
+    auto const accédé = accès->accédé;
+    auto type_pointeur = accès->type->comme_type_pointeur();
+
+    auto const valeur_accédé = génère_code_pour_atome(
+        accédé, assembleuse, UtilisationAtome::AUCUNE);
+    assert(valeur_accédé.type == TypeOpérande::MÉMOIRE);
+
+    auto registre1 = registres.donne_registre_inoccupé();
+    auto registre2 = registres.donne_registre_inoccupé();
+
+    /* Charge l'adresse. */
+    assembleuse.lea(registre1, valeur_accédé);
+
+    /* Corrige l'index pour prendre en compte la taille du type. */
+    auto const atome_index = donne_source_charge_ou_atome(accès->index);
+    auto const type_accédé = type_pointeur->type_pointé;
+
+    if (atome_index->est_constante_entière()) {
+        auto const constante = atome_index->comme_constante_entière();
+        auto décalage = constante->valeur * type_accédé->taille_octet;
+        if (décalage != 0) {
+            assembleuse.add(registre1, AssembleuseASM::Immédiate64{décalage}, 8);
+        }
+    }
+    else {
+        auto const valeur_index = génère_code_pour_atome(
+            atome_index, assembleuse, UtilisationAtome::AUCUNE);
+        assembleuse.mov(registre2, valeur_index, accès->index->type->taille_octet);
+        assembleuse.imul(registre2, AssembleuseASM::Immédiate32{type_accédé->taille_octet}, 4);
+
+        /* Corrige l'adresse. */
+        assembleuse.add(registre1, registre2, 8);
+    }
+
+    auto résultat = alloue_variable(TypeBase::PTR_RIEN);
+    assembleuse.mov(résultat, registre1, 8);
+
+    table_valeurs[accès->numero] = résultat;
+
+    registres.marque_registre_inoccupé(registre1);
+    registres.marque_registre_inoccupé(registre2);
+}
+
 void GénératriceCodeASM::génère_code_pour_transtype(InstructionTranstype const *transtype,
                                                     AssembleuseASM &assembleuse)
 {
@@ -2731,6 +2784,14 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
 
     auto type_stocké = inst_stocke->source->type;
 
+    auto registre_pour_accès_index = std::optional<Registre>();
+    if (est_accès_index(inst_stocke->destination)) {
+        auto registre = registres.donne_registre_inoccupé();
+        assembleuse.mov(registre, dest, 8);
+        registre_pour_accès_index = registre;
+        dest = AssembleuseASM::Mémoire(registre);
+    }
+
     if (est_adresse(inst_stocke->source)) {
         /* Stockage d'une adresse. */
         auto src = génère_code_pour_atome(
@@ -2745,12 +2806,23 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
         assembleuse.lea(registre, src);
         assembleuse.mov(dest, registre, type_stocké->taille_octet);
         registres.marque_registre_inoccupé(registre);
+
+        if (registre_pour_accès_index.has_value()) {
+            registres.marque_registre_inoccupé(registre_pour_accès_index.value());
+        }
         return;
     }
 
     auto const atome_source = donne_source_charge_ou_atome(inst_stocke->source);
-
     auto src = génère_code_pour_atome(atome_source, assembleuse, UtilisationAtome::AUCUNE);
+
+    auto registre_pour_accès_index_source = std::optional<Registre>();
+    if (est_accès_index(atome_source)) {
+        auto registre = registres.donne_registre_inoccupé();
+        assembleuse.mov(registre, src, 8);
+        registre_pour_accès_index_source = registre;
+        src = AssembleuseASM::Mémoire(registre);
+    }
 
     /* À FAIRE: movss/movsd pour les réels. */
     auto registre_tmp = registres.donne_registre_inoccupé();
@@ -2786,6 +2858,14 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
 
     if (src.type == TypeOpérande::REGISTRE) {
         registres.marque_registre_inoccupé(src.registre);
+    }
+
+    if (registre_pour_accès_index.has_value()) {
+        registres.marque_registre_inoccupé(registre_pour_accès_index.value());
+    }
+
+    if (registre_pour_accès_index_source.has_value()) {
+        registres.marque_registre_inoccupé(registre_pour_accès_index_source.value());
     }
 }
 
