@@ -1230,6 +1230,11 @@ struct AssembleuseASM {
         m_sortie << TABULATION << "syscall" << NOUVELLE_LIGNE;
     }
 
+    void ud2()
+    {
+        m_sortie << TABULATION << "ud2" << NOUVELLE_LIGNE;
+    }
+
   private:
     void imprime_opérande(Opérande opérande, uint32_t taille_octet = 8)
     {
@@ -1941,7 +1946,7 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
         }
         case GenreInstruction::INATTEIGNABLE:
         {
-            VERIFIE_NON_ATTEINT;
+            assembleuse.ud2();
             break;
         }
         case GenreInstruction::SÉLECTION:
