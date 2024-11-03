@@ -911,10 +911,7 @@ struct AssembleuseASM {
     {
         assert(!est_immédiate(dst.type));
         assert(taille <= 8);
-
-        if (dst.type == TypeOpérande::MÉMOIRE) {
-            assert(src.type != TypeOpérande::MÉMOIRE);
-        }
+        assert(dst.type != TypeOpérande::MÉMOIRE || src.type != TypeOpérande::MÉMOIRE);
 
         m_sortie << TABULATION << "mov ";
         if (dst.type == TypeOpérande::MÉMOIRE) {
