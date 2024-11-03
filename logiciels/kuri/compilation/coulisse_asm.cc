@@ -824,6 +824,7 @@ struct AssembleuseASM {
         /* Un registre ou le nom d'une globale. */
         kuri::chaine_statique adresse{};
         int32_t décalage = 0;
+        bool est_globale = false;
 
         Mémoire() = default;
 
@@ -832,7 +833,7 @@ struct AssembleuseASM {
         {
         }
 
-        Mémoire(kuri::chaine_statique globale) : adresse(globale)
+        Mémoire(kuri::chaine_statique globale) : adresse(globale), est_globale(true)
         {
         }
     };
@@ -881,6 +882,11 @@ struct AssembleuseASM {
         Opérande(Globale glob) : type(TypeOpérande::GLOBALE), globale(glob)
         {
         }
+
+        bool est_mémoire() const
+        {
+            return type == TypeOpérande::MÉMOIRE && mémoire.est_globale == false;
+        }
     };
 
     static bool est_registre(Opérande src, Registre reg)
@@ -911,7 +917,7 @@ struct AssembleuseASM {
     {
         assert(!est_immédiate(dst.type));
         assert(taille <= 8);
-        assert(dst.type != TypeOpérande::MÉMOIRE || src.type != TypeOpérande::MÉMOIRE);
+        assert(!dst.est_mémoire() || !src.est_mémoire());
 
         m_sortie << TABULATION << "mov ";
         if (dst.type == TypeOpérande::MÉMOIRE) {
