@@ -3311,11 +3311,13 @@ void GénératriceCodeASM::génère_code(ProgrammeRepreInter const &repr_inter_p
     /* Définition des fonctions. */
     auto assembleuse = AssembleuseASM(os);
 
-    POUR (fonctions_à_compiler) {
+    POUR_INDEX (fonctions_à_compiler) {
         if (it->est_externe) {
             continue;
         }
 
+        dbg() << "[" << index_it << " / " << fonctions_à_compiler.taille() << "] "
+              << "Compilation de " << it->nom;
         génère_code_pour_fonction(it, assembleuse, os);
     }
 
@@ -3332,8 +3334,6 @@ void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonc
                                                    Enchaineuse &os)
 {
     fonction->numérote_instructions();
-
-    dbg() << "Compilation de " << fonction->nom;
 
     os << fonction->nom << ":\n";
     définis_fonction_courante(fonction);
