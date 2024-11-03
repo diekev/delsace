@@ -1422,6 +1422,10 @@ struct GénératriceCodeASM {
                                                     AssembleuseASM &assembleuse,
                                                     const UtilisationAtome utilisation);
 
+    AssembleuseASM::Opérande génère_code_pour_atome_opérande(Atome *atome,
+                                                             AssembleuseASM &assembleuse,
+                                                             const UtilisationAtome utilisation);
+
     void génère_code_pour_initialisation_globale(Atome const *initialisateur,
                                                  Enchaineuse &enchaineuse,
                                                  int profondeur);
@@ -1604,6 +1608,22 @@ AssembleuseASM::Opérande GénératriceCodeASM::génère_code_pour_atome(
     }
 
     return {};
+}
+
+AssembleuseASM::Opérande GénératriceCodeASM::génère_code_pour_atome_opérande(
+    Atome *opérande, AssembleuseASM &assembleuse, const UtilisationAtome utilisation)
+{
+    auto atome = donne_source_charge_ou_atome(opérande);
+
+    auto valeur_atome = génère_code_pour_atome(atome, assembleuse, utilisation);
+
+    if (est_accès_index(atome)) {
+        auto registre = registres.donne_registre_inoccupé();
+        assembleuse.mov(registre, valeur_atome, 8);
+        valeur_atome = AssembleuseASM::Mémoire(registre);
+    }
+
+    return valeur_atome;
 }
 
 bool est_initialisateur_supporté(Atome const *atome)
@@ -2175,9 +2195,9 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
     auto dest = alloue_variable(inst_bin->type);
     table_valeurs[inst_bin->numero] = dest;
 
-    auto opérande_droite = génère_code_pour_atome(
+    auto opérande_droite = génère_code_pour_atome_opérande(
         inst_bin->valeur_droite, assembleuse, UtilisationAtome::AUCUNE);
-    auto opérande_gauche = génère_code_pour_atome(
+    auto opérande_gauche = génère_code_pour_atome_opérande(
         inst_bin->valeur_gauche, assembleuse, UtilisationAtome::AUCUNE);
 
 #define GENERE_CODE_INST_ENTIER(nom_inst)                                                         \
