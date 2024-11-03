@@ -1196,6 +1196,32 @@ struct AssembleuseASM {
         m_sortie << NOUVELLE_LIGNE;
     }
 
+    void ucomiss(Opérande dst, Opérande src)
+    {
+        assert(dst.type == TypeOpérande::REGISTRE);
+        assert(!est_immédiate(src.type));
+
+        m_sortie << TABULATION << "ucomiss ";
+        imprime_opérande(dst, 4);
+        m_sortie << ", ";
+        imprime_opérande(src, 4);
+
+        m_sortie << NOUVELLE_LIGNE;
+    }
+
+    void ucomisd(Opérande dst, Opérande src)
+    {
+        assert(dst.type == TypeOpérande::REGISTRE);
+        assert(!est_immédiate(src.type));
+
+        m_sortie << TABULATION << "ucomisd ";
+        imprime_opérande(dst, 8);
+        m_sortie << ", ";
+        imprime_opérande(src, 8);
+
+        m_sortie << NOUVELLE_LIGNE;
+    }
+
     void cmove(Opérande dst, Opérande src)
     {
         génère_code_opération_binaire(dst, src, "cmove", 8);
@@ -2290,6 +2316,53 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
         registres.marque_registre_occupé(registre_résultat);
     };
 
+    auto génère_code_comparaison_réel = [&](auto &&gen_code) {
+        auto const type_gauche = inst_bin->valeur_gauche->type;
+
+        if (type_gauche == TypeBase::R32) {
+            assembleuse.movss(Registre::XMM0, opérande_gauche);
+            assembleuse.movss(Registre::XMM1, opérande_droite);
+        }
+        else {
+            assert(type_gauche == TypeBase::R64);
+            assembleuse.movsd(Registre::XMM0, opérande_gauche);
+            assembleuse.movsd(Registre::XMM1, opérande_droite);
+        }
+
+        if ((utilisation & UtilisationAtome::POUR_BRANCHE_CONDITION) != UtilisationAtome::AUCUNE) {
+            if (type_gauche == TypeBase::R32) {
+                assembleuse.ucomiss(Registre::XMM0, Registre::XMM1);
+            }
+            else {
+                assert(type_gauche == TypeBase::R64);
+                assembleuse.ucomisd(Registre::XMM0, Registre::XMM1);
+            }
+            return;
+        }
+
+        /* Xor avant la comparaison afin de ne pas modifier les drapeaux du CPU. */
+        auto registre_résultat = registres.donne_registre_inoccupé();
+        assembleuse.xor_(registre_résultat, registre_résultat, 8);
+
+        /* Mis en place de la valeur si vrai avant la comparaison afin de ne pas modifier les
+         * drapeaux du CPU. */
+        auto registre = registres.donne_registre_inoccupé();
+        assembleuse.mov(registre, AssembleuseASM::Immédiate64{1}, 8);
+
+        if (type_gauche == TypeBase::R32) {
+            assembleuse.ucomiss(Registre::XMM0, Registre::XMM1);
+        }
+        else {
+            assert(type_gauche == TypeBase::R64);
+            assembleuse.ucomisd(Registre::XMM0, Registre::XMM1);
+        }
+        gen_code(registre_résultat, registre);
+
+        table_valeurs[inst_bin->numero] = registre_résultat;
+        registres.réinitialise();
+        registres.marque_registre_occupé(registre_résultat);
+    };
+
     switch (inst_bin->op) {
         case OpérateurBinaire::Genre::Addition:
         {
@@ -2429,32 +2502,50 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
         }
         case OpérateurBinaire::Genre::Comp_Egal_Reel:
         {
-            VERIFIE_NON_ATTEINT;
+            génère_code_comparaison_réel(
+                [&](AssembleuseASM::Opérande gauche, AssembleuseASM::Opérande droite) {
+                    assembleuse.cmove(gauche, droite);
+                });
             break;
         }
         case OpérateurBinaire::Genre::Comp_Inegal_Reel:
         {
-            VERIFIE_NON_ATTEINT;
+            génère_code_comparaison_réel(
+                [&](AssembleuseASM::Opérande gauche, AssembleuseASM::Opérande droite) {
+                    assembleuse.cmovne(gauche, droite);
+                });
             break;
         }
         case OpérateurBinaire::Genre::Comp_Inf_Reel:
         {
-            VERIFIE_NON_ATTEINT;
+            génère_code_comparaison_réel(
+                [&](AssembleuseASM::Opérande gauche, AssembleuseASM::Opérande droite) {
+                    assembleuse.cmovl(gauche, droite);
+                });
             break;
         }
         case OpérateurBinaire::Genre::Comp_Inf_Egal_Reel:
         {
-            VERIFIE_NON_ATTEINT;
+            génère_code_comparaison_réel(
+                [&](AssembleuseASM::Opérande gauche, AssembleuseASM::Opérande droite) {
+                    assembleuse.cmovle(gauche, droite);
+                });
             break;
         }
         case OpérateurBinaire::Genre::Comp_Sup_Reel:
         {
-            VERIFIE_NON_ATTEINT;
+            génère_code_comparaison_réel(
+                [&](AssembleuseASM::Opérande gauche, AssembleuseASM::Opérande droite) {
+                    assembleuse.cmovg(gauche, droite);
+                });
             break;
         }
         case OpérateurBinaire::Genre::Comp_Sup_Egal_Reel:
         {
-            VERIFIE_NON_ATTEINT;
+            génère_code_comparaison_réel(
+                [&](AssembleuseASM::Opérande gauche, AssembleuseASM::Opérande droite) {
+                    assembleuse.cmovge(gauche, droite);
+                });
             break;
         }
         case OpérateurBinaire::Genre::Et_Binaire:
@@ -2772,12 +2863,14 @@ void GénératriceCodeASM::génère_code_pour_branche_condition(
 
         switch (op) {
             case OpérateurBinaire::Genre::Comp_Egal:
+            case OpérateurBinaire::Genre::Comp_Egal_Reel:
             {
                 génère_code_branche(&AssembleuseASM::jump_si_égal,
                                     &AssembleuseASM::jump_si_inégal);
                 return;
             }
             case OpérateurBinaire::Genre::Comp_Inegal:
+            case OpérateurBinaire::Genre::Comp_Inegal_Reel:
             {
                 génère_code_branche(&AssembleuseASM::jump_si_inégal,
                                     &AssembleuseASM::jump_si_égal);
@@ -2785,6 +2878,7 @@ void GénératriceCodeASM::génère_code_pour_branche_condition(
             }
             case OpérateurBinaire::Genre::Comp_Inf:
             case OpérateurBinaire::Genre::Comp_Inf_Nat:
+            case OpérateurBinaire::Genre::Comp_Inf_Reel:
             {
                 génère_code_branche(&AssembleuseASM::jump_si_inférieur,
                                     &AssembleuseASM::jump_si_supérieur_égal);
@@ -2792,6 +2886,7 @@ void GénératriceCodeASM::génère_code_pour_branche_condition(
             }
             case OpérateurBinaire::Genre::Comp_Inf_Egal:
             case OpérateurBinaire::Genre::Comp_Inf_Egal_Nat:
+            case OpérateurBinaire::Genre::Comp_Inf_Egal_Reel:
             {
                 génère_code_branche(&AssembleuseASM::jump_si_inférieur_égal,
                                     &AssembleuseASM::jump_si_supérieur);
@@ -2799,6 +2894,7 @@ void GénératriceCodeASM::génère_code_pour_branche_condition(
             }
             case OpérateurBinaire::Genre::Comp_Sup:
             case OpérateurBinaire::Genre::Comp_Sup_Nat:
+            case OpérateurBinaire::Genre::Comp_Sup_Reel:
             {
                 génère_code_branche(&AssembleuseASM::jump_si_supérieur,
                                     &AssembleuseASM::jump_si_inférieur_égal);
@@ -2806,6 +2902,7 @@ void GénératriceCodeASM::génère_code_pour_branche_condition(
             }
             case OpérateurBinaire::Genre::Comp_Sup_Egal:
             case OpérateurBinaire::Genre::Comp_Sup_Egal_Nat:
+            case OpérateurBinaire::Genre::Comp_Sup_Egal_Reel:
             {
                 génère_code_branche(&AssembleuseASM::jump_si_supérieur_égal,
                                     &AssembleuseASM::jump_si_inférieur);
