@@ -1373,6 +1373,22 @@ struct GestionnaireRegistres {
         registres[static_cast<int>(registre)] = false;
     }
 
+    [[nodiscard]] std::array<bool, 16> sauvegarde_état() const
+    {
+        std::array<bool, 16> résultat;
+        POUR_INDEX (registres) {
+            résultat[size_t(index_it)] = it;
+        }
+        return résultat;
+    }
+
+    void restaure_état(std::array<bool, 16> sauvegarde)
+    {
+        POUR_INDEX (sauvegarde) {
+            registres[index_it] = it;
+        }
+    }
+
     void réinitialise()
     {
         POUR (registres) {
@@ -2154,22 +2170,22 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
         return;
     }
 
+    auto sauvegarde = registres.sauvegarde_état();
+
+    auto dest = alloue_variable(inst_bin->type);
+    table_valeurs[inst_bin->numero] = dest;
+
     auto opérande_droite = génère_code_pour_atome(
         inst_bin->valeur_droite, assembleuse, UtilisationAtome::AUCUNE);
     auto opérande_gauche = génère_code_pour_atome(
         inst_bin->valeur_gauche, assembleuse, UtilisationAtome::AUCUNE);
 
 #define GENERE_CODE_INST_ENTIER(nom_inst)                                                         \
-    auto registre_résultat = opérande_gauche;                                                     \
-    if (opérande_gauche.type != TypeOpérande::REGISTRE) {                                         \
-        registre_résultat = registres.donne_registre_inoccupé();                                  \
-        assembleuse.mov(                                                                          \
-            registre_résultat, opérande_gauche, inst_bin->valeur_gauche->type->taille_octet);     \
-    }                                                                                             \
+    auto registre_résultat = registres.donne_registre_inoccupé();                                 \
+    assembleuse.mov(                                                                              \
+        registre_résultat, opérande_gauche, inst_bin->valeur_gauche->type->taille_octet);         \
     assembleuse.nom_inst(registre_résultat, opérande_droite, inst_bin->type->taille_octet);       \
-    table_valeurs[inst_bin->numero] = registre_résultat;                                          \
-    registres.réinitialise();                                                                     \
-    registres.marque_registre_occupé(registre_résultat.registre)
+    assembleuse.mov(dest, registre_résultat, inst_bin->type->taille_octet);
 
 #define GENERE_CODE_INST_DECALAGE_BIT(nom_inst)                                                   \
     std::optional<Registre> registre_sauvegarde_rcx;                                              \
@@ -2184,13 +2200,10 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
     else {                                                                                        \
         opérande_droite = AssembleuseASM::donne_immédiate8(opérande_droite);                      \
     }                                                                                             \
-    assembleuse.nom_inst(opérande_gauche, opérande_droite, inst_bin->type->taille_octet);         \
-    table_valeurs[inst_bin->numero] = opérande_gauche;                                            \
+    GENERE_CODE_INST_ENTIER(nom_inst)                                                             \
     if (registre_sauvegarde_rcx.has_value()) {                                                    \
         assembleuse.mov(Registre::RCX, registre_sauvegarde_rcx.value(), 8);                       \
-    }                                                                                             \
-    registres.réinitialise();                                                                     \
-    registres.marque_registre_occupé(opérande_gauche.registre)
+    }
 
     /* Les comparaisons sont générées en testant la valeur et utilise cmov pour mettre en place un
      * 0 ou un 1 dans le registre résultat. Ceci est le comportement désiré pour assigner depuis la
@@ -2419,6 +2432,8 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
 
 #undef GENERE_CODE_INST_DECALAGE_BIT
 #undef GENERE_CODE_INST_ENTIER
+
+    registres.restaure_état(sauvegarde);
 }
 
 void GénératriceCodeASM::génère_code_pour_retourne(const InstructionRetour *inst_retour,
