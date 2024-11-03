@@ -966,6 +966,19 @@ struct AssembleuseASM {
         m_sortie << NOUVELLE_LIGNE;
     }
 
+    void movsd(Opérande dst, Opérande src)
+    {
+        assert(!est_immédiate(dst.type));
+        assert(dst.type != TypeOpérande::MÉMOIRE || src.type != TypeOpérande::MÉMOIRE);
+
+        m_sortie << TABULATION << "movsd ";
+        imprime_opérande(dst, 8);
+        m_sortie << ", ";
+        imprime_opérande(src, 8);
+
+        m_sortie << NOUVELLE_LIGNE;
+    }
+
     void lea(Opérande dst, Opérande src)
     {
         assert_rappel(src.type == TypeOpérande::MÉMOIRE,
@@ -1078,37 +1091,65 @@ struct AssembleuseASM {
 
     void addsd(Opérande dst, Opérande src)
     {
-        m_sortie << TABULATION << "addsd" << NOUVELLE_LIGNE;
+        m_sortie << TABULATION << "addsd ";
+        imprime_opérande(dst, 8);
+        m_sortie << ", ";
+        imprime_opérande(src, 8);
+        m_sortie << NOUVELLE_LIGNE;
     }
 
     void mulss(Opérande dst, Opérande src)
     {
-        m_sortie << TABULATION << "mulss" << NOUVELLE_LIGNE;
+        m_sortie << TABULATION << "mulss ";
+        imprime_opérande(dst, 4);
+        m_sortie << ", ";
+        imprime_opérande(src, 4);
+        m_sortie << NOUVELLE_LIGNE;
     }
 
     void mulsd(Opérande dst, Opérande src)
     {
-        m_sortie << TABULATION << "mulsd" << NOUVELLE_LIGNE;
+        m_sortie << TABULATION << "mulsd ";
+        imprime_opérande(dst, 8);
+        m_sortie << ", ";
+        imprime_opérande(src, 8);
+        m_sortie << NOUVELLE_LIGNE;
     }
 
     void subss(Opérande dst, Opérande src)
     {
-        m_sortie << TABULATION << "subss" << NOUVELLE_LIGNE;
+        m_sortie << TABULATION << "subss ";
+        imprime_opérande(dst, 4);
+        m_sortie << ", ";
+        imprime_opérande(src, 4);
+        m_sortie << NOUVELLE_LIGNE;
     }
 
     void subsd(Opérande dst, Opérande src)
     {
-        m_sortie << TABULATION << "subsd" << NOUVELLE_LIGNE;
+        m_sortie << TABULATION << "subsd ";
+        imprime_opérande(dst, 8);
+        m_sortie << ", ";
+        imprime_opérande(src, 8);
+        m_sortie << NOUVELLE_LIGNE;
     }
 
     void divss(Opérande dst, Opérande src)
     {
-        m_sortie << TABULATION << "divss" << NOUVELLE_LIGNE;
+        m_sortie << TABULATION << "divss ";
+        imprime_opérande(dst, 4);
+        m_sortie << ", ";
+        imprime_opérande(src, 4);
+        m_sortie << NOUVELLE_LIGNE;
     }
 
     void divsd(Opérande dst, Opérande src)
     {
-        m_sortie << TABULATION << "divsd" << NOUVELLE_LIGNE;
+        m_sortie << TABULATION << "divsd ";
+        imprime_opérande(dst, 8);
+        m_sortie << ", ";
+        imprime_opérande(src, 8);
+        m_sortie << NOUVELLE_LIGNE;
     }
 
     void and_(Opérande dst, Opérande src, uint32_t taille_octet)
@@ -2167,29 +2208,6 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
                                                             AssembleuseASM &assembleuse,
                                                             UtilisationAtome const utilisation)
 {
-    if (inst_bin->op == OpérateurBinaire::Genre::Addition_Reel) {
-        assert(inst_bin->type == TypeBase::R32);
-        auto valeur_droite = donne_source_charge_ou_atome(inst_bin->valeur_droite);
-        auto valeur_gauche = donne_source_charge_ou_atome(inst_bin->valeur_gauche);
-
-        auto opérande_droite = génère_code_pour_atome(
-            valeur_droite, assembleuse, UtilisationAtome::AUCUNE);
-        auto opérande_gauche = génère_code_pour_atome(
-            valeur_gauche, assembleuse, UtilisationAtome::AUCUNE);
-
-        assembleuse.movss(Registre::XMM0, opérande_gauche);
-        assembleuse.movss(Registre::XMM1, opérande_droite);
-
-        assembleuse.addss(Registre::XMM0, Registre::XMM1);
-
-        auto dest = alloue_variable(inst_bin->type);
-
-        assembleuse.movss(dest, Registre::XMM0);
-
-        table_valeurs[inst_bin->numero] = dest;
-        return;
-    }
-
     auto sauvegarde = registres.sauvegarde_état();
 
     auto dest = alloue_variable(inst_bin->type);
@@ -2206,6 +2224,18 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
         registre_résultat, opérande_gauche, inst_bin->valeur_gauche->type->taille_octet);         \
     assembleuse.nom_inst(registre_résultat, opérande_droite, inst_bin->type->taille_octet);       \
     assembleuse.mov(dest, registre_résultat, inst_bin->type->taille_octet);
+
+#define GENERE_CODE_INST_R32(nom_inst)                                                            \
+    assembleuse.movss(Registre::XMM0, opérande_gauche);                                           \
+    assembleuse.movss(Registre::XMM1, opérande_droite);                                           \
+    assembleuse.nom_inst(Registre::XMM0, Registre::XMM1);                                         \
+    assembleuse.movss(dest, Registre::XMM0);
+
+#define GENERE_CODE_INST_R64(nom_inst)                                                            \
+    assembleuse.movsd(Registre::XMM0, opérande_gauche);                                           \
+    assembleuse.movsd(Registre::XMM1, opérande_droite);                                           \
+    assembleuse.nom_inst(Registre::XMM0, Registre::XMM1);                                         \
+    assembleuse.movsd(dest, Registre::XMM0);
 
 #define GENERE_CODE_INST_DECALAGE_BIT(nom_inst)                                                   \
     std::optional<Registre> registre_sauvegarde_rcx;                                              \
@@ -2268,9 +2298,13 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
         }
         case OpérateurBinaire::Genre::Addition_Reel:
         {
-            // À FAIRE : addsd pour des r64
-            assembleuse.addss(OPERANDE2);
-            VERIFIE_NON_ATTEINT;
+            if (inst_bin->type == TypeBase::R32) {
+                GENERE_CODE_INST_R32(addss);
+            }
+            else {
+                assert(inst_bin->type == TypeBase::R64);
+                GENERE_CODE_INST_R64(addsd);
+            }
             break;
         }
         case OpérateurBinaire::Genre::Soustraction:
@@ -2280,9 +2314,13 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
         }
         case OpérateurBinaire::Genre::Soustraction_Reel:
         {
-            // À FAIRE : subss pour des r64
-            assembleuse.subss(OPERANDE2);
-            VERIFIE_NON_ATTEINT;
+            if (inst_bin->type == TypeBase::R32) {
+                GENERE_CODE_INST_R32(subss);
+            }
+            else {
+                assert(inst_bin->type == TypeBase::R64);
+                GENERE_CODE_INST_R64(subsd);
+            }
             break;
         }
         case OpérateurBinaire::Genre::Multiplication:
@@ -2297,9 +2335,13 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
         }
         case OpérateurBinaire::Genre::Multiplication_Reel:
         {
-            // À FAIRE : mulsd pour des r64
-            assembleuse.mulss(OPERANDE2);
-            VERIFIE_NON_ATTEINT;
+            if (inst_bin->type == TypeBase::R32) {
+                GENERE_CODE_INST_R32(mulss);
+            }
+            else {
+                assert(inst_bin->type == TypeBase::R64);
+                GENERE_CODE_INST_R64(mulsd);
+            }
             break;
         }
         case OpérateurBinaire::Genre::Division_Naturel:
@@ -2318,9 +2360,13 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
         }
         case OpérateurBinaire::Genre::Division_Reel:
         {
-            // À FAIRE : divsd pour des r64
-            assembleuse.divss(OPERANDE2);
-            VERIFIE_NON_ATTEINT;
+            if (inst_bin->type == TypeBase::R32) {
+                GENERE_CODE_INST_R32(divss);
+            }
+            else {
+                assert(inst_bin->type == TypeBase::R64);
+                GENERE_CODE_INST_R64(divsd);
+            }
             break;
         }
         case OpérateurBinaire::Genre::Reste_Naturel:
