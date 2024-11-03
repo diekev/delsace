@@ -3203,7 +3203,7 @@ void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonc
     os << fonction->nom << ":\n";
     définis_fonction_courante(fonction);
 
-    /* À FAIRE : comprend ce qu'il y a à RSP pour qu'un décalage de 8 soit toujours requis. */
+    /* Décale de 8 car l'adresse de l'instruction de retour se trouve à RSP. */
     taille_allouée = 8;
 
     sauvegarde_registres_appel(assembleuse);
