@@ -232,7 +232,7 @@ static void détermine_classe_argument_aggrégé(TypeCompose const *type,
     auto nombre_huitoctets = (taille + 7) / 8;
     dbg() << chaine_type(type) << " taille octet " << type->taille_octet << " taille alignée "
           << taille;
-    dbg() << "Nombre de huitoctets : " << nombre_huitoctets;
+    dbg() << "Nombre de huitoctets pour " << chaine_type(type) << " : " << nombre_huitoctets;
 
     /* 1. If the size of an object is larger than four eightbytes, or it contains unaligned fields,
      *    it has class MEMORY. */
