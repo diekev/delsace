@@ -4938,8 +4938,15 @@ void CompilatriceRI::génère_ri_pour_initialisation_globales(
 
     auto globales_à_initialiser = donne_globales_à_initialiser(globales, m_compilatrice);
     POUR (globales_à_initialiser) {
+        if (it->est_constante) {
+            continue;
+        }
+
         auto constructeur = trouve_constructeur_pour(it);
         if (!constructeur) {
+            if (it->initialisateur && !est_globale_pour_tableau_données_constantes(it)) {
+                m_constructrice.crée_stocke_mem(nullptr, it, it->initialisateur);
+            }
             continue;
         }
 

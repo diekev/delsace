@@ -145,6 +145,9 @@ struct GénératriceCodeC {
      * génération de code pour une chaine. */
     int index_chaine = 0;
 
+    /* Pour les noms des initialisations constantes de tableaux. */
+    int nombre_init_tableau = 0;
+
     /* Pour les noms des globales anonymes. */
     int nombre_de_globales = 0;
 
@@ -209,6 +212,8 @@ struct GénératriceCodeC {
                                                       bool pour_entête);
 
     kuri::chaine_statique donne_nom_pour_instruction(Instruction const *instruction);
+
+    kuri::chaine_statique donne_nom_pour_init_tableau();
 
     kuri::chaine_statique donne_nom_pour_globale(const AtomeGlobale *valeur_globale,
                                                  bool pour_entête);
@@ -1327,6 +1332,13 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
             auto éléments = tableau->donne_atomes_éléments();
             auto résultat = Enchaineuse();
 
+            kuri::chaine_statique nom_variable;
+            if (!pour_globale) {
+                nom_variable = donne_nom_pour_init_tableau();
+                résultat << "const " << donne_nom_pour_type(tableau->type) << " " << nom_variable
+                         << " = ";
+            }
+
             auto virgule = enchaine("{ .", nom_variable_tableau_fixe, " = { ");
             auto nombre_de_tampons = 1;
 
@@ -1353,10 +1365,24 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
             if (résultat.nombre_tampons() > 1) {
                 auto chaine_résultat = résultat.chaine();
                 chaines_trop_larges_pour_stockage_chn.ajoute(chaine_résultat);
-                return chaines_trop_larges_pour_stockage_chn.dernier_élément();
+                auto chn_résultat = chaines_trop_larges_pour_stockage_chn.dernier_élément();
+
+                if (!pour_globale) {
+                    os << "  " << chn_résultat << ";\n";
+                    return nom_variable;
+                }
+
+                return chn_résultat;
             }
 
-            return stockage_chn.ajoute_chaine_statique(résultat.chaine_statique());
+            auto chn_résultat = stockage_chn.ajoute_chaine_statique(résultat.chaine_statique());
+
+            if (!pour_globale) {
+                os << "  " << chn_résultat << ";\n";
+                return nom_variable;
+            }
+
+            return chn_résultat;
         }
         case Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES:
         {
@@ -1371,16 +1397,39 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
 
             enchaineuse_tmp.réinitialise();
 
+            kuri::chaine_statique nom_variable;
+            if (!pour_globale) {
+                nom_variable = donne_nom_pour_init_tableau();
+                enchaineuse_tmp.réinitialise();
+                enchaineuse_tmp << "const " << donne_nom_pour_type(init_tableau->type) << " "
+                                << nom_variable << " = ";
+            }
+
             /* Ne mettre qu'une seule fois la valeur suffit. */
             enchaineuse_tmp << "{{ " << valeur << " }}";
 
             if (enchaineuse_tmp.nombre_tampons() > 1) {
                 auto chaine_résultat = enchaineuse_tmp.chaine();
                 chaines_trop_larges_pour_stockage_chn.ajoute(chaine_résultat);
-                return chaines_trop_larges_pour_stockage_chn.dernier_élément();
+
+                auto résultat = chaines_trop_larges_pour_stockage_chn.dernier_élément();
+
+                if (!pour_globale) {
+                    os << "  " << résultat << ";\n";
+                    return nom_variable;
+                }
+
+                return résultat;
             }
 
-            return stockage_chn.ajoute_chaine_statique(enchaineuse_tmp.chaine_statique());
+            auto résultat = stockage_chn.ajoute_chaine_statique(enchaineuse_tmp.chaine_statique());
+
+            if (!pour_globale) {
+                os << "  " << résultat << ";\n";
+                return nom_variable;
+            }
+
+            return résultat;
         }
         case Atome::Genre::NON_INITIALISATION:
         {
@@ -1907,6 +1956,11 @@ kuri::chaine_statique GénératriceCodeC::donne_nom_pour_instruction(const Instr
     return enchaine(nom_base_variable, instruction->numero);
 }
 
+kuri::chaine_statique GénératriceCodeC::donne_nom_pour_init_tableau()
+{
+    return enchaine("init_tableau", nombre_init_tableau++);
+}
+
 kuri::chaine_statique GénératriceCodeC::donne_nom_pour_globale(const AtomeGlobale *valeur_globale,
                                                                bool pour_entête)
 {
@@ -1996,13 +2050,14 @@ void GénératriceCodeC::génère_code_source(CoulisseC::FichierC const &fichier
     POUR (fichier.globales) {
         auto valeur_initialisateur = kuri::chaine_statique();
 
-        if (it->initialisateur) {
+        if (it->est_constante) {
+            assert(it->initialisateur);
             valeur_initialisateur = génère_code_pour_atome(it->initialisateur, os, true);
         }
 
         déclare_globale(os, it, false);
 
-        if (it->initialisateur) {
+        if (it->est_constante) {
             os << " = " << valeur_initialisateur;
         }
 
