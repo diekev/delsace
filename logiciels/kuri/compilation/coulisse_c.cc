@@ -1049,8 +1049,8 @@ static kuri::tableau_statique<const T> donne_tableau_typé(
     return {pointeur_données, taille_données};
 }
 
-static kuri::chaine_statique génère_code_pour_données_constantes(
-    Enchaineuse &enchaineuse, AtomeConstanteDonnéesConstantes const *constante)
+static void génère_code_pour_données_constantes(Enchaineuse &enchaineuse,
+                                                AtomeConstanteDonnéesConstantes const *constante)
 {
     enchaineuse.réinitialise();
 
@@ -1115,8 +1115,6 @@ static kuri::chaine_statique génère_code_pour_données_constantes(
                   << chaine_type(type_élément);
         });
     }
-
-    return enchaineuse.chaine_statique();
 }
 
 kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *atome,
@@ -1387,8 +1385,15 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
         case Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES:
         {
             auto constante = atome->comme_données_constantes();
-            auto chn_tmp = génère_code_pour_données_constantes(enchaineuse_tmp, constante);
-            return stockage_chn.ajoute_chaine_statique(chn_tmp);
+            génère_code_pour_données_constantes(enchaineuse_tmp, constante);
+
+            if (enchaineuse_tmp.nombre_tampons() > 1) {
+                auto chaine_résultat = enchaineuse_tmp.chaine();
+                chaines_trop_larges_pour_stockage_chn.ajoute(chaine_résultat);
+                return chaines_trop_larges_pour_stockage_chn.dernier_élément();
+            }
+
+            return stockage_chn.ajoute_chaine_statique(enchaineuse_tmp.chaine_statique());
         }
         case Atome::Genre::INITIALISATION_TABLEAU:
         {
