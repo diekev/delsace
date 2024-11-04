@@ -4627,7 +4627,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type_membre_structure(const MembreTypeC
     auto valeurs = kuri::tableau<AtomeConstante *>(5);
     valeurs[0] = crée_constante_pour_chaine(membre.nom->nom);
     valeurs[1] = crée_info_type_avec_transtype(membre.type, site);
-    valeurs[2] = m_constructrice.crée_z64(static_cast<uint64_t>(membre.decalage));
+    valeurs[2] = m_constructrice.crée_z32(membre.decalage);
     valeurs[3] = m_constructrice.crée_z32(static_cast<unsigned>(membre.drapeaux));
 
     if (membre.decl) {

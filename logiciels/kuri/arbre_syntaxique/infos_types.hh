@@ -71,7 +71,7 @@ struct InfoTypeMembreStructure {
 
     kuri::chaine_statique nom{};
     InfoType *info = nullptr;
-    int64_t décalage = 0;  // décalage en octets dans la structure
+    int32_t décalage = 0;  // décalage en octets dans la structure
     int drapeaux = 0;
     kuri::tranche<const Annotation *> annotations{};
 };
