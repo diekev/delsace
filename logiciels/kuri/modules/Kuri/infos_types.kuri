@@ -39,8 +39,8 @@ InfoTypeEntier :: struct #interface {
 InfoTypePointeur :: struct #interface {
     empl base: InfoType
 
-    type_pointé: *InfoType
     est_référence: bool
+    type_pointé: *InfoType
 }
 
 InfoTypeTableau :: struct #interface {
@@ -52,8 +52,8 @@ InfoTypeTableau :: struct #interface {
 InfoTypeTableauFixe :: struct #interface {
     empl base: InfoType
 
-    type_pointé: *InfoType
     nombre_éléments: n32
+    type_pointé: *InfoType
 }
 
 InfoTypeTranche :: struct #interface {
@@ -104,11 +104,11 @@ trouve_annotation :: fonc (info: *InfoTypeMembreStructure, nom: chaine) -> *Anno
 InfoTypeStructure :: struct #interface {
     empl base: InfoType
 
+    est_polymorphique: bool
     nom: chaine
     membres: []*InfoTypeMembreStructure
     structs_employées: []*InfoTypeStructure
     annotations: []*AnnotationCode
-    est_polymorphique: bool
     polymorphe_de_base: *InfoTypeStructure
 }
 
@@ -125,12 +125,12 @@ trouve_annotation :: fonc (info: *InfoTypeStructure, nom: chaine) -> *Annotation
 InfoTypeUnion :: struct #interface {
     empl base: InfoType
 
+    est_sûre: bool
+    est_polymorphique: bool
     nom: chaine
     membres: []*InfoTypeMembreStructure
     type_le_plus_grand: *InfoType
     décalage_index: z64
-    est_sûre: bool
-    est_polymorphique: bool
     annotations: []*AnnotationCode
     polymorphe_de_base: *InfoTypeUnion
 }
@@ -148,9 +148,9 @@ trouve_annotation :: fonc (info: *InfoTypeUnion, nom: chaine) -> *AnnotationCode
 InfoTypeFonction :: struct #interface {
     empl base: InfoType
 
+    est_coroutine: bool
     types_entrée: []*InfoType
     types_sortie: []*InfoType
-    est_coroutine: bool
 }
 
 /* Retourne vrai si les d'entrée et de sortie de l'InfoTypeFonction sont les
@@ -163,10 +163,10 @@ apparie_type_fonction :: fonc (info_type: *InfoTypeFonction, types_entrée: []*I
 InfoTypeÉnum :: struct #interface {
     empl base: InfoType
 
+    est_drapeau: bool
     nom: chaine
     valeurs: []octet
     noms: []chaine
-    est_drapeau: bool
     type_sous_jacent: *InfoTypeEntier
 }
 

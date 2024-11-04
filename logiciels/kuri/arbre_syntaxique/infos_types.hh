@@ -49,8 +49,8 @@ struct InfoTypeEntier : public InfoType {
 };
 
 struct InfoTypePointeur : public InfoType {
-    InfoType *type_pointé = nullptr;
     bool est_référence = false;
+    InfoType *type_pointé = nullptr;
 };
 
 struct InfoTypeTableau : public InfoType {
@@ -58,8 +58,8 @@ struct InfoTypeTableau : public InfoType {
 };
 
 struct InfoTypeTableauFixe : public InfoType {
-    InfoType *type_élément = nullptr;
     uint32_t nombre_éléments = 0;
+    InfoType *type_élément = nullptr;
 };
 
 struct InfoTypeTranche : public InfoType {
@@ -77,36 +77,36 @@ struct InfoTypeMembreStructure {
 };
 
 struct InfoTypeStructure : public InfoType {
+    bool est_polymorphique = false;
     kuri::chaine_statique nom{};
     kuri::tranche<InfoTypeMembreStructure *> membres{};
     kuri::tranche<InfoTypeStructure *> structs_employées{};
     kuri::tranche<const Annotation *> annotations{};
-    bool est_polymorphique = false;
     InfoTypeStructure *polymorphe_de_base = nullptr;
 };
 
 struct InfoTypeUnion : public InfoType {
+    bool est_sûre = false;
+    bool est_polymorphique = false;
     kuri::chaine_statique nom{};
     kuri::tranche<InfoTypeMembreStructure *> membres{};
     InfoType *type_le_plus_grand = nullptr;
     int64_t décalage_index = 0;
-    bool est_sûre = false;
-    bool est_polymorphique = false;
     kuri::tranche<const Annotation *> annotations{};
     InfoTypeUnion *polymorphe_de_base = nullptr;
 };
 
 struct InfoTypeFonction : public InfoType {
+    bool est_coroutine = false;
     kuri::tranche<InfoType *> types_entrée{};
     kuri::tranche<InfoType *> types_sortie{};
-    bool est_coroutine = false;
 };
 
 struct InfoTypeÉnum : public InfoType {
+    bool est_drapeau = false;
     kuri::chaine_statique nom{};
     kuri::tranche<char> valeurs{};
     kuri::tranche<kuri::chaine_statique> noms{};
-    bool est_drapeau = false;
     InfoTypeEntier *type_sous_jacent = nullptr;
 };
 

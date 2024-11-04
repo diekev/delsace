@@ -4181,15 +4181,15 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             /* { membres basiques, type_pointé, est_référence } */
             auto valeurs = kuri::tableau<AtomeConstante *>(3);
             valeurs[0] = crée_constante_info_type_pour_base(GenreInfoType::POINTEUR, type);
+            valeurs[1] = m_constructrice.crée_constante_booléenne(type->est_type_référence());
             if (type_deref) {
-                valeurs[1] = crée_info_type_avec_transtype(type_deref, site);
+                valeurs[2] = crée_info_type_avec_transtype(type_deref, site);
             }
             else {
                 auto type_pointeur_info_type = m_compilatrice.typeuse.type_pointeur_pour(
                     m_compilatrice.typeuse.type_info_type_, false);
-                valeurs[1] = m_constructrice.crée_constante_nulle(type_pointeur_info_type);
+                valeurs[2] = m_constructrice.crée_constante_nulle(type_pointeur_info_type);
             }
-            valeurs[2] = m_constructrice.crée_constante_booléenne(type->est_type_référence());
 
             type->atome_info_type = crée_globale_info_type(
                 m_compilatrice.typeuse.type_info_type_pointeur, std::move(valeurs));
@@ -4233,12 +4233,12 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             /* { membres basiques, nom, valeurs, membres, est_drapeau } */
             auto valeurs = kuri::tableau<AtomeConstante *>(6);
             valeurs[0] = crée_constante_info_type_pour_base(GenreInfoType::ÉNUM, type);
-            valeurs[1] = crée_constante_pour_chaine(
-                donne_nom_hiérarchique(const_cast<TypeEnum *>(type_enum)));
-            valeurs[2] = tableau_valeurs;
-            valeurs[3] = tableau_noms;
-            valeurs[4] = m_constructrice.crée_constante_booléenne(
+            valeurs[1] = m_constructrice.crée_constante_booléenne(
                 type_enum->est_type_enum_drapeau());
+            valeurs[2] = crée_constante_pour_chaine(
+                donne_nom_hiérarchique(const_cast<TypeEnum *>(type_enum)));
+            valeurs[3] = tableau_valeurs;
+            valeurs[4] = tableau_noms;
             valeurs[5] = crée_info_type(type_enum->type_sous_jacent, site);
 
             type->atome_info_type = crée_globale_info_type(
@@ -4317,13 +4317,13 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
 
             auto valeurs = kuri::tableau<AtomeConstante *>(9);
             valeurs[0] = crée_constante_info_type_pour_base(GenreInfoType::UNION, type);
-            valeurs[1] = crée_constante_pour_chaine(
+            valeurs[1] = m_constructrice.crée_constante_booléenne(!type_union->est_nonsure);
+            valeurs[2] = m_constructrice.crée_constante_booléenne(type_union->est_polymorphe);
+            valeurs[3] = crée_constante_pour_chaine(
                 donne_nom_hiérarchique(const_cast<TypeUnion *>(type_union)));
-            valeurs[2] = tableau_membre;
-            valeurs[3] = info_type_plus_grand;
-            valeurs[4] = m_constructrice.crée_z64(type_union->décalage_index);
-            valeurs[5] = m_constructrice.crée_constante_booléenne(!type_union->est_nonsure);
-            valeurs[6] = m_constructrice.crée_constante_booléenne(type_union->est_polymorphe);
+            valeurs[4] = tableau_membre;
+            valeurs[5] = info_type_plus_grand;
+            valeurs[6] = m_constructrice.crée_z64(type_union->décalage_index);
             valeurs[7] = crée_tableau_annotations_pour_info_membre(type_union->annotations);
             valeurs[8] = info_type_polymorphe_de_base;
 
@@ -4393,12 +4393,12 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             /* { membres basiques, nom, membres } */
             auto valeurs = kuri::tableau<AtomeConstante *>(7);
             valeurs[0] = crée_constante_info_type_pour_base(GenreInfoType::STRUCTURE, type);
-            valeurs[1] = crée_constante_pour_chaine(
+            valeurs[1] = m_constructrice.crée_constante_booléenne(type_struct->est_polymorphe);
+            valeurs[2] = crée_constante_pour_chaine(
                 donne_nom_hiérarchique(const_cast<TypeStructure *>(type_struct)));
-            valeurs[2] = tableau_membre;
-            valeurs[3] = tableau_structs_employées;
-            valeurs[4] = crée_tableau_annotations_pour_info_membre(type_struct->annotations);
-            valeurs[5] = m_constructrice.crée_constante_booléenne(type_struct->est_polymorphe);
+            valeurs[3] = tableau_membre;
+            valeurs[4] = tableau_structs_employées;
+            valeurs[5] = crée_tableau_annotations_pour_info_membre(type_struct->annotations);
             valeurs[6] = info_type_polymorphe_de_base;
 
             globale->initialisateur = m_constructrice.crée_constante_structure(type_info_struct,
@@ -4446,8 +4446,8 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             /* { membres basiques, type_pointé, taille_fixe } */
             auto valeurs = kuri::tableau<AtomeConstante *>(3);
             valeurs[0] = crée_constante_info_type_pour_base(GenreInfoType::TABLEAU_FIXE, type);
-            valeurs[1] = crée_info_type_avec_transtype(type_tableau->type_pointé, site);
-            valeurs[2] = m_constructrice.crée_z32(static_cast<unsigned>(type_tableau->taille));
+            valeurs[1] = m_constructrice.crée_z32(static_cast<unsigned>(type_tableau->taille));
+            valeurs[2] = crée_info_type_avec_transtype(type_tableau->type_pointé, site);
 
             type->atome_info_type = crée_globale_info_type(
                 m_compilatrice.typeuse.type_info_type_tableau_fixe, std::move(valeurs));
@@ -4462,9 +4462,9 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
 
             auto valeurs = kuri::tableau<AtomeConstante *>(4);
             valeurs[0] = crée_constante_info_type_pour_base(GenreInfoType::FONCTION, type);
-            valeurs[1] = tableau_types_entrée;
-            valeurs[2] = tableau_types_sortie;
-            valeurs[3] = m_constructrice.crée_constante_booléenne(false);
+            valeurs[1] = m_constructrice.crée_constante_booléenne(false);
+            valeurs[2] = tableau_types_entrée;
+            valeurs[3] = tableau_types_sortie;
 
             type->atome_info_type = crée_globale_info_type(
                 m_compilatrice.typeuse.type_info_type_fonction, std::move(valeurs));
