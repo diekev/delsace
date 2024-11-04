@@ -116,6 +116,10 @@ enum class Registre {
     XMM7,
 };
 
+#define NOMBRE_REGISTRES_ENTIER 16
+#define NOMBRE_REGISTRES_REEL 8
+#define NOMBRE_REGISTRES (NOMBRE_REGISTRES_ENTIER + NOMBRE_REGISTRES_REEL)
+
 static kuri::chaine_statique chaine_pour_registre(Registre registre, uint32_t taille_octet)
 {
 #define APPARIE_REGISTRE(type, nom1, nom2, nom4, nom8)                                            \
@@ -1416,7 +1420,7 @@ struct AssembleuseASM {
 /* Tient trace des registres pour éviter de surécrire dans un registre. */
 struct GestionnaireRegistres {
   private:
-    bool registres[16] = {false};
+    bool registres[NOMBRE_REGISTRES] = {false};
 
   public:
     GestionnaireRegistres()
@@ -1424,22 +1428,41 @@ struct GestionnaireRegistres {
         réinitialise();
     }
 
-    Registre donne_registre_inoccupé()
+    Registre donne_registre_inoccupé(Type const *type)
     {
-        auto index_registre = 0;
-
-        POUR (registres) {
-            if (!it) {
-                it = true;
-                break;
-            }
-
-            index_registre += 1;
+        if (type == TypeBase::R32 || type == TypeBase::R64) {
+            return donne_registre_réel_inoccupé();
         }
 
-        return static_cast<Registre>(index_registre);
+        return donne_registre_entier_inoccupé();
     }
 
+    Registre donne_registre_entier_inoccupé()
+    {
+        return donne_registre_inoccupé(0, NOMBRE_REGISTRES_ENTIER);
+    }
+
+    Registre donne_registre_réel_inoccupé()
+    {
+        return donne_registre_inoccupé(NOMBRE_REGISTRES_ENTIER, NOMBRE_REGISTRES);
+    }
+
+  private:
+    Registre donne_registre_inoccupé(int index_début, int index_fin)
+    {
+        for (auto i = index_début; i < index_fin; i++) {
+            if (registres[i]) {
+                continue;
+            }
+
+            registres[i] = true;
+            return static_cast<Registre>(i);
+        }
+
+        assert(false);
+    }
+
+  public:
     bool registre_est_occupé(Registre registre) const
     {
         return registres[static_cast<int>(registre)];
@@ -1456,16 +1479,16 @@ struct GestionnaireRegistres {
         registres[static_cast<int>(registre)] = false;
     }
 
-    [[nodiscard]] std::array<bool, 16> sauvegarde_état() const
+    [[nodiscard]] std::array<bool, NOMBRE_REGISTRES> sauvegarde_état() const
     {
-        std::array<bool, 16> résultat;
+        std::array<bool, NOMBRE_REGISTRES> résultat;
         POUR_INDEX (registres) {
             résultat[size_t(index_it)] = it;
         }
         return résultat;
     }
 
-    void restaure_état(std::array<bool, 16> sauvegarde)
+    void restaure_état(std::array<bool, NOMBRE_REGISTRES> sauvegarde)
     {
         POUR_INDEX (sauvegarde) {
             registres[index_it] = it;
@@ -1484,7 +1507,7 @@ struct GestionnaireRegistres {
 
 class SauveRegistres {
     GestionnaireRegistres &m_registres;
-    std::array<bool, 16> sauvegarde{};
+    std::array<bool, NOMBRE_REGISTRES> sauvegarde{};
 
   public:
     SauveRegistres(GestionnaireRegistres &registres) : m_registres(registres)
@@ -1719,7 +1742,7 @@ AssembleuseASM::Opérande GénératriceCodeASM::génère_code_pour_atome_opéran
     auto valeur_atome = génère_code_pour_atome(atome, assembleuse, utilisation);
 
     if (est_accès_index(atome)) {
-        auto registre = registres.donne_registre_inoccupé();
+        auto registre = registres.donne_registre_entier_inoccupé();
         assembleuse.mov(registre, valeur_atome, 8);
         valeur_atome = AssembleuseASM::Mémoire(registre);
     }
@@ -2045,7 +2068,7 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
                     table_valeurs[inst->numero] = dest;
 
                     if (est_type_entier(inst_un->type)) {
-                        auto registre = registres.donne_registre_inoccupé();
+                        auto registre = registres.donne_registre_entier_inoccupé();
                         assembleuse.mov(registre, valeur, inst_un->type->taille_octet);
                         assembleuse.neg(registre, inst_un->type->taille_octet);
                         assembleuse.mov(dest, registre, inst_un->type->taille_octet);
@@ -2249,7 +2272,7 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
     }
 
     if (appelée.type == TypeOpérande::MÉMOIRE) {
-        auto registre = registres.donne_registre_inoccupé();
+        auto registre = registres.donne_registre_entier_inoccupé();
         assembleuse.mov(registre, appelée, 8);
         appelée = registre;
     }
@@ -2313,7 +2336,7 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
         inst_bin->valeur_gauche, assembleuse, UtilisationAtome::AUCUNE);
 
 #define GENERE_CODE_INST_ENTIER(nom_inst)                                                         \
-    auto registre_résultat = registres.donne_registre_inoccupé();                                 \
+    auto registre_résultat = registres.donne_registre_entier_inoccupé();                          \
     assembleuse.mov(                                                                              \
         registre_résultat, opérande_gauche, inst_bin->valeur_gauche->type->taille_octet);         \
     assembleuse.nom_inst(registre_résultat, opérande_droite, inst_bin->type->taille_octet);       \
@@ -2335,7 +2358,7 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
     std::optional<Registre> registre_sauvegarde_rcx;                                              \
     if (!assembleuse.est_immédiate(opérande_droite.type)) {                                       \
         if (registres.registre_est_occupé(Registre::RCX)) {                                       \
-            registre_sauvegarde_rcx = registres.donne_registre_inoccupé();                        \
+            registre_sauvegarde_rcx = registres.donne_registre_entier_inoccupé();                 \
             assembleuse.mov(registre_sauvegarde_rcx.value(), Registre::RCX, 8);                   \
         }                                                                                         \
         assembleuse.mov(Registre::RCX, opérande_droite, 1);                                       \
@@ -2357,7 +2380,7 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
         auto const type_gauche = inst_bin->valeur_gauche->type;
 
         if (AssembleuseASM::est_immédiate(opérande_gauche.type)) {
-            auto registre = registres.donne_registre_inoccupé();
+            auto registre = registres.donne_registre_entier_inoccupé();
             assembleuse.mov(registre, opérande_gauche, type_gauche->taille_octet);
             opérande_gauche = registre;
         }
@@ -2368,12 +2391,12 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
         }
 
         /* Xor avant la comparaison afin de ne pas modifier les drapeaux du CPU. */
-        auto registre_résultat = registres.donne_registre_inoccupé();
+        auto registre_résultat = registres.donne_registre_entier_inoccupé();
         assembleuse.xor_(registre_résultat, registre_résultat, 8);
 
         /* Mis en place de la valeur si vrai avant la comparaison afin de ne pas modifier les
          * drapeaux du CPU. */
-        auto registre = registres.donne_registre_inoccupé();
+        auto registre = registres.donne_registre_entier_inoccupé();
         assembleuse.mov(registre, AssembleuseASM::Immédiate64{1}, 8);
 
         assembleuse.cmp(opérande_gauche, opérande_droite, type_gauche->taille_octet);
@@ -2409,12 +2432,12 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
         }
 
         /* Xor avant la comparaison afin de ne pas modifier les drapeaux du CPU. */
-        auto registre_résultat = registres.donne_registre_inoccupé();
+        auto registre_résultat = registres.donne_registre_entier_inoccupé();
         assembleuse.xor_(registre_résultat, registre_résultat, 8);
 
         /* Mis en place de la valeur si vrai avant la comparaison afin de ne pas modifier les
          * drapeaux du CPU. */
-        auto registre = registres.donne_registre_inoccupé();
+        auto registre = registres.donne_registre_entier_inoccupé();
         assembleuse.mov(registre, AssembleuseASM::Immédiate64{1}, 8);
 
         if (type_gauche == TypeBase::R32) {
@@ -2684,7 +2707,7 @@ void GénératriceCodeASM::génère_code_pour_retourne(const InstructionRetour *
             auto adresse_retour = AssembleuseASM::Mémoire(Registre::RAX);
 
             registres.marque_registre_occupé(Registre::RAX);
-            auto registre_tmp = registres.donne_registre_inoccupé();
+            auto registre_tmp = registres.donne_registre_entier_inoccupé();
 
             auto taille_à_copier = int32_t(taille_en_octet);
             while (taille_à_copier > 0) {
@@ -2753,8 +2776,8 @@ void GénératriceCodeASM::génère_code_pour_accès_index(InstructionAccèdeInd
         accédé, assembleuse, UtilisationAtome::AUCUNE);
     assert(valeur_accédé.type == TypeOpérande::MÉMOIRE);
 
-    auto registre1 = registres.donne_registre_inoccupé();
-    auto registre2 = registres.donne_registre_inoccupé();
+    auto registre1 = registres.donne_registre_entier_inoccupé();
+    auto registre2 = registres.donne_registre_entier_inoccupé();
 
     /* Charge l'adresse. */
     assembleuse.lea(registre1, valeur_accédé);
@@ -2807,7 +2830,7 @@ void GénératriceCodeASM::génère_code_pour_transtype(InstructionTranstype con
         }
         case TypeTranstypage::AUGMENTE_RELATIF:
         {
-            auto registre = registres.donne_registre_inoccupé();
+            auto registre = registres.donne_registre_entier_inoccupé();
             auto dst = alloue_variable(type_vers);
             assembleuse.movsx(registre, type_vers->taille_octet, valeur, type_de->taille_octet);
             assembleuse.mov(dst, registre, type_vers->taille_octet);
@@ -2826,7 +2849,7 @@ void GénératriceCodeASM::génère_code_pour_transtype(InstructionTranstype con
         }
         case TypeTranstypage::DIMINUE_RELATIF:
         {
-            auto registre = registres.donne_registre_inoccupé();
+            auto registre = registres.donne_registre_entier_inoccupé();
             auto dst = alloue_variable(type_vers);
             assembleuse.mov(registre, valeur, type_de->taille_octet);
             assembleuse.mov(dst, registre, type_vers->taille_octet);
@@ -2874,7 +2897,7 @@ void GénératriceCodeASM::génère_code_pour_transtype(InstructionTranstype con
                 VERIFIE_NON_ATTEINT;
             }
 
-            auto registre = registres.donne_registre_inoccupé();
+            auto registre = registres.donne_registre_entier_inoccupé();
             auto dst = alloue_variable(type_vers);
 
             /* À FAIRE : convertis directement les constantes réelles vers des entiers constants.
@@ -3017,7 +3040,7 @@ void GénératriceCodeASM::génère_code_pour_charge_mémoire(InstructionChargeM
     /* À FAIRE: vérifie la taille de la structure. */
     auto src = génère_code_pour_atome(inst_charge->chargée, assembleuse, UtilisationAtome::AUCUNE);
 
-    auto registre = registres.donne_registre_inoccupé();
+    auto registre = registres.donne_registre_entier_inoccupé();
 
     assembleuse.mov(registre, src, inst_charge->type->taille_octet);
 
@@ -3042,7 +3065,7 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
     auto type_stocké = inst_stocke->source->type;
 
     if (est_accès_index(inst_stocke->destination)) {
-        auto registre = registres.donne_registre_inoccupé();
+        auto registre = registres.donne_registre_entier_inoccupé();
         assembleuse.mov(registre, dest, 8);
         dest = AssembleuseASM::Mémoire(registre);
     }
@@ -3057,7 +3080,7 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
             return;
         }
 
-        auto registre = registres.donne_registre_inoccupé();
+        auto registre = registres.donne_registre_entier_inoccupé();
         assembleuse.lea(registre, src);
         assembleuse.mov(dest, registre, type_stocké->taille_octet);
         return;
@@ -3067,13 +3090,13 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
     auto src = génère_code_pour_atome(atome_source, assembleuse, UtilisationAtome::AUCUNE);
 
     if (est_accès_index(atome_source)) {
-        auto registre = registres.donne_registre_inoccupé();
+        auto registre = registres.donne_registre_entier_inoccupé();
         assembleuse.mov(registre, src, 8);
         src = AssembleuseASM::Mémoire(registre);
     }
 
     /* À FAIRE: movss/movsd pour les réels. */
-    auto registre_tmp = registres.donne_registre_inoccupé();
+    auto registre_tmp = registres.donne_registre_entier_inoccupé();
 
     if (type_stocké->taille_octet <= 8) {
         if (assembleuse.est_immédiate(src.type)) {
