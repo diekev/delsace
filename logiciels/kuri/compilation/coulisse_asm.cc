@@ -2210,7 +2210,6 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
              i++) {
             auto huitoctet = classement.huitoctets[i];
             auto classe = huitoctet.classe;
-            assert(classe == ClasseArgument::INTEGER);
 
             auto registre = classement.registres_huitoctets[i].registre;
 
@@ -2221,7 +2220,19 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
             }
 
             registres.marque_registre_occupé(registre);
-            assembleuse.mov(registre, adresse_source, taille_à_copier);
+            if (classe == ClasseArgument::SSE) {
+                if (it->type == TypeBase::R32) {
+                    assembleuse.movss(registre, adresse_source);
+                }
+                else {
+                    assert(it->type == TypeBase::R64);
+                    assembleuse.movsd(registre, adresse_source);
+                }
+            }
+            else {
+                assert(classe == ClasseArgument::INTEGER);
+                assembleuse.mov(registre, adresse_source, taille_à_copier);
+            }
 
             adresse_source.mémoire.décalage += int32_t(taille_à_copier);
         }
@@ -2259,7 +2270,6 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
              i++) {
             auto huitoctet = classement.huitoctets[i];
             auto classe = huitoctet.classe;
-            assert(classe == ClasseArgument::INTEGER);
 
             auto registre = classement.registres_huitoctets[i].registre;
 
@@ -2269,7 +2279,19 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
                 taille_en_octet -= 8;
             }
 
-            assembleuse.mov(adresse_retour, registre, taille_à_copier);
+            if (classe == ClasseArgument::SSE) {
+                if (type_retour == TypeBase::R32) {
+                    assembleuse.movss(adresse_retour, registre);
+                }
+                else {
+                    assert(type_retour == TypeBase::R64);
+                    assembleuse.movsd(adresse_retour, registre);
+                }
+            }
+            else {
+                assert(classe == ClasseArgument::INTEGER);
+                assembleuse.mov(adresse_retour, registre, taille_à_copier);
+            }
 
             adresse_retour.décalage += int32_t(taille_à_copier);
         }
@@ -2652,7 +2674,8 @@ void GénératriceCodeASM::génère_code_pour_retourne(const InstructionRetour *
 
         auto sortie = m_classement_fonction_courante.sortie;
 
-        auto taille_en_octet = inst_retour->valeur->type->taille_octet;
+        auto const type_retour = inst_retour->valeur->type;
+        auto taille_en_octet = type_retour->taille_octet;
         if (sortie.est_en_mémoire) {
             assert(valeur.type == TypeOpérande::MÉMOIRE);
 
@@ -2684,7 +2707,6 @@ void GénératriceCodeASM::génère_code_pour_retourne(const InstructionRetour *
 
                 auto huitoctet = m_classement_fonction_courante.huitoctets[i];
                 auto classe = huitoctet.classe;
-                assert(classe == ClasseArgument::INTEGER);
 
                 auto registre = m_classement_fonction_courante.registres_huitoctets[i].registre;
 
@@ -2695,7 +2717,20 @@ void GénératriceCodeASM::génère_code_pour_retourne(const InstructionRetour *
                 }
 
                 registres.marque_registre_occupé(registre);
-                assembleuse.mov(registre, valeur, taille_à_copier);
+
+                if (classe == ClasseArgument::SSE) {
+                    if (type_retour == TypeBase::R32) {
+                        assembleuse.movss(registre, valeur);
+                    }
+                    else {
+                        assert(type_retour == TypeBase::R64);
+                        assembleuse.movsd(registre, valeur);
+                    }
+                }
+                else {
+                    assert(classe == ClasseArgument::INTEGER);
+                    assembleuse.mov(registre, valeur, taille_à_copier);
+                }
 
                 valeur.mémoire.décalage += int32_t(taille_à_copier);
             }
