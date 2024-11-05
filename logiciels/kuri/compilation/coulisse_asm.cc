@@ -1742,6 +1742,11 @@ struct GénératriceCodeASM {
     void génère_code_pour_stocke_mémoire(InstructionStockeMem const *inst_stocke,
                                          AssembleuseASM &assembleuse,
                                          UtilisationAtome utilisation);
+
+    void copie(AssembleuseASM::Opérande dest,
+               AssembleuseASM::Opérande src,
+               uint32_t taille_octet,
+               AssembleuseASM &assembleuse);
 };
 
 AssembleuseASM::Opérande GénératriceCodeASM::génère_code_pour_atome(
@@ -2305,7 +2310,9 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
 
     POUR_INDEX (appel->args) {
         auto classement_arg = classement.arguments[index_it];
-        assert(classement_arg.est_en_mémoire == false);
+        if (classement_arg.est_en_mémoire) {
+            continue;
+        }
 
         if (est_adresse_locale(it)) {
             assert(classement_arg.premier_huitoctet_inclusif ==
@@ -2408,6 +2415,56 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
         appelée = registre;
     }
 
+    struct OpérandeTaillée {
+        AssembleuseASM::Opérande opérande{};
+        Type const *type = 0;
+    };
+
+    kuri::tablet<OpérandeTaillée, 6> arguments_mémoire;
+    auto sauvegarde_taille_allouée = taille_allouée;
+
+    POUR_INDEX (appel->args) {
+        auto classement_arg = classement.arguments[index_it];
+        if (!classement_arg.est_en_mémoire) {
+            continue;
+        }
+
+        if (est_adresse_locale(it)) {
+            assert(classement_arg.premier_huitoctet_inclusif ==
+                   classement_arg.dernier_huitoctet_exclusif - 1);
+            // Nous prenons l'adresse d'une variable.
+            auto adresse_source = génère_code_pour_atome(
+                it, assembleuse, UtilisationAtome::AUCUNE);
+            auto tmp = alloue_variable(TypeBase::PTR_RIEN);
+            auto registre = registres.donne_registre_entier_inoccupé();
+            assembleuse.lea(registre, adresse_source);
+            assembleuse.mov(tmp, registre, 8);
+            arguments_mémoire.ajoute({tmp, TypeBase::PTR_RIEN});
+            registres.marque_registre_inoccupé(registre);
+            continue;
+        }
+
+        if (est_adresse_globale(it)) {
+            assert(classement_arg.premier_huitoctet_inclusif ==
+                   classement_arg.dernier_huitoctet_exclusif - 1);
+            auto adresse_source = génère_code_pour_atome(
+                it, assembleuse, UtilisationAtome::AUCUNE);
+            arguments_mémoire.ajoute({adresse_source, TypeBase::PTR_RIEN});
+            continue;
+        }
+
+        auto atome_argument = donne_source_charge_ou_atome(it);
+        auto adresse_source = génère_code_pour_atome(
+            atome_argument, assembleuse, UtilisationAtome::AUCUNE);
+        arguments_mémoire.ajoute({adresse_source, it->type});
+    }
+
+    for (auto i = arguments_mémoire.taille() - 1; i >= 0; i--) {
+        auto arg = arguments_mémoire[i];
+        auto tmp = alloue_variable(arg.type);
+        copie(tmp, arg.opérande, arg.type->taille_octet, assembleuse);
+    }
+
     /* Préserve note pile. */
     assembleuse.sub(Registre::RSP, AssembleuseASM::Immédiate64{taille_allouée}, 8);
 
@@ -2450,6 +2507,8 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
             adresse_retour.décalage += int32_t(taille_à_copier);
         }
     }
+
+    taille_allouée = sauvegarde_taille_allouée;
 }
 
 void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBinaire const *inst_bin,
@@ -3226,22 +3285,30 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
         src = AssembleuseASM::Mémoire(registre);
     }
 
+    copie(dest, src, type_stocké->taille_octet, assembleuse);
+}
+
+void GénératriceCodeASM::copie(AssembleuseASM::Opérande dest,
+                               AssembleuseASM::Opérande src,
+                               uint32_t taille_octet,
+                               AssembleuseASM &assembleuse)
+{
     /* À FAIRE: movss/movsd pour les réels. */
     auto registre_tmp = registres.donne_registre_entier_inoccupé();
 
-    if (type_stocké->taille_octet <= 8) {
+    if (taille_octet <= 8) {
         if (assembleuse.est_immédiate(src.type)) {
-            assembleuse.mov(dest, src, type_stocké->taille_octet);
+            assembleuse.mov(dest, src, taille_octet);
         }
         else {
-            assembleuse.mov(registre_tmp, src, type_stocké->taille_octet);
-            assembleuse.mov(dest, registre_tmp, type_stocké->taille_octet);
+            assembleuse.mov(registre_tmp, src, taille_octet);
+            assembleuse.mov(dest, registre_tmp, taille_octet);
         }
     }
     else {
         assert(src.type == TypeOpérande::MÉMOIRE);
 
-        auto taille_à_copier = int32_t(type_stocké->taille_octet);
+        auto taille_à_copier = int32_t(taille_octet);
         while (taille_à_copier > 0) {
             auto taille = taille_à_copier;
             if (taille > 8) {
@@ -3523,13 +3590,24 @@ void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonc
         assembleuse.mov(m_adresse_retour, Registre::RDI, 8);
     }
 
+    /* L'appel a poussé 1 huitoctet sur la pile, et nous avons pousser 7 huitoctets
+     * tsupplémentaires, donc nous devons décaler de 8 huitoctets %rsp afin de savoir où se trouve
+     * les arguments. */
+    auto décalage_argument_mémoire = 8 * 8;
+
     POUR_INDEX (fonction->params_entrée) {
+        auto classement_arg = classement.arguments[index_it];
         auto type_alloué = it->donne_type_alloué();
+
+        if (classement_arg.est_en_mémoire) {
+            table_valeurs[it->numero] = AssembleuseASM::Mémoire(Registre::RSP,
+                                                                décalage_argument_mémoire);
+            décalage_argument_mémoire += int32_t(type_alloué->taille_octet);
+            continue;
+        }
+
         auto adresse = alloue_variable(type_alloué);
         table_valeurs[it->numero] = adresse;
-
-        auto classement_arg = classement.arguments[index_it];
-        assert(classement_arg.est_en_mémoire == false);
 
         auto taille_en_octet = type_alloué->taille_octet;
 
