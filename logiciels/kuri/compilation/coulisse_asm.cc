@@ -1832,8 +1832,28 @@ AssembleuseASM::Opérande GénératriceCodeASM::génère_code_pour_atome(
         }
         case Atome::Genre::CONSTANTE_STRUCTURE:
         {
-            VERIFIE_NON_ATTEINT;
-            return {};  // "";
+            auto const structure = atome->comme_constante_structure();
+            auto const type = structure->type->comme_type_composé();
+            auto const tableau_valeur = structure->donne_atomes_membres();
+
+            auto résultat = alloue_variable(type);
+
+            POUR_INDEX (type->donne_membres_pour_code_machine()) {
+                auto dst = résultat;
+                dst.décalage = int32_t(it.decalage);
+
+                auto valeur = génère_code_pour_atome(
+                    tableau_valeur[index_it], assembleuse, UtilisationAtome::AUCUNE);
+
+                if (AssembleuseASM::est_immédiate(valeur.type)) {
+                    assembleuse.mov(dst, valeur, it.type->taille_octet);
+                }
+                else {
+                    copie(dst, valeur, it.type->taille_octet, assembleuse);
+                }
+            }
+
+            return résultat;
         }
         case Atome::Genre::CONSTANTE_TABLEAU_FIXE:
         {
