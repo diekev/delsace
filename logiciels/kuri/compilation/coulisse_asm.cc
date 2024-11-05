@@ -3177,6 +3177,8 @@ void GénératriceCodeASM::génère_code_pour_transtype(InstructionTranstype con
 void GénératriceCodeASM::génère_code_pour_branche_condition(
     const InstructionBrancheCondition *inst_branche, AssembleuseASM &assembleuse)
 {
+    SAUVEGARDE_REGISTRES(registres);
+
     auto const prédicat = inst_branche->condition;
     auto const si_vrai = inst_branche->label_si_vrai;
     auto const si_faux = inst_branche->label_si_faux;
