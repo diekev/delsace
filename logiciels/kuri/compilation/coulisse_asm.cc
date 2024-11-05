@@ -218,80 +218,181 @@ static uint32_t donne_taille_alignée(Type const *type)
 
 struct Huitoctet {
     ClasseArgument classe = ClasseArgument::NO_CLASS;
-    uint32_t premier_membre_inclusif = 0;
-    uint32_t dernier_membre_exclusif = 0;
-    uint32_t taille_membres = 0;
 };
 
 static void donne_classe_argument(Type const *type, kuri::tableau<Huitoctet> &résultat);
 
-static void détermine_classe_argument_aggrégé(TypeCompose const *type,
-                                              kuri::tableau<Huitoctet> &résultat)
-{
-    auto const taille = donne_taille_alignée(type);
-    auto nombre_huitoctets = (taille + 7) / 8;
-    dbg() << chaine_type(type) << " taille octet " << type->taille_octet << " taille alignée "
-          << taille;
-    dbg() << "Nombre de huitoctets pour " << chaine_type(type) << " : " << nombre_huitoctets;
+class ConstructriceHuitoctets {
+    struct DonnéesHuitoctets {
+        /* Index dans le tableau de types. */
+        uint32_t premier_type_inclusif = 0;
+        uint32_t dernier_type_exclusif = 0;
+        uint32_t taille_types = 0;
+    };
 
-    /* 1. If the size of an object is larger than four eightbytes, or it contains unaligned fields,
-     *    it has class MEMORY. */
-    // À FAIRE : champs non-aligné.
-    if (nombre_huitoctets > 4) {
-        résultat.ajoute(Huitoctet{ClasseArgument::MEMORY});
-        return;
+    kuri::tablet<Huitoctet, 4> résultat{};
+    kuri::tablet<DonnéesHuitoctets, 4> données{};
+    kuri::tableau<Type const *> types{};
+    kuri::tableau<ClasseArgument> classes_pour_types{};
+    uint32_t index_huitoctet = 0;
+
+    kuri::tableau<Huitoctet> tampon_classe{};
+
+  public:
+    static void construit_huitoctets(Type const *type, kuri::tablet<Huitoctet, 4> &résultat)
+    {
+        /* Le résultat doit être prédimensionné. */
+        assert(résultat.taille() != 0);
+
+        ConstructriceHuitoctets constructrice;
+        constructrice.résultat = résultat;
+        constructrice.données.redimensionne(résultat.taille());
+
+        constructrice.construit_huitoctets_récursif(type);
+        constructrice.assigne_classes_huitoctets();
+
+        résultat = constructrice.résultat;
     }
 
-    /* 3. If the size of the aggregate exceeds a single eightbyte, each is classified separately.
-     *    Each eightbyte gets initialized to class NO_CLASS. */
-    auto huitoctets = kuri::tablet<Huitoctet, 4>();
-    for (auto i = 0; i < nombre_huitoctets; i++) {
-        huitoctets.ajoute({ClasseArgument::NO_CLASS});
-    }
+  private:
+    void construit_huitoctets_récursif(Type const *type);
 
-    // 4. Each field of an object is classified recursively so that always two fields are
-    //    considered. The resulting class is calculated according to the classes of the
-    //    fields in the eightbyte:
-    auto membres = type->donne_membres_pour_code_machine();
+    void assigne_classes_huitoctets();
 
-    auto index_huitoctet = 0;
-    POUR_INDEX (membres) {
-        assert(it.type->taille_octet <= 8);
+    void ajoute_type(Type const *type)
+    {
+        assert_rappel(type->taille_octet <= 8,
+                      [&]() { dbg() << "Le type est " << chaine_type(type); });
 
-        if (huitoctets[index_huitoctet].taille_membres == 8 ||
-            (huitoctets[index_huitoctet].taille_membres + it.type->taille_octet > 8)) {
+        if (données[index_huitoctet].taille_types == 8 ||
+            (données[index_huitoctet].taille_types + type->taille_octet > 8)) {
             index_huitoctet += 1;
-            huitoctets[index_huitoctet].premier_membre_inclusif = uint32_t(index_it);
+            données[index_huitoctet].premier_type_inclusif = uint32_t(types.taille());
         }
 
-        huitoctets[index_huitoctet].dernier_membre_exclusif = uint32_t(index_it + 1);
-        huitoctets[index_huitoctet].taille_membres += it.type->taille_octet;
+        données[index_huitoctet].dernier_type_exclusif = uint32_t(types.taille() + 1);
+        données[index_huitoctet].taille_types += type->taille_octet;
+        types.ajoute(type);
+
+        tampon_classe.redimensionne(0);
+        donne_classe_argument(type, tampon_classe);
+        assert(tampon_classe.taille() == 1);
+        classes_pour_types.ajoute(tampon_classe[0].classe);
     }
 
-    dbg() << "Membres huitoctets :";
-    POUR (huitoctets) {
-        dbg() << "-- " << it.premier_membre_inclusif << ", " << it.dernier_membre_exclusif << ", "
-              << it.taille_membres;
+    void ajoute_rembourrage(uint32_t rembourrage)
+    {
+        assert((index_huitoctet * 8) + données[index_huitoctet].taille_types + rembourrage <= 32);
+
+        while (rembourrage > 0) {
+            auto à_rembourrer = std::min(8 - données[index_huitoctet].taille_types, rembourrage);
+
+            données[index_huitoctet].taille_types += à_rembourrer;
+
+            if (données[index_huitoctet].taille_types == 8) {
+                index_huitoctet += 1;
+            }
+
+            rembourrage -= à_rembourrer;
+        }
     }
+};
 
-    auto classes_pour_membres = kuri::tablet<ClasseArgument, 32>();
+void ConstructriceHuitoctets::construit_huitoctets_récursif(Type const *type)
+{
+    switch (type->genre) {
+        case GenreNoeud::RIEN:
+        case GenreNoeud::POLYMORPHIQUE:
+        {
+            return;
+        }
+        case GenreNoeud::BOOL:
+        case GenreNoeud::OCTET:
+        case GenreNoeud::DÉCLARATION_ÉNUM:
+        case GenreNoeud::ENUM_DRAPEAU:
+        case GenreNoeud::ERREUR:
+        case GenreNoeud::FONCTION:
+        case GenreNoeud::POINTEUR:
+        case GenreNoeud::RÉFÉRENCE:
+        case GenreNoeud::ENTIER_NATUREL:
+        case GenreNoeud::ENTIER_CONSTANT:
+        case GenreNoeud::ENTIER_RELATIF:
+        case GenreNoeud::TYPE_DE_DONNÉES:
+        case GenreNoeud::TYPE_ADRESSE_FONCTION:
+        case GenreNoeud::RÉEL:
+        {
+            ajoute_type(type);
+            return;
+        }
+        case GenreNoeud::DÉCLARATION_OPAQUE:
+        {
+            auto const type_opaque = type->comme_type_opaque();
+            construit_huitoctets_récursif(type_opaque->type_opacifié);
+            return;
+        }
+        case GenreNoeud::DÉCLARATION_STRUCTURE:
+        case GenreNoeud::TABLEAU_DYNAMIQUE:
+        case GenreNoeud::TUPLE:
+        case GenreNoeud::VARIADIQUE:
+        case GenreNoeud::EINI:
+        case GenreNoeud::CHAINE:
+        case GenreNoeud::TYPE_TRANCHE:
+        {
+            auto type_composé = type->comme_type_composé();
 
-    dbg() << "Classement des membres :";
-    POUR (membres) {
-        // À FAIRE : huitoctets pour les membres des structures
-        kuri::tableau<Huitoctet> tmp;
-        donne_classe_argument(it.type, tmp);
-        classes_pour_membres.ajoute(tmp[0].classe);
+            auto décalage = uint32_t(0);
 
-        dbg() << "-- " << it.nom->nom << " : " << classes_pour_membres.back();
+            POUR (type_composé->donne_membres_pour_code_machine()) {
+                if (it.decalage != décalage) {
+                    auto rembourrage = it.decalage - décalage;
+                    ajoute_rembourrage(rembourrage);
+                    décalage += rembourrage;
+                }
+
+                construit_huitoctets_récursif(it.type);
+                décalage += it.type->taille_octet;
+            }
+
+            if (type->taille_octet != décalage) {
+                auto rembourrage = type->taille_octet - décalage;
+                ajoute_rembourrage(rembourrage);
+            }
+            return;
+        }
+        case GenreNoeud::DÉCLARATION_UNION:
+        {
+            auto type_union = type->comme_type_union();
+            if (type_union->est_nonsure) {
+                construit_huitoctets_récursif(type_union->type_le_plus_grand);
+                return;
+            }
+            construit_huitoctets_récursif(type_union->type_structure);
+            return;
+        }
+        case GenreNoeud::TABLEAU_FIXE:
+        {
+            auto const type_tableau_fixe = type->comme_type_tableau_fixe();
+            for (int i = 0; i < type_tableau_fixe->taille; i++) {
+                construit_huitoctets_récursif(type_tableau_fixe->type_pointé);
+            }
+            return;
+        }
+        CAS_POUR_NOEUDS_HORS_TYPES:
+        {
+            assert_rappel(false, [&]() { dbg() << "Noeud non-géré pour type : " << type->genre; });
+            break;
+        }
     }
+}
 
-    POUR (huitoctets) {
-        auto classe_huitoctet = classes_pour_membres[it.premier_membre_inclusif];
+void ConstructriceHuitoctets::assigne_classes_huitoctets()
+{
+    POUR_INDEX (données) {
+        auto classe_huitoctet = classes_pour_types[it.premier_type_inclusif];
         auto classe1 = classe_huitoctet;
 
-        for (auto i = it.premier_membre_inclusif + 1; i < it.dernier_membre_exclusif; i++) {
-            auto classe2 = classes_pour_membres[i];
+        for (auto i = it.premier_type_inclusif + 1; i < it.dernier_type_exclusif; i++) {
+            auto classe2 = classes_pour_types[i];
 
             // (a) If both classes are equal, this is the resulting class.
             if (classe1 == classe2) {
@@ -327,8 +428,38 @@ static void détermine_classe_argument_aggrégé(TypeCompose const *type,
             classe1 = classe_huitoctet;
         }
 
-        it.classe = classe_huitoctet;
+        résultat[index_it].classe = classe_huitoctet;
     }
+}
+
+static void détermine_classe_argument_aggrégé(TypeCompose const *type,
+                                              kuri::tableau<Huitoctet> &résultat)
+{
+    auto const taille = donne_taille_alignée(type);
+    auto nombre_huitoctets = (taille + 7) / 8;
+    dbg() << chaine_type(type) << " taille octet " << type->taille_octet << " taille alignée "
+          << taille;
+    dbg() << "Nombre de huitoctets pour " << chaine_type(type) << " : " << nombre_huitoctets;
+
+    /* 1. If the size of an object is larger than four eightbytes, or it contains unaligned fields,
+     *    it has class MEMORY. */
+    // À FAIRE : champs non-aligné.
+    if (nombre_huitoctets > 4) {
+        résultat.ajoute(Huitoctet{ClasseArgument::MEMORY});
+        return;
+    }
+
+    /* 3. If the size of the aggregate exceeds a single eightbyte, each is classified separately.
+     *    Each eightbyte gets initialized to class NO_CLASS. */
+    auto huitoctets = kuri::tablet<Huitoctet, 4>();
+    for (auto i = 0; i < nombre_huitoctets; i++) {
+        huitoctets.ajoute({ClasseArgument::NO_CLASS});
+    }
+
+    // 4. Each field of an object is classified recursively so that always two fields are
+    //    considered. The resulting class is calculated according to the classes of the
+    //    fields in the eightbyte:
+    ConstructriceHuitoctets::construit_huitoctets(type, huitoctets);
 
     // 5. Then a post merger cleanup is done:
     auto classe_précédente = ClasseArgument::NO_CLASS;
@@ -436,7 +567,7 @@ static void donne_classe_argument(Type const *type, kuri::tableau<Huitoctet> &r�
         case GenreNoeud::CHAINE:
         case GenreNoeud::TYPE_TRANCHE:
         {
-            // À FAIRE : tableaux fixes, types variadiques externes
+            // À FAIRE : types variadiques externes
             return détermine_classe_argument_aggrégé(type->comme_type_composé(), résultat);
         }
         case GenreNoeud::DÉCLARATION_UNION:
