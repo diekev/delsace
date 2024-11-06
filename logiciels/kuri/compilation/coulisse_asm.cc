@@ -1146,6 +1146,20 @@ struct AssembleuseASM {
         m_sortie << NOUVELLE_LIGNE;
     }
 
+    void mov_ah(Opérande dst)
+    {
+        assert(!est_immédiate(dst.type));
+
+        m_sortie << TABULATION << "mov ";
+        if (dst.type == TypeOpérande::MÉMOIRE) {
+            m_sortie << donne_chaine_taille_opérande(1) << " ";
+        }
+        imprime_opérande(dst, 1);
+        m_sortie << ", ah";
+
+        m_sortie << NOUVELLE_LIGNE;
+    }
+
     void movsx(Opérande dst, uint32_t taille_dst, Opérande src, uint32_t taille_src)
     {
         assert(!est_immédiate(dst.type) && !est_immédiate(src.type));
@@ -1439,6 +1453,9 @@ struct AssembleuseASM {
     void cmp(Opérande dst, Opérande src, uint32_t taille_octet)
     {
         m_sortie << TABULATION << "cmp ";
+        if (dst.type == TypeOpérande::MÉMOIRE) {
+            m_sortie << donne_chaine_taille_opérande(taille_octet) << " ";
+        }
         imprime_opérande(dst, taille_octet);
         m_sortie << ", ";
         imprime_opérande(src, taille_octet);
@@ -1555,6 +1572,16 @@ struct AssembleuseASM {
     void ud2()
     {
         m_sortie << TABULATION << "ud2" << NOUVELLE_LIGNE;
+    }
+
+    void cbw()
+    {
+        m_sortie << TABULATION << "cbw" << NOUVELLE_LIGNE;
+    }
+
+    void cwd()
+    {
+        m_sortie << TABULATION << "cwd" << NOUVELLE_LIGNE;
     }
 
     void cdq()
@@ -2690,9 +2717,14 @@ void GénératriceCodeASM::génère_code_pour_division(AssembleuseASM &assembleu
         if (taille_octet == 8) {
             assembleuse.cqo();
         }
-        else {
-            assert(taille_octet == 4);
+        else if (taille_octet == 4) {
             assembleuse.cdq();
+        }
+        else if (taille_octet == 2) {
+            assembleuse.cwd();
+        }
+        else {
+            assembleuse.cbw();
         }
     }
     else {
@@ -2707,7 +2739,12 @@ void GénératriceCodeASM::génère_code_pour_division(AssembleuseASM &assembleu
     }
 
     if (retourne_reste) {
-        assembleuse.mov(dst, Registre::RDX, taille_octet);
+        if (taille_octet == 1) {
+            assembleuse.mov_ah(dst);
+        }
+        else {
+            assembleuse.mov(dst, Registre::RDX, taille_octet);
+        }
     }
     else {
         assembleuse.mov(dst, Registre::RAX, taille_octet);
