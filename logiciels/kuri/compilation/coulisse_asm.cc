@@ -2392,7 +2392,8 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
 
             auto const valeur_accédé = génère_code_pour_atome(
                 accédé, assembleuse, UtilisationAtome::AUCUNE);
-            assert(valeur_accédé.type == TypeOpérande::MÉMOIRE);
+            assert_rappel(valeur_accédé.type == TypeOpérande::MÉMOIRE,
+                          [&]() { dbg() << "La valeur est de type " << valeur_accédé.type; });
 
             auto const &membre = accès->donne_membre_accédé();
 
