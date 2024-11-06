@@ -1297,14 +1297,20 @@ struct AssembleuseASM {
         génère_code_opération_binaire(dst, src, "imul", taille_octet);
     }
 
-    void div(Opérande dst, Opérande src, uint32_t taille_octet)
+    void div(Opérande src, uint32_t taille_octet)
     {
-        génère_code_opération_binaire(dst, src, "div", taille_octet);
+        m_sortie << TABULATION << "div ";
+        m_sortie << donne_chaine_taille_opérande(taille_octet) << " ";
+        imprime_opérande(src, taille_octet);
+        m_sortie << NOUVELLE_LIGNE;
     }
 
-    void idiv(Opérande dst, Opérande src, uint32_t taille_octet)
+    void idiv(Opérande src, uint32_t taille_octet)
     {
-        génère_code_opération_binaire(dst, src, "idiv", taille_octet);
+        m_sortie << TABULATION << "idiv ";
+        m_sortie << donne_chaine_taille_opérande(taille_octet) << " ";
+        imprime_opérande(src, taille_octet);
+        m_sortie << NOUVELLE_LIGNE;
     }
 
     void neg(Opérande dst, uint32_t taille_octet)
@@ -1551,6 +1557,16 @@ struct AssembleuseASM {
         m_sortie << TABULATION << "ud2" << NOUVELLE_LIGNE;
     }
 
+    void cdq()
+    {
+        m_sortie << TABULATION << "cdq" << NOUVELLE_LIGNE;
+    }
+
+    void cqo()
+    {
+        m_sortie << TABULATION << "cqo" << NOUVELLE_LIGNE;
+    }
+
   private:
     void imprime_opérande(Opérande opérande, uint32_t taille_octet = 8)
     {
@@ -1785,6 +1801,13 @@ struct GénératriceCodeASM {
     void génère_code_pour_appel(const InstructionAppel *appel,
                                 AssembleuseASM &assembleuse,
                                 UtilisationAtome const utilisation);
+
+    template <bool est_relatif, bool retourne_reste>
+    void génère_code_pour_division(AssembleuseASM &assembleuse,
+                                   AssembleuseASM::Opérande dst,
+                                   AssembleuseASM::Opérande gauche,
+                                   AssembleuseASM::Opérande droite,
+                                   Type const *type);
 
     void génère_code_pour_opération_binaire(const InstructionOpBinaire *inst_bin,
                                             AssembleuseASM &assembleuse,
@@ -2625,6 +2648,91 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
     taille_allouée = sauvegarde_taille_allouée;
 }
 
+template <bool est_relatif, bool retourne_reste>
+void GénératriceCodeASM::génère_code_pour_division(AssembleuseASM &assembleuse,
+                                                   AssembleuseASM::Opérande dst,
+                                                   AssembleuseASM::Opérande gauche,
+                                                   AssembleuseASM::Opérande droite,
+                                                   Type const *type)
+{
+    auto const taille_octet = type->taille_octet;
+
+    auto sauvegarde_eax = std::optional<AssembleuseASM::Mémoire>();
+    auto sauvegarde_edx = std::optional<AssembleuseASM::Mémoire>();
+
+    if (registres.registre_est_occupé(Registre::RAX)) {
+        auto tmp = alloue_variable(TypeBase::N64);
+        assembleuse.mov(tmp, Registre::RAX, 8);
+        sauvegarde_eax = tmp;
+    }
+
+    if (registres.registre_est_occupé(Registre::RDX)) {
+        auto tmp = alloue_variable(TypeBase::N64);
+        assembleuse.mov(tmp, Registre::RDX, 8);
+        sauvegarde_edx = tmp;
+    }
+
+    registres.marque_registre_occupé(Registre::RAX);
+    registres.marque_registre_occupé(Registre::RDX);
+
+    auto registre_droite = std::optional<Registre>();
+    if (AssembleuseASM::est_immédiate(droite.type)) {
+        auto registre = registres.donne_registre_entier_inoccupé();
+        assembleuse.mov(registre, droite, taille_octet);
+        registre_droite = registre;
+        droite = registre;
+    }
+
+    assembleuse.mov(Registre::RAX, gauche, taille_octet);
+
+    if (est_relatif) {
+        if (taille_octet == 8) {
+            assembleuse.cqo();
+        }
+        else {
+            assert(taille_octet == 4);
+            assembleuse.cdq();
+        }
+    }
+    else {
+        assembleuse.mov(Registre::RDX, AssembleuseASM::Immédiate64{0}, 8);
+    }
+
+    if (est_relatif) {
+        assembleuse.idiv(droite, taille_octet);
+    }
+    else {
+        assembleuse.div(droite, taille_octet);
+    }
+
+    if (retourne_reste) {
+        assembleuse.mov(dst, Registre::RDX, taille_octet);
+    }
+    else {
+        assembleuse.mov(dst, Registre::RAX, taille_octet);
+    }
+
+    if (sauvegarde_edx.has_value()) {
+        assembleuse.mov(Registre::RDX, sauvegarde_edx.value(), 8);
+        taille_allouée -= 8;
+    }
+    else {
+        registres.marque_registre_inoccupé(Registre::RDX);
+    }
+
+    if (sauvegarde_eax.has_value()) {
+        assembleuse.mov(Registre::RAX, sauvegarde_eax.value(), 8);
+        taille_allouée -= 8;
+    }
+    else {
+        registres.marque_registre_inoccupé(Registre::RAX);
+    }
+
+    if (registre_droite.has_value()) {
+        registres.marque_registre_inoccupé(registre_droite.value());
+    }
+}
+
 void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBinaire const *inst_bin,
                                                             AssembleuseASM &assembleuse,
                                                             UtilisationAtome const utilisation)
@@ -2814,16 +2922,14 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
         }
         case OpérateurBinaire::Genre::Division_Naturel:
         {
-            // À FAIRE
-            GENERE_CODE_INST_ENTIER(div);
-            VERIFIE_NON_ATTEINT;
+            génère_code_pour_division<false, false>(
+                assembleuse, dest, opérande_gauche, opérande_droite, inst_bin->type);
             break;
         }
         case OpérateurBinaire::Genre::Division_Relatif:
         {
-            // À FAIRE
-            GENERE_CODE_INST_ENTIER(idiv);
-            VERIFIE_NON_ATTEINT;
+            génère_code_pour_division<true, false>(
+                assembleuse, dest, opérande_gauche, opérande_droite, inst_bin->type);
             break;
         }
         case OpérateurBinaire::Genre::Division_Reel:
@@ -2838,9 +2944,15 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
             break;
         }
         case OpérateurBinaire::Genre::Reste_Naturel:
+        {
+            génère_code_pour_division<false, true>(
+                assembleuse, dest, opérande_gauche, opérande_droite, inst_bin->type);
+            break;
+        }
         case OpérateurBinaire::Genre::Reste_Relatif:
         {
-            VERIFIE_NON_ATTEINT;
+            génère_code_pour_division<true, true>(
+                assembleuse, dest, opérande_gauche, opérande_droite, inst_bin->type);
             break;
         }
         case OpérateurBinaire::Genre::Comp_Egal:
