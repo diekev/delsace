@@ -1689,6 +1689,10 @@ struct GénératriceCodeASM {
 
     Broyeuse broyeuse{};
 
+    kuri::table_hachage<TypeFonction const *, int> m_table_classement_arguments{
+        "Table classement arguments"};
+    kuri::tableau<ClassementArgument> m_classements_arguments{};
+
   public:
     AssembleuseASM::Opérande génère_code_pour_atome(Atome *atome,
                                                     AssembleuseASM &assembleuse,
@@ -1732,6 +1736,8 @@ struct GénératriceCodeASM {
 
     void imprime_inst_en_commentaire(Enchaineuse &os, const Instruction *inst);
     void définis_fonction_courante(const AtomeFonction *fonction);
+
+    ClassementArgument donne_classement_arguments(TypeFonction const *type);
 
     AssembleuseASM::Mémoire alloue_variable(Type const *type_alloué);
     AssembleuseASM::Mémoire donne_adresse_stack();
@@ -3749,6 +3755,19 @@ void GénératriceCodeASM::définis_fonction_courante(AtomeFonction const *fonct
     POUR (table_valeurs) {
         it = valeur_défaut;
     }
+}
+
+ClassementArgument GénératriceCodeASM::donne_classement_arguments(TypeFonction const *type)
+{
+    auto index = m_table_classement_arguments.valeur_ou(type, -1);
+    if (index != -1) {
+        return m_classements_arguments[index];
+    }
+
+    auto classement = ::donne_classement_arguments(type);
+    m_classements_arguments.ajoute(classement);
+    m_table_classement_arguments.insère(type, int32_t(m_classements_arguments.taille() - 1));
+    return classement;
 }
 
 AssembleuseASM::Mémoire GénératriceCodeASM::alloue_variable(Type const *type_alloué)
