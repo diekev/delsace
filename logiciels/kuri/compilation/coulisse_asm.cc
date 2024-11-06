@@ -602,35 +602,6 @@ struct ClassementArgument {
     ArgumentPassé sortie{};
 };
 
-static ClassementArgument détermine_classes_arguments(TypeFonction const *type)
-{
-    auto résultat = ClassementArgument{};
-
-    POUR (type->types_entrées) {
-        auto argument = ArgumentPassé{};
-        argument.premier_huitoctet_inclusif = uint32_t(résultat.huitoctets.taille());
-
-        kuri::tablet<Huitoctet, 4> tampon_huitoctets;
-        donne_classe_argument(it, tampon_huitoctets);
-        for (auto huitoctet : tampon_huitoctets) {
-            résultat.huitoctets.ajoute(huitoctet);
-        }
-
-        argument.dernier_huitoctet_exclusif = uint32_t(résultat.huitoctets.taille());
-        résultat.arguments.ajoute(argument);
-    }
-
-    résultat.sortie.premier_huitoctet_inclusif = uint32_t(résultat.huitoctets.taille());
-    kuri::tablet<Huitoctet, 4> tampon_huitoctets;
-    donne_classe_argument(type->type_sortie, tampon_huitoctets);
-    for (auto huitoctet : tampon_huitoctets) {
-        résultat.huitoctets.ajoute(huitoctet);
-    }
-    résultat.sortie.dernier_huitoctet_exclusif = uint32_t(résultat.huitoctets.taille());
-
-    return résultat;
-}
-
 class AllocatriceRegistreArgument {
     kuri::tablet<Registre, 6> registres_integer{};
     kuri::tablet<Registre, 8> registres_sse{};
@@ -734,7 +705,44 @@ class AllocatriceRegistreArgument {
     }
 };
 
-static ClassementArgument donne_classement_arguments(TypeFonction const *type_fonction)
+class ClassifieuseArgument {
+    kuri::table_hachage<TypeFonction const *, int> m_table_classement_arguments{
+        "Table classement arguments"};
+    kuri::tableau<ClassementArgument> m_classements_arguments{};
+
+    /* Indexe m_rangée_huitoctets_types. */
+    kuri::table_hachage<Type const *, int> m_table_huitoctets_types{"Table huitoctets types"};
+
+    struct RangéeHuitoctetsType {
+        int index_premier_inclusif = 0;
+        int index_dernier_exclusif = 0;
+    };
+
+    kuri::tableau<RangéeHuitoctetsType> m_rangées_huitoctets_types{};
+    kuri::tableau<Huitoctet> m_huitoctets_types{};
+
+  public:
+    ClassementArgument donne_classement_arguments(TypeFonction const *type)
+    {
+        auto index = m_table_classement_arguments.valeur_ou(type, -1);
+        if (index != -1) {
+            return m_classements_arguments[index];
+        }
+
+        auto classement = donne_classement_arguments_impl(type);
+        m_classements_arguments.ajoute(classement);
+        m_table_classement_arguments.insère(type, int32_t(m_classements_arguments.taille() - 1));
+        return classement;
+    }
+
+  private:
+    ClassementArgument donne_classement_arguments_impl(TypeFonction const *type);
+    ClassementArgument détermine_classes_arguments(TypeFonction const *type);
+    kuri::tablet<Huitoctet, 4> donne_classe_argument(Type const *type);
+};
+
+ClassementArgument ClassifieuseArgument::donne_classement_arguments_impl(
+    TypeFonction const *type_fonction)
 {
     auto classement = détermine_classes_arguments(type_fonction);
 
@@ -839,11 +847,72 @@ static ClassementArgument donne_classement_arguments(TypeFonction const *type_fo
     return classement;
 }
 
+ClassementArgument ClassifieuseArgument::détermine_classes_arguments(TypeFonction const *type)
+{
+    auto résultat = ClassementArgument{};
+
+    POUR (type->types_entrées) {
+        auto argument = ArgumentPassé{};
+        argument.premier_huitoctet_inclusif = uint32_t(résultat.huitoctets.taille());
+
+        auto tampon_huitoctets = donne_classe_argument(it);
+        for (auto huitoctet : tampon_huitoctets) {
+            résultat.huitoctets.ajoute(huitoctet);
+        }
+
+        argument.dernier_huitoctet_exclusif = uint32_t(résultat.huitoctets.taille());
+        résultat.arguments.ajoute(argument);
+    }
+
+    résultat.sortie.premier_huitoctet_inclusif = uint32_t(résultat.huitoctets.taille());
+    auto tampon_huitoctets = donne_classe_argument(type->type_sortie);
+    for (auto huitoctet : tampon_huitoctets) {
+        résultat.huitoctets.ajoute(huitoctet);
+    }
+    résultat.sortie.dernier_huitoctet_exclusif = uint32_t(résultat.huitoctets.taille());
+
+    return résultat;
+}
+
+kuri::tablet<Huitoctet, 4> ClassifieuseArgument::donne_classe_argument(Type const *type)
+{
+    kuri::tablet<Huitoctet, 4> résultat;
+
+    auto index = m_table_huitoctets_types.valeur_ou(type, -1);
+    if (index == -1) {
+        ::donne_classe_argument(type, résultat);
+
+        auto rangée = RangéeHuitoctetsType{};
+        rangée.index_premier_inclusif = int32_t(m_huitoctets_types.taille());
+        rangée.index_dernier_exclusif = rangée.index_premier_inclusif + int32_t(résultat.taille());
+
+        POUR (résultat) {
+            m_huitoctets_types.ajoute(it);
+        }
+
+        m_rangées_huitoctets_types.ajoute(rangée);
+
+        index = int32_t(m_rangées_huitoctets_types.taille() - 1);
+        m_table_huitoctets_types.insère(type, index);
+        return résultat;
+    }
+
+    auto rangée = m_rangées_huitoctets_types[index];
+
+    for (auto i = rangée.index_premier_inclusif; i < rangée.index_dernier_exclusif; i++) {
+        résultat.ajoute(m_huitoctets_types[i]);
+    }
+
+    return résultat;
+}
+
 void classifie_arguments(AtomeFonction const *fonction)
 {
     dbg() << "------------------------------------------";
 
-    auto classement = donne_classement_arguments(fonction->type->comme_type_fonction());
+    auto classifieuse = ClassifieuseArgument{};
+    auto classement = classifieuse.donne_classement_arguments(
+        fonction->type->comme_type_fonction());
 
     auto index_arg = 0;
     POUR (classement.arguments) {
@@ -1694,10 +1763,7 @@ struct GénératriceCodeASM {
     uint32_t taille_allouée = 0;
 
     Broyeuse broyeuse{};
-
-    kuri::table_hachage<TypeFonction const *, int> m_table_classement_arguments{
-        "Table classement arguments"};
-    kuri::tableau<ClassementArgument> m_classements_arguments{};
+    ClassifieuseArgument m_classifieuse{};
 
   public:
     AssembleuseASM::Opérande génère_code_pour_atome(Atome *atome,
@@ -1742,8 +1808,6 @@ struct GénératriceCodeASM {
 
     void imprime_inst_en_commentaire(Enchaineuse &os, const Instruction *inst);
     void définis_fonction_courante(const AtomeFonction *fonction);
-
-    ClassementArgument donne_classement_arguments(TypeFonction const *type);
 
     AssembleuseASM::Mémoire alloue_variable(Type const *type_alloué);
     AssembleuseASM::Mémoire donne_adresse_stack();
@@ -2348,7 +2412,8 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
 
     auto atome_appelée = appel->appelé;
 
-    auto classement = donne_classement_arguments(atome_appelée->type->comme_type_fonction());
+    auto classement = m_classifieuse.donne_classement_arguments(
+        atome_appelée->type->comme_type_fonction());
 
     auto type_retour = appel->type;
     auto adresse_retour = AssembleuseASM::Mémoire{};
@@ -3646,7 +3711,8 @@ void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonc
 
     sauvegarde_registres_appel(assembleuse);
 
-    auto classement = donne_classement_arguments(fonction->type->comme_type_fonction());
+    auto classement = m_classifieuse.donne_classement_arguments(
+        fonction->type->comme_type_fonction());
     m_classement_fonction_courante = classement;
 
     if (classement.sortie.est_en_mémoire) {
@@ -3761,19 +3827,6 @@ void GénératriceCodeASM::définis_fonction_courante(AtomeFonction const *fonct
     POUR (table_valeurs) {
         it = valeur_défaut;
     }
-}
-
-ClassementArgument GénératriceCodeASM::donne_classement_arguments(TypeFonction const *type)
-{
-    auto index = m_table_classement_arguments.valeur_ou(type, -1);
-    if (index != -1) {
-        return m_classements_arguments[index];
-    }
-
-    auto classement = ::donne_classement_arguments(type);
-    m_classements_arguments.ajoute(classement);
-    m_table_classement_arguments.insère(type, int32_t(m_classements_arguments.taille() - 1));
-    return classement;
 }
 
 AssembleuseASM::Mémoire GénératriceCodeASM::alloue_variable(Type const *type_alloué)
