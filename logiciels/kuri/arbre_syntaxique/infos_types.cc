@@ -84,7 +84,7 @@ static void remplis_membre_info_type(AllocatriceInfosType &allocatrice_infos_typ
                                      InfoTypeMembreStructure *info_type_membre,
                                      MembreTypeComposé const &membre)
 {
-    info_type_membre->décalage = membre.decalage;
+    info_type_membre->décalage = int32_t(membre.decalage);
     info_type_membre->nom = membre.nom->nom;
     info_type_membre->drapeaux = membre.drapeaux;
 
