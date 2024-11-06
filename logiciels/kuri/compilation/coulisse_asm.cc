@@ -220,7 +220,7 @@ struct Huitoctet {
     ClasseArgument classe = ClasseArgument::NO_CLASS;
 };
 
-static void donne_classe_argument(Type const *type, kuri::tableau<Huitoctet> &résultat);
+static void donne_classe_argument(Type const *type, kuri::tablet<Huitoctet, 4> &résultat);
 
 class ConstructriceHuitoctets {
     struct DonnéesHuitoctets {
@@ -235,8 +235,6 @@ class ConstructriceHuitoctets {
     kuri::tableau<Type const *> types{};
     kuri::tableau<ClasseArgument> classes_pour_types{};
     uint32_t index_huitoctet = 0;
-
-    kuri::tableau<Huitoctet> tampon_classe{};
 
   public:
     static void construit_huitoctets(Type const *type, kuri::tablet<Huitoctet, 4> &résultat)
@@ -274,7 +272,7 @@ class ConstructriceHuitoctets {
         données[index_huitoctet].taille_types += type->taille_octet;
         types.ajoute(type);
 
-        tampon_classe.redimensionne(0);
+        kuri::tablet<Huitoctet, 4> tampon_classe;
         donne_classe_argument(type, tampon_classe);
         assert(tampon_classe.taille() == 1);
         classes_pour_types.ajoute(tampon_classe[0].classe);
@@ -433,7 +431,7 @@ void ConstructriceHuitoctets::assigne_classes_huitoctets()
 }
 
 static void détermine_classe_argument_aggrégé(TypeCompose const *type,
-                                              kuri::tableau<Huitoctet> &résultat)
+                                              kuri::tablet<Huitoctet, 4> &résultat)
 {
     auto const taille = donne_taille_alignée(type);
     auto nombre_huitoctets = (taille + 7) / 8;
@@ -520,7 +518,7 @@ static void détermine_classe_argument_aggrégé(TypeCompose const *type,
     }
 }
 
-static void donne_classe_argument(Type const *type, kuri::tableau<Huitoctet> &résultat)
+static void donne_classe_argument(Type const *type, kuri::tablet<Huitoctet, 4> &résultat)
 {
     switch (type->genre) {
         case GenreNoeud::RIEN:
@@ -612,14 +610,22 @@ static ClassementArgument détermine_classes_arguments(TypeFonction const *type)
         auto argument = ArgumentPassé{};
         argument.premier_huitoctet_inclusif = uint32_t(résultat.huitoctets.taille());
 
-        donne_classe_argument(it, résultat.huitoctets);
+        kuri::tablet<Huitoctet, 4> tampon_huitoctets;
+        donne_classe_argument(it, tampon_huitoctets);
+        for (auto huitoctet : tampon_huitoctets) {
+            résultat.huitoctets.ajoute(huitoctet);
+        }
 
         argument.dernier_huitoctet_exclusif = uint32_t(résultat.huitoctets.taille());
         résultat.arguments.ajoute(argument);
     }
 
     résultat.sortie.premier_huitoctet_inclusif = uint32_t(résultat.huitoctets.taille());
-    donne_classe_argument(type->type_sortie, résultat.huitoctets);
+    kuri::tablet<Huitoctet, 4> tampon_huitoctets;
+    donne_classe_argument(type->type_sortie, tampon_huitoctets);
+    for (auto huitoctet : tampon_huitoctets) {
+        résultat.huitoctets.ajoute(huitoctet);
+    }
     résultat.sortie.dernier_huitoctet_exclusif = uint32_t(résultat.huitoctets.taille());
 
     return résultat;
