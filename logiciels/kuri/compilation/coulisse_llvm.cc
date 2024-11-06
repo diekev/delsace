@@ -1974,7 +1974,8 @@ void GénératriceCodeLLVM::génère_code()
         auto valeur_globale = it;
 
         auto globale = donne_ou_crée_déclaration_globale(valeur_globale);
-        if (valeur_globale->initialisateur) {
+        if (valeur_globale->est_constante) {
+            assert(valeur_globale->initialisateur);
             auto valeur_initialisateur = static_cast<llvm::Constant *>(
                 génère_code_pour_atome(valeur_globale->initialisateur, true));
             globale->setInitializer(valeur_initialisateur);
