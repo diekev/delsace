@@ -1301,14 +1301,25 @@ struct AssembleuseASM {
         génère_code_opération_binaire(dst, src, "sub", taille_octet);
     }
 
-    void mul(Opérande dst, Opérande src, uint32_t taille_octet)
+    void mul(Opérande src, uint32_t taille_octet)
     {
-        génère_code_opération_binaire(dst, src, "mul", taille_octet);
+        m_sortie << TABULATION << "mul ";
+        m_sortie << donne_chaine_taille_opérande(taille_octet) << " ";
+        imprime_opérande(src, taille_octet);
+        m_sortie << NOUVELLE_LIGNE;
     }
 
     void imul(Opérande dst, Opérande src, uint32_t taille_octet)
     {
         génère_code_opération_binaire(dst, src, "imul", taille_octet);
+    }
+
+    void imul(Opérande src, uint32_t taille_octet)
+    {
+        m_sortie << TABULATION << "imul ";
+        m_sortie << donne_chaine_taille_opérande(taille_octet) << " ";
+        imprime_opérande(src, taille_octet);
+        m_sortie << NOUVELLE_LIGNE;
     }
 
     void div(Opérande src, uint32_t taille_octet)
@@ -2940,10 +2951,52 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
         case OpérateurBinaire::Genre::Multiplication:
         {
             if (inst_bin->type->est_type_entier_relatif()) {
-                GENERE_CODE_INST_ENTIER(imul);
+                if (inst_bin->type->taille_octet == 1) {
+                    auto sauvegarde_eax = std::optional<AssembleuseASM::Mémoire>();
+
+                    if (registres.registre_est_occupé(Registre::RAX)) {
+                        auto tmp = alloue_variable(TypeBase::N64);
+                        assembleuse.mov(tmp, Registre::RAX, 8);
+                        sauvegarde_eax = tmp;
+                    }
+
+                    assembleuse.mov(Registre::RAX, opérande_gauche, inst_bin->type->taille_octet);
+                    assembleuse.cbw();
+                    assembleuse.imul(opérande_droite, inst_bin->type->taille_octet);
+                    assembleuse.mov(dest, Registre::RAX, inst_bin->type->taille_octet);
+
+                    if (sauvegarde_eax.has_value()) {
+                        assembleuse.mov(Registre::RAX, sauvegarde_eax.value(), 8);
+                        taille_allouée -= 8;
+                    }
+                    else {
+                        registres.marque_registre_inoccupé(Registre::RAX);
+                    }
+                }
+                else {
+                    GENERE_CODE_INST_ENTIER(imul);
+                }
             }
             else {
-                GENERE_CODE_INST_ENTIER(mul);
+                auto sauvegarde_eax = std::optional<AssembleuseASM::Mémoire>();
+
+                if (registres.registre_est_occupé(Registre::RAX)) {
+                    auto tmp = alloue_variable(TypeBase::N64);
+                    assembleuse.mov(tmp, Registre::RAX, 8);
+                    sauvegarde_eax = tmp;
+                }
+
+                assembleuse.mov(Registre::RAX, opérande_gauche, inst_bin->type->taille_octet);
+                assembleuse.mul(opérande_droite, inst_bin->type->taille_octet);
+                assembleuse.mov(dest, Registre::RAX, inst_bin->type->taille_octet);
+
+                if (sauvegarde_eax.has_value()) {
+                    assembleuse.mov(Registre::RAX, sauvegarde_eax.value(), 8);
+                    taille_allouée -= 8;
+                }
+                else {
+                    registres.marque_registre_inoccupé(Registre::RAX);
+                }
             }
             break;
         }
