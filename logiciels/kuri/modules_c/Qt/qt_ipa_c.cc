@@ -1557,15 +1557,15 @@ void QT_wheel_event_donne_position(QT_WheelEvent *event, QT_Position *r_position
 {
     auto qevent = vers_qt(event);
     if (r_position) {
-        r_position->x = qevent->pos().x();
-        r_position->y = qevent->pos().y();
+        r_position->x = qevent->position().x();
+        r_position->y = qevent->position().y();
     }
 }
 
 int QT_wheel_event_donne_delta(QT_WheelEvent *event)
 {
     auto qevent = vers_qt(event);
-    return qevent->delta();
+    return qevent->pixelDelta().y();
 }
 
 /** \} */
@@ -2041,20 +2041,20 @@ QT_Window *QT_widget_donne_window_handle(union QT_Generic_Widget widget)
 /** \name QT_GLWidget
  * \{ */
 
-QT_GLWidget *QT_cree_glwidget(QT_Rappels_GLWidget *rappels, QT_Generic_Widget parent)
+QT_OpenGLWidget *QT_cree_glwidget(QT_Rappels_GLWidget *rappels, QT_Generic_Widget parent)
 {
     auto qparent = vers_qt(parent);
-    auto résultat = vers_ipa(new GLWidget(rappels, qparent));
+    auto résultat = vers_ipa(new OpenGLWidget(rappels, qparent));
     if (rappels) {
         rappels->widget = résultat;
     }
     return résultat;
 }
 
-QT_Rappels_GLWidget *QT_glwidget_donne_rappels(QT_GLWidget *widget)
+QT_Rappels_GLWidget *QT_glwidget_donne_rappels(QT_OpenGLWidget *widget)
 {
     VERS_QT(widget);
-    if (auto ipa_widget = dynamic_cast<GLWidget *>(qwidget)) {
+    if (auto ipa_widget = dynamic_cast<OpenGLWidget *>(qwidget)) {
         return ipa_widget->donne_rappels();
     }
     return nullptr;
@@ -2203,7 +2203,7 @@ QT_GridLayout *QT_cree_grid_layout(QT_Generic_Widget parent)
 void QT_layout_definis_marge(QT_Generic_Layout layout, int taille)
 {
     auto qlayout = vers_qt(layout);
-    qlayout->setMargin(taille);
+    qlayout->setContentsMargins(taille, taille, taille, taille);
 }
 
 void QT_layout_ajoute_widget(QT_Generic_Layout layout, QT_Generic_Widget widget)
@@ -3649,7 +3649,7 @@ class EnveloppeVariant : public QT_Variant {
     static bool sur_est_chaine(QT_Variant *variant)
     {
         auto enveloppe = static_cast<EnveloppeVariant *>(variant);
-        return enveloppe->m_variant.type() == QVariant::String;
+        return enveloppe->m_variant.typeId() == QMetaType::QString;
     }
 
     static void sur_définis_brosse(QT_Variant *variant, QT_Brush *brosse)
@@ -3886,7 +3886,7 @@ void QT_sort_filter_proxy_model_definis_regex_filtre(QT_SortFilterProxyModel *sf
 {
     VERS_QT(sfpm);
     VERS_QT(regex);
-    qsfpm->setFilterRegExp(qregex);
+    qsfpm->setFilterRegularExpression(qregex);
 }
 
 void QT_sort_filter_proxy_model_definis_colonne_filtre(QT_SortFilterProxyModel *sfpm, int colonne)
@@ -4505,7 +4505,7 @@ static void connecte_rappels_socket(QTcpSocket *socket, QT_Rappels_Socket *rappe
     }
     if (rappels->sur_erreur) {
         QObject::connect(socket,
-                         qOverload<QAbstractSocket::SocketError>(&QAbstractSocket::error),
+                         qOverload<QAbstractSocket::SocketError>(&QAbstractSocket::errorOccurred),
                          [=](QAbstractSocket::SocketError) { rappels->sur_erreur(rappels); });
     }
     if (rappels->sur_resolution_hote) {

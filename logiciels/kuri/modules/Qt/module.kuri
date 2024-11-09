@@ -7,26 +7,40 @@ libdanjo :: #bibliothèque "danjo"
 
 #dépendance_bibliothèque libdanjo libdls_outils
 #dépendance_bibliothèque libdanjo libdls_phys
-#dépendance_bibliothèque libdanjo libQt5Widgets
-#dépendance_bibliothèque libdanjo libQt5OpenGL
-#dépendance_bibliothèque libdanjo libQt5Core
-#dépendance_bibliothèque libdanjo libQt5Gui
+#dépendance_bibliothèque libdanjo libQt6Widgets
+#dépendance_bibliothèque libdanjo libQt6OpenGL
+#dépendance_bibliothèque libdanjo libQt6OpenGLWidgets
+#dépendance_bibliothèque libdanjo libQt6Core
+#dépendance_bibliothèque libdanjo libQt6Gui
 
-libQt5Widgets :: #bibliothèque "Qt5Widgets"
-libQt5OpenGL :: #bibliothèque "Qt5OpenGL"
-libQt5Core :: #bibliothèque "Qt5Core"
-libQt5Gui :: #bibliothèque "Qt5Gui"
-libQt5Network :: #bibliothèque "Qt5Network"
+libQt6DBus :: #bibliothèque "Qt6DBus"
+libQt6Widgets :: #bibliothèque "Qt6Widgets"
+libQt6OpenGL :: #bibliothèque "Qt6OpenGL"
+libQt6OpenGLWidgets :: #bibliothèque "Qt6OpenGLWidgets"
+libQt6Core :: #bibliothèque "Qt6Core"
+libQt6Gui :: #bibliothèque "Qt6Gui"
+libQt6Network :: #bibliothèque "Qt6Network"
+
+#dépendance_bibliothèque libQt6Gui libQt6DBus
+
+libicui18n :: #bibliothèque "icui18n"
+libicuuc :: #bibliothèque "icuuc"
+libicudata :: #bibliothèque "icudata"
+
+#dépendance_bibliothèque libQt6Core libicui18n
+#dépendance_bibliothèque libQt6Core libicuuc
+#dépendance_bibliothèque libQt6Core libicudata
 
 libqt_entetes :: #bibliothèque "qt_entetes"
 
 #dépendance_bibliothèque libqt libqt_entetes
 #dépendance_bibliothèque libqt libdanjo
-#dépendance_bibliothèque libqt libQt5Widgets
-#dépendance_bibliothèque libqt libQt5OpenGL
-#dépendance_bibliothèque libqt libQt5Core
-#dépendance_bibliothèque libqt libQt5Gui
-#dépendance_bibliothèque libqt libQt5Network
+#dépendance_bibliothèque libqt libQt6Widgets
+#dépendance_bibliothèque libqt libQt6OpenGL
+#dépendance_bibliothèque libqt libQt6OpenGLWidgets
+#dépendance_bibliothèque libqt libQt6Core
+#dépendance_bibliothèque libqt libQt6Gui
+#dépendance_bibliothèque libqt libQt6Network
 
 /* ------------------------------------------------------------------------- */
 /** \nom Utilitaires
@@ -587,7 +601,7 @@ initialise_table_conversion_clé :: fonc ()
     table_conversion_clé[QT_Key.twosuperior] = CléClavier.INCONNUE
     table_conversion_clé[QT_Key.threesuperior] = CléClavier.INCONNUE
     table_conversion_clé[QT_Key.acute] = CléClavier.INCONNUE
-    table_conversion_clé[QT_Key.mu] = CléClavier.INCONNUE
+    table_conversion_clé[QT_Key.micro] = CléClavier.INCONNUE
     table_conversion_clé[QT_Key.paragraph] = CléClavier.INCONNUE
     table_conversion_clé[QT_Key.periodcentered] = CléClavier.INCONNUE
     table_conversion_clé[QT_Key.cedilla] = CléClavier.INCONNUE

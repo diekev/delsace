@@ -159,13 +159,13 @@ struct QT_Rappel_Generique {
     O(QDialogButtonBox, QT_DialogButtonBox, dialog_button_box)                                    \
     O(QDoubleSpinBox, QT_DoubleSpinBox, double_spin_box)                                          \
     O(QFrame, QT_Frame, frame)                                                                    \
-    O(QGLWidget, QT_GLWidget, glwidget)                                                           \
     O(QGraphicsView, QT_GraphicsView, graphics_view)                                              \
     O(QHeaderView, QT_HeaderView, header_view)                                                    \
     O(QLabel, QT_Label, label)                                                                    \
     O(QLineEdit, QT_LineEdit, line_edit)                                                          \
     O(QMenu, QT_Menu, menu)                                                                       \
     O(QMenuBar, QT_MenuBar, menu_bar)                                                             \
+    O(QOpenGLWidget, QT_OpenGLWidget, glwidget)                                                   \
     O(QPlainTextEdit, QT_PlainTextEdit, plain_text_edit)                                          \
     O(QProgressBar, QT_ProgressBar, progress_bar)                                                 \
     O(QPushButton, QT_PushButton, push_button)                                                    \
@@ -902,7 +902,7 @@ void QT_clipboard_efface(struct QT_Clipboard *clipboard);
     O(QT_KEY_twosuperior, Qt::Key_twosuperior)                                                    \
     O(QT_KEY_threesuperior, Qt::Key_threesuperior)                                                \
     O(QT_KEY_acute, Qt::Key_acute)                                                                \
-    O(QT_KEY_mu, Qt::Key_mu)                                                                      \
+    O(QT_KEY_micro, Qt::Key_micro)                                                                \
     O(QT_KEY_paragraph, Qt::Key_paragraph)                                                        \
     O(QT_KEY_periodcentered, Qt::Key_periodcentered)                                              \
     O(QT_KEY_cedilla, Qt::Key_cedilla)                                                            \
@@ -1843,11 +1843,11 @@ struct QT_Window *QT_widget_donne_window_handle(union QT_Generic_Widget widget);
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \name QT_GLWidget
+/** \name QT_OpenGLWidget
  * \{ */
 
 struct QT_Rappels_GLWidget {
-    RAPPELS_EVENEMENTS_COMMUNS(QT_GLWidget, QT_Rappels_GLWidget);
+    RAPPELS_EVENEMENTS_COMMUNS(QT_OpenGLWidget, QT_Rappels_GLWidget);
 
     void (*sur_initialisation_gl)(struct QT_Rappels_GLWidget *);
     void (*sur_peinture_gl)(struct QT_Rappels_GLWidget *);
@@ -1855,10 +1855,10 @@ struct QT_Rappels_GLWidget {
     void (*sur_redimensionnement_gl)(struct QT_Rappels_GLWidget *, struct QT_Taille);
 };
 
-struct QT_GLWidget *QT_cree_glwidget(struct QT_Rappels_GLWidget *rappels,
-                                     union QT_Generic_Widget parent);
+struct QT_OpenGLWidget *QT_cree_glwidget(struct QT_Rappels_GLWidget *rappels,
+                                         union QT_Generic_Widget parent);
 
-struct QT_Rappels_GLWidget *QT_glwidget_donne_rappels(struct QT_GLWidget *widget);
+struct QT_Rappels_GLWidget *QT_glwidget_donne_rappels(struct QT_OpenGLWidget *widget);
 
 /** \} */
 
