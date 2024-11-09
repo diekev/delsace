@@ -1851,10 +1851,19 @@ void QT_widget_definis_actif(QT_Generic_Widget widget, bool ouinon)
 QT_Generic_Widget QT_widget_donne_widget_parent(QT_Generic_Widget widget)
 {
     auto qwidget = vers_qt(widget);
-    /* XXX - ce peut ne pas être un Widget mais un QWidget. */
-    auto widget_parent = static_cast<Widget *>(qwidget->parent());
     QT_Generic_Widget résultat;
-    résultat.widget = vers_ipa(widget_parent);
+
+    auto parent = qwidget->parent();
+    if (auto qwidget_parent = dynamic_cast<QWidget *>(parent)) {
+        résultat.widget = vers_ipa(qwidget_parent);
+    }
+    else if (auto qwidget_parent = dynamic_cast<Widget *>(parent)) {
+        résultat.widget = vers_ipa(qwidget_parent);
+    }
+    else {
+        résultat.widget = nullptr;
+    }
+
     return résultat;
 }
 
@@ -2045,7 +2054,10 @@ QT_GLWidget *QT_cree_glwidget(QT_Rappels_GLWidget *rappels, QT_Generic_Widget pa
 QT_Rappels_GLWidget *QT_glwidget_donne_rappels(QT_GLWidget *widget)
 {
     VERS_QT(widget);
-    return qwidget->donne_rappels();
+    if (auto ipa_widget = dynamic_cast<GLWidget *>(qwidget)) {
+        return ipa_widget->donne_rappels();
+    }
+    return nullptr;
 }
 
 /** \} */
@@ -2344,9 +2356,10 @@ void QT_combobox_connecte_sur_changement_index(QT_ComboBox *combo, QT_Rappel_Gen
         return;
     }
 
-    auto qcombo = vers_qt(combo);
-    QObject::connect(
-        qcombo, &ComboBox::index_courant_modifie, [=]() { rappel->sur_rappel(rappel); });
+    if (auto qcombo = dynamic_cast<ComboBox *>(vers_qt(combo))) {
+        QObject::connect(
+            qcombo, &ComboBox::index_courant_modifie, [=]() { rappel->sur_rappel(rappel); });
+    }
 }
 
 QT_Chaine QT_combobox_donne_valeur_courante_chaine(QT_ComboBox *combo)
@@ -3077,7 +3090,10 @@ QT_TreeWidgetItem *QT_cree_treewidgetitem(void *donnees, QT_TreeWidgetItem *pare
 void *QT_treewidgetitem_donne_donnees(QT_TreeWidgetItem *widget)
 {
     auto qwidget = vers_qt(widget);
-    return qwidget->donne_données();
+    if (auto ipa_widget = dynamic_cast<TreeWidgetItem *>(qwidget)) {
+        return ipa_widget->donne_données();
+    }
+    return nullptr;
 }
 
 static QTreeWidgetItem::ChildIndicatorPolicy convertis_mode_indicateur(

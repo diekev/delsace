@@ -151,37 +151,37 @@ struct QT_Rappel_Generique {
  * \{ */
 
 #define ENUMERE_TYPES_WIDGETS(O)                                                                  \
-    O(Widget, QT_Widget, widget)                                                                  \
-    O(GLWidget, QT_GLWidget, glwidget)                                                            \
-    O(ComboBox, QT_ComboBox, combo_box)                                                           \
-    O(QSplitter, QT_Splitter, splitter)                                                           \
-    O(QFrame, QT_Frame, frame)                                                                    \
+    O(ConteneurControles, DNJ_Conteneur_Controles, conteneur_controles)                           \
     O(FenetrePrincipale, QT_Fenetre_Principale, fenetre_principale)                               \
-    O(TabWidget, QT_TabWidget, tab_widget)                                                        \
-    O(QScrollArea, QT_ScrollArea, scroll_area)                                                    \
-    O(QScrollBar, QT_ScrollBar, scroll_bar)                                                       \
     O(QCheckBox, QT_CheckBox, check_box)                                                          \
+    O(QComboBox, QT_ComboBox, combo_box)                                                          \
+    O(QDialog, QT_Dialog, dialogue)                                                               \
+    O(QDialogButtonBox, QT_DialogButtonBox, dialog_button_box)                                    \
+    O(QDoubleSpinBox, QT_DoubleSpinBox, double_spin_box)                                          \
+    O(QFrame, QT_Frame, frame)                                                                    \
+    O(QGLWidget, QT_GLWidget, glwidget)                                                           \
+    O(QGraphicsView, QT_GraphicsView, graphics_view)                                              \
+    O(QHeaderView, QT_HeaderView, header_view)                                                    \
     O(QLabel, QT_Label, label)                                                                    \
     O(QLineEdit, QT_LineEdit, line_edit)                                                          \
-    O(QTreeWidget, QT_TreeWidget, tree_widget)                                                    \
-    O(TreeWidgetItem, QT_TreeWidgetItem, tree_widget_item)                                        \
-    O(ConteneurControles, DNJ_Conteneur_Controles, conteneur_controles)                           \
-    O(QPushButton, QT_PushButton, push_button)                                                    \
-    O(QToolButton, QT_ToolButton, tool_button)                                                    \
-    O(QDialog, QT_Dialog, dialogue)                                                               \
-    O(QGraphicsView, QT_GraphicsView, graphics_view)                                              \
-    O(QStatusBar, QT_StatusBar, status_bar)                                                       \
     O(QMenu, QT_Menu, menu)                                                                       \
     O(QMenuBar, QT_MenuBar, menu_bar)                                                             \
-    O(QToolBar, QT_ToolBar, tool_bar)                                                             \
-    O(QTableView, QT_TableView, table_view)                                                       \
-    O(QHeaderView, QT_HeaderView, header_view)                                                    \
-    O(QSpinBox, QT_SpinBox, spin_box)                                                             \
-    O(QDoubleSpinBox, QT_DoubleSpinBox, double_spin_box)                                          \
-    O(QSlider, QT_Slider, slider)                                                                 \
+    O(QPlainTextEdit, QT_PlainTextEdit, plain_text_edit)                                          \
     O(QProgressBar, QT_ProgressBar, progress_bar)                                                 \
-    O(PlainTextEdit, QT_PlainTextEdit, plain_text_edit)                                           \
-    O(QDialogButtonBox, QT_DialogButtonBox, dialog_button_box)
+    O(QPushButton, QT_PushButton, push_button)                                                    \
+    O(QScrollBar, QT_ScrollBar, scroll_bar)                                                       \
+    O(QScrollArea, QT_ScrollArea, scroll_area)                                                    \
+    O(QSlider, QT_Slider, slider)                                                                 \
+    O(QSpinBox, QT_SpinBox, spin_box)                                                             \
+    O(QSplitter, QT_Splitter, splitter)                                                           \
+    O(QStatusBar, QT_StatusBar, status_bar)                                                       \
+    O(QTableView, QT_TableView, table_view)                                                       \
+    O(QTabWidget, QT_TabWidget, tab_widget)                                                       \
+    O(QToolBar, QT_ToolBar, tool_bar)                                                             \
+    O(QToolButton, QT_ToolButton, tool_button)                                                    \
+    O(QTreeWidget, QT_TreeWidget, tree_widget)                                                    \
+    O(QTreeWidgetItem, QT_TreeWidgetItem, tree_widget_item)                                       \
+    O(QWidget, QT_Widget, widget)
 
 #define PRODECLARE_TYPES_WIDGETS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_WIDGETS(PRODECLARE_TYPES_WIDGETS)
@@ -203,8 +203,8 @@ union QT_Generic_Widget {
 
 #define ENUMERE_TYPES_ITEM_MODEL(O)                                                               \
     O(QAbstractItemModel, QT_AbstractItemModel, item_model)                                       \
-    O(QSortFilterProxyModel, QT_SortFilterProxyModel, sort_filter_proxy_model)                    \
-    O(QAbstractTableModel, QT_AbstractTableModel, table_model)
+    O(QAbstractTableModel, QT_AbstractTableModel, table_model)                                    \
+    O(QSortFilterProxyModel, QT_SortFilterProxyModel, sort_filter_proxy_model)
 
 #define PRODECLARE_TYPES_ITEM_MODEL(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_ITEM_MODEL(PRODECLARE_TYPES_ITEM_MODEL)
@@ -225,8 +225,8 @@ union QT_Generic_ItemModel {
  * \{ */
 
 #define ENUMERE_TYPES_SOCKETS(O)                                                                  \
-    O(QTcpSocket, QT_TcpSocket, tcp)                                                              \
-    O(QSslSocket, QT_SslSocket, ssl)
+    O(QSslSocket, QT_SslSocket, ssl)                                                              \
+    O(QTcpSocket, QT_TcpSocket, tcp)
 
 #define PRODECLARE_TYPES_SOCKETS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_SOCKETS(PRODECLARE_TYPES_SOCKETS)
@@ -245,21 +245,21 @@ union QT_AbstractSocket {
  * \{ */
 
 #define ENUMERE_TYPES_OBJETS(O)                                                                   \
-    O(QObject, QT_Object, object)                                                                 \
-    O(QTimer, QT_Timer, timer)                                                                    \
-    O(QStyle, QT_Style, style)                                                                    \
-    O(QScreen, QT_Screen, screen)                                                                 \
-    O(QGraphicsScene, QT_GraphicsScene, graphics_scene)                                           \
-    O(QSettings, QT_Settings, settings)                                                           \
     O(QAction, QT_Action, action)                                                                 \
-    O(QDrag, QT_Drag, drag)                                                                       \
-    O(QMimeData, QT_MimeData, mimedata)                                                           \
     O(QClipboard, QT_Clipboard, clipboard)                                                        \
-    O(QShortcut, QT_Shortcut, shortcut)                                                           \
-    O(QThread, QT_Thread, thread)                                                                 \
-    O(QWindow, QT_Window, window)                                                                 \
+    O(QDrag, QT_Drag, drag)                                                                       \
+    O(QEventLoop, QT_Event_Loop, event_loop)                                                      \
+    O(QGraphicsScene, QT_GraphicsScene, graphics_scene)                                           \
+    O(QMimeData, QT_MimeData, mimedata)                                                           \
+    O(QObject, QT_Object, object)                                                                 \
     O(QOpenGLContext, QT_OpenGL_Context, opengl_context)                                          \
-    O(QEventLoop, QT_Event_Loop, event_loop)
+    O(QScreen, QT_Screen, screen)                                                                 \
+    O(QSettings, QT_Settings, settings)                                                           \
+    O(QShortcut, QT_Shortcut, shortcut)                                                           \
+    O(QStyle, QT_Style, style)                                                                    \
+    O(QThread, QT_Thread, thread)                                                                 \
+    O(QTimer, QT_Timer, timer)                                                                    \
+    O(QWindow, QT_Window, window)
 
 #define PRODECLARE_TYPES_OBJETS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_OBJETS(PRODECLARE_TYPES_OBJETS)
@@ -303,9 +303,9 @@ void QT_Object_remove_event_filter(union QT_Generic_Object object, union QT_Gene
  * \{ */
 
 #define ENUMERE_TYPES_BOX_LAYOUTS(O)                                                              \
+    O(QBoxLayout, QT_BoxLayout, box)                                                              \
     O(QVBoxLayout, QT_VBoxLayout, vbox)                                                           \
-    O(QHBoxLayout, QT_HBoxLayout, hbox)                                                           \
-    O(QBoxLayout, QT_BoxLayout, box)
+    O(QHBoxLayout, QT_HBoxLayout, hbox)
 
 #define PRODECLARE_TYPES_LAYOUTS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_BOX_LAYOUTS(PRODECLARE_TYPES_LAYOUTS)
@@ -326,9 +326,9 @@ union QT_Generic_BoxLayout {
  * \{ */
 
 #define ENUMERE_TYPES_LAYOUTS(O)                                                                  \
-    O(QLayout, QT_Layout, layout)                                                                 \
     O(QFormLayout, QT_FormLayout, form)                                                           \
-    O(QGridLayout, QT_GridLayout, grid)
+    O(QGridLayout, QT_GridLayout, grid)                                                           \
+    O(QLayout, QT_Layout, layout)
 
 #define PRODECLARE_TYPES_LAYOUTS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_LAYOUTS(PRODECLARE_TYPES_LAYOUTS)
@@ -350,14 +350,14 @@ union QT_Generic_Layout {
  * \{ */
 
 #define ENUMERE_TYPES_EVENTS(O)                                                                   \
-    O(QEvent, QT_Evenement, event)                                                                \
-    O(QMouseEvent, QT_MouseEvent, mouse_event)                                                    \
-    O(QWheelEvent, QT_WheelEvent, wheel_event)                                                    \
-    O(QResizeEvent, QT_ResizeEvent, resize_event)                                                 \
-    O(QKeyEvent, QT_KeyEvent, key_event)                                                          \
     O(QContextMenuEvent, QT_ContextMenuEvent, context_menu_event)                                 \
     O(QDragEnterEvent, QT_DragEnterEvent, drag_enter_event)                                       \
-    O(QDropEvent, QT_DropEvent, drop_event)
+    O(QDropEvent, QT_DropEvent, drop_event)                                                       \
+    O(QEvent, QT_Evenement, event)                                                                \
+    O(QKeyEvent, QT_KeyEvent, key_event)                                                          \
+    O(QMouseEvent, QT_MouseEvent, mouse_event)                                                    \
+    O(QResizeEvent, QT_ResizeEvent, resize_event)                                                 \
+    O(QWheelEvent, QT_WheelEvent, wheel_event)
 
 #define PRODECLARE_TYPES_EVENTS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_EVENTS(PRODECLARE_TYPES_EVENTS)
@@ -378,11 +378,11 @@ union QT_Generic_Event {
  * \{ */
 
 #define ENUMERE_TYPES_GRAPHICS_ITEM(O)                                                            \
+    O(QGraphicsEllipseItem, QT_GraphicsEllipseItem, ellipse_item)                                 \
     O(QGraphicsItem, QT_GraphicsItem, item)                                                       \
     O(QGraphicsLineItem, QT_GraphicsLineItem, line_item)                                          \
     O(QGraphicsRectItem, QT_GraphicsRectItem, rect_item)                                          \
-    O(QGraphicsTextItem, QT_GraphicsTextItem, text_item)                                          \
-    O(QGraphicsEllipseItem, QT_GraphicsEllipseItem, ellipse_item)
+    O(QGraphicsTextItem, QT_GraphicsTextItem, text_item)
 
 #define PRODECLARE_TYPES_GRAPHICS_ITEM(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_GRAPHICS_ITEM(PRODECLARE_TYPES_GRAPHICS_ITEM)
