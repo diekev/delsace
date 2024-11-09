@@ -3587,6 +3587,46 @@ void QT_graphics_view_mappe_vers_global(QT_GraphicsView *graphics_view,
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_IODevice
+ * https://doc.qt.io/qt-5/qiodevice.html
+ * \{ */
+
+class IODevice : public QIODevice {
+    QT_Rappels_IODevice *m_rappels = nullptr;
+
+  public:
+    IODevice(QT_Rappels_IODevice *rappels, QObject *parent) : QIODevice(parent), m_rappels(rappels)
+    {
+        m_rappels->iodevice = vers_ipa(this);
+    }
+
+    qint64 readData(char *data, qint64 maxlen) override
+    {
+        return m_rappels->read_data(m_rappels, data, maxlen);
+    }
+
+    qint64 writeData(const char *data, qint64 len) override
+    {
+        return m_rappels->write_data(m_rappels, data, len);
+    }
+};
+
+QT_IODevice *QT_iodevice_cree_avec_rappels(QT_Rappels_IODevice *rappels, QT_Generic_Object parent)
+{
+    VERS_QT(parent);
+    auto résultat = new IODevice(rappels, qparent);
+    return vers_ipa(résultat);
+}
+
+void QT_iodevice_ready_read(QT_IODevice *iodevice)
+{
+    VERS_QT(iodevice);
+    Q_EMIT(qiodevice->readyRead());
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Variant
  * \{ */
 

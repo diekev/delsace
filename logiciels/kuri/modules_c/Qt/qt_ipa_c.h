@@ -250,6 +250,7 @@ union QT_AbstractSocket {
     O(QDrag, QT_Drag, drag)                                                                       \
     O(QEventLoop, QT_Event_Loop, event_loop)                                                      \
     O(QGraphicsScene, QT_GraphicsScene, graphics_scene)                                           \
+    O(QIODevice, QT_IODevice, io_device)                                                          \
     O(QMimeData, QT_MimeData, mimedata)                                                           \
     O(QObject, QT_Object, object)                                                                 \
     O(QOpenGLContext, QT_OpenGL_Context, opengl_context)                                          \
@@ -2519,6 +2520,24 @@ void QT_graphics_view_mappe_depuis_scene(struct QT_GraphicsView *graphics_view,
 void QT_graphics_view_mappe_vers_global(struct QT_GraphicsView *graphics_view,
                                         struct QT_Point point,
                                         struct QT_Point *r_point);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_IODevice
+ * \{ */
+
+struct QT_Rappels_IODevice {
+    int64_t (*read_data)(struct QT_Rappels_IODevice *, char *, int64_t);
+    int64_t (*write_data)(struct QT_Rappels_IODevice *, const char *, int64_t);
+    void (*sur_destruction)(struct QT_Rappels_IODevice *);
+    struct QT_IODevice *iodevice;
+};
+
+struct QT_IODevice *QT_iodevice_cree_avec_rappels(struct QT_Rappels_IODevice *rappels,
+                                                  union QT_Generic_Object parent);
+
+void QT_iodevice_ready_read(struct QT_IODevice *iodevice);
 
 /** \} */
 
