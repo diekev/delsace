@@ -1565,7 +1565,7 @@ void QT_wheel_event_donne_position(QT_WheelEvent *event, QT_Position *r_position
 int QT_wheel_event_donne_delta(QT_WheelEvent *event)
 {
     auto qevent = vers_qt(event);
-    return qevent->pixelDelta().y();
+    return qevent->angleDelta().y();
 }
 
 /** \} */
