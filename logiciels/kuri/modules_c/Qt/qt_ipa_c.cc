@@ -124,20 +124,20 @@ inline QAbstractSocket *vers_qt(QT_AbstractSocket socket)
 inline QColor vers_qt(QT_Color color)
 {
     auto résultat = QColor();
-    résultat.setRedF(color.r);
-    résultat.setGreenF(color.g);
-    résultat.setBlueF(color.b);
-    résultat.setAlphaF(color.a);
+    résultat.setRedF(float(color.r));
+    résultat.setGreenF(float(color.g));
+    résultat.setBlueF(float(color.b));
+    résultat.setAlphaF(float(color.a));
     return résultat;
 }
 
 inline QT_Color vers_ipa(QColor color)
 {
     auto résultat = QT_Color();
-    résultat.r = color.redF();
-    résultat.g = color.greenF();
-    résultat.b = color.blueF();
-    résultat.a = color.alphaF();
+    résultat.r = double(color.redF());
+    résultat.g = double(color.greenF());
+    résultat.b = double(color.blueF());
+    résultat.a = double(color.alphaF());
     return résultat;
 }
 
@@ -1458,7 +1458,7 @@ QT_Point QT_rect_donne_haut_droit(QT_Rect rect)
 
 void QT_color_depuis_tsl(double t, double s, double l, double a, struct QT_Color *r_color)
 {
-    auto résultat = QColor::fromHslF(t, s, l, a);
+    auto résultat = QColor::fromHslF(float(t), float(s), float(l), float(a));
     *r_color = vers_ipa(résultat);
 }
 
@@ -1557,8 +1557,8 @@ void QT_wheel_event_donne_position(QT_WheelEvent *event, QT_Position *r_position
 {
     auto qevent = vers_qt(event);
     if (r_position) {
-        r_position->x = qevent->position().x();
-        r_position->y = qevent->position().y();
+        r_position->x = int(qevent->position().x());
+        r_position->y = int(qevent->position().y());
     }
 }
 
@@ -1857,8 +1857,8 @@ QT_Generic_Widget QT_widget_donne_widget_parent(QT_Generic_Widget widget)
     if (auto qwidget_parent = dynamic_cast<QWidget *>(parent)) {
         résultat.widget = vers_ipa(qwidget_parent);
     }
-    else if (auto qwidget_parent = dynamic_cast<Widget *>(parent)) {
-        résultat.widget = vers_ipa(qwidget_parent);
+    else if (auto widget_parent = dynamic_cast<Widget *>(parent)) {
+        résultat.widget = vers_ipa(widget_parent);
     }
     else {
         résultat.widget = nullptr;
@@ -2866,14 +2866,21 @@ void QT_push_button_definis_icone(QT_PushButton *button, QT_Icon *icon)
 /** \name QT_StandardButton
  * \{ */
 
-static QMessageBox::StandardButton vers_qt(QT_StandardButton drapeaux)
+static QMessageBox::StandardButtons standard_buttons_vers_qt(QT_StandardButton drapeaux)
 {
     int résultat = QMessageBox::StandardButton::NoButton;
     ENUMERE_BOUTON_STANDARD(ENUMERE_TRANSLATION_ENUM_DRAPEAU_IPA_VERS_QT)
     return QMessageBox::StandardButton(résultat);
 }
 
-static QT_StandardButton vers_ipa(QMessageBox::StandardButton drapeaux)
+static QDialogButtonBox::StandardButtons standard_buttons_vers_message_box(
+    QT_StandardButton drapeaux)
+{
+    auto résultat = standard_buttons_vers_qt(drapeaux).toInt();
+    return QDialogButtonBox::StandardButtons::fromInt(uint32_t(résultat));
+}
+
+static QT_StandardButton standard_buttons_vers_ipa(QMessageBox::StandardButtons drapeaux)
 {
     int résultat = QMessageBox::StandardButton::NoButton;
     ENUMERE_BOUTON_STANDARD(ENUMERE_TRANSLATION_ENUM_DRAPEAU_QT_VERS_IPA)
@@ -2902,7 +2909,8 @@ QT_PushButton *QT_dialog_button_box_ajoute_bouton_standard(QT_DialogButtonBox *b
                                                            QT_StandardButton button)
 {
     VERS_QT(box);
-    auto résultat = qbox->addButton(QDialogButtonBox::StandardButton(vers_qt(button)));
+    auto flag = standard_buttons_vers_message_box(button).toInt();
+    auto résultat = qbox->addButton(QDialogButtonBox::StandardButton(flag));
     return vers_ipa(résultat);
 }
 
@@ -3027,10 +3035,10 @@ QT_StandardButton QT_message_box_affiche_avertissement(QT_Generic_Widget parent,
     auto qparent = vers_qt(parent);
     auto qtitre = titre.vers_std_string();
     auto qmessage = message.vers_std_string();
-    auto qboutons = vers_qt(boutons);
+    auto qboutons = standard_buttons_vers_qt(boutons);
 
     auto résultat = QMessageBox::warning(qparent, qtitre.c_str(), qmessage.c_str(), qboutons);
-    return vers_ipa(résultat);
+    return standard_buttons_vers_ipa(résultat);
 }
 
 QT_StandardButton QT_message_box_affiche_erreur(QT_Generic_Widget parent,
@@ -3041,10 +3049,10 @@ QT_StandardButton QT_message_box_affiche_erreur(QT_Generic_Widget parent,
     auto qparent = vers_qt(parent);
     auto qtitre = titre.vers_std_string();
     auto qmessage = message.vers_std_string();
-    auto qboutons = vers_qt(boutons);
+    auto qboutons = standard_buttons_vers_qt(boutons);
 
     auto résultat = QMessageBox::critical(qparent, qtitre.c_str(), qmessage.c_str(), qboutons);
-    return vers_ipa(résultat);
+    return standard_buttons_vers_ipa(résultat);
 }
 
 QT_StandardButton QT_message_box_affiche_question(QT_Generic_Widget parent,
@@ -3055,10 +3063,10 @@ QT_StandardButton QT_message_box_affiche_question(QT_Generic_Widget parent,
     auto qparent = vers_qt(parent);
     auto qtitre = titre.vers_std_string();
     auto qmessage = message.vers_std_string();
-    auto qboutons = vers_qt(boutons);
+    auto qboutons = standard_buttons_vers_qt(boutons);
 
     auto résultat = QMessageBox::question(qparent, qtitre.c_str(), qmessage.c_str(), qboutons);
-    return vers_ipa(QMessageBox::StandardButton(résultat));
+    return standard_buttons_vers_ipa(résultat);
 }
 
 QT_StandardButton QT_message_box_affiche_information(QT_Generic_Widget parent,
@@ -3069,10 +3077,10 @@ QT_StandardButton QT_message_box_affiche_information(QT_Generic_Widget parent,
     auto qparent = vers_qt(parent);
     auto qtitre = titre.vers_std_string();
     auto qmessage = message.vers_std_string();
-    auto qboutons = vers_qt(boutons);
+    auto qboutons = standard_buttons_vers_qt(boutons);
 
     auto résultat = QMessageBox::information(qparent, qtitre.c_str(), qmessage.c_str(), qboutons);
-    return vers_ipa(résultat);
+    return standard_buttons_vers_ipa(résultat);
 }
 
 /** \} */
@@ -3599,6 +3607,8 @@ class IODevice : public QIODevice {
     {
         m_rappels->iodevice = vers_ipa(this);
     }
+
+    EMPECHE_COPIE(IODevice);
 
     qint64 readData(char *data, qint64 maxlen) override
     {
