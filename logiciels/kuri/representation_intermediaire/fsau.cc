@@ -2137,6 +2137,12 @@ void convertis_fsau(EspaceDeTravail &espace,
     kuri::file<Bloc *> blocs;
     blocs.enfile(fonction_et_blocs.blocs[0]);
 
+    POUR (fonction->params_entrée) {
+        it->drapeaux |= DrapeauxAtome::EST_PARAMÈTRE_FONCTION;
+        (void)convertisseuse_fsau.génère_valeur_pour_instruction(
+            fonction_et_blocs.blocs[0], it, UtilisationAtome::RACINE);
+    }
+
     /* Insère la valeur de retour dans le premier bloc. */
     (void)convertisseuse_fsau.génère_valeur_pour_instruction(
         fonction_et_blocs.blocs[0], fonction->param_sortie, UtilisationAtome::RACINE);
@@ -2460,7 +2466,8 @@ Atome *Rièrevertisseuse::rièrevertis_en_ri(Valeur *valeur,
                 return constructrice.crée_charge_mem(nullptr, alloc);
             }
 
-            if (!alloc->possède_drapeau(DrapeauxAtome::FUT_RÉINSÉRÉ_APRÈS_FSAU)) {
+            if (!alloc->possède_drapeau(DrapeauxAtome::FUT_RÉINSÉRÉ_APRÈS_FSAU) &&
+                !alloc->possède_drapeau(DrapeauxAtome::EST_PARAMÈTRE_FONCTION)) {
                 constructrice.insère(alloc);
                 alloc->drapeaux |= DrapeauxAtome::FUT_RÉINSÉRÉ_APRÈS_FSAU;
             }
