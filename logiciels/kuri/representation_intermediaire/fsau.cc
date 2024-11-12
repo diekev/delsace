@@ -2391,8 +2391,10 @@ Atome *Rièrevertisseuse::rièrevertis_en_ri(Valeur *valeur,
                 alloc->drapeaux |= DrapeauxAtome::FUT_RÉINSÉRÉ_APRÈS_FSAU;
             }
 
-            auto opérande = rièrevertis_en_ri(locale->donne_valeur(), constructrice, true);
-            constructrice.crée_stocke_mem(nullptr, alloc, opérande);
+            if (locale->donne_valeur()->genre != GenreValeur::INDÉFINIE) {
+                auto opérande = rièrevertis_en_ri(locale->donne_valeur(), constructrice, true);
+                constructrice.crée_stocke_mem(nullptr, alloc, opérande);
+            }
 
             return alloc;
         }
