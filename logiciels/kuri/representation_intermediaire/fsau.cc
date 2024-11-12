@@ -256,6 +256,7 @@ struct Valeur {
     DrapeauxValeur drapeaux = DrapeauxValeur::ZÉRO;
     uint32_t numéro = 0;
     index_table_relation index_relations = index_relation_invalide;
+    int32_t index_bloc = -1;
 
     ENUMERE_GENRE_VALEUR_SSA(DECLARE_FONCTIONS_DISCRIMINATION)
 
@@ -1918,9 +1919,41 @@ static bool supprime_code_inutile(FonctionEtBlocs &fonction_et_blocs, TableDesRe
 {
     auto résultat = false;
 
+    int32_t index_bloc = 0;
     POUR_NOMME (bloc, fonction_et_blocs.blocs) {
         POUR_NOMME (valeur, bloc->valeurs) {
+            valeur->index_bloc = index_bloc;
             valeur->drapeaux &= ~DrapeauxValeur::PARTICIPE_AU_FLOT_DU_PROGRAMME;
+        }
+        index_bloc++;
+    }
+
+    /* Remplace les phis par leurs dernières opérandes si toutes les opérandes sont dans le bloc du
+     * phi. Ceci peut arriver lors de la fusion de blocs. Nous prenons la dernière opérande car
+     * elle est sensée être la dernière valeur écrite chronologiquement. */
+    POUR_NOMME (bloc, fonction_et_blocs.blocs) {
+        POUR_NOMME (valeur, bloc->valeurs) {
+            if (!valeur->est_phi()) {
+                continue;
+            }
+
+            auto phi = valeur->comme_phi();
+            auto bloc_phi = phi->index_bloc;
+            auto toutes_les_opérandes_sont_dans_le_bloc = true;
+            POUR (phi->opérandes) {
+                if (bloc_phi != it->index_bloc) {
+                    toutes_les_opérandes_sont_dans_le_bloc = false;
+                    break;
+                }
+            }
+
+            if (!toutes_les_opérandes_sont_dans_le_bloc) {
+                continue;
+            }
+
+            phi->remplace_par(table,
+                              phi->opérandes[phi->opérandes.taille() - 1],
+                              FSAU::DrapeauxRemplacement::AUCUN);
         }
     }
 
