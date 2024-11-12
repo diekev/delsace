@@ -2300,34 +2300,6 @@ index_table_relation TableDesRelations::donne_index_pour_valeur(Valeur *valeur)
 
 /** \} */
 
-/*
-
-  Pour la rétroconversion vers RI.
-
-bloc: 0                       %0  label 0
-  v1 = 0                      %1    alloue z32 a
-                              %2    stocke *z32 %1, z32 0
-  br %1                       %3    branche %4
-
-bloc: 1                       %4  label 1
-  v2 = 15
-  v3 = 1
-  v4 = phi <v1, v6>           %5    charge z32 %1
-  v5 = v4 >= v2               %6    supeg bool %5, 15
-  si v5 alors %4 sinon %5     %7    si %6 alors %8 sinon %11
-
-bloc: 4                       %8  label 4
-  ret v4                      %9    charge z32 %1
-                              %10   retourne %9
-
-bloc: 5                       %11 label 5
-  v6 = v4 + v3                %12   charge z32 %1
-                              %13   ajt z32 %12, 1
-                              %14   stocke *z32 %1, z32 %13
-  br %1                       %15   branche %4
-
-*/
-
 namespace FSAU {
 
 class Rièrevertisseuse {
