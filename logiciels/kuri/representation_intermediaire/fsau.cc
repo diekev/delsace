@@ -289,6 +289,8 @@ struct NoeudPhi : public Valeur {
 
     void définis_opérande(TableDesRelations &table, int index, Valeur *v);
 
+    void supprime_opérande(Valeur *valeur);
+
     [[nodiscard]] kuri::tableau<Valeur *> supprime_utilisateur(TableDesRelations &table,
                                                                Valeur *utilisateur);
 };
@@ -425,6 +427,13 @@ void NoeudPhi::ajoute_opérande(TableDesRelations &table, Valeur *valeur)
 {
     opérandes.ajoute(valeur);
     table.ajoute_utilisateur(valeur, this);
+}
+
+void NoeudPhi::supprime_opérande(Valeur *valeur)
+{
+    auto partition = kuri::partition_stable(opérandes, [&](Valeur *v) { return v != valeur; });
+    assert(partition.faux.taille() == 1);
+    opérandes.redimensionne(partition.vrai.taille());
 }
 
 void NoeudPhi::définis_opérande(TableDesRelations &table, int index, Valeur *v)
@@ -1675,7 +1684,8 @@ static void numérote_valeurs(FonctionEtBlocs &fonction_et_blocs)
 }
 
 static void supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs,
-                                       VisiteuseBlocs &visiteuse)
+                                       VisiteuseBlocs &visiteuse,
+                                       TableDesRelations &table_des_relations)
 {
     auto bloc_modifié = false;
 
@@ -1769,7 +1779,28 @@ static void supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs,
         return;
     }
 
-    fonction_et_blocs.supprime_blocs_inatteignables(visiteuse);
+    auto blocs_libérés = fonction_et_blocs.supprime_blocs_inatteignables(visiteuse);
+
+    POUR_NOMME (bloc, blocs_libérés) {
+        POUR_NOMME (valeur, bloc->valeurs) {
+            auto utilisateurs = table_des_relations.donne_utilisateurs(valeur);
+            POUR (utilisateurs) {
+                if (!it->est_phi()) {
+                    continue;
+                }
+
+                auto phi = it->comme_phi();
+                phi->supprime_opérande(valeur);
+
+                if (phi->opérandes.taille() > 1) {
+                    continue;
+                }
+
+                phi->remplace_par(
+                    table_des_relations, phi->opérandes[0], FSAU::DrapeauxRemplacement::AUCUN);
+            }
+        }
+    }
 }
 
 static void supprime_valeurs_inutilisées(FonctionEtBlocs &fonction_et_blocs,
@@ -2097,7 +2128,7 @@ void convertis_fsau(EspaceDeTravail &espace,
     imprime_blocs(fonction_et_blocs);
 
     auto visiteuse = VisiteuseBlocs(fonction_et_blocs);
-    supprime_branches_inutiles(fonction_et_blocs, visiteuse);
+    supprime_branches_inutiles(fonction_et_blocs, visiteuse, table_des_relations);
 
     détecte_expressions_communes(fonction_et_blocs, table_des_relations);
     propage_temporaires(fonction_et_blocs, table_des_relations);
