@@ -1683,7 +1683,7 @@ static void numérote_valeurs(FonctionEtBlocs &fonction_et_blocs)
     }
 }
 
-static void supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs,
+static bool supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs,
                                        VisiteuseBlocs &visiteuse,
                                        TableDesRelations &table_des_relations)
 {
@@ -1776,7 +1776,7 @@ static void supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs,
     }
 
     if (!bloc_modifié) {
-        return;
+        return false;
     }
 
     auto blocs_libérés = fonction_et_blocs.supprime_blocs_inatteignables(visiteuse);
@@ -1801,6 +1801,8 @@ static void supprime_branches_inutiles(FonctionEtBlocs &fonction_et_blocs,
             }
         }
     }
+
+    return true;
 }
 
 static void supprime_valeurs_inutilisées(FonctionEtBlocs &fonction_et_blocs,
@@ -1863,10 +1865,11 @@ static bool est_incrément_de_phi(NoeudPhi const *phi, Valeur const *valeur)
     return true;
 }
 
-static void détecte_expressions_communes(FonctionEtBlocs &fonction_et_blocs,
+static bool détecte_expressions_communes(FonctionEtBlocs &fonction_et_blocs,
                                          TableDesRelations &table)
 {
     kuri::tablet<PhiValeurIncrémentée, 6> phis_incréments;
+    auto résultat = false;
 
     POUR_NOMME (bloc, fonction_et_blocs.blocs) {
         POUR_NOMME (valeur, bloc->valeurs) {
@@ -1895,6 +1898,7 @@ static void détecte_expressions_communes(FonctionEtBlocs &fonction_et_blocs,
                         dbg() << "PEUT REMPLACER v" << valeur->numéro << " par v"
                               << inc_existant.phi->numéro;
                         remplacé = true;
+                        résultat = true;
 
                         phi->remplace_par(table, inc_existant.phi, DrapeauxRemplacement::AUCUN);
                     }
@@ -1906,10 +1910,14 @@ static void détecte_expressions_communes(FonctionEtBlocs &fonction_et_blocs,
             }
         }
     }
+
+    return résultat;
 }
 
-static void supprime_code_inutile(FonctionEtBlocs &fonction_et_blocs, TableDesRelations &table)
+static bool supprime_code_inutile(FonctionEtBlocs &fonction_et_blocs, TableDesRelations &table)
 {
+    auto résultat = false;
+
     POUR_NOMME (bloc, fonction_et_blocs.blocs) {
         POUR_NOMME (valeur, bloc->valeurs) {
             valeur->drapeaux &= ~DrapeauxValeur::PARTICIPE_AU_FLOT_DU_PROGRAMME;
@@ -1965,10 +1973,14 @@ static void supprime_code_inutile(FonctionEtBlocs &fonction_et_blocs, TableDesRe
 
         bloc->valeurs.redimensionne(partition.vrai.taille());
 
+        résultat |= partition.faux.taille() != 0;
+
         POUR (partition.faux) {
             table.supprime(it);
         }
     }
+
+    return résultat;
 }
 
 static void simplifie_écris_index(FSAU::ValeurÉcrisIndex *écris_index, TableDesRelations &table)
@@ -2024,8 +2036,11 @@ static void simplifie_accès_index(FSAU::ValeurAccèdeIndex *accès_index, Table
     }
 }
 
-static void simplifie_accès_index(FonctionEtBlocs &fonction_et_blocs, TableDesRelations &table)
+static bool simplifie_accès_index(FonctionEtBlocs &fonction_et_blocs, TableDesRelations &table)
 {
+    /* À FAIRE : note si une valeur fut changée. */
+    auto résultat = false;
+
     POUR_NOMME (bloc, fonction_et_blocs.blocs) {
         POUR_NOMME (valeur, bloc->valeurs) {
             if (valeur->est_écris_index()) {
@@ -2044,10 +2059,14 @@ static void simplifie_accès_index(FonctionEtBlocs &fonction_et_blocs, TableDesR
             }
         }
     }
+
+    return résultat;
 }
 
-static void propage_temporaires(FonctionEtBlocs &fonction_et_blocs, TableDesRelations &table)
+static bool propage_temporaires(FonctionEtBlocs &fonction_et_blocs, TableDesRelations &table)
 {
+    auto résultat = false;
+
     POUR_NOMME (bloc, fonction_et_blocs.blocs) {
         POUR_NOMME (valeur, bloc->valeurs) {
             if (!valeur->est_locale()) {
@@ -2063,9 +2082,12 @@ static void propage_temporaires(FonctionEtBlocs &fonction_et_blocs, TableDesRela
                             DrapeauxRemplacement::IGNORE_ÉCRIS_INDEX;
             }
 
+            /* À FAIRE : note si une valeur fut remplacée. */
             locale->remplace_par(table, valeur_locale, drapeaux);
         }
     }
+
+    return résultat;
 }
 
 void convertis_fsau(EspaceDeTravail &espace,
@@ -2134,15 +2156,25 @@ void convertis_fsau(EspaceDeTravail &espace,
     imprime_blocs(fonction_et_blocs);
 
     auto visiteuse = VisiteuseBlocs(fonction_et_blocs);
-    supprime_branches_inutiles(fonction_et_blocs, visiteuse, table_des_relations);
 
-    détecte_expressions_communes(fonction_et_blocs, table_des_relations);
-    propage_temporaires(fonction_et_blocs, table_des_relations);
-    simplifie_accès_index(fonction_et_blocs, table_des_relations);
+    while (true) {
+        auto chose_faite = false;
 
-    // Redondant avec supprime_code_inutile, ne prends pas en compte les accès_index
-    // supprime_valeurs_inutilisées(fonction_et_blocs, table_des_relations);
-    supprime_code_inutile(fonction_et_blocs, table_des_relations);
+        chose_faite |= supprime_branches_inutiles(
+            fonction_et_blocs, visiteuse, table_des_relations);
+
+        chose_faite |= détecte_expressions_communes(fonction_et_blocs, table_des_relations);
+        chose_faite |= propage_temporaires(fonction_et_blocs, table_des_relations);
+        chose_faite |= simplifie_accès_index(fonction_et_blocs, table_des_relations);
+
+        // Redondant avec supprime_code_inutile, ne prends pas en compte les accès_index
+        // supprime_valeurs_inutilisées(fonction_et_blocs, table_des_relations);
+        chose_faite |= supprime_code_inutile(fonction_et_blocs, table_des_relations);
+
+        if (!chose_faite) {
+            break;
+        }
+    }
 
     numérote_valeurs(fonction_et_blocs);
     imprime_blocs(fonction_et_blocs);
