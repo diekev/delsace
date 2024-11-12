@@ -2445,8 +2445,15 @@ Atome *Rièrevertisseuse::rièrevertis_en_ri(Valeur *valeur,
             auto op_binaire = valeur->comme_opérateur_binaire();
             auto opérande_gauche = rièrevertis_en_ri(
                 op_binaire->donne_gauche(), constructrice, true);
+            assert_rappel(opérande_gauche, [&]() {
+                dbg() << "Genre opérande gauche : " << op_binaire->donne_gauche()->genre;
+            });
             auto opérande_droite = rièrevertis_en_ri(
                 op_binaire->donne_droite(), constructrice, true);
+            assert_rappel(opérande_droite, [&]() {
+                dbg() << "Genre opérande droite : " << op_binaire->donne_droite()->genre;
+            });
+
             return constructrice.crée_op_binaire(nullptr,
                                                  op_binaire->inst->type,
                                                  op_binaire->inst->op,
