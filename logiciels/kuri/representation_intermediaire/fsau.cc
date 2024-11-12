@@ -2428,8 +2428,21 @@ Atome *Rièrevertisseuse::rièrevertis_en_ri(Valeur *valeur,
         }
         case GenreValeur::ÉCRIS_INDEX:
         {
-            // auto écris_index = valeur->comme_écris_index();
-            break;
+            auto écris_index = valeur->comme_écris_index();
+            auto const valeur_accédée = écris_index->donne_accédée();
+            auto const valeur_index = écris_index->donne_index();
+            auto const valeur_valeur = écris_index->donne_valeur();
+            auto atome_accédée = rièrevertis_en_ri(valeur_accédée, constructrice, false);
+            assert_rappel(atome_accédée,
+                          [&]() { dbg() << "Genre valeur accédée : " << valeur_accédée->genre; });
+            auto atome_index = rièrevertis_en_ri(valeur_index, constructrice, true);
+            assert_rappel(atome_index,
+                          [&]() { dbg() << "Genre valeur index : " << valeur_index->genre; });
+            auto atome_valeur = rièrevertis_en_ri(valeur_valeur, constructrice, true);
+            assert_rappel(atome_valeur,
+                          [&]() { dbg() << "Genre valeur valeur : " << valeur_valeur->genre; });
+            auto accès_index = constructrice.crée_accès_index(nullptr, atome_accédée, atome_index);
+            return constructrice.crée_stocke_mem(nullptr, accès_index, atome_valeur);
         }
         case GenreValeur::APPEL:
         {
