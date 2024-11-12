@@ -274,7 +274,7 @@ struct Valeur {
     }
 
   private:
-    void remplace_dans_utisateur(TableDesRelations &table, Valeur *utilisateur, Valeur *par);
+    void remplace_dans_utilisateur(TableDesRelations &table, Valeur *utilisateur, Valeur *par);
 };
 
 #undef DECLARE_FONCTIONS_DISCRIMINATION
@@ -482,7 +482,7 @@ void Valeur::remplace_par(TableDesRelations &table,
             continue;
         }
 
-        remplace_dans_utisateur(table, it, valeur);
+        remplace_dans_utilisateur(table, it, valeur);
         nombre_utilisateurs -= 1;
     }
 
@@ -491,7 +491,7 @@ void Valeur::remplace_par(TableDesRelations &table,
     }
 }
 
-void Valeur::remplace_dans_utisateur(TableDesRelations &table, Valeur *utilisateur, Valeur *par)
+void Valeur::remplace_dans_utilisateur(TableDesRelations &table, Valeur *utilisateur, Valeur *par)
 {
     switch (utilisateur->genre) {
         case GenreValeur::INDÉFINIE:
