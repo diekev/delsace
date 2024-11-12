@@ -1912,6 +1912,12 @@ static void supprime_code_inutile(FonctionEtBlocs &fonction_et_blocs, TableDesRe
 {
     POUR_NOMME (bloc, fonction_et_blocs.blocs) {
         POUR_NOMME (valeur, bloc->valeurs) {
+            valeur->drapeaux &= ~DrapeauxValeur::PARTICIPE_AU_FLOT_DU_PROGRAMME;
+        }
+    }
+
+    POUR_NOMME (bloc, fonction_et_blocs.blocs) {
+        POUR_NOMME (valeur, bloc->valeurs) {
             if (!valeur->est_controle_de_flux()) {
                 continue;
             }
