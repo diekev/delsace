@@ -1013,7 +1013,7 @@ struct ConvertisseuseFSAU {
         Valeur *valeur = nullptr;
     };
 
-    kuri::tableau<DéfinitionVariableBloc> currentDef{};
+    kuri::tableau<DéfinitionVariableBloc> m_définitions_courantes{};
 
     struct PhiIncomplet {
         Bloc *bloc = nullptr;
@@ -1054,9 +1054,9 @@ struct ConvertisseuseFSAU {
   public:
     // algorithme 1 : local value numbering
 
-    void writeVariable(Atome const *variable, Bloc *bloc, Valeur *valeur)
+    void écris_variable(Atome const *variable, Bloc *bloc, Valeur *valeur)
     {
-        POUR (currentDef) {
+        POUR (m_définitions_courantes) {
             if (it.variable == variable && it.bloc == bloc) {
                 it.valeur = valeur;
                 return;
@@ -1064,14 +1064,14 @@ struct ConvertisseuseFSAU {
         }
 
         auto définition = DéfinitionVariableBloc{variable, bloc, valeur};
-        currentDef.ajoute(définition);
+        m_définitions_courantes.ajoute(définition);
     }
 
-    Valeur *readVariable(Atome const *variable, Bloc *bloc)
+    Valeur *lis_variable(Atome const *variable, Bloc *bloc)
     {
         bool variable_rencontrée = false;
         /* Trouve un numérotage local de la valeur. */
-        POUR (currentDef) {
+        POUR (m_définitions_courantes) {
             if (it.variable != variable) {
                 continue;
             }
@@ -1083,11 +1083,11 @@ struct ConvertisseuseFSAU {
         assert(variable_rencontrée);
 
         /* Trouve un numérotage global de la valeur. */
-        return readVariableRecursive(variable, bloc);
+        return lis_variable_récursif(variable, bloc);
     }
 
     // algorithme 2 : global value numbering
-    Valeur *readVariableRecursive(Atome const *variable, Bloc *bloc)
+    Valeur *lis_variable_récursif(Atome const *variable, Bloc *bloc)
     {
         Valeur *résultat = nullptr;
 
@@ -1102,33 +1102,33 @@ struct ConvertisseuseFSAU {
         else if (bloc->parents.taille() == 1) {
             // dbg() << "[" << __func__ << "] : bloc->parents.taille() == 1";
             /* Optimisation du cas commun d'un ancêtre : aucun Phi n'est nécessaire. */
-            résultat = readVariable(variable, bloc->parents[0]);
+            résultat = lis_variable(variable, bloc->parents[0]);
         }
         else {
             // dbg() << "[" << __func__ << "] : else";
             /* Brise les cycles potentiels avec des phis sans-opérandes. */
             auto phi = crée_noeud_phi(bloc);
-            writeVariable(variable, bloc, phi);
-            résultat = addPhiOperands(variable, phi);
+            écris_variable(variable, bloc, phi);
+            résultat = ajoute_opérande_phi(variable, phi);
         }
 
-        writeVariable(variable, bloc, résultat);
+        écris_variable(variable, bloc, résultat);
         return résultat;
     }
 
-    Valeur *addPhiOperands(Atome const *variable, NoeudPhi *phi)
+    Valeur *ajoute_opérande_phi(Atome const *variable, NoeudPhi *phi)
     {
         // dbg() << __func__;
         POUR (phi->bloc->parents) {
-            phi->ajoute_opérande(m_table_relations, readVariable(variable, it));
+            phi->ajoute_opérande(m_table_relations, lis_variable(variable, it));
         }
 
-        return tryRemoveTrivialPhi(phi);
+        return tente_suppression_phi_trivial(phi);
     }
 
     // algorithm 3 : détection et suppression récursive des phi triviaux
 
-    Valeur *tryRemoveTrivialPhi(NoeudPhi *phi)
+    Valeur *tente_suppression_phi_trivial(NoeudPhi *phi)
     {
         Valeur *same = nullptr;
 
@@ -1162,14 +1162,14 @@ struct ConvertisseuseFSAU {
         /* Essaie de supprimer tous les utilisateurs de phi, qui peuvent être devenus triviaux. */
         POUR_NOMME (use, users) {
             if (use->genre == FSAU::GenreValeur::PHI) {
-                tryRemoveTrivialPhi(use->comme_phi());
+                tente_suppression_phi_trivial(use->comme_phi());
             }
         }
 
         return same;
     }
 
-    void sealBlock(Bloc *bloc)
+    void scelle_bloc(Bloc *bloc)
     {
         if (bloc->possède_drapeau(DrapeauxBlocBasique::EST_SCELLÉ)) {
             return;
@@ -1181,7 +1181,7 @@ struct ConvertisseuseFSAU {
                 continue;
             }
 
-            addPhiOperands(it.variable, it.résultat);
+            ajoute_opérande_phi(it.variable, it.résultat);
         }
 
         bloc->drapeaux |= DrapeauxBlocBasique::EST_SCELLÉ;
@@ -1377,7 +1377,7 @@ Valeur *ConvertisseuseFSAU::génère_valeur_pour_instruction(Bloc *bloc,
         case GenreInstruction::APPEL:
         {
             INSTRUCTION_NON_IMPLEMENTEE;
-            // writeVariable
+            // écris_variable
             break;
         }
         case GenreInstruction::ALLOCATION:
@@ -1391,7 +1391,7 @@ Valeur *ConvertisseuseFSAU::génère_valeur_pour_instruction(Bloc *bloc,
                 auto locale = m_locale.ajoute_élément();
                 locale->alloc = alloc;
                 ajoute_valeur_au_bloc(locale, bloc);
-                writeVariable(alloc, bloc, locale);
+                écris_variable(alloc, bloc, locale);
                 return locale;
             }
 
@@ -1404,12 +1404,12 @@ Valeur *ConvertisseuseFSAU::génère_valeur_pour_instruction(Bloc *bloc,
                 locale->alloc = alloc;
                 locale->définis_valeur(m_table_relations, valeur);
                 ajoute_valeur_au_bloc(locale, bloc);
-                writeVariable(alloc, bloc, locale);
+                écris_variable(alloc, bloc, locale);
                 return locale;
             }
 
             /* Lis la valeur. */
-            auto résultat = readVariable(inst, bloc);
+            auto résultat = lis_variable(inst, bloc);
             if (résultat->est_phi() && résultat->numéro == 0) {
                 ajoute_valeur_au_bloc(résultat, bloc);
             }
@@ -1439,7 +1439,7 @@ Valeur *ConvertisseuseFSAU::génère_valeur_pour_instruction(Bloc *bloc,
                     continue;
                 }
 
-                writeVariable(inst, bloc, &it);
+                écris_variable(inst, bloc, &it);
                 return &it;
             }
 
@@ -1468,7 +1468,7 @@ Valeur *ConvertisseuseFSAU::génère_valeur_pour_instruction(Bloc *bloc,
                 if (résultat_possible) {
                     auto valeur = donne_valeur_pour_atome(
                         bloc, résultat_possible, UtilisationAtome::POUR_OPÉRATEUR);
-                    writeVariable(inst, bloc, valeur);
+                    écris_variable(inst, bloc, valeur);
                     return valeur;
                 }
             }
@@ -1479,13 +1479,13 @@ Valeur *ConvertisseuseFSAU::génère_valeur_pour_instruction(Bloc *bloc,
             résultat->inst = op_binaire;
             ajoute_valeur_au_bloc(résultat, bloc);
 
-            writeVariable(inst, bloc, résultat);
+            écris_variable(inst, bloc, résultat);
             return résultat;
         }
         case GenreInstruction::OPERATION_UNAIRE:
         {
             INSTRUCTION_NON_IMPLEMENTEE;
-            // writeVariable
+            // écris_variable
             break;
         }
         case GenreInstruction::CHARGE_MEMOIRE:
@@ -1494,7 +1494,7 @@ Valeur *ConvertisseuseFSAU::génère_valeur_pour_instruction(Bloc *bloc,
             auto charge = inst->comme_charge();
             auto valeur = donne_valeur_pour_atome(
                 bloc, charge->chargée, UtilisationAtome::POUR_LECTURE);
-            writeVariable(charge, bloc, valeur);
+            écris_variable(charge, bloc, valeur);
             return valeur;
         }
         case GenreInstruction::STOCKE_MEMOIRE:
@@ -1532,7 +1532,7 @@ Valeur *ConvertisseuseFSAU::génère_valeur_pour_instruction(Bloc *bloc,
                 écris_index->définis_valeur(m_table_relations, valeur_source);
             }
 
-            writeVariable(destination, bloc, valeur_destination);
+            écris_variable(destination, bloc, valeur_destination);
             return nullptr;
         }
         case GenreInstruction::RETOUR:
@@ -1560,7 +1560,7 @@ Valeur *ConvertisseuseFSAU::génère_valeur_pour_instruction(Bloc *bloc,
             valeur_accès->index = inst_accès->index;
             valeur_accès->inst = inst_accès;
             ajoute_valeur_au_bloc(valeur_accès, bloc);
-            writeVariable(inst_accès, bloc, valeur_accès);
+            écris_variable(inst_accès, bloc, valeur_accès);
             return valeur_accès;
         }
         case GenreInstruction::ACCEDE_INDEX:
@@ -1590,7 +1590,7 @@ Valeur *ConvertisseuseFSAU::génère_valeur_pour_instruction(Bloc *bloc,
                 nouvelle_locale->définis_valeur(m_table_relations, écris_index);
                 ajoute_valeur_au_bloc(nouvelle_locale, bloc);
 
-                writeVariable(locale->alloc, bloc, nouvelle_locale);
+                écris_variable(locale->alloc, bloc, nouvelle_locale);
                 return écris_index;
             }
 
@@ -1598,7 +1598,7 @@ Valeur *ConvertisseuseFSAU::génère_valeur_pour_instruction(Bloc *bloc,
             valeur_accès->définis_accédée(m_table_relations, valeur_accédée);
             valeur_accès->définis_index(m_table_relations, valeur_index);
             ajoute_valeur_au_bloc(valeur_accès, bloc);
-            writeVariable(inst_accès, bloc, valeur_accès);
+            écris_variable(inst_accès, bloc, valeur_accès);
 
             return valeur_accès;
         }
@@ -1619,7 +1619,7 @@ Valeur *ConvertisseuseFSAU::génère_valeur_pour_instruction(Bloc *bloc,
                     continue;
                 }
 
-                writeVariable(inst_transtype, bloc, &it);
+                écris_variable(inst_transtype, bloc, &it);
                 return &it;
             }
 
@@ -1627,7 +1627,7 @@ Valeur *ConvertisseuseFSAU::génère_valeur_pour_instruction(Bloc *bloc,
             transtypage->inst = inst_transtype;
             transtypage->définis_valeur(m_table_relations, valeur_transtypée);
             ajoute_valeur_au_bloc(transtypage, bloc);
-            writeVariable(inst_transtype, bloc, transtypage);
+            écris_variable(inst_transtype, bloc, transtypage);
             return transtypage;
         }
         case GenreInstruction::SÉLECTION:
@@ -2055,7 +2055,7 @@ void convertis_fsau(EspaceDeTravail &espace,
         // dbg() << "dépile bloc " << bloc;
 
         if (bloc->tous_les_parents_furent_remplis()) {
-            convertisseuse_fsau.sealBlock(bloc);
+            convertisseuse_fsau.scelle_bloc(bloc);
             if (bloc->possède_drapeau(DrapeauxBlocBasique::EST_REMPLIS)) {
                 continue;
             }
