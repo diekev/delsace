@@ -262,6 +262,7 @@ ajoute_test_fsau(fsau-boucle-pour-sur-tableau-fixe-001)
 ajoute_test_fsau(fsau-condition-constante-redondante-001)
 ajoute_test_fsau(fsau-constantes-avec-si-001)
 ajoute_test_fsau(fsau-constantes-sans-branches-001)
+ajoute_test_fsau(fsau-surécriture-index-001)
 
 if(CHEMIN_DELSACE_PRIVE)
     include(${CHEMIN_DELSACE_PRIVE}/CMakeLists.txt)

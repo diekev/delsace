@@ -174,6 +174,7 @@ enum class DrapeauxValeur : uint8_t {
     /* Pour les accès index ou membre qui ne crée pas de nouvelle valeur mais qui modifie
      * simplement leurs accédés. */
     NE_PRODUIS_PAS_DE_VALEUR = (1u << 2),
+    ÉCRIS_INDEX_EST_SURÉCRIS = (1u << 3),
 };
 DEFINIS_OPERATEURS_DRAPEAU(DrapeauxValeur)
 
@@ -1974,9 +1975,37 @@ static bool supprime_code_inutile(FonctionEtBlocs &fonction_et_blocs, TableDesRe
 
     /* Deuxième passe pour les index. */
     POUR_NOMME (bloc, fonction_et_blocs.blocs) {
+        kuri::tablet<ValeurÉcrisIndex *, 16> valeurs_écris_index;
+        POUR_NOMME (valeur, bloc->valeurs) {
+            if (!valeur->est_écris_index()) {
+                continue;
+            }
+
+            auto écris_index = valeur->comme_écris_index();
+            auto accédée = écris_index->donne_accédée();
+            if (!accédée->possède_drapeau(DrapeauxValeur::PARTICIPE_AU_FLOT_DU_PROGRAMME)) {
+                continue;
+            }
+
+            POUR (valeurs_écris_index) {
+                if (it->donne_accédée() != accédée) {
+                    continue;
+                }
+
+                if (it->donne_index() != écris_index->donne_index()) {
+                    continue;
+                }
+
+                it->drapeaux |= DrapeauxValeur::ÉCRIS_INDEX_EST_SURÉCRIS;
+            }
+
+            valeurs_écris_index.ajoute(écris_index);
+        }
+
         POUR_NOMME (valeur, bloc->valeurs) {
             if (!valeur->est_écris_index() ||
-                !valeur->possède_drapeau(DrapeauxValeur::NE_PRODUIS_PAS_DE_VALEUR)) {
+                !valeur->possède_drapeau(DrapeauxValeur::NE_PRODUIS_PAS_DE_VALEUR) ||
+                valeur->possède_drapeau(DrapeauxValeur::ÉCRIS_INDEX_EST_SURÉCRIS)) {
                 continue;
             }
 
