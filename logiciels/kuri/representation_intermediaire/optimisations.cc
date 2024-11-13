@@ -612,52 +612,6 @@ bool enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
     return nombre_fonctions_enlignees != 0;
 }
 
-/* principalement pour détecter des accès à des membres */
-#if 0
-static bool sont_equivalents(Atome *a, Atome *b)
-{
-    if (a == b) {
-        return true;
-    }
-
-    if (a->genre_atome != b->genre_atome) {
-        return false;
-    }
-
-    if (a->est_constante_entière()) {
-        auto const_a = a->comme_constante_entière();
-        auto const_b = b->comme_constante_entière();
-        return const_a->valeur == const_b->valeur;
-    }
-
-    if (a->est_instruction()) {
-        auto inst_a = a->comme_instruction();
-        auto inst_b = b->comme_instruction();
-
-        if (inst_a->genre != inst_b->genre) {
-            return false;
-        }
-
-        if (inst_a->est_acces_membre()) {
-            auto ma = inst_a->comme_acces_membre();
-            auto mb = inst_b->comme_acces_membre();
-
-            if (!sont_equivalents(ma->accédé, mb->accédé)) {
-                return false;
-            }
-
-            if (!sont_equivalents(ma->index, mb->index)) {
-                return false;
-            }
-
-            return true;
-        }
-    }
-
-    return false;
-}
-#endif
-
 void optimise_code(EspaceDeTravail & /*espace*/,
                    ConstructriceRI &constructrice,
                    AtomeFonction *atome_fonc)
