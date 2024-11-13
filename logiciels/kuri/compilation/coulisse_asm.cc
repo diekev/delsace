@@ -64,12 +64,12 @@ inline bool est_adresse_locale(Atome const *atome)
     return false;
 }
 
-inline bool est_adresse(Atome *atome)
+inline bool est_adresse(Atome const *atome)
 {
     return est_adresse_globale(atome) || est_adresse_locale(atome);
 }
 
-static Atome *donne_source_charge_ou_atome(Atome *atome)
+static Atome const *donne_source_charge_ou_atome(Atome const *atome)
 {
     if (atome->est_instruction() && atome->comme_instruction()->est_charge()) {
         return atome->comme_instruction()->comme_charge()->chargée;
@@ -1820,11 +1820,11 @@ struct GénératriceCodeASM {
     ClassifieuseArgument m_classifieuse{};
 
   public:
-    AssembleuseASM::Opérande génère_code_pour_atome(Atome *atome,
+    AssembleuseASM::Opérande génère_code_pour_atome(Atome const *atome,
                                                     AssembleuseASM &assembleuse,
                                                     const UtilisationAtome utilisation);
 
-    AssembleuseASM::Opérande génère_code_pour_atome_opérande(Atome *atome,
+    AssembleuseASM::Opérande génère_code_pour_atome_opérande(Atome const *atome,
                                                              AssembleuseASM &assembleuse,
                                                              const UtilisationAtome utilisation);
 
@@ -1904,7 +1904,7 @@ struct GénératriceCodeASM {
 };
 
 AssembleuseASM::Opérande GénératriceCodeASM::génère_code_pour_atome(
-    Atome *atome, AssembleuseASM &assembleuse, const UtilisationAtome utilisation)
+    Atome const *atome, AssembleuseASM &assembleuse, const UtilisationAtome utilisation)
 {
     switch (atome->genre_atome) {
         case Atome::Genre::FONCTION:
@@ -2045,7 +2045,7 @@ AssembleuseASM::Opérande GénératriceCodeASM::génère_code_pour_atome(
 }
 
 AssembleuseASM::Opérande GénératriceCodeASM::génère_code_pour_atome_opérande(
-    Atome *opérande, AssembleuseASM &assembleuse, const UtilisationAtome utilisation)
+    Atome const *opérande, AssembleuseASM &assembleuse, const UtilisationAtome utilisation)
 {
     auto atome = donne_source_charge_ou_atome(opérande);
 
@@ -2472,10 +2472,8 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
 
     SAUVEGARDE_REGISTRES(registres);
 
-    auto atome_appelée = appel->appelé;
-
     auto classement = m_classifieuse.donne_classement_arguments(
-        atome_appelée->type->comme_type_fonction());
+        appel->appelé->type->comme_type_fonction());
 
     auto type_retour = appel->type;
     auto adresse_retour = AssembleuseASM::Mémoire{};
@@ -2575,7 +2573,7 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
         }
     }
 
-    atome_appelée = donne_source_charge_ou_atome(atome_appelée);
+    auto atome_appelée = donne_source_charge_ou_atome(appel->appelé);
 
     auto appelée = génère_code_pour_atome(atome_appelée, assembleuse, UtilisationAtome::AUCUNE);
 
