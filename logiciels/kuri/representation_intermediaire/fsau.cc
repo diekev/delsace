@@ -2129,23 +2129,64 @@ static bool propage_temporaires(FonctionEtBlocs &fonction_et_blocs, TableDesRela
 {
     auto résultat = false;
 
+    imprime_blocs(fonction_et_blocs);
+
     POUR_NOMME (bloc, fonction_et_blocs.blocs) {
+        kuri::tablet<ValeurÉcrisIndex *, 16> valeurs_écris_index;
+
         POUR_NOMME (valeur, bloc->valeurs) {
-            if (!valeur->est_locale()) {
+            if (valeur->est_locale()) {
+                auto const locale = valeur->comme_locale();
+                auto const valeur_locale = locale->donne_valeur();
+                auto drapeaux = DrapeauxRemplacement::IGNORE_PHI;
+
+                if (valeur_locale->est_indéfinie() || valeur_locale->est_écris_index()) {
+                    drapeaux |= DrapeauxRemplacement::IGNORE_ACCÈS_INDEX |
+                                DrapeauxRemplacement::IGNORE_ÉCRIS_INDEX;
+                }
+
+                /* À FAIRE : note si une valeur fut remplacée. */
+                locale->remplace_par(table, valeur_locale, drapeaux);
                 continue;
             }
 
-            auto const locale = valeur->comme_locale();
-            auto const valeur_locale = locale->donne_valeur();
-            auto drapeaux = DrapeauxRemplacement::IGNORE_PHI;
-
-            if (valeur_locale->est_indéfinie() || valeur_locale->est_écris_index()) {
-                drapeaux |= DrapeauxRemplacement::IGNORE_ACCÈS_INDEX |
-                            DrapeauxRemplacement::IGNORE_ÉCRIS_INDEX;
+            if (valeur->est_écris_index()) {
+                valeurs_écris_index.ajoute(valeur->comme_écris_index());
+                continue;
             }
 
-            /* À FAIRE : note si une valeur fut remplacée. */
-            locale->remplace_par(table, valeur_locale, drapeaux);
+#if 0
+            /* À FAIRE : les paramètres de fonctions devrait être modélisés correctement. */
+            if (valeur->est_accès_index()) {
+                /* À FAIRE : cette optimisation doit être locale (ne remplace que dans le bloc). */
+                auto accès_index = valeur->comme_accès_index();
+
+                for (auto i = valeurs_écris_index.taille() - 1; i >= 0; i--) {
+                    auto écris_index = valeurs_écris_index[i];
+
+                    if (écris_index->donne_accédée() != accès_index->donne_accédée()) {
+                        continue;
+                    }
+
+                    if (écris_index->donne_index() != accès_index->donne_index()) {
+                        continue;
+                    }
+
+                    auto const valeur_index = écris_index->donne_valeur();
+
+                    auto drapeaux = DrapeauxRemplacement::IGNORE_PHI;
+
+                    if (valeur_index->est_indéfinie() || valeur_index->est_écris_index()) {
+                        drapeaux |= DrapeauxRemplacement::IGNORE_ACCÈS_INDEX |
+                                    DrapeauxRemplacement::IGNORE_ÉCRIS_INDEX;
+                    }
+
+                    valeur->remplace_par(table, valeur_index, drapeaux);
+                }
+
+                continue;
+            }
+#endif
         }
     }
 
