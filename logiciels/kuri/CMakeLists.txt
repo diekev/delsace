@@ -250,7 +250,11 @@ compile_fichier(modules/Unicode/Programme principale)
 
 include(bugs/test_bugs.txt)
 
-add_test(NAME "suppression-variable-temp-001" COMMAND test_ri "${CMAKE_CURRENT_SOURCE_DIR}/exemples/tests/optimisations/suppression-variable-temp-001.kuri")
+macro(ajoute_test_ri __nom_fichier__)
+    add_test(NAME ${__nom_fichier__} COMMAND test_ri "${CMAKE_CURRENT_SOURCE_DIR}/exemples/tests/optimisations/${__nom_fichier__}.ri")
+endmacro()
+
+ajoute_test_ri(test-ri-suppression-variable-temp-001)
 
 macro(ajoute_test_fsau __nom_fichier__)
     add_test(NAME ${__nom_fichier__} COMMAND test_fsau "${CMAKE_CURRENT_SOURCE_DIR}/exemples/tests/optimisations/${__nom_fichier__}.ri")
