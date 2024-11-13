@@ -92,23 +92,6 @@ struct CopieuseInstruction {
         copies.insère(a, b);
     }
 
-    kuri::tableau<Instruction *, int> copie_instructions(AtomeFonction *atome_fonction)
-    {
-        kuri::tableau<Instruction *, int> résultat;
-        résultat.réserve(atome_fonction->instructions.taille());
-
-        POUR (atome_fonction->instructions) {
-            // s'il existe une substition pour cette instruction, ignore-là
-            if (!it->est_label() && copies.possède(it)) {
-                continue;
-            }
-
-            résultat.ajoute(static_cast<Instruction *>(copie_atome(it)));
-        }
-
-        return résultat;
-    }
-
     Atome *copie_atome(Atome *atome)
     {
         if (atome == nullptr) {
