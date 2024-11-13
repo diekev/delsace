@@ -573,8 +573,7 @@ bool enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
         auto adresse_retour = static_cast<InstructionAllocation *>(nullptr);
 
         if (!appel->type->est_type_rien()) {
-            adresse_retour = constructrice.crée_allocation(nullptr, appel->type, nullptr, true);
-            atome_fonc->instructions.ajoute(adresse_retour);
+            adresse_retour = constructrice.crée_allocation(nullptr, appel->type, nullptr, false);
         }
 
         auto label_post = constructrice.réserve_label(nullptr);
@@ -591,8 +590,7 @@ bool enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
         atome_fonc->instructions.ajoute(label_post);
 
         if (adresse_retour) {
-            auto charge = constructrice.crée_charge_mem(appel->site, adresse_retour, true);
-            atome_fonc->instructions.ajoute(charge);
+            auto charge = constructrice.crée_charge_mem(appel->site, adresse_retour, false);
             substitutrice.ajoute_substitution(appel, charge, SubstitutDans::VALEUR_STOCKEE);
         }
     }
