@@ -23,8 +23,7 @@
 /*
   À FAIRE(optimisations) :
   - crée toujours des blocs pour la RI, l'enlignage sera plus simple
-  - bug dans la fusion des blocs, qui nous laissent avec des labels inconnus
-  - déplace les instructions dans les blocs au plus près de leurs utilisations
+  - Substitutrice, pour généraliser les substitions d'instructions
 
   À FAIRE(enlignage) :
   - détecte les fonctions récursives, empêche leurs enlignages
@@ -68,14 +67,6 @@ enum {
     /* du code peut être supprimé */
     REQUIERS_SUPPRESSION_CODE_MORT = (1 << 4),
 };
-
-/* À FAIRE(optimisations) : non-urgent
- * - Substitutrice, pour généraliser les substitions d'instructions
- * - copie des instructions (requiers de séparer les allocations des instructions de la
- * CompilatriceRI)
- */
-
-#undef DEBOGUE_SUPPRESSION_CODE_MORT
 
 struct CopieuseInstruction {
   private:
@@ -620,8 +611,6 @@ bool enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
 
     return nombre_fonctions_enlignees != 0;
 }
-
-#undef DEBOGUE_PROPAGATION
 
 /* principalement pour détecter des accès à des membres */
 #if 0
