@@ -128,7 +128,18 @@ struct CopieuseInstruction {
             return valeur;
         }
 
-        auto nouvelle_inst = static_cast<Instruction *>(nullptr);
+        auto nouvelle_inst = copie_instruction(inst);
+
+        if (nouvelle_inst) {
+            ajoute_substitution(inst, nouvelle_inst);
+        }
+
+        return nouvelle_inst;
+    }
+
+  private:
+    Atome *copie_instruction(Instruction const *inst)
+    {
 
         switch (inst->genre) {
             case GenreInstruction::APPEL:
@@ -142,36 +153,28 @@ struct CopieuseInstruction {
                     args.ajoute(copie_atome(it));
                 }
 
-                auto nouvel_appel = constructrice.crée_appel(inst->site, appelé, std::move(args));
-                nouvelle_inst = nouvel_appel;
-                break;
+                return constructrice.crée_appel(inst->site, appelé, std::move(args));
             }
             case GenreInstruction::CHARGE_MEMOIRE:
             {
                 auto charge = inst->comme_charge();
                 auto source = copie_atome(charge->chargée);
-                auto n_charge = constructrice.crée_charge_mem(inst->site, source);
-                nouvelle_inst = n_charge;
-                break;
+                return constructrice.crée_charge_mem(inst->site, source);
             }
             case GenreInstruction::STOCKE_MEMOIRE:
             {
                 auto stocke = inst->comme_stocke_mem();
                 auto destination = copie_atome(stocke->destination);
                 auto source = copie_atome(stocke->source);
-                auto n_stocke = constructrice.crée_stocke_mem(inst->site, destination, source);
-                nouvelle_inst = n_stocke;
-                break;
+                return constructrice.crée_stocke_mem(inst->site, destination, source);
             }
             case GenreInstruction::OPERATION_UNAIRE:
             {
                 auto op = inst->comme_op_unaire();
                 auto type_opération = op->op;
                 auto n_valeur = copie_atome(op->valeur);
-                auto n_op = constructrice.crée_op_unaire(
+                return constructrice.crée_op_unaire(
                     inst->site, inst->type, type_opération, n_valeur);
-                nouvelle_inst = n_op->comme_instruction();
-                break;
             }
             case GenreInstruction::OPERATION_BINAIRE:
             {
@@ -179,39 +182,29 @@ struct CopieuseInstruction {
                 auto type_opération = op->op;
                 auto valeur_gauche = copie_atome(op->valeur_gauche);
                 auto valeur_droite = copie_atome(op->valeur_droite);
-                auto n_op = constructrice.crée_op_binaire(
+                return constructrice.crée_op_binaire(
                     inst->site, inst->type, type_opération, valeur_gauche, valeur_droite);
-                nouvelle_inst = n_op->comme_instruction();
-                break;
             }
             case GenreInstruction::ACCEDE_INDEX:
             {
                 auto acces = inst->comme_acces_index();
                 auto accedé = copie_atome(acces->accédé);
                 auto index = copie_atome(acces->index);
-                auto n_acces = constructrice.crée_accès_index(inst->site, accedé, index);
-                nouvelle_inst = n_acces;
-                break;
+                return constructrice.crée_accès_index(inst->site, accedé, index);
             }
             case GenreInstruction::ACCEDE_MEMBRE:
             {
                 auto acces = inst->comme_acces_membre();
                 auto accedé = copie_atome(acces->accédé);
                 auto index = acces->index;
-                auto n_acces = constructrice.crée_référence_membre(
-                    inst->site, inst->type, accedé, index);
-                nouvelle_inst = n_acces;
-                break;
+                return constructrice.crée_référence_membre(inst->site, inst->type, accedé, index);
             }
             case GenreInstruction::TRANSTYPE:
             {
                 auto transtype = inst->comme_transtype();
                 auto op = transtype->op;
                 auto n_valeur = copie_atome(transtype->valeur);
-                auto n_transtype = constructrice.crée_transtype(
-                    inst->site, inst->type, n_valeur, op);
-                nouvelle_inst = n_transtype->comme_instruction()->comme_transtype();
-                break;
+                return constructrice.crée_transtype(inst->site, inst->type, n_valeur, op);
             }
             case GenreInstruction::BRANCHE_CONDITION:
             {
@@ -221,48 +214,38 @@ struct CopieuseInstruction {
                     copie_atome(branche->label_si_vrai)->comme_instruction()->comme_label();
                 auto label_si_faux =
                     copie_atome(branche->label_si_faux)->comme_instruction()->comme_label();
-                auto n_branche = constructrice.crée_branche_condition(
+                return constructrice.crée_branche_condition(
                     inst->site, n_condition, label_si_vrai, label_si_faux);
-                nouvelle_inst = n_branche;
-                break;
             }
             case GenreInstruction::BRANCHE:
             {
                 auto branche = inst->comme_branche();
                 auto label = copie_atome(branche->label)->comme_instruction()->comme_label();
-                auto n_branche = constructrice.crée_branche(inst->site, label);
-                nouvelle_inst = n_branche;
-                break;
+                return constructrice.crée_branche(inst->site, label);
             }
             case GenreInstruction::RETOUR:
             {
                 auto retour = inst->comme_retour();
                 auto n_valeur = copie_atome(retour->valeur);
-                auto n_retour = constructrice.crée_retour(inst->site, n_valeur);
-                nouvelle_inst = n_retour;
-                break;
+                return constructrice.crée_retour(inst->site, n_valeur);
             }
             case GenreInstruction::ALLOCATION:
             {
                 auto alloc = inst->comme_alloc();
                 auto ident = alloc->ident;
-                auto n_alloc = constructrice.crée_allocation(
+                return constructrice.crée_allocation(
                     inst->site, alloc->donne_type_alloué(), ident, true);
-                nouvelle_inst = n_alloc;
-                break;
             }
             case GenreInstruction::LABEL:
             {
                 auto label = inst->comme_label();
                 auto n_label = constructrice.crée_label(inst->site);
                 n_label->id = label->id;
-                nouvelle_inst = n_label;
-                break;
+                return n_label;
             }
             case GenreInstruction::INATTEIGNABLE:
             {
-                nouvelle_inst = constructrice.crée_inatteignable(inst->site, true);
-                break;
+                return constructrice.crée_inatteignable(inst->site, true);
             }
             case GenreInstruction::SÉLECTION:
             {
@@ -272,16 +255,12 @@ struct CopieuseInstruction {
                 nouvelle_sélection->condition = sélection->condition;
                 nouvelle_sélection->si_vrai = sélection->si_vrai;
                 nouvelle_sélection->si_faux = sélection->si_faux;
-                nouvelle_inst = nouvelle_sélection;
-                break;
+                return nouvelle_sélection;
             }
         }
 
-        if (nouvelle_inst) {
-            ajoute_substitution(inst, nouvelle_inst);
-        }
-
-        return nouvelle_inst;
+        assert(false);
+        return nullptr;
     }
 };
 
