@@ -669,77 +669,10 @@ static bool sont_equivalents(Atome *a, Atome *b)
 }
 #endif
 
-static void performe_passes_optimisation(kuri::tableau<Bloc *, int> &blocs)
-{
-    while (true) {
-        if (log_actif) {
-            dbg() << imprime_blocs(blocs);
-        }
-
-        //		auto drapeaux = analyse_blocs(blocs);
-
-        //		if (drapeaux == 0) {
-        //			break;
-        //		}
-
-        int drapeaux = 0;
-
-        auto travail_effectue = false;
-
-        if ((drapeaux & REQUIERS_ENLIGNAGE) == REQUIERS_ENLIGNAGE) {
-            // performe enlignage
-            drapeaux &= REQUIERS_ENLIGNAGE;
-        }
-
-        if ((drapeaux & REQUIERS_DEBOUCLAGE) == REQUIERS_DEBOUCLAGE) {
-            // performe débouclage
-            drapeaux &= REQUIERS_DEBOUCLAGE;
-        }
-
-        // if ((drapeaux & REQUIERS_CORRECTION_BLOCS) == REQUIERS_CORRECTION_BLOCS) {
-        // travail_effectue |= elimine_branches_inutiles(blocs);
-        // drapeaux &= REQUIERS_CORRECTION_BLOCS;
-        //}
-
-        // supprime_temporaires(blocs);
-
-        // if ((drapeaux & REQUIERS_PROPAGATION_CONSTANTES) == REQUIERS_PROPAGATION_CONSTANTES) {
-        // travail_effectue |= propage_constantes_et_temporaires(blocs);
-        // drapeaux &= REQUIERS_PROPAGATION_CONSTANTES;
-        //}
-
-        // if ((drapeaux & REQUIERS_SUPPRESSION_CODE_MORT) == REQUIERS_SUPPRESSION_CODE_MORT) {
-        // travail_effectue |= supprime_code_mort(blocs);
-        // drapeaux &= REQUIERS_SUPPRESSION_CODE_MORT;
-        //}
-
-        if (!travail_effectue) {
-            break;
-        }
-    }
-}
-
-void optimise_code(EspaceDeTravail &espace,
+void optimise_code(EspaceDeTravail & /*espace*/,
                    ConstructriceRI &constructrice,
                    AtomeFonction *atome_fonc)
 {
-    // if (atome_fonc->nom ==
-    // "_KF9Fondation14imprime_chaine_P0__E2_8contexte19KsContexteProgramme6format8Kschaine4args8KtKseini_S1_8Kschaine")
-    // { 	dbg() << "========= optimisation pour " << atome_fonc->nom << " =========";
-    //	active_log();
-    //}
-
     // while (enligne_fonctions(constructrice, atome_fonc)) {}
     enligne_fonctions(constructrice, atome_fonc);
-
-    FonctionEtBlocs fonction_et_blocs;
-    if (!fonction_et_blocs.convertis_en_blocs(espace, atome_fonc)) {
-        return;
-    }
-
-    performe_passes_optimisation(fonction_et_blocs.blocs);
-
-    transfère_instructions_blocs_à_fonction(fonction_et_blocs.blocs, atome_fonc);
-
-    // desactive_log();
 }
