@@ -282,12 +282,8 @@ void performe_enlignage(ConstructriceRI &constructrice,
                 if (type_pointe != atome->type) {
                     // remplace l'instruction de déréférence par l'atome
                     POUR (fonction_appelee->instructions) {
-                        if (it->est_charge()) {
-                            auto charge = it->comme_charge();
-
-                            if (charge->chargée == parametre) {
-                                copieuse.ajoute_substitution(charge, atome);
-                            }
+                        if (est_chargement_de(it, parametre)) {
+                            copieuse.ajoute_substitution(it, atome);
                         }
                     }
                 }
@@ -295,12 +291,8 @@ void performe_enlignage(ConstructriceRI &constructrice,
         }
         else if (atome->est_constante()) {
             POUR (fonction_appelee->instructions) {
-                if (it->est_charge()) {
-                    auto charge = it->comme_charge();
-
-                    if (charge->chargée == parametre) {
-                        copieuse.ajoute_substitution(charge, atome);
-                    }
+                if (est_chargement_de(it, parametre)) {
+                    copieuse.ajoute_substitution(it, atome);
                 }
             }
         }
