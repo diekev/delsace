@@ -570,8 +570,6 @@ bool enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
 
         atome_fonc->instructions.réserve_delta(atome_fonc_appelee->instructions.taille() + 1);
 
-        // crée une nouvelle adresse retour pour faciliter la suppression de l'instruction de
-        // stockage de la valeur de retour dans l'ancienne adresse
         auto adresse_retour = static_cast<InstructionAllocation *>(nullptr);
 
         if (!appel->type->est_type_rien()) {
@@ -590,15 +588,9 @@ bool enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
                            adresse_retour);
         nombre_fonctions_enlignees += 1;
 
-        // atome_fonc_appelee->nombre_utilisations -= 1;
-
         atome_fonc->instructions.ajoute(label_post);
 
         if (adresse_retour) {
-            // nous ne substituons l'adresse que pour le chargement de sa valeur, ainsi lors du
-            // stockage de la valeur l'ancienne adresse aura un compte d'utilisation de zéro et
-            // l'instruction de stockage sera supprimée avec l'ancienne adresse dans la passe de
-            // suppression de code mort
             auto charge = constructrice.crée_charge_mem(appel->site, adresse_retour, true);
             atome_fonc->instructions.ajoute(charge);
             substitutrice.ajoute_substitution(appel, charge, SubstitutDans::VALEUR_STOCKEE);
