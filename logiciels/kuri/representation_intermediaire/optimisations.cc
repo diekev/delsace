@@ -234,7 +234,7 @@ struct CopieuseInstruction {
                 auto alloc = inst->comme_alloc();
                 auto ident = alloc->ident;
                 return constructrice.crée_allocation(
-                    inst->site, alloc->donne_type_alloué(), ident, true);
+                    inst->site, alloc->donne_type_alloué(), ident, false);
             }
             case GenreInstruction::LABEL:
             {
@@ -245,12 +245,12 @@ struct CopieuseInstruction {
             }
             case GenreInstruction::INATTEIGNABLE:
             {
-                return constructrice.crée_inatteignable(inst->site, true);
+                return constructrice.crée_inatteignable(inst->site, false);
             }
             case GenreInstruction::SÉLECTION:
             {
                 auto const sélection = inst->comme_sélection();
-                auto nouvelle_sélection = constructrice.crée_sélection(inst->site, true);
+                auto nouvelle_sélection = constructrice.crée_sélection(inst->site, false);
                 nouvelle_sélection->type = sélection->type;
                 nouvelle_sélection->condition = sélection->condition;
                 nouvelle_sélection->si_vrai = sélection->si_vrai;
@@ -264,8 +264,22 @@ struct CopieuseInstruction {
     }
 };
 
+static bool est_chargement_de(Atome const *chargement_potentiel, Atome const *valeur)
+{
+    if (!chargement_potentiel->est_instruction()) {
+        return false;
+    }
+
+    auto const instruction = chargement_potentiel->comme_instruction();
+    if (!instruction->est_charge()) {
+        return false;
+    }
+
+    auto const chargement = instruction->comme_charge();
+    return chargement->chargée == valeur;
+}
+
 void performe_enlignage(ConstructriceRI &constructrice,
-                        kuri::tableau<Instruction *, int> &nouvelles_instructions,
                         AtomeFonction *fonction_appelee,
                         kuri::tableau<Atome *, int> const &arguments,
                         int &nombre_labels,
@@ -320,35 +334,39 @@ void performe_enlignage(ConstructriceRI &constructrice,
         copieuse.ajoute_substitution(parametre, atome);
     }
 
-    auto instructions_copiees = copieuse.copie_instructions(fonction_appelee);
-    nouvelles_instructions.réserve_delta(instructions_copiees.taille());
+    copieuse.ajoute_substitution(fonction_appelee->param_sortie, adresse_retour);
 
-    POUR (instructions_copiees) {
-        if (it->genre == GenreInstruction::LABEL) {
+    POUR (fonction_appelee->instructions) {
+        if (!instruction_est_racine(it) && !it->est_alloc()) {
+            continue;
+        }
+
+        if (it->est_label()) {
             auto label = it->comme_label();
-
-            // saute le label d'entrée de la fonction
+            /* Ignore le label d'entrée de la fonction. */
             if (label->id == 0) {
                 continue;
             }
 
-            label->id = nombre_labels++;
-        }
-        else if (it->genre == GenreInstruction::RETOUR) {
-            auto retour = it->comme_retour();
-
-            if (retour->valeur) {
-                auto stockage = constructrice.crée_stocke_mem(
-                    nullptr, adresse_retour, retour->valeur, true);
-                nouvelles_instructions.ajoute(stockage);
-            }
-
-            auto branche = constructrice.crée_branche(nullptr, label_post, true);
-            nouvelles_instructions.ajoute(branche);
+            auto n_label = copieuse.copie_atome(it)->comme_instruction()->comme_label();
+            n_label->id = nombre_labels++;
             continue;
         }
 
-        nouvelles_instructions.ajoute(it);
+        if (it->est_retour()) {
+            auto retour = it->comme_retour();
+
+            if (retour->valeur &&
+                !est_chargement_de(retour->valeur, fonction_appelee->param_sortie)) {
+                auto valeur = copieuse.copie_atome(retour->valeur);
+                constructrice.crée_stocke_mem(retour->site, adresse_retour, valeur, false);
+            }
+
+            constructrice.crée_branche(retour->site, label_post, false);
+            continue;
+        }
+
+        copieuse.copie_atome(it);
     }
 }
 
@@ -538,8 +556,9 @@ static bool est_candidate_pour_enlignage(AtomeFonction *fonction)
 
 bool enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc)
 {
-    auto nouvelle_instructions = kuri::tableau<Instruction *, int>();
-    nouvelle_instructions.réserve(atome_fonc->instructions.taille());
+#ifdef DEBOGUE_ENLIGNAGE
+    dbg() << "===== avant enlignage =====\n" << imprime_fonction(atome_fonc);
+#endif
 
     auto substitutrice = Substitutrice();
     auto nombre_labels = 0;
@@ -549,9 +568,14 @@ bool enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
         nombre_labels += it->genre == GenreInstruction::LABEL;
     }
 
-    POUR (atome_fonc->instructions) {
+    auto anciennes_instructions = atome_fonc->instructions;
+    atome_fonc->instructions.efface();
+
+    constructrice.définis_fonction_courante(atome_fonc);
+
+    POUR (anciennes_instructions) {
         if (it->genre != GenreInstruction::APPEL) {
-            nouvelle_instructions.ajoute(substitutrice.instruction_substituee(it));
+            atome_fonc->instructions.ajoute(substitutrice.instruction_substituee(it));
             continue;
         }
 
@@ -559,18 +583,18 @@ bool enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
         auto appele = appel->appelé;
 
         if (appele->genre_atome != Atome::Genre::FONCTION) {
-            nouvelle_instructions.ajoute(substitutrice.instruction_substituee(it));
+            atome_fonc->instructions.ajoute(substitutrice.instruction_substituee(it));
             continue;
         }
 
         auto atome_fonc_appelee = appele->comme_fonction();
 
         if (!est_candidate_pour_enlignage(atome_fonc_appelee)) {
-            nouvelle_instructions.ajoute(substitutrice.instruction_substituee(it));
+            atome_fonc->instructions.ajoute(substitutrice.instruction_substituee(it));
             continue;
         }
 
-        nouvelle_instructions.réserve_delta(atome_fonc_appelee->instructions.taille() + 1);
+        atome_fonc->instructions.réserve_delta(atome_fonc_appelee->instructions.taille() + 1);
 
         // crée une nouvelle adresse retour pour faciliter la suppression de l'instruction de
         // stockage de la valeur de retour dans l'ancienne adresse
@@ -578,14 +602,13 @@ bool enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
 
         if (!appel->type->est_type_rien()) {
             adresse_retour = constructrice.crée_allocation(nullptr, appel->type, nullptr, true);
-            nouvelle_instructions.ajoute(adresse_retour);
+            atome_fonc->instructions.ajoute(adresse_retour);
         }
 
         auto label_post = constructrice.réserve_label(nullptr);
         label_post->id = nombre_labels++;
 
         performe_enlignage(constructrice,
-                           nouvelle_instructions,
                            atome_fonc_appelee,
                            appel->args,
                            nombre_labels,
@@ -595,7 +618,7 @@ bool enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
 
         // atome_fonc_appelee->nombre_utilisations -= 1;
 
-        nouvelle_instructions.ajoute(label_post);
+        atome_fonc->instructions.ajoute(label_post);
 
         if (adresse_retour) {
             // nous ne substituons l'adresse que pour le chargement de sa valeur, ainsi lors du
@@ -603,16 +626,10 @@ bool enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
             // l'instruction de stockage sera supprimée avec l'ancienne adresse dans la passe de
             // suppression de code mort
             auto charge = constructrice.crée_charge_mem(appel->site, adresse_retour, true);
-            nouvelle_instructions.ajoute(charge);
+            atome_fonc->instructions.ajoute(charge);
             substitutrice.ajoute_substitution(appel, charge, SubstitutDans::VALEUR_STOCKEE);
         }
     }
-
-#ifdef DEBOGUE_ENLIGNAGE
-    dbg() << "===== avant enlignage =====\n" << imprime_fonction(atome_fonc);
-#endif
-
-    atome_fonc->instructions = std::move(nouvelle_instructions);
 
 #ifdef DEBOGUE_ENLIGNAGE
     dbg() << "===== après enlignage =====\n" << imprime_fonction(atome_fonc);
