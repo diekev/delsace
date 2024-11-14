@@ -255,6 +255,7 @@ macro(ajoute_test_ri __nom_fichier__)
 endmacro()
 
 ajoute_test_ri(test-ri-enlignage-001)
+ajoute_test_ri(test-ri-enlignage-002)
 ajoute_test_ri(test-ri-suppression-variable-temp-001)
 
 macro(ajoute_test_fsau __nom_fichier__)
