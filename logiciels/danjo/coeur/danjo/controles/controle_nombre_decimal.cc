@@ -178,7 +178,7 @@ RéponseÉvènement ControleNombreDecimal::gère_entrée_clavier(QKeyEvent *even
             m_tampon.append('.');
             break;
         case Qt::Key_Backspace:
-            m_tampon.resize(std::max(0, m_tampon.size() - 1));
+            m_tampon.resize(std::max(qsizetype(0), m_tampon.size() - 1));
             break;
         case Qt::Key_Enter:
         case Qt::Key_Return:

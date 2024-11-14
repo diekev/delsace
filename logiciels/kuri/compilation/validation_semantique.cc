@@ -2451,7 +2451,7 @@ RésultatValidation Sémanticienne::valide_expression_retour(NoeudInstructionRet
     auto ident_variable = IdentifiantCode::nul();
     if (expression->est_assignation_variable()) {
         auto assignation = expression->comme_assignation_variable();
-        ident_variable = assignation->comme_référence_déclaration()->ident;
+        ident_variable = assignation->assignée->comme_référence_déclaration()->ident;
         expression = assignation->expression;
     }
 

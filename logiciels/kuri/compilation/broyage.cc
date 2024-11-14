@@ -583,9 +583,7 @@ kuri::chaine_statique Broyeuse::broye_nom_fonction(NoeudDéclarationEntêteFonct
     }
 
     if (decl->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE)) {
-        auto const options = OptionsImpressionType::POUR_FONCTION_INITIALISATION;
-        auto nom_type = chaine_type(decl->type_initialisé(), options);
-        auto nom_type_broyé = broye_nom_simple(nom_type);
+        auto const nom_type_broyé = nom_broyé_type(decl->type_initialisé());
         stockage_temp.réinitialise();
         stockage_temp << "initialise_" << nom_type_broyé;
         return chaine_finale_pour_stockage_temp();

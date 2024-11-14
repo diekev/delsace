@@ -405,6 +405,21 @@ bool est_chargement_de(Instruction const *inst0, Instruction const *inst1)
     return charge->chargée == inst1;
 }
 
+bool est_chargement_de(Atome const *chargement_potentiel, Atome const *valeur)
+{
+    if (!chargement_potentiel->est_instruction()) {
+        return false;
+    }
+
+    auto const instruction = chargement_potentiel->comme_instruction();
+    if (!instruction->est_charge()) {
+        return false;
+    }
+
+    auto const chargement = instruction->comme_charge();
+    return chargement->chargée == valeur;
+}
+
 InstructionAllocation const *est_stocke_alloc_depuis_charge_alloc(InstructionStockeMem const *inst)
 {
     if (!est_allocation(inst->destination)) {

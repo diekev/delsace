@@ -14,6 +14,7 @@
 
 #include "representation_intermediaire/analyse.hh"
 #include "representation_intermediaire/impression.hh"
+#include "representation_intermediaire/optimisations.hh"
 #include "representation_intermediaire/syntaxage.hh"
 
 #include "structures/chemin_systeme.hh"
@@ -51,6 +52,16 @@ static void imprime_erreur(SiteSource site, kuri::chaine message)
     dbg() << enchaineuse.chaine();
 }
 
+static bool commence_par(kuri::chaine_statique chn1, kuri::chaine_statique chn2)
+{
+    if (chn1.taille() < chn2.taille()) {
+        return false;
+    }
+
+    auto sous_chaine = chn1.sous_chaine(0, chn2.taille());
+    return sous_chaine == chn2;
+}
+
 int main(int argc, char **argv)
 {
     if (argc < 2) {
@@ -64,6 +75,9 @@ int main(int argc, char **argv)
         std::cerr << "Fichier '" << argv[1] << "' inconnu.";
         return 1;
     }
+
+    auto const est_test_enlignage = commence_par(chemin_fichier_ri.nom_fichier(),
+                                                 "test-ri-enlignage");
 
     auto texte = charge_contenu_fichier(
         {chemin_fichier_ri.pointeur(), chemin_fichier_ri.taille()});
@@ -91,6 +105,10 @@ int main(int argc, char **argv)
     }
 
     texte_résultat = supprime_espaces_blanches_autour(enchaineuse.chaine());
+
+    if (texte_source.taille() == 0) {
+        texte_source = texte_résultat;
+    }
 
     Fichier fichier;
     fichier.tampon_ = lng::tampon_source(dls::chaine(texte_source.begin(), texte_source.end()));
@@ -127,6 +145,14 @@ int main(int argc, char **argv)
         contexte_analyse.analyse_ri(
             *compilatrice.espace_de_travail_defaut, syntaxeuse.donne_constructrice(), it);
 
+        if (est_test_enlignage) {
+            optimise_code(
+                *compilatrice.espace_de_travail_defaut, syntaxeuse.donne_constructrice(), it);
+
+            contexte_analyse.analyse_ri(
+                *compilatrice.espace_de_travail_defaut, syntaxeuse.donne_constructrice(), it);
+        }
+
         auto résultat = supprime_espaces_blanches_autour(imprime_fonction(it));
 
         if (résultat != texte_résultat) {
@@ -136,6 +162,10 @@ int main(int argc, char **argv)
             dbg() << "Voulu :\n";
             dbg() << texte_résultat;
             return 1;
+        }
+
+        if (est_test_enlignage) {
+            break;
         }
     }
 

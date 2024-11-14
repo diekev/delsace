@@ -8,6 +8,7 @@ compile :: fonc ()
     désactive_compilation_espace_défaut()
 
     options := OptionsDeCompilation()
+    options.résultat = RésultatCompilation.RIEN
     espace := démarre_un_espace_de_travail("glsl", *options)
 
     compilatrice_commence_interception(espace)
@@ -25,7 +26,7 @@ compile :: fonc ()
             message_typage := message comme *MessageTypageCodeTerminé
             code := message_typage.code
 
-            si code.genre == GenreNoeud.DECLARATION_CORPS_FONCTION {
+            si code.genre == GenreNoeud.DÉCLARATION_CORPS_FONCTION {
                 convertis_vers_glsl(espace, code comme *NoeudCodeCorpsFonction)
             }
         }
@@ -42,4 +43,4 @@ compile :: fonc ()
     compilatrice_termine_interception(espace)
 }
 
-// #exécute compile()
+#exécute compile()
