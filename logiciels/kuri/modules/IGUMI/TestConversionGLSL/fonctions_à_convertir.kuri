@@ -25,7 +25,7 @@ réfracte :: fonc (I: Vec3, N: Vec3, index_de_réfraction: r32) -> (kr: Vec3) #r
         retourne Vec3(x = 0.0, y = 0.0, z = 0.0)
     }
 
-    retourne kr = eta * I + (eta * cos_theta - sqrt(k) comme r32) * Nrefr
+    retourne kr = eta * I + (eta * cos_theta - racine_carrée(k)) * Nrefr
 } @GLSL
 
 réfléchis :: fonc (I: Vec3, N: Vec3) -> (R: Vec3) #enligne #racine
@@ -68,14 +68,14 @@ fresnel :: fonc (I: Vec3, N: Vec3, idr: r32) -> (coef: r32) #racine
     }
 
     /* Calcul sin_i selon la loi de Snell. */
-    sint := eta_externe / eta_interne * sqrt(max(0.0, 1.0 - cosi * cosi)) comme r32
+    sint := eta_externe / eta_interne * racine_carrée(max(0.0, 1.0 - cosi * cosi))
 
     /* Réflection interne totale. */
     si sint >= 1.0 {
         retourne 1.0
     }
 
-    cost := sqrt(sqrt(max(0.0, 1.0 - sint * sint))) comme r32
+    cost := racine_carrée(racine_carrée(max(0.0, 1.0 - sint * sint)))
     cosi = abs(cosi)
     Rs := ((eta_interne * cosi) - (eta_externe * cost)) / ((eta_interne * cosi) + (eta_externe * cost))
     Rp := ((eta_externe * cosi) - (eta_interne * cost)) / ((eta_externe * cosi) + (eta_interne * cost))

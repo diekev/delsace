@@ -1548,6 +1548,12 @@ NoeudExpression *Simplificatrice::simplifie_retour(NoeudInstructionRetour *inst)
     }
 
     simplifie(inst->expression);
+
+    if (inst->expression->est_assignation_variable()) {
+        inst->expression->substitution =
+            inst->expression->comme_assignation_variable()->expression;
+    }
+
     return inst;
 }
 
