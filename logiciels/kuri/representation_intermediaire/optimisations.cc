@@ -3,19 +3,13 @@
 
 #include "optimisations.hh"
 
-#include <iostream>
-
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "utilitaires/log.hh"
 
-#include "parsage/identifiant.hh"
-
 #include "structures/table_hachage.hh"
 #include "structures/tablet.hh"
 
-#include "analyse.hh"
-#include "bloc_basique.hh"
 #include "constructrice_ri.hh"
 #include "impression.hh"
 #include "instructions.hh"
@@ -23,8 +17,7 @@
 /*
   À FAIRE(optimisations) :
   - crée toujours des blocs pour la RI, l'enlignage sera plus simple
-  - bug dans la fusion des blocs, qui nous laissent avec des labels inconnus
-  - déplace les instructions dans les blocs au plus près de leurs utilisations
+  - Substitutrice, pour généraliser les substitions d'instructions
 
   À FAIRE(enlignage) :
   - détecte les fonctions récursives, empêche leurs enlignages
@@ -63,19 +56,11 @@ enum {
     REQUIERS_PROPAGATION_CONSTANTES = (1 << 2),
 
     /* des boucles peuvent être « débouclées » */
-    REQUIERS_DEBOUCLAGE = (1 << 3),
+    REQUIERS_DÉBOUCLAGE = (1 << 3),
 
     /* du code peut être supprimé */
     REQUIERS_SUPPRESSION_CODE_MORT = (1 << 4),
 };
-
-/* À FAIRE(optimisations) : non-urgent
- * - Substitutrice, pour généraliser les substitions d'instructions
- * - copie des instructions (requiers de séparer les allocations des instructions de la
- * CompilatriceRI)
- */
-
-#undef DEBOGUE_SUPPRESSION_CODE_MORT
 
 struct CopieuseInstruction {
   private:
@@ -92,23 +77,6 @@ struct CopieuseInstruction {
         copies.insère(a, b);
     }
 
-    kuri::tableau<Instruction *, int> copie_instructions(AtomeFonction *atome_fonction)
-    {
-        kuri::tableau<Instruction *, int> résultat;
-        résultat.réserve(atome_fonction->instructions.taille());
-
-        POUR (atome_fonction->instructions) {
-            // s'il existe une substition pour cette instruction, ignore-là
-            if (!it->est_label() && copies.possède(it)) {
-                continue;
-            }
-
-            résultat.ajoute(static_cast<Instruction *>(copie_atome(it)));
-        }
-
-        return résultat;
-    }
-
     Atome *copie_atome(Atome *atome)
     {
         if (atome == nullptr) {
@@ -122,13 +90,24 @@ struct CopieuseInstruction {
 
         auto inst = atome->comme_instruction();
 
-        auto trouvee = false;
-        auto valeur = copies.trouve(inst, trouvee);
-        if (trouvee) {
+        auto trouvée = false;
+        auto valeur = copies.trouve(inst, trouvée);
+        if (trouvée) {
             return valeur;
         }
 
-        auto nouvelle_inst = static_cast<Instruction *>(nullptr);
+        auto nouvelle_inst = copie_instruction(inst);
+
+        if (nouvelle_inst) {
+            ajoute_substitution(inst, nouvelle_inst);
+        }
+
+        return nouvelle_inst;
+    }
+
+  private:
+    Atome *copie_instruction(Instruction const *inst)
+    {
 
         switch (inst->genre) {
             case GenreInstruction::APPEL:
@@ -142,36 +121,28 @@ struct CopieuseInstruction {
                     args.ajoute(copie_atome(it));
                 }
 
-                auto nouvel_appel = constructrice.crée_appel(inst->site, appelé, std::move(args));
-                nouvelle_inst = nouvel_appel;
-                break;
+                return constructrice.crée_appel(inst->site, appelé, std::move(args));
             }
             case GenreInstruction::CHARGE_MEMOIRE:
             {
                 auto charge = inst->comme_charge();
                 auto source = copie_atome(charge->chargée);
-                auto n_charge = constructrice.crée_charge_mem(inst->site, source);
-                nouvelle_inst = n_charge;
-                break;
+                return constructrice.crée_charge_mem(inst->site, source);
             }
             case GenreInstruction::STOCKE_MEMOIRE:
             {
                 auto stocke = inst->comme_stocke_mem();
                 auto destination = copie_atome(stocke->destination);
                 auto source = copie_atome(stocke->source);
-                auto n_stocke = constructrice.crée_stocke_mem(inst->site, destination, source);
-                nouvelle_inst = n_stocke;
-                break;
+                return constructrice.crée_stocke_mem(inst->site, destination, source);
             }
             case GenreInstruction::OPERATION_UNAIRE:
             {
                 auto op = inst->comme_op_unaire();
                 auto type_opération = op->op;
                 auto n_valeur = copie_atome(op->valeur);
-                auto n_op = constructrice.crée_op_unaire(
+                return constructrice.crée_op_unaire(
                     inst->site, inst->type, type_opération, n_valeur);
-                nouvelle_inst = n_op->comme_instruction();
-                break;
             }
             case GenreInstruction::OPERATION_BINAIRE:
             {
@@ -179,39 +150,29 @@ struct CopieuseInstruction {
                 auto type_opération = op->op;
                 auto valeur_gauche = copie_atome(op->valeur_gauche);
                 auto valeur_droite = copie_atome(op->valeur_droite);
-                auto n_op = constructrice.crée_op_binaire(
+                return constructrice.crée_op_binaire(
                     inst->site, inst->type, type_opération, valeur_gauche, valeur_droite);
-                nouvelle_inst = n_op->comme_instruction();
-                break;
             }
             case GenreInstruction::ACCEDE_INDEX:
             {
-                auto acces = inst->comme_acces_index();
-                auto accedé = copie_atome(acces->accédé);
-                auto index = copie_atome(acces->index);
-                auto n_acces = constructrice.crée_accès_index(inst->site, accedé, index);
-                nouvelle_inst = n_acces;
-                break;
+                auto accès = inst->comme_acces_index();
+                auto accedé = copie_atome(accès->accédé);
+                auto index = copie_atome(accès->index);
+                return constructrice.crée_accès_index(inst->site, accedé, index);
             }
             case GenreInstruction::ACCEDE_MEMBRE:
             {
-                auto acces = inst->comme_acces_membre();
-                auto accedé = copie_atome(acces->accédé);
-                auto index = acces->index;
-                auto n_acces = constructrice.crée_référence_membre(
-                    inst->site, inst->type, accedé, index);
-                nouvelle_inst = n_acces;
-                break;
+                auto accès = inst->comme_acces_membre();
+                auto accedé = copie_atome(accès->accédé);
+                auto index = accès->index;
+                return constructrice.crée_référence_membre(inst->site, inst->type, accedé, index);
             }
             case GenreInstruction::TRANSTYPE:
             {
                 auto transtype = inst->comme_transtype();
                 auto op = transtype->op;
                 auto n_valeur = copie_atome(transtype->valeur);
-                auto n_transtype = constructrice.crée_transtype(
-                    inst->site, inst->type, n_valeur, op);
-                nouvelle_inst = n_transtype->comme_instruction()->comme_transtype();
-                break;
+                return constructrice.crée_transtype(inst->site, inst->type, n_valeur, op);
             }
             case GenreInstruction::BRANCHE_CONDITION:
             {
@@ -221,178 +182,142 @@ struct CopieuseInstruction {
                     copie_atome(branche->label_si_vrai)->comme_instruction()->comme_label();
                 auto label_si_faux =
                     copie_atome(branche->label_si_faux)->comme_instruction()->comme_label();
-                auto n_branche = constructrice.crée_branche_condition(
+                return constructrice.crée_branche_condition(
                     inst->site, n_condition, label_si_vrai, label_si_faux);
-                nouvelle_inst = n_branche;
-                break;
             }
             case GenreInstruction::BRANCHE:
             {
                 auto branche = inst->comme_branche();
                 auto label = copie_atome(branche->label)->comme_instruction()->comme_label();
-                auto n_branche = constructrice.crée_branche(inst->site, label);
-                nouvelle_inst = n_branche;
-                break;
+                return constructrice.crée_branche(inst->site, label);
             }
             case GenreInstruction::RETOUR:
             {
                 auto retour = inst->comme_retour();
                 auto n_valeur = copie_atome(retour->valeur);
-                auto n_retour = constructrice.crée_retour(inst->site, n_valeur);
-                nouvelle_inst = n_retour;
-                break;
+                return constructrice.crée_retour(inst->site, n_valeur);
             }
             case GenreInstruction::ALLOCATION:
             {
                 auto alloc = inst->comme_alloc();
                 auto ident = alloc->ident;
-                auto n_alloc = constructrice.crée_allocation(
-                    inst->site, alloc->donne_type_alloué(), ident, true);
-                nouvelle_inst = n_alloc;
-                break;
+                return constructrice.crée_allocation(
+                    inst->site, alloc->donne_type_alloué(), ident, false);
             }
             case GenreInstruction::LABEL:
             {
                 auto label = inst->comme_label();
                 auto n_label = constructrice.crée_label(inst->site);
                 n_label->id = label->id;
-                nouvelle_inst = n_label;
-                break;
+                return n_label;
             }
             case GenreInstruction::INATTEIGNABLE:
             {
-                nouvelle_inst = constructrice.crée_inatteignable(inst->site, true);
-                break;
+                return constructrice.crée_inatteignable(inst->site, false);
             }
             case GenreInstruction::SÉLECTION:
             {
                 auto const sélection = inst->comme_sélection();
-                auto nouvelle_sélection = constructrice.crée_sélection(inst->site, true);
+                auto nouvelle_sélection = constructrice.crée_sélection(inst->site, false);
                 nouvelle_sélection->type = sélection->type;
                 nouvelle_sélection->condition = sélection->condition;
                 nouvelle_sélection->si_vrai = sélection->si_vrai;
                 nouvelle_sélection->si_faux = sélection->si_faux;
-                nouvelle_inst = nouvelle_sélection;
-                break;
+                return nouvelle_sélection;
             }
         }
 
-        if (nouvelle_inst) {
-            ajoute_substitution(inst, nouvelle_inst);
-        }
-
-        return nouvelle_inst;
+        assert(false);
+        return nullptr;
     }
 };
 
+static bool est_instruction_charge(Atome const *atome)
+{
+    return atome->est_instruction() && atome->comme_instruction()->est_charge();
+}
+
 void performe_enlignage(ConstructriceRI &constructrice,
-                        kuri::tableau<Instruction *, int> &nouvelles_instructions,
-                        AtomeFonction *fonction_appelee,
+                        AtomeFonction *fonction_appelée,
                         kuri::tableau<Atome *, int> const &arguments,
                         int &nombre_labels,
                         InstructionLabel *label_post,
                         InstructionAllocation *adresse_retour)
 {
-
     auto copieuse = CopieuseInstruction(constructrice);
 
-    for (auto i = 0; i < fonction_appelee->params_entrée.taille(); ++i) {
-        auto parametre = fonction_appelee->params_entrée[i];
+    for (auto i = 0; i < fonction_appelée->params_entrée.taille(); ++i) {
+        auto paramètre = fonction_appelée->params_entrée[i];
         auto atome = arguments[i];
 
-        // À FAIRE : il faudrait que tous les arguments des fonctions soient des instructions (->
-        // utilisation de temporaire)
-        if (atome->genre_atome == Atome::Genre::INSTRUCTION) {
-            auto inst = atome->comme_instruction();
-
-            if (inst->genre == GenreInstruction::CHARGE_MEMOIRE) {
-                atome = inst->comme_charge()->chargée;
-            }
-            // À FAIRE : détection des pointeurs locaux plus robuste
-            // détecte les cas où nous avons une référence à une variable
-            else if (inst->est_alloc()) {
-                auto type_pointe = inst->comme_alloc()->donne_type_alloué();
-                if (type_pointe != atome->type) {
-                    // remplace l'instruction de déréférence par l'atome
-                    POUR (fonction_appelee->instructions) {
-                        if (it->est_charge()) {
-                            auto charge = it->comme_charge();
-
-                            if (charge->chargée == parametre) {
-                                copieuse.ajoute_substitution(charge, atome);
-                            }
-                        }
-                    }
-                }
-            }
+        if (est_instruction_charge(atome)) {
+            atome = atome->comme_instruction()->comme_charge()->chargée;
+            copieuse.ajoute_substitution(paramètre, atome);
         }
-        else if (atome->est_constante()) {
-            POUR (fonction_appelee->instructions) {
-                if (it->est_charge()) {
-                    auto charge = it->comme_charge();
-
-                    if (charge->chargée == parametre) {
-                        copieuse.ajoute_substitution(charge, atome);
-                    }
-                }
-            }
+        else {
+            /* Crée une temporaire. */
+            auto alloc = constructrice.crée_allocation(nullptr, atome->type, nullptr);
+            constructrice.crée_stocke_mem(nullptr, alloc, atome);
+            copieuse.ajoute_substitution(paramètre, alloc);
         }
-
-        copieuse.ajoute_substitution(parametre, atome);
     }
 
-    auto instructions_copiees = copieuse.copie_instructions(fonction_appelee);
-    nouvelles_instructions.réserve_delta(instructions_copiees.taille());
+    copieuse.ajoute_substitution(fonction_appelée->param_sortie, adresse_retour);
 
-    POUR (instructions_copiees) {
-        if (it->genre == GenreInstruction::LABEL) {
+    POUR (fonction_appelée->instructions) {
+        if (!instruction_est_racine(it) && !it->est_alloc()) {
+            continue;
+        }
+
+        if (it->est_label()) {
             auto label = it->comme_label();
-
-            // saute le label d'entrée de la fonction
+            /* Ignore le label d'entrée de la fonction. */
             if (label->id == 0) {
                 continue;
             }
 
-            label->id = nombre_labels++;
-        }
-        else if (it->genre == GenreInstruction::RETOUR) {
-            auto retour = it->comme_retour();
-
-            if (retour->valeur) {
-                auto stockage = constructrice.crée_stocke_mem(
-                    nullptr, adresse_retour, retour->valeur, true);
-                nouvelles_instructions.ajoute(stockage);
-            }
-
-            auto branche = constructrice.crée_branche(nullptr, label_post, true);
-            nouvelles_instructions.ajoute(branche);
+            auto n_label = copieuse.copie_atome(it)->comme_instruction()->comme_label();
+            n_label->id = nombre_labels++;
             continue;
         }
 
-        nouvelles_instructions.ajoute(it);
+        if (it->est_retour()) {
+            auto retour = it->comme_retour();
+
+            if (retour->valeur &&
+                !est_chargement_de(retour->valeur, fonction_appelée->param_sortie)) {
+                auto valeur = copieuse.copie_atome(retour->valeur);
+                constructrice.crée_stocke_mem(retour->site, adresse_retour, valeur, false);
+            }
+
+            constructrice.crée_branche(retour->site, label_post, false);
+            continue;
+        }
+
+        copieuse.copie_atome(it);
     }
 }
 
 enum class SubstitutDans : int {
-    ZERO = 0,
+    ZÉRO = 0,
     CHARGE = (1 << 0),
-    VALEUR_STOCKEE = (1 << 1),
-    ADRESSE_STOCKEE = (1 << 2),
+    VALEUR_STOCKÉE = (1 << 1),
+    ADRESSE_STOCKÉE = (1 << 2),
 
-    TOUT = (CHARGE | VALEUR_STOCKEE | ADRESSE_STOCKEE),
+    TOUT = (CHARGE | VALEUR_STOCKÉE | ADRESSE_STOCKÉE),
 };
 
 DEFINIS_OPERATEURS_DRAPEAU(SubstitutDans)
 
 struct Substitutrice {
   private:
-    struct DonneesSubstitution {
+    struct DonnéesSubstitution {
         Atome *original = nullptr;
         Atome *substitut = nullptr;
         SubstitutDans substitut_dans = SubstitutDans::TOUT;
     };
 
-    kuri::tablet<DonneesSubstitution, 16> substitutions{};
+    kuri::tablet<DonnéesSubstitution, 16> substitutions{};
 
   public:
     void ajoute_substitution(Atome *original, Atome *substitut, SubstitutDans substitut_dans)
@@ -416,12 +341,12 @@ struct Substitutrice {
         substitutions.ajoute({original, substitut, substitut_dans});
     }
 
-    void reinitialise()
+    void réinitialise()
     {
         substitutions.efface();
     }
 
-    Instruction *instruction_substituee(Instruction *instruction)
+    Instruction *instruction_substituée(Instruction *instruction)
     {
         switch (instruction->genre) {
             case GenreInstruction::CHARGE_MEMOIRE:
@@ -430,7 +355,7 @@ struct Substitutrice {
 
                 POUR (substitutions) {
                     if (it.original == charge->chargée &&
-                        (it.substitut_dans & SubstitutDans::CHARGE) != SubstitutDans::ZERO) {
+                        (it.substitut_dans & SubstitutDans::CHARGE) != SubstitutDans::ZÉRO) {
                         charge->chargée = it.substitut;
                         break;
                     }
@@ -448,35 +373,30 @@ struct Substitutrice {
 
                 POUR (substitutions) {
                     if (it.original == stocke->destination &&
-                        (it.substitut_dans & SubstitutDans::ADRESSE_STOCKEE) !=
-                            SubstitutDans::ZERO) {
+                        (it.substitut_dans & SubstitutDans::ADRESSE_STOCKÉE) !=
+                            SubstitutDans::ZÉRO) {
                         stocke->destination = it.substitut;
                     }
                     else if (it.original == stocke->source &&
-                             (it.substitut_dans & SubstitutDans::VALEUR_STOCKEE) !=
-                                 SubstitutDans::ZERO) {
+                             (it.substitut_dans & SubstitutDans::VALEUR_STOCKÉE) !=
+                                 SubstitutDans::ZÉRO) {
                         stocke->source = it.substitut;
                     }
                 }
 
                 return stocke;
             }
+            case GenreInstruction::OPERATION_UNAIRE:
+            {
+                auto op = instruction->comme_op_unaire();
+                op->valeur = valeur_substituée(op->valeur);
+                return op;
+            }
             case GenreInstruction::OPERATION_BINAIRE:
             {
                 auto op = instruction->comme_op_binaire();
-
-                op->valeur_gauche = valeur_substituee(op->valeur_gauche);
-                op->valeur_droite = valeur_substituee(op->valeur_droite);
-
-                //				POUR (substitutions) {
-                //					if (it.original == op->valeur_gauche) {
-                //						op->valeur_gauche = it.substitut;
-                //					}
-                //					else if (it.original == op->valeur_droite) {
-                //						op->valeur_droite = it.substitut;
-                //					}
-                //				}
-
+                op->valeur_gauche = valeur_substituée(op->valeur_gauche);
+                op->valeur_droite = valeur_substituée(op->valeur_droite);
                 return op;
             }
             case GenreInstruction::RETOUR:
@@ -484,36 +404,69 @@ struct Substitutrice {
                 auto retour = instruction->comme_retour();
 
                 if (retour->valeur) {
-                    retour->valeur = valeur_substituee(retour->valeur);
+                    retour->valeur = valeur_substituée(retour->valeur);
                 }
 
                 return retour;
             }
             case GenreInstruction::ACCEDE_MEMBRE:
             {
-                auto acces = instruction->comme_acces_membre();
-                acces->accédé = valeur_substituee(acces->accédé);
-                return acces;
+                auto accès = instruction->comme_acces_membre();
+                accès->accédé = valeur_substituée(accès->accédé);
+                return accès;
             }
             case GenreInstruction::APPEL:
             {
                 auto appel = instruction->comme_appel();
-                appel->appelé = valeur_substituee(appel->appelé);
+                appel->appelé = valeur_substituée(appel->appelé);
 
                 POUR (appel->args) {
-                    it = valeur_substituee(it);
+                    it = valeur_substituée(it);
                 }
 
                 return appel;
             }
-            default:
+            case GenreInstruction::ACCEDE_INDEX:
+            {
+                auto accès = instruction->comme_acces_index();
+                accès->accédé = valeur_substituée(accès->accédé);
+                accès->index = valeur_substituée(accès->index);
+                return accès;
+            }
+            case GenreInstruction::TRANSTYPE:
+            {
+                auto transtype = instruction->comme_transtype();
+                transtype->valeur = valeur_substituée(transtype->valeur);
+                return transtype;
+            }
+            case GenreInstruction::BRANCHE_CONDITION:
+            {
+                auto branche = instruction->comme_branche_cond();
+                branche->condition = valeur_substituée(branche->condition);
+                return branche;
+            }
+            case GenreInstruction::SÉLECTION:
+            {
+                auto const sélection = instruction->comme_sélection();
+                sélection->condition = valeur_substituée(sélection->condition);
+                sélection->si_vrai = valeur_substituée(sélection->si_vrai);
+                sélection->si_faux = valeur_substituée(sélection->si_faux);
+                return sélection;
+            }
+            case GenreInstruction::BRANCHE:
+            case GenreInstruction::ALLOCATION:
+            case GenreInstruction::LABEL:
+            case GenreInstruction::INATTEIGNABLE:
             {
                 return instruction;
             }
         }
+
+        assert(false);
+        return nullptr;
     }
 
-    Atome *valeur_substituee(Atome *original)
+    Atome *valeur_substituée(Atome *original)
     {
         POUR (substitutions) {
             if (it.original == original) {
@@ -559,208 +512,82 @@ static bool est_candidate_pour_enlignage(AtomeFonction *fonction)
 
 bool enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc)
 {
-    auto nouvelle_instructions = kuri::tableau<Instruction *, int>();
-    nouvelle_instructions.réserve(atome_fonc->instructions.taille());
+#ifdef DEBOGUE_ENLIGNAGE
+    dbg() << "===== avant enlignage =====\n" << imprime_fonction(atome_fonc);
+#endif
 
     auto substitutrice = Substitutrice();
     auto nombre_labels = 0;
-    auto nombre_fonctions_enlignees = 0;
+    auto nombre_fonctions_enlignées = 0;
 
     POUR (atome_fonc->instructions) {
         nombre_labels += it->genre == GenreInstruction::LABEL;
     }
 
-    POUR (atome_fonc->instructions) {
+    auto anciennes_instructions = atome_fonc->instructions;
+    atome_fonc->instructions.efface();
+
+    constructrice.définis_fonction_courante(atome_fonc);
+
+    POUR (anciennes_instructions) {
         if (it->genre != GenreInstruction::APPEL) {
-            nouvelle_instructions.ajoute(substitutrice.instruction_substituee(it));
+            atome_fonc->instructions.ajoute(substitutrice.instruction_substituée(it));
             continue;
         }
 
         auto appel = it->comme_appel();
-        auto appele = appel->appelé;
+        auto appelé = appel->appelé;
 
-        if (appele->genre_atome != Atome::Genre::FONCTION) {
-            nouvelle_instructions.ajoute(substitutrice.instruction_substituee(it));
+        if (appelé->genre_atome != Atome::Genre::FONCTION) {
+            atome_fonc->instructions.ajoute(substitutrice.instruction_substituée(it));
             continue;
         }
 
-        auto atome_fonc_appelee = appele->comme_fonction();
+        auto atome_fonc_appelée = appelé->comme_fonction();
 
-        if (!est_candidate_pour_enlignage(atome_fonc_appelee)) {
-            nouvelle_instructions.ajoute(substitutrice.instruction_substituee(it));
+        if (!est_candidate_pour_enlignage(atome_fonc_appelée)) {
+            atome_fonc->instructions.ajoute(substitutrice.instruction_substituée(it));
             continue;
         }
 
-        nouvelle_instructions.réserve_delta(atome_fonc_appelee->instructions.taille() + 1);
+        atome_fonc->instructions.réserve_delta(atome_fonc_appelée->instructions.taille() + 1);
 
-        // crée une nouvelle adresse retour pour faciliter la suppression de l'instruction de
-        // stockage de la valeur de retour dans l'ancienne adresse
         auto adresse_retour = static_cast<InstructionAllocation *>(nullptr);
 
         if (!appel->type->est_type_rien()) {
-            adresse_retour = constructrice.crée_allocation(nullptr, appel->type, nullptr, true);
-            nouvelle_instructions.ajoute(adresse_retour);
+            adresse_retour = constructrice.crée_allocation(nullptr, appel->type, nullptr, false);
         }
 
         auto label_post = constructrice.réserve_label(nullptr);
         label_post->id = nombre_labels++;
 
         performe_enlignage(constructrice,
-                           nouvelle_instructions,
-                           atome_fonc_appelee,
+                           atome_fonc_appelée,
                            appel->args,
                            nombre_labels,
                            label_post,
                            adresse_retour);
-        nombre_fonctions_enlignees += 1;
+        nombre_fonctions_enlignées += 1;
 
-        // atome_fonc_appelee->nombre_utilisations -= 1;
-
-        nouvelle_instructions.ajoute(label_post);
+        atome_fonc->instructions.ajoute(label_post);
 
         if (adresse_retour) {
-            // nous ne substituons l'adresse que pour le chargement de sa valeur, ainsi lors du
-            // stockage de la valeur l'ancienne adresse aura un compte d'utilisation de zéro et
-            // l'instruction de stockage sera supprimée avec l'ancienne adresse dans la passe de
-            // suppression de code mort
-            auto charge = constructrice.crée_charge_mem(appel->site, adresse_retour, true);
-            nouvelle_instructions.ajoute(charge);
-            substitutrice.ajoute_substitution(appel, charge, SubstitutDans::VALEUR_STOCKEE);
+            auto charge = constructrice.crée_charge_mem(appel->site, adresse_retour, false);
+            substitutrice.ajoute_substitution(appel, charge, SubstitutDans::VALEUR_STOCKÉE);
         }
     }
-
-#ifdef DEBOGUE_ENLIGNAGE
-    dbg() << "===== avant enlignage =====\n" << imprime_fonction(atome_fonc);
-#endif
-
-    atome_fonc->instructions = std::move(nouvelle_instructions);
 
 #ifdef DEBOGUE_ENLIGNAGE
     dbg() << "===== après enlignage =====\n" << imprime_fonction(atome_fonc);
 #endif
 
-    return nombre_fonctions_enlignees != 0;
+    return nombre_fonctions_enlignées != 0;
 }
 
-#undef DEBOGUE_PROPAGATION
-
-/* principalement pour détecter des accès à des membres */
-#if 0
-static bool sont_equivalents(Atome *a, Atome *b)
-{
-    if (a == b) {
-        return true;
-    }
-
-    if (a->genre_atome != b->genre_atome) {
-        return false;
-    }
-
-    if (a->est_constante_entière()) {
-        auto const_a = a->comme_constante_entière();
-        auto const_b = b->comme_constante_entière();
-        return const_a->valeur == const_b->valeur;
-    }
-
-    if (a->est_instruction()) {
-        auto inst_a = a->comme_instruction();
-        auto inst_b = b->comme_instruction();
-
-        if (inst_a->genre != inst_b->genre) {
-            return false;
-        }
-
-        if (inst_a->est_acces_membre()) {
-            auto ma = inst_a->comme_acces_membre();
-            auto mb = inst_b->comme_acces_membre();
-
-            if (!sont_equivalents(ma->accédé, mb->accédé)) {
-                return false;
-            }
-
-            if (!sont_equivalents(ma->index, mb->index)) {
-                return false;
-            }
-
-            return true;
-        }
-    }
-
-    return false;
-}
-#endif
-
-static void performe_passes_optimisation(kuri::tableau<Bloc *, int> &blocs)
-{
-    while (true) {
-        if (log_actif) {
-            dbg() << imprime_blocs(blocs);
-        }
-
-        //		auto drapeaux = analyse_blocs(blocs);
-
-        //		if (drapeaux == 0) {
-        //			break;
-        //		}
-
-        int drapeaux = 0;
-
-        auto travail_effectue = false;
-
-        if ((drapeaux & REQUIERS_ENLIGNAGE) == REQUIERS_ENLIGNAGE) {
-            // performe enlignage
-            drapeaux &= REQUIERS_ENLIGNAGE;
-        }
-
-        if ((drapeaux & REQUIERS_DEBOUCLAGE) == REQUIERS_DEBOUCLAGE) {
-            // performe débouclage
-            drapeaux &= REQUIERS_DEBOUCLAGE;
-        }
-
-        // if ((drapeaux & REQUIERS_CORRECTION_BLOCS) == REQUIERS_CORRECTION_BLOCS) {
-        // travail_effectue |= elimine_branches_inutiles(blocs);
-        // drapeaux &= REQUIERS_CORRECTION_BLOCS;
-        //}
-
-        // supprime_temporaires(blocs);
-
-        // if ((drapeaux & REQUIERS_PROPAGATION_CONSTANTES) == REQUIERS_PROPAGATION_CONSTANTES) {
-        // travail_effectue |= propage_constantes_et_temporaires(blocs);
-        // drapeaux &= REQUIERS_PROPAGATION_CONSTANTES;
-        //}
-
-        // if ((drapeaux & REQUIERS_SUPPRESSION_CODE_MORT) == REQUIERS_SUPPRESSION_CODE_MORT) {
-        // travail_effectue |= supprime_code_mort(blocs);
-        // drapeaux &= REQUIERS_SUPPRESSION_CODE_MORT;
-        //}
-
-        if (!travail_effectue) {
-            break;
-        }
-    }
-}
-
-void optimise_code(EspaceDeTravail &espace,
+void optimise_code(EspaceDeTravail & /*espace*/,
                    ConstructriceRI &constructrice,
                    AtomeFonction *atome_fonc)
 {
-    // if (atome_fonc->nom ==
-    // "_KF9Fondation14imprime_chaine_P0__E2_8contexte19KsContexteProgramme6format8Kschaine4args8KtKseini_S1_8Kschaine")
-    // { 	dbg() << "========= optimisation pour " << atome_fonc->nom << " =========";
-    //	active_log();
-    //}
-
     // while (enligne_fonctions(constructrice, atome_fonc)) {}
     enligne_fonctions(constructrice, atome_fonc);
-
-    FonctionEtBlocs fonction_et_blocs;
-    if (!fonction_et_blocs.convertis_en_blocs(espace, atome_fonc)) {
-        return;
-    }
-
-    performe_passes_optimisation(fonction_et_blocs.blocs);
-
-    transfère_instructions_blocs_à_fonction(fonction_et_blocs.blocs, atome_fonc);
-
-    // desactive_log();
 }
