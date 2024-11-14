@@ -26,7 +26,7 @@
         }                                                                                         \
         return Q##classe::event(event);                                                           \
     }                                                                                             \
-    IMPLEMENTE_METHODE_EVENEMENT(classe, QEvent, enterEvent, QT_Evenement, sur_entree)            \
+    IMPLEMENTE_METHODE_EVENEMENT(classe, QEnterEvent, enterEvent, QT_Evenement, sur_entree)       \
     IMPLEMENTE_METHODE_EVENEMENT(classe, QEvent, leaveEvent, QT_Evenement, sur_sortie)            \
     IMPLEMENTE_METHODE_EVENEMENT(                                                                 \
         classe, QMouseEvent, mousePressEvent, QT_MouseEvent, sur_pression_souris)                 \
@@ -89,49 +89,49 @@ IMPLEMENTE_METHODES_EVENEMENTS(Widget)
 /** \name GLWidget
  * \{ */
 
-GLWidget::GLWidget(QT_Rappels_GLWidget *rappels, QWidget *parent)
-    : QGLWidget(parent), m_rappels(rappels)
+OpenGLWidget::OpenGLWidget(QT_Rappels_GLWidget *rappels, QWidget *parent)
+    : QOpenGLWidget(parent), m_rappels(rappels)
 {
     autodefinis_supporte_drag_drop(this, m_rappels);
 }
 
-GLWidget::~GLWidget()
+OpenGLWidget::~OpenGLWidget()
 {
     if (m_rappels && m_rappels->sur_destruction) {
         m_rappels->sur_destruction(m_rappels);
     }
 }
 
-IMPLEMENTE_METHODES_EVENEMENTS(GLWidget)
+IMPLEMENTE_METHODES_EVENEMENTS(OpenGLWidget)
 
-void GLWidget::initializeGL()
+void OpenGLWidget::initializeGL()
 {
     if (m_rappels && m_rappels->sur_initialisation_gl) {
         m_rappels->sur_initialisation_gl(m_rappels);
     }
     else {
-        QGLWidget::initializeGL();
+        QOpenGLWidget::initializeGL();
     }
 }
 
-void GLWidget::paintGL()
+void OpenGLWidget::paintGL()
 {
     if (m_rappels && m_rappels->sur_peinture_gl) {
         m_rappels->sur_peinture_gl(m_rappels);
     }
     else {
-        QGLWidget::paintGL();
+        QOpenGLWidget::paintGL();
     }
 }
 
-void GLWidget::resizeGL(int w, int h)
+void OpenGLWidget::resizeGL(int w, int h)
 {
     if (m_rappels && m_rappels->sur_redimensionnement_gl) {
         auto taille = QT_Taille{w, h};
         m_rappels->sur_redimensionnement_gl(m_rappels, taille);
     }
     else {
-        QGLWidget::resizeGL(w, h);
+        QOpenGLWidget::resizeGL(w, h);
     }
 }
 
@@ -145,7 +145,7 @@ CheckBox::CheckBox(QT_Rappels_CheckBox *rappels, QWidget *parent)
     : QCheckBox(parent), m_rappels(rappels)
 {
     if (m_rappels && m_rappels->sur_changement_etat) {
-        connect(this, &CheckBox::stateChanged, this, &CheckBox::sur_changement_etat);
+        connect(this, &CheckBox::checkStateChanged, this, &CheckBox::sur_changement_etat);
     }
 }
 
