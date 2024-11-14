@@ -245,7 +245,6 @@ void performe_enlignage(ConstructriceRI &constructrice,
                         InstructionLabel *label_post,
                         InstructionAllocation *adresse_retour)
 {
-
     auto copieuse = CopieuseInstruction(constructrice);
 
     for (auto i = 0; i < fonction_appelee->params_entrée.taille(); ++i) {
