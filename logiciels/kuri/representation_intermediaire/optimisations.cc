@@ -238,21 +238,6 @@ struct CopieuseInstruction {
     }
 };
 
-static bool est_chargement_de(Atome const *chargement_potentiel, Atome const *valeur)
-{
-    if (!chargement_potentiel->est_instruction()) {
-        return false;
-    }
-
-    auto const instruction = chargement_potentiel->comme_instruction();
-    if (!instruction->est_charge()) {
-        return false;
-    }
-
-    auto const chargement = instruction->comme_charge();
-    return chargement->chargée == valeur;
-}
-
 void performe_enlignage(ConstructriceRI &constructrice,
                         AtomeFonction *fonction_appelee,
                         kuri::tableau<Atome *, int> const &arguments,
