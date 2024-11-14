@@ -333,13 +333,13 @@ DEFINIS_OPERATEURS_DRAPEAU(SubstitutDans)
 
 struct Substitutrice {
   private:
-    struct DonneesSubstitution {
+    struct DonnéesSubstitution {
         Atome *original = nullptr;
         Atome *substitut = nullptr;
         SubstitutDans substitut_dans = SubstitutDans::TOUT;
     };
 
-    kuri::tablet<DonneesSubstitution, 16> substitutions{};
+    kuri::tablet<DonnéesSubstitution, 16> substitutions{};
 
   public:
     void ajoute_substitution(Atome *original, Atome *substitut, SubstitutDans substitut_dans)
@@ -363,12 +363,12 @@ struct Substitutrice {
         substitutions.ajoute({original, substitut, substitut_dans});
     }
 
-    void reinitialise()
+    void réinitialise()
     {
         substitutions.efface();
     }
 
-    Instruction *instruction_substituee(Instruction *instruction)
+    Instruction *instruction_substituée(Instruction *instruction)
     {
         switch (instruction->genre) {
             case GenreInstruction::CHARGE_MEMOIRE:
@@ -411,14 +411,14 @@ struct Substitutrice {
             case GenreInstruction::OPERATION_UNAIRE:
             {
                 auto op = instruction->comme_op_unaire();
-                op->valeur = valeur_substituee(op->valeur);
+                op->valeur = valeur_substituée(op->valeur);
                 return op;
             }
             case GenreInstruction::OPERATION_BINAIRE:
             {
                 auto op = instruction->comme_op_binaire();
-                op->valeur_gauche = valeur_substituee(op->valeur_gauche);
-                op->valeur_droite = valeur_substituee(op->valeur_droite);
+                op->valeur_gauche = valeur_substituée(op->valeur_gauche);
+                op->valeur_droite = valeur_substituée(op->valeur_droite);
                 return op;
             }
             case GenreInstruction::RETOUR:
@@ -426,7 +426,7 @@ struct Substitutrice {
                 auto retour = instruction->comme_retour();
 
                 if (retour->valeur) {
-                    retour->valeur = valeur_substituee(retour->valeur);
+                    retour->valeur = valeur_substituée(retour->valeur);
                 }
 
                 return retour;
@@ -434,16 +434,16 @@ struct Substitutrice {
             case GenreInstruction::ACCEDE_MEMBRE:
             {
                 auto accès = instruction->comme_acces_membre();
-                accès->accédé = valeur_substituee(accès->accédé);
+                accès->accédé = valeur_substituée(accès->accédé);
                 return accès;
             }
             case GenreInstruction::APPEL:
             {
                 auto appel = instruction->comme_appel();
-                appel->appelé = valeur_substituee(appel->appelé);
+                appel->appelé = valeur_substituée(appel->appelé);
 
                 POUR (appel->args) {
-                    it = valeur_substituee(it);
+                    it = valeur_substituée(it);
                 }
 
                 return appel;
@@ -451,28 +451,28 @@ struct Substitutrice {
             case GenreInstruction::ACCEDE_INDEX:
             {
                 auto accès = instruction->comme_acces_index();
-                accès->accédé = valeur_substituee(accès->accédé);
-                accès->index = valeur_substituee(accès->index);
+                accès->accédé = valeur_substituée(accès->accédé);
+                accès->index = valeur_substituée(accès->index);
                 return accès;
             }
             case GenreInstruction::TRANSTYPE:
             {
                 auto transtype = instruction->comme_transtype();
-                transtype->valeur = valeur_substituee(transtype->valeur);
+                transtype->valeur = valeur_substituée(transtype->valeur);
                 return transtype;
             }
             case GenreInstruction::BRANCHE_CONDITION:
             {
                 auto branche = instruction->comme_branche_cond();
-                branche->condition = valeur_substituee(branche->condition);
+                branche->condition = valeur_substituée(branche->condition);
                 return branche;
             }
             case GenreInstruction::SÉLECTION:
             {
                 auto const sélection = instruction->comme_sélection();
-                sélection->condition = valeur_substituee(sélection->condition);
-                sélection->si_vrai = valeur_substituee(sélection->si_vrai);
-                sélection->si_faux = valeur_substituee(sélection->si_faux);
+                sélection->condition = valeur_substituée(sélection->condition);
+                sélection->si_vrai = valeur_substituée(sélection->si_vrai);
+                sélection->si_faux = valeur_substituée(sélection->si_faux);
                 return sélection;
             }
             case GenreInstruction::BRANCHE:
@@ -488,7 +488,7 @@ struct Substitutrice {
         return nullptr;
     }
 
-    Atome *valeur_substituee(Atome *original)
+    Atome *valeur_substituée(Atome *original)
     {
         POUR (substitutions) {
             if (it.original == original) {
@@ -553,7 +553,7 @@ bool enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
 
     POUR (anciennes_instructions) {
         if (it->genre != GenreInstruction::APPEL) {
-            atome_fonc->instructions.ajoute(substitutrice.instruction_substituee(it));
+            atome_fonc->instructions.ajoute(substitutrice.instruction_substituée(it));
             continue;
         }
 
@@ -561,14 +561,14 @@ bool enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
         auto appelé = appel->appelé;
 
         if (appelé->genre_atome != Atome::Genre::FONCTION) {
-            atome_fonc->instructions.ajoute(substitutrice.instruction_substituee(it));
+            atome_fonc->instructions.ajoute(substitutrice.instruction_substituée(it));
             continue;
         }
 
         auto atome_fonc_appelée = appelé->comme_fonction();
 
         if (!est_candidate_pour_enlignage(atome_fonc_appelée)) {
-            atome_fonc->instructions.ajoute(substitutrice.instruction_substituee(it));
+            atome_fonc->instructions.ajoute(substitutrice.instruction_substituée(it));
             continue;
         }
 
