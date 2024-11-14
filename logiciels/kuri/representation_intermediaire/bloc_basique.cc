@@ -253,6 +253,7 @@ static Bloc *crée_bloc_pour_label(kuri::tableau<Bloc *, int> &blocs,
     Bloc *bloc;
     if (!blocs_libres.est_vide()) {
         bloc = blocs_libres.dernier_élément();
+        bloc->réinitialise();
         blocs_libres.supprime_dernier();
     }
     else {
@@ -496,7 +497,8 @@ static void marque_blocs_atteignables(VisiteuseBlocs &visiteuse)
     }
 }
 
-void FonctionEtBlocs::supprime_blocs_inatteignables(VisiteuseBlocs &visiteuse)
+kuri::tableau_statique<Bloc *> FonctionEtBlocs::supprime_blocs_inatteignables(
+    VisiteuseBlocs &visiteuse)
 {
     /* Réinitalise les drapaux. */
     POUR (blocs) {
@@ -509,18 +511,22 @@ void FonctionEtBlocs::supprime_blocs_inatteignables(VisiteuseBlocs &visiteuse)
         blocs.begin(), blocs.end(), [](Bloc const *bloc) { return bloc->est_atteignable; });
 
     if (résultat == blocs.end()) {
-        return;
+        return {};
     }
 
     auto nombre_de_nouveaux_blocs = int(std::distance(blocs.begin(), résultat));
 
+    auto index_premier_bloc_libre = blocs_libres.taille();
+
     for (auto i = nombre_de_nouveaux_blocs; i < blocs.taille(); i++) {
-        blocs[i]->réinitialise();
         blocs_libres.ajoute(blocs[i]);
     }
 
     blocs.redimensionne(nombre_de_nouveaux_blocs);
     marque_blocs_modifiés();
+
+    return kuri::tableau_statique<Bloc *>(blocs_libres.données() + index_premier_bloc_libre,
+                                          blocs_libres.taille());
 }
 
 void FonctionEtBlocs::ajourne_instructions_fonction_si_nécessaire()
