@@ -70,3 +70,46 @@ label 2
   stocke *z32 %__ret0, z32 %49
   %51 = charge *z32 %__ret0
   retourne z32 %51
+
+------------------------
+
+fonction boucle_pour_sur_tableau_fixe() -> __ret0 z32
+label 0
+  %a = alloue z32
+  stocke *z32 %a, z32 0
+  %b = alloue [6]z32
+  %5 = index *[6]z32 %b, z64 0
+  stocke *z32 %5, z32 0
+  %7 = index *[6]z32 %b, z64 1
+  stocke *z32 %7, z32 1
+  %9 = index *[6]z32 %b, z64 2
+  stocke *z32 %9, z32 2
+  %11 = index *[6]z32 %b, z64 3
+  stocke *z32 %11, z32 3
+  %13 = index *[6]z32 %b, z64 4
+  stocke *z32 %13, z32 4
+  %15 = index *[6]z32 %b, z64 5
+  stocke *z32 %15, z32 5
+  %index_it = alloue z64
+  stocke *z64 %index_it, z64 0
+  branche %20
+
+label 1
+  %21 = charge *z64 %index_it
+  %22 = supeg z64 %21, z64 6
+  si bool %22 alors %24 sinon %27
+
+label 4
+  %25 = charge *z32 %a
+  retourne z32 %25
+
+label 5
+  %28 = charge *z32 %a
+  %29 = charge *z64 %index_it
+  %30 = index *[6]z32 %b, z64 %29
+  %31 = charge *z32 %30
+  %32 = ajt z32 %28, z32 %31
+  stocke *z32 %a, z32 %32
+  %34 = ajt z64 %29, z64 1
+  stocke *z64 %index_it, z64 %34
+  branche %20
