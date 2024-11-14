@@ -232,6 +232,11 @@ struct CopieuseInstruction {
     }
 };
 
+static bool est_instruction_charge(Atome const *atome)
+{
+    return atome->est_instruction() && atome->comme_instruction()->est_charge();
+}
+
 void performe_enlignage(ConstructriceRI &constructrice,
                         AtomeFonction *fonction_appelée,
                         kuri::tableau<Atome *, int> const &arguments,
@@ -245,37 +250,16 @@ void performe_enlignage(ConstructriceRI &constructrice,
         auto paramètre = fonction_appelée->params_entrée[i];
         auto atome = arguments[i];
 
-        // À FAIRE : il faudrait que tous les arguments des fonctions soient des instructions (->
-        // utilisation de temporaire)
-        if (atome->genre_atome == Atome::Genre::INSTRUCTION) {
-            auto inst = atome->comme_instruction();
-
-            if (inst->genre == GenreInstruction::CHARGE_MEMOIRE) {
-                atome = inst->comme_charge()->chargée;
-            }
-            // À FAIRE : détection des pointeurs locaux plus robuste
-            // détecte les cas où nous avons une référence à une variable
-            else if (inst->est_alloc()) {
-                auto type_pointe = inst->comme_alloc()->donne_type_alloué();
-                if (type_pointe != atome->type) {
-                    // remplace l'instruction de déréférence par l'atome
-                    POUR (fonction_appelée->instructions) {
-                        if (est_chargement_de(it, paramètre)) {
-                            copieuse.ajoute_substitution(it, atome);
-                        }
-                    }
-                }
-            }
+        if (est_instruction_charge(atome)) {
+            atome = atome->comme_instruction()->comme_charge()->chargée;
+            copieuse.ajoute_substitution(paramètre, atome);
         }
-        else if (atome->est_constante()) {
-            POUR (fonction_appelée->instructions) {
-                if (est_chargement_de(it, paramètre)) {
-                    copieuse.ajoute_substitution(it, atome);
-                }
-            }
+        else {
+            /* Crée une temporaire. */
+            auto alloc = constructrice.crée_allocation(nullptr, atome->type, nullptr);
+            constructrice.crée_stocke_mem(nullptr, alloc, atome);
+            copieuse.ajoute_substitution(paramètre, alloc);
         }
-
-        copieuse.ajoute_substitution(paramètre, atome);
     }
 
     copieuse.ajoute_substitution(fonction_appelée->param_sortie, adresse_retour);
