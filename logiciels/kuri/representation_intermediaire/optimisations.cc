@@ -3,19 +3,13 @@
 
 #include "optimisations.hh"
 
-#include <iostream>
-
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "utilitaires/log.hh"
 
-#include "parsage/identifiant.hh"
-
 #include "structures/table_hachage.hh"
 #include "structures/tablet.hh"
 
-#include "analyse.hh"
-#include "bloc_basique.hh"
 #include "constructrice_ri.hh"
 #include "impression.hh"
 #include "instructions.hh"
