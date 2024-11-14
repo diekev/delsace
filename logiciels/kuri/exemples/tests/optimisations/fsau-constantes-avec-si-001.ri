@@ -1,7 +1,6 @@
 /*
 
 /* Exemple de https://en.wikipedia.org/wiki/Constant_folding */
-/* INCORRECT le phi de la branche n'est pas supprimé, le résultat est mauvais. */
 constantes_avec_si :: fonc () -> z32 #cliche ri
 {
     a := 30

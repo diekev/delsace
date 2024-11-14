@@ -24,6 +24,8 @@
 
 #include "action.h"
 
+#include <QWidget>
+
 #include "fournisseuse_icones.hh"
 #include "repondant_bouton.h"
 

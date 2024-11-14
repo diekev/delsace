@@ -13,8 +13,8 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDialog>
-#include <QGLWidget>
 #include <QGraphicsView>
+#include <QOpenGLWidget>
 #include <QPlainTextEdit>
 #include <QToolButton>
 #include <QTreeWidget>
@@ -33,7 +33,7 @@
 
 #define DECLARE_SURCHARGES_EVENEMENTS_COMMUNS                                                     \
     bool event(QEvent *event) override;                                                           \
-    void enterEvent(QEvent *event) override;                                                      \
+    void enterEvent(QEnterEvent *event) override;                                                 \
     void leaveEvent(QEvent *event) override;                                                      \
     void mousePressEvent(QMouseEvent *event) override;                                            \
     void mouseMoveEvent(QMouseEvent *event) override;                                             \
@@ -75,17 +75,17 @@ class Widget : public QWidget {
 /** \name GLWidget
  * \{ */
 
-class GLWidget : public QGLWidget {
+class OpenGLWidget : public QOpenGLWidget {
     Q_OBJECT
 
     QT_Rappels_GLWidget *m_rappels = nullptr;
 
   public:
-    GLWidget(QT_Rappels_GLWidget *rappels, QWidget *parent = nullptr);
+    OpenGLWidget(QT_Rappels_GLWidget *rappels, QWidget *parent = nullptr);
 
-    EMPECHE_COPIE(GLWidget);
+    EMPECHE_COPIE(OpenGLWidget);
 
-    ~GLWidget() override;
+    ~OpenGLWidget() override;
 
     /* Évènements communs. */
     DECLARE_SURCHARGES_EVENEMENTS_COMMUNS;
