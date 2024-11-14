@@ -801,6 +801,7 @@ bool est_transtypage_de(Instruction const *inst0, Instruction const *inst1);
  * Retourne vrai si \a inst0 est un chargement de \a inst1.
  */
 bool est_chargement_de(Instruction const *inst0, Instruction const *inst1);
+bool est_chargement_de(Atome const *chargement_potentiel, Atome const *valeur);
 
 /**
  * Retourne vrai si \a inst correspond à `x = x + 1`.

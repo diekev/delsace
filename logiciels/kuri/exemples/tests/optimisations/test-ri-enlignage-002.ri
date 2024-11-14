@@ -1,0 +1,73 @@
+/*
+principale :: fonc () -> z32 #cliche ri_finale
+{
+    retourne fonction_à_enligner(1, 2)
+}
+
+fonction_à_enligner :: fonc (x: z32, y: z32) -> z32
+{
+    a: [2]z32 = ---
+    a[0] = x
+    a[1] = y
+    retourne a[0] + a[1]
+}
+*/
+
+fonction principale() -> __ret0 z32
+label 0
+  %2 = alloue z32
+  stocke *z32 %2, z32 1
+  %4 = charge *z32 %2
+  %5 = alloue z32
+  stocke *z32 %5, z32 2
+  %7 = charge *z32 %5
+  %8 = appel fonc(z32, z32)(z32) fonction_à_enligner(z32 %4, z32 %7)
+  stocke *z32 %__ret0, z32 %8
+  %10 = charge *z32 %__ret0
+  retourne z32 %10
+
+
+fonction fonction_à_enligner(x z32, y z32) -> __ret0 z32
+label 0
+  %a = alloue [2]z32
+  %5 = index *[2]z32 %a, z64 0
+  %6 = charge *z32 %x
+  stocke *z32 %5, z32 %6
+  %8 = index *[2]z32 %a, z64 1
+  %9 = charge *z32 %y
+  stocke *z32 %8, z32 %9
+  %11 = index *[2]z32 %a, z64 0
+  %12 = charge *z32 %11
+  %13 = index *[2]z32 %a, z64 1
+  %14 = charge *z32 %13
+  %15 = ajt z32 %12, z32 %14
+  stocke *z32 %__ret0, z32 %15
+  %17 = charge *z32 %__ret0
+  retourne z32 %17
+
+----------------------------
+
+fonction principale() -> __ret0 z32
+label 0
+  %2 = alloue z32
+  stocke *z32 %2, z32 1
+  %4 = charge *z32 %2
+  %5 = alloue z32
+  stocke *z32 %5, z32 2
+  %7 = charge *z32 %5
+  %a = alloue [2]z32
+  %9 = index *[2]z32 %a, z64 0
+  %10 = charge *z32 %2
+  stocke *z32 %9, z32 %10
+  %12 = index *[2]z32 %a, z64 1
+  %13 = charge *z32 %5
+  stocke *z32 %12, z32 %13
+  %15 = index *[2]z32 %a, z64 0
+  %16 = charge *z32 %15
+  %17 = index *[2]z32 %a, z64 1
+  %18 = charge *z32 %17
+  %19 = ajt z32 %16, z32 %18
+  stocke *z32 %__ret0, z32 %19
+  %21 = charge *z32 %__ret0
+  retourne z32 %21
+
