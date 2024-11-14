@@ -408,6 +408,12 @@ struct Substitutrice {
 
                 return stocke;
             }
+            case GenreInstruction::OPERATION_UNAIRE:
+            {
+                auto op = instruction->comme_op_unaire();
+                op->valeur = valeur_substituee(op->valeur);
+                return op;
+            }
             case GenreInstruction::OPERATION_BINAIRE:
             {
                 auto op = instruction->comme_op_binaire();
@@ -442,11 +448,44 @@ struct Substitutrice {
 
                 return appel;
             }
-            default:
+            case GenreInstruction::ACCEDE_INDEX:
+            {
+                auto accès = instruction->comme_acces_index();
+                accès->accédé = valeur_substituee(accès->accédé);
+                accès->index = valeur_substituee(accès->index);
+                return accès;
+            }
+            case GenreInstruction::TRANSTYPE:
+            {
+                auto transtype = instruction->comme_transtype();
+                transtype->valeur = valeur_substituee(transtype->valeur);
+                return transtype;
+            }
+            case GenreInstruction::BRANCHE_CONDITION:
+            {
+                auto branche = instruction->comme_branche_cond();
+                branche->condition = valeur_substituee(branche->condition);
+                return branche;
+            }
+            case GenreInstruction::SÉLECTION:
+            {
+                auto const sélection = instruction->comme_sélection();
+                sélection->condition = valeur_substituee(sélection->condition);
+                sélection->si_vrai = valeur_substituee(sélection->si_vrai);
+                sélection->si_faux = valeur_substituee(sélection->si_faux);
+                return sélection;
+            }
+            case GenreInstruction::BRANCHE:
+            case GenreInstruction::ALLOCATION:
+            case GenreInstruction::LABEL:
+            case GenreInstruction::INATTEIGNABLE:
             {
                 return instruction;
             }
         }
+
+        assert(false);
+        return nullptr;
     }
 
     Atome *valeur_substituee(Atome *original)
