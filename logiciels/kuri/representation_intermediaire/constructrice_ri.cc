@@ -5193,6 +5193,10 @@ void CompilatriceRI::compile_globale(NoeudDéclaration *decl,
         }
     }
 
+    if (atome->ident == ID::__table_des_types) {
+        atome->est_constante = true;
+    }
+
     atome->drapeaux |= DrapeauxAtome::RI_FUT_GÉNÉRÉE;
     atome->initialisateur = valeur;
 }
