@@ -1,0 +1,49 @@
+/*
+
+test_surécriture_index :: fonc (x: z32) -> z32
+{
+    a: [2]z32 = ---
+    a[0] = x
+    a[1] = x
+    a[1] = 2
+    retourne a[0] + a[1]
+}
+
+*/
+
+fonction test_surécriture_index(x z32) -> __ret0 z32
+label 0
+  %a = alloue [2]z32
+  %4 = index *[2]z32 %a, z64 0
+  %5 = charge *z32 %x
+  stocke *z32 %4, z32 %5
+  %7 = index *[2]z32 %a, z64 1
+  stocke *z32 %7, z32 %5
+  %9 = index *[2]z32 %a, z64 1
+  stocke *z32 %9, z32 2
+  %11 = index *[2]z32 %a, z64 0
+  %12 = charge *z32 %11
+  %13 = index *[2]z32 %a, z64 1
+  %14 = charge *z32 %13
+  %15 = ajt z32 %12, z32 %14
+  stocke *z32 %__ret0, z32 %15
+  %17 = charge *z32 %__ret0
+  retourne z32 %17
+
+------------------------
+
+fonction test_surécriture_index(x z32) -> __ret0 z32
+label 0
+  %a = alloue [2]z32
+  %4 = charge *z32 %x
+  %5 = index *[2]z32 %a, z64 0
+  stocke *z32 %5, z32 %4
+  %7 = index *[2]z32 %a, z64 1
+  stocke *z32 %7, z32 2
+  %9 = index *[2]z32 %a, z64 0
+  %10 = charge *z32 %9
+  %11 = index *[2]z32 %a, z64 1
+  %12 = charge *z32 %11
+  %13 = ajt z32 %10, z32 %12
+  retourne z32 %13
+
