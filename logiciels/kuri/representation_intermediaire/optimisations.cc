@@ -411,19 +411,8 @@ struct Substitutrice {
             case GenreInstruction::OPERATION_BINAIRE:
             {
                 auto op = instruction->comme_op_binaire();
-
                 op->valeur_gauche = valeur_substituee(op->valeur_gauche);
                 op->valeur_droite = valeur_substituee(op->valeur_droite);
-
-                //				POUR (substitutions) {
-                //					if (it.original == op->valeur_gauche) {
-                //						op->valeur_gauche = it.substitut;
-                //					}
-                //					else if (it.original == op->valeur_droite) {
-                //						op->valeur_droite = it.substitut;
-                //					}
-                //				}
-
                 return op;
             }
             case GenreInstruction::RETOUR:
