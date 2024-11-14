@@ -62,7 +62,7 @@ enum {
     REQUIERS_PROPAGATION_CONSTANTES = (1 << 2),
 
     /* des boucles peuvent être « débouclées » */
-    REQUIERS_DEBOUCLAGE = (1 << 3),
+    REQUIERS_DÉBOUCLAGE = (1 << 3),
 
     /* du code peut être supprimé */
     REQUIERS_SUPPRESSION_CODE_MORT = (1 << 4),
@@ -96,9 +96,9 @@ struct CopieuseInstruction {
 
         auto inst = atome->comme_instruction();
 
-        auto trouvee = false;
-        auto valeur = copies.trouve(inst, trouvee);
-        if (trouvee) {
+        auto trouvée = false;
+        auto valeur = copies.trouve(inst, trouvée);
+        if (trouvée) {
             return valeur;
         }
 
@@ -161,16 +161,16 @@ struct CopieuseInstruction {
             }
             case GenreInstruction::ACCEDE_INDEX:
             {
-                auto acces = inst->comme_acces_index();
-                auto accedé = copie_atome(acces->accédé);
-                auto index = copie_atome(acces->index);
+                auto accès = inst->comme_acces_index();
+                auto accedé = copie_atome(accès->accédé);
+                auto index = copie_atome(accès->index);
                 return constructrice.crée_accès_index(inst->site, accedé, index);
             }
             case GenreInstruction::ACCEDE_MEMBRE:
             {
-                auto acces = inst->comme_acces_membre();
-                auto accedé = copie_atome(acces->accédé);
-                auto index = acces->index;
+                auto accès = inst->comme_acces_membre();
+                auto accedé = copie_atome(accès->accédé);
+                auto index = accès->index;
                 return constructrice.crée_référence_membre(inst->site, inst->type, accedé, index);
             }
             case GenreInstruction::TRANSTYPE:
@@ -239,7 +239,7 @@ struct CopieuseInstruction {
 };
 
 void performe_enlignage(ConstructriceRI &constructrice,
-                        AtomeFonction *fonction_appelee,
+                        AtomeFonction *fonction_appelée,
                         kuri::tableau<Atome *, int> const &arguments,
                         int &nombre_labels,
                         InstructionLabel *label_post,
@@ -247,8 +247,8 @@ void performe_enlignage(ConstructriceRI &constructrice,
 {
     auto copieuse = CopieuseInstruction(constructrice);
 
-    for (auto i = 0; i < fonction_appelee->params_entrée.taille(); ++i) {
-        auto parametre = fonction_appelee->params_entrée[i];
+    for (auto i = 0; i < fonction_appelée->params_entrée.taille(); ++i) {
+        auto paramètre = fonction_appelée->params_entrée[i];
         auto atome = arguments[i];
 
         // À FAIRE : il faudrait que tous les arguments des fonctions soient des instructions (->
@@ -265,8 +265,8 @@ void performe_enlignage(ConstructriceRI &constructrice,
                 auto type_pointe = inst->comme_alloc()->donne_type_alloué();
                 if (type_pointe != atome->type) {
                     // remplace l'instruction de déréférence par l'atome
-                    POUR (fonction_appelee->instructions) {
-                        if (est_chargement_de(it, parametre)) {
+                    POUR (fonction_appelée->instructions) {
+                        if (est_chargement_de(it, paramètre)) {
                             copieuse.ajoute_substitution(it, atome);
                         }
                     }
@@ -274,19 +274,19 @@ void performe_enlignage(ConstructriceRI &constructrice,
             }
         }
         else if (atome->est_constante()) {
-            POUR (fonction_appelee->instructions) {
-                if (est_chargement_de(it, parametre)) {
+            POUR (fonction_appelée->instructions) {
+                if (est_chargement_de(it, paramètre)) {
                     copieuse.ajoute_substitution(it, atome);
                 }
             }
         }
 
-        copieuse.ajoute_substitution(parametre, atome);
+        copieuse.ajoute_substitution(paramètre, atome);
     }
 
-    copieuse.ajoute_substitution(fonction_appelee->param_sortie, adresse_retour);
+    copieuse.ajoute_substitution(fonction_appelée->param_sortie, adresse_retour);
 
-    POUR (fonction_appelee->instructions) {
+    POUR (fonction_appelée->instructions) {
         if (!instruction_est_racine(it) && !it->est_alloc()) {
             continue;
         }
@@ -307,7 +307,7 @@ void performe_enlignage(ConstructriceRI &constructrice,
             auto retour = it->comme_retour();
 
             if (retour->valeur &&
-                !est_chargement_de(retour->valeur, fonction_appelee->param_sortie)) {
+                !est_chargement_de(retour->valeur, fonction_appelée->param_sortie)) {
                 auto valeur = copieuse.copie_atome(retour->valeur);
                 constructrice.crée_stocke_mem(retour->site, adresse_retour, valeur, false);
             }
@@ -321,12 +321,12 @@ void performe_enlignage(ConstructriceRI &constructrice,
 }
 
 enum class SubstitutDans : int {
-    ZERO = 0,
+    ZÉRO = 0,
     CHARGE = (1 << 0),
-    VALEUR_STOCKEE = (1 << 1),
-    ADRESSE_STOCKEE = (1 << 2),
+    VALEUR_STOCKÉE = (1 << 1),
+    ADRESSE_STOCKÉE = (1 << 2),
 
-    TOUT = (CHARGE | VALEUR_STOCKEE | ADRESSE_STOCKEE),
+    TOUT = (CHARGE | VALEUR_STOCKÉE | ADRESSE_STOCKÉE),
 };
 
 DEFINIS_OPERATEURS_DRAPEAU(SubstitutDans)
@@ -377,7 +377,7 @@ struct Substitutrice {
 
                 POUR (substitutions) {
                     if (it.original == charge->chargée &&
-                        (it.substitut_dans & SubstitutDans::CHARGE) != SubstitutDans::ZERO) {
+                        (it.substitut_dans & SubstitutDans::CHARGE) != SubstitutDans::ZÉRO) {
                         charge->chargée = it.substitut;
                         break;
                     }
@@ -395,13 +395,13 @@ struct Substitutrice {
 
                 POUR (substitutions) {
                     if (it.original == stocke->destination &&
-                        (it.substitut_dans & SubstitutDans::ADRESSE_STOCKEE) !=
-                            SubstitutDans::ZERO) {
+                        (it.substitut_dans & SubstitutDans::ADRESSE_STOCKÉE) !=
+                            SubstitutDans::ZÉRO) {
                         stocke->destination = it.substitut;
                     }
                     else if (it.original == stocke->source &&
-                             (it.substitut_dans & SubstitutDans::VALEUR_STOCKEE) !=
-                                 SubstitutDans::ZERO) {
+                             (it.substitut_dans & SubstitutDans::VALEUR_STOCKÉE) !=
+                                 SubstitutDans::ZÉRO) {
                         stocke->source = it.substitut;
                     }
                 }
@@ -438,9 +438,9 @@ struct Substitutrice {
             }
             case GenreInstruction::ACCEDE_MEMBRE:
             {
-                auto acces = instruction->comme_acces_membre();
-                acces->accédé = valeur_substituee(acces->accédé);
-                return acces;
+                auto accès = instruction->comme_acces_membre();
+                accès->accédé = valeur_substituee(accès->accédé);
+                return accès;
             }
             case GenreInstruction::APPEL:
             {
@@ -512,7 +512,7 @@ bool enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
 
     auto substitutrice = Substitutrice();
     auto nombre_labels = 0;
-    auto nombre_fonctions_enlignees = 0;
+    auto nombre_fonctions_enlignées = 0;
 
     POUR (atome_fonc->instructions) {
         nombre_labels += it->genre == GenreInstruction::LABEL;
@@ -530,21 +530,21 @@ bool enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
         }
 
         auto appel = it->comme_appel();
-        auto appele = appel->appelé;
+        auto appelé = appel->appelé;
 
-        if (appele->genre_atome != Atome::Genre::FONCTION) {
+        if (appelé->genre_atome != Atome::Genre::FONCTION) {
             atome_fonc->instructions.ajoute(substitutrice.instruction_substituee(it));
             continue;
         }
 
-        auto atome_fonc_appelee = appele->comme_fonction();
+        auto atome_fonc_appelée = appelé->comme_fonction();
 
-        if (!est_candidate_pour_enlignage(atome_fonc_appelee)) {
+        if (!est_candidate_pour_enlignage(atome_fonc_appelée)) {
             atome_fonc->instructions.ajoute(substitutrice.instruction_substituee(it));
             continue;
         }
 
-        atome_fonc->instructions.réserve_delta(atome_fonc_appelee->instructions.taille() + 1);
+        atome_fonc->instructions.réserve_delta(atome_fonc_appelée->instructions.taille() + 1);
 
         auto adresse_retour = static_cast<InstructionAllocation *>(nullptr);
 
@@ -556,18 +556,18 @@ bool enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
         label_post->id = nombre_labels++;
 
         performe_enlignage(constructrice,
-                           atome_fonc_appelee,
+                           atome_fonc_appelée,
                            appel->args,
                            nombre_labels,
                            label_post,
                            adresse_retour);
-        nombre_fonctions_enlignees += 1;
+        nombre_fonctions_enlignées += 1;
 
         atome_fonc->instructions.ajoute(label_post);
 
         if (adresse_retour) {
             auto charge = constructrice.crée_charge_mem(appel->site, adresse_retour, false);
-            substitutrice.ajoute_substitution(appel, charge, SubstitutDans::VALEUR_STOCKEE);
+            substitutrice.ajoute_substitution(appel, charge, SubstitutDans::VALEUR_STOCKÉE);
         }
     }
 
@@ -575,7 +575,7 @@ bool enligne_fonctions(ConstructriceRI &constructrice, AtomeFonction *atome_fonc
     dbg() << "===== après enlignage =====\n" << imprime_fonction(atome_fonc);
 #endif
 
-    return nombre_fonctions_enlignees != 0;
+    return nombre_fonctions_enlignées != 0;
 }
 
 void optimise_code(EspaceDeTravail & /*espace*/,
