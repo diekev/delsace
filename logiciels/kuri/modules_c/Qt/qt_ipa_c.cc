@@ -124,20 +124,20 @@ inline QAbstractSocket *vers_qt(QT_AbstractSocket socket)
 inline QColor vers_qt(QT_Color color)
 {
     auto résultat = QColor();
-    résultat.setRedF(color.r);
-    résultat.setGreenF(color.g);
-    résultat.setBlueF(color.b);
-    résultat.setAlphaF(color.a);
+    résultat.setRedF(float(color.r));
+    résultat.setGreenF(float(color.g));
+    résultat.setBlueF(float(color.b));
+    résultat.setAlphaF(float(color.a));
     return résultat;
 }
 
 inline QT_Color vers_ipa(QColor color)
 {
     auto résultat = QT_Color();
-    résultat.r = color.redF();
-    résultat.g = color.greenF();
-    résultat.b = color.blueF();
-    résultat.a = color.alphaF();
+    résultat.r = double(color.redF());
+    résultat.g = double(color.greenF());
+    résultat.b = double(color.blueF());
+    résultat.a = double(color.alphaF());
     return résultat;
 }
 
@@ -1458,7 +1458,7 @@ QT_Point QT_rect_donne_haut_droit(QT_Rect rect)
 
 void QT_color_depuis_tsl(double t, double s, double l, double a, struct QT_Color *r_color)
 {
-    auto résultat = QColor::fromHslF(t, s, l, a);
+    auto résultat = QColor::fromHslF(float(t), float(s), float(l), float(a));
     *r_color = vers_ipa(résultat);
 }
 
@@ -1557,15 +1557,15 @@ void QT_wheel_event_donne_position(QT_WheelEvent *event, QT_Position *r_position
 {
     auto qevent = vers_qt(event);
     if (r_position) {
-        r_position->x = qevent->pos().x();
-        r_position->y = qevent->pos().y();
+        r_position->x = int(qevent->position().x());
+        r_position->y = int(qevent->position().y());
     }
 }
 
 int QT_wheel_event_donne_delta(QT_WheelEvent *event)
 {
     auto qevent = vers_qt(event);
-    return qevent->delta();
+    return qevent->angleDelta().y();
 }
 
 /** \} */
@@ -1851,10 +1851,19 @@ void QT_widget_definis_actif(QT_Generic_Widget widget, bool ouinon)
 QT_Generic_Widget QT_widget_donne_widget_parent(QT_Generic_Widget widget)
 {
     auto qwidget = vers_qt(widget);
-    /* XXX - ce peut ne pas être un Widget mais un QWidget. */
-    auto widget_parent = static_cast<Widget *>(qwidget->parent());
     QT_Generic_Widget résultat;
-    résultat.widget = vers_ipa(widget_parent);
+
+    auto parent = qwidget->parent();
+    if (auto qwidget_parent = dynamic_cast<QWidget *>(parent)) {
+        résultat.widget = vers_ipa(qwidget_parent);
+    }
+    else if (auto widget_parent = dynamic_cast<Widget *>(parent)) {
+        résultat.widget = vers_ipa(widget_parent);
+    }
+    else {
+        résultat.widget = nullptr;
+    }
+
     return résultat;
 }
 
@@ -2032,20 +2041,23 @@ QT_Window *QT_widget_donne_window_handle(union QT_Generic_Widget widget)
 /** \name QT_GLWidget
  * \{ */
 
-QT_GLWidget *QT_cree_glwidget(QT_Rappels_GLWidget *rappels, QT_Generic_Widget parent)
+QT_OpenGLWidget *QT_cree_glwidget(QT_Rappels_GLWidget *rappels, QT_Generic_Widget parent)
 {
     auto qparent = vers_qt(parent);
-    auto résultat = vers_ipa(new GLWidget(rappels, qparent));
+    auto résultat = vers_ipa(new OpenGLWidget(rappels, qparent));
     if (rappels) {
         rappels->widget = résultat;
     }
     return résultat;
 }
 
-QT_Rappels_GLWidget *QT_glwidget_donne_rappels(QT_GLWidget *widget)
+QT_Rappels_GLWidget *QT_glwidget_donne_rappels(QT_OpenGLWidget *widget)
 {
     VERS_QT(widget);
-    return qwidget->donne_rappels();
+    if (auto ipa_widget = dynamic_cast<OpenGLWidget *>(qwidget)) {
+        return ipa_widget->donne_rappels();
+    }
+    return nullptr;
 }
 
 /** \} */
@@ -2191,7 +2203,7 @@ QT_GridLayout *QT_cree_grid_layout(QT_Generic_Widget parent)
 void QT_layout_definis_marge(QT_Generic_Layout layout, int taille)
 {
     auto qlayout = vers_qt(layout);
-    qlayout->setMargin(taille);
+    qlayout->setContentsMargins(taille, taille, taille, taille);
 }
 
 void QT_layout_ajoute_widget(QT_Generic_Layout layout, QT_Generic_Widget widget)
@@ -2344,9 +2356,10 @@ void QT_combobox_connecte_sur_changement_index(QT_ComboBox *combo, QT_Rappel_Gen
         return;
     }
 
-    auto qcombo = vers_qt(combo);
-    QObject::connect(
-        qcombo, &ComboBox::index_courant_modifie, [=]() { rappel->sur_rappel(rappel); });
+    if (auto qcombo = dynamic_cast<ComboBox *>(vers_qt(combo))) {
+        QObject::connect(
+            qcombo, &ComboBox::index_courant_modifie, [=]() { rappel->sur_rappel(rappel); });
+    }
 }
 
 QT_Chaine QT_combobox_donne_valeur_courante_chaine(QT_ComboBox *combo)
@@ -2853,14 +2866,21 @@ void QT_push_button_definis_icone(QT_PushButton *button, QT_Icon *icon)
 /** \name QT_StandardButton
  * \{ */
 
-static QMessageBox::StandardButton vers_qt(QT_StandardButton drapeaux)
+static QMessageBox::StandardButtons standard_buttons_vers_qt(QT_StandardButton drapeaux)
 {
     int résultat = QMessageBox::StandardButton::NoButton;
     ENUMERE_BOUTON_STANDARD(ENUMERE_TRANSLATION_ENUM_DRAPEAU_IPA_VERS_QT)
     return QMessageBox::StandardButton(résultat);
 }
 
-static QT_StandardButton vers_ipa(QMessageBox::StandardButton drapeaux)
+static QDialogButtonBox::StandardButtons standard_buttons_vers_message_box(
+    QT_StandardButton drapeaux)
+{
+    auto résultat = standard_buttons_vers_qt(drapeaux).toInt();
+    return QDialogButtonBox::StandardButtons::fromInt(uint32_t(résultat));
+}
+
+static QT_StandardButton standard_buttons_vers_ipa(QMessageBox::StandardButtons drapeaux)
 {
     int résultat = QMessageBox::StandardButton::NoButton;
     ENUMERE_BOUTON_STANDARD(ENUMERE_TRANSLATION_ENUM_DRAPEAU_QT_VERS_IPA)
@@ -2889,7 +2909,8 @@ QT_PushButton *QT_dialog_button_box_ajoute_bouton_standard(QT_DialogButtonBox *b
                                                            QT_StandardButton button)
 {
     VERS_QT(box);
-    auto résultat = qbox->addButton(QDialogButtonBox::StandardButton(vers_qt(button)));
+    auto flag = standard_buttons_vers_message_box(button).toInt();
+    auto résultat = qbox->addButton(QDialogButtonBox::StandardButton(flag));
     return vers_ipa(résultat);
 }
 
@@ -3014,10 +3035,10 @@ QT_StandardButton QT_message_box_affiche_avertissement(QT_Generic_Widget parent,
     auto qparent = vers_qt(parent);
     auto qtitre = titre.vers_std_string();
     auto qmessage = message.vers_std_string();
-    auto qboutons = vers_qt(boutons);
+    auto qboutons = standard_buttons_vers_qt(boutons);
 
     auto résultat = QMessageBox::warning(qparent, qtitre.c_str(), qmessage.c_str(), qboutons);
-    return vers_ipa(résultat);
+    return standard_buttons_vers_ipa(résultat);
 }
 
 QT_StandardButton QT_message_box_affiche_erreur(QT_Generic_Widget parent,
@@ -3028,10 +3049,10 @@ QT_StandardButton QT_message_box_affiche_erreur(QT_Generic_Widget parent,
     auto qparent = vers_qt(parent);
     auto qtitre = titre.vers_std_string();
     auto qmessage = message.vers_std_string();
-    auto qboutons = vers_qt(boutons);
+    auto qboutons = standard_buttons_vers_qt(boutons);
 
     auto résultat = QMessageBox::critical(qparent, qtitre.c_str(), qmessage.c_str(), qboutons);
-    return vers_ipa(résultat);
+    return standard_buttons_vers_ipa(résultat);
 }
 
 QT_StandardButton QT_message_box_affiche_question(QT_Generic_Widget parent,
@@ -3042,10 +3063,10 @@ QT_StandardButton QT_message_box_affiche_question(QT_Generic_Widget parent,
     auto qparent = vers_qt(parent);
     auto qtitre = titre.vers_std_string();
     auto qmessage = message.vers_std_string();
-    auto qboutons = vers_qt(boutons);
+    auto qboutons = standard_buttons_vers_qt(boutons);
 
     auto résultat = QMessageBox::question(qparent, qtitre.c_str(), qmessage.c_str(), qboutons);
-    return vers_ipa(QMessageBox::StandardButton(résultat));
+    return standard_buttons_vers_ipa(résultat);
 }
 
 QT_StandardButton QT_message_box_affiche_information(QT_Generic_Widget parent,
@@ -3056,10 +3077,10 @@ QT_StandardButton QT_message_box_affiche_information(QT_Generic_Widget parent,
     auto qparent = vers_qt(parent);
     auto qtitre = titre.vers_std_string();
     auto qmessage = message.vers_std_string();
-    auto qboutons = vers_qt(boutons);
+    auto qboutons = standard_buttons_vers_qt(boutons);
 
     auto résultat = QMessageBox::information(qparent, qtitre.c_str(), qmessage.c_str(), qboutons);
-    return vers_ipa(résultat);
+    return standard_buttons_vers_ipa(résultat);
 }
 
 /** \} */
@@ -3077,7 +3098,10 @@ QT_TreeWidgetItem *QT_cree_treewidgetitem(void *donnees, QT_TreeWidgetItem *pare
 void *QT_treewidgetitem_donne_donnees(QT_TreeWidgetItem *widget)
 {
     auto qwidget = vers_qt(widget);
-    return qwidget->donne_données();
+    if (auto ipa_widget = dynamic_cast<TreeWidgetItem *>(qwidget)) {
+        return ipa_widget->donne_données();
+    }
+    return nullptr;
 }
 
 static QTreeWidgetItem::ChildIndicatorPolicy convertis_mode_indicateur(
@@ -3571,6 +3595,48 @@ void QT_graphics_view_mappe_vers_global(QT_GraphicsView *graphics_view,
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_IODevice
+ * https://doc.qt.io/qt-5/qiodevice.html
+ * \{ */
+
+class IODevice : public QIODevice {
+    QT_Rappels_IODevice *m_rappels = nullptr;
+
+  public:
+    IODevice(QT_Rappels_IODevice *rappels, QObject *parent) : QIODevice(parent), m_rappels(rappels)
+    {
+        m_rappels->iodevice = vers_ipa(this);
+    }
+
+    EMPECHE_COPIE(IODevice);
+
+    qint64 readData(char *data, qint64 maxlen) override
+    {
+        return m_rappels->read_data(m_rappels, data, maxlen);
+    }
+
+    qint64 writeData(const char *data, qint64 len) override
+    {
+        return m_rappels->write_data(m_rappels, data, len);
+    }
+};
+
+QT_IODevice *QT_iodevice_cree_avec_rappels(QT_Rappels_IODevice *rappels, QT_Generic_Object parent)
+{
+    VERS_QT(parent);
+    auto résultat = new IODevice(rappels, qparent);
+    return vers_ipa(résultat);
+}
+
+void QT_iodevice_ready_read(QT_IODevice *iodevice)
+{
+    VERS_QT(iodevice);
+    Q_EMIT(qiodevice->readyRead());
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Variant
  * \{ */
 
@@ -3593,7 +3659,7 @@ class EnveloppeVariant : public QT_Variant {
     static bool sur_est_chaine(QT_Variant *variant)
     {
         auto enveloppe = static_cast<EnveloppeVariant *>(variant);
-        return enveloppe->m_variant.type() == QVariant::String;
+        return enveloppe->m_variant.typeId() == QMetaType::QString;
     }
 
     static void sur_définis_brosse(QT_Variant *variant, QT_Brush *brosse)
@@ -3830,7 +3896,7 @@ void QT_sort_filter_proxy_model_definis_regex_filtre(QT_SortFilterProxyModel *sf
 {
     VERS_QT(sfpm);
     VERS_QT(regex);
-    qsfpm->setFilterRegExp(qregex);
+    qsfpm->setFilterRegularExpression(qregex);
 }
 
 void QT_sort_filter_proxy_model_definis_colonne_filtre(QT_SortFilterProxyModel *sfpm, int colonne)
@@ -4449,7 +4515,7 @@ static void connecte_rappels_socket(QTcpSocket *socket, QT_Rappels_Socket *rappe
     }
     if (rappels->sur_erreur) {
         QObject::connect(socket,
-                         qOverload<QAbstractSocket::SocketError>(&QAbstractSocket::error),
+                         qOverload<QAbstractSocket::SocketError>(&QAbstractSocket::errorOccurred),
                          [=](QAbstractSocket::SocketError) { rappels->sur_erreur(rappels); });
     }
     if (rappels->sur_resolution_hote) {

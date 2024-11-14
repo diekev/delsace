@@ -7,26 +7,40 @@ libdanjo :: #bibliothèque "danjo"
 
 #dépendance_bibliothèque libdanjo libdls_outils
 #dépendance_bibliothèque libdanjo libdls_phys
-#dépendance_bibliothèque libdanjo libQt5Widgets
-#dépendance_bibliothèque libdanjo libQt5OpenGL
-#dépendance_bibliothèque libdanjo libQt5Core
-#dépendance_bibliothèque libdanjo libQt5Gui
+#dépendance_bibliothèque libdanjo libQt6Widgets
+#dépendance_bibliothèque libdanjo libQt6OpenGL
+#dépendance_bibliothèque libdanjo libQt6OpenGLWidgets
+#dépendance_bibliothèque libdanjo libQt6Core
+#dépendance_bibliothèque libdanjo libQt6Gui
 
-libQt5Widgets :: #bibliothèque "Qt5Widgets"
-libQt5OpenGL :: #bibliothèque "Qt5OpenGL"
-libQt5Core :: #bibliothèque "Qt5Core"
-libQt5Gui :: #bibliothèque "Qt5Gui"
-libQt5Network :: #bibliothèque "Qt5Network"
+libQt6DBus :: #bibliothèque "Qt6DBus"
+libQt6Widgets :: #bibliothèque "Qt6Widgets"
+libQt6OpenGL :: #bibliothèque "Qt6OpenGL"
+libQt6OpenGLWidgets :: #bibliothèque "Qt6OpenGLWidgets"
+libQt6Core :: #bibliothèque "Qt6Core"
+libQt6Gui :: #bibliothèque "Qt6Gui"
+libQt6Network :: #bibliothèque "Qt6Network"
+
+#dépendance_bibliothèque libQt6Gui libQt6DBus
+
+libicui18n :: #bibliothèque "icui18n"
+libicuuc :: #bibliothèque "icuuc"
+libicudata :: #bibliothèque "icudata"
+
+#dépendance_bibliothèque libQt6Core libicui18n
+#dépendance_bibliothèque libQt6Core libicuuc
+#dépendance_bibliothèque libQt6Core libicudata
 
 libqt_entetes :: #bibliothèque "qt_entetes"
 
 #dépendance_bibliothèque libqt libqt_entetes
 #dépendance_bibliothèque libqt libdanjo
-#dépendance_bibliothèque libqt libQt5Widgets
-#dépendance_bibliothèque libqt libQt5OpenGL
-#dépendance_bibliothèque libqt libQt5Core
-#dépendance_bibliothèque libqt libQt5Gui
-#dépendance_bibliothèque libqt libQt5Network
+#dépendance_bibliothèque libqt libQt6Widgets
+#dépendance_bibliothèque libqt libQt6OpenGL
+#dépendance_bibliothèque libqt libQt6OpenGLWidgets
+#dépendance_bibliothèque libqt libQt6Core
+#dépendance_bibliothèque libqt libQt6Gui
+#dépendance_bibliothèque libqt libQt6Network
 
 /* ------------------------------------------------------------------------- */
 /** \nom Utilitaires
@@ -335,6 +349,79 @@ convertis_type_curseur :: fonc (curseur: TypeCurseurSystème) -> QT_CursorShape
 /** } */
 
 /* ------------------------------------------------------------------------- */
+/** \nom FileParallèle
+ * \{ */
+
+ParamètresFileParallèle :: struct {
+    sur_évènement: fonc(*QT_Evenement)(rien)
+    type_évènement: z32 = -1
+}
+
+FileParallèle :: struct {
+    thread: *QT_Thread
+    filtre_évènement: *QT_Object
+}
+
+/* Crée un thread Qt pour exécuter des tâches en parallèles.
+ * Seuls les évènements postés sur la boucle d'évènement du
+ * FileParallèle.filtre_évènement retourné dont le type est
+ * ParamètresFileParallèle.type_évènement seront passés à
+ * ParamètresFileParallèle.sur_évènement. */
+crée_file_parallèle :: fonc (params: ParamètresFileParallèle) -> FileParallèle
+{
+    rappels_thread := QT_loge_rappel(RappelsThread)
+
+    thread := QT_thread_cree(rappels_thread)
+
+    rappels_filtre_évènement := QT_loge_rappel(FiltreÉvènementThread)
+    rappels_filtre_évènement.params = params
+    parent: *QT_Object
+    filtre_évènement := QT_object_cree(rappels_filtre_évènement, parent)
+    QT_object_move_to_thread(filtre_évènement, thread)
+
+    QT_thread_start(thread)
+
+    résultat: FileParallèle
+    résultat.thread = thread
+    résultat.filtre_évènement = filtre_évènement
+    retourne résultat
+}
+
+#portée_fichier
+
+RappelsThread :: struct {
+    empl base: QT_Rappels_Thread
+    sur_lancement_thread = rappels_thread_sur_lancement_thread
+}
+
+rappels_thread_sur_lancement_thread :: fonc (base: *QT_Rappels_Thread @inutilisée) #sanstrace
+{
+    __init_contexte_fil_exécution()
+}
+
+FiltreÉvènementThread :: struct {
+    empl base: QT_Rappels_Object
+    sur_evenement = filtre_thread_sur_évènement
+    params: ParamètresFileParallèle
+}
+
+filtre_thread_sur_évènement :: fonc (base: *QT_Rappels_Object, évènement: *QT_Evenement) -> z32
+{
+    rappels := base comme *FiltreÉvènementThread
+    type := QT_evenement_donne_type(évènement) comme n32 comme z32
+
+    si type == rappels.params.type_évènement {
+        rappels.params.sur_évènement(évènement)
+        QT_evenement_accepte(évènement)
+        retourne 1
+    }
+
+    retourne 0
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Allocation rappels.
  * Allocation d'objets dérivant de QT_Rappel_Generique.
  * Peut être utilisé pour les créer des rappels pour des widgets ou autre
@@ -587,7 +674,7 @@ initialise_table_conversion_clé :: fonc ()
     table_conversion_clé[QT_Key.twosuperior] = CléClavier.INCONNUE
     table_conversion_clé[QT_Key.threesuperior] = CléClavier.INCONNUE
     table_conversion_clé[QT_Key.acute] = CléClavier.INCONNUE
-    table_conversion_clé[QT_Key.mu] = CléClavier.INCONNUE
+    table_conversion_clé[QT_Key.micro] = CléClavier.INCONNUE
     table_conversion_clé[QT_Key.paragraph] = CléClavier.INCONNUE
     table_conversion_clé[QT_Key.periodcentered] = CléClavier.INCONNUE
     table_conversion_clé[QT_Key.cedilla] = CléClavier.INCONNUE

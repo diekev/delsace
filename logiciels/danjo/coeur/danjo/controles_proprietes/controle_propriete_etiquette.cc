@@ -54,12 +54,12 @@ ControleProprieteEtiquetteActivable::ControleProprieteEtiquetteActivable(QString
 
     m_checkbox->setChecked(p->est_visible());
 
-    QObject::connect(m_checkbox, &QCheckBox::stateChanged, [=](int state) {
+    QObject::connect(m_checkbox, &QCheckBox::checkStateChanged, [=](int state) {
         p->definit_visibilité(state == Qt::Checked);
     });
 
     QObject::connect(
-        m_checkbox, &QCheckBox::stateChanged, this, &ControlePropriete::controle_change);
+        m_checkbox, &QCheckBox::checkStateChanged, this, &ControlePropriete::controle_change);
 
     /* Ceci doit toujours être activé. */
     setEnabled(true);

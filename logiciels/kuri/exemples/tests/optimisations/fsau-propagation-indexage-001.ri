@@ -1,0 +1,34 @@
+/*
+
+test_propagation_valeurs_tableau :: fonc () -> z32
+{
+    a: [2]z32 = ---
+    a[0] = 1
+    a[1] = 2
+    retourne a[0] + a[1]
+}
+
+*/
+
+fonction test_propagation_valeurs_tableau() -> __ret0 z32
+label 0
+  %a = alloue [2]z32
+  %3 = index *[2]z32 %a, z64 0
+  stocke *z32 %3, z32 1
+  %5 = index *[2]z32 %a, z64 1
+  stocke *z32 %5, z32 2
+  %7 = index *[2]z32 %a, z64 0
+  %8 = charge *z32 %7
+  %9 = index *[2]z32 %a, z64 1
+  %10 = charge *z32 %9
+  %11 = ajt z32 %8, z32 %10
+  stocke *z32 %__ret0, z32 %11
+  %13 = charge *z32 %__ret0
+  retourne z32 %13
+
+------------------------
+
+fonction test_propagation_valeurs_tableau() -> __ret0 z32
+label 0
+  retourne z32 3
+

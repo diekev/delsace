@@ -570,7 +570,7 @@ RappelsFenetrePrincipale :: struct {
 
     page_web: PageWeb
     widgets_page: WidgetsPage
-    widget_rendu: *QT_GLWidget
+    widget_rendu: *QT_OpenGLWidget
     widget_arbre_de_disposition: *QT_TreeWidget
     widget_arbre_dom: *QT_TreeWidget
 
@@ -1114,7 +1114,7 @@ donne_texte_item_pour_noeud :: fonc (noeud: *CSS.NoeudDeDisposition) -> chaine
 /** \nom VueRendu
  * \{ */
 
-crée_widget_pour_rendu :: fonc (fenêtre: *QT_Fenetre_Principale, parent: QT_Generic_Widget) -> *QT_GLWidget
+crée_widget_pour_rendu :: fonc (fenêtre: *QT_Fenetre_Principale, parent: QT_Generic_Widget) -> *QT_OpenGLWidget
 {
     rappels := QT_fenetre_principale_donne_rappels(fenêtre) comme *RappelsFenetrePrincipale
     résultat := crée_vue_rendu_page(fenêtre, parent, *rappels.page_web)
@@ -1147,7 +1147,7 @@ VueRenduPage :: struct {
     peintre_id: *Peintre
 }
 
-crée_vue_rendu_page :: fonc (fenêtre_principale: *QT_Fenetre_Principale, parent: QT_Generic_Widget, page: *PageWeb) -> *QT_GLWidget
+crée_vue_rendu_page :: fonc (fenêtre_principale: *QT_Fenetre_Principale, parent: QT_Generic_Widget, page: *PageWeb) -> *QT_OpenGLWidget
 {
     rappels := loge(VueRenduPage)
     rappels.page = page
@@ -1610,45 +1610,6 @@ donne_arbre_de_disposition :: fonc (page: *PageWeb) -> *CSS.ArbreDeDisposition
 /** \nom RappelsInterfaceQt
  * \{ */
 
-RappelsThread :: struct {
-    empl base: QT_Rappels_Thread
-
-    rappels_interface: *RappelsInterfaceQt
-
-    sur_lancement_thread = rappels_thread_sur_lancement_thread
-}
-
-rappels_thread_sur_lancement_thread :: fonc (base: *QT_Rappels_Thread @inutilisée) #sanstrace
-{
-    __init_contexte_fil_exécution()
-}
-
-FiltreÉvènementThread :: struct {
-    empl base: QT_Rappels_Object
-    sur_evenement = filtre_thread_sur_évènement
-    type_évènement: z32
-}
-
-filtre_thread_sur_évènement :: fonc (base: *QT_Rappels_Object, évènement: *QT_Evenement) -> z32
-{
-    rappels := base comme *FiltreÉvènementThread
-    type := QT_evenement_donne_type(évènement) comme n32 comme z32
-
-    si type == rappels.type_évènement {
-        algorithm := QT_event_perso_donne_donnees(évènement) comme *Algorithm
-        run(algorithm)
-        QT_evenement_accepte(évènement)
-        retourne 1
-    }
-
-    retourne 0
-}
-
-FileParallèle :: struct {
-    thread: *QT_Thread
-    filtre_évènement: *QT_Object
-}
-
 RappelsInterfaceQt :: struct {
     empl base: RappelsInterface
     fenêtre: *QT_Fenetre_Principale
@@ -1690,33 +1651,22 @@ crée_rappels_interface_qt :: fonc (fenêtre: *QT_Fenetre_Principale) -> *Rappel
     // À FAIRE : paramétrise le nombre de threads
     nombres_de_threads := 2
 
+    params: ParamètresFileParallèle
+    params.type_évènement = évènement_sur_tâche_parallèle
+    params.sur_évènement = file_parallèle_sur_évènement
+
     pour nombres_de_threads {
-        file := crée_file_parallèle(résultat, évènement_sur_tâche_parallèle)
+        file := crée_file_parallèle(params)
         tableau_ajoute(*résultat.files_parallèles, file)
     }
 
     retourne résultat
 }
 
-crée_file_parallèle :: fonc (rappels_interface: *RappelsInterfaceQt, type_évènement: z32) -> FileParallèle
+file_parallèle_sur_évènement :: fonc (évènement: *QT_Evenement)
 {
-    rappels_thread := QT_loge_rappel(RappelsThread)
-    rappels_thread.rappels_interface = rappels_interface
-
-    thread := QT_thread_cree(rappels_thread)
-
-    rappels_filtre_évènement := QT_loge_rappel(FiltreÉvènementThread)
-    rappels_filtre_évènement.type_évènement = type_évènement
-    parent: *QT_Object
-    filtre_évènement := QT_object_cree(rappels_filtre_évènement, parent)
-    QT_object_move_to_thread(filtre_évènement, thread)
-
-    QT_thread_start(thread)
-
-    résultat: FileParallèle
-    résultat.thread = thread
-    résultat.filtre_évènement = filtre_évènement
-    retourne résultat
+    algorithm := QT_event_perso_donne_donnees(évènement) comme *Algorithm
+    run(algorithm)
 }
 
 rappels_interface_sur_destruction :: fonc (base: *RappelsInterface)
@@ -2012,7 +1962,11 @@ rappels_interface_crée_file_parallèle_pour_traversable :: fonc (base: *Rappels
 
     résultat := rappels.files_parallèle_pour_traversable.taille
 
-    file := crée_file_parallèle(rappels, évènement_sur_tâche_traversable)
+    params: ParamètresFileParallèle
+    params.type_évènement = évènement_sur_tâche_traversable
+    params.sur_évènement = file_parallèle_sur_évènement
+
+    file := crée_file_parallèle(params)
     tableau_ajoute(*rappels.files_parallèle_pour_traversable, file)
 
     retourne résultat

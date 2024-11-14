@@ -66,7 +66,7 @@ void ControleSatVal::paintEvent(QPaintEvent *)
     for (auto s = 0.0; s < TAILLE_SELECTEUR_MAX; s += 1.0) {
         for (auto v = 0.0; v < TAILLE_SELECTEUR_MAX; v += 1.0) {
             peintre.setPen(QColor::fromHsvF(
-                static_cast<double>(m_hsv.r), s / TAILLE_SELECTEUR_MAX, v / TAILLE_SELECTEUR_MAX));
+                m_hsv.r, float(s / TAILLE_SELECTEUR_MAX), float(v / TAILLE_SELECTEUR_MAX)));
             peintre.drawPoint(static_cast<int>(s), static_cast<int>(TAILLE_SELECTEUR_MAX - v));
         }
     }
@@ -120,7 +120,7 @@ void SelecteurTeinte::paintEvent(QPaintEvent *)
     QLinearGradient degrade(QPoint(0, 0), QPoint(static_cast<int>(TAILLE_SELECTEUR_MAX), 0));
 
     for (auto i = 0.0; i <= 32.0; i += 1.0) {
-        degrade.setColorAt(i / 32.0, QColor::fromHsvF(i / 32.0, 1.0, 1.0));
+        degrade.setColorAt(i / 32.0, QColor::fromHsvF(float(i / 32.0), 1.0, 1.0));
     }
 
     peintre.setBrush(QBrush(degrade));
@@ -167,8 +167,8 @@ void ControleValeurCouleur::paintEvent(QPaintEvent *)
     QLinearGradient degrade(QPoint(0, 0), QPoint(0, static_cast<int>(TAILLE_SELECTEUR_MAX)));
 
     for (double i = 0.0; i <= 32.0; i += 1.0) {
-        auto v = i / 32.0;
-        degrade.setColorAt(1.0 - v, QColor::fromRgbF(v, v, v));
+        auto v = float(i / 32.0);
+        degrade.setColorAt(1.0 - double(v), QColor::fromRgbF(v, v, v));
     }
 
     peintre.setBrush(QBrush(degrade));

@@ -212,7 +212,7 @@ struct FonctionEtBlocs {
 
     void marque_instructions_modifiés();
 
-    void supprime_blocs_inatteignables(VisiteuseBlocs &visiteuse);
+    kuri::tableau_statique<Bloc *> supprime_blocs_inatteignables(VisiteuseBlocs &visiteuse);
 
     /**
      * Reconstruit les instructions de la fonction en se basant sur les instructions des blocs
