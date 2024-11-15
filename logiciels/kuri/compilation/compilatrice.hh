@@ -277,6 +277,8 @@ struct Compilatrice {
 
     void rassemble_statistiques(Statistiques &stats) const;
 
+    void rapporte_avertissement(kuri::chaine_statique message);
+
     void rapporte_erreur(EspaceDeTravail const *espace,
                          kuri::chaine_statique message,
                          erreur::Genre genre);

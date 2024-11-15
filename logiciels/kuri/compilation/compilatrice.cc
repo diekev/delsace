@@ -363,6 +363,11 @@ void Compilatrice::rassemble_statistiques(Statistiques &stats) const
     }
 }
 
+void Compilatrice::rapporte_avertissement(kuri::chaine_statique message)
+{
+    dbg() << message;
+}
+
 void Compilatrice::rapporte_erreur(EspaceDeTravail const *espace,
                                    kuri::chaine_statique message,
                                    erreur::Genre genre)
