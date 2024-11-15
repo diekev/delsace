@@ -24,7 +24,7 @@ vérifie_erreur :: fonc (raison : chaine = "") -> rien
 {
     erreur_ := glGetError()
 
-    si erreur_ == 0 {
+    si erreur_ == GL_NO_ERROR {
         retourne
     }
 
@@ -32,10 +32,10 @@ vérifie_erreur :: fonc (raison : chaine = "") -> rien
     initialise_enchaineuse(*enchaineuse)
 
     si raison {
-        imprime_dans_enchaineuse(*enchaineuse, "[%] erreur OpenGL !\n", raison)
+        imprime_dans_enchaineuse(*enchaineuse, "[%] erreur OpenGL '%' !\n", raison, erreur_)
     }
     sinon {
-        imprime_dans_enchaineuse(*enchaineuse, "erreur OpenGL !\n")
+        imprime_dans_enchaineuse(*enchaineuse, "erreur OpenGL '%' !\n", erreur_)
     }
 
     discr erreur_ {
@@ -47,6 +47,15 @@ vérifie_erreur :: fonc (raison : chaine = "") -> rien
         }
         GL_INVALID_OPERATION {
             imprime_dans_enchaineuse(*enchaineuse, "-- opération invalide\n")
+        }
+        GL_STACK_OVERFLOW {
+            imprime_dans_enchaineuse(*enchaineuse, "-- surdépassement pile\n")
+        }
+        GL_STACK_UNDERFLOW {
+            imprime_dans_enchaineuse(*enchaineuse, "-- soudépassement pile\n")
+        }
+        GL_OUT_OF_MEMORY {
+            imprime_dans_enchaineuse(*enchaineuse, "-- mémoire insuffisante\n")
         }
         GL_INVALID_FRAMEBUFFER_OPERATION {
             imprime_dans_enchaineuse(*enchaineuse, "-- opération invalide sur framebuffer\n")
