@@ -1183,6 +1183,10 @@ vue_rendu_page_sur_initialisation :: fonc (base: *QT_Rappels_GLWidget @inutilis�
 
 vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
 {
+    /* Réinitialise les erreurs.
+     * Il semblerait que Qt génère une erreur entre les appels à cette fonction... :/ */
+    _ := glGetError()
+
     vue_rendu_page := base comme *VueRenduPage
 
     taille_cannevas := Taille(largeur = Largeur(vue_rendu_page.largeur), hauteur = Hauteur(vue_rendu_page.hauteur))
