@@ -11,6 +11,9 @@
 #    pragma GCC diagnostic ignored "-Wsign-conversion"
 #endif
 #include <QApplication>
+#include <QAudioDevice>
+#include <QAudioSink>
+#include <QAudioSource>
 #include <QClipboard>
 #include <QCoreApplication>
 #include <QDialog>
@@ -24,6 +27,7 @@
 #include <QHeaderView>
 #include <QLabel>
 #include <QLineEdit>
+#include <QMediaDevices>
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QMimeData>
@@ -64,6 +68,10 @@
 #include "widgets.hh"
 
 #define VERS_QT(x) auto q##x = vers_qt(x)
+
+#define CONVERTIS_ET_APPEL(objet, fonction, ...)                                                  \
+    VERS_QT(objet);                                                                               \
+    q##objet->fonction(__VA_ARGS__);
 
 class EvenementPerso : public QEvent {
     void *m_données = nullptr;
@@ -370,6 +378,296 @@ void QT_detruit_icon(QT_Icon *icon)
 {
     auto qicon = vers_qt(icon);
     delete qicon;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_AudioFormat
+ * \{ */
+
+static QAudioFormat::ChannelConfig convertis_channel_config(QT_Audio_Format_Channel_Config config)
+{
+    switch (config) {
+        ENUMERE_CHANNEL_CONFIG(ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT)
+    }
+    return QAudioFormat::ChannelConfigUnknown;
+}
+
+static QAudioFormat::SampleFormat convertis_sample_format(QT_Audio_Format_Sample_Format format)
+{
+    switch (format) {
+        ENUMERE_SAMPLE_FORMAT(ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT)
+    }
+    return QAudioFormat::Unknown;
+}
+
+static QAudioFormat vers_qt(QT_AudioFormat *format)
+{
+    QAudioFormat résultat;
+    résultat.setSampleRate(format->sample_rate);
+    résultat.setSampleFormat(convertis_sample_format(format->sample_format));
+    résultat.setChannelCount(format->channel_count);
+    résultat.setChannelConfig(convertis_channel_config(format->channel_config));
+    return résultat;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_AudioDevice
+ * \{ */
+
+static std::optional<QAudioDevice> donne_audio_device(struct QT_AudioDevice *device)
+{
+    auto devices = QMediaDevices::audioOutputs();
+
+    for (auto qdevice : devices) {
+        if (qdevice.id() == vers_qt(device->id)) {
+            return qdevice;
+        }
+    }
+    return {};
+}
+
+void QT_detruit_audio_device(struct QT_AudioDevice *device)
+{
+    if (!device) {
+        return;
+    }
+    QT_chaine_detruit(&device->id);
+    QT_chaine_detruit(&device->description);
+}
+
+bool QT_audio_device_is_format_supported(struct QT_AudioDevice *device,
+                                         struct QT_AudioFormat *format)
+{
+    if (!device || !format) {
+        return false;
+    }
+
+    auto opt_qdevice = donne_audio_device(device);
+    if (!opt_qdevice.has_value()) {
+        return false;
+    }
+
+    auto qdevice = opt_qdevice.value();
+    auto qformat = vers_qt(format);
+    return qdevice.isFormatSupported(qformat);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_MediaDevices
+ * \{ */
+
+void QT_media_devices_default_audio_output(struct QT_AudioDevice *resultat)
+{
+    if (!resultat) {
+        return;
+    }
+
+    QT_detruit_audio_device(resultat);
+
+    auto default_output_device = QMediaDevices::defaultAudioOutput();
+    resultat->id = crée_qt_chaine(default_output_device.id());
+    resultat->description = crée_qt_chaine(default_output_device.description());
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_AudioSink
+ * \{ */
+
+static QT_AudioState convertis_audio_state_vers_ipa(QtAudio::State state)
+{
+    switch (state) {
+        ENUMERE_AUDIO_STATE(ENUMERE_TRANSLATION_ENUM_QT_VERS_IPA)
+    }
+    return QT_AudioState(0);
+}
+
+static QT_AudioError convertis_audio_error_vers_ipa(QtAudio::Error error)
+{
+    switch (error) {
+        ENUMERE_AUDIO_ERROR(ENUMERE_TRANSLATION_ENUM_QT_VERS_IPA)
+    }
+    return QT_AudioError(0);
+}
+
+QT_AudioSink *QT_audio_sink_cree(struct QT_AudioFormat *format, union QT_Generic_Object parent)
+{
+    VERS_QT(parent);
+    VERS_QT(format);
+
+    auto résultat = new QAudioSink(qformat, qparent);
+    return vers_ipa(résultat);
+}
+
+void QT_audio_sink_detruit(struct QT_AudioSink *sink)
+{
+    VERS_QT(sink);
+    delete qsink;
+}
+
+QT_AudioError QT_audio_sink_error(struct QT_AudioSink *sink)
+{
+    VERS_QT(sink);
+    return convertis_audio_error_vers_ipa(qsink->error());
+}
+
+void QT_audio_sink_reset(struct QT_AudioSink *sink)
+{
+    CONVERTIS_ET_APPEL(sink, reset);
+}
+
+void QT_audio_sink_resume(struct QT_AudioSink *sink)
+{
+    CONVERTIS_ET_APPEL(sink, resume);
+}
+
+void QT_audio_sink_stop(struct QT_AudioSink *sink)
+{
+    CONVERTIS_ET_APPEL(sink, stop);
+}
+
+void QT_audio_sink_suspend(struct QT_AudioSink *sink)
+{
+    CONVERTIS_ET_APPEL(sink, suspend);
+}
+
+bool QT_audio_sink_is_null(struct QT_AudioSink *sink)
+{
+    VERS_QT(sink);
+    return qsink->isNull();
+}
+
+void QT_audio_sink_set_volume(struct QT_AudioSink *sink, double volume)
+{
+    VERS_QT(sink);
+    qsink->setVolume(volume);
+}
+
+double QT_audio_sink_get_volume(struct QT_AudioSink *sink)
+{
+    VERS_QT(sink);
+    return qsink->volume();
+}
+
+void QT_audio_sink_start(struct QT_AudioSink *sink, struct QT_IODevice *device)
+{
+    VERS_QT(sink);
+    VERS_QT(device);
+    qsink->start(qdevice);
+}
+
+enum QT_AudioState QT_audio_sink_state(struct QT_AudioSink *sink)
+{
+    VERS_QT(sink);
+    return convertis_audio_state_vers_ipa(qsink->state());
+}
+
+void QT_audio_sink_sur_state_changed(struct QT_AudioSink *sink, struct QT_Rappel_Generique *rappel)
+{
+    if (!rappel || !rappel->sur_rappel) {
+        return;
+    }
+
+    VERS_QT(sink);
+    QObject::connect(
+        qsink, &QAudioSink::stateChanged, [=](QtAudio::State) { rappel->sur_rappel(rappel); });
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_AudioSource
+ * \{ */
+
+QT_AudioSource *QT_audio_source_cree(struct QT_AudioFormat *format, union QT_Generic_Object parent)
+{
+    VERS_QT(parent);
+    VERS_QT(format);
+
+    auto résultat = new QAudioSource(qformat, qparent);
+    return vers_ipa(résultat);
+}
+
+void QT_audio_source_detruit(struct QT_AudioSource *source)
+{
+    VERS_QT(source);
+    delete qsource;
+}
+
+QT_AudioError QT_audio_source_error(struct QT_AudioSource *source)
+{
+    VERS_QT(source);
+    return convertis_audio_error_vers_ipa(qsource->error());
+}
+
+void QT_audio_source_reset(struct QT_AudioSource *source)
+{
+    CONVERTIS_ET_APPEL(source, reset);
+}
+
+void QT_audio_source_resume(struct QT_AudioSource *source)
+{
+    CONVERTIS_ET_APPEL(source, resume);
+}
+
+void QT_audio_source_stop(struct QT_AudioSource *source)
+{
+    CONVERTIS_ET_APPEL(source, stop);
+}
+
+void QT_audio_source_suspend(struct QT_AudioSource *source)
+{
+    CONVERTIS_ET_APPEL(source, suspend);
+}
+
+bool QT_audio_source_is_null(struct QT_AudioSource *source)
+{
+    VERS_QT(source);
+    return qsource->isNull();
+}
+
+void QT_audio_source_set_volume(struct QT_AudioSource *source, double volume)
+{
+    VERS_QT(source);
+    qsource->setVolume(volume);
+}
+
+double QT_audio_source_get_volume(struct QT_AudioSource *source)
+{
+    VERS_QT(source);
+    return qsource->volume();
+}
+
+void QT_audio_source_start(struct QT_AudioSource *source, struct QT_IODevice *device)
+{
+    VERS_QT(source);
+    VERS_QT(device);
+    qsource->start(qdevice);
+}
+
+enum QT_AudioState QT_audio_source_state(struct QT_AudioSource *source)
+{
+    VERS_QT(source);
+    return convertis_audio_state_vers_ipa(qsource->state());
+}
+
+void QT_audio_source_sur_state_changed(struct QT_AudioSource *source,
+                                       struct QT_Rappel_Generique *rappel)
+{
+    if (!rappel || !rappel->sur_rappel) {
+        return;
+    }
+
+    VERS_QT(source);
+    QObject::connect(
+        qsource, &QAudioSource::stateChanged, [=](QtAudio::State) { rappel->sur_rappel(rappel); });
 }
 
 /** \} */
@@ -1209,10 +1507,6 @@ struct QT_Rappels_Window *QT_window_donne_rappels(struct QT_Window *window)
     }
     return nullptr;
 }
-
-#define CONVERTIS_ET_APPEL(objet, fonction, ...)                                                  \
-    VERS_QT(objet);                                                                               \
-    q##objet->fonction(__VA_ARGS__);
 
 void QT_window_request_update(struct QT_Window *window)
 {

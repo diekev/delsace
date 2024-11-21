@@ -102,6 +102,70 @@ void QT_detruit_icon(struct QT_Icon *icon);
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_AudioFormat
+ * \{ */
+
+#define ENUMERE_CHANNEL_CONFIG(O)                                                                 \
+    O(QT_AUDIO_FORMAT_CHANNEL_CONFIG_ChannelConfigUnknown, QAudioFormat::ChannelConfigUnknown)    \
+    O(QT_AUDIO_FORMAT_CHANNEL_CONFIG_ChannelConfigMono, QAudioFormat::ChannelConfigMono)          \
+    O(QT_AUDIO_FORMAT_CHANNEL_CONFIG_ChannelConfigStereo, QAudioFormat::ChannelConfigStereo)      \
+    O(QT_AUDIO_FORMAT_CHANNEL_CONFIG_ChannelConfig2Dot1, QAudioFormat::ChannelConfig2Dot1)        \
+    O(QT_AUDIO_FORMAT_CHANNEL_CONFIG_ChannelConfig3Dot0, QAudioFormat::ChannelConfig3Dot0)        \
+    O(QT_AUDIO_FORMAT_CHANNEL_CONFIG_ChannelConfig3Dot1, QAudioFormat::ChannelConfig3Dot1)        \
+    O(QT_AUDIO_FORMAT_CHANNEL_CONFIG_ChannelConfigSurround5Dot0,                                  \
+      QAudioFormat::ChannelConfigSurround5Dot0)                                                   \
+    O(QT_AUDIO_FORMAT_CHANNEL_CONFIG_ChannelConfigSurround5Dot1,                                  \
+      QAudioFormat::ChannelConfigSurround5Dot1)                                                   \
+    O(QT_AUDIO_FORMAT_CHANNEL_CONFIG_ChannelConfigSurround7Dot0,                                  \
+      QAudioFormat::ChannelConfigSurround7Dot0)                                                   \
+    O(QT_AUDIO_FORMAT_CHANNEL_CONFIG_ChannelConfigSurround7Dot1,                                  \
+      QAudioFormat::ChannelConfigSurround7Dot1)
+
+enum QT_Audio_Format_Channel_Config { ENUMERE_CHANNEL_CONFIG(ENUMERE_DECLARATION_ENUM_IPA) };
+
+#define ENUMERE_SAMPLE_FORMAT(O)                                                                  \
+    O(QT_AUDIO_FORMAT_SAMPLE_FORMAT_Unknown, QAudioFormat::Unknown)                               \
+    O(QT_AUDIO_FORMAT_SAMPLE_FORMAT_UInt8, QAudioFormat::UInt8)                                   \
+    O(QT_AUDIO_FORMAT_SAMPLE_FORMAT_Int16, QAudioFormat::Int16)                                   \
+    O(QT_AUDIO_FORMAT_SAMPLE_FORMAT_Int32, QAudioFormat::Int32)                                   \
+    O(QT_AUDIO_FORMAT_SAMPLE_FORMAT_Float, QAudioFormat::Float)
+
+enum QT_Audio_Format_Sample_Format { ENUMERE_SAMPLE_FORMAT(ENUMERE_DECLARATION_ENUM_IPA) };
+
+struct QT_AudioFormat {
+    int channel_count;
+    int sample_rate;
+    enum QT_Audio_Format_Channel_Config channel_config;
+    enum QT_Audio_Format_Sample_Format sample_format;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_AudioDevice
+ * \{ */
+
+struct QT_AudioDevice {
+    struct QT_Chaine id;
+    struct QT_Chaine description;
+};
+
+void QT_detruit_audio_device(struct QT_AudioDevice *devices);
+
+bool QT_audio_device_is_format_supported(struct QT_AudioDevice *device,
+                                         struct QT_AudioFormat *format);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_MediaDevices
+ * \{ */
+
+void QT_media_devices_default_audio_output(struct QT_AudioDevice *resultat);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_CursorShape
  * \{ */
 
@@ -246,6 +310,8 @@ union QT_AbstractSocket {
 
 #define ENUMERE_TYPES_OBJETS(O)                                                                   \
     O(QAction, QT_Action, action)                                                                 \
+    O(QAudioSink, QT_AudioSink, audio_sink)                                                       \
+    O(QAudioSource, QT_AudioSource, audio_source)                                                 \
     O(QClipboard, QT_Clipboard, clipboard)                                                        \
     O(QDrag, QT_Drag, drag)                                                                       \
     O(QEventLoop, QT_Event_Loop, event_loop)                                                      \
@@ -2538,6 +2604,67 @@ struct QT_IODevice *QT_iodevice_cree_avec_rappels(struct QT_Rappels_IODevice *ra
                                                   union QT_Generic_Object parent);
 
 void QT_iodevice_ready_read(struct QT_IODevice *iodevice);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_AudioSink
+ * \{ */
+
+#define ENUMERE_AUDIO_STATE(O)                                                                    \
+    O(QT_AUDIO_STATE_ActiveState, QtAudio::ActiveState)                                           \
+    O(QT_AUDIO_STATE_SuspendedState, QtAudio::SuspendedState)                                     \
+    O(QT_AUDIO_STATE_StoppedState, QtAudio::StoppedState)                                         \
+    O(QT_AUDIO_STATE_IdleState, QtAudio::IdleState)
+
+enum QT_AudioState { ENUMERE_AUDIO_STATE(ENUMERE_DECLARATION_ENUM_IPA) };
+
+#define ENUMERE_AUDIO_ERROR(O)                                                                    \
+    O(QT_AUDIO_ERROR_NoError, QtAudio::NoError)                                                   \
+    O(QT_AUDIO_ERROR_OpenError, QtAudio::OpenError)                                               \
+    O(QT_AUDIO_ERROR_IOError, QtAudio::IOError)                                                   \
+    O(QT_AUDIO_ERROR_UnderrunError, QtAudio::UnderrunError)                                       \
+    O(QT_AUDIO_ERROR_FatalError, QtAudio::FatalError)
+
+enum QT_AudioError { ENUMERE_AUDIO_ERROR(ENUMERE_DECLARATION_ENUM_IPA) };
+
+struct QT_AudioSink *QT_audio_sink_cree(struct QT_AudioFormat *format,
+                                        union QT_Generic_Object parent);
+void QT_audio_sink_detruit(struct QT_AudioSink *sink);
+enum QT_AudioError QT_audio_sink_error(struct QT_AudioSink *sink);
+void QT_audio_sink_reset(struct QT_AudioSink *sink);
+void QT_audio_sink_resume(struct QT_AudioSink *sink);
+void QT_audio_sink_stop(struct QT_AudioSink *sink);
+void QT_audio_sink_suspend(struct QT_AudioSink *sink);
+bool QT_audio_sink_is_null(struct QT_AudioSink *sink);
+void QT_audio_sink_set_volume(struct QT_AudioSink *sink, double volume);
+double QT_audio_sink_get_volume(struct QT_AudioSink *sink);
+void QT_audio_sink_start(struct QT_AudioSink *sink, struct QT_IODevice *device);
+enum QT_AudioState QT_audio_sink_state(struct QT_AudioSink *sink);
+void QT_audio_sink_sur_state_changed(struct QT_AudioSink *sink,
+                                     struct QT_Rappel_Generique *rappel);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_AudioSource
+ * \{ */
+
+struct QT_AudioSource *QT_audio_source_cree(struct QT_AudioFormat *format,
+                                            union QT_Generic_Object parent);
+void QT_audio_source_detruit(struct QT_AudioSource *source);
+enum QT_AudioError QT_audio_source_error(struct QT_AudioSource *source);
+void QT_audio_source_reset(struct QT_AudioSource *source);
+void QT_audio_source_resume(struct QT_AudioSource *source);
+void QT_audio_source_stop(struct QT_AudioSource *source);
+void QT_audio_source_suspend(struct QT_AudioSource *source);
+bool QT_audio_source_is_null(struct QT_AudioSource *source);
+void QT_audio_source_set_volume(struct QT_AudioSource *source, double volume);
+double QT_audio_source_get_volume(struct QT_AudioSource *source);
+void QT_audio_source_start(struct QT_AudioSource *source, struct QT_IODevice *device);
+enum QT_AudioState QT_audio_source_state(struct QT_AudioSource *source);
+void QT_audio_source_sur_state_changed(struct QT_AudioSource *source,
+                                       struct QT_Rappel_Generique *rappel);
 
 /** \} */
 
