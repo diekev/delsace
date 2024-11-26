@@ -3928,6 +3928,19 @@ void QT_iodevice_ready_read(QT_IODevice *iodevice)
     Q_EMIT(qiodevice->readyRead());
 }
 
+static QIODeviceBase::OpenMode convertis_open_mode(QT_Device_Open_Mode drapeaux)
+{
+    int résultat = 0;
+    ENUMERE_DEVICE_OPEN_MODE(ENUMERE_TRANSLATION_ENUM_DRAPEAU_IPA_VERS_QT);
+    return QIODeviceBase::OpenMode(résultat);
+}
+
+void QT_iodevice_open(QT_IODevice *iodevice, QT_Device_Open_Mode open_mode)
+{
+    VERS_QT(iodevice);
+    qiodevice->open(convertis_open_mode(open_mode));
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

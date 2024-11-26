@@ -2605,6 +2605,8 @@ struct QT_IODevice *QT_iodevice_cree_avec_rappels(struct QT_Rappels_IODevice *ra
 
 void QT_iodevice_ready_read(struct QT_IODevice *iodevice);
 
+void QT_iodevice_open(struct QT_IODevice *iodevice, enum QT_Device_Open_Mode open_mode);
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
