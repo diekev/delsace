@@ -20,14 +20,13 @@ FluxVidéo :: struct {
     tampon_image_courante: *n8
 }
 
-détruit_flux_vidéo :: fonc (flux: *FluxVidéo)
+détruit_données_flux_vidéo :: fonc (flux: *FluxVidéo)
 {
     avcodec_free_context(*flux.codec_ctx)
     avcodec_free_context(*flux.audio_codec_ctx)
     avformat_close_input(*flux.format_ctx)
     av_frame_free(*flux.frame_rgb)
     sws_freeContext(flux.sws_ctx)
-    déloge(flux)
 }
 
 alloue_tampon_pour_image :: fonc (empl flux_vidéo: *FluxVidéo)
@@ -49,8 +48,10 @@ alloue_tampon_pour_image :: fonc (empl flux_vidéo: *FluxVidéo)
     av_image_fill_arrays(*frame_rgb.data[0], *frame_rgb.linesize[0], tampon_image_courante, AVPixelFormat.AV_PIX_FMT_RGB24, codec_ctx.width, codec_ctx.height, 1);
 }
 
-ouvre_flux_vidéo_depuis_fichier :: fonc (chemin: chaine) -> Optionnel(*FluxVidéo)
+ouvre_flux_vidéo_depuis_fichier :: fonc (résultat: *FluxVidéo, chemin: chaine) -> bool
 {
+    détruit_données_flux_vidéo(résultat)
+
     input_file := crée_chaine_c(chemin)
     diffère détruit_chaine_c(input_file)
 
@@ -61,13 +62,13 @@ ouvre_flux_vidéo_depuis_fichier :: fonc (chemin: chaine) -> Optionnel(*FluxVid�
     format_ctx: *AVFormatContext
     si (avformat_open_input(*format_ctx, input_file, nul, nul) < 0) {
         imprime("Could not open input file: %\n", input_file)
-        retourne
+        retourne faux
     }
 
     // Retrieve stream information
     si (avformat_find_stream_info(format_ctx, nul) < 0) {
         imprime("Could not find stream information\n")
-        retourne
+        retourne faux
     }
 
     // Find video stream
@@ -86,7 +87,7 @@ ouvre_flux_vidéo_depuis_fichier :: fonc (chemin: chaine) -> Optionnel(*FluxVid�
 
     si (video_stream_idx == -1) {
         imprime("Could not find video stream\n")
-        retourne
+        retourne faux
     }
 
     imprime("audio stream idx : %\n", audio_stream_idx)
@@ -100,7 +101,7 @@ ouvre_flux_vidéo_depuis_fichier :: fonc (chemin: chaine) -> Optionnel(*FluxVid�
     // Open codec
     si (avcodec_open2(codec_ctx, codec, nul) < 0) {
         imprime("Could not open codec\n")
-        retourne
+        retourne faux
     }
 
     // Audio
@@ -117,7 +118,7 @@ ouvre_flux_vidéo_depuis_fichier :: fonc (chemin: chaine) -> Optionnel(*FluxVid�
 
             si avcodec_open2(audio_codec_ctx, codec_audio, nul) < 0 {
                 imprime("Could not open audio codec\n")
-                retourne
+                retourne faux
             }
 
             // imprime("sample_rate : %\n", audio_codec_ctx.sample_rate)
@@ -141,10 +142,9 @@ ouvre_flux_vidéo_depuis_fichier :: fonc (chemin: chaine) -> Optionnel(*FluxVid�
 
     saufsi sws_ctx {
         imprime("Could not create sws_ctx\n")
-        retourne
+        retourne faux
     }
 
-    résultat := loge(FluxVidéo)
     résultat.format_ctx = format_ctx
     résultat.video_stream_idx = video_stream_idx
     résultat.audio_stream_idx = audio_stream_idx
@@ -152,7 +152,7 @@ ouvre_flux_vidéo_depuis_fichier :: fonc (chemin: chaine) -> Optionnel(*FluxVid�
     résultat.codec_ctx = codec_ctx
     résultat.audio_codec_ctx = audio_codec_ctx
     résultat.sws_ctx = sws_ctx
-    retourne résultat
+    retourne vrai
 }
 
 lis_une_frame :: fonc (empl flux_vidéo: *FluxVidéo) -> bool
