@@ -32,6 +32,7 @@
 #include <QMessageBox>
 #include <QMimeData>
 #include <QMouseEvent>
+#include <QMutex>
 #include <QOpenGLContext>
 #include <QProgressBar>
 #include <QPushButton>
@@ -51,6 +52,7 @@
 #include <QTimer>
 #include <QToolButton>
 #include <QToolTip>
+#include <QWaitCondition>
 #include <QWindow>
 #if defined(__GNUC__)
 #    pragma GCC diagnostic pop
@@ -249,6 +251,8 @@ ENUMERE_TYPES_SOCKETS(TRANSTYPAGE_WIDGETS)
 TRANSTYPAGE_OBJET_SIMPLE(QIcon, QT_Icon)
 TRANSTYPAGE_OBJET_SIMPLE(QPixmap, QT_Pixmap)
 TRANSTYPAGE_OBJET_SIMPLE(QTextCursor, QT_TextCursor)
+TRANSTYPAGE_OBJET_SIMPLE(QMutex, QT_Mutex)
+TRANSTYPAGE_OBJET_SIMPLE(QWaitCondition, QT_WaitCondition)
 
 #undef TRANSTYPAGE_WIDGETS
 
@@ -1425,6 +1429,71 @@ void QT_thread_wait(QT_Thread *thread)
 {
     VERS_QT(thread);
     qthread->wait();
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Mutex
+ * \{ */
+
+struct QT_Mutex *QT_mutex_cree()
+{
+    return vers_ipa(new QMutex());
+}
+
+void QT_mutex_detruit(struct QT_Mutex *mutex)
+{
+    VERS_QT(mutex);
+    delete (qmutex);
+}
+
+void QT_mutex_lock(struct QT_Mutex *mutex)
+{
+    VERS_QT(mutex);
+    qmutex->lock();
+}
+
+void QT_mutex_unlock(struct QT_Mutex *mutex)
+{
+    VERS_QT(mutex);
+    qmutex->unlock();
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_WaitCondition
+ * \{ */
+
+struct QT_WaitCondition *QT_condition_cree()
+{
+    return vers_ipa(new QWaitCondition());
+}
+
+void QT_condition_detruit(struct QT_WaitCondition *cond)
+{
+    VERS_QT(cond);
+    delete (qcond);
+}
+
+void QT_condition_wait(struct QT_WaitCondition *cond, struct QT_Mutex *mutex)
+{
+    VERS_QT(cond);
+    VERS_QT(mutex);
+    qcond->wait(qmutex);
+}
+
+void QT_condition_notify_one(struct QT_WaitCondition *cond)
+{
+    VERS_QT(cond);
+    qcond->notify_one();
+}
+
+void QT_condition_notify_all(struct QT_WaitCondition *cond)
+{
+    VERS_QT(cond);
+    qcond->notify_all();
 }
 
 /** \} */

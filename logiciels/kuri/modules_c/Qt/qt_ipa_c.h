@@ -1340,6 +1340,33 @@ void QT_thread_wait(struct QT_Thread *thread);
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Mutex
+ * \{ */
+
+struct QT_Mutex;
+
+struct QT_Mutex *QT_mutex_cree();
+void QT_mutex_detruit(struct QT_Mutex *mutex);
+void QT_mutex_lock(struct QT_Mutex *mutex);
+void QT_mutex_unlock(struct QT_Mutex *mutex);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_WaitCondition
+ * \{ */
+
+struct QT_WaitCondition;
+
+struct QT_WaitCondition *QT_condition_cree();
+void QT_condition_detruit(struct QT_WaitCondition *cond);
+void QT_condition_wait(struct QT_WaitCondition *cond, struct QT_Mutex *mutex);
+void QT_condition_notify_one(struct QT_WaitCondition *cond);
+void QT_condition_notify_all(struct QT_WaitCondition *cond);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Window
  * \{ */
 
@@ -2592,6 +2619,19 @@ void QT_graphics_view_mappe_vers_global(struct QT_GraphicsView *graphics_view,
 /* ------------------------------------------------------------------------- */
 /** \name QT_IODevice
  * \{ */
+
+#define ENUMERE_DEVICE_OPEN_MODE(O)                                                               \
+    O(QT_DEVICE_OPEN_MODE_NotOpen, QIODeviceBase::NotOpen, 0)                                     \
+    O(QT_DEVICE_OPEN_MODE_ReadOnly, QIODeviceBase::ReadOnly, 0x0001)                              \
+    O(QT_DEVICE_OPEN_MODE_WriteOnly, QIODeviceBase::WriteOnly, 0x0002)                            \
+    O(QT_DEVICE_OPEN_MODE_Append, QIODeviceBase::Append, 0x0004)                                  \
+    O(QT_DEVICE_OPEN_MODE_Truncate, QIODeviceBase::Truncate, 0x0008)                              \
+    O(QT_DEVICE_OPEN_MODE_Text, QIODeviceBase::Text, 0x0010)                                      \
+    O(QT_DEVICE_OPEN_MODE_Unbuffered, QIODeviceBase::Unbuffered, 0x0020)                          \
+    O(QT_DEVICE_OPEN_MODE_NewOnly, QIODeviceBase::NewOnly, 0x0040)                                \
+    O(QT_DEVICE_OPEN_MODE_ExistingOnly, QIODeviceBase::ExistingOnly, 0x0080)
+
+enum QT_Device_Open_Mode { ENUMERE_DEVICE_OPEN_MODE(ENUMERE_DECLARATION_ENUM_DRAPEAU_IPA) };
 
 struct QT_Rappels_IODevice {
     int64_t (*read_data)(struct QT_Rappels_IODevice *, char *, int64_t);
