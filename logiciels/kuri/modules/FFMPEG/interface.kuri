@@ -1555,7 +1555,7 @@ av_frame_free :: fonc (frame: **AVFrame) -> rien #externe libavutil
 
 av_init_packet :: fonc (packet: *AVPacket) -> rien #externe libavutil
 av_packet_unref :: fonc (frame: *AVPacket) -> rien #externe libavutil
-av_packet_clone :: fonc (pkt: *AVPacket) -> z32 #externe libavutil
+av_packet_clone :: fonc (pkt: *AVPacket) -> *AVPacket #externe libavutil
 
 av_read_frame :: fonc (format_ctx: *AVFormatContext, packet: *AVPacket) -> z32 #externe libavutil
 
