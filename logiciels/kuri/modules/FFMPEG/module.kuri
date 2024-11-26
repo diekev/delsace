@@ -18,6 +18,8 @@ FluxVidéo :: struct {
     /* Frame et tampon pour l'image courante. */
     frame_rgb: *AVFrame
     tampon_image_courante: *n8
+
+    sur_paquet_audio: fonc(*FluxVidéo, *AVPacket)(rien)
 }
 
 détruit_données_flux_vidéo :: fonc (flux: *FluxVidéo)
@@ -210,11 +212,23 @@ lis_une_frame :: fonc (empl flux_vidéo: *FluxVidéo) -> bool
                 _ := sws_scale(sws_ctx, *frame.data[0],
                         *frame.linesize[0], 0, codec_ctx.height,
                         *frame_rgb.data[0], *frame_rgb.linesize[0])
+                av_packet_unref(*packet)
                 arrête
             }
-        }
 
-        av_packet_unref(*packet)
+            av_packet_unref(*packet)
+        }
+        sinon si packet.stream_index == audio_stream_idx {
+            si sur_paquet_audio {
+                sur_paquet_audio(flux_vidéo, *packet)
+            }
+            sinon {
+                av_packet_unref(*packet)
+            }
+        }
+        sinon {
+            av_packet_unref(*packet)
+        }
     }
 
     // Free allocated resources
