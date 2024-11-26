@@ -1566,6 +1566,8 @@ av_free :: fonc (ptr: *rien) -> rien #externe libavutil
 
 av_image_fill_arrays :: fonc (data: **n8, linesize: *z32, buffer: *n8, pixel_format: AVPixelFormat, width: z32, height: z32, depth: z32) -> rien #externe libavutil
 
+av_sample_fmt_is_planar :: fonc (sample_fmt: AVSampleFormat) -> z32 #externe libavutil
+
 av_samples_get_buffer_size :: fonc (linesize: *z32, nb_channels: z32, nb_samples: z32, sample_fmt: AVSampleFormat, align: z32) -> z32 #externe libavutil
 
 // #define AVERROR(e) (-(e))
