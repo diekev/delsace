@@ -4,6 +4,14 @@ importe GlibC
 
 charge "interface"
 
+TAILLE_CACHE_IMAGE :: 10
+
+/* Frame et tampon pour une image. */
+ImageVidéo :: struct {
+    frame_rgb: *AVFrame
+    tampon_image: *n8
+}
+
 FluxVidéo :: struct {
     format_ctx: *AVFormatContext
     codec_ctx: *AVCodecContext
@@ -15,9 +23,11 @@ FluxVidéo :: struct {
     /* -1 si aucun audio. */
     audio_stream_idx: z32
 
-    /* Frame et tampon pour l'image courante. */
-    frame_rgb: *AVFrame
-    tampon_image_courante: *n8
+    file_images: [TAILLE_CACHE_IMAGE]ImageVidéo
+    taille_file_image: z32
+    index_écriture_file: z32
+    index_lecture_file: z32
+    cache_image_initialisé: bool
 
     sur_paquet_vidéo := flux_vidéo_sur_paquet_vidéo_défaut
     sur_paquet_audio: fonc(*FluxVidéo, *AVPacket)(rien)
@@ -28,27 +38,39 @@ détruit_données_flux_vidéo :: fonc (flux: *FluxVidéo)
     avcodec_free_context(*flux.codec_ctx)
     avcodec_free_context(*flux.audio_codec_ctx)
     avformat_close_input(*flux.format_ctx)
-    av_frame_free(*flux.frame_rgb)
+
+    pour flux.file_images {
+        av_frame_free(*it.frame_rgb)
+        av_free(it.tampon_image)
+    }
+
     sws_freeContext(flux.sws_ctx)
 }
 
-alloue_tampon_pour_image :: fonc (empl flux_vidéo: *FluxVidéo)
+initialise_cache_image_vidéo :: fonc (empl flux_vidéo: *FluxVidéo)
 {
-    si tampon_image_courante != nul {
+    si cache_image_initialisé {
         retourne
     }
 
-    frame_rgb = av_frame_alloc()
-    assert(frame_rgb != nul)
+    pour TAILLE_CACHE_IMAGE {
+        frame_rgb := av_frame_alloc()
+        assert(frame_rgb != nul)
 
-    // Determine required buffer size and allocate buffer
-    taille := av_image_get_buffer_size(AVPixelFormat.AV_PIX_FMT_RGB24, codec_ctx.width, codec_ctx.height, 1)
-    tampon_image_courante = av_malloc(taille comme n64 * taille_de(n8)) comme *n8
+        // Determine required buffer size and allocate buffer
+        taille := av_image_get_buffer_size(AVPixelFormat.AV_PIX_FMT_RGB24, codec_ctx.width, codec_ctx.height, 1)
+        tampon_image := av_malloc(taille comme n64 * taille_de(n8)) comme *n8
 
-    // Assign appropriate parts of buffer to image planes in pFrameRGB
-    // Note that pFrameRGB is an AVFrame, but AVFrame is a superset
-    // of AVPicture
-    av_image_fill_arrays(*frame_rgb.data[0], *frame_rgb.linesize[0], tampon_image_courante, AVPixelFormat.AV_PIX_FMT_RGB24, codec_ctx.width, codec_ctx.height, 1);
+        // Assign appropriate parts of buffer to image planes in pFrameRGB
+        // Note that pFrameRGB is an AVFrame, but AVFrame is a superset
+        // of AVPicture
+        av_image_fill_arrays(*frame_rgb.data[0], *frame_rgb.linesize[0], tampon_image, AVPixelFormat.AV_PIX_FMT_RGB24, codec_ctx.width, codec_ctx.height, 1);
+
+        file_images[it].frame_rgb = frame_rgb
+        file_images[it].tampon_image = tampon_image
+    }
+
+    cache_image_initialisé = vrai
 }
 
 ouvre_flux_vidéo_depuis_fichier :: fonc (résultat: *FluxVidéo, chemin: chaine) -> bool
@@ -172,7 +194,7 @@ lis_une_frame :: fonc (empl flux_vidéo: *FluxVidéo) -> bool
 {
     résultat: bool
 
-    alloue_tampon_pour_image(flux_vidéo)
+    initialise_cache_image_vidéo(flux_vidéo)
 
     // Allocate frame and packet
     packet: AVPacket = ---
@@ -245,10 +267,17 @@ flux_vidéo_sur_paquet_vidéo_défaut :: fonc (flux_vidéo: *FluxVidéo, paquet:
     si image_reçu {
         // imprime("Frame : %\n", codec_ctx.frame_number)
 
+        image_vidéo := *file_images[index_écriture_file]
+
         // Convert the image from its native format to RGB
         _ := sws_scale(sws_ctx, *frame.data[0],
                 *frame.linesize[0], 0, codec_ctx.height,
-                *frame_rgb.data[0], *frame_rgb.linesize[0])
+                *image_vidéo.frame_rgb.data[0], *image_vidéo.frame_rgb.linesize[0])
+
+        index_écriture_file += 1
+        si index_écriture_file >= TAILLE_CACHE_IMAGE {
+            index_écriture_file = 0
+        }
     }
 
     av_packet_unref(paquet)
