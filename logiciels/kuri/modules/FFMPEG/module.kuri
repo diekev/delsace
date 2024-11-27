@@ -87,47 +87,20 @@ ouvre_flux_vidéo_depuis_fichier :: fonc (résultat: *FluxVidéo, chemin: chaine
         }
     }
 
-    si (video_stream_idx == -1) {
+    résultat.format_ctx = format_ctx
+
+    saufsi ouvre_composant_flux_vidéo(résultat, video_stream_idx) {
         imprime("Could not find video stream\n")
         retourne faux
     }
 
-    imprime("audio stream idx : %\n", audio_stream_idx)
-
-    // Get codec parameters and codec context
-    codecpar := format_ctx.streams[video_stream_idx].codecpar
-    codec := avcodec_find_decoder(codecpar.codec_id)
-    codec_ctx := avcodec_alloc_context3(codec)
-    avcodec_parameters_to_context(codec_ctx, codecpar)
-
-    // Open codec
-    si (avcodec_open2(codec_ctx, codec, nul) < 0) {
-        imprime("Could not open codec\n")
-        retourne faux
-    }
-
-    // Audio
-    audio_codec_ctx: *AVCodecContext
     si audio_stream_idx != -1 {
-        audio_stream := format_ctx.streams[audio_stream_idx].codecpar
-        codec_audio := avcodec_find_decoder(audio_stream.codec_id)
-
-        si codec_audio {
-            // imprime("trouvé codec audio\n")
-            audio_codec_ctx = avcodec_alloc_context3(codec_audio)
-
-            avcodec_parameters_to_context(audio_codec_ctx, audio_stream)
-
-            si avcodec_open2(audio_codec_ctx, codec_audio, nul) < 0 {
-                imprime("Could not open audio codec\n")
-                retourne faux
-            }
-
-            // imprime("sample_rate : %\n", audio_codec_ctx.sample_rate)
-            // imprime("channels    : %\n", audio_codec_ctx.channels)
+        saufsi ouvre_composant_flux_vidéo(résultat, audio_stream_idx) {
+            retourne faux
         }
     }
 
+    codec_ctx := résultat.codec_ctx
     imprime("codec_ctx.pix_fmt %\n", codec_ctx.pix_fmt)
 
     // initialize SWS context for software scaling
@@ -147,13 +120,50 @@ ouvre_flux_vidéo_depuis_fichier :: fonc (résultat: *FluxVidéo, chemin: chaine
         retourne faux
     }
 
-    résultat.format_ctx = format_ctx
-    résultat.video_stream_idx = video_stream_idx
-    résultat.audio_stream_idx = audio_stream_idx
-    résultat.codec = codec
-    résultat.codec_ctx = codec_ctx
-    résultat.audio_codec_ctx = audio_codec_ctx
     résultat.sws_ctx = sws_ctx
+    retourne vrai
+}
+
+ouvre_composant_flux_vidéo :: fonc (flux_vidéo: *FluxVidéo, index_flux: z32) -> bool
+{
+    format_ctx := flux_vidéo.format_ctx
+
+    si index_flux < 0 || index_flux >= format_ctx.nb_streams comme z32 {
+        retourne faux
+    }
+
+    paramètres_codec := format_ctx.streams[index_flux].codecpar
+    codec := avcodec_find_decoder(paramètres_codec.codec_id)
+    saufsi codec {
+        imprime("Codec non-supporté : %.\n", paramètres_codec.codec_id)
+        retourne faux
+    }
+
+    codec_ctx := avcodec_alloc_context3(codec)
+    avcodec_parameters_to_context(codec_ctx, paramètres_codec)
+
+    si avcodec_open2(codec_ctx, codec, nul) < 0 {
+        imprime("Could not open codec : %.\n", paramètres_codec.codec_id)
+        retourne faux
+    }
+
+    discr codec_ctx.codec_type {
+        AVMEDIA_TYPE_VIDEO {
+            flux_vidéo.video_stream_idx = index_flux
+            flux_vidéo.codec = codec
+            flux_vidéo.codec_ctx = codec_ctx
+        }
+        AVMEDIA_TYPE_AUDIO {
+            flux_vidéo.audio_stream_idx = index_flux
+            flux_vidéo.audio_codec_ctx = codec_ctx
+            // imprime("sample_rate : %\n", codec_ctx.sample_rate)
+            // imprime("channels    : %\n", codec_ctx.channels)
+        }
+        sinon {
+            retourne faux
+        }
+    }
+
     retourne vrai
 }
 
