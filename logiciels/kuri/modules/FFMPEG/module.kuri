@@ -19,6 +19,7 @@ FluxVidéo :: struct {
     frame_rgb: *AVFrame
     tampon_image_courante: *n8
 
+    sur_paquet_vidéo := flux_vidéo_sur_paquet_vidéo_défaut
     sur_paquet_audio: fonc(*FluxVidéo, *AVPacket)(rien)
 }
 
@@ -174,59 +175,16 @@ lis_une_frame :: fonc (empl flux_vidéo: *FluxVidéo) -> bool
     alloue_tampon_pour_image(flux_vidéo)
 
     // Allocate frame and packet
-    frame := av_frame_alloc();
     packet: AVPacket = ---
     av_init_packet(*packet)
 
     // Read frames from the video stream
     tantque (av_read_frame(format_ctx, *packet) >= 0) {
-        si (packet.stream_index == video_stream_idx) {
-            // Decode video frame
-            ret := avcodec_send_packet(codec_ctx, *packet)
-            si (ret < 0) {
-                imprime("Error sending packet for decoding")
+        si (packet.stream_index == video_stream_idx) && sur_paquet_vidéo {
+            si sur_paquet_vidéo(flux_vidéo, *packet) {
+                résultat = vrai
                 arrête
             }
-
-            image_reçu := faux
-
-            tantque (ret >= 0) {
-                ret = avcodec_receive_frame(codec_ctx, frame)
-                si (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
-                    arrête
-                }
-                sinon si (ret < 0) {
-                    imprime("Error during decoding")
-                    arrête
-                }
-                sinon si ret == 0 {
-                    image_reçu = vrai
-                    résultat = vrai
-                    arrête
-                }
-
-                // Print basic frame properties
-                // std::cout << "Frame " << codec_ctx->frame_number
-                //           << " (type=" << av_get_picture_type_char(frame->pict_type)
-                //           << ", size=" << frame->pkt_size
-                //           << " bytes) pts " << frame->pts
-                //           << " key_frame " << frame->key_frame
-                //           << std::endl;
-            }
-
-            // Did we get a video frame?
-            si image_reçu {
-                // imprime("Frame : %\n", codec_ctx.frame_number)
-
-                // Convert the image from its native format to RGB
-                _ := sws_scale(sws_ctx, *frame.data[0],
-                        *frame.linesize[0], 0, codec_ctx.height,
-                        *frame_rgb.data[0], *frame_rgb.linesize[0])
-                av_packet_unref(*packet)
-                arrête
-            }
-
-            av_packet_unref(*packet)
         }
         sinon si packet.stream_index == audio_stream_idx {
             si sur_paquet_audio {
@@ -241,7 +199,58 @@ lis_une_frame :: fonc (empl flux_vidéo: *FluxVidéo) -> bool
         }
     }
 
-    // Free allocated resources
-    av_frame_free(*frame)
     retourne résultat
+}
+
+flux_vidéo_sur_paquet_vidéo_défaut :: fonc (flux_vidéo: *FluxVidéo, paquet: *AVPacket) -> bool
+{
+    empl flux_vidéo
+
+    // Decode video frame
+    ret := avcodec_send_packet(codec_ctx, paquet)
+    si (ret < 0) {
+        imprime("Error sending packet for decoding")
+        retourne vrai
+    }
+
+    frame := av_frame_alloc()
+    diffère av_frame_free(*frame)
+
+    image_reçu := faux
+
+    tantque (ret >= 0) {
+        ret = avcodec_receive_frame(codec_ctx, frame)
+        si (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
+            arrête
+        }
+        sinon si (ret < 0) {
+            imprime("Error during decoding")
+            arrête
+        }
+        sinon si ret == 0 {
+            image_reçu = vrai
+            arrête
+        }
+
+        // Print basic frame properties
+        // std::cout << "Frame " << codec_ctx->frame_number
+        //           << " (type=" << av_get_picture_type_char(frame->pict_type)
+        //           << ", size=" << frame->pkt_size
+        //           << " bytes) pts " << frame->pts
+        //           << " key_frame " << frame->key_frame
+        //           << std::endl;
+    }
+
+    // Did we get a video frame?
+    si image_reçu {
+        // imprime("Frame : %\n", codec_ctx.frame_number)
+
+        // Convert the image from its native format to RGB
+        _ := sws_scale(sws_ctx, *frame.data[0],
+                *frame.linesize[0], 0, codec_ctx.height,
+                *frame_rgb.data[0], *frame_rgb.linesize[0])
+    }
+
+    av_packet_unref(paquet)
+    retourne image_reçu
 }
