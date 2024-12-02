@@ -26,6 +26,11 @@ secondes :: fonc (inst: Instantané) -> z64
     retourne inst.seconde + inst.nanoseconde / 1_000_000_000
 }
 
+secondes :: fonc (inst: Instantané, $T: type_de_données) -> T
+{
+    retourne inst.seconde comme T + inst.nanoseconde comme T / 1_000_000_000
+}
+
 millisecondes :: fonc (inst: Instantané) -> z64
 {
     retourne inst.seconde * 1_000 + inst.nanoseconde / 1_000_000
