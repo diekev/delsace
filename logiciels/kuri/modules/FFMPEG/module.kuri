@@ -10,6 +10,7 @@ TAILLE_CACHE_IMAGE :: 10
 ImageVidéo :: struct {
     frame_rgb: *AVFrame
     tampon_image: *n8
+    horodotage_prédit: r64
 }
 
 FluxVidéo :: struct {
