@@ -1105,6 +1105,11 @@ AVRational :: struct {
     den: z32 ///< Denominator
 }
 
+av_q2d :: fonc (a: AVRational) -> r64 #enligne
+{
+    retourne (a.num comme r64) / (a.den comme r64)
+}
+
 AVDiscard :: énum z32 {
     /* We leave some space between them for extensions (drop some
      * keyframes for intra-only or drop just some bidir frames). */
@@ -1119,6 +1124,8 @@ AVDiscard :: énum z32 {
 
 AVBufferRef :: struct #externe;
 AVPacketSideData :: struct #externe;
+
+AV_NOPTS_VALUE : z64 : 0x8000000000000000
 
 AVPacket :: struct {
     buf: *AVBufferRef
