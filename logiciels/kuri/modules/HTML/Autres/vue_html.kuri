@@ -1570,7 +1570,10 @@ envoie_mouseup :: fonc (élément: *HTML.Élément, position_x: z32, position_y:
 
 donne_feuille_de_style_défaut :: fonc () -> *CSS.CSSStyleSheet
 {
-    contenu := contenu_fichier_texte("/home/kevin/defaults.css")
+    chemin_fichier := donne_chemin_fichier_css_défaut()
+    diffère détruit_chemin(chemin_fichier)
+
+    contenu := contenu_fichier_texte(chemin_fichier)
     diffère déloge(contenu)
 
     ctx: CSS.ContexteParsageFeuilleDeStyle

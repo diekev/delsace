@@ -4,6 +4,7 @@
 importe Chaine
 importe Fondation
 importe #inemployé JavaScript
+importe SysFichier
 importe Temps
 
 charge "élément"
@@ -38,6 +39,16 @@ charge "window"
 charge "WebIDL/génératrice_code"
 
 DOMString :: ChaineUTF16Unique
+
+donne_chemin_fichier_css_défaut :: fonc () -> CheminFichier
+{
+    chemin_courant := CheminFichier(#chemin_de_ce_fichier)
+    chemin_parent := chemin_courant.chemin_parent()
+    diffère détruit_chemin(chemin_parent)
+    résultat := crée_chemin_absolu(chemin_parent, CheminFichier("Fichiers/defaults.css"))
+    assert(est_un_fichier_régulier(résultat))
+    retourne résultat
+}
 
 imprime_noeud :: fonc (noeud: *Noeud, tab: z32) -> rien
 {
