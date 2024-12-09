@@ -1,0 +1,18 @@
+
+importe JavaScript
+
+principale :: fonc () -> z32
+{
+    flux := loge(FluxDInstructions)
+    génératrice := GénératriceCodeBinaire(flux)
+
+    reg_gauche := génératrice.crée_charge(Valeur(Number = 1.0))
+    reg_droite := génératrice.crée_charge(Valeur(Number = 2.0))
+    _ := génératrice.crée_ajoute(reg_gauche, reg_droite)
+
+    imprime_instructions(flux)
+
+    interprète_code_binaire(flux)
+
+    retourne 0
+}

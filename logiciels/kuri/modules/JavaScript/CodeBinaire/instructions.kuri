@@ -1,0 +1,246 @@
+importe Fondation
+
+/* ------------------------------------------------------------------------- */
+/** \nom Instruction
+ * \{ */
+
+FluxDInstructions :: struct {
+    instructions: [..]octet
+    registres: n32
+}
+
+imprime_instructions :: fonc (flux: *FluxDInstructions)
+{
+    pour ItéractriceInstruction(flux) {
+        imprime_instruction(it, index_it)
+    }
+}
+
+ItéractriceInstruction :: struct {
+    flux: *FluxDInstructions
+}
+
+opérateur pour :: fonc (itératrice: ItéractriceInstruction) -> *Instruction
+{
+    assert(itératrice.flux != nul)
+
+    début := itératrice.flux.instructions.pointeur
+    fin := début + itératrice.flux.instructions.taille
+
+    index : z64 = 0
+
+    tantque début < fin {
+        instruction := début comme *Instruction
+
+        `it = instruction
+        `index_it = index
+
+        #corps_boucle
+
+        index += 1
+
+        début += donne_taille_octet(instruction)
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Instruction
+ * \{ */
+
+Registre :: #opaque n32
+
+Instruction :: struct {
+    type: type_de_données
+}
+
+donne_taille_octet :: fonc (instruction: *Instruction) -> n32
+{
+    infos := __table_des_types[instruction.type]
+    retourne infos.taille_en_octet
+}
+
+imprime_instruction :: fonc (instruction: *Instruction, index: z64)
+{
+    infos := __table_des_types[instruction.type] comme *InfoTypeStructure
+ 
+    nom := infos.nom
+    si nom.commence_par("Instruction") {
+        nom = avance(nom, 11)
+    }
+
+    imprime("[%] %", index, nom)
+
+    pointeur_membre := instruction comme *octet
+
+    virgule := " "
+
+    pour infos.membres {
+        si it.id == info_de(ECMAString) {
+            valeur := (pointeur_membre + it.décalage) comme *ECMAString
+            imprime("%% %", virgule, it.nom, mémoire(valeur))
+            virgule = ", "
+        }
+        sinon si it.id == info_de(Registre) {
+            valeur := (pointeur_membre + it.décalage) comme *Registre
+            imprime("%% %", virgule, it.nom, mémoire(valeur))
+            virgule = ", "
+        }
+        sinon si it.id == info_de(Valeur) {
+            valeur := (pointeur_membre + it.décalage) comme *Valeur
+            imprime("%% %", virgule, it.nom, mémoire(valeur))
+            virgule = ", "
+        }
+    }
+
+    imprime("\n")
+}
+
+InstructionCharge :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    reg: Registre
+    vlr: Valeur
+}
+
+InstructionAjoute :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    dst: Registre
+    gch: Registre
+    drt: Registre
+}
+
+InstructionDéfinisLocale :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    nom: ECMAString
+    src: Registre
+}
+
+InstructionChargeLocale :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    dst: Registre
+    nom: ECMAString
+}
+
+InstructionDéfinisMembre :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    obj: Registre
+    nom: ECMAString
+    src: Registre
+}
+
+InstructionChargeMembre :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    dst: Registre
+    obj: Registre
+    nom: ECMAString
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom GénératriceCodeBinaire
+ * \{ */
+
+GénératriceCodeBinaire :: struct {
+    flux: *FluxDInstructions
+}
+
+crée_instruction :: fonc (génératrice: &GénératriceCodeBinaire, $T: type_de_données) -> *T
+{
+    flux := génératrice.flux
+
+    décalage := flux.instructions.taille
+    tableau_redimensionne(flux.instructions, décalage + taille_de(T) comme z64)
+    résultat := *flux.instructions[décalage] comme *T
+    init_de(T)(résultat)
+    retourne résultat
+}
+
+crée_charge :: fonc (génératrice: &GénératriceCodeBinaire, valeur: Valeur) -> Registre
+{
+    dst := génératrice.alloue_registre()
+    gauche := génératrice.crée_instruction(InstructionCharge)
+    gauche.reg = dst
+    gauche.vlr = valeur
+    retourne dst
+}
+
+crée_ajoute :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre, droite: Registre) -> Registre
+{
+    dst := génératrice.alloue_registre()
+    ajout := génératrice.crée_instruction(InstructionAjoute)
+    ajout.dst = dst
+    ajout.gch = gauche
+    ajout.drt = droite
+    retourne dst
+}
+
+alloue_registre :: fonc (empl génératrice: &GénératriceCodeBinaire) -> Registre
+{
+    résultat := Registre(flux.registres)
+    flux.registres += 1
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom InterprèteCodeBinaire
+ * \{ */
+
+InterprèteCodeBinaire :: struct {
+    registres: [..]Valeur
+}
+
+interprète_code_binaire :: fonc (flux: *FluxDInstructions)
+{
+    interprète: InterprèteCodeBinaire
+    tableau_redimensionne(interprète.registres, flux.registres comme z64)
+
+    pour ItéractriceInstruction(flux) {
+        discr it.type {
+            InstructionCharge {
+                inst_charge := it comme *InstructionCharge
+                interprète.registres[inst_charge.reg] = inst_charge.vlr
+            }
+            InstructionAjoute {
+                inst_ajout := it comme *InstructionAjoute
+                gauche := interprète.registres[inst_ajout.gch]
+                droite := interprète.registres[inst_ajout.drt]
+
+                résultat := number_add(gauche, droite)
+                interprète.registres[inst_ajout.dst] = résultat
+            }
+            sinon {
+                imprime("intruction inconnue!\n")
+                arrête
+            }
+        }
+    }
+
+    imprime_registres(*interprète)
+}
+
+imprime_registres :: fonc (interprète: *InterprèteCodeBinaire)
+{
+    imprime("Registres :\n")
+
+    pour interprète.registres {
+        imprime("- [%] %\n", index_it, it)
+    }
+}
+
+/** \} */

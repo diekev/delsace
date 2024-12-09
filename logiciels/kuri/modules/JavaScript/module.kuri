@@ -19,6 +19,8 @@ charge "terminologie"
 charge "types"
 charge "valeur"
 
+charge "CodeBinaire/instructions"
+
 charge "Objets/array"
 charge "Objets/boolean"
 charge "Objets/console"
