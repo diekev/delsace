@@ -568,6 +568,7 @@ Identifier :: struct {
 crée_identifier :: fonc (parseuse: *Parseuse, lexème: *Lexème, nom: ECMAString) -> *Identifier
 {
     résultat := parseuse.crée_noeud(lexème, Identifier)
+    résultat.sur_génération_code_binaire = identifier_sur_code_binaire
     résultat.nom = nom
     retourne résultat
 }
@@ -626,6 +627,11 @@ donne_chaine_primitive :: fonc (identifier: *Identifier, realm: *Realm) -> *Prim
     }
 
     retourne realm.chaines[identifier.index_chaine_en_cache]
+}
+
+identifier_sur_code_binaire :: fonc (noeud: *Identifier, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    retourne génératrice.crée_charge_locale(noeud.nom)
 }
 
 /** \} */
@@ -1933,6 +1939,7 @@ AssignmentExpression :: struct {
 crée_assignment_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, opération: AssignmentOperation, gauche: *Expression, droite: *Expression) -> *AssignmentExpression
 {
     résultat := parseuse.crée_noeud(lexème, AssignmentExpression)
+    résultat.sur_génération_code_binaire = assignment_expression_sur_code_binaire
     résultat.opération = opération
     résultat.gauche = gauche
     résultat.droite = droite
@@ -1956,6 +1963,19 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
         retourne évalue_logical_and_assignemnt(noeud, interpréteuse)
     }
     retourne évalue_assignement_opéré(noeud, interpréteuse)
+}
+
+assignment_expression_sur_code_binaire :: fonc (noeud: *AssignmentExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    assert(noeud.opération == AssignmentOperation.Assigne)
+    assert(noeud.gauche.type == Identifier)
+
+    opt_reg := génère_code_binaire(génératrice, noeud.droite)
+    assert(opt_reg.possède_valeur())
+
+    nom := (noeud.gauche comme *Identifier).nom
+    _ := génératrice.crée_définis_locale(nom, opt_reg.Quelque)
+    retourne opt_reg
 }
 
 évalue_assignement_simple :: fonc (noeud: *AssignmentExpression, interpréteuse: *Interpréteuse) -> CompletionRecord

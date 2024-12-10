@@ -131,6 +131,26 @@ InstructionDéfinisLocale :: struct {
 
     nom: ECMAString
     src: Registre
+
+    index_chaine_en_cache : z32 = -1
+}
+
+donne_chaine_primitive :: fonc (instruction: *InstructionDéfinisLocale, realm: *Realm) -> *PrimitiveChaine
+{
+    si instruction.index_chaine_en_cache == -1 {
+        pour realm.chaines {
+            si it.texte == instruction.nom {
+                instruction.index_chaine_en_cache = index_it comme z32
+                retourne it
+            }
+        }
+
+        résultat := realm.crée_chaine(instruction.nom)
+        instruction.index_chaine_en_cache = realm.chaines.taille comme z32 - 1
+        retourne résultat
+    }
+
+    retourne realm.chaines[instruction.index_chaine_en_cache]
 }
 
 InstructionChargeLocale :: struct {
@@ -139,6 +159,26 @@ InstructionChargeLocale :: struct {
 
     dst: Registre
     nom: ECMAString
+
+    index_chaine_en_cache : z32 = -1
+}
+
+donne_chaine_primitive :: fonc (instruction: *InstructionChargeLocale, realm: *Realm) -> *PrimitiveChaine
+{
+    si instruction.index_chaine_en_cache == -1 {
+        pour realm.chaines {
+            si it.texte == instruction.nom {
+                instruction.index_chaine_en_cache = index_it comme z32
+                retourne it
+            }
+        }
+
+        résultat := realm.crée_chaine(instruction.nom)
+        instruction.index_chaine_en_cache = realm.chaines.taille comme z32 - 1
+        retourne résultat
+    }
+
+    retourne realm.chaines[instruction.index_chaine_en_cache]
 }
 
 InstructionDéfinisMembre :: struct {
@@ -219,6 +259,23 @@ crée_ajoute :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre
     retourne dst
 }
 
+crée_définis_locale :: fonc (génératrice: &GénératriceCodeBinaire, nom: ECMAString, src: Registre) -> Registre
+{
+    résultat := génératrice.crée_instruction(InstructionDéfinisLocale)
+    résultat.nom = nom
+    résultat.src = src
+    retourne Registre(-1 comme n32) // À FAIRE : Optionnel(Registre)
+}
+
+crée_charge_locale :: fonc (génératrice: &GénératriceCodeBinaire, nom: ECMAString) -> Registre
+{
+    dst := génératrice.alloue_registre()
+    résultat := génératrice.crée_instruction(InstructionChargeLocale)
+    résultat.dst = dst
+    résultat.nom = nom
+    retourne dst
+}
+
 alloue_registre :: fonc (empl génératrice: &GénératriceCodeBinaire) -> Registre
 {
     résultat := Registre(flux.registres)
@@ -233,13 +290,8 @@ alloue_registre :: fonc (empl génératrice: &GénératriceCodeBinaire) -> Regis
  * \{ */
 
 InterprèteCodeBinaire :: struct {
+    empl base: Interpréteuse
     registres: [..]Valeur
-    realm: *Realm
-}
-
-donne_realm :: fonc (interprète: *InterprèteCodeBinaire) -> *Realm
-{
-    retourne interprète.realm
 }
 
 interprète_code_binaire :: fonc (mv: *MachineVirtuelle, noeud: *NoeudScript) -> CompletionRecord
@@ -285,6 +337,40 @@ interprète_code_binaire :: fonc (mv: *MachineVirtuelle, noeud: *NoeudScript) ->
                 }
 
                 interprète.registres[crée_chaine.dst] = Valeur(String = chn)
+            }
+            InstructionDéfinisLocale {
+                définis_locale := it comme *InstructionDéfinisLocale
+                realm := donne_realm(*interprète)
+
+                résultat := resolve_binding(*interprète, définis_locale.donne_chaine_primitive(realm))
+                saufsi résultat.est_normal() {
+                    retourne résultat
+                }
+
+                // À FAIRE
+                // référence := résultat.valeur.R
+                // noeud.coordonnée = référence.coordonnée
+
+                valeur := interprète.registres[définis_locale.src]
+                completion_assignment := put_value(*interprète, résultat.valeur, valeur)
+                saufsi completion_assignment.est_normal() {
+                    retourne completion_assignment
+                }
+            }
+            InstructionChargeLocale {
+                charge_locale := it comme *InstructionChargeLocale
+                realm := donne_realm(*interprète)
+
+                résultat := resolve_binding(*interprète, charge_locale.donne_chaine_primitive(realm))
+                saufsi résultat.est_normal() {
+                    retourne résultat
+                }
+
+                completion_rval := get_value(*interprète, résultat.valeur)
+                saufsi completion_rval.est_normal() {
+                    retourne completion_rval
+                }
+                interprète.registres[charge_locale.dst] = completion_rval.valeur.V
             }
             sinon {
                 imprime("intruction inconnue!\n")
