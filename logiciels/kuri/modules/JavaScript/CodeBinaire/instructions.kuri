@@ -79,17 +79,17 @@ imprime_instruction :: fonc (instruction: *Instruction, index: z64)
     pour infos.membres {
         si it.id == info_de(ECMAString) {
             valeur := (pointeur_membre + it.décalage) comme *ECMAString
-            imprime("%% %", virgule, it.nom, mémoire(valeur))
+            imprime("%%", virgule, mémoire(valeur))
             virgule = ", "
         }
         sinon si it.id == info_de(Registre) {
             valeur := (pointeur_membre + it.décalage) comme *Registre
-            imprime("%% %", virgule, it.nom, mémoire(valeur))
+            imprime("%r:%", virgule, mémoire(valeur))
             virgule = ", "
         }
         sinon si it.id == info_de(Valeur) {
             valeur := (pointeur_membre + it.décalage) comme *Valeur
-            imprime("%% %", virgule, it.nom, mémoire(valeur))
+            imprime("%%", virgule, mémoire(valeur))
             virgule = ", "
         }
     }
