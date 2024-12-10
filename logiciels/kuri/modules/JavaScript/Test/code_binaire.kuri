@@ -79,7 +79,7 @@ exécute_script :: fonc (realm: *Realm, source: chaine) -> bool
 
     imprime_instructions(flux)
 
-    interprète_code_binaire(flux)
+    interprète_code_binaire(realm, flux)
 
     retourne vrai
 }

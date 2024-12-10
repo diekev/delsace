@@ -1661,6 +1661,7 @@ StringLiteral :: struct {
 crée_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème, valeur: ECMAString) -> *StringLiteral
 {
     résultat := parseuse.crée_noeud(lexème, StringLiteral)
+    résultat.sur_génération_code_binaire = string_literal_sur_code_binaire
     résultat.valeur = valeur
     retourne résultat
 }
@@ -1687,6 +1688,11 @@ sur_exécution_string_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: *
     }
 
     retourne normal_completion(chn)
+}
+
+string_literal_sur_code_binaire :: fonc (noeud: *StringLiteral, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    retourne génératrice.crée_crée_chaine(noeud.valeur)
 }
 
 /** \} */
