@@ -580,6 +580,13 @@ initialise_interpréteuse :: fonc (interpréteuse: *Interpréteuse @inutilisée)
 {
 }
 
+interprète_arbre :: fonc (machine_virtuelle: *MachineVirtuelle, noeud: *NoeudScript) -> CompletionRecord
+{
+    interpréteuse: Interpréteuse
+    interpréteuse.mv = machine_virtuelle
+    retourne exécute(*interpréteuse, noeud)
+}
+
 exécute :: fonc (interpréteuse: *Interpréteuse, noeud: *NoeudSyntaxique) -> CompletionRecord
 {
     si noeud.type == NoeudScript {
