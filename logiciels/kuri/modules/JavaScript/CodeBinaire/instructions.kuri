@@ -318,8 +318,11 @@ interprète_code_binaire :: fonc (mv: *MachineVirtuelle, noeud: *NoeudScript) ->
                 gauche := interprète.registres[inst_ajout.gch]
                 droite := interprète.registres[inst_ajout.drt]
 
-                résultat := number_add(gauche, droite)
-                interprète.registres[inst_ajout.dst] = résultat
+                completion := apply_string_or_numeric_binary_operator(*interprète, BinaryOperation.Plus, gauche, droite)
+                saufsi completion.est_normal() {
+                    retourne completion
+                }
+                interprète.registres[inst_ajout.dst] = completion.valeur.V
             }
             InstructionCréeChaine {
                 crée_chaine := it comme *InstructionCréeChaine
