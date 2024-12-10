@@ -12,6 +12,7 @@ NoeudSyntaxique :: struct {
     lexème: *Lexème
 
     sur_exécution: fonc(*NoeudSyntaxique, *Interpréteuse)(CompletionRecord)
+    sur_génération_code_binaire: fonc(*NoeudSyntaxique, &GénératriceCodeBinaire)(Optionnel(Registre))
 }
 
 exécute_noeud :: fonc (noeud: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
@@ -182,7 +183,13 @@ crée_script :: fonc (parseuse: *Parseuse, script_body: *ScriptBody) -> *NoeudSc
 {
     résultat := parseuse.crée_noeud(nul, NoeudScript)
     résultat.script_body = script_body
+    résultat.sur_génération_code_binaire = noeud_script_sur_code_binaire
     retourne résultat
+}
+
+noeud_script_sur_code_binaire :: fonc (noeud: *NoeudScript, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    retourne génère_code_binaire(génératrice, noeud.script_body)
 }
 
 /** \} */
@@ -200,6 +207,18 @@ crée_script_body :: fonc (parseuse: *Parseuse, expressions: [..]*Statement) -> 
 {
     résultat := parseuse.crée_noeud(nul, ScriptBody)
     résultat.enfants = expressions
+    résultat.sur_génération_code_binaire = noeud_script_body_sur_code_binaire
+    retourne résultat
+}
+
+noeud_script_body_sur_code_binaire :: fonc (noeud: *ScriptBody, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    résultat: Optionnel(Registre)
+
+    pour noeud.enfants {
+        résultat = génère_code_binaire(génératrice, it)
+    }
+
     retourne résultat
 }
 
@@ -278,6 +297,7 @@ crée_expression_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, expr
 {
     résultat := parseuse.crée_noeud(lexème, ExpressionStatement)
     résultat.expression = expression
+    résultat.sur_génération_code_binaire = expression_statement_sur_code_binaire
     retourne résultat
 }
 
@@ -297,6 +317,11 @@ sur_exécution_expression_statement :: fonc (base: *NoeudSyntaxique, interpréte
     retourne get_value(interpréteuse, expr_ref)
 }
 
+expression_statement_sur_code_binaire :: fonc (statement: *ExpressionStatement, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    retourne génère_code_binaire(génératrice, statement.expression)
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -307,6 +332,7 @@ EmptyStatement :: struct {
     empl statement: Statement
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_empty_statement
+    sur_génération_code_binaire = empty_statement_sur_code_binaire
 }
 
 crée_empty_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *EmptyStatement
@@ -318,6 +344,11 @@ sur_exécution_empty_statement :: fonc (base: *NoeudSyntaxique @inutilisée, int
 {
     // 1. Return empty.
     retourne normal_completion(js_undefined)
+}
+
+empty_statement_sur_code_binaire :: fonc (statement: *NoeudSyntaxique @inutilisée, génératrice: &GénératriceCodeBinaire @inutilisée) -> Optionnel(Registre)
+{
+    retourne
 }
 
 /** \} */
@@ -1092,6 +1123,7 @@ BinaryExpression :: struct {
 crée_binary_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, opération: BinaryOperation, gauche: *Expression, droite: *Expression) -> *BinaryExpression
 {
     résultat := parseuse.crée_noeud(lexème, BinaryExpression)
+    résultat.sur_génération_code_binaire = binary_expression_sur_code_binaire
     résultat.opération = opération
     résultat.gauche = gauche
     résultat.droite = droite
@@ -1239,6 +1271,21 @@ apply_string_or_numeric_binary_operator :: fonc (interpréteuse: *Interpréteuse
     }
 
     retourne normal_completion(valeur)
+}
+
+binary_expression_sur_code_binaire :: fonc (expression: *BinaryExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    opt_reg_gauche := génère_code_binaire(génératrice, expression.gauche)
+    opt_reg_droite := génère_code_binaire(génératrice, expression.droite)
+
+    assert(opt_reg_gauche.possède_valeur())
+    assert(opt_reg_droite.possède_valeur())
+
+    si expression.opération == BinaryOperation.Plus {
+        retourne génératrice.crée_ajoute(opt_reg_gauche.Quelque, opt_reg_droite.Quelque)
+    }
+
+    retourne
 }
 
 /** \} */
@@ -1518,6 +1565,7 @@ NumericLiteral :: struct {
 crée_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème, valeur: r64) -> *NumericLiteral
 {
     résultat := parseuse.crée_noeud(lexème, NumericLiteral)
+    résultat.sur_génération_code_binaire = numeric_literal_sur_code_binaire
     résultat.valeur = valeur
     retourne résultat
 }
@@ -1526,6 +1574,11 @@ sur_exécution_numeric_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: 
 {
     noeud := base comme *NumericLiteral
     retourne normal_completion(Valeur(Number = noeud.valeur))
+}
+
+numeric_literal_sur_code_binaire :: fonc (noeud: *NumericLiteral, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    retourne génératrice.crée_charge(Valeur(Number = noeud.valeur))
 }
 
 /** \} */
@@ -1545,6 +1598,7 @@ BooleanLiteral :: struct {
 crée_boolean_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème, valeur: bool) -> *BooleanLiteral
 {
     résultat := parseuse.crée_noeud(lexème, BooleanLiteral)
+    résultat.sur_génération_code_binaire = boolean_literal_sur_code_binaire
     résultat.valeur = valeur
     retourne résultat
 }
@@ -1553,6 +1607,11 @@ sur_exécution_boolean_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: 
 {
     noeud := base comme *BooleanLiteral
     retourne normal_completion(Valeur(Boolean = noeud.valeur))
+}
+
+boolean_literal_sur_code_binaire :: fonc (noeud: *BooleanLiteral, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    retourne génératrice.crée_charge(Valeur(Boolean = noeud.valeur))
 }
 
 /** \} */
@@ -1570,12 +1629,18 @@ NullLiteral :: struct {
 crée_null_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *NullLiteral
 {
     résultat := parseuse.crée_noeud(lexème, NullLiteral)
+    résultat.sur_génération_code_binaire = null_literal_sur_code_binaire
     retourne résultat
 }
 
 sur_exécution_null_literal :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *Interpréteuse @inutilisée) -> CompletionRecord
 {
     retourne normal_completion(js_null)
+}
+
+null_literal_sur_code_binaire :: fonc (noeud: *NullLiteral @inutilisée, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    retourne génératrice.crée_charge(js_null)
 }
 
 /** \} */

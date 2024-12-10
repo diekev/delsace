@@ -158,6 +158,17 @@ GénératriceCodeBinaire :: struct {
     flux: *FluxDInstructions
 }
 
+génère_code_binaire :: fonc (génératrice: &GénératriceCodeBinaire, noeud: *NoeudSyntaxique) -> Optionnel(Registre)
+{
+    saufsi noeud.sur_génération_code_binaire {
+        infos := donne_info_pour_type_noeud(noeud)
+        imprime("[%] noeud non-supporté : %\n", #nom_de_cette_fonction, infos.nom)
+        retourne
+    }
+
+    retourne noeud.sur_génération_code_binaire(noeud, génératrice)
+}
+
 crée_instruction :: fonc (génératrice: &GénératriceCodeBinaire, $T: type_de_données) -> *T
 {
     flux := génératrice.flux
