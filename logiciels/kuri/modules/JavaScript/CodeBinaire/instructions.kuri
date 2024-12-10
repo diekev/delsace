@@ -242,10 +242,17 @@ donne_realm :: fonc (interprète: *InterprèteCodeBinaire) -> *Realm
     retourne interprète.realm
 }
 
-interprète_code_binaire :: fonc (realm_: *Realm, flux: *FluxDInstructions)
+interprète_code_binaire :: fonc (mv: *MachineVirtuelle, noeud: *NoeudScript) -> CompletionRecord
 {
+    flux := loge(FluxDInstructions)
+    génératrice := GénératriceCodeBinaire(flux)
+
+    _ := génère_code_binaire(génératrice, noeud)
+
+    imprime_instructions(flux)
+
     interprète: InterprèteCodeBinaire
-    interprète.realm = realm_
+    interprète.mv = mv
     tableau_redimensionne(interprète.registres, flux.registres comme z64)
 
     pour ItéractriceInstruction(flux) {
@@ -287,6 +294,7 @@ interprète_code_binaire :: fonc (realm_: *Realm, flux: *FluxDInstructions)
     }
 
     imprime_registres(*interprète)
+    retourne normal_completion(js_undefined)
 }
 
 imprime_registres :: fonc (interprète: *InterprèteCodeBinaire)

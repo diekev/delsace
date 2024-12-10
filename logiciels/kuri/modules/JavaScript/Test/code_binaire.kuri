@@ -32,6 +32,7 @@ principale :: fonc () -> z32
     diffère déloge(contenu)
 
     mv: MachineVirtuelle
+    mv.utilise_code_binaire = vrai
     diffère détruit_données_mv(*mv)
     initialise_mv(nul, *mv)
 
@@ -68,20 +69,13 @@ exécute_script :: fonc (realm: *Realm, source: chaine) -> bool
         }
     }
 
-    flux := loge(FluxDInstructions)
-    génératrice := GénératriceCodeBinaire(flux)
+    résultat := script_evaluation(script)
+    si résultat.est_normal() {
+        retourne vrai
+    }
 
-    _ := génère_code_binaire(génératrice, script.ecma_script_code)
-
-    // reg_gauche := génératrice.crée_charge(Valeur(Number = 1.0))
-    // reg_droite := génératrice.crée_charge(Valeur(Number = 2.0))
-    // _ := génératrice.crée_ajoute(reg_gauche, reg_droite)
-
-    imprime_instructions(flux)
-
-    interprète_code_binaire(realm, flux)
-
-    retourne vrai
+    imprime("%\n", résultat)
+    retourne faux
 }
 
 crée_propriétés_hôte_objet_global :: fonc (base: *ConfigurationRealm @inutilisée, global: *Object)

@@ -580,6 +580,15 @@ initialise_interpréteuse :: fonc (interpréteuse: *Interpréteuse @inutilisée)
 {
 }
 
+interprète_script :: fonc (machine_virtuelle: *MachineVirtuelle, noeud: *NoeudScript) -> CompletionRecord
+{
+    si machine_virtuelle.utilise_code_binaire {
+        retourne interprète_code_binaire(machine_virtuelle, noeud)
+    }
+
+    retourne interprète_arbre(machine_virtuelle, noeud)
+}
+
 interprète_arbre :: fonc (machine_virtuelle: *MachineVirtuelle, noeud: *NoeudScript) -> CompletionRecord
 {
     interpréteuse: Interpréteuse

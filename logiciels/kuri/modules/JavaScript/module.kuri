@@ -95,6 +95,7 @@ MachineVirtuelle :: struct {
     tas_de_mémoire: TasDeMémoire
     hôte: *Hôte
     execution_contexts: [..]*ExecutionContext
+    utilise_code_binaire: bool
 }
 
 initialise_mv :: fonc (hôte: *Hôte, mv: *MachineVirtuelle)

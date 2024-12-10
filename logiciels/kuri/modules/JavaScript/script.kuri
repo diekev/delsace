@@ -202,7 +202,7 @@ script_evaluation :: fonc (script_record: *Script) -> CompletionRecord
     // 13. If result is a normal completion, then
     si résultat.est_normal() {
         // a. Set result to Completion(Evaluation of script).
-        résultat = interprète_arbre(mv, script)
+        résultat = interprète_script(mv, script)
 
         // À FAIRE : b. If result is a normal completion and result.[[Value]] is EMPTY, then
         // i. Set result to NormalCompletion(undefined).
