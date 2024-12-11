@@ -352,6 +352,29 @@ identifier_sur_code_binaire :: fonc (noeud: *Identifier, génératrice: &Génér
     retourne génératrice.crée_charge_locale(noeud.nom)
 }
 
+if_statement_sur_code_binaire :: fonc (noeud: *IfStatement, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    reg_opt_test := génératrice.génère_code_binaire(noeud.test)
+    assert(reg_opt_test.possède_valeur())
+
+    branche_si_vrai := génératrice.crée_branche_si_vrai(reg_opt_test.Quelque)
+    branche_si_faux := génératrice.crée_branche_si_faux(reg_opt_test.Quelque)
+
+    décalage := génératrice.donne_décalage()
+    génératrice.définis_décalage_branche(branche_si_vrai, décalage)
+
+    _ := génératrice.génère_code_binaire(noeud.consequent)
+
+    décalage = génératrice.donne_décalage()
+    génératrice.définis_décalage_branche(branche_si_faux, décalage)
+
+    si noeud.alternate {
+        _ := génératrice.génère_code_binaire(noeud.alternate)
+    }
+
+    retourne génératrice.crée_charge(js_undefined)
+}
+
 membre_expression_sur_code_binaire :: fonc (noeud: *MemberExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
 {
     assert(noeud.calculé == faux)

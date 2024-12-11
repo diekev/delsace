@@ -3243,6 +3243,7 @@ IfStatement :: struct {
 crée_if_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, test: *Expression, consequent: *Statement, alternate: *Statement) -> *IfStatement
 {
     résultat := parseuse.crée_noeud(lexème, IfStatement)
+    résultat.sur_génération_code_binaire = if_statement_sur_code_binaire
     résultat.test = test
     résultat.consequent = consequent
     résultat.alternate = alternate
