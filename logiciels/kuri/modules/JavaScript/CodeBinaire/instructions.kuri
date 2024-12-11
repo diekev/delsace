@@ -142,49 +142,37 @@ InstructionCréeChaine :: struct {
     index_chaine : z64 = -1
 }
 
-InstructionAjoute :: struct {
+InstructionExpressionBinaire :: struct {
     empl inst: Instruction
-    type = #type_de_cette_structure
 
     dst: Registre
     gch: Registre
     drt: Registre
+}
+
+InstructionAjoute :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
 }
 
 InstructionSoustrait :: struct {
-    empl inst: Instruction
+    empl inst_binaire: InstructionExpressionBinaire
     type = #type_de_cette_structure
-
-    dst: Registre
-    gch: Registre
-    drt: Registre
 }
 
 InstructionRelationInférieure :: struct {
-    empl inst: Instruction
+    empl inst_binaire: InstructionExpressionBinaire
     type = #type_de_cette_structure
-
-    dst: Registre
-    gch: Registre
-    drt: Registre
 }
 
 InstructionComparaisonÉgal :: struct {
-    empl inst: Instruction
+    empl inst_binaire: InstructionExpressionBinaire
     type = #type_de_cette_structure
-
-    dst: Registre
-    gch: Registre
-    drt: Registre
 }
 
 InstructionComparaisonInégal :: struct {
-    empl inst: Instruction
+    empl inst_binaire: InstructionExpressionBinaire
     type = #type_de_cette_structure
-
-    dst: Registre
-    gch: Registre
-    drt: Registre
 }
 
 InstructionDéfinisLocale :: struct {
@@ -346,54 +334,39 @@ crée_crée_chaine :: fonc (génératrice: &GénératriceCodeBinaire, chn: ECMAS
     retourne dst
 }
 
-crée_ajoute :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre, droite: Registre) -> Registre
+crée_expression_binaire :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre, droite: Registre, $T: type_de_données) -> Registre
 {
     dst := génératrice.alloue_registre()
-    ajout := génératrice.crée_instruction(InstructionAjoute)
+    ajout := génératrice.crée_instruction(T)
     ajout.dst = dst
     ajout.gch = gauche
     ajout.drt = droite
     retourne dst
+}
+
+crée_ajoute :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre, droite: Registre) -> Registre
+{
+    retourne crée_expression_binaire(génératrice, gauche, droite, InstructionAjoute)
 }
 
 crée_soustrait :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre, droite: Registre) -> Registre
 {
-    dst := génératrice.alloue_registre()
-    ajout := génératrice.crée_instruction(InstructionSoustrait)
-    ajout.dst = dst
-    ajout.gch = gauche
-    ajout.drt = droite
-    retourne dst
+    retourne crée_expression_binaire(génératrice, gauche, droite, InstructionSoustrait)
 }
 
 crée_relation_inférieure :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre, droite: Registre) -> Registre
 {
-    dst := génératrice.alloue_registre()
-    ajout := génératrice.crée_instruction(InstructionRelationInférieure)
-    ajout.dst = dst
-    ajout.gch = gauche
-    ajout.drt = droite
-    retourne dst
+    retourne crée_expression_binaire(génératrice, gauche, droite, InstructionRelationInférieure)
 }
 
 crée_comparaison_égal :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre, droite: Registre) -> Registre
 {
-    dst := génératrice.alloue_registre()
-    ajout := génératrice.crée_instruction(InstructionComparaisonÉgal)
-    ajout.dst = dst
-    ajout.gch = gauche
-    ajout.drt = droite
-    retourne dst
+    retourne crée_expression_binaire(génératrice, gauche, droite, InstructionComparaisonÉgal)
 }
 
 crée_comparaison_inégal :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre, droite: Registre) -> Registre
 {
-    dst := génératrice.alloue_registre()
-    ajout := génératrice.crée_instruction(InstructionComparaisonInégal)
-    ajout.dst = dst
-    ajout.gch = gauche
-    ajout.drt = droite
-    retourne dst
+    retourne crée_expression_binaire(génératrice, gauche, droite, InstructionComparaisonInégal)
 }
 
 crée_définis_locale :: fonc (génératrice: &GénératriceCodeBinaire, nom: ECMAString, src: Registre) -> Registre
