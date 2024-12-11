@@ -2836,6 +2836,7 @@ ContinueStatement :: struct {
 crée_continue_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, target: *Expression) -> *ContinueStatement
 {
     résultat := parseuse.crée_noeud(lexème, ContinueStatement)
+    résultat.sur_génération_code_binaire = continue_statement_sur_code_binaire
     résultat.target = target
     retourne résultat
 }
@@ -2877,6 +2878,7 @@ BreakStatement :: struct {
 crée_break_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, target: *Expression) -> *BreakStatement
 {
     résultat := parseuse.crée_noeud(lexème, BreakStatement)
+    résultat.sur_génération_code_binaire = break_statement_sur_code_binaire
     résultat.target = target
     retourne résultat
 }

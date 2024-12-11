@@ -326,6 +326,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
     génératrice := GénératriceCodeBinaire(flux)
 
     _ := génère_code_binaire(génératrice, noeud)
+    applique_patchs(génératrice)
 
     imprime_instructions(flux)
 

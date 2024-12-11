@@ -4,8 +4,27 @@ importe Fondation
 /** \nom GénératriceCodeBinaire
  * \{ */
 
+Label :: struct {
+    id: n32
+    décalage: DécalageBranche
+}
+
+LabelsBoucle :: struct {
+    id_label_continue: n32
+    id_label_break: n32
+}
+
+PatchLabelBranche :: struct {
+    label: n32
+    branche: IndexBranche
+}
+
 GénératriceCodeBinaire :: struct {
     flux: *FluxDInstructions
+
+    labels: [..]Label
+    labels_boucle: [..]LabelsBoucle
+    patchs_labels_branches: [..]PatchLabelBranche
 }
 
 génère_code_binaire :: fonc (génératrice: &GénératriceCodeBinaire, noeud: *NoeudSyntaxique) -> Optionnel(Registre)
@@ -17,6 +36,52 @@ génère_code_binaire :: fonc (génératrice: &GénératriceCodeBinaire, noeud: 
     }
 
     retourne noeud.sur_génération_code_binaire(noeud, génératrice)
+}
+
+crée_label :: fonc (génératrice: &GénératriceCodeBinaire) -> Label
+{
+    résultat: Label = ---
+    résultat.id = génératrice.labels.taille comme n32
+    tableau_ajoute(*génératrice.labels, résultat)
+    retourne résultat
+}
+
+insère_label :: fonc (génératrice: &GénératriceCodeBinaire, label: Label)
+{
+    génératrice.labels[label.id].décalage = génératrice.donne_décalage()
+}
+
+empile_labels_boucle :: fonc (génératrice: &GénératriceCodeBinaire, label_continue: Label, label_break: Label)
+{
+    labels: LabelsBoucle
+    labels.id_label_continue = label_continue.id
+    labels.id_label_break = label_break.id
+    tableau_ajoute(*génératrice.labels_boucle, labels)
+}
+
+dépile_labels_boucle :: fonc (génératrice: &GénératriceCodeBinaire)
+{
+    génératrice.labels_boucle.taille -= 1
+}
+
+donne_labels_boucle_courante :: fonc (génératrice: &GénératriceCodeBinaire) -> LabelsBoucle
+{
+    retourne génératrice.labels_boucle[génératrice.labels_boucle.taille - 1]
+}
+
+ajoute_patch_label_branche :: fonc (génératrice: &GénératriceCodeBinaire, label: n32, branche: IndexBranche)
+{
+    patch := tableau_ajoute_élément(*génératrice.patchs_labels_branches)
+    patch.label = label
+    patch.branche = branche
+}
+
+applique_patchs :: fonc (génératrice: &GénératriceCodeBinaire)
+{
+    pour génératrice.patchs_labels_branches {
+        label := génératrice.labels[it.label]
+        génératrice.définis_décalage_branche(it.branche, label.décalage)
+    }
 }
 
 donne_décalage :: fonc (génératrice: &GénératriceCodeBinaire) -> DécalageBranche
@@ -286,6 +351,14 @@ boolean_literal_sur_code_binaire :: fonc (noeud: *BooleanLiteral, génératrice:
     retourne génératrice.crée_charge(Valeur(Boolean = noeud.valeur))
 }
 
+break_statement_sur_code_binaire :: fonc (statement: *BreakStatement, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    assert(statement.target == nul)
+    label := génératrice.donne_labels_boucle_courante().id_label_break
+    branche := génératrice.crée_branche()
+    génératrice.ajoute_patch_label_branche(label, branche)
+}
+
 call_expression_sur_code_binaire :: fonc (noeud: *CallExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
 {
     assert(noeud.appelé.type != CallExpression)
@@ -307,17 +380,34 @@ call_expression_sur_code_binaire :: fonc (noeud: *CallExpression, génératrice:
     retourne génératrice.crée_appel(reg_opt_func.Quelque, this_value, registres_arguments)
 }
 
+continue_statement_sur_code_binaire :: fonc (statement: *ContinueStatement, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    assert(statement.target == nul)
+    label := génératrice.donne_labels_boucle_courante().id_label_continue
+    branche := génératrice.crée_branche()
+    génératrice.ajoute_patch_label_branche(label, branche)
+}
+
 do_while_statement_sur_code_binaire :: fonc (noeud: *DoWhileStatement, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
 {
     décalage := génératrice.donne_décalage()
+    label_continue := génératrice.crée_label()
+
+    label_break := génératrice.crée_label()
+
+    génératrice.empile_labels_boucle(label_continue, label_break)
+    diffère génératrice.dépile_labels_boucle()
 
     _ := génératrice.génère_code_binaire(noeud.body)
+
+    génératrice.insère_label(label_continue)
 
     reg_opt_test := génératrice.génère_code_binaire(noeud.test)
     assert(reg_opt_test.possède_valeur())
 
     branche_test := génératrice.crée_branche_si_vrai(reg_opt_test.Quelque)
     génératrice.définis_décalage_branche(branche_test, décalage)
+    génératrice.insère_label(label_break)
 
     retourne génératrice.crée_charge(js_undefined)
 }
@@ -472,6 +562,13 @@ string_literal_sur_code_binaire :: fonc (noeud: *StringLiteral, génératrice: &
 while_statement_sur_code_binaire :: fonc (noeud: *WhileStatement, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
 {
     décalage := génératrice.donne_décalage()
+    label_continue := génératrice.crée_label()
+    génératrice.insère_label(label_continue)
+
+    label_break := génératrice.crée_label()
+
+    génératrice.empile_labels_boucle(label_continue, label_break)
+    diffère génératrice.dépile_labels_boucle()
 
     reg_opt_test := génératrice.génère_code_binaire(noeud.test)
     assert(reg_opt_test.possède_valeur())
@@ -484,6 +581,7 @@ while_statement_sur_code_binaire :: fonc (noeud: *WhileStatement, génératrice:
 
     décalage = génératrice.donne_décalage()
     génératrice.définis_décalage_branche(branche_test, décalage)
+    génératrice.insère_label(label_break)
 
     retourne génératrice.crée_charge(js_undefined)
 }
