@@ -2017,13 +2017,29 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
 assignment_expression_sur_code_binaire :: fonc (noeud: *AssignmentExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
 {
     assert(noeud.opération == AssignmentOperation.Assigne)
-    assert(noeud.gauche.type == Identifier)
 
     opt_reg := génère_code_binaire(génératrice, noeud.droite)
     assert(opt_reg.possède_valeur())
 
-    nom := (noeud.gauche comme *Identifier).nom
-    _ := génératrice.crée_définis_locale(nom, opt_reg.Quelque)
+    si noeud.gauche.type == Identifier {
+        nom := (noeud.gauche comme *Identifier).nom
+        _ := génératrice.crée_définis_locale(nom, opt_reg.Quelque)
+    }
+    sinon si noeud.gauche.type == MemberExpression {
+        membre := noeud.gauche comme *MemberExpression
+        assert(!membre.calculé)
+
+        opt_reg_objet := génératrice.génère_code_binaire(membre.objet)
+
+        assert(membre.propriété.type == Identifier)
+        identifier := membre.propriété comme *Identifier
+
+        génératrice.crée_définis_membre(opt_reg_objet.Quelque, identifier.nom, opt_reg.Quelque)
+    }
+    sinon {
+        panique("non-implémenté")
+    }
+
     retourne opt_reg
 }
 
