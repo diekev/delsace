@@ -108,18 +108,16 @@ InstructionBranche :: struct {
 }
 
 InstructionBrancheSiFaux :: struct {
-    empl inst: Instruction
+    empl inst_branche: InstructionBranche
     type = #type_de_cette_structure
 
-    décalage: DécalageBranche
     reg: Registre
 }
 
 InstructionBrancheSiVrai :: struct {
-    empl inst: Instruction
+    empl inst_branche: InstructionBranche
     type = #type_de_cette_structure
 
-    décalage: DécalageBranche
     reg: Registre
 }
 
