@@ -609,14 +609,14 @@ exécute_arbre :: fonc (interpréteuse: *Interpréteuse, noeud: *NoeudSyntaxique
         retourne exécute(script, interpréteuse)
     }
 
+    ctx := interpréteuse.donne_running_execution_context()
+    interpréteuse.noeud_exécuté_courant = *ctx.noeud_exécuté_courant
+
     si noeud.type != NoeudScope && noeud.type != ScriptBody && noeud.type != BlockStatement {
         retourne exécute_noeud(noeud, interpréteuse)
     }
 
     résultat := normal_completion(js_undefined)
-
-    ctx := interpréteuse.donne_running_execution_context()
-    interpréteuse.noeud_exécuté_courant = *ctx.noeud_exécuté_courant
 
     scope := noeud comme *NoeudScope
 
