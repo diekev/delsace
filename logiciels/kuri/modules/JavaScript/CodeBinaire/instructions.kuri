@@ -115,6 +115,14 @@ InstructionBrancheSiFaux :: struct {
     reg: Registre
 }
 
+InstructionBrancheSiVrai :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    décalage: DécalageBranche
+    reg: Registre
+}
+
 InstructionCharge :: struct {
     empl inst: Instruction
     type = #type_de_cette_structure
@@ -285,6 +293,14 @@ crée_branche_si_faux :: fonc (génératrice: &GénératriceCodeBinaire, registr
     retourne IndexBranche(résultat comme z64)
 }
 
+crée_branche_si_vrai :: fonc (génératrice: &GénératriceCodeBinaire, registre: Registre) -> IndexBranche
+{
+    résultat := génératrice.donne_décalage()
+    branche := génératrice.crée_instruction(InstructionBrancheSiVrai)
+    branche.reg = registre
+    retourne IndexBranche(résultat comme z64)
+}
+
 crée_charge :: fonc (génératrice: &GénératriceCodeBinaire, valeur: Valeur) -> Registre
 {
     dst := génératrice.alloue_registre()
@@ -391,6 +407,16 @@ interprète_code_binaire :: fonc (mv: *MachineVirtuelle, noeud: *NoeudScript) ->
                 valeur := interprète.registres[branche.reg]
 
                 si est_false(valeur) {
+                    courant = début + branche.décalage comme z64
+                    continue
+                }
+            }
+            InstructionBrancheSiVrai {
+                branche := it comme *InstructionBrancheSiVrai
+
+                valeur := interprète.registres[branche.reg]
+
+                si est_true(valeur) {
                     courant = début + branche.décalage comme z64
                     continue
                 }
