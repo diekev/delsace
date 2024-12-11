@@ -351,6 +351,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 branche := it comme *InstructionBrancheSiFaux
 
                 valeur := interprète.registres[branche.reg]
+                valeur = to_boolean(valeur)
 
                 si est_false(valeur) {
                     courant = début + branche.décalage comme z64
@@ -361,6 +362,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 branche := it comme *InstructionBrancheSiVrai
 
                 valeur := interprète.registres[branche.reg]
+                valeur = to_boolean(valeur)
 
                 si est_true(valeur) {
                     courant = début + branche.décalage comme z64
