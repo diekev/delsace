@@ -348,6 +348,7 @@ FunctionDeclaration :: struct {
 crée_function_déclaration :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *Identifier, params: [..]*Expression, corps: *FunctionBody) -> *FunctionDeclaration
 {
     résultat := parseuse.crée_noeud(lexème, FunctionDeclaration)
+    résultat.sur_génération_code_binaire = function_declaration_sur_code_binaire
     résultat.id = id
     résultat.corps = corps
     résultat.params = params

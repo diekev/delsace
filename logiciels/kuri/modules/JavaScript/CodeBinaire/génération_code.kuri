@@ -282,6 +282,12 @@ expression_statement_sur_code_binaire :: fonc (statement: *ExpressionStatement, 
     retourne génère_code_binaire(génératrice, statement.expression)
 }
 
+function_declaration_sur_code_binaire :: fonc (noeud: *FunctionDeclaration @inutilisée, génératrice: &GénératriceCodeBinaire @inutilisée) -> Optionnel(Registre)
+{
+    // 1. Return empty.
+    retourne
+}
+
 identifier_sur_code_binaire :: fonc (noeud: *Identifier, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
 {
     retourne génératrice.crée_charge_locale(noeud.nom)
