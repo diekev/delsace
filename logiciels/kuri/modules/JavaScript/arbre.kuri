@@ -1657,6 +1657,7 @@ CallExpression :: struct {
 crée_call_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, appelé: *Expression, arguments: [..]*Expression) -> *CallExpression
 {
     résultat := parseuse.crée_noeud(lexème, CallExpression)
+    résultat.sur_génération_code_binaire = call_expression_sur_code_binaire
     résultat.appelé = appelé
     résultat.arguments = arguments
     retourne résultat

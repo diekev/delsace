@@ -58,7 +58,14 @@ Instruction :: struct {
 donne_taille_octet :: fonc (instruction: *Instruction) -> n32
 {
     infos := __table_des_types[instruction.type]
-    retourne infos.taille_en_octet
+    résultat := infos.taille_en_octet
+
+    si instruction.type == InstructionAppel {
+        appel := instruction comme *InstructionAppel
+        résultat += appel.nombre_arguments comme n32 * taille_de(Registre)
+    }
+
+    retourne résultat
 }
 
 imprime_instruction :: fonc (instruction: *Instruction, index: z64)
@@ -252,6 +259,23 @@ InstructionChargeMembre :: struct {
     dst: Registre
     obj: Registre
     nom: ECMAString
+}
+
+InstructionAppel :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    dst: Registre
+    func: Registre
+    nombre_arguments: z32
+}
+
+donne_arguments :: fonc (appel: *InstructionAppel) -> []Registre
+{
+    résultat: []Registre
+    résultat.pointeur = ((appel + 1) comme *octet) comme *Registre
+    résultat.taille = appel.nombre_arguments
+    retourne résultat
 }
 
 /** \} */
@@ -484,6 +508,42 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                     retourne completion_rval
                 }
                 interprète.registres[membre.dst] = completion_rval.valeur.V
+            }
+            InstructionAppel {
+                appel := it comme *InstructionAppel
+
+                arguments: [..]Valeur
+                diffère déloge(arguments)
+
+                pour appel.donne_arguments() {
+                    tableau_ajoute(*arguments, interprète.registres[it])
+                }
+
+                func := interprète.registres[appel.func]
+
+                this_value := js_undefined
+
+                // 4. If func is not an Object, throw a TypeError exception.
+                saufsi func.est_object() {
+                    message := imprime_chaine("'%' is not an Object", func)
+                    retourne lance_type_error(interprète, message)
+                }
+                
+                // 5. If IsCallable(func) is false, throw a TypeError exception.
+                saufsi func.is_callable() {
+                    message := imprime_chaine("'%' is not callable", func)
+                    retourne lance_type_error(interprète, message)
+                }
+
+                // 6. If tailPosition is true, perform PrepareForTailCall().
+
+                // 7. Return ? Call(func, thisValue, argList).
+                completion := call(interprète, func, this_value, arguments)
+                saufsi completion.est_normal() {
+                    retourne completion
+                }
+
+                interprète.registres[appel.dst] = completion.valeur.V
             }
             sinon {
                 imprime("intruction inconnue!\n")

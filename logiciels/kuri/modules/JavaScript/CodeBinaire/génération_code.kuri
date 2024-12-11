@@ -161,6 +161,29 @@ crée_charge_membre :: fonc (génératrice: &GénératriceCodeBinaire, reg_objet
     retourne dst
 }
 
+crée_appel :: fonc (génératrice: &GénératriceCodeBinaire, func: Registre, args: []Registre) -> Registre
+{
+    flux := génératrice.flux
+    décalage := flux.instructions.taille
+    tableau_redimensionne(flux.instructions, décalage + taille_de(InstructionAppel) comme z64 + args.taille * taille_de(Registre) comme z64)
+    résultat := *flux.instructions[décalage] comme *InstructionAppel
+    init_de(InstructionAppel)(résultat)
+
+    dst := génératrice.alloue_registre()
+    résultat.dst = dst
+    résultat.func = func
+    résultat.nombre_arguments = args.taille comme z32
+
+    pointeur_args := ((résultat + 1) comme *octet) comme *Registre
+
+    pour args {
+        mémoire(pointeur_args) = it
+        pointeur_args += 1
+    }
+
+    retourne dst
+}
+
 alloue_registre :: fonc (empl génératrice: &GénératriceCodeBinaire) -> Registre
 {
     résultat := Registre(flux.registres)
@@ -234,6 +257,27 @@ block_statement_sur_code_binaire :: fonc (block: *BlockStatement, génératrice:
 boolean_literal_sur_code_binaire :: fonc (noeud: *BooleanLiteral, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
 {
     retourne génératrice.crée_charge(Valeur(Boolean = noeud.valeur))
+}
+
+call_expression_sur_code_binaire :: fonc (noeud: *CallExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    assert(noeud.appelé.type != CallExpression)
+
+    reg_opt_func := génératrice.génère_code_binaire(noeud.appelé)
+    assert(reg_opt_func.possède_valeur())
+
+    // À FAIRE : this_value
+
+    registres_arguments: [..]Registre
+    diffère déloge(registres_arguments)
+
+    pour noeud.arguments {
+        reg_opt_arg := génératrice.génère_code_binaire(it)
+        assert(reg_opt_arg.possède_valeur())
+        tableau_ajoute(*registres_arguments, reg_opt_arg.Quelque)
+    }
+
+    retourne génératrice.crée_appel(reg_opt_func.Quelque, registres_arguments)
 }
 
 do_while_statement_sur_code_binaire :: fonc (noeud: *WhileStatement, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
