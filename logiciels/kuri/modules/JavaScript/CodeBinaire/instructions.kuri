@@ -11,6 +11,8 @@ FluxDInstructions :: struct {
 
 imprime_instructions :: fonc (flux: *FluxDInstructions)
 {
+    imprime("Instructions : (% octets)\n", flux.instructions.taille)
+
     pour ItéractriceInstruction(flux) {
         imprime_instruction(it, index_it)
     }
