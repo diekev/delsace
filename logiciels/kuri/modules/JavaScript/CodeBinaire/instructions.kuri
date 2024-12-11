@@ -125,6 +125,15 @@ InstructionAjoute :: struct {
     drt: Registre
 }
 
+InstructionRelationInférieure :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    dst: Registre
+    gch: Registre
+    drt: Registre
+}
+
 InstructionDéfinisLocale :: struct {
     empl inst: Instruction
     type = #type_de_cette_structure
@@ -259,6 +268,16 @@ crée_ajoute :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre
     retourne dst
 }
 
+crée_relation_inférieure :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre, droite: Registre) -> Registre
+{
+    dst := génératrice.alloue_registre()
+    ajout := génératrice.crée_instruction(InstructionRelationInférieure)
+    ajout.dst = dst
+    ajout.gch = gauche
+    ajout.drt = droite
+    retourne dst
+}
+
 crée_définis_locale :: fonc (génératrice: &GénératriceCodeBinaire, nom: ECMAString, src: Registre) -> Registre
 {
     résultat := génératrice.crée_instruction(InstructionDéfinisLocale)
@@ -323,6 +342,22 @@ interprète_code_binaire :: fonc (mv: *MachineVirtuelle, noeud: *NoeudScript) ->
                     retourne completion
                 }
                 interprète.registres[inst_ajout.dst] = completion.valeur.V
+            }
+            InstructionRelationInférieure {
+                relat := it comme *InstructionRelationInférieure
+                gauche := interprète.registres[relat.gch]
+                droite := interprète.registres[relat.drt]
+
+                completion := is_less_than(*interprète, gauche, droite, vrai)
+                saufsi completion.est_normal() {
+                    retourne completion
+                }
+                r := completion.valeur.V
+
+                si r.est_undefined() {
+                    r = Valeur(Boolean = faux)
+                }
+                interprète.registres[relat.dst] = completion.valeur.V
             }
             InstructionCréeChaine {
                 crée_chaine := it comme *InstructionCréeChaine

@@ -1418,6 +1418,7 @@ RelationalExpression :: struct {
 crée_relational_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, opération: RelationalOperation, gauche: *Expression, droite: *Expression) -> *RelationalExpression
 {
     résultat := parseuse.crée_noeud(lexème, RelationalExpression)
+    résultat.sur_génération_code_binaire = relational_expression_sur_code_binaire
     résultat.opération = opération
     résultat.gauche = gauche
     résultat.droite = droite
@@ -1539,6 +1540,18 @@ sur_exécution_relational_expression :: fonc (base: *NoeudSyntaxique, interprét
     }
 
     retourne normal_completion(r)
+}
+
+relational_expression_sur_code_binaire :: fonc (noeud: *RelationalExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    assert(noeud.opération == RelationalOperation.Inférieur)
+
+    reg_opt_gauche := génère_code_binaire(génératrice, noeud.gauche)
+    assert(reg_opt_gauche.possède_valeur())
+    reg_opt_droite := génère_code_binaire(génératrice, noeud.droite)
+    assert(reg_opt_droite.possède_valeur())
+
+    retourne génératrice.crée_relation_inférieure(reg_opt_gauche.Quelque, reg_opt_droite.Quelque)
 }
 
 /* 13.10.2 InstanceofOperator ( V, target )
