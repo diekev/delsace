@@ -2788,6 +2788,7 @@ MemberExpression :: struct {
 crée_member_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, objet: *Expression, propriété: *Expression, calculé: bool) -> *MemberExpression
 {
     résultat := parseuse.crée_noeud(lexème, MemberExpression)
+    résultat.sur_génération_code_binaire = membre_expression_sur_code_binaire
     résultat.objet = objet
     résultat.propriété = propriété
     résultat.calculé = calculé
@@ -2871,6 +2872,18 @@ evaluate_property_access_with_identifier_key :: fonc (interpréteuse: *Interpré
     résultat.referenced_name = Valeur(String = property_name_string)
     résultat.strict = strict
     retourne normal_completion(résultat)
+}
+
+membre_expression_sur_code_binaire :: fonc (noeud: *MemberExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    assert(noeud.calculé == faux)
+
+    opt_reg_objet := génératrice.génère_code_binaire(noeud.objet)
+
+    assert(noeud.propriété.type == Identifier)
+    identifier := noeud.propriété comme *Identifier
+
+    retourne génératrice.crée_charge_membre(opt_reg_objet.Quelque, identifier.nom)
 }
 
 /** \} */

@@ -407,6 +407,16 @@ crée_définis_membre :: fonc (génératrice: &GénératriceCodeBinaire, reg_obj
     résultat.src = reg_valeur
 }
 
+crée_charge_membre :: fonc (génératrice: &GénératriceCodeBinaire, reg_objet: Registre, nom: ECMAString) -> Registre
+{
+    dst := génératrice.alloue_registre()
+    résultat := génératrice.crée_instruction(InstructionChargeMembre)
+    résultat.dst = dst
+    résultat.obj = reg_objet
+    résultat.nom = nom
+    retourne dst
+}
+
 alloue_registre :: fonc (empl génératrice: &GénératriceCodeBinaire) -> Registre
 {
     résultat := Registre(flux.registres)
@@ -617,6 +627,23 @@ interprète_code_binaire :: fonc (mv: *MachineVirtuelle, noeud: *NoeudScript) ->
                 saufsi completion_assignment.est_normal() {
                     retourne completion_assignment
                 }
+            }
+            InstructionChargeMembre {
+                membre := it comme *InstructionChargeMembre
+                realm := donne_realm(*interprète)
+
+                referenced_name := crée_chaine(realm, membre.nom)
+
+                référence: ReferenceRecord
+                référence.base = interprète.registres[membre.obj]
+                référence.referenced_name = Valeur(String = referenced_name)
+                // À FAIRE : résultat.strict = strict
+
+                completion_rval := get_value(*interprète, référence)
+                saufsi completion_rval.est_normal() {
+                    retourne completion_rval
+                }
+                interprète.registres[membre.dst] = completion_rval.valeur.V
             }
             sinon {
                 imprime("intruction inconnue!\n")
