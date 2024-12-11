@@ -97,6 +97,24 @@ imprime_instruction :: fonc (instruction: *Instruction, index: z64)
     imprime("\n")
 }
 
+IndexBranche :: #opaque z64
+DécalageBranche :: #opaque z64
+
+InstructionBranche :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    décalage: DécalageBranche
+}
+
+InstructionBrancheSiFaux :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    décalage: DécalageBranche
+    reg: Registre
+}
+
 InstructionCharge :: struct {
     empl inst: Instruction
     type = #type_de_cette_structure
@@ -229,6 +247,19 @@ génère_code_binaire :: fonc (génératrice: &GénératriceCodeBinaire, noeud: 
     retourne noeud.sur_génération_code_binaire(noeud, génératrice)
 }
 
+donne_décalage :: fonc (génératrice: &GénératriceCodeBinaire) -> DécalageBranche
+{
+    flux := génératrice.flux
+    retourne DécalageBranche(flux.instructions.taille)
+}
+
+définis_décalage_branche :: fonc (génératrice: &GénératriceCodeBinaire, branche: IndexBranche, décalage: DécalageBranche)
+{
+    flux := génératrice.flux
+    instruction := *flux.instructions[branche comme z64] comme *InstructionBranche
+    instruction.décalage = décalage
+}
+
 crée_instruction :: fonc (génératrice: &GénératriceCodeBinaire, $T: type_de_données) -> *T
 {
     flux := génératrice.flux
@@ -238,6 +269,20 @@ crée_instruction :: fonc (génératrice: &GénératriceCodeBinaire, $T: type_de
     résultat := *flux.instructions[décalage] comme *T
     init_de(T)(résultat)
     retourne résultat
+}
+
+crée_branche :: fonc (génératrice: &GénératriceCodeBinaire, décalage: DécalageBranche)
+{
+    branche := génératrice.crée_instruction(InstructionBranche)
+    branche.décalage = décalage
+}
+
+crée_branche_si_faux :: fonc (génératrice: &GénératriceCodeBinaire, registre: Registre) -> IndexBranche
+{
+    résultat := génératrice.donne_décalage()
+    branche := génératrice.crée_instruction(InstructionBrancheSiFaux)
+    branche.reg = registre
+    retourne IndexBranche(résultat comme z64)
 }
 
 crée_charge :: fonc (génératrice: &GénératriceCodeBinaire, valeur: Valeur) -> Registre
@@ -326,8 +371,30 @@ interprète_code_binaire :: fonc (mv: *MachineVirtuelle, noeud: *NoeudScript) ->
     interprète.mv = mv
     tableau_redimensionne(interprète.registres, flux.registres comme z64)
 
-    pour ItéractriceInstruction(flux) {
+    début := flux.instructions.pointeur
+    courant := début
+    fin := début + flux.instructions.taille
+
+    tantque courant < fin {
+        it := courant comme *Instruction
+        courant += donne_taille_octet(it)
+
         discr it.type {
+            InstructionBranche {
+                branche := it comme *InstructionBranche
+                courant = début + branche.décalage comme z64
+                continue
+            }
+            InstructionBrancheSiFaux {
+                branche := it comme *InstructionBrancheSiFaux
+
+                valeur := interprète.registres[branche.reg]
+
+                si est_false(valeur) {
+                    courant = début + branche.décalage comme z64
+                    continue
+                }
+            }
             InstructionCharge {
                 inst_charge := it comme *InstructionCharge
                 interprète.registres[inst_charge.reg] = inst_charge.vlr
