@@ -151,6 +151,15 @@ InstructionAjoute :: struct {
     drt: Registre
 }
 
+InstructionSoustrait :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    dst: Registre
+    gch: Registre
+    drt: Registre
+}
+
 InstructionRelationInférieure :: struct {
     empl inst: Instruction
     type = #type_de_cette_structure
@@ -329,6 +338,16 @@ crée_ajoute :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre
     retourne dst
 }
 
+crée_soustrait :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre, droite: Registre) -> Registre
+{
+    dst := génératrice.alloue_registre()
+    ajout := génératrice.crée_instruction(InstructionSoustrait)
+    ajout.dst = dst
+    ajout.gch = gauche
+    ajout.drt = droite
+    retourne dst
+}
+
 crée_relation_inférieure :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre, droite: Registre) -> Registre
 {
     dst := génératrice.alloue_registre()
@@ -435,6 +454,17 @@ interprète_code_binaire :: fonc (mv: *MachineVirtuelle, noeud: *NoeudScript) ->
                     retourne completion
                 }
                 interprète.registres[inst_ajout.dst] = completion.valeur.V
+            }
+            InstructionSoustrait {
+                inst := it comme *InstructionSoustrait
+                gauche := interprète.registres[inst.gch]
+                droite := interprète.registres[inst.drt]
+
+                completion := apply_string_or_numeric_binary_operator(*interprète, BinaryOperation.Moins, gauche, droite)
+                saufsi completion.est_normal() {
+                    retourne completion
+                }
+                interprète.registres[inst.dst] = completion.valeur.V
             }
             InstructionRelationInférieure {
                 relat := it comme *InstructionRelationInférieure

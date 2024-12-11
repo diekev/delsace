@@ -1301,7 +1301,11 @@ binary_expression_sur_code_binaire :: fonc (expression: *BinaryExpression, gén�
         retourne génératrice.crée_ajoute(opt_reg_gauche.Quelque, opt_reg_droite.Quelque)
     }
 
-    retourne
+    si expression.opération == BinaryOperation.Moins {
+        retourne génératrice.crée_soustrait(opt_reg_gauche.Quelque, opt_reg_droite.Quelque)
+    }
+
+    panique("non-implémenté")
 }
 
 /** \} */
