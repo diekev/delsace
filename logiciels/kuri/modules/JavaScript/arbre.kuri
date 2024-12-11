@@ -1334,6 +1334,7 @@ EqualityExpression :: struct {
 crée_equality_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, opération: EqualityOperation, gauche: *Expression, droite: *Expression) -> *EqualityExpression
 {
     résultat := parseuse.crée_noeud(lexème, EqualityExpression)
+    résultat.sur_génération_code_binaire = equality_expression_sur_code_binaire
     résultat.opération = opération
     résultat.gauche = gauche
     résultat.droite = droite
@@ -1390,6 +1391,27 @@ sur_exécution_equality_expression :: fonc (base: *NoeudSyntaxique, interpréteu
         }
         sinon {
             panique("noeud.opération non-initialisé")
+        }
+    }
+}
+
+equality_expression_sur_code_binaire :: fonc (noeud: *EqualityExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    opt_reg_gauche := génère_code_binaire(génératrice, noeud.gauche)
+    opt_reg_droite := génère_code_binaire(génératrice, noeud.droite)
+
+    assert(opt_reg_gauche.possède_valeur())
+    assert(opt_reg_droite.possède_valeur())
+
+    discr noeud.opération {
+        Égal {
+            retourne génératrice.crée_comparaison_égal(opt_reg_gauche.Quelque, opt_reg_droite.Quelque)
+        }
+        Inégal {
+            retourne génératrice.crée_comparaison_inégal(opt_reg_gauche.Quelque, opt_reg_droite.Quelque)
+        }
+        sinon {
+            panique("non-implémenté")
         }
     }
 }

@@ -169,6 +169,24 @@ InstructionRelationInférieure :: struct {
     drt: Registre
 }
 
+InstructionComparaisonÉgal :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    dst: Registre
+    gch: Registre
+    drt: Registre
+}
+
+InstructionComparaisonInégal :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    dst: Registre
+    gch: Registre
+    drt: Registre
+}
+
 InstructionDéfinisLocale :: struct {
     empl inst: Instruction
     type = #type_de_cette_structure
@@ -358,6 +376,26 @@ crée_relation_inférieure :: fonc (génératrice: &GénératriceCodeBinaire, ga
     retourne dst
 }
 
+crée_comparaison_égal :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre, droite: Registre) -> Registre
+{
+    dst := génératrice.alloue_registre()
+    ajout := génératrice.crée_instruction(InstructionComparaisonÉgal)
+    ajout.dst = dst
+    ajout.gch = gauche
+    ajout.drt = droite
+    retourne dst
+}
+
+crée_comparaison_inégal :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre, droite: Registre) -> Registre
+{
+    dst := génératrice.alloue_registre()
+    ajout := génératrice.crée_instruction(InstructionComparaisonInégal)
+    ajout.dst = dst
+    ajout.gch = gauche
+    ajout.drt = droite
+    retourne dst
+}
+
 crée_définis_locale :: fonc (génératrice: &GénératriceCodeBinaire, nom: ECMAString, src: Registre) -> Registre
 {
     résultat := génératrice.crée_instruction(InstructionDéfinisLocale)
@@ -481,6 +519,35 @@ interprète_code_binaire :: fonc (mv: *MachineVirtuelle, noeud: *NoeudScript) ->
                     r = Valeur(Boolean = faux)
                 }
                 interprète.registres[relat.dst] = completion.valeur.V
+            }
+            InstructionComparaisonÉgal {
+                inst_ajout := it comme *InstructionComparaisonÉgal
+                gauche := interprète.registres[inst_ajout.gch]
+                droite := interprète.registres[inst_ajout.drt]
+
+                completion := is_loosely_equal(*interprète, gauche, droite)
+                saufsi completion.est_normal() {
+                    retourne completion
+                }
+                interprète.registres[inst_ajout.dst] = completion.valeur.V
+            }
+            InstructionComparaisonInégal {
+                inst_ajout := it comme *InstructionComparaisonInégal
+                gauche := interprète.registres[inst_ajout.gch]
+                droite := interprète.registres[inst_ajout.drt]
+
+                completion := is_loosely_equal(*interprète, gauche, droite)
+                saufsi completion.est_normal() {
+                    retourne completion
+                }
+                résultat := completion.valeur.V
+                si résultat.est_true() {
+                    résultat.Boolean = faux
+                }
+                sinon {
+                    résultat.Boolean = vrai
+                }
+                interprète.registres[inst_ajout.dst] = résultat
             }
             InstructionCréeChaine {
                 crée_chaine := it comme *InstructionCréeChaine
