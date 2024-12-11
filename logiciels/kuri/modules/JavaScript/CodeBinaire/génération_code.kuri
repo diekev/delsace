@@ -160,7 +160,7 @@ crée_charge_membre :: fonc (génératrice: &GénératriceCodeBinaire, reg_objet
     retourne dst
 }
 
-crée_appel :: fonc (génératrice: &GénératriceCodeBinaire, func: Registre, args: []Registre) -> Registre
+crée_appel :: fonc (génératrice: &GénératriceCodeBinaire, func: Registre, this_value: Registre, args: []Registre) -> Registre
 {
     flux := génératrice.flux
     décalage := flux.instructions.taille
@@ -171,6 +171,7 @@ crée_appel :: fonc (génératrice: &GénératriceCodeBinaire, func: Registre, a
     dst := génératrice.alloue_registre()
     résultat.dst = dst
     résultat.func = func
+    résultat.this_value = this_value
     résultat.nombre_arguments = args.taille comme z32
 
     pointeur_args := ((résultat + 1) comme *octet) comme *Registre
@@ -180,6 +181,15 @@ crée_appel :: fonc (génératrice: &GénératriceCodeBinaire, func: Registre, a
         pointeur_args += 1
     }
 
+    retourne dst
+}
+
+crée_this_value_appel :: fonc (génératrice: &GénératriceCodeBinaire, noeud: *NoeudSyntaxique) -> Registre
+{
+    dst := génératrice.alloue_registre()
+    résultat := génératrice.crée_instruction(InstructionThisValueAppel)
+    résultat.dst = dst
+    résultat.noeud = noeud
     retourne dst
 }
 
@@ -271,7 +281,7 @@ call_expression_sur_code_binaire :: fonc (noeud: *CallExpression, génératrice:
     reg_opt_func := génératrice.génère_code_binaire(noeud.appelé)
     assert(reg_opt_func.possède_valeur())
 
-    // À FAIRE : this_value
+    this_value := génératrice.crée_this_value_appel(noeud.appelé)
 
     registres_arguments: [..]Registre
     diffère déloge(registres_arguments)
@@ -282,7 +292,7 @@ call_expression_sur_code_binaire :: fonc (noeud: *CallExpression, génératrice:
         tableau_ajoute(*registres_arguments, reg_opt_arg.Quelque)
     }
 
-    retourne génératrice.crée_appel(reg_opt_func.Quelque, registres_arguments)
+    retourne génératrice.crée_appel(reg_opt_func.Quelque, this_value, registres_arguments)
 }
 
 do_while_statement_sur_code_binaire :: fonc (noeud: *WhileStatement, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)

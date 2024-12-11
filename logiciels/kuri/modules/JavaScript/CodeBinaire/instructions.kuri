@@ -267,6 +267,7 @@ InstructionAppel :: struct {
 
     dst: Registre
     func: Registre
+    this_value: Registre
     nombre_arguments: z32
 }
 
@@ -276,6 +277,19 @@ donne_arguments :: fonc (appel: *InstructionAppel) -> []Registre
     résultat.pointeur = ((appel + 1) comme *octet) comme *Registre
     résultat.taille = appel.nombre_arguments
     retourne résultat
+}
+
+/* Instruction spéciale pour résoudre la valeur "this" pour les appels.
+ * Pour l'instant, nous faisons ceci avec une Interpréteuse sur l'arbre au
+ * lieu d'utiliser du code binaire en attendant de bien comprendre comment
+ * modéliser les ReferenceRecord. */
+InstructionThisValueAppel :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    dst: Registre
+    /* Ceci est le noeud à gauche de l'appel. */
+    noeud: *NoeudSyntaxique
 }
 
 InstructionRetour :: struct {
@@ -528,7 +542,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
 
                 func := interprète.registres[appel.func]
 
-                this_value := js_undefined
+                this_value := interprète.registres[appel.this_value]
 
                 // 4. If func is not an Object, throw a TypeError exception.
                 saufsi func.est_object() {
@@ -551,6 +565,45 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 }
 
                 interprète.registres[appel.dst] = completion.valeur.V
+            }
+            InstructionThisValueAppel {
+                this_value := it comme *InstructionThisValueAppel
+
+                résultat := js_undefined
+
+                interpréteuse: Interpréteuse
+                interpréteuse.mv = interprète.mv
+
+                completion_ref := exécute(*interpréteuse, this_value.noeud)
+                saufsi completion_ref.est_normal() {
+                    retourne completion_ref
+                }
+
+                ref := completion_ref.valeur
+
+                // 1. If ref is a Reference Record, then
+                si est_reference_record(ref) {
+                    // a. If IsPropertyReference(ref) is true, then
+                    si est_référence_propriété(ref) {
+                        // i. Let thisValue be GetThisValue(ref).
+                        résultat = get_this_value(ref.R)
+                    }
+                    // b. Else,
+                    sinon {
+                        // i. Let refEnv be ref.[[Base]].
+                        ref_env := ref.R.base.E
+                        // ii. Assert: refEnv is an Environment Record.
+                        // iii. Let thisValue be refEnv.WithBaseObject().
+                        résultat = ref_env.with_base_object()
+                    }
+                }
+                // 2. Else,
+                sinon {
+                    // a. Let thisValue be undefined.
+                    résultat = js_undefined
+                }
+
+                interprète.registres[this_value.dst] = résultat
             }
             InstructionRetour {
                 retour := it comme *InstructionRetour
