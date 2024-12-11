@@ -126,12 +126,11 @@ crée_comparaison_inégal :: fonc (génératrice: &GénératriceCodeBinaire, gau
     retourne crée_expression_binaire(génératrice, gauche, droite, InstructionComparaisonInégal)
 }
 
-crée_définis_locale :: fonc (génératrice: &GénératriceCodeBinaire, nom: ECMAString, src: Registre) -> Registre
+crée_définis_locale :: fonc (génératrice: &GénératriceCodeBinaire, nom: ECMAString, src: Registre)
 {
     résultat := génératrice.crée_instruction(InstructionDéfinisLocale)
     résultat.nom = nom
     résultat.src = src
-    retourne Registre(-1 comme n32) // À FAIRE : Optionnel(Registre)
 }
 
 crée_charge_locale :: fonc (génératrice: &GénératriceCodeBinaire, nom: ECMAString) -> Registre
@@ -212,7 +211,7 @@ assignment_expression_sur_code_binaire :: fonc (noeud: *AssignmentExpression, g�
 
     si noeud.gauche.type == Identifier {
         nom := (noeud.gauche comme *Identifier).nom
-        _ := génératrice.crée_définis_locale(nom, opt_reg.Quelque)
+        génératrice.crée_définis_locale(nom, opt_reg.Quelque)
     }
     sinon si noeud.gauche.type == MemberExpression {
         membre := noeud.gauche comme *MemberExpression
