@@ -574,6 +574,7 @@ donne_object :: fonc (completion: &CompletionRecord) -> *Object #enligne
 Interpréteuse :: struct {
     mv: *MachineVirtuelle
     noeud_exécuté_courant: **NoeudSyntaxique @NeVisitePas
+    sur_exécute: fonc(*Interpréteuse, *NoeudSyntaxique)(CompletionRecord) = exécute_arbre
 }
 
 initialise_interpréteuse :: fonc (interpréteuse: *Interpréteuse @inutilisée)
@@ -597,6 +598,11 @@ interprète_arbre :: fonc (machine_virtuelle: *MachineVirtuelle, noeud: *NoeudSc
 }
 
 exécute :: fonc (interpréteuse: *Interpréteuse, noeud: *NoeudSyntaxique) -> CompletionRecord
+{
+    retourne interpréteuse.sur_exécute(interpréteuse, noeud)
+}
+
+exécute_arbre :: fonc (interpréteuse: *Interpréteuse, noeud: *NoeudSyntaxique) -> CompletionRecord
 {
     si noeud.type == NoeudScript {
         script := noeud comme *NoeudScript

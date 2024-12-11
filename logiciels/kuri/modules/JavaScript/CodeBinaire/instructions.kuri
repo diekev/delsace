@@ -263,10 +263,20 @@ InstructionChargeMembre :: struct {
 InterprèteCodeBinaire :: struct {
     empl base: Interpréteuse
     registres: [..]Valeur
+    sur_exécute = exécute_code_binaire
 }
 
 interprète_code_binaire :: fonc (mv: *MachineVirtuelle, noeud: *NoeudScript) -> CompletionRecord
 {
+    interprète: InterprèteCodeBinaire
+    interprète.mv = mv
+    retourne exécute_code_binaire(*interprète, noeud)
+}
+
+exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -> CompletionRecord
+{
+    interprète := base comme *InterprèteCodeBinaire
+
     flux := loge(FluxDInstructions)
     génératrice := GénératriceCodeBinaire(flux)
 
@@ -274,9 +284,9 @@ interprète_code_binaire :: fonc (mv: *MachineVirtuelle, noeud: *NoeudScript) ->
 
     imprime_instructions(flux)
 
-    interprète: InterprèteCodeBinaire
-    interprète.mv = mv
-    tableau_redimensionne(interprète.registres, flux.registres comme z64)
+    si flux.registres comme z64 > interprète.registres.taille {
+        tableau_redimensionne(interprète.registres, flux.registres comme z64)
+    }
 
     début := flux.instructions.pointeur
     courant := début
@@ -321,7 +331,7 @@ interprète_code_binaire :: fonc (mv: *MachineVirtuelle, noeud: *NoeudScript) ->
                 gauche := interprète.registres[inst_ajout.gch]
                 droite := interprète.registres[inst_ajout.drt]
 
-                completion := apply_string_or_numeric_binary_operator(*interprète, BinaryOperation.Plus, gauche, droite)
+                completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.Plus, gauche, droite)
                 saufsi completion.est_normal() {
                     retourne completion
                 }
@@ -332,7 +342,7 @@ interprète_code_binaire :: fonc (mv: *MachineVirtuelle, noeud: *NoeudScript) ->
                 gauche := interprète.registres[inst.gch]
                 droite := interprète.registres[inst.drt]
 
-                completion := apply_string_or_numeric_binary_operator(*interprète, BinaryOperation.Moins, gauche, droite)
+                completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.Moins, gauche, droite)
                 saufsi completion.est_normal() {
                     retourne completion
                 }
@@ -343,7 +353,7 @@ interprète_code_binaire :: fonc (mv: *MachineVirtuelle, noeud: *NoeudScript) ->
                 gauche := interprète.registres[relat.gch]
                 droite := interprète.registres[relat.drt]
 
-                completion := is_less_than(*interprète, gauche, droite, vrai)
+                completion := is_less_than(interprète, gauche, droite, vrai)
                 saufsi completion.est_normal() {
                     retourne completion
                 }
@@ -359,7 +369,7 @@ interprète_code_binaire :: fonc (mv: *MachineVirtuelle, noeud: *NoeudScript) ->
                 gauche := interprète.registres[inst_ajout.gch]
                 droite := interprète.registres[inst_ajout.drt]
 
-                completion := is_loosely_equal(*interprète, gauche, droite)
+                completion := is_loosely_equal(interprète, gauche, droite)
                 saufsi completion.est_normal() {
                     retourne completion
                 }
@@ -370,7 +380,7 @@ interprète_code_binaire :: fonc (mv: *MachineVirtuelle, noeud: *NoeudScript) ->
                 gauche := interprète.registres[inst_ajout.gch]
                 droite := interprète.registres[inst_ajout.drt]
 
-                completion := is_loosely_equal(*interprète, gauche, droite)
+                completion := is_loosely_equal(interprète, gauche, droite)
                 saufsi completion.est_normal() {
                     retourne completion
                 }
@@ -386,7 +396,7 @@ interprète_code_binaire :: fonc (mv: *MachineVirtuelle, noeud: *NoeudScript) ->
             InstructionCréeChaine {
                 crée_chaine := it comme *InstructionCréeChaine
 
-                realm := donne_realm(*interprète)
+                realm := donne_realm(interprète)
 
                 chn: *PrimitiveChaine
                 si crée_chaine.index_chaine == -1 {
@@ -403,15 +413,15 @@ interprète_code_binaire :: fonc (mv: *MachineVirtuelle, noeud: *NoeudScript) ->
             InstructionCréeObjet {
                 crée_objet := it comme *InstructionCréeObjet
 
-                realm := donne_realm(*interprète)
+                realm := donne_realm(interprète)
                 objet := ordinary_object_create(realm, realm.intrinsics.object_prototype, object_instance_crée)
                 interprète.registres[crée_objet.dst] = Valeur(Object = objet)
             }
             InstructionDéfinisLocale {
                 définis_locale := it comme *InstructionDéfinisLocale
-                realm := donne_realm(*interprète)
+                realm := donne_realm(interprète)
 
-                résultat := resolve_binding(*interprète, définis_locale.donne_chaine_primitive(realm))
+                résultat := resolve_binding(interprète, définis_locale.donne_chaine_primitive(realm))
                 saufsi résultat.est_normal() {
                     retourne résultat
                 }
@@ -421,21 +431,21 @@ interprète_code_binaire :: fonc (mv: *MachineVirtuelle, noeud: *NoeudScript) ->
                 // noeud.coordonnée = référence.coordonnée
 
                 valeur := interprète.registres[définis_locale.src]
-                completion_assignment := put_value(*interprète, résultat.valeur, valeur)
+                completion_assignment := put_value(interprète, résultat.valeur, valeur)
                 saufsi completion_assignment.est_normal() {
                     retourne completion_assignment
                 }
             }
             InstructionChargeLocale {
                 charge_locale := it comme *InstructionChargeLocale
-                realm := donne_realm(*interprète)
+                realm := donne_realm(interprète)
 
-                résultat := resolve_binding(*interprète, charge_locale.donne_chaine_primitive(realm))
+                résultat := resolve_binding(interprète, charge_locale.donne_chaine_primitive(realm))
                 saufsi résultat.est_normal() {
                     retourne résultat
                 }
 
-                completion_rval := get_value(*interprète, résultat.valeur)
+                completion_rval := get_value(interprète, résultat.valeur)
                 saufsi completion_rval.est_normal() {
                     retourne completion_rval
                 }
@@ -443,7 +453,7 @@ interprète_code_binaire :: fonc (mv: *MachineVirtuelle, noeud: *NoeudScript) ->
             }
             InstructionDéfinisMembre {
                 membre := it comme *InstructionDéfinisMembre
-                realm := donne_realm(*interprète)
+                realm := donne_realm(interprète)
 
                 referenced_name := crée_chaine(realm, membre.nom)
 
@@ -453,14 +463,14 @@ interprète_code_binaire :: fonc (mv: *MachineVirtuelle, noeud: *NoeudScript) ->
                 // À FAIRE : résultat.strict = strict
 
                 valeur := interprète.registres[membre.src]
-                completion_assignment := put_value(*interprète, référence, valeur)
+                completion_assignment := put_value(interprète, référence, valeur)
                 saufsi completion_assignment.est_normal() {
                     retourne completion_assignment
                 }
             }
             InstructionChargeMembre {
                 membre := it comme *InstructionChargeMembre
-                realm := donne_realm(*interprète)
+                realm := donne_realm(interprète)
 
                 referenced_name := crée_chaine(realm, membre.nom)
 
@@ -469,7 +479,7 @@ interprète_code_binaire :: fonc (mv: *MachineVirtuelle, noeud: *NoeudScript) ->
                 référence.referenced_name = Valeur(String = referenced_name)
                 // À FAIRE : résultat.strict = strict
 
-                completion_rval := get_value(*interprète, référence)
+                completion_rval := get_value(interprète, référence)
                 saufsi completion_rval.est_normal() {
                     retourne completion_rval
                 }
@@ -482,7 +492,7 @@ interprète_code_binaire :: fonc (mv: *MachineVirtuelle, noeud: *NoeudScript) ->
         }
     }
 
-    imprime_registres(*interprète)
+    imprime_registres(interprète)
     retourne normal_completion(js_undefined)
 }
 
