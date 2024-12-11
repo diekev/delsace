@@ -307,7 +307,7 @@ call_expression_sur_code_binaire :: fonc (noeud: *CallExpression, génératrice:
     retourne génératrice.crée_appel(reg_opt_func.Quelque, this_value, registres_arguments)
 }
 
-do_while_statement_sur_code_binaire :: fonc (noeud: *WhileStatement, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+do_while_statement_sur_code_binaire :: fonc (noeud: *DoWhileStatement, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
 {
     décalage := génératrice.donne_décalage()
 
