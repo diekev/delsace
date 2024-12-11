@@ -19,6 +19,7 @@ charge "terminologie"
 charge "types"
 charge "valeur"
 
+charge "CodeBinaire/génération_code"
 charge "CodeBinaire/instructions"
 
 charge "Objets/array"

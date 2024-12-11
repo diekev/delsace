@@ -1,0 +1,370 @@
+importe Fondation
+
+/* ------------------------------------------------------------------------- */
+/** \nom GénératriceCodeBinaire
+ * \{ */
+
+GénératriceCodeBinaire :: struct {
+    flux: *FluxDInstructions
+}
+
+génère_code_binaire :: fonc (génératrice: &GénératriceCodeBinaire, noeud: *NoeudSyntaxique) -> Optionnel(Registre)
+{
+    saufsi noeud.sur_génération_code_binaire {
+        infos := donne_info_pour_type_noeud(noeud)
+        imprime("[%] noeud non-supporté : %\n", #nom_de_cette_fonction, infos.nom)
+        retourne
+    }
+
+    retourne noeud.sur_génération_code_binaire(noeud, génératrice)
+}
+
+donne_décalage :: fonc (génératrice: &GénératriceCodeBinaire) -> DécalageBranche
+{
+    flux := génératrice.flux
+    retourne DécalageBranche(flux.instructions.taille)
+}
+
+définis_décalage_branche :: fonc (génératrice: &GénératriceCodeBinaire, branche: IndexBranche, décalage: DécalageBranche)
+{
+    flux := génératrice.flux
+    instruction := *flux.instructions[branche comme z64] comme *InstructionBranche
+    instruction.décalage = décalage
+}
+
+crée_instruction :: fonc (génératrice: &GénératriceCodeBinaire, $T: type_de_données) -> *T
+{
+    flux := génératrice.flux
+
+    décalage := flux.instructions.taille
+    tableau_redimensionne(flux.instructions, décalage + taille_de(T) comme z64)
+    résultat := *flux.instructions[décalage] comme *T
+    init_de(T)(résultat)
+    retourne résultat
+}
+
+crée_branche :: fonc (génératrice: &GénératriceCodeBinaire, décalage: DécalageBranche)
+{
+    branche := génératrice.crée_instruction(InstructionBranche)
+    branche.décalage = décalage
+}
+
+crée_branche_si_faux :: fonc (génératrice: &GénératriceCodeBinaire, registre: Registre) -> IndexBranche
+{
+    résultat := génératrice.donne_décalage()
+    branche := génératrice.crée_instruction(InstructionBrancheSiFaux)
+    branche.reg = registre
+    retourne IndexBranche(résultat comme z64)
+}
+
+crée_branche_si_vrai :: fonc (génératrice: &GénératriceCodeBinaire, registre: Registre) -> IndexBranche
+{
+    résultat := génératrice.donne_décalage()
+    branche := génératrice.crée_instruction(InstructionBrancheSiVrai)
+    branche.reg = registre
+    retourne IndexBranche(résultat comme z64)
+}
+
+crée_charge :: fonc (génératrice: &GénératriceCodeBinaire, valeur: Valeur) -> Registre
+{
+    dst := génératrice.alloue_registre()
+    gauche := génératrice.crée_instruction(InstructionCharge)
+    gauche.reg = dst
+    gauche.vlr = valeur
+    retourne dst
+}
+
+crée_crée_chaine :: fonc (génératrice: &GénératriceCodeBinaire, chn: ECMAString) -> Registre
+{
+    dst := génératrice.alloue_registre()
+    résultat := génératrice.crée_instruction(InstructionCréeChaine)
+    résultat.dst = dst
+    résultat.chn = chn
+    retourne dst
+}
+
+crée_crée_objet :: fonc (génératrice: &GénératriceCodeBinaire) -> Registre
+{
+    dst := génératrice.alloue_registre()
+    résultat := génératrice.crée_instruction(InstructionCréeObjet)
+    résultat.dst = dst
+    retourne dst
+}
+
+crée_expression_binaire :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre, droite: Registre, $T: type_de_données) -> Registre
+{
+    dst := génératrice.alloue_registre()
+    ajout := génératrice.crée_instruction(T)
+    ajout.dst = dst
+    ajout.gch = gauche
+    ajout.drt = droite
+    retourne dst
+}
+
+crée_ajoute :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre, droite: Registre) -> Registre
+{
+    retourne crée_expression_binaire(génératrice, gauche, droite, InstructionAjoute)
+}
+
+crée_soustrait :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre, droite: Registre) -> Registre
+{
+    retourne crée_expression_binaire(génératrice, gauche, droite, InstructionSoustrait)
+}
+
+crée_relation_inférieure :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre, droite: Registre) -> Registre
+{
+    retourne crée_expression_binaire(génératrice, gauche, droite, InstructionRelationInférieure)
+}
+
+crée_comparaison_égal :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre, droite: Registre) -> Registre
+{
+    retourne crée_expression_binaire(génératrice, gauche, droite, InstructionComparaisonÉgal)
+}
+
+crée_comparaison_inégal :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre, droite: Registre) -> Registre
+{
+    retourne crée_expression_binaire(génératrice, gauche, droite, InstructionComparaisonInégal)
+}
+
+crée_définis_locale :: fonc (génératrice: &GénératriceCodeBinaire, nom: ECMAString, src: Registre) -> Registre
+{
+    résultat := génératrice.crée_instruction(InstructionDéfinisLocale)
+    résultat.nom = nom
+    résultat.src = src
+    retourne Registre(-1 comme n32) // À FAIRE : Optionnel(Registre)
+}
+
+crée_charge_locale :: fonc (génératrice: &GénératriceCodeBinaire, nom: ECMAString) -> Registre
+{
+    dst := génératrice.alloue_registre()
+    résultat := génératrice.crée_instruction(InstructionChargeLocale)
+    résultat.dst = dst
+    résultat.nom = nom
+    retourne dst
+}
+
+crée_définis_membre :: fonc (génératrice: &GénératriceCodeBinaire, reg_objet: Registre, nom: ECMAString, reg_valeur: Registre)
+{
+    résultat := génératrice.crée_instruction(InstructionDéfinisMembre)
+    résultat.obj = reg_objet
+    résultat.nom = nom
+    résultat.src = reg_valeur
+}
+
+crée_charge_membre :: fonc (génératrice: &GénératriceCodeBinaire, reg_objet: Registre, nom: ECMAString) -> Registre
+{
+    dst := génératrice.alloue_registre()
+    résultat := génératrice.crée_instruction(InstructionChargeMembre)
+    résultat.dst = dst
+    résultat.obj = reg_objet
+    résultat.nom = nom
+    retourne dst
+}
+
+alloue_registre :: fonc (empl génératrice: &GénératriceCodeBinaire) -> Registre
+{
+    résultat := Registre(flux.registres)
+    flux.registres += 1
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Génération de code pour les noeuds.
+ * \{ */
+
+assignment_expression_sur_code_binaire :: fonc (noeud: *AssignmentExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    assert(noeud.opération == AssignmentOperation.Assigne)
+
+    opt_reg := génère_code_binaire(génératrice, noeud.droite)
+    assert(opt_reg.possède_valeur())
+
+    si noeud.gauche.type == Identifier {
+        nom := (noeud.gauche comme *Identifier).nom
+        _ := génératrice.crée_définis_locale(nom, opt_reg.Quelque)
+    }
+    sinon si noeud.gauche.type == MemberExpression {
+        membre := noeud.gauche comme *MemberExpression
+        assert(!membre.calculé)
+
+        opt_reg_objet := génératrice.génère_code_binaire(membre.objet)
+
+        assert(membre.propriété.type == Identifier)
+        identifier := membre.propriété comme *Identifier
+
+        génératrice.crée_définis_membre(opt_reg_objet.Quelque, identifier.nom, opt_reg.Quelque)
+    }
+    sinon {
+        panique("non-implémenté")
+    }
+
+    retourne opt_reg
+}
+
+binary_expression_sur_code_binaire :: fonc (expression: *BinaryExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    opt_reg_gauche := génère_code_binaire(génératrice, expression.gauche)
+    opt_reg_droite := génère_code_binaire(génératrice, expression.droite)
+
+    assert(opt_reg_gauche.possède_valeur())
+    assert(opt_reg_droite.possède_valeur())
+
+    si expression.opération == BinaryOperation.Plus {
+        retourne génératrice.crée_ajoute(opt_reg_gauche.Quelque, opt_reg_droite.Quelque)
+    }
+
+    si expression.opération == BinaryOperation.Moins {
+        retourne génératrice.crée_soustrait(opt_reg_gauche.Quelque, opt_reg_droite.Quelque)
+    }
+
+    panique("non-implémenté")
+}
+
+block_statement_sur_code_binaire :: fonc (block: *BlockStatement, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    résultat: Optionnel(Registre)
+    pour block.enfants {
+        résultat = génératrice.génère_code_binaire(it)
+    }
+    retourne résultat
+}
+
+boolean_literal_sur_code_binaire :: fonc (noeud: *BooleanLiteral, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    retourne génératrice.crée_charge(Valeur(Boolean = noeud.valeur))
+}
+
+do_while_statement_sur_code_binaire :: fonc (noeud: *WhileStatement, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    décalage := génératrice.donne_décalage()
+
+    _ := génératrice.génère_code_binaire(noeud.body)
+
+    reg_opt_test := génératrice.génère_code_binaire(noeud.test)
+    assert(reg_opt_test.possède_valeur())
+
+    branche_test := génératrice.crée_branche_si_vrai(reg_opt_test.Quelque)
+    génératrice.définis_décalage_branche(branche_test, décalage)
+
+    retourne génératrice.crée_charge(js_undefined)
+}
+
+empty_statement_sur_code_binaire :: fonc (statement: *NoeudSyntaxique @inutilisée, génératrice: &GénératriceCodeBinaire @inutilisée) -> Optionnel(Registre)
+{
+    retourne
+}
+
+equality_expression_sur_code_binaire :: fonc (noeud: *EqualityExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    opt_reg_gauche := génère_code_binaire(génératrice, noeud.gauche)
+    opt_reg_droite := génère_code_binaire(génératrice, noeud.droite)
+
+    assert(opt_reg_gauche.possède_valeur())
+    assert(opt_reg_droite.possède_valeur())
+
+    discr noeud.opération {
+        Égal {
+            retourne génératrice.crée_comparaison_égal(opt_reg_gauche.Quelque, opt_reg_droite.Quelque)
+        }
+        Inégal {
+            retourne génératrice.crée_comparaison_inégal(opt_reg_gauche.Quelque, opt_reg_droite.Quelque)
+        }
+        sinon {
+            panique("non-implémenté")
+        }
+    }
+}
+
+expression_statement_sur_code_binaire :: fonc (statement: *ExpressionStatement, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    retourne génère_code_binaire(génératrice, statement.expression)
+}
+
+identifier_sur_code_binaire :: fonc (noeud: *Identifier, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    retourne génératrice.crée_charge_locale(noeud.nom)
+}
+
+membre_expression_sur_code_binaire :: fonc (noeud: *MemberExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    assert(noeud.calculé == faux)
+
+    opt_reg_objet := génératrice.génère_code_binaire(noeud.objet)
+
+    assert(noeud.propriété.type == Identifier)
+    identifier := noeud.propriété comme *Identifier
+
+    retourne génératrice.crée_charge_membre(opt_reg_objet.Quelque, identifier.nom)
+}
+
+noeud_script_body_sur_code_binaire :: fonc (noeud: *ScriptBody, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    résultat: Optionnel(Registre)
+
+    pour noeud.enfants {
+        résultat = génère_code_binaire(génératrice, it)
+    }
+
+    retourne résultat
+}
+
+noeud_script_sur_code_binaire :: fonc (noeud: *NoeudScript, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    retourne génère_code_binaire(génératrice, noeud.script_body)
+}
+
+null_literal_sur_code_binaire :: fonc (noeud: *NullLiteral @inutilisée, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    retourne génératrice.crée_charge(js_null)
+}
+
+numeric_literal_sur_code_binaire :: fonc (noeud: *NumericLiteral, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    retourne génératrice.crée_charge(Valeur(Number = noeud.valeur))
+}
+
+object_expression_sur_code_binaire :: fonc (noeud: *ObjectExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    assert(noeud.properties.taille == 0)
+    retourne génératrice.crée_crée_objet()
+}
+
+relational_expression_sur_code_binaire :: fonc (noeud: *RelationalExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    assert(noeud.opération == RelationalOperation.Inférieur)
+
+    reg_opt_gauche := génère_code_binaire(génératrice, noeud.gauche)
+    assert(reg_opt_gauche.possède_valeur())
+    reg_opt_droite := génère_code_binaire(génératrice, noeud.droite)
+    assert(reg_opt_droite.possède_valeur())
+
+    retourne génératrice.crée_relation_inférieure(reg_opt_gauche.Quelque, reg_opt_droite.Quelque)
+}
+
+string_literal_sur_code_binaire :: fonc (noeud: *StringLiteral, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    retourne génératrice.crée_crée_chaine(noeud.valeur)
+}
+
+while_statement_sur_code_binaire :: fonc (noeud: *WhileStatement, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    décalage := génératrice.donne_décalage()
+
+    reg_opt_test := génératrice.génère_code_binaire(noeud.test)
+    assert(reg_opt_test.possède_valeur())
+
+    branche_test := génératrice.crée_branche_si_faux(reg_opt_test.Quelque)
+
+    _ := génératrice.génère_code_binaire(noeud.body)
+
+    génératrice.crée_branche(décalage)
+
+    décalage = génératrice.donne_décalage()
+    génératrice.définis_décalage_branche(branche_test, décalage)
+
+    retourne génératrice.crée_charge(js_undefined)
+}
+
+/** \} */

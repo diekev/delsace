@@ -187,11 +187,6 @@ crée_script :: fonc (parseuse: *Parseuse, script_body: *ScriptBody) -> *NoeudSc
     retourne résultat
 }
 
-noeud_script_sur_code_binaire :: fonc (noeud: *NoeudScript, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
-{
-    retourne génère_code_binaire(génératrice, noeud.script_body)
-}
-
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -208,17 +203,6 @@ crée_script_body :: fonc (parseuse: *Parseuse, expressions: [..]*Statement) -> 
     résultat := parseuse.crée_noeud(nul, ScriptBody)
     résultat.enfants = expressions
     résultat.sur_génération_code_binaire = noeud_script_body_sur_code_binaire
-    retourne résultat
-}
-
-noeud_script_body_sur_code_binaire :: fonc (noeud: *ScriptBody, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
-{
-    résultat: Optionnel(Registre)
-
-    pour noeud.enfants {
-        résultat = génère_code_binaire(génératrice, it)
-    }
-
     retourne résultat
 }
 
@@ -317,11 +301,6 @@ sur_exécution_expression_statement :: fonc (base: *NoeudSyntaxique, interpréte
     retourne get_value(interpréteuse, expr_ref)
 }
 
-expression_statement_sur_code_binaire :: fonc (statement: *ExpressionStatement, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
-{
-    retourne génère_code_binaire(génératrice, statement.expression)
-}
-
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -344,11 +323,6 @@ sur_exécution_empty_statement :: fonc (base: *NoeudSyntaxique @inutilisée, int
 {
     // 1. Return empty.
     retourne normal_completion(js_undefined)
-}
-
-empty_statement_sur_code_binaire :: fonc (statement: *NoeudSyntaxique @inutilisée, génératrice: &GénératriceCodeBinaire @inutilisée) -> Optionnel(Registre)
-{
-    retourne
 }
 
 /** \} */
@@ -629,11 +603,6 @@ donne_chaine_primitive :: fonc (identifier: *Identifier, realm: *Realm) -> *Prim
     retourne realm.chaines[identifier.index_chaine_en_cache]
 }
 
-identifier_sur_code_binaire :: fonc (noeud: *Identifier, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
-{
-    retourne génératrice.crée_charge_locale(noeud.nom)
-}
-
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -650,15 +619,6 @@ crée_block_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, expressio
     résultat := parseuse.crée_noeud(lexème, BlockStatement)
     résultat.sur_génération_code_binaire = block_statement_sur_code_binaire
     résultat.enfants = expressions
-    retourne résultat
-}
-
-block_statement_sur_code_binaire :: fonc (block: *BlockStatement, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
-{
-    résultat: Optionnel(Registre)
-    pour block.enfants {
-        résultat = génératrice.génère_code_binaire(it)
-    }
     retourne résultat
 }
 
@@ -1289,25 +1249,6 @@ apply_string_or_numeric_binary_operator :: fonc (interpréteuse: *Interpréteuse
     retourne normal_completion(valeur)
 }
 
-binary_expression_sur_code_binaire :: fonc (expression: *BinaryExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
-{
-    opt_reg_gauche := génère_code_binaire(génératrice, expression.gauche)
-    opt_reg_droite := génère_code_binaire(génératrice, expression.droite)
-
-    assert(opt_reg_gauche.possède_valeur())
-    assert(opt_reg_droite.possède_valeur())
-
-    si expression.opération == BinaryOperation.Plus {
-        retourne génératrice.crée_ajoute(opt_reg_gauche.Quelque, opt_reg_droite.Quelque)
-    }
-
-    si expression.opération == BinaryOperation.Moins {
-        retourne génératrice.crée_soustrait(opt_reg_gauche.Quelque, opt_reg_droite.Quelque)
-    }
-
-    panique("non-implémenté")
-}
-
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1391,27 +1332,6 @@ sur_exécution_equality_expression :: fonc (base: *NoeudSyntaxique, interpréteu
         }
         sinon {
             panique("noeud.opération non-initialisé")
-        }
-    }
-}
-
-equality_expression_sur_code_binaire :: fonc (noeud: *EqualityExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
-{
-    opt_reg_gauche := génère_code_binaire(génératrice, noeud.gauche)
-    opt_reg_droite := génère_code_binaire(génératrice, noeud.droite)
-
-    assert(opt_reg_gauche.possède_valeur())
-    assert(opt_reg_droite.possède_valeur())
-
-    discr noeud.opération {
-        Égal {
-            retourne génératrice.crée_comparaison_égal(opt_reg_gauche.Quelque, opt_reg_droite.Quelque)
-        }
-        Inégal {
-            retourne génératrice.crée_comparaison_inégal(opt_reg_gauche.Quelque, opt_reg_droite.Quelque)
-        }
-        sinon {
-            panique("non-implémenté")
         }
     }
 }
@@ -1568,18 +1488,6 @@ sur_exécution_relational_expression :: fonc (base: *NoeudSyntaxique, interprét
     retourne normal_completion(r)
 }
 
-relational_expression_sur_code_binaire :: fonc (noeud: *RelationalExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
-{
-    assert(noeud.opération == RelationalOperation.Inférieur)
-
-    reg_opt_gauche := génère_code_binaire(génératrice, noeud.gauche)
-    assert(reg_opt_gauche.possède_valeur())
-    reg_opt_droite := génère_code_binaire(génératrice, noeud.droite)
-    assert(reg_opt_droite.possède_valeur())
-
-    retourne génératrice.crée_relation_inférieure(reg_opt_gauche.Quelque, reg_opt_droite.Quelque)
-}
-
 /* 13.10.2 InstanceofOperator ( V, target )
  * https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-instanceofoperator */
 instanceof_operator :: fonc (interpréteuse: *Interpréteuse, V: Valeur, target: Valeur) -> CompletionRecord
@@ -1631,11 +1539,6 @@ sur_exécution_numeric_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: 
     retourne normal_completion(Valeur(Number = noeud.valeur))
 }
 
-numeric_literal_sur_code_binaire :: fonc (noeud: *NumericLiteral, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
-{
-    retourne génératrice.crée_charge(Valeur(Number = noeud.valeur))
-}
-
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1664,11 +1567,6 @@ sur_exécution_boolean_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: 
     retourne normal_completion(Valeur(Boolean = noeud.valeur))
 }
 
-boolean_literal_sur_code_binaire :: fonc (noeud: *BooleanLiteral, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
-{
-    retourne génératrice.crée_charge(Valeur(Boolean = noeud.valeur))
-}
-
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1691,11 +1589,6 @@ crée_null_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *NullLite
 sur_exécution_null_literal :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *Interpréteuse @inutilisée) -> CompletionRecord
 {
     retourne normal_completion(js_null)
-}
-
-null_literal_sur_code_binaire :: fonc (noeud: *NullLiteral @inutilisée, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
-{
-    retourne génératrice.crée_charge(js_null)
 }
 
 /** \} */
@@ -1743,11 +1636,6 @@ sur_exécution_string_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: *
     }
 
     retourne normal_completion(chn)
-}
-
-string_literal_sur_code_binaire :: fonc (noeud: *StringLiteral, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
-{
-    retourne génératrice.crée_crée_chaine(noeud.valeur)
 }
 
 /** \} */
@@ -2012,35 +1900,6 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
         retourne évalue_logical_and_assignemnt(noeud, interpréteuse)
     }
     retourne évalue_assignement_opéré(noeud, interpréteuse)
-}
-
-assignment_expression_sur_code_binaire :: fonc (noeud: *AssignmentExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
-{
-    assert(noeud.opération == AssignmentOperation.Assigne)
-
-    opt_reg := génère_code_binaire(génératrice, noeud.droite)
-    assert(opt_reg.possède_valeur())
-
-    si noeud.gauche.type == Identifier {
-        nom := (noeud.gauche comme *Identifier).nom
-        _ := génératrice.crée_définis_locale(nom, opt_reg.Quelque)
-    }
-    sinon si noeud.gauche.type == MemberExpression {
-        membre := noeud.gauche comme *MemberExpression
-        assert(!membre.calculé)
-
-        opt_reg_objet := génératrice.génère_code_binaire(membre.objet)
-
-        assert(membre.propriété.type == Identifier)
-        identifier := membre.propriété comme *Identifier
-
-        génératrice.crée_définis_membre(opt_reg_objet.Quelque, identifier.nom, opt_reg.Quelque)
-    }
-    sinon {
-        panique("non-implémenté")
-    }
-
-    retourne opt_reg
 }
 
 évalue_assignement_simple :: fonc (noeud: *AssignmentExpression, interpréteuse: *Interpréteuse) -> CompletionRecord
@@ -2708,12 +2567,6 @@ property_definition_evaluation :: fonc (interpréteuse: *Interpréteuse, propert
     retourne ident.nom
 }
 
-object_expression_sur_code_binaire :: fonc (noeud: *ObjectExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
-{
-    assert(noeud.properties.taille == 0)
-    retourne génératrice.crée_crée_objet()
-}
-
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -2872,18 +2725,6 @@ evaluate_property_access_with_identifier_key :: fonc (interpréteuse: *Interpré
     résultat.referenced_name = Valeur(String = property_name_string)
     résultat.strict = strict
     retourne normal_completion(résultat)
-}
-
-membre_expression_sur_code_binaire :: fonc (noeud: *MemberExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
-{
-    assert(noeud.calculé == faux)
-
-    opt_reg_objet := génératrice.génère_code_binaire(noeud.objet)
-
-    assert(noeud.propriété.type == Identifier)
-    identifier := noeud.propriété comme *Identifier
-
-    retourne génératrice.crée_charge_membre(opt_reg_objet.Quelque, identifier.nom)
 }
 
 /** \} */
@@ -3254,25 +3095,6 @@ sur_exécution_while_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: 
     retourne normal_completion(js_undefined)
 }
 
-while_statement_sur_code_binaire :: fonc (noeud: *WhileStatement, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
-{
-    décalage := génératrice.donne_décalage()
-
-    reg_opt_test := génératrice.génère_code_binaire(noeud.test)
-    assert(reg_opt_test.possède_valeur())
-
-    branche_test := génératrice.crée_branche_si_faux(reg_opt_test.Quelque)
-
-    _ := génératrice.génère_code_binaire(noeud.body)
-
-    génératrice.crée_branche(décalage)
-
-    décalage = génératrice.donne_décalage()
-    génératrice.définis_décalage_branche(branche_test, décalage)
-
-    retourne génératrice.crée_charge(js_undefined)
-}
-
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -3331,21 +3153,6 @@ sur_exécution_do_while_statement :: fonc (base: *NoeudSyntaxique, interpréteus
     }
     
     retourne normal_completion(js_undefined)
-}
-
-do_while_statement_sur_code_binaire :: fonc (noeud: *WhileStatement, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
-{
-    décalage := génératrice.donne_décalage()
-
-    _ := génératrice.génère_code_binaire(noeud.body)
-
-    reg_opt_test := génératrice.génère_code_binaire(noeud.test)
-    assert(reg_opt_test.possède_valeur())
-
-    branche_test := génératrice.crée_branche_si_vrai(reg_opt_test.Quelque)
-    génératrice.définis_décalage_branche(branche_test, décalage)
-
-    retourne génératrice.crée_charge(js_undefined)
 }
 
 /** \} */
