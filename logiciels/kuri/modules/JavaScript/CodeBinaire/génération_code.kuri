@@ -25,6 +25,11 @@ donne_décalage :: fonc (génératrice: &GénératriceCodeBinaire) -> DécalageB
     retourne DécalageBranche(flux.instructions.taille)
 }
 
+définis_décalage_branche :: fonc (génératrice: &GénératriceCodeBinaire, branche: IndexBranche)
+{
+    définis_décalage_branche(génératrice, branche, génératrice.donne_décalage())
+}
+
 définis_décalage_branche :: fonc (génératrice: &GénératriceCodeBinaire, branche: IndexBranche, décalage: DécalageBranche)
 {
     flux := génératrice.flux
@@ -47,6 +52,13 @@ crée_branche :: fonc (génératrice: &GénératriceCodeBinaire, décalage: Déc
 {
     branche := génératrice.crée_instruction(InstructionBranche)
     branche.décalage = décalage
+}
+
+crée_branche :: fonc (génératrice: &GénératriceCodeBinaire) -> IndexBranche
+{
+    résultat := génératrice.donne_décalage()
+    _ := génératrice.crée_instruction(InstructionBranche)
+    retourne IndexBranche(résultat comme z64)
 }
 
 crée_branche_si_faux :: fonc (génératrice: &GénératriceCodeBinaire, registre: Registre) -> IndexBranche
@@ -357,19 +369,20 @@ if_statement_sur_code_binaire :: fonc (noeud: *IfStatement, génératrice: &Gén
     reg_opt_test := génératrice.génère_code_binaire(noeud.test)
     assert(reg_opt_test.possède_valeur())
 
-    branche_si_vrai := génératrice.crée_branche_si_vrai(reg_opt_test.Quelque)
     branche_si_faux := génératrice.crée_branche_si_faux(reg_opt_test.Quelque)
-
-    décalage := génératrice.donne_décalage()
-    génératrice.définis_décalage_branche(branche_si_vrai, décalage)
 
     _ := génératrice.génère_code_binaire(noeud.consequent)
 
-    décalage = génératrice.donne_décalage()
-    génératrice.définis_décalage_branche(branche_si_faux, décalage)
-
     si noeud.alternate {
+        branche := génératrice.crée_branche()
+
+        génératrice.définis_décalage_branche(branche_si_faux)
         _ := génératrice.génère_code_binaire(noeud.alternate)
+
+        génératrice.définis_décalage_branche(branche)
+    }
+    sinon {
+        génératrice.définis_décalage_branche(branche_si_faux)
     }
 
     retourne génératrice.crée_charge(js_undefined)
