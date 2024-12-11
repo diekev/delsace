@@ -350,9 +350,8 @@ ordinary_to_primitive :: fonc (realm: *Realm, object: *Object, hint: TypePréfé
         // b. If IsCallable(method) is true, then
         si is_callable(method) {
             // i. Let result be ? Call(method, O).
-            interpréteuse: Interpréteuse
-            interpréteuse.mv = realm.donne_tas_de_mémoire().donne_mv()
-            completion = call(*interpréteuse, method, object)
+            mv := realm.donne_tas_de_mémoire().donne_mv()
+            completion = call(mv, method, object)
             saufsi completion.est_normal() {
                 retourne completion
             }

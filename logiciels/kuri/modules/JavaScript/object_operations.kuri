@@ -168,6 +168,31 @@ call :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur, this_value: Valeu
     retourne object.internal_call(interpréteuse, this_value, arguments)
 }
 
+call :: fonc (mv: *MachineVirtuelle, valeur: Valeur, this_value: Valeur) -> CompletionRecord
+{
+    si mv.utilise_code_binaire {
+        interpréteuse: InterprèteCodeBinaire
+        interpréteuse.mv = mv
+        retourne call(*interpréteuse, valeur, this_value)
+    }
+
+    interpréteuse: Interpréteuse
+    interpréteuse.mv = mv
+    retourne call(*interpréteuse, valeur, this_value)
+}
+
+call :: fonc (mv: *MachineVirtuelle, valeur: Valeur, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+{
+    si mv.utilise_code_binaire {
+        interpréteuse: InterprèteCodeBinaire
+        interpréteuse.mv = mv
+        retourne call(*interpréteuse, valeur, this_value, arguments)
+    }
+
+    interpréteuse: Interpréteuse
+    interpréteuse.mv = mv
+    retourne call(*interpréteuse, valeur, this_value, arguments)
+}
 
 /* 7.3.14 Construct ( F [ , argumentsList [ , newTarget ] ] )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-call */
