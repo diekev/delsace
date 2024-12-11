@@ -2596,6 +2596,7 @@ ObjectExpression :: struct {
 crée_object_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, properties: [..]*PropertyDefinition) -> *ObjectExpression
 {
     résultat := parseuse.crée_noeud(lexème, ObjectExpression)
+    résultat.sur_génération_code_binaire = object_expression_sur_code_binaire
     résultat.properties = properties
     retourne résultat
 }
@@ -2689,6 +2690,12 @@ property_definition_evaluation :: fonc (interpréteuse: *Interpréteuse, propert
     assert(prop_name.type == Identifier)
     ident := prop_name comme *Identifier
     retourne ident.nom
+}
+
+object_expression_sur_code_binaire :: fonc (noeud: *ObjectExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    assert(noeud.properties.taille == 0)
+    retourne génératrice.crée_crée_objet()
 }
 
 /** \} */

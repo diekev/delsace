@@ -140,6 +140,13 @@ InstructionCréeChaine :: struct {
     index_chaine : z64 = -1
 }
 
+InstructionCréeObjet :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    dst: Registre
+}
+
 InstructionExpressionBinaire :: struct {
     empl inst: Instruction
 
@@ -329,6 +336,14 @@ crée_crée_chaine :: fonc (génératrice: &GénératriceCodeBinaire, chn: ECMAS
     résultat := génératrice.crée_instruction(InstructionCréeChaine)
     résultat.dst = dst
     résultat.chn = chn
+    retourne dst
+}
+
+crée_crée_objet :: fonc (génératrice: &GénératriceCodeBinaire) -> Registre
+{
+    dst := génératrice.alloue_registre()
+    résultat := génératrice.crée_instruction(InstructionCréeObjet)
+    résultat.dst = dst
     retourne dst
 }
 
@@ -536,6 +551,13 @@ interprète_code_binaire :: fonc (mv: *MachineVirtuelle, noeud: *NoeudScript) ->
                 }
 
                 interprète.registres[crée_chaine.dst] = Valeur(String = chn)
+            }
+            InstructionCréeObjet {
+                crée_objet := it comme *InstructionCréeObjet
+
+                realm := donne_realm(*interprète)
+                objet := ordinary_object_create(realm, realm.intrinsics.object_prototype, object_instance_crée)
+                interprète.registres[crée_objet.dst] = Valeur(Object = objet)
             }
             InstructionDéfinisLocale {
                 définis_locale := it comme *InstructionDéfinisLocale
