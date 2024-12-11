@@ -3150,6 +3150,7 @@ WhileStatement :: struct {
 crée_while_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, test: *Expression, body: *Statement) -> *WhileStatement
 {
     résultat := parseuse.crée_noeud(lexème, WhileStatement)
+    résultat.sur_génération_code_binaire = while_statement_sur_code_binaire
     résultat.test = test
     résultat.body = body
     retourne résultat
@@ -3189,6 +3190,25 @@ sur_exécution_while_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: 
     }
     
     retourne normal_completion(js_undefined)
+}
+
+while_statement_sur_code_binaire :: fonc (noeud: *WhileStatement, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    décalage := génératrice.donne_décalage()
+
+    reg_opt_test := génératrice.génère_code_binaire(noeud.test)
+    assert(reg_opt_test.possède_valeur())
+
+    branche_test := génératrice.crée_branche_si_faux(reg_opt_test.Quelque)
+
+    _ := génératrice.génère_code_binaire(noeud.body)
+
+    génératrice.crée_branche(décalage)
+
+    décalage = génératrice.donne_décalage()
+    génératrice.définis_décalage_branche(branche_test, décalage)
+
+    retourne génératrice.crée_charge(js_undefined)
 }
 
 /** \} */
