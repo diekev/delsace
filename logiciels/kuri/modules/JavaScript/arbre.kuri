@@ -648,7 +648,17 @@ BlockStatement :: struct {
 crée_block_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, expressions: [..]*Statement) -> *BlockStatement
 {
     résultat := parseuse.crée_noeud(lexème, BlockStatement)
+    résultat.sur_génération_code_binaire = block_statement_sur_code_binaire
     résultat.enfants = expressions
+    retourne résultat
+}
+
+block_statement_sur_code_binaire :: fonc (block: *BlockStatement, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    résultat: Optionnel(Registre)
+    pour block.enfants {
+        résultat = génératrice.génère_code_binaire(it)
+    }
     retourne résultat
 }
 
