@@ -278,6 +278,13 @@ donne_arguments :: fonc (appel: *InstructionAppel) -> []Registre
     retourne résultat
 }
 
+InstructionRetour :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    src: Registre
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -544,6 +551,16 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 }
 
                 interprète.registres[appel.dst] = completion.valeur.V
+            }
+            InstructionRetour {
+                retour := it comme *InstructionRetour
+
+                si retour.src comme n32 comme z32 != -1 {
+                    valeur := interprète.registres[retour.src]
+                    retourne return_completion(valeur)
+                }
+
+                retourne normal_completion(js_undefined)
             }
             sinon {
                 imprime("intruction inconnue!\n")

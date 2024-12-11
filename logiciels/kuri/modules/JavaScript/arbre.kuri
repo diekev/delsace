@@ -640,6 +640,7 @@ ReturnStatement :: struct {
 crée_return_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *NoeudSyntaxique) -> *ReturnStatement
 {
     résultat := parseuse.crée_noeud(lexème, ReturnStatement)
+    résultat.sur_génération_code_binaire = return_statement_sur_code_binaire
     résultat.argument = argument
     retourne résultat
 }

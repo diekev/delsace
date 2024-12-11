@@ -184,6 +184,12 @@ crée_appel :: fonc (génératrice: &GénératriceCodeBinaire, func: Registre, a
     retourne dst
 }
 
+crée_retour :: fonc (génératrice: &GénératriceCodeBinaire, src: Registre)
+{
+    résultat := génératrice.crée_instruction(InstructionRetour)
+    résultat.src = src
+}
+
 alloue_registre :: fonc (empl génératrice: &GénératriceCodeBinaire) -> Registre
 {
     résultat := Registre(flux.registres)
@@ -391,6 +397,17 @@ relational_expression_sur_code_binaire :: fonc (noeud: *RelationalExpression, g�
     assert(reg_opt_droite.possède_valeur())
 
     retourne génératrice.crée_relation_inférieure(reg_opt_gauche.Quelque, reg_opt_droite.Quelque)
+}
+
+return_statement_sur_code_binaire :: fonc (noeud: *ReturnStatement, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    src := Registre(-1 comme n32)
+
+    si noeud.argument {
+        src = génératrice.génère_code_binaire(noeud.argument)
+    }
+
+    génératrice.crée_retour(src)
 }
 
 string_literal_sur_code_binaire :: fonc (noeud: *StringLiteral, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
