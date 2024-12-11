@@ -245,6 +245,7 @@ ParenthesizedExpression :: struct {
 crée_parenthesized_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, expression: *Expression) -> *ParenthesizedExpression
 {
     résultat := parseuse.crée_noeud(lexème, ParenthesizedExpression)
+    résultat.sur_génération_code_binaire = parenthesized_expression_sur_code_binaire
     résultat.expression = expression
     retourne résultat
 }

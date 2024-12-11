@@ -432,6 +432,15 @@ object_expression_sur_code_binaire :: fonc (noeud: *ObjectExpression, génératr
     retourne génératrice.crée_crée_objet()
 }
 
+parenthesized_expression_sur_code_binaire :: fonc (noeud: *ParenthesizedExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    saufsi noeud.expression {
+        retourne génératrice.crée_charge(js_undefined)
+    }
+
+    retourne génératrice.génère_code_binaire(noeud.expression)
+}
+
 relational_expression_sur_code_binaire :: fonc (noeud: *RelationalExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
 {
     assert(noeud.opération == RelationalOperation.Inférieur)
