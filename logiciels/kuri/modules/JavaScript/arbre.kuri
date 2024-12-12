@@ -168,6 +168,7 @@ NoeudScript :: struct {
     type = #type_de_cette_structure
 
     script_body: *ScriptBody
+    code_binaire: *FluxDInstructions
 }
 
 exécute :: fonc (script: *NoeudScript, interpréteuse: *Interpréteuse) -> CompletionRecord
@@ -340,6 +341,7 @@ FunctionDeclaration :: struct {
     id: *Identifier
     params: [..]*Expression
     corps: *FunctionBody
+    code_binaire: *FluxDInstructions
 
     generator := faux
     expression := faux
@@ -614,6 +616,8 @@ donne_chaine_primitive :: fonc (identifier: *Identifier, realm: *Realm) -> *Prim
 BlockStatement :: struct {
     empl scope: NoeudScope
     type = #type_de_cette_structure
+
+    code_binaire: *FluxDInstructions
 }
 
 crée_block_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, expressions: [..]*Statement) -> *BlockStatement

@@ -329,17 +329,69 @@ interprète_code_binaire :: fonc (mv: *MachineVirtuelle, noeud: *NoeudScript) ->
     retourne exécute_code_binaire(*interprète, noeud)
 }
 
+donne_code_binaire :: fonc (noeud: *NoeudSyntaxique) -> *FluxDInstructions
+{
+    /* BlockStatement est utilisé car c'est via lui que nous exécutons les fonctions... */
+    assert(noeud.type == FunctionDeclaration || noeud.type == NoeudScript || noeud.type == BlockStatement)
+
+    si noeud.type == FunctionDeclaration {
+        decl := noeud comme *FunctionDeclaration
+        retourne decl.code_binaire
+    }
+
+    si noeud.type == NoeudScript {
+        script := noeud comme *NoeudScript
+        retourne script.code_binaire
+    }
+
+    si noeud.type == BlockStatement {
+        block := noeud comme *BlockStatement
+        retourne block.code_binaire
+    }
+
+    retourne nul
+}
+
+définis_code_binaire :: fonc (noeud: *NoeudSyntaxique, flux: *FluxDInstructions)
+{
+    /* BlockStatement est utilisé car c'est via lui que nous exécutons les fonctions... */
+    assert(noeud.type == FunctionDeclaration || noeud.type == NoeudScript || noeud.type == BlockStatement)
+
+    si noeud.type == FunctionDeclaration {
+        decl := noeud comme *FunctionDeclaration
+        decl.code_binaire = flux
+        retourne
+    }
+
+    si noeud.type == NoeudScript {
+        script := noeud comme *NoeudScript
+        script.code_binaire = flux
+        retourne
+    }
+
+    si noeud.type == BlockStatement {
+        block := noeud comme *BlockStatement
+        block.code_binaire = flux
+        retourne
+    }
+}
+
 exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -> CompletionRecord
 {
     interprète := base comme *InterprèteCodeBinaire
 
-    flux := loge(FluxDInstructions)
-    génératrice := GénératriceCodeBinaire(flux)
+    flux := donne_code_binaire(noeud)
+    saufsi flux {
+        flux = loge(FluxDInstructions)
+        génératrice := GénératriceCodeBinaire(flux)
 
-    _ := génère_code_binaire(génératrice, noeud)
-    applique_patchs(génératrice)
+        _ := génère_code_binaire(génératrice, noeud)
+        applique_patchs(génératrice)
 
-    imprime_instructions(flux)
+        imprime_instructions(flux)
+
+        définis_code_binaire(noeud, flux)
+    }
 
     si flux.registres comme z64 > interprète.registres.taille {
         tableau_redimensionne(interprète.registres, flux.registres comme z64)
