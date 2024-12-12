@@ -811,7 +811,7 @@ __initialise_contexte_extra :: fonc (ctx: *ContexteProgramme, trace_appel: *Trac
     ctx.stockage_temporaire = stockage_temporaire
 }
 
-__début_pile: *n64 #mémoire_locale
+__début_pile: *n64 = --- #mémoire_locale
 __init_début_pile :: fonc (adresse: *n64)
 {
     __début_pile = adresse
