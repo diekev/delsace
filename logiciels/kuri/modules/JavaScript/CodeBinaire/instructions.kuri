@@ -245,6 +245,15 @@ donne_chaine_primitive :: fonc (instruction: *InstructionChargeLocale, realm: *R
     retourne realm.chaines[instruction.index_chaine_en_cache]
 }
 
+/* Pour les déclarations lexicales. */
+InstructionInitialiseRéférence :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    nom: ECMAString
+    src: Registre
+}
+
 InstructionDéfinisMembre :: struct {
     empl inst: Instruction
     type = #type_de_cette_structure
@@ -500,6 +509,15 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                     retourne completion_rval
                 }
                 interprète.registres[charge_locale.dst] = completion_rval.valeur.V
+            }
+            InstructionInitialiseRéférence {
+                init := it comme *InstructionInitialiseRéférence
+
+                realm := donne_realm(interprète)
+                valeur := interprète.registres[init.src]
+
+                lhs := resolve_binding(interprète, realm.crée_chaine(init.nom)).valeur.R
+                _ := initialize_reference_binding(lhs, valeur)
             }
             InstructionDéfinisMembre {
                 membre := it comme *InstructionDéfinisMembre

@@ -219,6 +219,13 @@ crée_charge_locale :: fonc (génératrice: &GénératriceCodeBinaire, nom: ECMA
     retourne dst
 }
 
+crée_initialise_référence :: fonc (génératrice: &GénératriceCodeBinaire, nom: ECMAString, src: Registre)
+{
+    résultat := génératrice.crée_instruction(InstructionInitialiseRéférence)
+    résultat.nom = nom
+    résultat.src = src
+}
+
 crée_définis_membre :: fonc (génératrice: &GénératriceCodeBinaire, reg_objet: Registre, nom: ECMAString, reg_valeur: Registre)
 {
     résultat := génératrice.crée_instruction(InstructionDéfinisMembre)
@@ -557,6 +564,102 @@ return_statement_sur_code_binaire :: fonc (noeud: *ReturnStatement, génératric
 string_literal_sur_code_binaire :: fonc (noeud: *StringLiteral, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
 {
     retourne génératrice.crée_crée_chaine(noeud.valeur)
+}
+
+variable_declaration_sur_code_binaire :: fonc (noeud: *VariableDeclaration, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    dernière_valeur: Optionnel(Registre)
+
+    si noeud.nature == VariableDeclarationKind.Var {
+        pour noeud.expressions {
+            dernière_valeur = variable_declarator_sur_code_binaire(it, génératrice)
+        }
+    }
+    sinon {
+        pour noeud.expressions {
+            dernière_valeur = lexical_declarator_sur_code_binaire(it, génératrice)
+        }
+    }
+
+    retourne dernière_valeur
+}
+
+variable_declarator_sur_code_binaire :: fonc (noeud: *VariableDeclarator, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    assert(noeud.id.type == Identifier)
+    identifier := noeud.id comme *Identifier
+
+    saufsi noeud.init {
+        // 1. Return EMPTY
+        retourne
+    }
+
+    // 1. Let bindingId be the StringValue of BindingIdentifier.
+    binding_id := identifier.nom
+
+    // 2. Let lhs be ? ResolveBinding(bindingId).
+    // À FAIRE : nous pourrions avoir une exception ici.
+
+    reg_opt_valeur: Optionnel(Registre)
+    // 3. If IsAnonymousFunctionDefinition(Initializer) is true, then
+    si is_anonymous_function_definition(noeud.init) {
+        // a. Let value be ? NamedEvaluation of Initializer with argument bindingId.
+        panique("non-implémenté")
+    }
+    // 4. Else,
+    sinon {
+        // a. Let rhs be ? Evaluation of Initializer.
+        // b. Let value be ? GetValue(rhs).
+        reg_opt_valeur = génératrice.génère_code_binaire(noeud.init)
+    }
+
+    // 5. Perform ? PutValue(lhs, value).
+    génératrice.crée_définis_locale(binding_id, reg_opt_valeur.Quelque)
+
+    // 6. Return EMPTY.
+    retourne
+}
+
+lexical_declarator_sur_code_binaire :: fonc (noeud: *VariableDeclarator, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    assert(noeud.id.type == Identifier)
+    binding_identifier := noeud.id comme *Identifier
+
+    saufsi noeud.init {
+        // 1. Let lhs be ! ResolveBinding(StringValue of BindingIdentifier).
+        binding_id := binding_identifier.nom
+
+        // 2. Perform ! InitializeReferencedBinding(lhs, undefined).
+        valeur := génératrice.crée_charge(js_undefined)
+        génératrice.crée_initialise_référence(binding_id, valeur)
+
+        // 3. Return empty.
+        retourne
+    }
+
+    // 1. Let bindingId be the StringValue of BindingIdentifier.
+    binding_id := binding_identifier.nom
+
+    // 2. Let lhs be ! ResolveBinding(bindingId).
+
+    reg_opt_valeur: Optionnel(Registre)
+    // 3. If IsAnonymousFunctionDefinition(Initializer) is true, then
+    si is_anonymous_function_definition(noeud.init) {
+        // a. Let value be ? NamedEvaluation of Initializer with argument bindingId.
+        panique("non-implémenté")
+    }
+    // 4. Else,
+    sinon {
+        // a. Let rhs be ? Evaluation of Initializer.
+        // b. Let value be ? GetValue(rhs).
+        reg_opt_valeur = génératrice.génère_code_binaire(noeud.init)
+    }
+
+    // 5. Perform ! InitializeReferencedBinding(lhs, value).
+    génératrice.crée_initialise_référence(binding_id, reg_opt_valeur.Quelque)
+
+    // 6. Return empty.
+    retourne
 }
 
 while_statement_sur_code_binaire :: fonc (noeud: *WhileStatement, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)

@@ -2277,6 +2277,7 @@ VariableDeclaration :: struct {
 crée_variable_declaration :: fonc (parseuse: *Parseuse, lexème: *Lexème, nature: VariableDeclarationKind, declarators: [..]*VariableDeclarator) -> *VariableDeclaration
 {
     résultat := parseuse.crée_noeud(lexème, VariableDeclaration)
+    résultat.sur_génération_code_binaire = variable_declaration_sur_code_binaire
     résultat.nature = nature
     résultat.expressions = declarators
     retourne résultat
