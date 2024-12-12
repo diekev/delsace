@@ -310,6 +310,12 @@ InstructionRetour :: struct {
     src: Registre
 }
 
+InstructionThis :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+    dst: Registre
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -689,6 +695,14 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 }
 
                 retourne normal_completion(js_undefined)
+            }
+            InstructionThis {
+                this := it comme *InstructionThis
+                completion := resolve_this_binding(interprète)
+                saufsi completion.est_normal() {
+                    retourne completion
+                }
+                interprète.registres[this.dst] = completion.valeur.V
             }
             sinon {
                 imprime("intruction inconnue!\n")

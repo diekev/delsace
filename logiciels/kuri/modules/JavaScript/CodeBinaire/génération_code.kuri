@@ -283,6 +283,14 @@ crée_retour :: fonc (génératrice: &GénératriceCodeBinaire, src: Registre)
     résultat.src = src
 }
 
+crée_this :: fonc (génératrice: &GénératriceCodeBinaire) -> Registre
+{
+    dst := génératrice.alloue_registre()
+    résultat := génératrice.crée_instruction(InstructionThis)
+    résultat.dst = dst
+    retourne dst
+}
+
 alloue_registre :: fonc (empl génératrice: &GénératriceCodeBinaire) -> Registre
 {
     résultat := Registre(flux.registres)
@@ -564,6 +572,11 @@ return_statement_sur_code_binaire :: fonc (noeud: *ReturnStatement, génératric
 string_literal_sur_code_binaire :: fonc (noeud: *StringLiteral, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
 {
     retourne génératrice.crée_crée_chaine(noeud.valeur)
+}
+
+this_expression_sur_code_binaire :: fonc (noeud: *ThisExpression @inutilisée, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    retourne génératrice.crée_this()
 }
 
 variable_declaration_sur_code_binaire :: fonc (noeud: *VariableDeclaration, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)

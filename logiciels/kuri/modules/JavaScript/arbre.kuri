@@ -518,7 +518,9 @@ ThisExpression :: struct {
 
 crée_this_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *ThisExpression
 {
-    retourne parseuse.crée_noeud(lexème, ThisExpression)
+    résultat := parseuse.crée_noeud(lexème, ThisExpression)
+    résultat.sur_génération_code_binaire = this_expression_sur_code_binaire
+    retourne résultat
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-this-keyword-runtime-semantics-evaluation */
