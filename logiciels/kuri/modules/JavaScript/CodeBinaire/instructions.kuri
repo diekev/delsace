@@ -147,6 +147,13 @@ InstructionCharge :: struct {
     vlr: Valeur
 }
 
+InstructionChargeRegistre :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    src: Registre
+}
+
 InstructionStocke :: struct {
     empl inst: Instruction
     type = #type_de_cette_structure
@@ -317,6 +324,16 @@ InstructionThis :: struct {
     type = #type_de_cette_structure
 }
 
+InstructionIncrémente :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+}
+
+InstructionDécrémente :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -474,6 +491,10 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
             InstructionCharge {
                 inst_charge := it comme *InstructionCharge
                 interprète.définis_accumulateur(inst_charge.vlr)
+            }
+            InstructionChargeRegistre {
+                inst_charge := it comme *InstructionChargeRegistre
+                interprète.définis_accumulateur(interprète.registres[inst_charge.src])
             }
             InstructionStocke {
                 stocke := it comme *InstructionStocke
@@ -732,6 +753,46 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                     retourne completion
                 }
                 interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionIncrémente {
+                valeur := interprète.donne_accumulateur()
+
+                complétion_old_value := to_numeric(interprète, valeur)
+                saufsi complétion_old_value.est_normal() {
+                    retourne complétion_old_value
+                }
+                old_value := complétion_old_value.valeur.V
+
+                nouvelle_valeur: Valeur
+
+                si est_nombre(old_value) {
+                    nouvelle_valeur = number_add(old_value, Valeur(Number = 1))
+                }
+                sinon {
+                    panique("update expression sur BigInt non-implémentée")
+                }
+
+                interprète.définis_accumulateur(nouvelle_valeur)
+            }
+            InstructionDécrémente {
+                valeur := interprète.donne_accumulateur()
+
+                complétion_old_value := to_numeric(interprète, valeur)
+                saufsi complétion_old_value.est_normal() {
+                    retourne complétion_old_value
+                }
+                old_value := complétion_old_value.valeur.V
+
+                nouvelle_valeur: Valeur
+
+                si est_nombre(old_value) {
+                    nouvelle_valeur = number_subtract(old_value, Valeur(Number = 1))
+                }
+                sinon {
+                    panique("update expression sur BigInt non-implémentée")
+                }
+
+                interprète.définis_accumulateur(nouvelle_valeur)
             }
             sinon {
                 imprime("intruction inconnue!\n")

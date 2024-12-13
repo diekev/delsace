@@ -2763,6 +2763,7 @@ UpdateExpression :: struct {
 crée_update_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression, operation: UpdateOperation) -> *UpdateExpression
 {
     résultat := parseuse.crée_noeud(lexème, UpdateExpression)
+    résultat.sur_génération_code_binaire = update_expression_sur_code_binaire
     résultat.argument = argument
     résultat.operation = operation
     retourne résultat

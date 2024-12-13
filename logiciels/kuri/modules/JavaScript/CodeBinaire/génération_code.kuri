@@ -147,6 +147,12 @@ crée_charge :: fonc (génératrice: &GénératriceCodeBinaire, valeur: Valeur) 
     retourne Registre(0)
 }
 
+crée_charge_registre :: fonc (génératrice: &GénératriceCodeBinaire, src: Registre)
+{
+    gauche := génératrice.crée_instruction(InstructionChargeRegistre)
+    gauche.src = src
+}
+
 crée_stocke :: fonc (génératrice: &GénératriceCodeBinaire) -> Registre
 {
     dst := génératrice.alloue_registre()
@@ -272,6 +278,16 @@ crée_this :: fonc (génératrice: &GénératriceCodeBinaire) -> Registre
 {
     _ := génératrice.crée_instruction(InstructionThis)
     retourne Registre(0)
+}
+
+crée_incrémente :: fonc (génératrice: &GénératriceCodeBinaire)
+{
+    _ := génératrice.crée_instruction(InstructionIncrémente)
+}
+
+crée_décrémente :: fonc (génératrice: &GénératriceCodeBinaire)
+{
+    _ := génératrice.crée_instruction(InstructionDécrémente)
 }
 
 alloue_registre :: fonc (empl génératrice: &GénératriceCodeBinaire) -> Registre
@@ -568,6 +584,59 @@ string_literal_sur_code_binaire :: fonc (noeud: *StringLiteral, génératrice: &
 this_expression_sur_code_binaire :: fonc (noeud: *ThisExpression @inutilisée, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
 {
     retourne génératrice.crée_this()
+}
+
+update_expression_sur_code_binaire :: fonc (update: *UpdateExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    argument := update.argument
+
+    reg_opt_old_value := génératrice.génère_code_binaire(argument)
+    assert(reg_opt_old_value.possède_valeur())
+
+    résultat := reg_opt_old_value
+    si update.operation == UpdateOperation.PostfixIncrement || update.operation == UpdateOperation.PostfixDecrement {
+        résultat = génératrice.crée_stocke()
+    }
+
+    si update.operation == UpdateOperation.PostfixIncrement || update.operation == UpdateOperation.PrefixIncrement {
+        génératrice.crée_incrémente()
+    }
+    sinon {
+        génératrice.crée_décrémente()
+    }
+
+    si argument.type == Identifier {
+        identifier := argument comme *Identifier
+        génératrice.crée_définis_locale(identifier.nom)
+    }
+    sinon si argument.type == MemberExpression {
+        membre := argument comme *MemberExpression
+        assert(!membre.calculé)
+
+        sauvegarde := génératrice.crée_stocke()
+
+        opt_reg_objet := génératrice.génère_code_binaire(membre.objet)
+        assert(opt_reg_objet.possède_valeur())
+
+        assert(membre.propriété.type == Identifier)
+        identifier := membre.propriété comme *Identifier
+
+        génératrice.crée_définis_membre(identifier.nom, sauvegarde)
+
+        si update.operation == UpdateOperation.PrefixIncrement || update.operation == UpdateOperation.PrefixDecrement {
+            résultat = sauvegarde
+        }
+    }
+    sinon {
+        panique("non-implémenté")
+    }
+
+    si résultat.Quelque comme n32 != 0 {
+        génératrice.crée_charge_registre(résultat.Quelque)
+        résultat = Registre(0)
+    }
+
+    retourne résultat
 }
 
 variable_declaration_sur_code_binaire :: fonc (noeud: *VariableDeclaration, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
