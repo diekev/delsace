@@ -31,8 +31,7 @@ génère_code_binaire :: fonc (génératrice: &GénératriceCodeBinaire, noeud: 
 {
     saufsi noeud.sur_génération_code_binaire {
         infos := donne_info_pour_type_noeud(noeud)
-        imprime("[%] noeud non-supporté : %\n", #nom_de_cette_fonction, infos.nom)
-        retourne
+        panique("[%] noeud non-supporté : %\n", #nom_de_cette_fonction, infos.nom)
     }
 
     retourne noeud.sur_génération_code_binaire(noeud, génératrice)
