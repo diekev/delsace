@@ -328,13 +328,13 @@ InterprèteCodeBinaire :: struct {
     sur_exécute = exécute_code_binaire
 
     /* Interpréteuse pour les cas où nous utilisons l'arbre pour exécuter le code. */
-    interpréteuse_arbre: *Interpréteuse
+    interpréteuse_arbre: *InterprèteArbre
 }
 
 crée_interprète_code_binaire :: fonc (mv: *MachineVirtuelle) -> *InterprèteCodeBinaire
 {
     résultat := loge(InterprèteCodeBinaire)
-    résultat.interpréteuse_arbre = loge(Interpréteuse)
+    résultat.interpréteuse_arbre = loge(InterprèteArbre)
     résultat.mv = mv
     retourne résultat
 }
