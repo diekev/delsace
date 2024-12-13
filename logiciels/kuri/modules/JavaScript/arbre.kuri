@@ -387,6 +387,7 @@ FunctionExpression :: struct {
 crée_function_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *Identifier, params: [..]*Expression, corps: *FunctionBody) -> *FunctionExpression
 {
     résultat := parseuse.crée_noeud(lexème, FunctionExpression)
+    résultat.sur_génération_code_binaire = function_expression_sur_code_binaire
     résultat.id = id
     résultat.corps = corps
     résultat.params = params

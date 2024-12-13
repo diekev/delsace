@@ -334,6 +334,13 @@ InstructionDécrémente :: struct {
     type = #type_de_cette_structure
 }
 
+InstructionInstancieFonction :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    fonction: *FunctionExpression
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -793,6 +800,11 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 }
 
                 interprète.définis_accumulateur(nouvelle_valeur)
+            }
+            InstructionInstancieFonction {
+                instance := it comme *InstructionInstancieFonction
+                closure := instantiate_ordinary_function_expression(interprète, instance.fonction)
+                interprète.définis_accumulateur(Valeur(Function = closure))
             }
             sinon {
                 imprime("intruction inconnue!\n")

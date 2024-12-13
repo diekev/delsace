@@ -290,6 +290,13 @@ crée_décrémente :: fonc (génératrice: &GénératriceCodeBinaire)
     _ := génératrice.crée_instruction(InstructionDécrémente)
 }
 
+crée_instancie_fonction :: fonc (génératrice: &GénératriceCodeBinaire, noeud: *FunctionExpression) -> Registre
+{
+    résultat := génératrice.crée_instruction(InstructionInstancieFonction)
+    résultat.fonction = noeud
+    retourne Registre(0)
+}
+
 alloue_registre :: fonc (empl génératrice: &GénératriceCodeBinaire) -> Registre
 {
     résultat := Registre(flux.registres)
@@ -467,6 +474,11 @@ function_declaration_sur_code_binaire :: fonc (noeud: *FunctionDeclaration @inut
 {
     // 1. Return empty.
     retourne
+}
+
+function_expression_sur_code_binaire :: fonc (noeud: *FunctionExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    retourne génératrice.crée_instancie_fonction(noeud)
 }
 
 identifier_sur_code_binaire :: fonc (noeud: *Identifier, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
