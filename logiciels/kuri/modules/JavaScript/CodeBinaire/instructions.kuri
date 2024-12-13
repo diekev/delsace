@@ -6,7 +6,8 @@ importe Fondation
 
 FluxDInstructions :: struct {
     instructions: [..]octet
-    registres: n32
+    /* 1 pour l'accumulateur */
+    registres : n32 = 1
 }
 
 imprime_instructions :: fonc (flux: *FluxDInstructions)
@@ -132,30 +133,31 @@ InstructionBranche :: struct {
 InstructionBrancheSiFaux :: struct {
     empl inst_branche: InstructionBranche
     type = #type_de_cette_structure
-
-    reg: Registre
 }
 
 InstructionBrancheSiVrai :: struct {
     empl inst_branche: InstructionBranche
     type = #type_de_cette_structure
-
-    reg: Registre
 }
 
 InstructionCharge :: struct {
     empl inst: Instruction
     type = #type_de_cette_structure
 
-    reg: Registre
     vlr: Valeur
+}
+
+InstructionStocke :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    dst: Registre
 }
 
 InstructionCréeChaine :: struct {
     empl inst: Instruction
     type = #type_de_cette_structure
 
-    dst: Registre
     chn: ECMAString
 
     /* Cache pour l'exécution. */
@@ -165,16 +167,12 @@ InstructionCréeChaine :: struct {
 InstructionCréeObjet :: struct {
     empl inst: Instruction
     type = #type_de_cette_structure
-
-    dst: Registre
 }
 
 InstructionExpressionBinaire :: struct {
     empl inst: Instruction
 
-    dst: Registre
     gch: Registre
-    drt: Registre
 }
 
 InstructionAjoute :: struct {
@@ -207,7 +205,6 @@ InstructionDéfinisLocale :: struct {
     type = #type_de_cette_structure
 
     nom: ECMAString
-    src: Registre
 
     index_chaine_en_cache : z32 = -1
 }
@@ -234,7 +231,6 @@ InstructionChargeLocale :: struct {
     empl inst: Instruction
     type = #type_de_cette_structure
 
-    dst: Registre
     nom: ECMAString
 
     index_chaine_en_cache : z32 = -1
@@ -264,14 +260,12 @@ InstructionInitialiseRéférence :: struct {
     type = #type_de_cette_structure
 
     nom: ECMAString
-    src: Registre
 }
 
 InstructionDéfinisMembre :: struct {
     empl inst: Instruction
     type = #type_de_cette_structure
 
-    obj: Registre
     nom: ECMAString
     src: Registre
 }
@@ -280,7 +274,6 @@ InstructionChargeMembre :: struct {
     empl inst: Instruction
     type = #type_de_cette_structure
 
-    dst: Registre
     obj: Registre
     nom: ECMAString
 }
@@ -289,7 +282,6 @@ InstructionAppel :: struct {
     empl inst: Instruction
     type = #type_de_cette_structure
 
-    dst: Registre
     func: Registre
     this_value: Registre
     nombre_arguments: z32
@@ -311,7 +303,6 @@ InstructionThisValueAppel :: struct {
     empl inst: Instruction
     type = #type_de_cette_structure
 
-    dst: Registre
     /* Ceci est le noeud à gauche de l'appel. */
     noeud: *NoeudSyntaxique
 }
@@ -319,14 +310,11 @@ InstructionThisValueAppel :: struct {
 InstructionRetour :: struct {
     empl inst: Instruction
     type = #type_de_cette_structure
-
-    src: Registre
 }
 
 InstructionThis :: struct {
     empl inst: Instruction
     type = #type_de_cette_structure
-    dst: Registre
 }
 
 /** \} */
@@ -350,6 +338,16 @@ crée_interprète_code_binaire :: fonc (mv: *MachineVirtuelle) -> *InterprèteCo
     résultat.interpréteuse_arbre = loge(InterprèteArbre)
     résultat.mv = mv
     retourne résultat
+}
+
+donne_accumulateur :: fonc (interprète: *InterprèteCodeBinaire) -> Valeur #enligne
+{
+    retourne interprète.registres[0]
+}
+
+définis_accumulateur :: fonc (interprète: *InterprèteCodeBinaire, valeur: Valeur) #enligne
+{
+    interprète.registres[0] = valeur
 }
 
 détruit_interprète :: fonc (interprète: *InterprèteCodeBinaire)
@@ -454,7 +452,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
             InstructionBrancheSiFaux {
                 branche := it comme *InstructionBrancheSiFaux
 
-                valeur := interprète.registres[branche.reg]
+                valeur := interprète.donne_accumulateur()
                 valeur = to_boolean(valeur)
 
                 si est_false(valeur) {
@@ -465,7 +463,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
             InstructionBrancheSiVrai {
                 branche := it comme *InstructionBrancheSiVrai
 
-                valeur := interprète.registres[branche.reg]
+                valeur := interprète.donne_accumulateur()
                 valeur = to_boolean(valeur)
 
                 si est_true(valeur) {
@@ -475,34 +473,38 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
             }
             InstructionCharge {
                 inst_charge := it comme *InstructionCharge
-                interprète.registres[inst_charge.reg] = inst_charge.vlr
+                interprète.définis_accumulateur(inst_charge.vlr)
+            }
+            InstructionStocke {
+                stocke := it comme *InstructionStocke
+                interprète.registres[stocke.dst] = interprète.donne_accumulateur()
             }
             InstructionAjoute {
                 inst_ajout := it comme *InstructionAjoute
                 gauche := interprète.registres[inst_ajout.gch]
-                droite := interprète.registres[inst_ajout.drt]
+                droite := interprète.donne_accumulateur()
 
                 completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.Plus, gauche, droite)
                 saufsi completion.est_normal() {
                     retourne completion
                 }
-                interprète.registres[inst_ajout.dst] = completion.valeur.V
+                interprète.définis_accumulateur(completion.valeur.V)
             }
             InstructionSoustrait {
                 inst := it comme *InstructionSoustrait
                 gauche := interprète.registres[inst.gch]
-                droite := interprète.registres[inst.drt]
+                droite := interprète.donne_accumulateur()
 
                 completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.Moins, gauche, droite)
                 saufsi completion.est_normal() {
                     retourne completion
                 }
-                interprète.registres[inst.dst] = completion.valeur.V
+                interprète.définis_accumulateur(completion.valeur.V)
             }
             InstructionRelationInférieure {
                 relat := it comme *InstructionRelationInférieure
                 gauche := interprète.registres[relat.gch]
-                droite := interprète.registres[relat.drt]
+                droite := interprète.donne_accumulateur()
 
                 completion := is_less_than(interprète, gauche, droite, vrai)
                 saufsi completion.est_normal() {
@@ -513,23 +515,23 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 si r.est_undefined() {
                     r = Valeur(Boolean = faux)
                 }
-                interprète.registres[relat.dst] = completion.valeur.V
+                interprète.définis_accumulateur(completion.valeur.V)
             }
             InstructionComparaisonÉgal {
                 inst_ajout := it comme *InstructionComparaisonÉgal
                 gauche := interprète.registres[inst_ajout.gch]
-                droite := interprète.registres[inst_ajout.drt]
+                droite := interprète.donne_accumulateur()
 
                 completion := is_loosely_equal(interprète, gauche, droite)
                 saufsi completion.est_normal() {
                     retourne completion
                 }
-                interprète.registres[inst_ajout.dst] = completion.valeur.V
+                interprète.définis_accumulateur(completion.valeur.V)
             }
             InstructionComparaisonInégal {
                 inst_ajout := it comme *InstructionComparaisonInégal
                 gauche := interprète.registres[inst_ajout.gch]
-                droite := interprète.registres[inst_ajout.drt]
+                droite := interprète.donne_accumulateur()
 
                 completion := is_loosely_equal(interprète, gauche, droite)
                 saufsi completion.est_normal() {
@@ -542,7 +544,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 sinon {
                     résultat.Boolean = vrai
                 }
-                interprète.registres[inst_ajout.dst] = résultat
+                interprète.définis_accumulateur(completion.valeur.V)
             }
             InstructionCréeChaine {
                 crée_chaine := it comme *InstructionCréeChaine
@@ -559,14 +561,12 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                     chn = realm.chaines_littérales[crée_chaine.index_chaine]
                 }
 
-                interprète.registres[crée_chaine.dst] = Valeur(String = chn)
+                interprète.définis_accumulateur(Valeur(String = chn))
             }
             InstructionCréeObjet {
-                crée_objet := it comme *InstructionCréeObjet
-
                 realm := donne_realm(interprète)
                 objet := ordinary_object_create(realm, realm.intrinsics.object_prototype, object_instance_crée)
-                interprète.registres[crée_objet.dst] = Valeur(Object = objet)
+                interprète.définis_accumulateur(Valeur(Object = objet))
             }
             InstructionDéfinisLocale {
                 définis_locale := it comme *InstructionDéfinisLocale
@@ -581,7 +581,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 // référence := résultat.valeur.R
                 // noeud.coordonnée = référence.coordonnée
 
-                valeur := interprète.registres[définis_locale.src]
+                valeur := interprète.donne_accumulateur()
                 completion_assignment := put_value(interprète, résultat.valeur, valeur)
                 saufsi completion_assignment.est_normal() {
                     retourne completion_assignment
@@ -600,13 +600,13 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 saufsi completion_rval.est_normal() {
                     retourne completion_rval
                 }
-                interprète.registres[charge_locale.dst] = completion_rval.valeur.V
+                interprète.définis_accumulateur(completion_rval.valeur.V)
             }
             InstructionInitialiseRéférence {
                 init := it comme *InstructionInitialiseRéférence
 
                 realm := donne_realm(interprète)
-                valeur := interprète.registres[init.src]
+                valeur := interprète.donne_accumulateur()
 
                 lhs := resolve_binding(interprète, realm.crée_chaine(init.nom)).valeur.R
                 _ := initialize_reference_binding(lhs, valeur)
@@ -618,7 +618,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 referenced_name := crée_chaine(realm, membre.nom)
 
                 référence: ReferenceRecord
-                référence.base = interprète.registres[membre.obj]
+                référence.base = interprète.donne_accumulateur()
                 référence.referenced_name = Valeur(String = referenced_name)
                 // À FAIRE : résultat.strict = strict
 
@@ -643,7 +643,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 saufsi completion_rval.est_normal() {
                     retourne completion_rval
                 }
-                interprète.registres[membre.dst] = completion_rval.valeur.V
+                interprète.définis_accumulateur(completion_rval.valeur.V)
             }
             InstructionAppel {
                 appel := it comme *InstructionAppel
@@ -679,7 +679,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                     retourne completion
                 }
 
-                interprète.registres[appel.dst] = completion.valeur.V
+                interprète.définis_accumulateur(completion.valeur.V)
             }
             InstructionThisValueAppel {
                 this_value := it comme *InstructionThisValueAppel
@@ -720,25 +720,18 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                     résultat = js_undefined
                 }
 
-                interprète.registres[this_value.dst] = résultat
+                interprète.définis_accumulateur(résultat)
             }
             InstructionRetour {
-                retour := it comme *InstructionRetour
-
-                si retour.src comme n32 comme z32 != -1 {
-                    valeur := interprète.registres[retour.src]
-                    retourne return_completion(valeur)
-                }
-
-                retourne normal_completion(js_undefined)
+                valeur := interprète.donne_accumulateur()
+                retourne return_completion(valeur)
             }
             InstructionThis {
-                this := it comme *InstructionThis
                 completion := resolve_this_binding(interprète)
                 saufsi completion.est_normal() {
                     retourne completion
                 }
-                interprète.registres[this.dst] = completion.valeur.V
+                interprète.définis_accumulateur(completion.valeur.V)
             }
             sinon {
                 imprime("intruction inconnue!\n")
