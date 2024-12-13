@@ -312,10 +312,26 @@ alloue_registre :: fonc (empl génératrice: &GénératriceCodeBinaire) -> Regis
 
 assignment_expression_sur_code_binaire :: fonc (noeud: *AssignmentExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
 {
-    assert(noeud.opération == AssignmentOperation.Assigne)
+    opt_reg: Optionnel(Registre)
 
-    opt_reg := génère_code_binaire(génératrice, noeud.droite)
-    assert(opt_reg.possède_valeur())
+    discr noeud.opération {
+        Assigne {
+            opt_reg = génère_code_binaire(génératrice, noeud.droite)
+            assert(opt_reg.possède_valeur())
+        }
+        Ajoute {
+            _ := génère_code_binaire(génératrice, noeud.gauche)
+            reg_gauche := génératrice.crée_stocke()
+
+            opt_reg = génère_code_binaire(génératrice, noeud.droite)
+            assert(opt_reg.possède_valeur())
+
+            opt_reg = génératrice.crée_ajoute(reg_gauche)
+        }
+        sinon {
+            panique("non-implémenté")
+        }
+    }
 
     si noeud.gauche.type == Identifier {
         nom := (noeud.gauche comme *Identifier).nom
