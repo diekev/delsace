@@ -83,8 +83,13 @@ imprime_instruction :: fonc (instruction: *Instruction, index: z64)
 
     pointeur_membre := instruction comme *octet
 
-    virgule := " "
+    _ := imprime_membres_instructions(pointeur_membre, infos, " ")
 
+    imprime("\n")
+}
+
+imprime_membres_instructions :: fonc (pointeur_membre: *octet, infos: *InfoTypeStructure, virgule: chaine) -> chaine
+{
     pour infos.membres {
         si it.id == info_de(ECMAString) {
             valeur := (pointeur_membre + it.décalage) comme *ECMAString
@@ -101,9 +106,17 @@ imprime_instruction :: fonc (instruction: *Instruction, index: z64)
             imprime("%%", virgule, mémoire(valeur))
             virgule = ", "
         }
+        sinon si it.id == info_de(DécalageBranche) {
+            valeur := (pointeur_membre + it.décalage) comme *DécalageBranche
+            imprime("%@%", virgule, mémoire(valeur))
+            virgule = ", "
+        }
+        sinon si it.id.id == GenreInfoType.STRUCTURE && est_struct_ou_employeuse_de(it.id comme *InfoTypeStructure, info_de(Instruction)) {
+            virgule = imprime_membres_instructions(pointeur_membre, it.id comme *InfoTypeStructure, virgule)
+        }
     }
 
-    imprime("\n")
+    retourne virgule
 }
 
 IndexBranche :: #opaque z64
