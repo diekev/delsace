@@ -326,13 +326,34 @@ InterprèteCodeBinaire :: struct {
     empl base: Interpréteuse
     registres: [..]Valeur
     sur_exécute = exécute_code_binaire
+
+    /* Interpréteuse pour les cas où nous utilisons l'arbre pour exécuter le code. */
+    interpréteuse_arbre: *Interpréteuse
+}
+
+crée_interprète_code_binaire :: fonc (mv: *MachineVirtuelle) -> *InterprèteCodeBinaire
+{
+    résultat := loge(InterprèteCodeBinaire)
+    résultat.interpréteuse_arbre = loge(Interpréteuse)
+    résultat.mv = mv
+    retourne résultat
+}
+
+détruit_interprète :: fonc (interprète: *InterprèteCodeBinaire)
+{
+    déloge(interprète.registres)
+    déloge(interprète.interpréteuse_arbre)
 }
 
 interprète_code_binaire :: fonc (mv: *MachineVirtuelle, noeud: *NoeudScript) -> CompletionRecord
 {
-    interprète: InterprèteCodeBinaire
-    interprète.mv = mv
-    retourne exécute_code_binaire(*interprète, noeud)
+    interprète := crée_interprète_code_binaire(mv)
+    diffère détruit_interprète(interprète)
+
+    mv.interpréteuse = interprète
+    diffère mv.interpréteuse = nul
+
+    retourne exécute_code_binaire(interprète, noeud)
 }
 
 donne_code_binaire :: fonc (noeud: *NoeudSyntaxique) -> *FluxDInstructions
@@ -652,10 +673,12 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
 
                 résultat := js_undefined
 
-                interpréteuse: Interpréteuse
+                interpréteuse := interprète.interpréteuse_arbre
                 interpréteuse.mv = interprète.mv
+                interprète.mv.interpréteuse = interpréteuse
+                diffère interprète.mv.interpréteuse = interprète
 
-                completion_ref := exécute(*interpréteuse, this_value.noeud)
+                completion_ref := exécute(interpréteuse, this_value.noeud)
                 saufsi completion_ref.est_normal() {
                     retourne completion_ref
                 }

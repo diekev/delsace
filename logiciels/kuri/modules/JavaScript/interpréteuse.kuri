@@ -592,9 +592,14 @@ interprète_script :: fonc (machine_virtuelle: *MachineVirtuelle, noeud: *NoeudS
 
 interprète_arbre :: fonc (machine_virtuelle: *MachineVirtuelle, noeud: *NoeudScript) -> CompletionRecord
 {
-    interpréteuse: Interpréteuse
+    interpréteuse := loge(Interpréteuse)
+    diffère déloge(interpréteuse)
+
     interpréteuse.mv = machine_virtuelle
-    retourne exécute(*interpréteuse, noeud)
+    machine_virtuelle.interpréteuse = interpréteuse
+    diffère machine_virtuelle.interpréteuse = nul
+
+    retourne exécute(interpréteuse, noeud)
 }
 
 exécute :: fonc (interpréteuse: *Interpréteuse, noeud: *NoeudSyntaxique) -> CompletionRecord
