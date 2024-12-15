@@ -3594,7 +3594,7 @@ sur_exécution_try_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *I
 
     // 5. If F is a normal completion, set F to C.
     si F.est_normal() {
-        F = B
+        F = C
     }
 
     // 6. Return ? UpdateEmpty(F, undefined).
