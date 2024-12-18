@@ -296,6 +296,37 @@ crée_instancie_fonction :: fonc (génératrice: &GénératriceCodeBinaire, noeu
     retourne Registre(0)
 }
 
+crée_entrée_bloc_catch :: fonc (génératrice: &GénératriceCodeBinaire, nom: ECMAString)
+{
+    résultat := génératrice.crée_instruction(InstructionEntréeBlocCatch)
+    résultat.nom = nom
+}
+
+crée_sortie_bloc_catch :: fonc (génératrice: &GénératriceCodeBinaire)
+{
+    _ := génératrice.crée_instruction(InstructionSortieBlocCatch)
+}
+
+crée_throw :: fonc (génératrice: &GénératriceCodeBinaire)
+{
+    _ := génératrice.crée_instruction(InstructionThrow)
+}
+
+empile_exception_handler :: fonc (génératrice: &GénératriceCodeBinaire) -> ExceptionHandler
+{
+    décalage := génératrice.donne_décalage()
+    _ := génératrice.crée_instruction(InstructionEmpileExceptionHandler)
+    retourne ExceptionHandler(décalage)
+}
+
+dépile_exception_handler :: fonc (génératrice: &GénératriceCodeBinaire, handler: ExceptionHandler)
+{
+    instruction := *génératrice.flux.instructions[handler comme z64] comme *InstructionEmpileExceptionHandler
+    instruction.décalage = génératrice.donne_décalage()
+
+    _ := génératrice.crée_instruction(InstructionDépileExceptionHandler)
+}
+
 alloue_registre :: fonc (empl génératrice: &GénératriceCodeBinaire) -> Registre
 {
     résultat := Registre(flux.registres)
@@ -420,6 +451,23 @@ call_expression_sur_code_binaire :: fonc (noeud: *CallExpression, génératrice:
     }
 
     retourne génératrice.crée_appel(reg_opt_func.Quelque, this_value, registres_arguments)
+}
+
+catch_clause_sur_code_binaire :: fonc (catch: *CatchClause, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    saufsi catch.param {
+        retourne génératrice.génère_code_binaire(catch.body)
+    }
+
+    assert(catch.param.type == Identifier)
+    identifier := catch.param comme *Identifier
+
+    génératrice.crée_entrée_bloc_catch(identifier.nom)
+
+    résultat := génératrice.génère_code_binaire(catch.body)
+
+    génératrice.crée_sortie_bloc_catch()
+    retourne résultat
 }
 
 continue_statement_sur_code_binaire :: fonc (statement: *ContinueStatement, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
@@ -611,6 +659,36 @@ string_literal_sur_code_binaire :: fonc (noeud: *StringLiteral, génératrice: &
 this_expression_sur_code_binaire :: fonc (noeud: *ThisExpression @inutilisée, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
 {
     retourne génératrice.crée_this()
+}
+
+throw_statement_sur_code_binaire :: fonc (noeud: *ThrowStatement, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    reg_opt_valeur := génératrice.génère_code_binaire(noeud.argument)
+    assert(reg_opt_valeur.possède_valeur())
+    génératrice.crée_throw()
+}
+
+try_statement_sur_code_binaire :: fonc (try: *TryStatement, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    exception_handler: ExceptionHandler
+    si try.handler != nul {
+        exception_handler = génératrice.empile_exception_handler()
+    }
+
+    _ := génératrice.génère_code_binaire(try.block)
+
+    /* Branche pour sauteur le catch si aucune exception n'est lancée. */
+    branche := génératrice.crée_branche()
+
+    si try.handler != nul {
+        génératrice.dépile_exception_handler(exception_handler)
+        _ := catch_clause_sur_code_binaire(try.handler, génératrice)
+    }
+
+    génératrice.définis_décalage_branche(branche)
+    si try.finalizer != nul {
+        _ := génératrice.génère_code_binaire(try.finalizer)
+    }
 }
 
 update_expression_sur_code_binaire :: fonc (update: *UpdateExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)

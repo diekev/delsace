@@ -3485,6 +3485,7 @@ ThrowStatement :: struct {
 crée_throw_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression) -> *ThrowStatement
 {
     résultat := parseuse.crée_noeud(lexème, ThrowStatement)
+    résultat.sur_génération_code_binaire = throw_statement_sur_code_binaire
     résultat.argument = argument
     retourne résultat
 }
@@ -3531,6 +3532,7 @@ TryStatement :: struct {
 crée_try_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, block: *Statement, handler: *CatchClause, finalizer: *Statement) -> *TryStatement
 {
     résultat := parseuse.crée_noeud(lexème, TryStatement)
+    résultat.sur_génération_code_binaire = try_statement_sur_code_binaire
     résultat.block = block
     résultat.handler = handler
     résultat.finalizer = finalizer
@@ -3632,6 +3634,30 @@ catch_clause_evaluation :: fonc (catch: *CatchClause, interpréteuse: *Interprè
         retourne exécute_noeud(catch.body, interpréteuse)
     }
 
+    assert(catch.param.type == Identifier)
+    identifier := catch.param comme *Identifier
+    arg_name := identifier.nom
+
+    status, old_env := crée_environnement_lexical_pour_catch(interpréteuse, arg_name, thrown_value)
+    si status.est_abrupt() {
+        retourne status
+    }
+    assert(old_env != nul)
+
+    // 7. Let B be Completion(Evaluation of Block).
+    B := exécute_noeud(catch.body, interpréteuse)
+
+    // 8. Set the running execution context's LexicalEnvironment to oldEnv.
+    mv := interpréteuse.mv
+    running_execution_context := mv.donne_running_execution_context()
+    running_execution_context.lexical_environment = old_env
+
+    // 9. Return ? B.
+    retourne B
+}
+
+crée_environnement_lexical_pour_catch :: fonc (interpréteuse: *Interpréteuse, arg_name: ECMAString, thrown_value: Valeur) -> CompletionRecord, *Environment
+{
     mv := interpréteuse.mv
     running_execution_context := mv.donne_running_execution_context()
 
@@ -3641,12 +3667,8 @@ catch_clause_evaluation :: fonc (catch: *CatchClause, interpréteuse: *Interprè
     // 2. Let catchEnv be NewDeclarativeEnvironment(oldEnv).
     catch_env := new_declarative_environment(old_env.donne_tas_de_mémoire(), old_env)
 
-    // 3. For each element argName of the BoundNames of CatchParameter, do
+    // À FAIRE : 3. For each element argName of the BoundNames of CatchParameter, do
     //    a. Perform ! catchEnv.CreateMutableBinding(argName, false).
-    assert(catch.param.type == Identifier)
-    identifier := catch.param comme *Identifier
-
-    arg_name := identifier.nom
     _ := catch_env.create_mutable_binding(interpréteuse.donne_realm(), arg_name, faux)
 
     // 4. Set the running execution context's LexicalEnvironment to catchEnv.
@@ -3661,17 +3683,10 @@ catch_clause_evaluation :: fonc (catch: *CatchClause, interpréteuse: *Interprè
         running_execution_context.lexical_environment = old_env
 
         // b. Return ? status.
-        retourne status
+        retourne status, nul
     }
 
-    // 7. Let B be Completion(Evaluation of Block).
-    B := exécute_noeud(catch.body, interpréteuse)
-
-    // 8. Set the running execution context's LexicalEnvironment to oldEnv.
-    running_execution_context.lexical_environment = old_env
-
-    // 9. Return ? B.
-    retourne B
+    retourne normal_completion(js_undefined), old_env
 }
 
 /** \} */

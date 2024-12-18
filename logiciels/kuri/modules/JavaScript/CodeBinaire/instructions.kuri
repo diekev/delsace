@@ -1,4 +1,5 @@
 importe Fondation
+importe Structures
 
 /* ------------------------------------------------------------------------- */
 /** \nom Instruction
@@ -341,6 +342,38 @@ InstructionInstancieFonction :: struct {
     fonction: *FunctionExpression
 }
 
+InstructionEntréeBlocCatch :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    nom: ECMAString
+}
+
+InstructionSortieBlocCatch :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+}
+
+InstructionThrow :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+}
+
+/* Décalage dans les instructions où se trouve le début du bloc de gestion d'exception. */
+ExceptionHandler :: #opaque z64
+
+InstructionEmpileExceptionHandler :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    décalage: DécalageBranche
+}
+
+InstructionDépileExceptionHandler :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -354,6 +387,9 @@ InterprèteCodeBinaire :: struct {
 
     /* Interpréteuse pour les cas où nous utilisons l'arbre pour exécuter le code. */
     interpréteuse_arbre: *InterprèteArbre
+
+    exception_handlers: Pile(DécalageBranche)
+    environments_catch: Pile(*Environment)
 }
 
 crée_interprète_code_binaire :: fonc (mv: *MachineVirtuelle) -> *InterprèteCodeBinaire
@@ -458,6 +494,14 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
     si flux.registres comme z64 > interprète.registres.taille {
         tableau_redimensionne(interprète.registres, flux.registres comme z64)
     }
+
+    nombre_handlers := interprète.exception_handlers.taille()
+    empile(interprète.exception_handlers, DécalageBranche(-1 comme z64))
+    diffère interprète.exception_handlers.données.taille = nombre_handlers
+
+    nombre_environnements := interprète.environments_catch.taille()
+    empile(interprète.environments_catch, nul)
+    diffère interprète.environments_catch.données.taille = nombre_environnements
 
     début := flux.instructions.pointeur
     courant := début
@@ -805,6 +849,49 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 instance := it comme *InstructionInstancieFonction
                 closure := instantiate_ordinary_function_expression(interprète, instance.fonction)
                 interprète.définis_accumulateur(Valeur(Function = closure))
+            }
+            InstructionEntréeBlocCatch {
+                inst := it comme *InstructionEntréeBlocCatch
+
+                valeur := interprète.registres[0]
+                status, old_env := crée_environnement_lexical_pour_catch(interprète, inst.nom, valeur)
+                si status.est_throw() {
+                    décalage := interprète.exception_handlers.tête()
+                    si décalage == DécalageBranche(-1) {
+                        retourne status
+                    }
+
+                    interprète.registres[0] = status.valeur.V
+                    courant = début + décalage comme z64
+                }
+                assert(old_env != nul)
+                empile(interprète.environments_catch, old_env)
+            }
+            InstructionSortieBlocCatch {
+                old_env := dépile(interprète.environments_catch)
+                assert(old_env != nul)
+                mv := interprète.mv
+                running_execution_context := mv.donne_running_execution_context()
+                running_execution_context.lexical_environment = old_env
+
+                // À FAIRE : nous devons également dépiler old env si une exception est lancée dans le bloc catch
+            }
+            InstructionThrow {
+                valeur := interprète.registres[0]
+
+                décalage := interprète.exception_handlers.tête()
+                si décalage == DécalageBranche(-1) {
+                    retourne throw_completion(valeur)
+                }
+
+                courant = début + décalage comme z64
+            }
+            InstructionEmpileExceptionHandler {
+                inst := it comme *InstructionEmpileExceptionHandler
+                empile(interprète.exception_handlers, inst.décalage)
+            }
+            InstructionDépileExceptionHandler {
+                _ := dépile(interprète.exception_handlers)
             }
             sinon {
                 imprime("intruction inconnue!\n")
