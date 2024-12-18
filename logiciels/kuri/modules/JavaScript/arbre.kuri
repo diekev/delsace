@@ -2596,6 +2596,7 @@ ArrayLiteral :: struct {
 crée_array_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème, éléments: [..]*Expression) -> *ArrayLiteral
 {
     résultat := parseuse.crée_noeud(lexème, ArrayLiteral)
+    résultat.sur_génération_code_binaire = array_literal_sur_code_binaire
     résultat.éléments = éléments
     retourne résultat
 }

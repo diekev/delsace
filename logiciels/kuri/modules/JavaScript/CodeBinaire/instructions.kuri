@@ -177,6 +177,11 @@ InstructionCréeObjet :: struct {
     type = #type_de_cette_structure
 }
 
+InstructionCréeArray :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+}
+
 InstructionExpressionBinaire :: struct {
     empl inst: Instruction
 
@@ -284,6 +289,14 @@ InstructionChargeMembre :: struct {
 
     obj: Registre
     nom: ECMAString
+}
+
+InstructionCréePropriétéArray :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    obj: Registre
+    index: z32
 }
 
 InstructionAppel :: struct {
@@ -640,6 +653,11 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 objet := ordinary_object_create(realm, realm.intrinsics.object_prototype, object_instance_crée)
                 interprète.définis_accumulateur(Valeur(Object = objet))
             }
+            InstructionCréeArray {
+                realm := donne_realm(interprète)
+                résultat := crée_array(realm.donne_tas_de_mémoire(), realm.intrinsics.array_prototype, 0)
+                interprète.définis_accumulateur(Valeur(Object = résultat))
+            }
             InstructionDéfinisLocale {
                 définis_locale := it comme *InstructionDéfinisLocale
                 realm := donne_realm(interprète)
@@ -716,6 +734,16 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                     retourne completion_rval
                 }
                 interprète.définis_accumulateur(completion_rval.valeur.V)
+            }
+            InstructionCréePropriétéArray {
+                inst := it comme *InstructionCréePropriétéArray
+
+                objet := interprète.registres[inst.obj].donne_objet()
+                valeur := interprète.donne_accumulateur()
+
+                nom_propriété := to_string(interprète, Valeur(Number = inst.index comme r64)).valeur.V.String.texte
+
+                _ := create_data_property(objet, nom_propriété, valeur)
             }
             InstructionAppel {
                 appel := it comme *InstructionAppel

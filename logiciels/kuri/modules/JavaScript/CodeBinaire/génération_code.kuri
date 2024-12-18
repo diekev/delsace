@@ -173,6 +173,12 @@ crée_crée_objet :: fonc (génératrice: &GénératriceCodeBinaire) -> Registre
     retourne Registre(0)
 }
 
+crée_crée_array :: fonc (génératrice: &GénératriceCodeBinaire) -> Registre
+{
+    _ := génératrice.crée_instruction(InstructionCréeArray)
+    retourne Registre(0)
+}
+
 crée_expression_binaire :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre, $T: type_de_données) -> Registre
 {
     ajout := génératrice.crée_instruction(T)
@@ -237,6 +243,13 @@ crée_charge_membre :: fonc (génératrice: &GénératriceCodeBinaire, reg_objet
     résultat.obj = reg_objet
     résultat.nom = nom
     retourne Registre(0)
+}
+
+crée_propriété_array :: fonc (génératrice: &GénératriceCodeBinaire, obj: Registre, index: z32)
+{
+    résultat := génératrice.crée_instruction(InstructionCréePropriétéArray)
+    résultat.obj = obj
+    résultat.index = index
 }
 
 crée_appel :: fonc (génératrice: &GénératriceCodeBinaire, func: Registre, this_value: Registre, args: []Registre) -> Registre
@@ -339,6 +352,27 @@ alloue_registre :: fonc (empl génératrice: &GénératriceCodeBinaire) -> Regis
 /* ------------------------------------------------------------------------- */
 /** \nom Génération de code pour les noeuds.
  * \{ */
+
+array_literal_sur_code_binaire :: fonc (noeud: *ArrayLiteral, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    _ := crée_crée_array(génératrice)
+    reg_array := génératrice.crée_stocke()
+
+    pour noeud.éléments {
+        _ := génératrice.génère_code_binaire(it)
+        génératrice.crée_propriété_array(reg_array, index_it comme z32)
+    }
+
+    _ := génératrice.crée_charge(Valeur(Number = noeud.éléments.taille comme r64))
+    opt_reg := génératrice.crée_stocke()
+    génératrice.crée_charge_registre(reg_array)
+
+    // À FAIRE : appèle set directement
+    // 2. Perform ? Set(array, "length", 𝔽(len), true).
+    génératrice.crée_définis_membre(STR_length, opt_reg)
+
+    retourne Registre(0)
+}
 
 assignment_expression_sur_code_binaire :: fonc (noeud: *AssignmentExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
 {
