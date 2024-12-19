@@ -291,6 +291,14 @@ InstructionChargeMembre :: struct {
     nom: ECMAString
 }
 
+InstructionDéfinisIndex :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    obj: Registre
+    src: Registre
+}
+
 InstructionChargeIndex :: struct {
     empl inst: Instruction
     type = #type_de_cette_structure
@@ -741,6 +749,23 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                     retourne completion_rval
                 }
                 interprète.définis_accumulateur(completion_rval.valeur.V)
+            }
+            InstructionDéfinisIndex {
+                inst := it comme *InstructionDéfinisIndex
+    
+                base_value := interprète.registres[inst.obj]
+                property_name_value := interprète.donne_accumulateur()
+                valeur := interprète.registres[inst.src]
+
+                référence: ReferenceRecord
+                référence.base = base_value
+                référence.referenced_name = property_name_value
+                // À FAIRE : résultat.strict = strict
+
+                completion_rval := put_value(interprète, référence, valeur)
+                saufsi completion_rval.est_normal() {
+                    retourne completion_rval
+                }
             }
             InstructionChargeIndex {
                 inst := it comme *InstructionChargeIndex

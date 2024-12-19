@@ -245,6 +245,13 @@ crée_charge_membre :: fonc (génératrice: &GénératriceCodeBinaire, reg_objet
     retourne Registre(0)
 }
 
+crée_définis_index :: fonc (génératrice: &GénératriceCodeBinaire, obj: Registre, src: Registre)
+{
+    résultat := génératrice.crée_instruction(InstructionDéfinisIndex)
+    résultat.obj = obj
+    résultat.src = src
+}
+
 crée_charge_index :: fonc (génératrice: &GénératriceCodeBinaire, reg_objet: Registre) -> Registre
 {
     résultat := génératrice.crée_instruction(InstructionChargeIndex)
@@ -410,17 +417,23 @@ assignment_expression_sur_code_binaire :: fonc (noeud: *AssignmentExpression, g�
     }
     sinon si noeud.gauche.type == MemberExpression {
         membre := noeud.gauche comme *MemberExpression
-        assert(!membre.calculé)
 
         opt_reg = génératrice.crée_stocke()
 
         opt_reg_objet := génératrice.génère_code_binaire(membre.objet)
         assert(opt_reg_objet.possède_valeur())
 
-        assert(membre.propriété.type == Identifier)
-        identifier := membre.propriété comme *Identifier
+        saufsi membre.calculé {
+            assert(membre.propriété.type == Identifier)
+            identifier := membre.propriété comme *Identifier
 
-        génératrice.crée_définis_membre(identifier.nom, opt_reg.Quelque)
+            génératrice.crée_définis_membre(identifier.nom, opt_reg.Quelque)
+        }
+        sinon {
+            opt_reg_objet = génératrice.crée_stocke()
+            _ := génératrice.génère_code_binaire(membre.propriété)
+            génératrice.crée_définis_index(opt_reg_objet.Quelque, opt_reg.Quelque)
+        }
     }
     sinon {
         panique("non-implémenté")
