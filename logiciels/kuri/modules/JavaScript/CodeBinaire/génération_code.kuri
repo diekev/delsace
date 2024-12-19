@@ -245,6 +245,13 @@ crée_charge_membre :: fonc (génératrice: &GénératriceCodeBinaire, reg_objet
     retourne Registre(0)
 }
 
+crée_charge_index :: fonc (génératrice: &GénératriceCodeBinaire, reg_objet: Registre) -> Registre
+{
+    résultat := génératrice.crée_instruction(InstructionChargeIndex)
+    résultat.obj = reg_objet
+    retourne Registre(0)
+}
+
 crée_propriété_array :: fonc (génératrice: &GénératriceCodeBinaire, obj: Registre, index: z32)
 {
     résultat := génératrice.crée_instruction(InstructionCréePropriétéArray)
@@ -609,14 +616,18 @@ if_statement_sur_code_binaire :: fonc (noeud: *IfStatement, génératrice: &Gén
 
 membre_expression_sur_code_binaire :: fonc (noeud: *MemberExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
 {
-    assert(noeud.calculé == faux)
-
     opt_reg_objet := génératrice.génère_code_binaire(noeud.objet)
 
-    assert(noeud.propriété.type == Identifier)
-    identifier := noeud.propriété comme *Identifier
+    saufsi noeud.calculé {
+        assert(noeud.propriété.type == Identifier)
+        identifier := noeud.propriété comme *Identifier
 
-    retourne génératrice.crée_charge_membre(opt_reg_objet.Quelque, identifier.nom)
+        retourne génératrice.crée_charge_membre(opt_reg_objet.Quelque, identifier.nom)
+    }
+
+    opt_reg_objet = génératrice.crée_stocke()
+    _ := génératrice.génère_code_binaire(noeud.propriété)
+    retourne génératrice.crée_charge_index(opt_reg_objet.Quelque)
 }
 
 noeud_script_body_sur_code_binaire :: fonc (noeud: *ScriptBody, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
