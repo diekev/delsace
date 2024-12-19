@@ -213,6 +213,16 @@ InstructionComparaisonInégal :: struct {
     type = #type_de_cette_structure
 }
 
+InstructionComparaisonÉgalStrict :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
+InstructionComparaisonInégalStrict :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
 InstructionDéfinisLocale :: struct {
     empl inst: Instruction
     type = #type_de_cette_structure
@@ -645,6 +655,28 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                     résultat.Boolean = vrai
                 }
                 interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionComparaisonÉgalStrict {
+                inst_ajout := it comme *InstructionComparaisonÉgalStrict
+                gauche := interprète.registres[inst_ajout.gch]
+                droite := interprète.donne_accumulateur()
+
+                résultat := is_strictly_equal(gauche, droite)
+                interprète.définis_accumulateur(résultat)
+            }
+            InstructionComparaisonInégalStrict {
+                inst_ajout := it comme *InstructionComparaisonInégalStrict
+                gauche := interprète.registres[inst_ajout.gch]
+                droite := interprète.donne_accumulateur()
+
+                résultat := is_strictly_equal(gauche, droite)
+                si résultat.est_true() {
+                    résultat.Boolean = faux
+                }
+                sinon {
+                    résultat.Boolean = vrai
+                }
+                interprète.définis_accumulateur(résultat)
             }
             InstructionCréeChaine {
                 crée_chaine := it comme *InstructionCréeChaine

@@ -211,6 +211,16 @@ crée_comparaison_inégal :: fonc (génératrice: &GénératriceCodeBinaire, gau
     retourne crée_expression_binaire(génératrice, gauche, InstructionComparaisonInégal)
 }
 
+crée_comparaison_égal_strict :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre) -> Registre
+{
+    retourne crée_expression_binaire(génératrice, gauche, InstructionComparaisonÉgalStrict)
+}
+
+crée_comparaison_inégal_strict :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre) -> Registre
+{
+    retourne crée_expression_binaire(génératrice, gauche, InstructionComparaisonInégalStrict)
+}
+
 crée_définis_locale :: fonc (génératrice: &GénératriceCodeBinaire, nom: ECMAString)
 {
     résultat := génératrice.crée_instruction(InstructionDéfinisLocale)
@@ -576,8 +586,14 @@ equality_expression_sur_code_binaire :: fonc (noeud: *EqualityExpression, géné
         Inégal {
             retourne génératrice.crée_comparaison_inégal(gauche)
         }
+        ÉgalStrict {
+            retourne génératrice.crée_comparaison_égal_strict(gauche)
+        }
+        InégalStrict {
+            retourne génératrice.crée_comparaison_inégal_strict(gauche)
+        }
         sinon {
-            panique("non-implémenté")
+            panique("noeud.opération non-initialisé")
         }
     }
 }
