@@ -524,7 +524,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
         _ := génère_code_binaire(génératrice, noeud)
         applique_patchs(génératrice)
 
-        imprime_instructions(flux)
+        // imprime_instructions(flux)
 
         définis_code_binaire(noeud, flux)
     }
@@ -1009,7 +1009,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
         }
     }
 
-    imprime_registres(interprète)
+    // imprime_registres(interprète)
     retourne normal_completion(js_undefined)
 }
 
