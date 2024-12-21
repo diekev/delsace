@@ -561,6 +561,12 @@ catch_clause_sur_code_binaire :: fonc (catch: *CatchClause, génératrice: &Gén
     retourne résultat
 }
 
+comma_statement_sur_code_binaire :: fonc (comma: *CommaExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    _ := génératrice.génère_code_binaire(comma.left)
+    retourne génératrice.génère_code_binaire(comma.right)
+}
+
 continue_statement_sur_code_binaire :: fonc (statement: *ContinueStatement, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
 {
     assert(statement.target == nul)
