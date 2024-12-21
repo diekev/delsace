@@ -443,7 +443,8 @@ InterprèteCodeBinaire :: struct {
     registres: [..]Valeur
     sur_exécute = exécute_code_binaire
 
-    /* Interpréteuse pour les cas où nous utilisons l'arbre pour exécuter le code. */
+    /* Interpréteuse pour les cas où nous utilisons l'arbre pour exécuter le code.
+     * À FAIRE : protège l'exception lors du ramassage de miettes. */
     interpréteuse_arbre: *InterprèteArbre
 
     exception_handlers: Pile(DécalageBranche)
@@ -615,9 +616,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 droite := interprète.donne_accumulateur()
 
                 completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.Plus, gauche, droite)
-                saufsi completion.est_normal() {
-                    retourne completion
-                }
+                interprète.définis_exception(completion)
                 interprète.définis_accumulateur(completion.valeur.V)
             }
             InstructionSoustrait {
@@ -626,9 +625,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 droite := interprète.donne_accumulateur()
 
                 completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.Moins, gauche, droite)
-                saufsi completion.est_normal() {
-                    retourne completion
-                }
+                interprète.définis_exception(completion)
                 interprète.définis_accumulateur(completion.valeur.V)
             }
             InstructionRelationInférieure {
@@ -637,9 +634,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 droite := interprète.donne_accumulateur()
 
                 completion := is_less_than(interprète, gauche, droite, vrai)
-                saufsi completion.est_normal() {
-                    retourne completion
-                }
+                interprète.définis_exception(completion)
                 r := completion.valeur.V
 
                 si r.est_undefined() {
@@ -653,9 +648,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 droite := interprète.donne_accumulateur()
 
                 completion := is_loosely_equal(interprète, gauche, droite)
-                saufsi completion.est_normal() {
-                    retourne completion
-                }
+                interprète.définis_exception(completion)
                 interprète.définis_accumulateur(completion.valeur.V)
             }
             InstructionComparaisonInégal {
@@ -664,9 +657,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 droite := interprète.donne_accumulateur()
 
                 completion := is_loosely_equal(interprète, gauche, droite)
-                saufsi completion.est_normal() {
-                    retourne completion
-                }
+                interprète.définis_exception(completion)
                 résultat := completion.valeur.V
                 si résultat.est_true() {
                     résultat.Boolean = faux
@@ -730,9 +721,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 realm := donne_realm(interprète)
 
                 résultat := resolve_binding(interprète, définis_locale.donne_chaine_primitive(realm))
-                saufsi résultat.est_normal() {
-                    retourne résultat
-                }
+                interprète.définis_exception(résultat)
 
                 // À FAIRE
                 // référence := résultat.valeur.R
@@ -740,23 +729,17 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
 
                 valeur := interprète.donne_accumulateur()
                 completion_assignment := put_value(interprète, résultat.valeur, valeur)
-                saufsi completion_assignment.est_normal() {
-                    retourne completion_assignment
-                }
+                interprète.définis_exception(completion_assignment)
             }
             InstructionChargeLocale {
                 charge_locale := it comme *InstructionChargeLocale
                 realm := donne_realm(interprète)
 
                 résultat := resolve_binding(interprète, charge_locale.donne_chaine_primitive(realm))
-                saufsi résultat.est_normal() {
-                    retourne résultat
-                }
+                interprète.définis_exception(résultat)
 
                 completion_rval := get_value(interprète, résultat.valeur)
-                saufsi completion_rval.est_normal() {
-                    retourne completion_rval
-                }
+                interprète.définis_exception(completion_rval)
                 interprète.définis_accumulateur(completion_rval.valeur.V)
             }
             InstructionInitialiseRéférence {
@@ -781,9 +764,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
 
                 valeur := interprète.registres[membre.src]
                 completion_assignment := put_value(interprète, référence, valeur)
-                saufsi completion_assignment.est_normal() {
-                    retourne completion_assignment
-                }
+                interprète.définis_exception(completion_assignment)
             }
             InstructionChargeMembre {
                 membre := it comme *InstructionChargeMembre
@@ -797,9 +778,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 // À FAIRE : résultat.strict = strict
 
                 completion_rval := get_value(interprète, référence)
-                saufsi completion_rval.est_normal() {
-                    retourne completion_rval
-                }
+                interprète.définis_exception(completion_rval)
                 interprète.définis_accumulateur(completion_rval.valeur.V)
             }
             InstructionDéfinisIndex {
@@ -815,9 +794,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 // À FAIRE : résultat.strict = strict
 
                 completion_rval := put_value(interprète, référence, valeur)
-                saufsi completion_rval.est_normal() {
-                    retourne completion_rval
-                }
+                interprète.définis_exception(completion_rval)
             }
             InstructionChargeIndex {
                 inst := it comme *InstructionChargeIndex
@@ -831,9 +808,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 // À FAIRE : résultat.strict = strict
 
                 completion_rval := get_value(interprète, référence)
-                saufsi completion_rval.est_normal() {
-                    retourne completion_rval
-                }
+                interprète.définis_exception(completion_rval)
                 interprète.définis_accumulateur(completion_rval.valeur.V)
             }
             InstructionCréePropriétéArray {
@@ -876,9 +851,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
 
                 // 7. Return ? Call(func, thisValue, argList).
                 completion := call(interprète, func, this_value, arguments)
-                saufsi completion.est_normal() {
-                    retourne completion
-                }
+                interprète.définis_exception(completion)
 
                 interprète.définis_accumulateur(completion.valeur.V)
             }
@@ -901,9 +874,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
 
                 // 6. Return ? Construct(constructor, argList).
                 completion := construct(interprète, constructor, arguments)
-                saufsi completion.est_normal() {
-                    retourne completion
-                }
+                interprète.définis_exception(completion)
 
                 interprète.définis_accumulateur(completion.valeur.V)
             }
@@ -918,9 +889,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 diffère interprète.mv.interpréteuse = interprète
 
                 completion_ref := exécute(interpréteuse, this_value.noeud)
-                saufsi completion_ref.est_normal() {
-                    retourne completion_ref
-                }
+                interprète.définis_exception(completion_ref)
 
                 ref := completion_ref.valeur
 
@@ -954,26 +923,27 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
             }
             InstructionThis {
                 completion := resolve_this_binding(interprète)
-                saufsi completion.est_normal() {
-                    retourne completion
-                }
+                interprète.définis_exception(completion)
                 interprète.définis_accumulateur(completion.valeur.V)
             }
             InstructionIncrémente {
                 valeur := interprète.donne_accumulateur()
 
                 complétion_old_value := to_numeric(interprète, valeur)
-                saufsi complétion_old_value.est_normal() {
-                    retourne complétion_old_value
+                old_value := js_undefined
+                si complétion_old_value.est_throw() {
+                    interprète.définis_exception(complétion_old_value.valeur.V)
                 }
-                old_value := complétion_old_value.valeur.V
+                sinon {
+                    old_value = complétion_old_value.valeur.V
+                }
 
                 nouvelle_valeur: Valeur
 
                 si est_nombre(old_value) {
                     nouvelle_valeur = number_add(old_value, Valeur(Number = 1))
                 }
-                sinon {
+                sinon si est_big_int(old_value) {
                     panique("update expression sur BigInt non-implémentée")
                 }
 
@@ -983,17 +953,20 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 valeur := interprète.donne_accumulateur()
 
                 complétion_old_value := to_numeric(interprète, valeur)
-                saufsi complétion_old_value.est_normal() {
-                    retourne complétion_old_value
+                old_value := js_undefined
+                si complétion_old_value.est_throw() {
+                    interprète.définis_exception(complétion_old_value.valeur.V)
                 }
-                old_value := complétion_old_value.valeur.V
+                sinon {
+                    old_value = complétion_old_value.valeur.V
+                }
 
                 nouvelle_valeur: Valeur
 
                 si est_nombre(old_value) {
                     nouvelle_valeur = number_subtract(old_value, Valeur(Number = 1))
                 }
-                sinon {
+                sinon si est_big_int(old_value) {
                     panique("update expression sur BigInt non-implémentée")
                 }
 
@@ -1010,16 +983,11 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 valeur := interprète.registres[0]
                 status, old_env := crée_environnement_lexical_pour_catch(interprète, inst.nom, valeur)
                 si status.est_throw() {
-                    décalage := interprète.exception_handlers.tête()
-                    si décalage == DécalageBranche(-1) {
-                        retourne status
-                    }
-
-                    interprète.registres[0] = status.valeur.V
-                    courant = début + décalage comme z64
+                    interprète.définis_exception(status.valeur.V)
                 }
-                assert(old_env != nul)
-                empile(interprète.environments_catch, old_env)
+                si old_env != nul {
+                    empile(interprète.environments_catch, old_env)
+                }
             }
             InstructionSortieBlocCatch {
                 old_env := dépile(interprète.environments_catch)
@@ -1032,13 +1000,9 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
             }
             InstructionThrow {
                 valeur := interprète.registres[0]
-
-                décalage := interprète.exception_handlers.tête()
-                si décalage == DécalageBranche(-1) {
-                    retourne throw_completion(valeur)
+                saufsi interprète.possède_exception() {
+                    interprète.exception = valeur
                 }
-
-                courant = début + décalage comme z64
             }
             InstructionEmpileExceptionHandler {
                 inst := it comme *InstructionEmpileExceptionHandler
@@ -1051,6 +1015,16 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 imprime("intruction inconnue!\n")
                 arrête
             }
+        }
+
+        si interprète.possède_exception() {
+            décalage := interprète.exception_handlers.tête()
+            si décalage == DécalageBranche(-1) {
+                retourne throw_completion(interprète.donne_exception())
+            }
+
+            interprète.définis_accumulateur(interprète.donne_exception())
+            courant = début + décalage comme z64
         }
     }
 

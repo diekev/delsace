@@ -157,6 +157,10 @@ rassemble_racines :: fonc (mv: *MachineVirtuelle, racines: *[..]*Cellule)
     pour mv.execution_contexts {
         ensemble_ajoute(racines, it)
     }
+
+    si mv.interpréteuse && mv.interpréteuse.exception.est_cellule() {
+        ensemble_ajoute(racines, mv.interpréteuse.exception.donne_cellule())
+    }
 }
 
 /** \} */

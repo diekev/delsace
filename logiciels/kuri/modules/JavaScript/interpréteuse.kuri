@@ -576,6 +576,8 @@ Interpréteuse :: struct {
     sur_exécute: fonc(*Interpréteuse, *NoeudSyntaxique)(CompletionRecord)
     /* Appelé via la MachineVirtuelle quand le contexte change. */
     sur_execution_context: fonc (*Interpréteuse, *ExecutionContext)(rien)
+
+    exception: Valeur
 }
 
 initialise_interpréteuse :: fonc (interpréteuse: *Interpréteuse @inutilisée)
@@ -640,6 +642,34 @@ crée_string_value_completion :: fonc (interpréteuse: *Interpréteuse, texte: E
     string := crée_chaine(interpréteuse.donne_realm(), texte)
     value := Valeur(String = string)
     retourne normal_completion(value)
+}
+
+possède_exception :: fonc (interpréteuse: *Interpréteuse) -> bool #enligne
+{
+    retourne interpréteuse.exception.est_valide()
+}
+
+définis_exception :: fonc (interpréteuse: *Interpréteuse, completion: CompletionRecord)
+{
+    saufsi completion.est_throw() {
+        retourne
+    }
+    définis_exception(interpréteuse, completion.valeur.V)
+}
+
+définis_exception :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur)
+{
+    si interpréteuse.possède_exception() {
+        retourne
+    }
+    interpréteuse.exception = valeur
+}
+
+donne_exception :: fonc (interpréteuse: *Interpréteuse) -> Valeur
+{
+    résultat := interpréteuse.exception
+    init_de(Valeur)(*interpréteuse.exception)
+    retourne résultat
 }
 
 /** \} */

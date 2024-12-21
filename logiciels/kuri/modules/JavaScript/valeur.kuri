@@ -22,6 +22,25 @@ Valeur :: union {
     Object: *Object
 }
 
+est_valide :: fonc (valeur: Valeur) -> bool #enligne
+{
+    discr valeur {
+        Undefined {}
+        Null {}
+        Boolean {}
+        Number {}
+        BigInt {}
+        String {}
+        Symbol {}
+        Function {}
+        Object {}
+        sinon {
+            retourne faux
+        }
+    }
+    retourne vrai
+}
+
 donne_type :: fonc (valeur: Valeur) -> z32
 {
     info := info_de(Valeur)
