@@ -68,6 +68,10 @@ donne_taille_octet :: fonc (instruction: *Instruction) -> n32
         appel := instruction comme *InstructionAppel
         résultat += appel.nombre_arguments comme n32 * taille_de(Registre)
     }
+    sinon si instruction.type == InstructionNew {
+        new := instruction comme *InstructionNew
+        résultat += new.nombre_arguments comme n32 * taille_de(Registre)
+    }
 
     retourne résultat
 }
@@ -334,6 +338,22 @@ InstructionAppel :: struct {
 }
 
 donne_arguments :: fonc (appel: *InstructionAppel) -> []Registre
+{
+    résultat: []Registre
+    résultat.pointeur = ((appel + 1) comme *octet) comme *Registre
+    résultat.taille = appel.nombre_arguments
+    retourne résultat
+}
+
+InstructionNew :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    func: Registre
+    nombre_arguments: z32
+}
+
+donne_arguments :: fonc (appel: *InstructionNew) -> []Registre
 {
     résultat: []Registre
     résultat.pointeur = ((appel + 1) comme *octet) comme *Registre
@@ -856,6 +876,31 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
 
                 // 7. Return ? Call(func, thisValue, argList).
                 completion := call(interprète, func, this_value, arguments)
+                saufsi completion.est_normal() {
+                    retourne completion
+                }
+
+                interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionNew {
+                new := it comme *InstructionNew
+
+                arguments: [..]Valeur
+                diffère déloge(arguments)
+
+                pour new.donne_arguments() {
+                    tableau_ajoute(*arguments, interprète.registres[it])
+                }
+
+                constructor := interprète.registres[new.func]
+
+                // 5. If IsConstructor(constructor) is false, throw a TypeError exception.
+                saufsi is_constructor(constructor) {
+                    retourne lance_type_error(interprète, "expression is not a constructor")
+                }
+
+                // 6. Return ? Construct(constructor, argList).
+                completion := construct(interprète, constructor, arguments)
                 saufsi completion.est_normal() {
                     retourne completion
                 }

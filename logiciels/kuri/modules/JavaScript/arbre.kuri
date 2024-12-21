@@ -3707,6 +3707,7 @@ NewExpression :: struct {
 crée_new_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression) -> *NewExpression
 {
     résultat := parseuse.crée_noeud(lexème, NewExpression)
+    résultat.sur_génération_code_binaire = new_expression_sur_code_binaire
     résultat.argument = argument
     retourne résultat
 }

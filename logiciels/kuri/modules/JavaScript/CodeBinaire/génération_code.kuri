@@ -298,6 +298,27 @@ crée_appel :: fonc (génératrice: &GénératriceCodeBinaire, func: Registre, t
     retourne Registre(0)
 }
 
+crée_new :: fonc (génératrice: &GénératriceCodeBinaire, func: Registre, args: []Registre) -> Registre
+{
+    flux := génératrice.flux
+    décalage := flux.instructions.taille
+    tableau_redimensionne(flux.instructions, décalage + taille_de(InstructionNew) comme z64 + args.taille * taille_de(Registre) comme z64)
+    résultat := *flux.instructions[décalage] comme *InstructionNew
+    init_de(InstructionNew)(résultat)
+
+    résultat.func = func
+    résultat.nombre_arguments = args.taille comme z32
+
+    pointeur_args := ((résultat + 1) comme *octet) comme *Registre
+
+    pour args {
+        mémoire(pointeur_args) = it
+        pointeur_args += 1
+    }
+
+    retourne Registre(0)
+}
+
 crée_this_value_appel :: fonc (génératrice: &GénératriceCodeBinaire, noeud: *NoeudSyntaxique) -> Registre
 {
     résultat := génératrice.crée_instruction(InstructionThisValueAppel)
@@ -663,6 +684,37 @@ membre_expression_sur_code_binaire :: fonc (noeud: *MemberExpression, génératr
     opt_reg_objet = génératrice.crée_stocke()
     _ := génératrice.génère_code_binaire(noeud.propriété)
     retourne génératrice.crée_charge_index(opt_reg_objet.Quelque)
+}
+
+new_expression_sur_code_binaire :: fonc (noeud: *NewExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    construct_expr: *NoeudSyntaxique
+    arguments: []*Expression
+
+    si noeud.argument.type == CallExpression {
+        call := noeud.argument comme *CallExpression
+        construct_expr = call.appelé
+        arguments = call.arguments
+    }
+    sinon {
+        construct_expr = noeud.argument
+    }
+
+    reg_opt_func := génératrice.génère_code_binaire(construct_expr)
+    assert(reg_opt_func.possède_valeur())
+    reg_opt_func = génératrice.crée_stocke()
+
+    registres_arguments: [..]Registre
+    diffère déloge(registres_arguments)
+
+    pour arguments {
+        reg_opt_arg := génératrice.génère_code_binaire(it)
+        assert(reg_opt_arg.possède_valeur())
+        reg_arg := génératrice.crée_stocke()
+        tableau_ajoute(*registres_arguments, reg_arg)
+    }
+
+    retourne génératrice.crée_new(reg_opt_func.Quelque, registres_arguments)
 }
 
 noeud_script_body_sur_code_binaire :: fonc (noeud: *ScriptBody, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
