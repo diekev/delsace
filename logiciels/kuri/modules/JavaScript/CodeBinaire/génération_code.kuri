@@ -630,6 +630,43 @@ expression_statement_sur_code_binaire :: fonc (statement: *ExpressionStatement, 
     retourne génère_code_binaire(génératrice, statement.expression)
 }
 
+for_statement_sur_code_binaire :: fonc (for: *ForStatement, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    si for.init {
+        _ := génératrice.génère_code_binaire(for.init)
+    }
+
+    décalage_entrée_boucle := génératrice.donne_décalage()
+    label_boucle := génératrice.crée_label()
+    label_continue := génératrice.crée_label()
+    label_break := génératrice.crée_label()
+
+    génératrice.insère_label(label_boucle)
+
+    branche_test: IndexBranche
+    si for.test {
+        _ := génératrice.génère_code_binaire(for.test)
+        branche_test = génératrice.crée_branche_si_faux()
+    }
+
+    génératrice.empile_labels_boucle(label_continue, label_break)
+    diffère génératrice.dépile_labels_boucle()
+
+    _ := génératrice.génère_code_binaire(for.body)
+
+    génératrice.insère_label(label_continue)
+    si for.update {
+        _ := génératrice.génère_code_binaire(for.update)
+    }
+    génératrice.crée_branche(décalage_entrée_boucle)
+
+    décalage := génératrice.donne_décalage()
+    génératrice.définis_décalage_branche(branche_test, décalage)
+    génératrice.insère_label(label_break)
+    
+    retourne génératrice.crée_charge(js_undefined)
+}
+
 function_declaration_sur_code_binaire :: fonc (noeud: *FunctionDeclaration @inutilisée, génératrice: &GénératriceCodeBinaire @inutilisée) -> Optionnel(Registre)
 {
     // 1. Return empty.

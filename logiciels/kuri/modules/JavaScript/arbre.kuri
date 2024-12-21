@@ -2933,6 +2933,7 @@ ForStatement :: struct {
 crée_for_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, init: *Expression, test: *Expression, update: *Expression, body: *Statement) -> *ForStatement
 {
     résultat := parseuse.crée_noeud(lexème, ForStatement)
+    résultat.sur_génération_code_binaire = for_statement_sur_code_binaire
     résultat.init = init
     résultat.test = test
     résultat.update = update
