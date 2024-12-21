@@ -444,6 +444,12 @@ assignment_expression_sur_code_binaire :: fonc (noeud: *AssignmentExpression, g�
             _ := génératrice.génère_code_binaire(membre.propriété)
             génératrice.crée_définis_index(opt_reg_objet.Quelque, opt_reg.Quelque)
         }
+
+        /* Nous devons retourner la valeur assignée. */
+        si opt_reg.Quelque comme n32 != 0 {
+            génératrice.crée_charge_registre(opt_reg.Quelque)
+            opt_reg = Registre(0)
+        }
     }
     sinon {
         panique("non-implémenté")
