@@ -550,9 +550,10 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
         définis_code_binaire(noeud, flux)
     }
 
-    si flux.registres comme z64 > interprète.registres.taille {
-        tableau_redimensionne(interprète.registres, flux.registres comme z64)
-    }
+    nombre_registres := interprète.registres.taille
+    tableau_redimensionne(interprète.registres, nombre_registres + flux.registres comme z64)
+    diffère interprète.registres.taille = nombre_registres
+    registres := interprète.registres.pointeur + nombre_registres
 
     nombre_handlers := interprète.exception_handlers.taille()
     empile(interprète.exception_handlers, DécalageBranche(-1 comme z64))
@@ -604,15 +605,15 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
             }
             InstructionChargeRegistre {
                 inst_charge := it comme *InstructionChargeRegistre
-                interprète.définis_accumulateur(interprète.registres[inst_charge.src])
+                interprète.définis_accumulateur(registres[inst_charge.src])
             }
             InstructionStocke {
                 stocke := it comme *InstructionStocke
-                interprète.registres[stocke.dst] = interprète.donne_accumulateur()
+                registres[stocke.dst] = interprète.donne_accumulateur()
             }
             InstructionAjoute {
                 inst_ajout := it comme *InstructionAjoute
-                gauche := interprète.registres[inst_ajout.gch]
+                gauche := registres[inst_ajout.gch]
                 droite := interprète.donne_accumulateur()
 
                 completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.Plus, gauche, droite)
@@ -621,7 +622,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
             }
             InstructionSoustrait {
                 inst := it comme *InstructionSoustrait
-                gauche := interprète.registres[inst.gch]
+                gauche := registres[inst.gch]
                 droite := interprète.donne_accumulateur()
 
                 completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.Moins, gauche, droite)
@@ -630,7 +631,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
             }
             InstructionRelationInférieure {
                 relat := it comme *InstructionRelationInférieure
-                gauche := interprète.registres[relat.gch]
+                gauche := registres[relat.gch]
                 droite := interprète.donne_accumulateur()
 
                 completion := is_less_than(interprète, gauche, droite, vrai)
@@ -644,7 +645,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
             }
             InstructionComparaisonÉgal {
                 inst_ajout := it comme *InstructionComparaisonÉgal
-                gauche := interprète.registres[inst_ajout.gch]
+                gauche := registres[inst_ajout.gch]
                 droite := interprète.donne_accumulateur()
 
                 completion := is_loosely_equal(interprète, gauche, droite)
@@ -653,7 +654,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
             }
             InstructionComparaisonInégal {
                 inst_ajout := it comme *InstructionComparaisonInégal
-                gauche := interprète.registres[inst_ajout.gch]
+                gauche := registres[inst_ajout.gch]
                 droite := interprète.donne_accumulateur()
 
                 completion := is_loosely_equal(interprète, gauche, droite)
@@ -669,7 +670,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
             }
             InstructionComparaisonÉgalStrict {
                 inst_ajout := it comme *InstructionComparaisonÉgalStrict
-                gauche := interprète.registres[inst_ajout.gch]
+                gauche := registres[inst_ajout.gch]
                 droite := interprète.donne_accumulateur()
 
                 résultat := is_strictly_equal(gauche, droite)
@@ -677,7 +678,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
             }
             InstructionComparaisonInégalStrict {
                 inst_ajout := it comme *InstructionComparaisonInégalStrict
-                gauche := interprète.registres[inst_ajout.gch]
+                gauche := registres[inst_ajout.gch]
                 droite := interprète.donne_accumulateur()
 
                 résultat := is_strictly_equal(gauche, droite)
@@ -762,7 +763,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 référence.referenced_name = Valeur(String = referenced_name)
                 // À FAIRE : résultat.strict = strict
 
-                valeur := interprète.registres[membre.src]
+                valeur := registres[membre.src]
                 completion_assignment := put_value(interprète, référence, valeur)
                 interprète.définis_exception(completion_assignment)
             }
@@ -773,7 +774,14 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 referenced_name := crée_chaine(realm, membre.nom)
 
                 référence: ReferenceRecord
-                référence.base = interprète.registres[membre.obj]
+
+                si membre.obj comme n32 == 0 {
+                    référence.base = interprète.donne_accumulateur()
+                }
+                sinon {
+                    référence.base = registres[membre.obj]
+                }
+
                 référence.referenced_name = Valeur(String = referenced_name)
                 // À FAIRE : résultat.strict = strict
 
@@ -784,9 +792,9 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
             InstructionDéfinisIndex {
                 inst := it comme *InstructionDéfinisIndex
     
-                base_value := interprète.registres[inst.obj]
+                base_value := registres[inst.obj]
                 property_name_value := interprète.donne_accumulateur()
-                valeur := interprète.registres[inst.src]
+                valeur := registres[inst.src]
 
                 référence: ReferenceRecord
                 référence.base = base_value
@@ -799,7 +807,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
             InstructionChargeIndex {
                 inst := it comme *InstructionChargeIndex
 
-                base_value := interprète.registres[inst.obj]
+                base_value := registres[inst.obj]
                 property_name_value := interprète.donne_accumulateur()
 
                 référence: ReferenceRecord
@@ -814,7 +822,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
             InstructionCréePropriétéArray {
                 inst := it comme *InstructionCréePropriétéArray
 
-                objet := interprète.registres[inst.obj].donne_objet()
+                objet := registres[inst.obj].donne_objet()
                 valeur := interprète.donne_accumulateur()
 
                 nom_propriété := to_string(interprète, Valeur(Number = inst.index comme r64)).valeur.V.String.texte
@@ -828,12 +836,12 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 diffère déloge(arguments)
 
                 pour appel.donne_arguments() {
-                    tableau_ajoute(*arguments, interprète.registres[it])
+                    tableau_ajoute(*arguments, registres[it])
                 }
 
-                func := interprète.registres[appel.func]
+                func := registres[appel.func]
 
-                this_value := interprète.registres[appel.this_value]
+                this_value := registres[appel.this_value]
 
                 // 4. If func is not an Object, throw a TypeError exception.
                 saufsi func.est_object() {
@@ -862,10 +870,10 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 diffère déloge(arguments)
 
                 pour new.donne_arguments() {
-                    tableau_ajoute(*arguments, interprète.registres[it])
+                    tableau_ajoute(*arguments, registres[it])
                 }
 
-                constructor := interprète.registres[new.func]
+                constructor := registres[new.func]
 
                 // 5. If IsConstructor(constructor) is false, throw a TypeError exception.
                 saufsi is_constructor(constructor) {
@@ -980,7 +988,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
             InstructionEntréeBlocCatch {
                 inst := it comme *InstructionEntréeBlocCatch
 
-                valeur := interprète.registres[0]
+                valeur := interprète.donne_accumulateur()
                 status, old_env := crée_environnement_lexical_pour_catch(interprète, inst.nom, valeur)
                 si status.est_throw() {
                     interprète.définis_exception(status.valeur.V)
@@ -999,7 +1007,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 // À FAIRE : nous devons également dépiler old env si une exception est lancée dans le bloc catch
             }
             InstructionThrow {
-                valeur := interprète.registres[0]
+                valeur := interprète.donne_accumulateur()
                 saufsi interprète.possède_exception() {
                     interprète.exception = valeur
                 }
