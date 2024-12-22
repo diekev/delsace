@@ -681,6 +681,23 @@ comma_statement_sur_code_binaire :: fonc (comma: *CommaExpression, génératrice
     retourne génératrice.génère_code_binaire(comma.right)
 }
 
+concise_body_sur_code_binaire :: fonc (concise_body: *ConciseBody, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    // ExpressionBody : FunctionBody
+    si concise_body.statement.type == BlockStatement {
+        retourne génératrice.génère_code_binaire(concise_body.statement)
+    }
+
+    // ExpressionBody : AssignmentExpression
+    // 1. Let exprRef be ? Evaluation of AssignmentExpression.
+    // 2. Let exprValue be ? GetValue(exprRef).
+    _ := génératrice.génère_code_binaire(concise_body.statement)
+
+    // 3. Return ReturnCompletion(exprValue).
+    génératrice.crée_retour()
+    retourne
+}
+
 conditional_expression_sur_code_binaire :: fonc (noeud: *ConditionalExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
 {
     reg_opt_test := génératrice.génère_code_binaire(noeud.test)

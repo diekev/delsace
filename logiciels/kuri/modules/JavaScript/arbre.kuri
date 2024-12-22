@@ -473,6 +473,7 @@ ConciseBody :: struct {
 crée_concise_body :: fonc (parseuse: *Parseuse, statement: *Statement) -> *ConciseBody
 {
     résultat := parseuse.crée_noeud(nul, ConciseBody)
+    résultat.sur_génération_code_binaire = concise_body_sur_code_binaire
     résultat.statement = statement
     retourne résultat
 }
