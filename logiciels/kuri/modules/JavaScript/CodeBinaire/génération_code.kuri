@@ -392,6 +392,12 @@ crée_named_evaluation :: fonc (génératrice: &GénératriceCodeBinaire, noeud:
     retourne Registre(0)
 }
 
+crée_logical_not :: fonc (génératrice: &GénératriceCodeBinaire) -> Registre
+{
+    _ := génératrice.crée_instruction(InstructionLogicalNot)
+    retourne Registre(0)
+}
+
 crée_entrée_bloc_catch :: fonc (génératrice: &GénératriceCodeBinaire, nom: ECMAString)
 {
     résultat := génératrice.crée_instruction(InstructionEntréeBlocCatch)
@@ -773,6 +779,12 @@ if_statement_sur_code_binaire :: fonc (noeud: *IfStatement, génératrice: &Gén
     }
 
     retourne génératrice.crée_charge(js_undefined)
+}
+
+logical_not_sur_code_binaire :: fonc (noeud: *LogicalNot, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    _ := génératrice.génère_code_binaire(noeud.argument)
+    retourne génératrice.crée_logical_not()
 }
 
 membre_expression_sur_code_binaire :: fonc (noeud: *MemberExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)

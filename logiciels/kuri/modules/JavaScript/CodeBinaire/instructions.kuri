@@ -467,6 +467,11 @@ InstructionUnaryPlus :: struct {
     type = #type_de_cette_structure
 }
 
+InstructionLogicalNot :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1115,6 +1120,17 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 completion := to_number(interprète, valeur)
                 interprète.définis_exception(completion)
                 interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionLogicalNot {
+                valeur := interprète.donne_accumulateur()
+                old_value := to_boolean(valeur)
+                si old_value.est_true() {
+                    old_value.Boolean = faux
+                }
+                sinon {
+                    old_value.Boolean = vrai
+                }
+                interprète.définis_accumulateur(old_value)
             }
             sinon {
                 imprime("intruction inconnue!\n")

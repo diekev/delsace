@@ -870,6 +870,7 @@ LogicalNot :: struct {
 crée_logical_not :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression) -> *LogicalNot
 {
     résultat := parseuse.crée_noeud(lexème, LogicalNot)
+    résultat.sur_génération_code_binaire = logical_not_sur_code_binaire
     résultat.argument = argument
     retourne résultat
 }
