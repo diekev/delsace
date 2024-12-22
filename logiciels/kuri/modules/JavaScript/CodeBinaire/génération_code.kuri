@@ -781,10 +781,28 @@ if_statement_sur_code_binaire :: fonc (noeud: *IfStatement, génératrice: &Gén
     retourne génératrice.crée_charge(js_undefined)
 }
 
+logical_and_sur_code_binaire :: fonc (noeud: *LogicalAnd, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    _ := génératrice.génère_code_binaire(noeud.left)
+    branche_si_faux := génératrice.crée_branche_si_faux()
+    résultat := génératrice.génère_code_binaire(noeud.right)
+    génératrice.définis_décalage_branche(branche_si_faux)
+    retourne résultat
+}
+
 logical_not_sur_code_binaire :: fonc (noeud: *LogicalNot, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
 {
     _ := génératrice.génère_code_binaire(noeud.argument)
     retourne génératrice.crée_logical_not()
+}
+
+logical_or_sur_code_binaire :: fonc (noeud: *LogicalAnd, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    _ := génératrice.génère_code_binaire(noeud.left)
+    branche_si_faux := génératrice.crée_branche_si_vrai()
+    résultat := génératrice.génère_code_binaire(noeud.right)
+    génératrice.définis_décalage_branche(branche_si_faux)
+    retourne résultat
 }
 
 membre_expression_sur_code_binaire :: fonc (noeud: *MemberExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)

@@ -922,6 +922,7 @@ LogicalAnd :: struct {
 crée_logical_and :: fonc (parseuse: *Parseuse, lexème: *Lexème, left: *Expression, right: *Expression) -> *LogicalAnd
 {
     résultat := parseuse.crée_noeud(lexème, LogicalAnd)
+    résultat.sur_génération_code_binaire = logical_and_sur_code_binaire
     résultat.left = left
     résultat.right = right
     retourne résultat
@@ -980,6 +981,7 @@ LogicalOr :: struct {
 crée_logical_or :: fonc (parseuse: *Parseuse, lexème: *Lexème, left: *Expression, right: *Expression) -> *LogicalOr
 {
     résultat := parseuse.crée_noeud(lexème, LogicalOr)
+    résultat.sur_génération_code_binaire = logical_or_sur_code_binaire
     résultat.left = left
     résultat.right = right
     retourne résultat
