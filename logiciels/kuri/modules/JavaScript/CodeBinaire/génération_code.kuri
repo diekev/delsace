@@ -203,6 +203,56 @@ crée_soustrait :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Regis
     retourne crée_expression_binaire(génératrice, gauche, InstructionSoustrait)
 }
 
+crée_multiplie :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre) -> Registre
+{
+    retourne crée_expression_binaire(génératrice, gauche, InstructionMultiplie)
+}
+
+crée_divise :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre) -> Registre
+{
+    retourne crée_expression_binaire(génératrice, gauche, InstructionDivise)
+}
+
+crée_modulo :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre) -> Registre
+{
+    retourne crée_expression_binaire(génératrice, gauche, InstructionModulo)
+}
+
+crée_décalage_gauche :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre) -> Registre
+{
+    retourne crée_expression_binaire(génératrice, gauche, InstructionDécalageGauche)
+}
+
+crée_décalage_droite :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre) -> Registre
+{
+    retourne crée_expression_binaire(génératrice, gauche, InstructionDécalageDroite)
+}
+
+crée_décalage_droite_naturel :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre) -> Registre
+{
+    retourne crée_expression_binaire(génératrice, gauche, InstructionDécalageDroiteNaturel)
+}
+
+crée_et_binaire :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre) -> Registre
+{
+    retourne crée_expression_binaire(génératrice, gauche, InstructionEtBinaire)
+}
+
+crée_ou_binaire :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre) -> Registre
+{
+    retourne crée_expression_binaire(génératrice, gauche, InstructionOuBinaire)
+}
+
+crée_ou_exclusif :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre) -> Registre
+{
+    retourne crée_expression_binaire(génératrice, gauche, InstructionOuExBinaire)
+}
+
+crée_exponentiation :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre) -> Registre
+{
+    retourne crée_expression_binaire(génératrice, gauche, InstructionExponentiation)
+}
+
 crée_relation_inférieure :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre) -> Registre
 {
     retourne crée_expression_binaire(génératrice, gauche, InstructionRelationInférieure)
@@ -221,6 +271,11 @@ crée_relation_inférieure_égale :: fonc (génératrice: &GénératriceCodeBina
 crée_relation_supérieure_égale :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre) -> Registre
 {
     retourne crée_expression_binaire(génératrice, gauche, InstructionRelationSupérieureÉgale)
+}
+
+crée_instance_of :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre) -> Registre
+{
+    retourne crée_expression_binaire(génératrice, gauche, InstructionInstanceOf)
 }
 
 crée_comparaison_égal :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre) -> Registre
@@ -565,6 +620,105 @@ assignment_expression_sur_code_binaire :: fonc (noeud: *AssignmentExpression, g�
 
             opt_reg = génératrice.crée_ajoute(reg_gauche)
         }
+        Soustrait {
+            _ := génère_code_binaire(génératrice, noeud.gauche)
+            reg_gauche := génératrice.crée_stocke()
+
+            opt_reg = génère_code_binaire(génératrice, noeud.droite)
+            assert(opt_reg.possède_valeur())
+
+            opt_reg = génératrice.crée_soustrait(reg_gauche)
+        }
+        Multiplie {
+            _ := génère_code_binaire(génératrice, noeud.gauche)
+            reg_gauche := génératrice.crée_stocke()
+
+            opt_reg = génère_code_binaire(génératrice, noeud.droite)
+            assert(opt_reg.possède_valeur())
+
+            opt_reg = génératrice.crée_multiplie(reg_gauche)
+        }
+        Divise {
+            _ := génère_code_binaire(génératrice, noeud.gauche)
+            reg_gauche := génératrice.crée_stocke()
+
+            opt_reg = génère_code_binaire(génératrice, noeud.droite)
+            assert(opt_reg.possède_valeur())
+
+            opt_reg = génératrice.crée_divise(reg_gauche)
+        }
+        Modulo {
+            _ := génère_code_binaire(génératrice, noeud.gauche)
+            reg_gauche := génératrice.crée_stocke()
+
+            opt_reg = génère_code_binaire(génératrice, noeud.droite)
+            assert(opt_reg.possède_valeur())
+
+            opt_reg = génératrice.crée_modulo(reg_gauche)
+        }
+        DécalageGauche {
+            _ := génère_code_binaire(génératrice, noeud.gauche)
+            reg_gauche := génératrice.crée_stocke()
+
+            opt_reg = génère_code_binaire(génératrice, noeud.droite)
+            assert(opt_reg.possède_valeur())
+
+            opt_reg = génératrice.crée_décalage_gauche(reg_gauche)
+        }
+        DécalageDroite {
+            _ := génère_code_binaire(génératrice, noeud.gauche)
+            reg_gauche := génératrice.crée_stocke()
+
+            opt_reg = génère_code_binaire(génératrice, noeud.droite)
+            assert(opt_reg.possède_valeur())
+
+            opt_reg = génératrice.crée_décalage_droite(reg_gauche)
+        }
+        DécalageDroiteNaturel {
+            _ := génère_code_binaire(génératrice, noeud.gauche)
+            reg_gauche := génératrice.crée_stocke()
+
+            opt_reg = génère_code_binaire(génératrice, noeud.droite)
+            assert(opt_reg.possède_valeur())
+
+            opt_reg = génératrice.crée_décalage_droite_naturel(reg_gauche)
+        }
+        EtBinaire {
+            _ := génère_code_binaire(génératrice, noeud.gauche)
+            reg_gauche := génératrice.crée_stocke()
+
+            opt_reg = génère_code_binaire(génératrice, noeud.droite)
+            assert(opt_reg.possède_valeur())
+
+            opt_reg = génératrice.crée_et_binaire(reg_gauche)
+        }
+        OuBinaire {
+            _ := génère_code_binaire(génératrice, noeud.gauche)
+            reg_gauche := génératrice.crée_stocke()
+
+            opt_reg = génère_code_binaire(génératrice, noeud.droite)
+            assert(opt_reg.possède_valeur())
+
+            opt_reg = génératrice.crée_ou_binaire(reg_gauche)
+        }
+        OuExBinaire {
+            _ := génère_code_binaire(génératrice, noeud.gauche)
+            reg_gauche := génératrice.crée_stocke()
+
+            opt_reg = génère_code_binaire(génératrice, noeud.droite)
+            assert(opt_reg.possède_valeur())
+
+            opt_reg = génératrice.crée_ou_exclusif(reg_gauche)
+        }
+        Exponentiation {
+            _ := génère_code_binaire(génératrice, noeud.gauche)
+            reg_gauche := génératrice.crée_stocke()
+
+            opt_reg = génère_code_binaire(génératrice, noeud.droite)
+            assert(opt_reg.possède_valeur())
+
+            opt_reg = génératrice.crée_exponentiation(reg_gauche)
+        }
         sinon {
             panique("opération d'assignement non-implémenté pour %", noeud.opération)
         }
@@ -630,15 +784,46 @@ binary_expression_sur_code_binaire :: fonc (expression: *BinaryExpression, gén�
     opt_reg_droite := génère_code_binaire(génératrice, expression.droite)
     assert(opt_reg_droite.possède_valeur())
 
-    si expression.opération == BinaryOperation.Plus {
-        retourne génératrice.crée_ajoute(gauche)
+    discr expression.opération {
+        Plus {
+            retourne génératrice.crée_ajoute(gauche)
+        }
+        Moins {
+            retourne génératrice.crée_soustrait(gauche)
+        }
+        Multiplie {
+            retourne génératrice.crée_multiplie(gauche)
+        }
+        Divise {
+            retourne génératrice.crée_divise(gauche)
+        }
+        Modulo {
+            retourne génératrice.crée_modulo(gauche)
+        }
+        EtBinaire {
+            retourne génératrice.crée_et_binaire(gauche)
+        }
+        OuBinaire {
+            retourne génératrice.crée_ou_binaire(gauche)
+        }
+        OuExclusif {
+            retourne génératrice.crée_ou_exclusif(gauche)
+        }
+        DécalageGauche {
+            retourne génératrice.crée_décalage_gauche(gauche)
+        }
+        DécalageDroite {
+            retourne génératrice.crée_décalage_droite(gauche)
+        }
+        DécalageDroiteNaturel {
+            retourne génératrice.crée_décalage_droite_naturel(gauche)
+        }
+        Exponentiation {
+            retourne génératrice.crée_exponentiation(gauche)
+        }
     }
 
-    si expression.opération == BinaryOperation.Moins {
-        retourne génératrice.crée_soustrait(gauche)
-    }
-
-    panique("non-implémenté")
+    panique("opérateur binaire non-implémenté pour %", expression.opération)
 }
 
 binary_not_sur_code_binaire :: fonc (noeud: *BinaryNot, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
@@ -1067,6 +1252,9 @@ relational_expression_sur_code_binaire :: fonc (noeud: *RelationalExpression, g�
         }
         SupérieurÉgal {
             retourne génératrice.crée_relation_supérieure_égale(gauche)
+        }
+        InstanceOf {
+            retourne génératrice.crée_instance_of(gauche)
         }
         sinon {
             panique("relation non-implémentée : %", noeud.opération)

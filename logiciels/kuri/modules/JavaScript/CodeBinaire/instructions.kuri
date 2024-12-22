@@ -207,6 +207,56 @@ InstructionAjoute :: struct {
     type = #type_de_cette_structure
 }
 
+InstructionMultiplie :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
+InstructionDivise :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
+InstructionModulo :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
+InstructionDécalageGauche :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
+InstructionDécalageDroite :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
+InstructionDécalageDroiteNaturel :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
+InstructionEtBinaire :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
+InstructionOuBinaire :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
+InstructionOuExBinaire :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
+InstructionExponentiation :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
 InstructionSoustrait :: struct {
     empl inst_binaire: InstructionExpressionBinaire
     type = #type_de_cette_structure
@@ -228,6 +278,11 @@ InstructionRelationInférieureÉgale :: struct {
 }
 
 InstructionRelationSupérieureÉgale :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
+InstructionInstanceOf :: struct {
     empl inst_binaire: InstructionExpressionBinaire
     type = #type_de_cette_structure
 }
@@ -771,6 +826,96 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 interprète.définis_exception(completion)
                 interprète.définis_accumulateur(completion.valeur.V)
             }
+            InstructionMultiplie {
+                inst := it comme *InstructionMultiplie
+                gauche := donne_registre(registres, inst.gch)
+                droite := interprète.donne_accumulateur()
+
+                completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.Multiplie, gauche, droite)
+                interprète.définis_exception(completion)
+                interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionDivise {
+                inst := it comme *InstructionDivise
+                gauche := donne_registre(registres, inst.gch)
+                droite := interprète.donne_accumulateur()
+
+                completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.Divise, gauche, droite)
+                interprète.définis_exception(completion)
+                interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionModulo {
+                inst := it comme *InstructionModulo
+                gauche := donne_registre(registres, inst.gch)
+                droite := interprète.donne_accumulateur()
+
+                completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.Modulo, gauche, droite)
+                interprète.définis_exception(completion)
+                interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionDécalageGauche {
+                inst := it comme *InstructionDécalageGauche
+                gauche := donne_registre(registres, inst.gch)
+                droite := interprète.donne_accumulateur()
+
+                completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.DécalageGauche, gauche, droite)
+                interprète.définis_exception(completion)
+                interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionDécalageDroite {
+                inst := it comme *InstructionDécalageDroite
+                gauche := donne_registre(registres, inst.gch)
+                droite := interprète.donne_accumulateur()
+
+                completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.DécalageDroite, gauche, droite)
+                interprète.définis_exception(completion)
+                interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionDécalageDroiteNaturel {
+                inst := it comme *InstructionDécalageDroiteNaturel
+                gauche := donne_registre(registres, inst.gch)
+                droite := interprète.donne_accumulateur()
+
+                completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.DécalageDroiteNaturel, gauche, droite)
+                interprète.définis_exception(completion)
+                interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionEtBinaire {
+                inst := it comme *InstructionEtBinaire
+                gauche := donne_registre(registres, inst.gch)
+                droite := interprète.donne_accumulateur()
+
+                completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.EtBinaire, gauche, droite)
+                interprète.définis_exception(completion)
+                interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionOuBinaire {
+                inst := it comme *InstructionOuBinaire
+                gauche := donne_registre(registres, inst.gch)
+                droite := interprète.donne_accumulateur()
+
+                completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.OuBinaire, gauche, droite)
+                interprète.définis_exception(completion)
+                interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionOuExBinaire {
+                inst := it comme *InstructionOuExBinaire
+                gauche := donne_registre(registres, inst.gch)
+                droite := interprète.donne_accumulateur()
+
+                completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.OuExclusif, gauche, droite)
+                interprète.définis_exception(completion)
+                interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionExponentiation {
+                inst := it comme *InstructionExponentiation
+                gauche := donne_registre(registres, inst.gch)
+                droite := interprète.donne_accumulateur()
+
+                completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.Exponentiation, gauche, droite)
+                interprète.définis_exception(completion)
+                interprète.définis_accumulateur(completion.valeur.V)
+            }
             InstructionRelationInférieure {
                 relat := it comme *InstructionRelationInférieure
                 gauche := donne_registre(registres, relat.gch)
@@ -830,6 +975,15 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                     r = Valeur(Boolean = vrai)
                 }
                 interprète.définis_accumulateur(r)
+            }
+            InstructionInstanceOf {
+                relat := it comme *InstructionInstanceOf
+                gauche := donne_registre(registres, relat.gch)
+                droite := interprète.donne_accumulateur()
+
+                completion := instanceof_operator(interprète, gauche, droite)
+                interprète.définis_exception(completion)
+                interprète.définis_accumulateur(completion.valeur.V)
             }
             InstructionComparaisonÉgal {
                 inst_ajout := it comme *InstructionComparaisonÉgal
