@@ -207,6 +207,11 @@ InstructionRelationInférieure :: struct {
     type = #type_de_cette_structure
 }
 
+InstructionRelationSupérieure :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
 InstructionComparaisonÉgal :: struct {
     empl inst_binaire: InstructionExpressionBinaire
     type = #type_de_cette_structure
@@ -655,6 +660,20 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 droite := interprète.donne_accumulateur()
 
                 completion := is_less_than(interprète, gauche, droite, vrai)
+                interprète.définis_exception(completion)
+                r := completion.valeur.V
+
+                si r.est_undefined() {
+                    r = Valeur(Boolean = faux)
+                }
+                interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionRelationSupérieure {
+                relat := it comme *InstructionRelationSupérieure
+                gauche := registres[relat.gch]
+                droite := interprète.donne_accumulateur()
+
+                completion := is_less_than(interprète, droite, gauche, faux)
                 interprète.définis_exception(completion)
                 r := completion.valeur.V
 

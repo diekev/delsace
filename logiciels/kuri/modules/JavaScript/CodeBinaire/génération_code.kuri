@@ -201,6 +201,11 @@ crée_relation_inférieure :: fonc (génératrice: &GénératriceCodeBinaire, ga
     retourne crée_expression_binaire(génératrice, gauche, InstructionRelationInférieure)
 }
 
+crée_relation_supérieure :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre) -> Registre
+{
+    retourne crée_expression_binaire(génératrice, gauche, InstructionRelationSupérieure)
+}
+
 crée_comparaison_égal :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre) -> Registre
 {
     retourne crée_expression_binaire(génératrice, gauche, InstructionComparaisonÉgal)
@@ -829,15 +834,23 @@ parenthesized_expression_sur_code_binaire :: fonc (noeud: *ParenthesizedExpressi
 
 relational_expression_sur_code_binaire :: fonc (noeud: *RelationalExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
 {
-    assert(noeud.opération == RelationalOperation.Inférieur)
-
     opt_reg_gauche := génère_code_binaire(génératrice, noeud.gauche)
     assert(opt_reg_gauche.possède_valeur())
     gauche := génératrice.crée_stocke()
     opt_reg_droite := génère_code_binaire(génératrice, noeud.droite)
     assert(opt_reg_droite.possède_valeur())
 
-    retourne génératrice.crée_relation_inférieure(gauche)
+    discr noeud.opération {
+        Inférieur {
+            retourne génératrice.crée_relation_inférieure(gauche)
+        }
+        Supérieur {
+            retourne génératrice.crée_relation_supérieure(gauche)
+        }
+        sinon {
+            panique("relation non-implémentée : %", noeud.opération)
+        }
+    }
 }
 
 return_statement_sur_code_binaire :: fonc (noeud: *ReturnStatement, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
