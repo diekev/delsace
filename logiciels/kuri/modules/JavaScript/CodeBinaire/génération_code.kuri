@@ -327,6 +327,28 @@ crée_appel :: fonc (génératrice: &GénératriceCodeBinaire, func: Registre, t
     retourne Registre(0)
 }
 
+crée_appel_eval :: fonc (génératrice: &GénératriceCodeBinaire, func: Registre, this_value: Registre, args: []Registre) -> Registre
+{
+    flux := génératrice.flux
+    décalage := flux.instructions.taille
+    tableau_redimensionne(flux.instructions, décalage + taille_de(InstructionAppelEval) comme z64 + args.taille * taille_de(Registre) comme z64)
+    résultat := *flux.instructions[décalage] comme *InstructionAppelEval
+    init_de(InstructionAppelEval)(résultat)
+
+    résultat.func = func
+    résultat.this_value = this_value
+    résultat.nombre_arguments = args.taille comme z32
+
+    pointeur_args := ((résultat + 1) comme *octet) comme *Registre
+
+    pour args {
+        mémoire(pointeur_args) = it
+        pointeur_args += 1
+    }
+
+    retourne Registre(0)
+}
+
 crée_new :: fonc (génératrice: &GénératriceCodeBinaire, func: Registre, args: []Registre) -> Registre
 {
     flux := génératrice.flux
@@ -644,6 +666,10 @@ call_expression_sur_code_binaire :: fonc (noeud: *CallExpression, génératrice:
         assert(reg_opt_arg.possède_valeur())
         reg_arg := génératrice.crée_stocke()
         tableau_ajoute(*registres_arguments, reg_arg)
+    }
+
+    si noeud.appelé.type == Identifier && (noeud.appelé comme *Identifier).nom == STR_eval {
+        retourne génératrice.crée_appel_eval(reg_opt_func.Quelque, this_value, registres_arguments)
     }
 
     retourne génératrice.crée_appel(reg_opt_func.Quelque, this_value, registres_arguments)

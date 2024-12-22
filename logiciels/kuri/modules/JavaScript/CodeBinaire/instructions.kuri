@@ -68,6 +68,10 @@ donne_taille_octet :: fonc (instruction: *Instruction) -> n32
         appel := instruction comme *InstructionAppel
         résultat += appel.nombre_arguments comme n32 * taille_de(Registre)
     }
+    sinon si instruction.type == InstructionAppelEval {
+        new := instruction comme *InstructionAppelEval
+        résultat += new.nombre_arguments comme n32 * taille_de(Registre)
+    }
     sinon si instruction.type == InstructionNew {
         new := instruction comme *InstructionNew
         résultat += new.nombre_arguments comme n32 * taille_de(Registre)
@@ -359,6 +363,23 @@ InstructionAppel :: struct {
 }
 
 donne_arguments :: fonc (appel: *InstructionAppel) -> []Registre
+{
+    résultat: []Registre
+    résultat.pointeur = ((appel + 1) comme *octet) comme *Registre
+    résultat.taille = appel.nombre_arguments
+    retourne résultat
+}
+
+InstructionAppelEval :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    func: Registre
+    this_value: Registre
+    nombre_arguments: z32
+}
+
+donne_arguments :: fonc (appel: *InstructionAppelEval) -> []Registre
 {
     résultat: []Registre
     résultat.pointeur = ((appel + 1) comme *octet) comme *Registre
@@ -982,6 +1003,57 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 }
 
                 func := registres[appel.func]
+
+                this_value := registres[appel.this_value]
+
+                // 4. If func is not an Object, throw a TypeError exception.
+                saufsi func.est_object() {
+                    message := imprime_chaine("'%' is not an Object", func)
+                    retourne lance_type_error(interprète, message)
+                }
+                
+                // 5. If IsCallable(func) is false, throw a TypeError exception.
+                saufsi func.is_callable() {
+                    message := imprime_chaine("'%' is not callable", func)
+                    retourne lance_type_error(interprète, message)
+                }
+
+                // 6. If tailPosition is true, perform PrepareForTailCall().
+
+                // 7. Return ? Call(func, thisValue, argList).
+                completion := call(interprète, func, this_value, arguments)
+                interprète.définis_exception(completion)
+
+                interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionAppelEval {
+                appel := it comme *InstructionAppelEval
+                realm := interprète.donne_realm()
+
+                arguments: [..]Valeur
+                diffère déloge(arguments)
+
+                pour appel.donne_arguments() {
+                    tableau_ajoute(*arguments, registres[it])
+                }
+
+                func := registres[appel.func]
+
+                si same_value(func, Valeur(Object = realm.intrinsics.eval)).est_true() {
+                    si arguments.taille == 0 {
+                        interprète.définis_accumulateur(js_undefined)
+                        continue
+                    }
+
+                    eval_arg := arguments[0]
+                    // À FAIRE : is_strict(noeud)
+                    strict_caller := faux
+
+                    completion := perform_eval(interprète, eval_arg, strict_caller, vrai)
+                    interprète.définis_exception(completion)
+                    interprète.définis_accumulateur(completion.valeur.V)
+                    continue
+                }
 
                 this_value := registres[appel.this_value]
 
