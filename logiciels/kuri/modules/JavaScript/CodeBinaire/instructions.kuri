@@ -488,6 +488,15 @@ InstructionLogicalNot :: struct {
     type = #type_de_cette_structure
 }
 
+/* CreateDataPropertyOrThrow */
+InstructionCDPOT :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    obj: Registre
+    nom: ECMAString
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1188,6 +1197,12 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                     old_value.Boolean = vrai
                 }
                 interprète.définis_accumulateur(old_value)
+            }
+            InstructionCDPOT {
+                inst := it comme *InstructionCDPOT
+                valeur := interprète.donne_accumulateur()
+                objet := registres[inst.obj].donne_objet()
+                _ := create_data_property_or_throw(objet, inst.nom, valeur)
             }
             sinon {
                 imprime("intruction inconnue!\n")

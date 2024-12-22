@@ -298,6 +298,13 @@ crée_propriété_array :: fonc (génératrice: &GénératriceCodeBinaire, obj: 
     résultat.index = index
 }
 
+crée_data_property_or_throw :: fonc (génératrice: &GénératriceCodeBinaire, obj: Registre, nom: ECMAString)
+{
+    résultat := génératrice.crée_instruction(InstructionCDPOT)
+    résultat.obj = obj
+    résultat.nom = nom
+}
+
 crée_appel :: fonc (génératrice: &GénératriceCodeBinaire, func: Registre, this_value: Registre, args: []Registre) -> Registre
 {
     flux := génératrice.flux
@@ -938,8 +945,32 @@ numeric_literal_sur_code_binaire :: fonc (noeud: *NumericLiteral, génératrice:
 
 object_expression_sur_code_binaire :: fonc (noeud: *ObjectExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
 {
-    assert(noeud.properties.taille == 0)
-    retourne génératrice.crée_crée_objet()
+    reg_objet_src := génératrice.crée_crée_objet()
+    si noeud.properties.taille == 0 {
+        retourne reg_objet_src
+    }
+
+    reg_objet := génératrice.crée_stocke()
+
+    pour noeud.properties {
+        assert(it.property_name.type == Identifier)
+        ident := it.property_name comme *Identifier
+        nom_prop := ident.nom
+
+        // À FAIRE : is_proto_setter
+
+        si is_anonymous_function_definition(it.expression) {
+            _ := génératrice.crée_named_evaluation(it.expression, nom_prop)
+        }
+        sinon {
+            _ := génératrice.génère_code_binaire(it.expression)
+        }
+
+        génératrice.crée_data_property_or_throw(reg_objet, nom_prop)
+    }
+
+    génératrice.crée_charge_registre(reg_objet)
+    retourne Registre(0)
 }
 
 parenthesized_expression_sur_code_binaire :: fonc (noeud: *ParenthesizedExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
