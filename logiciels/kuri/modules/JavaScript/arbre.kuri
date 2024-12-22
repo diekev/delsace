@@ -3434,6 +3434,7 @@ VoidOperator :: struct {
 crée_void_operator :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression) -> *VoidOperator
 {
     résultat := parseuse.crée_noeud(lexème, VoidOperator)
+    résultat.sur_génération_code_binaire = void_operator_sur_code_binaire
     résultat.argument = argument
     retourne résultat
 }

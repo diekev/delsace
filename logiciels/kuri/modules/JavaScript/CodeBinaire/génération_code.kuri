@@ -1227,6 +1227,12 @@ lexical_declarator_sur_code_binaire :: fonc (noeud: *VariableDeclarator, génér
     retourne
 }
 
+void_operator_sur_code_binaire :: fonc (noeud: *VoidOperator, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    _ := génératrice.génère_code_binaire(noeud.argument)
+    retourne génératrice.crée_charge(js_undefined)
+}
+
 while_statement_sur_code_binaire :: fonc (noeud: *WhileStatement, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
 {
     décalage := génératrice.donne_décalage()
