@@ -509,6 +509,11 @@ InstructionLogicalNot :: struct {
     type = #type_de_cette_structure
 }
 
+InstructionBinaryNot :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+}
+
 /* CreateDataPropertyOrThrow */
 InstructionCDPOT :: struct {
     empl inst: Instruction
@@ -1311,6 +1316,33 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                     old_value.Boolean = vrai
                 }
                 interprète.définis_accumulateur(old_value)
+            }
+            InstructionBinaryNot {
+                valeur := interprète.donne_accumulateur()
+
+                completion := to_numeric(interprète, valeur)
+                si completion.est_throw() {
+                    interprète.définis_exception(completion)
+                    continue
+                }
+
+                old_value := completion.valeur.V
+
+                // 3. If oldValue is a Number, then
+                si old_value.est_nombre() {
+                    // a. Return Number::bitwiseNOT(oldValue).
+                    résultat := number_bitwise_not(old_value)
+                    interprète.définis_accumulateur(résultat)
+                    continue
+                }
+
+                // 4. Else,
+                //    a. Assert: oldValue is a BigInt.
+                assert(old_value.est_big_int())
+
+                //    b. Return BigInt::bitwiseNOT(oldValue).
+                résultat := big_int_bitwise_not(old_value)
+                interprète.définis_accumulateur(résultat)
             }
             InstructionCDPOT {
                 inst := it comme *InstructionCDPOT

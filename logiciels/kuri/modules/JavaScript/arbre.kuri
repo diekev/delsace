@@ -815,6 +815,7 @@ BinaryNot :: struct {
 crée_binary_not :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression) -> *BinaryNot
 {
     résultat := parseuse.crée_noeud(lexème, BinaryNot)
+    résultat.sur_génération_code_binaire = binary_not_sur_code_binaire
     résultat.argument = argument
     retourne résultat
 }

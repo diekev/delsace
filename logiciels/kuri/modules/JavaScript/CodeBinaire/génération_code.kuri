@@ -444,6 +444,12 @@ crée_logical_not :: fonc (génératrice: &GénératriceCodeBinaire) -> Registre
     retourne Registre(0)
 }
 
+crée_binary_not :: fonc (génératrice: &GénératriceCodeBinaire) -> Registre
+{
+    _ := génératrice.crée_instruction(InstructionBinaryNot)
+    retourne Registre(0)
+}
+
 crée_entrée_bloc_catch :: fonc (génératrice: &GénératriceCodeBinaire, nom: ECMAString)
 {
     résultat := génératrice.crée_instruction(InstructionEntréeBlocCatch)
@@ -623,6 +629,12 @@ binary_expression_sur_code_binaire :: fonc (expression: *BinaryExpression, gén�
     }
 
     panique("non-implémenté")
+}
+
+binary_not_sur_code_binaire :: fonc (noeud: *BinaryNot, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    _ := génératrice.génère_code_binaire(noeud.argument)
+    retourne génératrice.crée_binary_not()
 }
 
 block_statement_sur_code_binaire :: fonc (block: *BlockStatement, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
