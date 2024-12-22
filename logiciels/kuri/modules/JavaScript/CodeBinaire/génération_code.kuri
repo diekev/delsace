@@ -529,7 +529,7 @@ assignment_expression_sur_code_binaire :: fonc (noeud: *AssignmentExpression, g�
 
     discr noeud.opération {
         Assigne {
-            opt_reg = génère_code_binaire(génératrice, noeud.droite)
+            opt_reg = compile_expression_assignée(noeud, génératrice)
             assert(opt_reg.possède_valeur())
         }
         EtLogique {
@@ -537,7 +537,7 @@ assignment_expression_sur_code_binaire :: fonc (noeud: *AssignmentExpression, g�
             branche = génératrice.crée_branche_si_faux()
             doit_lier_branche = vrai
 
-            opt_reg = génère_code_binaire(génératrice, noeud.droite)
+            opt_reg = compile_expression_assignée(noeud, génératrice)
             assert(opt_reg.possède_valeur())
         }
         OuLogique {
@@ -545,7 +545,7 @@ assignment_expression_sur_code_binaire :: fonc (noeud: *AssignmentExpression, g�
             branche = génératrice.crée_branche_si_vrai()
             doit_lier_branche = vrai
 
-            opt_reg = génère_code_binaire(génératrice, noeud.droite)
+            opt_reg = compile_expression_assignée(noeud, génératrice)
             assert(opt_reg.possède_valeur())
         }
         Coalesce {
@@ -553,7 +553,7 @@ assignment_expression_sur_code_binaire :: fonc (noeud: *AssignmentExpression, g�
             branche = génératrice.crée_branche_saufsi_null_ou_undefined()
             doit_lier_branche = vrai
 
-            opt_reg = génère_code_binaire(génératrice, noeud.droite)
+            opt_reg = compile_expression_assignée(noeud, génératrice)
             assert(opt_reg.possède_valeur())
         }
         Ajoute {
@@ -610,6 +610,16 @@ assignment_expression_sur_code_binaire :: fonc (noeud: *AssignmentExpression, g�
     }
 
     retourne opt_reg
+}
+
+compile_expression_assignée :: fonc (noeud: *AssignmentExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    si is_anonymous_function_definition(noeud.droite) && is_identifier_ref(noeud.gauche) {
+        assert(noeud.gauche.type == Identifier)
+        lhs := (noeud.gauche comme *Identifier).nom
+        retourne génératrice.crée_named_evaluation(noeud.droite, lhs)
+    }
+    retourne génératrice.génère_code_binaire(noeud.droite)
 }
 
 binary_expression_sur_code_binaire :: fonc (expression: *BinaryExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
