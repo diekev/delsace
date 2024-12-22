@@ -1244,7 +1244,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
     }
 
     // imprime_registres(interprète)
-    retourne normal_completion(js_undefined)
+    retourne normal_completion(interprète.donne_accumulateur())
 }
 
 imprime_registres :: fonc (interprète: *InterprèteCodeBinaire)
