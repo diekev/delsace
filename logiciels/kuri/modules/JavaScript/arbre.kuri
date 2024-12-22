@@ -197,6 +197,8 @@ crée_script :: fonc (parseuse: *Parseuse, script_body: *ScriptBody) -> *NoeudSc
 ScriptBody :: struct {
     empl scope: NoeudScope
     type = #type_de_cette_structure
+
+    code_binaire: *FluxDInstructions
 }
 
 crée_script_body :: fonc (parseuse: *Parseuse, expressions: [..]*Statement) -> *ScriptBody
@@ -468,6 +470,7 @@ ConciseBody :: struct {
     sur_exécution = sur_exécution_concise_body
 
     statement: *Statement
+    code_binaire: *FluxDInstructions
 }
 
 crée_concise_body :: fonc (parseuse: *Parseuse, statement: *Statement) -> *ConciseBody
