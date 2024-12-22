@@ -457,6 +457,16 @@ InstructionTypeof :: struct {
     type = #type_de_cette_structure
 }
 
+InstructionUnaryMinus :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+}
+
+InstructionUnaryPlus :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1075,6 +1085,36 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 string := crée_chaine(interprète.donne_realm(), chn)
                 résultat := Valeur(String = string)
                 interprète.définis_accumulateur(résultat)
+            }
+            InstructionUnaryMinus {
+                valeur := interprète.donne_accumulateur()
+
+                completion := to_number(interprète, valeur)
+                si completion.est_throw() {
+                    interprète.définis_exception(completion)
+                    continue
+                }
+                old_value := completion.valeur.V
+
+                // 3. If oldValue is a Number, then
+                résultat := si old_value.est_nombre() {
+                    // a. Return Number::unaryMinus(oldValue).
+                    number_unary_minus(old_value)
+                }
+                // 4. Else,
+                sinon {
+                    // a. Assert: oldValue is a BigInt.
+                    assert(old_value.est_big_int())
+                    // b. Return BigInt::unaryMinus(oldValue).
+                    bigint_unary_minus(old_value)
+                }
+                interprète.définis_accumulateur(résultat)
+            }
+            InstructionUnaryPlus {
+                valeur := interprète.donne_accumulateur()
+                completion := to_number(interprète, valeur)
+                interprète.définis_exception(completion)
+                interprète.définis_accumulateur(completion.valeur.V)
             }
             sinon {
                 imprime("intruction inconnue!\n")

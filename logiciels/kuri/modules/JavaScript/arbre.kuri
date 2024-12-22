@@ -704,6 +704,7 @@ UnaryPlusOperator :: struct {
 crée_unary_plus_operator :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression) -> *UnaryPlusOperator
 {
     résultat := parseuse.crée_noeud(lexème, UnaryPlusOperator)
+    résultat.sur_génération_code_binaire = unary_plus_operator_sur_code_binaire
     résultat.argument = argument
     retourne résultat
 }
@@ -747,6 +748,7 @@ UnaryMinusOperator :: struct {
 crée_unary_minus_operator :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression) -> *UnaryMinusOperator
 {
     résultat := parseuse.crée_noeud(lexème, UnaryMinusOperator)
+    résultat.sur_génération_code_binaire = unary_minus_operator_sur_code_binaire
     résultat.argument = argument
     retourne résultat
 }

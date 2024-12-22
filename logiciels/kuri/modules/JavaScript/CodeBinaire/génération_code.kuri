@@ -358,6 +358,18 @@ crée_typeof :: fonc (génératrice: &GénératriceCodeBinaire) -> Registre
     retourne Registre(0)
 }
 
+crée_unary_plus :: fonc (génératrice: &GénératriceCodeBinaire) -> Registre
+{
+    _ := génératrice.crée_instruction(InstructionUnaryPlus)
+    retourne Registre(0)
+}
+
+crée_unary_minus :: fonc (génératrice: &GénératriceCodeBinaire) -> Registre
+{
+    _ := génératrice.crée_instruction(InstructionUnaryMinus)
+    retourne Registre(0)
+}
+
 crée_instancie_fonction :: fonc (génératrice: &GénératriceCodeBinaire, noeud: *FunctionExpression) -> Registre
 {
     résultat := génératrice.crée_instruction(InstructionInstancieFonction)
@@ -929,6 +941,18 @@ typeof_operator_sur_code_binaire :: fonc (typeof: *TypeofOperator, génératrice
     // À FAIRE : 2. If val is a Reference Record, then
     _ := génère_code_binaire(génératrice, typeof.argument)
     retourne génératrice.crée_typeof()
+}
+
+unary_minus_operator_sur_code_binaire :: fonc (noeud: *UnaryMinusOperator, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    _ := génératrice.génère_code_binaire(noeud.argument)
+    retourne génératrice.crée_unary_minus()
+}
+
+unary_plus_operator_sur_code_binaire :: fonc (noeud: *UnaryPlusOperator, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    _ := génératrice.génère_code_binaire(noeud.argument)
+    retourne génératrice.crée_unary_plus()
 }
 
 update_expression_sur_code_binaire :: fonc (update: *UpdateExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
