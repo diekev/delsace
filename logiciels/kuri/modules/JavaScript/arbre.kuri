@@ -3192,6 +3192,7 @@ ConditionalExpression :: struct {
 crée_conditionnal_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, test: *Expression, consequent: *Expression, alternate: *Expression) -> *ConditionalExpression
 {
     résultat := parseuse.crée_noeud(lexème, ConditionalExpression)
+    résultat.sur_génération_code_binaire = conditional_expression_sur_code_binaire
     résultat.test = test
     résultat.consequent = consequent
     résultat.alternate = alternate

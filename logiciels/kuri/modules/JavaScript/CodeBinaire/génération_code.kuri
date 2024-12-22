@@ -598,6 +598,25 @@ comma_statement_sur_code_binaire :: fonc (comma: *CommaExpression, génératrice
     retourne génératrice.génère_code_binaire(comma.right)
 }
 
+conditional_expression_sur_code_binaire :: fonc (noeud: *ConditionalExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    reg_opt_test := génératrice.génère_code_binaire(noeud.test)
+    assert(reg_opt_test.possède_valeur())
+
+    branche_si_faux := génératrice.crée_branche_si_faux()
+
+    _ := génératrice.génère_code_binaire(noeud.consequent)
+
+    branche := génératrice.crée_branche()
+
+    génératrice.définis_décalage_branche(branche_si_faux)
+    _ := génératrice.génère_code_binaire(noeud.alternate)
+
+    génératrice.définis_décalage_branche(branche)
+
+    retourne Registre(0)
+}
+
 continue_statement_sur_code_binaire :: fonc (statement: *ContinueStatement, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
 {
     assert(statement.target == nul)
