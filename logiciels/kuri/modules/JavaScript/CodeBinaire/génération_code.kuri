@@ -347,6 +347,12 @@ crée_décrémente :: fonc (génératrice: &GénératriceCodeBinaire)
     _ := génératrice.crée_instruction(InstructionDécrémente)
 }
 
+crée_typeof :: fonc (génératrice: &GénératriceCodeBinaire) -> Registre
+{
+    _ := génératrice.crée_instruction(InstructionTypeof)
+    retourne Registre(0)
+}
+
 crée_instancie_fonction :: fonc (génératrice: &GénératriceCodeBinaire, noeud: *FunctionExpression) -> Registre
 {
     résultat := génératrice.crée_instruction(InstructionInstancieFonction)
@@ -872,6 +878,13 @@ try_statement_sur_code_binaire :: fonc (try: *TryStatement, génératrice: &Gén
     si try.finalizer != nul {
         _ := génératrice.génère_code_binaire(try.finalizer)
     }
+}
+
+typeof_operator_sur_code_binaire :: fonc (typeof: *TypeofOperator, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    // À FAIRE : 2. If val is a Reference Record, then
+    _ := génère_code_binaire(génératrice, typeof.argument)
+    retourne génératrice.crée_typeof()
 }
 
 update_expression_sur_code_binaire :: fonc (update: *UpdateExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)

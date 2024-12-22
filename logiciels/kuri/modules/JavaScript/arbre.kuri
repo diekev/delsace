@@ -3322,6 +3322,7 @@ TypeofOperator :: struct {
 crée_typeof_operator :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression) -> *TypeofOperator
 {
     résultat := parseuse.crée_noeud(lexème, TypeofOperator)
+    résultat.sur_génération_code_binaire = typeof_operator_sur_code_binaire
     résultat.argument = argument
     retourne résultat
 }

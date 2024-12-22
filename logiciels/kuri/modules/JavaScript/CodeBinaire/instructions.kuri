@@ -440,6 +440,11 @@ InstructionNamedEvaluation :: struct {
     nom: ECMAString
 }
 
+InstructionTypeof :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1032,6 +1037,13 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 completion := named_evaluation(interprète, inst.noeud, inst.nom)
                 interprète.définis_exception(completion)
                 interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionTypeof {
+                valeur := interprète.donne_accumulateur()
+                chn := donne_chaine_pour_typeof(valeur)
+                string := crée_chaine(interprète.donne_realm(), chn)
+                résultat := Valeur(String = string)
+                interprète.définis_accumulateur(résultat)
             }
             sinon {
                 imprime("intruction inconnue!\n")
