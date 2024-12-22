@@ -218,6 +218,16 @@ InstructionRelationSupérieure :: struct {
     type = #type_de_cette_structure
 }
 
+InstructionRelationInférieureÉgale :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
+InstructionRelationSupérieureÉgale :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
 InstructionComparaisonÉgal :: struct {
     empl inst_binaire: InstructionExpressionBinaire
     type = #type_de_cette_structure
@@ -711,6 +721,38 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                     r = Valeur(Boolean = faux)
                 }
                 interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionRelationInférieureÉgale {
+                relat := it comme *InstructionRelationInférieureÉgale
+                gauche := registres[relat.gch]
+                droite := interprète.donne_accumulateur()
+
+                completion := is_less_than(interprète, droite, gauche, faux)
+                interprète.définis_exception(completion)
+                r := completion.valeur.V
+                si r.est_true() || r.est_undefined() {
+                    r = Valeur(Boolean = faux)
+                }
+                sinon {
+                    r = Valeur(Boolean = vrai)
+                }
+                interprète.définis_accumulateur(r)
+            }
+            InstructionRelationSupérieureÉgale {
+                relat := it comme *InstructionRelationSupérieureÉgale
+                gauche := registres[relat.gch]
+                droite := interprète.donne_accumulateur()
+
+                completion := is_less_than(interprète, gauche, droite, vrai)
+                interprète.définis_exception(completion)
+                r := completion.valeur.V
+                si r.est_true() || r.est_undefined() {
+                    r = Valeur(Boolean = faux)
+                }
+                sinon {
+                    r = Valeur(Boolean = vrai)
+                }
+                interprète.définis_accumulateur(r)
             }
             InstructionComparaisonÉgal {
                 inst_ajout := it comme *InstructionComparaisonÉgal

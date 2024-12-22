@@ -213,6 +213,16 @@ crée_relation_supérieure :: fonc (génératrice: &GénératriceCodeBinaire, ga
     retourne crée_expression_binaire(génératrice, gauche, InstructionRelationSupérieure)
 }
 
+crée_relation_inférieure_égale :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre) -> Registre
+{
+    retourne crée_expression_binaire(génératrice, gauche, InstructionRelationInférieureÉgale)
+}
+
+crée_relation_supérieure_égale :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre) -> Registre
+{
+    retourne crée_expression_binaire(génératrice, gauche, InstructionRelationSupérieureÉgale)
+}
+
 crée_comparaison_égal :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre) -> Registre
 {
     retourne crée_expression_binaire(génératrice, gauche, InstructionComparaisonÉgal)
@@ -955,6 +965,12 @@ relational_expression_sur_code_binaire :: fonc (noeud: *RelationalExpression, g�
         }
         Supérieur {
             retourne génératrice.crée_relation_supérieure(gauche)
+        }
+        InférieurÉgal {
+            retourne génératrice.crée_relation_inférieure_égale(gauche)
+        }
+        SupérieurÉgal {
+            retourne génératrice.crée_relation_supérieure_égale(gauche)
         }
         sinon {
             panique("relation non-implémentée : %", noeud.opération)
