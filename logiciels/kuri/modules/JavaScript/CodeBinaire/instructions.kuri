@@ -432,6 +432,14 @@ InstructionDépileExceptionHandler :: struct {
     type = #type_de_cette_structure
 }
 
+InstructionNamedEvaluation :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    noeud: *NoeudSyntaxique
+    nom: ECMAString
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1018,6 +1026,12 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
             }
             InstructionDépileExceptionHandler {
                 _ := dépile(interprète.exception_handlers)
+            }
+            InstructionNamedEvaluation {
+                inst := it comme *InstructionNamedEvaluation
+                completion := named_evaluation(interprète, inst.noeud, inst.nom)
+                interprète.définis_exception(completion)
+                interprète.définis_accumulateur(completion.valeur.V)
             }
             sinon {
                 imprime("intruction inconnue!\n")

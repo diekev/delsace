@@ -354,6 +354,14 @@ crée_instancie_fonction :: fonc (génératrice: &GénératriceCodeBinaire, noeu
     retourne Registre(0)
 }
 
+crée_named_evaluation :: fonc (génératrice: &GénératriceCodeBinaire, noeud: *NoeudSyntaxique, nom: ECMAString) -> Registre
+{
+    résultat := génératrice.crée_instruction(InstructionNamedEvaluation)
+    résultat.noeud = noeud
+    résultat.nom = nom
+    retourne Registre(0)
+}
+
 crée_entrée_bloc_catch :: fonc (génératrice: &GénératriceCodeBinaire, nom: ECMAString)
 {
     résultat := génératrice.crée_instruction(InstructionEntréeBlocCatch)
@@ -956,7 +964,7 @@ variable_declarator_sur_code_binaire :: fonc (noeud: *VariableDeclarator, géné
     // 3. If IsAnonymousFunctionDefinition(Initializer) is true, then
     si is_anonymous_function_definition(noeud.init) {
         // a. Let value be ? NamedEvaluation of Initializer with argument bindingId.
-        panique("non-implémenté")
+        _ := génératrice.crée_named_evaluation(noeud.init, binding_id)
     }
     // 4. Else,
     sinon {
@@ -997,7 +1005,7 @@ lexical_declarator_sur_code_binaire :: fonc (noeud: *VariableDeclarator, génér
     // 3. If IsAnonymousFunctionDefinition(Initializer) is true, then
     si is_anonymous_function_definition(noeud.init) {
         // a. Let value be ? NamedEvaluation of Initializer with argument bindingId.
-        panique("non-implémenté")
+        _ := génératrice.crée_named_evaluation(noeud.init, binding_id)
     }
     // 4. Else,
     sinon {
