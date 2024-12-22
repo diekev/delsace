@@ -360,6 +360,13 @@ crée_instancie_fonction :: fonc (génératrice: &GénératriceCodeBinaire, noeu
     retourne Registre(0)
 }
 
+crée_instancie_arrow_fonction :: fonc (génératrice: &GénératriceCodeBinaire, noeud: *ArrowFunction) -> Registre
+{
+    résultat := génératrice.crée_instruction(InstructionInstancieArrowFunction)
+    résultat.fonction = noeud
+    retourne Registre(0)
+}
+
 crée_named_evaluation :: fonc (génératrice: &GénératriceCodeBinaire, noeud: *NoeudSyntaxique, nom: ECMAString) -> Registre
 {
     résultat := génératrice.crée_instruction(InstructionNamedEvaluation)
@@ -431,6 +438,11 @@ array_literal_sur_code_binaire :: fonc (noeud: *ArrayLiteral, génératrice: &G�
     génératrice.crée_définis_membre(STR_length, opt_reg)
 
     retourne Registre(0)
+}
+
+arrow_function_sur_code_binaire :: fonc (noeud: *ArrowFunction, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    retourne génératrice.crée_instancie_arrow_fonction(noeud)
 }
 
 assignment_expression_sur_code_binaire :: fonc (noeud: *AssignmentExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)

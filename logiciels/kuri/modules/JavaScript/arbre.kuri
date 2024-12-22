@@ -441,6 +441,7 @@ ArrowFunction :: struct {
 crée_arrow_function :: fonc (parseuse: *Parseuse, lexème: *Lexème, params: [..]*Expression, corps: *ConciseBody) -> *ArrowFunction
 {
     résultat := parseuse.crée_noeud(lexème, ArrowFunction)
+    résultat.sur_génération_code_binaire = arrow_function_sur_code_binaire
     résultat.corps = corps
     résultat.params = params
     retourne résultat

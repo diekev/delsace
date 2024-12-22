@@ -400,6 +400,13 @@ InstructionInstancieFonction :: struct {
     fonction: *FunctionExpression
 }
 
+InstructionInstancieArrowFunction :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    fonction: *ArrowFunction
+}
+
 InstructionEntréeBlocCatch :: struct {
     empl inst: Instruction
     type = #type_de_cette_structure
@@ -996,6 +1003,11 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
             InstructionInstancieFonction {
                 instance := it comme *InstructionInstancieFonction
                 closure := instantiate_ordinary_function_expression(interprète, instance.fonction)
+                interprète.définis_accumulateur(Valeur(Function = closure))
+            }
+            InstructionInstancieArrowFunction {
+                instance := it comme *InstructionInstancieArrowFunction
+                closure := instantiate_arrow_function_expression(interprète, instance.fonction)
                 interprète.définis_accumulateur(Valeur(Function = closure))
             }
             InstructionEntréeBlocCatch {
