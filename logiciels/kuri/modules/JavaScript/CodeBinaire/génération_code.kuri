@@ -479,8 +479,35 @@ assignment_expression_sur_code_binaire :: fonc (noeud: *AssignmentExpression, g�
 {
     opt_reg: Optionnel(Registre)
 
+    doit_lier_branche: bool
+    branche: IndexBranche
+
     discr noeud.opération {
         Assigne {
+            opt_reg = génère_code_binaire(génératrice, noeud.droite)
+            assert(opt_reg.possède_valeur())
+        }
+        EtLogique {
+            _ := génère_code_binaire(génératrice, noeud.gauche)
+            branche = génératrice.crée_branche_si_faux()
+            doit_lier_branche = vrai
+
+            opt_reg = génère_code_binaire(génératrice, noeud.droite)
+            assert(opt_reg.possède_valeur())
+        }
+        OuLogique {
+            _ := génère_code_binaire(génératrice, noeud.gauche)
+            branche = génératrice.crée_branche_si_vrai()
+            doit_lier_branche = vrai
+
+            opt_reg = génère_code_binaire(génératrice, noeud.droite)
+            assert(opt_reg.possède_valeur())
+        }
+        Coalesce {
+            _ := génère_code_binaire(génératrice, noeud.gauche)
+            branche = génératrice.crée_branche_saufsi_null_ou_undefined()
+            doit_lier_branche = vrai
+
             opt_reg = génère_code_binaire(génératrice, noeud.droite)
             assert(opt_reg.possède_valeur())
         }
@@ -494,7 +521,7 @@ assignment_expression_sur_code_binaire :: fonc (noeud: *AssignmentExpression, g�
             opt_reg = génératrice.crée_ajoute(reg_gauche)
         }
         sinon {
-            panique("non-implémenté")
+            panique("opération d'assignement non-implémenté pour %", noeud.opération)
         }
     }
 
@@ -530,6 +557,11 @@ assignment_expression_sur_code_binaire :: fonc (noeud: *AssignmentExpression, g�
     }
     sinon {
         panique("non-implémenté")
+    }
+
+
+    si doit_lier_branche {
+        génératrice.définis_décalage_branche(branche)
     }
 
     retourne opt_reg
