@@ -145,6 +145,12 @@ InstructionBrancheSiVrai :: struct {
     type = #type_de_cette_structure
 }
 
+/* Branche saufsi la valeur dans l'accumulateur est null ou undefined */
+InstructionBrancheSaufsiNullOuUndefined :: struct {
+    empl inst_branche: InstructionBranche
+    type = #type_de_cette_structure
+}
+
 InstructionCharge :: struct {
     empl inst: Instruction
     type = #type_de_cette_structure
@@ -635,6 +641,15 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 valeur = to_boolean(valeur)
 
                 si est_true(valeur) {
+                    courant = début + branche.décalage comme z64
+                    continue
+                }
+            }
+            InstructionBrancheSaufsiNullOuUndefined {
+                branche := it comme *InstructionBrancheSaufsiNullOuUndefined
+                valeur := interprète.donne_accumulateur()
+
+                saufsi valeur.est_nulle() || valeur.est_undefined() {
                     courant = début + branche.décalage comme z64
                     continue
                 }

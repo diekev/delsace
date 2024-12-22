@@ -139,6 +139,13 @@ crée_branche_si_vrai :: fonc (génératrice: &GénératriceCodeBinaire) -> Inde
     retourne IndexBranche(résultat comme z64)
 }
 
+crée_branche_saufsi_null_ou_undefined :: fonc (génératrice: &GénératriceCodeBinaire) -> IndexBranche
+{
+    résultat := génératrice.donne_décalage()
+    _ := génératrice.crée_instruction(InstructionBrancheSaufsiNullOuUndefined)
+    retourne IndexBranche(résultat comme z64)
+}
+
 crée_charge :: fonc (génératrice: &GénératriceCodeBinaire, valeur: Valeur) -> Registre
 {
     gauche := génératrice.crée_instruction(InstructionCharge)
@@ -607,6 +614,15 @@ catch_clause_sur_code_binaire :: fonc (catch: *CatchClause, génératrice: &Gén
     résultat := génératrice.génère_code_binaire(catch.body)
 
     génératrice.crée_sortie_bloc_catch()
+    retourne résultat
+}
+
+coalesce_sur_code_binaire :: fonc (noeud: *Coalesce, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    _ := génératrice.génère_code_binaire(noeud.left)
+    branche_si_faux := génératrice.crée_branche_saufsi_null_ou_undefined()
+    résultat := génératrice.génère_code_binaire(noeud.right)
+    génératrice.définis_décalage_branche(branche_si_faux)
     retourne résultat
 }
 
