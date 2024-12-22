@@ -706,7 +706,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 si r.est_undefined() {
                     r = Valeur(Boolean = faux)
                 }
-                interprète.définis_accumulateur(completion.valeur.V)
+                interprète.définis_accumulateur(r)
             }
             InstructionRelationSupérieure {
                 relat := it comme *InstructionRelationSupérieure
@@ -720,7 +720,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 si r.est_undefined() {
                     r = Valeur(Boolean = faux)
                 }
-                interprète.définis_accumulateur(completion.valeur.V)
+                interprète.définis_accumulateur(r)
             }
             InstructionRelationInférieureÉgale {
                 relat := it comme *InstructionRelationInférieureÉgale
