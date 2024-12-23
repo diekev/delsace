@@ -1,3 +1,4 @@
+importe Chaine
 importe Fondation
 
 /* ------------------------------------------------------------------------- */
@@ -1218,9 +1219,7 @@ object_expression_sur_code_binaire :: fonc (noeud: *ObjectExpression, génératr
     reg_objet := génératrice.crée_stocke()
 
     pour noeud.properties {
-        assert(it.property_name.type == Identifier)
-        ident := it.property_name comme *Identifier
-        nom_prop := ident.nom
+        nom_prop := donne_nom_propriété(it.property_name)
 
         // À FAIRE : is_proto_setter
 
@@ -1236,6 +1235,25 @@ object_expression_sur_code_binaire :: fonc (noeud: *ObjectExpression, génératr
 
     génératrice.crée_charge_registre(reg_objet)
     retourne Registre(0)
+}
+
+donne_nom_propriété :: fonc (prop_name: *NoeudSyntaxique) -> ECMAString
+{
+    si prop_name.type == StringLiteral {
+        string := prop_name comme *StringLiteral
+        retourne string.valeur
+    }
+
+    si prop_name.type == NumericLiteral {
+        number := prop_name comme *NumericLiteral
+        chn := imprime_chaine("%", number.valeur)
+        diffère déloge(chn)
+        retourne crée_chaine_utf16_unique(chn)
+    }
+
+    assert(prop_name.type == Identifier)
+    ident := prop_name comme *Identifier
+    retourne ident.nom
 }
 
 parenthesized_expression_sur_code_binaire :: fonc (noeud: *ParenthesizedExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
