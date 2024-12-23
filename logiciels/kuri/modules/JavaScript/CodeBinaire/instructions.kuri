@@ -578,6 +578,16 @@ InstructionCDPOT :: struct {
     nom: ECMAString
 }
 
+InstructionEntréeSwitch :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+}
+
+InstructionSortieSwitch :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1396,6 +1406,26 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 }
             }
             InstructionSortieBlocCatch {
+                old_env := dépile(interprète.environments_catch)
+                assert(old_env != nul)
+                mv := interprète.mv
+                running_execution_context := mv.donne_running_execution_context()
+                running_execution_context.lexical_environment = old_env
+
+                // À FAIRE : nous devons également dépiler old env si une exception est lancée dans le bloc catch
+            }
+            InstructionEntréeSwitch {
+                mv := interprète.mv
+                running_execution_context := mv.donne_running_execution_context()
+                old_env := running_execution_context.lexical_environment
+
+                block_env := new_declarative_environment(old_env.donne_tas_de_mémoire(), old_env)
+                //  À FAIRE : 5. Perform BlockDeclarationInstantiation(CaseBlock, blockEnv).
+
+                running_execution_context.lexical_environment = block_env
+                empile(interprète.environments_catch, old_env)
+            }
+            InstructionSortieSwitch {
                 old_env := dépile(interprète.environments_catch)
                 assert(old_env != nul)
                 mv := interprète.mv

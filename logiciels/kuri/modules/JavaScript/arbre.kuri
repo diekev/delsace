@@ -3814,6 +3814,7 @@ SwitchStatement :: struct {
 crée_switch_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, discriminant: *Expression, cases: [..]*CaseClause, index_default_clause: z64) -> *SwitchStatement
 {
     résultat := parseuse.crée_noeud(lexème, SwitchStatement)
+    résultat.sur_génération_code_binaire = switch_statement_sur_code_binaire
     résultat.discriminant = discriminant
     résultat.cases = cases
     résultat.index_default_clause = index_default_clause

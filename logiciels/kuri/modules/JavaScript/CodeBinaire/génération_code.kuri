@@ -536,6 +536,16 @@ dépile_exception_handler :: fonc (génératrice: &GénératriceCodeBinaire, han
     _ := génératrice.crée_instruction(InstructionDépileExceptionHandler)
 }
 
+crée_entrée_switch :: fonc (génératrice: &GénératriceCodeBinaire)
+{
+    _ := génératrice.crée_instruction(InstructionEntréeSwitch)
+}
+
+crée_sortie_switch :: fonc (génératrice: &GénératriceCodeBinaire)
+{
+    _ := génératrice.crée_instruction(InstructionSortieSwitch)
+}
+
 alloue_registre :: fonc (empl génératrice: &GénératriceCodeBinaire) -> Registre
 {
     résultat := Registre(flux.registres)
@@ -1277,6 +1287,65 @@ return_statement_sur_code_binaire :: fonc (noeud: *ReturnStatement, génératric
 string_literal_sur_code_binaire :: fonc (noeud: *StringLiteral, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
 {
     retourne génératrice.crée_crée_chaine(noeud.valeur)
+}
+
+switch_statement_sur_code_binaire :: fonc (switch: *SwitchStatement, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+{
+    _ := génératrice.génère_code_binaire(switch.discriminant)
+
+    génératrice.crée_entrée_switch()
+
+    si switch.cases.taille == 0 {
+        _ := génératrice.crée_charge(js_undefined)
+    }
+    sinon {
+        reg_valeur_discriminant := génératrice.crée_stocke()
+
+        index_branches_pour_cas: [..]IndexBranche
+        diffère déloge(index_branches_pour_cas)
+
+        label_pour_break := génératrice.crée_label()
+
+        génératrice.empile_labels_boucle(Label(-1 comme n32), label_pour_break)
+        diffère génératrice.dépile_labels_boucle()
+
+        /* Génère le code pour les tests. */
+        pour switch.cases {
+            si index_it == switch.index_default_clause {
+                tableau_ajoute(*index_branches_pour_cas, IndexBranche(-1))
+                continue
+            }
+
+            assert(it.type == CaseClause)
+
+            _ := génératrice.génère_code_binaire(it.test)
+            _ := génératrice.crée_comparaison_égal_strict(reg_valeur_discriminant)
+            branche := génératrice.crée_branche_si_vrai()
+            tableau_ajoute(*index_branches_pour_cas, branche)
+        }
+
+        branche_si_faux := génératrice.crée_branche()
+        si switch.index_default_clause != -1 {
+            index_branches_pour_cas[switch.index_default_clause] = branche_si_faux
+        }
+
+        pour switch.cases {
+            génératrice.définis_décalage_branche(index_branches_pour_cas[index_it])
+
+            si it.consequent == nul {
+                continue
+            }
+
+            _ := génératrice.génère_code_binaire(it.consequent)
+        }
+
+        si switch.index_default_clause == -1 {
+            génératrice.définis_décalage_branche(branche_si_faux)
+        }
+        génératrice.insère_label(label_pour_break)
+    }
+
+    génératrice.crée_sortie_switch()
 }
 
 this_expression_sur_code_binaire :: fonc (noeud: *ThisExpression @inutilisée, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
