@@ -278,6 +278,11 @@ crée_instance_of :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Reg
     retourne crée_expression_binaire(génératrice, gauche, InstructionInstanceOf)
 }
 
+crée_in :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre) -> Registre
+{
+    retourne crée_expression_binaire(génératrice, gauche, InstructionIn)
+}
+
 crée_comparaison_égal :: fonc (génératrice: &GénératriceCodeBinaire, gauche: Registre) -> Registre
 {
     retourne crée_expression_binaire(génératrice, gauche, InstructionComparaisonÉgal)
@@ -1265,6 +1270,9 @@ relational_expression_sur_code_binaire :: fonc (noeud: *RelationalExpression, g�
         }
         InstanceOf {
             retourne génératrice.crée_instance_of(gauche)
+        }
+        In {
+            retourne génératrice.crée_in(gauche)
         }
         sinon {
             panique("relation non-implémentée : %", noeud.opération)

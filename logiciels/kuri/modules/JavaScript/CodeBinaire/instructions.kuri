@@ -287,6 +287,11 @@ InstructionInstanceOf :: struct {
     type = #type_de_cette_structure
 }
 
+InstructionIn :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
 InstructionComparaisonÉgal :: struct {
     empl inst_binaire: InstructionExpressionBinaire
     type = #type_de_cette_structure
@@ -995,6 +1000,10 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 interprète.définis_exception(completion)
                 interprète.définis_accumulateur(completion.valeur.V)
             }
+            InstructionIn {
+                relat := it comme *InstructionIn
+                évalue_relation_in(interprète, registres, relat)
+            }
             InstructionComparaisonÉgal {
                 inst_ajout := it comme *InstructionComparaisonÉgal
                 gauche := donne_registre(registres, inst_ajout.gch)
@@ -1562,6 +1571,30 @@ imprime_registres :: fonc (interprète: *InterprèteCodeBinaire)
     pour interprète.registres {
         imprime("- [%] %\n", index_it, it)
     }
+}
+
+évalue_relation_in :: fonc (interprète: *InterprèteCodeBinaire, registres: ÉtatRegistres, inst: *InstructionIn)
+{
+    gauche := donne_registre(registres, inst.gch)
+    droite := interprète.donne_accumulateur()
+
+    saufsi droite.est_object() {
+        message := imprime_chaine("'%' is not an Object", droite)
+        completion := lance_type_error(interprète, message)
+        interprète.définis_exception(completion)
+        retourne
+    }
+
+    // 6. Return ? HasProperty(rVal, ? ToPropertyKey(lVal)).
+    completion := to_property_key(interprète, gauche)
+    saufsi completion.est_normal() {
+        interprète.définis_exception(completion)
+        retourne
+    }
+
+    completion = has_property(droite.donne_objet(), completion.valeur.V.String.texte)
+    interprète.définis_exception(completion)
+    interprète.définis_accumulateur(completion.valeur.V)
 }
 
 /** \} */
