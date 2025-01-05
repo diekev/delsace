@@ -130,20 +130,13 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace,
                                      kuri::chaine_statique nom,
                                      NoeudExpression const *site)
 {
-    auto chemin = kuri::chemin_systeme(nom);
-
-    if (!kuri::chemin_systeme::existe(chemin)) {
-        /* essaie dans la racine kuri */
-        chemin = racine_modules_kuri / chemin;
-
-        if (!kuri::chemin_systeme::existe(chemin)) {
-            espace
-                ->rapporte_erreur(site, "Impossible de trouver le dossier correspondant au module")
-                .ajoute_message("Le chemin testé fut : ", chemin);
-
-            return nullptr;
-        }
+    auto opt_chemin = détermine_chemin_dossier_module(espace, nom, site);
+    if (!opt_chemin.has_value()) {
+        /* Une erreur dût être rapportée. */
+        return nullptr;
     }
+
+    auto chemin = opt_chemin.value();
 
     if (!kuri::chemin_systeme::est_dossier(chemin)) {
         espace->rapporte_erreur(
@@ -215,6 +208,28 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace,
     messagère->ajoute_message_module_fermé(espace, module);
 
     return module;
+}
+
+std::optional<kuri::chemin_systeme> Compilatrice::détermine_chemin_dossier_module(
+    EspaceDeTravail *espace, kuri::chaine_statique nom, NoeudExpression const *site)
+{
+    auto chemin = kuri::chemin_systeme(nom);
+
+    /* Vérifions si le chemin est dans le dossier courant. */
+    if (kuri::chemin_systeme::existe(chemin)) {
+        return chemin;
+    }
+
+    /* Essayons dans la racine des modules. */
+    auto chemin_dans_racine = racine_modules_kuri / chemin;
+
+    if (kuri::chemin_systeme::existe(chemin_dans_racine)) {
+        return chemin_dans_racine;
+    }
+
+    espace->rapporte_erreur(site, "Impossible de trouver le dossier correspondant au module")
+        .ajoute_message("Les chemins testés furent :\n", chemin, "\n", chemin_dans_racine);
+    return {};
 }
 
 /* ************************************************************************** */

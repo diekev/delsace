@@ -336,6 +336,10 @@ struct Compilatrice {
     void dépose_sémanticienne(Sémanticienne *sémanticienne);
     ConvertisseuseNoeudCode *donne_convertisseuse_noeud_code_disponible();
     void dépose_convertisseuse(ConvertisseuseNoeudCode *convertisseuse);
+
+  private:
+    std::optional<kuri::chemin_systeme> détermine_chemin_dossier_module(
+        EspaceDeTravail *espace, kuri::chaine_statique nom, NoeudExpression const *site);
 };
 
 int fonction_test_variadique_externe(int sentinel, ...);
