@@ -227,8 +227,22 @@ std::optional<kuri::chemin_systeme> Compilatrice::détermine_chemin_dossier_modu
         return chemin_dans_racine;
     }
 
+    /* Essayons dans le dossier du fichier du site. */
+    auto fichier_du_site = fichier(site->lexème->fichier);
+    auto chemin_du_module = fichier_du_site->module->chemin();
+    auto chemin_possible = kuri::chemin_systeme(chemin_du_module) / chemin;
+    if (kuri::chemin_systeme::existe(chemin_possible)) {
+        return chemin_possible;
+    }
+
     espace->rapporte_erreur(site, "Impossible de trouver le dossier correspondant au module")
-        .ajoute_message("Les chemins testés furent :\n", chemin, "\n", chemin_dans_racine);
+        .ajoute_message("Les chemins testés furent :\n",
+                        chemin,
+                        "\n",
+                        chemin_dans_racine,
+                        "\n",
+                        chemin_possible,
+                        "\n");
     return {};
 }
 
