@@ -3,6 +3,9 @@ importe Fondation
 importe Image
 
 charge "interface"
+charge "programme"
+charge "tampons"
+charge "texture"
 
 initialise_opengl :: fonc () -> bool
 {

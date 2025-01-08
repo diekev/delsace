@@ -1,9 +1,12 @@
 importe Fondation
 importe GlibC // pour le signal de violation de segmentation
 
+charge "bibliothèques"
 charge "infos_types"
+charge "intrinseques"
 charge "panique"
 charge "r16"
+charge "tableaux"
 
 // Ce fichier est utiliser pour définir des variables et fonctions de
 // bases (« connus par le compilateur ») que tous les modules doivent importer.
