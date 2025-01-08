@@ -185,8 +185,9 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace,
 #else
     auto résultat = this->trouve_ou_crée_fichier(
         module, "module", chemin_fichier_module, importe_kuri);
-    if (résultat.est<FichierNeuf>()) {
-        gestionnaire_code->requiers_chargement(espace, résultat.résultat<FichierNeuf>().fichier);
+    if (std::holds_alternative<FichierNeuf>(résultat)) {
+        auto fichier = static_cast<Fichier *>(std::get<FichierNeuf>(résultat));
+        gestionnaire_code->requiers_chargement(espace, fichier);
     }
 #endif
 
