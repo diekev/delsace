@@ -14,21 +14,59 @@ change_nom_sortie :: fonc ()
 
 #exécute change_nom_sortie()
 
-principale :: fonc () -> z32
+Arguments :: struct {
+    utilise_code_binaire: bool
+    fichier: Optionnel(chaine)
+}
+
+parse_arguments :: fonc () -> Optionnel(Arguments)
 {
     args := arguments_ligne_commande()
+
+    résultat: Arguments
+
+    pour args {
+        si index_it == 0 {
+            continue
+        }
+
+        si it == "-b" {
+            résultat.utilise_code_binaire = vrai
+        }
+        sinon {
+            si index_it != args.taille - 1 {
+                imprime("Mauvaise ligne de commande\n")
+                imprime("Utilisation : % [-b] [FICHIER]\n", args[0])
+                retourne
+            }
+
+            résultat.fichier = it
+        }
+    }
+
+    retourne résultat
+}
+
+principale :: fonc () -> z32
+{
+    args_opt := parse_arguments()
+    saufsi args_opt.possède_valeur() {
+        retourne 1
+    }
+
+    args := args_opt.Quelque
 
     stats: StatistiquesTests
     diffère détruit_données_stats(*stats)
 
     début := maintenant_précis()
 
-    si args.taille == 2 {
-        évalue_test(CheminFichier(args[1]), *stats)
+    si args.fichier.possède_valeur() {
+        évalue_test(CheminFichier(args.fichier.Quelque), *stats, args.utilise_code_binaire)
     }
     sinon pour ExploratriceFichier(CheminFichier("fichiers")) {
         si it.extension() == ".js" {
-            évalue_test(it, *stats)
+            évalue_test(it, *stats, args.utilise_code_binaire)
         }
     }
 
@@ -77,7 +115,7 @@ détruit_données_stats :: fonc (stats: *StatistiquesTests)
     déloge(stats.erreurs_captées)
 }
 
-évalue_test :: fonc (chemin: CheminFichier, stats: *StatistiquesTests)
+évalue_test :: fonc (chemin: CheminFichier, stats: *StatistiquesTests, utilise_code_binaire: bool)
 {
     stats.nombre_de_fichiers += 1
 
@@ -85,6 +123,7 @@ détruit_données_stats :: fonc (stats: *StatistiquesTests)
     diffère déloge(contenu)
 
     mv: MachineVirtuelle
+    mv.utilise_code_binaire = utilise_code_binaire
     diffère détruit_données_mv(*mv)
     initialise_mv(nul, *mv)
 
