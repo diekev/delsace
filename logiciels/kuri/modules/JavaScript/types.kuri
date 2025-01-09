@@ -458,6 +458,21 @@ PropertyKey :: union {
     Symbol: *Symbol
 }
 
+donne_empreinte :: fonc (key: PropertyKey) -> n64
+{
+    discr key {
+        String(s) {
+            retourne s.valeur
+        }
+        Symbol(s) {
+            retourne s comme n64
+        }
+        sinon {}
+    }
+
+    retourne 0
+}
+
 est_chaine :: fonc (key: PropertyKey) -> bool
 {
     discr key {

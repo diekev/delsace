@@ -264,20 +264,18 @@ SiteSource EspaceDeTravail::site_source_pour(const NoeudExpression *noeud) const
     return SiteSource::cree(fichier, lexeme);
 }
 
-void EspaceDeTravail::rapporte_avertissement(const NoeudExpression *site,
-                                             kuri::chaine_statique message) const
+Erreur EspaceDeTravail::rapporte_avertissement(const NoeudExpression *site,
+                                               kuri::chaine_statique message) const
 {
-    dbg() << genere_entete_erreur(
-        this, site_source_pour(site), erreur::Genre::AVERTISSEMENT, message);
+    return ::rapporte_avertissement(this, site_source_pour(site), message);
 }
 
-void EspaceDeTravail::rapporte_avertissement(kuri::chaine_statique chemin_fichier,
-                                             int ligne,
-                                             kuri::chaine_statique message) const
+Erreur EspaceDeTravail::rapporte_avertissement(kuri::chaine_statique chemin_fichier,
+                                               int ligne,
+                                               kuri::chaine_statique message) const
 {
     const Fichier *f = m_compilatrice.fichier(chemin_fichier);
-    dbg() << genere_entete_erreur(
-        this, SiteSource(f, ligne - 1), erreur::Genre::AVERTISSEMENT, message);
+    return ::rapporte_avertissement(this, SiteSource(f, ligne - 1), message);
 }
 
 Erreur EspaceDeTravail::rapporte_erreur(NoeudExpression const *site,

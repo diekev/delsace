@@ -7,6 +7,7 @@
 importe Fondation
 importe SysFichier
 
+charge "arbre_syntaxique"
 charge "fichier_source"
 charge "lexèmes"
 charge "parseuse"
