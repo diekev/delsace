@@ -61,7 +61,15 @@ test("??= assigne un nom aux fonctions anonymes", function () {
     vérifieQue(b.name).doitÊtre("b");
 });
 
-// À FAIRE : fonctions dans les objets
+test("fonction assignée à un membre d'objet", function () {
+    var o = { bar: function () { } };
+    vérifieQue(o.bar.name).doitÊtre("bar");
+});
+
+test("fonction arrow assignée à un membre d'objet", function () {
+    var o = { bar: () => { } };
+    vérifieQue(o.bar.name).doitÊtre("bar");
+});
 
 test("fonction arrow assignée à une variable", function () {
     let foo = () => { }
