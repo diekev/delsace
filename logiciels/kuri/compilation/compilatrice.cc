@@ -130,20 +130,13 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace,
                                      kuri::chaine_statique nom,
                                      NoeudExpression const *site)
 {
-    auto chemin = kuri::chemin_systeme(nom);
-
-    if (!kuri::chemin_systeme::existe(chemin)) {
-        /* essaie dans la racine kuri */
-        chemin = racine_modules_kuri / chemin;
-
-        if (!kuri::chemin_systeme::existe(chemin)) {
-            espace
-                ->rapporte_erreur(site, "Impossible de trouver le dossier correspondant au module")
-                .ajoute_message("Le chemin testé fut : ", chemin);
-
-            return nullptr;
-        }
+    auto opt_chemin = détermine_chemin_dossier_module(espace, nom, site);
+    if (!opt_chemin.has_value()) {
+        /* Une erreur dût être rapportée. */
+        return nullptr;
     }
+
+    auto chemin = opt_chemin.value();
 
     if (!kuri::chemin_systeme::est_dossier(chemin)) {
         espace->rapporte_erreur(
@@ -154,6 +147,16 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace,
     /* trouve le chemin absolu du module (cannonique pour supprimer les "../../" */
     auto chemin_absolu = kuri::chemin_systeme::canonique_absolu(chemin);
     auto nom_dossier = chemin_absolu.nom_fichier();
+
+    /* N'importe le module que s'il possède un fichier "module.kuri". */
+    auto chemin_fichier_module = chemin_absolu / "module.kuri";
+    if (!kuri::chemin_systeme::existe(chemin_fichier_module)) {
+        espace->rapporte_erreur(site,
+                                enchaine("Aucun fichier « module.kuri » trouvé pour le module « ",
+                                         nom_dossier,
+                                         " »."));
+        return nullptr;
+    }
 
     // @concurrence critique
     auto module = this->trouve_ou_crée_module(
@@ -180,20 +183,11 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace,
         }
     }
 #else
-    auto chemin_fichier_module = chemin_absolu / "module.kuri";
-
-    if (!kuri::chemin_systeme::existe(chemin_fichier_module)) {
-        espace->rapporte_erreur(site,
-                                enchaine("Aucun fichier « module.kuri » trouvé pour le module « ",
-                                         module->nom()->nom,
-                                         " »."));
-        return nullptr;
-    }
-
     auto résultat = this->trouve_ou_crée_fichier(
         module, "module", chemin_fichier_module, importe_kuri);
-    if (résultat.est<FichierNeuf>()) {
-        gestionnaire_code->requiers_chargement(espace, résultat.résultat<FichierNeuf>().fichier);
+    if (std::holds_alternative<FichierNeuf>(résultat)) {
+        auto fichier = static_cast<Fichier *>(std::get<FichierNeuf>(résultat));
+        gestionnaire_code->requiers_chargement(espace, fichier);
     }
 #endif
 
@@ -215,6 +209,42 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace,
     messagère->ajoute_message_module_fermé(espace, module);
 
     return module;
+}
+
+std::optional<kuri::chemin_systeme> Compilatrice::détermine_chemin_dossier_module(
+    EspaceDeTravail *espace, kuri::chaine_statique nom, NoeudExpression const *site)
+{
+    auto chemin = kuri::chemin_systeme(nom);
+
+    /* Vérifions si le chemin est dans le dossier courant. */
+    if (kuri::chemin_systeme::existe(chemin)) {
+        return chemin;
+    }
+
+    /* Essayons dans la racine des modules. */
+    auto chemin_dans_racine = racine_modules_kuri / chemin;
+
+    if (kuri::chemin_systeme::existe(chemin_dans_racine)) {
+        return chemin_dans_racine;
+    }
+
+    /* Essayons dans le dossier du fichier du site. */
+    auto fichier_du_site = fichier(site->lexème->fichier);
+    auto chemin_du_module = fichier_du_site->module->chemin();
+    auto chemin_possible = kuri::chemin_systeme(chemin_du_module) / chemin;
+    if (kuri::chemin_systeme::existe(chemin_possible)) {
+        return chemin_possible;
+    }
+
+    espace->rapporte_erreur(site, "Impossible de trouver le dossier correspondant au module")
+        .ajoute_message("Les chemins testés furent :\n",
+                        chemin,
+                        "\n",
+                        chemin_dans_racine,
+                        "\n",
+                        chemin_possible,
+                        "\n");
+    return {};
 }
 
 /* ************************************************************************** */
@@ -361,6 +391,11 @@ void Compilatrice::rassemble_statistiques(Statistiques &stats) const
     POUR (m_convertisseuses_noeud_code) {
         stats.ajoute_mémoire_utilisée("Compilatrice", it->mémoire_utilisée());
     }
+}
+
+void Compilatrice::rapporte_avertissement(kuri::chaine_statique message)
+{
+    dbg() << message;
 }
 
 void Compilatrice::rapporte_erreur(EspaceDeTravail const *espace,
