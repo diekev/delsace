@@ -11,7 +11,7 @@ test("postfix", function () {
     vérifie_égalité(z, 1);
 });
 
-test("pretfix", function () {
+test("prefix", function () {
     var x = 0;
     var y = ++x;
     vérifie_égalité(x, 1);
