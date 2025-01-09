@@ -1562,28 +1562,7 @@ update_image_data :: fonc (image: *HTMLImageElement)
 
         contenu := réponse.body.Quelque
 
-        // À FAIRE : prend le chemin de l'url si le schéma n'est pas "data"
-        chemin_image := ""
-        si content_type == "image/png" {
-            chemin_image = "image.png"
-        }
-        sinon si content_type == "image/jpeg" {
-            chemin_image = "image.jpeg"
-        }
-        sinon {
-            panique("chemin image non résolvable")
-        }
-
-        proxy_image := IMG_cree_proxy_memoire(contenu.pointeur, contenu.taille comme n64)
-        diffère IMG_detruit_proxy(proxy_image)
-
-        chn_c_chemin := crée_chaine_c(chemin_image)
-        diffère détruit_chaine_c(chn_c_chemin)
-
-        résultat_lecture_image := IMG_ouvre_image_avec_proxy(chn_c_chemin, *rappel.image.image_data, proxy_image)
-        si résultat_lecture_image != ResultatOperation.OK {
-            imprime("Impossible de lire l'image : %\n", résultat_lecture_image)
-        }
+        _ := décode_image(contenu, content_type, *rappel.image.image_data)
 
         invalide_style(rappel.image.document)
         enfile_une_tâche_pour_lancer_évènement_à_élément(rappel.user_agent, rappel.image, EventType.load)
@@ -1605,6 +1584,37 @@ update_image_data :: fonc (image: *HTMLImageElement)
 
     fetch_controller := fetch(user_agent, request, process_response = process_response)
     diffère détruit_fetch_controller(fetch_controller)
+}
+
+#portée_export
+
+décode_image :: fonc (contenu: chaine, content_type: chaine, résultat: *ImageIO) -> bool
+{
+    // À FAIRE : prend le chemin de l'url si le schéma n'est pas "data"
+    chemin_image := ""
+    si content_type == "image/png" {
+        chemin_image = "image.png"
+    }
+    sinon si content_type == "image/jpeg" {
+        chemin_image = "image.jpeg"
+    }
+    sinon {
+        panique("chemin image non résolvable")
+    }
+
+    proxy_image := IMG_cree_proxy_memoire(contenu.pointeur, contenu.taille comme n64)
+    diffère IMG_detruit_proxy(proxy_image)
+
+    chn_c_chemin := crée_chaine_c(chemin_image)
+    diffère détruit_chaine_c(chn_c_chemin)
+
+    résultat_lecture_image := IMG_ouvre_image_avec_proxy(chn_c_chemin, résultat, proxy_image)
+    si résultat_lecture_image != ResultatOperation.OK {
+        imprime("Impossible de lire l'image : %\n", résultat_lecture_image)
+        retourne faux
+    }
+
+    retourne vrai
 }
 
 /** \} */
