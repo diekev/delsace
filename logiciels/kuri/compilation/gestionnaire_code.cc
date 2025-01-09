@@ -726,6 +726,24 @@ void GestionnaireCode::détermine_dépendances(NoeudExpression *noeud, EspaceDeT
     /* Ajourne le graphe de dépendances avant de les épendres, afin de ne pas ajouter trop de
      * relations dans le graphe. */
     if (!noeud->est_ajoute_fini() && !noeud->est_ajoute_init()) {
+        if (noeud->est_déclaration_variable()) {
+            pour_chaque_élément(
+                dépendances.dépendances.globales_utilisées,
+                [&](NoeudDéclarationVariable *globale) {
+                    if (globale->expression && globale->expression->est_non_initialisation()) {
+                        espace
+                            ->rapporte_avertissement(
+                                noeud,
+                                "Utilisation d'une globale n'étant pas initialisée "
+                                "dans l'initialisation d'une autre globale")
+                            .ajoute_message(
+                                "Note : la globale non-initialisée fut déclarée ici :\n\n")
+                            .ajoute_site(globale);
+                    }
+                    return kuri::DécisionItération::Continue;
+                });
+        }
+
         DÉBUTE_STAT(AJOUTE_DÉPENDANCES);
         auto graphe = m_compilatrice->graphe_dépendance.verrou_ecriture();
         NoeudDépendance *noeud_dépendance = graphe->garantie_noeud_dépendance(espace, noeud);
