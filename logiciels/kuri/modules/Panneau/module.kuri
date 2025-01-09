@@ -22,7 +22,16 @@ importe Périphériques
 importe PeintureInterface
 importe Typographie
 
+charge "animation"
 charge "menu"
+charge "panneau_arborescence"
+charge "panneau_bouton"
+charge "panneau_diviseur"
+charge "panneau_dossier"
+charge "panneau_édition_texte"
+charge "panneau_menu"
+charge "thème"
+charge "utilitaires"
 
 /* ------------------------------------------------------------------------- */
 /** \nom Contexte pour le dessin.
