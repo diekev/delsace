@@ -22,6 +22,25 @@ Valeur :: union {
     Object: *Object
 }
 
+est_valide :: fonc (valeur: Valeur) -> bool #enligne
+{
+    discr valeur {
+        Undefined {}
+        Null {}
+        Boolean {}
+        Number {}
+        BigInt {}
+        String {}
+        Symbol {}
+        Function {}
+        Object {}
+        sinon {
+            retourne faux
+        }
+    }
+    retourne vrai
+}
+
 donne_type :: fonc (valeur: Valeur) -> z32
 {
     info := info_de(Valeur)
@@ -350,9 +369,8 @@ ordinary_to_primitive :: fonc (realm: *Realm, object: *Object, hint: TypePréfé
         // b. If IsCallable(method) is true, then
         si is_callable(method) {
             // i. Let result be ? Call(method, O).
-            interpréteuse: Interpréteuse
-            interpréteuse.mv = realm.donne_tas_de_mémoire().donne_mv()
-            completion = call(*interpréteuse, method, object)
+            mv := realm.donne_tas_de_mémoire().donne_mv()
+            completion = call(mv, method, object)
             saufsi completion.est_normal() {
                 retourne completion
             }

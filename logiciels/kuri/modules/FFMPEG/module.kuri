@@ -4,49 +4,80 @@ importe GlibC
 
 charge "interface"
 
+TAILLE_CACHE_IMAGE :: 10
+
+/* Frame et tampon pour une image. */
+ImageVidéo :: struct {
+    frame_rgb: *AVFrame
+    tampon_image: *n8
+    horodotage_prédit: r64
+}
+
 FluxVidéo :: struct {
     format_ctx: *AVFormatContext
     codec_ctx: *AVCodecContext
+    audio_codec_ctx: *AVCodecContext
     codec: *AVCodec
     sws_ctx: *SwsContext
 
     video_stream_idx: z32
+    /* -1 si aucun audio. */
+    audio_stream_idx: z32
 
-    /* Frame et tampon pour l'image courante. */
-    frame_rgb: *AVFrame
-    tampon_image_courante: *n8
+    file_images: [TAILLE_CACHE_IMAGE]ImageVidéo
+    taille_file_image: z32
+    index_écriture_file: z32
+    index_lecture_file: z32
+    cache_image_initialisé: bool
+
+    sur_paquet_vidéo := flux_vidéo_sur_paquet_vidéo_défaut
+    sur_paquet_audio: fonc(*FluxVidéo, *AVPacket)(rien)
 }
 
-détruit_flux_vidéo :: fonc (flux: *FluxVidéo)
+détruit_données_flux_vidéo :: fonc (flux: *FluxVidéo)
 {
     avcodec_free_context(*flux.codec_ctx)
+    avcodec_free_context(*flux.audio_codec_ctx)
     avformat_close_input(*flux.format_ctx)
-    av_frame_free(*flux.frame_rgb)
+
+    pour flux.file_images {
+        av_frame_free(*it.frame_rgb)
+        av_free(it.tampon_image)
+    }
+
     sws_freeContext(flux.sws_ctx)
-    déloge(flux)
 }
 
-alloue_tampon_pour_image :: fonc (empl flux_vidéo: *FluxVidéo)
+initialise_cache_image_vidéo :: fonc (empl flux_vidéo: *FluxVidéo)
 {
-    si tampon_image_courante != nul {
+    si cache_image_initialisé {
         retourne
     }
 
-    frame_rgb = av_frame_alloc()
-    assert(frame_rgb != nul)
+    pour TAILLE_CACHE_IMAGE {
+        frame_rgb := av_frame_alloc()
+        assert(frame_rgb != nul)
 
-    // Determine required buffer size and allocate buffer
-    taille := av_image_get_buffer_size(AVPixelFormat.AV_PIX_FMT_RGB24, codec_ctx.width, codec_ctx.height, 1)
-    tampon_image_courante = av_malloc(taille comme n64 * taille_de(n8)) comme *n8
+        // Determine required buffer size and allocate buffer
+        taille := av_image_get_buffer_size(AVPixelFormat.AV_PIX_FMT_RGB24, codec_ctx.width, codec_ctx.height, 1)
+        tampon_image := av_malloc(taille comme n64 * taille_de(n8)) comme *n8
 
-    // Assign appropriate parts of buffer to image planes in pFrameRGB
-    // Note that pFrameRGB is an AVFrame, but AVFrame is a superset
-    // of AVPicture
-    av_image_fill_arrays(*frame_rgb.data[0], *frame_rgb.linesize[0], tampon_image_courante, AVPixelFormat.AV_PIX_FMT_RGB24, codec_ctx.width, codec_ctx.height, 1);
+        // Assign appropriate parts of buffer to image planes in pFrameRGB
+        // Note that pFrameRGB is an AVFrame, but AVFrame is a superset
+        // of AVPicture
+        av_image_fill_arrays(*frame_rgb.data[0], *frame_rgb.linesize[0], tampon_image, AVPixelFormat.AV_PIX_FMT_RGB24, codec_ctx.width, codec_ctx.height, 1);
+
+        file_images[it].frame_rgb = frame_rgb
+        file_images[it].tampon_image = tampon_image
+    }
+
+    cache_image_initialisé = vrai
 }
 
-ouvre_flux_vidéo_depuis_fichier :: fonc (chemin: chaine) -> Optionnel(*FluxVidéo)
+ouvre_flux_vidéo_depuis_fichier :: fonc (résultat: *FluxVidéo, chemin: chaine) -> bool
 {
+    détruit_données_flux_vidéo(résultat)
+
     input_file := crée_chaine_c(chemin)
     diffère détruit_chaine_c(input_file)
 
@@ -57,41 +88,43 @@ ouvre_flux_vidéo_depuis_fichier :: fonc (chemin: chaine) -> Optionnel(*FluxVid�
     format_ctx: *AVFormatContext
     si (avformat_open_input(*format_ctx, input_file, nul, nul) < 0) {
         imprime("Could not open input file: %\n", input_file)
-        retourne
+        retourne faux
     }
 
     // Retrieve stream information
     si (avformat_find_stream_info(format_ctx, nul) < 0) {
         imprime("Could not find stream information\n")
-        retourne
+        retourne faux
     }
 
     // Find video stream
     video_stream_idx := -1;
+    audio_stream_idx := -1
     pour format_ctx.nb_streams {
         si (format_ctx.streams[it].codecpar.codec_type == AVMediaType.AVMEDIA_TYPE_VIDEO) {
             video_stream_idx = it comme z32
-            arrête
+            continue
+        }
+        si (format_ctx.streams[it].codecpar.codec_type == AVMediaType.AVMEDIA_TYPE_AUDIO) {
+            audio_stream_idx = it comme z32
+            continue
         }
     }
 
-    si (video_stream_idx == -1) {
+    résultat.format_ctx = format_ctx
+
+    saufsi ouvre_composant_flux_vidéo(résultat, video_stream_idx) {
         imprime("Could not find video stream\n")
-        retourne
+        retourne faux
     }
 
-    // Get codec parameters and codec context
-    codecpar := format_ctx.streams[video_stream_idx].codecpar
-    codec := avcodec_find_decoder(codecpar.codec_id)
-    codec_ctx := avcodec_alloc_context3(codec)
-    avcodec_parameters_to_context(codec_ctx, codecpar)
-
-    // Open codec
-    si (avcodec_open2(codec_ctx, codec, nul) < 0) {
-        imprime("Could not open codec\n")
-        retourne
+    si audio_stream_idx != -1 {
+        saufsi ouvre_composant_flux_vidéo(résultat, audio_stream_idx) {
+            retourne faux
+        }
     }
 
+    codec_ctx := résultat.codec_ctx
     imprime("codec_ctx.pix_fmt %\n", codec_ctx.pix_fmt)
 
     // initialize SWS context for software scaling
@@ -108,81 +141,146 @@ ouvre_flux_vidéo_depuis_fichier :: fonc (chemin: chaine) -> Optionnel(*FluxVid�
 
     saufsi sws_ctx {
         imprime("Could not create sws_ctx\n")
-        retourne
+        retourne faux
     }
 
-    résultat := loge(FluxVidéo)
-    résultat.format_ctx = format_ctx
-    résultat.video_stream_idx = video_stream_idx
-    résultat.codec = codec
-    résultat.codec_ctx = codec_ctx
     résultat.sws_ctx = sws_ctx
-    retourne résultat
+    retourne vrai
+}
+
+ouvre_composant_flux_vidéo :: fonc (flux_vidéo: *FluxVidéo, index_flux: z32) -> bool
+{
+    format_ctx := flux_vidéo.format_ctx
+
+    si index_flux < 0 || index_flux >= format_ctx.nb_streams comme z32 {
+        retourne faux
+    }
+
+    paramètres_codec := format_ctx.streams[index_flux].codecpar
+    codec := avcodec_find_decoder(paramètres_codec.codec_id)
+    saufsi codec {
+        imprime("Codec non-supporté : %.\n", paramètres_codec.codec_id)
+        retourne faux
+    }
+
+    codec_ctx := avcodec_alloc_context3(codec)
+    avcodec_parameters_to_context(codec_ctx, paramètres_codec)
+
+    si avcodec_open2(codec_ctx, codec, nul) < 0 {
+        imprime("Could not open codec : %.\n", paramètres_codec.codec_id)
+        retourne faux
+    }
+
+    discr codec_ctx.codec_type {
+        AVMEDIA_TYPE_VIDEO {
+            flux_vidéo.video_stream_idx = index_flux
+            flux_vidéo.codec = codec
+            flux_vidéo.codec_ctx = codec_ctx
+        }
+        AVMEDIA_TYPE_AUDIO {
+            flux_vidéo.audio_stream_idx = index_flux
+            flux_vidéo.audio_codec_ctx = codec_ctx
+            // imprime("sample_rate : %\n", codec_ctx.sample_rate)
+            // imprime("channels    : %\n", codec_ctx.channels)
+        }
+        sinon {
+            retourne faux
+        }
+    }
+
+    retourne vrai
 }
 
 lis_une_frame :: fonc (empl flux_vidéo: *FluxVidéo) -> bool
 {
     résultat: bool
 
-    alloue_tampon_pour_image(flux_vidéo)
+    initialise_cache_image_vidéo(flux_vidéo)
 
     // Allocate frame and packet
-    frame := av_frame_alloc();
     packet: AVPacket = ---
     av_init_packet(*packet)
 
     // Read frames from the video stream
     tantque (av_read_frame(format_ctx, *packet) >= 0) {
-        si (packet.stream_index == video_stream_idx) {
-            // Decode video frame
-            ret := avcodec_send_packet(codec_ctx, *packet)
-            si (ret < 0) {
-                imprime("Error sending packet for decoding")
-                arrête
-            }
-
-            image_reçu := faux
-
-            tantque (ret >= 0) {
-                ret = avcodec_receive_frame(codec_ctx, frame)
-                si (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
-                    arrête
-                }
-                sinon si (ret < 0) {
-                    imprime("Error during decoding")
-                    arrête
-                }
-                sinon si ret == 0 {
-                    image_reçu = vrai
-                    résultat = vrai
-                    arrête
-                }
-
-                // Print basic frame properties
-                // std::cout << "Frame " << codec_ctx->frame_number
-                //           << " (type=" << av_get_picture_type_char(frame->pict_type)
-                //           << ", size=" << frame->pkt_size
-                //           << " bytes) pts " << frame->pts
-                //           << " key_frame " << frame->key_frame
-                //           << std::endl;
-            }
-
-            // Did we get a video frame?
-            si image_reçu {
-                // imprime("Frame : %\n", codec_ctx.frame_number)
-
-                // Convert the image from its native format to RGB
-                _ := sws_scale(sws_ctx, *frame.data[0],
-                        *frame.linesize[0], 0, codec_ctx.height,
-                        *frame_rgb.data[0], *frame_rgb.linesize[0])
+        si (packet.stream_index == video_stream_idx) && sur_paquet_vidéo {
+            si sur_paquet_vidéo(flux_vidéo, *packet) {
+                résultat = vrai
                 arrête
             }
         }
-
-        av_packet_unref(*packet)
+        sinon si packet.stream_index == audio_stream_idx {
+            si sur_paquet_audio {
+                sur_paquet_audio(flux_vidéo, *packet)
+            }
+            sinon {
+                av_packet_unref(*packet)
+            }
+        }
+        sinon {
+            av_packet_unref(*packet)
+        }
     }
 
-    // Free allocated resources
-    av_frame_free(*frame)
     retourne résultat
+}
+
+flux_vidéo_sur_paquet_vidéo_défaut :: fonc (flux_vidéo: *FluxVidéo, paquet: *AVPacket) -> bool
+{
+    empl flux_vidéo
+
+    // Decode video frame
+    ret := avcodec_send_packet(codec_ctx, paquet)
+    si (ret < 0) {
+        imprime("Error sending packet for decoding")
+        retourne vrai
+    }
+
+    frame := av_frame_alloc()
+    diffère av_frame_free(*frame)
+
+    image_reçu := faux
+
+    tantque (ret >= 0) {
+        ret = avcodec_receive_frame(codec_ctx, frame)
+        si (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
+            arrête
+        }
+        sinon si (ret < 0) {
+            imprime("Error during decoding")
+            arrête
+        }
+        sinon si ret == 0 {
+            image_reçu = vrai
+            arrête
+        }
+
+        // Print basic frame properties
+        // std::cout << "Frame " << codec_ctx->frame_number
+        //           << " (type=" << av_get_picture_type_char(frame->pict_type)
+        //           << ", size=" << frame->pkt_size
+        //           << " bytes) pts " << frame->pts
+        //           << " key_frame " << frame->key_frame
+        //           << std::endl;
+    }
+
+    // Did we get a video frame?
+    si image_reçu {
+        // imprime("Frame : %\n", codec_ctx.frame_number)
+
+        image_vidéo := *file_images[index_écriture_file]
+
+        // Convert the image from its native format to RGB
+        _ := sws_scale(sws_ctx, *frame.data[0],
+                *frame.linesize[0], 0, codec_ctx.height,
+                *image_vidéo.frame_rgb.data[0], *image_vidéo.frame_rgb.linesize[0])
+
+        index_écriture_file += 1
+        si index_écriture_file >= TAILLE_CACHE_IMAGE {
+            index_écriture_file = 0
+        }
+    }
+
+    av_packet_unref(paquet)
+    retourne image_reçu
 }

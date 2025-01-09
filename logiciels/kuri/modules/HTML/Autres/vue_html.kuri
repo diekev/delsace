@@ -1183,6 +1183,10 @@ vue_rendu_page_sur_initialisation :: fonc (base: *QT_Rappels_GLWidget @inutilis�
 
 vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
 {
+    /* Réinitialise les erreurs.
+     * Il semblerait que Qt génère une erreur entre les appels à cette fonction... :/ */
+    _ := glGetError()
+
     vue_rendu_page := base comme *VueRenduPage
 
     taille_cannevas := Taille(largeur = Largeur(vue_rendu_page.largeur), hauteur = Hauteur(vue_rendu_page.hauteur))
@@ -1566,7 +1570,10 @@ envoie_mouseup :: fonc (élément: *HTML.Élément, position_x: z32, position_y:
 
 donne_feuille_de_style_défaut :: fonc () -> *CSS.CSSStyleSheet
 {
-    contenu := contenu_fichier_texte("/home/kevin/defaults.css")
+    chemin_fichier := donne_chemin_fichier_css_défaut()
+    diffère détruit_chemin(chemin_fichier)
+
+    contenu := contenu_fichier_texte(chemin_fichier)
     diffère déloge(contenu)
 
     ctx: CSS.ContexteParsageFeuilleDeStyle

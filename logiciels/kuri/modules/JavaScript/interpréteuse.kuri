@@ -573,41 +573,29 @@ donne_object :: fonc (completion: &CompletionRecord) -> *Object #enligne
 
 Interpréteuse :: struct {
     mv: *MachineVirtuelle
-    noeud_exécuté_courant: **NoeudSyntaxique @NeVisitePas
+    sur_exécute: fonc(*Interpréteuse, *NoeudSyntaxique)(CompletionRecord)
+    /* Appelé via la MachineVirtuelle quand le contexte change. */
+    sur_execution_context: fonc (*Interpréteuse, *ExecutionContext)(rien)
+
+    exception: Valeur
 }
 
 initialise_interpréteuse :: fonc (interpréteuse: *Interpréteuse @inutilisée)
 {
 }
 
+interprète_script :: fonc (machine_virtuelle: *MachineVirtuelle, noeud: *NoeudScript) -> CompletionRecord
+{
+    si machine_virtuelle.utilise_code_binaire {
+        retourne interprète_code_binaire(machine_virtuelle, noeud)
+    }
+
+    retourne interprète_arbre(machine_virtuelle, noeud)
+}
+
 exécute :: fonc (interpréteuse: *Interpréteuse, noeud: *NoeudSyntaxique) -> CompletionRecord
 {
-    si noeud.type == NoeudScript {
-        script := noeud comme *NoeudScript
-        retourne exécute(script, interpréteuse)
-    }
-
-    si noeud.type != NoeudScope && noeud.type != ScriptBody && noeud.type != BlockStatement {
-        retourne exécute_noeud(noeud, interpréteuse)
-    }
-
-    résultat := normal_completion(js_undefined)
-
-    ctx := interpréteuse.donne_running_execution_context()
-    interpréteuse.noeud_exécuté_courant = *ctx.noeud_exécuté_courant
-
-    scope := noeud comme *NoeudScope
-
-    pour scope.enfants {
-        résultat = exécute_noeud(it, interpréteuse)
-        si résultat.est_normal() {
-            continue
-        }
-
-        retourne résultat
-    }
-
-    retourne résultat
+    retourne interpréteuse.sur_exécute(interpréteuse, noeud)
 }
 
 donne_tas_de_mémoire :: fonc (interpréteuse: *Interpréteuse) -> *TasDeMémoire
@@ -654,6 +642,103 @@ crée_string_value_completion :: fonc (interpréteuse: *Interpréteuse, texte: E
     string := crée_chaine(interpréteuse.donne_realm(), texte)
     value := Valeur(String = string)
     retourne normal_completion(value)
+}
+
+possède_exception :: fonc (interpréteuse: *Interpréteuse) -> bool #enligne
+{
+    retourne interpréteuse.exception.est_valide()
+}
+
+définis_exception :: fonc (interpréteuse: *Interpréteuse, completion: CompletionRecord)
+{
+    saufsi completion.est_throw() {
+        retourne
+    }
+    définis_exception(interpréteuse, completion.valeur.V)
+}
+
+définis_exception :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur)
+{
+    si interpréteuse.possède_exception() {
+        retourne
+    }
+    interpréteuse.exception = valeur
+}
+
+donne_exception :: fonc (interpréteuse: *Interpréteuse) -> Valeur
+{
+    résultat := interpréteuse.exception
+    init_de(Valeur)(*interpréteuse.exception)
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom InterprèteArbre
+ * \{ */
+
+InterprèteArbre :: struct {
+    empl base: Interpréteuse
+    sur_exécute = exécute_arbre
+    sur_execution_context = interprète_arbre_sur_execution_context
+
+    noeud_exécuté_courant: **NoeudSyntaxique @NeVisitePas
+}
+
+interprète_arbre :: fonc (machine_virtuelle: *MachineVirtuelle, noeud: *NoeudScript) -> CompletionRecord
+{
+    interpréteuse := loge(InterprèteArbre)
+    diffère déloge(interpréteuse)
+
+    interpréteuse.mv = machine_virtuelle
+    machine_virtuelle.interpréteuse = interpréteuse
+    diffère machine_virtuelle.interpréteuse = nul
+
+    retourne exécute(interpréteuse, noeud)
+}
+
+interprète_arbre_sur_execution_context :: fonc (base: *Interpréteuse, ec: *ExecutionContext)
+{
+    interprète := base comme *InterprèteArbre
+    si ec {
+        interprète.noeud_exécuté_courant = *ec.noeud_exécuté_courant
+    }
+    sinon {
+        interprète.noeud_exécuté_courant = nul
+    }
+}
+
+exécute_arbre :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -> CompletionRecord
+{
+    interpréteuse := base comme *InterprèteArbre
+
+    si noeud.type == NoeudScript {
+        script := noeud comme *NoeudScript
+        retourne exécute(script, interpréteuse)
+    }
+
+    ctx := interpréteuse.donne_running_execution_context()
+    interpréteuse.noeud_exécuté_courant = *ctx.noeud_exécuté_courant
+
+    si noeud.type != NoeudScope && noeud.type != ScriptBody && noeud.type != BlockStatement {
+        retourne exécute_noeud(noeud, interpréteuse)
+    }
+
+    résultat := normal_completion(js_undefined)
+
+    scope := noeud comme *NoeudScope
+
+    pour scope.enfants {
+        résultat = exécute_noeud(it, interpréteuse)
+        si résultat.est_normal() {
+            continue
+        }
+
+        retourne résultat
+    }
+
+    retourne résultat
 }
 
 /** \} */

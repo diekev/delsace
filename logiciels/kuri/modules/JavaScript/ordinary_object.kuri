@@ -243,9 +243,8 @@ ordinary_get :: fonc (object: *Object, property_key: PropertyKey, receiver: Vale
     }
 
     // 7. Return ? Call(getter, Receiver).
-    interpréteuse: Interpréteuse
-    interpréteuse.mv = receiver.donne_objet().donne_tas_de_mémoire().donne_mv()
-    retourne call(*interpréteuse, getter.Quelque, receiver)
+    mv := receiver.donne_objet().donne_tas_de_mémoire().donne_mv()
+    retourne call(mv, getter.Quelque, receiver)
 }
 
 /* 10.1.9.1 OrdinarySet ( O, P, V, Receiver )
@@ -342,14 +341,13 @@ ordinary_set_with_own_descriptor :: fonc (object: *Object, property_key: Propert
     }
 
     // 6. Perform ? Call(setter, Receiver, « V »).
-    interpréteuse: Interpréteuse
-    interpréteuse.mv = receiver.donne_objet().donne_tas_de_mémoire().donne_mv()
+    mv := receiver.donne_objet().donne_tas_de_mémoire().donne_mv()
 
     arguments: []Valeur
     arguments.pointeur = *valeur
     arguments.taille = 1
 
-    completion := call(*interpréteuse, setter.Quelque, receiver, arguments)
+    completion := call(mv, setter.Quelque, receiver, arguments)
     saufsi completion.est_normal() {
         retourne completion
     }

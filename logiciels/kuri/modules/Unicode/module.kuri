@@ -3,7 +3,9 @@
 importe Fondation
 
 charge "permutation_casse"
+charge "point_de_code"
 charge "tables_permutations"
+charge "texte_unicode"
 
 /* ------------------------------------------------------------------------- */
 /** \nom Rune.

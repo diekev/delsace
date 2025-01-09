@@ -11,10 +11,11 @@ NoeudSyntaxique :: struct {
     type := #type_de_cette_structure
     lexème: *Lexème
 
-    sur_exécution: fonc(*NoeudSyntaxique, *Interpréteuse)(CompletionRecord)
+    sur_exécution: fonc(*NoeudSyntaxique, *InterprèteArbre)(CompletionRecord)
+    sur_génération_code_binaire: fonc(*NoeudSyntaxique, &GénératriceCodeBinaire)(Optionnel(Registre))
 }
 
-exécute_noeud :: fonc (noeud: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+exécute_noeud :: fonc (noeud: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     ancien_noeud_courant := mémoire(interpréteuse.noeud_exécuté_courant)
     diffère mémoire(interpréteuse.noeud_exécuté_courant) = ancien_noeud_courant
@@ -151,7 +152,7 @@ NoeudScope :: struct {
     enfants: [..]*Statement
 }
 
-sur_exécution_scope :: fonc (noeud: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_scope :: fonc (noeud: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     retourne interpréteuse.exécute(noeud comme *NoeudScope)
 }
@@ -167,9 +168,10 @@ NoeudScript :: struct {
     type = #type_de_cette_structure
 
     script_body: *ScriptBody
+    code_binaire: *FluxDInstructions
 }
 
-exécute :: fonc (script: *NoeudScript, interpréteuse: *Interpréteuse) -> CompletionRecord
+exécute :: fonc (script: *NoeudScript, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     si script.script_body {
         retourne interpréteuse.exécute(script.script_body)
@@ -182,6 +184,7 @@ crée_script :: fonc (parseuse: *Parseuse, script_body: *ScriptBody) -> *NoeudSc
 {
     résultat := parseuse.crée_noeud(nul, NoeudScript)
     résultat.script_body = script_body
+    résultat.sur_génération_code_binaire = noeud_script_sur_code_binaire
     retourne résultat
 }
 
@@ -194,12 +197,15 @@ crée_script :: fonc (parseuse: *Parseuse, script_body: *ScriptBody) -> *NoeudSc
 ScriptBody :: struct {
     empl scope: NoeudScope
     type = #type_de_cette_structure
+
+    code_binaire: *FluxDInstructions
 }
 
 crée_script_body :: fonc (parseuse: *Parseuse, expressions: [..]*Statement) -> *ScriptBody
 {
     résultat := parseuse.crée_noeud(nul, ScriptBody)
     résultat.enfants = expressions
+    résultat.sur_génération_code_binaire = noeud_script_body_sur_code_binaire
     retourne résultat
 }
 
@@ -242,12 +248,13 @@ ParenthesizedExpression :: struct {
 crée_parenthesized_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, expression: *Expression) -> *ParenthesizedExpression
 {
     résultat := parseuse.crée_noeud(lexème, ParenthesizedExpression)
+    résultat.sur_génération_code_binaire = parenthesized_expression_sur_code_binaire
     résultat.expression = expression
     retourne résultat
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-grouping-operator-runtime-semantics-evaluation */
-sur_exécution_parenthesized_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_parenthesized_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     parenthèse := base comme *ParenthesizedExpression
 
@@ -278,11 +285,12 @@ crée_expression_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, expr
 {
     résultat := parseuse.crée_noeud(lexème, ExpressionStatement)
     résultat.expression = expression
+    résultat.sur_génération_code_binaire = expression_statement_sur_code_binaire
     retourne résultat
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-expression-statement */
-sur_exécution_expression_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_expression_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     statement := base comme *ExpressionStatement
 
@@ -307,6 +315,7 @@ EmptyStatement :: struct {
     empl statement: Statement
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_empty_statement
+    sur_génération_code_binaire = empty_statement_sur_code_binaire
 }
 
 crée_empty_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *EmptyStatement
@@ -314,7 +323,7 @@ crée_empty_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *Empty
     retourne parseuse.crée_noeud(lexème, EmptyStatement)
 }
 
-sur_exécution_empty_statement :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *Interpréteuse @inutilisée) -> CompletionRecord
+sur_exécution_empty_statement :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *InterprèteArbre @inutilisée) -> CompletionRecord
 {
     // 1. Return empty.
     retourne normal_completion(js_undefined)
@@ -334,6 +343,7 @@ FunctionDeclaration :: struct {
     id: *Identifier
     params: [..]*Expression
     corps: *FunctionBody
+    code_binaire: *FluxDInstructions
 
     generator := faux
     expression := faux
@@ -343,13 +353,14 @@ FunctionDeclaration :: struct {
 crée_function_déclaration :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *Identifier, params: [..]*Expression, corps: *FunctionBody) -> *FunctionDeclaration
 {
     résultat := parseuse.crée_noeud(lexème, FunctionDeclaration)
+    résultat.sur_génération_code_binaire = function_declaration_sur_code_binaire
     résultat.id = id
     résultat.corps = corps
     résultat.params = params
     retourne résultat
 }
 
-sur_exécution_function_declaration :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *Interpréteuse @inutilisée) -> CompletionRecord
+sur_exécution_function_declaration :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *InterprèteArbre @inutilisée) -> CompletionRecord
 {
     // 1. Return empty.
     retourne normal_completion(js_undefined)
@@ -378,6 +389,7 @@ FunctionExpression :: struct {
 crée_function_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *Identifier, params: [..]*Expression, corps: *FunctionBody) -> *FunctionExpression
 {
     résultat := parseuse.crée_noeud(lexème, FunctionExpression)
+    résultat.sur_génération_code_binaire = function_expression_sur_code_binaire
     résultat.id = id
     résultat.corps = corps
     résultat.params = params
@@ -385,7 +397,7 @@ crée_function_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-function-definitions-runtime-semantics-evaluation */
-sur_exécution_function_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_function_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     expression := base comme *FunctionExpression
     /* 1. Return InstantiateOrdinaryFunctionExpression of FunctionExpression. */
@@ -431,13 +443,14 @@ ArrowFunction :: struct {
 crée_arrow_function :: fonc (parseuse: *Parseuse, lexème: *Lexème, params: [..]*Expression, corps: *ConciseBody) -> *ArrowFunction
 {
     résultat := parseuse.crée_noeud(lexème, ArrowFunction)
+    résultat.sur_génération_code_binaire = arrow_function_sur_code_binaire
     résultat.corps = corps
     résultat.params = params
     retourne résultat
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-arrow-function-definitions-runtime-semantics-evaluation */
-sur_exécution_arrow_function :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_arrow_function :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     expression := base comme *ArrowFunction
     /* 1. Return InstantiateOrdinaryFunctionExpression of FunctionExpression. */
@@ -457,17 +470,19 @@ ConciseBody :: struct {
     sur_exécution = sur_exécution_concise_body
 
     statement: *Statement
+    code_binaire: *FluxDInstructions
 }
 
 crée_concise_body :: fonc (parseuse: *Parseuse, statement: *Statement) -> *ConciseBody
 {
     résultat := parseuse.crée_noeud(nul, ConciseBody)
+    résultat.sur_génération_code_binaire = concise_body_sur_code_binaire
     résultat.statement = statement
     retourne résultat
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-arrow-function-definitions-runtime-semantics-evaluation */
-sur_exécution_concise_body :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_concise_body :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     concise_body := base comme *ConciseBody
 
@@ -509,11 +524,13 @@ ThisExpression :: struct {
 
 crée_this_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *ThisExpression
 {
-    retourne parseuse.crée_noeud(lexème, ThisExpression)
+    résultat := parseuse.crée_noeud(lexème, ThisExpression)
+    résultat.sur_génération_code_binaire = this_expression_sur_code_binaire
+    retourne résultat
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-this-keyword-runtime-semantics-evaluation */
-sur_exécution_this_expression :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_this_expression :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     retourne resolve_this_binding(interpréteuse)
 }
@@ -537,6 +554,7 @@ Identifier :: struct {
 crée_identifier :: fonc (parseuse: *Parseuse, lexème: *Lexème, nom: ECMAString) -> *Identifier
 {
     résultat := parseuse.crée_noeud(lexème, Identifier)
+    résultat.sur_génération_code_binaire = identifier_sur_code_binaire
     résultat.nom = nom
     retourne résultat
 }
@@ -547,7 +565,7 @@ crée_identifier :: fonc (parseuse: *Parseuse, lexème: *Lexème, nom: chaine) -
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-identifiers-runtime-semantics-evaluation */
-sur_exécution_identifier :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_identifier :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     noeud := base comme *Identifier
 
@@ -606,11 +624,14 @@ donne_chaine_primitive :: fonc (identifier: *Identifier, realm: *Realm) -> *Prim
 BlockStatement :: struct {
     empl scope: NoeudScope
     type = #type_de_cette_structure
+
+    code_binaire: *FluxDInstructions
 }
 
 crée_block_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, expressions: [..]*Statement) -> *BlockStatement
 {
     résultat := parseuse.crée_noeud(lexème, BlockStatement)
+    résultat.sur_génération_code_binaire = block_statement_sur_code_binaire
     résultat.enfants = expressions
     retourne résultat
 }
@@ -632,12 +653,13 @@ ReturnStatement :: struct {
 crée_return_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *NoeudSyntaxique) -> *ReturnStatement
 {
     résultat := parseuse.crée_noeud(lexème, ReturnStatement)
+    résultat.sur_génération_code_binaire = return_statement_sur_code_binaire
     résultat.argument = argument
     retourne résultat
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-return-statement-runtime-semantics-evaluation */
-sur_exécution_return :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_return :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     noeud := base comme *ReturnStatement
 
@@ -686,12 +708,13 @@ UnaryPlusOperator :: struct {
 crée_unary_plus_operator :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression) -> *UnaryPlusOperator
 {
     résultat := parseuse.crée_noeud(lexème, UnaryPlusOperator)
+    résultat.sur_génération_code_binaire = unary_plus_operator_sur_code_binaire
     résultat.argument = argument
     retourne résultat
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-unary-plus-operator-runtime-semantics-evaluation */
-sur_exécution_unary_plus_operator :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_unary_plus_operator :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     noeud := base comme *UnaryPlusOperator
     unary_expression := noeud.argument
@@ -729,12 +752,13 @@ UnaryMinusOperator :: struct {
 crée_unary_minus_operator :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression) -> *UnaryMinusOperator
 {
     résultat := parseuse.crée_noeud(lexème, UnaryMinusOperator)
+    résultat.sur_génération_code_binaire = unary_minus_operator_sur_code_binaire
     résultat.argument = argument
     retourne résultat
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-unary-minus-operator-runtime-semantics-evaluation */
-sur_exécution_unary_minus_operator :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_unary_minus_operator :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     noeud := base comme *UnaryMinusOperator
     unary_expression := noeud.argument
@@ -791,11 +815,12 @@ BinaryNot :: struct {
 crée_binary_not :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression) -> *BinaryNot
 {
     résultat := parseuse.crée_noeud(lexème, BinaryNot)
+    résultat.sur_génération_code_binaire = binary_not_sur_code_binaire
     résultat.argument = argument
     retourne résultat
 }
 
-sur_exécution_binary_not :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_binary_not :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     noeud := base comme *BinaryNot
 
@@ -850,12 +875,13 @@ LogicalNot :: struct {
 crée_logical_not :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression) -> *LogicalNot
 {
     résultat := parseuse.crée_noeud(lexème, LogicalNot)
+    résultat.sur_génération_code_binaire = logical_not_sur_code_binaire
     résultat.argument = argument
     retourne résultat
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-logical-not-operator */
-sur_exécution_logical_not :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_logical_not :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     noeud := base comme *LogicalNot
     unary_expression := noeud.argument
@@ -901,13 +927,14 @@ LogicalAnd :: struct {
 crée_logical_and :: fonc (parseuse: *Parseuse, lexème: *Lexème, left: *Expression, right: *Expression) -> *LogicalAnd
 {
     résultat := parseuse.crée_noeud(lexème, LogicalAnd)
+    résultat.sur_génération_code_binaire = logical_and_sur_code_binaire
     résultat.left = left
     résultat.right = right
     retourne résultat
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#prod-LogicalANDExpression */
-sur_exécution_logical_and :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_logical_and :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     noeud := base comme *LogicalAnd
 
@@ -959,13 +986,14 @@ LogicalOr :: struct {
 crée_logical_or :: fonc (parseuse: *Parseuse, lexème: *Lexème, left: *Expression, right: *Expression) -> *LogicalOr
 {
     résultat := parseuse.crée_noeud(lexème, LogicalOr)
+    résultat.sur_génération_code_binaire = logical_or_sur_code_binaire
     résultat.left = left
     résultat.right = right
     retourne résultat
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#prod-LogicalORExpression */
-sur_exécution_logical_or :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_logical_or :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     noeud := base comme *LogicalOr
 
@@ -1017,13 +1045,14 @@ Coalesce :: struct {
 crée_coalesce :: fonc (parseuse: *Parseuse, lexème: *Lexème, left: *Expression, right: *Expression) -> *Coalesce
 {
     résultat := parseuse.crée_noeud(lexème, Coalesce)
+    résultat.sur_génération_code_binaire = coalesce_sur_code_binaire
     résultat.left = left
     résultat.right = right
     retourne résultat
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#prod-LogicalORExpression */
-sur_exécution_coalesce :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_coalesce :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     noeud := base comme *Coalesce
 
@@ -1092,6 +1121,7 @@ BinaryExpression :: struct {
 crée_binary_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, opération: BinaryOperation, gauche: *Expression, droite: *Expression) -> *BinaryExpression
 {
     résultat := parseuse.crée_noeud(lexème, BinaryExpression)
+    résultat.sur_génération_code_binaire = binary_expression_sur_code_binaire
     résultat.opération = opération
     résultat.gauche = gauche
     résultat.droite = droite
@@ -1099,7 +1129,7 @@ crée_binary_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, opérat
 }
 
 
-sur_exécution_binary_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_binary_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     noeud := base comme *BinaryExpression
     completion_gauche := exécute_noeud(noeud.gauche, interpréteuse)
@@ -1267,6 +1297,7 @@ EqualityExpression :: struct {
 crée_equality_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, opération: EqualityOperation, gauche: *Expression, droite: *Expression) -> *EqualityExpression
 {
     résultat := parseuse.crée_noeud(lexème, EqualityExpression)
+    résultat.sur_génération_code_binaire = equality_expression_sur_code_binaire
     résultat.opération = opération
     résultat.gauche = gauche
     résultat.droite = droite
@@ -1274,7 +1305,7 @@ crée_equality_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, opér
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-equality-operators-runtime-semantics-evaluation */
-sur_exécution_equality_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_equality_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     noeud := base comme *EqualityExpression
     completion_gauche := exécute_noeud(noeud.gauche, interpréteuse)
@@ -1355,6 +1386,7 @@ RelationalExpression :: struct {
 crée_relational_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, opération: RelationalOperation, gauche: *Expression, droite: *Expression) -> *RelationalExpression
 {
     résultat := parseuse.crée_noeud(lexème, RelationalExpression)
+    résultat.sur_génération_code_binaire = relational_expression_sur_code_binaire
     résultat.opération = opération
     résultat.gauche = gauche
     résultat.droite = droite
@@ -1362,7 +1394,7 @@ crée_relational_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, op�
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-relational-operators-runtime-semantics-evaluation */
-sur_exécution_relational_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_relational_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     noeud := base comme *RelationalExpression
 
@@ -1518,11 +1550,12 @@ NumericLiteral :: struct {
 crée_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème, valeur: r64) -> *NumericLiteral
 {
     résultat := parseuse.crée_noeud(lexème, NumericLiteral)
+    résultat.sur_génération_code_binaire = numeric_literal_sur_code_binaire
     résultat.valeur = valeur
     retourne résultat
 }
 
-sur_exécution_numeric_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse @inutilisée) -> CompletionRecord
+sur_exécution_numeric_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre @inutilisée) -> CompletionRecord
 {
     noeud := base comme *NumericLiteral
     retourne normal_completion(Valeur(Number = noeud.valeur))
@@ -1545,11 +1578,12 @@ BooleanLiteral :: struct {
 crée_boolean_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème, valeur: bool) -> *BooleanLiteral
 {
     résultat := parseuse.crée_noeud(lexème, BooleanLiteral)
+    résultat.sur_génération_code_binaire = boolean_literal_sur_code_binaire
     résultat.valeur = valeur
     retourne résultat
 }
 
-sur_exécution_boolean_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse @inutilisée) -> CompletionRecord
+sur_exécution_boolean_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre @inutilisée) -> CompletionRecord
 {
     noeud := base comme *BooleanLiteral
     retourne normal_completion(Valeur(Boolean = noeud.valeur))
@@ -1570,10 +1604,11 @@ NullLiteral :: struct {
 crée_null_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *NullLiteral
 {
     résultat := parseuse.crée_noeud(lexème, NullLiteral)
+    résultat.sur_génération_code_binaire = null_literal_sur_code_binaire
     retourne résultat
 }
 
-sur_exécution_null_literal :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *Interpréteuse @inutilisée) -> CompletionRecord
+sur_exécution_null_literal :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *InterprèteArbre @inutilisée) -> CompletionRecord
 {
     retourne normal_completion(js_null)
 }
@@ -1596,6 +1631,7 @@ StringLiteral :: struct {
 crée_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème, valeur: ECMAString) -> *StringLiteral
 {
     résultat := parseuse.crée_noeud(lexème, StringLiteral)
+    résultat.sur_génération_code_binaire = string_literal_sur_code_binaire
     résultat.valeur = valeur
     retourne résultat
 }
@@ -1605,7 +1641,7 @@ crée_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème, valeur: chaine) -
     retourne crée_literal(parseuse, lexème, crée_chaine_utf16_unique(valeur))
 }
 
-sur_exécution_string_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_string_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     noeud := base comme *StringLiteral
 
@@ -1642,6 +1678,7 @@ CallExpression :: struct {
 crée_call_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, appelé: *Expression, arguments: [..]*Expression) -> *CallExpression
 {
     résultat := parseuse.crée_noeud(lexème, CallExpression)
+    résultat.sur_génération_code_binaire = call_expression_sur_code_binaire
     résultat.appelé = appelé
     résultat.arguments = arguments
     retourne résultat
@@ -1649,7 +1686,7 @@ crée_call_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, appelé: 
 
 /* 13.3.6 Function Calls
  * https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-function-calls-runtime-semantics-evaluation */
-sur_exécution_call_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_call_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     noeud := base comme *CallExpression
 
@@ -1749,7 +1786,7 @@ sur_exécution_call_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: 
 
 /* 13.3.6.2 EvaluateCall ( func, ref, arguments, tailPosition )
  * https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-evaluatecall */
-evaluate_call :: fonc (interpréteuse: *Interpréteuse, func: Valeur, ref: ValeurCompletion, arguments: []*Expression, tail_position: bool) -> CompletionRecord
+evaluate_call :: fonc (interpréteuse: *InterprèteArbre, func: Valeur, ref: ValeurCompletion, arguments: []*Expression, tail_position: bool) -> CompletionRecord
 {
     this_value: Valeur = ---
     // 1. If ref is a Reference Record, then
@@ -1805,7 +1842,7 @@ evaluate_call :: fonc (interpréteuse: *Interpréteuse, func: Valeur, ref: Valeu
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-runtime-semantics-argumentlistevaluation */
-argument_list_evaluation :: fonc (interpréteuse: *Interpréteuse, arguments: []*Expression, résultat: *[..]Valeur) -> CompletionRecord
+argument_list_evaluation :: fonc (interpréteuse: *InterprèteArbre, arguments: []*Expression, résultat: *[..]Valeur) -> CompletionRecord
 {
     // À FAIRE : standardise
     pour arguments {
@@ -1862,6 +1899,7 @@ AssignmentExpression :: struct {
 crée_assignment_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, opération: AssignmentOperation, gauche: *Expression, droite: *Expression) -> *AssignmentExpression
 {
     résultat := parseuse.crée_noeud(lexème, AssignmentExpression)
+    résultat.sur_génération_code_binaire = assignment_expression_sur_code_binaire
     résultat.opération = opération
     résultat.gauche = gauche
     résultat.droite = droite
@@ -1869,7 +1907,7 @@ crée_assignment_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, op�
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-assignment-operators-runtime-semantics-evaluation */
-sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     noeud := base comme *AssignmentExpression
     si noeud.opération == AssignmentOperation.Assigne {
@@ -1887,7 +1925,7 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
     retourne évalue_assignement_opéré(noeud, interpréteuse)
 }
 
-évalue_assignement_simple :: fonc (noeud: *AssignmentExpression, interpréteuse: *Interpréteuse) -> CompletionRecord
+évalue_assignement_simple :: fonc (noeud: *AssignmentExpression, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     // 1. If LeftHandSideExpression is neither an ObjectLiteral nor an ArrayLiteral, then
     si noeud.gauche.type != ObjectExpression && noeud.gauche.type != ArrayLiteral {
@@ -1947,7 +1985,7 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
     // 6. Return rval.
 }
 
-évalue_assignement_opéré :: fonc (noeud: *AssignmentExpression, interpréteuse: *Interpréteuse) -> CompletionRecord
+évalue_assignement_opéré :: fonc (noeud: *AssignmentExpression, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     // 1. Let lref be ? Evaluation of LeftHandSideExpression.
     completion_lref := exécute_noeud(noeud.gauche, interpréteuse)
@@ -2048,7 +2086,7 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
     retourne normal_completion(r)
 }
 
-évalue_coalesce_assignemnt :: fonc (noeud: *AssignmentExpression, interpréteuse: *Interpréteuse) -> CompletionRecord
+évalue_coalesce_assignemnt :: fonc (noeud: *AssignmentExpression, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     // 1. Let lRef be ? Evaluation of LeftHandSideExpression.
     completion_lref := exécute_noeud(noeud.gauche, interpréteuse)
@@ -2110,7 +2148,7 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
     retourne normal_completion(rval)
 }
 
-évalue_logical_or_assignemnt :: fonc (noeud: *AssignmentExpression, interpréteuse: *Interpréteuse) -> CompletionRecord
+évalue_logical_or_assignemnt :: fonc (noeud: *AssignmentExpression, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     // 1. Let lRef be ? Evaluation of LeftHandSideExpression.
     completion_lref := exécute_noeud(noeud.gauche, interpréteuse)
@@ -2172,7 +2210,7 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
     retourne normal_completion(rval)
 }
 
-évalue_logical_and_assignemnt :: fonc (noeud: *AssignmentExpression, interpréteuse: *Interpréteuse) -> CompletionRecord
+évalue_logical_and_assignemnt :: fonc (noeud: *AssignmentExpression, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     // 1. Let lRef be ? Evaluation of LeftHandSideExpression.
     completion_lref := exécute_noeud(noeud.gauche, interpréteuse)
@@ -2258,12 +2296,13 @@ VariableDeclaration :: struct {
 crée_variable_declaration :: fonc (parseuse: *Parseuse, lexème: *Lexème, nature: VariableDeclarationKind, declarators: [..]*VariableDeclarator) -> *VariableDeclaration
 {
     résultat := parseuse.crée_noeud(lexème, VariableDeclaration)
+    résultat.sur_génération_code_binaire = variable_declaration_sur_code_binaire
     résultat.nature = nature
     résultat.expressions = declarators
     retourne résultat
 }
 
-sur_exécution_variable_declaration :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_variable_declaration :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     noeud := base comme *VariableDeclaration
     
@@ -2306,7 +2345,7 @@ crée_variable_declarator :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-variable-statement */
-évalue_variable_declaration :: fonc (interpréteuse: *Interpréteuse, noeud: *VariableDeclarator) -> CompletionRecord
+évalue_variable_declaration :: fonc (interpréteuse: *InterprèteArbre, noeud: *VariableDeclarator) -> CompletionRecord
 {
     assert(noeud.id.type == Identifier)
     identifier := noeud.id comme *Identifier
@@ -2362,7 +2401,7 @@ crée_variable_declarator :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *
     retourne empty_completion()
 }
 
-évalue_lexical_declaration :: fonc (interpréteuse: *Interpréteuse, noeud: *VariableDeclarator) -> CompletionRecord
+évalue_lexical_declaration :: fonc (interpréteuse: *InterprèteArbre, noeud: *VariableDeclarator) -> CompletionRecord
 {
     assert(noeud.id.type == Identifier)
     binding_identifier := noeud.id comme *Identifier
@@ -2456,12 +2495,13 @@ ObjectExpression :: struct {
 crée_object_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, properties: [..]*PropertyDefinition) -> *ObjectExpression
 {
     résultat := parseuse.crée_noeud(lexème, ObjectExpression)
+    résultat.sur_génération_code_binaire = object_expression_sur_code_binaire
     résultat.properties = properties
     retourne résultat
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-object-initializer-runtime-semantics-evaluation */
-sur_exécution_object_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_object_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     noeud := base comme *ObjectExpression
 
@@ -2480,7 +2520,7 @@ sur_exécution_object_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-runtime-semantics-propertydefinitionevaluation */
-property_definition_evaluation :: fonc (interpréteuse: *Interpréteuse, properties: []*PropertyDefinition, object: *Object) -> CompletionRecord
+property_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, properties: []*PropertyDefinition, object: *Object) -> CompletionRecord
 {
     pour properties {
         // 1. Let propKey be ? Evaluation of PropertyName.
@@ -2568,12 +2608,13 @@ ArrayLiteral :: struct {
 crée_array_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème, éléments: [..]*Expression) -> *ArrayLiteral
 {
     résultat := parseuse.crée_noeud(lexème, ArrayLiteral)
+    résultat.sur_génération_code_binaire = array_literal_sur_code_binaire
     résultat.éléments = éléments
     retourne résultat
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-runtime-semantics-arrayaccumulation */
-sur_exécution_array_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_array_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     /* À FAIRE : standardise. */
     noeud := base comme *ArrayLiteral
@@ -2625,6 +2666,7 @@ MemberExpression :: struct {
 crée_member_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, objet: *Expression, propriété: *Expression, calculé: bool) -> *MemberExpression
 {
     résultat := parseuse.crée_noeud(lexème, MemberExpression)
+    résultat.sur_génération_code_binaire = membre_expression_sur_code_binaire
     résultat.objet = objet
     résultat.propriété = propriété
     résultat.calculé = calculé
@@ -2632,7 +2674,7 @@ crée_member_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, objet: 
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-property-accessors-runtime-semantics-evaluation */
-sur_exécution_member_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_member_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     membre := base comme *MemberExpression
 
@@ -2667,7 +2709,7 @@ sur_exécution_member_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
 
 /* 13.3.3 EvaluatePropertyAccessWithExpressionKey ( baseValue, expression, strict )
  * https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-evaluate-property-access-with-expression-key */
-evaluate_property_access_with_expression_key :: fonc (interpréteuse: *Interpréteuse, base_value: Valeur, expression: *NoeudSyntaxique, strict: bool) -> CompletionRecord
+evaluate_property_access_with_expression_key :: fonc (interpréteuse: *InterprèteArbre, base_value: Valeur, expression: *NoeudSyntaxique, strict: bool) -> CompletionRecord
 {
     // 1. Let propertyNameReference be ? Evaluation of expression.
     completion_expression := exécute_noeud(expression, interpréteuse)
@@ -2697,7 +2739,7 @@ evaluate_property_access_with_expression_key :: fonc (interpréteuse: *Interpré
 
 /* 13.3.4 EvaluatePropertyAccessWithIdentifierKey ( baseValue, identifierName, strict )
  * https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-evaluate-property-access-with-identifier-key */
-evaluate_property_access_with_identifier_key :: fonc (interpréteuse: *Interpréteuse, base_value: Valeur, identifier_name: *Identifier, strict: bool) -> CompletionRecord
+evaluate_property_access_with_identifier_key :: fonc (interpréteuse: *InterprèteArbre, base_value: Valeur, identifier_name: *Identifier, strict: bool) -> CompletionRecord
 {
     // 1. Let propertyNameString be the StringValue of identifierName.
     property_name_string := crée_chaine(interpréteuse.donne_realm(), identifier_name.nom)
@@ -2735,13 +2777,14 @@ UpdateExpression :: struct {
 crée_update_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression, operation: UpdateOperation) -> *UpdateExpression
 {
     résultat := parseuse.crée_noeud(lexème, UpdateExpression)
+    résultat.sur_génération_code_binaire = update_expression_sur_code_binaire
     résultat.argument = argument
     résultat.operation = operation
     retourne résultat
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-postfix-increment-operator */
-sur_exécution_update_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_update_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     update := base comme *UpdateExpression
 
@@ -2815,12 +2858,13 @@ ContinueStatement :: struct {
 crée_continue_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, target: *Expression) -> *ContinueStatement
 {
     résultat := parseuse.crée_noeud(lexème, ContinueStatement)
+    résultat.sur_génération_code_binaire = continue_statement_sur_code_binaire
     résultat.target = target
     retourne résultat
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-continue-statement-runtime-semantics-evaluation */
-sur_exécution_continue_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse @inutilisée) -> CompletionRecord
+sur_exécution_continue_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre @inutilisée) -> CompletionRecord
 {
     statement := base comme *ContinueStatement
 
@@ -2856,12 +2900,13 @@ BreakStatement :: struct {
 crée_break_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, target: *Expression) -> *BreakStatement
 {
     résultat := parseuse.crée_noeud(lexème, BreakStatement)
+    résultat.sur_génération_code_binaire = break_statement_sur_code_binaire
     résultat.target = target
     retourne résultat
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-break-statement-runtime-semantics-evaluation */
-sur_exécution_break_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse @inutilisée) -> CompletionRecord
+sur_exécution_break_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre @inutilisée) -> CompletionRecord
 {
     statement := base comme *BreakStatement
 
@@ -2900,6 +2945,7 @@ ForStatement :: struct {
 crée_for_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, init: *Expression, test: *Expression, update: *Expression, body: *Statement) -> *ForStatement
 {
     résultat := parseuse.crée_noeud(lexème, ForStatement)
+    résultat.sur_génération_code_binaire = for_statement_sur_code_binaire
     résultat.init = init
     résultat.test = test
     résultat.update = update
@@ -2908,7 +2954,7 @@ crée_for_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, init: *Expr
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-for-statement */
-sur_exécution_for_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_for_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     for := base comme *ForStatement
 
@@ -2983,7 +3029,7 @@ crée_for_of_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, left: *E
     retourne résultat
 }
 
-sur_exécution_for_of_statement :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *Interpréteuse @inutilisée) -> CompletionRecord
+sur_exécution_for_of_statement :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *InterprèteArbre @inutilisée) -> CompletionRecord
 {
     retourne normal_completion(js_undefined)
 }
@@ -3013,7 +3059,7 @@ crée_for_in_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, left: *E
     retourne résultat
 }
 
-sur_exécution_for_in_statement :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *Interpréteuse @inutilisée) -> CompletionRecord
+sur_exécution_for_in_statement :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *InterprèteArbre @inutilisée) -> CompletionRecord
 {
     retourne normal_completion(js_undefined)
 }
@@ -3036,13 +3082,14 @@ WhileStatement :: struct {
 crée_while_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, test: *Expression, body: *Statement) -> *WhileStatement
 {
     résultat := parseuse.crée_noeud(lexème, WhileStatement)
+    résultat.sur_génération_code_binaire = while_statement_sur_code_binaire
     résultat.test = test
     résultat.body = body
     retourne résultat
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-runtime-semantics-whileloopevaluation */
-sur_exécution_while_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_while_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     // À FAIRE : standardise
     while := base comme *WhileStatement
@@ -3095,13 +3142,14 @@ DoWhileStatement :: struct {
 crée_do_while_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, body: *Statement, test: *Expression) -> *DoWhileStatement
 {
     résultat := parseuse.crée_noeud(lexème, DoWhileStatement)
+    résultat.sur_génération_code_binaire = do_while_statement_sur_code_binaire
     résultat.body = body
     résultat.test = test
     retourne résultat
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-runtime-semantics-do_whileloopevaluation */
-sur_exécution_do_while_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_do_while_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     // À FAIRE : standardise
     do_while := base comme *DoWhileStatement
@@ -3152,9 +3200,10 @@ ConditionalExpression :: struct {
     alternate: *Expression
 }
 
-crée_conditionnal_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, test: *Expression, consequent: *Expression, alternate: *Expression) -> *ConditionalExpression
+crée_conditional_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, test: *Expression, consequent: *Expression, alternate: *Expression) -> *ConditionalExpression
 {
     résultat := parseuse.crée_noeud(lexème, ConditionalExpression)
+    résultat.sur_génération_code_binaire = conditional_expression_sur_code_binaire
     résultat.test = test
     résultat.consequent = consequent
     résultat.alternate = alternate
@@ -3162,7 +3211,7 @@ crée_conditionnal_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, t
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-conditional-operator-runtime-semantics-evaluation */
-sur_exécution_conditional_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_conditional_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     conditional := base comme *ConditionalExpression
 
@@ -3221,6 +3270,7 @@ IfStatement :: struct {
 crée_if_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, test: *Expression, consequent: *Statement, alternate: *Statement) -> *IfStatement
 {
     résultat := parseuse.crée_noeud(lexème, IfStatement)
+    résultat.sur_génération_code_binaire = if_statement_sur_code_binaire
     résultat.test = test
     résultat.consequent = consequent
     résultat.alternate = alternate
@@ -3228,7 +3278,7 @@ crée_if_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, test: *Expre
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-if-statement */
-sur_exécution_if_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_if_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     if := base comme *IfStatement
 
@@ -3285,12 +3335,13 @@ TypeofOperator :: struct {
 crée_typeof_operator :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression) -> *TypeofOperator
 {
     résultat := parseuse.crée_noeud(lexème, TypeofOperator)
+    résultat.sur_génération_code_binaire = typeof_operator_sur_code_binaire
     résultat.argument = argument
     retourne résultat
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-typeof-operator-runtime-semantics-evaluation */
-sur_exécution_typeof_operator :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_typeof_operator :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     typeof := base comme *TypeofOperator
 
@@ -3316,39 +3367,46 @@ sur_exécution_typeof_operator :: fonc (base: *NoeudSyntaxique, interpréteuse: 
     }
     valeur := completion_valeur.valeur.V
 
+    chn := donne_chaine_pour_typeof(valeur)
+    retourne crée_string_value_completion(interpréteuse, chn)
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-typeof-operator-runtime-semantics-evaluation */
+donne_chaine_pour_typeof :: fonc (valeur: Valeur) -> ECMAString
+{
     // 4. If val is undefined, return "undefined".
     si valeur.est_undefined() {
-        retourne crée_string_value_completion(interpréteuse, STR_undefined)
+        retourne STR_undefined
     }
 
     // 5. If val is null, return "object".
     si valeur.est_nulle() {
-        retourne crée_string_value_completion(interpréteuse, STR_object)
+        retourne STR_object
     }
 
     // 6. If val is a String, return "string".
     si valeur.est_chaine() {
-        retourne crée_string_value_completion(interpréteuse, STR_string)
+        retourne STR_string
     }
 
     // 7. If val is a Symbol, return "symbol".
     si valeur.est_symbol() {
-        retourne crée_string_value_completion(interpréteuse, STR_symbol)
+        retourne STR_symbol
     }
 
     // 8. If val is a Boolean, return "boolean".
     si valeur.est_boolean() {
-        retourne crée_string_value_completion(interpréteuse, STR_boolean)
+        retourne STR_boolean
     }
 
     // 9. If val is a Number, return "number".
     si valeur.est_nombre() {
-        retourne crée_string_value_completion(interpréteuse, STR_number)
+        retourne STR_number
     }
 
     // 10. If val is a BigInt, return "bigint".
     si valeur.est_big_int() {
-        retourne crée_string_value_completion(interpréteuse, STR_bigint)
+        retourne STR_bigint
     }
 
     // 11. Assert: val is an Object.
@@ -3357,11 +3415,11 @@ sur_exécution_typeof_operator :: fonc (base: *NoeudSyntaxique, interpréteuse: 
     // À FAIRE : 12. NOTE: This step is replaced in section B.3.6.3.
     // 13. If val has a [[Call]] internal slot, return "function".
     si objet.donne_table().sur_call {
-        retourne crée_string_value_completion(interpréteuse, STR_function)
+        retourne STR_function
     }
 
     // 14. Return "object".
-    retourne crée_string_value_completion(interpréteuse, STR_object)
+    retourne STR_object
 }
 
 /** \} */
@@ -3381,12 +3439,13 @@ VoidOperator :: struct {
 crée_void_operator :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression) -> *VoidOperator
 {
     résultat := parseuse.crée_noeud(lexème, VoidOperator)
+    résultat.sur_génération_code_binaire = void_operator_sur_code_binaire
     résultat.argument = argument
     retourne résultat
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-void-operator-runtime-semantics-evaluation */
-sur_exécution_void_operator :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_void_operator :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     void := base comme *VoidOperator
 
@@ -3427,7 +3486,7 @@ crée_delete_operator :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument:
     retourne résultat
 }
 
-sur_exécution_delete_operator :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *Interpréteuse @inutilisée) -> CompletionRecord
+sur_exécution_delete_operator :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *InterprèteArbre @inutilisée) -> CompletionRecord
 {
     panique("non-implémenté")
 }
@@ -3450,11 +3509,12 @@ ThrowStatement :: struct {
 crée_throw_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression) -> *ThrowStatement
 {
     résultat := parseuse.crée_noeud(lexème, ThrowStatement)
+    résultat.sur_génération_code_binaire = throw_statement_sur_code_binaire
     résultat.argument = argument
     retourne résultat
 }
 
-sur_exécution_throw_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_throw_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     throw := base comme *ThrowStatement
 
@@ -3496,6 +3556,7 @@ TryStatement :: struct {
 crée_try_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, block: *Statement, handler: *CatchClause, finalizer: *Statement) -> *TryStatement
 {
     résultat := parseuse.crée_noeud(lexème, TryStatement)
+    résultat.sur_génération_code_binaire = try_statement_sur_code_binaire
     résultat.block = block
     résultat.handler = handler
     résultat.finalizer = finalizer
@@ -3503,7 +3564,7 @@ crée_try_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, block: *Sta
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-try-statement-runtime-semantics-evaluation */
-sur_exécution_try_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_try_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     try := base comme *TryStatement
 
@@ -3559,7 +3620,7 @@ sur_exécution_try_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *I
 
     // 5. If F is a normal completion, set F to C.
     si F.est_normal() {
-        F = B
+        F = C
     }
 
     // 6. Return ? UpdateEmpty(F, undefined).
@@ -3590,13 +3651,37 @@ crée_catch_clause :: fonc (parseuse: *Parseuse, lexème: *Lexème, param: *Expr
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-runtime-semantics-catchclauseevaluation */
-catch_clause_evaluation :: fonc (catch: *CatchClause, interpréteuse: *Interpréteuse, thrown_value: Valeur) -> CompletionRecord
+catch_clause_evaluation :: fonc (catch: *CatchClause, interpréteuse: *InterprèteArbre, thrown_value: Valeur) -> CompletionRecord
 {
     saufsi catch.param {
         // 1. Return ? Evaluation of Block.
         retourne exécute_noeud(catch.body, interpréteuse)
     }
 
+    assert(catch.param.type == Identifier)
+    identifier := catch.param comme *Identifier
+    arg_name := identifier.nom
+
+    status, old_env := crée_environnement_lexical_pour_catch(interpréteuse, arg_name, thrown_value)
+    si status.est_abrupt() {
+        retourne status
+    }
+    assert(old_env != nul)
+
+    // 7. Let B be Completion(Evaluation of Block).
+    B := exécute_noeud(catch.body, interpréteuse)
+
+    // 8. Set the running execution context's LexicalEnvironment to oldEnv.
+    mv := interpréteuse.mv
+    running_execution_context := mv.donne_running_execution_context()
+    running_execution_context.lexical_environment = old_env
+
+    // 9. Return ? B.
+    retourne B
+}
+
+crée_environnement_lexical_pour_catch :: fonc (interpréteuse: *Interpréteuse, arg_name: ECMAString, thrown_value: Valeur) -> CompletionRecord, *Environment
+{
     mv := interpréteuse.mv
     running_execution_context := mv.donne_running_execution_context()
 
@@ -3606,12 +3691,8 @@ catch_clause_evaluation :: fonc (catch: *CatchClause, interpréteuse: *Interpré
     // 2. Let catchEnv be NewDeclarativeEnvironment(oldEnv).
     catch_env := new_declarative_environment(old_env.donne_tas_de_mémoire(), old_env)
 
-    // 3. For each element argName of the BoundNames of CatchParameter, do
+    // À FAIRE : 3. For each element argName of the BoundNames of CatchParameter, do
     //    a. Perform ! catchEnv.CreateMutableBinding(argName, false).
-    assert(catch.param.type == Identifier)
-    identifier := catch.param comme *Identifier
-
-    arg_name := identifier.nom
     _ := catch_env.create_mutable_binding(interpréteuse.donne_realm(), arg_name, faux)
 
     // 4. Set the running execution context's LexicalEnvironment to catchEnv.
@@ -3626,17 +3707,10 @@ catch_clause_evaluation :: fonc (catch: *CatchClause, interpréteuse: *Interpré
         running_execution_context.lexical_environment = old_env
 
         // b. Return ? status.
-        retourne status
+        retourne status, nul
     }
 
-    // 7. Let B be Completion(Evaluation of Block).
-    B := exécute_noeud(catch.body, interpréteuse)
-
-    // 8. Set the running execution context's LexicalEnvironment to oldEnv.
-    running_execution_context.lexical_environment = old_env
-
-    // 9. Return ? B.
-    retourne B
+    retourne normal_completion(js_undefined), old_env
 }
 
 /** \} */
@@ -3656,12 +3730,13 @@ NewExpression :: struct {
 crée_new_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression) -> *NewExpression
 {
     résultat := parseuse.crée_noeud(lexème, NewExpression)
+    résultat.sur_génération_code_binaire = new_expression_sur_code_binaire
     résultat.argument = argument
     retourne résultat
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-new-operator-runtime-semantics-evaluation */
-sur_exécution_new_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_new_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     new := base comme *NewExpression
 
@@ -3682,7 +3757,7 @@ sur_exécution_new_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *
 
 /* 13.3.5.1.1 EvaluateNew ( constructExpr, arguments )
  * https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-new-operator-runtime-semantics-evaluation */
-evaluate_new :: fonc (interpréteuse: *Interpréteuse, construct_expr: *NoeudSyntaxique, arguments: []*Expression) -> CompletionRecord
+evaluate_new :: fonc (interpréteuse: *InterprèteArbre, construct_expr: *NoeudSyntaxique, arguments: []*Expression) -> CompletionRecord
 {
     // 1. Let ref be ? Evaluation of constructExpr.
     completion_ref := exécute_noeud(construct_expr, interpréteuse)
@@ -3739,6 +3814,7 @@ SwitchStatement :: struct {
 crée_switch_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, discriminant: *Expression, cases: [..]*CaseClause, index_default_clause: z64) -> *SwitchStatement
 {
     résultat := parseuse.crée_noeud(lexème, SwitchStatement)
+    résultat.sur_génération_code_binaire = switch_statement_sur_code_binaire
     résultat.discriminant = discriminant
     résultat.cases = cases
     résultat.index_default_clause = index_default_clause
@@ -3746,7 +3822,7 @@ crée_switch_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, discrimi
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-switch-statement-runtime-semantics-evaluation */
-sur_exécution_switch_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_switch_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     switch := base comme *SwitchStatement
 
@@ -3794,7 +3870,7 @@ sur_exécution_switch_statement :: fonc (base: *NoeudSyntaxique, interpréteuse:
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-runtime-semantics-caseblockevaluation */
-case_block_evaluation :: fonc (switch: *SwitchStatement, interpréteuse: *Interpréteuse, input: Valeur) -> CompletionRecord
+case_block_evaluation :: fonc (switch: *SwitchStatement, interpréteuse: *InterprèteArbre, input: Valeur) -> CompletionRecord
 {
     si switch.cases.taille == 0 {
         // 1. Return undefined.
@@ -3969,7 +4045,7 @@ case_block_evaluation :: fonc (switch: *SwitchStatement, interpréteuse: *Interp
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-runtime-semantics-caseclauseisselected */
-case_clause_is_selected :: fonc (interpréteuse: *Interpréteuse, clause: *CaseClause, input: Valeur) -> CompletionRecord
+case_clause_is_selected :: fonc (interpréteuse: *InterprèteArbre, clause: *CaseClause, input: Valeur) -> CompletionRecord
 {
     // 1. Assert: C is an instance of the production CaseClause : case Expression : StatementListopt .
     // NOTE : nous pouvons avoir default close
@@ -4016,7 +4092,7 @@ crée_case_clause :: fonc (parseuse: *Parseuse, lexème: *Lexème, test: *Expres
     retourne résultat
 }
 
-sur_exécution_case_clause :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_case_clause :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     case := base comme *CaseClause
 
@@ -4064,13 +4140,14 @@ CommaExpression :: struct {
 crée_comma_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, left: *Expression, right: *Expression) -> *CommaExpression
 {
     résultat := parseuse.crée_noeud(lexème, CommaExpression)
+    résultat.sur_génération_code_binaire = comma_statement_sur_code_binaire
     résultat.left = left
     résultat.right = right
     retourne résultat
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-comma-operator-runtime-semantics-evaluation */
-sur_exécution_comma_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *Interpréteuse) -> CompletionRecord
+sur_exécution_comma_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     comma := base comme *CommaExpression
 
@@ -4120,7 +4197,7 @@ crée_labelled_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, identi
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-labelled-statements-runtime-semantics-evaluation */
-sur_exécution_labelled_statement :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *Interpréteuse @inutilisée) -> CompletionRecord
+sur_exécution_labelled_statement :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *InterprèteArbre @inutilisée) -> CompletionRecord
 {
     panique("non-implémené")
 }
@@ -4144,7 +4221,7 @@ crée_debugger_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *De
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-debugger-statements-runtime-semantics-evaluation */
-sur_exécution_debugger_statement :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *Interpréteuse @inutilisée) -> CompletionRecord
+sur_exécution_debugger_statement :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *InterprèteArbre @inutilisée) -> CompletionRecord
 {
     // À FAIRE : supporte debugger
     retourne normal_completion(js_undefined)
