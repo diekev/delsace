@@ -1590,6 +1590,44 @@ update_image_data :: fonc (image: *HTMLImageElement)
 
 décode_image :: fonc (contenu: chaine, content_type: chaine, résultat: *ImageIO) -> bool
 {
+    si content_type == "image/webp" {
+        data := contenu.pointeur comme *n8
+        date_size := contenu.taille comme n64
+
+        hauteur: z32
+        largeur: z32
+        résultat_info := WebPGetInfo(data, date_size, *largeur, *hauteur)
+        si résultat_info == 0 {
+            imprime("Impossible de lire l'image WebP.")
+            retourne faux
+        }
+
+        tampon := loge_tableau(octet, hauteur comme z64 * largeur comme z64 * 4)
+        diffère déloge(tampon)
+
+        output_buffer := tampon.pointeur comme *n8
+        output_buffer_size := tampon.capacité comme n64
+
+        résultat_décodage := WebPDecodeRGBAInto(data, date_size, output_buffer, output_buffer_size, largeur * 4)
+        saufsi résultat_décodage {
+            imprime("Impossible de décoder l'image WebP.")
+            retourne faux
+        }
+        assert(résultat_décodage == output_buffer)
+
+        mémoire(résultat) = alloc_image(hauteur, largeur, 4)
+
+        entrée := output_buffer
+        sortie := résultat.donnees
+        pour tampon.capacité {
+            mémoire(sortie) = mémoire(entrée) comme r32 / 255.0
+            entrée += 1
+            sortie += 1
+        }
+
+        retourne vrai
+    }
+
     // À FAIRE : prend le chemin de l'url si le schéma n'est pas "data"
     chemin_image := ""
     si content_type == "image/png" {
