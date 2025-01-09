@@ -168,6 +168,15 @@ call :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur, this_value: Valeu
     retourne object.internal_call(interpréteuse, this_value, arguments)
 }
 
+call :: fonc (mv: *MachineVirtuelle, valeur: Valeur, this_value: Valeur) -> CompletionRecord
+{
+    retourne call(mv.interpréteuse, valeur, this_value)
+}
+
+call :: fonc (mv: *MachineVirtuelle, valeur: Valeur, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+{
+    retourne call(mv.interpréteuse, valeur, this_value, arguments)
+}
 
 /* 7.3.14 Construct ( F [ , argumentsList [ , newTarget ] ] )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-call */
