@@ -19,6 +19,9 @@ charge "terminologie"
 charge "types"
 charge "valeur"
 
+charge "CodeBinaire/génération_code"
+charge "CodeBinaire/instructions"
+
 charge "Objets/array"
 charge "Objets/boolean"
 charge "Objets/console"
@@ -93,6 +96,8 @@ MachineVirtuelle :: struct {
     tas_de_mémoire: TasDeMémoire
     hôte: *Hôte
     execution_contexts: [..]*ExecutionContext
+    interpréteuse: *Interpréteuse
+    utilise_code_binaire: bool
 }
 
 initialise_mv :: fonc (hôte: *Hôte, mv: *MachineVirtuelle)
@@ -111,12 +116,25 @@ détruit_données_mv :: fonc (mv: *MachineVirtuelle)
 empile_execution_context :: fonc (mv: *MachineVirtuelle, execution_context: *ExecutionContext)
 {
     tableau_ajoute(*mv.execution_contexts, execution_context)
+
+    si mv.interpréteuse != nul && mv.interpréteuse.sur_execution_context != nul {
+        mv.interpréteuse.sur_execution_context(mv.interpréteuse, execution_context)
+    }
 }
 
 dépile_execution_context :: fonc (mv: *MachineVirtuelle)
 {
     assert(mv.execution_contexts.taille > 0)
     mv.execution_contexts.taille -= 1
+
+    si mv.interpréteuse != nul && mv.interpréteuse.sur_execution_context != nul {
+        si mv.execution_contexts.taille == 0 {
+            mv.interpréteuse.sur_execution_context(mv.interpréteuse, nul)
+        }
+        sinon {
+            mv.interpréteuse.sur_execution_context(mv.interpréteuse, mv.donne_running_execution_context())
+        }
+    }
 }
 
 suspend_running_execution_context :: fonc (mv: *MachineVirtuelle)
@@ -138,6 +156,10 @@ rassemble_racines :: fonc (mv: *MachineVirtuelle, racines: *[..]*Cellule)
 {
     pour mv.execution_contexts {
         ensemble_ajoute(racines, it)
+    }
+
+    si mv.interpréteuse && mv.interpréteuse.exception.est_cellule() {
+        ensemble_ajoute(racines, mv.interpréteuse.exception.donne_cellule())
     }
 }
 

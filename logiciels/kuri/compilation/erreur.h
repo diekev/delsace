@@ -123,10 +123,11 @@ void fonction_principale_manquante(EspaceDeTravail const &espace);
 struct Erreur {
     EspaceDeTravail const *espace = nullptr;
     bool fut_bougee = false;
+    bool est_avertissement = false;
     Enchaineuse enchaineuse{};
     erreur::Genre genre = erreur::Genre::NORMAL;
 
-    Erreur(EspaceDeTravail const *espace_);
+    Erreur(EspaceDeTravail const *espace_, bool est_avertissement_);
 
     Erreur(Erreur &) = delete;
     Erreur &operator=(Erreur &) = delete;
@@ -178,6 +179,10 @@ struct Erreur {
         autre.fut_bougee = true;
     }
 };
+
+Erreur rapporte_avertissement(EspaceDeTravail const *espace,
+                              SiteSource site,
+                              kuri::chaine_statique message);
 
 Erreur rapporte_erreur(EspaceDeTravail const *espace,
                        SiteSource site,

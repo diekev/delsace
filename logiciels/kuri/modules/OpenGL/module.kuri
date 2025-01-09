@@ -3,6 +3,9 @@ importe Fondation
 importe Image
 
 charge "interface"
+charge "programme"
+charge "tampons"
+charge "texture"
 
 initialise_opengl :: fonc () -> bool
 {
@@ -24,35 +27,44 @@ vérifie_erreur :: fonc (raison : chaine = "") -> rien
 {
     erreur_ := glGetError()
 
-    si erreur_ == 0 {
+    si erreur_ == GL_NO_ERROR {
         retourne
     }
 
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
+    ajoute_au_tampon(*enchaineuse, "[OpenGL]")
 
     si raison {
-        imprime_dans_enchaineuse(*enchaineuse, "[%] erreur OpenGL !\n", raison)
+        ajoute_au_tampon(*enchaineuse, "[", raison, "]")
     }
-    sinon {
-        imprime_dans_enchaineuse(*enchaineuse, "erreur OpenGL !\n")
-    }
+
+    imprime_dans_enchaineuse(*enchaineuse, " erreur % : ", erreur_)
 
     discr erreur_ {
         GL_INVALID_ENUM {
-            imprime_dans_enchaineuse(*enchaineuse, "-- énumération invalide\n")
+            ajoute_au_tampon(*enchaineuse, "énumération invalide\n")
         }
         GL_INVALID_VALUE {
-            imprime_dans_enchaineuse(*enchaineuse, "-- valeur invalide\n")
+            ajoute_au_tampon(*enchaineuse, "valeur invalide\n")
         }
         GL_INVALID_OPERATION {
-            imprime_dans_enchaineuse(*enchaineuse, "-- opération invalide\n")
+            ajoute_au_tampon(*enchaineuse, "opération invalide\n")
+        }
+        GL_STACK_OVERFLOW {
+            ajoute_au_tampon(*enchaineuse, "surdépassement pile\n")
+        }
+        GL_STACK_UNDERFLOW {
+            ajoute_au_tampon(*enchaineuse, "soudépassement pile\n")
+        }
+        GL_OUT_OF_MEMORY {
+            ajoute_au_tampon(*enchaineuse, "mémoire insuffisante\n")
         }
         GL_INVALID_FRAMEBUFFER_OPERATION {
-            imprime_dans_enchaineuse(*enchaineuse, "-- opération invalide sur framebuffer\n")
+            ajoute_au_tampon(*enchaineuse, "opération invalide sur framebuffer\n")
         }
         sinon {
-            imprime_dans_enchaineuse(*enchaineuse, "-- erreur inconnue, code %\n", erreur_)
+            ajoute_au_tampon(*enchaineuse, "erreur inconnue\n")
         }
     }
 

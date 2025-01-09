@@ -7,6 +7,7 @@ importe Géométrie
 importe Image
 importe Math
 
+charge "tampon_texture"
 charge "texte"
 
 /* ------------------------------------------------------------------------- */

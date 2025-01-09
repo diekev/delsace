@@ -513,13 +513,21 @@ kuri::chaine imprime_site(const EspaceDeTravail &espace, const NoeudExpression *
 
 /* ************************************************************************** */
 
-Erreur::Erreur(EspaceDeTravail const *espace_) : espace(espace_)
+Erreur::Erreur(EspaceDeTravail const *espace_, bool est_avertissement_)
+    : espace(espace_), est_avertissement(est_avertissement_)
 {
 }
 
 Erreur::~Erreur() noexcept(false)
 {
-    if (!fut_bougee) {
+    if (fut_bougee) {
+        return;
+    }
+
+    if (est_avertissement) {
+        espace->m_compilatrice.rapporte_avertissement(enchaineuse.chaine());
+    }
+    else {
         espace->m_compilatrice.rapporte_erreur(espace, enchaineuse.chaine(), genre);
     }
 }
@@ -637,12 +645,22 @@ kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace,
     return flux.chaine();
 }
 
+Erreur rapporte_avertissement(EspaceDeTravail const *espace,
+                              SiteSource site,
+                              kuri::chaine_statique message)
+{
+    auto erreur = Erreur(espace, true);
+    erreur.enchaineuse << genere_entete_erreur(
+        espace, site, erreur::Genre::AVERTISSEMENT, message);
+    return erreur;
+}
+
 Erreur rapporte_erreur(EspaceDeTravail const *espace,
                        SiteSource site,
                        kuri::chaine_statique message,
                        erreur::Genre genre)
 {
-    auto erreur = Erreur(espace);
+    auto erreur = Erreur(espace, false);
     erreur.enchaineuse << genere_entete_erreur(espace, site, genre, message);
     return erreur;
 }

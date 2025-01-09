@@ -17,15 +17,25 @@ principale :: fonc () -> z32
 {
     args := arguments_ligne_commande()
 
-    si args.taille != 2 {
-        imprime("Utilisation : % FICHIER\n", args[0])
+    si args.taille < 2 {
+        imprime("Utilisation : % [-b] FICHIER\n", args[0])
         retourne 1
     }
 
-    retourne évalue_fichier(CheminFichier(args[1]))
+    utilise_code_binaire := faux
+    si args.taille == 3 {
+        si args[1] != "-b" {
+            imprime("Argument '%' inconnu.\n", args[1])
+            retourne 1
+        }
+
+        utilise_code_binaire = vrai
+    }
+
+    retourne évalue_fichier(CheminFichier(args[args.taille - 1]), utilise_code_binaire)
 }
 
-évalue_fichier :: fonc (chemin: CheminFichier) -> z32
+évalue_fichier :: fonc (chemin: CheminFichier, utilise_code_binaire: bool) -> z32
 {
     contenu := contenu_fichier_texte(chemin)
     diffère déloge(contenu)
@@ -33,6 +43,7 @@ principale :: fonc () -> z32
     mv: MachineVirtuelle
     diffère détruit_données_mv(*mv)
     initialise_mv(nul, *mv)
+    mv.utilise_code_binaire = utilise_code_binaire
 
     diffère éboue(donne_tas_de_mémoire(*mv))
 

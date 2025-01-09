@@ -5,6 +5,7 @@ importe Introspection
 importe Temps
 
 DÉBOGUGE_MÉMOIRE :: faux
+TAMPONNE_CELLULES_MORTES :: faux
 
 /* ------------------------------------------------------------------------- */
 /** \nom TasDeMémoire
@@ -581,6 +582,14 @@ désalloue :: fonc (bloc: *BlocDeMémoire, cellule: *Cellule)
     assert(cellule.marqué == faux)
 
     détruit_cellule(cellule)
+
+    #si TAMPONNE_CELLULES_MORTES {
+        pointeur := cellule comme *octet + taille_de(Cellule)
+        pour bloc.taille_cellule - taille_de(Cellule) {
+            mémoire(pointeur) = 0xc8
+            pointeur += 1
+        }
+    }
 
     entrée := cellule comme *BlocDeMémoire.EntréeListeLibre
     entrée.vivante = faux

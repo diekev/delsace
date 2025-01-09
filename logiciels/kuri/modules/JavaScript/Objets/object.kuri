@@ -1,4 +1,5 @@
 importe Chaine
+importe Ensemble
 importe Fondation
 
 /* ------------------------------------------------------------------------- */
@@ -72,6 +73,26 @@ Configurable :: DrapeauxPropriété.CONFIGURABLE
 Enumerable :: DrapeauxPropriété.ENUMERABLE
 Writable :: DrapeauxPropriété.WRITABLE
 
+IndexPropriété :: struct {
+    empreinte: n64
+    index: z64
+}
+
+opérateur == :: fonc (a: IndexPropriété, b: IndexPropriété) -> bool
+{
+    retourne a.empreinte == b.empreinte
+}
+
+opérateur != :: fonc (a: IndexPropriété, b: IndexPropriété) -> bool
+{
+    retourne a.empreinte != b.empreinte
+}
+
+opérateur < :: fonc (a: IndexPropriété, b: IndexPropriété) -> bool
+{
+    retourne a.empreinte < b.empreinte
+}
+
 Object :: struct {
     empl base: Cellule
     table = *table_virtuelle_objet
@@ -87,6 +108,7 @@ Object :: struct {
 
     /* Ceci stocke les valeurs indexées par des chaines. */
     propriétés: [..]Propriété
+    index_propriétés: [..]IndexPropriété
     /* Ceci stocke les valeurs indexées par des nombres. */
     éléments_indexés: [..]Propriété
 
@@ -144,12 +166,19 @@ sur_destruction_objet :: fonc (base: *Cellule)
 {
     objet := base.vérifie_comme(Object)
     déloge(objet.propriétés)
+    déloge(objet.index_propriétés)
     déloge(objet.éléments_indexés)
 }
 
 ajoute_propriété :: fonc (objet: *Object, nom: PropertyKey, valeur: Valeur, drapeaux: DrapeauxPropriété)
 {
     tableau_ajoute(*objet.propriétés, Object.Propriété(nom, valeur, drapeaux = drapeaux))
+
+    index: IndexPropriété
+    index.empreinte = donne_empreinte(nom)
+    index.index = objet.propriétés.taille - 1
+
+    ensemble_ajoute(*objet.index_propriétés, index)
 }
 
 ajoute_propriété :: fonc (objet: *Object, nom: PropertyKey, get: TypeFonctionObjectCall, set: TypeFonctionObjectCall, drapeaux: DrapeauxPropriété)
@@ -163,6 +192,12 @@ ajoute_propriété :: fonc (objet: *Object, nom: PropertyKey, get: TypeFonctionO
         setter = crée_fonction_native(objet.donne_tas_de_mémoire(), crée_chaine_utf16_unique_vide(), set, 0)
     }
     tableau_ajoute(*objet.propriétés, Object.Propriété(nom, get = getter, set = setter, drapeaux = drapeaux))
+
+    index: IndexPropriété
+    index.empreinte = donne_empreinte(nom)
+    index.index = objet.propriétés.taille - 1
+
+    ensemble_ajoute(*objet.index_propriétés, index)
 }
 
 supprime_propriété :: fonc (object: *Object, nom: PropertyKey)
@@ -275,12 +310,14 @@ internal_construct :: fonc (object: *Object, interpréteuse: *Interpréteuse, ar
 
 trouve_propriété :: fonc (objet: *Object, nom: PropertyKey) -> *Object.Propriété
 {
-    pour * objet.propriétés {
-        si it.nom == nom {
-            retourne it
-        }
+    index: IndexPropriété
+    index.empreinte = donne_empreinte(nom)
+
+    index_prop := ensemble_possède_retourne_index(*objet.index_propriétés, index)
+    si index_prop == -1 {
+        retourne nul
     }
-    retourne nul
+    retourne *objet.propriétés[objet.index_propriétés[index_prop].index]
 }
 
 /** \} */
