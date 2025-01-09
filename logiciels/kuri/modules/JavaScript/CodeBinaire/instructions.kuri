@@ -1,0 +1,1600 @@
+importe Fondation
+importe Structures
+
+/* ------------------------------------------------------------------------- */
+/** \nom Instruction
+ * \{ */
+
+FluxDInstructions :: struct {
+    instructions: [..]octet
+    /* 1 pour l'accumulateur */
+    registres : n32 = 1
+}
+
+imprime_instructions :: fonc (flux: *FluxDInstructions)
+{
+    imprime("Instructions : (% octets)\n", flux.instructions.taille)
+
+    pour ItéractriceInstruction(flux) {
+        imprime_instruction(it, index_it)
+    }
+}
+
+ItéractriceInstruction :: struct {
+    flux: *FluxDInstructions
+}
+
+opérateur pour :: fonc (itératrice: ItéractriceInstruction) -> *Instruction
+{
+    assert(itératrice.flux != nul)
+
+    début := itératrice.flux.instructions.pointeur
+    fin := début + itératrice.flux.instructions.taille
+
+    index : z64 = 0
+
+    tantque début < fin {
+        instruction := début comme *Instruction
+
+        `it = instruction
+        `index_it = index
+
+        #corps_boucle
+
+        index += 1
+
+        début += donne_taille_octet(instruction)
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Instruction
+ * \{ */
+
+Registre :: #opaque n32
+
+Instruction :: struct {
+    type: type_de_données
+}
+
+donne_taille_octet :: fonc (instruction: *Instruction) -> n32
+{
+    infos := __table_des_types[instruction.type]
+    résultat := infos.taille_en_octet
+
+    si instruction.type == InstructionAppel {
+        appel := instruction comme *InstructionAppel
+        résultat += appel.nombre_arguments comme n32 * taille_de(Registre)
+    }
+    sinon si instruction.type == InstructionAppelEval {
+        new := instruction comme *InstructionAppelEval
+        résultat += new.nombre_arguments comme n32 * taille_de(Registre)
+    }
+    sinon si instruction.type == InstructionNew {
+        new := instruction comme *InstructionNew
+        résultat += new.nombre_arguments comme n32 * taille_de(Registre)
+    }
+
+    retourne résultat
+}
+
+imprime_instruction :: fonc (instruction: *Instruction, index: z64)
+{
+    infos := __table_des_types[instruction.type] comme *InfoTypeStructure
+ 
+    nom := infos.nom
+    si nom.commence_par("Instruction") {
+        nom = avance(nom, 11)
+    }
+
+    imprime("[%] %", index, nom)
+
+    pointeur_membre := instruction comme *octet
+
+    _ := imprime_membres_instructions(pointeur_membre, infos, " ")
+
+    imprime("\n")
+}
+
+imprime_membres_instructions :: fonc (pointeur_membre: *octet, infos: *InfoTypeStructure, virgule: chaine) -> chaine
+{
+    pour infos.membres {
+        si it.id == info_de(ECMAString) {
+            valeur := (pointeur_membre + it.décalage) comme *ECMAString
+            imprime("%%", virgule, mémoire(valeur))
+            virgule = ", "
+        }
+        sinon si it.id == info_de(Registre) {
+            valeur := (pointeur_membre + it.décalage) comme *Registre
+            imprime("%r:%", virgule, mémoire(valeur))
+            virgule = ", "
+        }
+        sinon si it.id == info_de(Valeur) {
+            valeur := (pointeur_membre + it.décalage) comme *Valeur
+            imprime("%%", virgule, mémoire(valeur))
+            virgule = ", "
+        }
+        sinon si it.id == info_de(DécalageBranche) {
+            valeur := (pointeur_membre + it.décalage) comme *DécalageBranche
+            imprime("%@%", virgule, mémoire(valeur))
+            virgule = ", "
+        }
+        sinon si it.id.id == GenreInfoType.STRUCTURE && est_struct_ou_employeuse_de(it.id comme *InfoTypeStructure, info_de(Instruction)) {
+            virgule = imprime_membres_instructions(pointeur_membre, it.id comme *InfoTypeStructure, virgule)
+        }
+    }
+
+    retourne virgule
+}
+
+IndexBranche :: #opaque z64
+DécalageBranche :: #opaque z64
+
+InstructionBranche :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    décalage: DécalageBranche
+}
+
+InstructionBrancheSiFaux :: struct {
+    empl inst_branche: InstructionBranche
+    type = #type_de_cette_structure
+}
+
+InstructionBrancheSiVrai :: struct {
+    empl inst_branche: InstructionBranche
+    type = #type_de_cette_structure
+}
+
+/* Branche saufsi la valeur dans l'accumulateur est null ou undefined */
+InstructionBrancheSaufsiNullOuUndefined :: struct {
+    empl inst_branche: InstructionBranche
+    type = #type_de_cette_structure
+}
+
+InstructionCharge :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    vlr: Valeur
+}
+
+InstructionChargeRegistre :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    src: Registre
+}
+
+InstructionStocke :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    dst: Registre
+}
+
+InstructionCréeChaine :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    chn: ECMAString
+
+    /* Cache pour l'exécution. */
+    index_chaine : z64 = -1
+}
+
+InstructionCréeObjet :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+}
+
+InstructionCréeArray :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+}
+
+InstructionExpressionBinaire :: struct {
+    empl inst: Instruction
+
+    gch: Registre
+}
+
+InstructionAjoute :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
+InstructionMultiplie :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
+InstructionDivise :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
+InstructionModulo :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
+InstructionDécalageGauche :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
+InstructionDécalageDroite :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
+InstructionDécalageDroiteNaturel :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
+InstructionEtBinaire :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
+InstructionOuBinaire :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
+InstructionOuExBinaire :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
+InstructionExponentiation :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
+InstructionSoustrait :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
+InstructionRelationInférieure :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
+InstructionRelationSupérieure :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
+InstructionRelationInférieureÉgale :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
+InstructionRelationSupérieureÉgale :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
+InstructionInstanceOf :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
+InstructionIn :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
+InstructionComparaisonÉgal :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
+InstructionComparaisonInégal :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
+InstructionComparaisonÉgalStrict :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
+InstructionComparaisonInégalStrict :: struct {
+    empl inst_binaire: InstructionExpressionBinaire
+    type = #type_de_cette_structure
+}
+
+InstructionDéfinisLocale :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    nom: ECMAString
+
+    index_chaine_en_cache : z32 = -1
+}
+
+donne_chaine_primitive :: fonc (instruction: *InstructionDéfinisLocale, realm: *Realm) -> *PrimitiveChaine
+{
+    si instruction.index_chaine_en_cache == -1 {
+        pour realm.chaines {
+            si it.texte == instruction.nom {
+                instruction.index_chaine_en_cache = index_it comme z32
+                retourne it
+            }
+        }
+
+        résultat := realm.crée_chaine(instruction.nom)
+        instruction.index_chaine_en_cache = realm.chaines.taille comme z32 - 1
+        retourne résultat
+    }
+
+    retourne realm.chaines[instruction.index_chaine_en_cache]
+}
+
+InstructionChargeLocale :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    nom: ECMAString
+
+    index_chaine_en_cache : z32 = -1
+}
+
+donne_chaine_primitive :: fonc (instruction: *InstructionChargeLocale, realm: *Realm) -> *PrimitiveChaine
+{
+    si instruction.index_chaine_en_cache == -1 {
+        pour realm.chaines {
+            si it.texte == instruction.nom {
+                instruction.index_chaine_en_cache = index_it comme z32
+                retourne it
+            }
+        }
+
+        résultat := realm.crée_chaine(instruction.nom)
+        instruction.index_chaine_en_cache = realm.chaines.taille comme z32 - 1
+        retourne résultat
+    }
+
+    retourne realm.chaines[instruction.index_chaine_en_cache]
+}
+
+/* Pour les déclarations lexicales. */
+InstructionInitialiseRéférence :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    nom: ECMAString
+}
+
+InstructionDéfinisMembre :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    nom: ECMAString
+    src: Registre
+}
+
+InstructionChargeMembre :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    obj: Registre
+    nom: ECMAString
+}
+
+InstructionDéfinisIndex :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    obj: Registre
+    src: Registre
+}
+
+InstructionChargeIndex :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    obj: Registre
+}
+
+InstructionCréePropriétéArray :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    obj: Registre
+    index: z32
+}
+
+InstructionAppel :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    func: Registre
+    this_value: Registre
+    nombre_arguments: z32
+}
+
+donne_arguments :: fonc (appel: *InstructionAppel) -> []Registre
+{
+    résultat: []Registre
+    résultat.pointeur = ((appel + 1) comme *octet) comme *Registre
+    résultat.taille = appel.nombre_arguments
+    retourne résultat
+}
+
+InstructionAppelEval :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    func: Registre
+    this_value: Registre
+    nombre_arguments: z32
+}
+
+donne_arguments :: fonc (appel: *InstructionAppelEval) -> []Registre
+{
+    résultat: []Registre
+    résultat.pointeur = ((appel + 1) comme *octet) comme *Registre
+    résultat.taille = appel.nombre_arguments
+    retourne résultat
+}
+
+InstructionNew :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    func: Registre
+    nombre_arguments: z32
+}
+
+donne_arguments :: fonc (appel: *InstructionNew) -> []Registre
+{
+    résultat: []Registre
+    résultat.pointeur = ((appel + 1) comme *octet) comme *Registre
+    résultat.taille = appel.nombre_arguments
+    retourne résultat
+}
+
+/* Instruction spéciale pour résoudre la valeur "this" pour les appels.
+ * Pour l'instant, nous faisons ceci avec une Interpréteuse sur l'arbre au
+ * lieu d'utiliser du code binaire en attendant de bien comprendre comment
+ * modéliser les ReferenceRecord. */
+InstructionThisValueAppel :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    /* Ceci est le noeud à gauche de l'appel. */
+    noeud: *NoeudSyntaxique
+}
+
+InstructionRetour :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+}
+
+InstructionThis :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+}
+
+InstructionIncrémente :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+}
+
+InstructionDécrémente :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+}
+
+InstructionInstancieFonction :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    fonction: *FunctionExpression
+}
+
+InstructionInstancieArrowFunction :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    fonction: *ArrowFunction
+}
+
+InstructionEntréeBlocCatch :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    nom: ECMAString
+}
+
+InstructionSortieBlocCatch :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+}
+
+InstructionThrow :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+}
+
+/* Décalage dans les instructions où se trouve le début du bloc de gestion d'exception. */
+ExceptionHandler :: #opaque z64
+
+InstructionEmpileExceptionHandler :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    décalage: DécalageBranche
+}
+
+InstructionDépileExceptionHandler :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+}
+
+InstructionNamedEvaluation :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    noeud: *NoeudSyntaxique
+    nom: ECMAString
+}
+
+InstructionTypeof :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+}
+
+InstructionUnaryMinus :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+}
+
+InstructionUnaryPlus :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+}
+
+InstructionLogicalNot :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+}
+
+InstructionBinaryNot :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+}
+
+/* CreateDataPropertyOrThrow */
+InstructionCDPOT :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+
+    obj: Registre
+    nom: ECMAString
+}
+
+InstructionEntréeSwitch :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+}
+
+InstructionSortieSwitch :: struct {
+    empl inst: Instruction
+    type = #type_de_cette_structure
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom InterprèteCodeBinaire
+ * \{ */
+
+/* État pour les registres pour la fonction courante. */
+ÉtatRegistres :: struct {
+    interprète: *InterprèteCodeBinaire
+    /* Décalage du premier registre dans InterprèteCodeBinaire.registres */
+    décalage: z64
+}
+
+InterprèteCodeBinaire :: struct {
+    empl base: Interpréteuse
+    registres: [..]Valeur
+    sur_exécute = exécute_code_binaire
+
+    /* Interpréteuse pour les cas où nous utilisons l'arbre pour exécuter le code.
+     * À FAIRE : protège l'exception lors du ramassage de miettes. */
+    interpréteuse_arbre: *InterprèteArbre
+
+    exception_handlers: Pile(DécalageBranche)
+    environments_catch: Pile(*Environment)
+}
+
+crée_interprète_code_binaire :: fonc (mv: *MachineVirtuelle) -> *InterprèteCodeBinaire
+{
+    résultat := loge(InterprèteCodeBinaire)
+    résultat.interpréteuse_arbre = loge(InterprèteArbre)
+    résultat.mv = mv
+    retourne résultat
+}
+
+donne_accumulateur :: fonc (interprète: *InterprèteCodeBinaire) -> Valeur #enligne
+{
+    retourne interprète.registres[0]
+}
+
+définis_accumulateur :: fonc (interprète: *InterprèteCodeBinaire, valeur: Valeur) #enligne
+{
+    interprète.registres[0] = valeur
+}
+
+donne_registre :: fonc (empl état: ÉtatRegistres, registre: Registre) -> Valeur #enligne
+{
+    retourne interprète.registres[registre comme n32 comme z64 + décalage]
+}
+
+définis_registre :: fonc (empl état: ÉtatRegistres, registre: Registre, valeur: Valeur) #enligne
+{
+    interprète.registres[registre comme n32 comme z64 + décalage] = valeur
+}
+
+détruit_interprète :: fonc (interprète: *InterprèteCodeBinaire)
+{
+    déloge(interprète.registres)
+    déloge(interprète.interpréteuse_arbre)
+}
+
+interprète_code_binaire :: fonc (mv: *MachineVirtuelle, noeud: *NoeudScript) -> CompletionRecord
+{
+    interprète := crée_interprète_code_binaire(mv)
+    diffère détruit_interprète(interprète)
+
+    mv.interpréteuse = interprète
+    diffère mv.interpréteuse = nul
+
+    retourne exécute_code_binaire(interprète, noeud)
+}
+
+donne_code_binaire :: fonc (noeud: *NoeudSyntaxique) -> *FluxDInstructions
+{
+    /* BlockStatement est utilisé car c'est via lui que nous exécutons les fonctions... */
+    assert(noeud.type == FunctionDeclaration || noeud.type == NoeudScript || noeud.type == ScriptBody || noeud.type == ConciseBody || noeud.type == BlockStatement)
+
+    si noeud.type == FunctionDeclaration {
+        decl := noeud comme *FunctionDeclaration
+        retourne decl.code_binaire
+    }
+
+    si noeud.type == ScriptBody {
+        body := noeud comme *ScriptBody
+        retourne body.code_binaire
+    }
+
+    si noeud.type == ConciseBody {
+        body := noeud comme *ConciseBody
+        retourne body.code_binaire
+    }
+
+    si noeud.type == NoeudScript {
+        script := noeud comme *NoeudScript
+        retourne script.code_binaire
+    }
+
+    si noeud.type == BlockStatement {
+        block := noeud comme *BlockStatement
+        retourne block.code_binaire
+    }
+
+    retourne nul
+}
+
+définis_code_binaire :: fonc (noeud: *NoeudSyntaxique, flux: *FluxDInstructions)
+{
+    /* BlockStatement est utilisé car c'est via lui que nous exécutons les fonctions... */
+    assert(noeud.type == FunctionDeclaration || noeud.type == NoeudScript || noeud.type == ScriptBody || noeud.type == ConciseBody || noeud.type == BlockStatement)
+
+    si noeud.type == FunctionDeclaration {
+        decl := noeud comme *FunctionDeclaration
+        decl.code_binaire = flux
+        retourne
+    }
+
+    si noeud.type == ScriptBody {
+        body := noeud comme *ScriptBody
+        body.code_binaire = flux
+        retourne
+    }
+
+    si noeud.type == ConciseBody {
+        body := noeud comme *ConciseBody
+        body.code_binaire = flux
+        retourne
+    }
+
+    si noeud.type == NoeudScript {
+        script := noeud comme *NoeudScript
+        script.code_binaire = flux
+        retourne
+    }
+
+    si noeud.type == BlockStatement {
+        block := noeud comme *BlockStatement
+        block.code_binaire = flux
+        retourne
+    }
+}
+
+exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -> CompletionRecord
+{
+    interprète := base comme *InterprèteCodeBinaire
+
+    flux := donne_code_binaire(noeud)
+    saufsi flux {
+        flux = loge(FluxDInstructions)
+        génératrice := GénératriceCodeBinaire(flux)
+
+        _ := génère_code_binaire(génératrice, noeud)
+        applique_patchs(génératrice)
+
+        // imprime_instructions(flux)
+
+        définis_code_binaire(noeud, flux)
+    }
+
+    nombre_registres := interprète.registres.taille
+    tableau_redimensionne(interprète.registres, nombre_registres + flux.registres comme z64)
+    diffère interprète.registres.taille = nombre_registres
+
+    registres: ÉtatRegistres
+    registres.interprète = interprète
+    registres.décalage = nombre_registres
+
+    nombre_handlers := interprète.exception_handlers.taille()
+    empile(interprète.exception_handlers, DécalageBranche(-1 comme z64))
+    diffère interprète.exception_handlers.données.taille = nombre_handlers
+
+    nombre_environnements := interprète.environments_catch.taille()
+    empile(interprète.environments_catch, nul)
+    diffère interprète.environments_catch.données.taille = nombre_environnements
+
+    début := flux.instructions.pointeur
+    courant := début
+    fin := début + flux.instructions.taille
+
+    tantque courant < fin {
+        it := courant comme *Instruction
+        courant += donne_taille_octet(it)
+
+        discr it.type {
+            InstructionBranche {
+                branche := it comme *InstructionBranche
+                courant = début + branche.décalage comme z64
+                continue
+            }
+            InstructionBrancheSiFaux {
+                branche := it comme *InstructionBrancheSiFaux
+
+                valeur := interprète.donne_accumulateur()
+                valeur = to_boolean(valeur)
+
+                si est_false(valeur) {
+                    courant = début + branche.décalage comme z64
+                    continue
+                }
+            }
+            InstructionBrancheSiVrai {
+                branche := it comme *InstructionBrancheSiVrai
+
+                valeur := interprète.donne_accumulateur()
+                valeur = to_boolean(valeur)
+
+                si est_true(valeur) {
+                    courant = début + branche.décalage comme z64
+                    continue
+                }
+            }
+            InstructionBrancheSaufsiNullOuUndefined {
+                branche := it comme *InstructionBrancheSaufsiNullOuUndefined
+                valeur := interprète.donne_accumulateur()
+
+                saufsi valeur.est_nulle() || valeur.est_undefined() {
+                    courant = début + branche.décalage comme z64
+                    continue
+                }
+            }
+            InstructionCharge {
+                inst_charge := it comme *InstructionCharge
+                interprète.définis_accumulateur(inst_charge.vlr)
+            }
+            InstructionChargeRegistre {
+                inst_charge := it comme *InstructionChargeRegistre
+                interprète.définis_accumulateur(donne_registre(registres, inst_charge.src))
+            }
+            InstructionStocke {
+                stocke := it comme *InstructionStocke
+                définis_registre(registres, stocke.dst, interprète.donne_accumulateur())
+            }
+            InstructionAjoute {
+                inst_ajout := it comme *InstructionAjoute
+                gauche := donne_registre(registres, inst_ajout.gch)
+                droite := interprète.donne_accumulateur()
+
+                completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.Plus, gauche, droite)
+                interprète.définis_exception(completion)
+                interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionSoustrait {
+                inst := it comme *InstructionSoustrait
+                gauche := donne_registre(registres, inst.gch)
+                droite := interprète.donne_accumulateur()
+
+                completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.Moins, gauche, droite)
+                interprète.définis_exception(completion)
+                interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionMultiplie {
+                inst := it comme *InstructionMultiplie
+                gauche := donne_registre(registres, inst.gch)
+                droite := interprète.donne_accumulateur()
+
+                completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.Multiplie, gauche, droite)
+                interprète.définis_exception(completion)
+                interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionDivise {
+                inst := it comme *InstructionDivise
+                gauche := donne_registre(registres, inst.gch)
+                droite := interprète.donne_accumulateur()
+
+                completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.Divise, gauche, droite)
+                interprète.définis_exception(completion)
+                interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionModulo {
+                inst := it comme *InstructionModulo
+                gauche := donne_registre(registres, inst.gch)
+                droite := interprète.donne_accumulateur()
+
+                completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.Modulo, gauche, droite)
+                interprète.définis_exception(completion)
+                interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionDécalageGauche {
+                inst := it comme *InstructionDécalageGauche
+                gauche := donne_registre(registres, inst.gch)
+                droite := interprète.donne_accumulateur()
+
+                completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.DécalageGauche, gauche, droite)
+                interprète.définis_exception(completion)
+                interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionDécalageDroite {
+                inst := it comme *InstructionDécalageDroite
+                gauche := donne_registre(registres, inst.gch)
+                droite := interprète.donne_accumulateur()
+
+                completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.DécalageDroite, gauche, droite)
+                interprète.définis_exception(completion)
+                interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionDécalageDroiteNaturel {
+                inst := it comme *InstructionDécalageDroiteNaturel
+                gauche := donne_registre(registres, inst.gch)
+                droite := interprète.donne_accumulateur()
+
+                completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.DécalageDroiteNaturel, gauche, droite)
+                interprète.définis_exception(completion)
+                interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionEtBinaire {
+                inst := it comme *InstructionEtBinaire
+                gauche := donne_registre(registres, inst.gch)
+                droite := interprète.donne_accumulateur()
+
+                completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.EtBinaire, gauche, droite)
+                interprète.définis_exception(completion)
+                interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionOuBinaire {
+                inst := it comme *InstructionOuBinaire
+                gauche := donne_registre(registres, inst.gch)
+                droite := interprète.donne_accumulateur()
+
+                completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.OuBinaire, gauche, droite)
+                interprète.définis_exception(completion)
+                interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionOuExBinaire {
+                inst := it comme *InstructionOuExBinaire
+                gauche := donne_registre(registres, inst.gch)
+                droite := interprète.donne_accumulateur()
+
+                completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.OuExclusif, gauche, droite)
+                interprète.définis_exception(completion)
+                interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionExponentiation {
+                inst := it comme *InstructionExponentiation
+                gauche := donne_registre(registres, inst.gch)
+                droite := interprète.donne_accumulateur()
+
+                completion := apply_string_or_numeric_binary_operator(interprète, BinaryOperation.Exponentiation, gauche, droite)
+                interprète.définis_exception(completion)
+                interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionRelationInférieure {
+                relat := it comme *InstructionRelationInférieure
+                gauche := donne_registre(registres, relat.gch)
+                droite := interprète.donne_accumulateur()
+
+                completion := is_less_than(interprète, gauche, droite, vrai)
+                interprète.définis_exception(completion)
+                r := completion.valeur.V
+
+                si r.est_undefined() {
+                    r = Valeur(Boolean = faux)
+                }
+                interprète.définis_accumulateur(r)
+            }
+            InstructionRelationSupérieure {
+                relat := it comme *InstructionRelationSupérieure
+                gauche := donne_registre(registres, relat.gch)
+                droite := interprète.donne_accumulateur()
+
+                completion := is_less_than(interprète, droite, gauche, faux)
+                interprète.définis_exception(completion)
+                r := completion.valeur.V
+
+                si r.est_undefined() {
+                    r = Valeur(Boolean = faux)
+                }
+                interprète.définis_accumulateur(r)
+            }
+            InstructionRelationInférieureÉgale {
+                relat := it comme *InstructionRelationInférieureÉgale
+                gauche := donne_registre(registres, relat.gch)
+                droite := interprète.donne_accumulateur()
+
+                completion := is_less_than(interprète, droite, gauche, faux)
+                interprète.définis_exception(completion)
+                r := completion.valeur.V
+                si r.est_true() || r.est_undefined() {
+                    r = Valeur(Boolean = faux)
+                }
+                sinon {
+                    r = Valeur(Boolean = vrai)
+                }
+                interprète.définis_accumulateur(r)
+            }
+            InstructionRelationSupérieureÉgale {
+                relat := it comme *InstructionRelationSupérieureÉgale
+                gauche := donne_registre(registres, relat.gch)
+                droite := interprète.donne_accumulateur()
+
+                completion := is_less_than(interprète, gauche, droite, vrai)
+                interprète.définis_exception(completion)
+                r := completion.valeur.V
+                si r.est_true() || r.est_undefined() {
+                    r = Valeur(Boolean = faux)
+                }
+                sinon {
+                    r = Valeur(Boolean = vrai)
+                }
+                interprète.définis_accumulateur(r)
+            }
+            InstructionInstanceOf {
+                relat := it comme *InstructionInstanceOf
+                gauche := donne_registre(registres, relat.gch)
+                droite := interprète.donne_accumulateur()
+
+                completion := instanceof_operator(interprète, gauche, droite)
+                interprète.définis_exception(completion)
+                interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionIn {
+                relat := it comme *InstructionIn
+                évalue_relation_in(interprète, registres, relat)
+            }
+            InstructionComparaisonÉgal {
+                inst_ajout := it comme *InstructionComparaisonÉgal
+                gauche := donne_registre(registres, inst_ajout.gch)
+                droite := interprète.donne_accumulateur()
+
+                completion := is_loosely_equal(interprète, gauche, droite)
+                interprète.définis_exception(completion)
+                interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionComparaisonInégal {
+                inst_ajout := it comme *InstructionComparaisonInégal
+                gauche := donne_registre(registres, inst_ajout.gch)
+                droite := interprète.donne_accumulateur()
+
+                completion := is_loosely_equal(interprète, gauche, droite)
+                interprète.définis_exception(completion)
+                résultat := completion.valeur.V
+                si résultat.est_true() {
+                    résultat.Boolean = faux
+                }
+                sinon {
+                    résultat.Boolean = vrai
+                }
+                interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionComparaisonÉgalStrict {
+                inst_ajout := it comme *InstructionComparaisonÉgalStrict
+                gauche := donne_registre(registres, inst_ajout.gch)
+                droite := interprète.donne_accumulateur()
+
+                résultat := is_strictly_equal(gauche, droite)
+                interprète.définis_accumulateur(résultat)
+            }
+            InstructionComparaisonInégalStrict {
+                inst_ajout := it comme *InstructionComparaisonInégalStrict
+                gauche := donne_registre(registres, inst_ajout.gch)
+                droite := interprète.donne_accumulateur()
+
+                résultat := is_strictly_equal(gauche, droite)
+                si résultat.est_true() {
+                    résultat.Boolean = faux
+                }
+                sinon {
+                    résultat.Boolean = vrai
+                }
+                interprète.définis_accumulateur(résultat)
+            }
+            InstructionCréeChaine {
+                crée_chaine := it comme *InstructionCréeChaine
+
+                realm := donne_realm(interprète)
+
+                chn: *PrimitiveChaine
+                si crée_chaine.index_chaine == -1 {
+                    chn = crée_chaine(realm, crée_chaine.chn)
+                    tableau_ajoute(*realm.chaines_littérales, chn)
+                    crée_chaine.index_chaine = realm.chaines_littérales.taille - 1
+                }
+                sinon {
+                    chn = realm.chaines_littérales[crée_chaine.index_chaine]
+                }
+
+                interprète.définis_accumulateur(Valeur(String = chn))
+            }
+            InstructionCréeObjet {
+                realm := donne_realm(interprète)
+                objet := ordinary_object_create(realm, realm.intrinsics.object_prototype, object_instance_crée)
+                interprète.définis_accumulateur(Valeur(Object = objet))
+            }
+            InstructionCréeArray {
+                realm := donne_realm(interprète)
+                résultat := crée_array(realm.donne_tas_de_mémoire(), realm.intrinsics.array_prototype, 0)
+                interprète.définis_accumulateur(Valeur(Object = résultat))
+            }
+            InstructionDéfinisLocale {
+                définis_locale := it comme *InstructionDéfinisLocale
+                realm := donne_realm(interprète)
+
+                résultat := resolve_binding(interprète, définis_locale.donne_chaine_primitive(realm))
+                interprète.définis_exception(résultat)
+
+                // À FAIRE
+                // référence := résultat.valeur.R
+                // noeud.coordonnée = référence.coordonnée
+
+                valeur := interprète.donne_accumulateur()
+                completion_assignment := put_value(interprète, résultat.valeur, valeur)
+                interprète.définis_exception(completion_assignment)
+            }
+            InstructionChargeLocale {
+                charge_locale := it comme *InstructionChargeLocale
+                realm := donne_realm(interprète)
+
+                résultat := resolve_binding(interprète, charge_locale.donne_chaine_primitive(realm))
+                interprète.définis_exception(résultat)
+
+                completion_rval := get_value(interprète, résultat.valeur)
+                interprète.définis_exception(completion_rval)
+                interprète.définis_accumulateur(completion_rval.valeur.V)
+            }
+            InstructionInitialiseRéférence {
+                init := it comme *InstructionInitialiseRéférence
+
+                realm := donne_realm(interprète)
+                valeur := interprète.donne_accumulateur()
+
+                lhs := resolve_binding(interprète, realm.crée_chaine(init.nom)).valeur.R
+                _ := initialize_reference_binding(lhs, valeur)
+            }
+            InstructionDéfinisMembre {
+                membre := it comme *InstructionDéfinisMembre
+                realm := donne_realm(interprète)
+
+                referenced_name := crée_chaine(realm, membre.nom)
+
+                référence: ReferenceRecord
+                référence.base = interprète.donne_accumulateur()
+                référence.referenced_name = Valeur(String = referenced_name)
+                // À FAIRE : résultat.strict = strict
+
+                valeur := donne_registre(registres, membre.src)
+                completion_assignment := put_value(interprète, référence, valeur)
+                interprète.définis_exception(completion_assignment)
+            }
+            InstructionChargeMembre {
+                membre := it comme *InstructionChargeMembre
+                realm := donne_realm(interprète)
+
+                referenced_name := crée_chaine(realm, membre.nom)
+
+                référence: ReferenceRecord
+
+                si membre.obj comme n32 == 0 {
+                    référence.base = interprète.donne_accumulateur()
+                }
+                sinon {
+                    référence.base = donne_registre(registres, membre.obj)
+                }
+
+                référence.referenced_name = Valeur(String = referenced_name)
+                // À FAIRE : résultat.strict = strict
+
+                completion_rval := get_value(interprète, référence)
+                interprète.définis_exception(completion_rval)
+                interprète.définis_accumulateur(completion_rval.valeur.V)
+            }
+            InstructionDéfinisIndex {
+                inst := it comme *InstructionDéfinisIndex
+    
+                base_value := donne_registre(registres, inst.obj)
+                property_name_value := interprète.donne_accumulateur()
+                valeur := donne_registre(registres, inst.src)
+
+                référence: ReferenceRecord
+                référence.base = base_value
+                référence.referenced_name = property_name_value
+                // À FAIRE : résultat.strict = strict
+
+                completion_rval := put_value(interprète, référence, valeur)
+                interprète.définis_exception(completion_rval)
+            }
+            InstructionChargeIndex {
+                inst := it comme *InstructionChargeIndex
+
+                base_value := donne_registre(registres, inst.obj)
+                property_name_value := interprète.donne_accumulateur()
+
+                référence: ReferenceRecord
+                référence.base = base_value
+                référence.referenced_name = property_name_value
+                // À FAIRE : résultat.strict = strict
+
+                completion_rval := get_value(interprète, référence)
+                interprète.définis_exception(completion_rval)
+                interprète.définis_accumulateur(completion_rval.valeur.V)
+            }
+            InstructionCréePropriétéArray {
+                inst := it comme *InstructionCréePropriétéArray
+
+                objet := donne_registre(registres, inst.obj).donne_objet()
+                valeur := interprète.donne_accumulateur()
+
+                nom_propriété := to_string(interprète, Valeur(Number = inst.index comme r64)).valeur.V.String.texte
+
+                _ := create_data_property(objet, nom_propriété, valeur)
+            }
+            InstructionAppel {
+                appel := it comme *InstructionAppel
+
+                arguments: [..]Valeur
+                diffère déloge(arguments)
+
+                pour appel.donne_arguments() {
+                    tableau_ajoute(*arguments, donne_registre(registres, it))
+                }
+
+                func := donne_registre(registres, appel.func)
+
+                this_value := donne_registre(registres, appel.this_value)
+
+                // 4. If func is not an Object, throw a TypeError exception.
+                saufsi func.est_object() {
+                    message := imprime_chaine("'%' is not an Object", func)
+                    retourne lance_type_error(interprète, message)
+                }
+                
+                // 5. If IsCallable(func) is false, throw a TypeError exception.
+                saufsi func.is_callable() {
+                    message := imprime_chaine("'%' is not callable", func)
+                    retourne lance_type_error(interprète, message)
+                }
+
+                // 6. If tailPosition is true, perform PrepareForTailCall().
+
+                // 7. Return ? Call(func, thisValue, argList).
+                completion := call(interprète, func, this_value, arguments)
+                interprète.définis_exception(completion)
+
+                interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionAppelEval {
+                appel := it comme *InstructionAppelEval
+                realm := interprète.donne_realm()
+
+                arguments: [..]Valeur
+                diffère déloge(arguments)
+
+                pour appel.donne_arguments() {
+                    tableau_ajoute(*arguments, donne_registre(registres, it))
+                }
+
+                func := donne_registre(registres, appel.func)
+
+                si same_value(func, Valeur(Object = realm.intrinsics.eval)).est_true() {
+                    si arguments.taille == 0 {
+                        interprète.définis_accumulateur(js_undefined)
+                        continue
+                    }
+
+                    eval_arg := arguments[0]
+                    // À FAIRE : is_strict(noeud)
+                    strict_caller := faux
+
+                    completion := perform_eval(interprète, eval_arg, strict_caller, vrai)
+                    interprète.définis_exception(completion)
+                    interprète.définis_accumulateur(completion.valeur.V)
+                    continue
+                }
+
+                this_value := donne_registre(registres, appel.this_value)
+
+                // 4. If func is not an Object, throw a TypeError exception.
+                saufsi func.est_object() {
+                    message := imprime_chaine("'%' is not an Object", func)
+                    retourne lance_type_error(interprète, message)
+                }
+                
+                // 5. If IsCallable(func) is false, throw a TypeError exception.
+                saufsi func.is_callable() {
+                    message := imprime_chaine("'%' is not callable", func)
+                    retourne lance_type_error(interprète, message)
+                }
+
+                // 6. If tailPosition is true, perform PrepareForTailCall().
+
+                // 7. Return ? Call(func, thisValue, argList).
+                completion := call(interprète, func, this_value, arguments)
+                interprète.définis_exception(completion)
+
+                interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionNew {
+                new := it comme *InstructionNew
+
+                arguments: [..]Valeur
+                diffère déloge(arguments)
+
+                pour new.donne_arguments() {
+                    tableau_ajoute(*arguments, donne_registre(registres, it))
+                }
+
+                constructor := donne_registre(registres, new.func)
+
+                // 5. If IsConstructor(constructor) is false, throw a TypeError exception.
+                saufsi is_constructor(constructor) {
+                    retourne lance_type_error(interprète, "expression is not a constructor")
+                }
+
+                // 6. Return ? Construct(constructor, argList).
+                completion := construct(interprète, constructor, arguments)
+                interprète.définis_exception(completion)
+
+                interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionThisValueAppel {
+                this_value := it comme *InstructionThisValueAppel
+
+                résultat := js_undefined
+
+                interpréteuse := interprète.interpréteuse_arbre
+                interpréteuse.mv = interprète.mv
+                interprète.mv.interpréteuse = interpréteuse
+                diffère interprète.mv.interpréteuse = interprète
+
+                completion_ref := exécute(interpréteuse, this_value.noeud)
+                interprète.définis_exception(completion_ref)
+
+                ref := completion_ref.valeur
+
+                // 1. If ref is a Reference Record, then
+                si est_reference_record(ref) {
+                    // a. If IsPropertyReference(ref) is true, then
+                    si est_référence_propriété(ref) {
+                        // i. Let thisValue be GetThisValue(ref).
+                        résultat = get_this_value(ref.R)
+                    }
+                    // b. Else,
+                    sinon {
+                        // i. Let refEnv be ref.[[Base]].
+                        ref_env := ref.R.base.E
+                        // ii. Assert: refEnv is an Environment Record.
+                        // iii. Let thisValue be refEnv.WithBaseObject().
+                        résultat = ref_env.with_base_object()
+                    }
+                }
+                // 2. Else,
+                sinon {
+                    // a. Let thisValue be undefined.
+                    résultat = js_undefined
+                }
+
+                interprète.définis_accumulateur(résultat)
+            }
+            InstructionRetour {
+                valeur := interprète.donne_accumulateur()
+                retourne return_completion(valeur)
+            }
+            InstructionThis {
+                completion := resolve_this_binding(interprète)
+                interprète.définis_exception(completion)
+                interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionIncrémente {
+                valeur := interprète.donne_accumulateur()
+
+                complétion_old_value := to_numeric(interprète, valeur)
+                old_value := js_undefined
+                si complétion_old_value.est_throw() {
+                    interprète.définis_exception(complétion_old_value.valeur.V)
+                }
+                sinon {
+                    old_value = complétion_old_value.valeur.V
+                }
+
+                nouvelle_valeur: Valeur
+
+                si est_nombre(old_value) {
+                    nouvelle_valeur = number_add(old_value, Valeur(Number = 1))
+                }
+                sinon si est_big_int(old_value) {
+                    panique("update expression sur BigInt non-implémentée")
+                }
+
+                interprète.définis_accumulateur(nouvelle_valeur)
+            }
+            InstructionDécrémente {
+                valeur := interprète.donne_accumulateur()
+
+                complétion_old_value := to_numeric(interprète, valeur)
+                old_value := js_undefined
+                si complétion_old_value.est_throw() {
+                    interprète.définis_exception(complétion_old_value.valeur.V)
+                }
+                sinon {
+                    old_value = complétion_old_value.valeur.V
+                }
+
+                nouvelle_valeur: Valeur
+
+                si est_nombre(old_value) {
+                    nouvelle_valeur = number_subtract(old_value, Valeur(Number = 1))
+                }
+                sinon si est_big_int(old_value) {
+                    panique("update expression sur BigInt non-implémentée")
+                }
+
+                interprète.définis_accumulateur(nouvelle_valeur)
+            }
+            InstructionInstancieFonction {
+                instance := it comme *InstructionInstancieFonction
+                closure := instantiate_ordinary_function_expression(interprète, instance.fonction)
+                interprète.définis_accumulateur(Valeur(Function = closure))
+            }
+            InstructionInstancieArrowFunction {
+                instance := it comme *InstructionInstancieArrowFunction
+                closure := instantiate_arrow_function_expression(interprète, instance.fonction)
+                interprète.définis_accumulateur(Valeur(Function = closure))
+            }
+            InstructionEntréeBlocCatch {
+                inst := it comme *InstructionEntréeBlocCatch
+
+                valeur := interprète.donne_accumulateur()
+                status, old_env := crée_environnement_lexical_pour_catch(interprète, inst.nom, valeur)
+                si status.est_throw() {
+                    interprète.définis_exception(status.valeur.V)
+                }
+                si old_env != nul {
+                    empile(interprète.environments_catch, old_env)
+                }
+            }
+            InstructionSortieBlocCatch {
+                old_env := dépile(interprète.environments_catch)
+                assert(old_env != nul)
+                mv := interprète.mv
+                running_execution_context := mv.donne_running_execution_context()
+                running_execution_context.lexical_environment = old_env
+
+                // À FAIRE : nous devons également dépiler old env si une exception est lancée dans le bloc catch
+            }
+            InstructionEntréeSwitch {
+                mv := interprète.mv
+                running_execution_context := mv.donne_running_execution_context()
+                old_env := running_execution_context.lexical_environment
+
+                block_env := new_declarative_environment(old_env.donne_tas_de_mémoire(), old_env)
+                //  À FAIRE : 5. Perform BlockDeclarationInstantiation(CaseBlock, blockEnv).
+
+                running_execution_context.lexical_environment = block_env
+                empile(interprète.environments_catch, old_env)
+            }
+            InstructionSortieSwitch {
+                old_env := dépile(interprète.environments_catch)
+                assert(old_env != nul)
+                mv := interprète.mv
+                running_execution_context := mv.donne_running_execution_context()
+                running_execution_context.lexical_environment = old_env
+
+                // À FAIRE : nous devons également dépiler old env si une exception est lancée dans le bloc catch
+            }
+            InstructionThrow {
+                valeur := interprète.donne_accumulateur()
+                saufsi interprète.possède_exception() {
+                    interprète.exception = valeur
+                }
+            }
+            InstructionEmpileExceptionHandler {
+                inst := it comme *InstructionEmpileExceptionHandler
+                empile(interprète.exception_handlers, inst.décalage)
+            }
+            InstructionDépileExceptionHandler {
+                _ := dépile(interprète.exception_handlers)
+            }
+            InstructionNamedEvaluation {
+                inst := it comme *InstructionNamedEvaluation
+                completion := named_evaluation(interprète, inst.noeud, inst.nom)
+                interprète.définis_exception(completion)
+                interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionTypeof {
+                valeur := interprète.donne_accumulateur()
+                chn := donne_chaine_pour_typeof(valeur)
+                string := crée_chaine(interprète.donne_realm(), chn)
+                résultat := Valeur(String = string)
+                interprète.définis_accumulateur(résultat)
+            }
+            InstructionUnaryMinus {
+                valeur := interprète.donne_accumulateur()
+
+                completion := to_number(interprète, valeur)
+                si completion.est_throw() {
+                    interprète.définis_exception(completion)
+                    continue
+                }
+                old_value := completion.valeur.V
+
+                // 3. If oldValue is a Number, then
+                résultat := si old_value.est_nombre() {
+                    // a. Return Number::unaryMinus(oldValue).
+                    number_unary_minus(old_value)
+                }
+                // 4. Else,
+                sinon {
+                    // a. Assert: oldValue is a BigInt.
+                    assert(old_value.est_big_int())
+                    // b. Return BigInt::unaryMinus(oldValue).
+                    bigint_unary_minus(old_value)
+                }
+                interprète.définis_accumulateur(résultat)
+            }
+            InstructionUnaryPlus {
+                valeur := interprète.donne_accumulateur()
+                completion := to_number(interprète, valeur)
+                interprète.définis_exception(completion)
+                interprète.définis_accumulateur(completion.valeur.V)
+            }
+            InstructionLogicalNot {
+                valeur := interprète.donne_accumulateur()
+                old_value := to_boolean(valeur)
+                si old_value.est_true() {
+                    old_value.Boolean = faux
+                }
+                sinon {
+                    old_value.Boolean = vrai
+                }
+                interprète.définis_accumulateur(old_value)
+            }
+            InstructionBinaryNot {
+                valeur := interprète.donne_accumulateur()
+
+                completion := to_numeric(interprète, valeur)
+                si completion.est_throw() {
+                    interprète.définis_exception(completion)
+                    continue
+                }
+
+                old_value := completion.valeur.V
+
+                // 3. If oldValue is a Number, then
+                si old_value.est_nombre() {
+                    // a. Return Number::bitwiseNOT(oldValue).
+                    résultat := number_bitwise_not(old_value)
+                    interprète.définis_accumulateur(résultat)
+                    continue
+                }
+
+                // 4. Else,
+                //    a. Assert: oldValue is a BigInt.
+                assert(old_value.est_big_int())
+
+                //    b. Return BigInt::bitwiseNOT(oldValue).
+                résultat := big_int_bitwise_not(old_value)
+                interprète.définis_accumulateur(résultat)
+            }
+            InstructionCDPOT {
+                inst := it comme *InstructionCDPOT
+                valeur := interprète.donne_accumulateur()
+                objet := donne_registre(registres, inst.obj).donne_objet()
+                _ := create_data_property_or_throw(objet, inst.nom, valeur)
+            }
+            sinon {
+                imprime("intruction inconnue!\n")
+                arrête
+            }
+        }
+
+        si interprète.possède_exception() {
+            décalage := interprète.exception_handlers.tête()
+            si décalage == DécalageBranche(-1) {
+                retourne throw_completion(interprète.donne_exception())
+            }
+
+            interprète.définis_accumulateur(interprète.donne_exception())
+            courant = début + décalage comme z64
+        }
+    }
+
+    // imprime_registres(interprète)
+    retourne normal_completion(interprète.donne_accumulateur())
+}
+
+imprime_registres :: fonc (interprète: *InterprèteCodeBinaire)
+{
+    imprime("Registres :\n")
+
+    pour interprète.registres {
+        imprime("- [%] %\n", index_it, it)
+    }
+}
+
+évalue_relation_in :: fonc (interprète: *InterprèteCodeBinaire, registres: ÉtatRegistres, inst: *InstructionIn)
+{
+    gauche := donne_registre(registres, inst.gch)
+    droite := interprète.donne_accumulateur()
+
+    saufsi droite.est_object() {
+        message := imprime_chaine("'%' is not an Object", droite)
+        completion := lance_type_error(interprète, message)
+        interprète.définis_exception(completion)
+        retourne
+    }
+
+    // 6. Return ? HasProperty(rVal, ? ToPropertyKey(lVal)).
+    completion := to_property_key(interprète, gauche)
+    saufsi completion.est_normal() {
+        interprète.définis_exception(completion)
+        retourne
+    }
+
+    completion = has_property(droite.donne_objet(), completion.valeur.V.String.texte)
+    interprète.définis_exception(completion)
+    interprète.définis_accumulateur(completion.valeur.V)
+}
+
+/** \} */
