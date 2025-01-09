@@ -1,5 +1,7 @@
 importe Math
 
+charge "tableaux"
+
 // Différents algorithmes de recherche binaire. Ces algorithmes nous évitent de faire trop
 // de comparaisons, et sont résistant aux dépassement de bornes.
 

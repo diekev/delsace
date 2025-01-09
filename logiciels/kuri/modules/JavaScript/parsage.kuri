@@ -1212,7 +1212,7 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
             parseuse.consomme(GenreLexème.DoublePoint)
 
             alternate := parseuse.parse_expression(params)
-            retourne crée_conditionnal_expression(parseuse, lexème, gauche, consequent, alternate)
+            retourne crée_conditional_expression(parseuse, lexème, gauche, consequent, alternate)
         }
         Virgule {
             parseuse.consomme()
