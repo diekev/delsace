@@ -3,6 +3,7 @@ importe Couleur
 importe Fondation
 importe Math
 importe SysFichier
+importe PThread
 
 libtbb :: #bibliothèque "tbb"
 
@@ -156,10 +157,6 @@ liboiio :: #bibliothèque "OpenImageIO"
 liboiio_util :: #bibliothèque "OpenImageIO_Util"
 // libjpeg :: #bibliothèque "jpeg"
 // libpugixml :: #bibliothèque "pugixml"
-// libwebp :: #bibliothèque "webp"
-// libwebpdecoder :: #bibliothèque "webpdecoder"
-// libwebpdemux :: #bibliothèque "webpdemux"
-// libwebpmux :: #bibliothèque "webpmux"
 // libtiff :: #bibliothèque "tiff"
 // libtiffxx :: #bibliothèque "tiffxx"
 // libz :: #bibliothèque "z"
@@ -173,9 +170,6 @@ liboiio_util :: #bibliothèque "OpenImageIO_Util"
 // #dépendance_bibliothèque liboiio_util libdl
 // #dépendance_bibliothèque libtiff libz
 // #dépendance_bibliothèque libtiff libtiffxx
-// #dépendance_bibliothèque libwebp libwebpdecoder
-// #dépendance_bibliothèque libwebp libwebpdemux
-// #dépendance_bibliothèque libwebp libwebpmux
 // #dépendance_bibliothèque liboiio libpng
 // #dépendance_bibliothèque liboiio libwebp
 // #dépendance_bibliothèque liboiio libtiff
@@ -817,3 +811,25 @@ encode_int :: fonc (value: z32, length: z32, destination: *z8) -> *z8
     retourne destination
 }
 */
+
+/* ------------------------------------------------------------------------- */
+/** \nom WebP
+ * libwebp version 1.4
+ * \{ */
+
+libwebp :: #bibliothèque "webp"
+libsharpyuv :: #bibliothèque "sharpyuv"
+libwebpdemux :: #bibliothèque "webpdemux"
+libwebpmux :: #bibliothèque "webpmux"
+
+#dépendance_bibliothèque libwebp libsharpyuv
+#dépendance_bibliothèque libwebp libwebpdemux
+#dépendance_bibliothèque libwebp libwebpmux
+
+#dépendance_bibliothèque libwebp libpthread
+
+WebPGetInfo :: fonc (data: *n8, data_size: n64, width: *z32, height: *z32) -> z32 #externe libwebp
+
+WebPDecodeRGBAInto :: fonc (data: *n8, data_size: n64, output_buffer: *n8, output_buffer_size: n64, output_stride: z32) -> *n8 #externe libwebp
+
+/** \} */
