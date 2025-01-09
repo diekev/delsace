@@ -19,6 +19,11 @@ importe Introspection
 importe OpenGL
 importe Périphériques
 
+charge "clavier"
+charge "coulisse_glfw"
+charge "coulisse_sdl"
+charge "pilote_application"
+
 /* ------------------------------------------------------------------------- */
 /** \nom Fenêtre
  * \{ */

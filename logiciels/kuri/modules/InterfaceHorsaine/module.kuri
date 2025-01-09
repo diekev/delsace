@@ -7,6 +7,10 @@ importe Fondation
 importe SysFichier
 importe Unicode
 
+charge "génération_code_c"
+charge "génération_code_cpp"
+charge "utilitaires"
+
 /* ------------------------------------------------------------------------- */
 
 /* Discrimination des annotations @Python pouvant se trouver sur des fonctions. */
