@@ -830,6 +830,7 @@ libwebpmux :: #bibliothèque "webpmux"
 
 WebPGetInfo :: fonc (data: *n8, data_size: n64, width: *z32, height: *z32) -> z32 #externe libwebp
 
+WebPDecodeRGBInto :: fonc (data: *n8, data_size: n64, output_buffer: *n8, output_buffer_size: n64, output_stride: z32) -> *n8 #externe libwebp
 WebPDecodeRGBAInto :: fonc (data: *n8, data_size: n64, output_buffer: *n8, output_buffer_size: n64, output_stride: z32) -> *n8 #externe libwebp
 
 /** \} */
