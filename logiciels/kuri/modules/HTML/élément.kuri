@@ -1562,28 +1562,7 @@ update_image_data :: fonc (image: *HTMLImageElement)
 
         contenu := réponse.body.Quelque
 
-        // À FAIRE : prend le chemin de l'url si le schéma n'est pas "data"
-        chemin_image := ""
-        si content_type == "image/png" {
-            chemin_image = "image.png"
-        }
-        sinon si content_type == "image/jpeg" {
-            chemin_image = "image.jpeg"
-        }
-        sinon {
-            panique("chemin image non résolvable")
-        }
-
-        proxy_image := IMG_cree_proxy_memoire(contenu.pointeur, contenu.taille comme n64)
-        diffère IMG_detruit_proxy(proxy_image)
-
-        chn_c_chemin := crée_chaine_c(chemin_image)
-        diffère détruit_chaine_c(chn_c_chemin)
-
-        résultat_lecture_image := IMG_ouvre_image_avec_proxy(chn_c_chemin, *rappel.image.image_data, proxy_image)
-        si résultat_lecture_image != ResultatOperation.OK {
-            imprime("Impossible de lire l'image : %\n", résultat_lecture_image)
-        }
+        _ := décode_image(contenu, content_type, *rappel.image.image_data)
 
         invalide_style(rappel.image.document)
         enfile_une_tâche_pour_lancer_évènement_à_élément(rappel.user_agent, rappel.image, EventType.load)
@@ -1605,6 +1584,75 @@ update_image_data :: fonc (image: *HTMLImageElement)
 
     fetch_controller := fetch(user_agent, request, process_response = process_response)
     diffère détruit_fetch_controller(fetch_controller)
+}
+
+#portée_export
+
+décode_image :: fonc (contenu: chaine, content_type: chaine, résultat: *ImageIO) -> bool
+{
+    si content_type == "image/webp" {
+        data := contenu.pointeur comme *n8
+        date_size := contenu.taille comme n64
+
+        hauteur: z32
+        largeur: z32
+        résultat_info := WebPGetInfo(data, date_size, *largeur, *hauteur)
+        si résultat_info == 0 {
+            imprime("Impossible de lire l'image WebP.")
+            retourne faux
+        }
+
+        tampon := loge_tableau(octet, hauteur comme z64 * largeur comme z64 * 4)
+        diffère déloge(tampon)
+
+        output_buffer := tampon.pointeur comme *n8
+        output_buffer_size := tampon.capacité comme n64
+
+        résultat_décodage := WebPDecodeRGBAInto(data, date_size, output_buffer, output_buffer_size, largeur * 4)
+        saufsi résultat_décodage {
+            imprime("Impossible de décoder l'image WebP.")
+            retourne faux
+        }
+        assert(résultat_décodage == output_buffer)
+
+        mémoire(résultat) = alloc_image(hauteur, largeur, 4)
+
+        entrée := output_buffer
+        sortie := résultat.donnees
+        pour tampon.capacité {
+            mémoire(sortie) = mémoire(entrée) comme r32 / 255.0
+            entrée += 1
+            sortie += 1
+        }
+
+        retourne vrai
+    }
+
+    // À FAIRE : prend le chemin de l'url si le schéma n'est pas "data"
+    chemin_image := ""
+    si content_type == "image/png" {
+        chemin_image = "image.png"
+    }
+    sinon si content_type == "image/jpeg" {
+        chemin_image = "image.jpeg"
+    }
+    sinon {
+        panique("chemin image non résolvable")
+    }
+
+    proxy_image := IMG_cree_proxy_memoire(contenu.pointeur, contenu.taille comme n64)
+    diffère IMG_detruit_proxy(proxy_image)
+
+    chn_c_chemin := crée_chaine_c(chemin_image)
+    diffère détruit_chaine_c(chn_c_chemin)
+
+    résultat_lecture_image := IMG_ouvre_image_avec_proxy(chn_c_chemin, résultat, proxy_image)
+    si résultat_lecture_image != ResultatOperation.OK {
+        imprime("Impossible de lire l'image : %\n", résultat_lecture_image)
+        retourne faux
+    }
+
+    retourne vrai
 }
 
 /** \} */
