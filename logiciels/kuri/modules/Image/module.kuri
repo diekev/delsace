@@ -71,7 +71,7 @@ NouvelleImage :: struct {
 crée_image :: fonc (desc: *DescriptriceImage) -> NouvelleImage
 {
     taille_données := donne_taille_données(desc)
-    données := loge_tableau(taille_donnees, octet)
+    données := loge_tableau(octet, taille_données)
 
     résultat: NouvelleImage
     résultat.données = données.pointeur
