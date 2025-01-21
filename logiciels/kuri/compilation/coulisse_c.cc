@@ -1496,7 +1496,7 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
             if (résultat.nombre_tampons() > 1) {
                 auto chaine_résultat = résultat.chaine();
                 chaines_trop_larges_pour_stockage_chn.ajoute(chaine_résultat);
-                auto chn_résultat = chaines_trop_larges_pour_stockage_chn.dernier_élément();
+                auto &chn_résultat = chaines_trop_larges_pour_stockage_chn.dernier_élément();
 
                 if (!pour_globale) {
                     os << "  " << chn_résultat << ";\n";
