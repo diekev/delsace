@@ -9,6 +9,13 @@ importe Unicode
 /** \nom PanneauÉditionTexte.
  * \{ */
 
+RappelsÉditionTexte :: struct {
+    /* Appelé à chaque changement. */
+    sur_édition: fonc(*RappelsÉditionTexte, chaine)(rien)
+    /* Appelé lors de la fin de l'édition. */
+    sur_fin_édition: fonc(*RappelsÉditionTexte, chaine)(rien)
+}
+
 PanneauÉditionTexte :: struct {
     empl base: Panneau
 
@@ -21,6 +28,8 @@ PanneauÉditionTexte :: struct {
     id_chronomètre: IDChronomètre
 
     curseur: CurseurTexte
+
+    rappels: *RappelsÉditionTexte
 }
 
 crée_panneau_édition_texte :: fonc (contexte: *ContexteInterface, texte: chaine, parent: *Panneau) -> *PanneauÉditionTexte
@@ -34,6 +43,7 @@ crée_panneau_édition_texte :: fonc (contexte: *ContexteInterface, texte: chain
     résultat.sur_clique_souris = sur_clic_panneau_édition_texte
     résultat.texte = crée_chaine_utf32(texte)
     résultat.curseur.texte = *résultat.texte
+    résultat.curseur.panneau = résultat
     retourne résultat
 }
 
@@ -182,6 +192,8 @@ CurseurTexte :: struct {
     fin: z64
     ancre: z64
     texte: *ChaineUTF32
+    panneau: *PanneauÉditionTexte
+    fut_modifié: bool
 }
 
 ModeDéplacementCurseur :: énum {
@@ -242,6 +254,8 @@ efface :: fonc (curseur: *CurseurTexte)
         tableau_supprime_entre(*curseur.texte.points_de_code, curseur.début, curseur.fin)
         définis_position(curseur, ModeDéplacementCurseur.DéplaceAncre, curseur.début)
     }
+
+    notifie_changement(curseur)
 }
 
 supprime :: fonc (curseur: *CurseurTexte)
@@ -258,6 +272,7 @@ supprime :: fonc (curseur: *CurseurTexte)
     }
 
     définis_position(curseur, ModeDéplacementCurseur.DéplaceAncre, curseur.début)
+    notifie_changement(curseur)
 }
 
 insère :: fonc (curseur: *CurseurTexte, point_de_code: n32)
@@ -271,6 +286,44 @@ insère :: fonc (curseur: *CurseurTexte, point_de_code: n32)
     }
 
     définis_position(curseur, ModeDéplacementCurseur.DéplaceAncre, curseur.début + 1)
+    notifie_changement(curseur)
+}
+
+notifie_changement :: fonc (curseur: *CurseurTexte)
+{
+    curseur.fut_modifié = vrai
+
+    panneau := curseur.panneau
+    saufsi panneau.rappels && panneau.rappels.sur_édition {
+        retourne
+    }
+
+    texte := mémoire(curseur.texte)
+
+    chn := converti_vers_chaine(texte)
+    diffère déloge(chn)
+
+    panneau.rappels.sur_édition(panneau.rappels, chn)
+}
+
+notifie_fin_édition :: fonc (curseur: *CurseurTexte)
+{
+    saufsi curseur.fut_modifié {
+        retourne
+    }
+    curseur.fut_modifié = vrai
+
+    panneau := curseur.panneau
+    saufsi panneau.rappels && panneau.rappels.sur_fin_édition {
+        retourne
+    }
+
+    texte := mémoire(curseur.texte)
+
+    chn := converti_vers_chaine(texte)
+    diffère déloge(chn)
+
+    panneau.rappels.sur_fin_édition(panneau.rappels, chn)
 }
 
 /** \} */
@@ -306,6 +359,7 @@ guetteuse_édition_texte_sur_termine_guettage :: fonc (base: *Guetteuse)
     panneau.en_édition = faux
     panneau.curseur.début = panneau.curseur.fin
     contexte.arrête_chronomètre(panneau.id_chronomètre)
+    notifie_fin_édition(*panneau.curseur)
 }
 
 guetteuse_édition_texte_sur_déplacement_souris :: fonc (base: *Guetteuse, souris: ÉtatSouris)
