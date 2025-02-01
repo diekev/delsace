@@ -21,6 +21,7 @@ PanneauÉditionTexte :: struct {
 
     rect_texte: RectanglePosDim(z32)
     texte: ChaineUTF32
+    lieutenant: ChaineUTF32
 
     en_édition: bool
     curseur_est_affiché := vrai
@@ -32,7 +33,7 @@ PanneauÉditionTexte :: struct {
     rappels: *RappelsÉditionTexte
 }
 
-crée_panneau_édition_texte :: fonc (contexte: *ContexteInterface, texte: chaine, parent: *Panneau) -> *PanneauÉditionTexte
+crée_panneau_édition_texte :: fonc (contexte: *ContexteInterface, texte: chaine, parent: *Panneau, lieutenant := "") -> *PanneauÉditionTexte
 {
     résultat := contexte.crée_panneau(PanneauÉditionTexte)
     si parent {
@@ -42,9 +43,19 @@ crée_panneau_édition_texte :: fonc (contexte: *ContexteInterface, texte: chain
     résultat.sur_redimension = sur_redimension_panneau_édition_texte
     résultat.sur_clique_souris = sur_clic_panneau_édition_texte
     résultat.texte = crée_chaine_utf32(texte)
+    résultat.lieutenant = crée_chaine_utf32(lieutenant)
     résultat.curseur.texte = *résultat.texte
     résultat.curseur.panneau = résultat
     retourne résultat
+}
+
+donne_texte_pour_dessin :: fonc (panneau: *PanneauÉditionTexte) -> ChaineUTF32
+{
+    si panneau.texte.taille() == 0 {
+        retourne panneau.lieutenant
+    }
+
+    retourne panneau.texte
 }
 
 sur_dessin_panneau_édition_texte :: fonc (empl panneau: *PanneauÉditionTexte, ctx: *ContexteAffichage)
@@ -57,9 +68,17 @@ sur_dessin_panneau_édition_texte :: fonc (empl panneau: *PanneauÉditionTexte, 
     peintre.remplis_rectangle(rect, thème.couleur_arrière_plan)
     peintre.dessine_rectangle(rect, thème.couleur_contour)
 
+    texte_à_dessiner := texte
+    couleur_texte := thème.couleur_texte
+
+    si texte_à_dessiner.est_vide() {
+        texte_à_dessiner = lieutenant
+        couleur_texte = thème.couleur_lieutenant
+    }
+
     rect_texte_pour_dessin := rect_texte
     rect_texte_pour_dessin.y -= métriques.jambage_inférieur comme z32
-    peintre.dessine_texte(fonte, texte, rect_texte_pour_dessin, thème.couleur_texte)
+    peintre.dessine_texte(fonte, texte_à_dessiner, rect_texte_pour_dessin, couleur_texte)
 
     saufsi en_édition {
         retourne
