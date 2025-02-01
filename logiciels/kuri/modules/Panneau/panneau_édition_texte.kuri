@@ -44,6 +44,7 @@ sur_dessin_panneau_édition_texte :: fonc (empl panneau: *PanneauÉditionTexte, 
     fonte := ctx.fonte
     métriques := fonte.donne_métriques_fonte()
 
+    peintre.remplis_rectangle(rect, thème.couleur_arrière_plan)
     peintre.dessine_rectangle(rect, thème.couleur_contour)
 
     rect_texte_pour_dessin := rect_texte
