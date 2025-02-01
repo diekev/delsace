@@ -105,8 +105,15 @@ sur_redimension_panneau_édition_texte :: fonc (base: *Panneau, rect_disponible:
     largeur_texte := 70 * métriques.largeur_moyenne + 10
     hauteur_texte := métriques.donne_hauteur_ligne() + 10
 
-    si largeur_texte > rect_disponible.largeur comme r32 {
-        largeur_texte = rect_disponible.largeur comme r32
+    discr règle_cotation_verticale {
+        SurContenu {
+            si largeur_texte > rect_disponible.largeur comme r32 {
+                largeur_texte = rect_disponible.largeur comme r32
+            }
+        }
+        SurLargeurDisponible {
+            largeur_texte = rect_disponible.largeur comme r32
+        }
     }
 
     rect.x = rect_disponible.x
