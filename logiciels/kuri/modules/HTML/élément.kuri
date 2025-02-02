@@ -292,8 +292,17 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élé
     sinon si tag == TAG_link {
         élément = crée_platform_object(document, HTMLLinkElement)
     }
+    sinon si tag == TAG_option {
+        élément = crée_platform_object(document, HTMLOptionElement)
+    }
+    sinon si tag == TAG_optgroup {
+        élément = crée_platform_object(document, HTMLOptGroupElement)
+    }
     sinon si tag == TAG_script {
         élément = crée_platform_object(document, HTMLScriptElement)
+    }
+    sinon si tag == TAG_select {
+        élément = crée_platform_object(document, HTMLSelectElement)
     }
     sinon si tag == TAG_style {
         élément = crée_platform_object(document, HTMLStyleElement)
@@ -1919,6 +1928,52 @@ table_virtuelle_video_element := TableVirtuelleÉlément(
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom HTMLOptionElement
+ * https://html.spec.whatwg.org/multipage/form-elements.html#the-option-element
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLOptionElement
+ *
+ * À FAIRE : insertion steps (void document de <select>)
+ * \{ */
+
+#portée_export
+
+HTMLOptionElement :: struct {
+    empl html_element: HTMLElement
+    table = *table_virtuelle_option_element
+}
+
+#portée_fichier
+
+table_virtuelle_option_element := TableVirtuelleÉlément(
+    classe = HTMLOptionElement,
+    sur_destruction = élément_sur_destruction
+)
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLOptGroupElement
+ * https://html.spec.whatwg.org/multipage/form-elements.html#the-optgroup-element
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLOptGroupElement
+ * \{ */
+
+#portée_export
+
+HTMLOptGroupElement :: struct {
+    empl html_element: HTMLElement
+    table = *table_virtuelle_optgroup_element
+}
+
+#portée_fichier
+
+table_virtuelle_optgroup_element := TableVirtuelleÉlément(
+    classe = HTMLOptGroupElement,
+    sur_destruction = élément_sur_destruction
+)
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom HTMLScriptElement
  * https://html.spec.whatwg.org/multipage/scripting.html#htmlscriptelement
  * https://developer.mozilla.org/en-US/docs/Web/API/HTMLScriptElement
@@ -2485,6 +2540,28 @@ fetch_a_classic_script :: fonc (user_agent: *UserAgent, url: *URL, settings_obje
     fetch_controller := fetch(user_agent, request, process_response = process_response)
     diffère détruit_fetch_controller(fetch_controller)
 }
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLSelectElement
+ * https://html.spec.whatwg.org/multipage/form-elements.html#the-select-element
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLSelectElement
+ * \{ */
+
+#portée_export
+
+HTMLSelectElement :: struct {
+    empl html_element: HTMLElement
+    table = *table_virtuelle_select_element
+}
+
+#portée_fichier
+
+table_virtuelle_select_element := TableVirtuelleÉlément(
+    classe = HTMLSelectElement,
+    sur_destruction = élément_sur_destruction
+)
 
 /** \} */
 
