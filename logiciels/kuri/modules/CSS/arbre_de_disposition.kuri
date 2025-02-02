@@ -71,6 +71,12 @@ détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
             remplacement := it comme *NoeudDeDispositionRemplacement
             déloge(remplacement)
         }
+        sinon si it.type == NoeudDeDispositionSelect {
+            select := it comme *NoeudDeDispositionSelect
+            détruit_chaine(select.texte)
+            déloge(select.fragments)
+            déloge(select)
+        }
         sinon {
             imprime("noeud inconnu !")
             déloge(it)
@@ -1095,6 +1101,8 @@ crée_noeud_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *
         retourne
     }
 
+    ignore_enfants := faux
+
     résultat: *NoeudDeDisposition
     si élément.local_name == HTML.TAG_img {
         résultat = crée_noeud_de_remplacement_image(arbre, élément comme *HTML.HTMLImageElement)
@@ -1107,6 +1115,10 @@ crée_noeud_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *
     }
     sinon si élément.local_name == HTML.TAG_canvas {
         résultat = crée_noeud_de_remplacement_canvas(arbre, élément comme *HTML.HTMLCanvasElement)
+    }
+    sinon si élément.local_name == HTML.TAG_select {
+        résultat = crée_noeud_de_remplacement_select(arbre, élément comme *HTML.HTMLSelectElement)
+        ignore_enfants = vrai
     }
     sinon si display.outer_type == Display.Type.Block || display.inner_type == Display.Type.Flex {
         bloc := arbre.crée_noeud(NoeudDeDispositionBloc)
@@ -1133,6 +1145,10 @@ crée_noeud_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *
 
     si parent {
         parent.ajoute_enfant(résultat)
+    }
+
+    si ignore_enfants {
+        retourne
     }
 
     pour noeud.enfants {
@@ -1589,6 +1605,10 @@ détermine_fonte :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage
     si noeud.type == NoeudDeDispositionTexte {
         noeud_texte := noeud comme *NoeudDeDispositionTexte
         noeud_texte.fonte = résultat
+    }
+    sinon si noeud.type == NoeudDeDispositionSelect {
+        noeud_select := noeud comme *NoeudDeDispositionSelect
+        noeud_select.fonte = résultat
     }
     retourne résultat
 }
@@ -3388,6 +3408,131 @@ noeud_canvas_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *
     décale_verticalement(base.modèle_de_boite, y)
 
     noeud_canvas_sur_dessin(base, ctx)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom NoeudDeDispositionRemplacement pour select
+ * \{ */
+
+#portée_fichier
+
+NoeudDeDispositionSelect :: struct {
+    empl noeud_rempl: NoeudDeDispositionRemplacement
+    type = #type_de_cette_structure
+
+    texte: ChaineUTF16
+    fragments: [..]FragmentTexte
+}
+
+réinitialise :: fonc (noeud: *NoeudDeDispositionSelect)
+{
+    détruit_chaine(noeud.texte)
+    noeud.fragments.taille = 0
+}
+
+crée_noeud_de_remplacement_select :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLSelectElement) -> *NoeudDeDispositionRemplacement
+{
+    résultat := arbre.crée_noeud(NoeudDeDispositionSelect)
+    résultat.élément = élément
+    résultat.sur_dessin = noeud_select_sur_dessin
+    résultat.sur_dessin_fragment = noeud_select_sur_dessin_fragment
+    résultat.sur_calcul_dimensions_intrinsèques = noeud_select_calcul_dimensions_intrinsèques
+    retourne résultat
+}
+
+// À FAIRE : standardise (https://html.spec.whatwg.org/multipage/rendering.html#the-select-element-2)
+donne_select_labels_width :: fonc (noeud: *NoeudDeDispositionSelect, ctx: *ContexteDeFormattage) -> r32
+{
+    réinitialise(noeud)
+
+    select := noeud.élément comme *HTML.HTMLSelectElement
+
+    option := donne_première_option(select)
+    saufsi option {
+        retourne 0.0
+    }
+
+    noeud.texte = HTML.donne_contenu_texte_descandants(option)
+    si noeud.texte.taille() == 0 {
+        retourne 0.0
+    }
+
+    fragmente_texte_avec_espaces_blanches_ascii(noeud.texte, *noeud.fragments)
+    collapse_séquences_d_espaces_blanches_autour_bris_segments(noeud.fragments)
+    collapse_bris_segments(noeud.fragments, PROP_normal)
+    convertis_tabulations_en_espaces(noeud.fragments)
+    collapse_espaces_consécutives(noeud.fragments)
+
+    fonte := détermine_fonte(noeud, ctx)
+
+    résultat := 0.0
+
+    pour noeud.fragments {
+        résultat += donne_largeur_texte(fonte, it.texte) comme r32
+    }
+
+    retourne résultat
+}
+
+donne_première_option :: fonc (select: *HTML.HTMLSelectElement) -> *HTML.HTMLOptionElement
+{
+    pour select.enfants {
+        saufsi HTML.est_élément(it) {
+            continue
+        }
+
+        élément := it comme *HTML.Élément
+        si élément.local_name != HTML.TAG_option {
+            continue
+        }
+
+        retourne élément comme *HTML.HTMLOptionElement
+    }
+
+    retourne nul
+}
+
+noeud_select_calcul_dimensions_intrinsèques :: fonc (noeud: *NoeudDeDispositionSelect, ctx: *ContexteDeFormattage)
+{
+    élément := noeud.élément comme *HTML.HTMLSelectElement
+    assert(élément.local_name == HTML.TAG_select)
+    noeud.largeur_intrinsèque = donne_select_labels_width(noeud, ctx)
+    noeud.hauteur_intrinsèque = donne_line_height(noeud, ctx)
+}
+
+noeud_select_sur_dessin :: fonc (noeud: *NoeudDeDispositionSelect, ctx: *ContexteDessin)
+{
+    dessine_arrière_plan(ctx, noeud)
+
+    peintre := ctx.peintre
+    fonte := noeud.fonte
+    assert(fonte != nul)
+
+    métriques := donne_métriques_fonte(fonte)
+    couleur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color).couleur
+
+    rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_contenu())
+    rect.y -= métriques.jambage_inférieur
+
+    pour noeud.fragments {
+        peintre.dessine_texte(fonte, it.texte, rect, couleur, nul)
+
+        rect.x += donne_largeur_texte(fonte, it.texte) comme r32
+    }
+}
+
+noeud_select_sur_dessin_fragment :: fonc (noeud: *NoeudDeDispositionSelect, fragment: *Fragment, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
+{
+    /* XXX - ceci devrait sans doute être fait lors de la disposition. */
+    x := fragment.x - noeud.modèle_de_boite.contenu.x
+    y := fragment.y - noeud.modèle_de_boite.contenu.y
+
+    décale_horizontalement(noeud.modèle_de_boite, x)
+    décale_verticalement(noeud.modèle_de_boite, y)
+
+    noeud_select_sur_dessin(noeud, ctx)
 }
 
 /** \} */
