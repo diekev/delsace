@@ -1009,6 +1009,11 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, haut
         retourne
     }
 
+    saufsi document.feuille_de_style_agent {
+        document.feuille_de_style_agent = HTML.donne_feuille_de_style_défaut()
+        tableau_insère_index(*document.feuilles_de_style, document.feuille_de_style_agent, 0)
+    }
+
     saufsi document.globales_dessin {
         document.globales_dessin = crée_globales_dessin()
     }

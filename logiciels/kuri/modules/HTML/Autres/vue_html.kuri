@@ -1575,11 +1575,6 @@ crée_arbre_de_disposition :: fonc (page: *PageWeb, largeur: z32, hauteur: z32) 
         retourne nul
     }
 
-    saufsi document.feuille_de_style_agent {
-        document.feuille_de_style_agent = donne_feuille_de_style_défaut()
-        tableau_insère_index(*document.feuilles_de_style, document.feuille_de_style_agent, 0)
-    }
-
     retourne CSS.donne_arbre_de_disposition_ajourné(document, largeur, hauteur)
 }
 
