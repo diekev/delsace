@@ -1568,24 +1568,6 @@ envoie_mouseup :: fonc (élément: *HTML.Élément, position_x: z32, position_y:
 /** \nom Arbre de disposition
  * \{ */
 
-donne_feuille_de_style_défaut :: fonc () -> *CSS.CSSStyleSheet
-{
-    chemin_fichier := donne_chemin_fichier_css_défaut()
-    diffère détruit_chemin(chemin_fichier)
-
-    contenu := contenu_fichier_texte(chemin_fichier)
-    diffère déloge(contenu)
-
-    ctx: CSS.ContexteParsageFeuilleDeStyle
-    diffère CSS.détruit_données_contexte(*ctx)
-
-    stylesheet := CSS.parse_a_css_style_sheet(*ctx, contenu)
-    stylesheet.origine = CSS.OrigineCascade.UserAgent
-    CSS.rapporte_propriétés_non_supportées(*ctx, #nom_de_cette_fonction)
-
-    retourne stylesheet
-}
-
 crée_arbre_de_disposition :: fonc (page: *PageWeb, largeur: z32, hauteur: z32) -> *CSS.ArbreDeDisposition
 {
     document := donne_document(page)

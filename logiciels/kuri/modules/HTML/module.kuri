@@ -55,6 +55,24 @@ donne_chemin_fichier_css_défaut :: fonc () -> CheminFichier
     retourne résultat
 }
 
+donne_feuille_de_style_défaut :: fonc () -> *CSS.CSSStyleSheet
+{
+    chemin_fichier := donne_chemin_fichier_css_défaut()
+    diffère détruit_chemin(chemin_fichier)
+
+    contenu := contenu_fichier_texte(chemin_fichier)
+    diffère déloge(contenu)
+
+    ctx: CSS.ContexteParsageFeuilleDeStyle
+    diffère CSS.détruit_données_contexte(*ctx)
+
+    stylesheet := CSS.parse_a_css_style_sheet(*ctx, contenu)
+    stylesheet.origine = CSS.OrigineCascade.UserAgent
+    CSS.rapporte_propriétés_non_supportées(*ctx, #nom_de_cette_fonction)
+
+    retourne stylesheet
+}
+
 imprime_noeud :: fonc (noeud: *Noeud, tab: z32) -> rien
 {
     imprime_tabulation(tab)

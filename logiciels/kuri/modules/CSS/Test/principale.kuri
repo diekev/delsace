@@ -14,17 +14,7 @@ principale :: fonc () -> z32
 
 test_collection_règles :: fonc ()
 {
-    chemin_fichier := HTML.donne_chemin_fichier_css_défaut()
-    diffère détruit_chemin(chemin_fichier)
-
-    contenu := contenu_fichier_texte(chemin_fichier)
-    diffère déloge(contenu)
-
-    ctx: ContexteParsageFeuilleDeStyle
-    diffère détruit_données_contexte(*ctx)
-
-    stylesheet := parse_a_css_style_sheet(*ctx, contenu)
-    rapporte_propriétés_non_supportées(*ctx, #nom_de_cette_fonction)
+    stylesheet := HTML.donne_feuille_de_style_défaut()
 
     élément := crée_chaine_utf16("p")
 
