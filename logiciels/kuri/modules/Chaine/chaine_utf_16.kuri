@@ -759,7 +759,7 @@ ChaineUTF16Unique :: struct {
     CHAINE_VIDE : n32 : 128
     CHAINE_NULLE : n32 : 129
 
-    valeur: n32
+    valeur := CHAINE_NULLE
 }
 
 crée_chaine_utf16_unique :: fonc (chn: chaine) -> ChaineUTF16Unique
