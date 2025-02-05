@@ -15,6 +15,9 @@ charge "stacking_context"
 charge "style"
 charge "terminologie"
 
+logue_propriétés_non_supportées := vrai
+logue_erreurs_de_parsage := vrai
+
 lèxe_style :: fonc (contenu: chaine) -> [..]Lexème
 {
     chn := crée_chaine_utf32(contenu)

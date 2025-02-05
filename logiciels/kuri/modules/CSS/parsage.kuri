@@ -2133,7 +2133,7 @@ détruit_données_contexte :: fonc (ctx: *ContexteParsageFeuilleDeStyle)
 donne_info_type_pour_nom :: fonc (ctx: *ContexteParsageFeuilleDeStyle, nom: CSSOMString) -> *InfoTypePropriété
 {
     résultat := donne_info_type_pour_nom(nom)
-    saufsi résultat {
+    si résultat == nul && logue_propriétés_non_supportées {
         saufsi commence_par_préfixe_vendeur(nom) {
             ensemble_ajoute(*ctx.propriétés_non_supportées, nom)
         }
@@ -2388,6 +2388,10 @@ parse_css_style_declaration :: fonc (ctx: *ContexteParsageFeuilleDeStyle, décla
 
 rapporte_erreur_de_parsage :: fonc (déclaration: ParsedDeclaration)
 {
+    saufsi logue_erreurs_de_parsage {
+        retourne
+    }
+
     pour déclaration.value {
         saufsi it.est_lexème_de_genre(GenreLexème.Ident) {
             continue
