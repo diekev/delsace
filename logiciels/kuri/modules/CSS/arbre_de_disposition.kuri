@@ -122,8 +122,16 @@ donne_élément_pour_position :: fonc (arbre: *ArbreDeDisposition, x: z32, y: z3
 
 imprime_arbre :: fonc (arbre: *ArbreDeDisposition)
 {
+    résultat := donne_chaine_impression_arbre(arbre)
+    diffère déloge(résultat)
+
+    imprime("%\n", résultat)
+}
+
+donne_chaine_impression_arbre :: fonc (arbre: *ArbreDeDisposition) -> chaine
+{
     saufsi arbre.racine {
-        retourne
+        retourne ""
     }
 
     enchaineuse: Enchaineuse
@@ -132,26 +140,82 @@ imprime_arbre :: fonc (arbre: *ArbreDeDisposition)
 
     imprime_arbre(*enchaineuse, arbre.racine, 0)
 
-    résultat := chaine_depuis_enchaineuse(*enchaineuse)
-    diffère déloge(résultat)
-
-    imprime("%\n", résultat)
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
 imprime_arbre :: fonc (enchaineuse: *Enchaineuse, racine: *NoeudDeDisposition, profondeur: n32)
 {
     indentation := donne_chaine_indentation(profondeur comme z32)
 
-    imprime_dans_enchaineuse(enchaineuse, "%%", indentation, racine.donne_nom_classe())
-    si racine.type == NoeudDeDispositionBloc {
-        bloc := racine comme *NoeudDeDispositionBloc
-        imprime_dans_enchaineuse(enchaineuse, " %", bloc.élément.local_name)
+    nom_classe := racine.donne_nom_classe_sans_préfixe()
+
+    imprime_dans_enchaineuse(enchaineuse, "%%", indentation, nom_classe)
+
+    élément := donne_élément(racine)
+    si élément {
+        imprime_dans_enchaineuse(enchaineuse, " <%", élément.local_name)
+
+        saufsi élément.id.est_vide() {
+            ajoute_au_tampon(enchaineuse, "#", élément.id)
+        }
+
+        classe := HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_class)
+        saufsi classe.est_vide() {
+            ajoute_au_tampon(enchaineuse, ".", classe)
+        }
+
+        ajoute_au_tampon(enchaineuse, ">")
+    }
+    sinon {
+        ajoute_au_tampon(enchaineuse, " <(anonyme)>")
     }
 
-    imprime_dans_enchaineuse(enchaineuse, " % % %x%\n", racine.modèle_de_boite.marge.x, racine.modèle_de_boite.marge.y, racine.modèle_de_boite.marge.largeur, racine.modèle_de_boite.marge.hauteur)
+    modèle := racine.modèle_de_boite
+
+    /* Position. */
+    imprime_dans_enchaineuse(enchaineuse, " <%, %>", modèle.bordure.x, modèle.bordure.y)
+
+    /* Cotations horizontales. */
+    cotations := donne_cotations_horizontales(modèle)
+    ajoute_au_tampon(enchaineuse, " CH ")
+    imprime_cotation(enchaineuse, *cotations)
+
+    /* Cotations verticales. */
+    cotations = donne_cotations_verticales(modèle)
+    ajoute_au_tampon(enchaineuse, " CV ")
+    imprime_cotation(enchaineuse, *cotations)
+    ajoute_au_tampon(enchaineuse, "\n")
+
+    imprime_fragments(enchaineuse, racine, profondeur + 1)
 
     pour racine.enfants {
         imprime_arbre(enchaineuse, it, profondeur + 1)
+    }
+}
+
+imprime_fragments :: fonc (enchaineuse: *Enchaineuse, noeud: *NoeudDeDisposition, profondeur: n32)
+{
+    si noeud.type != NoeudDeDispositionBloc && noeud.type != NoeudDeDispositionInline {
+        retourne
+    }
+
+    indentation := donne_chaine_indentation(profondeur comme z32)
+    indentation_texte := donne_chaine_indentation(profondeur comme z32 + 1)
+
+    bloc := noeud comme *NoeudDeDispositionBloc
+
+    pour bloc.lignes_tenante.fragments {
+        ajoute_au_tampon(enchaineuse, indentation)
+        nom_classe := it.noeud.donne_nom_classe_sans_préfixe()
+        imprime_dans_enchaineuse(enchaineuse, "frag % % de % début % fin % rect (%,% %x%)", index_it, it.type, nom_classe, it.index_début, it.index_fin, it.x, it.y, it.largeur, it.hauteur)
+
+        si it.noeud.type == NoeudDeDispositionTexte {
+            noeud_texte := it.noeud comme *NoeudDeDispositionTexte
+            fragment_texte := noeud_texte.fragments[it.index_début]
+            ajoute_au_tampon(enchaineuse, "\n", indentation_texte, "\"", fragment_texte.texte, "\"")
+        }
+
+        ajoute_au_tampon(enchaineuse, "\n")
     }
 }
 
@@ -335,10 +399,10 @@ initialise_cache :: fonc (résolveuse: *RésolveuseStyle)
     résolveuse.règles_par_classe.taille = 0
 
     user_agent := HTML.donne_user_agent(résolveuse.document)
-    assert(user_agent != nul)
 
     ctx: ContexteÉvaluationMediaQuery
-    ctx.supporte_scripting = user_agent.supporte_scripting
+    /* user_agent peut être nul pour l'exécution des tests. */
+    ctx.supporte_scripting = user_agent != nul && user_agent.supporte_scripting
     ctx.largeur = résolveuse.largeur_écran
     ctx.taille_fonte = résolveuse.globales.taille_fonte_défaut
 
@@ -1549,6 +1613,48 @@ définis_hauteur :: fonc (modèle: &ModèleDeBoite, hauteur: r32)
     modèle.contenu.hauteur = hauteur
 }
 
+/* Représente les cotations pour un axe donné du modèle de boite. */
+CotationModèleDeBoite :: struct {
+    marge_début: r32
+    bordure_début: r32
+    rembourrage_début: r32
+    contenu: r32
+    rembourrage_fin: r32
+    bordure_fin: r32
+    marge_fin: r32
+}
+
+donne_cotations_horizontales :: fonc (modèle: &ModèleDeBoite) -> CotationModèleDeBoite
+{
+    résultat: CotationModèleDeBoite
+    résultat.marge_début = modèle.bordure.x - modèle.marge.x
+    résultat.bordure_début = modèle.rembourrage.x - modèle.bordure.x
+    résultat.rembourrage_début = modèle.rembourrage.x - modèle.bordure.x
+    résultat.contenu = modèle.contenu.largeur
+    résultat.rembourrage_fin = (modèle.rembourrage.x + modèle.rembourrage.largeur) - (modèle.contenu.x + modèle.contenu.largeur)
+    résultat.bordure_fin = (modèle.bordure.x + modèle.bordure.largeur) - (modèle.rembourrage.x + modèle.rembourrage.largeur)
+    résultat.marge_fin = (modèle.marge.x + modèle.marge.largeur) - (modèle.bordure.x + modèle.bordure.largeur)
+    retourne résultat
+}
+
+donne_cotations_verticales :: fonc (modèle: &ModèleDeBoite) -> CotationModèleDeBoite
+{
+    résultat: CotationModèleDeBoite
+    résultat.marge_début = modèle.bordure.y - modèle.marge.y
+    résultat.bordure_début = modèle.rembourrage.y - modèle.bordure.y
+    résultat.rembourrage_début = modèle.rembourrage.y - modèle.bordure.y
+    résultat.contenu = modèle.contenu.hauteur
+    résultat.rembourrage_fin = (modèle.rembourrage.y + modèle.rembourrage.hauteur) - (modèle.contenu.y + modèle.contenu.hauteur)
+    résultat.bordure_fin = (modèle.bordure.y + modèle.bordure.hauteur) - (modèle.rembourrage.y + modèle.rembourrage.hauteur)
+    résultat.marge_fin = (modèle.marge.y + modèle.marge.hauteur) - (modèle.bordure.y + modèle.bordure.hauteur)
+    retourne résultat
+}
+
+imprime_cotation :: fonc (enchaineuse: *Enchaineuse, cotation: *CotationModèleDeBoite)
+{
+    imprime_dans_enchaineuse(enchaineuse, "[% % %] % [% % %]", cotation.marge_début, cotation.bordure_début, cotation.rembourrage_début, cotation.contenu, cotation.rembourrage_fin, cotation.bordure_fin, cotation.marge_fin)
+}
+
 NoeudDeDisposition :: struct {
     type := #type_de_cette_structure
 
@@ -1785,6 +1891,16 @@ donne_nom_classe :: fonc (noeud: *NoeudDeDisposition) -> chaine
 {
     infos := __table_des_types[noeud.type] comme *InfoTypeStructure
     retourne infos.nom
+}
+
+donne_nom_classe_sans_préfixe :: fonc (noeud: *NoeudDeDisposition) -> chaine
+{
+    résultat := noeud.donne_nom_classe()
+    préfixe := "NoeudDeDisposition"
+    si résultat.commence_par(préfixe) {
+        résultat = avance(résultat, préfixe.taille)
+    }
+    retourne résultat
 }
 
 mesure :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, outrepas_largeur: *ValeurDeStyle)
