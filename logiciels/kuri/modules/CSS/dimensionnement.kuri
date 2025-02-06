@@ -103,7 +103,7 @@ donne_fonction_calcul_largeur_et_marges :: fonc (noeud: *NoeudDeDisposition) -> 
 
         // 10.3.8 Absolutely positioned, replaced elements
         si position.est_mot_clé(PROP_absolute) {
-            retourne calcule_largeur_et_marges_abosolutely_positionned_replaced_element
+            retourne calcule_largeur_et_marges_absolutely_positionned_replaced_element
         }
 
         // 10.3.4 Block-level, replaced elements in normal flow
@@ -121,7 +121,7 @@ donne_fonction_calcul_largeur_et_marges :: fonc (noeud: *NoeudDeDisposition) -> 
 
     // 10.3.7 Absolutely positioned, non-replaced elements
     si position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_fixed) {
-        retourne calcule_largeur_et_marges_abosolutely_positionned_non_replaced_element
+        retourne calcule_largeur_et_marges_absolutely_positionned_non_replaced_element
     }
 
     // 10.3.5 Floating, non-replaced elements
@@ -458,7 +458,7 @@ calcule_largeur_et_marges_block_level_normal_flow :: fonc (ctx: *ContexteDeForma
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#abs-non-replaced-width */
-calcule_largeur_et_marges_abosolutely_positionned_non_replaced_element :: fonc (ctx: *ContexteDeFormattage, base: *NoeudDeDisposition, width_of_containing_block: r64, outrepas_largeur: *ValeurDeStyle)
+calcule_largeur_et_marges_absolutely_positionned_non_replaced_element :: fonc (ctx: *ContexteDeFormattage, base: *NoeudDeDisposition, width_of_containing_block: r64, outrepas_largeur: *ValeurDeStyle)
 {
     noeud := base comme *NoeudDeDispositionBloc
     résoud_pourcentage_insets(noeud, ctx)
@@ -830,7 +830,7 @@ calcule_largeur_et_marges_float_replaced_element :: fonc (ctx: *ContexteDeFormat
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#abs-replaced-width */
-calcule_largeur_et_marges_abosolutely_positionned_replaced_element :: fonc (ctx: *ContexteDeFormattage, base: *NoeudDeDisposition, width_of_containing_block: r64, outrepas_largeur: *ValeurDeStyle)
+calcule_largeur_et_marges_absolutely_positionned_replaced_element :: fonc (ctx: *ContexteDeFormattage, base: *NoeudDeDisposition, width_of_containing_block: r64, outrepas_largeur: *ValeurDeStyle)
 {
     noeud := base comme *NoeudDeDispositionBloc
     propriétés := noeud.propriétés
