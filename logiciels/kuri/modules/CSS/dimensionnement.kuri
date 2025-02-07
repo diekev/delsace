@@ -271,6 +271,7 @@ donne_fonction_calcul_hauteur_et_marges :: fonc (noeud: *NoeudDeDisposition) -> 
 {
     propriétés := noeud.propriétés
     display := propriétés.donne_valeur_calculée(IDPropriété.Display).display
+    position := propriétés.donne_valeur_utilisée(IDPropriété.Position)
 
     si noeud.type == NoeudDeDispositionRemplacement {
        // 10.6.2 Inline replaced elements, block-level replaced elements in normal flow, 'inline-block' replaced elements in normal flow and floating replaced elements
@@ -282,6 +283,11 @@ donne_fonction_calcul_hauteur_et_marges :: fonc (noeud: *NoeudDeDisposition) -> 
     si display.outer_type == Display.Type.Inline {
         // 10.6.1 Inline, non-replaced elements
         retourne calcule_hauteur_et_marges_inline_non_replaced_element
+    }
+
+    // 10.6.4 Absolutely positioned, non-replaced elements
+    si position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_fixed) {
+        retourne calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element
     }
 
     // 10.6.3 Block-level non-replaced elements in normal flow when 'overflow' computes to 'visible'
@@ -641,6 +647,110 @@ calcule_largeur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
     propriétés.définis_valeur_utilisée(IDPropriété.Right, right)
 
     ajourne_boite_pour_calcul_largeur(noeud)
+}
+
+/* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#abs-non-replaced-height */
+calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (empl args: *ArgumentsDimensionnement)
+{
+    propriétés := noeud.propriétés
+
+    top := propriétés.donne_valeur_calculée(IDPropriété.Top)
+    margin_top := propriétés.donne_valeur_calculée(IDPropriété.MarginTop)
+    border_top_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthTop)
+    padding_top := propriétés.donne_valeur_calculée(IDPropriété.PaddingTop)
+    height := propriétés.donne_valeur_calculée(IDPropriété.Width)
+    si outrepas_hauteur {
+        height = mémoire(outrepas_hauteur)
+    }
+    padding_bottom := propriétés.donne_valeur_calculée(IDPropriété.PaddingBottom)
+    border_bottom_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthBottom)
+    margin_bottom := propriétés.donne_valeur_calculée(IDPropriété.MarginBottom)
+    bottom := propriétés.donne_valeur_calculée(IDPropriété.Bottom)
+
+    height_of_containing_block := containing_block.donne_hauteur()
+
+    // For absolutely positioned elements, the used values of the vertical dimensions must satisfy this constraint:
+    // 'top' + 'margin-top' + 'border-top-width' + 'padding-top' + 'height' + 'padding-bottom' + 'border-bottom-width' + 'margin-bottom' + 'bottom' = height of containing block
+
+    // If all three of 'top', 'height', and 'bottom' are auto, set 'top' to the static position and apply rule number three below.
+    si top.est_auto() && height.est_auto() && bottom.est_auto() {
+        panique("non-implémenté")
+    }
+    // If none of the three are 'auto': If both 'margin-top' and 'margin-bottom' are 'auto', solve the equation under the extra constraint that the two margins get equal values. If one of 'margin-top' or 'margin-bottom' is 'auto', solve the equation for that value. If the values are over-constrained, ignore the value for 'bottom' and solve for that value.
+    sinon si !top.est_auto() && !height.est_auto() && !bottom.est_auto() {
+        panique("non-implémenté")
+    }
+    sinon {
+        // Otherwise, pick the one of the following six rules that applies.
+
+        // 1. 'top' and 'height' are 'auto' and 'bottom' is not 'auto',
+        // then the height is based on the content per 10.6.7, set 'auto' values for 'margin-top' and 'margin-bottom' to 0, and solve for 'top'
+        si top.est_auto() && height.est_auto() && !bottom.est_auto() {
+            panique("non-implémenté")
+        }
+        // 2. 'top' and 'bottom' are 'auto' and 'height' is not 'auto',
+        // then set 'top' to the static position, set 'auto' values for 'margin-top' and 'margin-bottom' to 0, and solve for 'bottom'
+        sinon si top.est_auto() && !height.est_auto() && bottom.est_auto() {
+            si margin_top.est_auto() {
+                margin_top.pixels = 0.0
+            }
+            si margin_bottom.est_auto() {
+                margin_bottom.pixels = 0.0
+            }
+            top.pixels = pos_y_statique - containing_block.rect.y
+            bottom.pixels = height_of_containing_block - top.pixels - margin_top.pixels - border_top_width.pixels - padding_top.pixels - height.pixels - padding_bottom.pixels - border_bottom_width.pixels - margin_bottom.pixels
+        }
+        // 3. 'height' and 'bottom' are 'auto' and 'top' is not 'auto',
+        // then the height is based on the content per 10.6.7, set 'auto' values for 'margin-top' and 'margin-bottom' to 0, and solve for 'bottom'
+        sinon si !top.est_auto() && height.est_auto() && bottom.est_auto() {
+            panique("non-implémenté")
+        }
+        // 4. 'top' is 'auto', 'height' and 'bottom' are not 'auto',
+        // then set 'auto' values for 'margin-top' and 'margin-bottom' to 0, and solve for 'top'
+        sinon si top.est_auto() && !height.est_auto() && !bottom.est_auto() {
+            si margin_top.est_auto() {
+                margin_top.pixels = 0.0
+            }
+            si margin_bottom.est_auto() {
+                margin_bottom.pixels = 0.0
+            }
+            top.pixels = height_of_containing_block - margin_top.pixels - border_top_width.pixels - padding_top.pixels - height.pixels - padding_bottom.pixels - border_bottom_width.pixels - margin_bottom.pixels - bottom.pixels
+        }
+        // 5. 'height' is 'auto', 'top' and 'bottom' are not 'auto',
+        // then 'auto' values for 'margin-top' and 'margin-bottom' are set to 0 and solve for 'height'
+        sinon si !top.est_auto() && height.est_auto() && !bottom.est_auto() {
+            si margin_top.est_auto() {
+                margin_top.pixels = 0.0
+            }
+            si margin_bottom.est_auto() {
+                margin_bottom.pixels = 0.0
+            }
+            height.pixels = height_of_containing_block - top.pixels - margin_top.pixels - border_top_width.pixels - padding_top.pixels - padding_bottom.pixels - border_bottom_width.pixels - margin_bottom.pixels - bottom.pixels
+        }
+        // 6. 'bottom' is 'auto', 'top' and 'height' are not 'auto',
+        // then set 'auto' values for 'margin-top' and 'margin-bottom' to 0 and solve for 'bottom'
+        sinon si !top.est_auto() && !height.est_auto() && bottom.est_auto() {
+            si margin_top.est_auto() {
+                margin_top.pixels = 0.0
+            }
+            si margin_bottom.est_auto() {
+                margin_bottom.pixels = 0.0
+            }
+            bottom.pixels = height_of_containing_block - top.pixels - margin_top.pixels - border_top_width.pixels - padding_top.pixels - height.pixels - padding_bottom.pixels - border_bottom_width.pixels - margin_bottom.pixels
+        }
+    }
+
+    propriétés.définis_valeur_utilisée(IDPropriété.Top, top)
+    propriétés.définis_valeur_utilisée(IDPropriété.MarginTop, margin_top)
+    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthTop, border_top_width)
+    propriétés.définis_valeur_utilisée(IDPropriété.PaddingTop, padding_top)
+    propriétés.définis_valeur_utilisée(IDPropriété.Height, height)
+    propriétés.définis_valeur_utilisée(IDPropriété.PaddingBottom, padding_bottom)
+    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthBottom, border_bottom_width)
+    propriétés.définis_valeur_utilisée(IDPropriété.MarginBottom, margin_bottom)
+    propriétés.définis_valeur_utilisée(IDPropriété.Bottom, bottom)
+
+    ajourne_boite_pour_calcul_hauteur(noeud)
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#float-width */
