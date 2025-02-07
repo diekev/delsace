@@ -676,9 +676,25 @@ calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
     si top.est_auto() && height.est_auto() && bottom.est_auto() {
         panique("non-implémenté")
     }
-    // If none of the three are 'auto': If both 'margin-top' and 'margin-bottom' are 'auto', solve the equation under the extra constraint that the two margins get equal values. If one of 'margin-top' or 'margin-bottom' is 'auto', solve the equation for that value. If the values are over-constrained, ignore the value for 'bottom' and solve for that value.
+    // If none of the three are 'auto': If both 'margin-top' and 'margin-bottom' are 'auto',
+    // solve the equation under the extra constraint that the two margins get equal values.
+    // If one of 'margin-top' or 'margin-bottom' is 'auto', solve the equation for that value.
+    // If the values are over-constrained, ignore the value for 'bottom' and solve for that value.
     sinon si !top.est_auto() && !height.est_auto() && !bottom.est_auto() {
-        panique("non-implémenté")
+        si margin_top.est_auto() && margin_bottom.est_auto() {
+            marges := height_of_containing_block - top.pixels - border_top_width.pixels - padding_top.pixels - height.pixels - padding_bottom.pixels - border_bottom_width.pixels - bottom.pixels
+            margin_top.pixels = marges * 0.5
+            margin_bottom.pixels = marges * 0.5
+        }
+        sinon si margin_top.est_auto() {
+            margin_top.pixels = height_of_containing_block - top.pixels - border_top_width.pixels - padding_top.pixels - height.pixels - padding_bottom.pixels - border_bottom_width.pixels - margin_bottom.pixels - bottom.pixels
+        }
+        sinon si margin_bottom.est_auto() {
+            margin_bottom.pixels = height_of_containing_block - top.pixels - margin_top.pixels - border_top_width.pixels - padding_top.pixels - height.pixels - padding_bottom.pixels - border_bottom_width.pixels - bottom.pixels
+        }
+        sinon {
+            bottom.pixels = height_of_containing_block - top.pixels - margin_top.pixels - border_top_width.pixels - padding_top.pixels - height.pixels - padding_bottom.pixels - border_bottom_width.pixels - margin_bottom.pixels
+        }
     }
     sinon {
         // Otherwise, pick the one of the following six rules that applies.
