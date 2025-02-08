@@ -296,7 +296,7 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
     hauteur_finale := ValeurDeStyle(pixels = hauteur_contenu)
     containing_block := donne_containing_block(noeud, ctx)
     args := crée_arguments_dimensionnement_hauteur(ctx, noeud, containing_block, *hauteur_finale)
-    calcule_hauteur_et_marges(*args)
+    _ := calcule_hauteur_et_marges(*args)
 
     discr mode {
         BrisureDeLigneExplicite,
@@ -321,7 +321,7 @@ dispose_boite_fixed :: fonc (empl ctx: *ContexteDeFormattageBloc, noeud: *NoeudD
     containing_block := donne_containing_block(noeud, ctx)
     args := crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, nul)
     calcule_largeur_et_marges(*args)
-    calcule_hauteur_et_marges(*args)
+    _ := calcule_hauteur_et_marges(*args)
 
     bord_gauche := containing_block.rect.x
     bord_haut := containing_block.rect.y
@@ -352,7 +352,7 @@ dispose_boite_absolute :: fonc (empl ctx: *ContexteDeFormattage, noeud: *NoeudDe
     args.pos_x_statique = pos_x_statique
     args.pos_y_statique = pos_y_statique
     calcule_largeur_et_marges(*args)
-    calcule_hauteur_et_marges(*args)
+    _ := calcule_hauteur_et_marges(*args)
 
     bord_gauche := containing_block.rect.x
     bord_haut := containing_block.rect.y
@@ -604,7 +604,7 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
 
     hauteur_finale := ValeurDeStyle(pixels = hauteur_contenu)
     args := crée_arguments_dimensionnement_hauteur(ctx, noeud, containing_block, *hauteur_finale)
-    calcule_hauteur_et_marges(*args)
+    _ := calcule_hauteur_et_marges(*args)
 
     si décalage_x != 0.0 || décalage_y != 0.0 {
         pour * noeud.lignes_tenante.fragments {
@@ -823,7 +823,7 @@ formatte_flex_row :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispos
     hauteur_finale := ValeurDeStyle(pixels = hauteur_contenu)
     containing_block := donne_containing_block(noeud, ctx)
     args := crée_arguments_dimensionnement_hauteur(ctx, noeud, containing_block, *hauteur_finale)
-    calcule_hauteur_et_marges(*args)
+    _ := calcule_hauteur_et_marges(*args)
 
     discr mode {
         BrisureDeLigneExplicite,
@@ -904,7 +904,7 @@ formatte_flex_column :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDis
     hauteur_finale := ValeurDeStyle(pixels = hauteur_des_enfants)
     containing_block := donne_containing_block(noeud, ctx)
     args := crée_arguments_dimensionnement_hauteur(ctx, noeud, containing_block, *hauteur_finale)
-    calcule_hauteur_et_marges(*args)
+    _ := calcule_hauteur_et_marges(*args)
 
     discr mode {
         BrisureDeLigneExplicite,

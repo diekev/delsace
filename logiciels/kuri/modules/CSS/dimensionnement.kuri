@@ -235,7 +235,12 @@ résoud_pourcentage_insets :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDe
     }
 }
 
-calcule_hauteur_et_marges :: fonc (empl args: *ArgumentsDimensionnement)
+ÉtatCalculHauteur :: énum {
+    HauteurRésolue
+    HauteurDépendSurContenu
+}
+
+calcule_hauteur_et_marges :: fonc (empl args: *ArgumentsDimensionnement) -> ÉtatCalculHauteur
 {
     résoud_pourcentage_hauteur(noeud, containing_block)
 
@@ -246,14 +251,18 @@ calcule_hauteur_et_marges :: fonc (empl args: *ArgumentsDimensionnement)
         outrepas_hauteur = nul
     }
 
-    fonction_de_calcul(args)
+    résultat := fonction_de_calcul(args)
+    si résultat != ÉtatCalculHauteur.HauteurRésolue {
+        /* Ne continuons pas si la hauteur dépends du contenu. */
+        retourne résultat
+    }
 
     height = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Height)
     max_height := noeud.propriétés.donne_valeur_calculée(IDPropriété.MaxHeight)
     si max_height.est_pixels() && (height.pixels > max_height.pixels) {
         tmp_args := mémoire(args)
         tmp_args.outrepas_hauteur = *max_height
-        fonction_de_calcul(*tmp_args)
+        _ := fonction_de_calcul(*tmp_args)
     }
 
     height = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Height)
@@ -261,13 +270,15 @@ calcule_hauteur_et_marges :: fonc (empl args: *ArgumentsDimensionnement)
     si min_height.est_pixels() && (height.pixels < min_height.pixels) {
         tmp_args := mémoire(args)
         tmp_args.outrepas_hauteur = *min_height
-        fonction_de_calcul(*tmp_args)
+        _ := fonction_de_calcul(*tmp_args)
     }
 
     ajourne_boite_pour_calcul_hauteur(noeud)
+
+    retourne résultat
 }
 
-donne_fonction_calcul_hauteur_et_marges :: fonc (noeud: *NoeudDeDisposition) -> fonc(*ArgumentsDimensionnement)(rien)
+donne_fonction_calcul_hauteur_et_marges :: fonc (noeud: *NoeudDeDisposition) -> fonc(*ArgumentsDimensionnement)(ÉtatCalculHauteur)
 {
     propriétés := noeud.propriétés
     display := propriétés.donne_valeur_calculée(IDPropriété.Display).display
@@ -298,7 +309,7 @@ donne_fonction_calcul_hauteur_et_marges :: fonc (noeud: *NoeudDeDisposition) -> 
     // À FAIRE : 10.6.7 'Auto' heights for block formatting context roots
 }
 
-calcule_hauteur_et_marges_block_level_normal_flow :: fonc (empl args: *ArgumentsDimensionnement)
+calcule_hauteur_et_marges_block_level_normal_flow :: fonc (empl args: *ArgumentsDimensionnement) -> ÉtatCalculHauteur
 {
     propriétés := noeud.propriétés
 
@@ -351,6 +362,8 @@ calcule_hauteur_et_marges_block_level_normal_flow :: fonc (empl args: *Arguments
     propriétés.définis_valeur_utilisée(IDPropriété.PaddingBottom, padding_bottom)
     propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthBottom, border_bottom_height)
     propriétés.définis_valeur_utilisée(IDPropriété.MarginBottom, margin_bottom)
+
+    retourne ÉtatCalculHauteur.HauteurRésolue
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#blockwidth */
@@ -650,7 +663,7 @@ calcule_largeur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#abs-non-replaced-height */
-calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (empl args: *ArgumentsDimensionnement)
+calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (empl args: *ArgumentsDimensionnement) -> ÉtatCalculHauteur
 {
     propriétés := noeud.propriétés
 
@@ -767,6 +780,8 @@ calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
     propriétés.définis_valeur_utilisée(IDPropriété.Bottom, bottom)
 
     ajourne_boite_pour_calcul_hauteur(noeud)
+
+    retourne ÉtatCalculHauteur.HauteurRésolue
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#float-width */
@@ -918,7 +933,7 @@ calcule_largeur_et_marges_inline_replaced_element :: fonc (empl args: *Arguments
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#inline-replaced-height */
-calcule_hauteur_et_marges_inline_replaced_element :: fonc (empl args: *ArgumentsDimensionnement)
+calcule_hauteur_et_marges_inline_replaced_element :: fonc (empl args: *ArgumentsDimensionnement) -> ÉtatCalculHauteur
 {
     noeud_remplacement := noeud comme *NoeudDeDispositionRemplacement
     propriétés := noeud.propriétés
@@ -980,6 +995,8 @@ calcule_hauteur_et_marges_inline_replaced_element :: fonc (empl args: *Arguments
     propriétés.définis_valeur_utilisée(IDPropriété.MarginBottom, margin_bottom)
 
     ajourne_boite_pour_calcul_hauteur(noeud)
+
+    retourne ÉtatCalculHauteur.HauteurRésolue
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#float-replaced-width */
@@ -1135,7 +1152,7 @@ calcule_largeur_et_marges_inline_non_replaced_element :: fonc (empl args: *Argum
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#inline-non-replaced */
-calcule_hauteur_et_marges_inline_non_replaced_element :: fonc (empl args: *ArgumentsDimensionnement)
+calcule_hauteur_et_marges_inline_non_replaced_element :: fonc (empl args: *ArgumentsDimensionnement) -> ÉtatCalculHauteur
 {
     // À FAIRE : ceci est une copie des calculs pour la largeur
     propriétés := noeud.propriétés
@@ -1170,6 +1187,8 @@ calcule_hauteur_et_marges_inline_non_replaced_element :: fonc (empl args: *Argum
     propriétés.définis_valeur_utilisée(IDPropriété.PaddingBottom, padding_bottom)
     propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthBottom, border_bottom_height)
     propriétés.définis_valeur_utilisée(IDPropriété.MarginBottom, margin_bottom)
+
+    retourne ÉtatCalculHauteur.HauteurRésolue
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#inlineblock-width */
