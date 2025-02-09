@@ -1846,12 +1846,26 @@ imprime_élément :: fonc (noeud: *NoeudDeDisposition, message: chaine, récursi
         noeud.donne_élément_récursif()
     }
 
-    si élément {
-        imprime("% : %#%.%\n", message, élément.local_name, élément.id, HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_class))
+    ajoute_au_tampon(enchaineuse, message, " : ")
+
+    saufsi élément {
+        ajoute_au_tampon(enchaineuse, "<anonyme>\n")
+        retourne
     }
-    sinon {
-        imprime("% : <anonyme>\n")
+
+    ajoute_au_tampon(enchaineuse, élément.local_name)
+
+    id := élément.id
+    saufsi id.est_vide() {
+        ajoute_au_tampon(enchaineuse, "#", id)
     }
+
+    classes := HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_class)
+    saufsi classes.est_vide() {
+        ajoute_au_tampon(enchaineuse, ".", classes)
+    }
+
+    ajoute_au_tampon(enchaineuse, "\n")
 }
 
 définis_position :: fonc (noeud: *NoeudDeDisposition, x: r32, y: r32)
