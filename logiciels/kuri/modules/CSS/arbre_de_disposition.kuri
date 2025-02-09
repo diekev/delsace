@@ -140,6 +140,10 @@ donne_chaine_impression_arbre :: fonc (arbre: *ArbreDeDisposition) -> chaine
 
     imprime_arbre(*enchaineuse, arbre.racine, 0)
 
+    ajoute_au_tampon(*enchaineuse, "\n")
+
+    imprime_arbre_stacking_context(*enchaineuse, arbre.stacking_context, 0)
+
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
@@ -1838,6 +1842,16 @@ donne_élément_récursif :: fonc (noeud: *NoeudDeDisposition) -> *HTML.Élémen
 }
 
 imprime_élément :: fonc (noeud: *NoeudDeDisposition, message: chaine, récursif := faux)
+{
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    imprime_élément(*enchaineuse, noeud, message, récursif)
+    copie_dans_sortie_standarde(*enchaineuse)
+}
+
+imprime_élément :: fonc (enchaineuse: *Enchaineuse, noeud: *NoeudDeDisposition, message: chaine, récursif := faux)
 {
     élément := si récursif {
         noeud.donne_élément()

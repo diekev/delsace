@@ -63,18 +63,30 @@ est_position_fixée :: fonc (stacking_context: *StackingContext) -> bool
     retourne position.est_mot_clé(PROP_fixed)
 }
 
+#portée_module
+
 imprime_arbre_stacking_context :: fonc (ctx: *StackingContext, profondeur := 0)
 {
-    indentation := donne_chaine_indentation(profondeur)
-    imprime(indentation)
-    imprime_élément(ctx.racine, "StackingContext")
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
 
-    pour ctx.enfants {
-        imprime_arbre_stacking_context(it, profondeur + 1)
-    }
+    imprime_arbre_stacking_context(*enchaineuse, ctx, profondeur)
+
+    copie_dans_sortie_standarde(*enchaineuse)
 }
 
-#portée_module
+imprime_arbre_stacking_context :: fonc (enchaineuse: *Enchaineuse, ctx: *StackingContext, profondeur := 0)
+{
+    indentation := donne_chaine_indentation(profondeur)
+    ajoute_au_tampon(enchaineuse, indentation)
+
+    imprime_élément(enchaineuse, ctx.racine, "StackingContext")
+
+    pour ctx.enfants {
+        imprime_arbre_stacking_context(enchaineuse, it, profondeur + 1)
+    }
+}
 
 /* À FAIRE(langage) : si nous un #portée_fichier ici, nous pouvons échouer
  * la compilation sur un symbole inconnu, car l'ensemble de surcharge peut
