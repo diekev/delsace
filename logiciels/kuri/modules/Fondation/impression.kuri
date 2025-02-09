@@ -116,6 +116,11 @@ copie_enchaineuse_fichier :: fonc (enchaineuse: *Enchaineuse, chemin: CheminFich
     retourne copie_enchaineuse_fichier(enchaineuse, *fichier)
 }
 
+copie_dans_sortie_standarde :: fonc (enchaineuse: *Enchaineuse)
+{
+    _ := copie_enchaineuse_fichier(enchaineuse, sortie_standarde())
+}
+
 détruit_tampons :: fonc (enchaineuse: *Enchaineuse) -> rien
 {
     // le premier tampon n'est pas alloué dynamiquement
