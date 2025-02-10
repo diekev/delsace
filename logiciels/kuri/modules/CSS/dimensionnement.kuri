@@ -383,7 +383,6 @@ donne_fonction_calcul_hauteur_et_marges :: fonc (noeud: *NoeudDeDisposition) -> 
     retourne calcule_hauteur_et_marges_block_level_normal_flow
 
     // À FAIRE : 10.6.6 Complicated cases
-    // À FAIRE : 10.6.7 'Auto' heights for block formatting context roots
 }
 
 calcule_hauteur_et_marges_block_level_normal_flow :: fonc (empl args: *ArgumentsDimensionnement) -> ÉtatCalculHauteur
