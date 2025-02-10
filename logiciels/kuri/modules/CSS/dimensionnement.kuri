@@ -63,7 +63,13 @@ calcule_auto_height_racine_contexte_de_formattage :: fonc (noeud: *NoeudDeDispos
     // If it only has inline-level children, the height is the distance between
     // the top of the topmost line box and the bottom of the bottommost line box.
     si noeud.est_disposition_inline {
-        panique("non-implémenté")
+        résultat: r64
+
+        pour noeud.lignes_tenante.lignes {
+            résultat += it.hauteur_contenu
+        }
+
+        retourne résultat
     }
 
     // If it has block-level children, the height is the distance between the
@@ -758,7 +764,21 @@ calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
 
     // If all three of 'top', 'height', and 'bottom' are auto, set 'top' to the static position and apply rule number three below.
     si top.est_auto() && height.est_auto() && bottom.est_auto() {
-        panique("non-implémenté")
+        top.pixels = pos_y_statique - containing_block.rect.y
+
+        saufsi args.calcul_hauteur_après_contenu {
+            retourne ÉtatCalculHauteur.HauteurDépendSurContenu
+        }
+
+        si margin_top.est_auto() {
+            margin_top.pixels = 0.0
+        }
+        si margin_bottom.est_auto() {
+            margin_bottom.pixels = 0.0
+        }
+
+        height.pixels = calcule_auto_height_racine_contexte_de_formattage(noeud comme *NoeudDeDispositionBloc)
+        bottom.pixels = height_of_containing_block - top.pixels - margin_top.pixels - border_top_width.pixels - padding_top.pixels - height.pixels - padding_bottom.pixels - border_bottom_width.pixels - margin_bottom.pixels
     }
     // If none of the three are 'auto': If both 'margin-top' and 'margin-bottom' are 'auto',
     // solve the equation under the extra constraint that the two margins get equal values.
