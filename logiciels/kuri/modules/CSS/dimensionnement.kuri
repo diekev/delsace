@@ -671,7 +671,7 @@ calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
     margin_top := propriétés.donne_valeur_calculée(IDPropriété.MarginTop)
     border_top_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthTop)
     padding_top := propriétés.donne_valeur_calculée(IDPropriété.PaddingTop)
-    height := propriétés.donne_valeur_calculée(IDPropriété.Width)
+    height := propriétés.donne_valeur_calculée(IDPropriété.Height)
     si outrepas_hauteur {
         height = mémoire(outrepas_hauteur)
     }
