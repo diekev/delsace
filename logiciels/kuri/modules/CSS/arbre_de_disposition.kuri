@@ -2398,25 +2398,49 @@ détermine_disposition_interne :: fonc (noeud: *NoeudDeDispositionBloc)
     noeud.est_disposition_inline = doit_formatter_en_blocs == faux
 }
 
-formatte_intérieur :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDeFormattage, mode: ModeDeFormattage)
+MéthodeDeFormattage :: énum {
+    Flex
+    Bloc
+    Inline
+    DansContexteCourant
+}
+
+donne_méthode_de_formattage_intérieur :: fonc (noeud: *NoeudDeDispositionBloc) -> MéthodeDeFormattage
 {
     si (noeud.type == NoeudDeDispositionBloc && noeud.est_disposition_inline) || noeud.type == NoeudDeDispositionInline {
-        ctx_local: ContexteDeFormattageInline
-        ctx_local.racine = noeud
-        ctx_local.globales = ctx.globales
-        ctx_local.doit_aligner_les_descendants = ctx.doit_aligner_les_descendants
-        ctx_local.initial_containing_block = ctx.initial_containing_block
+        retourne MéthodeDeFormattage.Inline
+    }
 
-        formatte(*ctx_local, noeud, mode)
+    si noeud.donne_display().inner_type == Display.Type.Flex {
+        retourne MéthodeDeFormattage.Flex
     }
-    sinon si noeud.donne_display().inner_type == Display.Type.Flex {
-        ctx_local: ContexteDeFormattageFlex
-        ctx_local.globales = ctx.globales
-        ctx_local.initial_containing_block = ctx.initial_containing_block
-        formatte(*ctx_local, noeud, mode)
+
+    si noeud.requiers_contexte_de_formattage_indépendant() {
+        retourne MéthodeDeFormattage.Bloc
     }
-    sinon {
-        si noeud.requiers_contexte_de_formattage_indépendant() {
+
+    retourne MéthodeDeFormattage.DansContexteCourant
+}
+
+formatte_intérieur :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDeFormattage, mode: ModeDeFormattage)
+{
+    discr donne_méthode_de_formattage_intérieur(noeud) {
+        Inline {
+            ctx_local: ContexteDeFormattageInline
+            ctx_local.racine = noeud
+            ctx_local.globales = ctx.globales
+            ctx_local.doit_aligner_les_descendants = ctx.doit_aligner_les_descendants
+            ctx_local.initial_containing_block = ctx.initial_containing_block
+
+            formatte(*ctx_local, noeud, mode)
+        }
+        Flex {
+            ctx_local: ContexteDeFormattageFlex
+            ctx_local.globales = ctx.globales
+            ctx_local.initial_containing_block = ctx.initial_containing_block
+            formatte(*ctx_local, noeud, mode)
+        }
+        Bloc {
             ctx_local: ContexteDeFormattageBloc
             diffère détruit_données_contexte(*ctx_local)
             ctx_local.racine = noeud
@@ -2425,10 +2449,10 @@ formatte_intérieur :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDeFor
             ctx_local.initial_containing_block = ctx.initial_containing_block
 
             formatte(*ctx_local, noeud, mode)
-            retourne
         }
-
-        formatte(ctx, noeud, mode)
+        DansContexteCourant {
+            formatte(ctx, noeud, mode)
+        }
     }
 }
 
