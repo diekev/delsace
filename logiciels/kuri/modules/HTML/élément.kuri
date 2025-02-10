@@ -165,10 +165,12 @@ rendu_css_est_requis :: fonc (élément: *Élément) -> bool
         retourne faux
     }
 
-    user_agent := donne_user_agent(document)
-    saufsi user_agent {
-        retourne faux
-    }
+    // À FAIRE : pour les tests CSS nous devons avoir les styles qui ne sont pas traités sans UserAgent...
+    // Désactivation de cette vérification dans l'attente d'un meilleur système pour détecter la nécessité des styles.
+    // user_agent := donne_user_agent(document)
+    // saufsi user_agent {
+    //     retourne faux
+    // }
 
     retourne vrai
 }
