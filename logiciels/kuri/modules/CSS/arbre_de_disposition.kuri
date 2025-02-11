@@ -12,6 +12,7 @@ importe Math
 importe MIME
 importe OpenGL
 importe PeintureInterface
+importe Structures
 importe Triage
 importe Typographie
 
@@ -1216,6 +1217,8 @@ crée_noeud_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *
 
     ignore_enfants := faux
 
+    table: *TableBox
+
     résultat: *NoeudDeDisposition
     si élément.local_name == HTML.TAG_img {
         résultat = crée_noeud_de_remplacement_image(arbre, élément comme *HTML.HTMLImageElement)
@@ -1234,9 +1237,14 @@ crée_noeud_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *
         ignore_enfants = vrai
     }
     sinon si display.inner_type == Display.Type.Table {
+        wrapper_box := arbre.crée_noeud(TableWrapperBox)
+        wrapper_box.élément = élément
+        résultat = wrapper_box
+
         box := arbre.crée_noeud(TableBox)
-        box.élément = élément
-        résultat = box
+        table = box
+
+        wrapper_box.ajoute_enfant(box)
     }
     sinon si display.inner_type == Display.Type.TableCaption {
         box := arbre.crée_noeud(CaptionBox)
@@ -1300,6 +1308,10 @@ crée_noeud_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *
 
     élément.noeud_de_disposition = résultat
     résultat.propriétés = propriétés
+    si table {
+        résultat.propriétés = résoud_style(résolveuse, élément, propriétés_parent)
+        table.propriétés = propriétés
+    }
 
     si parent {
         parent.ajoute_enfant(résultat)
@@ -1309,8 +1321,13 @@ crée_noeud_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *
         retourne
     }
 
+    nouveau_parent := résultat
+    si table {
+        nouveau_parent = table
+    }
+
     pour noeud.enfants {
-        crée_noeud_pour_élément(créatrice, résultat, it)
+        crée_noeud_pour_élément(créatrice, nouveau_parent, it)
     }
 
     corrige_hiérarchie(résultat, créatrice)
@@ -3830,6 +3847,41 @@ noeud_select_sur_dessin_fragment :: fonc (noeud: *NoeudDeDispositionSelect, frag
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom ItératriceArbre
+ * \{ */
+
+ItératriceArbre :: struct {
+    racine: *NoeudDeDisposition
+}
+
+opérateur pour :: fonc (itératrice: ItératriceArbre) -> *NoeudDeDisposition
+{
+    pile: Pile(*NoeudDeDisposition)
+    diffère détruit(pile)
+
+    pile.empile(itératrice.racine)
+
+    index: z64
+
+    tantque !pile.est_vide() {
+        enfant := pile.dépile()
+
+        `it = enfant
+        `index_it = index
+
+        #corps_boucle
+
+        pour > enfant.enfants {
+            pile.empile(it)
+        }
+
+        index += 1
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom TableWrapperBox
  * \{ */
 
@@ -3841,9 +3893,148 @@ TableWrapperBox :: struct {
     // sur_mesure = noeud_disposition_bloc_sur_mesure
     // sur_dessin = noeud_disposition_bloc_sur_dessin
     // sur_dessin_tampon_id = noeud_disposition_bloc_sur_dessin_tampon_id
-    // sur_correction_hiérarchie = noeud_disposition_bloc_corrige_hiérarchie
+    sur_correction_hiérarchie = noeud_table_wrapper_box_corrige_hiérarchie
 
     élément: *HTML.Élément
+}
+
+est_row_group_box :: fonc (noeud: *NoeudDeDisposition) -> bool
+{
+    // A 'table-row-group', 'table-header-group', or 'table-footer-group' 
+    retourne noeud.type == TableRowGroupBox || noeud.type == TableHeaderGroupBox || noeud.type == TableFooterGroupBox
+}
+
+est_proper_table_child :: fonc (noeud: *NoeudDeDisposition) -> bool
+{
+    // A 'table-row' box, row group box, 'table-column' box, 'table-column-group' box, or 'table-caption' box. 
+    retourne noeud.type == TableRowBox || est_row_group_box(noeud) || noeud.type == TableColumnBox || noeud.type == TableColumnGroupBox || noeud.type == CaptionBox
+}
+
+est_proper_table_row_parent :: fonc (noeud: *NoeudDeDisposition) -> bool
+{
+    // A 'table' or 'inline-table' box or row group box 
+    retourne noeud.type == TableBox || est_row_group_box(noeud)
+}
+
+est_internal_table_box :: fonc (noeud: *NoeudDeDisposition) -> bool
+{
+    // A 'table-cell' box, 'table-row' box, row group box, 'table-column' box, or 'table-column-group' box. 
+    retourne noeud.type == TableCellBox || noeud.type == TableRowBox || est_row_group_box(noeud) || noeud.type == TableColumnBox || noeud.type == TableColumnGroupBox
+}
+
+est_tabular_container :: fonc (noeud: *NoeudDeDisposition) -> bool
+{
+    // A 'table-row' box or proper table row parent 
+    retourne noeud.type == TableRowBox || est_proper_table_row_parent(noeud)
+}
+
+sont_consecutifs :: fonc (a: *NoeudDeDisposition, b: *NoeudDeDisposition) -> bool
+{
+    // Two sibling boxes are consecutive if they have no intervening siblings
+    // other than, optionally, an anonymous inline containing only white spaces.
+    // A sequence of sibling boxes is consecutive if each box in the sequence is
+    // consecutive to the one before it in the sequence. 
+    si a.parent != b.parent {
+        retourne faux
+    }
+}
+
+noeud_table_wrapper_box_corrige_hiérarchie :: fonc (base: *NoeudDeDisposition, créatrice: *CréatriceArbre)
+{
+    // 1. Remove irrelevant boxes
+    pour ItératriceArbre(base) {
+        remove_irrelevant_boxes(it)
+    }
+
+    // 2. Generate missing child wrappers
+    pour ItératriceArbre(base) {
+        generate_missing_child_wrappers(it, créatrice)
+    }
+
+    // 3. Generate missing parents
+    pour ItératriceArbre(base) {
+        generate_missing_parents(it, créatrice)
+    }
+}
+
+remove_irrelevant_boxes :: fonc (noeud: *NoeudDeDisposition)
+{
+    // 1. All child boxes of a 'table-column' parent are treated as if they had 'display: none'.
+    si noeud.type == TableColumnBox {
+        noeud.enfants.taille = 0
+    }
+
+    // 2. If a child C of a 'table-column-group' parent is not a 'table-column' box,
+    // then it is treated as if it had 'display: none'.
+    si noeud.type == TableColumnGroupBox {
+        panique("non-implémenté")
+    }
+
+    // 3. If a child C of a tabular container P is an anonymous inline box that
+    // contains only white space, and its immediately preceding and following
+    // siblings, if any, are proper table descendants of P and are either
+    // 'table-caption' or internal table boxes, then it is treated as if it had
+    // 'display: none'.
+    // A box D is a proper table descendant of A if D can be a descendant of A
+    // without causing the generation of any intervening 'table' or 'inline-table' boxes.
+    si est_tabular_container(noeud) {
+        pour noeud.enfants {
+            si est_espace_blanche_document(it) {
+                panique("non-implémenté")
+            }
+        }
+    }
+
+    // 4. If a box B is an anonymous inline containing only white space, and is
+    // between two immediate siblings each of which is either an internal table
+    // box or a 'table-caption' box then B is treated as if it had 'display: none'.
+    // À FAIRE
+}
+
+generate_missing_child_wrappers :: fonc (noeud: *NoeudDeDisposition, créatrice: *CréatriceArbre @inutilisée)
+{
+    // 1. If a child C of a 'table' or 'inline-table' box is not a proper table
+    // child, then generate an anonymous 'table-row' box around C and all
+    // consecutive siblings of C that are not proper table children.
+    si noeud.type == TableBox {
+        pour noeud.enfants {
+            saufsi it.est_proper_table_child() {
+                panique("non-implémenté")
+            }
+        }
+    }
+
+    // 2. If a child C of a row group box is not a 'table-row' box, then
+    // generate an anonymous 'table-row' box around C and all consecutive
+    // siblings of C that are not 'table-row' boxes.
+    si noeud.type == TableRowGroupBox {
+        pour noeud.enfants {
+            si it.type != TableRowBox {
+                panique("non-implémenté")
+            }
+        }
+    }
+
+    // 3. If a child C of a 'table-row' box is not a 'table-cell', then
+    // generate an anonymous 'table-cell' box around C and all consecutive
+    // siblings of C that are not 'table-cell' boxes. 
+    si noeud.type == TableRowBox {
+        pour noeud.enfants {
+            si it.type != TableCellBox {
+                panique("non-implémenté")
+            }
+        }
+    }
+}
+
+generate_missing_parents :: fonc (noeud: *NoeudDeDisposition @inutilisée, créatrice: *CréatriceArbre @inutilisée)
+{
+    // À FAIRE
+    // For each 'table-cell' box C in a sequence of consecutive internal table and 'table-caption' siblings, if C's parent is not a 'table-row' then generate an anonymous 'table-row' box around C and all consecutive siblings of C that are 'table-cell' boxes.
+    // For each proper table child C in a sequence of consecutive proper table children, if C is misparented then generate an anonymous 'table' or 'inline-table' box T around C and all consecutive siblings of C that are proper table children. (If C's parent is an 'inline' box, then T must be an 'inline-table' box; otherwise it must be a 'table' box.)
+        // A 'table-row' is misparented if its parent is neither a row group box nor a 'table' or 'inline-table' box.
+        // A 'table-column' box is misparented if its parent is neither a 'table-column-group' box nor a 'table' or 'inline-table' box.
+        // A row group box, 'table-column-group' box, or 'table-caption' box is misparented if its parent is neither a 'table' box nor an 'inline-table' box. 
 }
 
 /** \} */
