@@ -2858,6 +2858,11 @@ parse_propriété_display :: fonc (value: []ComponentValue) -> Optionnel(ValeurD
         retourne mot_clé
     }
 
+    mot_clé = parseuse.parse_display_internal()
+    si mot_clé.possède_valeur() {
+        retourne mot_clé
+    }
+
     lexème := parseuse.lexème_courant()
     si lexème.est_lexème_de_genre(GenreLexème.Ident) {
         si lexème.donne_texte() == PROP_list_item {
@@ -2869,7 +2874,7 @@ parse_propriété_display :: fonc (value: []ComponentValue) -> Optionnel(ValeurD
 parse_display_inside :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
 {
     /* <display-inside>   = flow | flow-root | table | flex | grid | ruby */
-    mots_clés := [PROP_flow, PROP_flow_root, PROP_flex]
+    mots_clés := [PROP_flow, PROP_flow_root, PROP_flex, PROP_table]
     retourne parse_mot_clé(parseuse, mots_clés)
 }
 
@@ -2900,7 +2905,18 @@ parse_display_box :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(Val
 parse_display_legacy :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
 {
     /* <display-legacy>   = inline-block | inline-table | inline-flex | inline-grid */
-    mots_clés := [PROP_inline_block, PROP_inline_flex]
+    mots_clés := [PROP_inline_block, PROP_inline_flex, PROP_inline_table]
+    retourne parse_mot_clé(parseuse, mots_clés)
+}
+
+parse_display_internal :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+{
+    /* <display-internal> = table-row-group | table-header-group |
+                     table-footer-group | table-row | table-cell |
+                     table-column-group | table-column | table-caption |
+                     ruby-base | ruby-text | ruby-base-container |
+                     ruby-text-container */
+    mots_clés := [PROP_table_row_group, PROP_table_header_group, PROP_table_footer_group, PROP_table_row, PROP_table_cell, PROP_table_column_group, PROP_table_column, PROP_table_caption]
     retourne parse_mot_clé(parseuse, mots_clés)
 }
 

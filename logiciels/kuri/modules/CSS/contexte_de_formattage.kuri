@@ -70,8 +70,15 @@ requiers_contexte_de_formattage_indépendant :: fonc (noeud: *NoeudDeDisposition
         retourne vrai
     }
 
-    // À FAIRE : table cells or elements with display: table-cell, including anonymous table cells created when using the display: table-* properties
-    // À FAIRE : table captions or elements with display: table-caption
+    // table cells or elements with display: table-cell, including anonymous table cells created when using the display: table-* properties
+    si noeud.type == TableCellBox {
+        retourne vrai
+    }
+
+    // table captions or elements with display: table-caption
+    si noeud.type == CaptionBox {
+        retourne vrai
+    }
 
     // block elements where overflow has a value other than visible
     overflow_x := noeud.propriétés.donne_valeur_calculée(IDPropriété.OverflowX)

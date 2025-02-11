@@ -1480,6 +1480,46 @@ calcule_display_pour_mot_clé :: fonc (mot_clé: CSSOMString) -> ValeurDeStyle
         résultat.outer_type = Display.Type.Inline
         résultat.inner_type = Display.Type.Flex
     }
+    sinon si mot_clé == PROP_inline_table {
+        résultat.outer_type = Display.Type.Inline
+        résultat.inner_type = Display.Type.Table
+    }
+    sinon si mot_clé == PROP_table {
+        résultat.outer_type = Display.Type.Block
+        résultat.inner_type = Display.Type.Table
+    }
+    sinon si mot_clé == PROP_table_caption {
+        résultat.outer_type = Display.Type.Block
+        résultat.inner_type = Display.Type.TableCaption
+    }
+    sinon si mot_clé == PROP_table_column_group {
+        résultat.outer_type = Display.Type.Block
+        résultat.inner_type = Display.Type.TableColumnGroup
+    }
+    sinon si mot_clé == PROP_table_column {
+        résultat.outer_type = Display.Type.Block
+        résultat.inner_type = Display.Type.TableColumn
+    }
+    sinon si mot_clé == PROP_table_header_group {
+        résultat.outer_type = Display.Type.Block
+        résultat.inner_type = Display.Type.TableHeaderGroup
+    }
+    sinon si mot_clé == PROP_table_row_group {
+        résultat.outer_type = Display.Type.Block
+        résultat.inner_type = Display.Type.TableRowGroup
+    }
+    sinon si mot_clé == PROP_table_row {
+        résultat.outer_type = Display.Type.Block
+        résultat.inner_type = Display.Type.TableRow
+    }
+    sinon si mot_clé == PROP_table_footer_group {
+        résultat.outer_type = Display.Type.Block
+        résultat.inner_type = Display.Type.TableFooterGroup
+    }
+    sinon si mot_clé == PROP_table_cell {
+        résultat.outer_type = Display.Type.Block
+        résultat.inner_type = Display.Type.TableCell
+    }
     sinon {
         assert(mot_clé == PROP_inline)
     }
