@@ -2038,7 +2038,7 @@ décale :: fonc (noeud: *NoeudDeDisposition, x: r32, y: r32)
         it.décale(x, y)
     }
 
-    si noeud.type == NoeudDeDispositionBloc || noeud.type == NoeudDeDispositionInline {
+    si noeud.type == NoeudDeDispositionBloc || noeud.type == NoeudDeDispositionInline || noeud.type == TableCellBox {
         bloc := noeud comme *NoeudDeDispositionBloc
         pour * bloc.lignes_tenante.fragments {
             it.x += x
@@ -2539,7 +2539,7 @@ MéthodeDeFormattage :: énum {
 
 donne_méthode_de_formattage_intérieur :: fonc (noeud: *NoeudDeDispositionBloc) -> MéthodeDeFormattage
 {
-    si (noeud.type == NoeudDeDispositionBloc && noeud.est_disposition_inline) || noeud.type == NoeudDeDispositionInline {
+    si ((noeud.type == NoeudDeDispositionBloc || noeud.type == TableCellBox) && noeud.est_disposition_inline) || noeud.type == NoeudDeDispositionInline {
         retourne MéthodeDeFormattage.Inline
     }
 
@@ -4163,14 +4163,8 @@ TableRowBox :: struct {
  * \{ */
 
 TableCellBox :: struct {
-    empl base: NoeudDeDisposition
+    empl base_bloc: NoeudDeDispositionBloc
     type = #type_de_cette_structure
-    // sur_mesure = noeud_disposition_bloc_sur_mesure
-    // sur_dessin = noeud_disposition_bloc_sur_dessin
-    // sur_dessin_tampon_id = noeud_disposition_bloc_sur_dessin_tampon_id
-    // sur_correction_hiérarchie = noeud_disposition_bloc_corrige_hiérarchie
-
-    élément: *HTML.Élément
 }
 
 /** \} */
