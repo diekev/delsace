@@ -2232,7 +2232,7 @@ donne_containing_block :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeForm
         parent := noeud.parent
 
         tantque parent != nul {
-            si parent.type == NoeudDeDispositionBloc || parent.type == TableCellBox {
+            si parent.type == NoeudDeDispositionBloc || parent.type == TableWrapperBox || parent.type == TableCellBox {
                 retourne crée_containing_block_pour_contenu(parent)
             }
 
