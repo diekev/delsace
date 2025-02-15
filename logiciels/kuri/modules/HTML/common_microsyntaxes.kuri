@@ -11,15 +11,68 @@ importe Unicode
 /* https://html.spec.whatwg.org/multipage/common-microsyntaxes.html#rules-for-parsing-integers */
 parse_an_integer :: fonc (string: DOMString) -> Optionnel(z32)
 {
-    // À FAIRE : standardise
-    chn := converti_vers_chaine(string.donne_chaine_utf16())
-    diffère déloge(chn)
+    // 1. Let input be the string being parsed.
+    input := string.donne_chaine_utf16()
 
-    résultat := tente extrait_z32(chn) piège _ {
+    // 2. Let position be a pointer into input, initially pointing at the start of the string.
+    position := PositionVariable(input.unités.pointeur)
+
+    // 3. Let sign have the value "positive".
+    sign := faux
+
+    // 4. Skip ASCII whitespace within input given position.
+    skip_ascii_whitespace(input, *position)
+
+    // 5. If position is past the end of input, return an error.
+    fin := input.unités.pointeur + input.taille()
+    si position.position >= fin {
         retourne
     }
 
-    retourne résultat
+    // 6. If the character indicated by position (the first character) is a U+002D HYPHEN-MINUS character (-):
+    si mémoire(position.position) == 0x20 {
+        // 1. Let sign be "negative".
+        sign = vrai
+
+        // 2. Advance position to the next character.
+        position.position += 1
+
+        // 3. If position is past the end of input, return an error.
+        si position.position >= fin {
+            retourne
+        }
+    }
+    // 7. Otherwise, if the character indicated by position (the first character) is a U+002B PLUS SIGN character (+):
+    sinon si mémoire(position.position) == 0x2B {
+        // 1. Advance position to the next character. (The "+" is ignored, but it is not conforming.)
+        position.position += 1
+
+        // 2. If position is past the end of input, return an error.
+        si position.position >= fin {
+            retourne
+        }
+    }
+
+    // 8. If the character indicated by position is not an ASCII digit, then return an error.
+    saufsi est_chiffre_ascii(mémoire(position.position)) {
+        retourne
+    }
+
+    // 9. Collect a sequence of code points that are ASCII digits from input given position, and interpret the resulting sequence as a base-ten integer. Let value be that integer.
+    sequence := collect_a_sequence_of_code_points(input, *position, est_chiffre_ascii_n16)
+
+    value: z32
+    pour sequence.unités {
+        value *= 10
+        value += (it - 0x30) comme z32
+    }
+
+    // 10. If sign is "positive", return value, otherwise return the result of subtracting value from zero.
+    si sign {
+        retourne -value
+    }
+
+    retourne value
 }
 
 /** \} */
