@@ -3917,9 +3917,12 @@ table_wrapper_box_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteD
 
     formatte(*ctx_local, noeud, mode)
 
-    largeur_final := ValeurDeStyle(pixels = noeud.table.modèle_de_boite.contenu.largeur)
-    args = crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, *largeur_final)
-    calcule_largeur_et_marges(*args)
+    width := noeud.propriétés.donne_valeur_calculée(IDPropriété.Width)
+    si width.est_auto() {
+        largeur_final := ValeurDeStyle(pixels = noeud.table.modèle_de_boite.contenu.largeur)
+        args = crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, *largeur_final)
+        calcule_largeur_et_marges(*args)
+    }
 }
 
 est_row_group_box :: fonc (noeud: *NoeudDeDisposition) -> bool
