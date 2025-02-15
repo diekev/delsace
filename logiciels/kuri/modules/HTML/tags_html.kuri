@@ -144,6 +144,7 @@ ATTR_charset : DOMString = ---
 ATTR_class : DOMString = ---
 ATTR_color : DOMString = ---
 ATTR_cols : DOMString = ---
+ATTR_colspan : DOMString = ---
 ATTR_content : DOMString = ---
 ATTR_event : DOMString = ---
 ATTR_for : DOMString = ---

@@ -2742,6 +2742,24 @@ table_cell_element_sur_applique_presentational_hints :: fonc (base: *Élément, 
     ajoute_propriété_pour_legacy_colour_value(résolveuse, base, ATTR_bgcolor, CSS.PROP_background_color)
 }
 
+#portée_export
+
+/* https://html.spec.whatwg.org/multipage/tables.html#attr-tdth-colspan */
+donne_colspan :: fonc (élément: *Élément) -> n32
+{
+    attr := donne_attribut_ou_chaine_vide(élément, ATTR_colspan)
+    si attr.est_vide() {
+        retourne 1
+    }
+
+    opt_résultat := parse_a_non_negative_integer(attr)
+    saufsi opt_résultat.possède_valeur() {
+        retourne 1
+    }
+
+    retourne opt_résultat.Quelque
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
