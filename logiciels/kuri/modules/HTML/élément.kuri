@@ -1041,7 +1041,7 @@ ajoute_propriété_pour_non_zero_dimension :: fonc (résolveuse: *CSS.Résolveus
     si opt_attribut.possède_valeur() {
         valeur := parse_a_non_zero_dimension(opt_attribut.Quelque)
         si valeur.possède_valeur() {
-            ajoute_propriété_pour_nombre(résolveuse, nom_propriété, valeur.Quelque)
+            ajoute_propriété_pour_dimension(résolveuse, nom_propriété, valeur.Quelque)
         }
     }
 }
@@ -1049,6 +1049,19 @@ ajoute_propriété_pour_non_zero_dimension :: fonc (résolveuse: *CSS.Résolveus
 ajoute_propriété_pour_nombre :: fonc (résolveuse: *CSS.RésolveuseStyle, nom_propriété: CSS.CSSOMString, valeur: r64)
 {
     CSS.ajoute_presentational_hint(résolveuse, nom_propriété, CSS.ValeurDeStyle(number = valeur))
+}
+
+ajoute_propriété_pour_dimension :: fonc (résolveuse: *CSS.RésolveuseStyle, nom_propriété: CSS.CSSOMString, valeur: DimensionValue)
+{
+    discr valeur {
+        Percentage(p) {
+            CSS.ajoute_presentational_hint(résolveuse, nom_propriété, CSS.ValeurDeStyle(percentage = p))
+        }
+        Length(l) {
+            CSS.ajoute_presentational_hint(résolveuse, nom_propriété, CSS.ValeurDeStyle(pixels = l))
+        }
+        sinon {}
+    }
 }
 
 /** \} */
@@ -1108,7 +1121,7 @@ donne_largeur_intrinsèque :: fonc (canvas: *HTMLCanvasElement) -> r64
     si opt_attribut.possède_valeur() {
         valeur := parse_a_non_zero_dimension(opt_attribut.Quelque)
         si valeur.possède_valeur() {
-            retourne valeur
+            retourne valeur.Quelque.Length
         }
     }
 
@@ -1121,7 +1134,7 @@ donne_hauteur_intrinsèque :: fonc (canvas: *HTMLCanvasElement) -> r64
     si opt_attribut.possède_valeur() {
         valeur := parse_a_non_zero_dimension(opt_attribut.Quelque)
         si valeur.possède_valeur() {
-            retourne valeur
+            retourne valeur.Quelque.Length
         }
     }
 
