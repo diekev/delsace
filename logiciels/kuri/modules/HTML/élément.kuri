@@ -1035,6 +1035,17 @@ ajoute_propriété_pour_mot_clé :: fonc (résolveuse: *CSS.RésolveuseStyle, no
     CSS.ajoute_presentational_hint(résolveuse, nom_propriété, CSS.ValeurDeStyle(mot_clé = mot_clé))
 }
 
+ajoute_propriété_pour_dimension :: fonc (résolveuse: *CSS.RésolveuseStyle, élément: *Élément, nom_attribut: DOMString, nom_propriété: CSS.CSSOMString)
+{
+    opt_attribut := élément.donne_attribut(nom_attribut)
+    si opt_attribut.possède_valeur() {
+        valeur := parse_a_dimension_value(opt_attribut.Quelque)
+        si valeur.possède_valeur() {
+            ajoute_propriété_pour_dimension(résolveuse, nom_propriété, valeur.Quelque)
+        }
+    }
+}
+
 ajoute_propriété_pour_non_zero_dimension :: fonc (résolveuse: *CSS.RésolveuseStyle, élément: *Élément, nom_attribut: DOMString, nom_propriété: CSS.CSSOMString)
 {
     opt_attribut := élément.donne_attribut(nom_attribut)
@@ -2725,6 +2736,8 @@ table_virtuelle_table_element := TableVirtuelleÉlément(
 table_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
 {
     ajoute_propriété_pour_legacy_colour_value(résolveuse, base, ATTR_bgcolor, CSS.PROP_background_color)
+    ajoute_propriété_pour_non_zero_dimension(résolveuse, base, ATTR_width, CSS.PROP_width)
+    ajoute_propriété_pour_dimension(résolveuse, base, ATTR_height, CSS.PROP_height)
 }
 
 /** \} */
@@ -2753,6 +2766,8 @@ table_virtuelle_table_cell_element := TableVirtuelleÉlément(
 table_cell_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
 {
     ajoute_propriété_pour_legacy_colour_value(résolveuse, base, ATTR_bgcolor, CSS.PROP_background_color)
+    ajoute_propriété_pour_non_zero_dimension(résolveuse, base, ATTR_width, CSS.PROP_width)
+    ajoute_propriété_pour_non_zero_dimension(résolveuse, base, ATTR_height, CSS.PROP_height)
 }
 
 #portée_export
@@ -2799,6 +2814,7 @@ table_virtuelle_table_row_element := TableVirtuelleÉlément(
 table_row_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
 {
     ajoute_propriété_pour_legacy_colour_value(résolveuse, base, ATTR_bgcolor, CSS.PROP_background_color)
+    ajoute_propriété_pour_dimension(résolveuse, base, ATTR_height, CSS.PROP_height)
 }
 
 /** \} */
@@ -2827,6 +2843,7 @@ table_virtuelle_table_section_element := TableVirtuelleÉlément(
 table_section_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
 {
     ajoute_propriété_pour_legacy_colour_value(résolveuse, base, ATTR_bgcolor, CSS.PROP_background_color)
+    ajoute_propriété_pour_dimension(résolveuse, base, ATTR_height, CSS.PROP_height)
 }
 
 /** \} */
