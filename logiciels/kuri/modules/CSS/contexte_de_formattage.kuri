@@ -994,3 +994,245 @@ distribue_espace_disponible :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *Lig
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ContexteDeFormattageTable
+ * \{ */
+
+DonnéesCellule :: struct {
+    box: *TableCellBox
+    colonne: z64
+    ligne: z64
+    colspan: n32
+
+    minimum_content_width: r64
+    maximum_content_width: r64
+}
+
+R64_INFINITÉ : r64 : 0r7ff0000000000000
+R64_INFINITÉ_NÉGATIVE : r64 : 0rfff0000000000000
+
+DonnéesColonne :: struct {
+    minimum_width := R64_INFINITÉ_NÉGATIVE
+    maximum_width := R64_INFINITÉ_NÉGATIVE
+}
+
+ContexteDeFormattageTable :: struct {
+    empl base: ContexteDeFormattage
+
+    cellules: [..]DonnéesCellule
+    lignes_cellules: [..]z64
+    colonnes_cellules: [..]z64
+    cellules_par_ligne: [..]z32
+
+    données_colonnes: [..]DonnéesColonne
+
+    nombre_de_lignes: z64
+    nombre_de_colonnes: z64
+}
+
+formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox)
+{
+    initialise_données_cellules(ctx, table)
+
+    pour * ctx.cellules {
+        mesure(it.box, ctx, ModeDeFormattage.ToutesLesBrisuresDeLigne, nul)
+        it.minimum_content_width = it.box.modèle_de_boite.bordure.largeur
+
+        mesure(it.box, ctx, ModeDeFormattage.BrisureDeLigneExplicite, nul)
+        it.maximum_content_width = it.box.modèle_de_boite.bordure.largeur
+
+        // imprime("cellule min %, max %\n", it.minimum_content_width, it.maximum_content_width)
+    }
+
+    pour ctx.colonnes_cellules.taille / 2 {
+        index_colonne := ctx.colonnes_cellules[it * 2]
+        index_cellule := ctx.colonnes_cellules[it * 2 + 1]
+
+        cellule := ctx.cellules[index_cellule]
+
+        si cellule.colspan == 1 {
+            données_colonnes := *ctx.données_colonnes[index_colonne]
+
+            si données_colonnes.minimum_width < cellule.minimum_content_width {
+                données_colonnes.minimum_width = cellule.minimum_content_width
+            }
+
+            si données_colonnes.maximum_width < cellule.maximum_content_width {
+                données_colonnes.maximum_width = cellule.maximum_content_width
+            }
+        }
+        sinon {
+            largeur_min_colonnes : r64 = 0.0
+            largeur_max_colonnes : r64 = 0.0
+
+            pour idx dans index_colonne ... index_colonne + (cellule.colspan comme z32) - 1 {
+                assert(idx < ctx.données_colonnes.taille)
+                données_colonnes := *ctx.données_colonnes[idx]
+
+                largeur_min_colonnes += données_colonnes.minimum_width
+                largeur_max_colonnes += données_colonnes.maximum_width
+            }
+
+            si largeur_min_colonnes < cellule.minimum_content_width {
+                delta := (cellule.minimum_content_width - largeur_min_colonnes) / cellule.colspan comme r64
+
+                pour idx dans index_colonne ... index_colonne + (cellule.colspan comme z32) - 1 {
+                    données_colonnes := *ctx.données_colonnes[idx]
+                    données_colonnes.minimum_width += delta
+                }
+            }
+
+            si largeur_max_colonnes < cellule.maximum_content_width {
+                delta := (cellule.maximum_content_width - largeur_max_colonnes) / cellule.colspan comme r64
+
+                pour idx dans index_colonne ... index_colonne + (cellule.colspan comme z32) - 1 {
+                    données_colonnes := *ctx.données_colonnes[idx]
+                    données_colonnes.maximum_width += delta
+                }
+            }
+        }
+    }
+
+    largeur: r64
+    pour ctx.données_colonnes {
+        // imprime("colonne %, min %, max %\n", index_it, it.minimum_width, it.maximum_width)
+        largeur += it.maximum_width
+    }
+
+    outrepas_largeur := ValeurDeStyle(pixels = largeur)
+    containing_block := donne_containing_block(table, ctx)
+    args := crée_arguments_dimensionnement_largeur(ctx, table, containing_block, *outrepas_largeur)
+    calcule_largeur_et_marges(*args)
+    _ := calcule_hauteur_et_marges(*args)
+
+    /* Nous utilisons la bordure et non le contenu car la bordure et le rembourrage
+     * sont géré par le TableWrapperBox parent : nous risquerions de décaler inutilement le contenu. */
+    décalage_x := table.modèle_de_boite.bordure.x
+    décalage_y := table.modèle_de_boite.bordure.y
+
+    décalage_y_ligne := décalage_y
+
+    index_cellule: z64
+
+    pour table.enfants {
+        saufsi est_row_group_box(it) {
+            continue
+        }
+
+        hauteur_row_group: r64
+        décalage_y_row_group := décalage_y_ligne
+
+        pour enfant_row_group dans it.enfants {
+            saufsi enfant_row_group.type == TableRowBox {
+                continue
+            }
+
+            décalage_x_colonne := décalage_x
+            hauteur_ligne: r64
+
+            pour enfant_row dans enfant_row_group.enfants {
+                saufsi enfant_row.type == TableCellBox {
+                    continue
+                }
+
+                cellule := *ctx.cellules[index_cellule]
+                index_cellule += 1
+
+                données_colonnes := *ctx.données_colonnes[cellule.colonne]
+
+                largeur_cellule := données_colonnes.maximum_width
+                si cellule.colspan > 1 {
+                    pour idx dans cellule.colonne + 1 ... cellule.colonne + (cellule.colspan comme z32) - 1 {
+                        données_colonnes = *ctx.données_colonnes[idx]
+                        largeur_cellule += données_colonnes.maximum_width
+                    }
+                }
+
+                définis_position(cellule.box, décalage_x_colonne, décalage_y_ligne)
+                outrepas_largeur.pixels = donne_largeur_contenu(cellule.box, largeur_cellule)
+                mesure(cellule.box, ctx, ModeDeFormattage.Normal, *outrepas_largeur)
+
+                hauteur_ligne = max(hauteur_ligne, cellule.box.modèle_de_boite.marge.hauteur)
+                décalage_x_colonne += largeur_cellule comme r32
+            }
+
+            définis_position(enfant_row_group, décalage_x, décalage_y_ligne)
+            définis_largeur_contenu(enfant_row_group.modèle_de_boite, largeur comme r32)
+            définis_hauteur_contenu(enfant_row_group.modèle_de_boite, hauteur_ligne comme r32)
+
+            décalage_y_ligne += hauteur_ligne comme r32
+            hauteur_row_group += hauteur_ligne
+        }
+
+        définis_position(it, décalage_x, décalage_y_row_group)
+        définis_largeur_contenu(it.modèle_de_boite, largeur comme r32)
+        définis_hauteur_contenu(it.modèle_de_boite, hauteur_row_group comme r32)
+    }
+
+    outrepas_hauteur := ValeurDeStyle(pixels = décalage_y_ligne - décalage_y)
+    args = crée_arguments_dimensionnement_hauteur(ctx, table, containing_block, *outrepas_hauteur)
+    _ := calcule_hauteur_et_marges(*args)
+}
+
+initialise_données_cellules :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox)
+{
+    index_ligne: z64
+
+    pour table.enfants {
+        saufsi est_row_group_box(it) {
+            continue
+        }
+
+        pour enfant_row_group dans it.enfants {
+            saufsi enfant_row_group.type == TableRowBox {
+                continue
+            }
+
+            row := enfant_row_group comme *TableRowBox
+
+            index_colonne: z64
+            cellules_sur_ligne: z32
+
+            pour enfant_row dans row.enfants {
+                saufsi enfant_row.type == TableCellBox {
+                    continue
+                }
+
+                cell := enfant_row comme *TableCellBox
+
+                index_cellule := ctx.cellules.taille
+
+                cellule := tableau_ajoute_élément(*ctx.cellules)
+                cellule.box = cell
+                cellule.colonne = index_colonne
+                cellule.ligne = index_ligne
+                cellule.colspan = HTML.donne_colspan(cell.élément)
+
+                tableau_ajoute(*ctx.lignes_cellules, index_ligne)
+                tableau_ajoute(*ctx.lignes_cellules, index_cellule)
+
+                tableau_ajoute(*ctx.colonnes_cellules, index_colonne)
+                tableau_ajoute(*ctx.colonnes_cellules, index_cellule)
+
+                index_colonne += cellule.colspan comme z64
+                cellules_sur_ligne += 1
+
+                si ctx.nombre_de_colonnes < index_colonne {
+                    ctx.nombre_de_colonnes = index_colonne
+                }
+            }
+
+            tableau_ajoute(*ctx.cellules_par_ligne, cellules_sur_ligne)
+            index_ligne += 1
+        }
+    }
+
+    ctx.nombre_de_lignes = index_ligne
+
+    tableau_redimensionne(ctx.données_colonnes, ctx.nombre_de_colonnes)
+
+    // imprime("lignes : %, colones : %\n", index_ligne, ctx.nombre_de_colonnes)
+}
+
+/** \} */

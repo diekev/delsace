@@ -1242,6 +1242,7 @@ crée_noeud_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *
         résultat = wrapper_box
 
         box := arbre.crée_noeud(TableBox)
+        wrapper_box.table = box
         table = box
 
         wrapper_box.ajoute_enfant(box)
@@ -2231,7 +2232,7 @@ donne_containing_block :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeForm
         parent := noeud.parent
 
         tantque parent != nul {
-            si parent.type == NoeudDeDispositionBloc {
+            si parent.type == NoeudDeDispositionBloc || parent.type == TableCellBox {
                 retourne crée_containing_block_pour_contenu(parent)
             }
 
@@ -3888,14 +3889,37 @@ opérateur pour :: fonc (itératrice: ItératriceArbre) -> *NoeudDeDisposition
  #portée_module
 
 TableWrapperBox :: struct {
-    empl base: NoeudDeDisposition
+    empl base_bloc: NoeudDeDispositionBloc
     type = #type_de_cette_structure
-    // sur_mesure = noeud_disposition_bloc_sur_mesure
-    // sur_dessin = noeud_disposition_bloc_sur_dessin
-    // sur_dessin_tampon_id = noeud_disposition_bloc_sur_dessin_tampon_id
+    sur_mesure = table_wrapper_box_sur_mesure
     sur_correction_hiérarchie = noeud_table_wrapper_box_corrige_hiérarchie
 
-    élément: *HTML.Élément
+    table: *TableBox
+}
+
+table_wrapper_box_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, outrepas_largeur: *ValeurDeStyle)
+{
+    noeud := base comme *TableWrapperBox
+
+    containing_block := donne_containing_block(base, ctx)
+
+    args := crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, outrepas_largeur)
+    calcule_largeur_et_marges(*args)
+    _ := calcule_hauteur_et_marges(*args)
+
+    ctx_local: ContexteDeFormattageBloc
+    diffère détruit_données_contexte(*ctx_local)
+
+    ctx_local.racine = noeud
+    ctx_local.globales = ctx.globales
+    ctx_local.doit_aligner_les_descendants = ctx.doit_aligner_les_descendants
+    ctx_local.initial_containing_block = ctx.initial_containing_block
+
+    formatte(*ctx_local, noeud, mode)
+
+    largeur_final := ValeurDeStyle(pixels = noeud.table.modèle_de_boite.contenu.largeur)
+    args = crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, *largeur_final)
+    calcule_largeur_et_marges(*args)
 }
 
 est_row_group_box :: fonc (noeud: *NoeudDeDisposition) -> bool
@@ -4046,12 +4070,54 @@ generate_missing_parents :: fonc (noeud: *NoeudDeDisposition @inutilisée, créa
 TableBox :: struct {
     empl base: NoeudDeDisposition
     type = #type_de_cette_structure
-    // sur_mesure = noeud_disposition_bloc_sur_mesure
-    // sur_dessin = noeud_disposition_bloc_sur_dessin
+    sur_mesure = table_box_sur_mesure
+    sur_dessin = table_box_sur_dessin
     // sur_dessin_tampon_id = noeud_disposition_bloc_sur_dessin_tampon_id
     // sur_correction_hiérarchie = noeud_disposition_bloc_corrige_hiérarchie
 
     élément: *HTML.Élément
+}
+
+table_box_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, outrepas_largeur: *ValeurDeStyle @inutilisée)
+{
+    noeud := base comme *TableBox
+
+    ctx_local: ContexteDeFormattageTable
+    ctx_local.globales = ctx.globales
+    ctx_local.initial_containing_block = ctx.initial_containing_block
+
+    formatte_table(*ctx_local, noeud)
+}
+
+table_box_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+{
+    table := base comme *TableBox
+    pour table.enfants {
+        saufsi est_row_group_box(it) {
+            continue
+        }
+
+        group_box := it comme *NoeudDeDispositionBloc
+        dessine_arrière_plan(ctx, group_box)
+
+        pour enfant_row_group dans it.enfants {
+            saufsi enfant_row_group.type == TableRowBox {
+                continue
+            }
+
+            row := enfant_row_group comme *TableRowBox
+
+            dessine_arrière_plan(ctx, row)
+
+            pour enfant_row dans row.enfants {
+                saufsi enfant_row.type == TableCellBox {
+                    continue
+                }
+
+                dessine(enfant_row, ctx)
+            }
+        }
+    }
 }
 
 /** \} */
@@ -4095,14 +4161,8 @@ TableColumnBox :: struct {
  * \{ */
 
 TableFooterGroupBox :: struct {
-    empl base: NoeudDeDisposition
+    empl base_bloc: NoeudDeDispositionBloc
     type = #type_de_cette_structure
-    // sur_mesure = noeud_disposition_bloc_sur_mesure
-    // sur_dessin = noeud_disposition_bloc_sur_dessin
-    // sur_dessin_tampon_id = noeud_disposition_bloc_sur_dessin_tampon_id
-    // sur_correction_hiérarchie = noeud_disposition_bloc_corrige_hiérarchie
-
-    élément: *HTML.Élément
 }
 
 /** \} */
@@ -4112,14 +4172,8 @@ TableFooterGroupBox :: struct {
  * \{ */
 
 TableHeaderGroupBox :: struct {
-    empl base: NoeudDeDisposition
+    empl base_bloc: NoeudDeDispositionBloc
     type = #type_de_cette_structure
-    // sur_mesure = noeud_disposition_bloc_sur_mesure
-    // sur_dessin = noeud_disposition_bloc_sur_dessin
-    // sur_dessin_tampon_id = noeud_disposition_bloc_sur_dessin_tampon_id
-    // sur_correction_hiérarchie = noeud_disposition_bloc_corrige_hiérarchie
-
-    élément: *HTML.Élément
 }
 
 /** \} */
@@ -4129,14 +4183,8 @@ TableHeaderGroupBox :: struct {
  * \{ */
 
 TableRowGroupBox :: struct {
-    empl base: NoeudDeDisposition
+    empl base_bloc: NoeudDeDispositionBloc
     type = #type_de_cette_structure
-    // sur_mesure = noeud_disposition_bloc_sur_mesure
-    // sur_dessin = noeud_disposition_bloc_sur_dessin
-    // sur_dessin_tampon_id = noeud_disposition_bloc_sur_dessin_tampon_id
-    // sur_correction_hiérarchie = noeud_disposition_bloc_corrige_hiérarchie
-
-    élément: *HTML.Élément
 }
 
 /** \} */
@@ -4146,14 +4194,8 @@ TableRowGroupBox :: struct {
  * \{ */
 
 TableRowBox :: struct {
-    empl base: NoeudDeDisposition
+    empl base_bloc: NoeudDeDispositionBloc
     type = #type_de_cette_structure
-    // sur_mesure = noeud_disposition_bloc_sur_mesure
-    // sur_dessin = noeud_disposition_bloc_sur_dessin
-    // sur_dessin_tampon_id = noeud_disposition_bloc_sur_dessin_tampon_id
-    // sur_correction_hiérarchie = noeud_disposition_bloc_corrige_hiérarchie
-
-    élément: *HTML.Élément
 }
 
 /** \} */
@@ -4165,6 +4207,24 @@ TableRowBox :: struct {
 TableCellBox :: struct {
     empl base_bloc: NoeudDeDispositionBloc
     type = #type_de_cette_structure
+}
+
+/* Retourne la largeur pour le contenu de la cellule étant donné la largeur disponible. */
+donne_largeur_contenu :: fonc (box: *TableCellBox, largeur_disponible: r64) -> r64
+{
+    propriétés := box.propriétés
+
+    ids_propriétés := [IDPropriété.BorderWidthLeft, IDPropriété.BorderWidthRight, IDPropriété.PaddingLeft, IDPropriété.PaddingRight]
+
+    pour ids_propriétés {
+        prop := propriétés.donne_valeur_calculée(it)
+
+        si prop.est_pixels() {
+            largeur_disponible -= prop.pixels
+        }
+    }
+
+    retourne largeur_disponible
 }
 
 /** \} */
