@@ -1527,8 +1527,8 @@ image_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOM
 
 image_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
 {
-    ajoute_propriété_pour_non_zero_dimension(résolveuse, base, ATTR_width, CSS.PROP_width)
-    ajoute_propriété_pour_non_zero_dimension(résolveuse, base, ATTR_height, CSS.PROP_height)
+    ajoute_propriété_pour_dimension(résolveuse, base, ATTR_width, CSS.PROP_width)
+    ajoute_propriété_pour_dimension(résolveuse, base, ATTR_height, CSS.PROP_height)
 }
 
 image_element_sur_destruction :: fonc (base: *JavaScript.Cellule)
