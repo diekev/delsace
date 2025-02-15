@@ -1016,6 +1016,7 @@ R64_INFINITÉ_NÉGATIVE : r64 : 0rfff0000000000000
 DonnéesColonne :: struct {
     minimum_width := R64_INFINITÉ_NÉGATIVE
     maximum_width := R64_INFINITÉ_NÉGATIVE
+    final_width: r64
 }
 
 ContexteDeFormattageTable :: struct {
@@ -1095,11 +1096,7 @@ formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox)
         }
     }
 
-    largeur: r64
-    pour ctx.données_colonnes {
-        // imprime("colonne %, min %, max %\n", index_it, it.minimum_width, it.maximum_width)
-        largeur += it.maximum_width
-    }
+    largeur := calcule_largeur_table(ctx, table)
 
     outrepas_largeur := ValeurDeStyle(pixels = largeur)
     containing_block := donne_containing_block(table, ctx)
@@ -1142,11 +1139,11 @@ formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox)
 
                 données_colonnes := *ctx.données_colonnes[cellule.colonne]
 
-                largeur_cellule := données_colonnes.maximum_width
+                largeur_cellule := données_colonnes.final_width
                 si cellule.colspan > 1 {
                     pour idx dans cellule.colonne + 1 ... cellule.colonne + (cellule.colspan comme z32) - 1 {
                         données_colonnes = *ctx.données_colonnes[idx]
-                        largeur_cellule += données_colonnes.maximum_width
+                        largeur_cellule += données_colonnes.final_width
                     }
                 }
 
@@ -1234,6 +1231,60 @@ initialise_données_cellules :: fonc (ctx: *ContexteDeFormattageTable, table: *T
     tableau_redimensionne(ctx.données_colonnes, ctx.nombre_de_colonnes)
 
     // imprime("lignes : %, colones : %\n", index_ligne, ctx.nombre_de_colonnes)
+}
+
+/* https://www.w3.org/TR/2011/REC-CSS2-20110607/tables.html#auto-table-layout */
+calcule_largeur_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox) -> r64
+{
+    containing_block := donne_containing_block(table, ctx)
+    résoud_pourcentage_largeurs(table, containing_block)
+    width := table.propriétés.donne_valeur_calculée(IDPropriété.Width)
+
+    // À FAIRE : CAPMIN
+    CAPMIN : r64 = 0.0
+    // À FAIRE : cell spacing and borders
+
+    MIN: r64
+    pour ctx.données_colonnes {
+        MIN += it.minimum_width
+    }
+
+    saufsi width.est_auto() {
+        W := width.pixels
+        used_width := max(W, CAPMIN, MIN)
+
+        si used_width > MIN {
+            delta := (used_width - MIN) / ctx.données_colonnes.taille comme r64
+
+            pour * ctx.données_colonnes {
+                it.final_width = it.minimum_width + delta
+            }
+        }
+        sinon {
+            pour * ctx.données_colonnes {
+                it.final_width = it.minimum_width
+            }
+        }
+
+        retourne used_width
+    }
+
+    largeur_containing_block := containing_block.donne_largeur()
+
+    MAX: r64
+    pour ctx.données_colonnes {
+        MAX += it.maximum_width
+    }
+
+    pour * ctx.données_colonnes {
+        it.final_width = it.maximum_width
+    }
+
+    si CAPMIN < largeur_containing_block || MAX < largeur_containing_block {
+        retourne max(MAX, CAPMIN)
+    }
+
+    retourne max(largeur_containing_block comme r64, CAPMIN, MIN)
 }
 
 /** \} */
