@@ -1290,7 +1290,7 @@ parse_a_legacy_font_size :: fonc (attribute_value: DOMString) -> Optionnel(CSS.C
         value += 3
     }
     sinon si mode == ModeFonte.RelativeMinus {
-        value -= 3
+        value = 3 - value
     }
 
     // 10. If value is greater than 7, let it be 7.
