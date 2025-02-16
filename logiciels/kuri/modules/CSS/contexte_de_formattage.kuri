@@ -294,6 +294,11 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
         ToutesLesBrisuresDeLigne {
             largeur_max_enfant : r64 = 0.0
             pour noeud.enfants {
+                position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position)
+                si position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_fixed) {
+                    continue
+                }
+
                 largeur_enfant := it.modèle_de_boite.marge.largeur
                 largeur_max_enfant = max(largeur_max_enfant, largeur_enfant)
             }
