@@ -1232,26 +1232,21 @@ font_element_sur_applique_presentational_hints :: fonc (base: *Élément, résol
     /* À FAIRE : face. */
 }
 
+/* https://html.spec.whatwg.org/multipage/rendering.html#rules-for-parsing-a-legacy-font-size */
 parse_a_legacy_font_size :: fonc (attribute_value: DOMString) -> Optionnel(CSS.CSSOMString)
 {
     // 1. Let input be the attribute's value.
     input := attribute_value.donne_chaine_utf16()
 
     // 2. Let position be a pointer into input, initially pointing at the start of the string.
-    position := input.unités.pointeur
-    fin := position + input.taille()
+    position := PositionVariable(input.unités.pointeur)
 
     // 3. Skip ASCII whitespace within input given position.
-    tantque position < fin {
-        saufsi est_espace_blanche_ascii(mémoire(position)) {
-            arrête
-        }
-
-        position += 1
-    }
+    skip_ascii_whitespace(input, *position)
 
     // 4. If position is past the end of input, there is no presentational hint. Return.
-    si position >= fin {
+    fin := input.unités.pointeur + input.taille()
+    si position.position >= fin {
         retourne
     }
 
@@ -1265,33 +1260,22 @@ parse_a_legacy_font_size :: fonc (attribute_value: DOMString) -> Optionnel(CSS.C
         RelativeMinus
     }
     mode := ModeFonte.Aucun
-    si mémoire(position) == 0x2B {
+    si mémoire(position.position) == 0x2B {
         mode = ModeFonte.RelativePlus
-        position += 1
+        position.position += 1
     }
-    sinon si mémoire(position) == 0x2D {
+    sinon si mémoire(position.position) == 0x2D {
         mode = ModeFonte.RelativeMinus
-        position += 1
+        position.position += 1
     }
 
     // 6. Collect a sequence of code points that are ASCII digits from input given position, and let the resulting sequence be digits.
-    //    https://infra.spec.whatwg.org/#collect-a-sequence-of-code-points
-    digits: ChaineUTF16
-
-    tantque position < fin {
-        saufsi est_chiffre_ascii(mémoire(position)) {
-            arrête
-        }
-
-        chaine_ajoute(*digits, mémoire(position))
-        position += 1
-    }
+    digits := collect_a_sequence_of_code_points(input, *position, est_chiffre_ascii_n16)
 
     // 7. If digits is the empty string, there is no presentational hint. Return.
     si digits.est_vide() {
         retourne
     }
-    diffère détruit_chaine(digits)
 
     // 8. Interpret digits as a base-ten integer. Let value be the resulting number.
     value: z32
