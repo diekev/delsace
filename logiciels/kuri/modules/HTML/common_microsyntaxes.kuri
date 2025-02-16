@@ -1,7 +1,6 @@
 importe Chaine
 importe Couleur
 importe Fondation
-importe Numérique
 importe Unicode
 
 /* ------------------------------------------------------------------------- */
