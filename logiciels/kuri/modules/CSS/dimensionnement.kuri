@@ -1,3 +1,4 @@
+importe Fondation
 importe Math
 importe Structures
 
@@ -143,15 +144,17 @@ ArgumentsDimensionnement :: struct {
     pos_y_statique: r64
 
     calcul_hauteur_après_contenu: bool
+    mode: ModeDeFormattage
 }
 
-crée_arguments_dimensionnement_largeur :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition, containing_block: &ContainingBlock, outrepas_largeur: *ValeurDeStyle) -> ArgumentsDimensionnement
+crée_arguments_dimensionnement_largeur :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition, containing_block: &ContainingBlock, outrepas_largeur: *ValeurDeStyle, mode: ModeDeFormattage) -> ArgumentsDimensionnement
 {
     résultat: ArgumentsDimensionnement
     résultat.ctx = ctx
     résultat.noeud = noeud
     résultat.containing_block = containing_block
     résultat.outrepas_largeur = outrepas_largeur
+    résultat.mode = mode
     retourne résultat
 }
 
@@ -511,8 +514,17 @@ calcule_largeur_et_marges_block_level_normal_flow :: fonc (empl args: *Arguments
 
     margin_right_pour_équation := margin_right
     si surcontraint == 0 {
-        // À FAIRE : direction
-        margin_right_pour_équation = ValeurDeStyle(pixels = 0.0)
+        /* https://html.spec.whatwg.org/multipage/rendering.html#align-descendants
+         * Nous n'alignons que lors du formattage final ("normal") afin que les marges
+         * n'interviennent pas dans le calcul des largeurs minimales et maximales. */
+        si mode == ModeDeFormattage.Normal && ctx.doit_aligner_les_descendants.possède_valeur() {
+            margin_left.mot_clé = PROP_auto
+            margin_right.mot_clé = PROP_auto
+        }
+        sinon {
+            // À FAIRE : direction
+            margin_right_pour_équation = ValeurDeStyle(pixels = 0.0)
+        }
     }
 
     // If there is exactly one value specified as 'auto', its used value follows from the equality.

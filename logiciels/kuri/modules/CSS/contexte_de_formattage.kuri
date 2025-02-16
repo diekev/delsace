@@ -34,22 +34,6 @@ formatte :: fonc (contexte: *ContexteDeFormattage, noeud: *NoeudDeDispositionBlo
     contexte.sur_formatte(contexte, noeud, mode)
 }
 
-modifie_marges_pour_alignement_forcé :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition)
-{
-    saufsi ctx.doit_aligner_les_descendants.possède_valeur() {
-        retourne
-    }
-
-    propriétés := noeud.propriétés
-    margin_left := propriétés.donne_valeur_calculée(IDPropriété.MarginLeft)
-    margin_right := propriétés.donne_valeur_calculée(IDPropriété.MarginRight)
-
-    si !margin_left.est_auto() && !margin_right.est_auto() {
-        propriétés.définis_valeur_utilisée(IDPropriété.MarginLeft, ValeurDeStyle(mot_clé = PROP_auto))
-        propriétés.définis_valeur_utilisée(IDPropriété.MarginRight, ValeurDeStyle(mot_clé = PROP_auto))
-    }
-}
-
 /* https://drafts.csswg.org/css-display-4/#establish-an-independent-formatting-context
  * https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_flow_layout/Introduction_to_formatting_contexts#creating_a_new_block_formatting_context */
 requiers_contexte_de_formattage_indépendant :: fonc (noeud: *NoeudDeDisposition) -> bool
@@ -327,7 +311,7 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
 dispose_boite_fixed :: fonc (empl ctx: *ContexteDeFormattageBloc, noeud: *NoeudDeDispositionBloc)
 {
     containing_block := donne_containing_block(noeud, ctx)
-    args := crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, nul)
+    args := crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, nul, ModeDeFormattage.Normal)
     calcule_largeur_et_marges(*args)
     _ := calcule_hauteur_et_marges(*args)
 
@@ -356,7 +340,7 @@ dispose_boite_fixed :: fonc (empl ctx: *ContexteDeFormattageBloc, noeud: *NoeudD
 dispose_boite_absolute :: fonc (empl ctx: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc, pos_x_statique: r64, pos_y_statique: r64)
 {
     containing_block := donne_containing_block(noeud, ctx)
-    args := crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, nul)
+    args := crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, nul, ModeDeFormattage.Normal)
     args.pos_x_statique = pos_x_statique
     args.pos_y_statique = pos_y_statique
     calcule_largeur_et_marges(*args)
@@ -1100,7 +1084,7 @@ formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox)
 
     outrepas_largeur := ValeurDeStyle(pixels = largeur)
     containing_block := donne_containing_block(table, ctx)
-    args := crée_arguments_dimensionnement_largeur(ctx, table, containing_block, *outrepas_largeur)
+    args := crée_arguments_dimensionnement_largeur(ctx, table, containing_block, *outrepas_largeur, ModeDeFormattage.Normal)
     calcule_largeur_et_marges(*args)
     _ := calcule_hauteur_et_marges(*args)
 
