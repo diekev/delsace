@@ -324,10 +324,10 @@ parse_a_legacy_colour_value :: fonc (string: DOMString) -> Optionnel(CouleurRVBA
         result.r = CSS.valeur_hex_depuis_unité(input.unités[1]) * 17
 
         // 3. Interpret the third character of input as a hexadecimal digit; let the green component of result be the resulting number multiplied by 17.
-        result.r = CSS.valeur_hex_depuis_unité(input.unités[2]) * 17
+        result.v = CSS.valeur_hex_depuis_unité(input.unités[2]) * 17
 
         // 4. Interpret the fourth character of input as a hexadecimal digit; let the blue component of result be the resulting number multiplied by 17.
-        result.r = CSS.valeur_hex_depuis_unité(input.unités[3]) * 17
+        result.b = CSS.valeur_hex_depuis_unité(input.unités[3]) * 17
 
         // 5. Return result.
         retourne result
