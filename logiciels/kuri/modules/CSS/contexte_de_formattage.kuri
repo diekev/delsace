@@ -386,16 +386,16 @@ ajoute_boite_flottante_gauche :: fonc (empl ctx: *ContexteDeFormattageBloc, noeu
     bord_gauche := containing_block.rect.x
     bord_droit := bord_gauche + largeur_disponible
 
-    position_x: r32
-    position_y: r32
+    position_x := noeud.modèle_de_boite.marge.x
+    position_y := noeud.modèle_de_boite.marge.y
     hauteur_noeud := noeud.modèle_de_boite.marge.hauteur
     largeur_noeud := noeud.modèle_de_boite.marge.largeur
 
     dernière_boite := donne_dernière_boite_flottante_gauche_non_vide(ctx)
 
     si dernière_boite == nul {
-        position_x = max(bord_gauche, décalage_x)
-        position_y = max(containing_block.rect.y, décalage_float_left_y)
+        position_x = max(bord_gauche, position_x)
+        décalage_float_left_y = position_y
     }
     sinon {
         position_x = dernière_boite.position_x + dernière_boite.largeur
@@ -438,8 +438,8 @@ ajoute_boite_flottante_droite :: fonc (empl ctx: *ContexteDeFormattageBloc, noeu
     bord_gauche := containing_block.rect.x
     bord_droit := bord_gauche + largeur_disponible
 
-    position_x: r32
-    position_y: r32
+    position_x := noeud.modèle_de_boite.marge.x
+    position_y := noeud.modèle_de_boite.marge.y
     hauteur_noeud := noeud.modèle_de_boite.marge.hauteur
     largeur_noeud := noeud.modèle_de_boite.marge.largeur
 
@@ -447,7 +447,7 @@ ajoute_boite_flottante_droite :: fonc (empl ctx: *ContexteDeFormattageBloc, noeu
 
     si dernière_boite == nul {
         position_x = min(bord_droit, décalage_float_right_x) - largeur_noeud
-        position_y = containing_block.rect.y
+        décalage_float_left_y = position_y
     }
     sinon {
         position_x = dernière_boite.position_x - largeur_noeud
