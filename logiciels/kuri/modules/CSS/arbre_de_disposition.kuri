@@ -2543,10 +2543,17 @@ MéthodeDeFormattage :: énum {
     DansContexteCourant
 }
 
-donne_méthode_de_formattage_intérieur :: fonc (noeud: *NoeudDeDispositionBloc) -> MéthodeDeFormattage
+donne_méthode_de_formattage_intérieur :: fonc (noeud: *NoeudDeDisposition) -> MéthodeDeFormattage
 {
-    si ((noeud.type == NoeudDeDispositionBloc || noeud.type == TableCellBox) && noeud.est_disposition_inline) || noeud.type == NoeudDeDispositionInline {
+    si noeud.type == NoeudDeDispositionInline {
         retourne MéthodeDeFormattage.Inline
+    }
+
+    si (noeud.type == NoeudDeDispositionBloc || noeud.type == TableCellBox) {
+        noeud_bloc := noeud comme *NoeudDeDispositionBloc
+        si noeud_bloc.est_disposition_inline {
+            retourne MéthodeDeFormattage.Inline
+        }
     }
 
     si noeud.donne_display().inner_type == Display.Type.Flex {
