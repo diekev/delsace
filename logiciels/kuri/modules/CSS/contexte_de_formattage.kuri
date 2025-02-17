@@ -143,6 +143,7 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
 
     hauteur_contenu := 0.0
     décalage_hors_float := 0.0
+    décalage_pour_floats := 0.0
 
     si noeud == ctx.racine {
         ctx.décalage_x = décalage_x
@@ -192,23 +193,33 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
             ctx.décalage_float_left_y = hauteur_contenu
         }
 
-        it.définis_position(décalage_x, décalage_y + décalage_hors_float)
-        it.mesure(ctx, mode, nul)
-
         float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float)
         si float.est_mot_clé(PROP_left) {
+            it.définis_position(décalage_x, décalage_y + décalage_pour_floats)
+            it.mesure(ctx, mode, nul)
             ctx.ajoute_boite_flottante_gauche(it)
             continue
         }
         si float.est_mot_clé(PROP_right) {
+            it.définis_position(décalage_x, décalage_y + décalage_pour_floats)
+            it.mesure(ctx, mode, nul)
             ctx.ajoute_boite_flottante_droite(it)
             continue
         }
+
+        it.définis_position(décalage_x, décalage_y + décalage_hors_float)
+        it.mesure(ctx, mode, nul)
 
         hauteur_enfant := it.modèle_de_boite.marge.hauteur
 
         hauteur_contenu += hauteur_enfant
         décalage_hors_float += hauteur_enfant
+
+        /* Les blocs dont le formatte interne est inline ne doivent pas déplacer les floats. */
+        méthode_de_formattage := donne_méthode_de_formattage_intérieur(it)
+        si méthode_de_formattage != MéthodeDeFormattage.Inline {
+            décalage_pour_floats = décalage_hors_float
+        }
     }
 
     pour noeud.enfants {
