@@ -207,24 +207,8 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
 
         hauteur_enfant := it.modèle_de_boite.marge.hauteur
 
-        // marges_enfant := it.marges
-        // marge_inter_enfant := max(marges_enfant[BorderEdge.Bottom], dernière_marge)
-        // décalage_y := marge_inter_enfant comme r32
-
-        // dernière_marge = marges_enfant[BorderEdge.Bottom]
-
-        si index_it == 0 {
-            hauteur_contenu += hauteur_enfant // + marges[BorderEdge.Top] comme r32
-            décalage_hors_float += hauteur_enfant
-        }
-        sinon si index_it == noeud.enfants.taille - 1 {
-            hauteur_contenu += hauteur_enfant // + marges[BorderEdge.Bottom] comme r32
-            décalage_hors_float += hauteur_enfant
-        }
-        sinon {
-            hauteur_contenu += hauteur_enfant // + dernière_marge comme r32
-            décalage_hors_float += hauteur_enfant
-        }
+        hauteur_contenu += hauteur_enfant
+        décalage_hors_float += hauteur_enfant
     }
 
     pour noeud.enfants {
