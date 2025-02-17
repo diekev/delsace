@@ -710,6 +710,12 @@ formatte_flex_row :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispos
             continue
         }
 
+        position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position)
+        si position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_fixed) {
+            it.mesure(ctx, mode, nul)
+            continue
+        }
+
         flex_basis := it.propriétés.donne_valeur_utilisée(IDPropriété.FlexBasis)
 
         largeur : r64 = 0.0
@@ -746,6 +752,11 @@ formatte_flex_row :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispos
 
     pour noeud.enfants {
         si est_espace_blanche_document(it) {
+            continue
+        }
+
+        position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position)
+        si position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_fixed) {
             continue
         }
 
