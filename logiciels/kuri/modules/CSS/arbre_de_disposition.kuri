@@ -2521,6 +2521,10 @@ réinitialise_lignes :: fonc (noeud: *NoeudDeDispositionBloc)
 
 détermine_disposition_interne :: fonc (noeud: *NoeudDeDispositionBloc)
 {
+    si noeud.enfants.taille == 0 {
+        retourne
+    }
+
     /* Crée des blocs anonymes pour envelopper les blocs inlines si au moins un enfant est un bloc.
      * Voir définition de "block container box" :
      * https://www.w3.org/TR/2011/REC-CSS2-20110607/visuren.html#block-boxes */
