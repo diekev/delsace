@@ -2723,12 +2723,28 @@ dessine_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDes
         saufsi position.est_mot_clé(PROP_static) {
             continue
         }
+        float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float)
+        saufsi float.est_none() {
+            continue
+        }
         dessine(it, ctx)
     }
 
     pour noeud.enfants {
         position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position)
         si position.est_mot_clé(PROP_static) {
+            continue
+        }
+        float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float)
+        saufsi float.est_none() {
+            continue
+        }
+        dessine(it, ctx)
+    }
+
+    pour noeud.enfants {
+        float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float)
+        si float.est_none() {
             continue
         }
         dessine(it, ctx)
