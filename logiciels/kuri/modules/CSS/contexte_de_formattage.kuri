@@ -109,6 +109,17 @@ BoiteFlottante :: struct {
     largeur: r32
 }
 
+crée_boite_flottante :: fonc (noeud: *NoeudDeDisposition) -> BoiteFlottante
+{
+    résultat: BoiteFlottante
+    résultat.noeud = noeud
+    résultat.position_x = noeud.modèle_de_boite.marge.x
+    résultat.position_y = noeud.modèle_de_boite.marge.y
+    résultat.hauteur = noeud.modèle_de_boite.marge.hauteur
+    résultat.largeur = noeud.modèle_de_boite.marge.largeur 
+    retourne résultat
+}
+
 ContexteDeFormattageBloc :: struct {
     empl base: ContexteDeFormattage
     sur_formatte = contexte_formattage_bloc_sur_formatte
@@ -386,35 +397,32 @@ ajoute_boite_flottante_gauche :: fonc (empl ctx: *ContexteDeFormattageBloc, noeu
     bord_gauche := containing_block.rect.x
     bord_droit := bord_gauche + largeur_disponible
 
-    position_x := noeud.modèle_de_boite.marge.x
-    position_y := noeud.modèle_de_boite.marge.y
-    hauteur_noeud := noeud.modèle_de_boite.marge.hauteur
-    largeur_noeud := noeud.modèle_de_boite.marge.largeur
+    boite := crée_boite_flottante(noeud)
 
     dernière_boite := donne_dernière_boite_flottante_gauche_non_vide(ctx)
 
     si dernière_boite == nul {
-        position_x = max(bord_gauche, position_x)
-        décalage_float_left_y = position_y
+        boite.position_x = max(bord_gauche, boite.position_x)
+        décalage_float_left_y = boite.position_y
     }
     sinon {
-        position_x = dernière_boite.position_x + dernière_boite.largeur
-        position_y = max(containing_block.rect.y, décalage_float_left_y)
+        boite.position_x = dernière_boite.position_x + dernière_boite.largeur
+        boite.position_y = max(containing_block.rect.y, décalage_float_left_y)
 
-        si position_x + largeur_noeud > bord_droit {
-            position_x = max(bord_gauche, décalage_x)
+        si boite.position_x + boite.largeur > bord_droit {
+            boite.position_x = max(bord_gauche, décalage_x)
 
             pour boites_flottantes_gauche {
-                décalage_float_left_y = max(position_y, it.position_y + it.hauteur)
+                décalage_float_left_y = max(boite.position_y, it.position_y + it.hauteur)
             }
 
-            position_y = décalage_float_left_y
+            boite.position_y = décalage_float_left_y
         }
     }
 
-    tableau_ajoute(*boites_flottantes_gauche, BoiteFlottante(noeud, position_x, position_y, hauteur_noeud, largeur_noeud))
+    tableau_ajoute(*boites_flottantes_gauche, boite)
 
-    noeud.décale_vers_position(position_x, position_y)
+    noeud.décale_vers_position(boite.position_x, boite.position_y)
 }
 
 donne_dernière_boite_flottante_gauche_non_vide :: fonc (ctx: *ContexteDeFormattageBloc) -> *BoiteFlottante
@@ -438,35 +446,32 @@ ajoute_boite_flottante_droite :: fonc (empl ctx: *ContexteDeFormattageBloc, noeu
     bord_gauche := containing_block.rect.x
     bord_droit := bord_gauche + largeur_disponible
 
-    position_x := noeud.modèle_de_boite.marge.x
-    position_y := noeud.modèle_de_boite.marge.y
-    hauteur_noeud := noeud.modèle_de_boite.marge.hauteur
-    largeur_noeud := noeud.modèle_de_boite.marge.largeur
+    boite := crée_boite_flottante(noeud)
 
     dernière_boite := donne_dernière_boite_flottante_droite_non_vide(ctx)
 
     si dernière_boite == nul {
-        position_x = min(bord_droit, décalage_float_right_x) - largeur_noeud
-        décalage_float_left_y = position_y
+        boite.position_x = min(bord_droit, décalage_float_right_x) - boite.largeur
+        décalage_float_left_y = boite.position_y
     }
     sinon {
-        position_x = dernière_boite.position_x - largeur_noeud
-        position_y = max(containing_block.rect.y, décalage_float_right_y)
+        boite.position_x = dernière_boite.position_x - boite.largeur
+        boite.position_y = max(containing_block.rect.y, décalage_float_right_y)
 
-        si position_x < bord_gauche {
-            position_x = min(bord_droit, décalage_float_right_x) - largeur_noeud
+        si boite.position_x < bord_gauche {
+            boite.position_x = min(bord_droit, décalage_float_right_x) - boite.largeur
 
             pour boites_flottantes_droite {
-                décalage_float_right_y = max(position_y, it.position_y + it.hauteur)
+                décalage_float_right_y = max(boite.position_y, it.position_y + it.hauteur)
             }
 
-            position_y = décalage_float_right_y
+            boite.position_y = décalage_float_right_y
         }
     }
 
-    tableau_ajoute(*boites_flottantes_droite, BoiteFlottante(noeud, position_x, position_y, hauteur_noeud, largeur_noeud))
+    tableau_ajoute(*boites_flottantes_droite, boite)
 
-    noeud.décale_vers_position(position_x, position_y)
+    noeud.décale_vers_position(boite.position_x, boite.position_y)
 }
 
 donne_dernière_boite_flottante_droite_non_vide :: fonc (ctx: *ContexteDeFormattageBloc) -> *BoiteFlottante
