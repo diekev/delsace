@@ -125,7 +125,7 @@ calcule_auto_height_racine_contexte_de_formattage :: fonc (noeud: *NoeudDeDispos
         enfant := pile.dépile()
         tableau_ajoute(*enfants_aplatis, enfant)
 
-        méthode_formattage := donne_méthode_de_formattage_intérieur(enfant comme *NoeudDeDispositionBloc)
+        méthode_formattage := donne_méthode_de_formattage_intérieur(enfant)
         si méthode_formattage != MéthodeDeFormattage.DansContexteCourant {
             continue
         }
