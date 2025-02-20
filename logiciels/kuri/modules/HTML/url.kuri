@@ -285,6 +285,12 @@ est_spécial :: fonc (url: *URL) -> bool
     retourne est_schéma_spécial(url.scheme)
 }
 
+/* https://url.spec.whatwg.org/#is-not-special */
+est_non_spécial :: fonc (url: *URL) -> bool
+{
+    retourne !est_schéma_spécial(url.scheme)
+}
+
 est_schéma_spécial :: fonc (schéma: ChaineASCII) -> bool
 {
     pour données_schéma_spécial {
@@ -369,6 +375,44 @@ donne_port_ou_défaut :: fonc (url: *URL) -> n16
     }
 
     retourne 0
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 3.5. Host parsing
+ * https://url.spec.whatwg.org/#concept-host-parser
+ * \{ */
+
+host_parser :: fonc (input: ChaineUTF16, is_opaque := faux) -> Optionnel(Host)
+{
+    // 1. If input starts with U+005B ([), then:
+    si input.taille() > 0 && input.unités[0] == 0x5B {
+        // 1. If input does not end with U+005D (]), IPv6-unclosed validation error, return failure.
+
+        // 2. Return the result of IPv6 parsing input with its leading U+005B ([) and trailing U+005D (]) removed.
+        panique("non-implémenté")
+    }
+
+    // 2. If isOpaque is true, then return the result of opaque-host parsing input.
+    si is_opaque {
+        panique("non-implémenté")
+    }
+
+    // 3. Assert: input is not the empty string.
+    assert(!input.est_vide())
+
+    // À FAIRE 4. Let domain be the result of running UTF-8 decode without BOM on the percent-decoding of input.
+    ascii_domain := converti_vers_chaine(input)
+
+    // 5. Let asciiDomain be the result of running domain to ASCII with domain and false.
+
+    // 6. If asciiDomain is failure, then return failure.
+
+    // 7. If asciiDomain ends in a number, then return the result of IPv4 parsing asciiDomain.
+
+    // 8. Return asciiDomain.
+    retourne ascii_domain
 }
 
 /** \} */
@@ -1362,19 +1406,32 @@ basic_url_parser_file_host :: fonc (parser: *BasicURLParser) -> RésultatParsage
         }
         // 3. Otherwise, run these steps:
         sinon {
-            panique("non-implémenté")
-
             // 1. Let host be the result of host parsing buffer with url is not special.
+            opt_host := host_parser(parser.buffer, parser.url.est_non_spécial())
 
             // 2. If host is failure, then return failure.
+            saufsi opt_host.possède_valeur() {
+                retourne RésultatParsageURL.Échec
+            }
+            host := opt_host.Quelque
 
             // 3. If host is "localhost", then set host to the empty string.
+            si host == "localhost" {
+                déloge(host)
+                host = ""
+            }
 
             // 4. Set url’s host to host.
+            parser.url.définis_host(host)
 
             // 5. If state override is given, then return.
+            si parser.state_override {
+                retourne RésultatParsageURL.Ok
+            }
 
             // 6. Set buffer to the empty string and state to path start state.
+            parser.buffer.unités.taille = 0
+            parser.définis_state(ÉtatParsageURL.PathStart)
         }
     }
     // 2. Otherwise, append c to buffer.
