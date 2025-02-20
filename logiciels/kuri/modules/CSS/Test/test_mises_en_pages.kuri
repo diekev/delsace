@@ -103,6 +103,13 @@ ajourne_fichiers :: fonc ()
 
         chemin_sortie := chemins_sorties[index_it]
 
+        original := contenu_fichier_texte(chemin_sortie)
+        diffère déloge(original)
+    
+        si impression == original {
+            continue
+        }
+
         fichier := tente ouvre_fichier_crée_si_non_existant(chemin_sortie, pour_écriture_tronquée) piège err {
             imprime("impossible de créer le fichier '%' %\n", chemin_sortie, err)
             retourne
