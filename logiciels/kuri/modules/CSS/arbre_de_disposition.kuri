@@ -4112,7 +4112,7 @@ TableBox :: struct {
     élément: *HTML.Élément
 }
 
-table_box_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, outrepas_largeur: *ValeurDeStyle @inutilisée)
+table_box_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage @inutilisée, outrepas_largeur: *ValeurDeStyle @inutilisée)
 {
     noeud := base comme *TableBox
 
