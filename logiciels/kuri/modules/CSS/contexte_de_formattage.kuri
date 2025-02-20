@@ -420,8 +420,8 @@ ajoute_boite_flottante_gauche :: fonc (empl ctx: *ContexteDeFormattageBloc, noeu
         décalage_float_left_y = boite.position_y
     }
     sinon {
-        boite.position_x = dernière_boite.position_x + dernière_boite.largeur
         boite.position_y = max(containing_block.rect.y, décalage_float_left_y)
+        boite.position_x = donne_position_flottante_la_plus_à_gauche(ctx, containing_block, boite.position_y)
 
         si boite.position_x + boite.largeur > bord_droit {
             boite.position_x = max(bord_gauche, décalage_x)
@@ -441,15 +441,38 @@ ajoute_boite_flottante_gauche :: fonc (empl ctx: *ContexteDeFormattageBloc, noeu
             }
 
             boite.position_y = it.position_y + it.hauteur
+            boite.position_x = donne_position_flottante_la_plus_à_gauche(ctx, containing_block, boite.position_y)
             décalage_float_left_y = boite.position_y
         }
     }
 
     tableau_ajoute(*boites_flottantes_gauche, boite)
 
-    ctx.rect_boites_flottantes_gauches = donne_union(ctx.rect_boites_flottantes_gauches, boite.donne_rectangle())
+    si ctx.boites_flottantes_gauche.taille == 1 {
+        ctx.rect_boites_flottantes_gauches = boite.donne_rectangle()
+    }
+    sinon {
+        ctx.rect_boites_flottantes_gauches = donne_union(ctx.rect_boites_flottantes_gauches, boite.donne_rectangle())
+    }
 
     noeud.décale_vers_position(boite.position_x, boite.position_y)
+}
+
+donne_position_flottante_la_plus_à_gauche :: fonc (ctx: *ContexteDeFormattageBloc, containing_block: &ContainingBlock, y: r32) -> r32
+{
+    résultat := containing_block.rect.x
+
+    pour ctx.boites_flottantes_gauche {
+        si (it.position_y + it.hauteur) <= y {
+            continue
+        }
+
+        si contient(it.donne_rectangle(), résultat, y) {
+            résultat = it.position_x + it.largeur
+        }
+    }
+
+    retourne résultat
 }
 
 donne_dernière_boite_flottante_gauche_non_vide :: fonc (ctx: *ContexteDeFormattageBloc) -> *BoiteFlottante
@@ -482,8 +505,8 @@ ajoute_boite_flottante_droite :: fonc (empl ctx: *ContexteDeFormattageBloc, noeu
         décalage_float_left_y = boite.position_y
     }
     sinon {
-        boite.position_x = dernière_boite.position_x - boite.largeur
         boite.position_y = max(containing_block.rect.y, décalage_float_right_y)
+        boite.position_x = donne_position_flottante_la_plus_à_droite(ctx, containing_block, boite.largeur, boite.position_y)
 
         si boite.position_x < bord_gauche {
             boite.position_x = min(bord_droit, décalage_float_right_x) - boite.largeur
@@ -503,13 +526,19 @@ ajoute_boite_flottante_droite :: fonc (empl ctx: *ContexteDeFormattageBloc, noeu
             }
 
             boite.position_y = it.position_y + it.hauteur
+            boite.position_x = donne_position_flottante_la_plus_à_droite(ctx, containing_block, boite.largeur, boite.position_y)
             décalage_float_right_y = boite.position_y
         }
     }
 
     tableau_ajoute(*boites_flottantes_droite, boite)
 
-    ctx.rect_boites_flottantes_droites = donne_union(ctx.rect_boites_flottantes_droites, boite.donne_rectangle())
+    si ctx.boites_flottantes_droite.taille == 1 {
+        ctx.rect_boites_flottantes_droites = boite.donne_rectangle()
+    }
+    sinon {
+        ctx.rect_boites_flottantes_droites = donne_union(ctx.rect_boites_flottantes_droites, boite.donne_rectangle())
+    }
 
     noeud.décale_vers_position(boite.position_x, boite.position_y)
 }
@@ -525,6 +554,23 @@ donne_dernière_boite_flottante_droite_non_vide :: fonc (ctx: *ContexteDeFormatt
     }
 
     retourne nul
+}
+
+donne_position_flottante_la_plus_à_droite :: fonc (ctx: *ContexteDeFormattageBloc, containing_block: &ContainingBlock, largeur: r32, y: r32) -> r32
+{
+    résultat := containing_block.rect.x + containing_block.rect.largeur - largeur
+
+    pour ctx.boites_flottantes_droite {
+        si (it.position_y + it.hauteur) <= y {
+            continue
+        }
+
+        si contient(it.donne_rectangle(), résultat, y) {
+            résultat -= it.largeur
+        }
+    }
+
+    retourne résultat
 }
 
 donne_hauteur_floats_gauche :: fonc (empl ctx: *ContexteDeFormattageBloc) -> r32
