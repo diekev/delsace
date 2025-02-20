@@ -146,8 +146,8 @@ ContexteDeFormattageBloc :: struct {
     décalage_float_right_x: r32
     décalage_float_right_y: r32
 
-    rect_boites_flottantes_gauches := RectanglePosDim(r64)(R64_INFINITÉ, R64_INFINITÉ_NÉGATIVE, R64_INFINITÉ, R64_INFINITÉ_NÉGATIVE)
-    rect_boites_flottantes_droites := RectanglePosDim(r64)(R64_INFINITÉ, R64_INFINITÉ_NÉGATIVE, R64_INFINITÉ, R64_INFINITÉ_NÉGATIVE)
+    rect_boites_flottantes_gauches: RectanglePosDim(r64)
+    rect_boites_flottantes_droites: RectanglePosDim(r64)
 }
 
 détruit_données_contexte :: fonc (ctx: *ContexteDeFormattageBloc)
@@ -168,7 +168,8 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
 
     hauteur_contenu := 0.0
     décalage_hors_float := 0.0
-    décalage_pour_floats := 0.0
+    décalage_pour_floats_gauche := 0.0
+    décalage_pour_floats_droite := 0.0
 
     si noeud == ctx.racine {
         ctx.décalage_x = décalage_x
@@ -192,41 +193,73 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
 
         clear := it.propriétés.donne_valeur_utilisée(IDPropriété.Clear)
         si clear.est_mot_clé(PROP_left) {
-            hauteur_float_left := ctx.donne_hauteur_floats_gauche() - décalage_y
+            hauteur_float_left := ctx.donne_décalage_floats_gauche() - décalage_y
 
-            hauteur_contenu += hauteur_float_left
-            décalage_hors_float += hauteur_float_left
+            si hauteur_contenu < hauteur_float_left {
+                hauteur_contenu = hauteur_float_left
+            }
 
-            // déloge(ctx.boites_flottantes_gauche)
+            si décalage_hors_float < hauteur_float_left {
+                décalage_hors_float = hauteur_float_left
+            }
+
+            si décalage_pour_floats_gauche < hauteur_float_left {
+                décalage_pour_floats_gauche = hauteur_float_left
+            }
+
             ctx.décalage_float_left_y = hauteur_contenu
         }
         sinon si clear.est_mot_clé(PROP_right) {
-            hauteur_float_right := ctx.donne_hauteur_floats_gauche() - décalage_y
-            hauteur_contenu += hauteur_float_right
-            décalage_hors_float += hauteur_float_right
-            //déloge(ctx.boites_flottantes_droite)
+            hauteur_float_right := ctx.donne_décalage_floats_droite() - décalage_y
+
+            si hauteur_contenu < hauteur_float_right {
+                hauteur_contenu = hauteur_float_right
+            }
+
+            si décalage_hors_float < hauteur_float_right {
+                décalage_hors_float = hauteur_float_right
+            }
+
+            si décalage_pour_floats_droite < hauteur_float_right {
+                décalage_pour_floats_droite = hauteur_float_right
+            }
+
             ctx.décalage_float_right_y = hauteur_contenu
         }
         sinon si clear.est_mot_clé(PROP_both) {
-            hauteur_float_right := ctx.donne_hauteur_floats_droite() - décalage_y
-            hauteur_float_left := ctx.donne_hauteur_floats_gauche() - décalage_y
-            hauteur_contenu += max(hauteur_float_left, hauteur_float_right)
-            décalage_hors_float += max(hauteur_float_left, hauteur_float_right)
-            // déloge(ctx.boites_flottantes_droite)
-            // déloge(ctx.boites_flottantes_gauche)
-            ctx.décalage_float_right_y = hauteur_contenu
+            hauteur_float_right := ctx.donne_décalage_floats_droite() - décalage_y
+            hauteur_float_left := ctx.donne_décalage_floats_gauche() - décalage_y
+            hauteur_float_both := max(hauteur_float_left, hauteur_float_right)
+
+            si hauteur_contenu < hauteur_float_both {
+                hauteur_contenu = hauteur_float_both
+            }
+
+            si décalage_hors_float < hauteur_float_both {
+                décalage_hors_float = hauteur_float_both
+            }
+
+            si décalage_pour_floats_gauche < hauteur_float_both {
+                décalage_pour_floats_gauche = hauteur_float_both
+            }
+
+            si décalage_pour_floats_droite < hauteur_float_both {
+                décalage_pour_floats_droite = hauteur_float_both
+            }
+
             ctx.décalage_float_left_y = hauteur_contenu
+            ctx.décalage_float_right_y = hauteur_contenu
         }
 
         float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float)
         si float.est_mot_clé(PROP_left) {
-            it.définis_position(décalage_x, décalage_y + décalage_pour_floats)
+            it.définis_position(décalage_x, décalage_y + décalage_pour_floats_gauche)
             it.mesure(ctx, mode, nul)
             ctx.ajoute_boite_flottante_gauche(it)
             continue
         }
         si float.est_mot_clé(PROP_right) {
-            it.définis_position(décalage_x, décalage_y + décalage_pour_floats)
+            it.définis_position(décalage_x, décalage_y + décalage_pour_floats_droite)
             it.mesure(ctx, mode, nul)
             ctx.ajoute_boite_flottante_droite(it)
             continue
@@ -243,7 +276,8 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
         /* Les blocs dont le formatte interne est inline ne doivent pas déplacer les floats. */
         méthode_de_formattage := donne_méthode_de_formattage_intérieur(it)
         si méthode_de_formattage != MéthodeDeFormattage.Inline {
-            décalage_pour_floats = décalage_hors_float
+            décalage_pour_floats_gauche = décalage_hors_float
+            décalage_pour_floats_droite = décalage_hors_float
         }
     }
 
@@ -573,22 +607,14 @@ donne_position_flottante_la_plus_à_droite :: fonc (ctx: *ContexteDeFormattageBl
     retourne résultat
 }
 
-donne_hauteur_floats_gauche :: fonc (empl ctx: *ContexteDeFormattageBloc) -> r32
+donne_décalage_floats_gauche :: fonc (empl ctx: *ContexteDeFormattageBloc) -> r32
 {
-    résultat := 0.0
-    pour boites_flottantes_gauche {
-        résultat = max(résultat, it.position_y + it.hauteur)
-    }
-    retourne résultat
+    retourne (ctx.rect_boites_flottantes_gauches.y + ctx.rect_boites_flottantes_gauches.hauteur) comme r32
 }
 
-donne_hauteur_floats_droite :: fonc (empl ctx: *ContexteDeFormattageBloc) -> r32
+donne_décalage_floats_droite :: fonc (empl ctx: *ContexteDeFormattageBloc) -> r32
 {
-    résultat := 0.0
-    pour boites_flottantes_droite {
-        résultat = max(résultat, it.position_y + it.hauteur)
-    }
-    retourne résultat
+    retourne (ctx.rect_boites_flottantes_droites.y + ctx.rect_boites_flottantes_droites.hauteur) comme r32
 }
 
 /** \} */
