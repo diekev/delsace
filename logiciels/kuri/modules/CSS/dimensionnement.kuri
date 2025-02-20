@@ -809,6 +809,8 @@ calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
         top.pixels = pos_y_statique - containing_block.rect.y
 
         saufsi args.calcul_hauteur_après_contenu {
+            propriétés.définis_valeur_utilisée(IDPropriété.Top, top)
+            ajourne_boite_pour_calcul_hauteur_auto(noeud)
             retourne ÉtatCalculHauteur.HauteurDépendSurContenu
         }
 
