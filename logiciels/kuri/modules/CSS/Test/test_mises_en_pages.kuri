@@ -131,6 +131,10 @@ donne_chemins_fichiers_sources :: fonc () -> [..]CheminFichier
                 continue
             }
 
+            si it.extension() != ".html" {
+                continue
+            }
+
             tableau_ajoute(*résultat, copie_chemin(it))
         }
     }
