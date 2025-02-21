@@ -476,6 +476,117 @@ calcule_hauteur_et_marges_block_level_normal_flow :: fonc (empl args: *Arguments
     retourne ÉtatCalculHauteur.HauteurRésolue
 }
 
+/* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#normal-block */
+calcule_hauteur_et_marges_block_level_normal_flow_standard :: fonc (empl args: *ArgumentsDimensionnement) -> ÉtatCalculHauteur
+{
+    résoud_pourcentage_hauteur(noeud, containing_block)
+
+    propriétés := noeud.propriétés
+
+    margin_top := propriétés.donne_valeur_calculée(IDPropriété.MarginTop)
+    border_top_height := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthTop)
+    padding_top := propriétés.donne_valeur_calculée(IDPropriété.PaddingTop)
+    height := propriétés.donne_valeur_calculée(IDPropriété.Height)
+    si outrepas_hauteur {
+        height = mémoire(outrepas_hauteur)
+    }
+    padding_bottom := propriétés.donne_valeur_calculée(IDPropriété.PaddingBottom)
+    border_bottom_height := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthBottom)
+    margin_bottom := propriétés.donne_valeur_calculée(IDPropriété.MarginBottom)
+
+    si margin_top.est_auto() {
+        margin_top.pixels = 0.0
+    }
+    si margin_bottom.est_auto() {
+        margin_bottom.pixels = 0.0
+    }
+
+    si height.est_auto() {
+        saufsi args.calcul_hauteur_après_contenu {
+            propriétés.définis_valeur_utilisée(IDPropriété.MarginTop, margin_top)
+            propriétés.définis_valeur_utilisée(IDPropriété.PaddingTop, padding_top)
+            propriétés.définis_valeur_utilisée(IDPropriété.MarginBottom, margin_bottom)
+            ajourne_boite_pour_calcul_hauteur_auto(noeud)
+            retourne ÉtatCalculHauteur.HauteurDépendSurContenu
+        }
+
+        position_bord_haut_contenu := noeud.modèle_de_boite.contenu.y
+
+        // 1. the bottom edge of the last line box, if the box establishes a inline formatting context with one or more lines
+        méthode_de_formattage := donne_méthode_de_formattage_intérieur(noeud)
+        si méthode_de_formattage == MéthodeDeFormattage.Inline {
+            noeud_bloc := noeud comme *NoeudDeDispositionBloc
+
+            nombre_de_fragments := noeud_bloc.lignes_tenante.fragments.taille
+
+            si nombre_de_fragments == 0 {
+                height.pixels = 0.0
+            }
+            sinon {
+                dernier_fragment := noeud_bloc.lignes_tenante.fragments[nombre_de_fragments - 1]
+                position_bord_bas_fragment := dernier_fragment.y + dernier_fragment.hauteur
+
+                height.pixels = position_bord_bas_fragment - position_bord_haut_contenu
+            }
+        }
+        sinon {
+            enfant := donne_dernier_enfant_in_flow(noeud)
+            si enfant {
+                // À FAIRE
+                // 2. the bottom edge of the bottom (possibly collapsed) margin of its last in-flow child, if the child's bottom margin does not collapse with the element's bottom margin
+                // 3. the bottom border edge of the last in-flow child whose top margin doesn't collapse with the element's bottom margin
+
+                position_bord_bas_fragment := enfant.modèle_de_boite.marge.y + enfant.modèle_de_boite.marge.hauteur
+                height.pixels = position_bord_bas_fragment - position_bord_haut_contenu
+            }
+            sinon {
+                // 4. zero, otherwise
+                height.pixels = 0.0
+            }
+        }
+    }
+    sinon {
+        box_sizing := propriétés.donne_valeur_calculée(IDPropriété.BoxSizing)
+        si box_sizing.est_mot_clé(PROP_border_box) {
+            height.pixels -= border_top_height.pixels + padding_top.pixels + padding_bottom.pixels + border_bottom_height.pixels
+            si height.pixels < 0 {
+                height.pixels = 0
+            }
+        }
+    }
+
+    propriétés.définis_valeur_utilisée(IDPropriété.MarginTop, margin_top)
+    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthTop, border_top_height)
+    propriétés.définis_valeur_utilisée(IDPropriété.PaddingTop, padding_top)
+    propriétés.définis_valeur_utilisée(IDPropriété.Height, height)
+    propriétés.définis_valeur_utilisée(IDPropriété.PaddingBottom, padding_bottom)
+    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthBottom, border_bottom_height)
+    propriétés.définis_valeur_utilisée(IDPropriété.MarginBottom, margin_bottom)
+
+    retourne ÉtatCalculHauteur.HauteurRésolue
+}
+
+donne_dernier_enfant_in_flow :: fonc (noeud: *NoeudDeDisposition) -> *NoeudDeDisposition
+{
+    résultat: *NoeudDeDisposition
+
+    pour noeud.enfants {
+        position := it.propriétés.donne_valeur_calculée(IDPropriété.Position)
+        si position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_fixed) {
+            continue
+        }
+
+        float := it.propriétés.donne_valeur_calculée(IDPropriété.Float)
+        saufsi float.est_none() {
+            continue
+        }
+
+        résultat = it
+    }
+
+    retourne résultat
+}
+
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#blockwidth */
 calcule_largeur_et_marges_block_level_normal_flow :: fonc (empl args: *ArgumentsDimensionnement)
 {
