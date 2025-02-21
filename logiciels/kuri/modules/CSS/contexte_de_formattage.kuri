@@ -422,18 +422,12 @@ dispose_boite_absolute :: fonc (empl ctx: *ContexteDeFormattage, noeud: *NoeudDe
         top = ValeurDeStyle(pixels = 0.0)
     }
 
-    height := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Height)
-
     noeud.définis_position(bord_gauche + left.pixels comme r32, bord_haut + top.pixels comme r32)
     formatte_intérieur(noeud, ctx, ModeDeFormattage.Normal)
-
-    height = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Height)
 
     si état_calcul_hauteur == ÉtatCalculHauteur.HauteurDépendSurContenu {
         args.calcul_hauteur_après_contenu = vrai
         _ := calcule_hauteur_et_marges(*args)
-
-        height = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Height)
     }
 }
 
