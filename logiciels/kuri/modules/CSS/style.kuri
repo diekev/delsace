@@ -296,7 +296,7 @@ imprime_valeur_de_style :: fonc (enchaineuse: *Enchaineuse, valeur: *ValeurDeSty
             ajoute_au_tampon(enchaineuse, "rgb(", c.r, " ", c.v, " ", c.b, ")")
         }
         longueur(l) {
-            ajoute_au_tampon(enchaineuse, l.valeur, " ", l.unité)
+            ajoute_au_tampon(enchaineuse, l.valeur, donne_chaine_pour_unité(l.unité))
         }
         integer(i) {
             ajoute_au_tampon(enchaineuse, i)
@@ -560,6 +560,48 @@ donne_unité_pour_nom :: fonc (nom: CSSOMString) -> Optionnel(Longueur.Unité)
 
     si nom == PROP_vw {
         retourne Longueur.Unité.Rem
+    }
+}
+
+donne_chaine_pour_unité :: fonc (unité: Longueur.Unité) -> CSSOMString
+{
+    discr unité {
+        Em {
+            retourne PROP_em
+        }
+        Rem {
+            retourne PROP_rem
+        }
+        Cm {
+            retourne PROP_cm
+        }
+        Mm {
+            retourne PROP_mm
+        }
+        Q {
+            retourne PROP_Q
+        }
+        In {
+            retourne PROP_in
+        }
+        Pc {
+            retourne PROP_pc
+        }
+        Pt {
+            retourne PROP_pt
+        }
+        Px {
+            retourne PROP_px
+        }
+        Vh {
+            retourne PROP_vh
+        }
+        Vw {
+            retourne PROP_vw
+        }
+        sinon {
+            retourne crée_chaine_utf16_unique_vide()
+        }
     }
 }
 
