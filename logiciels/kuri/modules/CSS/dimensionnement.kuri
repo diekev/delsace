@@ -919,17 +919,20 @@ calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
     si top.est_auto() && height.est_auto() && bottom.est_auto() {
         top.pixels = pos_y_statique - containing_block.rect.y
 
-        saufsi args.calcul_hauteur_après_contenu {
-            propriétés.définis_valeur_utilisée(IDPropriété.Top, top)
-            ajourne_boite_pour_calcul_hauteur_auto(noeud)
-            retourne ÉtatCalculHauteur.HauteurDépendSurContenu
-        }
-
         si margin_top.est_auto() {
             margin_top.pixels = 0.0
         }
         si margin_bottom.est_auto() {
             margin_bottom.pixels = 0.0
+        }
+
+        saufsi args.calcul_hauteur_après_contenu {
+            propriétés.définis_valeur_utilisée(IDPropriété.Top, top)
+            propriétés.définis_valeur_utilisée(IDPropriété.MarginTop, margin_top)
+            propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthTop, border_top_width)
+            propriétés.définis_valeur_utilisée(IDPropriété.PaddingTop, padding_top)
+            ajourne_boite_pour_calcul_hauteur_auto(noeud)
+            retourne ÉtatCalculHauteur.HauteurDépendSurContenu
         }
 
         height.pixels = calcule_auto_height_racine_contexte_de_formattage(noeud comme *NoeudDeDispositionBloc)
@@ -962,6 +965,11 @@ calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
         // then the height is based on the content per 10.6.7, set 'auto' values for 'margin-top' and 'margin-bottom' to 0, and solve for 'top'
         si top.est_auto() && height.est_auto() && !bottom.est_auto() {
             saufsi args.calcul_hauteur_après_contenu {
+                propriétés.définis_valeur_utilisée(IDPropriété.Top, top)
+                propriétés.définis_valeur_utilisée(IDPropriété.MarginTop, margin_top)
+                propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthTop, border_top_width)
+                propriétés.définis_valeur_utilisée(IDPropriété.PaddingTop, padding_top)
+                ajourne_boite_pour_calcul_hauteur_auto(noeud)
                 retourne ÉtatCalculHauteur.HauteurDépendSurContenu
             }
 
@@ -991,6 +999,11 @@ calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
         // then the height is based on the content per 10.6.7, set 'auto' values for 'margin-top' and 'margin-bottom' to 0, and solve for 'bottom'
         sinon si !top.est_auto() && height.est_auto() && bottom.est_auto() {
             saufsi args.calcul_hauteur_après_contenu {
+                propriétés.définis_valeur_utilisée(IDPropriété.Top, top)
+                propriétés.définis_valeur_utilisée(IDPropriété.MarginTop, margin_top)
+                propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthTop, border_top_width)
+                propriétés.définis_valeur_utilisée(IDPropriété.PaddingTop, padding_top)
+                ajourne_boite_pour_calcul_hauteur_auto(noeud)
                 retourne ÉtatCalculHauteur.HauteurDépendSurContenu
             }
 
