@@ -249,13 +249,21 @@ calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement, fonctio
     pl.border_left_width = propriétés.donne_valeur_calculée(IDPropriété.BorderWidthLeft)
     pl.padding_left = propriétés.donne_valeur_calculée(IDPropriété.PaddingLeft)
     pl.width = propriétés.donne_valeur_calculée(IDPropriété.Width)
-    si outrepas_largeur {
-        pl.width = mémoire(outrepas_largeur)
-    }
     pl.padding_right = propriétés.donne_valeur_calculée(IDPropriété.PaddingRight)
     pl.border_right_width = propriétés.donne_valeur_calculée(IDPropriété.BorderWidthRight)
     pl.margin_right = propriétés.donne_valeur_calculée(IDPropriété.MarginRight)
     pl.right = propriétés.donne_valeur_calculée(IDPropriété.Right)
+
+    box_sizing := propriétés.donne_valeur_calculée(IDPropriété.BoxSizing)
+    si box_sizing.est_mot_clé(PROP_border_box) && !pl.width.est_auto() {
+        pl.width.pixels -= pl.border_left_width.pixels + pl.padding_left.pixels + pl.padding_right.pixels + pl.border_right_width.pixels
+        si pl.width.pixels < 0 {
+            pl.width.pixels = 0
+        }
+    }
+    sinon si outrepas_largeur {
+        pl.width = mémoire(outrepas_largeur)
+    }
 
     fonction_de_calcul(args, *pl)
 
@@ -646,16 +654,6 @@ donne_dernier_enfant_in_flow :: fonc (noeud: *NoeudDeDisposition) -> *NoeudDeDis
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#blockwidth */
 calcule_largeur_et_marges_block_level_normal_flow :: fonc (empl args: *ArgumentsDimensionnement, empl pl: *PropriétésLargeur)
 {
-    propriétés := noeud.propriétés
-
-    box_sizing := propriétés.donne_valeur_calculée(IDPropriété.BoxSizing)
-    si box_sizing.est_mot_clé(PROP_border_box) && !width.est_auto() {
-        width.pixels -= border_left_width.pixels + padding_left.pixels + padding_right.pixels + border_right_width.pixels
-        si width.pixels < 0 {
-            width.pixels = 0
-        }
-    }
-
     // If 'width' is not 'auto' and 'border-left-width' + 'padding-left' + 'width' + 'padding-right'
     // + 'border-right-width' (plus any of 'margin-left' or 'margin-right' that are not 'auto') is
     // larger than the width of the containing block, then any 'auto' values for 'margin-left' or
@@ -785,16 +783,6 @@ calcule_largeur_et_marges_block_level_normal_flow :: fonc (empl args: *Arguments
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#abs-non-replaced-width */
 calcule_largeur_et_marges_absolutely_positionned_non_replaced_element :: fonc (empl args: *ArgumentsDimensionnement, empl pl: *PropriétésLargeur)
 {
-    propriétés := noeud.propriétés
-
-    box_sizing := propriétés.donne_valeur_calculée(IDPropriété.BoxSizing)
-    si box_sizing.est_mot_clé(PROP_border_box) && !width.est_auto() {
-        width.pixels -= border_left_width.pixels + padding_left.pixels + padding_right.pixels + border_right_width.pixels
-        si width.pixels < 0 {
-            width.pixels = 0
-        }
-    }
-
     // If all three of 'left', 'width', and 'right' are 'auto': First set any 'auto' values
     // for 'margin-left' and 'margin-right' to 0. Then, if the 'direction' property of the
     // element establishing the static-position containing block is 'ltr' set 'left' to the
@@ -1038,16 +1026,6 @@ calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#float-width */
 calcule_largeur_et_marges_floated_non_replaced_element :: fonc (empl args: *ArgumentsDimensionnement, empl pl: *PropriétésLargeur)
 {
-    propriétés := noeud.propriétés
-
-    box_sizing := propriétés.donne_valeur_calculée(IDPropriété.BoxSizing)
-    si box_sizing.est_mot_clé(PROP_border_box) && !width.est_auto() {
-        width.pixels -= border_left_width.pixels + padding_left.pixels + padding_right.pixels + border_right_width.pixels
-        si width.pixels < 0 {
-            width.pixels = 0
-        }
-    }
-
     // If 'margin-left', or 'margin-right' are computed as 'auto', their used value is '0'.
     si margin_left.est_auto() {
         margin_left.pixels = 0.0
@@ -1203,14 +1181,6 @@ calcule_largeur_et_marges_absolutely_positionned_replaced_element :: fonc (empl 
 {
     propriétés := noeud.propriétés
 
-    box_sizing := propriétés.donne_valeur_calculée(IDPropriété.BoxSizing)
-    si box_sizing.est_mot_clé(PROP_border_box) && !width.est_auto() {
-        width.pixels -= border_left_width.pixels + padding_left.pixels + padding_right.pixels + border_right_width.pixels
-        si width.pixels < 0 {
-            width.pixels = 0
-        }
-    }
-
     // 1. The used value of 'width' is determined as for inline replaced elements.
     //    If 'margin-left' or 'margin-right' is specified as 'auto' its used value
     //    is determined by the rules below.
@@ -1321,16 +1291,6 @@ calcule_hauteur_et_marges_inline_non_replaced_element :: fonc (args: *ArgumentsD
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#inlineblock-width */
 calcule_largeur_et_marges_inline_block_non_replaced_element :: fonc (empl args: *ArgumentsDimensionnement, empl pl: *PropriétésLargeur)
 {
-    propriétés := noeud.propriétés
-
-    box_sizing := propriétés.donne_valeur_calculée(IDPropriété.BoxSizing)
-    si box_sizing.est_mot_clé(PROP_border_box) && !width.est_auto() {
-        width.pixels -= border_left_width.pixels + padding_left.pixels + padding_right.pixels + border_right_width.pixels
-        si width.pixels < 0 {
-            width.pixels = 0
-        }
-    }
-
     /* A computed value of 'auto' for 'margin-left' or 'margin-right' becomes a used value of '0'. */
     si margin_left.est_auto() {
         margin_left = ValeurDeStyle(pixels = 0.0)
