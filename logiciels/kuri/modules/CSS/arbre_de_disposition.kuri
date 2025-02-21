@@ -1773,6 +1773,7 @@ NoeudDeDisposition :: struct {
     enfants: [..]*NoeudDeDisposition
 
     modèle_de_boite: ModèleDeBoite
+    traite_comme_display_none: bool
 
     sur_mesure: fonc (*NoeudDeDisposition, *ContexteDeFormattage, ModeDeFormattage, *ValeurDeStyle)(rien)
     sur_dessin: fonc (*NoeudDeDisposition, *ContexteDessin)(rien)
@@ -4019,13 +4020,17 @@ remove_irrelevant_boxes :: fonc (noeud: *NoeudDeDisposition)
 {
     // 1. All child boxes of a 'table-column' parent are treated as if they had 'display: none'.
     si noeud.type == TableColumnBox {
-        noeud.enfants.taille = 0
+        pour noeud.enfants {
+            it.traite_comme_display_none = vrai
+        }
     }
 
     // 2. If a child C of a 'table-column-group' parent is not a 'table-column' box,
     // then it is treated as if it had 'display: none'.
     si noeud.type == TableColumnGroupBox {
-        panique("non-implémenté")
+        si noeud.parent == nul || noeud.parent.type != TableColumnBox {
+            noeud.traite_comme_display_none = vrai
+        }
     }
 
     // 3. If a child C of a tabular container P is an anonymous inline box that
