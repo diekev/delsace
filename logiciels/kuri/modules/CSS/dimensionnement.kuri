@@ -36,25 +36,25 @@ ajourne_boite_pour_calcul_hauteur :: fonc (noeud: *NoeudDeDisposition)
     propriétés := noeud.propriétés
 
     margin_top := propriétés.donne_valeur_utilisée(IDPropriété.MarginTop).pixels comme r32
-    border_top_height := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthTop).pixels comme r32
+    border_top_width := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthTop).pixels comme r32
     padding_top := propriétés.donne_valeur_utilisée(IDPropriété.PaddingTop).pixels comme r32
     height := propriétés.donne_valeur_utilisée(IDPropriété.Height).pixels comme r32
     padding_bottom := propriétés.donne_valeur_utilisée(IDPropriété.PaddingBottom).pixels comme r32
-    border_bottom_height := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthBottom).pixels comme r32
+    border_bottom_width := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthBottom).pixels comme r32
     margin_bottom := propriétés.donne_valeur_utilisée(IDPropriété.MarginBottom).pixels comme r32
 
     y := noeud.modèle_de_boite.marge.y
 
     noeud.modèle_de_boite.marge.y = y
-    noeud.modèle_de_boite.marge.hauteur = margin_top + border_top_height + padding_top + height + padding_bottom + border_bottom_height + margin_bottom
+    noeud.modèle_de_boite.marge.hauteur = margin_top + border_top_width + padding_top + height + padding_bottom + border_bottom_width + margin_bottom
 
     noeud.modèle_de_boite.bordure.y = y + margin_top
-    noeud.modèle_de_boite.bordure.hauteur = border_top_height + padding_top + height + padding_bottom + border_bottom_height
+    noeud.modèle_de_boite.bordure.hauteur = border_top_width + padding_top + height + padding_bottom + border_bottom_width
 
-    noeud.modèle_de_boite.rembourrage.y = y + margin_top + border_top_height
+    noeud.modèle_de_boite.rembourrage.y = y + margin_top + border_top_width
     noeud.modèle_de_boite.rembourrage.hauteur =  padding_top + height + padding_bottom
 
-    noeud.modèle_de_boite.contenu.y = y + margin_top + border_top_height + padding_top
+    noeud.modèle_de_boite.contenu.y = y + margin_top + border_top_width + padding_top
     noeud.modèle_de_boite.contenu.hauteur = height
 }
 
@@ -65,21 +65,21 @@ ajourne_boite_pour_calcul_hauteur_auto :: fonc (noeud: *NoeudDeDisposition)
     propriétés := noeud.propriétés
 
     margin_top := propriétés.donne_valeur_utilisée(IDPropriété.MarginTop).pixels comme r32
-    border_top_height := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthTop).pixels comme r32
+    border_top_width := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthTop).pixels comme r32
     padding_top := propriétés.donne_valeur_utilisée(IDPropriété.PaddingTop).pixels comme r32
 
     y := noeud.modèle_de_boite.marge.y
 
     noeud.modèle_de_boite.marge.y = y
-    noeud.modèle_de_boite.marge.hauteur = margin_top + border_top_height + padding_top
+    noeud.modèle_de_boite.marge.hauteur = margin_top + border_top_width + padding_top
 
     noeud.modèle_de_boite.bordure.y = y + margin_top
-    noeud.modèle_de_boite.bordure.hauteur = border_top_height + padding_top
+    noeud.modèle_de_boite.bordure.hauteur = border_top_width + padding_top
 
-    noeud.modèle_de_boite.rembourrage.y = y + margin_top + border_top_height
+    noeud.modèle_de_boite.rembourrage.y = y + margin_top + border_top_width
     noeud.modèle_de_boite.rembourrage.hauteur =  padding_top
 
-    noeud.modèle_de_boite.contenu.y = y + margin_top + border_top_height + padding_top
+    noeud.modèle_de_boite.contenu.y = y + margin_top + border_top_width + padding_top
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#root-height */
@@ -425,19 +425,19 @@ calcule_hauteur_et_marges_block_level_normal_flow :: fonc (empl args: *Arguments
 
     /* À FAIRE */
     margin_top := propriétés.donne_valeur_calculée(IDPropriété.MarginTop)
-    border_top_height := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthTop)
+    border_top_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthTop)
     padding_top := propriétés.donne_valeur_calculée(IDPropriété.PaddingTop)
     height := propriétés.donne_valeur_calculée(IDPropriété.Height)
     si outrepas_hauteur {
         height = mémoire(outrepas_hauteur)
     }
     padding_bottom := propriétés.donne_valeur_calculée(IDPropriété.PaddingBottom)
-    border_bottom_height := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthBottom)
+    border_bottom_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthBottom)
     margin_bottom := propriétés.donne_valeur_calculée(IDPropriété.MarginBottom)
 
     box_sizing := propriétés.donne_valeur_calculée(IDPropriété.BoxSizing)
     si box_sizing.est_mot_clé(PROP_border_box) && !height.est_auto() {
-        height.pixels -= border_top_height.pixels + padding_top.pixels + padding_bottom.pixels + border_bottom_height.pixels
+        height.pixels -= border_top_width.pixels + padding_top.pixels + padding_bottom.pixels + border_bottom_width.pixels
         si height.pixels < 0 {
             height.pixels = 0
         }
@@ -446,8 +446,8 @@ calcule_hauteur_et_marges_block_level_normal_flow :: fonc (empl args: *Arguments
     saufsi margin_top.est_pixels() {
         margin_top = ValeurDeStyle(pixels = 0)
     }
-    saufsi border_top_height.est_pixels() {
-        border_top_height = ValeurDeStyle(pixels = 0)
+    saufsi border_top_width.est_pixels() {
+        border_top_width = ValeurDeStyle(pixels = 0)
     }
     saufsi padding_top.est_pixels() {
         padding_top = ValeurDeStyle(pixels = 0)
@@ -458,19 +458,19 @@ calcule_hauteur_et_marges_block_level_normal_flow :: fonc (empl args: *Arguments
     saufsi padding_bottom.est_pixels() {
         padding_bottom = ValeurDeStyle(pixels = 0)
     }
-    saufsi border_bottom_height.est_pixels() {
-        border_bottom_height = ValeurDeStyle(pixels = 0)
+    saufsi border_bottom_width.est_pixels() {
+        border_bottom_width = ValeurDeStyle(pixels = 0)
     }
     saufsi margin_bottom.est_pixels() {
         margin_bottom = ValeurDeStyle(pixels = 0)
     }
 
     propriétés.définis_valeur_utilisée(IDPropriété.MarginTop, margin_top)
-    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthTop, border_top_height)
+    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthTop, border_top_width)
     propriétés.définis_valeur_utilisée(IDPropriété.PaddingTop, padding_top)
     propriétés.définis_valeur_utilisée(IDPropriété.Height, height)
     propriétés.définis_valeur_utilisée(IDPropriété.PaddingBottom, padding_bottom)
-    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthBottom, border_bottom_height)
+    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthBottom, border_bottom_width)
     propriétés.définis_valeur_utilisée(IDPropriété.MarginBottom, margin_bottom)
 
     retourne ÉtatCalculHauteur.HauteurRésolue
@@ -484,14 +484,14 @@ calcule_hauteur_et_marges_block_level_normal_flow_standard :: fonc (empl args: *
     propriétés := noeud.propriétés
 
     margin_top := propriétés.donne_valeur_calculée(IDPropriété.MarginTop)
-    border_top_height := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthTop)
+    border_top_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthTop)
     padding_top := propriétés.donne_valeur_calculée(IDPropriété.PaddingTop)
     height := propriétés.donne_valeur_calculée(IDPropriété.Height)
     si outrepas_hauteur {
         height = mémoire(outrepas_hauteur)
     }
     padding_bottom := propriétés.donne_valeur_calculée(IDPropriété.PaddingBottom)
-    border_bottom_height := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthBottom)
+    border_bottom_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthBottom)
     margin_bottom := propriétés.donne_valeur_calculée(IDPropriété.MarginBottom)
 
     si margin_top.est_auto() {
@@ -548,7 +548,7 @@ calcule_hauteur_et_marges_block_level_normal_flow_standard :: fonc (empl args: *
     sinon {
         box_sizing := propriétés.donne_valeur_calculée(IDPropriété.BoxSizing)
         si box_sizing.est_mot_clé(PROP_border_box) {
-            height.pixels -= border_top_height.pixels + padding_top.pixels + padding_bottom.pixels + border_bottom_height.pixels
+            height.pixels -= border_top_width.pixels + padding_top.pixels + padding_bottom.pixels + border_bottom_width.pixels
             si height.pixels < 0 {
                 height.pixels = 0
             }
@@ -556,11 +556,11 @@ calcule_hauteur_et_marges_block_level_normal_flow_standard :: fonc (empl args: *
     }
 
     propriétés.définis_valeur_utilisée(IDPropriété.MarginTop, margin_top)
-    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthTop, border_top_height)
+    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthTop, border_top_width)
     propriétés.définis_valeur_utilisée(IDPropriété.PaddingTop, padding_top)
     propriétés.définis_valeur_utilisée(IDPropriété.Height, height)
     propriétés.définis_valeur_utilisée(IDPropriété.PaddingBottom, padding_bottom)
-    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthBottom, border_bottom_height)
+    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthBottom, border_bottom_width)
     propriétés.définis_valeur_utilisée(IDPropriété.MarginBottom, margin_bottom)
 
     retourne ÉtatCalculHauteur.HauteurRésolue
@@ -1209,7 +1209,7 @@ calcule_hauteur_et_marges_inline_replaced_element :: fonc (empl args: *Arguments
     propriétés := noeud.propriétés
 
     margin_top := propriétés.donne_valeur_calculée(IDPropriété.MarginTop)
-    border_top_height := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthTop)
+    border_top_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthTop)
     padding_top := propriétés.donne_valeur_calculée(IDPropriété.PaddingTop)
     height := propriétés.donne_valeur_calculée(IDPropriété.Height)
     si outrepas_hauteur {
@@ -1217,7 +1217,7 @@ calcule_hauteur_et_marges_inline_replaced_element :: fonc (empl args: *Arguments
     }
     width := propriétés.donne_valeur_calculée(IDPropriété.Width)
     padding_bottom := propriétés.donne_valeur_calculée(IDPropriété.PaddingBottom)
-    border_bottom_height := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthBottom)
+    border_bottom_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthBottom)
     margin_bottom := propriétés.donne_valeur_calculée(IDPropriété.MarginBottom)
 
     // If 'margin-top', or 'margin-bottom' are 'auto', their used value is 0.
@@ -1257,11 +1257,11 @@ calcule_hauteur_et_marges_inline_replaced_element :: fonc (empl args: *Arguments
     }
 
     propriétés.définis_valeur_utilisée(IDPropriété.MarginTop, margin_top)
-    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthTop, border_top_height)
+    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthTop, border_top_width)
     propriétés.définis_valeur_utilisée(IDPropriété.PaddingTop, padding_top)
     propriétés.définis_valeur_utilisée(IDPropriété.Height, height)
     propriétés.définis_valeur_utilisée(IDPropriété.PaddingBottom, padding_bottom)
-    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthBottom, border_bottom_height)
+    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthBottom, border_bottom_width)
     propriétés.définis_valeur_utilisée(IDPropriété.MarginBottom, margin_bottom)
 
     ajourne_boite_pour_calcul_hauteur(noeud)
@@ -1427,14 +1427,14 @@ calcule_hauteur_et_marges_inline_non_replaced_element :: fonc (empl args: *Argum
     // À FAIRE : ceci est une copie des calculs pour la largeur
     propriétés := noeud.propriétés
     margin_top := propriétés.donne_valeur_calculée(IDPropriété.MarginTop)
-    border_top_height := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthTop)
+    border_top_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthTop)
     padding_top := propriétés.donne_valeur_calculée(IDPropriété.PaddingTop)
     height := propriétés.donne_valeur_calculée(IDPropriété.Height)
     si outrepas_hauteur {
         height = mémoire(outrepas_hauteur)
     }
     padding_bottom := propriétés.donne_valeur_calculée(IDPropriété.PaddingBottom)
-    border_bottom_height := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthBottom)
+    border_bottom_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthBottom)
     margin_bottom := propriétés.donne_valeur_calculée(IDPropriété.MarginBottom)
 
     si margin_top.est_auto() {
@@ -1451,11 +1451,11 @@ calcule_hauteur_et_marges_inline_non_replaced_element :: fonc (empl args: *Argum
     }
 
     propriétés.définis_valeur_utilisée(IDPropriété.MarginTop, margin_top)
-    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthTop, border_top_height)
+    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthTop, border_top_width)
     propriétés.définis_valeur_utilisée(IDPropriété.PaddingTop, padding_top)
     propriétés.définis_valeur_utilisée(IDPropriété.Height, height)
     propriétés.définis_valeur_utilisée(IDPropriété.PaddingBottom, padding_bottom)
-    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthBottom, border_bottom_height)
+    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthBottom, border_bottom_width)
     propriétés.définis_valeur_utilisée(IDPropriété.MarginBottom, margin_bottom)
 
     retourne ÉtatCalculHauteur.HauteurRésolue
