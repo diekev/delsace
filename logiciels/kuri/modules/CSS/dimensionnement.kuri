@@ -200,7 +200,7 @@ calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement)
 
     fonction_de_calcul := donne_fonction_calcul_largeur_et_marges(noeud)
 
-    fonction_de_calcul(args)
+    calcule_largeur_et_marges(args, fonction_de_calcul)
 
     width := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width)
 
@@ -208,7 +208,7 @@ calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement)
     si max_width.est_pixels() && (width.pixels > max_width.pixels) {
         tmp_args := mémoire(args)
         tmp_args.outrepas_largeur = *max_width
-        fonction_de_calcul(*tmp_args)
+        calcule_largeur_et_marges(*tmp_args, fonction_de_calcul)
     }
 
     width = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width)
@@ -216,14 +216,63 @@ calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement)
     si min_width.est_pixels() && min_width.pixels > 0.0 && (width.pixels < min_width.pixels) {
         tmp_args := mémoire(args)
         tmp_args.outrepas_largeur = *min_width
-        fonction_de_calcul(*tmp_args)
+        calcule_largeur_et_marges(*tmp_args, fonction_de_calcul)
     }
 
     ajourne_boite_pour_calcul_largeur(noeud)
     résoud_pourcentage_largeur_border_radius(noeud)
 }
 
-donne_fonction_calcul_largeur_et_marges :: fonc (noeud: *NoeudDeDisposition) -> fonc(*ArgumentsDimensionnement)(rien)
+PropriétésLargeur :: struct {
+    left: ValeurDeStyle
+    margin_left: ValeurDeStyle
+    border_left_width: ValeurDeStyle
+    padding_left: ValeurDeStyle
+    width: ValeurDeStyle
+    padding_right: ValeurDeStyle
+    border_right_width: ValeurDeStyle
+    margin_right: ValeurDeStyle
+    right: ValeurDeStyle
+}
+
+TypeFonctionCalculLargeur :: fonc(*ArgumentsDimensionnement,*PropriétésLargeur)(rien)
+
+calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement, fonction_de_calcul: TypeFonctionCalculLargeur)
+{
+    propriétés := noeud.propriétés
+
+    résoud_pourcentage_insets(noeud, ctx)
+
+    pl : PropriétésLargeur = ---
+    pl.left = propriétés.donne_valeur_calculée(IDPropriété.Left)
+    pl.margin_left = propriétés.donne_valeur_calculée(IDPropriété.MarginLeft)
+    pl.border_left_width = propriétés.donne_valeur_calculée(IDPropriété.BorderWidthLeft)
+    pl.padding_left = propriétés.donne_valeur_calculée(IDPropriété.PaddingLeft)
+    pl.width = propriétés.donne_valeur_calculée(IDPropriété.Width)
+    si outrepas_largeur {
+        pl.width = mémoire(outrepas_largeur)
+    }
+    pl.padding_right = propriétés.donne_valeur_calculée(IDPropriété.PaddingRight)
+    pl.border_right_width = propriétés.donne_valeur_calculée(IDPropriété.BorderWidthRight)
+    pl.margin_right = propriétés.donne_valeur_calculée(IDPropriété.MarginRight)
+    pl.right = propriétés.donne_valeur_calculée(IDPropriété.Right)
+
+    fonction_de_calcul(args, *pl)
+
+    propriétés.définis_valeur_utilisée(IDPropriété.Left, pl.left)
+    propriétés.définis_valeur_utilisée(IDPropriété.MarginLeft, pl.margin_left)
+    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthLeft, pl.border_left_width)
+    propriétés.définis_valeur_utilisée(IDPropriété.PaddingLeft, pl.padding_left)
+    propriétés.définis_valeur_utilisée(IDPropriété.Width, pl.width)
+    propriétés.définis_valeur_utilisée(IDPropriété.PaddingRight, pl.padding_right)
+    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthRight, pl.border_right_width)
+    propriétés.définis_valeur_utilisée(IDPropriété.MarginRight, pl.margin_right)
+    propriétés.définis_valeur_utilisée(IDPropriété.Right, pl.right)
+
+    ajourne_boite_pour_calcul_largeur(noeud)
+}
+
+donne_fonction_calcul_largeur_et_marges :: fonc (noeud: *NoeudDeDisposition) -> TypeFonctionCalculLargeur
 {
     propriétés := noeud.propriétés
     display := propriétés.donne_valeur_calculée(IDPropriété.Display).display
@@ -595,20 +644,9 @@ donne_dernier_enfant_in_flow :: fonc (noeud: *NoeudDeDisposition) -> *NoeudDeDis
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#blockwidth */
-calcule_largeur_et_marges_block_level_normal_flow :: fonc (empl args: *ArgumentsDimensionnement)
+calcule_largeur_et_marges_block_level_normal_flow :: fonc (empl args: *ArgumentsDimensionnement, empl pl: *PropriétésLargeur)
 {
     propriétés := noeud.propriétés
-
-    margin_left := propriétés.donne_valeur_calculée(IDPropriété.MarginLeft)
-    border_left_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthLeft)
-    padding_left := propriétés.donne_valeur_calculée(IDPropriété.PaddingLeft)
-    width := propriétés.donne_valeur_calculée(IDPropriété.Width)
-    si outrepas_largeur {
-        width = mémoire(outrepas_largeur)
-    }
-    padding_right := propriétés.donne_valeur_calculée(IDPropriété.PaddingRight)
-    border_right_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthRight)
-    margin_right := propriétés.donne_valeur_calculée(IDPropriété.MarginRight)
 
     box_sizing := propriétés.donne_valeur_calculée(IDPropriété.BoxSizing)
     si box_sizing.est_mot_clé(PROP_border_box) && !width.est_auto() {
@@ -742,35 +780,12 @@ calcule_largeur_et_marges_block_level_normal_flow :: fonc (empl args: *Arguments
         margin_left = ValeurDeStyle(pixels = résultat)
         margin_right = ValeurDeStyle(pixels = résultat)
     }
-
-    propriétés.définis_valeur_utilisée(IDPropriété.MarginLeft, margin_left)
-    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthLeft, border_left_width)
-    propriétés.définis_valeur_utilisée(IDPropriété.PaddingLeft, padding_left)
-    propriétés.définis_valeur_utilisée(IDPropriété.Width, width)
-    propriétés.définis_valeur_utilisée(IDPropriété.PaddingRight, padding_right)
-    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthRight, border_right_width)
-    propriétés.définis_valeur_utilisée(IDPropriété.MarginRight, margin_right)
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#abs-non-replaced-width */
-calcule_largeur_et_marges_absolutely_positionned_non_replaced_element :: fonc (empl args: *ArgumentsDimensionnement)
+calcule_largeur_et_marges_absolutely_positionned_non_replaced_element :: fonc (empl args: *ArgumentsDimensionnement, empl pl: *PropriétésLargeur)
 {
-    résoud_pourcentage_insets(noeud, ctx)
-
     propriétés := noeud.propriétés
-
-    left := propriétés.donne_valeur_calculée(IDPropriété.Left)
-    margin_left := propriétés.donne_valeur_calculée(IDPropriété.MarginLeft)
-    border_left_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthLeft)
-    padding_left := propriétés.donne_valeur_calculée(IDPropriété.PaddingLeft)
-    width := propriétés.donne_valeur_calculée(IDPropriété.Width)
-    si outrepas_largeur {
-        width = mémoire(outrepas_largeur)
-    }
-    padding_right := propriétés.donne_valeur_calculée(IDPropriété.PaddingRight)
-    border_right_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthRight)
-    margin_right := propriétés.donne_valeur_calculée(IDPropriété.MarginRight)
-    right := propriétés.donne_valeur_calculée(IDPropriété.Right)
 
     box_sizing := propriétés.donne_valeur_calculée(IDPropriété.BoxSizing)
     si box_sizing.est_mot_clé(PROP_border_box) && !width.est_auto() {
@@ -885,18 +900,6 @@ calcule_largeur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
             right.pixels = width_of_containing_block - left.pixels - margin_left.pixels - border_left_width.pixels - padding_left.pixels - width.pixels - padding_right.pixels - border_right_width.pixels - margin_right.pixels
         }
     }
-
-    propriétés.définis_valeur_utilisée(IDPropriété.Left, left)
-    propriétés.définis_valeur_utilisée(IDPropriété.MarginLeft, margin_left)
-    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthLeft, border_left_width)
-    propriétés.définis_valeur_utilisée(IDPropriété.PaddingLeft, padding_left)
-    propriétés.définis_valeur_utilisée(IDPropriété.Width, width)
-    propriétés.définis_valeur_utilisée(IDPropriété.PaddingRight, padding_right)
-    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthRight, border_right_width)
-    propriétés.définis_valeur_utilisée(IDPropriété.MarginRight, margin_right)
-    propriétés.définis_valeur_utilisée(IDPropriété.Right, right)
-
-    ajourne_boite_pour_calcul_largeur(noeud)
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#abs-non-replaced-height */
@@ -1033,20 +1036,9 @@ calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#float-width */
-calcule_largeur_et_marges_floated_non_replaced_element :: fonc (empl args: *ArgumentsDimensionnement)
+calcule_largeur_et_marges_floated_non_replaced_element :: fonc (empl args: *ArgumentsDimensionnement, empl pl: *PropriétésLargeur)
 {
     propriétés := noeud.propriétés
-
-    margin_left := propriétés.donne_valeur_calculée(IDPropriété.MarginLeft)
-    border_left_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthLeft)
-    padding_left := propriétés.donne_valeur_calculée(IDPropriété.PaddingLeft)
-    width := propriétés.donne_valeur_calculée(IDPropriété.Width)
-    si outrepas_largeur {
-        width = mémoire(outrepas_largeur)
-    }
-    padding_right := propriétés.donne_valeur_calculée(IDPropriété.PaddingRight)
-    border_right_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthRight)
-    margin_right := propriétés.donne_valeur_calculée(IDPropriété.MarginRight)
 
     box_sizing := propriétés.donne_valeur_calculée(IDPropriété.BoxSizing)
     si box_sizing.est_mot_clé(PROP_border_box) && !width.est_auto() {
@@ -1078,16 +1070,6 @@ calcule_largeur_et_marges_floated_non_replaced_element :: fonc (empl args: *Argu
         available_width := width_of_containing_block - margin_left.pixels - border_left_width.pixels - padding_left.pixels - padding_right.pixels - border_right_width.pixels - margin_right.pixels
         width.pixels = calcule_shrink_to_fit_width(ctx, noeud, available_width)
     }
-
-    propriétés.définis_valeur_utilisée(IDPropriété.MarginLeft, margin_left)
-    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthLeft, border_left_width)
-    propriétés.définis_valeur_utilisée(IDPropriété.PaddingLeft, padding_left)
-    propriétés.définis_valeur_utilisée(IDPropriété.Width, width)
-    propriétés.définis_valeur_utilisée(IDPropriété.PaddingRight, padding_right)
-    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthRight, border_right_width)
-    propriétés.définis_valeur_utilisée(IDPropriété.MarginRight, margin_right)
-
-    ajourne_boite_pour_calcul_largeur(noeud)
 }
 
 calcule_shrink_to_fit_width :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition, available_width: r64) -> r64
@@ -1103,23 +1085,13 @@ calcule_shrink_to_fit_width :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDe
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#inline-replaced-width */
-calcule_largeur_et_marges_inline_replaced_element :: fonc (empl args: *ArgumentsDimensionnement)
+calcule_largeur_et_marges_inline_replaced_element :: fonc (empl args: *ArgumentsDimensionnement, empl pl: *PropriétésLargeur)
 {
     noeud_remplacement := noeud comme *NoeudDeDispositionRemplacement
 
     propriétés := noeud.propriétés
 
-    margin_left := propriétés.donne_valeur_calculée(IDPropriété.MarginLeft)
-    border_left_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthLeft)
-    padding_left := propriétés.donne_valeur_calculée(IDPropriété.PaddingLeft)
-    width := propriétés.donne_valeur_calculée(IDPropriété.Width)
-    si outrepas_largeur {
-        width = mémoire(outrepas_largeur)
-    }
     height := propriétés.donne_valeur_calculée(IDPropriété.Height)
-    padding_right := propriétés.donne_valeur_calculée(IDPropriété.PaddingRight)
-    border_right_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthRight)
-    margin_right := propriétés.donne_valeur_calculée(IDPropriété.MarginRight)
 
     // A computed value of 'auto' for 'margin-left' or 'margin-right' becomes a used value of '0'.
     si margin_left.est_auto() {
@@ -1168,16 +1140,6 @@ calcule_largeur_et_marges_inline_replaced_element :: fonc (empl args: *Arguments
     sinon si width.est_auto() {
         width = ValeurDeStyle(pixels = 300.0)
     }
-
-    propriétés.définis_valeur_utilisée(IDPropriété.MarginLeft, margin_left)
-    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthLeft, border_left_width)
-    propriétés.définis_valeur_utilisée(IDPropriété.PaddingLeft, padding_left)
-    propriétés.définis_valeur_utilisée(IDPropriété.Width, width)
-    propriétés.définis_valeur_utilisée(IDPropriété.PaddingRight, padding_right)
-    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthRight, border_right_width)
-    propriétés.définis_valeur_utilisée(IDPropriété.MarginRight, margin_right)
-
-    ajourne_boite_pour_calcul_largeur(noeud)
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#inline-replaced-height */
@@ -1228,30 +1190,18 @@ calcule_hauteur_et_marges_inline_replaced_element :: fonc (empl args: *Arguments
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#float-replaced-width */
-calcule_largeur_et_marges_float_replaced_element :: fonc (args: *ArgumentsDimensionnement)
+calcule_largeur_et_marges_float_replaced_element :: fonc (args: *ArgumentsDimensionnement, pl: *PropriétésLargeur)
 {
     // If 'margin-left' or 'margin-right' are computed as 'auto', their used value is '0'.
     // The used value of 'width' is determined as for inline replaced elements.
     // NOTE : 'margin-left' et 'margin-right' sont aussi gérés dans le cas inline.
-    calcule_largeur_et_marges_inline_replaced_element(args)
+    calcule_largeur_et_marges_inline_replaced_element(args, pl)
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#abs-replaced-width */
-calcule_largeur_et_marges_absolutely_positionned_replaced_element :: fonc (empl args: *ArgumentsDimensionnement)
+calcule_largeur_et_marges_absolutely_positionned_replaced_element :: fonc (empl args: *ArgumentsDimensionnement, empl pl: *PropriétésLargeur)
 {
     propriétés := noeud.propriétés
-    left := propriétés.donne_valeur_calculée(IDPropriété.Left)
-    margin_left := propriétés.donne_valeur_calculée(IDPropriété.MarginLeft)
-    border_left_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthLeft)
-    padding_left := propriétés.donne_valeur_calculée(IDPropriété.PaddingLeft)
-    width := propriétés.donne_valeur_calculée(IDPropriété.Width)
-    si outrepas_largeur {
-        width = mémoire(outrepas_largeur)
-    }
-    padding_right := propriétés.donne_valeur_calculée(IDPropriété.PaddingRight)
-    border_right_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthRight)
-    margin_right := propriétés.donne_valeur_calculée(IDPropriété.MarginRight)
-    right := propriétés.donne_valeur_calculée(IDPropriété.Right)
 
     box_sizing := propriétés.donne_valeur_calculée(IDPropriété.BoxSizing)
     si box_sizing.est_mot_clé(PROP_border_box) && !width.est_auto() {
@@ -1264,7 +1214,7 @@ calcule_largeur_et_marges_absolutely_positionned_replaced_element :: fonc (empl 
     // 1. The used value of 'width' is determined as for inline replaced elements.
     //    If 'margin-left' or 'margin-right' is specified as 'auto' its used value
     //    is determined by the rules below.
-    calcule_largeur_et_marges_inline_replaced_element(args)
+    calcule_largeur_et_marges_inline_replaced_element(args, pl)
     width.pixels = propriétés.donne_valeur_utilisée(IDPropriété.Width).pixels
 
     // 2. If both 'left' and 'right' have the value 'auto', then if the 'direction'
@@ -1317,46 +1267,23 @@ calcule_largeur_et_marges_absolutely_positionned_replaced_element :: fonc (empl 
     //    'left' (in case the 'direction' property of the containing block is 'rtl') or
     //    'right' (in case 'direction' is 'ltr') and solve for that value.
     // À FAIRE : comprendre ce qui est incomplet/surcontraint
-
-    propriétés.définis_valeur_utilisée(IDPropriété.Left, left)
-    propriétés.définis_valeur_utilisée(IDPropriété.MarginLeft, margin_left)
-    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthLeft, border_left_width)
-    propriétés.définis_valeur_utilisée(IDPropriété.PaddingLeft, padding_left)
-    propriétés.définis_valeur_utilisée(IDPropriété.Width, width)
-    propriétés.définis_valeur_utilisée(IDPropriété.PaddingRight, padding_right)
-    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthRight, border_right_width)
-    propriétés.définis_valeur_utilisée(IDPropriété.MarginRight, margin_right)
-    propriétés.définis_valeur_utilisée(IDPropriété.Right, right)
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#block-replaced-width */
-calcule_largeur_et_marges_block_level_replaced_element :: fonc (empl args: *ArgumentsDimensionnement)
+calcule_largeur_et_marges_block_level_replaced_element :: fonc (empl args: *ArgumentsDimensionnement, pl: *PropriétésLargeur)
 {
     // The used value of 'width' is determined as for inline replaced elements.
-    calcule_largeur_et_marges_inline_replaced_element(args)
-    width := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width)
+    calcule_largeur_et_marges_inline_replaced_element(args, pl)
 
     // Then the rules for non-replaced block-level elements are applied to determine the margins.
     tmp_args := mémoire(args)
-    tmp_args.outrepas_largeur = *width
-    calcule_largeur_et_marges_block_level_normal_flow(*tmp_args)
+    tmp_args.outrepas_largeur = *pl.width
+    calcule_largeur_et_marges_block_level_normal_flow(*tmp_args, pl)
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#inline-width */
-calcule_largeur_et_marges_inline_non_replaced_element :: fonc (empl args: *ArgumentsDimensionnement)
+calcule_largeur_et_marges_inline_non_replaced_element :: fonc (args: *ArgumentsDimensionnement @inutilisée, empl pl: *PropriétésLargeur)
 {
-    propriétés := noeud.propriétés
-    margin_left := propriétés.donne_valeur_calculée(IDPropriété.MarginLeft)
-    border_left_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthLeft)
-    padding_left := propriétés.donne_valeur_calculée(IDPropriété.PaddingLeft)
-    width := propriétés.donne_valeur_calculée(IDPropriété.Width)
-    si outrepas_largeur {
-        width = mémoire(outrepas_largeur)
-    }
-    padding_right := propriétés.donne_valeur_calculée(IDPropriété.PaddingRight)
-    border_right_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthRight)
-    margin_right := propriétés.donne_valeur_calculée(IDPropriété.MarginRight)
-
     si margin_left.est_auto() {
         margin_left = ValeurDeStyle(pixels = 0.0)
     }
@@ -1369,14 +1296,6 @@ calcule_largeur_et_marges_inline_non_replaced_element :: fonc (empl args: *Argum
     si width.est_auto() {
         width = ValeurDeStyle(pixels = 0.0)
     }
-
-    propriétés.définis_valeur_utilisée(IDPropriété.MarginLeft, margin_left)
-    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthLeft, border_left_width)
-    propriétés.définis_valeur_utilisée(IDPropriété.PaddingLeft, padding_left)
-    propriétés.définis_valeur_utilisée(IDPropriété.Width, width)
-    propriétés.définis_valeur_utilisée(IDPropriété.PaddingRight, padding_right)
-    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthRight, border_right_width)
-    propriétés.définis_valeur_utilisée(IDPropriété.MarginRight, margin_right)
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#inline-non-replaced */
@@ -1400,19 +1319,9 @@ calcule_hauteur_et_marges_inline_non_replaced_element :: fonc (args: *ArgumentsD
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#inlineblock-width */
-calcule_largeur_et_marges_inline_block_non_replaced_element :: fonc (empl args: *ArgumentsDimensionnement)
+calcule_largeur_et_marges_inline_block_non_replaced_element :: fonc (empl args: *ArgumentsDimensionnement, empl pl: *PropriétésLargeur)
 {
     propriétés := noeud.propriétés
-    margin_left := propriétés.donne_valeur_calculée(IDPropriété.MarginLeft)
-    border_left_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthLeft)
-    padding_left := propriétés.donne_valeur_calculée(IDPropriété.PaddingLeft)
-    width := propriétés.donne_valeur_calculée(IDPropriété.Width)
-    si outrepas_largeur {
-        width = mémoire(outrepas_largeur)
-    }
-    padding_right := propriétés.donne_valeur_calculée(IDPropriété.PaddingRight)
-    border_right_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthRight)
-    margin_right := propriétés.donne_valeur_calculée(IDPropriété.MarginRight)
 
     box_sizing := propriétés.donne_valeur_calculée(IDPropriété.BoxSizing)
     si box_sizing.est_mot_clé(PROP_border_box) && !width.est_auto() {
@@ -1435,14 +1344,6 @@ calcule_largeur_et_marges_inline_block_non_replaced_element :: fonc (empl args: 
         available_width := width_of_containing_block - margin_left.pixels - border_left_width.pixels - padding_left.pixels - padding_right.pixels - border_right_width.pixels - margin_right.pixels
         width.pixels = calcule_shrink_to_fit_width(ctx, noeud, available_width)
     }
-
-    propriétés.définis_valeur_utilisée(IDPropriété.MarginLeft, margin_left)
-    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthLeft, border_left_width)
-    propriétés.définis_valeur_utilisée(IDPropriété.PaddingLeft, padding_left)
-    propriétés.définis_valeur_utilisée(IDPropriété.Width, width)
-    propriétés.définis_valeur_utilisée(IDPropriété.PaddingRight, padding_right)
-    propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthRight, border_right_width)
-    propriétés.définis_valeur_utilisée(IDPropriété.MarginRight, margin_right)
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#block-root-margin */

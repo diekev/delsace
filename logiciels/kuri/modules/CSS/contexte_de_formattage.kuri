@@ -765,8 +765,7 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
                 valeur_largeur_enfant := ValeurDeStyle(pixels = largeur_max_enfant)
                 /* Utilise cette fontcion pour résoudre les valeurs 'auto' pour les autres propriétés. */
                 args = ArgumentsDimensionnement(ctx, noeud, width_of_containing_block = 0.0, outrepas_largeur = *valeur_largeur_enfant)
-                calcule_largeur_et_marges_inline_non_replaced_element(*args)
-                ajourne_boite_pour_calcul_largeur(noeud)
+                calcule_largeur_et_marges(*args, calcule_largeur_et_marges_inline_non_replaced_element)
             }
         }
         sinon {}
