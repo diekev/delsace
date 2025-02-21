@@ -2666,7 +2666,7 @@ noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Cont
      * https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#Computing_widths_and_margins */
     args := crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, outrepas_largeur, mode)
     calcule_largeur_et_marges(*args)
-    _ := calcule_hauteur_et_marges(*args)
+    état_calcul_hauteur := calcule_hauteur_et_marges(*args)
 
     doit_aligner_les_descendants := ctx.doit_aligner_les_descendants
     alignement := donne_alignement_descendants(noeud)
@@ -2675,6 +2675,11 @@ noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Cont
     }
 
     formatte_intérieur(noeud, ctx, mode)
+
+    si état_calcul_hauteur == ÉtatCalculHauteur.HauteurDépendSurContenu {
+        args.calcul_hauteur_après_contenu = vrai
+        _ := calcule_hauteur_et_marges(*args)
+    }
 
     ctx.doit_aligner_les_descendants = doit_aligner_les_descendants
 }
