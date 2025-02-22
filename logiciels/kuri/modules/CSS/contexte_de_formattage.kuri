@@ -338,10 +338,13 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
         }
     }
 
-    hauteur_finale := ValeurDeStyle(pixels = hauteur_contenu)
-    containing_block := donne_containing_block(noeud, ctx)
-    args := crée_arguments_dimensionnement_hauteur(ctx, noeud, containing_block, *hauteur_finale)
-    _ := calcule_hauteur_et_marges(*args)
+    height := noeud.propriétés.donne_valeur_calculée(IDPropriété.Height)
+    si height.est_auto() {
+        hauteur_finale := ValeurDeStyle(pixels = hauteur_contenu)
+        containing_block := donne_containing_block(noeud, ctx)
+        args := crée_arguments_dimensionnement_hauteur(ctx, noeud, containing_block, *hauteur_finale)
+        _ := calcule_hauteur_et_marges(*args)
+    }
 
     discr mode {
         BrisureDeLigneExplicite,

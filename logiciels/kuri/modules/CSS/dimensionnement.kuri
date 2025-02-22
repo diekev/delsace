@@ -4,6 +4,54 @@ importe Structures
 
 /* Calculs des largeurs, hauteurs, et marges des noeuds. */
 
+/* ------------------------------------------------------------------------- */
+/** \nom ParamètresBoxSizing
+ * \{ */
+
+ParamètresBoxSizing :: struct {
+    delta: r64
+    applique_delta: bool
+}
+
+donne_paramètres_box_sizing_pour_hauteur :: fonc (propriétés: *PropriétésDeStyle) -> ParamètresBoxSizing
+{
+    résultat: ParamètresBoxSizing
+
+    box_sizing := propriétés.donne_valeur_calculée(IDPropriété.BoxSizing)
+    si box_sizing.est_mot_clé(PROP_border_box) {
+        résultat.applique_delta = vrai
+
+        border_top_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthTop)
+        padding_top := propriétés.donne_valeur_calculée(IDPropriété.PaddingTop)
+        padding_bottom := propriétés.donne_valeur_calculée(IDPropriété.PaddingBottom)
+        border_bottom_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthBottom)
+
+        résultat.delta = border_top_width.pixels + padding_top.pixels + padding_bottom.pixels + border_bottom_width.pixels
+    }
+
+    retourne résultat
+}
+
+applique_box_sizing :: fonc (params: *ParamètresBoxSizing, valeur: ValeurDeStyle) -> ValeurDeStyle
+{
+    saufsi valeur.est_pixels() {
+        retourne valeur
+    }
+
+    saufsi params.applique_delta {
+        retourne valeur
+    }
+
+    valeur.pixels -= params.delta
+    si valeur.pixels < 0.0 {
+        valeur.pixels = 0.0
+    }
+
+    retourne valeur
+}
+
+/** \} */
+
 ajourne_boite_pour_calcul_largeur :: fonc (noeud: *NoeudDeDisposition)
 {
     propriétés := noeud.propriétés
@@ -412,7 +460,18 @@ calcule_hauteur_et_marges :: fonc (empl args: *ArgumentsDimensionnement) -> Éta
         outrepas_hauteur = nul
     }
 
-    résultat := calcule_hauteur_et_marges(args, fonction_de_calcul)
+    params_box_sizing := donne_paramètres_box_sizing_pour_hauteur(noeud.propriétés)
+
+    tmp_args := mémoire(args)
+    si outrepas_hauteur {
+        /* N'applique pas box-sizing à l'outrepas : ce peut être la taille du contenu. */
+    }
+    sinon saufsi height.est_auto() {
+        height = applique_box_sizing(*params_box_sizing, height)
+        tmp_args.outrepas_hauteur = *height
+    }
+
+    résultat := calcule_hauteur_et_marges(*tmp_args, fonction_de_calcul)
     si résultat != ÉtatCalculHauteur.HauteurRésolue {
         /* Ne continuons pas si la hauteur dépends du contenu. */
         retourne résultat
@@ -420,16 +479,18 @@ calcule_hauteur_et_marges :: fonc (empl args: *ArgumentsDimensionnement) -> Éta
 
     height = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Height)
     max_height := noeud.propriétés.donne_valeur_calculée(IDPropriété.MaxHeight)
+    max_height = applique_box_sizing(*params_box_sizing, max_height)
     si max_height.est_pixels() && (height.pixels > max_height.pixels) {
-        tmp_args := mémoire(args)
+        tmp_args = mémoire(args)
         tmp_args.outrepas_hauteur = *max_height
         _ := calcule_hauteur_et_marges(*tmp_args, fonction_de_calcul)
     }
 
     height = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Height)
     min_height := noeud.propriétés.donne_valeur_calculée(IDPropriété.MinHeight)
+    min_height = applique_box_sizing(*params_box_sizing, min_height)
     si min_height.est_pixels() && (height.pixels < min_height.pixels) {
-        tmp_args := mémoire(args)
+        tmp_args = mémoire(args)
         tmp_args.outrepas_hauteur = *min_height
         _ := calcule_hauteur_et_marges(*tmp_args, fonction_de_calcul)
     }
@@ -527,18 +588,9 @@ donne_fonction_calcul_hauteur_et_marges :: fonc (noeud: *NoeudDeDisposition) -> 
     retourne calcule_hauteur_et_marges_block_level_normal_flow
 }
 
-calcule_hauteur_et_marges_block_level_normal_flow :: fonc (empl args: *ArgumentsDimensionnement, empl ph: *PropriétésHauteur) -> ÉtatCalculHauteur
+calcule_hauteur_et_marges_block_level_normal_flow :: fonc (args: *ArgumentsDimensionnement @inutilisée, empl ph: *PropriétésHauteur) -> ÉtatCalculHauteur
 {
-    propriétés := noeud.propriétés
-
     /* À FAIRE */
-    box_sizing := propriétés.donne_valeur_calculée(IDPropriété.BoxSizing)
-    si box_sizing.est_mot_clé(PROP_border_box) && !height.est_auto() {
-        height.pixels -= border_top_width.pixels + padding_top.pixels + padding_bottom.pixels + border_bottom_width.pixels
-        si height.pixels < 0 {
-            height.pixels = 0
-        }
-    }
 
     saufsi margin_top.est_pixels() {
         margin_top = ValeurDeStyle(pixels = 0)
@@ -614,15 +666,6 @@ calcule_hauteur_et_marges_block_level_normal_flow_standard :: fonc (empl args: *
             sinon {
                 // 4. zero, otherwise
                 height.pixels = 0.0
-            }
-        }
-    }
-    sinon {
-        box_sizing := propriétés.donne_valeur_calculée(IDPropriété.BoxSizing)
-        si box_sizing.est_mot_clé(PROP_border_box) {
-            height.pixels -= border_top_width.pixels + padding_top.pixels + padding_bottom.pixels + border_bottom_width.pixels
-            si height.pixels < 0 {
-                height.pixels = 0
             }
         }
     }
