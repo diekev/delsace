@@ -1247,13 +1247,11 @@ calcule_largeur_et_marges_float_replaced_element :: fonc (args: *ArgumentsDimens
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#abs-replaced-width */
 calcule_largeur_et_marges_absolutely_positionned_replaced_element :: fonc (empl args: *ArgumentsDimensionnement, empl pl: *PropriétésLargeur)
 {
-    propriétés := noeud.propriétés
-
     // 1. The used value of 'width' is determined as for inline replaced elements.
     //    If 'margin-left' or 'margin-right' is specified as 'auto' its used value
     //    is determined by the rules below.
     calcule_largeur_et_marges_inline_replaced_element(args, pl)
-    width.pixels = propriétés.donne_valeur_utilisée(IDPropriété.Width).pixels
+    width.pixels = pl.width.pixels
 
     // 2. If both 'left' and 'right' have the value 'auto', then if the 'direction'
     //    property of the element establishing the static-position containing block
