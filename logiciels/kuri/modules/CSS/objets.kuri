@@ -228,6 +228,23 @@ imprime_déclaration :: fonc (déclaration: *DéclarationPropriété)
     imprime(";\n")
 }
 
+donne_chaine_valeur :: fonc (déclaration: *DéclarationPropriété) -> chaine
+{
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    pour valeur dans déclaration.value {
+        imprime_dans_enchaineuse(*enchaineuse, " %", valeur)
+    }
+
+    si déclaration.important {
+        ajoute_au_tampon(*enchaineuse, " !important")
+    }
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
