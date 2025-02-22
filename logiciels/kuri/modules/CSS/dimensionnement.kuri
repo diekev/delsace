@@ -32,6 +32,25 @@ donne_paramètres_box_sizing_pour_hauteur :: fonc (propriétés: *PropriétésDe
     retourne résultat
 }
 
+donne_paramètres_box_sizing_pour_largeur :: fonc (propriétés: *PropriétésDeStyle) -> ParamètresBoxSizing
+{
+    résultat: ParamètresBoxSizing
+
+    box_sizing := propriétés.donne_valeur_calculée(IDPropriété.BoxSizing)
+    si box_sizing.est_mot_clé(PROP_border_box) {
+        résultat.applique_delta = vrai
+
+        border_left_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthLeft)
+        padding_left := propriétés.donne_valeur_calculée(IDPropriété.PaddingLeft)
+        padding_right := propriétés.donne_valeur_calculée(IDPropriété.PaddingRight)
+        border_right_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthRight)
+
+        résultat.delta = border_left_width.pixels + padding_left.pixels + padding_right.pixels + border_right_width.pixels
+    }
+
+    retourne résultat
+}
+
 applique_box_sizing :: fonc (params: *ParamètresBoxSizing, valeur: ValeurDeStyle) -> ValeurDeStyle
 {
     saufsi valeur.est_pixels() {
@@ -246,23 +265,36 @@ calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement)
 
     args.width_of_containing_block = args.containing_block.donne_largeur()
 
+    width := noeud.propriétés.donne_valeur_calculée(IDPropriété.Width)
+
+    params_box_sizing := donne_paramètres_box_sizing_pour_largeur(noeud.propriétés)
+
+    tmp_args := mémoire(args)
+    si outrepas_largeur {
+        /* N'applique pas box-sizing à l'outrepas : ce peut être la taille du contenu. */
+    }
+    sinon saufsi width.est_auto() {
+        width = applique_box_sizing(*params_box_sizing, width)
+        tmp_args.outrepas_largeur = *width
+    }
+
     fonction_de_calcul := donne_fonction_calcul_largeur_et_marges(noeud)
+    calcule_largeur_et_marges(*tmp_args, fonction_de_calcul)
 
-    calcule_largeur_et_marges(args, fonction_de_calcul)
-
-    width := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width)
-
+    width = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width)
     max_width := noeud.propriétés.donne_valeur_calculée(IDPropriété.MaxWidth)
+    max_width = applique_box_sizing(*params_box_sizing, max_width)
     si max_width.est_pixels() && (width.pixels > max_width.pixels) {
-        tmp_args := mémoire(args)
+        tmp_args = mémoire(args)
         tmp_args.outrepas_largeur = *max_width
         calcule_largeur_et_marges(*tmp_args, fonction_de_calcul)
     }
 
     width = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width)
     min_width := noeud.propriétés.donne_valeur_calculée(IDPropriété.MinWidth)
+    min_width = applique_box_sizing(*params_box_sizing, min_width)
     si min_width.est_pixels() && min_width.pixels > 0.0 && (width.pixels < min_width.pixels) {
-        tmp_args := mémoire(args)
+        tmp_args = mémoire(args)
         tmp_args.outrepas_largeur = *min_width
         calcule_largeur_et_marges(*tmp_args, fonction_de_calcul)
     }
@@ -302,14 +334,7 @@ calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement, fonctio
     pl.margin_right = propriétés.donne_valeur_calculée(IDPropriété.MarginRight)
     pl.right = propriétés.donne_valeur_calculée(IDPropriété.Right)
 
-    box_sizing := propriétés.donne_valeur_calculée(IDPropriété.BoxSizing)
-    si box_sizing.est_mot_clé(PROP_border_box) && !pl.width.est_auto() {
-        pl.width.pixels -= pl.border_left_width.pixels + pl.padding_left.pixels + pl.padding_right.pixels + pl.border_right_width.pixels
-        si pl.width.pixels < 0 {
-            pl.width.pixels = 0
-        }
-    }
-    sinon si outrepas_largeur {
+    si outrepas_largeur {
         pl.width = mémoire(outrepas_largeur)
     }
 
