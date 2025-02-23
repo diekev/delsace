@@ -2509,13 +2509,11 @@ void QT_menu_ajoute_section(QT_Menu *menu, QT_Chaine titre)
 /** \name QT_Alignment
  * \{ */
 
-static Qt::AlignmentFlag convertis_alignement(QT_Alignment alignment)
+static Qt::AlignmentFlag convertis_alignement(QT_Alignment drapeaux)
 {
-    switch (alignment) {
-        ENEMERE_ALIGNEMENT_TEXTE(ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT)
-    }
-
-    return Qt::AlignLeft;
+    uint résultat = Qt::AlignLeft;
+    ENEMERE_ALIGNEMENT_TEXTE(ENUMERE_TRANSLATION_ENUM_DRAPEAU_IPA_VERS_QT);
+    return Qt::AlignmentFlag(résultat);
 }
 
 /** \} */

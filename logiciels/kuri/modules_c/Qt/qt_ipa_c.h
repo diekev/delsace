@@ -1992,18 +1992,18 @@ void QT_menu_ajoute_section(struct QT_Menu *menu, struct QT_Chaine titre);
  * \{ */
 
 #define ENEMERE_ALIGNEMENT_TEXTE(O)                                                               \
-    O(QT_ALIGNMENT_LEFT, Qt::AlignLeft)                                                           \
-    O(QT_ALIGNMENT_RIGHT, Qt::AlignRight)                                                         \
-    O(QT_ALIGNMENT_CENTER_HORIZONTAL, Qt::AlignHCenter)                                           \
-    O(QT_ALIGNMENT_JUSTIFY, Qt::AlignJustify)                                                     \
-    O(QT_ALIGNMENT_ABSOLUTE, Qt::AlignAbsolute)                                                   \
-    O(QT_ALIGNMENT_TOP, Qt::AlignTop)                                                             \
-    O(QT_ALIGNMENT_BOTTOM, Qt::AlignBottom)                                                       \
-    O(QT_ALIGNMENT_CENTER_VERTICAL, Qt::AlignVCenter)                                             \
-    O(QT_ALIGNMENT_BASELINE, Qt::AlignBaseline)                                                   \
-    O(QT_ALIGNMENT_CENTER, Qt::AlignCenter)
+    O(QT_ALIGNMENT_LEFT, Qt::AlignLeft, 0x0001)                                                   \
+    O(QT_ALIGNMENT_RIGHT, Qt::AlignRight, 0x0002)                                                 \
+    O(QT_ALIGNMENT_CENTER_HORIZONTAL, Qt::AlignHCenter, 0x0004)                                   \
+    O(QT_ALIGNMENT_JUSTIFY, Qt::AlignJustify, 0x0008)                                             \
+    O(QT_ALIGNMENT_ABSOLUTE, Qt::AlignAbsolute, 0x0010)                                           \
+    O(QT_ALIGNMENT_TOP, Qt::AlignTop, 0x0020)                                                     \
+    O(QT_ALIGNMENT_BOTTOM, Qt::AlignBottom, 0x0040)                                               \
+    O(QT_ALIGNMENT_CENTER_VERTICAL, Qt::AlignVCenter, 0x0080)                                     \
+    O(QT_ALIGNMENT_BASELINE, Qt::AlignBaseline, 0x0100)                                           \
+    O(QT_ALIGNMENT_CENTER, Qt::AlignCenter, 0x0080 | 0x0004)
 
-enum QT_Alignment { ENEMERE_ALIGNEMENT_TEXTE(ENUMERE_DECLARATION_ENUM_IPA) };
+enum QT_Alignment { ENEMERE_ALIGNEMENT_TEXTE(ENUMERE_DECLARATION_ENUM_DRAPEAU_IPA) };
 
 /** \} */
 
