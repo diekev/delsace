@@ -1880,7 +1880,7 @@ void QT_widget_definis_trackage_souris(union QT_Generic_Widget widget, bool ouin
     O(QT_COMPORTEMENT_TAILLE_MAXIMUM, QSizePolicy::Maximum)                                       \
     O(QT_COMPORTEMENT_TAILLE_PREFERE, QSizePolicy::Preferred)                                     \
     O(QT_COMPORTEMENT_TAILLE_AGRANDISSAGE_MINIMUM, QSizePolicy::MinimumExpanding)                 \
-    O(QT_COMPORTEMENT_TAILLE_AGRANSSSAGE, QSizePolicy::Expanding)                                 \
+    O(QT_COMPORTEMENT_TAILLE_AGRANDISSAGE, QSizePolicy::Expanding)                                \
     O(QT_COMPORTEMENT_TAILLE_IGNORE, QSizePolicy::Ignored)
 
 enum QT_Comportement_Taille { ENUMERE_COMPORTEMENT_TAILLE(ENUMERE_DECLARATION_ENUM_IPA) };
