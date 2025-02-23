@@ -3502,6 +3502,12 @@ void QT_treewidgetitem_definis_selectionne(QT_TreeWidgetItem *widget, bool ouino
     qwidget->setSelected(ouinon);
 }
 
+void QT_treewidgetitem_set_expanded(QT_TreeWidgetItem *widget, bool ouinon)
+{
+    auto qwidget = vers_qt(widget);
+    qwidget->setExpanded(ouinon);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

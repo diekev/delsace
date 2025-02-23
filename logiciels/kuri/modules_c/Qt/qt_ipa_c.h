@@ -2400,6 +2400,7 @@ void QT_treewidgetitem_definis_texte(struct QT_TreeWidgetItem *widget,
 void QT_treewidgetitem_ajoute_enfant(struct QT_TreeWidgetItem *widget,
                                      struct QT_TreeWidgetItem *enfant);
 void QT_treewidgetitem_definis_selectionne(struct QT_TreeWidgetItem *widget, bool ouinon);
+void QT_treewidgetitem_set_expanded(struct QT_TreeWidgetItem *widget, bool ouinon);
 
 /** \} */
 
