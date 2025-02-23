@@ -3,6 +3,8 @@
 
 #include "widgets.hh"
 
+#include "conversions.hh"
+
 #define IMPLEMENTE_METHODE_EVENEMENT(classe, type_qt, nom_qt, type_ipa, nom_rappel)               \
     void classe::nom_qt(type_qt *event)                                                           \
     {                                                                                             \
@@ -80,36 +82,6 @@ bool Widget::focusNextPrevChild(bool /*next*/)
     /* Pour pouvoir utiliser la touche tab, il faut désactiver la focalisation
      * sur les éléments enfants du conteneur de contrôles. */
     return false;
-}
-
-inline QRect vers_qt(QT_Rect rect)
-{
-    return QRect(rect.x, rect.y, rect.largeur, rect.hauteur);
-}
-
-inline QColor vers_qt(QT_Color color)
-{
-    auto résultat = QColor();
-    résultat.setRedF(float(color.r));
-    résultat.setGreenF(float(color.g));
-    résultat.setBlueF(float(color.b));
-    résultat.setAlphaF(float(color.a));
-    return résultat;
-}
-
-inline QPen vers_qt(QT_Pen pen)
-{
-    auto résultat = QPen();
-    résultat.setColor(vers_qt(pen.color));
-    résultat.setWidthF(pen.width);
-    return résultat;
-}
-
-static Qt::AlignmentFlag convertis_alignement(QT_Alignment drapeaux)
-{
-    uint résultat = Qt::AlignLeft;
-    ENEMERE_ALIGNEMENT_TEXTE(ENUMERE_TRANSLATION_ENUM_DRAPEAU_IPA_VERS_QT);
-    return Qt::AlignmentFlag(résultat);
 }
 
 class Painter : public QT_Painter {
