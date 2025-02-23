@@ -1179,6 +1179,31 @@ formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox)
         mesure(it.box, ctx, ModeDeFormattage.BrisureDeLigneExplicite, nul)
         it.maximum_content_width = it.box.modèle_de_boite.bordure.largeur
 
+        containing_block := donne_containing_block(it.box, ctx)
+        résoud_pourcentage_largeurs(it.box, containing_block)
+
+        width := it.box.propriétés.donne_valeur_calculée(IDPropriété.Width)
+        si width.est_pixels() {
+            si width.pixels > it.minimum_content_width {
+                it.minimum_content_width = width.pixels
+            }
+
+            si width.pixels > it.maximum_content_width {
+                it.maximum_content_width = width.pixels
+            }
+        }
+
+        min_width := it.box.propriétés.donne_valeur_calculée(IDPropriété.MinWidth)
+        si min_width.est_pixels() {
+            si min_width.pixels > it.minimum_content_width {
+                it.minimum_content_width = min_width.pixels
+            }
+
+            si min_width.pixels > it.maximum_content_width {
+                it.maximum_content_width = min_width.pixels
+            }
+        }
+
         // imprime("cellule min %, max %\n", it.minimum_content_width, it.maximum_content_width)
     }
 
