@@ -82,6 +82,91 @@ bool Widget::focusNextPrevChild(bool /*next*/)
     return false;
 }
 
+inline QRect vers_qt(QT_Rect rect)
+{
+    return QRect(rect.x, rect.y, rect.largeur, rect.hauteur);
+}
+
+inline QColor vers_qt(QT_Color color)
+{
+    auto résultat = QColor();
+    résultat.setRedF(float(color.r));
+    résultat.setGreenF(float(color.g));
+    résultat.setBlueF(float(color.b));
+    résultat.setAlphaF(float(color.a));
+    return résultat;
+}
+
+inline QPen vers_qt(QT_Pen pen)
+{
+    auto résultat = QPen();
+    résultat.setColor(vers_qt(pen.color));
+    résultat.setWidthF(pen.width);
+    return résultat;
+}
+
+static Qt::AlignmentFlag convertis_alignement(QT_Alignment drapeaux)
+{
+    uint résultat = Qt::AlignLeft;
+    ENEMERE_ALIGNEMENT_TEXTE(ENUMERE_TRANSLATION_ENUM_DRAPEAU_IPA_VERS_QT);
+    return Qt::AlignmentFlag(résultat);
+}
+
+class Painter : public QT_Painter {
+    QPainter *m_painter = nullptr;
+
+    static void fill_rect_impl(QT_Painter *qt_painter, QT_Rect *rect, QT_Color *color)
+    {
+        auto painter = static_cast<Painter *>(qt_painter);
+        painter->m_painter->fillRect(vers_qt(*rect), vers_qt(*color));
+    }
+
+    static void draw_rect_impl(QT_Painter *qt_painter, QT_Rect *rect)
+    {
+        auto painter = static_cast<Painter *>(qt_painter);
+        painter->m_painter->drawRect(vers_qt(*rect));
+    }
+
+    static void set_pen_impl(QT_Painter *qt_painter, QT_Pen *pen)
+    {
+        auto painter = static_cast<Painter *>(qt_painter);
+        painter->m_painter->setPen(vers_qt(*pen));
+    }
+
+    static void draw_text_impl(QT_Painter *qt_painter,
+                               QT_Rect *rect,
+                               QT_Alignment alignment,
+                               QT_Chaine *chn)
+    {
+        auto painter = static_cast<Painter *>(qt_painter);
+        painter->m_painter->drawText(
+            vers_qt(*rect), convertis_alignement(alignment), chn->vers_std_string().c_str());
+    }
+
+  public:
+    Painter(QPainter *painter) : m_painter(painter)
+    {
+        this->set_pen = set_pen_impl;
+        this->fill_rect = fill_rect_impl;
+        this->draw_rect = draw_rect_impl;
+        this->draw_text = draw_text_impl;
+    }
+
+    EMPECHE_COPIE(Painter);
+};
+
+void Widget::paintEvent(QPaintEvent *event)
+{
+    if (m_rappels && m_rappels->sur_peinture) {
+        QPainter qpainter(this);
+        Painter enveloppe_painter(&qpainter);
+        m_rappels->sur_peinture(m_rappels, &enveloppe_painter);
+        return;
+    }
+
+    QWidget::paintEvent(event);
+}
+
 IMPLEMENTE_METHODES_EVENEMENTS(Widget)
 
 /** \} */

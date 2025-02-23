@@ -1820,6 +1820,42 @@ void QT_drop_event_accepte_action_propose(struct QT_DropEvent *vent);
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Alignment
+ * \{ */
+
+#define ENEMERE_ALIGNEMENT_TEXTE(O)                                                               \
+    O(QT_ALIGNMENT_LEFT, Qt::AlignLeft, 0x0001)                                                   \
+    O(QT_ALIGNMENT_RIGHT, Qt::AlignRight, 0x0002)                                                 \
+    O(QT_ALIGNMENT_CENTER_HORIZONTAL, Qt::AlignHCenter, 0x0004)                                   \
+    O(QT_ALIGNMENT_JUSTIFY, Qt::AlignJustify, 0x0008)                                             \
+    O(QT_ALIGNMENT_ABSOLUTE, Qt::AlignAbsolute, 0x0010)                                           \
+    O(QT_ALIGNMENT_TOP, Qt::AlignTop, 0x0020)                                                     \
+    O(QT_ALIGNMENT_BOTTOM, Qt::AlignBottom, 0x0040)                                               \
+    O(QT_ALIGNMENT_CENTER_VERTICAL, Qt::AlignVCenter, 0x0080)                                     \
+    O(QT_ALIGNMENT_BASELINE, Qt::AlignBaseline, 0x0100)                                           \
+    O(QT_ALIGNMENT_CENTER, Qt::AlignCenter, 0x0080 | 0x0004)
+
+enum QT_Alignment { ENEMERE_ALIGNEMENT_TEXTE(ENUMERE_DECLARATION_ENUM_DRAPEAU_IPA) };
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Painter
+ * \{ */
+
+struct QT_Painter {
+    void (*set_pen)(struct QT_Painter *, struct QT_Pen *);
+    void (*fill_rect)(struct QT_Painter *, struct QT_Rect *, struct QT_Color *);
+    void (*draw_rect)(struct QT_Painter *, struct QT_Rect *);
+    void (*draw_text)(struct QT_Painter *,
+                      struct QT_Rect *,
+                      enum QT_Alignment,
+                      struct QT_Chaine *);
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Widget
  * \{ */
 
@@ -1844,6 +1880,8 @@ void QT_drop_event_accepte_action_propose(struct QT_DropEvent *vent);
 
 struct QT_Rappels_Widget {
     RAPPELS_EVENEMENTS_COMMUNS(QT_Widget, QT_Rappels_Widget);
+
+    void (*sur_peinture)(struct QT_Rappels_Widget *, struct QT_Painter *);
 };
 
 struct QT_Widget *QT_cree_widget(struct QT_Rappels_Widget *rappels,
@@ -1985,26 +2023,6 @@ void QT_menu_connecte_sur_pret_a_montrer(struct QT_Menu *menu, struct QT_Rappel_
 void QT_menu_popup(struct QT_Menu *menu, struct QT_Point pos);
 void QT_menu_ajoute_action(struct QT_Menu *menu, struct QT_Action *action);
 void QT_menu_ajoute_section(struct QT_Menu *menu, struct QT_Chaine titre);
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name QT_Alignment
- * \{ */
-
-#define ENEMERE_ALIGNEMENT_TEXTE(O)                                                               \
-    O(QT_ALIGNMENT_LEFT, Qt::AlignLeft, 0x0001)                                                   \
-    O(QT_ALIGNMENT_RIGHT, Qt::AlignRight, 0x0002)                                                 \
-    O(QT_ALIGNMENT_CENTER_HORIZONTAL, Qt::AlignHCenter, 0x0004)                                   \
-    O(QT_ALIGNMENT_JUSTIFY, Qt::AlignJustify, 0x0008)                                             \
-    O(QT_ALIGNMENT_ABSOLUTE, Qt::AlignAbsolute, 0x0010)                                           \
-    O(QT_ALIGNMENT_TOP, Qt::AlignTop, 0x0020)                                                     \
-    O(QT_ALIGNMENT_BOTTOM, Qt::AlignBottom, 0x0040)                                               \
-    O(QT_ALIGNMENT_CENTER_VERTICAL, Qt::AlignVCenter, 0x0080)                                     \
-    O(QT_ALIGNMENT_BASELINE, Qt::AlignBaseline, 0x0100)                                           \
-    O(QT_ALIGNMENT_CENTER, Qt::AlignCenter, 0x0080 | 0x0004)
-
-enum QT_Alignment { ENEMERE_ALIGNEMENT_TEXTE(ENUMERE_DECLARATION_ENUM_DRAPEAU_IPA) };
 
 /** \} */
 

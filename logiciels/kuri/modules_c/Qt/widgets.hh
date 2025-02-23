@@ -68,6 +68,8 @@ class Widget : public QWidget {
 
     DECLARE_SURCHARGES_EVENEMENTS_COMMUNS;
     bool focusNextPrevChild(bool next) override;
+
+    void paintEvent(QPaintEvent *event) override;
 };
 
 /** \} */
