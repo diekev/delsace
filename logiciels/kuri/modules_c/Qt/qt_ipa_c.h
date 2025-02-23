@@ -2485,6 +2485,9 @@ void QT_treewidget_definis_entete_visible(struct QT_TreeWidget *tree_widget, int
 void QT_treewidget_definis_mode_drag_drop(struct QT_TreeWidget *tree_widget,
                                           enum QT_Mode_DragDrop mode);
 void QT_treewidget_definis_activation_drag(struct QT_TreeWidget *tree_widget, int oui_non);
+void QT_treewidget_set_current_item(struct QT_TreeWidget *tree_widget,
+                                    struct QT_TreeWidgetItem *item);
+struct QT_TreeWidgetItem *QT_treewidget_current_item(struct QT_TreeWidget *tree_widget);
 
 /** \} */
 

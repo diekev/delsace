@@ -3652,6 +3652,19 @@ void QT_treewidget_definis_activation_drag(QT_TreeWidget *tree_widget, int oui_n
     qtree_widget->setDragEnabled(bool(oui_non));
 }
 
+void QT_treewidget_set_current_item(QT_TreeWidget *tree_widget, QT_TreeWidgetItem *item)
+{
+    auto qtree_widget = vers_qt(tree_widget);
+    VERS_QT(item);
+    qtree_widget->setCurrentItem(qitem);
+}
+
+QT_TreeWidgetItem *QT_treewidget_current_item(QT_TreeWidget *tree_widget)
+{
+    auto qtree_widget = vers_qt(tree_widget);
+    return vers_ipa(qtree_widget->currentItem());
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
