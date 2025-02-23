@@ -424,7 +424,8 @@ union QT_Generic_Layout {
     O(QKeyEvent, QT_KeyEvent, key_event)                                                          \
     O(QMouseEvent, QT_MouseEvent, mouse_event)                                                    \
     O(QResizeEvent, QT_ResizeEvent, resize_event)                                                 \
-    O(QWheelEvent, QT_WheelEvent, wheel_event)
+    O(QWheelEvent, QT_WheelEvent, wheel_event)                                                    \
+    O(QCloseEvent, QT_CloseEvent, close_event)
 
 #define PRODECLARE_TYPES_EVENTS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_EVENTS(PRODECLARE_TYPES_EVENTS)
@@ -1838,6 +1839,7 @@ void QT_drop_event_accepte_action_propose(struct QT_DropEvent *vent);
     void (*sur_menu_contexte)(struct type_rappels *, struct QT_ContextMenuEvent *);               \
     void (*sur_entree_drag)(struct type_rappels *, struct QT_DragEnterEvent *);                   \
     void (*sur_drop)(struct type_rappels *, struct QT_DropEvent *);                               \
+    void (*sur_fermeture)(struct type_rappels *, struct QT_CloseEvent *);                         \
     void (*sur_destruction)(struct type_rappels *)
 
 struct QT_Rappels_Widget {

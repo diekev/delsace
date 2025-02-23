@@ -47,6 +47,7 @@
         classe, QContextMenuEvent, contextMenuEvent, QT_ContextMenuEvent, sur_menu_contexte)      \
     IMPLEMENTE_METHODE_EVENEMENT(                                                                 \
         classe, QDragEnterEvent, dragEnterEvent, QT_DragEnterEvent, sur_entree_drag)              \
+    IMPLEMENTE_METHODE_EVENEMENT(classe, QCloseEvent, closeEvent, QT_CloseEvent, sur_fermeture)   \
     IMPLEMENTE_METHODE_EVENEMENT(classe, QDropEvent, dropEvent, QT_DropEvent, sur_drop)
 
 template <typename TypeRappels>
