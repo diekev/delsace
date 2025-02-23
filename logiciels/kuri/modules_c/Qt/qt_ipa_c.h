@@ -1875,6 +1875,7 @@ void QT_widget_definis_feuille_de_style(union QT_Generic_Widget widget, struct Q
 void QT_widget_definis_style(union QT_Generic_Widget widget, struct QT_Style *style);
 void QT_widget_ajourne(union QT_Generic_Widget widget);
 void QT_widget_definis_trackage_souris(union QT_Generic_Widget widget, bool ouinon);
+void QT_widget_donne_rect(union QT_Generic_Widget widget, struct QT_Rect *r_rect);
 
 #define ENUMERE_COMPORTEMENT_TAILLE(O)                                                            \
     O(QT_COMPORTEMENT_TAILLE_FIXE, QSizePolicy::Fixed)                                            \

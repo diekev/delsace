@@ -2261,6 +2261,16 @@ void QT_widget_definis_trackage_souris(QT_Generic_Widget widget, bool ouinon)
     qwidget->setMouseTracking(ouinon);
 }
 
+void QT_widget_donne_rect(QT_Generic_Widget widget, QT_Rect *r_rect)
+{
+    if (r_rect == nullptr) {
+        return;
+    }
+
+    VERS_QT(widget);
+    *r_rect = vers_ipa(qwidget->rect());
+}
+
 static QSizePolicy::Policy convertis_comportement_taille(QT_Comportement_Taille comportement)
 {
     switch (comportement) {
