@@ -711,15 +711,18 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
         }
 
         pour * fragment, index_fragment dans fragments {
+            décalage_fragment_x := décalage_x
             si alignement == AlignementTexte.Justifié {
                 si index_fragment != 0 && index_it != (lignes_tenante.lignes.taille - 1) {
-                    fragment.x += décalage_pour_alignement * (index_fragment comme r32)
+                    décalage_fragment_x += décalage_pour_alignement * (index_fragment comme r32)
                 }
             }
             sinon {
-                fragment.x += décalage_pour_alignement
+                décalage_fragment_x += décalage_pour_alignement
             }
 
+            // imprime("décalage fragment : % %\n", décalage_fragment_x, décalage_y)
+            fragment.x += décalage_fragment_x
             fragment.y = décalage_y
         }
 
@@ -748,12 +751,6 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
     hauteur_finale := ValeurDeStyle(pixels = hauteur_contenu)
     args := crée_arguments_dimensionnement_hauteur(ctx, noeud, containing_block, *hauteur_finale)
     _ := calcule_hauteur_et_marges(*args)
-
-    si décalage_x != 0.0 || décalage_y != 0.0 {
-        pour * noeud.lignes_tenante.fragments {
-            it.x += décalage_x
-        }
-    }
 
     discr mode {
         BrisureDeLigneExplicite,
