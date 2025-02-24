@@ -724,6 +724,10 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
             // imprime("décalage fragment : % %\n", décalage_fragment_x, décalage_y)
             fragment.x += décalage_fragment_x
             fragment.y = décalage_y
+
+            si fragment.type == Fragment.Type.InlineBlock {
+                fragment.noeud.décale_vers_position(fragment.x, fragment.y)
+            }
         }
 
         // pour * fragment dans it.fragments {

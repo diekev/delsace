@@ -2089,12 +2089,6 @@ dessine_fragment :: fonc (noeud: *NoeudDeDisposition, fragment: *Fragment, ligne
         noeud.sur_dessin_fragment(noeud, fragment, lignes_tenante, ctx)
     }
     sinon {
-        /* XXX - ceci devrait sans doute être fait lors de la disposition. */
-        x := fragment.x - noeud.modèle_de_boite.contenu.x
-        y := fragment.y - noeud.modèle_de_boite.contenu.y
-
-        décale_horizontalement(noeud.modèle_de_boite, x)
-        décale_verticalement(noeud.modèle_de_boite, y)
         noeud.dessine(ctx)
     }
 }
@@ -2155,7 +2149,7 @@ divise_en_lignes :: fonc (noeud: *NoeudDeDisposition, enligneuse: *Enligneuse, c
     }
 
     noeud.mesure(ctx, mode, nul)
-    _ := enligneuse.ajoute_fragment(noeud, noeud.modèle_de_boite.marge.hauteur, noeud.modèle_de_boite.marge.largeur, Fragment.Type.Normal)
+    _ := enligneuse.ajoute_fragment(noeud, noeud.modèle_de_boite.marge.hauteur, noeud.modèle_de_boite.marge.largeur, Fragment.Type.InlineBlock)
 }
 
 corrige_hiérarchie :: fonc (noeud: *NoeudDeDisposition, créatrice: *CréatriceArbre)
@@ -2289,6 +2283,7 @@ Fragment :: struct {
         MargeFin
         RembourrageDébut
         RembourrageFin
+        InlineBlock
     }
 
     noeud: *NoeudDeDisposition
@@ -3422,7 +3417,7 @@ noeud_disposition_remplacement_sur_divise_en_lignes :: fonc (base: *NoeudDeDispo
     largeur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width).pixels comme r32
     hauteur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Height).pixels comme r32
 
-    _ := enligneuse.ajoute_fragment(noeud, 0, 0, hauteur, largeur)
+    _ := enligneuse.ajoute_fragment(noeud, 0, 0, hauteur, largeur, Fragment.Type.InlineBlock)
 }
 
 noeud_disposition_remplacement_sur_dessin_tampon_id :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
@@ -3587,15 +3582,8 @@ noeud_text_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDe
     }
 }
 
-noeud_text_input_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
+noeud_text_input_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment @inutilisée, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
 {
-    /* XXX - ceci devrait sans doute être fait lors de la disposition. */
-    x := fragment.x - base.modèle_de_boite.contenu.x
-    y := fragment.y - base.modèle_de_boite.contenu.y
-
-    décale_horizontalement(base.modèle_de_boite, x)
-    décale_verticalement(base.modèle_de_boite, y)
-
     noeud_text_input_sur_dessin(base, ctx)
 }
 
@@ -3683,15 +3671,8 @@ noeud_textarea_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDess
     }
 }
 
-noeud_textarea_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
+noeud_textarea_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment @inutilisée, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
 {
-    /* XXX - ceci devrait sans doute être fait lors de la disposition. */
-    x := fragment.x - base.modèle_de_boite.contenu.x
-    y := fragment.y - base.modèle_de_boite.contenu.y
-
-    décale_horizontalement(base.modèle_de_boite, x)
-    décale_verticalement(base.modèle_de_boite, y)
-
     noeud_textarea_sur_dessin(base, ctx)
 }
 
@@ -3741,15 +3722,8 @@ noeud_canvas_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin
     ctx.peintre.dessine_image(image, rect)
 }
 
-noeud_canvas_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
+noeud_canvas_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment @inutilisée, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
 {
-    /* XXX - ceci devrait sans doute être fait lors de la disposition. */
-    x := fragment.x - base.modèle_de_boite.contenu.x
-    y := fragment.y - base.modèle_de_boite.contenu.y
-
-    décale_horizontalement(base.modèle_de_boite, x)
-    décale_verticalement(base.modèle_de_boite, y)
-
     noeud_canvas_sur_dessin(base, ctx)
 }
 
@@ -3866,15 +3840,8 @@ noeud_select_sur_dessin :: fonc (noeud: *NoeudDeDispositionSelect, ctx: *Context
     }
 }
 
-noeud_select_sur_dessin_fragment :: fonc (noeud: *NoeudDeDispositionSelect, fragment: *Fragment, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
+noeud_select_sur_dessin_fragment :: fonc (noeud: *NoeudDeDispositionSelect, fragment: *Fragment @inutilisée, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
 {
-    /* XXX - ceci devrait sans doute être fait lors de la disposition. */
-    x := fragment.x - noeud.modèle_de_boite.contenu.x
-    y := fragment.y - noeud.modèle_de_boite.contenu.y
-
-    décale_horizontalement(noeud.modèle_de_boite, x)
-    décale_verticalement(noeud.modèle_de_boite, y)
-
     noeud_select_sur_dessin(noeud, ctx)
 }
 
