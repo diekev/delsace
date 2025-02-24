@@ -3354,6 +3354,7 @@ NoeudDeDispositionRemplacement :: struct {
     sur_mesure = noeud_disposition_remplacement_sur_mesure
     sur_divise_en_lignes = noeud_disposition_remplacement_sur_divise_en_lignes
     sur_dessin_tampon_id = noeud_disposition_remplacement_sur_dessin_tampon_id
+    sur_dessin_fragment = noeud_disposition_remplacement_sur_dessin_fragment
     sur_correction_hiérarchie = nul
 
     /* Rappels spécifiques. */
@@ -3426,6 +3427,11 @@ noeud_disposition_remplacement_sur_dessin_tampon_id :: fonc (base: *NoeudDeDispo
     ctx.remplis_rectangle_id(noeud)
 }
 
+noeud_disposition_remplacement_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment @inutilisée, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
+{
+    base.sur_dessin(base, ctx)
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -3485,7 +3491,6 @@ crée_noeud_de_remplacement_text_input :: fonc (arbre: *ArbreDeDisposition, él�
     résultat := arbre.crée_noeud(NoeudDeDispositionRemplacement)
     résultat.élément = élément
     résultat.sur_dessin = noeud_text_input_sur_dessin
-    résultat.sur_dessin_fragment = noeud_text_input_sur_dessin_fragment
     résultat.sur_calcul_dimensions_intrinsèques = noeud_text_input_dimensions_intrinsèques
     retourne résultat
 }
@@ -3582,11 +3587,6 @@ noeud_text_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDe
     }
 }
 
-noeud_text_input_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment @inutilisée, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
-{
-    noeud_text_input_sur_dessin(base, ctx)
-}
-
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -3600,7 +3600,6 @@ crée_noeud_de_remplacement_textarea :: fonc (arbre: *ArbreDeDisposition, élém
     résultat := arbre.crée_noeud(NoeudDeDispositionRemplacement)
     résultat.élément = élément
     résultat.sur_dessin = noeud_textarea_sur_dessin
-    résultat.sur_dessin_fragment = noeud_textarea_sur_dessin_fragment
     résultat.sur_calcul_dimensions_intrinsèques = noeud_textarea_dimensions_intrinsèques
     retourne résultat
 }
@@ -3671,11 +3670,6 @@ noeud_textarea_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDess
     }
 }
 
-noeud_textarea_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment @inutilisée, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
-{
-    noeud_textarea_sur_dessin(base, ctx)
-}
-
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -3689,7 +3683,6 @@ crée_noeud_de_remplacement_canvas :: fonc (arbre: *ArbreDeDisposition, élémen
     résultat := arbre.crée_noeud(NoeudDeDispositionRemplacement)
     résultat.élément = élément
     résultat.sur_dessin = noeud_canvas_sur_dessin
-    résultat.sur_dessin_fragment = noeud_canvas_sur_dessin_fragment
     résultat.sur_calcul_dimensions_intrinsèques = noeud_canvas_calcul_dimensions_intrinsèques
     retourne résultat
 }
@@ -3722,11 +3715,6 @@ noeud_canvas_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin
     ctx.peintre.dessine_image(image, rect)
 }
 
-noeud_canvas_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment @inutilisée, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
-{
-    noeud_canvas_sur_dessin(base, ctx)
-}
-
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -3754,7 +3742,6 @@ crée_noeud_de_remplacement_select :: fonc (arbre: *ArbreDeDisposition, élémen
     résultat := arbre.crée_noeud(NoeudDeDispositionSelect)
     résultat.élément = élément
     résultat.sur_dessin = noeud_select_sur_dessin
-    résultat.sur_dessin_fragment = noeud_select_sur_dessin_fragment
     résultat.sur_calcul_dimensions_intrinsèques = noeud_select_calcul_dimensions_intrinsèques
     retourne résultat
 }
@@ -3838,11 +3825,6 @@ noeud_select_sur_dessin :: fonc (noeud: *NoeudDeDispositionSelect, ctx: *Context
 
         rect.x += donne_largeur_texte(fonte, it.texte) comme r32
     }
-}
-
-noeud_select_sur_dessin_fragment :: fonc (noeud: *NoeudDeDispositionSelect, fragment: *Fragment @inutilisée, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
-{
-    noeud_select_sur_dessin(noeud, ctx)
 }
 
 /** \} */
