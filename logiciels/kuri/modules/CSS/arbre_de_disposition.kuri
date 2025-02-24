@@ -1736,7 +1736,7 @@ donne_cotations_horizontales :: fonc (modèle: &ModèleDeBoite) -> CotationModè
     résultat: CotationModèleDeBoite
     résultat.marge_début = modèle.bordure.x - modèle.marge.x
     résultat.bordure_début = modèle.rembourrage.x - modèle.bordure.x
-    résultat.rembourrage_début = modèle.rembourrage.x - modèle.bordure.x
+    résultat.rembourrage_début = modèle.contenu.x - modèle.rembourrage.x
     résultat.contenu = modèle.contenu.largeur
     résultat.rembourrage_fin = (modèle.rembourrage.x + modèle.rembourrage.largeur) - (modèle.contenu.x + modèle.contenu.largeur)
     résultat.bordure_fin = (modèle.bordure.x + modèle.bordure.largeur) - (modèle.rembourrage.x + modèle.rembourrage.largeur)
@@ -1749,7 +1749,7 @@ donne_cotations_verticales :: fonc (modèle: &ModèleDeBoite) -> CotationModèle
     résultat: CotationModèleDeBoite
     résultat.marge_début = modèle.bordure.y - modèle.marge.y
     résultat.bordure_début = modèle.rembourrage.y - modèle.bordure.y
-    résultat.rembourrage_début = modèle.rembourrage.y - modèle.bordure.y
+    résultat.rembourrage_début = modèle.contenu.y - modèle.rembourrage.y
     résultat.contenu = modèle.contenu.hauteur
     résultat.rembourrage_fin = (modèle.rembourrage.y + modèle.rembourrage.hauteur) - (modèle.contenu.y + modèle.contenu.hauteur)
     résultat.bordure_fin = (modèle.bordure.y + modèle.bordure.hauteur) - (modèle.rembourrage.y + modèle.rembourrage.hauteur)

@@ -14,7 +14,7 @@ Bloc <html> <0.0, 0.0> CH [0.0 0.0 0.0] 1920.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 31
             frag 3 MargeFin de Inline début 0 fin 0 rect (8.0,8.0 0.0x0.0)
             Inline <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
                 Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-        Bloc <div#grand-parent-block-container> <8.0, 8.0> CH [0.0 3.0 3.0] 1898.0 [0.0 3.0 0.0] CV [0.0 3.0 3.0] 294.319976 [0.0 3.0 0.0]
+        Bloc <div#grand-parent-block-container> <8.0, 8.0> CH [0.0 3.0 0.0] 1898.0 [0.0 3.0 0.0] CV [0.0 3.0 0.0] 294.319976 [0.0 3.0 0.0]
             Bloc <(anonyme)> <11.0, 11.0> CH [0.0 0.0 0.0] 1898.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
                 frag 0 MargeDébut de Inline début 0 fin 0 rect (11.0,11.0 0.0x0.0)
                 frag 1 RembourrageDébut de Inline début 0 fin 0 rect (11.0,11.0 0.0x0.0)
@@ -22,7 +22,7 @@ Bloc <html> <0.0, 0.0> CH [0.0 0.0 0.0] 1920.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 31
                 frag 3 MargeFin de Inline début 0 fin 0 rect (11.0,11.0 0.0x0.0)
                 Inline <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
                     Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-            Bloc <div#parent-block-container> <11.0, 11.0> CH [0.0 0.0 0.0] 1822.079956 [37.959960 0.0 0.0] CV [0.0 0.0 0.0] 218.399993 [37.959991 0.0 0.0]
+            Bloc <div#parent-block-container> <11.0, 11.0> CH [0.0 0.0 37.959999] 1822.079956 [37.959960 0.0 0.0] CV [0.0 0.0 37.959999] 218.399993 [37.959991 0.0 0.0]
                 Bloc <(anonyme)> <48.959999, 48.959999> CH [0.0 0.0 0.0] 1822.079956 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
                     frag 0 MargeDébut de Inline début 0 fin 0 rect (48.959999,48.959999 0.0x0.0)
                     frag 1 RembourrageDébut de Inline début 0 fin 0 rect (48.959999,48.959999 0.0x0.0)
