@@ -662,7 +662,7 @@ RègleEtSpécificité :: struct {
     spécificité: Spécificité
 }
 
-collecte_les_règles_appropriées :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élément) -> [..]RègleEtSpécificité
+collecte_les_règles_appropriées :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élément, pseudo_element: *PseudoElement) -> [..]RègleEtSpécificité
 {
     temp: [..]RègleAppariée
     diffère déloge(temp)
@@ -679,23 +679,23 @@ collecte_les_règles_appropriées :: fonc (résolveuse: *RésolveuseStyle, élé
     }
 
     pour temp {
-        apparie_règle(it, élément, *résultat)
+        apparie_règle(it, élément, pseudo_element, *résultat)
     }
 
     pour résolveuse.autres_règles {
-        apparie_règle(it, élément, *résultat)
+        apparie_règle(it, élément, pseudo_element, *résultat)
     }
 
     retourne résultat
 }
 
-apparie_règle :: fonc (règle_de_style: RègleAppariée, élément: *HTML.Élément, résultat: *[..]RègleEtSpécificité)
+apparie_règle :: fonc (règle_de_style: RègleAppariée, élément: *HTML.Élément, pseudo_element: *PseudoElement, résultat: *[..]RègleEtSpécificité)
 {
     règle_appariée := faux
     spécificité: Spécificité
 
     pour complex dans règle_de_style.règle.selector_list.complex_selectors {
-        saufsi apparie_sélecteur(complex.compound_selectors, complex.compound_selectors.taille - 1, élément) {
+        saufsi apparie_sélecteur(complex.compound_selectors, complex.compound_selectors.taille - 1, élément, pseudo_element) {
             continue
         }
 
@@ -712,11 +712,15 @@ apparie_règle :: fonc (règle_de_style: RègleAppariée, élément: *HTML.Élé
     }
 }
 
-résoud_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élément, propriétés_parent: *PropriétésDeStyle) -> *PropriétésDeStyle
+résoud_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élément, pseudo_element: *PseudoElement, propriétés_parent: *PropriétésDeStyle) -> *PropriétésDeStyle
 {
-    règles := collecte_les_règles_appropriées(résolveuse, élément)
+    règles := collecte_les_règles_appropriées(résolveuse, élément, pseudo_element)
     diffère déloge(règles)
     // imprime("% règle(s) pour %\n", règles.taille, élément.local_name)
+
+    si pseudo_element != nul && règles.taille == 0 {
+        retourne nul
+    }
 
     résolveuse.déclarations_cascade.taille = 0
 
@@ -785,7 +789,7 @@ donne_ajournement_pour_changement_style :: fonc (résolveuse: *RésolveuseStyle,
         propriétés_parent = anciennes_propriétés.parent
     }
 
-    nouvelles_propriétés := résoud_style(résolveuse, élément, propriétés_parent)
+    nouvelles_propriétés := résoud_style(résolveuse, élément, nul, propriétés_parent)
     diffère détruit_propriétés(nouvelles_propriétés)
 
     /* Vérifie si "display: none" reste "display: none". */
@@ -1207,7 +1211,7 @@ crée_noeud_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *
         propriétés_parent = parent.propriétés
     }
 
-    propriétés := résoud_style(résolveuse, élément, propriétés_parent)
+    propriétés := résoud_style(résolveuse, élément, nul, propriétés_parent)
 
     display := propriétés.donne_valeur_calculée(IDPropriété.Display).display
     si display.outer_type == Display.Type.None {
@@ -1250,7 +1254,7 @@ crée_noeud_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *
     élément.noeud_de_disposition = résultat
     résultat.propriétés = propriétés
     si table {
-        résultat.propriétés = résoud_style(résolveuse, élément, propriétés_parent)
+        résultat.propriétés = résoud_style(résolveuse, élément, nul, propriétés_parent)
         table.propriétés = propriétés
     }
 
@@ -1271,6 +1275,8 @@ crée_noeud_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *
         crée_noeud_pour_élément(créatrice, nouveau_parent, it)
     }
 
+    crée_noeud_pour_pseudo_élément(créatrice, résultat, élément, PROP_after)
+    
     corrige_hiérarchie(résultat, créatrice)
 }
 
@@ -1331,7 +1337,7 @@ crée_noeud_pour_display :: fonc (arbre: *ArbreDeDisposition, display: Display, 
         bloc.élément = élément
         retourne bloc
     }
-    si élément.local_name == HTML.TAG_br {
+    si élément && élément.local_name == HTML.TAG_br {
         bris := arbre.crée_noeud(NoeudDeDispositionNouvelleLigne)
         bris.élément = élément
         retourne bris
@@ -1340,6 +1346,34 @@ crée_noeud_pour_display :: fonc (arbre: *ArbreDeDisposition, display: Display, 
     inline := arbre.crée_noeud(NoeudDeDispositionInline)
     inline.élément = élément
     retourne inline
+}
+
+crée_noeud_pour_pseudo_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *NoeudDeDisposition, élément: *HTML.Élément, ident_pseudo_element: CSSOMString)
+{
+    pseudo_element := PseudoElement(ident_pseudo_element)
+    propriétés_pseudo := résoud_style(résolveuse, élément, *pseudo_element, parent.propriétés)
+    saufsi propriétés_pseudo {
+        retourne
+    }
+
+    display := propriétés_pseudo.donne_valeur_calculée(IDPropriété.Display).display
+    si display.outer_type == Display.Type.None {
+        détruit_propriétés(propriétés_pseudo)
+        retourne
+    }
+
+    // À FAIRE : content
+
+    noeud := crée_noeud_pour_display(arbre, display, nul)
+    noeud.propriétés = propriétés_pseudo
+    noeud.est_pseudo_element = vrai
+
+    si noeud.type == TableWrapperBox {
+        table := (noeud comme *TableWrapperBox).table
+        table.propriétés = résoud_style(résolveuse, élément, *pseudo_element, parent.propriétés)
+    }
+
+    ajoute_enfant(parent, noeud)
 }
 
 /** \} */
@@ -1782,6 +1816,7 @@ NoeudDeDisposition :: struct {
 
     modèle_de_boite: ModèleDeBoite
     traite_comme_display_none: bool
+    est_pseudo_element: bool
 
     sur_mesure: fonc (*NoeudDeDisposition, *ContexteDeFormattage, ModeDeFormattage, *ValeurDeStyle)(rien)
     sur_dessin: fonc (*NoeudDeDisposition, *ContexteDessin)(rien)
