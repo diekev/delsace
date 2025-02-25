@@ -2309,6 +2309,7 @@ donne_rectangle :: fonc (fragment: *Fragment) -> RectanglePosDim(r32)
 
 BoiteDeLigne :: struct {
     largeur_max: r32
+    position_x: r32
     position_y: r32
 
     premier_fragment: z64
@@ -2335,6 +2336,7 @@ garantis_hauteur_minimale :: fonc (boite: *BoiteDeLigne, hauteur: r32)
  * \{ */
 
 LignesTenante :: struct {
+    ctx: *ContexteDeFormattageInline
     bloc: *NoeudDeDispositionBloc
     lignes: [..]BoiteDeLigne
     fragments: [..]Fragment
@@ -2369,13 +2371,15 @@ ajoute_ligne :: fonc (lignes_tenante: *LignesTenante) -> *BoiteDeLigne
         lignes_tenante.position_y_courante += lignes_tenante.lignes[lignes_tenante.lignes.taille - 1].hauteur_contenu
     }
 
-    résultat := tableau_ajoute_élément(*lignes_tenante.lignes)
-    résultat.position_y = lignes_tenante.position_y_courante
+    décalage_x := lignes_tenante.bloc.modèle_de_boite.contenu.x
+    largeur_contenu := lignes_tenante.bloc.modèle_de_boite.contenu.largeur
 
-    prop_largeur := lignes_tenante.bloc.propriétés.donne_valeur_utilisée(IDPropriété.Width)
-    si prop_largeur.est_pixels() {
-        résultat.largeur_max = prop_largeur.pixels comme r32
-    }
+    décalage_ligne, largeur_ligne := donne_position_et_largeur_ligne(lignes_tenante.ctx, décalage_x, décalage_x + largeur_contenu, lignes_tenante.position_y_courante)
+
+    résultat := tableau_ajoute_élément(*lignes_tenante.lignes)
+    résultat.position_x = décalage_ligne
+    résultat.position_y = lignes_tenante.position_y_courante
+    résultat.largeur_max = largeur_ligne
 
     résultat.premier_fragment = lignes_tenante.fragments.taille
     /* -1 pour que le calcul du nombre de fragments se fasse via "fin - début + 1", et
@@ -2418,6 +2422,7 @@ divise_en_lignes :: fonc (enligneuse: *Enligneuse, bloc_contenant: *NoeudDeDispo
     enligneuse.mode_de_formattage = mode
     bloc_contenant.lignes_tenante.bloc = bloc_contenant
     bloc_contenant.lignes_tenante.position_y_courante = bloc_contenant.modèle_de_boite.contenu.y
+    bloc_contenant.lignes_tenante.ctx = ctx
 
     pour bloc_contenant.enfants {
         divise_en_lignes(it, enligneuse, ctx, mode)
@@ -2467,7 +2472,7 @@ ajoute_fragment :: fonc (empl enligneuse: *Enligneuse, noeud: *NoeudDeDispositio
     fragment.index_fin = index_fin
     fragment.hauteur = hauteur
     fragment.largeur = largeur
-    fragment.x = ligne_courante.largeur_courante
+    fragment.x = ligne_courante.position_x + ligne_courante.largeur_courante
     fragment.y = ligne_courante.position_y
     fragment.type = type
 
@@ -2583,6 +2588,15 @@ formatte_intérieur :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDeFor
         Inline {
             ctx_local: ContexteDeFormattageInline
             initialise_depuis_parent(*ctx_local, ctx)
+
+            /* Si nous devons générer un contexte indépendant, nous ignorons le parent 
+             * afin que les boites flottantes de ce dernier n'influencent pas nos lignes.
+             * (Ceci peut arriver quand un boite flottante établis un contexte de 
+             * formattage inline.) */
+            si noeud.requiers_contexte_de_formattage_indépendant() {
+                ctx_local.parent = nul
+            }
+
             ctx_local.racine = noeud
             ctx_local.doit_aligner_les_descendants = ctx.doit_aligner_les_descendants
 
