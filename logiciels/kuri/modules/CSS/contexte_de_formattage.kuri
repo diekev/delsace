@@ -16,6 +16,9 @@ ModeDeFormattage :: énum {
 }
 
 ContexteDeFormattage :: struct {
+    type: type_de_données
+    parent: *ContexteDeFormattage
+
     sur_formatte: fonc(*ContexteDeFormattage, *NoeudDeDispositionBloc, ModeDeFormattage)(rien)
 
     globales: *GlobalesDessin
@@ -23,6 +26,13 @@ ContexteDeFormattage :: struct {
 
     /* https://html.spec.whatwg.org/multipage/rendering.html#align-descendants */
     doit_aligner_les_descendants: Optionnel(AlignementTexte)
+}
+
+initialise_depuis_parent :: fonc (ctx: *ContexteDeFormattage, parent: *ContexteDeFormattage)
+{
+    ctx.parent = parent
+    ctx.globales = parent.globales
+    ctx.initial_containing_block = parent.initial_containing_block
 }
 
 donne_initial_containing_block :: fonc (ctx: *ContexteDeFormattage) -> ContainingBlock
@@ -133,6 +143,7 @@ donne_rectangle :: fonc (boite: BoiteFlottante) -> RectanglePosDim(r64)
 
 ContexteDeFormattageBloc :: struct {
     empl base: ContexteDeFormattage
+    type = #type_de_cette_structure
     sur_formatte = contexte_formattage_bloc_sur_formatte
 
     racine: *NoeudDeDispositionBloc
@@ -622,6 +633,7 @@ donne_décalage_floats_droite :: fonc (empl ctx: *ContexteDeFormattageBloc) -> r
 
 ContexteDeFormattageInline :: struct {
     empl base: ContexteDeFormattage
+    type = #type_de_cette_structure
     sur_formatte = contexte_formattage_inline_sur_formatte
 
     racine: *NoeudDeDispositionBloc
@@ -811,6 +823,7 @@ est_espace_blanche_document :: fonc (base: *NoeudDeDisposition) -> bool
 
 ContexteDeFormattageFlex :: struct {
     empl base: ContexteDeFormattage
+    type = #type_de_cette_structure
     sur_formatte = contexte_formattage_flex_sur_formatte
 }
 
@@ -1157,6 +1170,7 @@ DonnéesColonne :: struct {
 
 ContexteDeFormattageTable :: struct {
     empl base: ContexteDeFormattage
+    type = #type_de_cette_structure
 
     cellules: [..]DonnéesCellule
     lignes_cellules: [..]z64
