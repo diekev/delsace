@@ -2309,6 +2309,7 @@ donne_rectangle :: fonc (fragment: *Fragment) -> RectanglePosDim(r32)
 
 BoiteDeLigne :: struct {
     largeur_max: r32
+    position_y: r32
 
     premier_fragment: z64
     dernier_fragment: z64
@@ -2337,6 +2338,8 @@ LignesTenante :: struct {
     bloc: *NoeudDeDispositionBloc
     lignes: [..]BoiteDeLigne
     fragments: [..]Fragment
+
+    position_y_courante: r32
 }
 
 réinitialise :: fonc (lignes_tenante: *LignesTenante)
@@ -2362,7 +2365,12 @@ donne_ligne_courante :: fonc (lignes_tenante: *LignesTenante) -> *BoiteDeLigne
 
 ajoute_ligne :: fonc (lignes_tenante: *LignesTenante) -> *BoiteDeLigne
 {
+    si lignes_tenante.lignes.taille {
+        lignes_tenante.position_y_courante += lignes_tenante.lignes[lignes_tenante.lignes.taille - 1].hauteur_contenu
+    }
+
     résultat := tableau_ajoute_élément(*lignes_tenante.lignes)
+    résultat.position_y = lignes_tenante.position_y_courante
 
     prop_largeur := lignes_tenante.bloc.propriétés.donne_valeur_utilisée(IDPropriété.Width)
     si prop_largeur.est_pixels() {
@@ -2409,6 +2417,7 @@ divise_en_lignes :: fonc (enligneuse: *Enligneuse, bloc_contenant: *NoeudDeDispo
     enligneuse.bloc_contenant = bloc_contenant
     enligneuse.mode_de_formattage = mode
     bloc_contenant.lignes_tenante.bloc = bloc_contenant
+    bloc_contenant.lignes_tenante.position_y_courante = bloc_contenant.modèle_de_boite.contenu.y
 
     pour bloc_contenant.enfants {
         divise_en_lignes(it, enligneuse, ctx, mode)
@@ -2459,6 +2468,7 @@ ajoute_fragment :: fonc (empl enligneuse: *Enligneuse, noeud: *NoeudDeDispositio
     fragment.hauteur = hauteur
     fragment.largeur = largeur
     fragment.x = ligne_courante.largeur_courante
+    fragment.y = ligne_courante.position_y
     fragment.type = type
 
     ligne_courante.largeur_courante += largeur

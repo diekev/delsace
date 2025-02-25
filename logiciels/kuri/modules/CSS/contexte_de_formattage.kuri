@@ -684,7 +684,6 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
     containing_block := donne_containing_block(noeud, ctx)
 
     décalage_x := noeud.modèle_de_boite.contenu.x
-    décalage_y := noeud.modèle_de_boite.contenu.y
 
     enligneuse: Enligneuse
     divise_en_lignes(*enligneuse, noeud, ctx, mode)
@@ -706,7 +705,6 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
 
         si fragments.taille == 0 {
             hauteur_contenu += hauteur
-            décalage_y += hauteur
             continue
         }
 
@@ -736,7 +734,6 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
 
             // imprime("décalage fragment : % %\n", décalage_fragment_x, décalage_y)
             fragment.x += décalage_fragment_x
-            fragment.y = décalage_y
 
             si fragment.type == Fragment.Type.InlineBlock {
                 fragment.noeud.décale_vers_position(fragment.x, fragment.y)
@@ -762,7 +759,6 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
         // }
 
         hauteur_contenu += hauteur
-        décalage_y += hauteur
     }
 
     hauteur_finale := ValeurDeStyle(pixels = hauteur_contenu)
