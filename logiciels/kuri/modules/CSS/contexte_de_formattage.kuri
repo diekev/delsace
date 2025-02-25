@@ -682,7 +682,6 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
     ctx := base comme *ContexteDeFormattageInline
 
     containing_block := donne_containing_block(noeud, ctx)
-    largeur_disponible := noeud.modèle_de_boite.contenu.largeur
 
     décalage_x := noeud.modèle_de_boite.contenu.x
     décalage_y := noeud.modèle_de_boite.contenu.y
@@ -710,6 +709,8 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
             décalage_y += hauteur
             continue
         }
+
+        largeur_disponible := it.largeur_max
 
         si alignement == AlignementTexte.Droite {
             décalage_pour_alignement = largeur_disponible - it.largeur_courante
