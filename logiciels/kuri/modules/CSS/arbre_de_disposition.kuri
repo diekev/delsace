@@ -1217,8 +1217,6 @@ crée_noeud_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *
 
     ignore_enfants := faux
 
-    table: *TableBox
-
     résultat: *NoeudDeDisposition
     si élément.local_name == HTML.TAG_img {
         résultat = crée_noeud_de_remplacement_image(arbre, élément comme *HTML.HTMLImageElement)
@@ -1236,75 +1234,17 @@ crée_noeud_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *
         résultat = crée_noeud_de_remplacement_select(arbre, élément comme *HTML.HTMLSelectElement)
         ignore_enfants = vrai
     }
-    sinon si display.inner_type == Display.Type.Table {
-        wrapper_box := arbre.crée_noeud(TableWrapperBox)
-        wrapper_box.élément = élément
-        résultat = wrapper_box
-
-        box := arbre.crée_noeud(TableBox)
-        wrapper_box.table = box
-        table = box
-
-        wrapper_box.ajoute_enfant(box)
-    }
-    sinon si display.inner_type == Display.Type.TableCaption {
-        box := arbre.crée_noeud(CaptionBox)
-        box.élément = élément
-        résultat = box
-    }
-    sinon si display.inner_type == Display.Type.TableColumn {
-        box := arbre.crée_noeud(TableColumnBox)
-        box.élément = élément
-        résultat = box
-    }
-    sinon si display.inner_type == Display.Type.TableColumnGroup {
-        box := arbre.crée_noeud(TableColumnGroupBox)
-        box.élément = élément
-        résultat = box
-    }
-    sinon si display.inner_type == Display.Type.TableCell {
-        box := arbre.crée_noeud(TableCellBox)
-        box.élément = élément
-        résultat = box
-    }
-    sinon si display.inner_type == Display.Type.TableRow {
-        box := arbre.crée_noeud(TableRowBox)
-        box.élément = élément
-        résultat = box
-    }
-    sinon si display.inner_type == Display.Type.TableFooterGroup {
-        box := arbre.crée_noeud(TableFooterGroupBox)
-        box.élément = élément
-        résultat = box
-    }
-    sinon si display.inner_type == Display.Type.TableHeaderGroup {
-        box := arbre.crée_noeud(TableHeaderGroupBox)
-        box.élément = élément
-        résultat = box
-    }
-    sinon si display.inner_type == Display.Type.TableRowGroup {
-        box := arbre.crée_noeud(TableRowGroupBox)
-        box.élément = élément
-        résultat = box
-    }
-    sinon si display.outer_type == Display.Type.Block || display.inner_type == Display.Type.Flex {
-        bloc := arbre.crée_noeud(NoeudDeDispositionBloc)
-        bloc.élément = élément
-        résultat = bloc
-    }
-    sinon si élément.local_name == HTML.TAG_br {
-        bris := arbre.crée_noeud(NoeudDeDispositionNouvelleLigne)
-        bris.élément = élément
-        résultat = bris
-    }
     sinon {
-        inline := arbre.crée_noeud(NoeudDeDispositionInline)
-        inline.élément = élément
-        résultat = inline
+        résultat = crée_noeud_pour_display(arbre, display, élément)
     }
 
     si parent == nul {
         résolveuse.taille_fonte_racine = propriétés.donne_valeur_calculée(IDPropriété.FontSize).pixels
+    }
+
+    table: *TableBox
+    si résultat.type == TableWrapperBox {
+        table = (résultat comme *TableWrapperBox).table
     }
 
     élément.noeud_de_disposition = résultat
@@ -1332,6 +1272,74 @@ crée_noeud_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *
     }
 
     corrige_hiérarchie(résultat, créatrice)
+}
+
+crée_noeud_pour_display :: fonc (arbre: *ArbreDeDisposition, display: Display, élément: *HTML.Élément) -> *NoeudDeDisposition
+{
+    si display.inner_type == Display.Type.Table {
+        wrapper_box := arbre.crée_noeud(TableWrapperBox)
+        wrapper_box.élément = élément
+
+        box := arbre.crée_noeud(TableBox)
+        wrapper_box.table = box
+
+        wrapper_box.ajoute_enfant(box)
+        retourne wrapper_box
+    }
+    si display.inner_type == Display.Type.TableCaption {
+        box := arbre.crée_noeud(CaptionBox)
+        box.élément = élément
+        retourne box
+    }
+    si display.inner_type == Display.Type.TableColumn {
+        box := arbre.crée_noeud(TableColumnBox)
+        box.élément = élément
+        retourne box
+    }
+    si display.inner_type == Display.Type.TableColumnGroup {
+        box := arbre.crée_noeud(TableColumnGroupBox)
+        box.élément = élément
+        retourne box
+    }
+    si display.inner_type == Display.Type.TableCell {
+        box := arbre.crée_noeud(TableCellBox)
+        box.élément = élément
+        retourne box
+    }
+    si display.inner_type == Display.Type.TableRow {
+        box := arbre.crée_noeud(TableRowBox)
+        box.élément = élément
+        retourne box
+    }
+    si display.inner_type == Display.Type.TableFooterGroup {
+        box := arbre.crée_noeud(TableFooterGroupBox)
+        box.élément = élément
+        retourne box
+    }
+    si display.inner_type == Display.Type.TableHeaderGroup {
+        box := arbre.crée_noeud(TableHeaderGroupBox)
+        box.élément = élément
+        retourne box
+    }
+    si display.inner_type == Display.Type.TableRowGroup {
+        box := arbre.crée_noeud(TableRowGroupBox)
+        box.élément = élément
+        retourne box
+    }
+    si display.outer_type == Display.Type.Block || display.inner_type == Display.Type.Flex {
+        bloc := arbre.crée_noeud(NoeudDeDispositionBloc)
+        bloc.élément = élément
+        retourne bloc
+    }
+    si élément.local_name == HTML.TAG_br {
+        bris := arbre.crée_noeud(NoeudDeDispositionNouvelleLigne)
+        bris.élément = élément
+        retourne bris
+    }
+
+    inline := arbre.crée_noeud(NoeudDeDispositionInline)
+    inline.élément = élément
+    retourne inline
 }
 
 /** \} */
