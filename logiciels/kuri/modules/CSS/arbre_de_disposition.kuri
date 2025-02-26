@@ -4061,13 +4061,27 @@ remove_irrelevant_boxes :: fonc (noeud: *NoeudDeDisposition)
     // siblings, if any, are proper table descendants of P and are either
     // 'table-caption' or internal table boxes, then it is treated as if it had
     // 'display: none'.
-    // A box D is a proper table descendant of A if D can be a descendant of A
-    // without causing the generation of any intervening 'table' or 'inline-table' boxes.
     si est_tabular_container(noeud) {
         pour noeud.enfants {
-            si est_espace_blanche_document(it) {
-                panique("non-implémenté")
+            saufsi est_espace_blanche_document(it) {
+                continue
             }
+
+            si index_it > 0 {
+                précédent := noeud.enfants[index_it - 1]
+                saufsi est_proper_table_descendant(noeud, précédent) {
+                    continue
+                }
+            }
+
+            si index_it < noeud.enfants.taille - 1 {
+                suivant := noeud.enfants[index_it + 1]
+                saufsi est_proper_table_descendant(noeud, suivant) {
+                    continue
+                }
+            }
+
+            it.traite_comme_display_none = vrai
         }
     }
 
@@ -4077,16 +4091,41 @@ remove_irrelevant_boxes :: fonc (noeud: *NoeudDeDisposition)
     // À FAIRE
 }
 
-generate_missing_child_wrappers :: fonc (noeud: *NoeudDeDisposition, créatrice: *CréatriceArbre @inutilisée)
+// A box D is a proper table descendant of A if D can be a descendant of A
+// without causing the generation of any intervening 'table' or 'inline-table' boxes.
+est_proper_table_descendant :: fonc (A: *NoeudDeDisposition, D: *NoeudDeDisposition) -> bool
+{
+    si A.type == TableRowBox {
+        retourne D.type == TableCellBox
+    }
+
+    si A.type == TableBox {
+        retourne est_proper_table_child(D)
+    }
+
+    assert(est_row_group_box(A))
+    retourne D.type == TableRowBox
+}
+
+generate_missing_child_wrappers :: fonc (noeud: *NoeudDeDisposition, créatrice: *CréatriceArbre)
 {
     // 1. If a child C of a 'table' or 'inline-table' box is not a proper table
     // child, then generate an anonymous 'table-row' box around C and all
     // consecutive siblings of C that are not proper table children.
     si noeud.type == TableBox {
+        table := noeud comme *TableBox
+
         pour noeud.enfants {
-            saufsi it.est_proper_table_child() {
-                panique("non-implémenté")
+            si it.est_proper_table_child() {
+                continue
             }
+
+            table_row_box := créatrice.arbre.crée_noeud(TableRowBox)
+            crée_style_pour_bloc_anonyme(créatrice.résolveuse, table_row_box, table, Display.Type.TableRow)
+            table_row_box.est_pseudo_element = it.est_pseudo_element
+            ajoute_enfant(table_row_box, it)
+
+            table.enfants[index_it] = table_row_box
         }
     }
 
@@ -4094,9 +4133,16 @@ generate_missing_child_wrappers :: fonc (noeud: *NoeudDeDisposition, créatrice:
     // generate an anonymous 'table-row' box around C and all consecutive
     // siblings of C that are not 'table-row' boxes.
     si noeud.type == TableRowGroupBox {
-        pour noeud.enfants {
+        table_row_group := noeud comme *TableRowGroupBox
+
+        pour table_row_group.enfants {
             si it.type != TableRowBox {
-                panique("non-implémenté")
+                table_row_box := créatrice.arbre.crée_noeud(TableRowBox)
+                crée_style_pour_bloc_anonyme(créatrice.résolveuse, table_row_box, table_row_group, Display.Type.TableRow)
+                table_row_box.est_pseudo_element = it.est_pseudo_element
+                ajoute_enfant(table_row_box, it)
+
+                table_row_group.enfants[index_it] = table_row_box
             }
         }
     }
@@ -4105,9 +4151,16 @@ generate_missing_child_wrappers :: fonc (noeud: *NoeudDeDisposition, créatrice:
     // generate an anonymous 'table-cell' box around C and all consecutive
     // siblings of C that are not 'table-cell' boxes. 
     si noeud.type == TableRowBox {
-        pour noeud.enfants {
+        table_row_box := noeud comme *TableRowBox
+
+        pour table_row_box.enfants {
             si it.type != TableCellBox {
-                panique("non-implémenté")
+                table_cell := créatrice.arbre.crée_noeud(TableCellBox)
+                crée_style_pour_bloc_anonyme(créatrice.résolveuse, table_cell, table_row_box, Display.Type.TableCell)
+                table_cell.est_pseudo_element = it.est_pseudo_element
+                ajoute_enfant(table_cell, it)
+
+                table_row_box.enfants[index_it] = table_cell
             }
         }
     }
@@ -4130,14 +4183,10 @@ generate_missing_parents :: fonc (noeud: *NoeudDeDisposition @inutilisée, créa
  * \{ */
 
 TableBox :: struct {
-    empl base: NoeudDeDisposition
+    empl base_bloc: NoeudDeDispositionBloc
     type = #type_de_cette_structure
     sur_mesure = table_box_sur_mesure
     sur_dessin = table_box_sur_dessin
-    // sur_dessin_tampon_id = noeud_disposition_bloc_sur_dessin_tampon_id
-    // sur_correction_hiérarchie = noeud_disposition_bloc_corrige_hiérarchie
-
-    élément: *HTML.Élément
 }
 
 table_box_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage @inutilisée, outrepas_largeur: *ValeurDeStyle @inutilisée)

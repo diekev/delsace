@@ -1403,7 +1403,13 @@ initialise_données_cellules :: fonc (ctx: *ContexteDeFormattageTable, table: *T
                 cellule.box = cell
                 cellule.colonne = index_colonne
                 cellule.ligne = index_ligne
-                cellule.colspan = HTML.donne_colspan(cell.élément)
+
+                si cell.élément {
+                    cellule.colspan = HTML.donne_colspan(cell.élément)
+                }
+                sinon {
+                    cellule.colspan = 1
+                }
 
                 tableau_ajoute(*ctx.lignes_cellules, index_ligne)
                 tableau_ajoute(*ctx.lignes_cellules, index_cellule)
