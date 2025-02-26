@@ -1218,6 +1218,7 @@ GenreValeurCalculée :: énum_drapeau {
     FontSize
     FontWeight
     BackgroundImage
+    LineHeight
 }
 
 calcule_valeur_propriété_générique :: fonc (valeur: ValeurDeStyle, genre_valeur_calculée: GenreValeurCalculée, style: *Style, ctx: *ContexteCalculStyle) -> Optionnel(ValeurDeStyle)
@@ -1386,6 +1387,10 @@ calcule_valeur_propriété_générique :: fonc (valeur: ValeurDeStyle, genre_val
         }
         percentage(p) {
             si genre_valeur_calculée.FontSize {
+                retourne ValeurDeStyle(pixels = ctx.taille_fonte * p / 100.0)
+            }
+
+            si genre_valeur_calculée.LineHeight {
                 retourne ValeurDeStyle(pixels = ctx.taille_fonte * p / 100.0)
             }
 
