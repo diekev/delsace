@@ -645,8 +645,6 @@ calcule_hauteur_et_marges_block_level_normal_flow :: fonc (args: *ArgumentsDimen
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#normal-block */
 calcule_hauteur_et_marges_block_level_normal_flow_standard :: fonc (empl args: *ArgumentsDimensionnement, empl ph: *PropriétésHauteur) -> ÉtatCalculHauteur
 {
-    propriétés := noeud.propriétés
-
     si margin_top.est_auto() {
         margin_top.pixels = 0.0
     }
@@ -666,14 +664,14 @@ calcule_hauteur_et_marges_block_level_normal_flow_standard :: fonc (empl args: *
         si méthode_de_formattage == MéthodeDeFormattage.Inline {
             noeud_bloc := noeud comme *NoeudDeDispositionBloc
 
-            nombre_de_fragments := noeud_bloc.lignes_tenante.fragments.taille
+            nombre_de_lignes := noeud_bloc.lignes_tenante.lignes.taille
 
-            si nombre_de_fragments == 0 {
+            si nombre_de_lignes == 0 {
                 height.pixels = 0.0
             }
             sinon {
-                dernier_fragment := noeud_bloc.lignes_tenante.fragments[nombre_de_fragments - 1]
-                position_bord_bas_fragment := dernier_fragment.y + dernier_fragment.hauteur
+                dernier_fragment := noeud_bloc.lignes_tenante.lignes[nombre_de_lignes - 1]
+                position_bord_bas_fragment := dernier_fragment.position_y + dernier_fragment.hauteur_contenu
 
                 height.pixels = position_bord_bas_fragment - position_bord_haut_contenu
             }
