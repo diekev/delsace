@@ -4080,6 +4080,13 @@ table_wrapper_box_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteD
         args = crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, *largeur_final, mode)
         calcule_largeur_et_marges(*args)
     }
+
+    height := noeud.propriétés.donne_valeur_calculée(IDPropriété.Height)
+    si height.est_auto() {
+        hauteur_finale := noeud.table.propriétés.donne_valeur_utilisée(IDPropriété.Height)
+        args = crée_arguments_dimensionnement_hauteur(ctx, noeud, containing_block, *hauteur_finale)
+        _ := calcule_hauteur_et_marges(*args)
+    }
 }
 
 est_row_group_box :: fonc (noeud: *NoeudDeDisposition) -> bool
