@@ -2495,7 +2495,7 @@ InfoTypePropriété :: struct {
 }
 
 NOMBRE_PROPRIÉTÉS_SHORTHAND :: 26
-NOMBRE_PROPRIÉTÉS :: 93
+NOMBRE_PROPRIÉTÉS :: 94
 
 infos_types_propriétés_shorthand : [NOMBRE_PROPRIÉTÉS_SHORTHAND]InfoTypePropriété = ---
 infos_types_propriétés : [NOMBRE_PROPRIÉTÉS]InfoTypePropriété = ---
@@ -2566,6 +2566,7 @@ initialise_tables_infos_propriétés :: fonc ()
         InfoTypePropriété(PROP_text_decoration_line, id = IDPropriété.TextDecorationLine, fonction_de_parsage = parse_propriété_text_decoration_line, genre_valeur_calculée = GenreValeurCalculée.TextDecorationLine),
         InfoTypePropriété(PROP_text_decoration_style, id = IDPropriété.TextDecorationStyle, fonction_de_parsage = parse_propriété_text_decoration_style, genre_valeur_calculée = GenreValeurCalculée.TextDecorationStyle),
         InfoTypePropriété(PROP_text_decoration_color, id = IDPropriété.TextDecorationColor, fonction_de_parsage = parse_propriété_color, genre_valeur_calculée = GenreValeurCalculée.Couleur),
+        InfoTypePropriété(PROP_text_transform, id = IDPropriété.TextTransform, fonction_de_parsage = parse_propriété_text_transform, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
         InfoTypePropriété(PROP_cursor, id = IDPropriété.Cursor, fonction_de_parsage = parse_propriété_cursor, drapeaux = DrapeauxPropriété.Héritée, genre_valeur_calculée = GenreValeurCalculée.Cursor),
         InfoTypePropriété(PROP_font_family, id = IDPropriété.FontFamily, fonction_de_parsage = parse_propriété_font_family, drapeaux = DrapeauxPropriété.Héritée | DrapeauxPropriété.AffecteDisposition, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
         InfoTypePropriété(PROP_font_weight, id = IDPropriété.FontWeight, fonction_de_parsage = parse_propriété_font_weight, drapeaux = DrapeauxPropriété.Héritée | DrapeauxPropriété.AffecteDisposition, genre_valeur_calculée = GenreValeurCalculée.Nombre | GenreValeurCalculée.FontWeight),
@@ -3660,6 +3661,21 @@ parse_valeur_text_decoration_style :: fonc (parseuse: &Parseuse(ComponentValue))
     si mot_clé == PROP_double || mot_clé == PROP_dotted || mot_clé == PROP_dashed || mot_clé == PROP_wavy {
         retourne
     }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Text Transform
+ * https://drafts.csswg.org/css-text-4/#text-transform
+ * \{ */
+
+/* none | [capitalize | uppercase | lowercase ] || full-width || full-size-kana | math-auto  */
+parse_propriété_text_transform :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    mots_clés := [ PROP_none, PROP_capitalize, PROP_uppercase, PROP_lowercase ]
+    parseuse := initialise_une_parseuse(value)
+    retourne parse_mot_clé(parseuse, mots_clés)
 }
 
 /** \} */

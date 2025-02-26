@@ -3188,6 +3188,20 @@ NoeudDeDispositionTexte :: struct {
 noeud_disposition_texte_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, enligneuse: *Enligneuse, ctx: *ContexteDeFormattage, mode: ModeDeFormattage)
 {
     noeud := base comme *NoeudDeDispositionTexte
+
+    propriétés := donne_propriété_parent(noeud)
+
+    text_transform := propriétés.donne_valeur_utilisée(IDPropriété.TextTransform)
+    si text_transform.est_mot_clé(PROP_uppercase) {
+        noeud.texte = transforme_texte_en_majuscule(noeud.noeud_texte.données)
+    }
+    sinon si text_transform.est_mot_clé(PROP_lowercase) {
+        noeud.texte = transforme_texte_en_minuscule(noeud.noeud_texte.données)
+    }
+    sinon {
+        noeud.texte = copie_chaine(noeud.noeud_texte.données)
+    }
+
     traite_espaces_blanches(noeud)
 
     fonte := détermine_fonte(noeud, ctx)
@@ -3197,14 +3211,13 @@ noeud_disposition_texte_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition,
 
     hauteur_texte := métriques.donne_hauteur_ligne()
 
-    propriétés := donne_propriété_parent(noeud)
     line_height := donne_line_height(propriétés, fonte)
     /* line-height définis la hauteur minimale. */
     hauteur_texte = max(hauteur_texte, line_height)
 
     // À FAIRE : traite proprement la hauteur de ligne pour les noeuds interéléments.
     // La taille de fonte peut avoir été héritée de l'élément parent des noeuds adelphes.
-    si est_vide_ou_uniquement_espaces_blanches(noeud.noeud_texte.données) {
+    si est_vide_ou_uniquement_espaces_blanches(noeud.texte) {
         hauteur_texte = 0.0
     }
 
@@ -3248,7 +3261,7 @@ noeud_disposition_texte_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition,
 traite_espaces_blanches :: fonc (noeud: *NoeudDeDispositionTexte)
 {
     noeud.fragments.taille = 0
-    fragmente_texte_avec_espaces_blanches_ascii(noeud.noeud_texte.données, *noeud.fragments)
+    fragmente_texte_avec_espaces_blanches_ascii(noeud.texte, *noeud.fragments)
 
     propriétés := donne_propriété_parent(noeud)
     white_space := propriétés.donne_valeur_utilisée(IDPropriété.WhiteSpace).mot_clé
