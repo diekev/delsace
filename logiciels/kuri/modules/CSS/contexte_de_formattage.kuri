@@ -478,32 +478,39 @@ dispose_boite_absolute :: fonc (empl ctx: *ContexteDeFormattage, boite: *BoiteAb
     calcule_largeur_et_marges(*args)
     état_calcul_hauteur := calcule_hauteur_et_marges(*args)
 
-    bord_gauche := containing_block.rect.x
-    bord_haut := containing_block.rect.y
-
-    top := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Top)
-    bottom := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Bottom)
-    left := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Left)
-
-    si top.est_auto() && bottom.est_auto() {
-        top = ValeurDeStyle(pixels = 0.0)
-    }
-    sinon si top.est_auto() {
-        top = ValeurDeStyle(pixels = -bottom.pixels)
-    }
-    sinon saufsi top.est_pixels() {
-        top = ValeurDeStyle(pixels = 0.0)
+    si état_calcul_hauteur != ÉtatCalculHauteur.HauteurDépendSurContenu {
+        position_boite_absolue(noeud, containing_block, faux)
     }
 
-    noeud.définis_position(bord_gauche + left.pixels comme r32, bord_haut + top.pixels comme r32)
     formatte_intérieur(noeud, ctx, ModeDeFormattage.Normal)
 
     si état_calcul_hauteur == ÉtatCalculHauteur.HauteurDépendSurContenu {
         args.calcul_hauteur_après_contenu = vrai
         _ := calcule_hauteur_et_marges(*args)
+
+        position_boite_absolue(noeud, containing_block, vrai)
     }
 
     ctx.dispose_les_boites_absolues(noeud)
+}
+
+position_boite_absolue :: fonc (noeud: *NoeudDeDisposition, containing_block: &ContainingBlock, décale: bool)
+{
+    bord_gauche := containing_block.rect.x
+    bord_haut := containing_block.rect.y
+
+    top := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Top)
+    left := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Left)
+
+    x := bord_gauche + left.pixels comme r32
+    y := bord_haut + top.pixels comme r32
+
+    si décale {
+        noeud.décale_vers_position(x, y)
+    }
+    sinon {
+        noeud.définis_position(x, y)
+    }
 }
 
 ajoute_boite_flottante_gauche :: fonc (empl ctx: *ContexteDeFormattageBloc, noeud: *NoeudDeDisposition)
