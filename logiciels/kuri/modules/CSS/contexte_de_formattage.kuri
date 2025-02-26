@@ -15,6 +15,18 @@ ModeDeFormattage :: énum {
     ToutesLesBrisuresDeLigne
 }
 
+BoiteAbsolue :: struct {
+    noeud: *NoeudDeDispositionBloc
+    containing_block: *NoeudDeDisposition
+    pos_x_statique: r64
+    pos_y_statique: r64
+    fut_disposée: bool
+}
+
+GardeBoitesAbsolues :: struct {
+    boites: [..]BoiteAbsolue
+}
+
 ContexteDeFormattage :: struct {
     type: type_de_données
     parent: *ContexteDeFormattage
@@ -23,6 +35,9 @@ ContexteDeFormattage :: struct {
 
     globales: *GlobalesDessin
     initial_containing_block: *ContainingBlock
+
+    /* Pour la disposition des boites absolues. */
+    boites_absolues: *GardeBoitesAbsolues
 
     /* https://html.spec.whatwg.org/multipage/rendering.html#align-descendants */
     doit_aligner_les_descendants: Optionnel(AlignementTexte)
@@ -33,6 +48,7 @@ initialise_depuis_parent :: fonc (ctx: *ContexteDeFormattage, parent: *ContexteD
     ctx.parent = parent
     ctx.globales = parent.globales
     ctx.initial_containing_block = parent.initial_containing_block
+    ctx.boites_absolues = parent.boites_absolues
 }
 
 donne_initial_containing_block :: fonc (ctx: *ContexteDeFormattage) -> ContainingBlock
@@ -193,7 +209,7 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
     pour noeud.enfants {
         position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position)
         si position.est_mot_clé(PROP_absolute) {
-            ctx.dispose_boite_absolute(it comme *NoeudDeDispositionBloc, décalage_x, décalage_y + décalage_hors_float)
+            ctx.dispose_boite_absolute(it comme *NoeudDeDispositionBloc, décalage_x, décalage_y + décalage_hors_float, mode)
             continue
         }
 
@@ -409,13 +425,56 @@ dispose_boite_fixed :: fonc (empl ctx: *ContexteDeFormattageBloc, noeud: *NoeudD
     formatte_intérieur(noeud, ctx, ModeDeFormattage.Normal)
 }
 
-/* À FAIRE : https://drafts.csswg.org/css-position/#abspos-layout */
-dispose_boite_absolute :: fonc (empl ctx: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc, pos_x_statique: r64, pos_y_statique: r64)
+dispose_boite_absolute :: fonc (empl ctx: *ContexteDeFormattageBloc, noeud: *NoeudDeDispositionBloc, pos_x_statique: r64, pos_y_statique: r64, mode: ModeDeFormattage)
 {
+    si mode != ModeDeFormattage.Normal {
+        retourne
+    }
+
     containing_block := donne_containing_block(noeud, ctx)
+
+    boite_absolue := tableau_ajoute_élément(*ctx.boites_absolues.boites)
+    boite_absolue.noeud = noeud
+    boite_absolue.containing_block = containing_block.noeud
+    boite_absolue.pos_x_statique = pos_x_statique
+    boite_absolue.pos_y_statique = pos_y_statique
+}
+
+dispose_les_boites_absolues :: fonc (ctx: *ContexteDeFormattage, containing_block: *NoeudDeDisposition)
+{
+    boites_à_disposer: [..]BoiteAbsolue
+    diffère déloge(boites_à_disposer)
+
+    pour ctx.boites_absolues.boites {
+        si it.containing_block != containing_block {
+            continue
+        }
+
+        tableau_ajoute(*boites_à_disposer, it)
+
+        si index_it < ctx.boites_absolues.boites.taille - 1 {
+            ctx.boites_absolues.boites[index_it] = ctx.boites_absolues.boites[ctx.boites_absolues.boites.taille - 1]
+            ctx.boites_absolues.boites.taille -= 1
+            reprends it
+        }
+    }
+
+    pour * boites_à_disposer {
+        dispose_boite_absolute(ctx, it)
+    }
+}
+
+/* À FAIRE : https://drafts.csswg.org/css-position/#abspos-layout */
+dispose_boite_absolute :: fonc (empl ctx: *ContexteDeFormattage, boite: *BoiteAbsolue)
+{
+    noeud := boite.noeud
+
+    containing_block := donne_containing_block(noeud, ctx)
+    assert(containing_block.noeud == boite.containing_block)
+
     args := crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, nul, ModeDeFormattage.Normal)
-    args.pos_x_statique = pos_x_statique
-    args.pos_y_statique = pos_y_statique
+    args.pos_x_statique = boite.pos_x_statique
+    args.pos_y_statique = boite.pos_y_statique
     calcule_largeur_et_marges(*args)
     état_calcul_hauteur := calcule_hauteur_et_marges(*args)
 
@@ -443,6 +502,8 @@ dispose_boite_absolute :: fonc (empl ctx: *ContexteDeFormattage, noeud: *NoeudDe
         args.calcul_hauteur_après_contenu = vrai
         _ := calcule_hauteur_et_marges(*args)
     }
+
+    ctx.dispose_les_boites_absolues(noeud)
 }
 
 ajoute_boite_flottante_gauche :: fonc (empl ctx: *ContexteDeFormattageBloc, noeud: *NoeudDeDisposition)

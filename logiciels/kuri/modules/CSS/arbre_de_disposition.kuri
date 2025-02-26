@@ -1257,6 +1257,11 @@ dispose_arbre :: fonc (globales: *GlobalesDessin, arbre: *ArbreDeDisposition, la
     ctx.globales = globales
     ctx.initial_containing_block = *initial_containing_block
 
+    boites_absolues: GardeBoitesAbsolues
+    diffère déloge(boites_absolues.boites)
+
+    ctx.boites_absolues = *boites_absolues
+
     mesure(arbre.racine, *ctx, ModeDeFormattage.Normal, nul)
 
     // imprime("taille arbre : %x%\n", résultat.racine.largeur, résultat.racine.hauteur)
@@ -2822,6 +2827,10 @@ noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Cont
     }
 
     ctx.doit_aligner_les_descendants = doit_aligner_les_descendants
+
+    si mode == ModeDeFormattage.Normal {
+        ctx.dispose_les_boites_absolues(noeud)
+    }
 }
 
 noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
