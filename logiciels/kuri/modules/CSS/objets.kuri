@@ -201,6 +201,7 @@ DéclarationPropriété :: struct {
     important: bool
     case_sensitive: bool
     est_personnalisée: bool
+    est_shorthand_avec_variable: bool
 }
 
 détruit_déclaration :: fonc (déclaration: *DéclarationPropriété)

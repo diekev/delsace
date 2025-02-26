@@ -966,6 +966,70 @@ crée_style_pour_bloc_anonyme :: fonc (résolveuse: *RésolveuseStyle, bloc: *No
     bloc.propriétés = résultat
 }
 
+ContexteParsageShorthandVariable :: struct {
+    empl base: ContexteParsageShorthand
+
+    ctx_calcul_style: *ContexteCalculStyle
+}
+
+contexte_parsage_shorthand_variable_ajoute_propriété :: fonc (ctx: *ContexteParsageShorthandVariable, nom: CSSOMString, valeur: ValeurDeStyle)
+{
+    info := donne_info_type_pour_nom(nom)
+    saufsi info {
+        retourne
+    }
+
+    déclaration: DéclarationPropriété
+    déclaration.info = info
+    déclaration.property_name = nom
+    déclaration.value.pointeur = *valeur
+    déclaration.value.taille = 1
+
+    propriétés := ctx.ctx_calcul_style.propriétés
+
+    si info.sur_calcul_style {
+        info.sur_calcul_style(*déclaration, *propriétés.style, ctx.ctx_calcul_style)
+    }
+    sinon {
+        calcule_valeur_propriété_générique(*déclaration, *propriétés.style, ctx.ctx_calcul_style)
+    }
+
+    si info.id == IDPropriété.FontSize {
+        ctx.ctx_calcul_style.taille_fonte = propriétés.donne_valeur_calculée(IDPropriété.FontSize).pixels
+    }
+}
+
+développe_variables :: fonc (propriétés: *PropriétésDeStyle, value: []ComponentValue) -> [..]ComponentValue
+{
+    résultat: [..]ComponentValue
+    pour value {
+        saufsi it.est_fonction(PROP_var) {
+            tableau_ajoute(*résultat, it)
+            continue
+        }
+
+        parseuse := initialise_une_parseuse(it.function.value)
+        opt_variable := parse_variables_depuis_arguments(parseuse)
+        saufsi opt_variable.possède_valeur() {
+            continue
+        }
+        variable := opt_variable.Quelque.variable
+
+        déclaration := donne_déclaration_propriété_personnalisée(propriétés, variable.nom)
+        saufsi déclaration {
+            continue
+        }
+
+        pour valeur_var dans déclaration.valeur_personnalisée {
+            tableau_ajoute(*résultat, valeur_var)
+        }
+
+        // À FAIRE : fallback
+        // À FAIRE : variables récursives
+    }
+    retourne résultat
+}
+
 calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *PropriétésDeStyle, propriétés_parent: *PropriétésDeStyle)
 {
     /* https://www.w3.org/TR/2011/REC-CSS2-20110607/cascade.html#computed-value */
@@ -987,6 +1051,23 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
             continue
         }
         info := it.info
+
+        si it.est_shorthand_avec_variable {
+            valeurs := développe_variables(propriétés, it.valeur_personnalisée)
+
+            ctx_parsage: ContexteParsageShorthandVariable
+            ctx_parsage.sur_ajoute_propriété = contexte_parsage_shorthand_variable_ajoute_propriété
+            ctx_parsage.ctx_calcul_style = *ctx_calcul_style
+
+            déclaration_parsée: ParsedDeclaration
+            déclaration_parsée.name = info.nom
+            ctx_parsage.déclaration_parsée = *déclaration_parsée
+
+            _ := info.sur_parsage_shorthand(*ctx_parsage, valeurs)
+
+            déloge(valeurs)
+            continue
+        }
 
         si info.sur_calcul_style {
             info.sur_calcul_style(it, *propriétés.style, *ctx_calcul_style)

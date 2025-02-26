@@ -2260,9 +2260,16 @@ ContexteParsageShorthand :: struct {
     déclaration: *CSSStyleDeclaration
     
     déclaration_parsée: *ParsedDeclaration
+
+    sur_ajoute_propriété := contexte_parsage_shorthand_ajoute_propriété
 }
 
 ajoute_propriété :: fonc (ctx: *ContexteParsageShorthand, nom: CSSOMString, valeur: ValeurDeStyle)
+{
+    ctx.sur_ajoute_propriété(ctx, nom, valeur)
+}
+
+contexte_parsage_shorthand_ajoute_propriété :: fonc (ctx: *ContexteParsageShorthand, nom: CSSOMString, valeur: ValeurDeStyle)
 {
     info_type_propriété := donne_info_type_pour_nom(nom)
     saufsi info_type_propriété {
@@ -2336,6 +2343,29 @@ parse_mot_clé_global :: fonc (ctx: *ContexteParsageShorthand, noms_propriétés
     retourne vrai
 }
 
+parse_shorthand_avec_variable :: fonc (ctx: *ContexteParsageShorthand, info_type_propriété: *InfoTypePropriété, value: []ComponentValue) -> bool
+{
+    pour value {
+        si it.est_fonction(PROP_var) {
+            arrête
+        }
+    }
+    sansarrêt {
+        retourne faux
+    }
+
+    déclaration := loge(DéclarationPropriété)
+    déclaration.info = info_type_propriété
+    déclaration.property_name = info_type_propriété.nom
+    déclaration.important = ctx.déclaration_parsée.important
+    déclaration.est_shorthand_avec_variable = vrai
+    déclaration.valeur_personnalisée = copie_tableau_component_value(value)
+
+    ctx.déclaration.ajoute_déclaration(déclaration)
+
+    retourne vrai
+}
+
 parse_css_style_declaration :: fonc (ctx: *ContexteParsageFeuilleDeStyle, déclarations: []ParsedDeclaration) -> *CSSStyleDeclaration
 {
     résultat := loge(CSSStyleDeclaration)
@@ -2360,6 +2390,10 @@ parse_css_style_declaration :: fonc (ctx: *ContexteParsageFeuilleDeStyle, décla
             ctx_parsage_shorthand: ContexteParsageShorthand
             ctx_parsage_shorthand.déclaration_parsée = *it
             ctx_parsage_shorthand.déclaration = résultat
+
+            si parse_shorthand_avec_variable(*ctx_parsage_shorthand, info_type_propriété, it.value) {
+                continue
+            }
 
             saufsi info_type_propriété.sur_parsage_shorthand(*ctx_parsage_shorthand, it.value) {
                 rapporte_erreur_de_parsage(it)
@@ -2740,6 +2774,7 @@ parse_valeur_length_percentage_ou_auto :: fonc (parseuse: &Parseuse(ComponentVal
 
 parse_variable :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
 {
+    parseuse.consomme_espaces_blanches()
     si parseuse.fini() {
         retourne
     }
@@ -2750,9 +2785,14 @@ parse_variable :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(Valeur
     }
 
     parseuse_arguments := initialise_une_parseuse(lexème.function.value)
-    parseuse_arguments.consomme_espaces_blanches()
+    retourne parseuse_arguments.parse_variables_depuis_arguments()
+}
 
-    lexème = parseuse_arguments.lexème_courant()
+parse_variables_depuis_arguments :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+{
+    parseuse.consomme_espaces_blanches()
+
+    lexème := parseuse.lexème_courant()
     saufsi lexème.est_lexème_de_genre(GenreLexème.Ident) {
         retourne
     }
@@ -2762,8 +2802,8 @@ parse_variable :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(Valeur
         retourne
     }
 
-    parseuse_arguments.avance()
-    parseuse_arguments.consomme_espaces_blanches()
+    parseuse.avance()
+    parseuse.consomme_espaces_blanches()
 
     // À FAIRE : fallback
 
