@@ -2117,10 +2117,10 @@ imprime_élément :: fonc (noeud: *NoeudDeDisposition, message: chaine, récursi
 imprime_élément :: fonc (enchaineuse: *Enchaineuse, noeud: *NoeudDeDisposition, message: chaine, récursif := faux)
 {
     élément := si récursif {
-        noeud.donne_élément()
+        noeud.donne_élément_récursif()
     }
     sinon {
-        noeud.donne_élément_récursif()
+        noeud.donne_élément()
     }
 
     ajoute_au_tampon(enchaineuse, message, " : ")
