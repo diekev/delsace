@@ -218,8 +218,16 @@ détruit_déclaration :: fonc (déclaration: *DéclarationPropriété)
 imprime_déclaration :: fonc (déclaration: *DéclarationPropriété)
 {
     imprime("    %:", déclaration.property_name)
-    pour valeur dans déclaration.value {
-        imprime(" %", valeur)
+
+    si déclaration.est_personnalisée || déclaration.est_shorthand_avec_variable {
+        pour déclaration.valeur_personnalisée {
+            imprime(" %", it)
+        }
+    }
+    sinon {
+        pour valeur dans déclaration.value {
+            imprime(" %", valeur)
+        }
     }
 
     si déclaration.important {
