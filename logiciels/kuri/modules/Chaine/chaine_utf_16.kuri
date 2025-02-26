@@ -408,6 +408,55 @@ sous_chaine :: fonc (chn: ChaineUTF16, début: z64, fin: z64) -> ChaineUTF16
     retourne résultat
 }
 
+transforme_chaine :: fonc (chn: &ChaineUTF16, résultat: *ChaineUTF16, transformation: fonc(n32)(n32))
+{
+    tableau_réserve(*résultat.unités, chn.taille())
+
+    curseur := 0
+    tantque curseur < chn.unités.taille {
+        unité := chn.unités[curseur]
+
+        saufsi est_leading_surrogate(unité) || est_trailling_surrogate(unité) {
+            chaine_ajoute(résultat, transformation(unité))
+            curseur += 1
+            continue
+        }
+
+        si est_leading_surrogate(unité) && curseur == chn.taille() - 1 {
+            chaine_ajoute(résultat, unité)
+            curseur += 1
+            continue
+        }
+
+        unité_suivante := chn.unités[curseur + 1]
+        si est_leading_surrogate(unité) && est_trailling_surrogate(unité_suivante) {
+            point_de_code := utf16_décode_paire_surrogate(unité, unité_suivante)
+            chaine_ajoute(résultat, transformation(point_de_code))
+            curseur += 2
+            continue
+        }
+
+        /* L'unité de code courante est soit un leading surrogate, soit un trailing surrogate, qui
+         * ne fait pas partie d'une paire de surrogates. Considérons que c'est un point de code. */
+        chaine_ajoute(résultat, unité)
+        curseur += 1
+    }
+}
+
+transforme_texte_en_majuscule :: fonc (chn: &ChaineUTF16) -> ChaineUTF16
+{
+    résultat: ChaineUTF16
+    transforme_chaine(chn, *résultat, transforme_point_de_code_en_majuscule)
+    retourne résultat
+}
+
+transforme_texte_en_minuscule :: fonc (chn: &ChaineUTF16) -> ChaineUTF16
+{
+    résultat: ChaineUTF16
+    transforme_chaine(chn, *résultat, transforme_point_de_code_en_minuscule)
+    retourne résultat
+}
+
 est_espace_blanche_ascii :: fonc (rune: rune16) -> bool
 {
     TAB : n32 : 0x09
