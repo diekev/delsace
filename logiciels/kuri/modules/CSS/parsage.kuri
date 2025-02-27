@@ -4512,7 +4512,7 @@ parse_propriété_border_radius :: fonc (value: []ComponentValue) -> Optionnel(V
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom Font Style
+/** \nom Margin
  * https://drafts.csswg.org/css-box/#margin-physical
  * https://drafts.csswg.org/css-logical/#margin-properties
  * \{ */
