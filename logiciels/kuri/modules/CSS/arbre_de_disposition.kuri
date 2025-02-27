@@ -1357,6 +1357,8 @@ crée_noeud_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *
         nouveau_parent = table
     }
 
+    crée_noeud_pour_pseudo_élément(créatrice, résultat, élément, PROP_before)
+
     pour noeud.enfants {
         crée_noeud_pour_élément(créatrice, nouveau_parent, it)
     }
