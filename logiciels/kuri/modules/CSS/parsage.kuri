@@ -2738,6 +2738,17 @@ parse_valeur_length :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(V
     }
 }
 
+parse_valeur_length_positive :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+{
+    valeur := parse_valeur_length(parseuse)
+    si valeur.possède_valeur() {
+        si valeur.Quelque.est_négative() {
+            retourne
+        }
+        retourne valeur
+    }
+}
+
 parse_valeur_percentage :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
 {
     si parseuse.fini() {
@@ -2771,6 +2782,17 @@ parse_valeur_number :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(V
     }
 }
 
+parse_valeur_number_positive :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+{
+    valeur := parse_valeur_number(parseuse)
+    si valeur.possède_valeur() {
+        si valeur.Quelque.est_négative() {
+            retourne
+        }
+        retourne valeur
+    }
+}
+
 parse_valeur_length_percentage :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
 {
     length := parse_valeur_length(parseuse)
@@ -2778,6 +2800,17 @@ parse_valeur_length_percentage :: fonc (parseuse: &Parseuse(ComponentValue)) -> 
         retourne length
     }
     retourne parse_valeur_percentage(parseuse)
+}
+
+parse_valeur_length_percentage_positive :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+{
+    valeur := parse_valeur_length_percentage(parseuse)
+    si valeur.possède_valeur() {
+        si valeur.Quelque.est_négative() {
+            retourne
+        }
+        retourne valeur
+    }
 }
 
 parse_valeur_length_percentage_ou_auto :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
@@ -2788,6 +2821,17 @@ parse_valeur_length_percentage_ou_auto :: fonc (parseuse: &Parseuse(ComponentVal
         retourne ValeurDeStyle(mot_clé = PROP_auto)
     }
     retourne parse_valeur_length_percentage(parseuse)
+}
+
+parse_valeur_length_percentage_positive_ou_auto :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+{
+    valeur := parse_valeur_length_percentage_ou_auto(parseuse)
+    si valeur.possède_valeur() {
+        si valeur.Quelque.est_négative() {
+            retourne
+        }
+        retourne valeur
+    }
 }
 
 parse_variable :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
@@ -3974,7 +4018,7 @@ parse_valeur_font_size :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionne
 {
     mots_clés := [PROP_larger, PROP_smaller, PROP_xx_small, PROP_x_small, PROP_small, PROP_medium, PROP_large, PROP_x_large, PROP_xx_large, PROP_xxx_large]
 
-    valeur := parse_valeur_length_percentage(parseuse)
+    valeur := parse_valeur_length_percentage_positive(parseuse)
     si valeur.possède_valeur() {
         retourne valeur
     }
@@ -4415,7 +4459,7 @@ parse_valeur_line_width :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionn
             retourne
         }
 
-        valeur := parse_valeur_length(parseuse)
+        valeur := parse_valeur_length_positive(parseuse)
         si valeur.possède_valeur() {
             retourne valeur
         }
@@ -4466,7 +4510,7 @@ parse_propriété_border_radius_shorthand :: fonc (ctx: *ContexteParsageShorthan
         parseuse.consomme_espaces_blanches()
 
         /* <length-percentage> */
-        valeur := parse_valeur_length_percentage(parseuse)
+        valeur := parse_valeur_length_percentage_positive(parseuse)
         si valeur.possède_valeur() {
             résultat[nombre_de_valeurs] = valeur.Quelque
             nombre_de_valeurs += 1
@@ -4506,7 +4550,7 @@ parse_propriété_border_radius_shorthand :: fonc (ctx: *ContexteParsageShorthan
 parse_propriété_border_radius :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
-    retourne parse_valeur_length_percentage(parseuse)
+    retourne parse_valeur_length_percentage_positive(parseuse)
 }
 
 /** \} */
@@ -4616,6 +4660,7 @@ parse_propriété_margin_top :: fonc (value: []ComponentValue) -> Optionnel(Vale
  * https://drafts.csswg.org/css-logical/#padding-properties
  * \{ */
 
+/* <length-percentage [0,∞]> */
 parse_propriété_padding :: fonc (ctx: *ContexteParsageShorthand, value: []ComponentValue) -> bool
 {
     noms_propriétés := [PROP_padding_top, PROP_padding_right, PROP_padding_bottom, PROP_padding_left]
@@ -4631,8 +4676,7 @@ parse_propriété_padding :: fonc (ctx: *ContexteParsageShorthand, value: []Comp
     tantque !fini(parseuse) && nombre_valeurs != 4 {
         parseuse.consomme_espaces_blanches()
 
-        /* <length-percentage> */
-        valeur := parse_valeur_length_percentage(parseuse)
+        valeur := parse_valeur_length_percentage_positive(parseuse)
         si valeur.possède_valeur() {
             résultat[nombre_valeurs] = valeur.Quelque
             nombre_valeurs += 1
@@ -4678,7 +4722,7 @@ parse_propriété_padding_logique :: fonc (ctx: *ContexteParsageShorthand, value
         parseuse.consomme_espaces_blanches()
 
         /* 	<length-percentage [0,∞]> */
-        valeur := parse_valeur_length_percentage(parseuse)
+        valeur := parse_valeur_length_percentage_positive(parseuse)
         si valeur.possède_valeur() {
             résultat[nombre_valeurs] = valeur.Quelque
             nombre_valeurs += 1
@@ -4704,7 +4748,7 @@ parse_propriété_padding_top :: fonc (value: []ComponentValue) -> Optionnel(Val
     parseuse := initialise_une_parseuse(value)
     parseuse.consomme_espaces_blanches()
     /* 	<length-percentage [0,∞]> */
-    retourne parse_valeur_length_percentage(parseuse)
+    retourne parse_valeur_length_percentage_positive(parseuse)
 }
 
 /** \} */
@@ -4724,7 +4768,7 @@ parse_propriété_height_width :: fonc (value: []ComponentValue) -> Optionnel(Va
     tantque !fini(parseuse) {
         parseuse.consomme_espaces_blanches()
 
-        valeur := parse_valeur_length_percentage_ou_auto(parseuse)
+        valeur := parse_valeur_length_percentage_positive_ou_auto(parseuse)
         si valeur.possède_valeur() {
             retourne valeur
         }
@@ -4738,7 +4782,7 @@ parse_propriété_min_height_width :: fonc (value: []ComponentValue) -> Optionne
     parseuse := initialise_une_parseuse(value)
     parseuse.consomme_espaces_blanches()
     /* auto | <length-percentage [0,∞]> | min-content | max-content | fit-content(<length-percentage [0,∞]>) | <calc-size()> */
-    retourne parse_valeur_length_percentage_ou_auto(parseuse)
+    retourne parse_valeur_length_percentage_positive_ou_auto(parseuse)
 }
 
 parse_propriété_max_height_width :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
@@ -4752,7 +4796,7 @@ parse_propriété_max_height_width :: fonc (value: []ComponentValue) -> Optionne
         retourne ValeurDeStyle(mot_clé = PROP_none)
     }
 
-    retourne parse_valeur_length_percentage(parseuse)
+    retourne parse_valeur_length_percentage_positive(parseuse)
 }
 
 /** \} */
@@ -4771,13 +4815,12 @@ parse_propriété_line_height :: fonc (value: []ComponentValue) -> Optionnel(Val
 
 parse_valeur_line_height :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
 {
-    /* parse_valeur_length */
-    valeur := parse_valeur_length(parseuse)
+    valeur := parse_valeur_length_positive(parseuse)
     si valeur.possède_valeur() {
         retourne valeur
     }
 
-    valeur = parse_valeur_number(parseuse)
+    valeur = parse_valeur_number_positive(parseuse)
     si valeur.possède_valeur() {
         retourne valeur
     }

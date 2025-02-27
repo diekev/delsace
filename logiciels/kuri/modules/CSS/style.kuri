@@ -430,11 +430,9 @@ détruit_propriétés :: fonc (propriétés: *PropriétésDeStyle)
 
 ajoute_déclaration :: fonc (propriétés: *PropriétésDeStyle, déclaration: *DéclarationPropriété)
 {
-    pour > propriétés.déclarations {
+    pour propriétés.déclarations {
         si it.property_name == déclaration.property_name {
-            /* Nous insérons la déclaration après la dernière dernière instance d'une telle propriété afin de 
-             * calculer proprement les propriétés suivantes dépendants de la dernière version valide de la propriété. */
-            tableau_insère_index(*propriétés.déclarations, déclaration, propriétés.déclarations.taille - index_it)
+            propriétés.déclarations[index_it] = déclaration
             retourne
         }
     }
@@ -444,9 +442,7 @@ ajoute_déclaration :: fonc (propriétés: *PropriétésDeStyle, déclaration: *
 
 donne_déclaration :: fonc (propriétés: *PropriétésDeStyle, nom: CSSOMString) -> *DéclarationPropriété
 {
-    /* Nous retournons la dernière instance de la propriété.
-     * À FAIRE : détermine si la déclaration fut utilisée. Nous dépendons de ceci pour l'invalidation du style. */
-    pour > propriétés.déclarations {
+    pour propriétés.déclarations {
         si it.property_name == nom {
             retourne it
         }
@@ -1500,17 +1496,19 @@ calcule_valeur_propriété_générique :: fonc (déclaration: *DéclarationPropr
         valeur = ctx.valeurs_initiales.valeurs[id]
     }
 
-    si info.drapeaux.ValeurNégativeIllégale && valeur.est_négative() {
-        retourne
-    }
-
     résultat := calcule_valeur_propriété_générique(valeur, genre_valeur_calculée, style, ctx)
     si résultat.possède_valeur() {
+        si info.drapeaux.ValeurNégativeIllégale && résultat.Quelque.est_négative() {
+            retourne
+        }
         style.valeurs[id] = résultat.Quelque
         retourne
     }
 
     si genre_valeur_calculée.Spécifié {
+        si info.drapeaux.ValeurNégativeIllégale && valeur.est_négative() {
+            retourne
+        }
         style.valeurs[id] = valeur
         retourne
     }
