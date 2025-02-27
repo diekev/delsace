@@ -2750,16 +2750,6 @@ parse_valeur_percentage :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionn
         parseuse.avance()
         retourne ValeurDeStyle(percentage = lexème.lexème.numeric_value)
     }
-
-    si lexème.est_lexème_de_genre(GenreLexème.Number) {
-        parseuse.avance()
-
-        si lexème.lexème.drapeau_type_nombre == DrapeauxTypeNombre.Integer {
-            retourne ValeurDeStyle(integer = lexème.lexème.numeric_value)
-        }
-
-        retourne ValeurDeStyle(number = lexème.lexème.numeric_value)
-    }
 }
 
 parse_valeur_number :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
