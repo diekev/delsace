@@ -190,6 +190,12 @@ calcule_auto_height_racine_contexte_de_formattage :: fonc (noeud: *NoeudDeDispos
     // À FAIRE : gère floats, etc.
     tantque !pile.est_vide() {
         enfant := pile.dépile()
+
+        position := enfant.propriétés.donne_valeur_utilisée(IDPropriété.Position)
+        si position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_fixed) {
+            continue
+        }
+
         tableau_ajoute(*enfants_aplatis, enfant)
 
         méthode_formattage := donne_méthode_de_formattage_intérieur(enfant)
