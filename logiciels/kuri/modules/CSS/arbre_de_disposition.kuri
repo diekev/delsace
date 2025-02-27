@@ -2837,7 +2837,7 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
 {
     noeud := base comme *NoeudDeDispositionBloc
 
-    si noeud.est_noeud_non_anonyme() {
+    si noeud.est_noeud_non_anonyme() || noeud.est_pseudo_element {
         dessine_arrière_plan(ctx, noeud)
         dessine_bordure(ctx, noeud)
     }
