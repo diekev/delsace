@@ -445,13 +445,47 @@ résoud_pourcentage_hauteur :: fonc (noeud: *NoeudDeDisposition, containing_bloc
     width_of_containing_block := containing_block.donne_largeur()
     height_of_containing_block := containing_block.donne_hauteur()
 
-    // À FAIRE : pourcentage min-height, max-height
     propriétés := noeud.propriétés
     propriétés.résoud_pourcentage(IDPropriété.MarginTop, width_of_containing_block)
     propriétés.résoud_pourcentage(IDPropriété.PaddingTop, width_of_containing_block)
-    propriétés.résoud_pourcentage(IDPropriété.Height, height_of_containing_block)
     propriétés.résoud_pourcentage(IDPropriété.PaddingBottom, width_of_containing_block)
     propriétés.résoud_pourcentage(IDPropriété.MarginBottom, width_of_containing_block)
+
+    /* Selon CSS2.1 10.5, les pourcentages sur la hauteur deviennent « auto » si le contenant
+     * a une hauteur auto et que la boite n'est pas positionné absolument.
+     * https://www.w3.org/TR/CSS2/visudet.html#the-height-property */
+    prop_height_contenant := containing_block.noeud.propriétés.donne_valeur_calculée(IDPropriété.Height)
+    contenant_dépend_sur_contenu := prop_height_contenant.est_auto()
+
+    position := propriétés.donne_valeur_calculée(IDPropriété.Position)
+    est_absolu := position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_fixed)
+
+    prop_height := propriétés.donne_valeur_calculée(IDPropriété.Height)
+    si prop_height.est_percentage() && contenant_dépend_sur_contenu && !est_absolu {
+        propriétés.définis_valeur_calculée(IDPropriété.Height, ValeurDeStyle(mot_clé = PROP_auto))
+    }
+    sinon {
+        propriétés.résoud_pourcentage(IDPropriété.Height, height_of_containing_block)
+    }
+
+    /* Selon CSS2.1 10.7, les pourcentages sur min-height deviennent « 0 » et sur max-height « none »
+     * si le contenant a une hauteur auto et que la boite n'est pas positionné absolument.
+     * https://www.w3.org/TR/CSS2/visudet.html#min-max-heights */
+    prop_min_height := propriétés.donne_valeur_calculée(IDPropriété.MinHeight)
+    si prop_min_height.est_percentage() && contenant_dépend_sur_contenu && !est_absolu {
+        propriétés.définis_valeur_calculée(IDPropriété.MinHeight, ValeurDeStyle(pixels = 0.0))
+    }
+    sinon {
+        propriétés.résoud_pourcentage(IDPropriété.MinHeight, height_of_containing_block)
+    }
+
+    prop_max_height := propriétés.donne_valeur_calculée(IDPropriété.MaxHeight)
+    si prop_max_height.est_percentage() && contenant_dépend_sur_contenu && !est_absolu {
+        propriétés.définis_valeur_calculée(IDPropriété.MaxHeight, ValeurDeStyle(mot_clé = PROP_none))
+    }
+    sinon {
+        propriétés.résoud_pourcentage(IDPropriété.MaxHeight, height_of_containing_block)
+    }
 }
 
 résoud_pourcentage_insets :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage)
