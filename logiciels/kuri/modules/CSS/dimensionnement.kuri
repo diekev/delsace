@@ -1159,6 +1159,7 @@ calcule_largeur_et_marges_floated_non_replaced_element :: fonc (empl args: *Argu
 
 calcule_shrink_to_fit_width :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition, available_width: r64) -> r64
 {
+    /* À FAIRE : ceci peut allouer de l'espace pour un des éléments vides via les espaces blanches interéléments. */
     formatte_intérieur(noeud comme *NoeudDeDispositionBloc, ctx, ModeDeFormattage.BrisureDeLigneExplicite)
     preferred_width := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width).pixels
 
