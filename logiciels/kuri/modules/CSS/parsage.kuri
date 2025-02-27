@@ -2722,13 +2722,19 @@ parse_valeur_length :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(V
     }
 
     si lexème.est_lexème_de_genre(GenreLexème.Number) {
+        /* Pour <length>, si l'unité est manquante, seul 0 est valide. */
+        valeur := lexème.lexème.numeric_value
+        si valeur != 0.0 {
+            retourne
+        }
+
         parseuse.avance()
 
         si lexème.lexème.drapeau_type_nombre == DrapeauxTypeNombre.Integer {
-            retourne ValeurDeStyle(integer = lexème.lexème.numeric_value)
+            retourne ValeurDeStyle(integer = valeur)
         }
 
-        retourne ValeurDeStyle(number = lexème.lexème.numeric_value)
+        retourne ValeurDeStyle(number = valeur)
     }
 }
 
@@ -2744,6 +2750,25 @@ parse_valeur_percentage :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionn
         parseuse.avance()
         retourne ValeurDeStyle(percentage = lexème.lexème.numeric_value)
     }
+
+    si lexème.est_lexème_de_genre(GenreLexème.Number) {
+        parseuse.avance()
+
+        si lexème.lexème.drapeau_type_nombre == DrapeauxTypeNombre.Integer {
+            retourne ValeurDeStyle(integer = lexème.lexème.numeric_value)
+        }
+
+        retourne ValeurDeStyle(number = lexème.lexème.numeric_value)
+    }
+}
+
+parse_valeur_number :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+{
+    si parseuse.fini() {
+        retourne
+    }
+
+    lexème := parseuse.lexème_courant()
 
     si lexème.est_lexème_de_genre(GenreLexème.Number) {
         parseuse.avance()
@@ -4756,8 +4781,13 @@ parse_propriété_line_height :: fonc (value: []ComponentValue) -> Optionnel(Val
 
 parse_valeur_line_height :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
 {
-    /* parse_valeur_length inclus <number> */
+    /* parse_valeur_length */
     valeur := parse_valeur_length(parseuse)
+    si valeur.possède_valeur() {
+        retourne valeur
+    }
+
+    valeur = parse_valeur_number(parseuse)
     si valeur.possède_valeur() {
         retourne valeur
     }
