@@ -1261,6 +1261,10 @@ calcule_valeur_propriété_générique :: fonc (valeur: ValeurDeStyle, genre_val
                 si m == PROP_currentColor {
                     retourne style.valeurs[IDPropriété.Color]
                 }
+                opt_couleur := trouve_couleur_pour_mot_clé(m)
+                si opt_couleur.possède_valeur() {
+                    retourne ValeurDeStyle(couleur = opt_couleur.Quelque)
+                }
                 retourne
             }
             si genre_valeur_calculée.TextDecorationLine {
