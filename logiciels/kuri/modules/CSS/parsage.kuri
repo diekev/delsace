@@ -4003,6 +4003,7 @@ parse_propriété_background :: fonc (ctx: *ContexteParsageShorthand, value: []C
     }
 
     couleur := ValeurDeStyle(mot_clé = PROP_transparent)
+    eu_couleur := faux
     image := ValeurDeStyle(mot_clé = PROP_none)
 
     parseuse := initialise_une_parseuse(value)
@@ -4012,7 +4013,12 @@ parse_propriété_background :: fonc (ctx: *ContexteParsageShorthand, value: []C
 
         valeur_couleur := parse_valeur_couleur(parseuse)
         si valeur_couleur.possède_valeur() {
+            si eu_couleur {
+                /* Seule une couleur est autorisée. */
+                retourne faux
+            }
             couleur = valeur_couleur
+            eu_couleur = vrai
             continue
         }
 
