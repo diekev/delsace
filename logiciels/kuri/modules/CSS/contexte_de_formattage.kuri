@@ -157,6 +157,100 @@ donne_rectangle :: fonc (boite: BoiteFlottante) -> RectanglePosDim(r64)
     retourne résultat
 }
 
+LigneDeFlottants :: struct {
+    boites: [..]BoiteFlottante
+    rect: RectanglePosDim(r64)
+}
+
+détruit_donnée_ligne :: fonc (ligne: *LigneDeFlottants)
+{
+    déloge(ligne.boites)
+}
+
+ajoute_boite :: fonc (ligne: *LigneDeFlottants, boite: BoiteFlottante)
+{
+    tableau_ajoute(*ligne.boites, boite)
+    si ligne.boites.taille == 1 {
+        ligne.rect = boite.donne_rectangle()
+    }
+    sinon {
+        ligne.rect = donne_union(ligne.rect, boite.donne_rectangle())
+    }
+}
+
+donne_position_la_plus_à_gauche :: fonc (ligne: *LigneDeFlottants) -> r64
+{
+    résultat := ligne.rect.x
+
+    pour > ligne.boites {
+        si it.hauteur == 0.0 {
+            continue
+        }
+
+        résultat = it.position_x + it.largeur
+        arrête
+    }
+
+    retourne résultat
+}
+
+donne_position_la_plus_à_droite :: fonc (ligne: *LigneDeFlottants) -> r64
+{
+    résultat := ligne.rect.x
+
+    pour > ligne.boites {
+        si it.hauteur == 0.0 {
+            continue
+        }
+
+        résultat = it.position_x
+        arrête
+    }
+
+    retourne résultat
+}
+
+ContenantLignesDeFlottants :: struct {
+    lignes: [..]LigneDeFlottants
+    réinitialise_pour_clear: bool
+}
+
+détruit_données_lignes :: fonc (contenant: *ContenantLignesDeFlottants)
+{
+    pour * contenant.lignes {
+        détruit_donnée_ligne(it)
+    }
+    déloge(contenant.lignes)
+}
+
+donne_dernière_ligne :: fonc (contenant: *ContenantLignesDeFlottants, containing_block: &ContainingBlock, gauche: bool) -> *LigneDeFlottants
+{
+    si contenant.lignes.taille == 0 || contenant.réinitialise_pour_clear {
+        contenant.réinitialise_pour_clear = faux
+        retourne ajoute_une_ligne(contenant, containing_block, gauche)
+    }
+    retourne *contenant.lignes[contenant.lignes.taille - 1]
+}
+
+ajoute_une_ligne :: fonc (contenant: *ContenantLignesDeFlottants, containing_block: &ContainingBlock, gauche: bool) -> *LigneDeFlottants
+{
+    résultat := tableau_ajoute_élément(*contenant.lignes)
+    résultat.rect.x = containing_block.rect.x
+    saufsi gauche {
+        résultat.rect.x += containing_block.rect.largeur
+    }
+
+    si contenant.lignes.taille > 1 {
+        dernière_ligne := contenant.lignes[contenant.lignes.taille - 2]
+        résultat.rect.y = dernière_ligne.rect.y + dernière_ligne.rect.hauteur
+    }
+    sinon {
+        résultat.rect.y = containing_block.rect.y
+    }
+
+    retourne résultat
+}
+
 ContexteDeFormattageBloc :: struct {
     empl base: ContexteDeFormattage
     type = #type_de_cette_structure
@@ -165,22 +259,22 @@ ContexteDeFormattageBloc :: struct {
     racine: *NoeudDeDispositionBloc
 
     /* Pour la disposition des floats. */
-    boites_flottantes_gauche: [..]BoiteFlottante
-    boites_flottantes_droite: [..]BoiteFlottante
     décalage_x: r32
     décalage_float_left_x: r32
     décalage_float_left_y: r32
     décalage_float_right_x: r32
     décalage_float_right_y: r32
 
+    lignes_boites_flottantes_gauche: ContenantLignesDeFlottants
+    lignes_boites_flottantes_droite: ContenantLignesDeFlottants
     rect_boites_flottantes_gauches: RectanglePosDim(r64)
     rect_boites_flottantes_droites: RectanglePosDim(r64)
 }
 
 détruit_données_contexte :: fonc (ctx: *ContexteDeFormattageBloc)
 {
-    déloge(ctx.boites_flottantes_droite)
-    déloge(ctx.boites_flottantes_gauche)
+    détruit_données_lignes(*ctx.lignes_boites_flottantes_gauche)
+    détruit_données_lignes(*ctx.lignes_boites_flottantes_droite)
 }
 
 contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
@@ -235,6 +329,7 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
             }
 
             ctx.décalage_float_left_y = hauteur_contenu
+            ctx.lignes_boites_flottantes_gauche.réinitialise_pour_clear = vrai
         }
         sinon si clear.est_mot_clé(PROP_right) {
             hauteur_float_right := ctx.donne_décalage_floats_droite() - décalage_y
@@ -252,6 +347,7 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
             }
 
             ctx.décalage_float_right_y = hauteur_contenu
+            ctx.lignes_boites_flottantes_droite.réinitialise_pour_clear = vrai
         }
         sinon si clear.est_mot_clé(PROP_both) {
             hauteur_float_right := ctx.donne_décalage_floats_droite() - décalage_y
@@ -276,6 +372,8 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
 
             ctx.décalage_float_left_y = hauteur_contenu
             ctx.décalage_float_right_y = hauteur_contenu
+            ctx.lignes_boites_flottantes_gauche.réinitialise_pour_clear = vrai
+            ctx.lignes_boites_flottantes_droite.réinitialise_pour_clear = vrai
         }
 
         float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float)
@@ -523,42 +621,44 @@ ajoute_boite_flottante_gauche :: fonc (empl ctx: *ContexteDeFormattageBloc, noeu
 
     boite := crée_boite_flottante(noeud)
 
-    dernière_boite := donne_dernière_boite_flottante_gauche_non_vide(ctx)
+    ligne := donne_dernière_ligne(*ctx.lignes_boites_flottantes_gauche, containing_block, vrai)
 
-    si dernière_boite == nul {
-        boite.position_x = max(bord_gauche, boite.position_x)
-        décalage_float_left_y = boite.position_y
-    }
-    sinon {
-        boite.position_y = max(containing_block.rect.y, décalage_float_left_y)
-        boite.position_x = donne_position_flottante_la_plus_à_gauche(ctx, containing_block, boite.position_y)
+    boucle {
+        boite.position_x = ligne.donne_position_la_plus_à_gauche() comme r32
+        boite.position_y = max(ligne.rect.y comme r32, boite.position_y)
 
-        si boite.position_x + boite.largeur > bord_droit {
-            boite.position_x = max(bord_gauche, décalage_x)
-
-            pour boites_flottantes_gauche {
-                décalage_float_left_y = max(boite.position_y, it.position_y + it.hauteur)
-            }
-
-            boite.position_y = décalage_float_left_y
+        si boite.position_x + boite.largeur <= bord_droit || boite.position_x <= bord_gauche {
+            arrête
         }
+
+        ligne = ajoute_une_ligne(*ctx.lignes_boites_flottantes_gauche, containing_block, vrai)
     }
 
-    si intersecte(boite.donne_rectangle(), ctx.rect_boites_flottantes_droites) {
-        pour ctx.boites_flottantes_droite {
-            saufsi intersecte(boite.donne_rectangle(), it.donne_rectangle()) {
+    si instersecte_hors_touche(boite.donne_rectangle(), ctx.rect_boites_flottantes_droites) {
+        pour ligne_droite dans ctx.lignes_boites_flottantes_droite.lignes {
+            saufsi instersecte_hors_touche(boite.donne_rectangle(), ligne_droite.rect) {
                 continue
             }
 
-            boite.position_y = it.position_y + it.hauteur
-            boite.position_x = donne_position_flottante_la_plus_à_gauche(ctx, containing_block, boite.position_y)
-            décalage_float_left_y = boite.position_y
+            pour boite_droite dans ligne_droite.boites {
+                saufsi instersecte_hors_touche(boite.donne_rectangle(), boite_droite.donne_rectangle()) {
+                    continue
+                }
+
+                si ligne.boites.taille != 0 {
+                    ligne = ajoute_une_ligne(*ctx.lignes_boites_flottantes_gauche, containing_block, vrai)
+                }
+
+                boite.position_y = max(boite_droite.position_y + boite_droite.hauteur, ligne.rect.y comme r32)
+                boite.position_x = ligne.donne_position_la_plus_à_gauche() comme r32
+            }
         }
     }
 
-    tableau_ajoute(*boites_flottantes_gauche, boite)
+    décalage_float_left_y = boite.position_y
+    ligne.ajoute_boite(boite)
 
-    si ctx.boites_flottantes_gauche.taille == 1 {
+    si ctx.lignes_boites_flottantes_gauche.lignes.taille == 1 && ligne.boites.taille == 1 {
         ctx.rect_boites_flottantes_gauches = boite.donne_rectangle()
     }
     sinon {
@@ -566,36 +666,6 @@ ajoute_boite_flottante_gauche :: fonc (empl ctx: *ContexteDeFormattageBloc, noeu
     }
 
     noeud.décale_vers_position(boite.position_x, boite.position_y)
-}
-
-donne_position_flottante_la_plus_à_gauche :: fonc (ctx: *ContexteDeFormattageBloc, containing_block: &ContainingBlock, y: r32) -> r32
-{
-    résultat := containing_block.rect.x
-
-    pour ctx.boites_flottantes_gauche {
-        si (it.position_y + it.hauteur) <= y {
-            continue
-        }
-
-        si contient(it.donne_rectangle(), résultat, y) {
-            résultat = it.position_x + it.largeur
-        }
-    }
-
-    retourne résultat
-}
-
-donne_dernière_boite_flottante_gauche_non_vide :: fonc (ctx: *ContexteDeFormattageBloc) -> *BoiteFlottante
-{
-    pour > * ctx.boites_flottantes_gauche {
-        si it.hauteur == 0.0 {
-            continue
-        }
-
-        retourne it
-    }
-
-    retourne nul
 }
 
 ajoute_boite_flottante_droite :: fonc (empl ctx: *ContexteDeFormattageBloc, noeud: *NoeudDeDisposition)
@@ -608,42 +678,44 @@ ajoute_boite_flottante_droite :: fonc (empl ctx: *ContexteDeFormattageBloc, noeu
 
     boite := crée_boite_flottante(noeud)
 
-    dernière_boite := donne_dernière_boite_flottante_droite_non_vide(ctx)
+    ligne := donne_dernière_ligne(*ctx.lignes_boites_flottantes_droite, containing_block, faux)
 
-    si dernière_boite == nul {
-        boite.position_x = min(bord_droit, décalage_float_right_x) - boite.largeur
-        décalage_float_left_y = boite.position_y
-    }
-    sinon {
-        boite.position_y = max(containing_block.rect.y, décalage_float_right_y)
-        boite.position_x = donne_position_flottante_la_plus_à_droite(ctx, containing_block, boite.largeur, boite.position_y)
+    boucle {
+        boite.position_x = ligne.donne_position_la_plus_à_droite() comme r32 - boite.largeur
+        boite.position_y = max(ligne.rect.y comme r32, boite.position_y)
 
-        si boite.position_x < bord_gauche {
-            boite.position_x = min(bord_droit, décalage_float_right_x) - boite.largeur
-
-            pour boites_flottantes_droite {
-                décalage_float_right_y = max(boite.position_y, it.position_y + it.hauteur)
-            }
-
-            boite.position_y = décalage_float_right_y
+        si boite.position_x >= bord_gauche || boite.position_x + boite.largeur >= bord_droit {
+            arrête
         }
+
+        ligne = ajoute_une_ligne(*ctx.lignes_boites_flottantes_droite, containing_block, faux)
     }
 
-    si intersecte(boite.donne_rectangle(), ctx.rect_boites_flottantes_gauches) {
-        pour ctx.boites_flottantes_gauche {
-            saufsi intersecte(boite.donne_rectangle(), it.donne_rectangle()) {
+    si instersecte_hors_touche(boite.donne_rectangle(), ctx.rect_boites_flottantes_gauches) {
+        pour ligne_gauche dans ctx.lignes_boites_flottantes_gauche.lignes {
+            saufsi instersecte_hors_touche(boite.donne_rectangle(), ligne_gauche.rect) {
                 continue
             }
 
-            boite.position_y = it.position_y + it.hauteur
-            boite.position_x = donne_position_flottante_la_plus_à_droite(ctx, containing_block, boite.largeur, boite.position_y)
-            décalage_float_right_y = boite.position_y
+            pour boite_gauche dans ligne_gauche.boites {
+                saufsi instersecte_hors_touche(boite.donne_rectangle(), boite_gauche.donne_rectangle()) {
+                    continue
+                }
+
+                si ligne.boites.taille != 0 {
+                    ligne = ajoute_une_ligne(*ctx.lignes_boites_flottantes_droite, containing_block, faux)
+                }
+
+                boite.position_y = max(boite_gauche.position_y + boite_gauche.hauteur, ligne.rect.y comme r32)
+                boite.position_x = ligne.donne_position_la_plus_à_droite() comme r32 - boite.largeur
+            }
         }
     }
 
-    tableau_ajoute(*boites_flottantes_droite, boite)
+    décalage_float_right_y = boite.position_y
+    ligne.ajoute_boite(boite)
 
-    si ctx.boites_flottantes_droite.taille == 1 {
+    si ctx.lignes_boites_flottantes_droite.lignes.taille == 1 && ligne.boites.taille == 1 {
         ctx.rect_boites_flottantes_droites = boite.donne_rectangle()
     }
     sinon {
@@ -653,34 +725,30 @@ ajoute_boite_flottante_droite :: fonc (empl ctx: *ContexteDeFormattageBloc, noeu
     noeud.décale_vers_position(boite.position_x, boite.position_y)
 }
 
-donne_dernière_boite_flottante_droite_non_vide :: fonc (ctx: *ContexteDeFormattageBloc) -> *BoiteFlottante
+/* Retourne faux si les rectangles ne font que se toucher. */
+instersecte_hors_touche :: fonc (rect1: RectanglePosDim(r64), rect2: RectanglePosDim(r64)) -> bool
 {
-    pour > * ctx.boites_flottantes_droite {
-        si it.hauteur == 0.0 {
-            continue
-        }
-
-        retourne it
+    saufsi intersecte(rect1, rect2) {
+        retourne faux
     }
 
-    retourne nul
-}
-
-donne_position_flottante_la_plus_à_droite :: fonc (ctx: *ContexteDeFormattageBloc, containing_block: &ContainingBlock, largeur: r32, y: r32) -> r32
-{
-    résultat := containing_block.rect.x + containing_block.rect.largeur - largeur
-
-    pour ctx.boites_flottantes_droite {
-        si (it.position_y + it.hauteur) <= y {
-            continue
-        }
-
-        si contient(it.donne_rectangle(), résultat, y) {
-            résultat -= it.largeur
-        }
+    si abs(rect1.y + rect1.hauteur - rect2.y) <= 0.00001 {
+        retourne faux
     }
 
-    retourne résultat
+    si abs(rect2.y + rect2.hauteur - rect1.y) <= 0.00001 {
+        retourne faux
+    }
+
+    si abs(rect1.x + rect1.largeur - rect2.x) <= 0.00001 {
+        retourne faux
+    }
+
+    si abs(rect2.x + rect2.largeur - rect1.x) <= 0.00001 {
+        retourne faux
+    }
+
+    retourne vrai
 }
 
 donne_décalage_floats_gauche :: fonc (empl ctx: *ContexteDeFormattageBloc) -> r32
@@ -712,15 +780,19 @@ donne_position_et_largeur_ligne :: fonc (ctx: *ContexteDeFormattageInline, x_min
     si ctx.parent && ctx.parent.type == ContexteDeFormattageBloc {
         ctx_bloc := ctx.parent comme *ContexteDeFormattageBloc
 
-        pour ctx_bloc.boites_flottantes_gauche {
-            si contient(it.donne_rectangle(), x_min, position_y) {
-                x_min += it.largeur
+        pour ligne dans ctx_bloc.lignes_boites_flottantes_gauche.lignes {
+            pour ligne.boites {
+                si contient(it.donne_rectangle(), x_min, position_y) {
+                    x_min += it.largeur
+                }
             }
         }
 
-        pour ctx_bloc.boites_flottantes_droite {
-            si contient(it.donne_rectangle(), x_max, position_y) {
-                x_max -= it.largeur
+        pour ligne dans ctx_bloc.lignes_boites_flottantes_droite.lignes {
+            pour ligne.boites {
+                si contient(it.donne_rectangle(), x_max, position_y) {
+                    x_max -= it.largeur
+                }
             }
         }
     }
