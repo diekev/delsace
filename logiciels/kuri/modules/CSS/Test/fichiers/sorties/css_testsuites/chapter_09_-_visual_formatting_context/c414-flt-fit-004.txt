@@ -10,18 +10,8 @@ Bloc <html> <0.0, 0.0> CH [0.0 0.0 0.0] 1920.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 98
         Bloc <(anonyme)> <8.0, 8.0> CH [0.0 0.0 0.0] 1904.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
             frag 0 MargeDébut de Inline début 0 fin 0 rect (8.0,8.0 0.0x0.0)
             frag 1 RembourrageDébut de Inline début 0 fin 0 rect (8.0,8.0 0.0x0.0)
-            frag 2 MargeDébut de Inline début 0 fin 0 rect (8.0,8.0 0.0x0.0)
-            frag 3 RembourrageDébut de Inline début 0 fin 0 rect (8.0,8.0 0.0x0.0)
-            frag 4 RembourrageFin de Inline début 0 fin 0 rect (8.0,8.0 0.0x0.0)
-            frag 5 MargeFin de Inline début 0 fin 0 rect (8.0,8.0 0.0x0.0)
-            frag 6 RembourrageFin de Inline début 0 fin 0 rect (8.0,8.0 0.0x0.0)
-            frag 7 MargeFin de Inline début 0 fin 0 rect (8.0,8.0 0.0x0.0)
-            frag 8 MargeDébut de Inline début 0 fin 0 rect (8.0,8.0 0.0x0.0)
-            frag 9 RembourrageDébut de Inline début 0 fin 0 rect (8.0,8.0 0.0x0.0)
-            frag 10 RembourrageFin de Inline début 0 fin 0 rect (8.0,8.0 0.0x0.0)
-            frag 11 MargeFin de Inline début 0 fin 0 rect (8.0,8.0 0.0x0.0)
-            Inline <span#warning-container> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                Inline <i> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
+            frag 2 RembourrageFin de Inline début 0 fin 0 rect (8.0,8.0 0.0x0.0)
+            frag 3 MargeFin de Inline début 0 fin 0 rect (8.0,8.0 0.0x0.0)
             Inline <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
                 Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
         Bloc <p> <8.0, 24.0> CH [0.0 0.0 0.0] 1904.0 [0.0 0.0 0.0] CV [16.0 0.0 0.0] 18.399999 [0.0 0.0 16.0]
