@@ -716,6 +716,26 @@ calcule_hauteur_et_marges_block_level_normal_flow_standard :: fonc (empl args: *
                 height.pixels = position_bord_bas_fragment - position_bord_haut_contenu
             }
         }
+        sinon si méthode_de_formattage == MéthodeDeFormattage.Flex {
+            /* Non-spécifié. Au lieu d'utiliser le dernier enfant "in-flow", utilise la valeur la plus haute. */
+            position_bord_bas := position_bord_haut_contenu
+            pour noeud.enfants {
+                si it.traite_comme_display_none {
+                    continue
+                }
+
+                saufsi est_in_flow(noeud) {
+                    continue
+                }
+
+                position_bord_bas_enfant := it.modèle_de_boite.marge.y + it.modèle_de_boite.marge.hauteur
+                si position_bord_bas_enfant > position_bord_bas {
+                    position_bord_bas = position_bord_bas_enfant
+                }
+            }
+
+            height.pixels = position_bord_bas - position_bord_haut_contenu
+        }
         sinon {
             enfant := donne_dernier_enfant_in_flow(noeud)
             si enfant {
