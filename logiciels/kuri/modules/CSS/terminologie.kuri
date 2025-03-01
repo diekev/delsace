@@ -63,6 +63,7 @@ PROP_both : CSSOMString = ---
 PROP_bottom : CSSOMString = ---
 PROP_box_sizing : CSSOMString = ---
 PROP_break_spaces : CSSOMString = ---
+PROP_calc : CSSOMString = ---
 PROP_capitalize : CSSOMString = ---
 PROP_cell : CSSOMString = ---
 PROP_center : CSSOMString = ---

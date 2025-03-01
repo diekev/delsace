@@ -2736,6 +2736,8 @@ parse_valeur_length :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(V
 
         retourne ValeurDeStyle(number = valeur)
     }
+
+    retourne parse_calc_function(parseuse)
 }
 
 parse_valeur_length_positive :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
@@ -2832,6 +2834,180 @@ parse_valeur_length_percentage_positive_ou_auto :: fonc (parseuse: &Parseuse(Com
         }
         retourne valeur
     }
+}
+
+/* https://drafts.csswg.org/css-values/#calc-syntax
+ * <calc()>  = calc( <calc-sum> ) */
+parse_calc_function :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+{
+    si parseuse.fini() {
+        retourne
+    }
+
+    lexème := parseuse.lexème_courant()
+    saufsi lexème.est_fonction(PROP_calc) {
+        retourne
+    }
+
+    valeurs: [..]ValeurDeStyle
+
+    parseuse_arguments := initialise_une_parseuse(lexème.function.value)
+    
+    saufsi parseuse_arguments.parse_calc_sum(*valeurs) {
+        déloge(valeurs)
+        retourne
+    }
+
+    parseuse.avance()
+
+    résultat := ValeurDeStyle(calc = CalcFunction(valeurs))
+    retourne résultat
+}
+
+/* <calc-sum> = <calc-product> [ [ '+' | '-' ] <calc-product> ]* */
+parse_calc_sum :: fonc (parseuse: &Parseuse(ComponentValue), résultat: *[..]ValeurDeStyle) -> bool
+{
+    saufsi parseuse.parse_calc_product(résultat) {
+        retourne faux
+    }
+
+    tantque !parseuse.fini() {
+        parseuse.consomme_espaces_blanches()
+        lexème := parseuse.lexème_courant()
+        opérateur_calc: OpérateurCalc
+        si lexème.est_lexème_plus() {
+            parseuse.avance()
+            opérateur_calc = OpérateurCalc.Plus
+        }
+        sinon si lexème.est_lexème_moins() {
+            parseuse.avance()
+            opérateur_calc = OpérateurCalc.Moins
+        }
+        sinon {
+            arrête
+        }
+        parseuse.consomme_espaces_blanches()
+
+        saufsi parseuse.parse_calc_product(résultat) {
+            retourne faux
+        }
+
+        tableau_ajoute(résultat, ValeurDeStyle(opérateur_calc = opérateur_calc))
+    }
+
+    retourne vrai
+}
+
+/* <calc-product> = <calc-value> [ [ '*' | '/' ] <calc-value> ]* */
+parse_calc_product :: fonc (parseuse: &Parseuse(ComponentValue), résultat: *[..]ValeurDeStyle) -> bool
+{
+    saufsi parseuse.parse_calc_value(résultat) {
+        retourne faux
+    }
+
+    tantque !parseuse.fini() {
+        parseuse.consomme_espaces_blanches()
+        lexème := parseuse.lexème_courant()
+        opérateur_calc: OpérateurCalc
+        si lexème.est_lexème_fois() {
+            parseuse.avance()
+            opérateur_calc = OpérateurCalc.Fois
+        }
+        sinon si lexème.est_lexème_slash() {
+            parseuse.avance()
+            opérateur_calc = OpérateurCalc.Divise
+        }
+        sinon {
+            arrête
+        }
+
+        parseuse.consomme_espaces_blanches()
+
+        saufsi parseuse.parse_calc_value(résultat) {
+            retourne faux
+        }
+
+        tableau_ajoute(résultat, ValeurDeStyle(opérateur_calc = opérateur_calc))
+    }
+
+    retourne vrai
+}
+
+/* <calc-value> = <number> | <dimension> | <percentage> | <calc-keyword> | ( <calc-sum> ) */
+parse_calc_value :: fonc (parseuse: &Parseuse(ComponentValue), résultat: *[..]ValeurDeStyle) -> bool
+{
+    si parseuse.fini() {
+        retourne faux
+    }
+
+    lexème := parseuse.lexème_courant()
+    si lexème.est_lexème_de_genre(GenreLexème.Number) {
+        parseuse.avance()
+
+        si lexème.lexème.drapeau_type_nombre == DrapeauxTypeNombre.Integer {
+            tableau_ajoute(résultat, ValeurDeStyle(integer = lexème.lexème.numeric_value))
+        }
+        sinon {
+            tableau_ajoute(résultat, ValeurDeStyle(number = lexème.lexème.numeric_value))
+        }
+
+        retourne vrai
+    }
+
+    si lexème.est_lexème_de_genre(GenreLexème.Dimension) {
+        données_lexème := lexème.lexème
+
+        unité := donne_unité_pour_nom(données_lexème.unité)
+        si unité.possède_valeur() {
+            parseuse.avance()
+            longueur := Longueur(données_lexème.numeric_value, unité.Quelque)
+            tableau_ajoute(résultat, ValeurDeStyle(longueur = longueur))
+            retourne vrai
+        }
+
+        retourne faux
+    }
+
+    si lexème.est_lexème_de_genre(GenreLexème.Percentage) {
+        parseuse.avance()
+        tableau_ajoute(résultat, ValeurDeStyle(percentage = lexème.lexème.numeric_value))
+        retourne vrai
+    }
+
+    // À FAIRE : <calc-keyword>, var()
+
+    si lexème.est_lexème_de_genre(GenreLexème.Open_Parenthesis) {
+        parseuse.avance()
+        saufsi parseuse.parse_calc_sum(résultat) {
+            retourne faux
+        }
+
+        si parseuse.fini() {
+            retourne faux
+        }
+
+        lexème = parseuse.lexème_courant()
+        saufsi lexème.est_lexème_de_genre(GenreLexème.Close_Parenthesis) {
+            retourne faux
+        }
+
+        parseuse.avance()
+        retourne vrai
+    }
+
+    si lexème.est_simple_bloc_de_genre(GenreLexème.Open_Parenthesis) {
+        bloc := lexème.bloc
+        parseuse_bloc := initialise_une_parseuse(bloc.value)
+
+        saufsi parseuse_bloc.parse_calc_sum(résultat) {
+            retourne faux
+        }
+
+        parseuse.avance()
+        retourne vrai
+    }
+
+    retourne faux
 }
 
 parse_variable :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)

@@ -3,6 +3,7 @@ importe Couleur
 importe Fondation
 importe #inemployé HTML
 importe Internet
+importe Structures
 
 TextDecorationLine :: énum_drapeau n8 {
     UNDERLINE
@@ -14,6 +15,118 @@ TextDecorationLine :: énum_drapeau n8 {
 Variable :: struct {
     nom: CSSOMString
     fallback: [..]ComponentValue
+}
+
+OpérateurCalc :: énum n8 {
+    Plus
+    Moins
+    Fois
+    Divise
+}
+
+CalcFunction :: struct {
+    valeurs: [..]ValeurDeStyle
+}
+
+/* À FAIRE(langage) : erreur de compilation C, sur impossibilité d'enligné opérateur==(ValeurDeStyle, ValeurDeStyle)
+ * si la boucle dans cette fonction est faite dans l'opérateur sus-mentionné, ou si #horsligne est manquant. */
+opérateur == :: fonc (calc1: CalcFunction, calc2: CalcFunction) -> bool #horsligne
+{
+    si calc1.valeurs.taille != calc2.valeurs.taille {
+        retourne faux
+    }
+
+    pour calc1.valeurs {
+        si calc2.valeurs[index_it] != it {
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
+
+évalue_calc :: fonc (calc: CalcFunction) -> Optionnel(ValeurDeStyle)
+{
+    pile: Pile(ValeurDeStyle)
+    diffère détruit(pile)
+
+    pour calc.valeurs {
+        si it.est_opérateur_calc() {
+            droite := pile.dépile()
+            gauche := pile.dépile()
+            op := it.opérateur_calc
+
+            valeur := applique_opérateur_calc(op, gauche, droite)
+            saufsi valeur.possède_valeur() {
+                retourne
+            }
+
+            pile.empile(valeur.Quelque)
+            continue
+        }
+
+        pile.empile(it)
+    }
+
+    si pile.taille() != 1 {
+        retourne
+    }
+
+    retourne pile.dépile()
+}
+
+/* À FAIRE : standardise
+ * https://drafts.csswg.org/css-values/#calc-calculation */
+applique_opérateur_calc :: fonc (op: OpérateurCalc, gauche: ValeurDeStyle, droite: ValeurDeStyle) -> Optionnel(ValeurDeStyle)
+{
+    discr op {
+        Plus {
+            si gauche.est_pixels() && droite.est_pixels() {
+                retourne ValeurDeStyle(pixels = gauche.pixels + droite.pixels)
+            }
+        }
+        Moins {
+        }
+        Fois {
+            si gauche.est_pixels() && droite.est_nombre() {
+                retourne ValeurDeStyle(pixels = gauche.pixels * droite.number)
+            }
+            si droite.est_pixels() && gauche.est_nombre() {
+                retourne ValeurDeStyle(pixels = droite.pixels * gauche.number)
+            }
+            si gauche.est_pixels() && droite.est_integer() {
+                retourne ValeurDeStyle(pixels = gauche.pixels * droite.integer)
+            }
+            si droite.est_pixels() && gauche.est_integer() {
+                retourne ValeurDeStyle(pixels = droite.pixels * gauche.integer)
+            }
+
+            si gauche.est_longueur() && droite.est_nombre() {
+                si gauche.longueur.unité == Longueur.Unité.Px {
+                    retourne ValeurDeStyle(pixels = gauche.longueur.valeur * droite.number)
+                }
+            }
+            si droite.est_longueur() && gauche.est_nombre() {
+                si droite.longueur.unité == Longueur.Unité.Px {
+                    retourne ValeurDeStyle(pixels = droite.longueur.valeur * gauche.number)
+                }
+            }
+            si gauche.est_longueur() && droite.est_integer() {
+                si gauche.longueur.unité == Longueur.Unité.Px {
+                    retourne ValeurDeStyle(pixels = gauche.longueur.valeur * droite.integer)
+                }
+            }
+            si droite.est_longueur() && gauche.est_integer() {
+                si droite.longueur.unité == Longueur.Unité.Px {
+                    retourne ValeurDeStyle(pixels = droite.longueur.valeur * gauche.integer)
+                }
+            }
+        }
+        Divise {
+        }
+        sinon {
+        }
+    }
 }
 
 /* https://www.w3.org/TR/css-values/#value-defs */
@@ -33,6 +146,9 @@ ValeurDeStyle :: union {
     display: Display
     cursor: CursorType
     variable: Variable
+    calc: CalcFunction
+    /* Uniquement pour stocker les opérateurs de calc sans avoir un autre type. */
+    opérateur_calc: OpérateurCalc
 }
 
 opérateur == :: fonc (a: ValeurDeStyle, b: ValeurDeStyle) -> bool
@@ -172,6 +288,26 @@ opérateur == :: fonc (a: ValeurDeStyle, b: ValeurDeStyle) -> bool
                 }
             }
         }
+        calc(c) {
+            discr b {
+                calc(cb) {
+                    retourne c == cb
+                }
+                sinon {
+                    retourne faux
+                }
+            }
+        }
+        opérateur_calc(o) {
+            discr b {
+                opérateur_calc(ob) {
+                    retourne o == ob
+                }
+                sinon {
+                    retourne faux
+                }
+            }
+        }
         sinon {
             retourne faux
         }
@@ -192,6 +328,9 @@ détruit_valeur_de_style :: fonc (value: *ValeurDeStyle)
         }
         url_absolu(u) {
             déloge_si_logée(u)
+        }
+        calc(c) {
+            déloge(c.valeurs)
         }
         sinon {}
     }
@@ -243,6 +382,30 @@ est_nombre :: fonc (valeur: ValeurDeStyle) -> bool
     }
 }
 
+est_integer :: fonc (valeur: ValeurDeStyle) -> bool
+{
+    discr valeur {
+        integer {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+est_longueur :: fonc (valeur: ValeurDeStyle) -> bool
+{
+    discr valeur {
+        longueur {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
 est_pixels :: fonc (valeur: ValeurDeStyle) -> bool
 {
     discr valeur {
@@ -271,6 +434,30 @@ est_couleur :: fonc (valeur: ValeurDeStyle) -> bool
 {
     discr valeur {
         couleur {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+est_calc :: fonc (valeur: ValeurDeStyle) -> bool
+{
+    discr valeur {
+        calc {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+est_opérateur_calc :: fonc (valeur: ValeurDeStyle) -> bool
+{
+    discr valeur {
+        opérateur_calc {
             retourne vrai
         }
         sinon {
@@ -353,6 +540,19 @@ imprime_valeur_de_style :: fonc (enchaineuse: *Enchaineuse, valeur: *ValeurDeSty
                 ajoute_au_tampon(enchaineuse, " ", it)
             }
             ajoute_au_tampon(enchaineuse, ")")
+        }
+        calc(c) {
+            ajoute_au_tampon(enchaineuse, "calc")
+            virgule := "("
+            pour c.valeurs {
+                imprime_dans_enchaineuse(enchaineuse, "%%", virgule, it)
+                virgule = ", "
+            }
+            ajoute_au_tampon(enchaineuse, ")")
+        }
+        opérateur_calc(o) {
+            chaines := ["+", "-", "*", "/"]
+            ajoute_au_tampon(enchaineuse, chaines[o])
         }
         sinon {
             ajoute_au_tampon(enchaineuse, "VALEUR INVALIDE OU À IMPRIMER")
@@ -1450,6 +1650,9 @@ calcule_valeur_propriété_générique :: fonc (valeur: ValeurDeStyle, genre_val
                 retourne valeur
             }
         }
+        calc {
+            panique("calc non-géré")
+        }
         sinon {}
     }
 }
@@ -1494,6 +1697,17 @@ calcule_valeur_propriété_générique :: fonc (déclaration: *DéclarationPropr
         /* https://www.w3.org/TR/css-cascade/#default */
         // À FAIRE : revert
         valeur = ctx.valeurs_initiales.valeurs[id]
+    }
+
+    si valeur.est_calc() {
+        résultat := évalue_calc(valeur.calc)
+        si résultat.possède_valeur() {
+            style.valeurs[id] = résultat.Quelque
+            retourne
+        }
+        valeur = ctx.valeurs_initiales.valeurs[id]
+        style.valeurs[id] = valeur
+        retourne
     }
 
     résultat := calcule_valeur_propriété_générique(valeur, genre_valeur_calculée, style, ctx)
