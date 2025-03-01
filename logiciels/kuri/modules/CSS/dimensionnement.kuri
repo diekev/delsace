@@ -741,6 +741,10 @@ donne_dernier_enfant_in_flow :: fonc (noeud: *NoeudDeDisposition) -> *NoeudDeDis
     résultat: *NoeudDeDisposition
 
     pour noeud.enfants {
+        si it.traite_comme_display_none {
+            continue
+        }
+
         saufsi it.est_in_flow() {
             continue
         }
