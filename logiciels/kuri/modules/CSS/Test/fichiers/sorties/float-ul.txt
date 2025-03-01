@@ -5,7 +5,7 @@ Bloc <html> <0.0, 0.0> CH [0.0 0.0 0.0] 1920.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18
         frag 2 RembourrageFin de Inline début 0 fin 0 rect (0.0,0.0 0.0x0.0)
         frag 3 MargeFin de Inline début 0 fin 0 rect (0.0,0.0 0.0x0.0)
         Inline <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-            Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
+            Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
     Bloc <body> <8.0, 8.0> CH [8.0 0.0 0.0] 1904.0 [0.0 0.0 8.0] CV [8.0 0.0 0.0] 164.0 [0.0 0.0 8.0]
         Bloc <(anonyme)> <8.0, 8.0> CH [0.0 0.0 0.0] 1904.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
             frag 0 MargeDébut de Inline début 0 fin 0 rect (8.0,8.0 0.0x0.0)
@@ -13,7 +13,7 @@ Bloc <html> <0.0, 0.0> CH [0.0 0.0 0.0] 1920.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18
             frag 2 RembourrageFin de Inline début 0 fin 0 rect (8.0,8.0 0.0x0.0)
             frag 3 MargeFin de Inline début 0 fin 0 rect (8.0,8.0 0.0x0.0)
             Inline <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
+                Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
         Bloc <ul#gauche> <667.0, 8.0> CH [659.0 1.0 40.0] 544.0 [0.0 1.0 659.0] CV [0.0 1.0 0.0] 80.0 [0.0 1.0 0.0]
             Bloc <(anonyme)> <708.0, 9.0> CH [0.0 0.0 0.0] 544.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
                 frag 0 MargeDébut de Inline début 0 fin 0 rect (708.0,9.0 0.0x0.0)
@@ -21,174 +21,174 @@ Bloc <html> <0.0, 0.0> CH [0.0 0.0 0.0] 1920.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18
                 frag 2 RembourrageFin de Inline début 0 fin 0 rect (708.0,9.0 0.0x0.0)
                 frag 3 MargeFin de Inline début 0 fin 0 rect (708.0,9.0 0.0x0.0)
                 Inline <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-            Bloc <li> <708.0, 9.0> CH [0.0 0.0 0.0] 179.520004 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-                frag 0 MargeDébut de Inline début 0 fin 0 rect (708.0,9.0 0.0x18.399999)
-                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (708.0,9.0 0.0x18.399999)
-                frag 2 Normal de Texte début 0 fin 1 rect (708.0,9.0 48.0x18.399999)
+                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+            Bloc <li> <708.0, 9.0> CH [0.0 0.0 0.0] 179.52 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (708.0,9.0 0.0x18.39)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (708.0,9.0 0.0x18.39)
+                frag 2 Normal de Texte début 0 fin 1 rect (708.0,9.0 48.0x18.39)
                     "Primidi"
-                frag 3 RembourrageFin de Inline début 0 fin 0 rect (756.0,9.0 0.0x18.399999)
-                frag 4 MargeFin de Inline début 0 fin 0 rect (756.0,9.0 0.0x18.399999)
+                frag 3 RembourrageFin de Inline début 0 fin 0 rect (756.0,9.0 0.0x18.39)
+                frag 4 MargeFin de Inline début 0 fin 0 rect (756.0,9.0 0.0x18.39)
                 Inline <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
+                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
             Bloc <(anonyme)> <708.0, 9.0> CH [0.0 0.0 0.0] 544.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                frag 0 MargeDébut de Inline début 0 fin 0 rect (887.520019,9.0 0.0x0.0)
-                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (887.520019,9.0 0.0x0.0)
-                frag 2 RembourrageFin de Inline début 0 fin 0 rect (887.520019,9.0 0.0x0.0)
-                frag 3 MargeFin de Inline début 0 fin 0 rect (887.520019,9.0 0.0x0.0)
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (887.52,9.0 0.0x0.0)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (887.52,9.0 0.0x0.0)
+                frag 2 RembourrageFin de Inline début 0 fin 0 rect (887.52,9.0 0.0x0.0)
+                frag 3 MargeFin de Inline début 0 fin 0 rect (887.52,9.0 0.0x0.0)
                 Inline <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-            Bloc <li> <887.520019, 9.0> CH [0.0 0.0 0.0] 179.520004 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-                frag 0 MargeDébut de Inline début 0 fin 0 rect (887.520019,9.0 0.0x18.399999)
-                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (887.520019,9.0 0.0x18.399999)
-                frag 2 Normal de Texte début 0 fin 1 rect (887.520019,9.0 40.0x18.399999)
+                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+            Bloc <li> <887.52, 9.0> CH [0.0 0.0 0.0] 179.52 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (887.52,9.0 0.0x18.39)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (887.52,9.0 0.0x18.39)
+                frag 2 Normal de Texte début 0 fin 1 rect (887.52,9.0 40.0x18.39)
                     "Duodi"
-                frag 3 RembourrageFin de Inline début 0 fin 0 rect (927.520019,9.0 0.0x18.399999)
-                frag 4 MargeFin de Inline début 0 fin 0 rect (927.520019,9.0 0.0x18.399999)
-                Inline <(anonyme)> <179.520019, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <179.520019, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
+                frag 3 RembourrageFin de Inline début 0 fin 0 rect (927.52,9.0 0.0x18.39)
+                frag 4 MargeFin de Inline début 0 fin 0 rect (927.52,9.0 0.0x18.39)
+                Inline <(anonyme)> <179.52, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
+                    Texte <(anonyme)> <179.52, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
             Bloc <(anonyme)> <708.0, 9.0> CH [0.0 0.0 0.0] 544.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                frag 0 MargeDébut de Inline début 0 fin 0 rect (1067.040039,9.0 0.0x0.0)
-                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (1067.040039,9.0 0.0x0.0)
-                frag 2 RembourrageFin de Inline début 0 fin 0 rect (1067.040039,9.0 0.0x0.0)
-                frag 3 MargeFin de Inline début 0 fin 0 rect (1067.040039,9.0 0.0x0.0)
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (1067.04,9.0 0.0x0.0)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (1067.04,9.0 0.0x0.0)
+                frag 2 RembourrageFin de Inline début 0 fin 0 rect (1067.04,9.0 0.0x0.0)
+                frag 3 MargeFin de Inline début 0 fin 0 rect (1067.04,9.0 0.0x0.0)
                 Inline <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-            Bloc <li> <1067.040039, 9.0> CH [0.0 0.0 0.0] 179.520004 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-                frag 0 MargeDébut de Inline début 0 fin 0 rect (1067.040039,9.0 0.0x18.399999)
-                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (1067.040039,9.0 0.0x18.399999)
-                frag 2 Normal de Texte début 0 fin 1 rect (1067.040039,9.0 31.0x18.399999)
+                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+            Bloc <li> <1067.04, 9.0> CH [0.0 0.0 0.0] 179.52 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (1067.04,9.0 0.0x18.39)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (1067.04,9.0 0.0x18.39)
+                frag 2 Normal de Texte début 0 fin 1 rect (1067.04,9.0 31.0x18.39)
                     "Tridi"
-                frag 3 RembourrageFin de Inline début 0 fin 0 rect (1098.040039,9.0 0.0x18.399999)
-                frag 4 MargeFin de Inline début 0 fin 0 rect (1098.040039,9.0 0.0x18.399999)
-                Inline <(anonyme)> <359.040039, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <359.040039, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
+                frag 3 RembourrageFin de Inline début 0 fin 0 rect (1098.04,9.0 0.0x18.39)
+                frag 4 MargeFin de Inline début 0 fin 0 rect (1098.04,9.0 0.0x18.39)
+                Inline <(anonyme)> <359.04, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
+                    Texte <(anonyme)> <359.04, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
             Bloc <(anonyme)> <708.0, 9.0> CH [0.0 0.0 0.0] 544.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                frag 0 MargeDébut de Inline début 0 fin 0 rect (1246.560058,9.0 0.0x0.0)
-                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (1246.560058,9.0 0.0x0.0)
-                frag 2 RembourrageFin de Inline début 0 fin 0 rect (1246.560058,9.0 0.0x0.0)
-                frag 3 MargeFin de Inline début 0 fin 0 rect (1246.560058,9.0 0.0x0.0)
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (1246.56,9.0 0.0x0.0)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (1246.56,9.0 0.0x0.0)
+                frag 2 RembourrageFin de Inline début 0 fin 0 rect (1246.56,9.0 0.0x0.0)
+                frag 3 MargeFin de Inline début 0 fin 0 rect (1246.56,9.0 0.0x0.0)
                 Inline <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-            Bloc <li> <708.0, 27.399999> CH [0.0 0.0 0.0] 179.520004 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-                frag 0 MargeDébut de Inline début 0 fin 0 rect (708.0,27.399999 0.0x18.399999)
-                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (708.0,27.399999 0.0x18.399999)
-                frag 2 Normal de Texte début 0 fin 1 rect (708.0,27.399999 53.0x18.399999)
+                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+            Bloc <li> <708.0, 27.39> CH [0.0 0.0 0.0] 179.52 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (708.0,27.39 0.0x18.39)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (708.0,27.39 0.0x18.39)
+                frag 2 Normal de Texte début 0 fin 1 rect (708.0,27.39 53.0x18.39)
                     "Quartidi"
-                frag 3 RembourrageFin de Inline début 0 fin 0 rect (761.0,27.399999 0.0x18.399999)
-                frag 4 MargeFin de Inline début 0 fin 0 rect (761.0,27.399999 0.0x18.399999)
-                Inline <(anonyme)> <0.0, 18.399999> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <0.0, 18.399999> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
+                frag 3 RembourrageFin de Inline début 0 fin 0 rect (761.0,27.39 0.0x18.39)
+                frag 4 MargeFin de Inline début 0 fin 0 rect (761.0,27.39 0.0x18.39)
+                Inline <(anonyme)> <0.0, 18.39> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
+                    Texte <(anonyme)> <0.0, 18.39> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
             Bloc <(anonyme)> <708.0, 9.0> CH [0.0 0.0 0.0] 544.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                frag 0 MargeDébut de Inline début 0 fin 0 rect (1246.560058,9.0 0.0x0.0)
-                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (1246.560058,9.0 0.0x0.0)
-                frag 2 RembourrageFin de Inline début 0 fin 0 rect (1246.560058,9.0 0.0x0.0)
-                frag 3 MargeFin de Inline début 0 fin 0 rect (1246.560058,9.0 0.0x0.0)
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (1246.56,9.0 0.0x0.0)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (1246.56,9.0 0.0x0.0)
+                frag 2 RembourrageFin de Inline début 0 fin 0 rect (1246.56,9.0 0.0x0.0)
+                frag 3 MargeFin de Inline début 0 fin 0 rect (1246.56,9.0 0.0x0.0)
                 Inline <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-            Bloc <li> <887.520019, 27.399999> CH [0.0 0.0 0.0] 179.520004 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-                frag 0 MargeDébut de Inline début 0 fin 0 rect (887.520019,27.399999 0.0x18.399999)
-                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (887.520019,27.399999 0.0x18.399999)
-                frag 2 Normal de Texte début 0 fin 1 rect (887.520019,27.399999 53.0x18.399999)
+                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+            Bloc <li> <887.52, 27.39> CH [0.0 0.0 0.0] 179.52 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (887.52,27.39 0.0x18.39)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (887.52,27.39 0.0x18.39)
+                frag 2 Normal de Texte début 0 fin 1 rect (887.52,27.39 53.0x18.39)
                     "Quintidi"
-                frag 3 RembourrageFin de Inline début 0 fin 0 rect (940.520019,27.399999 0.0x18.399999)
-                frag 4 MargeFin de Inline début 0 fin 0 rect (940.520019,27.399999 0.0x18.399999)
-                Inline <(anonyme)> <179.520019, 18.399999> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <179.520019, 18.399999> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
+                frag 3 RembourrageFin de Inline début 0 fin 0 rect (940.52,27.39 0.0x18.39)
+                frag 4 MargeFin de Inline début 0 fin 0 rect (940.52,27.39 0.0x18.39)
+                Inline <(anonyme)> <179.52, 18.39> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
+                    Texte <(anonyme)> <179.52, 18.39> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
             Bloc <(anonyme)> <708.0, 9.0> CH [0.0 0.0 0.0] 544.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                frag 0 MargeDébut de Inline début 0 fin 0 rect (1246.560058,9.0 0.0x0.0)
-                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (1246.560058,9.0 0.0x0.0)
-                frag 2 RembourrageFin de Inline début 0 fin 0 rect (1246.560058,9.0 0.0x0.0)
-                frag 3 MargeFin de Inline début 0 fin 0 rect (1246.560058,9.0 0.0x0.0)
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (1246.56,9.0 0.0x0.0)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (1246.56,9.0 0.0x0.0)
+                frag 2 RembourrageFin de Inline début 0 fin 0 rect (1246.56,9.0 0.0x0.0)
+                frag 3 MargeFin de Inline début 0 fin 0 rect (1246.56,9.0 0.0x0.0)
                 Inline <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-            Bloc <li> <1067.040039, 27.399999> CH [0.0 0.0 0.0] 179.520004 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-                frag 0 MargeDébut de Inline début 0 fin 0 rect (1067.040039,27.399999 0.0x18.399999)
-                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (1067.040039,27.399999 0.0x18.399999)
-                frag 2 Normal de Texte début 0 fin 1 rect (1067.040039,27.399999 45.0x18.399999)
+                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+            Bloc <li> <1067.04, 27.39> CH [0.0 0.0 0.0] 179.52 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (1067.04,27.39 0.0x18.39)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (1067.04,27.39 0.0x18.39)
+                frag 2 Normal de Texte début 0 fin 1 rect (1067.04,27.39 45.0x18.39)
                     "Sextidi"
-                frag 3 RembourrageFin de Inline début 0 fin 0 rect (1112.040039,27.399999 0.0x18.399999)
-                frag 4 MargeFin de Inline début 0 fin 0 rect (1112.040039,27.399999 0.0x18.399999)
-                Inline <(anonyme)> <359.040039, 18.399999> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <359.040039, 18.399999> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
+                frag 3 RembourrageFin de Inline début 0 fin 0 rect (1112.04,27.39 0.0x18.39)
+                frag 4 MargeFin de Inline début 0 fin 0 rect (1112.04,27.39 0.0x18.39)
+                Inline <(anonyme)> <359.04, 18.39> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
+                    Texte <(anonyme)> <359.04, 18.39> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
             Bloc <(anonyme)> <708.0, 9.0> CH [0.0 0.0 0.0] 544.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                frag 0 MargeDébut de Inline début 0 fin 0 rect (1246.560058,9.0 0.0x0.0)
-                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (1246.560058,9.0 0.0x0.0)
-                frag 2 RembourrageFin de Inline début 0 fin 0 rect (1246.560058,9.0 0.0x0.0)
-                frag 3 MargeFin de Inline début 0 fin 0 rect (1246.560058,9.0 0.0x0.0)
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (1246.56,9.0 0.0x0.0)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (1246.56,9.0 0.0x0.0)
+                frag 2 RembourrageFin de Inline début 0 fin 0 rect (1246.56,9.0 0.0x0.0)
+                frag 3 MargeFin de Inline début 0 fin 0 rect (1246.56,9.0 0.0x0.0)
                 Inline <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-            Bloc <li> <708.0, 45.799999> CH [0.0 0.0 0.0] 179.520004 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-                frag 0 MargeDébut de Inline début 0 fin 0 rect (708.0,45.799999 0.0x18.399999)
-                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (708.0,45.799999 0.0x18.399999)
-                frag 2 Normal de Texte début 0 fin 1 rect (708.0,45.799999 45.0x18.399999)
+                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+            Bloc <li> <708.0, 45.79> CH [0.0 0.0 0.0] 179.52 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (708.0,45.79 0.0x18.39)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (708.0,45.79 0.0x18.39)
+                frag 2 Normal de Texte début 0 fin 1 rect (708.0,45.79 45.0x18.39)
                     "Septidi"
-                frag 3 RembourrageFin de Inline début 0 fin 0 rect (753.0,45.799999 0.0x18.399999)
-                frag 4 MargeFin de Inline début 0 fin 0 rect (753.0,45.799999 0.0x18.399999)
-                Inline <(anonyme)> <0.0, 36.799999> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <0.0, 36.799999> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
+                frag 3 RembourrageFin de Inline début 0 fin 0 rect (753.0,45.79 0.0x18.39)
+                frag 4 MargeFin de Inline début 0 fin 0 rect (753.0,45.79 0.0x18.39)
+                Inline <(anonyme)> <0.0, 36.79> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
+                    Texte <(anonyme)> <0.0, 36.79> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
             Bloc <(anonyme)> <708.0, 9.0> CH [0.0 0.0 0.0] 544.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                frag 0 MargeDébut de Inline début 0 fin 0 rect (1246.560058,9.0 0.0x0.0)
-                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (1246.560058,9.0 0.0x0.0)
-                frag 2 RembourrageFin de Inline début 0 fin 0 rect (1246.560058,9.0 0.0x0.0)
-                frag 3 MargeFin de Inline début 0 fin 0 rect (1246.560058,9.0 0.0x0.0)
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (1246.56,9.0 0.0x0.0)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (1246.56,9.0 0.0x0.0)
+                frag 2 RembourrageFin de Inline début 0 fin 0 rect (1246.56,9.0 0.0x0.0)
+                frag 3 MargeFin de Inline début 0 fin 0 rect (1246.56,9.0 0.0x0.0)
                 Inline <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-            Bloc <li> <887.520019, 45.799999> CH [0.0 0.0 0.0] 179.520004 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-                frag 0 MargeDébut de Inline début 0 fin 0 rect (887.520019,45.799999 0.0x18.399999)
-                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (887.520019,45.799999 0.0x18.399999)
-                frag 2 Normal de Texte début 0 fin 1 rect (887.520019,45.799999 40.0x18.399999)
+                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+            Bloc <li> <887.52, 45.79> CH [0.0 0.0 0.0] 179.52 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (887.52,45.79 0.0x18.39)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (887.52,45.79 0.0x18.39)
+                frag 2 Normal de Texte début 0 fin 1 rect (887.52,45.79 40.0x18.39)
                     "Octidi"
-                frag 3 RembourrageFin de Inline début 0 fin 0 rect (927.520019,45.799999 0.0x18.399999)
-                frag 4 MargeFin de Inline début 0 fin 0 rect (927.520019,45.799999 0.0x18.399999)
-                Inline <(anonyme)> <179.520019, 36.799999> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <179.520019, 36.799999> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
+                frag 3 RembourrageFin de Inline début 0 fin 0 rect (927.52,45.79 0.0x18.39)
+                frag 4 MargeFin de Inline début 0 fin 0 rect (927.52,45.79 0.0x18.39)
+                Inline <(anonyme)> <179.52, 36.79> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
+                    Texte <(anonyme)> <179.52, 36.79> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
             Bloc <(anonyme)> <708.0, 9.0> CH [0.0 0.0 0.0] 544.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                frag 0 MargeDébut de Inline début 0 fin 0 rect (1246.560058,9.0 0.0x0.0)
-                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (1246.560058,9.0 0.0x0.0)
-                frag 2 RembourrageFin de Inline début 0 fin 0 rect (1246.560058,9.0 0.0x0.0)
-                frag 3 MargeFin de Inline début 0 fin 0 rect (1246.560058,9.0 0.0x0.0)
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (1246.56,9.0 0.0x0.0)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (1246.56,9.0 0.0x0.0)
+                frag 2 RembourrageFin de Inline début 0 fin 0 rect (1246.56,9.0 0.0x0.0)
+                frag 3 MargeFin de Inline début 0 fin 0 rect (1246.56,9.0 0.0x0.0)
                 Inline <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-            Bloc <li> <1067.040039, 45.799999> CH [0.0 0.0 0.0] 179.520004 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-                frag 0 MargeDébut de Inline début 0 fin 0 rect (1067.040039,45.799999 0.0x18.399999)
-                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (1067.040039,45.799999 0.0x18.399999)
-                frag 2 Normal de Texte début 0 fin 1 rect (1067.040039,45.799999 44.0x18.399999)
+                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+            Bloc <li> <1067.04, 45.79> CH [0.0 0.0 0.0] 179.52 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (1067.04,45.79 0.0x18.39)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (1067.04,45.79 0.0x18.39)
+                frag 2 Normal de Texte début 0 fin 1 rect (1067.04,45.79 44.0x18.39)
                     "Nonidi"
-                frag 3 RembourrageFin de Inline début 0 fin 0 rect (1111.040039,45.799999 0.0x18.399999)
-                frag 4 MargeFin de Inline début 0 fin 0 rect (1111.040039,45.799999 0.0x18.399999)
-                Inline <(anonyme)> <359.040039, 36.799999> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <359.040039, 36.799999> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
+                frag 3 RembourrageFin de Inline début 0 fin 0 rect (1111.04,45.79 0.0x18.39)
+                frag 4 MargeFin de Inline début 0 fin 0 rect (1111.04,45.79 0.0x18.39)
+                Inline <(anonyme)> <359.04, 36.79> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
+                    Texte <(anonyme)> <359.04, 36.79> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
             Bloc <(anonyme)> <708.0, 9.0> CH [0.0 0.0 0.0] 544.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                frag 0 MargeDébut de Inline début 0 fin 0 rect (1246.560058,9.0 0.0x0.0)
-                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (1246.560058,9.0 0.0x0.0)
-                frag 2 RembourrageFin de Inline début 0 fin 0 rect (1246.560058,9.0 0.0x0.0)
-                frag 3 MargeFin de Inline début 0 fin 0 rect (1246.560058,9.0 0.0x0.0)
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (1246.56,9.0 0.0x0.0)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (1246.56,9.0 0.0x0.0)
+                frag 2 RembourrageFin de Inline début 0 fin 0 rect (1246.56,9.0 0.0x0.0)
+                frag 3 MargeFin de Inline début 0 fin 0 rect (1246.56,9.0 0.0x0.0)
                 Inline <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-            Bloc <li> <708.0, 64.199996> CH [0.0 0.0 0.0] 179.520004 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-                frag 0 MargeDébut de Inline début 0 fin 0 rect (708.0,64.199996 0.0x18.399999)
-                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (708.0,64.199996 0.0x18.399999)
-                frag 2 Normal de Texte début 0 fin 1 rect (708.0,64.199996 45.0x18.399999)
+                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+            Bloc <li> <708.0, 64.19> CH [0.0 0.0 0.0] 179.52 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (708.0,64.19 0.0x18.39)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (708.0,64.19 0.0x18.39)
+                frag 2 Normal de Texte début 0 fin 1 rect (708.0,64.19 45.0x18.39)
                     "Décadi"
-                frag 3 RembourrageFin de Inline début 0 fin 0 rect (753.0,64.199996 0.0x18.399999)
-                frag 4 MargeFin de Inline début 0 fin 0 rect (753.0,64.199996 0.0x18.399999)
-                Inline <(anonyme)> <0.0, 55.199996> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <0.0, 55.199996> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
+                frag 3 RembourrageFin de Inline début 0 fin 0 rect (753.0,64.19 0.0x18.39)
+                frag 4 MargeFin de Inline début 0 fin 0 rect (753.0,64.19 0.0x18.39)
+                Inline <(anonyme)> <0.0, 55.19> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
+                    Texte <(anonyme)> <0.0, 55.19> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
             Bloc <(anonyme)> <708.0, 9.0> CH [0.0 0.0 0.0] 544.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                frag 0 MargeDébut de Inline début 0 fin 0 rect (1246.560058,9.0 0.0x0.0)
-                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (1246.560058,9.0 0.0x0.0)
-                frag 2 RembourrageFin de Inline début 0 fin 0 rect (1246.560058,9.0 0.0x0.0)
-                frag 3 MargeFin de Inline début 0 fin 0 rect (1246.560058,9.0 0.0x0.0)
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (1246.56,9.0 0.0x0.0)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (1246.56,9.0 0.0x0.0)
+                frag 2 RembourrageFin de Inline début 0 fin 0 rect (1246.56,9.0 0.0x0.0)
+                frag 3 MargeFin de Inline début 0 fin 0 rect (1246.56,9.0 0.0x0.0)
                 Inline <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
+                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
         Bloc <(anonyme)> <8.0, 90.0> CH [0.0 0.0 0.0] 1904.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
             frag 0 MargeDébut de Inline début 0 fin 0 rect (8.0,90.0 0.0x0.0)
             frag 1 RembourrageDébut de Inline début 0 fin 0 rect (8.0,90.0 0.0x0.0)
             frag 2 RembourrageFin de Inline début 0 fin 0 rect (8.0,90.0 0.0x0.0)
             frag 3 MargeFin de Inline début 0 fin 0 rect (8.0,90.0 0.0x0.0)
             Inline <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
+                Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
         Bloc <ul#droite> <667.0, 90.0> CH [659.0 1.0 40.0] 544.0 [0.0 1.0 659.0] CV [0.0 1.0 0.0] 80.0 [0.0 1.0 0.0]
             Bloc <(anonyme)> <708.0, 91.0> CH [0.0 0.0 0.0] 544.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
                 frag 0 MargeDébut de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
@@ -196,173 +196,173 @@ Bloc <html> <0.0, 0.0> CH [0.0 0.0 0.0] 1920.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18
                 frag 2 RembourrageFin de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 frag 3 MargeFin de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 Inline <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-            Bloc <li> <1072.479980, 91.0> CH [0.0 0.0 0.0] 179.520004 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-                frag 0 MargeDébut de Inline début 0 fin 0 rect (1072.479980,91.0 0.0x18.399999)
-                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (1072.479980,91.0 0.0x18.399999)
-                frag 2 Normal de Texte début 0 fin 1 rect (1072.479980,91.0 48.0x18.399999)
+                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+            Bloc <li> <1072.47, 91.0> CH [0.0 0.0 0.0] 179.52 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (1072.47,91.0 0.0x18.39)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (1072.47,91.0 0.0x18.39)
+                frag 2 Normal de Texte début 0 fin 1 rect (1072.47,91.0 48.0x18.39)
                     "Primidi"
-                frag 3 RembourrageFin de Inline début 0 fin 0 rect (1120.479980,91.0 0.0x18.399999)
-                frag 4 MargeFin de Inline début 0 fin 0 rect (1120.479980,91.0 0.0x18.399999)
-                Inline <(anonyme)> <364.479980, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <364.479980, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
+                frag 3 RembourrageFin de Inline début 0 fin 0 rect (1120.47,91.0 0.0x18.39)
+                frag 4 MargeFin de Inline début 0 fin 0 rect (1120.47,91.0 0.0x18.39)
+                Inline <(anonyme)> <364.47, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
+                    Texte <(anonyme)> <364.47, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
             Bloc <(anonyme)> <708.0, 91.0> CH [0.0 0.0 0.0] 544.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
                 frag 0 MargeDébut de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 frag 1 RembourrageDébut de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 frag 2 RembourrageFin de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 frag 3 MargeFin de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 Inline <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-            Bloc <li> <892.959960, 91.0> CH [0.0 0.0 0.0] 179.520004 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-                frag 0 MargeDébut de Inline début 0 fin 0 rect (892.959960,91.0 0.0x18.399999)
-                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (892.959960,91.0 0.0x18.399999)
-                frag 2 Normal de Texte début 0 fin 1 rect (892.959960,91.0 40.0x18.399999)
+                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+            Bloc <li> <892.95, 91.0> CH [0.0 0.0 0.0] 179.52 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (892.95,91.0 0.0x18.39)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (892.95,91.0 0.0x18.39)
+                frag 2 Normal de Texte début 0 fin 1 rect (892.95,91.0 40.0x18.39)
                     "Duodi"
-                frag 3 RembourrageFin de Inline début 0 fin 0 rect (932.959960,91.0 0.0x18.399999)
-                frag 4 MargeFin de Inline début 0 fin 0 rect (932.959960,91.0 0.0x18.399999)
-                Inline <(anonyme)> <184.959960, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <184.959960, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
+                frag 3 RembourrageFin de Inline début 0 fin 0 rect (932.95,91.0 0.0x18.39)
+                frag 4 MargeFin de Inline début 0 fin 0 rect (932.95,91.0 0.0x18.39)
+                Inline <(anonyme)> <184.95, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
+                    Texte <(anonyme)> <184.95, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
             Bloc <(anonyme)> <708.0, 91.0> CH [0.0 0.0 0.0] 544.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
                 frag 0 MargeDébut de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 frag 1 RembourrageDébut de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 frag 2 RembourrageFin de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 frag 3 MargeFin de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 Inline <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-            Bloc <li> <713.439941, 91.0> CH [0.0 0.0 0.0] 179.520004 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-                frag 0 MargeDébut de Inline début 0 fin 0 rect (713.439941,91.0 0.0x18.399999)
-                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (713.439941,91.0 0.0x18.399999)
-                frag 2 Normal de Texte début 0 fin 1 rect (713.439941,91.0 31.0x18.399999)
+                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+            Bloc <li> <713.43, 91.0> CH [0.0 0.0 0.0] 179.52 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (713.43,91.0 0.0x18.39)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (713.43,91.0 0.0x18.39)
+                frag 2 Normal de Texte début 0 fin 1 rect (713.43,91.0 31.0x18.39)
                     "Tridi"
-                frag 3 RembourrageFin de Inline début 0 fin 0 rect (744.439941,91.0 0.0x18.399999)
-                frag 4 MargeFin de Inline début 0 fin 0 rect (744.439941,91.0 0.0x18.399999)
-                Inline <(anonyme)> <5.439941, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <5.439941, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
+                frag 3 RembourrageFin de Inline début 0 fin 0 rect (744.43,91.0 0.0x18.39)
+                frag 4 MargeFin de Inline début 0 fin 0 rect (744.43,91.0 0.0x18.39)
+                Inline <(anonyme)> <5.43, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
+                    Texte <(anonyme)> <5.43, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
             Bloc <(anonyme)> <708.0, 91.0> CH [0.0 0.0 0.0] 544.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
                 frag 0 MargeDébut de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 frag 1 RembourrageDébut de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 frag 2 RembourrageFin de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 frag 3 MargeFin de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 Inline <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-            Bloc <li> <1072.479980, 109.400001> CH [0.0 0.0 0.0] 179.520004 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-                frag 0 MargeDébut de Inline début 0 fin 0 rect (1072.479980,109.400001 0.0x18.399999)
-                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (1072.479980,109.400001 0.0x18.399999)
-                frag 2 Normal de Texte début 0 fin 1 rect (1072.479980,109.400001 53.0x18.399999)
+                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+            Bloc <li> <1072.47, 109.40> CH [0.0 0.0 0.0] 179.52 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (1072.47,109.40 0.0x18.39)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (1072.47,109.40 0.0x18.39)
+                frag 2 Normal de Texte début 0 fin 1 rect (1072.47,109.40 53.0x18.39)
                     "Quartidi"
-                frag 3 RembourrageFin de Inline début 0 fin 0 rect (1125.479980,109.400001 0.0x18.399999)
-                frag 4 MargeFin de Inline début 0 fin 0 rect (1125.479980,109.400001 0.0x18.399999)
-                Inline <(anonyme)> <364.479980, 18.400001> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <364.479980, 18.400001> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
+                frag 3 RembourrageFin de Inline début 0 fin 0 rect (1125.47,109.40 0.0x18.39)
+                frag 4 MargeFin de Inline début 0 fin 0 rect (1125.47,109.40 0.0x18.39)
+                Inline <(anonyme)> <364.47, 18.40> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
+                    Texte <(anonyme)> <364.47, 18.40> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
             Bloc <(anonyme)> <708.0, 91.0> CH [0.0 0.0 0.0] 544.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
                 frag 0 MargeDébut de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 frag 1 RembourrageDébut de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 frag 2 RembourrageFin de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 frag 3 MargeFin de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 Inline <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-            Bloc <li> <892.959960, 109.400001> CH [0.0 0.0 0.0] 179.520004 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-                frag 0 MargeDébut de Inline début 0 fin 0 rect (892.959960,109.400001 0.0x18.399999)
-                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (892.959960,109.400001 0.0x18.399999)
-                frag 2 Normal de Texte début 0 fin 1 rect (892.959960,109.400001 53.0x18.399999)
+                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+            Bloc <li> <892.95, 109.40> CH [0.0 0.0 0.0] 179.52 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (892.95,109.40 0.0x18.39)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (892.95,109.40 0.0x18.39)
+                frag 2 Normal de Texte début 0 fin 1 rect (892.95,109.40 53.0x18.39)
                     "Quintidi"
-                frag 3 RembourrageFin de Inline début 0 fin 0 rect (945.959960,109.400001 0.0x18.399999)
-                frag 4 MargeFin de Inline début 0 fin 0 rect (945.959960,109.400001 0.0x18.399999)
-                Inline <(anonyme)> <184.959960, 18.400001> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <184.959960, 18.400001> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
+                frag 3 RembourrageFin de Inline début 0 fin 0 rect (945.95,109.40 0.0x18.39)
+                frag 4 MargeFin de Inline début 0 fin 0 rect (945.95,109.40 0.0x18.39)
+                Inline <(anonyme)> <184.95, 18.40> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
+                    Texte <(anonyme)> <184.95, 18.40> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
             Bloc <(anonyme)> <708.0, 91.0> CH [0.0 0.0 0.0] 544.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
                 frag 0 MargeDébut de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 frag 1 RembourrageDébut de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 frag 2 RembourrageFin de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 frag 3 MargeFin de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 Inline <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-            Bloc <li> <713.439941, 109.400001> CH [0.0 0.0 0.0] 179.520004 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-                frag 0 MargeDébut de Inline début 0 fin 0 rect (713.439941,109.400001 0.0x18.399999)
-                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (713.439941,109.400001 0.0x18.399999)
-                frag 2 Normal de Texte début 0 fin 1 rect (713.439941,109.400001 45.0x18.399999)
+                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+            Bloc <li> <713.43, 109.40> CH [0.0 0.0 0.0] 179.52 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (713.43,109.40 0.0x18.39)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (713.43,109.40 0.0x18.39)
+                frag 2 Normal de Texte début 0 fin 1 rect (713.43,109.40 45.0x18.39)
                     "Sextidi"
-                frag 3 RembourrageFin de Inline début 0 fin 0 rect (758.439941,109.400001 0.0x18.399999)
-                frag 4 MargeFin de Inline début 0 fin 0 rect (758.439941,109.400001 0.0x18.399999)
-                Inline <(anonyme)> <5.439941, 18.400001> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <5.439941, 18.400001> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
+                frag 3 RembourrageFin de Inline début 0 fin 0 rect (758.43,109.40 0.0x18.39)
+                frag 4 MargeFin de Inline début 0 fin 0 rect (758.43,109.40 0.0x18.39)
+                Inline <(anonyme)> <5.43, 18.40> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
+                    Texte <(anonyme)> <5.43, 18.40> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
             Bloc <(anonyme)> <708.0, 91.0> CH [0.0 0.0 0.0] 544.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
                 frag 0 MargeDébut de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 frag 1 RembourrageDébut de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 frag 2 RembourrageFin de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 frag 3 MargeFin de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 Inline <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-            Bloc <li> <1072.479980, 127.800003> CH [0.0 0.0 0.0] 179.520004 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-                frag 0 MargeDébut de Inline début 0 fin 0 rect (1072.479980,127.800003 0.0x18.399999)
-                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (1072.479980,127.800003 0.0x18.399999)
-                frag 2 Normal de Texte début 0 fin 1 rect (1072.479980,127.800003 45.0x18.399999)
+                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+            Bloc <li> <1072.47, 127.80> CH [0.0 0.0 0.0] 179.52 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (1072.47,127.80 0.0x18.39)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (1072.47,127.80 0.0x18.39)
+                frag 2 Normal de Texte début 0 fin 1 rect (1072.47,127.80 45.0x18.39)
                     "Septidi"
-                frag 3 RembourrageFin de Inline début 0 fin 0 rect (1117.479980,127.800003 0.0x18.399999)
-                frag 4 MargeFin de Inline début 0 fin 0 rect (1117.479980,127.800003 0.0x18.399999)
-                Inline <(anonyme)> <364.479980, 36.800003> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <364.479980, 36.800003> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
+                frag 3 RembourrageFin de Inline début 0 fin 0 rect (1117.47,127.80 0.0x18.39)
+                frag 4 MargeFin de Inline début 0 fin 0 rect (1117.47,127.80 0.0x18.39)
+                Inline <(anonyme)> <364.47, 36.80> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
+                    Texte <(anonyme)> <364.47, 36.80> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
             Bloc <(anonyme)> <708.0, 91.0> CH [0.0 0.0 0.0] 544.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
                 frag 0 MargeDébut de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 frag 1 RembourrageDébut de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 frag 2 RembourrageFin de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 frag 3 MargeFin de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 Inline <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-            Bloc <li> <892.959960, 127.800003> CH [0.0 0.0 0.0] 179.520004 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-                frag 0 MargeDébut de Inline début 0 fin 0 rect (892.959960,127.800003 0.0x18.399999)
-                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (892.959960,127.800003 0.0x18.399999)
-                frag 2 Normal de Texte début 0 fin 1 rect (892.959960,127.800003 40.0x18.399999)
+                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+            Bloc <li> <892.95, 127.80> CH [0.0 0.0 0.0] 179.52 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (892.95,127.80 0.0x18.39)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (892.95,127.80 0.0x18.39)
+                frag 2 Normal de Texte début 0 fin 1 rect (892.95,127.80 40.0x18.39)
                     "Octidi"
-                frag 3 RembourrageFin de Inline début 0 fin 0 rect (932.959960,127.800003 0.0x18.399999)
-                frag 4 MargeFin de Inline début 0 fin 0 rect (932.959960,127.800003 0.0x18.399999)
-                Inline <(anonyme)> <184.959960, 36.800003> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <184.959960, 36.800003> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
+                frag 3 RembourrageFin de Inline début 0 fin 0 rect (932.95,127.80 0.0x18.39)
+                frag 4 MargeFin de Inline début 0 fin 0 rect (932.95,127.80 0.0x18.39)
+                Inline <(anonyme)> <184.95, 36.80> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
+                    Texte <(anonyme)> <184.95, 36.80> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
             Bloc <(anonyme)> <708.0, 91.0> CH [0.0 0.0 0.0] 544.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
                 frag 0 MargeDébut de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 frag 1 RembourrageDébut de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 frag 2 RembourrageFin de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 frag 3 MargeFin de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 Inline <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-            Bloc <li> <713.439941, 127.800003> CH [0.0 0.0 0.0] 179.520004 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-                frag 0 MargeDébut de Inline début 0 fin 0 rect (713.439941,127.800003 0.0x18.399999)
-                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (713.439941,127.800003 0.0x18.399999)
-                frag 2 Normal de Texte début 0 fin 1 rect (713.439941,127.800003 44.0x18.399999)
+                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+            Bloc <li> <713.43, 127.80> CH [0.0 0.0 0.0] 179.52 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (713.43,127.80 0.0x18.39)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (713.43,127.80 0.0x18.39)
+                frag 2 Normal de Texte début 0 fin 1 rect (713.43,127.80 44.0x18.39)
                     "Nonidi"
-                frag 3 RembourrageFin de Inline début 0 fin 0 rect (757.439941,127.800003 0.0x18.399999)
-                frag 4 MargeFin de Inline début 0 fin 0 rect (757.439941,127.800003 0.0x18.399999)
-                Inline <(anonyme)> <5.439941, 36.800003> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <5.439941, 36.800003> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
+                frag 3 RembourrageFin de Inline début 0 fin 0 rect (757.43,127.80 0.0x18.39)
+                frag 4 MargeFin de Inline début 0 fin 0 rect (757.43,127.80 0.0x18.39)
+                Inline <(anonyme)> <5.43, 36.80> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
+                    Texte <(anonyme)> <5.43, 36.80> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
             Bloc <(anonyme)> <708.0, 91.0> CH [0.0 0.0 0.0] 544.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
                 frag 0 MargeDébut de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 frag 1 RembourrageDébut de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 frag 2 RembourrageFin de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 frag 3 MargeFin de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 Inline <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-            Bloc <li> <1072.479980, 146.199996> CH [0.0 0.0 0.0] 179.520004 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
-                frag 0 MargeDébut de Inline début 0 fin 0 rect (1072.479980,146.199996 0.0x18.399999)
-                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (1072.479980,146.199996 0.0x18.399999)
-                frag 2 Normal de Texte début 0 fin 1 rect (1072.479980,146.199996 45.0x18.399999)
+                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+            Bloc <li> <1072.47, 146.19> CH [0.0 0.0 0.0] 179.52 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (1072.47,146.19 0.0x18.39)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (1072.47,146.19 0.0x18.39)
+                frag 2 Normal de Texte début 0 fin 1 rect (1072.47,146.19 45.0x18.39)
                     "Décadi"
-                frag 3 RembourrageFin de Inline début 0 fin 0 rect (1117.479980,146.199996 0.0x18.399999)
-                frag 4 MargeFin de Inline début 0 fin 0 rect (1117.479980,146.199996 0.0x18.399999)
-                Inline <(anonyme)> <364.479980, 55.199996> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <364.479980, 55.199996> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
+                frag 3 RembourrageFin de Inline début 0 fin 0 rect (1117.47,146.19 0.0x18.39)
+                frag 4 MargeFin de Inline début 0 fin 0 rect (1117.47,146.19 0.0x18.39)
+                Inline <(anonyme)> <364.47, 55.19> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
+                    Texte <(anonyme)> <364.47, 55.19> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
             Bloc <(anonyme)> <708.0, 91.0> CH [0.0 0.0 0.0] 544.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
                 frag 0 MargeDébut de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 frag 1 RembourrageDébut de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 frag 2 RembourrageFin de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 frag 3 MargeFin de Inline début 0 fin 0 rect (708.0,91.0 0.0x0.0)
                 Inline <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
+                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
         Bloc <(anonyme)> <8.0, 172.0> CH [0.0 0.0 0.0] 1904.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
             frag 0 MargeDébut de Inline début 0 fin 0 rect (8.0,172.0 0.0x0.0)
             frag 1 RembourrageDébut de Inline début 0 fin 0 rect (8.0,172.0 0.0x0.0)
             frag 2 RembourrageFin de Inline début 0 fin 0 rect (8.0,172.0 0.0x0.0)
             frag 3 MargeFin de Inline début 0 fin 0 rect (8.0,172.0 0.0x0.0)
             Inline <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.399999 [0.0 0.0 0.0]
+                Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
 
 StackingContext : html
