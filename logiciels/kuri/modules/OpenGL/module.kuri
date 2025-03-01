@@ -124,7 +124,7 @@ donne_paramètres_texture_pour_image :: fonc (image: ImageIO, répétition: Rép
         résultat.format = GL_RED
     }
     sinon si image.nombre_composants == 2 {
-        // résultat.format = GL_RG À FAIRE
+        résultat.format = GL_RG
     }
     sinon si image.nombre_composants == 3 {
         résultat.format = GL_RGB
