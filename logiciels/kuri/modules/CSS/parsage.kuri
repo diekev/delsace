@@ -4693,6 +4693,10 @@ parse_propriété_padding :: fonc (ctx: *ContexteParsageShorthand, value: []Comp
         retourne faux
     }
 
+    si nombre_valeurs == 0 {
+        retourne faux
+    }
+
     ctx.ajoute_propriétés_boite(nombre_valeurs, résultat, noms_propriétés)
     retourne vrai
 }
