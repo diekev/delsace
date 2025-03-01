@@ -830,6 +830,11 @@ donne_ajournement_pour_changement_style :: fonc (résolveuse: *RésolveuseStyle,
     /* Sauvegarde les propriétés. */
     permute(nouvelles_propriétés, anciennes_propriétés)
 
+    /* Puisque les rayons des bordures ne modifie pas les dimensions du noeud (et donc ne
+     * requiers pas de recalcul du mis-en-page sur modification), nous devons les recalculer
+     * au cas où ils seraient (re)devenus des pourcentages. */
+    résoud_pourcentage_largeur_border_radius(noeud_de_disposition)
+
     retourne résultat
 }
 
