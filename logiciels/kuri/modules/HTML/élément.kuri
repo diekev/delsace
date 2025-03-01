@@ -1647,6 +1647,18 @@ décode_image :: fonc (contenu: chaine, content_type: chaine, résultat: *ImageI
         retourne vrai
     }
 
+    si content_type == "image/gif" {
+        data := contenu.pointeur comme *n8
+        data_size := contenu.taille comme n64
+
+        résultat_img := IMG_ouvre_gif_depuis_memoire(data, data_size, résultat)
+        si résultat_img != ResultatOperation.OK {
+            retourne faux
+        }
+
+        retourne vrai
+    }
+
     // À FAIRE : prend le chemin de l'url si le schéma n'est pas "data"
     chemin_image := ""
     si content_type == "image/png" {
