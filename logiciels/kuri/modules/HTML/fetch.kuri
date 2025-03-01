@@ -977,7 +977,11 @@ scheme_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Re
     sinon si schéma == "file" {
         chaine_chemin := donne_chaine_chemin(request.donne_url_courant())
         diffère déloge(chaine_chemin)
-        chemin := CheminFichier(chaine_chemin)
+
+        chaine_chemin_ := résoud_échappement_url(chaine_chemin)
+        diffère déloge(chaine_chemin_)
+
+        chemin := CheminFichier(chaine_chemin_)
 
         /* À FAIRE : permissions. */
         si est_un_fichier_régulier(chemin) {
