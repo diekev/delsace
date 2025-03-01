@@ -1019,6 +1019,7 @@ formatte_flex_row :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispos
     /* Calcule la taille des noeuds. */
     pour noeud.enfants {
         si est_espace_blanche_document(it) {
+            it.traite_comme_display_none = vrai
             continue
         }
 
@@ -1175,6 +1176,7 @@ formatte_flex_column :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDis
     /* Calcule la taille des noeuds. */
     pour noeud.enfants {
         si est_espace_blanche_document(it) {
+            it.traite_comme_display_none = vrai
             continue
         }
 
