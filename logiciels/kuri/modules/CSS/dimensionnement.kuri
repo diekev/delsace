@@ -741,13 +741,7 @@ donne_dernier_enfant_in_flow :: fonc (noeud: *NoeudDeDisposition) -> *NoeudDeDis
     résultat: *NoeudDeDisposition
 
     pour noeud.enfants {
-        position := it.propriétés.donne_valeur_calculée(IDPropriété.Position)
-        si position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_fixed) {
-            continue
-        }
-
-        float := it.propriétés.donne_valeur_calculée(IDPropriété.Float)
-        saufsi float.est_none() {
+        saufsi it.est_in_flow() {
             continue
         }
 

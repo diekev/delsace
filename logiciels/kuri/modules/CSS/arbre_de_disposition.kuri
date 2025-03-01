@@ -2019,6 +2019,21 @@ est_inline_level :: fonc (noeud: *NoeudDeDisposition) -> bool
     retourne donne_display(noeud).outer_type == Display.Type.Inline
 }
 
+est_in_flow :: fonc (noeud: *NoeudDeDisposition) -> bool
+{
+    position := noeud.propriétés.donne_valeur_calculée(IDPropriété.Position)
+    si position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_fixed) {
+        retourne faux
+    }
+
+    float := noeud.propriétés.donne_valeur_calculée(IDPropriété.Float)
+    saufsi float.est_none() {
+        retourne faux
+    }
+
+    retourne vrai
+}
+
 donne_display :: fonc (noeud: *NoeudDeDisposition) -> Display
 {
     assert(noeud.propriétés != nul)
