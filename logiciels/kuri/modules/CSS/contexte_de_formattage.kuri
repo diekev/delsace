@@ -143,7 +143,7 @@ crée_boite_flottante :: fonc (noeud: *NoeudDeDisposition) -> BoiteFlottante
     résultat.position_x = noeud.modèle_de_boite.marge.x
     résultat.position_y = noeud.modèle_de_boite.marge.y
     résultat.hauteur = noeud.modèle_de_boite.marge.hauteur
-    résultat.largeur = noeud.modèle_de_boite.marge.largeur 
+    résultat.largeur = noeud.modèle_de_boite.marge.largeur
     retourne résultat
 }
 
@@ -800,7 +800,7 @@ donne_position_et_largeur_ligne :: fonc (ctx: *ContexteDeFormattageInline, x_min
     position = x_min
     largeur = x_max - x_min
 
-    si largeur < 0.0 { 
+    si largeur < 0.0 {
         largeur = 0.0
     }
 
