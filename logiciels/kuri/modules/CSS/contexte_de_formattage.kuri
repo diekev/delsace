@@ -36,6 +36,9 @@ ContexteDeFormattage :: struct {
     globales: *GlobalesDessin
     initial_containing_block: *ContainingBlock
 
+    /* Pour la résolution des pourcentages. */
+    ctx_calcul_style: *ContexteCalculStyle
+
     /* Pour la disposition des boites absolues. */
     boites_absolues: *GardeBoitesAbsolues
 
@@ -49,6 +52,7 @@ initialise_depuis_parent :: fonc (ctx: *ContexteDeFormattage, parent: *ContexteD
     ctx.globales = parent.globales
     ctx.initial_containing_block = parent.initial_containing_block
     ctx.boites_absolues = parent.boites_absolues
+    ctx.ctx_calcul_style = parent.ctx_calcul_style
 }
 
 donne_initial_containing_block :: fonc (ctx: *ContexteDeFormattage) -> ContainingBlock
@@ -1045,8 +1049,9 @@ formatte_flex_row :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispos
             it.mesure(ctx, mode, nul)
             largeur = calcule_shrink_to_fit_width(ctx, it, largeur_disponible)
         }
-        sinon si flex_basis.est_percentage() {
-            largeur = calcule_pourcentage(flex_basis, largeur_disponible).pixels
+        sinon si flex_basis.est_percentage() || flex_basis.est_calc() {
+            définis_propriétés(ctx.ctx_calcul_style, noeud.propriétés)
+            largeur = calcule_pourcentage(ctx.ctx_calcul_style, flex_basis, largeur_disponible).pixels
         }
         sinon {
             largeur = flex_basis.pixels
@@ -1368,7 +1373,7 @@ formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox)
         it.maximum_content_width = it.box.modèle_de_boite.bordure.largeur
 
         containing_block := donne_containing_block(it.box, ctx)
-        résoud_pourcentage_largeurs(it.box, containing_block)
+        résoud_pourcentage_largeurs(ctx, it.box, containing_block)
 
         width := it.box.propriétés.donne_valeur_calculée(IDPropriété.Width)
         si width.est_pixels() {
@@ -1591,7 +1596,7 @@ initialise_données_cellules :: fonc (ctx: *ContexteDeFormattageTable, table: *T
 calcule_largeur_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox) -> r64
 {
     containing_block := donne_containing_block(table, ctx)
-    résoud_pourcentage_largeurs(table, containing_block)
+    résoud_pourcentage_largeurs(ctx, table, containing_block)
     width := table.propriétés.donne_valeur_calculée(IDPropriété.Width)
 
     // À FAIRE : CAPMIN

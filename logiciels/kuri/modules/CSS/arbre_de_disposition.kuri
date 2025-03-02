@@ -1267,6 +1267,13 @@ dispose_arbre :: fonc (globales: *GlobalesDessin, arbre: *ArbreDeDisposition, la
 
     ctx.boites_absolues = *boites_absolues
 
+    ctx_calcul_style: ContexteCalculStyle
+    ctx_calcul_style.taille_fonte_racine = arbre.racine.propriétés.donne_valeur_calculée(IDPropriété.FontSize).pixels
+    ctx_calcul_style.largeur_canevas = largeur comme r32
+    ctx_calcul_style.hauteur_canevas = hauteur comme r32
+
+    ctx.ctx_calcul_style = *ctx_calcul_style
+
     mesure(arbre.racine, *ctx, ModeDeFormattage.Normal, nul)
 
     // imprime("taille arbre : %x%\n", résultat.racine.largeur, résultat.racine.hauteur)

@@ -24,8 +24,25 @@ OpérateurCalc :: énum n8 {
     Divise
 }
 
+ErreurDeCalcul :: énum {
+    /* La formule est invalide. La propriété prendra sa valeur par défaut. */
+    FormuleInvalide
+    /* La formule contient un pourcentage qui ne peut pas encore être calculé. */
+    PourcentageIncalculable
+}
+
 CalcFunction :: struct {
     valeurs: [..]ValeurDeStyle
+}
+
+copie_calc :: fonc (src: CalcFunction) -> CalcFunction
+{
+    résultat: CalcFunction
+    pour src.valeurs {
+        /* À FAIRE : copie les valeurs récursivement. */
+        tableau_ajoute(*résultat.valeurs, it)
+    }
+    retourne résultat
 }
 
 /* À FAIRE(langage) : erreur de compilation C, sur impossibilité d'enligné opérateur==(ValeurDeStyle, ValeurDeStyle)
@@ -45,7 +62,7 @@ opérateur == :: fonc (calc1: CalcFunction, calc2: CalcFunction) -> bool #horsli
     retourne vrai
 }
 
-évalue_calc :: fonc (calc: CalcFunction) -> Optionnel(ValeurDeStyle)
+évalue_calc :: fonc (calc: CalcFunction, genre_valeur_calculée: GenreValeurCalculée, ctx: *ContexteCalculStyle) -> Résultat(ValeurDeStyle, ErreurDeCalcul)
 {
     pile: Pile(ValeurDeStyle)
     diffère détruit(pile)
@@ -58,18 +75,36 @@ opérateur == :: fonc (calc1: CalcFunction, calc2: CalcFunction) -> bool #horsli
 
             valeur := applique_opérateur_calc(op, gauche, droite)
             saufsi valeur.possède_valeur() {
-                retourne
+                imprime("Impossible de calculer : %\n", ValeurDeStyle(calc = calc))
+                retourne ErreurDeCalcul.FormuleInvalide
             }
 
             pile.empile(valeur.Quelque)
             continue
         }
 
+        si it.est_percentage() {
+            si ctx.pour_résolution_pourcentage {
+                /* À FAIRE(langage) : it.pixels = it.percentage... semble échouer */
+                it = ValeurDeStyle(pixels = it.percentage * ctx.référence_pourcentage / 100.0)
+            }
+            sinon si genre_valeur_calculée.FontSize || genre_valeur_calculée.LineHeight {
+                it = ValeurDeStyle(pixels = it.percentage * ctx.taille_fonte / 100.0)
+            }
+            sinon {
+                retourne ErreurDeCalcul.PourcentageIncalculable
+            }
+        }
+        sinon si it.est_longueur() {
+            it = ValeurDeStyle(pixels = calcule_longueur(it.longueur, ctx))
+        }
+
         pile.empile(it)
     }
 
     si pile.taille() != 1 {
-        retourne
+        imprime("Trop de valeurs restantes pour : %\n", ValeurDeStyle(calc = calc))
+        retourne ErreurDeCalcul.FormuleInvalide
     }
 
     retourne pile.dépile()
@@ -998,6 +1033,48 @@ ContexteCalculStyle :: struct {
     valeurs_initiales: *Style
     largeur_canevas: r64
     hauteur_canevas: r64
+
+    pour_résolution_pourcentage: bool
+    référence_pourcentage: r64
+}
+
+définis_propriétés :: fonc (ctx: *ContexteCalculStyle, propriétés: *PropriétésDeStyle)
+{
+    ctx.propriétés = propriétés
+    ctx.taille_fonte = propriétés.donne_valeur_calculée(IDPropriété.FontSize).pixels
+}
+
+résoud_pourcentage :: fonc (ctx: *ContexteCalculStyle, id: IDPropriété, référence: r64)
+{
+    valeur := ctx.propriétés.donne_valeur_calculée(id)
+    ctx.propriétés.définis_valeur_calculée(id, calcule_pourcentage(ctx, valeur, référence))
+}
+
+calcule_pourcentage :: fonc (ctx: *ContexteCalculStyle, valeur: ValeurDeStyle, référence: r64) -> ValeurDeStyle
+{
+    ctx.pour_résolution_pourcentage = vrai
+    diffère ctx.pour_résolution_pourcentage = faux
+
+    ctx.référence_pourcentage = référence
+
+    si valeur.est_percentage() {
+        retourne ValeurDeStyle(pixels = valeur.percentage * référence / 100.0)
+    }
+
+    si valeur.est_calc() {
+        résultat := évalue_calc(valeur.calc, GenreValeurCalculée.LongueurPourcentage, ctx)
+        discr résultat {
+            Ok(v) {
+                retourne v
+            }
+            sinon {
+                /* À FAIRE : valeur initiale */
+                retourne ValeurDeStyle(pixels = 0.0)
+            }
+        }
+    }
+
+    retourne valeur
 }
 
 IDPropriété :: énum n16 {
@@ -1741,10 +1818,19 @@ calcule_valeur_propriété_générique :: fonc (déclaration: *DéclarationPropr
     }
 
     si valeur.est_calc() {
-        résultat := évalue_calc(valeur.calc)
-        si résultat.possède_valeur() {
-            style.valeurs[id] = résultat.Quelque
-            retourne
+        résultat := évalue_calc(valeur.calc, genre_valeur_calculée, ctx)
+        discr résultat {
+            Ok(v) {
+                style.valeurs[id] = v
+                retourne
+            }
+            Erreur(e) {
+                si e == ErreurDeCalcul.PourcentageIncalculable {
+                    style.valeurs[id] = ValeurDeStyle(calc = copie_calc(valeur.calc))
+                    retourne
+                }
+            }
+            sinon {}
         }
         valeur = ctx.valeurs_initiales.valeurs[id]
         style.valeurs[id] = valeur

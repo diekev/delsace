@@ -267,7 +267,7 @@ crée_arguments_dimensionnement_hauteur :: fonc (ctx: *ContexteDeFormattage, noe
 
 calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement)
 {
-    résoud_pourcentage_largeurs(noeud, args.containing_block)
+    résoud_pourcentage_largeurs(ctx, noeud, args.containing_block)
 
     args.width_of_containing_block = args.containing_block.donne_largeur()
 
@@ -419,18 +419,18 @@ calcule_pourcentage :: fonc (valeur: ValeurDeStyle, référence: r64) -> ValeurD
     retourne ValeurDeStyle(pixels = valeur.percentage * référence / 100.0)
 }
 
-résoud_pourcentage_largeurs :: fonc (noeud: *NoeudDeDisposition, containing_block: &ContainingBlock)
+résoud_pourcentage_largeurs :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition, containing_block: &ContainingBlock)
 {
     width_of_containing_block := containing_block.donne_largeur()
 
-    propriétés := noeud.propriétés
-    propriétés.résoud_pourcentage(IDPropriété.MinWidth, width_of_containing_block)
-    propriétés.résoud_pourcentage(IDPropriété.MaxWidth, width_of_containing_block)
-    propriétés.résoud_pourcentage(IDPropriété.MarginLeft, width_of_containing_block)
-    propriétés.résoud_pourcentage(IDPropriété.PaddingLeft, width_of_containing_block)
-    propriétés.résoud_pourcentage(IDPropriété.Width, width_of_containing_block)
-    propriétés.résoud_pourcentage(IDPropriété.PaddingRight, width_of_containing_block)
-    propriétés.résoud_pourcentage(IDPropriété.MarginRight, width_of_containing_block)
+    définis_propriétés(ctx.ctx_calcul_style, noeud.propriétés)
+    résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.MinWidth, width_of_containing_block)
+    résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.MaxWidth, width_of_containing_block)
+    résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.MarginLeft, width_of_containing_block)
+    résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.PaddingLeft, width_of_containing_block)
+    résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.Width, width_of_containing_block)
+    résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.PaddingRight, width_of_containing_block)
+    résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.MarginRight, width_of_containing_block)
 }
 
 résoud_pourcentage_largeur_border_radius :: fonc (noeud: *NoeudDeDisposition)
@@ -446,16 +446,17 @@ résoud_pourcentage_largeur_border_radius :: fonc (noeud: *NoeudDeDisposition)
     }
 }
 
-résoud_pourcentage_hauteur :: fonc (noeud: *NoeudDeDisposition, containing_block: &ContainingBlock)
+résoud_pourcentage_hauteur :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition, containing_block: &ContainingBlock)
 {
     width_of_containing_block := containing_block.donne_largeur()
     height_of_containing_block := containing_block.donne_hauteur()
 
     propriétés := noeud.propriétés
-    propriétés.résoud_pourcentage(IDPropriété.MarginTop, width_of_containing_block)
-    propriétés.résoud_pourcentage(IDPropriété.PaddingTop, width_of_containing_block)
-    propriétés.résoud_pourcentage(IDPropriété.PaddingBottom, width_of_containing_block)
-    propriétés.résoud_pourcentage(IDPropriété.MarginBottom, width_of_containing_block)
+    définis_propriétés(ctx.ctx_calcul_style, propriétés)
+    résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.MarginTop, width_of_containing_block)
+    résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.PaddingTop, width_of_containing_block)
+    résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.PaddingBottom, width_of_containing_block)
+    résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.MarginBottom, width_of_containing_block)
 
     /* Selon CSS2.1 10.5, les pourcentages sur la hauteur deviennent « auto » si le contenant
      * a une hauteur auto et que la boite n'est pas positionné absolument.
@@ -471,7 +472,7 @@ résoud_pourcentage_hauteur :: fonc (noeud: *NoeudDeDisposition, containing_bloc
         propriétés.définis_valeur_calculée(IDPropriété.Height, ValeurDeStyle(mot_clé = PROP_auto))
     }
     sinon {
-        propriétés.résoud_pourcentage(IDPropriété.Height, height_of_containing_block)
+        résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.Height, height_of_containing_block)
     }
 
     /* Selon CSS2.1 10.7, les pourcentages sur min-height deviennent « 0 » et sur max-height « none »
@@ -482,7 +483,7 @@ résoud_pourcentage_hauteur :: fonc (noeud: *NoeudDeDisposition, containing_bloc
         propriétés.définis_valeur_calculée(IDPropriété.MinHeight, ValeurDeStyle(pixels = 0.0))
     }
     sinon {
-        propriétés.résoud_pourcentage(IDPropriété.MinHeight, height_of_containing_block)
+        résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.MinHeight, height_of_containing_block)
     }
 
     prop_max_height := propriétés.donne_valeur_calculée(IDPropriété.MaxHeight)
@@ -490,7 +491,7 @@ résoud_pourcentage_hauteur :: fonc (noeud: *NoeudDeDisposition, containing_bloc
         propriétés.définis_valeur_calculée(IDPropriété.MaxHeight, ValeurDeStyle(mot_clé = PROP_none))
     }
     sinon {
-        propriétés.résoud_pourcentage(IDPropriété.MaxHeight, height_of_containing_block)
+        résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.MaxHeight, height_of_containing_block)
     }
 }
 
@@ -498,11 +499,13 @@ résoud_pourcentage_insets :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDe
 {
     containing_block := donne_containing_block(noeud, ctx)
 
-    noeud.propriétés.résoud_pourcentage(IDPropriété.Top, containing_block.donne_hauteur())
-    noeud.propriétés.résoud_pourcentage(IDPropriété.Bottom, containing_block.donne_hauteur())
+    définis_propriétés(ctx.ctx_calcul_style, noeud.propriétés)
 
-    noeud.propriétés.résoud_pourcentage(IDPropriété.Left, containing_block.donne_largeur())
-    noeud.propriétés.résoud_pourcentage(IDPropriété.Right, containing_block.donne_largeur())
+    résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.Top, containing_block.donne_hauteur())
+    résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.Bottom, containing_block.donne_hauteur())
+
+    résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.Left, containing_block.donne_largeur())
+    résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.Right, containing_block.donne_largeur())
 
     pour [IDPropriété.Top, IDPropriété.Bottom, IDPropriété.Left, IDPropriété.Right] {
         noeud.propriétés.définis_valeur_utilisée(it, noeud.propriétés.donne_valeur_calculée(it))
@@ -516,7 +519,7 @@ résoud_pourcentage_insets :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDe
 
 calcule_hauteur_et_marges :: fonc (empl args: *ArgumentsDimensionnement) -> ÉtatCalculHauteur
 {
-    résoud_pourcentage_hauteur(noeud, containing_block)
+    résoud_pourcentage_hauteur(ctx, noeud, containing_block)
 
     fonction_de_calcul := donne_fonction_calcul_hauteur_et_marges(noeud)
 
