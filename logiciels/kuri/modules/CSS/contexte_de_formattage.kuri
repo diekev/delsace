@@ -477,7 +477,7 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
 
     height := noeud.propriétés.donne_valeur_calculée(IDPropriété.Height)
     si height.est_auto() {
-        hauteur_finale := ValeurDeStyle(pixels = hauteur_contenu)
+        hauteur_finale := crée_outrepas_pour_coter_contenu(hauteur_contenu)
         containing_block := donne_containing_block(noeud, ctx)
         args := crée_arguments_dimensionnement_hauteur(ctx, noeud, containing_block, *hauteur_finale)
         _ := calcule_hauteur_et_marges(*args)
@@ -939,7 +939,7 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
         hauteur_contenu += hauteur
     }
 
-    hauteur_finale := ValeurDeStyle(pixels = hauteur_contenu)
+    hauteur_finale := crée_outrepas_pour_coter_contenu(hauteur_contenu)
     args := crée_arguments_dimensionnement_hauteur(ctx, noeud, containing_block, *hauteur_finale)
     _ := calcule_hauteur_et_marges(*args)
 
@@ -953,9 +953,9 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
 
             largeur := noeud.propriétés.donne_valeur_calculée(IDPropriété.Width)
             si largeur.est_auto() {
-                valeur_largeur_enfant := ValeurDeStyle(pixels = largeur_max_enfant)
+                valeur_largeur_enfant := crée_outrepas_pour_coter_contenu(largeur_max_enfant)
                 /* Utilise cette fontcion pour résoudre les valeurs 'auto' pour les autres propriétés. */
-                args = ArgumentsDimensionnement(ctx, noeud, width_of_containing_block = 0.0, outrepas_largeur = *valeur_largeur_enfant)
+                args = ArgumentsDimensionnement(ctx, noeud, width_of_containing_block = 0.0, outrepas_largeur = valeur_largeur_enfant)
                 calcule_largeur_et_marges(*args, calcule_largeur_et_marges_inline_non_replaced_element)
             }
         }
@@ -1077,7 +1077,7 @@ calcule_taille_items :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDis
             largeur = flex_basis.pixels
         }
 
-        largeur_désirée := ValeurDeStyle(pixels = largeur)
+        largeur_désirée := crée_outrepas_pour_coter_contenu(largeur)
         it.mesure(ctx, mode, *largeur_désirée)
     }
 }
@@ -1179,7 +1179,7 @@ formatte_flex_row :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispos
         noeud.propriétés.définis_valeur_utilisée(IDPropriété.Width, ValeurDeStyle(pixels = largeur_des_enfants))
     }
 
-    hauteur_finale := ValeurDeStyle(pixels = hauteur_contenu)
+    hauteur_finale := crée_outrepas_pour_coter_contenu(hauteur_contenu)
     containing_block := donne_containing_block(noeud, ctx)
     args := crée_arguments_dimensionnement_hauteur(ctx, noeud, containing_block, *hauteur_finale)
     _ := calcule_hauteur_et_marges(*args)
@@ -1234,7 +1234,7 @@ formatte_flex_column :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDis
         noeud.propriétés.définis_valeur_utilisée(IDPropriété.Width, ValeurDeStyle(pixels = largeur_des_enfants))
     }
 
-    hauteur_finale := ValeurDeStyle(pixels = hauteur_des_enfants)
+    hauteur_finale := crée_outrepas_pour_coter_contenu(hauteur_des_enfants)
     containing_block := donne_containing_block(noeud, ctx)
     args := crée_arguments_dimensionnement_hauteur(ctx, noeud, containing_block, *hauteur_finale)
     _ := calcule_hauteur_et_marges(*args)
@@ -1300,7 +1300,7 @@ distribue_espace_disponible :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *Lig
 
         nouvelle_largeur := ancienne_largeur + delta
 
-        largeur_désirée := ValeurDeStyle(pixels = nouvelle_largeur)
+        largeur_désirée := crée_outrepas_pour_coter_contenu(nouvelle_largeur)
         it.mesure(ctx, mode, *largeur_désirée)
     }
 
@@ -1441,7 +1441,7 @@ formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox)
 
     largeur := calcule_largeur_table(ctx, table)
 
-    outrepas_largeur := ValeurDeStyle(pixels = largeur)
+    outrepas_largeur := crée_outrepas_pour_coter_contenu(largeur)
     containing_block := donne_containing_block(table, ctx)
     args := crée_arguments_dimensionnement_largeur(ctx, table, containing_block, *outrepas_largeur, ModeDeFormattage.Normal)
     calcule_largeur_et_marges(*args)
@@ -1491,7 +1491,7 @@ formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox)
                 }
 
                 définis_position(cellule.box, décalage_x_colonne, décalage_y_ligne)
-                outrepas_largeur.pixels = donne_largeur_contenu(cellule.box, largeur_cellule)
+                outrepas_largeur = crée_outrepas_pour_coter_contenu(donne_largeur_contenu(cellule.box, largeur_cellule))
                 mesure(cellule.box, ctx, ModeDeFormattage.Normal, *outrepas_largeur)
 
                 hauteur_ligne = max(hauteur_ligne, cellule.box.modèle_de_boite.marge.hauteur)
@@ -1511,7 +1511,7 @@ formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox)
         définis_hauteur_contenu(it.modèle_de_boite, hauteur_row_group comme r32)
     }
 
-    outrepas_hauteur := ValeurDeStyle(pixels = décalage_y_ligne - décalage_y)
+    outrepas_hauteur := crée_outrepas_pour_coter_contenu(décalage_y_ligne - décalage_y)
     args = crée_arguments_dimensionnement_hauteur(ctx, table, containing_block, *outrepas_hauteur)
     _ := calcule_hauteur_et_marges(*args)
 }

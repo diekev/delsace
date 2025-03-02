@@ -5,6 +5,24 @@ importe Structures
 /* Calculs des largeurs, hauteurs, et marges des noeuds. */
 
 /* ------------------------------------------------------------------------- */
+/** \nom OutrepasCotation
+ * L'OutrepasCotation est utilisé pour forcer la valeur d'une cotation (hauteur
+ * ou largeur) à prendre une valeur fixée par le contexte de formattage ;
+ * outrepassant ainsi la valeur renseignée par les propriétés de style.
+ * \{ */
+
+OutrepasCotation :: struct {
+    valeur: ValeurDeStyle
+}
+
+crée_outrepas_pour_coter_contenu :: fonc (valeur: r64) -> OutrepasCotation
+{
+    retourne OutrepasCotation(ValeurDeStyle(pixels = valeur))
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom ParamètresBoxSizing
  * \{ */
 
@@ -233,8 +251,8 @@ ArgumentsDimensionnement :: struct {
     ctx: *ContexteDeFormattage
     noeud: *NoeudDeDisposition
     containing_block: ContainingBlock
-    outrepas_largeur: *ValeurDeStyle
-    outrepas_hauteur: *ValeurDeStyle
+    outrepas_largeur: Optionnel(OutrepasCotation)
+    outrepas_hauteur: Optionnel(OutrepasCotation)
     width_of_containing_block: r64
 
     pos_x_statique: r64
@@ -244,24 +262,28 @@ ArgumentsDimensionnement :: struct {
     mode: ModeDeFormattage
 }
 
-crée_arguments_dimensionnement_largeur :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition, containing_block: &ContainingBlock, outrepas_largeur: *ValeurDeStyle, mode: ModeDeFormattage) -> ArgumentsDimensionnement
+crée_arguments_dimensionnement_largeur :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition, containing_block: &ContainingBlock, outrepas_largeur: *OutrepasCotation, mode: ModeDeFormattage) -> ArgumentsDimensionnement
 {
     résultat: ArgumentsDimensionnement
     résultat.ctx = ctx
     résultat.noeud = noeud
     résultat.containing_block = containing_block
-    résultat.outrepas_largeur = outrepas_largeur
+    si outrepas_largeur {
+        résultat.outrepas_largeur = mémoire(outrepas_largeur)
+    }
     résultat.mode = mode
     retourne résultat
 }
 
-crée_arguments_dimensionnement_hauteur :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition, containing_block: &ContainingBlock, outrepas_hauteur: *ValeurDeStyle) -> ArgumentsDimensionnement
+crée_arguments_dimensionnement_hauteur :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition, containing_block: &ContainingBlock, outrepas_hauteur: *OutrepasCotation) -> ArgumentsDimensionnement
 {
     résultat: ArgumentsDimensionnement
     résultat.ctx = ctx
     résultat.noeud = noeud
     résultat.containing_block = containing_block
-    résultat.outrepas_hauteur = outrepas_hauteur
+    si outrepas_hauteur {
+        résultat.outrepas_hauteur = mémoire(outrepas_hauteur)
+    }
     retourne résultat
 }
 
@@ -276,12 +298,12 @@ calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement)
     params_box_sizing := donne_paramètres_box_sizing_pour_largeur(noeud.propriétés)
 
     tmp_args := mémoire(args)
-    si outrepas_largeur {
+    si outrepas_largeur.possède_valeur() {
         /* N'applique pas box-sizing à l'outrepas : ce peut être la taille du contenu. */
     }
     sinon saufsi width.est_auto() {
         width = applique_box_sizing(*params_box_sizing, width)
-        tmp_args.outrepas_largeur = *width
+        tmp_args.outrepas_largeur = crée_outrepas_pour_coter_contenu(width.pixels)
     }
 
     fonction_de_calcul := donne_fonction_calcul_largeur_et_marges(noeud)
@@ -292,7 +314,7 @@ calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement)
     max_width = applique_box_sizing(*params_box_sizing, max_width)
     si max_width.est_pixels() && (width.pixels > max_width.pixels) {
         tmp_args = mémoire(args)
-        tmp_args.outrepas_largeur = *max_width
+        tmp_args.outrepas_largeur = crée_outrepas_pour_coter_contenu(max_width.pixels)
         calcule_largeur_et_marges(*tmp_args, fonction_de_calcul)
     }
 
@@ -301,7 +323,7 @@ calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement)
     min_width = applique_box_sizing(*params_box_sizing, min_width)
     si min_width.est_pixels() && min_width.pixels > 0.0 && (width.pixels < min_width.pixels) {
         tmp_args = mémoire(args)
-        tmp_args.outrepas_largeur = *min_width
+        tmp_args.outrepas_largeur = crée_outrepas_pour_coter_contenu(min_width.pixels)
         calcule_largeur_et_marges(*tmp_args, fonction_de_calcul)
     }
 
@@ -340,8 +362,8 @@ calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement, fonctio
     pl.margin_right = propriétés.donne_valeur_calculée(IDPropriété.MarginRight)
     pl.right = propriétés.donne_valeur_calculée(IDPropriété.Right)
 
-    si outrepas_largeur {
-        pl.width = mémoire(outrepas_largeur)
+    si outrepas_largeur.possède_valeur() {
+        pl.width = outrepas_largeur.Quelque.valeur
     }
 
     fonction_de_calcul(args, *pl)
@@ -525,18 +547,18 @@ calcule_hauteur_et_marges :: fonc (empl args: *ArgumentsDimensionnement) -> Éta
 
     height := noeud.propriétés.donne_valeur_calculée(IDPropriété.Height)
     saufsi height.est_auto() {
-        outrepas_hauteur = nul
+        init_de(Optionnel(OutrepasCotation))(*outrepas_hauteur)
     }
 
     params_box_sizing := donne_paramètres_box_sizing_pour_hauteur(noeud.propriétés)
 
     tmp_args := mémoire(args)
-    si outrepas_hauteur {
+    si outrepas_hauteur.possède_valeur() {
         /* N'applique pas box-sizing à l'outrepas : ce peut être la taille du contenu. */
     }
     sinon saufsi height.est_auto() {
         height = applique_box_sizing(*params_box_sizing, height)
-        tmp_args.outrepas_hauteur = *height
+        tmp_args.outrepas_hauteur = crée_outrepas_pour_coter_contenu(height.pixels)
     }
 
     résultat := calcule_hauteur_et_marges(*tmp_args, fonction_de_calcul)
@@ -550,7 +572,7 @@ calcule_hauteur_et_marges :: fonc (empl args: *ArgumentsDimensionnement) -> Éta
     max_height = applique_box_sizing(*params_box_sizing, max_height)
     si max_height.est_pixels() && (height.pixels > max_height.pixels) {
         tmp_args = mémoire(args)
-        tmp_args.outrepas_hauteur = *max_height
+        tmp_args.outrepas_hauteur = crée_outrepas_pour_coter_contenu(max_height.pixels)
         _ := calcule_hauteur_et_marges(*tmp_args, fonction_de_calcul)
     }
 
@@ -559,7 +581,7 @@ calcule_hauteur_et_marges :: fonc (empl args: *ArgumentsDimensionnement) -> Éta
     min_height = applique_box_sizing(*params_box_sizing, min_height)
     si min_height.est_pixels() && (height.pixels < min_height.pixels) {
         tmp_args = mémoire(args)
-        tmp_args.outrepas_hauteur = *min_height
+        tmp_args.outrepas_hauteur = crée_outrepas_pour_coter_contenu(min_height.pixels)
         _ := calcule_hauteur_et_marges(*tmp_args, fonction_de_calcul)
     }
 
@@ -592,8 +614,8 @@ calcule_hauteur_et_marges :: fonc (empl args: *ArgumentsDimensionnement, fonctio
     ph.border_top_width = propriétés.donne_valeur_calculée(IDPropriété.BorderWidthTop)
     ph.padding_top = propriétés.donne_valeur_calculée(IDPropriété.PaddingTop)
     ph.height = propriétés.donne_valeur_calculée(IDPropriété.Height)
-    si outrepas_hauteur {
-        ph.height = mémoire(outrepas_hauteur)
+    si outrepas_hauteur.possède_valeur() {
+        ph.height = outrepas_hauteur.Quelque.valeur
     }
     ph.padding_bottom = propriétés.donne_valeur_calculée(IDPropriété.PaddingBottom)
     ph.border_bottom_width = propriétés.donne_valeur_calculée(IDPropriété.BorderWidthBottom)
@@ -1424,7 +1446,7 @@ calcule_largeur_et_marges_block_level_replaced_element :: fonc (empl args: *Argu
 
     // Then the rules for non-replaced block-level elements are applied to determine the margins.
     tmp_args := mémoire(args)
-    tmp_args.outrepas_largeur = *pl.width
+    tmp_args.outrepas_largeur = crée_outrepas_pour_coter_contenu(pl.width.pixels)
     calcule_largeur_et_marges_block_level_normal_flow(*tmp_args, pl)
 }
 
