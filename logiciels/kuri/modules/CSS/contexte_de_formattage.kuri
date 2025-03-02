@@ -535,7 +535,7 @@ dispose_boite_fixed :: fonc (empl ctx: *ContexteDeFormattageBloc, noeud: *NoeudD
     formatte_intérieur(noeud, ctx, ModeDeFormattage.Normal)
 }
 
-dispose_boite_absolute :: fonc (empl ctx: *ContexteDeFormattageBloc, noeud: *NoeudDeDispositionBloc, pos_x_statique: r64, pos_y_statique: r64, mode: ModeDeFormattage)
+dispose_boite_absolute :: fonc (empl ctx: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc, pos_x_statique: r64, pos_y_statique: r64, mode: ModeDeFormattage)
 {
     si mode != ModeDeFormattage.Normal {
         retourne
@@ -1035,9 +1035,10 @@ formatte_flex_row :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispos
             continue
         }
 
+        /* À FAIRE : les boites fixed doivent être disposé autrement. */
         position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position)
         si position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_fixed) {
-            it.mesure(ctx, mode, nul)
+            ctx.dispose_boite_absolute(it comme *NoeudDeDispositionBloc, noeud.modèle_de_boite.contenu.x, noeud.modèle_de_boite.contenu.y, mode)
             continue
         }
 
