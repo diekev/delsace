@@ -86,6 +86,14 @@ applique_opérateur_calc :: fonc (op: OpérateurCalc, gauche: ValeurDeStyle, dro
             }
         }
         Moins {
+            si gauche.est_pixels() && droite.est_pixels() {
+                retourne ValeurDeStyle(pixels = gauche.pixels - droite.pixels)
+            }
+            si droite.est_longueur() && gauche.est_pixels() {
+                si droite.longueur.unité == Longueur.Unité.Px {
+                    retourne ValeurDeStyle(pixels = droite.longueur.valeur * gauche.pixels)
+                }
+            }
         }
         Fois {
             si gauche.est_pixels() && droite.est_nombre() {
@@ -123,6 +131,39 @@ applique_opérateur_calc :: fonc (op: OpérateurCalc, gauche: ValeurDeStyle, dro
             }
         }
         Divise {
+            si gauche.est_pixels() && droite.est_nombre() {
+                retourne ValeurDeStyle(pixels = gauche.pixels / droite.number)
+            }
+            si droite.est_pixels() && gauche.est_nombre() {
+                retourne ValeurDeStyle(pixels = droite.pixels / gauche.number)
+            }
+            si gauche.est_pixels() && droite.est_integer() {
+                retourne ValeurDeStyle(pixels = gauche.pixels / droite.integer)
+            }
+            si droite.est_pixels() && gauche.est_integer() {
+                retourne ValeurDeStyle(pixels = droite.pixels / gauche.integer)
+            }
+
+            si gauche.est_longueur() && droite.est_nombre() {
+                si gauche.longueur.unité == Longueur.Unité.Px {
+                    retourne ValeurDeStyle(pixels = gauche.longueur.valeur / droite.number)
+                }
+            }
+            si droite.est_longueur() && gauche.est_nombre() {
+                si droite.longueur.unité == Longueur.Unité.Px {
+                    retourne ValeurDeStyle(pixels = droite.longueur.valeur / gauche.number)
+                }
+            }
+            si gauche.est_longueur() && droite.est_integer() {
+                si gauche.longueur.unité == Longueur.Unité.Px {
+                    retourne ValeurDeStyle(pixels = gauche.longueur.valeur / droite.integer)
+                }
+            }
+            si droite.est_longueur() && gauche.est_integer() {
+                si droite.longueur.unité == Longueur.Unité.Px {
+                    retourne ValeurDeStyle(pixels = droite.longueur.valeur / gauche.integer)
+                }
+            }
         }
         sinon {
         }
