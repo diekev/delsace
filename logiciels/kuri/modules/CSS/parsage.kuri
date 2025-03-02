@@ -2936,6 +2936,8 @@ parse_calc_product :: fonc (parseuse: &Parseuse(ComponentValue), résultat: *[..
 /* <calc-value> = <number> | <dimension> | <percentage> | <calc-keyword> | ( <calc-sum> ) */
 parse_calc_value :: fonc (parseuse: &Parseuse(ComponentValue), résultat: *[..]ValeurDeStyle) -> bool
 {
+    parseuse.consomme_espaces_blanches()
+
     si parseuse.fini() {
         retourne faux
     }
