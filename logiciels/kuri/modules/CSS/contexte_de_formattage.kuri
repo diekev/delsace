@@ -229,7 +229,15 @@ donne_dernière_ligne :: fonc (contenant: *ContenantLignesDeFlottants, containin
         contenant.réinitialise_pour_clear = faux
         retourne ajoute_une_ligne(contenant, containing_block, gauche)
     }
-    retourne *contenant.lignes[contenant.lignes.taille - 1]
+
+    résultat := *contenant.lignes[contenant.lignes.taille - 1]
+
+    /* Ajoute une nouvelle ligne s'il n'y a pas d'intersection possible avec la dernière ligne. */
+    si résultat.boites.taille != 0 && (résultat.rect.y + résultat.rect.hauteur <= containing_block.rect.y) {
+        résultat = ajoute_une_ligne(contenant, containing_block, gauche)
+    }
+
+    retourne résultat
 }
 
 ajoute_une_ligne :: fonc (contenant: *ContenantLignesDeFlottants, containing_block: &ContainingBlock, gauche: bool) -> *LigneDeFlottants
