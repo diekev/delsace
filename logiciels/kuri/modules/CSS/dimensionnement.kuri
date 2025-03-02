@@ -623,10 +623,13 @@ donne_fonction_calcul_hauteur_et_marges :: fonc (noeud: *NoeudDeDisposition) -> 
     position := propriétés.donne_valeur_utilisée(IDPropriété.Position)
 
     si noeud.type == NoeudDeDispositionRemplacement {
+        // 10.6.5 Absolutely positioned, replaced elements
+        si position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_fixed) {
+            retourne calcule_hauteur_et_marges_absolutely_positionned_replaced_element
+        }
+
        // 10.6.2 Inline replaced elements, block-level replaced elements in normal flow, 'inline-block' replaced elements in normal flow and floating replaced elements
         retourne calcule_hauteur_et_marges_inline_replaced_element
-
-        // À FAIRE 10.6.5 Absolutely positioned, replaced elements
     }
 
     si display.outer_type == Display.Type.Inline {
@@ -1150,6 +1153,47 @@ calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
             bottom.pixels = height_of_containing_block - top.pixels - margin_top.pixels - border_top_width.pixels - padding_top.pixels - height.pixels - padding_bottom.pixels - border_bottom_width.pixels - margin_bottom.pixels
         }
     }
+
+    retourne ÉtatCalculHauteur.HauteurRésolue
+}
+
+/* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#abs-replaced-height */
+calcule_hauteur_et_marges_absolutely_positionned_replaced_element :: fonc (empl args: *ArgumentsDimensionnement, empl ph: *PropriétésHauteur) -> ÉtatCalculHauteur
+{
+    height_of_containing_block := containing_block.donne_hauteur()
+
+    // 1. The used value of 'height' is determined as for inline replaced elements.
+    //    If 'margin-top' or 'margin-bottom' is specified as 'auto' its used value is determined by the rules below.
+    copie_ph := mémoire(ph)
+    _ := calcule_hauteur_et_marges_inline_replaced_element(args, *copie_ph)
+
+    height = copie_ph.height
+
+    // 2. If both 'top' and 'bottom' have the value 'auto', replace 'top' with the element's static position.
+    si top.est_auto() && bottom.est_auto() {
+        top.pixels = pos_y_statique - containing_block.rect.y
+    }
+
+    // 3. If 'bottom' is 'auto', replace any 'auto' on 'margin-top' or 'margin-bottom' with '0'.
+    si bottom.est_auto() {
+        si margin_bottom.est_auto() {
+            margin_bottom.pixels = 0.0
+        }
+        si margin_top.est_auto() {
+            margin_top.pixels = 0.0
+        }
+    }
+
+    // 4. If at this point both 'margin-top' and 'margin-bottom' are still 'auto', solve the equation under the extra constraint that the two margins must get equal values.
+    si margin_top.est_auto() && margin_bottom.est_auto() {
+        marges := height_of_containing_block - top.pixels - border_top_width.pixels - padding_top.pixels - height.pixels - padding_bottom.pixels - border_bottom_width.pixels - bottom.pixels
+        margin_top.pixels = marges * 0.5
+        margin_bottom.pixels = marges * 0.5
+    }
+
+    // À FAIRE 5. If at this point there is only one 'auto' left, solve the equation for that value.
+
+    // À FAIRE 6. If at this point the values are over-constrained, ignore the value for 'bottom' and solve for that value.
 
     retourne ÉtatCalculHauteur.HauteurRésolue
 }
