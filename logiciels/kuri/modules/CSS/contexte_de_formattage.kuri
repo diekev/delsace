@@ -1063,21 +1063,22 @@ calcule_taille_items :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDis
         it := item.noeud
         flex_basis := it.propriétés.donne_valeur_utilisée(IDPropriété.FlexBasis)
 
-        largeur : r64 = 0.0
+        largeur_désirée: OutrepasCotation
         si flex_basis.est_mot_clé(PROP_content) || flex_basis.est_mot_clé(PROP_auto) {
             /* calcule_shrink_to_fit_width ne résoud pas les pourcentages... */
             it.mesure(ctx, mode, nul)
-            largeur = calcule_shrink_to_fit_width(ctx, it, largeur_disponible)
+            largeur := calcule_shrink_to_fit_width(ctx, it, largeur_disponible)
+            largeur_désirée = crée_outrepas_pour_coter_contenu(largeur)
         }
         sinon si flex_basis.est_percentage() || flex_basis.est_calc() {
             définis_propriétés(ctx.ctx_calcul_style, noeud.propriétés)
-            largeur = calcule_pourcentage(ctx.ctx_calcul_style, flex_basis, largeur_disponible).pixels
+            largeur := calcule_pourcentage(ctx.ctx_calcul_style, flex_basis, largeur_disponible).pixels
+            largeur_désirée = crée_outrepas_pour_coter_boite(largeur)
         }
         sinon {
-            largeur = flex_basis.pixels
+            largeur_désirée = crée_outrepas_pour_coter_boite(flex_basis.pixels)
         }
 
-        largeur_désirée := crée_outrepas_pour_coter_contenu(largeur)
         it.mesure(ctx, mode, *largeur_désirée)
     }
 }

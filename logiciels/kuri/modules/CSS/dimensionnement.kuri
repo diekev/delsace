@@ -13,11 +13,18 @@ importe Structures
 
 OutrepasCotation :: struct {
     valeur: ValeurDeStyle
+    est_affecté_par_box_sizing: bool
 }
 
 crée_outrepas_pour_coter_contenu :: fonc (valeur: r64) -> OutrepasCotation
 {
     retourne OutrepasCotation(ValeurDeStyle(pixels = valeur))
+}
+
+/* Cette fonction doit être utilisée si l'outrepas est affecté par box-sizing. */
+crée_outrepas_pour_coter_boite :: fonc (valeur: r64) -> OutrepasCotation
+{
+    retourne OutrepasCotation(ValeurDeStyle(pixels = valeur), vrai)
 }
 
 /** \} */
@@ -299,7 +306,11 @@ calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement)
 
     tmp_args := mémoire(args)
     si outrepas_largeur.possède_valeur() {
-        /* N'applique pas box-sizing à l'outrepas : ce peut être la taille du contenu. */
+        outrepas := outrepas_largeur.Quelque
+        si outrepas.est_affecté_par_box_sizing {
+            width = applique_box_sizing(*params_box_sizing, outrepas.valeur)
+            tmp_args.outrepas_largeur = crée_outrepas_pour_coter_contenu(width.pixels)
+        }
     }
     sinon saufsi width.est_auto() {
         width = applique_box_sizing(*params_box_sizing, width)
