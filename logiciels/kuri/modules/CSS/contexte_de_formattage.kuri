@@ -1023,6 +1023,7 @@ contexte_formattage_flex_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
     }
 
     construit_liste_items(ctx, noeud, mode)
+    calcule_taille_items(ctx, noeud, mode)
 
     direction := noeud.propriétés.donne_valeur_calculée(IDPropriété.FlexDirection).mot_clé
 
@@ -1054,13 +1055,10 @@ construit_liste_items :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDi
     }
 }
 
-formatte_flex_row :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage, reverse: bool)
+calcule_taille_items :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
 {
     largeur_disponible := noeud.modèle_de_boite.contenu.largeur
 
-    largeur_des_enfants := 0.0
-
-    /* Calcule la taille des noeuds. */
     pour item dans ctx.items {
         it := item.noeud
         flex_basis := it.propriétés.donne_valeur_utilisée(IDPropriété.FlexBasis)
@@ -1081,9 +1079,12 @@ formatte_flex_row :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispos
 
         largeur_désirée := ValeurDeStyle(pixels = largeur)
         it.mesure(ctx, mode, *largeur_désirée)
-
-        largeur_des_enfants += it.modèle_de_boite.marge.largeur
     }
+}
+
+formatte_flex_row :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage, reverse: bool)
+{
+    largeur_disponible := noeud.modèle_de_boite.contenu.largeur
 
     /* Crée des lignes. */
     ligne_courante := tableau_ajoute_élément(*ctx.lignes)
@@ -1171,6 +1172,10 @@ formatte_flex_row :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispos
     /* Ajourne les propriétés du noeud. */
     prop_largeur := noeud.propriétés.donne_valeur_calculée(IDPropriété.Width)
     si prop_largeur.est_auto() {
+        largeur_des_enfants := 0.0
+        pour item dans ctx.items {
+            largeur_des_enfants += item.noeud.modèle_de_boite.marge.largeur
+        }
         noeud.propriétés.définis_valeur_utilisée(IDPropriété.Width, ValeurDeStyle(pixels = largeur_des_enfants))
     }
 
@@ -1190,32 +1195,12 @@ formatte_flex_row :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispos
 
 formatte_flex_column :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage, reverse: bool)
 {
-    largeur_disponible := noeud.modèle_de_boite.contenu.largeur
-
     largeur_des_enfants := 0.0
     hauteur_des_enfants := 0.0
 
     /* Calcule la taille des noeuds. */
     pour item dans ctx.items {
         it := item.noeud
-        flex_basis := it.propriétés.donne_valeur_utilisée(IDPropriété.FlexBasis)
-
-        largeur : r64 = 0.0
-        si flex_basis.est_mot_clé(PROP_content) || flex_basis.est_mot_clé(PROP_auto) {
-            /* calcule_shrink_to_fit_width ne résoud pas les pourcentages... */
-            it.mesure(ctx, mode, nul)
-            largeur = calcule_shrink_to_fit_width(ctx, it, largeur_disponible)
-        }
-        sinon si flex_basis.est_percentage() {
-            largeur = calcule_pourcentage(flex_basis, largeur_disponible).pixels
-        }
-        sinon {
-            largeur = flex_basis.pixels
-        }
-
-        largeur_désirée := ValeurDeStyle(pixels = largeur)
-        it.mesure(ctx, mode, *largeur_désirée)
-
         largeur_des_enfants += it.modèle_de_boite.marge.largeur
         hauteur_des_enfants += it.modèle_de_boite.marge.hauteur
     }
