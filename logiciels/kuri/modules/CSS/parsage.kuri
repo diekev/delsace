@@ -4509,6 +4509,10 @@ parse_propriété_border_color :: fonc (ctx: *ContexteParsageShorthand, value: [
         retourne faux
     }
 
+    si nombre_valeurs == 0 {
+        retourne faux
+    }
+
     ctx.ajoute_propriétés_boite(nombre_valeurs, résultat, noms_propriétés)
     retourne vrai
 }
@@ -4545,6 +4549,10 @@ parse_propriété_border_style :: fonc (ctx: *ContexteParsageShorthand, value: [
         retourne faux
     }
 
+    si nombre_valeurs == 0 {
+        retourne faux
+    }
+
     ctx.ajoute_propriétés_boite(nombre_valeurs, résultat, noms_propriétés)
     retourne vrai
 }
@@ -4578,6 +4586,10 @@ parse_propriété_border_width :: fonc (ctx: *ContexteParsageShorthand, value: [
             continue
         }
 
+        retourne faux
+    }
+
+    si nombre_valeurs == 0 {
         retourne faux
     }
 
@@ -4770,6 +4782,10 @@ parse_propriété_margin :: fonc (ctx: *ContexteParsageShorthand, value: []Compo
         retourne faux
     }
 
+    si nombre_valeurs == 0 {
+        retourne faux
+    }
+
     ctx.ajoute_propriétés_boite(nombre_valeurs, résultat, noms_propriétés)
     retourne vrai
 }
@@ -4813,6 +4829,10 @@ parse_propriété_margin_logique :: fonc (ctx: *ContexteParsageShorthand, value:
             continue
         }
 
+        retourne faux
+    }
+
+    si nombre_valeurs == 0 {
         retourne faux
     }
 
@@ -4916,6 +4936,10 @@ parse_propriété_padding_logique :: fonc (ctx: *ContexteParsageShorthand, value
             continue
         }
 
+        retourne faux
+    }
+
+    si nombre_valeurs == 0 {
         retourne faux
     }
 
@@ -5109,6 +5133,10 @@ parse_propriété_inset_shorthand :: fonc (ctx: *ContexteParsageShorthand, value
             continue
         }
 
+        retourne faux
+    }
+
+    si nombre_valeurs == 0 {
         retourne faux
     }
 
