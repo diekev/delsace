@@ -996,20 +996,33 @@ est_espace_blanche_document :: fonc (base: *NoeudDeDisposition) -> bool
     retourne faux
 }
 
+ItemFlex :: struct {
+    noeud: *NoeudDeDisposition
+}
+
+LigneFlex :: struct {
+    items: []ItemFlex
+    largeur: r32
+}
+
 ContexteDeFormattageFlex :: struct {
     empl base: ContexteDeFormattage
     type = #type_de_cette_structure
     sur_formatte = contexte_formattage_flex_sur_formatte
-}
 
-LigneFlex :: struct {
-    noeuds: [..]*NoeudDeDisposition
-    largeur: r32
+    items: [..]ItemFlex
+    lignes: [..]LigneFlex
 }
 
 contexte_formattage_flex_sur_formatte :: fonc (base: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
 {
     ctx := base comme *ContexteDeFormattageFlex
+    diffère {
+        déloge(ctx.items)
+        déloge(ctx.lignes)
+    }
+
+    construit_liste_items(ctx, noeud, mode)
 
     direction := noeud.propriétés.donne_valeur_calculée(IDPropriété.FlexDirection).mot_clé
 
@@ -1022,13 +1035,8 @@ contexte_formattage_flex_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
     }
 }
 
-formatte_flex_row :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage, reverse: bool)
+construit_liste_items :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
 {
-    largeur_disponible := noeud.modèle_de_boite.contenu.largeur
-
-    largeur_des_enfants := 0.0
-
-    /* Calcule la taille des noeuds. */
     pour noeud.enfants {
         si est_espace_blanche_document(it) {
             it.traite_comme_display_none = vrai
@@ -1042,6 +1050,19 @@ formatte_flex_row :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispos
             continue
         }
 
+        tableau_ajoute(*ctx.items, ItemFlex(it))
+    }
+}
+
+formatte_flex_row :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage, reverse: bool)
+{
+    largeur_disponible := noeud.modèle_de_boite.contenu.largeur
+
+    largeur_des_enfants := 0.0
+
+    /* Calcule la taille des noeuds. */
+    pour item dans ctx.items {
+        it := item.noeud
         flex_basis := it.propriétés.donne_valeur_utilisée(IDPropriété.FlexBasis)
 
         largeur : r64 = 0.0
@@ -1065,36 +1086,22 @@ formatte_flex_row :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispos
     }
 
     /* Crée des lignes. */
-    lignes: [..]LigneFlex
-    diffère {
-        pour lignes {
-            déloge(it.noeuds)
-        }
-        déloge(lignes)
-    }
-
-    ligne_courante := tableau_ajoute_élément(*lignes)
+    ligne_courante := tableau_ajoute_élément(*ctx.lignes)
+    ligne_courante.items.pointeur = ctx.items.pointeur
 
     flex_wrap := noeud.propriétés.donne_valeur_utilisée(IDPropriété.FlexWrap).mot_clé
 
-    pour noeud.enfants {
-        si est_espace_blanche_document(it) {
-            continue
-        }
-
-        position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position)
-        si position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_fixed) {
-            continue
-        }
-
+    pour item, index_item dans ctx.items {
+        it := item.noeud
         largeur := it.modèle_de_boite.marge.largeur
 
         si flex_wrap == PROP_wrap && (ligne_courante.largeur + largeur) > largeur_disponible {
-            ligne_courante = tableau_ajoute_élément(*lignes)
+            ligne_courante = tableau_ajoute_élément(*ctx.lignes)
+            ligne_courante.items.pointeur = ctx.items.pointeur + index_item
         }
 
         ligne_courante.largeur += largeur
-        tableau_ajoute(*ligne_courante.noeuds, it)
+        ligne_courante.items.taille += 1
     }
 
     /* Dispose les noeuds. */
@@ -1109,7 +1116,7 @@ formatte_flex_row :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispos
 
     hauteur_contenu := 0.0
 
-    pour * ligne dans lignes {
+    pour * ligne dans ctx.lignes {
         justify_content := noeud.propriétés.donne_valeur_utilisée(IDPropriété.JustifyContent).mot_clé
         espace_disponible := largeur_disponible - ligne.largeur
 
@@ -1127,16 +1134,17 @@ formatte_flex_row :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispos
             décalage_x += espace_disponible
         }
         sinon si justify_content == PROP_space_between {
-            décalage_post = espace_disponible / (ligne.noeuds.taille - 1) comme r32
+            décalage_post = espace_disponible / (ligne.items.taille - 1) comme r32
         }
         sinon si justify_content == PROP_space_around {
-            espace_par_bloc := espace_disponible / (ligne.noeuds.taille) comme r32
+            espace_par_bloc := espace_disponible / (ligne.items.taille) comme r32
             décalage_pre = espace_par_bloc * 0.5
             décalage_post = décalage_pre
         }
 
         hauteur_ligne := 0.0
-        pour ligne.noeuds {
+        pour item dans ligne.items {
+            it := item.noeud
             si reverse {
                 décalage_x -= décalage_pre + it.modèle_de_boite.marge.largeur
             }
@@ -1188,12 +1196,8 @@ formatte_flex_column :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDis
     hauteur_des_enfants := 0.0
 
     /* Calcule la taille des noeuds. */
-    pour noeud.enfants {
-        si est_espace_blanche_document(it) {
-            it.traite_comme_display_none = vrai
-            continue
-        }
-
+    pour item dans ctx.items {
+        it := item.noeud
         flex_basis := it.propriétés.donne_valeur_utilisée(IDPropriété.FlexBasis)
 
         largeur : r64 = 0.0
@@ -1224,11 +1228,8 @@ formatte_flex_column :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDis
         décalage_y += noeud.modèle_de_boite.contenu.hauteur
     }
 
-    pour noeud.enfants {
-        si est_espace_blanche_document(it) {
-            continue
-        }
-
+    pour item dans ctx.items {
+        it := item.noeud
         si reverse {
             décalage_y -= it.modèle_de_boite.marge.hauteur
         }
@@ -1273,7 +1274,8 @@ distribue_espace_disponible :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *Lig
 
     somme_flex_grow: r64
     somme_flex_shrink: r64
-    pour ligne.noeuds {
+    pour item dans ligne.items {
+        it := item.noeud
         flex_grow := it.propriétés.donne_valeur_utilisée(IDPropriété.FlexGrow)
         flex_shrink := it.propriétés.donne_valeur_utilisée(IDPropriété.FlexShrink)
         somme_flex_grow += flex_grow.number
@@ -1288,7 +1290,8 @@ distribue_espace_disponible :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *Lig
         retourne
     }
 
-    pour ligne.noeuds {
+    pour item dans ligne.items {
+        it := item.noeud
         flex_grow := it.propriétés.donne_valeur_utilisée(IDPropriété.FlexGrow)
         flex_shrink := it.propriétés.donne_valeur_utilisée(IDPropriété.FlexShrink)
 
@@ -1317,7 +1320,8 @@ distribue_espace_disponible :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *Lig
     }
 
     ligne.largeur = 0.0
-    pour ligne.noeuds {
+    pour item dans ligne.items {
+        it := item.noeud
         ligne.largeur += it.modèle_de_boite.marge.largeur
     }
 }
