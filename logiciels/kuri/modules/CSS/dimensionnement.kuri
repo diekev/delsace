@@ -991,8 +991,7 @@ calcule_largeur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
         // 1. 'left' and 'width' are 'auto' and 'right' is not 'auto', then the width is shrink-to-fit.
         //     Then solve for 'left'
         si left.est_auto() && width.est_auto() && !right.est_auto() {
-            left.pixels = 0.0
-            available_width := width_of_containing_block - left.pixels - margin_left.pixels - border_left_width.pixels - padding_left.pixels - padding_right.pixels - border_right_width.pixels - margin_right.pixels - right.pixels
+            available_width := width_of_containing_block - margin_left.pixels - border_left_width.pixels - padding_left.pixels - padding_right.pixels - border_right_width.pixels - margin_right.pixels - right.pixels
             width.pixels = calcule_shrink_to_fit_width(ctx, noeud, available_width)
             left.pixels = width_of_containing_block - margin_left.pixels - border_left_width.pixels - padding_left.pixels - width.pixels - padding_right.pixels - border_right_width.pixels - margin_right.pixels - right.pixels
         }
@@ -1008,8 +1007,7 @@ calcule_largeur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
         // 3. 'width' and 'right' are 'auto' and 'left' is not 'auto', then the width is shrink-to-fit.
         //    Then solve for 'right'
         sinon si width.est_auto() && right.est_auto() && !left.est_auto() {
-            right.pixels = 0.0
-            available_width := width_of_containing_block - left.pixels - margin_left.pixels - border_left_width.pixels - padding_left.pixels - padding_right.pixels - border_right_width.pixels - margin_right.pixels - right.pixels
+            available_width := width_of_containing_block - left.pixels - margin_left.pixels - border_left_width.pixels - padding_left.pixels - padding_right.pixels - border_right_width.pixels - margin_right.pixels
             width.pixels = calcule_shrink_to_fit_width(ctx, noeud, available_width)
             right.pixels = width_of_containing_block - left.pixels - margin_left.pixels - border_left_width.pixels - padding_left.pixels - width.pixels - padding_right.pixels - border_right_width.pixels - margin_right.pixels
         }
