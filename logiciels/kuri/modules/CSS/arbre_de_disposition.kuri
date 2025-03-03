@@ -29,6 +29,9 @@ ArbreDeDisposition :: struct {
     tampon_id: [..]n32
     largeur_vue: z32
     hauteur_vue: z32
+
+    noeuds_position_float: n32
+    noeuds_position_absolue: n32
 }
 
 détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
@@ -138,6 +141,15 @@ crée_noeud :: fonc (arbre: *ArbreDeDisposition, $TypeNoeud: type_de_données) -
     retourne résultat
 }
 
+donne_taille_en_octet_noeuds :: fonc (arbre: *ArbreDeDisposition) -> n32
+{
+    résultat: n32
+    pour arbre.noeuds {
+        résultat += it.donne_taille_en_octet()
+    }
+    retourne résultat
+}
+
 donne_élément_pour_position :: fonc (arbre: *ArbreDeDisposition, x: z32, y: z32) -> *HTML.Élément
 {
     saufsi arbre.tampon_id_fut_dessiné {
@@ -159,6 +171,17 @@ donne_élément_pour_position :: fonc (arbre: *ArbreDeDisposition, x: z32, y: z3
         retourne nul
     }
     retourne noeud.donne_élément_récursif()
+}
+
+imprime_statistiques :: fonc (arbre: *ArbreDeDisposition)
+{
+    imprime("--------------------------------------------\n")
+    imprime("             Statistiques Arbre\n")
+
+    imprime("Nombre de noeuds        : %\n", arbre.noeuds.taille)
+    imprime("Mémoire noeuds          : %o\n", arbre.donne_taille_en_octet_noeuds())
+    imprime("Noeuds position float   : %\n", arbre.noeuds_position_float)
+    imprime("Noeuds position absolue : %\n", arbre.noeuds_position_absolue)
 }
 
 imprime_arbre :: fonc (arbre: *ArbreDeDisposition)
@@ -1256,6 +1279,25 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, haut
 
 dispose_arbre :: fonc (globales: *GlobalesDessin, arbre: *ArbreDeDisposition, largeur: z32, hauteur: z32)
 {
+    arbre.noeuds_position_absolue = 0
+    arbre.noeuds_position_float = 0
+
+    pour arbre.noeuds {
+        saufsi it.propriétés {
+            continue
+        }
+
+        float := it.propriétés.donne_valeur_calculée(IDPropriété.Float)
+        saufsi float.est_none() {
+            arbre.noeuds_position_float += 1
+        }
+
+        position := it.propriétés.donne_valeur_calculée(IDPropriété.Position)
+        si position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_fixed) {
+            arbre.noeuds_position_absolue += 1
+        }
+    }
+
     initial_containing_block: ContainingBlock
     initial_containing_block.rect.hauteur = hauteur comme r32
     initial_containing_block.rect.largeur = largeur comme r32
@@ -1280,6 +1322,7 @@ dispose_arbre :: fonc (globales: *GlobalesDessin, arbre: *ArbreDeDisposition, la
     mesure(arbre.racine, *ctx, ModeDeFormattage.Normal, nul)
 
     // imprime("taille arbre : %x%\n", résultat.racine.largeur, résultat.racine.hauteur)
+    // imprime_statistiques(arbre)
 }
 
 CréatriceArbre :: struct {
@@ -2214,6 +2257,12 @@ donne_nom_classe :: fonc (noeud: *NoeudDeDisposition) -> chaine
 {
     infos := __table_des_types[noeud.type] comme *InfoTypeStructure
     retourne infos.nom
+}
+
+donne_taille_en_octet :: fonc (noeud: *NoeudDeDisposition) -> n32
+{
+    infos := __table_des_types[noeud.type] comme *InfoTypeStructure
+    retourne infos.taille_en_octet
 }
 
 donne_nom_classe_sans_préfixe :: fonc (noeud: *NoeudDeDisposition) -> chaine
