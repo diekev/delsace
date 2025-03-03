@@ -3015,8 +3015,14 @@ noeud_disposition_inline_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Co
     containing_block := donne_containing_block(base, ctx)
     args := crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, outrepas_largeur, mode)
     calcule_largeur_et_marges(*args)
-    _ := calcule_hauteur_et_marges(*args)
+    état_calcul_hauteur := calcule_hauteur_et_marges(*args)
+
     formatte_intérieur(noeud, ctx, mode)
+
+    si état_calcul_hauteur == ÉtatCalculHauteur.HauteurDépendSurContenu {
+        args.calcul_hauteur_après_contenu = vrai
+        _ := calcule_hauteur_et_marges(*args)
+    }
 }
 
 noeud_disposition_inline_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, enligneuse: *Enligneuse, ctx: *ContexteDeFormattage, mode: ModeDeFormattage)

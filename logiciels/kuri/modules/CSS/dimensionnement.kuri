@@ -668,7 +668,7 @@ donne_fonction_calcul_hauteur_et_marges :: fonc (noeud: *NoeudDeDisposition) -> 
         retourne calcule_hauteur_et_marges_inline_replaced_element
     }
 
-    si display.outer_type == Display.Type.Inline {
+    si display.outer_type == Display.Type.Inline && display.inner_type != Display.Type.FlowRoot {
         // 10.6.1 Inline, non-replaced elements
         retourne calcule_hauteur_et_marges_inline_non_replaced_element
     }
@@ -680,10 +680,10 @@ donne_fonction_calcul_hauteur_et_marges :: fonc (noeud: *NoeudDeDisposition) -> 
 
     // 10.6.6 Complicated cases
     // À FAIRE : Block-level, non-replaced elements in normal flow when 'overflow' does not compute to 'visible' (except if the 'overflow' property's value has been propagated to the viewport).
-    // À FAIRE : 'Inline-block', non-replaced elements.
+    // 'Inline-block', non-replaced elements.
     // Floating, non-replaced elements.
     float := propriétés.donne_valeur_utilisée(IDPropriété.Float)
-    saufsi float.est_none() {
+    si !float.est_none() || (display.outer_type == Display.Type.Inline && display.inner_type == Display.Type.FlowRoot) {
         retourne calcule_hauteur_et_marges_complicated_cases
     }
 
