@@ -742,17 +742,20 @@ résoud_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élémen
         }
     }
 
-    HTML.applique_presentational_hints(élément, résolveuse)
+    si pseudo_element == nul {
+        HTML.applique_presentational_hints(élément, résolveuse)
 
-    si élément.style {
-        /* https://drafts.csswg.org/css-style-attr/#style-attribute
-         * "In the cascade, these declarations are considered to have author origin and a specificity higher than any selector." */
-        tableau_réserve(*résolveuse.déclarations_cascade, résolveuse.déclarations_cascade.taille + élément.style.déclarations.taille)
-        spécificité := donne_spécificité_max()
-        pour élément.style.déclarations {
-            tableau_ajoute(*résolveuse.déclarations_cascade, DéclarationCascadée(it, spécificité, OrigineCascade.Author))
+        si élément.style {
+            /* https://drafts.csswg.org/css-style-attr/#style-attribute
+            * "In the cascade, these declarations are considered to have author origin and a specificity higher than any selector." */
+            tableau_réserve(*résolveuse.déclarations_cascade, résolveuse.déclarations_cascade.taille + élément.style.déclarations.taille)
+            spécificité := donne_spécificité_max()
+            pour élément.style.déclarations {
+                tableau_ajoute(*résolveuse.déclarations_cascade, DéclarationCascadée(it, spécificité, OrigineCascade.Author))
+            }
         }
     }
+
     tri_rapide(résolveuse.déclarations_cascade, compare_déclarations_pour_cascade)
 
     résultat := crée_propriétés_de_style(propriétés_parent)
