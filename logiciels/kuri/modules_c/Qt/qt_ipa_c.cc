@@ -3248,6 +3248,13 @@ void QT_treewidgetitem_definis_texte(QT_TreeWidgetItem *widget, int colonne, QT_
     qwidget->setText(colonne, vers_qt(texte));
 }
 
+QT_Chaine QT_treewidgetitem_donne_texte(QT_TreeWidgetItem *widget, int colonne)
+{
+    VERS_QT(widget);
+    static char tampon[FILENAME_MAX];
+    return crée_qt_chaine_tampon(qwidget->text(colonne), tampon, sizeof(tampon));
+}
+
 void QT_treewidgetitem_ajoute_enfant(QT_TreeWidgetItem *widget, QT_TreeWidgetItem *enfant)
 {
     auto qwidget = vers_qt(widget);

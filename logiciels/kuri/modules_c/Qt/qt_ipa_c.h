@@ -2416,6 +2416,7 @@ void QT_treewidgetitem_definis_indicateur_enfant(struct QT_TreeWidgetItem *widge
 void QT_treewidgetitem_definis_texte(struct QT_TreeWidgetItem *widget,
                                      int colonne,
                                      struct QT_Chaine *texte);
+struct QT_Chaine QT_treewidgetitem_donne_texte(struct QT_TreeWidgetItem *widget, int colonne);
 void QT_treewidgetitem_ajoute_enfant(struct QT_TreeWidgetItem *widget,
                                      struct QT_TreeWidgetItem *enfant);
 void QT_treewidgetitem_definis_selectionne(struct QT_TreeWidgetItem *widget, bool ouinon);
