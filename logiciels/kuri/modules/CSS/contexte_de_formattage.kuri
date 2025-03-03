@@ -509,37 +509,13 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
 
 dispose_boite_fixed :: fonc (empl ctx: *ContexteDeFormattageBloc, noeud: *NoeudDeDispositionBloc, pos_x_statique: r64, pos_y_statique: r64)
 {
-    containing_block := donne_containing_block(noeud, ctx)
-    args := crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, nul, ModeDeFormattage.Normal)
-    args.pos_x_statique = pos_x_statique
-    args.pos_y_statique = pos_y_statique
-    calcule_largeur_et_marges(*args)
-    état_calcul_hauteur := calcule_hauteur_et_marges(*args)
+    boite_absolue: BoiteAbsolue
+    boite_absolue.containing_block = ctx.donne_initial_containing_block().noeud
+    boite_absolue.noeud = noeud
+    boite_absolue.pos_x_statique = pos_x_statique
+    boite_absolue.pos_y_statique = pos_y_statique
 
-    bord_gauche := containing_block.rect.x
-    bord_haut := containing_block.rect.y
-
-    top := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Top)
-    bottom := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Bottom)
-    left := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Left)
-
-    si top.est_auto() && bottom.est_auto() {
-        top = ValeurDeStyle(pixels = 0.0)
-    }
-    sinon si top.est_auto() {
-        top = ValeurDeStyle(pixels = -bottom.pixels)
-    }
-    sinon saufsi top.est_pixels() {
-        top = ValeurDeStyle(pixels = 0.0)
-    }
-
-    noeud.définis_position(bord_gauche + left.pixels comme r32, bord_haut + top.pixels comme r32)
-    formatte_intérieur(noeud, ctx, ModeDeFormattage.Normal)
-
-    si état_calcul_hauteur == ÉtatCalculHauteur.HauteurDépendSurContenu {
-        args.calcul_hauteur_après_contenu = vrai
-        _ := calcule_hauteur_et_marges(*args)
-    }
+    dispose_boite_absolute(ctx, *boite_absolue)
 }
 
 dispose_boite_absolute :: fonc (empl ctx: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc, pos_x_statique: r64, pos_y_statique: r64, mode: ModeDeFormattage)
