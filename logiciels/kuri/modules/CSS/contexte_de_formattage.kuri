@@ -512,7 +512,7 @@ dispose_boite_fixed :: fonc (empl ctx: *ContexteDeFormattageBloc, noeud: *NoeudD
     containing_block := donne_containing_block(noeud, ctx)
     args := crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, nul, ModeDeFormattage.Normal)
     calcule_largeur_et_marges(*args)
-    _ := calcule_hauteur_et_marges(*args)
+    état_calcul_hauteur := calcule_hauteur_et_marges(*args)
 
     bord_gauche := containing_block.rect.x
     bord_haut := containing_block.rect.y
@@ -533,6 +533,11 @@ dispose_boite_fixed :: fonc (empl ctx: *ContexteDeFormattageBloc, noeud: *NoeudD
 
     noeud.définis_position(bord_gauche + left.pixels comme r32, bord_haut + top.pixels comme r32)
     formatte_intérieur(noeud, ctx, ModeDeFormattage.Normal)
+
+    si état_calcul_hauteur == ÉtatCalculHauteur.HauteurDépendSurContenu {
+        args.calcul_hauteur_après_contenu = vrai
+        _ := calcule_hauteur_et_marges(*args)
+    }
 }
 
 dispose_boite_absolute :: fonc (empl ctx: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc, pos_x_statique: r64, pos_y_statique: r64, mode: ModeDeFormattage)
