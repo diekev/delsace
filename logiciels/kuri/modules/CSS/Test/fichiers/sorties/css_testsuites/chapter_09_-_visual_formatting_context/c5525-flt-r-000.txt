@@ -1,1102 +1,1102 @@
-Bloc <html> <0.0, 0.0> CH [0.0 0.0 0.0] 1920.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 158.39 [0.0 0.0 0.0]
-    Bloc <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 1920.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-        frag 0 MargeDébut de Inline début 0 fin 0 rect (0.0,0.0 0.0x0.0)
-        frag 1 RembourrageDébut de Inline début 0 fin 0 rect (0.0,0.0 0.0x0.0)
-        frag 2 RembourrageFin de Inline début 0 fin 0 rect (0.0,0.0 0.0x0.0)
-        frag 3 MargeFin de Inline début 0 fin 0 rect (0.0,0.0 0.0x0.0)
-        Inline <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-            Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
-    Bloc <body> <8.0, 8.0> CH [8.0 0.0 0.0] 1904.0 [0.0 0.0 8.0] CV [8.0 0.0 0.0] 142.39 [0.0 0.0 8.0]
-        Bloc <(anonyme)> <8.0, 8.0> CH [0.0 0.0 0.0] 1904.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-            frag 0 MargeDébut de Inline début 0 fin 0 rect (8.0,8.0 0.0x0.0)
-            frag 1 RembourrageDébut de Inline début 0 fin 0 rect (8.0,8.0 0.0x0.0)
-            frag 2 RembourrageFin de Inline début 0 fin 0 rect (8.0,8.0 0.0x0.0)
-            frag 3 MargeFin de Inline début 0 fin 0 rect (8.0,8.0 0.0x0.0)
-            Inline <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
-        Bloc <p> <8.0, 24.0> CH [0.0 0.0 0.0] 1904.0 [0.0 0.0 0.0] CV [16.0 0.0 0.0] 110.40 [0.0 0.0 16.0]
-            Bloc <(anonyme)> <8.0, 24.0> CH [0.0 0.0 0.0] 1904.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                frag 0 MargeDébut de Inline début 0 fin 0 rect (8.0,24.0 0.0x0.0)
-                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (8.0,24.0 0.0x0.0)
-                frag 2 RembourrageFin de Inline début 0 fin 0 rect (8.0,24.0 0.0x0.0)
-                frag 3 MargeFin de Inline début 0 fin 0 rect (8.0,24.0 0.0x0.0)
-                Inline <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
-            Remplacement <img> <1862.0, 24.0> CH [0.0 0.0 0.0] 50.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 50.0 [0.0 0.0 0.0]
-            Bloc <(anonyme)> <8.0, 24.0> CH [0.0 0.0 0.0] 1904.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 110.40 [0.0 0.0 0.0]
-                frag 0 MargeDébut de Inline début 0 fin 0 rect (8.0,24.0 0.0x18.39)
-                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (8.0,24.0 0.0x18.39)
-                frag 2 Normal de Texte début 1 fin 2 rect (8.0,24.0 28.0x18.39)
+Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 158.40 [0 0 0]
+    Bloc <(anonyme)> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 0 [0 0 0]
+        frag 0 MargeDébut de Inline début 0 fin 0 rect (0,0 0x0)
+        frag 1 RembourrageDébut de Inline début 0 fin 0 rect (0,0 0x0)
+        frag 2 RembourrageFin de Inline début 0 fin 0 rect (0,0 0x0)
+        frag 3 MargeFin de Inline début 0 fin 0 rect (0,0 0x0)
+        Inline <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+            Texte <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18.40 [0 0 0]
+    Bloc <body> <8, 8> CH [8 0 0] 1904 [0 0 8] CV [8 0 0] 142.40 [0 0 8]
+        Bloc <(anonyme)> <8, 8> CH [0 0 0] 1904 [0 0 0] CV [0 0 0] 0 [0 0 0]
+            frag 0 MargeDébut de Inline début 0 fin 0 rect (8,8 0x0)
+            frag 1 RembourrageDébut de Inline début 0 fin 0 rect (8,8 0x0)
+            frag 2 RembourrageFin de Inline début 0 fin 0 rect (8,8 0x0)
+            frag 3 MargeFin de Inline début 0 fin 0 rect (8,8 0x0)
+            Inline <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+                Texte <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18.40 [0 0 0]
+        Bloc <p> <8, 24> CH [0 0 0] 1904 [0 0 0] CV [16 0 0] 110.40 [0 0 16]
+            Bloc <(anonyme)> <8, 24> CH [0 0 0] 1904 [0 0 0] CV [0 0 0] 0 [0 0 0]
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (8,24 0x0)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (8,24 0x0)
+                frag 2 RembourrageFin de Inline début 0 fin 0 rect (8,24 0x0)
+                frag 3 MargeFin de Inline début 0 fin 0 rect (8,24 0x0)
+                Inline <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+                    Texte <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18.40 [0 0 0]
+            Remplacement <img> <1862, 24> CH [0 0 0] 50 [0 0 0] CV [0 0 0] 50 [0 0 0]
+            Bloc <(anonyme)> <8, 24> CH [0 0 0] 1904 [0 0 0] CV [0 0 0] 110.40 [0 0 0]
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (8,24 0x18.40)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (8,24 0x18.40)
+                frag 2 Normal de Texte début 1 fin 2 rect (8,24 28x18.40)
                     "This"
-                frag 3 Normal de Texte début 2 fin 3 rect (36.0,24.0 4.0x18.39)
+                frag 3 Normal de Texte début 2 fin 3 rect (36,24 4x18.40)
                     " "
-                frag 4 Normal de Texte début 3 fin 4 rect (40.0,24.0 24.0x18.39)
+                frag 4 Normal de Texte début 3 fin 4 rect (40,24 24x18.40)
                     "text"
-                frag 5 Normal de Texte début 4 fin 5 rect (64.0,24.0 4.0x18.39)
+                frag 5 Normal de Texte début 4 fin 5 rect (64,24 4x18.40)
                     " "
-                frag 6 Normal de Texte début 5 fin 6 rect (68.0,24.0 42.0x18.39)
+                frag 6 Normal de Texte début 5 fin 6 rect (68,24 42x18.40)
                     "should"
-                frag 7 Normal de Texte début 6 fin 7 rect (110.0,24.0 4.0x18.39)
+                frag 7 Normal de Texte début 6 fin 7 rect (110,24 4x18.40)
                     " "
-                frag 8 Normal de Texte début 7 fin 8 rect (114.0,24.0 29.0x18.39)
+                frag 8 Normal de Texte début 7 fin 8 rect (114,24 29x18.40)
                     "flow"
-                frag 9 Normal de Texte début 8 fin 9 rect (143.0,24.0 4.0x18.39)
+                frag 9 Normal de Texte début 8 fin 9 rect (143,24 4x18.40)
                     " "
-                frag 10 Normal de Texte début 9 fin 10 rect (147.0,24.0 44.0x18.39)
+                frag 10 Normal de Texte début 9 fin 10 rect (147,24 44x18.40)
                     "around"
-                frag 11 Normal de Texte début 10 fin 11 rect (191.0,24.0 4.0x18.39)
+                frag 11 Normal de Texte début 10 fin 11 rect (191,24 4x18.40)
                     " "
-                frag 12 Normal de Texte début 11 fin 12 rect (195.0,24.0 19.0x18.39)
+                frag 12 Normal de Texte début 11 fin 12 rect (195,24 19x18.40)
                     "the"
-                frag 13 Normal de Texte début 12 fin 13 rect (214.0,24.0 4.0x18.39)
+                frag 13 Normal de Texte début 12 fin 13 rect (214,24 4x18.40)
                     " "
-                frag 14 Normal de Texte début 13 fin 14 rect (218.0,24.0 24.0x18.39)
+                frag 14 Normal de Texte début 13 fin 14 rect (218,24 24x18.40)
                     "box"
-                frag 15 Normal de Texte début 14 fin 15 rect (242.0,24.0 4.0x18.39)
+                frag 15 Normal de Texte début 14 fin 15 rect (242,24 4x18.40)
                     " "
-                frag 16 Normal de Texte début 15 fin 16 rect (246.0,24.0 16.0x18.39)
+                frag 16 Normal de Texte début 15 fin 16 rect (246,24 16x18.40)
                     "on"
-                frag 17 Normal de Texte début 16 fin 17 rect (262.0,24.0 4.0x18.39)
+                frag 17 Normal de Texte début 16 fin 17 rect (262,24 4x18.40)
                     " "
-                frag 18 Normal de Texte début 17 fin 18 rect (266.0,24.0 19.0x18.39)
+                frag 18 Normal de Texte début 17 fin 18 rect (266,24 19x18.40)
                     "the"
-                frag 19 Normal de Texte début 18 fin 19 rect (285.0,24.0 4.0x18.39)
+                frag 19 Normal de Texte début 18 fin 19 rect (285,24 4x18.40)
                     " "
-                frag 20 Normal de Texte début 19 fin 20 rect (289.0,24.0 34.0x18.39)
+                frag 20 Normal de Texte début 19 fin 20 rect (289,24 34x18.40)
                     "right."
-                frag 21 Normal de Texte début 20 fin 21 rect (323.0,24.0 4.0x18.39)
+                frag 21 Normal de Texte début 20 fin 21 rect (323,24 4x18.40)
                     " "
-                frag 22 Normal de Texte début 21 fin 22 rect (327.0,24.0 5.0x18.39)
+                frag 22 Normal de Texte début 21 fin 22 rect (327,24 5x18.40)
                     "⇨"
-                frag 23 Normal de Texte début 22 fin 23 rect (332.0,24.0 4.0x18.39)
+                frag 23 Normal de Texte début 22 fin 23 rect (332,24 4x18.40)
                     " "
-                frag 24 RembourrageFin de Inline début 0 fin 0 rect (336.0,24.0 0.0x18.39)
-                frag 25 MargeFin de Inline début 0 fin 0 rect (336.0,24.0 0.0x18.39)
-                frag 26 MargeDébut de Inline début 0 fin 0 rect (336.0,24.0 0.0x18.39)
-                frag 27 RembourrageDébut de Inline début 0 fin 0 rect (336.0,24.0 0.0x18.39)
-                frag 28 MargeDébut de Inline début 0 fin 0 rect (336.0,24.0 0.0x18.39)
-                frag 29 RembourrageDébut de Inline début 0 fin 0 rect (336.0,24.0 0.0x18.39)
-                frag 30 Normal de Texte début 0 fin 1 rect (336.0,24.0 48.0x18.39)
+                frag 24 RembourrageFin de Inline début 0 fin 0 rect (336,24 0x18.40)
+                frag 25 MargeFin de Inline début 0 fin 0 rect (336,24 0x18.40)
+                frag 26 MargeDébut de Inline début 0 fin 0 rect (336,24 0x18.40)
+                frag 27 RembourrageDébut de Inline début 0 fin 0 rect (336,24 0x18.40)
+                frag 28 MargeDébut de Inline début 0 fin 0 rect (336,24 0x18.40)
+                frag 29 RembourrageDébut de Inline début 0 fin 0 rect (336,24 0x18.40)
+                frag 30 Normal de Texte début 0 fin 1 rect (336,24 48x18.40)
                     "dummy"
-                frag 31 Normal de Texte début 1 fin 2 rect (384.0,24.0 4.0x18.39)
+                frag 31 Normal de Texte début 1 fin 2 rect (384,24 4x18.40)
                     " "
-                frag 32 Normal de Texte début 2 fin 3 rect (388.0,24.0 24.0x18.39)
+                frag 32 Normal de Texte début 2 fin 3 rect (388,24 24x18.40)
                     "text"
-                frag 33 Normal de Texte début 3 fin 4 rect (412.0,24.0 4.0x18.39)
+                frag 33 Normal de Texte début 3 fin 4 rect (412,24 4x18.40)
                     " "
-                frag 34 Normal de Texte début 4 fin 5 rect (416.0,24.0 48.0x18.39)
+                frag 34 Normal de Texte début 4 fin 5 rect (416,24 48x18.40)
                     "dummy"
-                frag 35 Normal de Texte début 5 fin 6 rect (464.0,24.0 4.0x18.39)
+                frag 35 Normal de Texte début 5 fin 6 rect (464,24 4x18.40)
                     " "
-                frag 36 Normal de Texte début 6 fin 7 rect (468.0,24.0 24.0x18.39)
+                frag 36 Normal de Texte début 6 fin 7 rect (468,24 24x18.40)
                     "text"
-                frag 37 Normal de Texte début 7 fin 8 rect (492.0,24.0 4.0x18.39)
+                frag 37 Normal de Texte début 7 fin 8 rect (492,24 4x18.40)
                     " "
-                frag 38 Normal de Texte début 8 fin 9 rect (496.0,24.0 48.0x18.39)
+                frag 38 Normal de Texte début 8 fin 9 rect (496,24 48x18.40)
                     "dummy"
-                frag 39 Normal de Texte début 9 fin 10 rect (544.0,24.0 4.0x18.39)
+                frag 39 Normal de Texte début 9 fin 10 rect (544,24 4x18.40)
                     " "
-                frag 40 Normal de Texte début 10 fin 11 rect (548.0,24.0 24.0x18.39)
+                frag 40 Normal de Texte début 10 fin 11 rect (548,24 24x18.40)
                     "text"
-                frag 41 Normal de Texte début 11 fin 12 rect (572.0,24.0 4.0x18.39)
+                frag 41 Normal de Texte début 11 fin 12 rect (572,24 4x18.40)
                     " "
-                frag 42 Normal de Texte début 12 fin 13 rect (576.0,24.0 48.0x18.39)
+                frag 42 Normal de Texte début 12 fin 13 rect (576,24 48x18.40)
                     "dummy"
-                frag 43 Normal de Texte début 13 fin 14 rect (624.0,24.0 4.0x18.39)
+                frag 43 Normal de Texte début 13 fin 14 rect (624,24 4x18.40)
                     " "
-                frag 44 Normal de Texte début 14 fin 15 rect (628.0,24.0 24.0x18.39)
+                frag 44 Normal de Texte début 14 fin 15 rect (628,24 24x18.40)
                     "text"
-                frag 45 Normal de Texte début 15 fin 16 rect (652.0,24.0 4.0x18.39)
+                frag 45 Normal de Texte début 15 fin 16 rect (652,24 4x18.40)
                     " "
-                frag 46 Normal de Texte début 16 fin 17 rect (656.0,24.0 48.0x18.39)
+                frag 46 Normal de Texte début 16 fin 17 rect (656,24 48x18.40)
                     "dummy"
-                frag 47 Normal de Texte début 17 fin 18 rect (704.0,24.0 4.0x18.39)
+                frag 47 Normal de Texte début 17 fin 18 rect (704,24 4x18.40)
                     " "
-                frag 48 Normal de Texte début 18 fin 19 rect (708.0,24.0 24.0x18.39)
+                frag 48 Normal de Texte début 18 fin 19 rect (708,24 24x18.40)
                     "text"
-                frag 49 Normal de Texte début 19 fin 20 rect (732.0,24.0 4.0x18.39)
+                frag 49 Normal de Texte début 19 fin 20 rect (732,24 4x18.40)
                     " "
-                frag 50 Normal de Texte début 20 fin 21 rect (736.0,24.0 48.0x18.39)
+                frag 50 Normal de Texte début 20 fin 21 rect (736,24 48x18.40)
                     "dummy"
-                frag 51 Normal de Texte début 21 fin 22 rect (784.0,24.0 4.0x18.39)
+                frag 51 Normal de Texte début 21 fin 22 rect (784,24 4x18.40)
                     " "
-                frag 52 Normal de Texte début 22 fin 23 rect (788.0,24.0 24.0x18.39)
+                frag 52 Normal de Texte début 22 fin 23 rect (788,24 24x18.40)
                     "text"
-                frag 53 Normal de Texte début 23 fin 24 rect (812.0,24.0 4.0x18.39)
+                frag 53 Normal de Texte début 23 fin 24 rect (812,24 4x18.40)
                     " "
-                frag 54 Normal de Texte début 24 fin 25 rect (816.0,24.0 48.0x18.39)
+                frag 54 Normal de Texte début 24 fin 25 rect (816,24 48x18.40)
                     "dummy"
-                frag 55 Normal de Texte début 25 fin 26 rect (864.0,24.0 4.0x18.39)
+                frag 55 Normal de Texte début 25 fin 26 rect (864,24 4x18.40)
                     " "
-                frag 56 Normal de Texte début 26 fin 27 rect (868.0,24.0 24.0x18.39)
+                frag 56 Normal de Texte début 26 fin 27 rect (868,24 24x18.40)
                     "text"
-                frag 57 Normal de Texte début 27 fin 28 rect (892.0,24.0 4.0x18.39)
+                frag 57 Normal de Texte début 27 fin 28 rect (892,24 4x18.40)
                     " "
-                frag 58 Normal de Texte début 28 fin 29 rect (896.0,24.0 48.0x18.39)
+                frag 58 Normal de Texte début 28 fin 29 rect (896,24 48x18.40)
                     "dummy"
-                frag 59 Normal de Texte début 29 fin 30 rect (944.0,24.0 4.0x18.39)
+                frag 59 Normal de Texte début 29 fin 30 rect (944,24 4x18.40)
                     " "
-                frag 60 Normal de Texte début 30 fin 31 rect (948.0,24.0 24.0x18.39)
+                frag 60 Normal de Texte début 30 fin 31 rect (948,24 24x18.40)
                     "text"
-                frag 61 Normal de Texte début 31 fin 32 rect (972.0,24.0 4.0x18.39)
+                frag 61 Normal de Texte début 31 fin 32 rect (972,24 4x18.40)
                     " "
-                frag 62 Normal de Texte début 32 fin 33 rect (976.0,24.0 48.0x18.39)
+                frag 62 Normal de Texte début 32 fin 33 rect (976,24 48x18.40)
                     "dummy"
-                frag 63 Normal de Texte début 33 fin 34 rect (1024.0,24.0 4.0x18.39)
+                frag 63 Normal de Texte début 33 fin 34 rect (1024,24 4x18.40)
                     " "
-                frag 64 Normal de Texte début 34 fin 35 rect (1028.0,24.0 24.0x18.39)
+                frag 64 Normal de Texte début 34 fin 35 rect (1028,24 24x18.40)
                     "text"
-                frag 65 Normal de Texte début 35 fin 36 rect (1052.0,24.0 4.0x18.39)
+                frag 65 Normal de Texte début 35 fin 36 rect (1052,24 4x18.40)
                     " "
-                frag 66 Normal de Texte début 36 fin 37 rect (1056.0,24.0 48.0x18.39)
+                frag 66 Normal de Texte début 36 fin 37 rect (1056,24 48x18.40)
                     "dummy"
-                frag 67 Normal de Texte début 37 fin 38 rect (1104.0,24.0 4.0x18.39)
+                frag 67 Normal de Texte début 37 fin 38 rect (1104,24 4x18.40)
                     " "
-                frag 68 Normal de Texte début 38 fin 39 rect (1108.0,24.0 24.0x18.39)
+                frag 68 Normal de Texte début 38 fin 39 rect (1108,24 24x18.40)
                     "text"
-                frag 69 Normal de Texte début 39 fin 40 rect (1132.0,24.0 4.0x18.39)
+                frag 69 Normal de Texte début 39 fin 40 rect (1132,24 4x18.40)
                     " "
-                frag 70 Normal de Texte début 40 fin 41 rect (1136.0,24.0 48.0x18.39)
+                frag 70 Normal de Texte début 40 fin 41 rect (1136,24 48x18.40)
                     "dummy"
-                frag 71 Normal de Texte début 41 fin 42 rect (1184.0,24.0 4.0x18.39)
+                frag 71 Normal de Texte début 41 fin 42 rect (1184,24 4x18.40)
                     " "
-                frag 72 Normal de Texte début 42 fin 43 rect (1188.0,24.0 24.0x18.39)
+                frag 72 Normal de Texte début 42 fin 43 rect (1188,24 24x18.40)
                     "text"
-                frag 73 Normal de Texte début 43 fin 44 rect (1212.0,24.0 4.0x18.39)
+                frag 73 Normal de Texte début 43 fin 44 rect (1212,24 4x18.40)
                     " "
-                frag 74 Normal de Texte début 44 fin 45 rect (1216.0,24.0 48.0x18.39)
+                frag 74 Normal de Texte début 44 fin 45 rect (1216,24 48x18.40)
                     "dummy"
-                frag 75 Normal de Texte début 45 fin 46 rect (1264.0,24.0 4.0x18.39)
+                frag 75 Normal de Texte début 45 fin 46 rect (1264,24 4x18.40)
                     " "
-                frag 76 Normal de Texte début 46 fin 47 rect (1268.0,24.0 24.0x18.39)
+                frag 76 Normal de Texte début 46 fin 47 rect (1268,24 24x18.40)
                     "text"
-                frag 77 Normal de Texte début 47 fin 48 rect (1292.0,24.0 4.0x18.39)
+                frag 77 Normal de Texte début 47 fin 48 rect (1292,24 4x18.40)
                     " "
-                frag 78 Normal de Texte début 48 fin 49 rect (1296.0,24.0 48.0x18.39)
+                frag 78 Normal de Texte début 48 fin 49 rect (1296,24 48x18.40)
                     "dummy"
-                frag 79 Normal de Texte début 49 fin 50 rect (1344.0,24.0 4.0x18.39)
+                frag 79 Normal de Texte début 49 fin 50 rect (1344,24 4x18.40)
                     " "
-                frag 80 Normal de Texte début 50 fin 51 rect (1348.0,24.0 24.0x18.39)
+                frag 80 Normal de Texte début 50 fin 51 rect (1348,24 24x18.40)
                     "text"
-                frag 81 Normal de Texte début 51 fin 52 rect (1372.0,24.0 4.0x18.39)
+                frag 81 Normal de Texte début 51 fin 52 rect (1372,24 4x18.40)
                     " "
-                frag 82 Normal de Texte début 52 fin 53 rect (1376.0,24.0 48.0x18.39)
+                frag 82 Normal de Texte début 52 fin 53 rect (1376,24 48x18.40)
                     "dummy"
-                frag 83 Normal de Texte début 53 fin 54 rect (1424.0,24.0 4.0x18.39)
+                frag 83 Normal de Texte début 53 fin 54 rect (1424,24 4x18.40)
                     " "
-                frag 84 Normal de Texte début 54 fin 55 rect (1428.0,24.0 24.0x18.39)
+                frag 84 Normal de Texte début 54 fin 55 rect (1428,24 24x18.40)
                     "text"
-                frag 85 Normal de Texte début 55 fin 56 rect (1452.0,24.0 4.0x18.39)
+                frag 85 Normal de Texte début 55 fin 56 rect (1452,24 4x18.40)
                     " "
-                frag 86 Normal de Texte début 56 fin 57 rect (1456.0,24.0 48.0x18.39)
+                frag 86 Normal de Texte début 56 fin 57 rect (1456,24 48x18.40)
                     "dummy"
-                frag 87 Normal de Texte début 57 fin 58 rect (1504.0,24.0 4.0x18.39)
+                frag 87 Normal de Texte début 57 fin 58 rect (1504,24 4x18.40)
                     " "
-                frag 88 Normal de Texte début 58 fin 59 rect (1508.0,24.0 24.0x18.39)
+                frag 88 Normal de Texte début 58 fin 59 rect (1508,24 24x18.40)
                     "text"
-                frag 89 Normal de Texte début 59 fin 60 rect (1532.0,24.0 4.0x18.39)
+                frag 89 Normal de Texte début 59 fin 60 rect (1532,24 4x18.40)
                     " "
-                frag 90 Normal de Texte début 60 fin 61 rect (1536.0,24.0 48.0x18.39)
+                frag 90 Normal de Texte début 60 fin 61 rect (1536,24 48x18.40)
                     "dummy"
-                frag 91 Normal de Texte début 61 fin 62 rect (1584.0,24.0 4.0x18.39)
+                frag 91 Normal de Texte début 61 fin 62 rect (1584,24 4x18.40)
                     " "
-                frag 92 Normal de Texte début 62 fin 63 rect (1588.0,24.0 24.0x18.39)
+                frag 92 Normal de Texte début 62 fin 63 rect (1588,24 24x18.40)
                     "text"
-                frag 93 Normal de Texte début 63 fin 64 rect (1612.0,24.0 4.0x18.39)
+                frag 93 Normal de Texte début 63 fin 64 rect (1612,24 4x18.40)
                     " "
-                frag 94 Normal de Texte début 64 fin 65 rect (1616.0,24.0 48.0x18.39)
+                frag 94 Normal de Texte début 64 fin 65 rect (1616,24 48x18.40)
                     "dummy"
-                frag 95 Normal de Texte début 65 fin 66 rect (1664.0,24.0 4.0x18.39)
+                frag 95 Normal de Texte début 65 fin 66 rect (1664,24 4x18.40)
                     " "
-                frag 96 Normal de Texte début 66 fin 67 rect (1668.0,24.0 24.0x18.39)
+                frag 96 Normal de Texte début 66 fin 67 rect (1668,24 24x18.40)
                     "text"
-                frag 97 Normal de Texte début 67 fin 68 rect (1692.0,24.0 4.0x18.39)
+                frag 97 Normal de Texte début 67 fin 68 rect (1692,24 4x18.40)
                     " "
-                frag 98 Normal de Texte début 68 fin 69 rect (1696.0,24.0 48.0x18.39)
+                frag 98 Normal de Texte début 68 fin 69 rect (1696,24 48x18.40)
                     "dummy"
-                frag 99 Normal de Texte début 69 fin 70 rect (1744.0,24.0 4.0x18.39)
+                frag 99 Normal de Texte début 69 fin 70 rect (1744,24 4x18.40)
                     " "
-                frag 100 Normal de Texte début 70 fin 71 rect (1748.0,24.0 24.0x18.39)
+                frag 100 Normal de Texte début 70 fin 71 rect (1748,24 24x18.40)
                     "text"
-                frag 101 Normal de Texte début 71 fin 72 rect (1772.0,24.0 4.0x18.39)
+                frag 101 Normal de Texte début 71 fin 72 rect (1772,24 4x18.40)
                     " "
-                frag 102 Normal de Texte début 72 fin 73 rect (1776.0,24.0 48.0x18.39)
+                frag 102 Normal de Texte début 72 fin 73 rect (1776,24 48x18.40)
                     "dummy"
-                frag 103 Normal de Texte début 73 fin 74 rect (1824.0,24.0 4.0x18.39)
+                frag 103 Normal de Texte début 73 fin 74 rect (1824,24 4x18.40)
                     " "
-                frag 104 Normal de Texte début 74 fin 75 rect (1828.0,24.0 24.0x18.39)
+                frag 104 Normal de Texte début 74 fin 75 rect (1828,24 24x18.40)
                     "text"
-                frag 105 Normal de Texte début 75 fin 76 rect (1852.0,24.0 4.0x18.39)
+                frag 105 Normal de Texte début 75 fin 76 rect (1852,24 4x18.40)
                     " "
-                frag 106 Normal de Texte début 76 fin 77 rect (8.0,42.40 48.0x18.39)
+                frag 106 Normal de Texte début 76 fin 77 rect (8,42.40 48x18.40)
                     "dummy"
-                frag 107 Normal de Texte début 77 fin 78 rect (56.0,42.40 4.0x18.39)
+                frag 107 Normal de Texte début 77 fin 78 rect (56,42.40 4x18.40)
                     " "
-                frag 108 Normal de Texte début 78 fin 79 rect (60.0,42.40 24.0x18.39)
+                frag 108 Normal de Texte début 78 fin 79 rect (60,42.40 24x18.40)
                     "text"
-                frag 109 Normal de Texte début 79 fin 80 rect (84.0,42.40 4.0x18.39)
+                frag 109 Normal de Texte début 79 fin 80 rect (84,42.40 4x18.40)
                     " "
-                frag 110 Normal de Texte début 80 fin 81 rect (88.0,42.40 48.0x18.39)
+                frag 110 Normal de Texte début 80 fin 81 rect (88,42.40 48x18.40)
                     "dummy"
-                frag 111 Normal de Texte début 81 fin 82 rect (136.0,42.40 4.0x18.39)
+                frag 111 Normal de Texte début 81 fin 82 rect (136,42.40 4x18.40)
                     " "
-                frag 112 Normal de Texte début 82 fin 83 rect (140.0,42.40 24.0x18.39)
+                frag 112 Normal de Texte début 82 fin 83 rect (140,42.40 24x18.40)
                     "text"
-                frag 113 Normal de Texte début 83 fin 84 rect (164.0,42.40 4.0x18.39)
+                frag 113 Normal de Texte début 83 fin 84 rect (164,42.40 4x18.40)
                     " "
-                frag 114 Normal de Texte début 84 fin 85 rect (168.0,42.40 48.0x18.39)
+                frag 114 Normal de Texte début 84 fin 85 rect (168,42.40 48x18.40)
                     "dummy"
-                frag 115 Normal de Texte début 85 fin 86 rect (216.0,42.40 4.0x18.39)
+                frag 115 Normal de Texte début 85 fin 86 rect (216,42.40 4x18.40)
                     " "
-                frag 116 Normal de Texte début 86 fin 87 rect (220.0,42.40 24.0x18.39)
+                frag 116 Normal de Texte début 86 fin 87 rect (220,42.40 24x18.40)
                     "text"
-                frag 117 Normal de Texte début 87 fin 88 rect (244.0,42.40 4.0x18.39)
+                frag 117 Normal de Texte début 87 fin 88 rect (244,42.40 4x18.40)
                     " "
-                frag 118 Normal de Texte début 88 fin 89 rect (248.0,42.40 48.0x18.39)
+                frag 118 Normal de Texte début 88 fin 89 rect (248,42.40 48x18.40)
                     "dummy"
-                frag 119 Normal de Texte début 89 fin 90 rect (296.0,42.40 4.0x18.39)
+                frag 119 Normal de Texte début 89 fin 90 rect (296,42.40 4x18.40)
                     " "
-                frag 120 Normal de Texte début 90 fin 91 rect (300.0,42.40 24.0x18.39)
+                frag 120 Normal de Texte début 90 fin 91 rect (300,42.40 24x18.40)
                     "text"
-                frag 121 Normal de Texte début 91 fin 92 rect (324.0,42.40 4.0x18.39)
+                frag 121 Normal de Texte début 91 fin 92 rect (324,42.40 4x18.40)
                     " "
-                frag 122 Normal de Texte début 92 fin 93 rect (328.0,42.40 48.0x18.39)
+                frag 122 Normal de Texte début 92 fin 93 rect (328,42.40 48x18.40)
                     "dummy"
-                frag 123 Normal de Texte début 93 fin 94 rect (376.0,42.40 4.0x18.39)
+                frag 123 Normal de Texte début 93 fin 94 rect (376,42.40 4x18.40)
                     " "
-                frag 124 Normal de Texte début 94 fin 95 rect (380.0,42.40 24.0x18.39)
+                frag 124 Normal de Texte début 94 fin 95 rect (380,42.40 24x18.40)
                     "text"
-                frag 125 Normal de Texte début 95 fin 96 rect (404.0,42.40 4.0x18.39)
+                frag 125 Normal de Texte début 95 fin 96 rect (404,42.40 4x18.40)
                     " "
-                frag 126 Normal de Texte début 96 fin 97 rect (408.0,42.40 48.0x18.39)
+                frag 126 Normal de Texte début 96 fin 97 rect (408,42.40 48x18.40)
                     "dummy"
-                frag 127 Normal de Texte début 97 fin 98 rect (456.0,42.40 4.0x18.39)
+                frag 127 Normal de Texte début 97 fin 98 rect (456,42.40 4x18.40)
                     " "
-                frag 128 Normal de Texte début 98 fin 99 rect (460.0,42.40 24.0x18.39)
+                frag 128 Normal de Texte début 98 fin 99 rect (460,42.40 24x18.40)
                     "text"
-                frag 129 Normal de Texte début 99 fin 100 rect (484.0,42.40 4.0x18.39)
+                frag 129 Normal de Texte début 99 fin 100 rect (484,42.40 4x18.40)
                     " "
-                frag 130 Normal de Texte début 100 fin 101 rect (488.0,42.40 48.0x18.39)
+                frag 130 Normal de Texte début 100 fin 101 rect (488,42.40 48x18.40)
                     "dummy"
-                frag 131 Normal de Texte début 101 fin 102 rect (536.0,42.40 4.0x18.39)
+                frag 131 Normal de Texte début 101 fin 102 rect (536,42.40 4x18.40)
                     " "
-                frag 132 Normal de Texte début 102 fin 103 rect (540.0,42.40 24.0x18.39)
+                frag 132 Normal de Texte début 102 fin 103 rect (540,42.40 24x18.40)
                     "text"
-                frag 133 Normal de Texte début 103 fin 104 rect (564.0,42.40 4.0x18.39)
+                frag 133 Normal de Texte début 103 fin 104 rect (564,42.40 4x18.40)
                     " "
-                frag 134 Normal de Texte début 104 fin 105 rect (568.0,42.40 48.0x18.39)
+                frag 134 Normal de Texte début 104 fin 105 rect (568,42.40 48x18.40)
                     "dummy"
-                frag 135 Normal de Texte début 105 fin 106 rect (616.0,42.40 4.0x18.39)
+                frag 135 Normal de Texte début 105 fin 106 rect (616,42.40 4x18.40)
                     " "
-                frag 136 Normal de Texte début 106 fin 107 rect (620.0,42.40 24.0x18.39)
+                frag 136 Normal de Texte début 106 fin 107 rect (620,42.40 24x18.40)
                     "text"
-                frag 137 Normal de Texte début 107 fin 108 rect (644.0,42.40 4.0x18.39)
+                frag 137 Normal de Texte début 107 fin 108 rect (644,42.40 4x18.40)
                     " "
-                frag 138 Normal de Texte début 108 fin 109 rect (648.0,42.40 48.0x18.39)
+                frag 138 Normal de Texte début 108 fin 109 rect (648,42.40 48x18.40)
                     "dummy"
-                frag 139 Normal de Texte début 109 fin 110 rect (696.0,42.40 4.0x18.39)
+                frag 139 Normal de Texte début 109 fin 110 rect (696,42.40 4x18.40)
                     " "
-                frag 140 Normal de Texte début 110 fin 111 rect (700.0,42.40 24.0x18.39)
+                frag 140 Normal de Texte début 110 fin 111 rect (700,42.40 24x18.40)
                     "text"
-                frag 141 Normal de Texte début 111 fin 112 rect (724.0,42.40 4.0x18.39)
+                frag 141 Normal de Texte début 111 fin 112 rect (724,42.40 4x18.40)
                     " "
-                frag 142 Normal de Texte début 112 fin 113 rect (728.0,42.40 48.0x18.39)
+                frag 142 Normal de Texte début 112 fin 113 rect (728,42.40 48x18.40)
                     "dummy"
-                frag 143 Normal de Texte début 113 fin 114 rect (776.0,42.40 4.0x18.39)
+                frag 143 Normal de Texte début 113 fin 114 rect (776,42.40 4x18.40)
                     " "
-                frag 144 Normal de Texte début 114 fin 115 rect (780.0,42.40 24.0x18.39)
+                frag 144 Normal de Texte début 114 fin 115 rect (780,42.40 24x18.40)
                     "text"
-                frag 145 Normal de Texte début 115 fin 116 rect (804.0,42.40 4.0x18.39)
+                frag 145 Normal de Texte début 115 fin 116 rect (804,42.40 4x18.40)
                     " "
-                frag 146 Normal de Texte début 116 fin 117 rect (808.0,42.40 48.0x18.39)
+                frag 146 Normal de Texte début 116 fin 117 rect (808,42.40 48x18.40)
                     "dummy"
-                frag 147 Normal de Texte début 117 fin 118 rect (856.0,42.40 4.0x18.39)
+                frag 147 Normal de Texte début 117 fin 118 rect (856,42.40 4x18.40)
                     " "
-                frag 148 Normal de Texte début 118 fin 119 rect (860.0,42.40 24.0x18.39)
+                frag 148 Normal de Texte début 118 fin 119 rect (860,42.40 24x18.40)
                     "text"
-                frag 149 Normal de Texte début 119 fin 120 rect (884.0,42.40 4.0x18.39)
+                frag 149 Normal de Texte début 119 fin 120 rect (884,42.40 4x18.40)
                     " "
-                frag 150 Normal de Texte début 120 fin 121 rect (888.0,42.40 48.0x18.39)
+                frag 150 Normal de Texte début 120 fin 121 rect (888,42.40 48x18.40)
                     "dummy"
-                frag 151 Normal de Texte début 121 fin 122 rect (936.0,42.40 4.0x18.39)
+                frag 151 Normal de Texte début 121 fin 122 rect (936,42.40 4x18.40)
                     " "
-                frag 152 Normal de Texte début 122 fin 123 rect (940.0,42.40 24.0x18.39)
+                frag 152 Normal de Texte début 122 fin 123 rect (940,42.40 24x18.40)
                     "text"
-                frag 153 Normal de Texte début 123 fin 124 rect (964.0,42.40 4.0x18.39)
+                frag 153 Normal de Texte début 123 fin 124 rect (964,42.40 4x18.40)
                     " "
-                frag 154 Normal de Texte début 124 fin 125 rect (968.0,42.40 48.0x18.39)
+                frag 154 Normal de Texte début 124 fin 125 rect (968,42.40 48x18.40)
                     "dummy"
-                frag 155 Normal de Texte début 125 fin 126 rect (1016.0,42.40 4.0x18.39)
+                frag 155 Normal de Texte début 125 fin 126 rect (1016,42.40 4x18.40)
                     " "
-                frag 156 Normal de Texte début 126 fin 127 rect (1020.0,42.40 24.0x18.39)
+                frag 156 Normal de Texte début 126 fin 127 rect (1020,42.40 24x18.40)
                     "text"
-                frag 157 Normal de Texte début 127 fin 128 rect (1044.0,42.40 4.0x18.39)
+                frag 157 Normal de Texte début 127 fin 128 rect (1044,42.40 4x18.40)
                     " "
-                frag 158 Normal de Texte début 128 fin 129 rect (1048.0,42.40 48.0x18.39)
+                frag 158 Normal de Texte début 128 fin 129 rect (1048,42.40 48x18.40)
                     "dummy"
-                frag 159 Normal de Texte début 129 fin 130 rect (1096.0,42.40 4.0x18.39)
+                frag 159 Normal de Texte début 129 fin 130 rect (1096,42.40 4x18.40)
                     " "
-                frag 160 Normal de Texte début 130 fin 131 rect (1100.0,42.40 24.0x18.39)
+                frag 160 Normal de Texte début 130 fin 131 rect (1100,42.40 24x18.40)
                     "text"
-                frag 161 Normal de Texte début 131 fin 132 rect (1124.0,42.40 4.0x18.39)
+                frag 161 Normal de Texte début 131 fin 132 rect (1124,42.40 4x18.40)
                     " "
-                frag 162 Normal de Texte début 132 fin 133 rect (1128.0,42.40 48.0x18.39)
+                frag 162 Normal de Texte début 132 fin 133 rect (1128,42.40 48x18.40)
                     "dummy"
-                frag 163 Normal de Texte début 133 fin 134 rect (1176.0,42.40 4.0x18.39)
+                frag 163 Normal de Texte début 133 fin 134 rect (1176,42.40 4x18.40)
                     " "
-                frag 164 Normal de Texte début 134 fin 135 rect (1180.0,42.40 24.0x18.39)
+                frag 164 Normal de Texte début 134 fin 135 rect (1180,42.40 24x18.40)
                     "text"
-                frag 165 Normal de Texte début 135 fin 136 rect (1204.0,42.40 4.0x18.39)
+                frag 165 Normal de Texte début 135 fin 136 rect (1204,42.40 4x18.40)
                     " "
-                frag 166 Normal de Texte début 136 fin 137 rect (1208.0,42.40 48.0x18.39)
+                frag 166 Normal de Texte début 136 fin 137 rect (1208,42.40 48x18.40)
                     "dummy"
-                frag 167 Normal de Texte début 137 fin 138 rect (1256.0,42.40 4.0x18.39)
+                frag 167 Normal de Texte début 137 fin 138 rect (1256,42.40 4x18.40)
                     " "
-                frag 168 Normal de Texte début 138 fin 139 rect (1260.0,42.40 24.0x18.39)
+                frag 168 Normal de Texte début 138 fin 139 rect (1260,42.40 24x18.40)
                     "text"
-                frag 169 Normal de Texte début 139 fin 140 rect (1284.0,42.40 4.0x18.39)
+                frag 169 Normal de Texte début 139 fin 140 rect (1284,42.40 4x18.40)
                     " "
-                frag 170 Normal de Texte début 140 fin 141 rect (1288.0,42.40 48.0x18.39)
+                frag 170 Normal de Texte début 140 fin 141 rect (1288,42.40 48x18.40)
                     "dummy"
-                frag 171 Normal de Texte début 141 fin 142 rect (1336.0,42.40 4.0x18.39)
+                frag 171 Normal de Texte début 141 fin 142 rect (1336,42.40 4x18.40)
                     " "
-                frag 172 Normal de Texte début 142 fin 143 rect (1340.0,42.40 24.0x18.39)
+                frag 172 Normal de Texte début 142 fin 143 rect (1340,42.40 24x18.40)
                     "text"
-                frag 173 Normal de Texte début 143 fin 144 rect (1364.0,42.40 4.0x18.39)
+                frag 173 Normal de Texte début 143 fin 144 rect (1364,42.40 4x18.40)
                     " "
-                frag 174 Normal de Texte début 144 fin 145 rect (1368.0,42.40 48.0x18.39)
+                frag 174 Normal de Texte début 144 fin 145 rect (1368,42.40 48x18.40)
                     "dummy"
-                frag 175 Normal de Texte début 145 fin 146 rect (1416.0,42.40 4.0x18.39)
+                frag 175 Normal de Texte début 145 fin 146 rect (1416,42.40 4x18.40)
                     " "
-                frag 176 Normal de Texte début 146 fin 147 rect (1420.0,42.40 24.0x18.39)
+                frag 176 Normal de Texte début 146 fin 147 rect (1420,42.40 24x18.40)
                     "text"
-                frag 177 Normal de Texte début 147 fin 148 rect (1444.0,42.40 4.0x18.39)
+                frag 177 Normal de Texte début 147 fin 148 rect (1444,42.40 4x18.40)
                     " "
-                frag 178 Normal de Texte début 148 fin 149 rect (1448.0,42.40 48.0x18.39)
+                frag 178 Normal de Texte début 148 fin 149 rect (1448,42.40 48x18.40)
                     "dummy"
-                frag 179 Normal de Texte début 149 fin 150 rect (1496.0,42.40 4.0x18.39)
+                frag 179 Normal de Texte début 149 fin 150 rect (1496,42.40 4x18.40)
                     " "
-                frag 180 Normal de Texte début 150 fin 151 rect (1500.0,42.40 24.0x18.39)
+                frag 180 Normal de Texte début 150 fin 151 rect (1500,42.40 24x18.40)
                     "text"
-                frag 181 Normal de Texte début 151 fin 152 rect (1524.0,42.40 4.0x18.39)
+                frag 181 Normal de Texte début 151 fin 152 rect (1524,42.40 4x18.40)
                     " "
-                frag 182 Normal de Texte début 152 fin 153 rect (1528.0,42.40 48.0x18.39)
+                frag 182 Normal de Texte début 152 fin 153 rect (1528,42.40 48x18.40)
                     "dummy"
-                frag 183 Normal de Texte début 153 fin 154 rect (1576.0,42.40 4.0x18.39)
+                frag 183 Normal de Texte début 153 fin 154 rect (1576,42.40 4x18.40)
                     " "
-                frag 184 Normal de Texte début 154 fin 155 rect (1580.0,42.40 24.0x18.39)
+                frag 184 Normal de Texte début 154 fin 155 rect (1580,42.40 24x18.40)
                     "text"
-                frag 185 Normal de Texte début 155 fin 156 rect (1604.0,42.40 4.0x18.39)
+                frag 185 Normal de Texte début 155 fin 156 rect (1604,42.40 4x18.40)
                     " "
-                frag 186 Normal de Texte début 156 fin 157 rect (1608.0,42.40 48.0x18.39)
+                frag 186 Normal de Texte début 156 fin 157 rect (1608,42.40 48x18.40)
                     "dummy"
-                frag 187 Normal de Texte début 157 fin 158 rect (1656.0,42.40 4.0x18.39)
+                frag 187 Normal de Texte début 157 fin 158 rect (1656,42.40 4x18.40)
                     " "
-                frag 188 Normal de Texte début 158 fin 159 rect (1660.0,42.40 24.0x18.39)
+                frag 188 Normal de Texte début 158 fin 159 rect (1660,42.40 24x18.40)
                     "text"
-                frag 189 Normal de Texte début 159 fin 160 rect (1684.0,42.40 4.0x18.39)
+                frag 189 Normal de Texte début 159 fin 160 rect (1684,42.40 4x18.40)
                     " "
-                frag 190 Normal de Texte début 160 fin 161 rect (1688.0,42.40 48.0x18.39)
+                frag 190 Normal de Texte début 160 fin 161 rect (1688,42.40 48x18.40)
                     "dummy"
-                frag 191 Normal de Texte début 161 fin 162 rect (1736.0,42.40 4.0x18.39)
+                frag 191 Normal de Texte début 161 fin 162 rect (1736,42.40 4x18.40)
                     " "
-                frag 192 Normal de Texte début 162 fin 163 rect (1740.0,42.40 24.0x18.39)
+                frag 192 Normal de Texte début 162 fin 163 rect (1740,42.40 24x18.40)
                     "text"
-                frag 193 Normal de Texte début 163 fin 164 rect (1764.0,42.40 4.0x18.39)
+                frag 193 Normal de Texte début 163 fin 164 rect (1764,42.40 4x18.40)
                     " "
-                frag 194 Normal de Texte début 164 fin 165 rect (1768.0,42.40 48.0x18.39)
+                frag 194 Normal de Texte début 164 fin 165 rect (1768,42.40 48x18.40)
                     "dummy"
-                frag 195 Normal de Texte début 165 fin 166 rect (1816.0,42.40 4.0x18.39)
+                frag 195 Normal de Texte début 165 fin 166 rect (1816,42.40 4x18.40)
                     " "
-                frag 196 Normal de Texte début 166 fin 167 rect (1820.0,42.40 24.0x18.39)
+                frag 196 Normal de Texte début 166 fin 167 rect (1820,42.40 24x18.40)
                     "text"
-                frag 197 Normal de Texte début 167 fin 168 rect (1844.0,42.40 4.0x18.39)
+                frag 197 Normal de Texte début 167 fin 168 rect (1844,42.40 4x18.40)
                     " "
-                frag 198 Normal de Texte début 168 fin 169 rect (8.0,60.80 48.0x18.39)
+                frag 198 Normal de Texte début 168 fin 169 rect (8,60.80 48x18.40)
                     "dummy"
-                frag 199 Normal de Texte début 169 fin 170 rect (56.0,60.80 4.0x18.39)
+                frag 199 Normal de Texte début 169 fin 170 rect (56,60.80 4x18.40)
                     " "
-                frag 200 Normal de Texte début 170 fin 171 rect (60.0,60.80 24.0x18.39)
+                frag 200 Normal de Texte début 170 fin 171 rect (60,60.80 24x18.40)
                     "text"
-                frag 201 Normal de Texte début 171 fin 172 rect (84.0,60.80 4.0x18.39)
+                frag 201 Normal de Texte début 171 fin 172 rect (84,60.80 4x18.40)
                     " "
-                frag 202 Normal de Texte début 172 fin 173 rect (88.0,60.80 48.0x18.39)
+                frag 202 Normal de Texte début 172 fin 173 rect (88,60.80 48x18.40)
                     "dummy"
-                frag 203 Normal de Texte début 173 fin 174 rect (136.0,60.80 4.0x18.39)
+                frag 203 Normal de Texte début 173 fin 174 rect (136,60.80 4x18.40)
                     " "
-                frag 204 Normal de Texte début 174 fin 175 rect (140.0,60.80 24.0x18.39)
+                frag 204 Normal de Texte début 174 fin 175 rect (140,60.80 24x18.40)
                     "text"
-                frag 205 Normal de Texte début 175 fin 176 rect (164.0,60.80 4.0x18.39)
+                frag 205 Normal de Texte début 175 fin 176 rect (164,60.80 4x18.40)
                     " "
-                frag 206 Normal de Texte début 176 fin 177 rect (168.0,60.80 48.0x18.39)
+                frag 206 Normal de Texte début 176 fin 177 rect (168,60.80 48x18.40)
                     "dummy"
-                frag 207 Normal de Texte début 177 fin 178 rect (216.0,60.80 4.0x18.39)
+                frag 207 Normal de Texte début 177 fin 178 rect (216,60.80 4x18.40)
                     " "
-                frag 208 Normal de Texte début 178 fin 179 rect (220.0,60.80 24.0x18.39)
+                frag 208 Normal de Texte début 178 fin 179 rect (220,60.80 24x18.40)
                     "text"
-                frag 209 Normal de Texte début 179 fin 180 rect (244.0,60.80 4.0x18.39)
+                frag 209 Normal de Texte début 179 fin 180 rect (244,60.80 4x18.40)
                     " "
-                frag 210 Normal de Texte début 180 fin 181 rect (248.0,60.80 48.0x18.39)
+                frag 210 Normal de Texte début 180 fin 181 rect (248,60.80 48x18.40)
                     "dummy"
-                frag 211 Normal de Texte début 181 fin 182 rect (296.0,60.80 4.0x18.39)
+                frag 211 Normal de Texte début 181 fin 182 rect (296,60.80 4x18.40)
                     " "
-                frag 212 Normal de Texte début 182 fin 183 rect (300.0,60.80 24.0x18.39)
+                frag 212 Normal de Texte début 182 fin 183 rect (300,60.80 24x18.40)
                     "text"
-                frag 213 Normal de Texte début 183 fin 184 rect (324.0,60.80 4.0x18.39)
+                frag 213 Normal de Texte début 183 fin 184 rect (324,60.80 4x18.40)
                     " "
-                frag 214 Normal de Texte début 184 fin 185 rect (328.0,60.80 48.0x18.39)
+                frag 214 Normal de Texte début 184 fin 185 rect (328,60.80 48x18.40)
                     "dummy"
-                frag 215 Normal de Texte début 185 fin 186 rect (376.0,60.80 4.0x18.39)
+                frag 215 Normal de Texte début 185 fin 186 rect (376,60.80 4x18.40)
                     " "
-                frag 216 Normal de Texte début 186 fin 187 rect (380.0,60.80 24.0x18.39)
+                frag 216 Normal de Texte début 186 fin 187 rect (380,60.80 24x18.40)
                     "text"
-                frag 217 Normal de Texte début 187 fin 188 rect (404.0,60.80 4.0x18.39)
+                frag 217 Normal de Texte début 187 fin 188 rect (404,60.80 4x18.40)
                     " "
-                frag 218 Normal de Texte début 188 fin 189 rect (408.0,60.80 48.0x18.39)
+                frag 218 Normal de Texte début 188 fin 189 rect (408,60.80 48x18.40)
                     "dummy"
-                frag 219 Normal de Texte début 189 fin 190 rect (456.0,60.80 4.0x18.39)
+                frag 219 Normal de Texte début 189 fin 190 rect (456,60.80 4x18.40)
                     " "
-                frag 220 Normal de Texte début 190 fin 191 rect (460.0,60.80 24.0x18.39)
+                frag 220 Normal de Texte début 190 fin 191 rect (460,60.80 24x18.40)
                     "text"
-                frag 221 Normal de Texte début 191 fin 192 rect (484.0,60.80 4.0x18.39)
+                frag 221 Normal de Texte début 191 fin 192 rect (484,60.80 4x18.40)
                     " "
-                frag 222 Normal de Texte début 192 fin 193 rect (488.0,60.80 48.0x18.39)
+                frag 222 Normal de Texte début 192 fin 193 rect (488,60.80 48x18.40)
                     "dummy"
-                frag 223 Normal de Texte début 193 fin 194 rect (536.0,60.80 4.0x18.39)
+                frag 223 Normal de Texte début 193 fin 194 rect (536,60.80 4x18.40)
                     " "
-                frag 224 Normal de Texte début 194 fin 195 rect (540.0,60.80 24.0x18.39)
+                frag 224 Normal de Texte début 194 fin 195 rect (540,60.80 24x18.40)
                     "text"
-                frag 225 Normal de Texte début 195 fin 196 rect (564.0,60.80 4.0x18.39)
+                frag 225 Normal de Texte début 195 fin 196 rect (564,60.80 4x18.40)
                     " "
-                frag 226 Normal de Texte début 196 fin 197 rect (568.0,60.80 48.0x18.39)
+                frag 226 Normal de Texte début 196 fin 197 rect (568,60.80 48x18.40)
                     "dummy"
-                frag 227 Normal de Texte début 197 fin 198 rect (616.0,60.80 4.0x18.39)
+                frag 227 Normal de Texte début 197 fin 198 rect (616,60.80 4x18.40)
                     " "
-                frag 228 Normal de Texte début 198 fin 199 rect (620.0,60.80 24.0x18.39)
+                frag 228 Normal de Texte début 198 fin 199 rect (620,60.80 24x18.40)
                     "text"
-                frag 229 Normal de Texte début 199 fin 200 rect (644.0,60.80 4.0x18.39)
+                frag 229 Normal de Texte début 199 fin 200 rect (644,60.80 4x18.40)
                     " "
-                frag 230 Normal de Texte début 200 fin 201 rect (648.0,60.80 48.0x18.39)
+                frag 230 Normal de Texte début 200 fin 201 rect (648,60.80 48x18.40)
                     "dummy"
-                frag 231 Normal de Texte début 201 fin 202 rect (696.0,60.80 4.0x18.39)
+                frag 231 Normal de Texte début 201 fin 202 rect (696,60.80 4x18.40)
                     " "
-                frag 232 Normal de Texte début 202 fin 203 rect (700.0,60.80 24.0x18.39)
+                frag 232 Normal de Texte début 202 fin 203 rect (700,60.80 24x18.40)
                     "text"
-                frag 233 Normal de Texte début 203 fin 204 rect (724.0,60.80 4.0x18.39)
+                frag 233 Normal de Texte début 203 fin 204 rect (724,60.80 4x18.40)
                     " "
-                frag 234 Normal de Texte début 204 fin 205 rect (728.0,60.80 48.0x18.39)
+                frag 234 Normal de Texte début 204 fin 205 rect (728,60.80 48x18.40)
                     "dummy"
-                frag 235 Normal de Texte début 205 fin 206 rect (776.0,60.80 4.0x18.39)
+                frag 235 Normal de Texte début 205 fin 206 rect (776,60.80 4x18.40)
                     " "
-                frag 236 Normal de Texte début 206 fin 207 rect (780.0,60.80 24.0x18.39)
+                frag 236 Normal de Texte début 206 fin 207 rect (780,60.80 24x18.40)
                     "text"
-                frag 237 Normal de Texte début 207 fin 208 rect (804.0,60.80 4.0x18.39)
+                frag 237 Normal de Texte début 207 fin 208 rect (804,60.80 4x18.40)
                     " "
-                frag 238 Normal de Texte début 208 fin 209 rect (808.0,60.80 48.0x18.39)
+                frag 238 Normal de Texte début 208 fin 209 rect (808,60.80 48x18.40)
                     "dummy"
-                frag 239 Normal de Texte début 209 fin 210 rect (856.0,60.80 4.0x18.39)
+                frag 239 Normal de Texte début 209 fin 210 rect (856,60.80 4x18.40)
                     " "
-                frag 240 Normal de Texte début 210 fin 211 rect (860.0,60.80 24.0x18.39)
+                frag 240 Normal de Texte début 210 fin 211 rect (860,60.80 24x18.40)
                     "text"
-                frag 241 Normal de Texte début 211 fin 212 rect (884.0,60.80 4.0x18.39)
+                frag 241 Normal de Texte début 211 fin 212 rect (884,60.80 4x18.40)
                     " "
-                frag 242 Normal de Texte début 212 fin 213 rect (888.0,60.80 48.0x18.39)
+                frag 242 Normal de Texte début 212 fin 213 rect (888,60.80 48x18.40)
                     "dummy"
-                frag 243 Normal de Texte début 213 fin 214 rect (936.0,60.80 4.0x18.39)
+                frag 243 Normal de Texte début 213 fin 214 rect (936,60.80 4x18.40)
                     " "
-                frag 244 Normal de Texte début 214 fin 215 rect (940.0,60.80 24.0x18.39)
+                frag 244 Normal de Texte début 214 fin 215 rect (940,60.80 24x18.40)
                     "text"
-                frag 245 Normal de Texte début 215 fin 216 rect (964.0,60.80 4.0x18.39)
+                frag 245 Normal de Texte début 215 fin 216 rect (964,60.80 4x18.40)
                     " "
-                frag 246 Normal de Texte début 216 fin 217 rect (968.0,60.80 48.0x18.39)
+                frag 246 Normal de Texte début 216 fin 217 rect (968,60.80 48x18.40)
                     "dummy"
-                frag 247 Normal de Texte début 217 fin 218 rect (1016.0,60.80 4.0x18.39)
+                frag 247 Normal de Texte début 217 fin 218 rect (1016,60.80 4x18.40)
                     " "
-                frag 248 Normal de Texte début 218 fin 219 rect (1020.0,60.80 24.0x18.39)
+                frag 248 Normal de Texte début 218 fin 219 rect (1020,60.80 24x18.40)
                     "text"
-                frag 249 Normal de Texte début 219 fin 220 rect (1044.0,60.80 4.0x18.39)
+                frag 249 Normal de Texte début 219 fin 220 rect (1044,60.80 4x18.40)
                     " "
-                frag 250 Normal de Texte début 220 fin 221 rect (1048.0,60.80 48.0x18.39)
+                frag 250 Normal de Texte début 220 fin 221 rect (1048,60.80 48x18.40)
                     "dummy"
-                frag 251 Normal de Texte début 221 fin 222 rect (1096.0,60.80 4.0x18.39)
+                frag 251 Normal de Texte début 221 fin 222 rect (1096,60.80 4x18.40)
                     " "
-                frag 252 Normal de Texte début 222 fin 223 rect (1100.0,60.80 24.0x18.39)
+                frag 252 Normal de Texte début 222 fin 223 rect (1100,60.80 24x18.40)
                     "text"
-                frag 253 Normal de Texte début 223 fin 224 rect (1124.0,60.80 4.0x18.39)
+                frag 253 Normal de Texte début 223 fin 224 rect (1124,60.80 4x18.40)
                     " "
-                frag 254 Normal de Texte début 224 fin 225 rect (1128.0,60.80 48.0x18.39)
+                frag 254 Normal de Texte début 224 fin 225 rect (1128,60.80 48x18.40)
                     "dummy"
-                frag 255 Normal de Texte début 225 fin 226 rect (1176.0,60.80 4.0x18.39)
+                frag 255 Normal de Texte début 225 fin 226 rect (1176,60.80 4x18.40)
                     " "
-                frag 256 Normal de Texte début 226 fin 227 rect (1180.0,60.80 24.0x18.39)
+                frag 256 Normal de Texte début 226 fin 227 rect (1180,60.80 24x18.40)
                     "text"
-                frag 257 Normal de Texte début 227 fin 228 rect (1204.0,60.80 4.0x18.39)
+                frag 257 Normal de Texte début 227 fin 228 rect (1204,60.80 4x18.40)
                     " "
-                frag 258 Normal de Texte début 228 fin 229 rect (1208.0,60.80 48.0x18.39)
+                frag 258 Normal de Texte début 228 fin 229 rect (1208,60.80 48x18.40)
                     "dummy"
-                frag 259 Normal de Texte début 229 fin 230 rect (1256.0,60.80 4.0x18.39)
+                frag 259 Normal de Texte début 229 fin 230 rect (1256,60.80 4x18.40)
                     " "
-                frag 260 Normal de Texte début 230 fin 231 rect (1260.0,60.80 24.0x18.39)
+                frag 260 Normal de Texte début 230 fin 231 rect (1260,60.80 24x18.40)
                     "text"
-                frag 261 Normal de Texte début 231 fin 232 rect (1284.0,60.80 4.0x18.39)
+                frag 261 Normal de Texte début 231 fin 232 rect (1284,60.80 4x18.40)
                     " "
-                frag 262 Normal de Texte début 232 fin 233 rect (1288.0,60.80 48.0x18.39)
+                frag 262 Normal de Texte début 232 fin 233 rect (1288,60.80 48x18.40)
                     "dummy"
-                frag 263 Normal de Texte début 233 fin 234 rect (1336.0,60.80 4.0x18.39)
+                frag 263 Normal de Texte début 233 fin 234 rect (1336,60.80 4x18.40)
                     " "
-                frag 264 Normal de Texte début 234 fin 235 rect (1340.0,60.80 24.0x18.39)
+                frag 264 Normal de Texte début 234 fin 235 rect (1340,60.80 24x18.40)
                     "text"
-                frag 265 Normal de Texte début 235 fin 236 rect (1364.0,60.80 4.0x18.39)
+                frag 265 Normal de Texte début 235 fin 236 rect (1364,60.80 4x18.40)
                     " "
-                frag 266 Normal de Texte début 236 fin 237 rect (1368.0,60.80 48.0x18.39)
+                frag 266 Normal de Texte début 236 fin 237 rect (1368,60.80 48x18.40)
                     "dummy"
-                frag 267 Normal de Texte début 237 fin 238 rect (1416.0,60.80 4.0x18.39)
+                frag 267 Normal de Texte début 237 fin 238 rect (1416,60.80 4x18.40)
                     " "
-                frag 268 Normal de Texte début 238 fin 239 rect (1420.0,60.80 24.0x18.39)
+                frag 268 Normal de Texte début 238 fin 239 rect (1420,60.80 24x18.40)
                     "text"
-                frag 269 Normal de Texte début 239 fin 240 rect (1444.0,60.80 4.0x18.39)
+                frag 269 Normal de Texte début 239 fin 240 rect (1444,60.80 4x18.40)
                     " "
-                frag 270 Normal de Texte début 240 fin 241 rect (1448.0,60.80 48.0x18.39)
+                frag 270 Normal de Texte début 240 fin 241 rect (1448,60.80 48x18.40)
                     "dummy"
-                frag 271 Normal de Texte début 241 fin 242 rect (1496.0,60.80 4.0x18.39)
+                frag 271 Normal de Texte début 241 fin 242 rect (1496,60.80 4x18.40)
                     " "
-                frag 272 Normal de Texte début 242 fin 243 rect (1500.0,60.80 24.0x18.39)
+                frag 272 Normal de Texte début 242 fin 243 rect (1500,60.80 24x18.40)
                     "text"
-                frag 273 Normal de Texte début 243 fin 244 rect (1524.0,60.80 4.0x18.39)
+                frag 273 Normal de Texte début 243 fin 244 rect (1524,60.80 4x18.40)
                     " "
-                frag 274 Normal de Texte début 244 fin 245 rect (1528.0,60.80 48.0x18.39)
+                frag 274 Normal de Texte début 244 fin 245 rect (1528,60.80 48x18.40)
                     "dummy"
-                frag 275 Normal de Texte début 245 fin 246 rect (1576.0,60.80 4.0x18.39)
+                frag 275 Normal de Texte début 245 fin 246 rect (1576,60.80 4x18.40)
                     " "
-                frag 276 Normal de Texte début 246 fin 247 rect (1580.0,60.80 24.0x18.39)
+                frag 276 Normal de Texte début 246 fin 247 rect (1580,60.80 24x18.40)
                     "text"
-                frag 277 Normal de Texte début 247 fin 248 rect (1604.0,60.80 4.0x18.39)
+                frag 277 Normal de Texte début 247 fin 248 rect (1604,60.80 4x18.40)
                     " "
-                frag 278 Normal de Texte début 248 fin 249 rect (1608.0,60.80 48.0x18.39)
+                frag 278 Normal de Texte début 248 fin 249 rect (1608,60.80 48x18.40)
                     "dummy"
-                frag 279 Normal de Texte début 249 fin 250 rect (1656.0,60.80 4.0x18.39)
+                frag 279 Normal de Texte début 249 fin 250 rect (1656,60.80 4x18.40)
                     " "
-                frag 280 Normal de Texte début 250 fin 251 rect (1660.0,60.80 24.0x18.39)
+                frag 280 Normal de Texte début 250 fin 251 rect (1660,60.80 24x18.40)
                     "text"
-                frag 281 Normal de Texte début 251 fin 252 rect (1684.0,60.80 4.0x18.39)
+                frag 281 Normal de Texte début 251 fin 252 rect (1684,60.80 4x18.40)
                     " "
-                frag 282 Normal de Texte début 252 fin 253 rect (1688.0,60.80 48.0x18.39)
+                frag 282 Normal de Texte début 252 fin 253 rect (1688,60.80 48x18.40)
                     "dummy"
-                frag 283 Normal de Texte début 253 fin 254 rect (1736.0,60.80 4.0x18.39)
+                frag 283 Normal de Texte début 253 fin 254 rect (1736,60.80 4x18.40)
                     " "
-                frag 284 Normal de Texte début 254 fin 255 rect (1740.0,60.80 24.0x18.39)
+                frag 284 Normal de Texte début 254 fin 255 rect (1740,60.80 24x18.40)
                     "text"
-                frag 285 Normal de Texte début 255 fin 256 rect (1764.0,60.80 4.0x18.39)
+                frag 285 Normal de Texte début 255 fin 256 rect (1764,60.80 4x18.40)
                     " "
-                frag 286 Normal de Texte début 256 fin 257 rect (1768.0,60.80 48.0x18.39)
+                frag 286 Normal de Texte début 256 fin 257 rect (1768,60.80 48x18.40)
                     "dummy"
-                frag 287 Normal de Texte début 257 fin 258 rect (1816.0,60.80 4.0x18.39)
+                frag 287 Normal de Texte début 257 fin 258 rect (1816,60.80 4x18.40)
                     " "
-                frag 288 Normal de Texte début 258 fin 259 rect (1820.0,60.80 24.0x18.39)
+                frag 288 Normal de Texte début 258 fin 259 rect (1820,60.80 24x18.40)
                     "text"
-                frag 289 Normal de Texte début 259 fin 260 rect (1844.0,60.80 4.0x18.39)
+                frag 289 Normal de Texte début 259 fin 260 rect (1844,60.80 4x18.40)
                     " "
-                frag 290 Normal de Texte début 260 fin 261 rect (8.0,79.20 48.0x18.39)
+                frag 290 Normal de Texte début 260 fin 261 rect (8,79.20 48x18.40)
                     "dummy"
-                frag 291 Normal de Texte début 261 fin 262 rect (56.0,79.20 4.0x18.39)
+                frag 291 Normal de Texte début 261 fin 262 rect (56,79.20 4x18.40)
                     " "
-                frag 292 Normal de Texte début 262 fin 263 rect (60.0,79.20 24.0x18.39)
+                frag 292 Normal de Texte début 262 fin 263 rect (60,79.20 24x18.40)
                     "text"
-                frag 293 Normal de Texte début 263 fin 264 rect (84.0,79.20 4.0x18.39)
+                frag 293 Normal de Texte début 263 fin 264 rect (84,79.20 4x18.40)
                     " "
-                frag 294 Normal de Texte début 264 fin 265 rect (88.0,79.20 48.0x18.39)
+                frag 294 Normal de Texte début 264 fin 265 rect (88,79.20 48x18.40)
                     "dummy"
-                frag 295 Normal de Texte début 265 fin 266 rect (136.0,79.20 4.0x18.39)
+                frag 295 Normal de Texte début 265 fin 266 rect (136,79.20 4x18.40)
                     " "
-                frag 296 Normal de Texte début 266 fin 267 rect (140.0,79.20 24.0x18.39)
+                frag 296 Normal de Texte début 266 fin 267 rect (140,79.20 24x18.40)
                     "text"
-                frag 297 Normal de Texte début 267 fin 268 rect (164.0,79.20 4.0x18.39)
+                frag 297 Normal de Texte début 267 fin 268 rect (164,79.20 4x18.40)
                     " "
-                frag 298 Normal de Texte début 268 fin 269 rect (168.0,79.20 48.0x18.39)
+                frag 298 Normal de Texte début 268 fin 269 rect (168,79.20 48x18.40)
                     "dummy"
-                frag 299 Normal de Texte début 269 fin 270 rect (216.0,79.20 4.0x18.39)
+                frag 299 Normal de Texte début 269 fin 270 rect (216,79.20 4x18.40)
                     " "
-                frag 300 Normal de Texte début 270 fin 271 rect (220.0,79.20 24.0x18.39)
+                frag 300 Normal de Texte début 270 fin 271 rect (220,79.20 24x18.40)
                     "text"
-                frag 301 Normal de Texte début 271 fin 272 rect (244.0,79.20 4.0x18.39)
+                frag 301 Normal de Texte début 271 fin 272 rect (244,79.20 4x18.40)
                     " "
-                frag 302 Normal de Texte début 272 fin 273 rect (248.0,79.20 48.0x18.39)
+                frag 302 Normal de Texte début 272 fin 273 rect (248,79.20 48x18.40)
                     "dummy"
-                frag 303 Normal de Texte début 273 fin 274 rect (296.0,79.20 4.0x18.39)
+                frag 303 Normal de Texte début 273 fin 274 rect (296,79.20 4x18.40)
                     " "
-                frag 304 Normal de Texte début 274 fin 275 rect (300.0,79.20 24.0x18.39)
+                frag 304 Normal de Texte début 274 fin 275 rect (300,79.20 24x18.40)
                     "text"
-                frag 305 Normal de Texte début 275 fin 276 rect (324.0,79.20 4.0x18.39)
+                frag 305 Normal de Texte début 275 fin 276 rect (324,79.20 4x18.40)
                     " "
-                frag 306 Normal de Texte début 276 fin 277 rect (328.0,79.20 48.0x18.39)
+                frag 306 Normal de Texte début 276 fin 277 rect (328,79.20 48x18.40)
                     "dummy"
-                frag 307 Normal de Texte début 277 fin 278 rect (376.0,79.20 4.0x18.39)
+                frag 307 Normal de Texte début 277 fin 278 rect (376,79.20 4x18.40)
                     " "
-                frag 308 Normal de Texte début 278 fin 279 rect (380.0,79.20 24.0x18.39)
+                frag 308 Normal de Texte début 278 fin 279 rect (380,79.20 24x18.40)
                     "text"
-                frag 309 Normal de Texte début 279 fin 280 rect (404.0,79.20 4.0x18.39)
+                frag 309 Normal de Texte début 279 fin 280 rect (404,79.20 4x18.40)
                     " "
-                frag 310 Normal de Texte début 280 fin 281 rect (408.0,79.20 48.0x18.39)
+                frag 310 Normal de Texte début 280 fin 281 rect (408,79.20 48x18.40)
                     "dummy"
-                frag 311 Normal de Texte début 281 fin 282 rect (456.0,79.20 4.0x18.39)
+                frag 311 Normal de Texte début 281 fin 282 rect (456,79.20 4x18.40)
                     " "
-                frag 312 Normal de Texte début 282 fin 283 rect (460.0,79.20 24.0x18.39)
+                frag 312 Normal de Texte début 282 fin 283 rect (460,79.20 24x18.40)
                     "text"
-                frag 313 Normal de Texte début 283 fin 284 rect (484.0,79.20 4.0x18.39)
+                frag 313 Normal de Texte début 283 fin 284 rect (484,79.20 4x18.40)
                     " "
-                frag 314 Normal de Texte début 284 fin 285 rect (488.0,79.20 48.0x18.39)
+                frag 314 Normal de Texte début 284 fin 285 rect (488,79.20 48x18.40)
                     "dummy"
-                frag 315 Normal de Texte début 285 fin 286 rect (536.0,79.20 4.0x18.39)
+                frag 315 Normal de Texte début 285 fin 286 rect (536,79.20 4x18.40)
                     " "
-                frag 316 Normal de Texte début 286 fin 287 rect (540.0,79.20 24.0x18.39)
+                frag 316 Normal de Texte début 286 fin 287 rect (540,79.20 24x18.40)
                     "text"
-                frag 317 Normal de Texte début 287 fin 288 rect (564.0,79.20 4.0x18.39)
+                frag 317 Normal de Texte début 287 fin 288 rect (564,79.20 4x18.40)
                     " "
-                frag 318 Normal de Texte début 288 fin 289 rect (568.0,79.20 48.0x18.39)
+                frag 318 Normal de Texte début 288 fin 289 rect (568,79.20 48x18.40)
                     "dummy"
-                frag 319 Normal de Texte début 289 fin 290 rect (616.0,79.20 4.0x18.39)
+                frag 319 Normal de Texte début 289 fin 290 rect (616,79.20 4x18.40)
                     " "
-                frag 320 Normal de Texte début 290 fin 291 rect (620.0,79.20 24.0x18.39)
+                frag 320 Normal de Texte début 290 fin 291 rect (620,79.20 24x18.40)
                     "text"
-                frag 321 Normal de Texte début 291 fin 292 rect (644.0,79.20 4.0x18.39)
+                frag 321 Normal de Texte début 291 fin 292 rect (644,79.20 4x18.40)
                     " "
-                frag 322 Normal de Texte début 292 fin 293 rect (648.0,79.20 48.0x18.39)
+                frag 322 Normal de Texte début 292 fin 293 rect (648,79.20 48x18.40)
                     "dummy"
-                frag 323 Normal de Texte début 293 fin 294 rect (696.0,79.20 4.0x18.39)
+                frag 323 Normal de Texte début 293 fin 294 rect (696,79.20 4x18.40)
                     " "
-                frag 324 Normal de Texte début 294 fin 295 rect (700.0,79.20 24.0x18.39)
+                frag 324 Normal de Texte début 294 fin 295 rect (700,79.20 24x18.40)
                     "text"
-                frag 325 Normal de Texte début 295 fin 296 rect (724.0,79.20 4.0x18.39)
+                frag 325 Normal de Texte début 295 fin 296 rect (724,79.20 4x18.40)
                     " "
-                frag 326 Normal de Texte début 296 fin 297 rect (728.0,79.20 48.0x18.39)
+                frag 326 Normal de Texte début 296 fin 297 rect (728,79.20 48x18.40)
                     "dummy"
-                frag 327 Normal de Texte début 297 fin 298 rect (776.0,79.20 4.0x18.39)
+                frag 327 Normal de Texte début 297 fin 298 rect (776,79.20 4x18.40)
                     " "
-                frag 328 Normal de Texte début 298 fin 299 rect (780.0,79.20 24.0x18.39)
+                frag 328 Normal de Texte début 298 fin 299 rect (780,79.20 24x18.40)
                     "text"
-                frag 329 Normal de Texte début 299 fin 300 rect (804.0,79.20 4.0x18.39)
+                frag 329 Normal de Texte début 299 fin 300 rect (804,79.20 4x18.40)
                     " "
-                frag 330 Normal de Texte début 300 fin 301 rect (808.0,79.20 48.0x18.39)
+                frag 330 Normal de Texte début 300 fin 301 rect (808,79.20 48x18.40)
                     "dummy"
-                frag 331 Normal de Texte début 301 fin 302 rect (856.0,79.20 4.0x18.39)
+                frag 331 Normal de Texte début 301 fin 302 rect (856,79.20 4x18.40)
                     " "
-                frag 332 Normal de Texte début 302 fin 303 rect (860.0,79.20 24.0x18.39)
+                frag 332 Normal de Texte début 302 fin 303 rect (860,79.20 24x18.40)
                     "text"
-                frag 333 Normal de Texte début 303 fin 304 rect (884.0,79.20 4.0x18.39)
+                frag 333 Normal de Texte début 303 fin 304 rect (884,79.20 4x18.40)
                     " "
-                frag 334 Normal de Texte début 304 fin 305 rect (888.0,79.20 48.0x18.39)
+                frag 334 Normal de Texte début 304 fin 305 rect (888,79.20 48x18.40)
                     "dummy"
-                frag 335 Normal de Texte début 305 fin 306 rect (936.0,79.20 4.0x18.39)
+                frag 335 Normal de Texte début 305 fin 306 rect (936,79.20 4x18.40)
                     " "
-                frag 336 Normal de Texte début 306 fin 307 rect (940.0,79.20 24.0x18.39)
+                frag 336 Normal de Texte début 306 fin 307 rect (940,79.20 24x18.40)
                     "text"
-                frag 337 Normal de Texte début 307 fin 308 rect (964.0,79.20 4.0x18.39)
+                frag 337 Normal de Texte début 307 fin 308 rect (964,79.20 4x18.40)
                     " "
-                frag 338 Normal de Texte début 308 fin 309 rect (968.0,79.20 48.0x18.39)
+                frag 338 Normal de Texte début 308 fin 309 rect (968,79.20 48x18.40)
                     "dummy"
-                frag 339 Normal de Texte début 309 fin 310 rect (1016.0,79.20 4.0x18.39)
+                frag 339 Normal de Texte début 309 fin 310 rect (1016,79.20 4x18.40)
                     " "
-                frag 340 Normal de Texte début 310 fin 311 rect (1020.0,79.20 24.0x18.39)
+                frag 340 Normal de Texte début 310 fin 311 rect (1020,79.20 24x18.40)
                     "text"
-                frag 341 Normal de Texte début 311 fin 312 rect (1044.0,79.20 4.0x18.39)
+                frag 341 Normal de Texte début 311 fin 312 rect (1044,79.20 4x18.40)
                     " "
-                frag 342 Normal de Texte début 312 fin 313 rect (1048.0,79.20 48.0x18.39)
+                frag 342 Normal de Texte début 312 fin 313 rect (1048,79.20 48x18.40)
                     "dummy"
-                frag 343 Normal de Texte début 313 fin 314 rect (1096.0,79.20 4.0x18.39)
+                frag 343 Normal de Texte début 313 fin 314 rect (1096,79.20 4x18.40)
                     " "
-                frag 344 Normal de Texte début 314 fin 315 rect (1100.0,79.20 24.0x18.39)
+                frag 344 Normal de Texte début 314 fin 315 rect (1100,79.20 24x18.40)
                     "text"
-                frag 345 Normal de Texte début 315 fin 316 rect (1124.0,79.20 4.0x18.39)
+                frag 345 Normal de Texte début 315 fin 316 rect (1124,79.20 4x18.40)
                     " "
-                frag 346 Normal de Texte début 316 fin 317 rect (1128.0,79.20 48.0x18.39)
+                frag 346 Normal de Texte début 316 fin 317 rect (1128,79.20 48x18.40)
                     "dummy"
-                frag 347 Normal de Texte début 317 fin 318 rect (1176.0,79.20 4.0x18.39)
+                frag 347 Normal de Texte début 317 fin 318 rect (1176,79.20 4x18.40)
                     " "
-                frag 348 Normal de Texte début 318 fin 319 rect (1180.0,79.20 24.0x18.39)
+                frag 348 Normal de Texte début 318 fin 319 rect (1180,79.20 24x18.40)
                     "text"
-                frag 349 Normal de Texte début 319 fin 320 rect (1204.0,79.20 4.0x18.39)
+                frag 349 Normal de Texte début 319 fin 320 rect (1204,79.20 4x18.40)
                     " "
-                frag 350 Normal de Texte début 320 fin 321 rect (1208.0,79.20 48.0x18.39)
+                frag 350 Normal de Texte début 320 fin 321 rect (1208,79.20 48x18.40)
                     "dummy"
-                frag 351 Normal de Texte début 321 fin 322 rect (1256.0,79.20 4.0x18.39)
+                frag 351 Normal de Texte début 321 fin 322 rect (1256,79.20 4x18.40)
                     " "
-                frag 352 Normal de Texte début 322 fin 323 rect (1260.0,79.20 24.0x18.39)
+                frag 352 Normal de Texte début 322 fin 323 rect (1260,79.20 24x18.40)
                     "text"
-                frag 353 Normal de Texte début 323 fin 324 rect (1284.0,79.20 4.0x18.39)
+                frag 353 Normal de Texte début 323 fin 324 rect (1284,79.20 4x18.40)
                     " "
-                frag 354 Normal de Texte début 324 fin 325 rect (1288.0,79.20 48.0x18.39)
+                frag 354 Normal de Texte début 324 fin 325 rect (1288,79.20 48x18.40)
                     "dummy"
-                frag 355 Normal de Texte début 325 fin 326 rect (1336.0,79.20 4.0x18.39)
+                frag 355 Normal de Texte début 325 fin 326 rect (1336,79.20 4x18.40)
                     " "
-                frag 356 Normal de Texte début 326 fin 327 rect (1340.0,79.20 24.0x18.39)
+                frag 356 Normal de Texte début 326 fin 327 rect (1340,79.20 24x18.40)
                     "text"
-                frag 357 Normal de Texte début 327 fin 328 rect (1364.0,79.20 4.0x18.39)
+                frag 357 Normal de Texte début 327 fin 328 rect (1364,79.20 4x18.40)
                     " "
-                frag 358 Normal de Texte début 328 fin 329 rect (1368.0,79.20 48.0x18.39)
+                frag 358 Normal de Texte début 328 fin 329 rect (1368,79.20 48x18.40)
                     "dummy"
-                frag 359 Normal de Texte début 329 fin 330 rect (1416.0,79.20 4.0x18.39)
+                frag 359 Normal de Texte début 329 fin 330 rect (1416,79.20 4x18.40)
                     " "
-                frag 360 Normal de Texte début 330 fin 331 rect (1420.0,79.20 24.0x18.39)
+                frag 360 Normal de Texte début 330 fin 331 rect (1420,79.20 24x18.40)
                     "text"
-                frag 361 Normal de Texte début 331 fin 332 rect (1444.0,79.20 4.0x18.39)
+                frag 361 Normal de Texte début 331 fin 332 rect (1444,79.20 4x18.40)
                     " "
-                frag 362 Normal de Texte début 332 fin 333 rect (1448.0,79.20 48.0x18.39)
+                frag 362 Normal de Texte début 332 fin 333 rect (1448,79.20 48x18.40)
                     "dummy"
-                frag 363 Normal de Texte début 333 fin 334 rect (1496.0,79.20 4.0x18.39)
+                frag 363 Normal de Texte début 333 fin 334 rect (1496,79.20 4x18.40)
                     " "
-                frag 364 Normal de Texte début 334 fin 335 rect (1500.0,79.20 24.0x18.39)
+                frag 364 Normal de Texte début 334 fin 335 rect (1500,79.20 24x18.40)
                     "text"
-                frag 365 Normal de Texte début 335 fin 336 rect (1524.0,79.20 4.0x18.39)
+                frag 365 Normal de Texte début 335 fin 336 rect (1524,79.20 4x18.40)
                     " "
-                frag 366 Normal de Texte début 336 fin 337 rect (1528.0,79.20 48.0x18.39)
+                frag 366 Normal de Texte début 336 fin 337 rect (1528,79.20 48x18.40)
                     "dummy"
-                frag 367 Normal de Texte début 337 fin 338 rect (1576.0,79.20 4.0x18.39)
+                frag 367 Normal de Texte début 337 fin 338 rect (1576,79.20 4x18.40)
                     " "
-                frag 368 Normal de Texte début 338 fin 339 rect (1580.0,79.20 24.0x18.39)
+                frag 368 Normal de Texte début 338 fin 339 rect (1580,79.20 24x18.40)
                     "text"
-                frag 369 Normal de Texte début 339 fin 340 rect (1604.0,79.20 4.0x18.39)
+                frag 369 Normal de Texte début 339 fin 340 rect (1604,79.20 4x18.40)
                     " "
-                frag 370 Normal de Texte début 340 fin 341 rect (1608.0,79.20 48.0x18.39)
+                frag 370 Normal de Texte début 340 fin 341 rect (1608,79.20 48x18.40)
                     "dummy"
-                frag 371 Normal de Texte début 341 fin 342 rect (1656.0,79.20 4.0x18.39)
+                frag 371 Normal de Texte début 341 fin 342 rect (1656,79.20 4x18.40)
                     " "
-                frag 372 Normal de Texte début 342 fin 343 rect (1660.0,79.20 24.0x18.39)
+                frag 372 Normal de Texte début 342 fin 343 rect (1660,79.20 24x18.40)
                     "text"
-                frag 373 Normal de Texte début 343 fin 344 rect (1684.0,79.20 4.0x18.39)
+                frag 373 Normal de Texte début 343 fin 344 rect (1684,79.20 4x18.40)
                     " "
-                frag 374 Normal de Texte début 344 fin 345 rect (1688.0,79.20 48.0x18.39)
+                frag 374 Normal de Texte début 344 fin 345 rect (1688,79.20 48x18.40)
                     "dummy"
-                frag 375 Normal de Texte début 345 fin 346 rect (1736.0,79.20 4.0x18.39)
+                frag 375 Normal de Texte début 345 fin 346 rect (1736,79.20 4x18.40)
                     " "
-                frag 376 Normal de Texte début 346 fin 347 rect (1740.0,79.20 24.0x18.39)
+                frag 376 Normal de Texte début 346 fin 347 rect (1740,79.20 24x18.40)
                     "text"
-                frag 377 Normal de Texte début 347 fin 348 rect (1764.0,79.20 4.0x18.39)
+                frag 377 Normal de Texte début 347 fin 348 rect (1764,79.20 4x18.40)
                     " "
-                frag 378 Normal de Texte début 348 fin 349 rect (1768.0,79.20 48.0x18.39)
+                frag 378 Normal de Texte début 348 fin 349 rect (1768,79.20 48x18.40)
                     "dummy"
-                frag 379 Normal de Texte début 349 fin 350 rect (1816.0,79.20 4.0x18.39)
+                frag 379 Normal de Texte début 349 fin 350 rect (1816,79.20 4x18.40)
                     " "
-                frag 380 Normal de Texte début 350 fin 351 rect (1820.0,79.20 24.0x18.39)
+                frag 380 Normal de Texte début 350 fin 351 rect (1820,79.20 24x18.40)
                     "text"
-                frag 381 Normal de Texte début 351 fin 352 rect (1844.0,79.20 4.0x18.39)
+                frag 381 Normal de Texte début 351 fin 352 rect (1844,79.20 4x18.40)
                     " "
-                frag 382 Normal de Texte début 352 fin 353 rect (1848.0,79.20 48.0x18.39)
+                frag 382 Normal de Texte début 352 fin 353 rect (1848,79.20 48x18.40)
                     "dummy"
-                frag 383 Normal de Texte début 353 fin 354 rect (1896.0,79.20 4.0x18.39)
+                frag 383 Normal de Texte début 353 fin 354 rect (1896,79.20 4x18.40)
                     " "
-                frag 384 Normal de Texte début 354 fin 355 rect (8.0,97.60 24.0x18.39)
+                frag 384 Normal de Texte début 354 fin 355 rect (8,97.60 24x18.40)
                     "text"
-                frag 385 Normal de Texte début 355 fin 356 rect (32.0,97.60 4.0x18.39)
+                frag 385 Normal de Texte début 355 fin 356 rect (32,97.60 4x18.40)
                     " "
-                frag 386 Normal de Texte début 356 fin 357 rect (36.0,97.60 48.0x18.39)
+                frag 386 Normal de Texte début 356 fin 357 rect (36,97.60 48x18.40)
                     "dummy"
-                frag 387 Normal de Texte début 357 fin 358 rect (84.0,97.60 4.0x18.39)
+                frag 387 Normal de Texte début 357 fin 358 rect (84,97.60 4x18.40)
                     " "
-                frag 388 Normal de Texte début 358 fin 359 rect (88.0,97.60 24.0x18.39)
+                frag 388 Normal de Texte début 358 fin 359 rect (88,97.60 24x18.40)
                     "text"
-                frag 389 Normal de Texte début 359 fin 360 rect (112.0,97.60 4.0x18.39)
+                frag 389 Normal de Texte début 359 fin 360 rect (112,97.60 4x18.40)
                     " "
-                frag 390 Normal de Texte début 360 fin 361 rect (116.0,97.60 48.0x18.39)
+                frag 390 Normal de Texte début 360 fin 361 rect (116,97.60 48x18.40)
                     "dummy"
-                frag 391 Normal de Texte début 361 fin 362 rect (164.0,97.60 4.0x18.39)
+                frag 391 Normal de Texte début 361 fin 362 rect (164,97.60 4x18.40)
                     " "
-                frag 392 Normal de Texte début 362 fin 363 rect (168.0,97.60 24.0x18.39)
+                frag 392 Normal de Texte début 362 fin 363 rect (168,97.60 24x18.40)
                     "text"
-                frag 393 Normal de Texte début 363 fin 364 rect (192.0,97.60 4.0x18.39)
+                frag 393 Normal de Texte début 363 fin 364 rect (192,97.60 4x18.40)
                     " "
-                frag 394 Normal de Texte début 364 fin 365 rect (196.0,97.60 48.0x18.39)
+                frag 394 Normal de Texte début 364 fin 365 rect (196,97.60 48x18.40)
                     "dummy"
-                frag 395 Normal de Texte début 365 fin 366 rect (244.0,97.60 4.0x18.39)
+                frag 395 Normal de Texte début 365 fin 366 rect (244,97.60 4x18.40)
                     " "
-                frag 396 Normal de Texte début 366 fin 367 rect (248.0,97.60 24.0x18.39)
+                frag 396 Normal de Texte début 366 fin 367 rect (248,97.60 24x18.40)
                     "text"
-                frag 397 Normal de Texte début 367 fin 368 rect (272.0,97.60 4.0x18.39)
+                frag 397 Normal de Texte début 367 fin 368 rect (272,97.60 4x18.40)
                     " "
-                frag 398 Normal de Texte début 368 fin 369 rect (276.0,97.60 48.0x18.39)
+                frag 398 Normal de Texte début 368 fin 369 rect (276,97.60 48x18.40)
                     "dummy"
-                frag 399 Normal de Texte début 369 fin 370 rect (324.0,97.60 4.0x18.39)
+                frag 399 Normal de Texte début 369 fin 370 rect (324,97.60 4x18.40)
                     " "
-                frag 400 Normal de Texte début 370 fin 371 rect (328.0,97.60 24.0x18.39)
+                frag 400 Normal de Texte début 370 fin 371 rect (328,97.60 24x18.40)
                     "text"
-                frag 401 Normal de Texte début 371 fin 372 rect (352.0,97.60 4.0x18.39)
+                frag 401 Normal de Texte début 371 fin 372 rect (352,97.60 4x18.40)
                     " "
-                frag 402 Normal de Texte début 372 fin 373 rect (356.0,97.60 48.0x18.39)
+                frag 402 Normal de Texte début 372 fin 373 rect (356,97.60 48x18.40)
                     "dummy"
-                frag 403 Normal de Texte début 373 fin 374 rect (404.0,97.60 4.0x18.39)
+                frag 403 Normal de Texte début 373 fin 374 rect (404,97.60 4x18.40)
                     " "
-                frag 404 Normal de Texte début 374 fin 375 rect (408.0,97.60 24.0x18.39)
+                frag 404 Normal de Texte début 374 fin 375 rect (408,97.60 24x18.40)
                     "text"
-                frag 405 Normal de Texte début 375 fin 376 rect (432.0,97.60 4.0x18.39)
+                frag 405 Normal de Texte début 375 fin 376 rect (432,97.60 4x18.40)
                     " "
-                frag 406 Normal de Texte début 376 fin 377 rect (436.0,97.60 48.0x18.39)
+                frag 406 Normal de Texte début 376 fin 377 rect (436,97.60 48x18.40)
                     "dummy"
-                frag 407 Normal de Texte début 377 fin 378 rect (484.0,97.60 4.0x18.39)
+                frag 407 Normal de Texte début 377 fin 378 rect (484,97.60 4x18.40)
                     " "
-                frag 408 Normal de Texte début 378 fin 379 rect (488.0,97.60 24.0x18.39)
+                frag 408 Normal de Texte début 378 fin 379 rect (488,97.60 24x18.40)
                     "text"
-                frag 409 Normal de Texte début 379 fin 380 rect (512.0,97.60 4.0x18.39)
+                frag 409 Normal de Texte début 379 fin 380 rect (512,97.60 4x18.40)
                     " "
-                frag 410 Normal de Texte début 380 fin 381 rect (516.0,97.60 48.0x18.39)
+                frag 410 Normal de Texte début 380 fin 381 rect (516,97.60 48x18.40)
                     "dummy"
-                frag 411 Normal de Texte début 381 fin 382 rect (564.0,97.60 4.0x18.39)
+                frag 411 Normal de Texte début 381 fin 382 rect (564,97.60 4x18.40)
                     " "
-                frag 412 Normal de Texte début 382 fin 383 rect (568.0,97.60 24.0x18.39)
+                frag 412 Normal de Texte début 382 fin 383 rect (568,97.60 24x18.40)
                     "text"
-                frag 413 Normal de Texte début 383 fin 384 rect (592.0,97.60 4.0x18.39)
+                frag 413 Normal de Texte début 383 fin 384 rect (592,97.60 4x18.40)
                     " "
-                frag 414 Normal de Texte début 384 fin 385 rect (596.0,97.60 48.0x18.39)
+                frag 414 Normal de Texte début 384 fin 385 rect (596,97.60 48x18.40)
                     "dummy"
-                frag 415 Normal de Texte début 385 fin 386 rect (644.0,97.60 4.0x18.39)
+                frag 415 Normal de Texte début 385 fin 386 rect (644,97.60 4x18.40)
                     " "
-                frag 416 Normal de Texte début 386 fin 387 rect (648.0,97.60 24.0x18.39)
+                frag 416 Normal de Texte début 386 fin 387 rect (648,97.60 24x18.40)
                     "text"
-                frag 417 Normal de Texte début 387 fin 388 rect (672.0,97.60 4.0x18.39)
+                frag 417 Normal de Texte début 387 fin 388 rect (672,97.60 4x18.40)
                     " "
-                frag 418 Normal de Texte début 388 fin 389 rect (676.0,97.60 48.0x18.39)
+                frag 418 Normal de Texte début 388 fin 389 rect (676,97.60 48x18.40)
                     "dummy"
-                frag 419 Normal de Texte début 389 fin 390 rect (724.0,97.60 4.0x18.39)
+                frag 419 Normal de Texte début 389 fin 390 rect (724,97.60 4x18.40)
                     " "
-                frag 420 Normal de Texte début 390 fin 391 rect (728.0,97.60 24.0x18.39)
+                frag 420 Normal de Texte début 390 fin 391 rect (728,97.60 24x18.40)
                     "text"
-                frag 421 Normal de Texte début 391 fin 392 rect (752.0,97.60 4.0x18.39)
+                frag 421 Normal de Texte début 391 fin 392 rect (752,97.60 4x18.40)
                     " "
-                frag 422 Normal de Texte début 392 fin 393 rect (756.0,97.60 48.0x18.39)
+                frag 422 Normal de Texte début 392 fin 393 rect (756,97.60 48x18.40)
                     "dummy"
-                frag 423 Normal de Texte début 393 fin 394 rect (804.0,97.60 4.0x18.39)
+                frag 423 Normal de Texte début 393 fin 394 rect (804,97.60 4x18.40)
                     " "
-                frag 424 Normal de Texte début 394 fin 395 rect (808.0,97.60 24.0x18.39)
+                frag 424 Normal de Texte début 394 fin 395 rect (808,97.60 24x18.40)
                     "text"
-                frag 425 Normal de Texte début 395 fin 396 rect (832.0,97.60 4.0x18.39)
+                frag 425 Normal de Texte début 395 fin 396 rect (832,97.60 4x18.40)
                     " "
-                frag 426 Normal de Texte début 396 fin 397 rect (836.0,97.60 48.0x18.39)
+                frag 426 Normal de Texte début 396 fin 397 rect (836,97.60 48x18.40)
                     "dummy"
-                frag 427 Normal de Texte début 397 fin 398 rect (884.0,97.60 4.0x18.39)
+                frag 427 Normal de Texte début 397 fin 398 rect (884,97.60 4x18.40)
                     " "
-                frag 428 Normal de Texte début 398 fin 399 rect (888.0,97.60 24.0x18.39)
+                frag 428 Normal de Texte début 398 fin 399 rect (888,97.60 24x18.40)
                     "text"
-                frag 429 Normal de Texte début 399 fin 400 rect (912.0,97.60 4.0x18.39)
+                frag 429 Normal de Texte début 399 fin 400 rect (912,97.60 4x18.40)
                     " "
-                frag 430 Normal de Texte début 400 fin 401 rect (916.0,97.60 48.0x18.39)
+                frag 430 Normal de Texte début 400 fin 401 rect (916,97.60 48x18.40)
                     "dummy"
-                frag 431 Normal de Texte début 401 fin 402 rect (964.0,97.60 4.0x18.39)
+                frag 431 Normal de Texte début 401 fin 402 rect (964,97.60 4x18.40)
                     " "
-                frag 432 Normal de Texte début 402 fin 403 rect (968.0,97.60 24.0x18.39)
+                frag 432 Normal de Texte début 402 fin 403 rect (968,97.60 24x18.40)
                     "text"
-                frag 433 Normal de Texte début 403 fin 404 rect (992.0,97.60 4.0x18.39)
+                frag 433 Normal de Texte début 403 fin 404 rect (992,97.60 4x18.40)
                     " "
-                frag 434 Normal de Texte début 404 fin 405 rect (996.0,97.60 48.0x18.39)
+                frag 434 Normal de Texte début 404 fin 405 rect (996,97.60 48x18.40)
                     "dummy"
-                frag 435 Normal de Texte début 405 fin 406 rect (1044.0,97.60 4.0x18.39)
+                frag 435 Normal de Texte début 405 fin 406 rect (1044,97.60 4x18.40)
                     " "
-                frag 436 Normal de Texte début 406 fin 407 rect (1048.0,97.60 24.0x18.39)
+                frag 436 Normal de Texte début 406 fin 407 rect (1048,97.60 24x18.40)
                     "text"
-                frag 437 Normal de Texte début 407 fin 408 rect (1072.0,97.60 4.0x18.39)
+                frag 437 Normal de Texte début 407 fin 408 rect (1072,97.60 4x18.40)
                     " "
-                frag 438 Normal de Texte début 408 fin 409 rect (1076.0,97.60 48.0x18.39)
+                frag 438 Normal de Texte début 408 fin 409 rect (1076,97.60 48x18.40)
                     "dummy"
-                frag 439 Normal de Texte début 409 fin 410 rect (1124.0,97.60 4.0x18.39)
+                frag 439 Normal de Texte début 409 fin 410 rect (1124,97.60 4x18.40)
                     " "
-                frag 440 Normal de Texte début 410 fin 411 rect (1128.0,97.60 24.0x18.39)
+                frag 440 Normal de Texte début 410 fin 411 rect (1128,97.60 24x18.40)
                     "text"
-                frag 441 Normal de Texte début 411 fin 412 rect (1152.0,97.60 4.0x18.39)
+                frag 441 Normal de Texte début 411 fin 412 rect (1152,97.60 4x18.40)
                     " "
-                frag 442 Normal de Texte début 412 fin 413 rect (1156.0,97.60 48.0x18.39)
+                frag 442 Normal de Texte début 412 fin 413 rect (1156,97.60 48x18.40)
                     "dummy"
-                frag 443 Normal de Texte début 413 fin 414 rect (1204.0,97.60 4.0x18.39)
+                frag 443 Normal de Texte début 413 fin 414 rect (1204,97.60 4x18.40)
                     " "
-                frag 444 Normal de Texte début 414 fin 415 rect (1208.0,97.60 24.0x18.39)
+                frag 444 Normal de Texte début 414 fin 415 rect (1208,97.60 24x18.40)
                     "text"
-                frag 445 Normal de Texte début 415 fin 416 rect (1232.0,97.60 4.0x18.39)
+                frag 445 Normal de Texte début 415 fin 416 rect (1232,97.60 4x18.40)
                     " "
-                frag 446 Normal de Texte début 416 fin 417 rect (1236.0,97.60 48.0x18.39)
+                frag 446 Normal de Texte début 416 fin 417 rect (1236,97.60 48x18.40)
                     "dummy"
-                frag 447 Normal de Texte début 417 fin 418 rect (1284.0,97.60 4.0x18.39)
+                frag 447 Normal de Texte début 417 fin 418 rect (1284,97.60 4x18.40)
                     " "
-                frag 448 Normal de Texte début 418 fin 419 rect (1288.0,97.60 24.0x18.39)
+                frag 448 Normal de Texte début 418 fin 419 rect (1288,97.60 24x18.40)
                     "text"
-                frag 449 Normal de Texte début 419 fin 420 rect (1312.0,97.60 4.0x18.39)
+                frag 449 Normal de Texte début 419 fin 420 rect (1312,97.60 4x18.40)
                     " "
-                frag 450 Normal de Texte début 420 fin 421 rect (1316.0,97.60 48.0x18.39)
+                frag 450 Normal de Texte début 420 fin 421 rect (1316,97.60 48x18.40)
                     "dummy"
-                frag 451 Normal de Texte début 421 fin 422 rect (1364.0,97.60 4.0x18.39)
+                frag 451 Normal de Texte début 421 fin 422 rect (1364,97.60 4x18.40)
                     " "
-                frag 452 Normal de Texte début 422 fin 423 rect (1368.0,97.60 24.0x18.39)
+                frag 452 Normal de Texte début 422 fin 423 rect (1368,97.60 24x18.40)
                     "text"
-                frag 453 Normal de Texte début 423 fin 424 rect (1392.0,97.60 4.0x18.39)
+                frag 453 Normal de Texte début 423 fin 424 rect (1392,97.60 4x18.40)
                     " "
-                frag 454 Normal de Texte début 424 fin 425 rect (1396.0,97.60 48.0x18.39)
+                frag 454 Normal de Texte début 424 fin 425 rect (1396,97.60 48x18.40)
                     "dummy"
-                frag 455 Normal de Texte début 425 fin 426 rect (1444.0,97.60 4.0x18.39)
+                frag 455 Normal de Texte début 425 fin 426 rect (1444,97.60 4x18.40)
                     " "
-                frag 456 Normal de Texte début 426 fin 427 rect (1448.0,97.60 24.0x18.39)
+                frag 456 Normal de Texte début 426 fin 427 rect (1448,97.60 24x18.40)
                     "text"
-                frag 457 Normal de Texte début 427 fin 428 rect (1472.0,97.60 4.0x18.39)
+                frag 457 Normal de Texte début 427 fin 428 rect (1472,97.60 4x18.40)
                     " "
-                frag 458 Normal de Texte début 428 fin 429 rect (1476.0,97.60 48.0x18.39)
+                frag 458 Normal de Texte début 428 fin 429 rect (1476,97.60 48x18.40)
                     "dummy"
-                frag 459 Normal de Texte début 429 fin 430 rect (1524.0,97.60 4.0x18.39)
+                frag 459 Normal de Texte début 429 fin 430 rect (1524,97.60 4x18.40)
                     " "
-                frag 460 Normal de Texte début 430 fin 431 rect (1528.0,97.60 24.0x18.39)
+                frag 460 Normal de Texte début 430 fin 431 rect (1528,97.60 24x18.40)
                     "text"
-                frag 461 Normal de Texte début 431 fin 432 rect (1552.0,97.60 4.0x18.39)
+                frag 461 Normal de Texte début 431 fin 432 rect (1552,97.60 4x18.40)
                     " "
-                frag 462 Normal de Texte début 432 fin 433 rect (1556.0,97.60 48.0x18.39)
+                frag 462 Normal de Texte début 432 fin 433 rect (1556,97.60 48x18.40)
                     "dummy"
-                frag 463 Normal de Texte début 433 fin 434 rect (1604.0,97.60 4.0x18.39)
+                frag 463 Normal de Texte début 433 fin 434 rect (1604,97.60 4x18.40)
                     " "
-                frag 464 Normal de Texte début 434 fin 435 rect (1608.0,97.60 24.0x18.39)
+                frag 464 Normal de Texte début 434 fin 435 rect (1608,97.60 24x18.40)
                     "text"
-                frag 465 Normal de Texte début 435 fin 436 rect (1632.0,97.60 4.0x18.39)
+                frag 465 Normal de Texte début 435 fin 436 rect (1632,97.60 4x18.40)
                     " "
-                frag 466 Normal de Texte début 436 fin 437 rect (1636.0,97.60 48.0x18.39)
+                frag 466 Normal de Texte début 436 fin 437 rect (1636,97.60 48x18.40)
                     "dummy"
-                frag 467 Normal de Texte début 437 fin 438 rect (1684.0,97.60 4.0x18.39)
+                frag 467 Normal de Texte début 437 fin 438 rect (1684,97.60 4x18.40)
                     " "
-                frag 468 Normal de Texte début 438 fin 439 rect (1688.0,97.60 24.0x18.39)
+                frag 468 Normal de Texte début 438 fin 439 rect (1688,97.60 24x18.40)
                     "text"
-                frag 469 Normal de Texte début 439 fin 440 rect (1712.0,97.60 4.0x18.39)
+                frag 469 Normal de Texte début 439 fin 440 rect (1712,97.60 4x18.40)
                     " "
-                frag 470 Normal de Texte début 440 fin 441 rect (1716.0,97.60 48.0x18.39)
+                frag 470 Normal de Texte début 440 fin 441 rect (1716,97.60 48x18.40)
                     "dummy"
-                frag 471 Normal de Texte début 441 fin 442 rect (1764.0,97.60 4.0x18.39)
+                frag 471 Normal de Texte début 441 fin 442 rect (1764,97.60 4x18.40)
                     " "
-                frag 472 Normal de Texte début 442 fin 443 rect (1768.0,97.60 24.0x18.39)
+                frag 472 Normal de Texte début 442 fin 443 rect (1768,97.60 24x18.40)
                     "text"
-                frag 473 Normal de Texte début 443 fin 444 rect (1792.0,97.60 4.0x18.39)
+                frag 473 Normal de Texte début 443 fin 444 rect (1792,97.60 4x18.40)
                     " "
-                frag 474 Normal de Texte début 444 fin 445 rect (1796.0,97.60 48.0x18.39)
+                frag 474 Normal de Texte début 444 fin 445 rect (1796,97.60 48x18.40)
                     "dummy"
-                frag 475 Normal de Texte début 445 fin 446 rect (1844.0,97.60 4.0x18.39)
+                frag 475 Normal de Texte début 445 fin 446 rect (1844,97.60 4x18.40)
                     " "
-                frag 476 Normal de Texte début 446 fin 447 rect (1848.0,97.60 24.0x18.39)
+                frag 476 Normal de Texte début 446 fin 447 rect (1848,97.60 24x18.40)
                     "text"
-                frag 477 Normal de Texte début 447 fin 448 rect (1872.0,97.60 4.0x18.39)
+                frag 477 Normal de Texte début 447 fin 448 rect (1872,97.60 4x18.40)
                     " "
-                frag 478 Normal de Texte début 448 fin 449 rect (8.0,116.00 48.0x18.39)
+                frag 478 Normal de Texte début 448 fin 449 rect (8,116 48x18.40)
                     "dummy"
-                frag 479 Normal de Texte début 449 fin 450 rect (56.0,116.00 4.0x18.39)
+                frag 479 Normal de Texte début 449 fin 450 rect (56,116 4x18.40)
                     " "
-                frag 480 Normal de Texte début 450 fin 451 rect (60.0,116.00 24.0x18.39)
+                frag 480 Normal de Texte début 450 fin 451 rect (60,116 24x18.40)
                     "text"
-                frag 481 Normal de Texte début 451 fin 452 rect (84.0,116.00 4.0x18.39)
+                frag 481 Normal de Texte début 451 fin 452 rect (84,116 4x18.40)
                     " "
-                frag 482 Normal de Texte début 452 fin 453 rect (88.0,116.00 48.0x18.39)
+                frag 482 Normal de Texte début 452 fin 453 rect (88,116 48x18.40)
                     "dummy"
-                frag 483 Normal de Texte début 453 fin 454 rect (136.0,116.00 4.0x18.39)
+                frag 483 Normal de Texte début 453 fin 454 rect (136,116 4x18.40)
                     " "
-                frag 484 Normal de Texte début 454 fin 455 rect (140.0,116.00 24.0x18.39)
+                frag 484 Normal de Texte début 454 fin 455 rect (140,116 24x18.40)
                     "text"
-                frag 485 Normal de Texte début 455 fin 456 rect (164.0,116.00 4.0x18.39)
+                frag 485 Normal de Texte début 455 fin 456 rect (164,116 4x18.40)
                     " "
-                frag 486 Normal de Texte début 456 fin 457 rect (168.0,116.00 48.0x18.39)
+                frag 486 Normal de Texte début 456 fin 457 rect (168,116 48x18.40)
                     "dummy"
-                frag 487 Normal de Texte début 457 fin 458 rect (216.0,116.00 4.0x18.39)
+                frag 487 Normal de Texte début 457 fin 458 rect (216,116 4x18.40)
                     " "
-                frag 488 Normal de Texte début 458 fin 459 rect (220.0,116.00 24.0x18.39)
+                frag 488 Normal de Texte début 458 fin 459 rect (220,116 24x18.40)
                     "text"
-                frag 489 Normal de Texte début 459 fin 460 rect (244.0,116.00 4.0x18.39)
+                frag 489 Normal de Texte début 459 fin 460 rect (244,116 4x18.40)
                     " "
-                frag 490 Normal de Texte début 460 fin 461 rect (248.0,116.00 48.0x18.39)
+                frag 490 Normal de Texte début 460 fin 461 rect (248,116 48x18.40)
                     "dummy"
-                frag 491 Normal de Texte début 461 fin 462 rect (296.0,116.00 4.0x18.39)
+                frag 491 Normal de Texte début 461 fin 462 rect (296,116 4x18.40)
                     " "
-                frag 492 Normal de Texte début 462 fin 463 rect (300.0,116.00 24.0x18.39)
+                frag 492 Normal de Texte début 462 fin 463 rect (300,116 24x18.40)
                     "text"
-                frag 493 Normal de Texte début 463 fin 464 rect (324.0,116.00 4.0x18.39)
+                frag 493 Normal de Texte début 463 fin 464 rect (324,116 4x18.40)
                     " "
-                frag 494 Normal de Texte début 464 fin 465 rect (328.0,116.00 48.0x18.39)
+                frag 494 Normal de Texte début 464 fin 465 rect (328,116 48x18.40)
                     "dummy"
-                frag 495 Normal de Texte début 465 fin 466 rect (376.0,116.00 4.0x18.39)
+                frag 495 Normal de Texte début 465 fin 466 rect (376,116 4x18.40)
                     " "
-                frag 496 Normal de Texte début 466 fin 467 rect (380.0,116.00 24.0x18.39)
+                frag 496 Normal de Texte début 466 fin 467 rect (380,116 24x18.40)
                     "text"
-                frag 497 Normal de Texte début 467 fin 468 rect (404.0,116.00 4.0x18.39)
+                frag 497 Normal de Texte début 467 fin 468 rect (404,116 4x18.40)
                     " "
-                frag 498 Normal de Texte début 468 fin 469 rect (408.0,116.00 48.0x18.39)
+                frag 498 Normal de Texte début 468 fin 469 rect (408,116 48x18.40)
                     "dummy"
-                frag 499 Normal de Texte début 469 fin 470 rect (456.0,116.00 4.0x18.39)
+                frag 499 Normal de Texte début 469 fin 470 rect (456,116 4x18.40)
                     " "
-                frag 500 Normal de Texte début 470 fin 471 rect (460.0,116.00 24.0x18.39)
+                frag 500 Normal de Texte début 470 fin 471 rect (460,116 24x18.40)
                     "text"
-                frag 501 Normal de Texte début 471 fin 472 rect (484.0,116.00 4.0x18.39)
+                frag 501 Normal de Texte début 471 fin 472 rect (484,116 4x18.40)
                     " "
-                frag 502 Normal de Texte début 472 fin 473 rect (488.0,116.00 48.0x18.39)
+                frag 502 Normal de Texte début 472 fin 473 rect (488,116 48x18.40)
                     "dummy"
-                frag 503 Normal de Texte début 473 fin 474 rect (536.0,116.00 4.0x18.39)
+                frag 503 Normal de Texte début 473 fin 474 rect (536,116 4x18.40)
                     " "
-                frag 504 Normal de Texte début 474 fin 475 rect (540.0,116.00 24.0x18.39)
+                frag 504 Normal de Texte début 474 fin 475 rect (540,116 24x18.40)
                     "text"
-                frag 505 Normal de Texte début 475 fin 476 rect (564.0,116.00 4.0x18.39)
+                frag 505 Normal de Texte début 475 fin 476 rect (564,116 4x18.40)
                     " "
-                frag 506 Normal de Texte début 476 fin 477 rect (568.0,116.00 48.0x18.39)
+                frag 506 Normal de Texte début 476 fin 477 rect (568,116 48x18.40)
                     "dummy"
-                frag 507 Normal de Texte début 477 fin 478 rect (616.0,116.00 4.0x18.39)
+                frag 507 Normal de Texte début 477 fin 478 rect (616,116 4x18.40)
                     " "
-                frag 508 Normal de Texte début 478 fin 479 rect (620.0,116.00 24.0x18.39)
+                frag 508 Normal de Texte début 478 fin 479 rect (620,116 24x18.40)
                     "text"
-                frag 509 Normal de Texte début 479 fin 480 rect (644.0,116.00 4.0x18.39)
+                frag 509 Normal de Texte début 479 fin 480 rect (644,116 4x18.40)
                     " "
-                frag 510 Normal de Texte début 480 fin 481 rect (648.0,116.00 48.0x18.39)
+                frag 510 Normal de Texte début 480 fin 481 rect (648,116 48x18.40)
                     "dummy"
-                frag 511 Normal de Texte début 481 fin 482 rect (696.0,116.00 4.0x18.39)
+                frag 511 Normal de Texte début 481 fin 482 rect (696,116 4x18.40)
                     " "
-                frag 512 Normal de Texte début 482 fin 483 rect (700.0,116.00 24.0x18.39)
+                frag 512 Normal de Texte début 482 fin 483 rect (700,116 24x18.40)
                     "text"
-                frag 513 Normal de Texte début 483 fin 484 rect (724.0,116.00 4.0x18.39)
+                frag 513 Normal de Texte début 483 fin 484 rect (724,116 4x18.40)
                     " "
-                frag 514 Normal de Texte début 484 fin 485 rect (728.0,116.00 48.0x18.39)
+                frag 514 Normal de Texte début 484 fin 485 rect (728,116 48x18.40)
                     "dummy"
-                frag 515 Normal de Texte début 485 fin 486 rect (776.0,116.00 4.0x18.39)
+                frag 515 Normal de Texte début 485 fin 486 rect (776,116 4x18.40)
                     " "
-                frag 516 Normal de Texte début 486 fin 487 rect (780.0,116.00 24.0x18.39)
+                frag 516 Normal de Texte début 486 fin 487 rect (780,116 24x18.40)
                     "text"
-                frag 517 Normal de Texte début 487 fin 488 rect (804.0,116.00 4.0x18.39)
+                frag 517 Normal de Texte début 487 fin 488 rect (804,116 4x18.40)
                     " "
-                frag 518 Normal de Texte début 488 fin 489 rect (808.0,116.00 48.0x18.39)
+                frag 518 Normal de Texte début 488 fin 489 rect (808,116 48x18.40)
                     "dummy"
-                frag 519 Normal de Texte début 489 fin 490 rect (856.0,116.00 4.0x18.39)
+                frag 519 Normal de Texte début 489 fin 490 rect (856,116 4x18.40)
                     " "
-                frag 520 Normal de Texte début 490 fin 491 rect (860.0,116.00 24.0x18.39)
+                frag 520 Normal de Texte début 490 fin 491 rect (860,116 24x18.40)
                     "text"
-                frag 521 Normal de Texte début 491 fin 492 rect (884.0,116.00 4.0x18.39)
+                frag 521 Normal de Texte début 491 fin 492 rect (884,116 4x18.40)
                     " "
-                frag 522 Normal de Texte début 492 fin 493 rect (888.0,116.00 48.0x18.39)
+                frag 522 Normal de Texte début 492 fin 493 rect (888,116 48x18.40)
                     "dummy"
-                frag 523 Normal de Texte début 493 fin 494 rect (936.0,116.00 4.0x18.39)
+                frag 523 Normal de Texte début 493 fin 494 rect (936,116 4x18.40)
                     " "
-                frag 524 Normal de Texte début 494 fin 495 rect (940.0,116.00 24.0x18.39)
+                frag 524 Normal de Texte début 494 fin 495 rect (940,116 24x18.40)
                     "text"
-                frag 525 Normal de Texte début 495 fin 496 rect (964.0,116.00 4.0x18.39)
+                frag 525 Normal de Texte début 495 fin 496 rect (964,116 4x18.40)
                     " "
-                frag 526 Normal de Texte début 496 fin 497 rect (968.0,116.00 48.0x18.39)
+                frag 526 Normal de Texte début 496 fin 497 rect (968,116 48x18.40)
                     "dummy"
-                frag 527 Normal de Texte début 497 fin 498 rect (1016.0,116.00 4.0x18.39)
+                frag 527 Normal de Texte début 497 fin 498 rect (1016,116 4x18.40)
                     " "
-                frag 528 Normal de Texte début 498 fin 499 rect (1020.0,116.00 24.0x18.39)
+                frag 528 Normal de Texte début 498 fin 499 rect (1020,116 24x18.40)
                     "text"
-                frag 529 RembourrageFin de Inline début 0 fin 0 rect (1044.0,116.00 0.0x18.39)
-                frag 530 MargeFin de Inline début 0 fin 0 rect (1044.0,116.00 0.0x18.39)
-                frag 531 RembourrageFin de Inline début 0 fin 0 rect (1044.0,116.00 0.0x18.39)
-                frag 532 MargeFin de Inline début 0 fin 0 rect (1044.0,116.00 0.0x18.39)
-                frag 533 MargeDébut de Inline début 0 fin 0 rect (1044.0,116.00 0.0x0.0)
-                frag 534 RembourrageDébut de Inline début 0 fin 0 rect (1044.0,116.00 0.0x0.0)
-                frag 535 Normal de Texte début 0 fin 1 rect (1044.0,116.00 4.0x0.0)
+                frag 529 RembourrageFin de Inline début 0 fin 0 rect (1044,116 0x18.40)
+                frag 530 MargeFin de Inline début 0 fin 0 rect (1044,116 0x18.40)
+                frag 531 RembourrageFin de Inline début 0 fin 0 rect (1044,116 0x18.40)
+                frag 532 MargeFin de Inline début 0 fin 0 rect (1044,116 0x18.40)
+                frag 533 MargeDébut de Inline début 0 fin 0 rect (1044,116 0x0)
+                frag 534 RembourrageDébut de Inline début 0 fin 0 rect (1044,116 0x0)
+                frag 535 Normal de Texte début 0 fin 1 rect (1044,116 4x0)
                     " "
-                frag 536 RembourrageFin de Inline début 0 fin 0 rect (1048.0,116.00 0.0x0.0)
-                frag 537 MargeFin de Inline début 0 fin 0 rect (1048.0,116.00 0.0x0.0)
-                Inline <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
-                Inline <span> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Inline <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                        Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
-                Inline <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                    Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
-        Bloc <(anonyme)> <8.0, 150.39> CH [0.0 0.0 0.0] 1904.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-            frag 0 MargeDébut de Inline début 0 fin 0 rect (8.0,150.39 0.0x0.0)
-            frag 1 RembourrageDébut de Inline début 0 fin 0 rect (8.0,150.39 0.0x0.0)
-            frag 2 RembourrageFin de Inline début 0 fin 0 rect (8.0,150.39 0.0x0.0)
-            frag 3 MargeFin de Inline début 0 fin 0 rect (8.0,150.39 0.0x0.0)
-            Inline <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0]
-                Texte <(anonyme)> <0.0, 0.0> CH [0.0 0.0 0.0] 0.0 [0.0 0.0 0.0] CV [0.0 0.0 0.0] 18.39 [0.0 0.0 0.0]
+                frag 536 RembourrageFin de Inline début 0 fin 0 rect (1048,116 0x0)
+                frag 537 MargeFin de Inline début 0 fin 0 rect (1048,116 0x0)
+                Inline <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+                    Texte <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18.40 [0 0 0]
+                Inline <span> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+                    Inline <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+                        Texte <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18.40 [0 0 0]
+                Inline <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+                    Texte <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18.40 [0 0 0]
+        Bloc <(anonyme)> <8, 150.40> CH [0 0 0] 1904 [0 0 0] CV [0 0 0] 0 [0 0 0]
+            frag 0 MargeDébut de Inline début 0 fin 0 rect (8,150.40 0x0)
+            frag 1 RembourrageDébut de Inline début 0 fin 0 rect (8,150.40 0x0)
+            frag 2 RembourrageFin de Inline début 0 fin 0 rect (8,150.40 0x0)
+            frag 3 MargeFin de Inline début 0 fin 0 rect (8,150.40 0x0)
+            Inline <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+                Texte <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18.40 [0 0 0]
 
 StackingContext : html
