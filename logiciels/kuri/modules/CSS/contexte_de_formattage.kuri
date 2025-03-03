@@ -320,7 +320,7 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
         }
 
         si position.est_mot_clé(PROP_fixed) {
-            ctx.dispose_boite_fixed(it comme *NoeudDeDispositionBloc)
+            ctx.dispose_boite_fixed(it comme *NoeudDeDispositionBloc, décalage_x, décalage_y + décalage_hors_float)
             continue
         }
 
@@ -507,10 +507,12 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
     }
 }
 
-dispose_boite_fixed :: fonc (empl ctx: *ContexteDeFormattageBloc, noeud: *NoeudDeDispositionBloc)
+dispose_boite_fixed :: fonc (empl ctx: *ContexteDeFormattageBloc, noeud: *NoeudDeDispositionBloc, pos_x_statique: r64, pos_y_statique: r64)
 {
     containing_block := donne_containing_block(noeud, ctx)
     args := crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, nul, ModeDeFormattage.Normal)
+    args.pos_x_statique = pos_x_statique
+    args.pos_y_statique = pos_y_statique
     calcule_largeur_et_marges(*args)
     état_calcul_hauteur := calcule_hauteur_et_marges(*args)
 
