@@ -823,7 +823,8 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
     ctx := base comme *ContexteDeFormattageInline
 
     enligneuse: Enligneuse
-    divise_en_lignes(*enligneuse, noeud, ctx, mode)
+    enligneuse.ctx = ctx
+    divise_en_lignes(*enligneuse, noeud, mode)
 
     hauteur_contenu := 0.0
 

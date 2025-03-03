@@ -1926,7 +1926,7 @@ NoeudDeDisposition :: struct {
     sur_dessin_fragment: fonc (*NoeudDeDisposition, *Fragment, *LignesTenante, *ContexteDessin)(rien)
     sur_dessin_tampon_id: fonc (*NoeudDeDisposition, *ContexteDessin)(rien)
     sur_dessin_fragment_tampon_id: fonc (*NoeudDeDisposition, *Fragment, *ContexteDessin)(rien)
-    sur_divise_en_lignes: fonc (*NoeudDeDisposition, *Enligneuse, *ContexteDeFormattage, ModeDeFormattage)(rien)
+    sur_divise_en_lignes: fonc (*NoeudDeDisposition, *Enligneuse, ModeDeFormattage)(rien)
     sur_correction_hiérarchie: fonc(*NoeudDeDisposition, *CréatriceArbre)(rien)
 }
 
@@ -2294,22 +2294,22 @@ donne_curseur :: fonc (noeud: *NoeudDeDisposition) -> CursorType
     retourne noeud.propriétés.donne_valeur_utilisée(IDPropriété.Cursor).cursor
 }
 
-divise_en_lignes :: fonc (noeud: *NoeudDeDisposition, enligneuse: *Enligneuse, ctx: *ContexteDeFormattage, mode: ModeDeFormattage)
+divise_en_lignes :: fonc (noeud: *NoeudDeDisposition, enligneuse: *Enligneuse, mode: ModeDeFormattage)
 {
     si (noeud.type == NoeudDeDispositionTexte || noeud.donne_display().inner_type == Display.Type.Flow) {
         si noeud.sur_divise_en_lignes {
-            noeud.sur_divise_en_lignes(noeud, enligneuse, ctx, mode)
+            noeud.sur_divise_en_lignes(noeud, enligneuse, mode)
             retourne
         }
 
         pour noeud.enfants {
-            divise_en_lignes(it, enligneuse, ctx, mode)
+            divise_en_lignes(it, enligneuse, mode)
         }
 
         retourne
     }
 
-    noeud.mesure(ctx, mode, nul)
+    noeud.mesure(enligneuse.ctx, mode, nul)
     _ := enligneuse.ajoute_fragment(noeud, noeud.modèle_de_boite.marge.hauteur, noeud.modèle_de_boite.marge.largeur, Fragment.Type.InlineBlock)
 }
 
@@ -2497,7 +2497,6 @@ garantis_hauteur_minimale :: fonc (boite: *BoiteDeLigne, hauteur: r32)
  * \{ */
 
 LignesTenante :: struct {
-    ctx: *ContexteDeFormattageInline
     bloc: *NoeudDeDispositionBloc
     lignes: [..]BoiteDeLigne
     fragments: [..]Fragment
@@ -2517,16 +2516,16 @@ détruit_données :: fonc (lignes_tenante: *LignesTenante)
     déloge(lignes_tenante.fragments)
 }
 
-donne_ligne_courante :: fonc (lignes_tenante: *LignesTenante) -> *BoiteDeLigne
+donne_ligne_courante :: fonc (lignes_tenante: *LignesTenante, ctx: *ContexteDeFormattageInline) -> *BoiteDeLigne
 {
     si lignes_tenante.lignes.taille == 0 {
-        retourne ajoute_ligne(lignes_tenante)
+        retourne ajoute_ligne(lignes_tenante, ctx)
     }
 
     retourne *lignes_tenante.lignes[lignes_tenante.lignes.taille - 1]
 }
 
-ajoute_ligne :: fonc (lignes_tenante: *LignesTenante) -> *BoiteDeLigne
+ajoute_ligne :: fonc (lignes_tenante: *LignesTenante, ctx: *ContexteDeFormattageInline) -> *BoiteDeLigne
 {
     si lignes_tenante.lignes.taille {
         lignes_tenante.position_y_courante += lignes_tenante.lignes[lignes_tenante.lignes.taille - 1].hauteur_contenu
@@ -2535,7 +2534,7 @@ ajoute_ligne :: fonc (lignes_tenante: *LignesTenante) -> *BoiteDeLigne
     décalage_x := lignes_tenante.bloc.modèle_de_boite.contenu.x
     largeur_contenu := lignes_tenante.bloc.modèle_de_boite.contenu.largeur
 
-    décalage_ligne, largeur_ligne := donne_position_et_largeur_ligne(lignes_tenante.ctx, décalage_x, décalage_x + largeur_contenu, lignes_tenante.position_y_courante)
+    décalage_ligne, largeur_ligne := donne_position_et_largeur_ligne(ctx, décalage_x, décalage_x + largeur_contenu, lignes_tenante.position_y_courante)
 
     résultat := tableau_ajoute_élément(*lignes_tenante.lignes)
     résultat.position_x = décalage_ligne
@@ -2571,22 +2570,22 @@ donne_fragments_ligne :: fonc (lignes_tenante: *LignesTenante, ligne: *BoiteDeLi
  * \{ */
 
 Enligneuse :: struct {
+    ctx: *ContexteDeFormattageInline
     bloc_contenant: *NoeudDeDispositionBloc
     ligne_courante: *BoiteDeLigne
     mode_de_formattage: ModeDeFormattage
 }
 
-divise_en_lignes :: fonc (enligneuse: *Enligneuse, bloc_contenant: *NoeudDeDispositionBloc, ctx: *ContexteDeFormattageInline, mode: ModeDeFormattage)
+divise_en_lignes :: fonc (enligneuse: *Enligneuse, bloc_contenant: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
 {
     réinitialise_lignes(bloc_contenant)
     enligneuse.bloc_contenant = bloc_contenant
     enligneuse.mode_de_formattage = mode
     bloc_contenant.lignes_tenante.bloc = bloc_contenant
     bloc_contenant.lignes_tenante.position_y_courante = bloc_contenant.modèle_de_boite.contenu.y
-    bloc_contenant.lignes_tenante.ctx = ctx
 
     pour bloc_contenant.enfants {
-        divise_en_lignes(it, enligneuse, ctx, mode)
+        divise_en_lignes(it, enligneuse, mode)
     }
 }
 
@@ -2597,7 +2596,7 @@ donne_lignes_tenante :: fonc (empl enligneuse: *Enligneuse) -> *LignesTenante
 
 ajoute_ligne :: fonc (empl enligneuse: *Enligneuse) -> *BoiteDeLigne
 {
-    ligne_courante = ajoute_ligne(*enligneuse.bloc_contenant.lignes_tenante)
+    ligne_courante = ajoute_ligne(*enligneuse.bloc_contenant.lignes_tenante, ctx)
     retourne ligne_courante
 }
 
@@ -2622,9 +2621,9 @@ ajoute_fragment :: fonc (empl enligneuse: *Enligneuse, noeud: *NoeudDeDispositio
 {
     lignes_tenante := *enligneuse.bloc_contenant.lignes_tenante
 
-    ligne_courante = lignes_tenante.donne_ligne_courante()
+    ligne_courante = lignes_tenante.donne_ligne_courante(ctx)
     si mode_de_formattage == ModeDeFormattage.Normal && !ligne_courante.peut_ajouter_fragment(largeur) {
-        ligne_courante = lignes_tenante.ajoute_ligne()
+        ligne_courante = lignes_tenante.ajoute_ligne(ctx)
     }
 
     fragment: Fragment
@@ -3028,8 +3027,9 @@ noeud_disposition_inline_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Co
     }
 }
 
-noeud_disposition_inline_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, enligneuse: *Enligneuse, ctx: *ContexteDeFormattage, mode: ModeDeFormattage)
+noeud_disposition_inline_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, enligneuse: *Enligneuse, mode: ModeDeFormattage)
 {
+    ctx := enligneuse.ctx
     noeud := base comme *NoeudDeDispositionInline
     containing_block := donne_containing_block(noeud, ctx)
     args := crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, nul, mode)
@@ -3047,7 +3047,7 @@ noeud_disposition_inline_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition
     fragment_rembourrage_début := enligneuse.ajoute_fragment(noeud, 0.0, padding_left, Fragment.Type.RembourrageDébut)
 
     pour noeud.enfants {
-        divise_en_lignes(it, enligneuse, ctx, mode)
+        divise_en_lignes(it, enligneuse, mode)
     }
 
     fragment_rembourrage_fin := enligneuse.ajoute_fragment(noeud, 0.0, padding_right, Fragment.Type.RembourrageFin)
@@ -3205,10 +3205,10 @@ NoeudDeDispositionNouvelleLigne :: struct {
     sur_divise_en_lignes = noeud_disposition_nouvelle_ligne_sur_divise_en_lignes
 }
 
-noeud_disposition_nouvelle_ligne_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, enligneuse: *Enligneuse, ctx: *ContexteDeFormattage, mode: ModeDeFormattage @inutilisée)
+noeud_disposition_nouvelle_ligne_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, enligneuse: *Enligneuse, mode: ModeDeFormattage @inutilisée)
 {
     ligne := enligneuse.ajoute_ligne()
-    line_height := donne_line_height(base, ctx)
+    line_height := donne_line_height(base, enligneuse.ctx)
     ligne.garantis_hauteur_minimale(line_height)
 }
 
@@ -3232,8 +3232,9 @@ NoeudDeDispositionTexte :: struct {
     fragments: [..]FragmentTexte
 }
 
-noeud_disposition_texte_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, enligneuse: *Enligneuse, ctx: *ContexteDeFormattage, mode: ModeDeFormattage)
+noeud_disposition_texte_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, enligneuse: *Enligneuse, mode: ModeDeFormattage)
 {
+    ctx := enligneuse.ctx
     noeud := base comme *NoeudDeDispositionTexte
 
     propriétés := donne_propriété_parent(noeud)
@@ -3625,9 +3626,9 @@ noeud_disposition_remplacement_sur_mesure :: fonc (base: *NoeudDeDisposition, ct
     _ := calcule_hauteur_et_marges(*args)
 }
 
-noeud_disposition_remplacement_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, enligneuse: *Enligneuse, ctx: *ContexteDeFormattage, mode: ModeDeFormattage)
+noeud_disposition_remplacement_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, enligneuse: *Enligneuse, mode: ModeDeFormattage)
 {
-    noeud_disposition_remplacement_sur_mesure(base, ctx, mode, nul)
+    noeud_disposition_remplacement_sur_mesure(base, enligneuse.ctx, mode, nul)
 
     noeud := base comme *NoeudDeDispositionRemplacement
     largeur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width).pixels comme r32
