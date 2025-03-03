@@ -1477,7 +1477,10 @@ load_a_document :: fonc (user_agent: *UserAgent, navigation_params: *NavigationP
     // "text/css"
     // "text/plain"
     // "text/vtt"
-    // Return the result of loading a text document given navigationParams and type.
+    si mime_type == MIME_text_css || mime_type == MIME_text_plain {
+        // Return the result of loading a text document given navigationParams and type.
+        retourne load_a_text_document(user_agent, navigation_params, mime_type)
+    }
 
     // "multipart/x-mixed-replace"
     // Return the result of loading a multipart/x-mixed-replace document, given navigationParams, sourceSnapshotParams, and initiatorOrigin.
@@ -2726,6 +2729,37 @@ load_an_html_document :: fonc (user_agent: *UserAgent, navigation_params: *Navig
         // À FAIRE : Before any script execution occurs, the user agent must wait for scripts may run for the newly-created document to be true for document.
         // À FAIRE : When no more bytes are available, the user agent must queue a global task on the networking task source given document's relevant global object to have the parser process the implied EOF character, which eventually causes a load event to be fired.
     }
+
+    // 4. Return document.
+    retourne document
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 7.5.4 Loading text documents
+ * https://html.spec.whatwg.org/multipage/document-lifecycle.html#read-text
+ * \{ */
+
+/* https://html.spec.whatwg.org/multipage/document-lifecycle.html#navigate-text */
+load_a_text_document :: fonc (user_agent: *UserAgent, navigation_params: *NavigationParams, type: chaine) -> *Document
+{
+    // À FAIRE : standardise
+    response := navigation_params.response
+
+    document := create_and_initialize_a_document_object(user_agent, "html", type, navigation_params)
+
+    populate_with_html_head_body(document)
+
+    body := donne_élément_body(document)
+
+    pre := crée_élément_avec_tag(document, TAG_pre)
+    body.ajoute_enfant(pre)
+
+    noeud_texte := crée_noeud_texte(document)
+    noeud_texte.données = Chaine.crée_chaine_utf16(response.body)
+
+    pre.ajoute_enfant(noeud_texte)
 
     // 4. Return document.
     retourne document

@@ -99,5 +99,9 @@ type_mime_pour_extension :: fonc (extension: chaine) -> chaine
         retourne MIME_text_javascript
     }
 
+    si compare_ascii_insensible_à_la_casse(extension, ".txt") {
+        retourne MIME_text_plain
+    }
+
     retourne MIME_application_octet_stream
 }
