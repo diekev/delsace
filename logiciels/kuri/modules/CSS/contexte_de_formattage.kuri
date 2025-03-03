@@ -1061,10 +1061,10 @@ calcule_taille_items :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDis
 
     pour item dans ctx.items {
         it := item.noeud
-        flex_basis := it.propriétés.donne_valeur_utilisée(IDPropriété.FlexBasis)
+        flex_basis := résoud_flex_basis(it)
 
         largeur_désirée: OutrepasCotation
-        si flex_basis.est_mot_clé(PROP_content) || flex_basis.est_mot_clé(PROP_auto) {
+        si flex_basis.est_mot_clé(PROP_content) {
             /* calcule_shrink_to_fit_width ne résoud pas les pourcentages... */
             it.mesure(ctx, mode, nul)
             largeur := calcule_shrink_to_fit_width(ctx, it, largeur_disponible)
@@ -1081,6 +1081,24 @@ calcule_taille_items :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDis
 
         it.mesure(ctx, mode, *largeur_désirée)
     }
+}
+
+/* https://www.w3.org/TR/css-flexbox-1/#valdef-flex-flex-basis */
+résoud_flex_basis :: fonc (noeud: *NoeudDeDisposition) -> ValeurDeStyle
+{
+    flex_basis := noeud.propriétés.donne_valeur_utilisée(IDPropriété.FlexBasis)
+
+    si flex_basis.est_mot_clé(PROP_auto) {
+        width := noeud.propriétés.donne_valeur_calculée(IDPropriété.Width)
+
+        si width.est_auto() {
+            retourne ValeurDeStyle(mot_clé = PROP_content)
+        }
+
+        retourne width
+    }
+
+    retourne flex_basis
 }
 
 formatte_flex_row :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage, reverse: bool)
