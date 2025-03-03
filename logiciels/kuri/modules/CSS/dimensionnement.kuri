@@ -692,37 +692,8 @@ donne_fonction_calcul_hauteur_et_marges :: fonc (noeud: *NoeudDeDisposition) -> 
     retourne calcule_hauteur_et_marges_block_level_normal_flow
 }
 
-calcule_hauteur_et_marges_block_level_normal_flow :: fonc (args: *ArgumentsDimensionnement @inutilisée, empl ph: *PropriétésHauteur) -> ÉtatCalculHauteur
-{
-    /* À FAIRE */
-
-    saufsi margin_top.est_pixels() {
-        margin_top = ValeurDeStyle(pixels = 0)
-    }
-    saufsi border_top_width.est_pixels() {
-        border_top_width = ValeurDeStyle(pixels = 0)
-    }
-    saufsi padding_top.est_pixels() {
-        padding_top = ValeurDeStyle(pixels = 0)
-    }
-    saufsi height.est_pixels() {
-        height = ValeurDeStyle(pixels = 0)
-    }
-    saufsi padding_bottom.est_pixels() {
-        padding_bottom = ValeurDeStyle(pixels = 0)
-    }
-    saufsi border_bottom_width.est_pixels() {
-        border_bottom_width = ValeurDeStyle(pixels = 0)
-    }
-    saufsi margin_bottom.est_pixels() {
-        margin_bottom = ValeurDeStyle(pixels = 0)
-    }
-
-    retourne ÉtatCalculHauteur.HauteurRésolue
-}
-
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#normal-block */
-calcule_hauteur_et_marges_block_level_normal_flow_standard :: fonc (empl args: *ArgumentsDimensionnement, empl ph: *PropriétésHauteur) -> ÉtatCalculHauteur
+calcule_hauteur_et_marges_block_level_normal_flow :: fonc (empl args: *ArgumentsDimensionnement, empl ph: *PropriétésHauteur) -> ÉtatCalculHauteur
 {
     si margin_top.est_auto() {
         margin_top.pixels = 0.0

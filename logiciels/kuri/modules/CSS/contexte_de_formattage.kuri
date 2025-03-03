@@ -461,28 +461,6 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
         }
     }
 
-    si noeud == ctx.racine {
-        /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#root-height */
-        pour noeud.enfants {
-            float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float)
-            si float.est_mot_clé(PROP_none) {
-                continue
-            }
-
-            si hauteur_contenu < it.modèle_de_boite.marge.hauteur {
-                hauteur_contenu = it.modèle_de_boite.marge.hauteur
-            }
-        }
-    }
-
-    height := noeud.propriétés.donne_valeur_calculée(IDPropriété.Height)
-    si height.est_auto() {
-        hauteur_finale := crée_outrepas_pour_coter_contenu(hauteur_contenu)
-        containing_block := donne_containing_block(noeud, ctx)
-        args := crée_arguments_dimensionnement_hauteur(ctx, noeud, containing_block, *hauteur_finale)
-        _ := calcule_hauteur_et_marges(*args)
-    }
-
     discr mode {
         BrisureDeLigneExplicite,
         ToutesLesBrisuresDeLigne {
@@ -844,8 +822,6 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
 {
     ctx := base comme *ContexteDeFormattageInline
 
-    containing_block := donne_containing_block(noeud, ctx)
-
     enligneuse: Enligneuse
     divise_en_lignes(*enligneuse, noeud, ctx, mode)
 
@@ -922,10 +898,6 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
         hauteur_contenu += hauteur
     }
 
-    hauteur_finale := crée_outrepas_pour_coter_contenu(hauteur_contenu)
-    args := crée_arguments_dimensionnement_hauteur(ctx, noeud, containing_block, *hauteur_finale)
-    _ := calcule_hauteur_et_marges(*args)
-
     discr mode {
         BrisureDeLigneExplicite,
         ToutesLesBrisuresDeLigne {
@@ -938,7 +910,7 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
             si largeur.est_auto() {
                 valeur_largeur_enfant := crée_outrepas_pour_coter_contenu(largeur_max_enfant)
                 /* Utilise cette fontcion pour résoudre les valeurs 'auto' pour les autres propriétés. */
-                args = ArgumentsDimensionnement(ctx, noeud, width_of_containing_block = 0.0, outrepas_largeur = valeur_largeur_enfant)
+                args := ArgumentsDimensionnement(ctx, noeud, width_of_containing_block = 0.0, outrepas_largeur = valeur_largeur_enfant)
                 calcule_largeur_et_marges(*args, calcule_largeur_et_marges_inline_non_replaced_element)
             }
         }
