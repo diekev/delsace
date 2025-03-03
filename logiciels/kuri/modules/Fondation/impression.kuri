@@ -508,7 +508,7 @@ imprime_nombre_réel :: fonc (enchaineuse: *Enchaineuse, format: FormatRéel) ->
     }
 
     si f == 0.0 {
-        ajoute_au_tampon(enchaineuse, "0.0")
+        ajoute_au_tampon(enchaineuse, "0")
         retourne
     }
 
@@ -516,25 +516,47 @@ imprime_nombre_réel :: fonc (enchaineuse: *Enchaineuse, format: FormatRéel) ->
 
     part_entière := x comme n64
 
-    imprime_nombre_entier(enchaineuse, FormatEntier(valeur = part_entière))
-
-    ajoute_au_tampon(enchaineuse, '.')
-
     frac := x - part_entière comme r32
-
-    chiffres :: "0123456789"
 
     p := format.précision
 
+    fraction_entière: n64
+    mutliplicateur_fraction : n64 = 1
+
     répète {
         frac *= 10.0
-        chiffre := frac comme z64
+        chiffre := frac comme n64
 
-        ajoute_au_tampon(enchaineuse, chiffres[chiffre])
+        si p == 0 {
+            si chiffre >= 5 {
+                fraction_entière += 1
+            }
+
+            arrête
+        }
+
+        fraction_entière *= 10
+        fraction_entière += (frac comme n64)
+
+        mutliplicateur_fraction *= 10
 
         frac = frac - chiffre comme r32
         p -= 1
-    } tantque frac < 1.0 && frac != 0.0 && p > 0
+    } tantque frac < 1.0 && frac != 0.0
+
+
+    /* Si nous passons p.e. de 99 à 100 pour la fraction, ajustons les valeurs. */
+    si fraction_entière == mutliplicateur_fraction {
+        part_entière += 1
+        fraction_entière = 0
+    }
+
+    imprime_nombre_entier(enchaineuse, FormatEntier(valeur = part_entière))
+
+    si fraction_entière != 0 {
+        ajoute_au_tampon(enchaineuse, ".")
+        imprime_nombre_entier(enchaineuse, FormatEntier(valeur = fraction_entière))
+    }
 }
 
 __chaine_indentation : [1024]z8 = ---
