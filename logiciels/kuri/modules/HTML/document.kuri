@@ -191,11 +191,22 @@ est_iframe_srcdoc :: fonc (document: *Document) -> bool
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#fully-active */
-est_fully_active :: fonc (document: *Document @inutilisée) -> bool
+est_fully_active :: fonc (document: *Document) -> bool
 {
-    /* À FAIRE : A Document d is said to be fully active when d is the active document
-     *           of a navigable navigable, and either navigable is a top-level traversable
-     *           or navigable's container document is fully active. */
+    /* A Document d is said to be fully active when d is the active document
+     * of a navigable navigable, and either navigable is a top-level traversable
+     * À FAIRE :  or navigable's container document is fully active. */
+    user_agent := document.donne_user_agent()
+    saufsi user_agent {
+        retourne faux
+    }
+
+    pour user_agent.top_level_traversables {
+        si document == it.donne_active_document() {
+            retourne vrai
+        }
+    }
+
     retourne faux
 }
 

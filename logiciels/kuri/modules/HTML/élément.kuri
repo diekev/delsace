@@ -807,10 +807,10 @@ donne_user_navigation_involvement :: fonc (event: *Event) -> UserNavigationInvol
 /* https://html.spec.whatwg.org/multipage/links.html#cannot-navigate */
 cannot_navigate :: fonc (element: *Élément) -> bool
 {
-    // À FAIRE : element's node document is not fully active; or
-    // saufsi element.document.est_fully_active() {
-    //     retourne vrai
-    // }
+    // element's node document is not fully active; or
+    saufsi element.document.est_fully_active() {
+        retourne vrai
+    }
 
     // element is not an a element and is not connected.
     si element.local_name != TAG_a && !element.est_connecté() {
