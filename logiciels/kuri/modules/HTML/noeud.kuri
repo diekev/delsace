@@ -21,6 +21,8 @@ TableVirtuelleNoeud :: struct {
     sur_déconnexion: fonc(*Noeud)(rien)
     /* Appelé quand les enfants sont changés. */
     sur_changement_enfants: fonc(*Noeud)(rien)
+    /* Appelé quand le document est devenu fully active. */
+    sur_document_fully_active: fonc(*Noeud)(rien)
 }
 
 #portée_export
@@ -71,6 +73,15 @@ noeud_sur_destruction :: fonc (base: *JavaScript.Cellule)
     event_target_sur_destruction(base)
     noeud := base comme *Noeud
     noeud_détruit_données(noeud)
+}
+
+noeud_sur_document_est_devenu_fully_active :: fonc (noeud: *Noeud) -> DécisionTraversée
+{
+    table := noeud.table comme *TableVirtuelleNoeud
+    si table && table.sur_document_fully_active {
+        table.sur_document_fully_active(noeud)
+    }
+    retourne DécisionTraversée.CONTINUE
 }
 
 #portée_export

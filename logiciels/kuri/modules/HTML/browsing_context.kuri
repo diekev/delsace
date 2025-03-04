@@ -137,6 +137,17 @@ définis_parent :: fonc (navigable: *Navigable, parent: *Navigable)
     }
 }
 
+définis_active_session_history_entry :: fonc (navigable: *Navigable, entry: *SessionHistoryEntry)
+{
+    document := donne_document(entry)
+
+    si navigable.est_top_level_traversable() && document != navigable.donne_active_document() {
+        document.notifie_changement_fully_active()
+    }
+
+    navigable.active_session_history_entry = entry
+}
+
 donne_active_document :: fonc (navigable: *Navigable) -> *Document
 {
     retourne donne_document(navigable.active_session_history_entry)

@@ -210,6 +210,12 @@ est_fully_active :: fonc (document: *Document) -> bool
     retourne faux
 }
 
+notifie_changement_fully_active :: fonc (document: *Document)
+{
+    // notifie les noeuds que le document est devenu fully active.
+    traverse_noeud(document, noeud_sur_document_est_devenu_fully_active)
+}
+
 /* https://html.spec.whatwg.org/multipage/urls-and-fetching.html#document-base-url */
 donne_base_url :: fonc (document: *Document) -> *URL
 {
