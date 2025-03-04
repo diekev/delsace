@@ -3054,6 +3054,45 @@ table_element_sur_applique_presentational_hints :: fonc (base: *Élément, réso
     ajoute_propriété_pour_non_zero_dimension(résolveuse, base, ATTR_width, CSS.PROP_width)
     ajoute_propriété_pour_dimension(résolveuse, base, ATTR_height, CSS.PROP_height)
     ajoute_propriété_pour_pixel_length(résolveuse, base, ATTR_cellspacing, CSS.PROP_border_spacing)
+
+    border := donne_attribut_ou_chaine_vide(base, ATTR_border)
+    saufsi border.est_vide() {
+        valeur := parse_a_non_negative_integer(border)
+        valeur_border : r64 = 0.0
+
+        si valeur.possède_valeur() {
+            valeur_border = valeur.Quelque comme r64
+        }
+        sinon {
+            /* Nous devons utiliser une valeur de 1 si l'attribut existe, mais qu'il y a une erreur de parsage. */
+            valeur_border = 1.0
+        }
+
+        valeur_de_style := CSS.ValeurDeStyle(pixels = valeur_border)
+        CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_top_width, valeur_de_style)
+        CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_right_width, valeur_de_style)
+        CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_bottom_width, valeur_de_style)
+        CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_left_width, valeur_de_style)
+
+        /* À FAIRE : déplace ceci (voir Mozilla). */
+        border_style := CSS.ValeurDeStyle(mot_clé = CSS.PROP_solid)
+        CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_top_style, border_style)
+        CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_right_style, border_style)
+        CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_bottom_style, border_style)
+        CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_left_style, border_style)
+    }
+
+    border_color := donne_attribut_ou_chaine_vide(base, ATTR_bordercolor)
+    saufsi border_color.est_vide() {
+        valeur := parse_a_legacy_colour_value(border_color)
+        si valeur.possède_valeur() {
+            valeur_de_style := CSS.ValeurDeStyle(couleur = valeur.Quelque)
+            CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_top_color, valeur_de_style)
+            CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_right_color, valeur_de_style)
+            CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_bottom_color, valeur_de_style)
+            CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_left_color, valeur_de_style)
+        }
+    }
 }
 
 /** \} */
