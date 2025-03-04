@@ -261,7 +261,7 @@ navigate :: fonc (user_agent: *UserAgent,
                   source_document: *Document,
                   history_handling := NavigationHistoryBehavior.AUTO,
                   referrer_policy := ReferrerPolicy.EmptyString,
-                  user_involvement := UserNavigationInvolvement.None @inutilisée)
+                  user_involvement := UserNavigationInvolvement.None)
 {
     // 1. Let cspNavigationType be "form-submission" if formDataEntryList is non-null; otherwise "other".
 
@@ -422,6 +422,7 @@ navigate :: fonc (user_agent: *UserAgent,
     tâche.params.navigation_id = navigation_id
     tâche.params.target_browsing_context = target_browsing_context
     tâche.params.referrer_policy = referrer_policy
+    tâche.params.user_involvement = user_involvement
 
     user_agent.lance_en_parallèle(tâche)
 }
@@ -436,6 +437,7 @@ NavigateParallelStepsParams :: struct {
     navigation_id: NavigationID
     target_browsing_context: *BrowsingContext
     referrer_policy: ReferrerPolicy
+    user_involvement: UserNavigationInvolvement
 }
 
 navigate_parallel_steps :: fonc (params: *NavigateParallelStepsParams)
@@ -448,6 +450,7 @@ navigate_parallel_steps :: fonc (params: *NavigateParallelStepsParams)
     history_handling := params.history_handling
     navigation_id := params.navigation_id
     target_browsing_context := params.target_browsing_context
+    user_involvement := params.user_involvement
 
     // 1. Let unloadPromptCanceled be the result of checking if unloading is
     //    canceled for navigable's active document's inclusive descendant navigables.
@@ -531,6 +534,7 @@ navigate_parallel_steps :: fonc (params: *NavigateParallelStepsParams)
 
         user_agent: *UserAgent
         navigable: *Navigable
+        user_involvement: UserNavigationInvolvement
         history_handling: NavigationHistoryBehavior
         history_entry: *SessionHistoryEntry
     }
@@ -538,7 +542,7 @@ navigate_parallel_steps :: fonc (params: *NavigateParallelStepsParams)
     tâche_run :: fonc (base: *Algorithm)
     {
         steps := base comme *Tâche
-        finalize_a_cross_document_navigation(steps.user_agent, steps.navigable, steps.history_handling, steps.history_entry)
+        finalize_a_cross_document_navigation(steps.user_agent, steps.navigable, steps.history_handling, steps.user_involvement, steps.history_entry)
     }
 
     tâche := crée_algorithm(tâche_run, Tâche)
@@ -546,6 +550,7 @@ navigate_parallel_steps :: fonc (params: *NavigateParallelStepsParams)
     tâche.navigable = navigable
     tâche.history_handling = history_handling
     tâche.history_entry = history_entry
+    tâche.user_involvement = user_involvement
 
     completion_steps := crée_tâche_pour_traversable(user_agent, tâche, navigable.donne_traversable_navigable())
 
@@ -570,7 +575,7 @@ navigate_parallel_steps :: fonc (params: *NavigateParallelStepsParams)
  * \{ */
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#finalize-a-cross-document-navigation */
-finalize_a_cross_document_navigation :: fonc (user_agent: *UserAgent, navigable: *Navigable, history_handling: NavigationHistoryBehavior, history_entry: *SessionHistoryEntry)
+finalize_a_cross_document_navigation :: fonc (user_agent: *UserAgent, navigable: *Navigable, history_handling: NavigationHistoryBehavior, user_involvement: UserNavigationInvolvement, history_entry: *SessionHistoryEntry)
 {
     traversable := navigable.donne_traversable_navigable()
 
@@ -635,7 +640,7 @@ finalize_a_cross_document_navigation :: fonc (user_agent: *UserAgent, navigable:
     }
 
     // 10. Apply the push/replace history step targetStep to traversable given historyHandling.
-    _ := apply_the_push_replace_history_step(user_agent, target_step, traversable, history_handling)
+    _ := apply_the_push_replace_history_step(user_agent, target_step, traversable, history_handling, user_involvement)
 
     si user_agent {
         document := history_entry.donne_document()
@@ -1555,7 +1560,7 @@ HistoryApplication :: énum {
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#apply-the-push/replace-history-step */
-apply_the_push_replace_history_step :: fonc (user_agent: *UserAgent, step: n32, traversable: *TraversableNavigable, history_handling: NavigationHistoryBehavior) -> HistoryApplication
+apply_the_push_replace_history_step :: fonc (user_agent: *UserAgent, step: n32, traversable: *TraversableNavigable, history_handling: NavigationHistoryBehavior, user_involvement: UserNavigationInvolvement) -> HistoryApplication
 {
     assert(history_handling != NavigationHistoryBehavior.AUTO)
 
@@ -1568,8 +1573,8 @@ apply_the_push_replace_history_step :: fonc (user_agent: *UserAgent, step: n32, 
         navigation_type = NavigationType.replace
     }
 
-    // 1. Return the result of applying the history step step to traversable given false, null, null, null, and historyHandling.
-    retourne apply_the_history_step(user_agent, step, traversable, faux, nul, nul, nul, *navigation_type)
+    // 1. Return the result of applying the history step step to traversable given false, null, null, userInvolvement, and historyHandling.
+    retourne apply_the_history_step(user_agent, step, traversable, faux, nul, nul, *user_involvement, *navigation_type)
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#apply-the-reload-history-step */
