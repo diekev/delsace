@@ -618,7 +618,8 @@ finalize_a_cross_document_navigation :: fonc (user_agent: *UserAgent, navigable:
 
     // 9. If entryToReplace is null, then:
     si entry_to_replace == nul {
-        // À FAIRE : 1. Clear the forward session history of traversable.
+        // 1. Clear the forward session history of traversable.
+        clear_the_forward_session_history(user_agent, traversable)
 
         // 2. Set targetStep to traversable's current session history step + 1.
         target_step = traversable.current_session_history_entry_step + 1
@@ -941,7 +942,8 @@ finalize_a_same_document_navigation :: fonc (empl params: *FinalizeSameDocumentN
 
     // 5. If entryToReplace is null, then:
     si entry_to_replace == nul {
-        // À FAIRE : 1. Clear the forward session history of traversable.
+        // 1. Clear the forward session history of traversable.
+        clear_the_forward_session_history(user_agent, traversable)
 
         // 2. Set targetStep to traversable's current session history step + 1.
         target_step = traversable.current_session_history_entry_step + 1
@@ -2426,6 +2428,59 @@ get_the_target_history_entry :: fonc (user_agent: *UserAgent, navigable: *Naviga
 
     assert(résultat != nul)
     retourne résultat
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#clear-the-forward-session-history */
+clear_the_forward_session_history :: fonc (user_agent: *UserAgent, navigable: *TraversableNavigable)
+{
+    // 1. Assert: this is running within navigable's session history traversal queue.
+    assert(user_agent.est_exécuté_sur_file_parallèle(navigable))
+
+    // 2. Let step be the navigable's current session history step.
+    step := navigable.current_session_history_entry_step
+
+    // 3. Let entryLists be the ordered set « navigable's session history entries ».
+    entry_lists_à_visiter: [..]*[..]*SessionHistoryEntry
+    diffère déloge(entry_lists_à_visiter)
+
+    /* À FAIRE(langage) : utilisation d'un nombre entier car les pointeurs vers tableaux n'ont pas d'opérateurs. */
+    entry_lists_visités: [..]n64
+    diffère déloge(entry_lists_visités)
+
+    tableau_ajoute(*entry_lists_à_visiter, *navigable.session_history_entries)
+
+    // 4. For each entryList of entryLists:
+    tantque entry_lists_à_visiter.taille != 0 {
+        entry_list := entry_lists_à_visiter[entry_lists_à_visiter.taille - 1]
+        entry_lists_à_visiter.taille -= 1
+
+        si ensemble_possède(*entry_lists_visités, entry_list comme n64) {
+            continue
+        }
+
+        ensemble_ajoute(*entry_lists_visités, entry_list comme n64)
+
+        // 1. Remove every session history entry from entryList that has a step greater than step.
+        pour entry_list.taille {
+            entry := entry_list.pointeur[it]
+
+            si entry.step > step {
+                tableau_supprime_index(entry_list, it)
+                détruit_session_history_entry(entry)
+                reprends it
+            }
+        }
+
+        // 2. For each entry of entryList:
+        pour entry_list.taille {
+            entry := entry_list.pointeur[it]
+            // 1. For each nestedHistory of entry's document state's nested histories, append nestedHistory's entries list to entryLists.
+
+            pour * nested_history dans entry.document_state.nested_histories {
+                tableau_ajoute(*entry_lists_à_visiter, *nested_history.entries)
+            }
+        }
+    }
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#getting-all-used-history-steps */
