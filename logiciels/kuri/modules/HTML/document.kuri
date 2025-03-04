@@ -113,6 +113,7 @@ Document :: struct {
 
     unload_counter: z32
     ignore_destructive_writes: z32
+    things_that_delay_the_load_event: n32
 
     /* Pour les navigation de fragments. */
     target_element: *Élément
