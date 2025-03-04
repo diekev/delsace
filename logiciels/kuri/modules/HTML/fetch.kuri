@@ -123,6 +123,8 @@ Request :: struct {
     /* empty string, "download", "imageset", "manifest", "prefetch", "prerender", or "xslt" */
     initiator := ""
 
+    initiator_type := ""
+
     user_activation: bool
 
     render_blocking: bool
