@@ -10,6 +10,9 @@ NestedHistory :: struct {
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#document-state-2 */
 DocumentState :: struct {
+    /* Utilise un compte de référence pour pouvoir partager les DocumentState. */
+    référence := 1
+
     document: *Document
     history_policy_container: *PolicyContainer
     initiator_origin: Optionnel(Origin)
@@ -24,6 +27,26 @@ DocumentState :: struct {
     ever_populated: bool
 
     nested_histories: [..]NestedHistory
+}
+
+copie_référence :: fonc (state: *DocumentState) -> *DocumentState
+{
+    state.référence += 1
+    retourne state
+}
+
+détruit_document_state :: fonc (state: *DocumentState)
+{
+    saufsi state {
+        retourne
+    }
+
+    state.référence -= 1
+    si state.référence > 0 {
+        retourne
+    }
+
+    déloge(state)
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#session-history-entry */
@@ -52,7 +75,7 @@ SessionHistoryEntry :: struct {
 détruit_session_history_entry :: fonc (she: *SessionHistoryEntry)
 {
     détruit_url(she.url)
-    déloge(she.document_state)
+    détruit_document_state(she.document_state)
     déloge(she)
 }
 
