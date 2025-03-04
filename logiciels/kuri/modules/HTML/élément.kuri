@@ -1975,6 +1975,25 @@ HTMLObjectElement :: struct {
     image_data: ImageIO
 }
 
+donne_hauteur_intrinsèque :: fonc (object: *HTMLObjectElement) -> z32 #enligne
+{
+    retourne object.image_data.hauteur
+}
+
+donne_largeur_intrinsèque :: fonc (object: *HTMLObjectElement) -> z32 #enligne
+{
+    retourne object.image_data.largeur
+}
+
+donne_ratio_intrinsèque :: fonc (object: *HTMLObjectElement) -> r32 #enligne
+{
+    si object.image_data.hauteur == 0 {
+        retourne 1.0
+    }
+
+    retourne object.image_data.largeur comme r32 / object.image_data.hauteur comme r32
+}
+
 #portée_fichier
 
 table_virtuelle_object_element := TableVirtuelleÉlément(
@@ -2109,6 +2128,12 @@ détermine_ce_que_object_représente :: fonc (object: *HTMLObjectElement)
     object_représente_fallback(object)
 }
 
+définis_chose_représentée :: fonc (object: *HTMLObjectElement, chose: ChoseReprésentée)
+{
+    object.chose_représentée = chose
+    object.document.invalide_style()
+}
+
 object_représente_fallback :: fonc (object: *HTMLObjectElement)
 {
     IMG_detruit_image(*object.image_data)
@@ -2116,7 +2141,7 @@ object_représente_fallback :: fonc (object: *HTMLObjectElement)
 
     // The object element represents the element's children. This is the element's fallback content. Destroy a child navigable given the element.
     object.document.things_that_delay_the_load_event -= 1
-    object.chose_représentée = ChoseReprésentée.DESCENDANTS
+    object.définis_chose_représentée(ChoseReprésentée.DESCENDANTS)
 }
 
 object_représente_data :: fonc (object: *HTMLObjectElement, réponse: *Response)
@@ -2224,9 +2249,9 @@ object_représente_data :: fonc (object: *HTMLObjectElement, réponse: *Response
 
     contenu := réponse.body.Quelque
 
-    object.chose_représentée = ChoseReprésentée.DONNÉES
     _ := décode_image(contenu, content_type, *object.image_data)
 
+    object.définis_chose_représentée(ChoseReprésentée.DONNÉES)
     object.document.things_that_delay_the_load_event -= 1
 }
 

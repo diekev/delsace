@@ -1382,6 +1382,10 @@ crée_noeud_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *
         résultat = crée_noeud_de_remplacement_select(arbre, élément comme *HTML.HTMLSelectElement)
         ignore_enfants = vrai
     }
+    sinon si élément.local_name == HTML.TAG_object && (élément comme *HTML.HTMLObjectElement).chose_représentée == HTML.ChoseReprésentée.DONNÉES {
+        résultat = crée_noeud_de_remplacement_object(arbre, élément comme *HTML.HTMLObjectElement)
+        ignore_enfants = vrai
+    }
     sinon {
         résultat = crée_noeud_pour_display(arbre, display, élément)
     }
@@ -3741,6 +3745,52 @@ noeud_image_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *F
     assert(noeud.élément.local_name == HTML.TAG_img)
     image := noeud.élément comme *HTML.HTMLImageElement
     dessine_image(ctx, image.image_data, fragment.donne_rectangle())
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom NoeudDeDispositionRemplacement pour object
+ * \{ */
+
+#portée_fichier
+
+crée_noeud_de_remplacement_object :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLObjectElement) -> *NoeudDeDispositionRemplacement
+{
+    résultat := arbre.crée_noeud(NoeudDeDispositionRemplacement)
+    résultat.élément = élément
+    résultat.sur_dessin = noeud_object_sur_dessin
+    résultat.sur_dessin_fragment = noeud_object_sur_dessin_fragment
+    résultat.sur_calcul_dimensions_intrinsèques = noeud_object_calcul_dimensions_intrinsèques
+    retourne résultat
+}
+
+noeud_object_calcul_dimensions_intrinsèques :: fonc (noeud: *NoeudDeDispositionRemplacement, ctx: *ContexteDeFormattage @inutilisée)
+{
+    élément := noeud.élément comme *HTML.HTMLObjectElement
+    assert(élément.local_name == HTML.TAG_object)
+
+    si élément.image_data.donnees {
+        noeud.ratio_intrinsèque = HTML.donne_ratio_intrinsèque(élément)
+        noeud.largeur_intrinsèque = HTML.donne_largeur_intrinsèque(élément) comme r32
+        noeud.hauteur_intrinsèque = HTML.donne_hauteur_intrinsèque(élément) comme r32
+    }
+}
+
+noeud_object_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+{
+    noeud := base comme *NoeudDeDispositionRemplacement
+    assert(noeud.élément.local_name == HTML.TAG_object)
+    object := noeud.élément comme *HTML.HTMLObjectElement
+    dessine_image(ctx, object.image_data, noeud.donne_rectangle_bordure())
+}
+
+noeud_object_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
+{
+    noeud := base comme *NoeudDeDispositionRemplacement
+    assert(noeud.élément.local_name == HTML.TAG_object)
+    object := noeud.élément comme *HTML.HTMLObjectElement
+    dessine_image(ctx, object.image_data, fragment.donne_rectangle())
 }
 
 /** \} */
