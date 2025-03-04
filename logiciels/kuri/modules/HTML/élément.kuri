@@ -294,6 +294,9 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élé
     sinon si tag == TAG_link {
         élément = crée_platform_object(document, HTMLLinkElement)
     }
+    sinon si tag == TAG_object {
+        élément = crée_platform_object(document, HTMLObjectElement)
+    }
     sinon si tag == TAG_option {
         élément = crée_platform_object(document, HTMLOptionElement)
     }
@@ -1944,6 +1947,28 @@ HTMLVideoElement :: struct {
 
 table_virtuelle_video_element := TableVirtuelleÉlément(
     classe = HTMLVideoElement,
+    sur_destruction = élément_sur_destruction
+)
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLObjectElement
+ * https://html.spec.whatwg.org/multipage/iframe-embed-object.html#the-object-element
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLObjectElement
+ * \{ */
+
+#portée_export
+
+HTMLObjectElement :: struct {
+    empl html_element: HTMLElement
+    table = *table_virtuelle_object_element
+}
+
+#portée_fichier
+
+table_virtuelle_object_element := TableVirtuelleÉlément(
+    classe = HTMLObjectElement,
     sur_destruction = élément_sur_destruction
 )
 
