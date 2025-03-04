@@ -1,6 +1,8 @@
+importe Chaine
 importe Ensemble
 importe Fondation
 importe MIME
+importe Structures
 
 /* https://html.spec.whatwg.org/multipage/browsers.html#cross-origin-opener-policy-value */
 CrossOriginOpenerPolicyValue :: énum n8 {
@@ -327,15 +329,18 @@ navigate :: fonc (user_agent: *UserAgent,
     }
 
     // 13. If all of the following are true:
-    //     documentResource is null;
-    //     response is null;
+    //     À FAIRE documentResource is null;
+    //     À FAIRE response is null;
     //     url equals navigable's active session history entry's URL with exclude fragments set to true; and
     //     url's fragment is non-null,
     //     then:
-
+    si url.fragment.possède_valeur() && equals(url, navigable.active_session_history_entry.url, vrai) {
         // 1. Navigate to a fragment given navigable, url, historyHandling, userInvolvement, navigationAPIState, and navigationId.
+        navigate_to_a_fragment(user_agent, navigable, url, history_handling, user_involvement, navigation_id)
 
         // 2. Return.
+        retourne
+    }
 
     // 14. If navigable's parent is non-null, then set navigable's is delaying load events to true.
     si navigable.parent {
@@ -809,6 +814,164 @@ crée_tâche_pour_navigate_to_javascript_url :: fonc (user_agent: *UserAgent, ta
 }
 
 #portée_export
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 7.4.2.3.3 Fragment navigations
+ * https://html.spec.whatwg.org/multipage/browsing-the-web.html#scroll-to-fragid
+ * \{ */
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#navigate-fragid */
+navigate_to_a_fragment :: fonc (user_agent: *UserAgent,
+                                navigable: *Navigable,
+                                url: *URL,
+                                history_handling: NavigationHistoryBehavior,
+                                user_involvement: UserNavigationInvolvement,
+                                navigation_id: &NavigationID @inutilisée)
+{
+    // 1. Let navigation be navigable's active window's navigation API.
+
+    // 2. Let destinationNavigationAPIState be navigable's active session history entry's navigation API state.
+
+    // 3. If navigationAPIState is not null, then set destinationNavigationAPIState to navigationAPIState.
+
+    // 4. Let continue be the result of firing a push/replace/reload navigate event at navigation with navigationType set to historyHandling, isSameDocument set to true, userInvolvement set to userInvolvement, sourceElement set to sourceElement, destinationURL set to url, and navigationAPIState set to destinationNavigationAPIState.
+
+    // 5. If continue is false, then return.
+
+    // 6. Let historyEntry be a new session history entry, with
+    // URL                       url
+    // document state            navigable's active session history entry's document state
+    // À FAIRE navigation API state      destinationNavigationAPIState
+    // À FAIRE scroll restoration mode   navigable's active session history entry's scroll restoration mode
+    history_entry := loge(SessionHistoryEntry)
+    history_entry.url = url
+    history_entry.document_state = copie_référence(navigable.active_session_history_entry.document_state)
+
+    // 7. Let entryToReplace be navigable's active session history entry if historyHandling is "replace", otherwise null.
+    entry_to_replace: *SessionHistoryEntry
+    si history_handling == NavigationHistoryBehavior.REPLACE {
+        entry_to_replace = navigable.active_session_history_entry
+    }
+
+    // 8. Let history be navigable's active document's history object.
+
+    // 9. Let scriptHistoryIndex be history's index.
+    script_history_index: n32
+
+    // 10. Let scriptHistoryLength be history's length.
+    script_history_length: n32
+
+    // 11. If historyHandling is "push", then:
+
+        // 1. Set history's state to null.
+
+        // 2. Increment scriptHistoryIndex.
+
+        // 3. Set scriptHistoryLength to scriptHistoryIndex + 1.
+
+    // 12. Set navigable's active document's URL to url.
+    document := navigable.donne_active_document()
+    document.url = copie_url(url)
+
+    // 13. Set navigable's active session history entry to historyEntry.
+    navigable.active_session_history_entry = history_entry
+
+    // 14. Update document for history step application given navigable's active document, historyEntry, true, scriptHistoryIndex, scriptHistoryLength, and historyHandling.
+    // @specbug historyHandling n'est pas dans les paramètres
+    update_params: DocumentUpdateParams
+    update_params.document = document
+    update_params.entry = history_entry
+    update_params.do_not_reactivate = vrai
+    update_params.script_history_index = script_history_index
+    update_params.script_history_length = script_history_length
+
+    update_document_for_history_step_application(*update_params)
+
+    // 15. Scroll to the fragment given navigable's active document.
+    scroll_to_the_fragment(user_agent, document)
+
+    // 16. Let traversable be navigable's traversable navigable.
+    traversable := navigable.donne_traversable_navigable()
+
+    // 17. Append the following session history synchronous navigation steps involving navigable to traversable:
+    //      1. Finalize a same-document navigation given traversable, navigable, historyEntry, entryToReplace, historyHandling, and userInvolvement.
+    //      2. Invoke WebDriver BiDi fragment navigated with navigable and a new WebDriver BiDi navigation status whose id is navigationId, url is url, and status is "complete".
+
+    params: FinalizeSameDocumentNavigationParams
+    params.user_agent = user_agent
+    params.traversable = traversable
+    params.target_navigable = navigable
+    params.target_entry = history_entry
+    params.entry_to_replace = entry_to_replace
+    params.history_handling = history_handling
+    params.user_involvement = user_involvement
+
+    tâche := crée_algorithm_pour_fonction(*params, finalize_a_same_document_navigation)
+    user_agent.lance_sur_file_parallèle(traversable, tâche)
+}
+
+FinalizeSameDocumentNavigationParams :: struct {
+    user_agent: *UserAgent
+    traversable: *TraversableNavigable
+    target_navigable: *Navigable
+    target_entry: *SessionHistoryEntry
+    entry_to_replace: *SessionHistoryEntry
+    history_handling: NavigationHistoryBehavior
+    user_involvement: UserNavigationInvolvement
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#finalize-a-same-document-navigation */
+finalize_a_same_document_navigation :: fonc (empl params: *FinalizeSameDocumentNavigationParams)
+{
+    // 1. Assert: this is running on traversable's session history traversal queue.
+    assert(user_agent.est_exécuté_sur_file_parallèle(traversable))
+
+    // 2. If targetNavigable's active session history entry is not targetEntry, then return.
+    si target_navigable.active_session_history_entry != target_entry {
+        retourne
+    }
+
+    // 3. Let targetStep be null.
+    target_step: Optionnel(n32) 
+
+    // 4. Let targetEntries be the result of getting session history entries for targetNavigable.
+    target_entries := donne_session_history_entries(user_agent, target_navigable)
+
+    // 5. If entryToReplace is null, then:
+    si entry_to_replace == nul {
+        // À FAIRE : 1. Clear the forward session history of traversable.
+
+        // 2. Set targetStep to traversable's current session history step + 1.
+        target_step = traversable.current_session_history_entry_step + 1
+
+        // 3. Set targetEntry's step to targetStep.
+        target_entry.step = target_step.Quelque
+
+        // 4. Append targetEntry to targetEntries.
+        tableau_ajoute(target_entries, target_entry)
+    }
+    // Otherwise:
+    sinon {
+        // 1. Replace entryToReplace with targetEntry in targetEntries.
+        tableau_remplace(target_entries, entry_to_replace, target_entry)
+
+        // 2. Set targetEntry's step to entryToReplace's step.
+        target_entry.step = entry_to_replace.step
+
+        // 3. Set targetStep to traversable's current session history step.
+        target_step = traversable.current_session_history_entry_step
+    }
+
+    // 6. Apply the push/replace history step targetStep to traversable given historyHandling and userInvolvement.
+    _ := apply_the_push_replace_history_step(user_agent, target_step, traversable, history_handling, user_involvement)
+
+    si user_agent {
+        document := target_entry.donne_document()
+        user_agent.document_est_prêt(document)
+    }
+}
 
 /** \} */
 
@@ -2480,6 +2643,147 @@ make_active :: fonc (document: *Document)
     // 5. Set window's relevant settings object's execution ready flag.
     settings := window.donne_relevant_settings_object()
     settings.execution_ready = vrai
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 7.4.6.4 Scrolling to a fragment
+ * https://html.spec.whatwg.org/multipage/browsing-the-web.html#scrolling-to-a-fragment
+ * \{ */
+
+scroll_to_the_fragment :: fonc (user_agent: *UserAgent, document: *Document)
+{
+    // 1. If document's indicated part is null, then set document's target element to null.
+    indicated_part := document.donne_indicated_part()
+    saufsi indicated_part {
+        document.target_element = nul
+        retourne
+    }
+
+    // 2. Otherwise, if document's indicated part is top of the document, then:
+    si indicated_part == donne_special_value_top_of_the_document() {
+        // 1. Set document's target element to null.
+        document.target_element = nul
+
+        // 2. Scroll to the beginning of the document for document. [CSSOMVIEW]
+        // À FAIRE : utilise CSSOMVIEW
+        user_agent.défile_page_vers_fragment()
+
+        // 3. Return.
+        retourne
+    }
+
+    // 3. Otherwise:
+
+    // 1. Assert: document's indicated part is an element.
+
+    // 2. Let target be document's indicated part.
+    target := indicated_part
+
+    // 3. Set document's target element to target.
+    document.target_element = target
+
+    // À FAIRE 4. Run the ancestor details revealing algorithm on target.
+
+    // 5. Run the ancestor hidden-until-found revealing algorithm on target.
+
+    // 6. Scroll target into view, with behavior set to "auto", block set to "start", and inline set to "nearest". [CSSOMVIEW]
+    user_agent.défile_page_vers_fragment()
+
+    // 7. Run the focusing steps for target, with the Document's viewport as the fallback target.
+
+    // 8. Move the sequential focus navigation starting point to target.
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#the-indicated-part-of-the-document */
+donne_indicated_part :: fonc (document: *Document) -> *Élément
+{
+    assert(document.type == "html")
+    retourne select_the_indicated_part(document, document.url)
+}
+
+#portée_module
+
+__top_of_the_document: Élément = ---
+donne_special_value_top_of_the_document :: fonc () -> *Élément
+{
+    retourne *__top_of_the_document
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#select-the-indicated-part */
+select_the_indicated_part :: fonc (document: *Document, url: *URL) -> *Élément
+{
+    // 1. If document's URL does not equal url with exclude fragments set to true, then return null.
+    saufsi equals(document.url, url, vrai) {
+        retourne nul
+    }
+
+    // 2. Let fragment be url's fragment.
+    fragment := url.donne_fragment_ou_chaine_vide()
+
+    // 3. If fragment is the empty string, then return the special value top of the document.
+    saufsi fragment {
+        retourne donne_special_value_top_of_the_document()
+    }
+
+    // 4. Let potentialIndicatedElement be the result of finding a potential indicated element given document and fragment.
+    potential_indiciated_element := find_a_potential_indicated_element(document, fragment)
+
+    // 5. If potentialIndicatedElement is not null, then return potentialIndicatedElement.
+    si potential_indiciated_element {
+        retourne potential_indiciated_element
+    }
+
+    // À FAIRE 6. Let fragmentBytes be the result of percent-decoding fragment.
+
+    // 7. Let decodedFragment be the result of running UTF-8 decode without BOM on fragmentBytes.
+
+    // 8. Set potentialIndicatedElement to the result of finding a potential indicated element given document and decodedFragment.
+
+    // 9. If potentialIndicatedElement is not null, then return potentialIndicatedElement.
+
+    // 10. If decodedFragment is an ASCII case-insensitive match for the string top, then return the top of the document.
+
+    // 11. Return null.
+    retourne nul
+}
+
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#find-a-potential-indicated-element */
+find_a_potential_indicated_element :: fonc (document: *Document, fragment: chaine) -> *Élément
+{
+    pile: Pile(*Noeud)
+    diffère détruit(pile)
+
+    pile.empile(document)
+
+    tantque !pile.est_vide() {
+        noeud := pile.dépile()
+
+        si noeud.est_élément() {
+            élément := noeud comme *Élément
+
+            // 1. If there is an element in the document tree whose root is document and
+            //    that has an ID equal to fragment, then return the first such element in tree order.
+            si élément.id.donne_chaine_utf16() == fragment {
+                retourne élément
+            }
+
+            // 2. If there is an a element in the document tree whose root is document that has a
+            //    name attribute whose value is equal to fragment, then return the first such element
+            //    in tree order.
+            si élément.local_name == TAG_a && donne_attribut_ou_chaine_vide(élément, ATTR_name).donne_chaine_utf16() == fragment {
+                retourne élément
+            }
+        }
+
+        pour > noeud.enfants {
+            pile.empile(it)
+        }
+    }
+
+    // 3. Return null.
+    retourne nul
 }
 
 /** \} */

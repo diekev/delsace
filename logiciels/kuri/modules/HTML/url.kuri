@@ -171,6 +171,14 @@ définis_path :: fonc (url: *URL, opaque: chaine)
     url.path = opaque
 }
 
+donne_fragment_ou_chaine_vide :: fonc (url: *URL) -> chaine
+{
+    si url.fragment.possède_valeur() {
+        retourne url.fragment.Quelque
+    }
+    retourne ""
+}
+
 /* https://url.spec.whatwg.org/#url-opaque-path */
 possède_chemin_opaque :: fonc (url: *URL) -> bool
 {

@@ -114,6 +114,9 @@ Document :: struct {
     unload_counter: z32
     ignore_destructive_writes: z32
 
+    /* Pour les navigation de fragments. */
+    target_element: *Élément
+
     /* CSS. */
     feuille_de_style_agent: *CSS.CSSStyleSheet @NeVisitePas
     feuilles_de_style: [..]*CSS.CSSStyleSheet @NeVisitePas
