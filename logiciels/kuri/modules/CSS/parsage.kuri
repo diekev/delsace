@@ -2497,7 +2497,7 @@ InfoTypePropriété :: struct {
 }
 
 NOMBRE_PROPRIÉTÉS_SHORTHAND :: 26
-NOMBRE_PROPRIÉTÉS :: 94
+NOMBRE_PROPRIÉTÉS :: 96
 
 infos_types_propriétés_shorthand : [NOMBRE_PROPRIÉTÉS_SHORTHAND]InfoTypePropriété = ---
 infos_types_propriétés : [NOMBRE_PROPRIÉTÉS]InfoTypePropriété = ---
@@ -2654,7 +2654,9 @@ initialise_tables_infos_propriétés :: fonc ()
         InfoTypePropriété(PROP_box_sizing, id = IDPropriété.BoxSizing, fonction_de_parsage = parse_propriété_box_sizing, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
         InfoTypePropriété(PROP_white_space, id = IDPropriété.WhiteSpace, fonction_de_parsage = parse_propriétés_white_space, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.Héritée),
         InfoTypePropriété(PROP_opacity, id = IDPropriété.Opacity, fonction_de_parsage = parse_propriété_number_ou_pourcentage, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteStackingContext),
-        InfoTypePropriété(PROP_z_index, id = IDPropriété.ZIndex, fonction_de_parsage = parse_propriété_number_ou_auto, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteStackingContext)
+        InfoTypePropriété(PROP_z_index, id = IDPropriété.ZIndex, fonction_de_parsage = parse_propriété_number_ou_auto, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteStackingContext),
+        InfoTypePropriété(PROP_border_spacing, id = IDPropriété.BorderSpacing, fonction_de_parsage = parse_propriété_border_spacing, genre_valeur_calculée = GenreValeurCalculée.LongueurAbsolue, drapeaux = DrapeauxPropriété.AffecteDisposition | DrapeauxPropriété.Héritée),
+        InfoTypePropriété(PROP_border_collapse, id = IDPropriété.BorderCollapse, fonction_de_parsage = parse_propriété_border_collapse, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition | DrapeauxPropriété.Héritée)
     ]
 
 }
@@ -5501,6 +5503,34 @@ parse_propriété_box_sizing :: fonc (value: []ComponentValue) -> Optionnel(Vale
 parse_propriétés_white_space :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     mots_clés := [PROP_normal, PROP_pre, PROP_nowrap, PROP_pre_wrap, PROP_break_spaces, PROP_pre_line]
+    parseuse := initialise_une_parseuse(value)
+    retourne parse_mot_clé(parseuse, mots_clés)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Border spacing
+ * https://drafts.csswg.org/css2/#propdef-border-spacing
+ * \{ */
+
+parse_propriété_border_spacing :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    /* À FAIRE : 2 valeurs possibles. */
+    retourne parse_valeur_length(parseuse)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Border collapse
+ * https://drafts.csswg.org/css2/#propdef-border-collapse
+ * \{ */
+
+parse_propriété_border_collapse :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    mots_clés := [PROP_collapse, PROP_separate]
     parseuse := initialise_une_parseuse(value)
     retourne parse_mot_clé(parseuse, mots_clés)
 }

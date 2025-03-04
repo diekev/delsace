@@ -140,6 +140,7 @@ ATTR_align : DOMString = ---
 ATTR_alt : DOMString = ---
 ATTR_alternate : DOMString = ---
 ATTR_async : DOMString = ---
+ATTR_cellspacing : DOMString = ---
 ATTR_charset : DOMString = ---
 ATTR_class : DOMString = ---
 ATTR_classid : DOMString = ---

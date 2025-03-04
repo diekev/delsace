@@ -1415,6 +1415,16 @@ formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox)
     }
 
     largeur := calcule_largeur_table(ctx, table)
+    largeur_du_contenu := largeur
+
+    border_spacing := table.propriétés.donne_valeur_calculée(IDPropriété.BorderSpacing).pixels
+    border_collapse := table.propriétés.donne_valeur_calculée(IDPropriété.BorderCollapse)
+
+    utilise_border_spacing := border_collapse.est_mot_clé(PROP_separate)
+    si utilise_border_spacing {
+        largeur += border_spacing * (2.0 + ctx.données_colonnes.taille comme r32)
+        largeur_du_contenu += border_spacing * (ctx.données_colonnes.taille comme r32)
+    }
 
     outrepas_largeur := crée_outrepas_pour_coter_contenu(largeur)
     containing_block := donne_containing_block(table, ctx)
@@ -1426,6 +1436,11 @@ formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox)
      * sont géré par le TableWrapperBox parent : nous risquerions de décaler inutilement le contenu. */
     décalage_x := table.modèle_de_boite.bordure.x
     décalage_y := table.modèle_de_boite.bordure.y
+
+    si utilise_border_spacing {
+        décalage_x += border_spacing comme r32
+        décalage_y += border_spacing comme r32
+    }
 
     décalage_y_ligne := décalage_y
 
@@ -1471,22 +1486,35 @@ formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox)
 
                 hauteur_ligne = max(hauteur_ligne, cellule.box.modèle_de_boite.marge.hauteur)
                 décalage_x_colonne += largeur_cellule comme r32
+
+                si utilise_border_spacing {
+                    décalage_x_colonne += border_spacing comme r32
+                }
             }
 
             définis_position(enfant_row_group, décalage_x, décalage_y_ligne)
-            définis_largeur_contenu(enfant_row_group.modèle_de_boite, largeur comme r32)
+            définis_largeur_contenu(enfant_row_group.modèle_de_boite, largeur_du_contenu comme r32)
             définis_hauteur_contenu(enfant_row_group.modèle_de_boite, hauteur_ligne comme r32)
 
             décalage_y_ligne += hauteur_ligne comme r32
             hauteur_row_group += hauteur_ligne
+
+            si utilise_border_spacing {
+                décalage_y_ligne += border_spacing comme r32
+            }
         }
 
         définis_position(it, décalage_x, décalage_y_row_group)
-        définis_largeur_contenu(it.modèle_de_boite, largeur comme r32)
+        définis_largeur_contenu(it.modèle_de_boite, largeur_du_contenu comme r32)
         définis_hauteur_contenu(it.modèle_de_boite, hauteur_row_group comme r32)
     }
 
-    outrepas_hauteur := crée_outrepas_pour_coter_contenu(décalage_y_ligne - décalage_y)
+    hauteur_du_contenu := décalage_y_ligne - décalage_y
+    si utilise_border_spacing {
+        hauteur_du_contenu += border_spacing comme r32
+    }
+
+    outrepas_hauteur := crée_outrepas_pour_coter_contenu(hauteur_du_contenu)
     args = crée_arguments_dimensionnement_hauteur(ctx, table, containing_block, *outrepas_hauteur)
     _ := calcule_hauteur_et_marges(*args)
 }

@@ -1120,6 +1120,9 @@ IDPropriété :: énum n16 {
     PaddingRight
     PaddingTop
 
+    BorderCollapse
+    BorderSpacing
+
     FontFamily
     FontSize
     FontWeight
@@ -1211,6 +1214,9 @@ initialise_style :: fonc (style: *Style)
     style.valeurs[IDPropriété.BorderBottomRightRadius] = ValeurDeStyle(pixels = 0.0)
     style.valeurs[IDPropriété.BorderTopLeftRadius] = ValeurDeStyle(pixels = 0.0)
     style.valeurs[IDPropriété.BorderTopRightRadius] = ValeurDeStyle(pixels = 0.0)
+
+    style.valeurs[IDPropriété.BorderCollapse] = ValeurDeStyle(mot_clé = PROP_separate)
+    style.valeurs[IDPropriété.BorderSpacing] = ValeurDeStyle(pixels = 0.0)
 
     /* Font */
     style.valeurs[IDPropriété.FontFamily] = ValeurDeStyle(mot_clé = PROP_serif)

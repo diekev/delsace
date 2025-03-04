@@ -1049,6 +1049,17 @@ ajoute_propriété_pour_dimension :: fonc (résolveuse: *CSS.RésolveuseStyle, �
     }
 }
 
+ajoute_propriété_pour_pixel_length :: fonc (résolveuse: *CSS.RésolveuseStyle, élément: *Élément, nom_attribut: DOMString, nom_propriété: CSS.CSSOMString)
+{
+    opt_attribut := élément.donne_attribut(nom_attribut)
+    si opt_attribut.possède_valeur() {
+        valeur := parse_a_non_negative_integer(opt_attribut.Quelque)
+        si valeur.possède_valeur() {
+            CSS.ajoute_presentational_hint(résolveuse, nom_propriété, CSS.ValeurDeStyle(pixels = valeur.Quelque comme r64))
+        }
+    }
+}
+
 ajoute_propriété_pour_non_zero_dimension :: fonc (résolveuse: *CSS.RésolveuseStyle, élément: *Élément, nom_attribut: DOMString, nom_propriété: CSS.CSSOMString)
 {
     opt_attribut := élément.donne_attribut(nom_attribut)
@@ -3042,6 +3053,7 @@ table_element_sur_applique_presentational_hints :: fonc (base: *Élément, réso
     ajoute_propriété_pour_legacy_colour_value(résolveuse, base, ATTR_bgcolor, CSS.PROP_background_color)
     ajoute_propriété_pour_non_zero_dimension(résolveuse, base, ATTR_width, CSS.PROP_width)
     ajoute_propriété_pour_dimension(résolveuse, base, ATTR_height, CSS.PROP_height)
+    ajoute_propriété_pour_pixel_length(résolveuse, base, ATTR_cellspacing, CSS.PROP_border_spacing)
 }
 
 /** \} */
