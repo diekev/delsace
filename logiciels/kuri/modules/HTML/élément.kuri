@@ -1960,17 +1960,275 @@ table_virtuelle_video_element := TableVirtuelleÉlément(
 
 #portée_export
 
+ChoseReprésentée :: énum {
+    /* L'élément représente ses descendants. */
+    DESCENDANTS
+    /* L'élément représente ses données. */
+    DONNÉES
+}
+
 HTMLObjectElement :: struct {
     empl html_element: HTMLElement
     table = *table_virtuelle_object_element
+
+    chose_représentée: ChoseReprésentée
+    image_data: ImageIO
 }
 
 #portée_fichier
 
 table_virtuelle_object_element := TableVirtuelleÉlément(
     classe = HTMLObjectElement,
-    sur_destruction = élément_sur_destruction
+    sur_destruction = object_element_sur_destruction,
+    sur_document_fully_active = object_element_sur_document_fully_active,
+    sur_dépilement = object_element_sur_dépilement,
+    sur_changement_attribut = object_element_sur_changement_attribut
 )
+
+object_element_sur_destruction :: fonc (base: *JavaScript.Cellule)
+{
+    élément := base comme *HTMLObjectElement
+    élément_détruit_données(élément)
+    IMG_detruit_image(*élément.image_data)
+}
+
+object_element_sur_document_fully_active :: fonc (base: *Noeud)
+{
+    object_element_ajourne(base comme *HTMLObjectElement)
+}
+
+object_element_sur_dépilement :: fonc (base: *Élément)
+{
+    object_element_ajourne(base comme *HTMLObjectElement)
+}
+
+object_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
+{
+    object := base comme *HTMLObjectElement
+
+    si élément_sur_changement_attribut(object, local_name, vieille_valeur, valeur, espace_de_nom) {
+        retourne vrai
+    }
+
+    si local_name == ATTR_classid {
+        object_element_ajourne(object)
+        retourne vrai
+    }
+
+    si local_name == ATTR_data {
+        saufsi possède_attribut(object, ATTR_classid) {
+            object_element_ajourne(object)
+        }
+        retourne vrai
+    }
+
+    si local_name == ATTR_type {
+        si !possède_attribut(object, ATTR_classid) && !possède_attribut(object, ATTR_data) {
+            object_element_ajourne(object)
+        }
+        retourne vrai
+    }
+
+    retourne vrai
+}
+
+/* Whenever one of the following conditions occur:
+ * [ ] the element is created,
+ * [X] the element is popped off the stack of open elements of an HTML parser or XML parser,
+ * [ ] the element is not on the stack of open elements of an HTML parser or XML parser, and it is either inserted into a document or removed from a document,
+ * [X] the element's node document changes whether it is fully active,
+ * [ ] one of the element's ancestor object elements changes to or from showing its fallback content,
+ * [X] the element's classid attribute is set, changed, or removed,
+ * [X] the element's classid attribute is not present, and its data attribute is set, changed, or removed,
+ * [X] neither the element's classid attribute nor its data attribute are present, and its type attribute is set, changed, or removed,
+ * [ ] the element changes from being rendered to not being rendered, or vice versa,
+ *
+ * ...the user agent must queue an element task on the DOM manipulation task source given
+ * the object element to run the following steps to (re)determine what the object element
+ * represents.
+ * This task being queued or actively running must delay the load event of the element's node document.
+ */
+object_element_ajourne :: fonc (object: *HTMLObjectElement)
+{
+    document := object.document
+    user_agent := document.donne_user_agent()
+    saufsi user_agent {
+        retourne
+    }
+
+    Tâche :: struct {
+        empl base: Algorithm
+        object: *HTMLObjectElement
+    }
+
+    sur_run :: fonc (base: *Algorithm)
+    {
+        tâche := base comme *Tâche
+        détermine_ce_que_object_représente(tâche.object)
+    }
+
+    tâche := crée_algorithm(sur_run, Tâche)
+    tâche.object = object
+
+    document.things_that_delay_the_load_event += 1
+    user_agent.queue_an_element_task(SourceDeTâche.ManipulationDOM, object, tâche)
+}
+
+détermine_ce_que_object_représente :: fonc (object: *HTMLObjectElement)
+{
+    // 1. If the user has indicated a preference that this object element's
+    //    fallback content be shown instead of the element's usual behavior,
+    //    then jump to the step below labeled fallback.
+
+    // 2. If the element has an ancestor media element,
+    //    or has an ancestor object element that is not showing its fallback content,
+
+    //    or if the element is not in a document whose browsing context is non-null,
+
+    //    or if the element's node document is not fully active,
+    si object.document && !object.document.est_fully_active() {
+        object_représente_fallback(object)
+        retourne
+    }
+
+    //    or if the element is still in the stack of open elements of an HTML parser or XML parser,
+    si object.est_sur_pile_éléments_ouvert {
+        object_représente_fallback(object)
+        retourne
+    }
+
+    //    or if the element is not being rendered, then jump to the step below labeled fallback.
+
+    // 3. If the data attribute is present and its value is not the empty string, then:
+    si possède_attribut(object, ATTR_data) && !donne_attribut_ou_chaine_vide(object, ATTR_data).est_vide() {
+        object_représente_data(object, nul)
+        retourne
+    }
+
+    // 4. Fallback. NOTE : ceci est fait via les appels à object_représente_fallback.
+    object_représente_fallback(object)
+}
+
+object_représente_fallback :: fonc (object: *HTMLObjectElement)
+{
+    IMG_detruit_image(*object.image_data)
+    object.image_data = ImageIO()
+
+    // The object element represents the element's children. This is the element's fallback content. Destroy a child navigable given the element.
+    object.document.things_that_delay_the_load_event -= 1
+    object.chose_représentée = ChoseReprésentée.DESCENDANTS
+}
+
+object_représente_data :: fonc (object: *HTMLObjectElement, réponse: *Response)
+{
+    saufsi réponse {
+        // 1. If the type attribute is present and its value is not a type that the
+        //    user agent supports, then the user agent may jump to the step below
+        //    labeled fallback without fetching the content to examine its real type.
+
+        // 2. Let url be the result of encoding-parsing a URL given the data
+        //    attribute's value, relative to the element's node document.
+        data := donne_attribut_ou_chaine_vide(object, ATTR_data)
+        url := encoding_parse_a_url(data, object.document)
+
+        // 3. If url is failure, then fire an event named error at the element and
+        //    jump to the step below labeled fallback.
+        saufsi url {
+            queue_a_task_to_fire_error_at_element(object.document.donne_user_agent(), object)
+            object_représente_fallback(object)
+            retourne
+        }
+
+        // 4. Let request be a new request whose URL is url, client is the element's
+        //    node document's relevant settings object, destination is "object",
+        //    credentials mode is "include", mode is "navigate", initiator type is
+        //    "object", and whose use-URL-credentials flag is set.
+        request := loge(Request)
+        request.client = object.document.donne_relevant_settings_object()
+        request.destination = "object"
+        request.credentials_mode = "include"
+        request.mode = "navigate"
+        request.initiator_type = "object"
+        request.use_url_credentials = vrai
+        request.définis_url(url)
+
+        // 5. Fetch request.
+        //    Fetching the resource must delay the load event of the element's node
+        //    document until the task that is queued by the networking task source
+        //    once the resource has been fetched (defined next) has been run.
+        RappelProcessResponse :: struct {
+            empl base: BaseProcessResponse
+
+            object: *HTMLObjectElement
+            request: *Request
+        }
+
+        sur_rappel_process_response :: fonc (base: *BaseProcessResponse, réponse: *Response)
+        {
+            rappel := base comme *RappelProcessResponse
+            object_représente_data(rappel.object, réponse)
+            détruit_response(réponse)
+        }
+
+        sur_destruction_process_response :: fonc (base: *BaseProcessResponse)
+        {
+            rappel := base comme *RappelProcessResponse
+            détruit_request(rappel.request)
+            déloge(rappel)
+        }
+
+        process_response := loge(RappelProcessResponse)
+        process_response.object = object
+        process_response.request = request
+        process_response.sur_rappel = sur_rappel_process_response
+        process_response.sur_destruction = sur_destruction_process_response
+
+        fetch_controller := fetch(object.document.donne_user_agent(), request, process_response = process_response)
+        diffère détruit_fetch_controller(fetch_controller)
+
+        object.document.things_that_delay_the_load_event += 1
+
+        // 6. If the resource is not yet available (e.g. because the resource was not
+        //    available in the cache, so that loading the resource required making a
+        //    request over the network), then jump to the step below labeled fallback.
+        //    The task that is queued by the networking task source once the resource
+        //    is available must restart this algorithm from this step.
+        //    Resources can load incrementally; user agents may opt to consider a
+        //    resource "available" whenever enough data has been obtained to begin
+        //    processing the resource.
+        object_représente_fallback(object)
+        retourne
+    }
+
+    // 7. If the load failed (e.g. there was an HTTP 404 error, there was a DNS
+    //    error), fire an event named error at the element, then jump to the step
+    //    below labeled fallback.
+    si réponse.status != 200 {
+        queue_a_task_to_fire_error_at_element(object.document.donne_user_agent(), object)
+        object_représente_fallback(object)
+        retourne
+    }
+
+    // 8. Determine the resource type, as follows:
+    // À FAIRE : complète
+    saufsi réponse.body_info {
+        object_représente_fallback(object)
+        retourne
+    }
+
+    content_type := réponse.body_info.content_type
+    saufsi est_type_mime_image(content_type) {
+        object_représente_fallback(object)
+        retourne
+    }
+
+    contenu := réponse.body.Quelque
+
+    object.chose_représentée = ChoseReprésentée.DONNÉES
+    _ := décode_image(contenu, content_type, *object.image_data)
+
+    object.document.things_that_delay_the_load_event -= 1
+}
 
 /** \} */
 
