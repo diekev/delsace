@@ -4330,6 +4330,24 @@ remove_irrelevant_boxes :: fonc (noeud: *NoeudDeDisposition)
 
             it.traite_comme_display_none = vrai
         }
+
+        premier := noeud.enfants.pointeur
+        dernier := premier + noeud.enfants.taille
+
+        insertion := premier
+
+        tantque premier != dernier {
+            si mémoire(premier).traite_comme_display_none {
+                premier += 1
+                continue
+            }
+            
+            mémoire(insertion) = mémoire(premier)
+            premier += 1
+            insertion += 1
+        }
+
+        noeud.enfants.taille = insertion - noeud.enfants.pointeur
     }
 
     // 4. If a box B is an anonymous inline containing only white space, and is
@@ -4362,18 +4380,45 @@ generate_missing_child_wrappers :: fonc (noeud: *NoeudDeDisposition, créatrice:
     si noeud.type == TableBox {
         table := noeud comme *TableBox
 
-        pour noeud.enfants {
-            si it.est_proper_table_child() {
+        premier := noeud.enfants.pointeur
+        dernier := premier + noeud.enfants.taille
+
+        insertion := premier
+
+        tantque premier != dernier {
+            si mémoire(premier).traite_comme_display_none {
+                premier += 1
+                continue
+            }
+            
+            si est_proper_table_child(mémoire(premier)) {
+                mémoire(insertion) = mémoire(premier)
+                premier += 1
+                insertion += 1
                 continue
             }
 
             table_row_box := créatrice.arbre.crée_noeud(TableRowBox)
             crée_style_pour_bloc_anonyme(créatrice.résolveuse, table_row_box, table, Display.Type.TableRow)
-            table_row_box.est_pseudo_element = it.est_pseudo_element
-            ajoute_enfant(table_row_box, it)
+            table_row_box.est_pseudo_element = mémoire(premier).est_pseudo_element
 
-            table.enfants[index_it] = table_row_box
+            ajoute_enfant(table_row_box, mémoire(premier))
+            mémoire(insertion) = table_row_box
+            insertion += 1
+
+            premier += 1
+
+            tantque premier != dernier {
+                si est_proper_table_child(mémoire(premier)) {
+                    arrête
+                }
+
+                ajoute_enfant(table_row_box, mémoire(premier))
+                premier += 1
+            }
         }
+
+        noeud.enfants.taille = insertion - noeud.enfants.pointeur
     }
 
     // 2. If a child C of a row group box is not a 'table-row' box, then
@@ -4400,16 +4445,45 @@ generate_missing_child_wrappers :: fonc (noeud: *NoeudDeDisposition, créatrice:
     si noeud.type == TableRowBox {
         table_row_box := noeud comme *TableRowBox
 
-        pour table_row_box.enfants {
-            si it.type != TableCellBox {
-                table_cell := créatrice.arbre.crée_noeud(TableCellBox)
-                crée_style_pour_bloc_anonyme(créatrice.résolveuse, table_cell, table_row_box, Display.Type.TableCell)
-                table_cell.est_pseudo_element = it.est_pseudo_element
-                ajoute_enfant(table_cell, it)
+        premier := noeud.enfants.pointeur
+        dernier := premier + noeud.enfants.taille
 
-                table_row_box.enfants[index_it] = table_cell
+        insertion := premier
+
+        tantque premier != dernier {
+            si mémoire(premier).traite_comme_display_none {
+                premier += 1
+                continue
+            }
+
+            si mémoire(premier).type == TableCellBox {
+                mémoire(insertion) = mémoire(premier)
+                insertion += 1
+                premier += 1
+                continue
+            }
+
+            table_cell := créatrice.arbre.crée_noeud(TableCellBox)
+            crée_style_pour_bloc_anonyme(créatrice.résolveuse, table_cell, table_row_box, Display.Type.TableCell)
+            table_cell.est_pseudo_element = mémoire(premier).est_pseudo_element
+
+            ajoute_enfant(table_cell, mémoire(premier))
+            mémoire(insertion) = table_cell
+            insertion += 1
+
+            premier += 1
+
+            tantque premier != dernier {
+                si mémoire(premier).type == TableCellBox {
+                    arrête
+                }
+
+                ajoute_enfant(table_cell, mémoire(premier))
+                premier += 1
             }
         }
+
+        noeud.enfants.taille = insertion - noeud.enfants.pointeur
     }
 }
 
