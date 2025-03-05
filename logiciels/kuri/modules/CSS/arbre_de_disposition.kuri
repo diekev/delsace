@@ -2708,7 +2708,8 @@ garantis_hauteur_minimale :: fonc (enligneuse: *Enligneuse, hauteur: r32)
 
 peut_ignorer_espace_blanche_en_début_de_ligne :: fonc (empl enligneuse: *Enligneuse) -> bool
 {
-    retourne ligne_courante.largeur_courante == 0.0
+    /* La ligne peut être nulle dans certains cas quand nous n'avons pas encore disposé de fragments. */
+    retourne ligne_courante == nul || ligne_courante.largeur_courante == 0.0
 }
 
 /** \} */
