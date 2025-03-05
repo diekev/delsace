@@ -1442,66 +1442,33 @@ formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox)
         décalage_y += border_spacing comme r32
     }
 
-    décalage_y_ligne := décalage_y
-
-    index_cellule: z64
+    params: ParamsDispositionCellules
+    params.utilise_border_spacing = utilise_border_spacing
+    params.border_spacing = border_spacing
+    params.décalage_x = décalage_x
+    params.décalage_y_ligne = décalage_y
+    params.largeur_du_contenu = largeur_du_contenu
 
     pour table.enfants {
+        si it.type == TableRowBox {
+            _ := dispose_cellules_row_box(ctx, it comme *TableRowBox, *params)
+            continue
+        }
+
         saufsi est_row_group_box(it) {
             continue
         }
 
         hauteur_row_group: r64
-        décalage_y_row_group := décalage_y_ligne
+        décalage_y_row_group := params.décalage_y_ligne
 
         pour enfant_row_group dans it.enfants {
             saufsi enfant_row_group.type == TableRowBox {
                 continue
             }
 
-            décalage_x_colonne := décalage_x
-            hauteur_ligne: r64
-
-            pour enfant_row dans enfant_row_group.enfants {
-                saufsi enfant_row.type == TableCellBox {
-                    continue
-                }
-
-                cellule := *ctx.cellules[index_cellule]
-                index_cellule += 1
-
-                données_colonnes := *ctx.données_colonnes[cellule.colonne]
-
-                largeur_cellule := données_colonnes.final_width
-                si cellule.colspan > 1 {
-                    pour idx dans cellule.colonne + 1 ... cellule.colonne + (cellule.colspan comme z32) - 1 {
-                        données_colonnes = *ctx.données_colonnes[idx]
-                        largeur_cellule += données_colonnes.final_width
-                    }
-                }
-
-                définis_position(cellule.box, décalage_x_colonne, décalage_y_ligne)
-                outrepas_largeur = crée_outrepas_pour_coter_contenu(donne_largeur_contenu(cellule.box, largeur_cellule))
-                mesure(cellule.box, ctx, ModeDeFormattage.Normal, *outrepas_largeur)
-
-                hauteur_ligne = max(hauteur_ligne, cellule.box.modèle_de_boite.marge.hauteur)
-                décalage_x_colonne += largeur_cellule comme r32
-
-                si utilise_border_spacing {
-                    décalage_x_colonne += border_spacing comme r32
-                }
-            }
-
-            définis_position(enfant_row_group, décalage_x, décalage_y_ligne)
-            définis_largeur_contenu(enfant_row_group.modèle_de_boite, largeur_du_contenu comme r32)
-            définis_hauteur_contenu(enfant_row_group.modèle_de_boite, hauteur_ligne comme r32)
-
-            décalage_y_ligne += hauteur_ligne comme r32
+            hauteur_ligne := dispose_cellules_row_box(ctx, enfant_row_group comme *TableRowBox, *params)
             hauteur_row_group += hauteur_ligne
-
-            si utilise_border_spacing {
-                décalage_y_ligne += border_spacing comme r32
-            }
         }
 
         définis_position(it, décalage_x, décalage_y_row_group)
@@ -1509,7 +1476,7 @@ formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox)
         définis_hauteur_contenu(it.modèle_de_boite, hauteur_row_group comme r32)
     }
 
-    hauteur_du_contenu := décalage_y_ligne - décalage_y
+    hauteur_du_contenu := params.décalage_y_ligne - décalage_y
     si utilise_border_spacing {
         hauteur_du_contenu += border_spacing comme r32
     }
@@ -1524,6 +1491,12 @@ initialise_données_cellules :: fonc (ctx: *ContexteDeFormattageTable, table: *T
     index_ligne: z64
 
     pour table.enfants {
+        si it.type == TableRowBox {
+            récolte_cellules_sur_table_row(ctx, it comme *TableRowBox, index_ligne)
+            index_ligne += 1
+            continue
+        }
+
         saufsi est_row_group_box(it) {
             continue
         }
@@ -1533,47 +1506,7 @@ initialise_données_cellules :: fonc (ctx: *ContexteDeFormattageTable, table: *T
                 continue
             }
 
-            row := enfant_row_group comme *TableRowBox
-
-            index_colonne: z64
-            cellules_sur_ligne: z32
-
-            pour enfant_row dans row.enfants {
-                saufsi enfant_row.type == TableCellBox {
-                    continue
-                }
-
-                cell := enfant_row comme *TableCellBox
-
-                index_cellule := ctx.cellules.taille
-
-                cellule := tableau_ajoute_élément(*ctx.cellules)
-                cellule.box = cell
-                cellule.colonne = index_colonne
-                cellule.ligne = index_ligne
-
-                si cell.élément {
-                    cellule.colspan = HTML.donne_colspan(cell.élément)
-                }
-                sinon {
-                    cellule.colspan = 1
-                }
-
-                tableau_ajoute(*ctx.lignes_cellules, index_ligne)
-                tableau_ajoute(*ctx.lignes_cellules, index_cellule)
-
-                tableau_ajoute(*ctx.colonnes_cellules, index_colonne)
-                tableau_ajoute(*ctx.colonnes_cellules, index_cellule)
-
-                index_colonne += cellule.colspan comme z64
-                cellules_sur_ligne += 1
-
-                si ctx.nombre_de_colonnes < index_colonne {
-                    ctx.nombre_de_colonnes = index_colonne
-                }
-            }
-
-            tableau_ajoute(*ctx.cellules_par_ligne, cellules_sur_ligne)
+            récolte_cellules_sur_table_row(ctx, enfant_row_group comme *TableRowBox, index_ligne)
             index_ligne += 1
         }
     }
@@ -1583,6 +1516,49 @@ initialise_données_cellules :: fonc (ctx: *ContexteDeFormattageTable, table: *T
     tableau_redimensionne(ctx.données_colonnes, ctx.nombre_de_colonnes)
 
     // imprime("lignes : %, colones : %\n", index_ligne, ctx.nombre_de_colonnes)
+}
+
+récolte_cellules_sur_table_row :: fonc (ctx: *ContexteDeFormattageTable, row: *TableRowBox, index_ligne: z64)
+{
+    index_colonne: z64
+    cellules_sur_ligne: z32
+
+    pour enfant_row dans row.enfants {
+        saufsi enfant_row.type == TableCellBox {
+            continue
+        }
+
+        cell := enfant_row comme *TableCellBox
+
+        index_cellule := ctx.cellules.taille
+
+        cellule := tableau_ajoute_élément(*ctx.cellules)
+        cellule.box = cell
+        cellule.colonne = index_colonne
+        cellule.ligne = index_ligne
+
+        si cell.élément {
+            cellule.colspan = HTML.donne_colspan(cell.élément)
+        }
+        sinon {
+            cellule.colspan = 1
+        }
+
+        tableau_ajoute(*ctx.lignes_cellules, index_ligne)
+        tableau_ajoute(*ctx.lignes_cellules, index_cellule)
+
+        tableau_ajoute(*ctx.colonnes_cellules, index_colonne)
+        tableau_ajoute(*ctx.colonnes_cellules, index_cellule)
+
+        index_colonne += cellule.colspan comme z64
+        cellules_sur_ligne += 1
+
+        si ctx.nombre_de_colonnes < index_colonne {
+            ctx.nombre_de_colonnes = index_colonne
+        }
+    }
+
+    tableau_ajoute(*ctx.cellules_par_ligne, cellules_sur_ligne)
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/tables.html#auto-table-layout */
@@ -1637,6 +1613,63 @@ calcule_largeur_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox
     }
 
     retourne max(largeur_containing_block comme r64, CAPMIN, MIN)
+}
+
+ParamsDispositionCellules :: struct {
+    utilise_border_spacing: bool
+    décalage_x: r32
+    border_spacing: r64
+    index_cellule: z64
+    décalage_y_ligne: r32
+    largeur_du_contenu: r64
+}
+
+dispose_cellules_row_box :: fonc (ctx: *ContexteDeFormattageTable, row: *TableRowBox, empl params: *ParamsDispositionCellules) -> r64
+{
+    décalage_x_colonne := décalage_x
+    hauteur_ligne: r64
+
+    pour row.enfants {
+        saufsi it.type == TableCellBox {
+            continue
+        }
+
+        cellule := *ctx.cellules[index_cellule]
+        index_cellule += 1
+
+        données_colonnes := *ctx.données_colonnes[cellule.colonne]
+
+        largeur_cellule := données_colonnes.final_width
+        si cellule.colspan > 1 {
+            pour idx dans cellule.colonne + 1 ... cellule.colonne + (cellule.colspan comme z32) - 1 {
+                données_colonnes = *ctx.données_colonnes[idx]
+                largeur_cellule += données_colonnes.final_width
+            }
+        }
+
+        définis_position(cellule.box, décalage_x_colonne, décalage_y_ligne)
+        outrepas_largeur := crée_outrepas_pour_coter_contenu(donne_largeur_contenu(cellule.box, largeur_cellule))
+        mesure(cellule.box, ctx, ModeDeFormattage.Normal, *outrepas_largeur)
+
+        hauteur_ligne = max(hauteur_ligne, cellule.box.modèle_de_boite.marge.hauteur)
+        décalage_x_colonne += largeur_cellule comme r32
+
+        si utilise_border_spacing {
+            décalage_x_colonne += border_spacing comme r32
+        }
+    }
+
+    définis_position(row, décalage_x, décalage_y_ligne)
+    définis_largeur_contenu(row.modèle_de_boite, largeur_du_contenu comme r32)
+    définis_hauteur_contenu(row.modèle_de_boite, hauteur_ligne comme r32)
+
+    décalage_y_ligne += hauteur_ligne comme r32
+
+    si utilise_border_spacing {
+        décalage_y_ligne += border_spacing comme r32
+    }
+
+    retourne hauteur_ligne
 }
 
 /** \} */

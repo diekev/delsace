@@ -4525,6 +4525,22 @@ table_box_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
 {
     table := base comme *TableBox
     pour table.enfants {
+        si it.type == TableRowBox {
+            row := it comme *TableRowBox
+
+            dessine_arrière_plan(ctx, row)
+
+            pour enfant_row dans row.enfants {
+                saufsi enfant_row.type == TableCellBox {
+                    continue
+                }
+
+                dessine(enfant_row, ctx)
+            }
+
+            continue
+        }
+
         saufsi est_row_group_box(it) {
             continue
         }
