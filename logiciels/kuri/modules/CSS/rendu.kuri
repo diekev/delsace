@@ -160,13 +160,6 @@ dessine_fragment_tampon_id :: fonc (noeud: *NoeudDeDisposition, fragment: *Fragm
 
 dessine_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDessin)
 {
-    // rect := ctx.donne_rectangle_corrigé(noeud)
-
-    // couleur := CouleurRVBA(0.5, 0.0, 0.5, 1.0)
-
-    // peintre := ctx.peintre
-    // peintre.dessine_rectangle(rect, couleur)
-
     pour noeud.enfants {
         position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position)
         saufsi position.est_mot_clé(PROP_static) {
@@ -345,8 +338,6 @@ noeud_disposition_texte_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, 
 
     rect := ctx.donne_rectangle_corrigé(fragment.donne_rectangle())
     rect.y -= métriques.jambage_inférieur
-
-    // peintre.dessine_rectangle(rect, couleur)
 
     texte := noeud.fragments[fragment.index_début].texte
 
