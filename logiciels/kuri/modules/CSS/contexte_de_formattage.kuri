@@ -1300,6 +1300,9 @@ DonnéesCellule :: struct {
 
     minimum_content_width: r64
     maximum_content_width: r64
+
+    largeur_est_en_pourcentage: bool
+    pourcentage: r64
 }
 
 R64_INFINITÉ : r64 : 0r7ff0000000000000
@@ -1330,7 +1333,17 @@ formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox)
 {
     initialise_données_cellules(ctx, table)
 
+    possède_cellule_avec_largeur_en_pourcentage := faux
+
     pour * ctx.cellules {
+        width := it.box.propriétés.donne_valeur_calculée(IDPropriété.Width)
+        si width.est_percentage() {
+            possède_cellule_avec_largeur_en_pourcentage = vrai
+            it.largeur_est_en_pourcentage = vrai
+            it.pourcentage = width.percentage / 100.0
+            continue
+        }
+
         mesure(it.box, ctx, ModeDeFormattage.ToutesLesBrisuresDeLigne, nul)
         it.minimum_content_width = it.box.modèle_de_boite.bordure.largeur
 
@@ -1340,7 +1353,7 @@ formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox)
         containing_block := donne_containing_block(it.box, ctx)
         résoud_pourcentage_largeurs(ctx, it.box, containing_block)
 
-        width := it.box.propriétés.donne_valeur_calculée(IDPropriété.Width)
+        width = it.box.propriétés.donne_valeur_calculée(IDPropriété.Width)
         si width.est_pixels() {
             si width.pixels > it.minimum_content_width {
                 it.minimum_content_width = width.pixels
@@ -1363,6 +1376,36 @@ formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox)
         }
 
         // imprime("cellule min %, max %\n", it.minimum_content_width, it.maximum_content_width)
+    }
+
+    si possède_cellule_avec_largeur_en_pourcentage {
+        pourcentage_à_allouer : r64 = 0.0
+        minimum_content_width_hors_pourcentage : r64 = 0
+        maximum_content_width_hors_pourcentage : r64 = 0
+
+        pour * ctx.cellules {
+            si it.largeur_est_en_pourcentage {
+                pourcentage_à_allouer += it.pourcentage
+                continue
+            }
+
+            minimum_content_width_hors_pourcentage += it.minimum_content_width
+            maximum_content_width_hors_pourcentage += it.maximum_content_width
+        }
+
+        pourcentage_occupé := 1.0 - pourcentage_à_allouer
+
+        minimum_content_width := minimum_content_width_hors_pourcentage / pourcentage_occupé
+        maximum_content_width := maximum_content_width_hors_pourcentage / pourcentage_occupé
+
+        pour * ctx.cellules {
+            saufsi it.largeur_est_en_pourcentage {
+                continue
+            }
+
+            it.minimum_content_width = minimum_content_width * it.pourcentage
+            it.maximum_content_width = maximum_content_width * it.pourcentage
+        }
     }
 
     pour ctx.colonnes_cellules.taille / 2 {
