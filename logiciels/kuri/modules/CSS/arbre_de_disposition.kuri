@@ -1403,7 +1403,22 @@ crée_noeud_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *
     résultat.propriétés = propriétés
     si table {
         résultat.propriétés = résoud_style(résolveuse, élément, nul, propriétés_parent)
+
+        /* The computed values of properties 'position', 'float', 'margin-*',
+         * 'top', 'right', 'bottom', and 'left' on the table element are used
+         * on the table wrapper box and not the table box
+         * https://www.w3.org/TR/2011/REC-CSS2-20110607/tables.html#model */
         table.propriétés = propriétés
+
+        ids := [
+            IDPropriété.MarginBottom, IDPropriété.MarginTop, IDPropriété.MarginLeft, IDPropriété.MarginRight,
+            IDPropriété.Top, IDPropriété.Bottom, IDPropriété.Left, IDPropriété.Right,
+            IDPropriété.Position, IDPropriété.Float
+        ]
+
+        pour ids {
+            table.propriétés.définis_valeur_calculée(it, résolveuse.valeurs_initiales.valeurs[it])
+        }
     }
 
     si parent {
