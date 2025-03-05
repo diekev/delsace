@@ -10,6 +10,221 @@ importe PeintureInterface
 importe Typographie
 
 /* ------------------------------------------------------------------------- */
+/** \nom CommandesDeRendu
+ * \{ */
+
+TypeCommandeDeRendu :: énum {
+    REMPLIS_RECTANGLE
+    REMPLIS_RECTANGLE_ARRONDI
+    DESSINE_RECTANGLE
+    DESSINE_RECTANGLE_ARRONDI
+    DESSINE_IMAGE
+    DESSINE_TAMPON_IMAGE
+    DESSINE_TEXTE
+}
+
+CommandesDeRendu :: struct {
+    commandes: [..]octet
+}
+
+détruit_commandes :: fonc (commandes: *CommandesDeRendu)
+{
+    saufsi commandes {
+        retourne
+    }
+
+    déloge(commandes.commandes)
+    déloge(commandes)
+}
+
+réinitialise :: fonc (commandes: *CommandesDeRendu)
+{
+    commandes.commandes.taille = 0
+}
+
+crée_commande :: fonc (commandes: *CommandesDeRendu, $T: type_de_données) -> *T
+{
+    décalage := commandes.commandes.taille
+    tableau_redimensionne(commandes.commandes, décalage + (taille_de(T) comme z64))
+
+    résultat := *commandes.commandes[décalage] comme *T
+    init_de(T)(résultat)
+    résultat.taille_type = taille_de(T)
+    retourne résultat
+}
+
+BaseCommande :: struct {
+    type: TypeCommandeDeRendu
+    taille_type: n32
+    rect: RectanglePosDim(r32)
+}
+
+CommandeRemplisRectangle :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.REMPLIS_RECTANGLE
+
+    couleur: CouleurRVBAN8
+}
+
+remplis_rectangle :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), couleur: CouleurRVBAN8)
+{
+    résultat := crée_commande(commandes, CommandeRemplisRectangle)
+    résultat.rect = rect
+    résultat.couleur = couleur
+}
+
+remplis_rectangle :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), couleur: CouleurRVBA)
+{
+    résultat := crée_commande(commandes, CommandeRemplisRectangle)
+    résultat.rect = rect
+    résultat.couleur = depuis_couleur_rvba(couleur)
+}
+
+CommandeRemplisRectangleArrondi :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.REMPLIS_RECTANGLE_ARRONDI
+
+    couleur: CouleurRVBAN8
+    rayons: [4]r32
+}
+
+remplis_rectangle_arrondi :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), rayons: [4]r32, couleur: CouleurRVBAN8)
+{
+    résultat := crée_commande(commandes, CommandeRemplisRectangleArrondi)
+    résultat.rect = rect
+    résultat.rayons = rayons
+    résultat.couleur = couleur
+}
+
+CommandeDessineRectangle :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.DESSINE_RECTANGLE
+
+    couleur: CouleurRVBAN8
+}
+
+dessine_rectangle :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), couleur: CouleurRVBAN8)
+{
+    résultat := crée_commande(commandes, CommandeDessineRectangle)
+    résultat.rect = rect
+    résultat.couleur = couleur
+}
+
+CommandeDessineRectangleArrondi :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.DESSINE_RECTANGLE_ARRONDI
+
+    couleur: CouleurRVBAN8
+}
+
+CommandeDessineImage :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.DESSINE_IMAGE
+
+    image_data: ImageIO
+    rect_image: RectanglePosDim(r32)
+    répétition: RépétitionImage
+}
+
+dessine_image :: fonc (commandes: *CommandesDeRendu, image_data: ImageIO, rect_image: RectanglePosDim(r32))
+{
+    dessine_image(commandes, image_data, rect_image, rect_image, RépétitionImage())
+}
+
+dessine_image :: fonc (commandes: *CommandesDeRendu, image_data: ImageIO, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32), répétition: RépétitionImage)
+{
+    résultat := crée_commande(commandes, CommandeDessineImage)
+    résultat.image_data = image_data
+    résultat.rect_image = rect_image
+    résultat.rect = rect
+    résultat.répétition = répétition
+}
+
+CommandeDessineImageTampon :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.DESSINE_TAMPON_IMAGE
+
+    image_data: TamponImageRVBA8Bit
+}
+
+dessine_image :: fonc (commandes: *CommandesDeRendu, image_data: TamponImageRVBA8Bit, rect: RectanglePosDim(r32))
+{
+    résultat := crée_commande(commandes, CommandeDessineImageTampon)
+    résultat.image_data = image_data
+    résultat.rect = rect
+}
+
+CommandeDessineTexte :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.DESSINE_TEXTE
+
+    fonte: *Fonte
+    texte: ChaineUTF16
+    couleur: CouleurRVBAN8
+    effets: EffetsTexte
+}
+
+dessine_texte :: fonc (commandes: *CommandesDeRendu, fonte: *Fonte, texte: ChaineUTF16, rect: RectanglePosDim(r32), couleur: CouleurRVBAN8, effets: *EffetsTexte)
+{
+    résultat := crée_commande(commandes, CommandeDessineTexte)
+    résultat.fonte = fonte
+    résultat.texte = texte
+    résultat.rect = rect
+    résultat.couleur = couleur
+    si effets {
+        résultat.effets = mémoire(effets)
+    }
+}
+
+/** \} */
+
+dessine_commandes :: fonc (commandes: *CommandesDeRendu, peintre: *Peintre)
+{
+    IGUMI.réinitialise_données()
+
+    début := commandes.commandes.pointeur
+    fin := début + commandes.commandes.taille
+
+    tantque début < fin {
+        base := début comme *BaseCommande
+        discr base.type {
+            REMPLIS_RECTANGLE {
+                commande := base comme *CommandeRemplisRectangle
+                peintre.remplis_rectangle(commande.rect, commande.couleur)
+            }
+            REMPLIS_RECTANGLE_ARRONDI {
+                commande := base comme *CommandeRemplisRectangleArrondi
+                peintre.remplis_rectangle_arrondi(commande.rect, commande.rayons, commande.couleur)
+            }
+            DESSINE_RECTANGLE {
+                commande := base comme *CommandeDessineRectangle
+                peintre.dessine_rectangle(commande.rect, commande.couleur)
+            }
+            DESSINE_RECTANGLE_ARRONDI {
+                // commande := base comme *CommandeDessineRectangleArrondi
+                // peintre.dessine_rectangle_arrondi(commande.rect, commande.rayons, commande.couleur)
+            }
+            DESSINE_IMAGE {
+                commande := base comme *CommandeDessineImage
+                peintre.dessine_image(commande.image_data, commande.rect_image, commande.rect, commande.répétition)
+            }
+            DESSINE_TAMPON_IMAGE {
+                commande := base comme *CommandeDessineImageTampon
+                peintre.dessine_image(commande.image_data, commande.rect)
+            }
+            DESSINE_TEXTE {
+                commande := base comme *CommandeDessineTexte
+                peintre.dessine_texte(commande.fonte, commande.texte, commande.rect, commande.couleur, *commande.effets)
+            }
+        }
+
+        début += base.taille_type
+    }
+
+    peintre.termine_dessin()
+}
+
+/* ------------------------------------------------------------------------- */
 /** \nom ContexteDessin
  * \{ */
 
@@ -17,6 +232,7 @@ ContexteDessin :: struct {
     document: *HTML.Document
     globales: *GlobalesDessin
     peintre: *Peintre
+    commandes: *CommandesDeRendu
 
     hauteur_vue: z32
     largeur_vue: z32
@@ -47,9 +263,12 @@ dessine :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
     arbre.hauteur_vue = ctx.hauteur_vue
     arbre.largeur_vue = ctx.largeur_vue
 
-    IGUMI.réinitialise_données()
+    ctx.commandes = arbre.donne_commandes_de_rendu()
+    réinitialise(ctx.commandes)
+
     dessine_stacking_context(arbre.stacking_context, ctx)
-    ctx.peintre.termine_dessin()
+
+    dessine_commandes(ctx.commandes, ctx.peintre)
 }
 
 dessine_tampon_id_couleur :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
@@ -57,13 +276,16 @@ dessine_tampon_id_couleur :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDes
     arbre.hauteur_vue = ctx.hauteur_vue
     arbre.largeur_vue = ctx.largeur_vue
 
+    ctx.commandes = arbre.donne_commandes_de_rendu()
+    réinitialise(ctx.commandes)
+
     ctx.tampon_id_couleur = vrai
 
-    IGUMI.réinitialise_données()
     dessine_stacking_context_tampon_id(arbre.stacking_context, ctx)
-    ctx.peintre.termine_dessin()
 
     ctx.tampon_id_couleur = faux
+
+    dessine_commandes(ctx.commandes, ctx.peintre)
 }
 
 dessine_tampon_id :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
@@ -282,14 +504,14 @@ noeud_disposition_inline_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition,
 
                 si est_premier_fragment {
                     rayons := [border_radius_top_left, 0.0, 0.0, border_radius_bottom_left]
-                    ctx.peintre.remplis_rectangle_arrondi(rect_noeud, rayons, background_color)
+                    ctx.commandes.remplis_rectangle_arrondi(rect_noeud, rayons, background_color)
                 }
                 sinon si est_dernier_fragment {
                     rayons := [0.0, border_radius_top_right, border_radius_bottom_right, 0.0]
-                    ctx.peintre.remplis_rectangle_arrondi(rect_noeud, rayons, background_color)
+                    ctx.commandes.remplis_rectangle_arrondi(rect_noeud, rayons, background_color)
                 }
                 sinon {
-                    ctx.peintre.remplis_rectangle(rect_noeud, background_color)
+                    ctx.commandes.remplis_rectangle(rect_noeud, background_color)
                 }
 
                 si est_dernier_fragment {
@@ -329,7 +551,7 @@ noeud_disposition_texte_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, 
         }
     }
 
-    peintre := ctx.peintre
+    commandes := ctx.commandes
     fonte := noeud.fonte
     assert(fonte != nul)
 
@@ -341,7 +563,7 @@ noeud_disposition_texte_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, 
 
     texte := noeud.fragments[fragment.index_début].texte
 
-    peintre.dessine_texte(fonte, texte, rect, couleur, *effets)
+    commandes.dessine_texte(fonte, texte, rect, couleur, *effets)
 }
 
 noeud_disposition_remplacement_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment @inutilisée, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
@@ -397,7 +619,7 @@ noeud_text_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDe
         /* Dessine une bordure par défaut. */
         rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
         couleur := CouleurRVBAN8(0, 0, 0, 255)
-        ctx.peintre.dessine_rectangle(rect, couleur)
+        ctx.commandes.dessine_rectangle(rect, couleur)
     }
 
     élément := noeud.élément comme *HTML.HTMLInputElement
@@ -415,7 +637,7 @@ noeud_text_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDe
         rect_texte := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_contenu())
         rect_texte.y -= métriques.jambage_inférieur
 
-        ctx.peintre.dessine_texte(noeud.fonte, value, rect_texte, couleur, nul)
+        ctx.commandes.dessine_texte(noeud.fonte, value, rect_texte, couleur, nul)
     }
 }
 
@@ -435,7 +657,7 @@ noeud_textarea_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDess
         /* Dessine une bordure par défaut. */
         rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
         couleur := CouleurRVBAN8(0, 0, 0, 255)
-        ctx.peintre.dessine_rectangle(rect, couleur)
+        ctx.commandes.dessine_rectangle(rect, couleur)
     }
 
     élément := noeud.élément comme *HTML.HTMLTextAreaElement
@@ -453,7 +675,7 @@ noeud_textarea_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDess
         rect_texte := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_contenu())
         rect_texte.y -= métriques.jambage_inférieur
 
-        ctx.peintre.dessine_texte(noeud.fonte, value, rect_texte, couleur, nul)
+        ctx.commandes.dessine_texte(noeud.fonte, value, rect_texte, couleur, nul)
     }
 }
 
@@ -474,14 +696,14 @@ noeud_canvas_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin
     image.hauteur = tampon_de_rendu.rect.hauteur
     
     rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_contenu())
-    ctx.peintre.dessine_image(image, rect)
+    ctx.commandes.dessine_image(image, rect)
 }
 
 noeud_select_sur_dessin :: fonc (noeud: *NoeudDeDispositionSelect, ctx: *ContexteDessin)
 {
     dessine_arrière_plan(ctx, noeud)
 
-    peintre := ctx.peintre
+    commandes := ctx.commandes
     fonte := noeud.fonte
     assert(fonte != nul)
 
@@ -492,7 +714,7 @@ noeud_select_sur_dessin :: fonc (noeud: *NoeudDeDispositionSelect, ctx: *Context
     rect.y -= métriques.jambage_inférieur
 
     pour noeud.fragments {
-        peintre.dessine_texte(fonte, it.texte, rect, couleur, nul)
+        commandes.dessine_texte(fonte, it.texte, rect, couleur, nul)
 
         rect.x += donne_largeur_texte(fonte, it.texte) comme r32
     }
@@ -589,7 +811,7 @@ remplis_rectangle_id :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition)
     rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
 
     si ctx.tampon_id_couleur {
-        peintre := ctx.peintre
+        commandes := ctx.commandes
         entropie := graine_aléatoire(noeud.id + 1)
 
         couleur: CouleurRVBA
@@ -597,7 +819,7 @@ remplis_rectangle_id :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition)
         couleur.v = aléatoire_unilatérale(entropie)
         couleur.b = aléatoire_unilatérale(entropie)
         couleur.a = 1.0
-        peintre.remplis_rectangle(rect, couleur)
+        commandes.remplis_rectangle(rect, couleur)
         retourne
     }
 
@@ -613,7 +835,7 @@ remplis_rectangle_id :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition, 
     rect = ctx.donne_rectangle_corrigé(rect)
 
     si ctx.tampon_id_couleur {
-        peintre := ctx.peintre
+        commandes := ctx.commandes
         entropie := graine_aléatoire(noeud.id + 1)
 
         couleur: CouleurRVBA
@@ -621,7 +843,7 @@ remplis_rectangle_id :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition, 
         couleur.v = aléatoire_unilatérale(entropie)
         couleur.b = aléatoire_unilatérale(entropie)
         couleur.a = 1.0
-        peintre.remplis_rectangle(rect, couleur)
+        commandes.remplis_rectangle(rect, couleur)
         retourne
     }
 
@@ -635,20 +857,20 @@ remplis_rectangle_id :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition, 
 dessine_image :: fonc (ctx: *ContexteDessin, image: ImageIO, rect: RectanglePosDim(r32))
 {
     rect = ctx.donne_rectangle_corrigé(rect)
-    peintre := ctx.peintre
+    commandes := ctx.commandes
 
     si image.donnees {
-        peintre.dessine_image(image, rect)
+        commandes.dessine_image(image, rect)
     }
     sinon {
         /* À FAIRE : image nulle */
-        peintre.remplis_rectangle(rect, CouleurRVBA(1.0, 0.0, 1.0, 1.0))
+        commandes.remplis_rectangle(rect, CouleurRVBA(1.0, 0.0, 1.0, 1.0))
     }
 }
 
 dessine_arrière_plan :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDispositionBloc)
 {
-    peintre := ctx.peintre
+    commandes := ctx.commandes
 
     background_color := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BackgroundColor).couleur
     si background_color.a != 0 {
@@ -668,7 +890,7 @@ dessine_arrière_plan :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDispositionB
         border_radius_bottom_left := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomLeftRadius).pixels comme r32
 
         rayons := [ border_radius_top_left, border_radius_top_right, border_radius_bottom_right, border_radius_bottom_left ]
-        peintre.remplis_rectangle_arrondi(rect_noeud, rayons, background_color)
+        commandes.remplis_rectangle_arrondi(rect_noeud, rayons, background_color)
     }
     sinon si noeud.parent == nul && noeud.élément && noeud.élément.local_name == HTML.TAG_html {
         /* Hérite de l'arrière-plan du "body".
@@ -681,7 +903,7 @@ dessine_arrière_plan :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDispositionB
                 rect_noeud: RectanglePosDim(r32)
                 rect_noeud.hauteur = ctx.hauteur_vue comme r32
                 rect_noeud.largeur = ctx.largeur_vue comme r32
-                peintre.remplis_rectangle(rect_noeud, background_color)
+                commandes.remplis_rectangle(rect_noeud, background_color)
             }
         }
     }
@@ -711,13 +933,13 @@ dessine_arrière_plan :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDispositionB
 
     rect = ctx.donne_rectangle_corrigé(rect)
     rect_image = ctx.donne_rectangle_corrigé(rect_image)
-    peintre.dessine_image(image_data, rect_image, rect, répétition)
+    commandes.dessine_image(image_data, rect_image, rect, répétition)
 }
 
 dessine_bordure :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDispositionBloc)
 {
     bordure := donne_bordure(*noeud.propriétés.style)
-    peintre := ctx.peintre
+    commandes := ctx.commandes
 
     pour bordure.style {
         si it == LineStyle.None || it == LineStyle.Hidden {
@@ -786,7 +1008,7 @@ dessine_bordure :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDispositionBloc)
         }
 
         rect = ctx.donne_rectangle_corrigé(rect)
-        peintre.remplis_rectangle(rect, couleur)
+        commandes.remplis_rectangle(rect, couleur)
     }
 }
 

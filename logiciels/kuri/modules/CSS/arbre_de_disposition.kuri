@@ -18,6 +18,7 @@ importe Typographie
 ArbreDeDisposition :: struct {
     racine: *NoeudDeDisposition
     stacking_context: *StackingContext
+    commandes: *CommandesDeRendu
 
     noeuds: [..]*NoeudDeDisposition
     tampon_id_fut_dessiné: bool
@@ -123,6 +124,7 @@ détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
     }
 
     détruit_stacking_context(arbre.stacking_context)
+    détruit_commandes(arbre.commandes)
     déloge(arbre.tampon_id)
     déloge(arbre.noeuds)
     déloge(arbre)
@@ -134,6 +136,14 @@ crée_noeud :: fonc (arbre: *ArbreDeDisposition, $TypeNoeud: type_de_données) -
     résultat.id = arbre.noeuds.taille comme n32
     tableau_ajoute(*arbre.noeuds, résultat)
     retourne résultat
+}
+
+donne_commandes_de_rendu :: fonc (arbre: *ArbreDeDisposition) -> *CommandesDeRendu
+{
+    saufsi arbre.commandes {
+        arbre.commandes = loge(CommandesDeRendu)
+    }
+    retourne arbre.commandes
 }
 
 donne_taille_en_octet_noeuds :: fonc (arbre: *ArbreDeDisposition) -> n32
