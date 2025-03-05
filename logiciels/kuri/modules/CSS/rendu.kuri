@@ -1,0 +1,802 @@
+importe Aléa
+importe Chaine
+importe Couleur
+importe Fondation
+importe Géométrie
+importe IGUMI
+importe Image
+importe OpenGL
+importe PeintureInterface
+importe Typographie
+
+/* ------------------------------------------------------------------------- */
+/** \nom ContexteDessin
+ * \{ */
+
+ContexteDessin :: struct {
+    document: *HTML.Document
+    globales: *GlobalesDessin
+    peintre: *Peintre
+
+    hauteur_vue: z32
+    largeur_vue: z32
+
+    décalage_y: r32
+    id_stacking_context: n32
+
+    tampon_id_couleur: bool
+    est_fixé: bool
+}
+
+donne_rectangle_corrigé :: fonc (ctx: *ContexteDessin, rect: RectanglePosDim(r32)) -> RectanglePosDim(r32)
+{
+    /* Nous disposons les noeuds comme si leur origine était leur coin du haut
+     * gauche mais nous devons les dessiner comme si leur origine était leur
+     * coin du bas gauche.
+     * De plus, nous devons nous assurer que l'origine du document est le bas
+     * gauche de la page et non le haut gauche. */
+    rect.y = ctx.hauteur_vue comme r32 - rect.y - rect.hauteur
+    saufsi ctx.est_fixé {
+        rect.y += ctx.décalage_y
+    }
+    retourne rect
+}
+
+dessine :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
+{
+    arbre.hauteur_vue = ctx.hauteur_vue
+    arbre.largeur_vue = ctx.largeur_vue
+
+    IGUMI.réinitialise_données()
+    dessine_stacking_context(arbre.stacking_context, ctx)
+    ctx.peintre.termine_dessin()
+}
+
+dessine_tampon_id_couleur :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
+{
+    arbre.hauteur_vue = ctx.hauteur_vue
+    arbre.largeur_vue = ctx.largeur_vue
+
+    ctx.tampon_id_couleur = vrai
+
+    IGUMI.réinitialise_données()
+    dessine_stacking_context_tampon_id(arbre.stacking_context, ctx)
+    ctx.peintre.termine_dessin()
+
+    ctx.tampon_id_couleur = faux
+}
+
+dessine_tampon_id :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
+{
+    assert(ctx.tampon_id_couleur == faux)
+    /* Tampon ID. */
+
+    IGUMI.réinitialise_données_id()
+    fbo: GLuint
+    glGenFramebuffers(1, *fbo)
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo)
+
+    render_buf: GLuint
+    glGenRenderbuffers(1, *render_buf)
+    glBindRenderbuffer(GL_RENDERBUFFER, render_buf)
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_R32UI, ctx.largeur_vue, ctx.hauteur_vue)
+    vérifie_erreur("glRenderbufferStorage")
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, render_buf)
+    vérifie_erreur("glFramebufferRenderbuffer")
+
+    dessine_stacking_context_tampon_id(arbre.stacking_context, ctx)
+    vérifie_erreur("dessine_tampon_id")
+    IGUMI.termine_immédiat_id()
+
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0)
+    vérifie_erreur("glBindFramebuffer")
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo)
+    vérifie_erreur("glBindFramebuffer")
+
+    tableau_redimensionne(arbre.tampon_id, ctx.largeur_vue * ctx.hauteur_vue)
+
+    glReadBuffer(GL_COLOR_ATTACHMENT0)
+    vérifie_erreur("glReadBuffer")
+    glReadPixels(0, 0, ctx.largeur_vue, ctx.hauteur_vue, GL_RED_INTEGER, GL_UNSIGNED_INT, arbre.tampon_id.pointeur)
+    vérifie_erreur("glReadPixels")
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0)
+
+    glBindRenderbuffer(GL_RENDERBUFFER, 0)
+
+    glDeleteFramebuffers(1, *fbo)
+    glDeleteRenderbuffers(1, *render_buf)
+
+    arbre.tampon_id_fut_dessiné = vrai
+}
+
+dessine :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDessin)
+{
+    si noeud.id_stacking_context != ctx.id_stacking_context {
+        retourne
+    }
+
+    si noeud.sur_dessin {
+        noeud.sur_dessin(noeud, ctx)
+    }
+}
+
+dessine_fragment :: fonc (noeud: *NoeudDeDisposition, fragment: *Fragment, lignes_tenante: *LignesTenante, ctx: *ContexteDessin)
+{
+    si noeud.sur_dessin_fragment {
+        noeud.sur_dessin_fragment(noeud, fragment, lignes_tenante, ctx)
+    }
+    sinon {
+        noeud.dessine(ctx)
+    }
+}
+
+dessine_tampon_id :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDessin)
+{
+    si noeud.id_stacking_context != ctx.id_stacking_context {
+        retourne
+    }
+
+    si noeud.sur_dessin_tampon_id {
+        noeud.sur_dessin_tampon_id(noeud, ctx)
+    }
+}
+
+dessine_fragment_tampon_id :: fonc (noeud: *NoeudDeDisposition, fragment: *Fragment, ctx: *ContexteDessin)
+{
+    saufsi noeud.sur_dessin_fragment_tampon_id {
+        ctx.remplis_rectangle_id(noeud, fragment.donne_rectangle())
+
+        pour noeud.enfants {
+            noeud.dessine_tampon_id(ctx)
+        }
+
+        retourne
+    }
+
+    noeud.sur_dessin_fragment_tampon_id(noeud, fragment, ctx)
+}
+
+dessine_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDessin)
+{
+    // rect := ctx.donne_rectangle_corrigé(noeud)
+
+    // couleur := CouleurRVBA(0.5, 0.0, 0.5, 1.0)
+
+    // peintre := ctx.peintre
+    // peintre.dessine_rectangle(rect, couleur)
+
+    pour noeud.enfants {
+        position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position)
+        saufsi position.est_mot_clé(PROP_static) {
+            continue
+        }
+        float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float)
+        saufsi float.est_none() {
+            continue
+        }
+        dessine(it, ctx)
+    }
+
+    pour noeud.enfants {
+        position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position)
+        si position.est_mot_clé(PROP_static) {
+            continue
+        }
+        float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float)
+        saufsi float.est_none() {
+            continue
+        }
+        dessine(it, ctx)
+    }
+
+    pour noeud.enfants {
+        float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float)
+        si float.est_none() {
+            continue
+        }
+        dessine(it, ctx)
+    }
+}
+
+dessine_tampon_id_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDessin)
+{
+    pour noeud.enfants {
+        dessine_tampon_id(it, ctx)
+    }
+}
+
+dessine_enfants_inline :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDessin)
+{
+    lignes_tenante := *noeud.lignes_tenante
+    pour * lignes_tenante.fragments {
+        dessine_fragment(it.noeud, it, lignes_tenante, ctx)
+    }
+}
+
+dessine_tampon_id_enfants_inline :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDessin)
+{
+    pour * noeud.lignes_tenante.fragments {
+        dessine_fragment_tampon_id(it.noeud, it, ctx)
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Fonctions de dessin des noeuds.
+ * \{ */
+
+noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+{
+    noeud := base comme *NoeudDeDispositionBloc
+
+    si noeud.est_noeud_non_anonyme() || noeud.est_pseudo_element {
+        dessine_arrière_plan(ctx, noeud)
+        dessine_bordure(ctx, noeud)
+    }
+
+    saufsi noeud.est_disposition_inline {
+        dessine_enfants_block(noeud, ctx)
+    }
+    sinon {
+        dessine_enfants_inline(noeud, ctx)
+    }
+}
+
+noeud_disposition_inline_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+{
+    noeud := base comme *NoeudDeDispositionInline
+    dessine_enfants_inline(noeud, ctx)
+}
+
+noeud_disposition_inline_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment, lignes_tenante: *LignesTenante, ctx: *ContexteDessin)
+{
+    si fragment.type == Fragment.Type.InlineBlock {
+        noeud_disposition_bloc_sur_dessin(base, ctx)
+        retourne
+    }
+
+    si fragment.type == Fragment.Type.MargeDébut || fragment.type == Fragment.Type.MargeFin {
+        retourne
+    }
+
+    si fragment.type == Fragment.Type.RembourrageDébut {
+        propriétés := base.propriétés
+
+        background_color := propriétés.donne_valeur_utilisée(IDPropriété.BackgroundColor).couleur
+
+        /* Le rembourrage vertical n'affecte pas la taille mais doit être inclus dans le dessin. */
+        padding_top := propriétés.donne_valeur_utilisée(IDPropriété.PaddingTop).pixels comme r32
+        padding_bottom := propriétés.donne_valeur_utilisée(IDPropriété.PaddingBottom).pixels comme r32
+
+        si background_color.a != 0 {
+            border_radius_top_left := propriétés.donne_valeur_utilisée(IDPropriété.BorderTopLeftRadius).pixels comme r32
+            border_radius_top_right := propriétés.donne_valeur_utilisée(IDPropriété.BorderTopRightRadius).pixels comme r32
+            border_radius_bottom_right := propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomRightRadius).pixels comme r32
+            border_radius_bottom_left := propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomLeftRadius).pixels comme r32
+
+            premier_fragment := fragment
+            dernier_fragment := lignes_tenante.fragments.pointeur + lignes_tenante.fragments.taille
+            tantque fragment != dernier_fragment {
+                rect_noeud := ctx.donne_rectangle_corrigé(fragment.donne_rectangle())
+                rect_noeud.y -= padding_top
+                rect_noeud.hauteur += padding_top + padding_bottom
+
+                est_premier_fragment := fragment == premier_fragment
+                est_dernier_fragment := fragment.type == Fragment.Type.RembourrageFin && fragment.noeud == base
+
+                si est_premier_fragment {
+                    rayons := [border_radius_top_left, 0.0, 0.0, border_radius_bottom_left]
+                    ctx.peintre.remplis_rectangle_arrondi(rect_noeud, rayons, background_color)
+                }
+                sinon si est_dernier_fragment {
+                    rayons := [0.0, border_radius_top_right, border_radius_bottom_right, 0.0]
+                    ctx.peintre.remplis_rectangle_arrondi(rect_noeud, rayons, background_color)
+                }
+                sinon {
+                    ctx.peintre.remplis_rectangle(rect_noeud, background_color)
+                }
+
+                si est_dernier_fragment {
+                    arrête
+                }
+
+                fragment += 1
+            }
+        }
+    }
+}
+
+noeud_disposition_texte_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
+{
+    noeud := base comme *NoeudDeDispositionTexte
+
+    propriétés := donne_propriété_parent(noeud)
+
+    effets: EffetsTexte
+
+    line := propriétés.donne_valeur_utilisée(IDPropriété.TextDecorationLine)
+    saufsi line.est_mot_clé(PROP_none) {
+        decoration := line.text_decoration_line
+        couleur := vers_couleur_rvba(propriétés.donne_valeur_utilisée(IDPropriété.TextDecorationColor).couleur)
+
+        si decoration.UNDERLINE {
+            effets.souslignage = vrai
+            effets.couleur_souslignage = couleur
+        }
+        si decoration.OVERLINE {
+            effets.surlignage = vrai
+            effets.couleur_surlignage = couleur
+        }
+        si decoration.LINE_THROUGH {
+            effets.barrage = vrai
+            effets.couleur_barrage = couleur
+        }
+    }
+
+    peintre := ctx.peintre
+    fonte := noeud.fonte
+    assert(fonte != nul)
+
+    métriques := donne_métriques_fonte(fonte)
+    couleur := propriétés.donne_valeur_utilisée(IDPropriété.Color).couleur
+
+    rect := ctx.donne_rectangle_corrigé(fragment.donne_rectangle())
+    rect.y -= métriques.jambage_inférieur
+
+    // peintre.dessine_rectangle(rect, couleur)
+
+    texte := noeud.fragments[fragment.index_début].texte
+
+    peintre.dessine_texte(fonte, texte, rect, couleur, *effets)
+}
+
+noeud_disposition_remplacement_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment @inutilisée, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
+{
+    base.sur_dessin(base, ctx)
+}
+
+noeud_image_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+{
+    noeud := base comme *NoeudDeDispositionRemplacement
+    assert(noeud.élément.local_name == HTML.TAG_img)
+    image := noeud.élément comme *HTML.HTMLImageElement
+    dessine_image(ctx, image.image_data, noeud.donne_rectangle_bordure())
+}
+
+noeud_image_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
+{
+    noeud := base comme *NoeudDeDispositionRemplacement
+    assert(noeud.élément.local_name == HTML.TAG_img)
+    image := noeud.élément comme *HTML.HTMLImageElement
+    dessine_image(ctx, image.image_data, fragment.donne_rectangle())
+}
+
+noeud_object_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+{
+    noeud := base comme *NoeudDeDispositionRemplacement
+    assert(noeud.élément.local_name == HTML.TAG_object)
+    object := noeud.élément comme *HTML.HTMLObjectElement
+    dessine_image(ctx, object.image_data, noeud.donne_rectangle_bordure())
+}
+
+noeud_object_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
+{
+    noeud := base comme *NoeudDeDispositionRemplacement
+    assert(noeud.élément.local_name == HTML.TAG_object)
+    object := noeud.élément comme *HTML.HTMLObjectElement
+    dessine_image(ctx, object.image_data, fragment.donne_rectangle())
+}
+
+noeud_text_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+{
+    noeud := base comme *NoeudDeDispositionRemplacement
+    assert(noeud.élément.local_name == HTML.TAG_input)
+
+    dessine_arrière_plan(ctx, noeud)
+
+    /* À FAIRE : considère toutes les propriétés de bordure. */
+    border_declaration := donne_déclaration(noeud.propriétés, PROP_border)
+    si border_declaration {
+        dessine_bordure(ctx, noeud)
+    }
+    sinon {
+        /* Dessine une bordure par défaut. */
+        rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
+        couleur := CouleurRVBAN8(0, 0, 0, 255)
+        ctx.peintre.dessine_rectangle(rect, couleur)
+    }
+
+    élément := noeud.élément comme *HTML.HTMLInputElement
+    couleur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color).couleur
+    value := HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_value).donne_chaine_utf16()
+
+    si value.est_vide() {
+        value = HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_placeholder).donne_chaine_utf16()
+        couleur.a = 128
+    }
+
+    saufsi value.est_vide() {
+        métriques := donne_métriques_fonte(noeud.fonte)
+
+        rect_texte := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_contenu())
+        rect_texte.y -= métriques.jambage_inférieur
+
+        ctx.peintre.dessine_texte(noeud.fonte, value, rect_texte, couleur, nul)
+    }
+}
+
+noeud_textarea_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+{
+    noeud := base comme *NoeudDeDispositionRemplacement
+    assert(noeud.élément.local_name == HTML.TAG_textarea)
+
+    dessine_arrière_plan(ctx, noeud)
+
+    /* À FAIRE : considère toutes les propriétés de bordure. */
+    border_declaration := donne_déclaration(noeud.propriétés, PROP_border)
+    si border_declaration {
+        dessine_bordure(ctx, noeud)
+    }
+    sinon {
+        /* Dessine une bordure par défaut. */
+        rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
+        couleur := CouleurRVBAN8(0, 0, 0, 255)
+        ctx.peintre.dessine_rectangle(rect, couleur)
+    }
+
+    élément := noeud.élément comme *HTML.HTMLTextAreaElement
+    couleur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color).couleur
+    value := HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_value).donne_chaine_utf16()
+
+    si value.est_vide() {
+        value = HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_placeholder).donne_chaine_utf16()
+        couleur.a = 128
+    }
+
+    saufsi value.est_vide() {
+        métriques := donne_métriques_fonte(noeud.fonte)
+
+        rect_texte := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_contenu())
+        rect_texte.y -= métriques.jambage_inférieur
+
+        ctx.peintre.dessine_texte(noeud.fonte, value, rect_texte, couleur, nul)
+    }
+}
+
+noeud_canvas_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+{
+    noeud := base comme *NoeudDeDispositionRemplacement
+    élément := noeud.élément comme *HTML.HTMLCanvasElement
+    assert(noeud.élément.local_name == HTML.TAG_canvas)
+
+    dessine_arrière_plan(ctx, noeud)
+    dessine_bordure(ctx, noeud)
+
+    tampon_de_rendu := HTML.donne_tampon_de_rendu(élément)
+
+    image: TamponImageRVBA8Bit
+    image.données = tampon_de_rendu.données.pointeur
+    image.largeur = tampon_de_rendu.rect.largeur
+    image.hauteur = tampon_de_rendu.rect.hauteur
+    
+    rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_contenu())
+    ctx.peintre.dessine_image(image, rect)
+}
+
+noeud_select_sur_dessin :: fonc (noeud: *NoeudDeDispositionSelect, ctx: *ContexteDessin)
+{
+    dessine_arrière_plan(ctx, noeud)
+
+    peintre := ctx.peintre
+    fonte := noeud.fonte
+    assert(fonte != nul)
+
+    métriques := donne_métriques_fonte(fonte)
+    couleur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color).couleur
+
+    rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_contenu())
+    rect.y -= métriques.jambage_inférieur
+
+    pour noeud.fragments {
+        peintre.dessine_texte(fonte, it.texte, rect, couleur, nul)
+
+        rect.x += donne_largeur_texte(fonte, it.texte) comme r32
+    }
+}
+
+table_box_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+{
+    table := base comme *TableBox
+    pour table.enfants {
+        si it.type == TableRowBox {
+            row := it comme *TableRowBox
+
+            dessine_arrière_plan(ctx, row)
+
+            pour enfant_row dans row.enfants {
+                saufsi enfant_row.type == TableCellBox {
+                    continue
+                }
+
+                dessine(enfant_row, ctx)
+            }
+
+            continue
+        }
+
+        saufsi est_row_group_box(it) {
+            continue
+        }
+
+        group_box := it comme *NoeudDeDispositionBloc
+        dessine_arrière_plan(ctx, group_box)
+
+        pour enfant_row_group dans it.enfants {
+            saufsi enfant_row_group.type == TableRowBox {
+                continue
+            }
+
+            row := enfant_row_group comme *TableRowBox
+
+            dessine_arrière_plan(ctx, row)
+
+            pour enfant_row dans row.enfants {
+                saufsi enfant_row.type == TableCellBox {
+                    continue
+                }
+
+                dessine(enfant_row, ctx)
+            }
+        }
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Fonctions de dessin des ids des noeuds.
+ * \{ */
+
+noeud_disposition_bloc_sur_dessin_tampon_id :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+{
+    noeud := base comme *NoeudDeDispositionBloc
+
+    ctx.remplis_rectangle_id(noeud)
+
+    saufsi noeud.est_disposition_inline {
+        dessine_tampon_id_enfants_block(noeud, ctx)
+    }
+    sinon {
+        dessine_tampon_id_enfants_inline(noeud, ctx)
+    }
+}
+
+noeud_disposition_inline_sur_dessin_tampon_id :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+{
+    noeud := base comme *NoeudDeDispositionInline
+    ctx.remplis_rectangle_id(noeud)
+    dessine_tampon_id_enfants_inline(noeud, ctx)
+}
+
+noeud_disposition_remplacement_sur_dessin_tampon_id :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+{
+    noeud := base comme *NoeudDeDispositionRemplacement
+    ctx.remplis_rectangle_id(noeud)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Utilitaires
+ * \{ */
+
+remplis_rectangle_id :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition)
+{
+    rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
+
+    si ctx.tampon_id_couleur {
+        peintre := ctx.peintre
+        entropie := graine_aléatoire(noeud.id + 1)
+
+        couleur: CouleurRVBA
+        couleur.r = aléatoire_unilatérale(entropie)
+        couleur.v = aléatoire_unilatérale(entropie)
+        couleur.b = aléatoire_unilatérale(entropie)
+        couleur.a = 1.0
+        peintre.remplis_rectangle(rect, couleur)
+        retourne
+    }
+
+    IGUMI.commence_immédiat_id(IGUMI.ModeImmédiat.TRIANGLES, IGUMI.nuanceur_id)
+
+    // imprime("[%] (% % % %) : %\n", #nom_de_cette_fonction, rect.x, rect.y, rect.largeur, rect.hauteur, noeud.id)
+
+    IGUMI.quad_immédiat_id(rect.x, rect.y, rect.largeur, rect.hauteur, noeud.id)
+}
+
+remplis_rectangle_id :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition, rect: RectanglePosDim(r32))
+{
+    rect = ctx.donne_rectangle_corrigé(rect)
+
+    si ctx.tampon_id_couleur {
+        peintre := ctx.peintre
+        entropie := graine_aléatoire(noeud.id + 1)
+
+        couleur: CouleurRVBA
+        couleur.r = aléatoire_unilatérale(entropie)
+        couleur.v = aléatoire_unilatérale(entropie)
+        couleur.b = aléatoire_unilatérale(entropie)
+        couleur.a = 1.0
+        peintre.remplis_rectangle(rect, couleur)
+        retourne
+    }
+
+    IGUMI.commence_immédiat_id(IGUMI.ModeImmédiat.TRIANGLES, IGUMI.nuanceur_id)
+
+    // imprime("[%] (% % % %) : %\n", #nom_de_cette_fonction, rect.x, rect.y, rect.largeur, rect.hauteur, noeud.id)
+
+    IGUMI.quad_immédiat_id(rect.x, rect.y, rect.largeur, rect.hauteur, noeud.id)
+}
+
+dessine_image :: fonc (ctx: *ContexteDessin, image: ImageIO, rect: RectanglePosDim(r32))
+{
+    rect = ctx.donne_rectangle_corrigé(rect)
+    peintre := ctx.peintre
+
+    si image.donnees {
+        peintre.dessine_image(image, rect)
+    }
+    sinon {
+        /* À FAIRE : image nulle */
+        peintre.remplis_rectangle(rect, CouleurRVBA(1.0, 0.0, 1.0, 1.0))
+    }
+}
+
+dessine_arrière_plan :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDispositionBloc)
+{
+    peintre := ctx.peintre
+
+    background_color := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BackgroundColor).couleur
+    si background_color.a != 0 {
+        rect_noeud: RectanglePosDim(r32)
+        si noeud.parent == nul {
+            /* L'arrière plan de l'élément racine doit s'appliquer au cannevas. */
+            rect_noeud.hauteur = ctx.hauteur_vue comme r32
+            rect_noeud.largeur = ctx.largeur_vue comme r32
+        }
+        sinon {
+            rect_noeud = ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
+        }
+
+        border_radius_top_left := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderTopLeftRadius).pixels comme r32
+        border_radius_top_right := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderTopRightRadius).pixels comme r32
+        border_radius_bottom_right := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomRightRadius).pixels comme r32
+        border_radius_bottom_left := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomLeftRadius).pixels comme r32
+
+        rayons := [ border_radius_top_left, border_radius_top_right, border_radius_bottom_right, border_radius_bottom_left ]
+        peintre.remplis_rectangle_arrondi(rect_noeud, rayons, background_color)
+    }
+    sinon si noeud.parent == nul && noeud.élément && noeud.élément.local_name == HTML.TAG_html {
+        /* Hérite de l'arrière-plan du "body".
+            * https://www.w3.org/TR/CSS21/colors.html#background */
+        body := HTML.donne_élément_body(noeud.élément.document)
+        si body && body.noeud_de_disposition {
+            background_color = body.noeud_de_disposition.propriétés.donne_valeur_utilisée(IDPropriété.BackgroundColor).couleur
+            si background_color.a != 0 {
+                /* À FAIRE : ne peint pas l'arrière-plan du "body" dans ce cas. */
+                rect_noeud: RectanglePosDim(r32)
+                rect_noeud.hauteur = ctx.hauteur_vue comme r32
+                rect_noeud.largeur = ctx.largeur_vue comme r32
+                peintre.remplis_rectangle(rect_noeud, background_color)
+            }
+        }
+    }
+
+    image := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BackgroundImage)
+    si image.est_none() {
+        retourne
+    }
+
+    opt_image_data := ctx.donne_image_pour_url(image.url_absolu)
+    saufsi opt_image_data.possède_valeur() {
+        retourne
+    }
+
+    /* À FAIRE : parse la propriété "background-repeat". Ceci est la valeur défaut. */
+    répétition: RépétitionImage
+    répétition.x = GenreRépétitionImage.Normale
+    répétition.y = GenreRépétitionImage.Normale
+
+    image_data := opt_image_data.Quelque
+    /* À FAIRE : background-clip */
+    rect := noeud.donne_rectangle_bordure()
+
+    rect_image := rect
+    rect_image.largeur = image_data.largeur comme r32
+    rect_image.hauteur = image_data.hauteur comme r32
+
+    rect = ctx.donne_rectangle_corrigé(rect)
+    rect_image = ctx.donne_rectangle_corrigé(rect_image)
+    peintre.dessine_image(image_data, rect_image, rect, répétition)
+}
+
+dessine_bordure :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDispositionBloc)
+{
+    bordure := donne_bordure(*noeud.propriétés.style)
+    peintre := ctx.peintre
+
+    pour bordure.style {
+        si it == LineStyle.None || it == LineStyle.Hidden {
+            continue
+        }
+
+        coté := index_it comme z32 comme BorderEdge
+
+        couleur: CouleurRVBAN8
+
+        si it == LineStyle.Inset {
+            si coté == BorderEdge.Top || coté == BorderEdge.Left {
+                couleur = CouleurRVBAN8(154, 154, 154, 255)
+            }
+            sinon {
+                couleur = CouleurRVBAN8(238, 238, 238, 255)
+            }
+        }
+        sinon si it == LineStyle.Outset {
+            si coté == BorderEdge.Top || coté == BorderEdge.Left {
+                couleur = CouleurRVBAN8(238, 238, 238, 255)
+            }
+            sinon {
+                couleur = CouleurRVBAN8(154, 154, 154, 255)
+            }
+        }
+        sinon {
+            border_color := bordure.color[coté]
+            /* À FAIRE : calcule la valeur même s'il n'y a pas de propriété. */
+            si border_color.est_mot_clé(PROP_currentColor) {
+                couleur = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color)
+            }
+            sinon {
+                couleur = bordure.color[coté].couleur
+            }
+        }
+
+        largeur := bordure.width[coté].pixels comme r32
+
+        rect: RectanglePosDim(r32)
+        rect_bordure := noeud.donne_rectangle_bordure()
+
+        si coté == BorderEdge.Top {
+            rect.x = rect_bordure.x
+            rect.y = rect_bordure.y
+            rect.largeur = rect_bordure.largeur
+            rect.hauteur = largeur
+        }
+        sinon si coté == BorderEdge.Bottom {
+            rect.x = rect_bordure.x
+            rect.y = rect_bordure.y + rect_bordure.hauteur - largeur
+            rect.largeur = rect_bordure.largeur
+            rect.hauteur = largeur
+        }
+        sinon si coté == BorderEdge.Left {
+            rect.x = rect_bordure.x
+            rect.y = rect_bordure.y
+            rect.largeur = largeur
+            rect.hauteur = rect_bordure.hauteur
+        }
+        sinon /* si coté == BorderEdge.Right */ {
+            rect.x = rect_bordure.x + rect_bordure.largeur - largeur
+            rect.y = rect_bordure.y
+            rect.largeur = largeur
+            rect.hauteur = rect_bordure.hauteur
+        }
+
+        rect = ctx.donne_rectangle_corrigé(rect)
+        peintre.remplis_rectangle(rect, couleur)
+    }
+}
+
+/** \} */
