@@ -3368,6 +3368,10 @@ noeud_disposition_texte_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition,
                 ligne.garantis_hauteur_minimale(hauteur_texte)
             }
             BrisureDeLigneExplicite {
+                si it.est_espace_blanche && enligneuse.peut_ignorer_espace_blanche_en_début_de_ligne() {
+                    continue
+                }
+
                 _ := enligneuse.ajoute_fragment(noeud, index_it, index_it + 1, hauteur_texte, largeur_morceau comme r32)
             }
         }

@@ -18,7 +18,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 34.40 [0 0 0]
             Bloc <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
                 Inline <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
                     Texte <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
-            Bloc <span.contenu> <8, 8> CH [0 0 4.80] 253 [4.80 0 0] CV [0 0 0] 18.40 [0 0 0]
+            Bloc <span.contenu> <8, 8> CH [0 0 4.80] 249 [4.80 0 0] CV [0 0 0] 18.40 [0 0 0]
                 frag 0 MargeDébut de Inline début 0 fin 0 rect (12.80,8 0x18.40)
                 frag 1 RembourrageDébut de Inline début 0 fin 0 rect (12.80,8 0x18.40)
                 frag 2 Normal de Texte début 1 fin 2 rect (12.80,8 31x18.40)
