@@ -1659,6 +1659,21 @@ dispose_cellules_row_box :: fonc (ctx: *ContexteDeFormattageTable, row: *TableRo
         }
     }
 
+    /* "Cell boxes that are smaller than the height of the row receive extra top or bottom padding."
+     * https://www.w3.org/TR/2011/REC-CSS2-20110607/tables.html#height-layout */
+    pour row.enfants {
+        saufsi it.type == TableCellBox {
+            continue
+        }
+
+        saufsi it.modèle_de_boite.marge.hauteur < hauteur_ligne {
+            continue
+        }
+
+        // À FAIRE : il faudrait plustôt ajuster la hauteur puis déplacer les enfants selon l'alignement de la cellule.
+        it.modèle_de_boite.définis_hauteur_contenu(hauteur_ligne comme r32)
+    }
+
     définis_position(row, décalage_x, décalage_y_ligne)
     définis_largeur_contenu(row.modèle_de_boite, largeur_du_contenu comme r32)
     définis_hauteur_contenu(row.modèle_de_boite, hauteur_ligne comme r32)
