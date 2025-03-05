@@ -1683,6 +1683,7 @@ NoeudDeDisposition :: struct {
     modèle_de_boite: ModèleDeBoite
     traite_comme_display_none: bool
     est_pseudo_element: bool
+    fut_dessiné: bool
 
     sur_mesure: fonc (*NoeudDeDisposition, *ContexteDeFormattage, ModeDeFormattage, *OutrepasCotation)(rien)
     sur_dessin: fonc (*NoeudDeDisposition, *ContexteDessin)(rien)

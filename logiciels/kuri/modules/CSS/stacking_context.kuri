@@ -271,7 +271,14 @@ dessine_stacking_context_standard :: fonc (stacking_context: *StackingContext, c
     diffère ctx.est_fixé = fut_fixé
     ctx.est_fixé |= est_position_fixée(stacking_context)
 
-    élément := stacking_context.racine
+    dessine_stacking_context_pour_élément(stacking_context, stacking_context.racine, ctx)
+}
+
+#portée_fichier
+
+dessine_stacking_context_pour_élément :: fonc (stacking_context: *StackingContext, élément: *NoeudDeDisposition, ctx: *ContexteDessin)
+{
+    élément.fut_dessiné = vrai
 
     // 1. If the element is a root element:
     si élément.parent == nul {
@@ -301,16 +308,19 @@ dessine_stacking_context_standard :: fonc (stacking_context: *StackingContext, c
         dessine_bordure(ctx, élément)
     }
 
-    // 3. Stacking contexts formed by positioned descendants with negative z-indices (excluding 0) in z-index order (most negative first) then tree order.
-    pour stacking_context.enfants {
-        z_index := it.donne_z_index()
-        si z_index.est_auto() {
-            continue
+    // 3. Stacking contexts formed by positioned descendants with negative z-indices (excluding 0)
+    //    in z-index order (most negative first) then tree order.
+    si stacking_context {
+        pour stacking_context.enfants {
+            z_index := it.donne_z_index()
+            si z_index.est_auto() {
+                continue
+            }
+            si z_index.number >= 0.0 {
+                continue
+            }
+            dessine_stacking_context_standard(it, ctx)
         }
-        si z_index.number >= 0.0 {
-            continue
-        }
-        dessine_stacking_context_standard(it, ctx)
     }
 
     descendants: [..]*NoeudDeDisposition
@@ -341,81 +351,136 @@ dessine_stacking_context_standard :: fonc (stacking_context: *StackingContext, c
         }
     }
 
-    // 5. All non-positioned floating descendants, in tree order. For each one of these, treat the element as if it created a new stacking context, but any positioned descendants and descendants which actually create a new stacking context should be considered part of the parent stacking context, not this new one.
-    // donne_non_positioned_floating_descendants(élément, *descendants)
+    // 5. All non-positioned floating descendants, in tree order. For each one of these,
+    //    treat the element as if it created a new stacking context, but any positioned
+    //    descendants and descendants which actually create a new stacking context should
+    //    be considered part of the parent stacking context, not this new one.
+    floating_descendants: [..]*NoeudDeDisposition
+    diffère déloge(floating_descendants)
 
-    imprime("nombre de descendants : %\n", descendants.taille)
+    donne_non_positioned_floating_descendants(élément, *floating_descendants)
+
+    pour floating_descendants {
+        dessine_stacking_context_pour_élément(nul, it, ctx)
+    }
+
     // 6. If the element is an inline element that generates a stacking context, then:
-
+    si élément.est_inline_level() && élément.id_stacking_context != ctx.id_stacking_context {
         // 1. For each line box that the element is in:
 
             // 1. Jump to 7.2.1 for the box(es) of the element in that line box (in tree order).
-    
+    }
     // 7. Otherwise: first for the element, then for all its in-flow, non-positioned, block-level descendants in tree order:
+    sinon {
+        dessine_stacking_context_étape_7(élément, ctx)
 
-        // 1. If the element is a block-level replaced element, then: the replaced content, atomically.
-
-        // 2. Otherwise, for each line box of that element:
-
-            // 1. For each box that is a child of that element, in that line box, in tree order:
-
-                // 1. background color of element.
-
-                // 2. background image of element.
-
-                // 3. border of element.
-
-                // 4. For inline elements:
-
-                    // 1. For all the element's in-flow, non-positioned, inline-level children that are in this line box, and all runs of text inside the element that is on this line box, in tree order:
-
-                        // 1. If this is a run of text, then:
-
-                            // 1. any underlining affecting the text of the element, in tree order of the elements applying the underlining (such that the deepest element's underlining, if any, is painted topmost and the root element's underlining, if any, is drawn bottommost).
-                            // 2. any overlining affecting the text of the element, in tree order of the elements applying the overlining (such that the deepest element's overlining, if any, is painted topmost and the root element's overlining, if any, is drawn bottommost).
-                            // 3. the text.
-                            // 4. any line-through affecting the text of the element, in tree order of the elements applying the line-through (such that the deepest element's line-through, if any, is painted topmost and the root element's line-through, if any, is drawn bottommost).
-        
-                    // 2. Otherwise, jump to 7.2.1 for that element.
-
-                // For inline-block and inline-table elements:
-
-                    // 1. For each one of these, treat the element as if it created a new stacking context, but any positioned descendants and descendants which actually create a new stacking context should be considered part of the parent stacking context, not this new one.
-                
-                // For inline-level replaced elements:
-
-                    // 1. the replaced content, atomically.
-
-            // 2. Optionally, the outline of the element (see 10 below).
-
-        // 3. Optionally, if the element is block-level, the outline of the element (see 10 below).
+        pour descendants {
+            dessine_stacking_context_étape_7(it, ctx)
+        }
+    }
 
     // 8. All positioned descendants with 'z-index: auto' or 'z-index: 0', in tree order. For those with 'z-index: auto', treat the element as if it created a new stacking context, but any positioned descendants and descendants which actually create a new stacking context should be considered part of the parent stacking context, not this new one. For those with 'z-index: 0', treat the stacking context generated atomically.
-    pour stacking_context.enfants {
-        z_index := it.donne_z_index()
+    descendants.taille = 0
+    donne_positioned_descendants_with_z_index_auto_ou_zéro(élément, *descendants)
+
+    pour descendants {
+        z_index := it.propriétés.donne_valeur_utilisée(IDPropriété.ZIndex)
         si z_index.est_auto() {
-            dessine_stacking_context_standard(it, ctx)
-            continue
+            // À FAIRE assert(it.id_stacking_context == ctx.id_stacking_context)
+            dessine_stacking_context_pour_élément(nul, it, ctx)
         }
-        si z_index.number > 0.0 {
-            continue
+        sinon si stacking_context {
+            pour s dans stacking_context.enfants {
+                si it.id == s.id {
+                    dessine_stacking_context(s, ctx)
+                }
+            }
         }
-        dessine_stacking_context_standard(it, ctx)
     }
 
     // 9. Stacking contexts formed by positioned descendants with z-indices greater than or equal to 1 in z-index order (smallest first) then tree order.
-    pour stacking_context.enfants {
-        z_index := it.donne_z_index()
-        si z_index.est_auto() {
-            continue
+    si stacking_context {
+        pour stacking_context.enfants {
+            z_index := it.donne_z_index()
+            si z_index.est_auto() {
+                continue
+            }
+            si z_index.number <= 0.0 {
+                continue
+            }
+            dessine_stacking_context_standard(it, ctx)
         }
-        si z_index.number <= 0.0 {
-            continue
-        }
-        dessine_stacking_context_standard(it, ctx)
     }
 
     // 10. Finally, implementations that do not draw outlines in steps above must draw outlines from this stacking context at this stage. (It is recommended to draw outlines in this step and not in the steps above.)
+}
+
+dessine_stacking_context_étape_7 :: fonc (élément: *NoeudDeDisposition, ctx: *ContexteDessin)
+{
+    // 1. If the element is a block-level replaced element, then: the replaced content, atomically.
+    si élément.est_block_level() && élément.type == NoeudDeDispositionRemplacement {
+        élément.fut_dessiné = vrai
+        dessine(élément, ctx)
+        retourne
+    }
+
+    si (élément.type == NoeudDeDispositionBloc || élément.type == NoeudDeDispositionInline || élément.type == TableWrapperBox || élément.type == TableBox || élément.type == TableCellBox) {
+        élément_bloc := élément comme *NoeudDeDispositionBloc
+        lignes_tenante := *élément_bloc.lignes_tenante
+        élément.fut_dessiné = vrai
+
+        pour * lignes_tenante.fragments {
+            it.noeud.fut_dessiné = vrai
+
+            si it.type == Fragment.Type.InlineBlock {
+                si it.noeud.type == NoeudDeDispositionRemplacement {
+                    dessine_fragment(it.noeud, it, lignes_tenante, ctx)
+                }
+                sinon {
+                    dessine_stacking_context_pour_élément(nul, it.noeud, ctx)
+                }
+            }
+            sinon {
+                dessine_fragment(it.noeud, it, lignes_tenante, ctx)
+            }
+        }
+
+        retourne
+    }
+
+    // 2. Otherwise, for each line box of that element:
+        // 1. For each box that is a child of that element, in that line box, in tree order:
+
+            // 1. background color of element.
+
+            // 2. background image of element.
+
+            // 3. border of element.
+
+            // 4. For inline elements:
+
+                // 1. For all the element's in-flow, non-positioned, inline-level children that are in this line box, and all runs of text inside the element that is on this line box, in tree order:
+
+                    // 1. If this is a run of text, then:
+
+                        // 1. any underlining affecting the text of the element, in tree order of the elements applying the underlining (such that the deepest element's underlining, if any, is painted topmost and the root element's underlining, if any, is drawn bottommost).
+                        // 2. any overlining affecting the text of the element, in tree order of the elements applying the overlining (such that the deepest element's overlining, if any, is painted topmost and the root element's overlining, if any, is drawn bottommost).
+                        // 3. the text.
+                        // 4. any line-through affecting the text of the element, in tree order of the elements applying the line-through (such that the deepest element's line-through, if any, is painted topmost and the root element's line-through, if any, is drawn bottommost).
+    
+                    // 2. Otherwise, jump to 7.2.1 for that element.
+
+            // For inline-block and inline-table elements:
+
+                // 1. For each one of these, treat the element as if it created a new stacking context, but any positioned descendants and descendants which actually create a new stacking context should be considered part of the parent stacking context, not this new one.
+
+            // For inline-level replaced elements:
+
+                // 1. the replaced content, atomically.
+
+        // 2. Optionally, the outline of the element (see 10 below).
+
+    // 3. Optionally, if the element is block-level, the outline of the element (see 10 below).
 }
 
 is_block_list_item_or_block_equivalent :: fonc (noeud: *NoeudDeDisposition) -> bool
@@ -429,7 +494,7 @@ is_block_list_item_or_block_equivalent :: fonc (noeud: *NoeudDeDisposition) -> b
         retourne faux
     }
 
-    retourne display.inner_type == Display.Type.Flow || display.inner_type == Display.Type.FlowRoot || display.est_list_item
+    retourne display.inner_type == Display.Type.Flow || display.inner_type == Display.Type.FlowRoot || display.inner_type == Display.Type.Flex || display.est_list_item
 }
 
 is_block_level_table :: fonc (noeud: *NoeudDeDisposition) -> bool
@@ -450,6 +515,10 @@ donne_in_flow_non_positioned_block_level_descendants :: fonc (noeud: *NoeudDeDis
     tantque !pile.est_vide() {
         enfant := pile.dépile()
 
+        saufsi enfant.propriétés {
+            continue
+        }
+
         position := enfant.propriétés.donne_valeur_utilisée(IDPropriété.Position)
         saufsi position.est_mot_clé(PROP_static) {
             // imprime("n'est pas static : %\n", position)
@@ -468,6 +537,70 @@ donne_in_flow_non_positioned_block_level_descendants :: fonc (noeud: *NoeudDeDis
         }
 
         tableau_ajoute(résultat, enfant)
+
+        pour > enfant.enfants {
+            pile.empile(it)
+        }
+    }
+}
+
+donne_non_positioned_floating_descendants :: fonc (noeud: *NoeudDeDisposition, résultat: *[..]*NoeudDeDisposition)
+{
+    pile: Pile(*NoeudDeDisposition)
+    diffère détruit(pile)
+
+    pour > noeud.enfants {
+        pile.empile(it)
+    }
+
+    tantque !pile.est_vide() {
+        enfant := pile.dépile()
+
+        saufsi enfant.propriétés {
+            continue
+        }
+
+        position := enfant.propriétés.donne_valeur_utilisée(IDPropriété.Position)
+        saufsi position.est_mot_clé(PROP_static) {
+            continue
+        }
+
+        float := enfant.propriétés.donne_valeur_utilisée(IDPropriété.Float)
+        saufsi float.est_mot_clé(PROP_none) {
+            tableau_ajoute(résultat, enfant)
+            continue
+        }
+
+        pour > enfant.enfants {
+            pile.empile(it)
+        }
+    }
+}
+
+donne_positioned_descendants_with_z_index_auto_ou_zéro :: fonc (noeud: *NoeudDeDisposition, résultat: *[..]*NoeudDeDisposition)
+{
+    pile: Pile(*NoeudDeDisposition)
+    diffère détruit(pile)
+
+    pour > noeud.enfants {
+        pile.empile(it)
+    }
+
+    tantque !pile.est_vide() {
+        enfant := pile.dépile()
+
+        saufsi enfant.propriétés {
+            continue
+        }
+
+        position := enfant.propriétés.donne_valeur_utilisée(IDPropriété.Position)
+        saufsi position.est_mot_clé(PROP_static) {
+            z_index := enfant.propriétés.donne_valeur_utilisée(IDPropriété.ZIndex)
+            si z_index.est_auto() || z_index.number == 0.0 {
+                tableau_ajoute(résultat, enfant)
+            }
+            continue
+        }
 
         pour > enfant.enfants {
             pile.empile(it)

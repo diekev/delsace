@@ -270,6 +270,22 @@ dessine :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
     // imprime("---------------------------------------------\n")
     // dessine_stacking_context_standard(arbre.stacking_context, ctx)
 
+    // pour arbre.noeuds {
+    //     si it.fut_dessiné {
+    //         it.fut_dessiné = faux
+    //         continue
+    //     }
+
+    //     saufsi it.propriétés {
+    //         continue
+    //     }
+
+    //     position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position)
+    //     float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float)
+    //     display := it.donne_display()
+    //     imprime("noeud non dessiné : % (position : %, float : %, outer : %, inner : %)\n", it.donne_nom_classe(), position, float, display.outer_type, display.inner_type)
+    // }
+
     dessine_commandes(ctx.commandes, ctx.peintre)
 }
 
