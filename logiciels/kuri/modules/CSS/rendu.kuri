@@ -267,6 +267,8 @@ dessine :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
     réinitialise(ctx.commandes)
 
     dessine_stacking_context(arbre.stacking_context, ctx)
+    // imprime("---------------------------------------------\n")
+    // dessine_stacking_context_standard(arbre.stacking_context, ctx)
 
     dessine_commandes(ctx.commandes, ctx.peintre)
 }
