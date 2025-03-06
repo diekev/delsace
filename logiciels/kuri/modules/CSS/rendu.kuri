@@ -18,6 +18,7 @@ TypeCommandeDeRendu :: énum {
     REMPLIS_RECTANGLE_ARRONDI
     DESSINE_RECTANGLE
     DESSINE_RECTANGLE_ARRONDI
+    DESSINE_BORDURE
     DESSINE_IMAGE
     DESSINE_TAMPON_IMAGE
     DESSINE_TEXTE
@@ -117,6 +118,22 @@ CommandeDessineRectangleArrondi :: struct {
     couleur: CouleurRVBAN8
 }
 
+CommandeDessineBordure :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.DESSINE_BORDURE
+
+    largeurs: [4]r32
+    couleurs: [4]CouleurRVBAN8
+}
+
+dessine_bordure :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), largeurs: [4]r32, couleurs: [4]CouleurRVBAN8)
+{
+    résultat := crée_commande(commandes, CommandeDessineBordure)
+    résultat.rect = rect
+    résultat.largeurs = largeurs
+    résultat.couleurs = couleurs
+}
+
 CommandeDessineImage :: struct {
     empl base: BaseCommande
     type = TypeCommandeDeRendu.DESSINE_IMAGE
@@ -203,6 +220,16 @@ dessine_commandes :: fonc (commandes: *CommandesDeRendu, peintre: *Peintre)
             DESSINE_RECTANGLE_ARRONDI {
                 // commande := base comme *CommandeDessineRectangleArrondi
                 // peintre.dessine_rectangle_arrondi(commande.rect, commande.rayons, commande.couleur)
+            }
+            DESSINE_BORDURE {
+                commande := base comme *CommandeDessineBordure
+
+                couleurs_peintre: [4]CouleurPeintre = ---
+                pour commande.couleurs {
+                    couleurs_peintre[index_it] = it
+                }
+
+                peintre.dessine_bordure(commande.rect, commande.largeurs, couleurs_peintre)
             }
             DESSINE_IMAGE {
                 commande := base comme *CommandeDessineImage
@@ -957,12 +984,18 @@ dessine_arrière_plan :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDispositionB
 dessine_bordure :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDispositionBloc)
 {
     bordure := donne_bordure(*noeud.propriétés.style)
-    commandes := ctx.commandes
+
+    largeurs: [4]r32
+    couleurs: [4]CouleurRVBAN8
+
+    nombre_de_cotés := 0
 
     pour bordure.style {
         si it == LineStyle.None || it == LineStyle.Hidden {
             continue
         }
+
+        nombre_de_cotés += 1
 
         coté := index_it comme z32 comme BorderEdge
 
@@ -997,37 +1030,16 @@ dessine_bordure :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDispositionBloc)
 
         largeur := bordure.width[coté].pixels comme r32
 
-        rect: RectanglePosDim(r32)
-        rect_bordure := noeud.donne_rectangle_bordure()
-
-        si coté == BorderEdge.Top {
-            rect.x = rect_bordure.x
-            rect.y = rect_bordure.y
-            rect.largeur = rect_bordure.largeur
-            rect.hauteur = largeur
-        }
-        sinon si coté == BorderEdge.Bottom {
-            rect.x = rect_bordure.x
-            rect.y = rect_bordure.y + rect_bordure.hauteur - largeur
-            rect.largeur = rect_bordure.largeur
-            rect.hauteur = largeur
-        }
-        sinon si coté == BorderEdge.Left {
-            rect.x = rect_bordure.x
-            rect.y = rect_bordure.y
-            rect.largeur = largeur
-            rect.hauteur = rect_bordure.hauteur
-        }
-        sinon /* si coté == BorderEdge.Right */ {
-            rect.x = rect_bordure.x + rect_bordure.largeur - largeur
-            rect.y = rect_bordure.y
-            rect.largeur = largeur
-            rect.hauteur = rect_bordure.hauteur
-        }
-
-        rect = ctx.donne_rectangle_corrigé(rect)
-        commandes.remplis_rectangle(rect, couleur)
+        couleurs[coté] = couleur
+        largeurs[coté] = largeur
     }
+
+    si nombre_de_cotés == 0 {
+        retourne
+    }
+
+    rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
+    ctx.commandes.dessine_bordure(rect, largeurs, couleurs)
 }
 
 /** \} */
