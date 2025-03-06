@@ -5282,7 +5282,7 @@ parse_propriété_float :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeS
 parse_propriété_vertical_align :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
-    mots_clés := [PROP_baseline, PROP_top, PROP_bottom]
+    mots_clés := [PROP_baseline, PROP_top, PROP_middle, PROP_bottom]
     retourne parse_mot_clé(parseuse, mots_clés)
 }
 
