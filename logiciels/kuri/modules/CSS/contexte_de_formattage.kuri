@@ -822,6 +822,8 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
 {
     ctx := base comme *ContexteDeFormattageInline
 
+    line_height := donne_line_height(noeud, ctx)
+
     enligneuse: Enligneuse
     enligneuse.ctx = ctx
     divise_en_lignes(*enligneuse, noeud, mode)
@@ -833,11 +835,15 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
 
     lignes_tenante := *noeud.lignes_tenante
 
-    pour lignes_tenante.lignes {
-        fragments := donne_fragments_ligne(lignes_tenante, *it)
+    pour * lignes_tenante.lignes {
+        fragments := donne_fragments_ligne(lignes_tenante, it)
 
         si fragments.taille == 0 {
             continue
+        }
+
+        si it.hauteur_contenu != 0.0 && it.hauteur_contenu < line_height {
+            it.hauteur_contenu = line_height
         }
 
         largeur_disponible := it.largeur_max
