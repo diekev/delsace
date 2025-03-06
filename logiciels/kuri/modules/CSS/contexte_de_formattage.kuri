@@ -826,8 +826,6 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
     enligneuse.ctx = ctx
     divise_en_lignes(*enligneuse, noeud, mode)
 
-    hauteur_contenu := 0.0
-
     alignement := donne_alignement_texte(noeud)
     si ctx.doit_aligner_les_descendants.possède_valeur() {
         alignement = ctx.doit_aligner_les_descendants.Quelque
@@ -836,18 +834,15 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
     lignes_tenante := *noeud.lignes_tenante
 
     pour lignes_tenante.lignes {
-        hauteur := it.hauteur_contenu
-        décalage_pour_alignement := 0.0
-
         fragments := donne_fragments_ligne(lignes_tenante, *it)
 
         si fragments.taille == 0 {
-            hauteur_contenu += hauteur
             continue
         }
 
         largeur_disponible := it.largeur_max
 
+        décalage_pour_alignement := 0.0
         si alignement == AlignementTexte.Droite {
             décalage_pour_alignement = largeur_disponible - it.largeur_courante
         }
@@ -870,33 +865,12 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
                 décalage_fragment_x += décalage_pour_alignement
             }
 
-            // imprime("décalage fragment : % %\n", décalage_fragment_x, décalage_y)
             fragment.x += décalage_fragment_x
 
             si fragment.type == Fragment.Type.InlineBlock {
                 fragment.noeud.décale_vers_position(fragment.x, fragment.y)
             }
         }
-
-        // pour * fragment dans it.fragments {
-        //     noeud_fragment := fragment.noeud
-        //     propriétés_noeud_fragment := donne_propriétés(noeud_fragment)
-        //     vertical_align := propriétés_noeud_fragment.donne_valeur_utilisée(IDPropriété.VerticalAlign)
-        //     imprime("vertical-align: % (% | %)\n", vertical_align, fragment.hauteur, hauteur)
-
-        //     si vertical_align.est_mot_clé(PROP_bottom) || vertical_align.est_mot_clé(PROP_baseline) {
-        //         si fragment.hauteur < hauteur {
-        //             fragment.y += (hauteur - fragment.hauteur)
-        //         }
-        //     }
-        //     sinon si vertical_align.est_mot_clé(PROP_top) {
-        //         si fragment.hauteur < hauteur {
-        //             fragment.y = (hauteur - fragment.hauteur)
-        //         }
-        //     }
-        // }
-
-        hauteur_contenu += hauteur
     }
 
     discr mode {
