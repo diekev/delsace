@@ -1837,6 +1837,38 @@ donne_line_height :: fonc (propriétés: *PropriétésDeStyle, fonte: *Fonte) ->
     retourne métriques.donne_hauteur_ligne()
 }
 
+donne_décalage_top_pour_relative :: fonc (noeud: *NoeudDeDisposition) -> r32
+{
+    top := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Top)
+    bottom := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Bottom)
+
+    si top.est_auto() && bottom.est_auto() {
+        retourne 0.0
+    }
+
+    si top.est_auto() {
+        retourne -bottom.pixels comme r32
+    }
+
+    retourne top.pixels comme r32
+}
+
+donne_décalage_left_pour_relative :: fonc (noeud: *NoeudDeDisposition) -> r32
+{
+    left := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Left)
+    right := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Right)
+
+    si left.est_auto() && right.est_auto() {
+        retourne 0.0
+    }
+    
+    si left.est_auto() {
+        retourne -right.pixels comme r32
+    }
+
+    retourne left.pixels comme r32
+}
+
 donne_élément :: fonc (noeud: *NoeudDeDisposition) -> *HTML.Élément
 {
     si noeud.type == NoeudDeDispositionInline {

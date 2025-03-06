@@ -423,41 +423,9 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
         /* À FAIRE : https://drafts.csswg.org/css-position/#relpos-insets */
         si position.est_mot_clé(PROP_relative) {
             résoud_pourcentage_insets(it, ctx)
-
-            top := it.propriétés.donne_valeur_utilisée(IDPropriété.Top)
-            bottom := it.propriétés.donne_valeur_utilisée(IDPropriété.Bottom)
-            left := it.propriétés.donne_valeur_utilisée(IDPropriété.Left)
-            right := it.propriétés.donne_valeur_utilisée(IDPropriété.Right)
-
-            si left.est_auto() && right.est_auto() {
-                left = ValeurDeStyle(pixels = 0.0)
-                right = ValeurDeStyle(pixels = 0.0)
-            }
-            sinon si left.est_auto() {
-                left = ValeurDeStyle(pixels = -right.pixels)
-            }
-            sinon si right.est_auto() {
-                right.pixels = -left.pixels
-            }
-            sinon {
-                right.pixels = 0.0
-            }
-
-            si top.est_auto() && bottom.est_auto() {
-                top = ValeurDeStyle(pixels = 0.0)
-                bottom.pixels = 0.0
-            }
-            sinon si top.est_auto() {
-                top = ValeurDeStyle(pixels = -bottom.pixels)
-            }
-            sinon si bottom.est_auto() {
-                bottom.pixels = -top.pixels
-            }
-            sinon {
-                bottom.pixels = 0.0
-            }
-
-            it.décale(left.pixels comme r32, top.pixels comme r32)
+            top := it.donne_décalage_top_pour_relative()
+            left := it.donne_décalage_left_pour_relative()
+            it.décale(left, top)
         }
     }
 
