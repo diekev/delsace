@@ -242,6 +242,12 @@ calcule_auto_height_racine_contexte_de_formattage :: fonc (noeud: *NoeudDeDispos
         min_y_it := modèle_de_boite.marge.y
         max_y_it := modèle_de_boite.marge.y + modèle_de_boite.marge.hauteur
 
+        si it.propriétés.donne_valeur_calculée(IDPropriété.Position).est_mot_clé(PROP_relative) {
+            décalage := it.donne_décalage_top_pour_relative()
+            min_y_it -= décalage
+            max_y_it -= décalage
+        }
+
         si min_y > min_y_it {
             min_y = min_y_it
         }
@@ -754,6 +760,9 @@ calcule_hauteur_et_marges_block_level_normal_flow :: fonc (empl args: *Arguments
                 // 3. the bottom border edge of the last in-flow child whose top margin doesn't collapse with the element's bottom margin
 
                 position_bord_bas_fragment := enfant.modèle_de_boite.marge.y + enfant.modèle_de_boite.marge.hauteur
+                si enfant.propriétés.donne_valeur_calculée(IDPropriété.Position).est_mot_clé(PROP_relative) {
+                    position_bord_bas_fragment -= enfant.donne_décalage_top_pour_relative()
+                }
                 height.pixels = position_bord_bas_fragment - position_bord_haut_contenu
             }
             sinon {
