@@ -12,6 +12,11 @@ TextDecorationLine :: énum_drapeau n8 {
     BLINK
 }
 
+BackgroundRepeat :: struct {
+    horizontal: CSSOMString
+    vertical: CSSOMString
+}
+
 Variable :: struct {
     nom: CSSOMString
     fallback: [..]ComponentValue
@@ -225,6 +230,7 @@ ValeurDeStyle :: union {
     calc: CalcFunction
     /* Uniquement pour stocker les opérateurs de calc sans avoir un autre type. */
     opérateur_calc: OpérateurCalc
+    background_repeat: BackgroundRepeat
 }
 
 opérateur == :: fonc (a: ValeurDeStyle, b: ValeurDeStyle) -> bool
@@ -378,6 +384,16 @@ opérateur == :: fonc (a: ValeurDeStyle, b: ValeurDeStyle) -> bool
             discr b {
                 opérateur_calc(ob) {
                     retourne o == ob
+                }
+                sinon {
+                    retourne faux
+                }
+            }
+        }
+        background_repeat(br) {
+            discr b {
+                background_repeat(obr) {
+                    retourne obr.horizontal == br.horizontal && obr.vertical == br.vertical
                 }
                 sinon {
                     retourne faux
@@ -629,6 +645,12 @@ imprime_valeur_de_style :: fonc (enchaineuse: *Enchaineuse, valeur: *ValeurDeSty
         opérateur_calc(o) {
             chaines := ["+", "-", "*", "/"]
             ajoute_au_tampon(enchaineuse, chaines[o])
+        }
+        background_repeat(b) {
+            ajoute_au_tampon(enchaineuse, b.horizontal)
+            saufsi b.vertical.est_vide() {
+                ajoute_au_tampon(enchaineuse, b.vertical)
+            }
         }
         sinon {
             ajoute_au_tampon(enchaineuse, "VALEUR INVALIDE OU À IMPRIMER")
@@ -1089,6 +1111,8 @@ IDPropriété :: énum n16 {
 
     BackgroundColor
     BackgroundImage
+    BackgroundRepeat
+    BackgroundAttachment
 
     BorderWidthBottom
     BorderWidthLeft
@@ -1193,6 +1217,8 @@ initialise_style :: fonc (style: *Style)
     style.valeurs[IDPropriété.Color] = CouleurRVBAN8(0, 0, 0, 255)
     style.valeurs[IDPropriété.BackgroundColor] = CouleurRVBAN8(0, 0, 0, 0)
     style.valeurs[IDPropriété.BackgroundImage] = ValeurDeStyle(mot_clé = PROP_none)
+    style.valeurs[IDPropriété.BackgroundRepeat] = BackgroundRepeat(PROP_repeat)
+    style.valeurs[IDPropriété.BackgroundAttachment] = ValeurDeStyle(mot_clé = PROP_scroll)
 
     /* Bordure */
     style.valeurs[IDPropriété.BorderWidthBottom] = ValeurDeStyle(mot_clé = PROP_medium)
@@ -1570,6 +1596,7 @@ GenreValeurCalculée :: énum_drapeau {
     FontSize
     FontWeight
     BackgroundImage
+    BackgroundRepeat
     LineHeight
 }
 
@@ -1776,6 +1803,38 @@ calcule_valeur_propriété_générique :: fonc (valeur: ValeurDeStyle, genre_val
         }
         calc {
             panique("calc non-géré")
+        }
+        background_repeat(b) {
+            saufsi genre_valeur_calculée.BackgroundRepeat {
+                retourne
+            }
+
+            si b.vertical.est_vide() {
+                si b.horizontal == PROP_repeat_x {
+                    b.horizontal = PROP_repeat
+                    b.vertical = PROP_no_repeat
+                    retourne ValeurDeStyle(background_repeat = b)
+                }
+
+                si b.horizontal == PROP_repeat_y {
+                    b.horizontal = PROP_no_repeat
+                    b.vertical = PROP_repeat
+                    retourne ValeurDeStyle(background_repeat = b)
+                }
+
+                b.vertical = b.horizontal
+                retourne ValeurDeStyle(background_repeat = b)
+            }
+
+            si b.horizontal == PROP_repeat_x || b.horizontal == PROP_repeat_y {
+                b.horizontal = PROP_repeat
+            }
+
+            si b.vertical == PROP_repeat_x || b.vertical == PROP_repeat_y {
+                b.vertical = PROP_repeat
+            }
+
+            retourne ValeurDeStyle(background_repeat = b)
         }
         sinon {}
     }

@@ -963,10 +963,17 @@ dessine_arrière_plan :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDispositionB
         retourne
     }
 
-    /* À FAIRE : parse la propriété "background-repeat". Ceci est la valeur défaut. */
+    background_attachment := noeud.propriétés.donne_valeur_calculée(IDPropriété.BackgroundAttachment)
+    si background_attachment.est_mot_clé(PROP_fixed) {
+        /* À FAIRE : dessine l'image mais avec des ciseaux pour le rect. */
+        retourne
+    }
+
+    background_repeat := noeud.propriétés.donne_valeur_calculée(IDPropriété.BackgroundRepeat).background_repeat
+    // imprime("background_repeat : %\n", background_repeat)
     répétition: RépétitionImage
-    répétition.x = GenreRépétitionImage.Normale
-    répétition.y = GenreRépétitionImage.Normale
+    répétition.x = convertis_genre_répétition_image(background_repeat.horizontal)
+    répétition.y = convertis_genre_répétition_image(background_repeat.vertical)
 
     image_data := opt_image_data.Quelque
     /* À FAIRE : background-clip */
@@ -979,6 +986,20 @@ dessine_arrière_plan :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDispositionB
     rect = ctx.donne_rectangle_corrigé(rect)
     rect_image = ctx.donne_rectangle_corrigé(rect_image)
     commandes.dessine_image(image_data, rect_image, rect, répétition)
+}
+
+convertis_genre_répétition_image :: fonc (mot_clé: CSSOMString) -> GenreRépétitionImage
+{
+    si mot_clé == PROP_repeat {
+        retourne GenreRépétitionImage.Normale
+    }
+    si mot_clé == PROP_round {
+        retourne GenreRépétitionImage.Arrondis
+    }
+    si mot_clé == PROP_space {
+        retourne GenreRépétitionImage.Espacé
+    }
+    retourne GenreRépétitionImage.Aucune
 }
 
 dessine_bordure :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDispositionBloc)

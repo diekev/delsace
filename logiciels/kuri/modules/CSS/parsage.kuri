@@ -2497,7 +2497,7 @@ InfoTypePropriété :: struct {
 }
 
 NOMBRE_PROPRIÉTÉS_SHORTHAND :: 26
-NOMBRE_PROPRIÉTÉS :: 96
+NOMBRE_PROPRIÉTÉS :: 98
 
 infos_types_propriétés_shorthand : [NOMBRE_PROPRIÉTÉS_SHORTHAND]InfoTypePropriété = ---
 infos_types_propriétés : [NOMBRE_PROPRIÉTÉS]InfoTypePropriété = ---
@@ -2564,6 +2564,8 @@ initialise_tables_infos_propriétés :: fonc ()
         InfoTypePropriété(PROP_display, id = IDPropriété.Display, fonction_de_parsage = parse_propriété_display, genre_valeur_calculée = GenreValeurCalculée.Display, drapeaux = DrapeauxPropriété.AffecteConstructionArbre),
         InfoTypePropriété(PROP_background_color, id = IDPropriété.BackgroundColor, fonction_de_parsage = parse_propriété_color, genre_valeur_calculée = GenreValeurCalculée.Couleur),
         InfoTypePropriété(PROP_background_image, id = IDPropriété.BackgroundImage, fonction_de_parsage = parse_propriété_background_image, genre_valeur_calculée = GenreValeurCalculée.BackgroundImage),
+        InfoTypePropriété(PROP_background_repeat, id = IDPropriété.BackgroundRepeat, fonction_de_parsage = parse_propriété_background_repeat, genre_valeur_calculée = GenreValeurCalculée.BackgroundRepeat),
+        InfoTypePropriété(PROP_background_attachment, id = IDPropriété.BackgroundAttachment, fonction_de_parsage = parse_propriété_background_attachment, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
         InfoTypePropriété(PROP_color, id = IDPropriété.Color, fonction_de_parsage = parse_propriété_color, drapeaux = DrapeauxPropriété.Héritée, genre_valeur_calculée = GenreValeurCalculée.Couleur),
         InfoTypePropriété(PROP_text_decoration_line, id = IDPropriété.TextDecorationLine, fonction_de_parsage = parse_propriété_text_decoration_line, genre_valeur_calculée = GenreValeurCalculée.TextDecorationLine),
         InfoTypePropriété(PROP_text_decoration_style, id = IDPropriété.TextDecorationStyle, fonction_de_parsage = parse_propriété_text_decoration_style, genre_valeur_calculée = GenreValeurCalculée.TextDecorationStyle),
@@ -4236,7 +4238,7 @@ parse_propriété_font_style :: fonc (value: []ComponentValue) -> Optionnel(Vale
 
 parse_propriété_background :: fonc (ctx: *ContexteParsageShorthand, value: []ComponentValue) -> bool
 {
-    noms_propriétés := [PROP_background_color, PROP_background_image]
+    noms_propriétés := [PROP_background_color, PROP_background_image, PROP_background_repeat, PROP_background_attachment]
     si parse_mot_clé_global(ctx, noms_propriétés, value) {
         retourne vrai
     }
@@ -4244,6 +4246,8 @@ parse_propriété_background :: fonc (ctx: *ContexteParsageShorthand, value: []C
     couleur := ValeurDeStyle(mot_clé = PROP_transparent)
     eu_couleur := faux
     image := ValeurDeStyle(mot_clé = PROP_none)
+    background_repeat := ValeurDeStyle(background_repeat = BackgroundRepeat(PROP_repeat))
+    background_attachment := ValeurDeStyle(mot_clé = PROP_scroll)
 
     parseuse := initialise_une_parseuse(value)
 
@@ -4267,11 +4271,25 @@ parse_propriété_background :: fonc (ctx: *ContexteParsageShorthand, value: []C
             continue
         }
 
+        valeur_attachment := parse_valeur_background_attachment(parseuse)
+        si valeur_attachment.possède_valeur() {
+            background_attachment = valeur_attachment
+            continue
+        }
+
+        valeur_repeat := parse_valeur_background_repeat(parseuse)
+        si valeur_repeat.possède_valeur() {
+            background_repeat = valeur_repeat
+            continue
+        }
+
         retourne faux
     }
 
     ajoute_propriété(ctx, PROP_background_color, couleur)
     ajoute_propriété(ctx, PROP_background_image, image)
+    ajoute_propriété(ctx, PROP_background_attachment, background_attachment)
+    ajoute_propriété(ctx, PROP_background_repeat, background_repeat)
 
     retourne vrai
 }
@@ -4317,6 +4335,68 @@ parse_valeur_background_image :: fonc (parseuse: &Parseuse(ComponentValue)) -> O
         }
         retourne
     }
+}
+
+/* https://drafts.csswg.org/css-backgrounds-3/#background-repeat */
+parse_propriété_background_repeat :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    retourne parse_valeur_background_repeat(parseuse)
+}
+
+/* <repeat-style> = repeat-x | repeat-y | [repeat | space | round | no-repeat]{1,2} */
+parse_valeur_background_repeat :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+{
+    si parseuse.fini() {
+        retourne
+    }
+
+    résultat: BackgroundRepeat
+
+    lexème := parseuse.lexème_courant()
+    si lexème.est_mot_clé(PROP_repeat_x) {
+        parseuse.avance()
+        résultat.horizontal = PROP_repeat_x
+        retourne ValeurDeStyle(background_repeat = résultat)
+    }
+
+    si lexème.est_mot_clé(PROP_repeat_y) {
+        parseuse.avance()
+        résultat.horizontal = PROP_repeat_y
+        retourne ValeurDeStyle(background_repeat = résultat)
+    }
+
+    mots_clés := [PROP_repeat, PROP_space, PROP_round, PROP_no_repeat]
+
+    valeur := parse_mot_clé(parseuse, mots_clés)
+    saufsi valeur.possède_valeur() {
+        retourne
+    }
+    
+    résultat.horizontal = valeur.Quelque.mot_clé
+
+    parseuse.consomme_espaces_blanches()
+
+    valeur = parse_mot_clé(parseuse, mots_clés)
+    si valeur.possède_valeur() {
+        résultat.vertical = valeur.Quelque.mot_clé
+    }
+
+    retourne ValeurDeStyle(background_repeat = résultat)
+}
+
+/* https://drafts.csswg.org/css-backgrounds-3/#background-attachment */
+parse_propriété_background_attachment :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    retourne parse_valeur_background_attachment(parseuse)
+}
+
+/* <attachment> = scroll | fixed | local */
+parse_valeur_background_attachment :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+{
+    mots_clés := [PROP_scroll, PROP_fixed, PROP_local]
+    retourne parse_mot_clé(parseuse, mots_clés)
 }
 
 /** \} */
