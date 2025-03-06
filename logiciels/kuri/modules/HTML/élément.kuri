@@ -2603,17 +2603,29 @@ prépare :: fonc (el: *HTMLScriptElement)
 
         // 2. If el has an async attribute or el's force async is true:
         si el.possède_attribut(ATTR_async) || el.force_async {
-            panique("el.possède_attribut(ATTR_async) || el.force_async non-implémenté\n")
-
             // 1. Let scripts be el's preparation-time document's set of scripts that will execute as soon as possible.
+            scripts := *el.document_du_temps_de_préparation.scripts_that_will_execute_as_soon_as_possible
 
             // 2. Append el to scripts.
+            tableau_ajoute(scripts, el)
 
             // 3. Set el's steps to run when the result is ready to the following:
-
+            steps_to_run_when_the_result_is_ready :: fonc (script: *HTMLScriptElement)
+            {
                 // 1. Execute the script element el.
+                execute_the_script_element(script)
 
                 // 2. Remove el from scripts.
+                scripts := *script.document_du_temps_de_préparation.scripts_that_will_execute_as_soon_as_possible
+                pour mémoire(scripts) {
+                    si it == script {
+                        tableau_supprime_index(scripts, index_it)
+                        arrête
+                    }
+                }
+            }
+
+            el.steps_to_run_when_the_result_is_ready = steps_to_run_when_the_result_is_ready
         }
         // 3. Otherwise, if el is not parser-inserted:
         sinon saufsi el.est_inséré_par_parseuse() {
