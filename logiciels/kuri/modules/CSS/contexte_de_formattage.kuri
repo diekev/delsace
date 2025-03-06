@@ -283,6 +283,12 @@ détruit_données_contexte :: fonc (ctx: *ContexteDeFormattageBloc)
     détruit_données_lignes(*ctx.lignes_boites_flottantes_droite)
 }
 
+ParamètresPositionnementBoite :: struct {
+    décalage_hors_float := 0.0
+    décalage_pour_floats_gauche := 0.0
+    décalage_pour_floats_droite := 0.0
+}
+
 contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
 {
     ctx := base comme *ContexteDeFormattageBloc
@@ -291,96 +297,49 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
     décalage_x := noeud.modèle_de_boite.contenu.x
     décalage_y := noeud.modèle_de_boite.contenu.y
 
-    décalage_hors_float := 0.0
-    décalage_pour_floats_gauche := 0.0
-    décalage_pour_floats_droite := 0.0
+    params_position: ParamètresPositionnementBoite
 
     pour noeud.enfants {
         position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position)
         si position.est_mot_clé(PROP_absolute) {
-            ctx.dispose_boite_absolute(it comme *NoeudDeDispositionBloc, décalage_x, décalage_y + décalage_hors_float, mode)
+            ctx.dispose_boite_absolute(it comme *NoeudDeDispositionBloc, décalage_x, décalage_y + params_position.décalage_hors_float, mode)
             continue
         }
 
         si position.est_mot_clé(PROP_fixed) {
-            ctx.dispose_boite_fixed(it comme *NoeudDeDispositionBloc, décalage_x, décalage_y + décalage_hors_float)
+            ctx.dispose_boite_fixed(it comme *NoeudDeDispositionBloc, décalage_x, décalage_y + params_position.décalage_hors_float)
             continue
         }
 
         clear := it.propriétés.donne_valeur_utilisée(IDPropriété.Clear)
-        si clear.est_mot_clé(PROP_left) {
-            hauteur_float_left := ctx.donne_décalage_floats_gauche() - décalage_y
-
-            si décalage_hors_float < hauteur_float_left {
-                décalage_hors_float = hauteur_float_left
-            }
-
-            si décalage_pour_floats_gauche < hauteur_float_left {
-                décalage_pour_floats_gauche = hauteur_float_left
-            }
-
-            ctx.lignes_boites_flottantes_gauche.réinitialise_pour_clear = vrai
-        }
-        sinon si clear.est_mot_clé(PROP_right) {
-            hauteur_float_right := ctx.donne_décalage_floats_droite() - décalage_y
-
-            si décalage_hors_float < hauteur_float_right {
-                décalage_hors_float = hauteur_float_right
-            }
-
-            si décalage_pour_floats_droite < hauteur_float_right {
-                décalage_pour_floats_droite = hauteur_float_right
-            }
-
-            ctx.lignes_boites_flottantes_droite.réinitialise_pour_clear = vrai
-        }
-        sinon si clear.est_mot_clé(PROP_both) {
-            hauteur_float_right := ctx.donne_décalage_floats_droite() - décalage_y
-            hauteur_float_left := ctx.donne_décalage_floats_gauche() - décalage_y
-            hauteur_float_both := max(hauteur_float_left, hauteur_float_right)
-
-            si décalage_hors_float < hauteur_float_both {
-                décalage_hors_float = hauteur_float_both
-            }
-
-            si décalage_pour_floats_gauche < hauteur_float_both {
-                décalage_pour_floats_gauche = hauteur_float_both
-            }
-
-            si décalage_pour_floats_droite < hauteur_float_both {
-                décalage_pour_floats_droite = hauteur_float_both
-            }
-
-            ctx.lignes_boites_flottantes_gauche.réinitialise_pour_clear = vrai
-            ctx.lignes_boites_flottantes_droite.réinitialise_pour_clear = vrai
-        }
+        applique_clearance(ctx, *params_position, clear, décalage_y)
 
         float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float)
         si float.est_mot_clé(PROP_left) {
-            it.définis_position(décalage_x, décalage_y + décalage_pour_floats_gauche)
+            it.définis_position(décalage_x, décalage_y + params_position.décalage_pour_floats_gauche)
             it.mesure(ctx, mode, nul)
             ctx.ajoute_boite_flottante_gauche(it)
             continue
         }
         si float.est_mot_clé(PROP_right) {
-            it.définis_position(décalage_x, décalage_y + décalage_pour_floats_droite)
+            it.définis_position(décalage_x, décalage_y + params_position.décalage_pour_floats_droite)
             it.mesure(ctx, mode, nul)
             ctx.ajoute_boite_flottante_droite(it)
             continue
         }
 
-        it.définis_position(décalage_x, décalage_y + décalage_hors_float)
+        it.définis_position(décalage_x, décalage_y + params_position.décalage_hors_float)
         it.mesure(ctx, mode, nul)
 
         hauteur_enfant := it.modèle_de_boite.marge.hauteur
 
-        décalage_hors_float += hauteur_enfant
+        params_position.décalage_hors_float += hauteur_enfant
 
         /* Les blocs dont le formatte interne est inline ne doivent pas déplacer les floats. */
         méthode_de_formattage := donne_méthode_de_formattage_intérieur(it)
         si méthode_de_formattage != MéthodeDeFormattage.Inline {
-            décalage_pour_floats_gauche = décalage_hors_float
-            décalage_pour_floats_droite = décalage_hors_float
+            params_position.décalage_pour_floats_gauche = params_position.décalage_hors_float
+            params_position.décalage_pour_floats_droite = params_position.décalage_hors_float
         }
     }
 
@@ -416,6 +375,56 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
             }
         }
         sinon {}
+    }
+}
+
+applique_clearance :: fonc (ctx: *ContexteDeFormattageBloc, empl params: *ParamètresPositionnementBoite, clear: ValeurDeStyle, décalage_y: r32)
+{
+    si clear.est_mot_clé(PROP_left) {
+        hauteur_float_left := ctx.donne_décalage_floats_gauche() - décalage_y
+
+        si décalage_hors_float < hauteur_float_left {
+            décalage_hors_float = hauteur_float_left
+        }
+
+        si décalage_pour_floats_gauche < hauteur_float_left {
+            décalage_pour_floats_gauche = hauteur_float_left
+        }
+
+        ctx.lignes_boites_flottantes_gauche.réinitialise_pour_clear = vrai
+    }
+    sinon si clear.est_mot_clé(PROP_right) {
+        hauteur_float_right := ctx.donne_décalage_floats_droite() - décalage_y
+
+        si décalage_hors_float < hauteur_float_right {
+            décalage_hors_float = hauteur_float_right
+        }
+
+        si décalage_pour_floats_droite < hauteur_float_right {
+            décalage_pour_floats_droite = hauteur_float_right
+        }
+
+        ctx.lignes_boites_flottantes_droite.réinitialise_pour_clear = vrai
+    }
+    sinon si clear.est_mot_clé(PROP_both) {
+        hauteur_float_right := ctx.donne_décalage_floats_droite() - décalage_y
+        hauteur_float_left := ctx.donne_décalage_floats_gauche() - décalage_y
+        hauteur_float_both := max(hauteur_float_left, hauteur_float_right)
+
+        si décalage_hors_float < hauteur_float_both {
+            décalage_hors_float = hauteur_float_both
+        }
+
+        si décalage_pour_floats_gauche < hauteur_float_both {
+            décalage_pour_floats_gauche = hauteur_float_both
+        }
+
+        si décalage_pour_floats_droite < hauteur_float_both {
+            décalage_pour_floats_droite = hauteur_float_both
+        }
+
+        ctx.lignes_boites_flottantes_gauche.réinitialise_pour_clear = vrai
+        ctx.lignes_boites_flottantes_droite.réinitialise_pour_clear = vrai
     }
 }
 
