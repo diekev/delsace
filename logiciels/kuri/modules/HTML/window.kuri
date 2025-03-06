@@ -348,7 +348,43 @@ window_proxy_sur_get :: fonc (object: *JavaScript.Object, property_key: JavaScri
     }
 
     // 4. Return ? CrossOriginGet(this, P, Receiver).
-    panique("cross_origin_get non-implémenté")
+    retourne cross_origin_get(object, property_key, receiver)
+}
+
+/* https://html.spec.whatwg.org/multipage/nav-history-apis.html#crossoriginget-(-o,-p,-receiver-) */
+cross_origin_get :: fonc (object: *JavaScript.Object, property_key: JavaScript.PropertyKey, receiver: JavaScript.Valeur) -> JavaScript.CompletionRecord
+{
+    // 1. Let desc be ? O.[[GetOwnProperty]](P).
+    completion := JavaScript.internal_get_own_property(object, property_key)
+    saufsi JavaScript.est_normal(completion) {
+        retourne completion
+    }
+    desc := completion.valeur
+
+    // 2. Assert: desc is not undefined.
+    assert(!JavaScript.est_undefined(desc))
+
+    // 3. If IsDataDescriptor(desc) is true, then return desc.[[Value]].
+    si JavaScript.is_data_descriptor(desc.P) {
+        retourne JavaScript.normal_completion(desc.P.value.Quelque)
+    }
+
+    // 4. Assert: IsAccessorDescriptor(desc) is true.
+    assert(JavaScript.is_accessor_descriptor(desc.P))
+
+    // 5. Let getter be desc.[[Get]].
+    getter := desc.P.get
+
+    mv := JavaScript.donne_mv(JavaScript.donne_tas_de_mémoire(JavaScript.donne_objet(receiver)))
+
+    // 6. If getter is undefined, then throw a "SecurityError" DOMException.
+    saufsi getter.possède_valeur() {
+        // À FAIRE : DOMException
+        retourne JavaScript.lance_type_error(mv.interpréteuse, "SecurityError")
+    }
+
+    // 7. Return ? Call(getter, Receiver).
+    retourne JavaScript.call(mv, getter.Quelque, receiver)
 }
 
 // 7.2.3.8 [[Set]] ( P, V, Receiver )
