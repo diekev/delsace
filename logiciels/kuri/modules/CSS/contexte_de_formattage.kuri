@@ -271,12 +271,6 @@ ContexteDeFormattageBloc :: struct {
     racine: *NoeudDeDispositionBloc
 
     /* Pour la disposition des floats. */
-    décalage_x: r32
-    décalage_float_left_x: r32
-    décalage_float_left_y: r32
-    décalage_float_right_x: r32
-    décalage_float_right_y: r32
-
     lignes_boites_flottantes_gauche: ContenantLignesDeFlottants
     lignes_boites_flottantes_droite: ContenantLignesDeFlottants
     rect_boites_flottantes_gauches: RectanglePosDim(r64)
@@ -297,20 +291,9 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
     décalage_x := noeud.modèle_de_boite.contenu.x
     décalage_y := noeud.modèle_de_boite.contenu.y
 
-    // dernière_marge := marges[BorderEdge.Top]
-
-    hauteur_contenu := 0.0
     décalage_hors_float := 0.0
     décalage_pour_floats_gauche := 0.0
     décalage_pour_floats_droite := 0.0
-
-    si noeud == ctx.racine {
-        ctx.décalage_x = décalage_x
-        ctx.décalage_float_left_x = décalage_x
-        ctx.décalage_float_left_y = décalage_y
-        ctx.décalage_float_right_x = décalage_x + noeud.modèle_de_boite.contenu.largeur
-        ctx.décalage_float_right_y = décalage_y
-    }
 
     pour noeud.enfants {
         position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position)
@@ -328,10 +311,6 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
         si clear.est_mot_clé(PROP_left) {
             hauteur_float_left := ctx.donne_décalage_floats_gauche() - décalage_y
 
-            si hauteur_contenu < hauteur_float_left {
-                hauteur_contenu = hauteur_float_left
-            }
-
             si décalage_hors_float < hauteur_float_left {
                 décalage_hors_float = hauteur_float_left
             }
@@ -340,15 +319,10 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
                 décalage_pour_floats_gauche = hauteur_float_left
             }
 
-            ctx.décalage_float_left_y = hauteur_contenu
             ctx.lignes_boites_flottantes_gauche.réinitialise_pour_clear = vrai
         }
         sinon si clear.est_mot_clé(PROP_right) {
             hauteur_float_right := ctx.donne_décalage_floats_droite() - décalage_y
-
-            si hauteur_contenu < hauteur_float_right {
-                hauteur_contenu = hauteur_float_right
-            }
 
             si décalage_hors_float < hauteur_float_right {
                 décalage_hors_float = hauteur_float_right
@@ -358,17 +332,12 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
                 décalage_pour_floats_droite = hauteur_float_right
             }
 
-            ctx.décalage_float_right_y = hauteur_contenu
             ctx.lignes_boites_flottantes_droite.réinitialise_pour_clear = vrai
         }
         sinon si clear.est_mot_clé(PROP_both) {
             hauteur_float_right := ctx.donne_décalage_floats_droite() - décalage_y
             hauteur_float_left := ctx.donne_décalage_floats_gauche() - décalage_y
             hauteur_float_both := max(hauteur_float_left, hauteur_float_right)
-
-            si hauteur_contenu < hauteur_float_both {
-                hauteur_contenu = hauteur_float_both
-            }
 
             si décalage_hors_float < hauteur_float_both {
                 décalage_hors_float = hauteur_float_both
@@ -382,8 +351,6 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
                 décalage_pour_floats_droite = hauteur_float_both
             }
 
-            ctx.décalage_float_left_y = hauteur_contenu
-            ctx.décalage_float_right_y = hauteur_contenu
             ctx.lignes_boites_flottantes_gauche.réinitialise_pour_clear = vrai
             ctx.lignes_boites_flottantes_droite.réinitialise_pour_clear = vrai
         }
@@ -407,7 +374,6 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
 
         hauteur_enfant := it.modèle_de_boite.marge.hauteur
 
-        hauteur_contenu += hauteur_enfant
         décalage_hors_float += hauteur_enfant
 
         /* Les blocs dont le formatte interne est inline ne doivent pas déplacer les floats. */
@@ -596,7 +562,6 @@ ajoute_boite_flottante_gauche :: fonc (empl ctx: *ContexteDeFormattageBloc, noeu
         }
     }
 
-    décalage_float_left_y = boite.position_y
     ligne.ajoute_boite(boite)
 
     si ctx.lignes_boites_flottantes_gauche.lignes.taille == 1 && ligne.boites.taille == 1 {
@@ -653,7 +618,6 @@ ajoute_boite_flottante_droite :: fonc (empl ctx: *ContexteDeFormattageBloc, noeu
         }
     }
 
-    décalage_float_right_y = boite.position_y
     ligne.ajoute_boite(boite)
 
     si ctx.lignes_boites_flottantes_droite.lignes.taille == 1 && ligne.boites.taille == 1 {
