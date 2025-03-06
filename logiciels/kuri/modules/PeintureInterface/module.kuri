@@ -9,6 +9,7 @@ importe Dessin
 importe Géométrie
 importe IGUMI
 importe Image
+importe Math
 importe OpenGL
 importe Typographie
 
@@ -49,6 +50,9 @@ Peintre :: struct {
     rappel_dessine_rectangle_arrondi: fonc(*Peintre, RectanglePeintre, r32, CouleurPeintre)(rien)
     /* Remplis le rectangle arrondi avec la couleur donnée. */
     rappel_remplis_rectangle_arrondi: fonc(*Peintre, RectanglePeintre, [4]r32, CouleurPeintre)(rien)
+
+    /* Dessine des bordures dans le rectangle spécifié. */
+    rappel_dessine_bordure: fonc(*Peintre, RectanglePeintre, [4]r32, [4]CouleurPeintre)(rien)
 
     /* Dessine le contour du cercle avec la couleur donnée. */
     rappel_dessine_cercle: fonc(*Peintre, CerclePeintre, CouleurPeintre)(rien)
@@ -139,6 +143,11 @@ remplis_rectangle_arrondi :: fonc (peintre: *Peintre, rectangle: RectanglePeintr
 remplis_rectangle_arrondi :: fonc (peintre: *Peintre, rectangle: RectanglePeintre, rayon: [4]r32, couleur: CouleurPeintre) -> rien #enligne
 {
     peintre.rappel_remplis_rectangle_arrondi(peintre, rectangle, rayon, couleur)
+}
+
+dessine_bordure :: fonc (peintre: *Peintre, rectangle: RectanglePeintre, largeurs: [4]r32, couleurs: [4]CouleurPeintre) -> rien #enligne
+{
+    peintre.rappel_dessine_bordure(peintre, rectangle, largeurs, couleurs)
 }
 
 dessine_cercle :: fonc (peintre: *Peintre, cercle: CerclePeintre, couleur: CouleurPeintre) -> rien #enligne
@@ -279,6 +288,7 @@ initialise_peintre_dessin :: fonc (peintre: *PeintreDessin)
     peintre.rappel_remplis_rectangle = remplis_rectangle_dessin
     peintre.rappel_dessine_rectangle_arrondi = dessine_rectangle_arrondi_dessin
     peintre.rappel_remplis_rectangle_arrondi = remplis_rectangle_arrondi_dessin
+    peintre.rappel_dessine_bordure = dessine_bordure_dessin
     peintre.rappel_dessine_cercle = dessine_cercle_dessin
     peintre.rappel_remplis_cercle = remplis_cercle_dessin
     peintre.rappel_dessine_segment = dessine_segment_dessin
@@ -434,6 +444,136 @@ remplis_rectangle_arrondi_dessin :: fonc (peintre: *Peintre, rectangle_peintre: 
     remplis_rectangle(*peintre_dessin.tampon_de_rendu, rectangle, couleur)
 }
 
+dessine_bordure_dessin :: fonc (peintre: *Peintre, rectangle_peintre: RectanglePeintre, largeurs_peintre: [4]r32, couleurs: [4]CouleurPeintre)
+{
+    peintre_dessin := peintre comme *PeintreDessin
+    rectangle := donne_rectangle_dessin(rectangle_peintre)
+
+    /* NOTE : le haut et la bas sont inversés pour CSS dont l'origine est en haut, alors qu'IGUMI préfère l'origine en bas. */
+
+    // À FAIRE : implémente proprement
+
+    largeurs := donne_largeurs_bordure_pour_dessin(largeurs_peintre)
+
+    /* Haut. */
+    si largeurs[0] != 0 {
+        couleur := donne_couleur_dessin(couleurs[0])
+
+        ligne: Ligne(z32)
+        ligne.p0.x = rectangle.x
+        ligne.p0.y = rectangle.y + rectangle.hauteur
+
+        ligne.p1.x = rectangle.x + rectangle.largeur
+        ligne.p1.y = rectangle.y + rectangle.hauteur
+
+        pour largeurs[0] {
+            dessine_ligne(*peintre_dessin.tampon_de_rendu, ligne, couleur)
+
+            ligne.p0.y -= 1
+            ligne.p1.y -= 1
+
+            si largeurs[3] != 0 {
+                ligne.p0.x += 1
+            }
+            si largeurs[1] != 0 {
+                ligne.p1.x -= 1
+            }
+        }
+    }
+
+    /* Droite. */
+    si largeurs[1] != 0 {
+        couleur := donne_couleur_dessin(couleurs[1])
+
+        ligne: Ligne(z32)
+        ligne.p0.x = rectangle.x + rectangle.largeur
+        ligne.p0.y = rectangle.y + rectangle.hauteur
+
+        ligne.p1.x = rectangle.x + rectangle.largeur
+        ligne.p1.y = rectangle.y
+
+        pour largeurs[1] {
+            dessine_ligne(*peintre_dessin.tampon_de_rendu, ligne, couleur)
+
+            ligne.p0.x -= 1
+            ligne.p1.x -= 1
+
+            si largeurs[0] != 0 {
+                ligne.p0.y -= 1
+            }
+            si largeurs[2] != 0 {
+                ligne.p1.y += 1
+            }
+        }
+    }
+
+    /* Bas. */
+    si largeurs[2] != 0 {
+        couleur := donne_couleur_dessin(couleurs[2])
+
+        ligne: Ligne(z32)
+        ligne.p0.x = rectangle.x
+        ligne.p0.y = rectangle.y
+
+        ligne.p1.x = rectangle.x + rectangle.largeur
+        ligne.p1.y = rectangle.y
+
+        pour largeurs[2] {
+            dessine_ligne(*peintre_dessin.tampon_de_rendu, ligne, couleur)
+
+            ligne.p0.y += 1
+            ligne.p1.y += 1
+
+            si largeurs[3] != 0 {
+                ligne.p0.x += 1
+            }
+            si largeurs[1] != 0 {
+                ligne.p1.x -= 1
+            }
+        }
+    }
+
+    /* Gauche. */
+    si largeurs[3] != 0 {
+        couleur := donne_couleur_dessin(couleurs[3])
+
+        ligne: Ligne(z32)
+        ligne.p0.x = rectangle.x
+        ligne.p0.y = rectangle.y + rectangle.hauteur
+
+        ligne.p1.x = rectangle.x
+        ligne.p1.y = rectangle.y
+
+        pour largeurs[3] {
+            dessine_ligne(*peintre_dessin.tampon_de_rendu, ligne, couleur)
+
+            ligne.p0.x += 1
+            ligne.p1.x += 1
+
+            si largeurs[0] != 0 {
+                ligne.p0.y -= 1
+            }
+            si largeurs[2] != 0 {
+                ligne.p1.y += 1
+            }
+        }
+    }
+}
+
+donne_largeurs_bordure_pour_dessin :: fonc (largeurs: [4]r32) -> [4]n32
+{
+    résultat: [4]n32
+    pour largeurs {
+        si it != 0.0 && it < 1.0 {
+            résultat[index_it] = 1
+            continue
+        }
+
+        résultat[index_it] = (it + 0.5) comme n32
+    }
+    retourne résultat
+}
+
 dessine_cercle_dessin :: fonc (peintre: *Peintre, cercle_peintre: CerclePeintre, couleur_peintre: CouleurPeintre)
 {
     peintre_dessin := peintre comme *PeintreDessin
@@ -582,6 +722,7 @@ crée_peintre_igumi :: fonc (taille_cannevas: Taille) -> *Peintre
     peintre.rappel_remplis_rectangle = remplis_rectangle_igumi
     peintre.rappel_dessine_rectangle_arrondi = dessine_rectangle_arrondi_igumi
     peintre.rappel_remplis_rectangle_arrondi = remplis_rectangle_arrondi_igumi
+    peintre.rappel_dessine_bordure = dessine_bordure_igumi
     peintre.rappel_dessine_cercle = dessine_cercle_igumi
     peintre.rappel_remplis_cercle = remplis_cercle_igumi
     peintre.rappel_dessine_segment = dessine_segment_igumi
@@ -757,6 +898,75 @@ remplis_rectangle_arrondi_igumi :: fonc (peintre: *Peintre @inutilisée, rectang
     // }
 
     quad_arrondi_immédiat(rectangle.x, rectangle.y, rectangle.largeur, rectangle.hauteur, rayon, couleur)
+}
+
+dessine_bordure_igumi :: fonc (peintre: *Peintre @inutilisée, rectangle_peintre: RectanglePeintre, largeurs: [4]r32, couleurs: [4]CouleurPeintre)
+{
+    rectangle := donne_rectangle_igumi(rectangle_peintre)
+
+    commence_immédiat(ModeImmédiat.TRIANGLES, nuanceur_base)
+
+    /* NOTE : le haut et la bas sont inversés pour CSS dont l'origine est en haut, alors qu'IGUMI préfère l'origine en bas. */
+
+    /* Haut. */
+    si largeurs[0] != 0.0 {
+        couleur := donne_couleur_igumi(couleurs[0])
+
+        x0 := rectangle.x + largeurs[3]
+        x1 := rectangle.x + rectangle.largeur - largeurs[1]
+        x2 := rectangle.x + rectangle.largeur
+        x3 := rectangle.x
+
+        y0 := rectangle.y + rectangle.hauteur - largeurs[0]
+        y1 := rectangle.y + rectangle.hauteur
+
+        quad_immédiat(Vec3(x0, y0), Vec3(x1, y0), Vec3(x2, y1), Vec3(x3, y1), couleur)
+    }
+
+    /* Droite. */
+    si largeurs[1] != 0.0 {
+        couleur := donne_couleur_igumi(couleurs[1])
+
+        x0 := rectangle.x + rectangle.largeur - largeurs[1]
+        x1 := rectangle.x + rectangle.largeur
+
+        y0 := rectangle.y + largeurs[2]
+        y1 := rectangle.y
+        y2 := rectangle.y + rectangle.hauteur
+        y3 := rectangle.y + rectangle.hauteur - largeurs[0]
+
+        quad_immédiat(Vec3(x0, y0), Vec3(x1, y1), Vec3(x1, y2), Vec3(x0, y3), couleur)
+    }
+
+    /* Bas. */
+    si largeurs[2] != 0.0 {
+        couleur := donne_couleur_igumi(couleurs[2])
+
+        x0 := rectangle.x
+        x1 := rectangle.x + rectangle.largeur
+        x2 := x1 - largeurs[1]
+        x3 := x0 + largeurs[3]
+
+        y0 := rectangle.y
+        y1 := rectangle.y + largeurs[2]
+
+        quad_immédiat(Vec3(x0, y0), Vec3(x1, y0), Vec3(x2, y1), Vec3(x3, y1), couleur)
+    }
+
+    /* Gauche. */
+    si largeurs[3] != 0.0 {
+        couleur := donne_couleur_igumi(couleurs[3])
+
+        x0 := rectangle.x
+        x1 := rectangle.x + largeurs[3]
+
+        y3 := rectangle.y
+        y2 := rectangle.y + largeurs[2]
+        y1 := rectangle.y + rectangle.hauteur - largeurs[0]
+        y0 := rectangle.y + rectangle.hauteur
+
+        quad_immédiat(Vec3(x0, y0), Vec3(x1, y1), Vec3(x1, y2), Vec3(x0, y3), couleur)
+    }
 }
 
 dessine_cercle_igumi :: fonc (peintre: *Peintre @inutilisée, cercle_peintre: CerclePeintre, couleur_peintre: CouleurPeintre)
