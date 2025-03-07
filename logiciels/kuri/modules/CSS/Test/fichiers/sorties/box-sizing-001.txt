@@ -32,13 +32,14 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250.40 [0 0 0]
             frag 1 RembourrageDébut de Inline début 0 fin 0 rect (8,144 0x0)
             frag 2 RembourrageFin de Inline début 0 fin 0 rect (8,144 0x0)
             frag 3 MargeFin de Inline début 0 fin 0 rect (8,144 0x0)
-            frag 4 MargeDébut de Inline début 0 fin 0 rect (8,144 0x0)
-            frag 5 RembourrageDébut de Inline début 0 fin 0 rect (8,144 0x0)
-            frag 6 RembourrageFin de Inline début 0 fin 0 rect (8,144 0x0)
-            frag 7 MargeFin de Inline début 0 fin 0 rect (8,144 0x0)
+            frag 4 NouvelleLigne de NouvelleLigne début 0 fin 0 rect (8,144 0x18.40)
+            frag 5 MargeDébut de Inline début 0 fin 0 rect (8,162.40 0x0)
+            frag 6 RembourrageDébut de Inline début 0 fin 0 rect (8,162.40 0x0)
+            frag 7 RembourrageFin de Inline début 0 fin 0 rect (8,162.40 0x0)
+            frag 8 MargeFin de Inline début 0 fin 0 rect (8,162.40 0x0)
             Inline <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
                 Texte <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18.40 [0 0 0]
-            NouvelleLigne <br> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+            NouvelleLigne <br> <8, 144> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18.40 [0 0 0]
             Inline <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
                 Texte <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18.40 [0 0 0]
         Bloc <div.border-box> <8, 162.40> CH [0 8 20] 104 [20 8 0] CV [0 8 20] 24 [20 8 0]

@@ -2218,6 +2218,7 @@ Fragment :: struct {
         RembourrageDébut
         RembourrageFin
         InlineBlock
+        NouvelleLigne
     }
 
     noeud: *NoeudDeDisposition
@@ -2413,7 +2414,14 @@ ajoute_fragment :: fonc (empl enligneuse: *Enligneuse, noeud: *NoeudDeDispositio
     ligne_courante.garantis_hauteur_minimale(hauteur)
 
     ligne_courante.dernier_fragment = ajoute_fragment(lignes_tenante, fragment)
-    retourne ligne_courante.dernier_fragment
+
+    résultat := ligne_courante.dernier_fragment
+
+    si fragment.type == Fragment.Type.NouvelleLigne {
+        _ := lignes_tenante.ajoute_ligne(ctx)
+    }
+
+    retourne résultat
 }
 
 ajoute_fragment :: fonc (enligneuse: *Enligneuse, noeud: *NoeudDeDisposition, hauteur: r32, largeur: r32, type: Fragment.Type) -> z64
@@ -2815,9 +2823,25 @@ NoeudDeDispositionNouvelleLigne :: struct {
 
 noeud_disposition_nouvelle_ligne_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, enligneuse: *Enligneuse, mode: ModeDeFormattage @inutilisée)
 {
-    ligne := enligneuse.ajoute_ligne()
     line_height := donne_line_height(base, enligneuse.ctx)
-    ligne.garantis_hauteur_minimale(line_height)
+
+    base.propriétés.définis_valeur_utilisée(IDPropriété.Height, ValeurDeStyle(pixels = line_height))
+
+    ids_propriétés := [
+        IDPropriété.BorderWidthLeft, IDPropriété.BorderWidthRight, IDPropriété.BorderWidthTop, IDPropriété.BorderWidthBottom,
+        IDPropriété.MarginLeft, IDPropriété.MarginRight, IDPropriété.MarginTop, IDPropriété.MarginBottom,
+        IDPropriété.PaddingLeft, IDPropriété.PaddingRight, IDPropriété.PaddingTop, IDPropriété.PaddingBottom,
+        IDPropriété.Width 
+    ]
+
+    pour ids_propriétés {
+        base.propriétés.définis_valeur_utilisée(it, ValeurDeStyle(pixels = 0.0))
+    }
+
+    ajourne_boite_pour_calcul_largeur(base)
+    ajourne_boite_pour_calcul_hauteur(base)
+
+    _ := enligneuse.ajoute_fragment(base, line_height, 0.0, Fragment.Type.NouvelleLigne)
 }
 
 /** \} */
