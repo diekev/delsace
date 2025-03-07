@@ -385,6 +385,10 @@ calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement, fonctio
 
     fonction_de_calcul(args, *pl)
 
+    si pl.width.pixels < 0.0 {
+        pl.width.pixels = 0.0
+    }
+
     propriétés.définis_valeur_utilisée(IDPropriété.Left, pl.left)
     propriétés.définis_valeur_utilisée(IDPropriété.MarginLeft, pl.margin_left)
     propriétés.définis_valeur_utilisée(IDPropriété.BorderWidthLeft, pl.border_left_width)
@@ -640,6 +644,10 @@ calcule_hauteur_et_marges :: fonc (empl args: *ArgumentsDimensionnement, fonctio
     ph.bottom = propriétés.donne_valeur_calculée(IDPropriété.Bottom)
 
     résultat := fonction_de_calcul(args, *ph)
+
+    si ph.height.est_pixels() && ph.height.pixels < 0.0 {
+        ph.height.pixels = 0.0
+    }
 
     propriétés.définis_valeur_utilisée(IDPropriété.Top, ph.top)
     propriétés.définis_valeur_utilisée(IDPropriété.MarginTop, ph.margin_top)
