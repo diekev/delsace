@@ -1143,7 +1143,11 @@ convertis_display_pour_position_ou_float :: fonc (spécifié: Display) -> Valeur
     si spécifié.outer_type == Display.Type.Inline {
         résultat.outer_type = Display.Type.Block
 
-        si spécifié.inner_type != Display.Type.Table {
+        /* Ignore également flex, https://www.w3.org/TR/css-flexbox-1/#flex-containers :
+         * If an element’s specified display is inline-flex, then its display property computes to flex
+         * in certain circumstances: the table in CSS 2.1 Section 9.7 is amended to contain an additional
+         * row, with inline-flex in the "Specified Value" column and flex in the "Computed Value" column. */
+        si spécifié.inner_type != Display.Type.Table && spécifié.inner_type != Display.Type.Flex {
             résultat.inner_type = Display.Type.FlowRoot
         }
     }
