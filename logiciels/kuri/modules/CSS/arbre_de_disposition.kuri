@@ -1,5 +1,6 @@
 importe Chaine
 importe Ensemble
+importe EnsembleDeBits
 importe Fondation
 importe Géométrie
 importe #inemployé HTML
@@ -988,6 +989,9 @@ développe_variables :: fonc (propriétés: *PropriétésDeStyle, value: []Compo
 
 calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *PropriétésDeStyle, propriétés_parent: *PropriétésDeStyle)
 {
+    // À FAIRE(langage) #assert EnsembleDeBits.EnsembleDeBits.NOMBRE_DE_BITS >= IDPropriété.nombre_éléments
+    assert(EnsembleDeBits.EnsembleDeBits.NOMBRE_DE_BITS >= IDPropriété.nombre_éléments)
+
     /* https://www.w3.org/TR/2011/REC-CSS2-20110607/cascade.html#computed-value */
     ctx_calcul_style: ContexteCalculStyle
     ctx_calcul_style.document = résolveuse.document
@@ -1030,21 +1034,39 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
 
     si propriétés.style.valeurs[IDPropriété.BorderStyleLeft].line_style == LineStyle.None {
         propriétés.définis_valeur_calculée(IDPropriété.BorderWidthLeft, ValeurDeStyle(pixels = 0.0))
+        ctx_calcul_style.propriétés_calculées.active(IDPropriété.BorderWidthLeft comme n16)
+        ctx_calcul_style.propriétés_calculées.active(IDPropriété.BorderColorLeft comme n16)
     }
     si propriétés.style.valeurs[IDPropriété.BorderStyleTop].line_style == LineStyle.None {
         propriétés.définis_valeur_calculée(IDPropriété.BorderWidthTop, ValeurDeStyle(pixels = 0.0))
+        ctx_calcul_style.propriétés_calculées.active(IDPropriété.BorderWidthTop comme n16)
+        ctx_calcul_style.propriétés_calculées.active(IDPropriété.BorderColorTop comme n16)
     }
     si propriétés.style.valeurs[IDPropriété.BorderStyleRight].line_style == LineStyle.None {
         propriétés.définis_valeur_calculée(IDPropriété.BorderWidthRight, ValeurDeStyle(pixels = 0.0))
+        ctx_calcul_style.propriétés_calculées.active(IDPropriété.BorderWidthRight comme n16)
+        ctx_calcul_style.propriétés_calculées.active(IDPropriété.BorderColorRight comme n16)
     }
     si propriétés.style.valeurs[IDPropriété.BorderStyleBottom].line_style == LineStyle.None {
         propriétés.définis_valeur_calculée(IDPropriété.BorderWidthBottom, ValeurDeStyle(pixels = 0.0))
+        ctx_calcul_style.propriétés_calculées.active(IDPropriété.BorderWidthBottom comme n16)
+        ctx_calcul_style.propriétés_calculées.active(IDPropriété.BorderColorBottom comme n16)
     }
-    saufsi propriétés.style.valeurs[IDPropriété.FontSize].est_pixels() {
-        propriétés.définis_valeur_calculée(IDPropriété.FontSize, calcule_valeur_propriété_générique(propriétés.style.valeurs[IDPropriété.FontSize], GenreValeurCalculée.LongueurAbsolue | GenreValeurCalculée.FontSize, *propriétés.style, *ctx_calcul_style))
-    }
-    saufsi propriétés.style.valeurs[IDPropriété.FontWeight].est_nombre() {
-        propriétés.définis_valeur_calculée(IDPropriété.FontWeight, calcule_valeur_propriété_générique(propriétés.style.valeurs[IDPropriété.FontWeight], GenreValeurCalculée.FontWeight, *propriétés.style, *ctx_calcul_style))
+
+    ids_propriétés := [
+        IDPropriété.FontSize, IDPropriété.FontWeight,
+        IDPropriété.BorderWidthBottom, IDPropriété.BorderWidthLeft, IDPropriété.BorderWidthRight, IDPropriété.BorderWidthTop,
+        IDPropriété.BorderColorBottom, IDPropriété.BorderColorLeft, IDPropriété.BorderColorRight, IDPropriété.BorderColorTop,
+        IDPropriété.BackgroundColor, IDPropriété.TextDecorationColor
+    ]
+
+    pour ids_propriétés {
+        si ctx_calcul_style.propriétés_calculées.est_actif(it comme n16) {
+            continue
+        }
+
+        infos := infos_types_propriétés_pour_id[it]
+        propriétés.définis_valeur_calculée(infos.id, calcule_valeur_propriété_générique(propriétés.style.valeurs[infos.id], infos.genre_valeur_calculée, *propriétés.style, *ctx_calcul_style))
     }
 
     calcule_display_final(propriétés)
@@ -1065,6 +1087,8 @@ calcule_valeur_propriété :: fonc (ctx: *ContexteCalculStyle, info: *InfoTypePr
     si info.id == IDPropriété.FontSize {
         ctx.taille_fonte = ctx.propriétés.donne_valeur_calculée(IDPropriété.FontSize).pixels
     }
+
+    ctx.propriétés_calculées.active(info.id comme n16)
 }
 
 /* Corrige display en prenant en compte position et float.

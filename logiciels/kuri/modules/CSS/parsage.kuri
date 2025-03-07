@@ -2501,6 +2501,7 @@ NOMBRE_PROPRIÉTÉS :: 98
 
 infos_types_propriétés_shorthand : [NOMBRE_PROPRIÉTÉS_SHORTHAND]InfoTypePropriété = ---
 infos_types_propriétés : [NOMBRE_PROPRIÉTÉS]InfoTypePropriété = ---
+infos_types_propriétés_pour_id : [IDPropriété.nombre_éléments]*InfoTypePropriété = ---
 
 donne_info_type_pour_nom :: fonc (nom: CSSOMString) -> *InfoTypePropriété
 {
@@ -2661,6 +2662,23 @@ initialise_tables_infos_propriétés :: fonc ()
         InfoTypePropriété(PROP_border_collapse, id = IDPropriété.BorderCollapse, fonction_de_parsage = parse_propriété_border_collapse, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition | DrapeauxPropriété.Héritée)
     ]
 
+    /* NOTE : par défaut les infos n'ayant pas d'id prennent la valeur défaut de "Display".
+     * nous devons donc vérfier si la valeur "Display" est pour la propriété "display". */
+    assert(IDPropriété.Display comme n16 == 0)
+    pour infos_types_propriétés_shorthand {
+        si it.id == IDPropriété.Display && it.nom != PROP_display {
+            continue
+        }
+
+        infos_types_propriétés_pour_id[it.id] = *infos_types_propriétés_shorthand[index_it]
+    }
+    pour infos_types_propriétés {
+        si it.id == IDPropriété.Display && it.nom != PROP_display {
+            continue
+        }
+
+        infos_types_propriétés_pour_id[it.id] = *infos_types_propriétés[index_it]
+    }
 }
 
 /** } */

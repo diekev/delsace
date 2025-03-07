@@ -1058,6 +1058,8 @@ ContexteCalculStyle :: struct {
 
     pour_résolution_pourcentage: bool
     référence_pourcentage: r64
+
+    propriétés_calculées: EnsembleDeBits.EnsembleDeBits
 }
 
 définis_propriétés :: fonc (ctx: *ContexteCalculStyle, propriétés: *PropriétésDeStyle)
