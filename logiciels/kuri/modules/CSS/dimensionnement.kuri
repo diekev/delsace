@@ -1284,6 +1284,10 @@ calcule_largeur_et_marges_inline_replaced_element :: fonc (empl args: *Arguments
         si height.est_auto() {
             width = ValeurDeStyle(pixels = noeud_remplacement.donne_hauteur_intrinsèque() * noeud_remplacement.donne_ratio_intrinsèque())
         }
+        sinon si height.est_percentage() {
+            /* À FAIRE : résoud les pourcentages pour la hauteur plus tôt. */
+            width = ValeurDeStyle(pixels = height.percentage * containing_block.donne_hauteur() * noeud_remplacement.donne_ratio_intrinsèque())
+        }
         sinon {
             width = ValeurDeStyle(pixels = height.pixels * noeud_remplacement.donne_ratio_intrinsèque())
         }
