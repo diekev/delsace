@@ -621,15 +621,7 @@ noeud_image_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
     noeud := base comme *NoeudDeDispositionRemplacement
     assert(noeud.élément.local_name == HTML.TAG_img)
     image := noeud.élément comme *HTML.HTMLImageElement
-    dessine_image(ctx, image.image_data, noeud.donne_rectangle_bordure())
-}
-
-noeud_image_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
-{
-    noeud := base comme *NoeudDeDispositionRemplacement
-    assert(noeud.élément.local_name == HTML.TAG_img)
-    image := noeud.élément comme *HTML.HTMLImageElement
-    dessine_image(ctx, image.image_data, fragment.donne_rectangle())
+    dessine_image(ctx, image.image_data, noeud.donne_rectangle_contenu())
 }
 
 noeud_object_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
@@ -637,15 +629,7 @@ noeud_object_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin
     noeud := base comme *NoeudDeDispositionRemplacement
     assert(noeud.élément.local_name == HTML.TAG_object)
     object := noeud.élément comme *HTML.HTMLObjectElement
-    dessine_image(ctx, object.image_data, noeud.donne_rectangle_bordure())
-}
-
-noeud_object_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
-{
-    noeud := base comme *NoeudDeDispositionRemplacement
-    assert(noeud.élément.local_name == HTML.TAG_object)
-    object := noeud.élément comme *HTML.HTMLObjectElement
-    dessine_image(ctx, object.image_data, fragment.donne_rectangle())
+    dessine_image(ctx, object.image_data, noeud.donne_rectangle_contenu())
 }
 
 noeud_text_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)

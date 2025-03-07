@@ -3218,7 +3218,6 @@ crée_noeud_de_remplacement_image :: fonc (arbre: *ArbreDeDisposition, élément
     résultat := arbre.crée_noeud(NoeudDeDispositionRemplacement)
     résultat.élément = élément
     résultat.sur_dessin = noeud_image_sur_dessin
-    résultat.sur_dessin_fragment = noeud_image_sur_dessin_fragment
     résultat.sur_calcul_dimensions_intrinsèques = noeud_image_calcul_dimensions_intrinsèques
     retourne résultat
 }
@@ -3248,7 +3247,6 @@ crée_noeud_de_remplacement_object :: fonc (arbre: *ArbreDeDisposition, élémen
     résultat := arbre.crée_noeud(NoeudDeDispositionRemplacement)
     résultat.élément = élément
     résultat.sur_dessin = noeud_object_sur_dessin
-    résultat.sur_dessin_fragment = noeud_object_sur_dessin_fragment
     résultat.sur_calcul_dimensions_intrinsèques = noeud_object_calcul_dimensions_intrinsèques
     retourne résultat
 }
