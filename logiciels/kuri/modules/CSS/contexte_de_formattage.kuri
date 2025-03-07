@@ -293,7 +293,10 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
 {
     ctx := base comme *ContexteDeFormattageBloc
 
-    /* https://www.w3.org/TR/CSS2/box.html#collapsing-margins */
+    /* Pour le collapsage des marges :
+     * https://www.w3.org/TR/CSS2/box.html#collapsing-margins */
+    dernier_enfant_in_flow: *NoeudDeDisposition = nul
+
     décalage_x := noeud.modèle_de_boite.contenu.x
     décalage_y := noeud.modèle_de_boite.contenu.y
 
@@ -332,6 +335,41 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
         it.mesure(ctx, mode, nul)
 
         hauteur_enfant := it.modèle_de_boite.marge.hauteur
+
+        si dernier_enfant_in_flow {
+            marge_basse_dernier_enfant := dernier_enfant_in_flow.modèle_de_boite.marge.y + dernier_enfant_in_flow.modèle_de_boite.marge.hauteur
+            marge_haute_it := it.modèle_de_boite.marge.y
+
+            si marge_haute_it == marge_basse_dernier_enfant {
+                marge_dernier_enfant := dernier_enfant_in_flow.propriétés.donne_valeur_utilisée(IDPropriété.MarginBottom).pixels
+                marge_it := it.propriétés.donne_valeur_utilisée(IDPropriété.MarginTop).pixels
+
+                si marge_dernier_enfant != 0.0 && marge_it != 0.0 {
+                    décalage := 0.0
+                    si marge_dernier_enfant < 0.0 && marge_it < 0.0 {
+                        décalage = 0.0 - max(abs(marge_it), abs(marge_dernier_enfant)) comme r32
+                    }
+                    sinon si marge_dernier_enfant < 0.0 {
+                        décalage = (marge_it - abs(marge_dernier_enfant)) comme r32
+                    }
+                    sinon si marge_it < 0.0 {
+                        décalage = (marge_dernier_enfant - abs(marge_it)) comme r32
+                    }
+                    sinon {
+                        /* La marge résultant doit être la taille maximum, donc nous enlevons le minimum. */
+                        décalage = min(marge_dernier_enfant, marge_it) comme r32
+                    }
+
+                    it.décale(0.0, -décalage)
+                    hauteur_enfant -= décalage
+                }
+            }
+        }
+
+        /* Les noeuds anonymes pour les espaces blanches entre éléments interfèrent avec le collapsage des marges. */
+        saufsi it.est_espace_blanche_document() {
+            dernier_enfant_in_flow = it
+        }
 
         params_position.décalage_hors_float += hauteur_enfant
 
