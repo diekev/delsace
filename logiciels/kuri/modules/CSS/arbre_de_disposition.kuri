@@ -3199,8 +3199,8 @@ noeud_disposition_remplacement_sur_divise_en_lignes :: fonc (base: *NoeudDeDispo
     noeud_disposition_remplacement_sur_mesure(base, enligneuse.ctx, mode, nul)
 
     noeud := base comme *NoeudDeDispositionRemplacement
-    largeur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width).pixels comme r32
-    hauteur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Height).pixels comme r32
+    largeur := noeud.modèle_de_boite.marge.largeur
+    hauteur := noeud.modèle_de_boite.marge.hauteur
 
     _ := enligneuse.ajoute_fragment(noeud, 0, 0, hauteur, largeur, Fragment.Type.InlineBlock)
 }
