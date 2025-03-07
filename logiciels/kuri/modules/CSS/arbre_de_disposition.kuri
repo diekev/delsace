@@ -952,18 +952,7 @@ contexte_parsage_shorthand_variable_ajoute_propriété :: fonc (ctx: *ContextePa
     déclaration.value.pointeur = *valeur
     déclaration.value.taille = 1
 
-    propriétés := ctx.ctx_calcul_style.propriétés
-
-    si info.sur_calcul_style {
-        info.sur_calcul_style(*déclaration, *propriétés.style, ctx.ctx_calcul_style)
-    }
-    sinon {
-        calcule_valeur_propriété_générique(*déclaration, *propriétés.style, ctx.ctx_calcul_style)
-    }
-
-    si info.id == IDPropriété.FontSize {
-        ctx.ctx_calcul_style.taille_fonte = propriétés.donne_valeur_calculée(IDPropriété.FontSize).pixels
-    }
+    calcule_valeur_propriété(ctx.ctx_calcul_style, info, *déclaration)
 }
 
 développe_variables :: fonc (propriétés: *PropriétésDeStyle, value: []ComponentValue) -> [..]ComponentValue
@@ -1036,16 +1025,7 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
             continue
         }
 
-        si info.sur_calcul_style {
-            info.sur_calcul_style(it, *propriétés.style, *ctx_calcul_style)
-        }
-        sinon {
-            calcule_valeur_propriété_générique(it, *propriétés.style, *ctx_calcul_style)
-        }
-
-        si info.id == IDPropriété.FontSize {
-            ctx_calcul_style.taille_fonte = propriétés.donne_valeur_calculée(IDPropriété.FontSize).pixels
-        }
+        calcule_valeur_propriété(*ctx_calcul_style, info, it)
     }
 
     si propriétés.style.valeurs[IDPropriété.BorderStyleLeft].line_style == LineStyle.None {
@@ -1071,6 +1051,20 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
 
     /* Transfert les valeurs calculées aux valeurs utilisées. */
     propriétés.style_utilisée = propriétés.style
+}
+
+calcule_valeur_propriété :: fonc (ctx: *ContexteCalculStyle, info: *InfoTypePropriété, déclaration: *DéclarationPropriété)
+{
+    si info.sur_calcul_style {
+        info.sur_calcul_style(déclaration, *ctx.propriétés.style, ctx)
+    }
+    sinon {
+        calcule_valeur_propriété_générique(déclaration, *ctx.propriétés.style, ctx)
+    }
+
+    si info.id == IDPropriété.FontSize {
+        ctx.taille_fonte = ctx.propriétés.donne_valeur_calculée(IDPropriété.FontSize).pixels
+    }
 }
 
 /* Corrige display en prenant en compte position et float.
