@@ -900,12 +900,15 @@ est_espace_blanche_document :: fonc (base: *NoeudDeDisposition) -> bool
             retourne faux
         }
 
-        si noeud.enfants.taille != 1 {
-            /* Il ne doit y avoir qu'un seul enfant : le noeud inline anonyme ou le noeud texte. */
-            retourne faux
+        /* Généralement, nous n'avons qu'un seul enfant. Mais s'il y a des commentaires, nous aurons plusieurs enfants.
+         * Ainsi, nous devons vérifier tous les enfants. */
+        pour noeud.enfants {
+            saufsi est_espace_blanche_document(noeud.enfants[0]) {
+                retourne faux
+            }
         }
 
-        retourne est_espace_blanche_document(noeud.enfants[0])
+        retourne vrai
     }
 
     retourne faux
