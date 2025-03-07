@@ -3574,6 +3574,11 @@ table_wrapper_box_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteD
         largeur_final := crée_outrepas_pour_coter_contenu(noeud.table.modèle_de_boite.contenu.largeur)
         args = crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, *largeur_final, mode)
         calcule_largeur_et_marges(*args)
+
+        /* Si les marges ont changés la position, nous devons décaler les descendants. */
+        si noeud.modèle_de_boite.contenu.x != noeud.table.modèle_de_boite.marge.x {
+            noeud.table.décale_vers_position(noeud.modèle_de_boite.contenu.x, noeud.table.modèle_de_boite.marge.y)
+        }
     }
 
     height := noeud.propriétés.donne_valeur_calculée(IDPropriété.Height)
