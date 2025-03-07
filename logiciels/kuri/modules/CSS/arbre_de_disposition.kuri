@@ -1133,6 +1133,15 @@ calcule_display_final :: fonc (propriétés: *PropriétésDeStyle)
     }
 
     // 5. Otherwise, the remaining 'display' property values apply as specified.
+
+    /* The display value of a flex item is blockified: if the specified display of an in-flow child
+     * of an element generating a flex container is an inline-level value, it computes to its block-level
+     * equivalent. (See CSS2.1§9.7 [CSS21] and CSS Display [CSS3-DISPLAY] for details on this type of
+     * display value conversion.) */
+    display_parent := propriétés.parent.donne_valeur_calculée(IDPropriété.Display).display
+    si display_parent.inner_type == Display.Type.Flex {
+        propriétés.définis_valeur_calculée(IDPropriété.Display, blocify_display(display))
+    }
 }
 
 convertis_display_pour_position_ou_float :: fonc (spécifié: Display) -> ValeurDeStyle
@@ -1153,6 +1162,22 @@ convertis_display_pour_position_ou_float :: fonc (spécifié: Display) -> Valeur
     }
 
     retourne ValeurDeStyle(display = résultat)
+}
+
+/* https://www.w3.org/TR/css-display-3/#blockify */
+blocify_display :: fonc (spécifié: Display) -> ValeurDeStyle
+{
+    si spécifié.outer_type == Display.Type.Inline {
+        spécifié.outer_type = Display.Type.Block
+
+        /* For legacy reasons, if an inline block box (inline flow-root) is blockified,
+         * it becomes a block box (losing its flow-root nature). */
+        si spécifié.inner_type == Display.Type.FlowRoot {
+            spécifié.inner_type = Display.Type.Flow
+        }
+    }
+
+    retourne spécifié
 }
 
 /** \} */
