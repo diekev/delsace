@@ -1023,7 +1023,14 @@ dessine_bordure :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDispositionBloc)
             }
         }
         sinon {
-            couleur = bordure.color[coté].couleur
+            /* À FAIRE : ce n'est pas calculé pour css_testsuites/chapter_08_-_box_model/border-bottom-width-092.html */
+            couleur_bordure := bordure.color[coté]
+            si couleur_bordure.est_mot_clé(PROP_currentColor) {
+                couleur = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color).couleur
+            }
+            sinon {
+                couleur = bordure.color[coté].couleur
+            }
         }
 
         largeur := bordure.width[coté].pixels comme r32
