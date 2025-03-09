@@ -214,6 +214,25 @@ ajoute_enfant :: fonc (parent: *Noeud, enfant: *Noeud)
     }
 }
 
+/* https://dom.spec.whatwg.org/#get-text-content */
+donne_text_content :: fonc (noeud: *Noeud @inutilisée) -> DOMString
+{
+    // À FAIRE : implémente
+    retourne crée_chaine_utf16_unique_vide()
+}
+
+/* https://dom.spec.whatwg.org/#set-text-content */
+définis_text_content :: fonc (noeud: *Noeud, valeur: DOMString)
+{
+    // À FAIRE : standardise
+    assert(noeud.genre == GenreNoeud.Élément)
+
+    résultat := create_text_node(noeud.document, valeur)
+
+    noeud.enfants.taille = 0
+    tableau_ajoute(*noeud.enfants, résultat)
+}
+
 /* https://dom.spec.whatwg.org/#dom-node-appendchild */
 append_child :: fonc (noeud: *Noeud, enfant: *Noeud) -> *Noeud
 {
