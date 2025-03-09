@@ -376,6 +376,32 @@ est_compatible_html5 :: fonc (élément: *Élément) -> bool
     }
 }
 
+/* https://dom.spec.whatwg.org/#dom-element-setattribute */
+set_attribute :: fonc (élément: *Élément, qualified_name: DOMString, value: DOMString)
+{
+    // À FAIRE 1. If qualifiedName does not match the Name production in XML,
+    //   then throw an "InvalidCharacterError" DOMException.
+
+    // À FAIRE 2. If this is in the HTML namespace and its node document is an HTML document,
+    //    then set qualifiedName to qualifiedName in ASCII lowercase.
+
+    // 3. Let attribute be the first attribute in this’s attribute list whose qualified name,
+    //    is qualifiedName and null otherwise.
+    attribute := cherche_attribut(élément, qualified_name)
+
+    // 4. If attribute is null, create an attribute whose local name is qualifiedName, value
+    //    is value, and node document is this’s node document, then append this attribute to this,
+    //    and then return.
+    si attribute == nul {
+        // À FAIRE : révise l'IPA
+        ajoute_attribut(élément, AttributLexé(qualified_name, value))
+        retourne
+    }
+
+    // 5. Change attribute to value.
+    change_attribut(attribute, value)
+}
+
 /* https://dom.spec.whatwg.org/#concept-getelementsbyclassname */
 get_elements_by_class_name :: fonc (élément: *Élément, class_names: DOMString) -> *HTMLCollection
 {
