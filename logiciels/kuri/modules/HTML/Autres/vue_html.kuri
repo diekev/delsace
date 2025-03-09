@@ -1086,11 +1086,11 @@ ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *CSS.NoeudDeD
 
 donne_texte_item_pour_noeud :: fonc (noeud: *CSS.NoeudDeDisposition) -> chaine
 {
-    si noeud.type == CSS.NoeudDeDispositionTexte {
+    si noeud.table_virtuelle.type == CSS.NoeudDeDispositionTexte {
         retourne "texte"
     }
 
-    si noeud.type == CSS.NoeudDeDispositionNouvelleLigne {
+    si noeud.table_virtuelle.type == CSS.NoeudDeDispositionNouvelleLigne {
         retourne "<br/>"
     }
 

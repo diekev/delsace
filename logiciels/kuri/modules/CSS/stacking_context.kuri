@@ -135,7 +135,7 @@ construit_arbre_de_stacking_contexts :: fonc (constructrice: *ConstructriceStack
 /* https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_positioned_layout/Understanding_z-index/Stacking_context */
 doit_générer_un_stacking_context :: fonc (noeud: *NoeudDeDisposition) -> bool
 {
-    si noeud.type == NoeudDeDispositionTexte {
+    si noeud.table_virtuelle.type == NoeudDeDispositionTexte {
         retourne faux
     }
 
@@ -418,13 +418,13 @@ dessine_stacking_context_pour_élément :: fonc (stacking_context: *StackingCont
 dessine_stacking_context_étape_7 :: fonc (élément: *NoeudDeDisposition, ctx: *ContexteDessin)
 {
     // 1. If the element is a block-level replaced element, then: the replaced content, atomically.
-    si élément.est_block_level() && élément.type == NoeudDeDispositionRemplacement {
+    si élément.est_block_level() && élément.table_virtuelle.type == NoeudDeDispositionRemplacement {
         élément.fut_dessiné = vrai
         dessine(élément, ctx)
         retourne
     }
 
-    si (élément.type == NoeudDeDispositionBloc || élément.type == NoeudDeDispositionInline || élément.type == TableWrapperBox || élément.type == TableBox || élément.type == TableCellBox) {
+    si (élément.table_virtuelle.type == NoeudDeDispositionBloc || élément.table_virtuelle.type == NoeudDeDispositionInline || élément.table_virtuelle.type == TableWrapperBox || élément.table_virtuelle.type == TableBox || élément.table_virtuelle.type == TableCellBox) {
         élément_bloc := élément comme *NoeudDeDispositionBloc
         lignes_tenante := *élément_bloc.lignes_tenante
         élément.fut_dessiné = vrai
@@ -433,7 +433,7 @@ dessine_stacking_context_étape_7 :: fonc (élément: *NoeudDeDisposition, ctx: 
             it.noeud.fut_dessiné = vrai
 
             si it.type == Fragment.Type.InlineBlock {
-                si it.noeud.type == NoeudDeDispositionRemplacement {
+                si it.noeud.table_virtuelle.type == NoeudDeDispositionRemplacement {
                     dessine_fragment(it.noeud, it, lignes_tenante, ctx)
                 }
                 sinon {

@@ -86,12 +86,12 @@ requiers_contexte_de_formattage_indépendant :: fonc (noeud: *NoeudDeDisposition
     }
 
     // table cells or elements with display: table-cell, including anonymous table cells created when using the display: table-* properties
-    si noeud.type == TableCellBox {
+    si noeud.table_virtuelle.type == TableCellBox {
         retourne vrai
     }
 
     // table captions or elements with display: table-caption
-    si noeud.type == CaptionBox {
+    si noeud.table_virtuelle.type == CaptionBox {
         retourne vrai
     }
 
@@ -1140,12 +1140,12 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
 
 est_espace_blanche_document :: fonc (base: *NoeudDeDisposition) -> bool
 {
-    si base.type == NoeudDeDispositionTexte {
+    si base.table_virtuelle.type == NoeudDeDispositionTexte {
         noeud := base comme *NoeudDeDispositionTexte
         retourne est_vide_ou_uniquement_espaces_blanches(noeud.noeud_texte.données)
     }
 
-    si base.type == NoeudDeDispositionBloc || base.type == NoeudDeDispositionInline {
+    si base.table_virtuelle.type == NoeudDeDispositionBloc || base.table_virtuelle.type == NoeudDeDispositionInline {
         noeud := base comme *NoeudDeDispositionBloc
 
         si noeud.élément != nul {
@@ -1708,7 +1708,7 @@ formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox)
     params.largeur_du_contenu = largeur_du_contenu
 
     pour table.enfants {
-        si it.type == TableRowBox {
+        si it.table_virtuelle.type == TableRowBox {
             _ := dispose_cellules_row_box(ctx, it comme *TableRowBox, *params)
             continue
         }
@@ -1721,7 +1721,7 @@ formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox)
         décalage_y_row_group := params.décalage_y_ligne
 
         pour enfant_row_group dans it.enfants {
-            saufsi enfant_row_group.type == TableRowBox {
+            saufsi enfant_row_group.table_virtuelle.type == TableRowBox {
                 continue
             }
 
@@ -1749,7 +1749,7 @@ initialise_données_cellules :: fonc (ctx: *ContexteDeFormattageTable, table: *T
     index_ligne: z64
 
     pour table.enfants {
-        si it.type == TableRowBox {
+        si it.table_virtuelle.type == TableRowBox {
             récolte_cellules_sur_table_row(ctx, it comme *TableRowBox, index_ligne)
             index_ligne += 1
             continue
@@ -1760,7 +1760,7 @@ initialise_données_cellules :: fonc (ctx: *ContexteDeFormattageTable, table: *T
         }
 
         pour enfant_row_group dans it.enfants {
-            saufsi enfant_row_group.type == TableRowBox {
+            saufsi enfant_row_group.table_virtuelle.type == TableRowBox {
                 continue
             }
 
@@ -1782,7 +1782,7 @@ récolte_cellules_sur_table_row :: fonc (ctx: *ContexteDeFormattageTable, row: *
     cellules_sur_ligne: z32
 
     pour enfant_row dans row.enfants {
-        saufsi enfant_row.type == TableCellBox {
+        saufsi enfant_row.table_virtuelle.type == TableCellBox {
             continue
         }
 
@@ -1888,7 +1888,7 @@ dispose_cellules_row_box :: fonc (ctx: *ContexteDeFormattageTable, row: *TableRo
     hauteur_ligne: r64
 
     pour row.enfants {
-        saufsi it.type == TableCellBox {
+        saufsi it.table_virtuelle.type == TableCellBox {
             continue
         }
 
@@ -1920,7 +1920,7 @@ dispose_cellules_row_box :: fonc (ctx: *ContexteDeFormattageTable, row: *TableRo
     /* "Cell boxes that are smaller than the height of the row receive extra top or bottom padding."
      * https://www.w3.org/TR/2011/REC-CSS2-20110607/tables.html#height-layout */
     pour row.enfants {
-        saufsi it.type == TableCellBox {
+        saufsi it.table_virtuelle.type == TableCellBox {
             continue
         }
 

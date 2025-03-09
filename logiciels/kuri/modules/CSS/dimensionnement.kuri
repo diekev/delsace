@@ -409,7 +409,7 @@ donne_fonction_calcul_largeur_et_marges :: fonc (noeud: *NoeudDeDisposition) -> 
     float := propriétés.donne_valeur_utilisée(IDPropriété.Float)
     position := propriétés.donne_valeur_utilisée(IDPropriété.Position)
 
-    si noeud.type == NoeudDeDispositionRemplacement {
+    si noeud.table_virtuelle.type == NoeudDeDispositionRemplacement {
         // 10.3.2 Inline, replaced elements
         // 10.3.10 'Inline-block', replaced elements in normal flow
         si display.outer_type == Display.Type.Inline {
@@ -672,7 +672,7 @@ donne_fonction_calcul_hauteur_et_marges :: fonc (noeud: *NoeudDeDisposition) -> 
     display := propriétés.donne_valeur_calculée(IDPropriété.Display).display
     position := propriétés.donne_valeur_utilisée(IDPropriété.Position)
 
-    si noeud.type == NoeudDeDispositionRemplacement {
+    si noeud.table_virtuelle.type == NoeudDeDispositionRemplacement {
         // 10.6.5 Absolutely positioned, replaced elements
         si position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_fixed) {
             retourne calcule_hauteur_et_marges_absolutely_positionned_replaced_element

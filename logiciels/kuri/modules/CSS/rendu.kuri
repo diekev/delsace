@@ -384,15 +384,15 @@ dessine :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDessin)
         retourne
     }
 
-    si noeud.sur_dessin {
-        noeud.sur_dessin(noeud, ctx)
+    si noeud.table_virtuelle.sur_dessin {
+        noeud.table_virtuelle.sur_dessin(noeud, ctx)
     }
 }
 
 dessine_fragment :: fonc (noeud: *NoeudDeDisposition, fragment: *Fragment, lignes_tenante: *LignesTenante, ctx: *ContexteDessin)
 {
-    si noeud.sur_dessin_fragment {
-        noeud.sur_dessin_fragment(noeud, fragment, lignes_tenante, ctx)
+    si noeud.table_virtuelle.sur_dessin_fragment {
+        noeud.table_virtuelle.sur_dessin_fragment(noeud, fragment, lignes_tenante, ctx)
     }
     sinon {
         noeud.dessine(ctx)
@@ -405,14 +405,14 @@ dessine_tampon_id :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDessin)
         retourne
     }
 
-    si noeud.sur_dessin_tampon_id {
-        noeud.sur_dessin_tampon_id(noeud, ctx)
+    si noeud.table_virtuelle.sur_dessin_tampon_id {
+        noeud.table_virtuelle.sur_dessin_tampon_id(noeud, ctx)
     }
 }
 
 dessine_fragment_tampon_id :: fonc (noeud: *NoeudDeDisposition, fragment: *Fragment, ctx: *ContexteDessin)
 {
-    saufsi noeud.sur_dessin_fragment_tampon_id {
+    saufsi noeud.table_virtuelle.sur_dessin_fragment_tampon_id {
         ctx.remplis_rectangle_id(noeud, fragment.donne_rectangle())
 
         pour noeud.enfants {
@@ -422,7 +422,7 @@ dessine_fragment_tampon_id :: fonc (noeud: *NoeudDeDisposition, fragment: *Fragm
         retourne
     }
 
-    noeud.sur_dessin_fragment_tampon_id(noeud, fragment, ctx)
+    noeud.table_virtuelle.sur_dessin_fragment_tampon_id(noeud, fragment, ctx)
 }
 
 dessine_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDessin)
@@ -613,7 +613,7 @@ noeud_disposition_texte_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, 
 
 noeud_disposition_remplacement_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment @inutilisée, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
 {
-    base.sur_dessin(base, ctx)
+    base.table_virtuelle.sur_dessin(base, ctx)
 }
 
 noeud_image_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
@@ -728,8 +728,9 @@ noeud_canvas_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin
     ctx.commandes.dessine_image(image, rect)
 }
 
-noeud_select_sur_dessin :: fonc (noeud: *NoeudDeDispositionSelect, ctx: *ContexteDessin)
+noeud_select_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
 {
+    noeud := base comme *NoeudDeDispositionSelect
     dessine_arrière_plan(ctx, noeud)
 
     commandes := ctx.commandes
@@ -753,13 +754,13 @@ table_box_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
 {
     table := base comme *TableBox
     pour table.enfants {
-        si it.type == TableRowBox {
+        si it.table_virtuelle.type == TableRowBox {
             row := it comme *TableRowBox
 
             dessine_arrière_plan(ctx, row)
 
             pour enfant_row dans row.enfants {
-                saufsi enfant_row.type == TableCellBox {
+                saufsi enfant_row.table_virtuelle.type == TableCellBox {
                     continue
                 }
 
@@ -777,7 +778,7 @@ table_box_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
         dessine_arrière_plan(ctx, group_box)
 
         pour enfant_row_group dans it.enfants {
-            saufsi enfant_row_group.type == TableRowBox {
+            saufsi enfant_row_group.table_virtuelle.type == TableRowBox {
                 continue
             }
 
@@ -786,7 +787,7 @@ table_box_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
             dessine_arrière_plan(ctx, row)
 
             pour enfant_row dans row.enfants {
-                saufsi enfant_row.type == TableCellBox {
+                saufsi enfant_row.table_virtuelle.type == TableCellBox {
                     continue
                 }
 
