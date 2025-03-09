@@ -623,6 +623,13 @@ donne_user_agent :: fonc (document: *Document) -> *UserAgent
     retourne browsing_context.group.user_agent
 }
 
+/* https://dom.spec.whatwg.org/#dom-document-createelement
+ * À FAIRE : standardise */
+create_element :: fonc (document: *Document, local_name: DOMString) -> *Élément
+{
+    retourne crée_élément_avec_tag(document, local_name)
+}
+
 create_text_node :: fonc (document: *Document, data: DOMString) -> *NoeudTexte
 {
     résultat := crée_noeud_texte(document)
