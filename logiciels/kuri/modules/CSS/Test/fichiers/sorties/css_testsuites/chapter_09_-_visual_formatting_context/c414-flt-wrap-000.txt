@@ -1,4 +1,4 @@
-Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 211.20 [0 0 0]
+Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 203.20 [0 0 0]
     Bloc <(anonyme)> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 0 [0 0 0]
         frag 0 MargeDébut de Inline début 0 fin 0 rect (0,0 0x0)
         frag 1 RembourrageDébut de Inline début 0 fin 0 rect (0,0 0x0)
@@ -6,7 +6,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 211.20 [0 0 0]
         frag 3 MargeFin de Inline début 0 fin 0 rect (0,0 0x0)
         Inline <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
             Texte <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18.40 [0 0 0]
-    Bloc <body> <8, 8> CH [8 0 0] 1904 [0 0 8] CV [8 0 0] 195.20 [0 0 8]
+    Bloc <body> <8, 8> CH [8 0 0] 1904 [0 0 8] CV [8 0 0] 187.20 [0 0 8]
         Bloc <(anonyme)> <8, 8> CH [0 0 0] 1904 [0 0 0] CV [0 0 0] 0 [0 0 0]
             frag 0 MargeDébut de Inline début 0 fin 0 rect (8,8 0x0)
             frag 1 RembourrageDébut de Inline début 0 fin 0 rect (8,8 0x0)
@@ -14,299 +14,299 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 211.20 [0 0 0]
             frag 3 MargeFin de Inline début 0 fin 0 rect (8,8 0x0)
             Inline <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
                 Texte <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18.40 [0 0 0]
-        Bloc <p> <8, 24> CH [0 0 0] 1904 [0 0 0] CV [16 0 0] 18.40 [0 0 16]
-            frag 0 MargeDébut de Inline début 0 fin 0 rect (8,24 0x18.40)
-            frag 1 RembourrageDébut de Inline début 0 fin 0 rect (8,24 0x18.40)
-            frag 2 Normal de Texte début 0 fin 1 rect (8,24 24x18.40)
+        Bloc <p> <8, 16> CH [0 0 0] 1904 [0 0 0] CV [16 0 0] 18.40 [0 0 16]
+            frag 0 MargeDébut de Inline début 0 fin 0 rect (8,16 0x18.40)
+            frag 1 RembourrageDébut de Inline début 0 fin 0 rect (8,16 0x18.40)
+            frag 2 Normal de Texte début 0 fin 1 rect (8,16 24x18.40)
                 "The"
-            frag 3 Normal de Texte début 1 fin 2 rect (32,24 4x18.40)
+            frag 3 Normal de Texte début 1 fin 2 rect (32,16 4x18.40)
                 " "
-            frag 4 Normal de Texte début 2 fin 3 rect (36,24 32x18.40)
+            frag 4 Normal de Texte début 2 fin 3 rect (36,16 32x18.40)
                 "word"
-            frag 5 Normal de Texte début 3 fin 4 rect (68,24 4x18.40)
+            frag 5 Normal de Texte début 3 fin 4 rect (68,16 4x18.40)
                 " "
-            frag 6 Normal de Texte début 4 fin 5 rect (72,24 34x18.40)
+            frag 6 Normal de Texte début 4 fin 5 rect (72,16 34x18.40)
                 ""fail""
-            frag 7 Normal de Texte début 5 fin 6 rect (106,24 4x18.40)
+            frag 7 Normal de Texte début 5 fin 6 rect (106,16 4x18.40)
                 " "
-            frag 8 Normal de Texte début 6 fin 7 rect (110,24 42x18.40)
+            frag 8 Normal de Texte début 6 fin 7 rect (110,16 42x18.40)
                 "should"
-            frag 9 Normal de Texte début 7 fin 8 rect (152,24 4x18.40)
+            frag 9 Normal de Texte début 7 fin 8 rect (152,16 4x18.40)
                 " "
-            frag 10 Normal de Texte début 8 fin 9 rect (156,24 20x18.40)
+            frag 10 Normal de Texte début 8 fin 9 rect (156,16 20x18.40)
                 "not"
-            frag 11 Normal de Texte début 9 fin 10 rect (176,24 4x18.40)
+            frag 11 Normal de Texte début 9 fin 10 rect (176,16 4x18.40)
                 " "
-            frag 12 Normal de Texte début 10 fin 11 rect (180,24 42x18.40)
+            frag 12 Normal de Texte début 10 fin 11 rect (180,16 42x18.40)
                 "appear"
-            frag 13 Normal de Texte début 11 fin 12 rect (222,24 4x18.40)
+            frag 13 Normal de Texte début 11 fin 12 rect (222,16 4x18.40)
                 " "
-            frag 14 Normal de Texte début 12 fin 13 rect (226,24 42x18.40)
+            frag 14 Normal de Texte début 12 fin 13 rect (226,16 42x18.40)
                 "below."
-            frag 15 RembourrageFin de Inline début 0 fin 0 rect (268,24 0x18.40)
-            frag 16 MargeFin de Inline début 0 fin 0 rect (268,24 0x18.40)
+            frag 15 RembourrageFin de Inline début 0 fin 0 rect (268,16 0x18.40)
+            frag 16 MargeFin de Inline début 0 fin 0 rect (268,16 0x18.40)
+            Inline <(anonyme)> <0, -8> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+                Texte <(anonyme)> <0, -8> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18.40 [0 0 0]
+        Bloc <(anonyme)> <8, 50.40> CH [0 0 0] 1904 [0 0 0] CV [0 0 0] 0 [0 0 0]
+            frag 0 MargeDébut de Inline début 0 fin 0 rect (8,50.40 0x0)
+            frag 1 RembourrageDébut de Inline début 0 fin 0 rect (8,50.40 0x0)
+            frag 2 RembourrageFin de Inline début 0 fin 0 rect (8,50.40 0x0)
+            frag 3 MargeFin de Inline début 0 fin 0 rect (8,50.40 0x0)
             Inline <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
                 Texte <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18.40 [0 0 0]
-        Bloc <(anonyme)> <8, 58.40> CH [0 0 0] 1904 [0 0 0] CV [0 0 0] 0 [0 0 0]
-            frag 0 MargeDébut de Inline début 0 fin 0 rect (8,58.40 0x0)
-            frag 1 RembourrageDébut de Inline début 0 fin 0 rect (8,58.40 0x0)
-            frag 2 RembourrageFin de Inline début 0 fin 0 rect (8,58.40 0x0)
-            frag 3 MargeFin de Inline début 0 fin 0 rect (8,58.40 0x0)
-            Inline <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
-                Texte <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18.40 [0 0 0]
-        Bloc <div.test> <24, 58.40> CH [16 0 0] 240 [0 0 16] CV [16 0 0] 128.80 [0 0 16]
-            Bloc <(anonyme)> <24, 58.40> CH [0 0 0] 240 [0 0 0] CV [0 0 0] 0 [0 0 0]
-                frag 0 MargeDébut de Inline début 0 fin 0 rect (24,58.40 0x0)
-                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (24,58.40 0x0)
-                frag 2 RembourrageFin de Inline début 0 fin 0 rect (24,58.40 0x0)
-                frag 3 MargeFin de Inline début 0 fin 0 rect (24,58.40 0x0)
+        Bloc <div.test> <24, 50.40> CH [16 0 0] 240 [0 0 16] CV [16 0 0] 128.80 [0 0 16]
+            Bloc <(anonyme)> <24, 50.40> CH [0 0 0] 240 [0 0 0] CV [0 0 0] 0 [0 0 0]
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (24,50.40 0x0)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (24,50.40 0x0)
+                frag 2 RembourrageFin de Inline début 0 fin 0 rect (24,50.40 0x0)
+                frag 3 MargeFin de Inline début 0 fin 0 rect (24,50.40 0x0)
                 Inline <(anonyme)> <0, -16> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
                     Texte <(anonyme)> <0, -16> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18.40 [0 0 0]
-            Bloc <p.left> <24, 58.40> CH [0 0 0.16] 45 [0.16 0 0] CV [0 0 0.16] 18.40 [0.16 0 0]
-                frag 0 MargeDébut de Inline début 0 fin 0 rect (24.16,58.56 0x18.40)
-                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (24.16,58.56 0x18.40)
-                frag 2 Normal de Texte début 1 fin 2 rect (24.16,58.56 41x18.40)
+            Bloc <p.left> <24, 50.40> CH [0 0 0.16] 45 [0.16 0 0] CV [0 0 0.16] 18.40 [0.16 0 0]
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (24.16,50.56 0x18.40)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (24.16,50.56 0x18.40)
+                frag 2 Normal de Texte début 1 fin 2 rect (24.16,50.56 41x18.40)
                     "TEST:"
-                frag 3 Normal de Texte début 2 fin 3 rect (65.16,58.56 4x18.40)
+                frag 3 Normal de Texte début 2 fin 3 rect (65.16,50.56 4x18.40)
                     " "
-                frag 4 RembourrageFin de Inline début 0 fin 0 rect (69.16,58.56 0x18.40)
-                frag 5 MargeFin de Inline début 0 fin 0 rect (69.16,58.56 0x18.40)
+                frag 4 RembourrageFin de Inline début 0 fin 0 rect (69.16,50.56 0x18.40)
+                frag 5 MargeFin de Inline début 0 fin 0 rect (69.16,50.56 0x18.40)
                 Inline <(anonyme)> <0, -16> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
                     Texte <(anonyme)> <0, -16> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18.40 [0 0 0]
-            Bloc <(anonyme)> <24, 58.40> CH [0 0 0] 240 [0 0 0] CV [0 0 0] 0 [0 0 0]
-                frag 0 MargeDébut de Inline début 0 fin 0 rect (69.32,58.40 0x0)
-                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (69.32,58.40 0x0)
-                frag 2 RembourrageFin de Inline début 0 fin 0 rect (69.32,58.40 0x0)
-                frag 3 MargeFin de Inline début 0 fin 0 rect (69.32,58.40 0x0)
+            Bloc <(anonyme)> <24, 50.40> CH [0 0 0] 240 [0 0 0] CV [0 0 0] 0 [0 0 0]
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (69.32,50.40 0x0)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (69.32,50.40 0x0)
+                frag 2 RembourrageFin de Inline début 0 fin 0 rect (69.32,50.40 0x0)
+                frag 3 MargeFin de Inline début 0 fin 0 rect (69.32,50.40 0x0)
                 Inline <(anonyme)> <0, -16> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
                     Texte <(anonyme)> <0, -16> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18.40 [0 0 0]
-            Bloc <p.right> <24, 77.12> CH [0 0 0.16] 239.68 [0.16 0 0] CV [0 0 0.16] 18.40 [0.16 0 0]
-                frag 0 MargeDébut de Inline début 0 fin 0 rect (124,77.28 0x18.40)
-                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (124,77.28 0x18.40)
-                frag 2 Normal de Texte début 1 fin 2 rect (124,77.28 36x18.40)
+            Bloc <p.right> <24, 69.12> CH [0 0 0.16] 239.68 [0.16 0 0] CV [0 0 0.16] 18.40 [0.16 0 0]
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (124,69.28 0x18.40)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (124,69.28 0x18.40)
+                frag 2 Normal de Texte début 1 fin 2 rect (124,69.28 36x18.40)
                     "PASS"
-                frag 3 Normal de Texte début 2 fin 3 rect (160,77.28 4x18.40)
+                frag 3 Normal de Texte début 2 fin 3 rect (160,69.28 4x18.40)
                     " "
-                frag 4 RembourrageFin de Inline début 0 fin 0 rect (164,77.28 0x18.40)
-                frag 5 MargeFin de Inline début 0 fin 0 rect (164,77.28 0x18.40)
+                frag 4 RembourrageFin de Inline début 0 fin 0 rect (164,69.28 0x18.40)
+                frag 5 MargeFin de Inline début 0 fin 0 rect (164,69.28 0x18.40)
                 Inline <(anonyme)> <0, 2.72> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
                     Texte <(anonyme)> <0, 2.72> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18.40 [0 0 0]
-            Bloc <(anonyme)> <24, 58.40> CH [0 0 0] 240 [0 0 0] CV [0 0 0] 128.80 [0 0 0]
-                frag 0 MargeDébut de Inline début 0 fin 0 rect (69.32,58.40 0x18.40)
-                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (69.32,58.40 0x18.40)
-                frag 2 Normal de Texte début 1 fin 2 rect (69.32,58.40 21x18.40)
+            Bloc <(anonyme)> <24, 50.40> CH [0 0 0] 240 [0 0 0] CV [0 0 0] 128.80 [0 0 0]
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (69.32,50.40 0x18.40)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (69.32,50.40 0x18.40)
+                frag 2 Normal de Texte début 1 fin 2 rect (69.32,50.40 21x18.40)
                     "fail"
-                frag 3 Normal de Texte début 2 fin 3 rect (90.32,58.40 4x18.40)
+                frag 3 Normal de Texte début 2 fin 3 rect (90.32,50.40 4x18.40)
                     " "
-                frag 4 Normal de Texte début 3 fin 4 rect (94.32,58.40 21x18.40)
+                frag 4 Normal de Texte début 3 fin 4 rect (94.32,50.40 21x18.40)
                     "fail"
-                frag 5 Normal de Texte début 4 fin 5 rect (115.32,58.40 4x18.40)
+                frag 5 Normal de Texte début 4 fin 5 rect (115.32,50.40 4x18.40)
                     " "
-                frag 6 Normal de Texte début 5 fin 6 rect (119.32,58.40 21x18.40)
+                frag 6 Normal de Texte début 5 fin 6 rect (119.32,50.40 21x18.40)
                     "fail"
-                frag 7 Normal de Texte début 6 fin 7 rect (140.32,58.40 4x18.40)
+                frag 7 Normal de Texte début 6 fin 7 rect (140.32,50.40 4x18.40)
                     " "
-                frag 8 Normal de Texte début 7 fin 8 rect (144.32,58.40 21x18.40)
+                frag 8 Normal de Texte début 7 fin 8 rect (144.32,50.40 21x18.40)
                     "fail"
-                frag 9 Normal de Texte début 8 fin 9 rect (165.32,58.40 4x18.40)
+                frag 9 Normal de Texte début 8 fin 9 rect (165.32,50.40 4x18.40)
                     " "
-                frag 10 Normal de Texte début 9 fin 10 rect (169.32,58.40 21x18.40)
+                frag 10 Normal de Texte début 9 fin 10 rect (169.32,50.40 21x18.40)
                     "fail"
-                frag 11 Normal de Texte début 10 fin 11 rect (190.32,58.40 4x18.40)
+                frag 11 Normal de Texte début 10 fin 11 rect (190.32,50.40 4x18.40)
                     " "
-                frag 12 Normal de Texte début 11 fin 12 rect (194.32,58.40 21x18.40)
+                frag 12 Normal de Texte début 11 fin 12 rect (194.32,50.40 21x18.40)
                     "fail"
-                frag 13 Normal de Texte début 12 fin 13 rect (215.32,58.40 4x18.40)
+                frag 13 Normal de Texte début 12 fin 13 rect (215.32,50.40 4x18.40)
                     " "
-                frag 14 Normal de Texte début 13 fin 14 rect (219.32,58.40 21x18.40)
+                frag 14 Normal de Texte début 13 fin 14 rect (219.32,50.40 21x18.40)
                     "fail"
-                frag 15 Normal de Texte début 14 fin 15 rect (240.32,58.40 4x18.40)
+                frag 15 Normal de Texte début 14 fin 15 rect (240.32,50.40 4x18.40)
                     " "
-                frag 16 Normal de Texte début 15 fin 16 rect (69.32,76.80 21x18.40)
+                frag 16 Normal de Texte début 15 fin 16 rect (69.32,68.80 21x18.40)
                     "fail"
-                frag 17 Normal de Texte début 16 fin 17 rect (90.32,76.80 4x18.40)
+                frag 17 Normal de Texte début 16 fin 17 rect (90.32,68.80 4x18.40)
                     " "
-                frag 18 Normal de Texte début 17 fin 18 rect (94.32,76.80 21x18.40)
+                frag 18 Normal de Texte début 17 fin 18 rect (94.32,68.80 21x18.40)
                     "fail"
-                frag 19 Normal de Texte début 18 fin 19 rect (115.32,76.80 4x18.40)
+                frag 19 Normal de Texte début 18 fin 19 rect (115.32,68.80 4x18.40)
                     " "
-                frag 20 Normal de Texte début 19 fin 20 rect (119.32,76.80 21x18.40)
+                frag 20 Normal de Texte début 19 fin 20 rect (119.32,68.80 21x18.40)
                     "fail"
-                frag 21 Normal de Texte début 20 fin 21 rect (140.32,76.80 4x18.40)
+                frag 21 Normal de Texte début 20 fin 21 rect (140.32,68.80 4x18.40)
                     " "
-                frag 22 Normal de Texte début 21 fin 22 rect (144.32,76.80 21x18.40)
+                frag 22 Normal de Texte début 21 fin 22 rect (144.32,68.80 21x18.40)
                     "fail"
-                frag 23 Normal de Texte début 22 fin 23 rect (165.32,76.80 4x18.40)
+                frag 23 Normal de Texte début 22 fin 23 rect (165.32,68.80 4x18.40)
                     " "
-                frag 24 Normal de Texte début 23 fin 24 rect (169.32,76.80 21x18.40)
+                frag 24 Normal de Texte début 23 fin 24 rect (169.32,68.80 21x18.40)
                     "fail"
-                frag 25 Normal de Texte début 24 fin 25 rect (190.32,76.80 4x18.40)
+                frag 25 Normal de Texte début 24 fin 25 rect (190.32,68.80 4x18.40)
                     " "
-                frag 26 Normal de Texte début 25 fin 26 rect (194.32,76.80 21x18.40)
+                frag 26 Normal de Texte début 25 fin 26 rect (194.32,68.80 21x18.40)
                     "fail"
-                frag 27 Normal de Texte début 26 fin 27 rect (215.32,76.80 4x18.40)
+                frag 27 Normal de Texte début 26 fin 27 rect (215.32,68.80 4x18.40)
                     " "
-                frag 28 Normal de Texte début 27 fin 28 rect (219.32,76.80 21x18.40)
+                frag 28 Normal de Texte début 27 fin 28 rect (219.32,68.80 21x18.40)
                     "fail"
-                frag 29 Normal de Texte début 28 fin 29 rect (240.32,76.80 4x18.40)
+                frag 29 Normal de Texte début 28 fin 29 rect (240.32,68.80 4x18.40)
                     " "
-                frag 30 Normal de Texte début 29 fin 30 rect (24,95.20 21x18.40)
+                frag 30 Normal de Texte début 29 fin 30 rect (24,87.20 21x18.40)
                     "fail"
-                frag 31 Normal de Texte début 30 fin 31 rect (24,113.60 4x18.40)
+                frag 31 Normal de Texte début 30 fin 31 rect (24,105.60 4x18.40)
                     " "
-                frag 32 Normal de Texte début 31 fin 32 rect (28,113.60 21x18.40)
+                frag 32 Normal de Texte début 31 fin 32 rect (28,105.60 21x18.40)
                     "fail"
-                frag 33 Normal de Texte début 32 fin 33 rect (49,113.60 4x18.40)
+                frag 33 Normal de Texte début 32 fin 33 rect (49,105.60 4x18.40)
                     " "
-                frag 34 Normal de Texte début 33 fin 34 rect (53,113.60 21x18.40)
+                frag 34 Normal de Texte début 33 fin 34 rect (53,105.60 21x18.40)
                     "fail"
-                frag 35 Normal de Texte début 34 fin 35 rect (74,113.60 4x18.40)
+                frag 35 Normal de Texte début 34 fin 35 rect (74,105.60 4x18.40)
                     " "
-                frag 36 Normal de Texte début 35 fin 36 rect (78,113.60 21x18.40)
+                frag 36 Normal de Texte début 35 fin 36 rect (78,105.60 21x18.40)
                     "fail"
-                frag 37 Normal de Texte début 36 fin 37 rect (99,113.60 4x18.40)
+                frag 37 Normal de Texte début 36 fin 37 rect (99,105.60 4x18.40)
                     " "
-                frag 38 Normal de Texte début 37 fin 38 rect (103,113.60 21x18.40)
+                frag 38 Normal de Texte début 37 fin 38 rect (103,105.60 21x18.40)
                     "fail"
-                frag 39 Normal de Texte début 38 fin 39 rect (124,113.60 4x18.40)
+                frag 39 Normal de Texte début 38 fin 39 rect (124,105.60 4x18.40)
                     " "
-                frag 40 Normal de Texte début 39 fin 40 rect (128,113.60 21x18.40)
+                frag 40 Normal de Texte début 39 fin 40 rect (128,105.60 21x18.40)
                     "fail"
-                frag 41 Normal de Texte début 40 fin 41 rect (149,113.60 4x18.40)
+                frag 41 Normal de Texte début 40 fin 41 rect (149,105.60 4x18.40)
                     " "
-                frag 42 Normal de Texte début 41 fin 42 rect (153,113.60 21x18.40)
+                frag 42 Normal de Texte début 41 fin 42 rect (153,105.60 21x18.40)
                     "fail"
-                frag 43 Normal de Texte début 42 fin 43 rect (174,113.60 4x18.40)
+                frag 43 Normal de Texte début 42 fin 43 rect (174,105.60 4x18.40)
                     " "
-                frag 44 Normal de Texte début 43 fin 44 rect (178,113.60 21x18.40)
+                frag 44 Normal de Texte début 43 fin 44 rect (178,105.60 21x18.40)
                     "fail"
-                frag 45 Normal de Texte début 44 fin 45 rect (199,113.60 4x18.40)
+                frag 45 Normal de Texte début 44 fin 45 rect (199,105.60 4x18.40)
                     " "
-                frag 46 Normal de Texte début 45 fin 46 rect (203,113.60 21x18.40)
+                frag 46 Normal de Texte début 45 fin 46 rect (203,105.60 21x18.40)
                     "fail"
-                frag 47 Normal de Texte début 46 fin 47 rect (224,113.60 4x18.40)
+                frag 47 Normal de Texte début 46 fin 47 rect (224,105.60 4x18.40)
                     " "
-                frag 48 Normal de Texte début 47 fin 48 rect (228,113.60 21x18.40)
+                frag 48 Normal de Texte début 47 fin 48 rect (228,105.60 21x18.40)
                     "fail"
-                frag 49 Normal de Texte début 48 fin 49 rect (249,113.60 4x18.40)
+                frag 49 Normal de Texte début 48 fin 49 rect (249,105.60 4x18.40)
                     " "
-                frag 50 Normal de Texte début 49 fin 50 rect (24,132 21x18.40)
+                frag 50 Normal de Texte début 49 fin 50 rect (24,124 21x18.40)
                     "fail"
-                frag 51 Normal de Texte début 50 fin 51 rect (45,132 4x18.40)
+                frag 51 Normal de Texte début 50 fin 51 rect (45,124 4x18.40)
                     " "
-                frag 52 Normal de Texte début 51 fin 52 rect (49,132 21x18.40)
+                frag 52 Normal de Texte début 51 fin 52 rect (49,124 21x18.40)
                     "fail"
-                frag 53 Normal de Texte début 52 fin 53 rect (70,132 4x18.40)
+                frag 53 Normal de Texte début 52 fin 53 rect (70,124 4x18.40)
                     " "
-                frag 54 Normal de Texte début 53 fin 54 rect (74,132 21x18.40)
+                frag 54 Normal de Texte début 53 fin 54 rect (74,124 21x18.40)
                     "fail"
-                frag 55 Normal de Texte début 54 fin 55 rect (95,132 4x18.40)
+                frag 55 Normal de Texte début 54 fin 55 rect (95,124 4x18.40)
                     " "
-                frag 56 Normal de Texte début 55 fin 56 rect (99,132 21x18.40)
+                frag 56 Normal de Texte début 55 fin 56 rect (99,124 21x18.40)
                     "fail"
-                frag 57 Normal de Texte début 56 fin 57 rect (120,132 4x18.40)
+                frag 57 Normal de Texte début 56 fin 57 rect (120,124 4x18.40)
                     " "
-                frag 58 Normal de Texte début 57 fin 58 rect (124,132 21x18.40)
+                frag 58 Normal de Texte début 57 fin 58 rect (124,124 21x18.40)
                     "fail"
-                frag 59 Normal de Texte début 58 fin 59 rect (145,132 4x18.40)
+                frag 59 Normal de Texte début 58 fin 59 rect (145,124 4x18.40)
                     " "
-                frag 60 Normal de Texte début 59 fin 60 rect (149,132 21x18.40)
+                frag 60 Normal de Texte début 59 fin 60 rect (149,124 21x18.40)
                     "fail"
-                frag 61 Normal de Texte début 60 fin 61 rect (170,132 4x18.40)
+                frag 61 Normal de Texte début 60 fin 61 rect (170,124 4x18.40)
                     " "
-                frag 62 Normal de Texte début 61 fin 62 rect (174,132 21x18.40)
+                frag 62 Normal de Texte début 61 fin 62 rect (174,124 21x18.40)
                     "fail"
-                frag 63 Normal de Texte début 62 fin 63 rect (195,132 4x18.40)
+                frag 63 Normal de Texte début 62 fin 63 rect (195,124 4x18.40)
                     " "
-                frag 64 Normal de Texte début 63 fin 64 rect (199,132 21x18.40)
+                frag 64 Normal de Texte début 63 fin 64 rect (199,124 21x18.40)
                     "fail"
-                frag 65 Normal de Texte début 64 fin 65 rect (220,132 4x18.40)
+                frag 65 Normal de Texte début 64 fin 65 rect (220,124 4x18.40)
                     " "
-                frag 66 Normal de Texte début 65 fin 66 rect (224,132 21x18.40)
+                frag 66 Normal de Texte début 65 fin 66 rect (224,124 21x18.40)
                     "fail"
-                frag 67 Normal de Texte début 66 fin 67 rect (245,132 4x18.40)
+                frag 67 Normal de Texte début 66 fin 67 rect (245,124 4x18.40)
                     " "
-                frag 68 Normal de Texte début 67 fin 68 rect (24,150.40 21x18.40)
+                frag 68 Normal de Texte début 67 fin 68 rect (24,142.40 21x18.40)
                     "fail"
-                frag 69 Normal de Texte début 68 fin 69 rect (45,150.40 4x18.40)
+                frag 69 Normal de Texte début 68 fin 69 rect (45,142.40 4x18.40)
                     " "
-                frag 70 Normal de Texte début 69 fin 70 rect (49,150.40 21x18.40)
+                frag 70 Normal de Texte début 69 fin 70 rect (49,142.40 21x18.40)
                     "fail"
-                frag 71 Normal de Texte début 70 fin 71 rect (70,150.40 4x18.40)
+                frag 71 Normal de Texte début 70 fin 71 rect (70,142.40 4x18.40)
                     " "
-                frag 72 Normal de Texte début 71 fin 72 rect (74,150.40 21x18.40)
+                frag 72 Normal de Texte début 71 fin 72 rect (74,142.40 21x18.40)
                     "fail"
-                frag 73 Normal de Texte début 72 fin 73 rect (95,150.40 4x18.40)
+                frag 73 Normal de Texte début 72 fin 73 rect (95,142.40 4x18.40)
                     " "
-                frag 74 Normal de Texte début 73 fin 74 rect (99,150.40 21x18.40)
+                frag 74 Normal de Texte début 73 fin 74 rect (99,142.40 21x18.40)
                     "fail"
-                frag 75 Normal de Texte début 74 fin 75 rect (120,150.40 4x18.40)
+                frag 75 Normal de Texte début 74 fin 75 rect (120,142.40 4x18.40)
                     " "
-                frag 76 Normal de Texte début 75 fin 76 rect (124,150.40 21x18.40)
+                frag 76 Normal de Texte début 75 fin 76 rect (124,142.40 21x18.40)
                     "fail"
-                frag 77 Normal de Texte début 76 fin 77 rect (145,150.40 4x18.40)
+                frag 77 Normal de Texte début 76 fin 77 rect (145,142.40 4x18.40)
                     " "
-                frag 78 Normal de Texte début 77 fin 78 rect (149,150.40 21x18.40)
+                frag 78 Normal de Texte début 77 fin 78 rect (149,142.40 21x18.40)
                     "fail"
-                frag 79 Normal de Texte début 78 fin 79 rect (170,150.40 4x18.40)
+                frag 79 Normal de Texte début 78 fin 79 rect (170,142.40 4x18.40)
                     " "
-                frag 80 Normal de Texte début 79 fin 80 rect (174,150.40 21x18.40)
+                frag 80 Normal de Texte début 79 fin 80 rect (174,142.40 21x18.40)
                     "fail"
-                frag 81 Normal de Texte début 80 fin 81 rect (195,150.40 4x18.40)
+                frag 81 Normal de Texte début 80 fin 81 rect (195,142.40 4x18.40)
                     " "
-                frag 82 Normal de Texte début 81 fin 82 rect (199,150.40 21x18.40)
+                frag 82 Normal de Texte début 81 fin 82 rect (199,142.40 21x18.40)
                     "fail"
-                frag 83 Normal de Texte début 82 fin 83 rect (220,150.40 4x18.40)
+                frag 83 Normal de Texte début 82 fin 83 rect (220,142.40 4x18.40)
                     " "
-                frag 84 Normal de Texte début 83 fin 84 rect (224,150.40 21x18.40)
+                frag 84 Normal de Texte début 83 fin 84 rect (224,142.40 21x18.40)
                     "fail"
-                frag 85 Normal de Texte début 84 fin 85 rect (245,150.40 4x18.40)
+                frag 85 Normal de Texte début 84 fin 85 rect (245,142.40 4x18.40)
                     " "
-                frag 86 Normal de Texte début 85 fin 86 rect (24,168.80 21x18.40)
+                frag 86 Normal de Texte début 85 fin 86 rect (24,160.80 21x18.40)
                     "fail"
-                frag 87 Normal de Texte début 86 fin 87 rect (45,168.80 4x18.40)
+                frag 87 Normal de Texte début 86 fin 87 rect (45,160.80 4x18.40)
                     " "
-                frag 88 Normal de Texte début 87 fin 88 rect (49,168.80 21x18.40)
+                frag 88 Normal de Texte début 87 fin 88 rect (49,160.80 21x18.40)
                     "fail"
-                frag 89 Normal de Texte début 88 fin 89 rect (70,168.80 4x18.40)
+                frag 89 Normal de Texte début 88 fin 89 rect (70,160.80 4x18.40)
                     " "
-                frag 90 Normal de Texte début 89 fin 90 rect (74,168.80 21x18.40)
+                frag 90 Normal de Texte début 89 fin 90 rect (74,160.80 21x18.40)
                     "fail"
-                frag 91 Normal de Texte début 90 fin 91 rect (95,168.80 4x18.40)
+                frag 91 Normal de Texte début 90 fin 91 rect (95,160.80 4x18.40)
                     " "
-                frag 92 Normal de Texte début 91 fin 92 rect (99,168.80 21x18.40)
+                frag 92 Normal de Texte début 91 fin 92 rect (99,160.80 21x18.40)
                     "fail"
-                frag 93 Normal de Texte début 92 fin 93 rect (120,168.80 4x18.40)
+                frag 93 Normal de Texte début 92 fin 93 rect (120,160.80 4x18.40)
                     " "
-                frag 94 Normal de Texte début 93 fin 94 rect (124,168.80 21x18.40)
+                frag 94 Normal de Texte début 93 fin 94 rect (124,160.80 21x18.40)
                     "fail"
-                frag 95 Normal de Texte début 94 fin 95 rect (145,168.80 4x18.40)
+                frag 95 Normal de Texte début 94 fin 95 rect (145,160.80 4x18.40)
                     " "
-                frag 96 Normal de Texte début 95 fin 96 rect (149,168.80 21x18.40)
+                frag 96 Normal de Texte début 95 fin 96 rect (149,160.80 21x18.40)
                     "fail"
-                frag 97 Normal de Texte début 96 fin 97 rect (170,168.80 4x18.40)
+                frag 97 Normal de Texte début 96 fin 97 rect (170,160.80 4x18.40)
                     " "
-                frag 98 Normal de Texte début 97 fin 98 rect (174,168.80 21x18.40)
+                frag 98 Normal de Texte début 97 fin 98 rect (174,160.80 21x18.40)
                     "fail"
-                frag 99 Normal de Texte début 98 fin 99 rect (195,168.80 4x18.40)
+                frag 99 Normal de Texte début 98 fin 99 rect (195,160.80 4x18.40)
                     " "
-                frag 100 Normal de Texte début 99 fin 100 rect (199,168.80 21x18.40)
+                frag 100 Normal de Texte début 99 fin 100 rect (199,160.80 21x18.40)
                     "fail"
-                frag 101 Normal de Texte début 100 fin 101 rect (220,168.80 4x18.40)
+                frag 101 Normal de Texte début 100 fin 101 rect (220,160.80 4x18.40)
                     " "
-                frag 102 RembourrageFin de Inline début 0 fin 0 rect (224,168.80 0x18.40)
-                frag 103 MargeFin de Inline début 0 fin 0 rect (224,168.80 0x18.40)
+                frag 102 RembourrageFin de Inline début 0 fin 0 rect (224,160.80 0x18.40)
+                frag 103 MargeFin de Inline début 0 fin 0 rect (224,160.80 0x18.40)
                 Inline <(anonyme)> <0, -16> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
                     Texte <(anonyme)> <0, -16> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18.40 [0 0 0]
-        Bloc <(anonyme)> <8, 203.20> CH [0 0 0] 1904 [0 0 0] CV [0 0 0] 0 [0 0 0]
-            frag 0 MargeDébut de Inline début 0 fin 0 rect (8,203.20 0x0)
-            frag 1 RembourrageDébut de Inline début 0 fin 0 rect (8,203.20 0x0)
-            frag 2 RembourrageFin de Inline début 0 fin 0 rect (8,203.20 0x0)
-            frag 3 MargeFin de Inline début 0 fin 0 rect (8,203.20 0x0)
-            frag 4 MargeDébut de Inline début 0 fin 0 rect (8,203.20 0x0)
-            frag 5 RembourrageDébut de Inline début 0 fin 0 rect (8,203.20 0x0)
-            frag 6 RembourrageFin de Inline début 0 fin 0 rect (8,203.20 0x0)
-            frag 7 MargeFin de Inline début 0 fin 0 rect (8,203.20 0x0)
+        Bloc <(anonyme)> <8, 195.20> CH [0 0 0] 1904 [0 0 0] CV [0 0 0] 0 [0 0 0]
+            frag 0 MargeDébut de Inline début 0 fin 0 rect (8,195.20 0x0)
+            frag 1 RembourrageDébut de Inline début 0 fin 0 rect (8,195.20 0x0)
+            frag 2 RembourrageFin de Inline début 0 fin 0 rect (8,195.20 0x0)
+            frag 3 MargeFin de Inline début 0 fin 0 rect (8,195.20 0x0)
+            frag 4 MargeDébut de Inline début 0 fin 0 rect (8,195.20 0x0)
+            frag 5 RembourrageDébut de Inline début 0 fin 0 rect (8,195.20 0x0)
+            frag 6 RembourrageFin de Inline début 0 fin 0 rect (8,195.20 0x0)
+            frag 7 MargeFin de Inline début 0 fin 0 rect (8,195.20 0x0)
             Inline <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
                 Texte <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18.40 [0 0 0]
             Inline <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]

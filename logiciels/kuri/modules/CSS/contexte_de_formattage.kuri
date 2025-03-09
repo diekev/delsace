@@ -263,6 +263,48 @@ ajoute_une_ligne :: fonc (contenant: *ContenantLignesDeFlottants, containing_blo
     retourne résultat
 }
 
+DonnéesMarge :: struct {
+    noeud: *NoeudDeDisposition
+    /* Pour différencier entre margin-top et margin-bottom */
+    id_propriété: IDPropriété
+    taille: r32
+    y_min: r32
+    y_max: r32
+}
+
+marges_sont_adjointes :: fonc (a: *DonnéesMarge, b: *DonnéesMarge) -> bool
+{
+    /* Puisque nous modifions directement la position des noeuds, le test sur
+     * l'adjonction ne peut se faire via p.e. a.y_max == b.y_min. En effet,
+     * suite au déplacement, les marges peuvent se superposer. */
+    saufsi a.y_min <= b.y_min <= a.y_max || a.y_min <= b.y_max <= a.y_max {
+        retourne faux
+    }
+
+    /* Par contre, puisqu'il y a une superposition, nous devons tester que les
+     * sources des marges peuvent avoir une adjonction.
+     * https://www.w3.org/TR/2011/REC-CSS2-20110607/box.html#collapsing-margins
+     */
+
+    si a.noeud == b.noeud {
+        /* Nous devons être vide. */
+        retourne a.noeud.modèle_de_boite.contenu.hauteur == 0.0
+    }
+
+    /* Nous sommes adèlphes. */
+    si a.noeud.parent == b.noeud.parent {
+        si a.id_propriété == IDPropriété.MarginBottom {
+            /* Soit nous fusionnons avec la marge haute, ou s'il n'y a pas de marge haute, le contenu du noeud doit être vide. */
+            retourne b.id_propriété == IDPropriété.MarginTop || b.noeud.modèle_de_boite.contenu.hauteur == 0.0
+        }
+
+        /* Nous devons être vide. */
+        retourne a.noeud.modèle_de_boite.contenu.hauteur == 0.0
+    }
+
+    retourne vrai
+}
+
 ContexteDeFormattageBloc :: struct {
     empl base: ContexteDeFormattage
     type = #type_de_cette_structure
@@ -275,10 +317,14 @@ ContexteDeFormattageBloc :: struct {
     lignes_boites_flottantes_droite: ContenantLignesDeFlottants
     rect_boites_flottantes_gauches: RectanglePosDim(r64)
     rect_boites_flottantes_droites: RectanglePosDim(r64)
+
+    /* Pour le collapsage des marges. */
+    marges: [..]DonnéesMarge
 }
 
 détruit_données_contexte :: fonc (ctx: *ContexteDeFormattageBloc)
 {
+    déloge(ctx.marges)
     détruit_données_lignes(*ctx.lignes_boites_flottantes_gauche)
     détruit_données_lignes(*ctx.lignes_boites_flottantes_droite)
 }
@@ -292,6 +338,8 @@ ParamètresPositionnementBoite :: struct {
 contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
 {
     ctx := base comme *ContexteDeFormattageBloc
+
+    ajoute_marge(ctx, noeud, IDPropriété.MarginTop)
 
     /* Pour le collapsage des marges :
      * https://www.w3.org/TR/CSS2/box.html#collapsing-margins */
@@ -331,38 +379,48 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
             continue
         }
 
+        /* Sauvegarde la position des floats pour le collapsage des marges.
+         * Si la propriété clear du noeud nous force à le décaler sous les floats,
+         * nous ne voulons pas qu'il soit décalé sous ses descendants. */
+        position_basse_floats_gauches := ctx.donne_décalage_floats_gauche()
+        position_basse_floats_droites := ctx.donne_décalage_floats_droite()
+
         it.définis_position(décalage_x, décalage_y + params_position.décalage_hors_float)
         it.mesure(ctx, mode, nul)
+        ajoute_marge(ctx, it, IDPropriété.MarginBottom)
 
         hauteur_enfant := it.modèle_de_boite.marge.hauteur
 
-        si dernier_enfant_in_flow {
-            marge_basse_dernier_enfant := dernier_enfant_in_flow.modèle_de_boite.marge.y + dernier_enfant_in_flow.modèle_de_boite.marge.hauteur
-            marge_haute_it := it.modèle_de_boite.marge.y
+        marge_collapsée_opt := donne_marge_collapsée(ctx, it, dernier_enfant_in_flow)
+        si marge_collapsée_opt.possède_valeur() {
+            marge_collapsée := marge_collapsée_opt.Quelque
 
-            si marge_haute_it == marge_basse_dernier_enfant {
-                marge_dernier_enfant := dernier_enfant_in_flow.propriétés.donne_valeur_utilisée(IDPropriété.MarginBottom).pixels
-                marge_it := it.propriétés.donne_valeur_utilisée(IDPropriété.MarginTop).pixels
+            nouvelle_position_bordure := marge_collapsée.bord_référence + marge_collapsée.taille
 
-                si marge_dernier_enfant != 0.0 && marge_it != 0.0 {
-                    décalage := 0.0
-                    si marge_dernier_enfant < 0.0 && marge_it < 0.0 {
-                        décalage = 0.0 - max(abs(marge_it), abs(marge_dernier_enfant)) comme r32
-                    }
-                    sinon si marge_dernier_enfant < 0.0 {
-                        décalage = (marge_it - abs(marge_dernier_enfant)) comme r32
-                    }
-                    sinon si marge_it < 0.0 {
-                        décalage = (marge_dernier_enfant - abs(marge_it)) comme r32
-                    }
-                    sinon {
-                        /* La marge résultant doit être la taille maximum, donc nous enlevons le minimum. */
-                        décalage = min(marge_dernier_enfant, marge_it) comme r32
-                    }
+            si clear.est_mot_clé(PROP_left) {
+                nouvelle_position_bordure = max(nouvelle_position_bordure, position_basse_floats_gauches)
+            }
+            sinon si clear.est_mot_clé(PROP_right) {
+                nouvelle_position_bordure = max(nouvelle_position_bordure, position_basse_floats_droites)
+            }
+            sinon si clear.est_mot_clé(PROP_both) {
+                décalage := max(position_basse_floats_gauches, position_basse_floats_droites)
+                nouvelle_position_bordure = max(nouvelle_position_bordure, décalage)
+            }
 
-                    it.décale(0.0, -décalage)
-                    hauteur_enfant -= décalage
+            décalage := nouvelle_position_bordure - it.modèle_de_boite.bordure.y
+
+            si décalage != 0.0 {
+                it.décale(0.0, décalage)
+
+                /* À FAIRE : généralise. */
+                pour * boite dans ctx.boites_absolues.boites {
+                    si boite.noeud.parent == it {
+                        boite.pos_y_statique += décalage
+                    }
                 }
+
+                hauteur_enfant += décalage
             }
         }
 
@@ -414,6 +472,196 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
         }
         sinon {}
     }
+}
+
+marges_sont_adjointes :: fonc (noeud: *NoeudDeDisposition) -> bool
+{
+    retourne noeud.modèle_de_boite.bordure.y == noeud.modèle_de_boite.bordure.y + noeud.modèle_de_boite.bordure.hauteur
+}
+
+ajoute_marge :: fonc (ctx: *ContexteDeFormattageBloc, noeud: *NoeudDeDisposition, id: IDPropriété)
+{
+    assert(id == IDPropriété.MarginTop || id == IDPropriété.MarginBottom)
+
+    taille := noeud.propriétés.donne_valeur_utilisée(id).pixels comme r32
+    si taille == 0.0 && est_espace_blanche_document(noeud) {
+        retourne
+    }
+
+    marge := tableau_ajoute_élément(*ctx.marges)
+    marge.noeud = noeud
+    marge.id_propriété = id
+    marge.taille = taille
+    ajourne_min_max(marge)
+}
+
+ajourne_min_max :: fonc (marge: *DonnéesMarge)
+{
+    noeud := marge.noeud
+
+    si marge.id_propriété == IDPropriété.MarginTop {
+        marge.y_min = noeud.modèle_de_boite.marge.y
+        marge.y_max = noeud.modèle_de_boite.bordure.y
+    }
+    sinon {
+        marge.y_min = noeud.modèle_de_boite.bordure.y + noeud.modèle_de_boite.bordure.hauteur
+        marge.y_max = noeud.modèle_de_boite.marge.y + noeud.modèle_de_boite.marge.hauteur
+    }
+
+    /* Pour les marges négatives. */
+    si marge.y_max < marge.y_min {
+        tmp := marge.y_min
+        marge.y_min = marge.y_max
+        marge.y_max = tmp
+    }
+}
+
+MargeCollapsée :: struct {
+    /* Soit le bord haut de la marge haute du noeud parent (pour le premier enfant),
+     * ou le bord bas du contenu d'un ainé. L'ainé en question n'est pas forcément
+     * l'élément précédent puisque celui peut être vide et nous pourrions collapser
+     * à travers lui. */
+    bord_référence: r32
+
+    /* La taille de la marge. */
+    taille: r32
+}
+
+donne_marge_collapsée :: fonc (ctx: *ContexteDeFormattageBloc, noeud: *NoeudDeDisposition, dernier_enfant_in_flow: *NoeudDeDisposition) -> Optionnel(MargeCollapsée)
+{
+    si dernier_enfant_in_flow == nul {
+        /* Nous collapsons avec la marge du parent, sauf s'il est la racine du contexte (les floats,
+         * le noeud racine, etc., ne collapsent pas leurs marges avec leurs enfants). */
+        si noeud.parent == ctx.racine {
+            retourne
+        }
+
+        index_marge_parent := donne_index_marge(ctx, noeud.parent, IDPropriété.MarginTop)
+        index_marge := donne_index_marge(ctx, noeud, IDPropriété.MarginTop)
+
+        si index_marge_parent == -1 || index_marge == -1 {
+            /* Nous ne pouvons collapser avec le parent, la position est inchangée. */
+            retourne
+        }
+
+        /* Si le parent possède une bordure, on ne peut pas collapser. */
+        si noeud.parent.modèle_de_boite.bordure.hauteur != noeud.parent.modèle_de_boite.contenu.hauteur {
+            retourne
+        }
+
+        marge_parent := ctx.marges[index_marge_parent]
+        marge := ctx.marges[index_marge]
+
+        taille := si marge_parent.taille < 0.0 && marge.taille < 0.0 {
+            0.0 - max(abs(marge.taille), abs(marge_parent.taille))
+        }
+        sinon si marge_parent.taille < 0.0 {
+            (marge.taille - abs(marge_parent.taille))
+        }
+        sinon si marge.taille < 0.0 {
+            (marge_parent.taille - abs(marge.taille))
+        }
+        sinon {
+            max(marge_parent.taille, marge.taille)
+        }
+
+        résultat: MargeCollapsée
+        résultat.taille = taille
+        résultat.bord_référence = noeud.parent.modèle_de_boite.marge.y
+        retourne résultat
+    }
+
+    si marges_sont_adjointes(noeud) {
+        retourne donne_marge_collapsée_depuis(ctx, noeud, IDPropriété.MarginBottom)
+    }
+    retourne donne_marge_collapsée_depuis(ctx, noeud, IDPropriété.MarginTop)
+}
+
+donne_index_marge :: fonc (ctx: *ContexteDeFormattageBloc, noeud: *NoeudDeDisposition, id: IDPropriété) -> z64
+{
+    pour ctx.marges {
+        si it.noeud == noeud && it.id_propriété == id {
+            retourne index_it
+        }
+    }
+
+    retourne -1
+}
+
+donne_marge_collapsée_depuis :: fonc (ctx: *ContexteDeFormattageBloc, noeud: *NoeudDeDisposition, id: IDPropriété) -> Optionnel(MargeCollapsée)
+{
+    index := donne_index_marge(ctx, noeud, id)
+    si index == -1 {
+        retourne
+    }
+
+    dernier := *ctx.marges[index]
+    premier := dernier
+    début := *ctx.marges[0]
+
+    tantque premier >= début {
+        ajourne_min_max(premier)
+
+        si premier < dernier {
+            saufsi marges_sont_adjointes(premier, premier + 1) {
+                premier += 1
+                arrête
+            }
+        }
+
+        premier -= 1
+    }
+
+    si premier < début {
+        premier = début
+    }
+
+    si premier == dernier {
+        /* La seule marge existante est la nôtre : nous ne la collapsons pas. */
+        assert(premier.noeud == noeud)
+        retourne
+    }
+
+    résultat: MargeCollapsée
+    si premier.id_propriété == IDPropriété.MarginTop {
+        résultat.bord_référence = premier.y_min
+    }
+    sinon {
+        résultat.bord_référence = premier.noeud.modèle_de_boite.bordure.y + premier.noeud.modèle_de_boite.bordure.hauteur
+    }
+
+    nombre_positives := 0
+    nombre_négatives := 0
+
+    max_positives := 0.0
+    max_négatives := 0.0
+
+    tantque premier <= dernier {
+        taille := premier.taille
+
+        si taille < 0.0 {
+            nombre_négatives += 1
+            max_négatives = max(max_négatives, abs(taille))
+        }
+        sinon {
+            nombre_positives += 1
+            max_positives = max(max_positives, taille)
+        }
+
+        premier += 1
+    }
+
+    résultat.taille = si nombre_positives == 0 {
+        0.0 - max_négatives
+    }
+    sinon si nombre_négatives == 0 {
+        max_positives
+    }
+    sinon {
+        max_positives - max_négatives
+    }
+
+    retourne résultat
 }
 
 applique_clearance :: fonc (ctx: *ContexteDeFormattageBloc, empl params: *ParamètresPositionnementBoite, clear: ValeurDeStyle, décalage_y: r32)
@@ -800,6 +1048,11 @@ donne_alignement_texte :: fonc (noeud: *NoeudDeDispositionBloc) -> AlignementTex
 contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
 {
     ctx := base comme *ContexteDeFormattageInline
+
+    si ctx.parent && ctx.parent.type == ContexteDeFormattageBloc {
+        ctx_bloc := ctx.parent comme *ContexteDeFormattageBloc
+        ctx_bloc.ajoute_marge(noeud, IDPropriété.MarginTop)
+    }
 
     line_height := donne_line_height(noeud, ctx)
 
