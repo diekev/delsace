@@ -4,6 +4,7 @@ importe Ensemble
 importe Fondation
 importe #inemployé HTML
 importe #inemployé JavaScript
+importe Processus
 importe Structures
 importe SysFichier
 importe Temps
@@ -25,9 +26,26 @@ principale :: fonc () -> z32
         retourne 0
     }
 
-    si args.taille > 2 {
+    si args.taille == 3 {
+        si args[1] != "--vis" {
+            imprime("Argument '%' inconnu\n", args[1])
+            retourne 1
+        }
+
+        chemin_navigateur := CheminFichier(args[2])
+
+        saufsi est_un_fichier_régulier(chemin_navigateur) {
+            imprime("\"%\" n'est pas un fichier\n", args[2])
+            retourne 1
+        }
+
+        visualise_fichiers(chemin_navigateur)
+        retourne 0
+    }
+
+    si args.taille > 3 {
         imprime("Erreur : trop d'arguments.\n")
-        imprime("Utilisation : % [--ajourne-fichiers]\n", args[0])
+        imprime("Utilisation : % [--ajourne-fichiers | --vis NAVIGATEUR]\n", args[0])
         retourne 1
     }
 
@@ -116,6 +134,83 @@ ajourne_fichiers :: fonc ()
         }
 
         _ := écris(*fichier, impression)
+    }
+}
+
+visualise_fichiers :: fonc (chemin_navigateur: CheminFichier)
+{
+    chemins_sources := donne_chemins_fichiers_sources()
+    diffère déloge_tableau_et_ses_éléments(chemins_sources, détruit_chemin)
+
+    chemins_sorties := donne_chemins_fichiers_sorties(chemins_sources)
+    diffère déloge_tableau_et_ses_éléments(chemins_sources, détruit_chemin)
+
+    chemins_échouants: [..]CheminFichier
+    diffère déloge(chemins_échouants)
+
+    chemin_courant := tente chemin_courant() piège err {
+        imprime("Impossible de déterminer le chemin courant : %\n", err)
+        retourne
+    }
+
+    pour chemins_sources {
+        impression := donne_texte_pour_sortie(it)
+        // diffère déloge(impression)
+
+        chemin_sortie := chemins_sorties[index_it]
+
+        original := contenu_fichier_texte(chemin_sortie)
+        // diffère déloge(original)
+
+        si impression == original {
+            continue
+        }
+
+        chm_abs := crée_chemin_absolu(chemin_courant, it)
+        // diffère déloge(chm_abs.chn)
+
+        commande := imprime_chaine("% %", chemin_navigateur, chm_abs)
+        // diffère déloge(commande)
+
+        imprime("\x1b[32m[% / %] Exécution de %\x1b[37m\n", index_it + 1, chemins_sources.taille, commande)
+
+        saufsi exécute_commande_externe(commande) {
+            imprime("Erreur lors de l'exécution de la commande\n")
+            arrête
+        }
+
+        boucle {
+            imprime("Appuyez sur entrée si le test passe, le fichier de sortie sera ajourné, sinon tapez \"non\" ou \"n\" pour passer au suivant\n")
+            imprime("> ")
+
+            entrée := tente entrée_standarde().lis_tout() piège nonatteignable
+            diffère déloge(entrée)
+
+            réponse := recule(entrée, 1)
+
+            si réponse == "" {
+                imprime("Ajournement du fichier de sortie...\n")
+                fichier := tente ouvre_fichier_crée_si_non_existant(chemin_sortie, pour_écriture_tronquée) piège err {
+                    imprime("impossible de créer le fichier '%' %\n", chemin_sortie, err)
+                    retourne
+                }
+
+                _ := écris(*fichier, impression)
+                continue it
+            }
+
+            si réponse == "non" || réponse == "n" {
+                tableau_ajoute(*chemins_échouants, it)
+                continue it
+            }
+        }
+    }
+
+    si chemins_échouants {
+        imprime("Les fichiers suivants échous toujours\n")
+        pour chemins_échouants {
+            imprime("    %\n", it)
+        }
     }
 }
 
