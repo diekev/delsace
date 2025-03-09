@@ -309,6 +309,9 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élé
     sinon si tag == TAG_select {
         élément = crée_platform_object(document, HTMLSelectElement)
     }
+    sinon si tag == TAG_span {
+        élément = crée_platform_object(document, HTMLSpanElement)
+    }
     sinon si tag == TAG_style {
         élément = crée_platform_object(document, HTMLStyleElement)
     }
@@ -2913,6 +2916,28 @@ HTMLSelectElement :: struct {
 
 table_virtuelle_select_element := TableVirtuelleÉlément(
     classe = HTMLSelectElement,
+    sur_destruction = élément_sur_destruction
+)
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLSpanElement
+ * https://html.spec.whatwg.org/multipage/text-level-semantics.html#the-span-element
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLSpanElement
+ * \{ */
+
+#portée_export
+
+HTMLSpanElement :: struct {
+    empl html_element: HTMLElement
+    table = *table_virtuelle_span_element
+}
+
+#portée_fichier
+
+table_virtuelle_span_element := TableVirtuelleÉlément(
+    classe = HTMLSpanElement,
     sur_destruction = élément_sur_destruction
 )
 
