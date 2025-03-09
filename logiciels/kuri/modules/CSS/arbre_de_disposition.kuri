@@ -184,8 +184,12 @@ imprime_statistiques :: fonc (arbre: *ArbreDeDisposition)
     imprime("--------------------------------------------\n")
     imprime("             Statistiques Arbre\n")
 
-    imprime("Nombre de noeuds        : %\n", arbre.noeuds.taille)
-    imprime("Mémoire noeuds          : %o\n", arbre.donne_taille_en_octet_noeuds())
+    taille_octets_noeuds := arbre.donne_taille_en_octet_noeuds()
+    nombre_de_noeuds := arbre.noeuds.taille
+
+    imprime("Nombre de noeuds        : %\n", nombre_de_noeuds)
+    imprime("Mémoire noeuds          : %o\n", taille_octets_noeuds)
+    imprime("Mémoire par noeud       : %o\n", taille_octets_noeuds comme r32 / nombre_de_noeuds comme r32)
     imprime("Noeuds position float   : %\n", arbre.noeuds_position_float)
     imprime("Noeuds position absolue : %\n", arbre.noeuds_position_absolue)
 }
