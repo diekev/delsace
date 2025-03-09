@@ -469,14 +469,21 @@ dessine_tampon_id_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *C
 
 dessine_enfants_inline :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDessin)
 {
-    lignes_tenante := *noeud.lignes_tenante
-    pour * lignes_tenante.fragments {
-        dessine_fragment(it.noeud, it, lignes_tenante, ctx)
+    saufsi noeud.lignes_tenante {
+        retourne
+    }
+
+    pour * noeud.lignes_tenante.fragments {
+        dessine_fragment(it.noeud, it, noeud.lignes_tenante, ctx)
     }
 }
 
 dessine_tampon_id_enfants_inline :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDessin)
 {
+    saufsi noeud.lignes_tenante {
+        retourne
+    }
+
     pour * noeud.lignes_tenante.fragments {
         dessine_fragment_tampon_id(it.noeud, it, ctx)
     }

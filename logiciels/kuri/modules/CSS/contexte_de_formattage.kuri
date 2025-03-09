@@ -34,6 +34,7 @@ ContexteDeFormattage :: struct {
     sur_formatte: fonc(*ContexteDeFormattage, *NoeudDeDispositionBloc, ModeDeFormattage)(rien)
 
     globales: *GlobalesDessin
+    arbre: *ArbreDeDisposition
     initial_containing_block: *ContainingBlock
 
     /* Pour la résolution des pourcentages. */
@@ -49,6 +50,7 @@ ContexteDeFormattage :: struct {
 initialise_depuis_parent :: fonc (ctx: *ContexteDeFormattage, parent: *ContexteDeFormattage)
 {
     ctx.parent = parent
+    ctx.arbre = parent.arbre
     ctx.globales = parent.globales
     ctx.initial_containing_block = parent.initial_containing_block
     ctx.boites_absolues = parent.boites_absolues
@@ -1065,7 +1067,7 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
         alignement = ctx.doit_aligner_les_descendants.Quelque
     }
 
-    lignes_tenante := *noeud.lignes_tenante
+    lignes_tenante := noeud.lignes_tenante
 
     pour * lignes_tenante.lignes {
         fragments := donne_fragments_ligne(lignes_tenante, it)

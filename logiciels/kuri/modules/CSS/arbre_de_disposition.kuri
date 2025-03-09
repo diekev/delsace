@@ -22,6 +22,7 @@ ArbreDeDisposition :: struct {
     commandes: *CommandesDeRendu
 
     noeuds: [..]*NoeudDeDisposition
+    lignes_tenantes: [..]*LignesTenante
     tampon_id_fut_dessiné: bool
     tampon_id: [..]n32
     largeur_vue: z32
@@ -50,12 +51,10 @@ détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
 
         si it.table_virtuelle.type == NoeudDeDispositionBloc {
             bloc := it comme *NoeudDeDispositionBloc
-            détruit_lignes(bloc)
             déloge(bloc)
         }
         sinon si it.table_virtuelle.type == NoeudDeDispositionInline {
             noeud := it comme *NoeudDeDispositionInline
-            détruit_lignes(noeud)
             déloge(noeud)
         }
         sinon si it.table_virtuelle.type == NoeudDeDispositionTexte {
@@ -124,9 +123,14 @@ détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
         }
     }
 
+    pour arbre.lignes_tenantes {
+        détruit(it)
+    }
+
     détruit_stacking_context(arbre.stacking_context)
     détruit_commandes(arbre.commandes)
     déloge(arbre.tampon_id)
+    déloge(arbre.lignes_tenantes)
     déloge(arbre.noeuds)
     déloge(arbre)
 }
@@ -281,6 +285,9 @@ imprime_fragments :: fonc (enchaineuse: *Enchaineuse, noeud: *NoeudDeDisposition
     indentation_texte := donne_chaine_indentation(profondeur comme z32 + 1)
 
     bloc := noeud comme *NoeudDeDispositionBloc
+    saufsi bloc.lignes_tenante {
+        retourne
+    }
 
     pour bloc.lignes_tenante.fragments {
         ajoute_au_tampon(enchaineuse, indentation)
@@ -1291,6 +1298,7 @@ dispose_arbre :: fonc (globales: *GlobalesDessin, arbre: *ArbreDeDisposition, la
     initial_containing_block.noeud = arbre.racine
 
     ctx: ContexteDeFormattage
+    ctx.arbre = arbre
     ctx.globales = globales
     ctx.initial_containing_block = *initial_containing_block
 
@@ -2056,6 +2064,9 @@ décale :: fonc (noeud: *NoeudDeDisposition, x: r32, y: r32)
 
     si noeud.table_virtuelle.type == NoeudDeDispositionBloc || noeud.table_virtuelle.type == NoeudDeDispositionInline || noeud.table_virtuelle.type == TableCellBox {
         bloc := noeud comme *NoeudDeDispositionBloc
+        saufsi bloc.lignes_tenante {
+            retourne
+        }
         pour * bloc.lignes_tenante.fragments {
             it.x += x
             it.y += y
@@ -2317,6 +2328,13 @@ LignesTenante :: struct {
     position_y_courante: r32
 }
 
+crée_lignes_tenante :: fonc (arbre: *ArbreDeDisposition) -> *LignesTenante
+{
+    résultat := loge(LignesTenante)
+    tableau_ajoute(*arbre.lignes_tenantes, résultat)
+    retourne résultat
+}
+
 réinitialise :: fonc (lignes_tenante: *LignesTenante)
 {
     lignes_tenante.lignes.taille = 0
@@ -2327,6 +2345,12 @@ détruit_données :: fonc (lignes_tenante: *LignesTenante)
 {
     déloge(lignes_tenante.lignes)
     déloge(lignes_tenante.fragments)
+}
+
+détruit :: fonc (lignes_tenante: *LignesTenante)
+{
+    détruit_données(lignes_tenante)
+    déloge(lignes_tenante)
 }
 
 donne_ligne_courante :: fonc (lignes_tenante: *LignesTenante, ctx: *ContexteDeFormattageInline) -> *BoiteDeLigne
@@ -2391,7 +2415,7 @@ Enligneuse :: struct {
 
 divise_en_lignes :: fonc (enligneuse: *Enligneuse, bloc_contenant: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
 {
-    réinitialise_lignes(bloc_contenant)
+    réinitialise_lignes(bloc_contenant, enligneuse.ctx.arbre)
     enligneuse.bloc_contenant = bloc_contenant
     enligneuse.mode_de_formattage = mode
     bloc_contenant.lignes_tenante.bloc = bloc_contenant
@@ -2404,12 +2428,12 @@ divise_en_lignes :: fonc (enligneuse: *Enligneuse, bloc_contenant: *NoeudDeDispo
 
 donne_lignes_tenante :: fonc (empl enligneuse: *Enligneuse) -> *LignesTenante
 {
-    retourne *bloc_contenant.lignes_tenante
+    retourne bloc_contenant.lignes_tenante
 }
 
 ajoute_ligne :: fonc (empl enligneuse: *Enligneuse) -> *BoiteDeLigne
 {
-    ligne_courante = ajoute_ligne(*enligneuse.bloc_contenant.lignes_tenante, ctx)
+    ligne_courante = ajoute_ligne(enligneuse.bloc_contenant.lignes_tenante, ctx)
     retourne ligne_courante
 }
 
@@ -2432,7 +2456,7 @@ peut_ajouter_fragment :: fonc (empl enligneuse: *Enligneuse, largeur: r32) -> bo
 
 ajoute_fragment :: fonc (empl enligneuse: *Enligneuse, noeud: *NoeudDeDisposition, index_début: z64, index_fin: z64, hauteur: r32, largeur: r32, type := Fragment.Type.Normal) -> z64
 {
-    lignes_tenante := *enligneuse.bloc_contenant.lignes_tenante
+    lignes_tenante := enligneuse.bloc_contenant.lignes_tenante
 
     ligne_courante = lignes_tenante.donne_ligne_courante(ctx)
     si mode_de_formattage == ModeDeFormattage.Normal && !ligne_courante.peut_ajouter_fragment(largeur) {
@@ -2503,19 +2527,18 @@ NoeudDeDispositionBloc :: struct {
 
     élément: *HTML.Élément
 
-    lignes_tenante: LignesTenante
+    lignes_tenante: *LignesTenante
 
     est_disposition_inline: bool
 }
 
-détruit_lignes :: fonc (noeud: *NoeudDeDispositionBloc)
+réinitialise_lignes :: fonc (noeud: *NoeudDeDispositionBloc, arbre: *ArbreDeDisposition)
 {
-    détruit_données(*noeud.lignes_tenante)
-}
+    saufsi noeud.lignes_tenante {
+        noeud.lignes_tenante = arbre.crée_lignes_tenante()
+    }
 
-réinitialise_lignes :: fonc (noeud: *NoeudDeDispositionBloc)
-{
-    réinitialise(*noeud.lignes_tenante)
+    réinitialise(noeud.lignes_tenante)
 }
 
 détermine_disposition_interne :: fonc (noeud: *NoeudDeDispositionBloc)
