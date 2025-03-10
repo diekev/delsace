@@ -3096,11 +3096,10 @@ noeud_disposition_texte_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition,
 
     définis_hauteur_contenu(noeud.modèle_de_boite, métriques.donne_hauteur_ligne())
 
-    hauteur_texte := métriques.donne_hauteur_ligne()
-
-    line_height := donne_line_height(propriétés, fonte)
-    /* line-height définis la hauteur minimale. */
-    hauteur_texte = max(hauteur_texte, line_height)
+    /* "On a non-replaced inline element, line-height specifies the height that is used
+     * in the calculation of the line box height."
+     * https://drafts.csswg.org/css2/#propdef-line-height */
+    hauteur_texte := donne_line_height(propriétés, fonte)
 
     // À FAIRE : traite proprement la hauteur de ligne pour les noeuds interéléments.
     // La taille de fonte peut avoir été héritée de l'élément parent des noeuds adelphes.
