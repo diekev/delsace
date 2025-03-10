@@ -336,6 +336,8 @@ static int texture_font_init(texture_font_t *self)
     TT_OS2 *pOS2 = FT_Get_Sfnt_Table(face, ft_sfnt_os2);
     if (pOS2) {
         self->avg_char_width = FT_MulFix(pOS2->xAvgCharWidth, em_scale);
+        self->typo_ascender = FT_MulFix(pOS2->sTypoAscender, em_scale);
+        self->typo_descender = FT_MulFix(pOS2->sTypoDescender, em_scale);
     }
 
     FT_Done_Face(face);
