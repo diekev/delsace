@@ -446,43 +446,12 @@ sur_fermeture_application :: fonc (base: *QT_Rappel_Generique)
 /** \nom PageWeb
  * \{ */
 
-BarreDeDéfilement :: struct {
-    rect: RectanglePosDim(r32)
-    est_cliqué: bool
-    est_survolé: bool
-    pos_clique_y: r32
-    hauteur: r32
-    ratio : r32 = 1.0
-}
-
-définis_position_y :: fonc (barre: *BarreDeDéfilement, y: r32) -> bool
-{
-    vieil_y := barre.rect.y
-    barre.rect.y = y
-
-    si barre.rect.y < 0.0 {
-        barre.rect.y = 0.0
-    }
-    sinon si (barre.rect.y + barre.rect.hauteur) > barre.hauteur {
-        barre.rect.y = barre.hauteur - barre.rect.hauteur
-    }
-
-    retourne barre.rect.y != vieil_y
-}
-
-décale_par :: fonc (barre: *BarreDeDéfilement, delta: r32) -> bool
-{
-    retourne définis_position_y(barre, barre.rect.y + delta)
-}
-
 PageWeb :: struct {
     uri: *URL
     parsat: ParsatHTML
     navigable: *TraversableNavigable
     contenu: chaine
     fonte: *Fonte
-
-    défilement_vertical: BarreDeDéfilement
 }
 
 crée_page_web :: fonc (uri: *URL, contenu: chaine) -> PageWeb
@@ -518,37 +487,6 @@ détruit_données_page_web :: fonc (page: *PageWeb)
         détruit_fonte(page.fonte)
     }
     déloge(page.contenu)
-}
-
-donne_défilement_vertical :: fonc (page: *PageWeb, largeur_vue: r32, hauteur_vue: r32, hauteur_page: r32) -> *BarreDeDéfilement
-{
-    si hauteur_page == 0.0 || hauteur_page <= hauteur_vue {
-        retourne nul
-    }
-
-    barre := *page.défilement_vertical
-
-    hauteur_barre := hauteur_vue * hauteur_vue / hauteur_page
-
-    si barre.rect.hauteur == hauteur_barre {
-        retourne barre
-    }
-
-    /* Ajourne la barre */
-    largeur_barre := 12.0
-    barre.ratio = hauteur_vue / hauteur_page
-
-    rect_barre: RectanglePosDim(r32)
-    rect_barre.x = largeur_vue - largeur_barre
-    rect_barre.largeur = largeur_barre
-    rect_barre.y = 0.0
-    rect_barre.hauteur = hauteur_barre
-
-    barre.hauteur = hauteur_vue
-
-    barre.rect = rect_barre
-
-    retourne barre
 }
 
 /** \} */
@@ -1226,9 +1164,7 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
     ctx.hauteur_vue = vue_rendu_page.hauteur
     ctx.largeur_vue = vue_rendu_page.largeur
 
-    hauteur_racine := arbre.racine.modèle_de_boite.marge.hauteur
-    barre := donne_défilement_vertical(page, vue_rendu_page.largeur comme r32, vue_rendu_page.hauteur comme r32, hauteur_racine)
-
+    barre := arbre.défilement_vertical
     si barre {
         ctx.décalage_y = barre.rect.y / barre.ratio
     }
@@ -1246,7 +1182,7 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
 
     // imprime("temps de rendu : %\n", début_rendu.temps_écoulé_millisecondes())
 
-    si barre {
+    si barre && barre.est_visible {
         hauteur_vue := vue_rendu_page.hauteur comme r32
 
         rect_barre := barre.rect
@@ -1312,10 +1248,6 @@ vue_rendu_page_sur_redimensionnement :: fonc (rappels: *QT_Rappels_GLWidget, tai
     si document {
         document.invalide_style_pour_redimensionnement(taille.largeur, taille.hauteur)
     }
-    /* Réinitialise la barre de défilement. */
-    page.défilement_vertical.rect.largeur = 0.0
-    page.défilement_vertical.ratio = 1.0
-    page.défilement_vertical.hauteur = vue_rendu_page.hauteur comme r32
 }
 
 vue_rendu_page_sur_déplacement_souris :: fonc (base: *QT_Rappels_GLWidget, event: *QT_MouseEvent)
@@ -1341,14 +1273,17 @@ vue_rendu_page_sur_déplacement_souris :: fonc (base: *QT_Rappels_GLWidget, even
         envoie_mousemove(élément, position.x, position.y)
     }
 
-    défilement := *vue_rendu_page.page.défilement_vertical
+    défilement := arbre.défilement_vertical
+    saufsi défilement {
+        retourne
+    }
 
     ajourne_rendu := faux
 
     si défilement.est_cliqué {
         décalage := position.y comme r32 - défilement.pos_clique_y
         défilement.pos_clique_y = position.y comme r32
-        ajourne_rendu |= défilement.décale_par(décalage)
+        ajourne_rendu |= CSS.décale_par(défilement, décalage)
     }
 
     si défilement.rect.contient(position.x comme r32, position.y comme r32) {
@@ -1384,9 +1319,9 @@ vue_rendu_page_sur_pression_souris :: fonc (base: *QT_Rappels_GLWidget, event: *
     position: QT_Position
     QT_mouse_event_donne_position(event, *position)
 
-    si vue_rendu_page.page.défilement_vertical.est_survolé {
-        vue_rendu_page.page.défilement_vertical.est_cliqué = vrai
-        vue_rendu_page.page.défilement_vertical.pos_clique_y = position.y comme r32
+    si arbre.défilement_vertical && arbre.défilement_vertical.est_survolé {
+        arbre.défilement_vertical.est_cliqué = vrai
+        arbre.défilement_vertical.pos_clique_y = position.y comme r32
         retourne
     }
 
@@ -1412,8 +1347,8 @@ vue_rendu_page_sur_relachement_souris :: fonc (base: *QT_Rappels_GLWidget, event
         retourne
     }
 
-    si vue_rendu_page.page.défilement_vertical.est_cliqué {
-        vue_rendu_page.page.défilement_vertical.est_cliqué = faux
+    si arbre.défilement_vertical && arbre.défilement_vertical.est_cliqué {
+        arbre.défilement_vertical.est_cliqué = faux
         QT_widget_ajourne(vue_rendu_page.widget)
         retourne
     }
@@ -1447,7 +1382,7 @@ vue_rendu_page_sur_molette_souris :: fonc (base: *QT_Rappels_GLWidget, event: *Q
     }
 
     arbre := document.arbre_de_disposition
-    saufsi arbre {
+    saufsi arbre && arbre.défilement_vertical {
         retourne
     }
 
@@ -1457,13 +1392,13 @@ vue_rendu_page_sur_molette_souris :: fonc (base: *QT_Rappels_GLWidget, event: *Q
     NOMBRE_DE_LIGNES_PAR_ROULEMENT :: 5.0
     DÉCALAGE_PAR_ROULEMENT :: NOMBRE_DE_LIGNES_PAR_ROULEMENT * HAUTEURE_LIGNE
 
-    delta := DÉCALAGE_PAR_ROULEMENT * vue_rendu_page.page.défilement_vertical.ratio
+    delta := DÉCALAGE_PAR_ROULEMENT * arbre.défilement_vertical.ratio
 
     si delta_molette > 0 {
         delta = -delta
     }
 
-    si décale_par(*vue_rendu_page.page.défilement_vertical, delta) {
+    si CSS.décale_par(arbre.défilement_vertical, delta) {
         QT_widget_ajourne(vue_rendu_page.widget)
     }
 }
@@ -1471,10 +1406,14 @@ vue_rendu_page_sur_molette_souris :: fonc (base: *QT_Rappels_GLWidget, event: *Q
 vue_rendu_page_sur_sortie :: fonc (base: *QT_Rappels_GLWidget, event: *QT_Evenement @inutilisée)
 {
     vue_rendu_page := base comme *VueRenduPage
-    si vue_rendu_page.page.défilement_vertical.est_cliqué {
-        retourne
+    document := donne_document(vue_rendu_page.page)
+    si document && document.arbre_de_disposition && document.arbre_de_disposition.défilement_vertical {
+        arbre := document.arbre_de_disposition
+        si arbre.défilement_vertical.est_cliqué {
+            retourne
+        }
+        arbre.défilement_vertical.est_survolé = faux
     }
-    vue_rendu_page.page.défilement_vertical.est_survolé = faux
     QT_gui_application_restaure_curseur()
 }
 
@@ -1483,20 +1422,23 @@ vue_rendu_page_sur_relachement_cle :: fonc (base: *QT_Rappels_GLWidget, event: *
     vue_rendu_page := base comme *VueRenduPage
     touche := QT_key_event_donne_cle(event)
 
-    barre := *vue_rendu_page.page.défilement_vertical
     ajourne_rendu := faux
 
-    si touche == QT_Key.Home {
-        ajourne_rendu = barre.définis_position_y(0.0)
-    }
-    sinon si touche == QT_Key.End {
-        ajourne_rendu = barre.définis_position_y(barre.hauteur - barre.rect.hauteur)
-    }
-    sinon si touche == QT_Key.PageDown {
-        ajourne_rendu = barre.décale_par(barre.rect.hauteur * 0.9)
-    }
-    sinon si touche == QT_Key.PageUp {
-        ajourne_rendu = barre.décale_par(-barre.rect.hauteur * 0.9)
+    document := donne_document(vue_rendu_page.page)
+    si document && document.arbre_de_disposition && document.arbre_de_disposition.défilement_vertical && document.arbre_de_disposition.défilement_vertical.est_visible {
+        barre := document.arbre_de_disposition.défilement_vertical
+        si touche == QT_Key.Home {
+            ajourne_rendu = CSS.définis_position_y(barre, 0.0)
+        }
+        sinon si touche == QT_Key.End {
+            ajourne_rendu = CSS.définis_position_y(barre, barre.hauteur - barre.rect.hauteur)
+        }
+        sinon si touche == QT_Key.PageDown {
+            ajourne_rendu = CSS.décale_par(barre, barre.rect.hauteur * 0.9)
+        }
+        sinon si touche == QT_Key.PageUp {
+            ajourne_rendu = CSS.décale_par(barre, -barre.rect.hauteur * 0.9)
+        }
     }
 
     si ajourne_rendu {
@@ -1918,8 +1860,6 @@ rappels_interface_sur_document_est_prêt :: fonc (base: *RappelsInterface, docum
     QT_widget_definis_actif(rappels_fenêtre.widgets_page.bouton_arrière, index_courant > 0)
 
     QT_widget_ajourne(rappels_fenêtre.widget_rendu)
-
-    init_de(BarreDeDéfilement)(*rappels_fenêtre.page_web.défilement_vertical)
 
     QT_gui_application_restaure_curseur()
 }
