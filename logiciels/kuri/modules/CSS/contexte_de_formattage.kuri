@@ -371,13 +371,13 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
         si float.est_mot_clé(PROP_left) {
             it.définis_position(décalage_x, décalage_y + params_position.décalage_pour_floats_gauche)
             it.mesure(ctx, mode, nul)
-            ctx.ajoute_boite_flottante_gauche(it)
+            ctx.ajoute_boite_flottante_gauche(it, mode)
             continue
         }
         si float.est_mot_clé(PROP_right) {
             it.définis_position(décalage_x, décalage_y + params_position.décalage_pour_floats_droite)
             it.mesure(ctx, mode, nul)
-            ctx.ajoute_boite_flottante_droite(it)
+            ctx.ajoute_boite_flottante_droite(it, mode)
             continue
         }
 
@@ -465,6 +465,9 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
                 largeur_enfant := it.modèle_de_boite.marge.largeur
                 largeur_max_enfant = max(largeur_max_enfant, largeur_enfant)
             }
+
+            largeur_max_enfant = max(largeur_max_enfant, ctx.rect_boites_flottantes_gauches.largeur)
+            largeur_max_enfant = max(largeur_max_enfant, ctx.rect_boites_flottantes_droites.largeur)
 
             prop_largeur := noeud.propriétés.donne_valeur_calculée(IDPropriété.Width)
             si prop_largeur.est_auto() {
@@ -815,7 +818,7 @@ position_boite_absolue :: fonc (noeud: *NoeudDeDisposition, containing_block: &C
     }
 }
 
-ajoute_boite_flottante_gauche :: fonc (empl ctx: *ContexteDeFormattageBloc, noeud: *NoeudDeDisposition)
+ajoute_boite_flottante_gauche :: fonc (empl ctx: *ContexteDeFormattageBloc, noeud: *NoeudDeDisposition, mode: ModeDeFormattage)
 {
     containing_block := donne_containing_block(noeud, ctx)
     largeur_disponible := containing_block.donne_largeur()
@@ -831,14 +834,14 @@ ajoute_boite_flottante_gauche :: fonc (empl ctx: *ContexteDeFormattageBloc, noeu
         boite.position_x = ligne.donne_position_la_plus_à_gauche() comme r32
         boite.position_y = max(ligne.rect.y comme r32, boite.position_y)
 
-        si boite.position_x + boite.largeur <= bord_droit || boite.position_x <= bord_gauche {
+        si mode == ModeDeFormattage.BrisureDeLigneExplicite || (boite.position_x + boite.largeur <= bord_droit || boite.position_x <= bord_gauche) {
             arrête
         }
 
         ligne = ajoute_une_ligne(*ctx.lignes_boites_flottantes_gauche, containing_block, vrai)
     }
 
-    si instersecte_hors_touche(boite.donne_rectangle(), ctx.rect_boites_flottantes_droites) {
+    si mode != ModeDeFormattage.BrisureDeLigneExplicite && instersecte_hors_touche(boite.donne_rectangle(), ctx.rect_boites_flottantes_droites) {
         pour ligne_droite dans ctx.lignes_boites_flottantes_droite.lignes {
             saufsi instersecte_hors_touche(boite.donne_rectangle(), ligne_droite.rect) {
                 continue
@@ -871,7 +874,7 @@ ajoute_boite_flottante_gauche :: fonc (empl ctx: *ContexteDeFormattageBloc, noeu
     noeud.décale_vers_position(boite.position_x, boite.position_y)
 }
 
-ajoute_boite_flottante_droite :: fonc (empl ctx: *ContexteDeFormattageBloc, noeud: *NoeudDeDisposition)
+ajoute_boite_flottante_droite :: fonc (empl ctx: *ContexteDeFormattageBloc, noeud: *NoeudDeDisposition, mode: ModeDeFormattage)
 {
     containing_block := donne_containing_block(noeud, ctx)
     largeur_disponible := containing_block.donne_largeur()
@@ -887,14 +890,14 @@ ajoute_boite_flottante_droite :: fonc (empl ctx: *ContexteDeFormattageBloc, noeu
         boite.position_x = ligne.donne_position_la_plus_à_droite() comme r32 - boite.largeur
         boite.position_y = max(ligne.rect.y comme r32, boite.position_y)
 
-        si boite.position_x >= bord_gauche || boite.position_x + boite.largeur >= bord_droit {
+        si mode == ModeDeFormattage.BrisureDeLigneExplicite || boite.position_x >= bord_gauche || boite.position_x + boite.largeur >= bord_droit {
             arrête
         }
 
         ligne = ajoute_une_ligne(*ctx.lignes_boites_flottantes_droite, containing_block, faux)
     }
 
-    si instersecte_hors_touche(boite.donne_rectangle(), ctx.rect_boites_flottantes_gauches) {
+    si mode != ModeDeFormattage.BrisureDeLigneExplicite && instersecte_hors_touche(boite.donne_rectangle(), ctx.rect_boites_flottantes_gauches) {
         pour ligne_gauche dans ctx.lignes_boites_flottantes_gauche.lignes {
             saufsi instersecte_hors_touche(boite.donne_rectangle(), ligne_gauche.rect) {
                 continue
