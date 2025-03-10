@@ -1174,6 +1174,20 @@ est_espace_blanche_document :: fonc (base: *NoeudDeDisposition) -> bool
 
 ItemFlex :: struct {
     noeud: *NoeudDeDisposition
+
+    frozen: bool
+    flex_base_size: r32
+    hypothetical_main_size: r32
+    used_main_size: r32
+    target_main_size: r32
+    scaled_flex_shrink_factor: r32
+    violation: r32
+}
+
+donne_inner_flex_base_size :: fonc (item: *ItemFlex) -> r32
+{
+    // À FAIRE : inner_flex_base_size
+    retourne item.flex_base_size
 }
 
 LigneFlex :: struct {
@@ -1181,18 +1195,42 @@ LigneFlex :: struct {
     largeur: r32
 }
 
+toutes_les_items_sont_gelés :: fonc (ligne: *LigneFlex) -> bool
+{
+    pour ligne.items {
+        saufsi it.frozen {
+            retourne faux
+        }
+    }
+    retourne vrai
+}
+
 ContexteDeFormattageFlex :: struct {
     empl base: ContexteDeFormattage
     type = #type_de_cette_structure
     sur_formatte = contexte_formattage_flex_sur_formatte
 
+    contenant: *NoeudDeDisposition
+
     items: [..]ItemFlex
     lignes: [..]LigneFlex
+}
+
+donne_outer_main_size :: fonc (ctx: *ContexteDeFormattageFlex) -> r32
+{
+    retourne ctx.contenant.modèle_de_boite.marge.largeur
+}
+
+donne_inner_main_size :: fonc (ctx: *ContexteDeFormattageFlex) -> r32
+{
+    retourne ctx.contenant.modèle_de_boite.contenu.largeur
 }
 
 contexte_formattage_flex_sur_formatte :: fonc (base: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
 {
     ctx := base comme *ContexteDeFormattageFlex
+    ctx.contenant = noeud
+
     diffère {
         déloge(ctx.items)
         déloge(ctx.lignes)
@@ -1200,6 +1238,7 @@ contexte_formattage_flex_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
 
     construit_liste_items(ctx, noeud, mode)
     calcule_taille_items(ctx, noeud, mode)
+    // determine_the_flex_base_size_and_hypothetical_main_size_of_each_item(ctx, mode)
 
     direction := noeud.propriétés.donne_valeur_calculée(IDPropriété.FlexDirection).mot_clé
 
@@ -1235,7 +1274,7 @@ calcule_taille_items :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDis
 {
     largeur_disponible := noeud.modèle_de_boite.contenu.largeur
 
-    pour item dans ctx.items {
+    pour * item dans ctx.items {
         it := item.noeud
         flex_basis := résoud_flex_basis(it)
 
@@ -1256,6 +1295,82 @@ calcule_taille_items :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDis
         }
 
         it.mesure(ctx, mode, *largeur_désirée)
+        item.hypothetical_main_size = it.modèle_de_boite.marge.largeur
+    }
+}
+
+/* https://www.w3.org/TR/css-flexbox-1/#algo-main-item */
+determine_the_flex_base_size_and_hypothetical_main_size_of_each_item :: fonc (ctx: *ContexteDeFormattageFlex, mode: ModeDeFormattage)
+{
+    largeur_disponible := ctx.donne_inner_main_size()
+
+    pour * ctx.items {
+        flex_basis := résoud_flex_basis(it.noeud)
+        imprime("item[%].flex_basis : %\n", index_it, flex_basis)
+
+        // A. If the item has a definite used flex basis, that’s the flex base size. 
+        si flex_basis.est_percentage() || flex_basis.est_calc() {
+            définis_propriétés(ctx.ctx_calcul_style, it.noeud.propriétés)
+            largeur := calcule_pourcentage(ctx.ctx_calcul_style, flex_basis, largeur_disponible).pixels
+            it.flex_base_size = largeur comme r32
+            continue
+        }
+
+        si flex_basis.est_pixels() {
+            it.flex_base_size = flex_basis.pixels comme r32
+            continue
+        }
+
+        assert(flex_basis.est_mot_clé(PROP_content))
+
+        // À FAIRE : B. If the flex item has ...
+        //     an intrinsic aspect ratio,
+        //     a used flex basis of content, and
+        //     a definite cross size, 
+        // then the flex base size is calculated from its inner cross size and the flex item’s intrinsic aspect ratio.
+
+        // C. If the used flex basis is content or depends on its available space, and the flex container is being
+        //    sized under a min-content or max-content constraint (e.g. when performing automatic table layout [CSS21]),
+        //    size the item under that constraint. The flex base size is the item’s resulting main size.
+        si mode != ModeDeFormattage.Normal {
+            it.noeud.mesure(ctx, mode, nul)
+            it.flex_base_size = it.noeud.modèle_de_boite.marge.largeur
+            continue
+        }
+
+        // À FAIRE : D. Otherwise, if the used flex basis is content or depends on its available space, the available main size
+        //    is infinite, and the flex item’s inline axis is parallel to the main axis, lay the item out using the
+        //    rules for a box in an orthogonal flow [CSS3-WRITING-MODES].
+        //    The flex base size is the item’s max-content main size.
+
+        // E. Otherwise, size the item into the available space using its used flex basis in place of its main size,
+        //    treating a value of content as max-content. If a cross size is needed to determine the main size (e.g.
+        //    when the flex item’s main size is in its block axis) and the flex item’s cross size is auto and not
+        //    definite, in this calculation use fit-content as the flex item’s cross size. The flex base size is the
+        //    item’s resulting main size.
+        it.noeud.mesure(ctx, ModeDeFormattage.BrisureDeLigneExplicite, nul)
+        it.flex_base_size = it.noeud.modèle_de_boite.marge.largeur
+    }
+
+    // À FAIRE : When determining the flex base size, the item’s min and max main sizes are ignored (no clamping occurs).
+    // Furthermore, the sizing calculations that floor the content box size at zero when applying box-sizing are
+    // also ignored. (For example, an item with a specified size of zero, positive padding, and box-sizing:
+    // border-box will have an outer flex base size of zero—and hence a negative inner flex base size.)
+
+    // À FAIRE : The hypothetical main size is the item’s flex base size clamped according to its used min and max main
+    // sizes (and flooring the content box size at zero).
+    pour * ctx.items {
+        it.hypothetical_main_size = it.flex_base_size
+        min_width := it.noeud.propriétés.donne_valeur_utilisée(IDPropriété.MinWidth)
+        si min_width.est_pixels() && it.hypothetical_main_size < min_width.pixels {
+            it.hypothetical_main_size = min_width.pixels comme r32
+        }
+
+        max_width := it.noeud.propriétés.donne_valeur_utilisée(IDPropriété.MaxWidth)
+        si max_width.est_pixels() && it.hypothetical_main_size > max_width.pixels {
+            it.hypothetical_main_size = max_width.pixels comme r32
+        }
+        imprime("item[%].flex_base_size : %, .hypothetical_main_size : %\n", index_it, it.flex_base_size, it.hypothetical_main_size)
     }
 }
 
@@ -1277,28 +1392,246 @@ résoud_flex_basis :: fonc (noeud: *NoeudDeDisposition) -> ValeurDeStyle
     retourne flex_basis
 }
 
-formatte_flex_row :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage, reverse: bool)
+/* https://www.w3.org/TR/css-flexbox-1/#algo-line-break */
+collect_flex_items_into_flex_lines :: fonc (ctx: *ContexteDeFormattageFlex)
 {
-    largeur_disponible := noeud.modèle_de_boite.contenu.largeur
+    largeur_disponible := ctx.donne_inner_main_size()
 
-    /* Crée des lignes. */
     ligne_courante := tableau_ajoute_élément(*ctx.lignes)
     ligne_courante.items.pointeur = ctx.items.pointeur
 
-    flex_wrap := noeud.propriétés.donne_valeur_utilisée(IDPropriété.FlexWrap).mot_clé
+    flex_wrap := ctx.contenant.propriétés.donne_valeur_utilisée(IDPropriété.FlexWrap).mot_clé
 
-    pour item, index_item dans ctx.items {
-        it := item.noeud
-        largeur := it.modèle_de_boite.marge.largeur
+    pour * ctx.items {
+        largeur := it.hypothetical_main_size
 
         si flex_wrap == PROP_wrap && (ligne_courante.largeur + largeur) > largeur_disponible {
             ligne_courante = tableau_ajoute_élément(*ctx.lignes)
-            ligne_courante.items.pointeur = ctx.items.pointeur + index_item
+            ligne_courante.items.pointeur = ctx.items.pointeur + index_it
         }
 
         ligne_courante.largeur += largeur
         ligne_courante.items.taille += 1
     }
+}
+
+/* https://www.w3.org/TR/css-flexbox-1/#resolve-flexible-lengths */
+resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex)
+{
+    pour * ctx.lignes {
+        resolve_flexible_lengths(ctx, it)
+    }
+}
+
+resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneFlex)
+{
+    // 1. Determine the used flex factor. Sum the outer hypothetical main sizes of all
+    //    items on the line. If the sum is less than the flex container’s inner main size,
+    //    use the flex grow factor for the rest of this algorithm; otherwise, use the
+    //    flex shrink factor.
+    somme_items_sizes := 0.0
+    pour ligne.items {
+        somme_items_sizes += it.hypothetical_main_size
+    }
+
+    used_flex_factor := si somme_items_sizes < ctx.donne_inner_main_size() {
+        IDPropriété.FlexGrow
+    }
+    sinon {
+        IDPropriété.FlexShrink
+    }
+
+    // 2. Size inflexible items. Freeze, setting its target main size to its hypothetical main size…
+    pour * ligne.items {
+        doit_geler := faux
+
+        // any item that has a flex factor of zero
+        flex_factor := it.noeud.propriétés.donne_valeur_utilisée(used_flex_factor)
+        si flex_factor.number == 0.0 {
+            doit_geler = vrai
+        }
+        // if using the flex grow factor: any item that has a flex base size greater than its hypothetical main size
+        sinon si used_flex_factor == IDPropriété.FlexGrow {
+            doit_geler = it.flex_base_size > it.hypothetical_main_size
+        }
+        // if using the flex shrink factor: any item that has a flex base size smaller than its hypothetical main size
+        sinon {
+            doit_geler = it.flex_base_size < it.hypothetical_main_size
+        }
+
+        si doit_geler {
+            it.frozen = vrai
+            it.target_main_size = it.hypothetical_main_size
+        }
+    }
+
+    // 3. Calculate initial free space. Sum the outer sizes of all items on the line, and subtract this
+    //    from the flex container’s inner main size. For frozen items, use their outer target main size;
+    //    for other items, use their outer flex base size.
+    initial_free_space := calcule_espace_libre_items_gelés(ctx, ligne)
+    imprime("initial free space : %\n", initial_free_space)
+
+    // 4. Loop:
+    boucle {
+        // a. Check for flexible items. If all the flex items on the line are frozen, free space has been
+        //    distributed; exit this loop. 
+        si ligne.toutes_les_items_sont_gelés() {
+            arrête
+        }
+
+        // b. Calculate the remaining free space as for initial free space, above.
+        //    If the sum of the unfrozen flex items’ flex factors is less than one, multiply the initial
+        //    free space by this sum. If the magnitude of this value is less than the magnitude of the
+        //    remaining free space, use this as the remaining free space.
+        remaining_free_space := calcule_espace_libre_items_gelés(ctx, ligne)
+        somme_flex_factors := 0.0
+        pour * ligne.items {
+            si it.frozen {
+                continue
+            }
+            somme_flex_factors += it.noeud.propriétés.donne_valeur_utilisée(used_flex_factor).number comme r32
+        }
+
+        si somme_flex_factors < 1.0 {
+            initial_free_space_pondéré := initial_free_space * somme_flex_factors
+            si initial_free_space_pondéré < remaining_free_space {
+                remaining_free_space = initial_free_space_pondéré
+            }
+        }
+
+        imprime("somme_flex_factors : %, remaining_free_space : %\n", somme_flex_factors, remaining_free_space)
+
+        // c: Distribute free space proportional to the flex factors.
+        // If the remaining free space is zero
+        si remaining_free_space == 0.0 {
+            // Do nothing. 
+        }
+        // If using the flex grow factor
+        sinon si used_flex_factor == IDPropriété.FlexGrow {
+            // Find the ratio of the item’s flex grow factor to the sum of the flex grow factors of all unfrozen
+            // items on the line. Set the item’s target main size to its flex base size plus a fraction of the
+            // remaining free space proportional to the ratio.
+            pour * ligne.items {
+                flex_factor := it.noeud.propriétés.donne_valeur_utilisée(used_flex_factor).number comme r32
+                ratio := flex_factor / somme_flex_factors
+                it.target_main_size = it.flex_base_size + remaining_free_space * ratio
+            }
+        }
+        // If using the flex shrink factor
+        sinon si used_flex_factor == IDPropriété.FlexShrink {
+            // For every unfrozen item on the line, multiply its flex shrink factor by its inner flex base size,
+            // and note this as its scaled flex shrink factor. Find the ratio of the item’s scaled flex shrink
+            // factor to the sum of the scaled flex shrink factors of all unfrozen items on the line.
+            // Set the item’s target main size to its flex base size minus a fraction of the absolute value of
+            // the remaining free space proportional to the ratio. Note this may result in a negative inner main
+            // size; it will be corrected in the next step.
+            somme_scaled_flex_shrink_factors := 0.0
+            pour * ligne.items {
+                si it.frozen {
+                    continue
+                }
+
+                flex_factor := it.noeud.propriétés.donne_valeur_utilisée(used_flex_factor).number comme r32
+                it.scaled_flex_shrink_factor = it.donne_inner_flex_base_size() * flex_factor
+                somme_scaled_flex_shrink_factors += it.scaled_flex_shrink_factor
+            }
+
+            pour * ligne.items {
+                si it.frozen {
+                    continue
+                }
+
+                ratio := it.scaled_flex_shrink_factor / somme_scaled_flex_shrink_factors
+                it.target_main_size = it.flex_base_size - abs(remaining_free_space * ratio)
+            }
+        }
+        // Otherwise
+        sinon {
+            // Do nothing.
+        }
+
+        // d. Fix min/max violations. Clamp each non-frozen item’s target main size by its used min and max main
+        //    sizes and floor its content-box size at zero. If the item’s target main size was made smaller by this,
+        //    it’s a max violation. If the item’s target main size was made larger by this, it’s a min violation.
+        violations := 0.0
+        pour * ligne.items {
+            si it.frozen {
+                continue
+            }
+
+            target_main_size := it.target_main_size
+
+            min_width := it.noeud.propriétés.donne_valeur_utilisée(IDPropriété.MinWidth)
+            si min_width.est_pixels() && target_main_size < min_width.pixels {
+                target_main_size = min_width.pixels comme r32
+            }
+
+            max_width := it.noeud.propriétés.donne_valeur_utilisée(IDPropriété.MaxWidth)
+            si max_width.est_pixels() && target_main_size > max_width.pixels {
+                target_main_size = max_width.pixels comme r32
+            }
+
+            it.violation = target_main_size - it.target_main_size
+            it.target_main_size = target_main_size
+            imprime("violation : %\n", it.violation)
+        }
+
+        // e.  Freeze over-flexed items. The total violation is the sum of the adjustments from the previous step
+        //     ∑(clamped size - unclamped size). If the total violation is:
+        si violations == 0.0 {
+            // Freeze all items.
+            pour * ligne.items {
+                it.frozen = vrai
+            }
+        }
+        sinon si violations > 0.0 {
+            // Freeze all the items with min violations. 
+            pour * ligne.items {
+                si it.violation > 0.0 {
+                    it.frozen = vrai
+                }
+            }
+        }
+        sinon {
+            // Freeze all the items with max violations.
+            pour * ligne.items {
+                si it.violation < 0.0 {
+                    it.frozen = vrai
+                }
+            }
+        }
+
+        // f. Return to the start of this loop. 
+    }
+
+    pour * ligne.items {
+        it.used_main_size = it.target_main_size
+        imprime("item[%].used_main_size = %\n", index_it, it.used_main_size)
+    }
+}
+
+calcule_espace_libre_items_gelés :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneFlex) -> r32
+{
+    outer_sizes := 0.0
+    pour * ligne.items {
+        si it.frozen {
+            outer_sizes += it.target_main_size
+        }
+        sinon {
+            outer_sizes += it.flex_base_size
+        }
+    }
+
+    retourne ctx.donne_inner_main_size() - outer_sizes
+}
+
+formatte_flex_row :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage, reverse: bool)
+{
+    largeur_disponible := noeud.modèle_de_boite.contenu.largeur
+
+    /* Crée des lignes. */
+    collect_flex_items_into_flex_lines(ctx)
+    // resolve_flexible_lengths(ctx)
 
     /* Dispose les noeuds. */
     décalage_x := noeud.modèle_de_boite.contenu.x
