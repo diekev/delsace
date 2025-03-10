@@ -13,6 +13,77 @@ importe Triage
 importe Typographie
 
 /* ------------------------------------------------------------------------- */
+/** \nom BarreDeDéfilement
+ * \{ */
+
+BarreDeDéfilement :: struct {
+    rect: RectanglePosDim(r32)
+    est_cliqué: bool
+    est_survolé: bool
+    est_visible: bool
+    pos_clique_y: r32
+    hauteur: r32
+    ratio : r32 = 1.0
+}
+
+crée_barre_de_défilement :: fonc (largeur_vue: r32, hauteur_vue: r32, hauteur_contenu: r32) -> *BarreDeDéfilement
+{
+    barre := loge(BarreDeDéfilement)
+    ajourne(barre, largeur_vue, hauteur_vue, hauteur_contenu)    
+    retourne barre
+}
+
+ajourne :: fonc (barre: *BarreDeDéfilement, largeur_vue: r32, hauteur_vue: r32, hauteur_contenu: r32)
+{
+    hauteur_barre := hauteur_vue * hauteur_vue / hauteur_contenu
+
+    si barre.rect.hauteur == hauteur_barre {
+        retourne
+    }
+
+    /* Ajourne la barre */
+    largeur_barre := 12.0
+    barre.ratio = hauteur_vue / hauteur_contenu
+
+    rect_barre: RectanglePosDim(r32)
+    rect_barre.x = largeur_vue - largeur_barre
+    rect_barre.largeur = largeur_barre
+    rect_barre.y = 0.0
+    rect_barre.hauteur = hauteur_barre
+
+    barre.hauteur = hauteur_vue
+
+    barre.rect = rect_barre
+}
+
+détruit :: fonc (barre: *BarreDeDéfilement)
+{
+    déloge(barre)
+}
+
+définis_position_y :: fonc (barre: *BarreDeDéfilement, y: r32) -> bool
+{
+    vieil_y := barre.rect.y
+    barre.rect.y = y
+
+    si barre.rect.y < 0.0 {
+        barre.rect.y = 0.0
+    }
+    sinon si (barre.rect.y + barre.rect.hauteur) > barre.hauteur {
+        barre.rect.y = barre.hauteur - barre.rect.hauteur
+    }
+
+    retourne barre.rect.y != vieil_y
+}
+
+décale_par :: fonc (barre: *BarreDeDéfilement, delta: r32) -> bool
+{
+    retourne définis_position_y(barre, barre.rect.y + delta)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Arbre de disposition
  * \{ */
 
@@ -30,6 +101,8 @@ ArbreDeDisposition :: struct {
 
     noeuds_position_float: n32
     noeuds_position_absolue: n32
+
+    défilement_vertical: *BarreDeDéfilement
 }
 
 détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
@@ -129,6 +202,7 @@ détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
 
     détruit_stacking_context(arbre.stacking_context)
     détruit_commandes(arbre.commandes)
+    détruit(arbre.défilement_vertical)
     déloge(arbre.tampon_id)
     déloge(arbre.lignes_tenantes)
     déloge(arbre.noeuds)
@@ -1316,8 +1390,48 @@ dispose_arbre :: fonc (globales: *GlobalesDessin, arbre: *ArbreDeDisposition, la
 
     mesure(arbre.racine, *ctx, ModeDeFormattage.Normal, nul)
 
-    // imprime("taille arbre : %x%\n", résultat.racine.largeur, résultat.racine.hauteur)
+    largeur_descendants, hauteur_descendants := donne_taille_descendants(arbre.racine)
+    // imprime("taille arbre : %x%, descedants %x%\n", arbre.racine.modèle_de_boite.marge.largeur, arbre.racine.modèle_de_boite.marge.hauteur, largeur_descendants, hauteur_descendants)
+
+    si hauteur_descendants > hauteur comme r32 {
+        si arbre.défilement_vertical {
+            ajourne(arbre.défilement_vertical, largeur comme r32, hauteur comme r32, hauteur_descendants)
+        }
+        sinon {
+            arbre.défilement_vertical = crée_barre_de_défilement(largeur comme r32, hauteur comme r32, hauteur_descendants)
+        }
+
+        overflow := arbre.racine.propriétés.donne_valeur_utilisée(IDPropriété.OverflowY)
+        arbre.défilement_vertical.est_visible = overflow.est_mot_clé(PROP_visible) || overflow.est_mot_clé(PROP_scroll)
+    }
+    sinon {
+        détruit(arbre.défilement_vertical)
+        arbre.défilement_vertical = nul
+    }
+
     // imprime_statistiques(arbre)
+}
+
+donne_taille_descendants :: fonc (noeud: *NoeudDeDisposition) -> (largeur: r32, hauteur: r32)
+{
+    largeur = 0.0
+    hauteur = 0.0
+
+    pour ItératriceArbre(noeud) {
+        position_x := it.modèle_de_boite.marge.x + it.modèle_de_boite.marge.largeur
+        position_y := it.modèle_de_boite.marge.y + it.modèle_de_boite.marge.hauteur
+
+        // À FAIRE : prendre en compte le débordement des enfants du noeud courant
+
+        si largeur < position_x {
+            largeur = position_x
+        }
+        si hauteur < position_y {
+            hauteur = position_y
+        }
+    }
+
+    retourne largeur, hauteur
 }
 
 CréatriceArbre :: struct {
