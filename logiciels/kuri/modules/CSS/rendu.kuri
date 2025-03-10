@@ -260,6 +260,7 @@ ContexteDessin :: struct {
     globales: *GlobalesDessin
     peintre: *Peintre
     commandes: *CommandesDeRendu
+    arbre: *ArbreDeDisposition
 
     hauteur_vue: z32
     largeur_vue: z32
@@ -290,12 +291,15 @@ dessine :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
     arbre.hauteur_vue = ctx.hauteur_vue
     arbre.largeur_vue = ctx.largeur_vue
 
+    ctx.arbre = arbre
     ctx.commandes = arbre.donne_commandes_de_rendu()
     réinitialise(ctx.commandes)
 
     dessine_stacking_context(arbre.stacking_context, ctx)
     // imprime("---------------------------------------------\n")
     // dessine_stacking_context_standard(arbre.stacking_context, ctx)
+
+    // imprime_et_réinitialise_fut_dessiné(arbre.stacking_context)
 
     // pour arbre.noeuds {
     //     si it.fut_dessiné {
@@ -310,7 +314,8 @@ dessine :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
     //     position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position)
     //     float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float)
     //     display := it.donne_display()
-    //     imprime("noeud non dessiné : % (position : %, float : %, outer : %, inner : %)\n", it.donne_nom_classe(), position, float, display.outer_type, display.inner_type)
+    //     imprime("noeud non dessiné : % (position : %, float : %, outer : %, inner : %) ", it.donne_nom_classe(), position, float, display.outer_type, display.inner_type)
+    //     imprime_élément(it, "")
     // }
 
     dessine_commandes(ctx.commandes, ctx.peintre)
@@ -321,6 +326,7 @@ dessine_tampon_id_couleur :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDes
     arbre.hauteur_vue = ctx.hauteur_vue
     arbre.largeur_vue = ctx.largeur_vue
 
+    ctx.arbre = arbre
     ctx.commandes = arbre.donne_commandes_de_rendu()
     réinitialise(ctx.commandes)
 
@@ -336,6 +342,7 @@ dessine_tampon_id_couleur :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDes
 dessine_tampon_id :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
 {
     assert(ctx.tampon_id_couleur == faux)
+    ctx.arbre = arbre
     /* Tampon ID. */
 
     IGUMI.réinitialise_données_id()

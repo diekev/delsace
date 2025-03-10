@@ -14,13 +14,15 @@ StackingContext :: struct {
 
     id: n32
     racine: *NoeudDeDisposition
+    fut_dessiné: bool
 }
 
 #portée_module
 
-construit_arbre_de_stacking_contexts :: fonc (racine: *NoeudDeDisposition) -> *StackingContext
+construit_arbre_de_stacking_contexts :: fonc (arbre: *ArbreDeDisposition, racine: *NoeudDeDisposition) -> *StackingContext
 {
     constructrice: ConstructriceStackingContext
+    constructrice.arbre = arbre
     résultat := construit_arbre_de_stacking_contexts(*constructrice, racine, nul)
     tri_stacking_contexts(résultat)
     retourne résultat
@@ -30,6 +32,19 @@ détruit_stacking_context :: fonc (ctx: *StackingContext)
 {
     déloge_tableau_et_ses_éléments(ctx.enfants, détruit_stacking_context)
     déloge(ctx)
+}
+
+imprime_et_réinitialise_fut_dessiné :: fonc (ctx: *StackingContext)
+{
+    saufsi ctx.fut_dessiné {
+        imprime("stacking context non dessiné : % (z-index %, opacity %)", ctx.id, ctx.donne_z_index(), ctx.donne_opacité())
+        imprime_élément(ctx.racine, " pour")
+    }
+
+    ctx.fut_dessiné = faux
+    pour ctx.enfants {
+        imprime_et_réinitialise_fut_dessiné(it)
+    }
 }
 
 #portée_fichier
@@ -100,12 +115,14 @@ ajoute_enfant :: fonc (parent: *StackingContext, enfant: *StackingContext)
 #portée_fichier
 
 ConstructriceStackingContext :: struct {
+    arbre: *ArbreDeDisposition
     id: n32
 }
 
 crée_stacking_context :: fonc (constructrice: *ConstructriceStackingContext) -> *StackingContext
 {
     résultat := loge(StackingContext)
+    tableau_ajoute(*constructrice.arbre.stacking_contexts, résultat)
     résultat.id = constructrice.id
     constructrice.id += 1
     retourne résultat
@@ -279,6 +296,9 @@ dessine_stacking_context_standard :: fonc (stacking_context: *StackingContext, c
 dessine_stacking_context_pour_élément :: fonc (stacking_context: *StackingContext, élément: *NoeudDeDisposition, ctx: *ContexteDessin)
 {
     élément.fut_dessiné = vrai
+    si stacking_context {
+        stacking_context.fut_dessiné = vrai
+    }
 
     // 1. If the element is a root element:
     si élément.parent == nul {
@@ -287,25 +307,8 @@ dessine_stacking_context_pour_élément :: fonc (stacking_context: *StackingCont
         //    the origin that would be used if it was painted for the root element.
         dessine_arrière_plan(ctx, élément)
     }
-    // 2. If the element is a block, list-item, or other block equivalent:
-    sinon si is_block_list_item_or_block_equivalent(élément) {
-        // 1. background color of element unless it is the root element.
-        // 2. background image of element unless it is the root element.
-        // 3. border of element.
-        dessine_arrière_plan(ctx, élément)
-        dessine_bordure(ctx, élément)
-    }
-    // Otherwise, if the element is a block level table:
-    sinon si is_block_level_table(élément) {
-        // 1. table backgrounds (color then image) unless it is the root element.
-        // 2. column group backgrounds (color then image).
-        // 3. column backgrounds (color then image).
-        // 4. row group backgrounds (color then image).
-        // 5. row backgrounds (color then image).
-        // 6. cell backgrounds (color then image).
-        // 7. all table borders (in tree order for separated borders).
-        dessine_arrière_plan(ctx, élément)
-        dessine_bordure(ctx, élément)
+    sinon {
+        dessine_arrière_plan_et_bordures_bloc(ctx, élément)
     }
 
     // 3. Stacking contexts formed by positioned descendants with negative z-indices (excluding 0)
@@ -329,26 +332,7 @@ dessine_stacking_context_pour_élément :: fonc (stacking_context: *StackingCont
     // 4. For all its in-flow, non-positioned, block-level descendants in tree order:
     donne_in_flow_non_positioned_block_level_descendants(élément, *descendants)
     pour descendants {
-        // If the element is a block, list-item, or other block equivalent:
-        si is_block_list_item_or_block_equivalent(it) {
-            // 1. background color of element.
-            // 2. background image of element.
-            // 3. border of element.
-            dessine_arrière_plan(ctx, it)
-            dessine_bordure(ctx, it)
-        }
-        // Otherwise, if the element is a block level table:
-        sinon si is_block_level_table(it) {
-            // 1. table backgrounds (color then image).
-            // 2. column group backgrounds (color then image).
-            // 3. column backgrounds (color then image).
-            // 4. row group backgrounds (color then image).
-            // 5. row backgrounds (color then image).
-            // 6. cell backgrounds (color then image).
-            // 7. all table borders (in tree order for separated borders).
-            dessine_arrière_plan(ctx, it)
-            dessine_bordure(ctx, it)
-        }
+        dessine_arrière_plan_et_bordures_bloc(ctx, it)
     }
 
     // 5. All non-positioned floating descendants, in tree order. For each one of these,
@@ -379,22 +363,20 @@ dessine_stacking_context_pour_élément :: fonc (stacking_context: *StackingCont
         }
     }
 
-    // 8. All positioned descendants with 'z-index: auto' or 'z-index: 0', in tree order. For those with 'z-index: auto', treat the element as if it created a new stacking context, but any positioned descendants and descendants which actually create a new stacking context should be considered part of the parent stacking context, not this new one. For those with 'z-index: 0', treat the stacking context generated atomically.
+    // 8. All positioned descendants with 'z-index: auto' or 'z-index: 0', in tree order.
+    //    For those with 'z-index: auto', treat the element as if it created a new stacking context,
+    //    but any positioned descendants and descendants which actually create a new stacking context
+    //    should be considered part of the parent stacking context, not this new one.
+    //    For those with 'z-index: 0', treat the stacking context generated atomically.
     descendants.taille = 0
     donne_positioned_descendants_with_z_index_auto_ou_zéro(élément, *descendants)
 
     pour descendants {
-        z_index := it.propriétés.donne_valeur_utilisée(IDPropriété.ZIndex)
-        si z_index.est_auto() {
-            // À FAIRE assert(it.id_stacking_context == ctx.id_stacking_context)
-            dessine_stacking_context_pour_élément(nul, it, ctx)
+        si it.id_stacking_context != ctx.id_stacking_context {
+            dessine_stacking_context_standard(ctx.arbre.stacking_contexts[it.id_stacking_context], ctx)
         }
-        sinon si stacking_context {
-            pour s dans stacking_context.enfants {
-                si it.id == s.id {
-                    dessine_stacking_context(s, ctx)
-                }
-            }
+        sinon {
+            dessine_stacking_context_pour_élément(nul, it, ctx)
         }
     }
 
@@ -415,6 +397,143 @@ dessine_stacking_context_pour_élément :: fonc (stacking_context: *StackingCont
     // 10. Finally, implementations that do not draw outlines in steps above must draw outlines from this stacking context at this stage. (It is recommended to draw outlines in this step and not in the steps above.)
 }
 
+dessine_arrière_plan_et_bordures_bloc :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition)
+{
+    // If the element is a block, list-item, or other block equivalent:
+    si is_block_list_item_or_block_equivalent(noeud) {
+        // 1. background color of element.
+        // 2. background image of element.
+        // 3. border of element.
+        dessine_arrière_plan(ctx, noeud)
+        dessine_bordure(ctx, noeud)
+        retourne
+    }
+
+    // Otherwise, if the element is a block level table:
+    si is_block_level_table(noeud) {
+        si noeud.table_virtuelle.type == TableWrapperBox {
+            retourne
+        }
+
+        assert(noeud.table_virtuelle.type == TableBox)
+        table := noeud comme *TableBox
+
+        // 1. table backgrounds (color then image).
+        dessine_arrière_plan(ctx, table)
+
+        // 2. column group backgrounds (color then image).
+
+        // 3. column backgrounds (color then image).
+
+        // 4. row group backgrounds (color then image).
+        dessine_arrière_plan_row_group(ctx, table)
+
+        // 5. row backgrounds (color then image).
+        dessine_arrière_plan_row(ctx, table)
+
+        // 6. cell backgrounds (color then image).
+        dessine_arrière_plan_cell(ctx, table)
+
+        // 7. all table borders (in tree order for separated borders).
+        dessine_bordures_cell(ctx, table)
+        dessine_bordure(ctx, table)
+
+        retourne
+    }
+}
+
+dessine_arrière_plan_row_group :: fonc (ctx: *ContexteDessin, table: *TableBox)
+{
+    pour table.enfants {
+        saufsi est_row_group_box(it) {
+            continue
+        }
+
+        it.fut_dessiné = vrai
+        dessine_arrière_plan(ctx, it)
+    }
+}
+
+dessine_arrière_plan_row :: fonc (ctx: *ContexteDessin, table: *TableBox)
+{
+    pour table.enfants {
+        si it.table_virtuelle.type == TableRowBox {
+            it.fut_dessiné = vrai
+            dessine_arrière_plan(ctx, it)
+            continue
+        }
+
+        saufsi est_row_group_box(it) {
+            continue
+        }
+
+        pour enfant dans it.enfants {
+            si enfant.table_virtuelle.type == TableRowBox {
+                enfant.fut_dessiné = vrai
+                dessine_arrière_plan(ctx, enfant)
+            }
+        }
+    }
+}
+
+dessine_arrière_plan_cell :: fonc (ctx: *ContexteDessin, table: *TableBox)
+{
+    pour table.enfants {
+        si it.table_virtuelle.type == TableRowBox {
+            dessine_arrière_plan_cell(ctx, it comme *TableRowBox)
+        }
+
+        saufsi est_row_group_box(it) {
+            continue
+        }
+
+        pour enfant dans it.enfants {
+            si enfant.table_virtuelle.type == TableRowBox {
+                dessine_arrière_plan_cell(ctx, enfant comme *TableRowBox)
+            }
+        }
+    }
+}
+
+dessine_arrière_plan_cell :: fonc (ctx: *ContexteDessin, row: *TableRowBox)
+{
+    pour row.enfants {
+        si it.table_virtuelle.type == TableCellBox {
+            it.fut_dessiné = vrai
+            dessine_arrière_plan(ctx, it)
+        }
+    }
+}
+
+dessine_bordures_cell :: fonc (ctx: *ContexteDessin, table: *TableBox)
+{
+    pour table.enfants {
+        si it.table_virtuelle.type == TableRowBox {
+            dessine_bordures_cell(ctx, it comme *TableRowBox)
+        }
+
+        saufsi est_row_group_box(it) {
+            continue
+        }
+
+        pour enfant dans it.enfants {
+            si enfant.table_virtuelle.type == TableRowBox {
+                dessine_bordures_cell(ctx, enfant comme *TableRowBox)
+            }
+        }
+    }
+}
+
+dessine_bordures_cell :: fonc (ctx: *ContexteDessin, row: *TableRowBox)
+{
+    pour row.enfants {
+        si it.table_virtuelle.type == TableCellBox {
+            it.fut_dessiné = vrai
+            dessine_bordure(ctx, it)
+        }
+    }
+}
+
 dessine_stacking_context_étape_7 :: fonc (élément: *NoeudDeDisposition, ctx: *ContexteDessin)
 {
     // 1. If the element is a block-level replaced element, then: the replaced content, atomically.
@@ -426,11 +545,11 @@ dessine_stacking_context_étape_7 :: fonc (élément: *NoeudDeDisposition, ctx: 
 
     si (élément.table_virtuelle.type == NoeudDeDispositionBloc || élément.table_virtuelle.type == NoeudDeDispositionInline || élément.table_virtuelle.type == TableWrapperBox || élément.table_virtuelle.type == TableBox || élément.table_virtuelle.type == TableCellBox) {
         élément_bloc := élément comme *NoeudDeDispositionBloc
+        élément.fut_dessiné = vrai
         lignes_tenante := élément_bloc.lignes_tenante
         saufsi lignes_tenante {
             retourne
         }
-        élément.fut_dessiné = vrai
 
         pour * lignes_tenante.fragments {
             it.noeud.fut_dessiné = vrai
