@@ -905,7 +905,7 @@ dessine_image :: fonc (ctx: *ContexteDessin, image: ImageIO, rect: RectanglePosD
     }
 }
 
-dessine_arrière_plan :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDispositionBloc)
+dessine_arrière_plan :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition)
 {
     commandes := ctx.commandes
 
@@ -929,20 +929,8 @@ dessine_arrière_plan :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDispositionB
         rayons := [ border_radius_top_left, border_radius_top_right, border_radius_bottom_right, border_radius_bottom_left ]
         commandes.remplis_rectangle_arrondi(rect_noeud, rayons, background_color)
     }
-    sinon si noeud.parent == nul && noeud.élément && noeud.élément.local_name == HTML.TAG_html {
-        /* Hérite de l'arrière-plan du "body".
-            * https://www.w3.org/TR/CSS21/colors.html#background */
-        body := HTML.donne_élément_body(noeud.élément.document)
-        si body && body.noeud_de_disposition {
-            background_color = body.noeud_de_disposition.propriétés.donne_valeur_utilisée(IDPropriété.BackgroundColor).couleur
-            si background_color.a != 0 {
-                /* À FAIRE : ne peint pas l'arrière-plan du "body" dans ce cas. */
-                rect_noeud: RectanglePosDim(r32)
-                rect_noeud.hauteur = ctx.hauteur_vue comme r32
-                rect_noeud.largeur = ctx.largeur_vue comme r32
-                commandes.remplis_rectangle(rect_noeud, background_color)
-            }
-        }
+    sinon si noeud.parent == nul {
+        dessine_arrière_plan_racine_html(ctx, noeud)
     }
 
     image := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BackgroundImage)
@@ -980,6 +968,34 @@ dessine_arrière_plan :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDispositionB
     commandes.dessine_image(image_data, rect_image, rect, répétition)
 }
 
+dessine_arrière_plan_racine_html :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition)
+{
+    élément := noeud.donne_élément()
+    saufsi élément {
+        retourne
+    }
+
+    saufsi élément.local_name == HTML.TAG_html {
+        retourne
+    }
+
+    /* Hérite de l'arrière-plan du "body".
+     * https://www.w3.org/TR/CSS21/colors.html#background */
+    body := HTML.donne_élément_body(élément.document)
+    saufsi body && body.noeud_de_disposition {
+        retourne
+    }
+
+    background_color := body.noeud_de_disposition.propriétés.donne_valeur_utilisée(IDPropriété.BackgroundColor).couleur
+    si background_color.a != 0 {
+        /* À FAIRE : ne peint pas l'arrière-plan du "body" dans ce cas. */
+        rect_noeud: RectanglePosDim(r32)
+        rect_noeud.hauteur = ctx.hauteur_vue comme r32
+        rect_noeud.largeur = ctx.largeur_vue comme r32
+        ctx.commandes.remplis_rectangle(rect_noeud, background_color)
+    }
+}
+
 convertis_genre_répétition_image :: fonc (mot_clé: CSSOMString) -> GenreRépétitionImage
 {
     si mot_clé == PROP_repeat {
@@ -994,7 +1010,7 @@ convertis_genre_répétition_image :: fonc (mot_clé: CSSOMString) -> GenreRép�
     retourne GenreRépétitionImage.Aucune
 }
 
-dessine_bordure :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDispositionBloc)
+dessine_bordure :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition)
 {
     bordure := donne_bordure(*noeud.propriétés.style)
 
