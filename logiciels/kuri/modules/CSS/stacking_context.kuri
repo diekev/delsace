@@ -426,7 +426,10 @@ dessine_stacking_context_étape_7 :: fonc (élément: *NoeudDeDisposition, ctx: 
 
     si (élément.table_virtuelle.type == NoeudDeDispositionBloc || élément.table_virtuelle.type == NoeudDeDispositionInline || élément.table_virtuelle.type == TableWrapperBox || élément.table_virtuelle.type == TableBox || élément.table_virtuelle.type == TableCellBox) {
         élément_bloc := élément comme *NoeudDeDispositionBloc
-        lignes_tenante := *élément_bloc.lignes_tenante
+        lignes_tenante := élément_bloc.lignes_tenante
+        saufsi lignes_tenante {
+            retourne
+        }
         élément.fut_dessiné = vrai
 
         pour * lignes_tenante.fragments {
