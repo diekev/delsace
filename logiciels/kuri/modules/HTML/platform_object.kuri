@@ -47,11 +47,43 @@ crée_platform_object :: fonc (tas_de_mémoire: *JavaScript.TasDeMémoire, realm
 }
 
 /* https://html.spec.whatwg.org/multipage/nav-history-apis.html#isplatformobjectsameorigin-(-o-) */
-is_platform_object_same_origin :: fonc (object: *JavaScript.Object @inutilisée) -> bool
+is_platform_object_same_origin :: fonc (object: *PlatformObject) -> bool
 {
     // 1. Return true if the current settings object's origin is same origin-domain with O's relevant settings object's origin, and false otherwise.
-    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
-    retourne faux
+    current := donne_current_settings_object(object)
+    relevant := donne_relevant_settings_object(object)
+    retourne sont_même_domaine_origine(current.donne_origin(), relevant.donne_origin())
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 8.1.3.3.3 Current
+ * https://html.spec.whatwg.org/multipage/webappapis.html#relevant
+ * \{ */
+
+donne_current_realm :: fonc (platform_object: *PlatformObject) -> *JavaScript.Realm
+{
+    mv := JavaScript.donne_mv(platform_object.realm)
+    retourne JavaScript.donne_current_realm(mv)
+}
+
+donne_current_settings_object :: fonc (platform_object: *PlatformObject) -> *EnvironmentSettings
+{
+    realm := platform_object.donne_current_realm()
+    saufsi realm {
+        retourne nul
+    }
+    retourne JavaScript.donne_données(realm.host_defined, EnvironmentSettings)
+}
+
+donne_current_global_object :: fonc (platform_object: *PlatformObject) -> *JavaScript.Object
+{
+    realm := platform_object.donne_current_realm()
+    saufsi realm {
+        retourne nul
+    }
+    retourne realm.global_object
 }
 
 /** \} */

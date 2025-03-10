@@ -523,6 +523,31 @@ sont_même_origine :: fonc (a: Origin, b: Origin) -> bool
     retourne faux
 }
 
+/* https://html.spec.whatwg.org/multipage/browsers.html#same-origin-domain */
+sont_même_domaine_origine :: fonc (a: Origin, b: Origin) -> bool
+{
+    // 1. If A and B are the same opaque origin, then return true.
+    si a.est_opaque && b.est_opaque {
+        retourne a.valeur_opaque == b.valeur_opaque
+    }
+
+    // 2. If A and B are both tuple origins:
+    si !a.est_opaque && !b.est_opaque {
+        // 1. If A and B's schemes are identical, and their domains are identical and non-null, then return true.
+        si a.scheme == b.scheme && a.domain.possède_valeur() && b.domain.possède_valeur() && a.domain.Quelque == b.domain.Quelque {
+            retourne vrai
+        }
+
+        // 2. Otherwise, if A and B are same origin and their domains are both null, return true.
+        si sont_même_origine(a, b) && !a.domain.possède_valeur() && !b.domain.possède_valeur() {
+            retourne vrai
+        }
+    }
+
+    // 3. Return false.
+    retourne faux
+}
+
 /* Valeur unique pour chaque origine opaque */
 valeur_origine_opaque: z32
 
