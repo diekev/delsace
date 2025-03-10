@@ -13,6 +13,8 @@ importe #inemployé JavaScript
 TableVirtuelleNoeud :: struct {
     empl base_event_target: TableVirtuelleEventTarget
 
+    sur_get_the_parent = node_sur_get_the_parent
+
     /* Appelé quand le noeud est insérer dans un noeud parent. */
     sur_insertion: fonc(*Noeud)(rien)
     /* Appelé quand le noeud devinent connecté. */
@@ -82,6 +84,15 @@ noeud_sur_document_est_devenu_fully_active :: fonc (noeud: *Noeud) -> DécisionT
         table.sur_document_fully_active(noeud)
     }
     retourne DécisionTraversée.CONTINUE
+}
+
+node_sur_get_the_parent :: fonc (base: *EventTarget, event: *Event @inutilisée) -> *EventTarget
+{
+    noeud := base comme *Noeud
+    // A node’s get the parent algorithm, given an event, returns the node’s assigned slot,
+    // if node is assigned; otherwise node’s parent.
+    // À FAIRE : assigned slot
+    retourne noeud.parent
 }
 
 #portée_export
