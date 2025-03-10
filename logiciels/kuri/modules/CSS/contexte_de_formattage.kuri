@@ -1110,7 +1110,7 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
 
             fragment.x += décalage_fragment_x
 
-            si fragment.type == Fragment.Type.InlineBlock || fragment.type == Fragment.Type.NouvelleLigne {
+            si fragment.type == Fragment.Type.InlineBlock || fragment.type == Fragment.Type.NouvelleLigne || fragment.type == Fragment.Type.MargeDébut {
                 fragment.noeud.décale_vers_position(fragment.x, fragment.y)
             }
         }
