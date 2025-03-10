@@ -625,6 +625,8 @@ noeud_disposition_remplacement_sur_dessin_fragment :: fonc (base: *NoeudDeDispos
 
 noeud_image_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
 {
+    dessine_arrière_plan(ctx, base)
+    dessine_bordure(ctx, base)
     noeud := base comme *NoeudDeDispositionRemplacement
     assert(noeud.élément.local_name == HTML.TAG_img)
     image := noeud.élément comme *HTML.HTMLImageElement
@@ -633,6 +635,8 @@ noeud_image_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
 
 noeud_object_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
 {
+    dessine_arrière_plan(ctx, base)
+    dessine_bordure(ctx, base)
     noeud := base comme *NoeudDeDispositionRemplacement
     assert(noeud.élément.local_name == HTML.TAG_object)
     object := noeud.élément comme *HTML.HTMLObjectElement
