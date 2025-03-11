@@ -1870,14 +1870,43 @@ DonnéesColonne :: struct {
     final_width: r64
 }
 
+LigneDeCellules :: struct {
+    row: *TableRowBox
+    index_première_cellule: z32
+    nombre_de_cellules: z32
+    hauteur_finale: r32
+}
+
+donne_cellules :: fonc (ligne: *LigneDeCellules, ctx: *ContexteDeFormattageTable) -> []DonnéesCellule
+{
+    résultat: []DonnéesCellule
+    résultat.pointeur = ctx.cellules.pointeur + ligne.index_première_cellule
+    résultat.taille = ligne.nombre_de_cellules
+    retourne résultat
+}
+
+GroupeDeLignes :: struct {
+    group_box: *TableRowGroupBox
+    index_première_ligne: z32
+    nombre_de_lignes: z32
+}
+
+donne_lignes :: fonc (groupe: *GroupeDeLignes, ctx: *ContexteDeFormattageTable) -> []LigneDeCellules
+{
+    résultat: []LigneDeCellules
+    résultat.pointeur = ctx.lignes.pointeur + groupe.index_première_ligne
+    résultat.taille = groupe.nombre_de_lignes
+    retourne résultat
+}
+
 ContexteDeFormattageTable :: struct {
     empl base: ContexteDeFormattage
     type = #type_de_cette_structure
 
     cellules: [..]DonnéesCellule
-    lignes_cellules: [..]z64
+    lignes: [..]LigneDeCellules
+    groupes_de_lignes: [..]GroupeDeLignes
     colonnes_cellules: [..]z64
-    cellules_par_ligne: [..]z32
 
     données_colonnes: [..]DonnéesColonne
 
@@ -2048,31 +2077,40 @@ formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox)
     params.décalage_y_ligne = décalage_y
     params.largeur_du_contenu = largeur_du_contenu
 
-    pour table.enfants {
-        si it.table_virtuelle.type == TableRowBox {
-            _ := dispose_cellules_row_box(ctx, it comme *TableRowBox, *params)
-            continue
-        }
+    pour * ctx.lignes {
+        _ := dispose_cellules_ligne(ctx, it, *params)
+    }
 
-        saufsi est_row_group_box(it) {
-            continue
-        }
+    pour * ctx.groupes_de_lignes {
+        lignes := it.donne_lignes(ctx)
 
-        hauteur_row_group: r64
-        décalage_y_row_group := params.décalage_y_ligne
+        x_min := R64_INFINITÉ
+        x_max := R64_INFINITÉ_NÉGATIVE
+        y_min := R64_INFINITÉ
+        y_max := R64_INFINITÉ_NÉGATIVE
 
-        pour enfant_row_group dans it.enfants {
-            saufsi enfant_row_group.table_virtuelle.type == TableRowBox {
-                continue
+        pour * ligne dans lignes {
+            cellules := ligne.donne_cellules(ctx)
+
+            pour * cellule dans cellules {
+                box := cellule.box
+
+                x_min_cellule := box.modèle_de_boite.marge.x
+                x_max_cellule := box.modèle_de_boite.marge.x + box.modèle_de_boite.marge.largeur
+                y_min_cellule := box.modèle_de_boite.marge.y
+                y_max_cellule := box.modèle_de_boite.marge.y + box.modèle_de_boite.marge.hauteur
+
+                x_min = min(x_min, x_min_cellule comme r64)
+                x_max = max(x_max, x_max_cellule comme r64)
+                y_min = min(y_min, y_min_cellule comme r64)
+                y_max = max(y_max, y_max_cellule comme r64)
             }
-
-            hauteur_ligne := dispose_cellules_row_box(ctx, enfant_row_group comme *TableRowBox, *params)
-            hauteur_row_group += hauteur_ligne
         }
 
-        définis_position(it, décalage_x, décalage_y_row_group)
-        définis_largeur_contenu(it.modèle_de_boite, largeur_du_contenu comme r32)
-        définis_hauteur_contenu(it.modèle_de_boite, hauteur_row_group comme r32)
+        group_box := it.group_box
+        définis_position(group_box, x_min comme r32, y_min comme r32)
+        définis_largeur_contenu(group_box.modèle_de_boite, (x_max - x_min) comme r32)
+        définis_hauteur_contenu(group_box.modèle_de_boite, (y_max - y_min) comme r32)
     }
 
     hauteur_du_contenu := params.décalage_y_ligne - décalage_y
@@ -2100,6 +2138,10 @@ initialise_données_cellules :: fonc (ctx: *ContexteDeFormattageTable, table: *T
             continue
         }
 
+        groupe := tableau_ajoute_élément(*ctx.groupes_de_lignes)
+        groupe.group_box = it comme *TableRowGroupBox
+        groupe.index_première_ligne = ctx.lignes.taille comme z32
+
         pour enfant_row_group dans it.enfants {
             saufsi enfant_row_group.table_virtuelle.type == TableRowBox {
                 continue
@@ -2107,6 +2149,8 @@ initialise_données_cellules :: fonc (ctx: *ContexteDeFormattageTable, table: *T
 
             récolte_cellules_sur_table_row(ctx, enfant_row_group comme *TableRowBox, index_ligne)
             index_ligne += 1
+
+            groupe.nombre_de_lignes += 1
         }
     }
 
@@ -2121,6 +2165,10 @@ récolte_cellules_sur_table_row :: fonc (ctx: *ContexteDeFormattageTable, row: *
 {
     index_colonne: z64
     cellules_sur_ligne: z32
+
+    ligne := tableau_ajoute_élément(*ctx.lignes)
+    ligne.row = row
+    ligne.index_première_cellule = ctx.cellules.taille comme z32
 
     pour enfant_row dans row.enfants {
         saufsi enfant_row.table_virtuelle.type == TableCellBox {
@@ -2143,8 +2191,7 @@ récolte_cellules_sur_table_row :: fonc (ctx: *ContexteDeFormattageTable, row: *
             cellule.colspan = 1
         }
 
-        tableau_ajoute(*ctx.lignes_cellules, index_ligne)
-        tableau_ajoute(*ctx.lignes_cellules, index_cellule)
+        ligne.nombre_de_cellules += 1
 
         tableau_ajoute(*ctx.colonnes_cellules, index_colonne)
         tableau_ajoute(*ctx.colonnes_cellules, index_cellule)
@@ -2156,8 +2203,6 @@ récolte_cellules_sur_table_row :: fonc (ctx: *ContexteDeFormattageTable, row: *
             ctx.nombre_de_colonnes = index_colonne
         }
     }
-
-    tableau_ajoute(*ctx.cellules_par_ligne, cellules_sur_ligne)
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/tables.html#auto-table-layout */
@@ -2218,31 +2263,26 @@ ParamsDispositionCellules :: struct {
     utilise_border_spacing: bool
     décalage_x: r32
     border_spacing: r64
-    index_cellule: z64
     décalage_y_ligne: r32
     largeur_du_contenu: r64
 }
 
-dispose_cellules_row_box :: fonc (ctx: *ContexteDeFormattageTable, row: *TableRowBox, empl params: *ParamsDispositionCellules) -> r64
+dispose_cellules_ligne :: fonc (ctx: *ContexteDeFormattageTable, ligne: *LigneDeCellules, empl params: *ParamsDispositionCellules) -> r64
 {
-    calcule_largeurs_cellules(ctx, row, params)
+    calcule_largeurs_cellules(ctx, ligne, params)
 
     hauteur_ligne: r64
 
-    pour row.enfants {
-        saufsi it.table_virtuelle.type == TableCellBox {
-            continue
-        }
-
-        cellule := *ctx.cellules[index_cellule]
-        index_cellule += 1
-
+    cellules := ligne.donne_cellules(ctx)
+    pour * cellule dans cellules {
         définis_position(cellule.box, cellule.position_x_finale, décalage_y_ligne)
         outrepas_largeur := crée_outrepas_pour_coter_contenu(donne_largeur_contenu(cellule.box, cellule.largeur_finale))
         mesure(cellule.box, ctx, ModeDeFormattage.Normal, *outrepas_largeur)
 
         hauteur_ligne = max(hauteur_ligne, cellule.box.modèle_de_boite.marge.hauteur)
     }
+
+    row := ligne.row
 
     // À FAIRE : résoud ceci proprement
     prop_height := row.propriétés.donne_valeur_calculée(IDPropriété.Height)
@@ -2275,22 +2315,18 @@ dispose_cellules_row_box :: fonc (ctx: *ContexteDeFormattageTable, row: *TableRo
         décalage_y_ligne += border_spacing comme r32
     }
 
+    ligne.hauteur_finale = hauteur_ligne comme r32
+
     retourne hauteur_ligne
 }
 
-calcule_largeurs_cellules :: fonc (ctx: *ContexteDeFormattageTable, row: *TableRowBox, empl params: *ParamsDispositionCellules)
+calcule_largeurs_cellules :: fonc (ctx: *ContexteDeFormattageTable, ligne: *LigneDeCellules, empl params: *ParamsDispositionCellules)
 {
     décalage_x_colonne := décalage_x
-    ancien_index_cellule := index_cellule
 
-    pour row.enfants {
-        saufsi it.table_virtuelle.type == TableCellBox {
-            continue
-        }
+    cellules := ligne.donne_cellules(ctx)
 
-        cellule := *ctx.cellules[ancien_index_cellule]
-        ancien_index_cellule += 1
-
+    pour * cellule dans cellules {
         données_colonnes := *ctx.données_colonnes[cellule.colonne]
 
         largeur_cellule := données_colonnes.final_width
