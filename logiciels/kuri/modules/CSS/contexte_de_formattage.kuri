@@ -2302,10 +2302,33 @@ calcule_largeur_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox
         used_width := max(W, CAPMIN, MIN)
 
         si used_width > MIN {
-            delta := (used_width - MIN) / ctx.données_colonnes.taille comme r64
+            delta := (used_width - MIN)
 
-            pour * ctx.données_colonnes {
-                it.final_width = it.minimum_width + delta
+            MAX: r64
+            pour ctx.données_colonnes {
+                MAX += it.maximum_width
+            }
+
+            si MAX == used_width {
+                pour * ctx.données_colonnes {
+                    it.final_width = it.maximum_width
+                }
+            }
+            sinon si MAX < used_width {
+                delta = (used_width - MAX)
+                pour * ctx.données_colonnes {
+                    it.final_width = it.maximum_width + delta * (it.maximum_width / MAX)
+                }
+            }
+            sinon si MIN == 0.0 {
+                pour * ctx.données_colonnes {
+                    it.final_width = delta / ctx.données_colonnes.taille comme r64
+                }
+            }
+            sinon {
+                pour * ctx.données_colonnes {
+                    it.final_width = it.minimum_width + delta * (it.minimum_width / MIN)
+                }
             }
         }
         sinon {
