@@ -2255,6 +2255,12 @@ dispose_cellules_row_box :: fonc (ctx: *ContexteDeFormattageTable, row: *TableRo
         }
     }
 
+    // À FAIRE : résoud ceci proprement
+    prop_height := row.propriétés.donne_valeur_calculée(IDPropriété.Height)
+    si prop_height.est_pixels() && hauteur_ligne < prop_height.pixels {
+        hauteur_ligne = prop_height.pixels comme r32
+    }
+
     /* "Cell boxes that are smaller than the height of the row receive extra top or bottom padding."
      * https://www.w3.org/TR/2011/REC-CSS2-20110607/tables.html#height-layout */
     pour row.enfants {
