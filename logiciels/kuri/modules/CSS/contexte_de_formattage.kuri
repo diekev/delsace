@@ -1856,6 +1856,9 @@ DonnéesCellule :: struct {
 
     largeur_est_en_pourcentage: bool
     pourcentage: r64
+
+    position_x_finale: r32
+    largeur_finale: r32
 }
 
 R64_INFINITÉ : r64 : 0r7ff0000000000000
@@ -2222,7 +2225,8 @@ ParamsDispositionCellules :: struct {
 
 dispose_cellules_row_box :: fonc (ctx: *ContexteDeFormattageTable, row: *TableRowBox, empl params: *ParamsDispositionCellules) -> r64
 {
-    décalage_x_colonne := décalage_x
+    calcule_largeurs_cellules(ctx, row, params)
+
     hauteur_ligne: r64
 
     pour row.enfants {
@@ -2233,26 +2237,11 @@ dispose_cellules_row_box :: fonc (ctx: *ContexteDeFormattageTable, row: *TableRo
         cellule := *ctx.cellules[index_cellule]
         index_cellule += 1
 
-        données_colonnes := *ctx.données_colonnes[cellule.colonne]
-
-        largeur_cellule := données_colonnes.final_width
-        si cellule.colspan > 1 {
-            pour idx dans cellule.colonne + 1 ... cellule.colonne + (cellule.colspan comme z32) - 1 {
-                données_colonnes = *ctx.données_colonnes[idx]
-                largeur_cellule += données_colonnes.final_width
-            }
-        }
-
-        définis_position(cellule.box, décalage_x_colonne, décalage_y_ligne)
-        outrepas_largeur := crée_outrepas_pour_coter_contenu(donne_largeur_contenu(cellule.box, largeur_cellule))
+        définis_position(cellule.box, cellule.position_x_finale, décalage_y_ligne)
+        outrepas_largeur := crée_outrepas_pour_coter_contenu(donne_largeur_contenu(cellule.box, cellule.largeur_finale))
         mesure(cellule.box, ctx, ModeDeFormattage.Normal, *outrepas_largeur)
 
         hauteur_ligne = max(hauteur_ligne, cellule.box.modèle_de_boite.marge.hauteur)
-        décalage_x_colonne += largeur_cellule comme r32
-
-        si utilise_border_spacing {
-            décalage_x_colonne += border_spacing comme r32
-        }
     }
 
     // À FAIRE : résoud ceci proprement
@@ -2287,6 +2276,39 @@ dispose_cellules_row_box :: fonc (ctx: *ContexteDeFormattageTable, row: *TableRo
     }
 
     retourne hauteur_ligne
+}
+
+calcule_largeurs_cellules :: fonc (ctx: *ContexteDeFormattageTable, row: *TableRowBox, empl params: *ParamsDispositionCellules)
+{
+    décalage_x_colonne := décalage_x
+    ancien_index_cellule := index_cellule
+
+    pour row.enfants {
+        saufsi it.table_virtuelle.type == TableCellBox {
+            continue
+        }
+
+        cellule := *ctx.cellules[ancien_index_cellule]
+        ancien_index_cellule += 1
+
+        données_colonnes := *ctx.données_colonnes[cellule.colonne]
+
+        largeur_cellule := données_colonnes.final_width
+        si cellule.colspan > 1 {
+            pour idx dans cellule.colonne + 1 ... cellule.colonne + (cellule.colspan comme z32) - 1 {
+                données_colonnes = *ctx.données_colonnes[idx]
+                largeur_cellule += données_colonnes.final_width
+            }
+        }
+
+        cellule.position_x_finale = décalage_x_colonne
+        cellule.largeur_finale = largeur_cellule comme r32
+
+        décalage_x_colonne += largeur_cellule comme r32
+        si utilise_border_spacing {
+            décalage_x_colonne += border_spacing comme r32
+        }
+    }
 }
 
 /** \} */
