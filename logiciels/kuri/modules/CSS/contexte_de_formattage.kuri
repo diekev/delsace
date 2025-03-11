@@ -1845,6 +1845,13 @@ distribue_espace_disponible :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *Lig
 /** \nom ContexteDeFormattageTable
  * \{ */
 
+AlignementCellule :: énum {
+    BaseLine
+    Top
+    Bottom
+    Middle
+}
+
 DonnéesCellule :: struct {
     box: *TableCellBox
     colonne: z64
@@ -1859,6 +1866,70 @@ DonnéesCellule :: struct {
 
     position_x_finale: r32
     largeur_finale: r32
+
+    baseline: r32
+}
+
+donne_alignement_vertical :: fonc (cellule: *DonnéesCellule) -> AlignementCellule
+{
+    vertical_align := cellule.box.propriétés.donne_valeur_utilisée(IDPropriété.VerticalAlign)
+    si vertical_align.est_mot_clé(PROP_top) {
+        retourne AlignementCellule.Top
+    }
+    si vertical_align.est_mot_clé(PROP_middle) {
+        retourne AlignementCellule.Middle
+    }
+    si vertical_align.est_mot_clé(PROP_bottom) {
+        retourne AlignementCellule.Bottom
+    }
+    retourne AlignementCellule.BaseLine
+}
+
+donne_bottom :: fonc (cellule: *DonnéesCellule) -> r32 #enligne
+{
+    retourne cellule.box.modèle_de_boite.marge.y + cellule.box.modèle_de_boite.marge.hauteur
+}
+
+donne_middle :: fonc (cellule: *DonnéesCellule) -> r32
+{
+    box := cellule.box
+
+    si box.lignes_tenante {
+        y_min := R64_INFINITÉ
+        y_max := R64_INFINITÉ_NÉGATIVE
+
+        pour box.lignes_tenante.lignes {
+            y_min_enfant := it.position_y
+            y_max_enfant := it.position_y + it.hauteur_contenu
+
+            y_min = min(y_min, y_min_enfant comme r64)
+            y_max = max(y_max, y_max_enfant comme r64)
+        }
+
+        retourne (y_min + (y_max - y_min) * 0.5) comme r32
+    }
+
+    si box.enfants {
+        y_min := R64_INFINITÉ
+        y_max := R64_INFINITÉ_NÉGATIVE
+
+        pour box.enfants {
+            y_min_enfant := it.modèle_de_boite.marge.y
+            y_max_enfant := it.modèle_de_boite.marge.y + it.modèle_de_boite.marge.hauteur
+
+            y_min = min(y_min, y_min_enfant comme r64)
+            y_max = max(y_max, y_max_enfant comme r64)
+        }
+
+        retourne (y_min + (y_max - y_min) * 0.5) comme r32
+    }
+
+    retourne box.modèle_de_boite.contenu.y + box.modèle_de_boite.contenu.hauteur * 0.5
+}
+
+donne_hauteur :: fonc (cellule: *DonnéesCellule) -> r32 #enligne
+{
+    retourne cellule.box.modèle_de_boite.marge.hauteur
 }
 
 R64_INFINITÉ : r64 : 0r7ff0000000000000
@@ -1875,6 +1946,11 @@ LigneDeCellules :: struct {
     index_première_cellule: z32
     nombre_de_cellules: z32
     hauteur_finale: r32
+
+    hauteur: r32
+    top: r32
+    bottom: r32
+    baseline: r32
 }
 
 donne_cellules :: fonc (ligne: *LigneDeCellules, ctx: *ContexteDeFormattageTable) -> []DonnéesCellule
@@ -2269,26 +2345,39 @@ ParamsDispositionCellules :: struct {
 
 dispose_cellules_ligne :: fonc (ctx: *ContexteDeFormattageTable, ligne: *LigneDeCellules, empl params: *ParamsDispositionCellules) -> r64
 {
+    // imprime("[%]\n", #nom_de_cette_fonction)
     calcule_largeurs_cellules(ctx, ligne, params)
 
-    hauteur_ligne: r64
+    ligne.top = décalage_y_ligne
+    dispose_cellules_ligne(ctx, ligne)
+
+    aligne_cellules_verticalement(ctx, ligne, AlignementCellule.BaseLine)
+    aligne_cellules_verticalement(ctx, ligne, AlignementCellule.Top)
 
     cellules := ligne.donne_cellules(ctx)
-    pour * cellule dans cellules {
-        définis_position(cellule.box, cellule.position_x_finale, décalage_y_ligne)
-        outrepas_largeur := crée_outrepas_pour_coter_contenu(donne_largeur_contenu(cellule.box, cellule.largeur_finale))
-        mesure(cellule.box, ctx, ModeDeFormattage.Normal, *outrepas_largeur)
 
-        hauteur_ligne = max(hauteur_ligne, cellule.box.modèle_de_boite.marge.hauteur)
+    pour * cellules {
+        alignement := it.donne_alignement_vertical()
+        // imprime("-- %\n", alignement)
+        si alignement != AlignementCellule.Middle && alignement != AlignementCellule.Bottom {
+            continue
+        }
+
+        ligne.hauteur = max(ligne.hauteur, it.donne_hauteur())
     }
 
     row := ligne.row
 
     // À FAIRE : résoud ceci proprement
     prop_height := row.propriétés.donne_valeur_calculée(IDPropriété.Height)
-    si prop_height.est_pixels() && hauteur_ligne < prop_height.pixels {
-        hauteur_ligne = prop_height.pixels comme r32
+    si prop_height.est_pixels() && ligne.hauteur < prop_height.pixels {
+        ligne.hauteur = prop_height.pixels comme r32
     }
+
+    aligne_cellules_verticalement(ctx, ligne, AlignementCellule.Bottom)
+    aligne_cellules_verticalement(ctx, ligne, AlignementCellule.Middle)
+
+    hauteur_ligne := ligne.hauteur
 
     /* "Cell boxes that are smaller than the height of the row receive extra top or bottom padding."
      * https://www.w3.org/TR/2011/REC-CSS2-20110607/tables.html#height-layout */
@@ -2302,22 +2391,108 @@ dispose_cellules_ligne :: fonc (ctx: *ContexteDeFormattageTable, ligne: *LigneDe
         }
 
         // À FAIRE : il faudrait plustôt ajuster la hauteur puis déplacer les enfants selon l'alignement de la cellule.
-        it.modèle_de_boite.définis_hauteur_contenu(hauteur_ligne comme r32)
+        it.modèle_de_boite.définis_hauteur_contenu(hauteur_ligne)
     }
 
     définis_position(row, décalage_x, décalage_y_ligne)
     définis_largeur_contenu(row.modèle_de_boite, largeur_du_contenu comme r32)
-    définis_hauteur_contenu(row.modèle_de_boite, hauteur_ligne comme r32)
+    définis_hauteur_contenu(row.modèle_de_boite, hauteur_ligne)
 
-    décalage_y_ligne += hauteur_ligne comme r32
+    décalage_y_ligne += hauteur_ligne
 
     si utilise_border_spacing {
         décalage_y_ligne += border_spacing comme r32
     }
 
-    ligne.hauteur_finale = hauteur_ligne comme r32
+    ligne.hauteur_finale = hauteur_ligne
 
     retourne hauteur_ligne
+}
+
+dispose_cellules_ligne :: fonc (ctx: *ContexteDeFormattageTable, ligne: *LigneDeCellules)
+{
+    cellules := ligne.donne_cellules(ctx)
+    pour * cellule dans cellules {
+        définis_position(cellule.box, cellule.position_x_finale, ligne.top)
+        outrepas_largeur := crée_outrepas_pour_coter_contenu(donne_largeur_contenu(cellule.box, cellule.largeur_finale))
+        mesure(cellule.box, ctx, ModeDeFormattage.Normal, *outrepas_largeur)
+    }
+}
+
+aligne_cellules_verticalement :: fonc (ctx: *ContexteDeFormattageTable, ligne: *LigneDeCellules, alignement: AlignementCellule)
+{
+    cellules := ligne.donne_cellules(ctx)
+    si alignement == AlignementCellule.BaseLine {
+        pour * cellules {
+            si it.donne_alignement_vertical() != alignement {
+                continue
+            }
+            it.baseline = donne_baseline(it.box).Quelque
+            ligne.baseline = max(ligne.baseline, it.baseline)
+        }
+    
+        pour * cellules {
+            si it.donne_alignement_vertical() != alignement {
+                continue
+            }
+
+            // imprime("baseline ligne % cellule %\n", ligne.baseline, it.baseline)
+
+            si it.baseline != ligne.baseline {
+                delta := ligne.baseline - it.baseline
+                it.box.décale_contenu(0.0, delta)
+            }
+
+            ligne.hauteur = max(ligne.hauteur, it.donne_bottom() - ligne.top)
+        }
+
+        retourne
+    }
+
+    si alignement == AlignementCellule.Top {
+        pour * cellules {
+            si it.donne_alignement_vertical() != alignement {
+                continue
+            }
+
+            ligne.hauteur = max(ligne.hauteur, it.donne_bottom() - ligne.top)
+        }
+
+        retourne
+    }
+
+    si alignement == AlignementCellule.Bottom {
+        pour * cellules {
+            si it.donne_alignement_vertical() != alignement {
+                continue
+            }
+
+            si it.donne_bottom() != ligne.bottom {
+                delta := it.donne_bottom() - ligne.bottom
+                it.box.décale_contenu(0.0, delta)
+            }
+        }
+
+        retourne
+    }
+
+    assert(alignement == AlignementCellule.Middle)
+    middle := ligne.top + ligne.hauteur * 0.5
+
+    pour * cellules {
+        si it.donne_alignement_vertical() != alignement {
+            continue
+        }
+
+        middle_cellule := it.donne_middle()
+
+        // imprime("middle ligne % cellule %\n", middle, middle_cellule)
+
+        si middle_cellule != middle {
+            delta := middle - middle_cellule
+            it.box.décale_contenu(0.0, delta)
+        }
+    }
 }
 
 calcule_largeurs_cellules :: fonc (ctx: *ContexteDeFormattageTable, ligne: *LigneDeCellules, empl params: *ParamsDispositionCellules)

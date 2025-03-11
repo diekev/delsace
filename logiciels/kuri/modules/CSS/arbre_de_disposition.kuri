@@ -1856,6 +1856,7 @@ TableVirtuelleNoeudDeDispo :: struct {
     sur_dessin_fragment_tampon_id: fonc (*NoeudDeDisposition, *Fragment, *ContexteDessin)(rien)
     sur_divise_en_lignes: fonc (*NoeudDeDisposition, *Enligneuse, ModeDeFormattage)(rien)
     sur_correction_hiérarchie: fonc(*NoeudDeDisposition, *CréatriceArbre)(rien)
+    sur_donne_baseline: fonc(*NoeudDeDisposition)(Optionnel(r32))
 }
 
 __table_base_noeud_de_disposition := TableVirtuelleNoeudDeDispo(type = NoeudDeDisposition)
@@ -1975,6 +1976,13 @@ est_inline_level :: fonc (noeud: *NoeudDeDisposition) -> bool
     retourne donne_display(noeud).outer_type == Display.Type.Inline
 }
 
+est_inline_block :: fonc (noeud: *NoeudDeDisposition) -> bool
+{
+    assert(noeud.propriétés != nul)
+    display := donne_display(noeud)
+    retourne display.outer_type == Display.Type.Inline && display.inner_type == Display.Type.FlowRoot
+}
+
 est_in_flow :: fonc (noeud: *NoeudDeDisposition) -> bool
 {
     position := noeud.propriétés.donne_valeur_calculée(IDPropriété.Position)
@@ -2049,6 +2057,19 @@ donne_décalage_left_pour_relative :: fonc (noeud: *NoeudDeDisposition) -> r32
     }
 
     retourne left.pixels comme r32
+}
+
+donne_baseline :: fonc (noeud: *NoeudDeDisposition) -> Optionnel(r32)
+{
+    si noeud.table_virtuelle.sur_donne_baseline {
+        résultat := noeud.table_virtuelle.sur_donne_baseline(noeud)
+        si résultat.possède_valeur() {
+            retourne résultat
+        }
+    }
+
+    // À FAIRE : est-ce la bonne valeur ?
+    retourne noeud.modèle_de_boite.marge.y + noeud.modèle_de_boite.marge.hauteur
 }
 
 donne_élément :: fonc (noeud: *NoeudDeDisposition) -> *HTML.Élément
@@ -2174,7 +2195,11 @@ décale :: fonc (noeud: *NoeudDeDisposition, x: r32, y: r32)
 {
     décale_horizontalement(noeud.modèle_de_boite, x)
     décale_verticalement(noeud.modèle_de_boite, y)
+    décale_contenu(noeud, x, y)
+}
 
+décale_contenu :: fonc (noeud: *NoeudDeDisposition, x: r32, y: r32)
+{
     pour noeud.enfants {
         it.décale(x, y)
     }
@@ -2517,6 +2542,13 @@ donne_fragments_ligne :: fonc (lignes_tenante: *LignesTenante, ligne: *BoiteDeLi
     retourne résultat
 }
 
+donne_baseline :: fonc (lignes_tenante: *LignesTenante, index: z64) -> r32
+{
+    ligne := lignes_tenante.lignes[index]
+    // À FAIRE : baseline de la fonte
+    retourne ligne.position_y + ligne.hauteur_contenu
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -2633,7 +2665,8 @@ __table_noeud_de_disposition_bloc := TableVirtuelleNoeudDeDispo(
     sur_mesure = noeud_disposition_bloc_sur_mesure,
     sur_dessin = noeud_disposition_bloc_sur_dessin,
     sur_dessin_tampon_id = noeud_disposition_bloc_sur_dessin_tampon_id,
-    sur_correction_hiérarchie = noeud_disposition_bloc_corrige_hiérarchie)
+    sur_correction_hiérarchie = noeud_disposition_bloc_corrige_hiérarchie,
+    sur_donne_baseline = noeud_disposition_bloc_donne_baseline)
 
 #portée_export
 
@@ -2866,6 +2899,48 @@ noeud_disposition_bloc_corrige_hiérarchie :: fonc (base: *NoeudDeDisposition, c
     noeud.enfants = nouveaux_enfants
 }
 
+noeud_disposition_bloc_donne_baseline :: fonc (base: *NoeudDeDisposition) -> Optionnel(r32)
+{
+    bloc := base comme *NoeudDeDispositionBloc
+
+    // The baseline of an 'inline-block' is the baseline of its last line box in the normal flow,
+    // unless it has either no in-flow line boxes or if its 'overflow' property has a computed
+    // value other than 'visible', in which case the baseline is the bottom margin edge.
+    // https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#propdef-vertical-align
+    si est_inline_block(bloc) {
+        overflow := bloc.propriétés.donne_valeur_utilisée(IDPropriété.OverflowY)
+        saufsi overflow.est_mot_clé(PROP_visible) || bloc.lignes_tenante == nul {
+            retourne bloc.modèle_de_boite.marge.y + bloc.modèle_de_boite.marge.hauteur
+        }
+
+        si bloc.lignes_tenante.lignes.taille == 0 {
+            retourne bloc.modèle_de_boite.marge.y + bloc.modèle_de_boite.marge.hauteur
+        }
+
+        index_ligne := bloc.lignes_tenante.lignes.taille - 1
+        retourne bloc.lignes_tenante.donne_baseline(index_ligne)
+    }
+
+    si bloc.lignes_tenante {
+        si bloc.lignes_tenante.lignes.taille == 0 {
+            retourne
+        }
+
+        retourne bloc.lignes_tenante.donne_baseline(0)
+    }
+
+    pour bloc.enfants {
+        saufsi est_in_flow(it) {
+            continue
+        }
+
+        résultat := donne_baseline(it)
+        si résultat.possède_valeur() {
+            retourne résultat
+        }
+    }
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -2881,7 +2956,8 @@ __table_noeud_de_disposition_inline := TableVirtuelleNoeudDeDispo(
     sur_dessin_fragment = noeud_disposition_inline_sur_dessin_fragment,
     sur_divise_en_lignes = noeud_disposition_inline_sur_divise_en_lignes,
     sur_dessin_tampon_id = noeud_disposition_inline_sur_dessin_tampon_id,
-    sur_correction_hiérarchie = noeud_disposition_inline_corrige_hiérarchie)
+    sur_correction_hiérarchie = noeud_disposition_inline_corrige_hiérarchie,
+    sur_donne_baseline = noeud_disposition_bloc_donne_baseline)
 
 #portée_export
 
@@ -4320,7 +4396,8 @@ __table_noeud_de_disposition_table_cell := TableVirtuelleNoeudDeDispo(
     sur_mesure = noeud_disposition_bloc_sur_mesure,
     sur_dessin = noeud_disposition_bloc_sur_dessin,
     sur_dessin_tampon_id = noeud_disposition_bloc_sur_dessin_tampon_id,
-    sur_correction_hiérarchie = noeud_disposition_bloc_corrige_hiérarchie)
+    sur_correction_hiérarchie = noeud_disposition_bloc_corrige_hiérarchie,
+    sur_donne_baseline = table_cell_box_donne_baseline)
 
 #portée_export
 
@@ -4345,6 +4422,19 @@ donne_largeur_contenu :: fonc (box: *TableCellBox, largeur_disponible: r64) -> r
     }
 
     retourne largeur_disponible
+}
+
+table_cell_box_donne_baseline :: fonc (base: *NoeudDeDisposition) -> Optionnel(r32)
+{
+    // À FAIRE : The baseline of a cell is the baseline of the first in-flow line box in the cell,
+    // or the first in-flow table-row in the cell, whichever comes first.
+    résultat := noeud_disposition_bloc_donne_baseline(base)
+    si résultat.possède_valeur() {
+        retourne résultat
+    }
+
+    // If there is no such line box or table-row, the baseline is the bottom of content edge of the cell box.
+    retourne base.modèle_de_boite.contenu.y + base.modèle_de_boite.contenu.hauteur
 }
 
 /** \} */
