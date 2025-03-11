@@ -14,14 +14,20 @@ Fonte :: struct {
 
 crée_fonte :: fonc (chemin: CheminFichier, taille_police: r32) -> *Fonte
 {
-    fonte := loge(Fonte)
-
     chemin_c := crée_chaine_c(chemin.chn)
     diffère détruit_chaine_c(chemin_c)
 
-    fonte.atlas = texture_atlas_new(512, 512, 1)
-    fonte.font = texture_font_new_from_file(fonte.atlas, taille_police, chemin_c comme *z8)
+    atlas := texture_atlas_new(512, 512, 1)
+    font := texture_font_new_from_file(atlas, taille_police, chemin_c comme *z8)
 
+    saufsi font {
+        texture_atlas_delete(atlas)
+        retourne nul
+    }
+
+    fonte := loge(Fonte)
+    fonte.font = font
+    fonte.atlas = atlas
     retourne fonte
 }
 
