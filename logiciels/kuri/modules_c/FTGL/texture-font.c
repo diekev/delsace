@@ -87,24 +87,25 @@ void FTGL_free(void *ptr, uint64_t size)
 #define HRESf 64.f
 #define DPI 72
 
-#undef __FTERRORS_H__
-#define FT_ERRORDEF(e, v, s) {e, s},
-#define FT_ERROR_START_LIST {
-#define FT_ERROR_END_LIST                                                                         \
-    {                                                                                             \
-        0, 0                                                                                      \
-    }                                                                                             \
-    }                                                                                             \
-    ;
-const struct {
-    int code;
-    const char *message;
-} FT_Errors[] =
+#undef FTERRORS_H_
+#define FT_ERROR_START_LIST switch (error_code) {
+#define FT_ERRORDEF(e, v, s)                                                                      \
+    case v:                                                                                       \
+        return s;
+#define FT_ERROR_END_LIST }
+// Same signature as the function defined in fterrors.h:
+// https://www.freetype.org/freetype2/docs/reference/ft2-error_enumerations.html#ft_error_string
+const char *FT_Error_String(FT_Error error_code)
+{
 #include FT_ERRORS_H
+    return "INVALID ERROR CODE";
+}
 
-    // ------------------------------------------------- texture_font_load_face ---
-    static int texture_font_load_face(
-        texture_font_t * self, float size, FT_Library *library, FT_Face *face)
+// ------------------------------------------------- texture_font_load_face ---
+static int texture_font_load_face(texture_font_t *self,
+                                  float size,
+                                  FT_Library *library,
+                                  FT_Face *face)
 {
     FT_Error error;
     FT_Matrix matrix = {(int)((1.0 / HRES) * 0x10000L),
@@ -119,7 +120,7 @@ const struct {
     error = FT_Init_FreeType(library);
     if (error) {
         fprintf(
-            stderr, "FT_Error (0x%02x) : %s\n", FT_Errors[error].code, FT_Errors[error].message);
+            stderr, "FT_Error (line %d, 0x%02x) : %s\n", __LINE__, error, FT_Error_String(error));
         goto cleanup;
     }
 
@@ -136,22 +137,16 @@ const struct {
     }
 
     if (error) {
-        fprintf(stderr,
-                "FT_Error (line %d, code 0x%02x) : %s\n",
-                __LINE__,
-                FT_Errors[error].code,
-                FT_Errors[error].message);
+        fprintf(
+            stderr, "FT_Error (line %d, 0x%02x) : %s\n", __LINE__, error, FT_Error_String(error));
         goto cleanup_library;
     }
 
     /* Select charmap */
     error = FT_Select_Charmap(*face, FT_ENCODING_UNICODE);
     if (error) {
-        fprintf(stderr,
-                "FT_Error (line %d, code 0x%02x) : %s\n",
-                __LINE__,
-                FT_Errors[error].code,
-                FT_Errors[error].message);
+        fprintf(
+            stderr, "FT_Error (line %d, 0x%02x) : %s\n", __LINE__, error, FT_Error_String(error));
         goto cleanup_face;
     }
 
@@ -159,11 +154,8 @@ const struct {
     error = FT_Set_Char_Size(*face, (int)(size * HRES), 0, DPI * HRES, DPI);
 
     if (error) {
-        fprintf(stderr,
-                "FT_Error (line %d, code 0x%02x) : %s\n",
-                __LINE__,
-                FT_Errors[error].code,
-                FT_Errors[error].message);
+        fprintf(
+            stderr, "FT_Error (line %d, 0x%02x) : %s\n", __LINE__, error, FT_Error_String(error));
         goto cleanup_face;
     }
 
@@ -554,11 +546,8 @@ int texture_font_load_glyph_codepoint(texture_font_t *self, uint32_t codepoint)
 
     error = FT_Load_Glyph(face, glyph_index, flags);
     if (error) {
-        fprintf(stderr,
-                "FT_Error (line %d, code 0x%02x) : %s\n",
-                __LINE__,
-                FT_Errors[error].code,
-                FT_Errors[error].message);
+        fprintf(
+            stderr, "FT_Error (line %d, 0x%02x) : %s\n", __LINE__, error, FT_Error_String(error));
         FT_Done_Face(face);
         FT_Done_FreeType(library);
         return 0;
@@ -578,9 +567,10 @@ int texture_font_load_glyph_codepoint(texture_font_t *self, uint32_t codepoint)
 
         if (error) {
             fprintf(stderr,
-                    "FT_Error (0x%02x) : %s\n",
-                    FT_Errors[error].code,
-                    FT_Errors[error].message);
+                    "FT_Error (line %d, 0x%02x) : %s\n",
+                    __LINE__,
+                    error,
+                    FT_Error_String(error));
             goto cleanup_stroker;
         }
 
@@ -594,9 +584,10 @@ int texture_font_load_glyph_codepoint(texture_font_t *self, uint32_t codepoint)
 
         if (error) {
             fprintf(stderr,
-                    "FT_Error (0x%02x) : %s\n",
-                    FT_Errors[error].code,
-                    FT_Errors[error].message);
+                    "FT_Error (line %d, 0x%02x) : %s\n",
+                    __LINE__,
+                    error,
+                    FT_Error_String(error));
             goto cleanup_stroker;
         }
 
@@ -609,9 +600,10 @@ int texture_font_load_glyph_codepoint(texture_font_t *self, uint32_t codepoint)
 
         if (error) {
             fprintf(stderr,
-                    "FT_Error (0x%02x) : %s\n",
-                    FT_Errors[error].code,
-                    FT_Errors[error].message);
+                    "FT_Error (line %d, 0x%02x) : %s\n",
+                    __LINE__,
+                    error,
+                    FT_Error_String(error));
             goto cleanup_stroker;
         }
 
@@ -622,9 +614,10 @@ int texture_font_load_glyph_codepoint(texture_font_t *self, uint32_t codepoint)
 
         if (error) {
             fprintf(stderr,
-                    "FT_Error (0x%02x) : %s\n",
-                    FT_Errors[error].code,
-                    FT_Errors[error].message);
+                    "FT_Error (line %d, 0x%02x) : %s\n",
+                    __LINE__,
+                    error,
+                    FT_Error_String(error));
             goto cleanup_stroker;
         }
 
