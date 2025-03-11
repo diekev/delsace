@@ -2247,6 +2247,11 @@ mesure :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: Mo
 
 ajoute_enfant :: fonc (parent: *NoeudDeDisposition, enfant: *NoeudDeDisposition)
 {
+    si enfant.table_virtuelle.type == CaptionBox && parent.table_virtuelle.type == TableBox {
+        ajoute_enfant(parent.parent, enfant)
+        retourne
+    }
+
     enfant.parent = parent
     tableau_ajoute(*parent.enfants, enfant)
 }
