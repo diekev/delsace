@@ -217,24 +217,9 @@ détruit_déclaration :: fonc (déclaration: *DéclarationPropriété)
 
 imprime_déclaration :: fonc (déclaration: *DéclarationPropriété)
 {
-    imprime("    %:", déclaration.property_name)
-
-    si déclaration.est_personnalisée || déclaration.est_shorthand_avec_variable {
-        pour déclaration.valeur_personnalisée {
-            imprime(" %", it)
-        }
-    }
-    sinon {
-        pour valeur dans déclaration.value {
-            imprime(" %", valeur)
-        }
-    }
-
-    si déclaration.important {
-        imprime(" !important")
-    }
-
-    imprime(";\n")
+    chaine_valeur := donne_chaine_valeur(déclaration)
+    diffère déloge(chaine_valeur)
+    imprime("    %: %;\n", déclaration.property_name, chaine_valeur)
 }
 
 donne_chaine_valeur :: fonc (déclaration: *DéclarationPropriété) -> chaine
@@ -243,15 +228,31 @@ donne_chaine_valeur :: fonc (déclaration: *DéclarationPropriété) -> chaine
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
 
-    pour valeur dans déclaration.value {
-        imprime_dans_enchaineuse(*enchaineuse, " %", valeur)
+    imprime_chaine_valeur(*enchaineuse, déclaration)
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
+imprime_chaine_valeur :: fonc (enchaineuse: *Enchaineuse, déclaration: *DéclarationPropriété)
+{
+    si déclaration.est_personnalisée || déclaration.est_shorthand_avec_variable {
+        virgule := ""
+        pour déclaration.valeur_personnalisée {
+            imprime_dans_enchaineuse(enchaineuse, "%%", virgule, it)
+            virgule = " "
+        }
+    }
+    sinon {
+        virgule := ""
+        pour valeur dans déclaration.value {
+            imprime_dans_enchaineuse(enchaineuse, "%%", virgule, valeur)
+            virgule = " "
+        }
     }
 
     si déclaration.important {
-        ajoute_au_tampon(*enchaineuse, " !important")
+        ajoute_au_tampon(enchaineuse, " !important")
     }
-
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
 /** \} */
