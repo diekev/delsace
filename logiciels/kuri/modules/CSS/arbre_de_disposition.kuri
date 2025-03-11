@@ -2730,7 +2730,7 @@ donne_méthode_de_formattage_intérieur :: fonc (noeud: *NoeudDeDisposition) -> 
         retourne MéthodeDeFormattage.Inline
     }
 
-    si (noeud.table_virtuelle.type == NoeudDeDispositionBloc || noeud.table_virtuelle.type == TableCellBox) {
+    si (noeud.table_virtuelle.type == NoeudDeDispositionBloc || noeud.table_virtuelle.type == TableCellBox || noeud.table_virtuelle.type == CaptionBox) {
         noeud_bloc := noeud comme *NoeudDeDispositionBloc
         si noeud_bloc.est_disposition_inline {
             retourne MéthodeDeFormattage.Inline
@@ -4450,15 +4450,19 @@ table_cell_box_donne_baseline :: fonc (base: *NoeudDeDisposition) -> Optionnel(r
 
 #portée_fichier
 
-__table_noeud_de_disposition_table_caption_box := TableVirtuelleNoeudDeDispo(type = CaptionBox)
+__table_noeud_de_disposition_table_caption_box := TableVirtuelleNoeudDeDispo(
+    type = CaptionBox,
+    sur_mesure = noeud_disposition_bloc_sur_mesure,
+    sur_dessin = noeud_disposition_bloc_sur_dessin,
+    sur_dessin_tampon_id = noeud_disposition_bloc_sur_dessin_tampon_id,
+    sur_correction_hiérarchie = noeud_disposition_bloc_corrige_hiérarchie,
+    sur_donne_baseline = noeud_disposition_bloc_donne_baseline)
 
 #portée_module
 
 CaptionBox :: struct {
-    empl base: NoeudDeDisposition
+    empl base_bloc: NoeudDeDispositionBloc
     table_virtuelle = *__table_noeud_de_disposition_table_caption_box
-
-    élément: *HTML.Élément
 }
 
 /** \} */
