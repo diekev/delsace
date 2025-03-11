@@ -435,7 +435,7 @@ RésolveuseStyle :: struct {
     /* Pour MediaQuery et ContexteCalculStyle. */
     largeur_écran: r64
     hauteur_écran: r64
-    taille_fonte_racine: r64
+    longueurs_relative_fonte_racine: LongueursRelativesFonte
     feuilles_de_style: []*CSSStyleSheet
 
     /* Tampon réutilisé pour les cascades de propriétés. */
@@ -468,7 +468,6 @@ crée_résolveuse_style :: fonc (document: *HTML.Document, largeur: z32, hauteur
     résultat := loge(RésolveuseStyle)
     initialise_résolveuse(résultat)
     résultat.document = document
-    résultat.taille_fonte_racine = document.globales_dessin.taille_fonte_défaut
     résultat.globales = document.globales_dessin
     résultat.feuilles_de_style = document.feuilles_de_style
     résultat.largeur_écran = largeur comme r64
@@ -1082,85 +1081,44 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
 
     /* https://www.w3.org/TR/2011/REC-CSS2-20110607/cascade.html#computed-value */
     ctx_calcul_style: ContexteCalculStyle
+    ctx_calcul_style.globales = résolveuse.globales
     ctx_calcul_style.document = résolveuse.document
-    ctx_calcul_style.taille_fonte = résolveuse.globales.taille_fonte_défaut
-    ctx_calcul_style.taille_fonte_racine = résolveuse.taille_fonte_racine
+    ctx_calcul_style.longueurs_relative_fonte_racine = résolveuse.longueurs_relative_fonte_racine
     ctx_calcul_style.propriétés = propriétés
     ctx_calcul_style.valeurs_initiales = *résolveuse.valeurs_initiales
     ctx_calcul_style.largeur_canevas = résolveuse.largeur_écran
     ctx_calcul_style.hauteur_canevas = résolveuse.hauteur_écran
 
     si propriétés_parent {
-        ctx_calcul_style.taille_fonte = propriétés_parent.donne_valeur_calculée(IDPropriété.FontSize).pixels
+        initialise_métriques_fonte(*ctx_calcul_style.longueurs_relative_fonte, propriétés_parent, résolveuse.globales)
+    }
+    sinon {
+        fonte := donne_fonte(résolveuse.globales, "sérif", "normal", GraisseFonte.Normal, résolveuse.globales.taille_fonte_défaut)
+        initialise_métriques_fonte(*ctx_calcul_style.longueurs_relative_fonte, fonte)
+        initialise_métriques_fonte(*ctx_calcul_style.longueurs_relative_fonte_racine, fonte)
     }
 
-    pour propriétés.déclarations {
-        si it.est_personnalisée {
-            continue
-        }
-        info := it.info
+    calcule_style(*ctx_calcul_style, ÉtapeCalculStyle.Font)
 
-        si it.est_shorthand_avec_variable {
-            valeurs := développe_variables(propriétés, it.valeur_personnalisée)
+    /* Pour line-height, lh doit rester la valeur du parent. */
+    lh_parent := ctx_calcul_style.longueurs_relative_fonte.lh
+    initialise_métriques_fonte(*ctx_calcul_style.longueurs_relative_fonte, propriétés, résolveuse.globales)
+    lh := ctx_calcul_style.longueurs_relative_fonte.lh
+    ctx_calcul_style.longueurs_relative_fonte.lh = lh_parent
 
-            ctx_parsage: ContexteParsageShorthandVariable
-            ctx_parsage.sur_ajoute_propriété = contexte_parsage_shorthand_variable_ajoute_propriété
-            ctx_parsage.ctx_calcul_style = *ctx_calcul_style
+    calcule_style(*ctx_calcul_style, ÉtapeCalculStyle.LineHeight)
+    ctx_calcul_style.longueurs_relative_fonte.lh = lh
 
-            déclaration_parsée: ParsedDeclaration
-            déclaration_parsée.name = info.nom
-            ctx_parsage.déclaration_parsée = *déclaration_parsée
-
-            _ := info.sur_parsage_shorthand(*ctx_parsage, valeurs)
-
-            déloge(valeurs)
-            continue
-        }
-
-        calcule_valeur_propriété(*ctx_calcul_style, info, it)
-    }
-
-    si propriétés.style.valeurs[IDPropriété.BorderStyleLeft].line_style == LineStyle.None {
-        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthLeft, ValeurDeStyle(pixels = 0.0))
-        ctx_calcul_style.propriétés_calculées.active(IDPropriété.BorderWidthLeft comme n16)
-        ctx_calcul_style.propriétés_calculées.active(IDPropriété.BorderColorLeft comme n16)
-    }
-    si propriétés.style.valeurs[IDPropriété.BorderStyleTop].line_style == LineStyle.None {
-        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthTop, ValeurDeStyle(pixels = 0.0))
-        ctx_calcul_style.propriétés_calculées.active(IDPropriété.BorderWidthTop comme n16)
-        ctx_calcul_style.propriétés_calculées.active(IDPropriété.BorderColorTop comme n16)
-    }
-    si propriétés.style.valeurs[IDPropriété.BorderStyleRight].line_style == LineStyle.None {
-        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthRight, ValeurDeStyle(pixels = 0.0))
-        ctx_calcul_style.propriétés_calculées.active(IDPropriété.BorderWidthRight comme n16)
-        ctx_calcul_style.propriétés_calculées.active(IDPropriété.BorderColorRight comme n16)
-    }
-    si propriétés.style.valeurs[IDPropriété.BorderStyleBottom].line_style == LineStyle.None {
-        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthBottom, ValeurDeStyle(pixels = 0.0))
-        ctx_calcul_style.propriétés_calculées.active(IDPropriété.BorderWidthBottom comme n16)
-        ctx_calcul_style.propriétés_calculées.active(IDPropriété.BorderColorBottom comme n16)
-    }
-
-    ids_propriétés := [
-        IDPropriété.FontSize, IDPropriété.FontWeight,
-        IDPropriété.BorderWidthBottom, IDPropriété.BorderWidthLeft, IDPropriété.BorderWidthRight, IDPropriété.BorderWidthTop,
-        IDPropriété.BorderColorBottom, IDPropriété.BorderColorLeft, IDPropriété.BorderColorRight, IDPropriété.BorderColorTop,
-        IDPropriété.BackgroundColor, IDPropriété.TextDecorationColor
-    ]
-
-    pour ids_propriétés {
-        si ctx_calcul_style.propriétés_calculées.est_actif(it comme n16) {
-            continue
-        }
-
-        infos := infos_types_propriétés_pour_id[it]
-        propriétés.définis_valeur_calculée(infos.id, calcule_valeur_propriété_générique(propriétés.style.valeurs[infos.id], infos.genre_valeur_calculée, *propriétés.style, *ctx_calcul_style))
-    }
+    calcule_style(*ctx_calcul_style, ÉtapeCalculStyle.Autres)
 
     calcule_display_final(propriétés)
 
     /* Transfert les valeurs calculées aux valeurs utilisées. */
     propriétés.style_utilisée = propriétés.style
+
+    saufsi propriétés_parent {
+        résolveuse.longueurs_relative_fonte_racine = ctx_calcul_style.longueurs_relative_fonte
+    }
 }
 
 calcule_valeur_propriété :: fonc (ctx: *ContexteCalculStyle, info: *InfoTypePropriété, déclaration: *DéclarationPropriété)
@@ -1170,10 +1128,6 @@ calcule_valeur_propriété :: fonc (ctx: *ContexteCalculStyle, info: *InfoTypePr
     }
     sinon {
         calcule_valeur_propriété_générique(déclaration, *ctx.propriétés.style, ctx)
-    }
-
-    si info.id == IDPropriété.FontSize {
-        ctx.taille_fonte = ctx.propriétés.donne_valeur_calculée(IDPropriété.FontSize).pixels
     }
 
     ctx.propriétés_calculées.active(info.id comme n16)
@@ -1385,7 +1339,8 @@ dispose_arbre :: fonc (globales: *GlobalesDessin, arbre: *ArbreDeDisposition, la
     ctx.boites_absolues = *boites_absolues
 
     ctx_calcul_style: ContexteCalculStyle
-    ctx_calcul_style.taille_fonte_racine = arbre.racine.propriétés.donne_valeur_calculée(IDPropriété.FontSize).pixels
+    ctx_calcul_style.globales = globales
+    initialise_métriques_fonte(*ctx_calcul_style.longueurs_relative_fonte_racine, arbre.racine.propriétés, globales)
     ctx_calcul_style.largeur_canevas = largeur comme r32
     ctx_calcul_style.hauteur_canevas = hauteur comme r32
 
@@ -1500,10 +1455,6 @@ crée_noeud_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *
     }
     sinon {
         résultat = crée_noeud_pour_display(arbre, display, élément)
-    }
-
-    si parent == nul {
-        résolveuse.taille_fonte_racine = propriétés.donne_valeur_calculée(IDPropriété.FontSize).pixels
     }
 
     table: *TableBox
@@ -1889,10 +1840,25 @@ détermine_fonte :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage
 {
     globales := ctx.globales
     assert(globales != nul)
+    propriétés := noeud.donne_propriétés()
+
+    résultat := détermine_fonte(propriétés, globales)
+    si noeud.table_virtuelle.type == NoeudDeDispositionTexte {
+        noeud_texte := noeud comme *NoeudDeDispositionTexte
+        noeud_texte.fonte = résultat
+    }
+    sinon si noeud.table_virtuelle.type == NoeudDeDispositionSelect {
+        noeud_select := noeud comme *NoeudDeDispositionSelect
+        noeud_select.fonte = résultat
+    }
+    retourne résultat
+}
+
+détermine_fonte :: fonc (propriétés: *PropriétésDeStyle, globales: *GlobalesDessin) -> *Fonte
+{
     famille_fonte := "sérif"
     style := "normal"
     graisse := GraisseFonte.Normal
-    propriétés := noeud.donne_propriétés()
     taille_fonte := propriétés.donne_valeur_utilisée(IDPropriété.FontSize).pixels comme r32
 
     font_family := propriétés.donne_valeur_utilisée(IDPropriété.FontFamily).mot_clé
@@ -1913,16 +1879,7 @@ détermine_fonte :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage
         style = "italic"
     }
 
-    résultat := globales.donne_fonte(famille_fonte, style, graisse, taille_fonte)
-    si noeud.table_virtuelle.type == NoeudDeDispositionTexte {
-        noeud_texte := noeud comme *NoeudDeDispositionTexte
-        noeud_texte.fonte = résultat
-    }
-    sinon si noeud.table_virtuelle.type == NoeudDeDispositionSelect {
-        noeud_select := noeud comme *NoeudDeDispositionSelect
-        noeud_select.fonte = résultat
-    }
-    retourne résultat
+    retourne globales.donne_fonte(famille_fonte, style, graisse, taille_fonte)
 }
 
 donne_rectangle_rembourrage :: fonc (noeud: *NoeudDeDisposition) -> RectanglePosDim(r32)

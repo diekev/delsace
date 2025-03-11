@@ -1,9 +1,11 @@
 importe Chaine
 importe Couleur
+importe EnsembleDeBits
 importe Fondation
 importe #inemployé HTML
 importe Internet
 importe Structures
+importe Typographie
 
 TextDecorationLine :: énum_drapeau n8 {
     UNDERLINE
@@ -94,7 +96,7 @@ opérateur == :: fonc (calc1: CalcFunction, calc2: CalcFunction) -> bool #horsli
                 it = ValeurDeStyle(pixels = it.percentage * ctx.référence_pourcentage / 100.0)
             }
             sinon si genre_valeur_calculée.FontSize || genre_valeur_calculée.LineHeight {
-                it = ValeurDeStyle(pixels = it.percentage * ctx.taille_fonte / 100.0)
+                it = ValeurDeStyle(pixels = it.percentage * ctx.longueurs_relative_fonte.em / 100.0)
             }
             sinon {
                 retourne ErreurDeCalcul.PourcentageIncalculable
@@ -824,6 +826,16 @@ Longueur :: struct {
     Unité :: énum {
         Em
         Rem
+        Cap
+        Rcap
+        Ex
+        Rex
+        Ic
+        Ric
+        Ch
+        Rch
+        Lh
+        Rlh
         /* https://drafts.csswg.org/css-values-4/#absolute-lengths */
         Cm
         Mm
@@ -885,6 +897,46 @@ donne_unité_pour_nom :: fonc (nom: CSSOMString) -> Optionnel(Longueur.Unité)
     si nom == PROP_vw {
         retourne Longueur.Unité.Rem
     }
+
+    si nom == PROP_ex {
+        retourne Longueur.Unité.Ex
+    }
+
+    si nom == PROP_rex {
+        retourne Longueur.Unité.Rex
+    }
+
+    si nom == PROP_ic {
+        retourne Longueur.Unité.Ic
+    }
+
+    si nom == PROP_ric {
+        retourne Longueur.Unité.Ric
+    }
+
+    si nom == PROP_lh {
+        retourne Longueur.Unité.Lh
+    }
+
+    si nom == PROP_rlh {
+        retourne Longueur.Unité.Rlh
+    }
+
+    si nom == PROP_cap {
+        retourne Longueur.Unité.Cap
+    }
+
+    si nom == PROP_rcap {
+        retourne Longueur.Unité.Rcap
+    }
+
+    si nom == PROP_ch {
+        retourne Longueur.Unité.Ch
+    }
+
+    si nom == PROP_rch {
+        retourne Longueur.Unité.Rch
+    }
 }
 
 donne_chaine_pour_unité :: fonc (unité: Longueur.Unité) -> CSSOMString
@@ -895,6 +947,36 @@ donne_chaine_pour_unité :: fonc (unité: Longueur.Unité) -> CSSOMString
         }
         Rem {
             retourne PROP_rem
+        }
+        Ex {
+            retourne PROP_ex
+        }
+        Rex {
+            retourne PROP_rex
+        }
+        Ic {
+            retourne PROP_ic
+        }
+        Ric {
+            retourne PROP_ric
+        }
+        Lh {
+            retourne PROP_lh
+        }
+        Rlh {
+            retourne PROP_rlh
+        }
+        Cap {
+            retourne PROP_cap
+        }
+        Rcap {
+            retourne PROP_rcap
+        }
+        Ch {
+            retourne PROP_ch
+        }
+        Rch {
+            retourne PROP_rch
         }
         Cm {
             retourne PROP_cm
@@ -936,10 +1018,40 @@ calcule_longueur :: fonc (l: Longueur, ctx: *ContexteCalculStyle) -> r64
             retourne l.valeur
         }
         Em {
-            retourne l.valeur * ctx.taille_fonte
+            retourne l.valeur * ctx.longueurs_relative_fonte.em
         }
         Rem {
-            retourne l.valeur * ctx.taille_fonte_racine
+            retourne l.valeur * ctx.longueurs_relative_fonte_racine.em
+        }
+        Ex {
+            retourne l.valeur * ctx.longueurs_relative_fonte.ex
+        }
+        Rex {
+            retourne l.valeur * ctx.longueurs_relative_fonte_racine.ex
+        }
+        Ic {
+            retourne l.valeur * ctx.longueurs_relative_fonte.ic
+        }
+        Ric {
+            retourne l.valeur * ctx.longueurs_relative_fonte_racine.ic
+        }
+        Lh {
+            retourne l.valeur * ctx.longueurs_relative_fonte.lh
+        }
+        Rlh {
+            retourne l.valeur * ctx.longueurs_relative_fonte_racine.lh
+        }
+        Cap {
+            retourne l.valeur * ctx.longueurs_relative_fonte.cap
+        }
+        Rcap {
+            retourne l.valeur * ctx.longueurs_relative_fonte_racine.cap
+        }
+        Ch {
+            retourne l.valeur * ctx.longueurs_relative_fonte.ch
+        }
+        Rch {
+            retourne l.valeur * ctx.longueurs_relative_fonte_racine.ch
         }
         In {
             /* 1in = 96 px */
@@ -1047,11 +1159,69 @@ donne_line_style :: fonc (value: ValeurDeStyle) -> LineStyle
     panique("LineStyle inconnu")
 }
 
+LongueursRelativesFonte :: struct {
+    em: r32
+    ex: r32
+    cap: r32
+    ch: r32
+    ic: r32
+    lh: r32
+}
+
+initialise_métriques_fonte :: fonc (longueurs: *LongueursRelativesFonte, propriétés: *PropriétésDeStyle, globales: *GlobalesDessin)
+{
+    fonte := détermine_fonte(propriétés, globales)
+    initialise_métriques_fonte(longueurs, fonte)
+    longueurs.lh = donne_line_height(propriétés, fonte)
+}
+
+initialise_métriques_fonte :: fonc (longueurs: *LongueursRelativesFonte, fonte: *Fonte)
+{
+    longueurs.em = fonte.font.size
+
+    ex := donne_hauteur_glyph(fonte, 'o' comme n32)
+    si ex.possède_valeur() {
+        longueurs.ex = ex.Quelque comme r32
+    }
+    sinon {
+        longueurs.ex = 0.5 * longueurs.em
+    }
+
+    cap := donne_hauteur_glyph(fonte, 'O' comme n32)
+    si cap.possède_valeur() {
+        longueurs.cap = cap.Quelque comme r32
+    }
+    sinon {
+        longueurs.cap = fonte.font.ascender
+    }
+
+    ch := donne_largeur_glyph(fonte, '0' comme n32)
+    si ch.possède_valeur() {
+        longueurs.ch = ch.Quelque
+    }
+    sinon {
+        longueurs.ch = 0.5 * longueurs.em
+    }
+
+    ic := donne_largeur_glyph(fonte, 0x6C34)
+    si ic.possède_valeur() {
+        longueurs.ic = ic.Quelque
+    }
+    sinon {
+        longueurs.ic = longueurs.em
+    }
+
+    longueurs.lh = fonte.donne_métriques_fonte().donne_hauteur_ligne()
+}
+
 ContexteCalculStyle :: struct {
     document: *HTML.Document
-    taille_fonte: r64
-    taille_fonte_racine: r64
+    globales: *GlobalesDessin
     propriétés: *PropriétésDeStyle
+
+    longueurs_relative_fonte: LongueursRelativesFonte
+    longueurs_relative_fonte_racine: LongueursRelativesFonte
+
     valeurs_initiales: *Style
     largeur_canevas: r64
     hauteur_canevas: r64
@@ -1065,7 +1235,7 @@ ContexteCalculStyle :: struct {
 définis_propriétés :: fonc (ctx: *ContexteCalculStyle, propriétés: *PropriétésDeStyle)
 {
     ctx.propriétés = propriétés
-    ctx.taille_fonte = propriétés.donne_valeur_calculée(IDPropriété.FontSize).pixels
+    initialise_métriques_fonte(*ctx.longueurs_relative_fonte, propriétés, ctx.globales)
 }
 
 résoud_pourcentage :: fonc (ctx: *ContexteCalculStyle, id: IDPropriété, référence: r64)
@@ -1099,6 +1269,118 @@ calcule_pourcentage :: fonc (ctx: *ContexteCalculStyle, valeur: ValeurDeStyle, r
     }
 
     retourne valeur
+}
+
+ÉtapeCalculStyle :: énum {
+    Font
+    LineHeight
+    Autres
+}
+
+calcule_style :: fonc (ctx: *ContexteCalculStyle, étape: ÉtapeCalculStyle)
+{
+    propriétés := ctx.propriétés
+
+    pour propriétés.déclarations {
+        si it.est_personnalisée {
+            continue
+        }
+
+        info := it.info
+
+        si it.est_shorthand_avec_variable {
+            si (étape == ÉtapeCalculStyle.Font) != (info.nom == PROP_font) {
+                continue
+            }
+
+            valeurs := développe_variables(propriétés, it.valeur_personnalisée)
+
+            ctx_parsage: ContexteParsageShorthandVariable
+            ctx_parsage.sur_ajoute_propriété = contexte_parsage_shorthand_variable_ajoute_propriété
+            ctx_parsage.ctx_calcul_style = ctx
+
+            déclaration_parsée: ParsedDeclaration
+            déclaration_parsée.name = info.nom
+            ctx_parsage.déclaration_parsée = *déclaration_parsée
+
+            _ := info.sur_parsage_shorthand(*ctx_parsage, valeurs)
+
+            déloge(valeurs)
+            continue
+        }
+
+        si (étape == ÉtapeCalculStyle.Font) != est_propriété_fonte(info.id) {
+            continue
+        }
+
+        si (étape == ÉtapeCalculStyle.LineHeight) != (info.id == IDPropriété.LineHeight) {
+            continue
+        }
+
+        calcule_valeur_propriété(ctx, info, it)
+    }
+
+    si étape == ÉtapeCalculStyle.Font {
+        ids_propriétés_fonte := [
+            IDPropriété.FontSize, IDPropriété.FontWeight
+        ]
+
+        calcule_style_manuel(ctx, ids_propriétés_fonte)
+        retourne
+    }
+
+    si étape == ÉtapeCalculStyle.LineHeight {
+        calcule_style_manuel(ctx, [IDPropriété.LineHeight])
+        retourne
+    }
+
+    si propriétés.style.valeurs[IDPropriété.BorderStyleLeft].line_style == LineStyle.None {
+        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthLeft, ValeurDeStyle(pixels = 0.0))
+        ctx.propriétés_calculées.active(IDPropriété.BorderWidthLeft comme n16)
+        ctx.propriétés_calculées.active(IDPropriété.BorderColorLeft comme n16)
+    }
+    si propriétés.style.valeurs[IDPropriété.BorderStyleTop].line_style == LineStyle.None {
+        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthTop, ValeurDeStyle(pixels = 0.0))
+        ctx.propriétés_calculées.active(IDPropriété.BorderWidthTop comme n16)
+        ctx.propriétés_calculées.active(IDPropriété.BorderColorTop comme n16)
+    }
+    si propriétés.style.valeurs[IDPropriété.BorderStyleRight].line_style == LineStyle.None {
+        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthRight, ValeurDeStyle(pixels = 0.0))
+        ctx.propriétés_calculées.active(IDPropriété.BorderWidthRight comme n16)
+        ctx.propriétés_calculées.active(IDPropriété.BorderColorRight comme n16)
+    }
+    si propriétés.style.valeurs[IDPropriété.BorderStyleBottom].line_style == LineStyle.None {
+        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthBottom, ValeurDeStyle(pixels = 0.0))
+        ctx.propriétés_calculées.active(IDPropriété.BorderWidthBottom comme n16)
+        ctx.propriétés_calculées.active(IDPropriété.BorderColorBottom comme n16)
+    }
+
+    ids_propriétés := [
+        IDPropriété.BorderWidthBottom, IDPropriété.BorderWidthLeft, IDPropriété.BorderWidthRight, IDPropriété.BorderWidthTop,
+        IDPropriété.BorderColorBottom, IDPropriété.BorderColorLeft, IDPropriété.BorderColorRight, IDPropriété.BorderColorTop,
+        IDPropriété.BackgroundColor, IDPropriété.TextDecorationColor
+    ]
+
+    calcule_style_manuel(ctx, ids_propriétés)
+}
+
+calcule_style_manuel :: fonc (ctx: *ContexteCalculStyle, ids_propriétés: []IDPropriété)
+{
+    propriétés := ctx.propriétés
+
+    pour ids_propriétés {
+        si ctx.propriétés_calculées.est_actif(it comme n16) {
+            continue
+        }
+
+        infos := infos_types_propriétés_pour_id[it]
+        valeur := calcule_valeur_propriété_générique(propriétés.style.valeurs[it], infos.genre_valeur_calculée, *propriétés.style, ctx)
+        propriétés.définis_valeur_calculée(it, valeur)
+    }
+
+    pour ids_propriétés {
+        propriétés.définis_valeur_utilisée(it, propriétés.donne_valeur_calculée(it))
+    }
 }
 
 IDPropriété :: énum n16 {
@@ -1188,6 +1470,21 @@ IDPropriété :: énum n16 {
     BoxSizing
     Opacity
     ZIndex
+}
+
+est_propriété_fonte :: fonc (id: IDPropriété) -> bool
+{
+    discr id {
+        FontFamily,
+        FontSize,
+        FontWeight,
+        FontStyle {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
 }
 
 Style :: struct {
@@ -1718,6 +2015,9 @@ calcule_valeur_propriété_générique :: fonc (valeur: ValeurDeStyle, genre_val
             si genre_valeur_calculée.BackgroundImage && m == PROP_none {
                 retourne valeur
             }
+            si genre_valeur_calculée.LineHeight && m == PROP_normal {
+                retourne valeur
+            }
         }
         url(u) {
             si genre_valeur_calculée.BackgroundImage {
@@ -1772,11 +2072,11 @@ calcule_valeur_propriété_générique :: fonc (valeur: ValeurDeStyle, genre_val
         }
         percentage(p) {
             si genre_valeur_calculée.FontSize {
-                retourne ValeurDeStyle(pixels = ctx.taille_fonte * p / 100.0)
+                retourne ValeurDeStyle(pixels = ctx.longueurs_relative_fonte.em * p / 100.0)
             }
 
             si genre_valeur_calculée.LineHeight {
-                retourne ValeurDeStyle(pixels = ctx.taille_fonte * p / 100.0)
+                retourne ValeurDeStyle(pixels = ctx.longueurs_relative_fonte.em * p / 100.0)
             }
 
             si genre_valeur_calculée.LongueurPourcentage {
@@ -2022,7 +2322,7 @@ calcule_display_pour_mot_clé :: fonc (mot_clé: CSSOMString) -> ValeurDeStyle
 
 calcule_font_size_pour_mot_clé :: fonc (m: CSSOMString, ctx: *ContexteCalculStyle) -> ValeurDeStyle
 {
-    taille_fonte_référence := ctx.taille_fonte
+    taille_fonte_référence := ctx.longueurs_relative_fonte.em
     taille_fonte := taille_fonte_référence
 
     /* Utilise 1.2 pour l'échelle. La spécification propose une valeur entre 1.2 et 1.5. */
