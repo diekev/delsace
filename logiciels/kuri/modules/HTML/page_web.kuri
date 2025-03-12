@@ -1,0 +1,371 @@
+importe #inemployé CSS
+importe Ensemble
+importe Géométrie
+importe Périphériques
+
+/* ------------------------------------------------------------------------- */
+/** \nom PageWeb
+ * Envellope autour de TraversableNavigable pour simplifier la gestion des
+ * évènements.
+ * \{ */
+
+PageWeb :: struct {
+    navigable: *TraversableNavigable
+}
+
+crée_page_web :: fonc (navigable: *TraversableNavigable) -> PageWeb
+{
+    résultat: PageWeb
+    résultat.navigable = navigable
+    retourne résultat
+}
+
+donne_document :: fonc (page: *PageWeb) -> *Document
+{
+    si page.navigable {
+        retourne page.navigable.donne_active_document()
+    }
+    retourne nul
+}
+
+donne_code_source :: fonc (page: *PageWeb @inutilisée) -> chaine
+{
+    // À FAIRE
+    retourne ""
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Arbre de disposition
+ * \{ */
+
+crée_arbre_de_disposition :: fonc (page: *PageWeb, largeur: z32, hauteur: z32) -> *CSS.ArbreDeDisposition
+{
+    document := donne_document(page)
+    saufsi document {
+        retourne nul
+    }
+
+    retourne CSS.donne_arbre_de_disposition_ajourné(document, largeur, hauteur)
+}
+
+donne_arbre_de_disposition :: fonc (page: *PageWeb) -> *CSS.ArbreDeDisposition
+{
+    document := donne_document(page)
+    saufsi document {
+        retourne nul
+    }
+
+    retourne document.arbre_de_disposition
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Évènements
+ * \{ */
+
+redimensionne :: fonc (page: *PageWeb, largeur: z32, hauteur: z32)
+{
+    document := donne_document(page)
+    si document {
+        document.invalide_style_pour_redimensionnement(largeur, hauteur)
+    }
+}
+
+/* À FAIRE : supprime la valeur de retour. */
+gère_mouvement_souris :: fonc (page: *PageWeb, clic: *CliqueSouris) -> bool
+{
+    document := donne_document(page)
+    saufsi document {
+        retourne faux
+    }
+
+    arbre := document.arbre_de_disposition
+    saufsi arbre {
+        retourne faux
+    }
+
+    position := clic.état.où
+
+    élément := CSS.donne_élément_pour_position(arbre, position.x, position.y)
+    document.définis_noeud_survolé(élément)
+    si élément {
+        envoie_mousemove(élément, position.x, position.y)
+    }
+
+    défilement := arbre.défilement_vertical
+
+    ajourne_rendu := faux
+
+    si défilement && défilement.est_visible {
+        si défilement.est_cliqué {
+            décalage := position.y comme r32 - défilement.pos_clique_y
+            défilement.pos_clique_y = position.y comme r32
+            ajourne_rendu |= CSS.décale_par(défilement, décalage)
+        }
+
+        si défilement.rect.contient(position.x comme r32, position.y comme r32) {
+            saufsi défilement.est_survolé {
+                défilement.est_survolé = vrai
+                ajourne_rendu = vrai
+            }
+        }
+        sinon si défilement.est_survolé {
+            défilement.est_survolé = faux
+            ajourne_rendu = vrai
+        }
+    }
+
+    retourne ajourne_rendu
+}
+
+gère_pression_souris :: fonc (page: *PageWeb, clic: *CliqueSouris)
+{
+    document := donne_document(page)
+    saufsi document {
+        retourne
+    }
+
+    arbre := document.arbre_de_disposition
+    saufsi arbre {
+        retourne
+    }
+
+    position := clic.état.où
+
+    si arbre.défilement_vertical && arbre.défilement_vertical.est_survolé && arbre.défilement_vertical.est_visible {
+        arbre.défilement_vertical.est_cliqué = vrai
+        arbre.défilement_vertical.pos_clique_y = position.y comme r32
+        retourne
+    }
+
+    élément := CSS.donne_élément_pour_position(arbre, position.x, position.y)
+    si élément {
+        élément.est_en_train_d_être_activé(vrai)
+        envoie_mousedown(élément, position.x, position.y)
+    }
+    document.élément_en_cours_d_activation = élément
+}
+
+/* À FAIRE : supprime la valeur de retour. */
+gère_relâchement_souris :: fonc (page: *PageWeb, clic: *CliqueSouris) -> bool
+{
+    document := donne_document(page)
+    saufsi document {
+        retourne faux
+    }
+
+    arbre := document.arbre_de_disposition
+    saufsi arbre {
+        retourne faux
+    }
+
+    si arbre.défilement_vertical && arbre.défilement_vertical.est_cliqué {
+        arbre.défilement_vertical.est_cliqué = faux
+        retourne vrai
+    }
+
+    position := clic.état.où
+
+    élément := CSS.donne_élément_pour_position(arbre, position.x, position.y)
+    si élément {
+        élément.est_en_train_d_être_activé(faux)
+        envoie_mouseup(élément, position.x, position.y)
+    }
+    si document.élément_en_cours_d_activation {
+        si document.élément_en_cours_d_activation != élément {
+            document.élément_en_cours_d_activation.est_en_train_d_être_activé(faux)
+        }
+        sinon {
+            envoie_un_clic(élément)
+        }
+    }
+    document.élément_en_cours_d_activation = nul
+    retourne faux
+}
+
+/* À FAIRE : supprime la valeur de retour. */
+gère_molette_souris :: fonc (page: *PageWeb, clic: *CliqueSouris) -> bool
+{
+    document := donne_document(page)
+    saufsi document {
+        retourne faux
+    }
+
+    arbre := document.arbre_de_disposition
+    saufsi arbre && arbre.défilement_vertical && arbre.défilement_vertical.est_visible {
+        retourne faux
+    }
+
+    delta_molette := clic.delta
+
+    HAUTEURE_LIGNE :: 16.0
+    NOMBRE_DE_LIGNES_PAR_ROULEMENT :: 5.0
+    DÉCALAGE_PAR_ROULEMENT :: NOMBRE_DE_LIGNES_PAR_ROULEMENT * HAUTEURE_LIGNE
+
+    delta := DÉCALAGE_PAR_ROULEMENT * arbre.défilement_vertical.ratio
+
+    si delta_molette > 0 {
+        delta = -delta
+    }
+
+    retourne CSS.décale_par(arbre.défilement_vertical, delta)
+}
+
+gère_sortie_souris :: fonc (page: *PageWeb)
+{
+    document := donne_document(page)
+    si document && document.arbre_de_disposition && document.arbre_de_disposition.défilement_vertical {
+        arbre := document.arbre_de_disposition
+        si arbre.défilement_vertical.est_cliqué {
+            retourne
+        }
+        arbre.défilement_vertical.est_survolé = faux
+    }
+}
+
+défile_vers_fragment :: fonc (page: *PageWeb)
+{
+    document := donne_document(page)
+    saufsi document {
+        retourne
+    }
+
+    arbre := document.arbre_de_disposition
+    saufsi arbre && arbre.défilement_vertical {
+        retourne
+    }
+
+    élément := document.target_element
+    saufsi élément {
+        arbre.défilement_vertical.rect.y = 0.0
+        retourne
+    }
+
+    noeud_de_disposition := élément.noeud_de_disposition
+    saufsi noeud_de_disposition {
+        arbre.défilement_vertical.rect.y = 0.0
+        retourne
+    }
+
+    arbre.défilement_vertical.rect.y = noeud_de_disposition.modèle_de_boite.rembourrage.y * arbre.défilement_vertical.ratio
+}
+
+/* https://w3c.github.io/uievents/#send-click-event */
+envoie_un_clic :: fonc (élément: *Élément)
+{
+    /* À FAIRE : standardise. */
+    évènement := crée_platform_object(élément, MouseEvent)
+    évènement.target = élément
+    évènement.bubbles = vrai
+    évènement.type = EventType.click
+
+    _ := dispatch(évènement, élément)
+}
+
+envoie_mousedown :: fonc (élément: *Élément, position_x: z32, position_y: z32)
+{
+    évènement := crée_platform_object(élément, MouseEvent)
+    évènement.target = élément
+    évènement.type = EventType.mousedown
+    évènement.bubbles = vrai
+    évènement.screen_x = position_x comme r64
+    évènement.screen_y = position_y comme r64
+
+    rect := CSS.donne_rectangle_rembourrage(élément.noeud_de_disposition)
+    évènement.offset_x = évènement.screen_x - rect.x
+    évènement.offset_y = évènement.screen_y - rect.y
+
+    _ := dispatch(évènement, élément)
+}
+
+envoie_mousemove :: fonc (élément: *Élément, position_x: z32, position_y: z32)
+{
+    évènement := crée_platform_object(élément, MouseEvent)
+    évènement.target = élément
+    évènement.type = EventType.mousemove
+    évènement.bubbles = vrai
+    évènement.screen_x = position_x comme r64
+    évènement.screen_y = position_y comme r64
+
+    rect := CSS.donne_rectangle_rembourrage(élément.noeud_de_disposition)
+    évènement.offset_x = évènement.screen_x - rect.x
+    évènement.offset_y = évènement.screen_y - rect.y
+
+    _ := dispatch(évènement, élément)
+}
+
+envoie_mouseup :: fonc (élément: *Élément, position_x: z32, position_y: z32)
+{
+    évènement := crée_platform_object(élément, MouseEvent)
+    évènement.target = élément
+    évènement.type = EventType.mouseup
+    évènement.bubbles = vrai
+    évènement.screen_x = position_x comme r64
+    évènement.screen_y = position_y comme r64
+
+    rect := CSS.donne_rectangle_rembourrage(élément.noeud_de_disposition)
+    évènement.offset_x = évènement.screen_x - rect.x
+    évènement.offset_y = évènement.screen_y - rect.y
+
+    _ := dispatch(évènement, élément)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Impression des styles
+ * \{ */
+
+imprime_styles :: fonc (page_web: *PageWeb)
+{
+    document := donne_document(page_web)
+    saufsi document {
+        retourne
+    }
+
+    styles: [..]*CSS.CSSStyleDeclaration
+    diffère déloge(styles)
+
+    traverse_noeud(document, rappel_pour_rassembler_styles, *styles)
+
+    pour styles {
+        saufsi it.parent_css_rule {
+            continue
+        }
+
+        origine := CSS.donne_origine_cascade(it.parent_css_rule)
+        si origine == CSS.OrigineCascade.UserAgent {
+            continue
+        }
+
+        CSS.imprime_règle(it.parent_css_rule comme *CSS.CSSStyleRule)
+    }
+}
+
+rappel_pour_rassembler_styles :: fonc (noeud: *Noeud, styles: *[..]*CSS.CSSStyleDeclaration) -> DécisionTraversée
+{
+    saufsi noeud.est_élément() {
+        retourne DécisionTraversée.CONTINUE
+    }
+
+    élément := noeud comme *Élément
+    saufsi élément.noeud_de_disposition {
+        retourne DécisionTraversée.CONTINUE
+    }
+
+    propriétés := élément.noeud_de_disposition.propriétés
+    saufsi propriétés {
+        retourne DécisionTraversée.CONTINUE
+    }
+
+    pour propriétés.déclarations {
+        ensemble_ajoute(styles, it.style_parent)
+    }
+
+    retourne DécisionTraversée.CONTINUE
+}
+
+/** \} */
