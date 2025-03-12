@@ -236,6 +236,7 @@ détruit_image :: fonc (image: &ImageIO)
     tableau : [..]r32 = ---
     tableau.pointeur = image.donnees
     tableau.taille = image.nombre_éléments_données()
+    tableau.capacité = tableau.taille
     déloge(tableau)
 
     image.donnees = nul
