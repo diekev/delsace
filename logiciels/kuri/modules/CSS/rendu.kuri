@@ -195,62 +195,6 @@ dessine_texte :: fonc (commandes: *CommandesDeRendu, fonte: *Fonte, texte: Chain
 
 /** \} */
 
-dessine_commandes :: fonc (commandes: *CommandesDeRendu, peintre: *Peintre)
-{
-    IGUMI.réinitialise_données()
-
-    début := commandes.commandes.pointeur
-    fin := début + commandes.commandes.taille
-
-    tantque début < fin {
-        base := début comme *BaseCommande
-        discr base.type {
-            REMPLIS_RECTANGLE {
-                commande := base comme *CommandeRemplisRectangle
-                peintre.remplis_rectangle(commande.rect, commande.couleur)
-            }
-            REMPLIS_RECTANGLE_ARRONDI {
-                commande := base comme *CommandeRemplisRectangleArrondi
-                peintre.remplis_rectangle_arrondi(commande.rect, commande.rayons, commande.couleur)
-            }
-            DESSINE_RECTANGLE {
-                commande := base comme *CommandeDessineRectangle
-                peintre.dessine_rectangle(commande.rect, commande.couleur)
-            }
-            DESSINE_RECTANGLE_ARRONDI {
-                // commande := base comme *CommandeDessineRectangleArrondi
-                // peintre.dessine_rectangle_arrondi(commande.rect, commande.rayons, commande.couleur)
-            }
-            DESSINE_BORDURE {
-                commande := base comme *CommandeDessineBordure
-
-                couleurs_peintre: [4]CouleurPeintre = ---
-                pour commande.couleurs {
-                    couleurs_peintre[index_it] = it
-                }
-
-                peintre.dessine_bordure(commande.rect, commande.largeurs, couleurs_peintre)
-            }
-            DESSINE_IMAGE {
-                commande := base comme *CommandeDessineImage
-                peintre.dessine_image(commande.image_data, commande.rect_image, commande.rect, commande.répétition)
-            }
-            DESSINE_TAMPON_IMAGE {
-                commande := base comme *CommandeDessineImageTampon
-                peintre.dessine_image(commande.image_data, commande.rect)
-            }
-            DESSINE_TEXTE {
-                commande := base comme *CommandeDessineTexte
-                peintre.dessine_texte(commande.fonte, commande.texte, commande.rect, commande.couleur, *commande.effets)
-            }
-        }
-
-        début += base.taille_type
-    }
-
-    peintre.termine_dessin()
-}
-
 /* ------------------------------------------------------------------------- */
 /** \nom ContexteDessin
  * \{ */
