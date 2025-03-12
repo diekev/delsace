@@ -109,6 +109,7 @@ imprime_arbre_stacking_context :: fonc (enchaineuse: *Enchaineuse, ctx: *Stackin
  * ne pas avoir être initialisé ou autre. */
 ajoute_enfant :: fonc (parent: *StackingContext, enfant: *StackingContext)
 {
+    enfant.parent = parent
     tableau_ajoute(*parent.enfants, enfant)
 }
 
