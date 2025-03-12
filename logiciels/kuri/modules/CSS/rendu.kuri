@@ -3,10 +3,7 @@ importe Chaine
 importe Couleur
 importe Fondation
 importe Géométrie
-importe IGUMI
 importe Image
-importe OpenGL
-importe PeintureInterface
 importe Typographie
 
 /* ------------------------------------------------------------------------- */
@@ -14,6 +11,7 @@ importe Typographie
  * \{ */
 
 TypeCommandeDeRendu :: énum {
+    REMPLIS_RECTANGLE_ID
     REMPLIS_RECTANGLE
     REMPLIS_RECTANGLE_ARRONDI
     DESSINE_RECTANGLE
@@ -58,6 +56,20 @@ BaseCommande :: struct {
     type: TypeCommandeDeRendu
     taille_type: n32
     rect: RectanglePosDim(r32)
+}
+
+CommandeRemplisRectangleID :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.REMPLIS_RECTANGLE_ID
+
+    id: n32
+}
+
+remplis_rectangle_id :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), id: n32)
+{
+    résultat := crée_commande(commandes, CommandeRemplisRectangleID)
+    résultat.rect = rect
+    résultat.id = id
 }
 
 CommandeRemplisRectangle :: struct {
@@ -202,7 +214,6 @@ dessine_texte :: fonc (commandes: *CommandesDeRendu, fonte: *Fonte, texte: Chain
 ContexteDessin :: struct {
     document: *HTML.Document
     globales: *GlobalesDessin
-    peintre: *Peintre
     commandes: *CommandesDeRendu
     arbre: *ArbreDeDisposition
 
@@ -232,9 +243,6 @@ donne_rectangle_corrigé :: fonc (ctx: *ContexteDessin, rect: RectanglePosDim(r3
 
 dessine :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin) -> *CommandesDeRendu
 {
-    arbre.hauteur_vue = ctx.hauteur_vue
-    arbre.largeur_vue = ctx.largeur_vue
-
     ctx.arbre = arbre
     ctx.commandes = arbre.donne_commandes_de_rendu()
     réinitialise(ctx.commandes)
@@ -267,9 +275,6 @@ dessine :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin) -> *Commandes
 
 dessine_tampon_id_couleur :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin) -> *CommandesDeRendu
 {
-    arbre.hauteur_vue = ctx.hauteur_vue
-    arbre.largeur_vue = ctx.largeur_vue
-
     ctx.arbre = arbre
     ctx.commandes = arbre.donne_commandes_de_rendu()
     réinitialise(ctx.commandes)
@@ -283,50 +288,19 @@ dessine_tampon_id_couleur :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDes
     retourne ctx.commandes
 }
 
-dessine_tampon_id :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
+dessine_tampon_id :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin) -> *CommandesDeRendu
 {
     assert(ctx.tampon_id_couleur == faux)
+
     ctx.arbre = arbre
-    /* Tampon ID. */
-
-    IGUMI.réinitialise_données_id()
-    fbo: GLuint
-    glGenFramebuffers(1, *fbo)
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo)
-
-    render_buf: GLuint
-    glGenRenderbuffers(1, *render_buf)
-    glBindRenderbuffer(GL_RENDERBUFFER, render_buf)
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_R32UI, ctx.largeur_vue, ctx.hauteur_vue)
-    vérifie_erreur("glRenderbufferStorage")
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, render_buf)
-    vérifie_erreur("glFramebufferRenderbuffer")
+    ctx.commandes = arbre.donne_commandes_de_rendu()
+    réinitialise(ctx.commandes)
 
     dessine_stacking_context_tampon_id(arbre.stacking_context, ctx)
-    vérifie_erreur("dessine_tampon_id")
-    IGUMI.termine_immédiat_id()
 
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0)
-    vérifie_erreur("glBindFramebuffer")
+    définis_taille_tampon_id(arbre, ctx.largeur_vue, ctx.hauteur_vue)
 
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo)
-    vérifie_erreur("glBindFramebuffer")
-
-    tableau_redimensionne(arbre.tampon_id, ctx.largeur_vue * ctx.hauteur_vue)
-
-    glReadBuffer(GL_COLOR_ATTACHMENT0)
-    vérifie_erreur("glReadBuffer")
-    glReadPixels(0, 0, ctx.largeur_vue, ctx.hauteur_vue, GL_RED_INTEGER, GL_UNSIGNED_INT, arbre.tampon_id.pointeur)
-    vérifie_erreur("glReadPixels")
-
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0)
-
-    glBindRenderbuffer(GL_RENDERBUFFER, 0)
-
-    glDeleteFramebuffers(1, *fbo)
-    glDeleteRenderbuffers(1, *render_buf)
-
-    arbre.tampon_id_fut_dessiné = vrai
+    retourne ctx.commandes
 }
 
 dessine :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDessin)
@@ -800,10 +774,10 @@ noeud_disposition_remplacement_sur_dessin_tampon_id :: fonc (base: *NoeudDeDispo
 
 remplis_rectangle_id :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition)
 {
+    commandes := ctx.commandes
     rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
 
     si ctx.tampon_id_couleur {
-        commandes := ctx.commandes
         entropie := graine_aléatoire(noeud.id + 1)
 
         couleur: CouleurRVBA
@@ -815,19 +789,15 @@ remplis_rectangle_id :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition)
         retourne
     }
 
-    IGUMI.commence_immédiat_id(IGUMI.ModeImmédiat.TRIANGLES, IGUMI.nuanceur_id)
-
-    // imprime("[%] (% % % %) : %\n", #nom_de_cette_fonction, rect.x, rect.y, rect.largeur, rect.hauteur, noeud.id)
-
-    IGUMI.quad_immédiat_id(rect.x, rect.y, rect.largeur, rect.hauteur, noeud.id)
+    commandes.remplis_rectangle_id(rect, noeud.id)
 }
 
 remplis_rectangle_id :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition, rect: RectanglePosDim(r32))
 {
+    commandes := ctx.commandes
     rect = ctx.donne_rectangle_corrigé(rect)
 
     si ctx.tampon_id_couleur {
-        commandes := ctx.commandes
         entropie := graine_aléatoire(noeud.id + 1)
 
         couleur: CouleurRVBA
@@ -839,11 +809,7 @@ remplis_rectangle_id :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition, 
         retourne
     }
 
-    IGUMI.commence_immédiat_id(IGUMI.ModeImmédiat.TRIANGLES, IGUMI.nuanceur_id)
-
-    // imprime("[%] (% % % %) : %\n", #nom_de_cette_fonction, rect.x, rect.y, rect.largeur, rect.hauteur, noeud.id)
-
-    IGUMI.quad_immédiat_id(rect.x, rect.y, rect.largeur, rect.hauteur, noeud.id)
+    commandes.remplis_rectangle_id(rect, noeud.id)
 }
 
 dessine_image :: fonc (ctx: *ContexteDessin, image: ImageIO, rect: RectanglePosDim(r32))

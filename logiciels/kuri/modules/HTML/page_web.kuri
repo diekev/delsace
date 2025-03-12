@@ -90,27 +90,26 @@ dessine :: fonc (page: *PageWeb, largeur: z32, hauteur: z32, dessine_tampon_id: 
     retourne commandes
 }
 
-dessine_tampon_id :: fonc (page: *PageWeb, largeur: z32, hauteur: z32, peintre: *Peintre)
+dessine_tampon_id :: fonc (page: *PageWeb, largeur: z32, hauteur: z32) -> *CSS.CommandesDeRendu
 {
     document := donne_document(page)
 
     si document.is_initial_about_blank {
-        retourne
+        retourne nul
     }
 
     arbre := crée_arbre_de_disposition(page, largeur, hauteur)
     saufsi arbre && arbre.racine {
-        retourne
+        retourne nul
     }
 
     ctx: CSS.ContexteDessin
-    ctx.peintre = peintre
     ctx.document = document
     ctx.globales = document.globales_dessin
     ctx.hauteur_vue = hauteur
     ctx.largeur_vue = largeur
 
-    CSS.dessine_tampon_id(arbre, *ctx)
+    retourne CSS.dessine_tampon_id(arbre, *ctx)
 }
 
 /** \} */

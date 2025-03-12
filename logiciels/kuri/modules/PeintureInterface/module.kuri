@@ -1113,6 +1113,7 @@ dessine_commandes_css :: fonc (peintre: *Peintre, commandes: *CSS.CommandesDeRen
     tantque début < fin {
         base := début comme *CSS.BaseCommande
         discr base.type {
+            REMPLIS_RECTANGLE_ID {}
             REMPLIS_RECTANGLE {
                 commande := base comme *CSS.CommandeRemplisRectangle
                 peintre.remplis_rectangle(commande.rect, commande.couleur)
@@ -1157,6 +1158,64 @@ dessine_commandes_css :: fonc (peintre: *Peintre, commandes: *CSS.CommandesDeRen
     }
 
     peintre.termine_dessin()
+}
+
+dessine_commandes_id_css :: fonc (peintre: *Peintre @inutilisée, commandes: *CSS.CommandesDeRendu, tampon_id: *CSS.TamponID)
+{
+    IGUMI.réinitialise_données_id()
+
+    fbo: GLuint
+    glGenFramebuffers(1, *fbo)
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo)
+
+    render_buf: GLuint
+    glGenRenderbuffers(1, *render_buf)
+    glBindRenderbuffer(GL_RENDERBUFFER, render_buf)
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_R32UI, tampon_id.largeur, tampon_id.hauteur)
+    vérifie_erreur("glRenderbufferStorage")
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, render_buf)
+    vérifie_erreur("glFramebufferRenderbuffer")
+
+    début := commandes.commandes.pointeur
+    fin := début + commandes.commandes.taille
+
+    IGUMI.commence_immédiat_id(IGUMI.ModeImmédiat.TRIANGLES, IGUMI.nuanceur_id)
+    vérifie_erreur("commence_immédiat_id")
+
+    tantque début < fin {
+        base := début comme *CSS.BaseCommande
+
+        si base.type == CSS.TypeCommandeDeRendu.REMPLIS_RECTANGLE_ID {
+            commande := base comme *CSS.CommandeRemplisRectangleID
+            rect := commande.rect
+            IGUMI.quad_immédiat_id(rect.x, rect.y, rect.largeur, rect.hauteur, commande.id)
+        }
+
+        début += base.taille_type
+    }
+
+    IGUMI.termine_immédiat_id()
+    vérifie_erreur("termine_immédiat_id")
+
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0)
+    vérifie_erreur("glBindFramebuffer")
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo)
+    vérifie_erreur("glBindFramebuffer")
+
+    glReadBuffer(GL_COLOR_ATTACHMENT0)
+    vérifie_erreur("glReadBuffer")
+    glReadPixels(0, 0, tampon_id.largeur, tampon_id.hauteur, GL_RED_INTEGER, GL_UNSIGNED_INT, tampon_id.données.pointeur)
+    vérifie_erreur("glReadPixels")
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0)
+
+    glBindRenderbuffer(GL_RENDERBUFFER, 0)
+
+    glDeleteFramebuffers(1, *fbo)
+    glDeleteRenderbuffers(1, *render_buf)
+
+    tampon_id.fut_dessiné = vrai
 }
 
 /** \} */

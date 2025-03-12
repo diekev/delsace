@@ -1138,8 +1138,11 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
 
     peintre.dessine_tampon_sur_écran()
 
+    commandes = dessine_tampon_id(page, vue_rendu_page.largeur, vue_rendu_page.hauteur)
+    assert(commandes != nul)
+
     peintre = vue_rendu_page.peintre_id
-    dessine_tampon_id(page, vue_rendu_page.largeur, vue_rendu_page.hauteur, peintre)
+    dessine_commandes_id_css(peintre, commandes, CSS.donne_tampon_id(document.arbre_de_disposition))
 
     /* Nous devrions faire ça plus haut mais il semblerait qu'il manque, ou qu'il y a une préemption, des ajournements. */
     window := document.realm.global_object comme *Window

@@ -87,6 +87,29 @@ décale_par :: fonc (barre: *BarreDeDéfilement, delta: r32) -> bool
 /** \nom Arbre de disposition
  * \{ */
 
+TamponID :: struct {
+    données: [..]n32
+    hauteur: z32
+    largeur: z32
+    fut_dessiné: bool
+}
+
+donne_index_pour_position :: fonc (tampon: *TamponID, x: z32, y: z32) -> Optionnel(n32)
+{
+    saufsi tampon.fut_dessiné {
+        retourne
+    }
+
+    saufsi 0 <= x < tampon.largeur && 0 <= y < tampon.hauteur {
+        retourne
+    }
+
+    /* OpenGL est de bas en haut, donc inverse l'axe des y. */
+    index := (tampon.hauteur - y - 1) * tampon.largeur + x
+
+    retourne tampon.données[index]
+}
+
 ArbreDeDisposition :: struct {
     racine: *NoeudDeDisposition
     stacking_context: *StackingContext
@@ -96,10 +119,7 @@ ArbreDeDisposition :: struct {
 
     noeuds: [..]*NoeudDeDisposition
     lignes_tenantes: [..]*LignesTenante
-    tampon_id_fut_dessiné: bool
-    tampon_id: [..]n32
-    largeur_vue: z32
-    hauteur_vue: z32
+    tampon_id: TamponID
 
     noeuds_position_float: n32
     noeuds_position_absolue: n32
@@ -206,7 +226,7 @@ détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
     déloge(arbre.stacking_contexts)
     détruit_commandes(arbre.commandes)
     détruit(arbre.défilement_vertical)
-    déloge(arbre.tampon_id)
+    déloge(arbre.tampon_id.données)
     déloge(arbre.lignes_tenantes)
     déloge(arbre.noeuds)
     déloge(arbre)
@@ -228,6 +248,24 @@ donne_commandes_de_rendu :: fonc (arbre: *ArbreDeDisposition) -> *CommandesDeRen
     retourne arbre.commandes
 }
 
+définis_taille_tampon_id :: fonc (arbre: *ArbreDeDisposition, largeur: z32, hauteur: z32)
+{
+    si arbre.tampon_id.largeur == largeur && arbre.tampon_id.hauteur == hauteur {
+        retourne
+    }
+
+    arbre.tampon_id.largeur = largeur
+    arbre.tampon_id.hauteur = hauteur
+
+    arbre.tampon_id.fut_dessiné = faux
+    tableau_redimensionne(arbre.tampon_id.données, largeur * hauteur)
+}
+
+donne_tampon_id :: fonc (arbre: *ArbreDeDisposition) -> *TamponID
+{
+    retourne *arbre.tampon_id
+}
+
 donne_taille_en_octet_noeuds :: fonc (arbre: *ArbreDeDisposition) -> n32
 {
     résultat: n32
@@ -239,21 +277,12 @@ donne_taille_en_octet_noeuds :: fonc (arbre: *ArbreDeDisposition) -> n32
 
 donne_élément_pour_position :: fonc (arbre: *ArbreDeDisposition, x: z32, y: z32) -> *HTML.Élément
 {
-    saufsi arbre.tampon_id_fut_dessiné {
+    index := donne_index_pour_position(*arbre.tampon_id, x, y)
+    saufsi index.possède_valeur() {
         retourne nul
     }
 
-    saufsi 0 <= x < arbre.largeur_vue && 0 <= y < arbre.hauteur_vue {
-        retourne nul
-    }
-
-    tampon_id := arbre.tampon_id
-    /* OpenGL est de bas en haut, donc inverse l'axe des y. */
-    index := (arbre.hauteur_vue - y - 1) * arbre.largeur_vue + x
-
-    index_noeud := tampon_id[index]
-
-    noeud := arbre.noeuds[index_noeud]
+    noeud := arbre.noeuds[index.Quelque]
     saufsi noeud {
         retourne nul
     }
