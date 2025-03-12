@@ -774,22 +774,7 @@ noeud_disposition_remplacement_sur_dessin_tampon_id :: fonc (base: *NoeudDeDispo
 
 remplis_rectangle_id :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition)
 {
-    commandes := ctx.commandes
-    rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
-
-    si ctx.tampon_id_couleur {
-        entropie := graine_aléatoire(noeud.id + 1)
-
-        couleur: CouleurRVBA
-        couleur.r = aléatoire_unilatérale(entropie)
-        couleur.v = aléatoire_unilatérale(entropie)
-        couleur.b = aléatoire_unilatérale(entropie)
-        couleur.a = 1.0
-        commandes.remplis_rectangle(rect, couleur)
-        retourne
-    }
-
-    commandes.remplis_rectangle_id(rect, noeud.id)
+    remplis_rectangle_id(ctx, noeud, noeud.donne_rectangle_bordure())
 }
 
 remplis_rectangle_id :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition, rect: RectanglePosDim(r32))
