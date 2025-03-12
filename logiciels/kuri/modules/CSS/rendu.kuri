@@ -286,7 +286,7 @@ donne_rectangle_corrigé :: fonc (ctx: *ContexteDessin, rect: RectanglePosDim(r3
     retourne rect
 }
 
-dessine :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
+dessine :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin) -> *CommandesDeRendu
 {
     arbre.hauteur_vue = ctx.hauteur_vue
     arbre.largeur_vue = ctx.largeur_vue
@@ -318,10 +318,10 @@ dessine :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
     //     imprime_élément(it, "")
     // }
 
-    dessine_commandes(ctx.commandes, ctx.peintre)
+    retourne ctx.commandes
 }
 
-dessine_tampon_id_couleur :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)
+dessine_tampon_id_couleur :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin) -> *CommandesDeRendu
 {
     arbre.hauteur_vue = ctx.hauteur_vue
     arbre.largeur_vue = ctx.largeur_vue
@@ -336,7 +336,7 @@ dessine_tampon_id_couleur :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDes
 
     ctx.tampon_id_couleur = faux
 
-    dessine_commandes(ctx.commandes, ctx.peintre)
+    retourne ctx.commandes
 }
 
 dessine_tampon_id :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin)

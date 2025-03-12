@@ -1097,61 +1097,19 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
     glClearColor(1.0, 1.0, 1.0, 1.0)
 
     page := vue_rendu_page.page
-    document := donne_document(page)
-
-    si document.is_initial_about_blank {
-        retourne
-    }
-
-    arbre := crée_arbre_de_disposition(page, vue_rendu_page.largeur, vue_rendu_page.hauteur)
-    saufsi arbre && arbre.racine {
-        retourne
-    }
-
-    ctx: CSS.ContexteDessin
-    ctx.document = document
-    ctx.globales = document.globales_dessin
-    ctx.peintre = peintre
-    ctx.hauteur_vue = vue_rendu_page.hauteur
-    ctx.largeur_vue = vue_rendu_page.largeur
-
-    barre := arbre.défilement_vertical
-    si barre {
-        ctx.décalage_y = barre.rect.y / barre.ratio
-    }
 
     // début_rendu := maintenant_précis()
 
-    ctx.peintre.remplis_arrière_plan(CouleurRVBAN8(255, 255, 255, 255))
-
-    si vue_rendu_page.dessine_tampon_id {
-        CSS.dessine_tampon_id_couleur(arbre, *ctx)
-    }
-    sinon {
-        CSS.dessine(arbre, *ctx)
+    commandes := dessine(page, vue_rendu_page.largeur, vue_rendu_page.hauteur, vue_rendu_page.dessine_tampon_id)
+    saufsi commandes {
+        retourne
     }
 
     // imprime("temps de rendu : %\n", début_rendu.temps_écoulé_millisecondes())
 
-    si barre && barre.est_visible {
-        hauteur_vue := vue_rendu_page.hauteur comme r32
+    CSS.dessine_commandes(commandes, peintre)
 
-        rect_barre := barre.rect
-
-        /* Change la position pour le dessin qui commence du bas. */
-        rect_barre.y = hauteur_vue - rect_barre.hauteur - rect_barre.y
-
-        couleur := CouleurRVBA(1.0, 0.5, 0.5, 0.5)
-        si barre.est_cliqué || barre.est_survolé {
-            couleur.r *= 0.5
-            couleur.v *= 0.5
-            couleur.b *= 0.5
-        }
-
-        peintre.remplis_rectangle(rect_barre, couleur)
-        peintre.termine_dessin()
-    }
-
+    document := page.donne_document()
     lien_survolé := document.donne_lien_survolé()
     si lien_survolé {
         href := lien_survolé.donne_href()
@@ -1178,10 +1136,10 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
         }
     }
 
-    ctx.peintre.dessine_tampon_sur_écran()
+    peintre.dessine_tampon_sur_écran()
 
-    ctx.peintre = vue_rendu_page.peintre_id
-    CSS.dessine_tampon_id(arbre, *ctx)
+    peintre = vue_rendu_page.peintre_id
+    dessine_tampon_id(page, vue_rendu_page.largeur, vue_rendu_page.hauteur, peintre)
 
     /* Nous devrions faire ça plus haut mais il semblerait qu'il manque, ou qu'il y a une préemption, des ajournements. */
     window := document.realm.global_object comme *Window

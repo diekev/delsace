@@ -1,7 +1,9 @@
 importe #inemployé CSS
+importe Couleur
 importe Ensemble
 importe Géométrie
 importe Périphériques
+importe PeintureInterface
 
 /* ------------------------------------------------------------------------- */
 /** \nom PageWeb
@@ -32,6 +34,83 @@ donne_code_source :: fonc (page: *PageWeb @inutilisée) -> chaine
 {
     // À FAIRE
     retourne ""
+}
+
+dessine :: fonc (page: *PageWeb, largeur: z32, hauteur: z32, dessine_tampon_id: bool) -> *CSS.CommandesDeRendu
+{
+    document := donne_document(page)
+
+    si document.is_initial_about_blank {
+        retourne nul
+    }
+
+    arbre := crée_arbre_de_disposition(page, largeur, hauteur)
+    saufsi arbre && arbre.racine {
+        retourne nul
+    }
+
+    ctx: CSS.ContexteDessin
+    ctx.document = document
+    ctx.globales = document.globales_dessin
+    ctx.hauteur_vue = hauteur
+    ctx.largeur_vue = largeur
+
+    barre := arbre.défilement_vertical
+    si barre {
+        ctx.décalage_y = barre.rect.y / barre.ratio
+    }
+
+    commandes: *CSS.CommandesDeRendu
+
+    si dessine_tampon_id {
+        commandes = CSS.dessine_tampon_id_couleur(arbre, *ctx)
+    }
+    sinon {
+        commandes = CSS.dessine(arbre, *ctx)
+    }
+
+    si barre && barre.est_visible {
+        hauteur_vue := hauteur comme r32
+
+        rect_barre := barre.rect
+
+        /* Change la position pour le dessin qui commence du bas. */
+        rect_barre.y = hauteur_vue - rect_barre.hauteur - rect_barre.y
+
+        couleur := CouleurRVBA(1.0, 0.5, 0.5, 0.5)
+        si barre.est_cliqué || barre.est_survolé {
+            couleur.r *= 0.5
+            couleur.v *= 0.5
+            couleur.b *= 0.5
+        }
+
+        CSS.remplis_rectangle(commandes, rect_barre, couleur)
+    }
+
+    retourne commandes
+}
+
+dessine_tampon_id :: fonc (page: *PageWeb, largeur: z32, hauteur: z32, peintre: *Peintre)
+{
+    document := donne_document(page)
+
+    si document.is_initial_about_blank {
+        retourne
+    }
+
+    arbre := crée_arbre_de_disposition(page, largeur, hauteur)
+    saufsi arbre && arbre.racine {
+        retourne
+    }
+
+    ctx: CSS.ContexteDessin
+    ctx.peintre = peintre
+    ctx.document = document
+    ctx.globales = document.globales_dessin
+    ctx.hauteur_vue = hauteur
+    ctx.largeur_vue = largeur
+
+    CSS.dessine_tampon_id(arbre, *ctx)
 }
 
 /** \} */
