@@ -431,9 +431,9 @@ donne_fonction_calcul_largeur_et_marges :: fonc (noeud: *NoeudDeDisposition) -> 
     }
 
     // 10.3.1 Inline, non-replaced elements
-    si display.outer_type == Display.Type.Inline && (display.inner_type == Display.Type.Flow || display.inner_type == Display.Type.FlowRoot) {
+    si display.outer_type == Display.Type.Inline && (display.inner_type == Display.Type.Flow || display.inner_type == Display.Type.FlowRoot || display.inner_type == Display.Type.Flex) {
         // 10.3.9 'Inline-block', non-replaced elements in normal flow
-        si display.inner_type == Display.Type.FlowRoot {
+        si display.inner_type == Display.Type.FlowRoot || display.inner_type == Display.Type.Flex {
             retourne calcule_largeur_et_marges_inline_block_non_replaced_element
         }
         retourne calcule_largeur_et_marges_inline_non_replaced_element
@@ -1501,6 +1501,9 @@ calcule_largeur_et_marges_inline_block_non_replaced_element :: fonc (empl args: 
 
     /* If 'width' is 'auto', the used value is the shrink-to-fit width as for floating elements. */
     si width.est_auto() {
+        noeud.propriétés.définis_valeur_utilisée(IDPropriété.MarginLeft, margin_left)
+        noeud.propriétés.définis_valeur_utilisée(IDPropriété.MarginRight, margin_right)
+
         available_width := width_of_containing_block - margin_left.pixels - border_left_width.pixels - padding_left.pixels - padding_right.pixels - border_right_width.pixels - margin_right.pixels
         width.pixels = calcule_shrink_to_fit_width(ctx, noeud, available_width)
     }
