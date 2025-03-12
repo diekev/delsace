@@ -1156,6 +1156,13 @@ dessine_commandes_css :: fonc (peintre: *Peintre, commandes: *CSS.CommandesDeRen
             }
             TERMINE_STACKING_CONTEXT {
             }
+            DÉBUTE_CISELAGE {
+                commande := base comme *CSS.CommandeDébuteCiselage
+                peintre.définis_ciseau(commande.rect)
+            }
+            TERMINE_CISELAGE {
+                peintre.restaure_ciseau()
+            }
         }
 
         début += base.taille_type
