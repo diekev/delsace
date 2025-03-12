@@ -234,13 +234,20 @@ dessine_stacking_context :: fonc (stacking_context: *StackingContext, ctx: *Cont
     diffère ctx.est_fixé = fut_fixé
     ctx.est_fixé |= est_position_fixée(stacking_context)
 
-    /* À FAIRE : dessine dans un tampon séparé et mélange le résultat. */
     opacité := donne_opacité(stacking_context)
     si opacité == 0.0 {
         retourne
     }
 
+    si stacking_context.parent && !ctx.tampon_id_couleur {
+        ctx.commandes.débute_stacking_context()
+    }
+
     dessine(stacking_context.racine, ctx)
+
+    si stacking_context.parent && !ctx.tampon_id_couleur {
+        ctx.commandes.termine_stacking_context(opacité comme r32)
+    }
 
     pour stacking_context.enfants {
         dessine_stacking_context(it, ctx)

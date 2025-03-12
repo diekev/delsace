@@ -20,6 +20,8 @@ TypeCommandeDeRendu :: énum {
     DESSINE_IMAGE
     DESSINE_TAMPON_IMAGE
     DESSINE_TEXTE
+    DÉBUTE_STACKING_CONTEXT
+    TERMINE_STACKING_CONTEXT
 }
 
 CommandesDeRendu :: struct {
@@ -203,6 +205,29 @@ dessine_texte :: fonc (commandes: *CommandesDeRendu, fonte: *Fonte, texte: Chain
     si effets {
         résultat.effets = mémoire(effets)
     }
+}
+
+CommandeDébuteStackingContexte :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.DÉBUTE_STACKING_CONTEXT
+}
+
+débute_stacking_context :: fonc (commandes: *CommandesDeRendu)
+{
+    _ := crée_commande(commandes, CommandeDébuteStackingContexte)
+}
+
+CommandeTermineStackingContexte :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.TERMINE_STACKING_CONTEXT
+
+    opacité: r32
+}
+
+termine_stacking_context :: fonc (commandes: *CommandesDeRendu, opacité: r32)
+{
+    résultat := crée_commande(commandes, CommandeTermineStackingContexte)
+    résultat.opacité = opacité
 }
 
 /** \} */
