@@ -109,6 +109,11 @@ dessine_tampon_id :: fonc (page: *PageWeb, largeur: z32, hauteur: z32) -> *CSS.C
     ctx.hauteur_vue = hauteur
     ctx.largeur_vue = largeur
 
+    barre := arbre.défilement_vertical
+    si barre {
+        ctx.décalage_y = barre.rect.y / barre.ratio
+    }
+
     retourne CSS.dessine_tampon_id(arbre, *ctx)
 }
 
