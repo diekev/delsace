@@ -490,7 +490,7 @@ donne_tampon_spectre :: fonc (image: &ImageIO) -> TamponImage(Spectre)
 
 donne_tampon_rvba :: fonc (image: &ImageIO) -> TamponImage(CouleurRVBA)
 {
-    résultat: TamponImage(Spectre) = ---
+    résultat: TamponImage(CouleurRVBA) = ---
     résultat.données = image.donnees comme *CouleurRVBA
     résultat.largeur = image.largeur
     résultat.hauteur = image.hauteur
