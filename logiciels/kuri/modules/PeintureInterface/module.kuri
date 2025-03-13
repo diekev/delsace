@@ -298,6 +298,7 @@ initialise_peintre_dessin :: fonc (peintre: *PeintreDessin)
     peintre.rappel_dessine_texte_utf16 = dessine_texte_utf16_dessin
     peintre.rappel_dessine_texte_utf32 = dessine_texte_utf32_dessin
     peintre.rappel_dessine_image = dessine_image_dessin
+    peintre.rappel_dessine_sous_image = dessine_sous_image_dessin
     peintre.rappel_dessine_nouvelle_image = dessine_nouvelle_image_dessin
     peintre.rappel_dessine_image_grise_8bit = dessine_image_grise_8bit_dessin
     peintre.rappel_dessine_image_rvba_8bit = dessine_image_rvba_8bit_dessin
@@ -638,6 +639,13 @@ dessine_image_dessin :: fonc (peintre: *Peintre, image: ImageIO, rectangle_peint
 {
     peintre_dessin := peintre comme *PeintreDessin
     rect := donne_rectangle_dessin(rectangle_peintre)
+    dessine_image(*peintre_dessin.tampon_de_rendu, image, rect)
+}
+
+dessine_sous_image_dessin :: fonc (peintre: *Peintre, image: ImageIO, rectangle_image: RectanglePeintre, rectangle_sous_image: RectanglePeintre @inutilisée, répétition: RépétitionImage @inutilisée)
+{
+    peintre_dessin := peintre comme *PeintreDessin
+    rect := donne_rectangle_dessin(rectangle_image)
     dessine_image(*peintre_dessin.tampon_de_rendu, image, rect)
 }
 
