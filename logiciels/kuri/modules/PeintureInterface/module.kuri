@@ -437,13 +437,12 @@ dessine_rectangle_arrondi_dessin :: fonc (peintre: *Peintre, rectangle_peintre: 
     dessine_rectangle(*peintre_dessin.tampon_de_rendu, rectangle, couleur)
 }
 
-remplis_rectangle_arrondi_dessin :: fonc (peintre: *Peintre, rectangle_peintre: RectanglePeintre, rayon: [4]r32 @inutilisée, couleur_peintre: CouleurPeintre)
+remplis_rectangle_arrondi_dessin :: fonc (peintre: *Peintre, rectangle_peintre: RectanglePeintre, rayons: [4]r32, couleur_peintre: CouleurPeintre)
 {
     peintre_dessin := peintre comme *PeintreDessin
     rectangle := donne_rectangle_dessin(rectangle_peintre)
     couleur := donne_couleur_dessin(couleur_peintre)
-    // À FAIRE : rectangle arrondi
-    remplis_rectangle(*peintre_dessin.tampon_de_rendu, rectangle, couleur)
+    remplis_rectangle_arrondi(*peintre_dessin.tampon_de_rendu, rectangle, rayons, couleur)
 }
 
 dessine_bordure_dessin :: fonc (peintre: *Peintre, rectangle_peintre: RectanglePeintre, largeurs_peintre: [4]r32, couleurs: [4]CouleurPeintre)
