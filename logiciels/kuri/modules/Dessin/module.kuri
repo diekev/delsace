@@ -255,7 +255,7 @@ dessine_triangle :: fonc (tampon_de_rendu: *TamponDeRendu, triangle: Triangle(z3
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom RectanglePosDim(z32).
+/** \nom Rectangle
  * \{ */
 
 dessine_rectangle :: fonc (tampon_de_rendu: *TamponDeRendu, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8)
