@@ -16,6 +16,7 @@ charge "texte"
 
 TamponDeRendu :: struct {
     rect: RectanglePosDim(z32)
+    rect_ciseau: RectanglePosDim(z32)
     données: [..]CouleurRVBAN8
 }
 
@@ -29,7 +30,15 @@ crée_tampon_de_rendu :: fonc (rect: RectanglePosDim(z32)) -> TamponDeRendu
 redimensionne_tampon_de_rendu :: fonc (tampon: *TamponDeRendu, rect: RectanglePosDim(z32))
 {
     tampon.rect = rect
+    tampon.rect_ciseau = rect
     tableau_redimensionne(tampon.données, rect.hauteur * rect.largeur)
+}
+
+définis_rect_ciseau :: fonc (tampon: *TamponDeRendu, rect: RectanglePosDim(z32))
+{
+    tampon.rect_ciseau = tampon.rect
+    rect = tampon.donne_rect_sûr(rect)
+    tampon.rect_ciseau = rect
 }
 
 /* Ceci remplis inconditionnellement le tampon avec la couleur (pas de fusion, etc.).
@@ -67,11 +76,11 @@ détruit_tampon_de_rendu :: fonc (tampon: *TamponDeRendu)
 
 donne_rect_sûr :: fonc (tampon: *TamponDeRendu, rect: RectanglePosDim(z32)) -> RectanglePosDim(z32)
 {
-    saufsi intersecte(tampon.rect, rect) {
+    saufsi intersecte(tampon.rect_ciseau, rect) {
         retourne RectanglePosDim(z32)()
     }
 
-    rect_tampon := tampon.rect.donne_rectangle_pur()
+    rect_tampon := tampon.rect_ciseau.donne_rectangle_pur()
     rect_pur := rect.donne_rectangle_pur()
 
     si rect_pur.gauche < rect_tampon.gauche {
