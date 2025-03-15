@@ -261,7 +261,7 @@ restaure_ciseau :: fonc (peintre: *Peintre) -> rien #enligne
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom Peintre pour le module Dessin. À FAIRE
+/** \nom Peintre pour le module Dessin.
  * \{ */
 
 PeintreDessin :: struct {
