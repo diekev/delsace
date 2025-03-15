@@ -1094,6 +1094,8 @@ détruit_peintre_igumi :: fonc (peintre: *Peintre)
 
 définis_ciseau_igumi :: fonc (peintre: *Peintre @inutilisée, rectangle: RectanglePeintre)
 {
+    IGUMI.termine_immédiat()
+
     /* Nous utilisons donne_rectangle_dessin afin d'avoir un rectangle dont
      * les valeurs sont des nombres entiers, car les paramètres de glScissor
      * sont des nombres entiers. */
