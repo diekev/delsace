@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Test CSS : pseudo-éléments flottants</title>
+    <meta type="assert"
+        description="Les pseudo-éléments se comportent comme des éléments normaux avec les mêmes propriétés." />
+    <style>
+        div {
+            border: solid 1px black;
+            height: 80px;
+            width: 120px;
+        }
+
+        .drapeau::before {
+            content: "";
+            display: block;
+            float: left;
+            background-color: #013f7c;
+            height: 80px;
+            width: 33%;
+        }
+
+        .drapeau::after {
+            content: "";
+            display: block;
+            float: right;
+            background-color: #d60235;
+            height: 80px;
+            width: 33%;
+        }
+
+        .reference {
+            margin-bottom: 10px;
+        }
+
+        .bleu-gauche {
+            border: 0px;
+            float: left;
+            background-color: #013f7c;
+            height: 80px;
+            width: 33%;
+        }
+
+        .rouge-droite {
+            border: 0px;
+            float: right;
+            background-color: #d60235;
+            height: 80px;
+            width: 33%;
+        }
+    </style>
+
+</head>
+
+<body>
+    <p>Le test passe si deux drapeaux français identiques sont visibles.</p>
+    <div class="reference">
+        <div class="bleu-gauche"></div>
+        <div class="rouge-droite"></div>
+    </div>
+    <div class="drapeau"></div>
+</body>
+
+</html>

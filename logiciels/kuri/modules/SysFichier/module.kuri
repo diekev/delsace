@@ -128,13 +128,13 @@ contenu_fichier_binaire :: fonc (chemin: &CheminFichier) -> [..]octet
 
 contenu_fichier_binaire :: fonc (chemin: CheminFichier, résultat: &[..]octet)
 {
-    fichier := tente ouvre_fichier(chemin) piège err {
+    fichier := tente ouvre_fichier(chemin) piège _ {
         retourne
     }
 
     diffère _ := ferme(*fichier)
 
-    tente lis_tout(*fichier, résultat) piège err {
+    tente lis_tout(*fichier, résultat) piège _ {
         retourne
     }
 }

@@ -830,11 +830,12 @@ std::optional<ProgrammeRepreInter> ConstructriceProgrammeFormeRI::
         génère_ri_fonction_init_globales(decl_init_globales);
     }
 
+    supprime_fonctions_inutilisées();
+
     if (m_espace.options.utilise_trace_appel) {
         génère_traces_d_appel();
     }
 
-    supprime_fonctions_inutilisées();
     supprime_types_inutilisés();
 
     génère_table_des_types();
@@ -883,9 +884,13 @@ void ConstructriceProgrammeFormeRI::ajoute_dépendances_fonction(AtomeFonction *
     POUR (fonction->instructions) {
         m_visiteuse_atome.visite_atome(it, [&](Atome *atome_local) {
             if (atome_local->genre_atome == Atome::Genre::GLOBALE) {
+                if (m_globales_utilisées.possède(atome_local->comme_globale())) {
+                    return DécisionVisiteAtome::ARRÊTE;
+                }
                 /* Ne visitons pas la sous-globale puisque nous la visitons ici. */
                 ajoute_globale(atome_local->comme_globale(), false);
             }
+            return DécisionVisiteAtome::CONTINUE;
         });
     }
 
@@ -922,9 +927,14 @@ void ConstructriceProgrammeFormeRI::ajoute_globale(AtomeGlobale *globale, bool v
     m_visiteuse_atome.réinitialise();
     m_visiteuse_atome.visite_atome(globale, [&](Atome *atome_local) {
         if (atome_local->genre_atome == Atome::Genre::GLOBALE) {
+            if (atome_local != globale &&
+                m_globales_utilisées.possède(atome_local->comme_globale())) {
+                return DécisionVisiteAtome::ARRÊTE;
+            }
             /* Ne visitons pas la sous-globale puisque nous la visitons ici. */
             ajoute_globale(atome_local->comme_globale(), false);
         }
+        return DécisionVisiteAtome::CONTINUE;
     });
 }
 
@@ -1051,7 +1061,7 @@ void ConstructriceProgrammeFormeRI::génère_table_des_types()
     auto type_pointeur_info_type = typeuse.type_pointeur_pour(typeuse.type_info_type_);
     auto ident = m_espace.compilatrice().donne_identifiant_pour_globale("données_table_des_types");
     atome_table_des_types->initialisateur = m_compilatrice_ri.crée_tranche_globale(
-        *ident, type_pointeur_info_type, std::move(table_des_types));
+        *ident, type_pointeur_info_type, std::move(table_des_types), true);
 
     auto initialisateur = atome_table_des_types->initialisateur->comme_constante_structure();
     auto membres_init = initialisateur->donne_atomes_membres();
@@ -1137,14 +1147,15 @@ void ConstructriceProgrammeFormeRI::partitionne_globales_info_types()
         globales_utilisées_par_infos.insère(it);
         m_visiteuse_atome.visite_atome(it, [&](Atome *atome_visité) {
             if (!atome_visité->est_globale()) {
-                return;
+                return DécisionVisiteAtome::CONTINUE;
             }
 
             if (est_globale_pour_tableau_données_constantes(atome_visité->comme_globale())) {
-                return;
+                return DécisionVisiteAtome::CONTINUE;
             }
 
             globales_utilisées_par_infos.insère(atome_visité->comme_globale());
+            return DécisionVisiteAtome::CONTINUE;
         });
     }
 
@@ -1156,6 +1167,89 @@ void ConstructriceProgrammeFormeRI::partitionne_globales_info_types()
     m_résultat.définis_partition(partition.faux, ProgrammeRepreInter::GLOBALES_INFO_TYPES);
 }
 
+static bool peut_ignorer_type_pour_chercher_fonction(Type const *type)
+{
+    switch (type->genre) {
+        case GenreNoeud::POLYMORPHIQUE:
+        case GenreNoeud::EINI:
+        case GenreNoeud::CHAINE:
+        case GenreNoeud::RIEN:
+        case GenreNoeud::BOOL:
+        case GenreNoeud::OCTET:
+        case GenreNoeud::TYPE_DE_DONNÉES:
+        case GenreNoeud::RÉEL:
+        case GenreNoeud::TYPE_ADRESSE_FONCTION:
+        case GenreNoeud::FONCTION:
+        case GenreNoeud::DÉCLARATION_ÉNUM:
+        case GenreNoeud::ERREUR:
+        case GenreNoeud::ENUM_DRAPEAU:
+        case GenreNoeud::ENTIER_CONSTANT:
+        case GenreNoeud::ENTIER_NATUREL:
+        case GenreNoeud::ENTIER_RELATIF:
+        case GenreNoeud::RÉFÉRENCE:
+        case GenreNoeud::POINTEUR:
+        case GenreNoeud::VARIADIQUE:
+        {
+            return true;
+        }
+        case GenreNoeud::TUPLE:
+        case GenreNoeud::DÉCLARATION_STRUCTURE:
+        case GenreNoeud::DÉCLARATION_UNION:
+        {
+            return false;
+        }
+        case GenreNoeud::TABLEAU_DYNAMIQUE:
+        {
+            return peut_ignorer_type_pour_chercher_fonction(
+                type->comme_type_tableau_dynamique()->type_pointé);
+        }
+        case GenreNoeud::TABLEAU_FIXE:
+        {
+            return peut_ignorer_type_pour_chercher_fonction(
+                type->comme_type_tableau_fixe()->type_pointé);
+        }
+        case GenreNoeud::TYPE_TRANCHE:
+        {
+            return peut_ignorer_type_pour_chercher_fonction(
+                type->comme_type_tranche()->type_élément);
+        }
+        case GenreNoeud::DÉCLARATION_OPAQUE:
+        {
+            return peut_ignorer_type_pour_chercher_fonction(
+                type->comme_type_opaque()->type_opacifié);
+        }
+        CAS_POUR_NOEUDS_HORS_TYPES:
+        {
+            assert_rappel(false,
+                          [&]() { dbg() << "Noeud non-géré pour type : " << expr->type->genre; });
+            return true;
+        }
+    }
+    return false;
+}
+
+static bool peut_ignorer_globale_pour_chercher_fonction(AtomeGlobale const *globale)
+{
+    if (globale->est_info_type_de || globale->est_chaine || globale->est_part_info_type) {
+        return true;
+    }
+
+    if (globale->initialisateur == nullptr) {
+        return true;
+    }
+
+    if (est_globale_pour_tableau_données_constantes(globale)) {
+        return true;
+    }
+
+    auto const type = globale->donne_type_alloué();
+    if (peut_ignorer_type_pour_chercher_fonction(type)) {
+        return true;
+    }
+
+    return false;
+}
+
 void ConstructriceProgrammeFormeRI::supprime_fonctions_inutilisées()
 {
     kuri::pile<AtomeFonction *> fonction_à_visiter;
@@ -1165,10 +1259,22 @@ void ConstructriceProgrammeFormeRI::supprime_fonctions_inutilisées()
 
     m_visiteuse_atome.réinitialise();
     POUR (m_résultat.globales) {
+        if (peut_ignorer_globale_pour_chercher_fonction(it)) {
+            continue;
+        }
         m_visiteuse_atome.visite_atome(it, [&](Atome *atome) {
+            if (atome->est_globale()) {
+                if (peut_ignorer_globale_pour_chercher_fonction(atome->comme_globale())) {
+                    return DécisionVisiteAtome::ARRÊTE;
+                }
+                return DécisionVisiteAtome::CONTINUE;
+            }
+
             if (atome->est_fonction()) {
                 fonction_à_visiter.empile(atome->comme_fonction());
+                return DécisionVisiteAtome::ARRÊTE;
             }
+            return DécisionVisiteAtome::CONTINUE;
         });
     }
 
@@ -1193,6 +1299,7 @@ void ConstructriceProgrammeFormeRI::supprime_fonctions_inutilisées()
                     // dbg() << "    " << nom_humainement_lisible(atome->comme_fonction()->decl);
                     fonction_à_visiter.empile(atome->comme_fonction());
                 }
+                return DécisionVisiteAtome::CONTINUE;
             });
         }
     }
