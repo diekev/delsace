@@ -610,6 +610,7 @@ InterprèteCodeBinaire :: struct {
     empl base: Interpréteuse
     registres: [..]Valeur
     sur_exécute = exécute_code_binaire
+    sur_destruction = interprète_code_binaire_sur_destruction
 
     /* Interpréteuse pour les cas où nous utilisons l'arbre pour exécuter le code.
      * À FAIRE : protège l'exception lors du ramassage de miettes. */
@@ -625,6 +626,13 @@ crée_interprète_code_binaire :: fonc (mv: *MachineVirtuelle) -> *InterprèteCo
     résultat.interpréteuse_arbre = loge(InterprèteArbre)
     résultat.mv = mv
     retourne résultat
+}
+
+interprète_code_binaire_sur_destruction :: fonc (base: *Interpréteuse)
+{
+    interprète := base comme *InterprèteCodeBinaire
+    détruit_interprète(interprète)
+    déloge(interprète)
 }
 
 donne_accumulateur :: fonc (interprète: *InterprèteCodeBinaire) -> Valeur #enligne
@@ -651,17 +659,6 @@ détruit_interprète :: fonc (interprète: *InterprèteCodeBinaire)
 {
     déloge(interprète.registres)
     déloge(interprète.interpréteuse_arbre)
-}
-
-interprète_code_binaire :: fonc (mv: *MachineVirtuelle, noeud: *NoeudScript) -> CompletionRecord
-{
-    interprète := crée_interprète_code_binaire(mv)
-    diffère détruit_interprète(interprète)
-
-    mv.interpréteuse = interprète
-    diffère mv.interpréteuse = nul
-
-    retourne exécute_code_binaire(interprète, noeud)
 }
 
 donne_code_binaire :: fonc (noeud: *NoeudSyntaxique) -> *FluxDInstructions
