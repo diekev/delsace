@@ -66,6 +66,7 @@ set(SOURCES
     widgets.cc
 
     ${ENTETES_POUR_QT}
+    conversions.hh
     ipa_danjo.hh
     qt_ipa_c.h
 

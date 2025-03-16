@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Test CSS: box-sizing - hauteur auto avec remplissage</title>
+    <meta name="assert" content="border-box n'affecte pas les boites ayant une hauteur automatique">
+    <style>
+        div {
+            box-sizing: border-box;
+        }
+
+        .contenu {
+            width: 1in;
+            height: 1in;
+        }
+
+        #contenant1 {
+            padding-bottom: 10px;
+        }
+
+        #contenu1 {
+            background-color: blueviolet;
+        }
+
+        #contenu2 {
+            background-color: olivedrab;
+        }
+    </style>
+</head>
+
+<body>
+    <p>Il doit y avoir un espace entre les deux boites.</p>
+    <div id="contenant1" class="contenant">
+        <div id="contenu1" class="contenu"></div>
+    </div>
+    <div class="contenant">
+        <div id="contenu2" class="contenu"></div>
+    </div>
+</body>
+
+</html>
