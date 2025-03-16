@@ -170,11 +170,22 @@ call :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur, this_value: Valeu
 
 call :: fonc (mv: *MachineVirtuelle, valeur: Valeur, this_value: Valeur) -> CompletionRecord
 {
-    retourne call(mv.interpréteuse, valeur, this_value)
+    arguments: []Valeur
+    retourne call(mv, valeur, this_value, arguments)
 }
 
 call :: fonc (mv: *MachineVirtuelle, valeur: Valeur, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
 {
+    interpréteuse_est_nulle := mv.interpréteuse == nul
+    si interpréteuse_est_nulle {
+        mv.interpréteuse = crée_interprète(mv)
+    }
+
+    diffère si interpréteuse_est_nulle {
+        détruit(mv.interpréteuse)
+        mv.interpréteuse = nul
+    }
+
     retourne call(mv.interpréteuse, valeur, this_value, arguments)
 }
 

@@ -2,6 +2,7 @@ importe Chaine
 
 MIME_application_octet_stream :: "application/octet-stream"
 MIME_image_jpeg :: "image/jpeg"
+MIME_image_gif :: "image/gif"
 MIME_image_png :: "image/png"
 MIME_image_webp :: "image/webp"
 MIME_text_css :: "text/css"
@@ -61,7 +62,7 @@ est_type_mime_javascript :: fonc (chn: ChaineUTF16Unique) -> bool
 
 est_type_mime_image :: fonc (content_type: chaine) -> bool
 {
-    retourne content_type == MIME_image_jpeg || content_type == MIME_image_png || content_type == MIME_image_webp
+    retourne content_type == MIME_image_jpeg || content_type == MIME_image_png || content_type == MIME_image_webp || content_type == MIME_image_gif
 }
 
 type_mime_pour_extension :: fonc (extension: chaine) -> chaine
@@ -90,8 +91,16 @@ type_mime_pour_extension :: fonc (extension: chaine) -> chaine
         retourne MIME_image_webp
     }
 
+    si compare_ascii_insensible_à_la_casse(extension, ".gif") {
+        retourne MIME_image_gif
+    }
+
     si compare_ascii_insensible_à_la_casse(extension, ".js") {
         retourne MIME_text_javascript
+    }
+
+    si compare_ascii_insensible_à_la_casse(extension, ".txt") {
+        retourne MIME_text_plain
     }
 
     retourne MIME_application_octet_stream

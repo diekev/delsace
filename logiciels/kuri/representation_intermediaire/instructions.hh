@@ -330,6 +330,9 @@ struct AtomeGlobale : public AtomeConstante {
     AtomeConstante *initialisateur{};
     bool est_externe = false;
     bool est_constante = false;
+    bool est_chaine = false;
+    /* Pour les InfoTypes, les InfoTypeMembreStructures, leurs tableaux, etc. */
+    bool est_part_info_type = false;
 
     // index de la globale pour le code binaire
     int index = -1;
@@ -869,6 +872,11 @@ ENUMERE_GENRE_ATOME(ENUMERE_GENRE_ATOME_EX)
 
 ENUMERE_GENRE_INSTRUCTION(DEFINIS_FONCTIONS_DISCRIMINATION_INSTRUCTION)
 
+enum class DécisionVisiteAtome {
+    CONTINUE,
+    ARRÊTE,
+};
+
 struct VisiteuseAtome {
     /* Les atomes peuvent avoir des dépendances cycliques, donc tenons trace de ceux qui ont été
      * visités. */
@@ -876,11 +884,11 @@ struct VisiteuseAtome {
 
     void réinitialise();
 
-    void visite_atome(Atome *racine, std::function<void(Atome *)> rappel);
+    void visite_atome(Atome *racine, std::function<DécisionVisiteAtome (Atome *)> rappel);
 };
 
 /* Visite récursivement l'atome. */
-void visite_atome(Atome *racine, std::function<void(Atome *)> rappel);
+void visite_atome(Atome *racine, std::function<DécisionVisiteAtome(Atome *)> rappel);
 
 bool est_tableau_données_constantes(AtomeConstante const *constante);
 bool est_globale_pour_tableau_données_constantes(AtomeGlobale const *globale);
