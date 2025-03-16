@@ -820,11 +820,12 @@ std::optional<ProgrammeRepreInter> ConstructriceProgrammeFormeRI::
         génère_ri_fonction_init_globales(decl_init_globales);
     }
 
+    supprime_fonctions_inutilisées();
+
     if (m_espace.options.utilise_trace_appel) {
         génère_traces_d_appel();
     }
 
-    supprime_fonctions_inutilisées();
     supprime_types_inutilisés();
 
     génère_table_des_types();
