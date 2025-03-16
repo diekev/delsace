@@ -19,6 +19,8 @@
 #include "danjo/controles_proprietes/controle_propriete.h"
 #include "danjo/controles_proprietes/donnees_controle.h"
 
+#include "conversions.hh"
+
 /* ------------------------------------------------------------------------- */
 /** \name ConstructriceParamètreÉnum
  * \{ */
@@ -1160,14 +1162,6 @@ void ConteneurControles::crée_interface()
 /* ------------------------------------------------------------------------- */
 /** \name PiloteClique
  * \{ */
-
-static QT_Chaine vers_ipa(dls::chaine const &chaine)
-{
-    QT_Chaine résultat;
-    résultat.caractères = const_cast<char *>(chaine.c_str());
-    résultat.taille = chaine.taille();
-    return résultat;
-}
 
 PiloteClique::PiloteClique(DNJ_Rappels_Pilote_Clique *rappels) : m_rappels(rappels)
 {

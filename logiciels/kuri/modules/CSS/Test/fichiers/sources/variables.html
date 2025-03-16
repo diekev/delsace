@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <style>
+        p {
+            --couleur: green;
+            --taille-fonte: 2rem;
+            color: var(--couleur);
+        }
+
+        div p {
+            font-size: var(--taille-fonte);
+        }
+    </style>
+
+</head>
+
+<body>
+    <p>Cette ligne doit être verte.</p>
+    <div>
+        <p>
+            Cette ligne doit être verte et grosse.
+        </p>
+    </div>
+</body>
+
+</html>
