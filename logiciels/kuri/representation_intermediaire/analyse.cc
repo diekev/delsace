@@ -153,6 +153,7 @@ static bool paramètre_ou_globale_fut_utilisé(Atome *atome)
             visite->est_globale() || visite->possède_drapeau(DrapeauxAtome::EST_UTILISÉ)) {
             résultat = true;
         }
+        return DécisionVisiteAtome::CONTINUE;
     });
     return résultat;
 }

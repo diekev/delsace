@@ -9,11 +9,19 @@ importe Unicode
 /** \nom PanneauÉditionTexte.
  * \{ */
 
+RappelsÉditionTexte :: struct {
+    /* Appelé à chaque changement. */
+    sur_édition: fonc(*RappelsÉditionTexte, chaine)(rien)
+    /* Appelé lors de la fin de l'édition. */
+    sur_fin_édition: fonc(*RappelsÉditionTexte, chaine)(rien)
+}
+
 PanneauÉditionTexte :: struct {
     empl base: Panneau
 
     rect_texte: RectanglePosDim(z32)
     texte: ChaineUTF32
+    lieutenant: ChaineUTF32
 
     en_édition: bool
     curseur_est_affiché := vrai
@@ -21,9 +29,11 @@ PanneauÉditionTexte :: struct {
     id_chronomètre: IDChronomètre
 
     curseur: CurseurTexte
+
+    rappels: *RappelsÉditionTexte
 }
 
-crée_panneau_édition_texte :: fonc (contexte: *ContexteInterface, texte: chaine, parent: *Panneau) -> *PanneauÉditionTexte
+crée_panneau_édition_texte :: fonc (contexte: *ContexteInterface, texte: chaine, parent: *Panneau, lieutenant := "") -> *PanneauÉditionTexte
 {
     résultat := contexte.crée_panneau(PanneauÉditionTexte)
     si parent {
@@ -33,8 +43,19 @@ crée_panneau_édition_texte :: fonc (contexte: *ContexteInterface, texte: chain
     résultat.sur_redimension = sur_redimension_panneau_édition_texte
     résultat.sur_clique_souris = sur_clic_panneau_édition_texte
     résultat.texte = crée_chaine_utf32(texte)
+    résultat.lieutenant = crée_chaine_utf32(lieutenant)
     résultat.curseur.texte = *résultat.texte
+    résultat.curseur.panneau = résultat
     retourne résultat
+}
+
+donne_texte_pour_dessin :: fonc (panneau: *PanneauÉditionTexte) -> ChaineUTF32
+{
+    si panneau.texte.taille() == 0 {
+        retourne panneau.lieutenant
+    }
+
+    retourne panneau.texte
 }
 
 sur_dessin_panneau_édition_texte :: fonc (empl panneau: *PanneauÉditionTexte, ctx: *ContexteAffichage)
@@ -44,11 +65,20 @@ sur_dessin_panneau_édition_texte :: fonc (empl panneau: *PanneauÉditionTexte, 
     fonte := ctx.fonte
     métriques := fonte.donne_métriques_fonte()
 
+    peintre.remplis_rectangle(rect, thème.couleur_arrière_plan)
     peintre.dessine_rectangle(rect, thème.couleur_contour)
+
+    texte_à_dessiner := texte
+    couleur_texte := thème.couleur_texte
+
+    si texte_à_dessiner.est_vide() {
+        texte_à_dessiner = lieutenant
+        couleur_texte = thème.couleur_lieutenant
+    }
 
     rect_texte_pour_dessin := rect_texte
     rect_texte_pour_dessin.y -= métriques.jambage_inférieur comme z32
-    peintre.dessine_texte(fonte, texte, rect_texte_pour_dessin, thème.couleur_texte)
+    peintre.dessine_texte(fonte, texte_à_dessiner, rect_texte_pour_dessin, couleur_texte)
 
     saufsi en_édition {
         retourne
@@ -104,8 +134,15 @@ sur_redimension_panneau_édition_texte :: fonc (base: *Panneau, rect_disponible:
     largeur_texte := 70 * métriques.largeur_moyenne + 10
     hauteur_texte := métriques.donne_hauteur_ligne() + 10
 
-    si largeur_texte > rect_disponible.largeur comme r32 {
-        largeur_texte = rect_disponible.largeur comme r32
+    discr règle_cotation_verticale {
+        SurContenu {
+            si largeur_texte > rect_disponible.largeur comme r32 {
+                largeur_texte = rect_disponible.largeur comme r32
+            }
+        }
+        SurLargeurDisponible {
+            largeur_texte = rect_disponible.largeur comme r32
+        }
     }
 
     rect.x = rect_disponible.x
@@ -174,6 +211,8 @@ CurseurTexte :: struct {
     fin: z64
     ancre: z64
     texte: *ChaineUTF32
+    panneau: *PanneauÉditionTexte
+    fut_modifié: bool
 }
 
 ModeDéplacementCurseur :: énum {
@@ -234,6 +273,8 @@ efface :: fonc (curseur: *CurseurTexte)
         tableau_supprime_entre(*curseur.texte.points_de_code, curseur.début, curseur.fin)
         définis_position(curseur, ModeDéplacementCurseur.DéplaceAncre, curseur.début)
     }
+
+    notifie_changement(curseur)
 }
 
 supprime :: fonc (curseur: *CurseurTexte)
@@ -250,6 +291,7 @@ supprime :: fonc (curseur: *CurseurTexte)
     }
 
     définis_position(curseur, ModeDéplacementCurseur.DéplaceAncre, curseur.début)
+    notifie_changement(curseur)
 }
 
 insère :: fonc (curseur: *CurseurTexte, point_de_code: n32)
@@ -263,6 +305,44 @@ insère :: fonc (curseur: *CurseurTexte, point_de_code: n32)
     }
 
     définis_position(curseur, ModeDéplacementCurseur.DéplaceAncre, curseur.début + 1)
+    notifie_changement(curseur)
+}
+
+notifie_changement :: fonc (curseur: *CurseurTexte)
+{
+    curseur.fut_modifié = vrai
+
+    panneau := curseur.panneau
+    saufsi panneau.rappels && panneau.rappels.sur_édition {
+        retourne
+    }
+
+    texte := mémoire(curseur.texte)
+
+    chn := converti_vers_chaine(texte)
+    diffère déloge(chn)
+
+    panneau.rappels.sur_édition(panneau.rappels, chn)
+}
+
+notifie_fin_édition :: fonc (curseur: *CurseurTexte)
+{
+    saufsi curseur.fut_modifié {
+        retourne
+    }
+    curseur.fut_modifié = vrai
+
+    panneau := curseur.panneau
+    saufsi panneau.rappels && panneau.rappels.sur_fin_édition {
+        retourne
+    }
+
+    texte := mémoire(curseur.texte)
+
+    chn := converti_vers_chaine(texte)
+    diffère déloge(chn)
+
+    panneau.rappels.sur_fin_édition(panneau.rappels, chn)
 }
 
 /** \} */
@@ -298,6 +378,7 @@ guetteuse_édition_texte_sur_termine_guettage :: fonc (base: *Guetteuse)
     panneau.en_édition = faux
     panneau.curseur.début = panneau.curseur.fin
     contexte.arrête_chronomètre(panneau.id_chronomètre)
+    notifie_fin_édition(*panneau.curseur)
 }
 
 guetteuse_édition_texte_sur_déplacement_souris :: fonc (base: *Guetteuse, souris: ÉtatSouris)
