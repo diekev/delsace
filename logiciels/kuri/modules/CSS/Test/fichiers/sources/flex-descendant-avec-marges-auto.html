@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Test CSS : flex - margin auto sur boite dans enfant de flex.</title>
+  <style>
+    body>div {
+      display: flex;
+    }
+
+    .boite {
+      width: 47.0px;
+      height: 47.0px;
+      background-color: teal;
+      margin-right: auto;
+      margin-left: auto;
+    }
+  </style>
+</head>
+
+<body>
+  <p>Le test passe si la boite ci-dessous est à gauche.</p>
+  <div>
+    <div>
+      <div class="boite"></div>
+    </div>
+  </div>
+</body>
+
+</html>

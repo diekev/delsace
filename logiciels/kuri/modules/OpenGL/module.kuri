@@ -72,6 +72,45 @@ vérifie_erreur :: fonc (raison : chaine = "") -> rien
     panique(chaine_erreur)
 }
 
+gl_check_framebuffer_status :: fonc ()
+{
+	status := glCheckFramebufferStatus(GL_FRAMEBUFFER)
+
+    si status == GL_FRAMEBUFFER_COMPLETE {
+		retourne
+	}
+
+	discr status {
+		GL_FRAMEBUFFER_UNDEFINED {
+			imprime("default framebuffer does not exist!\n")
+        }
+		GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT {
+			imprime("framebuffer attachment points are incomplete!\n")
+        }
+		GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT {
+			imprime("framebuffer does not have an image attached to it!\n")
+        }
+		GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER {
+			imprime("draw buffer color attachment point is 'none'!\n")
+        }
+		GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER {
+			imprime("read buffer color attachment point is 'none'!\n")
+        }
+		GL_FRAMEBUFFER_UNSUPPORTED {
+			imprime("combination of internal formats is unsupported!\n")
+        }
+		GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE {
+			imprime("incomplete multisample!\n")
+        }
+		GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS {
+			imprime("incomplete layer targets!\n")
+        }
+        sinon {
+            imprime("erreur framebuffer inconnue : %\n", status)
+        }
+	}
+}
+
 /* ------------------------------------------------------------------------- */
 /** \nom Texture 2D.
  * \{ */
@@ -124,7 +163,7 @@ donne_paramètres_texture_pour_image :: fonc (image: ImageIO, répétition: Rép
         résultat.format = GL_RED
     }
     sinon si image.nombre_composants == 2 {
-        // résultat.format = GL_RG À FAIRE
+        résultat.format = GL_RG
     }
     sinon si image.nombre_composants == 3 {
         résultat.format = GL_RGB

@@ -239,6 +239,9 @@ static TableauOptions options_pour_fichier_objet(kuri::chaine_statique compilate
     résultat.ajoute("-Winit-self");
     résultat.ajoute("-Werror");
 
+    /* Évite de faire du travail inutile. */
+    résultat.ajoute("-Wno-misleading-indentation");
+
     if (!options.protège_pile) {
         résultat.ajoute("-fno-stack-protector");
     }

@@ -79,6 +79,9 @@ donne_fonte :: fonc (ctx: *GlobalesDessin, famille: chaine, style: chaine, grais
     chemin := donne_chemin_fonte(ctx, famille, style, graisse)
 
     fonte := crée_fonte(CheminFichier(chemin), taille)
+    saufsi fonte {
+        retourne donne_fonte_défaut(ctx)
+    }
 
     fonte_en_cache := GlobalesDessin.FonteEnCache(famille, style, graisse, taille, fonte)
     tableau_ajoute(*ctx.fontes_en_cache, fonte_en_cache)

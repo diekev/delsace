@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Test CSS: box-sizing - border-box sur boite flottante</title>
+    <meta name="assert" content="box-sizing: border-box fonctionne sur les boites flottantes.">
+    <style>
+        .contenant {
+            width: 40em;
+            height: 3em;
+            border: 1em solid blue;
+        }
+
+        .contenu {
+            box-sizing: border-box;
+            float: left;
+            width: 50%;
+            border: 1em solid black;
+        }
+    </style>
+</head>
+
+<body>
+    <p>Le test passe si les deux boites ont la même taille, sont sur la même ligne, et ne dépassent pas la boite bleue.
+    </p>
+    <div class="contenant">
+        <div class="contenu">Ceci doit occuper la moitié gauche</div>
+        <div class="contenu">Ceci doit occuper la moitié droite</div>
+    </div>
+</body>
+
+</html>
