@@ -149,11 +149,13 @@ struct ConstructriceRI {
     AtomeNonInitialisation *crée_non_initialisation();
     AtomeConstante *crée_tranche_globale(IdentifiantCode &ident,
                                          Type const *type,
-                                         kuri::tableau<AtomeConstante *> &&valeurs);
+                                         kuri::tableau<AtomeConstante *> &&valeurs,
+                                         bool est_part_info_type);
     /* NOTE : type_sous_jacent est pour les tableaux de valeurs des énums qui doivent être alignés
      * selon le type de l'énum mais doivent être typés selon type_de(InfoTypeÉnum.valeurs). */
     AtomeConstante *crée_tranche_globale(IdentifiantCode &ident,
                                          AtomeConstante *tableau_fixe,
+                                         bool est_part_info_type,
                                          Type *type_sous_jacent = nullptr);
     AtomeConstante *crée_initialisation_tableau_global(AtomeGlobale *globale_tableau_fixe,
                                                        TypeTableauFixe const *type_tableau_fixe,
@@ -395,7 +397,8 @@ struct CompilatriceRI {
 
     AtomeConstante *crée_tranche_globale(IdentifiantCode &ident,
                                          Type const *type,
-                                         kuri::tableau<AtomeConstante *> &&valeurs);
+                                         kuri::tableau<AtomeConstante *> &&valeurs,
+                                         bool est_part_info_type);
 
     void génère_ri_pour_initialisation_globales(EspaceDeTravail *espace,
                                                 AtomeFonction *fonction_init,

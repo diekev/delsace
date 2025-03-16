@@ -11,6 +11,7 @@ STR_call : ChaineUTF16Unique = ---
 STR_ceil : ChaineUTF16Unique = ---
 STR_constructor : ChaineUTF16Unique = ---
 STR_cos : ChaineUTF16Unique = ---
+STR_create : ChaineUTF16Unique = ---
 STR_eval : ChaineUTF16Unique = ---
 STR_exp : ChaineUTF16Unique = ---
 STR_false : ChaineUTF16Unique = ---

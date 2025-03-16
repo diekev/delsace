@@ -177,6 +177,7 @@ RappelsInterface :: struct {
     sur_création_timeout: fonc(*RappelsInterface, *Algorithm, z32, bool)(z32)
     sur_destruction_timeout: fonc(*RappelsInterface, z32)(rien)
     sur_request_animation_frame: fonc(*RappelsInterface)(rien)
+    sur_défile_page_vers_fragment: fonc(*RappelsInterface)(rien)
 }
 
 détruit_rappels :: fonc (rappels: *RappelsInterface)
@@ -340,6 +341,15 @@ request_animation_frame :: fonc (user_agent: *UserAgent)
         retourne
     }
     rappels.sur_request_animation_frame(rappels)
+}
+
+défile_page_vers_fragment :: fonc (user_agent: *UserAgent)
+{
+    rappels := user_agent.rappels_interface
+    saufsi rappels && rappels.sur_défile_page_vers_fragment {
+        retourne
+    }
+    rappels.sur_défile_page_vers_fragment(rappels)
 }
 
 /** \} */

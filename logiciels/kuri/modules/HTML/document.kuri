@@ -113,6 +113,10 @@ Document :: struct {
 
     unload_counter: z32
     ignore_destructive_writes: z32
+    things_that_delay_the_load_event: n32
+
+    /* Pour les navigation de fragments. */
+    target_element: *Élément
 
     /* CSS. */
     feuille_de_style_agent: *CSS.CSSStyleSheet @NeVisitePas
@@ -188,12 +192,29 @@ est_iframe_srcdoc :: fonc (document: *Document) -> bool
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#fully-active */
-est_fully_active :: fonc (document: *Document @inutilisée) -> bool
+est_fully_active :: fonc (document: *Document) -> bool
 {
-    /* À FAIRE : A Document d is said to be fully active when d is the active document
-     *           of a navigable navigable, and either navigable is a top-level traversable
-     *           or navigable's container document is fully active. */
+    /* A Document d is said to be fully active when d is the active document
+     * of a navigable navigable, and either navigable is a top-level traversable
+     * À FAIRE :  or navigable's container document is fully active. */
+    user_agent := document.donne_user_agent()
+    saufsi user_agent {
+        retourne faux
+    }
+
+    pour user_agent.top_level_traversables {
+        si document == it.donne_active_document() {
+            retourne vrai
+        }
+    }
+
     retourne faux
+}
+
+notifie_changement_fully_active :: fonc (document: *Document)
+{
+    // notifie les noeuds que le document est devenu fully active.
+    traverse_noeud(document, noeud_sur_document_est_devenu_fully_active)
 }
 
 /* https://html.spec.whatwg.org/multipage/urls-and-fetching.html#document-base-url */
@@ -600,6 +621,13 @@ donne_user_agent :: fonc (document: *Document) -> *UserAgent
     assert(browsing_context.group != nul)
     assert(browsing_context.group.user_agent != nul)
     retourne browsing_context.group.user_agent
+}
+
+/* https://dom.spec.whatwg.org/#dom-document-createelement
+ * À FAIRE : standardise */
+create_element :: fonc (document: *Document, local_name: DOMString) -> *Élément
+{
+    retourne crée_élément_avec_tag(document, local_name)
 }
 
 create_text_node :: fonc (document: *Document, data: DOMString) -> *NoeudTexte

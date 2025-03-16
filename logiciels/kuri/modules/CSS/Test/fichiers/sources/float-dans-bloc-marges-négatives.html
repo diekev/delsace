@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Test CSS : boites flottantes dans bloc avec marges négatives.</title>
+  <style>
+    .contenu {
+      margin-right: -15.0px;
+      margin-left: -15.0px;
+    }
+
+    .bloc {
+      width: 100.0%;
+      float: left;
+      height: 2em;
+    }
+  </style>
+</head>
+
+<body>
+  <p>Le test passe si trois bandes colorées sont présentes.</p>
+  <div class="contenu">
+    <div class="bloc" style="background-color: teal;"></div>
+    <div class="bloc" style="background-color: orange;"></div>
+    <div class="bloc" style="background-color: blue;"></div>
+  </div>
+</body>
+
+</html>

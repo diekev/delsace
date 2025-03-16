@@ -392,6 +392,32 @@ donne_rectangle_pur :: fonc (rect: RectanglePosDim($T)) -> RectanglePur(T)
     retourne résultat
 }
 
+donne_union :: fonc (rect1: RectanglePosDim($T), rect2: RectanglePosDim(T)) -> RectanglePosDim(T)
+{
+    r1_gauche := rect1.x
+    r1_droite := rect1.x + rect1.largeur
+    r1_haut := rect1.y
+    r1_bas := rect1.y + rect1.hauteur
+
+    r2_gauche := rect2.x
+    r2_droite := rect2.x + rect2.largeur
+    r2_haut := rect2.y
+    r2_bas := rect2.y + rect2.hauteur
+
+    gauche := min(r1_gauche, r2_gauche)
+    droite := max(r1_droite, r2_droite)
+    haut := min(r1_haut, r2_haut)
+    bas := max(r1_bas, r2_bas)
+
+    résultat: RectanglePosDim(T)
+    résultat.x = gauche
+    résultat.largeur = droite - gauche
+    résultat.y = haut
+    résultat.hauteur = bas - haut
+
+    retourne résultat
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

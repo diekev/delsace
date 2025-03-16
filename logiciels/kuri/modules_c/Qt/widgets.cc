@@ -3,6 +3,8 @@
 
 #include "widgets.hh"
 
+#include "conversions.hh"
+
 #define IMPLEMENTE_METHODE_EVENEMENT(classe, type_qt, nom_qt, type_ipa, nom_rappel)               \
     void classe::nom_qt(type_qt *event)                                                           \
     {                                                                                             \
@@ -47,6 +49,7 @@
         classe, QContextMenuEvent, contextMenuEvent, QT_ContextMenuEvent, sur_menu_contexte)      \
     IMPLEMENTE_METHODE_EVENEMENT(                                                                 \
         classe, QDragEnterEvent, dragEnterEvent, QT_DragEnterEvent, sur_entree_drag)              \
+    IMPLEMENTE_METHODE_EVENEMENT(classe, QCloseEvent, closeEvent, QT_CloseEvent, sur_fermeture)   \
     IMPLEMENTE_METHODE_EVENEMENT(classe, QDropEvent, dropEvent, QT_DropEvent, sur_drop)
 
 template <typename TypeRappels>
@@ -79,6 +82,61 @@ bool Widget::focusNextPrevChild(bool /*next*/)
     /* Pour pouvoir utiliser la touche tab, il faut désactiver la focalisation
      * sur les éléments enfants du conteneur de contrôles. */
     return false;
+}
+
+class Painter : public QT_Painter {
+    QPainter *m_painter = nullptr;
+
+    static void fill_rect_impl(QT_Painter *qt_painter, QT_Rect *rect, QT_Color *color)
+    {
+        auto painter = static_cast<Painter *>(qt_painter);
+        painter->m_painter->fillRect(vers_qt(*rect), vers_qt(*color));
+    }
+
+    static void draw_rect_impl(QT_Painter *qt_painter, QT_Rect *rect)
+    {
+        auto painter = static_cast<Painter *>(qt_painter);
+        painter->m_painter->drawRect(vers_qt(*rect));
+    }
+
+    static void set_pen_impl(QT_Painter *qt_painter, QT_Pen *pen)
+    {
+        auto painter = static_cast<Painter *>(qt_painter);
+        painter->m_painter->setPen(vers_qt(*pen));
+    }
+
+    static void draw_text_impl(QT_Painter *qt_painter,
+                               QT_Rect *rect,
+                               QT_Alignment alignment,
+                               QT_Chaine *chn)
+    {
+        auto painter = static_cast<Painter *>(qt_painter);
+        painter->m_painter->drawText(
+            vers_qt(*rect), convertis_alignement(alignment), chn->vers_std_string().c_str());
+    }
+
+  public:
+    Painter(QPainter *painter) : m_painter(painter)
+    {
+        this->set_pen = set_pen_impl;
+        this->fill_rect = fill_rect_impl;
+        this->draw_rect = draw_rect_impl;
+        this->draw_text = draw_text_impl;
+    }
+
+    EMPECHE_COPIE(Painter);
+};
+
+void Widget::paintEvent(QPaintEvent *event)
+{
+    if (m_rappels && m_rappels->sur_peinture) {
+        QPainter qpainter(this);
+        Painter enveloppe_painter(&qpainter);
+        m_rappels->sur_peinture(m_rappels, &enveloppe_painter);
+        return;
+    }
+
+    QWidget::paintEvent(event);
 }
 
 IMPLEMENTE_METHODES_EVENEMENTS(Widget)

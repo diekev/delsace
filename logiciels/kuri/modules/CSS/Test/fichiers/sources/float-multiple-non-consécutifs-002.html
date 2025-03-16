@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>CSS Test : floats multiple non-consécutifs</title>
+    <meta type="assert"
+        description="La position d'une boite flottante droite n'est pas affectée pas des boites flottantes précédentes si elles ne se trouvent pas verticalement à sa droite." />
+
+    <style>
+        .contenant {
+            width: 1in;
+            height: 1in;
+            background-color: blue;
+        }
+
+        .contenu {
+            width: 50%;
+            height: 50%;
+            background-color: orange;
+            float: right;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="contenant">
+        <div class="contenu"></div>
+    </div>
+    <div class="contenant">
+        <div class="contenu"></div>
+    </div>
+</body>
+
+</html>

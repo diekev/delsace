@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Test CSS : flexbox avec flex-wrap: nowrap</title>
+    <style>
+        .contenant {
+            width: 100px;
+            height: 100px;
+            border: solid 1px black;
+            display: flex;
+        }
+
+        .contenu {
+            width: 50px;
+            height: 50px;
+            background-color: green;
+        }
+    </style>
+</head>
+
+<body>
+    <p>Le test passe s'il y a une bande verte en haut de la boite.</p>
+    <div class="contenant">
+        <div class="contenu"></div>
+        <div class="contenu"></div>
+        <div class="contenu"></div>
+        <div class="contenu"></div>
+    </div>
+</body>
+
+</html>

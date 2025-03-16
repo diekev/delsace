@@ -3,12 +3,14 @@
  * d'IGUMI pour dessiner des formes dans une interface graphique.
  */
 
+importe #inemployé CSS
 importe Chaine
 importe Couleur
 importe Dessin
 importe Géométrie
 importe IGUMI
 importe Image
+importe Math
 importe OpenGL
 importe Typographie
 
@@ -49,6 +51,9 @@ Peintre :: struct {
     rappel_dessine_rectangle_arrondi: fonc(*Peintre, RectanglePeintre, r32, CouleurPeintre)(rien)
     /* Remplis le rectangle arrondi avec la couleur donnée. */
     rappel_remplis_rectangle_arrondi: fonc(*Peintre, RectanglePeintre, [4]r32, CouleurPeintre)(rien)
+
+    /* Dessine des bordures dans le rectangle spécifié. */
+    rappel_dessine_bordure: fonc(*Peintre, RectanglePeintre, [4]r32, [4]CouleurPeintre)(rien)
 
     /* Dessine le contour du cercle avec la couleur donnée. */
     rappel_dessine_cercle: fonc(*Peintre, CerclePeintre, CouleurPeintre)(rien)
@@ -139,6 +144,11 @@ remplis_rectangle_arrondi :: fonc (peintre: *Peintre, rectangle: RectanglePeintr
 remplis_rectangle_arrondi :: fonc (peintre: *Peintre, rectangle: RectanglePeintre, rayon: [4]r32, couleur: CouleurPeintre) -> rien #enligne
 {
     peintre.rappel_remplis_rectangle_arrondi(peintre, rectangle, rayon, couleur)
+}
+
+dessine_bordure :: fonc (peintre: *Peintre, rectangle: RectanglePeintre, largeurs: [4]r32, couleurs: [4]CouleurPeintre) -> rien #enligne
+{
+    peintre.rappel_dessine_bordure(peintre, rectangle, largeurs, couleurs)
 }
 
 dessine_cercle :: fonc (peintre: *Peintre, cercle: CerclePeintre, couleur: CouleurPeintre) -> rien #enligne
@@ -251,7 +261,7 @@ restaure_ciseau :: fonc (peintre: *Peintre) -> rien #enligne
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom Peintre pour le module Dessin. À FAIRE
+/** \nom Peintre pour le module Dessin.
  * \{ */
 
 PeintreDessin :: struct {
@@ -279,6 +289,7 @@ initialise_peintre_dessin :: fonc (peintre: *PeintreDessin)
     peintre.rappel_remplis_rectangle = remplis_rectangle_dessin
     peintre.rappel_dessine_rectangle_arrondi = dessine_rectangle_arrondi_dessin
     peintre.rappel_remplis_rectangle_arrondi = remplis_rectangle_arrondi_dessin
+    peintre.rappel_dessine_bordure = dessine_bordure_dessin
     peintre.rappel_dessine_cercle = dessine_cercle_dessin
     peintre.rappel_remplis_cercle = remplis_cercle_dessin
     peintre.rappel_dessine_segment = dessine_segment_dessin
@@ -287,6 +298,7 @@ initialise_peintre_dessin :: fonc (peintre: *PeintreDessin)
     peintre.rappel_dessine_texte_utf16 = dessine_texte_utf16_dessin
     peintre.rappel_dessine_texte_utf32 = dessine_texte_utf32_dessin
     peintre.rappel_dessine_image = dessine_image_dessin
+    peintre.rappel_dessine_sous_image = dessine_sous_image_dessin
     peintre.rappel_dessine_nouvelle_image = dessine_nouvelle_image_dessin
     peintre.rappel_dessine_image_grise_8bit = dessine_image_grise_8bit_dessin
     peintre.rappel_dessine_image_rvba_8bit = dessine_image_rvba_8bit_dessin
@@ -425,13 +437,142 @@ dessine_rectangle_arrondi_dessin :: fonc (peintre: *Peintre, rectangle_peintre: 
     dessine_rectangle(*peintre_dessin.tampon_de_rendu, rectangle, couleur)
 }
 
-remplis_rectangle_arrondi_dessin :: fonc (peintre: *Peintre, rectangle_peintre: RectanglePeintre, rayon: [4]r32 @inutilisée, couleur_peintre: CouleurPeintre)
+remplis_rectangle_arrondi_dessin :: fonc (peintre: *Peintre, rectangle_peintre: RectanglePeintre, rayons: [4]r32, couleur_peintre: CouleurPeintre)
 {
     peintre_dessin := peintre comme *PeintreDessin
     rectangle := donne_rectangle_dessin(rectangle_peintre)
     couleur := donne_couleur_dessin(couleur_peintre)
-    // À FAIRE : rectangle arrondi
-    remplis_rectangle(*peintre_dessin.tampon_de_rendu, rectangle, couleur)
+    remplis_rectangle_arrondi(*peintre_dessin.tampon_de_rendu, rectangle, rayons, couleur)
+}
+
+dessine_bordure_dessin :: fonc (peintre: *Peintre, rectangle_peintre: RectanglePeintre, largeurs_peintre: [4]r32, couleurs: [4]CouleurPeintre)
+{
+    peintre_dessin := peintre comme *PeintreDessin
+    rectangle := donne_rectangle_dessin(rectangle_peintre)
+
+    /* NOTE : le haut et la bas sont inversés pour CSS dont l'origine est en haut, alors qu'IGUMI préfère l'origine en bas. */
+
+    // À FAIRE : implémente proprement
+
+    largeurs := donne_largeurs_bordure_pour_dessin(largeurs_peintre)
+
+    /* Haut. */
+    si largeurs[0] != 0 {
+        couleur := donne_couleur_dessin(couleurs[0])
+
+        ligne: Ligne(z32)
+        ligne.p0.x = rectangle.x
+        ligne.p0.y = rectangle.y + rectangle.hauteur
+
+        ligne.p1.x = rectangle.x + rectangle.largeur
+        ligne.p1.y = rectangle.y + rectangle.hauteur
+
+        pour largeurs[0] {
+            dessine_ligne(*peintre_dessin.tampon_de_rendu, ligne, couleur)
+
+            ligne.p0.y -= 1
+            ligne.p1.y -= 1
+
+            si largeurs[3] != 0 {
+                ligne.p0.x += 1
+            }
+            si largeurs[1] != 0 {
+                ligne.p1.x -= 1
+            }
+        }
+    }
+
+    /* Droite. */
+    si largeurs[1] != 0 {
+        couleur := donne_couleur_dessin(couleurs[1])
+
+        ligne: Ligne(z32)
+        ligne.p0.x = rectangle.x + rectangle.largeur
+        ligne.p0.y = rectangle.y + rectangle.hauteur
+
+        ligne.p1.x = rectangle.x + rectangle.largeur
+        ligne.p1.y = rectangle.y
+
+        pour largeurs[1] {
+            dessine_ligne(*peintre_dessin.tampon_de_rendu, ligne, couleur)
+
+            ligne.p0.x -= 1
+            ligne.p1.x -= 1
+
+            si largeurs[0] != 0 {
+                ligne.p0.y -= 1
+            }
+            si largeurs[2] != 0 {
+                ligne.p1.y += 1
+            }
+        }
+    }
+
+    /* Bas. */
+    si largeurs[2] != 0 {
+        couleur := donne_couleur_dessin(couleurs[2])
+
+        ligne: Ligne(z32)
+        ligne.p0.x = rectangle.x
+        ligne.p0.y = rectangle.y
+
+        ligne.p1.x = rectangle.x + rectangle.largeur
+        ligne.p1.y = rectangle.y
+
+        pour largeurs[2] {
+            dessine_ligne(*peintre_dessin.tampon_de_rendu, ligne, couleur)
+
+            ligne.p0.y += 1
+            ligne.p1.y += 1
+
+            si largeurs[3] != 0 {
+                ligne.p0.x += 1
+            }
+            si largeurs[1] != 0 {
+                ligne.p1.x -= 1
+            }
+        }
+    }
+
+    /* Gauche. */
+    si largeurs[3] != 0 {
+        couleur := donne_couleur_dessin(couleurs[3])
+
+        ligne: Ligne(z32)
+        ligne.p0.x = rectangle.x
+        ligne.p0.y = rectangle.y + rectangle.hauteur
+
+        ligne.p1.x = rectangle.x
+        ligne.p1.y = rectangle.y
+
+        pour largeurs[3] {
+            dessine_ligne(*peintre_dessin.tampon_de_rendu, ligne, couleur)
+
+            ligne.p0.x += 1
+            ligne.p1.x += 1
+
+            si largeurs[0] != 0 {
+                ligne.p0.y -= 1
+            }
+            si largeurs[2] != 0 {
+                ligne.p1.y += 1
+            }
+        }
+    }
+}
+
+donne_largeurs_bordure_pour_dessin :: fonc (largeurs: [4]r32) -> [4]n32
+{
+    résultat: [4]n32
+    pour largeurs {
+        si it != 0.0 && it < 1.0 {
+            résultat[index_it] = 1
+            continue
+        }
+
+        résultat[index_it] = (it + 0.5) comme n32
+    }
+    retourne résultat
 }
 
 dessine_cercle_dessin :: fonc (peintre: *Peintre, cercle_peintre: CerclePeintre, couleur_peintre: CouleurPeintre)
@@ -500,6 +641,13 @@ dessine_image_dessin :: fonc (peintre: *Peintre, image: ImageIO, rectangle_peint
     dessine_image(*peintre_dessin.tampon_de_rendu, image, rect)
 }
 
+dessine_sous_image_dessin :: fonc (peintre: *Peintre, image: ImageIO, rectangle_image: RectanglePeintre, rectangle_sous_image: RectanglePeintre @inutilisée, répétition: RépétitionImage @inutilisée)
+{
+    peintre_dessin := peintre comme *PeintreDessin
+    rect := donne_rectangle_dessin(rectangle_image)
+    dessine_image(*peintre_dessin.tampon_de_rendu, image, rect)
+}
+
 dessine_nouvelle_image_dessin :: fonc (peintre: *PeintreDessin, image: *NouvelleImage, rectangle_peintre: RectanglePeintre)
 {
     rect := donne_rectangle_dessin(rectangle_peintre)
@@ -556,9 +704,10 @@ détruit_peintre_dessin :: fonc (base: *Peintre)
     déloge(peintre_dessin)
 }
 
-définis_ciseau_dessin :: fonc (peintre: *Peintre @inutilisée, rectangle: RectanglePeintre @inutilisée)
+définis_ciseau_dessin :: fonc (peintre: *PeintreDessin, rectangle_peintre: RectanglePeintre)
 {
-    // À FAIRE
+    rect := donne_rectangle_dessin(rectangle_peintre)
+    définis_rect_ciseau(*peintre.tampon_de_rendu, rect)
 }
 
 /** \} */
@@ -582,6 +731,7 @@ crée_peintre_igumi :: fonc (taille_cannevas: Taille) -> *Peintre
     peintre.rappel_remplis_rectangle = remplis_rectangle_igumi
     peintre.rappel_dessine_rectangle_arrondi = dessine_rectangle_arrondi_igumi
     peintre.rappel_remplis_rectangle_arrondi = remplis_rectangle_arrondi_igumi
+    peintre.rappel_dessine_bordure = dessine_bordure_igumi
     peintre.rappel_dessine_cercle = dessine_cercle_igumi
     peintre.rappel_remplis_cercle = remplis_cercle_igumi
     peintre.rappel_dessine_segment = dessine_segment_igumi
@@ -759,6 +909,75 @@ remplis_rectangle_arrondi_igumi :: fonc (peintre: *Peintre @inutilisée, rectang
     quad_arrondi_immédiat(rectangle.x, rectangle.y, rectangle.largeur, rectangle.hauteur, rayon, couleur)
 }
 
+dessine_bordure_igumi :: fonc (peintre: *Peintre @inutilisée, rectangle_peintre: RectanglePeintre, largeurs: [4]r32, couleurs: [4]CouleurPeintre)
+{
+    rectangle := donne_rectangle_igumi(rectangle_peintre)
+
+    commence_immédiat(ModeImmédiat.TRIANGLES, nuanceur_base)
+
+    /* NOTE : le haut et la bas sont inversés pour CSS dont l'origine est en haut, alors qu'IGUMI préfère l'origine en bas. */
+
+    /* Haut. */
+    si largeurs[0] != 0.0 {
+        couleur := donne_couleur_igumi(couleurs[0])
+
+        x0 := rectangle.x + largeurs[3]
+        x1 := rectangle.x + rectangle.largeur - largeurs[1]
+        x2 := rectangle.x + rectangle.largeur
+        x3 := rectangle.x
+
+        y0 := rectangle.y + rectangle.hauteur - largeurs[0]
+        y1 := rectangle.y + rectangle.hauteur
+
+        quad_immédiat(Vec3(x0, y0), Vec3(x1, y0), Vec3(x2, y1), Vec3(x3, y1), couleur)
+    }
+
+    /* Droite. */
+    si largeurs[1] != 0.0 {
+        couleur := donne_couleur_igumi(couleurs[1])
+
+        x0 := rectangle.x + rectangle.largeur - largeurs[1]
+        x1 := rectangle.x + rectangle.largeur
+
+        y0 := rectangle.y + largeurs[2]
+        y1 := rectangle.y
+        y2 := rectangle.y + rectangle.hauteur
+        y3 := rectangle.y + rectangle.hauteur - largeurs[0]
+
+        quad_immédiat(Vec3(x0, y0), Vec3(x1, y1), Vec3(x1, y2), Vec3(x0, y3), couleur)
+    }
+
+    /* Bas. */
+    si largeurs[2] != 0.0 {
+        couleur := donne_couleur_igumi(couleurs[2])
+
+        x0 := rectangle.x
+        x1 := rectangle.x + rectangle.largeur
+        x2 := x1 - largeurs[1]
+        x3 := x0 + largeurs[3]
+
+        y0 := rectangle.y
+        y1 := rectangle.y + largeurs[2]
+
+        quad_immédiat(Vec3(x0, y0), Vec3(x1, y0), Vec3(x2, y1), Vec3(x3, y1), couleur)
+    }
+
+    /* Gauche. */
+    si largeurs[3] != 0.0 {
+        couleur := donne_couleur_igumi(couleurs[3])
+
+        x0 := rectangle.x
+        x1 := rectangle.x + largeurs[3]
+
+        y3 := rectangle.y
+        y2 := rectangle.y + largeurs[2]
+        y1 := rectangle.y + rectangle.hauteur - largeurs[0]
+        y0 := rectangle.y + rectangle.hauteur
+
+        quad_immédiat(Vec3(x0, y0), Vec3(x1, y1), Vec3(x1, y2), Vec3(x0, y3), couleur)
+    }
+}
+
 dessine_cercle_igumi :: fonc (peintre: *Peintre @inutilisée, cercle_peintre: CerclePeintre, couleur_peintre: CouleurPeintre)
 {
     cercle := donne_cercle_igumi(cercle_peintre)
@@ -875,6 +1094,8 @@ détruit_peintre_igumi :: fonc (peintre: *Peintre)
 
 définis_ciseau_igumi :: fonc (peintre: *Peintre @inutilisée, rectangle: RectanglePeintre)
 {
+    IGUMI.termine_immédiat()
+
     /* Nous utilisons donne_rectangle_dessin afin d'avoir un rectangle dont
      * les valeurs sont des nombres entiers, car les paramètres de glScissor
      * sont des nombres entiers. */
@@ -884,6 +1105,138 @@ définis_ciseau_igumi :: fonc (peintre: *Peintre @inutilisée, rectangle: Rectan
     glEnable(GL_SCISSOR_TEST)
 
     glScissor(rect.x, rect.y, rect.largeur, rect.hauteur)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom CSS
+ * \{ */
+
+dessine_commandes_css :: fonc (peintre: *Peintre, commandes: *CSS.CommandesDeRendu)
+{
+    IGUMI.réinitialise_données()
+
+    début := commandes.commandes.pointeur
+    fin := début + commandes.commandes.taille
+
+    tantque début < fin {
+        base := début comme *CSS.BaseCommande
+        discr base.type {
+            REMPLIS_RECTANGLE_ID {}
+            REMPLIS_RECTANGLE {
+                commande := base comme *CSS.CommandeRemplisRectangle
+                peintre.remplis_rectangle(commande.rect, commande.couleur)
+            }
+            REMPLIS_RECTANGLE_ARRONDI {
+                commande := base comme *CSS.CommandeRemplisRectangleArrondi
+                peintre.remplis_rectangle_arrondi(commande.rect, commande.rayons, commande.couleur)
+            }
+            DESSINE_RECTANGLE {
+                commande := base comme *CSS.CommandeDessineRectangle
+                peintre.dessine_rectangle(commande.rect, commande.couleur)
+            }
+            DESSINE_RECTANGLE_ARRONDI {
+                // commande := base comme *CSS.CommandeDessineRectangleArrondi
+                // peintre.dessine_rectangle_arrondi(commande.rect, commande.rayons, commande.couleur)
+            }
+            DESSINE_BORDURE {
+                commande := base comme *CSS.CommandeDessineBordure
+
+                couleurs_peintre: [4]CouleurPeintre = ---
+                pour commande.couleurs {
+                    couleurs_peintre[index_it] = it
+                }
+
+                peintre.dessine_bordure(commande.rect, commande.largeurs, couleurs_peintre)
+            }
+            DESSINE_IMAGE {
+                commande := base comme *CSS.CommandeDessineImage
+                peintre.dessine_image(commande.image_data, commande.rect_image, commande.rect, commande.répétition)
+            }
+            DESSINE_TAMPON_IMAGE {
+                commande := base comme *CSS.CommandeDessineImageTampon
+                peintre.dessine_image(commande.image_data, commande.rect)
+            }
+            DESSINE_TEXTE {
+                commande := base comme *CSS.CommandeDessineTexte
+                peintre.dessine_texte(commande.fonte, commande.texte, commande.rect, commande.couleur, *commande.effets)
+            }
+            DÉBUTE_STACKING_CONTEXT {
+            }
+            TERMINE_STACKING_CONTEXT {
+            }
+            DÉBUTE_CISELAGE {
+                commande := base comme *CSS.CommandeDébuteCiselage
+                peintre.définis_ciseau(commande.rect)
+            }
+            TERMINE_CISELAGE {
+                peintre.restaure_ciseau()
+            }
+        }
+
+        début += base.taille_type
+    }
+
+    peintre.termine_dessin()
+}
+
+dessine_commandes_id_css :: fonc (peintre: *Peintre @inutilisée, commandes: *CSS.CommandesDeRendu, tampon_id: *CSS.TamponID)
+{
+    IGUMI.réinitialise_données_id()
+
+    fbo: GLuint
+    glGenFramebuffers(1, *fbo)
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo)
+
+    render_buf: GLuint
+    glGenRenderbuffers(1, *render_buf)
+    glBindRenderbuffer(GL_RENDERBUFFER, render_buf)
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_R32UI, tampon_id.largeur, tampon_id.hauteur)
+    vérifie_erreur("glRenderbufferStorage")
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, render_buf)
+    vérifie_erreur("glFramebufferRenderbuffer")
+
+    début := commandes.commandes.pointeur
+    fin := début + commandes.commandes.taille
+
+    IGUMI.commence_immédiat_id(IGUMI.ModeImmédiat.TRIANGLES, IGUMI.nuanceur_id)
+    vérifie_erreur("commence_immédiat_id")
+
+    tantque début < fin {
+        base := début comme *CSS.BaseCommande
+
+        si base.type == CSS.TypeCommandeDeRendu.REMPLIS_RECTANGLE_ID {
+            commande := base comme *CSS.CommandeRemplisRectangleID
+            rect := commande.rect
+            IGUMI.quad_immédiat_id(rect.x, rect.y, rect.largeur, rect.hauteur, commande.id)
+        }
+
+        début += base.taille_type
+    }
+
+    IGUMI.termine_immédiat_id()
+    vérifie_erreur("termine_immédiat_id")
+
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0)
+    vérifie_erreur("glBindFramebuffer")
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo)
+    vérifie_erreur("glBindFramebuffer")
+
+    glReadBuffer(GL_COLOR_ATTACHMENT0)
+    vérifie_erreur("glReadBuffer")
+    glReadPixels(0, 0, tampon_id.largeur, tampon_id.hauteur, GL_RED_INTEGER, GL_UNSIGNED_INT, tampon_id.données.pointeur)
+    vérifie_erreur("glReadPixels")
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0)
+
+    glBindRenderbuffer(GL_RENDERBUFFER, 0)
+
+    glDeleteFramebuffers(1, *fbo)
+    glDeleteRenderbuffers(1, *render_buf)
+
+    tampon_id.fut_dessiné = vrai
 }
 
 /** \} */

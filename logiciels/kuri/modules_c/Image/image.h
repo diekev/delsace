@@ -13,6 +13,7 @@ typedef unsigned char bool;
 
 enum ResultatOperation {
     OK,
+    ERREUR_INCONNUE,
     IMAGE_INEXISTANTE,
     TYPE_IMAGE_NON_SUPPORTE,
     PROXY_NON_SUPPORTE,
@@ -40,6 +41,11 @@ enum ResultatOperation IMG_ouvre_image(const char *chemin, struct ImageIO *image
 enum ResultatOperation IMG_ouvre_image_avec_proxy(const char *chemin,
                                                   struct ImageIO *image,
                                                   struct ImageIOProxy *proxy);
+
+enum ResultatOperation IMG_ouvre_gif_depuis_fichier(const char *chemin, struct ImageIO *resultat);
+enum ResultatOperation IMG_ouvre_gif_depuis_memoire(const void *donnees,
+                                                    uint64_t taille,
+                                                    struct ImageIO *resultat);
 
 enum ResultatOperation IMG_ecris_image(const char *chemin, struct ImageIO *image);
 

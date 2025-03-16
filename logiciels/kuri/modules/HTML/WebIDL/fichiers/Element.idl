@@ -1,4 +1,6 @@
 interface Element : Node {
+    undefined setAttribute(DOMString qualifiedName, DOMString value);
+
     HTMLCollection getElementsByTagName(DOMString qualifiedName);
     HTMLCollection getElementsByClassName(DOMString classNames);
 

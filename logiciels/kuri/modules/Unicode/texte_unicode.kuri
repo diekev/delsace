@@ -373,33 +373,42 @@ valide :: fonc (itératrice: &ItératriceUTF8) -> bool
 
 importe Chaine
 
+transforme_point_de_code_en_majuscule :: fonc (point_de_code: n32) -> n32
+{
+    rune := Rune(point_de_code)
+
+    f := donne_permutation_casse(unicode_toupper, rune)
+    si f == nul || point_de_code < f.min {
+        retourne point_de_code
+    }
+
+    rune = applique_permutation(f, rune)
+    retourne rune comme n32
+}
+
+transforme_point_de_code_en_minuscule :: fonc (point_de_code: n32) -> n32
+{
+    rune := Rune(point_de_code)
+
+    f := donne_permutation_casse(unicode_tolower, rune)
+    si f == nul || point_de_code < f.min {
+        retourne point_de_code
+    }
+
+    rune = applique_permutation(f, rune)
+    retourne rune comme n32
+}
+
 en_minuscule_sur_place :: fonc (chn: &ChaineUTF32)
 {
     pour & chn.points_de_code {
-        rune := Rune(it)
-
-        f := donne_permutation_casse(unicode_tolower, rune)
-        si f == nul || it < f.min {
-            continue
-        }
-        rune = applique_permutation(f, rune)
-
-        it = rune comme n32
+        it = transforme_point_de_code_en_minuscule(it)
     }
 }
 
 en_majuscule_sur_place :: fonc (chn: &ChaineUTF32)
 {
     pour & chn.points_de_code {
-        rune := Rune(it)
-
-        f := donne_permutation_casse(unicode_toupper, rune)
-        si f == nul || it < f.min {
-            continue
-        }
-
-        rune = applique_permutation(f, rune)
-
-        it = rune comme n32
+        it = transforme_point_de_code_en_majuscule(it)
     }
 }

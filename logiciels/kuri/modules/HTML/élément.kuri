@@ -96,7 +96,7 @@ table_virtuelle_élément := TableVirtuelleÉlément(
     noeud_sur_destruction(élément)
     CSS.détruit_style_declaration(élément.style)
     si élément.noeud_de_disposition {
-        si élément.noeud_de_disposition.type != CSS.NoeudDeDispositionNouvelleLigne {
+        si élément.noeud_de_disposition.table_virtuelle.type != CSS.NoeudDeDispositionNouvelleLigne {
             (élément.noeud_de_disposition comme *CSS.NoeudDeDispositionBloc).élément = nul
         }
         sinon {
@@ -165,10 +165,12 @@ rendu_css_est_requis :: fonc (élément: *Élément) -> bool
         retourne faux
     }
 
-    user_agent := donne_user_agent(document)
-    saufsi user_agent {
-        retourne faux
-    }
+    // À FAIRE : pour les tests CSS nous devons avoir les styles qui ne sont pas traités sans UserAgent...
+    // Désactivation de cette vérification dans l'attente d'un meilleur système pour détecter la nécessité des styles.
+    // user_agent := donne_user_agent(document)
+    // saufsi user_agent {
+    //     retourne faux
+    // }
 
     retourne vrai
 }
@@ -292,8 +294,23 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élé
     sinon si tag == TAG_link {
         élément = crée_platform_object(document, HTMLLinkElement)
     }
+    sinon si tag == TAG_object {
+        élément = crée_platform_object(document, HTMLObjectElement)
+    }
+    sinon si tag == TAG_option {
+        élément = crée_platform_object(document, HTMLOptionElement)
+    }
+    sinon si tag == TAG_optgroup {
+        élément = crée_platform_object(document, HTMLOptGroupElement)
+    }
     sinon si tag == TAG_script {
         élément = crée_platform_object(document, HTMLScriptElement)
+    }
+    sinon si tag == TAG_select {
+        élément = crée_platform_object(document, HTMLSelectElement)
+    }
+    sinon si tag == TAG_span {
+        élément = crée_platform_object(document, HTMLSpanElement)
     }
     sinon si tag == TAG_style {
         élément = crée_platform_object(document, HTMLStyleElement)
@@ -357,6 +374,32 @@ est_compatible_html5 :: fonc (élément: *Élément) -> bool
             retourne vrai
         }
     }
+}
+
+/* https://dom.spec.whatwg.org/#dom-element-setattribute */
+set_attribute :: fonc (élément: *Élément, qualified_name: DOMString, value: DOMString)
+{
+    // À FAIRE 1. If qualifiedName does not match the Name production in XML,
+    //   then throw an "InvalidCharacterError" DOMException.
+
+    // À FAIRE 2. If this is in the HTML namespace and its node document is an HTML document,
+    //    then set qualifiedName to qualifiedName in ASCII lowercase.
+
+    // 3. Let attribute be the first attribute in this’s attribute list whose qualified name,
+    //    is qualifiedName and null otherwise.
+    attribute := cherche_attribut(élément, qualified_name)
+
+    // 4. If attribute is null, create an attribute whose local name is qualifiedName, value
+    //    is value, and node document is this’s node document, then append this attribute to this,
+    //    and then return.
+    si attribute == nul {
+        // À FAIRE : révise l'IPA
+        ajoute_attribut(élément, AttributLexé(qualified_name, value))
+        retourne
+    }
+
+    // 5. Change attribute to value.
+    change_attribut(attribute, value)
 }
 
 /* https://dom.spec.whatwg.org/#concept-getelementsbyclassname */
@@ -793,10 +836,10 @@ donne_user_navigation_involvement :: fonc (event: *Event) -> UserNavigationInvol
 /* https://html.spec.whatwg.org/multipage/links.html#cannot-navigate */
 cannot_navigate :: fonc (element: *Élément) -> bool
 {
-    // À FAIRE : element's node document is not fully active; or
-    // saufsi element.document.est_fully_active() {
-    //     retourne vrai
-    // }
+    // element's node document is not fully active; or
+    saufsi element.document.est_fully_active() {
+        retourne vrai
+    }
 
     // element is not an a element and is not connected.
     si element.local_name != TAG_a && !element.est_connecté() {
@@ -1024,13 +1067,35 @@ ajoute_propriété_pour_mot_clé :: fonc (résolveuse: *CSS.RésolveuseStyle, no
     CSS.ajoute_presentational_hint(résolveuse, nom_propriété, CSS.ValeurDeStyle(mot_clé = mot_clé))
 }
 
+ajoute_propriété_pour_dimension :: fonc (résolveuse: *CSS.RésolveuseStyle, élément: *Élément, nom_attribut: DOMString, nom_propriété: CSS.CSSOMString)
+{
+    opt_attribut := élément.donne_attribut(nom_attribut)
+    si opt_attribut.possède_valeur() {
+        valeur := parse_a_dimension_value(opt_attribut.Quelque)
+        si valeur.possède_valeur() {
+            ajoute_propriété_pour_dimension(résolveuse, nom_propriété, valeur.Quelque)
+        }
+    }
+}
+
+ajoute_propriété_pour_pixel_length :: fonc (résolveuse: *CSS.RésolveuseStyle, élément: *Élément, nom_attribut: DOMString, nom_propriété: CSS.CSSOMString)
+{
+    opt_attribut := élément.donne_attribut(nom_attribut)
+    si opt_attribut.possède_valeur() {
+        valeur := parse_a_non_negative_integer(opt_attribut.Quelque)
+        si valeur.possède_valeur() {
+            CSS.ajoute_presentational_hint(résolveuse, nom_propriété, CSS.ValeurDeStyle(pixels = valeur.Quelque comme r64))
+        }
+    }
+}
+
 ajoute_propriété_pour_non_zero_dimension :: fonc (résolveuse: *CSS.RésolveuseStyle, élément: *Élément, nom_attribut: DOMString, nom_propriété: CSS.CSSOMString)
 {
     opt_attribut := élément.donne_attribut(nom_attribut)
     si opt_attribut.possède_valeur() {
         valeur := parse_a_non_zero_dimension(opt_attribut.Quelque)
         si valeur.possède_valeur() {
-            ajoute_propriété_pour_nombre(résolveuse, nom_propriété, valeur.Quelque)
+            ajoute_propriété_pour_dimension(résolveuse, nom_propriété, valeur.Quelque)
         }
     }
 }
@@ -1038,6 +1103,19 @@ ajoute_propriété_pour_non_zero_dimension :: fonc (résolveuse: *CSS.Résolveus
 ajoute_propriété_pour_nombre :: fonc (résolveuse: *CSS.RésolveuseStyle, nom_propriété: CSS.CSSOMString, valeur: r64)
 {
     CSS.ajoute_presentational_hint(résolveuse, nom_propriété, CSS.ValeurDeStyle(number = valeur))
+}
+
+ajoute_propriété_pour_dimension :: fonc (résolveuse: *CSS.RésolveuseStyle, nom_propriété: CSS.CSSOMString, valeur: DimensionValue)
+{
+    discr valeur {
+        Percentage(p) {
+            CSS.ajoute_presentational_hint(résolveuse, nom_propriété, CSS.ValeurDeStyle(percentage = p))
+        }
+        Length(l) {
+            CSS.ajoute_presentational_hint(résolveuse, nom_propriété, CSS.ValeurDeStyle(pixels = l))
+        }
+        sinon {}
+    }
 }
 
 /** \} */
@@ -1097,7 +1175,7 @@ donne_largeur_intrinsèque :: fonc (canvas: *HTMLCanvasElement) -> r64
     si opt_attribut.possède_valeur() {
         valeur := parse_a_non_zero_dimension(opt_attribut.Quelque)
         si valeur.possède_valeur() {
-            retourne valeur
+            retourne valeur.Quelque.Length
         }
     }
 
@@ -1110,7 +1188,7 @@ donne_hauteur_intrinsèque :: fonc (canvas: *HTMLCanvasElement) -> r64
     si opt_attribut.possède_valeur() {
         valeur := parse_a_non_zero_dimension(opt_attribut.Quelque)
         si valeur.possède_valeur() {
-            retourne valeur
+            retourne valeur.Quelque.Length
         }
     }
 
@@ -1197,26 +1275,21 @@ font_element_sur_applique_presentational_hints :: fonc (base: *Élément, résol
     /* À FAIRE : face. */
 }
 
+/* https://html.spec.whatwg.org/multipage/rendering.html#rules-for-parsing-a-legacy-font-size */
 parse_a_legacy_font_size :: fonc (attribute_value: DOMString) -> Optionnel(CSS.CSSOMString)
 {
     // 1. Let input be the attribute's value.
     input := attribute_value.donne_chaine_utf16()
 
     // 2. Let position be a pointer into input, initially pointing at the start of the string.
-    position := input.unités.pointeur
-    fin := position + input.taille()
+    position := PositionVariable(input.unités.pointeur)
 
     // 3. Skip ASCII whitespace within input given position.
-    tantque position < fin {
-        saufsi est_espace_blanche_ascii(mémoire(position)) {
-            arrête
-        }
-
-        position += 1
-    }
+    skip_ascii_whitespace(input, *position)
 
     // 4. If position is past the end of input, there is no presentational hint. Return.
-    si position >= fin {
+    fin := input.unités.pointeur + input.taille()
+    si position.position >= fin {
         retourne
     }
 
@@ -1230,33 +1303,22 @@ parse_a_legacy_font_size :: fonc (attribute_value: DOMString) -> Optionnel(CSS.C
         RelativeMinus
     }
     mode := ModeFonte.Aucun
-    si mémoire(position) == 0x2B {
+    si mémoire(position.position) == 0x2B {
         mode = ModeFonte.RelativePlus
-        position += 1
+        position.position += 1
     }
-    sinon si mémoire(position) == 0x2D {
+    sinon si mémoire(position.position) == 0x2D {
         mode = ModeFonte.RelativeMinus
-        position += 1
+        position.position += 1
     }
 
     // 6. Collect a sequence of code points that are ASCII digits from input given position, and let the resulting sequence be digits.
-    //    https://infra.spec.whatwg.org/#collect-a-sequence-of-code-points
-    digits: ChaineUTF16
-
-    tantque position < fin {
-        saufsi est_chiffre_ascii(mémoire(position)) {
-            arrête
-        }
-
-        chaine_ajoute(*digits, mémoire(position))
-        position += 1
-    }
+    digits := collect_a_sequence_of_code_points(input, *position, est_chiffre_ascii_n16)
 
     // 7. If digits is the empty string, there is no presentational hint. Return.
     si digits.est_vide() {
         retourne
     }
-    diffère détruit_chaine(digits)
 
     // 8. Interpret digits as a base-ten integer. Let value be the resulting number.
     value: z32
@@ -1271,7 +1333,7 @@ parse_a_legacy_font_size :: fonc (attribute_value: DOMString) -> Optionnel(CSS.C
         value += 3
     }
     sinon si mode == ModeFonte.RelativeMinus {
-        value -= 3
+        value = 3 - value
     }
 
     // 10. If value is greater than 7, let it be 7.
@@ -1492,8 +1554,8 @@ image_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOM
 
 image_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
 {
-    ajoute_propriété_pour_non_zero_dimension(résolveuse, base, ATTR_width, CSS.PROP_width)
-    ajoute_propriété_pour_non_zero_dimension(résolveuse, base, ATTR_height, CSS.PROP_height)
+    ajoute_propriété_pour_dimension(résolveuse, base, ATTR_width, CSS.PROP_width)
+    ajoute_propriété_pour_dimension(résolveuse, base, ATTR_height, CSS.PROP_height)
 }
 
 image_element_sur_destruction :: fonc (base: *JavaScript.Cellule)
@@ -1623,6 +1685,18 @@ décode_image :: fonc (contenu: chaine, content_type: chaine, résultat: *ImageI
             mémoire(sortie) = mémoire(entrée) comme r32 / 255.0
             entrée += 1
             sortie += 1
+        }
+
+        retourne vrai
+    }
+
+    si content_type == "image/gif" {
+        data := contenu.pointeur comme *n8
+        data_size := contenu.taille comme n64
+
+        résultat_img := IMG_ouvre_gif_depuis_memoire(data, data_size, résultat)
+        si résultat_img != ResultatOperation.OK {
+            retourne faux
         }
 
         retourne vrai
@@ -1919,6 +1993,357 @@ table_virtuelle_video_element := TableVirtuelleÉlément(
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom HTMLObjectElement
+ * https://html.spec.whatwg.org/multipage/iframe-embed-object.html#the-object-element
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLObjectElement
+ * \{ */
+
+#portée_export
+
+ChoseReprésentée :: énum {
+    /* L'élément représente ses descendants. */
+    DESCENDANTS
+    /* L'élément représente ses données. */
+    DONNÉES
+}
+
+HTMLObjectElement :: struct {
+    empl html_element: HTMLElement
+    table = *table_virtuelle_object_element
+
+    chose_représentée: ChoseReprésentée
+    image_data: ImageIO
+}
+
+donne_hauteur_intrinsèque :: fonc (object: *HTMLObjectElement) -> z32 #enligne
+{
+    retourne object.image_data.hauteur
+}
+
+donne_largeur_intrinsèque :: fonc (object: *HTMLObjectElement) -> z32 #enligne
+{
+    retourne object.image_data.largeur
+}
+
+donne_ratio_intrinsèque :: fonc (object: *HTMLObjectElement) -> r32 #enligne
+{
+    si object.image_data.hauteur == 0 {
+        retourne 1.0
+    }
+
+    retourne object.image_data.largeur comme r32 / object.image_data.hauteur comme r32
+}
+
+#portée_fichier
+
+table_virtuelle_object_element := TableVirtuelleÉlément(
+    classe = HTMLObjectElement,
+    sur_destruction = object_element_sur_destruction,
+    sur_document_fully_active = object_element_sur_document_fully_active,
+    sur_dépilement = object_element_sur_dépilement,
+    sur_changement_attribut = object_element_sur_changement_attribut
+)
+
+object_element_sur_destruction :: fonc (base: *JavaScript.Cellule)
+{
+    élément := base comme *HTMLObjectElement
+    élément_détruit_données(élément)
+    IMG_detruit_image(*élément.image_data)
+}
+
+object_element_sur_document_fully_active :: fonc (base: *Noeud)
+{
+    object_element_ajourne(base comme *HTMLObjectElement)
+}
+
+object_element_sur_dépilement :: fonc (base: *Élément)
+{
+    object_element_ajourne(base comme *HTMLObjectElement)
+}
+
+object_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
+{
+    object := base comme *HTMLObjectElement
+
+    si élément_sur_changement_attribut(object, local_name, vieille_valeur, valeur, espace_de_nom) {
+        retourne vrai
+    }
+
+    si local_name == ATTR_classid {
+        object_element_ajourne(object)
+        retourne vrai
+    }
+
+    si local_name == ATTR_data {
+        saufsi possède_attribut(object, ATTR_classid) {
+            object_element_ajourne(object)
+        }
+        retourne vrai
+    }
+
+    si local_name == ATTR_type {
+        si !possède_attribut(object, ATTR_classid) && !possède_attribut(object, ATTR_data) {
+            object_element_ajourne(object)
+        }
+        retourne vrai
+    }
+
+    retourne vrai
+}
+
+/* Whenever one of the following conditions occur:
+ * [ ] the element is created,
+ * [X] the element is popped off the stack of open elements of an HTML parser or XML parser,
+ * [ ] the element is not on the stack of open elements of an HTML parser or XML parser, and it is either inserted into a document or removed from a document,
+ * [X] the element's node document changes whether it is fully active,
+ * [ ] one of the element's ancestor object elements changes to or from showing its fallback content,
+ * [X] the element's classid attribute is set, changed, or removed,
+ * [X] the element's classid attribute is not present, and its data attribute is set, changed, or removed,
+ * [X] neither the element's classid attribute nor its data attribute are present, and its type attribute is set, changed, or removed,
+ * [ ] the element changes from being rendered to not being rendered, or vice versa,
+ *
+ * ...the user agent must queue an element task on the DOM manipulation task source given
+ * the object element to run the following steps to (re)determine what the object element
+ * represents.
+ * This task being queued or actively running must delay the load event of the element's node document.
+ */
+object_element_ajourne :: fonc (object: *HTMLObjectElement)
+{
+    document := object.document
+    user_agent := document.donne_user_agent()
+    saufsi user_agent {
+        retourne
+    }
+
+    Tâche :: struct {
+        empl base: Algorithm
+        object: *HTMLObjectElement
+    }
+
+    sur_run :: fonc (base: *Algorithm)
+    {
+        tâche := base comme *Tâche
+        détermine_ce_que_object_représente(tâche.object)
+    }
+
+    tâche := crée_algorithm(sur_run, Tâche)
+    tâche.object = object
+
+    document.things_that_delay_the_load_event += 1
+    user_agent.queue_an_element_task(SourceDeTâche.ManipulationDOM, object, tâche)
+}
+
+détermine_ce_que_object_représente :: fonc (object: *HTMLObjectElement)
+{
+    // 1. If the user has indicated a preference that this object element's
+    //    fallback content be shown instead of the element's usual behavior,
+    //    then jump to the step below labeled fallback.
+
+    // 2. If the element has an ancestor media element,
+    //    or has an ancestor object element that is not showing its fallback content,
+
+    //    or if the element is not in a document whose browsing context is non-null,
+
+    //    or if the element's node document is not fully active,
+    si object.document && !object.document.est_fully_active() {
+        object_représente_fallback(object)
+        retourne
+    }
+
+    //    or if the element is still in the stack of open elements of an HTML parser or XML parser,
+    si object.est_sur_pile_éléments_ouvert {
+        object_représente_fallback(object)
+        retourne
+    }
+
+    //    or if the element is not being rendered, then jump to the step below labeled fallback.
+
+    // 3. If the data attribute is present and its value is not the empty string, then:
+    si possède_attribut(object, ATTR_data) && !donne_attribut_ou_chaine_vide(object, ATTR_data).est_vide() {
+        object_représente_data(object, nul)
+        retourne
+    }
+
+    // 4. Fallback. NOTE : ceci est fait via les appels à object_représente_fallback.
+    object_représente_fallback(object)
+}
+
+définis_chose_représentée :: fonc (object: *HTMLObjectElement, chose: ChoseReprésentée)
+{
+    object.chose_représentée = chose
+    object.document.invalide_style()
+}
+
+object_représente_fallback :: fonc (object: *HTMLObjectElement)
+{
+    IMG_detruit_image(*object.image_data)
+    object.image_data = ImageIO()
+
+    // The object element represents the element's children. This is the element's fallback content. Destroy a child navigable given the element.
+    object.document.things_that_delay_the_load_event -= 1
+    object.définis_chose_représentée(ChoseReprésentée.DESCENDANTS)
+}
+
+object_représente_data :: fonc (object: *HTMLObjectElement, réponse: *Response)
+{
+    saufsi réponse {
+        // 1. If the type attribute is present and its value is not a type that the
+        //    user agent supports, then the user agent may jump to the step below
+        //    labeled fallback without fetching the content to examine its real type.
+
+        // 2. Let url be the result of encoding-parsing a URL given the data
+        //    attribute's value, relative to the element's node document.
+        data := donne_attribut_ou_chaine_vide(object, ATTR_data)
+        url := encoding_parse_a_url(data, object.document)
+
+        // 3. If url is failure, then fire an event named error at the element and
+        //    jump to the step below labeled fallback.
+        saufsi url {
+            queue_a_task_to_fire_error_at_element(object.document.donne_user_agent(), object)
+            object_représente_fallback(object)
+            retourne
+        }
+
+        // 4. Let request be a new request whose URL is url, client is the element's
+        //    node document's relevant settings object, destination is "object",
+        //    credentials mode is "include", mode is "navigate", initiator type is
+        //    "object", and whose use-URL-credentials flag is set.
+        request := loge(Request)
+        request.client = object.document.donne_relevant_settings_object()
+        request.destination = "object"
+        request.credentials_mode = "include"
+        request.mode = "navigate"
+        request.initiator_type = "object"
+        request.use_url_credentials = vrai
+        request.définis_url(url)
+
+        // 5. Fetch request.
+        //    Fetching the resource must delay the load event of the element's node
+        //    document until the task that is queued by the networking task source
+        //    once the resource has been fetched (defined next) has been run.
+        RappelProcessResponse :: struct {
+            empl base: BaseProcessResponse
+
+            object: *HTMLObjectElement
+            request: *Request
+        }
+
+        sur_rappel_process_response :: fonc (base: *BaseProcessResponse, réponse: *Response)
+        {
+            rappel := base comme *RappelProcessResponse
+            object_représente_data(rappel.object, réponse)
+            détruit_response(réponse)
+        }
+
+        sur_destruction_process_response :: fonc (base: *BaseProcessResponse)
+        {
+            rappel := base comme *RappelProcessResponse
+            détruit_request(rappel.request)
+            déloge(rappel)
+        }
+
+        process_response := loge(RappelProcessResponse)
+        process_response.object = object
+        process_response.request = request
+        process_response.sur_rappel = sur_rappel_process_response
+        process_response.sur_destruction = sur_destruction_process_response
+
+        fetch_controller := fetch(object.document.donne_user_agent(), request, process_response = process_response)
+        diffère détruit_fetch_controller(fetch_controller)
+
+        object.document.things_that_delay_the_load_event += 1
+
+        // 6. If the resource is not yet available (e.g. because the resource was not
+        //    available in the cache, so that loading the resource required making a
+        //    request over the network), then jump to the step below labeled fallback.
+        //    The task that is queued by the networking task source once the resource
+        //    is available must restart this algorithm from this step.
+        //    Resources can load incrementally; user agents may opt to consider a
+        //    resource "available" whenever enough data has been obtained to begin
+        //    processing the resource.
+        object_représente_fallback(object)
+        retourne
+    }
+
+    // 7. If the load failed (e.g. there was an HTTP 404 error, there was a DNS
+    //    error), fire an event named error at the element, then jump to the step
+    //    below labeled fallback.
+    si réponse.status != 200 {
+        queue_a_task_to_fire_error_at_element(object.document.donne_user_agent(), object)
+        object_représente_fallback(object)
+        retourne
+    }
+
+    // 8. Determine the resource type, as follows:
+    // À FAIRE : complète
+    saufsi réponse.body_info {
+        object_représente_fallback(object)
+        retourne
+    }
+
+    content_type := réponse.body_info.content_type
+    saufsi est_type_mime_image(content_type) {
+        object_représente_fallback(object)
+        retourne
+    }
+
+    contenu := réponse.body.Quelque
+
+    _ := décode_image(contenu, content_type, *object.image_data)
+
+    object.définis_chose_représentée(ChoseReprésentée.DONNÉES)
+    object.document.things_that_delay_the_load_event -= 1
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLOptionElement
+ * https://html.spec.whatwg.org/multipage/form-elements.html#the-option-element
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLOptionElement
+ *
+ * À FAIRE : insertion steps (void document de <select>)
+ * \{ */
+
+#portée_export
+
+HTMLOptionElement :: struct {
+    empl html_element: HTMLElement
+    table = *table_virtuelle_option_element
+}
+
+#portée_fichier
+
+table_virtuelle_option_element := TableVirtuelleÉlément(
+    classe = HTMLOptionElement,
+    sur_destruction = élément_sur_destruction
+)
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLOptGroupElement
+ * https://html.spec.whatwg.org/multipage/form-elements.html#the-optgroup-element
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLOptGroupElement
+ * \{ */
+
+#portée_export
+
+HTMLOptGroupElement :: struct {
+    empl html_element: HTMLElement
+    table = *table_virtuelle_optgroup_element
+}
+
+#portée_fichier
+
+table_virtuelle_optgroup_element := TableVirtuelleÉlément(
+    classe = HTMLOptGroupElement,
+    sur_destruction = élément_sur_destruction
+)
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom HTMLScriptElement
  * https://html.spec.whatwg.org/multipage/scripting.html#htmlscriptelement
  * https://developer.mozilla.org/en-US/docs/Web/API/HTMLScriptElement
@@ -2207,17 +2632,29 @@ prépare :: fonc (el: *HTMLScriptElement)
 
         // 2. If el has an async attribute or el's force async is true:
         si el.possède_attribut(ATTR_async) || el.force_async {
-            panique("el.possède_attribut(ATTR_async) || el.force_async non-implémenté\n")
-
             // 1. Let scripts be el's preparation-time document's set of scripts that will execute as soon as possible.
+            scripts := *el.document_du_temps_de_préparation.scripts_that_will_execute_as_soon_as_possible
 
             // 2. Append el to scripts.
+            tableau_ajoute(scripts, el)
 
             // 3. Set el's steps to run when the result is ready to the following:
-
+            steps_to_run_when_the_result_is_ready :: fonc (script: *HTMLScriptElement)
+            {
                 // 1. Execute the script element el.
+                execute_the_script_element(script)
 
                 // 2. Remove el from scripts.
+                scripts := *script.document_du_temps_de_préparation.scripts_that_will_execute_as_soon_as_possible
+                pour mémoire(scripts) {
+                    si it == script {
+                        tableau_supprime_index(scripts, index_it)
+                        arrête
+                    }
+                }
+            }
+
+            el.steps_to_run_when_the_result_is_ready = steps_to_run_when_the_result_is_ready
         }
         // 3. Otherwise, if el is not parser-inserted:
         sinon saufsi el.est_inséré_par_parseuse() {
@@ -2489,6 +2926,50 @@ fetch_a_classic_script :: fonc (user_agent: *UserAgent, url: *URL, settings_obje
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom HTMLSelectElement
+ * https://html.spec.whatwg.org/multipage/form-elements.html#the-select-element
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLSelectElement
+ * \{ */
+
+#portée_export
+
+HTMLSelectElement :: struct {
+    empl html_element: HTMLElement
+    table = *table_virtuelle_select_element
+}
+
+#portée_fichier
+
+table_virtuelle_select_element := TableVirtuelleÉlément(
+    classe = HTMLSelectElement,
+    sur_destruction = élément_sur_destruction
+)
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLSpanElement
+ * https://html.spec.whatwg.org/multipage/text-level-semantics.html#the-span-element
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLSpanElement
+ * \{ */
+
+#portée_export
+
+HTMLSpanElement :: struct {
+    empl html_element: HTMLElement
+    table = *table_virtuelle_span_element
+}
+
+#portée_fichier
+
+table_virtuelle_span_element := TableVirtuelleÉlément(
+    classe = HTMLSpanElement,
+    sur_destruction = élément_sur_destruction
+)
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom HTMLStyleElement
  * https://html.spec.whatwg.org/multipage/semantics.html#the-style-element
  * https://developer.mozilla.org/en-US/docs/Web/API/HTMLStyleElement
@@ -2633,6 +3114,48 @@ table_virtuelle_table_element := TableVirtuelleÉlément(
 table_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
 {
     ajoute_propriété_pour_legacy_colour_value(résolveuse, base, ATTR_bgcolor, CSS.PROP_background_color)
+    ajoute_propriété_pour_non_zero_dimension(résolveuse, base, ATTR_width, CSS.PROP_width)
+    ajoute_propriété_pour_dimension(résolveuse, base, ATTR_height, CSS.PROP_height)
+    ajoute_propriété_pour_pixel_length(résolveuse, base, ATTR_cellspacing, CSS.PROP_border_spacing)
+
+    border := donne_attribut_ou_chaine_vide(base, ATTR_border)
+    saufsi border.est_vide() {
+        valeur := parse_a_non_negative_integer(border)
+        valeur_border : r64 = 0.0
+
+        si valeur.possède_valeur() {
+            valeur_border = valeur.Quelque comme r64
+        }
+        sinon {
+            /* Nous devons utiliser une valeur de 1 si l'attribut existe, mais qu'il y a une erreur de parsage. */
+            valeur_border = 1.0
+        }
+
+        valeur_de_style := CSS.ValeurDeStyle(pixels = valeur_border)
+        CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_top_width, valeur_de_style)
+        CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_right_width, valeur_de_style)
+        CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_bottom_width, valeur_de_style)
+        CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_left_width, valeur_de_style)
+
+        /* À FAIRE : déplace ceci (voir Mozilla). */
+        border_style := CSS.ValeurDeStyle(mot_clé = CSS.PROP_solid)
+        CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_top_style, border_style)
+        CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_right_style, border_style)
+        CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_bottom_style, border_style)
+        CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_left_style, border_style)
+    }
+
+    border_color := donne_attribut_ou_chaine_vide(base, ATTR_bordercolor)
+    saufsi border_color.est_vide() {
+        valeur := parse_a_legacy_colour_value(border_color)
+        si valeur.possède_valeur() {
+            valeur_de_style := CSS.ValeurDeStyle(couleur = valeur.Quelque)
+            CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_top_color, valeur_de_style)
+            CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_right_color, valeur_de_style)
+            CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_bottom_color, valeur_de_style)
+            CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_left_color, valeur_de_style)
+        }
+    }
 }
 
 /** \} */
@@ -2661,6 +3184,26 @@ table_virtuelle_table_cell_element := TableVirtuelleÉlément(
 table_cell_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
 {
     ajoute_propriété_pour_legacy_colour_value(résolveuse, base, ATTR_bgcolor, CSS.PROP_background_color)
+    ajoute_propriété_pour_non_zero_dimension(résolveuse, base, ATTR_width, CSS.PROP_width)
+    ajoute_propriété_pour_non_zero_dimension(résolveuse, base, ATTR_height, CSS.PROP_height)
+}
+
+#portée_export
+
+/* https://html.spec.whatwg.org/multipage/tables.html#attr-tdth-colspan */
+donne_colspan :: fonc (élément: *Élément) -> n32
+{
+    attr := donne_attribut_ou_chaine_vide(élément, ATTR_colspan)
+    si attr.est_vide() {
+        retourne 1
+    }
+
+    opt_résultat := parse_a_non_negative_integer(attr)
+    saufsi opt_résultat.possède_valeur() {
+        retourne 1
+    }
+
+    retourne opt_résultat.Quelque
 }
 
 /** \} */
@@ -2689,6 +3232,7 @@ table_virtuelle_table_row_element := TableVirtuelleÉlément(
 table_row_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
 {
     ajoute_propriété_pour_legacy_colour_value(résolveuse, base, ATTR_bgcolor, CSS.PROP_background_color)
+    ajoute_propriété_pour_dimension(résolveuse, base, ATTR_height, CSS.PROP_height)
 }
 
 /** \} */
@@ -2717,6 +3261,7 @@ table_virtuelle_table_section_element := TableVirtuelleÉlément(
 table_section_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
 {
     ajoute_propriété_pour_legacy_colour_value(résolveuse, base, ATTR_bgcolor, CSS.PROP_background_color)
+    ajoute_propriété_pour_dimension(résolveuse, base, ATTR_height, CSS.PROP_height)
 }
 
 /** \} */

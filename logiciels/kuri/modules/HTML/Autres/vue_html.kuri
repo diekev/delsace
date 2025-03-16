@@ -1,5 +1,6 @@
 importe Allocatrices
 importe Chaine
+importe CodecDonnées
 importe Compilatrice
 importe Couleur
 importe #inemployé CSS
@@ -10,6 +11,7 @@ importe HTTP
 importe #inemployé JavaScript
 importe OpenGL
 importe PeintureInterface
+importe Périphériques
 importe Qt
 importe SysFichier
 importe Temps
@@ -252,7 +254,7 @@ sur_filtre_evenement_impl :: fonc (base: *QT_Rappels_Fenetre_Principale, event: 
 
         navigable := crée_un_fresh_top_level_traversable(rappels.user_agent, uri) comme *TraversableNavigable
 
-        page_web := crée_page_web(uri, navigable)
+        page_web := crée_page_web(navigable)
         crée_widget_pour_page(rappels.fenetre, page_web)
 
         déloge(message)
@@ -434,120 +436,8 @@ RappelFermetureApp :: struct {
 sur_fermeture_application :: fonc (base: *QT_Rappel_Generique)
 {
     rappel := base comme *RappelFermetureApp
-    détruit_données_page_web(*rappel.rappels_fenêtre.page_web)
     détruit_user_agent(rappel.rappels_fenêtre.user_agent)
     détruit_table_chaines_utf16_uniques()
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom PageWeb
- * \{ */
-
-BarreDeDéfilement :: struct {
-    rect: RectanglePosDim(r32)
-    est_cliqué: bool
-    est_survolé: bool
-    pos_clique_y: r32
-    hauteur: r32
-    ratio : r32 = 1.0
-}
-
-définis_position_y :: fonc (barre: *BarreDeDéfilement, y: r32) -> bool
-{
-    vieil_y := barre.rect.y
-    barre.rect.y = y
-
-    si barre.rect.y < 0.0 {
-        barre.rect.y = 0.0
-    }
-    sinon si (barre.rect.y + barre.rect.hauteur) > barre.hauteur {
-        barre.rect.y = barre.hauteur - barre.rect.hauteur
-    }
-
-    retourne barre.rect.y != vieil_y
-}
-
-décale_par :: fonc (barre: *BarreDeDéfilement, delta: r32) -> bool
-{
-    retourne définis_position_y(barre, barre.rect.y + delta)
-}
-
-PageWeb :: struct {
-    uri: *URL
-    parsat: ParsatHTML
-    navigable: *TraversableNavigable
-    contenu: chaine
-    fonte: *Fonte
-
-    défilement_vertical: BarreDeDéfilement
-}
-
-crée_page_web :: fonc (uri: *URL, contenu: chaine) -> PageWeb
-{
-    résultat: PageWeb
-    résultat.uri = uri
-    résultat.contenu = contenu
-    résultat.parsat = parse_document(contenu)
-    imprime("Temps de parsage : %\n", résultat.parsat.temps)
-    retourne résultat
-}
-
-crée_page_web :: fonc (uri: *URL, navigable: *TraversableNavigable) -> PageWeb
-{
-    résultat: PageWeb
-    résultat.uri = uri
-    résultat.navigable = navigable
-    retourne résultat
-}
-
-donne_document :: fonc (page: *PageWeb) -> *Document
-{
-    si page.navigable {
-        retourne page.navigable.donne_active_document()
-    }
-    retourne page.parsat.document
-}
-
-détruit_données_page_web :: fonc (page: *PageWeb)
-{
-    détruit(page.parsat)
-    si page.fonte {
-        détruit_fonte(page.fonte)
-    }
-    déloge(page.contenu)
-}
-
-donne_défilement_vertical :: fonc (page: *PageWeb, largeur_vue: r32, hauteur_vue: r32, hauteur_page: r32) -> *BarreDeDéfilement
-{
-    si hauteur_page == 0.0 || hauteur_page <= hauteur_vue {
-        retourne nul
-    }
-
-    barre := *page.défilement_vertical
-
-    hauteur_barre := hauteur_vue * hauteur_vue / hauteur_page
-
-    si barre.rect.hauteur == hauteur_barre {
-        retourne barre
-    }
-
-    /* Ajourne la barre */
-    largeur_barre := 12.0
-    barre.ratio = hauteur_vue / hauteur_page
-
-    rect_barre: RectanglePosDim(r32)
-    rect_barre.x = largeur_vue - largeur_barre
-    rect_barre.largeur = largeur_barre
-    rect_barre.y = 0.0
-    rect_barre.hauteur = hauteur_barre
-
-    barre.hauteur = hauteur_vue
-
-    barre.rect = rect_barre
-
-    retourne barre
 }
 
 /** \} */
@@ -988,7 +878,7 @@ ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *Noeud)
 crée_widget_vue_source :: fonc (fenêtre: *QT_Fenetre_Principale, parent: QT_Generic_Widget) -> *QT_PlainTextEdit
 {
     rappels := QT_fenetre_principale_donne_rappels(fenêtre) comme *RappelsFenetrePrincipale
-    contenu := rappels.page_web.contenu
+    contenu := donne_code_source(*rappels.page_web)
 
     résultat := QT_cree_plain_text_edit(nul, parent)
     QT_plain_text_edit_definis_lecture_seule(résultat, vrai)
@@ -1085,11 +975,11 @@ ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *CSS.NoeudDeD
 
 donne_texte_item_pour_noeud :: fonc (noeud: *CSS.NoeudDeDisposition) -> chaine
 {
-    si noeud.type == CSS.NoeudDeDispositionTexte {
+    si noeud.table_virtuelle.type == CSS.NoeudDeDispositionTexte {
         retourne "texte"
     }
 
-    si noeud.type == CSS.NoeudDeDispositionNouvelleLigne {
+    si noeud.table_virtuelle.type == CSS.NoeudDeDispositionNouvelleLigne {
         retourne "<br/>"
     }
 
@@ -1207,63 +1097,19 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
     glClearColor(1.0, 1.0, 1.0, 1.0)
 
     page := vue_rendu_page.page
-    document := donne_document(page)
-
-    si document.is_initial_about_blank {
-        retourne
-    }
-
-    arbre := crée_arbre_de_disposition(page, vue_rendu_page.largeur, vue_rendu_page.hauteur)
-    saufsi arbre && arbre.racine {
-        retourne
-    }
-
-    ctx: CSS.ContexteDessin
-    ctx.document = document
-    ctx.globales = document.globales_dessin
-    ctx.peintre = peintre
-    ctx.hauteur_vue = vue_rendu_page.hauteur
-    ctx.largeur_vue = vue_rendu_page.largeur
-
-    hauteur_racine := arbre.racine.modèle_de_boite.marge.hauteur
-    barre := donne_défilement_vertical(page, vue_rendu_page.largeur comme r32, vue_rendu_page.hauteur comme r32, hauteur_racine)
-
-    si barre {
-        ctx.décalage_y = barre.rect.y / barre.ratio
-    }
 
     // début_rendu := maintenant_précis()
 
-    ctx.peintre.remplis_arrière_plan(CouleurRVBAN8(255, 255, 255, 255))
-
-    si vue_rendu_page.dessine_tampon_id {
-        CSS.dessine_tampon_id_couleur(arbre, *ctx)
-    }
-    sinon {
-        CSS.dessine(arbre, *ctx)
+    commandes := dessine(page, vue_rendu_page.largeur, vue_rendu_page.hauteur, vue_rendu_page.dessine_tampon_id)
+    saufsi commandes {
+        retourne
     }
 
     // imprime("temps de rendu : %\n", début_rendu.temps_écoulé_millisecondes())
 
-    si barre {
-        hauteur_vue := vue_rendu_page.hauteur comme r32
+    peintre.dessine_commandes_css(commandes)
 
-        rect_barre := barre.rect
-
-        /* Change la position pour le dessin qui commence du bas. */
-        rect_barre.y = hauteur_vue - rect_barre.hauteur - rect_barre.y
-
-        couleur := CouleurRVBA(1.0, 0.5, 0.5, 0.5)
-        si barre.est_cliqué || barre.est_survolé {
-            couleur.r *= 0.5
-            couleur.v *= 0.5
-            couleur.b *= 0.5
-        }
-
-        peintre.remplis_rectangle(rect_barre, couleur)
-        peintre.termine_dessin()
-    }
-
+    document := page.donne_document()
     lien_survolé := document.donne_lien_survolé()
     si lien_survolé {
         href := lien_survolé.donne_href()
@@ -1290,10 +1136,13 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
         }
     }
 
-    ctx.peintre.dessine_tampon_sur_écran()
+    peintre.dessine_tampon_sur_écran()
 
-    ctx.peintre = vue_rendu_page.peintre_id
-    CSS.dessine_tampon_id(arbre, *ctx)
+    commandes = dessine_tampon_id(page, vue_rendu_page.largeur, vue_rendu_page.hauteur)
+    assert(commandes != nul)
+
+    peintre = vue_rendu_page.peintre_id
+    dessine_commandes_id_css(peintre, commandes, CSS.donne_tampon_id(document.arbre_de_disposition))
 
     /* Nous devrions faire ça plus haut mais il semblerait qu'il manque, ou qu'il y a une préemption, des ajournements. */
     window := document.realm.global_object comme *Window
@@ -1305,63 +1154,14 @@ vue_rendu_page_sur_redimensionnement :: fonc (rappels: *QT_Rappels_GLWidget, tai
     vue_rendu_page := rappels comme *VueRenduPage
     vue_rendu_page.largeur = taille.largeur
     vue_rendu_page.hauteur = taille.hauteur
-
-    page := vue_rendu_page.page
-    document := donne_document(page)
-    si document {
-        document.invalide_style_pour_redimensionnement(taille.largeur, taille.hauteur)
-    }
-    /* Réinitialise la barre de défilement. */
-    page.défilement_vertical.rect.largeur = 0.0
-    page.défilement_vertical.ratio = 1.0
-    page.défilement_vertical.hauteur = vue_rendu_page.hauteur comme r32
+    redimensionne(vue_rendu_page.page, taille.largeur, taille.hauteur)
 }
 
 vue_rendu_page_sur_déplacement_souris :: fonc (base: *QT_Rappels_GLWidget, event: *QT_MouseEvent)
 {
     vue_rendu_page := base comme *VueRenduPage
-
-    document := donne_document(vue_rendu_page.page)
-    saufsi document {
-        retourne
-    }
-
-    arbre := document.arbre_de_disposition
-    saufsi arbre {
-        retourne
-    }
-
-    position: QT_Position
-    QT_mouse_event_donne_position(event, *position)
-
-    élément := CSS.donne_élément_pour_position(arbre, position.x, position.y)
-    document.définis_noeud_survolé(élément)
-    si élément {
-        envoie_mousemove(élément, position.x, position.y)
-    }
-
-    défilement := *vue_rendu_page.page.défilement_vertical
-
-    ajourne_rendu := faux
-
-    si défilement.est_cliqué {
-        décalage := position.y comme r32 - défilement.pos_clique_y
-        défilement.pos_clique_y = position.y comme r32
-        ajourne_rendu |= défilement.décale_par(décalage)
-    }
-
-    si défilement.rect.contient(position.x comme r32, position.y comme r32) {
-        saufsi défilement.est_survolé {
-            défilement.est_survolé = vrai
-            ajourne_rendu = vrai
-        }
-    }
-    sinon si défilement.est_survolé {
-        défilement.est_survolé = faux
-        ajourne_rendu = vrai
-    }
-
-    si ajourne_rendu {
+    clic := donne_clique_souris_depuis_évènement(event, ActionSouris.DÉPLACÉE)
+    si gère_mouvement_souris(vue_rendu_page.page, *clic) {
         QT_widget_ajourne(vue_rendu_page.widget)
     }
 }
@@ -1369,100 +1169,24 @@ vue_rendu_page_sur_déplacement_souris :: fonc (base: *QT_Rappels_GLWidget, even
 vue_rendu_page_sur_pression_souris :: fonc (base: *QT_Rappels_GLWidget, event: *QT_MouseEvent)
 {
     vue_rendu_page := base comme *VueRenduPage
-
-    document := donne_document(vue_rendu_page.page)
-    saufsi document {
-        retourne
-    }
-
-    arbre := document.arbre_de_disposition
-    saufsi arbre {
-        retourne
-    }
-
-    position: QT_Position
-    QT_mouse_event_donne_position(event, *position)
-
-    si vue_rendu_page.page.défilement_vertical.est_survolé {
-        vue_rendu_page.page.défilement_vertical.est_cliqué = vrai
-        vue_rendu_page.page.défilement_vertical.pos_clique_y = position.y comme r32
-        retourne
-    }
-
-    élément := CSS.donne_élément_pour_position(arbre, position.x, position.y)
-    si élément {
-        élément.est_en_train_d_être_activé(vrai)
-        envoie_mousedown(élément, position.x, position.y)
-    }
-    document.élément_en_cours_d_activation = élément
+    clic := donne_clique_souris_depuis_évènement(event, ActionSouris.PRESSÉE)
+    gère_pression_souris(vue_rendu_page.page, *clic)
 }
 
 vue_rendu_page_sur_relachement_souris :: fonc (base: *QT_Rappels_GLWidget, event: *QT_MouseEvent)
 {
     vue_rendu_page := base comme *VueRenduPage
-
-    document := donne_document(vue_rendu_page.page)
-    saufsi document {
-        retourne
-    }
-
-    arbre := document.arbre_de_disposition
-    saufsi arbre {
-        retourne
-    }
-
-    si vue_rendu_page.page.défilement_vertical.est_cliqué {
-        vue_rendu_page.page.défilement_vertical.est_cliqué = faux
+    clic := donne_clique_souris_depuis_évènement(event, ActionSouris.PRESSÉE)
+    si gère_relâchement_souris(vue_rendu_page.page, *clic) {
         QT_widget_ajourne(vue_rendu_page.widget)
-        retourne
     }
-
-    position: QT_Position
-    QT_mouse_event_donne_position(event, *position)
-
-    élément := CSS.donne_élément_pour_position(arbre, position.x, position.y)
-    si élément {
-        élément.est_en_train_d_être_activé(faux)
-        envoie_mouseup(élément, position.x, position.y)
-    }
-    si document.élément_en_cours_d_activation {
-        si document.élément_en_cours_d_activation != élément {
-            document.élément_en_cours_d_activation.est_en_train_d_être_activé(faux)
-        }
-        sinon {
-            envoie_un_clic(élément)
-        }
-    }
-    document.élément_en_cours_d_activation = nul
 }
 
 vue_rendu_page_sur_molette_souris :: fonc (base: *QT_Rappels_GLWidget, event: *QT_WheelEvent)
 {
     vue_rendu_page := base comme *VueRenduPage
-
-    document := donne_document(vue_rendu_page.page)
-    saufsi document {
-        retourne
-    }
-
-    arbre := document.arbre_de_disposition
-    saufsi arbre {
-        retourne
-    }
-
-    delta_molette := QT_wheel_event_donne_delta(event)
-
-    HAUTEURE_LIGNE :: 16.0
-    NOMBRE_DE_LIGNES_PAR_ROULEMENT :: 5.0
-    DÉCALAGE_PAR_ROULEMENT :: NOMBRE_DE_LIGNES_PAR_ROULEMENT * HAUTEURE_LIGNE
-
-    delta := DÉCALAGE_PAR_ROULEMENT * vue_rendu_page.page.défilement_vertical.ratio
-
-    si delta_molette > 0 {
-        delta = -delta
-    }
-
-    si décale_par(*vue_rendu_page.page.défilement_vertical, delta) {
+    clic := donne_clique_souris_depuis_évènement(event)
+    si gère_molette_souris(vue_rendu_page.page, *clic) {
         QT_widget_ajourne(vue_rendu_page.widget)
     }
 }
@@ -1470,10 +1194,7 @@ vue_rendu_page_sur_molette_souris :: fonc (base: *QT_Rappels_GLWidget, event: *Q
 vue_rendu_page_sur_sortie :: fonc (base: *QT_Rappels_GLWidget, event: *QT_Evenement @inutilisée)
 {
     vue_rendu_page := base comme *VueRenduPage
-    si vue_rendu_page.page.défilement_vertical.est_cliqué {
-        retourne
-    }
-    vue_rendu_page.page.défilement_vertical.est_survolé = faux
+    gère_sortie_souris(vue_rendu_page.page)
     QT_gui_application_restaure_curseur()
 }
 
@@ -1482,133 +1203,28 @@ vue_rendu_page_sur_relachement_cle :: fonc (base: *QT_Rappels_GLWidget, event: *
     vue_rendu_page := base comme *VueRenduPage
     touche := QT_key_event_donne_cle(event)
 
-    barre := *vue_rendu_page.page.défilement_vertical
     ajourne_rendu := faux
 
-    si touche == QT_Key.Home {
-        ajourne_rendu = barre.définis_position_y(0.0)
-    }
-    sinon si touche == QT_Key.End {
-        ajourne_rendu = barre.définis_position_y(barre.hauteur - barre.rect.hauteur)
-    }
-    sinon si touche == QT_Key.PageDown {
-        ajourne_rendu = barre.décale_par(barre.rect.hauteur * 0.9)
-    }
-    sinon si touche == QT_Key.PageUp {
-        ajourne_rendu = barre.décale_par(-barre.rect.hauteur * 0.9)
+    document := donne_document(vue_rendu_page.page)
+    si document && document.arbre_de_disposition && document.arbre_de_disposition.défilement_vertical && document.arbre_de_disposition.défilement_vertical.est_visible {
+        barre := document.arbre_de_disposition.défilement_vertical
+        si touche == QT_Key.Home {
+            ajourne_rendu = CSS.définis_position_y(barre, 0.0)
+        }
+        sinon si touche == QT_Key.End {
+            ajourne_rendu = CSS.définis_position_y(barre, barre.hauteur - barre.rect.hauteur)
+        }
+        sinon si touche == QT_Key.PageDown {
+            ajourne_rendu = CSS.décale_par(barre, barre.rect.hauteur * 0.9)
+        }
+        sinon si touche == QT_Key.PageUp {
+            ajourne_rendu = CSS.décale_par(barre, -barre.rect.hauteur * 0.9)
+        }
     }
 
     si ajourne_rendu {
         QT_widget_ajourne(vue_rendu_page.widget)
     }
-}
-
-/* https://w3c.github.io/uievents/#send-click-event */
-envoie_un_clic :: fonc (élément: *HTML.Élément)
-{
-    /* À FAIRE : standardise. */
-    évènement := crée_platform_object(élément, HTML.Event)
-    évènement.target = élément
-    évènement.type = HTML.EventType.click
-
-    _ := dispatch(évènement, élément)
-}
-
-envoie_mousedown :: fonc (élément: *HTML.Élément, position_x: z32, position_y: z32)
-{
-    évènement := crée_platform_object(élément, HTML.MouseEvent)
-    évènement.target = élément
-    évènement.type = HTML.EventType.mousedown
-    évènement.bubbles = vrai
-    évènement.screen_x = position_x comme r64
-    évènement.screen_y = position_y comme r64
-
-    rect := CSS.donne_rectangle_rembourrage(élément.noeud_de_disposition)
-    évènement.offset_x = évènement.screen_x - rect.x
-    évènement.offset_y = évènement.screen_y - rect.y
-
-    _ := dispatch(évènement, élément)
-}
-
-envoie_mousemove :: fonc (élément: *HTML.Élément, position_x: z32, position_y: z32)
-{
-    évènement := crée_platform_object(élément, HTML.MouseEvent)
-    évènement.target = élément
-    évènement.type = HTML.EventType.mousemove
-    évènement.bubbles = vrai
-    évènement.screen_x = position_x comme r64
-    évènement.screen_y = position_y comme r64
-
-    rect := CSS.donne_rectangle_rembourrage(élément.noeud_de_disposition)
-    évènement.offset_x = évènement.screen_x - rect.x
-    évènement.offset_y = évènement.screen_y - rect.y
-
-    _ := dispatch(évènement, élément)
-}
-
-envoie_mouseup :: fonc (élément: *HTML.Élément, position_x: z32, position_y: z32)
-{
-    évènement := crée_platform_object(élément, HTML.MouseEvent)
-    évènement.target = élément
-    évènement.type = HTML.EventType.mouseup
-    évènement.bubbles = vrai
-    évènement.screen_x = position_x comme r64
-    évènement.screen_y = position_y comme r64
-
-    rect := CSS.donne_rectangle_rembourrage(élément.noeud_de_disposition)
-    évènement.offset_x = évènement.screen_x - rect.x
-    évènement.offset_y = évènement.screen_y - rect.y
-
-    _ := dispatch(évènement, élément)
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Arbre de disposition
- * \{ */
-
-donne_feuille_de_style_défaut :: fonc () -> *CSS.CSSStyleSheet
-{
-    chemin_fichier := donne_chemin_fichier_css_défaut()
-    diffère détruit_chemin(chemin_fichier)
-
-    contenu := contenu_fichier_texte(chemin_fichier)
-    diffère déloge(contenu)
-
-    ctx: CSS.ContexteParsageFeuilleDeStyle
-    diffère CSS.détruit_données_contexte(*ctx)
-
-    stylesheet := CSS.parse_a_css_style_sheet(*ctx, contenu)
-    stylesheet.origine = CSS.OrigineCascade.UserAgent
-    CSS.rapporte_propriétés_non_supportées(*ctx, #nom_de_cette_fonction)
-
-    retourne stylesheet
-}
-
-crée_arbre_de_disposition :: fonc (page: *PageWeb, largeur: z32, hauteur: z32) -> *CSS.ArbreDeDisposition
-{
-    document := donne_document(page)
-    saufsi document {
-        retourne nul
-    }
-
-    saufsi document.feuille_de_style_agent {
-        document.feuille_de_style_agent = donne_feuille_de_style_défaut()
-        tableau_insère_index(*document.feuilles_de_style, document.feuille_de_style_agent, 0)
-    }
-
-    retourne CSS.donne_arbre_de_disposition_ajourné(document, largeur, hauteur)
-}
-
-donne_arbre_de_disposition :: fonc (page: *PageWeb) -> *CSS.ArbreDeDisposition
-{
-    document := donne_document(page)
-    saufsi document {
-        retourne nul
-    }
-
-    retourne document.arbre_de_disposition
 }
 
 /** \} */
@@ -1941,8 +1557,6 @@ rappels_interface_sur_document_est_prêt :: fonc (base: *RappelsInterface, docum
 
     QT_widget_ajourne(rappels_fenêtre.widget_rendu)
 
-    init_de(BarreDeDéfilement)(*rappels_fenêtre.page_web.défilement_vertical)
-
     QT_gui_application_restaure_curseur()
 }
 
@@ -2043,61 +1657,6 @@ rappels_interface_sur_request_animation_frame :: fonc (base: *RappelsInterface)
     rappels := base comme *RappelsInterfaceQt
     window := QT_widget_donne_window_handle(rappels.fenêtre)
     QT_window_request_update(window)
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Conversion jeu de caractères.
- * \{ */
-
-/* https://www.charset.org/charsets/iso-8859-1 */
-convertis_iso_8859_1_vers_utf8 :: fonc (texte: chaine) -> chaine
-{
-    taille_résultat := texte.taille
-
-    pour texte {
-        si it < 0 {
-            taille_résultat += 1
-        }
-    }
-
-    si taille_résultat == texte.taille {
-        retourne copie_chaine(texte)
-    }
-
-    résultat := loge_chaine(taille_résultat)
-
-    ptr_sortie := résultat.pointeur comme *n8
-
-    pour texte {
-        si it >= 0 {
-            mémoire(ptr_sortie) = it comme n8
-            ptr_sortie += 1
-            continue
-        }
-
-        naturel := it comme n8
-
-        si 0xA0 <= naturel <= 0xBF {
-            mémoire(ptr_sortie) = 0xC2
-            ptr_sortie += 1
-            mémoire(ptr_sortie) = naturel
-            ptr_sortie += 1
-        }
-        sinon si naturel >= 0xA0 {
-            mémoire(ptr_sortie) = 0xC3
-            ptr_sortie += 1
-            mémoire(ptr_sortie) = naturel - 0x40
-            ptr_sortie += 1
-        }
-        sinon {
-            imprime("%\n", naturel)
-            assert(faux)
-        }
-    }
-
-    retourne résultat
 }
 
 /** \} */

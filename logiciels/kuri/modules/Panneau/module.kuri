@@ -292,6 +292,13 @@ arrête_chronomètre :: fonc (contexte: *ContexteInterface, id: IDChronomètre)
  * Structure pour représenter un élément de l'interface graphique.
  * \{ */
 
+RègleDeCotation :: énum n8 {
+    /* Le panneau doit prendre la taille minimale pour son contenu. */
+    SurContenu
+    /* Le panneau doit prendre la taille disponible. */
+    SurLargeurDisponible
+}
+
 Panneau :: struct {
     contexte: *ContexteInterface
     parent: *Panneau
@@ -303,6 +310,9 @@ Panneau :: struct {
     rect: RectanglePosDim(z32)
 
     besoin_ajournement_disposition := vrai
+
+    règle_cotation_horizontale: RègleDeCotation
+    règle_cotation_verticale: RègleDeCotation
 
     /* Fonctions de rappels à implémenter pour chaque type dérivé. */
     sur_destruction: fonc(*Panneau)(rien)

@@ -214,18 +214,26 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace,
 std::optional<kuri::chemin_systeme> Compilatrice::détermine_chemin_dossier_module(
     EspaceDeTravail *espace, kuri::chaine_statique nom, NoeudExpression const *site)
 {
+    auto const chemin_est_relatif_au_fichier = nom.taille() > 2 && nom.sous_chaine(0, 2) == "..";
+
     auto chemin = kuri::chemin_systeme(nom);
 
-    /* Vérifions si le chemin est dans le dossier courant. */
-    if (kuri::chemin_systeme::existe(chemin)) {
-        return chemin;
-    }
+    kuri::tablet<kuri::chemin_systeme, 3> chemins_testés;
 
-    /* Essayons dans la racine des modules. */
-    auto chemin_dans_racine = racine_modules_kuri / chemin;
+    if (!chemin_est_relatif_au_fichier) {
+        /* Vérifions si le chemin est dans le dossier courant. */
+        if (kuri::chemin_systeme::existe(chemin)) {
+            return chemin;
+        }
 
-    if (kuri::chemin_systeme::existe(chemin_dans_racine)) {
-        return chemin_dans_racine;
+        /* Essayons dans la racine des modules. */
+        auto chemin_dans_racine = racine_modules_kuri / chemin;
+        if (kuri::chemin_systeme::existe(chemin_dans_racine)) {
+            return chemin_dans_racine;
+        }
+
+        chemins_testés.ajoute(chemin);
+        chemins_testés.ajoute(chemin_dans_racine);
     }
 
     /* Essayons dans le dossier du fichier du site. */
@@ -236,14 +244,18 @@ std::optional<kuri::chemin_systeme> Compilatrice::détermine_chemin_dossier_modu
         return chemin_possible;
     }
 
-    espace->rapporte_erreur(site, "Impossible de trouver le dossier correspondant au module")
-        .ajoute_message("Les chemins testés furent :\n",
-                        chemin,
-                        "\n",
-                        chemin_dans_racine,
-                        "\n",
-                        chemin_possible,
-                        "\n");
+    chemins_testés.ajoute(chemin_possible);
+
+    auto &e = espace
+                  ->rapporte_erreur(site,
+                                    "Impossible de trouver le dossier correspondant au module")
+                  .ajoute_message((chemins_testés.taille() > 1) ? "Les chemins testés furent :\n" :
+                                                                  "Le chemin testé fut :\n");
+
+    POUR (chemins_testés) {
+        e.ajoute_message(it, '\n');
+    }
+
     return {};
 }
 

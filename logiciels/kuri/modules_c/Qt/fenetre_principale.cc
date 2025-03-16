@@ -123,6 +123,8 @@ class QT_Creatrice_Barre_Menu : public ::QT_Creatrice_Barre_Menu {
 FenetrePrincipale::FenetrePrincipale(QT_Rappels_Fenetre_Principale *rappels)
     : QMainWindow(), m_rappels(rappels)
 {
+    m_rappels->fenetre = reinterpret_cast<QT_Fenetre_Principale *>(this);
+
     construit_barre_de_menu();
 
     if (m_rappels->sur_filtre_evenement) {

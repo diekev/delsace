@@ -64,12 +64,11 @@
 
 #include "danjo/manipulable.h"
 
+#include "conversions.hh"
 #include "fenetre_principale.hh"
 #include "ipa_danjo.hh"
 #include "tabs.hh"
 #include "widgets.hh"
-
-#define VERS_QT(x) auto q##x = vers_qt(x)
 
 #define CONVERTIS_ET_APPEL(objet, fonction, ...)                                                  \
     VERS_QT(objet);                                                                               \
@@ -90,226 +89,6 @@ class EvenementPerso : public QEvent {
         return m_données;
     }
 };
-
-inline QObject *vers_qt(QT_Generic_Object object)
-{
-    return reinterpret_cast<QObject *>(object.object);
-}
-
-inline QWidget *vers_qt(QT_Generic_Widget widget)
-{
-    return reinterpret_cast<QWidget *>(widget.widget);
-}
-
-inline QEvent *vers_qt(QT_Generic_Event event)
-{
-    return reinterpret_cast<QEvent *>(event.event);
-}
-
-inline QLayout *vers_qt(QT_Generic_Layout layout)
-{
-    return reinterpret_cast<QLayout *>(layout.layout);
-}
-
-inline QBoxLayout *vers_qt(QT_Generic_BoxLayout layout)
-{
-    return reinterpret_cast<QBoxLayout *>(layout.box);
-}
-
-inline QGraphicsItem *vers_qt(QT_Generic_GraphicsItem item)
-{
-    return reinterpret_cast<QGraphicsItem *>(item.item);
-}
-
-inline QAbstractItemModel *vers_qt(QT_Generic_ItemModel model)
-{
-    return reinterpret_cast<QAbstractItemModel *>(model.item_model);
-}
-
-inline QAbstractSocket *vers_qt(QT_AbstractSocket socket)
-{
-    return reinterpret_cast<QAbstractSocket *>(socket.tcp);
-}
-
-inline QColor vers_qt(QT_Color color)
-{
-    auto résultat = QColor();
-    résultat.setRedF(float(color.r));
-    résultat.setGreenF(float(color.g));
-    résultat.setBlueF(float(color.b));
-    résultat.setAlphaF(float(color.a));
-    return résultat;
-}
-
-inline QT_Color vers_ipa(QColor color)
-{
-    auto résultat = QT_Color();
-    résultat.r = double(color.redF());
-    résultat.g = double(color.greenF());
-    résultat.b = double(color.blueF());
-    résultat.a = double(color.alphaF());
-    return résultat;
-}
-
-inline QT_Point vers_ipa(QPoint point)
-{
-    return QT_Point{point.x(), point.y()};
-}
-
-inline QPointF vers_qt(QT_PointF point)
-{
-    return QPointF(point.x, point.y);
-}
-
-inline QT_RectF vers_ipa(QRectF rect)
-{
-    return QT_RectF{rect.x(), rect.y(), rect.width(), rect.height()};
-}
-
-inline QT_Rect vers_ipa(QRect rect)
-{
-    return QT_Rect{rect.x(), rect.y(), rect.width(), rect.height()};
-}
-
-inline QRect vers_qt(QT_Rect rect)
-{
-    return QRect(rect.x, rect.y, rect.largeur, rect.hauteur);
-}
-
-inline QString vers_qt(QT_Chaine const *chaine)
-{
-    if (!chaine) {
-        return "";
-    }
-    return chaine->vers_std_string().c_str();
-}
-
-inline QString vers_qt(QT_Chaine const chaine)
-{
-    return chaine.vers_std_string().c_str();
-}
-
-inline QFont vers_qt(QT_Font *font)
-{
-    if (!font) {
-        return {};
-    }
-
-    auto famille = vers_qt(font->famille);
-
-    auto résultat = QFont(famille);
-    if (font->taille_point != 0) {
-        résultat.setPointSize(font->taille_point);
-    }
-    return résultat;
-}
-
-inline QBrush vers_qt(QT_Brush brush)
-{
-    return QBrush(vers_qt(brush.color));
-}
-
-inline QPen vers_qt(QT_Pen pen)
-{
-    auto résultat = QPen();
-    résultat.setColor(vers_qt(pen.color));
-    résultat.setWidthF(pen.width);
-    return résultat;
-}
-
-#define TRANSTYPAGE_WIDGETS(nom_qt, nom_classe, nom_union)                                        \
-    inline nom_classe *vers_ipa(nom_qt *widget)                                                   \
-    {                                                                                             \
-        return reinterpret_cast<nom_classe *>(widget);                                            \
-    }                                                                                             \
-    inline nom_qt *vers_qt(nom_classe *widget)                                                    \
-    {                                                                                             \
-        return reinterpret_cast<nom_qt *>(widget);                                                \
-    }
-
-ENUMERE_TYPES_OBJETS(TRANSTYPAGE_WIDGETS)
-ENUMERE_TYPES_WIDGETS(TRANSTYPAGE_WIDGETS)
-ENUMERE_TYPES_LAYOUTS(TRANSTYPAGE_WIDGETS)
-ENUMERE_TYPES_EVENTS(TRANSTYPAGE_WIDGETS)
-ENUMERE_TYPES_GRAPHICS_ITEM(TRANSTYPAGE_WIDGETS)
-ENUMERE_TYPES_BOX_LAYOUTS(TRANSTYPAGE_WIDGETS)
-ENUMERE_TYPES_ITEM_MODEL(TRANSTYPAGE_WIDGETS)
-ENUMERE_TYPES_SOCKETS(TRANSTYPAGE_WIDGETS)
-
-#undef TRANSTYPAGE_WIDGETS
-
-#define TRANSTYPAGE_OBJET_SIMPLE(nom_qt, nom_ipa)                                                 \
-    inline nom_ipa *vers_ipa(nom_qt *widget)                                                      \
-    {                                                                                             \
-        return reinterpret_cast<nom_ipa *>(widget);                                               \
-    }                                                                                             \
-    inline nom_qt *vers_qt(nom_ipa *widget)                                                       \
-    {                                                                                             \
-        return reinterpret_cast<nom_qt *>(widget);                                                \
-    }
-
-TRANSTYPAGE_OBJET_SIMPLE(QIcon, QT_Icon)
-TRANSTYPAGE_OBJET_SIMPLE(QPixmap, QT_Pixmap)
-TRANSTYPAGE_OBJET_SIMPLE(QTextCursor, QT_TextCursor)
-TRANSTYPAGE_OBJET_SIMPLE(QMutex, QT_Mutex)
-TRANSTYPAGE_OBJET_SIMPLE(QWaitCondition, QT_WaitCondition)
-
-#undef TRANSTYPAGE_WIDGETS
-
-static Qt::CursorShape convertis_forme_curseur(QT_CursorShape cursor)
-{
-    switch (cursor) {
-        ENUMERE_CURSOR_SHAPE(ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT)
-    }
-    return Qt::ArrowCursor;
-}
-
-static Qt::Orientation convertis_orientation(QT_Orientation orientation)
-{
-    switch (orientation) {
-        case QT_ORIENTATION_HORIZONTALE:
-        {
-            return Qt::Horizontal;
-        }
-        case QT_ORIENTATION_VERTICALE:
-        {
-            return Qt::Vertical;
-        }
-    }
-    return Qt::Horizontal;
-}
-
-static QT_Orientation convertis_orientation(Qt::Orientation orientation)
-{
-    switch (orientation) {
-        case Qt::Horizontal:
-        {
-            return QT_ORIENTATION_HORIZONTALE;
-        }
-        case Qt::Vertical:
-        {
-            return QT_ORIENTATION_VERTICALE;
-        }
-    }
-    return QT_ORIENTATION_HORIZONTALE;
-}
-
-/* ------------------------------------------------------------------------- */
-/** \name QT_ModelIndex
- * \{ */
-
-static QT_ModelIndex vers_ipa(const QModelIndex &model)
-{
-    auto résultat = QT_ModelIndex{};
-    résultat.est_valide = model.isValid();
-    if (résultat.est_valide) {
-        résultat.colonne = model.column();
-        résultat.ligne = model.row();
-    }
-    return résultat;
-}
-
-/** \} */
 
 extern "C" {
 
@@ -785,7 +564,6 @@ static Qt::ToolBarArea convertis_toolbararea(QT_ToolBarArea area)
 QT_Fenetre_Principale *QT_cree_fenetre_principale(QT_Rappels_Fenetre_Principale *rappels)
 {
     auto résultat = new FenetrePrincipale(rappels);
-    rappels->fenetre = vers_ipa(résultat);
     return vers_ipa(résultat);
 }
 
@@ -2262,6 +2040,16 @@ void QT_widget_definis_trackage_souris(QT_Generic_Widget widget, bool ouinon)
     qwidget->setMouseTracking(ouinon);
 }
 
+void QT_widget_donne_rect(QT_Generic_Widget widget, QT_Rect *r_rect)
+{
+    if (r_rect == nullptr) {
+        return;
+    }
+
+    VERS_QT(widget);
+    *r_rect = vers_ipa(qwidget->rect());
+}
+
 static QSizePolicy::Policy convertis_comportement_taille(QT_Comportement_Taille comportement)
 {
     switch (comportement) {
@@ -2502,35 +2290,6 @@ void QT_menu_ajoute_section(QT_Menu *menu, QT_Chaine titre)
     VERS_QT(menu);
     VERS_QT(titre);
     qmenu->addSection(qtitre);
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name QT_Alignment
- * \{ */
-
-static Qt::AlignmentFlag convertis_alignement(QT_Alignment alignment)
-{
-    switch (alignment) {
-        ENEMERE_ALIGNEMENT_TEXTE(ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT)
-    }
-
-    return Qt::AlignLeft;
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name QT_Layout_Size_Constraint
- * \{ */
-
-static QLayout::SizeConstraint convertis_contrainte_taille(QT_Layout_Size_Constraint contrainte)
-{
-    switch (contrainte) {
-        ENUMERE_LAYOUT_SIZE_CONSTRAINT(ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT)
-    }
-    return QLayout::SetDefaultConstraint;
 }
 
 /** \} */
@@ -3489,6 +3248,13 @@ void QT_treewidgetitem_definis_texte(QT_TreeWidgetItem *widget, int colonne, QT_
     qwidget->setText(colonne, vers_qt(texte));
 }
 
+QT_Chaine QT_treewidgetitem_donne_texte(QT_TreeWidgetItem *widget, int colonne)
+{
+    VERS_QT(widget);
+    static char tampon[FILENAME_MAX];
+    return crée_qt_chaine_tampon(qwidget->text(colonne), tampon, sizeof(tampon));
+}
+
 void QT_treewidgetitem_ajoute_enfant(QT_TreeWidgetItem *widget, QT_TreeWidgetItem *enfant)
 {
     auto qwidget = vers_qt(widget);
@@ -3500,6 +3266,12 @@ void QT_treewidgetitem_definis_selectionne(QT_TreeWidgetItem *widget, bool ouino
 {
     auto qwidget = vers_qt(widget);
     qwidget->setSelected(ouinon);
+}
+
+void QT_treewidgetitem_set_expanded(QT_TreeWidgetItem *widget, bool ouinon)
+{
+    auto qwidget = vers_qt(widget);
+    qwidget->setExpanded(ouinon);
 }
 
 /** \} */
@@ -3644,6 +3416,19 @@ void QT_treewidget_definis_activation_drag(QT_TreeWidget *tree_widget, int oui_n
 {
     auto qtree_widget = vers_qt(tree_widget);
     qtree_widget->setDragEnabled(bool(oui_non));
+}
+
+void QT_treewidget_set_current_item(QT_TreeWidget *tree_widget, QT_TreeWidgetItem *item)
+{
+    auto qtree_widget = vers_qt(tree_widget);
+    VERS_QT(item);
+    qtree_widget->setCurrentItem(qitem);
+}
+
+QT_TreeWidgetItem *QT_treewidget_current_item(QT_TreeWidget *tree_widget)
+{
+    auto qtree_widget = vers_qt(tree_widget);
+    return vers_ipa(qtree_widget->currentItem());
 }
 
 /** \} */

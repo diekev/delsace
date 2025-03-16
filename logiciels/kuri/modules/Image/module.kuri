@@ -91,6 +91,36 @@ crée_image_pour_données_externe :: fonc (données: *octet, largeur: n32, haute
     retourne résultat
 }
 
+crée_image_depuis_image_io :: fonc (image: *ImageIO) -> NouvelleImage
+{
+    desc: DescriptriceImage
+    desc.largeur = image.largeur comme n32
+    desc.hauteur = image.hauteur comme n32
+
+    si image.nombre_composants == 1 {
+        desc.format = FormatPixel.Gris_32
+    }
+    sinon si image.nombre_composants == 3 {
+        desc.format = FormatPixel.RVB_32
+    }
+    sinon si image.nombre_composants == 4 {
+        desc.format = FormatPixel.RVBA_32
+    }
+    sinon {
+        panique("nombre de composant non-géré")
+    }
+
+    résultat := crée_image(*desc)
+
+    sortie := résultat.données comme *r32
+
+    pour image.taille_donnees {
+        sortie[it] = image.donnees[it]
+    }
+
+    retourne résultat
+}
+
 détruit_données_image :: fonc (image: *NouvelleImage)
 {
     si image.source_données == SourceDonnéesImage.Externe {
@@ -206,6 +236,7 @@ détruit_image :: fonc (image: &ImageIO)
     tableau : [..]r32 = ---
     tableau.pointeur = image.donnees
     tableau.taille = image.nombre_éléments_données()
+    tableau.capacité = tableau.taille
     déloge(tableau)
 
     image.donnees = nul
@@ -459,7 +490,7 @@ donne_tampon_spectre :: fonc (image: &ImageIO) -> TamponImage(Spectre)
 
 donne_tampon_rvba :: fonc (image: &ImageIO) -> TamponImage(CouleurRVBA)
 {
-    résultat: TamponImage(Spectre) = ---
+    résultat: TamponImage(CouleurRVBA) = ---
     résultat.données = image.donnees comme *CouleurRVBA
     résultat.largeur = image.largeur
     résultat.hauteur = image.hauteur

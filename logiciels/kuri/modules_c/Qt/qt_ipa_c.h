@@ -424,7 +424,8 @@ union QT_Generic_Layout {
     O(QKeyEvent, QT_KeyEvent, key_event)                                                          \
     O(QMouseEvent, QT_MouseEvent, mouse_event)                                                    \
     O(QResizeEvent, QT_ResizeEvent, resize_event)                                                 \
-    O(QWheelEvent, QT_WheelEvent, wheel_event)
+    O(QWheelEvent, QT_WheelEvent, wheel_event)                                                    \
+    O(QCloseEvent, QT_CloseEvent, close_event)
 
 #define PRODECLARE_TYPES_EVENTS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_EVENTS(PRODECLARE_TYPES_EVENTS)
@@ -1819,6 +1820,42 @@ void QT_drop_event_accepte_action_propose(struct QT_DropEvent *vent);
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Alignment
+ * \{ */
+
+#define ENEMERE_ALIGNEMENT_TEXTE(O)                                                               \
+    O(QT_ALIGNMENT_LEFT, Qt::AlignLeft, 0x0001)                                                   \
+    O(QT_ALIGNMENT_RIGHT, Qt::AlignRight, 0x0002)                                                 \
+    O(QT_ALIGNMENT_CENTER_HORIZONTAL, Qt::AlignHCenter, 0x0004)                                   \
+    O(QT_ALIGNMENT_JUSTIFY, Qt::AlignJustify, 0x0008)                                             \
+    O(QT_ALIGNMENT_ABSOLUTE, Qt::AlignAbsolute, 0x0010)                                           \
+    O(QT_ALIGNMENT_TOP, Qt::AlignTop, 0x0020)                                                     \
+    O(QT_ALIGNMENT_BOTTOM, Qt::AlignBottom, 0x0040)                                               \
+    O(QT_ALIGNMENT_CENTER_VERTICAL, Qt::AlignVCenter, 0x0080)                                     \
+    O(QT_ALIGNMENT_BASELINE, Qt::AlignBaseline, 0x0100)                                           \
+    O(QT_ALIGNMENT_CENTER, Qt::AlignCenter, 0x0080 | 0x0004)
+
+enum QT_Alignment { ENEMERE_ALIGNEMENT_TEXTE(ENUMERE_DECLARATION_ENUM_DRAPEAU_IPA) };
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Painter
+ * \{ */
+
+struct QT_Painter {
+    void (*set_pen)(struct QT_Painter *, struct QT_Pen *);
+    void (*fill_rect)(struct QT_Painter *, struct QT_Rect *, struct QT_Color *);
+    void (*draw_rect)(struct QT_Painter *, struct QT_Rect *);
+    void (*draw_text)(struct QT_Painter *,
+                      struct QT_Rect *,
+                      enum QT_Alignment,
+                      struct QT_Chaine *);
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Widget
  * \{ */
 
@@ -1838,10 +1875,13 @@ void QT_drop_event_accepte_action_propose(struct QT_DropEvent *vent);
     void (*sur_menu_contexte)(struct type_rappels *, struct QT_ContextMenuEvent *);               \
     void (*sur_entree_drag)(struct type_rappels *, struct QT_DragEnterEvent *);                   \
     void (*sur_drop)(struct type_rappels *, struct QT_DropEvent *);                               \
+    void (*sur_fermeture)(struct type_rappels *, struct QT_CloseEvent *);                         \
     void (*sur_destruction)(struct type_rappels *)
 
 struct QT_Rappels_Widget {
     RAPPELS_EVENEMENTS_COMMUNS(QT_Widget, QT_Rappels_Widget);
+
+    void (*sur_peinture)(struct QT_Rappels_Widget *, struct QT_Painter *);
 };
 
 struct QT_Widget *QT_cree_widget(struct QT_Rappels_Widget *rappels,
@@ -1873,6 +1913,7 @@ void QT_widget_definis_feuille_de_style(union QT_Generic_Widget widget, struct Q
 void QT_widget_definis_style(union QT_Generic_Widget widget, struct QT_Style *style);
 void QT_widget_ajourne(union QT_Generic_Widget widget);
 void QT_widget_definis_trackage_souris(union QT_Generic_Widget widget, bool ouinon);
+void QT_widget_donne_rect(union QT_Generic_Widget widget, struct QT_Rect *r_rect);
 
 #define ENUMERE_COMPORTEMENT_TAILLE(O)                                                            \
     O(QT_COMPORTEMENT_TAILLE_FIXE, QSizePolicy::Fixed)                                            \
@@ -1880,7 +1921,7 @@ void QT_widget_definis_trackage_souris(union QT_Generic_Widget widget, bool ouin
     O(QT_COMPORTEMENT_TAILLE_MAXIMUM, QSizePolicy::Maximum)                                       \
     O(QT_COMPORTEMENT_TAILLE_PREFERE, QSizePolicy::Preferred)                                     \
     O(QT_COMPORTEMENT_TAILLE_AGRANDISSAGE_MINIMUM, QSizePolicy::MinimumExpanding)                 \
-    O(QT_COMPORTEMENT_TAILLE_AGRANSSSAGE, QSizePolicy::Expanding)                                 \
+    O(QT_COMPORTEMENT_TAILLE_AGRANDISSAGE, QSizePolicy::Expanding)                                \
     O(QT_COMPORTEMENT_TAILLE_IGNORE, QSizePolicy::Ignored)
 
 enum QT_Comportement_Taille { ENUMERE_COMPORTEMENT_TAILLE(ENUMERE_DECLARATION_ENUM_IPA) };
@@ -1982,26 +2023,6 @@ void QT_menu_connecte_sur_pret_a_montrer(struct QT_Menu *menu, struct QT_Rappel_
 void QT_menu_popup(struct QT_Menu *menu, struct QT_Point pos);
 void QT_menu_ajoute_action(struct QT_Menu *menu, struct QT_Action *action);
 void QT_menu_ajoute_section(struct QT_Menu *menu, struct QT_Chaine titre);
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name QT_Alignment
- * \{ */
-
-#define ENEMERE_ALIGNEMENT_TEXTE(O)                                                               \
-    O(QT_ALIGNMENT_LEFT, Qt::AlignLeft)                                                           \
-    O(QT_ALIGNMENT_RIGHT, Qt::AlignRight)                                                         \
-    O(QT_ALIGNMENT_CENTER_HORIZONTAL, Qt::AlignHCenter)                                           \
-    O(QT_ALIGNMENT_JUSTIFY, Qt::AlignJustify)                                                     \
-    O(QT_ALIGNMENT_ABSOLUTE, Qt::AlignAbsolute)                                                   \
-    O(QT_ALIGNMENT_TOP, Qt::AlignTop)                                                             \
-    O(QT_ALIGNMENT_BOTTOM, Qt::AlignBottom)                                                       \
-    O(QT_ALIGNMENT_CENTER_VERTICAL, Qt::AlignVCenter)                                             \
-    O(QT_ALIGNMENT_BASELINE, Qt::AlignBaseline)                                                   \
-    O(QT_ALIGNMENT_CENTER, Qt::AlignCenter)
-
-enum QT_Alignment { ENEMERE_ALIGNEMENT_TEXTE(ENUMERE_DECLARATION_ENUM_IPA) };
 
 /** \} */
 
@@ -2395,9 +2416,11 @@ void QT_treewidgetitem_definis_indicateur_enfant(struct QT_TreeWidgetItem *widge
 void QT_treewidgetitem_definis_texte(struct QT_TreeWidgetItem *widget,
                                      int colonne,
                                      struct QT_Chaine *texte);
+struct QT_Chaine QT_treewidgetitem_donne_texte(struct QT_TreeWidgetItem *widget, int colonne);
 void QT_treewidgetitem_ajoute_enfant(struct QT_TreeWidgetItem *widget,
                                      struct QT_TreeWidgetItem *enfant);
 void QT_treewidgetitem_definis_selectionne(struct QT_TreeWidgetItem *widget, bool ouinon);
+void QT_treewidgetitem_set_expanded(struct QT_TreeWidgetItem *widget, bool ouinon);
 
 /** \} */
 
@@ -2482,6 +2505,9 @@ void QT_treewidget_definis_entete_visible(struct QT_TreeWidget *tree_widget, int
 void QT_treewidget_definis_mode_drag_drop(struct QT_TreeWidget *tree_widget,
                                           enum QT_Mode_DragDrop mode);
 void QT_treewidget_definis_activation_drag(struct QT_TreeWidget *tree_widget, int oui_non);
+void QT_treewidget_set_current_item(struct QT_TreeWidget *tree_widget,
+                                    struct QT_TreeWidgetItem *item);
+struct QT_TreeWidgetItem *QT_treewidget_current_item(struct QT_TreeWidget *tree_widget);
 
 /** \} */
 
