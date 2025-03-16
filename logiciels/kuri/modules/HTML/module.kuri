@@ -26,6 +26,7 @@ charge "lexage"
 charge "liste_éléments_actifs_formattage"
 charge "navigation"
 charge "noeud"
+charge "page_web"
 charge "parsage"
 charge "pile_éléments_ouverts"
 charge "platform_object"
@@ -53,6 +54,24 @@ donne_chemin_fichier_css_défaut :: fonc () -> CheminFichier
     résultat := crée_chemin_absolu(chemin_parent, CheminFichier("Fichiers/defaults.css"))
     assert(est_un_fichier_régulier(résultat))
     retourne résultat
+}
+
+donne_feuille_de_style_défaut :: fonc () -> *CSS.CSSStyleSheet
+{
+    chemin_fichier := donne_chemin_fichier_css_défaut()
+    diffère détruit_chemin(chemin_fichier)
+
+    contenu := contenu_fichier_texte(chemin_fichier)
+    diffère déloge(contenu)
+
+    ctx: CSS.ContexteParsageFeuilleDeStyle
+    diffère CSS.détruit_données_contexte(*ctx)
+
+    stylesheet := CSS.parse_a_css_style_sheet(*ctx, contenu)
+    stylesheet.origine = CSS.OrigineCascade.UserAgent
+    CSS.rapporte_propriétés_non_supportées(*ctx, #nom_de_cette_fonction)
+
+    retourne stylesheet
 }
 
 imprime_noeud :: fonc (noeud: *Noeud, tab: z32) -> rien

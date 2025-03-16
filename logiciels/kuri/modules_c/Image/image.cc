@@ -21,6 +21,7 @@
 
 #include "champs_de_distance.hh"
 #include "filtrage.hh"
+#include "gif.hh"
 #include "simulation_grain.hh"
 
 #define RETOURNE_SI_NUL(x)                                                                        \
@@ -909,6 +910,63 @@ ResultatOperation IMG_ouvre_image_avec_proxy(const char *chemin,
     input->close();
 
     return ResultatOperation::OK;
+}
+
+static enum ResultatOperation img_ouvre_gif_impl(gd_GIF *gif, ImageIO *resultat)
+{
+    if (!gif) {
+        return ResultatOperation::ERREUR_INCONNUE;
+    }
+
+    if (gd_get_frame(gif) == -1) {
+        gd_close_gif(gif);
+        return ResultatOperation::ERREUR_INCONNUE;
+    }
+
+    int xres = gif->width;
+    int yres = gif->height;
+    int channels = 3;
+
+    resultat->donnees = new float[xres * yres * channels];
+    resultat->taille_donnees = xres * yres * channels;
+    resultat->largeur = xres;
+    resultat->hauteur = yres;
+    resultat->nombre_composants = channels;
+
+    uint8_t *buffer = new uint8_t[xres * yres * channels];
+    gd_render_frame(gif, buffer);
+
+    uint8_t *color = buffer;
+    float *pixel = resultat->donnees;
+
+    for (int i = 0; i < gif->height; i++) {
+        for (int j = 0; j < gif->width; j++) {
+            pixel[0] = float(color[0]) / 255.0;
+            pixel[1] = float(color[1]) / 255.0;
+            pixel[2] = float(color[2]) / 255.0;
+            color += 3;
+            pixel += 3;
+        }
+    }
+
+    delete[] buffer;
+    gd_close_gif(gif);
+
+    return ResultatOperation::OK;
+}
+
+enum ResultatOperation IMG_ouvre_gif_depuis_fichier(const char *chemin, struct ImageIO *resultat)
+{
+    gd_GIF *gif = gd_open_gif_from_file(chemin);
+    return img_ouvre_gif_impl(gif, resultat);
+}
+
+enum ResultatOperation IMG_ouvre_gif_depuis_memoire(const void *donnees,
+                                                    uint64_t taille,
+                                                    struct ImageIO *resultat)
+{
+    gd_GIF *gif = gd_open_gif_from_memory(donnees, taille);
+    return img_ouvre_gif_impl(gif, resultat);
 }
 
 ResultatOperation IMG_ecris_image(const char *chemin, ImageIO *image)
