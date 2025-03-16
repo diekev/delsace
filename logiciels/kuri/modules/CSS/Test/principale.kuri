@@ -2,38 +2,42 @@ importe Chaine
 importe CSS
 importe Ensemble
 importe Fondation
+importe #inemployé HTML
 importe SysFichier
 
 principale :: fonc () -> z32
 {
-    // contenu := contenu_fichier_texte("/home/kevin/defaults.css")
-    // diffère déloge(contenu)
+    // test_collection_règles()
+    test_fragmentation_texte()
+    retourne 0
+}
 
-    // ctx: ContexteParsageFeuilleDeStyle
-    // diffère détruit_données_contexte(*ctx)
+test_collection_règles :: fonc ()
+{
+    stylesheet := HTML.donne_feuille_de_style_défaut()
 
-    // stylesheet := parse_a_css_style_sheet(*ctx, contenu)
-    // rapporte_propriétés_non_supportées(*ctx, #nom_de_cette_fonction)
+    élément := crée_chaine_utf16("p")
 
-    // élément := crée_chaine_utf16("p")
+    propriétés: PropriétésDeStyle
 
-    // propriétés: PropriétésDeStyle
+    règles := collecte_les_règles_appropriées(stylesheet, élément)
 
-    // règles := collecte_les_règles_appropriées(stylesheet, élément)
-
-    // imprime("% règle(s) pour %\n", règles.taille, élément)
-    // // pour règles {
-    // //     imprime_règle(it)
-    // // }
-
+    imprime("% règle(s) pour %\n", règles.taille, élément)
     // pour règles {
-    //     pour déclaration dans it.déclarations {
-    //         ajoute_déclaration(*propriétés, déclaration)
-    //     }
+    //     imprime_règle(it)
     // }
 
-    // imprime("% déclaration(s)\n", propriétés.déclarations.taille)
+    pour règles {
+        pour déclaration dans it.déclarations {
+            ajoute_déclaration(*propriétés, déclaration)
+        }
+    }
 
+    imprime("% déclaration(s)\n", propriétés.déclarations.taille)
+}
+
+test_fragmentation_texte :: fonc ()
+{
     // texte := "début   test  \t   test   \t   \n  \n   \n \t   test \t  fin"
     texte := "The     \n Effects of CRTs"
     texte_utf16 := crée_chaine_utf16(texte)
@@ -53,8 +57,6 @@ principale :: fonc () -> z32
 
     collapse_espaces_consécutives(fragments)
     imprime_fragments(fragments, "collapse_espaces_consécutives")
-
-    retourne 0
 }
 
 imprime_fragments :: fonc (fragments: []FragmentTexte, message: chaine)
