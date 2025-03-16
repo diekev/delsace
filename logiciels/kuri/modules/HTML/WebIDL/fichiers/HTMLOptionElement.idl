@@ -1,0 +1,2 @@
+interface HTMLOptionElement : HTMLElement {
+}
