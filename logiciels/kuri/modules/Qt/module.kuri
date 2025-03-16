@@ -108,6 +108,27 @@ QT_blue :: fonc () -> QT_Color #enligne
 /** } */
 
 /* ------------------------------------------------------------------------- */
+/** \nom QRect
+ * \{ */
+
+réduis :: fonc (rect: QT_Rect, delta: z32) -> QT_Rect
+{
+    retourne réduis(rect, delta, delta)
+}
+
+réduis :: fonc (rect: QT_Rect, delta_largeur: z32, delta_hauteur: z32) -> QT_Rect
+{
+    résultat := rect
+    résultat.x += delta_largeur
+    résultat.y += delta_hauteur
+    résultat.largeur -= 2 * delta_largeur
+    résultat.hauteur -= 2 * delta_hauteur
+    retourne résultat
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
 /** \nom QT_Variant
  * \{ */
 
