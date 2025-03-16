@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Test CSS : les boites à position fixe prennent la taille de leur contenu</title>
+    <meta type="assert" description="Les boites à position fixe dont la hauteur est automatique hérite leur hauteur de leur contenu."/>
+    <style>
+        .contenant {
+            position: fixed;
+            width: 1in;
+            background-color: blue;
+        }
+
+        .contenu {
+            width: 1in;
+            height: 1in;
+        }
+    </style>
+</head>
+
+<body>
+    <p>Le test passe si une boite carrée bleue est visible.</p>
+    <div class="contenant">
+        <div class="contenu"></div>
+    </div>
+</body>
+
+</html>

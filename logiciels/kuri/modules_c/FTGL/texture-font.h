@@ -282,9 +282,6 @@ typedef struct texture_font_t {
      */
     float ascender;
 
-    float max_char_width;
-    float avg_char_width;
-
     /**
      * The descender is the vertical distance from the horizontal baseline to
      * the lowest 'character' coordinate in a font face. Unfortunately, font
@@ -295,6 +292,11 @@ typedef struct texture_font_t {
      * for values below the baseline.
      */
     float descender;
+
+    float max_char_width;
+    float avg_char_width;
+    float typo_ascender;
+    float typo_descender;
 
     /**
      * The position of the underline line for this face. It is the center of

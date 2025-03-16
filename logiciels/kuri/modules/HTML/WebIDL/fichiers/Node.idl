@@ -1,5 +1,7 @@
 interface Node : EventTarget {
     readonly attribute DOMString nodeName;
 
+    attribute DOMString? textContent;
+
     Node appendChild(Node node);
 }

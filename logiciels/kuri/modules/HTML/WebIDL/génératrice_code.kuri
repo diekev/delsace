@@ -552,10 +552,9 @@ génère_code_conversion_argument :: fonc (enchaineuse: *Enchaineuse, nom: chain
 {
     ajoute_au_tampon(enchaineuse, "    valeur_", nom, " := JavaScript.donne_argument(params, ", index, ")\n")
     si type.nom == "DOMString" {
-        ajoute_au_tampon(enchaineuse, "    saufsi JavaScript.est_chaine(valeur_", nom, ") {\n")
-        ajoute_au_tampon(enchaineuse, "        retourne JavaScript.lance_type_error(interpréteuse, \"argument ", index, " is not a String\")\n")
-        ajoute_au_tampon(enchaineuse, "    }\n")
-        ajoute_au_tampon(enchaineuse, "    ", nom, " := valeur_", nom, ".String.texte\n")
+        ajoute_au_tampon(enchaineuse, "    completion = JavaScript.to_string(interpréteuse, valeur_", nom, ")\n")
+        ajoute_au_tampon(enchaineuse, "    saufsi JavaScript.est_normal(completion) {\n        retourne completion;\n    }\n")
+        ajoute_au_tampon(enchaineuse, "    ", nom, " := completion.valeur.V.String.texte\n")
     }
     sinon si type.nom == "unsigned long" {
         ajoute_au_tampon(enchaineuse, "    completion = convert_to_int(interpréteuse, valeur_", nom, ", 32, Signedness.Unsigned)\n")

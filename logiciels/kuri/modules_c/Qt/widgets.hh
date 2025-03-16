@@ -45,6 +45,7 @@
     void keyReleaseEvent(QKeyEvent *event) override;                                              \
     void contextMenuEvent(QContextMenuEvent *event) override;                                     \
     void dragEnterEvent(QDragEnterEvent *event) override;                                         \
+    void closeEvent(QCloseEvent *event) override;                                                 \
     void dropEvent(QDropEvent *event) override
 
 /** \} */
@@ -67,6 +68,8 @@ class Widget : public QWidget {
 
     DECLARE_SURCHARGES_EVENEMENTS_COMMUNS;
     bool focusNextPrevChild(bool next) override;
+
+    void paintEvent(QPaintEvent *event) override;
 };
 
 /** \} */

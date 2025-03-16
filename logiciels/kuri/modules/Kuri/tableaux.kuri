@@ -358,6 +358,24 @@ déloge_tableau_et_ses_éléments :: fonc (tableau: &[..]$T, rappel_déloge_él�
     déloge(tableau)
 }
 
+déloge_tableau_et_ses_éléments :: fonc (tableau: &[..]$T, rappel_déloge_élément: fonc(&T)(rien))
+{
+    /* À FAIRE(langage) : déréférencement automatique */
+    pour tableau.taille {
+        rappel_déloge_élément(tableau.pointeur[it])
+    }
+    déloge(tableau)
+}
+
+déloge_tableau_et_ses_éléments :: fonc (tableau: &[..]$T, rappel_déloge_élément: fonc(*T)(rien))
+{
+    /* À FAIRE(langage) : déréférencement automatique */
+    pour tableau.taille {
+        rappel_déloge_élément(*tableau.pointeur[it])
+    }
+    déloge(tableau)
+}
+
 tableau_trouve_index_élément :: fonc (tableau: [..]$T, valeur: T) -> Optionnel(z64)
 {
     pour tableau {

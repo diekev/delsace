@@ -147,6 +147,12 @@ donne_tas_de_mémoire :: fonc (mv: *MachineVirtuelle) -> *TasDeMémoire
     retourne *mv.tas_de_mémoire
 }
 
+/* https://tc39.es/ecma262/#current-realm */
+donne_current_realm :: fonc (mv: *MachineVirtuelle) -> *Realm
+{
+    retourne donne_running_execution_context(mv).realm
+}
+
 donne_running_execution_context :: fonc (mv: *MachineVirtuelle) -> *ExecutionContext #enligne
 {
     retourne mv.execution_contexts[mv.execution_contexts.taille - 1]

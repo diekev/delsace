@@ -618,7 +618,8 @@ void VisiteuseAtome::réinitialise()
     visites.efface();
 }
 
-void VisiteuseAtome::visite_atome(Atome *racine, std::function<void(Atome *)> rappel)
+void VisiteuseAtome::visite_atome(Atome *racine,
+                                  std::function<DécisionVisiteAtome(Atome *)> rappel)
 {
     if (!racine) {
         return;
@@ -630,7 +631,9 @@ void VisiteuseAtome::visite_atome(Atome *racine, std::function<void(Atome *)> ra
 
     visites.insère(racine);
 
-    rappel(racine);
+    if (rappel(racine) == DécisionVisiteAtome::ARRÊTE) {
+        return;
+    }
 
     switch (racine->genre_atome) {
         case Atome::Genre::TRANSTYPE_CONSTANT:
@@ -791,7 +794,7 @@ void VisiteuseAtome::visite_atome(Atome *racine, std::function<void(Atome *)> ra
     }
 }
 
-void visite_atome(Atome *racine, std::function<void(Atome *)> rappel)
+void visite_atome(Atome *racine, std::function<DécisionVisiteAtome(Atome *)> rappel)
 {
     VisiteuseAtome visiteuse{};
     visiteuse.visite_atome(racine, rappel);

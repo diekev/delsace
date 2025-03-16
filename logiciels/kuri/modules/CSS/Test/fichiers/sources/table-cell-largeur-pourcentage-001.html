@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Test CSS : pourcentage sur largeur table-cell</title>
+    <meta type="assert"
+        description="Si une table-cell possède une largeur en pourcentage, le pourcentage réfère à la largeur finale de la table." />
+    <style>
+        td {
+            background-color: black;
+            height: 100px;
+        }
+
+        .pourcent {
+            width: 25%;
+        }
+
+        .fixe {
+            width: 25px;
+        }
+    </style>
+
+</head>
+
+<body>
+    <p>Le test passe si un carré noir est visible.</p>
+    <table cellspacing="0">
+        <tbody>
+            <tr>
+                <td class="pourcent"></td>
+                <td class="fixe"></td>
+                <td class="fixe"></td>
+                <td class="pourcent"></td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+
+</html>

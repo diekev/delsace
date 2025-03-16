@@ -787,6 +787,23 @@ consomme_un_lexème_url :: fonc (lexeuse: &Lexeuse) -> Lexème
     retourne Lexème(genre_lexème, valeur = crée_chaine_utf16_unique(lexeuse.tampon_temporaire))
 }
 
+donne_valeur_hex_pour_point_de_code :: fonc (point_de_code: n32) -> n32
+{
+    si ('0' comme n32) <= point_de_code <= ('9' comme n32) {
+        retourne point_de_code - '0' comme n32
+    }
+
+    si ('a' comme n32) <= point_de_code <= ('f' comme n32) {
+        retourne point_de_code - 'a' comme n32 + 10
+    }
+
+    si ('A' comme n32) <= point_de_code <= ('A' comme n32) {
+        retourne point_de_code - 'A' comme n32 + 10
+    }
+
+    retourne point_de_code
+}
+
 /* 4.3.7 Consume an escaped code point
  * https://www.w3.org/TR/css-syntax-3/#consume-escaped-code-point */
 consomme_un_point_de_code_échappé :: fonc (lexeuse: &Lexeuse) -> n32
@@ -794,7 +811,7 @@ consomme_un_point_de_code_échappé :: fonc (lexeuse: &Lexeuse) -> n32
     point_de_code := lexeuse.consomme_point_de_code_suivant()
 
     si est_chiffre_hexadecimal_ascii(point_de_code) {
-        résultat := point_de_code // À FAIRE : convertis hex
+        résultat := donne_valeur_hex_pour_point_de_code(point_de_code)
 
         pour 5 {
             point_de_code = lexeuse.point_de_code_suivant()
@@ -803,7 +820,7 @@ consomme_un_point_de_code_échappé :: fonc (lexeuse: &Lexeuse) -> n32
             }
 
             résultat *= 16
-            résultat += point_de_code // À FAIRE : convertis hex
+            résultat += donne_valeur_hex_pour_point_de_code(point_de_code)
         }
 
         si est_espace_blanche(lexeuse.point_de_code_suivant()) {

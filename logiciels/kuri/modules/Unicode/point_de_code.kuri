@@ -107,6 +107,12 @@ est_chiffre_ascii :: fonc (point_de_code: n32) -> bool #enligne
     retourne (0x30 <= point_de_code <= 0x39)
 }
 
+/* Surcharge pour l'utiliser en rappel. */
+est_chiffre_ascii_n16 :: fonc (point_de_code: n16) -> bool #enligne
+{
+    retourne est_chiffre_ascii(point_de_code)
+}
+
 est_chiffre_hexadecimal_majuscule_ascii :: fonc (point_de_code: n32) -> bool #enligne
 {
     retourne est_chiffre_ascii(point_de_code) || (A_MAJUSCULE <= point_de_code <= F_MAJUSCULE)

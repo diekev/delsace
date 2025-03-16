@@ -2,7 +2,8 @@
 
 // À FAIRE : polymorphe sur la taille
 EnsembleDeBits :: struct {
-    bits: [512 / 8]n8
+    NOMBRE_DE_BITS :: 512
+    bits: [NOMBRE_DE_BITS / 8]n8
 }
 
 est_actif :: fonc (ensemble: &EnsembleDeBits, index: n32) -> bool

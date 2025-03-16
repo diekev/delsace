@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        div {
+            width: 160px;
+            height: 80px;
+            padding: 20px;
+            border: 8px solid red;
+            background: yellow;
+        }
+
+        .content-box {
+            box-sizing: content-box;
+            /* Largeur totale : 160px + (2 * 20px) + (2 * 8px) = 216px
+     Hauteur totale : 80px + (2 * 20px) + (2 * 8px) = 136px
+     Largeur de la boîte de contenu : 160px
+     Hauteur de la boîte de contenu : 80px */
+        }
+
+        .border-box {
+            box-sizing: border-box;
+            /* Largeur totale : 160px
+     Hauteur totale : 80px
+     Largeur de la boîte de contenu : 160px - (2 * 20px) - (2 * 8px) = 104px
+     Hauteur de la boîte de contenu : 80px - (2 * 20px) - (2 * 8px) = 24px */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="content-box">Content box</div>
+    <br />
+    <div class="border-box">Border box</div>
+</body>
+
+</html>

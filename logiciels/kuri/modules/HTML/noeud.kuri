@@ -13,6 +13,8 @@ importe #inemployé JavaScript
 TableVirtuelleNoeud :: struct {
     empl base_event_target: TableVirtuelleEventTarget
 
+    sur_get_the_parent = node_sur_get_the_parent
+
     /* Appelé quand le noeud est insérer dans un noeud parent. */
     sur_insertion: fonc(*Noeud)(rien)
     /* Appelé quand le noeud devinent connecté. */
@@ -21,6 +23,8 @@ TableVirtuelleNoeud :: struct {
     sur_déconnexion: fonc(*Noeud)(rien)
     /* Appelé quand les enfants sont changés. */
     sur_changement_enfants: fonc(*Noeud)(rien)
+    /* Appelé quand le document est devenu fully active. */
+    sur_document_fully_active: fonc(*Noeud)(rien)
 }
 
 #portée_export
@@ -71,6 +75,24 @@ noeud_sur_destruction :: fonc (base: *JavaScript.Cellule)
     event_target_sur_destruction(base)
     noeud := base comme *Noeud
     noeud_détruit_données(noeud)
+}
+
+noeud_sur_document_est_devenu_fully_active :: fonc (noeud: *Noeud) -> DécisionTraversée
+{
+    table := noeud.table comme *TableVirtuelleNoeud
+    si table && table.sur_document_fully_active {
+        table.sur_document_fully_active(noeud)
+    }
+    retourne DécisionTraversée.CONTINUE
+}
+
+node_sur_get_the_parent :: fonc (base: *EventTarget, event: *Event @inutilisée) -> *EventTarget
+{
+    noeud := base comme *Noeud
+    // A node’s get the parent algorithm, given an event, returns the node’s assigned slot,
+    // if node is assigned; otherwise node’s parent.
+    // À FAIRE : assigned slot
+    retourne noeud.parent
 }
 
 #portée_export
@@ -201,6 +223,25 @@ ajoute_enfant :: fonc (parent: *Noeud, enfant: *Noeud)
     si table && table.sur_changement_enfants {
         table.sur_changement_enfants(parent)
     }
+}
+
+/* https://dom.spec.whatwg.org/#get-text-content */
+donne_text_content :: fonc (noeud: *Noeud @inutilisée) -> DOMString
+{
+    // À FAIRE : implémente
+    retourne crée_chaine_utf16_unique_vide()
+}
+
+/* https://dom.spec.whatwg.org/#set-text-content */
+définis_text_content :: fonc (noeud: *Noeud, valeur: DOMString)
+{
+    // À FAIRE : standardise
+    assert(noeud.genre == GenreNoeud.Élément)
+
+    résultat := create_text_node(noeud.document, valeur)
+
+    noeud.enfants.taille = 0
+    tableau_ajoute(*noeud.enfants, résultat)
 }
 
 /* https://dom.spec.whatwg.org/#dom-node-appendchild */
@@ -451,6 +492,7 @@ get_element_by_id_recursive :: fonc (noeud: *Noeud, chn: DOMString) -> *Élémen
 append :: fonc (parent: *Noeud, node: *Noeud) -> *Noeud
 {
     // À FAIRE : standardise
+    node.parent = parent
     tableau_ajoute(*parent.enfants, node)
 
     pile: [..]*Noeud

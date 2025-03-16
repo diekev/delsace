@@ -519,6 +519,7 @@ crée_object_constructor :: fonc (realm: *Realm, function_prototype: *FunctionPr
 
     résultat.ajoute_fonction_native(STR_getPrototypeOf, object_get_prototype_of, 1)
     résultat.ajoute_fonction_native(STR_setPrototypeOf, object_set_prototype_of, 1)
+    résultat.ajoute_fonction_native(STR_create, object_create, 1)
 
     object_prototype.ajoute_propriété(STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro)
 
@@ -550,6 +551,29 @@ object_constructor_call_or_construct :: fonc (empl params: *ParamètresCallOrCon
 
     // 3. Return ! ToObject(value).
     retourne to_object(realm, value)
+}
+
+/* 20.1.2.2 Object.create ( O, Properties )
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-object.create
+ * À FAIRE : tests */
+object_create :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    // 1. If O is not an Object and O is not null, throw a TypeError exception.
+    O := params.donne_argument(0)
+    saufsi O.est_object() || O.est_nulle() {
+        message := imprime_chaine("'%' is not an Object", O)
+        retourne lance_type_error(interpréteuse, message)
+    }
+
+    // 2. Let obj be OrdinaryObjectCreate(O).
+    realm := interpréteuse.donne_realm()
+    obj := ordinary_object_create(realm, O.donne_objet(), object_instance_crée)
+
+    // À FAIRE : 3. If Properties is not undefined, then
+    //    a. Return ? ObjectDefineProperties(obj, Properties).
+
+    // 4. Return obj.
+    retourne normal_completion(Valeur(Object = obj))
 }
 
 /* 20.1.2.12 Object.getPrototypeOf ( O )
