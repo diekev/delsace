@@ -239,273 +239,269 @@ Tacheronne::~Tacheronne()
     memoire::deloge("ContexteAnalyseRI", analyseuse_ri);
 }
 
-void Tacheronne::gère_tâche()
+bool Tacheronne::gère_tâche()
 {
     auto temps_debut = dls::chrono::compte_seconde();
     auto tâche = Tâche::dors(compilatrice.espace_de_travail_defaut);
     auto &ordonnanceuse = compilatrice.ordonnanceuse;
 
-    while (true) {
-        tâche = ordonnanceuse->tâche_suivante(tâche, drapeaux);
+    tâche = ordonnanceuse->tâche_suivante(tâche, drapeaux);
 
-        if (tâche.genre != GenreTâche::DORS) {
-            nombre_dodos = 0;
+    if (tâche.genre != GenreTâche::DORS) {
+        nombre_dodos = 0;
+        // dbg() << __func__ << " : " << tâche.genre;
+    }
+
+    if (tâche.unité) {
+        tâche.unité->définis_état(UniteCompilation::État::EN_COURS_DE_TRAITEMENT_PAR_TACHERONNE);
+    }
+
+    switch (tâche.genre) {
+        case GenreTâche::COMPILATION_TERMINÉE:
+        {
+            temps_scene += temps_debut.temps() - temps_executable - temps_fichier_objet;
+            return true;
         }
+        case GenreTâche::DORS:
+        {
+            /* les tâches d'exécutions sont marquées comme terminées dès que leurs
+             * métaprogrammes sont ajoutés à la machine virtuelle, il se peut qu'il en reste à
+             * exécuter alors qu'il n'y a plus de tâches à exécuter */
+            if (mv && !mv->terminee()) {
+                nombre_dodos = 0;
+                exécute_métaprogrammes();
+            }
+            else {
+                //                nombre_dodos += 1;
+                //                dls::chrono::dors_microsecondes(100 * nombre_dodos);
+                //                temps_passe_à_dormir += 0.1 * nombre_dodos;
+                return false;
+            }
 
-        if (tâche.unité) {
-            tâche.unité->définis_état(
-                UniteCompilation::État::EN_COURS_DE_TRAITEMENT_PAR_TACHERONNE);
+            break;
         }
+        case GenreTâche::CHARGEMENT:
+        {
+            auto fichier = tâche.unité->fichier;
 
-        switch (tâche.genre) {
-            case GenreTâche::COMPILATION_TERMINÉE:
-            {
-                temps_scene = temps_debut.temps() - temps_executable - temps_fichier_objet;
-                return;
-            }
-            case GenreTâche::DORS:
-            {
-                /* les tâches d'exécutions sont marquées comme terminées dès que leurs
-                 * métaprogrammes sont ajoutés à la machine virtuelle, il se peut qu'il en reste à
-                 * exécuter alors qu'il n'y a plus de tâches à exécuter */
-                if (mv && !mv->terminee()) {
-                    nombre_dodos = 0;
-                    exécute_métaprogrammes();
-                }
-                else {
-                    nombre_dodos += 1;
-                    dls::chrono::dors_microsecondes(100 * nombre_dodos);
-                    temps_passe_à_dormir += 0.1 * nombre_dodos;
-                }
-
-                break;
-            }
-            case GenreTâche::CHARGEMENT:
-            {
-                auto fichier = tâche.unité->fichier;
+            if (!fichier->fut_chargé) {
+                fichier->mutex.lock();
 
                 if (!fichier->fut_chargé) {
-                    fichier->mutex.lock();
+                    auto debut_chargement = dls::chrono::compte_seconde();
+                    auto texte = charge_contenu_fichier(
+                        dls::chaine(fichier->chemin().pointeur(), fichier->chemin().taille()));
+                    temps_chargement += debut_chargement.temps();
 
-                    if (!fichier->fut_chargé) {
-                        auto debut_chargement = dls::chrono::compte_seconde();
-                        auto texte = charge_contenu_fichier(
-                            dls::chaine(fichier->chemin().pointeur(), fichier->chemin().taille()));
-                        temps_chargement += debut_chargement.temps();
+                    auto debut_tampon = dls::chrono::compte_seconde();
+                    fichier->charge_tampon(lng::tampon_source(std::move(texte)));
+                    temps_tampons += debut_tampon.temps();
+                }
 
-                        auto debut_tampon = dls::chrono::compte_seconde();
-                        fichier->charge_tampon(lng::tampon_source(std::move(texte)));
-                        temps_tampons += debut_tampon.temps();
+                fichier->mutex.unlock();
+            }
+
+            if (fichier->fut_chargé) {
+                compilatrice.gestionnaire_code->tâche_unité_terminée(tâche.unité);
+            }
+            else {
+                compilatrice.gestionnaire_code->mets_en_attente(tâche.unité,
+                                                                Attente::sur_lexage(fichier));
+            }
+
+            break;
+        }
+        case GenreTâche::LEXAGE:
+        {
+            assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_LEXER));
+            auto unite = tâche.unité;
+            auto fichier = unite->fichier;
+
+            if (!fichier->fut_lexé) {
+                fichier->mutex.lock();
+
+                if (!fichier->en_lexage) {
+                    fichier->en_lexage = true;
+                    auto debut_lexage = dls::chrono::compte_seconde();
+                    auto lexeuse = Lexeuse(compilatrice.contexte_lexage(unite->espace), fichier);
+                    lexeuse.performe_lexage();
+                    temps_lexage += debut_lexage.temps();
+                    fichier->en_lexage = false;
+                }
+
+                fichier->mutex.unlock();
+            }
+
+            if (fichier->fut_lexé) {
+                compilatrice.gestionnaire_code->tâche_unité_terminée(tâche.unité);
+            }
+            else {
+                compilatrice.gestionnaire_code->mets_en_attente(tâche.unité,
+                                                                Attente::sur_chargement(fichier));
+            }
+
+            break;
+        }
+        case GenreTâche::PARSAGE:
+        {
+            assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_PARSER));
+            auto unite = tâche.unité;
+            auto debut_parsage = dls::chrono::compte_seconde();
+            auto syntaxeuse = Syntaxeuse(*this, unite);
+            syntaxeuse.analyse();
+            unite->fichier->fut_parsé = true;
+            compilatrice.gestionnaire_code->tâche_unité_terminée(tâche.unité);
+            temps_parsage += debut_parsage.temps();
+            break;
+        }
+        case GenreTâche::TYPAGE:
+        {
+            assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_TYPER));
+            auto unite = tâche.unité;
+            auto debut_validation = dls::chrono::compte_seconde();
+            gère_unité_pour_typage(unite);
+            temps_validation += debut_validation.temps();
+            break;
+        }
+        case GenreTâche::GENERATION_RI:
+        {
+            assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_GENERER_RI));
+            auto debut_generation = dls::chrono::compte_seconde();
+            if (gère_unité_pour_ri(tâche.unité)) {
+                compilatrice.gestionnaire_code->tâche_unité_terminée(tâche.unité);
+            }
+            constructrice_ri.temps_generation += debut_generation.temps();
+            break;
+        }
+        case GenreTâche::OPTIMISATION:
+        {
+            assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_OPTIMISER));
+            auto debut_generation = dls::chrono::compte_seconde();
+            temps_optimisation += debut_generation.temps();
+            break;
+        }
+        case GenreTâche::EXECUTION:
+        {
+            assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_EXECUTER));
+            gère_unité_pour_exécution(tâche.unité);
+            break;
+        }
+        case GenreTâche::GENERATION_CODE_MACHINE:
+        {
+            assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE));
+            auto programme = tâche.unité->programme;
+            auto coulisse = programme->coulisse();
+            auto &espace = *tâche.unité->espace;
+            auto repr_inter = représentation_intermédiaire_programme(
+                espace, constructrice_ri, *programme);
+            if (!repr_inter.has_value()) {
+                espace.rapporte_erreur_sans_site(
+                    "Impossible de générer le code machine car une erreur est survenue lors "
+                    "de la création de la représentation intermédiaire du programme.");
+                return true;
+            }
+            if (compilatrice.arguments.émets_ri && !programme->pour_métaprogramme()) {
+                auto chemin_fichier_ri = programme->donne_chemin_pour_fichier_ri();
+                info() << "Écriture de '" << chemin_fichier_ri << "' ...";
+                std::ofstream of(vers_std_path(chemin_fichier_ri));
+                imprime_ri_programme(*repr_inter, of);
+            }
+            auto args = crée_args_génération_code(
+                compilatrice, *tâche.unité->espace, programme, *repr_inter, broyeuse);
+            if (coulisse->crée_fichier_objet(args)) {
+                compilatrice.gestionnaire_code->tâche_unité_terminée(tâche.unité);
+            }
+            temps_generation_code += coulisse->temps_génération_code;
+            temps_fichier_objet += coulisse->temps_fichier_objet;
+            break;
+        }
+        case GenreTâche::LIAISON_PROGRAMME:
+        {
+            assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE));
+            auto programme = tâche.unité->programme;
+            auto coulisse = programme->coulisse();
+            auto args = crée_args_liaison_objets(compilatrice, *tâche.espace, programme);
+            if (coulisse->crée_exécutable(args)) {
+                compilatrice.gestionnaire_code->tâche_unité_terminée(tâche.unité);
+            }
+            temps_executable += coulisse->temps_exécutable;
+            break;
+        }
+        case GenreTâche::CONVERSION_NOEUD_CODE:
+        {
+            assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_CONVERTIR_NOEUD_CODE));
+            auto espace = tâche.unité->espace;
+            auto noeud = tâche.unité->noeud;
+
+            auto types_utilises = kuri::ensemblon<Type *, 16>();
+            visite_noeud(
+                noeud, PreferenceVisiteNoeud::ORIGINAL, true, [&](NoeudExpression const *racine) {
+                    auto type = racine->type;
+                    if (type) {
+                        types_utilises.insère(type);
                     }
 
-                    fichier->mutex.unlock();
-                }
+                    if (racine->est_entête_fonction()) {
+                        auto entete = racine->comme_entête_fonction();
 
-                if (fichier->fut_chargé) {
-                    compilatrice.gestionnaire_code->tâche_unité_terminée(tâche.unité);
-                }
-                else {
-                    compilatrice.gestionnaire_code->mets_en_attente(tâche.unité,
-                                                                    Attente::sur_lexage(fichier));
-                }
+                        POUR ((*entete->bloc_constantes->membres.verrou_ecriture())) {
+                            if (it->type) {
+                                types_utilises.insère(it->type);
+                            }
+                        }
 
-                break;
-            }
-            case GenreTâche::LEXAGE:
-            {
-                assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_LEXER));
-                auto unite = tâche.unité;
-                auto fichier = unite->fichier;
-
-                if (!fichier->fut_lexé) {
-                    fichier->mutex.lock();
-
-                    if (!fichier->en_lexage) {
-                        fichier->en_lexage = true;
-                        auto debut_lexage = dls::chrono::compte_seconde();
-                        auto lexeuse = Lexeuse(compilatrice.contexte_lexage(unite->espace),
-                                               fichier);
-                        lexeuse.performe_lexage();
-                        temps_lexage += debut_lexage.temps();
-                        fichier->en_lexage = false;
+                        return DecisionVisiteNoeud::IGNORE_ENFANTS;
                     }
 
-                    fichier->mutex.unlock();
-                }
+                    return DecisionVisiteNoeud::CONTINUE;
+                });
 
-                if (fichier->fut_lexé) {
-                    compilatrice.gestionnaire_code->tâche_unité_terminée(tâche.unité);
-                }
-                else {
-                    compilatrice.gestionnaire_code->mets_en_attente(
-                        tâche.unité, Attente::sur_chargement(fichier));
-                }
+            auto attente_possible = attente_sur_type_si_drapeau_manquant(
+                types_utilises, DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
+            if (attente_possible) {
+                compilatrice.gestionnaire_code->mets_en_attente(tâche.unité,
+                                                                attente_possible.value());
+                break;
+            }
 
-                break;
-            }
-            case GenreTâche::PARSAGE:
-            {
-                assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_PARSER));
-                auto unite = tâche.unité;
-                auto debut_parsage = dls::chrono::compte_seconde();
-                auto syntaxeuse = Syntaxeuse(*this, unite);
-                syntaxeuse.analyse();
-                unite->fichier->fut_parsé = true;
-                compilatrice.gestionnaire_code->tâche_unité_terminée(tâche.unité);
-                temps_parsage += debut_parsage.temps();
-                break;
-            }
-            case GenreTâche::TYPAGE:
-            {
-                assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_TYPER));
-                auto unite = tâche.unité;
-                auto debut_validation = dls::chrono::compte_seconde();
-                gère_unité_pour_typage(unite);
-                temps_validation += debut_validation.temps();
-                break;
-            }
-            case GenreTâche::GENERATION_RI:
-            {
-                assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_GENERER_RI));
-                auto debut_generation = dls::chrono::compte_seconde();
-                if (gère_unité_pour_ri(tâche.unité)) {
-                    compilatrice.gestionnaire_code->tâche_unité_terminée(tâche.unité);
-                }
-                constructrice_ri.temps_generation += debut_generation.temps();
-                break;
-            }
-            case GenreTâche::OPTIMISATION:
-            {
-                assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_OPTIMISER));
-                auto debut_generation = dls::chrono::compte_seconde();
-                temps_optimisation += debut_generation.temps();
-                break;
-            }
-            case GenreTâche::EXECUTION:
-            {
-                assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_EXECUTER));
-                gère_unité_pour_exécution(tâche.unité);
-                break;
-            }
-            case GenreTâche::GENERATION_CODE_MACHINE:
-            {
-                assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE));
-                auto programme = tâche.unité->programme;
-                auto coulisse = programme->coulisse();
-                auto &espace = *tâche.unité->espace;
-                auto repr_inter = représentation_intermédiaire_programme(
-                    espace, constructrice_ri, *programme);
-                if (!repr_inter.has_value()) {
-                    espace.rapporte_erreur_sans_site(
-                        "Impossible de générer le code machine car une erreur est survenue lors "
-                        "de la création de la représentation intermédiaire du programme.");
-                    return;
-                }
-                if (compilatrice.arguments.émets_ri && !programme->pour_métaprogramme()) {
-                    auto chemin_fichier_ri = programme->donne_chemin_pour_fichier_ri();
-                    info() << "Écriture de '" << chemin_fichier_ri << "' ...";
-                    std::ofstream of(vers_std_path(chemin_fichier_ri));
-                    imprime_ri_programme(*repr_inter, of);
-                }
-                auto args = crée_args_génération_code(
-                    compilatrice, *tâche.unité->espace, programme, *repr_inter, broyeuse);
-                if (coulisse->crée_fichier_objet(args)) {
-                    compilatrice.gestionnaire_code->tâche_unité_terminée(tâche.unité);
-                }
-                temps_generation_code += coulisse->temps_génération_code;
-                temps_fichier_objet += coulisse->temps_fichier_objet;
-                break;
-            }
-            case GenreTâche::LIAISON_PROGRAMME:
-            {
-                assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_GENERER_CODE));
-                auto programme = tâche.unité->programme;
-                auto coulisse = programme->coulisse();
-                auto args = crée_args_liaison_objets(compilatrice, *tâche.espace, programme);
-                if (coulisse->crée_exécutable(args)) {
-                    compilatrice.gestionnaire_code->tâche_unité_terminée(tâche.unité);
-                }
-                temps_executable += coulisse->temps_exécutable;
-                break;
-            }
-            case GenreTâche::CONVERSION_NOEUD_CODE:
-            {
-                assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_CONVERTIR_NOEUD_CODE));
-                auto espace = tâche.unité->espace;
-                auto noeud = tâche.unité->noeud;
+            // À FAIRE(noeuds codes) : ne convertis pas les corps s'ils n'ont pas encore été
+            // validés
+            // À FAIRE(noeuds codes) : ne convertis pas les déclarations référées
+            // (créer un NoeudCode prématurément peut se faire)
+            auto convertisseuse = compilatrice.donne_convertisseuse_noeud_code_disponible();
+            convertisseuse->convertis_noeud_syntaxique(espace, noeud);
+            compilatrice.dépose_convertisseuse(convertisseuse);
+            compilatrice.gestionnaire_code->tâche_unité_terminée(tâche.unité);
+            break;
+        }
+        case GenreTâche::ENVOIE_MESSAGE:
+        {
+            assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_ENVOYER_MESSAGE));
+            compilatrice.messagère->envoie_message(tâche.unité->message);
+            compilatrice.gestionnaire_code->tâche_unité_terminée(tâche.unité);
+            break;
+        }
+        case GenreTâche::CREATION_FONCTION_INIT_TYPE:
+        {
+            assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_CREER_FONCTION_INIT_TYPE));
 
-                auto types_utilises = kuri::ensemblon<Type *, 16>();
-                visite_noeud(noeud,
-                             PreferenceVisiteNoeud::ORIGINAL,
-                             true,
-                             [&](NoeudExpression const *racine) {
-                                 auto type = racine->type;
-                                 if (type) {
-                                     types_utilises.insère(type);
-                                 }
+            auto unite = tâche.unité;
+            auto espace = unite->espace;
+            auto type = unite->type;
+            assert(type);
 
-                                 if (racine->est_entête_fonction()) {
-                                     auto entete = racine->comme_entête_fonction();
-
-                                     POUR ((*entete->bloc_constantes->membres.verrou_ecriture())) {
-                                         if (it->type) {
-                                             types_utilises.insère(it->type);
-                                         }
-                                     }
-
-                                     return DecisionVisiteNoeud::IGNORE_ENFANTS;
-                                 }
-
-                                 return DecisionVisiteNoeud::CONTINUE;
-                             });
-
-                auto attente_possible = attente_sur_type_si_drapeau_manquant(
-                    types_utilises, DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
-                if (attente_possible) {
-                    compilatrice.gestionnaire_code->mets_en_attente(tâche.unité,
-                                                                    attente_possible.value());
-                    break;
-                }
-
-                // À FAIRE(noeuds codes) : ne convertis pas les corps s'ils n'ont pas encore été
-                // validés
-                // À FAIRE(noeuds codes) : ne convertis pas les déclarations référées
-                // (créer un NoeudCode prématurément peut se faire)
-                auto convertisseuse = compilatrice.donne_convertisseuse_noeud_code_disponible();
-                convertisseuse->convertis_noeud_syntaxique(espace, noeud);
-                compilatrice.dépose_convertisseuse(convertisseuse);
-                compilatrice.gestionnaire_code->tâche_unité_terminée(tâche.unité);
-                break;
-            }
-            case GenreTâche::ENVOIE_MESSAGE:
-            {
-                assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_ENVOYER_MESSAGE));
-                compilatrice.messagère->envoie_message(tâche.unité->message);
-                compilatrice.gestionnaire_code->tâche_unité_terminée(tâche.unité);
-                break;
-            }
-            case GenreTâche::CREATION_FONCTION_INIT_TYPE:
-            {
-                assert(drapeau_est_actif(drapeaux,
-                                         DrapeauxTacheronne::PEUT_CREER_FONCTION_INIT_TYPE));
-
-                auto unite = tâche.unité;
-                auto espace = unite->espace;
-                auto type = unite->type;
-                assert(type);
-
-                crée_noeud_initialisation_type(espace, type, this->assembleuse);
-                compilatrice.gestionnaire_code->tâche_unité_terminée(unite);
-                break;
-            }
-            case GenreTâche::NOMBRE_ELEMENTS:
-            {
-                break;
-            }
+            crée_noeud_initialisation_type(espace, type, this->assembleuse);
+            compilatrice.gestionnaire_code->tâche_unité_terminée(unite);
+            break;
+        }
+        case GenreTâche::NOMBRE_ELEMENTS:
+        {
+            break;
         }
     }
 
-    temps_scene = temps_debut.temps() - temps_executable - temps_fichier_objet;
+    temps_scene += temps_debut.temps() - temps_executable - temps_fichier_objet;
+    return false;
 }
 
 void Tacheronne::gère_unité_pour_typage(UniteCompilation *unite)

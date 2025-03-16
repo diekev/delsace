@@ -2529,7 +2529,7 @@ std::optional<ErreurCoulisse> CoulisseC::crée_fichier_objet_impl(
 {
     auto &espace = *args.espace;
 
-#ifdef CMAKE_BUILD_TYPE_PROFILE
+#if 1  // def CMAKE_BUILD_TYPE_PROFILE
     return {};
 #else
 #    ifndef NDEBUG
@@ -2595,7 +2595,7 @@ std::optional<ErreurCoulisse> CoulisseC::crée_exécutable_impl(const ArgsLiaiso
     auto &compilatrice = *args.compilatrice;
     auto &espace = *args.espace;
 
-#ifdef CMAKE_BUILD_TYPE_PROFILE
+#if 1  // def CMAKE_BUILD_TYPE_PROFILE
     return {};
 #else
     if (!compile_objet_r16(compilatrice.racine_kuri, espace.options.architecture)) {

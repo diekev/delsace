@@ -26,7 +26,13 @@
  */
 static void lance_tacheronne(Tacheronne *tacheronne)
 {
-    tacheronne->gère_tâche();
+    // tacheronne->gère_tâche();
+
+    while (true) {
+        if (tacheronne->gère_tâche()) {
+            break;
+        }
+    }
 }
 
 #if 0
@@ -628,16 +634,23 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
         tacheronnes[i]->drapeaux |= drapeaux;
     }
 
-    kuri::tableau<std::thread *> threads;
-    threads.réserve(nombre_tacheronnes);
+    //    kuri::tableau<std::thread *> threads;
+    //    threads.réserve(nombre_tacheronnes);
 
-    POUR (tacheronnes) {
-        threads.ajoute(memoire::loge<std::thread>("std::thread", lance_tacheronne, it));
-    }
+    //    POUR (tacheronnes) {
+    //        threads.ajoute(memoire::loge<std::thread>("std::thread", lance_tacheronne, it));
+    //    }
 
-    POUR (threads) {
-        it->join();
-        memoire::deloge("std::thread", it);
+    //    POUR (threads) {
+    //        it->join();
+    //        memoire::deloge("std::thread", it);
+    //    }
+
+    auto compilation_terminée = false;
+    while (!compilation_terminée) {
+        POUR (tacheronnes) {
+            compilation_terminée |= it->gère_tâche();
+        }
     }
 #else
     auto tacheronne = Tacheronne(compilatrice);
