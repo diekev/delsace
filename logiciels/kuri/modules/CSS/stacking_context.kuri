@@ -1,4 +1,5 @@
 importe Fondation
+importe Structures
 importe Triage
 
 /* ------------------------------------------------------------------------- */
@@ -13,13 +14,15 @@ StackingContext :: struct {
 
     id: n32
     racine: *NoeudDeDisposition
+    fut_dessiné: bool
 }
 
 #portée_module
 
-construit_arbre_de_stacking_contexts :: fonc (racine: *NoeudDeDisposition) -> *StackingContext
+construit_arbre_de_stacking_contexts :: fonc (arbre: *ArbreDeDisposition, racine: *NoeudDeDisposition) -> *StackingContext
 {
     constructrice: ConstructriceStackingContext
+    constructrice.arbre = arbre
     résultat := construit_arbre_de_stacking_contexts(*constructrice, racine, nul)
     tri_stacking_contexts(résultat)
     retourne résultat
@@ -29,6 +32,19 @@ détruit_stacking_context :: fonc (ctx: *StackingContext)
 {
     déloge_tableau_et_ses_éléments(ctx.enfants, détruit_stacking_context)
     déloge(ctx)
+}
+
+imprime_et_réinitialise_fut_dessiné :: fonc (ctx: *StackingContext)
+{
+    saufsi ctx.fut_dessiné {
+        imprime("stacking context non dessiné : % (z-index %, opacity %)", ctx.id, ctx.donne_z_index(), ctx.donne_opacité())
+        imprime_élément(ctx.racine, " pour")
+    }
+
+    ctx.fut_dessiné = faux
+    pour ctx.enfants {
+        imprime_et_réinitialise_fut_dessiné(it)
+    }
 }
 
 #portée_fichier
@@ -63,36 +79,51 @@ est_position_fixée :: fonc (stacking_context: *StackingContext) -> bool
     retourne position.est_mot_clé(PROP_fixed)
 }
 
+#portée_module
+
 imprime_arbre_stacking_context :: fonc (ctx: *StackingContext, profondeur := 0)
 {
-    indentation := donne_chaine_indentation(profondeur)
-    imprime(indentation)
-    imprime_élément(ctx.racine, "StackingContext")
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
 
-    pour ctx.enfants {
-        imprime_arbre_stacking_context(it, profondeur + 1)
-    }
+    imprime_arbre_stacking_context(*enchaineuse, ctx, profondeur)
+
+    copie_dans_sortie_standarde(*enchaineuse)
 }
 
-#portée_module
+imprime_arbre_stacking_context :: fonc (enchaineuse: *Enchaineuse, ctx: *StackingContext, profondeur := 0)
+{
+    indentation := donne_chaine_indentation(profondeur)
+    ajoute_au_tampon(enchaineuse, indentation)
+
+    imprime_élément(enchaineuse, ctx.racine, "StackingContext")
+
+    pour ctx.enfants {
+        imprime_arbre_stacking_context(enchaineuse, it, profondeur + 1)
+    }
+}
 
 /* À FAIRE(langage) : si nous un #portée_fichier ici, nous pouvons échouer
  * la compilation sur un symbole inconnu, car l'ensemble de surcharge peut
  * ne pas avoir être initialisé ou autre. */
 ajoute_enfant :: fonc (parent: *StackingContext, enfant: *StackingContext)
 {
+    enfant.parent = parent
     tableau_ajoute(*parent.enfants, enfant)
 }
 
 #portée_fichier
 
 ConstructriceStackingContext :: struct {
+    arbre: *ArbreDeDisposition
     id: n32
 }
 
 crée_stacking_context :: fonc (constructrice: *ConstructriceStackingContext) -> *StackingContext
 {
     résultat := loge(StackingContext)
+    tableau_ajoute(*constructrice.arbre.stacking_contexts, résultat)
     résultat.id = constructrice.id
     constructrice.id += 1
     retourne résultat
@@ -122,7 +153,7 @@ construit_arbre_de_stacking_contexts :: fonc (constructrice: *ConstructriceStack
 /* https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_positioned_layout/Understanding_z-index/Stacking_context */
 doit_générer_un_stacking_context :: fonc (noeud: *NoeudDeDisposition) -> bool
 {
-    si noeud.type == NoeudDeDispositionTexte {
+    si noeud.table_virtuelle.type == NoeudDeDispositionTexte {
         retourne faux
     }
 
@@ -203,13 +234,20 @@ dessine_stacking_context :: fonc (stacking_context: *StackingContext, ctx: *Cont
     diffère ctx.est_fixé = fut_fixé
     ctx.est_fixé |= est_position_fixée(stacking_context)
 
-    /* À FAIRE : dessine dans un tampon séparé et mélange le résultat. */
     opacité := donne_opacité(stacking_context)
     si opacité == 0.0 {
         retourne
     }
 
+    si stacking_context.parent && !ctx.tampon_id_couleur {
+        ctx.commandes.débute_stacking_context()
+    }
+
     dessine(stacking_context.racine, ctx)
+
+    si stacking_context.parent && !ctx.tampon_id_couleur {
+        ctx.commandes.termine_stacking_context(opacité comme r32)
+    }
 
     pour stacking_context.enfants {
         dessine_stacking_context(it, ctx)
@@ -237,3 +275,465 @@ dessine_stacking_context_tampon_id :: fonc (stacking_context: *StackingContext, 
 }
 
 /** \} */
+
+#portée_module
+
+/* https://www.w3.org/TR/2011/REC-CSS2-20110607/zindex.html#painting-order */
+dessine_stacking_context_standard :: fonc (stacking_context: *StackingContext, ctx: *ContexteDessin)
+{
+    opacité := donne_opacité(stacking_context)
+    si opacité == 0.0 {
+        retourne
+    }
+
+    imprime("[%]\n", #nom_de_cette_fonction)
+
+    ancien_id_stacking_context := ctx.id_stacking_context
+    diffère ctx.id_stacking_context = ancien_id_stacking_context
+    ctx.id_stacking_context = stacking_context.id
+
+    fut_fixé := ctx.est_fixé
+    diffère ctx.est_fixé = fut_fixé
+    ctx.est_fixé |= est_position_fixée(stacking_context)
+
+    dessine_stacking_context_pour_élément(stacking_context, stacking_context.racine, ctx)
+}
+
+#portée_fichier
+
+dessine_stacking_context_pour_élément :: fonc (stacking_context: *StackingContext, élément: *NoeudDeDisposition, ctx: *ContexteDessin)
+{
+    élément.fut_dessiné = vrai
+    si stacking_context {
+        stacking_context.fut_dessiné = vrai
+    }
+
+    // 1. If the element is a root element:
+    si élément.parent == nul {
+        // 1. background color of element over the entire canvas.
+        // 2. background image of element, over the entire canvas, anchored at
+        //    the origin that would be used if it was painted for the root element.
+        dessine_arrière_plan(ctx, élément)
+    }
+    sinon {
+        dessine_arrière_plan_et_bordures_bloc(ctx, élément)
+    }
+
+    // 3. Stacking contexts formed by positioned descendants with negative z-indices (excluding 0)
+    //    in z-index order (most negative first) then tree order.
+    si stacking_context {
+        pour stacking_context.enfants {
+            z_index := it.donne_z_index()
+            si z_index.est_auto() {
+                continue
+            }
+            si z_index.number >= 0.0 {
+                continue
+            }
+            dessine_stacking_context_standard(it, ctx)
+        }
+    }
+
+    descendants: [..]*NoeudDeDisposition
+    diffère déloge(descendants)
+
+    // 4. For all its in-flow, non-positioned, block-level descendants in tree order:
+    donne_in_flow_non_positioned_block_level_descendants(élément, *descendants)
+    pour descendants {
+        dessine_arrière_plan_et_bordures_bloc(ctx, it)
+    }
+
+    // 5. All non-positioned floating descendants, in tree order. For each one of these,
+    //    treat the element as if it created a new stacking context, but any positioned
+    //    descendants and descendants which actually create a new stacking context should
+    //    be considered part of the parent stacking context, not this new one.
+    floating_descendants: [..]*NoeudDeDisposition
+    diffère déloge(floating_descendants)
+
+    donne_non_positioned_floating_descendants(élément, *floating_descendants)
+
+    pour floating_descendants {
+        dessine_stacking_context_pour_élément(nul, it, ctx)
+    }
+
+    // 6. If the element is an inline element that generates a stacking context, then:
+    si élément.est_inline_level() && élément.id_stacking_context != ctx.id_stacking_context {
+        // 1. For each line box that the element is in:
+
+            // 1. Jump to 7.2.1 for the box(es) of the element in that line box (in tree order).
+    }
+    // 7. Otherwise: first for the element, then for all its in-flow, non-positioned, block-level descendants in tree order:
+    sinon {
+        dessine_stacking_context_étape_7(élément, ctx)
+
+        pour descendants {
+            dessine_stacking_context_étape_7(it, ctx)
+        }
+    }
+
+    // 8. All positioned descendants with 'z-index: auto' or 'z-index: 0', in tree order.
+    //    For those with 'z-index: auto', treat the element as if it created a new stacking context,
+    //    but any positioned descendants and descendants which actually create a new stacking context
+    //    should be considered part of the parent stacking context, not this new one.
+    //    For those with 'z-index: 0', treat the stacking context generated atomically.
+    descendants.taille = 0
+    donne_positioned_descendants_with_z_index_auto_ou_zéro(élément, *descendants)
+
+    pour descendants {
+        si it.id_stacking_context != ctx.id_stacking_context {
+            dessine_stacking_context_standard(ctx.arbre.stacking_contexts[it.id_stacking_context], ctx)
+        }
+        sinon {
+            dessine_stacking_context_pour_élément(nul, it, ctx)
+        }
+    }
+
+    // 9. Stacking contexts formed by positioned descendants with z-indices greater than or equal to 1 in z-index order (smallest first) then tree order.
+    si stacking_context {
+        pour stacking_context.enfants {
+            z_index := it.donne_z_index()
+            si z_index.est_auto() {
+                continue
+            }
+            si z_index.number <= 0.0 {
+                continue
+            }
+            dessine_stacking_context_standard(it, ctx)
+        }
+    }
+
+    // 10. Finally, implementations that do not draw outlines in steps above must draw outlines from this stacking context at this stage. (It is recommended to draw outlines in this step and not in the steps above.)
+}
+
+dessine_arrière_plan_et_bordures_bloc :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition)
+{
+    // If the element is a block, list-item, or other block equivalent:
+    si is_block_list_item_or_block_equivalent(noeud) {
+        // 1. background color of element.
+        // 2. background image of element.
+        // 3. border of element.
+        dessine_arrière_plan(ctx, noeud)
+        dessine_bordure(ctx, noeud)
+        retourne
+    }
+
+    // Otherwise, if the element is a block level table:
+    si is_block_level_table(noeud) {
+        si noeud.table_virtuelle.type == TableWrapperBox {
+            retourne
+        }
+
+        assert(noeud.table_virtuelle.type == TableBox)
+        table := noeud comme *TableBox
+
+        // 1. table backgrounds (color then image).
+        dessine_arrière_plan(ctx, table)
+
+        // 2. column group backgrounds (color then image).
+
+        // 3. column backgrounds (color then image).
+
+        // 4. row group backgrounds (color then image).
+        dessine_arrière_plan_row_group(ctx, table)
+
+        // 5. row backgrounds (color then image).
+        dessine_arrière_plan_row(ctx, table)
+
+        // 6. cell backgrounds (color then image).
+        dessine_arrière_plan_cell(ctx, table)
+
+        // 7. all table borders (in tree order for separated borders).
+        dessine_bordures_cell(ctx, table)
+        dessine_bordure(ctx, table)
+
+        retourne
+    }
+}
+
+dessine_arrière_plan_row_group :: fonc (ctx: *ContexteDessin, table: *TableBox)
+{
+    pour table.enfants {
+        saufsi est_row_group_box(it) {
+            continue
+        }
+
+        it.fut_dessiné = vrai
+        dessine_arrière_plan(ctx, it)
+    }
+}
+
+dessine_arrière_plan_row :: fonc (ctx: *ContexteDessin, table: *TableBox)
+{
+    pour table.enfants {
+        si it.table_virtuelle.type == TableRowBox {
+            it.fut_dessiné = vrai
+            dessine_arrière_plan(ctx, it)
+            continue
+        }
+
+        saufsi est_row_group_box(it) {
+            continue
+        }
+
+        pour enfant dans it.enfants {
+            si enfant.table_virtuelle.type == TableRowBox {
+                enfant.fut_dessiné = vrai
+                dessine_arrière_plan(ctx, enfant)
+            }
+        }
+    }
+}
+
+dessine_arrière_plan_cell :: fonc (ctx: *ContexteDessin, table: *TableBox)
+{
+    pour table.enfants {
+        si it.table_virtuelle.type == TableRowBox {
+            dessine_arrière_plan_cell(ctx, it comme *TableRowBox)
+        }
+
+        saufsi est_row_group_box(it) {
+            continue
+        }
+
+        pour enfant dans it.enfants {
+            si enfant.table_virtuelle.type == TableRowBox {
+                dessine_arrière_plan_cell(ctx, enfant comme *TableRowBox)
+            }
+        }
+    }
+}
+
+dessine_arrière_plan_cell :: fonc (ctx: *ContexteDessin, row: *TableRowBox)
+{
+    pour row.enfants {
+        si it.table_virtuelle.type == TableCellBox {
+            it.fut_dessiné = vrai
+            dessine_arrière_plan(ctx, it)
+        }
+    }
+}
+
+dessine_bordures_cell :: fonc (ctx: *ContexteDessin, table: *TableBox)
+{
+    pour table.enfants {
+        si it.table_virtuelle.type == TableRowBox {
+            dessine_bordures_cell(ctx, it comme *TableRowBox)
+        }
+
+        saufsi est_row_group_box(it) {
+            continue
+        }
+
+        pour enfant dans it.enfants {
+            si enfant.table_virtuelle.type == TableRowBox {
+                dessine_bordures_cell(ctx, enfant comme *TableRowBox)
+            }
+        }
+    }
+}
+
+dessine_bordures_cell :: fonc (ctx: *ContexteDessin, row: *TableRowBox)
+{
+    pour row.enfants {
+        si it.table_virtuelle.type == TableCellBox {
+            it.fut_dessiné = vrai
+            dessine_bordure(ctx, it)
+        }
+    }
+}
+
+dessine_stacking_context_étape_7 :: fonc (élément: *NoeudDeDisposition, ctx: *ContexteDessin)
+{
+    // 1. If the element is a block-level replaced element, then: the replaced content, atomically.
+    si élément.est_block_level() && élément.table_virtuelle.type == NoeudDeDispositionRemplacement {
+        élément.fut_dessiné = vrai
+        dessine(élément, ctx)
+        retourne
+    }
+
+    si (élément.table_virtuelle.type == NoeudDeDispositionBloc || élément.table_virtuelle.type == NoeudDeDispositionInline || élément.table_virtuelle.type == TableWrapperBox || élément.table_virtuelle.type == TableBox || élément.table_virtuelle.type == TableCellBox) {
+        élément_bloc := élément comme *NoeudDeDispositionBloc
+        élément.fut_dessiné = vrai
+        lignes_tenante := élément_bloc.lignes_tenante
+        saufsi lignes_tenante {
+            retourne
+        }
+
+        pour * lignes_tenante.fragments {
+            it.noeud.fut_dessiné = vrai
+
+            si it.type == Fragment.Type.InlineBlock {
+                si it.noeud.table_virtuelle.type == NoeudDeDispositionRemplacement {
+                    dessine_fragment(it.noeud, it, lignes_tenante, ctx)
+                }
+                sinon {
+                    dessine_stacking_context_pour_élément(nul, it.noeud, ctx)
+                }
+            }
+            sinon {
+                dessine_fragment(it.noeud, it, lignes_tenante, ctx)
+            }
+        }
+
+        retourne
+    }
+
+    // 2. Otherwise, for each line box of that element:
+        // 1. For each box that is a child of that element, in that line box, in tree order:
+
+            // 1. background color of element.
+
+            // 2. background image of element.
+
+            // 3. border of element.
+
+            // 4. For inline elements:
+
+                // 1. For all the element's in-flow, non-positioned, inline-level children that are in this line box, and all runs of text inside the element that is on this line box, in tree order:
+
+                    // 1. If this is a run of text, then:
+
+                        // 1. any underlining affecting the text of the element, in tree order of the elements applying the underlining (such that the deepest element's underlining, if any, is painted topmost and the root element's underlining, if any, is drawn bottommost).
+                        // 2. any overlining affecting the text of the element, in tree order of the elements applying the overlining (such that the deepest element's overlining, if any, is painted topmost and the root element's overlining, if any, is drawn bottommost).
+                        // 3. the text.
+                        // 4. any line-through affecting the text of the element, in tree order of the elements applying the line-through (such that the deepest element's line-through, if any, is painted topmost and the root element's line-through, if any, is drawn bottommost).
+    
+                    // 2. Otherwise, jump to 7.2.1 for that element.
+
+            // For inline-block and inline-table elements:
+
+                // 1. For each one of these, treat the element as if it created a new stacking context, but any positioned descendants and descendants which actually create a new stacking context should be considered part of the parent stacking context, not this new one.
+
+            // For inline-level replaced elements:
+
+                // 1. the replaced content, atomically.
+
+        // 2. Optionally, the outline of the element (see 10 below).
+
+    // 3. Optionally, if the element is block-level, the outline of the element (see 10 below).
+}
+
+is_block_list_item_or_block_equivalent :: fonc (noeud: *NoeudDeDisposition) -> bool
+{
+    display := noeud.donne_display()
+    si display.outer_type != Display.Type.Block {
+        retourne faux
+    }
+
+    si display.inner_type == Display.Type.Table {
+        retourne faux
+    }
+
+    retourne display.inner_type == Display.Type.Flow || display.inner_type == Display.Type.FlowRoot || display.inner_type == Display.Type.Flex || display.est_list_item
+}
+
+is_block_level_table :: fonc (noeud: *NoeudDeDisposition) -> bool
+{
+    display := noeud.donne_display()
+    retourne display.outer_type == Display.Type.Block && display.inner_type == Display.Type.Table
+}
+
+donne_in_flow_non_positioned_block_level_descendants :: fonc (noeud: *NoeudDeDisposition, résultat: *[..]*NoeudDeDisposition)
+{
+    pile: Pile(*NoeudDeDisposition)
+    diffère détruit(pile)
+
+    pour > noeud.enfants {
+        pile.empile(it)
+    }
+
+    tantque !pile.est_vide() {
+        enfant := pile.dépile()
+
+        saufsi enfant.propriétés {
+            continue
+        }
+
+        position := enfant.propriétés.donne_valeur_utilisée(IDPropriété.Position)
+        saufsi position.est_mot_clé(PROP_static) {
+            // imprime("n'est pas static : %\n", position)
+            continue
+        }
+
+        saufsi est_block_level(enfant) {
+            // imprime("n'est pas un bloc : %\n", enfant.donne_display())
+            continue
+        }
+
+        float := enfant.propriétés.donne_valeur_utilisée(IDPropriété.Float)
+        saufsi float.est_mot_clé(PROP_none) {
+            // imprime("n'est pas float none : %\n", float)
+            continue
+        }
+
+        tableau_ajoute(résultat, enfant)
+
+        pour > enfant.enfants {
+            pile.empile(it)
+        }
+    }
+}
+
+donne_non_positioned_floating_descendants :: fonc (noeud: *NoeudDeDisposition, résultat: *[..]*NoeudDeDisposition)
+{
+    pile: Pile(*NoeudDeDisposition)
+    diffère détruit(pile)
+
+    pour > noeud.enfants {
+        pile.empile(it)
+    }
+
+    tantque !pile.est_vide() {
+        enfant := pile.dépile()
+
+        saufsi enfant.propriétés {
+            continue
+        }
+
+        position := enfant.propriétés.donne_valeur_utilisée(IDPropriété.Position)
+        saufsi position.est_mot_clé(PROP_static) {
+            continue
+        }
+
+        float := enfant.propriétés.donne_valeur_utilisée(IDPropriété.Float)
+        saufsi float.est_mot_clé(PROP_none) {
+            tableau_ajoute(résultat, enfant)
+            continue
+        }
+
+        pour > enfant.enfants {
+            pile.empile(it)
+        }
+    }
+}
+
+donne_positioned_descendants_with_z_index_auto_ou_zéro :: fonc (noeud: *NoeudDeDisposition, résultat: *[..]*NoeudDeDisposition)
+{
+    pile: Pile(*NoeudDeDisposition)
+    diffère détruit(pile)
+
+    pour > noeud.enfants {
+        pile.empile(it)
+    }
+
+    tantque !pile.est_vide() {
+        enfant := pile.dépile()
+
+        saufsi enfant.propriétés {
+            continue
+        }
+
+        position := enfant.propriétés.donne_valeur_utilisée(IDPropriété.Position)
+        saufsi position.est_mot_clé(PROP_static) {
+            z_index := enfant.propriétés.donne_valeur_utilisée(IDPropriété.ZIndex)
+            si z_index.est_auto() || z_index.number == 0.0 {
+                tableau_ajoute(résultat, enfant)
+            }
+            continue
+        }
+
+        pour > enfant.enfants {
+            pile.empile(it)
+        }
+    }
+}

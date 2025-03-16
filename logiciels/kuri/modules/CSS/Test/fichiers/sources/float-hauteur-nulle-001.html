@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Test CSS : float avec hauteur nulle contenant une boite à position fixe.</title>
+    <meta type="assert" description="Les boites à position fixe n'influent pas sur la taille des boites flottantes."/>
+    <style>
+        .contenant {
+            float: left;
+            background-color: red;
+        }
+
+        .contenu {
+            position: fixed;
+            width: 1in;
+            height: 1in;
+        }
+    </style>
+</head>
+
+<body>
+    <p>Le test passe s'il n'y pas de rouge sur la page.</p>
+    <div class="contenant">
+        <div class="contenu"></div>
+    </div>
+</body>
+
+</html>

@@ -10,6 +10,9 @@ NestedHistory :: struct {
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#document-state-2 */
 DocumentState :: struct {
+    /* Utilise un compte de référence pour pouvoir partager les DocumentState. */
+    référence := 1
+
     document: *Document
     history_policy_container: *PolicyContainer
     initiator_origin: Optionnel(Origin)
@@ -24,6 +27,26 @@ DocumentState :: struct {
     ever_populated: bool
 
     nested_histories: [..]NestedHistory
+}
+
+copie_référence :: fonc (state: *DocumentState) -> *DocumentState
+{
+    state.référence += 1
+    retourne state
+}
+
+détruit_document_state :: fonc (state: *DocumentState)
+{
+    saufsi state {
+        retourne
+    }
+
+    state.référence -= 1
+    si state.référence > 0 {
+        retourne
+    }
+
+    déloge(state)
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#session-history-entry */
@@ -52,7 +75,7 @@ SessionHistoryEntry :: struct {
 détruit_session_history_entry :: fonc (she: *SessionHistoryEntry)
 {
     détruit_url(she.url)
-    déloge(she.document_state)
+    détruit_document_state(she.document_state)
     déloge(she)
 }
 
@@ -112,6 +135,17 @@ définis_parent :: fonc (navigable: *Navigable, parent: *Navigable)
     si parent {
         tableau_ajoute(*parent.enfants, navigable)
     }
+}
+
+définis_active_session_history_entry :: fonc (navigable: *Navigable, entry: *SessionHistoryEntry)
+{
+    document := donne_document(entry)
+
+    si navigable.est_top_level_traversable() && document != navigable.donne_active_document() {
+        document.notifie_changement_fully_active()
+    }
+
+    navigable.active_session_history_entry = entry
 }
 
 donne_active_document :: fonc (navigable: *Navigable) -> *Document
@@ -483,6 +517,31 @@ sont_même_origine :: fonc (a: Origin, b: Origin) -> bool
         }
 
         retourne a.port.Quelque == b.port.Quelque
+    }
+
+    // 3. Return false.
+    retourne faux
+}
+
+/* https://html.spec.whatwg.org/multipage/browsers.html#same-origin-domain */
+sont_même_domaine_origine :: fonc (a: Origin, b: Origin) -> bool
+{
+    // 1. If A and B are the same opaque origin, then return true.
+    si a.est_opaque && b.est_opaque {
+        retourne a.valeur_opaque == b.valeur_opaque
+    }
+
+    // 2. If A and B are both tuple origins:
+    si !a.est_opaque && !b.est_opaque {
+        // 1. If A and B's schemes are identical, and their domains are identical and non-null, then return true.
+        si a.scheme == b.scheme && a.domain.possède_valeur() && b.domain.possède_valeur() && a.domain.Quelque == b.domain.Quelque {
+            retourne vrai
+        }
+
+        // 2. Otherwise, if A and B are same origin and their domains are both null, return true.
+        si sont_même_origine(a, b) && !a.domain.possède_valeur() && !b.domain.possède_valeur() {
+            retourne vrai
+        }
     }
 
     // 3. Return false.
