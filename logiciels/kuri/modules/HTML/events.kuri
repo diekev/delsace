@@ -689,6 +689,8 @@ dispatch :: fonc (event: *Event, target: *EventTarget, legacy_target_override : 
             }
             // 8. Otherwise, set target to parent and then:
             sinon {
+                target = parent
+
                 // 1. If isActivationEvent is true, activationTarget is null, and target has activation behavior, then set activationTarget to target.
                 si is_activation_event == vrai && activation_target == nul && target.possède_activation_behavior() {
                     activation_target = target
@@ -846,10 +848,7 @@ call_a_user_object_operation :: fonc (value: JavaScript.Valeur, args: []JavaScri
 
     prepare_to_run_script(settings)
 
-    interpréteuse: JavaScript.Interpréteuse
-    interpréteuse.mv = JavaScript.donne_mv(realm)
-
-    evaluation_status := JavaScript.call(*interpréteuse, value, this_arg, args)
+    evaluation_status := JavaScript.call(JavaScript.donne_mv(realm), value, this_arg, args)
     saufsi JavaScript.est_normal(evaluation_status) {
         imprime("[%] %\n", #nom_de_cette_fonction, evaluation_status)
     }

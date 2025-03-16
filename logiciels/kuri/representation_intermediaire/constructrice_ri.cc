@@ -495,7 +495,8 @@ AtomeNonInitialisation *ConstructriceRI::crée_non_initialisation()
 
 AtomeConstante *ConstructriceRI::crée_tranche_globale(IdentifiantCode &ident,
                                                       Type const *type,
-                                                      kuri::tableau<AtomeConstante *> &&valeurs)
+                                                      kuri::tableau<AtomeConstante *> &&valeurs,
+                                                      bool est_part_info_type)
 {
     auto taille_tableau = static_cast<int>(valeurs.taille());
 
@@ -507,15 +508,17 @@ AtomeConstante *ConstructriceRI::crée_tranche_globale(IdentifiantCode &ident,
     auto type_tableau = m_typeuse.type_tableau_fixe(const_cast<Type *>(type), taille_tableau);
     auto tableau_fixe = crée_constante_tableau_fixe(type_tableau, std::move(valeurs));
 
-    return crée_tranche_globale(ident, tableau_fixe);
+    return crée_tranche_globale(ident, tableau_fixe, est_part_info_type);
 }
 
 AtomeConstante *ConstructriceRI::crée_tranche_globale(IdentifiantCode &ident,
                                                       AtomeConstante *tableau_fixe,
+                                                      bool est_part_info_type,
                                                       Type *type_sous_jacent)
 {
     auto type_tableau_fixe = tableau_fixe->type->comme_type_tableau_fixe();
     auto globale_tableau_fixe = crée_globale(ident, type_tableau_fixe, tableau_fixe, false, true);
+    globale_tableau_fixe->est_part_info_type = est_part_info_type;
     return crée_initialisation_tableau_global(
         globale_tableau_fixe, type_tableau_fixe, type_sous_jacent);
 }
@@ -1635,11 +1638,12 @@ static kuri::tableau<AtomeGlobale *> donne_globales_à_initialiser(
         if (it->initialisateur) {
             visite_atome(it->initialisateur, [&](Atome *atome_visité) {
                 if (!atome_visité->est_globale()) {
-                    return;
+                    return DécisionVisiteAtome::CONTINUE;
                 }
 
                 auto globale_visitée = atome_visité->comme_globale();
                 rassembleuse_atomes.insère(globale_visitée);
+                return DécisionVisiteAtome::CONTINUE;
             });
         }
 
@@ -1694,9 +1698,11 @@ void CompilatriceRI::définis_fonction_courante(AtomeFonction *fonction_courante
 
 AtomeConstante *CompilatriceRI::crée_tranche_globale(IdentifiantCode &ident,
                                                      const Type *type,
-                                                     kuri::tableau<AtomeConstante *> &&valeurs)
+                                                     kuri::tableau<AtomeConstante *> &&valeurs,
+                                                     bool est_part_info_type)
 {
-    return m_constructrice.crée_tranche_globale(ident, type, std::move(valeurs));
+    return m_constructrice.crée_tranche_globale(
+        ident, type, std::move(valeurs), est_part_info_type);
 }
 
 Atome *CompilatriceRI::crée_charge_mem_si_chargeable(NoeudExpression const *site_, Atome *source)
@@ -3620,8 +3626,9 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
             if (m_fonction_courante == nullptr) {
                 auto valeur_tableau_fixe = static_cast<AtomeConstante *>(valeur);
                 auto ident = m_compilatrice.donne_identifiant_pour_globale("tableau_convertis");
-                empile_valeur(m_constructrice.crée_tranche_globale(*ident, valeur_tableau_fixe),
-                              noeud);
+                empile_valeur(
+                    m_constructrice.crée_tranche_globale(*ident, valeur_tableau_fixe, false),
+                    noeud);
                 return;
             }
 
@@ -4083,7 +4090,7 @@ AtomeConstante *CompilatriceRI::crée_tableau_annotations_pour_info_membre(
 
     auto ident = m_compilatrice.donne_identifiant_pour_globale("tableau_annotations");
     auto résultat = m_constructrice.crée_tranche_globale(
-        *ident, type_pointeur_annotation, std::move(valeurs_annotations));
+        *ident, type_pointeur_annotation, std::move(valeurs_annotations), true);
     if (annotations.est_vide()) {
         m_globale_annotations_vides = résultat;
     }
@@ -4210,9 +4217,9 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             auto ident_valeurs = m_compilatrice.donne_identifiant_pour_globale("valeurs_énums");
             auto ident_noms = m_compilatrice.donne_identifiant_pour_globale("noms_valeurs_énums");
             auto tableau_valeurs = m_constructrice.crée_tranche_globale(
-                *ident_valeurs, tableau, TypeBase::OCTET);
+                *ident_valeurs, tableau, true, TypeBase::OCTET);
             auto tableau_noms = m_constructrice.crée_tranche_globale(
-                *ident_noms, TypeBase::CHAINE, std::move(noms_enum));
+                *ident_noms, TypeBase::CHAINE, std::move(noms_enum), true);
 
             /* création de l'info type */
 
@@ -4244,6 +4251,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             auto globale = m_constructrice.crée_globale(
                 *ident, type_info_union, nullptr, false, true);
             type->atome_info_type = globale;
+            globale->est_part_info_type = true;
 
             // ------------------------------------
             /* pour chaque membre cree une instance de InfoTypeMembreStructure */
@@ -4286,7 +4294,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             auto ident_valeurs = m_compilatrice.donne_identifiant_pour_globale(
                 "membres_info_type");
             auto tableau_membre = m_constructrice.crée_tranche_globale(
-                *ident_valeurs, type_membre, std::move(valeurs_membres));
+                *ident_valeurs, type_membre, std::move(valeurs_membres), true);
 
             auto type_pointeur_info_type_union = m_compilatrice.typeuse.type_pointeur_pour(
                 type_info_union, false);
@@ -4331,6 +4339,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             auto globale = m_constructrice.crée_globale(
                 *ident, type_info_struct, nullptr, false, true);
             type->atome_info_type = globale;
+            globale->est_part_info_type = true;
 
             // ------------------------------------
             /* pour chaque membre cree une instance de InfoTypeMembreStructure */
@@ -4358,7 +4367,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             auto ident_valeurs = m_compilatrice.donne_identifiant_pour_globale(
                 "membres_info_type");
             auto tableau_membre = m_constructrice.crée_tranche_globale(
-                *ident_valeurs, type_membre, std::move(valeurs_membres));
+                *ident_valeurs, type_membre, std::move(valeurs_membres), true);
 
             auto tableau_structs_employées = donne_tableau_pour_structs_employées(type_struct,
                                                                                   site);
@@ -4601,7 +4610,10 @@ AtomeGlobale *CompilatriceRI::crée_globale_info_type(Type const *type_info_type
     auto ident = m_compilatrice.donne_identifiant_pour_globale("info_type");
     auto initialisateur = m_constructrice.crée_constante_structure(type_info_type,
                                                                    std::move(valeurs));
-    return m_constructrice.crée_globale(*ident, type_info_type, initialisateur, false, true);
+    auto résultat = m_constructrice.crée_globale(
+        *ident, type_info_type, initialisateur, false, true);
+    résultat->est_part_info_type = true;
+    return résultat;
 }
 
 AtomeGlobale *CompilatriceRI::crée_info_type_membre_structure(const MembreTypeComposé &membre,
@@ -4677,7 +4689,7 @@ AtomeConstante *CompilatriceRI::donne_tableau_pour_structs_employées(
     kuri::copie_tablet_tableau(valeurs_structs_employees, tableau_valeurs);
 
     auto résultat = m_constructrice.crée_tranche_globale(
-        *ident_structs_employées, type_pointeur_info_struct, std::move(tableau_valeurs));
+        *ident_structs_employées, type_pointeur_info_struct, std::move(tableau_valeurs), true);
 
     if (type_structure->types_employés.taille() == 0) {
         m_tableau_structs_employées_vide = résultat;
@@ -4725,7 +4737,7 @@ AtomeConstante *CompilatriceRI::donne_tableau_pour_types_entrées(const TypeFonc
 
     auto ident = m_compilatrice.donne_identifiant_pour_globale("types_entrée");
     auto résultat = m_constructrice.crée_tranche_globale(
-        *ident, type_élément, std::move(tableau_types_entrée));
+        *ident, type_élément, std::move(tableau_types_entrée), true);
 
     if (type_fonction->types_entrées.est_vide()) {
         m_tableau_types_entrées_vide = résultat;
@@ -4783,7 +4795,7 @@ AtomeConstante *CompilatriceRI::donne_tableau_pour_type_sortie(const TypeFonctio
     auto type_élément = m_compilatrice.typeuse.type_pointeur_pour(
         m_compilatrice.typeuse.type_info_type_, false);
     auto résultat = m_constructrice.crée_tranche_globale(
-        *ident, type_élément, std::move(tableau_types_sortie));
+        *ident, type_élément, std::move(tableau_types_sortie), true);
 
     if (type_sortie->est_type_rien()) {
         m_tableau_types_sorties_rien = résultat;
@@ -4897,6 +4909,7 @@ AtomeGlobale *CompilatriceRI::crée_globale_pour_chaine(kuri::chaine_statique ch
 
     auto ident = m_compilatrice.donne_identifiant_pour_globale("constante_chaine");
     auto résultat = m_constructrice.crée_globale(*ident, TypeBase::CHAINE, constante, false, true);
+    résultat->est_chaine = true;
     table_chaines->insère_globale_pour_chaine(constante, résultat);
     return résultat;
 }
