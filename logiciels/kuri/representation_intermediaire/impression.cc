@@ -468,6 +468,7 @@ kuri::chaine imprime_arbre_instruction(Instruction const *racine)
         if (atome->est_instruction()) {
             instructions.ajoute(atome->comme_instruction());
         }
+        return DécisionVisiteAtome::CONTINUE;
     });
 
     Enchaineuse sortie;
