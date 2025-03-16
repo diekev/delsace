@@ -1,6 +1,7 @@
 importe Chaine
 importe Couleur
 importe FTGL
+importe Fondation
 importe SysFichier
 
 /* ------------------------------------------------------------------------- */
@@ -14,14 +15,20 @@ Fonte :: struct {
 
 crée_fonte :: fonc (chemin: CheminFichier, taille_police: r32) -> *Fonte
 {
-    fonte := loge(Fonte)
-
     chemin_c := crée_chaine_c(chemin.chn)
     diffère détruit_chaine_c(chemin_c)
 
-    fonte.atlas = texture_atlas_new(512, 512, 1)
-    fonte.font = texture_font_new_from_file(fonte.atlas, taille_police, chemin_c comme *z8)
+    atlas := texture_atlas_new(512, 512, 1)
+    font := texture_font_new_from_file(atlas, taille_police, chemin_c comme *z8)
 
+    saufsi font {
+        texture_atlas_delete(atlas)
+        retourne nul
+    }
+
+    fonte := loge(Fonte)
+    fonte.font = font
+    fonte.atlas = atlas
     retourne fonte
 }
 
@@ -138,6 +145,24 @@ donne_index_caractère_pour_position :: fonc (fonte: *Fonte, texte: ChaineUTF32,
 donne_largeur_texte :: fonc (fonte: *Fonte, texte: ChaineUTF16Unique) -> z32
 {
     retourne donne_largeur_texte(fonte, texte.donne_chaine_utf16())
+}
+
+donne_largeur_glyph :: fonc (fonte: *Fonte, point_de_code: n32) -> Optionnel(r32)
+{
+    glyph := donne_glyphe(fonte, point_de_code)
+    saufsi glyph {
+        retourne
+    }
+    retourne glyph.advance_x
+}
+
+donne_hauteur_glyph :: fonc (fonte: *Fonte, point_de_code: n32) -> Optionnel(n64)
+{
+    glyph := donne_glyphe(fonte, point_de_code)
+    saufsi glyph {
+        retourne
+    }
+    retourne glyph.height
 }
 
 /** \} */

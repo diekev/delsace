@@ -1784,9 +1784,54 @@ insère_mode_DansTexteTable :: fonc (parseuse: *Parseuse @inutilisée, lexème: 
     panique("algorithme d'insertion incomplet")
 }
 
-insère_mode_DansCaption :: fonc (parseuse: *Parseuse @inutilisée, lexème: Lexème @inutilisée)
+/* https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-incaption */
+insère_mode_DansCaption :: fonc (parseuse: *Parseuse, lexème: Lexème)
 {
-    panique("algorithme d'insertion incomplet")
+    si lexème.genre == GenreLexème.FinTag && lexème.nom == TAG_caption {
+        si parseuse.crée_par_html_fragment_parsing && !possède_dans_portée_table(*parseuse.pile_éléments_ouvert, TAG_caption) {
+            erreur_de_parsage(parseuse, "auncune <table> dans la portée table")
+            retourne
+        }
+
+        génère_tags_fin_implicites(parseuse)
+
+        noeud := parseuse.noeud_courant()
+        si noeud.local_name != TAG_caption {
+            erreur_de_parsage(parseuse, "fin tag </caption> alors que le noeud courant n'est pas <caption>")
+        }
+
+        parseuse.dépile_tous_les_éléments_jusque(TAG_caption)
+        enlève_éléments_jusqu_au_dernier_marqueur(*parseuse.liste_éléments_actifs_formattage)
+        parseuse.mode_insertion = insère_mode_DansTable
+        retourne
+    }
+
+    si (lexème.genre == GenreLexème.DébutTag && fait_partie_de(lexème.nom, TAG_caption, TAG_col, TAG_colgroup, TAG_tbody, TAG_td, TAG_tfoot, TAG_th, TAG_thead, TAG_tr)) ||
+        (lexème.genre == GenreLexème.FinTag && lexème.nom == TAG_table) {
+        si parseuse.crée_par_html_fragment_parsing && !possède_dans_portée_table(*parseuse.pile_éléments_ouvert, TAG_caption) {
+            erreur_de_parsage(parseuse, "auncune <table> dans la portée table")
+            retourne
+        }
+
+        génère_tags_fin_implicites(parseuse)
+        noeud := parseuse.noeud_courant()
+        si noeud.local_name != TAG_caption {
+            erreur_de_parsage(parseuse, "fin tag </caption> alors que le noeud courant n'est pas <caption>")
+        }
+
+        parseuse.dépile_tous_les_éléments_jusque(TAG_caption)
+        enlève_éléments_jusqu_au_dernier_marqueur(*parseuse.liste_éléments_actifs_formattage)
+        parseuse.mode_insertion = insère_mode_DansTable
+        gère_lexème_pour_mode(parseuse, insère_mode_DansTable, lexème)
+        retourne
+    }
+
+    si lexème.genre == GenreLexème.FinTag && fait_partie_de(lexème.nom, TAG_body, TAG_col, TAG_colgroup, TAG_html, TAG_tbody, TAG_td, TAG_tfoot, TAG_th, TAG_thead, TAG_tr) {
+        erreur_de_parsage(parseuse, "tag innattendu")
+        retourne
+    }
+
+    gère_lexème_pour_mode(parseuse, insère_mode_DansBody, lexème)
 }
 
 // https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-incolgroup
@@ -2821,7 +2866,10 @@ stop_parsing :: fonc (empl parseuse: *Parseuse)
         arrête
     }
 
-    // À FAIRE : 8. Spin the event loop until there is nothing that delays the load event in the Document.
+    // 8. Spin the event loop until there is nothing that delays the load event in the Document.
+    tantque document.things_that_delay_the_load_event != 0 {
+        user_agent.spin_event_loop()
+    }
 
     // 9. Queue a global task on the DOM manipulation task source given the Document's relevant global object to run the following steps:
     si user_agent {
