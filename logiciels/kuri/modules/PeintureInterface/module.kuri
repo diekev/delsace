@@ -720,9 +720,15 @@ définis_ciseau_dessin :: fonc (peintre: *PeintreDessin, rectangle_peintre: Rect
 
 crée_peintre_igumi :: fonc (taille_cannevas: Taille) -> *Peintre
 {
+    peintre := loge(Peintre)
+    initialise_peintre_igumi(peintre, taille_cannevas)
+    retourne peintre
+}
+
+initialise_peintre_igumi :: fonc (peintre: *Peintre, taille_cannevas: Taille)
+{
     initialise_igumi()
 
-    peintre := loge(Peintre)
     peintre.rappel_définis_taille_cannevas = définis_taille_cannevas_igumi
     peintre.rappel_donne_taille_cannevas = donne_taille_cannevas_igumi
     peintre.rappel_termine_dessin = termine_dessin_igumi
@@ -749,7 +755,6 @@ crée_peintre_igumi :: fonc (taille_cannevas: Taille) -> *Peintre
     peintre.rappel_définis_ciseau = définis_ciseau_igumi
     peintre.rappel_destruction = détruit_peintre_igumi
     définis_taille_cannevas(peintre, taille_cannevas)
-    retourne peintre
 }
 
 donne_cercle_igumi :: fonc (cercle: CerclePeintre) -> Cercle(r32)
