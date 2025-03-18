@@ -318,14 +318,14 @@ ouvre_image :: fonc (chemin: CheminFichier) -> Résultat(ImageIO, ResultatOperat
     _ := IMG_ecris_image(chn_c_sortie comme *z8, *image)
 }
 
-calcul_empreinte_floue :: fonc (chemin: chaine, composants_x: z32, composants_y: z32) -> chaine
+calcule_empreinte_floue :: fonc (image: ImageIO, composants_x: z32, composants_y: z32) -> chaine
 {
+    assert(image.nombre_composants == 3)
+
     tampon: [2 + 4 + (9 * 9 - 1) * 2 + 1]z8
     taille_résultat: z64
 
-    chaine_c := crée_chaine_c_temp(chemin)
-
-    IMG_calcul_empreinte_floue(chaine_c, composants_x, composants_y, *tampon[0], *taille_résultat)
+    IMG_calcule_empreinte_floue_reel(image.donnees, image.largeur, image.hauteur, image.nombre_composants, composants_x, composants_y, *tampon[0], *taille_résultat)
 
     résultat := loge_chaine(taille_résultat)
 

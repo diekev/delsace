@@ -29,140 +29,22 @@
         return;                                                                                   \
     }
 
-#if 0
-#    ifndef M_PI
-#        define M_PI 3.14159265358979323846
-#    endif
+static char characters[84] =
+    "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz#$%*+,-.:;=?@[]^_{|}~";
 
-static float *multiplyBasisFunction(int xComponent, int yComponent, int width, int height, uint8_t *rgb, size_t bytesPerRow);
-static char *encode_int(int value, int length, char *destination);
+static char *encode_int(int value, int length, char *destination)
+{
+    int divisor = 1;
+    for (int i = 0; i < length - 1; i++)
+        divisor *= 83;
 
-static int linearTosRGB(float value);
-static float sRGBToLinear(int value);
-static int encodeDC(float r, float g, float b);
-static int encodeAC(float r, float g, float b, float maximumValue);
-static float signPow(float value, float exp);
-
-static const char *blurHashForPixels(int xComponents, int yComponents, int width, int height, uint8_t *rgb, size_t bytesPerRow) {
-	static char buffer[2 + 4 + (9 * 9 - 1) * 2 + 1];
-
-	if(xComponents < 1 || xComponents > 9) return nullptr;
-	if(yComponents < 1 || yComponents > 9) return nullptr;
-
-	float factors[yComponents][xComponents][3];
-	memset(factors, 0, sizeof(factors));
-
-	for(int y = 0; y < yComponents; y++) {
-		for(int x = 0; x < xComponents; x++) {
-			float *factor = multiplyBasisFunction(x, y, width, height, rgb, bytesPerRow);
-			factors[y][x][0] = factor[0];
-			factors[y][x][1] = factor[1];
-			factors[y][x][2] = factor[2];
-		}
-	}
-
-	float *dc = factors[0][0];
-	float *ac = dc + 3;
-	int acCount = xComponents * yComponents - 1;
-	char *ptr = buffer;
-
-	int sizeFlag = (xComponents - 1) + (yComponents - 1) * 9;
-	ptr = encode_int(sizeFlag, 1, ptr);
-
-	float maximumValue;
-	if(acCount > 0) {
-		float actualMaximumValue = 0;
-		for(int i = 0; i < acCount * 3; i++) {
-			actualMaximumValue = fmaxf(fabsf(ac[i]), actualMaximumValue);
-		}
-
-		int quantisedMaximumValue = fmaxf(0, fminf(82, floorf(actualMaximumValue * 166 - 0.5)));
-		maximumValue = ((float)quantisedMaximumValue + 1) / 166;
-		ptr = encode_int(quantisedMaximumValue, 1, ptr);
-	} else {
-		maximumValue = 1;
-		ptr = encode_int(0, 1, ptr);
-	}
-
-	ptr = encode_int(encodeDC(dc[0], dc[1], dc[2]), 4, ptr);
-
-	for(int i = 0; i < acCount; i++) {
-		ptr = encode_int(encodeAC(ac[i * 3 + 0], ac[i * 3 + 1], ac[i * 3 + 2], maximumValue), 2, ptr);
-	}
-
-	*ptr = 0;
-
-	return buffer;
+    for (int i = 0; i < length; i++) {
+        int digit = (value / divisor) % 83;
+        divisor /= 83;
+        *destination++ = characters[digit];
+    }
+    return destination;
 }
-
-static float *multiplyBasisFunction(int xComponent, int yComponent, int width, int height, uint8_t *rgb, size_t bytesPerRow) {
-	float r = 0, g = 0, b = 0;
-	float normalisation = (xComponent == 0 && yComponent == 0) ? 1 : 2;
-
-	for(int y = 0; y < height; y++) {
-		for(int x = 0; x < width; x++) {
-			float basis = cosf(M_PI * xComponent * x / width) * cosf(M_PI * yComponent * y / height);
-			r += basis * sRGBToLinear(rgb[3 * x + 0 + y * bytesPerRow]);
-			g += basis * sRGBToLinear(rgb[3 * x + 1 + y * bytesPerRow]);
-			b += basis * sRGBToLinear(rgb[3 * x + 2 + y * bytesPerRow]);
-		}
-	}
-
-	float scale = normalisation / (width * height);
-
-	static float result[3];
-	result[0] = r * scale;
-	result[1] = g * scale;
-	result[2] = b * scale;
-
-	return result;
-}
-
-static int linearTosRGB(float value) {
-	float v = fmaxf(0, fminf(1, value));
-	if(v <= 0.0031308) return v * 12.92 * 255 + 0.5;
-	else return (1.055 * powf(v, 1 / 2.4) - 0.055) * 255 + 0.5;
-}
-
-static float sRGBToLinear(int value) {
-	float v = (float)value / 255;
-	if(v <= 0.04045) return v / 12.92;
-	else return powf((v + 0.055) / 1.055, 2.4);
-}
-
-static int encodeDC(float r, float g, float b) {
-	int roundedR = linearTosRGB(r);
-	int roundedG = linearTosRGB(g);
-	int roundedB = linearTosRGB(b);
-	return (roundedR << 16) + (roundedG << 8) + roundedB;
-}
-
-static int encodeAC(float r, float g, float b, float maximumValue) {
-	int quantR = fmaxf(0, fminf(18, floorf(signPow(r / maximumValue, 0.5) * 9 + 9.5)));
-	int quantG = fmaxf(0, fminf(18, floorf(signPow(g / maximumValue, 0.5) * 9 + 9.5)));
-	int quantB = fmaxf(0, fminf(18, floorf(signPow(b / maximumValue, 0.5) * 9 + 9.5)));
-
-	return quantR * 19 * 19 + quantG * 19 + quantB;
-}
-
-static float signPow(float value, float exp) {
-	return copysignf(powf(fabsf(value), exp), value);
-}
-
-static char characters[84]="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz#$%*+,-.:;=?@[]^_{|}~";
-
-static char *encode_int(int value, int length, char *destination) {
-	int divisor = 1;
-	for(int i = 0; i < length - 1; i++) divisor *= 83;
-
-	for(int i = 0; i < length; i++) {
-		int digit = (value / divisor) % 83;
-		divisor /= 83;
-		*destination++ = characters[digit];
-	}
-	return destination;
-}
-#else
 
 namespace blurhash {
 struct Image {
@@ -175,16 +57,17 @@ Image decode(std::string blurhash, size_t width, size_t height, size_t bytesPerP
 
 // Encode an image of rgb pixels (without padding) with size width*height into a blurhash with x*y
 // components
-std::string encode(unsigned char *image, size_t width, size_t height, int x, int y);
+std::string encode_byte(unsigned char *image, size_t width, size_t height, int x, int y);
+std::string encode_float(float *image, size_t width, size_t height, int x, int y);
 }  // namespace blurhash
 
-#    ifndef M_PI
-#        define M_PI 3.14159265358979323846
-#    endif
+#ifndef M_PI
+#    define M_PI 3.14159265358979323846
+#endif
 
-#    ifdef DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-#        include <doctest.h>
-#    endif
+#ifdef DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#    include <doctest.h>
+#endif
 
 // using namespace std::literals;
 
@@ -198,21 +81,6 @@ std::string leftPad(std::string str, size_t len)
         return str;
     return str.insert(0, len - str.size(), '0');
 }
-
-// constexpr std::array<int, 255> b83_to_int = []() constexpr
-//{
-//		std::array<int, 255> a{};
-
-//		for (auto &e : a)
-//				e = -1;
-
-//		for (int i = 0; i < 83; i++) {
-//				a[static_cast<unsigned char>(int_to_b83[i])] = i;
-//		}
-
-//		return a;
-//}
-//();
 
 std::string encode83(int value)
 {
@@ -235,57 +103,25 @@ int packComponents(const Components &c)
     return (c.x - 1) + (c.y - 1) * 9;
 }
 
-// Components
-// unpackComponents(int c)
-//{
-//	return {c % 9 + 1, c / 9 + 1};
-//}
-
-// int
-// decode83(std::string value)
-//{
-//		int temp = 0;
-
-//		for (char c : value)
-//				if (b83_to_int[static_cast<unsigned char>(c)] < 0)
-//						throw std::invalid_argument("invalid character in blurhash");
-
-//		for (char c : value)
-//				temp = temp * 83 + b83_to_int[static_cast<unsigned char>(c)];
-//		return temp;
-//}
-
-// float
-// decodeMaxAC(int quantizedMaxAC)
-//{
-//		return (quantizedMaxAC + 1) / 166.;
-//}
-
-// float
-// decodeMaxAC(const std::string &maxAC)
-//{
-//		assert(maxAC.size() == 1);
-//		return decodeMaxAC(decode83(maxAC));
-//}
-
 int encodeMaxAC(float maxAC)
 {
     return std::max(0, std::min(82, static_cast<int>(maxAC * 166.0f - 0.5f)));
 }
 
-float srgbToLinear(int value)
+static float srgbToLinearF(float x)
 {
-    auto srgbToLinearF = [](float x) {
-        if (x <= 0.0f)
-            return 0.0f;
-        else if (x >= 1.0f)
-            return 1.0f;
-        else if (x < 0.04045f)
-            return x / 12.92f;
-        else
-            return std::pow((x + 0.055f) / 1.055f, 2.4f);
-    };
+    if (x <= 0.0f)
+        return 0.0f;
+    else if (x >= 1.0f)
+        return 1.0f;
+    else if (x < 0.04045f)
+        return x / 12.92f;
+    else
+        return std::pow((x + 0.055f) / 1.055f, 2.4f);
+}
 
+static float srgbToLinear(int value)
+{
     return srgbToLinearF(static_cast<float>(value) / 255.0f);
 }
 
@@ -335,22 +171,6 @@ struct Color {
     }
 };
 
-// Color
-// decodeDC(int value)
-//{
-//		const int intR = value >> 16;
-//		const int intG = (value >> 8) & 255;
-//		const int intB = value & 255;
-//		return {srgbToLinear(intR), srgbToLinear(intG), srgbToLinear(intB)};
-//}
-
-// Color
-// decodeDC(std::string value)
-//{
-//		assert(value.size() == 4);
-//		return decodeDC(decode83(value));
-//}
-
 int encodeDC(const Color &c)
 {
     return (linearToSrgb(c.r) << 16) + (linearToSrgb(c.g) << 8) + linearToSrgb(c.b);
@@ -373,23 +193,6 @@ int encodeAC(const Color &c, float maximumValue)
     return quantR * 19 * 19 + quantG * 19 + quantB;
 }
 
-// Color decodeAC(int value, float maximumValue)
-//{
-//	auto quantR = value / (19 * 19);
-//	auto quantG = (value / 19) % 19;
-//	auto quantB = value % 19;
-
-//	return {signPow((float(quantR) - 9) / 9, 2) * maximumValue,
-//				signPow((float(quantG) - 9) / 9, 2) * maximumValue,
-//				signPow((float(quantB) - 9) / 9, 2) * maximumValue};
-//}
-
-// Color
-// decodeAC(std::string value, float maximumValue)
-//{
-//		return decodeAC(decode83(value), maximumValue);
-//}
-
 Color multiplyBasisFunction(Components components, int width, int height, unsigned char *pixels)
 {
     Color c{};
@@ -409,122 +212,295 @@ Color multiplyBasisFunction(Components components, int width, int height, unsign
     c *= scale;
     return c;
 }
+
+Color multiplyBasisFunction(Components components, int width, int height, float *pixels)
+{
+    Color c{};
+    float normalisation = (components.x == 0 && components.y == 0) ? 1 : 2;
+
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            float basis = static_cast<float>(std::cos(M_PI * components.x * x / double(width)) *
+                                             std::cos(M_PI * components.y * y / double(height)));
+            c.r += basis * srgbToLinearF(pixels[3 * x + 0 + y * width * 3]);
+            c.g += basis * srgbToLinearF(pixels[3 * x + 1 + y * width * 3]);
+            c.b += basis * srgbToLinearF(pixels[3 * x + 2 + y * width * 3]);
+        }
+    }
+
+    float scale = normalisation / static_cast<float>(width * height);
+    c *= scale;
+    return c;
+}
 }  // namespace
 
 namespace blurhash {
-// Image
-// decode(std::string blurhash, size_t width, size_t height, size_t bytesPerPixel)
-//{
-//		Image i{};
+static char chars[84] =
+    "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz#$%*+,-.:;=?@[]^_{|}~";
 
-//		if (blurhash.size() < 10)
-//				return i;
+static inline uint8_t clampToUByte(int *src)
+{
+    if (*src >= 0 && *src <= 255)
+        return *src;
+    return (*src < 0) ? 0 : 255;
+}
 
-//		Components components{};
-//		std::vector<Color> values;
-//		values.reserve(blurhash.size() / 2);
-//		try {
-//				components = unpackComponents(decode83(blurhash.substr(0, 1)));
+static inline uint8_t *createByteArray(int size)
+{
+    return (uint8_t *)malloc(size * sizeof(uint8_t));
+}
 
-//				if (components.x < 1 || components.y < 1 ||
-//					blurhash.size() != size_t(1 + 1 + 4 + (components.x * components.y - 1) * 2))
-//						return {};
+int decodeToInt(const char *string, int start, int end)
+{
+    int value = 0, iter1 = 0, iter2 = 0;
+    for (iter1 = start; iter1 < end; iter1++) {
+        int index = -1;
+        for (iter2 = 0; iter2 < 83; iter2++) {
+            if (chars[iter2] == string[iter1]) {
+                index = iter2;
+                break;
+            }
+        }
+        if (index == -1)
+            return -1;
+        value = value * 83 + index;
+    }
+    return value;
+}
 
-//				auto maxAC    = decodeMaxAC(blurhash.substr(1, 1));
-//				Color average = decodeDC(blurhash.substr(2, 4));
+bool isValidBlurhash(const char *blurhash)
+{
 
-//				values.push_back(average);
-//				for (size_t c = 6; c < blurhash.size(); c += 2)
-//						values.push_back(decodeAC(blurhash.substr(c, 2), maxAC));
-//		} catch (std::invalid_argument &) {
-//				return {};
-//		}
+    const int hashLength = strlen(blurhash);
 
-//		i.image.reserve(height * width * bytesPerPixel);
+    if (!blurhash || strlen(blurhash) < 6)
+        return false;
 
-//		for (size_t y = 0; y < height; y++) {
-//				for (size_t x = 0; x < width; x++) {
-//						Color c{};
+    int sizeFlag = decodeToInt(blurhash, 0, 1);  // Get size from first character
+    int numY = (int)floorf(sizeFlag / 9) + 1;
+    int numX = (sizeFlag % 9) + 1;
 
-//						for (size_t nx = 0; nx < size_t(components.x); nx++) {
-//								for (size_t ny = 0; ny < size_t(components.y); ny++) {
-//										float basis =
-//										  std::cos(M_PI * float(x) * float(nx) / float(width)) *
-//										  std::cos(M_PI * float(y) * float(ny) / float(height));
-//										c += values[nx + ny * components.x] * basis;
-//								}
-//						}
+    if (hashLength != 4 + 2 * numX * numY)
+        return false;
+    return true;
+}
 
-//						i.image.push_back(static_cast<unsigned char>(linearToSrgb(c.r)));
-//						i.image.push_back(static_cast<unsigned char>(linearToSrgb(c.g)));
-//						i.image.push_back(static_cast<unsigned char>(linearToSrgb(c.b)));
+static int linearTosRGB(float value)
+{
+    float v = fmaxf(0, fminf(1, value));
+    if (v <= 0.0031308)
+        return v * 12.92 * 255 + 0.5;
+    else
+        return (1.055 * powf(v, 1 / 2.4) - 0.055) * 255 + 0.5;
+}
 
-//						for (size_t p = 3; p < bytesPerPixel; p++)
-//								i.image.push_back(255);
-//				}
-//		}
+static float sRGBToLinear(int value)
+{
+    float v = (float)value / 255;
+    if (v <= 0.04045)
+        return v / 12.92;
+    else
+        return powf((v + 0.055) / 1.055, 2.4);
+}
 
-//		i.height = height;
-//		i.width  = width;
+void decodeDC(int value, float *r, float *g, float *b)
+{
+    *r = sRGBToLinear(value >> 16);         // R-component
+    *g = sRGBToLinear((value >> 8) & 255);  // G-Component
+    *b = sRGBToLinear(value & 255);         // B-Component
+}
 
-//		return i;
-//}
+void decodeAC(int value, float maximumValue, float *r, float *g, float *b)
+{
+    int quantR = (int)floorf(value / (19 * 19));
+    int quantG = (int)floorf(value / 19) % 19;
+    int quantB = (int)value % 19;
 
-std::string encode(
+    *r = signPow(((float)quantR - 9) / 9, 2.0) * maximumValue;
+    *g = signPow(((float)quantG - 9) / 9, 2.0) * maximumValue;
+    *b = signPow(((float)quantB - 9) / 9, 2.0) * maximumValue;
+}
+
+int decodeToArray(
+    const char *blurhash, int width, int height, int punch, int nChannels, uint8_t *pixelArray)
+{
+    if (!isValidBlurhash(blurhash))
+        return -1;
+    if (punch < 1)
+        punch = 1;
+
+    int sizeFlag = decodeToInt(blurhash, 0, 1);
+    int numY = (int)floorf(sizeFlag / 9) + 1;
+    int numX = (sizeFlag % 9) + 1;
+    int iter = 0;
+
+    float r = 0, g = 0, b = 0;
+    int quantizedMaxValue = decodeToInt(blurhash, 1, 2);
+    if (quantizedMaxValue == -1)
+        return -1;
+
+    float maxValue = ((float)(quantizedMaxValue + 1)) / 166;
+
+    int colors_size = numX * numY;
+    float colors[colors_size][3];
+
+    for (iter = 0; iter < colors_size; iter++) {
+        if (iter == 0) {
+            int value = decodeToInt(blurhash, 2, 6);
+            if (value == -1)
+                return -1;
+            decodeDC(value, &r, &g, &b);
+            colors[iter][0] = r;
+            colors[iter][1] = g;
+            colors[iter][2] = b;
+        }
+        else {
+            int value = decodeToInt(blurhash, 4 + iter * 2, 6 + iter * 2);
+            if (value == -1)
+                return -1;
+            decodeAC(value, maxValue * punch, &r, &g, &b);
+            colors[iter][0] = r;
+            colors[iter][1] = g;
+            colors[iter][2] = b;
+        }
+    }
+
+    int bytesPerRow = width * nChannels;
+    int x = 0, y = 0, i = 0, j = 0;
+    int intR = 0, intG = 0, intB = 0;
+
+    for (y = 0; y < height; y++) {
+        for (x = 0; x < width; x++) {
+
+            float r = 0, g = 0, b = 0;
+
+            for (j = 0; j < numY; j++) {
+                for (i = 0; i < numX; i++) {
+                    float basics = cos((M_PI * x * i) / width) * cos((M_PI * y * j) / height);
+                    int idx = i + j * numX;
+                    r += colors[idx][0] * basics;
+                    g += colors[idx][1] * basics;
+                    b += colors[idx][2] * basics;
+                }
+            }
+
+            intR = linearTosRGB(r);
+            intG = linearTosRGB(g);
+            intB = linearTosRGB(b);
+
+            pixelArray[nChannels * x + 0 + y * bytesPerRow] = clampToUByte(&intR);
+            pixelArray[nChannels * x + 1 + y * bytesPerRow] = clampToUByte(&intG);
+            pixelArray[nChannels * x + 2 + y * bytesPerRow] = clampToUByte(&intB);
+
+            if (nChannels == 4)
+                pixelArray[nChannels * x + 3 + y * bytesPerRow] =
+                    255;  // If nChannels=4, treat each pixel as RGBA instead of RGB
+        }
+    }
+
+    return 0;
+}
+
+uint8_t *decode(const char *blurhash, int width, int height, int punch, int nChannels)
+{
+    int bytesPerRow = width * nChannels;
+    uint8_t *pixelArray = createByteArray(bytesPerRow * height);
+
+    if (decodeToArray(blurhash, width, height, punch, nChannels, pixelArray) == -1)
+        return NULL;
+    return pixelArray;
+}
+
+void freePixelArray(uint8_t *pixelArray)
+{
+    if (pixelArray) {
+        free(pixelArray);
+    }
+}
+
+static std::string encode_factors(float *dc, int components_x, int components_y)
+{
+    float *ac = dc + 3;
+    int acCount = components_x * components_y - 1;
+
+    char buffer[2 + 4 + (9 * 9 - 1) * 2 + 1];
+    char *ptr = buffer;
+
+    int sizeFlag = (components_x - 1) + (components_y - 1) * 9;
+    ptr = encode_int(sizeFlag, 1, ptr);
+
+    float maximumValue;
+    if (acCount > 0) {
+        float actualMaximumValue = 0;
+        for (int i = 0; i < acCount * 3; i++) {
+            actualMaximumValue = fmaxf(fabsf(ac[i]), actualMaximumValue);
+        }
+
+        int quantisedMaximumValue = fmaxf(0, fminf(82, floorf(actualMaximumValue * 166 - 0.5)));
+        maximumValue = ((float)quantisedMaximumValue + 1) / 166;
+        ptr = encode_int(quantisedMaximumValue, 1, ptr);
+    }
+    else {
+        maximumValue = 1;
+        ptr = encode_int(0, 1, ptr);
+    }
+
+    ptr = encode_int(encodeDC(Color{dc[0], dc[1], dc[2]}), 4, ptr);
+
+    for (int i = 0; i < acCount; i++) {
+        ptr = encode_int(
+            encodeAC(Color{ac[i * 3 + 0], ac[i * 3 + 1], ac[i * 3 + 2]}, maximumValue), 2, ptr);
+    }
+
+    *ptr = 0;
+
+    return buffer;
+}
+
+std::string encode_byte(
     unsigned char *image, size_t width, size_t height, int components_x, int components_y)
 {
     if (width < 1 || height < 1 || components_x < 1 || components_x > 9 || components_y < 1 ||
         components_y > 9 || !image)
         return "";
 
-    std::vector<Color> factors;
-    factors.reserve(static_cast<size_t>(components_x * components_y));
+    float factors[components_y][components_x][3];
     for (int y = 0; y < components_y; y++) {
         for (int x = 0; x < components_x; x++) {
-            factors.push_back(multiplyBasisFunction(
-                {x, y}, static_cast<int>(width), static_cast<int>(height), image));
+            auto const factor = multiplyBasisFunction(
+                {x, y}, static_cast<int>(width), static_cast<int>(height), image);
+            factors[y][x][0] = factor.r;
+            factors[y][x][1] = factor.g;
+            factors[y][x][2] = factor.b;
         }
     }
 
-    assert(factors.size() > 0);
+    float *dc = factors[0][0];
+    return encode_factors(dc, components_x, components_y);
+}
 
-    auto dc = factors.front();
-    factors.erase(factors.begin());
+std::string encode_float(
+    float *image, size_t width, size_t height, int components_x, int components_y)
+{
+    if (width < 1 || height < 1 || components_x < 1 || components_x > 9 || components_y < 1 ||
+        components_y > 9 || !image)
+        return "";
 
-    std::string h;
-
-    h += leftPad(encode83(packComponents({components_x, components_y})), 1);
-
-    float maximumValue;
-    if (!factors.empty()) {
-        float actualMaximumValue = 0;
-        for (auto ac : factors) {
-            actualMaximumValue = std::max({
-                std::abs(ac.r),
-                std::abs(ac.g),
-                std::abs(ac.b),
-                actualMaximumValue,
-            });
+    float factors[components_y][components_x][3];
+    for (int y = 0; y < components_y; y++) {
+        for (int x = 0; x < components_x; x++) {
+            auto const factor = multiplyBasisFunction(
+                {x, y}, static_cast<int>(width), static_cast<int>(height), image);
+            factors[y][x][0] = factor.r;
+            factors[y][x][1] = factor.g;
+            factors[y][x][2] = factor.b;
         }
-
-        int quantisedMaximumValue = encodeMaxAC(actualMaximumValue);
-        maximumValue = (static_cast<float>(quantisedMaximumValue + 1)) / 166;
-        h += leftPad(encode83(quantisedMaximumValue), 1);
-    }
-    else {
-        maximumValue = 1;
-        h += leftPad(encode83(0), 1);
     }
 
-    h += leftPad(encode83(encodeDC(dc)), 4);
-
-    for (auto ac : factors)
-        h += leftPad(encode83(encodeAC(ac, maximumValue)), 2);
-
-    return h;
+    float *dc = factors[0][0];
+    return encode_factors(dc, components_x, components_y);
 }
 }  // namespace blurhash
-#endif
 
 extern "C" {
 
@@ -1001,40 +977,58 @@ void IMG_detruit_image(ImageIO *image)
     image->nombre_composants = 0;
 }
 
-void IMG_calcul_empreinte_floue(
-    const char *chemin, int composant_x, int composant_y, char *resultat, int64_t *taille_resultat)
+void IMG_calcule_empreinte_floue_octet(unsigned char *image,
+                                       int largeur,
+                                       int hauteur,
+                                       int nombre_canaux,
+                                       int composant_x,
+                                       int composant_y,
+                                       char *resultat,
+                                       int64_t *taille_resultat)
 {
-    auto input = OIIO::ImageInput::open(chemin);
+    static_cast<void>(nombre_canaux);
 
-    if (input == nullptr) {
-        return;
-    }
-
-    const auto &spec = input->spec();
-    int xres = spec.width;
-    int yres = spec.height;
-    int channels = spec.nchannels;
-
-    std::vector<uint8_t> donnees(static_cast<size_t>(xres * yres * channels));
-
-    if (!input->read_image(OIIO::TypeDesc::UINT8, donnees.data())) {
-        input->close();
-        return;
-    }
-
-    auto res = blurhash::encode(donnees.data(),
-                                static_cast<size_t>(xres),
-                                static_cast<size_t>(yres),
-                                composant_x,
-                                composant_y);
+    auto res = blurhash::encode_byte(image,
+                                     static_cast<size_t>(largeur),
+                                     static_cast<size_t>(hauteur),
+                                     composant_x,
+                                     composant_y);
 
     for (auto c : res) {
         *resultat++ = c;
     }
 
     *taille_resultat = static_cast<int64_t>(res.size());
+}
 
-    input->close();
+void IMG_calcule_empreinte_floue_reel(float *image,
+                                      int largeur,
+                                      int hauteur,
+                                      int nombre_canaux,
+                                      int composant_x,
+                                      int composant_y,
+                                      char *resultat,
+                                      int64_t *taille_resultat)
+{
+    static_cast<void>(nombre_canaux);
+
+    auto res = blurhash::encode_float(image,
+                                      static_cast<size_t>(largeur),
+                                      static_cast<size_t>(hauteur),
+                                      composant_x,
+                                      composant_y);
+
+    for (auto c : res) {
+        *resultat++ = c;
+    }
+
+    *taille_resultat = static_cast<int64_t>(res.size());
+}
+
+uint8_t *IMG_decode_empreinte_floue(
+    const char *empreinte, int largeur, int hauteur, int punch, int canaux)
+{
+    return blurhash::decode(empreinte, largeur, hauteur, punch, canaux);
 }
 }
 
