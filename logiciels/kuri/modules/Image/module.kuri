@@ -9,7 +9,7 @@ libtbb :: #bibliothèque "tbb"
 
 #dépendance_bibliothèque libmodule_c_image libtbb
 
-FormatPixel :: énum {
+FormatPixel :: énum n16 {
     Gris_8
     Gris_32
 
@@ -20,10 +20,18 @@ FormatPixel :: énum {
     RVBA_32
 }
 
+DirectionImage :: énum n16 {
+    /* L'image a son point d'origine en haut : la première ligne de l'image est celle du haut. */
+    HautEnBas
+    /* L'image a son point d'origine en bas : la première ligne de l'image est celle du bas. */
+    BasEnHaut
+}
+
 DescriptriceImage :: struct {
     largeur: n32
     hauteur: n32
     format: FormatPixel
+    direction: DirectionImage
 }
 
 donne_taille_données :: fonc (desc: *DescriptriceImage) -> z64
@@ -80,13 +88,14 @@ crée_image :: fonc (desc: *DescriptriceImage) -> NouvelleImage
     retourne résultat
 }
 
-crée_image_pour_données_externe :: fonc (données: *octet, largeur: n32, hauteur: n32, format: FormatPixel) -> NouvelleImage
+crée_image_pour_données_externe :: fonc (données: *octet, largeur: n32, hauteur: n32, format: FormatPixel, direction := DirectionImage.HautEnBas) -> NouvelleImage
 {
     résultat: NouvelleImage
     résultat.données = données
     résultat.desc.largeur = largeur
     résultat.desc.hauteur = hauteur
     résultat.desc.format = format
+    résultat.desc.direction = direction
     résultat.source_données = SourceDonnéesImage.Externe
     retourne résultat
 }
