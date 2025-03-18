@@ -93,6 +93,30 @@ crée_image_pour_données_externe :: fonc (données: *octet, largeur: n32, haute
 
 crée_image_depuis_image_io :: fonc (image: *ImageIO) -> NouvelleImage
 {
+    desc := donne_descriptice_depuis_image_io(image)
+
+    résultat := crée_image(*desc)
+
+    sortie := résultat.données comme *r32
+
+    pour image.taille_donnees {
+        sortie[it] = image.donnees[it]
+    }
+
+    retourne résultat
+}
+
+nouvelle_image_enveloppe_image_io :: fonc (image: *ImageIO) -> NouvelleImage
+{
+    résultat: NouvelleImage
+    résultat.desc = donne_descriptice_depuis_image_io(image)
+    résultat.source_données = SourceDonnéesImage.Externe
+    résultat.données = image.donnees comme *octet
+    retourne résultat
+}
+
+donne_descriptice_depuis_image_io :: fonc (image: *ImageIO) -> DescriptriceImage
+{
     desc: DescriptriceImage
     desc.largeur = image.largeur comme n32
     desc.hauteur = image.hauteur comme n32
@@ -110,15 +134,7 @@ crée_image_depuis_image_io :: fonc (image: *ImageIO) -> NouvelleImage
         panique("nombre de composant non-géré")
     }
 
-    résultat := crée_image(*desc)
-
-    sortie := résultat.données comme *r32
-
-    pour image.taille_donnees {
-        sortie[it] = image.donnees[it]
-    }
-
-    retourne résultat
+    retourne desc
 }
 
 détruit_données_image :: fonc (image: *NouvelleImage)
