@@ -599,7 +599,6 @@ dessine :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage)
 
         texte := menu.éléments[index_it].texte
         rect_texte := rect_élément
-        rect_texte.y -= métriques.jambage_inférieur comme z32
 
         si it.est_coche {
             /* À FAIRE : image pour la coche. */
