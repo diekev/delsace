@@ -57,8 +57,10 @@ Image decode(std::string blurhash, size_t width, size_t height, size_t bytesPerP
 
 // Encode an image of rgb pixels (without padding) with size width*height into a blurhash with x*y
 // components
-std::string encode_byte(unsigned char *image, size_t width, size_t height, int x, int y);
-std::string encode_float(float *image, size_t width, size_t height, int x, int y);
+std::string encode_byte(
+    unsigned char *image, size_t width, size_t height, int nombre_canaux, int x, int y);
+std::string encode_float(
+    float *image, size_t width, size_t height, int nombre_canaux, int x, int y);
 }  // namespace blurhash
 
 #ifndef M_PI
@@ -193,7 +195,8 @@ int encodeAC(const Color &c, float maximumValue)
     return quantR * 19 * 19 + quantG * 19 + quantB;
 }
 
-Color multiplyBasisFunction(Components components, int width, int height, unsigned char *pixels)
+Color multiplyBasisFunction(
+    Components components, int width, int height, int nombre_canaux, unsigned char *pixels)
 {
     Color c{};
     float normalisation = (components.x == 0 && components.y == 0) ? 1 : 2;
@@ -202,9 +205,16 @@ Color multiplyBasisFunction(Components components, int width, int height, unsign
         for (int x = 0; x < width; x++) {
             float basis = static_cast<float>(std::cos(M_PI * components.x * x / double(width)) *
                                              std::cos(M_PI * components.y * y / double(height)));
-            c.r += basis * srgbToLinear(pixels[3 * x + 0 + y * width * 3]);
-            c.g += basis * srgbToLinear(pixels[3 * x + 1 + y * width * 3]);
-            c.b += basis * srgbToLinear(pixels[3 * x + 2 + y * width * 3]);
+            auto const index = (x + y * width) * nombre_canaux;
+
+            c.r += basis * srgbToLinearF(pixels[index]);
+            if (nombre_canaux > 1) {
+                c.g += basis * srgbToLinearF(pixels[index + 1]);
+
+                if (nombre_canaux > 2) {
+                    c.b += basis * srgbToLinearF(pixels[index + 2]);
+                }
+            }
         }
     }
 
@@ -213,7 +223,8 @@ Color multiplyBasisFunction(Components components, int width, int height, unsign
     return c;
 }
 
-Color multiplyBasisFunction(Components components, int width, int height, float *pixels)
+Color multiplyBasisFunction(
+    Components components, int width, int height, int nombre_canaux, float *pixels)
 {
     Color c{};
     float normalisation = (components.x == 0 && components.y == 0) ? 1 : 2;
@@ -222,9 +233,17 @@ Color multiplyBasisFunction(Components components, int width, int height, float 
         for (int x = 0; x < width; x++) {
             float basis = static_cast<float>(std::cos(M_PI * components.x * x / double(width)) *
                                              std::cos(M_PI * components.y * y / double(height)));
-            c.r += basis * srgbToLinearF(pixels[3 * x + 0 + y * width * 3]);
-            c.g += basis * srgbToLinearF(pixels[3 * x + 1 + y * width * 3]);
-            c.b += basis * srgbToLinearF(pixels[3 * x + 2 + y * width * 3]);
+
+            auto const index = (x + y * width) * nombre_canaux;
+
+            c.r += basis * srgbToLinearF(pixels[index]);
+            if (nombre_canaux > 1) {
+                c.g += basis * srgbToLinearF(pixels[index + 1]);
+
+                if (nombre_canaux > 2) {
+                    c.b += basis * srgbToLinearF(pixels[index + 2]);
+                }
+            }
         }
     }
 
@@ -457,8 +476,12 @@ static std::string encode_factors(float *dc, int components_x, int components_y)
     return buffer;
 }
 
-std::string encode_byte(
-    unsigned char *image, size_t width, size_t height, int components_x, int components_y)
+std::string encode_byte(unsigned char *image,
+                        size_t width,
+                        size_t height,
+                        int nombre_canaux,
+                        int components_x,
+                        int components_y)
 {
     if (width < 1 || height < 1 || components_x < 1 || components_x > 9 || components_y < 1 ||
         components_y > 9 || !image)
@@ -468,7 +491,7 @@ std::string encode_byte(
     for (int y = 0; y < components_y; y++) {
         for (int x = 0; x < components_x; x++) {
             auto const factor = multiplyBasisFunction(
-                {x, y}, static_cast<int>(width), static_cast<int>(height), image);
+                {x, y}, static_cast<int>(width), static_cast<int>(height), nombre_canaux, image);
             factors[y][x][0] = factor.r;
             factors[y][x][1] = factor.g;
             factors[y][x][2] = factor.b;
@@ -479,8 +502,12 @@ std::string encode_byte(
     return encode_factors(dc, components_x, components_y);
 }
 
-std::string encode_float(
-    float *image, size_t width, size_t height, int components_x, int components_y)
+std::string encode_float(float *image,
+                         size_t width,
+                         size_t height,
+                         int nombre_canaux,
+                         int components_x,
+                         int components_y)
 {
     if (width < 1 || height < 1 || components_x < 1 || components_x > 9 || components_y < 1 ||
         components_y > 9 || !image)
@@ -490,7 +517,7 @@ std::string encode_float(
     for (int y = 0; y < components_y; y++) {
         for (int x = 0; x < components_x; x++) {
             auto const factor = multiplyBasisFunction(
-                {x, y}, static_cast<int>(width), static_cast<int>(height), image);
+                {x, y}, static_cast<int>(width), static_cast<int>(height), nombre_canaux, image);
             factors[y][x][0] = factor.r;
             factors[y][x][1] = factor.g;
             factors[y][x][2] = factor.b;
@@ -986,11 +1013,10 @@ void IMG_calcule_empreinte_floue_octet(unsigned char *image,
                                        char *resultat,
                                        int64_t *taille_resultat)
 {
-    static_cast<void>(nombre_canaux);
-
     auto res = blurhash::encode_byte(image,
                                      static_cast<size_t>(largeur),
                                      static_cast<size_t>(hauteur),
+                                     nombre_canaux,
                                      composant_x,
                                      composant_y);
 
@@ -1010,11 +1036,10 @@ void IMG_calcule_empreinte_floue_reel(float *image,
                                       char *resultat,
                                       int64_t *taille_resultat)
 {
-    static_cast<void>(nombre_canaux);
-
     auto res = blurhash::encode_float(image,
                                       static_cast<size_t>(largeur),
                                       static_cast<size_t>(hauteur),
+                                      nombre_canaux,
                                       composant_x,
                                       composant_y);
 

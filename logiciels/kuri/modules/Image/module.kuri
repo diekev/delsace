@@ -320,8 +320,6 @@ ouvre_image :: fonc (chemin: CheminFichier) -> Résultat(ImageIO, ResultatOperat
 
 calcule_empreinte_floue :: fonc (image: ImageIO, composants_x: z32, composants_y: z32) -> chaine
 {
-    assert(image.nombre_composants == 3)
-
     tampon: [2 + 4 + (9 * 9 - 1) * 2 + 1]z8
     taille_résultat: z64
 
