@@ -63,7 +63,6 @@ sur_dessin_panneau_édition_texte :: fonc (empl panneau: *PanneauÉditionTexte, 
     thème := ctx.thème
     peintre := ctx.peintre
     fonte := ctx.fonte
-    métriques := fonte.donne_métriques_fonte()
 
     peintre.remplis_rectangle(rect, thème.couleur_arrière_plan)
     peintre.dessine_rectangle(rect, thème.couleur_contour)
@@ -77,7 +76,6 @@ sur_dessin_panneau_édition_texte :: fonc (empl panneau: *PanneauÉditionTexte, 
     }
 
     rect_texte_pour_dessin := rect_texte
-    rect_texte_pour_dessin.y -= métriques.jambage_inférieur comme z32
     peintre.dessine_texte(fonte, texte_à_dessiner, rect_texte_pour_dessin, couleur_texte)
 
     saufsi en_édition {
@@ -119,7 +117,6 @@ sur_dessin_panneau_édition_texte :: fonc (empl panneau: *PanneauÉditionTexte, 
         texte_sélectionné.points_de_code.pointeur += curseur.début
         texte_sélectionné.points_de_code.taille = curseur.fin - curseur.début
 
-        rect_sélection.y -= métriques.jambage_inférieur comme z32
         peintre.dessine_texte(fonte, texte_sélectionné, rect_sélection, thème.couleur_texte_sélectionné)
     }
 }
