@@ -1129,7 +1129,6 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
 
             couleur = CouleurRVBAN8(0, 0, 0, 255)
             rect.x = métriques.largeur_moyenne
-            rect.y -= métriques.jambage_inférieur
             peintre.dessine_texte(fonte, texte, rect, couleur, nul)
 
             peintre.termine_dessin()
