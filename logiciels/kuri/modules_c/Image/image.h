@@ -51,11 +51,26 @@ enum ResultatOperation IMG_ecris_image(const char *chemin, struct ImageIO *image
 
 void IMG_detruit_image(struct ImageIO *image);
 
-void IMG_calcul_empreinte_floue(const char *chemin,
-                                int composant_x,
-                                int composant_y,
-                                char *resultat,
-                                int64_t *taille_resultat);
+void IMG_calcule_empreinte_floue_octet(unsigned char *image,
+                                       int largeur,
+                                       int hauteur,
+                                       int nombre_canaux,
+                                       int composant_x,
+                                       int composant_y,
+                                       char *resultat,
+                                       int64_t *taille_resultat);
+
+void IMG_calcule_empreinte_floue_reel(float *image,
+                                      int largeur,
+                                      int hauteur,
+                                      int nombre_canaux,
+                                      int composant_x,
+                                      int composant_y,
+                                      char *resultat,
+                                      int64_t *taille_resultat);
+
+uint8_t *IMG_decode_empreinte_floue(
+    const char *empreinte, int largeur, int hauteur, int punch, int canaux);
 
 /** Structure pour décrire la résolution d'une image.
  */

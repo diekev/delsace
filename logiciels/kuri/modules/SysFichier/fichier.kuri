@@ -291,7 +291,7 @@ lis_entier :: fonc (fichier: *Fichier, $T: type_de_données) -> Optionnel(T)
 {
     valeur: T
 
-    octets_lus := tente lis(fichier, valeur) piège err {
+    octets_lus := tente lis(fichier, valeur) piège _ {
         retourne
     }
 
