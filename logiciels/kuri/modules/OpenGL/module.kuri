@@ -129,6 +129,8 @@ ParamètresTexture2D :: struct {
 
     wrap_s := GL_CLAMP
     wrap_t := GL_CLAMP
+
+    direction: DirectionImage
 }
 
 /** Définis les données de la texture correspondant au `code_texture`.
@@ -171,6 +173,47 @@ donne_paramètres_texture_pour_image :: fonc (image: ImageIO, répétition: Rép
     sinon {
         résultat.format = GL_RGBA
     }
+    définis_répétition(*résultat, répétition)
+    retourne résultat
+}
+
+donne_paramètres_texture_pour_image :: fonc (image: *NouvelleImage, répétition: RépétitionImage) -> ParamètresTexture2D
+{
+    résultat: ParamètresTexture2D
+    résultat.largeur = image.desc.largeur comme z32
+    résultat.hauteur = image.desc.hauteur comme z32
+    résultat.données = image.données
+    résultat.bordure = 0
+    résultat.direction = image.desc.direction
+
+    discr image.desc.format {
+        Gris_8 {
+            résultat.type = GL_UNSIGNED_BYTE
+            résultat.format = GL_RED
+        }
+        RVB_8 {
+            résultat.type = GL_UNSIGNED_BYTE
+            résultat.format = GL_RGB
+        }
+        RVBA_8 {
+            résultat.type = GL_UNSIGNED_BYTE
+            résultat.format = GL_RGBA
+        }
+        Gris_32 {
+            résultat.type = GL_FLOAT
+            résultat.format = GL_RED
+        }
+        RVB_32 {
+            résultat.type = GL_FLOAT
+            résultat.format = GL_RGB
+        }
+        RVBA_32 {
+            résultat.type = GL_FLOAT
+            résultat.format = GL_RGBA
+        }
+    }
+
+    // résultat.format = GL_RG
     définis_répétition(*résultat, répétition)
     retourne résultat
 }

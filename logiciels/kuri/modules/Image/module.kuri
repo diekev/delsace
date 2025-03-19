@@ -9,7 +9,7 @@ libtbb :: #bibliothèque "tbb"
 
 #dépendance_bibliothèque libmodule_c_image libtbb
 
-FormatPixel :: énum {
+FormatPixel :: énum n16 {
     Gris_8
     Gris_32
 
@@ -20,10 +20,18 @@ FormatPixel :: énum {
     RVBA_32
 }
 
+DirectionImage :: énum n16 {
+    /* L'image a son point d'origine en haut : la première ligne de l'image est celle du haut. */
+    HautEnBas
+    /* L'image a son point d'origine en bas : la première ligne de l'image est celle du bas. */
+    BasEnHaut
+}
+
 DescriptriceImage :: struct {
     largeur: n32
     hauteur: n32
     format: FormatPixel
+    direction: DirectionImage
 }
 
 donne_taille_données :: fonc (desc: *DescriptriceImage) -> z64
@@ -80,18 +88,43 @@ crée_image :: fonc (desc: *DescriptriceImage) -> NouvelleImage
     retourne résultat
 }
 
-crée_image_pour_données_externe :: fonc (données: *octet, largeur: n32, hauteur: n32, format: FormatPixel) -> NouvelleImage
+crée_image_pour_données_externe :: fonc (données: *octet, largeur: n32, hauteur: n32, format: FormatPixel, direction := DirectionImage.HautEnBas) -> NouvelleImage
 {
     résultat: NouvelleImage
     résultat.données = données
     résultat.desc.largeur = largeur
     résultat.desc.hauteur = hauteur
     résultat.desc.format = format
+    résultat.desc.direction = direction
     résultat.source_données = SourceDonnéesImage.Externe
     retourne résultat
 }
 
 crée_image_depuis_image_io :: fonc (image: *ImageIO) -> NouvelleImage
+{
+    desc := donne_descriptice_depuis_image_io(image)
+
+    résultat := crée_image(*desc)
+
+    sortie := résultat.données comme *r32
+
+    pour image.taille_donnees {
+        sortie[it] = image.donnees[it]
+    }
+
+    retourne résultat
+}
+
+nouvelle_image_enveloppe_image_io :: fonc (image: *ImageIO) -> NouvelleImage
+{
+    résultat: NouvelleImage
+    résultat.desc = donne_descriptice_depuis_image_io(image)
+    résultat.source_données = SourceDonnéesImage.Externe
+    résultat.données = image.donnees comme *octet
+    retourne résultat
+}
+
+donne_descriptice_depuis_image_io :: fonc (image: *ImageIO) -> DescriptriceImage
 {
     desc: DescriptriceImage
     desc.largeur = image.largeur comme n32
@@ -110,15 +143,7 @@ crée_image_depuis_image_io :: fonc (image: *ImageIO) -> NouvelleImage
         panique("nombre de composant non-géré")
     }
 
-    résultat := crée_image(*desc)
-
-    sortie := résultat.données comme *r32
-
-    pour image.taille_donnees {
-        sortie[it] = image.donnees[it]
-    }
-
-    retourne résultat
+    retourne desc
 }
 
 détruit_données_image :: fonc (image: *NouvelleImage)
@@ -293,14 +318,12 @@ ouvre_image :: fonc (chemin: CheminFichier) -> Résultat(ImageIO, ResultatOperat
     _ := IMG_ecris_image(chn_c_sortie comme *z8, *image)
 }
 
-calcul_empreinte_floue :: fonc (chemin: chaine, composants_x: z32, composants_y: z32) -> chaine
+calcule_empreinte_floue :: fonc (image: ImageIO, composants_x: z32, composants_y: z32) -> chaine
 {
     tampon: [2 + 4 + (9 * 9 - 1) * 2 + 1]z8
     taille_résultat: z64
 
-    chaine_c := crée_chaine_c_temp(chemin)
-
-    IMG_calcul_empreinte_floue(chaine_c, composants_x, composants_y, *tampon[0], *taille_résultat)
+    IMG_calcule_empreinte_floue_reel(image.donnees, image.largeur, image.hauteur, image.nombre_composants, composants_x, composants_y, *tampon[0], *taille_résultat)
 
     résultat := loge_chaine(taille_résultat)
 
