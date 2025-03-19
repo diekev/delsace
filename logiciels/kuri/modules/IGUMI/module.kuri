@@ -686,6 +686,9 @@ donne_paramètres_texture_atlas_fonte :: fonc (atlas: *texture_atlas_t) -> Param
 */
 dessine_texte :: fonc (fonte: *Fonte, texte: chaine, x: r32, y: r32, couleur: CouleurRVBA)
 {
+    métriques := donne_métriques_fonte(fonte)
+    y -= métriques.jambage_inférieur
+
     commence_immédiat(ModeImmédiat.TRIANGLES, nuanceur_texte, fonte)
 
     // ancienne_fonction_mélange: z32
@@ -734,6 +737,9 @@ dessine_texte :: fonc (fonte: *Fonte, texte: chaine, x: r32, y: r32, couleur: Co
 
 dessine_texte :: fonc (fonte: *Fonte, texte: ChaineUTF16, x: r32, y: r32, couleur: CouleurRVBA, effets: *EffetsTexte)
 {
+    métriques := donne_métriques_fonte(fonte)
+    y -= métriques.jambage_inférieur
+
     commence_immédiat(ModeImmédiat.TRIANGLES, nuanceur_texte, fonte)
 
     // ancienne_fonction_mélange: z32
@@ -796,6 +802,9 @@ dessine_texte :: fonc (fonte: *Fonte, texte: ChaineUTF16, x: r32, y: r32, couleu
 
 dessine_texte :: fonc (fonte: *Fonte, texte: ChaineUTF32, x: r32, y: r32, couleur: CouleurRVBA, effets: *EffetsTexte)
 {
+    métriques := donne_métriques_fonte(fonte)
+    y -= métriques.jambage_inférieur
+
     commence_immédiat(ModeImmédiat.TRIANGLES, nuanceur_texte, fonte)
 
     // ancienne_fonction_mélange: z32
