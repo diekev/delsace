@@ -12,6 +12,9 @@ importe Typographie
 
 dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: chaine, fonte: *Fonte, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8, effets: *EffetsTexte = nul)
 {
+    métriques := donne_métriques_fonte(fonte)
+    rect.y -= métriques.jambage_inférieur comme z32
+
     rect_sauf := donne_rect_sûr(tampon_de_rendu, rect)
     si rect_sauf.largeur == 0 || rect_sauf.hauteur == 0 {
         retourne
@@ -43,6 +46,9 @@ dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: chaine, fonte: *F
 
 dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: ChaineUTF16, fonte: *Fonte, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8, effets: *EffetsTexte)
 {
+    métriques := donne_métriques_fonte(fonte)
+    rect.y -= métriques.jambage_inférieur comme z32
+
     rect_sauf := donne_rect_sûr(tampon_de_rendu, rect)
     si rect_sauf.largeur == 0 || rect_sauf.hauteur == 0 {
         retourne
@@ -74,6 +80,9 @@ dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: ChaineUTF16, font
 
 dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: ChaineUTF32, fonte: *Fonte, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8, effets: *EffetsTexte)
 {
+    métriques := donne_métriques_fonte(fonte)
+    rect.y -= métriques.jambage_inférieur comme z32
+
     rect_sauf := donne_rect_sûr(tampon_de_rendu, rect)
     si rect_sauf.largeur == 0 || rect_sauf.hauteur == 0 {
         retourne

@@ -41,6 +41,11 @@ définis_rect_ciseau :: fonc (tampon: *TamponDeRendu, rect: RectanglePosDim(z32)
     tampon.rect_ciseau = rect
 }
 
+donne_nouvelle_image_depuis_données :: fonc (tampon: *TamponDeRendu) -> NouvelleImage
+{
+    retourne crée_image_pour_données_externe(tampon.données.pointeur, tampon.rect.largeur comme n32, tampon.rect.hauteur comme n32, FormatPixel.RVBA_8, DirectionImage.BasEnHaut)
+}
+
 /* Ceci remplis inconditionnellement le tampon avec la couleur (pas de fusion, etc.).
  * Cette fonction est à utiliser pour réinitialiser le tampon. */
 remplis_avec :: fonc (tampon: *TamponDeRendu, couleur: CouleurRVBAN8)
