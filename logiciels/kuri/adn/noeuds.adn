@@ -644,7 +644,7 @@ struct NoeudExpressionAppel : NoeudExpression {
 
     NoeudExpression * expression [code enfant construction]
     NoeudExpression * [] paramètres [code enfant]
-    NoeudExpression * [] paramètres_résolus
+    NoeudExpression * [] paramètres_résolus [copie]
     NoeudExpression const * noeud_fonction_appelée
     ÉtatRésolutionAppel * état_résolution_appel
 }
