@@ -259,32 +259,45 @@ static bool ajoute_dépendances_au_programme(GrapheDépendance &graphe,
         return kuri::DécisionItération::Continue;
     });
 
-    auto dépendances_manquantes = programme.dépendances_manquantes();
-    programme.dépendances_manquantes().efface();
+    while (true) {
+        auto dépendances_manquantes = programme.dépendances_manquantes();
+        if (dépendances_manquantes.taille() == 0) {
+            break;
+        }
 
-    graphe.prépare_visite();
+        programme.dépendances_manquantes().efface();
 
-    dépendances_manquantes.pour_chaque_element([&](NoeudDéclaration *decl) {
-        auto noeud_dep = graphe.garantie_noeud_dépendance(espace, decl);
+        dépendances_manquantes.pour_chaque_element([&](NoeudDéclaration *decl) {
+            auto noeud_dep = graphe.garantie_noeud_dépendance(espace, decl);
 
-        graphe.traverse(noeud_dep, [&](NoeudDépendance const *relation) {
-            if (relation->est_fonction()) {
-                programme.ajoute_fonction(relation->fonction());
-                données_dépendances.dépendances_épendues.fonctions_utilisées.insère(
-                    relation->fonction());
-            }
-            else if (relation->est_globale()) {
-                programme.ajoute_globale(relation->globale());
-                données_dépendances.dépendances_épendues.globales_utilisées.insère(
-                    relation->globale());
-            }
-            else if (relation->est_type()) {
-                programme.ajoute_type(
-                    relation->type(), RaisonAjoutType::DÉPENDACE_INDIRECTE, decl);
-                données_dépendances.dépendances_épendues.types_utilisés.insère(relation->type());
+            for (auto const &relation : noeud_dep->relations().plage()) {
+                auto accepte = relation.type == TypeRelation::UTILISE_TYPE;
+                accepte |= relation.type == TypeRelation::UTILISE_FONCTION;
+                accepte |= relation.type == TypeRelation::UTILISE_GLOBALE;
+
+                if (!accepte) {
+                    continue;
+                }
+
+                if (relation.noeud_fin->est_fonction()) {
+                    programme.ajoute_fonction(relation.noeud_fin->fonction());
+                    données_dépendances.dépendances_épendues.fonctions_utilisées.insère(
+                        relation.noeud_fin->fonction());
+                }
+                else if (relation.noeud_fin->est_globale()) {
+                    programme.ajoute_globale(relation.noeud_fin->globale());
+                    données_dépendances.dépendances_épendues.globales_utilisées.insère(
+                        relation.noeud_fin->globale());
+                }
+                else if (relation.noeud_fin->est_type()) {
+                    programme.ajoute_type(
+                        relation.noeud_fin->type(), RaisonAjoutType::DÉPENDACE_INDIRECTE, decl);
+                    données_dépendances.dépendances_épendues.types_utilisés.insère(
+                        relation.noeud_fin->type());
+                }
             }
         });
-    });
+    }
 
     return true;
 }
