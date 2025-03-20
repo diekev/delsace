@@ -1,0 +1,21 @@
+/* Les arguments des fonctions qui une construction de structures comme valeur par défaut
+ * ne sont pas initialisés à la valeur par défaut.
+ * Catégories : [canonicalisation]
+ */
+
+importe Fondation
+
+U :: struct {
+    données: *rien
+}
+
+passe_structure_par_valeur_défaut :: fonc (u := U())
+{
+    assert(u.données == nul)
+}
+
+principale :: fonc () -> z32
+{
+    passe_structure_par_valeur_défaut()
+    retourne 0
+}
