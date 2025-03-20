@@ -140,7 +140,7 @@ donne_descriptice_depuis_image_io :: fonc (image: *ImageIO) -> DescriptriceImage
         desc.format = FormatPixel.RVBA_32
     }
     sinon {
-        panique("nombre de composant non-géré")
+        panique("nombre de composant non-géré : %", image.nombre_composants)
     }
 
     retourne desc
