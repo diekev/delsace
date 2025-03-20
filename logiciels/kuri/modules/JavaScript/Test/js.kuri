@@ -62,9 +62,7 @@ principale :: fonc () -> z32
 exécute_script :: fonc (realm: *Realm, source: chaine) -> bool
 {
     script: *Script
-    /* À FAIRE(langage) : host_defined n'est pas initialisée à sa valeur défaut. */
-    host_defined: HostDefined
-    discr parse_script(source, realm, host_defined) {
+    discr parse_script(source, realm) {
         Ok(s) {
             script = s
         }

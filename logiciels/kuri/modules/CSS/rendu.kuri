@@ -604,7 +604,6 @@ noeud_disposition_texte_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, 
     fonte := noeud.fonte
     assert(fonte != nul)
 
-    métriques := donne_métriques_fonte(fonte)
     couleur := propriétés.donne_valeur_utilisée(IDPropriété.Color).couleur
 
     rect := ctx.donne_rectangle_corrigé(fragment.donne_rectangle())
@@ -668,10 +667,7 @@ noeud_text_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDe
     }
 
     saufsi value.est_vide() {
-        métriques := donne_métriques_fonte(noeud.fonte)
-
         rect_texte := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_contenu())
-
         ctx.commandes.dessine_texte(noeud.fonte, value, rect_texte, couleur, nul)
     }
 }
@@ -705,10 +701,7 @@ noeud_textarea_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDess
     }
 
     saufsi value.est_vide() {
-        métriques := donne_métriques_fonte(noeud.fonte)
-
         rect_texte := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_contenu())
-
         ctx.commandes.dessine_texte(noeud.fonte, value, rect_texte, couleur, nul)
     }
 }
@@ -742,7 +735,6 @@ noeud_select_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin
     fonte := noeud.fonte
     assert(fonte != nul)
 
-    métriques := donne_métriques_fonte(fonte)
     couleur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color).couleur
 
     rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_contenu())
