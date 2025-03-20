@@ -205,7 +205,7 @@ struct Programme {
 
     bool possède_init_types(Type *type) const
     {
-        return m_init_types.possède(type);
+        return m_init_de.possède(type);
     }
 
     kuri::tableau_statique<NoeudDéclarationEntêteFonction *> fonctions() const
@@ -225,7 +225,7 @@ struct Programme {
 
     kuri::tableau_statique<Type *> init_types() const
     {
-        return m_init_types.donne_éléments();
+        return m_init_de.donne_éléments();
     }
 
     /* Retourne vrai si toutes les fonctions, toutes les globales, et tous les types utilisés par

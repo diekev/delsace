@@ -144,7 +144,7 @@ void Programme::ajoute_type(Type *type, RaisonAjoutType raison, NoeudExpression 
 
 void Programme::ajoute_init_de(Type *type)
 {
-    m_éléments_sont_sales[TYPES][POUR_RI] |= m_init_types.insère(type);
+    m_éléments_sont_sales[TYPES][POUR_RI] |= m_init_de.insère(type);
     m_éléments_sont_sales[TYPES][POUR_RI] |= type->fonction_init == nullptr;
 
     if (type->fonction_init) {
