@@ -2102,8 +2102,9 @@ static void copie_paramètres_résolus(NoeudExpressionAppel *appel,
          *
          * Une expression peut être nulle pour les expressions de construction de type. */
         if (it && it->possède_drapeau(DrapeauxNoeud::EST_EXPRESSION_DÉFAUT)) {
-            /* À FAIRE : copie toutes les données de validation (p.e. paramètres résolus pour les
-             * appels). */
+            /* À FAIRE : ajout d'un drapeau pour copier les données de validation sémantique,
+             * et change noeud.adn pour utiliser ce drapeau afin que les copies ailleurs
+             * ne copient que ce dont elles ont besoin. */
             auto nouveau_it = copie_noeud(
                 assembleuse, it, it->bloc_parent, OptionsCopieNoeud::PRÉSERVE_DRAPEAUX_VALIDATION);
             nouveau_it->drapeaux &= ~DrapeauxNoeud::EST_EXPRESSION_DÉFAUT;
