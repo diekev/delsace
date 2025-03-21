@@ -769,6 +769,13 @@ void GestionnaireCode::détermine_dépendances(NoeudExpression *noeud,
     /* Nous devons faire çà après la création du noeud de dépendance et de ses relations. */
     if (unité_pour_ri) {
         ajoute_attentes_sur_initialisations_types(noeud, unité_pour_ri);
+
+        pour_chaque_élément(dépendances.dépendances.info_de_utilisés, [&](Type *type) {
+            auto attente = Attente::sur_info_type(type);
+            ajoute_requêtes_pour_attente(unité_pour_ri->espace, attente);
+            unité_pour_ri->ajoute_attente(attente);
+            return kuri::DécisionItération::Continue;
+        });
     }
     if (unité_pour_noeud_code) {
         ajoute_attentes_pour_noeud_code(noeud, unité_pour_noeud_code);
@@ -1351,6 +1358,12 @@ void GestionnaireCode::ajoute_requêtes_pour_attente(EspaceDeTravail *espace, At
     else if (attente.est<AttenteSurInitialisationType>()) {
         auto type = const_cast<Type *>(attente.initialisation_type());
         requiers_initialisation_type(espace, type);
+    }
+    else if (attente.est<AttenteSurInfoType>()) {
+        Type *type = const_cast<Type *>(attente.info_type());
+        if (type_requiers_typage(type)) {
+            requiers_typage(espace, type);
+        }
     }
 }
 

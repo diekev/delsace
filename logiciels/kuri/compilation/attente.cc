@@ -813,6 +813,53 @@ InfoTypeAttente info_type_attente_sur_initialisation_type = {
 
 /** \} */
 
+/** -----------------------------------------------------------------
+ * AttenteSurInfoType
+ * \{ */
+
+RAPPEL_POUR_COMMENTAIRE(info_type)
+{
+    auto type = attente.info_type();
+    return enchaine("info type de ", chaine_type(type));
+}
+
+RAPPEL_POUR_EST_RÉSOLUE(info_type)
+{
+    auto type = attente.info_type();
+
+    kuri::ensemblon<Type *, 16> types_utilisés;
+    types_utilisés.insère(const_cast<Type *>(type));
+
+    kuri::tablet<Attente, 16> attentes;
+    /* Visite récursivement le type pour s'assurer que tous les types dépendus sont
+     * validés, ceci est nécessaire pour garantir que les infos types seront générés avec
+     * les bonnes données. À FAIRE : permet l'ajournement des infos-types afin de ne pas
+     * avoir à attendre. */
+    attentes_sur_types_si_drapeau_manquant(
+        types_utilisés, DrapeauxNoeud::DECLARATION_FUT_VALIDEE, attentes);
+
+    return attentes.taille() == 0;
+}
+
+RAPPEL_POUR_ERREUR(info_type)
+{
+    auto message = enchaine("Je ne pas continuer la compilation car une unité attend "
+                            "indéfiniement sur les infos-type de « ",
+                            chaine_type(attente.info_type()),
+                            " ».");
+
+    auto espace = unité->espace;
+    espace->rapporte_erreur(unité->noeud, message);
+}
+
+InfoTypeAttente info_type_attente_sur_info_type = {nullptr,
+                                                   condition_blocage_défaut,
+                                                   NOM_RAPPEL_POUR_COMMENTAIRE(info_type),
+                                                   NOM_RAPPEL_POUR_EST_RÉSOLUE(info_type),
+                                                   NOM_RAPPEL_POUR_ERREUR(info_type)};
+
+/** \} */
+
 /* ------------------------------------------------------------------------- */
 /** \name Attente.
  * \{ */
