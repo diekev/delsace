@@ -495,19 +495,6 @@ void Tacheronne::gère_unité_pour_typage(UniteCompilation *unite)
     compilatrice.dépose_sémanticienne(sémanticienne);
 }
 
-static NoeudDéclarationEntêteFonction *entete_fonction(NoeudExpression *noeud)
-{
-    if (noeud->est_entête_fonction()) {
-        return noeud->comme_entête_fonction();
-    }
-
-    if (noeud->est_corps_fonction()) {
-        return noeud->comme_corps_fonction()->entête;
-    }
-
-    return nullptr;
-}
-
 bool Tacheronne::gère_unité_pour_ri(UniteCompilation *unite)
 {
     auto noeud = unite->noeud;
@@ -526,7 +513,7 @@ bool Tacheronne::gère_unité_pour_ri(UniteCompilation *unite)
         constructrice_ri.génère_ri_pour_noeud(unite->espace, noeud);
     }
 
-    auto entete = entete_fonction(noeud);
+    auto entete = donne_entête_fonction(noeud);
     if (entete) {
         analyseuse_ri->analyse_ri(*unite->espace,
                                   constructrice_ri.donne_constructrice(),
@@ -540,7 +527,7 @@ bool Tacheronne::gère_unité_pour_ri(UniteCompilation *unite)
 void Tacheronne::gère_unité_pour_optimisation(UniteCompilation *unite)
 {
     auto noeud = unite->noeud;
-    auto entete = entete_fonction(noeud);
+    auto entete = donne_entête_fonction(noeud);
     assert(entete);
 
     if (entete->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE)) {

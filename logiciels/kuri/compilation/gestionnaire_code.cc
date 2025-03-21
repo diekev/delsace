@@ -1082,23 +1082,10 @@ void GestionnaireCode::requiers_typage(EspaceDeTravail *espace, NoeudExpression 
     crée_unité_pour_noeud(espace, noeud, RaisonDÊtre::TYPAGE, true);
 }
 
-static NoeudDéclarationEntêteFonction *entete_fonction(NoeudExpression *noeud)
-{
-    if (noeud->est_entête_fonction()) {
-        return noeud->comme_entête_fonction();
-    }
-
-    if (noeud->est_corps_fonction()) {
-        return noeud->comme_corps_fonction()->entête;
-    }
-
-    return nullptr;
-}
-
 void GestionnaireCode::ajoute_attentes_sur_initialisations_types(NoeudExpression *noeud,
                                                                  UniteCompilation *unité)
 {
-    auto entête = entete_fonction(noeud);
+    auto entête = donne_entête_fonction(noeud);
     if (!entête || entête->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE)) {
         return;
     }
