@@ -1063,10 +1063,13 @@ contexte_parsage_shorthand_variable_ajoute_propriété :: fonc (ctx: *ContextePa
         retourne
     }
 
+    /// XXX - fuite de mémoire sur copie_valeur()
+    v := copie_valeur(valeur)
+
     déclaration: DéclarationPropriété
     déclaration.info = info
     déclaration.property_name = nom
-    déclaration.value.pointeur = *valeur
+    déclaration.value.pointeur = *v
     déclaration.value.taille = 1
 
     calcule_valeur_propriété(ctx.ctx_calcul_style, info, *déclaration)
@@ -1143,7 +1146,9 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
     calcule_display_final(propriétés)
 
     /* Transfert les valeurs calculées aux valeurs utilisées. */
-    propriétés.style_utilisée = propriétés.style
+    pour propriétés.style.valeurs {
+        propriétés.style_utilisée.valeurs[index_it] = copie_valeur(it)
+    }
 
     saufsi propriétés_parent {
         résolveuse.longueurs_relative_fonte_racine = ctx_calcul_style.longueurs_relative_fonte

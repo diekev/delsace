@@ -1,0 +1,423 @@
+importe BoiteFlexible
+importe Couleur
+importe Fondation
+importe Géométrie
+importe IGUMI
+importe Image
+importe Math
+importe OpenGL
+importe PeintureInterface
+importe Périphériques
+importe Qt
+importe Structures
+importe SysFichier
+importe Typographie
+
+principale :: fonc () -> z32
+{
+    arguments := arguments_ligne_commande()
+
+    taille_arguments := arguments.taille comme z32
+    app := QT_cree_application(*taille_arguments, __arguments_ligne_commande.pointeur)
+    diffère QT_detruit_application(app)
+
+    rappels: RappelsWindow
+
+    tableau_ajoute(*rappels.documents, Document("Défilage Vertical", dessine_interface_défilable_verticale))
+    tableau_ajoute(*rappels.documents, Document("Basique", dessine_interface_basique))
+    // tableau_ajoute(*rappels.documents, Document("Flexible", dessine_interface_flexible))
+    tableau_ajoute(*rappels.documents, Document("Flexible Verticale", dessine_interface_flexible_verticale))
+    tableau_ajoute(*rappels.documents, Document("Texte", dessine_interface_texte))
+
+    rappels.fonte = crée_fonte(CheminFichier("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"), 16.0)
+    rappels.grosse_fonte = crée_fonte(CheminFichier("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"), 40.0)
+
+    window := QT_window_cree_avec_rappels(*rappels)
+    QT_window_show_maximized(window)
+
+    retourne QT_application_exec(app)
+}
+
+/* ------------------------------------------------------------------------- */
+/** \nom RappelsWindow
+ * \{ */
+
+Document :: struct {
+    nom: chaine
+    dessine_document: fonc(*RappelsWindow)(rien)
+}
+
+RappelsWindow :: struct {
+    empl base: QT_Rappels_Window
+
+    taille_fenêtre: QT_Taille
+    emboiteuse: Emboiteuse
+    peintre: *Peintre
+
+    fonte: *Fonte
+    grosse_fonte: *Fonte
+
+    largeur_début := 1600
+    hauteur_début := 800
+
+    largeur_courante := 1600
+    hauteur_courante := 800
+
+    largeur_cible := 800
+    hauteur_cible := 400
+
+    documents: [..]Document
+    document_courant: z32
+
+    glctx: *QT_OpenGL_Context
+    glew_est_initialisé: bool
+
+    sur_creation = rappels_window_sur_creation
+    sur_evenement = rappels_window_sur_evenement
+}
+
+définis_document_courant :: fonc (rappels: *RappelsWindow, id: chaine, index: z32)
+{
+    si index < 0 && index >= rappels.documents.taille {
+        retourne
+    }
+
+    si index == rappels.document_courant {
+        retourne
+    }
+
+    si rappels.documents[index].nom == id {
+        rappels.document_courant = index
+    }
+}
+
+rappels_window_sur_creation :: fonc (base: *QT_Rappels_Window)
+{
+    rappels := base comme *RappelsWindow
+    window := rappels.window
+
+    QT_window_set_surface_type(window, QT_Surface_Type.OpenGLSurface)
+}
+
+rappels_window_sur_evenement :: fonc (base: *QT_Rappels_Window, event: QT_Generic_Event) -> bool
+{
+    rappels := base comme *RappelsWindow
+
+    type := QT_evenement_donne_type(event)
+
+    si type == QT_Event_Type.UpdateRequest {
+        dessine_fenêtre(rappels)
+        retourne vrai
+    }
+
+    si type == QT_Event_Type.Expose {
+        dessine_fenêtre(rappels)
+        retourne vrai
+    }
+
+    si type == QT_Event_Type.Resize {
+        QT_resize_event_donne_taille(event.resize_event, *rappels.taille_fenêtre)
+        retourne vrai
+    }
+
+    si type == QT_Event_Type.MouseMove {
+        position: QT_Position
+        QT_mouse_event_donne_position(event.mouse_event, *position)
+        définis_position_souris(*rappels.emboiteuse, position.x comme r32, position.y comme r32)
+        retourne vrai
+    }
+
+    si type == QT_Event_Type.Wheel {
+        position: QT_Position
+        QT_wheel_event_donne_position(event.wheel_event, *position)
+        delta := QT_wheel_event_donne_delta(event.wheel_event)
+        applique_défilage_vertical(*rappels.emboiteuse, position.x comme r32, position.y comme r32, delta)
+        retourne vrai
+    }
+
+    si type == QT_Event_Type.MouseButtonPress {
+        clic := donne_clique_souris_depuis_évènement(event.mouse_event, ActionSouris.PRESSÉE)
+        sur_pression_souris(*rappels.emboiteuse, clic.état.où.x comme r32, clic.état.où.y comme r32)
+        retourne vrai
+    }
+
+    si type == QT_Event_Type.MouseButtonRelease {
+        clic := donne_clique_souris_depuis_évènement(event.mouse_event, ActionSouris.PRESSÉE)
+        sur_relâchement_souris(*rappels.emboiteuse, clic.état.où.x comme r32, clic.état.où.y comme r32)
+        retourne vrai
+    }
+
+    retourne faux
+}
+
+dessine_fenêtre :: fonc (base: *QT_Rappels_Window)
+{
+    rappels := base comme *RappelsWindow
+    window := rappels.window
+
+    saufsi QT_window_is_exposed(window) {
+        retourne
+    }
+
+    saufsi rappels.glctx {
+        rappels.glctx = QT_OpenGL_Context_cree_avec_parent(window)
+        _ := QT_OpenGL_Context_create(rappels.glctx)
+    }
+
+    _ := QT_OpenGL_Context_make_current(rappels.glctx, window)
+
+    saufsi rappels.glew_est_initialisé {
+        glewExperimental = 1
+        erreur_ := glewInit()
+
+        si erreur_ != 0 {
+            imprime("Erreur lors de l'initilisation de GLEW !\n")
+            retourne
+        }
+        rappels.glew_est_initialisé = vrai
+    }
+
+    marque := donne_marque_stockage_temporaire()
+    diffère définis_marque_stockage_temporaire(marque)
+
+    glViewport(0, 0, QT_window_width(window), QT_window_height(window))
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+    glClearColor(1.0, 1.0, 1.0, 1.0)
+
+    commandes := crée_interface(rappels)
+
+    si rappels.largeur_courante > rappels.largeur_cible {
+        rappels.largeur_courante -= 5
+    }
+    si rappels.hauteur_courante > rappels.hauteur_cible {
+        rappels.hauteur_courante -= 5
+    }
+
+    taille_cannevas := Taille(largeur = Largeur(rappels.taille_fenêtre.largeur), hauteur = Hauteur(rappels.taille_fenêtre.hauteur))
+
+    saufsi rappels.peintre {
+        rappels.peintre = crée_peintre_igumi(taille_cannevas)
+    }
+
+    rappels.peintre.définis_taille_cannevas(taille_cannevas)
+
+    dessine_commandes(rappels.peintre, *commandes)
+
+    rappels.peintre.dessine_tampon_sur_écran()
+
+    QT_OpenGL_Context_swap_buffers(rappels.glctx, window)
+    QT_window_request_update(rappels.window)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom
+ * \{ */
+
+VERT_CLAIR := CouleurRVBA(0.976, 0.996, 0.968, 1.0)
+BLEU := CouleurRVBA(0.039, 0.431, 0.529, 1.0)
+ROSE := CouleurRVBA(0.984, 0.576, 0.568, 1.0)
+JAUNE := CouleurRVBA(0.996, 0.741, 0.094, 1.0)
+BLEU_CLAIR := CouleurRVBA(0.266, 0.752, 0.905, 1.0)
+
+crée_interface :: fonc (rappels: *RappelsWindow) -> CommandesDeRendu
+{
+    emboiteuse := *rappels.emboiteuse
+    largeur := rappels.taille_fenêtre.largeur
+    hauteur := rappels.taille_fenêtre.hauteur
+
+    commence_disposition(emboiteuse, largeur, hauteur)
+
+    fonte := rappels.fonte
+
+    dispose_rectangle(id = "Contenant Externe",
+                      arrière_plan = CouleurRVBA(0.1686, 0.1608, 0.2, 1.0),
+                      disposition = ConfigurationDiposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), direction = Direction.Verticale, rembourrage = [16.0, 16.0, 16.0, 16.0], séparation_enfant = 16.0))
+    {
+        dispose_rectangle(id = "Barre Entête",
+                        arrière_plan = CouleurRVBA(0.352, 0.352, 0.352, 1.0),
+                        disposition = ConfigurationDiposition(cotation = Cotation(CROISSANTE(), FIXE(60)), rembourrage = [16.0, 0.0, 16.0, 0.0], séparation_enfant = 16.0, alignement_vertical = AlignementEnfant.Milieu),
+                        config = ConfigurationRectangle(rayon_coin = 8.0))
+        {
+            ajoute_bouton_barre_menu(fonte, "Ficher")
+            ajoute_bouton_barre_menu(fonte, "Édition")
+
+            dispose_séparateur_horizontal()
+
+            ajoute_bouton_barre_menu(fonte, "Média")
+            ajoute_bouton_barre_menu(fonte, "Télécharger")
+            ajoute_bouton_barre_menu(fonte, "Support")
+        }
+        termine_rectangle()
+
+        dispose_rectangle(id = "Contenu Bas",
+                        arrière_plan = CouleurRVBA(0.1686, 0.1608, 0.2, 1.0),
+                        disposition = ConfigurationDiposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), séparation_enfant = 16.0),
+                        config = ConfigurationRectangle(rayon_coin = 8.0))
+        {
+            dispose_rectangle(id = "Barre Latérale",
+                            arrière_plan = CouleurRVBA(0.352, 0.352, 0.352, 1.0),
+                            disposition = ConfigurationDiposition(cotation = Cotation(FIXE(250), CROISSANTE()), rembourrage = [16.0, 16.0, 16.0, 16.0], séparation_enfant = 16.0, direction = Direction.Verticale),
+                            config = ConfigurationRectangle(rayon_coin = 8.0))
+            {
+                dessine_barre_latérale(rappels)
+            }
+            termine_rectangle()
+
+            dispose_rectangle(id = "Contenu Principal",
+                            arrière_plan = CouleurRVBA(0.352, 0.352, 0.352, 1.0),
+                            disposition = ConfigurationDiposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), rembourrage = [16.0, 16.0, 16.0, 16.0], séparation_enfant = 16.0, direction = Direction.Verticale),
+                            config = ConfigurationRectangle(rayon_coin = 8.0),
+                            défilage = ConfigurationDéfilage(vertical = vrai))
+            {
+                document := *rappels.documents[rappels.document_courant]
+                document.dessine_document(rappels)
+            }
+            termine_rectangle()
+        }
+        termine_rectangle()
+    }
+    termine_rectangle()
+
+    retourne termine_disposition(emboiteuse)
+}
+
+ajoute_bouton_barre_menu :: fonc (fonte: *Fonte, texte: chaine)
+{
+    arrière_plan := si est_survolée(texte) {
+        CouleurRVBA(0.649, 0.649, 0.649, 1.0)
+    }
+    sinon {
+        CouleurRVBA(0.549, 0.549, 0.549, 1.0)
+    }
+    dispose_rectangle(id = texte,
+                      arrière_plan = arrière_plan,
+                      disposition = ConfigurationDiposition(rembourrage = [16.0, 8.0, 16.0, 8.0]),
+                      config = ConfigurationRectangle(rayon_coin = 5.0))
+    {
+        dispose_texte(texte, ConfigurationTexte(fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)))
+    }
+    termine_rectangle()
+}
+
+dessine_barre_latérale :: fonc (rappels: *RappelsWindow)
+{
+    pour rappels.documents {
+        arrière_plan := si index_it == rappels.document_courant {
+            CouleurRVBA(0.649, 0.649, 0.649, 0.5)
+        }
+        sinon si est_survolée(it.nom) {
+            CouleurRVBA(0.649, 0.649, 0.649, 0.25)
+        }
+        sinon {
+            CouleurRVBA()
+        }
+
+        dispose_rectangle(id = it.nom,
+                          arrière_plan = arrière_plan,
+                          disposition = ConfigurationDiposition(cotation = Cotation(CROISSANTE()), rembourrage = [16.0, 8.0, 16.0, 8.0]),
+                          config = ConfigurationRectangle(rayon_coin = 5.0))
+        {
+            sur_clic_souris(définis_document_courant, rappels, index_it comme z32)
+
+            dispose_texte(it.nom, ConfigurationTexte(rappels.fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)))
+        }
+        termine_rectangle()
+    }
+}
+
+dessine_interface_défilable_verticale :: fonc (rappels: *RappelsWindow)
+{
+    pour 10 {
+        dispose_rectangle(arrière_plan = BLEU_CLAIR,
+                          disposition = ConfigurationDiposition(cotation = Cotation(CROISSANTE(), FIXE(100))),
+                          config = ConfigurationRectangle(rayon_coin = 8.0))
+        {
+            dispose_texte(imprime_chaine_temp("%", index_it), ConfigurationTexte(rappels.fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)))
+        }
+        termine_rectangle()
+    }
+}
+
+dessine_interface_flexible_verticale :: fonc (rappels: *RappelsWindow @inutilisée)
+{
+    dispose_rectangle(arrière_plan = VERT_CLAIR,
+                      disposition = ConfigurationDiposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), alignement_horizontal = AlignementEnfant.Milieu, alignement_vertical = AlignementEnfant.Milieu))
+    {
+        dispose_rectangle(arrière_plan = BLEU,
+                           disposition = ConfigurationDiposition(cotation = Cotation(FIXE(364), FIXE(800)), rembourrage = [32.0, 32.0, 32.0, 32.0], séparation_enfant = 32.0, direction = Direction.Verticale))
+        {
+            dispose_rectangle(arrière_plan = ROSE, disposition = ConfigurationDiposition(cotation = Cotation(FIXE(300), FIXE(300))))
+            termine_rectangle()
+            dispose_rectangle(arrière_plan = JAUNE, disposition = ConfigurationDiposition(cotation = Cotation(CROISSANTE(), CROISSANTE())))
+            termine_rectangle()
+            dispose_rectangle(arrière_plan = BLEU_CLAIR, disposition = ConfigurationDiposition(cotation = Cotation(CROISSANTE(), CROISSANTE())))
+            termine_rectangle()
+        }
+        termine_rectangle()
+    }
+    termine_rectangle()
+}
+
+dessine_interface_basique :: fonc (rappels: *RappelsWindow @inutilisée)
+{
+    dispose_rectangle(arrière_plan = VERT_CLAIR,
+                       disposition = ConfigurationDiposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), alignement_horizontal = AlignementEnfant.Milieu, alignement_vertical = AlignementEnfant.Milieu))
+    {
+        dispose_rectangle(arrière_plan = BLEU,
+                           disposition = ConfigurationDiposition(rembourrage = [32.0, 32.0, 32.0, 32.0], séparation_enfant = 32.0))
+        {
+            dispose_rectangle(arrière_plan = ROSE, disposition = ConfigurationDiposition(cotation = Cotation(FIXE(300), FIXE(300))))
+            termine_rectangle()
+            dispose_rectangle(arrière_plan = JAUNE, disposition = ConfigurationDiposition(cotation = Cotation(FIXE(350), FIXE(200))))
+            termine_rectangle()
+        }
+        termine_rectangle()
+    }
+    termine_rectangle()
+}
+
+dessine_interface_flexible :: fonc (rappels: *RappelsWindow @inutilisée, largeur_courante: z32, hauteur_courante: z32)
+{
+    dispose_rectangle(arrière_plan = VERT_CLAIR,
+                       disposition = ConfigurationDiposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), alignement_horizontal = AlignementEnfant.Milieu, alignement_vertical = AlignementEnfant.Milieu))
+    {
+        dispose_rectangle(arrière_plan = BLEU,
+                           disposition = ConfigurationDiposition(cotation = Cotation(FIXE(largeur_courante), FIXE(hauteur_courante)), rembourrage = [32.0, 32.0, 32.0, 32.0], séparation_enfant = 32.0))
+        {
+            dispose_rectangle(arrière_plan = ROSE, disposition = ConfigurationDiposition(cotation = Cotation(FIXE(300), FIXE(300))))
+            termine_rectangle()
+            dispose_rectangle(arrière_plan = JAUNE, disposition = ConfigurationDiposition(cotation = Cotation(CROISSANTE(), CROISSANTE())))
+            termine_rectangle()
+            dispose_rectangle(arrière_plan = BLEU_CLAIR, disposition = ConfigurationDiposition(cotation = Cotation(CROISSANTE(), CROISSANTE())))
+            termine_rectangle()
+        }
+        termine_rectangle()
+    }
+    termine_rectangle()
+}
+
+dessine_interface_texte :: fonc (rappels: *RappelsWindow)
+{
+    dispose_rectangle(arrière_plan = VERT_CLAIR,
+                       disposition = ConfigurationDiposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), alignement_horizontal = AlignementEnfant.Milieu, alignement_vertical = AlignementEnfant.Milieu))
+    {
+        dispose_rectangle(arrière_plan = BLEU,
+                           disposition = ConfigurationDiposition(cotation = Cotation(FIXE(1200)), rembourrage = [32.0, 32.0, 32.0, 32.0], séparation_enfant = 32.0))
+        {
+            dispose_texte("Un Deux Trois Quatre", ConfigurationTexte(rappels.grosse_fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)))
+            dispose_rectangle(arrière_plan = JAUNE, disposition = ConfigurationDiposition(cotation = Cotation(FIXE(300), FIXE(300))))
+            termine_rectangle()
+            dispose_rectangle(arrière_plan = BLEU_CLAIR, disposition = ConfigurationDiposition(rembourrage = [32.0, 32.0, 32.0, 32.0]))
+            {
+                dispose_texte("Cinq Six Sept Huit Neuf Dix", ConfigurationTexte(rappels.grosse_fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)))
+            }
+            termine_rectangle()
+        }
+        termine_rectangle()
+    }
+    termine_rectangle()
+}
+
+/** \} */
