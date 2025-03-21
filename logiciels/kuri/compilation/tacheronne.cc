@@ -551,34 +551,6 @@ bool Tacheronne::gère_unité_pour_ri(UniteCompilation *unite)
         return false;
     }
 
-    auto entete_possible = entete_fonction(noeud);
-    if (entete_possible &&
-        !entete_possible->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE)) {
-        /* À FAIRE : déplace ceci dans le GestionnaireCode afin de ne pas retravailler sur des
-         * entêtes que nous avons déjà vu. */
-        auto types_utilises = kuri::ensemblon<Type *, 16>();
-
-        auto noeud_dep = entete_possible->noeud_dépendance;
-
-        POUR (noeud_dep->relations().plage()) {
-            if (!it.noeud_fin->est_type()) {
-                continue;
-            }
-
-            auto type_dependu = it.noeud_fin->type();
-            types_utilises.insère(type_dependu);
-        }
-
-        auto attentes_possibles = kuri::tablet<Attente, 16>();
-        attentes_sur_types_si_drapeau_manquant(
-            types_utilises, DrapeauxTypes::INITIALISATION_TYPE_FUT_CREEE, attentes_possibles);
-
-        if (!attentes_possibles.est_vide()) {
-            compilatrice.gestionnaire_code->mets_en_attente(unite, attentes_possibles);
-            return false;
-        }
-    }
-
     if (unite->est_pour_generation_ri_principale_mp()) {
         constructrice_ri.génère_ri_pour_fonction_métaprogramme(unite->espace,
                                                                noeud->comme_entête_fonction());

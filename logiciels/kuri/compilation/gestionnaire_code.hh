@@ -282,6 +282,9 @@ class GestionnaireCode {
     /* Ajoute l'unité à la liste d'attente, et change son état vers EN_ATTENTE. */
     void ajoute_unité_à_liste_attente(UniteCompilation *unité);
 
+    void ajoute_attentes_sur_initialisations_types(NoeudExpression *noeud,
+                                                   UniteCompilation *unité);
+
     void requiers_exécution(EspaceDeTravail *espace, MetaProgramme *metaprogramme);
 
     void ajoute_programme(Programme *programme);

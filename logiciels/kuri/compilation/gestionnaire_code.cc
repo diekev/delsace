@@ -1064,10 +1064,58 @@ void GestionnaireCode::requiers_typage(EspaceDeTravail *espace, NoeudExpression 
     crée_unité_pour_noeud(espace, noeud, RaisonDÊtre::TYPAGE, true);
 }
 
+static NoeudDéclarationEntêteFonction *entete_fonction(NoeudExpression *noeud)
+{
+    if (noeud->est_entête_fonction()) {
+        return noeud->comme_entête_fonction();
+    }
+
+    if (noeud->est_corps_fonction()) {
+        return noeud->comme_corps_fonction()->entête;
+    }
+
+    return nullptr;
+}
+
+void GestionnaireCode::ajoute_attentes_sur_initialisations_types(NoeudExpression *noeud,
+                                                                 UniteCompilation *unité)
+{
+    auto entête = entete_fonction(noeud);
+    if (!entête || entête->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE)) {
+        return;
+    }
+
+    auto noeud_dépendance = entête->noeud_dépendance;
+    auto types_utilisés = kuri::ensemblon<Type *, 16>();
+
+    POUR (noeud_dépendance->relations().plage()) {
+        if (!it.noeud_fin->est_type()) {
+            continue;
+        }
+
+        auto type_dépendu = it.noeud_fin->type();
+        types_utilisés.insère(type_dépendu);
+    }
+
+    auto attentes_possibles = kuri::tablet<Attente, 16>();
+    attentes_sur_types_si_drapeau_manquant(
+        types_utilisés, DrapeauxTypes::INITIALISATION_TYPE_FUT_CREEE, attentes_possibles);
+
+    if (attentes_possibles.taille() == 0) {
+        return;
+    }
+
+    POUR (attentes_possibles) {
+        ajoute_requêtes_pour_attente(unité->espace, it);
+        unité->ajoute_attente(it);
+    }
+}
+
 void GestionnaireCode::requiers_génération_ri(EspaceDeTravail *espace, NoeudExpression *noeud)
 {
     TACHE_AJOUTEE(GENERATION_RI);
-    crée_unité_pour_noeud(espace, noeud, RaisonDÊtre::GENERATION_RI, true);
+    auto unité = crée_unité_pour_noeud(espace, noeud, RaisonDÊtre::GENERATION_RI, true);
+    ajoute_attentes_sur_initialisations_types(noeud, unité);
 }
 
 void GestionnaireCode::requiers_génération_ri_principale_métaprogramme(
@@ -1079,6 +1127,8 @@ void GestionnaireCode::requiers_génération_ri_principale_métaprogramme(
                                        metaprogramme->fonction,
                                        RaisonDÊtre::GENERATION_RI_PRINCIPALE_MP,
                                        peut_planifier_compilation);
+
+    ajoute_attentes_sur_initialisations_types(metaprogramme->fonction, unité);
 
     if (!peut_planifier_compilation) {
         assert(metaprogrammes_en_attente_de_crée_contexte_est_ouvert);
@@ -1660,6 +1710,7 @@ void GestionnaireCode::typage_terminé(UniteCompilation *unité)
         TACHE_AJOUTEE(GENERATION_RI);
         unité->mute_raison_d_être(RaisonDÊtre::GENERATION_RI);
         ajoute_unité_à_liste_attente(unité);
+        ajoute_attentes_sur_initialisations_types(noeud, unité);
     }
 
     if (message) {
