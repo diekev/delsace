@@ -726,7 +726,10 @@ static bool doit_ajouter_les_dépendances_au_programme(NoeudExpression *noeud, P
 
 /* Construit les dépendances de l'unité (fonctions, globales, types) et crée des unités de typage
  * pour chacune des dépendances non-encore typée. */
-void GestionnaireCode::détermine_dépendances(NoeudExpression *noeud, EspaceDeTravail *espace)
+void GestionnaireCode::détermine_dépendances(NoeudExpression *noeud,
+                                             EspaceDeTravail *espace,
+                                             UniteCompilation *unité_pour_ri,
+                                             UniteCompilation *unité_pour_noeud_code)
 {
     DÉBUTE_STAT(DÉTERMINE_DÉPENDANCES);
     dépendances.reinitialise();
@@ -761,6 +764,14 @@ void GestionnaireCode::détermine_dépendances(NoeudExpression *noeud, EspaceDeT
         NoeudDépendance *noeud_dépendance = graphe->garantie_noeud_dépendance(espace, noeud);
         graphe->ajoute_dépendances(*noeud_dépendance, dépendances.dépendances);
         TERMINE_STAT(AJOUTE_DÉPENDANCES);
+    }
+
+    /* Nous devons faire çà après la création du noeud de dépendance et de ses relations. */
+    if (unité_pour_ri) {
+        ajoute_attentes_sur_initialisations_types(noeud, unité_pour_ri);
+    }
+    if (unité_pour_noeud_code) {
+        ajoute_attentes_pour_noeud_code(noeud, unité_pour_noeud_code);
     }
 
     /* Ajoute les racines aux programmes courants de l'espace. */
@@ -1246,7 +1257,7 @@ bool GestionnaireCode::tente_de_garantir_présence_création_contexte(EspaceDeTr
         return false;
     }
 
-    détermine_dépendances(decl_creation_contexte, espace);
+    détermine_dépendances(decl_creation_contexte, espace, nullptr, nullptr);
 
     if (!decl_creation_contexte->corps->unité) {
         requiers_typage(espace, decl_creation_contexte->corps);
@@ -1257,7 +1268,7 @@ bool GestionnaireCode::tente_de_garantir_présence_création_contexte(EspaceDeTr
         return false;
     }
 
-    détermine_dépendances(decl_creation_contexte->corps, espace);
+    détermine_dépendances(decl_creation_contexte->corps, espace, nullptr, nullptr);
 
     if (!decl_creation_contexte->corps->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE)) {
         return false;
@@ -1282,8 +1293,8 @@ void GestionnaireCode::requiers_compilation_métaprogramme(EspaceDeTravail *espa
     auto programme = metaprogramme->programme;
     programme->ajoute_fonction(metaprogramme->fonction);
 
-    détermine_dépendances(metaprogramme->fonction, espace);
-    détermine_dépendances(metaprogramme->fonction->corps, espace);
+    détermine_dépendances(metaprogramme->fonction, espace, nullptr, nullptr);
+    détermine_dépendances(metaprogramme->fonction->corps, espace, nullptr, nullptr);
 
     auto ri_crée_contexte_est_disponible = tente_de_garantir_présence_création_contexte(espace,
                                                                                         programme);
@@ -1734,14 +1745,10 @@ void GestionnaireCode::typage_terminé(UniteCompilation *unité)
         }
     }
 
-    // rassemble toutes les dépendances de la fonction ou de la globale
     auto noeud = unité->noeud;
-    DÉBUTE_STAT(DOIT_DÉTERMINER_DÉPENDANCES);
-    auto const détermine_les_dépendances = doit_déterminer_les_dépendances(unité->noeud);
-    TERMINE_STAT(DOIT_DÉTERMINER_DÉPENDANCES);
-    if (détermine_les_dépendances) {
-        détermine_dépendances(unité->noeud, unité->espace);
-    }
+
+    UniteCompilation *unité_pour_ri = nullptr;
+    UniteCompilation *unité_pour_noeud_code = nullptr;
 
     /* Envoi un message, nous attendrons dessus si nécessaire. */
     const auto message = m_compilatrice->messagère->ajoute_message_typage_code(espace, noeud);
@@ -1749,16 +1756,23 @@ void GestionnaireCode::typage_terminé(UniteCompilation *unité)
     if (doit_envoyer_en_ri) {
         TACHE_AJOUTEE(GENERATION_RI);
         unité->mute_raison_d_être(RaisonDÊtre::GENERATION_RI);
+        unité_pour_ri = unité;
         ajoute_unité_à_liste_attente(unité);
-        ajoute_attentes_sur_initialisations_types(noeud, unité);
     }
 
     if (message) {
-        auto unité_noeud_code = requiers_noeud_code(espace, noeud);
-        ajoute_attentes_pour_noeud_code(noeud, unité_noeud_code);
+        unité_pour_noeud_code = requiers_noeud_code(espace, noeud);
         auto unité_message = crée_unité_pour_message(espace, message);
-        unité_message->ajoute_attente(Attente::sur_noeud_code(unité_noeud_code, noeud));
+        unité_message->ajoute_attente(Attente::sur_noeud_code(unité_pour_noeud_code, noeud));
         unité->ajoute_attente(Attente::sur_message(unité_message, message));
+    }
+
+    // rassemble toutes les dépendances de la fonction ou de la globale
+    DÉBUTE_STAT(DOIT_DÉTERMINER_DÉPENDANCES);
+    auto const détermine_les_dépendances = doit_déterminer_les_dépendances(unité->noeud);
+    TERMINE_STAT(DOIT_DÉTERMINER_DÉPENDANCES);
+    if (détermine_les_dépendances) {
+        détermine_dépendances(unité->noeud, unité->espace, unité_pour_ri, unité_pour_noeud_code);
     }
 
     DÉBUTE_STAT(VÉRIFIE_ENTÊTE_VALIDÉES);
@@ -1928,8 +1942,8 @@ void GestionnaireCode::fonction_initialisation_type_créée(UniteCompilation *un
         }
     }
 
-    détermine_dépendances(fonction, unité->espace);
-    détermine_dépendances(fonction->corps, unité->espace);
+    détermine_dépendances(fonction, unité->espace, nullptr, nullptr);
+    détermine_dépendances(fonction->corps, unité->espace, nullptr, nullptr);
 
     unité->mute_raison_d_être(RaisonDÊtre::GENERATION_RI);
     auto espace = unité->espace;

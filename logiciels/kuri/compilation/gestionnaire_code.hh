@@ -292,7 +292,10 @@ class GestionnaireCode {
 
     void enleve_programme(Programme *programme);
 
-    void détermine_dépendances(NoeudExpression *noeud, EspaceDeTravail *espace);
+    void détermine_dépendances(NoeudExpression *noeud,
+                               EspaceDeTravail *espace,
+                               UniteCompilation *unité_pour_ri,
+                               UniteCompilation *unité_pour_noeud_code);
 
     bool plus_rien_n_est_à_faire();
     bool tente_de_garantir_présence_création_contexte(EspaceDeTravail *espace,
