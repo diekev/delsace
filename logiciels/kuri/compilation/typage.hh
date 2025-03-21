@@ -523,12 +523,6 @@ void attentes_sur_types_si_drapeau_manquant(kuri::ensemblon<Type *, 16> const &t
                                             DrapeauxNoeud drapeau,
                                             kuri::tablet<Attente, 16> &attentes);
 
-std::optional<Attente> attente_sur_type_si_drapeau_manquant(
-    kuri::ensemblon<Type *, 16> const &types, DrapeauxNoeud drapeau);
-
-std::optional<Attente> attente_sur_type_si_drapeau_manquant(
-    kuri::ensemblon<Type *, 16> const &types, DrapeauxTypes drapeau);
-
 /* ------------------------------------------------------------------------- */
 /** \name VisiteuseType.
  * \{ */

@@ -2445,34 +2445,6 @@ void attentes_sur_types_si_drapeau_manquant(kuri::ensemblon<Type *, 16> const &t
         types, attentes, [&](Type *type) { return type->possède_drapeau(drapeau); });
 }
 
-std::optional<Attente> attente_sur_type_si_drapeau_manquant(
-    kuri::ensemblon<Type *, 16> const &types, DrapeauxNoeud drapeau)
-{
-    kuri::tablet<Attente, 16> attentes;
-    attentes_sur_types_si_condition_échoue(
-        types, attentes, [&](Type *type) { return type->possède_drapeau(drapeau); });
-
-    if (attentes.taille()) {
-        return attentes[0];
-    }
-
-    return {};
-}
-
-std::optional<Attente> attente_sur_type_si_drapeau_manquant(
-    kuri::ensemblon<Type *, 16> const &types, DrapeauxTypes drapeau)
-{
-    kuri::tablet<Attente, 16> attentes;
-    attentes_sur_types_si_condition_échoue(
-        types, attentes, [&](Type *type) { return type->possède_drapeau(drapeau); });
-
-    if (attentes.taille()) {
-        return attentes[0];
-    }
-
-    return {};
-}
-
 /* --------------------------------------------------------------------------- */
 
 Trie::Noeud *Trie::StockageEnfants::trouve_noeud_pour_type(const Type *type)
