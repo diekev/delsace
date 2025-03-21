@@ -284,6 +284,7 @@ class GestionnaireCode {
 
     void ajoute_attentes_sur_initialisations_types(NoeudExpression *noeud,
                                                    UniteCompilation *unité);
+    void ajoute_attentes_pour_noeud_code(NoeudExpression *noeud, UniteCompilation *unité);
 
     void requiers_exécution(EspaceDeTravail *espace, MetaProgramme *metaprogramme);
 

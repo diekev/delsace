@@ -1111,6 +1111,46 @@ void GestionnaireCode::ajoute_attentes_sur_initialisations_types(NoeudExpression
     }
 }
 
+void GestionnaireCode::ajoute_attentes_pour_noeud_code(NoeudExpression *noeud,
+                                                       UniteCompilation *unité)
+{
+    auto types_utilisés = kuri::ensemblon<Type *, 16>();
+
+    visite_noeud(noeud, PreferenceVisiteNoeud::ORIGINAL, true, [&](NoeudExpression const *racine) {
+        auto type = racine->type;
+        if (type) {
+            types_utilisés.insère(type);
+        }
+
+        if (racine->est_entête_fonction()) {
+            auto entete = racine->comme_entête_fonction();
+
+            POUR ((*entete->bloc_constantes->membres.verrou_ecriture())) {
+                if (it->type) {
+                    types_utilisés.insère(it->type);
+                }
+            }
+
+            return DecisionVisiteNoeud::IGNORE_ENFANTS;
+        }
+
+        return DecisionVisiteNoeud::CONTINUE;
+    });
+
+    auto attentes_possibles = kuri::tablet<Attente, 16>();
+    attentes_sur_types_si_drapeau_manquant(
+        types_utilisés, DrapeauxNoeud::DECLARATION_FUT_VALIDEE, attentes_possibles);
+
+    if (attentes_possibles.taille() == 0) {
+        return;
+    }
+
+    POUR (attentes_possibles) {
+        ajoute_requêtes_pour_attente(unité->espace, it);
+        unité->ajoute_attente(it);
+    }
+}
+
 void GestionnaireCode::requiers_génération_ri(EspaceDeTravail *espace, NoeudExpression *noeud)
 {
     TACHE_AJOUTEE(GENERATION_RI);
@@ -1715,6 +1755,7 @@ void GestionnaireCode::typage_terminé(UniteCompilation *unité)
 
     if (message) {
         auto unité_noeud_code = requiers_noeud_code(espace, noeud);
+        ajoute_attentes_pour_noeud_code(noeud, unité_noeud_code);
         auto unité_message = crée_unité_pour_message(espace, message);
         unité_message->ajoute_attente(Attente::sur_noeud_code(unité_noeud_code, noeud));
         unité->ajoute_attente(Attente::sur_message(unité_message, message));

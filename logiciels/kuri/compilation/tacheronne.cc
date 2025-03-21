@@ -434,39 +434,6 @@ void Tacheronne::gère_tâche()
                 auto espace = tâche.unité->espace;
                 auto noeud = tâche.unité->noeud;
 
-                auto types_utilises = kuri::ensemblon<Type *, 16>();
-                visite_noeud(noeud,
-                             PreferenceVisiteNoeud::ORIGINAL,
-                             true,
-                             [&](NoeudExpression const *racine) {
-                                 auto type = racine->type;
-                                 if (type) {
-                                     types_utilises.insère(type);
-                                 }
-
-                                 if (racine->est_entête_fonction()) {
-                                     auto entete = racine->comme_entête_fonction();
-
-                                     POUR ((*entete->bloc_constantes->membres.verrou_ecriture())) {
-                                         if (it->type) {
-                                             types_utilises.insère(it->type);
-                                         }
-                                     }
-
-                                     return DecisionVisiteNoeud::IGNORE_ENFANTS;
-                                 }
-
-                                 return DecisionVisiteNoeud::CONTINUE;
-                             });
-
-                auto attente_possible = attente_sur_type_si_drapeau_manquant(
-                    types_utilises, DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
-                if (attente_possible) {
-                    compilatrice.gestionnaire_code->mets_en_attente(tâche.unité,
-                                                                    attente_possible.value());
-                    break;
-                }
-
                 // À FAIRE(noeuds codes) : ne convertis pas les corps s'ils n'ont pas encore été
                 // validés
                 // À FAIRE(noeuds codes) : ne convertis pas les déclarations référées
