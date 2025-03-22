@@ -64,7 +64,6 @@ ScannerJSON :: struct {
 
     // position courante du scan
     position := 0
-    ligne := 0
 
     // utiliser pour découper des chaines de caractères
     position_mot := 0
@@ -85,7 +84,6 @@ initialise_scanner :: fonc (scanner: *ScannerJSON, script: chaine, structure: ei
 {
     scanner.script = script
     scanner.position = 0
-    scanner.ligne = 0
     scanner.structure = structure
     scanner.rappel_copie_chaine = rappel_copie_chaine
 
@@ -172,10 +170,6 @@ saute_espaces_blancs :: fonc (scanner: *ScannerJSON) -> rien
 
         si c != ' ' && c != '\n' && c != '\r' && c != '\t' {
             arrête
-        }
-
-        si c == '\n' {
-            scanner.ligne += 1
         }
 
         scanner.avance()
