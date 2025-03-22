@@ -8,16 +8,18 @@ charge "scanner"
 
 imprime_erreurs :: fonc (scanner: &ScannerJSON, script: chaine)
 {
-    pour e dans scanner.erreurs {
-        imprime("Erreur :\n")
-        imprime("%\n", script)
-
-        pour e.position {
-            imprime(" ")
-        }
-        imprime("^\n")
-        imprime("%\n", e.chn)
+    saufsi scanner.possède_erreur {
+        retourne
     }
+
+    imprime("Erreur :\n")
+    imprime("%\n", script)
+
+    pour scanner.erreur_.position {
+        imprime(" ")
+    }
+    imprime("^\n")
+    imprime("%\n", scanner.erreur_.chn)
 }
 
 /* Retourne une chaine JSON pour la structure passée. */
