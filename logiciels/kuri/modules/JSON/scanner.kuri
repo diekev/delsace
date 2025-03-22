@@ -189,7 +189,7 @@ avance :: fonc (scanner: *ScannerJSON, n := 1) -> rien #enligne
 
 fini :: fonc (scanner: *ScannerJSON) -> bool #enligne
 {
-    retourne scanner.position >= scanner.script.taille
+    retourne scanner.position >= scanner.script.taille || scanner.possède_erreur
 }
 
 caractère_courant :: fonc (scanner: *ScannerJSON) -> z8 #enligne
