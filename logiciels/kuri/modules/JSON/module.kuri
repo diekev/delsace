@@ -12,14 +12,66 @@ imprime_erreurs :: fonc (scanner: &ScannerJSON, script: chaine)
         retourne
     }
 
-    imprime("Erreur :\n")
-    imprime("%\n", script)
+    ligne := donne_ligne_pour_erreur(scanner.erreur_, script)
 
-    pour scanner.erreur_.position {
-        imprime(" ")
+    discr scanner.erreur_.type {
+        Parsage {
+            imprime("Erreur de parsage : ")
+        }
+        Valeur {
+            imprime("Erreur de syntaxe : ")
+        }
+    }
+
+    imprime("%\n", scanner.erreur_.chn)
+
+    imprime("%\n", ligne.texte)
+
+    pour ligne.position_curseur {
+        si ligne.texte[index_it] == '\t' {
+            imprime("\t")
+        }
+        sinon {
+            imprime(" ")
+        }
     }
     imprime("^\n")
-    imprime("%\n", scanner.erreur_.chn)
+}
+
+LignePourErreur :: struct {
+    texte: chaine
+    position_curseur: z64
+}
+
+donne_ligne_pour_erreur :: fonc (e: &Erreur, script: chaine) -> LignePourErreur
+{
+    assert(e.position >= 0)
+    assert(e.position < script.taille)
+
+    début := script.pointeur
+    fin := script.pointeur + script.taille
+    ptr_position := script.pointeur + e.position
+
+    ptr_début_ligne := ptr_position
+    tantque ptr_début_ligne > début {
+        si mémoire(ptr_début_ligne) == '\n' {
+            ptr_début_ligne += 1
+            arrête
+        }
+        ptr_début_ligne -= 1
+    }
+
+    ptr_fin_ligne := ptr_position
+    tantque ptr_fin_ligne < fin {
+        si mémoire(ptr_fin_ligne) == '\n' {
+            arrête
+        }
+        ptr_fin_ligne += 1
+    }
+
+    texte := construit_chaine(ptr_début_ligne, ptr_fin_ligne - ptr_début_ligne)
+    décalage := ptr_position - ptr_début_ligne
+    retourne LignePourErreur(texte, décalage)
 }
 
 /* Retourne une chaine JSON pour la structure passée. */

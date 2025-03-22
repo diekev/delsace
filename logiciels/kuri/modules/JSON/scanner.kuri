@@ -466,6 +466,7 @@ lis_objet :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
             retourne LexèmeJSON.INVALIDE
         }
 
+        position_nom := scanner.position
         résultat := scanner.lis_chaine()
 
         si résultat != LexèmeJSON.CHAINE_CARACTÈRE {
@@ -483,7 +484,10 @@ lis_objet :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
         valeur_membre := trouve_valeur_membre(scanner.object_courant(), nom)
 
         saufsi valeur_membre.est_valide() {
+            ancienne_position := scanner.position
+            scanner.position = position_nom
             scanner.rapporte_erreur_parsage("Impossible de trouver le membre '%'", nom)
+            scanner.position = ancienne_position
             retourne LexèmeJSON.INVALIDE
         }
 
