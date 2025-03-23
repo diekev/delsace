@@ -147,7 +147,7 @@ dessine_glyphe :: fonc (tampon_de_rendu: *TamponDeRendu, fonte: *Fonte, glyph: *
             couleur_pixel := couleur
             couleur_pixel.a = (((valeur comme r32) / 255.0 * (couleur.a comme r32) / 255.0) * 255.0) comme n8
 
-            fusionne_pixels(couleur_pixel, pixel_dest)
+            fusionne_pixels_et_alpha(couleur_pixel, pixel_dest)
 
             // Fondation.assert(tampon_de_rendu.données.pointeur <= pixel_dest < tampon_de_rendu.données.pointeur + tampon_de_rendu.données.taille)
 

@@ -141,6 +141,37 @@ fusionne_pixels :: fonc (src: CouleurRVBAN8, dst: *CouleurRVBAN8)
     mémoire(dst) = CouleurRVBAN8(r, v, b, a)
 }
 
+fusionne_pixels_et_alpha :: fonc (src: CouleurRVBAN8, dst: *CouleurRVBAN8)
+{
+    si src.a == 0 {
+        retourne
+    }
+
+    si src.a == 255 {
+        mémoire(dst) = src
+        retourne
+    }
+
+    r_dest := (dst.r comme r32) / 255.0
+    v_dest := (dst.v comme r32) / 255.0
+    b_dest := (dst.b comme r32) / 255.0
+    a_dest := (dst.a comme r32) / 255.0
+
+    r_source := (src.r comme r32) / 255.0
+    v_source := (src.v comme r32) / 255.0
+    b_source := (src.b comme r32) / 255.0
+    a_source := (src.a comme r32) / 255.0
+
+    alpha := (src.a comme r32) / 255.0
+
+    r := (((1.0 - alpha) * r_dest + alpha * r_source) * 255.0) comme n8
+    v := (((1.0 - alpha) * v_dest + alpha * v_source) * 255.0) comme n8
+    b := (((1.0 - alpha) * b_dest + alpha * b_source) * 255.0) comme n8
+    a := (((1.0 - alpha) * a_dest + alpha * a_source) * 255.0) comme n8
+
+    mémoire(dst) = CouleurRVBAN8(r, v, b, a)
+}
+
 #portée_export
 
 /** \} */
