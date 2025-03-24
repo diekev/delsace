@@ -117,10 +117,10 @@ CommandeDessineImage :: struct {
     empl base: BaseCommande
     type = TypeCommandeDeRendu.DESSINE_IMAGE
 
-    image: ImageIO
+    image: NouvelleImage
 }
 
-dessine_image :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), image: ImageIO)
+dessine_image :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), image: NouvelleImage)
 {
     résultat := crée_commande(commandes, CommandeDessineImage)
     résultat.rect = rect
@@ -258,6 +258,12 @@ dispose_texte :: fonc (texte: chaine, config := ConfigurationTexte())
 
 dispose_image :: fonc (image: ImageIO, cotation: Cotation)
 {
+    nouvelle_image := nouvelle_image_enveloppe_image_io(*image)
+    dispose_image(nouvelle_image, cotation)
+}
+
+dispose_image :: fonc (image: NouvelleImage, cotation: Cotation)
+{
     assert(__boite_courante != nul)
     boite := __boite_courante.ajoute_image(image)
     boite.disposition.cotation = cotation
@@ -285,7 +291,7 @@ BoiteFlexible :: struct {
     /* Valeurs pour les différents types. */
     arrière_plan: CouleurRVBA
     texte: chaine
-    image: ImageIO
+    image: NouvelleImage
 
     /* Rappels */
     rappels: [TypeRappelUtilisateur.nombre_éléments]RappelUtilisateur
@@ -400,7 +406,7 @@ ajoute_enfant :: fonc (boite: *BoiteFlexible) -> *BoiteFlexible
     retourne enfant
 }
 
-ajoute_image :: fonc (boite: *BoiteFlexible, image: ImageIO) -> *BoiteFlexible
+ajoute_image :: fonc (boite: *BoiteFlexible, image: NouvelleImage) -> *BoiteFlexible
 {
     enfant := ajoute_enfant(boite)
     enfant.type = BoiteFlexible.Type.Image
@@ -1341,7 +1347,7 @@ dessine_commandes :: fonc (peintre: *Peintre, commandes: *CommandesDeRendu)
                 commande := base comme *CommandeDessineImage
                 rect := commande.rect
                 rect.y = hauteur_vue - rect.y - rect.hauteur
-                peintre.dessine_image(commande.image, rect, rect, RépétitionImage())
+                peintre.dessine_image(*commande.image, rect, rect, RépétitionImage())
             }
             DÉBUTE_CISELAGE {
                 rect := base.rect
