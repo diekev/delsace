@@ -700,15 +700,7 @@ dessine_texte :: fonc (fonte: *Fonte, texte: chaine, x: r32, y: r32, couleur: Co
     // diffère saufsi gl_blend_est_actif { glDisable(GL_BLEND) }
     glEnable(GL_BLEND)
 
-    // met en place la texture de la fonte sur le nuanceur
-    saufsi glIsTexture(fonte.atlas.id) {
-        glGenTextures(1, *fonte.atlas.id)
-        // À FAIRE : libère la texture quand la police n'est plus requise
-        // diffère glDeleteTextures(1, *fonte.atlas.id)
-
-        params := donne_paramètres_texture_atlas_fonte(fonte.atlas)
-        définis_texture_2d(fonte.atlas.id, *params)
-    }
+    garantis_texture_pour_atlas(fonte)
 
     glUseProgram(nuanceur_texte.programme)
 
@@ -751,15 +743,7 @@ dessine_texte :: fonc (fonte: *Fonte, texte: ChaineUTF16, x: r32, y: r32, couleu
     // diffère saufsi gl_blend_est_actif { glDisable(GL_BLEND) }
     glEnable(GL_BLEND)
 
-    // met en place la texture de la fonte sur le nuanceur
-    saufsi glIsTexture(fonte.atlas.id) {
-        glGenTextures(1, *fonte.atlas.id)
-        // À FAIRE : libère la texture quand la police n'est plus requise
-        // diffère glDeleteTextures(1, *fonte.atlas.id)
-
-        params := donne_paramètres_texture_atlas_fonte(fonte.atlas)
-        définis_texture_2d(fonte.atlas.id, *params)
-    }
+    garantis_texture_pour_atlas(fonte)
 
     glUseProgram(nuanceur_texte.programme)
 
@@ -816,15 +800,7 @@ dessine_texte :: fonc (fonte: *Fonte, texte: ChaineUTF32, x: r32, y: r32, couleu
     // diffère saufsi gl_blend_est_actif { glDisable(GL_BLEND) }
     glEnable(GL_BLEND)
 
-    // met en place la texture de la fonte sur le nuanceur
-    saufsi glIsTexture(fonte.atlas.id) {
-        glGenTextures(1, *fonte.atlas.id)
-        // À FAIRE : libère la texture quand la police n'est plus requise
-        // diffère glDeleteTextures(1, *fonte.atlas.id)
-
-        params := donne_paramètres_texture_atlas_fonte(fonte.atlas)
-        définis_texture_2d(fonte.atlas.id, *params)
-    }
+    garantis_texture_pour_atlas(fonte)
 
     glUseProgram(nuanceur_texte.programme)
 
@@ -862,6 +838,18 @@ dessine_texte :: fonc (fonte: *Fonte, texte: ChaineUTF32, x: r32, y: r32, couleu
         x += glyph.advance_x
 
         dernier_caractère = glyph
+    }
+}
+
+garantis_texture_pour_atlas :: fonc (fonte: *Fonte)
+{
+    saufsi glIsTexture(fonte.atlas.id) {
+        glGenTextures(1, *fonte.atlas.id)
+        // À FAIRE : libère la texture quand la police n'est plus requise
+        // diffère glDeleteTextures(1, *fonte.atlas.id)
+
+        params := donne_paramètres_texture_atlas_fonte(fonte.atlas)
+        définis_texture_2d(fonte.atlas.id, *params)
     }
 }
 
