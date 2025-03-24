@@ -258,11 +258,18 @@ données_tampon_id: DonnéesImmédiatesXId
 dernier_mode: ModeImmédiat
 dernier_nuanceur: *NuanceurGL
 dernière_fonte: *Fonte
+fontes_utilisées: [..]*Fonte
 
 réinitialise_données :: fonc ()
 {
     dernier_nuanceur = nul
     dernière_fonte = nul
+    pour fontes_utilisées {
+        si glIsTexture(it.atlas.id) {
+            glDeleteTextures(1, *it.atlas.id)
+        }
+    }
+    fontes_utilisées.taille = 0
 }
 
 commence_immédiat :: fonc (mode: ModeImmédiat, nuanceur: *NuanceurGL, fonte : *Fonte = nul)
@@ -845,11 +852,11 @@ garantis_texture_pour_atlas :: fonc (fonte: *Fonte)
 {
     saufsi glIsTexture(fonte.atlas.id) {
         glGenTextures(1, *fonte.atlas.id)
-        // À FAIRE : libère la texture quand la police n'est plus requise
-        // diffère glDeleteTextures(1, *fonte.atlas.id)
 
         params := donne_paramètres_texture_atlas_fonte(fonte.atlas)
         définis_texture_2d(fonte.atlas.id, *params)
+
+        tableau_ajoute(*fontes_utilisées, fonte)
     }
 }
 
