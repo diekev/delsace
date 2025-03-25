@@ -904,10 +904,42 @@ consomme_caractère :: fonc (parseuse: *ParseuseInterface, c: z8) -> bool
 consomme_espaces_blanches :: fonc (parseuse: *ParseuseInterface)
 {
     tantque parseuse.début < parseuse.fin {
-        saufsi est_espace_blanc(mémoire(parseuse.début)) {
-            retourne
+        si est_espace_blanc(mémoire(parseuse.début)) {
+            parseuse.début += 1
+            continue
         }
 
-        parseuse.début += 1
+        chn := construit_chaine(parseuse.début, parseuse.fin - parseuse.début)
+
+        si chn.commence_par("//") {
+            parseuse.début += 2
+            tantque parseuse.début < parseuse.fin {
+                si mémoire(parseuse.début) == '\n' {
+                    arrête
+                }
+
+                parseuse.début += 1
+            }
+
+            continue
+        }
+
+        si chn.commence_par("/*") {
+            parseuse.début += 2
+            chn = avance(chn, 2)
+            tantque parseuse.début < parseuse.fin {
+                si chn.commence_par("*/") {
+                    chn = avance(chn, 2)
+                    parseuse.début += 2
+                    arrête
+                }
+                parseuse.début += 1
+                chn = avance(chn, 1)
+            }
+
+            continue
+        }
+
+        arrête
     }
 }
