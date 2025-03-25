@@ -261,6 +261,9 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élé
     sinon si tag == TAG_body {
         élément = crée_platform_object(document, HTMLBodyElement)
     }
+    sinon si tag == TAG_button {
+        élément = crée_platform_object(document, HTMLButtonElement)
+    }
     sinon si tag == TAG_canvas {
         élément = crée_platform_object(document, HTMLCanvasElement)
     }
@@ -1116,6 +1119,81 @@ ajoute_propriété_pour_dimension :: fonc (résolveuse: *CSS.RésolveuseStyle, n
         }
         sinon {}
     }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLButtonElement
+ * https://html.spec.whatwg.org/multipage/form-elements.html#the-button-element
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLButtonElement
+ * \{ */
+
+#portée_export
+
+HTMLButtonElement :: struct {
+    empl html_element: HTMLElement
+    table = *table_virtuelle_button_element
+}
+
+#portée_fichier
+
+table_virtuelle_button_element := TableVirtuelleÉlément(
+    classe = HTMLButtonElement,
+    sur_destruction = élément_sur_destruction,
+    sur_applique_presentational_hints = button_element_sur_applique_presentational_hints
+)
+
+button_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
+{
+    /* NOTE : la stylisation ne se retrouve dans aucun standard. Elle reprend le style par défaut de firefox. */
+
+    couleur_bordure := CouleurRVBAN8(143, 143, 157, 255)
+    style_bordure := CSS.PROP_solid // outset
+    largeur_bordure := DimensionValue(Length = 2.0)
+    rayon_bordure := DimensionValue(Length = 4.0)
+    padding_inline := DimensionValue(Length = 4.0)
+    padding_block := DimensionValue(Length = 1.0)
+
+    couleur_arrière_plan := si base.pseudo_classes.Active {
+        CouleurRVBAN8(177, 177, 185, 255)
+    }
+    sinon si base.pseudo_classes.Hover {
+        CouleurRVBAN8(208, 208, 208, 215)
+    }
+    sinon {
+        CouleurRVBAN8(233, 233, 237, 255)
+    }
+
+    CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_background_color, CSS.ValeurDeStyle(couleur = couleur_arrière_plan))
+
+    ajoute_propriété_pour_mot_clé(résolveuse, CSS.PROP_display, CSS.PROP_inline_block)
+
+    ajoute_propriété_pour_dimension(résolveuse, CSS.PROP_padding_inline_start, padding_inline)
+    ajoute_propriété_pour_dimension(résolveuse, CSS.PROP_padding_inline_end, padding_inline)
+
+    ajoute_propriété_pour_dimension(résolveuse, CSS.PROP_padding_block_start, padding_block)
+    ajoute_propriété_pour_dimension(résolveuse, CSS.PROP_padding_block_end, padding_block)
+
+    CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_bottom_color, CSS.ValeurDeStyle(couleur = couleur_bordure))
+    CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_top_color, CSS.ValeurDeStyle(couleur = couleur_bordure))
+    CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_left_color, CSS.ValeurDeStyle(couleur = couleur_bordure))
+    CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_right_color, CSS.ValeurDeStyle(couleur = couleur_bordure))
+
+    ajoute_propriété_pour_mot_clé(résolveuse, CSS.PROP_border_bottom_style, style_bordure)
+    ajoute_propriété_pour_mot_clé(résolveuse, CSS.PROP_border_top_style, style_bordure)
+    ajoute_propriété_pour_mot_clé(résolveuse, CSS.PROP_border_left_style, style_bordure)
+    ajoute_propriété_pour_mot_clé(résolveuse, CSS.PROP_border_right_style, style_bordure)
+
+    ajoute_propriété_pour_dimension(résolveuse, CSS.PROP_border_bottom_width, largeur_bordure)
+    ajoute_propriété_pour_dimension(résolveuse, CSS.PROP_border_top_width, largeur_bordure)
+    ajoute_propriété_pour_dimension(résolveuse, CSS.PROP_border_left_width, largeur_bordure)
+    ajoute_propriété_pour_dimension(résolveuse, CSS.PROP_border_right_width, largeur_bordure)
+
+    ajoute_propriété_pour_dimension(résolveuse, CSS.PROP_border_bottom_left_radius, rayon_bordure)
+    ajoute_propriété_pour_dimension(résolveuse, CSS.PROP_border_bottom_right_radius, rayon_bordure)
+    ajoute_propriété_pour_dimension(résolveuse, CSS.PROP_border_top_left_radius, rayon_bordure)
+    ajoute_propriété_pour_dimension(résolveuse, CSS.PROP_border_top_right_radius, rayon_bordure)
 }
 
 /** \} */
