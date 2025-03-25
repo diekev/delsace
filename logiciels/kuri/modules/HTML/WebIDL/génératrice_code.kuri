@@ -153,28 +153,46 @@ opérateur == :: fonc (a: NomEtIndex, b: NomEtIndex) -> bool
 
 #portée_module
 
+Interfaces :: struct {
+    interfaces: [..]Interface
+    contenus_fichiers: [..]chaine
+    noms_et_index_parents: [..]NomEtIndex
+}
+
+crée_interface :: fonc (interfaces: *Interfaces, nom: chaine) -> *Interface
+{
+    résultat := tableau_ajoute_élément(*interfaces.interfaces)
+    résultat.nom = nom
+
+    nom_et_index_parent: NomEtIndex
+    nom_et_index_parent.nom = résultat.nom
+
+    saufsi ensemble_possède(*interfaces.noms_et_index_parents, nom_et_index_parent) {
+        nom_et_index_parent.index = interfaces.interfaces.taille - 1
+        ensemble_ajoute(*interfaces.noms_et_index_parents, nom_et_index_parent)
+    }
+
+    retourne résultat
+}
+
+détruit_données_interfaces :: fonc (interfaces: *Interfaces)
+{
+    pour interfaces.interfaces {
+        déloge(it.fonctions)
+        déloge(it.paramètres)
+        déloge(it.attributs)
+    }
+    déloge_tableau_et_ses_éléments(interfaces.contenus_fichiers)
+    déloge(interfaces.interfaces)
+    déloge(interfaces.noms_et_index_parents)
+}
+
 compile_interfaces_idl :: fonc () -> chaine
 {
-    interfaces: [..]Interface
-    diffère {
-        pour interfaces {
-            déloge(it.nom)
-            déloge(it.parent)
-        }
-        déloge(interfaces)
-    }
-
-    noms_et_index_parents: [..]NomEtIndex
-    diffère déloge(noms_et_index_parents)
+    interfaces: Interfaces
+    diffère détruit_données_interfaces(*interfaces)
 
     /* Interface pour réutiliser la mémoire entre les parsages. */
-    interface_tampon: Interface
-    diffère {
-        déloge(interface_tampon.fonctions)
-        déloge(interface_tampon.paramètres)
-        déloge(interface_tampon.attributs)
-    }
-
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
@@ -200,32 +218,13 @@ compile_interfaces_idl :: fonc () -> chaine
         }
 
         texte := contenu_fichier_texte(it)
-        diffère déloge(texte)
+        tableau_ajoute(*interfaces.contenus_fichiers, texte)
 
-        interface_tampon.nom = ""
-        interface_tampon.parent = ""
-        interface_tampon.paramètres.taille = 0
-        interface_tampon.fonctions.taille = 0
-        interface_tampon.attributs.taille = 0
+        parse_fichier(it, texte, *interfaces)
+    }
 
-        parse_interface(it, texte, *interface_tampon)
-        
-        // imprime_interface(*interface)
-
-        génère_enveloppes_javascript(*enchaineuse, *interface_tampon)
-
-        interface: Interface
-        interface.nom = copie_chaine(interface_tampon.nom)
-        interface.parent = copie_chaine(interface_tampon.parent)
-        tableau_ajoute(*interfaces, interface)
-
-        nom_et_index_parent: NomEtIndex
-        nom_et_index_parent.nom = interface.nom
-
-        saufsi ensemble_possède(*noms_et_index_parents, nom_et_index_parent) {
-            nom_et_index_parent.index = interfaces.taille - 1
-            ensemble_ajoute(*noms_et_index_parents, nom_et_index_parent)
-        }
+    pour * interfaces.interfaces {
+        génère_enveloppes_javascript(*enchaineuse, it)
     }
 
     source := chaine_depuis_enchaineuse(*enchaineuse)
@@ -237,20 +236,20 @@ compile_interfaces_idl :: fonc () -> chaine
 
     ajoute_au_tampon(*enchaineuse, "    tas_de_mémoire := JavaScript.donne_tas_de_mémoire(realm)\n\n")
 
-    pour * interfaces {
-        génère_création_prototype(*enchaineuse, interfaces, it, *noms_et_index_parents)
+    pour * interfaces.interfaces {
+        génère_création_prototype(*enchaineuse, interfaces.interfaces, it, *interfaces.noms_et_index_parents)
     }
 
     ajoute_au_tampon(*enchaineuse, "\n    si __table_indexage_prototypes.taille == 0 {\n")
-    ajoute_au_tampon(*enchaineuse, "        tableau_redimensionne(__table_indexage_prototypes, ", interfaces.taille, ")\n")
-    pour interfaces {
+    ajoute_au_tampon(*enchaineuse, "        tableau_redimensionne(__table_indexage_prototypes, ", interfaces.interfaces.taille, ")\n")
+    pour interfaces.interfaces {
         ajoute_au_tampon(*enchaineuse, "        __table_indexage_prototypes[", index_it, "] = IndexPrototype(", it.nom, ", ", index_it, ")\n")
     }
     ajoute_au_tampon(*enchaineuse, "    }\n")
 
-    ajoute_au_tampon(*enchaineuse, "\n    tableau_redimensionne(realm.intrinsics.host_intrinsics, ", interfaces.taille, ")\n")
+    ajoute_au_tampon(*enchaineuse, "\n    tableau_redimensionne(realm.intrinsics.host_intrinsics, ", interfaces.interfaces.taille, ")\n")
 
-    pour interfaces {
+    pour interfaces.interfaces {
         ajoute_au_tampon(*enchaineuse, "    realm.intrinsics.host_intrinsics[", index_it, "] = ", it.nom, "_prototype\n")
     }
 
@@ -654,7 +653,7 @@ imprime_type :: fonc (type: *Type)
     }
 }
 
-parse_interface :: fonc (chemin: CheminFichier, texte: chaine, résultat: *Interface)
+parse_fichier :: fonc (chemin: CheminFichier, texte: chaine, interfaces: *Interfaces)
 {
     parseuse := crée_parseuse(chemin, texte)
 
@@ -664,26 +663,33 @@ parse_interface :: fonc (chemin: CheminFichier, texte: chaine, résultat: *Inter
         rapporte_erreur(*parseuse, "attendu 'interface'", lexème)
     }
 
-    résultat.nom = donne_lexème_suivant(*parseuse)
+    parse_interface(*parseuse, interfaces)
+}
 
-    si consomme_caractère(*parseuse, ':') {
-        résultat.parent = donne_lexème_suivant(*parseuse)
+parse_interface :: fonc (parseuse: *ParseuseInterface, interfaces: *Interfaces)
+{
+    lexème := donne_lexème_suivant(parseuse)
+
+    résultat := interfaces.crée_interface(lexème)
+
+    si consomme_caractère(parseuse, ':') {
+        résultat.parent = donne_lexème_suivant(parseuse)
     }
 
-    saufsi consomme_caractère(*parseuse, '{') {
-        rapporte_erreur(*parseuse, "attendu '{'", donne_lexème_suivant(*parseuse))
+    saufsi consomme_caractère(parseuse, '{') {
+        rapporte_erreur(parseuse, "attendu '{'", donne_lexème_suivant(parseuse))
     }
 
     boucle {
-        si consomme_caractère(*parseuse, '}') {
+        si consomme_caractère(parseuse, '}') {
             arrête
         }
 
-        si apparie(*parseuse, '[') || apparie(*parseuse, "readonly") || apparie(*parseuse, "attribute") {
-            parse_un_attribut(*parseuse, résultat)
+        si apparie(parseuse, '[') || apparie(parseuse, "readonly") || apparie(parseuse, "attribute") {
+            parse_un_attribut(parseuse, résultat)
         }
         sinon {
-            parse_une_fonction(*parseuse, résultat)
+            parse_une_fonction(parseuse, résultat)
         }
     }
 }
