@@ -1,3 +1,4 @@
+importe Chaine
 importe Couleur
 importe Fondation
 importe Géométrie
@@ -509,6 +510,11 @@ appel_rappel :: fonc (boite: *BoiteDisposée, type: TypeRappelUtilisateur)
     }
 }
 
+ÉditriceTextePourId :: struct {
+    id: chaine
+    éditrice_texte: *ÉditriceTexte
+}
+
 Emboiteuse :: struct {
     racine: *BoiteFlexible
 
@@ -520,6 +526,7 @@ Emboiteuse :: struct {
     boites_disposées: [..]BoiteDisposée
 
     barres_de_défilement: [..]BarreDeDéfilement
+    éditrices_textes: [..]ÉditriceTextePourId
 
     souris_x: r32
     souris_y: r32
@@ -675,6 +682,48 @@ enregistre_disposition :: fonc (emboiteuse: *Emboiteuse, boite: *BoiteFlexible, 
 
         dernier_enfant = index_enfant
     }
+}
+
+donne_rect :: fonc (emboiteuse: *Emboiteuse, id: chaine) -> RectanglePosDim(r32)
+{
+    pour * emboiteuse.boites_disposées {
+        si it.id == id {
+            retourne it.rect
+        }
+    }
+
+    retourne RectanglePosDim(r32)()
+}
+
+définis_éditrice_texte :: fonc (emboiteuse: *Emboiteuse, id: chaine, éditrice_texte: *ÉditriceTexte)
+{
+    pour * emboiteuse.éditrices_textes {
+        si it.id != id {
+            continue
+        }
+
+        si éditrice_texte == nul {
+            tableau_supprime_index(*emboiteuse.éditrices_textes, index_it)
+            retourne
+        }
+
+        it.éditrice_texte = éditrice_texte
+        retourne
+    }
+
+    assert(éditrice_texte != nul)
+    tableau_ajoute(*emboiteuse.éditrices_textes, ÉditriceTextePourId(id, éditrice_texte))
+}
+
+donne_éditrice_texte :: fonc (emboiteuse: *Emboiteuse, id: chaine) -> *ÉditriceTexte
+{
+    pour * emboiteuse.éditrices_textes {
+        si it.id == id {
+            retourne it.éditrice_texte
+        }
+    }
+
+    retourne nul
 }
 
 enregistre_barre_de_défilement :: fonc (boite: *BoiteFlexible)
@@ -1302,6 +1351,23 @@ génère_commandes :: fonc (boite: *BoiteFlexible, commandes: *CommandesDeRendu)
 
             commandes.remplis_rectangle(rect, couleur_barre)
         }
+    }
+
+    éditrice := donne_éditrice_texte(boite.emboiteuse, boite.id)
+    si éditrice && éditrice.curseur_est_affiché {
+        texte_avant_curseur := éditrice.texte_à_éditer
+        texte_avant_curseur.points_de_code.taille = éditrice.curseur.fin
+
+        curseur_x := éditrice.fonte.donne_largeur_texte(texte_avant_curseur)
+        hauteur_disponible := (boite.hauteur - boite.disposition.rembourrage[1] - boite.disposition.rembourrage[3])
+
+        rect.x = rect.x + boite.disposition.rembourrage[0] + curseur_x comme r32
+        rect.y = rect.y + boite.disposition.rembourrage[1]
+        rect.largeur = 1.0
+        rect.hauteur = hauteur_disponible
+        
+        couleur_barre := CouleurRVBA(0.0, 0.0, 0.0, 1.0)
+        commandes.remplis_rectangle(rect, couleur_barre)
     }
 }
 
