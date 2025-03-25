@@ -1307,6 +1307,11 @@ génère_commandes :: fonc (boite: *BoiteFlexible, commandes: *CommandesDeRendu)
             }
         }
         Texte {
+            /* À FAIRE : décalage de 1 dans le calcul des index des fragments. */
+            si boite.texte.taille == 0 {
+                retourne
+            }
+
             premier_fragment := boite.emboiteuse.fragments.pointeur + boite.premier_fragment
             dernier_fragment := boite.emboiteuse.fragments.pointeur + boite.dernier_fragment + 1
             métriques := boite.config_texte.fonte.donne_métriques_fonte()
