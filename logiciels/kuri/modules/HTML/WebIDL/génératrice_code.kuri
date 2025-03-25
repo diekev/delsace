@@ -208,7 +208,7 @@ compile_interfaces_idl :: fonc () -> chaine
         interface_tampon.fonctions.taille = 0
         interface_tampon.attributs.taille = 0
 
-        parse_interface(texte, *interface_tampon)
+        parse_interface(it, texte, *interface_tampon)
         
         // imprime_interface(*interface)
 
@@ -654,14 +654,14 @@ imprime_type :: fonc (type: *Type)
     }
 }
 
-parse_interface :: fonc (texte: chaine, résultat: *Interface)
+parse_interface :: fonc (chemin: CheminFichier, texte: chaine, résultat: *Interface)
 {
-    parseuse := crée_parseuse(texte)
+    parseuse := crée_parseuse(chemin, texte)
 
     lexème := donne_lexème_suivant(*parseuse)
 
     si lexème != "interface" {
-        rapporte_erreur("attendu 'interface'", lexème)
+        rapporte_erreur(*parseuse, "attendu 'interface'", lexème)
     }
 
     résultat.nom = donne_lexème_suivant(*parseuse)
@@ -671,7 +671,7 @@ parse_interface :: fonc (texte: chaine, résultat: *Interface)
     }
 
     saufsi consomme_caractère(*parseuse, '{') {
-        rapporte_erreur("attendu '{'", donne_lexème_suivant(*parseuse))
+        rapporte_erreur(*parseuse, "attendu '{'", donne_lexème_suivant(*parseuse))
     }
 
     boucle {
@@ -705,7 +705,7 @@ parse_une_fonction :: fonc (parseuse: *ParseuseInterface, interface: *Interface)
     résultat.premier_paramètre = interface.paramètres.taille
 
     saufsi consomme_caractère(parseuse, '(') {
-        rapporte_erreur("attendu '('", donne_lexème_suivant(parseuse))
+        rapporte_erreur(parseuse, "attendu '('", donne_lexème_suivant(parseuse))
     }
 
     boucle {
@@ -724,7 +724,7 @@ parse_une_fonction :: fonc (parseuse: *ParseuseInterface, interface: *Interface)
         }
 
         saufsi consomme_caractère(parseuse, ')') {
-            rapporte_erreur("attendu ')", donne_lexème_suivant(parseuse))
+            rapporte_erreur(parseuse, "attendu ')", donne_lexème_suivant(parseuse))
         }
 
         arrête
@@ -734,7 +734,7 @@ parse_une_fonction :: fonc (parseuse: *ParseuseInterface, interface: *Interface)
     tableau_ajoute(*interface.fonctions, résultat)
 
     saufsi consomme_caractère(parseuse, ';') {
-        rapporte_erreur("attendu ';", donne_lexème_suivant(parseuse))
+        rapporte_erreur(parseuse, "attendu ';", donne_lexème_suivant(parseuse))
     }
 }
 
@@ -751,7 +751,7 @@ parse_un_attribut :: fonc (parseuse: *ParseuseInterface, interface: *Interface)
             résultat.est_membre = vrai
         }
         sinon {
-            rapporte_erreur("attribut inconnu", lexème)
+            rapporte_erreur(parseuse, "attribut inconnu", lexème)
         }
 
         si parseuse.consomme_caractère('=') {
@@ -759,7 +759,7 @@ parse_un_attribut :: fonc (parseuse: *ParseuseInterface, interface: *Interface)
         }
 
         saufsi parseuse.consomme_caractère(']') {
-            rapporte_erreur("attendu ']'", parseuse.donne_lexème_suivant())
+            rapporte_erreur(parseuse, "attendu ']'", parseuse.donne_lexème_suivant())
         }
     }
 
@@ -770,7 +770,7 @@ parse_un_attribut :: fonc (parseuse: *ParseuseInterface, interface: *Interface)
     }
 
     saufsi lexème == "attribute" {
-        rapporte_erreur("attendu 'attribute'", lexème)
+        rapporte_erreur(parseuse, "attendu 'attribute'", lexème)
     }
 
     parse_type(parseuse, *résultat.type)
@@ -782,26 +782,75 @@ parse_un_attribut :: fonc (parseuse: *ParseuseInterface, interface: *Interface)
     tableau_ajoute(*interface.attributs, résultat)
 
     saufsi consomme_caractère(parseuse, ';') {
-        rapporte_erreur("attendu ';", donne_lexème_suivant(parseuse))
+        rapporte_erreur(parseuse, "attendu ';", donne_lexème_suivant(parseuse))
     }
 }
 
-rapporte_erreur :: fonc (message: chaine, lexème_obtenu: chaine)
+rapporte_erreur :: fonc (parseuse: *ParseuseInterface, message: chaine, lexème_obtenu: chaine)
 {
     message_erreur := imprime_chaine("%, obtenu '%'\n", message, lexème_obtenu)
-    compilatrice_rapporte_erreur(message_erreur)
+    info := donne_info_erreur_pour_lexème(parseuse, lexème_obtenu)
+    espace := compilatrice_espace_courant()
+    compilatrice_rapporte_erreur_externe(espace, message_erreur, parseuse.chemin.chn, info.texte_ligne, info.numéro_ligne, info.index_colonne, info.index_colonne_début, info.index_colonne_fin)
+}
+
+InfoErreur :: struct {
+    texte_ligne := ""
+    numéro_ligne := 0
+    index_colonne := -1
+    index_colonne_début := -1
+    index_colonne_fin := -1
+}
+
+donne_info_erreur_pour_lexème :: fonc (parseuse: *ParseuseInterface, lexème: chaine) -> InfoErreur
+{
+    résultat: InfoErreur
+    résultat.numéro_ligne = 1
+
+    début_texte := parseuse.texte.pointeur
+    fin_texte := parseuse.texte.pointeur + parseuse.texte.taille
+    début_lexème := lexème.pointeur
+
+    it := début_texte
+    pos_dernière_ligne := début_texte
+    tantque it < début_lexème {
+        si mémoire(it) == '\n' {
+            résultat.numéro_ligne += 1
+            pos_dernière_ligne = it + 1
+        }
+        it += 1
+    }
+
+    it = début_lexème
+    tantque it < fin_texte {
+        si mémoire(it) == '\n' {
+            arrête
+        }
+        it += 1
+    }
+
+    résultat.texte_ligne = construit_chaine(pos_dernière_ligne, it - pos_dernière_ligne)
+    résultat.index_colonne = (début_lexème - pos_dernière_ligne) comme z32
+    résultat.index_colonne_début = résultat.index_colonne
+    résultat.index_colonne_fin = résultat.index_colonne + lexème.taille comme z32
+
+    retourne résultat
 }
 
 ParseuseInterface :: struct {
     début: *z8
     fin: *z8
+    chemin: CheminFichier
+    texte: chaine
 }
 
-crée_parseuse :: fonc (texte: chaine) -> ParseuseInterface
+crée_parseuse :: fonc (chemin: CheminFichier, texte: chaine) -> ParseuseInterface
 {
     résultat : ParseuseInterface = ---
     résultat.début = texte.pointeur
     résultat.fin = texte.pointeur + texte.taille
+    résultat.chemin = chemin
+    résultat.texte = texte
     retourne résultat
 }
 
@@ -841,7 +890,7 @@ parse_type :: fonc (parseuse: *ParseuseInterface, résultat: *Type)
             nom_type = "unsigned long"
         }
         sinon {
-            rapporte_erreur("attendu 'long'", nom_mot)
+            rapporte_erreur(parseuse, "attendu 'long'", nom_mot)
         }
     }
     sinon si nom_type == "unrestricted" {
@@ -851,7 +900,7 @@ parse_type :: fonc (parseuse: *ParseuseInterface, résultat: *Type)
             nom_type = "unrestricted double"
         }
         sinon {
-            rapporte_erreur("attendu 'double'", nom_mot)
+            rapporte_erreur(parseuse, "attendu 'double'", nom_mot)
         }
     }
 
