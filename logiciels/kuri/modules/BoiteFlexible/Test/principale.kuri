@@ -28,6 +28,7 @@ principale :: fonc () -> z32
     // tableau_ajoute(*rappels.documents, Document("Flexible", dessine_interface_flexible))
     tableau_ajoute(*rappels.documents, Document("Flexible Verticale", dessine_interface_flexible_verticale))
     tableau_ajoute(*rappels.documents, Document("Texte", dessine_interface_texte))
+    tableau_ajoute(*rappels.documents, Document("Fonte", dessine_atlas_fonte))
 
     rappels.fonte = crée_fonte(CheminFichier("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"), 16.0)
     rappels.grosse_fonte = crée_fonte(CheminFichier("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"), 40.0)
@@ -416,6 +417,21 @@ dessine_interface_texte :: fonc (rappels: *RappelsWindow)
             termine_rectangle()
         }
         termine_rectangle()
+    }
+    termine_rectangle()
+}
+
+dessine_atlas_fonte :: fonc (rappels: *RappelsWindow)
+{
+    dispose_rectangle(disposition = ConfigurationDiposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), alignement_horizontal = AlignementEnfant.Milieu, alignement_vertical = AlignementEnfant.Milieu))
+    {
+        atlas := rappels.fonte.atlas
+        si atlas {
+            hauteur := atlas.height comme z32
+            largeur := atlas.width comme z32
+            image := crée_image_pour_données_externe(atlas.data, largeur comme n32, hauteur comme n32, FormatPixel.Gris_8)
+            dispose_image(image, Cotation(FIXE(largeur), FIXE(hauteur)))
+        }
     }
     termine_rectangle()
 }
