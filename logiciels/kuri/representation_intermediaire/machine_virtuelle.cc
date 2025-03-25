@@ -763,6 +763,24 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         return;
     }
 
+    if (EST_FONCTION_COMPILATRICE(compilatrice_rapporte_erreur_externe)) {
+        auto params = ParamètresErreurExterne{};
+        params.index_colonne_fin = dépile<int>();
+        params.index_colonne_début = dépile<int>();
+        params.index_colonne = dépile<int>();
+        params.numéro_ligne = dépile<int>();
+        params.texte_ligne = dépile<kuri::chaine_statique>();
+        params.chemin_fichier = dépile<kuri::chaine_statique>();
+        params.message = dépile<kuri::chaine_statique>();
+        auto espace = dépile<EspaceDeTravail *>();
+        RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
+        espace->rapporte_erreur_externe(params);
+        m_métaprogramme->a_rapporté_une_erreur = true;
+        /* À FAIRE : devrions nous avoir un résultat plus spécifique ? */
+        résultat = RésultatInterprétation::TERMINÉ;
+        return;
+    }
+
     if (EST_FONCTION_COMPILATRICE(compilatrice_rapporte_avertissement)) {
         auto message = dépile<kuri::chaine_statique>();
         /* Dans les noeuds codes, les lignes commencent à 1. */
