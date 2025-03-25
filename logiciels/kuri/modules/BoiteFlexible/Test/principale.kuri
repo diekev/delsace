@@ -70,9 +70,6 @@ RappelsWindow :: struct {
     largeur_cible := 800
     hauteur_cible := 400
 
-    /* Boucle pour la guetteuse active. */
-    event_loop_guettage: *QT_Event_Loop
-
     texte_à_dessiner := "Cliquez-moi pour m'éditer"
 
     documents: [..]Document
@@ -504,7 +501,7 @@ démarre_édition_texte :: fonc (rappels: *RappelsWindow, id: chaine, index: z32
     diffère définis_éditrice_texte(emboiteuse, id, nul)
 
     plateforme_guettage: PlateformeGuettageQt
-    plateforme_guettage.rappels = rappels
+    plateforme_guettage.window = rappels.window
 
     guetteuse: GuetteuseÉditionTexte
     initialise_guetteuse_édition_texte(*guetteuse, *éditrice, rectz, rectz)
@@ -512,94 +509,3 @@ démarre_édition_texte :: fonc (rappels: *RappelsWindow, id: chaine, index: z32
 }
 
 /** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom GuettageQt
- * \{ */
-
-PlateformeGuettageQt :: struct {
-    empl base: PlateformeGuettage
-    sur_commence_guettage = plateforme_qt_commence_guettage
-    sur_termine_guettage = plateforme_qt_termine_guettage
-
-    rappels: *RappelsWindow
-}
-
-plateforme_qt_commence_guettage :: fonc (base: *PlateformeGuettage, guetteuse: *Guetteuse)
-{
-    plateforme := base comme *PlateformeGuettageQt
-    rappels := plateforme.rappels
-
-    RappelsEventLoop :: struct {
-        empl base: QT_Rappels_Event_Loop
-
-        rappels: *RappelsWindow
-        window: *QT_Window
-        guetteuse: *Guetteuse
-    }
-
-    sur_évènement :: fonc (base: *QT_Rappels_Event_Loop, event: QT_Generic_Event) -> bool
-    {
-        rappels := base comme *RappelsEventLoop
-
-        type := QT_evenement_donne_type(event)
-
-        si type == QT_Event_Type.MouseMove && rappels.guetteuse.sur_déplacement_souris {
-            clic := donne_clique_souris_depuis_évènement(event.mouse_event, ActionSouris.DÉPLACÉE)
-            rappels.guetteuse.sur_déplacement_souris(rappels.guetteuse, clic.état)
-            retourne vrai
-        }
-
-        si type == QT_Event_Type.MouseButtonPress && rappels.guetteuse.sur_clic {
-            clic := donne_clique_souris_depuis_évènement(event.mouse_event, ActionSouris.PRESSÉE)
-            rappels.guetteuse.sur_clic(rappels.guetteuse, clic)
-            retourne vrai
-        }
-
-        si type == QT_Event_Type.MouseButtonRelease && rappels.guetteuse.sur_clic {
-            clic := donne_clique_souris_depuis_évènement(event.mouse_event, ActionSouris.RELACHÉE)
-            rappels.guetteuse.sur_clic(rappels.guetteuse, clic)
-            retourne vrai
-        }
-
-        si type == QT_Event_Type.KeyPress && rappels.guetteuse.sur_touche_clavier {
-            clé_qt := QT_key_event_donne_cle(event.key_event)
-
-            texte := QT_key_event_donne_texte(event.key_event).vers_kuri()
-
-            touche: ToucheClavier
-            touche.type = table_conversion_clé[clé_qt]
-            touche.texte = texte
-
-            rappels.guetteuse.sur_touche_clavier(rappels.guetteuse, touche)
-            retourne vrai
-        }
-
-        retourne faux
-    }
-
-    rappels_event_loop: RappelsEventLoop
-    rappels_event_loop.rappels = rappels
-    rappels_event_loop.window = rappels.window
-    rappels_event_loop.guetteuse = guetteuse
-    rappels_event_loop.sur_filtre_evenement = sur_évènement
-
-    event_loop := QT_Event_Loop_cree_avec_rappels(*rappels_event_loop)
-    diffère QT_Event_Loop_detruit(event_loop)
-
-    QT_Object_install_event_filter(rappels.window, event_loop)
-    diffère QT_Object_remove_event_filter(rappels.window, event_loop)
-
-    rappels.event_loop_guettage = event_loop
-
-    _ := QT_Event_Loop_exec(event_loop)
-}
-
-plateforme_qt_termine_guettage :: fonc (base: *PlateformeGuettage)
-{ 
-    plateforme := base comme *PlateformeGuettageQt
-    rappels := plateforme.rappels
-    QT_Event_Loop_exit(rappels.event_loop_guettage)
-}
-
-/** } */
