@@ -5,6 +5,7 @@ interface Window : EventTarget {
     readonly attribute Document document;
 
     [Member] readonly attribute Navigator navigator;
+    /* [PutForwards=href, LegacyUnforgeable] */ [Member] readonly attribute Location location;
 
     undefined alert(DOMString message);
 
@@ -16,3 +17,5 @@ interface Window : EventTarget {
     long requestAnimationFrame(Function callback);
     undefined clearAnimationFrame(long id);
 }
+
+Window includes GlobalEventHandlers;

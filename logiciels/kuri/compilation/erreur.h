@@ -193,3 +193,15 @@ kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace,
                                   SiteSource site,
                                   erreur::Genre genre,
                                   const kuri::chaine_statique message);
+
+struct ParamètresErreurExterne {
+    kuri::chaine_statique message = {};
+    kuri::chaine_statique chemin_fichier{};
+    kuri::chaine_statique texte_ligne = {};
+    int numéro_ligne = 0;
+    int index_colonne = -1;
+    int index_colonne_fin = -1;
+    int index_colonne_début = -1;
+};
+
+Erreur rapporte_erreur(EspaceDeTravail const *espace, ParamètresErreurExterne const &params);

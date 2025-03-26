@@ -1,7 +1,9 @@
 importe BoiteFlexible
+importe Chaine
 importe Couleur
 importe Fondation
 importe Géométrie
+importe Guettage
 importe IGUMI
 importe Image
 importe Math
@@ -23,11 +25,13 @@ principale :: fonc () -> z32
 
     rappels: RappelsWindow
 
+    tableau_ajoute(*rappels.documents, Document("Édition Texte", dessine_interface_édition_texte))
     tableau_ajoute(*rappels.documents, Document("Défilage Vertical", dessine_interface_défilable_verticale))
     tableau_ajoute(*rappels.documents, Document("Basique", dessine_interface_basique))
     // tableau_ajoute(*rappels.documents, Document("Flexible", dessine_interface_flexible))
     tableau_ajoute(*rappels.documents, Document("Flexible Verticale", dessine_interface_flexible_verticale))
     tableau_ajoute(*rappels.documents, Document("Texte", dessine_interface_texte))
+    tableau_ajoute(*rappels.documents, Document("Fonte", dessine_atlas_fonte))
 
     rappels.fonte = crée_fonte(CheminFichier("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"), 16.0)
     rappels.grosse_fonte = crée_fonte(CheminFichier("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"), 40.0)
@@ -65,6 +69,8 @@ RappelsWindow :: struct {
 
     largeur_cible := 800
     hauteur_cible := 400
+
+    texte_à_dessiner := "Cliquez-moi pour m'éditer"
 
     documents: [..]Document
     document_courant: z32
@@ -418,6 +424,88 @@ dessine_interface_texte :: fonc (rappels: *RappelsWindow)
         termine_rectangle()
     }
     termine_rectangle()
+}
+
+dessine_atlas_fonte :: fonc (rappels: *RappelsWindow)
+{
+    dispose_rectangle(disposition = ConfigurationDiposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), alignement_horizontal = AlignementEnfant.Milieu, alignement_vertical = AlignementEnfant.Milieu))
+    {
+        atlas := rappels.fonte.atlas
+        si atlas {
+            hauteur := atlas.height comme z32
+            largeur := atlas.width comme z32
+            image := crée_image_pour_données_externe(atlas.data, largeur comme n32, hauteur comme n32, FormatPixel.Gris_8)
+            dispose_image(image, Cotation(FIXE(largeur), FIXE(hauteur)))
+        }
+    }
+    termine_rectangle()
+}
+
+dessine_interface_édition_texte :: fonc (rappels: *RappelsWindow)
+{
+    dispose_rectangle(disposition = ConfigurationDiposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), alignement_horizontal = AlignementEnfant.Milieu, alignement_vertical = AlignementEnfant.Milieu))
+    {
+        dispose_rectangle(id = "Cliquez-moi pour m'éditer",
+                          arrière_plan = CouleurRVBA(1.0, 1.0, 1.0, 1.0),
+                          disposition = ConfigurationDiposition(cotation = Cotation(FIXE(240)), rembourrage = [5.0, 5.0, 5.0, 5.0]))
+        {
+            sur_pression_souris(démarre_édition_texte, rappels, 0)
+
+            dispose_texte(rappels.texte_à_dessiner, ConfigurationTexte(rappels.fonte, CouleurRVBA(a = 1.0)))
+        }
+        termine_rectangle()
+    }
+    termine_rectangle()
+}
+
+RappelsÉditionTexteQt :: struct {
+    empl base: RappelsÉditionTexte
+
+    rappels_window: *RappelsWindow
+}
+
+sur_édition_texte_qt :: fonc (rappels: *RappelsÉditionTexteQt, chn: chaine)
+{
+    déloge_si_logée(rappels.rappels_window.texte_à_dessiner)
+    rappels.rappels_window.texte_à_dessiner = copie_chaine(chn)
+}
+
+sur_fin_édition_texte_qt :: fonc (rappels: *RappelsÉditionTexteQt, chn: chaine)
+{
+    déloge_si_logée(rappels.rappels_window.texte_à_dessiner)
+    rappels.rappels_window.texte_à_dessiner = copie_chaine(chn)
+}
+
+démarre_édition_texte :: fonc (rappels: *RappelsWindow, id: chaine, index: z32 @inutilisée)
+{
+    rappels_édition_texte := loge(RappelsÉditionTexteQt)
+    diffère déloge(rappels_édition_texte)
+    rappels_édition_texte.sur_édition = sur_édition_texte_qt
+    rappels_édition_texte.sur_fin_édition = sur_fin_édition_texte_qt
+    rappels_édition_texte.rappels_window = rappels
+
+    emboiteuse := *rappels.emboiteuse
+    rect := donne_rect(emboiteuse, id)
+
+    rectz: RectanglePosDim(z32)
+    rectz.x = rect.x comme z32
+    rectz.y = rect.y comme z32
+    rectz.largeur = rect.largeur comme z32
+    rectz.hauteur = rect.hauteur comme z32
+
+    éditrice: ÉditriceTexte
+    diffère détruit_données(*éditrice)
+    initialise_éditrice(*éditrice, rappels.fonte, rappels.texte_à_dessiner, rappels_édition_texte)
+
+    définis_éditrice_texte(emboiteuse, id, *éditrice)
+    diffère définis_éditrice_texte(emboiteuse, id, nul)
+
+    plateforme_guettage: PlateformeGuettageQt
+    plateforme_guettage.window = rappels.window
+
+    guetteuse: GuetteuseÉditionTexte
+    initialise_guetteuse_édition_texte(*guetteuse, *éditrice, rectz, rectz)
+    commence_guettage(*guetteuse, *plateforme_guettage)
 }
 
 /** \} */

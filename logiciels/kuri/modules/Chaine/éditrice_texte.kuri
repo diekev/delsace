@@ -1,0 +1,229 @@
+importe Fondation
+importe Typographie
+
+/* ------------------------------------------------------------------------- */
+/** \nom RappelsÉditionTexte
+ * Rappels pour être notifié du changement du texte lors de l'édition.
+ * \{ */
+
+RappelsÉditionTexte :: struct {
+    /* Appelé à chaque changement. */
+    sur_édition: fonc(*RappelsÉditionTexte, chaine)(rien)
+    /* Appelé lors de la fin de l'édition. */
+    sur_fin_édition: fonc(*RappelsÉditionTexte, chaine)(rien)
+    /* Appelé au début de l'édition de texte.
+     * Ceci permets aux applications clientes de démarrer un chronomètre
+     * pour faire clignoter le curseur, via Éditrice.curseur_est_affiché.
+     * Optionnel. */
+    sur_démarre_clignotage_curseur: fonc(*RappelsÉditionTexte, *ÉditriceTexte)(rien)
+    /* Appelé à la fin de l'édition de texte pour terminer le choronomètre de
+     * clignotage associé.
+     * Optionnel, mais obligatoire si sur_démarre_clignotage_curseur existe. */
+    sur_termine_clignotage_curseur: fonc(*RappelsÉditionTexte, *ÉditriceTexte)(rien)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ÉditriceTexte
+ * \{ */
+
+ÉditriceTexte :: struct {
+    texte_à_éditer: ChaineUTF32
+    fonte: *Fonte
+    rappels: *RappelsÉditionTexte
+    curseur: CurseurTexte
+    en_édition: bool
+    curseur_est_affiché: bool
+}
+
+initialise_éditrice :: fonc (éditrice: *ÉditriceTexte, fonte: *Fonte, texte: chaine, rappels: *RappelsÉditionTexte)
+{
+    éditrice.texte_à_éditer = crée_chaine_utf32(texte)
+    éditrice.curseur.texte = *éditrice.texte_à_éditer
+    éditrice.curseur.éditrice = éditrice
+    éditrice.rappels = rappels
+    éditrice.fonte = fonte
+}
+
+détruit_données :: fonc (éditrice: *ÉditriceTexte)
+{
+    détruit_chaine(éditrice.texte_à_éditer)
+}
+
+démarre_édition :: fonc (éditrice: *ÉditriceTexte)
+{
+    éditrice.en_édition = vrai
+    éditrice.curseur_est_affiché = vrai
+
+    si éditrice.rappels && éditrice.rappels.sur_démarre_clignotage_curseur {
+        éditrice.rappels.sur_démarre_clignotage_curseur(éditrice.rappels, éditrice)
+    }
+}
+
+termine_édition :: fonc (empl éditrice: *ÉditriceTexte)
+{
+    en_édition = faux
+    curseur_est_affiché = faux
+
+    curseur.début = curseur.fin
+    notifie_fin_édition(*éditrice.curseur)
+    
+    saufsi rappels {
+        retourne
+    }
+
+    saufsi rappels.sur_termine_clignotage_curseur {
+        assert(rappels.sur_démarre_clignotage_curseur == nul)
+        retourne
+    }
+
+    rappels.sur_termine_clignotage_curseur(rappels, éditrice)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom CurseurTexte
+ * \{ */
+
+CurseurTexte :: struct {
+    début: z64
+    fin: z64
+    ancre: z64
+    texte: *ChaineUTF32
+    éditrice: *ÉditriceTexte
+    fut_modifié: bool
+}
+
+ModeDéplacementCurseur :: énum {
+    GardeAncre
+    DéplaceAncre
+}
+
+déplace_vers :: fonc (curseur: *CurseurTexte, mode: ModeDéplacementCurseur, position: z64)
+{
+    définis_position(curseur, mode, position)
+}
+
+définis_position :: fonc (curseur: *CurseurTexte, mode: ModeDéplacementCurseur, position: z64)
+{
+    position = restreint_position(curseur, position)
+
+    discr mode {
+        GardeAncre {
+            si position < curseur.ancre {
+                curseur.début = position
+                curseur.fin = curseur.ancre
+            }
+            sinon {
+                curseur.début = curseur.ancre
+                curseur.fin = position
+            }
+        }
+        DéplaceAncre {
+            curseur.début = position
+            curseur.fin = position
+            curseur.ancre = position
+        }
+    }
+}
+
+restreint_position :: fonc (curseur: *CurseurTexte, position: z64) -> z64
+{
+    si position > curseur.texte.points_de_code.taille {
+        retourne curseur.texte.points_de_code.taille
+    }
+    si position < 0 {
+        retourne 0
+    }
+    retourne position
+}
+
+efface :: fonc (curseur: *CurseurTexte)
+{
+    si curseur.début == curseur.fin {
+        si curseur.début == 0 {
+            retourne
+        }
+
+        tableau_supprime_index(*curseur.texte.points_de_code, curseur.début - 1)
+        définis_position(curseur, ModeDéplacementCurseur.DéplaceAncre, curseur.début - 1)
+    }
+    sinon {
+        tableau_supprime_entre(*curseur.texte.points_de_code, curseur.début, curseur.fin)
+        définis_position(curseur, ModeDéplacementCurseur.DéplaceAncre, curseur.début)
+    }
+
+    notifie_changement(curseur)
+}
+
+supprime :: fonc (curseur: *CurseurTexte)
+{
+    si curseur.début == curseur.fin {
+        si curseur.début == curseur.texte.points_de_code.taille {
+            retourne
+        }
+
+        tableau_supprime_index(*curseur.texte.points_de_code, curseur.début)
+    }
+    sinon {
+        tableau_supprime_entre(*curseur.texte.points_de_code, curseur.début, curseur.fin)
+    }
+
+    définis_position(curseur, ModeDéplacementCurseur.DéplaceAncre, curseur.début)
+    notifie_changement(curseur)
+}
+
+insère :: fonc (curseur: *CurseurTexte, point_de_code: n32)
+{
+    si curseur.début == curseur.fin {
+        tableau_insère_index(*curseur.texte.points_de_code, point_de_code, curseur.début)
+    }
+    sinon {
+        curseur.texte.points_de_code[curseur.début] = point_de_code
+        tableau_supprime_entre(*curseur.texte.points_de_code, curseur.début + 1, curseur.fin)
+    }
+
+    définis_position(curseur, ModeDéplacementCurseur.DéplaceAncre, curseur.début + 1)
+    notifie_changement(curseur)
+}
+
+notifie_changement :: fonc (curseur: *CurseurTexte)
+{
+    curseur.fut_modifié = vrai
+
+    éditrice := curseur.éditrice
+    saufsi éditrice.rappels && éditrice.rappels.sur_édition {
+        retourne
+    }
+
+    texte := mémoire(curseur.texte)
+
+    chn := converti_vers_chaine(texte)
+    diffère déloge(chn)
+
+    éditrice.rappels.sur_édition(éditrice.rappels, chn)
+}
+
+notifie_fin_édition :: fonc (curseur: *CurseurTexte)
+{
+    saufsi curseur.fut_modifié {
+        retourne
+    }
+    curseur.fut_modifié = vrai
+
+    éditrice := curseur.éditrice
+    saufsi éditrice.rappels && éditrice.rappels.sur_fin_édition {
+        retourne
+    }
+
+    texte := mémoire(curseur.texte)
+
+    chn := converti_vers_chaine(texte)
+    diffère déloge(chn)
+
+    éditrice.rappels.sur_fin_édition(éditrice.rappels, chn)
+}
+
+/** \} */

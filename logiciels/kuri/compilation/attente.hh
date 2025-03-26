@@ -91,6 +91,10 @@ struct InitialisationType {
     Type const *type;
 };
 
+struct InfoDeType {
+    Type const *type;
+};
+
 struct DonnéesAttenteNoeudCode {
     UniteCompilation *unité = nullptr;
     NoeudExpression *noeud = nullptr;
@@ -125,6 +129,7 @@ using AttenteSurParsage = AttenteSur<FichierÀParser>;
 using AttenteSurNoeudCode = AttenteSur<DonnéesAttenteNoeudCode>;
 using AttenteSurOpérateurPour = AttenteSur<OpérateurPour>;
 using AttenteSurInitialisationType = AttenteSur<InitialisationType>;
+using AttenteSurInfoType = AttenteSur<InfoDeType>;
 
 /** \} */
 
@@ -156,6 +161,7 @@ DÉCLARE_INFO_TYPE_ATTENTE(parsage, AttenteSurParsage);
 DÉCLARE_INFO_TYPE_ATTENTE(noeud_code, AttenteSurNoeudCode);
 DÉCLARE_INFO_TYPE_ATTENTE(opérateur_pour, AttenteSurOpérateurPour);
 DÉCLARE_INFO_TYPE_ATTENTE(initialisation_type, AttenteSurInitialisationType);
+DÉCLARE_INFO_TYPE_ATTENTE(info_type, AttenteSurInfoType);
 
 #undef DÉCLARE_INFO_TYPE_ATTENTE
 
@@ -182,7 +188,8 @@ struct Attente {
                                      AttenteSurParsage,
                                      AttenteSurNoeudCode,
                                      AttenteSurOpérateurPour,
-                                     AttenteSurInitialisationType>;
+                                     AttenteSurInitialisationType,
+                                     AttenteSurInfoType>;
 
     TypeAttente attente{};
 
@@ -285,6 +292,12 @@ struct Attente {
         return AttenteSurInitialisationType{InitialisationType{type}};
     }
 
+    static Attente sur_info_type(Type const *type)
+    {
+        assert(type);
+        return AttenteSurInfoType{type};
+    }
+
     /* Discrimination. */
 
     /* Retourne vrai si l'attente est valide, c'est-à-dire qu'elle contient quelque chose sur quoi
@@ -384,6 +397,12 @@ struct Attente {
     {
         assert(est<AttenteSurInitialisationType>());
         return std::get<AttenteSurInitialisationType>(attente).valeur.type;
+    }
+
+    Type const *info_type() const
+    {
+        assert(est<AttenteSurInfoType>());
+        return std::get<AttenteSurInfoType>(attente).valeur.type;
     }
 
     kuri::chaine donne_commentaire() const;

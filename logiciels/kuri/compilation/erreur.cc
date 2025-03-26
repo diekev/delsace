@@ -585,6 +585,43 @@ static kuri::chaine_statique chaine_pour_erreur(erreur::Genre genre)
 #define COULEUR_NORMALE "\033[0m"
 #define COULEUR_CYAN_GRAS "\033[1;36m"
 
+static kuri::chaine génère_entête_erreur(EspaceDeTravail const *espace,
+                                         ParamètresErreurExterne const &params)
+{
+    auto flux = Enchaineuse();
+    const auto chaine_erreur = chaine_pour_erreur(erreur::Genre::NORMAL);
+
+    flux << COULEUR_CYAN_GRAS << "-- ";
+    flux << chaine_erreur << ' ';
+    for (auto i = 0; i < 76 - chaine_erreur.taille(); ++i) {
+        flux << '-';
+    }
+    flux << "\n\n" << COULEUR_NORMALE;
+
+    flux << "Dans l'espace de travail « " << espace->nom << " » :\n";
+    flux << "\nErreur : ";
+
+    imprime_ligne_avec_message(flux,
+                               "",
+                               params.chemin_fichier,
+                               params.texte_ligne,
+                               params.numéro_ligne,
+                               params.index_colonne,
+                               params.index_colonne_début,
+                               params.index_colonne_fin);
+
+    flux << '\n';
+
+    if (params.message.taille() != 0) {
+        flux << params.message;
+        flux << '\n';
+    }
+
+    flux << '\n';
+
+    return flux.chaine();
+}
+
 kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace,
                                   SiteSource site,
                                   erreur::Genre genre,
@@ -662,5 +699,12 @@ Erreur rapporte_erreur(EspaceDeTravail const *espace,
 {
     auto erreur = Erreur(espace, false);
     erreur.enchaineuse << genere_entete_erreur(espace, site, genre, message);
+    return erreur;
+}
+
+Erreur rapporte_erreur(EspaceDeTravail const *espace, ParamètresErreurExterne const &params)
+{
+    auto erreur = Erreur(espace, false);
+    erreur.enchaineuse << génère_entête_erreur(espace, params);
     return erreur;
 }

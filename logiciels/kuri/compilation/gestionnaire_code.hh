@@ -282,13 +282,20 @@ class GestionnaireCode {
     /* Ajoute l'unité à la liste d'attente, et change son état vers EN_ATTENTE. */
     void ajoute_unité_à_liste_attente(UniteCompilation *unité);
 
+    void ajoute_attentes_sur_initialisations_types(NoeudExpression *noeud,
+                                                   UniteCompilation *unité);
+    void ajoute_attentes_pour_noeud_code(NoeudExpression *noeud, UniteCompilation *unité);
+
     void requiers_exécution(EspaceDeTravail *espace, MetaProgramme *metaprogramme);
 
     void ajoute_programme(Programme *programme);
 
     void enleve_programme(Programme *programme);
 
-    void détermine_dépendances(NoeudExpression *noeud, EspaceDeTravail *espace);
+    void détermine_dépendances(NoeudExpression *noeud,
+                               EspaceDeTravail *espace,
+                               UniteCompilation *unité_pour_ri,
+                               UniteCompilation *unité_pour_noeud_code);
 
     bool plus_rien_n_est_à_faire();
     bool tente_de_garantir_présence_création_contexte(EspaceDeTravail *espace,

@@ -644,18 +644,7 @@ noeud_text_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDe
     assert(noeud.élément.local_name == HTML.TAG_input)
 
     dessine_arrière_plan(ctx, noeud)
-
-    /* À FAIRE : considère toutes les propriétés de bordure. */
-    border_declaration := donne_déclaration(noeud.propriétés, PROP_border)
-    si border_declaration {
-        dessine_bordure(ctx, noeud)
-    }
-    sinon {
-        /* Dessine une bordure par défaut. */
-        rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
-        couleur := CouleurRVBAN8(0, 0, 0, 255)
-        ctx.commandes.dessine_rectangle(rect, couleur)
-    }
+    dessine_bordure(ctx, noeud)
 
     élément := noeud.élément comme *HTML.HTMLInputElement
     couleur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color).couleur
@@ -672,24 +661,31 @@ noeud_text_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDe
     }
 }
 
+noeud_button_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+{
+    noeud := base comme *NoeudDeDispositionRemplacement
+    assert(noeud.élément.local_name == HTML.TAG_input)
+
+    dessine_arrière_plan(ctx, noeud)
+    dessine_bordure(ctx, noeud)
+
+    élément := noeud.élément comme *HTML.HTMLInputElement
+    couleur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color).couleur
+    value := HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_value).donne_chaine_utf16()
+
+    saufsi value.est_vide() {
+        rect_texte := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_contenu())
+        ctx.commandes.dessine_texte(noeud.fonte, value, rect_texte, couleur, nul)
+    }
+}
+
 noeud_textarea_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
 {
     noeud := base comme *NoeudDeDispositionRemplacement
     assert(noeud.élément.local_name == HTML.TAG_textarea)
 
     dessine_arrière_plan(ctx, noeud)
-
-    /* À FAIRE : considère toutes les propriétés de bordure. */
-    border_declaration := donne_déclaration(noeud.propriétés, PROP_border)
-    si border_declaration {
-        dessine_bordure(ctx, noeud)
-    }
-    sinon {
-        /* Dessine une bordure par défaut. */
-        rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
-        couleur := CouleurRVBAN8(0, 0, 0, 255)
-        ctx.commandes.dessine_rectangle(rect, couleur)
-    }
+    dessine_bordure(ctx, noeud)
 
     élément := noeud.élément comme *HTML.HTMLTextAreaElement
     couleur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color).couleur
