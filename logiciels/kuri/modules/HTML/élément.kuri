@@ -1894,6 +1894,16 @@ is_text_entry_widget :: fonc (input: *HTMLInputElement) -> bool
     retourne opt_type.Quelque == ATTR_text
 }
 
+/* https://html.spec.whatwg.org/multipage/rendering.html#the-input-element-as-a-button */
+is_button_widget :: fonc (input: *HTMLInputElement) -> bool
+{
+    opt_type := donne_attribut(input, ATTR_type)
+    saufsi opt_type.possède_valeur() {
+        retourne faux
+    }
+    retourne opt_type.Quelque == ATTR_submit || opt_type.Quelque == ATTR_reset || opt_type.Quelque == ATTR_button
+}
+
 #portée_fichier
 
 table_virtuelle_input_element := TableVirtuelleÉlément(
