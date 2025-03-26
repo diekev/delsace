@@ -1,0 +1,1439 @@
+importe Chaine
+importe Couleur
+importe Fondation
+importe Géométrie
+importe Image
+importe Math
+importe Typographie
+
+/* ------------------------------------------------------------------------- */
+/** \nom CommandesDeRendu
+ * \{ */
+
+TypeCommandeDeRendu :: énum {
+    REMPLIS_RECTANGLE
+    REMPLIS_RECTANGLE_ARRONDI
+    DESSINE_TEXTE
+    DESSINE_IMAGE
+    DÉBUTE_CISELAGE
+    TERMINE_CISELAGE
+}
+
+CommandesDeRendu :: struct {
+    commandes: [..]octet
+}
+
+détruit_commandes :: fonc (commandes: *CommandesDeRendu)
+{
+    saufsi commandes {
+        retourne
+    }
+
+    déloge(commandes.commandes)
+    déloge(commandes)
+}
+
+réinitialise :: fonc (commandes: *CommandesDeRendu)
+{
+    commandes.commandes.taille = 0
+}
+
+crée_commande :: fonc (commandes: *CommandesDeRendu, $T: type_de_données) -> *T
+{
+    décalage := commandes.commandes.taille
+    tableau_redimensionne(commandes.commandes, décalage + (taille_de(T) comme z64))
+
+    résultat := *commandes.commandes[décalage] comme *T
+    init_de(T)(résultat)
+    résultat.taille_type = taille_de(T)
+    retourne résultat
+}
+
+BaseCommande :: struct {
+    type: TypeCommandeDeRendu
+    taille_type: n32
+    rect: RectanglePosDim(r32)
+}
+
+CommandeRemplisRectangle :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.REMPLIS_RECTANGLE
+
+    couleur: CouleurRVBAN8
+}
+
+remplis_rectangle :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), couleur: CouleurRVBAN8)
+{
+    résultat := crée_commande(commandes, CommandeRemplisRectangle)
+    résultat.rect = rect
+    résultat.couleur = couleur
+}
+
+remplis_rectangle :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), couleur: CouleurRVBA)
+{
+    résultat := crée_commande(commandes, CommandeRemplisRectangle)
+    résultat.rect = rect
+    résultat.couleur = depuis_couleur_rvba(couleur)
+}
+
+CommandeRemplisRectangleArrondi :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.REMPLIS_RECTANGLE_ARRONDI
+
+    couleur: CouleurRVBAN8
+    rayon: r32
+}
+
+remplis_rectangle_arrondi :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), couleur: CouleurRVBA, rayon: r32)
+{
+    résultat := crée_commande(commandes, CommandeRemplisRectangleArrondi)
+    résultat.rect = rect
+    résultat.couleur = depuis_couleur_rvba(couleur)
+    résultat.rayon = rayon
+}
+
+CommandeDessineTexte :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.DESSINE_TEXTE
+
+    fonte: *Fonte
+    texte: chaine
+    couleur: CouleurRVBA
+    effets: EffetsTexte
+}
+
+dessine_texte :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), fonte: *Fonte, texte: chaine, couleur: CouleurRVBA, effets: *EffetsTexte = nul)
+{
+    résultat := crée_commande(commandes, CommandeDessineTexte)
+    résultat.fonte = fonte
+    résultat.texte = texte
+    résultat.rect = rect
+    résultat.couleur = couleur
+    si effets {
+        résultat.effets = mémoire(effets)
+    }
+}
+
+CommandeDessineImage :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.DESSINE_IMAGE
+
+    image: NouvelleImage
+}
+
+dessine_image :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), image: NouvelleImage)
+{
+    résultat := crée_commande(commandes, CommandeDessineImage)
+    résultat.rect = rect
+    résultat.image = image
+}
+
+CommandeDébuteCiselage :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.DÉBUTE_CISELAGE
+}
+
+débute_ciselage :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32))
+{
+    résultat := crée_commande(commandes, CommandeDébuteCiselage)
+    résultat.rect = rect
+}
+
+CommandeTermineCiselage :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.TERMINE_CISELAGE
+}
+
+termine_ciselage :: fonc (commandes: *CommandesDeRendu)
+{
+    _ := crée_commande(commandes, CommandeTermineCiselage)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom BoiteFlexible
+ * \{ */
+
+AlignementEnfant :: énum n8 {
+    Début
+    Milieu
+    Fin
+}
+
+Direction :: énum n8 {
+    Horizontale
+    Verticale
+}
+
+BIT_COTATION_FIXE :: (1 << 17)
+BIT_COTATION_CROISSANTE :: (1 << 18)
+
+FIXE :: fonc (v: z32) -> z32
+{
+    retourne v | BIT_COTATION_FIXE
+}
+
+CROISSANTE :: fonc () -> z32
+{
+    retourne BIT_COTATION_CROISSANTE
+}
+
+est_cotation_fixe :: fonc (v: z32) -> bool
+{
+    retourne (v & BIT_COTATION_FIXE) != 0
+}
+
+est_cotation_croissante :: fonc (v: z32) -> bool
+{
+    retourne (v & BIT_COTATION_CROISSANTE) != 0
+}
+
+donne_cotation :: fonc (v: z32) -> z32
+{
+    retourne v & 0xffff
+}
+
+ConfigurationDéfilage :: struct {
+    vertical: bool
+    horizontal: bool
+}
+
+Cotation :: struct {
+    largeur: z32
+    hauteur: z32
+}
+
+ConfigurationDiposition :: struct {
+    cotation: Cotation
+    rembourrage: [4]r32
+    séparation_enfant: r32
+    alignement_horizontal: AlignementEnfant
+    alignement_vertical: AlignementEnfant
+    direction: Direction
+}
+
+ConfigurationRectangle :: struct {
+    rayon_coin: r32
+}
+
+dispose_rectangle :: fonc (id := "", arrière_plan := CouleurRVBA(), disposition := ConfigurationDiposition(), défilage := ConfigurationDéfilage(), config := ConfigurationRectangle())
+{
+    assert(__boite_courante != nul)
+
+    boite := __boite_courante.ajoute_enfant()
+    boite.id = id
+    boite.arrière_plan = arrière_plan
+    boite.disposition = disposition
+    boite.défilage = défilage
+    boite.rectangle = config
+
+    __boite_courante = boite
+}
+
+termine_rectangle :: fonc ()
+{
+    assert(__boite_courante != nul)
+    __boite_courante = __boite_courante.parent
+}
+
+dispose_séparateur_horizontal :: fonc ()
+{
+    assert(__boite_courante != nul)
+    séparateur := __boite_courante.ajoute_enfant()
+    séparateur.disposition.cotation.largeur = CROISSANTE()
+}
+
+ConfigurationTexte :: struct {
+    fonte: *Fonte
+    couleur: CouleurRVBA
+}
+
+dispose_texte :: fonc (texte: chaine, config := ConfigurationTexte())
+{
+    assert(__boite_courante != nul)
+
+    boite := __boite_courante.ajoute_texte(nul, texte)
+    boite.config_texte = config
+}
+
+dispose_image :: fonc (image: ImageIO, cotation: Cotation)
+{
+    nouvelle_image := nouvelle_image_enveloppe_image_io(*image)
+    dispose_image(nouvelle_image, cotation)
+}
+
+dispose_image :: fonc (image: NouvelleImage, cotation: Cotation)
+{
+    assert(__boite_courante != nul)
+    boite := __boite_courante.ajoute_image(image)
+    boite.disposition.cotation = cotation
+}
+
+BoiteFlexible :: struct {
+    Type :: énum n8 {
+        Normale
+        Image
+        Texte
+    }
+
+    emboiteuse: *Emboiteuse
+    parent: *BoiteFlexible
+    enfants: [..]*BoiteFlexible
+
+    id: chaine
+    type: Type
+
+    disposition: ConfigurationDiposition
+    rectangle: ConfigurationRectangle
+    défilage: ConfigurationDéfilage
+    config_texte: ConfigurationTexte
+
+    /* Valeurs pour les différents types. */
+    arrière_plan: CouleurRVBA
+    texte: chaine
+    image: NouvelleImage
+
+    /* Rappels */
+    rappels: [TypeRappelUtilisateur.nombre_éléments]RappelUtilisateur
+
+    /* mémoire vive */
+    barre_de_défilement_verticale := INDEX_BARRE_DÉFILEMENT_INVALIDE
+    barre_de_défilement_horizontale := INDEX_BARRE_DÉFILEMENT_INVALIDE
+
+    /* Valeurs calculées. */
+    position: Point2D(r32)
+    largeur: r32
+    hauteur: r32
+    largeur_texte: r32
+    premier_fragment: n32
+    dernier_fragment: n32
+
+    taille_min: [2]r32
+}
+
+donne_cotation :: fonc (boite: *BoiteFlexible, direction: Direction) -> z32
+{
+    si direction == Direction.Horizontale {
+        retourne donne_cotation(boite.disposition.cotation.largeur)
+    }
+    retourne donne_cotation(boite.disposition.cotation.hauteur)
+}
+
+est_cotation_fixe :: fonc (boite: *BoiteFlexible, direction: Direction) -> bool
+{
+    si direction == Direction.Horizontale {
+        retourne est_cotation_fixe(boite.disposition.cotation.largeur)
+    }
+    retourne est_cotation_fixe(boite.disposition.cotation.hauteur)
+}
+
+est_cotation_croissante :: fonc (boite: *BoiteFlexible, direction: Direction) -> bool
+{
+    si direction == Direction.Horizontale {
+        retourne est_cotation_croissante(boite.disposition.cotation.largeur)
+    }
+    retourne est_cotation_croissante(boite.disposition.cotation.hauteur)
+}
+
+donne_taille :: fonc (boite: *BoiteFlexible, direction: Direction) -> r32
+{
+    si direction == Direction.Horizontale {
+        retourne boite.largeur
+    }
+    retourne boite.hauteur
+}
+
+définis_taille :: fonc (boite: *BoiteFlexible, direction: Direction, valeur: r32)
+{
+    si direction == Direction.Horizontale {
+        boite.largeur = valeur
+        retourne
+    }
+    boite.hauteur = valeur
+}
+
+définis_taille_au_max :: fonc (boite: *BoiteFlexible, direction: Direction, valeur: r32)
+{
+    si direction == Direction.Horizontale {
+        boite.largeur = max(boite.largeur, valeur)
+    }
+    sinon {
+        boite.hauteur = max(boite.hauteur, valeur)
+    }
+}
+
+donne_rembourrage :: fonc (boite: *BoiteFlexible, direction: Direction) -> r32
+{
+    si direction == Direction.Horizontale {
+        retourne boite.disposition.rembourrage[0] + boite.disposition.rembourrage[2]
+    }
+    retourne boite.disposition.rembourrage[1] + boite.disposition.rembourrage[3]
+}
+
+agrandis_par :: fonc (boite: *BoiteFlexible, direction: Direction, valeur: r32)
+{
+    si direction == Direction.Horizontale {
+        boite.largeur += valeur
+    }
+    sinon {
+        boite.hauteur += valeur
+    }
+}
+
+donne_alignement :: fonc (boite: *BoiteFlexible, direction: Direction) -> AlignementEnfant
+{
+    si direction == Direction.Horizontale {
+        retourne boite.disposition.alignement_horizontal
+    }
+    retourne boite.disposition.alignement_vertical
+}
+
+réinitialise :: fonc (boite: *BoiteFlexible)
+{
+    enfants := boite.enfants
+    enfants.taille = 0
+
+    init_de(BoiteFlexible)(boite)
+    boite.enfants = enfants
+}
+
+ajoute_enfant :: fonc (boite: *BoiteFlexible) -> *BoiteFlexible
+{
+    assert(boite.type == BoiteFlexible.Type.Normale)
+    enfant := crée_boite(boite.emboiteuse)
+    enfant.parent = boite
+    tableau_ajoute(*boite.enfants, enfant)
+    retourne enfant
+}
+
+ajoute_image :: fonc (boite: *BoiteFlexible, image: NouvelleImage) -> *BoiteFlexible
+{
+    enfant := ajoute_enfant(boite)
+    enfant.type = BoiteFlexible.Type.Image
+    enfant.image = image
+    retourne enfant
+}
+
+ajoute_texte :: fonc (boite: *BoiteFlexible, fonte: *Fonte, texte: chaine) -> *BoiteFlexible
+{
+    enfant := ajoute_enfant(boite)
+    enfant.type = BoiteFlexible.Type.Texte
+    enfant.config_texte.fonte = fonte
+    enfant.texte = texte
+    retourne enfant
+}
+
+sur_pression_souris :: fonc (rappel: fonc(*rien, chaine, z32)(rien), données: *rien, index: z32)
+{
+    assert(__boite_courante != nul)
+    définis_rappel(__boite_courante, TypeRappelUtilisateur.SurPressionSouris, rappel, données, index)
+}
+
+sur_relâchement_souris :: fonc (rappel: fonc(*rien, chaine, z32)(rien), données: *rien, index: z32)
+{
+    assert(__boite_courante != nul)
+    définis_rappel(__boite_courante, TypeRappelUtilisateur.SurRelâchementSouris, rappel, données, index)
+}
+
+sur_clic_souris :: fonc (rappel: fonc(*rien, chaine, z32)(rien), données: *rien, index: z32)
+{
+    assert(__boite_courante != nul)
+    définis_rappel(__boite_courante, TypeRappelUtilisateur.SurClicSouris, rappel, données, index)
+}
+
+définis_rappel :: fonc (boite: *BoiteFlexible, type: TypeRappelUtilisateur, rappel: fonc(*rien, chaine, z32)(rien), données: *rien, index: z32)
+{
+    boite.rappels[type].rappel = rappel
+    boite.rappels[type].données_utilisateur = données
+    boite.rappels[type].index_utilisateur = index
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom
+ * \{ */
+
+FragmentTexte :: struct {
+    texte: chaine
+    largeur: r32
+    est_espace_blanche: bool
+}
+
+BarreDeDéfilement :: struct {
+    id: chaine
+    défilage: r32
+    défilage_max: r32
+    /* hauteur disponible / hauteur contenu */
+    ratio: r32
+}
+
+IndexBarreDeDéfilement :: #opaque n16
+INDEX_BARRE_DÉFILEMENT_INVALIDE :: IndexBarreDeDéfilement(-1 comme n16)
+
+est_valide :: fonc (index: IndexBarreDeDéfilement) -> bool
+{
+    retourne index comme n16 != INDEX_BARRE_DÉFILEMENT_INVALIDE comme n16
+}
+
+TypeRappelUtilisateur :: énum {
+    SurPressionSouris
+    SurRelâchementSouris
+    SurClicSouris
+}
+
+RappelUtilisateur :: struct {
+    rappel: fonc(*rien, chaine, z32)(rien)
+    données_utilisateur: *rien
+    index_utilisateur: z32
+}
+
+BoiteDisposée :: struct {
+    parent : z32 = -1
+    premier_enfant: z32 = -1
+    puiné : z32 = -1
+
+    id: chaine
+    rect: RectanglePosDim(r32)
+    barre_de_défilement_verticale := INDEX_BARRE_DÉFILEMENT_INVALIDE
+    barre_de_défilement_horizontale := INDEX_BARRE_DÉFILEMENT_INVALIDE
+
+    rappels: [TypeRappelUtilisateur.nombre_éléments]RappelUtilisateur
+}
+
+appel_rappel :: fonc (boite: *BoiteDisposée, type: TypeRappelUtilisateur)
+{
+    rappel := boite.rappels[type]
+    si rappel.rappel {
+        rappel.rappel(rappel.données_utilisateur, boite.id, rappel.index_utilisateur)
+    }
+}
+
+ÉditriceTextePourId :: struct {
+    id: chaine
+    éditrice_texte: *ÉditriceTexte
+}
+
+Emboiteuse :: struct {
+    racine: *BoiteFlexible
+
+    toutes_les_boites: [..]*BoiteFlexible
+    boites_libres: [..]*BoiteFlexible
+
+    fragments: [..]FragmentTexte
+
+    boites_disposées: [..]BoiteDisposée
+
+    barres_de_défilement: [..]BarreDeDéfilement
+    éditrices_textes: [..]ÉditriceTextePourId
+
+    souris_x: r32
+    souris_y: r32
+
+    commandes: CommandesDeRendu
+
+    id_pressé: chaine
+}
+
+commence_disposition :: fonc (emboiteuse: *Emboiteuse, largeur: z32, hauteur: z32)
+{
+    réinitialise(emboiteuse)
+
+    racine := emboiteuse.crée_boite()
+    racine.disposition.cotation.largeur = FIXE(largeur)
+    racine.disposition.cotation.hauteur = FIXE(hauteur)
+
+    emboiteuse.racine = racine
+
+    __boite_courante = emboiteuse.racine
+}
+
+#portée_fichier
+
+__boite_courante : *BoiteFlexible = nul
+
+réinitialise :: fonc (emboiteuse: *Emboiteuse)
+{
+    emboiteuse.racine = nul
+
+    pour emboiteuse.toutes_les_boites {
+        réinitialise(it)
+        tableau_ajoute(*emboiteuse.boites_libres, it)
+    }
+
+    emboiteuse.toutes_les_boites.taille = 0
+    emboiteuse.fragments.taille = 0
+}
+
+donne_barre_de_défilement :: fonc (boite: *BoiteFlexible, direction: Direction) -> (*BarreDeDéfilement, IndexBarreDeDéfilement)
+{
+    index := si direction == Direction.Verticale {
+        *boite.barre_de_défilement_verticale
+    }
+    sinon {
+        *boite.barre_de_défilement_horizontale
+    }
+
+    résultat := donne_ou_crée_barre(boite.emboiteuse, index)
+    retourne résultat, mémoire(index)
+}
+
+donne_ou_crée_barre :: fonc (emboiteuse: *Emboiteuse, index: *IndexBarreDeDéfilement) -> *BarreDeDéfilement
+{
+    si est_valide(mémoire(index)) {
+        retourne *emboiteuse.barres_de_défilement[mémoire(index)]
+    }
+
+    mémoire(index) = IndexBarreDeDéfilement((emboiteuse.barres_de_défilement.taille) comme n16)
+    retourne tableau_ajoute_élément(*emboiteuse.barres_de_défilement)
+}
+
+#portée_export
+
+crée_boite :: fonc (emboiteuse: *Emboiteuse) -> *BoiteFlexible
+{
+    résultat: *BoiteFlexible
+
+    si emboiteuse.boites_libres {
+        résultat = emboiteuse.boites_libres[emboiteuse.boites_libres.taille - 1]
+        emboiteuse.boites_libres.taille -= 1
+    }
+    sinon {
+        résultat = loge(BoiteFlexible)
+    }
+
+    saufsi emboiteuse.racine {
+        emboiteuse.racine = résultat
+    }
+
+    résultat.emboiteuse = emboiteuse
+    tableau_ajoute(*emboiteuse.toutes_les_boites, résultat)
+    retourne résultat
+}
+
+termine_disposition :: fonc (emboiteuse: *Emboiteuse) -> CommandesDeRendu
+{
+    assert(__boite_courante == emboiteuse.racine)
+    __boite_courante = nul
+
+    emboiteuse.commandes.commandes.taille = 0
+
+    si emboiteuse.racine {
+        calcule_cotation_sur_direction(emboiteuse.racine, Direction.Horizontale)
+        résoud_cotation_croissante_sur_direction(emboiteuse.racine, Direction.Horizontale)
+        fragmente_texte(emboiteuse.racine)
+        calcule_cotation_sur_direction(emboiteuse.racine, Direction.Verticale)
+        résoud_cotation_croissante_sur_direction(emboiteuse.racine, Direction.Verticale)
+        calcule_positions(emboiteuse.racine)
+        génère_commandes(emboiteuse.racine, *emboiteuse.commandes)
+
+        enregistre_disposition(emboiteuse)
+    }
+
+    retourne emboiteuse.commandes
+}
+
+enregistre_disposition :: fonc (emboiteuse: *Emboiteuse)
+{
+    assert(emboiteuse.racine != nul)
+
+    emboiteuse.boites_disposées.taille = 0
+    tableau_réserve(*emboiteuse.boites_disposées, emboiteuse.toutes_les_boites.taille)
+
+    enregistre_disposition(emboiteuse, emboiteuse.racine, -1)
+}
+
+enregistre_disposition :: fonc (emboiteuse: *Emboiteuse, boite: *BoiteFlexible, parent: z32)
+{
+    enregistre_barre_de_défilement(boite)
+
+    index_boite_disposée := emboiteuse.boites_disposées.taille comme z32
+
+    boite_disposée := tableau_ajoute_élément(*emboiteuse.boites_disposées)
+    boite_disposée.parent = parent
+    boite_disposée.id = boite.id
+    boite_disposée.rect.x = boite.position.x
+    boite_disposée.rect.y = boite.position.y
+    boite_disposée.rect.largeur = boite.largeur
+    boite_disposée.rect.hauteur = boite.hauteur
+    boite_disposée.rappels = boite.rappels
+    boite_disposée.barre_de_défilement_horizontale = boite.barre_de_défilement_horizontale
+    boite_disposée.barre_de_défilement_verticale = boite.barre_de_défilement_verticale
+
+    dernier_enfant := -1
+
+    pour boite.enfants {
+        /* À FAIRE : inclus les textes. */
+        si it.type == BoiteFlexible.Type.Texte {
+            continue
+        }
+
+        index_enfant := emboiteuse.boites_disposées.taille comme z32
+        si index_it == 0 {
+            boite_disposée.premier_enfant = index_enfant
+        }
+
+        si dernier_enfant != -1 {
+            emboiteuse.boites_disposées[dernier_enfant].puiné = index_enfant
+        }
+        
+        enregistre_disposition(emboiteuse, it, index_boite_disposée)
+
+        dernier_enfant = index_enfant
+    }
+}
+
+donne_rect :: fonc (emboiteuse: *Emboiteuse, id: chaine) -> RectanglePosDim(r32)
+{
+    pour * emboiteuse.boites_disposées {
+        si it.id == id {
+            retourne it.rect
+        }
+    }
+
+    retourne RectanglePosDim(r32)()
+}
+
+définis_éditrice_texte :: fonc (emboiteuse: *Emboiteuse, id: chaine, éditrice_texte: *ÉditriceTexte)
+{
+    pour * emboiteuse.éditrices_textes {
+        si it.id != id {
+            continue
+        }
+
+        si éditrice_texte == nul {
+            tableau_supprime_index(*emboiteuse.éditrices_textes, index_it)
+            retourne
+        }
+
+        it.éditrice_texte = éditrice_texte
+        retourne
+    }
+
+    assert(éditrice_texte != nul)
+    tableau_ajoute(*emboiteuse.éditrices_textes, ÉditriceTextePourId(id, éditrice_texte))
+}
+
+donne_éditrice_texte :: fonc (emboiteuse: *Emboiteuse, id: chaine) -> *ÉditriceTexte
+{
+    pour * emboiteuse.éditrices_textes {
+        si it.id == id {
+            retourne it.éditrice_texte
+        }
+    }
+
+    retourne nul
+}
+
+enregistre_barre_de_défilement :: fonc (boite: *BoiteFlexible)
+{
+    saufsi boite.défilage.vertical {
+        retourne
+    }
+
+    hauteur_enfants := donne_hauteur_enfants(boite)
+    hauteur_disponible := (boite.hauteur - (boite.disposition.rembourrage[1] + boite.disposition.rembourrage[3]))
+
+    si hauteur_enfants <= hauteur_disponible {
+        // À FAIRE : libère la mémoire
+        boite.barre_de_défilement_verticale = INDEX_BARRE_DÉFILEMENT_INVALIDE
+        retourne
+    }
+
+    barre, index_barre := donne_barre_de_défilement(boite, Direction.Verticale)
+    barre.défilage_max = hauteur_enfants - hauteur_disponible
+    barre.ratio = hauteur_disponible / hauteur_enfants
+}
+
+définis_position_souris :: fonc (emboiteuse: *Emboiteuse, x: r32, y: r32)
+{
+    emboiteuse.souris_x = x
+    emboiteuse.souris_y = y
+}
+
+sur_pression_souris :: fonc (emboiteuse: *Emboiteuse, x: r32, y: r32)
+{
+    emboiteuse.souris_x = x
+    emboiteuse.souris_y = y
+
+    boite := donne_boite_sous_souris(emboiteuse)
+    saufsi boite {
+        retourne
+    }
+
+    appel_rappel(boite, TypeRappelUtilisateur.SurPressionSouris)
+    emboiteuse.id_pressé = boite.id
+}
+
+sur_relâchement_souris :: fonc (emboiteuse: *Emboiteuse, x: r32, y: r32)
+{
+    emboiteuse.souris_x = x
+    emboiteuse.souris_y = y
+
+    boite := donne_boite_sous_souris(emboiteuse)
+    saufsi boite {
+        retourne
+    }
+
+    appel_rappel(boite, TypeRappelUtilisateur.SurRelâchementSouris)
+
+    si emboiteuse.id_pressé == boite.id {
+        appel_rappel(boite, TypeRappelUtilisateur.SurClicSouris)
+    }
+
+    emboiteuse.id_pressé = ""
+}
+
+applique_défilage_vertical :: fonc (emboiteuse: *Emboiteuse, x: r32, y: r32, delta: z32)
+{
+    emboiteuse.souris_x = x
+    emboiteuse.souris_y = y
+
+    boite := donne_boite_sous_souris(emboiteuse)
+
+    racine_boites_disposées := *emboiteuse.boites_disposées[0]
+
+    tantque boite != nul && !est_valide(boite.barre_de_défilement_verticale) {
+        si boite.parent == -1 {
+            retourne
+        }
+
+        boite = racine_boites_disposées + boite.parent
+    }
+
+    saufsi boite {
+        retourne
+    }
+
+    barre := *emboiteuse.barres_de_défilement[boite.barre_de_défilement_verticale]
+
+    si delta > 0 {
+        barre.défilage -= 60.0
+    }
+    sinon {
+        barre.défilage += 60.0
+    }
+
+    si barre.défilage < 0.0 {
+        barre.défilage = 0.0
+    }
+    si barre.défilage > barre.défilage_max {
+        barre.défilage = barre.défilage_max
+    }
+}
+
+donne_boite_disposée_pour_id :: fonc (emboiteuse: *Emboiteuse, id: chaine) -> *BoiteDisposée
+{
+    si emboiteuse.boites_disposées.taille == 0 {
+        retourne nul
+    }
+
+    pour * emboiteuse.boites_disposées {
+        si it.id == id {
+            retourne *emboiteuse.boites_disposées[index_it]
+        }
+    }
+
+    retourne nul
+}
+
+donne_boite_sous_souris :: fonc (emboiteuse: *Emboiteuse) -> *BoiteDisposée
+{
+    si emboiteuse.boites_disposées.taille == 0 {
+        retourne nul
+    }
+
+    racine_boites_disposées := *emboiteuse.boites_disposées[0]
+    boite_courante := racine_boites_disposées
+
+    boucle {
+        si boite_courante.premier_enfant == -1 {
+            arrête
+        }
+
+        enfant := racine_boites_disposées + boite_courante.premier_enfant
+
+        boucle {
+            si enfant.rect.contient(emboiteuse.souris_x, emboiteuse.souris_y) {
+                arrête
+            }
+
+            si enfant.puiné == -1 {
+                enfant = nul
+                arrête
+            }
+
+            enfant = racine_boites_disposées + enfant.puiné
+        }
+
+        si enfant == nul {
+            arrête
+        }
+
+        boite_courante = enfant
+    }
+
+    retourne boite_courante
+}
+
+est_survolée :: fonc (id: chaine) -> bool
+{
+    assert(__boite_courante != nul)
+    boite_disposée := donne_boite_sous_souris(__boite_courante.emboiteuse)
+    saufsi boite_disposée {
+        retourne faux
+    }
+    retourne boite_disposée.id == id
+}
+
+fragmente_texte :: fonc (emboiteuse: *Emboiteuse, boite: *BoiteFlexible)
+{
+    début := boite.texte.pointeur
+    fin := début + boite.texte.taille
+
+    premier_fragment := emboiteuse.fragments.taille comme n32
+    dernier_fragment: n32
+
+    courant := début
+    tantque courant < fin {
+        si mémoire(courant) == ' ' || mémoire(courant) == '\n' {
+            fragment: chaine = ---
+            fragment.pointeur = début
+            fragment.taille = courant - début
+
+            dernier_fragment = ajoute_fragment(emboiteuse, fragment, faux)
+
+            fragment.pointeur = courant
+            fragment.taille = 1
+            dernier_fragment = ajoute_fragment(emboiteuse, fragment, vrai)
+
+            courant += 1
+            début = courant
+            continue
+        }
+
+        si mémoire(courant) == '-' {
+            courant += 1
+
+            fragment: chaine = ---
+            fragment.pointeur = début
+            fragment.taille = courant - début
+            dernier_fragment = ajoute_fragment(emboiteuse, fragment, faux)
+
+            début = courant
+            continue
+        }
+
+        courant += 1
+    }
+
+    fragment: chaine = ---
+    fragment.pointeur = début
+    fragment.taille = courant - début
+
+    si fragment.taille {
+        dernier_fragment = ajoute_fragment(emboiteuse, fragment, faux)
+    }
+
+    boite.premier_fragment = premier_fragment
+    boite.dernier_fragment = dernier_fragment
+}
+
+ajoute_fragment :: fonc (emboiteuse: *Emboiteuse, texte: chaine, est_espace_blanche: bool) -> n32
+{
+    résultat := emboiteuse.fragments.taille
+    tableau_ajoute(*emboiteuse.fragments, FragmentTexte(texte, est_espace_blanche = est_espace_blanche))
+    retourne résultat comme n32
+}
+
+calcule_cotation_sur_direction :: fonc (boite: *BoiteFlexible, direction: Direction)
+{
+    si boite.type == BoiteFlexible.Type.Texte {
+        si direction == Direction.Horizontale {
+            boite.largeur = donne_largeur_texte(boite.config_texte.fonte, boite.texte) comme r32
+            boite.largeur_texte = boite.largeur
+
+            fragmente_texte(boite.emboiteuse, boite)
+
+            largeur_min := 0.0
+
+            premier_fragment := boite.emboiteuse.fragments.pointeur + boite.premier_fragment
+            dernier_fragment := boite.emboiteuse.fragments.pointeur + boite.dernier_fragment + 1
+
+            tantque premier_fragment < dernier_fragment {
+                largeur_fragment := donne_largeur_texte(boite.config_texte.fonte, premier_fragment.texte) comme r32
+                premier_fragment.largeur = largeur_fragment
+                saufsi premier_fragment.est_espace_blanche {
+                    largeur_min = max(largeur_min, largeur_fragment)
+                }
+                premier_fragment += 1
+            }
+
+            boite.taille_min[direction] = largeur_min
+            retourne
+        }
+
+        métriques := donne_métriques_fonte(boite.config_texte.fonte)
+        boite.hauteur = métriques.donne_hauteur_ligne() * (boite.dernier_fragment - boite.premier_fragment + 1) comme r32
+        boite.taille_min[direction] = boite.hauteur
+        retourne
+    }
+
+    cotation := 0.0
+
+    pour boite.enfants {
+        calcule_cotation_sur_direction(it, direction)
+
+        taille_enfant := it.donne_taille(direction)
+
+        si boite.disposition.direction == direction {
+            cotation += taille_enfant
+            boite.taille_min[direction] += it.taille_min[direction]
+        }
+        sinon {
+            cotation = max(cotation, taille_enfant)
+            boite.taille_min[direction] += max(boite.taille_min[direction], it.taille_min[direction])
+        }
+    }
+
+    si boite.est_cotation_fixe(direction) {
+        cotation = boite.donne_cotation(direction) comme r32
+        boite.taille_min[direction] = cotation
+    }
+    sinon si boite.est_cotation_croissante(direction) {
+        cotation = 0.0
+        boite.taille_min[direction] = cotation
+    }
+    sinon {
+        cotation += boite.donne_rembourrage(direction)
+
+        si boite.disposition.direction == direction {
+            cotation += (boite.enfants.taille - 1) comme r32 * boite.disposition.séparation_enfant
+        }
+
+        cotation = max(cotation, boite.donne_cotation(direction) comme r32)
+    }
+
+    boite.définis_taille(direction, cotation)
+}
+
+résoud_cotation_croissante_sur_direction :: fonc (boite: *BoiteFlexible, direction: Direction)
+{
+    saufsi boite.enfants {
+        retourne
+    }
+
+    résoud_cotation_croissante_sur_direction_impl(boite, direction)
+
+    pour boite.enfants {
+        résoud_cotation_croissante_sur_direction(it, direction)
+    }
+}
+
+résoud_cotation_croissante_sur_direction_impl :: fonc (boite: *BoiteFlexible, direction: Direction)
+{
+    si boite.disposition.direction != direction {
+        espace_libre := boite.donne_taille(direction) - boite.donne_rembourrage(direction)
+
+        pour boite.enfants {
+            si it.est_cotation_croissante(direction) {
+                it.agrandis_par(direction, espace_libre - it.donne_taille(direction))
+            }
+            sinon saufsi it.est_cotation_fixe(direction) {
+                si it.donne_taille(direction) > espace_libre {
+                    it.définis_taille(direction, it.taille_min[direction])
+                }
+            }
+        }
+
+        retourne
+    }
+
+    espace_libre := donne_espace_libre(boite, direction == Direction.Verticale)
+
+    si espace_libre < 0.0 {
+        si direction == Direction.Verticale && boite.défilage.vertical {
+            retourne
+        }
+        si direction == Direction.Horizontale && boite.défilage.horizontal {
+            retourne
+        }
+    }
+
+    croissables: [..]*BoiteFlexible
+    diffère déloge(croissables)
+
+    décroissables: [..]*BoiteFlexible
+    diffère déloge(décroissables)
+
+    pour boite.enfants {
+        si it.est_cotation_croissante(direction) {
+            tableau_ajoute(*croissables, it)
+        }
+        sinon saufsi it.est_cotation_fixe(direction) {
+            tableau_ajoute(*décroissables, it)
+        }
+    }
+
+    R64_INFINITÉ : r64 : 0r7ff0000000000000
+
+    tantque croissables.taille > 0 && espace_libre > 0.0 {
+        petissime := croissables[0].donne_taille(direction)
+        antepetissime := R64_INFINITÉ comme r32
+        largeur_à_ajouter := espace_libre
+
+        pour croissables {
+            taille_enfant := it.donne_taille(direction)
+            si taille_enfant < petissime {
+                antepetissime = petissime
+                petissime = taille_enfant
+            }
+            si taille_enfant > petissime {
+                antepetissime = min(antepetissime, taille_enfant)
+                largeur_à_ajouter = antepetissime - petissime
+            }
+        }
+
+        largeur_à_ajouter = min(largeur_à_ajouter, espace_libre / croissables.taille comme r32)
+
+        pour croissables {
+            si it.donne_taille(direction) == petissime {
+                it.agrandis_par(direction, largeur_à_ajouter)
+                espace_libre -= largeur_à_ajouter
+            }
+        }
+    }
+
+    tantque décroissables.taille > 0 && espace_libre < 0.0 {
+        grandissime := décroissables[0].donne_taille(direction)
+        antegrandissime := R64_INFINITÉ comme r32
+        largeur_à_ajouter := espace_libre
+
+        pour décroissables {
+            taille_enfant := it.donne_taille(direction)
+            si taille_enfant > grandissime {
+                antegrandissime = grandissime
+                grandissime = taille_enfant
+            }
+            si taille_enfant < grandissime {
+                antegrandissime = min(antegrandissime, taille_enfant)
+                largeur_à_ajouter = antegrandissime - grandissime
+            }
+        }
+
+        largeur_à_ajouter = min(largeur_à_ajouter, espace_libre / décroissables.taille comme r32)
+
+        pour décroissables {
+            taille_initiale_enfant := it.donne_taille(direction)
+            si taille_initiale_enfant != grandissime {
+                continue
+            }
+
+            it.agrandis_par(direction, largeur_à_ajouter)
+
+            supprime_décroissable := faux
+
+            si it.donne_taille(direction) <= it.taille_min[direction] {
+                it.définis_taille(direction, it.taille_min[direction])
+                supprime_décroissable = vrai
+            }
+
+            espace_libre -= (it.donne_taille(direction) - taille_initiale_enfant)
+
+            si supprime_décroissable {
+                tableau_supprime_index(*décroissables, index_it)
+                reprends it
+            }
+        }
+    }
+}
+
+fragmente_texte :: fonc (boite: *BoiteFlexible)
+{
+    si boite.type == BoiteFlexible.Type.Texte {
+        premier_fragment := boite.emboiteuse.fragments.pointeur + boite.premier_fragment
+        dernier_fragment := boite.emboiteuse.fragments.pointeur + boite.dernier_fragment + 1
+
+        si boite.largeur >= boite.largeur_texte {
+            premier_fragment.texte = boite.texte
+            boite.dernier_fragment = boite.premier_fragment
+            retourne
+        }
+
+        insertion := premier_fragment
+        nombre_fragments : n32 = 0
+
+        largeur_ligne := 0.0
+
+        tantque premier_fragment < dernier_fragment {
+            nombre_de_caractères: z64
+            mémoire(insertion) = mémoire(premier_fragment)
+
+            tantque premier_fragment < dernier_fragment {
+                si largeur_ligne + premier_fragment.largeur > boite.largeur {
+                    premier_fragment -= 1
+                    arrête
+                }
+
+                largeur_ligne += premier_fragment.largeur
+                nombre_de_caractères += premier_fragment.texte.taille
+                premier_fragment += 1
+            }
+
+            insertion.texte.taille = nombre_de_caractères
+
+            largeur_ligne = 0.0
+
+            insertion += 1
+
+            nombre_fragments += 1
+            premier_fragment += 1
+        }
+
+        boite.dernier_fragment = boite.premier_fragment + nombre_fragments - 1
+        retourne
+    }
+
+    pour boite.enfants {
+        fragmente_texte(it)
+    }
+}
+
+calcule_positions :: fonc (boite: *BoiteFlexible)
+{
+    décalage_enfants := [boite.disposition.rembourrage[0], boite.disposition.rembourrage[1]]
+
+    orthogonale := Direction.Horizontale
+    si boite.disposition.direction == orthogonale {
+        orthogonale = Direction.Verticale
+    }
+
+    alignement_direction := boite.donne_alignement(boite.disposition.direction)
+    alignement_orthogonal := boite.donne_alignement(orthogonale)
+
+    si alignement_direction == AlignementEnfant.Milieu {
+        espace := donne_espace_libre(boite, boite.disposition.direction == Direction.Verticale)
+        décalage_enfants[boite.disposition.direction] += espace * 0.5
+    }
+    sinon si alignement_direction == AlignementEnfant.Fin {
+        espace := donne_espace_libre(boite, boite.disposition.direction == Direction.Verticale)
+        décalage_enfants[boite.disposition.direction] += espace
+    }
+
+    si boite.défilage.vertical && boite.id {
+        boite_disposée := donne_boite_disposée_pour_id(boite.emboiteuse, boite.id)
+        si boite_disposée && est_valide(boite_disposée.barre_de_défilement_verticale) {
+            barre := *boite.emboiteuse.barres_de_défilement[boite_disposée.barre_de_défilement_verticale]
+            décalage_enfants[Direction.Verticale] -= barre.défilage
+            boite.barre_de_défilement_verticale = boite_disposée.barre_de_défilement_verticale
+        }
+    }
+
+    pour boite.enfants {
+        décalage_pour_enfant := décalage_enfants
+
+        si alignement_orthogonal != AlignementEnfant.Début {
+            espace_libre := boite.donne_taille(orthogonale) - boite.donne_rembourrage(orthogonale)
+            espace_libre -= it.donne_taille(orthogonale)
+
+            si alignement_orthogonal == AlignementEnfant.Milieu {
+                espace_libre *= 0.5
+            }
+
+            décalage_pour_enfant[orthogonale] += espace_libre
+        }
+
+        it.position.x = boite.position.x + décalage_pour_enfant[0]
+        it.position.y = boite.position.y + décalage_pour_enfant[1]
+
+        calcule_positions(it)
+
+        décalage_enfants[boite.disposition.direction] += it.donne_taille(boite.disposition.direction) + boite.disposition.séparation_enfant
+    }
+}
+
+donne_espace_libre :: fonc (boite: *BoiteFlexible, axe_y: bool) -> r32
+{
+    espace_occupé := 0.0
+
+    pour boite.enfants {
+        si axe_y {
+            espace_occupé += it.hauteur
+        }
+        sinon {
+            espace_occupé += it.largeur
+        }
+    }
+
+    espace_occupé += boite.disposition.séparation_enfant * (boite.enfants.taille - 1) comme r32
+
+    si axe_y {
+        espace_occupé += boite.disposition.rembourrage[1] + boite.disposition.rembourrage[3]
+        retourne boite.hauteur - espace_occupé
+    }
+
+    espace_occupé += boite.disposition.rembourrage[0] + boite.disposition.rembourrage[2]
+    retourne boite.largeur - espace_occupé
+}
+
+donne_hauteur_enfants :: fonc (boite: *BoiteFlexible) -> r32
+{
+    si boite.enfants.taille == 0 {
+        retourne 0.0
+    }
+
+    premier_enfant := boite.enfants[0]
+    dernier_enfant := boite.enfants[boite.enfants.taille - 1]
+
+    retourne dernier_enfant.position.y + dernier_enfant.hauteur - premier_enfant.position.y
+}
+
+génère_commandes :: fonc (boite: *BoiteFlexible, commandes: *CommandesDeRendu)
+{
+    rect: RectanglePosDim(r32)
+    rect.x = boite.position.x
+    rect.y = boite.position.y
+    rect.largeur = boite.largeur
+    rect.hauteur = boite.hauteur
+
+    discr boite.type {
+        Normale {
+            si boite.rectangle.rayon_coin != 0.0 {
+                commandes.remplis_rectangle_arrondi(rect, boite.arrière_plan, boite.rectangle.rayon_coin)
+            }
+            sinon {
+                commandes.remplis_rectangle(rect, boite.arrière_plan)
+            }
+        }
+        Texte {
+            /* À FAIRE : décalage de 1 dans le calcul des index des fragments. */
+            si boite.texte.taille == 0 {
+                retourne
+            }
+
+            premier_fragment := boite.emboiteuse.fragments.pointeur + boite.premier_fragment
+            dernier_fragment := boite.emboiteuse.fragments.pointeur + boite.dernier_fragment + 1
+            métriques := boite.config_texte.fonte.donne_métriques_fonte()
+
+            rect.hauteur = métriques.donne_hauteur_ligne()
+
+            tantque premier_fragment < dernier_fragment {
+                commandes.dessine_texte(rect, boite.config_texte.fonte, premier_fragment.texte, boite.config_texte.couleur)
+                premier_fragment += 1
+
+                rect.y += métriques.donne_hauteur_ligne()
+            }
+        }
+        Image {
+            commandes.dessine_image(rect, boite.image)
+        }
+    }
+
+    si boite.défilage.vertical || boite.défilage.horizontal {
+        // À FAIRE : ne restreint que dans la bonne direction
+        commandes.débute_ciselage(rect)
+    }
+
+    pour boite.enfants {
+        génère_commandes(it, commandes)
+    }
+
+    si boite.défilage.vertical || boite.défilage.horizontal {
+        commandes.termine_ciselage()
+
+        si boite.défilage.vertical && est_valide(boite.barre_de_défilement_verticale) {
+            barre := boite.emboiteuse.barres_de_défilement[boite.barre_de_défilement_verticale]
+
+            hauteur_disponible := (boite.hauteur - boite.disposition.rembourrage[1] - boite.disposition.rembourrage[3])
+
+            rect.x = rect.x + boite.largeur - 16.0
+            rect.y = rect.y + boite.disposition.rembourrage[1] + barre.défilage * barre.ratio
+            rect.largeur = 12.0
+            rect.hauteur = hauteur_disponible * barre.ratio
+
+            couleur_barre := CouleurRVBA(0.0, 0.0, 0.0, 0.7)
+
+            commandes.remplis_rectangle(rect, couleur_barre)
+        }
+    }
+
+    éditrice := donne_éditrice_texte(boite.emboiteuse, boite.id)
+    si éditrice && éditrice.curseur_est_affiché {
+        texte_avant_curseur := éditrice.texte_à_éditer
+        texte_avant_curseur.points_de_code.taille = éditrice.curseur.fin
+
+        curseur_x := éditrice.fonte.donne_largeur_texte(texte_avant_curseur)
+        hauteur_disponible := (boite.hauteur - boite.disposition.rembourrage[1] - boite.disposition.rembourrage[3])
+
+        rect.x = rect.x + boite.disposition.rembourrage[0] + curseur_x comme r32
+        rect.y = rect.y + boite.disposition.rembourrage[1]
+        rect.largeur = 1.0
+        rect.hauteur = hauteur_disponible
+        
+        couleur_barre := CouleurRVBA(0.0, 0.0, 0.0, 1.0)
+        commandes.remplis_rectangle(rect, couleur_barre)
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Rendu avec PeintureInterface
+ * \{ */
+
+importe PeintureInterface
+
+dessine_commandes :: fonc (peintre: *Peintre, commandes: *CommandesDeRendu)
+{
+    IGUMI.réinitialise_données()
+
+    début := commandes.commandes.pointeur
+    fin := début + commandes.commandes.taille
+
+    hauteur_vue := peintre.donne_taille_cannevas().hauteur comme z32 comme r32
+
+    tantque début < fin {
+        base := début comme *BaseCommande
+        discr base.type {
+            REMPLIS_RECTANGLE {
+                commande := base comme *CommandeRemplisRectangle
+                rect := commande.rect
+                rect.y = hauteur_vue - rect.y - rect.hauteur
+                peintre.remplis_rectangle(rect, commande.couleur)
+            }
+            REMPLIS_RECTANGLE_ARRONDI {
+                commande := base comme *CommandeRemplisRectangleArrondi
+                rect := commande.rect
+                rect.y = hauteur_vue - rect.y - rect.hauteur
+                peintre.remplis_rectangle_arrondi(rect, [commande.rayon, commande.rayon, commande.rayon, commande.rayon], commande.couleur)
+            }
+            DESSINE_TEXTE {
+                commande := base comme *CommandeDessineTexte
+                rect := commande.rect
+                rect.y = hauteur_vue - rect.y - rect.hauteur
+                peintre.dessine_texte(commande.fonte, commande.texte, rect, commande.couleur)
+            }
+            DESSINE_IMAGE {
+                commande := base comme *CommandeDessineImage
+                rect := commande.rect
+                rect.y = hauteur_vue - rect.y - rect.hauteur
+                peintre.dessine_image(*commande.image, rect, rect, RépétitionImage())
+            }
+            DÉBUTE_CISELAGE {
+                rect := base.rect
+                rect.y = hauteur_vue - rect.y - rect.hauteur
+                peintre.définis_ciseau(rect)
+            }
+            TERMINE_CISELAGE {
+                peintre.restaure_ciseau()
+            }
+        }
+
+        début += base.taille_type
+    }
+
+    peintre.termine_dessin()
+}
+
+/** \} */

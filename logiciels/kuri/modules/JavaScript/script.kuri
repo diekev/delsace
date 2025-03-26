@@ -467,6 +467,7 @@ donne_ligne_pour_erreur :: fonc (texte: chaine, colonne: z64) -> LignePourErreur
 GoalSymbol :: énum {
     Script
     StringNumericLiteral
+    FunctionBody
 }
 
 /* 11.1.6 Static Semantics: ParseText ( sourceText, goalSymbol )

@@ -97,6 +97,12 @@ typedef struct texture_atlas_t {
     uint32_t id;
 
     /**
+     * Set to 1 if new glyphs were loaded. Can be set to 0 by
+     * clients to dynamically update the OpenGL texture.
+     */
+    uint32_t dirty;
+
+    /**
      * Atlas data
      */
     unsigned char *data;
