@@ -864,6 +864,20 @@ imprime_chaine :: fonc (format: chaine, args: ...eini) -> chaine
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
+imprime_chaine_temp :: fonc (format: chaine, args: ...eini) -> chaine
+{
+    nouveau_contexte := contexte()
+    nouveau_contexte.allocatrice = __stockage_temporaire
+
+    résultat: chaine
+
+    pousse_contexte nouveau_contexte {
+       résultat = imprime_chaine(format, ...args)
+    }
+
+    retourne résultat
+}
+
 imprime_dans_fichier :: fonc (fichier: *Fichier, format: chaine, args: ...eini) -> ErreurFichier
 {
     enchaineuse: Enchaineuse

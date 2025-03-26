@@ -28,6 +28,9 @@ parse :: fonc (realm: *Realm, source_text: *TexteSource, goal_symbol: GoalSymbol
                 }
             }
         }
+        FunctionBody {
+            résultat = parse_function_body(*parseuse)
+        }
     }
 
     si parseuse.erreur_de_compilation {
@@ -1300,6 +1303,11 @@ parse_expressions_séparées_par_des_virgules :: fonc (parseuse: *Parseuse) -> [
         }
 
         parseuse.consomme()
+        /* Permet d'avoir des virgules en fin de liste sans expression suivante :
+         * [a, b, c,] */
+        saufsi apparie_expression(parseuse) {
+            arrête
+        }
     }
     retourne résultat
 }
