@@ -11,11 +11,22 @@ libfreetype :: #bibliothèque "freetype"
 
 #ajoute_init définis_allocatrices_ftgl()
 
+// À FAIRE : pour les allocations, nous devrions utiliser l'allocatrice du contexte parent
+//           si l'allocatrice courante est celle du stockage temporaire
+
 définis_allocatrices_ftgl :: fonc ()
 {
     ftgl_malloc_func :: fonc (size: n64) -> *rien
     {
-        retourne loge_mémoire(size comme z64, nul, PositionCodeSource())
+        ctx := contexte()
+        ctx.allocatrice = allocatrice_défaut
+
+        résultat: *rien
+        pousse_contexte ctx {
+            résultat = loge_mémoire(size comme z64, nul, PositionCodeSource())
+        }
+
+        retourne résultat
     }
 
     ftgl_calloc_func :: fonc (nmemb: n64, size: n64) -> *rien
@@ -29,12 +40,23 @@ définis_allocatrices_ftgl :: fonc ()
 
     ftgl_realloc_func :: fonc (old: *rien, old_size: n64, new_size: n64) -> *rien
     {
-        retourne reloge_mémoire(old_size comme z64, new_size comme z64, old, nul, PositionCodeSource())
+        ctx := contexte()
+        ctx.allocatrice = allocatrice_défaut
+
+        résultat: *rien
+        pousse_contexte ctx {
+            résultat = reloge_mémoire(old_size comme z64, new_size comme z64, old, nul, PositionCodeSource())
+        }
+        retourne résultat
     }
 
     ftgl_free_func :: fonc (old: *rien, size: n64)
     {
-        déloge_mémoire(size comme z64, old, nul, PositionCodeSource())
+        ctx := contexte()
+        ctx.allocatrice = allocatrice_défaut
+        pousse_contexte ctx {
+            déloge_mémoire(size comme z64, old, nul, PositionCodeSource())
+        }
     }
 
     _ := FTGL_set_allocators(ftgl_malloc_func, ftgl_calloc_func, ftgl_realloc_func, ftgl_free_func)

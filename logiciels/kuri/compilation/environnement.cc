@@ -358,8 +358,26 @@ kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
     /* Ajoute le fichier objet pour les r16. */
     enchaineuse << chemin_fichier_objet_r16(options.architecture) << " ";
 
-    auto chemins_utilisés = std::set<kuri::chemin_systeme>();
+    /* Détermine d'abord les chemins pour rpath. Il est possible que deux bibliothèques du même
+     * dossier soient liées différement. Sans ça, si la statique précèdait la dynamique, rpath ne
+     * serait pas mis en place dans la boucle suivante. */
+    auto chemin_requiers_rpath = std::set<kuri::chemin_systeme>();
+    POUR (bibliothèques.donne_tableau()) {
+        if (it->nom == "r16") {
+            continue;
+        }
 
+        auto chemin_parent = it->chemin_de_base(options);
+        if (chemin_parent.taille() == 0) {
+            continue;
+        }
+
+        if (it->chemin_dynamique(options)) {
+            chemin_requiers_rpath.insert(chemin_parent);
+        }
+    }
+
+    auto chemins_utilisés = std::set<kuri::chemin_systeme>();
     POUR (bibliothèques.donne_tableau()) {
         if (it->nom == "r16") {
             continue;
@@ -374,7 +392,7 @@ kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
             continue;
         }
 
-        if (it->chemin_dynamique(options)) {
+        if (chemin_requiers_rpath.find(chemin_parent) != chemin_requiers_rpath.end()) {
             enchaineuse << " -Wl,-rpath=" << chemin_parent;
         }
 
