@@ -3,6 +3,7 @@ importe Couleur
 importe FTGL
 importe Fondation
 importe SysFichier
+importe Unicode
 
 /* ------------------------------------------------------------------------- */
 /** \nom Fonte
@@ -167,8 +168,20 @@ donne_hauteur_glyph :: fonc (fonte: *Fonte, point_de_code: n32) -> Optionnel(n64
 
 donne_glyphes :: fonc (fonte: *Fonte, texte: chaine, glyphes: *[..]*texture_glyph_t)
 {
-    pour * c dans texte {
-        glyph := fonte.donne_glyphe(c)
+    début := texte.pointeur
+    fin := texte.pointeur + texte.taille
+
+    tantque début < fin {
+        n := nombre_octets_utf8_rapide(début)
+        si n == 0 {
+            début += 1
+            continue
+        }
+
+        point_de_code := converti_utf8_utf32(début, n) comme n32
+        début += n
+
+        glyph := fonte.donne_glyphe(point_de_code)
         si glyph == nul {
             continue
         }
