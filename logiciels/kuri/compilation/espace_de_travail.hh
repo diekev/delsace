@@ -123,6 +123,8 @@ struct EspaceDeTravail {
     Erreur rapporte_erreur_sans_site(kuri::chaine_statique message,
                                      erreur::Genre genre = erreur::Genre::NORMAL) const;
 
+    Erreur rapporte_erreur_externe(ParamètresErreurExterne const &params) const;
+
     Compilatrice &compilatrice()
     {
         return m_compilatrice;

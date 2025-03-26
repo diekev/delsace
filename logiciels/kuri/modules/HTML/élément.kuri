@@ -114,6 +114,11 @@ table_virtuelle_élément := TableVirtuelleÉlément(
 
 élément_sur_changement_attribut :: fonc (élément: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
 {
+    /* Nous devons faire ça même si l'ancienne et la nouvelle valeur sont les mêmes. */
+    si gère_changement_attribut_event_handler(élément, local_name, valeur, espace_de_nom) {
+        retourne vrai
+    }
+
     si vieille_valeur && valeur && mémoire(vieille_valeur) == mémoire(valeur) {
         retourne vrai
     }
@@ -156,6 +161,54 @@ table_virtuelle_élément := TableVirtuelleÉlément(
     }
 
     retourne faux
+}
+
+/* https://html.spec.whatwg.org/multipage/webappapis.html#event-handler-content-attributes */
+gère_changement_attribut_event_handler :: fonc (élément: *Élément, local_name: DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
+{
+    // 1. If namespace is not null, or localName is not the name of an event handler content attribute on element, then return.
+    si espace_de_nom.possède_valeur() || !is_event_handler_content_attribute_name(local_name) {
+        retourne faux
+    }
+
+    // 2. Let eventTarget be the result of determining the target of an event handler given element and localName.
+    event_target := determine_the_target_of_an_event_handler(élément, local_name)
+
+    // 3. If eventTarget is null, then return.
+    si event_target == nul {
+        retourne faux
+    }
+
+    // 4. If value is null, then deactivate an event handler given eventTarget and localName.
+    si valeur == nul {
+        deactivate_an_event_handler(event_target, local_name)
+    }
+    // 5. Otherwise:
+    sinon {
+        // 1. If the Should element's inline behavior be blocked by Content Security Policy? algorithm returns "Blocked" when executed upon element, "script attribute", and value, then return. [CSP]
+        valeur_chaine := converti_vers_chaine(mémoire(valeur).donne_chaine_utf16())
+        diffère déloge(valeur_chaine)
+
+        bloqué := le_comportement_inline_de_l_élément_doit_être_bloqué_par_csp(élément, "script attribute", valeur_chaine)
+        si bloqué == "Blocked" {
+            retourne faux
+        }
+
+        // 2. Let handlerMap be eventTarget's event handler map.
+        // 3. Let eventHandler be handlerMap[localName].
+        event_handler := donne_event_handler(event_target, local_name)
+
+        // À FAIRE : 4. Let location be the script location that triggered the execution of these steps.
+
+        // 5. Set eventHandler's value to the internal raw uncompiled handler value/location.
+        event_handler.type_valeur = TypeValeurEventHandler.InternalRawUncompiled
+        event_handler.internal_raw_uncompiled = mémoire(valeur)
+
+        // 6. Activate an event handler given eventTarget and localName.
+        activate_an_event_handler(event_target, local_name)
+    }
+
+    retourne vrai
 }
 
 rendu_css_est_requis :: fonc (élément: *Élément) -> bool
@@ -260,6 +313,9 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élé
     }
     sinon si tag == TAG_body {
         élément = crée_platform_object(document, HTMLBodyElement)
+    }
+    sinon si tag == TAG_button {
+        élément = crée_platform_object(document, HTMLButtonElement)
     }
     sinon si tag == TAG_canvas {
         élément = crée_platform_object(document, HTMLCanvasElement)
@@ -1118,6 +1174,86 @@ ajoute_propriété_pour_dimension :: fonc (résolveuse: *CSS.RésolveuseStyle, n
     }
 }
 
+ajoute_presentational_hints_pour_bordure :: fonc (résolveuse: *CSS.RésolveuseStyle, couleur: CouleurRVBAN8, largeur: DimensionValue, style: CSS.CSSOMString)
+{
+    CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_bottom_color, CSS.ValeurDeStyle(couleur = couleur))
+    CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_top_color, CSS.ValeurDeStyle(couleur = couleur))
+    CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_left_color, CSS.ValeurDeStyle(couleur = couleur))
+    CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_right_color, CSS.ValeurDeStyle(couleur = couleur))
+
+    ajoute_propriété_pour_mot_clé(résolveuse, CSS.PROP_border_bottom_style, style)
+    ajoute_propriété_pour_mot_clé(résolveuse, CSS.PROP_border_top_style, style)
+    ajoute_propriété_pour_mot_clé(résolveuse, CSS.PROP_border_left_style, style)
+    ajoute_propriété_pour_mot_clé(résolveuse, CSS.PROP_border_right_style, style)
+
+    ajoute_propriété_pour_dimension(résolveuse, CSS.PROP_border_bottom_width, largeur)
+    ajoute_propriété_pour_dimension(résolveuse, CSS.PROP_border_top_width, largeur)
+    ajoute_propriété_pour_dimension(résolveuse, CSS.PROP_border_left_width, largeur)
+    ajoute_propriété_pour_dimension(résolveuse, CSS.PROP_border_right_width, largeur)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLButtonElement
+ * https://html.spec.whatwg.org/multipage/form-elements.html#the-button-element
+ * https://developer.mozilla.org/en-US/docs/Web/API/HTMLButtonElement
+ * \{ */
+
+#portée_export
+
+HTMLButtonElement :: struct {
+    empl html_element: HTMLElement
+    table = *table_virtuelle_button_element
+}
+
+#portée_fichier
+
+table_virtuelle_button_element := TableVirtuelleÉlément(
+    classe = HTMLButtonElement,
+    sur_destruction = élément_sur_destruction,
+    sur_applique_presentational_hints = button_element_sur_applique_presentational_hints
+)
+
+button_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
+{
+    /* NOTE : la stylisation ne se retrouve dans aucun standard. Elle reprend le style par défaut de firefox. */
+
+    couleur_bordure := CouleurRVBAN8(143, 143, 157, 255)
+    style_bordure := CSS.PROP_solid // outset
+    largeur_bordure := DimensionValue(Length = 2.0)
+    rayon_bordure := DimensionValue(Length = 4.0)
+    padding_inline := DimensionValue(Length = 4.0)
+    padding_block := DimensionValue(Length = 1.0)
+
+    couleur_arrière_plan := si base.pseudo_classes.Active {
+        CouleurRVBAN8(177, 177, 185, 255)
+    }
+    sinon si base.pseudo_classes.Hover {
+        CouleurRVBAN8(208, 208, 208, 215)
+    }
+    sinon {
+        CouleurRVBAN8(233, 233, 237, 255)
+    }
+
+    CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_background_color, CSS.ValeurDeStyle(couleur = couleur_arrière_plan))
+
+    ajoute_propriété_pour_mot_clé(résolveuse, CSS.PROP_display, CSS.PROP_inline_block)
+
+    ajoute_propriété_pour_dimension(résolveuse, CSS.PROP_padding_inline_start, padding_inline)
+    ajoute_propriété_pour_dimension(résolveuse, CSS.PROP_padding_inline_end, padding_inline)
+
+    ajoute_propriété_pour_dimension(résolveuse, CSS.PROP_padding_block_start, padding_block)
+    ajoute_propriété_pour_dimension(résolveuse, CSS.PROP_padding_block_end, padding_block)
+
+    ajoute_presentational_hints_pour_bordure(résolveuse, couleur_bordure, largeur_bordure, style_bordure)
+
+    ajoute_propriété_pour_dimension(résolveuse, CSS.PROP_border_bottom_left_radius, rayon_bordure)
+    ajoute_propriété_pour_dimension(résolveuse, CSS.PROP_border_bottom_right_radius, rayon_bordure)
+    ajoute_propriété_pour_dimension(résolveuse, CSS.PROP_border_top_left_radius, rayon_bordure)
+    ajoute_propriété_pour_dimension(résolveuse, CSS.PROP_border_top_right_radius, rayon_bordure)
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1733,6 +1869,7 @@ décode_image :: fonc (contenu: chaine, content_type: chaine, résultat: *ImageI
 
 /* ------------------------------------------------------------------------- */
 /** \nom HTMLInputElement
+ * https://html.spec.whatwg.org/multipage/input.html#htmlinputelement
  * \{ */
 
 #portée_export
@@ -1757,13 +1894,37 @@ is_text_entry_widget :: fonc (input: *HTMLInputElement) -> bool
     retourne opt_type.Quelque == ATTR_text
 }
 
+/* https://html.spec.whatwg.org/multipage/rendering.html#the-input-element-as-a-button */
+is_button_widget :: fonc (input: *HTMLInputElement) -> bool
+{
+    opt_type := donne_attribut(input, ATTR_type)
+    saufsi opt_type.possède_valeur() {
+        retourne faux
+    }
+    retourne opt_type.Quelque == ATTR_submit || opt_type.Quelque == ATTR_reset || opt_type.Quelque == ATTR_button
+}
+
 #portée_fichier
 
 table_virtuelle_input_element := TableVirtuelleÉlément(
     classe = HTMLInputElement,
     sur_destruction = élément_sur_destruction,
-    sur_changement_attribut = input_element_sur_changement_attribut
+    sur_changement_attribut = input_element_sur_changement_attribut,
+    sur_applique_presentational_hints = input_element_sur_applique_presentational_hints
 )
+
+input_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
+{
+    si is_button_widget(base comme *HTMLInputElement) {
+        button_element_sur_applique_presentational_hints(base, résolveuse)
+        retourne
+    }
+
+    couleur_bordure := CouleurRVBAN8(143, 143, 157, 255)
+    style_bordure := CSS.PROP_solid
+    largeur_bordure := DimensionValue(Length = 1.0)
+    ajoute_presentational_hints_pour_bordure(résolveuse, couleur_bordure, largeur_bordure, style_bordure)
+}
 
 input_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
 {
@@ -3318,7 +3479,16 @@ donne_character_height :: fonc (textarea: *HTMLTextAreaElement) -> n32
 
 table_virtuelle_textarea_element := TableVirtuelleÉlément(
     classe = HTMLTextAreaElement,
-    sur_destruction = élément_sur_destruction
+    sur_destruction = élément_sur_destruction,
+    sur_applique_presentational_hints = textarea_element_sur_applique_presentational_hints
 )
+
+textarea_element_sur_applique_presentational_hints :: fonc (base: *Élément @inutilisée, résolveuse: *CSS.RésolveuseStyle)
+{
+    couleur_bordure := CouleurRVBAN8(143, 143, 157, 255)
+    style_bordure := CSS.PROP_solid
+    largeur_bordure := DimensionValue(Length = 1.0)
+    ajoute_presentational_hints_pour_bordure(résolveuse, couleur_bordure, largeur_bordure, style_bordure)
+}
 
 /** \} */

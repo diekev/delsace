@@ -1063,10 +1063,13 @@ contexte_parsage_shorthand_variable_ajoute_propriété :: fonc (ctx: *ContextePa
         retourne
     }
 
+    /// XXX - fuite de mémoire sur copie_valeur()
+    v := copie_valeur(valeur)
+
     déclaration: DéclarationPropriété
     déclaration.info = info
     déclaration.property_name = nom
-    déclaration.value.pointeur = *valeur
+    déclaration.value.pointeur = *v
     déclaration.value.taille = 1
 
     calcule_valeur_propriété(ctx.ctx_calcul_style, info, *déclaration)
@@ -1143,7 +1146,9 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
     calcule_display_final(propriétés)
 
     /* Transfert les valeurs calculées aux valeurs utilisées. */
-    propriétés.style_utilisée = propriétés.style
+    pour propriétés.style.valeurs {
+        propriétés.style_utilisée.valeurs[index_it] = copie_valeur(it)
+    }
 
     saufsi propriétés_parent {
         résolveuse.longueurs_relative_fonte_racine = ctx_calcul_style.longueurs_relative_fonte
@@ -1465,8 +1470,17 @@ crée_noeud_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *
     si élément.local_name == HTML.TAG_img {
         résultat = crée_noeud_de_remplacement_image(arbre, élément comme *HTML.HTMLImageElement)
     }
-    sinon si élément.local_name == HTML.TAG_input && HTML.is_text_entry_widget(élément comme *HTML.HTMLInputElement) {
-        résultat = crée_noeud_de_remplacement_text_input(arbre, élément comme *HTML.HTMLInputElement)
+    sinon si élément.local_name == HTML.TAG_input {
+        input_element := élément comme *HTML.HTMLInputElement
+        si HTML.is_text_entry_widget(input_element) {
+            résultat = crée_noeud_de_remplacement_text_input(arbre, input_element)
+        }
+        sinon si HTML.is_button_widget(input_element) {
+            résultat = crée_noeud_de_remplacement_button_input(arbre, input_element)
+        }
+        sinon {
+            résultat = crée_noeud_pour_display(arbre, display, élément)
+        }
     }
     sinon si élément.local_name == HTML.TAG_textarea {
         résultat = crée_noeud_de_remplacement_textarea(arbre, élément comme *HTML.HTMLTextAreaElement)
@@ -3659,6 +3673,41 @@ donne_inline_size_pour_text_input :: fonc (noeud: *NoeudDeDispositionRemplacemen
 convert_a_character_width_to_pixels :: fonc (size: r32, métriques: &MétriquesFonte) -> r32
 {
     retourne (size - 1.0) * métriques.largeur_moyenne + métriques.largeur_maximale
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom NoeudDeDispositionRemplacement pour input type=button
+ * \{ */
+
+#portée_fichier
+
+__table_noeud_de_disposition_button_input := TableVirtuelleNoeudDeDispo(
+    type = NoeudDeDispositionRemplacement,
+    sur_dessin = noeud_button_input_sur_dessin,
+    sur_mesure = noeud_disposition_remplacement_sur_mesure,
+    sur_divise_en_lignes = noeud_disposition_remplacement_sur_divise_en_lignes,
+    sur_dessin_tampon_id = noeud_disposition_remplacement_sur_dessin_tampon_id,
+    sur_dessin_fragment = noeud_disposition_remplacement_sur_dessin_fragment)
+
+crée_noeud_de_remplacement_button_input :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLInputElement) -> *NoeudDeDispositionRemplacement
+{
+    résultat := arbre.crée_noeud(NoeudDeDispositionRemplacement)
+    résultat.table_virtuelle = *__table_noeud_de_disposition_button_input
+    résultat.élément = élément
+    résultat.sur_calcul_dimensions_intrinsèques = noeud_button_input_dimensions_intrinsèques
+    retourne résultat
+}
+
+noeud_button_input_dimensions_intrinsèques :: fonc (noeud: *NoeudDeDispositionRemplacement, ctx: *ContexteDeFormattage)
+{
+    assert(noeud.élément.local_name == HTML.TAG_input)
+    noeud.fonte = détermine_fonte(noeud, ctx)
+    line_height := donne_line_height(noeud, ctx)
+    value := HTML.donne_attribut_ou_chaine_vide(noeud.élément, HTML.ATTR_value)
+    noeud.largeur_intrinsèque = donne_largeur_texte(noeud.fonte, value) comme r32
+    noeud.hauteur_intrinsèque = line_height
 }
 
 /** \} */
