@@ -793,13 +793,13 @@ RAPPEL_POUR_ERREUR(initialisation_type)
 {
     auto espace = unité->espace;
     auto noeud = unité->noeud;
-    auto type = attente.opérateur_pour();
+    auto type = attente.initialisation_type();
 
     auto message = enchaine(
-        "Je ne pas continuer la compilation car une unité attend sur la déclaration "
-        "d'un opérateur de boucle « pour » pour le type « ",
+        "Je ne pas continuer la compilation car une unité attend indéfiniement sur la "
+        "fonction d'initialisation du type « ",
         chaine_type(type),
-        " » mais aucun opérateur de boucle « pour » ne fut déclaré pour le type.");
+        " ».");
 
     espace->rapporte_erreur(noeud, message);
 }
@@ -809,7 +809,54 @@ InfoTypeAttente info_type_attente_sur_initialisation_type = {
     condition_blocage_défaut,
     NOM_RAPPEL_POUR_COMMENTAIRE(initialisation_type),
     NOM_RAPPEL_POUR_EST_RÉSOLUE(initialisation_type),
-    émets_erreur_pour_attente_défaut};
+    NOM_RAPPEL_POUR_ERREUR(initialisation_type)};
+
+/** \} */
+
+/** -----------------------------------------------------------------
+ * AttenteSurInfoType
+ * \{ */
+
+RAPPEL_POUR_COMMENTAIRE(info_type)
+{
+    auto type = attente.info_type();
+    return enchaine("info type de ", chaine_type(type));
+}
+
+RAPPEL_POUR_EST_RÉSOLUE(info_type)
+{
+    auto type = attente.info_type();
+
+    kuri::ensemblon<Type *, 16> types_utilisés;
+    types_utilisés.insère(const_cast<Type *>(type));
+
+    kuri::tablet<Attente, 16> attentes;
+    /* Visite récursivement le type pour s'assurer que tous les types dépendus sont
+     * validés, ceci est nécessaire pour garantir que les infos types seront générés avec
+     * les bonnes données. À FAIRE : permet l'ajournement des infos-types afin de ne pas
+     * avoir à attendre. */
+    attentes_sur_types_si_drapeau_manquant(
+        types_utilisés, DrapeauxNoeud::DECLARATION_FUT_VALIDEE, attentes);
+
+    return attentes.taille() == 0;
+}
+
+RAPPEL_POUR_ERREUR(info_type)
+{
+    auto message = enchaine("Je ne pas continuer la compilation car une unité attend "
+                            "indéfiniement sur les infos-type de « ",
+                            chaine_type(attente.info_type()),
+                            " ».");
+
+    auto espace = unité->espace;
+    espace->rapporte_erreur(unité->noeud, message);
+}
+
+InfoTypeAttente info_type_attente_sur_info_type = {nullptr,
+                                                   condition_blocage_défaut,
+                                                   NOM_RAPPEL_POUR_COMMENTAIRE(info_type),
+                                                   NOM_RAPPEL_POUR_EST_RÉSOLUE(info_type),
+                                                   NOM_RAPPEL_POUR_ERREUR(info_type)};
 
 /** \} */
 
