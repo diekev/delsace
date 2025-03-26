@@ -629,29 +629,16 @@ génère_code_conversion_argument :: fonc (enchaineuse: *Enchaineuse, nom: chain
         ajoute_au_tampon(enchaineuse, "    ", nom, " := completion.valeur.V.Number\n")
     }
     sinon si type.nom == "EventListener" {
-        // Convertis entre callback et notre EventListener
-        ajoute_au_tampon(enchaineuse, "    ", nom, " := loge(EventListener)\n")
-        indentation := ""
-
-        si type.nulifiable {
-            ajoute_au_tampon(enchaineuse, "    saufsi JavaScript.est_nulle(valeur_", nom, ") {\n")
-            indentation = "    "
-        }
-
-        ajoute_au_tampon(enchaineuse, indentation, "    saufsi JavaScript.is_callable(valeur_", nom, ") {\n")
-        ajoute_au_tampon(enchaineuse, indentation, "        retourne JavaScript.lance_type_error(interpréteuse, \"argument ", index, " is not callable\")\n")
-        ajoute_au_tampon(enchaineuse, indentation, "    }\n")
-        ajoute_au_tampon(enchaineuse, indentation, "    ", nom, ".function = JavaScript.donne_objet(valeur_", nom, ")\n")
-
-        si type.nulifiable {
-            ajoute_au_tampon(enchaineuse, "    }\n")
-        }
-    }
-    sinon si type.nom == "EventHandler" {
-        ajoute_au_tampon(enchaineuse, "    saufsi JavaScript.is_callable(valeur_", nom, ") {\n")
+        ajoute_au_tampon(enchaineuse, "    saufsi JavaScript.est_object(valeur_", nom, ") {\n")
         ajoute_au_tampon(enchaineuse, "        retourne JavaScript.lance_type_error(interpréteuse, \"argument ", index, " is not callable\")\n")
         ajoute_au_tampon(enchaineuse, "    }\n")
-        ajoute_au_tampon(enchaineuse, "    ", nom, " := JavaScript.donne_objet(valeur_", nom, ")\n")
+        ajoute_au_tampon(enchaineuse, "    ", nom, ":= crée_event_listener(JavaScript.donne_objet(valeur_", nom, "))\n")
+    }
+    sinon si type.nom == "EventHandler" {
+        ajoute_au_tampon(enchaineuse, "    saufsi JavaScript.est_object(valeur_", nom, ") {\n")
+        ajoute_au_tampon(enchaineuse, "        retourne JavaScript.lance_type_error(interpréteuse, \"argument ", index, " is not callable\")\n")
+        ajoute_au_tampon(enchaineuse, "    }\n")
+        ajoute_au_tampon(enchaineuse, "    ", nom, ":= crée_event_handler(JavaScript.donne_objet(valeur_", nom, "))\n")
     }
     sinon si type.nom == "Function" {
         indentation := ""
@@ -705,7 +692,7 @@ génère_code_conversion_résultat :: fonc (enchaineuse: *Enchaineuse, type: *Ty
             ajoute_au_tampon(enchaineuse, "    }\n")
         }
 
-        ajoute_au_tampon(enchaineuse, "    retourne JavaScript.normal_completion(JavaScript.Valeur(Object = résultat))\n")
+        ajoute_au_tampon(enchaineuse, "    retourne JavaScript.normal_completion(JavaScript.Valeur(Object = résultat.object))\n")
     }
     sinon {
         si type.nulifiable {

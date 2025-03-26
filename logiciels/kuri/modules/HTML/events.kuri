@@ -304,13 +304,49 @@ table_virtuelle_mouse_event := TableVirtuellePlatformObject(
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Callbacks
+ * https://webidl.spec.whatwg.org/#idl-callback-interface
+ * \{ */
+
+CallbackType :: struct {
+    empl cellule: JavaScript.Cellule
+
+    object: *JavaScript.Object
+    callback_context: *EnvironmentSettings
+}
+
+/* https://html.spec.whatwg.org/multipage/webappapis.html#incumbent-settings-object */
+donne_incumbent_settings_object :: fonc () -> *EnvironmentSettings
+{
+    // À FAIRE
+    retourne nul
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom EventListener
  * https://dom.spec.whatwg.org/#callbackdef-eventlistener
  * \{ */
 
+#portée_fichier
+
+table_virtuelle_event_listener := JavaScript.TableVirtuelleCellule(classe = EventListener)
+
+#portée_export
+
 EventListener :: struct {
-    sur_handle_event: fonc(*Event)(rien)
-    function: *JavaScript.Object
+    empl callback_type: CallbackType
+    table = *table_virtuelle_event_listener
+}
+
+crée_event_listener :: fonc (object: *JavaScript.Object) -> *EventListener
+{
+    tas_de_mémoire := JavaScript.donne_tas_de_mémoire(object)
+    résultat := JavaScript.alloue(tas_de_mémoire, EventListener)
+    résultat.object = object
+    résultat.callback_context = donne_incumbent_settings_object()
+    retourne résultat
 }
 
 EventListenerOptions :: struct {
@@ -322,6 +358,35 @@ AddEventListenerOptions :: struct {
     passive: Optionnel(bool)
     once := faux
     signal: *AbortSignal
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom EventHandler
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_event_handler := JavaScript.TableVirtuelleCellule(classe = EventHandler)
+
+#portée_export
+
+EventHandler :: struct {
+    empl callback_type: CallbackType
+    table = *table_virtuelle_event_handler
+}
+
+crée_event_handler :: fonc (object: *JavaScript.Object, callback_context : *EnvironmentSettings = nul) -> *EventHandler
+{
+    tas_de_mémoire := JavaScript.donne_tas_de_mémoire(object)
+    résultat := JavaScript.alloue(tas_de_mémoire, EventHandler)
+    résultat.object = object
+    saufsi callback_context {
+        callback_context = donne_incumbent_settings_object()
+    }
+    résultat.callback_context = callback_context
+    retourne résultat
 }
 
 /** \} */
@@ -369,7 +434,7 @@ EventTarget :: struct {
 
     EventListenerEntry :: struct {
         type: EventType
-        callback: *EventListener
+        callback: *CallbackType
         capture: bool
         passive: Optionnel(bool)
         once: bool
@@ -545,7 +610,7 @@ retarget :: fonc (a: *EventTarget, b: *EventTarget @inutilisée) -> *EventTarget
 #portée_export
 
 /* Enveloppe pour IDL où EventType n'est pas convertis. */
-add_event_listener :: fonc (target: *EventTarget, type: ChaineUTF16Unique, callback: *EventListener, options : *AddEventListenerOptions = nul)
+add_event_listener :: fonc (target: *EventTarget, type: ChaineUTF16Unique, callback: *CallbackType, options : *AddEventListenerOptions = nul)
 {
     chn_type := converti_vers_chaine(type.donne_chaine_utf16())
     diffère déloge(chn_type)
@@ -560,7 +625,7 @@ add_event_listener :: fonc (target: *EventTarget, type: ChaineUTF16Unique, callb
 }
 
 /* https://dom.spec.whatwg.org/#dom-eventtarget-addeventlistener */
-add_event_listener :: fonc (target: *EventTarget, type: EventType, callback: *EventListener, options : *AddEventListenerOptions = nul)
+add_event_listener :: fonc (target: *EventTarget, type: EventType, callback: *CallbackType, options : *AddEventListenerOptions = nul)
 {
     // 1. Let capture, passive, once, and signal be the result of flattening more options.
     capture := faux
@@ -590,7 +655,7 @@ add_event_listener :: fonc (target: *EventTarget, type: EventType, callback: *Ev
 }
 
 /* https://dom.spec.whatwg.org/#dom-eventtarget-removeeventlistener */
-remove_event_listener :: fonc (target: *EventTarget, type: EventType, callback: *EventListener, options : *EventListenerOptions = nul)
+remove_event_listener :: fonc (target: *EventTarget, type: EventType, callback: *CallbackType, options : *EventListenerOptions = nul)
 {
     // 1. Let capture be the result of flattening options.
     capture := faux
@@ -870,7 +935,7 @@ inner_invoke :: fonc (event: *Event, listeners: []EventTarget.EventListenerEntry
             continue
         }
 
-        call_a_user_object_operation(JavaScript.Valeur(Object = it.callback.function), arguments, JavaScript.Valeur(Object = event.current_target))
+        call_a_user_object_operation(JavaScript.Valeur(Object = it.callback.object), arguments, JavaScript.Valeur(Object = event.current_target))
     }
 }
 
@@ -910,7 +975,7 @@ EventHandlerEntry :: struct {
     nom: DOMString
     type_valeur: TypeValeurEventHandler
     internal_raw_uncompiled: DOMString
-    value: *JavaScript.Object
+    value: *EventHandler
 
     listener : z64 = -1
 }
@@ -967,10 +1032,8 @@ activate_an_event_handler :: fonc (event_target: *EventTarget, nom: DOMString)
     //    a reference to a function of one argument that executes the steps of the event handler
     //    processing algorithm, given eventTarget, name, and its argument.
     //    The EventListener's callback context can be arbitrary; it does not impact the steps of the event handler processing algorithm. [DOM]
-    // À FAIRE : implémente EventListener comme objet JavaScript
     processor := crée_event_handler_processor(event_target, nom)
-    callback := loge(EventListener)
-    callback.function = processor
+    callback := crée_event_listener(processor)
 
     // 5. Let listener be a new event listener whose type is the event handler event type corresponding to eventHandler and callback is callback.
     listener: EventTarget.EventListenerEntry
@@ -990,7 +1053,7 @@ activate_an_event_handler :: fonc (event_target: *EventTarget, nom: DOMString)
 }
 
 /* https://html.spec.whatwg.org/multipage/webappapis.html#event-handler-idl-attributes */
-get_event_handler_idl_attribute :: fonc (this: *EventTarget, name: DOMString) -> *JavaScript.Object
+get_event_handler_idl_attribute :: fonc (this: *EventTarget, name: DOMString) -> *EventHandler
 {
     // À FAIRE : 1. Let eventTarget be the result of determining the target of an event handler given this object and name.
     event_target := determine_the_target_of_an_event_handler(this, name)
@@ -1004,7 +1067,7 @@ get_event_handler_idl_attribute :: fonc (this: *EventTarget, name: DOMString) ->
     retourne get_the_current_value_of_the_event_handler(event_target, name)
 }
 
-set_event_handler_idl_attribute :: fonc (this: *EventTarget, name: DOMString, value: *JavaScript.Object)
+set_event_handler_idl_attribute :: fonc (this: *EventTarget, name: DOMString, value: *EventHandler)
 {
     // 1. Let eventTarget be the result of determining the target of an event handler given this object and name.
     event_target := determine_the_target_of_an_event_handler(this, name)
@@ -1034,7 +1097,7 @@ set_event_handler_idl_attribute :: fonc (this: *EventTarget, name: DOMString, va
 }
 
 /* https://html.spec.whatwg.org/multipage/webappapis.html#getting-the-current-value-of-the-event-handler */
-get_the_current_value_of_the_event_handler :: fonc (event_target: *EventTarget, name: DOMString) -> *JavaScript.Object
+get_the_current_value_of_the_event_handler :: fonc (event_target: *EventTarget, name: DOMString) -> *EventHandler
 {
     // 1. Let handlerMap be eventTarget's event handler map.
     // 2. Let eventHandler be handlerMap[name].
@@ -1165,8 +1228,9 @@ get_the_current_value_of_the_event_handler :: fonc (event_target: *EventTarget, 
         // 11. Set function.[[ScriptOrModule]] to null.
         function.script_or_module = nul
 
-        // 12. Set eventHandler's value to the result of creating a Web IDL EventHandler callback function object whose object reference is function and whose callback context is settings object.
-        panique("non-implémenté")
+        // 12. Set eventHandler's value to the result of creating a Web IDL EventHandler callback function
+        //     object whose object reference is function and whose callback context is settings object.
+        event_handler.value = crée_event_handler(function, settings_object)
     }
 
     // 4. Return eventHandler's value.
@@ -1283,7 +1347,7 @@ process_event_handler :: fonc (event_target: *EventTarget, nom: DOMString, event
 
         this_value := JavaScript.Valeur(Object = event.current_target)
 
-        call_a_user_object_operation(JavaScript.Valeur(Object = callback), args, this_value)
+        call_a_user_object_operation(JavaScript.Valeur(Object = callback.object), args, this_value)
     }
 
     // 5. Process return value as follows:
