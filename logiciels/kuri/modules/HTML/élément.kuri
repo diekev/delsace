@@ -114,6 +114,11 @@ table_virtuelle_élément := TableVirtuelleÉlément(
 
 élément_sur_changement_attribut :: fonc (élément: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
 {
+    /* Nous devons faire ça même si l'ancienne et la nouvelle valeur sont les mêmes. */
+    si gère_changement_attribut_event_handler(élément, local_name, valeur, espace_de_nom) {
+        retourne vrai
+    }
+
     si vieille_valeur && valeur && mémoire(vieille_valeur) == mémoire(valeur) {
         retourne vrai
     }
@@ -156,6 +161,54 @@ table_virtuelle_élément := TableVirtuelleÉlément(
     }
 
     retourne faux
+}
+
+/* https://html.spec.whatwg.org/multipage/webappapis.html#event-handler-content-attributes */
+gère_changement_attribut_event_handler :: fonc (élément: *Élément, local_name: DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
+{
+    // 1. If namespace is not null, or localName is not the name of an event handler content attribute on element, then return.
+    si espace_de_nom.possède_valeur() || !is_event_handler_content_attribute_name(local_name) {
+        retourne faux
+    }
+
+    // 2. Let eventTarget be the result of determining the target of an event handler given element and localName.
+    event_target := determine_the_target_of_an_event_handler(élément, local_name)
+
+    // 3. If eventTarget is null, then return.
+    si event_target == nul {
+        retourne faux
+    }
+
+    // 4. If value is null, then deactivate an event handler given eventTarget and localName.
+    si valeur == nul {
+        deactivate_an_event_handler(event_target, local_name)
+    }
+    // 5. Otherwise:
+    sinon {
+        // 1. If the Should element's inline behavior be blocked by Content Security Policy? algorithm returns "Blocked" when executed upon element, "script attribute", and value, then return. [CSP]
+        valeur_chaine := converti_vers_chaine(mémoire(valeur).donne_chaine_utf16())
+        diffère déloge(valeur_chaine)
+
+        bloqué := le_comportement_inline_de_l_élément_doit_être_bloqué_par_csp(élément, "script attribute", valeur_chaine)
+        si bloqué == "Blocked" {
+            retourne faux
+        }
+
+        // 2. Let handlerMap be eventTarget's event handler map.
+        // 3. Let eventHandler be handlerMap[localName].
+        event_handler := donne_event_handler(event_target, local_name)
+
+        // À FAIRE : 4. Let location be the script location that triggered the execution of these steps.
+
+        // 5. Set eventHandler's value to the internal raw uncompiled handler value/location.
+        event_handler.type_valeur = TypeValeurEventHandler.InternalRawUncompiled
+        event_handler.internal_raw_uncompiled = mémoire(valeur)
+
+        // 6. Activate an event handler given eventTarget and localName.
+        activate_an_event_handler(event_target, local_name)
+    }
+
+    retourne vrai
 }
 
 rendu_css_est_requis :: fonc (élément: *Élément) -> bool

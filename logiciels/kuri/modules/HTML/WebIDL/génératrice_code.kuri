@@ -175,16 +175,50 @@ crée_interface :: fonc (interfaces: *Interfaces, nom: chaine) -> *Interface
     retourne résultat
 }
 
+donne_interface :: fonc (interfaces: *Interfaces, nom: chaine) -> *Interface
+{
+    pour * interfaces.interfaces {
+        si it.nom == nom {
+            retourne it
+        }
+    }
+    retourne nul
+}
+
 détruit_données_interfaces :: fonc (interfaces: *Interfaces)
 {
     pour interfaces.interfaces {
         déloge(it.fonctions)
         déloge(it.paramètres)
         déloge(it.attributs)
+        déloge(it.mixins)
     }
     déloge_tableau_et_ses_éléments(interfaces.contenus_fichiers)
     déloge(interfaces.interfaces)
     déloge(interfaces.noms_et_index_parents)
+}
+
+ajoute_mixins_aux_interfaces :: fonc (interfaces: *Interfaces)
+{
+    pour * interfaces.interfaces {
+        si it.est_mixin {
+            continue
+        }
+
+        pour nom_mixin dans it.mixins {
+            mixin := interfaces.donne_interface(nom_mixin)
+            saufsi mixin {
+                message_erreur := imprime_chaine("mixin '%' inconnu pour '%'", nom_mixin, it.nom)
+                compilatrice_rapporte_erreur(message_erreur)
+            }
+
+            pour attribut dans mixin.attributs {
+                tableau_ajoute(*it.attributs, attribut)
+            }
+
+            // À FAIRE : fonctions
+        }
+    }
 }
 
 compile_interfaces_idl :: fonc () -> chaine
@@ -223,7 +257,13 @@ compile_interfaces_idl :: fonc () -> chaine
         parse_fichier(it, texte, *interfaces)
     }
 
+    ajoute_mixins_aux_interfaces(*interfaces)
+
     pour * interfaces.interfaces {
+        si it.est_mixin {
+            continue
+        }
+
         génère_enveloppes_javascript(*enchaineuse, it)
     }
 
@@ -237,12 +277,18 @@ compile_interfaces_idl :: fonc () -> chaine
     ajoute_au_tampon(*enchaineuse, "    tas_de_mémoire := JavaScript.donne_tas_de_mémoire(realm)\n\n")
 
     pour * interfaces.interfaces {
+        si it.est_mixin {
+            continue
+        }
         génère_création_prototype(*enchaineuse, interfaces.interfaces, it, *interfaces.noms_et_index_parents)
     }
 
     ajoute_au_tampon(*enchaineuse, "\n    si __table_indexage_prototypes.taille == 0 {\n")
     ajoute_au_tampon(*enchaineuse, "        tableau_redimensionne(__table_indexage_prototypes, ", interfaces.interfaces.taille, ")\n")
     pour interfaces.interfaces {
+        si it.est_mixin {
+            continue
+        }
         ajoute_au_tampon(*enchaineuse, "        __table_indexage_prototypes[", index_it, "] = IndexPrototype(", it.nom, ", ", index_it, ")\n")
     }
     ajoute_au_tampon(*enchaineuse, "    }\n")
@@ -250,6 +296,9 @@ compile_interfaces_idl :: fonc () -> chaine
     ajoute_au_tampon(*enchaineuse, "\n    tableau_redimensionne(realm.intrinsics.host_intrinsics, ", interfaces.interfaces.taille, ")\n")
 
     pour interfaces.interfaces {
+        si it.est_mixin {
+            continue
+        }
         ajoute_au_tampon(*enchaineuse, "    realm.intrinsics.host_intrinsics[", index_it, "] = ", it.nom, "_prototype\n")
     }
 
@@ -298,6 +347,7 @@ Attribut :: struct {
     lecture_seule: bool
     reflect: bool
     est_membre: bool
+    est_idl_event_handler: bool
     /* 'nom' de [Reflect=nom] */
     attribut_réfléchis: chaine
 }
@@ -325,10 +375,12 @@ Interface :: struct {
     paramètres: [..]Paramètre
     attributs: [..]Attribut
     fonctions: [..]Fonction
+    mixins: [..]chaine
 
     création_générée := faux
     /* vrai si nom == "Window" pour éviter de faire trop de comparaisons de chaines. */
     est_window := faux
+    est_mixin := faux
 }
 
 donne_paramètres :: fonc (interface: *Interface, fonction: *Fonction) -> []Paramètre
@@ -493,6 +545,9 @@ génère_enveloppe_javascript_getter :: fonc (enchaineuse: *Enchaineuse, interfa
     sinon si attribut.est_membre {
         ajoute_au_tampon(enchaineuse, "    résultat := object_this.", nom_snake_case, "\n")
     }
+    sinon si attribut.est_idl_event_handler {
+        ajoute_au_tampon(enchaineuse, "    résultat := get_event_handler_idl_attribute(object_this, EVT_", attribut.nom, ");\n")
+    }
     sinon {
         ajoute_au_tampon(enchaineuse, "    résultat := donne_", nom_snake_case, "(object_this)\n")
     }
@@ -523,6 +578,9 @@ génère_enveloppe_javascript_setter :: fonc (enchaineuse: *Enchaineuse, interfa
     }
     sinon si attribut.est_membre {
         ajoute_au_tampon(enchaineuse, "    object_this.", nom_snake_case, " =", attribut.nom, "\n")
+    }
+    sinon si attribut.est_idl_event_handler {
+        ajoute_au_tampon(enchaineuse, "    set_event_handler_idl_attribute(object_this, EVT_", attribut.nom, ", ", attribut.nom, ");\n")
     }
     sinon {
         ajoute_au_tampon(enchaineuse, "    définis_", nom_snake_case, "(object_this, ", attribut.nom, ")\n")
@@ -589,6 +647,12 @@ génère_code_conversion_argument :: fonc (enchaineuse: *Enchaineuse, nom: chain
             ajoute_au_tampon(enchaineuse, "    }\n")
         }
     }
+    sinon si type.nom == "EventHandler" {
+        ajoute_au_tampon(enchaineuse, "    saufsi JavaScript.is_callable(valeur_", nom, ") {\n")
+        ajoute_au_tampon(enchaineuse, "        retourne JavaScript.lance_type_error(interpréteuse, \"argument ", index, " is not callable\")\n")
+        ajoute_au_tampon(enchaineuse, "    }\n")
+        ajoute_au_tampon(enchaineuse, "    ", nom, " := JavaScript.donne_objet(valeur_", nom, ")\n")
+    }
     sinon si type.nom == "Function" {
         indentation := ""
         si type.nulifiable {
@@ -634,6 +698,15 @@ génère_code_conversion_résultat :: fonc (enchaineuse: *Enchaineuse, type: *Ty
     sinon si type.nom == "double" || type.nom == "unrestricted double" {
         ajoute_au_tampon(enchaineuse, "    retourne JavaScript.normal_completion(JavaScript.Valeur(Number = résultat))\n")
     }
+    sinon si type.nom == "EventHandler" {
+        si type.nulifiable {
+            ajoute_au_tampon(enchaineuse, "    saufsi résultat {\n")
+            ajoute_au_tampon(enchaineuse, "        retourne JavaScript.normal_completion(JavaScript.js_null)\n")
+            ajoute_au_tampon(enchaineuse, "    }\n")
+        }
+
+        ajoute_au_tampon(enchaineuse, "    retourne JavaScript.normal_completion(JavaScript.Valeur(Object = résultat))\n")
+    }
     sinon {
         si type.nulifiable {
             ajoute_au_tampon(enchaineuse, "    saufsi résultat {\n")
@@ -657,20 +730,48 @@ parse_fichier :: fonc (chemin: CheminFichier, texte: chaine, interfaces: *Interf
 {
     parseuse := crée_parseuse(chemin, texte)
 
-    lexème := donne_lexème_suivant(*parseuse)
+    tantque parseuse.début < parseuse.fin {
+        lexème := donne_lexème_suivant(*parseuse)
 
-    si lexème != "interface" {
-        rapporte_erreur(*parseuse, "attendu 'interface'", lexème)
+        si parseuse.début >= parseuse.fin {
+            arrête
+        }
+
+        si lexème == "interface" {
+            parse_interface(*parseuse, interfaces)
+            continue
+        }
+
+        interface := donne_interface(interfaces, lexème)
+        si interface {
+            lexème = donne_lexème_suivant(*parseuse)
+            si lexème != "includes" {
+                rapporte_erreur(*parseuse, "attendu 'includes'", lexème)
+            }
+
+            lexème = donne_lexème_suivant(*parseuse)
+            tableau_ajoute(*interface.mixins, lexème)
+
+            consomme_point_virgule(*parseuse)
+            continue
+        }
+
+        rapporte_erreur(*parseuse, "lexème inattendu", lexème)
     }
-
-    parse_interface(*parseuse, interfaces)
 }
 
 parse_interface :: fonc (parseuse: *ParseuseInterface, interfaces: *Interfaces)
 {
     lexème := donne_lexème_suivant(parseuse)
 
+    est_mixin := faux
+    si lexème == "mixin" {
+        est_mixin = vrai
+        lexème = donne_lexème_suivant(parseuse)
+    }
+
     résultat := interfaces.crée_interface(lexème)
+    résultat.est_mixin = est_mixin
 
     si consomme_caractère(parseuse, ':') {
         résultat.parent = donne_lexème_suivant(parseuse)
@@ -739,9 +840,7 @@ parse_une_fonction :: fonc (parseuse: *ParseuseInterface, interface: *Interface)
     résultat.dernier_paramètre = interface.paramètres.taille
     tableau_ajoute(*interface.fonctions, résultat)
 
-    saufsi consomme_caractère(parseuse, ';') {
-        rapporte_erreur(parseuse, "attendu ';", donne_lexème_suivant(parseuse))
-    }
+    consomme_point_virgule(parseuse)
 }
 
 parse_un_attribut :: fonc (parseuse: *ParseuseInterface, interface: *Interface)
@@ -755,6 +854,9 @@ parse_un_attribut :: fonc (parseuse: *ParseuseInterface, interface: *Interface)
         }
         sinon si lexème == "Member" {
             résultat.est_membre = vrai
+        }
+        sinon si lexème == "IDLEventHandler" {
+            résultat.est_idl_event_handler = vrai
         }
         sinon {
             rapporte_erreur(parseuse, "attribut inconnu", lexème)
@@ -787,9 +889,7 @@ parse_un_attribut :: fonc (parseuse: *ParseuseInterface, interface: *Interface)
 
     tableau_ajoute(*interface.attributs, résultat)
 
-    saufsi consomme_caractère(parseuse, ';') {
-        rapporte_erreur(parseuse, "attendu ';", donne_lexème_suivant(parseuse))
-    }
+    consomme_point_virgule(parseuse)
 }
 
 rapporte_erreur :: fonc (parseuse: *ParseuseInterface, message: chaine, lexème_obtenu: chaine)
@@ -954,6 +1054,13 @@ consomme_caractère :: fonc (parseuse: *ParseuseInterface, c: z8) -> bool
 
     parseuse.début += 1
     retourne vrai
+}
+
+consomme_point_virgule :: fonc (parseuse: *ParseuseInterface)
+{
+    saufsi consomme_caractère(parseuse, ';') {
+        rapporte_erreur(parseuse, "attendu ';", donne_lexème_suivant(parseuse))
+    }
 }
 
 consomme_espaces_blanches :: fonc (parseuse: *ParseuseInterface)

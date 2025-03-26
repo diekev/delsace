@@ -16,3 +16,5 @@ interface Window : EventTarget {
     long requestAnimationFrame(Function callback);
     undefined clearAnimationFrame(long id);
 }
+
+Window includes GlobalEventHandlers;
