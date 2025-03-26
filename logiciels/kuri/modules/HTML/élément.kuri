@@ -1864,6 +1864,7 @@ décode_image :: fonc (contenu: chaine, content_type: chaine, résultat: *ImageI
 
 /* ------------------------------------------------------------------------- */
 /** \nom HTMLInputElement
+ * https://html.spec.whatwg.org/multipage/input.html#htmlinputelement
  * \{ */
 
 #portée_export
