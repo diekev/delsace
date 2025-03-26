@@ -2842,3 +2842,16 @@ NoeudDéclaration *donne_déclaration_employée(NoeudExpression *noeud)
 
     return nullptr;
 }
+
+NoeudDéclarationEntêteFonction *donne_entête_fonction(NoeudExpression *noeud)
+{
+    if (noeud->est_entête_fonction()) {
+        return noeud->comme_entête_fonction();
+    }
+
+    if (noeud->est_corps_fonction()) {
+        return noeud->comme_corps_fonction()->entête;
+    }
+
+    return nullptr;
+}
