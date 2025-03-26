@@ -1220,8 +1220,7 @@ static bool peut_ignorer_type_pour_chercher_fonction(Type const *type)
         }
         CAS_POUR_NOEUDS_HORS_TYPES:
         {
-            assert_rappel(false,
-                          [&]() { dbg() << "Noeud non-géré pour type : " << expr->type->genre; });
+            assert_rappel(false, [&]() { dbg() << "Noeud non-géré pour type : " << type->genre; });
             return true;
         }
     }
