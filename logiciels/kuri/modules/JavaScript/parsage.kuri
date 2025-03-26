@@ -28,6 +28,9 @@ parse :: fonc (realm: *Realm, source_text: *TexteSource, goal_symbol: GoalSymbol
                 }
             }
         }
+        FunctionBody {
+            résultat = parse_function_body(*parseuse)
+        }
     }
 
     si parseuse.erreur_de_compilation {
