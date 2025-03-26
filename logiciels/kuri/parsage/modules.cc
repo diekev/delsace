@@ -175,6 +175,55 @@ static dls::vue_chaine sous_chaine(dls::vue_chaine chaine, int debut, int fin)
 }
 
 void imprime_ligne_avec_message(Enchaineuse &enchaineuse,
+                                kuri::chaine_statique message,
+                                kuri::chaine_statique chemin_fichier,
+                                kuri::chaine_statique texte_ligne,
+                                int numéro_ligne,
+                                int index_colonne,
+                                int index_colonne_début,
+                                int index_colonne_fin)
+{
+    auto texte_ligne_dls = dls::vue_chaine(texte_ligne.pointeur(), texte_ligne.taille());
+
+    enchaineuse << chemin_fichier << ':' << numéro_ligne;
+
+    if (index_colonne != -1) {
+        enchaineuse << ':' << index_colonne;
+    }
+
+    enchaineuse << " : " << message << "\n";
+
+    for (auto i = 0; i < 5 - dls::num::nombre_de_chiffres(numéro_ligne); ++i) {
+        enchaineuse << ' ';
+    }
+
+    enchaineuse << numéro_ligne << " | " << texte_ligne_dls;
+
+    /* Le manque de nouvelle ligne peut arriver en fin de fichier. */
+    if (texte_ligne_dls.taille() != 0 && texte_ligne_dls[texte_ligne_dls.taille() - 1] != '\n') {
+        enchaineuse << '\n';
+    }
+
+    if (index_colonne != -1) {
+        enchaineuse << "      | ";
+
+        if (index_colonne_début != -1 && index_colonne_début != index_colonne) {
+            lng::erreur::imprime_caractere_vide(enchaineuse, index_colonne_début, texte_ligne_dls);
+            lng::erreur::imprime_tilde(
+                enchaineuse, sous_chaine(texte_ligne_dls, index_colonne_début, index_colonne + 1));
+        }
+        else {
+            lng::erreur::imprime_caractere_vide(enchaineuse, index_colonne, texte_ligne_dls);
+        }
+
+        enchaineuse << '^';
+        lng::erreur::imprime_tilde(enchaineuse,
+                                   sous_chaine(texte_ligne_dls, index_colonne, index_colonne_fin));
+        enchaineuse << '\n';
+    }
+}
+
+void imprime_ligne_avec_message(Enchaineuse &enchaineuse,
                                 SiteSource site,
                                 kuri::chaine_statique message)
 {
@@ -193,42 +242,16 @@ void imprime_ligne_avec_message(Enchaineuse &enchaineuse,
     auto chemin = fichier->source == SourceFichier::CHAINE_AJOUTÉE ? ".chaine_ajoutées" :
                                                                      fichier->chemin();
 
-    enchaineuse << chemin << ':' << numéro_ligne;
+    auto texte_ligne_kuri = kuri::chaine_statique(texte_ligne.begin(), texte_ligne.taille());
 
-    if (index_colonne != -1) {
-        enchaineuse << ':' << index_colonne;
-    }
-
-    enchaineuse << " : " << message << "\n";
-
-    for (auto i = 0; i < 5 - dls::num::nombre_de_chiffres(numéro_ligne); ++i) {
-        enchaineuse << ' ';
-    }
-
-    enchaineuse << numéro_ligne << " | " << texte_ligne;
-
-    /* Le manque de nouvelle ligne peut arriver en fin de fichier. */
-    if (texte_ligne.taille() != 0 && texte_ligne[texte_ligne.taille() - 1] != '\n') {
-        enchaineuse << '\n';
-    }
-
-    if (index_colonne != -1) {
-        enchaineuse << "      | ";
-
-        if (site.index_colonne_min != -1 && site.index_colonne_min != site.index_colonne) {
-            lng::erreur::imprime_caractere_vide(enchaineuse, site.index_colonne_min, texte_ligne);
-            lng::erreur::imprime_tilde(
-                enchaineuse, sous_chaine(texte_ligne, site.index_colonne_min, index_colonne + 1));
-        }
-        else {
-            lng::erreur::imprime_caractere_vide(enchaineuse, index_colonne, texte_ligne);
-        }
-
-        enchaineuse << '^';
-        lng::erreur::imprime_tilde(
-            enchaineuse, sous_chaine(texte_ligne, index_colonne, site.index_colonne_max));
-        enchaineuse << '\n';
-    }
+    imprime_ligne_avec_message(enchaineuse,
+                               message,
+                               chemin,
+                               texte_ligne_kuri,
+                               numéro_ligne,
+                               site.index_colonne,
+                               site.index_colonne_min,
+                               site.index_colonne_max);
 }
 
 dls::chaine charge_contenu_fichier(const dls::chaine &chemin)

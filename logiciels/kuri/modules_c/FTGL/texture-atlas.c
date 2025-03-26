@@ -87,6 +87,8 @@ void texture_atlas_set_region(texture_atlas_t *self,
                data + (i * stride) * charsize,
                width * charsize * depth);
     }
+
+    self->dirty = 1;
 }
 
 // ------------------------------------------------------ texture_atlas_fit ---

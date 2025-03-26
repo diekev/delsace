@@ -3,6 +3,7 @@ importe Couleur
 importe FTGL
 importe Fondation
 importe SysFichier
+importe Unicode
 
 /* ------------------------------------------------------------------------- */
 /** \nom Fonte
@@ -54,65 +55,37 @@ donne_glyphe :: fonc (fonte: *Fonte, point_de_code: n32) -> *texture_glyph_t
     retourne texture_font_get_glyph_codepoint(fonte.font, point_de_code)
 }
 
-donne_largeur_texte :: fonc (fonte: *Fonte, texte: chaine) -> z32
-{
-    résultat := 0.0
-    utilise_crénage := fonte.font.kerning != 0
-    dernier_glyphe: *texture_glyph_t
-    pour * texte {
-        glyph := donne_glyphe(fonte, it)
-        saufsi glyph {
-            continue
-        }
+ContrainteChaine :: chaine | ChaineUTF16 | ChaineUTF32
 
-        si utilise_crénage {
-            crénage := donne_crénage_avec(glyph, dernier_glyphe)
-            résultat += crénage
-        }
-        dernier_glyphe = glyph
-        résultat += glyph.advance_x
+donne_largeur_texte :: fonc (fonte: *Fonte, texte: $T/ContrainteChaine) -> z32
+{
+    marque := donne_marque_stockage_temporaire()
+    diffère définis_marque_stockage_temporaire(marque)
+
+    contexte_temp := contexte()
+    contexte_temp.allocatrice = __stockage_temporaire
+
+    glyphes: [..]*texture_glyph_t
+
+    pousse_contexte contexte_temp {
+        donne_glyphes(fonte, texte, *glyphes)
     }
-    retourne résultat comme z32
+
+    retourne donne_largeur_glyphes(fonte, glyphes)
 }
 
-donne_largeur_texte :: fonc (fonte: *Fonte, texte: ChaineUTF16) -> z32
+donne_largeur_glyphes :: fonc (fonte: *Fonte, glyphes: []*texture_glyph_t) -> z32
 {
     résultat := 0.0
     utilise_crénage := fonte.font.kerning != 0
     dernier_glyphe: *texture_glyph_t
-    pour texte.unités {
-        glyph := donne_glyphe(fonte, it)
-        saufsi glyph {
-            continue
-        }
-
+    pour glyphes {
         si utilise_crénage {
-            crénage := donne_crénage_avec(glyph, dernier_glyphe)
+            crénage := donne_crénage_avec(it, dernier_glyphe)
             résultat += crénage
         }
-        dernier_glyphe = glyph
-        résultat += glyph.advance_x
-    }
-    retourne résultat comme z32
-}
-
-donne_largeur_texte :: fonc (fonte: *Fonte, texte: ChaineUTF32) -> z32
-{
-    résultat := 0.0
-    utilise_crénage := fonte.font.kerning != 0
-    dernier_glyphe: *texture_glyph_t
-    pour texte.points_de_code {
-        glyph := donne_glyphe(fonte, it)
-        saufsi glyph {
-            continue
-        }
-
-        si utilise_crénage {
-            crénage := donne_crénage_avec(glyph, dernier_glyphe)
-            résultat += crénage
-        }
-        dernier_glyphe = glyph
-        résultat += glyph.advance_x
+        dernier_glyphe = it
+        résultat += it.advance_x
     }
     retourne résultat comme z32
 }
@@ -163,6 +136,54 @@ donne_hauteur_glyph :: fonc (fonte: *Fonte, point_de_code: n32) -> Optionnel(n64
         retourne
     }
     retourne glyph.height
+}
+
+donne_glyphes :: fonc (fonte: *Fonte, texte: chaine, glyphes: *[..]*texture_glyph_t)
+{
+    début := texte.pointeur
+    fin := texte.pointeur + texte.taille
+
+    tantque début < fin {
+        n := nombre_octets_utf8_rapide(début)
+        si n == 0 {
+            début += 1
+            continue
+        }
+
+        point_de_code := converti_utf8_utf32(début, n) comme n32
+        début += n
+
+        glyph := fonte.donne_glyphe(point_de_code)
+        si glyph == nul {
+            continue
+        }
+
+        tableau_ajoute(glyphes, glyph)
+    }
+}
+
+donne_glyphes :: fonc (fonte: *Fonte, texte: ChaineUTF16, glyphes: *[..]*texture_glyph_t)
+{
+    pour texte.unités {
+        glyph := fonte.donne_glyphe(it)
+        si glyph == nul {
+            continue
+        }
+
+        tableau_ajoute(glyphes, glyph)
+    }
+}
+
+donne_glyphes :: fonc (fonte: *Fonte, texte: ChaineUTF32, glyphes: *[..]*texture_glyph_t)
+{
+    pour texte.points_de_code {
+        glyph := fonte.donne_glyphe(it)
+        si glyph == nul {
+            continue
+        }
+
+        tableau_ajoute(glyphes, glyph)
+    }
 }
 
 /** \} */
