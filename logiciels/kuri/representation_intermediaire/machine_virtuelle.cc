@@ -759,6 +759,26 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         espace->rapporte_erreur(fichier, ligne, message);
         m_métaprogramme->a_rapporté_une_erreur = true;
+        /* À FAIRE : devrions nous avoir un résultat plus spécifique ? */
+        résultat = RésultatInterprétation::TERMINÉ;
+        return;
+    }
+
+    if (EST_FONCTION_COMPILATRICE(compilatrice_rapporte_erreur_externe)) {
+        auto params = ParamètresErreurExterne{};
+        params.index_colonne_fin = dépile<int>();
+        params.index_colonne_début = dépile<int>();
+        params.index_colonne = dépile<int>();
+        params.numéro_ligne = dépile<int>();
+        params.texte_ligne = dépile<kuri::chaine_statique>();
+        params.chemin_fichier = dépile<kuri::chaine_statique>();
+        params.message = dépile<kuri::chaine_statique>();
+        auto espace = dépile<EspaceDeTravail *>();
+        RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
+        espace->rapporte_erreur_externe(params);
+        m_métaprogramme->a_rapporté_une_erreur = true;
+        /* À FAIRE : devrions nous avoir un résultat plus spécifique ? */
+        résultat = RésultatInterprétation::TERMINÉ;
         return;
     }
 
@@ -1682,7 +1702,8 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 appel_fonction_compilatrice(ptr_fonction, résultat);
                 dépile_fonction_non_interne(ptr_fonction);
 
-                if (résultat == RésultatInterprétation::PASSE_AU_SUIVANT) {
+                if (résultat == RésultatInterprétation::PASSE_AU_SUIVANT ||
+                    résultat == RésultatInterprétation::TERMINÉ) {
                     frame->pointeur = pointeur_debut;
                     return résultat;
                 }
@@ -1712,7 +1733,8 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                     appel_fonction_compilatrice(ptr_fonction, résultat);
                     dépile_fonction_non_interne(ptr_fonction);
 
-                    if (résultat == RésultatInterprétation::PASSE_AU_SUIVANT) {
+                    if (résultat == RésultatInterprétation::PASSE_AU_SUIVANT ||
+                        résultat == RésultatInterprétation::TERMINÉ) {
                         frame->pointeur = pointeur_debut;
                         compte_exécutées = i + 1;
                         return résultat;

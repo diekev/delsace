@@ -1,3 +1,5 @@
 interface HTMLElement : Element {
     
 }
+
+HTMLElement includes GlobalEventHandlers;

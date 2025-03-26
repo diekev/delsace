@@ -1166,20 +1166,6 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 return CodeRetourValidation::Erreur;
             }
 
-            /* Visite récursivement le type pour s'assurer que tous les types dépendants sont
-             * validés, ceci est nécessaire pour garantir que les infos types seront générés avec
-             * les bonnes données. À FAIRE : permet l'ajournement des infos-types afin de ne pas
-             * avoir à attendre. */
-            kuri::ensemblon<Type *, 16> types_utilises;
-            types_utilises.insère(type);
-            auto attente_possible = attente_sur_type_si_drapeau_manquant(
-                types_utilises, DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
-
-            if (attente_possible && attente_possible->est<AttenteSurType>() &&
-                attente_possible->type() != racine_validation()) {
-                return attente_possible.value();
-            }
-
             auto type_info_type = Type::nul();
 
             switch (type->genre) {

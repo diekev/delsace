@@ -551,6 +551,15 @@ Identifier :: struct {
     coordonnée: Optionnel(CoordonnéeEnvironnement)
 }
 
+/* Utilisée pour créer des identifiants pour les paramètres des fonctions des EventHandlers. */
+crée_identifier_pour_html :: fonc (nom: ECMAString) -> *Identifier
+{
+    résultat := loge(Identifier)
+    résultat.sur_génération_code_binaire = identifier_sur_code_binaire
+    résultat.nom = nom
+    retourne résultat
+}
+
 crée_identifier :: fonc (parseuse: *Parseuse, lexème: *Lexème, nom: ECMAString) -> *Identifier
 {
     résultat := parseuse.crée_noeud(lexème, Identifier)

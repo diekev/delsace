@@ -440,39 +440,6 @@ void Tacheronne::gère_tâche()
                 auto espace = tâche.unité->espace;
                 auto noeud = tâche.unité->noeud;
 
-                auto types_utilises = kuri::ensemblon<Type *, 16>();
-                visite_noeud(noeud,
-                             PreferenceVisiteNoeud::ORIGINAL,
-                             true,
-                             [&](NoeudExpression const *racine) {
-                                 auto type = racine->type;
-                                 if (type) {
-                                     types_utilises.insère(type);
-                                 }
-
-                                 if (racine->est_entête_fonction()) {
-                                     auto entete = racine->comme_entête_fonction();
-
-                                     POUR ((*entete->bloc_constantes->membres.verrou_ecriture())) {
-                                         if (it->type) {
-                                             types_utilises.insère(it->type);
-                                         }
-                                     }
-
-                                     return DecisionVisiteNoeud::IGNORE_ENFANTS;
-                                 }
-
-                                 return DecisionVisiteNoeud::CONTINUE;
-                             });
-
-                auto attente_possible = attente_sur_type_si_drapeau_manquant(
-                    types_utilises, DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
-                if (attente_possible) {
-                    compilatrice.gestionnaire_code->mets_en_attente(tâche.unité,
-                                                                    attente_possible.value());
-                    break;
-                }
-
                 // À FAIRE(noeuds codes) : ne convertis pas les corps s'ils n'ont pas encore été
                 // validés
                 // À FAIRE(noeuds codes) : ne convertis pas les déclarations référées
@@ -541,19 +508,6 @@ void Tacheronne::gère_unité_pour_typage(UniteCompilation *unite)
     compilatrice.dépose_sémanticienne(sémanticienne);
 }
 
-static NoeudDéclarationEntêteFonction *entete_fonction(NoeudExpression *noeud)
-{
-    if (noeud->est_entête_fonction()) {
-        return noeud->comme_entête_fonction();
-    }
-
-    if (noeud->est_corps_fonction()) {
-        return noeud->comme_corps_fonction()->entête;
-    }
-
-    return nullptr;
-}
-
 bool Tacheronne::gère_unité_pour_ri(UniteCompilation *unite)
 {
     auto noeud = unite->noeud;
@@ -564,34 +518,6 @@ bool Tacheronne::gère_unité_pour_ri(UniteCompilation *unite)
         return false;
     }
 
-    auto entete_possible = entete_fonction(noeud);
-    if (entete_possible &&
-        !entete_possible->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE)) {
-        /* À FAIRE : déplace ceci dans le GestionnaireCode afin de ne pas retravailler sur des
-         * entêtes que nous avons déjà vu. */
-        auto types_utilises = kuri::ensemblon<Type *, 16>();
-
-        auto noeud_dep = entete_possible->noeud_dépendance;
-
-        POUR (noeud_dep->relations().plage()) {
-            if (!it.noeud_fin->est_type()) {
-                continue;
-            }
-
-            auto type_dependu = it.noeud_fin->type();
-            types_utilises.insère(type_dependu);
-        }
-
-        auto attentes_possibles = kuri::tablet<Attente, 16>();
-        attentes_sur_types_si_drapeau_manquant(
-            types_utilises, DrapeauxTypes::INITIALISATION_TYPE_FUT_CREEE, attentes_possibles);
-
-        if (!attentes_possibles.est_vide()) {
-            compilatrice.gestionnaire_code->mets_en_attente(unite, attentes_possibles);
-            return false;
-        }
-    }
-
     if (unite->est_pour_generation_ri_principale_mp()) {
         constructrice_ri.génère_ri_pour_fonction_métaprogramme(unite->espace,
                                                                noeud->comme_entête_fonction());
@@ -600,7 +526,7 @@ bool Tacheronne::gère_unité_pour_ri(UniteCompilation *unite)
         constructrice_ri.génère_ri_pour_noeud(unite->espace, noeud);
     }
 
-    auto entete = entete_fonction(noeud);
+    auto entete = donne_entête_fonction(noeud);
     if (entete) {
         analyseuse_ri->analyse_ri(*unite->espace,
                                   constructrice_ri.donne_constructrice(),
@@ -614,7 +540,7 @@ bool Tacheronne::gère_unité_pour_ri(UniteCompilation *unite)
 void Tacheronne::gère_unité_pour_optimisation(UniteCompilation *unite)
 {
     auto noeud = unite->noeud;
-    auto entete = entete_fonction(noeud);
+    auto entete = donne_entête_fonction(noeud);
     assert(entete);
 
     if (entete->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE)) {
