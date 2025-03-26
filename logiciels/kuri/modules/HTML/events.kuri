@@ -1205,12 +1205,16 @@ get_the_current_value_of_the_event_handler :: fonc (event_target: *EventTarget, 
 
         // thisMode non-lexical-this
 
-        // À FAIRE scope
+        // scope
+        scope: *JavaScript.Environment
+        {
             // 1. Let realm be settings object's realm.
+            scope_realm := settings_object.donne_realm()
 
             // 2. Let scope be realm.[[GlobalEnv]].
+            scope = scope_realm.global_environment
 
-            // 3. If eventHandler is an element's event handler, then set scope to NewObjectEnvironment(document, true, scope).
+            // À FAIRE 3. If eventHandler is an element's event handler, then set scope to NewObjectEnvironment(document, true, scope).
 
             //    (Otherwise, eventHandler is a Window object's event handler.)
 
@@ -1219,8 +1223,9 @@ get_the_current_value_of_the_event_handler :: fonc (event_target: *EventTarget, 
             // 5. If element is not null, then set scope to NewObjectEnvironment(element, true, scope).
 
             // 6. Return scope.
+        }
 
-        function := JavaScript.ordinary_function_create(realm, function_prototype, source_text, parameter_list, parsed_body comme *JavaScript.Statement, JavaScript.NON_LEXICAL_THIS, nul, nul)
+        function := JavaScript.ordinary_function_create(realm, function_prototype, source_text, parameter_list, parsed_body comme *JavaScript.Statement, JavaScript.NON_LEXICAL_THIS, scope, nul)
 
         // 10. Remove settings object's realm execution context from the JavaScript execution context stack.
         JavaScript.dépile_execution_context(mv)
