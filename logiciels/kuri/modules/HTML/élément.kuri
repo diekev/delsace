@@ -1913,9 +1913,14 @@ table_virtuelle_input_element := TableVirtuelleÉlément(
     sur_applique_presentational_hints = input_element_sur_applique_presentational_hints
 )
 
-input_element_sur_applique_presentational_hints :: fonc (base: *Élément @inutilisée, résolveuse: *CSS.RésolveuseStyle)
+input_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
 {
-    couleur_bordure := CouleurRVBAN8(0, 0, 0, 255)
+    si is_button_widget(base comme *HTMLInputElement) {
+        button_element_sur_applique_presentational_hints(base, résolveuse)
+        retourne
+    }
+
+    couleur_bordure := CouleurRVBAN8(143, 143, 157, 255)
     style_bordure := CSS.PROP_solid
     largeur_bordure := DimensionValue(Length = 1.0)
     ajoute_presentational_hints_pour_bordure(résolveuse, couleur_bordure, largeur_bordure, style_bordure)
@@ -3480,7 +3485,7 @@ table_virtuelle_textarea_element := TableVirtuelleÉlément(
 
 textarea_element_sur_applique_presentational_hints :: fonc (base: *Élément @inutilisée, résolveuse: *CSS.RésolveuseStyle)
 {
-    couleur_bordure := CouleurRVBAN8(0, 0, 0, 255)
+    couleur_bordure := CouleurRVBAN8(143, 143, 157, 255)
     style_bordure := CSS.PROP_solid
     largeur_bordure := DimensionValue(Length = 1.0)
     ajoute_presentational_hints_pour_bordure(résolveuse, couleur_bordure, largeur_bordure, style_bordure)
