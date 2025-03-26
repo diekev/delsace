@@ -1001,6 +1001,16 @@ consomme_espaces_blanches :: fonc (lexeuse: &Lexeuse)
             arrête
         }
 
+        si c == '<' && apparie(lexeuse, "<!--") {
+            lexeuse.avance(4)
+            continue
+        }
+
+        si c == '-' && apparie(lexeuse, "-->") {
+            lexeuse.avance(3)
+            continue
+        }
+
         /* Vérifie si nous avons un caractère Unicode. */
         n := nombre_octets_utf8_rapide(lexeuse.début_source)
 
