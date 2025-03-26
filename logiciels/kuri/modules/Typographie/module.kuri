@@ -165,6 +165,42 @@ donne_hauteur_glyph :: fonc (fonte: *Fonte, point_de_code: n32) -> Optionnel(n64
     retourne glyph.height
 }
 
+donne_glyphes :: fonc (fonte: *Fonte, texte: chaine, glyphes: *[..]*texture_glyph_t)
+{
+    pour * c dans texte {
+        glyph := fonte.donne_glyphe(c)
+        si glyph == nul {
+            continue
+        }
+
+        tableau_ajoute(glyphes, glyph)
+    }
+}
+
+donne_glyphes :: fonc (fonte: *Fonte, texte: ChaineUTF16, glyphes: *[..]*texture_glyph_t)
+{
+    pour texte.unités {
+        glyph := fonte.donne_glyphe(it)
+        si glyph == nul {
+            continue
+        }
+
+        tableau_ajoute(glyphes, glyph)
+    }
+}
+
+donne_glyphes :: fonc (fonte: *Fonte, texte: ChaineUTF32, glyphes: *[..]*texture_glyph_t)
+{
+    pour texte.points_de_code {
+        glyph := fonte.donne_glyphe(it)
+        si glyph == nul {
+            continue
+        }
+
+        tableau_ajoute(glyphes, glyph)
+    }
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
