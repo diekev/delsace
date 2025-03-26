@@ -806,6 +806,9 @@ résoud_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élémen
         déclarations := règle.style.déclarations
         tableau_réserve(*résolveuse.déclarations_cascade, résolveuse.déclarations_cascade.taille + déclarations.taille)
         spécificité := it.spécificité
+        si règle.parent_style_sheet && règle.parent_style_sheet.force_spécifité_zéro {
+            spécificité = Spécificité(0, 0, 0)
+        }
         origine := donne_origine_cascade(règle)
 
         position: PositionDéclaration
@@ -1296,6 +1299,12 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, haut
     saufsi document.feuille_de_style_agent {
         document.feuille_de_style_agent = HTML.donne_feuille_de_style_défaut()
         tableau_insère_index(*document.feuilles_de_style, document.feuille_de_style_agent, 0)
+
+        tableau_insère_index(*document.feuilles_de_style, HTML.donne_feuille_de_style_presentational_hints(), 1)
+
+        si HTML.est_en_mode_quirks(document) {
+            tableau_insère_index(*document.feuilles_de_style, HTML.donne_feuille_de_style_quirks(), 2)
+        }
     }
 
     saufsi document.globales_dessin {
