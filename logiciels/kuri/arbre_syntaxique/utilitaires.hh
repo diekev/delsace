@@ -537,3 +537,5 @@ struct InformationMembreTypeCompose {
 kuri::tableau<char> donne_tableau_valeurs_énum(NoeudEnum const &noeud);
 
 NoeudDéclaration *donne_déclaration_employée(NoeudExpression *noeud);
+
+NoeudDéclarationEntêteFonction *donne_entête_fonction(NoeudExpression *noeud);
