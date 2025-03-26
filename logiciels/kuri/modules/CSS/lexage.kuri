@@ -548,7 +548,7 @@ consomme_un_lexème :: fonc (lexeuse: &Lexeuse) -> Lexème
 
     si point_de_code == '<' {
         si apparie(lexeuse, '!', '-', '-') {
-            lexeuse.avance(2)
+            lexeuse.avance(3)
             retourne Lexème(GenreLexème.CDC)
         }
 
