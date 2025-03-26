@@ -64,7 +64,6 @@ ScannerJSON :: struct {
 
     // position courante du scan
     position := 0
-    ligne := 0
 
     // utiliser pour découper des chaines de caractères
     position_mot := 0
@@ -77,14 +76,14 @@ ScannerJSON :: struct {
 
     rappel_copie_chaine: fonc(chaine)(chaine)
 
-    erreurs: [..]Erreur
+    erreur_: Erreur
+    possède_erreur: bool
 }
 
 initialise_scanner :: fonc (scanner: *ScannerJSON, script: chaine, structure: eini, rappel_copie_chaine: fonc(chaine)(chaine))
 {
     scanner.script = script
     scanner.position = 0
-    scanner.ligne = 0
     scanner.structure = structure
     scanner.rappel_copie_chaine = rappel_copie_chaine
 
@@ -104,7 +103,7 @@ imprime_progression :: fonc (scanner: *ScannerJSON)
 détruit_scanner :: fonc (scanner: *ScannerJSON)
 {
     détruit(scanner.pile)
-    déloge(scanner.erreurs)
+    déloge(scanner.erreur_.chn)
 }
 
 empile :: fonc (scanner: *ScannerJSON, valeur: eini) #enligne
@@ -124,6 +123,10 @@ object_courant :: fonc (scanner: *ScannerJSON) -> eini #enligne
 
 rapporte_erreur :: fonc (scanner: *ScannerJSON, type_erreur: TypeErreur, format: chaine, args: ...eini)
 {
+    si scanner.possède_erreur {
+        retourne
+    }
+
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
 
@@ -136,7 +139,8 @@ rapporte_erreur :: fonc (scanner: *ScannerJSON, type_erreur: TypeErreur, format:
     err.chn = chn
     err.position = scanner.position
 
-    tableau_ajoute(*scanner.erreurs, err)
+    scanner.erreur_ = err
+    scanner.possède_erreur = vrai
 }
 
 rapporte_erreur_parsage :: fonc (scanner: *ScannerJSON, format: chaine, args: ...eini)
@@ -168,10 +172,6 @@ saute_espaces_blancs :: fonc (scanner: *ScannerJSON) -> rien
             arrête
         }
 
-        si c == '\n' {
-            scanner.ligne += 1
-        }
-
         scanner.avance()
     }
 }
@@ -183,7 +183,7 @@ avance :: fonc (scanner: *ScannerJSON, n := 1) -> rien #enligne
 
 fini :: fonc (scanner: *ScannerJSON) -> bool #enligne
 {
-    retourne scanner.position >= scanner.script.taille
+    retourne scanner.position >= scanner.script.taille || scanner.possède_erreur
 }
 
 caractère_courant :: fonc (scanner: *ScannerJSON) -> z8 #enligne
@@ -460,6 +460,7 @@ lis_objet :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
             retourne LexèmeJSON.INVALIDE
         }
 
+        position_nom := scanner.position
         résultat := scanner.lis_chaine()
 
         si résultat != LexèmeJSON.CHAINE_CARACTÈRE {
@@ -477,7 +478,10 @@ lis_objet :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
         valeur_membre := trouve_valeur_membre(scanner.object_courant(), nom)
 
         saufsi valeur_membre.est_valide() {
+            ancienne_position := scanner.position
+            scanner.position = position_nom
             scanner.rapporte_erreur_parsage("Impossible de trouver le membre '%'", nom)
+            scanner.position = ancienne_position
             retourne LexèmeJSON.INVALIDE
         }
 

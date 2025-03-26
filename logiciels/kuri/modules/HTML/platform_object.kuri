@@ -229,25 +229,25 @@ scripting_est_désactivé :: fonc (user_agent: *UserAgent, environment: *Environ
 }
 
 /* https://html.spec.whatwg.org/multipage/webappapis.html#concept-n-noscript */
-scripting_est_activé :: fonc (script: *HTMLScriptElement) -> bool
+scripting_est_activé :: fonc (noeud: *Noeud) -> bool
 {
-    node_document := script.donne_node_document()
+    node_document := noeud.donne_node_document()
     saufsi node_document {
         retourne faux
     }
     saufsi node_document.browsing_context {
         retourne faux
     }
-    settings := script.donne_relevant_settings_object()
+    settings := noeud.donne_relevant_settings_object()
     saufsi settings {
         retourne faux
     }
     retourne scripting_est_activé(node_document.donne_user_agent(), settings)
 }
 
-scripting_est_désactivé :: fonc (script: *HTMLScriptElement) -> bool
+scripting_est_désactivé :: fonc (noeud: *Noeud) -> bool
 {
-    retourne scripting_est_activé(script) == faux
+    retourne scripting_est_activé(noeud) == faux
 }
 
 /** \} */

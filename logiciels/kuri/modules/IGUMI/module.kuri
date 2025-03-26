@@ -258,11 +258,20 @@ données_tampon_id: DonnéesImmédiatesXId
 dernier_mode: ModeImmédiat
 dernier_nuanceur: *NuanceurGL
 dernière_fonte: *Fonte
+fontes_utilisées: [..]*Fonte
+__glyphes: [..]*texture_glyph_t
 
 réinitialise_données :: fonc ()
 {
     dernier_nuanceur = nul
     dernière_fonte = nul
+    pour fontes_utilisées {
+        si glIsTexture(it.atlas.id) {
+            glDeleteTextures(1, *it.atlas.id)
+        }
+    }
+    fontes_utilisées.taille = 0
+    __glyphes.taille = 0
 }
 
 commence_immédiat :: fonc (mode: ModeImmédiat, nuanceur: *NuanceurGL, fonte : *Fonte = nul)
@@ -686,121 +695,26 @@ donne_paramètres_texture_atlas_fonte :: fonc (atlas: *texture_atlas_t) -> Param
 */
 dessine_texte :: fonc (fonte: *Fonte, texte: chaine, x: r32, y: r32, couleur: CouleurRVBA)
 {
-    métriques := donne_métriques_fonte(fonte)
-    y -= métriques.jambage_inférieur
-
-    commence_immédiat(ModeImmédiat.TRIANGLES, nuanceur_texte, fonte)
-
-    // ancienne_fonction_mélange: z32
-    // glGetIntegerv(GL_BLEND_SRC_ALPHA, *ancienne_fonction_mélange)
-    // diffère glBlendFunc(GL_SRC_ALPHA, ancienne_fonction_mélange comme n32)
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-    // gl_blend_est_actif := glIsEnabled(GL_BLEND) != 0
-    // diffère saufsi gl_blend_est_actif { glDisable(GL_BLEND) }
-    glEnable(GL_BLEND)
-
-    // met en place la texture de la fonte sur le nuanceur
-    saufsi glIsTexture(fonte.atlas.id) {
-        glGenTextures(1, *fonte.atlas.id)
-        // À FAIRE : libère la texture quand la police n'est plus requise
-        // diffère glDeleteTextures(1, *fonte.atlas.id)
-
-        params := donne_paramètres_texture_atlas_fonte(fonte.atlas)
-        définis_texture_2d(fonte.atlas.id, *params)
-    }
-
-    glUseProgram(nuanceur_texte.programme)
-
-    glBindTexture(GL_TEXTURE_2D, fonte.atlas.id)
-
-    définis_uniforme(nuanceur_texte.loc_atlas, 0 comme z32)
-
-    dernier_caractère : *texture_glyph_t = nul
-    pour * c dans texte {
-        glyph := fonte.donne_glyphe(c)
-
-        si glyph == nul {
-            continue
-        }
-
-        kerning := glyph.donne_crénage_avec(dernier_caractère)
-        x += kerning
-
-        glyphe_immédiat(glyph, x, y, couleur)
-
-        x += glyph.advance_x
-
-        dernier_caractère = glyph
-    }
+    __glyphes.taille = 0
+    donne_glyphes(fonte, texte, *__glyphes)
+    dessine_glyphes(__glyphes, fonte, x, y, couleur, nul)
 }
 
 dessine_texte :: fonc (fonte: *Fonte, texte: ChaineUTF16, x: r32, y: r32, couleur: CouleurRVBA, effets: *EffetsTexte)
 {
-    métriques := donne_métriques_fonte(fonte)
-    y -= métriques.jambage_inférieur
-
-    commence_immédiat(ModeImmédiat.TRIANGLES, nuanceur_texte, fonte)
-
-    // ancienne_fonction_mélange: z32
-    // glGetIntegerv(GL_BLEND_SRC_ALPHA, *ancienne_fonction_mélange)
-    // diffère glBlendFunc(GL_SRC_ALPHA, ancienne_fonction_mélange comme n32)
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-    // gl_blend_est_actif := glIsEnabled(GL_BLEND) != 0
-    // diffère saufsi gl_blend_est_actif { glDisable(GL_BLEND) }
-    glEnable(GL_BLEND)
-
-    // met en place la texture de la fonte sur le nuanceur
-    saufsi glIsTexture(fonte.atlas.id) {
-        glGenTextures(1, *fonte.atlas.id)
-        // À FAIRE : libère la texture quand la police n'est plus requise
-        // diffère glDeleteTextures(1, *fonte.atlas.id)
-
-        params := donne_paramètres_texture_atlas_fonte(fonte.atlas)
-        définis_texture_2d(fonte.atlas.id, *params)
-    }
-
-    glUseProgram(nuanceur_texte.programme)
-
-    glBindTexture(GL_TEXTURE_2D, fonte.atlas.id)
-
-    définis_uniforme(nuanceur_texte.loc_atlas, 0 comme z32)
-
-    caractère_nul := fonte.donne_glyphe_nul()
-
-    dernier_caractère : *texture_glyph_t = nul
-    pour texte.unités {
-        glyph := fonte.donne_glyphe(it)
-
-        si glyph == nul {
-            continue
-        }
-
-        kerning := glyph.donne_crénage_avec(dernier_caractère)
-        x += kerning
-
-        glyphe_immédiat(glyph, x, y, couleur)
-
-        si effets {
-            si effets.surlignage {
-                surlignage_glyphe_immédiat(fonte, glyph, caractère_nul, x - kerning, y, effets.couleur_surlignage)
-            }
-            si effets.souslignage {
-                souslignage_glyphe_immédiat(fonte, glyph, caractère_nul, x - kerning, y, effets.couleur_souslignage)
-            }
-            si effets.barrage {
-                barrage_glyphe_immédiat(fonte, glyph, caractère_nul, x - kerning, y, effets.couleur_barrage)
-            }
-        }
-
-        x += glyph.advance_x
-
-        dernier_caractère = glyph
-    }
+    __glyphes.taille = 0
+    donne_glyphes(fonte, texte, *__glyphes)
+    dessine_glyphes(__glyphes, fonte, x, y, couleur, effets)
 }
 
 dessine_texte :: fonc (fonte: *Fonte, texte: ChaineUTF32, x: r32, y: r32, couleur: CouleurRVBA, effets: *EffetsTexte)
+{
+    __glyphes.taille = 0
+    donne_glyphes(fonte, texte, *__glyphes)
+    dessine_glyphes(__glyphes, fonte, x, y, couleur, effets)
+}
+
+dessine_glyphes :: fonc (glyphes: []*texture_glyph_t, fonte: *Fonte, x: r32, y: r32, couleur: CouleurRVBA, effets: *EffetsTexte)
 {
     métriques := donne_métriques_fonte(fonte)
     y -= métriques.jambage_inférieur
@@ -816,15 +730,7 @@ dessine_texte :: fonc (fonte: *Fonte, texte: ChaineUTF32, x: r32, y: r32, couleu
     // diffère saufsi gl_blend_est_actif { glDisable(GL_BLEND) }
     glEnable(GL_BLEND)
 
-    // met en place la texture de la fonte sur le nuanceur
-    saufsi glIsTexture(fonte.atlas.id) {
-        glGenTextures(1, *fonte.atlas.id)
-        // À FAIRE : libère la texture quand la police n'est plus requise
-        // diffère glDeleteTextures(1, *fonte.atlas.id)
-
-        params := donne_paramètres_texture_atlas_fonte(fonte.atlas)
-        définis_texture_2d(fonte.atlas.id, *params)
-    }
+    garantis_texture_pour_atlas(fonte)
 
     glUseProgram(nuanceur_texte.programme)
 
@@ -835,33 +741,42 @@ dessine_texte :: fonc (fonte: *Fonte, texte: ChaineUTF32, x: r32, y: r32, couleu
     caractère_nul := fonte.donne_glyphe_nul()
 
     dernier_caractère : *texture_glyph_t = nul
-    pour texte.points_de_code {
-        glyph := fonte.donne_glyphe(it)
-
-        si glyph == nul {
-            continue
-        }
-
-        kerning := glyph.donne_crénage_avec(dernier_caractère)
+    pour glyphes {
+        kerning := it.donne_crénage_avec(dernier_caractère)
         x += kerning
 
-        glyphe_immédiat(glyph, x, y, couleur)
+        glyphe_immédiat(it, x, y, couleur)
 
         si effets {
             si effets.surlignage {
-                surlignage_glyphe_immédiat(fonte, glyph, caractère_nul, x - kerning, y, effets.couleur_surlignage)
+                surlignage_glyphe_immédiat(fonte, it, caractère_nul, x - kerning, y, effets.couleur_surlignage)
             }
             si effets.souslignage {
-                souslignage_glyphe_immédiat(fonte, glyph, caractère_nul, x - kerning, y, effets.couleur_souslignage)
+                souslignage_glyphe_immédiat(fonte, it, caractère_nul, x - kerning, y, effets.couleur_souslignage)
             }
             si effets.barrage {
-                barrage_glyphe_immédiat(fonte, glyph, caractère_nul, x - kerning, y, effets.couleur_barrage)
+                barrage_glyphe_immédiat(fonte, it, caractère_nul, x - kerning, y, effets.couleur_barrage)
             }
         }
 
-        x += glyph.advance_x
+        x += it.advance_x
 
-        dernier_caractère = glyph
+        dernier_caractère = it
+    }
+}
+
+garantis_texture_pour_atlas :: fonc (fonte: *Fonte)
+{
+    saufsi glIsTexture(fonte.atlas.id) {
+        glGenTextures(1, *fonte.atlas.id)
+        tableau_ajoute(*fontes_utilisées, fonte)
+        fonte.atlas.dirty = 1
+    }
+
+    si fonte.atlas.dirty {
+        params := donne_paramètres_texture_atlas_fonte(fonte.atlas)
+        définis_texture_2d(fonte.atlas.id, *params)
+        fonte.atlas.dirty = 0
     }
 }
 

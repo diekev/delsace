@@ -2279,7 +2279,8 @@ contexte_parsage_shorthand_ajoute_propriété :: fonc (ctx: *ContexteParsageShor
     déclaration := loge(DéclarationPropriété)
     déclaration.info = info_type_propriété
     déclaration.property_name = nom
-    tableau_ajoute(*déclaration.value, valeur)
+    /// XXX - fuite de mémoire sur copie_valeur()
+    tableau_ajoute(*déclaration.value, copie_valeur(valeur))
     déclaration.important = ctx.déclaration_parsée.important
 
     ctx.déclaration.ajoute_déclaration(déclaration)

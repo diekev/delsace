@@ -315,3 +315,9 @@ Erreur EspaceDeTravail::rapporte_erreur_sans_site(kuri::chaine_statique message,
     possède_erreur = true;
     return ::rapporte_erreur(this, {}, message, genre);
 }
+
+Erreur EspaceDeTravail::rapporte_erreur_externe(ParamètresErreurExterne const &params) const
+{
+    possède_erreur = true;
+    return ::rapporte_erreur(this, params);
+}

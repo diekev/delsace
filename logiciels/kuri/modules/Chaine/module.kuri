@@ -5,6 +5,7 @@ charge "chaine_c"
 charge "chaine_internée"
 charge "chaine_utf32"
 charge "chaine_utf_16"
+charge "éditrice_texte"
 charge "empreintes"
 
 est_chaine_statique :: fonc (chn: chaine) -> bool #enligne
