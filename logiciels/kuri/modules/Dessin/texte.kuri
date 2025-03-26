@@ -12,73 +12,26 @@ importe Typographie
 
 dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: chaine, fonte: *Fonte, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8, effets: *EffetsTexte = nul)
 {
-    métriques := donne_métriques_fonte(fonte)
-    rect.y -= métriques.jambage_inférieur comme z32
-
-    rect_sauf := donne_rect_sûr(tampon_de_rendu, rect)
-    si rect_sauf.largeur == 0 || rect_sauf.hauteur == 0 {
-        retourne
-    }
-
-    source_atlas := fonte.atlas.data
-
-    décalage_x := rect.x comme r32
-    début_effets := décalage_x
-
-    dernier_glyphe: *texture_glyph_t
-
-    pour * texte {
-        glyph := texture_font_get_glyph(fonte.font, it)
-        saufsi glyph {
-            continue
-        }
-
-        décalage_x += donne_crénage_avec(glyph, dernier_glyphe)
-
-        dessine_glyphe(tampon_de_rendu, fonte, glyph, décalage_x, couleur, source_atlas, rect)
-
-        décalage_x += glyph.advance_x
-        dernier_glyphe = glyph
-    }
-
-    dessine_effets(tampon_de_rendu, fonte, effets, début_effets comme z32, décalage_x comme z32, rect.y)
+    tampon_de_rendu.glyphes.taille = 0
+    donne_glyphes(fonte, texte, *tampon_de_rendu.glyphes)
+    dessine_glyphes(tampon_de_rendu, tampon_de_rendu.glyphes, fonte, rect, couleur, effets)
 }
 
 dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: ChaineUTF16, fonte: *Fonte, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8, effets: *EffetsTexte)
 {
-    métriques := donne_métriques_fonte(fonte)
-    rect.y -= métriques.jambage_inférieur comme z32
-
-    rect_sauf := donne_rect_sûr(tampon_de_rendu, rect)
-    si rect_sauf.largeur == 0 || rect_sauf.hauteur == 0 {
-        retourne
-    }
-
-    source_atlas := fonte.atlas.data
-
-    décalage_x := rect.x comme r32
-    début_effets := décalage_x
-
-    dernier_glyphe: *texture_glyph_t
-
-    pour texte.unités {
-        glyph := fonte.donne_glyphe(it)
-        saufsi glyph {
-            continue
-        }
-
-        décalage_x += donne_crénage_avec(glyph, dernier_glyphe)
-
-        dessine_glyphe(tampon_de_rendu, fonte, glyph, décalage_x, couleur, source_atlas, rect)
-
-        décalage_x += glyph.advance_x
-        dernier_glyphe = glyph
-    }
-
-    dessine_effets(tampon_de_rendu, fonte, effets, début_effets comme z32, décalage_x comme z32, rect.y)
+    tampon_de_rendu.glyphes.taille = 0
+    donne_glyphes(fonte, texte, *tampon_de_rendu.glyphes)
+    dessine_glyphes(tampon_de_rendu, tampon_de_rendu.glyphes, fonte, rect, couleur, effets)
 }
 
 dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: ChaineUTF32, fonte: *Fonte, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8, effets: *EffetsTexte)
+{
+    tampon_de_rendu.glyphes.taille = 0
+    donne_glyphes(fonte, texte, *tampon_de_rendu.glyphes)
+    dessine_glyphes(tampon_de_rendu, tampon_de_rendu.glyphes, fonte, rect, couleur, effets)
+}
+
+dessine_glyphes :: fonc (tampon_de_rendu: *TamponDeRendu, glyphes: []*texture_glyph_t, fonte: *Fonte, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8, effets: *EffetsTexte = nul)
 {
     métriques := donne_métriques_fonte(fonte)
     rect.y -= métriques.jambage_inférieur comme z32
@@ -95,18 +48,13 @@ dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: ChaineUTF32, font
 
     dernier_glyphe: *texture_glyph_t
 
-    pour texte.points_de_code {
-        glyph := fonte.donne_glyphe(it)
-        saufsi glyph {
-            continue
-        }
+    pour glyphes {
+        décalage_x += donne_crénage_avec(it, dernier_glyphe)
 
-        décalage_x += donne_crénage_avec(glyph, dernier_glyphe)
+        dessine_glyphe(tampon_de_rendu, fonte, it, décalage_x, couleur, source_atlas, rect)
 
-        dessine_glyphe(tampon_de_rendu, fonte, glyph, décalage_x, couleur, source_atlas, rect)
-
-        décalage_x += glyph.advance_x
-        dernier_glyphe = glyph
+        décalage_x += it.advance_x
+        dernier_glyphe = it
     }
 
     dessine_effets(tampon_de_rendu, fonte, effets, début_effets comme z32, décalage_x comme z32, rect.y)
