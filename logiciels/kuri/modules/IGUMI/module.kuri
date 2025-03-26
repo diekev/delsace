@@ -769,11 +769,14 @@ garantis_texture_pour_atlas :: fonc (fonte: *Fonte)
 {
     saufsi glIsTexture(fonte.atlas.id) {
         glGenTextures(1, *fonte.atlas.id)
+        tableau_ajoute(*fontes_utilisées, fonte)
+        fonte.atlas.dirty = 1
+    }
 
+    si fonte.atlas.dirty {
         params := donne_paramètres_texture_atlas_fonte(fonte.atlas)
         définis_texture_2d(fonte.atlas.id, *params)
-
-        tableau_ajoute(*fontes_utilisées, fonte)
+        fonte.atlas.dirty = 0
     }
 }
 
