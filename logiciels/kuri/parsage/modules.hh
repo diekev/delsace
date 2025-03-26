@@ -253,6 +253,15 @@ struct SystèmeModule {
 
 void imprime_ligne_avec_message(Enchaineuse &flux, SiteSource site, kuri::chaine_statique message);
 
+void imprime_ligne_avec_message(Enchaineuse &enchaineuse,
+                                kuri::chaine_statique message,
+                                kuri::chaine_statique chemin_fichier,
+                                kuri::chaine_statique texte_ligne,
+                                int numéro_ligne,
+                                int index_colonne,
+                                int index_colonne_début,
+                                int index_colonne_fin);
+
 /* Charge le contenu du fichier, c'est la responsabilité de l'appelant de vérifier que
  * le fichier existe bel et bien. */
 dls::chaine charge_contenu_fichier(dls::chaine const &chemin);

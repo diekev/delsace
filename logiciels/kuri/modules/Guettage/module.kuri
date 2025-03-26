@@ -1,0 +1,208 @@
+importe Chaine
+importe Géométrie
+importe Périphériques
+importe Typographie
+importe Unicode
+
+/* ------------------------------------------------------------------------- */
+/** \nom Guetteuse.
+ *
+ * Les guetteuses servent à traquer les évènements survenant sur un élément
+ * d'une interface graphique (panneau, bouton, etc.).
+ * Quant un élément veut traquer les évènements conséquents à un évènement donné,
+ * il peut créer une guetteuse locale pour les suivre sans quitter la fonction
+ * où la guetteuse fut créée.
+ *
+ * Les applications clientes sont responsable de créer les conditions nécessaires
+ * au guettage via PlateformeGuettage.
+ * \{ */
+
+PlateformeGuettage :: struct {
+    sur_commence_guettage: fonc(*PlateformeGuettage, *Guetteuse)(rien)
+    sur_termine_guettage: fonc(*PlateformeGuettage)(rien)
+}
+
+Guetteuse :: struct {
+    plateforme: *PlateformeGuettage
+    sur_termine_guettage: fonc(*Guetteuse)(rien)
+    sur_clic: fonc(*Guetteuse, CliqueSouris)(rien)
+    sur_déplacement_souris: fonc(*Guetteuse, ÉtatSouris)(rien)
+    sur_touche_clavier: fonc(*Guetteuse, ToucheClavier)(rien)
+}
+
+commence_guettage :: fonc (guetteuse: *Guetteuse, plateforme: *PlateformeGuettage)
+{
+    guetteuse.plateforme = plateforme
+    plateforme.sur_commence_guettage(plateforme, guetteuse)
+}
+
+termine_guettage :: fonc (guetteuse: *Guetteuse)
+{
+    si guetteuse.sur_termine_guettage {
+        guetteuse.sur_termine_guettage(guetteuse)
+    }
+
+    saufsi guetteuse.plateforme {
+        retourne
+    }
+
+    guetteuse.plateforme.sur_termine_guettage(guetteuse.plateforme)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom GuetteuseÉditionTexte.
+ * \{ */
+
+ÉtatGuettageÉditionTexte :: énum {
+    /* La guetteuse est lancée lorsque la souris est pressée dans le rect du texte.
+     * Nous attendons le relachement pour voir si l'édition doit commencer
+     * (relachement dans le rect) ou être avortée (relachement hors du rect).  */
+    AttenteRelachementClic
+    EnÉdition
+    EnSélection
+}
+
+GuetteuseÉditionTexte :: struct {
+    empl base: Guetteuse
+
+    éditrice: *ÉditriceTexte
+    rect: RectanglePosDim(z32)
+    rect_texte: RectanglePosDim(z32)
+
+    état: ÉtatGuettageÉditionTexte
+
+    sur_termine_guettage = guetteuse_édition_texte_sur_termine_guettage
+    sur_déplacement_souris = guetteuse_édition_texte_sur_déplacement_souris
+    sur_clic = guetteuse_édition_texte_sur_clic
+    sur_touche_clavier = guetteuse_édition_texte_sur_touche_clavier
+}
+
+initialise_guetteuse_édition_texte :: fonc (guetteuse: *GuetteuseÉditionTexte, éditrice: *ÉditriceTexte, rect: RectanglePosDim(z32), rect_texte: RectanglePosDim(z32))
+{
+    guetteuse.éditrice = éditrice
+    guetteuse.rect = rect
+    guetteuse.rect_texte = rect_texte
+}
+
+guetteuse_édition_texte_sur_termine_guettage :: fonc (base: *Guetteuse)
+{
+    empl guetteuse := base comme *GuetteuseÉditionTexte
+    éditrice.termine_édition()
+}
+
+guetteuse_édition_texte_sur_déplacement_souris :: fonc (base: *Guetteuse, souris: ÉtatSouris)
+{
+    empl guetteuse := base comme *GuetteuseÉditionTexte
+
+    saufsi état == ÉtatGuettageÉditionTexte.EnSélection {
+        retourne
+    }
+
+    index := donne_position_curseur_pour_souris(guetteuse, souris)
+    déplace_vers(*éditrice.curseur, ModeDéplacementCurseur.GardeAncre, index)
+}
+
+guetteuse_édition_texte_sur_touche_clavier :: fonc (base: *Guetteuse, touche: ToucheClavier)
+{
+    empl guetteuse := base comme *GuetteuseÉditionTexte
+
+    si touche.type == CléClavier.DÉBUT {
+        définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, 0)
+        retourne
+    }
+
+    si touche.type == CléClavier.FIN {
+        définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, éditrice.texte_à_éditer.taille())
+        retourne
+    }
+
+    si touche.type == CléClavier.FLÈCHE_GAUCHE {
+        définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, éditrice.curseur.début - 1)
+        retourne
+    }
+
+    si touche.type == CléClavier.FLÈCHE_DROITE {
+        définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, éditrice.curseur.fin + 1)
+        retourne
+    }
+
+    si touche.type == CléClavier.EFFACE {
+        efface(*éditrice.curseur)
+        retourne
+    }
+
+    si touche.type == CléClavier.SUPPRIMER {
+        supprime(*éditrice.curseur)
+        retourne
+    }
+
+    si touche.type == CléClavier.ENTRÉE {
+        termine_guettage(guetteuse)
+        retourne
+    }
+
+    si touche.texte.taille != 0 {
+        est_valide := nombre_octets_utf8_rapide(touche.texte.pointeur) == touche.texte.taille
+        si est_valide {
+            point_de_code := converti_utf8_utf32(touche.texte.pointeur, touche.texte.taille) comme n32
+            insère(*éditrice.curseur, point_de_code)
+        }
+
+        retourne
+    }
+}
+
+guetteuse_édition_texte_sur_clic :: fonc (base: *Guetteuse, clic: CliqueSouris)
+{
+    empl guetteuse := base comme *GuetteuseÉditionTexte
+
+    si clic.action == ActionSouris.PRESSÉE {
+        si rect.contient(clic.état.où) {
+            définis_position_curseur_pour_clic(guetteuse, clic.état)
+            état = ÉtatGuettageÉditionTexte.EnSélection
+        }
+        sinon {
+            termine_guettage(guetteuse)
+        }
+    }
+    sinon si clic.action == ActionSouris.RELACHÉE {
+        si rect.contient(clic.état.où) {
+            si état == ÉtatGuettageÉditionTexte.AttenteRelachementClic {
+                état = ÉtatGuettageÉditionTexte.EnÉdition
+                éditrice.démarre_édition()
+                définis_position_curseur_pour_clic(guetteuse, clic.état)
+            }
+            sinon si état == ÉtatGuettageÉditionTexte.EnSélection {
+                état = ÉtatGuettageÉditionTexte.EnÉdition
+            }
+        }
+        sinon si état == ÉtatGuettageÉditionTexte.AttenteRelachementClic {
+            termine_guettage(guetteuse)
+        }
+        sinon si état == ÉtatGuettageÉditionTexte.EnSélection {
+            état = ÉtatGuettageÉditionTexte.EnÉdition
+        }
+    }
+}
+
+définis_position_curseur_pour_clic :: fonc (empl guetteuse: *GuetteuseÉditionTexte, souris: ÉtatSouris)
+{
+    position := donne_position_curseur_pour_souris(guetteuse, souris)
+    définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, position)
+}
+
+donne_position_curseur_pour_souris :: fonc (empl guetteuse: *GuetteuseÉditionTexte, souris: ÉtatSouris) -> z64
+{
+    position_relative := souris.où.x - rect_texte.x
+    index := donne_index_caractère_pour_position(éditrice.fonte, éditrice.texte_à_éditer, position_relative comme r32)
+
+    si index != -1 {
+        retourne index
+    }
+
+    retourne éditrice.texte_à_éditer.taille()
+}
+
+/** \} */
