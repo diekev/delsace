@@ -39,6 +39,7 @@ STR_pow : ChaineUTF16Unique = ---
 STR_prototype : ChaineUTF16Unique = ---
 STR_push : ChaineUTF16Unique = ---
 STR_random : ChaineUTF16Unique = ---
+STR_replace : ChaineUTF16Unique = ---
 STR_round : ChaineUTF16Unique = ---
 STR_setPrototypeOf : ChaineUTF16Unique = ---
 STR_sin : ChaineUTF16Unique = ---
