@@ -44,6 +44,7 @@ STR_setPrototypeOf : ChaineUTF16Unique = ---
 STR_sin : ChaineUTF16Unique = ---
 STR_sqrt : ChaineUTF16Unique = ---
 STR_string : ChaineUTF16Unique = ---
+STR_substring : ChaineUTF16Unique = ---
 STR_symbol : ChaineUTF16Unique = ---
 STR_toString : ChaineUTF16Unique = ---
 STR_true : ChaineUTF16Unique = ---
