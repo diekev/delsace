@@ -250,6 +250,12 @@ donne_document_element :: fonc (document: *Document) -> *Élément
     retourne nul
 }
 
+/* https://html.spec.whatwg.org/multipage/dom.html#dom-document-currentscript */
+donne_current_script :: fonc (document: *Document) -> *HTMLScriptElement
+{
+    retourne document.current_script
+}
+
 donne_premier_élément_de_type :: fonc (noeud: *Noeud, tag: DOMString) -> *Élément
 {
     si noeud.est_élément_type(tag) {

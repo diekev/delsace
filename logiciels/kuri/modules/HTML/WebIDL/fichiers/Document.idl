@@ -10,4 +10,6 @@ interface Document : Node {
     /* HTML parial interface Document
      * https://html.spec.whatwg.org/multipage/dom.html#the-document-object */
     /* [SameObject] */ readonly attribute HTMLCollection scripts;
+
+    readonly attribute /* HTMLOrSVGScriptElement? */ HTMLScriptElement? currentScript; 
 }
