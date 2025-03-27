@@ -148,9 +148,9 @@ HTMLCollection :: struct {
     éléments: [..]*Élément
 }
 
-crée_html_collection :: fonc (élément: *Élément) -> *HTMLCollection
+crée_html_collection :: fonc (noeud: *Noeud) -> *HTMLCollection
 {
-    retourne crée_platform_object(élément, HTMLCollection)
+    retourne crée_platform_object(noeud, HTMLCollection)
 }
 
 ajoute_élément :: fonc (collection: *HTMLCollection, élément: *Élément)

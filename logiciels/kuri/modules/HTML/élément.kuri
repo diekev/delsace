@@ -482,10 +482,12 @@ get_elements_by_class_name :: fonc (élément: *Élément, class_names: DOMStrin
 }
 
 /* https://dom.spec.whatwg.org/#concept-getelementsbytagname */
-get_elements_by_tag_name :: fonc (élément: *Élément, qualified_name: DOMString) -> *HTMLCollection
-{   
-    résultat := crée_html_collection(élément)
-    résultat.root = élément
+get_elements_by_tag_name :: fonc (noeud: *Noeud, qualified_name: DOMString) -> *HTMLCollection
+{
+    assert(noeud.est_élément() || noeud.est_document())
+
+    résultat := crée_html_collection(noeud)
+    résultat.root = noeud
 
     // 1. If qualifiedName is U+002A (*), then return an HTMLCollection rooted at root, whose filter matches only descendant elements.
 

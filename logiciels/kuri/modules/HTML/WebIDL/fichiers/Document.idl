@@ -1,6 +1,7 @@
 interface Document : Node {
     readonly attribute Element? documentElement;
 
+    HTMLCollection getElementsByTagName(DOMString qualifiedName);
     Element? getElementById(DOMString id);
 
     Element createElement(DOMString localName);
