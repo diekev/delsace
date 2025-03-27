@@ -108,9 +108,9 @@ static auto morcelle_type(dls::chaine const &str)
 }
 
 /* En fonction de là où ils apparaissent, les types anonymes sont de la forme :
- * (anonymous at FILE:POS)
+ * ({anonymous|unnamed} at FILE:POS)
  * ou
- * (anonymous {struct|union|enum} at FILE:POS)
+ * ({anonymous|unnamed} {struct|union|enum} at FILE:POS)
  *
  * Donc nous utilions "FILE:POS)" comme « nom » pour les insérer et les trouver
  * dans la liste des typedefs afin de ne pas avoir à ce soucier de la
@@ -121,7 +121,10 @@ static dls::chaine trouve_nom_anonyme(dls::chaine chn)
     auto pos_anonymous = chn.trouve("(anonymous");
 
     if (pos_anonymous == -1) {
-        return "";
+        pos_anonymous = chn.trouve("(unnamed");
+        if (pos_anonymous == -1) {
+            return "";
+        }
     }
 
     auto pos_slash = chn.trouve_premier_de('/');
