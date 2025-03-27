@@ -86,6 +86,7 @@ Intrinsics :: struct {
 
     array: *ArrayConstructor
     date: *DateConstructor
+    encode_uri_component: *Function
     eval: *Function
     isnan: *Function
     parse_int: *Function
@@ -120,6 +121,7 @@ create_intrinsics :: fonc (realm: *Realm)
 
     realm.intrinsics.array = crée_array_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.array_prototype)
     realm.intrinsics.date = crée_date_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.date_prototype)
+    realm.intrinsics.encode_uri_component = crée_encode_uri_component(realm)
     realm.intrinsics.eval = crée_eval(realm)
     realm.intrinsics.isnan = crée_isnan(realm)
     realm.intrinsics.parse_int = crée_parse_int(realm)
@@ -323,6 +325,7 @@ set_default_global_bindings :: fonc (realm: *Realm) -> CompletionRecord
         // decodeURIComponent
         // encodeURI
         // encodeURIComponent
+        GlobalObjectProperty(STR_encodeURIComponent, Valeur(Function = realm.intrinsics.encode_uri_component)),
         // Encode
         // Decode
         // ParseHexOctet
