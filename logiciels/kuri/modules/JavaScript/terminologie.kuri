@@ -64,6 +64,7 @@ STR_ReferenceError : ChaineUTF16Unique = ---
 STR_String : ChaineUTF16Unique = ---
 STR_SyntaxError : ChaineUTF16Unique = ---
 STR_TypeError : ChaineUTF16Unique = ---
+STR_URIError : ChaineUTF16Unique = ---
 STR___proto__ : ChaineUTF16Unique = ---
 
 /* Ceci doit être après les tags, car nous l'utilions comme sentinelle dans les
