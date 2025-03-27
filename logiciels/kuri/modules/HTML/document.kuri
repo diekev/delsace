@@ -239,6 +239,17 @@ donne_title_element :: fonc (document: *Document) -> *Élément
     retourne donne_premier_élément_de_type(document, TAG_title)
 }
 
+/* https://dom.spec.whatwg.org/#document-element */
+donne_document_element :: fonc (document: *Document) -> *Élément
+{
+    pour document.enfants {
+        si est_élément(it) {
+            retourne it comme *Élément
+        }
+    }
+    retourne nul
+}
+
 donne_premier_élément_de_type :: fonc (noeud: *Noeud, tag: DOMString) -> *Élément
 {
     si noeud.est_élément_type(tag) {

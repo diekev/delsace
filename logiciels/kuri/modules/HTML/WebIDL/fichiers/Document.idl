@@ -1,4 +1,6 @@
 interface Document : Node {
+    readonly attribute Element? documentElement;
+
     Element? getElementById(DOMString id);
 
     Element createElement(DOMString localName);
