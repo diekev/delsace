@@ -1,3 +1,4 @@
+importe Algorithmes
 importe Chaine
 importe Fondation
 importe Math
@@ -321,9 +322,15 @@ number_bitwise_or :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
     retourne Valeur(Number = r comme r64)
 }
 
+précision_max_pour_radix := n8.[
+    0,  0,  52, 32, 26, 22, 20, 18, 17, 16,
+    15, 15, 14, 14, 13, 13, 13, 12, 12, 12,
+    12, 11, 11, 11, 11, 11, 11, 10, 10, 10,
+    10, 10, 10, 10, 10, 10, 10]
+
 /* 6.1.6.1.20 Number::toString ( x, radix )
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-tostring */
-number_to_string :: fonc (realm: *Realm, valeur: Valeur, radix: n32) -> Valeur
+number_to_string :: fonc (realm: *Realm, valeur: Valeur, radix_mv: n32) -> Valeur
 {
     x := valeur.Number
     // 1. If x is NaN, return "NaN".
@@ -336,10 +343,10 @@ number_to_string :: fonc (realm: *Realm, valeur: Valeur, radix: n32) -> Valeur
         retourne crée_chaine(realm, crée_chaine_utf16_unique("0"))
     }
 
-    // 3. If x < -0𝔽, return the string-concatenation of "-" and Number::toString(-x, radix).
+    // 3. If x < -0𝔽, return the string-concatenation of "-" and Number::toString(-x, radix_mv).
     si x < -0.0 {
         chn_moins := crée_chaine(realm, crée_chaine_utf16_unique("-"))
-        chn_x := number_to_string(realm, Valeur(Number = -x), radix)
+        chn_x := number_to_string(realm, Valeur(Number = -x), radix_mv)
         retourne concatène(realm, chn_moins, chn_x.String)
     }
 
@@ -349,18 +356,55 @@ number_to_string :: fonc (realm: *Realm, valeur: Valeur, radix: n32) -> Valeur
     }
 
     // À FAIRE : implémente selon le standard.
-    chn: chaine
-    diffère déloge(chn)
 
-    /* Évite d'inclure ".0" à la fin. */
-    ix := x comme n64
-    si x == ix comme r64 {
-        chn = imprime_chaine("%", ix)
-    }
-    sinon {
-        chn = imprime_chaine("%", x)
+    négatif := x < 0.0
+    si négatif {
+        x *= -1.0
     }
 
+    part_entière := plancher(x)
+    part_décimale := x - part_entière
+
+    caractères: [..]z8
+    diffère déloge(caractères)
+
+    chiffres :: "0123456789abcdefghijklmnopqrstuvwxyz"
+
+    radix := radix_mv comme r64
+
+    si part_entière == 0.0 {
+        tableau_ajoute(*caractères, '0')
+    }
+    sinon tantque part_entière > 0.0 {
+        caractère := chiffres[plancher(mod(part_entière, radix)) comme n64]
+        tableau_ajoute(*caractères, caractère)
+        part_entière /= radix
+        part_entière = plancher(part_entière)
+    }
+
+    si négatif {
+        tableau_ajoute(*caractères, '-')
+    }
+
+    tableau_inverse(caractères)
+
+    si part_décimale != 0.0 {
+        tableau_ajoute(*caractères, '.')
+
+        précision := précision_max_pour_radix[radix_mv]
+        pour précision {
+            part_décimale *= radix;
+            intégrale := plancher(part_décimale) comme n64
+            tableau_ajoute(*caractères, chiffres[intégrale])
+            part_décimale -= intégrale comme r64
+        }
+
+        tantque caractères.taille > 0 && caractères[caractères.taille - 1] == '0' {
+            caractères.taille -= 1
+        }
+    }
+
+    chn := construit_chaine(caractères.pointeur, caractères.taille)
     résultat := crée_chaine_utf16_unique(chn)
     retourne crée_chaine(realm, résultat)
 }
