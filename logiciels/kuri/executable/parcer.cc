@@ -91,6 +91,30 @@ static auto morcelle_type(dls::chaine const &str)
 
             taille_mot = 0;
         }
+        else if (str[i] == '[') {
+            if (taille_mot != 0) {
+                ret.ajoute({ptr, taille_mot});
+                taille_mot = 0;
+            }
+
+            ptr = &str[i];
+            taille_mot = 1;
+            i++;
+
+            while (i < str.taille()) {
+                if (str[i] == ']') {
+                    taille_mot += 1;
+                    i++;
+                    break;
+                }
+                taille_mot += 1;
+                i++;
+            }
+
+            ret.ajoute({ptr, taille_mot});
+
+            taille_mot = 0;
+        }
         else {
             if (taille_mot == 0) {
                 ptr = &str[i];
