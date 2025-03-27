@@ -225,6 +225,12 @@ ajoute_enfant :: fonc (parent: *Noeud, enfant: *Noeud)
     }
 }
 
+/* https://dom.spec.whatwg.org/#dom-node-parentnode */
+donne_parent_node :: fonc (noeud: *Noeud) -> *Noeud
+{
+    retourne noeud.parent
+}
+
 /* https://dom.spec.whatwg.org/#get-text-content */
 donne_text_content :: fonc (noeud: *Noeud @inutilisée) -> DOMString
 {
