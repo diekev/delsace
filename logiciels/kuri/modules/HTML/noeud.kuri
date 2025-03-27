@@ -256,6 +256,12 @@ append_child :: fonc (noeud: *Noeud, enfant: *Noeud) -> *Noeud
     retourne append(noeud, enfant)
 }
 
+/* https://dom.spec.whatwg.org/#dom-node-removechild */
+remove_child :: fonc (node: *Noeud, child: *Noeud) -> *Noeud
+{
+    retourne pre_remove(node, child)
+}
+
 ajoute_attribut :: fonc (noeud: *Noeud, nom: DOMString, valeur: DOMString) -> *Attr
 {
     résultat := crée_noeud_attr(noeud.document, nom, valeur)
@@ -516,6 +522,23 @@ append :: fonc (parent: *Noeud, node: *Noeud) -> *Noeud
     }
 
     retourne node
+}
+
+/* https://dom.spec.whatwg.org/#concept-node-pre-remove */
+pre_remove :: fonc (parent: *Noeud, child: *Noeud) -> *Noeud
+{
+    // À FAIRE 1. If child’s parent is not parent, then throw a "NotFoundError" DOMException.
+
+    // À FAIRE : 2. Remove child.
+    pour parent.enfants {
+        si it == child {
+            tableau_supprime_index(*parent.enfants, index_it)
+            arrête
+        }
+    }
+
+    // 3. Return child.
+    retourne child
 }
 
 /** \} */

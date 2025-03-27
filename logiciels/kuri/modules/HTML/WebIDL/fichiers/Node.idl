@@ -6,4 +6,5 @@ interface Node : EventTarget {
     attribute DOMString? textContent;
 
     Node appendChild(Node node);
+    Node removeChild(Node node);
 }
