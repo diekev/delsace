@@ -557,6 +557,65 @@ donne_referrerpolicy_content_attribute_state :: fonc (élément: *Élément) -> 
     retourne ReferrerPolicy.EmptyString
 }
 
+/* https://html.spec.whatwg.org/multipage/urls-and-fetching.html#cors-settings-attributes */
+CORSAttributeState :: énum n8 {
+    NO_CORS
+    Anonymous
+    UseCredentials
+}
+
+donne_cross_origin_content_attribute_state :: fonc (élément: *Élément) -> CORSAttributeState
+{
+    crossorigin := élément.donne_attribut_ou_chaine_vide(ATTR_crossorigin)
+    si crossorigin.est_vide() {
+        retourne CORSAttributeState.NO_CORS
+    }
+
+    chn_crossorigin := converti_vers_chaine(crossorigin.donne_chaine_utf16())
+    diffère déloge(chn_crossorigin)
+
+    si compare_ascii_insensible_à_la_casse(chn_crossorigin, "anonymous") {
+        retourne CORSAttributeState.Anonymous
+    }
+
+    si compare_ascii_insensible_à_la_casse(chn_crossorigin, "use-credentials") {
+        retourne CORSAttributeState.UseCredentials
+    }
+
+    retourne CORSAttributeState.Anonymous
+}
+
+FetchPriorityState :: énum n8 {
+    Auto
+    High
+    Low
+}
+
+donne_fetch_priority_content_attribute_state :: fonc (élément: *Élément) -> FetchPriorityState
+{
+    fetchpriority := élément.donne_attribut_ou_chaine_vide(ATTR_fetchpriority)
+    si fetchpriority.est_vide() {
+        retourne FetchPriorityState.Auto
+    }
+
+    chn_fetchpriority := converti_vers_chaine(fetchpriority.donne_chaine_utf16())
+    diffère déloge(chn_fetchpriority)
+
+    si compare_ascii_insensible_à_la_casse(chn_fetchpriority, "high") {
+        retourne FetchPriorityState.High
+    }
+
+    si compare_ascii_insensible_à_la_casse(chn_fetchpriority, "low") {
+        retourne FetchPriorityState.Low
+    }
+
+    si compare_ascii_insensible_à_la_casse(chn_fetchpriority, "auto") {
+        retourne FetchPriorityState.Auto
+    }
+
+    retourne FetchPriorityState.Auto
+}
+
 /** \} */
 
 fait_partie_de_catégorie_spécial :: fonc (nom: DOMString) -> bool
@@ -1041,6 +1100,12 @@ encoding_parse_a_url :: fonc (url: DOMString, document: *Document) -> *URL
     // À FAIRE : standardise
     base_url := donne_base_url(document)
     retourne url_parser(document.donne_user_agent(), url.donne_chaine_utf16(), base = base_url)
+}
+
+encoding_parse_a_url :: fonc (user_agent: *UserAgent, url: DOMString, base_url: *URL) -> *URL
+{
+    // À FAIRE : standardise
+    retourne url_parser(user_agent, url.donne_chaine_utf16(), base = base_url)
 }
 
 /** \} */
@@ -1957,6 +2022,9 @@ input_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOM
 HTMLLinkElement :: struct {
     empl html_element: HTMLElement
     table = *table_virtuelle_link_element
+
+    est_stylesheet: bool
+    est_alternate: bool
 }
 
 donne_href :: fonc (link: *HTMLLinkElement) -> DOMString
@@ -2002,97 +2070,95 @@ process_link_element :: fonc (link: *HTMLLinkElement)
         retourne
     }
 
+    href := link.donne_href()
+    si href.est_vide() {
+        link.document.supprime_feuille_de_style_associée(link)
+        retourne
+    }
+
     types := run_ordered_set_parser(rel)
     diffère déloge(types)
 
-    est_stylesheet := faux
-    est_alternate := faux
-
     pour types {
         si it == ATTR_stylesheet {
-            est_stylesheet = vrai
+            link.est_stylesheet = vrai
         }
         sinon si it == ATTR_alternate {
-            est_alternate = vrai
+            link.est_alternate = vrai
         }
     }
 
-    si est_stylesheet && !est_alternate {
-        process_stylesheet_link(link)
-    }
+    fetch_and_process_linked_ressource(link.document.donne_user_agent(), link)
 }
 
-process_stylesheet_link :: fonc (link: *HTMLLinkElement)
+/* https://html.spec.whatwg.org/multipage/semantics.html#fetch-and-process-the-linked-resource */
+fetch_and_process_linked_ressource :: fonc (user_agent: *UserAgent, el: *HTMLLinkElement)
 {
-    // À FAIRE : standardise
-    document := link.document
-    user_agent := document.donne_user_agent()
-    saufsi user_agent {
+    fetch_and_process_linked_ressource_default(user_agent, el)
+}
+
+/* https://html.spec.whatwg.org/multipage/semantics.html#default-fetch-and-process-the-linked-resource */
+fetch_and_process_linked_ressource_default :: fonc (user_agent: *UserAgent, el: *HTMLLinkElement)
+{
+    // 1. Let options be the result of creating link options from el.
+    options := create_link_options(el)
+
+    // 2. Let request be the result of creating a link request given options.
+    request := create_link_request(user_agent, *options)
+
+    // 3. If request is null, then return.
+    saufsi request {
         retourne
     }
 
-    document.supprime_feuille_de_style_associée(link)
+    // 4. Set request's synchronous flag.
+    request.synchronous = vrai
 
-    src := link.donne_href()
-    si src.est_vide() {
+    // 5. Run the linked resource fetch setup steps, given el and request. If the result is false, then return.
+    saufsi linked_resource_fetch_setup(el, request) {
+        détruit_request(request)
         retourne
     }
 
-    base_url := donne_base_url(document)
-
-    url_src := url_parser(user_agent, src.donne_chaine_utf16(), base = base_url)
-    saufsi url_src {
-        retourne
+    // 6. Set request's initiator type to "css" if el's rel attribute contains the keyword stylesheet; "link" otherwise.
+    si el.est_stylesheet {
+        request.initiator_type = "css"
     }
 
-    request := loge(Request)
-    request.destination = "style"
-    request.mode = "no-cors"
-    request.redirect_mode = "follow"
-    request.définis_url(url_src)
+    // 7. Fetch request with processResponseConsumeBody set to the following steps given response response and null, failure, or a byte sequence bodyBytes:
+    // À FAIRE : utilise processResponseConsumeBody
 
     RappelProcessResponse :: struct {
         empl base: BaseProcessResponse
 
         link: *HTMLLinkElement
         request: *Request
-        url_string: ChaineASCII
     }
 
-    sur_rappel_process_response :: fonc (base: *BaseProcessResponse, réponse: *Response)
+    sur_rappel_process_response :: fonc (rappel: *RappelProcessResponse, réponse: *Response)
     {
         diffère détruit_response(réponse)
 
-        rappel := base comme *RappelProcessResponse
-
-        saufsi réponse.body_info {
-            retourne
+        body_bytes: chaine
+        si réponse.body_info {
+            body_bytes = réponse.body.Quelque
         }
 
-        saufsi réponse.body_info.content_type == MIME_text_css {
-            retourne
+        // 1. Let success be true.
+        success := vrai
+
+        // 2. If any of the following are true:
+        //     bodyBytes is null or failure; or
+        //     response's status is not an ok status,
+        //    then set success to false.
+        si body_bytes == "" || réponse.status != 200 {
+            success = faux
         }
 
-        contenu := réponse.body.Quelque
+        // À FAIRE 3. Otherwise, wait for the link resource's critical subresources to finish loading.
 
-        mime_css := crée_chaine_utf16_unique(MIME_text_css)
-
-        feuille_de_style := loge(CSS.CSSStyleSheet)
-        feuille_de_style.location = copie_url(rappel.request.donne_url_courant())
-        feuille_de_style.origine = CSS.OrigineCascade.Author
-        feuille_de_style.type = mime_css
-        feuille_de_style.owner_node = rappel.link
-        feuille_de_style.alternate = faux
-        feuille_de_style.origin_clean = vrai
-        feuille_de_style.parent_style_sheet = nul
-        feuille_de_style.owner_rule = nul
-
-        // Non-spécifié
-        ctx: CSS.ContexteParsageFeuilleDeStyle
-        diffère CSS.détruit_données_contexte(*ctx)
-        CSS.parse_style_rules(*ctx, feuille_de_style, contenu)
-        CSS.rapporte_propriétés_non_supportées(*ctx, #nom_de_cette_fonction)
-        rappel.link.document.ajoute_feuille_de_style(feuille_de_style)
+        // 4. Process the linked resource given el, success, response, and bodyBytes.
+        process_the_linked_resource(rappel.link, success, réponse, body_bytes)
     }
 
     sur_destruction_process_response :: fonc (base: *BaseProcessResponse)
@@ -2103,13 +2169,294 @@ process_stylesheet_link :: fonc (link: *HTMLLinkElement)
     }
 
     process_response := loge(RappelProcessResponse)
-    process_response.link = link
+    process_response.link = el
     process_response.request = request
     process_response.sur_rappel = sur_rappel_process_response
     process_response.sur_destruction = sur_destruction_process_response
 
     fetch_controller := fetch(user_agent, request, process_response = process_response)
     diffère détruit_fetch_controller(fetch_controller)
+}
+
+/* https://html.spec.whatwg.org/multipage/semantics.html#create-a-link-request */
+create_link_request :: fonc (user_agent: *UserAgent, options: *LinkProcessingOptions) -> *Request
+{
+    // 1. Assert: options's href is not the empty string.
+    assert(!options.href.est_vide())
+
+    // 2. If options's destination is null, then return null.
+    saufsi options.destination.possède_valeur() {
+        retourne nul
+    }
+
+    // 3. Let url be the result of encoding-parsing a URL given options's href, relative to options's base URL.
+    url := encoding_parse_a_url(user_agent, options.href, options.base_url)
+
+    // 4. If url is failure, then return null.
+    saufsi url {
+        retourne nul
+    }
+
+    // 5. Let request be the result of creating a potential-CORS request given url, options's destination, and options's crossorigin.
+    request := create_a_potential_cors_request(url, options.destination.Quelque, options.crossorigin)
+
+    // 6. Set request's policy container to options's policy container.
+    request.policy_container = options.policy_container
+
+    // 7. Set request's integrity metadata to options's integrity.
+    request.integrity_metadata = options.integrity
+
+    // À FAIRE 8. Set request's cryptographic nonce metadata to options's cryptographic nonce metadata.
+
+    // 9. Set request's referrer policy to options's referrer policy.
+    request.referrer_policy = options.referrer_policy
+
+    // 10. Set request's client to options's environment.
+    request.client = options.environment
+
+    // 11. Set request's priority to options's fetch priority.
+    request.priority = options.fetch_priority
+
+    // 12. Return request.
+    retourne request
+}
+
+/* https://html.spec.whatwg.org/multipage/urls-and-fetching.html#create-a-potential-cors-request */
+create_a_potential_cors_request :: fonc (url: *URL, destination: DOMString, cors_attribute_state: CORSAttributeState, same_origin_fallback_flag := faux) -> *Request
+{
+    // 1. Let mode be "no-cors" if corsAttributeState is No CORS, and "cors" otherwise.
+    mode := si cors_attribute_state == CORSAttributeState.NO_CORS {
+        "no-cors"
+    }
+    sinon {
+        "cors"
+    }
+
+    // 2. If same-origin fallback flag is set and mode is "no-cors", set mode to "same-origin".
+    si same_origin_fallback_flag && mode == "no-cors" {
+        mode = "same-origin"
+    }
+
+    // 3. Let credentialsMode be "include".
+    credentials_mode := "include"
+
+    // 4. If corsAttributeState is Anonymous, set credentialsMode to "same-origin".
+    si cors_attribute_state == CORSAttributeState.Anonymous {
+        credentials_mode = "same-origin"
+    }
+
+    // 5. Return a new request whose URL is url, destination is destination, mode is mode, credentials mode is credentialsMode, and whose use-URL-credentials flag is set.
+    request := loge(Request)
+    request.définis_url(url)
+    request.mode = mode
+    request.destination = converti_vers_chaine(destination.donne_chaine_utf16()) // @fuite-de-mémoire
+    request.credentials_mode = credentials_mode
+    request.use_url_credentials = vrai
+    retourne request
+}
+
+/* https://html.spec.whatwg.org/multipage/semantics.html#link-processing-options */
+LinkProcessingOptions :: struct {
+    destination: Optionnel(DOMString)
+    crossorigin: CORSAttributeState
+    referrer_policy: ReferrerPolicy
+    fetch_priority: FetchPriorityState
+    integrity: DOMString
+    type: DOMString
+    href: DOMString
+    base_url: *URL
+    origin: Origin
+    environment: *EnvironmentSettings
+    policy_container: *PolicyContainer
+    document: *Document
+}
+
+/* https://html.spec.whatwg.org/multipage/semantics.html#create-link-options-from-element */
+create_link_options :: fonc (el: *HTMLLinkElement) -> LinkProcessingOptions
+{
+    // 1. Let document be el's node document.
+    document := el.document
+
+    // 2. Let options be a new link processing options with
+    options: LinkProcessingOptions
+    // destination                  -> the result of translating the state of el's as attribute.
+    si el.possède_attribut(ATTR_as) {
+        options.destination = translate_a_preload_destination(el.donne_attribut_ou_chaine_vide(ATTR_as)) // XXX - state
+    }
+    sinon {
+        options.destination = crée_chaine_utf16_unique_vide()
+    }
+    // crossorigin                  -> the state of el's crossorigin content attribute
+    options.crossorigin = el.donne_cross_origin_content_attribute_state()
+    // referrer policy              -> the state of el's referrerpolicy content attribute
+    options.referrer_policy = el.donne_referrerpolicy_content_attribute_state()
+    // À FAIRE source set                   -> el's source set
+    // base URL                     -> document's document base URL
+    options.base_url = document.donne_base_url()
+    // origin                       -> document's origin
+    options.origin = document.origin
+    // environment                  -> document's relevant settings object
+    options.environment = document.donne_relevant_settings_object()
+    // policy container             -> document's policy container
+    options.policy_container = clone(document.policy_container) // @spec-bug ?
+    // document                     -> document
+    options.document = document
+    // À FAIRE cryptographic nonce metadata -> The current value of el's [[CryptographicNonce]] internal slot
+    // fetch priority               -> the state of el's fetchpriority content attribute
+    options.fetch_priority = el.donne_fetch_priority_content_attribute_state()
+
+    // 3. If el has an href attribute, then set options's href to the value of el's href attribute.
+    options.href = el.donne_attribut_ou_chaine_vide(ATTR_href)
+
+    // 4. If el has an integrity attribute, then set options's integrity to the value of el's integrity content attribute.
+    options.integrity = el.donne_attribut_ou_chaine_vide(ATTR_integrity)
+
+    // 5. If el has a type attribute, then set options's type to the value of el's type attribute.
+    options.type = el.donne_attribut_ou_chaine_vide(ATTR_type)
+
+    // 6. Assert: options's href is not the empty string, or options's source set is not null.
+    //    A link element with neither an href or an imagesrcset does not represent a link.
+
+    // 7. Return options.
+    retourne options
+}
+
+/* https://html.spec.whatwg.org/multipage/links.html#translate-a-preload-destination */
+translate_a_preload_destination :: fonc (destination_: DOMString) -> Optionnel(DOMString)
+{
+    destination := converti_vers_chaine(destination_.donne_chaine_utf16())
+    diffère déloge(destination)
+
+    // 1. If destination is not "fetch", "font", "image", "script", "style", or "track", then return null.
+    si destination != "fetch" && destination != "font" && destination != "image" && destination != "script" && destination != "style" && destination != "track" {
+        retourne
+    }
+
+    // 2. Return the result of translating destination.
+    retourne translate_a_potential_destination(destination_)
+}
+
+/* https://fetch.spec.whatwg.org/#concept-potential-destination-translate */
+translate_a_potential_destination :: fonc (potential_destination_: DOMString) -> DOMString
+{
+    potential_destination := converti_vers_chaine(potential_destination_.donne_chaine_utf16())
+    diffère déloge(potential_destination)
+
+    // 1. If potentialDestination is "fetch", then return the empty string.
+    si potential_destination == "fetch" {
+        retourne crée_chaine_utf16_unique_vide()
+    }
+
+    // 2. Assert: potentialDestination is a destination.
+    // À FAIRE "audio", "audioworklet", "document", "embed", "font", "frame", "iframe", "image", "json", "manifest", "object", "paintworklet", "report", "script", "serviceworker", "sharedworker", "style", "track", "video", "webidentity", "worker", or "xslt"
+
+    // 3. Return potentialDestination.
+    retourne potential_destination_
+}
+
+/* https://html.spec.whatwg.org/multipage/semantics.html#linked-resource-fetch-setup-steps */
+linked_resource_fetch_setup :: fonc (el: *HTMLLinkElement, request: *Request) -> bool
+{
+    si el.est_stylesheet {
+        si el.est_alternate {
+            retourne faux
+        }
+        retourne linked_resource_fetch_setup_stylesheet(el, request)
+    }
+
+    retourne faux
+}
+
+linked_resource_fetch_setup_stylesheet :: fonc (el: *HTMLLinkElement, request: *Request) -> bool
+{
+    // 1. If el's disabled attribute is set, then return false.
+    si possède_attribut(el, ATTR_disabled) {
+        retourne faux
+    }
+
+    // À FAIRE 2. If el contributes a script-blocking style sheet, append el to its node document's script-blocking style sheet set.
+
+    // À FAIRE 3. If el's media attribute's value matches the environment and el is potentially render-blocking, then block rendering on el.
+
+    // 4. If el is currently render-blocking, then set request's render-blocking to true.
+    si is_render_blocking(el) {
+        request.render_blocking = vrai
+    }
+
+    // 5. Return true.
+    retourne vrai
+}
+
+process_the_linked_resource :: fonc (el: *HTMLLinkElement, success: bool, réponse: *Response, body_bytes: chaine)
+{
+    si el.est_stylesheet {
+        assert(!el.est_alternate)
+        process_the_linked_resource_stylesheet(el, success, réponse, body_bytes)
+    }
+}
+
+process_the_linked_resource_stylesheet :: fonc (el: *HTMLLinkElement, success: bool, réponse: *Response, body_bytes: chaine)
+{
+    // 1. If the resource's Content-Type metadata is not text/css, then set success to false.
+    si réponse.body_info && réponse.body_info.content_type != MIME_text_css {
+        success = faux
+    }
+
+    // À FAIRE : 2. If el no longer creates an external resource link that contributes to the styling processing model, or if, since the resource in question was fetched, it has become appropriate to fetch it again, then:
+        // 1. Remove el from el's node document's script-blocking style sheet set.
+        // 2. Return.
+
+    // 3. If el has an associated CSS style sheet, remove the CSS style sheet.
+    el.document.supprime_feuille_de_style_associée(el)
+
+    // 4. If success is true, then:
+    si success {
+        // 1. Create a CSS style sheet with the following properties:
+        feuille_de_style := loge(CSS.CSSStyleSheet)
+        feuille_de_style.origine = CSS.OrigineCascade.Author
+        // type                   -> text/css
+        feuille_de_style.type = crée_chaine_utf16_unique(MIME_text_css)
+        // location               -> response's URL list[0]
+        feuille_de_style.location = copie_url(réponse.url_list[0])
+        // owner node             -> el
+        feuille_de_style.owner_node = el
+        // À FAIRE media                  -> The media attribute of el.
+        // À FAIRE title                  -> The title attribute of el, if el is in a document tree, or the empty string otherwise.
+        // À FAIRE alternate flag         -> Set if the link is an alternative style sheet and el's explicitly enabled is false; unset otherwise.
+        feuille_de_style.alternate = faux
+        // À FAIRE origin-clean flag      -> Set if the resource is CORS-same-origin; unset otherwise.
+        feuille_de_style.origin_clean = vrai
+        // parent CSS style sheet -> null
+        feuille_de_style.parent_style_sheet = nul
+        // owner CSS rule         -> null
+        feuille_de_style.owner_rule = nul
+        // disabled flag          -> Left at its default value.
+        // CSS rules              -> Left uninitialized.
+        // Non-spécifié
+        ctx: CSS.ContexteParsageFeuilleDeStyle
+        diffère CSS.détruit_données_contexte(*ctx)
+        CSS.parse_style_rules(*ctx, feuille_de_style, body_bytes)
+        CSS.rapporte_propriétés_non_supportées(*ctx, #nom_de_cette_fonction)
+        el.document.ajoute_feuille_de_style(feuille_de_style)
+
+        // À FAIRE : The CSS environment encoding is the result of running the following steps: [CSSSYNTAX]
+            // 1. If el has a charset attribute, get an encoding from that attribute's value. If that succeeds, return the resulting encoding. [ENCODING]
+            // 2. Otherwise, return the document's character encoding. [DOM]
+
+        // 2. Fire an event named load at el.
+        _ := fire_an_event(el, EventType.load)
+    }
+    // 5. Otherwise, fire an event named error at el.
+    sinon {
+        _ := fire_an_event(el, EventType.error)
+    }
+
+    // À FAIRE 6. If el contributes a script-blocking style sheet, then:
+    // Assert: el's node document's script-blocking style sheet set contains el.
+    // Remove el from its node document's script-blocking style sheet set.
+
+    // 7. Unblock rendering on el.
+    unblock_rendering_on(el)
 }
 
 /** \} */
