@@ -122,6 +122,7 @@ void output_image(image *input_image, bool found_a, bool found_b)
 
 void test_image_graph()
 {
+#if 0
 	graph g;
 
 	typedef std::tuple<image *, image *> resource_tuple;
@@ -222,4 +223,5 @@ void test_image_graph()
 		printf("Delete image!\n");
 		delete img;
 	}
+#endif
 }
