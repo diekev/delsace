@@ -301,6 +301,12 @@ donne_élément_body :: fonc (document: *Document) -> *Élément
     retourne nul
 }
 
+/* https://html.spec.whatwg.org/multipage/dom.html#dom-document-scripts */
+donne_scripts :: fonc (document: *Document) -> *HTMLCollection
+{
+    retourne crée_html_collection_pour_filtrer_les_éléments(document, TAG_script)
+}
+
 /* https://html.spec.whatwg.org/multipage/parsing.html#ready-for-post-load-tasks */
 mark_as_ready_for_post_load_tasks :: fonc (document: *Document)
 {

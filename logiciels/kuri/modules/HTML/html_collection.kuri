@@ -114,6 +114,15 @@ crée_filtre_pour_tag_name :: fonc (tag_name: DOMString) -> *HTMLCollectionFilte
     retourne résultat
 }
 
+crée_html_collection_pour_filtrer_les_éléments :: fonc (root: *Noeud, tag: DOMString) -> *HTMLCollection
+{
+    résultat := crée_html_collection(root)
+    résultat.root = root
+    résultat.filter = crée_filtre_pour_tag_name(tag)
+    initialise_collection_pour_filtre(résultat)
+    retourne résultat
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

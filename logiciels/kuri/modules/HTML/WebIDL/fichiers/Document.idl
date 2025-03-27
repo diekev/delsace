@@ -6,4 +6,8 @@ interface Document : Node {
 
     Element createElement(DOMString localName);
     Text createTextNode(DOMString data);
+
+    /* HTML parial interface Document
+     * https://html.spec.whatwg.org/multipage/dom.html#the-document-object */
+    /* [SameObject] */ readonly attribute HTMLCollection scripts;
 }
