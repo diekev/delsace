@@ -97,6 +97,32 @@ opérateur != :: fonc (ongoing: OngoingNavigationType, navigation_id: Navigation
     retourne !(ongoing == navigation_id)
 }
 
+opérateur == :: fonc (ongoing: OngoingNavigationType, navigation_id: Optionnel(NavigationID)) -> bool
+{
+    discr ongoing {
+        NavigationID(id) {
+            si navigation_id.possède_valeur() {
+                retourne id == navigation_id.Quelque
+            }
+            retourne faux
+        }
+        Chaine {
+            retourne !navigation_id.possède_valeur()
+        }
+        sinon {
+            si navigation_id.possède_valeur() {
+                retourne faux
+            }
+            retourne vrai
+        }
+    }
+}
+
+opérateur != :: fonc (ongoing: OngoingNavigationType, navigation_id: Optionnel(NavigationID)) -> bool
+{
+    retourne !(ongoing == navigation_id)
+}
+
 opérateur == :: fonc (ongoing: OngoingNavigationType, chn: chaine) -> bool
 {
     discr ongoing {
