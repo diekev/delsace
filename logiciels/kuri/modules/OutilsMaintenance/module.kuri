@@ -35,7 +35,7 @@ détruit_lignes :: fonc (données: &DonnéesFichier)
             continue
         }
 
-        déloge(it)
+        déloge_si_logée(it)
     }
 
     déloge(données.lignes)
