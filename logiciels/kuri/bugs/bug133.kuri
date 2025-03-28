@@ -18,8 +18,8 @@ donne_valeur :: fonc (poly: &Polymorphe($T)) -> T
     retourne poly.donne_x()
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     poly: Polymorphe(z32)
-    retourne poly.donne_valeur()
+    exit(poly.donne_valeur())
 }

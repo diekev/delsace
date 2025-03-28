@@ -12,9 +12,8 @@ Structure :: struct {
 
 Opaque :: #opaque Structure
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     _ := Opaque(x = 5.0, y = 6.0, z = 7.0)
     _ := Opaque(5.0, 6.0, 7.0)
-    retourne 0
 }

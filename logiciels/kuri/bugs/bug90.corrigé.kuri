@@ -10,8 +10,7 @@ log :: fonc (format: chaine, arguments: ...eini)
     fonction_log(format, ...arguments)
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     log("% % % % %\n", 0, 1, 2, 3, 4)
-    retourne 0
 }

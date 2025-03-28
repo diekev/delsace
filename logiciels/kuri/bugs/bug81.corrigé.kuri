@@ -2,9 +2,8 @@
  * Catégorie : [validation sémantique, limites, type entier]
  */
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     /* Pour z32, 31 est le maximum. */
     _ := 1 << 32
-    retourne 0
 }

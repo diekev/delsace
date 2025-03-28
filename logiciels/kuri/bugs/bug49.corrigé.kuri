@@ -16,11 +16,10 @@ imprime_z64 :: fonc () -> bool
     retourne info.taille_en_octet == 8
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     succès := #exécute imprime_z64()
     saufsi succès {
-        retourne 1
+        exit(1)
     }
-    retourne 0
 }

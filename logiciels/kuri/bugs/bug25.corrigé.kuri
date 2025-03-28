@@ -10,11 +10,9 @@
 
 importe Fondation
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     si fait_partie_de('a', 'b', 'c', 0x0D) {
-        retourne 1
+        exit(1)
     }
-
-    retourne 0
 }

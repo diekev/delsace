@@ -179,7 +179,7 @@ sous_chaine :: fonc (chn: ChaineUTF32, début: z64, fin: z64) -> ChaineUTF32
 }
 
 /*
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     diffère imprime("Mémoire utilisée : %\n", mémoire_utilisée())
     diffère détruit_chaines_internées()
@@ -212,7 +212,5 @@ principale :: fonc () -> z32
     si chn_internée_native != chn_internée_utf32 {
         imprime("erreur : les chaines devraient être égales !\n")
     }
-
-    retourne 0
 }
 */

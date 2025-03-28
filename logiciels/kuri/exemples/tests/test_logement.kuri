@@ -147,7 +147,7 @@ test_fichier :: fonc () -> rien
     }
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     imprime("=========================================\n")
     imprime("                arguments                \n")
@@ -163,6 +163,4 @@ principale :: fonc () -> z32
     logement_chaine()
     //test_fichier();
     test()
-
-    retourne 0
 }

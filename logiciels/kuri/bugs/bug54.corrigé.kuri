@@ -13,9 +13,8 @@ reçoie_une_autre_fonction :: fonc (a: $T, rappel: fonc(T)(rien))
 {
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     reçoie_une_fonction(0, reçoie_une_fonction)
     reçoie_une_autre_fonction(0, reçoie_une_fonction)
-    retourne 0
 }

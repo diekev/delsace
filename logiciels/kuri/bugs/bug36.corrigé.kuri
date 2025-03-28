@@ -10,8 +10,8 @@ foo :: fonc () -> *z32
     a := 0
     retourne *a
 }
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     x := foo()
-    retourne mémoire(x)
+    exit(mémoire(x))
 }

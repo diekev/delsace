@@ -6,7 +6,6 @@ Maçon :: struct {
     param: ...
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
-    retourne 0
 }

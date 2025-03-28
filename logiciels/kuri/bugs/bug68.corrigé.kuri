@@ -5,7 +5,7 @@
 
 importe Support
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     erreur_survenue := #exécute compile_script_erroné("
     foo :: fonc (a) -> rien
@@ -15,8 +15,6 @@ principale :: fonc () -> z32
     ")
 
     saufsi erreur_survenue {
-        retourne 1
+        exit(1)
     }
-
-    retourne 0
 }

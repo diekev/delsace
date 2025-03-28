@@ -7,7 +7,6 @@ fonction_polymorphique :: fonc (rappel: fonc($T)(rien), données_rappel: T)
     rappel(données)
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
-    retourne 0
 }

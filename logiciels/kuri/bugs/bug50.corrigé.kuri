@@ -11,9 +11,9 @@ génère_fonction_principale :: fonc ()
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
 
-    ajoute_au_tampon(*enchaineuse, "principale :: fonc () -> z32\n")
+    ajoute_au_tampon(*enchaineuse, "principale :: fonc ()\n")
     ajoute_au_tampon(*enchaineuse, "{\n")
-    ajoute_au_tampon(*enchaineuse, "    retourne 32\n")
+    ajoute_au_tampon(*enchaineuse, "    exit(32)\n")
     ajoute_au_tampon(*enchaineuse, "}\n")
 
     chn_principale := chaine_depuis_enchaineuse(*enchaineuse)
@@ -27,7 +27,6 @@ génère_fonction_principale :: fonc ()
 
 #exécute génère_fonction_principale()
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
-    retourne 0
 }

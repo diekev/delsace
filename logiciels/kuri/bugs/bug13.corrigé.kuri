@@ -9,10 +9,9 @@ test :: fonc (a := 0) -> bool
     retourne (a == 5)
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     saufsi test() {
-        retourne 1
+        exit(1)
     }
-    retourne 0
 }

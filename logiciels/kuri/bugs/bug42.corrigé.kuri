@@ -5,8 +5,7 @@
 
 importe Support
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     a := MonÉnum.Valeur
-    retourne 0
 }

@@ -12,9 +12,8 @@ Structure :: struct ($T: type_de_données) {
     noeud: *Noeud
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     n: Structure(z32).Noeud
     n.valeur = 5
-    retourne 0
 }

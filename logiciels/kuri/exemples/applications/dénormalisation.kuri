@@ -72,13 +72,11 @@ dénormalise_fonction :: fonc (symbole: chaine) -> rien
     imprime("%.%(%) -> %\n", nom_module, nom_fonction, entrée, sortie)
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     symbole := "_KF9Fondation24imprime_nombre_rxC3xA9el_E2_11enchaineuse15KPKsEnchaineuse6format17KsFormatRxC3xA9el_S1_6Ksrien"
 
     si symbole.commence_par("_KF") {
         dénormalise_fonction(symbole)
     }
-
-    retourne 0
 }

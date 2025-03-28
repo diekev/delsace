@@ -18,16 +18,16 @@ MaStructure :: struct {
     tabl: [..]z32
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     x := loge(MaStructure)
 
     si x.tabl.taille != 0 {
-        retourne 1
+        exit(1)
     }
 
     si x.tabl.pointeur != nul {
-        retourne 1
+        exit(1)
     }
 
     // il est possible que le bug ne soit pas visible, si la mémoire où le tableau
@@ -36,6 +36,4 @@ principale :: fonc () -> z32
 
     déloge(x.tabl)
     déloge(x)
-
-    retourne 0
 }

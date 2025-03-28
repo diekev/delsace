@@ -9,7 +9,7 @@ Paginatrice :: struct {
     pages: [100][..]octet
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     paginatrice: Paginatrice
 
@@ -18,6 +18,4 @@ principale :: fonc () -> z32
     page = loge_tableau(octet, 4096)
 
     paginatrice.pages[0] = page
-
-    retourne 0
 }

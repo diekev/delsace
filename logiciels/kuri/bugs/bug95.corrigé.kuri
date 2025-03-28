@@ -17,17 +17,16 @@ Structure :: struct {
     nom = "Structure"
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     s: Structure
     saufsi s.valeur == 5 {
-        retourne 1
+        exit(1)
     }
     saufsi s.nom_local == "Nom Local" {
-        retourne 1
+        exit(1)
     }
     saufsi s.nom == "Structure" {
-        retourne 1
+        exit(1)
     }
-    retourne 0
 }

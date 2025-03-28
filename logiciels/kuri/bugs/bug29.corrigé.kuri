@@ -8,11 +8,10 @@ passe_eini :: fonc (e: eini) -> bool
     retourne (mémoire(a) == 127)
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     a : z32 = 127
     saufsi passe_eini(*a) {
-        retourne 1
+        exit(1)
     }
-    retourne 0
 }

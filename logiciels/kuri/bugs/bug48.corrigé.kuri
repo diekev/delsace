@@ -8,7 +8,6 @@ fonction :: fon (a: z32)
 {
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
-    retourne 0
 }

@@ -9,7 +9,7 @@ importe Structures
 importe SysFichier
 importe Temps
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     logue_propriétés_non_supportées = faux
     logue_erreurs_de_parsage = faux
@@ -19,37 +19,37 @@ principale :: fonc () -> z32
     si args.taille == 2 {
         si args[1] != "--ajourne-fichiers" {
             imprime("Argument '%' inconnu\n", args[1])
-            retourne 1
+            exit(1)
         }
 
         ajourne_fichiers()
-        retourne 0
+        exit(0)
     }
 
     si args.taille == 3 {
         si args[1] != "--vis" {
             imprime("Argument '%' inconnu\n", args[1])
-            retourne 1
+            exit(1)
         }
 
         chemin_navigateur := CheminFichier(args[2])
 
         saufsi est_un_fichier_régulier(chemin_navigateur) {
             imprime("\"%\" n'est pas un fichier\n", args[2])
-            retourne 1
+            exit(1)
         }
 
         visualise_fichiers(chemin_navigateur)
-        retourne 0
+        exit(0)
     }
 
     si args.taille > 3 {
         imprime("Erreur : trop d'arguments.\n")
         imprime("Utilisation : % [--ajourne-fichiers | --vis NAVIGATEUR]\n", args[0])
-        retourne 1
+        exit(1)
     }
 
-    retourne test_mises_en_pages() comme z32
+    exit(test_mises_en_pages() comme z32)
 }
 
 test_mises_en_pages :: fonc () -> bool

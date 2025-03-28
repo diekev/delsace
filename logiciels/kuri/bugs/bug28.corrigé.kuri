@@ -19,19 +19,17 @@ remplis_tableau :: fonc (tabl: *[3]z32)
     tabl[0][2] = 6
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     tabl: [3]z32
 
     remplis_tableau_via_mémoire(*tabl)
     saufsi tabl[0] == 1 && tabl[1] == 2 && tabl[2] == 3 {
-        retourne 1
+        exit(1)
     }
 
     remplis_tableau(*tabl)
     saufsi tabl[0] == 4 && tabl[1] == 5 && tabl[2] == 6 {
-        retourne 1
+        exit(1)
     }
-
-    retourne 0
 }

@@ -25,8 +25,7 @@ retourne_base :: fonc () -> *TypeBase
     retourne retourne_dérivé()
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     _ := retourne_base()
-    retourne 0
 }

@@ -46,6 +46,14 @@ libqt_entetes :: #bibliothèque "qt_entetes"
 /** \nom Utilitaires
  * \{ */
 
+exécute :: fonc (app: *QT_Application)
+{
+    résultat := QT_application_exec(app)
+    si résultat != 0 {
+        exit(résultat)
+    }
+}
+
 vers_kuri :: fonc (chn: *QT_Chaine) -> chaine
 {
     retourne construit_chaine(chn.caractères, chn.taille)

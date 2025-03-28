@@ -11,8 +11,7 @@ retourne_plusieurs_couleurs :: fonc () -> [..]Couleur
     retourne couleurs
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     x := retourne_plusieurs_couleurs()
-    retourne 0
 }

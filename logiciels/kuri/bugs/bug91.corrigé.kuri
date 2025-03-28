@@ -7,10 +7,9 @@ Opaque :: #opaque z32
 
 Valeur :: Opaque(12)
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     saufsi Valeur == 12 {
-        retourne 1
+        exit(1)
     }
-    retourne 0
 }

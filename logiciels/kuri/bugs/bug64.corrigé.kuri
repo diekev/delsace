@@ -14,12 +14,11 @@ passe_référence_à_pointeur :: fonc (a: &z32)
     modifie_via_pointeur(*a)
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     a := 0
     passe_référence_à_pointeur(a)
     saufsi a == 123456 {
-        retourne 1
+        exit(1)
     }
-    retourne 0
 }

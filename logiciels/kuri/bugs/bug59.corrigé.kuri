@@ -15,11 +15,10 @@ test :: fonc () -> bool
     retourne a == 9 && b == 10
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     succès := #exécute test()
     saufsi succès {
-        retourne 1
+        exit(1)
     }
-    retourne 0
 }

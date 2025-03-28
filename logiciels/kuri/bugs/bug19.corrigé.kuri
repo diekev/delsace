@@ -2,8 +2,7 @@
  * Catégorie : [crash, conversion implicite, type tranche octet, pointeur nul]
  */
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     a : []octet = nul
-    retourne 0
 }

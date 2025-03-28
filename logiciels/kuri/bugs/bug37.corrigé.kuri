@@ -4,12 +4,11 @@
 
 // À FAIRE : avoir une bonne manière de tester ceci
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     a : r64 = 30.0
     b := a / 60.0 // transformera le 60.0 en un r16, et le résultat r16 en r64 ce que nous devrions éviter...
     si b != 0.5 {
-        retourne 1
+        exit(1)
     }
-    retourne 0
 }

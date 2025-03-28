@@ -13,8 +13,7 @@ foo :: fonc ()
 {
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     foo()
-    retourne 0
 }

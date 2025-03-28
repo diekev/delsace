@@ -18,12 +18,10 @@ cherche_aiguille_ :: fonc (botte_de_foin: chaine, aiguille: chaine, par: Cherche
     }
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     aiguille := "Kévin"
     botte_de_foin := "Kévin Dietrich"
 
     _ := cherche_aiguille_(botte_de_foin, aiguille, ChercheAiguillePar.ForceBrute)
-
-    retourne 0
 }

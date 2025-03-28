@@ -8,10 +8,9 @@ foo :: fonc ()
 {
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     foo2()
-    retourne 0
 }
 
 foo2 := foo

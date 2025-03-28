@@ -13,13 +13,11 @@ Parent :: struct {
     y: r32
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     e := Parent.Enfant(z = 1.0)
 
     si e.z != 1.0 {
-        retourne 1
+        exit(1)
     }
-
-    retourne 0
 }

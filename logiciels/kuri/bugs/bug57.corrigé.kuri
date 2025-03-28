@@ -19,11 +19,10 @@ test_arithmétique_pointeur :: fonc () -> bool
     retourne x[0] == 1 && x[1] == 2
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     succès := #exécute test_arithmétique_pointeur()
     saufsi succès {
-        retourne 1
+        exit(1)
     }
-    retourne 0
 }

@@ -23,7 +23,6 @@ reproduis_bug :: fonc () #cliche ri
 
 #exécute reproduis_bug()
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
-    retourne 0
 }

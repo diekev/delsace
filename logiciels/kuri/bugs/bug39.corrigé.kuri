@@ -20,10 +20,9 @@ test_impression_énum :: fonc () -> bool
 
 #assert test_impression_énum()
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     saufsi test_impression_énum() {
-        retourne 1
+        exit(1)
     }
-    retourne 0
 }

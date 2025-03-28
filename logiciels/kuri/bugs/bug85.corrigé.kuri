@@ -15,11 +15,9 @@ Union :: union {
     b: *StructureDeBase
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     b: StructureEmployeuse
 
     _ : Union = *b
-
-    retourne 0
 }

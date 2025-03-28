@@ -3,7 +3,7 @@
  * Catégorie : [cohérence, correctitude, génération de code, portée]
  */
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     a: *z32
     {
@@ -12,5 +12,4 @@ principale :: fonc () -> z32
         b: z32
         a = *b
     }
-    retourne 0
 }

@@ -717,6 +717,7 @@ test_compare_chaine :: fonc () -> rien
 // --------------------------------
 
 strlen :: fonc (str: *z8) -> n64 #externe libc
+exit :: fonc (id: z32) -> rien #externe libc #sansretour
 
 arguments_ligne_commande :: fonc () -> [..]chaine
 {
@@ -799,7 +800,7 @@ __init_globales_kuri :: fonc () #sanstrace #interface
 }
 
 // Ceci sera remplacé par la fonction principale ou par les métaprogrammes
-__principale :: fonc () -> z32 #principale
+__principale :: fonc () #principale
 
 __initialise_contexte_extra :: fonc (ctx: *ContexteProgramme, trace_appel: *TraceAppel, base_allocatrice: *BaseAllocatrice, stockage_temporaire: *StockageTemporaire) #sanstrace
 {
@@ -845,11 +846,11 @@ __point_d_entree_systeme :: fonc (argc: z32, argv: **z8) -> z32 #sanstrace #sans
 
     système_ajoute_action_pour_action_erreur_de_segmentation()
 
-    résultat := __principale()
+    __principale()
 
     __fini_exécution_kuri()
 
-    retourne résultat
+    retourne 0
 }
 
 /* ----------------------------------------------------------------------------

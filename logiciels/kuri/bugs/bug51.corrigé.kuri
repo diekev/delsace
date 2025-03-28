@@ -14,8 +14,7 @@ test_construit_poly :: fonc (t: $T @inutilisée) -> T
     retourne T()
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     _ := test_construit_poly(STRUCT())
-    retourne 0
 }

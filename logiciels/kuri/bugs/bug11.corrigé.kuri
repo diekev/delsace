@@ -6,7 +6,7 @@
 importe Fondation
 importe Support
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     delta := 5
     différations := 0
@@ -45,7 +45,6 @@ principale :: fonc () -> z32
     /* Nous avons 5 * (i % 2 == 0) et 1 * (i == 11), donc
      * 6 * delta. */
     saufsi sentinel == différations * delta {
-        retourne 1
+        exit(1)
     }
-    retourne 0
 }

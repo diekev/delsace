@@ -5,9 +5,8 @@
 
 importe Fondation
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     botte_de_paille := "botte_de_paille"
     bdf := avance(bdf, 2) // bdf n'est pas déclarée quand nous l'utilisons
-    retourne 0
 }

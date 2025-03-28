@@ -39,7 +39,6 @@ reproduit_bug :: fonc ()
 
 #exécute reproduit_bug()
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
-    retourne 0
 }

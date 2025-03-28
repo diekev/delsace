@@ -4,9 +4,7 @@
 
 importe Support
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     diffère retourne 1
-
-    retourne 0
 }

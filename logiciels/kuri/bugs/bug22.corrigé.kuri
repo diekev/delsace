@@ -6,7 +6,6 @@ foo :: fonc (a) -> rien
 {
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
-    retourne 0
 }

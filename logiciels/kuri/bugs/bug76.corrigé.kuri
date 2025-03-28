@@ -12,13 +12,11 @@ absolue :: fonc (a: $T) -> T
     retourne a
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     v := #exécute absolue(-1.0)
 
     si v != 1.0 {
-        retourne 1
+        exit(1)
     }
-
-    retourne 0
 }

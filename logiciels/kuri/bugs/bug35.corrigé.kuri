@@ -14,8 +14,7 @@ bar :: fonc ()
 {
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     fonctions[0]()
-    retourne 0
 }

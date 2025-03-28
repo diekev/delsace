@@ -11,10 +11,9 @@
 _PF_INET := 2
 _AF_INET := _PF_INET
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     saufsi _AF_INET == _PF_INET {
-        retourne 1
+        exit(1)
     }
-    retourne 0
 }

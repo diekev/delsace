@@ -15,9 +15,8 @@ opérateur + :: fonc (s1: &Structure, s2: &Structure) -> Structure
     retourne résultat
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     s: Structure
     s += s
-    retourne 0
 }

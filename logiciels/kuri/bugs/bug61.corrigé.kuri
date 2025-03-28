@@ -10,14 +10,12 @@ imprime_réel :: fonc () -> chaine
     retourne imprime_chaine("%", x)
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     chn_compilée := #exécute imprime_réel()
     chn_exécutée := imprime_réel()
 
     si chn_compilée != chn_exécutée {
-        retourne 1
+        exit(1)
     }
-
-    retourne 0
 }

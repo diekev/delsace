@@ -95,7 +95,7 @@ crée_document_depuis_texte :: fonc (texte: chaine) -> Document
 }
 
 // @note : considération des espaces en fin de ligne, ou suppression des espaces avec ajout dans l'impression quand nécessaire
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     diffère imprime("\nFin du programme, mémoire utilisée : %o\n", mémoire_utilisée())
 
@@ -172,6 +172,4 @@ principale :: fonc () -> z32
     }
 
     imprime("\n")
-
-    retourne 0
 }

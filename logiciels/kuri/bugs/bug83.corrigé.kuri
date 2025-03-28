@@ -7,8 +7,7 @@ Union :: union {
     B
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     _: Union
-    retourne 0
 }

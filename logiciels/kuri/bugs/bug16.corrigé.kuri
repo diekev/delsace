@@ -3,9 +3,8 @@
  * Catégorie : [crash, validation sémantique, membre inconnu, type tableau]
  */
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     a: [..]z32
     a.ponteur = nul
-    retourne 0
 }

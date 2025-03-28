@@ -12,9 +12,8 @@ Structure :: struct {
     u: Union
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     s: Structure
     s.u.A = 5
-    retourne 0
 }

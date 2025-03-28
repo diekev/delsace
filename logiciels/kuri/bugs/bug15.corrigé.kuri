@@ -14,11 +14,10 @@ est_nul :: fonc (ptr: fonc()(rien)) -> bool
     retourne ptr == nul
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     ptr := foo
     si est_nul(ptr) {
-        retourne 1
+        exit(1)
     }
-    retourne 0
 }

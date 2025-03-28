@@ -19,7 +19,7 @@ gradient := [
     Vec3(0.0, -1.0, -1.0)
 ]
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     gradient_locale := [
         Vec3(1.0, 1.0, 0.0),
@@ -38,9 +38,7 @@ principale :: fonc () -> z32
 
     pour gradient {
         si it != gradient_locale[index_it] {
-            retourne 1
+            exit(1)
         }
     }
-
-    retourne 0
 }

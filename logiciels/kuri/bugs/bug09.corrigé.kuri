@@ -11,10 +11,9 @@
 
 Globale := 5 comme n32
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     saufsi Globale == 5 {
-        retourne 1
+        exit(1)
     }
-    retourne 0
 }

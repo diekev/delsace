@@ -4,7 +4,6 @@
 
  - ça marche
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
-    retourne 0
 }

@@ -6,9 +6,8 @@ fonction :: fonc () -> z32
 {
     retourne 0
 }
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     ptr := fonction
     ptr()
-    retourne 0
 }

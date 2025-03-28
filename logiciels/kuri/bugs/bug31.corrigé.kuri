@@ -7,8 +7,7 @@ Struct :: struct {
     x: z32
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     _: ...Struct
-    retourne 0
 }

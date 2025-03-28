@@ -7,12 +7,10 @@
 
 importe Support
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     ptr := loge_tableau(z32, 32)
     indirection := *ptr
 
     déloge(mémoire(indirection))
-
-    retourne 0
 }

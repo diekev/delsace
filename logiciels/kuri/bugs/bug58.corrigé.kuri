@@ -9,8 +9,7 @@ Poly :: struct ($T: type_de_données) {
     x: T
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     _ := Poly(T = z32)(x = 5)
-    retourne 0
 }

@@ -8,7 +8,6 @@ libc :: #bibliothèque "c"
 send :: fonc (a: z32) #externe libc
 send :: fonc (b: z64) #externe libc
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
-    retourne 0
 }

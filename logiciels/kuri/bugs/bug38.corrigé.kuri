@@ -10,7 +10,6 @@ Struct :: struct {
     pointeur: TypeFonction
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
-    retourne 0
 }

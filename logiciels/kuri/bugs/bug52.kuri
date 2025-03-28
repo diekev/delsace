@@ -11,8 +11,7 @@ stat :: struct {
     i: z32
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     s: stat
-    retourne 0
 }
