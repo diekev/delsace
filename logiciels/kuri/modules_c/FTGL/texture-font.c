@@ -705,7 +705,7 @@ int texture_font_load_glyph_codepoint(texture_font_t *self, uint32_t codepoint)
     x = region.x;
     y = region.y;
 
-    unsigned char *buffer = FTGL_calloc(tgt_w * tgt_h * self->atlas->depth, sizeof(unsigned char));
+    unsigned char *buffer = texture_atlas_get_glyph_buffer(self->atlas, tgt_w, tgt_h);
 
     unsigned char *dst_ptr = buffer + (padding.top * tgt_w + padding.left) * self->atlas->depth;
     unsigned char *src_ptr = ft_bitmap.buffer;
@@ -718,14 +718,13 @@ int texture_font_load_glyph_codepoint(texture_font_t *self, uint32_t codepoint)
     }
 
     if (self->rendermode == RENDER_SIGNED_DISTANCE_FIELD) {
-        unsigned char *sdf = make_distance_mapb(buffer, tgt_w, tgt_h);
-        FTGL_free(buffer, tgt_w * tgt_h * self->atlas->depth * sizeof(unsigned char));
+        unsigned char *bdbuffer = texture_atlas_get_distance_byte_buffer(self->atlas, tgt_w, tgt_h);
+        double *ddbuffer = texture_atlas_get_distance_double_buffer(self->atlas, tgt_w, tgt_h);
+        unsigned char *sdf = make_distance_mapb(buffer, bdbuffer, ddbuffer, tgt_w, tgt_h);
         buffer = sdf;
     }
 
     texture_atlas_set_region(self->atlas, x, y, tgt_w, tgt_h, buffer, tgt_w * self->atlas->depth);
-
-    FTGL_free(buffer, tgt_w * tgt_h * self->atlas->depth * sizeof(unsigned char));
 
     glyph = texture_glyph_new();
     glyph->codepoint = codepoint;
