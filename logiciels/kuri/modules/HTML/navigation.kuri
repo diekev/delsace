@@ -1241,7 +1241,7 @@ attempt_to_populate_the_history_entry_document :: fonc (params: *HistoryEntryPop
         navigation_id := tâche.navigation_id
 
         // 1. If navigable's ongoing navigation no longer equals navigationId, then run completionSteps and abort these steps.
-        si (!navigation_id.possède_valeur() && !est_nul(navigable.ongoing_navigation)) || (navigable.ongoing_navigation != navigation_id) {
+        si navigable.ongoing_navigation != navigation_id {
             run(completion_steps)
             retourne
         }
