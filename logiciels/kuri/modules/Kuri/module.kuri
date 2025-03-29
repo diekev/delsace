@@ -83,40 +83,44 @@ allocatrice_défaut :: fonc (params: &ParamètresAllocation, données: *BaseAllo
 
     discr params.mode {
         ALLOUE {
-            données.mémoire_utilisée += nouvelle_taille
-            données.nombre_allocations += 1
+            si données {
+                données.mémoire_utilisée += nouvelle_taille
+                données.nombre_allocations += 1
 
-            si données.pic_de_mémoire < données.mémoire_utilisée {
-                données.pic_de_mémoire = données.mémoire_utilisée
+                si données.pic_de_mémoire < données.mémoire_utilisée {
+                    données.pic_de_mémoire = données.mémoire_utilisée
+                }
             }
-
             retourne malloc(nouvelle_taille comme n64)
         }
         ALLOUE_ALIGNÉ {
-            données.mémoire_utilisée += nouvelle_taille
-            données.nombre_allocations += 1
+            si données {
+                données.mémoire_utilisée += nouvelle_taille
+                données.nombre_allocations += 1
 
-            si données.pic_de_mémoire < données.mémoire_utilisée {
-                données.pic_de_mémoire = données.mémoire_utilisée
+                si données.pic_de_mémoire < données.mémoire_utilisée {
+                    données.pic_de_mémoire = données.mémoire_utilisée
+                }
             }
-
             retourne aligned_alloc(params.alignement comme n64, nouvelle_taille comme n64)
         }
         RÉALLOUE {
-            données.mémoire_utilisée += nouvelle_taille - ancienne_taille
-            données.nombre_allocations += 1
-            données.nombre_réallocations += 1
+            si données {
+                données.mémoire_utilisée += nouvelle_taille - ancienne_taille
+                données.nombre_allocations += 1
+                données.nombre_réallocations += 1
 
-            si données.pic_de_mémoire < données.mémoire_utilisée {
-                données.pic_de_mémoire = données.mémoire_utilisée
+                si données.pic_de_mémoire < données.mémoire_utilisée {
+                    données.pic_de_mémoire = données.mémoire_utilisée
+                }
             }
-
             retourne realloc(ancien_pointeur, nouvelle_taille comme n64)
         }
         DÉSALLOUE {
-            données.mémoire_utilisée -= ancienne_taille
-            données.nombre_désallocations += 1
-
+            si données {
+                données.mémoire_utilisée -= ancienne_taille
+                données.nombre_désallocations += 1
+            }
             free(ancien_pointeur)
             retourne nul
         }
@@ -290,6 +294,45 @@ StockageTemporaire :: struct #interface {
     taille: z32
     occupé: z32
     occupation_maximale: z32
+
+    MémoireDébordante :: struct {
+        adresse: *rien
+        taille: z64
+        marque: z32
+    }
+
+    mémoire_débordante: [..]MémoireDébordante
+}
+
+possède_adresse :: fonc (alloc: *StockageTemporaire, adresse: *rien) -> bool
+{
+    retourne (alloc.données) <= adresse < alloc.données + alloc.taille
+}
+
+est_dernière_adresse_allouée :: fonc (alloc: *StockageTemporaire, adresse: *rien, taille: z64) -> bool
+{
+    retourne alloc.données + alloc.occupé - taille comme z32 == adresse
+}
+
+ajoute_mémoire_débordante :: fonc (alloc: *StockageTemporaire, adresse: *rien, taille: z64)
+{
+    ctx := contexte()
+    ctx.allocatrice = allocatrice_défaut
+
+    pousse_contexte ctx {
+        tableau_ajoute(*alloc.mémoire_débordante, StockageTemporaire.MémoireDébordante(adresse, taille, alloc.occupé))
+    }
+}
+
+ajourne_mémoire_débordante :: fonc (alloc: *StockageTemporaire, ancienne_adresse: *rien, adresse: *rien, taille: z64)
+{
+    pour * alloc.mémoire_débordante {
+        si it.adresse == ancienne_adresse {
+            it.adresse = adresse
+            it.taille = taille
+            arrête
+        }
+    }
 }
 
 // ----------------------------
@@ -506,6 +549,21 @@ définis_marque_stockage_temporaire :: fonc (marque: z32) -> rien
     //assert(marque >= 0)
     //assert(marque < contexte().stockage_temporaire.taille)
     __contexte_fil_principal.stockage_temporaire.occupé = marque
+
+    pour __contexte_fil_principal.stockage_temporaire.mémoire_débordante {
+        si it.marque > marque {
+            params: ParamètresAllocation
+            params.mode = ModeAllocatrice.DÉSALLOUE
+            params.ancien_pointeur = it.adresse
+            params.ancienne_taille = it.taille
+            _ := allocatrice_défaut(params, nul)
+            tableau_supprime_index(*__contexte_fil_principal.stockage_temporaire.mémoire_débordante, index_it)
+            it.marque = -1
+            it.adresse = nul
+            it.taille = 0
+            reprends it
+        }
+    }
 }
 
 réinitialise_stockage_temporaire :: fonc () -> rien
@@ -514,11 +572,16 @@ réinitialise_stockage_temporaire :: fonc () -> rien
     __contexte_fil_principal.stockage_temporaire.occupation_maximale = 0
 }
 
-alloc_stockage_temporaire :: fonc (alloc: *StockageTemporaire, nouvelle_taille: z64) -> *rien
+alloc_stockage_temporaire :: fonc (alloc: *StockageTemporaire, params: &ParamètresAllocation, données: *BaseAllocatrice) -> *rien
 {
+    nouvelle_taille := params.nouvelle_taille
+
     si alloc.occupé + nouvelle_taille > alloc.taille {
-        // À FAIRE : utilisation de l'allocatrice par défaut
-        retourne nul
+        résultat := allocatrice_défaut(params, données)
+        si résultat {
+            ajoute_mémoire_débordante(alloc, résultat, nouvelle_taille)
+        }
+        retourne résultat
     }
 
     ptr := alloc.données + alloc.occupé
@@ -531,7 +594,7 @@ alloc_stockage_temporaire :: fonc (alloc: *StockageTemporaire, nouvelle_taille: 
     retourne ptr
 }
 
-__stockage_temporaire :: fonc (params: &ParamètresAllocation, données: *BaseAllocatrice @inutilisée) -> *rien
+__stockage_temporaire :: fonc (params: &ParamètresAllocation, données: *BaseAllocatrice) -> *rien
 {
     nouvelle_taille := params.nouvelle_taille
     ancienne_taille := params.ancienne_taille
@@ -543,41 +606,39 @@ __stockage_temporaire :: fonc (params: &ParamètresAllocation, données: *BaseAl
         ALLOUE,
         ALLOUE_ALIGNÉ {
             /* À FAIRE : ALLOUE_ALIGNÉ */
-            retourne alloc_stockage_temporaire(alloc, nouvelle_taille)
+            retourne alloc_stockage_temporaire(alloc, params, données)
         }
         RÉALLOUE {
             ptr := ancien_pointeur comme *octet
 
             si ptr == nul {
-                retourne alloc_stockage_temporaire(alloc, nouvelle_taille)
+                retourne alloc_stockage_temporaire(alloc, params, données)
+            }
+
+            saufsi possède_adresse(alloc, ancien_pointeur) {
+                résultat := allocatrice_défaut(params, données)
+                ajourne_mémoire_débordante(alloc, ancien_pointeur, résultat, nouvelle_taille)
+                retourne résultat    
+            }
+
+            si !est_dernière_adresse_allouée(alloc, ancien_pointeur, ancienne_taille) || (alloc.occupé + nouvelle_taille > alloc.taille) {
+                assert(possède_adresse(alloc, ancien_pointeur))
+
+                params_: ParamètresAllocation
+                params_.mode = ModeAllocatrice.ALLOUE
+                params_.nouvelle_taille = nouvelle_taille
+                résultat := allocatrice_défaut(params_, données)
+                saufsi résultat {
+                    retourne nul
+                }
+                copie_mem_nonsur(src = ancien_pointeur, dst = résultat, taille = ancienne_taille)
+                ajoute_mémoire_débordante(alloc, résultat, nouvelle_taille)
+                retourne résultat
             }
 
             delta := nouvelle_taille - ancienne_taille
-
-            // À FAIRE
-            // Nous ne pouvons réallouer que si le pointeur fut le dernier alloué...
-            /*
-            n := ancienne_taille
-
-            si ptr + n != alloc.ptr {
-                retourne nul
-            }
-
-            // ... et qu'il y a suffisament de place pour delta
-
-            n = delta  // arrondis_pour_aligner(delta, 8)
-
-            d := transtype(alloc.ptr: z64)
-            f := transtype(alloc.début + alloc.données.taille: z64)
-
-            si n > (f - d) {
-                retourne nul
-            }
-
-            alloc.ptr += n
-            */
-
             alloc.occupé += delta comme z32
+            assert(alloc.occupé <= alloc.taille)
 
             si alloc.occupé > alloc.occupation_maximale {
                 alloc.occupation_maximale = alloc.occupé
@@ -586,8 +647,22 @@ __stockage_temporaire :: fonc (params: &ParamètresAllocation, données: *BaseAl
             retourne ancien_pointeur
         }
         DÉSALLOUE {
-            // À FAIRE
-            alloc.occupé -= ancienne_taille comme z32
+            saufsi possède_adresse(alloc, ancien_pointeur) {
+                params_ := params
+                params_.mode = ModeAllocatrice.DÉSALLOUE
+
+                pour alloc.mémoire_débordante {
+                    si it.adresse == ancien_pointeur {
+                        tableau_supprime_index(*alloc.mémoire_débordante, index_it)
+                        arrête
+                    }
+                }
+
+                retourne allocatrice_défaut(params_, données)
+            }
+            si est_dernière_adresse_allouée(alloc, ancien_pointeur, ancienne_taille) {
+                alloc.occupé -= ancienne_taille comme z32
+            }
             retourne nul
         }
     }
@@ -812,6 +887,9 @@ __initialise_contexte_extra :: fonc (ctx: *ContexteProgramme, trace_appel: *Trac
     stockage_temporaire.taille = __tampon_stockage_tamporaire.taille comme z32
     stockage_temporaire.occupé = 0
     stockage_temporaire.occupation_maximale = 0
+    stockage_temporaire.mémoire_débordante.pointeur = nul
+    stockage_temporaire.mémoire_débordante.taille = 0
+    stockage_temporaire.mémoire_débordante.capacité = 0
     ctx.stockage_temporaire = stockage_temporaire
 }
 
