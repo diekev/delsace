@@ -670,11 +670,10 @@ enregistre_disposition :: fonc (emboiteuse: *Emboiteuse, boite: *BoiteFlexible, 
         }
 
         index_enfant := emboiteuse.boites_disposées.taille comme z32
-        si index_it == 0 {
+        si dernier_enfant == -1 {
             boite_disposée.premier_enfant = index_enfant
         }
-
-        si dernier_enfant != -1 {
+        sinon {
             emboiteuse.boites_disposées[dernier_enfant].puiné = index_enfant
         }
         
