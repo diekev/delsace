@@ -79,7 +79,8 @@ enlève_prise :: fonc (boucle_prises: *Boucle, prise: *Prise)
 
 Boucle :: struct {
     MAX_EVENTS :: 1024
-    évènements: [MAX_EVENTS]epoll_event
+    // À FAIRE : crash dans init_de() si la valeur est initialisée
+    évènements: [MAX_EVENTS]epoll_event = ---
     fd: z32
 
     prises_fermées: *Prise
