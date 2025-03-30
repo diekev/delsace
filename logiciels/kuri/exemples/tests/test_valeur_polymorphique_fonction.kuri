@@ -30,10 +30,9 @@ test_valeur_fonction :: fonc ($Fonction: fonc()(rien))
     Fonction()
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     test_valeur(456789)
     test_tampons()
     test_valeur_fonction(fonction_rappel)
-    retourne 0
 }

@@ -445,7 +445,9 @@ rappel_pour_rassembler_styles :: fonc (noeud: *Noeud, styles: *[..]*CSS.CSSStyle
     }
 
     pour propriétés.déclarations {
-        ensemble_ajoute(styles, it.style_parent)
+        si it.style_parent {
+            ensemble_ajoute(styles, it.style_parent)
+        }
     }
 
     retourne DécisionTraversée.CONTINUE

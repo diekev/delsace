@@ -9,10 +9,9 @@ fonction_corps_texte :: fonc ()
     retourne copie_chaine("imprime(\"%\", message)")
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     fonction_corps_texte()
-    retourne 0
 }
 
 #portée_fichier

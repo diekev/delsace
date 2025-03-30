@@ -38,12 +38,12 @@ est_surrogate :: fonc (point_de_code: n32) -> bool
     retourne 0xD800 <= point_de_code <= 0xDFFF
 }
 
-est_leading_surrogate :: fonc (unité: n16) -> bool #enligne
+est_leading_surrogate :: fonc (unité: n32) -> bool #enligne
 {
     retourne 0xD800 <= unité <= 0xDBFF
 }
 
-est_trailling_surrogate :: fonc (unité: n16) -> bool #enligne
+est_trailling_surrogate :: fonc (unité: n32) -> bool #enligne
 {
     retourne 0xDC00 <= unité <= 0xDFFF
 }

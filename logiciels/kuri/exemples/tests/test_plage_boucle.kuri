@@ -89,8 +89,7 @@ test_génération_séquence :: fonc () -> rien
     retourne
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     test_génération_séquence()
-    retourne 0
 }

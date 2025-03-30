@@ -1,0 +1,18 @@
+/* Les expressions de types complexes ne peuvent être utilisés pour discriminer
+ * des unions anonymes.
+ * Voir note « les discriminations ne fonctionnent pas sur les types pointeus ou autres » dans le module Chaine.
+ * Catégorie : [validation sémantique, disc, type de données]
+ */
+
+principale :: fonc ()
+{
+    u: r32 | *z32
+
+    discr u {
+        r32 {
+        }
+        *z32 {
+        }
+        sinon {}
+    }
+}

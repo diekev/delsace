@@ -89,7 +89,7 @@ extrait_temps :: fonc (t: Temps($T)) -> T
     retourne t comme T
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     x := ajoute(12, 27)
     imprime("x = %\n", x)
@@ -135,7 +135,6 @@ principale :: fonc () -> z32
     test_tranche_polymorphique()
     test_imprime_tableau_fixe_polymorphique()
     test_contraintes()
-    retourne 0
 }
 
 imprime_tranche_polymorphique :: fonc (tranche: []$T)

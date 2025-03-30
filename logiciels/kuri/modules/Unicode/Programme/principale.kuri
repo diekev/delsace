@@ -2,7 +2,7 @@ importe Chaine
 importe Fondation
 importe Unicode
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     rune := Rune(A_MINUSCULE)
 
@@ -10,7 +10,7 @@ principale :: fonc () -> z32
 
     si !f {
         imprime("impossible de trouver un fold pour la rune !\n")
-        retourne 1
+        exit(1)
     }
 
     imprime("fold : %\n", mémoire(f))
@@ -30,6 +30,4 @@ principale :: fonc () -> z32
 
     en_minuscule_sur_place(texte)
     imprime("texte : %\n", texte)
-
-    retourne 0
 }

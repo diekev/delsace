@@ -35,7 +35,7 @@ détruit_lignes :: fonc (données: &DonnéesFichier)
             continue
         }
 
-        déloge(it)
+        déloge_si_logée(it)
     }
 
     déloge(données.lignes)
@@ -152,21 +152,21 @@ exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, extensions: []chain
 
 tri_imports_pour_fichier :: fonc (données_fichier: &DonnéesFichier)
 {
-    lignes_furent_modifiés := faux
+    lignes_furent_modifiées := faux
     lignes := données_fichier.lignes
 
     index_ligne := 0
     tantque index_ligne < lignes.taille {
         lignes_modifiées := tri_bloc_imports_ou_chargements(lignes, index_ligne, "importe ")
         si lignes_modifiées != 0 {
-            lignes_furent_modifiés = vrai
+            lignes_furent_modifiées = vrai
             index_ligne += lignes_modifiées
             continue
         }
 
         lignes_modifiées = tri_bloc_imports_ou_chargements(lignes, index_ligne, "charge ")
         si lignes_modifiées != 0 {
-            lignes_furent_modifiés = vrai
+            lignes_furent_modifiées = vrai
             index_ligne += lignes_modifiées
             continue
         }
@@ -174,7 +174,7 @@ tri_imports_pour_fichier :: fonc (données_fichier: &DonnéesFichier)
         index_ligne += 1
     }
 
-    données_fichier.lignes_furent_modifiées |= lignes_furent_modifiés
+    données_fichier.lignes_furent_modifiées |= lignes_furent_modifiées
 }
 
 tri_bloc_imports_ou_chargements :: fonc (lignes: []chaine, index_ligne: z64, début_ligne: chaine) -> z32
@@ -233,17 +233,17 @@ supprime_lignes_vides_redondantes_pour_fichier :: fonc (données_fichier: &Donn�
 
 supprime_espaces_blancs_finaux :: fonc (données_fichier: &DonnéesFichier)
 {
-    lignes_furent_modifiés := faux
+    lignes_furent_modifiées := faux
     pour & données_fichier.lignes {
         ancienne_taille := it.taille
         it = supprime_espaces_blancs_à_la_fin(it)
 
         si it.taille != ancienne_taille {
-            lignes_furent_modifiés = vrai
+            lignes_furent_modifiées = vrai
         }
     }
 
-    données_fichier.lignes_furent_modifiées |= lignes_furent_modifiés
+    données_fichier.lignes_furent_modifiées |= lignes_furent_modifiées
 }
 
 // -------------------------------------
@@ -252,7 +252,7 @@ remplaces_tabulation_par_espaces :: fonc (données_fichier: &DonnéesFichier)
 {
     nouvelles_lignes: [..]chaine
 
-    lignes_furent_modifiés := faux
+    lignes_furent_modifiées := faux
     pour données_fichier.lignes {
         si it.taille == 0 {
             tableau_ajoute(*nouvelles_lignes, it)
@@ -266,10 +266,10 @@ remplaces_tabulation_par_espaces :: fonc (données_fichier: &DonnéesFichier)
 
         nouvelle_ligne := remplace(it, "\t", "    ")
         tableau_ajoute(*nouvelles_lignes, nouvelle_ligne)
-        lignes_furent_modifiés = vrai
+        lignes_furent_modifiées = vrai
     }
 
-    si lignes_furent_modifiés {
+    si lignes_furent_modifiées {
         données_fichier.remplace_lignes(nouvelles_lignes)
         retourne
     }

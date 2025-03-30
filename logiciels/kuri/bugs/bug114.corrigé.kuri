@@ -4,9 +4,8 @@
 
 importe Chaine
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     c := ChaineC(nul)
     _ : *octet = c
-    retourne 0
 }

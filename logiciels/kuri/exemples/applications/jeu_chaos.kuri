@@ -97,7 +97,7 @@ dessine_bmp :: fonc (
 
 /* ------------------------------------------------------------------------- */
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     monde := RectanglePur(r32)(gauche = 0.0, bas = 0.0, haut = 800.0, droite = 800.0)
     hauteur := 800
@@ -119,6 +119,4 @@ principale :: fonc () -> z32
 
     espace_écran := RectanglePur(r32)(gauche = 0.0, bas = 0.0, haut = 799.0, droite = 799.0)
     dessine_bmp("chaos.bmp", hauteur, largeur, monde, espace_écran, points, 5)
-
-    retourne 0
 }

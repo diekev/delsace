@@ -27,7 +27,7 @@
 #include <llvm/Support/FileSystem.h>
 #include <llvm/Support/Host.h>
 #include <llvm/Support/ManagedStatic.h>
-#include <llvm/Support/TargetRegistry.h>
+#include <llvm/MC/TargetRegistry.h>
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Target/TargetOptions.h>
@@ -2231,7 +2231,7 @@ static std::optional<ErreurCommandeExterne> valide_llvm_ir(llvm::Module &module,
     auto const fichier_bc = chemin_fichier_bc_llvm(index);
 
     std::error_code ec;
-    llvm::raw_fd_ostream dest(vers_string_ref(fichier_ll), ec, llvm::sys::fs::F_None);
+    llvm::raw_fd_ostream dest(vers_string_ref(fichier_ll), ec, llvm::sys::fs::OF_None);
     module.print(dest, nullptr);
 
     /* Génère le fichier de code binaire depuis le fichier de RI LLVM, ce qui vérifiera que la RI
@@ -2391,7 +2391,7 @@ void CoulisseLLVM::crée_fichier_objet(DonnéesModule *module)
 {
     std::error_code ec;
     llvm::raw_fd_ostream dest(
-        vers_string_ref(module->chemin_fichier_objet), ec, llvm::sys::fs::F_None);
+        vers_string_ref(module->chemin_fichier_objet), ec, llvm::sys::fs::OF_None);
 
     if (ec) {
         module->erreur_fichier_objet = enchaine(

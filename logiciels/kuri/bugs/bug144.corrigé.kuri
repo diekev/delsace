@@ -11,9 +11,8 @@ prend_tableau :: fonc (t: [..]StructurePoly($N) @inutilisée)
 {
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     t: [..]StructurePoly(5)
     prend_tableau(t)
-    retourne 0
 }

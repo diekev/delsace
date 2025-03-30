@@ -131,11 +131,16 @@ run_the_classic_script :: fonc (script: *ClassicScript, rethrow_errors := faux @
     prepare_to_run_script(settings)
 
     // 5. Let evaluationStatus be null.
+    evaluation_status := JavaScript.normal_completion(JavaScript.js_null)
 
     // 6. If script's error to rethrow is not null, then set evaluationStatus to Completion { [[Type]]: throw, [[Value]]: script's error to rethrow, [[Target]]: empty }.
-
+    saufsi JavaScript.est_nulle(script.error_to_rethrow) {
+        evaluation_status = JavaScript.throw_completion(script.error_to_rethrow)
+    }
     // 7. Otherwise, set evaluationStatus to ScriptEvaluation(script's record).
-    evaluation_status := JavaScript.script_evaluation(script.record)
+    sinon {
+        evaluation_status = JavaScript.script_evaluation(script.record)
+    }
 
     // If ScriptEvaluation does not complete because the user agent has aborted the running script, leave evaluationStatus as null.
 

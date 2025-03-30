@@ -1,0 +1,17 @@
+/* Bug corrigé par un commit inconnu.
+ * Il est impossible d'assigner une valeur à un paramètre qui possède une valeur par défaut
+ * Catégorie : [génération code, paramètre fonction, valeur défaut]
+ */
+
+test :: fonc (a := 0) -> bool
+{
+    a = 5
+    retourne (a == 5)
+}
+
+principale :: fonc ()
+{
+    saufsi test() {
+        exit(1)
+    }
+}

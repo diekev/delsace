@@ -43,8 +43,7 @@ arithmétique_de_pointeur :: fonc ()
 
 #exécute arithmétique_de_pointeur()
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     arithmétique_de_pointeur()
-    retourne 0
 }

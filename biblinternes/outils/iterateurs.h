@@ -296,6 +296,7 @@ adaptateur_inverse_const<T> inverse_iterateur(const T &container)
 
 /* ************************************************************************** */
 
+#if 0
 /**
  * Itérateur à accès aléatoire conforme aux spécifications de la STL.
  */
@@ -401,6 +402,7 @@ bool operator!=(const iterateur_normal<T> &ita, const iterateur_normal<T> &itb) 
 {
 	return !(ita == itb);
 }
+#endif
 
 }  /* namespace outils */
 }  /* namespace dls */

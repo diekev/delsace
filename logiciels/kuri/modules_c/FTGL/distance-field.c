@@ -68,10 +68,8 @@ double *make_distance_mapd(double *data, uint32_t width, uint32_t height)
     return data;
 }
 
-unsigned char *make_distance_mapb(unsigned char *img, uint32_t width, uint32_t height)
+unsigned char *make_distance_mapb(unsigned char *img, unsigned char *out, double *data, uint32_t width, uint32_t height)
 {
-    double *data = (double *)FTGL_calloc(width * height, sizeof(double));
-    unsigned char *out = (unsigned char *)FTGL_malloc(width * height * sizeof(unsigned char));
     uint32_t i;
 
     // find minimimum and maximum values
@@ -96,8 +94,6 @@ unsigned char *make_distance_mapb(unsigned char *img, uint32_t width, uint32_t h
     // map values from 0.0 - 1.0 to 0 - 255
     for (i = 0; i < width * height; ++i)
         out[i] = (unsigned char)(255 * (1 - data[i]));
-
-    FTGL_free(data, width * height * sizeof(double));
 
     return out;
 }

@@ -176,9 +176,7 @@ signe :: fonc (signataire: &SignataireHorodoté, valeur: chaine) -> chaine
     temps := maintenant_précis().millisecondes()
 
     // converti en chaine, À FAIRE : ceci est absolument merdique
-    chn : chaine = ---
-    chn.pointeur = *temps comme *z8
-    chn.taille = 8
+    chn := chaine(*temps comme *z8, 8)
 
     // encode en base64
     base64 := signataire.signataire.codec_base_64.encode(chn)

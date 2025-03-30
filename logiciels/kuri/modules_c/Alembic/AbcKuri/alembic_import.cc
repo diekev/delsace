@@ -4,6 +4,7 @@
 #include "alembic_import.hh"
 
 #include <codecvt>
+#include <functional>
 
 #include "../../InterfaceCKuri/contexte_kuri.hh"
 

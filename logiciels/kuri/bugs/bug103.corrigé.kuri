@@ -2,9 +2,8 @@
  * Catégorie : [syntaxage]
  */
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
-    retourne 0
 }
 
 foo :: fonc () -> z32 #externe libc

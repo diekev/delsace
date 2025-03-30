@@ -25,6 +25,7 @@
 #include "nombres.hh"
 
 #include <cmath>
+#include <cctype>
 
 namespace lng {
 

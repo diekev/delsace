@@ -10,7 +10,6 @@ StructTexte :: struct ($T: type_de_données) #corps_texte {
     retourne "x: r32"
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
-    retourne 0
 }

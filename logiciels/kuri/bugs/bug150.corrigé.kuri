@@ -1,10 +1,9 @@
 importe Fondation
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     a := 5
     si a = 6 {
         
     }
-    retourne 0
 }

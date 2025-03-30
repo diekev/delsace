@@ -442,7 +442,7 @@ système_chemin_pour_dossier :: fonc (poignée: TypePoignéeEntréeDossier) -> C
     entrée := poignée comme *dirent
     chn_c := ChaineC(*entrée.d_name[0])
     taille := taille_chaine_c(chn_c)
-    chn := construit_chaine(chn_c comme *z8, taille)
+    chn := chaine(chn_c comme *z8, taille)
     retourne CheminFichier(chn)
 }
 

@@ -65,6 +65,7 @@ enum {
     CANDIDATE_EST_INITIALISATION_OPAQUE,
     CANDIDATE_EST_INITIALISATION_OPAQUE_DEPUIS_STRUCTURE,
     CANDIDATE_EST_MONOMORPHISATION_OPAQUE,
+    CANDIDATE_EST_CONSTRUCTION_CHAINE,
 };
 
 struct ErreurAppariement {
@@ -189,6 +190,12 @@ struct CandidateAppariement {
         double poids,
         NoeudExpression const *noeud_decl,
         Type const *type,
+        kuri::tablet<NoeudExpression *, 10> &&exprs,
+        kuri::tableau<TransformationType, int> &&transformations);
+
+    static CandidateAppariement construction_chaine(
+        double poids,
+        const Type *type,
         kuri::tablet<NoeudExpression *, 10> &&exprs,
         kuri::tableau<TransformationType, int> &&transformations);
 

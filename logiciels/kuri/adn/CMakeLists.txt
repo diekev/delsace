@@ -37,7 +37,7 @@ set(NOM_EXECUTABLE genere_lexemes)
 set(BIBLIOTHEQUES
     kuri_outils_adn
     kuri_structures
-    langage
+    dls::langage
 )
 
 add_executable(${NOM_EXECUTABLE} genere_lexemes.cc)

@@ -62,7 +62,9 @@ static bool verifie_transformation(Compilatrice &compilatrice,
 
 int main()
 {
-    auto compilatrice = Compilatrice("", {});
+    auto arguments = ArgumentsCompilatrice{};
+    arguments.importe_kuri = false;
+    auto compilatrice = Compilatrice("", arguments);
     auto &typeuse = compilatrice.typeuse;
 
     auto dt_tabl_fixe = typeuse.type_tableau_fixe(TypeBase::Z32, 8);

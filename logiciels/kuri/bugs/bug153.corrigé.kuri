@@ -11,9 +11,8 @@ fonction :: fonc (a: z32 @inutilisée, b: z32 @inutilisée)
 {
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     s := Struct
     s.rappel2 = fonction
-    retourne 0
 }

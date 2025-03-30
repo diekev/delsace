@@ -33,7 +33,7 @@ donne_filtre_extension_pour_type_fichier :: fonc (type: TypeFichier) -> chaine
         Image {
             filtres := IMG_donne_filtre_extensions()
             diffère IMG_detruit_chaine(*filtres)
-            résultat := copie_chaine(construit_chaine(filtres.caractères, filtres.taille comme z64))
+            résultat := copie_chaine(chaine(filtres.caractères, filtres.taille comme z64))
             retourne résultat
         }
         HTML {

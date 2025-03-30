@@ -1,0 +1,23 @@
+/* Nous ne pouvons pas appeler un pointeur de fonction depuis une structure
+ * dans la coulisse C
+ *
+ * ceci duplique imprime_log de Fondation, là où le bug a été trouvé
+ * !!! ne pas oublier de modifier la fonction quand ce bug sera réglé
+ *
+ * Catégorie : [génération code, appel pointeur, membre structure]
+ */
+
+importe Fondation
+
+imprime_log :: fonc (mode: ModeLogage, ident: chaine, format: chaine, args: ...eini) -> rien
+{
+    message := imprime_chaine(format, ...args)
+
+    __contexte_fil_principal.logueur(message, ident, mode, contexte().données_logueur)
+    déloge(message)
+}
+
+principale :: fonc ()
+{
+    imprime_log(ModeLogage.AUCUN, "[]", "")
+}

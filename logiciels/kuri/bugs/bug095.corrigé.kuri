@@ -1,0 +1,32 @@
+/* L'initialisation de membre de type chaine ne se fait pas avec la valeur par
+ * défaut assignée dans la structure.
+ * Catégorie : [génération code, structure, expression membre]
+ */
+
+StructureDeBase :: struct {
+    nom: chaine
+    valeur: z32
+}
+
+Structure :: struct {
+    empl base: StructureDeBase
+
+    nom_local := "Nom Local"
+
+    valeur = 5
+    nom = "Structure"
+}
+
+principale :: fonc ()
+{
+    s: Structure
+    saufsi s.valeur == 5 {
+        exit(1)
+    }
+    saufsi s.nom_local == "Nom Local" {
+        exit(1)
+    }
+    saufsi s.nom == "Structure" {
+        exit(1)
+    }
+}

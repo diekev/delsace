@@ -88,9 +88,8 @@ test_boucle_introspection :: fonc ()
 
 /* ------------------------------------------------------------------- */
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     test_boucle_tablet()
     test_boucle_introspection()
-    retourne 0
 }

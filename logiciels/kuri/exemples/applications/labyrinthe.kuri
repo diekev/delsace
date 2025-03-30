@@ -2,7 +2,7 @@ importe Aléa
 importe Fondation
 importe Labyrinthe
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     labyrinthe := crée_labyrinthe(15, 15)
     diffère détruit_données_labyrinthe(*labyrinthe)
@@ -25,6 +25,4 @@ principale :: fonc () -> z32
 
         imprime("\n")
     }
-
-    retourne 0
 }

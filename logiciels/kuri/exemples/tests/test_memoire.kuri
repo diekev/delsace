@@ -87,8 +87,7 @@ test_copie_mem :: fonc () -> rien
     imprime("Chaine : ", chn, '\n')
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     test_copie_mem()
-    retourne 0
 }

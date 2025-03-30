@@ -3,7 +3,7 @@
  * Catégorie : [généraction code, portée, type nommé]
  */
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     fonction1 :: fonc () -> z32
     {
@@ -11,7 +11,7 @@ principale :: fonc () -> z32
             x: z32
         }
         s: Struct
-        retourne s.x
+        exit(s.x)
     }
 
     fonction2 :: fonc () -> z32
@@ -21,8 +21,8 @@ principale :: fonc () -> z32
         }
 
         s: Struct
-        retourne s.x
+        exit(s.x)
     }
 
-    retourne fonction1() + fonction2()
+    exit(fonction1() + fonction2())
 }

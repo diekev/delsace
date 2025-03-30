@@ -120,9 +120,7 @@ donne_ligne_pour_lexème :: fonc (source: &TexteSource, lexème: *Lexème) -> ch
         curseur -= 1
     }
 
-    résultat : chaine = ---
-    résultat.pointeur = curseur
-    résultat.taille = lexème.texte.pointeur - curseur
+    résultat := chaine(curseur, lexème.texte.pointeur - curseur)
 
     curseur = lexème.texte.pointeur
     tantque curseur < fin_source {
@@ -395,6 +393,66 @@ TypeErrorPrototype :: struct {
 crée_type_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ErrorPrototype) -> *TypeErrorPrototype
 {
     résultat := tas_de_mémoire.alloue(TypeErrorPrototype)
+    résultat.prototype = prototype
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom URIError
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-native-error-types-used-in-this-standard-urierror
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_uri_error := TableVirtuelleObject(classe = URIError)
+
+#portée_export
+
+URIError :: struct {
+    empl error: Error
+    table = *table_virtuelle_uri_error
+
+    message: *PrimitiveChaine
+}
+
+lance_uri_error :: fonc (interpréteuse: *Interpréteuse, message: chaine) -> CompletionRecord
+{
+    retourne lance_uri_error(interpréteuse.donne_realm(), message)
+}
+
+lance_uri_error :: fonc (realm: *Realm, message: chaine) -> CompletionRecord
+{
+    tas_de_mémoire := realm.donne_tas_de_mémoire()
+    résultat := tas_de_mémoire.alloue(URIError)
+    résultat.prototype = realm.intrinsics.uri_error_prototype
+    résultat.message = crée_chaine(realm, crée_chaine_utf16_unique(message))
+    initialise_error_object(realm, résultat, STR_URIError, message)
+    retourne throw_completion(résultat)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom URIErrorPrototype
+ * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-nativeerror-prototype-objects
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_uri_error_prototype := TableVirtuelleObject(classe = URIErrorPrototype)
+
+#portée_export
+
+URIErrorPrototype :: struct {
+    empl objet: Object
+    table = *table_virtuelle_uri_error_prototype
+}
+
+crée_uri_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ErrorPrototype) -> *URIErrorPrototype
+{
+    résultat := tas_de_mémoire.alloue(URIErrorPrototype)
     résultat.prototype = prototype
     retourne résultat
 }

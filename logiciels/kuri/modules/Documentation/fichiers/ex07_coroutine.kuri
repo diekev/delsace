@@ -13,11 +13,9 @@ ma_plage :: fonc (début: z32, fin: z32, pas: z32) -> z32
     imprime("Fin coroutine\n")
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     pour i dans ma_plage(0, 10, 1) {
         imprime("Valeur = %\n", i)
     }
-
-    retourne 0
 }

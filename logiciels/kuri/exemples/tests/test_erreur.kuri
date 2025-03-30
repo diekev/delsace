@@ -30,7 +30,7 @@ appel_fonction_sans_erreur :: fonc () -> rien
 }
 
 // @note : les unions devraient pouvoir avoir un type « rien »
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     //err : ErreurSystème
 
@@ -40,7 +40,7 @@ principale :: fonc () -> z32
 
     uri := tente parse_uri_standard(chaine_uri) piège err {
         imprime("Une erreur est survenue dans le parsage de l'URI : %\n", err)
-        retourne 1
+        exit(1)
     }
 
     imprime("Schéma         : %\n", uri.schéma)
@@ -62,7 +62,7 @@ principale :: fonc () -> z32
 
     _ := tente appel_fonction_avec_erreur_union() piège err {
         imprime("Une erreur est survenue dans l'appel avec union : %\n", err)
-        retourne 1
+        exit(1)
     }
 
     // cas où nous retournons une erreur et quelque chose d'autre dans une union, sans capturer l'erreur
@@ -70,7 +70,7 @@ principale :: fonc () -> z32
 
     // cas où nous retournons une erreur et rien d'autre
     tente appel_fonction_avec_erreur_seule() piège err {
-        retourne 1
+        exit(1)
     }
 
     // cas où nous retournons une erreur et rien d'autre, sans pièger l'erreur
@@ -81,6 +81,4 @@ principale :: fonc () -> z32
 
     // cas où nous avons une erreur, mais nous l'ignorons
     //appel_fonction_avec_erreur_seule()
-
-    retourne 0
 }

@@ -41,7 +41,7 @@ imprime_rune :: fonc (enchaineuse: *Enchaineuse, rune: *Rune)
     nombre_de_points := point_de_code_vers_utf8(mémoire(rune) comme n32, *séquence[0])
 
     si nombre_de_points != 0 {
-        chn := construit_chaine(*séquence[0] comme *z8, nombre_de_points)
+        chn := chaine(*séquence[0] comme *z8, nombre_de_points)
         enchaineuse.ajoute_au_tampon(chn)
     }
 } @FormattageImpression
@@ -268,6 +268,104 @@ est_point_de_code_valide :: fonc (point_de_code: n32) -> bool
     }
 
     retourne faux
+}
+
+ErreurValidationUTF8 :: énum n8 {
+    Aucune
+    SéquenceTropCourte
+    SéquenceInvalide
+}
+
+/* Si l'erreur retournée est "Aucune", la taille retournée sera le nombre d'octets pour former
+ * un point de code valide.
+ * Si l'erreur retournée est "SéquenceTropCourte", la taille retournée sera la taille voulue.
+ * Sinon, l'erreur retournée est "SéquenceInvalide", la taille retournée sera 0. */
+est_séquence_utf8_valide :: fonc (séquence: []octet) -> ErreurValidationUTF8, z32
+{
+    assert(séquence.taille != 0)
+
+    point_de_code: n32
+    taille: z32
+
+    s0 := séquence[0] comme n8
+    si s0 <= 0x7F {
+        point_de_code = s0
+        taille = 1
+    }
+    sinon si 0xC2 <= s0 <= 0xDF {
+        si séquence.taille < 2 {
+            retourne ErreurValidationUTF8.SéquenceTropCourte, 2
+        }
+
+        s1 := séquence[1] comme n8
+
+        saufsi est_continuation(s1) {
+            retourne ErreurValidationUTF8.SéquenceInvalide, 0
+        }
+
+        point_de_code = ((s0 & 0b00011111) comme n32) << 6 | (s1 & 0b00111111)
+        taille = 2
+    }
+    sinon si 0xE0 <= s0 <= 0xEF {
+        si séquence.taille < 3 {
+            retourne ErreurValidationUTF8.SéquenceTropCourte, 3
+        }
+
+        s1 := séquence[1] comme n8
+        s2 := séquence[2] comme n8
+
+        si s0 == 0xE0 && !(0xA0 <= s1 <= 0xBF) {
+            retourne ErreurValidationUTF8.SéquenceInvalide, 0
+        }
+
+        si s0 == 0xED && !(0x80 <= s1 <= 0x9F) {
+            retourne ErreurValidationUTF8.SéquenceInvalide, 0
+        }
+
+        saufsi est_continuation(s1) && est_continuation(s2) {
+            retourne ErreurValidationUTF8.SéquenceInvalide, 0
+        }
+
+        point_de_code = ((s0 & 0b00001111) comme n32) << 12 | ((s1 & 0b00111111) comme n32) << 6 | (s2 & 0b00111111)
+        taille = 3
+    }
+    sinon si 0xF0 <= s0 <= 0xF4 {
+        si séquence.taille < 4 {
+            retourne ErreurValidationUTF8.SéquenceTropCourte, 4
+        }
+
+        s1 := séquence[1] comme n8
+        s2 := séquence[2] comme n8
+        s3 := séquence[3] comme n8
+
+        si s0 == 0xF0 && !(0x90 <= s1 <= 0xBF) {
+            retourne ErreurValidationUTF8.SéquenceInvalide, 0
+        }
+
+        si s0 == 0xF4 && !(0x80 <= s1 <= 0x8F) {
+            retourne ErreurValidationUTF8.SéquenceInvalide, 0
+        }
+
+        si !est_continuation(s1) || !est_continuation(s2) || !est_continuation(s3) {
+            retourne ErreurValidationUTF8.SéquenceInvalide, 0
+        }
+
+        point_de_code = ((s0 & 0b00000111) comme n32) << 18 | ((s1 & 0b00111111) comme n32) << 12 | ((s2 & 0b00111111) comme n32) << 6 | (s3 & 0b00111111)
+        taille = 4
+    }
+    sinon {
+        retourne ErreurValidationUTF8.SéquenceInvalide, 0
+    }
+
+    si est_trailling_surrogate(point_de_code) || est_leading_surrogate(point_de_code) {
+        retourne ErreurValidationUTF8.SéquenceInvalide, 0
+    }
+
+    si point_de_code > point_de_code_maximal_autorisé() {
+        retourne ErreurValidationUTF8.SéquenceInvalide, 0
+    }
+
+    retourne ErreurValidationUTF8.Aucune, taille
 }
 
 // Retourne le nombre de caractères Unicode (UTF-8) distincts de la chaine.

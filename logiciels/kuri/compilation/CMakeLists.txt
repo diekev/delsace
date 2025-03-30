@@ -120,7 +120,7 @@ set(SOURCES
     validation_semantique.cc
 )
 
-if(AVEC_LLVM)
+if(AVEC_COULISSE_LLVM)
     # Utilise un objet séparé pour la coulisse LLVM afin de forcer
     # l'utilisation de C++ 17 car LLVM utilise des fonctions du langage
     # qui sont déclarées comme malformées en C++ 20.

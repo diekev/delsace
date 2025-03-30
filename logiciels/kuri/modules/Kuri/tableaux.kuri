@@ -63,6 +63,15 @@ tableau_ajoute :: fonc (tabl: *[..]$T, valeur: T) -> rien #enligne
     mémoire(tabl) = tmp
 }
 
+tableau_ajoute :: fonc (tableau: *[..]$T, valeurs: []T)
+{
+    tmp := mémoire(tableau)
+    diffère mémoire(tableau) = tmp
+    ancienne_taille := tmp.taille
+    tableau_redimensionne(tmp, tmp.taille + valeurs.taille)
+    copie_mem_nonsur(src = valeurs.pointeur, dst = tmp.pointeur + ancienne_taille, taille = valeurs.taille * taille_de(T) comme z64)
+}
+
 tableau_ajoute_élément :: fonc (tableau: *[..]$T) -> *T
 {
     valeur: T

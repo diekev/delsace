@@ -72,7 +72,7 @@ renverse :: fonc (pile: &Pile(T = $T))
 }
 
 /*
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     pile : Pile(T = z32)
 
@@ -90,7 +90,5 @@ principale :: fonc () -> z32
     }
 
     pile.détruit()
-
-    retourne 0
 }
 */

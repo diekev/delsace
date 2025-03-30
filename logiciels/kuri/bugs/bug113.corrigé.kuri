@@ -5,11 +5,10 @@
 
 importe Chaine
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     c := ChaineC(nul)
     si c {
-        retourne 1
+        exit(1)
     }
-    retourne 0
 }

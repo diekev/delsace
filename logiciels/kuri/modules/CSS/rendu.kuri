@@ -512,6 +512,12 @@ noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Cont
 noeud_disposition_inline_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
 {
     noeud := base comme *NoeudDeDispositionInline
+
+    si noeud.est_inline_block() {
+        noeud_disposition_bloc_sur_dessin(noeud, ctx)
+        retourne
+    }
+
     dessine_enfants_inline(noeud, ctx)
 }
 
@@ -813,7 +819,12 @@ noeud_disposition_inline_sur_dessin_tampon_id :: fonc (base: *NoeudDeDisposition
 {
     noeud := base comme *NoeudDeDispositionInline
     ctx.remplis_rectangle_id(noeud)
-    dessine_tampon_id_enfants_inline(noeud, ctx)
+    si noeud.est_inline_block() {
+        dessine_tampon_id_enfants_block(noeud, ctx)
+    }
+    sinon {
+        dessine_tampon_id_enfants_inline(noeud, ctx)
+    }
 }
 
 noeud_disposition_remplacement_sur_dessin_tampon_id :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)

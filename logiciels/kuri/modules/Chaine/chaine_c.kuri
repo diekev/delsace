@@ -39,14 +39,14 @@ convertis_chaine_c :: fonc (chn: ChaineC) -> chaine
 convertis_chaine_c_statique :: fonc (chn: ChaineC) -> chaine
 {
     taille := taille_chaine_c(chn)
-    retourne construit_chaine(chn comme *z8, taille)
+    retourne chaine(chn comme *z8, taille)
 }
 
 détruit_chaine_c :: fonc (chn: &ChaineC)
 {
     taille := taille_chaine_c(chn)
     // ajoute 1 pour inclure le caractère nul en fin de chaine
-    chaine_native := construit_chaine(chn comme *z8, taille + 1)
+    chaine_native := chaine(chn comme *z8, taille + 1)
     déloge(chaine_native)
     // impossible de construire un type opaque si la valeur doit être transformée ?
     ptr : *z8 = nul

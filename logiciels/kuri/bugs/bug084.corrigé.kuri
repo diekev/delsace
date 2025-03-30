@@ -1,0 +1,30 @@
+/* Crash quand nous discriminons une union en se basant sur les types des membres.
+ * Catégorie : [crash, discr, type union]
+ */
+
+Structure1 :: struct {
+    x: r32
+}
+
+Structure2 :: struct {
+    x: z32
+}
+
+Union :: union {
+    x: Structure1
+    y: Structure2
+}
+
+principale :: fonc ()
+{
+    u: Union
+
+    discr u {
+        Structure1(x) {
+        }
+        Structure2(y) {
+        }
+        sinon {
+        }
+    }
+}

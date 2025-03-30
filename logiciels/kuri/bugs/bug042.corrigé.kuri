@@ -1,0 +1,11 @@
+/* Aucune erreur n'est lancée/compilation infinie quand on accède à une valeur
+ * inconnue.
+ * Catégorie : [compilation infini, validation sémantique, symbole inconnu]
+ */
+
+importe Support
+
+principale :: fonc ()
+{
+    a := MonÉnum.Valeur
+}

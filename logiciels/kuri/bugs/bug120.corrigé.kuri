@@ -14,7 +14,7 @@ accède_variable :: fonc ($T: type_de_données) -> T
     retourne variable
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
-    retourne ne_passe_pas_variable(0)
+    exit(ne_passe_pas_variable(0))
 }
