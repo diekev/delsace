@@ -17,8 +17,7 @@ rapporte_erreur :: fonc ()
 
 #exécute rapporte_erreur()
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     imprime("SUCCÈS\n")
-    retourne 0
 }

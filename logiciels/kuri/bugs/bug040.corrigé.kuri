@@ -1,0 +1,26 @@
+/* Ce code ne devrait pas compiler car nous ne pouvons pas savoir s'il faut
+ * appeler la fonction ou le pointeur de fonction
+ * Catégorie : [validation sémantique, redéfinition symbole]
+ */
+
+importe Support
+
+principale :: fonc ()
+{
+    erreur_survenue := #exécute compile_script_erroné("
+    foo :: fonc ()
+    {
+
+    }
+    foo := foo
+    principale :: fonc ()
+    {
+        foo()
+        exit(0)
+    }
+    ")
+
+    saufsi erreur_survenue {
+        exit(1)
+    }
+}

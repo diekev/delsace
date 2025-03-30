@@ -75,9 +75,9 @@ longueur :: fonc (x: n32, y: n32, z: n32) -> n32
     retourne racine_carré(carré(x) + carré(y) + carré(z))
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
-    retourne 0 // longueur(compte, compte, compte);
+   // longueur(compte, compte, compte);
 }
 
 foo :: fonc (compte: [2][2]n32) -> n32

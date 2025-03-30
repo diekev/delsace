@@ -1,0 +1,16 @@
+/* Impossible d'utiliser une globale avant sa déclaration
+ * Catégorie : [validation sémantique, résolution symbole, variable globale]
+ */
+
+importe Support
+
+foo :: fonc ()
+{
+}
+
+principale :: fonc ()
+{
+    foo2()
+}
+
+foo2 := foo

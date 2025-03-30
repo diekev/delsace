@@ -1,0 +1,24 @@
+/* Mauvais résultats quand nous avons des retours multiples dans la MV
+ * Catégorie : [exécution code, retour fonction, type tuple]
+ */
+
+importe Support
+
+retourne_multiple :: fonc () -> z32, z32
+{
+    retourne 9, 10
+}
+
+test :: fonc () -> bool
+{
+    a, b := retourne_multiple()
+    retourne a == 9 && b == 10
+}
+
+principale :: fonc ()
+{
+    succès := #exécute test()
+    saufsi succès {
+        exit(1)
+    }
+}
