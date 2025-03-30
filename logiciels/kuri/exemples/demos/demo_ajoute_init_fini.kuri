@@ -13,8 +13,7 @@ issitialisation_du_programme :: fonc ()
     imprime("Nous sommes dans l'issitialisation du programme !\n")
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     imprime("Nous somme dans le programme !\n")
-    retourne 0
 }

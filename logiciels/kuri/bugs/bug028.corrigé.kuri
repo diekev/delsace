@@ -1,0 +1,35 @@
+/* La génération de la RI ou du code C est mauvaise pour les déréférencement
+ * de tableau fixe
+ * Catégorie : [génération code, expression mémoire, type tableau]
+ */
+
+/* Démonstration du bug. */
+remplis_tableau_via_mémoire :: fonc (tabl: *[3]z32)
+{
+    mémoire(tabl)[0] = 1
+    mémoire(tabl)[1] = 2
+    mémoire(tabl)[2] = 3
+}
+
+/* Code qui fonctionne. */
+remplis_tableau :: fonc (tabl: *[3]z32)
+{
+    tabl[0][0] = 4
+    tabl[0][1] = 5
+    tabl[0][2] = 6
+}
+
+principale :: fonc ()
+{
+    tabl: [3]z32
+
+    remplis_tableau_via_mémoire(*tabl)
+    saufsi tabl[0] == 1 && tabl[1] == 2 && tabl[2] == 3 {
+        exit(1)
+    }
+
+    remplis_tableau(*tabl)
+    saufsi tabl[0] == 4 && tabl[1] == 5 && tabl[2] == 6 {
+        exit(1)
+    }
+}

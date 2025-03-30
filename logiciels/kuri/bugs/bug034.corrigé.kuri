@@ -1,0 +1,21 @@
+/* Crash quand nous appelons un pointeur de fonction avec des paramètres
+ * ménombrés.
+ * Catégorie : [validation sémantique, validation appel, type fonction, pointeur fonction]
+ */
+
+importe Support
+
+principale :: fonc ()
+{
+    erreur_survenue := #exécute compile_script_erroné("
+    foo :: fonc ()
+    {
+    }
+    ptr := foo
+    ptr(5)
+    ")
+
+    saufsi erreur_survenue {
+        exit(1)
+    }
+}

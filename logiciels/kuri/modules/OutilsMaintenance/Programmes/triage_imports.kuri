@@ -4,17 +4,16 @@ importe Fondation
 importe OutilsMaintenance
 importe SysFichier
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     args := arguments_ligne_commande()
 
     si args.taille < 2 {
         imprime("Utilisation : % FICHIER\n", args[0])
-        retourne 1
+        exit(1)
     }
 
     extensions := [ ".kuri" ]
     chm := CheminFichier(args[1])
     exécute_rappel(chm, extensions, tri_imports_pour_fichier)
-    retourne 0
 }

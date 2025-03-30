@@ -1,0 +1,16 @@
+/* Coulisse C : les typedefs de tableaux fixes de structures ne peuvent être
+ * définis avant celles-ci.
+ * Catégorie : [génération code C, typedef type membre]
+ */
+
+MaStructure :: struct {
+    x := 0
+}
+
+MonAutreStructure :: struct {
+    x: [5]MaStructure
+}
+
+principale :: fonc ()
+{
+}

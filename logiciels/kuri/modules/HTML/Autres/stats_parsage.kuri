@@ -90,13 +90,13 @@ mon_logueur :: fonc (c: chaine, message: chaine @inutilisée, mode: ModeLogage @
     imprime("%\n", c)
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     args := arguments_ligne_commande()
 
     si args.taille != 2 {
         imprime("Utilisation: % [FICHIER|DOSSIER]\n", args[0])
-        retourne 1
+        exit(1)
     }
 
     diffère imprime("Mémoire utilisée   : %o\n", mémoire_utilisée())
@@ -120,7 +120,7 @@ principale :: fonc () -> z32
         si est_un_dossier(chm) {
             si parse_pages_dossier_et_accumule_stats(chm, statistiques) == 0 {
                 imprime("Aucun fichier HTML trouvé dans le dossier '%' !\n", chm.chn)
-                retourne 1
+                exit(1)
             }
         }
         sinon si est_fichier_html(chm) {
@@ -128,13 +128,11 @@ principale :: fonc () -> z32
         }
         sinon {
             imprime("Le chemin '%' n'a pas l'air de pointer vers un fichier HTML !\n", args[1])
-            retourne 1
+            exit(1)
         }
 
         imprime_stats(statistiques)
     }
-
-    retourne 0
 }
 
 importe Compilatrice
