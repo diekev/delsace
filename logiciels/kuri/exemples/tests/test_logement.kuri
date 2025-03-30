@@ -132,9 +132,8 @@ test_fichier :: fonc () -> rien
 
         imprime("Lu ", nread, " octets\n")
 
-        chn: chaine
-        chn.pointeur = *tpn[0] // À FAIRE : prend pointeur automatiquement
-        chn.taille = nread comme z64
+        // À FAIRE : prend pointeur automatiquement
+        chn := chaine(*tpn[0], nread comme z64)
 
         imprime(chn, "\n")
 
@@ -147,7 +146,7 @@ test_fichier :: fonc () -> rien
     }
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     imprime("=========================================\n")
     imprime("                arguments                \n")
@@ -163,6 +162,4 @@ principale :: fonc () -> z32
     logement_chaine()
     //test_fichier();
     test()
-
-    retourne 0
 }

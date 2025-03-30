@@ -175,6 +175,20 @@ CandidateAppariement CandidateAppariement::appel_pointeur(
                           std::move(transformations));
 }
 
+CandidateAppariement CandidateAppariement::construction_chaine(
+    double poids,
+    const Type *type,
+    kuri::tablet<NoeudExpression *, 10> &&exprs,
+    kuri::tableau<TransformationType, int> &&transformations)
+{
+    return crée_candidate(CANDIDATE_EST_CONSTRUCTION_CHAINE,
+                          poids,
+                          nullptr,
+                          type,
+                          std::move(exprs),
+                          std::move(transformations));
+}
+
 CandidateAppariement CandidateAppariement::initialisation_structure(
     double poids,
     const Type *noeud_decl,
@@ -495,6 +509,7 @@ enum {
     CANDIDATE_EST_ACCÈS_MEMBRE,
     CANDIDATE_EST_INIT_DE,
     CANDIDATE_EST_EXPRESSION_QUELCONQUE,
+    CANDIDATE_EST_TYPE_CHAINE,
 };
 
 static auto supprime_doublons(kuri::tablet<NoeudDéclaration *, 10> &tablet) -> void
@@ -673,6 +688,40 @@ static void applique_transformations(Sémanticienne &contexte,
                                                           candidate->transformations[i]);
         }
     }
+}
+
+static RésultatAppariement apparie_construction_chaine(
+    Sémanticienne &contexte,
+    NoeudExpressionAppel const *b,
+    kuri::tableau<IdentifiantEtExpression> const &args)
+{
+    if (args.taille() != 2) {
+        return ErreurAppariement::mécomptage_arguments(b, 2, args.taille());
+    }
+
+    if (args[0].expr->type != TypeBase::PTR_Z8) {
+        return ErreurAppariement::métypage_argument(args[0].expr, TypeBase::PTR_Z8, args[0].expr->type);
+    }
+
+    auto résultat = cherche_transformation_pour_transtypage(args[1].expr->type, TypeBase::Z64);
+    if (std::holds_alternative<Attente>(résultat)) {
+        return std::get<Attente>(résultat);
+    }
+
+    auto transformation = std::get<TransformationType>(résultat);
+    if (transformation.type == TypeTransformation::IMPOSSIBLE) {
+        return ErreurAppariement::métypage_argument(args[1].expr, TypeBase::Z64, args[1].expr->type);
+    }
+
+    auto transformations = kuri::tableau<TransformationType, int>(2);
+    transformations[0] = TransformationType(TypeTransformation::INUTILE);
+    transformations[1] = transformation;
+
+    auto exprs = kuri::tablet<NoeudExpression *, 10>();
+    exprs.ajoute(args[0].expr);
+    exprs.ajoute(args[1].expr);
+
+    return CandidateAppariement::construction_chaine(1.0, TypeBase::CHAINE, std::move(exprs), std::move(transformations));
 }
 
 static RésultatAppariement apparie_appel_pointeur(
@@ -1470,6 +1519,36 @@ static CodeRetourValidation trouve_candidates_pour_appel(
         return CodeRetourValidation::OK;
     }
 
+    if (appelée->type && appelée->type->est_type_type_de_données()) {
+        auto type_connu = appelée->type->comme_type_type_de_données()->type_connu;
+        if (!type_connu) {
+            contexte.rapporte_erreur("Impossible d'utiliser un « type_de_données » "
+                                     "dans une expression d'appel",
+                                     appelée);
+            return CodeRetourValidation::Erreur;
+        }
+
+        if (type_connu->est_type_structure()) {
+            candidates.ajoute({CANDIDATE_EST_DÉCLARATION, type_connu->comme_type_structure()});
+            return CodeRetourValidation::OK;
+        }
+
+        if (type_connu->est_type_union()) {
+            candidates.ajoute({CANDIDATE_EST_DÉCLARATION, type_connu->comme_type_union()});
+            return CodeRetourValidation::OK;
+        }
+
+        if (type_connu->est_type_chaine()) {
+            candidates.ajoute({CANDIDATE_EST_TYPE_CHAINE, type_connu->comme_type_chaine()});
+            return CodeRetourValidation::OK;
+        }
+
+        contexte.rapporte_erreur("Impossible d'utiliser un « type_de_données » "
+                                 "dans une expression d'appel",
+                                 appelée);
+        return CodeRetourValidation::Erreur;
+    }
+
     if (appelée->genre == GenreNoeud::EXPRESSION_RÉFÉRENCE_MEMBRE) {
         auto accès = appelée->comme_référence_membre();
 
@@ -1496,31 +1575,6 @@ static CodeRetourValidation trouve_candidates_pour_appel(
             return CodeRetourValidation::OK;
         }
 
-        if (accès->type->est_type_type_de_données()) {
-            auto type_connu = accès->type->comme_type_type_de_données()->type_connu;
-            if (!type_connu) {
-                contexte.rapporte_erreur("Impossible d'utiliser un « type_de_données » "
-                                         "dans une expression d'appel",
-                                         accès);
-                return CodeRetourValidation::Erreur;
-            }
-
-            if (type_connu->est_type_structure()) {
-                candidates.ajoute({CANDIDATE_EST_DÉCLARATION, type_connu->comme_type_structure()});
-                return CodeRetourValidation::OK;
-            }
-
-            if (type_connu->est_type_union()) {
-                candidates.ajoute({CANDIDATE_EST_DÉCLARATION, type_connu->comme_type_union()});
-                return CodeRetourValidation::OK;
-            }
-
-            contexte.rapporte_erreur("Impossible d'utiliser un « type_de_données » "
-                                     "dans une expression d'appel",
-                                     accès);
-            return CodeRetourValidation::Erreur;
-        }
-
         candidates.ajoute({CANDIDATE_EST_ACCÈS_MEMBRE, accès});
         return CodeRetourValidation::OK;
     }
@@ -1533,22 +1587,6 @@ static CodeRetourValidation trouve_candidates_pour_appel(
     if (appelée->type->est_type_fonction()) {
         candidates.ajoute({CANDIDATE_EST_EXPRESSION_QUELCONQUE, appelée});
         return CodeRetourValidation::OK;
-    }
-
-    if (appelée->est_construction_structure() || appelée->est_appel()) {
-        if (appelée->type->est_type_type_de_données()) {
-            auto type = appelée->type->comme_type_type_de_données()->type_connu;
-
-            if (type->est_type_structure()) {
-                candidates.ajoute({CANDIDATE_EST_DÉCLARATION, type->comme_type_structure()});
-                return CodeRetourValidation::OK;
-            }
-
-            if (type->est_type_union()) {
-                candidates.ajoute({CANDIDATE_EST_DÉCLARATION, type->comme_type_union()});
-                return CodeRetourValidation::OK;
-            }
-        }
     }
 
     contexte.rapporte_erreur("L'expression n'est pas de type fonction", appelée);
@@ -1567,6 +1605,9 @@ static std::optional<Attente> apparies_candidates(EspaceDeTravail &espace,
         if (it.quoi == CANDIDATE_EST_ACCÈS_MEMBRE ||
             it.quoi == CANDIDATE_EST_EXPRESSION_QUELCONQUE) {
             état->résultats.ajoute(apparie_appel_pointeur(contexte, expr, it.decl, état->args));
+        }
+        else if (it.quoi == CANDIDATE_EST_TYPE_CHAINE) {
+            état->résultats.ajoute(apparie_construction_chaine(contexte, expr, état->args));
         }
         else if (it.quoi == CANDIDATE_EST_DÉCLARATION) {
             auto decl = it.decl;
@@ -2343,6 +2384,11 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
             auto ref = expr->expression->comme_référence_déclaration();
             ref->déclaration_référée->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
         }
+    }
+    else if (candidate->note == CANDIDATE_EST_CONSTRUCTION_CHAINE) {
+        expr->type = TypeBase::CHAINE;
+        expr->aide_génération_code = CONSTRUIT_CHAINE;
+        applique_transformations(contexte, candidate, expr);
     }
     else if (candidate->note == CANDIDATE_EST_APPEL_INIT_DE) {
         // le type du retour

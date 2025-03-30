@@ -1903,10 +1903,11 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
             consomme();
 
             auto expression = NoeudExpression::nul();
-            if (apparie(GenreLexème::CHAINE_CARACTERE)) {
-                expression = m_tacheronne.assembleuse->crée_référence_déclaration(
-                    lexème_courant());
-                consomme();
+            if (apparie_expression()) {
+                expression = analyse_expression({}, GenreLexème::INCONNU);
+                if (expression && !expression->est_référence_déclaration()) {
+                    rapporte_erreur_avec_site(expression, "L'expression de l'instruction \"arrête\" doit être une référence simple.");
+                }
             }
 
             return m_tacheronne.assembleuse->crée_arrête(lexème, expression);
@@ -1916,10 +1917,11 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
             consomme();
 
             auto expression = NoeudExpression::nul();
-            if (apparie(GenreLexème::CHAINE_CARACTERE)) {
-                expression = m_tacheronne.assembleuse->crée_référence_déclaration(
-                    lexème_courant());
-                consomme();
+            if (apparie_expression()) {
+                expression = analyse_expression({}, GenreLexème::INCONNU);
+                if (expression && !expression->est_référence_déclaration()) {
+                    rapporte_erreur_avec_site(expression, "L'expression de l'instruction \"continue\" doit être une référence simple.");
+                }
             }
 
             return m_tacheronne.assembleuse->crée_continue(lexème, expression);
@@ -1929,10 +1931,11 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
             consomme();
 
             auto expression = NoeudExpression::nul();
-            if (apparie(GenreLexème::CHAINE_CARACTERE)) {
-                expression = m_tacheronne.assembleuse->crée_référence_déclaration(
-                    lexème_courant());
-                consomme();
+            if (apparie_expression()) {
+                expression = analyse_expression({}, GenreLexème::INCONNU);
+                if (expression && !expression->est_référence_déclaration()) {
+                    rapporte_erreur_avec_site(expression, "L'expression de l'instruction \"reprends\" doit être une référence simple.");
+                }
             }
 
             return m_tacheronne.assembleuse->crée_reprends(lexème, expression);

@@ -78,6 +78,7 @@ Intrinsics :: struct {
     error_prototype: *ErrorPrototype
     reference_error_prototype: *ReferenceErrorPrototype
     type_error_prototype: *TypeErrorPrototype
+    uri_error_prototype: *URIErrorPrototype
     syntax_error_prototype: *SyntaxErrorPrototype
     date_prototype: *DatePrototype
     number_prototype: *NumberPrototype
@@ -85,6 +86,7 @@ Intrinsics :: struct {
 
     array: *ArrayConstructor
     date: *DateConstructor
+    encode_uri_component: *Function
     eval: *Function
     isnan: *Function
     parse_int: *Function
@@ -111,6 +113,7 @@ create_intrinsics :: fonc (realm: *Realm)
     realm.intrinsics.error_prototype = crée_error_prototype(realm, realm.intrinsics.object_prototype)
     realm.intrinsics.reference_error_prototype = crée_reference_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype)
     realm.intrinsics.type_error_prototype = crée_type_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype)
+    realm.intrinsics.uri_error_prototype = crée_uri_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype)
     realm.intrinsics.syntax_error_prototype = crée_syntax_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype)
     realm.intrinsics.date_prototype = crée_date_prototype(tas_de_mémoire, realm.intrinsics.object_prototype)
     realm.intrinsics.number_prototype = crée_number_prototype(realm, realm.intrinsics.object_prototype)
@@ -118,6 +121,7 @@ create_intrinsics :: fonc (realm: *Realm)
 
     realm.intrinsics.array = crée_array_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.array_prototype)
     realm.intrinsics.date = crée_date_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.date_prototype)
+    realm.intrinsics.encode_uri_component = crée_encode_uri_component(realm)
     realm.intrinsics.eval = crée_eval(realm)
     realm.intrinsics.isnan = crée_isnan(realm)
     realm.intrinsics.parse_int = crée_parse_int(realm)
@@ -321,6 +325,7 @@ set_default_global_bindings :: fonc (realm: *Realm) -> CompletionRecord
         // decodeURIComponent
         // encodeURI
         // encodeURIComponent
+        GlobalObjectProperty(STR_encodeURIComponent, Valeur(Function = realm.intrinsics.encode_uri_component)),
         // Encode
         // Decode
         // ParseHexOctet

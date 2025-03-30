@@ -169,7 +169,7 @@ extrait_schéma :: fonc (chn: chaine, schéma: *chaine) -> RésultatExtraction
 
     pour c, i dans chn {
         si c == ':' {
-            mémoire(schéma) = construit_chaine(*chn[0], i)
+            mémoire(schéma) = chaine(*chn[0], i)
             retourne vrai
         }
 
@@ -211,7 +211,7 @@ parse_info_serveur :: fonc (uri: *URI, info_serveur: chaine) -> ErreurURI
     }
 
     si double_point > terminateur_ipv6 {
-        uri.hôte = construit_chaine(info_serveur.pointeur, double_point)
+        uri.hôte = chaine(info_serveur.pointeur, double_point)
 
         uri.port = avance(info_serveur, double_point + 1)
 
@@ -241,7 +241,7 @@ parse_info_usager :: fonc (uri: *URI, info_usager: chaine) -> rien
         double_point = info_usager.taille
     }
 
-    uri.nom_utilisateur = construit_chaine(info_usager.pointeur, double_point)
+    uri.nom_utilisateur = chaine(info_usager.pointeur, double_point)
     uri.mot_de_passe = avance(info_usager, double_point + 1)
 }
 
@@ -250,7 +250,7 @@ parse_autorité :: fonc (uri: *URI) -> ErreurURI
     début := trouve_caractère_depuis_la_fin(uri.autorité, '@')
 
     si début != -1 && uri.autorité[début] == '@' {
-        composant_usager := construit_chaine(uri.autorité.pointeur, début)
+        composant_usager := chaine(uri.autorité.pointeur, début)
         composant_serveur := avance(uri.autorité, début + 1)
 
         parse_info_usager(uri, composant_usager)
@@ -315,11 +315,11 @@ parse_chemin :: fonc (uri: *URI) -> ErreurURI
 
     si séparateur_requête >= 0 {
         fin_fichier = séparateur_requête
-        uri.requête = construit_chaine(uri.chemin_complet.pointeur + séparateur_requête + 1, fin_requête - séparateur_requête - 1)
+        uri.requête = chaine(uri.chemin_complet.pointeur + séparateur_requête + 1, fin_requête - séparateur_requête - 1)
     }
 
     si fin_fichier != 0 {
-        uri.chemin = construit_chaine(uri.chemin_complet.pointeur, fin_fichier)
+        uri.chemin = chaine(uri.chemin_complet.pointeur, fin_fichier)
 
         si uri.chemin.taille != 0 && uri.autorité != "" {
             si uri.chemin[0] != '/' {
@@ -359,7 +359,7 @@ parse_uri_standard :: fonc (chn: chaine) -> RésultatURI
             retourne ErreurURI.AUTORITÉ_MANQUANTE
         }
 
-        uri.autorité = construit_chaine(après_slashs.pointeur, fin_autorité)
+        uri.autorité = chaine(après_slashs.pointeur, fin_autorité)
         uri.autorité_est_définie = vrai
         uri.chemin_complet = avance(après_slashs, fin_autorité)
 

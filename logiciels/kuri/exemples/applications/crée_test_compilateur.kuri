@@ -13,14 +13,13 @@ importe SysFichier
 crée_test :: fonc (nombre_de_ligne: z32, chemin_fichier: chaine) -> rien
 {
     chaines := [
-        "principale :: fonc () -> z32\n",
+        "principale :: fonc ()\n",
         "{\n",
         "\ta := 1\n",
         "\tb := 2\n",
         "\tc := 3\n",
         "\td := 4\n",
         "\ta = b + c * d\n",
-        "\tretourne 0\n",
         "}\n"
     ]
 
@@ -46,7 +45,6 @@ crée_test :: fonc (nombre_de_ligne: z32, chemin_fichier: chaine) -> rien
     }
 
     ajoute_au_tampon(*enchaineuse, chaines[7])
-    ajoute_au_tampon(*enchaineuse, chaines[8])
 
     // écris le fichier
     chemin := CheminFichier(chemin_fichier)
@@ -56,12 +54,10 @@ crée_test :: fonc (nombre_de_ligne: z32, chemin_fichier: chaine) -> rien
     déloge(chaine_reponse)
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     crée_test(20_000, "/tmp/test_20_000_lignes.kuri")
     crée_test(100_000, "/tmp/test_100_000_lignes.kuri")
     crée_test(500_000, "/tmp/test_500_000_lignes.kuri")
     crée_test(2_000_000, "/tmp/test_2_000_000_lignes.kuri")
-
-    retourne 0
 }

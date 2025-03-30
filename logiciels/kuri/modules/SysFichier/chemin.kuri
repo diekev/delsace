@@ -572,10 +572,7 @@ donne_copie_chemin :: fonc (tampon: *TamponChemin) -> CheminFichier
 
 donne_chaine_statique :: fonc (tampon: *TamponChemin) -> chaine
 {
-    résultat : chaine = ---
-    résultat.pointeur = *tampon.données[0]
-    résultat.taille = tampon.occupés
-    retourne résultat
+    retourne chaine(*tampon.données[0], tampon.occupés)
 }
 
 donne_chaine_c_statique :: fonc (tampon: *TamponChemin) -> ChaineC
