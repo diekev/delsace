@@ -41,7 +41,7 @@ imprime_rune :: fonc (enchaineuse: *Enchaineuse, rune: *Rune)
     nombre_de_points := point_de_code_vers_utf8(mémoire(rune) comme n32, *séquence[0])
 
     si nombre_de_points != 0 {
-        chn := construit_chaine(*séquence[0] comme *z8, nombre_de_points)
+        chn := chaine(*séquence[0] comme *z8, nombre_de_points)
         enchaineuse.ajoute_au_tampon(chn)
     }
 } @FormattageImpression

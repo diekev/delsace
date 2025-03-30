@@ -120,9 +120,7 @@ donne_ligne_pour_lexème :: fonc (source: &TexteSource, lexème: *Lexème) -> ch
         curseur -= 1
     }
 
-    résultat : chaine = ---
-    résultat.pointeur = curseur
-    résultat.taille = lexème.texte.pointeur - curseur
+    résultat := chaine(curseur, lexème.texte.pointeur - curseur)
 
     curseur = lexème.texte.pointeur
     tantque curseur < fin_source {

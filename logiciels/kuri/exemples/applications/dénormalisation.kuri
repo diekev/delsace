@@ -27,12 +27,12 @@ dénormalise_fonction :: fonc (symbole: chaine) -> rien
 
     // module
     taille_nom_module := taille_symbole(*symbole)
-    nom_module := construit_chaine(symbole.pointeur, taille_nom_module)
+    nom_module := chaine(symbole.pointeur, taille_nom_module)
     symbole = avance(symbole, taille_nom_module)
 
     // nom
     taille := taille_symbole(*symbole)
-    nom_fonction := construit_chaine(symbole.pointeur, taille)
+    nom_fonction := chaine(symbole.pointeur, taille)
     symbole = avance(symbole, taille)
 
     // entrées _EN_
@@ -46,12 +46,12 @@ dénormalise_fonction :: fonc (symbole: chaine) -> rien
     pour i dans 0 ... nombre_entrées - 1 {
         // nom du paramètre
         taille = taille_symbole(*symbole)
-        entrée = construit_chaine(symbole.pointeur + 2, taille - 2)
+        entrée = chaine(symbole.pointeur + 2, taille - 2)
         symbole = avance(symbole, taille)
 
         // type du paramètre
         taille = taille_symbole(*symbole)
-        entrée = construit_chaine(symbole.pointeur + 2, taille - 2)
+        entrée = chaine(symbole.pointeur + 2, taille - 2)
         symbole = avance(symbole, taille)
     }
 
@@ -65,7 +65,7 @@ dénormalise_fonction :: fonc (symbole: chaine) -> rien
 
     pour i dans 0 ... nombre_sorties - 1 {
         taille = taille_symbole(*symbole)
-        sortie = construit_chaine(symbole.pointeur + 2, taille - 2)
+        sortie = chaine(symbole.pointeur + 2, taille - 2)
         symbole = avance(symbole, taille)
     }
 

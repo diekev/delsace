@@ -112,7 +112,7 @@ principale :: fonc ()
         taille_restante := document.taille_ligne - ligne.taille
 
         pour fragment dans ligne.fragments {
-            chn := construit_chaine(document.texte.pointeur + fragment.début, fragment.taille)
+            chn := chaine(document.texte.pointeur + fragment.début, fragment.taille)
             imprime("%", chn)
         }
 
@@ -137,7 +137,7 @@ principale :: fonc ()
         }
 
         pour fragment dans ligne.fragments {
-            chn := construit_chaine(document.texte.pointeur + fragment.début, fragment.taille)
+            chn := chaine(document.texte.pointeur + fragment.début, fragment.taille)
             imprime("%", chn)
         }
 
@@ -160,7 +160,7 @@ principale :: fonc ()
         }
 
         pour fragment dans ligne.fragments {
-            chn := construit_chaine(document.texte.pointeur + fragment.début, fragment.taille)
+            chn := chaine(document.texte.pointeur + fragment.début, fragment.taille)
             imprime("%", chn)
         }
 

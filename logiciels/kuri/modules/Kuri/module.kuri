@@ -234,12 +234,7 @@ déloge :: fonc (pointeur: &*$T, pos := PositionCodeSource())
 loge_chaine :: fonc (taille: z64, pos := PositionCodeSource()) -> chaine
 {
     ptr := loge_mémoire(taille, info_de(chaine), pos)
-
-    chn : chaine = ---
-    chn.pointeur = ptr
-    chn.taille = taille
-
-    retourne chn
+    retourne chaine(ptr comme *z8, taille)
 }
 
 reloge_chaine :: fonc (chn: &chaine, nouvelle_taille: z64, pos := PositionCodeSource())

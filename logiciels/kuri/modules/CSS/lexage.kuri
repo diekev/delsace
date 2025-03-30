@@ -187,9 +187,7 @@ formatte_lexème :: fonc (enchaineuse: *Enchaineuse, lexème: *Lexème)
         }
         Delim {
             valeur := lexème.point_de_code comme z8
-            chn : chaine = ---
-            chn.pointeur = *valeur
-            chn.taille = 1
+            chn := chaine(*valeur, 1)
             ajoute_au_tampon(enchaineuse, chn)
         }
         Number {

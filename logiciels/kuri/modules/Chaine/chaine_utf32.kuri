@@ -157,10 +157,7 @@ imprime_chaine_utf32 :: fonc (enchaineuse: *Enchaineuse, chn: *ChaineUTF32)
     pour chn.points_de_code {
         taille := point_de_code_vers_utf8(it, *séquence[0])
 
-        tmp : chaine = ---
-        tmp.pointeur = *séquence[0] comme *z8
-        tmp.taille = taille
-
+        tmp  := chaine(*séquence[0] comme *z8, taille)
         ajoute_au_tampon(enchaineuse, tmp)
     }
 } @FormattageImpression

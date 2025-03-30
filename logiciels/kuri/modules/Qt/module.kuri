@@ -56,12 +56,12 @@ exécute :: fonc (app: *QT_Application)
 
 vers_kuri :: fonc (chn: *QT_Chaine) -> chaine
 {
-    retourne construit_chaine(chn.caractères, chn.taille)
+    retourne chaine(chn.caractères, chn.taille)
 }
 
 vers_kuri :: fonc (chn: QT_Chaine) -> chaine #enligne
 {
-    retourne construit_chaine(chn.caractères, chn.taille)
+    retourne chaine(chn.caractères, chn.taille)
 }
 
 vers_qt :: fonc (chn: chaine) -> QT_Chaine

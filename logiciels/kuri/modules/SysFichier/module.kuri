@@ -127,14 +127,7 @@ contenu_fichier_binaire :: fonc (chemin: CheminFichier, résultat: &[..]octet)
 contenu_fichier_texte :: fonc (chemin: &CheminFichier) -> chaine
 {
     contenu := contenu_fichier_binaire(chemin)
-    chn: chaine
-
-    nonsûr {
-        chn.pointeur = contenu.pointeur comme *z8
-        chn.taille = contenu.taille
-    }
-
-    retourne chn
+    retourne chaine_depuis_tranche_octets(contenu)
 }
 
 contenu_fichier_texte :: fonc (chemin: chaine) -> chaine

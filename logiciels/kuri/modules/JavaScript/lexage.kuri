@@ -202,7 +202,7 @@ apparie :: fonc (empl lexeuse: &Lexeuse, texte: chaine) -> bool
         retourne faux
     }
 
-    sous_chn := construit_chaine(début_source, texte.taille)
+    sous_chn := chaine(début_source, texte.taille)
     retourne sous_chn == texte
 }
 
@@ -229,7 +229,7 @@ crée_lexème :: fonc (empl lexeuse: &Lexeuse, genre: GenreLexème) -> Lexème
 
 donne_texte_courant :: fonc (empl lexeuse: &Lexeuse) -> chaine #enligne
 {
-    retourne construit_chaine(début_mot, (début_source - début_mot) comme z32)
+    retourne chaine(début_mot, (début_source - début_mot) comme z32)
 }
 
 crée_lexème_pour_caractère :: fonc (lexeuse: &Lexeuse, genre: GenreLexème) -> Lexème

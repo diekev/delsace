@@ -155,10 +155,7 @@ exécute_insertion :: fonc (inst: *Instruction, table: *Table) -> RésultatExéc
 donne_chaine_depuis_chaine_c_tableau :: fonc (tableau: [..]z8) -> chaine
 {
     chn_c := ChaineC(tableau.pointeur)
-    résultat : chaine = ---
-    résultat.pointeur = tableau.pointeur
-    résultat.taille = taille_chaine_c(chn_c)
-    retourne résultat
+    retourne chaine(tableau.pointeur, taille_chaine_c(chn_c))
 }
 
 imprime_ligne :: fonc (ligne: *Ligne) -> rien

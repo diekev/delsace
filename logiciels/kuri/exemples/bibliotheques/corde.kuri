@@ -47,7 +47,7 @@ corde_depuis_chaine :: fonc (parente: *Corde, chn: chaine, index_gauche : z64, i
     }
     sinon {
         corde.compte_gauche = (index_droite - index_gauche)
-        corde.chn = construit_chaine(*chn[index_gauche], index_droite - index_gauche + 1)
+        corde.chn = chaine(*chn[index_gauche], index_droite - index_gauche + 1)
     }
 
     retourne corde
