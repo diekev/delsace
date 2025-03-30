@@ -1,4 +1,3 @@
-
 TableauPartagé :: struct ($T: type_de_données, $CopieValeur: fonc(T)(T), $DétruitValeur: fonc(T)(T)) {
     valeurs: [..]T
     compte_de_référence: *z32

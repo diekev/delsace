@@ -1,0 +1,19 @@
+/* Mauvaise génération de code C pour l'accès à des membres de types unions de structures.
+ * Voir note « l'accès à des unions membres de structures échoue » dans le module Chaine
+ * Catégorie : [génération code C, accès membre, type union]
+ */
+
+Union :: union {
+    A: z32
+    B: r32
+}
+
+Structure :: struct {
+    u: Union
+}
+
+principale :: fonc ()
+{
+    s: Structure
+    s.u.A = 5
+}

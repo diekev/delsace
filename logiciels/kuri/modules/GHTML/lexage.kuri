@@ -210,7 +210,7 @@ caractère_voisin :: fonc (lexeuse: &Lexeuse, n: z32) -> z8
 
 mot_courant :: fonc (lexeuse: &Lexeuse) -> chaine
 {
-    retourne construit_chaine(lexeuse.début_mot, lexeuse.taille_mot_courant)
+    retourne chaine(lexeuse.début_mot, lexeuse.taille_mot_courant)
 }
 
 analyse_caractère_simple :: fonc (lexeuse: &Lexeuse) -> rien

@@ -97,6 +97,32 @@ opérateur != :: fonc (ongoing: OngoingNavigationType, navigation_id: Navigation
     retourne !(ongoing == navigation_id)
 }
 
+opérateur == :: fonc (ongoing: OngoingNavigationType, navigation_id: Optionnel(NavigationID)) -> bool
+{
+    discr ongoing {
+        NavigationID(id) {
+            si navigation_id.possède_valeur() {
+                retourne id == navigation_id.Quelque
+            }
+            retourne faux
+        }
+        Chaine {
+            retourne !navigation_id.possède_valeur()
+        }
+        sinon {
+            si navigation_id.possède_valeur() {
+                retourne faux
+            }
+            retourne vrai
+        }
+    }
+}
+
+opérateur != :: fonc (ongoing: OngoingNavigationType, navigation_id: Optionnel(NavigationID)) -> bool
+{
+    retourne !(ongoing == navigation_id)
+}
+
 opérateur == :: fonc (ongoing: OngoingNavigationType, chn: chaine) -> bool
 {
     discr ongoing {
@@ -1215,7 +1241,7 @@ attempt_to_populate_the_history_entry_document :: fonc (params: *HistoryEntryPop
         navigation_id := tâche.navigation_id
 
         // 1. If navigable's ongoing navigation no longer equals navigationId, then run completionSteps and abort these steps.
-        si (!navigation_id.possède_valeur() && !est_nul(navigable.ongoing_navigation)) || (navigable.ongoing_navigation != navigation_id) {
+        si navigable.ongoing_navigation != navigation_id {
             run(completion_steps)
             retourne
         }
@@ -1715,8 +1741,10 @@ obtain_a_browsing_context_for_a_navigation_response :: fonc (user_agent: *UserAg
 ChangingNavigableContinuationState :: struct {
     displayed_document: *Document
     target_entry: *SessionHistoryEntry
+    populated_target_entry: *SessionHistoryEntry
     navigable: *Navigable
     update_only: bool
+    populated_cloned_target_entry: bool
 }
 
 /* They return "initiator-disallowed", "canceled-by-beforeunload", "canceled-by-navigate", or "applied". */
@@ -1878,7 +1906,7 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
         displayed_document := changing_navigable_continuation.displayed_document
 
         // 5. Let targetEntry be changingNavigableContinuation's target entry.
-        target_entry := changing_navigable_continuation.target_entry
+        populated_target_entry := changing_navigable_continuation.populated_target_entry
 
         // 6. Let navigable be changingNavigableContinuation's navigable.
         navigable := changing_navigable_continuation.navigable
@@ -1895,7 +1923,9 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
 
         after_potential_unloads_params: AfterPotentialUnloadsParams
         after_potential_unloads_params.user_agent = user_agent
-        after_potential_unloads_params.target_entry = target_entry
+        after_potential_unloads_params.target_entry = changing_navigable_continuation.target_entry
+        after_potential_unloads_params.populated_target_entry = populated_target_entry
+        after_potential_unloads_params.populated_cloned_target_entry = changing_navigable_continuation.populated_cloned_target_entry
         after_potential_unloads_params.displayed_document = displayed_document
         after_potential_unloads_params.navigable = navigable
         after_potential_unloads_params.changing_navigable_continuation = changing_navigable_continuation
@@ -1911,7 +1941,7 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
         tâche_after_potential_unloads := crée_algorithm_pour_fonction(*after_potential_unloads_params, after_potential_unloads)
 
         // 10. If changingNavigableContinuation's update-only is true, or targetEntry's document is displayedDocument, then:
-        si changing_navigable_continuation.update_only || target_entry.donne_document() == displayed_document {
+        si changing_navigable_continuation.update_only || populated_target_entry.donne_document() == displayed_document {
             // 1. Set the ongoing navigation for navigable to null.
             init_de(OngoingNavigationType)(*navigable.ongoing_navigation)
 
@@ -1924,7 +1954,7 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
             assert(navigation_type != nul)
 
             // 2. Deactivate displayedDocument, given userNavigationInvolvement, targetEntry, navigationType, and afterPotentialUnloads.
-            deactivate_document_for_a_cross_document_navigation(user_agent, displayed_document, user_involvement_for_navigate_events, target_entry, mémoire(navigation_type), tâche_after_potential_unloads)
+            deactivate_document_for_a_cross_document_navigation(user_agent, displayed_document, user_involvement_for_navigate_events, populated_target_entry, mémoire(navigation_type), tâche_after_potential_unloads)
         }
 
         // 12. In both cases, let afterPotentialUnloads be the following steps:
@@ -1967,6 +1997,8 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
 AfterPotentialUnloadsParams :: struct {
     user_agent: *UserAgent
     target_entry: *SessionHistoryEntry
+    populated_target_entry: *SessionHistoryEntry
+    populated_cloned_target_entry: bool
     displayed_document: *Document
     navigable: *Navigable
     changing_navigable_continuation: ChangingNavigableContinuationState
@@ -1981,6 +2013,13 @@ AfterPotentialUnloadsParams :: struct {
 after_potential_unloads :: fonc (params: *AfterPotentialUnloadsParams)
 {
     target_entry := params.target_entry
+
+    si params.populated_cloned_target_entry {
+        // @fuite-de-mémoire
+        target_entry.document_state = params.populated_target_entry.document_state
+        target_entry.url = params.populated_target_entry.url
+        // À FAIRE : autres données
+    }
 
     // 1. If changingNavigableContinuation's update-only is false, then activate history entry targetEntry for navigable.
     saufsi params.changing_navigable_continuation.update_only {
@@ -2163,16 +2202,26 @@ changing_navigable_continuations_steps :: fonc (user_agent: *UserAgent,
         // 6. Let allowPOST be targetEntry's document state's reload pending.
         allow_post := target_entry.document_state.reload_pending
 
+        // https://github.com/whatwg/html/issues/9869
+        // Recharger requiers de peupler l'entrée active d'history de session, la rendant inactive.
+        // Ceci résulte en un une situation où des tâches qui déchargent le document précédent et en
+        // active un nouveau ne peuvent être exécutées. Pour résoudre ceci, l'entrée cible est clonée
+        // avant d'être peuplée.
+        // Après que la décharge du document précédent est complétée, toutes les rubriques potentiellement
+        // affectées par le peuplement sont copiées depuis l'entrée clonée vers l'entrée cible.
+        // @fuite-de-mémoire
+        populated_target_entry := clone(target_entry)
+
         // 7. In parallel, attempt to populate the history entry's document for targetEntry, given navigable, potentiallyTargetSpecificSourceSnapshotParams, targetSnapshotParams, with allowPOST set to allowPOST and
         //   completionSteps set to queue a global task on the navigation and traversal task source given navigable's active window to run afterDocumentPopulated.
 
-        tâche_after_document_populated := crée_tâche_pour_after_document_populated(target_entry, navigable, changing_navigable_continuation, changing_navigable_continuations)
+        tâche_after_document_populated := crée_tâche_pour_after_document_populated(populated_target_entry, vrai, navigable, changing_navigable_continuation, changing_navigable_continuations)
         // À FAIRE : navigable.active_window
         completion_steps := crée_tâche_pour_enfiler_tâche(user_agent, tâche_after_document_populated, SourceDeTâche.NavigationEtTraversée)
 
         history_entry_population_params: HistoryEntryPopulationParams
         history_entry_population_params.user_agent = user_agent
-        history_entry_population_params.entry = target_entry
+        history_entry_population_params.entry = populated_target_entry
         history_entry_population_params.navigable = navigable
         history_entry_population_params.source_snapshot_params = potentially_target_specific_source_snapshot_params
         history_entry_population_params.target_snapshot_params = target_snapshot_params
@@ -2186,10 +2235,11 @@ changing_navigable_continuations_steps :: fonc (user_agent: *UserAgent,
     }
 
     // Otherwise, run afterDocumentPopulated immediately.
-    after_document_populated(target_entry, navigable, changing_navigable_continuation, changing_navigable_continuations)
+    after_document_populated(target_entry, faux, navigable, changing_navigable_continuation, changing_navigable_continuations)
 }
 
 crée_tâche_pour_after_document_populated :: fonc (target_entry: *SessionHistoryEntry,
+                                                  populated_cloned_target_entry: bool,  
                                                   navigable: *Navigable,
                                                   changing_navigable_continuation: ChangingNavigableContinuationState,
                                                   changing_navigable_continuations: *[..]ChangingNavigableContinuationState) -> *Algorithm
@@ -2198,6 +2248,7 @@ crée_tâche_pour_after_document_populated :: fonc (target_entry: *SessionHistor
         empl base: Algorithm
 
         target_entry: *SessionHistoryEntry
+        populated_cloned_target_entry: bool
         navigable: *Navigable
         changing_navigable_continuation: ChangingNavigableContinuationState
         changing_navigable_continuations: *[..]ChangingNavigableContinuationState
@@ -2211,23 +2262,29 @@ crée_tâche_pour_after_document_populated :: fonc (target_entry: *SessionHistor
         navigable := tâche.navigable
         changing_navigable_continuation := tâche.changing_navigable_continuation
         changing_navigable_continuations := tâche.changing_navigable_continuations
+        populated_cloned_target_entry := tâche.populated_cloned_target_entry
 
-        after_document_populated(target_entry, navigable, changing_navigable_continuation, changing_navigable_continuations)
+        after_document_populated(target_entry, populated_cloned_target_entry, navigable, changing_navigable_continuation, changing_navigable_continuations)
     }
 
     tâche := crée_algorithm(sur_run, Tâche)
     tâche.target_entry = target_entry
     tâche.navigable = navigable
+    tâche.populated_cloned_target_entry = populated_cloned_target_entry
     tâche.changing_navigable_continuation = changing_navigable_continuation
     tâche.changing_navigable_continuations = changing_navigable_continuations
     retourne tâche
 }
 
 after_document_populated :: fonc (target_entry: *SessionHistoryEntry,
+                                  populated_cloned_target_entry: bool,
                                   navigable: *Navigable @inutilisée,
                                   changing_navigable_continuation: ChangingNavigableContinuationState,
                                   changing_navigable_continuations: *[..]ChangingNavigableContinuationState)
 {
+    changing_navigable_continuation.populated_target_entry = target_entry
+    changing_navigable_continuation.populated_cloned_target_entry = populated_cloned_target_entry
+
     // 1. If targetEntry's document is null, then set changingNavigableContinuation's update-only to true.
     si target_entry.donne_document() == nul {
         changing_navigable_continuation.update_only = vrai

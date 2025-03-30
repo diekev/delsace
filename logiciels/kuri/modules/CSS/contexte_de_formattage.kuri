@@ -2290,6 +2290,7 @@ calcule_largeur_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox
 
     // À FAIRE : CAPMIN
     CAPMIN : r64 = 0.0
+    possède_captions := faux
     // À FAIRE : cell spacing and borders
 
     MIN: r64
@@ -2347,15 +2348,28 @@ calcule_largeur_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox
         MAX += it.maximum_width
     }
 
-    pour * ctx.données_colonnes {
-        it.final_width = it.maximum_width
-    }
+    si (possède_captions && CAPMIN < largeur_containing_block) || MAX < largeur_containing_block {
+        pour * ctx.données_colonnes {
+            it.final_width = it.maximum_width
+        }
 
-    si CAPMIN < largeur_containing_block || MAX < largeur_containing_block {
         retourne max(MAX, CAPMIN)
     }
 
-    retourne max(largeur_containing_block comme r64, CAPMIN, MIN)
+    résultat := max(largeur_containing_block comme r64, CAPMIN, MIN)
+
+    si résultat > MIN {
+        pour * ctx.données_colonnes {
+            it.final_width = résultat * (it.minimum_width / MIN)
+        }
+    }
+    sinon {
+        pour * ctx.données_colonnes {
+            it.final_width = it.minimum_width
+        }
+    }
+
+    retourne résultat
 }
 
 ParamsDispositionCellules :: struct {

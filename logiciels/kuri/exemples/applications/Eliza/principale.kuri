@@ -105,7 +105,7 @@ génère_réponse_pour_message :: fonc (message: chaine) -> chaine
     retourne "Veuillez élaborer"
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     imprime("Bienvenue chez \n")
     imprime("\tEEEEEE  LL      IIII  ZZZZZZZ    AAAAA \n")
@@ -138,6 +138,4 @@ principale :: fonc () -> z32
 
         message_éliza = génère_réponse_pour_message(message)
     }
-
-    retourne 0
 }

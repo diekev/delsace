@@ -41,7 +41,7 @@ mon_logueur :: fonc (c: chaine, message: chaine @inutilisée, mode: ModeLogage @
     _ := ferme(*fichier)
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     mémoire_entrée := mémoire_utilisée()
 
@@ -74,7 +74,7 @@ principale :: fonc () -> z32
         si arguments.taille == 3 {
             si arguments[1] != "--js" {
                 imprime("Argument '%' inconnu\n", arguments[1])
-                retourne 1
+                exit(1)
             }
 
             utilise_javascript = vrai
@@ -128,7 +128,7 @@ principale :: fonc () -> z32
         QT_application_poste_evenement_et_donnees(fenêtre, évènement_sur_création_onglet, évènement)
     }
 
-    retourne QT_application_exec(app)
+    exécute(app)
 }
 
 /** \} */
