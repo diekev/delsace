@@ -1,0 +1,15 @@
+/* Crash lors de l'émission d'une panique dans la MV.
+ * Les infos des fonctions et des appels ne sont alors pas encore créées.
+ * Catégorie : [crash, exécution code, trace appel]
+ */
+
+émets_panique :: fonc ()
+{
+    panique("Quelque chose...")
+}
+
+#exécute émets_panique()
+
+principale :: fonc ()
+{
+}

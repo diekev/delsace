@@ -7,9 +7,17 @@ libfreetype :: #bibliothèque "freetype"
 
 #dépendance_bibliothèque libmodule_c_ftgl libfreetype
 
-#portée_fichier
+// #portée_fichier
 
-#ajoute_init définis_allocatrices_ftgl()
+// À FAIRE(langage) : #ajoute_init ajoute à tous les programmes, même si le module n'est pas utilisé
+#pré_exécutable initialise_les_allocatrices()
+
+importe Compilatrice
+
+initialise_les_allocatrices :: fonc ()
+{
+    ajoute_chaine_à_la_compilation(compilatrice_espace_courant(), "importe FTGL; #ajoute_init définis_allocatrices_ftgl()")
+}
 
 // À FAIRE : pour les allocations, nous devrions utiliser l'allocatrice du contexte parent
 //           si l'allocatrice courante est celle du stockage temporaire
