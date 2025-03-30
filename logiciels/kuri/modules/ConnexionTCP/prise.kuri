@@ -121,6 +121,22 @@ lis_tout :: fonc (prise: *Prise) -> chaine
     retourne contenu
 }
 
+vide_données_lecture :: fonc (prise: *Prise)
+{
+    TAILLE_MAX :: 1024
+    tampon : [TAILLE_MAX]z8 = ---
+
+    boucle {
+        octets_lus := tente système_lis(prise.fichier.desc, *tampon[0], TAILLE_MAX) piège _ {
+            retourne
+        }
+
+        si octets_lus == 0 {
+            arrête
+        }
+    }
+}
+
 écris :: fonc (prise: *Prise, données: chaine) -> z32
 {
     si prise.est_prise_ssl() {

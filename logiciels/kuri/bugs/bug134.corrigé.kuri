@@ -13,8 +13,7 @@ Interface :: struct {
     rappel: fonc(Polymorphe)(rien)
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     i: Interface
-    retourne 0
 }

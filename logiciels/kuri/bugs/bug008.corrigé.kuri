@@ -1,0 +1,19 @@
+/* Bug corrigé par un commit inconnu, sans doute un réusinage.
+ *
+ * Ne peut pas assigner une variable globale depuis une autre dans la coulisse C
+ *
+ * Ceci vient de C.kuri
+ * !!! ne pas oublier d'ajourner le fichier quand celà sera fait
+ *
+ * Catégorie : [génération code, initialisation globale, expression quelconque]
+ */
+
+_PF_INET := 2
+_AF_INET := _PF_INET
+
+principale :: fonc ()
+{
+    saufsi _AF_INET == _PF_INET {
+        exit(1)
+    }
+}

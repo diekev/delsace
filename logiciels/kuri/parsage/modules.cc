@@ -236,8 +236,7 @@ void imprime_ligne_avec_message(Enchaineuse &enchaineuse,
     }
 
     auto const index_ligne = site.index_ligne;
-    auto const numéro_ligne = site.index_ligne + fichier->décalage_fichier + 1;
-    auto const index_colonne = site.index_colonne;
+    auto const numéro_ligne = site.index_ligne + int32_t(fichier->décalage_fichier) + 1;
     auto const texte_ligne = fichier->tampon()[index_ligne];
     auto chemin = fichier->source == SourceFichier::CHAINE_AJOUTÉE ? ".chaine_ajoutées" :
                                                                      fichier->chemin();

@@ -1,0 +1,9 @@
+/* Pas d'erreur de compilation si nous tentons de décaler un bit de plus de place que le type le permet.
+ * Catégorie : [validation sémantique, limites, type entier]
+ */
+
+principale :: fonc ()
+{
+    /* Pour z32, 31 est le maximum. */
+    _ := 1 << 32
+}

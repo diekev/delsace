@@ -8,6 +8,7 @@ option(AVEC_ALEMBIC "Active la génération du module Alembic" OFF)
 option(AVEC_IMAGE "Active la génération du module Image" OFF)
 option(AVEC_OPENVDB "Active la génération du module OpenVDB" OFF)
 option(AVEC_GVDB "Active la génération du module GVDB" OFF)
+option(AVEC_COULISSE_LLVM "Active la coulisse LLVM" OFF)
 
 # Nous avons besoin de GPerf pour générer les empreintes parfaites
 # des lexèmes.
@@ -16,7 +17,9 @@ add_definitions(-DCHEMIN_GPERF="${CHEMIN_GPERF}")
 
 if(AVEC_LLVM)
     find_package(LLVM REQUIRED)
-    add_definitions(-DAVEC_LLVM)
+    if(AVEC_COULISSE_LLVM)
+        add_definitions(-DAVEC_COULISSE_LLVM)
+    endif()
 endif()
 
 # À FAIRE : trouve ceux-ci de manière programmatique

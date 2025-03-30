@@ -14,8 +14,7 @@ passe_structure_par_valeur_défaut :: fonc (u := U())
     assert(u.données == nul)
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     passe_structure_par_valeur_défaut()
-    retourne 0
 }

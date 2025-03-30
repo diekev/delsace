@@ -35,6 +35,23 @@ copie_référence :: fonc (state: *DocumentState) -> *DocumentState
     retourne state
 }
 
+clone :: fonc (state: *DocumentState) -> *DocumentState
+{
+    résultat := loge(DocumentState)
+    résultat.document = state.document
+    résultat.history_policy_container = state.history_policy_container
+    résultat.initiator_origin = state.initiator_origin
+    résultat.origin = state.origin
+    résultat.navigable_target_name = state.navigable_target_name
+    résultat.about_base_url = state.about_base_url
+    résultat.request_referrer = state.request_referrer
+    résultat.request_referrer_policy = state.request_referrer_policy
+    résultat.reload_pending = state.reload_pending
+    résultat.ever_populated = state.ever_populated
+    résultat.nested_histories = state.nested_histories
+    retourne résultat
+}
+
 détruit_document_state :: fonc (state: *DocumentState)
 {
     saufsi state {
@@ -82,6 +99,15 @@ détruit_session_history_entry :: fonc (she: *SessionHistoryEntry)
 donne_document :: fonc (she: *SessionHistoryEntry) -> *Document
 {
     retourne she.document_state.document
+}
+
+clone :: fonc (she: *SessionHistoryEntry) -> *SessionHistoryEntry
+{
+    résultat := loge(SessionHistoryEntry)
+    résultat.step = she.step
+    résultat.url = copie_url(she.url)
+    résultat.document_state = clone(she.document_state)
+    retourne résultat
 }
 
 /* ------------------------------------------------------------------------- */

@@ -47,8 +47,7 @@ enregistre_noeud :: fonc (fonc_exec: eini) -> rien
     }
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     enregistre_noeud(execute_noeud)
-    retourne 0
 }

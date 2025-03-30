@@ -6,7 +6,6 @@
 
 #dépendance_bibliothèque libc libm
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
-    retourne 0
 }

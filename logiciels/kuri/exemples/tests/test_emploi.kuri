@@ -1,6 +1,6 @@
 importe Fondation
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     test_modification_paramètre_empl()
     test_modification_paramètre_empl_indirection()
@@ -17,7 +17,6 @@ principale :: fonc () -> z32
     test_emploi_variable_locale()
     test_emploi_énum()
     test_emploi_structure()
-    retourne 0
 }
 
 /* ------------------------------------------------------------------------- */
