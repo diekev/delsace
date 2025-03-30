@@ -1,0 +1,19 @@
+/* Crash lors de l'accès à une variable globale n'étant pas encore typée
+ * Bug corrigé par le commit : 9e2d394edc38b062d8a614ddd37da0c2425fec48
+ * Catégorie : [crash, validation sémantique, variable globale, type inconnu]
+ */
+
+importe Fondation
+
+foo :: fonc () -> rien
+{
+    a := 1024 / TAILLE_PAGE
+    imprime("a (doit être 128) : %\n", a)
+}
+
+TAILLE_PAGE :: 8
+
+principale :: fonc ()
+{
+    foo()
+}

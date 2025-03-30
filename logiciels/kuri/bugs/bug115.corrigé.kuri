@@ -5,8 +5,7 @@
 
 importe Compilatrice
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     _ := compilatrice_espace_courant()
-    retourne 0
 }

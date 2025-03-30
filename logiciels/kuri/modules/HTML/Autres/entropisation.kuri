@@ -1,7 +1,7 @@
 importe HTML
 importe #inemployé JavaScript
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     mv: JavaScript.MachineVirtuelle
     JavaScript.initialise_mv(nul, *mv)
@@ -13,6 +13,4 @@ principale :: fonc () -> z32
     paramètres.limite_haute_éléments = 100
 
     programme_entropisation(paramètres, *mv)
-
-    retourne 0
 }

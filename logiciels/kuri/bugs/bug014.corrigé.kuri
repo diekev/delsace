@@ -1,0 +1,15 @@
+/* Bug corrigé par le commit : de26f0ac78575d8a2fdf89a2d6d4bdb851754360
+ * Les variables des constructions de structures ne sont pas validées
+ * Catégorie : [validation sémantique, construction structure]
+ */
+
+Vecteur :: struct {
+    x := 1.0
+    y := 4.0
+    z := 9.0
+}
+
+principale :: fonc ()
+{
+    v := Vecteur(x = 2.0, y = 4.0, w = 6.0)
+}

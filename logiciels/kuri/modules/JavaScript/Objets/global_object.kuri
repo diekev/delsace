@@ -1,6 +1,8 @@
 importe Chaine
+importe Ensemble
 importe Fondation
 importe Math
+importe Unicode
 
 /* ------------------------------------------------------------------------- */
 /** \nom 19.2.1 eval ( x )
@@ -298,6 +300,194 @@ parse_int :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     }
 
     retourne normal_completion(Valeur(Number = résultat))
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 19.2.6 URI Handling Functions
+ * https://tc39.es/ecma262/multipage/global-object.html#sec-uri-handling-functions
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_function_encode_uri_component := TableVirtuelleObject(classe = Function, sur_call = encode_uri_component_sur_call)
+
+#portée_export
+
+crée_encode_uri_component :: fonc (realm: *Realm) -> *Function
+{
+    résultat := crée_fonction(realm.intrinsics.function_prototype)
+    set_function_name(realm, résultat, STR_encodeURIComponent)
+    résultat.table = *table_virtuelle_function_encode_uri_component
+    retourne résultat
+}
+
+/* 19.2.6.4 encodeURIComponent ( uriComponent )
+ * https://tc39.es/ecma262/multipage/global-object.html#sec-encodeuricomponent-uricomponent */
+encode_uri_component_sur_call :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    // 1. Let componentString be ? ToString(uriComponent).
+    completion_component_string := to_string(interpréteuse, params.donne_argument(0))
+    saufsi completion_component_string.est_normal() {
+        retourne completion_component_string
+    }
+    component_string := completion_component_string.valeur.V.String.texte
+
+    // 2. Let extraUnescaped be the empty String.
+    extra_unescaped := crée_chaine_utf16_unique_vide()
+
+    // 3. Return ? Encode(componentString, extraUnescaped).
+    retourne encode(interpréteuse, component_string, extra_unescaped)
+}
+
+/* 19.2.6.5 Encode ( string, extraUnescaped )
+ * https://tc39.es/ecma262/multipage/global-object.html#sec-encode */
+encode :: fonc (interpréteuse: *Interpréteuse, string: ECMAString, extra_unescaped: ECMAString) -> CompletionRecord
+{
+    // 1. Let len be the length of string.
+    len := string.taille()
+
+    // 2. Let R be the empty String.
+    R: EnchaineuseUTF16
+    initialise_enchaineuse(R)
+    diffère détruit_tampons(R)
+
+    // 3. Let alwaysUnescaped be the string-concatenation of the ASCII word characters and "-.!~*'()".
+    always_unescaped := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-.!~*'()"
+
+    // 4. Let unescapedSet be the string-concatenation of alwaysUnescaped and extraUnescaped.
+    unescaped_set: [..]n16
+    diffère déloge(unescaped_set)
+
+    pour always_unescaped {
+        ensemble_ajoute(*unescaped_set, it comme n16)
+    }
+
+    unités_extra_unescaped := extra_unescaped.donne_chaine_utf16().unités
+    pour unités_extra_unescaped {
+        ensemble_ajoute(*unescaped_set, it)
+    }
+
+    // 5. Let k be 0.
+    k := 0
+
+    // 6. Repeat, while k < len,
+    string16 := string.donne_chaine_utf16()
+    tantque k < len {
+        // a. Let C be the code unit at index k within string.
+        C := string16.unités[k]
+
+        // b. If unescapedSet contains C, then
+        si ensemble_possède(*unescaped_set, C) {
+            // i. Set k to k + 1.
+            k += 1
+
+            // ii. Set R to the string-concatenation of R and C.
+            R.ajoute(C)
+        }
+        // c. Else,
+        sinon {
+            // i. Let cp be CodePointAt(string, k).
+            cp := code_point_at(string16, k)
+
+            // ii. If cp.[[IsUnpairedSurrogate]] is true, throw a URIError exception.
+            si cp.est_surrogate_sans_paire {
+                retourne interpréteuse.lance_uri_error("Invalid character in URI")
+            }
+
+            // iii. Set k to k + cp.[[CodeUnitCount]].
+            k += cp.compte_d_unité_de_code comme z32
+
+            // iv. Let Octets be the List of octets resulting by applying the UTF-8 transformation to cp.[[CodePoint]].
+            octets: [4]n8
+            nombre_d_octets := point_de_code_vers_utf8(cp.point_de_code, *octets[0])
+
+            // v. For each element octet of Octets, do
+            pour nombre_d_octets {
+                // 1. Let hex be the String representation of octet, formatted as an uppercase hexadecimal number.
+                hex := donne_chaine_hex_pour_octet(octets[it])    
+
+                // 2. Set R to the string-concatenation of R, "%", and StringPad(hex, 2, "0", start).
+                // À FAIRE : StringPad
+                ajoute(R, '%' comme n16)
+                ajoute(R, hex[0])
+                ajoute(R, hex[1])
+            }
+        }
+    }
+
+    // 7. Return R.
+    résultat16 := chaine_depuis_enchaineuse(R)
+    // @fuite-de-mémoire ?
+    résultat := crée_chaine_utf16_unique(résultat16)
+    retourne crée_string_value_completion(interpréteuse, résultat)
+}
+
+donne_chaine_hex_pour_octet :: fonc (o: n8) -> [2]n16
+{
+    caractères_hex_majuscules :: "0123456789ABCDEF"
+    a := (o >> 4) & 0xf
+    b := o & 0xf
+
+    résultat := [caractères_hex_majuscules[a] comme n16, caractères_hex_majuscules[b] comme n16]
+    retourne résultat
+}
+
+/* 11.1.3 Static Semantics: UTF16SurrogatePairToCodePoint ( lead, trail )
+ * https://tc39.es/ecma262/multipage/ecmascript-language-source-code.html#sec-utf16decodesurrogatepair */
+// À FAIRE(langage) : crash si Chaine.utf16_décode_paire_surrogate
+utf16_surrogate_pair_to_code_point :: utf16_décode_paire_surrogate
+
+/* 11.1.4 Static Semantics: CodePointAt ( string, position )
+ * https://tc39.es/ecma262/multipage/ecmascript-language-source-code.html#sec-codepointat */
+InfoPointDeCode :: struct {
+    point_de_code: n32
+    compte_d_unité_de_code: n8
+    est_surrogate_sans_paire: bool
+}
+
+code_point_at :: fonc (string: ChaineUTF16, position: z64) -> InfoPointDeCode
+{
+    // 1. Let size be the length of string.
+    size := string.taille()
+
+    // 2. Assert: position ≥ 0 and position < size.
+    assert(position >= 0)
+    assert(position < size)
+
+    // 3. Let first be the code unit at index position within string.
+    first := string.unités[position]
+
+    // 4. Let cp be the code point whose numeric value is the numeric value of first.
+    cp := first comme n32
+
+    // 5. If first is neither a leading surrogate nor a trailing surrogate, then
+    saufsi est_leading_surrogate(first) || est_trailling_surrogate(first) {
+        // a. Return the Record { [[CodePoint]]: cp, [[CodeUnitCount]]: 1, [[IsUnpairedSurrogate]]: false }.
+        retourne InfoPointDeCode(cp, 1, faux)
+    }
+
+    // 6. If first is a trailing surrogate or position + 1 = size, then
+    si est_trailling_surrogate(first) || position + 1 == size {
+        // a. Return the Record { [[CodePoint]]: cp, [[CodeUnitCount]]: 1, [[IsUnpairedSurrogate]]: true }.
+        retourne InfoPointDeCode(cp, 1, vrai)
+    }
+
+    // 7. Let second be the code unit at index position + 1 within string.
+    second := string.unités[position + 1]
+
+    // 8. If second is not a trailing surrogate, then
+    saufsi est_trailling_surrogate(second) {
+        // a. Return the Record { [[CodePoint]]: cp, [[CodeUnitCount]]: 1, [[IsUnpairedSurrogate]]: true }.
+        retourne InfoPointDeCode(cp, 1, vrai)
+    }
+
+    // 9. Set cp to UTF16SurrogatePairToCodePoint(first, second).
+    cp = utf16_surrogate_pair_to_code_point(first, second)
+
+    // 10. Return the Record { [[CodePoint]]: cp, [[CodeUnitCount]]: 2, [[IsUnpairedSurrogate]]: false }.
+    retourne InfoPointDeCode(cp, 2, faux)
 }
 
 /** \} */

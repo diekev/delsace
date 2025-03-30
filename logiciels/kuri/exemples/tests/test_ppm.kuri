@@ -157,7 +157,7 @@ détruit_image :: fonc (image: *Image) -> rien
 
 /* ------------------------------------------------------------------------- */
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     image := génére_image_damier()
     //ratisse_triangle(image, 0.25, 0.5, 0.5, 0.25, 0.5, 0.75);
@@ -169,6 +169,4 @@ principale :: fonc () -> z32
     détruit_image(*image)
 
     diffère imprime("Mémoire utilisée : %o\n", mémoire_utilisée())
-
-    retourne 0
 }

@@ -1,0 +1,62 @@
+/* Les conditions des controles de flux ne sont pas court-circuitées
+ * quand ont a une condition du style a && b, si a est faux nous pourrions
+ * ne pas évaluer b
+ * de même, pour une conditoin a || b, si a est vrai, b n'a pas besoin d'être évaluée
+ * Catégorie : [génération code, court-circuit comparaison]
+ */
+
+principale :: fonc ()
+{
+    tabl: [..]z32
+
+    tableau_ajoute(*tabl, 0)
+    tableau_ajoute(*tabl, 1)
+    tableau_ajoute(*tabl, 2)
+    tableau_ajoute(*tabl, 3)
+
+    {
+        // crash ou panique selon ce qui est déréférencé
+        si tabl.taille < 4 && tabl[4] == 6 {
+            // ....
+        }
+
+        // crash ou panique selon ce qui est déréférencé
+        si tabl.taille == 4 || tabl[4] == 6 {
+            // ....
+        }
+    }
+
+    {
+        // crash ou panique selon ce qui est déréférencé
+        tantque tabl.taille < 4 && tabl[4] == 6 {
+            arrête
+        }
+
+        // crash ou panique selon ce qui est déréférencé
+        tantque tabl.taille == 4 || tabl[4] == 6 {
+            arrête
+        }
+    }
+
+    {
+        i := 0
+        répète {
+            si i > 1 {
+                arrête
+            }
+
+            i += 1
+            // crash ou panique selon ce qui est déréférencé
+        } tantque tabl.taille < 4 && tabl[4] == 6
+
+        i = 0
+        répète {
+            si i > 1 {
+                arrête
+            }
+
+            i += 1
+            // crash ou panique selon ce qui est déréférencé
+        } tantque tabl.taille == 4 || tabl[4] == 6
+    }
+}

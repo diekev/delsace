@@ -1,0 +1,18 @@
+/* Verrou mort lorsqu'une erreur survient dans une compilation d'un script
+ * erroné.
+ * Similaire à bug68
+ * Catégorie : [compilation infini]
+ */
+
+importe Support
+
+principale :: fonc ()
+{
+    erreur_survenue := #exécute compile_script_erroné("
+    a := MonÉnum.Valeur
+    ")
+
+    saufsi erreur_survenue {
+        exit(1)
+    }
+}
