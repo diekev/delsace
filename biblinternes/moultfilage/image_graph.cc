@@ -34,7 +34,7 @@ using namespace tbb::flow;
 
 static const int num_image_buffers = 100;
 static int image_size = 10000000;
-static int num_graph_buffers = 8;
+// static int num_graph_buffers = 8;
 static int img_number = 0;
 static int num_images = 64;
 static const int a_frequency = 11;
