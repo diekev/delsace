@@ -75,8 +75,7 @@ détruit_table :: fonc (table: *Table) -> rien
     déloge(table.lignes)
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     imprime("\\033[3msur cyan\n")
-    retourne 0
 }

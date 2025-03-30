@@ -30,9 +30,7 @@ rappel_personnalisé_écriture_bio :: fonc (bio: *BIO, données: *octet, length:
 
     // À FAIRE : détermine ce que c'est et passe à prise.écris
     // données_ssl_boucle.last_write_was_msg_more = données_ssl_boucle.msg_more || length == 16413
-    données_chn : chaine = ---
-    données_chn.pointeur = données comme *z8
-    données_chn.taille = length
+    données_chn := chaine(données comme *z8, length)
     octets_écris := prise.écris_final(données_chn)
 
     saufsi octets_écris {

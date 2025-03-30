@@ -645,7 +645,7 @@ perror :: fonc(chn : chaine) -> rien
 
 _stderr := 0;
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     fn_chn = "test_file";
     fn = fn_chn.pointeur;
@@ -998,6 +998,6 @@ principale :: fonc () -> z32
     //************************************************************************
     // success
 
-    retourne 0;
+    exit(0;)
 }
 

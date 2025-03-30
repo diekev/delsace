@@ -1,0 +1,15 @@
+/* Crash l'appel d'une fonction retournant plusieurs est l'argument prenant des eini.
+ * Catégories : [validation sémantique, crash]
+ */
+
+importe Fondation
+
+retourne_plusieurs_valeurs :: fonc () -> z32, r32
+{
+    retourne 127, 0.5
+}
+
+principale :: fonc ()
+{
+    imprime("%\n", retourne_plusieurs_valeurs())
+}

@@ -154,10 +154,11 @@ crée_fenêtre_principal_impl_sdl :: fonc (nom: chaine, rect: RectanglePosDim(z3
     retourne fenêtre
 }
 
-exécute :: fonc (app: *ApplicationSDL, cliente: *$TypeCliente) -> z32
+exécute :: fonc (app: *ApplicationSDL, cliente: *$TypeCliente)
 {
     saufsi app.fenêtre {
-        retourne 0
+        imprime("L'application n'a pas de fenêtre")
+        exit(1)
     }
 
     // À FAIRE : définis le taux/la stratégie de rafraichissement
@@ -179,7 +180,6 @@ exécute :: fonc (app: *ApplicationSDL, cliente: *$TypeCliente) -> z32
     détruit_fenêtre(app.fenêtre)
     déloge(app)
     SDL_Quit()
-    retourne 0
 }
 
 dessine_application :: fonc (app: *ApplicationSDL, cliente: *$TypeCliente)

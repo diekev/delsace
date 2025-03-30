@@ -33,7 +33,7 @@ init_vecteur :: fonc ()
     imprime("v : %\n", v)
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 #corps_texte {
-    retourne copie_chaine("/* init_vecteur(); */ test_ajoute(); retourne 0")
+    retourne copie_chaine("/* init_vecteur(); */ test_ajoute();")
 }

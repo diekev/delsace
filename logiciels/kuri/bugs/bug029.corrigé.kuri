@@ -1,0 +1,17 @@
+/* Ne peut pas passer un pointeur à un eini via l'opérateur de prise d'adresse
+ * Catégorie : [validation sémantique, conversion implicite, eini]
+ */
+
+passe_eini :: fonc (e: eini) -> bool
+{
+    a : *z32 = mémoire(e.pointeur comme **z32)
+    retourne (mémoire(a) == 127)
+}
+
+principale :: fonc ()
+{
+    a : z32 = 127
+    saufsi passe_eini(*a) {
+        exit(1)
+    }
+}

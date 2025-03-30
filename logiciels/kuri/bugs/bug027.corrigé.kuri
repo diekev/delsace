@@ -1,0 +1,20 @@
+/* La capacité des tableaux n'est pas remise à zéro quand nous les délogeons.
+ * Catégorie : [génération code, expression déloge, type tableau]
+ */
+
+principale :: fonc ()
+{
+    tabl: [..]z32
+
+    tableau_ajoute(*tabl, 1)
+    tableau_ajoute(*tabl, 1)
+    tableau_ajoute(*tabl, 1)
+    tableau_ajoute(*tabl, 1)
+
+    déloge(tabl)
+
+    tableau_ajoute(*tabl, 1) // crash
+    tableau_ajoute(*tabl, 1)
+
+    déloge(tabl)
+}
