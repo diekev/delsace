@@ -1470,6 +1470,31 @@ static CodeRetourValidation trouve_candidates_pour_appel(
         return CodeRetourValidation::OK;
     }
 
+    if (appelée->type && appelée->type->est_type_type_de_données()) {
+        auto type_connu = appelée->type->comme_type_type_de_données()->type_connu;
+        if (!type_connu) {
+            contexte.rapporte_erreur("Impossible d'utiliser un « type_de_données » "
+                                     "dans une expression d'appel",
+                                     appelée);
+            return CodeRetourValidation::Erreur;
+        }
+
+        if (type_connu->est_type_structure()) {
+            candidates.ajoute({CANDIDATE_EST_DÉCLARATION, type_connu->comme_type_structure()});
+            return CodeRetourValidation::OK;
+        }
+
+        if (type_connu->est_type_union()) {
+            candidates.ajoute({CANDIDATE_EST_DÉCLARATION, type_connu->comme_type_union()});
+            return CodeRetourValidation::OK;
+        }
+
+        contexte.rapporte_erreur("Impossible d'utiliser un « type_de_données » "
+                                 "dans une expression d'appel",
+                                 appelée);
+        return CodeRetourValidation::Erreur;
+    }
+
     if (appelée->genre == GenreNoeud::EXPRESSION_RÉFÉRENCE_MEMBRE) {
         auto accès = appelée->comme_référence_membre();
 
@@ -1496,31 +1521,6 @@ static CodeRetourValidation trouve_candidates_pour_appel(
             return CodeRetourValidation::OK;
         }
 
-        if (accès->type->est_type_type_de_données()) {
-            auto type_connu = accès->type->comme_type_type_de_données()->type_connu;
-            if (!type_connu) {
-                contexte.rapporte_erreur("Impossible d'utiliser un « type_de_données » "
-                                         "dans une expression d'appel",
-                                         accès);
-                return CodeRetourValidation::Erreur;
-            }
-
-            if (type_connu->est_type_structure()) {
-                candidates.ajoute({CANDIDATE_EST_DÉCLARATION, type_connu->comme_type_structure()});
-                return CodeRetourValidation::OK;
-            }
-
-            if (type_connu->est_type_union()) {
-                candidates.ajoute({CANDIDATE_EST_DÉCLARATION, type_connu->comme_type_union()});
-                return CodeRetourValidation::OK;
-            }
-
-            contexte.rapporte_erreur("Impossible d'utiliser un « type_de_données » "
-                                     "dans une expression d'appel",
-                                     accès);
-            return CodeRetourValidation::Erreur;
-        }
-
         candidates.ajoute({CANDIDATE_EST_ACCÈS_MEMBRE, accès});
         return CodeRetourValidation::OK;
     }
@@ -1533,22 +1533,6 @@ static CodeRetourValidation trouve_candidates_pour_appel(
     if (appelée->type->est_type_fonction()) {
         candidates.ajoute({CANDIDATE_EST_EXPRESSION_QUELCONQUE, appelée});
         return CodeRetourValidation::OK;
-    }
-
-    if (appelée->est_construction_structure() || appelée->est_appel()) {
-        if (appelée->type->est_type_type_de_données()) {
-            auto type = appelée->type->comme_type_type_de_données()->type_connu;
-
-            if (type->est_type_structure()) {
-                candidates.ajoute({CANDIDATE_EST_DÉCLARATION, type->comme_type_structure()});
-                return CodeRetourValidation::OK;
-            }
-
-            if (type->est_type_union()) {
-                candidates.ajoute({CANDIDATE_EST_DÉCLARATION, type->comme_type_union()});
-                return CodeRetourValidation::OK;
-            }
-        }
     }
 
     contexte.rapporte_erreur("L'expression n'est pas de type fonction", appelée);
