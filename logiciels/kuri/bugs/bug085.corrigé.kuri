@@ -1,0 +1,23 @@
+/* Erreur de compilation si nous tentons de construire une union depuis un
+ * pointeur vers un type employant un type membre.
+ * Catégorie : [validation sémantique, construction type, type employé, type union]
+ */
+
+StructureDeBase :: struct {
+    x: r32
+}
+
+StructureEmployeuse :: struct {
+    empl base: StructureDeBase
+}
+
+Union :: union {
+    b: *StructureDeBase
+}
+
+principale :: fonc ()
+{
+    b: StructureEmployeuse
+
+    _ : Union = *b
+}

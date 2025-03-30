@@ -1,10 +1,9 @@
 importe Fondation
 importe Temps
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     moment := hui_système()
     date := donne_date_républicaine(moment)
     imprime("%\n", donne_chaine_date_républicaine(date))
-    retourne 0
 }

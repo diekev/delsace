@@ -1,0 +1,24 @@
+/* Prendre un pointeur depuis une référence échoue.
+ * Catégorie : [génération code, conversion implicite, type pointeur, type référence]
+ */
+
+importe Support
+
+modifie_via_pointeur :: fonc (a: *z32)
+{
+    mémoire(a) = 123456
+}
+
+passe_référence_à_pointeur :: fonc (a: &z32)
+{
+    modifie_via_pointeur(*a)
+}
+
+principale :: fonc ()
+{
+    a := 0
+    passe_référence_à_pointeur(a)
+    saufsi a == 123456 {
+        exit(1)
+    }
+}

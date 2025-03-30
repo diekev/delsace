@@ -133,7 +133,7 @@ donne_nom_snake_case :: fonc (chn: chaine, griffonier: *Griffonier) -> chaine
         curseur += 1
     }
 
-    retourne construit_chaine(*griffonier.données[0], griffonier.curseur)
+    retourne chaine(*griffonier.données[0], griffonier.curseur)
 }
 
 NomEtIndex :: struct {
@@ -922,7 +922,7 @@ donne_info_erreur_pour_lexème :: fonc (parseuse: *ParseuseInterface, lexème: c
         it += 1
     }
 
-    résultat.texte_ligne = construit_chaine(pos_dernière_ligne, it - pos_dernière_ligne)
+    résultat.texte_ligne = chaine(pos_dernière_ligne, it - pos_dernière_ligne)
     résultat.index_colonne = (début_lexème - pos_dernière_ligne) comme z32
     résultat.index_colonne_début = résultat.index_colonne
     résultat.index_colonne_fin = résultat.index_colonne + lexème.taille comme z32
@@ -959,7 +959,7 @@ apparie :: fonc (parseuse: *ParseuseInterface, texte: chaine) -> bool
         retourne faux
     }
 
-    chn := construit_chaine(parseuse.début, texte.taille)
+    chn := chaine(parseuse.début, texte.taille)
     retourne chn == texte
 }
 
@@ -1009,9 +1009,7 @@ donne_lexème_suivant :: fonc (parseuse: *ParseuseInterface) -> chaine
         retourne ""
     }
 
-    résultat : chaine = ---
-    résultat.pointeur = parseuse.début
-    résultat.taille = 0
+    résultat := chaine(parseuse.début, 0)
 
     tantque parseuse.début < parseuse.fin {
         c := mémoire(parseuse.début)
@@ -1058,7 +1056,7 @@ consomme_espaces_blanches :: fonc (parseuse: *ParseuseInterface)
             continue
         }
 
-        chn := construit_chaine(parseuse.début, parseuse.fin - parseuse.début)
+        chn := chaine(parseuse.début, parseuse.fin - parseuse.début)
 
         si chn.commence_par("//") {
             parseuse.début += 2

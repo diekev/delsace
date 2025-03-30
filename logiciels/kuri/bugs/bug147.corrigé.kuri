@@ -13,8 +13,7 @@ imprime_valeur_chaine :: fonc (e: eini)
     assert(valeur == VALEUR_CHAINE)
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     imprime_valeur_chaine(VALEUR_CHAINE)
-    retourne 0
 }
