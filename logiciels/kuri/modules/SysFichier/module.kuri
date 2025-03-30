@@ -113,7 +113,7 @@ contenu_fichier_binaire :: fonc (chemin: &CheminFichier) -> [..]octet
 
 contenu_fichier_binaire :: fonc (chemin: CheminFichier, résultat: &[..]octet)
 {
-    fichier := tente ouvre_fichier(chemin) piège _ {
+    fichier := tente ouvre_fichier(chemin, pour_lecture, 0o644) piège _ {
         retourne
     }
 
