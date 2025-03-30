@@ -107,22 +107,7 @@ espace_disque_disponible :: fonc (chemin: &CheminFichier) -> Optionnel(n64)
 contenu_fichier_binaire :: fonc (chemin: &CheminFichier) -> [..]octet
 {
     contenu: [..]octet
-
-    fichier := tente ouvre_fichier(chemin) piège _ {
-        retourne contenu
-    }
-
-    diffère _ := ferme(*fichier)
-
-    discr lis_tout(*fichier) {
-        c(c_) {
-            contenu.pointeur = c_.pointeur
-            contenu.taille = c_.taille
-        }
-        sinon {
-        }
-    }
-
+    contenu_fichier_binaire(chemin, contenu)
     retourne contenu
 }
 
