@@ -37,8 +37,8 @@ void test_flow_graph()
 	function_node<int, int> squarer(g, unlimited, square());
 	function_node<int, int> cuber(g, unlimited, cube());
 
-	join_node<tuple<int, int>, queueing> join(g);
-	function_node<tuple<int, int>, int> summer(g, serial, sum(result));
+    join_node<std::tuple<int, int>, queueing> join(g);
+    function_node<std::tuple<int, int>, int> summer(g, serial, sum(result));
 
 	make_edge(input, squarer);
 	make_edge(input, cuber);

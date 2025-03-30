@@ -125,7 +125,7 @@ SystèmeTâche :: struct {
     tâches: [..]Tâche
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     imprime("Il y a sur le système % threads\n", nombre_threads_disponible())
 
@@ -160,6 +160,4 @@ principale :: fonc () -> z32
     }
 
     _ := pthread_join(store.thread_store, nul)
-
-    retourne 0
 }

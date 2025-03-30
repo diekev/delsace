@@ -270,7 +270,7 @@ ligne_suivante :: fonc (curseur: *CurseurRésultat) -> **z8
 
 colonne_suivante :: fonc (curseur: *CurseurRésultat) -> chaine
 {
-    chn := construit_chaine(curseur.ligne[curseur.index_colonne], curseur.longueurs[curseur.index_colonne] comme z64)
+    chn := chaine(curseur.ligne[curseur.index_colonne], curseur.longueurs[curseur.index_colonne] comme z64)
     curseur.index_colonne += 1
     retourne chn
 }

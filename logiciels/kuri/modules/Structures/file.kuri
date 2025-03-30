@@ -40,7 +40,7 @@ nombre_éléments :: fonc (file: &File(T = $T)) -> z32 #enligne
 /*
 importe Fondation
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     file: File(T = z32)
 
@@ -56,7 +56,5 @@ principale :: fonc () -> z32
         i := file.défile()
         imprime("i := %\n", i)
     }
-
-    retourne 0
 }
 */

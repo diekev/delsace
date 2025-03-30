@@ -48,17 +48,61 @@ DOMString :: ChaineUTF16Unique
 
 donne_chemin_fichier_css_défaut :: fonc () -> CheminFichier
 {
+    retourne donne_chemin_fichier_css("Fichiers/defaults.css")
+}
+
+donne_chemin_fichier_css_presentational_hints :: fonc () -> CheminFichier
+{
+    retourne donne_chemin_fichier_css("Fichiers/presentational_hints.css")
+}
+
+donne_chemin_fichier_css_quirks :: fonc () -> CheminFichier
+{
     chemin_courant := CheminFichier(#chemin_de_ce_fichier)
     chemin_parent := chemin_courant.chemin_parent()
     diffère détruit_chemin(chemin_parent)
-    résultat := crée_chemin_absolu(chemin_parent, CheminFichier("Fichiers/defaults.css"))
+    résultat := crée_chemin_absolu(chemin_parent, CheminFichier("Fichiers/quirks.css"))
     assert(est_un_fichier_régulier(résultat))
     retourne résultat
 }
 
+#portée_fichier
+
+donne_chemin_fichier_css :: fonc (chemin: chaine) -> CheminFichier
+{
+    chemin_courant := CheminFichier(#chemin_de_ce_fichier)
+    chemin_parent := chemin_courant.chemin_parent()
+    diffère détruit_chemin(chemin_parent)
+    résultat := crée_chemin_absolu(chemin_parent, CheminFichier(chemin))
+    assert(est_un_fichier_régulier(résultat))
+    retourne résultat
+}
+
+#portée_export
+
 donne_feuille_de_style_défaut :: fonc () -> *CSS.CSSStyleSheet
 {
-    chemin_fichier := donne_chemin_fichier_css_défaut()
+    retourne donne_feuille_de_style("Fichiers/defaults.css")
+}
+
+donne_feuille_de_style_presentational_hints :: fonc () -> *CSS.CSSStyleSheet
+{
+    résultat := donne_feuille_de_style("Fichiers/presentational_hints.css")
+    résultat.origine = CSS.OrigineCascade.Author
+    résultat.force_spécifité_zéro = vrai
+    retourne résultat
+}
+
+donne_feuille_de_style_quirks :: fonc () -> *CSS.CSSStyleSheet
+{
+    retourne donne_feuille_de_style("Fichiers/quirks.css")
+}
+
+#portée_fichier
+
+donne_feuille_de_style :: fonc (chemin: chaine) -> *CSS.CSSStyleSheet
+{
+    chemin_fichier := donne_chemin_fichier_css(chemin)
     diffère détruit_chemin(chemin_fichier)
 
     contenu := contenu_fichier_texte(chemin_fichier)
@@ -73,6 +117,8 @@ donne_feuille_de_style_défaut :: fonc () -> *CSS.CSSStyleSheet
 
     retourne stylesheet
 }
+
+#portée_export
 
 imprime_noeud :: fonc (noeud: *Noeud, tab: z32) -> rien
 {

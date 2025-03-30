@@ -29,10 +29,7 @@ taille_position :: fonc (position: PositionChaine) -> z32
 
 sous_chaine :: fonc (chn: chaine, position: PositionChaine) -> chaine
 {
-    résultat : chaine = ---
-    résultat.pointeur = chn.pointeur + position.début
-    résultat.taille = position.fin - position.début
-    retourne résultat
+    retourne chaine(chn.pointeur + position.début, position.fin - position.début)
 }
 
 // ----------------------------------------------------

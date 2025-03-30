@@ -1,0 +1,12 @@
+/* Erreur de compilation si nous définissons un type polymorphique dans un type fonction.
+ * Catégorie : [validation sémantique, type fonction, type polymorphique]
+ */
+
+fonction_polymorphique :: fonc (rappel: fonc($T)(rien), données_rappel: T)
+{
+    rappel(données)
+}
+
+principale :: fonc ()
+{
+}
