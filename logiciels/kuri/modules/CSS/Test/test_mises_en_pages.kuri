@@ -218,7 +218,9 @@ donne_chemins_fichiers_sources :: fonc () -> [..]CheminFichier
 {
     résultat: [..]CheminFichier
 
-    dossier := CheminFichier(copie_chaine("fichiers/sources"))
+    dossier_parent := CheminFichier(#chemin_de_ce_fichier).chemin_parent()
+    diffère détruit_chemin(dossier_parent)
+    dossier := dossier_parent / "fichiers/sources"
 
     dossiers_à_visiter: Pile(CheminFichier)
     dossiers_à_visiter.empile(dossier) 
