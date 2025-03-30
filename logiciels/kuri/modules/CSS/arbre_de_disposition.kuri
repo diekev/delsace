@@ -806,6 +806,9 @@ résoud_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élémen
         déclarations := règle.style.déclarations
         tableau_réserve(*résolveuse.déclarations_cascade, résolveuse.déclarations_cascade.taille + déclarations.taille)
         spécificité := it.spécificité
+        si règle.parent_style_sheet && règle.parent_style_sheet.force_spécifité_zéro {
+            spécificité = Spécificité(0, 0, 0)
+        }
         origine := donne_origine_cascade(règle)
 
         position: PositionDéclaration
@@ -1296,6 +1299,12 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, haut
     saufsi document.feuille_de_style_agent {
         document.feuille_de_style_agent = HTML.donne_feuille_de_style_défaut()
         tableau_insère_index(*document.feuilles_de_style, document.feuille_de_style_agent, 0)
+
+        tableau_insère_index(*document.feuilles_de_style, HTML.donne_feuille_de_style_presentational_hints(), 1)
+
+        si HTML.est_en_mode_quirks(document) {
+            tableau_insère_index(*document.feuilles_de_style, HTML.donne_feuille_de_style_quirks(), 2)
+        }
     }
 
     saufsi document.globales_dessin {
@@ -1998,6 +2007,19 @@ est_in_flow :: fonc (noeud: *NoeudDeDisposition) -> bool
     retourne vrai
 }
 
+est_block_container :: fonc (noeud: *NoeudDeDisposition) -> bool
+{
+    si noeud.table_virtuelle.type == NoeudDeDispositionBloc || noeud.table_virtuelle.type == TableWrapperBox || noeud.table_virtuelle.type == TableCellBox {
+        retourne vrai
+    }
+
+    si noeud.est_inline_block() {
+        retourne vrai
+    }
+
+    retourne faux
+}
+
 donne_display :: fonc (noeud: *NoeudDeDisposition) -> Display
 {
     assert(noeud.propriétés != nul)
@@ -2358,7 +2380,7 @@ donne_containing_block :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeForm
         parent := noeud.parent
 
         tantque parent != nul {
-            si parent.table_virtuelle.type == NoeudDeDispositionBloc || parent.table_virtuelle.type == TableWrapperBox || parent.table_virtuelle.type == TableCellBox {
+            si est_block_container(parent) {
                 retourne crée_containing_block_pour_contenu(parent)
             }
 
@@ -2698,7 +2720,8 @@ réinitialise_lignes :: fonc (noeud: *NoeudDeDispositionBloc, arbre: *ArbreDeDis
 
 détermine_disposition_interne :: fonc (noeud: *NoeudDeDispositionBloc)
 {
-    si noeud.enfants.taille == 0 {
+    si noeud.enfants.taille == 0 || noeud.est_inline_block() {
+        noeud.est_disposition_inline = faux
         retourne
     }
 
@@ -2727,6 +2750,9 @@ MéthodeDeFormattage :: énum {
 donne_méthode_de_formattage_intérieur :: fonc (noeud: *NoeudDeDisposition) -> MéthodeDeFormattage
 {
     si noeud.table_virtuelle.type == NoeudDeDispositionInline {
+        si noeud.est_inline_block() {
+            retourne MéthodeDeFormattage.Bloc
+        }
         retourne MéthodeDeFormattage.Inline
     }
 
@@ -3033,6 +3059,11 @@ noeud_disposition_inline_corrige_hiérarchie :: fonc (base: *NoeudDeDisposition,
 {
     noeud := base comme *NoeudDeDispositionInline
     détermine_disposition_interne(noeud)
+
+    si noeud.est_inline_block() {
+        noeud_disposition_bloc_corrige_hiérarchie(noeud, créatrice)
+        retourne
+    }
 
     si noeud.est_disposition_inline {
         retourne

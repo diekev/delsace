@@ -1,0 +1,16 @@
+/* Erreur de compilation si un pointeur de fonction reçoit une expansion variadique.
+ * Catégorie : [validation sémantique, type fonction, type variadique]
+ */
+
+importe Fondation
+
+log :: fonc (format: chaine, arguments: ...eini)
+{
+    fonction_log := imprime
+    fonction_log(format, ...arguments)
+}
+
+principale :: fonc ()
+{
+    log("% % % % %\n", 0, 1, 2, 3, 4)
+}

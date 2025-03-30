@@ -1,0 +1,13 @@
+/* Crash si nous définissons un type pointeur polymorphique dans un type fonction.
+ * Similaire à bug86.
+ * Catégorie : [crash, validation sémantique, type fonction, type pointeur, type polymorphique]
+ */
+
+fonction_polymorphique :: fonc (rappel: fonc(*$T)(rien), données_rappel: *T)
+{
+    rappel(données)
+}
+
+principale :: fonc ()
+{
+}

@@ -20,12 +20,11 @@ modifie_réel :: fonc (u: *UnionTest)
     u.f = 0.5
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     u: UnionTest
     modifie_entier(*u)
     assert(u.e == 127)
     modifie_réel(*u)
     assert(u.f == 0.5)
-    retourne 0
 }

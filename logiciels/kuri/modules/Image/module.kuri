@@ -771,7 +771,7 @@ blurHashForPixels :: fonc (
 
     taille_chaine := (ptr - *buffer[0]) comme z64
 
-    chn := construit_chaine(*buffer[0], taille_chaine)
+    chn := chaine(*buffer[0], taille_chaine)
 
     imprime("Résultat : %\n", chn)
 

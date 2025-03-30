@@ -13,13 +13,11 @@ est_X :: fonc (drapeaux: ÉnumDrapeau) -> bool
     retourne drapeaux.X == vrai
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     e: ÉnumDrapeau
 
     si est_X(e) {
-        retourne 1
+        exit(1)
     }
-
-    retourne 0
 }

@@ -72,7 +72,7 @@ jusque_prochaine_millis :: fonc (dernier_horodotage: z64) -> z64
 }
 
 /*
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     paramètres : ParamètresFlocon
 
@@ -92,7 +92,5 @@ principale :: fonc () -> z32
             }
         }
     }
-
-    retourne 0
 }
 */

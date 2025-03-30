@@ -1,0 +1,20 @@
+/* Bug corrigé par le commit : 59438844ddadddcae9937210822fdf197e681609
+ *
+ * Il est possible d'avoir des expressions en tout genre dans les énums
+ *
+ * Catégorie : [validation sémantique, membre, type énum]
+ */
+
+importe Support
+
+principale :: fonc ()
+{
+    erreur_survenue := #exécute compile_script_erroné("
+    MonÉnum :: énum z32 {
+        A-B := 5
+    }")
+
+    saufsi erreur_survenue {
+        exit(1)
+    }
+}

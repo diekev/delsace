@@ -369,7 +369,7 @@ formatte :: fonc (date: Date, enchaineuse: *Enchaineuse, format: chaine)
 
     tantque i < format.taille {
         si format[i] != '%' {
-            chn := construit_chaine(*format[i], 1)
+            chn := chaine(*format[i], 1)
             ajoute_au_tampon(enchaineuse, chn)
         }
         sinon {

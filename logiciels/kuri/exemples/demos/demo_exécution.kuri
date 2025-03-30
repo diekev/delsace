@@ -82,7 +82,7 @@ retourne_union_sure :: fonc () -> UnionSure
     retourne 2.5
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     entier := #exécute retourne_entier()
     imprime("entier : %\n", entier)
@@ -120,6 +120,4 @@ principale :: fonc () -> z32
 
     union_sure := #exécute retourne_union_sure()
     imprime("union sûre : %\n", union_sure)
-
-    retourne 0
 }

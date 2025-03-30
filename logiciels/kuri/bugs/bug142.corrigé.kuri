@@ -3,10 +3,9 @@
  * Catégorie : [crash, si statique, tableau fixe, fonction polymorphique]
  */
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     fonction_avec_si_statique(4)
-    retourne 0
 }
 
 fonction_avec_si_statique :: fonc ($N: z32)
