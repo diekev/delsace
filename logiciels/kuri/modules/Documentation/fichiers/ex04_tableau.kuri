@@ -1,4 +1,4 @@
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     // Déclaration d'un tableau de 12 nombre entier relatif 32-bit
     tabl: [12]z32
@@ -10,6 +10,4 @@ principale :: fonc () -> z32
         val = début
         début *= 2
     }
-
-    retourne 0
 }

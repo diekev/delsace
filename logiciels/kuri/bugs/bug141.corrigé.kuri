@@ -28,8 +28,7 @@ imprime_énum_drapeau :: fonc ()
 
 #exécute imprime_énum_drapeau()
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     imprime_énum_drapeau()
-    retourne 0
 }

@@ -12,8 +12,7 @@ retourne_structure :: fonc ($N: z32) -> [..]SélecteurType(N).TypeTableau
     retourne résultat
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     _ := retourne_structure(5)
-    retourne 0
 }

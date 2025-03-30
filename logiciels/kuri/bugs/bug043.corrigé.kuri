@@ -1,0 +1,12 @@
+/* Aucune erreur n'est lancée/compilation infinie quand on accède à une valeur
+ * inconnue.
+ * Catégorie : [compilation infini, validation sémantique, symbole inconnu]
+ */
+
+importe Fondation
+
+principale :: fonc ()
+{
+    botte_de_paille := "botte_de_paille"
+    bdf := avance(bdf, 2) // bdf n'est pas déclarée quand nous l'utilisons
+}

@@ -87,6 +87,15 @@ void FTGL_free(void *ptr, uint64_t size)
 #define HRESf 64.f
 #define DPI 72
 
+static float convert_F26Dot6_to_float(FT_F26Dot6 value)
+{
+    return ((float)value) / 64.0;
+}
+static FT_F26Dot6 convert_float_to_F26Dot6(float value)
+{
+    return (FT_F26Dot6) (value * 64.0);
+}
+
 #undef FTERRORS_H_
 #define FT_ERROR_START_LIST switch (error_code) {
 #define FT_ERRORDEF(e, v, s)                                                                      \
@@ -150,10 +159,21 @@ static int texture_font_load_face(texture_font_t *self,
         goto cleanup_face;
     }
 
-    /* Set char size */
-    error = FT_Set_Char_Size(*face, (int)(size * HRES), 0, DPI * HRES, DPI);
+    /* See page 24 of “Higher Quality 2D Text Rendering”:
+     * http://jcgt.org/published/0002/01/04/
+     * “To render high-quality text, Shemarev [2007] recommends using only
+     *  vertical hinting and completely discarding the horizontal hints.
+     *  Hinting is the responsibility of the rasterization engine (FreeType in
+     *  our case) which provides no option to specifically discard horizontal
+     *  hinting. In the case of the FreeType library, we can nonetheless trick
+     *  the engine by specifying an oversized horizontal DPI (100 times the
+     *  vertical) while specifying a transformation matrix that scale down the
+     *  glyph as shown in Listing 1.”
+     * That horizontal DPI factor is HRES here. */
+    error = FT_Set_Char_Size(*face, convert_float_to_F26Dot6(size), 0, DPI * HRES, DPI);
 
     if (error) {
+        fprintf(stderr, "FT_Set_Char_Size(%p, %d, 0, %u, %u)\n", face, convert_float_to_F26Dot6(size), DPI * HRES, DPI);
         fprintf(
             stderr, "FT_Error (line %d, 0x%02x) : %s\n", __LINE__, error, FT_Error_String(error));
         goto cleanup_face;
@@ -257,12 +277,13 @@ void texture_font_generate_kerning(texture_font_t *self, FT_Library *library, FT
         for (j = 1; j < self->glyphs->size; ++j) {
             prev_glyph = *(texture_glyph_t **)vector_get(self->glyphs, j);
             prev_index = FT_Get_Char_Index(*face, prev_glyph->codepoint);
+            // FT_KERNING_UNFITTED returns FT_F26Dot6 values.
             FT_Get_Kerning(*face, prev_index, glyph_index, FT_KERNING_UNFITTED, &kerning);
             // printf("%c(%d)-%c(%d): %ld\n",
             //       prev_glyph->codepoint, prev_glyph->codepoint,
             //       glyph_index, glyph_index, kerning.x);
             if (kerning.x) {
-                kerning_t k = {prev_glyph->codepoint, kerning.x / (float)(HRESf * HRESf)};
+                kerning_t k = {prev_glyph->codepoint, convert_F26Dot6_to_float(kerning.x) / HRESf};
                 vector_push_back(glyph->kerning, &k);
             }
         }
@@ -302,7 +323,7 @@ static int texture_font_init(texture_font_t *self)
     self->lcd_weights[3] = 0x40;
     self->lcd_weights[4] = 0x10;
 
-    if (!texture_font_load_face(self, self->size * 100.f, &library, &face))
+    if (!texture_font_load_face(self, self->size, &library, &face))
         return -1;
 
     self->underline_position = face->underline_position / (float)(HRESf * HRESf) * self->size;
@@ -318,9 +339,9 @@ static int texture_font_init(texture_font_t *self)
     }
 
     metrics = face->size->metrics;
-    self->ascender = (metrics.ascender >> 6) / 100.0;
-    self->descender = (metrics.descender >> 6) / 100.0;
-    self->height = (metrics.height >> 6) / 100.0;
+    self->ascender = metrics.ascender >> 6;
+    self->descender = metrics.descender >> 6;
+    self->height = metrics.height >> 6;
     self->linegap = self->height - self->ascender + self->descender;
     FT_Fixed em_scale = (FT_Fixed)FT_MulDiv(self->size, 1 << 16, face->units_per_EM);
     self->max_char_width = FT_MulFix(face->bbox.xMax - face->bbox.xMin, em_scale);
@@ -543,6 +564,17 @@ int texture_font_load_glyph_codepoint(texture_font_t *self, uint32_t codepoint)
             FT_Library_SetLcdFilterWeights(library, self->lcd_weights);
         }
     }
+    else if (HRES == 1) {
+        /* “FT_LOAD_TARGET_LIGHT
+         *  A lighter hinting algorithm for gray-level modes. Many generated
+         *  glyphs are fuzzier but better resemble their original shape.
+         *  This is achieved by snapping glyphs to the pixel grid
+         *  only vertically (Y-axis), as is done by FreeType's new CFF engine
+         *  or Microsoft's ClearType font renderer.”
+         * https://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_load_target_xxx
+         */
+        flags |= FT_LOAD_TARGET_LIGHT;
+    }
 
     error = FT_Load_Glyph(face, glyph_index, flags);
     if (error) {
@@ -673,7 +705,7 @@ int texture_font_load_glyph_codepoint(texture_font_t *self, uint32_t codepoint)
     x = region.x;
     y = region.y;
 
-    unsigned char *buffer = FTGL_calloc(tgt_w * tgt_h * self->atlas->depth, sizeof(unsigned char));
+    unsigned char *buffer = texture_atlas_get_glyph_buffer(self->atlas, tgt_w, tgt_h);
 
     unsigned char *dst_ptr = buffer + (padding.top * tgt_w + padding.left) * self->atlas->depth;
     unsigned char *src_ptr = ft_bitmap.buffer;
@@ -686,14 +718,13 @@ int texture_font_load_glyph_codepoint(texture_font_t *self, uint32_t codepoint)
     }
 
     if (self->rendermode == RENDER_SIGNED_DISTANCE_FIELD) {
-        unsigned char *sdf = make_distance_mapb(buffer, tgt_w, tgt_h);
-        FTGL_free(buffer, tgt_w * tgt_h * self->atlas->depth * sizeof(unsigned char));
+        unsigned char *bdbuffer = texture_atlas_get_distance_byte_buffer(self->atlas, tgt_w, tgt_h);
+        double *ddbuffer = texture_atlas_get_distance_double_buffer(self->atlas, tgt_w, tgt_h);
+        unsigned char *sdf = make_distance_mapb(buffer, bdbuffer, ddbuffer, tgt_w, tgt_h);
         buffer = sdf;
     }
 
     texture_atlas_set_region(self->atlas, x, y, tgt_w, tgt_h, buffer, tgt_w * self->atlas->depth);
-
-    FTGL_free(buffer, tgt_w * tgt_h * self->atlas->depth * sizeof(unsigned char));
 
     glyph = texture_glyph_new();
     glyph->codepoint = codepoint;
@@ -711,8 +742,8 @@ int texture_font_load_glyph_codepoint(texture_font_t *self, uint32_t codepoint)
     // Discard hinting to get advance
     FT_Load_Glyph(face, glyph_index, FT_LOAD_RENDER | FT_LOAD_NO_HINTING);
     slot = face->glyph;
-    glyph->advance_x = slot->advance.x / HRESf;
-    glyph->advance_y = slot->advance.y / HRESf;
+    glyph->advance_x = convert_F26Dot6_to_float(slot->advance.x);
+    glyph->advance_y = convert_F26Dot6_to_float(slot->advance.y);
 
     vector_push_back(self->glyphs, &glyph);
 

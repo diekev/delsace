@@ -116,10 +116,9 @@ test_logement_scalaire :: fonc ()
     imprime("\n")
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     test_logement_chaine()
     test_logement_tableau()
     test_logement_scalaire()
-    retourne 0
 }

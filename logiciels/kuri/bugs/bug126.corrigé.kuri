@@ -37,10 +37,9 @@ lance_boucle :: fonc (max_itérations: z32, nombre_itérations: z32)
     }
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     lance_boucle(100, 10)
     imprime("valeur_globale : %\n", valeur_globale)
     assert(valeur_globale == 10)
-    retourne 0
 }

@@ -1,0 +1,18 @@
+/* Assertion dans la RI quand on génère le code pour un tableau d'arguments
+ * variadiques contenant des types entier naturel.
+ * Le bug est que nous utilisons le dernier élément de la liste d'arguments
+ * variadiques pour définir le type du tableau, alors que nous devrions utiliser
+ * le type de $T ceci fait également échouer le typage, puisque que toute
+ * transformation serait marquée comme inutile (le type du paramètre étant
+ * toujours celui de l'expression passée)
+ * Catégorie : [génération code, construction tableau, conversion implicite, type entier]
+ */
+
+importe Fondation
+
+principale :: fonc ()
+{
+    si fait_partie_de('a', 'b', 'c', 0x0D) {
+        exit(1)
+    }
+}

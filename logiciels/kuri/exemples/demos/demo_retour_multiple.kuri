@@ -97,13 +97,11 @@ test_ptr_fonction_ret_moult :: fonc () -> rien
 
 /* ------------------------------------------------------------------------- */
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     test_fonction_ret_simple()
     test_ptr_fonction_ret_simple()
 
     test_fonction_ret_moult()
     test_ptr_fonction_ret_moult()
-
-    retourne 0
 }

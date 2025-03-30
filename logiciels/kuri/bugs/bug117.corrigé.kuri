@@ -7,8 +7,7 @@ importe Fondation
 /* À FAIRE(langage) : typage des entiers constants */
 a := #exécute (4 comme z32 * 5 comme z32)
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     assert(a == 20)
-    retourne 0
 }

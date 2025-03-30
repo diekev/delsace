@@ -13,13 +13,11 @@ fibonacci :: fonc (n: z32) -> z32
     retourne fibonacci(n - 1) + fibonacci(n - 2)
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     imprime("Bonjour depuis Mars !\n")
 
     x := fibonacci(5)
 
     imprime("x: %\n", x)
-
-    retourne 0
 }

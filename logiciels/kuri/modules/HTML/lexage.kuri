@@ -1670,6 +1670,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
             ScriptDataEscaped {
                 si c == MOINS {
                     lexeuse.état = ÉtatLexage.ScriptDataEscapedDash
+                    retourne lexeuse.émet_lexème_caractère(MOINS)
                 }
                 sinon si c == CHEVRON_OUVRANT {
                     lexeuse.état = ÉtatLexage.ScriptDataEscapedLessThanSign

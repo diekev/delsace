@@ -8,8 +8,7 @@ fonction :: fonc () -> Résultat(z32, r32)
 {
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     _ := fonction()
-    retourne 0
 }

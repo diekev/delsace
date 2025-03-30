@@ -1,0 +1,22 @@
+/* Erreur de compilation si les paramètres d'un opérateur sont des références.
+ * Voir note « les prises de références n'ont pas l'air de fonctionner pour les opérateurs »
+ * dans Jorjala.
+ * Catégorie : [validation sémantique, opérateur, conversion implicite]
+ */
+
+Structure :: struct {
+    x: r32
+}
+
+opérateur + :: fonc (s1: &Structure, s2: &Structure) -> Structure
+{
+    résultat : Structure = ---
+    résultat.x = s1.x + s2.x
+    retourne résultat
+}
+
+principale :: fonc ()
+{
+    s: Structure
+    s += s
+}

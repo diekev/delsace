@@ -10,7 +10,7 @@ importe Temps
 /** \nom Fonction principale.
  * \{ */
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     mémoire_entrée := mémoire_utilisée()
 
@@ -78,7 +78,7 @@ principale :: fonc () -> z32
     QT_layout_ajoute_widget(disp, éditeur)
     QT_box_layout_ajoute_layout(disp, dispv)
 
-    retourne QT_application_exec(app)
+    exécute(app)
 }
 
 /** \} */

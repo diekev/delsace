@@ -1,0 +1,6 @@
+/* https://drafts.csswg.org/cssom-view/#the-screen-interface */
+
+interface Screen {
+    readonly attribute long width;
+    readonly attribute long height;
+}

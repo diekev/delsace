@@ -12,7 +12,7 @@ empreinte_contexte :: fonc () -> chaine
     retourne sha256.donne_condensat_hex()
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     empreinte1 := empreinte_contexte()
     diffère déloge(empreinte1)
@@ -25,7 +25,7 @@ principale :: fonc () -> z32
         diffère déloge(empreinte3)
 
         si empreinte1 == empreinte3 {
-            retourne 1
+            exit(1)
         }
     }
 
@@ -34,8 +34,6 @@ principale :: fonc () -> z32
 
     /* Nous devons avoir le même contexte qu'au début. */
     si empreinte1 != empreinte2 {
-        retourne 1
+        exit(1)
     }
-
-    retourne 0
 }

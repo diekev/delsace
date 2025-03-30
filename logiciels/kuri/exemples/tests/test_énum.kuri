@@ -98,7 +98,7 @@ démo_courtcircuit_énum_drapeau :: fonc ()
     }
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     Énum :: énum {
         X
@@ -120,8 +120,6 @@ principale :: fonc () -> z32
 
     démo_courtcircuit_énum_drapeau()
     test_impression_énum()
-
-    retourne 0
 }
 
 test_impression_énum :: fonc ()

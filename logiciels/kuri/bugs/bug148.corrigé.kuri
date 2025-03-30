@@ -19,10 +19,9 @@ globale := [
     retourne_entier()
 ]
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     pour globale {
         imprime("%\n", it)
     }
-    retourne 0
 }

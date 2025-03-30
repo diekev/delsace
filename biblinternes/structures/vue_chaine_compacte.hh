@@ -25,6 +25,7 @@
 #pragma once
 
 #include <functional>  /* pour la déclaration de std::hash */
+#include <string_view>
 
 #include "pointeur_marque.hh"
 

@@ -1,0 +1,10 @@
+/* Crash quand un bloc différé contient un retour.
+ * Catégorie : [crash, génération code, diffère, expression retour]
+ */
+
+importe Support
+
+principale :: fonc ()
+{
+    diffère retourne 1
+}

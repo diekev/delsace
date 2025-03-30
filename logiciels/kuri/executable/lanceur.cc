@@ -821,7 +821,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-#ifdef AVEC_LLVM
+#ifdef AVEC_COULISSE_LLVM
     issitialise_llvm();
 #endif
 

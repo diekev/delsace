@@ -47,11 +47,11 @@ parse_arguments :: fonc () -> Optionnel(Arguments)
     retourne résultat
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     args_opt := parse_arguments()
     saufsi args_opt.possède_valeur() {
-        retourne 1
+        exit(1)
     }
 
     args := args_opt.Quelque
@@ -89,8 +89,6 @@ principale :: fonc () -> z32
     imprime("Fichiers : % en tout\n", stats.nombre_de_fichiers)
     imprime("Temps    : %ms\n", fin)
     imprime("\n")
-
-    retourne 0
 }
 
 ErreurCaptée :: struct {

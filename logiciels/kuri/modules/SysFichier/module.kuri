@@ -107,28 +107,13 @@ espace_disque_disponible :: fonc (chemin: &CheminFichier) -> Optionnel(n64)
 contenu_fichier_binaire :: fonc (chemin: &CheminFichier) -> [..]octet
 {
     contenu: [..]octet
-
-    fichier := tente ouvre_fichier(chemin) piège _ {
-        retourne contenu
-    }
-
-    diffère _ := ferme(*fichier)
-
-    discr lis_tout(*fichier) {
-        c(c_) {
-            contenu.pointeur = c_.pointeur
-            contenu.taille = c_.taille
-        }
-        sinon {
-        }
-    }
-
+    contenu_fichier_binaire(chemin, contenu)
     retourne contenu
 }
 
 contenu_fichier_binaire :: fonc (chemin: CheminFichier, résultat: &[..]octet)
 {
-    fichier := tente ouvre_fichier(chemin) piège _ {
+    fichier := tente ouvre_fichier(chemin, pour_lecture, 0o644) piège _ {
         retourne
     }
 
@@ -142,14 +127,7 @@ contenu_fichier_binaire :: fonc (chemin: CheminFichier, résultat: &[..]octet)
 contenu_fichier_texte :: fonc (chemin: &CheminFichier) -> chaine
 {
     contenu := contenu_fichier_binaire(chemin)
-    chn: chaine
-
-    nonsûr {
-        chn.pointeur = contenu.pointeur comme *z8
-        chn.taille = contenu.taille
-    }
-
-    retourne chn
+    retourne chaine_depuis_tranche_octets(contenu)
 }
 
 contenu_fichier_texte :: fonc (chemin: chaine) -> chaine

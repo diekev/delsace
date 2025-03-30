@@ -5,7 +5,7 @@ ajoute :: fonc (a: r32, b: r32) -> r32
     retourne a + b
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     a := [ [ 0, 1 ], [ 2, 3 ], [ 4, 5 ] ]
 
@@ -14,6 +14,4 @@ principale :: fonc () -> z32
     }
 
     ajoute(ajoute(ajoute(0.0, 5.0), 2.5), 3.75)
-
-    retourne 0
 }

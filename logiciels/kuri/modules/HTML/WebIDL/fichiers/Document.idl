@@ -1,6 +1,15 @@
 interface Document : Node {
+    readonly attribute Element? documentElement;
+
+    HTMLCollection getElementsByTagName(DOMString qualifiedName);
     Element? getElementById(DOMString id);
 
     Element createElement(DOMString localName);
     Text createTextNode(DOMString data);
+
+    /* HTML parial interface Document
+     * https://html.spec.whatwg.org/multipage/dom.html#the-document-object */
+    /* [SameObject] */ readonly attribute HTMLCollection scripts;
+
+    readonly attribute /* HTMLOrSVGScriptElement? */ HTMLScriptElement? currentScript; 
 }

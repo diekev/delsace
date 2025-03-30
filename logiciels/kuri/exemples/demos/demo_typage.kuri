@@ -7,7 +7,7 @@ XYZ :: struct {
     b: type_de(a)
 }
 
-principale :: fonc () -> type_de(N)
+principale :: fonc ()
 {
     x := 5.0
     y: type_de(x)
@@ -27,8 +27,6 @@ principale :: fonc () -> type_de(N)
     b := a comme type_de(w)
 
     si b != faux {
-        retourne 1
+        exit(1)
     }
-
-    retourne 0
 }

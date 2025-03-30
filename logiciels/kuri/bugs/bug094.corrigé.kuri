@@ -1,0 +1,19 @@
+/* Impossible de construire un type opaque depuis la liste des membres du type
+ * opacifié, ou sans nommer les arguments.
+ * Voir note « construction d'opaque depuis la liste des membres... » dans Calculatrice.
+ * Catégorie : [validation sémantique, construction type, type opaque]
+ */
+
+Structure :: struct {
+    x: r32
+    y: r32
+    z: r32
+}
+
+Opaque :: #opaque Structure
+
+principale :: fonc ()
+{
+    _ := Opaque(x = 5.0, y = 6.0, z = 7.0)
+    _ := Opaque(5.0, 6.0, 7.0)
+}

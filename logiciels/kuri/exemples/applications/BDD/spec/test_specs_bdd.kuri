@@ -2,7 +2,7 @@ importe Fondation
 importe Processus
 importe SysFichier
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     test: DonnéesPourTest
     test.programme = CheminFichier("../a.out")
@@ -10,8 +10,6 @@ principale :: fonc () -> z32
     test.ajoute_série_de_tests(CheminFichier("specs_bdd"))
 
     saufsi lance_les_tests(test) {
-        retourne 1
+        exit(1)
     }
-
-    retourne 0
 }

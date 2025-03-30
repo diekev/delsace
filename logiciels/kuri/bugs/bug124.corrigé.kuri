@@ -41,7 +41,7 @@ test_boucle_plage_décroissante :: fonc (itérations: n32) -> z32
     retourne compteur
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     assert(test_boucle_valeur_simple_croissante(10) == 10)
     assert(test_boucle_valeur_simple_décroissante(10) == 10)
@@ -52,6 +52,4 @@ principale :: fonc () -> z32
     assert(test_boucle_valeur_simple_décroissante(0) == 0)
     assert(test_boucle_plage_croissante(0) == 0)
     assert(test_boucle_plage_décroissante(0) == 0)
-
-    retourne 0
 }

@@ -187,9 +187,7 @@ formatte_lexème :: fonc (enchaineuse: *Enchaineuse, lexème: *Lexème)
         }
         Delim {
             valeur := lexème.point_de_code comme z8
-            chn : chaine = ---
-            chn.pointeur = *valeur
-            chn.taille = 1
+            chn := chaine(*valeur, 1)
             ajoute_au_tampon(enchaineuse, chn)
         }
         Number {
@@ -548,7 +546,7 @@ consomme_un_lexème :: fonc (lexeuse: &Lexeuse) -> Lexème
 
     si point_de_code == '<' {
         si apparie(lexeuse, '!', '-', '-') {
-            lexeuse.avance(2)
+            lexeuse.avance(3)
             retourne Lexème(GenreLexème.CDC)
         }
 

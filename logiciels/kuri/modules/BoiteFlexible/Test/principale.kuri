@@ -15,7 +15,7 @@ importe Structures
 importe SysFichier
 importe Typographie
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     arguments := arguments_ligne_commande()
 
@@ -39,7 +39,7 @@ principale :: fonc () -> z32
     window := QT_window_cree_avec_rappels(*rappels)
     QT_window_show_maximized(window)
 
-    retourne QT_application_exec(app)
+    exécute(app)
 }
 
 /* ------------------------------------------------------------------------- */

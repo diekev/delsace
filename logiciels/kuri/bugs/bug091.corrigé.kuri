@@ -1,0 +1,15 @@
+/* Impossible de construire une constante depuis un type opaque.
+ * Voir note « ne peut avoir une constante construisant une valeur d'un type opaque » dans Arachné.
+ * Catégorie : [valeur constante, type opaque]
+ */
+
+Opaque :: #opaque z32
+
+Valeur :: Opaque(12)
+
+principale :: fonc ()
+{
+    saufsi Valeur == 12 {
+        exit(1)
+    }
+}

@@ -224,7 +224,7 @@ finalise_courant :: fonc (état: *ÉtatLexage, genre: GenreLexème) -> bool
     si genre != GenreLexème.ESPACE {
         état.courant.pos.ligne = état.ligne
         état.courant.pos.colonne = état.colonne
-        état.courant.valeur = construit_chaine(*état.chn[état.curseur], 1)
+        état.courant.valeur = chaine(*état.chn[état.curseur], 1)
         état.courant.genre = genre
 
         tableau_ajoute(*état.lexèmes, état.courant)
@@ -289,7 +289,7 @@ lèxe :: fonc (chn: chaine) -> [..]Lexème
             }
             sinon {
                 si état.courant.valeur.taille == 0 {
-                    état.courant.valeur = construit_chaine(*état.chn[idx], 1)
+                    état.courant.valeur = chaine(*état.chn[idx], 1)
                 }
                 sinon {
                     état.courant.valeur.taille += 1

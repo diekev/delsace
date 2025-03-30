@@ -131,10 +131,7 @@ chaine_ajoute :: fonc (chn: *ChaineFixe, point_de_code: n32)
 
 converti_vers_chaine :: fonc (chn: &ChaineFixe) -> chaine
 {
-    résultat : chaine = ---
-    résultat.pointeur = *chn.données[0]
-    résultat.taille = chn.taille
-    retourne résultat
+    retourne chaine(*chn.données[0], chn.taille)
 }
 
 /** \} */

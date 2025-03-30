@@ -71,7 +71,7 @@ Coulisse *Coulisse::crée_pour_options(OptionsDeCompilation options)
         }
         case TypeCoulisse::LLVM:
         {
-#ifdef AVEC_LLVM
+#ifdef AVEC_COULISSE_LLVM
             return memoire::loge<CoulisseLLVM>("CoulisseLLVM");
 #else
             return nullptr;
@@ -99,7 +99,7 @@ void Coulisse::détruit(Coulisse *coulisse)
         memoire::deloge("CoulisseC", c);
         coulisse = nullptr;
     }
-#ifdef AVEC_LLVM
+#ifdef AVEC_COULISSE_LLVM
     else if (dynamic_cast<CoulisseLLVM *>(coulisse)) {
         auto c = dynamic_cast<CoulisseLLVM *>(coulisse);
         memoire::deloge("CoulisseLLVM", c);

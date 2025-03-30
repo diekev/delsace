@@ -62,6 +62,20 @@
  * @{
  */
 
+typedef struct byte_scratch_buffer_t {
+    unsigned char *data;
+    size_t size;
+} byte_scratch_buffer_t;
+
+void byte_scratch_buffer_delete(byte_scratch_buffer_t *buffer);
+
+typedef struct double_scratch_buffer_t {
+    double *data;
+    size_t size;
+} double_scratch_buffer_t;
+
+void double_scratch_buffer_delete(double_scratch_buffer_t *buffer);
+
 /**
  * A texture atlas is used to pack several small regions into a single texture.
  */
@@ -107,6 +121,12 @@ typedef struct texture_atlas_t {
      */
     unsigned char *data;
 
+    /**
+     * Scratch buffers
+     */
+    byte_scratch_buffer_t glyph_scratch_buffer;
+    byte_scratch_buffer_t distance_byte_scratch_buffer;
+    double_scratch_buffer_t distance_double_scratch_buffer;
 } texture_atlas_t;
 
 /**
@@ -158,6 +178,10 @@ void texture_atlas_set_region(texture_atlas_t *self,
                               const size_t height,
                               const unsigned char *data,
                               const size_t stride);
+
+unsigned char *texture_atlas_get_glyph_buffer(texture_atlas_t *self, size_t width, size_t height);
+unsigned char *texture_atlas_get_distance_byte_buffer(texture_atlas_t *self, size_t width, size_t height);
+double *texture_atlas_get_distance_double_buffer(texture_atlas_t *self, size_t width, size_t height);
 
 /**
  *  Remove all allocated regions from the atlas.

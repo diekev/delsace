@@ -48,10 +48,7 @@ détruit_données :: fonc (condensat: *Condensat)
 
 donne_chaine :: fonc (condensat: Condensat) -> chaine
 {
-    chn : chaine = ---
-    chn.pointeur = condensat.données.pointeur comme *z8
-    chn.taille = condensat.données.taille
-    retourne chn
+    retourne chaine(condensat.données.pointeur comme *z8, condensat.données.taille)
 }
 
 donne_copie_chaine :: fonc (condensat: Condensat) -> chaine
@@ -162,9 +159,7 @@ ajourne :: fonc (hacheuse: *HACHEUSE, message: chaine)
 
 ajourne :: fonc (hacheuse: *HACHEUSE, message: $T)
 {
-    c : chaine = ---
-    c.pointeur = *message comme *z8
-    c.taille = taille_de(T) comme z64
+    c := chaine(*message comme *z8, taille_de(T) comme z64)
     KRYPTO_HACHEUSE_ajourne(hacheuse, c.pointeur, c.taille comme n64)
 }
 
@@ -282,9 +277,7 @@ ajourne :: fonc (hacheuse: *HACHEUSE_HMAC, message: chaine)
 
 ajourne :: fonc (hacheuse: *HACHEUSE_HMAC, message: $T)
 {
-    c : chaine = ---
-    c.pointeur = *message comme *z8
-    c.taille = taille_de(T) comme z64
+    c := chaine(*message comme *z8, taille_de(T) comme z64)
     KRYPTO_HACHEUSE_HMAC_ajourne(hacheuse, c.pointeur, c.taille comme n64)
 }
 

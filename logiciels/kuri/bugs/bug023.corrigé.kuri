@@ -1,0 +1,29 @@
+/* Crash quand une discrimination possède une expression autre qu'une référence
+ * de déclaration.
+ * Catégorie : [crash, discr, expression quelconque]
+ */
+
+importe Support
+
+TypeÉnum :: énum {
+    X
+    Y
+    Z
+}
+
+principale :: fonc ()
+{
+    erreur_survenue := #exécute compile_script_erroné("
+    x : TypeÉnum
+
+    discr x {
+        5 comme TypeÉnum {
+
+        }
+    }
+    ")
+
+    saufsi erreur_survenue {
+        exit(1)
+    }
+}

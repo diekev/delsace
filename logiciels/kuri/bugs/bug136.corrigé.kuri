@@ -33,11 +33,10 @@ discrimine_union :: fonc (anonyme: UnionAnonyme, est_z32: bool)
     retourne
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     valeur_z32 := Valeur(z32)(123)
     discrimine_union(valeur_z32, vrai)
     valeur_r32 := Valeur(r32)(12.3)
     discrimine_union(valeur_r32, faux)
-    retourne 0
 }

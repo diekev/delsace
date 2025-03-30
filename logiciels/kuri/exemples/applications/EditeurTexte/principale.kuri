@@ -504,7 +504,7 @@ console_rafraichis_écran :: fonc () -> rien
     _ := copie_enchaineuse_fichier(*enchaineuse, sortie_standarde())
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     __contexte_fil_principal.rappel_panique = gère_panique
 
@@ -533,8 +533,6 @@ principale :: fonc () -> z32
             arrête
         }
     }
-
-    retourne 0
 }
 
 gère_panique :: fonc () -> rien

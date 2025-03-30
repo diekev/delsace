@@ -2,9 +2,9 @@
  * Catégorie : [validation sémantique]
  */
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
-    retourne test_redéfinition(0, 1)
+    exit(test_redéfinition(0, 1))
 }
 
 test_redéfinition :: fonc (variable_redéfinie: z32, b: z32) -> z32
