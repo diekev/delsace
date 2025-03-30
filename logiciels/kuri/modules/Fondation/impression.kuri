@@ -588,7 +588,8 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, échappe_chn: b
 
     discr valeur.info.id {
         OCTET {
-            imprime_nombre_entier(enchaineuse, donne_format_entier_contexte_pour_base(valeur, 16))
+            x := mémoire(valeur.pointeur comme *octet)
+            imprime_nombre_entier(enchaineuse, donne_format_entier_contexte_pour_base(x comme n8, 16))
         }
         ENTIER {
             imprime_nombre_entier(enchaineuse, donne_format_entier_contexte(valeur))
