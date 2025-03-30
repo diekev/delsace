@@ -1,6 +1,6 @@
 importe Fondation
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     chaine_guillemets_anglais := "Bonjour, tout le monde !"
     chaine_guillemets_français := «Bonjour, tout le monde !»
@@ -13,6 +13,4 @@ principale :: fonc () -> z32
 
     chaine_guillemets_nichés := «Il a dit «Bonjour, tout le monde!».»
     imprime("chaine guillemets nichés  : %\n", chaine_guillemets_nichés)
-
-    retourne 0
 }

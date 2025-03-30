@@ -279,6 +279,32 @@ IndexPrototype :: struct {
 
 __table_indexage_prototypes: [..]IndexPrototype
 
+détermine_index_prototype :: fonc (type: type_de_données) -> z64
+{
+    résultat := donne_index_prototype(type)
+    si résultat != -1 {
+        retourne résultat
+    }
+
+    types_à_essayer := type_de_données.[HTMLElement, Élément, Noeud, EventTarget]
+
+    infos := __table_des_types[type] comme *InfoTypeStructure
+
+    pour types_à_essayer {
+        infos_à_essayer := __table_des_types[it] comme *InfoTypeStructure
+        saufsi est_struct_ou_employeuse_de(infos, infos_à_essayer) {
+            continue
+        }
+
+        résultat = donne_index_prototype(it)
+        si résultat != -1 {
+            retourne résultat
+        }
+    }
+
+    retourne -1
+}
+
 donne_index_prototype :: fonc (type: type_de_données) -> z64
 {
     pour __table_indexage_prototypes {
@@ -291,7 +317,7 @@ donne_index_prototype :: fonc (type: type_de_données) -> z64
 
 définis_prototype :: fonc (object: *PlatformObject, type: type_de_données)
 {
-    index := donne_index_prototype(type)
+    index := détermine_index_prototype(type)
     si index == -1 {
         retourne
     }

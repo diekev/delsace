@@ -1,0 +1,19 @@
+/* La validation sémantique ne prend pas en compte le typage pour les
+ * assignations composées.
+ * Bug corrigé par le commit : 0694535f3232e4edfa95f23a06c406ef87e3ed32
+ * Catégorie : [validation sémantique, assignation composée]
+ */
+
+importe Support
+
+principale :: fonc ()
+{
+    erreur_survenue := #exécute compile_script_erroné("
+        a := 0
+        b : z64 = 5
+        a += b
+    ")
+    saufsi (erreur_survenue) {
+        exit(1)
+    }
+}

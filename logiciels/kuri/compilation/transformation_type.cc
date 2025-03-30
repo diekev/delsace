@@ -160,6 +160,9 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
         }
         case GenreNoeud::EINI:
         {
+            if (type_de->est_type_tuple()) {
+                return TransformationType(TypeTransformation::IMPOSSIBLE);
+            }
             /* Il nous faut attendre sur le type pour pouvoir générer l'InfoType. */
             REQUIERS_TYPE_VALIDE(type_de);
             return TransformationType(TypeTransformation::CONSTRUIT_EINI);
@@ -205,6 +208,10 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
                     if (type_pointe_de == nullptr) {
                         return TransformationType(TypeTransformation::IMPOSSIBLE);
                     }
+                }
+
+                if (type_de->est_type_tuple()) {
+                    return TransformationType(TypeTransformation::IMPOSSIBLE);
                 }
 
                 return TransformationType(TypeTransformation::CONSTRUIT_TRANCHE_OCTET);
@@ -610,6 +617,9 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
     }
 
     if (type_de->est_type_eini()) {
+        if (type_vers->est_type_tuple()) {
+            return TransformationType(TypeTransformation::IMPOSSIBLE);
+        }
         return TransformationType{TypeTransformation::EXTRAIT_EINI, type_vers};
     }
 

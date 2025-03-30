@@ -1,0 +1,52 @@
+/* Les conditions sur plusieurs lignes ou avec une nouvelle ligne avant
+ * l'accolade ouvrante font échouer le syntaxage.
+ *
+ * L'erreur sera soit qu'une instruction de retour manque, soit si nous avons
+ * une autre déclaration de fonction après, que l'identifiant :: est inattendu
+ * dans l'expression.
+ * Il est assez étrange que les blocs ne sont pas ajoutés comme enfants de
+ * l'instruction « si ».
+ * Je pense que le bug doit également être présent pour les boucles.
+ *
+ * Catégorie : [syntaxage, lexage, nouvelle ligne]
+ */
+
+importe Fondation
+
+principale :: fonc ()
+{
+    a := 7
+    b := 8
+    c := 9
+
+    si a == b
+    {
+
+    }
+
+    si (a == b) ||
+        (b == c)
+        {
+
+    }
+
+    pour 10
+    {
+
+    }
+
+    tantque a != 0
+    {
+        a -= 1
+    }
+
+    boucle
+    {
+        arrête
+    }
+
+    répète
+    {
+        a += 1
+    } tantque a != 5
+}

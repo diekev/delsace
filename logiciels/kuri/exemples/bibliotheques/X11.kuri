@@ -199,7 +199,7 @@ DefaultScreen :: fonc (display: *Display) -> z32 #enligne
 
 // ----------------------------------------------------------------------------
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     diffère imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée())
 
@@ -215,7 +215,7 @@ principale :: fonc () -> z32
 
     si d == nul {
         imprime("Impossible d'ouvrir un display !\n")
-        retourne 1
+        exit(1)
     }
     diffère XCloseDisplay(d)
 
@@ -253,6 +253,4 @@ principale :: fonc () -> z32
             arrête
         }
     }
-
-    retourne 0
 }

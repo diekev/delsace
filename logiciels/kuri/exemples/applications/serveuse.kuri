@@ -134,12 +134,10 @@ démarre :: fonc (serveuse: &Serveuse) -> rien
 /* ------------------------------------------------------------------------- */
 
 // commentaire
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     serveuse: Serveuse
     _ := construit_serveuse(serveuse, 5009)
 
     démarre(serveuse)
-
-    retourne 0
 }

@@ -36,13 +36,11 @@ test_assignation_disjonction :: fonc (valeur_de_base: bool)
     retourne_faux_fut_appelé = faux
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     test_assignation_conjonction(vrai)
     test_assignation_conjonction(faux)
 
     test_assignation_disjonction(vrai)
     test_assignation_disjonction(faux)
-
-    retourne 0
 }

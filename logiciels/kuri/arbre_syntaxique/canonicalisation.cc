@@ -604,6 +604,33 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                 return simplifie_construction_opaque_depuis_structure(appel);
             }
 
+            if (appel->aide_génération_code == CONSTRUIT_CHAINE) {
+                POUR (appel->paramètres_résolus) {
+                    simplifie(it);
+                }
+
+                auto temporaire = crée_déclaration_variable(
+                    appel->lexème, appel->type, &non_initialisation);
+                temporaire->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
+                auto ref_temporaire = assem->crée_référence_déclaration(temporaire->lexème, temporaire);
+                ajoute_expression(temporaire);
+
+                auto ref_membre = assem->crée_référence_membre(
+                    appel->lexème, ref_temporaire, TypeBase::PTR_Z8, 0);
+                auto assignation = assem->crée_assignation_variable(
+                    appel->lexème, ref_membre, appel->paramètres_résolus[0]);
+                ajoute_expression(assignation);
+
+                ref_membre = assem->crée_référence_membre(
+                    appel->lexème, ref_temporaire, TypeBase::Z64, 1);
+                assignation = assem->crée_assignation_variable(
+                    appel->lexème, ref_membre, appel->paramètres_résolus[1]);
+                ajoute_expression(assignation);
+
+                appel->substitution = ref_temporaire;
+                return appel->substitution;
+            }
+
             if (appel->aide_génération_code == MONOMORPHE_TYPE_OPAQUE) {
                 appel->substitution = assem->crée_référence_type(appel->lexème, appel->type);
             }

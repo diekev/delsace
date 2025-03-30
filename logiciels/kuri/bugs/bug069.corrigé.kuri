@@ -1,0 +1,12 @@
+/* Crash quand nous référençons une fonction polymorphique.
+ * Catégorie : [crash, validation sémantique, référence symbole, fonction polymorphique]
+ */
+
+importe Fondation
+
+principale :: fonc ()
+{
+    chn := copie_chaine("chaine test")
+    /* Fut un temps, « déloge » était une instruction. Certaines sources ne furent pas mises à jour. */
+    déloge chn
+}

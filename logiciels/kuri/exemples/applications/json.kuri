@@ -77,7 +77,7 @@ Ingrédient :: struct {
     quantité: z64
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     chaine_repas := «
         {
@@ -124,7 +124,7 @@ principale :: fonc () -> z32
 
     saufsi succès {
         imprime("impossible de parser la chaine JSON\n")
-        retourne 1
+        exit(1)
     }
 
     imprime("repas :\n%\n", repas)
@@ -150,5 +150,4 @@ principale :: fonc () -> z32
 
     imprime("%\n", info_)
     */
-    retourne 0
 }

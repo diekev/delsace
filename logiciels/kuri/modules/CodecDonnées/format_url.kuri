@@ -189,7 +189,7 @@ crée_flux_encodage_url_pour_enchaineuse :: fonc (enchaineuse: *Enchaineuse) -> 
 
     écris_point_de_code_utf8 :: fonc (flux: &FluxEncodage, point_de_code: z8, doit_encoder: bool)
     {
-        chn := construit_chaine(*point_de_code, 1)
+        chn := chaine(*point_de_code, 1)
         écris_chaine(flux, chn, doit_encoder)
     }
 

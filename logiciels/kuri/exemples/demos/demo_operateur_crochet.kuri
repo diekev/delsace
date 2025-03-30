@@ -15,7 +15,7 @@ hex_depuis_char :: fonc (hex: z8) -> z8
     retourne "0123456789ABCDEF"[hex]
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     y: [2]z32
     y[0] = 12389
@@ -37,6 +37,4 @@ principale :: fonc () -> z32
 
     w: [3]z32
     w[y0] = mémoire(x)
-
-    retourne 0
 }

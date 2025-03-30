@@ -69,7 +69,7 @@ donne_ligne_pour_erreur :: fonc (e: &Erreur, script: chaine) -> LignePourErreur
         ptr_fin_ligne += 1
     }
 
-    texte := construit_chaine(ptr_début_ligne, ptr_fin_ligne - ptr_début_ligne)
+    texte := chaine(ptr_début_ligne, ptr_fin_ligne - ptr_début_ligne)
     décalage := ptr_position - ptr_début_ligne
     retourne LignePourErreur(texte, décalage)
 }

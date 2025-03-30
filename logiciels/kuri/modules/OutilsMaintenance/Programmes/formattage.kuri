@@ -2,13 +2,13 @@ importe Fondation
 importe OutilsMaintenance
 importe SysFichier
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     args := arguments_ligne_commande()
 
     si args.taille < 2 {
         imprime("Utilisation : % FICHIER\n", args[0])
-        retourne 1
+        exit(1)
     }
 
     extensions := [ ".kuri" ]
@@ -16,5 +16,4 @@ principale :: fonc () -> z32
 
     rappels := [ tri_imports_pour_fichier, supprime_espaces_blancs_finaux, supprime_lignes_vides_redondantes_pour_fichier, remplaces_tabulation_par_espaces ]
     exécute_rappels(chm, extensions, rappels)
-    retourne 0
 }

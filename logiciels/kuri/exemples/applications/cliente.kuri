@@ -48,19 +48,19 @@ lance_requête :: fonc (uri: &URI, requête: chaine) -> chaine
     retourne réponse
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     args := arguments_ligne_commande()
 
     si args.taille != 2 {
         imprime_err("Utilisation : % URL\n", args[0])
-        retourne 1
+        exit(1)
     }
 
     // connecte vers la page
     uri := tente parse_uri_standard(args[1]) piège err {
         imprime("Erreur lors du parsage de l'URI : %\n", err)
-        retourne 1
+        exit(1)
     }
 
     //imprime(uri, '\n', '\n')
@@ -97,6 +97,4 @@ principale :: fonc () -> z32
     diffère { déloge(réponse) déloge(requête) }
 
     imprime("Réponse :\n%\n", réponse)
-
-    retourne 0
 }

@@ -50,9 +50,7 @@ flux_compression_fichier_lis :: fonc (flux: *FluxCompression, taille: n32, donn�
 
     fichier := flux.donnees_utilisateur comme *Fichier
 
-    tampon : chaine = ---
-    tampon.pointeur = données comme *z8
-    tampon.taille = taille comme z64
+    tampon := chaine(données comme *z8, taille comme z64)
 
     résultat := fichier.lis(tampon)
 
@@ -99,9 +97,7 @@ flux_compression_chaine_ecris :: fonc (flux: *FluxCompression, taille: n32, donn
 
     chn := flux.donnees_utilisateur comme *chaine
 
-    tampon : chaine = ---
-    tampon.pointeur = données comme *z8
-    tampon.taille = taille comme z64
+    tampon := chaine(données comme *z8, taille comme z64)
 
     taille_écrite = taille
 

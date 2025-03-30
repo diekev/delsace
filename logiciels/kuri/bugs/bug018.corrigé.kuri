@@ -1,0 +1,21 @@
+/* Mauvais typage pour les tableaux fixes de tableaux dynamique
+ * Bug corrigé par le commit : db78100b0ff8c23d4eeec24a56bd096552b45b75
+ * Catégorie : [validation sémantique, conversion implicite, type tableau]
+ */
+
+importe Support
+
+Paginatrice :: struct {
+    pages: [100][..]octet
+}
+
+principale :: fonc ()
+{
+    paginatrice: Paginatrice
+
+    page := paginatrice.pages[0]
+
+    page = loge_tableau(octet, 4096)
+
+    paginatrice.pages[0] = page
+}

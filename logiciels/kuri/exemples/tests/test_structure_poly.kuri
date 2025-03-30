@@ -15,7 +15,7 @@ Option :: union ($T0: type_de_données, $T1: type_de_données) {
     t1: T1
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     u : Vec3(T = r32) = ---
     u.x = 1.0
@@ -58,6 +58,4 @@ principale :: fonc () -> z32
     o = 6
 
     imprime("%\n", o)
-
-    retourne 0
 }

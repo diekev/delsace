@@ -52,7 +52,7 @@ donne_position_source :: fonc (texte: *TexteSource, lexème: &Lexème) -> Positi
     résultat.ligne = ligne
     résultat.colonne = (lexème.texte.pointeur - début_ligne) comme z32
 
-    résultat.texte_ligne = construit_chaine(début_ligne, 0)
+    résultat.texte_ligne = chaine(début_ligne, 0)
 
     fin_texte := texte.texte.pointeur + texte.texte.taille
     tantque début_ligne < fin_texte {

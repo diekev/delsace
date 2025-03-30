@@ -26,8 +26,7 @@ démo_si_comme_expression :: fonc ()
     imprime("a = %\n", a)
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     démo_si_comme_expression()
-    retourne 0
 }

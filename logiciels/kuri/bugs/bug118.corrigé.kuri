@@ -4,11 +4,10 @@
  * Catégorie : [génération code, boucle pour, type entier naturel]
  */
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     m : n32 = 0
     pour m {
         panique("Nous ne devrions pas avoir d'itérations !")
     }
-    retourne 0
 }

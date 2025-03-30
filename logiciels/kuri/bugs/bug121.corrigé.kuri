@@ -12,9 +12,8 @@ imprime_degrés :: fonc (d: Degrés)
     imprime("%\n", d)
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     d: Degrés(r32)
     imprime_degrés(d)
-    retourne 0
 }

@@ -1212,6 +1212,9 @@ dessine_commandes_id_css :: fonc (peintre: *Peintre @inutilisée, commandes: *CS
     IGUMI.commence_immédiat_id(IGUMI.ModeImmédiat.TRIANGLES, IGUMI.nuanceur_id)
     vérifie_erreur("commence_immédiat_id")
 
+    /* Remets à zéro au cas la mémoire est réutilisée par le pilote. */
+    IGUMI.quad_immédiat_id(0.0, 0.0, tampon_id.largeur comme r32, tampon_id.hauteur comme r32, 0)
+
     tantque début < fin {
         base := début comme *CSS.BaseCommande
 

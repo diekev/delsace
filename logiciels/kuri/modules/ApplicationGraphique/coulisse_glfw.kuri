@@ -141,10 +141,11 @@ crée_fenêtre_principal_impl_glfw :: fonc (nom: chaine, rect: RectanglePosDim(z
     retourne fenêtre
 }
 
-exécute :: fonc (app: *ApplicationGLFW, cliente: *$TypeCliente) -> z32
+exécute :: fonc (app: *ApplicationGLFW, cliente: *$TypeCliente)
 {
     saufsi app.fenêtre {
-        retourne 0
+        imprime("L'application n'a pas de fenêtre")
+        exit(1)
     }
 
     // À FAIRE : définis le taux/la stratégie de rafraichissement
@@ -160,7 +161,6 @@ exécute :: fonc (app: *ApplicationGLFW, cliente: *$TypeCliente) -> z32
     déloge(app)
     glfwTerminate()
     détruit(VG_file_évènements)
-    retourne 0
 }
 
 dessine_application :: fonc (app: *ApplicationGLFW, cliente: *$TypeCliente)

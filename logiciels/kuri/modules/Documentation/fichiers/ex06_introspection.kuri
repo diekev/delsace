@@ -29,10 +29,9 @@ imprime_type_args :: fonc (args: ...eini) -> rien
     }
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     // Passe différents types, bien que la fonction espère des types 'eini'.
     // Le dernier argument est un pointeur vers la fonction 'exemple'.
     imprime_type_args(1, 1.3, "chaine", principale)
-    retourne 0
 }

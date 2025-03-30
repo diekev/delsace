@@ -1,0 +1,8 @@
+/* Crash lors de la construction d'une tranche d'octet depuis un pointeur nul
+ * Catégorie : [crash, conversion implicite, type tranche octet, pointeur nul]
+ */
+
+principale :: fonc ()
+{
+    a : []octet = nul
+}

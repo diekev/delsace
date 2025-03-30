@@ -1,0 +1,10 @@
+/* Une expression de type x : z32 := 0 devrait résulter en une erreur de compilation.
+ * Catégorie : [syntaxage, syntaxe malformée]
+ */
+
+importe Support
+
+principale :: fonc ()
+{
+    x : z32 := 0
+}

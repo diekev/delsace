@@ -141,7 +141,7 @@ crée_lexème :: fonc (genre: GenreLexème, ident: chaine) -> Lexème
 
 chaine_pour_caractère :: fonc (c: *z8) -> chaine
 {
-    retourne construit_chaine(c, 1)
+    retourne chaine(c, 1)
 }
 
 parse_identifiant :: fonc (lexeuse: *Lexeuse, peut_suivre: PeutSuivre, c: Rune) -> chaine
@@ -546,10 +546,7 @@ lèxe_fichier_source :: fonc (lexeuse: *Lexeuse, fichier: *FichierSource)
         }
 
         /*
-        chn : chaine = ---
-        chn.pointeur = *c
-        chn.taille = 1
-
+        chn := chaine(*c, 1)
         imprime("%", chn)
         */
     }

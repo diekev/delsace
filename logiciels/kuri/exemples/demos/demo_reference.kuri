@@ -49,7 +49,7 @@ assigne_référence_à_référence :: fonc (a: &z32, b: &z32) -> rien
     b = tmp
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     a := 5
     imprime("a = %\n", a)
@@ -85,8 +85,6 @@ principale :: fonc () -> z32
     imprime("z = %\n", z)
 
     /* ------------------------------------------------------------------------- */
-
-    retourne 0
 }
 
 // références :

@@ -16,6 +16,10 @@ interface Window : EventTarget {
 
     long requestAnimationFrame(Function callback);
     undefined clearAnimationFrame(long id);
+
+    /* CSS partial interface
+     * https://drafts.csswg.org/cssom-view/#extensions-to-the-window-interface */
+    /* [SameObject, Replaceable] */ [Member] readonly attribute Screen screen;
 }
 
 Window includes GlobalEventHandlers;

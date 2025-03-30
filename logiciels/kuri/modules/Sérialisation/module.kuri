@@ -12,7 +12,7 @@ désérialise_chaine :: fonc (ligne: []octet, décalage: z64) -> chaine
 
     ptr = ligne.pointeur + décalage + 4
 
-    retourne construit_chaine(ptr comme *z8, taille)
+    retourne chaine(ptr comme *z8, taille)
 }
 
 désérialise_entier :: fonc (ligne: []octet, décalage: z64) -> z32

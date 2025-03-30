@@ -5,10 +5,9 @@
 
 importe Fondation
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     tableau: [..]z32
     Kuri.tableau_ajoute(*tableau, 1)
     assert(tableau.taille == 1)
-    retourne 0
 }

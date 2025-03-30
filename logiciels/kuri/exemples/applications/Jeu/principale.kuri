@@ -12,7 +12,7 @@ importe Périphériques
 /** \nom Fonction principale.
  * \{ */
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     diffère imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée())
 
@@ -23,7 +23,7 @@ principale :: fonc () -> z32
 
     jeu := crée_jeu()
     saufsi crée_fenêtre_principale(app, *jeu, "Jeu", RectanglePosDim(z32)(0, 0, hauteur, largeur), faux) {
-        retourne 1
+        exit(1)
     }
 
     jeu.largeur = largeur
@@ -32,7 +32,7 @@ principale :: fonc () -> z32
     initialise_igumi()
     diffère issitialise_igumi()
 
-    retourne app.exécute(*jeu)
+    app.exécute(*jeu)
 }
 
 /** \} */

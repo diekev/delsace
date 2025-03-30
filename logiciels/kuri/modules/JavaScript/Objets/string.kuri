@@ -1,5 +1,6 @@
 importe Chaine
 importe Fondation
+importe Math
 
 /* ------------------------------------------------------------------------- */
 /** \nom StringPrototype
@@ -28,6 +29,8 @@ crée_string_prototype :: fonc (realm: *Realm, prototype: *ObjectPrototype) -> *
     résultat.ajoute_propriété(STR_length, Valeur(Number = 0.0), DrapeauxPropriété.zéro)
 
     résultat.ajoute_fonction_native(STR_indexOf, string_prototype_index_of, 1)
+    résultat.ajoute_fonction_native(STR_replace, string_prototype_replace, 3)
+    résultat.ajoute_fonction_native(STR_substring, string_prototype_substring, 2)
 
     retourne résultat
 }
@@ -88,6 +91,102 @@ string_prototype_index_of :: fonc (empl params: *ParamètresObjectCall) -> Compl
     // 9. If result is not-found, return -1𝔽.
     // 10. Return 𝔽(result).
     retourne normal_completion(Valeur(Number = result comme r64))
+}
+
+/* 22.1.3.19 String.prototype.replace ( searchValue, replaceValue )
+ * https://tc39.es/ecma262/multipage/text-processing.html#sec-string.prototype.replace */
+string_prototype_replace :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    // À FAIRE : implémente
+    completion := require_object_coercible(interpréteuse.donne_realm(), this_value)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    O := completion.valeur.V
+
+    // 2. Let S be ? ToString(O).
+    completion = to_string(interpréteuse, O)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    retourne completion
+}
+
+/* 22.1.3.25 String.prototype.substring ( start, end )
+ * https://tc39.es/ecma262/multipage/text-processing.html#sec-string.prototype.substring */
+string_prototype_substring :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    // 1. Let O be ? RequireObjectCoercible(this value).
+    completion := require_object_coercible(interpréteuse.donne_realm(), this_value)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    O := completion.valeur.V
+
+    // 2. Let S be ? ToString(O).
+    completion = to_string(interpréteuse, O)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    S := completion.valeur.V.String.texte
+
+    // 3. Let len be the length of S.
+    len := S.taille()
+
+    // 4. Let intStart be ? ToIntegerOrInfinity(start).
+    completion = to_integer_or_infinity(interpréteuse, params.donne_argument(0))
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    int_start := completion.valeur.V.Number comme z64
+
+    // 5. If end is undefined, let intEnd be len; else let intEnd be ? ToIntegerOrInfinity(end).
+    end := params.donne_argument(1)
+    int_end: z64
+    si end.est_undefined() {
+        int_end = len
+    }
+    sinon {
+        completion = to_integer_or_infinity(interpréteuse, end)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        int_end = completion.valeur.V.Number comme z64
+    }
+
+    // 6. Let finalStart be the result of clamping intStart between 0 and len.
+    final_start := int_start
+    si final_start < 0 {
+        final_start = 0
+    }
+    sinon si final_start > len {
+        final_start = len
+    }
+
+    // 7. Let finalEnd be the result of clamping intEnd between 0 and len.
+    final_end := int_end
+    si final_end < 0 {
+        final_end = 0
+    }
+    sinon si final_end > len {
+        final_end = len
+    }
+
+    // 8. Let from be min(finalStart, finalEnd).
+    from := min(final_start, final_end)
+
+    // 9. Let to be max(finalStart, finalEnd).
+    to := max(final_start, final_end)
+
+    // 10. Return the substring of S from from to to.
+    S16 := S.donne_chaine_utf16()
+
+    substring: ChaineUTF16
+    substring.unités.pointeur = S16.unités.pointeur + from
+    substring.unités.taille = to - from
+
+    résultat := crée_chaine_utf16_unique(substring)
+    retourne crée_string_value_completion(interpréteuse, résultat)
 }
 
 /** \} */

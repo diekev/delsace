@@ -12,6 +12,60 @@
 
 #include "ftgl.h"
 
+// ------------------------------------------------------ byte_scratch_buffer_init ---
+static void byte_scratch_buffer_init(byte_scratch_buffer_t *buffer)
+{
+    buffer->data = NULL;
+    buffer->size = 0;
+}
+
+// ------------------------------------------------------ byte_scratch_alloc_and_reset ---
+static unsigned char *byte_scratch_buffer_alloc_and_reset(byte_scratch_buffer_t *buffer, size_t num_pixels)
+{
+    size_t size = num_pixels * sizeof(unsigned char);
+    if (buffer->size < size) {
+        buffer->data = FTGL_realloc(buffer->data, buffer->size, size);
+        buffer->size = size;
+    }
+    memset(buffer->data, 0, buffer->size);
+    return buffer->data;
+}
+
+// ------------------------------------------------------ byte_scratch_buffer_delete ---
+void byte_scratch_buffer_delete(byte_scratch_buffer_t *buffer)
+{
+    if (buffer->data) {
+        FTGL_free(buffer->data, buffer->size);
+    }
+}
+
+// ------------------------------------------------------ byte_scratch_buffer_init ---
+static void double_scratch_buffer_init(double_scratch_buffer_t *buffer)
+{
+    buffer->data = NULL;
+    buffer->size = 0;
+}
+
+// ------------------------------------------------------ double_scratch_buffer_alloc_and_reset ---
+static double *double_scratch_buffer_alloc_and_reset(double_scratch_buffer_t *buffer, size_t num_pixels)
+{
+    size_t size = num_pixels * sizeof(double);
+    if (buffer->size < size) {
+        buffer->data = FTGL_realloc(buffer->data, buffer->size, size);
+        buffer->size = size;
+    }
+    memset(buffer->data, 0, buffer->size);
+    return buffer->data;
+}
+
+// ------------------------------------------------------ double_scratch_buffer_delete ---
+void double_scratch_buffer_delete(double_scratch_buffer_t *buffer)
+{
+    if (buffer->data) {
+        FTGL_free(buffer->data, buffer->size);
+    }
+}
+
 // ------------------------------------------------------ texture_atlas_new ---
 texture_atlas_t *texture_atlas_new(const size_t width, const size_t height, const size_t depth)
 {
@@ -32,6 +86,9 @@ texture_atlas_t *texture_atlas_new(const size_t width, const size_t height, cons
     self->height = height;
     self->depth = depth;
     self->id = 0;
+    byte_scratch_buffer_init(&self->glyph_scratch_buffer);
+    byte_scratch_buffer_init(&self->distance_byte_scratch_buffer);
+    double_scratch_buffer_init(&self->distance_double_scratch_buffer);
 
     vector_push_back(self->nodes, &node);
     self->data = (unsigned char *)FTGL_calloc(width * height * depth, sizeof(unsigned char));
@@ -52,6 +109,9 @@ void texture_atlas_delete(texture_atlas_t *self)
     if (self->data) {
         FTGL_free(self->data, self->width * self->height * self->depth * sizeof(unsigned char));
     }
+    byte_scratch_buffer_delete(&self->glyph_scratch_buffer);
+    byte_scratch_buffer_delete(&self->distance_byte_scratch_buffer);
+    double_scratch_buffer_delete(&self->distance_double_scratch_buffer);
     FTGL_free(self, sizeof(texture_atlas_t));
 }
 
@@ -89,6 +149,24 @@ void texture_atlas_set_region(texture_atlas_t *self,
     }
 
     self->dirty = 1;
+}
+
+// ------------------------------------------------------ texture_atlas_get_glyph_buffer ---
+unsigned char *texture_atlas_get_glyph_buffer(texture_atlas_t *self, size_t width, size_t height)
+{
+    return byte_scratch_buffer_alloc_and_reset(&self->glyph_scratch_buffer, width * height * self->depth);
+}
+
+// ------------------------------------------------------ texture_atlas_get_distance_byte_buffer ---
+unsigned char *texture_atlas_get_distance_byte_buffer(texture_atlas_t *self, size_t width, size_t height)
+{
+    return byte_scratch_buffer_alloc_and_reset(&self->distance_byte_scratch_buffer, width * height * self->depth);
+}
+
+// ------------------------------------------------------ texture_atlas_get_distance_double_buffer ---
+double *texture_atlas_get_distance_double_buffer(texture_atlas_t *self, size_t width, size_t height)
+{
+    return double_scratch_buffer_alloc_and_reset(&self->distance_double_scratch_buffer, width * height * self->depth);
 }
 
 // ------------------------------------------------------ texture_atlas_fit ---
@@ -183,16 +261,8 @@ ivec4 texture_atlas_get_region(texture_atlas_t *self, const size_t width, const 
         return region;
     }
 
-    node = (ivec3 *)FTGL_malloc(sizeof(ivec3));
-    if (node == NULL) {
-        fprintf(stderr, "line %d: No more memory for allocating data\n", __LINE__);
-        exit(EXIT_FAILURE);
-    }
-    node->x = region.x;
-    node->y = region.y + height;
-    node->z = width;
-    vector_insert(self->nodes, best_index, node);
-    FTGL_free(node, sizeof(ivec3));
+    ivec3 tmp_node = {.x = region.x, .y = region.y + height, .z = width};
+    vector_insert(self->nodes, best_index, &tmp_node);
 
     for (i = best_index + 1; i < self->nodes->size; ++i) {
         node = (ivec3 *)vector_get(self->nodes, i);

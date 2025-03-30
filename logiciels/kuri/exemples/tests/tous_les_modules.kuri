@@ -46,7 +46,7 @@ génère_script :: fonc ()
     }
 
     ajoute_au_tampon(*enchaineuse, "\n")
-    ajoute_au_tampon(*enchaineuse, "principale :: fonc () -> z32 { retourne 0 }")
+    ajoute_au_tampon(*enchaineuse, "principale :: fonc () {}")
 
     chn := chaine_depuis_enchaineuse(*enchaineuse)
     diffère déloge(chn)

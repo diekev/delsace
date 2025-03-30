@@ -2109,9 +2109,9 @@ RésultatValidation Sémanticienne::valide_types_paramètres_fonction(
             return CodeRetourValidation::Erreur;
         }
 
-        if (decl->param_sortie->type != TypeBase::Z32) {
+        if (decl->param_sortie->type != TypeBase::RIEN) {
             m_espace->rapporte_erreur(decl->param_sortie,
-                                      "La fonction principale doit retourner un z32 !");
+                                      "La fonction principale ne doit pas retourner de valeur. Si vous voulez retourner une valeur autre que 0, veuillez utiliser exit().");
             return CodeRetourValidation::Erreur;
         }
     }

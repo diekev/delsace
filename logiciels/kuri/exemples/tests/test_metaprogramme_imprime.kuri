@@ -11,8 +11,7 @@ test :: fonc ()
 
 #exécute test()
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     test()
-    retourne 0
 }

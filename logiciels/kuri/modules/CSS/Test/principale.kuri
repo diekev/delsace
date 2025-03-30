@@ -5,11 +5,10 @@ importe Fondation
 importe #inemployé HTML
 importe SysFichier
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     // test_collection_règles()
     test_fragmentation_texte()
-    retourne 0
 }
 
 test_collection_règles :: fonc ()

@@ -1,0 +1,28 @@
+/* Erreur de compilation si un expression « si » est utilisée pour initialiser
+ * une variable avec un appel de fonction.
+ * Voir note « les appels de fonctions ne fonctionnent pas... dans ConnexionTCP
+ * Catégorie : [validation sémantique, expression si]
+ */
+
+retourne_une_valeur :: fonc () -> z32
+{
+    retourne 127
+}
+
+principale :: fonc ()
+{
+    b := 5
+
+    a := si b == 5 {
+        retourne_une_valeur()
+    }
+    sinon {
+        8
+    }
+
+    si a == 127 {
+        exit(0)
+    }
+
+    exit(1)
+}

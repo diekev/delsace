@@ -1,0 +1,20 @@
+/* Les arithmétiques de pointeurs échouent dans la MV dans certains cas.
+ * Catégorie : [exécution code, arithmétique pointeur]
+ */
+
+importe Compilatrice
+importe Support
+
+reproduit_bug :: fonc ()
+{
+    désactive_compilation_espace_défaut()
+
+    b := 0x4 comme *z32
+    b = b - 1
+}
+
+#exécute reproduit_bug()
+
+principale :: fonc ()
+{
+}

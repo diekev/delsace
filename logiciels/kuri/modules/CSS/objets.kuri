@@ -16,6 +16,8 @@ StyleSheet :: struct {
     location: *HTML.URL
 
     origine: OrigineCascade
+    /* Ceci est utilisé pour les feuilles de styles représentant des "presentational hints". */
+    force_spécifité_zéro: bool
 }
 
 CSSStyleSheet :: struct {
