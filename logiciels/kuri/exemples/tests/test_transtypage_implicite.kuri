@@ -28,7 +28,7 @@ test_discr :: fonc (a: z32) -> bool
 // #assert test_discr(9) == vrai
 // #assert test_discr(10) == vrai
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     a : z32 = 12
     passe_eini(a)
@@ -57,8 +57,6 @@ principale :: fonc () -> z32
     // }
 
     pour 9 ... 19 {
-        retourne 1
+        exit(1)
     }
-
-    retourne 0
 }

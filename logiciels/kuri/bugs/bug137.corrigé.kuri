@@ -21,8 +21,7 @@ fonction :: fonc (y: UnionAnonyme)
 fonction2 :: fonc ()
 {}
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     fonction(123)
-    retourne 0
 }

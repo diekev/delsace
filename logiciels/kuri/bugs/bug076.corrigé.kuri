@@ -1,0 +1,22 @@
+/* Crash dans la Machine virtuelle quand un entier constant est
+ * transtypé.
+ * Catégorie : [crash, exécution code, conversion type, type entier constant]
+ */
+
+absolue :: fonc (a: $T) -> T
+{
+    /* Enlever « comme T » supprime le bug. */
+    si a < 0 comme T {
+        retourne -a
+    }
+    retourne a
+}
+
+principale :: fonc ()
+{
+    v := #exécute absolue(-1.0)
+
+    si v != 1.0 {
+        exit(1)
+    }
+}

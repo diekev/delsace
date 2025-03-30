@@ -1,0 +1,11 @@
+/* Nulle erreur si les instructions reprends, continue, et arrête ne sont pas suivies
+ * par de simples références de déclaration.
+ * Catégories : [syntaxe]
+ */
+
+principale :: fonc ()
+{
+    pour 10 {
+        reprends it + 5
+    }
+}

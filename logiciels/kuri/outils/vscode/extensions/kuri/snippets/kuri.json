@@ -114,10 +114,9 @@
     "principale": {
         "prefix": "principale",
         "body": [
-            "principale :: fonc () -> z32",
+            "principale :: fonc ()",
             "{",
             "\t${1:expression}",
-            "\tretourne 0",
             "}"
         ],
         "description": "Fragment de code pour générer la définition de la fonction principale"

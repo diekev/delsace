@@ -49,6 +49,7 @@ ServeuseHTTP :: struct {
 
     rappel_méthode_non_autorisée: TypeRappelRoute
     rappel_page_non_trouvée: TypeRappelRoute
+    rappel_données_websocket: fonc(*Prise,[]octet)(rien)
 
     quand_connexion_http: fonc(*Prise)(rien)
 }
@@ -106,10 +107,16 @@ détruit_serveuse :: fonc (serveuse: *ServeuseHTTP)
     déloge(serveuse)
 }
 
+DonnéesServeuseHTTP :: struct {
+    parseuse: *ParseuseMessageClienteHTTP
+    connexion_est_websocket: bool
+}
+
 quand_ouverture :: fonc (prise: *Prise, est_client: bool @inutilisée)
 {
-    parseuse := loge(ParseuseMessageClienteHTTP)
-    prise.mute_données_serveuse(parseuse)
+    données := loge(DonnéesServeuseHTTP)
+    données.parseuse = loge(ParseuseMessageClienteHTTP)
+    prise.mute_données_serveuse(données)
 
     serveuse := prise.contexte_.accède_serveuse(ServeuseHTTP)
 
@@ -128,9 +135,16 @@ quand_données_reçues :: fonc (prise: *Prise, données: []octet)
         retourne
     }
 
-    imprime("reçu :\n%\n", contenu)
+    données_serveuse := prise.accède_données_serveuse(DonnéesServeuseHTTP)
 
-    parseuse := prise.accède_données_serveuse(ParseuseMessageClienteHTTP)
+    si données_serveuse.connexion_est_websocket {
+        quand_données_reçues_websocket(prise, données)
+        retourne
+    }
+
+    // imprime("reçu :\n%\n", contenu)
+
+    parseuse := données_serveuse.parseuse
     parseuse.ajourne_données(contenu)
 
     si !parseuse.message_prêt_pour_finalisation() {
@@ -151,16 +165,19 @@ quand_données_reçues :: fonc (prise: *Prise, données: []octet)
         réponse = gère_message(prise, message)
     }
 
-    ferme_la_connexion := doit_fermer_la_connexion(message, réponse)
+    suite := détermine_suite_connexion_après_réponse(message, réponse)
 
-    si ferme_la_connexion {
+    si suite == SuiteConnexion.Ferme {
         fusionne_entête(*réponse, "Connection", "close")
     }
 
     écris_réponse(prise, réponse)
 
-    si ferme_la_connexion {
+    si suite == SuiteConnexion.Ferme {
         prise.ferme()
+    }
+    sinon si suite == SuiteConnexion.PasseÀWebSocket {
+        données_serveuse.connexion_est_websocket = vrai
     }
     sinon {
         // délai en cas de non-lecture
@@ -169,17 +186,33 @@ quand_données_reçues :: fonc (prise: *Prise, données: []octet)
     }
 }
 
+quand_données_reçues_websocket :: fonc (prise: *Prise, données: []octet)
+{
+    serveuse := prise.contexte_.accède_serveuse(ServeuseHTTP)
+    assert(serveuse.rappel_données_websocket != nul)
+    serveuse.rappel_données_websocket(prise, données)
+}
+
 gère_message :: fonc (prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP
 {
     serveuse := prise.contexte_.accède_serveuse(ServeuseHTTP)
     retourne apparie_route(serveuse.routeuse, prise, message)
 }
 
-doit_fermer_la_connexion :: fonc (message: &MessageClienteHTTP, réponse: &MessageServeuseHTTP) -> bool
+SuiteConnexion :: énum {
+    GardeEnVie
+    Ferme
+    PasseÀWebSocket
+}
+
+détermine_suite_connexion_après_réponse :: fonc (message: &MessageClienteHTTP, réponse: &MessageServeuseHTTP) -> SuiteConnexion
 {
-    /* détermine si nous devons fermer la connexion */
     connection_message := message.entête("Connection")
     connection_réponse := réponse.entête("Connection")
+
+    si connection_réponse && compare_ascii_insensible_à_la_casse(connection_réponse.valeur, "Upgrade") {
+        retourne SuiteConnexion.PasseÀWebSocket
+    }
 
     cliente_veut_fermer_la_connexion := connection_message && compare_ascii_insensible_à_la_casse(connection_message.valeur, "close")
     serveuse_veut_fermer_la_connexion := connection_réponse && compare_ascii_insensible_à_la_casse(connection_réponse.valeur, "close")
@@ -190,22 +223,24 @@ doit_fermer_la_connexion :: fonc (message: &MessageClienteHTTP, réponse: &Messa
     doit_fermer_la_connexion := cliente_veut_fermer_la_connexion || serveuse_veut_fermer_la_connexion
 
     si doit_fermer_la_connexion && !serveuse_veut_fermer_la_connexion {
-        retourne vrai
+        retourne SuiteConnexion.GardeEnVie
     }
 
     si !cliente_veut_garder_la_connexion && !serveuse_veut_garder_la_connexion {
-        retourne vrai
+        retourne SuiteConnexion.GardeEnVie
     }
 
-    retourne faux
+    retourne SuiteConnexion.Ferme
 }
 
 quand_fermeture :: fonc (prise: *Prise)
 {
     imprime("fermeture de la prise...\n")
-    parseuse := prise.accède_données_serveuse(ParseuseMessageClienteHTTP)
+    données := prise.accède_données_serveuse(DonnéesServeuseHTTP)
+    parseuse := données.parseuse
     parseuse.réinitialise()
     déloge(parseuse)
+    déloge(données)
 }
 
 // Entête: Cache-Control
