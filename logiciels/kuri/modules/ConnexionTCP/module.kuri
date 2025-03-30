@@ -79,7 +79,8 @@ enlève_prise :: fonc (boucle_prises: *Boucle, prise: *Prise)
 
 Boucle :: struct {
     MAX_EVENTS :: 1024
-    évènements: [MAX_EVENTS]epoll_event
+    // À FAIRE : crash dans init_de() si la valeur est initialisée
+    évènements: [MAX_EVENTS]epoll_event = ---
     fd: z32
 
     prises_fermées: *Prise
@@ -184,12 +185,8 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
             rappel := mémoire(ptr_rappel)
             rappel(prise.contexte_)
 
-            // il faut lire le fichier pour dire au système que nous avons pris en compte l'évènement
-            données := tente lis_tout(*prise.fichier) piège _ {
-                retourne
-            }
-            /* À FAIRE : évite d'allouer de la mémoire ici */
-            déloge(données)
+            /* Il faut lire le fichier pour dire au système que nous avons pris en compte l'évènement. */
+            vide_données_lecture(prise)
         }
         SEMI_PRISE {
             si évènements.EPOLLOUT {

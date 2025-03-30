@@ -157,10 +157,7 @@ imprime_chaine_utf32 :: fonc (enchaineuse: *Enchaineuse, chn: *ChaineUTF32)
     pour chn.points_de_code {
         taille := point_de_code_vers_utf8(it, *séquence[0])
 
-        tmp : chaine = ---
-        tmp.pointeur = *séquence[0] comme *z8
-        tmp.taille = taille
-
+        tmp  := chaine(*séquence[0] comme *z8, taille)
         ajoute_au_tampon(enchaineuse, tmp)
     }
 } @FormattageImpression
@@ -179,7 +176,7 @@ sous_chaine :: fonc (chn: ChaineUTF32, début: z64, fin: z64) -> ChaineUTF32
 }
 
 /*
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     diffère imprime("Mémoire utilisée : %\n", mémoire_utilisée())
     diffère détruit_chaines_internées()
@@ -212,7 +209,5 @@ principale :: fonc () -> z32
     si chn_internée_native != chn_internée_utf32 {
         imprime("erreur : les chaines devraient être égales !\n")
     }
-
-    retourne 0
 }
 */

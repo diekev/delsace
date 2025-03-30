@@ -128,6 +128,11 @@ Request :: struct {
     user_activation: bool
 
     render_blocking: bool
+    synchronous: bool
+
+    integrity_metadata := crée_chaine_utf16_unique_vide()
+
+    priority: FetchPriorityState
 }
 
 définis_url :: fonc (request: *Request, url: *URL)

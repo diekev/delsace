@@ -1,0 +1,20 @@
+/* Aucune erreur n'est lancée quand on ne peut déterminer une expression appel
+ * se basant sur un type polymorphique
+ * Catégorie : [validation sémantique, validation appel, type polymorphique]
+ */
+
+importe Support
+
+STRUCT :: struct {
+    x := 0
+}
+
+test_construit_poly :: fonc (t: $T @inutilisée) -> T
+{
+    retourne T()
+}
+
+principale :: fonc ()
+{
+    _ := test_construit_poly(STRUCT())
+}

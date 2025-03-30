@@ -22,35 +22,39 @@
 set(NOM_PROJET langage)
 
 set(INCLUSIONS
-	${CMAKE_CURRENT_SOURCE_DIR}/../../
+    ${CMAKE_CURRENT_SOURCE_DIR}/../
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../../
 )
 
 set(BIBLIOTHEQUES
-    bib_outils
+     dls::outils
+     dls::structures
 )
 
 set(ENTETES
-	analyseuse.hh
-	debogage.hh
-	erreur.hh
-	nombres.hh
-	outils.hh
-	tampon_source.hh
-	unicode.hh
+    analyseuse.hh
+    debogage.hh
+    erreur.hh
+    nombres.hh
+    outils.hh
+    tampon_source.hh
+    unicode.hh
 )
 
 set(SOURCES
-	analyseuse.cc
-	erreur.cc
-	nombres.cc
-	outils.cc
-	tampon_source.cc
-	unicode.cc
+    analyseuse.cc
+    erreur.cc
+    nombres.cc
+    outils.cc
+    tampon_source.cc
+    unicode.cc
 
-	${ENTETES}
+    ${ENTETES}
 )
 
 add_library(${NOM_PROJET} STATIC "${SOURCES}")
+add_library(dls::langage ALIAS ${NOM_PROJET})
 set_property(TARGET ${NOM_PROJET} PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 target_include_directories(${NOM_PROJET} PUBLIC "${INCLUSIONS}")

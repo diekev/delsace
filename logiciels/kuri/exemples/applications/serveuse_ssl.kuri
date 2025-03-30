@@ -53,7 +53,7 @@ Servlet :: fonc (ssl: *ssl_st) -> rien
 
 /* ------------------------------------------------------------------------- */
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     args := arguments_ligne_commande()
 
@@ -71,19 +71,19 @@ principale :: fonc () -> z32
 
     ctx := tente initialise_contexte_ssl_serveur() piège err {
         imprime("erreur lors de l'initialisation du contexte SSL serveur : %\n", err)
-        retourne 1
+        exit(1)
     }
 
     diffère SSL_CTX_free(ctx)
 
     tente charge_certificats_ssl(ctx, "mycert.pem", "mycert.pem") piège err {
         imprime("erreur lors du chargements des certificats : %\n", err)
-        retourne 1
+        exit(1)
     }
 
     serveur := tente ouvre_connexion_serveur_pour_écoute(5005, 10) piège err {
         imprime("erreur lors de ouvre_connexion_serveur_pour_écoute : %\n", err)
-        retourne 1
+        exit(1)
     }
 
     diffère _ := ferme(*serveur)
@@ -99,6 +99,4 @@ principale :: fonc () -> z32
         _ := SSL_set_fd(ssl, client)
         Servlet(ssl)
     }
-
-    retourne 0
 }

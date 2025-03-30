@@ -46,17 +46,9 @@ copie_chaine :: fonc (chn: chaine) -> chaine
     retourne nchn
 }
 
-construit_chaine :: fonc (ptr: *z8, taille: z64) -> chaine
-{
-    ret : chaine = ---
-    ret.pointeur = ptr
-    ret.taille = taille
-    retourne ret
-}
-
 chaine_depuis_tranche_octets :: fonc (données: []octet) -> chaine
 {
-    retourne construit_chaine(données.pointeur comme *z8, données.taille)
+    retourne chaine(données.pointeur comme *z8, données.taille)
 }
 
 // execute une fonction pour chaque ligne du texte d'entrée
@@ -69,7 +61,7 @@ pour_chaque_ligne :: fonc (texte: chaine, donnees: $T, rappel: fonc(chaine, T)(r
         taille += 1
 
         si c == '\n' {
-            ligne := construit_chaine(*texte[début_chaine], taille)
+            ligne := chaine(*texte[début_chaine], taille)
             rappel(ligne, donnees)
 
             début_chaine = i + 1 comme z64
@@ -79,7 +71,7 @@ pour_chaque_ligne :: fonc (texte: chaine, donnees: $T, rappel: fonc(chaine, T)(r
 
     // La dernière ligne n'a pas de retour...
     si taille != 0 {
-        ligne := construit_chaine(*texte[début_chaine], taille)
+        ligne := chaine(*texte[début_chaine], taille)
         rappel(ligne, donnees)
     }
 }
@@ -108,7 +100,7 @@ divise :: fonc (ligne: chaine, séparation: z8, résultat: *[..]chaine, réiniti
     pour c, i dans ligne {
         si c == séparation {
             si i != 0 {
-                mot := construit_chaine(*ligne[début_mot], taille_mot)
+                mot := chaine(*ligne[début_mot], taille_mot)
                 tableau_ajoute(résultat, mot)
             }
 
@@ -121,7 +113,7 @@ divise :: fonc (ligne: chaine, séparation: z8, résultat: *[..]chaine, réiniti
     }
 
     si taille_mot != 0 {
-        mot := construit_chaine(*ligne[début_mot], taille_mot)
+        mot := chaine(*ligne[début_mot], taille_mot)
         tableau_ajoute(résultat, mot)
     }
 }
@@ -228,12 +220,12 @@ divise_depuis_la_fin :: fonc (entrée: chaine, séparateur: chaine, divisions_ma
 
 avance :: fonc (ligne: chaine, compte: z64) -> chaine
 {
-    retourne construit_chaine(ligne.pointeur + compte, ligne.taille - compte)
+    retourne chaine(ligne.pointeur + compte, ligne.taille - compte)
 }
 
 recule :: fonc (ligne: chaine, compte: z64) -> chaine
 {
-    retourne construit_chaine(ligne.pointeur, ligne.taille - compte)
+    retourne chaine(ligne.pointeur, ligne.taille - compte)
 }
 
 est_espace_blanc :: fonc (c: z8) -> bool
@@ -308,7 +300,7 @@ commence_par :: fonc (ligne: chaine, motif: chaine) -> bool
         retourne faux
     }
 
-    tmp := construit_chaine(ligne.pointeur, motif.taille)
+    tmp := chaine(ligne.pointeur, motif.taille)
 
     retourne tmp == motif
 }
@@ -330,7 +322,7 @@ fini_par :: fonc (ligne: chaine, motif: chaine) -> bool
         retourne faux
     }
 
-    tmp := construit_chaine(ligne.pointeur + ligne.taille - motif.taille, motif.taille)
+    tmp := chaine(ligne.pointeur + ligne.taille - motif.taille, motif.taille)
 
     retourne tmp == motif
 }
@@ -440,7 +432,7 @@ premier_n_caractère :: fonc (ligne: chaine, taille: z64) -> chaine
         taille_min = ligne.taille
     }
 
-    retourne construit_chaine(ligne.pointeur, taille_min)
+    retourne chaine(ligne.pointeur, taille_min)
 }
 
 dernier_n_caractère :: fonc (ligne: chaine, taille: z64) -> chaine
@@ -451,7 +443,7 @@ dernier_n_caractère :: fonc (ligne: chaine, taille: z64) -> chaine
         taille_min = ligne.taille
     }
 
-    retourne construit_chaine(ligne.pointeur + ligne.taille - taille_min, taille_min)
+    retourne chaine(ligne.pointeur + ligne.taille - taille_min, taille_min)
 }
 
 sous_chaine :: fonc (chn: chaine, pos_début: z64, pos_fin: z64) -> chaine #enligne
@@ -460,7 +452,7 @@ sous_chaine :: fonc (chn: chaine, pos_début: z64, pos_fin: z64) -> chaine #enli
         retourne ""
     }
 
-    retourne construit_chaine(*chn[pos_début], pos_fin - pos_début)
+    retourne chaine(*chn[pos_début], pos_fin - pos_début)
 }
 
 distance_levenshtein :: fonc (chn1: chaine, chn2: chaine) -> z64
@@ -663,7 +655,7 @@ recule_si :: fonc (chn: chaine, condition: fonc(z8)(bool)) -> chaine
         début -= 1
     }
 
-    retourne construit_chaine(chn.pointeur, début + 1)
+    retourne chaine(chn.pointeur, début + 1)
 }
 
 apparie_chaine :: fonc (chn1: chaine, chn2: chaine, n: z64) -> bool
