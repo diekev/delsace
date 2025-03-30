@@ -88,7 +88,7 @@ résous :: fonc (grille: *[9][9]z32) -> bool
     retourne faux
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     grille_sudoku := [ 
         [ 5, 3, 0, 0, 7, 0, 0, 0, 0 ],
@@ -106,10 +106,8 @@ principale :: fonc () -> z32
 
     saufsi résous(*grille_sudoku) {
         imprime("aucune solution !\n")
-        retourne 1
+        exit(1)
     }
 
     dessine_grille(grille_sudoku)
-
-    retourne 0
 }

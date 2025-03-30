@@ -18,7 +18,7 @@ opérateur pour :: fonc (type: TypePersonnalisé) -> z32
     }
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     x := 0
     diffère x = 1
@@ -30,9 +30,8 @@ principale :: fonc () -> z32
 
     si x == 1 {
         // imprime("ÉCHEC !\n")
-        retourne 1
+        exit(1)
     }
 
     // imprime("SUCCÈS !\n")
-    retourne 0
 }

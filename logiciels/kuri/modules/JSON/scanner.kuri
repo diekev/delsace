@@ -160,7 +160,7 @@ enregistre_pos_mot :: fonc (scanner: *ScannerJSON) -> rien #enligne
 
 mot_courant :: fonc (scanner: *ScannerJSON) -> chaine #enligne
 {
-    retourne construit_chaine(*scanner.script[scanner.position_mot], scanner.position - scanner.position_mot)
+    retourne chaine(*scanner.script[scanner.position_mot], scanner.position - scanner.position_mot)
 }
 
 saute_espaces_blancs :: fonc (scanner: *ScannerJSON) -> rien
@@ -221,7 +221,7 @@ lis :: fonc (scanner: *ScannerJSON) -> rien
 
 lis_true :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
 {
-    chn := construit_chaine(*scanner.script[scanner.position], 4)
+    chn := chaine(*scanner.script[scanner.position], 4)
 
     si chn != "true" {
         retourne LexèmeJSON.INVALIDE
@@ -236,7 +236,7 @@ lis_true :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
 
 lis_false :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
 {
-    chn := construit_chaine(*scanner.script[scanner.position], 5)
+    chn := chaine(*scanner.script[scanner.position], 5)
 
     si chn != "false" {
         retourne LexèmeJSON.INVALIDE
@@ -251,7 +251,7 @@ lis_false :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
 
 lis_null :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
 {
-    chn := construit_chaine(*scanner.script[scanner.position], 4)
+    chn := chaine(*scanner.script[scanner.position], 4)
 
     si chn != "null" {
         retourne LexèmeJSON.INVALIDE

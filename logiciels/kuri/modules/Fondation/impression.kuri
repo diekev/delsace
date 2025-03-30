@@ -147,9 +147,7 @@ imprime_dans_enchaineuse :: fonc (enchaineuse: *Enchaineuse, format: chaine, arg
 
         si c == '%' && index_argument < args.taille {
             si taille_mot_courant != 0 {
-                mot : chaine = ---
-                mot.pointeur = *pointeur[début_mot_courant]
-                mot.taille = taille_mot_courant
+                mot := chaine(*pointeur[début_mot_courant], taille_mot_courant)
                 enchaineuse.ajoute_au_tampon(mot)
             }
 
@@ -168,9 +166,7 @@ imprime_dans_enchaineuse :: fonc (enchaineuse: *Enchaineuse, format: chaine, arg
     }
 
     si taille_mot_courant != 0 {
-        mot : chaine = ---
-        mot.pointeur = *pointeur[début_mot_courant]
-        mot.taille = taille_mot_courant
+        mot := chaine(*pointeur[début_mot_courant], taille_mot_courant)
         enchaineuse.ajoute_au_tampon(mot)
     }
 }
@@ -341,7 +337,7 @@ imprime_nombre_décimal_haute_précision :: fonc (enchaineuse: *Enchaineuse, f: 
     } tantque !est_zéro(*part_entière)
 
     tableau_inverse(chn_part_entière)
-    chn_part_entière_ := construit_chaine(chn_part_entière.pointeur, chn_part_entière.taille)
+    chn_part_entière_ := chaine(chn_part_entière.pointeur, chn_part_entière.taille)
     ajoute_au_tampon(enchaineuse, chn_part_entière_)
 
     // Ajout le point décimal.
@@ -403,9 +399,7 @@ imprime_n64_base_n :: fonc (enchaineuse: *Enchaineuse, v: n64, format: FormatEnt
         }
     }
     sinon {
-        mot : chaine = ---
-        mot.pointeur = *résultat[index_début + 1]
-        mot.taille = taille
+        mot := chaine(*résultat[index_début + 1], taille)
         ajoute_au_tampon(enchaineuse, mot)
     }
 }
@@ -572,9 +566,7 @@ donne_chaine_indentation :: fonc (profondeur: z32) -> chaine
     }
 
     taille_chaine := profondeur * 4
-    chaine_indentation : chaine = ---
-    chaine_indentation.pointeur = *__chaine_indentation[0]
-    chaine_indentation.taille = __chaine_indentation.taille
+    chaine_indentation := chaine(*__chaine_indentation[0], __chaine_indentation.taille)
     retourne chaine_indentation.sous_chaine(0, taille_chaine)
 }
 
@@ -588,7 +580,8 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, échappe_chn: b
 
     discr valeur.info.id {
         OCTET {
-            imprime_nombre_entier(enchaineuse, donne_format_entier_contexte_pour_base(valeur, 16))
+            x := mémoire(valeur.pointeur comme *octet)
+            imprime_nombre_entier(enchaineuse, donne_format_entier_contexte_pour_base(x comme n8, 16))
         }
         ENTIER {
             imprime_nombre_entier(enchaineuse, donne_format_entier_contexte(valeur))

@@ -1,7 +1,10 @@
 interface Node : EventTarget {
+    readonly attribute Node? parentNode;
+
     readonly attribute DOMString nodeName;
 
     attribute DOMString? textContent;
 
     Node appendChild(Node node);
+    Node removeChild(Node node);
 }

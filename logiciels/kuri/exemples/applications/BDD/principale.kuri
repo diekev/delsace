@@ -61,7 +61,7 @@ lance_boucle_exécution :: fonc ()
 }
 
 // @bug : désynchronisation de la quantité de mémoire allouée quand nous imprimons les tables
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     allocatrice_gardée: AllocatriceGardée
     diffère imprime_liste_mémoire(*allocatrice_gardée)
@@ -77,8 +77,6 @@ principale :: fonc () -> z32
     pousse_contexte nouveau_contexte {
         lance_boucle_exécution()
     }
-
-    retourne 0
 }
 
 mon_log :: fonc (message: chaine, ident: chaine @inutilisée, mode: ModeLogage @inutilisée, données: *rien @inutilisée)

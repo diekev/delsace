@@ -30,6 +30,7 @@ Window :: struct {
     document: *Document
     navigator: *Navigator
     location: *Location
+    screen: *Screen
 
     Chronomètres :: struct {
         id: z32
@@ -85,6 +86,7 @@ crée_objet_window :: fonc (user_agent: *UserAgent, tas_de_mémoire: *JavaScript
     résultat := crée_platform_object(tas_de_mémoire, realm, Window)
     crée_navigator(résultat, user_agent)
     crée_location(résultat)
+    crée_screen(résultat, user_agent)
     retourne résultat
 }
 
@@ -544,6 +546,44 @@ donne_hostname :: fonc (location: *Location) -> DOMString
 
     // 3. Return this's url's host, serialized.
     retourne crée_chaine_utf16_unique(url.host.Quelque)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Screen
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_screen := TableVirtuellePlatformObject(
+    classe = Screen
+)
+
+crée_screen :: fonc (window: *Window, user_agent: *UserAgent)
+{
+    screen := crée_platform_object(window.donne_tas_de_mémoire(), window.realm, Screen)
+    screen.user_agent = user_agent
+    window.screen = screen
+}
+
+#portée_export
+
+Screen :: struct {
+    empl platform_object: PlatformObject
+    table = *table_virtuelle_screen
+
+    user_agent: *UserAgent
+}
+
+donne_width :: fonc (screen: *Screen) -> z64
+{
+    retourne screen.user_agent.donne_taille_écran().largeur comme z64
+}
+
+donne_height :: fonc (screen: *Screen) -> z64
+{
+    retourne screen.user_agent.donne_taille_écran().hauteur comme z64
 }
 
 /** \} */

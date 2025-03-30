@@ -58,7 +58,7 @@ enlignage_fonction_initialisation :: fonc ()
 
 /* optimisations assez correctes, la propagation des valeurs des membres ne
  * se fait pas s'il y une temporaire */
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     /*
     v0 : Vecteur3
@@ -77,7 +77,7 @@ principale :: fonc () -> z32
     v2 := Vecteur3(x = 2, y = 2, z = 2)
 
     si v0 == v2 {
-        retourne 1
+        exit(1)
     }
     */
 
@@ -86,7 +86,7 @@ principale :: fonc () -> z32
     c := 15
 
     si a <= b <= c {
-        retourne 1
+        exit(1)
     }
 
     /*
@@ -106,7 +106,6 @@ principale :: fonc () -> z32
 
     }
 */
-    retourne 0
 }
 
 /* À FAIRE : échec assertion lors de la suppression d'un enfant */

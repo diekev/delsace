@@ -1,3 +1,6 @@
+importe Chaine
+importe Fondation
+
 Entête :: struct {
     nom: chaine
     valeur: chaine
@@ -16,4 +19,17 @@ cherche_entête :: fonc (entêtes: [..]Entête, clé: chaine) -> *Entête
     }
 
     retourne nul
+}
+
+contient_token :: fonc (entête: *Entête, token: chaine) -> bool
+{
+    morceaux := divise(entête.valeur, ',')
+    diffère déloge(morceaux)
+    pour morceaux {
+        it = supprime_espaces_blancs(it)
+        si compare_ascii_insensible_à_la_casse(it, token) {
+            retourne vrai
+        }
+    }
+    retourne faux
 }

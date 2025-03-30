@@ -178,6 +178,7 @@ RappelsInterface :: struct {
     sur_destruction_timeout: fonc(*RappelsInterface, z32)(rien)
     sur_request_animation_frame: fonc(*RappelsInterface)(rien)
     sur_défile_page_vers_fragment: fonc(*RappelsInterface)(rien)
+    sur_donne_taille_écran: fonc(*RappelsInterface)(TailleÉcranExposéWeb)
 }
 
 détruit_rappels :: fonc (rappels: *RappelsInterface)
@@ -350,6 +351,21 @@ défile_page_vers_fragment :: fonc (user_agent: *UserAgent)
         retourne
     }
     rappels.sur_défile_page_vers_fragment(rappels)
+}
+
+/* https://drafts.csswg.org/cssom-view/#web-exposed-screen-area */
+TailleÉcranExposéWeb :: struct {
+    largeur: n64
+    hauteur: n64
+}
+
+donne_taille_écran :: fonc (user_agent: *UserAgent) -> TailleÉcranExposéWeb
+{
+    rappels := user_agent.rappels_interface
+    saufsi rappels && rappels.sur_donne_taille_écran {
+        retourne TailleÉcranExposéWeb()
+    }
+    retourne rappels.sur_donne_taille_écran(rappels)
 }
 
 /** \} */

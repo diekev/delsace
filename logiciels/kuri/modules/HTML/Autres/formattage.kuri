@@ -19,20 +19,20 @@ est_fichier_html :: fonc (chm: CheminFichier) -> bool
     retourne chm.extension() == ".html"
 }
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     args := arguments_ligne_commande()
 
     si args.taille != 2 {
         imprime("Utilisation: % FICHIER\n", args[0])
-        retourne 1
+        exit(1)
     }
 
     chm := CheminFichier(args[1])
 
     saufsi est_fichier_html(chm) {
         imprime("Le chemin '%' n'a pas l'air de pointer vers un fichier HTML !\n", args[1])
-        retourne 1
+        exit(1)
     }
 
     diffère imprime("Mémoire utilisée : %o\n", mémoire_utilisée())
@@ -60,6 +60,4 @@ principale :: fonc () -> z32
     imprime("Taille originale : %o\n", FormatEntier(taille_contenu, séparation = 3))
     imprime("Taille formattée : %o\n", FormatEntier(taille_formattée, séparation = 3))
     imprime("Durée de travail : %µ\n", FormatEntier(temps, séparation = 3))
-
-    retourne 0
 }

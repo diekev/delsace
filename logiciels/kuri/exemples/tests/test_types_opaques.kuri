@@ -60,10 +60,8 @@ Distance :: #opaque z32
 
 Mètre :: #opaque Distance
 
-principale :: fonc () -> z32
+principale :: fonc ()
 {
     d := Mètre(Distance(7))
     imprime("distance : %\n", d)
-
-    retourne 0
 }
