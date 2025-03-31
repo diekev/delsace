@@ -1,0 +1,137 @@
+/* Serveuse pour tester le module WebSocket avec Autobahn. */
+
+importe Fondation
+importe ConnexionTCP
+importe HTTP
+importe Internet
+importe WebSocket
+
+principale :: fonc ()
+{
+    boucle_évènements := crée_boucle()
+    ctx := crée_contexte_vide(boucle_évènements, ServeuseWebSocket)
+    ctx.mute_quand_ouverture(rappel_quand_ouverture)
+    ctx.mute_quand_données_reçues(rappel_quand_données_reçues)
+    ctx.mute_quand_fermeture(rappel_quand_fermeture)
+    ctx.mute_quand_écriture(rappel_quand_écriture)
+
+    cliente := ctx.données_utilisateur(ServeuseWebSocket)
+    init_de(ServeuseWebSocket)(cliente)
+    cliente.boucle_évènements = boucle_évènements
+    cliente.ctx = ctx
+
+    ip: AdresseIPv4
+    prise := crée_prise_pour_écoute(ctx, ip, 9001, 1024, DonnéesPriseWebSocket)
+    saufsi prise {
+        imprime("Impossible de créer la prise d'écoute.\n")
+        exit(1)
+    }
+
+    boucle_évènements.lance()
+}
+
+/* ------------------------------------------------------------------------- */
+/** \nom ServeuseWebSocket
+ * \{ */
+
+ServeuseWebSocket :: struct {
+    boucle_évènements: *Boucle
+    ctx: *Contexte
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom DonnéesPriseWebSocket
+ * \{ */
+
+DonnéesPriseWebSocket :: struct {
+    réponse: chaine
+    décalage_réponse: z32
+
+    parseuse: ParseuseMessageClienteHTTP
+    extrémité: Extrémité(Prise, faux)
+
+    est_connexion_websocket: bool
+}
+
+rappel_quand_ouverture :: fonc (prise: *Prise, est_client: bool @inutilisée)
+{
+    données := prise.données_utilisateur(DonnéesPriseWebSocket)
+    init_de(DonnéesPriseWebSocket)(données)
+    données.extrémité = crée_extrémité(prise, faux, sur_message_websocket)
+}
+
+rappel_quand_fermeture :: fonc (prise: *Prise)
+{
+    données_connexion := prise.données_utilisateur(DonnéesPriseWebSocket)
+    réinitialise(*données_connexion.parseuse)
+}
+
+rappel_quand_données_reçues :: fonc (prise: *Prise, données: []octet)
+{
+    données_connexion := prise.données_utilisateur(DonnéesPriseWebSocket)
+    si données_connexion.est_connexion_websocket {
+        sur_données_reçues_websocket(prise, données)
+        retourne
+    }
+
+    parseuse := *données_connexion.parseuse
+
+    ajourne_données(parseuse, chaine_depuis_tranche_octets(données))
+
+    si parseuse.message_est_erroné() {
+        prise.ferme()
+        retourne
+    }
+
+    saufsi parseuse.message_prêt_pour_finalisation() {
+        retourne
+    }
+
+    message := finalise_message(parseuse)
+
+    saufsi accèpte_serrage_de_main(*données_connexion.extrémité, *message) {
+        prise.ferme()
+        retourne
+    }
+
+    données_connexion.est_connexion_websocket = vrai
+
+    réponse: MessageServeuseHTTP
+    diffère détruit_message(*réponse)
+
+    réponse.version = "HTTP/1.1"
+    réponse.code_état = CodeÉtatHTTP.SWITCHING_PROTOCOL
+
+    ajoute_entête(*réponse, "Upgrade", "websocket")
+    ajoute_entête(*réponse, "Connection", "Upgrade")
+    ajoute_entête(*réponse, "Sec-WebSocket-Accept", données_connexion.extrémité.sec_websocket_accept)
+
+    données_connexion.réponse = chaine_pour_message_serveuse(réponse)
+    données_connexion.décalage_réponse = prise.écris(données_connexion.réponse)
+}
+
+rappel_quand_écriture :: fonc (prise: *Prise)
+{
+    données := prise.données_utilisateur(DonnéesPriseWebSocket)
+
+    réponse := données.réponse
+    réponse.pointeur += données.décalage_réponse
+    réponse.taille -= données.décalage_réponse
+
+    données.décalage_réponse += prise.écris(réponse)
+}
+
+sur_données_reçues_websocket :: fonc (prise: *Prise, données: []octet)
+{
+    données_utilisateur := prise.données_utilisateur(DonnéesPriseWebSocket)
+    traite_données_reçues(*données_utilisateur.extrémité, données)
+}
+
+sur_message_websocket :: fonc (prise: *Prise @inutilisée, opcode: OpCode, données: []octet) -> [..]octet
+{
+    retourne crée_message_websocket_réponse(opcode, données, faux)
+}
+
+/** \} */
