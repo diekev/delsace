@@ -329,10 +329,13 @@ chaine_pour_message_cliente :: fonc (message: &MessageClienteHTTP) -> chaine
 
     ajoute_au_tampon(*enchaineuse, "\r\n")
 
-    imprime_dans_enchaineuse(*enchaineuse, "Connection: close\r\n")
-
     pour message.entêtes {
         imprime_dans_enchaineuse(*enchaineuse, "%: %\r\n", it.nom, it.valeur)
+    }
+
+    entête_connection := cherche_entête(message.entêtes, "Connection")
+    saufsi entête_connection {
+        imprime_dans_enchaineuse(*enchaineuse, "Connection: close\r\n")
     }
 
     imprime_cookie_client(*enchaineuse, message.cookies, vrai)
