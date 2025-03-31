@@ -1,0 +1,236 @@
+/* Cliente pour tester le module WebSocket avec Autobahn. */
+
+importe Fondation
+importe ConnexionTCP
+importe HTTP
+importe Internet
+importe Numérique
+importe WebSocket
+
+principale :: fonc ()
+{
+    boucle_évènements := crée_boucle()
+    ctx := crée_contexte_vide(boucle_évènements, ClienteWebSocket)
+    ctx.mute_quand_ouverture(rappel_quand_ouverture)
+    ctx.mute_quand_données_reçues(rappel_quand_données_reçues)
+    ctx.mute_quand_fermeture(rappel_quand_fermeture)
+    ctx.mute_quand_écriture(rappel_quand_écriture)
+
+    cliente := ctx.données_utilisateur(ClienteWebSocket)
+    init_de(ClienteWebSocket)(cliente)
+    cliente.boucle_évènements = boucle_évènements
+    cliente.ctx = ctx
+
+    uri := donne_url(cliente)
+    prise := crée_prise_connexion(ctx, uri, DonnéesPriseWebSocket)
+    saufsi prise {
+        imprime("Impossible de créer une prise pour se connecter au serveur.\n")
+        exit(1)
+    }
+
+    boucle_évènements.lance()
+}
+
+/* ------------------------------------------------------------------------- */
+/** \nom ClienteWebSocket
+ * \{ */
+
+ÉtatLancementTests :: énum {
+    RequiersNombreDeTest
+    TestsEnCours
+    RequiersAjournementRapports
+    Terminé
+}
+
+ClienteWebSocket :: struct {
+    boucle_évènements: *Boucle
+    ctx: *Contexte
+
+    état: ÉtatLancementTests
+    nombre_de_tests: z32
+    test_courant: z32
+
+    dernière_chaine_uri: chaine
+}
+
+donne_url :: fonc (cliente: *ClienteWebSocket) -> URI
+{
+    déloge_si_logée(cliente.dernière_chaine_uri)
+
+    discr cliente.état {
+        RequiersNombreDeTest {
+            cliente.dernière_chaine_uri = "ws://localhost:9001/getCaseCount"
+        }
+        TestsEnCours {
+            cliente.dernière_chaine_uri = imprime_chaine("ws://localhost:9001/runCase?case=%&agent=unknown", cliente.test_courant)
+        }
+        RequiersAjournementRapports {
+            cliente.dernière_chaine_uri = "ws://localhost:9001/updateReports?agent=unknown"
+        }
+        Terminé {
+            assert(faux)
+        }
+    }
+
+    retourne tente parse_uri_standard(cliente.dernière_chaine_uri) piège nonatteignable
+}
+
+avance_état :: fonc (cliente: *ClienteWebSocket)
+{
+    discr cliente.état {
+        RequiersNombreDeTest {
+            cliente.état = ÉtatLancementTests.TestsEnCours
+            cliente.test_courant = 1
+        }
+        TestsEnCours {
+            si cliente.test_courant > cliente.nombre_de_tests {
+                cliente.état = ÉtatLancementTests.RequiersAjournementRapports
+            }
+            sinon {
+                cliente.test_courant += 1
+            }
+        }
+        RequiersAjournementRapports {
+            cliente.état = ÉtatLancementTests.Terminé
+        }
+        Terminé {
+        }
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom DonnéesPriseWebSocket
+ * \{ */
+
+DonnéesPriseWebSocket :: struct {
+    requête: chaine
+    décalage_requête: z32
+
+    parseuse: ParseuseMessageServeuseHTTP
+    extrémité: Extrémité(Prise, vrai)
+
+    est_connexion_websocket: bool
+}
+
+rappel_quand_ouverture :: fonc (prise: *Prise, est_client: bool @inutilisée)
+{
+    données := prise.données_utilisateur(DonnéesPriseWebSocket)
+    init_de(DonnéesPriseWebSocket)(données)
+
+    données.extrémité = crée_extrémité(prise, vrai, sur_message_websocket)
+
+    message: MessageClienteHTTP
+    diffère détruit_message(*message)
+
+    ctx := prise.contexte_
+    cliente := données_utilisateur(ctx, ClienteWebSocket)
+
+    message.méthode = "GET"
+    message.uri = cliente.donne_url()
+
+    ajoute_entête(*message, "Upgrade", "websocket")
+    ajoute_entête(*message, "Connection", "keep-alive, Upgrade")
+    ajoute_entête(*message, "Sec-WebSocket-Key", chaine_depuis_tranche_octets(données.extrémité.sec_websocket_key))
+    ajoute_entête(*message, "Sec-WebSocket-Version", "13")
+
+    données.requête = chaine_pour_message_cliente(message)
+    données.décalage_requête = prise.écris(données.requête)
+}
+
+rappel_quand_écriture :: fonc (prise: *Prise)
+{
+    données := prise.données_utilisateur(DonnéesPriseWebSocket)
+
+    requête := données.requête
+    requête.pointeur += données.décalage_requête
+    requête.taille -= données.décalage_requête
+
+    données.décalage_requête += prise.écris(requête)
+}
+
+rappel_quand_fermeture :: fonc (prise: *Prise)
+{
+    données_connexion := prise.données_utilisateur(DonnéesPriseWebSocket)
+    réinitialise(*données_connexion.parseuse)
+    déloge(données_connexion.requête)
+
+    ctx := prise.contexte_
+    cliente := données_utilisateur(ctx, ClienteWebSocket)
+
+    cliente.avance_état()
+
+    si cliente.état == ÉtatLancementTests.Terminé {
+        cliente.boucle_évènements.stop = vrai
+        retourne
+    }
+
+    url := cliente.donne_url()
+    nouvelle_prise := crée_prise_connexion(ctx, url, DonnéesPriseWebSocket)
+    saufsi nouvelle_prise {
+        imprime("Impossible de créer une prise pour se connecter au serveur.\n")
+        exit(1)
+    }
+}
+
+rappel_quand_données_reçues :: fonc (prise: *Prise, données: []octet)
+{
+    données_connexion := prise.données_utilisateur(DonnéesPriseWebSocket)
+    si données_connexion.est_connexion_websocket {
+        sur_données_reçues_websocket(prise, données)
+        retourne
+    }
+
+    parseuse := *données_connexion.parseuse
+
+    réponse := chaine_depuis_tranche_octets(données)
+    ajourne_données(parseuse, réponse)
+
+    si parseuse.message_est_erroné() {
+        prise.ferme()
+        retourne
+    }
+
+    saufsi parseuse.message_prêt_pour_finalisation() {
+        retourne
+    }
+
+    message := finalise_message(parseuse)
+
+    saufsi accèpte_serrage_de_main(*données_connexion.extrémité, *message) {
+        prise.ferme()
+        retourne
+    }
+
+    données_connexion.est_connexion_websocket = vrai
+
+    données = donne_données_après_message(parseuse)
+    si données.taille != 0 {
+        sur_données_reçues_websocket(prise, données)
+    }
+}
+
+sur_données_reçues_websocket :: fonc (prise: *Prise, données: []octet)
+{
+    données_utilisateur := prise.données_utilisateur(DonnéesPriseWebSocket)
+    traite_données_reçues(*données_utilisateur.extrémité, données)
+}
+
+sur_message_websocket :: fonc (prise: *Prise, opcode: OpCode, données: []octet) -> [..]octet
+{
+    ctx := prise.contexte_
+    cliente := données_utilisateur(ctx, ClienteWebSocket)
+
+    si cliente.état == ÉtatLancementTests.RequiersNombreDeTest {
+        tests := tente extrait_z32(chaine_depuis_tranche_octets(données)) piège nonatteignable
+        cliente.nombre_de_tests = tests
+
+        résultat: [..]octet
+        retourne résultat
+    }
+
+    retourne crée_message_websocket_réponse(opcode, données, vrai)
+}
+
+/** \} */
