@@ -319,7 +319,7 @@ chaine_pour_message_cliente :: fonc (message: &MessageClienteHTTP) -> chaine
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
 
-    imprime_dans_enchaineuse(*enchaineuse, "% % HTTP/1.1\r\n", message.méthode, message.uri.chemin)
+    imprime_dans_enchaineuse(*enchaineuse, "% % HTTP/1.1\r\n", message.méthode, message.uri.chemin_complet)
     ajoute_au_tampon(*enchaineuse, "Host: ", message.uri.hôte)
 
     port := port_pour_uri(message.uri)
