@@ -1,5 +1,6 @@
 importe Chaine
 importe Fondation
+importe Math
 importe Numérique
 
 /* ------------------------------------------------------------------------- */
@@ -296,11 +297,108 @@ crée_array_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Obje
     résultat.prototype = prototype
 
     résultat.ajoute_propriété(STR_length, Valeur(Number = 0.0), Writable)
+    résultat.ajoute_fonction_native(STR_fill, array_prototype_fill, 1)
     résultat.ajoute_fonction_native(STR_join, array_prototype_join)
     résultat.ajoute_fonction_native(STR_push, array_prototype_push, 1)
     résultat.ajoute_fonction_native(STR_toString, array_prototype_to_string)
 
     retourne résultat
+}
+
+/* @Tests
+ * 23.1.3.7 Array.prototype.fill ( value [ , start [ , end ] ] )
+ * https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array.prototype.fill */
+array_prototype_fill :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    // 1. Let O be ? ToObject(this value).
+    completion := to_object(interpréteuse.donne_realm(), this_value)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    O := completion.donne_object()
+
+    // 2. Let len be ? LengthOfArrayLike(O).
+    completion = length_of_array_like(interpréteuse, O)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    len := completion.valeur.V.Number comme n32
+
+    // 3. Let relativeStart be ? ToIntegerOrInfinity(start).
+    start := params.donne_argument(1)
+    relative_start: r64
+    saufsi start.est_undefined() {
+        completion = to_integer_or_infinity(interpréteuse, start)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        relative_start = completion.valeur.V.Number
+    }
+    sinon {
+        relative_start = 0.0
+    }
+
+    // 4. If relativeStart = -∞, let k be 0.
+    k: r64
+    si relative_start == R64_INFINITÉ_NÉGATIVE {
+        k = 0.0
+    }
+    // 5. Else if relativeStart < 0, let k be max(len + relativeStart, 0).
+    sinon si relative_start < 0.0 {
+        k = max(len comme r64 + relative_start, 0.0)
+    }
+    // 6. Else, let k be min(relativeStart, len).
+    sinon {
+        k = min(relative_start, len comme r64)
+    }
+
+    // 7. If end is undefined, let relativeEnd be len; else let relativeEnd be ? ToIntegerOrInfinity(end).
+    end := params.donne_argument(2)
+    relative_end: r64
+    si end.est_undefined() {
+        relative_end = len comme r64
+    }
+    sinon {
+        completion = to_integer_or_infinity(interpréteuse, end)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        relative_end = completion.valeur.V.Number
+    }
+
+    // 8. If relativeEnd = -∞, let final be 0.
+    final: r64
+    si relative_end == R64_INFINITÉ_NÉGATIVE {
+        final = 0.0
+    }
+    // 9. Else if relativeEnd < 0, let final be max(len + relativeEnd, 0).
+    sinon si relative_end < 0.0 {
+        final = max(len comme r64 + relative_end, 0.0)
+    }
+    // 10. Else, let final be min(relativeEnd, len).
+    sinon {
+        final = min(relative_end, len comme r64)
+    }
+
+    // 11. Repeat, while k < final,
+    value := params.donne_argument(0)
+
+    tantque k < final {
+        // a. Let Pk be ! ToString(𝔽(k)).
+        pk := to_string(interpréteuse, Valeur(Number = k comme n32 comme r64)).valeur.V.String.texte
+
+        // b. Perform ? Set(O, Pk, value, true).
+        completion = set(O, pk, value, vrai)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+
+        // c. Set k to k + 1.
+        k = k + 1
+    }
+
+    // 12. Return O.
+    retourne normal_completion(Valeur(Object = O))
 }
 
 /* 23.1.3.18 Array.prototype.join ( separator )
