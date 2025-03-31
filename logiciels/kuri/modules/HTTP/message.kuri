@@ -320,7 +320,15 @@ chaine_pour_message_cliente :: fonc (message: &MessageClienteHTTP) -> chaine
     diffère détruit_tampons(*enchaineuse)
 
     imprime_dans_enchaineuse(*enchaineuse, "% % HTTP/1.1\r\n", message.méthode, message.uri.chemin)
-    imprime_dans_enchaineuse(*enchaineuse, "Host: %\r\n", message.uri.hôte)
+    ajoute_au_tampon(*enchaineuse, "Host: ", message.uri.hôte)
+
+    port := port_pour_uri(message.uri)
+    si port != 80 && port != 443 {
+        ajoute_au_tampon(*enchaineuse, ":", message.uri.port)
+    }
+
+    ajoute_au_tampon(*enchaineuse, "\r\n")
+
     imprime_dans_enchaineuse(*enchaineuse, "Connection: close\r\n")
 
     pour message.entêtes {
