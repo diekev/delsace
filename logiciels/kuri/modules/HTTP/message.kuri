@@ -294,6 +294,8 @@ chaine_pour_message_serveuse :: fonc (message: &MessageServeuseHTTP) -> chaine
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
 
+    assert(message.version.taille != 0)
+
     imprime_dans_enchaineuse(*enchaineuse, "% %\r\n", message.version, chaine_code_état_http(message.code_état))
 
     pour message.entêtes {
