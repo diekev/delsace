@@ -50,11 +50,75 @@ est_base64 :: fonc (chn: chaine) -> bool
 
 /* ------------------------------------------------------------------------- */
 
+donne_taille_base64 :: fonc (src: []octet) -> z64
+{
+    résultat := src.taille / 3
+    taille_mod_3 := src.taille % 3
+    si taille_mod_3 != 0 {
+        résultat += 1
+    }
+    retourne résultat * 4
+}
+
+encode_base64 :: fonc (src: []octet, dst: []octet)
+{
+    assert(dst.taille == donne_taille_base64(src))
+
+    ptr_src := src.pointeur
+    fin_src := src.pointeur + src.taille
+
+    ptr_dst := dst.pointeur
+
+    char_array_3: [3]n8
+
+    tantque (ptr_src + 3) < fin_src {
+        char_array_3[0] = ptr_src[0] comme n8
+        char_array_3[1] = ptr_src[1] comme n8
+        char_array_3[2] = ptr_src[2] comme n8
+
+        char_array_4 := encode_trois_caractères_base64(char_array_3)
+
+        ptr_dst[0] = table_défaut[char_array_4[0]] comme octet
+        ptr_dst[1] = table_défaut[char_array_4[1]] comme octet
+        ptr_dst[2] = table_défaut[char_array_4[2]] comme octet
+        ptr_dst[3] = table_défaut[char_array_4[3]] comme octet
+
+        ptr_src += 3
+        ptr_dst += 4
+    }
+
+    si ptr_src >= fin_src {
+        retourne
+    }
+
+    char_array_3[0] = '\0' comme n8
+    char_array_3[1] = '\0' comme n8
+    char_array_3[2] = '\0' comme n8
+
+    i := 0
+    tantque ptr_src < fin_src {
+        char_array_3[i] = mémoire(ptr_src) comme n8
+        i += 1
+        ptr_src += 1
+    }
+
+    char_array_4 := encode_trois_caractères_base64(char_array_3)
+
+    pour i + 1 {
+        mémoire(ptr_dst) = table_défaut[char_array_4[it]] comme octet
+        ptr_dst += 1
+    }
+
+    pour 3 - i {
+        mémoire(ptr_dst) = '=' comme octet
+        ptr_dst += 1
+    }
+}
+
 encode_base64_impl :: fonc (chn: chaine, table: chaine) -> chaine
 {
     i := 0
     char_array_3: [3]n8
-    char_array_4: [4]n8
 
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
@@ -66,11 +130,7 @@ encode_base64_impl :: fonc (chn: chaine, table: chaine) -> chaine
         i += 1
 
         si i == 3 {
-            char_array_4[0] = (char_array_3[0] & 0xfc) >> 2 comme n8
-            char_array_4[1] = ((char_array_3[0] & 0x03) << 4) | ((char_array_3[1] & 0xf0) >> 4)
-            char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) | ((char_array_3[2] & 0xc0) >> 6)
-            char_array_4[3] = char_array_3[2] & 0x3f comme n8
-
+            char_array_4 := encode_trois_caractères_base64(char_array_3)
             pour j dans 0 ... 3 {
                 ajoute_au_tampon(*enchaineuse, table[char_array_4[j]])
             }
@@ -84,11 +144,7 @@ encode_base64_impl :: fonc (chn: chaine, table: chaine) -> chaine
             char_array_3[j] = '\0' comme n8
         }
 
-        char_array_4[0] = (char_array_3[0] & 0xfc) >> 2
-        char_array_4[1] = ((char_array_3[0] & 0x03) << 4) | ((char_array_3[1] & 0xf0) >> 4)
-        char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) | ((char_array_3[2] & 0xc0) >> 6)
-        char_array_4[3] = char_array_3[2] & 0x3f
-
+        char_array_4 := encode_trois_caractères_base64(char_array_3)
         pour j dans 0 ... i {
             ajoute_au_tampon(*enchaineuse, table[char_array_4[j]])
         }
@@ -100,6 +156,16 @@ encode_base64_impl :: fonc (chn: chaine, table: chaine) -> chaine
     }
 
     retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
+encode_trois_caractères_base64 :: fonc (src: [3]n8) -> [4]n8 #enligne
+{
+    résultat: [4]n8 = ---
+    résultat[0] = (src[0] & 0xfc) >> 2 comme n8
+    résultat[1] = ((src[0] & 0x03) << 4) | ((src[1] & 0xf0) >> 4)
+    résultat[2] = ((src[1] & 0x0f) << 2) | ((src[2] & 0xc0) >> 6)
+    résultat[3] = src[2] & 0x3f comme n8
+    retourne résultat
 }
 
 encode_base64 :: fonc (chn: chaine) -> chaine
