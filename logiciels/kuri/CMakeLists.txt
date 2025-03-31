@@ -256,6 +256,8 @@ compile_fichier(modules/OutilsMaintenance/Programmes formattage)
 compile_fichier(modules/OutilsMaintenance/Programmes suppression_lignes_vides)
 compile_fichier(modules/OutilsMaintenance/Programmes triage_imports)
 compile_fichier(modules/Unicode/Programme principale)
+compile_fichier(modules/WebSocket/Tests cliente)
+compile_fichier(modules/WebSocket/Tests serveuse)
 
 include(bugs/test_bugs.txt)
 

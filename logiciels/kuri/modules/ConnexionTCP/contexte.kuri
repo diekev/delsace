@@ -135,7 +135,7 @@ crée_prise_connexion :: fonc (contexte_: *Contexte, uri: &URI, $TypeDonnées: t
 
     port := port_pour_uri(uri)
 
-    fichier := tente ouvre_connexion_serveur(uri.hôte, port, vrai) piège err {
+    fichier := tente ouvre_connexion_serveur(uri.hôte, port, vrai) piège _ {
         // imprime("erreur lors de l'ouverture d'une connexion: %\n", err)
         retourne nul
     }

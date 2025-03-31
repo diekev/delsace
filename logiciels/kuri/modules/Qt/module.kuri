@@ -416,6 +416,31 @@ crée_file_parallèle :: fonc (params: ParamètresFileParallèle) -> FileParall�
     retourne résultat
 }
 
+crée_file_parallèle_pour_tâches :: fonc () -> FileParallèle
+{
+    QT_initialise_évènements_file_parallèle_pour_tâche()
+
+    params: ParamètresFileParallèle
+    params.type_évènement = __évènement_sur_tâche_parallèle
+    params.sur_évènement = QT_file_parallèle_sur_évènement
+    retourne crée_file_parallèle(params)
+}
+
+QT_DonnéesTâche :: struct {
+    sur_exécution: fonc(*rien)(rien)
+    sur_tâche_finie: fonc(*rien)(rien)
+    données: *rien
+}
+
+poste_tâche :: fonc (file: *FileParallèle, tâche: QT_DonnéesTâche)
+{
+    message := loge(QT_MessageTâcheParallèle)
+    message.destinataire = file.filtre_évènement
+    message.tâche = tâche
+
+    QT_application_poste_evenement_et_donnees(message.destinataire, __évènement_sur_tâche_parallèle, message)
+}
+
 #portée_fichier
 
 RappelsThread :: struct {
@@ -446,6 +471,58 @@ filtre_thread_sur_évènement :: fonc (base: *QT_Rappels_Object, évènement: *Q
     }
 
     retourne 0
+}
+
+__évènement_sur_tâche_parallèle : z32 = -1
+__évènement_sur_tâche_parallèle_finie : z32 = -1
+
+QT_MessageTâcheParallèle :: struct {
+    destinataire: *QT_Object
+    tâche: QT_DonnéesTâche
+}
+
+__filtre_tâches_finies: *QT_Object
+
+__filtre_tâches_finies_sur_évènement :: fonc (base: *QT_Rappels_Object @inutilisée, event: *QT_Evenement) -> z32
+{
+    type := QT_evenement_donne_type(event) comme n32 comme z32
+
+    si type == __évènement_sur_tâche_parallèle_finie {
+        message := QT_event_perso_donne_donnees(event) comme *QT_MessageTâcheParallèle
+        diffère déloge(message)
+        si message.tâche.sur_tâche_finie {
+            message.tâche.sur_tâche_finie(message.tâche.données)
+        }
+        QT_evenement_accepte(event)
+        retourne 1
+    }
+
+    retourne 0
+}
+
+QT_initialise_évènements_file_parallèle_pour_tâche :: fonc ()
+{
+    si __évènement_sur_tâche_parallèle == -1 {
+        assert(__filtre_tâches_finies == nul)
+
+        rappels_filtre_évènement := QT_loge_rappel(QT_Rappels_Object)
+        rappels_filtre_évènement.sur_evenement = __filtre_tâches_finies_sur_évènement
+        parent: *QT_Object
+        __filtre_tâches_finies = QT_object_cree(rappels_filtre_évènement, parent)
+
+        __évènement_sur_tâche_parallèle = QT_enregistre_evenement_personnel()
+        __évènement_sur_tâche_parallèle_finie = QT_enregistre_evenement_personnel()
+    }
+}
+
+QT_file_parallèle_sur_évènement :: fonc (event: *QT_Evenement)
+{
+    assert(__filtre_tâches_finies != nul)
+    message := QT_event_perso_donne_donnees(event) comme *QT_MessageTâcheParallèle
+    si message.tâche.sur_exécution {
+        message.tâche.sur_exécution(message.tâche.données)
+    }
+    QT_application_poste_evenement_et_donnees(__filtre_tâches_finies, __évènement_sur_tâche_parallèle_finie, message)
 }
 
 /** \} */

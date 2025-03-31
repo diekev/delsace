@@ -1,0 +1,1024 @@
+/* Module implémentant le protocole WebSocket pour les clients et les serveurs.
+ *
+ * Références :
+ * https://tools.ietf.org/html/rfc6455
+ * https://developer.mozilla.org/fr/docs/Web/API/WebSockets_API/Writing_WebSocket_client_applications
+ * https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_server
+ */
+
+importe Chaine
+importe CodecDonnées
+importe Fondation
+importe HTTP
+importe Internet
+importe Krypto
+importe Ordinatrice
+importe SysFichier
+importe Unicode
+
+ErreurRequêteWebSocket :: énum {
+    HôteManquant
+    UpgradeManquant
+    UpgradeMalformé
+    ConnectionManquante
+    ConnectionMalformée
+    SecWebSocketKeyManquante
+    SecWebSocketKeyMalformée
+    SecWebSocketAcceptManquante
+    SecWebSocketAcceptMalformée
+    SecWebSocketVersionManquante
+    MauvaiseSecWebSocketVersion
+}
+
+ParamètresConnexionWebSocket :: struct {
+    hôte: chaine
+    sec_websocket_key: chaine
+    origin: chaine
+    protocoles: chaine
+    extensions: chaine
+}
+
+parse_paramètres_connexion_websocket :: fonc (requête: *MessageClienteHTTP) -> Résultat(ParamètresConnexionWebSocket, ErreurRequêteWebSocket)
+{
+    /* [rfc6455] Section 4.2.1 2. */
+    hôte := cherche_entête(requête.entêtes, "Host")
+    saufsi hôte {
+        retourne ErreurRequêteWebSocket.HôteManquant
+    }
+
+    /* [rfc6455] Section 4.2.1 3. */
+    upgrade := cherche_entête(requête.entêtes, "Upgrade")
+    saufsi upgrade {
+        retourne ErreurRequêteWebSocket.UpgradeManquant
+    }
+    saufsi compare_ascii_insensible_à_la_casse(upgrade.valeur, "websocket") {
+        retourne ErreurRequêteWebSocket.UpgradeMalformé
+    }
+
+    /* [rfc6455] Section 4.2.1 4. */
+    connection := cherche_entête(requête.entêtes, "Connection")
+    saufsi connection {
+        retourne ErreurRequêteWebSocket.ConnectionManquante
+    }
+    saufsi contient_token(connection, "Upgrade") {
+        retourne ErreurRequêteWebSocket.ConnectionMalformée
+    }
+
+    /* [rfc6455] Section 4.2.1 5. */
+    sec_websocket_key := cherche_entête(requête.entêtes, "Sec-WebSocket-Key")
+    saufsi sec_websocket_key {
+        retourne ErreurRequêteWebSocket.SecWebSocketKeyManquante
+    }
+    si est_base64_url(sec_websocket_key.valeur) {
+        retourne ErreurRequêteWebSocket.SecWebSocketKeyMalformée
+    }
+
+    /* [rfc6455] Section 4.2.1 6. */
+    sec_websocket_version := cherche_entête(requête.entêtes, "Sec-WebSocket-Version")
+    saufsi sec_websocket_version {
+        retourne ErreurRequêteWebSocket.SecWebSocketVersionManquante
+    }
+    saufsi sec_websocket_version.valeur == "13" {
+        retourne ErreurRequêteWebSocket.MauvaiseSecWebSocketVersion
+    }
+
+    résultat: ParamètresConnexionWebSocket
+    résultat.hôte = hôte.valeur
+    résultat.sec_websocket_key = sec_websocket_key.valeur
+
+    /* [rfc6455] Section 4.2.1 7. */
+    origin := cherche_entête(requête.entêtes, "Origin")
+    si origin {
+        résultat.origin = origin.valeur
+    }
+
+    /* [rfc6455] Section 4.2.1 8. */
+    sec_websocket_protocol := cherche_entête(requête.entêtes, "Sec-WebSocket-Protocol")
+    si sec_websocket_protocol {
+        résultat.protocoles = sec_websocket_protocol.valeur
+    }
+
+    /* [rfc6455] Section 4.2.1 9. */
+    sec_websocket_extensions := cherche_entête(requête.entêtes, "Sec-WebSocket-Extensions")
+    si sec_websocket_extensions {
+        résultat.extensions = sec_websocket_extensions.valeur
+    }
+
+    retourne résultat
+}
+
+ParamètresServeurWebSocket :: struct {
+    sec_websocket_accept: chaine
+    protocoles: chaine
+    extensions: chaine
+}
+
+parse_paramètres_serveur_websocket :: fonc (requête: *MessageServeuseHTTP) -> Résultat(ParamètresServeurWebSocket, ErreurRequêteWebSocket)
+{
+    connection := cherche_entête(requête.entêtes, "Connection")
+    saufsi connection {
+        retourne ErreurRequêteWebSocket.ConnectionManquante
+    }
+    saufsi contient_token(connection, "Upgrade") {
+        retourne ErreurRequêteWebSocket.ConnectionMalformée
+    }
+
+    sec_websocket_accept := cherche_entête(requête.entêtes, "Sec-WebSocket-Accept")
+    saufsi sec_websocket_accept {
+        retourne ErreurRequêteWebSocket.SecWebSocketAcceptManquante
+    }
+    si est_base64_url(sec_websocket_accept.valeur) {
+        retourne ErreurRequêteWebSocket.SecWebSocketAcceptMalformée
+    }
+
+    résultat: ParamètresServeurWebSocket
+    résultat.sec_websocket_accept = sec_websocket_accept.valeur
+
+    sec_websocket_protocol := cherche_entête(requête.entêtes, "Sec-WebSocket-Protocol")
+    si sec_websocket_protocol {
+        résultat.protocoles = sec_websocket_protocol.valeur
+    }
+
+    sec_websocket_extensions := cherche_entête(requête.entêtes, "Sec-WebSocket-Extensions")
+    si sec_websocket_extensions {
+        résultat.extensions = sec_websocket_extensions.valeur
+    }
+
+    retourne résultat
+}
+
+/* ------------------------------------------------------------------------- */
+/** \nom Extrémité
+ *
+ * L'Extrémité représente l'une des extrémités (cliente ou serveuse) d'une
+ * connexion WebSocket.
+ *
+ * Si l'extrémité est une cliente, une valeur pour Sec-WebSocket-Key est
+ * automatiquement crée.
+ *
+ * Utilisation :
+ * -------------
+ * 
+ * Pour la création :
+ *     extrémité := crée_extrémité(MonTypePrise, est_cliente, sur_message)
+ *
+ * Pour verifier un serrage de main depuis un MessageHTTP :
+ *    saufsi accèpte_serrage_de_main(*extrémité, *message) { ... }
+ *
+ * accèpte_serrage_de_main, pour une serveuse, mettra en place la valeur
+ * pour Sec-WebSocket-Accept.
+
+ * Lorsque des données sont reçues :
+ *     traite_données_reçues(*extrémité, données)
+ *
+ * Interface requise :
+ * -------------------
+ *
+ * Les fonctions suivantes sont requises pour le type "MonTypePrise" :
+ *     écris :: fonc (*MonTypePrise, chaine) -> z32
+ *     ferme :: fonc (*MonTypePrise) -> rien
+ * \{ */
+
+Extrémité :: struct ($TypePrise: type_de_données, $est_cliente: bool) {
+    parseuse: ParseuseFrame
+    message_à_continuer: *Message
+    prise: *TypePrise
+    sur_message: fonc (*TypePrise, OpCode, []octet)([..]octet)
+
+    sec_websocket_key: [24]octet
+    sec_websocket_accept: chaine
+}
+
+crée_extrémité :: fonc (prise: *$TypePrise, $est_cliente: bool, sur_message: fonc(*TypePrise, OpCode, []octet)([..]octet)) -> Extrémité(TypePrise, est_cliente)
+{
+    assert(sur_message != nul)
+
+    résultat: Extrémité(TypePrise, est_cliente)
+    résultat.prise = prise
+    résultat.sur_message = sur_message
+
+    si est_cliente {
+        résultat.sec_websocket_key = crée_valeur_sec_websocket_key()
+    }
+
+    retourne résultat
+}
+
+accèpte_serrage_de_main :: fonc (extrémité: *Extrémité($TypePrise, $est_cliente), message: *MessageServeuseHTTP) -> bool
+{
+    saufsi est_cliente {
+        retourne faux
+    }
+
+    si message.status != 101 {
+        imprime("[WebSocket] le serveur a répondu avec un status de %\n", message.status)
+        retourne faux
+    }
+
+    discr parse_paramètres_serveur_websocket(message) {
+        Ok(params) {
+            sec_websocket_accept := calcul_clé_serrage_de_main(chaine_depuis_tranche_octets(extrémité.sec_websocket_key))
+            diffère déloge(sec_websocket_accept)
+
+            si sec_websocket_accept != params.sec_websocket_accept {
+                imprime("[WebSocket] Sec-WebSocket-Accept invalide pour notre Sec-WebSocket-Key :\n    voulu  : %\n    obtenu : %\n", sec_websocket_accept, params.sec_websocket_accept)
+                retourne faux
+            }
+        }
+        Erreur(e) {
+            imprime("[WebSocket] réponse invalide du serveur : %\n", e)
+            retourne faux
+        }
+        sinon {
+            imprime("[WebSocket] impossible de parser les entêtes de la réponse\n")
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
+
+accèpte_serrage_de_main :: fonc (extrémité: *Extrémité($TypePrise, $est_cliente), message: *MessageClienteHTTP) -> bool
+{
+    si est_cliente {
+        retourne faux
+    }
+
+    discr parse_paramètres_connexion_websocket(message) {
+        Ok(params) {
+            extrémité.sec_websocket_accept = calcul_clé_serrage_de_main(params.sec_websocket_key)
+        }
+        Erreur(e) {
+            imprime("[WebSocket] requête invalide du client : %\n", e)
+            retourne faux
+        }
+        sinon {
+            imprime("[WebSocket] impossible de parser les entêtes de la requête\n")
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
+
+traite_données_reçues :: fonc (extrémité: *Extrémité($TypePrise, $est_cliente), données: []octet)
+{
+    parseuse := *extrémité.parseuse
+
+    état_données := ajoute_données(parseuse, données, !est_cliente)
+    si état_données == ÉtatDonnéesFrame.DonnéesIncomplètes {
+        retourne
+    }
+    diffère réinitialise(parseuse)
+
+    réponses: [..][..]octet
+    diffère déloge_tableau_et_ses_éléments(réponses)
+
+    doit_fermer_la_prise := faux
+
+    réponse: [..]octet
+
+    prise := extrémité.prise
+
+    imprime("[WebSocket] ------------------------- reçu % frame(s)\n", parseuse.frames.taille)
+    pour * frame dans parseuse.frames {
+        données_frame := donne_données_frame(parseuse, frame)
+        imprime("[WebSocket] FIN(%) % payload % (données_frame %)\n", frame.est_fin, frame.opcode, frame.taille_données, données_frame.taille)
+
+        si frame.état == ÉtatParsageFrame.Invalide || frame.état == ÉtatParsageFrame.DonnéesUTF8Invalides {
+            code : n16 = 1002
+            si frame.état == ÉtatParsageFrame.DonnéesUTF8Invalides {
+                code = 1007
+            }
+            commute_boutisme(*code)
+            réponse = crée_message_websocket_réponse(OpCode.FRAME_FERMETURE, code, est_cliente)
+            doit_fermer_la_prise = vrai
+        }
+        sinon si frame.opcode == OpCode.FRAME_FERMETURE {
+            status_code := donne_status_code(frame, parseuse)
+            imprime("[WebSocket] %\n", status_code)
+            code := donne_code_réponse_pour_status_code(status_code)
+            commute_boutisme(*code)
+            réponse = crée_message_websocket_réponse(OpCode.FRAME_FERMETURE, code, est_cliente)
+            doit_fermer_la_prise = vrai
+        }
+        sinon si frame.opcode == OpCode.FRAME_PING {
+            réponse = crée_message_websocket_réponse(OpCode.FRAME_PONG, données_frame, est_cliente)
+        }
+        sinon si frame.opcode == OpCode.FRAME_PONG {
+            /* 5.5.3 A response to an unsolicited Pong frame is not expected. */
+            continue
+        }
+        sinon {
+            message_à_continuer := extrémité.message_à_continuer
+
+            si frame.est_fin {
+                imprime("-- message à continuer : %\n", message_à_continuer)
+                si frame.opcode == OpCode.FRAME_DE_CONTINUATION {
+                    saufsi message_à_continuer {
+                        code : n16 = 1002
+                        commute_boutisme(*code)
+                        réponse = crée_message_websocket_réponse(OpCode.FRAME_FERMETURE, code, est_cliente)
+                        doit_fermer_la_prise = vrai
+                    }
+                    sinon {
+                        saufsi message_à_continuer.ajoute_frame(frame, données_frame) {
+                            code : n16 = 1007
+                            commute_boutisme(*code)
+                            réponse = crée_message_websocket_réponse(OpCode.FRAME_FERMETURE, code, est_cliente)
+                            doit_fermer_la_prise = vrai
+                        }
+                        sinon {
+                            données_message := message_à_continuer.donne_données_finales()
+                            opcode := message_à_continuer.donne_opcode_pour_réponse()
+
+                            réponse = extrémité.sur_message(prise, opcode, données_message)
+                            détruit_message(message_à_continuer)
+                            extrémité.message_à_continuer = nul
+                        }
+                    }
+                }
+                sinon si message_à_continuer {
+                    /* Les frames suivantes doivent être de type FRAME_DE_CONTINUATION. */
+                    code : n16 = 1002
+                    commute_boutisme(*code)
+                    réponse = crée_message_websocket_réponse(OpCode.FRAME_FERMETURE, code, est_cliente)
+                    doit_fermer_la_prise = vrai
+                }
+                sinon {
+                    réponse = extrémité.sur_message(prise, frame.opcode, données_frame)
+                }
+            }
+            sinon si frame.opcode == OpCode.FRAME_DE_CONTINUATION && message_à_continuer == nul {
+                code : n16 = 1002
+                commute_boutisme(*code)
+                réponse = crée_message_websocket_réponse(OpCode.FRAME_FERMETURE, code, est_cliente)
+                doit_fermer_la_prise = vrai
+            }
+            sinon {
+                saufsi message_à_continuer {
+                    message_à_continuer = loge(Message)
+                    extrémité.message_à_continuer = message_à_continuer
+                }
+
+                saufsi message_à_continuer.ajoute_frame(frame, données_frame) {
+                    code : n16 = 1007
+                    commute_boutisme(*code)
+                    réponse = crée_message_websocket_réponse(OpCode.FRAME_FERMETURE, code, est_cliente)
+                    doit_fermer_la_prise = vrai
+                }
+            }
+        }
+
+        tableau_ajoute(*réponses, réponse)
+
+        si doit_fermer_la_prise {
+            arrête
+        }
+    }
+
+    pour réponses {
+        chaine_réponse := chaine_depuis_tranche_octets(it)
+        _ := prise.écris(chaine_réponse)
+    }
+
+    si doit_fermer_la_prise {
+        détruit_message(extrémité.message_à_continuer)
+        prise.ferme()
+    }
+}
+
+/** \} */
+
+ÉtatDonnéesFrame :: énum {
+    DonnéesComplètes
+    DonnéesIncomplètes
+    DonnéesInvalides
+}
+
+ÉtatParsageFrame :: énum {
+    NonCommencé
+    EntêteObtenue
+    Charge
+    Terminé
+    Invalide
+    DonnéesUTF8Invalides
+}
+
+ParseuseFrame :: struct {
+    données: [..]octet
+    curseur: z64
+
+    frames: [..]Frame
+}
+
+réinitialise :: fonc (parseuse: *ParseuseFrame)
+{
+    parseuse.données.taille = 0
+    parseuse.curseur = 0
+    parseuse.frames.taille = 0
+}
+
+ajoute_données :: fonc (parseuse: *ParseuseFrame, données: []octet, doit_être_masquée: bool) -> ÉtatDonnéesFrame
+{
+    tableau_ajoute(*parseuse.données, données)
+
+    tantque parseuse.curseur < parseuse.données.taille {
+        frame := donne_frame_courante(parseuse)
+        assert(frame.état != ÉtatParsageFrame.Terminé)
+
+        imprime("parseuse.curseur %, parseuse.données.taille %, frames %, frame.taille_données % frame.état %\n", parseuse.curseur, parseuse.données.taille, parseuse.frames.taille, frame.taille_données, frame.état)
+
+        données_frame := parseuse.données
+        données_frame.pointeur += parseuse.curseur
+        données_frame.taille -= parseuse.curseur
+
+        état := lis_frame(parseuse, frame, données_frame, doit_être_masquée)
+        si état != ÉtatDonnéesFrame.DonnéesComplètes {
+            retourne état
+        }
+    }
+
+    retourne ÉtatDonnéesFrame.DonnéesComplètes
+}
+
+donne_frame_courante :: fonc (parseuse: *ParseuseFrame) -> *Frame
+{
+    si parseuse.frames.taille == 0 {
+        retourne tableau_ajoute_élément(*parseuse.frames)
+    }
+    résultat := dernier_élément(parseuse.frames)
+    si résultat.état == ÉtatParsageFrame.Terminé {
+        retourne tableau_ajoute_élément(*parseuse.frames)
+    }
+    retourne résultat
+}
+
+donne_données_frame :: fonc (parseuse: *ParseuseFrame, frame: *Frame) -> []octet
+{
+    résultat: []octet
+    résultat.pointeur = parseuse.données.pointeur + frame.décalage_données
+    résultat.taille = frame.taille_données comme z64
+    retourne résultat
+}
+
+lis_frame :: fonc (parseuse: *ParseuseFrame, frame: *Frame, données: []octet, doit_être_masquée: bool) -> ÉtatDonnéesFrame
+{
+    // imprime("données %\n", données.taille)
+    // imprime("parseuse.données %\n", parseuse.données.taille)
+
+    si frame.état == ÉtatParsageFrame.NonCommencé {
+        résultat_entête := lis_entête(frame, données, doit_être_masquée)
+        // imprime("résultat_entête %\n", résultat_entête)
+        si résultat_entête != ÉtatDonnéesFrame.DonnéesComplètes {
+            retourne résultat_entête
+        }
+
+        frame.état = ÉtatParsageFrame.EntêteObtenue
+        décalage_données := frame.décalage_données
+        frame.décalage_données += parseuse.curseur
+        parseuse.curseur += décalage_données
+    }
+
+    si frame.état == ÉtatParsageFrame.EntêteObtenue {
+        taille_message := calcule_taille_message(frame.taille_données comme z64, frame.masquée)
+        // imprime("taille_message %\n", taille_message)
+
+        si taille_message > données.taille {
+            // imprime("taille_message % données.taille %\n", taille_message, données.taille)
+            retourne ÉtatDonnéesFrame.DonnéesIncomplètes
+        }
+
+        frame.état = ÉtatParsageFrame.Charge
+    }
+
+    // imprime("parseuse.état %\n", parseuse.état)
+
+    si frame.état == ÉtatParsageFrame.Charge {
+        données_frame := donne_données_frame(parseuse, frame)
+        lis_charge(frame, données_frame)
+        parseuse.curseur += frame.taille_données comme z64
+        frame.état = ÉtatParsageFrame.Terminé
+
+        saufsi contenu_est_utf8_valide(frame, données_frame) {
+            frame.état = ÉtatParsageFrame.DonnéesUTF8Invalides
+            retourne ÉtatDonnéesFrame.DonnéesInvalides
+        }
+    }
+
+    retourne ÉtatDonnéesFrame.DonnéesComplètes
+}
+
+Message :: struct {
+    frames: [..]Frame
+    données: [..]octet
+    décalage_validation_utf8: z64
+}
+
+ajoute_frame :: fonc (message: *Message, frame: *Frame, données: []octet) -> bool
+{
+    tableau_ajoute(*message.frames, mémoire(frame))
+    tableau_ajoute(*message.données, données)
+
+    si donne_opcode_pour_réponse(message) != OpCode.FRAME_DE_TEXTE {
+        retourne vrai
+    }
+
+    séquence := message.données
+    séquence.pointeur += message.décalage_validation_utf8
+    séquence.taille -= message.décalage_validation_utf8
+
+    est_valide, taille_consommée := contenu_est_utf8_valide(séquence, frame.est_fin)
+    saufsi est_valide {
+        retourne faux
+    }
+
+    message.décalage_validation_utf8 += taille_consommée
+    retourne vrai
+}
+
+détruit_message :: fonc (message: *Message)
+{
+    saufsi message {
+        retourne
+    }
+    déloge(message.frames)
+    déloge(message.données)
+    déloge(message)
+}
+
+donne_opcode_pour_réponse :: fonc (message: *Message) -> OpCode
+{
+    retourne message.frames[0].opcode
+}
+
+donne_données_finales :: fonc (message: *Message) -> []octet
+{
+    retourne message.données
+}
+
+Frame :: struct {
+    est_fin: bool
+    rsv1: bool
+    rsv2: bool
+    rsv3: bool
+    opcode: OpCode
+
+    masquée: bool
+    taille_données: n32
+
+    masque: z32
+
+    état: ÉtatParsageFrame
+    décalage_données: z64
+}
+
+StatusCode :: énum n16 {
+    AucunPrécisé
+    Invalide
+    IndéfiniParLeStandard // >5000
+    Normal
+    DépartPair
+    ErreurProtocole
+    DonnéesInacceptables
+    Réservé
+    Réservé_AucunStatusNeFutPrésent
+    Réservé_ConnexionFutFerméeAnormalement
+    DonnéesIncohérentes
+    ViolationDeRègle
+    MessageTropGrand
+    ExtensionDésiréeInconnueDuServeur
+    RequêteImpossible
+    Réservé_ÉchecTLS
+    SpécifiquePourApplication
+    UsagePrivé
+}
+
+donne_status_code :: fonc (frame: *Frame, parseuse: *ParseuseFrame) -> StatusCode
+{
+    assert(frame.opcode == OpCode.FRAME_FERMETURE)
+
+    données := donne_données_frame(parseuse, frame)
+
+    si données.taille == 0 {
+        retourne StatusCode.AucunPrécisé
+    }
+
+    si données.taille == 1 {
+        retourne StatusCode.Invalide
+    }
+
+    code := mémoire(données.pointeur comme *n16)
+    commute_boutisme(*code)
+
+    si code < 1000 {
+        retourne StatusCode.Invalide
+    }
+
+    si code >= 5000 {
+        retourne StatusCode.IndéfiniParLeStandard
+    }
+
+    si code == 1000 {
+        retourne StatusCode.Normal
+    }
+
+    si code == 1001 {
+        retourne StatusCode.DépartPair
+    }
+
+    si code == 1002 {
+        retourne StatusCode.ErreurProtocole
+    }
+
+    si code == 1003 {
+        retourne StatusCode.DonnéesInacceptables
+    }
+
+    si code == 1004 {
+        retourne StatusCode.Réservé
+    }
+
+    si code == 1005 {
+        retourne StatusCode.Réservé_AucunStatusNeFutPrésent
+    }
+
+    si code == 1006 {
+        retourne StatusCode.Réservé_ConnexionFutFerméeAnormalement
+    }
+
+    si code == 1007 {
+        retourne StatusCode.DonnéesIncohérentes
+    }
+
+    si code == 1008 {
+        retourne StatusCode.ViolationDeRègle
+    }
+
+    si code == 1009 {
+        retourne StatusCode.MessageTropGrand
+    }
+
+    si code == 1010 {
+        retourne StatusCode.ExtensionDésiréeInconnueDuServeur
+    }
+
+    si code == 1011 {
+        retourne StatusCode.RequêteImpossible
+    }
+
+    si code == 1015 {
+        retourne StatusCode.Réservé_ÉchecTLS
+    }
+
+    si code <= 2999 {
+        retourne StatusCode.Réservé
+    }
+
+    si code >= 3000 && code <= 3999 {
+        retourne StatusCode.SpécifiquePourApplication
+    }
+
+    si code >= 4000 && code <= 4999 {
+        retourne StatusCode.UsagePrivé
+    }
+
+    retourne StatusCode.Invalide
+}
+
+donne_code_réponse_pour_status_code :: fonc (status_code: StatusCode) -> n16
+{
+    discr status_code {
+        AucunPrécisé,
+        Normal,
+        DépartPair,
+        DonnéesInacceptables,
+        IndéfiniParLeStandard,
+        DonnéesIncohérentes,
+        ViolationDeRègle,
+        MessageTropGrand,
+        ExtensionDésiréeInconnueDuServeur,
+        RequêteImpossible {
+            retourne 1000
+        }
+        ErreurProtocole,
+        Invalide,
+        Réservé,
+        Réservé_AucunStatusNeFutPrésent,
+        Réservé_ConnexionFutFerméeAnormalement,
+        Réservé_ÉchecTLS {
+            retourne 1002
+        }
+        SpécifiquePourApplication,
+        UsagePrivé {
+            retourne 1000 // ou écho
+        }
+    }
+
+    retourne 1002
+}
+
+OpCode :: énum n8 {
+    FRAME_DE_CONTINUATION :: 0x0
+    FRAME_DE_TEXTE :: 0x1
+    FRAME_BINAIRE :: 0x2
+    /* réservés 0x3 - 0x7 */
+    FRAME_FERMETURE :: 0x8
+    FRAME_PING :: 0x9
+    FRAME_PONG :: 0xa
+    /* réservés 0xb - 0xf */
+}
+
+est_controle :: fonc (opcode: OpCode) -> bool
+{
+    retourne opcode == OpCode.FRAME_FERMETURE || opcode == OpCode.FRAME_PING || opcode == OpCode.FRAME_PONG
+}
+
+est_opcode_réservé :: fonc (opcode: OpCode) -> bool
+{
+    valeur := opcode comme n8
+    retourne 0x3 <= valeur <= 0x7 || 0xb <= valeur <= 0xf
+}
+
+lis_entête :: fonc (frame: *Frame, données: []octet, doit_être_masquée: bool) -> ÉtatDonnéesFrame
+{
+    si données.taille < 1 {
+        retourne ÉtatDonnéesFrame.DonnéesIncomplètes
+    }
+
+    ptr := données.pointeur comme *n8
+    fin := données.pointeur + données.taille
+    c := mémoire(ptr)
+    ptr += 1
+    frame.est_fin = (c & 0b1000_0000) != 0
+    frame.rsv1 = (c & 0b0100_0000) != 0
+    frame.rsv2 = (c & 0b0010_0000) != 0
+    frame.rsv3 = (c & 0b0001_0000) != 0
+    frame.opcode = (c & 0b0000_1111) comme OpCode
+
+    si (est_controle(frame.opcode) && !frame.est_fin) || est_opcode_réservé(frame.opcode) || (c & 0b0111_0000) != 0 {
+        frame.état = ÉtatParsageFrame.Invalide
+        retourne ÉtatDonnéesFrame.DonnéesInvalides
+    }
+
+    si données.taille < 2 {
+        retourne ÉtatDonnéesFrame.DonnéesIncomplètes
+    }
+
+    c = mémoire(ptr)
+    ptr += 1
+
+    frame.masquée = (c & 0b1000_0000) != 0
+    taille_données := (c & 0b0111_1111)
+
+    /* The server MUST close the connection upon receiving a frame that is not masked. */
+    si doit_être_masquée != frame.masquée {
+        frame.état = ÉtatParsageFrame.Invalide
+        retourne ÉtatDonnéesFrame.DonnéesInvalides
+    }
+
+    si taille_données > 125 && est_controle(frame.opcode) {
+        frame.état = ÉtatParsageFrame.Invalide
+        retourne ÉtatDonnéesFrame.DonnéesInvalides
+    }
+
+    si taille_données <= 125 {
+        frame.taille_données = taille_données
+    }
+    sinon si taille_données == 126 {
+        si ptr + 2 >= fin {
+            retourne ÉtatDonnéesFrame.DonnéesIncomplètes
+        }
+        t := mémoire(ptr comme *n16)
+        commute_boutisme(*t)
+        frame.taille_données = t
+        ptr += 2
+    }
+    sinon si taille_données == 127 {
+        si ptr + 8 >= fin {
+            retourne ÉtatDonnéesFrame.DonnéesIncomplètes
+        }
+        t := mémoire(ptr comme *n64)
+        commute_boutisme(*t)
+        frame.taille_données = t comme n32
+        ptr += 8
+    }
+
+    si frame.masquée {
+        /* Nous n'utilisons pas >= ici car la taille peut-être de zéro. */
+        si ptr + 4 > fin {
+            retourne ÉtatDonnéesFrame.DonnéesIncomplètes
+        }
+        frame.masque = mémoire(ptr comme *z32)
+        ptr += 4
+    }
+
+    frame.décalage_données = ptr - données.pointeur
+
+    // imprime("frame.décalage_données : %\n", frame.décalage_données)
+
+    retourne ÉtatDonnéesFrame.DonnéesComplètes
+}
+
+lis_charge :: fonc (frame: *Frame, données: []octet)
+{
+    // imprime("f.données.taille % f.taille_données %\n", données.taille, frame.taille_données)
+    assert(données.taille == frame.taille_données comme z64)
+
+    si frame.masquée {
+        applique_masque(données, frame.masque)
+    }
+}
+
+contenu_est_utf8_valide :: fonc (frame: *Frame, données: []octet) -> bool
+{
+    si frame.opcode != OpCode.FRAME_DE_TEXTE && frame.opcode != OpCode.FRAME_FERMETURE {
+        retourne vrai
+    }
+
+    si frame.opcode == OpCode.FRAME_FERMETURE {
+        si données.taille <= 2 {
+            retourne vrai
+        }
+
+        données.pointeur += 2
+        données.taille -= 2
+    }
+
+    est_valide, _ := contenu_est_utf8_valide(données, frame.est_fin)
+    retourne est_valide
+}
+
+contenu_est_utf8_valide :: fonc (données: []octet, est_frame_finale: bool) -> bool, z64
+{
+    taille_consommée : z64
+    séquence := données
+    tantque séquence.taille > 0 {
+        erreur_utf8, taille := est_séquence_utf8_valide(séquence)
+        si erreur_utf8 == ErreurValidationUTF8.SéquenceInvalide {
+            retourne faux, 0
+        }
+
+        si erreur_utf8 == ErreurValidationUTF8.SéquenceTropCourte {
+            si est_frame_finale {
+                retourne faux, 0
+            }
+
+            /* Prédetecte que la séquence sera invalide. */
+            si taille == 4 && séquence.taille > 1 {
+                assert(séquence.taille < 4)
+                séquence_test: [4]octet
+                pour séquence {
+                    séquence_test[index_it] = it
+                }
+
+                erreur_utf8, taille = est_séquence_utf8_valide(séquence_test)
+                si erreur_utf8 == ErreurValidationUTF8.SéquenceInvalide {
+                    retourne faux, 0
+                }
+            }
+
+            arrête
+        }
+
+        séquence.taille -= taille
+        séquence.pointeur += taille
+        taille_consommée += taille
+    }
+
+    retourne vrai, taille_consommée
+}
+
+calcule_taille_message :: fonc (message: []octet, doit_masquer: bool) -> z64
+{
+    retourne calcule_taille_message(message.taille, doit_masquer)
+}
+
+calcule_taille_message :: fonc (taille_charge: z64, doit_masquer: bool) -> z64
+{
+    résultat := taille_charge
+
+    si doit_masquer {
+        résultat += 4
+    }
+
+    résultat += 2
+
+    si taille_charge > 125 {
+        si taille_charge <= 65535 {
+            résultat += 2
+        }
+        sinon {
+            résultat += 8
+        }
+    }
+
+    retourne résultat
+}
+
+crée_message_websocket_réponse :: fonc (op_code: OpCode, message: []octet, doit_masquer: bool) -> [..]octet
+{
+    taille_résultat := calcule_taille_message(message, doit_masquer)
+
+    résultat: [..]octet
+    tableau_redimensionne(résultat, taille_résultat)
+
+    ptr := résultat.pointeur
+    mémoire(ptr) = 0b1000_0000 | op_code comme n8 comme octet
+    ptr += 1
+
+    mémoire(ptr) = 0
+    si doit_masquer {
+        mémoire(ptr) = 0b1000_0000
+    }
+
+    si message.taille <= 125 {
+        mémoire(ptr) |= message.taille comme octet
+        ptr += 1
+    }
+    sinon si message.taille <= 65535 {
+        mémoire(ptr) |= 126
+        ptr += 1
+        mémoire(ptr comme *n16) = message.taille comme n16
+        commute_boutisme(ptr comme *n16)
+        ptr += 2
+    }
+    sinon {
+        mémoire(ptr) |= 127
+        ptr += 1
+        mémoire(ptr comme *z64) = message.taille
+        commute_boutisme(ptr comme *n64)
+        ptr += 8
+    }
+
+    saufsi doit_masquer {
+        copie_mem_nonsur(src = message.pointeur, dst = ptr, taille = message.taille)
+    }
+    sinon {
+        masque : z32 = 0xdeadbeef
+        remplis_avec_octets_cryptographiquement_sécurisés(masque)
+
+        mémoire(ptr comme *z32) = masque
+        ptr += 4
+
+        copie_mem_nonsur(src = message.pointeur, dst = ptr, taille = message.taille)
+
+        données: []octet
+        données.pointeur = ptr
+        données.taille = message.taille
+        applique_masque(données, masque)
+    }
+
+    retourne résultat
+}
+
+applique_masque :: fonc (données: []octet, masque: z32)
+{
+    ptr_masque := *masque comme *octet
+    pour & données {
+        it = it ^ ptr_masque[index_it % 4]
+    }
+}
+
+calcul_clé_serrage_de_main :: fonc (clé_donnée: chaine) -> chaine
+{
+    /*
+        pour le token d'acceptation
+        - prend la valeur de Sec-WebSocket-Key
+        - enchaine "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
+        - prend SHA-1
+        - résultat doit être de 20 octets
+        - prend base64 du résultat
+    */
+
+    tmp := enchaine(clé_donnée, "258EAFA5-E914-47DA-95CA-C5AB0DC85B11")
+    diffère déloge(tmp)
+
+    sha1 := crée_sha1()
+    diffère sha1.détruit()
+
+    sha1.ajourne(tmp)
+
+    rés_sha1 := sha1.donne_condensat()
+    diffère détruit_données(*rés_sha1)
+
+    // @fuite-de-mémoire quand on les passe aux MessageHTTP
+    retourne encode_base64(rés_sha1.donne_chaine())
+}
+
+crée_valeur_sec_websocket_key :: fonc () -> [24]octet
+{
+    nonce: [16]octet
+    remplis_avec_octets_cryptographiquement_sécurisés(nonce)
+
+    tampon: [24]octet
+    encode_base64(nonce, tampon)
+    retourne tampon
+}
+
+#test {
+    // tiré de l'exemple donné dans la note de https://tools.ietf.org/html/rfc6455#page-24
+    rés := calcul_clé_serrage_de_main("dGhlIHNhbXBsZSBub25jZQ==")
+    diffère { déloge(rés) }
+    compilatrice_vérifie_égalité(rés, "s3pPLMBiTxaQ9kYGzzhZRbK+xOo=")
+}
