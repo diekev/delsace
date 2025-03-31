@@ -956,7 +956,7 @@ crée_message_websocket_réponse :: fonc (op_code: OpCode, message: []octet, doi
     }
     sinon {
         masque : z32 = 0xdeadbeef
-        remplis_avec_octets_cryptographiquement_sécurisé(masque)
+        remplis_avec_octets_cryptographiquement_sécurisés(masque)
 
         mémoire(ptr comme *z32) = masque
         ptr += 4
@@ -977,26 +977,6 @@ applique_masque :: fonc (données: []octet, masque: z32)
     ptr_masque := *masque comme *octet
     pour & données {
         it = it ^ ptr_masque[index_it % 4]
-    }
-}
-
-remplis_avec_octets_cryptographiquement_sécurisé :: fonc (tampon: []octet)
-{
-    dev_urandom := tente ouvre_fichier_pour_lecture(CheminFichier("/dev/urandom")) piège _ {
-        imprime("Impossible de lire /dev/urandom !\n")
-        retourne
-    }
-
-    diffère _ := ferme(*dev_urandom)
-
-    lus := tente lis(*dev_urandom, tampon) piège _ {
-        imprime("Impossible de lire un nombre depuis dev_urandom")
-        retourne
-    }
-
-    si lus != tampon.taille {
-        imprime("lus : % / %\n", lus, tampon.taille)
-        retourne
     }
 }
 
@@ -1029,7 +1009,7 @@ calcul_clé_serrage_de_main :: fonc (clé_donnée: chaine) -> chaine
 crée_valeur_sec_websocket_key :: fonc () -> [24]octet
 {
     nonce: [16]octet
-    remplis_avec_octets_cryptographiquement_sécurisé(nonce)
+    remplis_avec_octets_cryptographiquement_sécurisés(nonce)
 
     tampon: [24]octet
     encode_base64(nonce, tampon)
