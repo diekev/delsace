@@ -269,6 +269,12 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
                 données := prise.lis_tout()
                 diffère déloge(données)
 
+                si données.taille == 0 {
+                    /* À FAIRE : quand le serveur ferme nous pouvons continuer à lire indéfiniememnt. */
+                    prise.ferme()
+                    retourne
+                }
+
                 prise.contexte_.quand_données_reçues_(prise, données)
 
                 //change_évènement(prise, prise.contexte_.boucle_prises, EPOLL_EVENTS.EPOLLOUT)

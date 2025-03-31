@@ -2967,6 +2967,78 @@ sur_exécution_for_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *I
 {
     for := base comme *ForStatement
 
+    si for_statement_possède_lexical_declaration(for) {
+        mv := interpréteuse.mv
+        running_execution_context := mv.donne_running_execution_context()
+
+        // 1. Let oldEnv be the running execution context's LexicalEnvironment.
+        old_env := running_execution_context.lexical_environment
+
+        // 2. Let loopEnv be NewDeclarativeEnvironment(oldEnv).
+        loop_env := new_declarative_environment(old_env.donne_tas_de_mémoire(), old_env)
+
+        // 3. Let isConst be IsConstantDeclaration of LexicalDeclaration.
+        lexical_declaration := for.init comme *VariableDeclaration
+        is_const := lexical_declaration.nature == VariableDeclarationKind.Const
+
+        // 4. Let boundNames be the BoundNames of LexicalDeclaration.
+        bound_names: [..]ECMAString
+        pour lexical_declaration.expressions {
+            tableau_ajoute(*bound_names, (it.id comme *Identifier).nom)
+        }
+
+        // 5. For each element dn of boundNames, do
+        pour bound_names {
+            // a. If isConst is true, then
+            si is_const {
+                // i. Perform ! loopEnv.CreateImmutableBinding(dn, true).
+                _ := loop_env.create_immutable_binding(interpréteuse.donne_realm(), it, vrai)
+            }
+            // b. Else,
+            sinon {
+                // i. Perform ! loopEnv.CreateMutableBinding(dn, false).
+                _ := loop_env.create_mutable_binding(interpréteuse.donne_realm(), it, faux)
+            }
+        }
+
+        // 6. Set the running execution context's LexicalEnvironment to loopEnv.
+        running_execution_context.lexical_environment = loop_env
+
+        // 7. Let forDcl be Completion(Evaluation of LexicalDeclaration).
+        completion := exécute_noeud(lexical_declaration, interpréteuse)
+
+        // 8. If forDcl is an abrupt completion, then
+        saufsi completion.est_normal() {
+            // a. Set the running execution context's LexicalEnvironment to oldEnv.
+            running_execution_context.lexical_environment = old_env
+
+            // b. Return ? forDcl.
+            retourne completion
+        }
+
+        // 9. If isConst is false, let perIterationLets be boundNames; otherwise let perIterationLets be a new empty List.
+        per_iteration_lets := bound_names
+        si is_const {
+            per_iteration_lets.taille = 0
+        }
+
+        // 10. If the first Expression is present, let test be the first Expression; otherwise, let test be empty.
+        test := for.test
+
+        // 11. If the second Expression is present, let increment be the second Expression; otherwise, let increment be empty.
+        increment := for.update
+
+        // 12. Let bodyResult be Completion(ForBodyEvaluation(test, increment, Statement, perIterationLets, labelSet)).
+        body_result := for_body_evaluation(interpréteuse, test, increment, for.body, per_iteration_lets)
+
+        // 13. Set the running execution context's LexicalEnvironment to oldEnv.
+        running_execution_context.lexical_environment = old_env
+
+        // 14. Return ? bodyResult.
+        retourne body_result
+    }
+
+    // 1. Perform ? Evaluation of VariableDeclarationList.
     si for.init {
         doit_continuer := exécute_noeud(for.init, interpréteuse)
         saufsi doit_continuer.est_normal() {
@@ -2974,24 +3046,70 @@ sur_exécution_for_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *I
         }
     }
 
+    // 2. If the first Expression is present, let test be the first Expression; otherwise, let test be empty.
+    test := for.test
+
+    // 3. If the second Expression is present, let increment be the second Expression; otherwise, let increment be empty.
+    increment := for.update
+
+    // 4. Return ? ForBodyEvaluation(test, increment, Statement, « », labelSet).
+    per_iteration_lets: []ECMAString
+    retourne for_body_evaluation(interpréteuse, test, increment, for.body, per_iteration_lets)
+}
+
+for_statement_possède_lexical_declaration :: fonc (for: *ForStatement) -> bool
+{
+    saufsi for.init {
+        retourne faux
+    }
+
+    saufsi for.init.type == VariableDeclaration {
+        retourne faux
+    }
+
+    declaration := for.init comme *VariableDeclaration
+    retourne declaration.nature != VariableDeclarationKind.Var
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-forbodyevaluation */
+for_body_evaluation :: fonc (interpréteuse: *InterprèteArbre, test: *Expression, increment: *Expression, stmt: *Statement , per_iteration_bindings: []ECMAString) -> CompletionRecord
+{
+    // 1. Let V be undefined.
+    V := js_undefined
+
+    // 2. Perform ? CreatePerIterationEnvironment(perIterationBindings).
+    completion := create_per_iteration_environment(interpréteuse, per_iteration_bindings)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+
+    // 3. Repeat,
     boucle {
-        si for.test {
-            doit_continuer := exécute_noeud(for.test, interpréteuse)
+        // a. If test is not empty, then
+        si test {
+            // i. Let testRef be ? Evaluation of test.
+            doit_continuer := exécute_noeud(test, interpréteuse)
             saufsi doit_continuer.est_normal() {
                 retourne doit_continuer
             }
+
+            // ii. Let testValue be ? GetValue(testRef).
             valeur_complétion := get_value(interpréteuse, doit_continuer.valeur)
             saufsi valeur_complétion.est_normal() {
                 retourne valeur_complétion
             }
 
+            // iii. If ToBoolean(testValue) is false, return V.
             valeur := to_boolean(valeur_complétion.valeur.V)
             si valeur.est_false() {
                 arrête
             }
         }
 
-        doit_continuer := exécute_noeud(for.body, interpréteuse)
+        // b. Let result be Completion(Evaluation of stmt).
+        // À FAIRE c. If LoopContinues(result, labelSet) is false, return ? UpdateEmpty(result, V).
+        // À FAIRE d. If result.[[Value]] is not empty, set V to result.[[Value]].
+        doit_continuer := exécute_noeud(stmt, interpréteuse)
         si doit_continuer.est_continue() {
             // OK.
         }
@@ -3002,14 +3120,71 @@ sur_exécution_for_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *I
             retourne doit_continuer
         }
 
-        si for.update {
-            doit_continuer = exécute_noeud(for.update, interpréteuse)
+        // e. Perform ? CreatePerIterationEnvironment(perIterationBindings).
+        completion = create_per_iteration_environment(interpréteuse, per_iteration_bindings)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+
+        // f. If increment is not empty, then
+        si increment {
+            // i. Let incRef be ? Evaluation of increment.
+            doit_continuer = exécute_noeud(increment, interpréteuse)
             saufsi doit_continuer.est_normal() {
                 retourne doit_continuer
+            }
+            // ii. Perform ? GetValue(incRef).
+            valeur_complétion := get_value(interpréteuse, doit_continuer.valeur)
+            saufsi valeur_complétion.est_normal() {
+                retourne valeur_complétion
             }
         }
     }
 
+    retourne normal_completion(V)
+}
+
+/* 14.7.4.4 CreatePerIterationEnvironment ( perIterationBindings )
+ * https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-createperiterationenvironment */
+create_per_iteration_environment :: fonc (interpréteuse: *Interpréteuse, per_iteration_bindings: []ECMAString) -> CompletionRecord
+{
+    // 1. If perIterationBindings has any elements, then
+    si per_iteration_bindings.taille != 0 {
+        mv := interpréteuse.mv
+        running_execution_context := mv.donne_running_execution_context()
+
+        // a. Let lastIterationEnv be the running execution context's LexicalEnvironment.
+        last_iteration_env := running_execution_context.lexical_environment
+
+        // b. Let outer be lastIterationEnv.[[OuterEnv]].
+        outer := last_iteration_env.outer_environment
+
+        // c. Assert: outer is not null.
+        assert(outer != nul)
+
+        // d. Let thisIterationEnv be NewDeclarativeEnvironment(outer).
+        this_iteration_env := new_declarative_environment(outer.donne_tas_de_mémoire(), outer)
+
+        // e. For each element bn of perIterationBindings, do
+        pour per_iteration_bindings {
+            // i. Perform ! thisIterationEnv.CreateMutableBinding(bn, false).
+            _ := this_iteration_env.create_mutable_binding(interpréteuse.donne_realm(), it, faux)
+
+            // ii. Let lastValue be ? lastIterationEnv.GetBindingValue(bn, true).
+            last_value := last_iteration_env.get_binding_value(interpréteuse.donne_realm(), it, vrai)
+            saufsi last_value.est_normal() {
+                retourne last_value
+            }
+
+            // iii. Perform ! thisIterationEnv.InitializeBinding(bn, lastValue).
+            _ := this_iteration_env.initialize_binding(it, last_value.valeur.V)
+        }
+
+        // f. Set the running execution context's LexicalEnvironment to thisIterationEnv.
+        running_execution_context.lexical_environment = this_iteration_env
+    }
+
+    // 2. Return unused.
     retourne normal_completion(js_undefined)
 }
 

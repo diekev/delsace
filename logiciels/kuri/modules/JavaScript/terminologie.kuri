@@ -16,6 +16,7 @@ STR_encodeURIComponent : ChaineUTF16Unique = ---
 STR_eval : ChaineUTF16Unique = ---
 STR_exp : ChaineUTF16Unique = ---
 STR_false : ChaineUTF16Unique = ---
+STR_fill : ChaineUTF16Unique = ---
 STR_floor : ChaineUTF16Unique = ---
 STR_function : ChaineUTF16Unique = ---
 STR_getTime : ChaineUTF16Unique = ---

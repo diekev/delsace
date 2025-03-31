@@ -1422,15 +1422,22 @@ donne_width :: fonc (canvas: *HTMLCanvasElement) -> n32
 {
     retourne canvas.donne_largeur_intrinsèque() comme n32
 }
-définis_width :: fonc (canvas: *HTMLCanvasElement @inutilisée, valeur: n32 @inutilisée)
+définis_width :: fonc (canvas: *HTMLCanvasElement, valeur: n32)
 {
+    // À FAIRE : standardise "set bitmap dimensions"
+    chn := imprime_chaine("%", valeur)
+    diffère déloge(chn)
+    set_an_attribute_value(canvas, ATTR_width, crée_chaine_utf16_unique(chn))
 }
 donne_height :: fonc (canvas: *HTMLCanvasElement) -> n32
 {
     retourne canvas.donne_hauteur_intrinsèque() comme n32
 }
-définis_height :: fonc (canvas: *HTMLCanvasElement @inutilisée, valeur: n32 @inutilisée)
+définis_height :: fonc (canvas: *HTMLCanvasElement, valeur: n32)
 {
+    chn := imprime_chaine("%", valeur)
+    diffère déloge(chn)
+    set_an_attribute_value(canvas, ATTR_height, crée_chaine_utf16_unique(chn))
 }
 
 /** } */
