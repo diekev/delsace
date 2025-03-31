@@ -1,26 +1,7 @@
 importe CodecDonnées
 importe Fondation
+importe Krypto
 importe SysFichier
-
-remplis_avec_octets_cryptographiquement_sécurisé :: fonc (tampon: []octet)
-{
-    dev_urandom := tente ouvre_fichier_pour_lecture(CheminFichier("/dev/urandom")) piège _ {
-        imprime("Impossible de lire /dev/urandom !\n")
-        retourne
-    }
-
-    diffère _ := ferme(*dev_urandom)
-
-    lus := tente lis(*dev_urandom, tampon) piège _ {
-        imprime("Impossible de lire un nombre depuis dev_urandom")
-        retourne
-    }
-
-    si lus != tampon.taille {
-        imprime("lus : % / %\n", lus, tampon.taille)
-        retourne
-    }
-}
 
 /* ------------------------------------------------------------------------- */
 /** \nom UUID
@@ -49,7 +30,7 @@ génère_un_uuid_aléatoire :: fonc () -> UUID
     bytes : [16]octet = ---
 
     // 2. Fill bytes with cryptographically secure random bytes.
-    remplis_avec_octets_cryptographiquement_sécurisé(bytes)
+    remplis_avec_octets_cryptographiquement_sécurisés(bytes)
 
     // 3. Set the 4 most significant bits of bytes[6], which represent the UUID version, to 0100.
     bits := bytes[6] & 0b1111
