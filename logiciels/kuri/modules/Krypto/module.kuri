@@ -2,6 +2,7 @@
 
 importe CodecDonnées
 importe Fondation
+importe SysFichier
 
 charge "interface_krypto"
 
@@ -556,4 +557,31 @@ scytale :: fonc (message: chaine, taille_clé: z32) -> chaine
 bits_d_entropie :: fonc (nombre_de_caractères: z64, taille: z64) -> z32
 {
     retourne taille comme z32 * log(nombre_de_caractères comme r32) comme z32
+}
+
+remplis_avec_octets_cryptographiquement_sécurisés :: fonc (tampon: []octet)
+{
+    dev_urandom := tente ouvre_fichier_pour_lecture(CheminFichier("/dev/urandom")) piège _ {
+        imprime("Impossible de lire /dev/urandom !\n")
+        retourne
+    }
+
+    diffère _ := ferme(*dev_urandom)
+
+    lus := tente lis(*dev_urandom, tampon) piège _ {
+        imprime("Impossible de lire un nombre depuis dev_urandom")
+        retourne
+    }
+
+    si lus != tampon.taille {
+        imprime("lus : % / %\n", lus, tampon.taille)
+        retourne
+    }
+}
+
+nombre_aléatoire_cryptographique :: fonc ($T: type_de_données) -> T
+{
+    résultat: T
+    remplis_avec_octets_cryptographiquement_sécurisés(résultat)
+    retourne résultat
 }

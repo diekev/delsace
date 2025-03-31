@@ -143,6 +143,20 @@ parse_données :: fonc (parseuse: *ParseuseHTTP)
     }
 }
 
+/* Dans certains cas (par exemple lors de la réception du serrage de main d'une
+ * serveuse WebSocket), il est possible que des données restent après le message.
+ * Cette fonction peut-être appelée pour obtenir ces données. */
+donne_données_après_message :: fonc (parseuse: *ParseuseHTTP) -> []octet
+{
+    résultat: []octet
+    taille_contenu := parseuse.parseuse_chaine.chn.taille - parseuse.parseuse_chaine.curseur
+    si taille_contenu != 0 {
+        résultat.pointeur = (parseuse.données.pointeur + parseuse.données.taille - taille_contenu) comme *octet
+        résultat.taille = taille_contenu
+    }
+    retourne résultat
+}
+
 parse_état_méthode_http :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
 {
     début := parseuse.parseuse_chaine.curseur

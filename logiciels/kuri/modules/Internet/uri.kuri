@@ -493,11 +493,11 @@ somme_controle :: fonc (uri: &URI) -> n64
 port_pour_uri :: fonc (uri: &URI) -> n16
 {
     si uri.port.taille == 0 {
-        si uri.schéma == "http" {
+        si uri.schéma == "http" || uri.schéma == "ws" {
             retourne 80
         }
 
-        si uri.schéma == "https" {
+        si uri.schéma == "https" || uri.schéma == "wss" {
             retourne 443
         }
     }

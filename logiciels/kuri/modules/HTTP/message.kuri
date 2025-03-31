@@ -294,6 +294,8 @@ chaine_pour_message_serveuse :: fonc (message: &MessageServeuseHTTP) -> chaine
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
 
+    assert(message.version.taille != 0)
+
     imprime_dans_enchaineuse(*enchaineuse, "% %\r\n", message.version, chaine_code_état_http(message.code_état))
 
     pour message.entêtes {
@@ -319,12 +321,23 @@ chaine_pour_message_cliente :: fonc (message: &MessageClienteHTTP) -> chaine
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
 
-    imprime_dans_enchaineuse(*enchaineuse, "% % HTTP/1.1\r\n", message.méthode, message.uri.chemin)
-    imprime_dans_enchaineuse(*enchaineuse, "Host: %\r\n", message.uri.hôte)
-    imprime_dans_enchaineuse(*enchaineuse, "Connection: close\r\n")
+    imprime_dans_enchaineuse(*enchaineuse, "% % HTTP/1.1\r\n", message.méthode, message.uri.chemin_complet)
+    ajoute_au_tampon(*enchaineuse, "Host: ", message.uri.hôte)
+
+    port := port_pour_uri(message.uri)
+    si port != 80 && port != 443 {
+        ajoute_au_tampon(*enchaineuse, ":", message.uri.port)
+    }
+
+    ajoute_au_tampon(*enchaineuse, "\r\n")
 
     pour message.entêtes {
         imprime_dans_enchaineuse(*enchaineuse, "%: %\r\n", it.nom, it.valeur)
+    }
+
+    entête_connection := cherche_entête(message.entêtes, "Connection")
+    saufsi entête_connection {
+        imprime_dans_enchaineuse(*enchaineuse, "Connection: close\r\n")
     }
 
     imprime_cookie_client(*enchaineuse, message.cookies, vrai)
