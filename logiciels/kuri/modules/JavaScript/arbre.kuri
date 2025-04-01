@@ -11,6 +11,11 @@ NoeudSyntaxique :: struct {
     type := #type_de_cette_structure
     lexème: *Lexème
 
+    // À FAIRE : ceci est pour différencier les blocs qui appartiennent à des
+    // fonctions des autres blocs. Il faudrait plutôt parsé les différents
+    // noeuds *Body pour qu'ils contiennents leurs propres StatementList.
+    appartient_à_fonction: bool
+
     sur_exécution: fonc(*NoeudSyntaxique, *InterprèteArbre)(CompletionRecord)
     sur_génération_code_binaire: fonc(*NoeudSyntaxique, &GénératriceCodeBinaire)(Optionnel(Registre))
 }
@@ -154,6 +159,8 @@ NoeudScope :: struct {
 
 sur_exécution_scope :: fonc (noeud: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
+    /* Si nous appartenons à fonction notre point d'entrée doit être interprète_arbre. */
+    assert(!noeud.appartient_à_fonction)
     retourne interpréteuse.exécute(noeud comme *NoeudScope)
 }
 
@@ -633,6 +640,7 @@ donne_chaine_primitive :: fonc (identifier: *Identifier, realm: *Realm) -> *Prim
 BlockStatement :: struct {
     empl scope: NoeudScope
     type = #type_de_cette_structure
+    sur_exécution = sur_exécution_block_statement
 
     code_binaire: *FluxDInstructions
 }
@@ -643,6 +651,91 @@ crée_block_statement :: fonc (parseuse: *Parseuse, lexème: *Lexème, expressio
     résultat.sur_génération_code_binaire = block_statement_sur_code_binaire
     résultat.enfants = expressions
     retourne résultat
+}
+
+sur_exécution_block_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
+{
+    /* Si nous appartenons à fonction notre point d'entrée doit être interprète_arbre. */
+    assert(!base.appartient_à_fonction)
+
+    block := base comme *BlockStatement
+    si block.enfants.taille == 0 {
+        retourne normal_completion(js_undefined)
+    }
+
+    mv := interpréteuse.mv
+    running_execution_context := mv.donne_running_execution_context()
+
+    // 1. Let oldEnv be the running execution context's LexicalEnvironment.
+    old_env := running_execution_context.lexical_environment
+
+    // 2. Let blockEnv be NewDeclarativeEnvironment(oldEnv).
+    block_env := new_declarative_environment(old_env.donne_tas_de_mémoire(), old_env)
+
+    // 3. Perform BlockDeclarationInstantiation(StatementList, blockEnv).
+    block_declaration_instantiation(interpréteuse, block, block_env)
+
+    // 4. Set the running execution context's LexicalEnvironment to blockEnv.
+    running_execution_context.lexical_environment = block_env
+
+    // 5. Let blockValue be Completion(Evaluation of StatementList).
+    block_value: CompletionRecord = ---
+    pour block.enfants {
+        block_value = exécute_noeud(it, interpréteuse)
+        saufsi block_value.est_normal() {
+            arrête
+        }
+    }
+
+    // 6. Set the running execution context's LexicalEnvironment to oldEnv.
+    running_execution_context.lexical_environment = old_env
+
+    // 7. Return ? blockValue.
+    retourne block_value
+}
+
+/* 14.2.3 BlockDeclarationInstantiation ( code, env )
+ * https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#sec-blockdeclarationinstantiation */
+block_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, code: *NoeudSyntaxique, env: *DeclarativeEnvironment)
+{
+    // 1. Let declarations be the LexicallyScopedDeclarations of code.
+    lex_declarations := donne_lexically_scoped_declarations(code)
+    saufsi lex_declarations {
+        retourne
+    }
+    diffère déloge(lex_declarations)
+
+    // 2. Let privateEnv be the running execution context's PrivateEnvironment.
+    // mv := interpréteuse.mv
+    // running_execution_context := mv.donne_running_execution_context()
+    // private_env := running_execution_context.private_environment
+
+    realm := interpréteuse.donne_realm()
+
+    // 3. For each element d of declarations, do
+    pour d dans lex_declarations {
+        // a. For each element dn of the BoundNames of d, do
+        pour dn dans d.expressions {
+            assert(dn.id.type == Identifier)
+            name := (dn.id comme *Identifier).nom
+            // i. If IsConstantDeclaration of d is true, then
+            si d.nature == VariableDeclarationKind.Const {
+                // 1. Perform ! env.CreateImmutableBinding(dn, true).
+                _ := env.create_immutable_binding(realm, name, vrai)
+            }
+            // ii. Else,
+            sinon {
+                // 1. Perform ! env.CreateMutableBinding(dn, false). NOTE: This step is replaced in section B.3.2.6.
+                _ := env.create_mutable_binding(realm, name, faux)
+            }
+        }
+        // À FAIRE b. If d is either a FunctionDeclaration, a GeneratorDeclaration, an AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration, then
+        // i. Let fn be the sole element of the BoundNames of d.
+        // ii. Let fo be InstantiateFunctionObject of d with arguments env and privateEnv.
+        // iii. Perform ! env.InitializeBinding(fn, fo). NOTE: This step is replaced in section B.3.2.6.
+    }
+
+    // 4. Return unused.
 }
 
 /** \} */
@@ -2659,7 +2752,7 @@ sur_exécution_array_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: *I
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom ObjectExpression
+/** \nom MemberExpression
  * \{ */
 
 MemberExpression :: struct {
@@ -4032,7 +4125,8 @@ sur_exécution_switch_statement :: fonc (base: *NoeudSyntaxique, interpréteuse:
     // 4. Let blockEnv be NewDeclarativeEnvironment(oldEnv).
     block_env := new_declarative_environment(old_env.donne_tas_de_mémoire(), old_env)
 
-    //  À FAIRE : 5. Perform BlockDeclarationInstantiation(CaseBlock, blockEnv).
+    // 5. Perform BlockDeclarationInstantiation(CaseBlock, blockEnv).
+    block_declaration_instantiation(interpréteuse, switch, block_env)
 
     // 6. Set the running execution context's LexicalEnvironment to blockEnv.
     running_execution_context.lexical_environment = block_env
@@ -4409,6 +4503,107 @@ sur_exécution_debugger_statement :: fonc (base: *NoeudSyntaxique @inutilisée, 
 {
     // À FAIRE : supporte debugger
     retourne normal_completion(js_undefined)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom TemplateLiteral
+ * \{ */
+
+TemplateLiteral :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_template_literal
+
+    quasis: [..]*TemplateElement
+    expressions: [..]*Expression
+}
+
+crée_template_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème, quasis: [..]*TemplateElement) -> *TemplateLiteral
+{
+    résultat := parseuse.crée_noeud(lexème, TemplateLiteral)
+    résultat.quasis = quasis
+    retourne résultat
+}
+
+crée_template_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème, quasis: [..]*TemplateElement, expressions: [..]*Expression) -> *TemplateLiteral
+{
+    résultat := crée_template_literal(parseuse, lexème, quasis)
+    résultat.expressions = expressions
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-template-literals-runtime-semantics-evaluation */
+sur_exécution_template_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
+{
+    template := base comme *TemplateLiteral
+
+    quasi := template.quasis[0]
+    si template.quasis.taille == 1 {
+        retourne crée_string_value_completion(interpréteuse, quasi.value)
+    }
+
+    chaines: [..]*PrimitiveChaine
+    diffère déloge(chaines)
+
+    realm := interpréteuse.donne_realm()
+    tableau_ajoute(*chaines, crée_chaine(realm, quasi.value))
+
+    index_expression := 0
+
+    tantque index_expression < template.expressions.taille {
+        expression := template.expressions[index_expression]
+        index_expression += 1
+
+        completion := exécute_noeud(expression, interpréteuse)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        completion = get_value(interpréteuse, completion.valeur)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        completion = to_string(interpréteuse, completion.valeur.V)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        tableau_ajoute(*chaines, completion.valeur.V.String)
+
+        quasi = template.quasis[index_expression]
+        tableau_ajoute(*chaines, crée_chaine(realm, quasi.value))
+    }
+
+    résultat := chaines[0]
+
+    pour 1 ... chaines.taille - 1 {
+        résultat = concatène(realm, résultat, chaines[it])
+    }
+
+    value := Valeur(String = résultat)
+    retourne normal_completion(value)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom TemplateElement
+ * \{ */
+
+TemplateElement :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+
+    value: ECMAString
+    tail: bool
+}
+
+crée_template_element :: fonc (parseuse: *Parseuse, lexème: *Lexème, value: ECMAString, tail: bool) -> *TemplateElement
+{
+    résultat := parseuse.crée_noeud(lexème, TemplateElement)
+    résultat.value = value
+    résultat.tail = tail
+    retourne résultat
 }
 
 /** \} */
