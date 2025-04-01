@@ -67,3 +67,9 @@ test("array-constructor multiples valeurs", function () {
         vérifie_égalité(b[i], i)
     }
 });
+
+test("ajouter des éléments par index à un Array ne change pas sa taille si l'index est inférieure à la taille allouée", function () {
+    var b = new Array(16);
+    b[0] = 5;
+    vérifie_égalité(b.length, 16);
+});
