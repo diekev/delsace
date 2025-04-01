@@ -166,9 +166,9 @@ array_set_length :: fonc (A: *ArrayObject, desc: &PropertyDescriptor) -> Complet
     }
     number_len := completion.valeur.V
 
-    // À FAIRE 5. If SameValueZero(newLen, numberLen) is false, throw a RangeError exception.
-    si new_len comme r64 != number_len.Number {
-        assert(faux)
+    // 5. If SameValueZero(newLen, numberLen) is false, throw a RangeError exception.
+    si same_value_zero(new_len comme r64, number_len).est_false() {
+        retourne lance_range_error(interpréteuse, "invalid array length")
     }
 
     // 6. Set newLenDesc.[[Value]] to newLen.
@@ -323,7 +323,10 @@ array_constructor_call_or_construct :: fonc (empl params: *ParamètresCallOrCons
             // i. Let intLen be ! ToUint32(len).
             int_len = to_uint32(len)
     
-            // À FAIRE : ii. If SameValueZero(intLen, len) is false, throw a RangeError exception.
+            // ii. If SameValueZero(intLen, len) is false, throw a RangeError exception.
+            si same_value_zero(int_len comme r64, len).est_false() {
+                retourne lance_range_error(interpréteuse, "invalid array length")
+            }
         }
 
         // e. Perform ! Set(array, "length", intLen, true).
