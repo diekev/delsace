@@ -6,6 +6,10 @@ GenreLexème :: énum {
     Identifiant
     ChaineLittérale
     NombreLittéral
+    TemplateLiteral
+    TemplateLiteralStart
+    TemplateLiteralMiddle
+    TemplateLiteralEnd
 
     // opérateurs
     Plus
@@ -268,6 +272,8 @@ est_lexème_expression :: fonc (genre: GenreLexème) -> bool
         Const,
         Identifiant,
         ChaineLittérale,
+        TemplateLiteral,
+        TemplateLiteralStart,
         NombreLittéral,
         ParenthèseOuvrante,
         AccoladeOuvrante,
