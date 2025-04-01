@@ -109,9 +109,13 @@ array_instance_define_own_property :: fonc (object: *Object, property_key: Prope
 
 /* 10.4.2.2 ArrayCreate ( length [ , proto ] )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-arraycreate */
-array_create :: fonc (realm: *Realm, length: r64, proto : *Object = nul) -> *Object
+array_create :: fonc (realm: *Realm, length: r64, proto : *Object = nul) -> CompletionRecord
 {
-    // À FAIRE : 1. If length > 2**32 - 1, throw a RangeError exception.
+    // 1. If length > 2**32 - 1, throw a RangeError exception.
+    max := (1 comme z64) << 32 - 1
+    si length > max comme r64 {
+        retourne lance_range_error(realm, "invalid array length")
+    }
 
     // 2. If proto is not present, set proto to %Array.prototype%.
     saufsi proto {
@@ -133,7 +137,7 @@ array_create :: fonc (realm: *Realm, length: r64, proto : *Object = nul) -> *Obj
     _ := ordinary_define_own_property(A, STR_length, desc)
 
     // 7. Return A.
-    retourne A
+    retourne normal_completion(A)
 }
 
 /* 10.4.2.4 ArraySetLength ( A, Desc ) 
@@ -295,7 +299,7 @@ array_constructor_call_or_construct :: fonc (empl params: *ParamètresCallOrCons
     // 4. If numberOfArgs = 0, then
     si number_of_args == 0 {
         // a. Return ! ArrayCreate(0, proto).
-        résultat = array_create(realm, 0, realm.intrinsics.array_prototype)
+        résultat = array_create(realm, 0, realm.intrinsics.array_prototype).valeur.V.Object
     }
     // 5. Else if numberOfArgs = 1, then
     sinon si number_of_args == 1 {
@@ -303,7 +307,7 @@ array_constructor_call_or_construct :: fonc (empl params: *ParamètresCallOrCons
         len := params.donne_argument(0)
 
         // b. Let array be ! ArrayCreate(0, proto).
-        array := array_create(realm, 0, proto)
+        array := array_create(realm, 0, proto).valeur.V.Object
 
         int_len: n32
         // c. If len is not a Number, then
@@ -334,7 +338,11 @@ array_constructor_call_or_construct :: fonc (empl params: *ParamètresCallOrCons
         assert(number_of_args >= 2)
 
         // b. Let array be ? ArrayCreate(numberOfArgs, proto).
-        array := array_create(realm, number_of_args comme r64, proto)
+        completion = array_create(realm, number_of_args comme r64, proto)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        array := completion.valeur.V.Object
 
         // c. Let k be 0.
         k : z64 = 0
