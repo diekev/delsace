@@ -170,7 +170,7 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace,
 
     messagère->ajoute_message_module_ouvert(espace, module);
 
-#if 1
+#if 0
     auto fichiers = kuri::chemin_systeme::fichiers_du_dossier(chemin_absolu);
 
     POUR (fichiers) {
