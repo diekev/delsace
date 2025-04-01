@@ -1618,6 +1618,8 @@ void GestionnaireCode::parsage_fichier_terminé(UniteCompilation *unité)
 
     auto fichier = unité->fichier;
 
+    dbg() << __func__ << " : " << fichier->chemin();
+
     POUR (fichier->noeuds_à_valider) {
         /* Nous avons sans doute déjà requis le typage de ce noeud. */
         auto adresse_unité = donne_adresse_unité(it);
@@ -1745,7 +1747,7 @@ void GestionnaireCode::parsage_fichier_terminé(UniteCompilation *unité)
                 noeud_déclaration->module = module;
             }
 
-            m_état_chargement_fichiers.ajoute_unité_pour_charge_ou_importe(*adresse_unité);
+            // m_état_chargement_fichiers.ajoute_unité_pour_charge_ou_importe(*adresse_unité);
         }
         else {
             m_noeuds_à_valider.ajoute({espace, it});
@@ -1804,7 +1806,8 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
 
     if (noeud->possède_drapeau(DrapeauxNoeud::EST_GLOBALE) && !noeud->est_type_structure() &&
         !noeud->est_type_énum() && !noeud->est_type_union() &&
-        !noeud->est_déclaration_bibliothèque() && !noeud->est_déclaration_constante()) {
+        !noeud->est_déclaration_bibliothèque() && !noeud->est_déclaration_constante() &&
+        !noeud->est_déclaration_module()) {
         if (noeud->est_exécute()) {
             /* Les #exécutes globales sont gérées via les métaprogrammes. */
             return false;
@@ -1928,15 +1931,6 @@ void GestionnaireCode::typage_terminé(UniteCompilation *unité)
     });
 
     auto espace = unité->espace;
-
-    if (unité->noeud->est_charge() || unité->noeud->est_importe()) {
-        m_état_chargement_fichiers.supprime_unité_pour_charge_ou_importe(unité);
-
-        if (tous_les_fichiers_à_parser_le_sont()) {
-            flush_noeuds_à_typer();
-        }
-    }
-
     auto noeud = unité->noeud;
 
     UniteCompilation *unité_pour_ri = nullptr;
@@ -2269,6 +2263,7 @@ bool GestionnaireCode::plus_rien_n_est_à_faire()
     }
 
     if (m_validation_doit_attendre_sur_lexage) {
+        // dbg() << m_validation_doit_attendre_sur_lexage;
         return false;
     }
 
@@ -2309,6 +2304,8 @@ bool GestionnaireCode::plus_rien_n_est_à_faire()
             }
         }
         else {
+            // it->imprime_diagnostique(std::cerr, true);
+
             if (espace->phase_courante() == PhaseCompilation::GÉNÉRATION_CODE_TERMINÉE &&
                 it->ri_générées()) {
                 finalise_programme_avant_génération_code_machine(espace, it);
@@ -2326,6 +2323,8 @@ bool GestionnaireCode::plus_rien_n_est_à_faire()
     }
 
     if (!unités_en_attente.est_vide() || !métaprogrammes_en_attente_de_crée_contexte.est_vide()) {
+        // dbg() << "(!unités_en_attente.est_vide() || "
+        //          "!métaprogrammes_en_attente_de_crée_contexte.est_vide())";
         return false;
     }
 
@@ -2334,12 +2333,16 @@ bool GestionnaireCode::plus_rien_n_est_à_faire()
             /* Les programmes des métaprogrammes sont enlevés après leurs exécutions. Si nous en
              * avons un, la compilation ne peut se terminée. */
             if (it->pour_métaprogramme()) {
+                // dbg() << "métaprogramme en cours";
                 return false;
             }
 
             /* Attend que tous les espaces eurent leur compilation terminée. */
             auto espace = it->espace();
             if (espace->phase_courante() != PhaseCompilation::COMPILATION_TERMINÉE) {
+                // dbg() << "espace en phase " << espace->nom << " : " << espace->phase_courante();
+                // dbg() << espace->nom;
+                // espace->imprime_compte_tâches(std::cerr);
                 return false;
             }
             return true;

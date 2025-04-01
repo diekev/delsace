@@ -129,6 +129,8 @@ void EspaceDeTravail::progresse_phase_pour_tache_terminee(
     }
 
     if (nouvelle_phase != phase) {
+        dbg() << __func__ << " : " << nom << " " << phase << " -> " << nouvelle_phase;
+
         change_de_phase(messagère, nouvelle_phase);
     }
 }
@@ -188,6 +190,7 @@ void EspaceDeTravail::regresse_phase_pour_tache_ajoutee(
 
     if (nouvelle_phase != phase) {
         id_phase += 1;
+        dbg() << __func__ << " : " << nom << " " << phase << " -> " << nouvelle_phase;
         change_de_phase(messagère, nouvelle_phase);
     }
 }
@@ -217,13 +220,17 @@ bool EspaceDeTravail::parsage_termine() const
 
 void EspaceDeTravail::imprime_compte_tâches(std::ostream &os) const
 {
-    os << "nombre_tâches_chargement : " << NOMBRE_DE_TACHES(CHARGEMENT) << '\n';
-    os << "nombre_tâches_lexage : " << NOMBRE_DE_TACHES(LEXAGE) << '\n';
-    os << "nombre_tâches_parsage : " << NOMBRE_DE_TACHES(PARSAGE) << '\n';
-    os << "nombre_tâches_typage : " << NOMBRE_DE_TACHES(TYPAGE) << '\n';
-    os << "nombre_tâches_ri : " << NOMBRE_DE_TACHES(GENERATION_RI) << '\n';
-    os << "nombre_tâches_execution : " << NOMBRE_DE_TACHES(EXECUTION) << '\n';
-    os << "nombre_tâches_optimisation : " << NOMBRE_DE_TACHES(OPTIMISATION) << '\n';
+    for (int i = 0; i < int(GenreTâche::NOMBRE_ELEMENTS); i++) {
+        os << "-- tâche " << GenreTâche(i) << " " << nombre_de_tâches[i].load() << '\n';
+    }
+
+    // os << "nombre_tâches_chargement : " << NOMBRE_DE_TACHES(CHARGEMENT) << '\n';
+    // os << "nombre_tâches_lexage : " << NOMBRE_DE_TACHES(LEXAGE) << '\n';
+    // os << "nombre_tâches_parsage : " << NOMBRE_DE_TACHES(PARSAGE) << '\n';
+    // os << "nombre_tâches_typage : " << NOMBRE_DE_TACHES(TYPAGE) << '\n';
+    // os << "nombre_tâches_ri : " << NOMBRE_DE_TACHES(GENERATION_RI) << '\n';
+    // os << "nombre_tâches_execution : " << NOMBRE_DE_TACHES(EXECUTION) << '\n';
+    // os << "nombre_tâches_optimisation : " << NOMBRE_DE_TACHES(OPTIMISATION) << '\n';
 }
 
 Message *EspaceDeTravail::change_de_phase(dls::outils::Synchrone<Messagère> &messagère,
