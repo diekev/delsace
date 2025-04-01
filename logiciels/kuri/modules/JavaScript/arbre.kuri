@@ -4508,6 +4508,107 @@ sur_exécution_debugger_statement :: fonc (base: *NoeudSyntaxique @inutilisée, 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom TemplateLiteral
+ * \{ */
+
+TemplateLiteral :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_template_literal
+
+    quasis: [..]*TemplateElement
+    expressions: [..]*Expression
+}
+
+crée_template_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème, quasis: [..]*TemplateElement) -> *TemplateLiteral
+{
+    résultat := parseuse.crée_noeud(lexème, TemplateLiteral)
+    résultat.quasis = quasis
+    retourne résultat
+}
+
+crée_template_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème, quasis: [..]*TemplateElement, expressions: [..]*Expression) -> *TemplateLiteral
+{
+    résultat := crée_template_literal(parseuse, lexème, quasis)
+    résultat.expressions = expressions
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-template-literals-runtime-semantics-evaluation */
+sur_exécution_template_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
+{
+    template := base comme *TemplateLiteral
+
+    quasi := template.quasis[0]
+    si template.quasis.taille == 1 {
+        retourne crée_string_value_completion(interpréteuse, quasi.value)
+    }
+
+    chaines: [..]*PrimitiveChaine
+    diffère déloge(chaines)
+
+    realm := interpréteuse.donne_realm()
+    tableau_ajoute(*chaines, crée_chaine(realm, quasi.value))
+
+    index_expression := 0
+
+    tantque index_expression < template.expressions.taille {
+        expression := template.expressions[index_expression]
+        index_expression += 1
+
+        completion := exécute_noeud(expression, interpréteuse)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        completion = get_value(interpréteuse, completion.valeur)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        completion = to_string(interpréteuse, completion.valeur.V)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        tableau_ajoute(*chaines, completion.valeur.V.String)
+
+        quasi = template.quasis[index_expression]
+        tableau_ajoute(*chaines, crée_chaine(realm, quasi.value))
+    }
+
+    résultat := chaines[0]
+
+    pour 1 ... chaines.taille - 1 {
+        résultat = concatène(realm, résultat, chaines[it])
+    }
+
+    value := Valeur(String = résultat)
+    retourne normal_completion(value)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom TemplateElement
+ * \{ */
+
+TemplateElement :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+
+    value: ECMAString
+    tail: bool
+}
+
+crée_template_element :: fonc (parseuse: *Parseuse, lexème: *Lexème, value: ECMAString, tail: bool) -> *TemplateElement
+{
+    résultat := parseuse.crée_noeud(lexème, TemplateElement)
+    résultat.value = value
+    résultat.tail = tail
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Visiteuse arbre.
  * \{ */
 

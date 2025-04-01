@@ -709,6 +709,9 @@ crée_chaine_échappement_résolu :: fonc (chn: chaine) -> ECMAString
             ajoute_au_tampon(*enchaineuse, "\t")
             it = avance(it, 1)
         }
+        sinon si c == '\n' {
+            it = avance(it, 1)
+        }
 
         ajoute_au_tampon(*enchaineuse, it)
     }
@@ -736,6 +739,16 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
         ChaineLittérale {
             parseuse.consomme()
             retourne crée_literal(parseuse, lexème, crée_chaine_échappement_résolu(lexème.texte))
+        }
+        TemplateLiteral {
+            parseuse.consomme()
+            quasi := crée_template_element(parseuse, lexème, crée_chaine_échappement_résolu(lexème.texte), vrai)
+            quasis: [..]*TemplateElement
+            tableau_ajoute(*quasis, quasi)
+            retourne crée_template_literal(parseuse, lexème, quasis)
+        }
+        TemplateLiteralStart {
+            retourne parse_template_literal(parseuse, lexème)
         }
         NombreLittéral {
             parseuse.consomme()
@@ -906,6 +919,49 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
     }
 
     retourne nul
+}
+
+parse_template_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *TemplateLiteral
+{
+    assert(lexème.genre == GenreLexème.TemplateLiteralStart)
+    parseuse.consomme()
+
+    lexème_orig := lexème
+
+    quasis: [..]*TemplateElement
+    expressions: [..]*Expression
+
+    quasi := crée_template_element(parseuse, lexème, crée_chaine_échappement_résolu(lexème.texte), faux)
+    tableau_ajoute(*quasis, quasi)
+
+    tantque !fini(parseuse) {
+        expression := parse_expression(parseuse, ParamètresParsageExpression())
+        tableau_ajoute(*expressions, expression)
+
+        si parseuse.fini() {
+            parseuse.rapporte_erreur("fin de fichier inattendu dans le template literal")
+            arrête
+        }
+
+        lexème = parseuse.lexème_courant()
+        si lexème.genre == GenreLexème.TemplateLiteralMiddle {
+            quasi = crée_template_element(parseuse, lexème, crée_chaine_échappement_résolu(lexème.texte), faux)
+            tableau_ajoute(*quasis, quasi)
+            parseuse.consomme()
+            continue
+        }
+
+        si lexème.genre != GenreLexème.TemplateLiteralEnd {
+            parseuse.rapporte_erreur("[erreur interne] attendu un template-literal-end")
+        }
+
+        quasi = crée_template_element(parseuse, lexème, crée_chaine_échappement_résolu(lexème.texte), vrai)
+        tableau_ajoute(*quasis, quasi)
+        parseuse.consomme()
+        arrête
+    }
+
+    retourne crée_template_literal(parseuse, lexème_orig, quasis, expressions)
 }
 
 parse_property_name :: fonc (parseuse: *Parseuse) -> *Expression
