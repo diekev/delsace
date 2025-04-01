@@ -39,7 +39,7 @@ array_set_length :: fonc (array: *ArrayObject, len: n32)
     desc: PropertyDescriptor
     desc.value = Valeur(Number = len comme r64)
     desc.writable = vrai
-    _ := ordinary_define_own_property(array, STR_length, desc)
+    _ := array_set_length(array, desc)
 }
 
 #portée_fichier
@@ -140,8 +140,98 @@ array_create :: fonc (realm: *Realm, length: r64, proto : *Object = nul) -> *Obj
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-arraysetlength */
 array_set_length :: fonc (A: *ArrayObject, desc: &PropertyDescriptor) -> CompletionRecord
 {
-    /* À FAIRE */
-    retourne ordinary_define_own_property(A, STR_length, desc)
+    // 1. If Desc does not have a [[Value]] field, then
+    saufsi desc.value.possède_valeur() {
+        // a. Return ! OrdinaryDefineOwnProperty(A, "length", Desc).
+        retourne ordinary_define_own_property(A, STR_length, desc)
+    }
+
+    // 2. Let newLenDesc be a copy of Desc.
+    new_len_desc := desc
+
+    // 3. Let newLen be ? ToUint32(Desc.[[Value]]).
+    new_len := to_uint32(desc.value.Quelque)
+
+    // 4. Let numberLen be ? ToNumber(Desc.[[Value]]).
+    interpréteuse := A.donne_tas_de_mémoire().mv.interpréteuse
+    assert(interpréteuse != nul)
+
+    completion := to_number(interpréteuse, desc.value.Quelque)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    number_len := completion.valeur.V
+
+    // À FAIRE 5. If SameValueZero(newLen, numberLen) is false, throw a RangeError exception.
+    si new_len comme r64 != number_len.Number {
+        assert(faux)
+    }
+
+    // 6. Set newLenDesc.[[Value]] to newLen.
+    new_len_desc.value = Valeur(Number = new_len comme r64)
+
+    // 7. Let oldLenDesc be OrdinaryGetOwnProperty(A, "length").
+    old_len_desc := ordinary_get_own_property(A, STR_length).valeur.P
+
+    // 8. Assert: IsDataDescriptor(oldLenDesc) is true.
+    assert(is_data_descriptor(old_len_desc))
+
+    // 9. Assert: oldLenDesc.[[Configurable]] is false.
+    assert(old_len_desc.configurable.Quelque == faux)
+
+    // 10. Let oldLen be oldLenDesc.[[Value]].
+    old_len := old_len_desc.value.Quelque
+
+    // 11. If newLen ≥ oldLen, then
+    si new_len comme r64 >= old_len.Number {
+        // a. Return ! OrdinaryDefineOwnProperty(A, "length", newLenDesc).
+        retourne ordinary_define_own_property(A, STR_length, new_len_desc)
+    }
+
+    // 12. If oldLenDesc.[[Writable]] is false, return false.
+    si old_len_desc.writable.Quelque == faux {
+        retourne normal_completion(Valeur(Boolean = faux))
+    }
+
+    // 13. If newLenDesc does not have a [[Writable]] field or newLenDesc.[[Writable]] is true, then
+    new_writable := faux
+    si !new_len_desc.writable.possède_valeur() || new_len_desc.writable.Quelque == vrai {
+        // a. Let newWritable be true.
+        new_writable = vrai
+    }
+    // 14. Else,
+    sinon {
+        // a. NOTE: Setting the [[Writable]] attribute to false is deferred in case any elements cannot be deleted.
+        // b. Let newWritable be false.
+        // c. Set newLenDesc.[[Writable]] to true.
+        new_len_desc.writable = vrai
+    }
+
+    // 15. Let succeeded be ! OrdinaryDefineOwnProperty(A, "length", newLenDesc).
+    succeeded := ordinary_define_own_property(A, STR_length, new_len_desc).valeur.V
+
+    // 16. If succeeded is false, return false.
+    si succeeded.est_false() {
+        retourne normal_completion(Valeur(Boolean = faux))
+    }
+
+    // À FAIRE : 17. For each own property key P of A such that P is an array index and ! ToUint32(P) ≥ newLen, in descending numeric index order, do
+        // a. Let deleteSucceeded be ! A.[[Delete]](P).
+        // b. If deleteSucceeded is false, then
+            // i. Set newLenDesc.[[Value]] to ! ToUint32(P) + 1𝔽.
+            // ii. If newWritable is false, set newLenDesc.[[Writable]] to false.
+            // iii. Perform ! OrdinaryDefineOwnProperty(A, "length", newLenDesc).
+            // iv. Return false.
+    // 18. If newWritable is false, then
+    // a. Set succeeded to ! OrdinaryDefineOwnProperty(A, "length", PropertyDescriptor { [[Writable]]: false }).
+    // b. Assert: succeeded is true.
+
+    si new_len comme r64 < old_len.Number {
+        retourne ordinary_define_own_property(A, STR_length, old_len_desc)
+    }
+
+    // 19. Return true.
+    retourne normal_completion(Valeur(Boolean = vrai))
 }
 
 /** \} */
