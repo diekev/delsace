@@ -508,6 +508,75 @@ lèxe_chaine_littérale :: fonc (empl lexeuse: &Lexeuse, caractère_final: z8) -
     retourne résultat
 }
 
+lèxe_template_literal :: fonc (empl lexeuse: &Lexeuse) -> Lexème
+{
+    lexeuse.débute_lexème()
+    /* N'incluons pas les guillemets. */
+    lexeuse.début_mot = lexeuse.début_source
+
+    genre_lexème_final := GenreLexème.TemplateLiteral
+    genre_lexème_courant := GenreLexème.TemplateLiteralStart
+
+    eu_guillemet_fermant := faux
+
+    tantque !fini(lexeuse) {
+        c := lexeuse.caractère_courant()
+
+        si apparie(lexeuse, "${") {
+            genre_lexème_final = GenreLexème.TemplateLiteralEnd
+
+            lexème := crée_lexème(lexeuse, genre_lexème_courant)
+            tableau_ajoute(*lexeuse.lexèmes, lexème)
+
+            début_source += 2
+
+            tantque !lexeuse.fini() {
+                consomme_espaces_blanches(lexeuse)
+                si fini(lexeuse) {
+                    arrête
+                }
+
+                c = lexeuse.caractère_courant()
+                si c == '}' {
+                    début_source += 1
+                    arrête
+                }
+
+                lexème = lexeuse.donne_lexème_suivant()
+                tableau_ajoute(*lexeuse.lexèmes, lexème)
+            }
+
+            lexeuse.début_mot = lexeuse.début_source
+            genre_lexème_courant = GenreLexème.TemplateLiteralMiddle
+            continue
+        }
+
+        si c == '\\' {
+            début_source += 2
+            continue
+        }
+
+        si c == '`' {
+            eu_guillemet_fermant = vrai
+            arrête
+        }
+
+        début_source += 1
+    }
+
+    saufsi eu_guillemet_fermant {
+        lexeuse.début_source = lexeuse.début_mot - 1
+        rapporte_erreur(lexeuse, "fin de fichier inattendu")
+    }
+
+
+    résultat := crée_lexème(lexeuse, genre_lexème_final)
+    /* N'incluons pas les guillemets. */
+    début_source += 1
+
+    retourne résultat
+}
+
 droit_traité_slash_comme_début_regex :: fonc (empl lexeuse: &Lexeuse) -> bool
 {
     si lexèmes.taille == 0 {
@@ -883,6 +952,9 @@ donne_lexème_suivant :: fonc (lexeuse: &Lexeuse) -> Lexème
     fanion := fanions_caractères[c comme n8]
 
     si fanion.DébuteChaineLittérale {
+        si c == '`' {
+            retourne lèxe_template_literal(lexeuse)
+        }
         retourne lèxe_chaine_littérale(lexeuse, c)
     }
 

@@ -847,7 +847,26 @@ same_value :: fonc (x: Valeur, y: Valeur) -> Valeur
     retourne same_value_non_number(x, y)
 }
 
-/* 7.2.10 SameValueNonNumber ( x, y )
+/* 7.2.10 SameValueZero ( x, y )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-samevaluezero */
+same_value_zero :: fonc (x: Valeur, y: Valeur) -> Valeur
+{
+    // 1. If SameType(x, y) is false, return false.
+    saufsi same_type(x, y) {
+        retourne faux
+    }
+
+    // 2. If x is a Number, then
+    si x.est_nombre() {
+        // a. Return Number::sameValueZero(x, y).
+        retourne number_same_value_zero(x, y)
+    }
+
+    // 3. Return SameValueNonNumber(x, y).
+    retourne same_value_non_number(x, y)
+}
+
+/* 7.2.11 SameValueNonNumber ( x, y )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-samevaluenonnumber */
 same_value_non_number :: fonc (x: Valeur, y: Valeur) -> Valeur
 {
