@@ -96,7 +96,23 @@ Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri, ArgumentsCompilatric
 
     /* Charge le module Kuri. */
     if (arguments.importe_kuri) {
-        module_kuri = importe_module(espace_de_travail_defaut, "Kuri", nullptr);
+        module_kuri = sys_module->initialise_module_kuri(racine_modules_kuri,
+                                                         arguments.importe_kuri);
+
+        if (!module_kuri) {
+            exit(1);
+        }
+
+        POUR (module_kuri->fichiers) {
+            if (it->fut_chargé) {
+                gestionnaire_code->requiers_lexage(espace_de_travail_defaut, it);
+            }
+            else {
+                gestionnaire_code->requiers_chargement(espace_de_travail_defaut, it);
+            }
+        }
+
+        module_kuri->importé = true;
     }
 
     broyeuse = memoire::loge<Broyeuse>("Broyeuse");
@@ -130,85 +146,88 @@ Module *Compilatrice::importe_module(EspaceDeTravail *espace,
                                      kuri::chaine_statique nom,
                                      NoeudExpression const *site)
 {
-    auto opt_chemin = détermine_chemin_dossier_module(espace, nom, site);
-    if (!opt_chemin.has_value()) {
-        /* Une erreur dût être rapportée. */
-        return nullptr;
-    }
+    return nullptr;
+    //     auto opt_chemin = détermine_chemin_dossier_module(espace, nom, site);
+    //     if (!opt_chemin.has_value()) {
+    //         /* Une erreur dût être rapportée. */
+    //         return nullptr;
+    //     }
 
-    auto chemin = opt_chemin.value();
+    //     auto chemin = opt_chemin.value();
 
-    if (!kuri::chemin_systeme::est_dossier(chemin)) {
-        espace->rapporte_erreur(
-            site, "Le nom du module ne pointe pas vers un dossier", erreur::Genre::MODULE_INCONNU);
-        return nullptr;
-    }
+    //     if (!kuri::chemin_systeme::est_dossier(chemin)) {
+    //         espace->rapporte_erreur(
+    //             site, "Le nom du module ne pointe pas vers un dossier",
+    //             erreur::Genre::MODULE_INCONNU);
+    //         return nullptr;
+    //     }
 
-    /* trouve le chemin absolu du module (cannonique pour supprimer les "../../" */
-    auto chemin_absolu = kuri::chemin_systeme::canonique_absolu(chemin);
-    auto nom_dossier = chemin_absolu.nom_fichier();
+    //     /* trouve le chemin absolu du module (cannonique pour supprimer les "../../" */
+    //     auto chemin_absolu = kuri::chemin_systeme::canonique_absolu(chemin);
+    //     auto nom_dossier = chemin_absolu.nom_fichier();
 
-    /* N'importe le module que s'il possède un fichier "module.kuri". */
-    auto chemin_fichier_module = chemin_absolu / "module.kuri";
-    if (!kuri::chemin_systeme::existe(chemin_fichier_module)) {
-        espace->rapporte_erreur(site,
-                                enchaine("Aucun fichier « module.kuri » trouvé pour le module « ",
-                                         nom_dossier,
-                                         " »."));
-        return nullptr;
-    }
+    //     /* N'importe le module que s'il possède un fichier "module.kuri". */
+    //     auto chemin_fichier_module = chemin_absolu / "module.kuri";
+    //     if (!kuri::chemin_systeme::existe(chemin_fichier_module)) {
+    //         espace->rapporte_erreur(site,
+    //                                 enchaine("Aucun fichier « module.kuri » trouvé pour le
+    //                                 module « ",
+    //                                          nom_dossier,
+    //                                          " »."));
+    //         return nullptr;
+    //     }
 
-    // @concurrence critique
-    auto module = this->trouve_ou_crée_module(
-        table_identifiants->identifiant_pour_nouvelle_chaine(nom_dossier), chemin_absolu);
+    //     // @concurrence critique
+    //     auto module = this->trouve_ou_crée_module(
+    //         table_identifiants->identifiant_pour_nouvelle_chaine(nom_dossier), chemin_absolu);
 
-    if (module->importé) {
-        return module;
-    }
+    //     if (module->importé) {
+    //         return module;
+    //     }
 
-    module->importé = true;
+    //     module->importé = true;
 
-    messagère->ajoute_message_module_ouvert(espace, module);
+    //     messagère->ajoute_message_module_ouvert(espace, module);
 
-#if 0
-    auto fichiers = kuri::chemin_systeme::fichiers_du_dossier(chemin_absolu);
+    // #if 0
+    //     auto fichiers = kuri::chemin_systeme::fichiers_du_dossier(chemin_absolu);
 
-    POUR (fichiers) {
-        auto résultat = this->trouve_ou_crée_fichier(
-            module, it.nom_fichier_sans_extension(), it, importe_kuri);
+    //     POUR (fichiers) {
+    //         auto résultat = this->trouve_ou_crée_fichier(
+    //             module, it.nom_fichier_sans_extension(), it, importe_kuri);
 
-        if (std::holds_alternative<FichierNeuf>(résultat)) {
-            auto fichier = static_cast<Fichier *>(std::get<FichierNeuf>(résultat));
-            gestionnaire_code->requiers_chargement(espace, fichier);
-        }
-    }
-#else
-    auto résultat = this->trouve_ou_crée_fichier(
-        module, "module", chemin_fichier_module, importe_kuri);
-    if (std::holds_alternative<FichierNeuf>(résultat)) {
-        auto fichier = static_cast<Fichier *>(std::get<FichierNeuf>(résultat));
-        gestionnaire_code->requiers_chargement(espace, fichier);
-    }
-#endif
+    //         if (std::holds_alternative<FichierNeuf>(résultat)) {
+    //             auto fichier = static_cast<Fichier *>(std::get<FichierNeuf>(résultat));
+    //             gestionnaire_code->requiers_chargement(espace, fichier);
+    //         }
+    //     }
+    // #else
+    //     auto résultat = this->trouve_ou_crée_fichier(
+    //         module, "module", chemin_fichier_module, importe_kuri);
+    //     if (std::holds_alternative<FichierNeuf>(résultat)) {
+    //         auto fichier = static_cast<Fichier *>(std::get<FichierNeuf>(résultat));
+    //         gestionnaire_code->requiers_chargement(espace, fichier);
+    //     }
+    // #endif
 
-    if (module->nom() == ID::Kuri) {
-        auto résultat = this->trouve_ou_crée_fichier(
-            module, "constantes", "constantes.kuri", false);
+    //     if (module->nom() == ID::Kuri) {
+    //         auto résultat = this->trouve_ou_crée_fichier(
+    //             module, "constantes", "constantes.kuri", false);
 
-        if (std::holds_alternative<FichierNeuf>(résultat)) {
-            auto donnees_fichier = static_cast<Fichier *>(std::get<FichierNeuf>(résultat));
-            if (!donnees_fichier->fut_chargé) {
-                const char *source = "SYS_EXP :: SystèmeExploitation.LINUX\n";
-                donnees_fichier->charge_tampon(lng::tampon_source(source));
-            }
+    //         if (std::holds_alternative<FichierNeuf>(résultat)) {
+    //             auto donnees_fichier = static_cast<Fichier *>(std::get<FichierNeuf>(résultat));
+    //             if (!donnees_fichier->fut_chargé) {
+    //                 const char *source = "SYS_EXP :: SystèmeExploitation.LINUX\n";
+    //                 donnees_fichier->charge_tampon(lng::tampon_source(source));
+    //             }
 
-            gestionnaire_code->requiers_lexage(espace, donnees_fichier);
-        }
-    }
+    //             gestionnaire_code->requiers_lexage(espace, donnees_fichier);
+    //         }
+    //     }
 
-    messagère->ajoute_message_module_fermé(espace, module);
+    //     messagère->ajoute_message_module_fermé(espace, module);
 
-    return module;
+    //     return module;
 }
 
 std::optional<kuri::chemin_systeme> Compilatrice::détermine_chemin_dossier_module(

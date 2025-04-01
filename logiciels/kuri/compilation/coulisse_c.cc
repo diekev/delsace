@@ -2527,11 +2527,12 @@ std::optional<ErreurCoulisse> CoulisseC::génère_code_impl(const ArgsGénérati
 std::optional<ErreurCoulisse> CoulisseC::crée_fichier_objet_impl(
     const ArgsCréationFichiersObjets &args)
 {
-    auto &espace = *args.espace;
-
 #if 1  // def CMAKE_BUILD_TYPE_PROFILE
+    static_cast<void>(args);
     return {};
 #else
+    auto &espace = *args.espace;
+
 #    ifndef NDEBUG
     auto poule_de_tâches = kuri::PouleDeTâchesEnSérie{};
 #    else
@@ -2592,12 +2593,13 @@ std::optional<ErreurCoulisse> CoulisseC::crée_fichier_objet_impl(
 
 std::optional<ErreurCoulisse> CoulisseC::crée_exécutable_impl(const ArgsLiaisonObjets &args)
 {
+#if 1  // def CMAKE_BUILD_TYPE_PROFILE
+    static_cast<void>(args);
+    return {};
+#else
     auto &compilatrice = *args.compilatrice;
     auto &espace = *args.espace;
 
-#if 1  // def CMAKE_BUILD_TYPE_PROFILE
-    return {};
-#else
     if (!compile_objet_r16(compilatrice.racine_kuri, espace.options.architecture)) {
         return ErreurCoulisse{"Impossible de compiler l'objet pour r16."};
     }

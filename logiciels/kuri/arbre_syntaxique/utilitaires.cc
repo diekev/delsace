@@ -2751,6 +2751,9 @@ UniteCompilation **donne_adresse_unité(NoeudExpression *noeud)
     if (noeud->est_déclaration_constante()) {
         return &noeud->comme_déclaration_constante()->unité;
     }
+    if (noeud->est_déclaration_module()) {
+        return &noeud->comme_déclaration_module()->unité;
+    }
 
     assert_rappel(false, [&]() {
         dbg() << "Noeud non-géré pour l'adresse de l'unité de compilation " << noeud->genre;

@@ -22,6 +22,8 @@
 compilation
  */
 
+#undef TEMPORISE_UNITES_POUR_SIMULER_MOULTFILAGE
+
 #undef STATS_DÉTAILLÉES_GESTION
 
 #ifdef STATISTIQUES_DETAILLEES
@@ -143,7 +145,9 @@ GestionnaireCode::GestionnaireCode(Compilatrice *compilatrice)
     : m_compilatrice(compilatrice),
       m_assembleuse(memoire::loge<AssembleuseArbre>("AssembleuseArbre", allocatrice_noeud))
 {
+#ifdef TEMPORISE_UNITES_POUR_SIMULER_MOULTFILAGE
     mt = std::mt19937(1337);
+#endif
 }
 
 GestionnaireCode::~GestionnaireCode()
@@ -1439,6 +1443,7 @@ void GestionnaireCode::mets_en_attente(UniteCompilation *unité_attendante,
 
 void GestionnaireCode::tâche_unité_terminée(UniteCompilation *unité)
 {
+#ifdef TEMPORISE_UNITES_POUR_SIMULER_MOULTFILAGE
     auto dist = std::uniform_real_distribution<double>(0.0, 1.0);
     if (unité->fut_temporisée == false && dist(mt) > 0.25) {
         auto info = InfoUnitéTemporisée{};
@@ -1451,6 +1456,7 @@ void GestionnaireCode::tâche_unité_terminée(UniteCompilation *unité)
     }
 
     // unité->fut_temporisée = false;
+#endif
 
     switch (unité->donne_raison_d_être()) {
         case RaisonDÊtre::AUCUNE:
@@ -1552,6 +1558,55 @@ void GestionnaireCode::lexage_fichier_terminé(UniteCompilation *unité)
     TACHE_AJOUTEE(PARSAGE);
 }
 
+// @dupliquée compilatrice.cc
+static std::optional<kuri::chemin_systeme> determine_chemin_absolu(EspaceDeTravail *espace,
+                                                                   kuri::chaine_statique chemin,
+                                                                   NoeudExpression const *site)
+{
+    if (!kuri::chemin_systeme::existe(chemin)) {
+        espace->rapporte_erreur(site, "Impossible de trouver le fichier")
+            .ajoute_message("Le chemin testé fut : ", chemin);
+        return {};
+    }
+
+    if (!kuri::chemin_systeme::est_fichier_regulier(chemin)) {
+        espace->rapporte_erreur(site, "Le chemin ne pointe pas vers un fichier régulier")
+            .ajoute_message("Le chemin testé fut : ", chemin);
+        return {};
+    }
+
+    return kuri::chemin_systeme::absolu(chemin);
+}
+
+static Module *donne_module_existant_pour_importe(NoeudInstructionImporte *inst,
+                                                  Fichier *fichier,
+                                                  Module *module_du_fichier)
+{
+    auto const expression = inst->expression;
+    if (expression->lexème->genre != GenreLexème::CHAINE_CARACTERE) {
+        /* L'expression est un chemin relatif. */
+        return nullptr;
+    }
+
+    /* À FAIRE : meilleure mise en cache. */
+    auto module = static_cast<Module *>(nullptr);
+    POUR (module_du_fichier->fichiers) {
+        if (it == fichier) {
+            continue;
+        }
+        pour_chaque_élément(it->modules_importés, [&](ModuleImporté const &module_) {
+            if (module_.module->nom() == expression->ident) {
+                module = module_.module;
+                return kuri::DécisionItération::Arrête;
+            }
+
+            return kuri::DécisionItération::Continue;
+        });
+    }
+
+    return module;
+}
+
 void GestionnaireCode::parsage_fichier_terminé(UniteCompilation *unité)
 {
     assert(unité->fichier);
@@ -1561,15 +1616,135 @@ void GestionnaireCode::parsage_fichier_terminé(UniteCompilation *unité)
     unité->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
     m_état_chargement_fichiers.supprime_unité_pour_chargement_fichier(unité);
 
-    POUR (unité->fichier->noeuds_à_valider) {
+    auto fichier = unité->fichier;
+
+    POUR (fichier->noeuds_à_valider) {
         /* Nous avons sans doute déjà requis le typage de ce noeud. */
         auto adresse_unité = donne_adresse_unité(it);
         if (*adresse_unité) {
             continue;
         }
 
-        if (it->est_charge() || it->est_importe()) {
-            requiers_typage(espace, it);
+        if (it->est_charge()) {
+            auto inst = it->comme_charge();
+            auto const lexème = inst->expression->lexème;
+            auto const nom = lexème->chaine;
+            auto module = fichier->module;
+            auto chemin = dls::chaine(kuri::chaine(module->chemin())) +
+                          dls::chaine(kuri::chaine(nom));
+
+            if (chemin.trouve(".kuri") == dls::chaine::npos) {
+                chemin += ".kuri";
+            }
+
+            auto opt_chemin = determine_chemin_absolu(espace, chemin.c_str(), it);
+            if (!opt_chemin.has_value()) {
+                return;
+            }
+            auto résultat = m_compilatrice->trouve_ou_crée_fichier(
+                module, nom, opt_chemin.value(), true);
+
+            if (std::holds_alternative<FichierNeuf>(résultat)) {
+                auto nouveau_fichier = static_cast<Fichier *>(std::get<FichierNeuf>(résultat));
+                requiers_chargement(espace, nouveau_fichier);
+            }
+            else {
+                auto fichier_existant = static_cast<Fichier *>(
+                    std::get<FichierExistant>(résultat));
+                if (fichier_existant == fichier) {
+                    espace->rapporte_erreur(it, "chargement du fichier dans lui-même");
+                    return;
+                }
+            }
+        }
+        else if (it->est_importe()) {
+            auto inst = it->comme_importe();
+            auto const module_du_fichier = fichier->module;
+
+            auto module = donne_module_existant_pour_importe(inst, fichier, module_du_fichier);
+            if (!module) {
+                const auto lexème = inst->expression->lexème;
+
+                auto info_module = m_compilatrice->sys_module->trouve_ou_crée_module(
+                    m_compilatrice->table_identifiants, fichier, lexème->chaine);
+
+                switch (info_module.état) {
+                    case InfoRequêteModule::État::TROUVÉ:
+                    {
+                        module = info_module.module;
+                        if (module->importé) {
+                            break;
+                        }
+                        module->importé = true;
+                        m_compilatrice->messagère->ajoute_message_module_ouvert(espace, module);
+                        POUR_NOMME (f, module->fichiers) {
+                            requiers_chargement(espace, f);
+                        }
+                        m_compilatrice->messagère->ajoute_message_module_fermé(espace, module);
+                        break;
+                    }
+                    case InfoRequêteModule::État::CHEMIN_INEXISTANT:
+                    {
+                        espace->rapporte_erreur(inst,
+                                                "Le nom du module ne pointe pas vers un dossier.");
+                        return;
+                    }
+                    case InfoRequêteModule::État::PAS_UN_DOSSIER:
+                    {
+                        kuri::chaine_statique message_chemins_testés;
+                        if (info_module.chemins_testés.taille() > 1) {
+                            message_chemins_testés = "Le chemin testé fut :\n";
+                        }
+                        else {
+                            message_chemins_testés = "Les chemins testés furent :\n";
+                        }
+
+                        auto &e =
+                            espace
+                                ->rapporte_erreur(
+                                    inst,
+                                    "Impossible de trouver un dossier correspondant au module "
+                                    "importé.")
+                                .ajoute_message(message_chemins_testés);
+
+                        POUR_NOMME (chemin, info_module.chemins_testés) {
+                            e.ajoute_message("    ", chemin, "\n");
+                        }
+                        return;
+                    }
+                    case InfoRequêteModule::État::PAS_DE_FICHIER_MODULE_KURI:
+                    {
+                        espace->rapporte_erreur(inst,
+                                                "Impossible d'importer le module, car le dossier "
+                                                "ne contient de fichier 'module.kuri'.");
+                        return;
+                    }
+                }
+            }
+
+            if (module_du_fichier == module) {
+                espace->rapporte_erreur(inst, "Importation d'un module dans lui-même.\n");
+                return;
+            }
+
+            if (fichier->importe_module(module->nom())) {
+                if (fichier->source != SourceFichier::CHAINE_AJOUTÉE) {
+                    /* Ignore les fichiers de chaines ajoutées afin de permettre aux métaprogrammes
+                     * de générer ces instructions redondantes. */
+                    espace->rapporte_avertissement(inst, "Importation superflux du module");
+                }
+            }
+            else {
+                fichier->modules_importés.insère({module, inst->est_employé});
+
+                auto noeud_déclaration = inst->noeud_déclaration;
+                if (noeud_déclaration->ident == nullptr) {
+                    noeud_déclaration->ident = module->nom();
+                    noeud_déclaration->bloc_parent->ajoute_membre(noeud_déclaration);
+                }
+                noeud_déclaration->module = module;
+            }
+
             m_état_chargement_fichiers.ajoute_unité_pour_charge_ou_importe(*adresse_unité);
         }
         else {
@@ -1648,7 +1823,8 @@ static bool doit_déterminer_les_dépendances(NoeudExpression *noeud)
         }
 
         return !(noeud->est_charge() || noeud->est_importe() ||
-                 noeud->est_déclaration_bibliothèque() || noeud->est_déclaration_constante());
+                 noeud->est_déclaration_bibliothèque() || noeud->est_déclaration_constante() ||
+                 noeud->est_déclaration_module());
     }
 
     if (noeud->est_exécute()) {
@@ -1971,6 +2147,7 @@ void GestionnaireCode::fonction_initialisation_type_créée(UniteCompilation *un
 
 void GestionnaireCode::crée_tâches(OrdonnanceuseTache &ordonnanceuse)
 {
+#ifdef TEMPORISE_UNITES_POUR_SIMULER_MOULTFILAGE
     nouvelles_unités_temporisées.efface();
     POUR (unités_temporisées) {
         it.cycle_courant += 1;
@@ -1981,6 +2158,7 @@ void GestionnaireCode::crée_tâches(OrdonnanceuseTache &ordonnanceuse)
         nouvelles_unités_temporisées.ajoute(it);
     }
     unités_temporisées.permute(nouvelles_unités_temporisées);
+#endif
 
     DÉBUTE_STAT(CRÉATION_TÂCHES);
     m_nouvelles_unités.efface();

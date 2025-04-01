@@ -616,6 +616,16 @@ void Syntaxeuse::analyse_une_chose()
         requiers_typage(noeud);
         m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::IMPORTE;
 
+        auto noeud_déclaration = m_tacheronne.assembleuse
+                                     ->crée_noeud<GenreNoeud::DÉCLARATION_MODULE>(lexème)
+                                     ->comme_déclaration_module();
+        noeud_déclaration->ident = lexème->ident;
+        noeud_déclaration->bloc_parent->ajoute_expression(noeud_déclaration);
+        noeud_déclaration->bloc_parent->ajoute_membre(noeud_déclaration);
+        requiers_typage(noeud_déclaration);
+
+        noeud->noeud_déclaration = noeud_déclaration;
+
         consomme();
     }
     else if (genre_lexème == GenreLexème::CHARGE) {
@@ -1695,7 +1705,9 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
             if (apparie_expression()) {
                 expression = analyse_expression({}, GenreLexème::INCONNU);
                 if (expression && !expression->est_référence_déclaration()) {
-                    rapporte_erreur_avec_site(expression, "L'expression de l'instruction \"arrête\" doit être une référence simple.");
+                    rapporte_erreur_avec_site(expression,
+                                              "L'expression de l'instruction \"arrête\" doit être "
+                                              "une référence simple.");
                 }
             }
 
@@ -1709,7 +1721,9 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
             if (apparie_expression()) {
                 expression = analyse_expression({}, GenreLexème::INCONNU);
                 if (expression && !expression->est_référence_déclaration()) {
-                    rapporte_erreur_avec_site(expression, "L'expression de l'instruction \"continue\" doit être une référence simple.");
+                    rapporte_erreur_avec_site(expression,
+                                              "L'expression de l'instruction \"continue\" doit "
+                                              "être une référence simple.");
                 }
             }
 
@@ -1723,7 +1737,9 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
             if (apparie_expression()) {
                 expression = analyse_expression({}, GenreLexème::INCONNU);
                 if (expression && !expression->est_référence_déclaration()) {
-                    rapporte_erreur_avec_site(expression, "L'expression de l'instruction \"reprends\" doit être une référence simple.");
+                    rapporte_erreur_avec_site(expression,
+                                              "L'expression de l'instruction \"reprends\" doit "
+                                              "être une référence simple.");
                 }
             }
 

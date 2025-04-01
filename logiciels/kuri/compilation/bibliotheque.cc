@@ -911,13 +911,27 @@ static std::optional<ResultatRechercheBibliothèque> recherche_bibliothèque(
     return {};
 }
 
+static void garantie_chemins_bibliothèques(Module *module)
+{
+
+    if (module->chemin_bibliothèque_32bits.taille() == 0) {
+        module->chemin_bibliothèque_32bits = module->chemin() /
+                                             suffixe_chemin_module_pour_bibliothèque(
+                                                 ArchitectureCible::X86);
+        module->chemin_bibliothèque_64bits = module->chemin() /
+                                             suffixe_chemin_module_pour_bibliothèque(
+                                                 ArchitectureCible::X64);
+    }
+}
+
 static kuri::tablet<kuri::chaine_statique, 4> dossiers_recherche_32_bits(
     Compilatrice const &compilatrice, NoeudExpression *site)
 {
     kuri::tablet<kuri::chaine_statique, 4> dossiers;
     if (site) {
         const auto fichier = compilatrice.fichier(site->lexème->fichier);
-        const auto module = fichier->module;
+        auto module = fichier->module;
+        garantie_chemins_bibliothèques(module);
         dossiers.ajoute(module->chemin_bibliothèque_32bits);
     }
 
@@ -935,6 +949,7 @@ static kuri::tablet<kuri::chaine_statique, 4> dossiers_recherche_64_bits(
     if (site) {
         const auto fichier = compilatrice.fichier(site->lexème->fichier);
         const auto module = fichier->module;
+        garantie_chemins_bibliothèques(module);
         dossiers.ajoute(module->chemin_bibliothèque_64bits);
     }
 
