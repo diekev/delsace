@@ -286,6 +286,9 @@ parse_function_expression :: fonc (parseuse: *Parseuse) -> *FunctionExpression
 parse_function_body :: fonc (parseuse: *Parseuse) -> *FunctionBody
 {
     statement := parse_statement(parseuse)
+    si statement {
+        statement.appartient_à_fonction = vrai
+    }
     retourne crée_function_body(parseuse, statement)
 }
 
@@ -1225,6 +1228,9 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
         Arrow {
             parseuse.consomme()
             droite := parseuse.parse_statement()
+            si droite {
+                droite.appartient_à_fonction = vrai
+            }
 
             // À FAIRE : nous pouvons avoir une expression virgule alors que les fonctions doivent avoir un tableau
             // pour les paramètres.
