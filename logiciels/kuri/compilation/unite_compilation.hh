@@ -83,6 +83,8 @@ struct UniteCompilation {
     RaisonDÊtre m_raison_d_être = RaisonDÊtre::AUCUNE;
 
   public:
+    bool fut_temporisée = false;
+
     /* Le nombre de cycles d'attentes, à savoir le nombre de fois où nous avons vérifié que
      * l'attente est résolue. */
     mutable int cycle = 0;
