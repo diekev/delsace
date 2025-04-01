@@ -118,7 +118,7 @@ create_a_classic_script :: fonc (user_agent: *UserAgent, source: chaine, setting
  * https://html.spec.whatwg.org/multipage/webappapis.html#calling-scripts
  * \{ */
 
-run_the_classic_script :: fonc (script: *ClassicScript, rethrow_errors := faux @inutilisée) -> JavaScript.CompletionRecord
+run_the_classic_script :: fonc (script: *ClassicScript, rethrow_errors := faux) -> JavaScript.CompletionRecord
 {
     // 1. Let settings be the settings object of script.
     settings := script.settings_object
@@ -146,29 +146,33 @@ run_the_classic_script :: fonc (script: *ClassicScript, rethrow_errors := faux @
 
     // 8. If evaluationStatus is an abrupt completion, then:
     si JavaScript.est_abrupt(evaluation_status) {
-        imprime("[%] %\n", #nom_de_cette_fonction, evaluation_status)
-
         // 1. If rethrow errors is true and script's muted errors is false, then:
-
+        si rethrow_errors && script.muted_errors == faux {
             // 1. Clean up after running script with settings.
+            cleanup_after_running_script(settings)
 
             // 2. Rethrow evaluationStatus.[[Value]].
+            retourne evaluation_status
+        }
 
         // 2. If rethrow errors is true and script's muted errors is true, then:
-
+        si rethrow_errors && script.muted_errors == vrai {
             // 1. Clean up after running script with settings.
+            cleanup_after_running_script(settings)
 
-            // 2. Throw a "NetworkError" DOMException.
+            // À FAIRE 2. Throw a "NetworkError" DOMException.
+            retourne evaluation_status
+        }
 
-            // 3. Otherwise, rethrow errors is false. Perform the following steps:
+        // 3. Otherwise, rethrow errors is false. Perform the following steps:
 
         // 1. Report an exception given by evaluationStatus.[[Value]] for script's settings object's global object.
+        report_an_exception(evaluation_status.valeur.V, script.settings_object.donne_global_object())
 
-            // 2. Clean up after running script with settings.
-
-            // 3. Return evaluationStatus.
-
+        // 2. Clean up after running script with settings.
         cleanup_after_running_script(settings)
+
+        // 3. Return evaluationStatus.
         retourne evaluation_status
     }
 
@@ -209,6 +213,23 @@ cleanup_after_running_script :: fonc (settings: *EnvironmentSettings)
     JavaScript.dépile_execution_context(mv)
 
     // À FAIRE 3. If the JavaScript execution context stack is now empty, perform a microtask checkpoint. (If this runs scripts, these algorithms will be invoked reentrantly.)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 8.1.4.6 Runtime script errors
+ * https://html.spec.whatwg.org/multipage/webappapis.html#runtime-script-errors
+ * \{ */
+
+/* https://html.spec.whatwg.org/multipage/webappapis.html#report-an-exception */
+report_an_exception :: fonc (exception: JavaScript.Valeur, global: *JavaScript.Object)
+{
+    // À FAIRE : standardise
+
+    window := JavaScript.vérifie_comme(global, Window)
+    chn := JavaScript.to_string(window.realm, exception).valeur.V
+    imprime("[%] Uncaught Exception %\n", #nom_de_cette_fonction, chn)
 }
 
 /** \} */
