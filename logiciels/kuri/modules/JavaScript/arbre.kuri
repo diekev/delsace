@@ -4125,7 +4125,8 @@ sur_exécution_switch_statement :: fonc (base: *NoeudSyntaxique, interpréteuse:
     // 4. Let blockEnv be NewDeclarativeEnvironment(oldEnv).
     block_env := new_declarative_environment(old_env.donne_tas_de_mémoire(), old_env)
 
-    //  À FAIRE : 5. Perform BlockDeclarationInstantiation(CaseBlock, blockEnv).
+    // 5. Perform BlockDeclarationInstantiation(CaseBlock, blockEnv).
+    block_declaration_instantiation(interpréteuse, switch, block_env)
 
     // 6. Set the running execution context's LexicalEnvironment to blockEnv.
     running_execution_context.lexical_environment = block_env
