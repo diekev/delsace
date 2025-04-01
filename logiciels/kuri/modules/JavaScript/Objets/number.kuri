@@ -55,7 +55,10 @@ number_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> Comp
         radix = radix_mv comme n32
     }
 
-    // À FAIRE : 4. If radixMV is not in the inclusive interval from 2 to 36, throw a RangeError exception.
+    // 4. If radixMV is not in the inclusive interval from 2 to 36, throw a RangeError exception.
+    saufsi 2 <= radix <= 36 {
+        retourne lance_range_error(interpréteuse, "radix is out of range")
+    }
 
     // 5. Return Number::toString(x, radixMV).
     retourne normal_completion(number_to_string(interpréteuse.donne_realm(), x, radix))

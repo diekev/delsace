@@ -45,7 +45,7 @@ crée_error_prototype :: fonc (realm: *Realm, prototype: *ObjectPrototype) -> *E
     retourne résultat
 }
 
-#portée_fichier
+#portée_module
 
 initialise_error_object :: fonc (realm: *Realm, object: *Object, nom: ECMAString, message: chaine)
 {
@@ -207,18 +207,73 @@ error_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> Compl
     retourne normal_completion(crée_chaine(interpréteuse.donne_realm(), crée_chaine_utf16_unique(chn_résultat)))
 }
 
+error_constructor_sur_call_or_construct :: fonc (empl params: *ParamètresCallOrConstruct, native_error_prototype: *Object, rappel_allocation_objet: TypeFonctionAllocationObjet) -> CompletionRecord
+{
+    realm := interpréteuse.donne_realm()
+
+    // 1. If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.
+    si new_target.est_undefined() {
+        new_target.Object = donne_active_function_object(interpréteuse)
+    }
+
+    // 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, "%NativeError.prototype%", « [[ErrorData]] »).
+    new_target_object := new_target.donne_objet().vérifie_comme(Function)
+    completion := ordinary_create_from_constructor(realm, new_target_object, native_error_prototype, rappel_allocation_objet)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    O := completion.valeur.V.Object
+
+    // 3. If message is not undefined, then
+    message := params.donne_argument(0)
+    saufsi message.est_undefined() {
+        // a. Let msg be ? ToString(message).
+        completion = to_string(interpréteuse, message)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        msg := completion.valeur.V
+
+        // À FAIRE b. Perform CreateNonEnumerableDataPropertyOrThrow(O, "message", msg).
+        _ := create_data_property_or_throw(O, STR_message, msg)
+    }
+
+    // À FAIRE 4. Perform ? InstallErrorCause(O, options).
+
+    // 5. Return O.
+    retourne normal_completion(Valeur(Object = O))
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom ReferenceError
- * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-native-error-types-used-in-this-standard-referenceerror
+/** \nom Native Errors
  * \{ */
 
 #portée_fichier
 
+table_virtuelle_eval_error := TableVirtuelleObject(classe = EvalError)
+table_virtuelle_range_error := TableVirtuelleObject(classe = RangeError)
 table_virtuelle_reference_error := TableVirtuelleObject(classe = ReferenceError)
+table_virtuelle_syntax_error := TableVirtuelleObject(classe = SyntaxError)
+table_virtuelle_type_error := TableVirtuelleObject(classe = TypeError)
+table_virtuelle_uri_error := TableVirtuelleObject(classe = URIError)
 
 #portée_export
+
+EvalError :: struct {
+    empl error: Error
+    table = *table_virtuelle_eval_error
+
+    message: *PrimitiveChaine
+}
+
+RangeError :: struct {
+    empl error: Error
+    table = *table_virtuelle_range_error
+
+    message: *PrimitiveChaine
+}
 
 ReferenceError :: struct {
     empl error: Error
@@ -226,59 +281,6 @@ ReferenceError :: struct {
 
     message: *PrimitiveChaine
 }
-
-lance_reference_error :: fonc (interpréteuse: *Interpréteuse, message: chaine) -> CompletionRecord
-{
-    retourne lance_reference_error(interpréteuse.donne_realm(), message)
-}
-
-lance_reference_error :: fonc (realm: *Realm, message: chaine) -> CompletionRecord
-{
-    tas_de_mémoire := realm.donne_tas_de_mémoire()
-    résultat := tas_de_mémoire.alloue(ReferenceError)
-    résultat.prototype = realm.intrinsics.reference_error_prototype
-    résultat.message = crée_chaine(realm, crée_chaine_utf16_unique(message))
-    initialise_error_object(realm, résultat, STR_ReferenceError, message)
-    retourne throw_completion(résultat)
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom ReferenceErrorPrototype
- * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-nativeerror-prototype-objects
- * \{ */
-
-#portée_fichier
-
-table_virtuelle_reference_error_prototype := TableVirtuelleObject(classe = ReferenceErrorPrototype)
-
-#portée_export
-
-ReferenceErrorPrototype :: struct {
-    empl objet: Object
-    table = *table_virtuelle_reference_error_prototype
-}
-
-crée_reference_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ErrorPrototype) -> *ReferenceErrorPrototype
-{
-    résultat := tas_de_mémoire.alloue(ReferenceErrorPrototype)
-    résultat.prototype = prototype
-    retourne résultat
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom SyntaxError
- * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-native-error-types-used-in-this-standard-syntaxerror
- * \{ */
-
-#portée_fichier
-
-table_virtuelle_syntax_error := TableVirtuelleObject(classe = SyntaxError)
-
-#portée_export
 
 SyntaxError :: struct {
     empl error: Error
@@ -297,58 +299,6 @@ crée_erreur_de_parsage :: fonc (realm: *Realm, message: chaine) -> *SyntaxError
     retourne résultat
 }
 
-lance_syntax_error :: fonc (interpréteuse: *Interpréteuse, message: chaine) -> CompletionRecord
-{
-    retourne lance_syntax_error(interpréteuse.donne_realm(), message)
-}
-
-lance_syntax_error :: fonc (realm: *Realm, message: chaine) -> CompletionRecord
-{
-    tas_de_mémoire := realm.donne_tas_de_mémoire()
-    résultat := tas_de_mémoire.alloue(SyntaxError)
-    résultat.prototype = realm.intrinsics.syntax_error_prototype
-    résultat.message = crée_chaine(realm, crée_chaine_utf16_unique(message))
-    initialise_error_object(realm, résultat, STR_SyntaxError, message)
-    retourne throw_completion(résultat)
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom SyntaxErrorPrototype
- * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-nativeerror-prototype-objects
- * \{ */
-
-#portée_fichier
-
-table_virtuelle_syntax_error_prototype := TableVirtuelleObject(classe = SyntaxErrorPrototype)
-
-#portée_export
-
-SyntaxErrorPrototype :: struct {
-    empl objet: Object
-    table = *table_virtuelle_syntax_error_prototype
-}
-
-crée_syntax_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ErrorPrototype) -> *SyntaxErrorPrototype
-{
-    résultat := tas_de_mémoire.alloue(SyntaxErrorPrototype)
-    résultat.prototype = prototype
-    retourne résultat
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom TypeError
- * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-native-error-types-used-in-this-standard-typeerror
- * \{ */
-
-#portée_fichier
-
-table_virtuelle_type_error := TableVirtuelleObject(classe = TypeError)
-
-#portée_export
 
 TypeError :: struct {
     empl error: Error
@@ -357,59 +307,6 @@ TypeError :: struct {
     message: *PrimitiveChaine
 }
 
-lance_type_error :: fonc (interpréteuse: *Interpréteuse, message: chaine) -> CompletionRecord
-{
-    retourne lance_type_error(interpréteuse.donne_realm(), message)
-}
-
-lance_type_error :: fonc (realm: *Realm, message: chaine) -> CompletionRecord
-{
-    tas_de_mémoire := realm.donne_tas_de_mémoire()
-    résultat := tas_de_mémoire.alloue(TypeError)
-    résultat.prototype = realm.intrinsics.type_error_prototype
-    résultat.message = crée_chaine(realm, crée_chaine_utf16_unique(message))
-    initialise_error_object(realm, résultat, STR_TypeError, message)
-    retourne throw_completion(résultat)
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom TypeErrorPrototype
- * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-nativeerror-prototype-objects
- * \{ */
-
-#portée_fichier
-
-table_virtuelle_type_error_prototype := TableVirtuelleObject(classe = TypeErrorPrototype)
-
-#portée_export
-
-TypeErrorPrototype :: struct {
-    empl objet: Object
-    table = *table_virtuelle_type_error_prototype
-}
-
-crée_type_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ErrorPrototype) -> *TypeErrorPrototype
-{
-    résultat := tas_de_mémoire.alloue(TypeErrorPrototype)
-    résultat.prototype = prototype
-    retourne résultat
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom URIError
- * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-native-error-types-used-in-this-standard-urierror
- * \{ */
-
-#portée_fichier
-
-table_virtuelle_uri_error := TableVirtuelleObject(classe = URIError)
-
-#portée_export
-
 URIError :: struct {
     empl error: Error
     table = *table_virtuelle_uri_error
@@ -417,44 +314,207 @@ URIError :: struct {
     message: *PrimitiveChaine
 }
 
-lance_uri_error :: fonc (interpréteuse: *Interpréteuse, message: chaine) -> CompletionRecord
-{
-    retourne lance_uri_error(interpréteuse.donne_realm(), message)
-}
-
-lance_uri_error :: fonc (realm: *Realm, message: chaine) -> CompletionRecord
-{
-    tas_de_mémoire := realm.donne_tas_de_mémoire()
-    résultat := tas_de_mémoire.alloue(URIError)
-    résultat.prototype = realm.intrinsics.uri_error_prototype
-    résultat.message = crée_chaine(realm, crée_chaine_utf16_unique(message))
-    initialise_error_object(realm, résultat, STR_URIError, message)
-    retourne throw_completion(résultat)
-}
-
 /** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom URIErrorPrototype
- * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-properties-of-the-nativeerror-prototype-objects
- * \{ */
 
 #portée_fichier
 
-table_virtuelle_uri_error_prototype := TableVirtuelleObject(classe = URIErrorPrototype)
+importe Compilatrice
+
+génère_structures_native_errors :: fonc ()
+{
+    InfoNativeError :: struct {
+        nom: chaine
+        nom_variable: chaine
+    }
+
+    infos := [
+        InfoNativeError("EvalError", "eval_error"),
+        InfoNativeError("RangeError", "range_error"),
+        InfoNativeError("ReferenceError", "reference_error"),
+        InfoNativeError("SyntaxError", "syntax_error"),
+        InfoNativeError("TypeError", "type_error"),
+        InfoNativeError("URIError", "uri_error")
+    ]
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    ajoute_au_tampon(*enchaineuse, "importe Chaine\n")
+    ajoute_au_tampon(*enchaineuse, "importe Fondation\n")
+
+    chaine_déclaration_error := «
+#portée_fichier
+
+table_virtuelle_\\(1)_prototype := TableVirtuelleObject(classe = \\(0)Prototype)
 
 #portée_export
 
-URIErrorPrototype :: struct {
-    empl objet: Object
-    table = *table_virtuelle_uri_error_prototype
+lance_\\(1) :: fonc (interpréteuse: *Interpréteuse, message: chaine) -> CompletionRecord
+{
+    retourne lance_\\(1)(interpréteuse.donne_realm(), message)
 }
 
-crée_uri_error_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ErrorPrototype) -> *URIErrorPrototype
+lance_\\(1) :: fonc (realm: *Realm, message: chaine) -> CompletionRecord
 {
-    résultat := tas_de_mémoire.alloue(URIErrorPrototype)
+    tas_de_mémoire := realm.donne_tas_de_mémoire()
+    résultat := tas_de_mémoire.alloue(\\(0))
+    résultat.prototype = realm.intrinsics.\\(1)_prototype
+    résultat.message = crée_chaine(realm, crée_chaine_utf16_unique(message))
+    initialise_error_object(realm, résultat, STR_\\(0), message)
+    retourne throw_completion(résultat)
+}
+
+\\(0)Prototype :: struct {
+    empl objet: Object
+    table = *table_virtuelle_\\(1)_prototype
+}
+
+crée_\\(1)_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ErrorPrototype) -> *\\(0)Prototype
+{
+    résultat := tas_de_mémoire.alloue(\\(0)Prototype)
     résultat.prototype = prototype
     retourne résultat
 }
+»
+    chaine_déclaration_constructor := «
+\\(0)Constructor :: struct {
+    empl builtin_function: BuiltInFunction
+    table = *table_virtuelle_\\(1)_constructor
 
-/** \} */
+    sur_call_or_construct = \\(1)_call_or_construct
+}
+
+crée_\\(1)_constructor :: fonc (realm: *Realm, function_prototype: *FunctionPrototype, prototype: *Object) -> *\\(0)Constructor
+{
+    assert(prototype == realm.intrinsics.\\(1)_prototype)
+    tas_de_mémoire := realm.donne_tas_de_mémoire()
+    résultat := tas_de_mémoire.alloue(\\(0)Constructor)
+    create_builtin_function(résultat, 1, STR_\\(0), realm, function_prototype)
+
+    résultat.ajoute_propriété(STR_prototype, Valeur(Object = prototype), DrapeauxPropriété.zéro)
+
+    prototype.ajoute_propriété(STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro)
+
+    retourne résultat
+}
+
+#portée_fichier
+
+table_virtuelle_\\(1)_constructor := TableVirtuelleBuiltinFunction(classe = \\(0)Constructor)
+
+crée_\\(1)_instance :: fonc (realm: *Realm) -> *Object
+{
+    retourne realm.donne_tas_de_mémoire().alloue(\\(0))
+}
+
+\\(1)_call_or_construct :: fonc (params: *ParamètresCallOrConstruct) -> CompletionRecord
+{
+    realm := params.interpréteuse.donne_realm()
+    retourne error_constructor_sur_call_or_construct(params, realm.intrinsics.\\(1)_prototype, crée_\\(1)_instance)
+}
+»
+    
+    fmt_imprime_dans_enchaineuse(*enchaineuse, chaine_déclaration_constructor, "Error", "error")
+
+    pour infos {
+        fmt_imprime_dans_enchaineuse(*enchaineuse, chaine_déclaration_error, it.nom, it.nom_variable)
+        fmt_imprime_dans_enchaineuse(*enchaineuse, chaine_déclaration_constructor, it.nom, it.nom_variable)
+    }
+
+    texte := chaine_depuis_enchaineuse(*enchaineuse)
+    ajoute_chaine_au_module(compilatrice_espace_courant(), compilatrice_module_courant(), texte)
+    déloge(texte)
+}
+
+#exécute génère_structures_native_errors()
+
+fmt_imprime_dans_enchaineuse :: fonc (enchaineuse: *Enchaineuse, format: chaine, args: ...eini)
+{
+    tantque format.taille > 0 {
+        extraction, reste, index := fmt_consomme(format)
+
+        ajoute_au_tampon(enchaineuse, extraction)
+
+        si index != -1 && index < args.taille {
+            ajoute_au_tampon(enchaineuse, args[index])
+        }
+
+        format = reste
+    }
+}
+
+fmt_consomme :: fonc (format: chaine) -> (extraction: chaine, reste: chaine, index: z32)
+{
+    si format.taille == 0 {
+        retourne "", "", -1
+    }
+
+    extraction = format
+    extraction.taille = 0
+
+    reste = format
+
+    index = -1
+
+    ptr := format.pointeur
+    fin := format.pointeur + format.taille
+
+    tantque ptr < fin {
+        si reste.commence_par("\\(") {
+            sauvegarde_reste := reste
+
+            reste = avance(reste, 2)
+
+            chn_index := reste
+            nombre_de_chiffres := 0
+
+            index = 0
+
+            pour chn_index {
+                saufsi '0' <= it <= '9' {
+                    arrête
+                }
+
+                index *= 10
+                index += (it - '0') comme z32
+
+                nombre_de_chiffres += 1
+            }
+
+            si nombre_de_chiffres == 0 {
+                reste = sauvegarde_reste
+                extraction.taille += 1
+                reste.pointeur += 1
+                reste.taille -= 1
+                ptr += 1
+                index = -1
+                continue
+            }
+
+            reste = avance(reste, nombre_de_chiffres)
+
+            si reste.taille == 0 || reste[0] != ')' {
+                reste = sauvegarde_reste
+                extraction.taille += 1
+                reste.pointeur += 1
+                reste.taille -= 1
+                ptr += 1
+                index = -1
+                continue
+            }
+
+            reste = avance(reste, 1)
+            arrête
+        }
+
+        extraction.taille += 1
+
+        reste.pointeur += 1
+        reste.taille -= 1
+
+        ptr += 1
+    }
+
+    retourne extraction, reste, index
+}
