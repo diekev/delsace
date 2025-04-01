@@ -2752,7 +2752,7 @@ sur_exécution_array_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: *I
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom ObjectExpression
+/** \nom MemberExpression
  * \{ */
 
 MemberExpression :: struct {
