@@ -1,3 +1,4 @@
+importe Chaine
 importe Fondation
 importe Structures
 
@@ -676,6 +677,57 @@ parse_expression :: fonc (parseuse: *Parseuse, params: ParamètresParsageExpress
     retourne expression
 }
 
+crée_chaine_échappement_résolu :: fonc (chn: chaine) -> ECMAString
+{
+    saufsi possède_échappement(chn) {
+        retourne crée_chaine_utf16_unique(chn)
+    }
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    morceaux := divise(chn, '\\')
+    diffère déloge(morceaux)
+
+    pour morceaux {
+        si index_it == 0 {
+            ajoute_au_tampon(*enchaineuse, it)
+            continue
+        }
+
+        si it.taille == 0 {
+            continue
+        }
+
+        c := it[0]
+        si c == 'n' {
+            ajoute_au_tampon(*enchaineuse, "\n")
+            it = avance(it, 1)
+        }
+        sinon si c == 't' {
+            ajoute_au_tampon(*enchaineuse, "\t")
+            it = avance(it, 1)
+        }
+
+        ajoute_au_tampon(*enchaineuse, it)
+    }
+
+    résultat := chaine_depuis_enchaineuse(*enchaineuse)
+    retourne crée_chaine_utf16_unique(résultat)
+}
+
+possède_échappement :: fonc (chn: chaine) -> bool
+{
+    pour chn {
+        si it == '\\' {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}
+
 parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
 {
     lexème := parseuse.lexème_courant()
@@ -683,7 +735,7 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
     discr lexème.genre {
         ChaineLittérale {
             parseuse.consomme()
-            retourne crée_literal(parseuse, lexème, lexème.texte)
+            retourne crée_literal(parseuse, lexème, crée_chaine_échappement_résolu(lexème.texte))
         }
         NombreLittéral {
             parseuse.consomme()
