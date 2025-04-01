@@ -76,10 +76,12 @@ Intrinsics :: struct {
     function_prototype: *FunctionPrototype
     array_prototype: *ArrayPrototype
     error_prototype: *ErrorPrototype
-    reference_error_prototype: *ReferenceErrorPrototype
-    type_error_prototype: *TypeErrorPrototype
-    uri_error_prototype: *URIErrorPrototype
-    syntax_error_prototype: *SyntaxErrorPrototype
+    eval_error_prototype: *Object
+    range_error_prototype: *Object
+    reference_error_prototype: *Object
+    type_error_prototype: *Object
+    uri_error_prototype: *Object
+    syntax_error_prototype: *Object
     date_prototype: *DatePrototype
     number_prototype: *NumberPrototype
     boolean_prototype: *BooleanPrototype
@@ -97,6 +99,15 @@ Intrinsics :: struct {
     number: *NumberConstructor
     boolean: *BooleanConstructor
 
+    /* Constructeurs pour les erreurs. */
+    error: *Object
+    eval_error: *Object
+    range_error: *Object
+    reference_error: *Object
+    syntax_error: *Object
+    type_error: *Object
+    uri_error: *Object
+
     host_intrinsics: [..]*Object
 }
 
@@ -111,6 +122,8 @@ create_intrinsics :: fonc (realm: *Realm)
     realm.intrinsics.function_prototype = crée_function_prototype(realm, realm.intrinsics.object_prototype)
     realm.intrinsics.array_prototype = crée_array_prototype(tas_de_mémoire, realm.intrinsics.object_prototype)
     realm.intrinsics.error_prototype = crée_error_prototype(realm, realm.intrinsics.object_prototype)
+    realm.intrinsics.eval_error_prototype = crée_eval_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype)
+    realm.intrinsics.range_error_prototype = crée_range_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype)
     realm.intrinsics.reference_error_prototype = crée_reference_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype)
     realm.intrinsics.type_error_prototype = crée_type_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype)
     realm.intrinsics.uri_error_prototype = crée_uri_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype)
@@ -131,6 +144,14 @@ create_intrinsics :: fonc (realm: *Realm)
     realm.intrinsics.string = crée_string_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.string_prototype)
     realm.intrinsics.number = crée_number_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.number_prototype)
     realm.intrinsics.boolean = crée_boolean_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.boolean_prototype)
+
+    realm.intrinsics.error = crée_error_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.error_prototype)
+    realm.intrinsics.eval_error = crée_eval_error_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.eval_error_prototype)
+    realm.intrinsics.range_error = crée_range_error_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.range_error_prototype)
+    realm.intrinsics.reference_error = crée_reference_error_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.reference_error_prototype)
+    realm.intrinsics.syntax_error = crée_syntax_error_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.syntax_error_prototype)
+    realm.intrinsics.type_error = crée_type_error_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.type_error_prototype)
+    realm.intrinsics.uri_error = crée_uri_error_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.uri_error_prototype)
 }
 
 /** \} */
@@ -340,8 +361,8 @@ set_default_global_bindings :: fonc (realm: *Realm) -> CompletionRecord
         GlobalObjectProperty(STR_Boolean, Valeur(Object = realm.intrinsics.boolean)),
         // DataView
         GlobalObjectProperty(STR_Date, Valeur(Object = realm.intrinsics.date)),
-        // Error
-        // EvalError
+        GlobalObjectProperty(STR_Error, Valeur(Object = realm.intrinsics.error)),
+        GlobalObjectProperty(STR_EvalError, Valeur(Object = realm.intrinsics.eval_error)),
         // FinalizationRegistry
         // Float32Array
         // Float64Array
@@ -354,20 +375,20 @@ set_default_global_bindings :: fonc (realm: *Realm) -> CompletionRecord
         GlobalObjectProperty(STR_Object, Valeur(Object = realm.intrinsics.object)),
         // Promise
         // Proxy
-        // RangeError
-        // ReferenceError
+        GlobalObjectProperty(STR_RangeError, Valeur(Object = realm.intrinsics.range_error)),
+        GlobalObjectProperty(STR_ReferenceError, Valeur(Object = realm.intrinsics.reference_error)),
         // RegExp
         // Set
         // SharedArrayBuffer
         GlobalObjectProperty(STR_String, Valeur(Object = realm.intrinsics.string)),
         // Symbol
-        // SyntaxError
-        // TypeError
+        GlobalObjectProperty(STR_SyntaxError, Valeur(Object = realm.intrinsics.syntax_error)),
+        GlobalObjectProperty(STR_TypeError, Valeur(Object = realm.intrinsics.type_error)),
         // Uint8Array
         // Uint8ClampedArray
         // Uint16Array
         // Uint32Array
-        // URIError
+        GlobalObjectProperty(STR_URIError, Valeur(Object = realm.intrinsics.uri_error)),
         // WeakMap
         // WeakRef
         // WeakSet
