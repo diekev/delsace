@@ -82,6 +82,7 @@ InfoTypeMembreStructure :: struct #interface {
     Drapeaux :: énum_drapeau {
         EST_CONSTANT
         EST_IMPLICITE
+        EST_UN_EMPLOI
     }
 
     nom: chaine
