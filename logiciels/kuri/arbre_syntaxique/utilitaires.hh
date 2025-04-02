@@ -477,10 +477,10 @@ struct MembreTypeComposé {
         // si le membre est défini par la compilatrice (par exemple, « nombre_éléments » des
         // énumérations)
         EST_IMPLICITE = (1 << 1),
-        // si le membre provient d'une instruction empl
-        PROVIENT_D_UN_EMPOI = (1 << 2),
         // si le membre est employé
-        EST_UN_EMPLOI = (1 << 3),
+        EST_UN_EMPLOI = (1 << 2),
+        // si le membre provient d'une instruction empl
+        PROVIENT_D_UN_EMPOI = (1 << 3),
         // si l'expression du membre est sur-écrite dans la définition de la structure (x = y,
         // pour x déclaré en amont)
         POSSÈDE_EXPRESSION_SPÉCIALE = (1 << 4),
