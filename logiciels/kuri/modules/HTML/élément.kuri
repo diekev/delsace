@@ -1303,6 +1303,8 @@ button_element_sur_applique_presentational_hints :: fonc (base: *Élément, rés
         CouleurRVBAN8(233, 233, 237, 255)
     }
 
+    CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_color, CSS.ValeurDeStyle(couleur = CouleurRVBAN8(0, 0, 0, 255)))
+
     CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_background_color, CSS.ValeurDeStyle(couleur = couleur_arrière_plan))
 
     ajoute_propriété_pour_mot_clé(résolveuse, CSS.PROP_display, CSS.PROP_inline_block)
