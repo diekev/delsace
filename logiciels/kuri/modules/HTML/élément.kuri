@@ -1951,6 +1951,12 @@ décode_image :: fonc (contenu: chaine, content_type: chaine, résultat: *ImageI
 HTMLInputElement :: struct {
     empl html_element: HTMLElement
     table = *table_virtuelle_input_element
+
+    /* https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#concept-fe-checked */
+    checkedness: bool
+
+    /* https://html.spec.whatwg.org/multipage/input.html#concept-input-checked-dirty-flag */
+    dirty_checkedness: bool
 }
 
 /* https://html.spec.whatwg.org/multipage/rendering.html#the-input-element-as-a-text-entry-widget */
@@ -1978,13 +1984,125 @@ is_button_widget :: fonc (input: *HTMLInputElement) -> bool
     retourne opt_type.Quelque == ATTR_submit || opt_type.Quelque == ATTR_reset || opt_type.Quelque == ATTR_button
 }
 
+/* https://html.spec.whatwg.org/multipage/rendering.html#the-input-element-as-a-checkbox-and-radio-button-widgets */
+is_radio_button_widget :: fonc (input: *HTMLInputElement) -> bool
+{
+    opt_type := donne_attribut(input, ATTR_type)
+    saufsi opt_type.possède_valeur() {
+        retourne faux
+    }
+    retourne opt_type.Quelque == ATTR_radio
+}
+
+/* The checked IDL attribute allows scripts to manipulate the checkedness of an input element.
+ * On getting, it must return the current checkedness of the element;
+ * and on setting, it must set the element's checkedness to the new value and set the
+ * element's dirty checkedness flag to true.
+ * https://html.spec.whatwg.org/multipage/input.html#dom-input-checked */
+donne_checked :: fonc (input: *HTMLInputElement) -> bool
+{
+    retourne input.checkedness
+}
+
+définis_checked :: fonc (input: *HTMLInputElement, valeur: bool)
+{
+    input.définis_checkedness(valeur)
+    input.dirty_checkedness = vrai
+}
+
+définis_checkedness :: fonc (input: *HTMLInputElement, valeur: bool)
+{
+    input.checkedness = valeur
+
+    si input.checkedness && input.is_radio_button_widget() {
+        réinitialise_checkedness_radio_button_group(input)
+    }
+}
+
+/* When any of the following phenomena occur, if the element's checkedness state is true after the occurrence,
+ * the checkedness state of all the other elements in the same radio button group must be set to false:
+ *
+ * [X] The element's checkedness state is set to true (for whatever reason).
+ * [ ] The element's name attribute is set, changed, or removed.
+ * [ ] The element's form owner changes.
+ * [ ] A type change is signalled for the element.
+ * [ ] The element becomes connected.
+ * https://html.spec.whatwg.org/multipage/input.html#radio-button-state-(type=radio) */
+réinitialise_checkedness_radio_button_group :: fonc (racine: *HTMLInputElement)
+{
+    traverse_document_pour_radio_button_group :: fonc (noeud: *Noeud, input: *HTMLInputElement) -> DécisionTraversée
+    {
+        si noeud != input && noeud.table.classe == HTMLInputElement {
+            noeud_input := noeud comme *HTMLInputElement
+            si sont_dans_même_radio_button_group(input, noeud_input) {
+                noeud_input.checkedness = faux
+            }
+        }
+
+        retourne DécisionTraversée.CONTINUE
+    }
+
+    traverse_noeud(racine.document, traverse_document_pour_radio_button_group, racine)
+}
+
+/* https://html.spec.whatwg.org/multipage/input.html#radio-button-group */
+sont_dans_même_radio_button_group :: fonc (a: *HTMLInputElement, b: *HTMLInputElement) -> bool
+{
+    // The input element b's type attribute is in the Radio Button state.
+    saufsi b.is_radio_button_widget() {
+        retourne faux
+    }
+
+    // Either a and b have the same form owner, or they both have no form owner.
+    form_owner_a := donne_form_owner(a)
+    form_owner_b := donne_form_owner(b)
+    si form_owner_a != form_owner_b {
+        retourne faux
+    }
+
+    // À FAIRE : Both a and b are in the same tree.
+
+    // They both have a name attribute, their name attributes are not empty, and
+    //  the value of a's name attribute equals the value of b's name attribute.
+    name_a := a.donne_attribut_ou_chaine_vide(ATTR_name)
+    name_b := b.donne_attribut_ou_chaine_vide(ATTR_name)
+
+    si name_a != name_b {
+        retourne faux
+    }
+
+    si name_a.est_vide() {
+        retourne faux
+    }
+
+    retourne vrai
+}
+
+/* https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#form-owner */
+donne_form_owner :: fonc (élément: *Élément) -> *HTMLFormElement
+{
+    // À FAIRE : respecte le standard
+
+    parent := élément.parent
+    tantque parent != nul {
+        si parent.table.classe == HTMLFormElement {
+            retourne parent comme *HTMLFormElement
+        }
+
+        parent = parent.parent
+    }
+
+    retourne nul
+}
+
 #portée_fichier
 
 table_virtuelle_input_element := TableVirtuelleÉlément(
     classe = HTMLInputElement,
     sur_destruction = élément_sur_destruction,
     sur_changement_attribut = input_element_sur_changement_attribut,
-    sur_applique_presentational_hints = input_element_sur_applique_presentational_hints
+    sur_applique_presentational_hints = input_element_sur_applique_presentational_hints,
+    sur_activation_behavior = input_element_sur_activation_behavior
 )
 
 input_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
@@ -2013,8 +2131,65 @@ input_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOM
         retourne vrai
     }
 
+    si local_name == ATTR_checked {
+        /* The checked content attribute is a boolean attribute that gives the default checkedness
+         * of the input element. When the checked content attribute is added, if the control does
+         * not have dirty checkedness, the user agent must set the checkedness of the element to
+         * true; when the checked content attribute is removed, if the control does not have dirty
+         * checkedness, the user agent must set the checkedness of the element to false.
+         * https://html.spec.whatwg.org/multipage/input.html#attr-input-checked */
+        si valeur != nul {
+            saufsi input.dirty_checkedness {
+                input.définis_checkedness(vrai)
+            }
+        }
+        sinon {
+            saufsi input.dirty_checkedness {
+                input.définis_checkedness(faux)
+            }
+        }
+        retourne vrai
+    }
+
     retourne faux
 }
+
+/* https://html.spec.whatwg.org/multipage/input.html */
+input_element_sur_activation_behavior :: fonc (target: *EventTarget, event: *Event @inutilisée)
+{
+    input := target comme *HTMLInputElement
+
+    // À FAIRE 1. If element is not mutable, and element's type attribute is neither in the Checkbox nor in the Radio state, then return.
+
+    // 2. Run element's input activation behavior, if any, and do nothing otherwise.
+    run_input_activation_behavior(input)
+
+    // 3. If element has a form owner and element's type attribute is not in the Button state, then return.
+
+    // 4. Run the popover target attribute activation behavior given element and event's target.
+}
+
+run_input_activation_behavior :: fonc (input: *HTMLInputElement)
+{
+    /* https://html.spec.whatwg.org/multipage/input.html#radio-button-state-(type=radio) */
+    si input.is_radio_button_widget() {
+        // 1. If the element is not connected, then return.
+        saufsi est_connecté(input) {
+            retourne
+        }
+
+        // 2. Fire an event named input at the element with the bubbles and composed attributes initialized to true.
+        _ := fire_an_event(input, EventType.input, ConfigurationIDLAttributes(bubbles = vrai, composed = vrai))
+
+        // 3. Fire an event named change at the element with the bubbles attribute initialized to true.
+        _ := fire_an_event(input, EventType.change, ConfigurationIDLAttributes(bubbles = vrai))
+
+        retourne
+    }
+}
+
+// The legacy-pre-activation behavior for input elements are these steps:
+// The legacy-canceled-activation behavior for input elements are these steps:
 
 /** \} */
 

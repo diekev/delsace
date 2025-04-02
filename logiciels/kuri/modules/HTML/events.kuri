@@ -206,6 +206,7 @@ Event :: struct {
     stop_propagation: bool
     stop_immediate_propagation: bool
     bubbles: bool
+    composed: bool
 
     /* Attributes. */
     is_trusted: bool
@@ -683,6 +684,20 @@ remove_event_listener :: fonc (target: *EventTarget, type: EventType, callback: 
 }
 
 /* https://dom.spec.whatwg.org/#concept-event-fire */
+ConfigurationIDLAttributes :: struct {
+    bubbles: bool
+    composed: bool
+}
+
+fire_an_event :: fonc (target: *EventTarget, nom: EventType, config: ConfigurationIDLAttributes) -> bool
+{
+    event := crée_platform_object(target, Event)
+    event.type = nom
+    event.bubbles = config.bubbles
+    event.composed = config.composed
+    retourne dispatch(event, target, nul)
+}
+
 fire_an_event :: fonc (target: *EventTarget, nom: EventType, legacy_target_override : *bool = nul) -> bool
 {
     event := crée_platform_object(target, Event)
