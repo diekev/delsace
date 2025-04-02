@@ -347,6 +347,9 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élé
     sinon si tag == TAG_input {
         élément = crée_platform_object(document, HTMLInputElement)
     }
+    sinon si tag == TAG_label {
+        élément = crée_platform_object(document, HTMLLabelElement)
+    }
     sinon si tag == TAG_link {
         élément = crée_platform_object(document, HTMLLinkElement)
     }
@@ -2192,6 +2195,132 @@ run_input_activation_behavior :: fonc (input: *HTMLInputElement)
 
 // The legacy-pre-activation behavior for input elements are these steps:
 // The legacy-canceled-activation behavior for input elements are these steps:
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLLabelElement
+ * https://html.spec.whatwg.org/multipage/forms.html#the-label-element
+ * \{ */
+
+#portée_export
+
+HTMLLabelElement :: struct {
+    empl html_element: HTMLElement
+    table = *table_virtuelle_label_element
+}
+
+/* https://html.spec.whatwg.org/multipage/forms.html#dom-label-form */
+donne_form :: fonc (label: *HTMLLabelElement) -> *HTMLFormElement
+{
+    // 1. If the label element has no labeled control, then return null.
+    control := donne_control(label)
+    saufsi control {
+        retourne nul
+    }
+
+    // 2. If the label element's labeled control is not a form-associated element, then return null.
+    saufsi is_form_associated_element(control) {
+        retourne nul
+    }
+
+    // 3. Return the label element's labeled control's form owner (which can still be null).
+    retourne donne_form_owner(control)
+}
+
+/* https://html.spec.whatwg.org/multipage/forms.html#dom-label-control */
+donne_control :: fonc (label: *HTMLLabelElement) -> *Élément
+{
+    retourne donne_labeled_control(label)
+}
+
+/* https://html.spec.whatwg.org/multipage/forms.html#labeled-control */
+donne_labeled_control :: fonc (label: *HTMLLabelElement) -> *Élément
+{
+    traversée: [..]*Noeud
+    diffère déloge(traversée)
+
+    for := label.donne_attribut_ou_chaine_vide(ATTR_for)
+    saufsi for.est_vide() {
+        tableau_ajoute(*traversée, label.document)
+
+        tantque traversée.taille != 0 {
+            noeud := traversée[traversée.taille - 1]
+            traversée.taille -= 1
+
+            si noeud.est_élément() {
+                élément := noeud comme *Élément
+                si is_labelable_element(élément) && élément.id == for {
+                    retourne élément
+                }
+            }
+
+            pour > noeud.enfants {
+                tableau_ajoute(*traversée, it)
+            }
+        }
+
+        retourne nul
+    }
+
+    pour > label.enfants {
+        tableau_ajoute(*traversée, it)
+    }
+
+    tantque traversée.taille != 0 {
+        noeud := traversée[traversée.taille - 1]
+        traversée.taille -= 1
+
+        si noeud.est_élément() && is_labelable_element(noeud comme *Élément) {
+            retourne noeud comme *Élément
+        }
+
+        pour > noeud.enfants {
+            tableau_ajoute(*traversée, it)
+        }
+    }
+
+    retourne nul
+}
+
+/* https://html.spec.whatwg.org/multipage/forms.html#form-associated-element */
+is_form_associated_element :: fonc (élément: *Élément) -> bool
+{
+    si fait_partie_de(élément.local_name, TAG_button, TAG_fieldset, TAG_input, TAG_object, TAG_output, TAG_select, TAG_textarea, TAG_img) {
+        retourne vrai
+    }
+
+    retourne is_form_associated_custom_element(élément)
+}
+
+/* https://html.spec.whatwg.org/multipage/forms.html#category-label */
+is_labelable_element :: fonc (élément: *Élément) -> bool
+{
+    tags := [TAG_button, TAG_meter, TAG_output, TAG_progress, TAG_select, TAG_textarea]
+    si fait_partie_de(élément.local_name, ...tags) {
+        retourne vrai
+    }
+
+    si élément.local_name == TAG_input {
+        type := donne_attribut_ou_chaine_vide(élément, ATTR_type)
+        retourne type != ATTR_hidden
+    }
+
+    retourne is_form_associated_custom_element(élément)
+}
+
+/* https://html.spec.whatwg.org/multipage/custom-elements.html#form-associated-custom-element */
+is_form_associated_custom_element :: fonc (élément: *Élément @inutilisée) -> bool
+{
+    retourne faux
+}
+
+#portée_fichier
+
+table_virtuelle_label_element := TableVirtuelleÉlément(
+    classe = HTMLLabelElement,
+    sur_destruction = élément_sur_destruction
+)
 
 /** \} */
 

@@ -372,19 +372,16 @@ envoie_un_clic :: fonc (élément: *Élément, position_x: z32, position_y: z32)
 
     tantque élément != nul {
         si élément.table.classe == HTMLInputElement {
-            input := élément comme *HTMLInputElement
-
-            si input.is_radio_button_widget() {
-                input.définis_checkedness(!input.checkedness)
-
-                /* The dirty checkedness flag must be initially set to false when the element
-                 * is created, and must be set to true whenever the user interacts with the
-                 * control in a way that changes the checkedness.
-                 * https://html.spec.whatwg.org/multipage/input.html#concept-input-checked-dirty-flag */
-                input.dirty_checkedness = vrai
-            }
-
+            input_element_sur_clic(élément comme *HTMLInputElement)
             arrête
+        }
+
+        si élément.table.classe == HTMLLabelElement {
+            control := donne_labeled_control(élément comme *HTMLLabelElement)
+            si control && control.table.classe == HTMLInputElement {
+                input_element_sur_clic(control comme *HTMLInputElement)
+                arrête
+            }
         }
 
         saufsi est_élément(élément.parent) {
@@ -394,6 +391,23 @@ envoie_un_clic :: fonc (élément: *Élément, position_x: z32, position_y: z32)
         élément = élément.parent comme *Élément
     }
 }
+
+#portée_fichier
+
+input_element_sur_clic :: fonc (input: *HTMLInputElement)
+{
+    si input.is_radio_button_widget() {
+        input.définis_checkedness(!input.checkedness)
+
+        /* The dirty checkedness flag must be initially set to false when the element
+            * is created, and must be set to true whenever the user interacts with the
+            * control in a way that changes the checkedness.
+            * https://html.spec.whatwg.org/multipage/input.html#concept-input-checked-dirty-flag */
+        input.dirty_checkedness = vrai
+    }
+}
+
+#portée_export
 
 envoie_mousedown :: fonc (élément: *Élément, position_x: z32, position_y: z32)
 {
