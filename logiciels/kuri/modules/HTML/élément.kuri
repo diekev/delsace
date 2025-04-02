@@ -3602,8 +3602,13 @@ execute_the_script_element :: fonc (el: *HTMLScriptElement)
             // 1. Let oldCurrentScript be the value to which document's currentScript object was most recently set.
             old_current_script := document.current_script
 
-            // À FAIRE : shadow root 2. If el's root is not a shadow root, then set document's currentScript attribute to el. Otherwise, set it to null.
-            document.current_script = el
+            // 2. If el's root is not a shadow root, then set document's currentScript attribute to el. Otherwise, set it to null.
+            saufsi racine_est_shadow_root(el) {
+                document.current_script = el
+            }
+            sinon {
+                document.current_script = nul
+            }
 
             // 3. Run the classic script given by el's result.
             _ := run_the_classic_script(el.result comme *ClassicScript)
