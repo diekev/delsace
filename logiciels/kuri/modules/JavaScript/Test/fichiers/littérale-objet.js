@@ -47,3 +47,9 @@ test("expression littérale avec postincrément", function () {
     vérifie_égalité(o.x, 0);
     vérifie_égalité(o.y, 2);
 })
+
+test("propriété numérique déclarée en chaine", () => {
+    const o = { "123": 456 };
+    vérifie_égalité(o["123"], 456);
+    vérifie_égalité(o[123], 456);
+});

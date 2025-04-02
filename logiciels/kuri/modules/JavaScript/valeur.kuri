@@ -1,6 +1,7 @@
 importe Chaine
 importe Fondation
 importe Math
+importe Numérique
 
 /* ------------------------------------------------------------------------- */
 /** \nom Valeur
@@ -285,11 +286,38 @@ is_non_negative_integral_number :: fonc (valeur: Valeur) -> bool
 
 is_array_index :: fonc (valeur: Valeur) -> bool
 {
+    si valeur.est_chaine() {
+        texte := valeur.String.texte.donne_chaine_utf16()
+
+        texte_utf8 := converti_vers_chaine(texte)
+        diffère déloge(texte_utf8)
+
+        résultat := tente extrait_r64(texte_utf8) piège _ {
+            retourne faux
+        }
+
+        retourne is_non_negative_integral_number(résultat)
+    }
+
     retourne is_non_negative_integral_number(valeur)
 }
 
 to_uint32 :: fonc (valeur: Valeur) -> n32
 {
+    si valeur.est_chaine() {
+        texte := valeur.String.texte.donne_chaine_utf16()
+
+        texte_utf8 := converti_vers_chaine(texte)
+        diffère déloge(texte_utf8)
+
+        résultat := tente extrait_r64(texte_utf8) piège _ {
+            assert(faux)
+            retourne 0xffffffff
+        }
+
+        retourne résultat comme n32
+    }
+
     assert(valeur.est_nombre())
     n := valeur.Number
     assert(n >= 0.0)

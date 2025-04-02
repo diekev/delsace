@@ -628,6 +628,9 @@ génère_code_conversion_argument :: fonc (enchaineuse: *Enchaineuse, nom: chain
         ajoute_au_tampon(enchaineuse, "    saufsi JavaScript.est_normal(completion) {\n        retourne completion;\n    }\n")
         ajoute_au_tampon(enchaineuse, "    ", nom, " := completion.valeur.V.Number\n")
     }
+    sinon si type.nom == "boolean" {
+        ajoute_au_tampon(enchaineuse, "    ", nom, " := JavaScript.to_boolean(valeur_", nom, ").Boolean\n")
+    }
     sinon si type.nom == "EventListener" {
         ajoute_au_tampon(enchaineuse, "    saufsi JavaScript.est_object(valeur_", nom, ") {\n")
         ajoute_au_tampon(enchaineuse, "        retourne JavaScript.lance_type_error(interpréteuse, \"argument ", index, " is not callable\")\n")
@@ -684,6 +687,9 @@ génère_code_conversion_résultat :: fonc (enchaineuse: *Enchaineuse, type: *Ty
     }
     sinon si type.nom == "double" || type.nom == "unrestricted double" {
         ajoute_au_tampon(enchaineuse, "    retourne JavaScript.normal_completion(JavaScript.Valeur(Number = résultat))\n")
+    }
+    sinon si type.nom == "boolean" {
+        ajoute_au_tampon(enchaineuse, "    retourne JavaScript.normal_completion(JavaScript.Valeur(Boolean = résultat))\n")
     }
     sinon si type.nom == "EventHandler" {
         si type.nulifiable {
