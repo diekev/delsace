@@ -1618,8 +1618,6 @@ void GestionnaireCode::parsage_fichier_terminé(UniteCompilation *unité)
 
     auto fichier = unité->fichier;
 
-    dbg() << __func__ << " : " << fichier->chemin();
-
     POUR (fichier->noeuds_à_valider) {
         /* Nous avons sans doute déjà requis le typage de ce noeud. */
         auto adresse_unité = donne_adresse_unité(it);
@@ -1962,6 +1960,7 @@ void GestionnaireCode::typage_terminé(UniteCompilation *unité)
     }
 
     DÉBUTE_STAT(VÉRIFIE_ENTÊTE_VALIDÉES);
+    // @ne-fusionne-pas ceci peut être enlevé ?
     auto peut_envoyer_changement_de_phase = verifie_que_toutes_les_entetes_sont_validees(
         *m_compilatrice->sys_module.verrou_ecriture());
     TERMINE_STAT(VÉRIFIE_ENTÊTE_VALIDÉES);
