@@ -85,7 +85,11 @@ Module *SystèmeModule::initialise_module_kuri(kuri::chaine_statique chemin_raci
 Module *SystèmeModule::crée_module_fichier_racine_compilation(kuri::chaine_statique dossier,
                                                               kuri::chaine_statique chemin_fichier)
 {
-    auto module = crée_module(ID::chaine_vide, dossier);
+    auto chemin_normalisé = kuri::chaine(dossier);
+    if (chemin_normalisé.taille() > 0 && chemin_normalisé[chemin_normalisé.taille() - 1] != '/') {
+        chemin_normalisé = enchaine(chemin_normalisé, '/');
+    }
+    auto module = crée_module(ID::chaine_vide, chemin_normalisé);
     module->importé = true;
     auto chemin_fichier_ = kuri::chemin_systeme(chemin_fichier);
     crée_fichier(module, chemin_fichier_.nom_fichier_sans_extension(), chemin_fichier_);
