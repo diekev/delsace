@@ -256,6 +256,36 @@ donne_current_script :: fonc (document: *Document) -> *HTMLScriptElement
     retourne document.current_script
 }
 
+/* https://html.spec.whatwg.org/multipage/dom.html#dom-document-getelementsbyname-dev */
+get_elements_by_name :: fonc (document: *Document, element_name: DOMString) -> *NodeList
+{
+    traversée: [..]*Noeud
+    diffère déloge(traversée)
+
+    tableau_ajoute(*traversée, document)
+
+    résultat := crée_node_list(document)
+
+    tantque traversée.taille != 0 {
+        noeud := traversée[traversée.taille - 1]
+        traversée.taille -= 1
+
+        si noeud.est_élément() {
+            élément := noeud comme *Élément
+            name := élément.donne_attribut_ou_chaine_vide(ATTR_name)
+            si name == element_name {
+                résultat.ajoute_noeud(élément)
+            }
+        }
+
+        pour > noeud.enfants {
+            tableau_ajoute(*traversée, it)
+        }
+    }
+
+    retourne résultat
+}
+
 donne_premier_élément_de_type :: fonc (noeud: *Noeud, tag: DOMString) -> *Élément
 {
     si noeud.est_élément_type(tag) {
@@ -740,18 +770,20 @@ table_virtuelle_type_document := TableVirtuelleNoeud(
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom NoeudFragmentDocument.
+/** \nom DocumentFragment.
  * https://dom.spec.whatwg.org/#documentfragment
  * \{ */
 
-NoeudFragmentDocument :: struct {
+DocumentFragment :: struct {
     empl base_noeud: Noeud
     table = *table_virtuelle_fragment_document
+
+    host: *Élément
 }
 
-crée_noeud_fragment_document :: fonc (document: *Document) -> *NoeudFragmentDocument
+crée_noeud_fragment_document :: fonc (document: *Document) -> *DocumentFragment
 {
-    doctype := crée_platform_object(document, NoeudFragmentDocument)
+    doctype := crée_platform_object(document, DocumentFragment)
     doctype.genre = GenreNoeud.FragmentDocument
     doctype.document = document
 
@@ -761,11 +793,99 @@ crée_noeud_fragment_document :: fonc (document: *Document) -> *NoeudFragmentDoc
 #portée_fichier
 
 table_virtuelle_fragment_document := TableVirtuelleNoeud(
-    classe = NoeudFragmentDocument,
+    classe = DocumentFragment,
     sur_destruction = noeud_sur_destruction
 )
 
 #portée_export
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ShadowRoot.
+ * https://dom.spec.whatwg.org/#interface-shadowroot
+ * \{ */
+
+ShadowRootMode :: énum {
+    open
+    closed
+}
+
+ShadowRoot :: struct {
+    empl fragment: DocumentFragment
+    table = *table_virtuelle_shadow_root
+
+    mode: ShadowRootMode
+}
+
+crée_shadow_root :: fonc (document: *Document) -> *ShadowRoot
+{
+    doctype := crée_platform_object(document, ShadowRoot)
+    doctype.genre = GenreNoeud.ShadowRoot
+    doctype.document = document
+    retourne doctype
+}
+
+#portée_fichier
+
+table_virtuelle_shadow_root := TableVirtuelleNoeud(
+    classe = ShadowRoot,
+    sur_destruction = noeud_sur_destruction,
+    sur_get_the_parent = shadow_root_sur_get_the_parent
+)
+
+shadow_root_sur_get_the_parent :: fonc (base: *EventTarget, event: *Event) ->*EventTarget
+{
+    shadow_root := base comme *ShadowRoot
+
+    /* A shadow root’s get the parent algorithm, given an event, returns null
+     * if event’s composed flag is unset and shadow root is the root of event’s
+     * path’s first struct’s invocation target; otherwise shadow root’s host. */
+    invocation_target := event.path[0].invocation_target
+    
+    si event.composed == faux && invocation_target.est_node() && donne_racine(invocation_target comme *Noeud) == shadow_root {
+        retourne nul
+    }
+
+    retourne shadow_root.host
+}
+
+#portée_export
+
+/* https://dom.spec.whatwg.org/#concept-shadow-including-root */
+donne_racine_shadow_including :: fonc (noeud: *Noeud) -> *Noeud
+{
+    racine := noeud.donne_racine()
+
+    si racine.genre == GenreNoeud.ShadowRoot {
+        shadow_root := racine comme *ShadowRoot
+        retourne donne_racine_shadow_including(shadow_root.host)
+    }
+
+    retourne racine
+}
+
+racine_est_shadow_root :: fonc (noeud: *Noeud) -> bool
+{
+    racine := donne_racine(noeud)
+    retourne racine.genre == GenreNoeud.ShadowRoot
+}
+
+/* https://dom.spec.whatwg.org/#retarget */
+retarget :: fonc (a: *EventTarget, b: *EventTarget @inutilisée) -> *EventTarget
+{
+    // boucle {
+        // 1. If one of the following is true
+        //     A is not a node
+        //     A’s root is not a shadow root
+        //     B is a node and A’s root is a shadow-including inclusive ancestor of B
+        //     then return A.
+
+        // 2. Set A to A’s root’s host.
+    //}
+    // imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+    retourne a
+}
 
 /** \} */
 
