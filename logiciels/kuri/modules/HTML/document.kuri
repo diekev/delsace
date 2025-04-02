@@ -256,6 +256,36 @@ donne_current_script :: fonc (document: *Document) -> *HTMLScriptElement
     retourne document.current_script
 }
 
+/* https://html.spec.whatwg.org/multipage/dom.html#dom-document-getelementsbyname-dev */
+get_elements_by_name :: fonc (document: *Document, element_name: DOMString) -> *NodeList
+{
+    traversée: [..]*Noeud
+    diffère déloge(traversée)
+
+    tableau_ajoute(*traversée, document)
+
+    résultat := crée_node_list(document)
+
+    tantque traversée.taille != 0 {
+        noeud := traversée[traversée.taille - 1]
+        traversée.taille -= 1
+
+        si noeud.est_élément() {
+            élément := noeud comme *Élément
+            name := élément.donne_attribut_ou_chaine_vide(ATTR_name)
+            si name == element_name {
+                résultat.ajoute_noeud(élément)
+            }
+        }
+
+        pour > noeud.enfants {
+            tableau_ajoute(*traversée, it)
+        }
+    }
+
+    retourne résultat
+}
+
 donne_premier_élément_de_type :: fonc (noeud: *Noeud, tag: DOMString) -> *Élément
 {
     si noeud.est_élément_type(tag) {
