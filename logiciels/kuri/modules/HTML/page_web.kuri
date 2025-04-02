@@ -1,6 +1,7 @@
 importe #inemployé CSS
 importe Couleur
 importe Ensemble
+importe Fondation
 importe Géométrie
 importe Périphériques
 importe PeintureInterface
@@ -394,6 +395,17 @@ envoie_un_clic :: fonc (élément: *Élément, position_x: z32, position_y: z32)
 
 #portée_fichier
 
+input_element_sur_pression_souris :: fonc (input: *HTMLInputElement)
+{
+    si input.is_text_entry_widget() {
+        input.crée_shadow_root_pour_édition()
+        user_agent := input.document.donne_user_agent()
+        assert(user_agent != nul)
+        user_agent.édition_text_input_requise(input)
+        retourne
+    }
+}
+
 input_element_sur_clic :: fonc (input: *HTMLInputElement)
 {
     si input.is_radio_button_widget() {
@@ -424,6 +436,27 @@ envoie_mousedown :: fonc (élément: *Élément, position_x: z32, position_y: z3
     évènement.offset_y = évènement.screen_y - rect.y
 
     _ := dispatch(évènement, élément)
+
+    tantque élément != nul {
+        si élément.table.classe == HTMLInputElement {
+            input_element_sur_pression_souris(élément comme *HTMLInputElement)
+            arrête
+        }
+
+        si élément.table.classe == HTMLLabelElement {
+            control := donne_labeled_control(élément comme *HTMLLabelElement)
+            si control && control.table.classe == HTMLInputElement {
+                input_element_sur_pression_souris(control comme *HTMLInputElement)
+                arrête
+            }
+        }
+
+        saufsi est_élément(élément.parent) {
+            arrête
+        }
+
+        élément = élément.parent comme *Élément
+    }
 }
 
 envoie_mousemove :: fonc (élément: *Élément, position_x: z32, position_y: z32)

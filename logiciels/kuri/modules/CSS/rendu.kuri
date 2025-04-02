@@ -684,7 +684,7 @@ noeud_text_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDe
 
     élément := noeud.élément comme *HTML.HTMLInputElement
     couleur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color).couleur
-    value := HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_value).donne_chaine_utf16()
+    value := HTML.donne_value(élément)
 
     si value.est_vide() {
         value = HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_placeholder).donne_chaine_utf16()
@@ -694,6 +694,23 @@ noeud_text_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDe
     saufsi value.est_vide() {
         rect_texte := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_contenu())
         ctx.commandes.dessine_texte(noeud.fonte, value, rect_texte, couleur, nul)
+    }
+
+    éditrice := élément.éditrice
+    si éditrice && éditrice.curseur_est_affiché {
+        rect_curseur := donne_rectangle_rembourrage(noeud)
+
+        texte_avant_curseur := éditrice.texte_à_éditer
+        texte_avant_curseur.points_de_code.taille = éditrice.curseur.fin
+
+        curseur_x := éditrice.fonte.donne_largeur_texte(texte_avant_curseur)
+
+        rect_curseur.x = rect_curseur.x + curseur_x comme r32
+        rect_curseur.largeur = 1.0
+
+        rect_curseur = ctx.donne_rectangle_corrigé(rect_curseur)
+
+        ctx.commandes.remplis_rectangle(rect_curseur, CouleurRVBAN8(0, 0, 0, 255))
     }
 }
 
