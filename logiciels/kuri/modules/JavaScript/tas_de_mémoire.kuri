@@ -124,6 +124,11 @@ génère_fonction_visite :: fonc (infos: *InfoTypeStructure)
             continue
         }
 
+        si it.drapeaux.EST_UN_EMPLOI {
+            ajoute_au_tampon(*enchaineuse, "    ", (it.id comme *InfoTypeStructure).nom, "_visite_cellule(c)\n")
+            continue
+        }
+
         // ajoute_au_tampon(*enchaineuse, "    // visite ", it.nom, "\n")
         accesseur := enchaine("c.", it.nom)
         diffère déloge(accesseur)

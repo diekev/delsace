@@ -11,5 +11,7 @@ interface Document : Node {
      * https://html.spec.whatwg.org/multipage/dom.html#the-document-object */
     /* [SameObject] */ readonly attribute HTMLCollection scripts;
 
+    NodeList getElementsByName(DOMString elementName);
+
     readonly attribute /* HTMLOrSVGScriptElement? */ HTMLScriptElement? currentScript; 
 }

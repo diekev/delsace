@@ -53,6 +53,7 @@ GenreNoeud :: énum n16 {
     Document :: DOCUMENT_NODE
     TypeDocument :: DOCUMENT_TYPE_NODE
     FragmentDocument :: DOCUMENT_FRAGMENT_NODE
+    ShadowRoot
 }
 
 Noeud :: struct {
@@ -360,14 +361,6 @@ donne_racine :: fonc (noeud: *Noeud) -> *Noeud
         résultat = résultat.parent
     }
     retourne résultat
-}
-
-/* https://dom.spec.whatwg.org/#concept-shadow-including-root */
-donne_racine_shadow_including :: fonc (noeud: *Noeud) -> *Noeud
-{
-    racine := noeud.donne_racine()
-    /* INCOMPLET : shadow root */
-    retourne racine
 }
 
 rassemble_texte_noeud :: fonc (noeud: *Noeud, rappel_pour_texte: fonc(*NoeudTexte, eini)(rien), données: eini)

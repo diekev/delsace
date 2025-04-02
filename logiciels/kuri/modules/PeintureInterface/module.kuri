@@ -1171,6 +1171,26 @@ dessine_commandes_css :: fonc (peintre: *Peintre, commandes: *CSS.CommandesDeRen
                 commande := base comme *CSS.CommandeDessineTexte
                 peintre.dessine_texte(commande.fonte, commande.texte, commande.rect, commande.couleur, *commande.effets)
             }
+            DESSINE_CERCLE {
+                commande := base comme *CSS.CommandeDessineCercle
+
+                cercle: Cercle(r32)
+                cercle.centre_x = commande.rect.x + commande.rect.largeur / 2
+                cercle.centre_y = commande.rect.y + commande.rect.hauteur / 2
+                cercle.rayon = max(commande.rect.largeur, commande.rect.hauteur) / 2.0
+
+                peintre.dessine_cercle(cercle, commande.couleur)
+            }
+            REMPLIS_CERCLE {
+                commande := base comme *CSS.CommandeRemplisCercle
+
+                cercle: Cercle(r32)
+                cercle.centre_x = commande.rect.x + commande.rect.largeur / 2
+                cercle.centre_y = commande.rect.y + commande.rect.hauteur / 2
+                cercle.rayon = max(commande.rect.largeur, commande.rect.hauteur) / 2.0
+
+                peintre.remplis_cercle(cercle, commande.couleur)
+            }
             DÉBUTE_STACKING_CONTEXT {
             }
             TERMINE_STACKING_CONTEXT {

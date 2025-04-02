@@ -502,6 +502,19 @@ PropertyKey :: union {
     Symbol: *Symbol
 }
 
+formatte_property_key :: fonc (enchaineuse: *Enchaineuse, prop: *PropertyKey)
+{
+    discr mémoire(prop) {
+        String(s) {
+            ajoute_au_tampon(enchaineuse, s)
+        }
+        Symbol(s) {
+            ajoute_au_tampon(enchaineuse, "%", s, "%")
+        }
+        sinon {}
+    }
+} @FormattageImpression
+
 donne_empreinte :: fonc (key: PropertyKey) -> n64
 {
     discr key {
