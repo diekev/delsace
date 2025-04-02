@@ -108,6 +108,10 @@ guetteuse_édition_texte_sur_touche_clavier :: fonc (base: *Guetteuse, touche: T
 {
     empl guetteuse := base comme *GuetteuseÉditionTexte
 
+    si état != ÉtatGuettageÉditionTexte.EnÉdition {
+        retourne
+    }
+
     si touche.type == CléClavier.DÉBUT {
         définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, 0)
         retourne

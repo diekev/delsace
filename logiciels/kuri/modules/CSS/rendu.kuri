@@ -16,6 +16,8 @@ TypeCommandeDeRendu :: énum {
     REMPLIS_RECTANGLE_ARRONDI
     DESSINE_RECTANGLE
     DESSINE_RECTANGLE_ARRONDI
+    DESSINE_CERCLE
+    REMPLIS_CERCLE
     DESSINE_BORDURE
     DESSINE_IMAGE
     DESSINE_TAMPON_IMAGE
@@ -251,6 +253,34 @@ CommandeTermineCiselage :: struct {
 termine_ciselage :: fonc (commandes: *CommandesDeRendu)
 {
     _ := crée_commande(commandes, CommandeTermineCiselage)
+}
+
+CommandeDessineCercle :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.DESSINE_CERCLE
+
+    couleur: CouleurRVBAN8
+}
+
+dessine_cercle :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), couleur: CouleurRVBAN8)
+{
+    résultat := crée_commande(commandes, CommandeDessineCercle)
+    résultat.rect = rect
+    résultat.couleur = couleur
+}
+
+CommandeRemplisCercle :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.REMPLIS_CERCLE
+
+    couleur: CouleurRVBAN8
+}
+
+remplis_cercle :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), couleur: CouleurRVBAN8)
+{
+    résultat := crée_commande(commandes, CommandeRemplisCercle)
+    résultat.rect = rect
+    résultat.couleur = couleur
 }
 
 /** \} */
@@ -654,7 +684,7 @@ noeud_text_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDe
 
     élément := noeud.élément comme *HTML.HTMLInputElement
     couleur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color).couleur
-    value := HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_value).donne_chaine_utf16()
+    value := HTML.donne_value(élément)
 
     si value.est_vide() {
         value = HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_placeholder).donne_chaine_utf16()
@@ -664,6 +694,23 @@ noeud_text_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDe
     saufsi value.est_vide() {
         rect_texte := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_contenu())
         ctx.commandes.dessine_texte(noeud.fonte, value, rect_texte, couleur, nul)
+    }
+
+    éditrice := élément.éditrice
+    si éditrice && éditrice.curseur_est_affiché {
+        rect_curseur := donne_rectangle_rembourrage(noeud)
+
+        texte_avant_curseur := éditrice.texte_à_éditer
+        texte_avant_curseur.points_de_code.taille = éditrice.curseur.fin
+
+        curseur_x := éditrice.fonte.donne_largeur_texte(texte_avant_curseur)
+
+        rect_curseur.x = rect_curseur.x + curseur_x comme r32
+        rect_curseur.largeur = 1.0
+
+        rect_curseur = ctx.donne_rectangle_corrigé(rect_curseur)
+
+        ctx.commandes.remplis_rectangle(rect_curseur, CouleurRVBAN8(0, 0, 0, 255))
     }
 }
 
@@ -682,6 +729,32 @@ noeud_button_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Contexte
     saufsi value.est_vide() {
         rect_texte := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_contenu())
         ctx.commandes.dessine_texte(noeud.fonte, value, rect_texte, couleur, nul)
+    }
+}
+
+noeud_radio_button_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+{
+    noeud := base comme *NoeudDeDispositionRemplacement
+    assert(noeud.élément.local_name == HTML.TAG_input)
+
+    input := noeud.élément comme *HTML.HTMLInputElement
+
+    rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_contenu())
+
+    remplis_cercle(ctx.commandes, rect, CouleurRVBAN8(255, 255, 255, 255))
+
+    si input.checkedness {
+        couleur := CouleurRVBAN8(0x92, 0xb3, 0x72, 255)
+        dessine_cercle(ctx.commandes, rect, couleur)
+
+        rect.x += 3
+        rect.y += 3
+        rect.largeur -= 6
+        rect.hauteur -= 6
+        remplis_cercle(ctx.commandes, rect, couleur)
+    }
+    sinon {
+        dessine_cercle(ctx.commandes, rect, CouleurRVBAN8(0x8f, 0x8f, 0x9d, 255))
     }
 }
 

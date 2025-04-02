@@ -501,7 +501,7 @@ démarre_édition_texte :: fonc (rappels: *RappelsWindow, id: chaine, index: z32
     diffère définis_éditrice_texte(emboiteuse, id, nul)
 
     plateforme_guettage: PlateformeGuettageQt
-    plateforme_guettage.window = rappels.window
+    plateforme_guettage.objet_à_filtrer = rappels.window comme *QT_Object
 
     guetteuse: GuetteuseÉditionTexte
     initialise_guetteuse_édition_texte(*guetteuse, *éditrice, rectz, rectz)

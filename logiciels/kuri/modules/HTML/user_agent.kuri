@@ -179,6 +179,7 @@ RappelsInterface :: struct {
     sur_request_animation_frame: fonc(*RappelsInterface)(rien)
     sur_défile_page_vers_fragment: fonc(*RappelsInterface)(rien)
     sur_donne_taille_écran: fonc(*RappelsInterface)(TailleÉcranExposéWeb)
+    sur_édition_text_input_requise: fonc(*RappelsInterface, *HTMLInputElement)(rien)
 }
 
 détruit_rappels :: fonc (rappels: *RappelsInterface)
@@ -366,6 +367,16 @@ donne_taille_écran :: fonc (user_agent: *UserAgent) -> TailleÉcranExposéWeb
         retourne TailleÉcranExposéWeb()
     }
     retourne rappels.sur_donne_taille_écran(rappels)
+}
+
+édition_text_input_requise :: fonc (user_agent: *UserAgent, input: *HTMLInputElement)
+{
+    assert(input.is_text_entry_widget())
+    rappels := user_agent.rappels_interface
+    saufsi rappels && rappels.sur_édition_text_input_requise {
+        retourne
+    }
+    rappels.sur_édition_text_input_requise(rappels, input)
 }
 
 /** \} */

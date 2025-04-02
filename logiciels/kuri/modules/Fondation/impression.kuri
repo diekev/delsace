@@ -1098,6 +1098,113 @@ assert :: fonc (expr: bool, pos := PositionCodeSource()) -> rien
     panique("Une assertion a échoué")
 }
 
+/* ------------------------------------------------------------------------- */
+/** \nom Impression nouveau format
+ * \{ */
+
+fmt_imprime :: fonc (format: chaine, args: ...eini)
+{
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    fmt_imprime_dans_enchaineuse(*enchaineuse, foramt, ...args)
+
+    _ := copie_enchaineuse_fichier(*enchaineuse, sortie_standarde)
+}
+
+fmt_imprime_dans_enchaineuse :: fonc (enchaineuse: *Enchaineuse, format: chaine, args: ...eini)
+{
+    tantque format.taille > 0 {
+        extraction, reste, index := fmt_consomme(format)
+
+        ajoute_au_tampon(enchaineuse, extraction)
+
+        si index != -1 && index < args.taille {
+            ajoute_au_tampon(enchaineuse, args[index])
+        }
+
+        format = reste
+    }
+}
+
+fmt_consomme :: fonc (format: chaine) -> (extraction: chaine, reste: chaine, index: z32)
+{
+    si format.taille == 0 {
+        retourne "", "", -1
+    }
+
+    extraction = format
+    extraction.taille = 0
+
+    reste = format
+
+    index = -1
+
+    ptr := format.pointeur
+    fin := format.pointeur + format.taille
+
+    tantque ptr < fin {
+        si reste.commence_par("\\(") {
+            sauvegarde_reste := reste
+
+            reste = avance(reste, 2)
+
+            chn_index := reste
+            nombre_de_chiffres := 0
+
+            index = 0
+
+            pour chn_index {
+                saufsi '0' <= it <= '9' {
+                    arrête
+                }
+
+                index *= 10
+                index += (it - '0') comme z32
+
+                nombre_de_chiffres += 1
+            }
+
+            si nombre_de_chiffres == 0 {
+                reste = sauvegarde_reste
+                extraction.taille += 1
+                reste.pointeur += 1
+                reste.taille -= 1
+                ptr += 1
+                index = -1
+                continue
+            }
+
+            reste = avance(reste, nombre_de_chiffres)
+
+            si reste.taille == 0 || reste[0] != ')' {
+                reste = sauvegarde_reste
+                extraction.taille += 1
+                reste.pointeur += 1
+                reste.taille -= 1
+                ptr += 1
+                index = -1
+                continue
+            }
+
+            reste = avance(reste, 1)
+            arrête
+        }
+
+        extraction.taille += 1
+
+        reste.pointeur += 1
+        reste.taille -= 1
+
+        ptr += 1
+    }
+
+    retourne extraction, reste, index
+}
+
+/** \} */
+
 // ------------------------------------
 // Fonctions de formattages
 

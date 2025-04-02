@@ -151,13 +151,11 @@ printer :: fonc (console: *Console, interpréteuse: *Interpréteuse, log_level: 
 
     virgule := ""
     pour arguments {
-        complétion := to_string(interpréteuse, it)
-        saufsi complétion.est_normal() {
-            retourne complétion
+        ajoute_au_tampon(*enchaineuse, virgule)
+        completion := imprime_valeur_récursif(interpréteuse, *enchaineuse, it)
+        saufsi completion.est_normal() {
+            retourne completion
         }
-        valeur := complétion.valeur.V
-
-        ajoute_au_tampon(*enchaineuse, virgule, valeur.String.texte.donne_chaine_utf16())
         virgule = " "
     }
 
@@ -165,6 +163,51 @@ printer :: fonc (console: *Console, interpréteuse: *Interpréteuse, log_level: 
     diffère déloge(texte)
 
     flux_sortie_log(console.flux_sortie, texte)
+
+    retourne normal_completion(js_undefined)
+}
+
+imprime_valeur_récursif :: fonc (interpréteuse: *Interpréteuse, enchaineuse: *Enchaineuse, valeur: Valeur) -> CompletionRecord
+{
+    saufsi valeur.est_object() {
+        complétion := to_string(interpréteuse, valeur)
+        saufsi complétion.est_normal() {
+            retourne complétion
+        }
+        valeur = complétion.valeur.V
+        ajoute_au_tampon(enchaineuse, valeur.String.texte.donne_chaine_utf16())
+        retourne normal_completion(js_undefined)
+    }
+
+    objet := valeur.donne_objet()
+
+    ajoute_au_tampon(enchaineuse, "{ ")
+
+    virgule := ""
+
+    pour prop dans objet.propriétés {
+        ajoute_au_tampon(enchaineuse, virgule, prop.nom, ": ")
+        completion := imprime_valeur_récursif(interpréteuse, enchaineuse, prop.valeur)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        virgule = ", "
+    }
+
+    pour prop, index_prop dans objet.éléments_indexés {
+        si prop.valeur.est_undefined() {
+            continue
+        }
+
+        ajoute_au_tampon(enchaineuse, virgule, index_prop, ": ")
+        completion := imprime_valeur_récursif(interpréteuse, enchaineuse, prop.valeur)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        virgule = ", "
+    }
+
+    ajoute_au_tampon(enchaineuse, " }")
 
     retourne normal_completion(js_undefined)
 }
