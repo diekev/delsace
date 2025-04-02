@@ -1895,6 +1895,11 @@ détermine_fonte :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage
 {
     globales := ctx.globales
     assert(globales != nul)
+    retourne détermine_fonte(noeud, globales)
+}
+
+détermine_fonte :: fonc (noeud: *NoeudDeDisposition, globales: *GlobalesDessin) -> *Fonte
+{
     propriétés := noeud.donne_propriétés()
 
     résultat := détermine_fonte(propriétés, globales)
