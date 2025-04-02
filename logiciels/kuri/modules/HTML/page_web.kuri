@@ -1,6 +1,7 @@
 importe #inemployé CSS
 importe Couleur
 importe Ensemble
+importe Fondation
 importe Géométrie
 importe Périphériques
 importe PeintureInterface
@@ -28,6 +29,19 @@ donne_document :: fonc (page: *PageWeb) -> *Document
         retourne page.navigable.donne_active_document()
     }
     retourne nul
+}
+
+donne_position_décalée_par_défilement :: fonc (page: *PageWeb, position: Point2D(z32)) -> Point2D(z32)
+{
+    résultat := position
+
+    document := donne_document(page)
+    si document && document.arbre_de_disposition && document.arbre_de_disposition.défilement_vertical {
+        barre := document.arbre_de_disposition.défilement_vertical
+        résultat.y += (barre.rect.y / barre.ratio) comme z32
+    }
+
+    retourne résultat
 }
 
 donne_code_source :: fonc (page: *PageWeb @inutilisée) -> chaine
@@ -172,10 +186,12 @@ gère_mouvement_souris :: fonc (page: *PageWeb, clic: *CliqueSouris) -> bool
 
     position := clic.état.où
 
+    position_event := donne_position_décalée_par_défilement(page, position)
+
     élément := CSS.donne_élément_pour_position(arbre, position.x, position.y)
     document.définis_noeud_survolé(élément)
     si élément {
-        envoie_mousemove(élément, position.x, position.y)
+        envoie_mousemove(élément, position_event.x, position_event.y)
     }
 
     défilement := arbre.défilement_vertical
@@ -224,10 +240,11 @@ gère_pression_souris :: fonc (page: *PageWeb, clic: *CliqueSouris)
         retourne
     }
 
+    position_event := donne_position_décalée_par_défilement(page, position)
     élément := CSS.donne_élément_pour_position(arbre, position.x, position.y)
     si élément {
         élément.est_en_train_d_être_activé(vrai)
-        envoie_mousedown(élément, position.x, position.y)
+        envoie_mousedown(élément, position_event.x, position_event.y)
     }
     document.élément_en_cours_d_activation = élément
 }
@@ -251,18 +268,19 @@ gère_relâchement_souris :: fonc (page: *PageWeb, clic: *CliqueSouris) -> bool
     }
 
     position := clic.état.où
+    position_event := donne_position_décalée_par_défilement(page, position)
 
     élément := CSS.donne_élément_pour_position(arbre, position.x, position.y)
     si élément {
         élément.est_en_train_d_être_activé(faux)
-        envoie_mouseup(élément, position.x, position.y)
+        envoie_mouseup(élément, position_event.x, position_event.y)
     }
     si document.élément_en_cours_d_activation {
         si document.élément_en_cours_d_activation != élément {
             document.élément_en_cours_d_activation.est_en_train_d_être_activé(faux)
         }
         sinon {
-            envoie_un_clic(élément, position.x, position.y)
+            envoie_un_clic(élément, position_event.x, position_event.y)
         }
     }
     document.élément_en_cours_d_activation = nul
@@ -352,7 +370,57 @@ envoie_un_clic :: fonc (élément: *Élément, position_x: z32, position_y: z32)
     évènement.offset_y = évènement.screen_y - rect.y
 
     _ := dispatch(évènement, élément)
+
+    tantque élément != nul {
+        si élément.table.classe == HTMLInputElement {
+            input_element_sur_clic(élément comme *HTMLInputElement)
+            arrête
+        }
+
+        si élément.table.classe == HTMLLabelElement {
+            control := donne_labeled_control(élément comme *HTMLLabelElement)
+            si control && control.table.classe == HTMLInputElement {
+                input_element_sur_clic(control comme *HTMLInputElement)
+                arrête
+            }
+        }
+
+        saufsi est_élément(élément.parent) {
+            arrête
+        }
+
+        élément = élément.parent comme *Élément
+    }
 }
+
+#portée_fichier
+
+input_element_sur_pression_souris :: fonc (input: *HTMLInputElement)
+{
+    si input.is_text_entry_widget() {
+        input.crée_shadow_root_pour_édition()
+        user_agent := input.document.donne_user_agent()
+        assert(user_agent != nul)
+        user_agent.édition_text_input_requise(input)
+        retourne
+    }
+}
+
+input_element_sur_clic :: fonc (input: *HTMLInputElement)
+{
+    si input.is_radio_button_widget() {
+        input.définis_checkedness(!input.checkedness)
+
+        /* The dirty checkedness flag must be initially set to false when the element
+         * is created, and must be set to true whenever the user interacts with the
+         * control in a way that changes the checkedness.
+         * https://html.spec.whatwg.org/multipage/input.html#concept-input-checked-dirty-flag */
+        input.dirty_checkedness = vrai
+        retourne
+    }
+}
+
+#portée_export
 
 envoie_mousedown :: fonc (élément: *Élément, position_x: z32, position_y: z32)
 {
@@ -368,6 +436,27 @@ envoie_mousedown :: fonc (élément: *Élément, position_x: z32, position_y: z3
     évènement.offset_y = évènement.screen_y - rect.y
 
     _ := dispatch(évènement, élément)
+
+    tantque élément != nul {
+        si élément.table.classe == HTMLInputElement {
+            input_element_sur_pression_souris(élément comme *HTMLInputElement)
+            arrête
+        }
+
+        si élément.table.classe == HTMLLabelElement {
+            control := donne_labeled_control(élément comme *HTMLLabelElement)
+            si control && control.table.classe == HTMLInputElement {
+                input_element_sur_pression_souris(control comme *HTMLInputElement)
+                arrête
+            }
+        }
+
+        saufsi est_élément(élément.parent) {
+            arrête
+        }
+
+        élément = élément.parent comme *Élément
+    }
 }
 
 envoie_mousemove :: fonc (élément: *Élément, position_x: z32, position_y: z32)

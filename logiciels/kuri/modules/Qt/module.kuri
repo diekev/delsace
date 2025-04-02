@@ -624,7 +624,7 @@ PlateformeGuettageQt :: struct {
     sur_termine_guettage = plateforme_qt_termine_guettage
 
     event_loop_guettage: *QT_Event_Loop
-    window: *QT_Window
+    objet_à_filtrer: *QT_Object
 }
 
 plateforme_qt_commence_guettage :: fonc (base: *PlateformeGuettage, guetteuse: *Guetteuse)
@@ -634,7 +634,6 @@ plateforme_qt_commence_guettage :: fonc (base: *PlateformeGuettage, guetteuse: *
     RappelsEventLoop :: struct {
         empl base: QT_Rappels_Event_Loop
 
-        window: *QT_Window
         guetteuse: *Guetteuse
     }
 
@@ -679,15 +678,14 @@ plateforme_qt_commence_guettage :: fonc (base: *PlateformeGuettage, guetteuse: *
     }
 
     rappels_event_loop: RappelsEventLoop
-    rappels_event_loop.window = plateforme.window
     rappels_event_loop.guetteuse = guetteuse
     rappels_event_loop.sur_filtre_evenement = sur_évènement
 
     event_loop := QT_Event_Loop_cree_avec_rappels(*rappels_event_loop)
     diffère QT_Event_Loop_detruit(event_loop)
 
-    QT_Object_install_event_filter(plateforme.window, event_loop)
-    diffère QT_Object_remove_event_filter(plateforme.window, event_loop)
+    QT_Object_install_event_filter(plateforme.objet_à_filtrer, event_loop)
+    diffère QT_Object_remove_event_filter(plateforme.objet_à_filtrer, event_loop)
 
     plateforme.event_loop_guettage = event_loop
 
