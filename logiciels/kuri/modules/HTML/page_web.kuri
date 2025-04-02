@@ -400,10 +400,11 @@ input_element_sur_clic :: fonc (input: *HTMLInputElement)
         input.définis_checkedness(!input.checkedness)
 
         /* The dirty checkedness flag must be initially set to false when the element
-            * is created, and must be set to true whenever the user interacts with the
-            * control in a way that changes the checkedness.
-            * https://html.spec.whatwg.org/multipage/input.html#concept-input-checked-dirty-flag */
+         * is created, and must be set to true whenever the user interacts with the
+         * control in a way that changes the checkedness.
+         * https://html.spec.whatwg.org/multipage/input.html#concept-input-checked-dirty-flag */
         input.dirty_checkedness = vrai
+        retourne
     }
 }
 
