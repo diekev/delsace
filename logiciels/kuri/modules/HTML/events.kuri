@@ -206,6 +206,7 @@ Event :: struct {
     stop_propagation: bool
     stop_immediate_propagation: bool
     bubbles: bool
+    composed: bool
 
     /* Attributes. */
     is_trusted: bool
@@ -247,12 +248,19 @@ append_event_path :: fonc (event: *Event, invocation_target: *EventTarget, shado
     // 1. Let invocationTargetInShadowTree be false.
     invocation_target_in_shadow_tree := faux
 
-    // À FAIRE : 2. If invocationTarget is a node and its root is a shadow root, then set invocationTargetInShadowTree to true.
+    // 2. If invocationTarget is a node and its root is a shadow root, then set invocationTargetInShadowTree to true.
+    si invocation_target.est_node() && racine_est_shadow_root(invocation_target comme *Noeud) {
+        invocation_target_in_shadow_tree = vrai
+    }
 
     // 3. Let root-of-closed-tree be false.
     root_of_closed_tree := faux
 
-    // À FAIRE : 4. If invocationTarget is a shadow root whose mode is "closed", then set root-of-closed-tree to true.
+    // 4. If invocationTarget is a shadow root whose mode is "closed", then set root-of-closed-tree to true.
+    si invocation_target.est_node() && (invocation_target comme *Noeud).genre == GenreNoeud.ShadowRoot {
+        shadow_root := invocation_target comme *ShadowRoot
+        root_of_closed_tree = shadow_root.mode == ShadowRootMode.closed
+    }
 
     // 5. Append a new struct to event’s path whose
     // invocation target is invocationTarget,
@@ -591,22 +599,6 @@ donne_document_associé :: fonc (target: *EventTarget) -> *Document
     retourne window.document
 }
 
-/* https://dom.spec.whatwg.org/#retarget */
-retarget :: fonc (a: *EventTarget, b: *EventTarget @inutilisée) -> *EventTarget
-{
-    // boucle {
-        // 1. If one of the following is true
-        //     A is not a node
-        //     A’s root is not a shadow root
-        //     B is a node and A’s root is a shadow-including inclusive ancestor of B
-        //     then return A.
-
-        // 2. Set A to A’s root’s host.
-    //}
-    // imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
-    retourne a
-}
-
 #portée_export
 
 /* Enveloppe pour IDL où EventType n'est pas convertis. */
@@ -683,6 +675,20 @@ remove_event_listener :: fonc (target: *EventTarget, type: EventType, callback: 
 }
 
 /* https://dom.spec.whatwg.org/#concept-event-fire */
+ConfigurationIDLAttributes :: struct {
+    bubbles: bool
+    composed: bool
+}
+
+fire_an_event :: fonc (target: *EventTarget, nom: EventType, config: ConfigurationIDLAttributes) -> bool
+{
+    event := crée_platform_object(target, Event)
+    event.type = nom
+    event.bubbles = config.bubbles
+    event.composed = config.composed
+    retourne dispatch(event, target, nul)
+}
+
 fire_an_event :: fonc (target: *EventTarget, nom: EventType, legacy_target_override : *bool = nul) -> bool
 {
     event := crée_platform_object(target, Event)
