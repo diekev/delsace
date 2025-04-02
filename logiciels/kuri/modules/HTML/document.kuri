@@ -770,18 +770,18 @@ table_virtuelle_type_document := TableVirtuelleNoeud(
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom NoeudFragmentDocument.
+/** \nom DocumentFragment.
  * https://dom.spec.whatwg.org/#documentfragment
  * \{ */
 
-NoeudFragmentDocument :: struct {
+DocumentFragment :: struct {
     empl base_noeud: Noeud
     table = *table_virtuelle_fragment_document
 }
 
-crée_noeud_fragment_document :: fonc (document: *Document) -> *NoeudFragmentDocument
+crée_noeud_fragment_document :: fonc (document: *Document) -> *DocumentFragment
 {
-    doctype := crée_platform_object(document, NoeudFragmentDocument)
+    doctype := crée_platform_object(document, DocumentFragment)
     doctype.genre = GenreNoeud.FragmentDocument
     doctype.document = document
 
@@ -791,7 +791,7 @@ crée_noeud_fragment_document :: fonc (document: *Document) -> *NoeudFragmentDoc
 #portée_fichier
 
 table_virtuelle_fragment_document := TableVirtuelleNoeud(
-    classe = NoeudFragmentDocument,
+    classe = DocumentFragment,
     sur_destruction = noeud_sur_destruction
 )
 

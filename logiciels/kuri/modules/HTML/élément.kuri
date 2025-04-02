@@ -780,7 +780,7 @@ fragment_serializing_algorithm_steps :: fonc (node: *Noeud, well_formed: bool @i
 }
 
 /* https://html.spec.whatwg.org/multipage/dynamic-markup-insertion.html#fragment-parsing-algorithm-steps */
-fragment_parsing_algorithm_steps :: fonc (context: *Élément, markup: ChaineUTF16) -> *NoeudFragmentDocument
+fragment_parsing_algorithm_steps :: fonc (context: *Élément, markup: ChaineUTF16) -> *DocumentFragment
 {
     // À FAIRE(XML) : 1. Let algorithm be the HTML fragment parsing algorithm.
 
