@@ -23,6 +23,56 @@ run_ordered_set_parser :: fonc (chn: DOMString) -> [..]DOMString
 }
 
 /* ------------------------------------------------------------------------- */
+/** \nom NodeList
+ * https://dom.spec.whatwg.org/#interface-nodelist
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_node_list := TableVirtuellePlatformObject(
+    classe = NodeList,
+    sur_destruction = node_list_sur_destruction
+)
+
+node_list_sur_destruction :: fonc (base: *JavaScript.Cellule)
+{
+    platform_object_sur_destruction(base)
+    node_list := base comme *NodeList
+    déloge(node_list.noeuds)
+}
+
+#portée_export
+
+NodeList :: struct {
+    empl platform_object: PlatformObject
+    table = *table_virtuelle_node_list
+
+    noeuds: [..]*Noeud
+}
+
+crée_node_list :: fonc (noeud: *Noeud) -> *NodeList
+{
+    retourne crée_platform_object(noeud, NodeList)
+}
+
+ajoute_noeud :: fonc (node_list: *NodeList, noeud: *Noeud)
+{
+    tableau_ajoute(*node_list.noeuds, noeud)
+}
+
+donne_length :: fonc (node_list: *NodeList) -> n32
+{
+    retourne node_list.noeuds.taille comme n32
+}
+
+donne_item :: fonc (node_list: *NodeList, index: n32) -> *Noeud
+{
+    retourne node_list.noeuds[index]
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom HTMLCollectionFilter
  * Filtre pour les HTMLCollections.
  * \{ */
