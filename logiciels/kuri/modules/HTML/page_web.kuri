@@ -30,6 +30,19 @@ donne_document :: fonc (page: *PageWeb) -> *Document
     retourne nul
 }
 
+donne_position_décalée_par_défilement :: fonc (page: *PageWeb, position: Point2D(z32)) -> Point2D(z32)
+{
+    résultat := position
+
+    document := donne_document(page)
+    si document && document.arbre_de_disposition && document.arbre_de_disposition.défilement_vertical {
+        barre := document.arbre_de_disposition.défilement_vertical
+        résultat.y += (barre.rect.y / barre.ratio) comme z32
+    }
+
+    retourne résultat
+}
+
 donne_code_source :: fonc (page: *PageWeb @inutilisée) -> chaine
 {
     // À FAIRE
@@ -172,10 +185,12 @@ gère_mouvement_souris :: fonc (page: *PageWeb, clic: *CliqueSouris) -> bool
 
     position := clic.état.où
 
+    position_event := donne_position_décalée_par_défilement(page, position)
+
     élément := CSS.donne_élément_pour_position(arbre, position.x, position.y)
     document.définis_noeud_survolé(élément)
     si élément {
-        envoie_mousemove(élément, position.x, position.y)
+        envoie_mousemove(élément, position_event.x, position_event.y)
     }
 
     défilement := arbre.défilement_vertical
@@ -224,10 +239,11 @@ gère_pression_souris :: fonc (page: *PageWeb, clic: *CliqueSouris)
         retourne
     }
 
+    position_event := donne_position_décalée_par_défilement(page, position)
     élément := CSS.donne_élément_pour_position(arbre, position.x, position.y)
     si élément {
         élément.est_en_train_d_être_activé(vrai)
-        envoie_mousedown(élément, position.x, position.y)
+        envoie_mousedown(élément, position_event.x, position_event.y)
     }
     document.élément_en_cours_d_activation = élément
 }
@@ -251,18 +267,19 @@ gère_relâchement_souris :: fonc (page: *PageWeb, clic: *CliqueSouris) -> bool
     }
 
     position := clic.état.où
+    position_event := donne_position_décalée_par_défilement(page, position)
 
     élément := CSS.donne_élément_pour_position(arbre, position.x, position.y)
     si élément {
         élément.est_en_train_d_être_activé(faux)
-        envoie_mouseup(élément, position.x, position.y)
+        envoie_mouseup(élément, position_event.x, position_event.y)
     }
     si document.élément_en_cours_d_activation {
         si document.élément_en_cours_d_activation != élément {
             document.élément_en_cours_d_activation.est_en_train_d_être_activé(faux)
         }
         sinon {
-            envoie_un_clic(élément, position.x, position.y)
+            envoie_un_clic(élément, position_event.x, position_event.y)
         }
     }
     document.élément_en_cours_d_activation = nul
