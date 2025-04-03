@@ -710,7 +710,7 @@ noeud_text_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDe
 
     éditrice := élément.éditrice
     si éditrice && éditrice.curseur_est_affiché {
-        rect_curseur := donne_rectangle_contenu(noeud)
+        rect_curseur := donne_rect_texte_pour_input(noeud)
 
         curseur_x: z32
         si state == HTML.HTMLInputElement.State.Password {
