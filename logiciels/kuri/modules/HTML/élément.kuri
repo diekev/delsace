@@ -2623,12 +2623,6 @@ is_radio_button_widget :: fonc (input: *HTMLInputElement) -> bool
     retourne donne_state(input) == HTMLInputElement.State.Radio_Button
 }
 
-/* https://html.spec.whatwg.org/multipage/input.html#submit-button-state-(type=submit) */
-is_in_submit_button_state :: fonc (input: *HTMLInputElement) -> bool
-{
-    retourne donne_state(input) == HTMLInputElement.State.Submit_Button
-}
-
 /* The checked IDL attribute allows scripts to manipulate the checkedness of an input element.
  * On getting, it must return the current checkedness of the element;
  * and on setting, it must set the element's checkedness to the new value and set the
