@@ -181,6 +181,7 @@ RappelsInterface :: struct {
     sur_donne_taille_écran: fonc(*RappelsInterface)(TailleÉcranExposéWeb)
     sur_édition_text_input_requise: fonc(*RappelsInterface, *HTMLInputElement)(rien)
     sur_rapporte_exception: fonc (*RappelsInterface, *Document, chaine)(rien)
+    sur_rapporte_log: fonc (*RappelsInterface, *Document, chaine)(rien)
 }
 
 détruit_rappels :: fonc (rappels: *RappelsInterface)
@@ -388,6 +389,16 @@ rapporte_exception :: fonc (user_agent: *UserAgent, document: *Document, excepti
         retourne
     }
     rappels.sur_rapporte_exception(rappels, document, exception)
+}
+
+rapporte_log :: fonc (user_agent: *UserAgent, document: *Document, message: chaine)
+{
+    rappels := user_agent.rappels_interface
+    saufsi rappels && rappels.sur_rapporte_log {
+        imprime("LOG : %\n", message)
+        retourne
+    }
+    rappels.sur_rapporte_log(rappels, document, message)
 }
 
 /** \} */
