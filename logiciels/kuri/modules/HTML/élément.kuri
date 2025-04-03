@@ -2917,9 +2917,16 @@ run_value_sanitization_algorithm :: fonc (input: *HTMLInputElement)
 {
     state := donne_state(input)
 
-    si state == HTMLInputElement.State.Text {
+    si state == HTMLInputElement.State.Text || state == HTMLInputElement.State.Search || state == HTMLInputElement.State.Telephone || state == HTMLInputElement.State.Password {
         noeud_texte := input.donne_noeud_texte_value()
         supprime_nouvelles_lignes_en_place(*noeud_texte.données)
+        retourne
+    }
+
+    si state == HTMLInputElement.State.URL || state == HTMLInputElement.State.Email {
+        noeud_texte := input.donne_noeud_texte_value()
+        supprime_nouvelles_lignes_en_place(*noeud_texte.données)
+        supprime_espace_blanches_autour_en_place(*noeud_texte.données)
         retourne
     }
 }
