@@ -229,7 +229,11 @@ report_an_exception :: fonc (exception: JavaScript.Valeur, global: *JavaScript.O
 
     window := JavaScript.vérifie_comme(global, Window)
     chn := JavaScript.to_string(window.realm, exception).valeur.V
-    imprime("[%] Uncaught Exception %\n", #nom_de_cette_fonction, chn)
+
+    texte_exception := converti_vers_chaine(chn.String.texte.donne_chaine_utf16())
+
+    user_agent := window.document.donne_user_agent()
+    user_agent.rapporte_exception(window.document, texte_exception)
 }
 
 /** \} */

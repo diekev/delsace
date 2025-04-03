@@ -180,6 +180,7 @@ RappelsInterface :: struct {
     sur_défile_page_vers_fragment: fonc(*RappelsInterface)(rien)
     sur_donne_taille_écran: fonc(*RappelsInterface)(TailleÉcranExposéWeb)
     sur_édition_text_input_requise: fonc(*RappelsInterface, *HTMLInputElement)(rien)
+    sur_rapporte_exception: fonc (*RappelsInterface, *Document, chaine)(rien)
 }
 
 détruit_rappels :: fonc (rappels: *RappelsInterface)
@@ -377,6 +378,16 @@ donne_taille_écran :: fonc (user_agent: *UserAgent) -> TailleÉcranExposéWeb
         retourne
     }
     rappels.sur_édition_text_input_requise(rappels, input)
+}
+
+rapporte_exception :: fonc (user_agent: *UserAgent, document: *Document, exception: chaine)
+{
+    rappels := user_agent.rappels_interface
+    saufsi rappels && rappels.sur_rapporte_exception {
+        imprime("EXCEPTION NON-PIÉGÉE : %\n", exception)
+        retourne
+    }
+    rappels.sur_rapporte_exception(rappels, document, exception)
 }
 
 /** \} */
