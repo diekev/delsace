@@ -2460,6 +2460,9 @@ HTMLInputElement :: struct {
     empl html_element: HTMLElement
     table = *table_virtuelle_input_element
 
+    /* https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#concept-fe-dirty */
+    dirty_value: bool
+
     /* https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#concept-fe-checked */
     checkedness: bool
 
@@ -2615,12 +2618,31 @@ donne_form_owner :: fonc (élément: *Élément) -> *HTMLFormElement
     retourne nul
 }
 
+/* https://html.spec.whatwg.org/multipage/input.html#dom-input-value */
+définis_value :: fonc (input: *HTMLInputElement, value: DOMString)
+{
+    // À FAIRE : value à un "mode"
+    // À FAIRE : 1. Let oldValue be the element's value.
+
+    // 2. Set the element's value to the new value.
+    crée_shadow_root_pour_édition(input)
+    noeud_texte := input.donne_noeud_texte_value()
+    détruit_chaine(noeud_texte.données)
+    noeud_texte.données = copie_chaine(value.donne_chaine_utf16())
+
+    // 3. Set the element's dirty value flag to true.
+    input.dirty_value = vrai
+
+    // 4. Invoke the value sanitization algorithm, if the element's type attribute's current state defines one.
+    run_value_sanitization_algorithm(input)
+
+    // 5. If the element's value (after applying the value sanitization algorithm) is different from oldValue, and the element has a text entry cursor position, move the text entry cursor position to the end of the text control, unselecting any selected text and resetting the selection direction to "none".
+}
+
 donne_value :: fonc (input: *HTMLInputElement) -> ChaineUTF16
 {
     si input.shadow_root {
-        assert(input.shadow_root.enfants.taille == 1)
-        assert(input.shadow_root.enfants[0].genre == GenreNoeud.Texte)
-        noeud_texte := input.shadow_root.enfants[0] comme *NoeudTexte
+        noeud_texte := input.donne_noeud_texte_value()
         retourne noeud_texte.données
     }
 
@@ -2700,6 +2722,21 @@ input_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOM
         retourne vrai
     }
 
+    si local_name == ATTR_value {
+        /* https://html.spec.whatwg.org/multipage/input.html#attr-input-value */
+        saufsi input.dirty_value {
+            si input.shadow_root {
+                noeud_texte := input.donne_noeud_texte_value()
+                détruit_chaine(noeud_texte.données)
+                si valeur {
+                    noeud_texte.données = copie_chaine(mémoire(valeur).donne_chaine_utf16())
+                    run_value_sanitization_algorithm(input)
+                }
+            }
+        }
+        retourne vrai
+    }
+
     retourne faux
 }
 
@@ -2759,6 +2796,27 @@ run_input_activation_behavior :: fonc (input: *HTMLInputElement, event: *Event)
 
 // The legacy-pre-activation behavior for input elements are these steps:
 // The legacy-canceled-activation behavior for input elements are these steps:
+
+/* https://html.spec.whatwg.org/multipage/input.html#value-sanitization-algorithm */
+run_value_sanitization_algorithm :: fonc (input: *HTMLInputElement)
+{
+    si input.is_text_entry_widget() {
+        noeud_texte := input.donne_noeud_texte_value()
+        supprime_nouvelles_lignes_en_place(*noeud_texte.données)
+        retourne
+    }
+}
+
+#portée_export
+
+donne_noeud_texte_value :: fonc (input: *HTMLInputElement) -> *NoeudTexte
+{
+    assert(input.shadow_root != nul)
+    assert(input.shadow_root.enfants.taille == 1)
+    enfant := input.shadow_root.enfants[0]
+    assert(enfant.genre == GenreNoeud.Texte)
+    retourne enfant comme *NoeudTexte
+}
 
 /** \} */
 
