@@ -33,7 +33,7 @@ réinitialise :: fonc (chn: &ChaineUTF16) #enligne
     chn.unités.taille = 0
 }
 
-copie_chaine :: fonc (chn: &ChaineUTF16) -> ChaineUTF16
+copie_chaine :: fonc (chn: ChaineUTF16) -> ChaineUTF16
 {
     résultat: ChaineUTF16
     résultat.unités = tableau_copie(chn.unités)
