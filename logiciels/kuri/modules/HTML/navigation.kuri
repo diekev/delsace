@@ -280,6 +280,7 @@ ParamètresNavigationNavigable :: struct {
     history_handling := NavigationHistoryBehavior.AUTO
     // an optional serialized state-or-null navigationAPIState (default null)
     // an optional entry list or null formDataEntryList (default null)
+    form_data_entry_list : *EntryList = nul
     // an optional referrer policy referrerPolicy (default the empty string)
     referrer_policy := ReferrerPolicy.EmptyString
     // and an optional user navigation involvement userInvolvement (default "none"):
