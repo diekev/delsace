@@ -65,6 +65,7 @@ TableVirtuelleÉlément :: struct {
 
     /* Uniquement utilisé lors du parsage. */
     est_sur_pile_éléments_ouvert: bool
+    fut_créé_par_parseuse: bool
 
     espace_de_nom: chaine // DOMString @namespaceURI
     local_name: DOMString
@@ -722,30 +723,83 @@ applique_presentational_hints :: fonc (élément: *Élément, résolveuse: *CSS.
  * https://html.spec.whatwg.org/multipage/dom.html#render-blocking-mechanism
  * \{ */
 
-/* https://html.spec.whatwg.org/multipage/dom.html#render-blocking */
-is_render_blocking :: fonc (el: *Élément @inutilisée) -> bool
+/* https://html.spec.whatwg.org/multipage/dom.html#allows-adding-render-blocking-elements */
+allows_adding_render_blocking_elements :: fonc (document: *Document) -> bool
 {
-    // À FAIRE
+    retourne document.type_contenu == "text/html" && donne_élément_body(document) == nul
+}
+
+/* https://html.spec.whatwg.org/multipage/dom.html#render-blocked */
+is_render_blocked :: fonc (document: *Document) -> bool
+{
+    // document's render-blocking element set is non-empty, or document allows adding render-blocking elements.
+    si document.render_blocking_elements.taille != 0 || document.allows_adding_render_blocking_elements() {
+        retourne vrai
+    }
+
+    // À FAIRE The current high resolution time given document's relevant global object has not exceeded an implementation-defined timeout value.
     retourne faux
 }
 
-/* https://html.spec.whatwg.org/multipage/dom.html#block-rendering */
-block_rendering_on :: fonc (el: *Élément @inutilisée)
+/* https://html.spec.whatwg.org/multipage/dom.html#render-blocking */
+is_render_blocking :: fonc (el: *Élément) -> bool
 {
-    // À FAIRE
+    retourne is_render_blocked(el.document) || tableau_possède_élément(el.document.render_blocking_elements, el)
+}
+
+/* https://html.spec.whatwg.org/multipage/dom.html#block-rendering */
+block_rendering_on :: fonc (el: *Élément)
+{
+    // 1. Let document be el's node document.
+    document := el.document
+
+    // 2. If document allows adding render-blocking elements,
+    //    then append el to document's render-blocking element set.
+    si document.allows_adding_render_blocking_elements() {
+        tableau_ajoute(*document.render_blocking_elements, el)
+    }
 }
 
 /* https://html.spec.whatwg.org/multipage/dom.html#unblock-rendering */
-unblock_rendering_on :: fonc (el: *Élément @inutilisée)
+unblock_rendering_on :: fonc (el: *Élément)
 {
-    // À FAIRE
+    // 1. Let document be el's node document.
+    document := el.document
+
+    // 2. Remove el from document's render-blocking element set.
+    tableau_supprime_valeur(*document.render_blocking_elements, el)
+
+    // @inspécifié
+    si document.render_blocking_elements.taille == 0 {
+        ua := document.donne_user_agent()
+        si ua {
+            requiers_rendu(ua)
+        }
+    }
 }
 
 /* https://html.spec.whatwg.org/multipage/urls-and-fetching.html#potentially-render-blocking */
-is_potentially_render_blocking :: fonc (el: *Élément @inutilisée) -> bool
+is_potentially_render_blocking :: fonc (el: *Élément) -> bool
 {
-    // À FAIRE
-    retourne faux    
+    // À FAIRE : if its blocking tokens set contains "render"
+    retourne is_implicitly_potentially_render_blocking(el)
+}
+
+/* https://html.spec.whatwg.org/multipage/urls-and-fetching.html#implicitly-potentially-render-blocking */
+is_implicitly_potentially_render_blocking :: fonc (el: *Élément) -> bool
+{
+    si el.table.classe == HTMLLinkElement {
+        link := el comme *HTMLLinkElement
+        // A link element of this type is implicitly potentially render-blocking if
+        // the element was created by its node document's parser.
+        si link.est_stylesheet {
+            retourne link.fut_créé_par_parseuse
+        }
+
+        retourne faux
+    }
+
+    retourne faux
 }
 
 block_rendering_if_potentially_render_blocking :: fonc (el: *Élément)
@@ -755,6 +809,11 @@ block_rendering_if_potentially_render_blocking :: fonc (el: *Élément)
     }
     block_rendering_on(el)
 }
+
+// À FAIRE Whenever a render-blocking element el becomes
+// browsing-context disconnected, or el's blocking attribute's value
+// is changed so that el is no longer potentially render-blocking,
+// then unblock rendering on el.
 
 /** \} */
 
@@ -2722,7 +2781,10 @@ linked_resource_fetch_setup_stylesheet :: fonc (el: *HTMLLinkElement, request: *
 
     // À FAIRE 2. If el contributes a script-blocking style sheet, append el to its node document's script-blocking style sheet set.
 
-    // À FAIRE 3. If el's media attribute's value matches the environment and el is potentially render-blocking, then block rendering on el.
+    // À FAIRE(media) 3. If el's media attribute's value matches the environment and el is potentially render-blocking, then block rendering on el.
+    si el.is_potentially_render_blocking() {
+        block_rendering_on(el)
+    }
 
     // 4. If el is currently render-blocking, then set request's render-blocking to true.
     si is_render_blocking(el) {

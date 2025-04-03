@@ -58,6 +58,10 @@ dessine :: fonc (page: *PageWeb, largeur: z32, hauteur: z32, dessine_tampon_id: 
         retourne nul
     }
 
+    si document.is_render_blocked() {
+        retourne nul
+    }
+
     arbre := crée_arbre_de_disposition(page, largeur, hauteur)
     saufsi arbre && arbre.racine {
         retourne nul
