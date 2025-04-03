@@ -395,6 +395,30 @@ supprime_espace_blanches_autour_en_place :: fonc (chn: *ChaineUTF16)
     }
 }
 
+/* https://infra.spec.whatwg.org/#strip-newlines */
+supprime_nouvelles_lignes_en_place :: fonc (chn: *ChaineUTF16)
+{
+    début := chn.unités.pointeur
+    fin := chn.unités.pointeur + chn.unités.taille
+
+    insertion := début
+    taille_finale := chn.unités.taille
+
+    tantque début < fin {
+        si mémoire(début) == 0x0A || mémoire(début) == 0x0D {
+            début += 1
+            taille_finale -= 1
+            continue
+        }
+
+        mémoire(insertion) = mémoire(début)
+        début += 1
+        insertion += 1
+    }
+
+    chn.unités.taille = taille_finale
+}
+
 sous_chaine :: fonc (chn: ChaineUTF16, début: z64, fin: z64) -> ChaineUTF16
 {
     assert(début >= 0)
