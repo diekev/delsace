@@ -2460,6 +2460,31 @@ HTMLInputElement :: struct {
     empl html_element: HTMLElement
     table = *table_virtuelle_input_element
 
+    State :: énum {
+        Hidden
+        Text
+        Search
+        Telephone
+        URL
+        Email
+        Password
+        Date
+        Month
+        Week
+        Time
+        Local_Date_and_Time
+        Number
+        Range
+        Color
+        Checkbox
+        Radio_Button
+        File_Upload
+        Submit_Button
+        Image_Button
+        Reset_Button
+        Button
+    }
+
     /* https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#concept-fe-dirty */
     dirty_value: bool
 
@@ -2472,8 +2497,7 @@ HTMLInputElement :: struct {
     éditrice: *ÉditriceTexte
 }
 
-/* https://html.spec.whatwg.org/multipage/rendering.html#the-input-element-as-a-text-entry-widget */
-is_text_entry_widget :: fonc (input: *HTMLInputElement) -> bool
+donne_state :: fonc (input: *HTMLInputElement) -> HTMLInputElement.State
 {
     opt_type := donne_attribut(input, ATTR_type)
     saufsi opt_type.possède_valeur() {
@@ -2482,39 +2506,124 @@ is_text_entry_widget :: fonc (input: *HTMLInputElement) -> bool
          *
          * À FAIRE : détermine l'état de l'attribut :
          * https://html.spec.whatwg.org/multipage/common-microsyntaxes.html#missing-value-default */
-        retourne vrai
+        retourne HTMLInputElement.State.Text
     }
-    retourne opt_type.Quelque == ATTR_text
+
+    type := opt_type.Quelque
+
+    si type == ATTR_hidden {
+        retourne HTMLInputElement.State.Hidden
+    }
+    si type == ATTR_text {
+        retourne HTMLInputElement.State.Text
+    }
+    si type == ATTR_submit {
+        retourne HTMLInputElement.State.Submit_Button
+    }
+    si type == ATTR_reset {
+        retourne HTMLInputElement.State.Reset_Button
+    }
+    si type == ATTR_button {
+        retourne HTMLInputElement.State.Button
+    }
+    si type == ATTR_radio {
+        retourne HTMLInputElement.State.Radio_Button
+    }
+    si type == ATTR_search {
+        retourne HTMLInputElement.State.Search
+    }
+    si type == ATTR_tel {
+        retourne HTMLInputElement.State.Telephone
+    }
+    si type == ATTR_url {
+        retourne HTMLInputElement.State.URL
+    }
+    si type == ATTR_email {
+        retourne HTMLInputElement.State.Email
+    }
+    si type == ATTR_password {
+        retourne HTMLInputElement.State.Password
+    }
+    si type == ATTR_date {
+        retourne HTMLInputElement.State.Date
+    }
+    si type == ATTR_month {
+        retourne HTMLInputElement.State.Month
+    }
+    si type == ATTR_week {
+        retourne HTMLInputElement.State.Week
+    }
+    si type == ATTR_time {
+        retourne HTMLInputElement.State.Time
+    }
+    si type == ATTR_datetime_local {
+        retourne HTMLInputElement.State.Local_Date_and_Time
+    }
+    si type == ATTR_number {
+        retourne HTMLInputElement.State.Number
+    }
+    si type == ATTR_range {
+        retourne HTMLInputElement.State.Range
+    }
+    si type == ATTR_color {
+        retourne HTMLInputElement.State.Color
+    }
+    si type == ATTR_checkbox {
+        retourne HTMLInputElement.State.Checkbox
+    }
+    si type == ATTR_file {
+        retourne HTMLInputElement.State.File_Upload
+    }
+    si type == ATTR_image {
+        retourne HTMLInputElement.State.Image_Button
+    }
+
+    retourne HTMLInputElement.State.Text
+}
+
+/* https://html.spec.whatwg.org/multipage/rendering.html#the-input-element-as-a-text-entry-widget */
+is_text_entry_widget :: fonc (input: *HTMLInputElement) -> bool
+{
+    discr donne_state(input) {
+        Text,
+        Telephone,
+        URL,
+        Email,
+        Search,
+        Password {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
 }
 
 /* https://html.spec.whatwg.org/multipage/rendering.html#the-input-element-as-a-button */
 is_button_widget :: fonc (input: *HTMLInputElement) -> bool
 {
-    opt_type := donne_attribut(input, ATTR_type)
-    saufsi opt_type.possède_valeur() {
-        retourne faux
+    discr donne_state(input) {
+        Submit_Button,
+        Reset_Button,
+        Button {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
     }
-    retourne opt_type.Quelque == ATTR_submit || opt_type.Quelque == ATTR_reset || opt_type.Quelque == ATTR_button
 }
 
 /* https://html.spec.whatwg.org/multipage/rendering.html#the-input-element-as-a-checkbox-and-radio-button-widgets */
 is_radio_button_widget :: fonc (input: *HTMLInputElement) -> bool
 {
-    opt_type := donne_attribut(input, ATTR_type)
-    saufsi opt_type.possède_valeur() {
-        retourne faux
-    }
-    retourne opt_type.Quelque == ATTR_radio
+    retourne donne_state(input) == HTMLInputElement.State.Radio_Button
 }
 
 /* https://html.spec.whatwg.org/multipage/input.html#submit-button-state-(type=submit) */
 is_in_submit_button_state :: fonc (input: *HTMLInputElement) -> bool
 {
-    opt_type := donne_attribut(input, ATTR_type)
-    saufsi opt_type.possède_valeur() {
-        retourne faux
-    }
-    retourne opt_type.Quelque == ATTR_submit
+    retourne donne_state(input) == HTMLInputElement.State.Submit_Button
 }
 
 /* The checked IDL attribute allows scripts to manipulate the checkedness of an input element.
@@ -2757,8 +2866,10 @@ input_element_sur_activation_behavior :: fonc (target: *EventTarget, event: *Eve
 
 run_input_activation_behavior :: fonc (input: *HTMLInputElement, event: *Event)
 {
+    state := donne_state(input)
+
     /* https://html.spec.whatwg.org/multipage/input.html#radio-button-state-(type=radio) */
-    si input.is_radio_button_widget() {
+    si state == HTMLInputElement.State.Radio_Button {
         // 1. If the element is not connected, then return.
         saufsi est_connecté(input) {
             retourne
@@ -2774,7 +2885,7 @@ run_input_activation_behavior :: fonc (input: *HTMLInputElement, event: *Event)
     }
 
     /* https://html.spec.whatwg.org/multipage/input.html#submit-button-state-(type=submit) */
-    si input.is_in_submit_button_state() {
+    si state == HTMLInputElement.State.Submit_Button {
         // 1. If the element does not have a form owner, then return.
         form_owner := donne_form_owner(input)
         si form_owner == nul {
@@ -2800,7 +2911,9 @@ run_input_activation_behavior :: fonc (input: *HTMLInputElement, event: *Event)
 /* https://html.spec.whatwg.org/multipage/input.html#value-sanitization-algorithm */
 run_value_sanitization_algorithm :: fonc (input: *HTMLInputElement)
 {
-    si input.is_text_entry_widget() {
+    state := donne_state(input)
+
+    si state == HTMLInputElement.State.Text {
         noeud_texte := input.donne_noeud_texte_value()
         supprime_nouvelles_lignes_en_place(*noeud_texte.données)
         retourne
