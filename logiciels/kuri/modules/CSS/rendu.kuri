@@ -703,7 +703,8 @@ noeud_text_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDe
     }
 
     saufsi value.est_vide() {
-        rect_texte := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_contenu())
+        rect_texte := donne_rect_texte_pour_input(noeud)
+        rect_texte = ctx.donne_rectangle_corrigé(rect_texte)
         ctx.commandes.dessine_texte(noeud.fonte, value, rect_texte, couleur, nul)
     }
 
@@ -745,9 +746,29 @@ noeud_button_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Contexte
     value := HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_value).donne_chaine_utf16()
 
     saufsi value.est_vide() {
-        rect_texte := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_contenu())
+        rect_texte := donne_rect_texte_pour_input(noeud)
+        rect_texte = ctx.donne_rectangle_corrigé(rect_texte)
         ctx.commandes.dessine_texte(noeud.fonte, value, rect_texte, couleur, nul)
     }
+}
+
+donne_rect_texte_pour_input :: fonc (noeud: *NoeudDeDispositionRemplacement) -> RectanglePosDim(r32)
+{
+    rect_texte := noeud.donne_rectangle_contenu()
+    
+    /* Centre le texte dans le rectangle. Le centrage se fait en centrant les minuscules. */
+    métriques := donne_métriques_fonte(noeud.fonte)
+    taille_minuscule := donne_hauteur_glyph(noeud.fonte, 'x' comme n32).Quelque comme r32
+
+    taille_disponible := (rect_texte.hauteur - taille_minuscule)
+    déplacement := taille_disponible * 0.5
+
+    position_y_ligne_de_base := rect_texte.y + rect_texte.hauteur - déplacement
+    position_y := position_y_ligne_de_base - métriques.jambage_supérieur
+
+    rect_texte.y = position_y
+    rect_texte.hauteur = métriques.donne_hauteur_ligne()
+    retourne rect_texte
 }
 
 noeud_radio_button_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
