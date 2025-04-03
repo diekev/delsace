@@ -27,6 +27,9 @@ UserAgent :: struct {
     /* Valeur par défaut pour l'entête 'User-Agent'.
      * https://fetch.spec.whatwg.org/#default-user-agent-value */
     user_agent_string: DOMString
+
+    /* Utilisé pour les fichiers de réponse pour les erreurs. */
+    nom_navigateur := "Le Navigateur"
 }
 
 initialise_user_agent :: fonc (user_agent: *UserAgent)
