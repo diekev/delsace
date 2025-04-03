@@ -685,10 +685,21 @@ noeud_text_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDe
     élément := noeud.élément comme *HTML.HTMLInputElement
     couleur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color).couleur
     value := HTML.donne_value(élément)
+    state := HTML.donne_state(élément)
 
     si value.est_vide() {
         value = HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_placeholder).donne_chaine_utf16()
         couleur.a = 128
+    }
+    sinon si state == HTML.HTMLInputElement.State.Password {
+        /* U+002A ASTERISK (*) or U+25CF BLACK CIRCLE (●) */
+        élément.texte_mot_de_passe.unités.taille = 0
+
+        pour value.taille() {
+            tableau_ajoute(*élément.texte_mot_de_passe.unités, 0x25CF)
+        }
+
+        value = élément.texte_mot_de_passe
     }
 
     saufsi value.est_vide() {
@@ -700,10 +711,17 @@ noeud_text_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDe
     si éditrice && éditrice.curseur_est_affiché {
         rect_curseur := donne_rectangle_contenu(noeud)
 
-        texte_avant_curseur := éditrice.texte_à_éditer
-        texte_avant_curseur.points_de_code.taille = éditrice.curseur.fin
-
-        curseur_x := éditrice.fonte.donne_largeur_texte(texte_avant_curseur)
+        curseur_x: z32
+        si state == HTML.HTMLInputElement.State.Password {
+            texte_avant_curseur := value
+            texte_avant_curseur.unités.taille = éditrice.curseur.fin
+            curseur_x = éditrice.fonte.donne_largeur_texte(texte_avant_curseur)
+        }
+        sinon {
+            texte_avant_curseur := éditrice.texte_à_éditer
+            texte_avant_curseur.points_de_code.taille = éditrice.curseur.fin
+            curseur_x = éditrice.fonte.donne_largeur_texte(texte_avant_curseur)
+        }
 
         rect_curseur.x = rect_curseur.x + curseur_x comme r32
         rect_curseur.largeur = 1.0

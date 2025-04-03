@@ -2495,6 +2495,9 @@ HTMLInputElement :: struct {
     dirty_checkedness: bool
 
     éditrice: *ÉditriceTexte
+
+    /* À FAIRE : déplace ceci dans CSS. */
+    texte_mot_de_passe: ChaineUTF16
 }
 
 donne_state :: fonc (input: *HTMLInputElement) -> HTMLInputElement.State
@@ -2779,11 +2782,18 @@ crée_shadow_root_pour_édition :: fonc (input: *HTMLInputElement)
 
 table_virtuelle_input_element := TableVirtuelleÉlément(
     classe = HTMLInputElement,
-    sur_destruction = élément_sur_destruction,
+    sur_destruction = input_element_sur_destruction,
     sur_changement_attribut = input_element_sur_changement_attribut,
     sur_applique_presentational_hints = input_element_sur_applique_presentational_hints,
     sur_activation_behavior = input_element_sur_activation_behavior
 )
+
+input_element_sur_destruction :: fonc (base: *JavaScript.Cellule)
+{
+    élément := base comme *HTMLInputElement
+    élément_détruit_données(élément)
+    détruit_chaine(élément.texte_mot_de_passe)
+}
 
 input_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
 {
