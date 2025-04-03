@@ -268,28 +268,25 @@ UserNavigationInvolvement :: énum {
  * https://html.spec.whatwg.org/multipage/browsing-the-web.html#beginning-navigation
  * \{ */
 
-/*
-To navigate a
+ParamètresNavigationNavigable :: struct {
+    // URL url
+    url: *URL
+    // Document sourceDocument,
+    source_document: *Document
+    // optional POST resource, string, or null documentResource (default null)
+    // an optional response-or-null response (default null)
+    // an optional boolean exceptionsEnabled (default false)
+    // an optional NavigationHistoryBehavior historyHandling (default "auto")
+    history_handling := NavigationHistoryBehavior.AUTO
+    // an optional serialized state-or-null navigationAPIState (default null)
+    // an optional entry list or null formDataEntryList (default null)
+    // an optional referrer policy referrerPolicy (default the empty string)
+    referrer_policy := ReferrerPolicy.EmptyString
+    // and an optional user navigation involvement userInvolvement (default "none"):
+    user_involvement := UserNavigationInvolvement.None
+}
 
-navigable navigable
-URL url
-Document sourceDocument, 
-optional POST resource, string, or null documentResource (default null)
-an optional response-or-null response (default null)
-an optional boolean exceptionsEnabled (default false)
-an optional NavigationHistoryBehavior historyHandling (default "auto")
-an optional serialized state-or-null navigationAPIState (default null)
-an optional entry list or null formDataEntryList (default null)
-an optional referrer policy referrerPolicy (default the empty string)
-and an optional user navigation involvement userInvolvement (default "none"):
-*/
-navigate :: fonc (user_agent: *UserAgent,
-                  navigable: *Navigable,
-                  url: *URL,
-                  source_document: *Document,
-                  history_handling := NavigationHistoryBehavior.AUTO,
-                  referrer_policy := ReferrerPolicy.EmptyString,
-                  user_involvement := UserNavigationInvolvement.None)
+navigate :: fonc (user_agent: *UserAgent, navigable: *Navigable, empl params: ParamètresNavigationNavigable)
 {
     // 1. Let cspNavigationType be "form-submission" if formDataEntryList is non-null; otherwise "other".
 

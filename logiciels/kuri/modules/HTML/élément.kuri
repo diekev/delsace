@@ -1116,7 +1116,13 @@ follow_the_hyperlink :: fonc (subject: *Élément, hyperlink_suffix := crée_cha
     source_document := subject.document
     user_agent := source_document.donne_user_agent()
     url := url_parser(user_agent, url_string)
-    navigate(user_agent, target_navigable, url, source_document, referrer_policy = referrer_policy, user_involvement = user_involvement)
+
+    params: ParamètresNavigationNavigable
+    params.url = url
+    params.source_document = source_document
+    params.referrer_policy = referrer_policy
+    params.user_involvement = user_involvement
+    navigate(user_agent, target_navigable, params)
 }
 
 /* https://html.spec.whatwg.org/multipage/semantics.html#get-an-element's-target */
