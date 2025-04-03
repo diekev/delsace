@@ -2545,7 +2545,7 @@ fetch_and_process_linked_ressource_default :: fonc (user_agent: *UserAgent, el: 
         diffère détruit_response(réponse)
 
         body_bytes: chaine
-        si réponse.body_info {
+        si réponse.body_info && réponse.body.possède_valeur() {
             body_bytes = réponse.body.Quelque
         }
 
