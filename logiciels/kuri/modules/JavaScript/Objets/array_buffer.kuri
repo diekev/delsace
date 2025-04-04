@@ -1,0 +1,26 @@
+/* ------------------------------------------------------------------------- */
+/** \nom ArrayBuffer
+ * https://tc39.es/ecma262/multipage/structured-data.html#sec-properties-of-the-arraybuffer-instances
+ * \{ */
+
+#portée_fichier
+
+table_virtuelle_array_buffer := TableVirtuelleObject(classe = ArrayBuffer)
+
+#portée_export
+
+ArrayBuffer :: struct {
+    empl objet: Object
+    table = *table_virtuelle_array_buffer
+}
+
+/* Cette fonction n'est utilisé que par HTML pour WebIDL */
+to_array_buffer :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur) -> CompletionRecord
+{
+    saufsi valeur.est_object() && valeur.donne_objet().table.classe == ArrayBuffer {
+        retourne lance_type_error(interpréteuse, "object is not an ArrayBuffer")
+    }
+    retourne normal_completion(valeur)
+}
+
+/** \} */

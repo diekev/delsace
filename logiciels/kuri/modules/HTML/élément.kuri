@@ -5,7 +5,7 @@ importe Dessin
 importe Fondation
 importe Géométrie
 importe Image
-JavaScript :: importe JavaScript
+JS :: importe JavaScript
 importe MIME
 importe Unicode
 
@@ -109,7 +109,7 @@ table_virtuelle_élément := TableVirtuelleÉlément(
     déloge(élément.liste_classes)
 }
 
-élément_sur_destruction :: fonc (base: *JavaScript.Cellule)
+élément_sur_destruction :: fonc (base: *JS.Cellule)
 {
     élément := base comme *Élément
     élément_détruit_données(élément)
@@ -884,6 +884,9 @@ définis_inner_html :: fonc (élément: *Élément, texte: DOMString)
     enfants := context.enfants
     context.enfants = fragment.enfants
     fragment.enfants = enfants
+
+    // À FAIRE : reconstruction partielle de l'arbre
+    élément.document.invalide_style()
 }
 
 /** \} */
@@ -1424,7 +1427,7 @@ table_virtuelle_canvas_element := TableVirtuelleÉlément(
     sur_destruction = canvas_element_sur_destruction
 )
 
-canvas_element_sur_destruction :: fonc (base: *JavaScript.Cellule)
+canvas_element_sur_destruction :: fonc (base: *JS.Cellule)
 {
     élément_sur_destruction(base)
     canvas := base comme *HTMLCanvasElement
@@ -2276,7 +2279,7 @@ image_element_sur_applique_presentational_hints :: fonc (base: *Élément, réso
     ajoute_propriété_pour_dimension(résolveuse, base, ATTR_height, CSS.PROP_height)
 }
 
-image_element_sur_destruction :: fonc (base: *JavaScript.Cellule)
+image_element_sur_destruction :: fonc (base: *JS.Cellule)
 {
     élément := base comme *HTMLImageElement
     élément_détruit_données(élément)
@@ -2782,7 +2785,7 @@ table_virtuelle_input_element := TableVirtuelleÉlément(
     sur_activation_behavior = input_element_sur_activation_behavior
 )
 
-input_element_sur_destruction :: fonc (base: *JavaScript.Cellule)
+input_element_sur_destruction :: fonc (base: *JS.Cellule)
 {
     élément := base comme *HTMLInputElement
     élément_détruit_données(élément)
@@ -3628,7 +3631,7 @@ table_virtuelle_object_element := TableVirtuelleÉlément(
     sur_changement_attribut = object_element_sur_changement_attribut
 )
 
-object_element_sur_destruction :: fonc (base: *JavaScript.Cellule)
+object_element_sur_destruction :: fonc (base: *JS.Cellule)
 {
     élément := base comme *HTMLObjectElement
     élément_détruit_données(élément)

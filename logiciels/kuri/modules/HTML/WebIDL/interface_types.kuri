@@ -1,0 +1,44 @@
+importe Chaine
+JS :: importe JavaScript
+
+/* ------------------------------------------------------------------------- */
+/** \nom DOMException
+ * https://webidl.spec.whatwg.org/#idl-DOMException
+ * https://webidl.spec.whatwg.org/#js-exceptions
+ * \{ */
+
+#portée_fichier
+
+__table_virtuelle_dom_exception := TableVirtuellePlatformObject(classe = DOMException)
+
+#portée_export
+
+DOMException :: struct {
+    empl platform_object: PlatformObject
+    table = *__table_virtuelle_dom_exception
+
+    name: DOMString
+    message: DOMString
+
+    js_message: *JS.PrimitiveChaine @slot "[[ErrorData]]"
+}
+
+crée_dom_exception :: fonc (realm: *JS.Realm, name: chaine, message: chaine) -> *DOMException
+{
+    tas_de_mémoire := JS.donne_tas_de_mémoire(realm)
+
+    résultat := JS.alloue(tas_de_mémoire, DOMException)
+    résultat.prototype = realm.intrinsics.error_prototype
+
+    JS.initialise_error_object(realm, résultat, crée_chaine_utf16_unique(name), message)
+
+    retourne résultat
+}
+
+throw_dom_exception :: fonc (realm: *JS.Realm, name: chaine, message: chaine) -> JS.CompletionRecord
+{
+    exception := crée_dom_exception(realm, name, message)
+    retourne JS.throw_completion(JS.Valeur(Object = exception))
+}
+
+/** \} */
