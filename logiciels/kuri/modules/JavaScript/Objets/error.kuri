@@ -15,6 +15,8 @@ table_virtuelle_error := TableVirtuelleObject(classe = Error)
 Error :: struct {
     empl objet: Object
     table = *table_virtuelle_error
+
+    message: *PrimitiveChaine @slot "[[ErrorData]]"
 }
 
 /** \} */
@@ -45,8 +47,6 @@ crée_error_prototype :: fonc (realm: *Realm, prototype: *ObjectPrototype) -> *E
     retourne résultat
 }
 
-#portée_module
-
 initialise_error_object :: fonc (realm: *Realm, object: *Object, nom: ECMAString, message: chaine)
 {
     si realm {
@@ -68,6 +68,8 @@ initialise_error_object :: fonc (realm: *Realm, object: *Object, nom: ECMAString
     initialise_property_descriptor(*desc, Valeur(String = crée_chaine(object.donne_tas_de_mémoire(), crée_chaine_utf16_unique(message))), DrapeauxPropriété.zéro)
     _ := define_property_or_throw(object, STR_message, desc)
 }
+
+#portée_module
 
 imprime_traceback :: fonc (enchaineuse: *Enchaineuse, realm: *Realm)
 {
@@ -264,29 +266,21 @@ table_virtuelle_uri_error := TableVirtuelleObject(classe = URIError)
 EvalError :: struct {
     empl error: Error
     table = *table_virtuelle_eval_error
-
-    message: *PrimitiveChaine
 }
 
 RangeError :: struct {
     empl error: Error
     table = *table_virtuelle_range_error
-
-    message: *PrimitiveChaine
 }
 
 ReferenceError :: struct {
     empl error: Error
     table = *table_virtuelle_reference_error
-
-    message: *PrimitiveChaine
 }
 
 SyntaxError :: struct {
     empl error: Error
     table = *table_virtuelle_syntax_error
-
-    message: *PrimitiveChaine
 }
 
 crée_erreur_de_parsage :: fonc (realm: *Realm, message: chaine) -> *SyntaxError
@@ -299,19 +293,14 @@ crée_erreur_de_parsage :: fonc (realm: *Realm, message: chaine) -> *SyntaxError
     retourne résultat
 }
 
-
 TypeError :: struct {
     empl error: Error
     table = *table_virtuelle_type_error
-
-    message: *PrimitiveChaine
 }
 
 URIError :: struct {
     empl error: Error
     table = *table_virtuelle_uri_error
-
-    message: *PrimitiveChaine
 }
 
 /** \} */

@@ -1,11 +1,11 @@
 importe HTML
-JavaScript :: importe JavaScript
+JS :: importe JavaScript
 
 principale :: fonc ()
 {
-    mv: JavaScript.MachineVirtuelle
-    JavaScript.initialise_mv(nul, *mv)
-    diffère JavaScript.détruit_données_mv(*mv)
+    mv: JS.MachineVirtuelle
+    JS.initialise_mv(nul, *mv)
+    diffère JS.détruit_données_mv(*mv)
 
     paramètres: ParamètresEntropisation
     paramètres.limite_haute_profondeur = 5

@@ -310,6 +310,7 @@ EVT_onmessage : DOMString = ---
 EVT_onmessageerror : DOMString = ---
 EVT_onoffline : DOMString = ---
 EVT_ononline : DOMString = ---
+EVT_onopen : DOMString = ---
 EVT_onpageswap : DOMString = ---
 EVT_onpagehide : DOMString = ---
 EVT_onpagereveal : DOMString = ---

@@ -6,7 +6,7 @@ importe Chaine
 importe Compilatrice
 importe Fondation
 importe HTML
-JavaScript :: importe JavaScript
+JS :: importe JavaScript
 importe SysFichier
 importe Temps
 
@@ -45,12 +45,12 @@ principale :: fonc ()
 
     taille_contenu := contenu.taille
 
-    mv: JavaScript.MachineVirtuelle
-    JavaScript.initialise_mv(nul, *mv)
-    diffère JavaScript.détruit_données_mv(*mv)
+    mv: JS.MachineVirtuelle
+    JS.initialise_mv(nul, *mv)
+    diffère JS.détruit_données_mv(*mv)
 
     début := maintenant_précis()
-    parsat := parse_document(JavaScript.donne_tas_de_mémoire(*mv), contenu)
+    parsat := parse_document(JS.donne_tas_de_mémoire(*mv), contenu)
     diffère détruit(parsat)
 
     taille_formattée := formatte_document(parsat.document, sortie_standarde())

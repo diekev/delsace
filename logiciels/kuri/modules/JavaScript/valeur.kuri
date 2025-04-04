@@ -75,7 +75,7 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: *Valeur)
             ajoute_au_tampon(enchaineuse, n)
         }
         Object(o) {
-            si o.donne_classe() == ReferenceError || o.donne_classe() == TypeError || o.donne_classe() == SyntaxError {
+            si o.possède_slot("[[ErrorData]]") {
                 error := trouve_propriété(o, STR_message).valeur.String
                 ajoute_au_tampon(enchaineuse, o.donne_nom_classe(), ": ", error.texte)
             }
