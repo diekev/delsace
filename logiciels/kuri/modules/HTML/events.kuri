@@ -1257,7 +1257,7 @@ determine_the_target_of_an_event_handler :: fonc (event_target: *EventTarget, na
 {
     // 1. If eventTarget is not a body element or a frameset element, then return eventTarget.
     élément := est_élément(event_target)
-    si élément && !(élément.local_name == TAG_body || élément.local_name == TAG_frameset) {
+    si élément == nul || !(élément.local_name == TAG_body || élément.local_name == TAG_frameset) {
         retourne event_target
     }
 
