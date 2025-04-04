@@ -8,7 +8,7 @@ importe Fondation
 importe Géométrie
 importe HTML
 importe HTTP
-JavaScript :: importe JavaScript
+JS :: importe JavaScript
 importe OpenGL
 importe PeintureInterface
 importe Périphériques
