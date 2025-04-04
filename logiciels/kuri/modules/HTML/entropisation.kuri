@@ -123,7 +123,7 @@ détruit_fichier :: fonc (paramètres: &ParamètresEntropisation, fichier: *Fich
     }
 }
 
-programme_entropisation :: fonc (paramètres: ParamètresEntropisation, mv: *JavaScript.MachineVirtuelle)
+programme_entropisation :: fonc (paramètres: ParamètresEntropisation, mv: *JS.MachineVirtuelle)
 {
     diffère détruit_chaines_internées()
 
@@ -138,7 +138,7 @@ programme_entropisation :: fonc (paramètres: ParamètresEntropisation, mv: *Jav
 /* Crée un document aléatoire selon les paramètres, la fonction appelante a pour responsabilité
  * de détruire le document, et de s'assurer que les chaines internées utilisées par le document
  * soit valide jusqu'à sa desctruction. */
-crée_document_aléatoire :: fonc (paramètres: ParamètresEntropisation, mv: *JavaScript.MachineVirtuelle) -> *Document
+crée_document_aléatoire :: fonc (paramètres: ParamètresEntropisation, mv: *JS.MachineVirtuelle) -> *Document
 {
     ctx_kuri := initialise_contexte_kuri()
 
