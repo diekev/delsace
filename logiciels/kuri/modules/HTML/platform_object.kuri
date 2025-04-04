@@ -340,4 +340,23 @@ donne_platform_object :: fonc (interpréteuse: *JS.Interpréteuse, value: JS.Val
     retourne JS.normal_completion(JS.Valeur(Object = object));
 }
 
+InfoConstructor :: struct {
+    index: z64
+    nom: DOMString
+}
+
+__table_constructors: [..]InfoConstructor
+
+initialise_constructors :: fonc (global: *JS.Object, realm: *JS.Realm)
+{
+    pour __table_constructors {
+        constructor := realm.intrinsics.host_intrinsics[it.index]
+
+        desc: JS.PropertyDescriptor
+        JS.initialise_property_descriptor(*desc, JS.Valeur(Object = constructor), JS.DrapeauxPropriété.zéro)
+
+        _ := JS.define_property_or_throw(global, it.nom, desc)
+    }
+}
+
 /** \} */

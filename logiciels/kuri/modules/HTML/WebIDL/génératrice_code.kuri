@@ -189,6 +189,7 @@ détruit_données_interfaces :: fonc (interfaces: *Interfaces)
 {
     pour interfaces.interfaces {
         déloge(it.fonctions)
+        déloge(it.constructors)
         déloge(it.paramètres)
         déloge(it.attributs)
         déloge(it.mixins)
@@ -283,6 +284,15 @@ compile_interfaces_idl :: fonc () -> chaine
         génère_création_prototype(*enchaineuse, interfaces.interfaces, it, *interfaces.noms_et_index_parents)
     }
 
+    griffonier: Griffonier
+    pour * interfaces.interfaces {
+        saufsi it.constructors {
+            continue
+        }
+
+        ajoute_au_tampon(*enchaineuse, "    ", it.nom, "_constructor := crée_", donne_nom_snake_case(it.nom, *griffonier), "_constructor(realm, ", it.nom, "_prototype)\n")
+    }
+
     ajoute_au_tampon(*enchaineuse, "\n    si __table_indexage_prototypes.taille == 0 {\n")
     ajoute_au_tampon(*enchaineuse, "        tableau_redimensionne(__table_indexage_prototypes, ", interfaces.interfaces.taille, ")\n")
     pour interfaces.interfaces {
@@ -293,7 +303,14 @@ compile_interfaces_idl :: fonc () -> chaine
     }
     ajoute_au_tampon(*enchaineuse, "    }\n")
 
-    ajoute_au_tampon(*enchaineuse, "\n    tableau_redimensionne(realm.intrinsics.host_intrinsics, ", interfaces.interfaces.taille, ")\n")
+    nombres_intrinsèques := interfaces.interfaces.taille;
+    pour interfaces.interfaces {
+        si it.constructors {
+            nombres_intrinsèques += 1
+        }
+    }
+
+    ajoute_au_tampon(*enchaineuse, "\n    tableau_redimensionne(realm.intrinsics.host_intrinsics, ", nombres_intrinsèques, ")\n")
 
     pour interfaces.interfaces {
         si it.est_mixin {
@@ -301,6 +318,32 @@ compile_interfaces_idl :: fonc () -> chaine
         }
         ajoute_au_tampon(*enchaineuse, "    realm.intrinsics.host_intrinsics[", index_it, "] = ", it.nom, "_prototype\n")
     }
+
+    index_intrinsèque := interfaces.interfaces.taille
+    pour interfaces.interfaces {
+        saufsi it.constructors {
+            continue
+        }
+
+        ajoute_au_tampon(*enchaineuse, "    realm.intrinsics.host_intrinsics[", index_intrinsèque, "] = ", it.nom, "_constructor\n")
+        index_intrinsèque += 1
+    }
+
+    nombre_de_constructros := index_intrinsèque - interfaces.interfaces.taille
+    index_intrinsèque = interfaces.interfaces.taille
+
+    ajoute_au_tampon(*enchaineuse, "    si __table_constructors.taille == 0 {\n")
+    ajoute_au_tampon(*enchaineuse, "        tableau_redimensionne(__table_constructors, ", nombre_de_constructros, ")\n")
+    index_constructor := 0
+    pour interfaces.interfaces {
+        saufsi it.constructors {
+            continue
+        }
+
+        ajoute_au_tampon(*enchaineuse, "        __table_constructors[", index_constructor, "] = InfoConstructor(", index_intrinsèque, ", crée_chaine_utf16_unique(\"", it.nom, "\"))\n")
+        index_intrinsèque += 1
+    }
+    ajoute_au_tampon(*enchaineuse, "    }\n")
 
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
@@ -375,6 +418,7 @@ Interface :: struct {
     paramètres: [..]Paramètre
     attributs: [..]Attribut
     fonctions: [..]Fonction
+    constructors: [..]Fonction
     mixins: [..]chaine
 
     création_générée := faux
@@ -441,6 +485,8 @@ génère_enveloppes_javascript :: fonc (enchaineuse: *Enchaineuse, interface: *I
     pour * interface.fonctions {
         génère_enveloppe_javascript(enchaineuse, interface, it, *griffonier)
     }
+
+    génère_constructor(enchaineuse, interface, *griffonier)
 
     pour * interface.attributs {
         génère_enveloppe_javascript_getter(enchaineuse, interface, it, *griffonier)
@@ -523,6 +569,87 @@ génère_enveloppe_javascript :: fonc (enchaineuse: *Enchaineuse, interface: *In
     génère_code_conversion_résultat(enchaineuse, *fonction.type_retour)
 
     ajoute_au_tampon(enchaineuse, "}\n")
+}
+
+génère_constructor :: fonc (enchaineuse: *Enchaineuse, interface: *Interface, griffonier: *Griffonier)
+{
+    saufsi interface.constructors {
+        retourne
+    }
+
+chaine_déclaration_constructor := «
+\\(0)Constructor :: struct {
+    empl builtin_function: JS.BuiltInFunction
+    table = *table_virtuelle_\\(1)_constructor
+
+    sur_call_or_construct = \\(1)_call_or_construct
+}
+
+crée_\\(1)_constructor :: fonc (realm: *JS.Realm, prototype: *JS.Object) -> *\\(0)Constructor
+{
+    // assert(prototype == realm.intrinsics.\\(1)_prototype)
+    tas_de_mémoire := JS.donne_tas_de_mémoire(realm)
+    résultat := JS.alloue(tas_de_mémoire, \\(0)Constructor)
+
+    STR_\\(0) := crée_chaine_utf16_unique("\\(0)")
+
+    JS.create_builtin_function(résultat, 1, STR_\\(0), realm, realm.intrinsics.function_prototype)
+
+    JS.ajoute_propriété(résultat, JS.STR_prototype, JS.Valeur(Object = prototype), JS.DrapeauxPropriété.zéro)
+
+    JS.ajoute_propriété(prototype, JS.STR_constructor, JS.Valeur(Object = résultat), JS.DrapeauxPropriété.zéro)
+
+    retourne résultat
+}
+
+#portée_fichier
+
+table_virtuelle_\\(1)_constructor := JS.TableVirtuelleBuiltinFunction(classe = \\(0)Constructor)
+
+\\(1)_call_or_construct :: fonc (params: *JS.ParamètresCallOrConstruct) -> JS.CompletionRecord
+{
+    realm := JS.donne_realm(params.interpréteuse)
+
+    si JS.est_undefined(params.new_target) {
+        retourne JS.lance_type_error(params.interpréteuse, "missing 'new' to construct \\(0)")
+    }
+
+    object_this := crée_platform_object(JS.donne_tas_de_mémoire(realm), realm, \\(0));
+    completion: JS.CompletionRecord
+    interpréteuse := params.interpréteuse
+»
+
+    chaine_fin_constructor := «
+}
+
+#portée_export
+»
+
+    nom_snake_case := donne_nom_snake_case(interface.nom, griffonier)
+    fmt_imprime_dans_enchaineuse(enchaineuse, chaine_déclaration_constructor, interface.nom, nom_snake_case)
+
+    /* À FAIRE : plusieurs constructeurs */
+    constructor := *interface.constructors[0]
+
+    // Conversion des paramètres
+    paramètres := interface.donne_paramètres(constructor)
+    pour paramètres {
+        génère_code_conversion_argument(enchaineuse, it.nom, index_it, *it.type)
+    }
+
+    ajoute_au_tampon(enchaineuse, "    retourne ", nom_snake_case, "_construct")
+
+    virgule := "(params.interpréteuse, object_this, "
+    si paramètres.taille == 0 {
+        ajoute_au_tampon(enchaineuse, "(params.interpréteuse, object_this")
+    }
+    sinon pour paramètres {
+        ajoute_au_tampon(enchaineuse, virgule, it.nom)
+        virgule = ", "
+    }
+    ajoute_au_tampon(enchaineuse, ")")
+
+    fmt_imprime_dans_enchaineuse(enchaineuse, chaine_fin_constructor, interface.nom, nom_snake_case)
 }
 
 génère_enveloppe_javascript_getter :: fonc (enchaineuse: *Enchaineuse, interface: *Interface, attribut: *Attribut, griffonier: *Griffonier)
@@ -800,9 +927,16 @@ parse_une_fonction :: fonc (parseuse: *ParseuseInterface, interface: *Interface)
         _ := donne_lexème_suivant(parseuse)
     }
 
-    parse_type(parseuse, *résultat.type_retour)
-    résultat.nom = donne_lexème_suivant(parseuse)
-    résultat.premier_paramètre = interface.paramètres.taille
+    est_constructor := faux
+    si parseuse.apparie("constructor") {
+        est_constructor = vrai
+        _ := parseuse.donne_lexème_suivant()
+    }
+    sinon {
+        parse_type(parseuse, *résultat.type_retour)
+        résultat.nom = donne_lexème_suivant(parseuse)
+        résultat.premier_paramètre = interface.paramètres.taille
+    }
 
     saufsi consomme_caractère(parseuse, '(') {
         rapporte_erreur(parseuse, "attendu '('", donne_lexème_suivant(parseuse))
@@ -831,7 +965,13 @@ parse_une_fonction :: fonc (parseuse: *ParseuseInterface, interface: *Interface)
     }
 
     résultat.dernier_paramètre = interface.paramètres.taille
-    tableau_ajoute(*interface.fonctions, résultat)
+
+    si est_constructor {
+        tableau_ajoute(*interface.constructors, résultat)
+    }
+    sinon {
+        tableau_ajoute(*interface.fonctions, résultat)
+    }
 
     consomme_point_virgule(parseuse)
 }

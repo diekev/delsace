@@ -120,6 +120,8 @@ crée_objet_window :: fonc (user_agent: *UserAgent, tas_de_mémoire: *JS.TasDeM�
 
     JS.ajoute_propriété(résultat, crée_chaine_utf16_unique("console"), JS.Valeur(Object = console), JS.Enumerable | JS.Configurable | JS.Writable)
 
+    initialise_constructors(résultat, realm)
+
     retourne résultat
 }
 
