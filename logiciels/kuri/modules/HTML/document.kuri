@@ -3,7 +3,7 @@ CSS :: importe CSS
 importe Ensemble
 importe Fondation
 importe Image
-JavaScript :: importe JavaScript
+JS :: importe JavaScript
 
 /* ------------------------------------------------------------------------- */
 /** \nom Document.
@@ -146,7 +146,7 @@ table_virtuelle_document := TableVirtuelleNoeud(
     sur_destruction = document_sur_destruction
 )
 
-document_sur_destruction :: fonc (base: *JavaScript.Cellule)
+document_sur_destruction :: fonc (base: *JS.Cellule)
 {
     noeud_sur_destruction(base)
     document := base comme *Document
@@ -169,7 +169,7 @@ document_sur_destruction :: fonc (base: *JavaScript.Cellule)
 
 #portée_export
 
-crée_noeud_document :: fonc (tas_de_mémoire: *JavaScript.TasDeMémoire, realm: *JavaScript.Realm) -> *Document
+crée_noeud_document :: fonc (tas_de_mémoire: *JS.TasDeMémoire, realm: *JS.Realm) -> *Document
 {
     document := crée_platform_object(tas_de_mémoire, realm, Document)
     document.genre = GenreNoeud.Document
@@ -973,7 +973,7 @@ table_virtuelle_texte := TableVirtuelleNoeud(
     sur_destruction = texte_sur_destruction
 )
 
-texte_sur_destruction :: fonc (base: *JavaScript.Cellule)
+texte_sur_destruction :: fonc (base: *JS.Cellule)
 {
     noeud_sur_destruction(base)
     texte := base comme *NoeudTexte
@@ -1010,7 +1010,7 @@ table_virtuelle_section_cdata := TableVirtuelleNoeud(
     sur_destruction = section_cdata_sur_destruction
 )
 
-section_cdata_sur_destruction :: fonc (base: *JavaScript.Cellule)
+section_cdata_sur_destruction :: fonc (base: *JS.Cellule)
 {
     noeud_sur_destruction(base)
     section_cdata := base comme *NoeudSectionCDATA
@@ -1048,7 +1048,7 @@ table_virtuelle_commentaire := TableVirtuelleNoeud(
     sur_destruction = commentaire_sur_destruction
 )
 
-commentaire_sur_destruction :: fonc (base: *JavaScript.Cellule)
+commentaire_sur_destruction :: fonc (base: *JS.Cellule)
 {
     noeud_sur_destruction(base)
     commentaire := base comme *NoeudCommentaire
@@ -1088,7 +1088,7 @@ table_virtuelle_processing_instruction := TableVirtuelleNoeud(
     sur_destruction = processing_instruction_sur_destruction
 )
 
-processing_instruction_sur_destruction :: fonc (base: *JavaScript.Cellule)
+processing_instruction_sur_destruction :: fonc (base: *JS.Cellule)
 {
     noeud_sur_destruction(base)
     processing_instruction := base comme *NoeudProcessingInstruction
