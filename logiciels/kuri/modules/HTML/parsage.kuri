@@ -3,8 +3,6 @@ importe Fondation
 JS :: importe JavaScript
 importe Unicode
 
-charge "tags_html"
-
 TypeFonctionModeInsertion :: fonc(*Parseuse, Lexème)(rien)
 
 Parseuse :: struct {
