@@ -3,7 +3,7 @@
  * d'IGUMI pour dessiner des formes dans une interface graphique.
  */
 
-importe #inemployé CSS
+CSS :: importe CSS
 importe Chaine
 importe Couleur
 importe Dessin

@@ -2110,8 +2110,10 @@ RésultatValidation Sémanticienne::valide_types_paramètres_fonction(
         }
 
         if (decl->param_sortie->type != TypeBase::RIEN) {
-            m_espace->rapporte_erreur(decl->param_sortie,
-                                      "La fonction principale ne doit pas retourner de valeur. Si vous voulez retourner une valeur autre que 0, veuillez utiliser exit().");
+            m_espace->rapporte_erreur(
+                decl->param_sortie,
+                "La fonction principale ne doit pas retourner de valeur. Si vous voulez retourner "
+                "une valeur autre que 0, veuillez utiliser exit().");
             return CodeRetourValidation::Erreur;
         }
     }
@@ -6493,7 +6495,12 @@ RésultatValidation Sémanticienne::valide_instruction_importe(NoeudInstructionI
         auto noeud_module = m_assembleuse->crée_noeud<GenreNoeud::DÉCLARATION_MODULE>(inst->lexème)
                                 ->comme_déclaration_module();
         noeud_module->module = module;
-        noeud_module->ident = module->nom();
+        if (inst->ident) {
+            noeud_module->ident = inst->ident;
+        }
+        else {
+            noeud_module->ident = module->nom();
+        }
         noeud_module->bloc_parent = inst->bloc_parent;
         noeud_module->bloc_parent->ajoute_membre(noeud_module);
         noeud_module->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
