@@ -88,24 +88,33 @@ crée_objet_window :: fonc (user_agent: *UserAgent, tas_de_mémoire: *JavaScript
     crée_location(résultat)
     crée_screen(résultat, user_agent)
 
-    flux_sortie_sur_destruction :: fonc (base: *JavaScript.FluxSortieConsole)
-    {
-        déloge(base)
+    FluxSortieConsole :: struct {
+        empl flux: JavaScript.FluxSortieConsole
+
+        user_agent: *UserAgent
+        window: *Window
     }
 
-    flux_sortie_sur_log :: fonc (base: *JavaScript.FluxSortieConsole @inutilisée, texte: chaine)
+    flux_sortie_sur_destruction :: fonc (flux: *FluxSortieConsole)
     {
-        imprime("%\n", texte)
+        déloge(flux)
+    }
+
+    flux_sortie_sur_log :: fonc (empl flux: *FluxSortieConsole, texte: chaine)
+    {
+        user_agent.rapporte_log(window.document, copie_chaine(texte))
     }
 
     flux_sortie_sur_efface :: fonc (base: *JavaScript.FluxSortieConsole @inutilisée)
     {
     }
 
-    flux := loge(JavaScript.FluxSortieConsole)
+    flux := loge(FluxSortieConsole)
     flux.sur_destruction = flux_sortie_sur_destruction
     flux.sur_log = flux_sortie_sur_log
     flux.sur_efface = flux_sortie_sur_efface
+    flux.user_agent = user_agent
+    flux.window = résultat
 
     console := JavaScript.crée_console(tas_de_mémoire, flux, nul)
 

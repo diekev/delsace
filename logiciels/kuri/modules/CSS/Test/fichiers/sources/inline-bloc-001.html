@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Test CSS : hiérarchie de block/inline-block</title>
+    <style>
+        * {
+            border: 1px solid black;
+        }
+
+        .outer {
+            width: 500px;
+        }
+
+        .inner1 {
+            display: inline-block;
+        }
+
+        .inner2 {
+            display: block;
+        }
+
+        .inner3 {
+            display: inline-block;
+        }
+    </style>
+</head>
+
+<body>
+    <p>Le test passe si les deux textes sont côte-à-côte.</p>
+    <div class="outer">
+        <span class="inner1">
+            <span class="inner2">
+                <div class="inner3">Texte</div>
+            </span>
+        </span>
+        <span class="inner1">
+            <span class="inner2">
+                <div class="inner3">Texte</div>
+            </span>
+        </span>
+    </div>
+</body>
+
+</html>
