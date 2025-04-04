@@ -1,11 +1,36 @@
 importe Fondation
 
 /* ------------------------------------------------------------------------- */
+/** \nom 3. The Blob Interface and Binary Data
+ * \{ */
+
+Blob :: struct {
+    empl platform_object: PlatformObject
+    table = *__table_virtuelle_blob
+
+    bytes: [..]octet
+}
+
+#portée_fichier
+
+__table_virtuelle_blob := TableVirtuellePlatformObject(classe = Blob, sur_destruction = blob_sur_destruction)
+
+blob_sur_destruction :: fonc (base: *JS.Cellule)
+{
+    platform_object_sur_destruction(base)
+    blob := base comme *Blob
+    déloge(blob.bytes)
+}
+
+#portée_export
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom 8.2. Model
  * https://w3c.github.io/FileAPI/#url-model
  * \{ */
 
-Blob :: struct {}
 MediaSource :: struct {}
 
 /* https://w3c.github.io/FileAPI/#BlobURLStore */

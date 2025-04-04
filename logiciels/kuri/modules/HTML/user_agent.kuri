@@ -1,6 +1,6 @@
 importe HTTP
 importe Fondation
-JavaScript :: importe JavaScript
+JS :: importe JavaScript
 
 /* ------------------------------------------------------------------------- */
 /** \nom UserAgent
@@ -9,7 +9,7 @@ JavaScript :: importe JavaScript
  * \{ */
 
 UserAgent :: struct {
-    empl hôte: JavaScript.Hôte
+    empl hôte: JS.Hôte
 
     /* https://html.spec.whatwg.org/multipage/document-sequences.html#top-level-traversable-set */
     top_level_traversables: [..]*TraversableNavigable
@@ -19,7 +19,7 @@ UserAgent :: struct {
     /* Connexion avec l'interface graphique. */
     rappels_interface: *RappelsInterface
 
-    mv: JavaScript.MachineVirtuelle
+    mv: JS.MachineVirtuelle
     blob_url_store: BlobURLStore
 
     supporte_scripting: bool
@@ -35,10 +35,10 @@ UserAgent :: struct {
 initialise_user_agent :: fonc (user_agent: *UserAgent)
 {
     user_agent.sur_visite_cellules = sur_visite_cellules_hôte
-    JavaScript.initialise_mv(user_agent, *user_agent.mv)
+    JS.initialise_mv(user_agent, *user_agent.mv)
 }
 
-donne_tas_de_mémoire :: fonc (user_agent: *UserAgent) -> *JavaScript.TasDeMémoire
+donne_tas_de_mémoire :: fonc (user_agent: *UserAgent) -> *JS.TasDeMémoire
 {
     retourne *user_agent.mv.tas_de_mémoire
 }
@@ -57,7 +57,7 @@ détruit_données_user_agent :: fonc (user_agent: *UserAgent)
         détruit_rappels(user_agent.rappels_interface)
         user_agent.rappels_interface = nul
     }
-    JavaScript.détruit_données_mv(*user_agent.mv)
+    JS.détruit_données_mv(*user_agent.mv)
     détruit_données_store(*user_agent.blob_url_store)
 }
 
@@ -77,10 +77,10 @@ définis_rappels_interface :: fonc (user_agent: *UserAgent, rappels: *RappelsInt
 
 #portée_fichier
 
-sur_visite_cellules_hôte :: fonc (base: *JavaScript.Hôte, visiteuse: *JavaScript.VisiteuseCellule)
+sur_visite_cellules_hôte :: fonc (base: *JS.Hôte, visiteuse: *JS.VisiteuseCellule)
 {
     user_agent := base comme *UserAgent
-    JavaScript.visite_objet(visiteuse, user_agent)
+    JS.visite_objet(visiteuse, user_agent)
 }
 
 #portée_export
@@ -156,6 +156,7 @@ SourceDeTâche :: énum {
     Réseautage
     NavigationEtTraversée
     Rendu
+    WebSocket
 }
 
 /* ------------------------------------------------------------------------- */
@@ -165,6 +166,7 @@ SourceDeTâche :: énum {
 RappelsInterface :: struct {
     sur_destruction: fonc(*RappelsInterface)(rien)
     sur_lancement_requête: fonc(*RappelsInterface, *Request)(*Response)
+    sur_lancement_requête_websocket: fonc(*RappelsInterface, *WebSocket, *EnvironmentSettings)(rien)
     sur_spin_event_loop: fonc(*RappelsInterface)(rien)
     sur_élément_survolé: fonc(*RappelsInterface)(rien)
     sur_requête_rendu: fonc(*RappelsInterface)(rien)
@@ -232,6 +234,16 @@ lance_requête :: fonc (user_agent: *UserAgent, request: *Request) -> *Response
     }
 
     retourne rappels.sur_lancement_requête(rappels, request)
+}
+
+lance_requête_websocket :: fonc (user_agent: *UserAgent, web_socket: *WebSocket, client: *EnvironmentSettings)
+{
+    rappels := user_agent.rappels_interface
+    saufsi rappels && rappels.sur_lancement_requête_websocket {
+        /* À FAIRE */
+        retourne
+    }
+    rappels.sur_lancement_requête_websocket(rappels, web_socket, client)
 }
 
 enfile_une_tâche :: fonc (user_agent: *UserAgent, source: SourceDeTâche, algorithm: *Algorithm)
@@ -526,7 +538,7 @@ queue_a_task :: fonc (user_agent: *UserAgent, source: SourceDeTâche, steps: *Al
 }
 
 /* https://html.spec.whatwg.org/multipage/webappapis.html#queue-a-global-task */
-queue_a_globask_task :: fonc (user_agent: *UserAgent, source: SourceDeTâche, global_object: *JavaScript.Object @inutilisée, steps: *Algorithm)
+queue_a_globask_task :: fonc (user_agent: *UserAgent, source: SourceDeTâche, global_object: *JS.Object @inutilisée, steps: *Algorithm)
 {
     // À FAIRE : 1. Let event loop be global's relevant agent's event loop.
 
