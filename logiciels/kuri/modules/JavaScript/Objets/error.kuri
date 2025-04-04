@@ -47,8 +47,6 @@ crée_error_prototype :: fonc (realm: *Realm, prototype: *ObjectPrototype) -> *E
     retourne résultat
 }
 
-#portée_module
-
 initialise_error_object :: fonc (realm: *Realm, object: *Object, nom: ECMAString, message: chaine)
 {
     si realm {
@@ -70,6 +68,8 @@ initialise_error_object :: fonc (realm: *Realm, object: *Object, nom: ECMAString
     initialise_property_descriptor(*desc, Valeur(String = crée_chaine(object.donne_tas_de_mémoire(), crée_chaine_utf16_unique(message))), DrapeauxPropriété.zéro)
     _ := define_property_or_throw(object, STR_message, desc)
 }
+
+#portée_module
 
 imprime_traceback :: fonc (enchaineuse: *Enchaineuse, realm: *Realm)
 {
