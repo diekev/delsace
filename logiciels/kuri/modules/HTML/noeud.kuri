@@ -1,7 +1,7 @@
 importe Chaine
 importe CSS
 importe Fondation
-JavaScript :: importe JavaScript
+JS :: importe JavaScript
 
 /* ------------------------------------------------------------------------- */
 /** \nom Noeud
@@ -71,7 +71,7 @@ Noeud :: struct {
 
 #portée_module
 
-noeud_sur_destruction :: fonc (base: *JavaScript.Cellule)
+noeud_sur_destruction :: fonc (base: *JS.Cellule)
 {
     event_target_sur_destruction(base)
     noeud := base comme *Noeud
