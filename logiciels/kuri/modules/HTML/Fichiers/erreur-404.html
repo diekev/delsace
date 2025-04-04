@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Erreur de chargement de la page</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="erreur">
+        <div class="contenant">
+            <div id="contenant-texte">
+                <h1>Fichier introuvable</h1>
+            </div>
+            <p>{{nom-navigateur}} ne peut trouver le fichier à l'adresse {{url}}</p>
+            <div>
+                <ul>
+                    <li>Vérifiez la syntaxe du nom de fichier (dont le respect des minuscules/majuscules) ;</li>
+                    <li>Vérifize si le fichier n'a pas été déplacé, renommé ou supprimé</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

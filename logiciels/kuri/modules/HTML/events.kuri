@@ -941,12 +941,17 @@ inner_invoke :: fonc (event: *Event, listeners: []EventTarget.EventListenerEntry
             continue
         }
 
-        call_a_user_object_operation(JavaScript.Valeur(Object = it.callback.object), arguments, JavaScript.Valeur(Object = event.current_target))
+        completion := call_a_user_object_operation(JavaScript.Valeur(Object = it.callback.object), arguments, JavaScript.Valeur(Object = event.current_target))
+        saufsi JavaScript.est_normal(completion) {
+            // À FAIRE : it.callback.callback_context.donne_global_object()
+            global := event.target.realm.global_object
+            report_an_exception(completion.valeur.V, global)
+        }
     }
 }
 
 /* https://webidl.spec.whatwg.org/#call-a-user-objects-operation */
-call_a_user_object_operation :: fonc (value: JavaScript.Valeur, args: []JavaScript.Valeur, this_arg: JavaScript.Valeur)
+call_a_user_object_operation :: fonc (value: JavaScript.Valeur, args: []JavaScript.Valeur, this_arg: JavaScript.Valeur) -> JavaScript.CompletionRecord
 {
     // imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
 
@@ -958,11 +963,10 @@ call_a_user_object_operation :: fonc (value: JavaScript.Valeur, args: []JavaScri
     prepare_to_run_script(settings)
 
     evaluation_status := JavaScript.call(JavaScript.donne_mv(realm), value, this_arg, args)
-    saufsi JavaScript.est_normal(evaluation_status) {
-        imprime("[%] %\n", #nom_de_cette_fonction, evaluation_status)
-    }
 
     cleanup_after_running_script(settings)
+
+    retourne evaluation_status
 }
 
 /** \} */
@@ -1322,19 +1326,18 @@ event_handler_processor_sur_appel :: fonc (params: *JavaScript.ParamètresObject
     processor := JavaScript.vérifie_comme(params.object, EventHandlerProcessor)
     objet := JavaScript.donne_objet(JavaScript.donne_argument(params, 0))
     event := JavaScript.vérifie_comme(objet, Event)
-    process_event_handler(processor.event_target, processor.nom, event)
-    retourne JavaScript.normal_completion(JavaScript.js_undefined)
+    retourne process_event_handler(processor.event_target, processor.nom, event)
 }
 
 /* https://html.spec.whatwg.org/multipage/webappapis.html#the-event-handler-processing-algorithm */
-process_event_handler :: fonc (event_target: *EventTarget, nom: DOMString, event: *Event)
+process_event_handler :: fonc (event_target: *EventTarget, nom: DOMString, event: *Event) -> JavaScript.CompletionRecord
 {
     // 1. Let callback be the result of getting the current value of the event handler given eventTarget and name.
     callback := get_the_current_value_of_the_event_handler(event_target, nom)
 
     // 2. If callback is null, then return.
     si callback == nul {
-        retourne
+        retourne JavaScript.normal_completion(JavaScript.js_undefined)
     }
 
     // À FAIRE : 3. Let special error event handling be true if event is an ErrorEvent object, event's type is "error", and event's currentTarget implements the WindowOrWorkerGlobalScope mixin. Otherwise, let special error event handling be false.
@@ -1358,7 +1361,11 @@ process_event_handler :: fonc (event_target: *EventTarget, nom: DOMString, event
 
         this_value := JavaScript.Valeur(Object = event.current_target)
 
-        call_a_user_object_operation(JavaScript.Valeur(Object = callback.object), args, this_value)
+        completion := call_a_user_object_operation(JavaScript.Valeur(Object = callback.object), args, this_value)
+        saufsi JavaScript.est_normal(completion) {
+            retourne completion
+        }
+        return_value = completion.valeur.V
     }
 
     // 5. Process return value as follows:
@@ -1377,6 +1384,8 @@ process_event_handler :: fonc (event_target: *EventTarget, nom: DOMString, event
     si JavaScript.est_false(return_value) {
         event.canceled = vrai
     }
+
+    retourne JavaScript.normal_completion(return_value)
 }
 
 table_virtuelle_event_handler_processor := JavaScript.TableVirtuelleObject(classe = EventHandlerProcessor, sur_call = event_handler_processor_sur_appel)
