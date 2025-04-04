@@ -91,8 +91,7 @@ formatte_texte :: fonc (contexte_formattage: &ContexteFormattage, texte: ChaineU
     saufsi contexte_formattage.supprime_espaces_blancs_texte {
         retourne texte
     }
-    supprime_espace_blanches_autour_en_place(*texte)
-    retourne texte
+    retourne donne_sous_chaine_entre_espace_blanches(texte)
 }
 
 tabulation_au_besoin :: fonc (contexte_formattage: &ContexteFormattage, enchaineuse: *Enchaineuse)

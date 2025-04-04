@@ -1,6 +1,6 @@
 importe Chaine
 importe Fondation
-importe #inemployé HTML
+HTML :: importe HTML
 
 /* CSS Object Model https://www.w3.org/TR/cssom-1/ */
 

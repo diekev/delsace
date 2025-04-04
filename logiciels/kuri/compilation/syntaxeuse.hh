@@ -134,6 +134,8 @@ struct Syntaxeuse : BaseSyntaxeuse {
     void analyse_directive_symbole_externe(NoeudDéclarationSymbole *déclaration_symbole,
                                            NoeudDirectiveFonction *directive);
 
+    NoeudInstructionImporte *analyse_importe(Lexème const *lexème, Lexème const *lexème_référence);
+
     void recycle_référence(NoeudExpressionRéférence *référence);
     void imprime_ligne_source(const Lexème *lexème, kuri::chaine_statique message);
 };

@@ -16,7 +16,7 @@ importe Allocatrices
 importe Chaine
 importe Fondation
 importe HTML
-importe #inemployé JavaScript
+JavaScript :: importe JavaScript
 importe SysFichier
 
 StatistiquesParsage :: struct {

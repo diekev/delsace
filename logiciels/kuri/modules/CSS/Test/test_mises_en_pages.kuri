@@ -2,8 +2,8 @@ importe Chaine
 importe CSS
 importe Ensemble
 importe Fondation
-importe #inemployé HTML
-importe #inemployé JavaScript
+HTML :: importe HTML
+JavaScript :: importe JavaScript
 importe Processus
 importe Structures
 importe SysFichier

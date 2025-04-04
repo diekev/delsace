@@ -3,12 +3,12 @@ importe Chaine
 importe CodecDonnées
 importe Compilatrice
 importe Couleur
-importe #inemployé CSS
+CSS :: importe CSS
 importe Fondation
 importe Géométrie
 importe HTML
 importe HTTP
-importe #inemployé JavaScript
+JavaScript :: importe JavaScript
 importe OpenGL
 importe PeintureInterface
 importe Périphériques
@@ -608,7 +608,10 @@ rappel_changement_adresse_sur_rappel :: fonc (base: *QT_Rappel_Generique)
     page_web := rappel.page_web
     document := page_web.donne_document()
 
-    navigate(rappel.user_agent, page_web.navigable, url, document)
+    params: ParamètresNavigationNavigable
+    params.url = url
+    params.source_document = document
+    navigate(rappel.user_agent, page_web.navigable, params)
 }
 
 QT_crée_push_button :: fonc (texte: chaine, icone: *QT_Icon, parent: QT_Generic_Widget) -> *QT_PushButton
