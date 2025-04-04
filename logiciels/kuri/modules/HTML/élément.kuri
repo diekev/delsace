@@ -1,11 +1,11 @@
 importe Chaine
 importe Couleur
-importe #inemployé CSS
+CSS :: importe CSS
 importe Dessin
 importe Fondation
 importe Géométrie
 importe Image
-importe #inemployé JavaScript
+JavaScript :: importe JavaScript
 importe MIME
 importe Unicode
 
@@ -65,6 +65,7 @@ TableVirtuelleÉlément :: struct {
 
     /* Uniquement utilisé lors du parsage. */
     est_sur_pile_éléments_ouvert: bool
+    fut_créé_par_parseuse: bool
 
     espace_de_nom: chaine // DOMString @namespaceURI
     local_name: DOMString
@@ -722,30 +723,83 @@ applique_presentational_hints :: fonc (élément: *Élément, résolveuse: *CSS.
  * https://html.spec.whatwg.org/multipage/dom.html#render-blocking-mechanism
  * \{ */
 
-/* https://html.spec.whatwg.org/multipage/dom.html#render-blocking */
-is_render_blocking :: fonc (el: *Élément @inutilisée) -> bool
+/* https://html.spec.whatwg.org/multipage/dom.html#allows-adding-render-blocking-elements */
+allows_adding_render_blocking_elements :: fonc (document: *Document) -> bool
 {
-    // À FAIRE
+    retourne document.type_contenu == "text/html" && donne_élément_body(document) == nul
+}
+
+/* https://html.spec.whatwg.org/multipage/dom.html#render-blocked */
+is_render_blocked :: fonc (document: *Document) -> bool
+{
+    // document's render-blocking element set is non-empty, or document allows adding render-blocking elements.
+    si document.render_blocking_elements.taille != 0 || document.allows_adding_render_blocking_elements() {
+        retourne vrai
+    }
+
+    // À FAIRE The current high resolution time given document's relevant global object has not exceeded an implementation-defined timeout value.
     retourne faux
 }
 
-/* https://html.spec.whatwg.org/multipage/dom.html#block-rendering */
-block_rendering_on :: fonc (el: *Élément @inutilisée)
+/* https://html.spec.whatwg.org/multipage/dom.html#render-blocking */
+is_render_blocking :: fonc (el: *Élément) -> bool
 {
-    // À FAIRE
+    retourne is_render_blocked(el.document) || tableau_possède_élément(el.document.render_blocking_elements, el)
+}
+
+/* https://html.spec.whatwg.org/multipage/dom.html#block-rendering */
+block_rendering_on :: fonc (el: *Élément)
+{
+    // 1. Let document be el's node document.
+    document := el.document
+
+    // 2. If document allows adding render-blocking elements,
+    //    then append el to document's render-blocking element set.
+    si document.allows_adding_render_blocking_elements() {
+        tableau_ajoute(*document.render_blocking_elements, el)
+    }
 }
 
 /* https://html.spec.whatwg.org/multipage/dom.html#unblock-rendering */
-unblock_rendering_on :: fonc (el: *Élément @inutilisée)
+unblock_rendering_on :: fonc (el: *Élément)
 {
-    // À FAIRE
+    // 1. Let document be el's node document.
+    document := el.document
+
+    // 2. Remove el from document's render-blocking element set.
+    tableau_supprime_valeur(*document.render_blocking_elements, el)
+
+    // @inspécifié
+    si document.render_blocking_elements.taille == 0 {
+        ua := document.donne_user_agent()
+        si ua {
+            requiers_rendu(ua)
+        }
+    }
 }
 
 /* https://html.spec.whatwg.org/multipage/urls-and-fetching.html#potentially-render-blocking */
-is_potentially_render_blocking :: fonc (el: *Élément @inutilisée) -> bool
+is_potentially_render_blocking :: fonc (el: *Élément) -> bool
 {
-    // À FAIRE
-    retourne faux    
+    // À FAIRE : if its blocking tokens set contains "render"
+    retourne is_implicitly_potentially_render_blocking(el)
+}
+
+/* https://html.spec.whatwg.org/multipage/urls-and-fetching.html#implicitly-potentially-render-blocking */
+is_implicitly_potentially_render_blocking :: fonc (el: *Élément) -> bool
+{
+    si el.table.classe == HTMLLinkElement {
+        link := el comme *HTMLLinkElement
+        // A link element of this type is implicitly potentially render-blocking if
+        // the element was created by its node document's parser.
+        si link.est_stylesheet {
+            retourne link.fut_créé_par_parseuse
+        }
+
+        retourne faux
+    }
+
+    retourne faux
 }
 
 block_rendering_if_potentially_render_blocking :: fonc (el: *Élément)
@@ -755,6 +809,11 @@ block_rendering_if_potentially_render_blocking :: fonc (el: *Élément)
     }
     block_rendering_on(el)
 }
+
+// À FAIRE Whenever a render-blocking element el becomes
+// browsing-context disconnected, or el's blocking attribute's value
+// is changed so that el is no longer potentially render-blocking,
+// then unblock rendering on el.
 
 /** \} */
 
@@ -1057,7 +1116,13 @@ follow_the_hyperlink :: fonc (subject: *Élément, hyperlink_suffix := crée_cha
     source_document := subject.document
     user_agent := source_document.donne_user_agent()
     url := url_parser(user_agent, url_string)
-    navigate(user_agent, target_navigable, url, source_document, referrer_policy = referrer_policy, user_involvement = user_involvement)
+
+    params: ParamètresNavigationNavigable
+    params.url = url
+    params.source_document = source_document
+    params.referrer_policy = referrer_policy
+    params.user_involvement = user_involvement
+    navigate(user_agent, target_navigable, params)
 }
 
 /* https://html.spec.whatwg.org/multipage/semantics.html#get-an-element's-target */
@@ -1102,9 +1167,14 @@ encoding_parse_and_serialize_a_url :: fonc (url: DOMString, document: *Document)
 
 encoding_parse_a_url :: fonc (url: DOMString, document: *Document) -> *URL
 {
+    retourne encoding_parse_a_url(url.donne_chaine_utf16(), document)
+}
+
+encoding_parse_a_url :: fonc (url: ChaineUTF16, document: *Document) -> *URL
+{
     // À FAIRE : standardise
     base_url := donne_base_url(document)
-    retourne url_parser(document.donne_user_agent(), url.donne_chaine_utf16(), base = base_url)
+    retourne url_parser(document.donne_user_agent(), url, base = base_url)
 }
 
 encoding_parse_a_url :: fonc (user_agent: *UserAgent, url: DOMString, base_url: *URL) -> *URL
@@ -1581,6 +1651,10 @@ parse_a_legacy_font_size :: fonc (attribute_value: DOMString) -> Optionnel(CSS.C
 HTMLFormElement :: struct {
     empl html_element: HTMLElement
     table = *table_virtuelle_form_element
+
+    constructing_entry_list: bool
+    firing_submission_events: bool
+    planned_navigation: *Algorithm
 }
 
 #portée_fichier
@@ -1589,6 +1663,433 @@ table_virtuelle_form_element := TableVirtuelleÉlément(
     classe = HTMLFormElement,
     sur_destruction = élément_sur_destruction
 )
+
+/* https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#concept-form-submit */
+submit :: fonc (form: *HTMLFormElement, submitter: *Élément, submitted_from_submit_method := faux, user_involvement := UserNavigationInvolvement.None)
+{
+    // 1. If form cannot navigate, then return.
+    si cannot_navigate(form) {
+        imprime("[%] cannot_navigate\n", #nom_de_cette_fonction)
+        retourne
+    }
+
+    // 2. If form's constructing entry list is true, then return.
+    si form.constructing_entry_list {
+        retourne
+    }
+
+    // 3. Let form document be form's node document.
+    form_document := form.document
+
+    // 4. If form document's active sandboxing flag set has its sandboxed forms browsing context flag set, then return.
+    si form_document.active_sandboxing_flags.Forms {
+        retourne
+    }
+
+    // 5. If submitted from submit() method is false, then:
+    saufsi submitted_from_submit_method {
+        // 1. If form's firing submission events is true, then return.
+        si form.firing_submission_events {
+            retourne
+        }
+
+        // 2. Set form's firing submission events to true.
+        form.firing_submission_events = vrai
+
+        // 3. For each element field in the list of submittable elements whose form owner is form, set field's user validity to true.
+
+        // 4. If the submitter element's no-validate state is false, then interactively validate the constraints of form and examine the result. If the result is negative (i.e., the constraint validation concluded that there were invalid fields and probably informed the user of this), then:
+
+            // 1. Set form's firing submission events to false.
+
+            // 2. Return.
+
+        // 5. Let submitterButton be null if submitter is form. Otherwise, let submitterButton be submitter.
+
+        // 6. Let shouldContinue be the result of firing an event named submit at form using SubmitEvent, with the submitter attribute initialized to submitterButton, the bubbles attribute initialized to true, and the cancelable attribute initialized to true.
+
+        // 7. Set form's firing submission events to false.
+        form.firing_submission_events = faux
+
+        // 8. If shouldContinue is false, then return.
+
+        // 9. If form cannot navigate, then return.
+        si cannot_navigate(form) {
+            retourne
+        }
+    }
+
+    // À FAIRE : 6. Let encoding be the result of picking an encoding for the form.
+
+    // 7. Let entry list be the result of constructing the entry list with form, submitter, and encoding.
+    // @fuite-de-mémoire (ceci est passé à navigate() via une tâche
+    entry_list := construct_the_entry_list(form, submitter)
+
+    // 8. Assert: entry list is not null.
+    assert(entry_list != nul)
+
+    // 9. If form cannot navigate, then return.
+    si cannot_navigate(form) {
+        retourne
+    }
+
+    // 10. Let method be the submitter element's method.
+    method := donne_method(submitter)
+
+    // 11. If method is dialog, then:
+    si method == ATTR_dialog {
+        imprime("[%] À FAIRE : dialog\n", #nom_de_cette_fonction)
+        // If form does not have an ancestor dialog element, then return.
+
+        // Let subject be form's nearest ancestor dialog element.
+
+        // Let result be null.
+
+        // If submitter is an input element whose type attribute is in the Image Button state, then:
+
+        // Let (x, y) be the selected coordinate.
+
+        // Set result to the concatenation of x, ",", and y.
+
+        // Otherwise, if submitter has a value, then set result to that value.
+
+        // Close the dialog subject with result.
+
+        // Return.
+        retourne
+    }
+
+    // 12. Let action be the submitter element's action.
+    action := copie_chaine(donne_action(submitter).donne_chaine_utf16())
+    diffère détruit_chaine(action)
+
+    // 13. If action is the empty string, let action be the URL of the form document.
+    si action.est_vide() {
+        chn_action := url_serializer(form.document.url)
+        action = crée_chaine_utf16(chn_action)
+        déloge(chn_action)
+    }
+
+    // 14. Let parsed action be the result of encoding-parsing a URL given action, relative to submitter's node document.
+    parsed_action := encoding_parse_a_url(action, submitter.document)
+
+    // 15. If parsed action is failure, then return.
+    saufsi parsed_action {
+        retourne
+    }
+
+    // 16. Let scheme be the scheme of parsed action.
+
+    // 17. Let enctype be the submitter element's enctype.
+
+    // 18. Let formTarget be null.
+    form_target := crée_chaine_utf16_unique_vide()
+
+    // À FAIRE : 19. If the submitter element is a submit button and it has a formtarget attribute, then set formTarget to the formtarget attribute value.
+
+    // 20. Let target be the result of getting an element's target given submitter's form owner and formTarget.
+    target := get_an_element_s_target(donne_form_owner(submitter), form_target)
+    // si ce n'est pas vide il faut implémenter les deux étapes suivantes
+    assert(target.est_vide())
+
+    // 21. Let noopener be the result of getting an element's noopener with form, parsed action, and target.
+
+    // 22. Let targetNavigable be the first return value of applying the rules for choosing a navigable given target, form's node navigable, and noopener.
+    target_navigable := form.donne_node_navigable()
+
+    // 23. If targetNavigable is null, then return.
+    saufsi target_navigable {
+        retourne
+    }
+
+    // 24. Let historyHandling be "auto".
+    history_handling := NavigationHistoryBehavior.AUTO
+
+    // À FAIRE 25. If form document equals targetNavigable's active document, and form document has not yet completely loaded, then set historyHandling to "replace".
+
+    // À FAIRE : 26. Select the appropriate row in the table below based on scheme as given by the first cell of each row. Then, select the appropriate cell on that row based on method as given in the first cell of each column. Then, jump to the steps named in that cell and defined below the table.
+    assert(method == ATTR_get)
+
+    params: ParamètresNavigationNavigable
+    params.url = parsed_action
+    params.source_document = form.document
+    params.history_handling = history_handling
+    params.user_involvement = user_involvement
+    params.form_data_entry_list = entry_list
+    mutate_action_url(form, entry_list, parsed_action, target_navigable, params)
+}
+
+#portée_module
+
+/* https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#constructing-form-data-set */
+EntryList :: struct {
+    Entry :: struct {
+        name: chaine
+        value: chaine
+    }
+
+    entries: [..]Entry
+}
+
+détruit_entry_list :: fonc (entry_list: *EntryList)
+{
+    pour entry_list.entries {
+        déloge(it.name)
+        déloge(it.value)
+    }
+
+    déloge(entry_list.entries)
+    déloge(entry_list)
+}
+
+#portée_fichier
+
+/* https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#constructing-the-form-data-set */
+construct_the_entry_list :: fonc (form: *HTMLFormElement, submitter : *Élément = nul @inutilisée) -> *EntryList
+{
+    // 1. If form's constructing entry list is true, then return null.
+    si form.constructing_entry_list {
+        retourne nul
+    }
+
+    // 2. Set form's constructing entry list to true.
+    form.constructing_entry_list = vrai
+
+    // 3. Let controls be a list of all the submittable elements whose form owner is form, in tree order.
+    controls := donne_submittable_elements(form)
+    diffère déloge(controls)
+
+    // 4. Let entry list be a new empty entry list.
+    entry_list := loge(EntryList)
+
+    // 5. For each element field in controls, in tree order:
+    pour field dans controls {
+        si field.table.classe == HTMLInputElement {
+            name := field.donne_attribut_ou_chaine_vide(ATTR_name)
+            saufsi name.est_vide() {
+                entry := tableau_ajoute_élément(*entry_list.entries)
+                entry.name = converti_vers_chaine(name.donne_chaine_utf16())
+                entry.value = converti_vers_chaine(donne_value(field comme *HTMLInputElement))
+            }
+        }
+
+        // À FAIRE If any of the following are true:
+
+        // field has a datalist element ancestor;
+
+        // field is disabled;
+
+        // field is a button but it is not submitter;
+
+        // field is an input element whose type attribute is in the Checkbox state and whose checkedness is false; or
+
+        // field is an input element whose type attribute is in the Radio Button state and whose checkedness is false,
+
+        // then continue.
+
+        // If the field element is an input element whose type attribute is in the Image Button state, then:
+
+        // If the field element is not submitter, then continue.
+
+        // If the field element has a name attribute specified and its value is not the empty string, let name be that value followed by U+002E (.). Otherwise, let name be the empty string.
+
+        // Let namex be the concatenation of name and U+0078 (x).
+
+        // Let namey be the concatenation of name and U+0079 (y).
+
+        // Let (x, y) be the selected coordinate.
+
+        // Create an entry with namex and x, and append it to entry list.
+
+        // Create an entry with namey and y, and append it to entry list.
+
+        // Continue.
+
+        // If the field is a form-associated custom element, then perform the entry construction algorithm given field and entry list, then continue.
+
+        // If either the field element does not have a name attribute specified, or its name attribute's value is the empty string, then continue.
+
+        // Let name be the value of the field element's name attribute.
+
+        // If the field element is a select element, then for each option element in the select element's list of options whose selectedness is true and that is not disabled, create an entry with name and the value of the option element, and append it to entry list.
+
+        // Otherwise, if the field element is an input element whose type attribute is in the Checkbox state or the Radio Button state, then:
+
+        // If the field element has a value attribute specified, then let value be the value of that attribute; otherwise, let value be the string "on".
+
+        // Create an entry with name and value, and append it to entry list.
+
+        // Otherwise, if the field element is an input element whose type attribute is in the File Upload state, then:
+
+        // If there are no selected files, then create an entry with name and a new File object with an empty name, application/octet-stream as type, and an empty body, and append it to entry list.
+
+        // Otherwise, for each file in selected files, create an entry with name and a File object representing the file, and append it to entry list.
+
+        // Otherwise, if the field element is an input element whose type attribute is in the Hidden state and name is an ASCII case-insensitive match for "_charset_":
+
+        // Let charset be the name of encoding.
+
+        // Create an entry with name and charset, and append it to entry list.
+
+        // Otherwise, create an entry with name and the value of the field element, and append it to entry list.
+
+        // If the element has a dirname attribute, that attribute's value is not the empty string, and the element is an auto-directionality form-associated element:
+
+        // Let dirname be the value of the element's dirname attribute.
+
+        // Let dir be the string "ltr" if the directionality of the element is 'ltr', and "rtl" otherwise (i.e., when the directionality of the element is 'rtl').
+
+        // Create an entry with dirname and dir, and append it to entry list.
+    }
+
+    // À FAIRE 6. Let form data be a new FormData object associated with entry list.
+
+    // 7. Fire an event named formdata at form using FormDataEvent, with the formData attribute initialized to form data and the bubbles attribute initialized to true.
+
+    // 8. Set form's constructing entry list to false.
+    form.constructing_entry_list = faux
+
+    // 9. Return a clone of entry list.
+    retourne entry_list
+}
+
+donne_submittable_elements :: fonc (form: *HTMLFormElement) -> [..]*Élément
+{
+    résultat: [..]*Élément
+
+    traversée: [..]*Noeud
+    diffère déloge(traversée)
+
+    pour > form.enfants {
+        tableau_ajoute(*traversée, it)
+    }
+
+    tantque traversée.taille != 0 {
+        noeud := traversée[traversée.taille - 1]
+        traversée.taille -= 1
+
+        si noeud.est_élément() && is_submittable_element(noeud comme *Élément) {
+            élément := noeud comme *Élément
+            form_owner := donne_form_owner(élément)
+            si form_owner == form {
+                tableau_ajoute(*résultat, élément)
+            }
+        }
+
+        pour > noeud.enfants {
+            tableau_ajoute(*traversée, it)
+        }
+    }
+
+    retourne résultat
+}
+
+/* https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#concept-fs-action */
+donne_action :: fonc (élément: *Élément) -> DOMString
+{
+    résultat := donne_attribut_ou_chaine_vide(élément, ATTR_formaction)
+    si résultat.est_vide() {
+        form_owner := donne_form_owner(élément)
+        assert(form_owner != nul)
+        résultat = donne_attribut_ou_chaine_vide(form_owner, ATTR_action)
+    }
+    retourne résultat
+}
+
+/* https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#concept-fs-method */
+donne_method :: fonc (élément: *Élément) -> DOMString
+{
+    résultat := donne_attribut_ou_chaine_vide(élément, ATTR_formmethod)
+    si résultat.est_vide() {
+        form_owner := donne_form_owner(élément)
+        assert(form_owner != nul)
+        résultat = donne_attribut_ou_chaine_vide(form_owner, ATTR_method)
+    }
+
+    /* https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#attr-fs-method */
+    si résultat.est_vide() {
+        retourne ATTR_get
+    }
+
+    si résultat != ATTR_get && résultat != ATTR_post && résultat != ATTR_dialog {
+        retourne ATTR_get
+    }
+
+    retourne résultat
+}
+
+/* https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#submit-mutate-action */
+mutate_action_url :: fonc (form: *HTMLFormElement, entry_list: *EntryList, parsed_action: *URL, target_navigable: *Navigable, params: ParamètresNavigationNavigable)
+{
+    assert(parsed_action == params.url)
+
+    // À FAIRE Let pairs be the result of converting to a list of name-value pairs with entry list.
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    séparateur := ""
+    pour entry_list.entries {
+        ajoute_au_tampon(*enchaineuse, séparateur, it.name, "=", it.value)
+        séparateur = "&"
+    }
+
+    pairs := chaine_depuis_enchaineuse(*enchaineuse)
+
+    // À FAIRE : Let query be the result of running the application/x-www-form-urlencoded serializer with pairs and encoding.
+    query := pairs
+
+    // Set parsed action's query component to query.
+    parsed_action.query = query
+
+    // Plan to navigate to parsed action.
+    plan_to_navigate(form, target_navigable, params)
+}
+
+/* https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#plan-to-navigate */
+plan_to_navigate :: fonc (form: *HTMLFormElement, target_navigable: *Navigable, params: ParamètresNavigationNavigable)
+{
+    // À FAIRE 1. Let referrerPolicy be the empty string.
+
+    // 2. If the form element's link types include the noreferrer keyword, then set referrerPolicy to "no-referrer".
+
+    // 3. If the form has a non-null planned navigation, remove it from its task queue.
+    assert(form.planned_navigation == nul)
+
+    // 4. Queue an element task on the DOM manipulation task source given the form element and the following steps:
+    Tâche :: struct {
+        empl base: Algorithm
+
+        form: *HTMLFormElement
+        target_navigable: *Navigable
+        params: ParamètresNavigationNavigable
+    }
+
+    sur_run :: fonc (base: *Algorithm)
+    {
+        empl tâche := base comme *Tâche
+
+        // 1. Set the form's planned navigation to null.
+        form.planned_navigation = nul
+
+        // 2. Navigate targetNavigable to url using the form element's node document,
+        //    with historyHandling set to historyHandling, userInvolvement set to userInvolvement,
+        //    sourceElement set to submitter, referrerPolicy set to referrerPolicy,
+        //    documentResource set to postResource, and formDataEntryList set to entry list.
+        navigate(params.source_document.donne_user_agent(), target_navigable, params)
+    }
+
+    tâche := crée_algorithm(sur_run, Tâche)
+    tâche.form = form
+    tâche.target_navigable = target_navigable
+    tâche.params = params
+
+    user_agent := params.source_document.donne_user_agent()
+    user_agent.queue_an_element_task(SourceDeTâche.ManipulationDOM, form, tâche)
+
+    // 5. Set the form's planned navigation to the just-queued task.
+    form.planned_navigation = tâche
+}
 
 /** \} */
 
@@ -1959,6 +2460,34 @@ HTMLInputElement :: struct {
     empl html_element: HTMLElement
     table = *table_virtuelle_input_element
 
+    State :: énum {
+        Hidden
+        Text
+        Search
+        Telephone
+        URL
+        Email
+        Password
+        Date
+        Month
+        Week
+        Time
+        Local_Date_and_Time
+        Number
+        Range
+        Color
+        Checkbox
+        Radio_Button
+        File_Upload
+        Submit_Button
+        Image_Button
+        Reset_Button
+        Button
+    }
+
+    /* https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#concept-fe-dirty */
+    dirty_value: bool
+
     /* https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#concept-fe-checked */
     checkedness: bool
 
@@ -1966,10 +2495,12 @@ HTMLInputElement :: struct {
     dirty_checkedness: bool
 
     éditrice: *ÉditriceTexte
+
+    /* À FAIRE : déplace ceci dans CSS. */
+    texte_mot_de_passe: ChaineUTF16
 }
 
-/* https://html.spec.whatwg.org/multipage/rendering.html#the-input-element-as-a-text-entry-widget */
-is_text_entry_widget :: fonc (input: *HTMLInputElement) -> bool
+donne_state :: fonc (input: *HTMLInputElement) -> HTMLInputElement.State
 {
     opt_type := donne_attribut(input, ATTR_type)
     saufsi opt_type.possède_valeur() {
@@ -1978,29 +2509,118 @@ is_text_entry_widget :: fonc (input: *HTMLInputElement) -> bool
          *
          * À FAIRE : détermine l'état de l'attribut :
          * https://html.spec.whatwg.org/multipage/common-microsyntaxes.html#missing-value-default */
-        retourne vrai
+        retourne HTMLInputElement.State.Text
     }
-    retourne opt_type.Quelque == ATTR_text
+
+    type := opt_type.Quelque
+
+    si type == ATTR_hidden {
+        retourne HTMLInputElement.State.Hidden
+    }
+    si type == ATTR_text {
+        retourne HTMLInputElement.State.Text
+    }
+    si type == ATTR_submit {
+        retourne HTMLInputElement.State.Submit_Button
+    }
+    si type == ATTR_reset {
+        retourne HTMLInputElement.State.Reset_Button
+    }
+    si type == ATTR_button {
+        retourne HTMLInputElement.State.Button
+    }
+    si type == ATTR_radio {
+        retourne HTMLInputElement.State.Radio_Button
+    }
+    si type == ATTR_search {
+        retourne HTMLInputElement.State.Search
+    }
+    si type == ATTR_tel {
+        retourne HTMLInputElement.State.Telephone
+    }
+    si type == ATTR_url {
+        retourne HTMLInputElement.State.URL
+    }
+    si type == ATTR_email {
+        retourne HTMLInputElement.State.Email
+    }
+    si type == ATTR_password {
+        retourne HTMLInputElement.State.Password
+    }
+    si type == ATTR_date {
+        retourne HTMLInputElement.State.Date
+    }
+    si type == ATTR_month {
+        retourne HTMLInputElement.State.Month
+    }
+    si type == ATTR_week {
+        retourne HTMLInputElement.State.Week
+    }
+    si type == ATTR_time {
+        retourne HTMLInputElement.State.Time
+    }
+    si type == ATTR_datetime_local {
+        retourne HTMLInputElement.State.Local_Date_and_Time
+    }
+    si type == ATTR_number {
+        retourne HTMLInputElement.State.Number
+    }
+    si type == ATTR_range {
+        retourne HTMLInputElement.State.Range
+    }
+    si type == ATTR_color {
+        retourne HTMLInputElement.State.Color
+    }
+    si type == ATTR_checkbox {
+        retourne HTMLInputElement.State.Checkbox
+    }
+    si type == ATTR_file {
+        retourne HTMLInputElement.State.File_Upload
+    }
+    si type == ATTR_image {
+        retourne HTMLInputElement.State.Image_Button
+    }
+
+    retourne HTMLInputElement.State.Text
+}
+
+/* https://html.spec.whatwg.org/multipage/rendering.html#the-input-element-as-a-text-entry-widget */
+is_text_entry_widget :: fonc (input: *HTMLInputElement) -> bool
+{
+    discr donne_state(input) {
+        Text,
+        Telephone,
+        URL,
+        Email,
+        Search,
+        Password {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
 }
 
 /* https://html.spec.whatwg.org/multipage/rendering.html#the-input-element-as-a-button */
 is_button_widget :: fonc (input: *HTMLInputElement) -> bool
 {
-    opt_type := donne_attribut(input, ATTR_type)
-    saufsi opt_type.possède_valeur() {
-        retourne faux
+    discr donne_state(input) {
+        Submit_Button,
+        Reset_Button,
+        Button {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
     }
-    retourne opt_type.Quelque == ATTR_submit || opt_type.Quelque == ATTR_reset || opt_type.Quelque == ATTR_button
 }
 
 /* https://html.spec.whatwg.org/multipage/rendering.html#the-input-element-as-a-checkbox-and-radio-button-widgets */
 is_radio_button_widget :: fonc (input: *HTMLInputElement) -> bool
 {
-    opt_type := donne_attribut(input, ATTR_type)
-    saufsi opt_type.possède_valeur() {
-        retourne faux
-    }
-    retourne opt_type.Quelque == ATTR_radio
+    retourne donne_state(input) == HTMLInputElement.State.Radio_Button
 }
 
 /* The checked IDL attribute allows scripts to manipulate the checkedness of an input element.
@@ -2104,12 +2724,31 @@ donne_form_owner :: fonc (élément: *Élément) -> *HTMLFormElement
     retourne nul
 }
 
+/* https://html.spec.whatwg.org/multipage/input.html#dom-input-value */
+définis_value :: fonc (input: *HTMLInputElement, value: DOMString)
+{
+    // À FAIRE : value à un "mode"
+    // À FAIRE : 1. Let oldValue be the element's value.
+
+    // 2. Set the element's value to the new value.
+    crée_shadow_root_pour_édition(input)
+    noeud_texte := input.donne_noeud_texte_value()
+    détruit_chaine(noeud_texte.données)
+    noeud_texte.données = copie_chaine(value.donne_chaine_utf16())
+
+    // 3. Set the element's dirty value flag to true.
+    input.dirty_value = vrai
+
+    // 4. Invoke the value sanitization algorithm, if the element's type attribute's current state defines one.
+    run_value_sanitization_algorithm(input)
+
+    // 5. If the element's value (after applying the value sanitization algorithm) is different from oldValue, and the element has a text entry cursor position, move the text entry cursor position to the end of the text control, unselecting any selected text and resetting the selection direction to "none".
+}
+
 donne_value :: fonc (input: *HTMLInputElement) -> ChaineUTF16
 {
     si input.shadow_root {
-        assert(input.shadow_root.enfants.taille == 1)
-        assert(input.shadow_root.enfants[0].genre == GenreNoeud.Texte)
-        noeud_texte := input.shadow_root.enfants[0] comme *NoeudTexte
+        noeud_texte := input.donne_noeud_texte_value()
         retourne noeud_texte.données
     }
 
@@ -2137,11 +2776,18 @@ crée_shadow_root_pour_édition :: fonc (input: *HTMLInputElement)
 
 table_virtuelle_input_element := TableVirtuelleÉlément(
     classe = HTMLInputElement,
-    sur_destruction = élément_sur_destruction,
+    sur_destruction = input_element_sur_destruction,
     sur_changement_attribut = input_element_sur_changement_attribut,
     sur_applique_presentational_hints = input_element_sur_applique_presentational_hints,
     sur_activation_behavior = input_element_sur_activation_behavior
 )
+
+input_element_sur_destruction :: fonc (base: *JavaScript.Cellule)
+{
+    élément := base comme *HTMLInputElement
+    élément_détruit_données(élément)
+    détruit_chaine(élément.texte_mot_de_passe)
+}
 
 input_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
 {
@@ -2189,28 +2835,45 @@ input_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOM
         retourne vrai
     }
 
+    si local_name == ATTR_value {
+        /* https://html.spec.whatwg.org/multipage/input.html#attr-input-value */
+        saufsi input.dirty_value {
+            si input.shadow_root {
+                noeud_texte := input.donne_noeud_texte_value()
+                détruit_chaine(noeud_texte.données)
+                si valeur {
+                    noeud_texte.données = copie_chaine(mémoire(valeur).donne_chaine_utf16())
+                    run_value_sanitization_algorithm(input)
+                }
+            }
+        }
+        retourne vrai
+    }
+
     retourne faux
 }
 
 /* https://html.spec.whatwg.org/multipage/input.html */
-input_element_sur_activation_behavior :: fonc (target: *EventTarget, event: *Event @inutilisée)
+input_element_sur_activation_behavior :: fonc (target: *EventTarget, event: *Event)
 {
     input := target comme *HTMLInputElement
 
     // À FAIRE 1. If element is not mutable, and element's type attribute is neither in the Checkbox nor in the Radio state, then return.
 
     // 2. Run element's input activation behavior, if any, and do nothing otherwise.
-    run_input_activation_behavior(input)
+    run_input_activation_behavior(input, event)
 
     // 3. If element has a form owner and element's type attribute is not in the Button state, then return.
 
     // 4. Run the popover target attribute activation behavior given element and event's target.
 }
 
-run_input_activation_behavior :: fonc (input: *HTMLInputElement)
+run_input_activation_behavior :: fonc (input: *HTMLInputElement, event: *Event)
 {
+    state := donne_state(input)
+
     /* https://html.spec.whatwg.org/multipage/input.html#radio-button-state-(type=radio) */
-    si input.is_radio_button_widget() {
+    si state == HTMLInputElement.State.Radio_Button {
         // 1. If the element is not connected, then return.
         saufsi est_connecté(input) {
             retourne
@@ -2224,10 +2887,60 @@ run_input_activation_behavior :: fonc (input: *HTMLInputElement)
 
         retourne
     }
+
+    /* https://html.spec.whatwg.org/multipage/input.html#submit-button-state-(type=submit) */
+    si state == HTMLInputElement.State.Submit_Button {
+        // 1. If the element does not have a form owner, then return.
+        form_owner := donne_form_owner(input)
+        si form_owner == nul {
+            imprime("[%] pas de form owner\n", #nom_de_cette_fonction)
+            retourne
+        }
+
+        // 2. If the element's node document is not fully active, then return.
+        saufsi input.document.est_fully_active() {
+            imprime("[%] document non fully active\n", #nom_de_cette_fonction)
+            retourne
+        }
+
+        // 3. Submit the element's form owner from the element with userInvolvement set to event's user navigation involvement.
+        submit(form_owner, input, user_involvement = donne_user_navigation_involvement(event))
+        retourne
+    }
 }
 
 // The legacy-pre-activation behavior for input elements are these steps:
 // The legacy-canceled-activation behavior for input elements are these steps:
+
+/* https://html.spec.whatwg.org/multipage/input.html#value-sanitization-algorithm */
+run_value_sanitization_algorithm :: fonc (input: *HTMLInputElement)
+{
+    state := donne_state(input)
+
+    si state == HTMLInputElement.State.Text || state == HTMLInputElement.State.Search || state == HTMLInputElement.State.Telephone || state == HTMLInputElement.State.Password {
+        noeud_texte := input.donne_noeud_texte_value()
+        supprime_nouvelles_lignes_en_place(*noeud_texte.données)
+        retourne
+    }
+
+    si state == HTMLInputElement.State.URL || state == HTMLInputElement.State.Email {
+        noeud_texte := input.donne_noeud_texte_value()
+        supprime_nouvelles_lignes_en_place(*noeud_texte.données)
+        supprime_espace_blanches_autour_en_place(*noeud_texte.données)
+        retourne
+    }
+}
+
+#portée_export
+
+donne_noeud_texte_value :: fonc (input: *HTMLInputElement) -> *NoeudTexte
+{
+    assert(input.shadow_root != nul)
+    assert(input.shadow_root.enfants.taille == 1)
+    enfant := input.shadow_root.enfants[0]
+    assert(enfant.genre == GenreNoeud.Texte)
+    retourne enfant comme *NoeudTexte
+}
 
 /** \} */
 
@@ -2342,9 +3055,21 @@ is_labelable_element :: fonc (élément: *Élément) -> bool
     retourne is_form_associated_custom_element(élément)
 }
 
+/* https://html.spec.whatwg.org/multipage/forms.html#category-submit */
+is_submittable_element :: fonc (élément: *Élément) -> bool
+{
+    tags := [TAG_button, TAG_input, TAG_select, TAG_textarea]
+    si fait_partie_de(élément.local_name, ...tags) {
+        retourne vrai
+    }
+
+    retourne is_form_associated_custom_element(élément)
+}
+
 /* https://html.spec.whatwg.org/multipage/custom-elements.html#form-associated-custom-element */
 is_form_associated_custom_element :: fonc (élément: *Élément @inutilisée) -> bool
 {
+    // À FAIRE
     retourne faux
 }
 
@@ -2486,7 +3211,7 @@ fetch_and_process_linked_ressource_default :: fonc (user_agent: *UserAgent, el: 
         diffère détruit_response(réponse)
 
         body_bytes: chaine
-        si réponse.body_info {
+        si réponse.body_info && réponse.body.possède_valeur() {
             body_bytes = réponse.body.Quelque
         }
 
@@ -2722,7 +3447,10 @@ linked_resource_fetch_setup_stylesheet :: fonc (el: *HTMLLinkElement, request: *
 
     // À FAIRE 2. If el contributes a script-blocking style sheet, append el to its node document's script-blocking style sheet set.
 
-    // À FAIRE 3. If el's media attribute's value matches the environment and el is potentially render-blocking, then block rendering on el.
+    // À FAIRE(media) 3. If el's media attribute's value matches the environment and el is potentially render-blocking, then block rendering on el.
+    si el.is_potentially_render_blocking() {
+        block_rendering_on(el)
+    }
 
     // 4. If el is currently render-blocking, then set request's render-blocking to true.
     si is_render_blocking(el) {

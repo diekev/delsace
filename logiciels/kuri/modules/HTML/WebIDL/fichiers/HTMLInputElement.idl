@@ -1,5 +1,5 @@
 interface HTMLInputElement : HTMLElement {
-    /* [CEReactions] */ [Reflect] attribute /* [LegacyNullToEmptyString] */ DOMString value;
+    /* [CEReactions] */ attribute /* [LegacyNullToEmptyString] */ DOMString value;
 
     attribute boolean checked;
 }
