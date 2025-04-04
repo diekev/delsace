@@ -491,3 +491,96 @@ code_point_at :: fonc (string: ChaineUTF16, position: z64) -> InfoPointDeCode
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 25.5 The JSON Object
+ * https://tc39.es/ecma262/multipage/structured-data.html#sec-json-object
+ * \{ */
+
+crée_json_object :: fonc (realm: *Realm)
+{
+    assert(realm.intrinsics.json == nul)
+    assert(realm.intrinsics.object_prototype != nul)
+
+    résultat := ordinary_object_create(realm, realm.intrinsics.object_prototype, object_instance_crée)
+    résultat.ajoute_fonction_native(STR_parse, json_parse, 2)
+
+    realm.intrinsics.json = résultat
+}
+
+#portée_fichier
+
+/* 25.5.1 JSON.parse ( text [ , reviver ] )
+ * https://tc39.es/ecma262/multipage/structured-data.html#sec-json.parse */
+json_parse :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+{
+    // 1. Let jsonString be ? ToString(text).
+    completion := to_string(interpréteuse, params.donne_argument(0))
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    json_string := completion.valeur.V.String
+
+    // 2. Let unfiltered be ? ParseJSON(jsonString).
+    completion = parse_json(json_string, interpréteuse)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    unfiltered := completion.valeur.V
+
+    // À FAIRE : 3. If IsCallable(reviver) is true, then
+    // a. Let root be OrdinaryObjectCreate(%Object.prototype%).
+    // b. Let rootName be the empty String.
+    // c. Perform ! CreateDataPropertyOrThrow(root, rootName, unfiltered).
+    // d. Return ? InternalizeJSONProperty(root, rootName, reviver).
+    // 4. Else,
+    // a. Return unfiltered.
+    retourne normal_completion(unfiltered)
+}
+
+/* 25.5.1.1 ParseJSON ( text )
+ * https://tc39.es/ecma262/multipage/structured-data.html#sec-ParseJSON */
+parse_json :: fonc (text: *PrimitiveChaine, interpréteuse: *Interpréteuse) -> CompletionRecord
+{
+    // À FAIRE 1. If StringToCodePoints(text) is not a valid JSON text as specified in ECMA-404, throw a SyntaxError exception.
+
+    // 2. Let scriptString be the string-concatenation of "(", text, and ");".
+    text_en_chaine_native := converti_vers_chaine(text.texte.donne_chaine_utf16())
+    diffère déloge(text_en_chaine_native)
+
+    script_string := enchaine("(", text_en_chaine_native, ")")
+    diffère déloge(script_string)
+
+    // 3. Let script be ParseText(scriptString, Script).
+    source := crée_texte_source(script_string)
+    diffère détruit_données_texte_source(*source)
+
+    script: *NoeudScript
+    discr (parse_text(interpréteuse.donne_realm(), *source, GoalSymbol.Script)) {
+        Erreur(e) {
+            // À FAIRE : il est impossible d'avoir des erreurs ici,
+            // mais il faut implémenter proprement cette fonction selon la spécification.
+            retourne throw_completion(e)
+        }
+        Ok(noeud) {
+            assert(noeud.type == NoeudScript)
+            script = noeud comme *NoeudScript
+        }
+        sinon {}
+    }
+
+    // 4. NOTE: The early error rules defined in 13.2.5.1 have special handling for the above invocation of ParseText.
+
+    // 5. Assert: script is a Parse Node.
+
+    // 6. Let result be ! Evaluation of script.
+    result := interpréteuse.exécute(script)
+
+    // 7. NOTE: The PropertyDefinitionEvaluation semantics defined in 13.2.5.5 have special handling for the above evaluation.
+    // 8. Assert: result is either a String, a Number, a Boolean, an Object that is defined by either an ArrayLiteral or an ObjectLiteral, or null.
+
+    // 9. Return result.
+    retourne result
+}
+
+/** \} */
