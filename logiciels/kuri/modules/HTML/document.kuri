@@ -1,9 +1,9 @@
 importe Chaine
-importe #inemployé CSS
+CSS :: importe CSS
 importe Ensemble
 importe Fondation
 importe Image
-importe #inemployé JavaScript
+JavaScript :: importe JavaScript
 
 /* ------------------------------------------------------------------------- */
 /** \nom Document.
@@ -89,6 +89,8 @@ Document :: struct {
     scripts_that_will_execute_in_order_as_soon_as_possible: [..]*HTMLScriptElement
     scripts_that_will_execute_when_the_document_has_finished_parsing: [..]*HTMLScriptElement
 
+    render_blocking_elements: [..]*Élément
+
     la_parseuse_ne_peut_changer_le_mode: bool
     ready_for_post_load_tasks: bool
     page_showing: bool
@@ -162,6 +164,7 @@ document_sur_destruction :: fonc (base: *JavaScript.Cellule)
 
     détruit_url(document.url)
     déloge(document.images_disponibles)
+    déloge(document.render_blocking_elements)
 }
 
 #portée_export
@@ -461,6 +464,27 @@ donne_lien_survolé :: fonc (document: *Document) -> *HTMLAnchorElement
     }
 
     retourne nul
+}
+
+// À FAIRE(langage)
+opérateur + :: fonc (a: **Élément, b: z64) -> **Élément
+{
+    retourne ((a comme *octet) + 8 * b) comme **Élément
+}
+
+opérateur - :: fonc (a: **Élément, b: **Élément) -> z64
+{
+    retourne ((a comme *octet) - (b comme *octet)) / 8
+}
+
+opérateur < :: fonc (a: **Élément, b: **Élément) -> bool
+{
+    retourne (a comme *octet) < (b comme *octet)
+}
+
+opérateur == :: fonc (a: **Élément, b: **Élément) -> bool
+{
+    retourne (a comme *octet) == (b comme *octet)
 }
 
 donne_ancêtre_élément_commun :: fonc (a: *Élément, b: *Élément) -> *Élément

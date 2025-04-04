@@ -1,4 +1,4 @@
-importe #inemployé CSS
+CSS :: importe CSS
 importe Couleur
 importe Ensemble
 importe Fondation
@@ -55,6 +55,10 @@ dessine :: fonc (page: *PageWeb, largeur: z32, hauteur: z32, dessine_tampon_id: 
     document := donne_document(page)
 
     si document.is_initial_about_blank {
+        retourne nul
+    }
+
+    si document.is_render_blocked() {
         retourne nul
     }
 
