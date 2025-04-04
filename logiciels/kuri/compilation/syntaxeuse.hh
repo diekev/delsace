@@ -195,6 +195,8 @@ struct Syntaxeuse : BaseSyntaxeuse {
     void analyse_directive_symbole_externe(NoeudDéclarationSymbole *déclaration_symbole,
                                            NoeudDirectiveFonction *directive);
 
+    NoeudInstructionImporte *analyse_importe(Lexème const *lexème, Lexème const *lexème_référence);
+
     void empile_table_références();
     void dépile_table_références();
 

@@ -990,23 +990,29 @@ scheme_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Re
 
         chemin := CheminFichier(chaine_chemin_)
 
+        saufsi fichier_existe(chemin) {
+            chemin_parent_ci_fichier := CheminFichier(#chemin_de_ce_fichier).chemin_parent()
+            diffère détruit_chemin(chemin_parent_ci_fichier)
+
+            chemin_erreur_404 := chemin_parent_ci_fichier / "Fichiers/erreur-404.html"
+            diffère détruit_chemin(chemin_erreur_404)
+
+            contenu := contenu_fichier_texte(chemin_erreur_404)
+
+            nouveau_contenu := remplace(contenu, "{{nom-navigateur}}", user_agent.nom_navigateur)
+            déloge(contenu)
+            contenu = nouveau_contenu
+
+            nouveau_contenu = remplace(contenu, "{{url}}", chemin.chn)
+            déloge(contenu)
+            contenu = nouveau_contenu
+
+            retourne crée_réponse_pour_fichier(request, "text/html", contenu, 404)
+        }
+
         /* À FAIRE : permissions. */
         si est_un_fichier_régulier(chemin) {
-            type_mime := type_mime_pour_extension(chemin.extension())
-
-            contenu := contenu_fichier_texte(chemin)
-
-            response := crée_réponse(request)
-            response.status = 200
-
-            body_info := loge(ResponseBodyInfo)
-            body_info.decodede_size = contenu.taille comme z32
-            body_info.content_type = type_mime
-
-            response.body_info = body_info
-            response.body = contenu
-
-            retourne response
+            retourne crée_réponse_pour_fichier(request, chemin, 200)
         }
 
         retourne network_error(request)
@@ -1016,6 +1022,28 @@ scheme_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Re
     }
 
     retourne network_error(request)
+}
+
+crée_réponse_pour_fichier :: fonc (request: *Request, chemin: CheminFichier, status: z32) -> *Response
+{
+    type_mime := type_mime_pour_extension(chemin.extension())
+    contenu := contenu_fichier_texte(chemin)
+    retourne crée_réponse_pour_fichier(request, type_mime, contenu, status)
+}
+
+crée_réponse_pour_fichier :: fonc (request: *Request, type_mime: chaine, contenu: chaine, status: z32) -> *Response
+{
+    response := crée_réponse(request)
+    response.status = status
+
+    body_info := loge(ResponseBodyInfo)
+    body_info.decodede_size = contenu.taille comme z32
+    body_info.content_type = type_mime
+
+    response.body_info = body_info
+    response.body = contenu
+
+    retourne response
 }
 
 scheme_fetch_blob :: fonc (request: *Request) -> *Response
