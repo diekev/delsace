@@ -503,6 +503,11 @@ url_parser :: fonc (user_agent: *UserAgent, input: chaine, base : *URL = nul) ->
     retourne url_parser(user_agent, chn16, base)
 }
 
+url_parser :: fonc (user_agent: *UserAgent, input: DOMString, base : *URL = nul) -> *URL
+{
+    retourne url_parser(user_agent, input.donne_chaine_utf16(), base)
+}
+
 url_parser :: fonc (user_agent: *UserAgent, input: ChaineUTF16, base : *URL = nul) -> *URL
 {
     // 1. Let url be the result of running the basic URL parser on input with base and encoding.
