@@ -1,6 +1,6 @@
 importe Chaine
 importe Fondation
-importe #inemployé JavaScript
+JavaScript :: importe JavaScript
 
 /* Représentation d'un attribut lors du lexage. */
 AttributLexé :: struct {

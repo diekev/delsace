@@ -50,10 +50,6 @@ flux_sortie_efface :: fonc (flux_sortie: *FluxSortieConsole)
     flux_sortie.sur_efface(flux_sortie)
 }
 
-#portée_export
-
-#portée_fichier
-
 table_virtuelle_console := TableVirtuelleObject(classe = Console, sur_destruction = console_sur_destruction)
 
 #portée_export
