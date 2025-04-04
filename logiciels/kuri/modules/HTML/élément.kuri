@@ -884,6 +884,9 @@ définis_inner_html :: fonc (élément: *Élément, texte: DOMString)
     enfants := context.enfants
     context.enfants = fragment.enfants
     fragment.enfants = enfants
+
+    // À FAIRE : reconstruction partielle de l'arbre
+    élément.document.invalide_style()
 }
 
 /** \} */
