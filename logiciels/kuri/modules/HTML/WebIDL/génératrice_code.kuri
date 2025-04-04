@@ -232,7 +232,7 @@ compile_interfaces_idl :: fonc () -> chaine
     diffère détruit_tampons(*enchaineuse)
 
     ajoute_au_tampon(*enchaineuse, "importe Chaine\n")
-    ajoute_au_tampon(*enchaineuse, "importe #inemployé JavaScript\n")
+    ajoute_au_tampon(*enchaineuse, "JavaScript :: importe JavaScript\n")
 
     // À FAIRE : renomme nos types
     ajoute_au_tampon(*enchaineuse, "#portée_module\n")

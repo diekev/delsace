@@ -4,7 +4,7 @@ importe Chaine
 importe Compilatrice
 importe Fondation
 importe HTML
-importe #inemployé JavaScript
+JavaScript :: importe JavaScript
 importe SysFichier
 importe Temps
 
