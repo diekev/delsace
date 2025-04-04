@@ -38,6 +38,7 @@ charge "webappsec_permissions_policy"
 charge "webappsec_referrer_policy"
 charge "webcrypto"
 charge "webdriver_bidi"
+charge "websocket"
 charge "window"
 
 charge "WebIDL/interface_types"

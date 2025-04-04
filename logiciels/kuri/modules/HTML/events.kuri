@@ -59,6 +59,7 @@ EventType :: énum n8 {
     mouseout
     mouseover
     mouseup
+    open
     paste
     pause
     play
