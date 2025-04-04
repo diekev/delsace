@@ -26,7 +26,7 @@ Signedness :: énum {
 }
 
 /* https://webidl.spec.whatwg.org/#abstract-opdef-converttoint */
-convert_to_int :: fonc (interpréteuse: *JavaScript.Interpréteuse, valeur: JavaScript.Valeur, bit_length: n32 @inutilisée, signedness: Signedness @inutilisée) -> JavaScript.CompletionRecord
+convert_to_int :: fonc (interpréteuse: *JS.Interpréteuse, valeur: JS.Valeur, bit_length: n32 @inutilisée, signedness: Signedness @inutilisée) -> JS.CompletionRecord
 {
     // À FAIRE : complète
     // 1. If bitLength is 64, then:
@@ -50,8 +50,8 @@ convert_to_int :: fonc (interpréteuse: *JavaScript.Interpréteuse, valeur: Java
         // 2. Let upperBound be 2^bitLength − 1 − 1.
 
     // 4. Let x be ? ToNumber(V).
-    completion := JavaScript.to_number(interpréteuse, valeur)
-    saufsi JavaScript.est_normal(completion) {
+    completion := JS.to_number(interpréteuse, valeur)
+    saufsi JS.est_normal(completion) {
         retourne completion
     }
 
@@ -82,7 +82,7 @@ convert_to_int :: fonc (interpréteuse: *JavaScript.Interpréteuse, valeur: Java
 
     // 8. If x is NaN, +0, +∞, or −∞, then return +0.
     si est_nan(x) || x == 0.0 || est_infini(x) {
-        retourne JavaScript.normal_completion(JavaScript.Valeur(Number = 0.0))
+        retourne JS.normal_completion(JS.Valeur(Number = 0.0))
     }
 
     // 9. Set x to IntegerPart(x).
@@ -93,7 +93,7 @@ convert_to_int :: fonc (interpréteuse: *JavaScript.Interpréteuse, valeur: Java
     // 11. If signedness is "signed" and x ≥ 2^bitLength − 1, then return x − 2^bitLength.
 
     // 12. Otherwise, return x.
-    retourne JavaScript.normal_completion(JavaScript.Valeur(Number = x))
+    retourne JS.normal_completion(JS.Valeur(Number = x))
 }
 
 #portée_fichier
@@ -153,10 +153,37 @@ opérateur == :: fonc (a: NomEtIndex, b: NomEtIndex) -> bool
 
 #portée_module
 
+NOMBRE_DE_TYPES_MAX :: 256
+
 Interfaces :: struct {
     interfaces: [..]Interface
     contenus_fichiers: [..]chaine
     noms_et_index_parents: [..]NomEtIndex
+    types : [NOMBRE_DE_TYPES_MAX]Type = ---
+    nombre_de_types: z32
+}
+
+ajoute_type :: fonc (interfaces: *Interfaces) -> *Type
+{
+    résultat := *interfaces.types[interfaces.nombre_de_types]
+    init_de(Type)(résultat)
+    interfaces.nombre_de_types += 1
+    retourne résultat
+}
+
+trouve_ou_ajoute_type :: fonc (interfaces: *Interfaces, nom: chaine, nulifiable: bool) -> *Type
+{
+    pour interfaces.nombre_de_types {
+        type := *interfaces.types[it]
+        si type.nom == nom && type.nulifiable == nulifiable {
+            retourne type
+        }
+    }
+
+    résultat := ajoute_type(interfaces)
+    résultat.nom = nom
+    résultat.nulifiable = nulifiable
+    retourne résultat
 }
 
 crée_interface :: fonc (interfaces: *Interfaces, nom: chaine) -> *Interface
@@ -187,8 +214,14 @@ donne_interface :: fonc (interfaces: *Interfaces, nom: chaine) -> *Interface
 
 détruit_données_interfaces :: fonc (interfaces: *Interfaces)
 {
+    pour interfaces.nombre_de_types {
+        type := *interfaces.types[it]
+        déloge(type.types_rubriques_union)
+    }
+
     pour interfaces.interfaces {
         déloge(it.fonctions)
+        déloge(it.constructors)
         déloge(it.paramètres)
         déloge(it.attributs)
         déloge(it.mixins)
@@ -232,7 +265,7 @@ compile_interfaces_idl :: fonc () -> chaine
     diffère détruit_tampons(*enchaineuse)
 
     ajoute_au_tampon(*enchaineuse, "importe Chaine\n")
-    ajoute_au_tampon(*enchaineuse, "JavaScript :: importe JavaScript\n")
+    ajoute_au_tampon(*enchaineuse, "JS :: importe JavaScript\n")
 
     // À FAIRE : renomme nos types
     ajoute_au_tampon(*enchaineuse, "#portée_module\n")
@@ -274,13 +307,22 @@ compile_interfaces_idl :: fonc () -> chaine
     détruit_tampons(*enchaineuse)
     initialise_enchaineuse(*enchaineuse)
 
-    ajoute_au_tampon(*enchaineuse, "    tas_de_mémoire := JavaScript.donne_tas_de_mémoire(realm)\n\n")
+    ajoute_au_tampon(*enchaineuse, "    tas_de_mémoire := JS.donne_tas_de_mémoire(realm)\n\n")
 
     pour * interfaces.interfaces {
         si it.est_mixin {
             continue
         }
         génère_création_prototype(*enchaineuse, interfaces.interfaces, it, *interfaces.noms_et_index_parents)
+    }
+
+    griffonier: Griffonier
+    pour * interfaces.interfaces {
+        saufsi it.constructors {
+            continue
+        }
+
+        ajoute_au_tampon(*enchaineuse, "    ", it.nom, "_constructor := crée_", donne_nom_snake_case(it.nom, *griffonier), "_constructor(realm, ", it.nom, "_prototype)\n")
     }
 
     ajoute_au_tampon(*enchaineuse, "\n    si __table_indexage_prototypes.taille == 0 {\n")
@@ -293,7 +335,14 @@ compile_interfaces_idl :: fonc () -> chaine
     }
     ajoute_au_tampon(*enchaineuse, "    }\n")
 
-    ajoute_au_tampon(*enchaineuse, "\n    tableau_redimensionne(realm.intrinsics.host_intrinsics, ", interfaces.interfaces.taille, ")\n")
+    nombres_intrinsèques := interfaces.interfaces.taille;
+    pour interfaces.interfaces {
+        si it.constructors {
+            nombres_intrinsèques += 1
+        }
+    }
+
+    ajoute_au_tampon(*enchaineuse, "\n    tableau_redimensionne(realm.intrinsics.host_intrinsics, ", nombres_intrinsèques, ")\n")
 
     pour interfaces.interfaces {
         si it.est_mixin {
@@ -301,6 +350,32 @@ compile_interfaces_idl :: fonc () -> chaine
         }
         ajoute_au_tampon(*enchaineuse, "    realm.intrinsics.host_intrinsics[", index_it, "] = ", it.nom, "_prototype\n")
     }
+
+    index_intrinsèque := interfaces.interfaces.taille
+    pour interfaces.interfaces {
+        saufsi it.constructors {
+            continue
+        }
+
+        ajoute_au_tampon(*enchaineuse, "    realm.intrinsics.host_intrinsics[", index_intrinsèque, "] = ", it.nom, "_constructor\n")
+        index_intrinsèque += 1
+    }
+
+    nombre_de_constructros := index_intrinsèque - interfaces.interfaces.taille
+    index_intrinsèque = interfaces.interfaces.taille
+
+    ajoute_au_tampon(*enchaineuse, "    si __table_constructors.taille == 0 {\n")
+    ajoute_au_tampon(*enchaineuse, "        tableau_redimensionne(__table_constructors, ", nombre_de_constructros, ")\n")
+    index_constructor := 0
+    pour interfaces.interfaces {
+        saufsi it.constructors {
+            continue
+        }
+
+        ajoute_au_tampon(*enchaineuse, "        __table_constructors[", index_constructor, "] = InfoConstructor(", index_intrinsèque, ", crée_chaine_utf16_unique(\"", it.nom, "\"))\n")
+        index_intrinsèque += 1
+    }
+    ajoute_au_tampon(*enchaineuse, "    }\n")
 
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
@@ -339,10 +414,12 @@ génère_création_prototype :: fonc (enchaineuse: *Enchaineuse, interfaces: []I
 Type :: struct {
     nom: chaine
     nulifiable: bool
+    est_union: bool
+    types_rubriques_union: [..]*Type
 }
 
 Attribut :: struct {
-    type: Type
+    type: *Type
     nom: chaine
     lecture_seule: bool
     reflect: bool
@@ -354,11 +431,11 @@ Attribut :: struct {
 
 Paramètre :: struct {
     nom: chaine
-    type: Type
+    type: *Type
 }
 
 Fonction :: struct {
-    type_retour: Type
+    type_retour: *Type
     nom: chaine
 
     premier_paramètre: z64
@@ -375,6 +452,7 @@ Interface :: struct {
     paramètres: [..]Paramètre
     attributs: [..]Attribut
     fonctions: [..]Fonction
+    constructors: [..]Fonction
     mixins: [..]chaine
 
     création_générée := faux
@@ -424,7 +502,7 @@ imprime_interface :: fonc (interface: *Interface)
             imprime("readonly ")
         }
         imprime("attribute ")
-        imprime_type(*it.type)
+        imprime_type(it.type)
         imprime(" %", it.nom)
         imprime(";\n")
     }
@@ -442,6 +520,8 @@ génère_enveloppes_javascript :: fonc (enchaineuse: *Enchaineuse, interface: *I
         génère_enveloppe_javascript(enchaineuse, interface, it, *griffonier)
     }
 
+    génère_constructor(enchaineuse, interface, *griffonier)
+
     pour * interface.attributs {
         génère_enveloppe_javascript_getter(enchaineuse, interface, it, *griffonier)
 
@@ -455,17 +535,17 @@ génère_enveloppes_javascript :: fonc (enchaineuse: *Enchaineuse, interface: *I
 
 génère_création_prototype :: fonc (enchaineuse: *Enchaineuse, interface: *Interface)
 {
-    ajoute_au_tampon(enchaineuse, "crée_prototype_", interface.nom, " :: fonc (tas_de_mémoire: *JavaScript.TasDeMémoire, prototype: *JavaScript.Object) -> *JavaScript.Object\n")
+    ajoute_au_tampon(enchaineuse, "crée_prototype_", interface.nom, " :: fonc (tas_de_mémoire: *JS.TasDeMémoire, prototype: *JS.Object) -> *JS.Object\n")
     ajoute_au_tampon(enchaineuse, "{\n")
 
-    ajoute_au_tampon(enchaineuse, "    résultat := JavaScript.crée_objet(tas_de_mémoire, prototype)\n")
+    ajoute_au_tampon(enchaineuse, "    résultat := JS.crée_objet(tas_de_mémoire, prototype)\n")
 
     pour * interface.fonctions {
-        ajoute_au_tampon(enchaineuse, "    JavaScript.ajoute_fonction_native(résultat, \"", it.nom, "\", ", interface.nom, "_", it.nom, ")\n")
+        ajoute_au_tampon(enchaineuse, "    JS.ajoute_fonction_native(résultat, \"", it.nom, "\", ", interface.nom, "_", it.nom, ")\n")
     }
 
     pour * interface.attributs {
-        ajoute_au_tampon(enchaineuse, "    JavaScript.ajoute_propriété(résultat, crée_chaine_utf16_unique(\"", it.nom, "\"), ")
+        ajoute_au_tampon(enchaineuse, "    JS.ajoute_propriété(résultat, crée_chaine_utf16_unique(\"", it.nom, "\"), ")
         ajoute_au_tampon(enchaineuse, "get_", interface.nom, "_", it.nom, ", ")
         si it.lecture_seule {
             ajoute_au_tampon(enchaineuse, "nul, ")
@@ -473,7 +553,7 @@ génère_création_prototype :: fonc (enchaineuse: *Enchaineuse, interface: *Int
         sinon {
             ajoute_au_tampon(enchaineuse, "set_", interface.nom, "_", it.nom, ", ")
         }
-        ajoute_au_tampon(enchaineuse, "JavaScript.DrapeauxPropriété.zéro)\n")
+        ajoute_au_tampon(enchaineuse, "JS.DrapeauxPropriété.zéro)\n")
     }
     
     ajoute_au_tampon(enchaineuse, "    retourne résultat\n")
@@ -484,14 +564,53 @@ génère_enveloppe_javascript :: fonc (enchaineuse: *Enchaineuse, interface: *In
 {
     paramètres := interface.donne_paramètres(fonction)
 
-    ajoute_au_tampon(enchaineuse, interface.nom, "_", fonction.nom, " :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord\n")
+    ajoute_au_tampon(enchaineuse, interface.nom, "_", fonction.nom, " :: fonc (empl params: *JS.ParamètresObjectCall) -> JS.CompletionRecord\n")
     ajoute_au_tampon(enchaineuse, "{\n")
 
     génère_code_conversion_this(enchaineuse, interface)
 
+    type_union: *Type
+    nom_param_union: chaine
+
+    pour paramètres {
+        si it.type.est_union {
+            nom_param_union = it.nom
+            type_union = it.type
+            arrête
+        }
+    }
+
+    pour paramètres {
+        ajoute_au_tampon(enchaineuse, "    valeur_", it.nom, " := JS.donne_argument(params, ", index_it, ")\n")
+    }
+
+    si type_union {
+        pour type_union.types_rubriques_union {
+            ajoute_au_tampon(enchaineuse, "si ")
+            génère_comparaison_type_pour_rubrique_union(enchaineuse, nom_param_union, it)
+            ajoute_au_tampon(enchaineuse, " {\n")
+            génère_appel_fonction(enchaineuse, fonction, paramètres, index_it, griffonier)
+            ajoute_au_tampon(enchaineuse, "}\n")
+        }
+        ajoute_au_tampon(enchaineuse, "    retourne JS.lance_type_error(interpréteuse, \"Invalid type for argument ", nom_param_union, "\")\n")
+    }
+    sinon {
+        génère_appel_fonction(enchaineuse, fonction, paramètres, -1, griffonier)
+    }
+
+    ajoute_au_tampon(enchaineuse, "}\n")
+}
+ 
+génère_appel_fonction :: fonc (enchaineuse: *Enchaineuse, fonction: *Fonction, paramètres: []Paramètre, index_rubrique_union: z64, griffonier: *Griffonier)
+{
     // Conversion des paramètres
     pour paramètres {
-        génère_code_conversion_argument(enchaineuse, it.nom, index_it, *it.type)
+        type := it.type
+        si type.est_union {
+            type = type.types_rubriques_union[index_rubrique_union]
+        }
+
+        génère_code_conversion_argument(enchaineuse, it.nom, index_it, type)
     }
 
     // Appel de la fonction.
@@ -520,16 +639,109 @@ génère_enveloppe_javascript :: fonc (enchaineuse: *Enchaineuse, interface: *In
     }
     ajoute_au_tampon(enchaineuse, ")\n")
 
-    génère_code_conversion_résultat(enchaineuse, *fonction.type_retour)
+    génère_code_conversion_résultat(enchaineuse, fonction.type_retour)
+}
 
-    ajoute_au_tampon(enchaineuse, "}\n")
+génère_comparaison_type_pour_rubrique_union :: fonc (enchaineuse: *Enchaineuse, nom: chaine, type: *Type)
+{
+    si type.nom == "DOMString" || type.nom == "USVString" {
+        ajoute_au_tampon(enchaineuse, "JS.est_chaine(valeur_", nom, ")")
+    }
+    sinon si type.nom == "ArrayBuffer" {
+        ajoute_au_tampon(enchaineuse, "JS.est_object(valeur_", nom, ") && JS.donne_objet(valeur_", nom, ").table.classe == JS.", type.nom)
+    }
+    sinon {
+        ajoute_au_tampon(enchaineuse, "JS.est_object(valeur_", nom, ") && JS.donne_objet(valeur_", nom, ").table.classe == ", type.nom)
+    }
+}
+
+génère_constructor :: fonc (enchaineuse: *Enchaineuse, interface: *Interface, griffonier: *Griffonier)
+{
+    saufsi interface.constructors {
+        retourne
+    }
+
+chaine_déclaration_constructor := «
+\\(0)Constructor :: struct {
+    empl builtin_function: JS.BuiltInFunction
+    table = *table_virtuelle_\\(1)_constructor
+
+    sur_call_or_construct = \\(1)_call_or_construct
+}
+
+crée_\\(1)_constructor :: fonc (realm: *JS.Realm, prototype: *JS.Object) -> *\\(0)Constructor
+{
+    // assert(prototype == realm.intrinsics.\\(1)_prototype)
+    tas_de_mémoire := JS.donne_tas_de_mémoire(realm)
+    résultat := JS.alloue(tas_de_mémoire, \\(0)Constructor)
+
+    STR_\\(0) := crée_chaine_utf16_unique("\\(0)")
+
+    JS.create_builtin_function(résultat, 1, STR_\\(0), realm, realm.intrinsics.function_prototype)
+
+    JS.ajoute_propriété(résultat, JS.STR_prototype, JS.Valeur(Object = prototype), JS.DrapeauxPropriété.zéro)
+
+    JS.ajoute_propriété(prototype, JS.STR_constructor, JS.Valeur(Object = résultat), JS.DrapeauxPropriété.zéro)
+
+    retourne résultat
+}
+
+#portée_fichier
+
+table_virtuelle_\\(1)_constructor := JS.TableVirtuelleBuiltinFunction(classe = \\(0)Constructor)
+
+\\(1)_call_or_construct :: fonc (params: *JS.ParamètresCallOrConstruct) -> JS.CompletionRecord
+{
+    realm := JS.donne_realm(params.interpréteuse)
+
+    si JS.est_undefined(params.new_target) {
+        retourne JS.lance_type_error(params.interpréteuse, "missing 'new' to construct \\(0)")
+    }
+
+    object_this := crée_platform_object(JS.donne_tas_de_mémoire(realm), realm, \\(0));
+    completion: JS.CompletionRecord
+    interpréteuse := params.interpréteuse
+»
+
+    chaine_fin_constructor := «
+}
+
+#portée_export
+»
+
+    nom_snake_case := donne_nom_snake_case(interface.nom, griffonier)
+    fmt_imprime_dans_enchaineuse(enchaineuse, chaine_déclaration_constructor, interface.nom, nom_snake_case)
+
+    /* À FAIRE : plusieurs constructeurs */
+    constructor := *interface.constructors[0]
+
+    // Conversion des paramètres
+    paramètres := interface.donne_paramètres(constructor)
+    pour paramètres {
+        ajoute_au_tampon(enchaineuse, "    valeur_", it.nom, " := JS.donne_argument(params, ", index_it, ")\n")
+        génère_code_conversion_argument(enchaineuse, it.nom, index_it, it.type)
+    }
+
+    ajoute_au_tampon(enchaineuse, "    retourne ", nom_snake_case, "_construct")
+
+    virgule := "(params.interpréteuse, object_this, "
+    si paramètres.taille == 0 {
+        ajoute_au_tampon(enchaineuse, "(params.interpréteuse, object_this")
+    }
+    sinon pour paramètres {
+        ajoute_au_tampon(enchaineuse, virgule, it.nom)
+        virgule = ", "
+    }
+    ajoute_au_tampon(enchaineuse, ")")
+
+    fmt_imprime_dans_enchaineuse(enchaineuse, chaine_fin_constructor, interface.nom, nom_snake_case)
 }
 
 génère_enveloppe_javascript_getter :: fonc (enchaineuse: *Enchaineuse, interface: *Interface, attribut: *Attribut, griffonier: *Griffonier)
 {
     nom_snake_case := donne_nom_snake_case(attribut.nom, griffonier)
 
-    ajoute_au_tampon(enchaineuse, "get_", interface.nom, "_", attribut.nom, " :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord\n")
+    ajoute_au_tampon(enchaineuse, "get_", interface.nom, "_", attribut.nom, " :: fonc (empl params: *JS.ParamètresObjectCall) -> JS.CompletionRecord\n")
     ajoute_au_tampon(enchaineuse, "{\n")
 
     génère_code_conversion_this(enchaineuse, interface)
@@ -552,7 +764,7 @@ génère_enveloppe_javascript_getter :: fonc (enchaineuse: *Enchaineuse, interfa
         ajoute_au_tampon(enchaineuse, "    résultat := donne_", nom_snake_case, "(object_this)\n")
     }
 
-    génère_code_conversion_résultat(enchaineuse, *attribut.type)
+    génère_code_conversion_résultat(enchaineuse, attribut.type)
 
     ajoute_au_tampon(enchaineuse, "}\n")
 }
@@ -561,12 +773,14 @@ génère_enveloppe_javascript_setter :: fonc (enchaineuse: *Enchaineuse, interfa
 {
     nom_snake_case := donne_nom_snake_case(attribut.nom, griffonier)
 
-    ajoute_au_tampon(enchaineuse, "set_", interface.nom, "_", attribut.nom, " :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord\n")
+    ajoute_au_tampon(enchaineuse, "set_", interface.nom, "_", attribut.nom, " :: fonc (empl params: *JS.ParamètresObjectCall) -> JS.CompletionRecord\n")
     ajoute_au_tampon(enchaineuse, "{\n")
 
     génère_code_conversion_this(enchaineuse, interface)
 
-    génère_code_conversion_argument(enchaineuse, attribut.nom, 0, *attribut.type)
+    ajoute_au_tampon(enchaineuse, "    valeur_", attribut.nom, " := JS.donne_argument(params, ", 0, ")\n")
+
+    génère_code_conversion_argument(enchaineuse, attribut.nom, 0, attribut.type)
 
     // Appel de la fonction
     si attribut.reflect {
@@ -586,7 +800,7 @@ génère_enveloppe_javascript_setter :: fonc (enchaineuse: *Enchaineuse, interfa
         ajoute_au_tampon(enchaineuse, "    définis_", nom_snake_case, "(object_this, ", attribut.nom, ")\n")
     }
 
-    ajoute_au_tampon(enchaineuse, "    retourne JavaScript.normal_completion(JavaScript.js_undefined)\n")
+    ajoute_au_tampon(enchaineuse, "    retourne JS.normal_completion(JS.js_undefined)\n")
     ajoute_au_tampon(enchaineuse, "}\n")
 }
 
@@ -594,82 +808,86 @@ génère_code_conversion_this :: fonc (enchaineuse: *Enchaineuse, interface: *In
 {
     si interface.est_window {
         /* Puisque Window est l'objet global, si this est undefined, nous utilisons l'objet global du realm courant. */
-        ajoute_au_tampon(enchaineuse, "    si JavaScript.est_undefined(this_value) {\n")
-        ajoute_au_tampon(enchaineuse, "        realm := JavaScript.donne_realm(interpréteuse)\n")
+        ajoute_au_tampon(enchaineuse, "    si JS.est_undefined(this_value) {\n")
+        ajoute_au_tampon(enchaineuse, "        realm := JS.donne_realm(interpréteuse)\n")
         ajoute_au_tampon(enchaineuse, "        this_value.Object = realm.global_object\n")
         ajoute_au_tampon(enchaineuse, "    }\n")
     }
 
     ajoute_au_tampon(enchaineuse, "    completion := donne_platform_object(interpréteuse, this_value, ", interface.nom, ")\n")
-    ajoute_au_tampon(enchaineuse, "    saufsi JavaScript.est_normal(completion) {\n        retourne completion;\n    }\n")
-    ajoute_au_tampon(enchaineuse, "    object_this := JavaScript.donne_objet(completion.valeur.V) comme *", interface.nom, "\n")
+    ajoute_au_tampon(enchaineuse, "    saufsi JS.est_normal(completion) {\n        retourne completion;\n    }\n")
+    ajoute_au_tampon(enchaineuse, "    object_this := JS.donne_objet(completion.valeur.V) comme *", interface.nom, "\n")
 }
 
 génère_code_conversion_argument :: fonc (enchaineuse: *Enchaineuse, nom: chaine, index: z64, type: *Type)
 {
-    ajoute_au_tampon(enchaineuse, "    valeur_", nom, " := JavaScript.donne_argument(params, ", index, ")\n")
     si type.nom == "DOMString" || type.nom == "USVString" {
-        ajoute_au_tampon(enchaineuse, "    completion = JavaScript.to_string(interpréteuse, valeur_", nom, ")\n")
-        ajoute_au_tampon(enchaineuse, "    saufsi JavaScript.est_normal(completion) {\n        retourne completion;\n    }\n")
+        ajoute_au_tampon(enchaineuse, "    completion = JS.to_string(interpréteuse, valeur_", nom, ")\n")
+        ajoute_au_tampon(enchaineuse, "    saufsi JS.est_normal(completion) {\n        retourne completion;\n    }\n")
         ajoute_au_tampon(enchaineuse, "    ", nom, " := completion.valeur.V.String.texte\n")
     }
     sinon si type.nom == "unsigned long" {
         ajoute_au_tampon(enchaineuse, "    completion = convert_to_int(interpréteuse, valeur_", nom, ", 32, Signedness.Unsigned)\n")
-        ajoute_au_tampon(enchaineuse, "    saufsi JavaScript.est_normal(completion) {\n        retourne completion;\n    }\n")
+        ajoute_au_tampon(enchaineuse, "    saufsi JS.est_normal(completion) {\n        retourne completion;\n    }\n")
         ajoute_au_tampon(enchaineuse, "    ", nom, " := completion.valeur.V.Number comme n32\n")
     }
     sinon si type.nom == "long" {
         ajoute_au_tampon(enchaineuse, "    completion = convert_to_int(interpréteuse, valeur_", nom, ", 32, Signedness.Signed)\n")
-        ajoute_au_tampon(enchaineuse, "    saufsi JavaScript.est_normal(completion) {\n        retourne completion;\n    }\n")
+        ajoute_au_tampon(enchaineuse, "    saufsi JS.est_normal(completion) {\n        retourne completion;\n    }\n")
         ajoute_au_tampon(enchaineuse, "    ", nom, " := completion.valeur.V.Number comme z32\n")
     }
     sinon si type.nom == "double" || type.nom == "unrestricted double" {
-        ajoute_au_tampon(enchaineuse, "    completion = JavaScript.to_number(interpréteuse, valeur_", nom, ")\n")
-        ajoute_au_tampon(enchaineuse, "    saufsi JavaScript.est_normal(completion) {\n        retourne completion;\n    }\n")
+        ajoute_au_tampon(enchaineuse, "    completion = JS.to_number(interpréteuse, valeur_", nom, ")\n")
+        ajoute_au_tampon(enchaineuse, "    saufsi JS.est_normal(completion) {\n        retourne completion;\n    }\n")
         ajoute_au_tampon(enchaineuse, "    ", nom, " := completion.valeur.V.Number\n")
     }
     sinon si type.nom == "boolean" {
-        ajoute_au_tampon(enchaineuse, "    ", nom, " := JavaScript.to_boolean(valeur_", nom, ").Boolean\n")
+        ajoute_au_tampon(enchaineuse, "    ", nom, " := JS.to_boolean(valeur_", nom, ").Boolean\n")
     }
     sinon si type.nom == "EventListener" {
-        ajoute_au_tampon(enchaineuse, "    saufsi JavaScript.est_object(valeur_", nom, ") {\n")
-        ajoute_au_tampon(enchaineuse, "        retourne JavaScript.lance_type_error(interpréteuse, \"argument ", index, " is not callable\")\n")
+        ajoute_au_tampon(enchaineuse, "    saufsi JS.est_object(valeur_", nom, ") {\n")
+        ajoute_au_tampon(enchaineuse, "        retourne JS.lance_type_error(interpréteuse, \"argument ", index, " is not callable\")\n")
         ajoute_au_tampon(enchaineuse, "    }\n")
-        ajoute_au_tampon(enchaineuse, "    ", nom, ":= crée_event_listener(JavaScript.donne_objet(valeur_", nom, "))\n")
+        ajoute_au_tampon(enchaineuse, "    ", nom, ":= crée_event_listener(JS.donne_objet(valeur_", nom, "))\n")
     }
     sinon si type.nom == "EventHandler" {
-        ajoute_au_tampon(enchaineuse, "    saufsi JavaScript.est_object(valeur_", nom, ") {\n")
-        ajoute_au_tampon(enchaineuse, "        retourne JavaScript.lance_type_error(interpréteuse, \"argument ", index, " is not callable\")\n")
+        ajoute_au_tampon(enchaineuse, "    saufsi JS.est_object(valeur_", nom, ") {\n")
+        ajoute_au_tampon(enchaineuse, "        retourne JS.lance_type_error(interpréteuse, \"argument ", index, " is not callable\")\n")
         ajoute_au_tampon(enchaineuse, "    }\n")
-        ajoute_au_tampon(enchaineuse, "    ", nom, ":= crée_event_handler(JavaScript.donne_objet(valeur_", nom, "))\n")
+        ajoute_au_tampon(enchaineuse, "    ", nom, ":= crée_event_handler(JS.donne_objet(valeur_", nom, "))\n")
     }
     sinon si type.nom == "Function" {
         indentation := ""
         si type.nulifiable {
-            ajoute_au_tampon(enchaineuse, "    saufsi JavaScript.est_nulle(valeur_", nom, ") {\n")
+            ajoute_au_tampon(enchaineuse, "    saufsi JS.est_nulle(valeur_", nom, ") {\n")
             indentation = "    "
         }
 
-        ajoute_au_tampon(enchaineuse, indentation, "    saufsi JavaScript.is_callable(valeur_", nom, ") {\n")
-        ajoute_au_tampon(enchaineuse, indentation, "        retourne JavaScript.lance_type_error(interpréteuse, \"argument ", index, " is not callable\")\n")
+        ajoute_au_tampon(enchaineuse, indentation, "    saufsi JS.is_callable(valeur_", nom, ") {\n")
+        ajoute_au_tampon(enchaineuse, indentation, "        retourne JS.lance_type_error(interpréteuse, \"argument ", index, " is not callable\")\n")
         ajoute_au_tampon(enchaineuse, indentation, "    }\n")
-        ajoute_au_tampon(enchaineuse, indentation, "    ", nom, " := JavaScript.donne_objet(valeur_", nom, ")\n")
+        ajoute_au_tampon(enchaineuse, indentation, "    ", nom, " := JS.donne_objet(valeur_", nom, ")\n")
 
         si type.nulifiable {
             ajoute_au_tampon(enchaineuse, "    }\n")
         }
     }
+    sinon si type.nom == "ArrayBuffer" {
+        ajoute_au_tampon(enchaineuse, "    completion = JS.to_array_buffer(interpréteuse, valeur_", nom, ")\n")
+        ajoute_au_tampon(enchaineuse, "    saufsi JS.est_normal(completion) {\n        retourne completion;\n    }\n")
+        ajoute_au_tampon(enchaineuse, "    ", nom, " := JS.donne_objet(completion.valeur.V) comme *JS.ArrayBuffer\n")
+    }
     sinon {
         ajoute_au_tampon(enchaineuse, "    completion = donne_platform_object(interpréteuse, valeur_", nom, ", ", type.nom, ")\n")
-        ajoute_au_tampon(enchaineuse, "    saufsi JavaScript.est_normal(completion) {\n        retourne completion;\n    }\n")
-        ajoute_au_tampon(enchaineuse, "    ", nom, " := JavaScript.donne_objet(completion.valeur.V) comme *", type.nom, "\n")
+        ajoute_au_tampon(enchaineuse, "    saufsi JS.est_normal(completion) {\n        retourne completion;\n    }\n")
+        ajoute_au_tampon(enchaineuse, "    ", nom, " := JS.donne_objet(completion.valeur.V) comme *", type.nom, "\n")
     }
 }
 
 génère_code_conversion_résultat :: fonc (enchaineuse: *Enchaineuse, type: *Type)
 {
     si type.nom == "undefined" {
-        ajoute_au_tampon(enchaineuse, "    retourne JavaScript.normal_completion(JavaScript.js_undefined)\n")
+        ajoute_au_tampon(enchaineuse, "    retourne JS.normal_completion(JS.js_undefined)\n")
     }
     sinon si type.nom == "DOMString" || type.nom == "USVString" {
         ajoute_au_tampon(enchaineuse, "    str_unique: ChaineUTF16Unique\n")
@@ -679,35 +897,35 @@ génère_code_conversion_résultat :: fonc (enchaineuse: *Enchaineuse, type: *Ty
         ajoute_au_tampon(enchaineuse, "    sinon {\n")
         ajoute_au_tampon(enchaineuse, "        str_unique = résultat\n")
         ajoute_au_tampon(enchaineuse, "    }\n")
-        ajoute_au_tampon(enchaineuse, "    str := JavaScript.crée_chaine(JavaScript.donne_realm(interpréteuse), str_unique)\n")
-        ajoute_au_tampon(enchaineuse, "    retourne JavaScript.normal_completion(JavaScript.Valeur(String = str))\n")
+        ajoute_au_tampon(enchaineuse, "    str := JS.crée_chaine(JS.donne_realm(interpréteuse), str_unique)\n")
+        ajoute_au_tampon(enchaineuse, "    retourne JS.normal_completion(JS.Valeur(String = str))\n")
     }
     sinon si type.nom == "unsigned long" || type.nom == "long" {
-        ajoute_au_tampon(enchaineuse, "    retourne JavaScript.normal_completion(JavaScript.Valeur(Number = résultat comme r64))\n")
+        ajoute_au_tampon(enchaineuse, "    retourne JS.normal_completion(JS.Valeur(Number = résultat comme r64))\n")
     }
     sinon si type.nom == "double" || type.nom == "unrestricted double" {
-        ajoute_au_tampon(enchaineuse, "    retourne JavaScript.normal_completion(JavaScript.Valeur(Number = résultat))\n")
+        ajoute_au_tampon(enchaineuse, "    retourne JS.normal_completion(JS.Valeur(Number = résultat))\n")
     }
     sinon si type.nom == "boolean" {
-        ajoute_au_tampon(enchaineuse, "    retourne JavaScript.normal_completion(JavaScript.Valeur(Boolean = résultat))\n")
+        ajoute_au_tampon(enchaineuse, "    retourne JS.normal_completion(JS.Valeur(Boolean = résultat))\n")
     }
     sinon si type.nom == "EventHandler" {
         si type.nulifiable {
             ajoute_au_tampon(enchaineuse, "    saufsi résultat {\n")
-            ajoute_au_tampon(enchaineuse, "        retourne JavaScript.normal_completion(JavaScript.js_null)\n")
+            ajoute_au_tampon(enchaineuse, "        retourne JS.normal_completion(JS.js_null)\n")
             ajoute_au_tampon(enchaineuse, "    }\n")
         }
 
-        ajoute_au_tampon(enchaineuse, "    retourne JavaScript.normal_completion(JavaScript.Valeur(Object = résultat.object))\n")
+        ajoute_au_tampon(enchaineuse, "    retourne JS.normal_completion(JS.Valeur(Object = résultat.object))\n")
     }
     sinon {
         si type.nulifiable {
             ajoute_au_tampon(enchaineuse, "    saufsi résultat {\n")
-            ajoute_au_tampon(enchaineuse, "        retourne JavaScript.normal_completion(JavaScript.js_null)\n")
+            ajoute_au_tampon(enchaineuse, "        retourne JS.normal_completion(JS.js_null)\n")
             ajoute_au_tampon(enchaineuse, "    }\n")
         }
 
-        ajoute_au_tampon(enchaineuse, "    retourne JavaScript.normal_completion(JavaScript.Valeur(Object = résultat))\n")
+        ajoute_au_tampon(enchaineuse, "    retourne JS.normal_completion(JS.Valeur(Object = résultat))\n")
     }
 }
 
@@ -722,6 +940,7 @@ imprime_type :: fonc (type: *Type)
 parse_fichier :: fonc (chemin: CheminFichier, texte: chaine, interfaces: *Interfaces)
 {
     parseuse := crée_parseuse(chemin, texte)
+    parseuse.interfaces = interfaces
 
     tantque parseuse.début < parseuse.fin {
         lexème := donne_lexème_suivant(*parseuse)
@@ -800,9 +1019,16 @@ parse_une_fonction :: fonc (parseuse: *ParseuseInterface, interface: *Interface)
         _ := donne_lexème_suivant(parseuse)
     }
 
-    parse_type(parseuse, *résultat.type_retour)
-    résultat.nom = donne_lexème_suivant(parseuse)
-    résultat.premier_paramètre = interface.paramètres.taille
+    est_constructor := faux
+    si parseuse.apparie("constructor") {
+        est_constructor = vrai
+        _ := parseuse.donne_lexème_suivant()
+    }
+    sinon {
+        résultat.type_retour = parse_type(parseuse)
+        résultat.nom = donne_lexème_suivant(parseuse)
+        résultat.premier_paramètre = interface.paramètres.taille
+    }
 
     saufsi consomme_caractère(parseuse, '(') {
         rapporte_erreur(parseuse, "attendu '('", donne_lexème_suivant(parseuse))
@@ -814,7 +1040,7 @@ parse_une_fonction :: fonc (parseuse: *ParseuseInterface, interface: *Interface)
         }
 
         paramètre: Paramètre
-        parse_type(parseuse, *paramètre.type)
+        paramètre.type = parse_type(parseuse)
         paramètre.nom = donne_lexème_suivant(parseuse)
 
         tableau_ajoute(*interface.paramètres, paramètre)
@@ -831,7 +1057,13 @@ parse_une_fonction :: fonc (parseuse: *ParseuseInterface, interface: *Interface)
     }
 
     résultat.dernier_paramètre = interface.paramètres.taille
-    tableau_ajoute(*interface.fonctions, résultat)
+
+    si est_constructor {
+        tableau_ajoute(*interface.constructors, résultat)
+    }
+    sinon {
+        tableau_ajoute(*interface.fonctions, résultat)
+    }
 
     consomme_point_virgule(parseuse)
 }
@@ -874,7 +1106,7 @@ parse_un_attribut :: fonc (parseuse: *ParseuseInterface, interface: *Interface)
         rapporte_erreur(parseuse, "attendu 'attribute'", lexème)
     }
 
-    parse_type(parseuse, *résultat.type)
+    résultat.type = parse_type(parseuse)
 
     lexème = donne_lexème_suivant(parseuse)
 
@@ -941,6 +1173,7 @@ ParseuseInterface :: struct {
     fin: *z8
     chemin: CheminFichier
     texte: chaine
+    interfaces: *Interfaces
 }
 
 crée_parseuse :: fonc (chemin: CheminFichier, texte: chaine) -> ParseuseInterface
@@ -978,7 +1211,47 @@ apparie :: fonc (parseuse: *ParseuseInterface, c: z8) -> bool
     retourne mémoire(parseuse.début) == c
 }
 
-parse_type :: fonc (parseuse: *ParseuseInterface, résultat: *Type)
+parse_type :: fonc (parseuse: *ParseuseInterface) -> *Type
+{
+    si parseuse.consomme_caractère('(') {
+        retourne parse_type_union(parseuse)
+    }
+
+    retourne parse_type_simple(parseuse)
+}
+
+parse_type_union :: fonc (parseuse: *ParseuseInterface) -> *Type
+{
+    résultat := ajoute_type(parseuse.interfaces)
+    résultat.est_union = vrai
+
+    tantque parseuse.début < parseuse.fin {
+        si parseuse.consomme_caractère(')') {
+            arrête
+        }
+
+        type := parse_type_simple(parseuse)
+        tableau_ajoute(*résultat.types_rubriques_union, type)
+
+        parseuse.consomme_espaces_blanches()
+
+        si parseuse.apparie("or") {
+            _ := donne_lexème_suivant(parseuse)
+            parseuse.consomme_espaces_blanches()
+            continue
+        }
+
+        saufsi parseuse.consomme_caractère(')') {
+            rapporte_erreur(parseuse, "attendu ')", parseuse.donne_lexème_suivant())
+        }
+
+        arrête
+    }
+
+    retourne résultat
+}
+
+parse_type_simple :: fonc (parseuse: *ParseuseInterface) -> *Type
 {
     nom_type := donne_lexème_suivant(parseuse)
 
@@ -1003,8 +1276,8 @@ parse_type :: fonc (parseuse: *ParseuseInterface, résultat: *Type)
         }
     }
 
-    résultat.nom = nom_type
-    résultat.nulifiable = consomme_caractère(parseuse, '?')
+    nulifiable := consomme_caractère(parseuse, '?')
+    retourne trouve_ou_ajoute_type(parseuse.interfaces, nom_type, nulifiable)
 }
 
 donne_lexème_suivant :: fonc (parseuse: *ParseuseInterface) -> chaine
