@@ -1,7 +1,7 @@
 importe Chaine
 importe Ensemble
 importe Fondation
-JavaScript :: importe JavaScript
+JS :: importe JavaScript
 
 /* https://dom.spec.whatwg.org/#concept-ordered-set-parser */
 run_ordered_set_parser :: fonc (chn: DOMString) -> [..]DOMString
@@ -34,7 +34,7 @@ table_virtuelle_node_list := TableVirtuellePlatformObject(
     sur_destruction = node_list_sur_destruction
 )
 
-node_list_sur_destruction :: fonc (base: *JavaScript.Cellule)
+node_list_sur_destruction :: fonc (base: *JS.Cellule)
 {
     platform_object_sur_destruction(base)
     node_list := base comme *NodeList
@@ -187,7 +187,7 @@ table_virtuelle_html_collection := TableVirtuellePlatformObject(
     sur_destruction = html_collection_sur_destruction
 )
 
-html_collection_sur_destruction :: fonc (base: *JavaScript.Cellule)
+html_collection_sur_destruction :: fonc (base: *JS.Cellule)
 {
     platform_object_sur_destruction(base)
     collection := base comme *HTMLCollection

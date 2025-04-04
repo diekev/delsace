@@ -22,6 +22,7 @@ charge "valeur"
 charge "CodeBinaire/génération_code"
 charge "CodeBinaire/instructions"
 
+charge "Objets/array_buffer"
 charge "Objets/array"
 charge "Objets/boolean"
 charge "Objets/console"

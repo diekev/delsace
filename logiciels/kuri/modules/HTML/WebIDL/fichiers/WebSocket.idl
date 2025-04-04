@@ -1,0 +1,30 @@
+// enum BinaryType { "blob", "arraybuffer" };
+
+// [Exposed=(Window,Worker)]
+interface WebSocket : EventTarget {
+    constructor(USVString url /*, optional (DOMString or sequence<DOMString>) protocols = [] */);
+    // readonly attribute USVString url;
+
+    // ready state
+    // const unsigned short CONNECTING = 0;
+    // const unsigned short OPEN = 1;
+    // const unsigned short CLOSING = 2;
+    // const unsigned short CLOSED = 3;
+    // readonly attribute unsigned short readyState;
+    // readonly attribute unsigned long long bufferedAmount;
+
+    // networking
+    [IDLEventHandler] attribute EventHandler onopen;
+    [IDLEventHandler] attribute EventHandler onerror;
+    [IDLEventHandler] attribute EventHandler onclose;
+    // readonly attribute DOMString extensions;
+    // readonly attribute DOMString protocol;
+    // undefined close(optional [Clamp] unsigned short code, optional USVString reason);
+
+    // messaging
+    [IDLEventHandler] attribute EventHandler onmessage;
+    // attribute BinaryType binaryType;
+
+    // À FAIRE : ArrayBuffer doit être BufferSource
+    undefined send((ArrayBuffer or Blob or USVString) data);
+}
