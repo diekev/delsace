@@ -701,7 +701,8 @@ static RésultatAppariement apparie_construction_chaine(
     }
 
     if (args[0].expr->type != TypeBase::PTR_Z8) {
-        return ErreurAppariement::métypage_argument(args[0].expr, TypeBase::PTR_Z8, args[0].expr->type);
+        return ErreurAppariement::métypage_argument(
+            args[0].expr, TypeBase::PTR_Z8, args[0].expr->type);
     }
 
     auto résultat = cherche_transformation_pour_transtypage(args[1].expr->type, TypeBase::Z64);
@@ -711,7 +712,8 @@ static RésultatAppariement apparie_construction_chaine(
 
     auto transformation = std::get<TransformationType>(résultat);
     if (transformation.type == TypeTransformation::IMPOSSIBLE) {
-        return ErreurAppariement::métypage_argument(args[1].expr, TypeBase::Z64, args[1].expr->type);
+        return ErreurAppariement::métypage_argument(
+            args[1].expr, TypeBase::Z64, args[1].expr->type);
     }
 
     auto transformations = kuri::tableau<TransformationType, int>(2);
@@ -722,7 +724,8 @@ static RésultatAppariement apparie_construction_chaine(
     exprs.ajoute(args[0].expr);
     exprs.ajoute(args[1].expr);
 
-    return CandidateAppariement::construction_chaine(1.0, TypeBase::CHAINE, std::move(exprs), std::move(transformations));
+    return CandidateAppariement::construction_chaine(
+        1.0, TypeBase::CHAINE, std::move(exprs), std::move(transformations));
 }
 
 static RésultatAppariement apparie_appel_pointeur(
@@ -1564,9 +1567,10 @@ static CodeRetourValidation trouve_candidates_pour_appel(
             return CodeRetourValidation::OK;
         }
 
-        auto accédé = accès->accédée;
         if (accès->déclaration_référée) {
-            auto module = espace.compilatrice().module(accédé->ident);
+            auto accédée = accès->accédée->comme_référence_déclaration();
+            auto déclaration_module = accédée->déclaration_référée->comme_déclaration_module();
+            auto module = déclaration_module->module;
             auto declarations = kuri::tablet<NoeudDéclaration *, 10>();
             trouve_déclarations_dans_module(declarations, module, accès->ident, fichier);
 
