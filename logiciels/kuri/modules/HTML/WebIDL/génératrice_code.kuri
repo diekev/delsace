@@ -153,10 +153,37 @@ opérateur == :: fonc (a: NomEtIndex, b: NomEtIndex) -> bool
 
 #portée_module
 
+NOMBRE_DE_TYPES_MAX :: 256
+
 Interfaces :: struct {
     interfaces: [..]Interface
     contenus_fichiers: [..]chaine
     noms_et_index_parents: [..]NomEtIndex
+    types : [NOMBRE_DE_TYPES_MAX]Type = ---
+    nombre_de_types: z32
+}
+
+ajoute_type :: fonc (interfaces: *Interfaces) -> *Type
+{
+    résultat := *interfaces.types[interfaces.nombre_de_types]
+    init_de(Type)(résultat)
+    interfaces.nombre_de_types += 1
+    retourne résultat
+}
+
+trouve_ou_ajoute_type :: fonc (interfaces: *Interfaces, nom: chaine, nulifiable: bool) -> *Type
+{
+    pour interfaces.nombre_de_types {
+        type := *interfaces.types[it]
+        si type.nom == nom && type.nulifiable == nulifiable {
+            retourne type
+        }
+    }
+
+    résultat := ajoute_type(interfaces)
+    résultat.nom = nom
+    résultat.nulifiable = nulifiable
+    retourne résultat
 }
 
 crée_interface :: fonc (interfaces: *Interfaces, nom: chaine) -> *Interface
@@ -187,6 +214,11 @@ donne_interface :: fonc (interfaces: *Interfaces, nom: chaine) -> *Interface
 
 détruit_données_interfaces :: fonc (interfaces: *Interfaces)
 {
+    pour interfaces.nombre_de_types {
+        type := *interfaces.types[it]
+        déloge(type.types_rubriques_union)
+    }
+
     pour interfaces.interfaces {
         déloge(it.fonctions)
         déloge(it.constructors)
@@ -382,10 +414,12 @@ génère_création_prototype :: fonc (enchaineuse: *Enchaineuse, interfaces: []I
 Type :: struct {
     nom: chaine
     nulifiable: bool
+    est_union: bool
+    types_rubriques_union: [..]*Type
 }
 
 Attribut :: struct {
-    type: Type
+    type: *Type
     nom: chaine
     lecture_seule: bool
     reflect: bool
@@ -397,11 +431,11 @@ Attribut :: struct {
 
 Paramètre :: struct {
     nom: chaine
-    type: Type
+    type: *Type
 }
 
 Fonction :: struct {
-    type_retour: Type
+    type_retour: *Type
     nom: chaine
 
     premier_paramètre: z64
@@ -468,7 +502,7 @@ imprime_interface :: fonc (interface: *Interface)
             imprime("readonly ")
         }
         imprime("attribute ")
-        imprime_type(*it.type)
+        imprime_type(it.type)
         imprime(" %", it.nom)
         imprime(";\n")
     }
@@ -535,9 +569,48 @@ génère_enveloppe_javascript :: fonc (enchaineuse: *Enchaineuse, interface: *In
 
     génère_code_conversion_this(enchaineuse, interface)
 
+    type_union: *Type
+    nom_param_union: chaine
+
+    pour paramètres {
+        si it.type.est_union {
+            nom_param_union = it.nom
+            type_union = it.type
+            arrête
+        }
+    }
+
+    pour paramètres {
+        ajoute_au_tampon(enchaineuse, "    valeur_", it.nom, " := JS.donne_argument(params, ", index_it, ")\n")
+    }
+
+    si type_union {
+        pour type_union.types_rubriques_union {
+            ajoute_au_tampon(enchaineuse, "si ")
+            génère_comparaison_type_pour_rubrique_union(enchaineuse, nom_param_union, it)
+            ajoute_au_tampon(enchaineuse, " {\n")
+            génère_appel_fonction(enchaineuse, fonction, paramètres, index_it, griffonier)
+            ajoute_au_tampon(enchaineuse, "}\n")
+        }
+        ajoute_au_tampon(enchaineuse, "    retourne JS.lance_type_error(interpréteuse, \"Invalid type for argument ", nom_param_union, "\")\n")
+    }
+    sinon {
+        génère_appel_fonction(enchaineuse, fonction, paramètres, -1, griffonier)
+    }
+
+    ajoute_au_tampon(enchaineuse, "}\n")
+}
+ 
+génère_appel_fonction :: fonc (enchaineuse: *Enchaineuse, fonction: *Fonction, paramètres: []Paramètre, index_rubrique_union: z64, griffonier: *Griffonier)
+{
     // Conversion des paramètres
     pour paramètres {
-        génère_code_conversion_argument(enchaineuse, it.nom, index_it, *it.type)
+        type := it.type
+        si type.est_union {
+            type = type.types_rubriques_union[index_rubrique_union]
+        }
+
+        génère_code_conversion_argument(enchaineuse, it.nom, index_it, type)
     }
 
     // Appel de la fonction.
@@ -566,9 +639,20 @@ génère_enveloppe_javascript :: fonc (enchaineuse: *Enchaineuse, interface: *In
     }
     ajoute_au_tampon(enchaineuse, ")\n")
 
-    génère_code_conversion_résultat(enchaineuse, *fonction.type_retour)
+    génère_code_conversion_résultat(enchaineuse, fonction.type_retour)
+}
 
-    ajoute_au_tampon(enchaineuse, "}\n")
+génère_comparaison_type_pour_rubrique_union :: fonc (enchaineuse: *Enchaineuse, nom: chaine, type: *Type)
+{
+    si type.nom == "DOMString" || type.nom == "USVString" {
+        ajoute_au_tampon(enchaineuse, "JS.est_chaine(valeur_", nom, ")")
+    }
+    sinon si type.nom == "ArrayBuffer" {
+        ajoute_au_tampon(enchaineuse, "JS.est_object(valeur_", nom, ") && JS.donne_objet(valeur_", nom, ").table.classe == JS.", type.nom)
+    }
+    sinon {
+        ajoute_au_tampon(enchaineuse, "JS.est_object(valeur_", nom, ") && JS.donne_objet(valeur_", nom, ").table.classe == ", type.nom)
+    }
 }
 
 génère_constructor :: fonc (enchaineuse: *Enchaineuse, interface: *Interface, griffonier: *Griffonier)
@@ -634,7 +718,8 @@ table_virtuelle_\\(1)_constructor := JS.TableVirtuelleBuiltinFunction(classe = \
     // Conversion des paramètres
     paramètres := interface.donne_paramètres(constructor)
     pour paramètres {
-        génère_code_conversion_argument(enchaineuse, it.nom, index_it, *it.type)
+        ajoute_au_tampon(enchaineuse, "    valeur_", it.nom, " := JS.donne_argument(params, ", index_it, ")\n")
+        génère_code_conversion_argument(enchaineuse, it.nom, index_it, it.type)
     }
 
     ajoute_au_tampon(enchaineuse, "    retourne ", nom_snake_case, "_construct")
@@ -679,7 +764,7 @@ génère_enveloppe_javascript_getter :: fonc (enchaineuse: *Enchaineuse, interfa
         ajoute_au_tampon(enchaineuse, "    résultat := donne_", nom_snake_case, "(object_this)\n")
     }
 
-    génère_code_conversion_résultat(enchaineuse, *attribut.type)
+    génère_code_conversion_résultat(enchaineuse, attribut.type)
 
     ajoute_au_tampon(enchaineuse, "}\n")
 }
@@ -693,7 +778,9 @@ génère_enveloppe_javascript_setter :: fonc (enchaineuse: *Enchaineuse, interfa
 
     génère_code_conversion_this(enchaineuse, interface)
 
-    génère_code_conversion_argument(enchaineuse, attribut.nom, 0, *attribut.type)
+    ajoute_au_tampon(enchaineuse, "    valeur_", attribut.nom, " := JS.donne_argument(params, ", 0, ")\n")
+
+    génère_code_conversion_argument(enchaineuse, attribut.nom, 0, attribut.type)
 
     // Appel de la fonction
     si attribut.reflect {
@@ -734,7 +821,6 @@ génère_code_conversion_this :: fonc (enchaineuse: *Enchaineuse, interface: *In
 
 génère_code_conversion_argument :: fonc (enchaineuse: *Enchaineuse, nom: chaine, index: z64, type: *Type)
 {
-    ajoute_au_tampon(enchaineuse, "    valeur_", nom, " := JS.donne_argument(params, ", index, ")\n")
     si type.nom == "DOMString" || type.nom == "USVString" {
         ajoute_au_tampon(enchaineuse, "    completion = JS.to_string(interpréteuse, valeur_", nom, ")\n")
         ajoute_au_tampon(enchaineuse, "    saufsi JS.est_normal(completion) {\n        retourne completion;\n    }\n")
@@ -785,6 +871,11 @@ génère_code_conversion_argument :: fonc (enchaineuse: *Enchaineuse, nom: chain
         si type.nulifiable {
             ajoute_au_tampon(enchaineuse, "    }\n")
         }
+    }
+    sinon si type.nom == "ArrayBuffer" {
+        ajoute_au_tampon(enchaineuse, "    completion = JS.to_array_buffer(interpréteuse, valeur_", nom, ")\n")
+        ajoute_au_tampon(enchaineuse, "    saufsi JS.est_normal(completion) {\n        retourne completion;\n    }\n")
+        ajoute_au_tampon(enchaineuse, "    ", nom, " := JS.donne_objet(completion.valeur.V) comme *JS.ArrayBuffer\n")
     }
     sinon {
         ajoute_au_tampon(enchaineuse, "    completion = donne_platform_object(interpréteuse, valeur_", nom, ", ", type.nom, ")\n")
@@ -849,6 +940,7 @@ imprime_type :: fonc (type: *Type)
 parse_fichier :: fonc (chemin: CheminFichier, texte: chaine, interfaces: *Interfaces)
 {
     parseuse := crée_parseuse(chemin, texte)
+    parseuse.interfaces = interfaces
 
     tantque parseuse.début < parseuse.fin {
         lexème := donne_lexème_suivant(*parseuse)
@@ -933,7 +1025,7 @@ parse_une_fonction :: fonc (parseuse: *ParseuseInterface, interface: *Interface)
         _ := parseuse.donne_lexème_suivant()
     }
     sinon {
-        parse_type(parseuse, *résultat.type_retour)
+        résultat.type_retour = parse_type(parseuse)
         résultat.nom = donne_lexème_suivant(parseuse)
         résultat.premier_paramètre = interface.paramètres.taille
     }
@@ -948,7 +1040,7 @@ parse_une_fonction :: fonc (parseuse: *ParseuseInterface, interface: *Interface)
         }
 
         paramètre: Paramètre
-        parse_type(parseuse, *paramètre.type)
+        paramètre.type = parse_type(parseuse)
         paramètre.nom = donne_lexème_suivant(parseuse)
 
         tableau_ajoute(*interface.paramètres, paramètre)
@@ -1014,7 +1106,7 @@ parse_un_attribut :: fonc (parseuse: *ParseuseInterface, interface: *Interface)
         rapporte_erreur(parseuse, "attendu 'attribute'", lexème)
     }
 
-    parse_type(parseuse, *résultat.type)
+    résultat.type = parse_type(parseuse)
 
     lexème = donne_lexème_suivant(parseuse)
 
@@ -1081,6 +1173,7 @@ ParseuseInterface :: struct {
     fin: *z8
     chemin: CheminFichier
     texte: chaine
+    interfaces: *Interfaces
 }
 
 crée_parseuse :: fonc (chemin: CheminFichier, texte: chaine) -> ParseuseInterface
@@ -1118,7 +1211,47 @@ apparie :: fonc (parseuse: *ParseuseInterface, c: z8) -> bool
     retourne mémoire(parseuse.début) == c
 }
 
-parse_type :: fonc (parseuse: *ParseuseInterface, résultat: *Type)
+parse_type :: fonc (parseuse: *ParseuseInterface) -> *Type
+{
+    si parseuse.consomme_caractère('(') {
+        retourne parse_type_union(parseuse)
+    }
+
+    retourne parse_type_simple(parseuse)
+}
+
+parse_type_union :: fonc (parseuse: *ParseuseInterface) -> *Type
+{
+    résultat := ajoute_type(parseuse.interfaces)
+    résultat.est_union = vrai
+
+    tantque parseuse.début < parseuse.fin {
+        si parseuse.consomme_caractère(')') {
+            arrête
+        }
+
+        type := parse_type_simple(parseuse)
+        tableau_ajoute(*résultat.types_rubriques_union, type)
+
+        parseuse.consomme_espaces_blanches()
+
+        si parseuse.apparie("or") {
+            _ := donne_lexème_suivant(parseuse)
+            parseuse.consomme_espaces_blanches()
+            continue
+        }
+
+        saufsi parseuse.consomme_caractère(')') {
+            rapporte_erreur(parseuse, "attendu ')", parseuse.donne_lexème_suivant())
+        }
+
+        arrête
+    }
+
+    retourne résultat
+}
+
+parse_type_simple :: fonc (parseuse: *ParseuseInterface) -> *Type
 {
     nom_type := donne_lexème_suivant(parseuse)
 
@@ -1143,8 +1276,8 @@ parse_type :: fonc (parseuse: *ParseuseInterface, résultat: *Type)
         }
     }
 
-    résultat.nom = nom_type
-    résultat.nulifiable = consomme_caractère(parseuse, '?')
+    nulifiable := consomme_caractère(parseuse, '?')
+    retourne trouve_ou_ajoute_type(parseuse.interfaces, nom_type, nulifiable)
 }
 
 donne_lexème_suivant :: fonc (parseuse: *ParseuseInterface) -> chaine
