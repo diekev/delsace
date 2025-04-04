@@ -1,6 +1,6 @@
 importe Chaine
 importe Fondation
-importe #inemployé JavaScript
+JavaScript :: importe JavaScript
 
 /* ------------------------------------------------------------------------- */
 /** \nom PlatformObject

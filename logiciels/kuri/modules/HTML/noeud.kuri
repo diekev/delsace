@@ -1,7 +1,7 @@
 importe Chaine
 importe CSS
 importe Fondation
-importe #inemployé JavaScript
+JavaScript :: importe JavaScript
 
 /* ------------------------------------------------------------------------- */
 /** \nom Noeud
