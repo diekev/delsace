@@ -765,7 +765,7 @@ evaluate_a_javascript_url :: fonc (user_agent: *UserAgent, target_navigable: *Na
     // 8. Let result be null.
 
     // 9. If evaluationStatus is a normal completion, and evaluationStatus.[[Value]] is a String, then set result to evaluationStatus.[[Value]].
-    si JavaScript.est_normal(evaluation_status) && JavaScript.est_chaine(evaluation_status.valeur.V) {
+    si JS.est_normal(evaluation_status) && JS.est_chaine(evaluation_status.valeur.V) {
         panique("non-implémenté")
     }
     // 10. Otherwise, return null.
@@ -2969,20 +2969,20 @@ create_and_initialize_a_document_object :: fonc (user_agent: *UserAgent, type: c
             // For the global object, create a new Window object.
             // For the global this binding, use browsingContext's WindowProxy object.
         ConfigurationRealmDocument :: struct {
-            empl base: JavaScript.ConfigurationRealm
+            empl base: JS.ConfigurationRealm
 
             browsing_context: *BrowsingContext
             user_agent: *UserAgent
         }
 
-        crée_objet_global :: fonc(base: *JavaScript.ConfigurationRealm, realm: *JavaScript.Realm) -> *JavaScript.Object
+        crée_objet_global :: fonc(base: *JS.ConfigurationRealm, realm: *JS.Realm) -> *JS.Object
         {
             configuration := base comme *ConfigurationRealmDocument
-            tas_de_mémoire := JavaScript.donne_tas_de_mémoire(realm)
+            tas_de_mémoire := JS.donne_tas_de_mémoire(realm)
             retourne crée_objet_window(configuration.user_agent, tas_de_mémoire, realm)
         }
 
-        donne_this_binding_global :: fonc (base: *JavaScript.ConfigurationRealm) -> *JavaScript.Object
+        donne_this_binding_global :: fonc (base: *JS.ConfigurationRealm) -> *JS.Object
         {
             configuration := base comme *ConfigurationRealmDocument
             retourne configuration.browsing_context.window_proxy
