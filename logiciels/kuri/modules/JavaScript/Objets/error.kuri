@@ -15,6 +15,8 @@ table_virtuelle_error := TableVirtuelleObject(classe = Error)
 Error :: struct {
     empl objet: Object
     table = *table_virtuelle_error
+
+    message: *PrimitiveChaine @slot "[[ErrorData]]"
 }
 
 /** \} */
@@ -264,29 +266,21 @@ table_virtuelle_uri_error := TableVirtuelleObject(classe = URIError)
 EvalError :: struct {
     empl error: Error
     table = *table_virtuelle_eval_error
-
-    message: *PrimitiveChaine
 }
 
 RangeError :: struct {
     empl error: Error
     table = *table_virtuelle_range_error
-
-    message: *PrimitiveChaine
 }
 
 ReferenceError :: struct {
     empl error: Error
     table = *table_virtuelle_reference_error
-
-    message: *PrimitiveChaine
 }
 
 SyntaxError :: struct {
     empl error: Error
     table = *table_virtuelle_syntax_error
-
-    message: *PrimitiveChaine
 }
 
 crée_erreur_de_parsage :: fonc (realm: *Realm, message: chaine) -> *SyntaxError
@@ -299,19 +293,14 @@ crée_erreur_de_parsage :: fonc (realm: *Realm, message: chaine) -> *SyntaxError
     retourne résultat
 }
 
-
 TypeError :: struct {
     empl error: Error
     table = *table_virtuelle_type_error
-
-    message: *PrimitiveChaine
 }
 
 URIError :: struct {
     empl error: Error
     table = *table_virtuelle_uri_error
-
-    message: *PrimitiveChaine
 }
 
 /** \} */
