@@ -40,6 +40,7 @@ charge "webcrypto"
 charge "webdriver_bidi"
 charge "window"
 
+charge "WebIDL/interface_types"
 charge "WebIDL/génératrice_code"
 
 DOMString :: ChaineUTF16Unique
