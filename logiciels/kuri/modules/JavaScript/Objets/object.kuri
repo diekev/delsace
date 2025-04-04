@@ -210,6 +210,36 @@ supprime_propriété :: fonc (object: *Object, nom: PropertyKey)
     }
 }
 
+possède_slot :: fonc (object: *Object, nom: chaine) -> bool
+{
+    infos := donne_info_type_cellule(object)
+
+    // @allocation-inutile
+    traversée: [..]*InfoTypeStructure
+    diffère déloge(traversée)
+
+    tableau_ajoute(*traversée, infos)
+
+    tantque traversée.taille != 0 {
+        infos = traversée[traversée.taille - 1]
+        traversée.taille -= 1
+
+        pour infos.membres {
+            annotation := trouve_annotation(it, "slot")
+            si annotation && annotation.valeur == nom {
+                retourne vrai
+            }
+
+            si it.drapeaux.EST_UN_EMPLOI {
+                infos = it.id comme *InfoTypeStructure
+                tableau_ajoute(*traversée, infos)
+            }
+        }
+    }
+
+    retourne faux
+}
+
 /* [[GetPrototypeOf]] */
 internal_get_prototype_of :: fonc (object: *Object) -> *Object
 {
@@ -404,7 +434,7 @@ object_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> Comp
         builtin_tag = "Function"
     }
     // 8. Else if O has an [[ErrorData]] internal slot, let builtinTag be "Error".
-    sinon si O.donne_classe() == Error || O.donne_classe() == ReferenceError || O.donne_classe() == TypeError {
+    sinon si O.possède_slot("[[ErrorData]]") {
         builtin_tag = "Error"
     }
     // 9. Else if O has a [[BooleanData]] internal slot, let builtinTag be "Boolean".
