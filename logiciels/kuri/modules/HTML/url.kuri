@@ -652,6 +652,9 @@ basic_url_parser :: fonc (input: ChaineUTF16, base : *URL = nul, url : *URL = nu
             Host, Hostname {
                 résultat_parsage = basic_url_parser_host(*parser)
             }
+            Port {
+                résultat_parsage = basic_url_parser_port(*parser)
+            }
             File {
                 résultat_parsage = basic_url_parser_file(*parser)
             }
@@ -1201,16 +1204,26 @@ basic_url_parser_host :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
     }
     // 2. Otherwise, if c is U+003A (:) and insideBrackets is false, then:
     sinon si c == 0x3A && parser.inside_brackets == faux {
-        panique("non-implémenté")
         // 1. If buffer is the empty string, host-missing validation error, return failure.
+        si parser.buffer.est_vide() {
+            imprime("[%] host-missing\n", #nom_de_cette_fonction)
+            retourne RésultatParsageURL.Échec
+        }
 
         // 2. If state override is given and state override is hostname state, then return.
+        si parser.state_override && mémoire(parser.state_override) == ÉtatParsageURL.Hostname {
+            retourne RésultatParsageURL.Ok
+        }
 
-        // 3. Let host be the result of host parsing buffer with url is not special.
+        // À FAIRE : 3. Let host be the result of host parsing buffer with url is not special.
+        host := converti_vers_chaine(parser.buffer)
 
         // 4. If host is failure, then return failure.
 
         // 5. Set url’s host to host, buffer to the empty string, and state to port state.
+        parser.url.définis_host(host)
+        parser.buffer.unités.taille = 0
+        parser.définis_state(ÉtatParsageURL.Port)
     }
     // 3. Otherwise, if one of the following is true:
     //    c is the EOF code point, U+002F (/), U+003F (?), or U+0023 (#)
@@ -1259,6 +1272,69 @@ basic_url_parser_host :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
         chaine_ajoute(*parser.buffer, c)
     }
     retourne RésultatParsageURL.Ok
+}
+
+/* https://url.spec.whatwg.org/#port-state */
+basic_url_parser_port :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
+{
+    c := parser.donne_caractère()
+
+    // 1. If c is an ASCII digit, append c to buffer.
+    si ('0' comme n16) <= c <= ('9' comme n16) {
+        chaine_ajoute(*parser.buffer, c)
+        retourne RésultatParsageURL.Ok
+    }
+
+    // 2. Otherwise, if one of the following is true:
+    //    c is the EOF code point, U+002F (/), U+003F (?), or U+0023 (#);
+    //    url is special and c is U+005C (\); or
+    //    state override is given,
+    //    then:
+    si (c == FIN_DE_FICHIER || c == 0x2F || c == 0x3F || c == 0x23) || (parser.url.est_spécial() && c == 0x5C) || parser.state_override {
+        // 1. If buffer is not the empty string:
+        saufsi parser.buffer.est_vide() {
+            // 1. Let port be the mathematical integer value that is represented by buffer in radix-10 using ASCII digits for digits with values 0 through 9.
+            port: n32
+            pour parser.buffer.unités {
+                assert(('0' comme n16) <= it <= ('9' comme n16))
+                port *= 10
+                port += (it - ('0' comme n16))
+            }
+
+            // 2. If port is not a 16-bit unsigned integer, port-out-of-range validation error, return failure.
+            si port > 0xffff {
+                imprime("[%] port-out-of-range\n", #nom_de_cette_fonction)
+                retourne RésultatParsageURL.Échec
+            }
+
+            // 3. Set url’s port to null, if port is url’s scheme’s default port; otherwise to port.
+            saufsi est_port_défaut(parser.url.scheme, port comme n16) {
+                parser.url.port = port comme n16
+            }
+
+            // 4. Set buffer to the empty string.
+            parser.buffer.unités.taille = 0
+
+            // 5. If state override is given, then return.
+            si parser.state_override {
+                retourne RésultatParsageURL.Ok
+            }
+        }
+
+        // 2. If state override is given, then return failure.
+        si parser.state_override {
+            retourne RésultatParsageURL.Échec
+        }
+
+        // 3. Set state to path start state and decrease pointer by 1.
+        parser.définis_state(ÉtatParsageURL.PathStart)
+        parser.decrease_pointer()
+        retourne RésultatParsageURL.Ok
+    }
+
+    // 3. Otherwise, port-invalid validation error, return failure.
+    imprime("[%] port-invalid\n", #nom_de_cette_fonction)
+    retourne RésultatParsageURL.Échec
 }
 
 /* https://url.spec.whatwg.org/#file-state */
