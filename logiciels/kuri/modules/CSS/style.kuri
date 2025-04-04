@@ -2,7 +2,7 @@ importe Chaine
 importe Couleur
 importe EnsembleDeBits
 importe Fondation
-importe #inemployé HTML
+HTML :: importe HTML
 importe Internet
 importe Structures
 importe Typographie
