@@ -2110,8 +2110,10 @@ RésultatValidation Sémanticienne::valide_types_paramètres_fonction(
         }
 
         if (decl->param_sortie->type != TypeBase::RIEN) {
-            m_espace->rapporte_erreur(decl->param_sortie,
-                                      "La fonction principale ne doit pas retourner de valeur. Si vous voulez retourner une valeur autre que 0, veuillez utiliser exit().");
+            m_espace->rapporte_erreur(
+                decl->param_sortie,
+                "La fonction principale ne doit pas retourner de valeur. Si vous voulez retourner "
+                "une valeur autre que 0, veuillez utiliser exit().");
             return CodeRetourValidation::Erreur;
         }
     }
