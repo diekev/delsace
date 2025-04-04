@@ -98,6 +98,7 @@ Intrinsics :: struct {
     string: *StringConstructor
     number: *NumberConstructor
     boolean: *BooleanConstructor
+    json: *Object
 
     /* Constructeurs pour les erreurs. */
     error: *Object
@@ -144,6 +145,7 @@ create_intrinsics :: fonc (realm: *Realm)
     realm.intrinsics.string = crée_string_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.string_prototype)
     realm.intrinsics.number = crée_number_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.number_prototype)
     realm.intrinsics.boolean = crée_boolean_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.boolean_prototype)
+    crée_json_object(realm)
 
     realm.intrinsics.error = crée_error_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.error_prototype)
     realm.intrinsics.eval_error = crée_eval_error_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.eval_error_prototype)
@@ -395,7 +397,7 @@ set_default_global_bindings :: fonc (realm: *Realm) -> CompletionRecord
 
         /* 19.4 Other Properties of the Global Object */
         // Atomics
-        // JSON
+        GlobalObjectProperty(STR_JSON, Valeur(Object = realm.intrinsics.json)),
         GlobalObjectProperty(STR_Math, Valeur(Object = realm.intrinsics.math))
         // Reflect
     ]
