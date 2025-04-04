@@ -26,7 +26,7 @@ Signedness :: énum {
 }
 
 /* https://webidl.spec.whatwg.org/#abstract-opdef-converttoint */
-convert_to_int :: fonc (interpréteuse: *JavaScript.Interpréteuse, valeur: JavaScript.Valeur, bit_length: n32 @inutilisée, signedness: Signedness @inutilisée) -> JavaScript.CompletionRecord
+convert_to_int :: fonc (interpréteuse: *JS.Interpréteuse, valeur: JS.Valeur, bit_length: n32 @inutilisée, signedness: Signedness @inutilisée) -> JS.CompletionRecord
 {
     // À FAIRE : complète
     // 1. If bitLength is 64, then:
@@ -50,8 +50,8 @@ convert_to_int :: fonc (interpréteuse: *JavaScript.Interpréteuse, valeur: Java
         // 2. Let upperBound be 2^bitLength − 1 − 1.
 
     // 4. Let x be ? ToNumber(V).
-    completion := JavaScript.to_number(interpréteuse, valeur)
-    saufsi JavaScript.est_normal(completion) {
+    completion := JS.to_number(interpréteuse, valeur)
+    saufsi JS.est_normal(completion) {
         retourne completion
     }
 
@@ -82,7 +82,7 @@ convert_to_int :: fonc (interpréteuse: *JavaScript.Interpréteuse, valeur: Java
 
     // 8. If x is NaN, +0, +∞, or −∞, then return +0.
     si est_nan(x) || x == 0.0 || est_infini(x) {
-        retourne JavaScript.normal_completion(JavaScript.Valeur(Number = 0.0))
+        retourne JS.normal_completion(JS.Valeur(Number = 0.0))
     }
 
     // 9. Set x to IntegerPart(x).
@@ -93,7 +93,7 @@ convert_to_int :: fonc (interpréteuse: *JavaScript.Interpréteuse, valeur: Java
     // 11. If signedness is "signed" and x ≥ 2^bitLength − 1, then return x − 2^bitLength.
 
     // 12. Otherwise, return x.
-    retourne JavaScript.normal_completion(JavaScript.Valeur(Number = x))
+    retourne JS.normal_completion(JS.Valeur(Number = x))
 }
 
 #portée_fichier
@@ -232,7 +232,7 @@ compile_interfaces_idl :: fonc () -> chaine
     diffère détruit_tampons(*enchaineuse)
 
     ajoute_au_tampon(*enchaineuse, "importe Chaine\n")
-    ajoute_au_tampon(*enchaineuse, "JavaScript :: importe JavaScript\n")
+    ajoute_au_tampon(*enchaineuse, "JS :: importe JavaScript\n")
 
     // À FAIRE : renomme nos types
     ajoute_au_tampon(*enchaineuse, "#portée_module\n")
@@ -274,7 +274,7 @@ compile_interfaces_idl :: fonc () -> chaine
     détruit_tampons(*enchaineuse)
     initialise_enchaineuse(*enchaineuse)
 
-    ajoute_au_tampon(*enchaineuse, "    tas_de_mémoire := JavaScript.donne_tas_de_mémoire(realm)\n\n")
+    ajoute_au_tampon(*enchaineuse, "    tas_de_mémoire := JS.donne_tas_de_mémoire(realm)\n\n")
 
     pour * interfaces.interfaces {
         si it.est_mixin {
@@ -455,17 +455,17 @@ génère_enveloppes_javascript :: fonc (enchaineuse: *Enchaineuse, interface: *I
 
 génère_création_prototype :: fonc (enchaineuse: *Enchaineuse, interface: *Interface)
 {
-    ajoute_au_tampon(enchaineuse, "crée_prototype_", interface.nom, " :: fonc (tas_de_mémoire: *JavaScript.TasDeMémoire, prototype: *JavaScript.Object) -> *JavaScript.Object\n")
+    ajoute_au_tampon(enchaineuse, "crée_prototype_", interface.nom, " :: fonc (tas_de_mémoire: *JS.TasDeMémoire, prototype: *JS.Object) -> *JS.Object\n")
     ajoute_au_tampon(enchaineuse, "{\n")
 
-    ajoute_au_tampon(enchaineuse, "    résultat := JavaScript.crée_objet(tas_de_mémoire, prototype)\n")
+    ajoute_au_tampon(enchaineuse, "    résultat := JS.crée_objet(tas_de_mémoire, prototype)\n")
 
     pour * interface.fonctions {
-        ajoute_au_tampon(enchaineuse, "    JavaScript.ajoute_fonction_native(résultat, \"", it.nom, "\", ", interface.nom, "_", it.nom, ")\n")
+        ajoute_au_tampon(enchaineuse, "    JS.ajoute_fonction_native(résultat, \"", it.nom, "\", ", interface.nom, "_", it.nom, ")\n")
     }
 
     pour * interface.attributs {
-        ajoute_au_tampon(enchaineuse, "    JavaScript.ajoute_propriété(résultat, crée_chaine_utf16_unique(\"", it.nom, "\"), ")
+        ajoute_au_tampon(enchaineuse, "    JS.ajoute_propriété(résultat, crée_chaine_utf16_unique(\"", it.nom, "\"), ")
         ajoute_au_tampon(enchaineuse, "get_", interface.nom, "_", it.nom, ", ")
         si it.lecture_seule {
             ajoute_au_tampon(enchaineuse, "nul, ")
@@ -473,7 +473,7 @@ génère_création_prototype :: fonc (enchaineuse: *Enchaineuse, interface: *Int
         sinon {
             ajoute_au_tampon(enchaineuse, "set_", interface.nom, "_", it.nom, ", ")
         }
-        ajoute_au_tampon(enchaineuse, "JavaScript.DrapeauxPropriété.zéro)\n")
+        ajoute_au_tampon(enchaineuse, "JS.DrapeauxPropriété.zéro)\n")
     }
     
     ajoute_au_tampon(enchaineuse, "    retourne résultat\n")
@@ -484,7 +484,7 @@ génère_enveloppe_javascript :: fonc (enchaineuse: *Enchaineuse, interface: *In
 {
     paramètres := interface.donne_paramètres(fonction)
 
-    ajoute_au_tampon(enchaineuse, interface.nom, "_", fonction.nom, " :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord\n")
+    ajoute_au_tampon(enchaineuse, interface.nom, "_", fonction.nom, " :: fonc (empl params: *JS.ParamètresObjectCall) -> JS.CompletionRecord\n")
     ajoute_au_tampon(enchaineuse, "{\n")
 
     génère_code_conversion_this(enchaineuse, interface)
@@ -529,7 +529,7 @@ génère_enveloppe_javascript_getter :: fonc (enchaineuse: *Enchaineuse, interfa
 {
     nom_snake_case := donne_nom_snake_case(attribut.nom, griffonier)
 
-    ajoute_au_tampon(enchaineuse, "get_", interface.nom, "_", attribut.nom, " :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord\n")
+    ajoute_au_tampon(enchaineuse, "get_", interface.nom, "_", attribut.nom, " :: fonc (empl params: *JS.ParamètresObjectCall) -> JS.CompletionRecord\n")
     ajoute_au_tampon(enchaineuse, "{\n")
 
     génère_code_conversion_this(enchaineuse, interface)
@@ -561,7 +561,7 @@ génère_enveloppe_javascript_setter :: fonc (enchaineuse: *Enchaineuse, interfa
 {
     nom_snake_case := donne_nom_snake_case(attribut.nom, griffonier)
 
-    ajoute_au_tampon(enchaineuse, "set_", interface.nom, "_", attribut.nom, " :: fonc (empl params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord\n")
+    ajoute_au_tampon(enchaineuse, "set_", interface.nom, "_", attribut.nom, " :: fonc (empl params: *JS.ParamètresObjectCall) -> JS.CompletionRecord\n")
     ajoute_au_tampon(enchaineuse, "{\n")
 
     génère_code_conversion_this(enchaineuse, interface)
@@ -586,7 +586,7 @@ génère_enveloppe_javascript_setter :: fonc (enchaineuse: *Enchaineuse, interfa
         ajoute_au_tampon(enchaineuse, "    définis_", nom_snake_case, "(object_this, ", attribut.nom, ")\n")
     }
 
-    ajoute_au_tampon(enchaineuse, "    retourne JavaScript.normal_completion(JavaScript.js_undefined)\n")
+    ajoute_au_tampon(enchaineuse, "    retourne JS.normal_completion(JS.js_undefined)\n")
     ajoute_au_tampon(enchaineuse, "}\n")
 }
 
@@ -594,66 +594,66 @@ génère_code_conversion_this :: fonc (enchaineuse: *Enchaineuse, interface: *In
 {
     si interface.est_window {
         /* Puisque Window est l'objet global, si this est undefined, nous utilisons l'objet global du realm courant. */
-        ajoute_au_tampon(enchaineuse, "    si JavaScript.est_undefined(this_value) {\n")
-        ajoute_au_tampon(enchaineuse, "        realm := JavaScript.donne_realm(interpréteuse)\n")
+        ajoute_au_tampon(enchaineuse, "    si JS.est_undefined(this_value) {\n")
+        ajoute_au_tampon(enchaineuse, "        realm := JS.donne_realm(interpréteuse)\n")
         ajoute_au_tampon(enchaineuse, "        this_value.Object = realm.global_object\n")
         ajoute_au_tampon(enchaineuse, "    }\n")
     }
 
     ajoute_au_tampon(enchaineuse, "    completion := donne_platform_object(interpréteuse, this_value, ", interface.nom, ")\n")
-    ajoute_au_tampon(enchaineuse, "    saufsi JavaScript.est_normal(completion) {\n        retourne completion;\n    }\n")
-    ajoute_au_tampon(enchaineuse, "    object_this := JavaScript.donne_objet(completion.valeur.V) comme *", interface.nom, "\n")
+    ajoute_au_tampon(enchaineuse, "    saufsi JS.est_normal(completion) {\n        retourne completion;\n    }\n")
+    ajoute_au_tampon(enchaineuse, "    object_this := JS.donne_objet(completion.valeur.V) comme *", interface.nom, "\n")
 }
 
 génère_code_conversion_argument :: fonc (enchaineuse: *Enchaineuse, nom: chaine, index: z64, type: *Type)
 {
-    ajoute_au_tampon(enchaineuse, "    valeur_", nom, " := JavaScript.donne_argument(params, ", index, ")\n")
+    ajoute_au_tampon(enchaineuse, "    valeur_", nom, " := JS.donne_argument(params, ", index, ")\n")
     si type.nom == "DOMString" || type.nom == "USVString" {
-        ajoute_au_tampon(enchaineuse, "    completion = JavaScript.to_string(interpréteuse, valeur_", nom, ")\n")
-        ajoute_au_tampon(enchaineuse, "    saufsi JavaScript.est_normal(completion) {\n        retourne completion;\n    }\n")
+        ajoute_au_tampon(enchaineuse, "    completion = JS.to_string(interpréteuse, valeur_", nom, ")\n")
+        ajoute_au_tampon(enchaineuse, "    saufsi JS.est_normal(completion) {\n        retourne completion;\n    }\n")
         ajoute_au_tampon(enchaineuse, "    ", nom, " := completion.valeur.V.String.texte\n")
     }
     sinon si type.nom == "unsigned long" {
         ajoute_au_tampon(enchaineuse, "    completion = convert_to_int(interpréteuse, valeur_", nom, ", 32, Signedness.Unsigned)\n")
-        ajoute_au_tampon(enchaineuse, "    saufsi JavaScript.est_normal(completion) {\n        retourne completion;\n    }\n")
+        ajoute_au_tampon(enchaineuse, "    saufsi JS.est_normal(completion) {\n        retourne completion;\n    }\n")
         ajoute_au_tampon(enchaineuse, "    ", nom, " := completion.valeur.V.Number comme n32\n")
     }
     sinon si type.nom == "long" {
         ajoute_au_tampon(enchaineuse, "    completion = convert_to_int(interpréteuse, valeur_", nom, ", 32, Signedness.Signed)\n")
-        ajoute_au_tampon(enchaineuse, "    saufsi JavaScript.est_normal(completion) {\n        retourne completion;\n    }\n")
+        ajoute_au_tampon(enchaineuse, "    saufsi JS.est_normal(completion) {\n        retourne completion;\n    }\n")
         ajoute_au_tampon(enchaineuse, "    ", nom, " := completion.valeur.V.Number comme z32\n")
     }
     sinon si type.nom == "double" || type.nom == "unrestricted double" {
-        ajoute_au_tampon(enchaineuse, "    completion = JavaScript.to_number(interpréteuse, valeur_", nom, ")\n")
-        ajoute_au_tampon(enchaineuse, "    saufsi JavaScript.est_normal(completion) {\n        retourne completion;\n    }\n")
+        ajoute_au_tampon(enchaineuse, "    completion = JS.to_number(interpréteuse, valeur_", nom, ")\n")
+        ajoute_au_tampon(enchaineuse, "    saufsi JS.est_normal(completion) {\n        retourne completion;\n    }\n")
         ajoute_au_tampon(enchaineuse, "    ", nom, " := completion.valeur.V.Number\n")
     }
     sinon si type.nom == "boolean" {
-        ajoute_au_tampon(enchaineuse, "    ", nom, " := JavaScript.to_boolean(valeur_", nom, ").Boolean\n")
+        ajoute_au_tampon(enchaineuse, "    ", nom, " := JS.to_boolean(valeur_", nom, ").Boolean\n")
     }
     sinon si type.nom == "EventListener" {
-        ajoute_au_tampon(enchaineuse, "    saufsi JavaScript.est_object(valeur_", nom, ") {\n")
-        ajoute_au_tampon(enchaineuse, "        retourne JavaScript.lance_type_error(interpréteuse, \"argument ", index, " is not callable\")\n")
+        ajoute_au_tampon(enchaineuse, "    saufsi JS.est_object(valeur_", nom, ") {\n")
+        ajoute_au_tampon(enchaineuse, "        retourne JS.lance_type_error(interpréteuse, \"argument ", index, " is not callable\")\n")
         ajoute_au_tampon(enchaineuse, "    }\n")
-        ajoute_au_tampon(enchaineuse, "    ", nom, ":= crée_event_listener(JavaScript.donne_objet(valeur_", nom, "))\n")
+        ajoute_au_tampon(enchaineuse, "    ", nom, ":= crée_event_listener(JS.donne_objet(valeur_", nom, "))\n")
     }
     sinon si type.nom == "EventHandler" {
-        ajoute_au_tampon(enchaineuse, "    saufsi JavaScript.est_object(valeur_", nom, ") {\n")
-        ajoute_au_tampon(enchaineuse, "        retourne JavaScript.lance_type_error(interpréteuse, \"argument ", index, " is not callable\")\n")
+        ajoute_au_tampon(enchaineuse, "    saufsi JS.est_object(valeur_", nom, ") {\n")
+        ajoute_au_tampon(enchaineuse, "        retourne JS.lance_type_error(interpréteuse, \"argument ", index, " is not callable\")\n")
         ajoute_au_tampon(enchaineuse, "    }\n")
-        ajoute_au_tampon(enchaineuse, "    ", nom, ":= crée_event_handler(JavaScript.donne_objet(valeur_", nom, "))\n")
+        ajoute_au_tampon(enchaineuse, "    ", nom, ":= crée_event_handler(JS.donne_objet(valeur_", nom, "))\n")
     }
     sinon si type.nom == "Function" {
         indentation := ""
         si type.nulifiable {
-            ajoute_au_tampon(enchaineuse, "    saufsi JavaScript.est_nulle(valeur_", nom, ") {\n")
+            ajoute_au_tampon(enchaineuse, "    saufsi JS.est_nulle(valeur_", nom, ") {\n")
             indentation = "    "
         }
 
-        ajoute_au_tampon(enchaineuse, indentation, "    saufsi JavaScript.is_callable(valeur_", nom, ") {\n")
-        ajoute_au_tampon(enchaineuse, indentation, "        retourne JavaScript.lance_type_error(interpréteuse, \"argument ", index, " is not callable\")\n")
+        ajoute_au_tampon(enchaineuse, indentation, "    saufsi JS.is_callable(valeur_", nom, ") {\n")
+        ajoute_au_tampon(enchaineuse, indentation, "        retourne JS.lance_type_error(interpréteuse, \"argument ", index, " is not callable\")\n")
         ajoute_au_tampon(enchaineuse, indentation, "    }\n")
-        ajoute_au_tampon(enchaineuse, indentation, "    ", nom, " := JavaScript.donne_objet(valeur_", nom, ")\n")
+        ajoute_au_tampon(enchaineuse, indentation, "    ", nom, " := JS.donne_objet(valeur_", nom, ")\n")
 
         si type.nulifiable {
             ajoute_au_tampon(enchaineuse, "    }\n")
@@ -661,15 +661,15 @@ génère_code_conversion_argument :: fonc (enchaineuse: *Enchaineuse, nom: chain
     }
     sinon {
         ajoute_au_tampon(enchaineuse, "    completion = donne_platform_object(interpréteuse, valeur_", nom, ", ", type.nom, ")\n")
-        ajoute_au_tampon(enchaineuse, "    saufsi JavaScript.est_normal(completion) {\n        retourne completion;\n    }\n")
-        ajoute_au_tampon(enchaineuse, "    ", nom, " := JavaScript.donne_objet(completion.valeur.V) comme *", type.nom, "\n")
+        ajoute_au_tampon(enchaineuse, "    saufsi JS.est_normal(completion) {\n        retourne completion;\n    }\n")
+        ajoute_au_tampon(enchaineuse, "    ", nom, " := JS.donne_objet(completion.valeur.V) comme *", type.nom, "\n")
     }
 }
 
 génère_code_conversion_résultat :: fonc (enchaineuse: *Enchaineuse, type: *Type)
 {
     si type.nom == "undefined" {
-        ajoute_au_tampon(enchaineuse, "    retourne JavaScript.normal_completion(JavaScript.js_undefined)\n")
+        ajoute_au_tampon(enchaineuse, "    retourne JS.normal_completion(JS.js_undefined)\n")
     }
     sinon si type.nom == "DOMString" || type.nom == "USVString" {
         ajoute_au_tampon(enchaineuse, "    str_unique: ChaineUTF16Unique\n")
@@ -679,35 +679,35 @@ génère_code_conversion_résultat :: fonc (enchaineuse: *Enchaineuse, type: *Ty
         ajoute_au_tampon(enchaineuse, "    sinon {\n")
         ajoute_au_tampon(enchaineuse, "        str_unique = résultat\n")
         ajoute_au_tampon(enchaineuse, "    }\n")
-        ajoute_au_tampon(enchaineuse, "    str := JavaScript.crée_chaine(JavaScript.donne_realm(interpréteuse), str_unique)\n")
-        ajoute_au_tampon(enchaineuse, "    retourne JavaScript.normal_completion(JavaScript.Valeur(String = str))\n")
+        ajoute_au_tampon(enchaineuse, "    str := JS.crée_chaine(JS.donne_realm(interpréteuse), str_unique)\n")
+        ajoute_au_tampon(enchaineuse, "    retourne JS.normal_completion(JS.Valeur(String = str))\n")
     }
     sinon si type.nom == "unsigned long" || type.nom == "long" {
-        ajoute_au_tampon(enchaineuse, "    retourne JavaScript.normal_completion(JavaScript.Valeur(Number = résultat comme r64))\n")
+        ajoute_au_tampon(enchaineuse, "    retourne JS.normal_completion(JS.Valeur(Number = résultat comme r64))\n")
     }
     sinon si type.nom == "double" || type.nom == "unrestricted double" {
-        ajoute_au_tampon(enchaineuse, "    retourne JavaScript.normal_completion(JavaScript.Valeur(Number = résultat))\n")
+        ajoute_au_tampon(enchaineuse, "    retourne JS.normal_completion(JS.Valeur(Number = résultat))\n")
     }
     sinon si type.nom == "boolean" {
-        ajoute_au_tampon(enchaineuse, "    retourne JavaScript.normal_completion(JavaScript.Valeur(Boolean = résultat))\n")
+        ajoute_au_tampon(enchaineuse, "    retourne JS.normal_completion(JS.Valeur(Boolean = résultat))\n")
     }
     sinon si type.nom == "EventHandler" {
         si type.nulifiable {
             ajoute_au_tampon(enchaineuse, "    saufsi résultat {\n")
-            ajoute_au_tampon(enchaineuse, "        retourne JavaScript.normal_completion(JavaScript.js_null)\n")
+            ajoute_au_tampon(enchaineuse, "        retourne JS.normal_completion(JS.js_null)\n")
             ajoute_au_tampon(enchaineuse, "    }\n")
         }
 
-        ajoute_au_tampon(enchaineuse, "    retourne JavaScript.normal_completion(JavaScript.Valeur(Object = résultat.object))\n")
+        ajoute_au_tampon(enchaineuse, "    retourne JS.normal_completion(JS.Valeur(Object = résultat.object))\n")
     }
     sinon {
         si type.nulifiable {
             ajoute_au_tampon(enchaineuse, "    saufsi résultat {\n")
-            ajoute_au_tampon(enchaineuse, "        retourne JavaScript.normal_completion(JavaScript.js_null)\n")
+            ajoute_au_tampon(enchaineuse, "        retourne JS.normal_completion(JS.js_null)\n")
             ajoute_au_tampon(enchaineuse, "    }\n")
         }
 
-        ajoute_au_tampon(enchaineuse, "    retourne JavaScript.normal_completion(JavaScript.Valeur(Object = résultat))\n")
+        ajoute_au_tampon(enchaineuse, "    retourne JS.normal_completion(JS.Valeur(Object = résultat))\n")
     }
 }
 

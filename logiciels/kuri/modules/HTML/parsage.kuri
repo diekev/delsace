@@ -1,6 +1,6 @@
 importe Chaine
 importe Fondation
-JavaScript :: importe JavaScript
+JS :: importe JavaScript
 importe Unicode
 
 charge "tags_html"
@@ -38,7 +38,7 @@ Parseuse :: struct {
     parseuse_spéculative_active: *Parseuse
 }
 
-initialise_parseuse :: fonc (tas_de_mémoire: *JavaScript.TasDeMémoire, entrée: chaine, document : *Document = nul) -> Parseuse
+initialise_parseuse :: fonc (tas_de_mémoire: *JS.TasDeMémoire, entrée: chaine, document : *Document = nul) -> Parseuse
 {
     flux_utf32 := crée_chaine_utf32(entrée)
 

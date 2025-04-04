@@ -1,6 +1,6 @@
 importe Chaine
 importe Fondation
-JavaScript :: importe JavaScript
+JS :: importe JavaScript
 
 /* ------------------------------------------------------------------------- */
 /** \nom PlatformObject
@@ -11,26 +11,26 @@ JavaScript :: importe JavaScript
 #portée_module
 
 TableVirtuellePlatformObject :: struct {
-    empl object: JavaScript.TableVirtuelleObject
+    empl object: JS.TableVirtuelleObject
 
     sur_destruction = platform_object_sur_destruction
 }
 
-platform_object_sur_destruction :: fonc (base: *JavaScript.Cellule)
+platform_object_sur_destruction :: fonc (base: *JS.Cellule)
 {
-    JavaScript.sur_destruction_objet(base)
+    JS.sur_destruction_objet(base)
 }
 
 #portée_export
 
 PlatformObject :: struct {
-    empl objet: JavaScript.Object
-    realm: *JavaScript.Realm
+    empl objet: JS.Object
+    realm: *JS.Realm
 }
 
-donne_tas_de_mémoire :: fonc (object: *PlatformObject) -> *JavaScript.TasDeMémoire
+donne_tas_de_mémoire :: fonc (object: *PlatformObject) -> *JS.TasDeMémoire
 {
-    retourne JavaScript.donne_tas_de_mémoire(object)
+    retourne JS.donne_tas_de_mémoire(object)
 }
 
 crée_platform_object :: fonc (référence: *PlatformObject, $T: type_de_données) -> *T
@@ -38,9 +38,9 @@ crée_platform_object :: fonc (référence: *PlatformObject, $T: type_de_donnée
     retourne crée_platform_object(référence.donne_tas_de_mémoire(), référence.realm, T)
 }
 
-crée_platform_object :: fonc (tas_de_mémoire: *JavaScript.TasDeMémoire, realm: *JavaScript.Realm, $T: type_de_données) -> *T
+crée_platform_object :: fonc (tas_de_mémoire: *JS.TasDeMémoire, realm: *JS.Realm, $T: type_de_données) -> *T
 {
-    résultat := JavaScript.alloue(tas_de_mémoire, T)
+    résultat := JS.alloue(tas_de_mémoire, T)
     résultat.realm = realm
     définis_prototype(résultat, T)
     retourne résultat
@@ -62,10 +62,10 @@ is_platform_object_same_origin :: fonc (object: *PlatformObject) -> bool
  * https://html.spec.whatwg.org/multipage/webappapis.html#relevant
  * \{ */
 
-donne_current_realm :: fonc (platform_object: *PlatformObject) -> *JavaScript.Realm
+donne_current_realm :: fonc (platform_object: *PlatformObject) -> *JS.Realm
 {
-    mv := JavaScript.donne_mv(platform_object.realm)
-    retourne JavaScript.donne_current_realm(mv)
+    mv := JS.donne_mv(platform_object.realm)
+    retourne JS.donne_current_realm(mv)
 }
 
 donne_current_settings_object :: fonc (platform_object: *PlatformObject) -> *EnvironmentSettings
@@ -74,10 +74,10 @@ donne_current_settings_object :: fonc (platform_object: *PlatformObject) -> *Env
     saufsi realm {
         retourne nul
     }
-    retourne JavaScript.donne_données(realm.host_defined, EnvironmentSettings)
+    retourne JS.donne_données(realm.host_defined, EnvironmentSettings)
 }
 
-donne_current_global_object :: fonc (platform_object: *PlatformObject) -> *JavaScript.Object
+donne_current_global_object :: fonc (platform_object: *PlatformObject) -> *JS.Object
 {
     realm := platform_object.donne_current_realm()
     saufsi realm {
@@ -93,7 +93,7 @@ donne_current_global_object :: fonc (platform_object: *PlatformObject) -> *JavaS
  * https://html.spec.whatwg.org/multipage/webappapis.html#relevant
  * \{ */
 
-donne_relevant_realm :: fonc (platform_object: *PlatformObject) -> *JavaScript.Realm
+donne_relevant_realm :: fonc (platform_object: *PlatformObject) -> *JS.Realm
 {
     retourne platform_object.realm
 }
@@ -104,10 +104,10 @@ donne_relevant_settings_object :: fonc (platform_object: *PlatformObject) -> *En
     saufsi realm {
         retourne nul
     }
-    retourne JavaScript.donne_données(realm.host_defined, EnvironmentSettings)
+    retourne JS.donne_données(realm.host_defined, EnvironmentSettings)
 }
 
-donne_relevant_global_object :: fonc (platform_object: *PlatformObject) -> *JavaScript.Object
+donne_relevant_global_object :: fonc (platform_object: *PlatformObject) -> *JS.Object
 {
     realm := platform_object.donne_relevant_realm()
     saufsi realm {
@@ -140,7 +140,7 @@ Environment :: struct {
 EnvironmentSettings :: struct {
     empl base: Environment
 
-    sur_donne_realm_execution_context: fonc(*EnvironmentSettings)(*JavaScript.ExecutionContext)
+    sur_donne_realm_execution_context: fonc(*EnvironmentSettings)(*JS.ExecutionContext)
     // sur_donne_module_map
     sur_donne_api_base_url: fonc(*EnvironmentSettings)(*URL)
     sur_donne_origin: fonc(*EnvironmentSettings)(Origin)
@@ -149,7 +149,7 @@ EnvironmentSettings :: struct {
     sur_donne_time_origin: fonc(*EnvironmentSettings)(r64)
 }
 
-donne_realm :: fonc (environment: *EnvironmentSettings) -> *JavaScript.Realm
+donne_realm :: fonc (environment: *EnvironmentSettings) -> *JS.Realm
 {
     ctx := environment.donne_realm_execution_context()
     saufsi ctx {
@@ -158,7 +158,7 @@ donne_realm :: fonc (environment: *EnvironmentSettings) -> *JavaScript.Realm
     retourne ctx.realm
 }
 
-donne_global_object :: fonc (environment: *EnvironmentSettings) -> *JavaScript.Object
+donne_global_object :: fonc (environment: *EnvironmentSettings) -> *JS.Object
 {
     realm := environment.donne_realm()
     saufsi realm {
@@ -167,7 +167,7 @@ donne_global_object :: fonc (environment: *EnvironmentSettings) -> *JavaScript.O
     retourne realm.global_object
 }
 
-donne_realm_execution_context :: fonc (environment: *EnvironmentSettings) -> *JavaScript.ExecutionContext
+donne_realm_execution_context :: fonc (environment: *EnvironmentSettings) -> *JS.ExecutionContext
 {
     retourne environment.sur_donne_realm_execution_context(environment)
 }
@@ -256,14 +256,14 @@ scripting_est_désactivé :: fonc (noeud: *Noeud) -> bool
 /** \nom Initialisation interface
  * \{ */
 
-initialise_host_intrinsics :: fonc (realm: *JavaScript.Realm)
+initialise_host_intrinsics :: fonc (realm: *JS.Realm)
 #corps_texte {
     retourne compile_interfaces_idl()
 }
 
 #portée_module
 
-donne_prototype :: fonc (realm: *JavaScript.Realm, index: z64) -> *JavaScript.Object
+donne_prototype :: fonc (realm: *JS.Realm, index: z64) -> *JS.Object
 {
     saufsi realm {
         retourne nul
@@ -324,20 +324,20 @@ définis_prototype :: fonc (object: *PlatformObject, type: type_de_données)
     object.prototype = donne_prototype(object.realm, index)
 }
 
-donne_platform_object :: fonc (interpréteuse: *JavaScript.Interpréteuse, value: JavaScript.Valeur, $Type: type_de_données) -> JavaScript.CompletionRecord
+donne_platform_object :: fonc (interpréteuse: *JS.Interpréteuse, value: JS.Valeur, $Type: type_de_données) -> JS.CompletionRecord
 {
-    completion := JavaScript.to_object(JavaScript.donne_realm(interpréteuse), value)
-    saufsi JavaScript.est_normal(completion) {
+    completion := JS.to_object(JS.donne_realm(interpréteuse), value)
+    saufsi JS.est_normal(completion) {
         retourne completion;
     }
-    object := JavaScript.donne_objet(completion.valeur.V)
+    object := JS.donne_objet(completion.valeur.V)
     info_type := info_de(Type)
-    saufsi est_struct_ou_employeuse_de(JavaScript.donne_info_type_cellule(object), info_type) {
+    saufsi est_struct_ou_employeuse_de(JS.donne_info_type_cellule(object), info_type) {
         message := imprime_chaine("object is not a '%'", info_type.nom)
         diffère déloge(message)
-        retourne JavaScript.lance_type_error(interpréteuse, message)
+        retourne JS.lance_type_error(interpréteuse, message)
     }
-    retourne JavaScript.normal_completion(JavaScript.Valeur(Object = object));
+    retourne JS.normal_completion(JS.Valeur(Object = object));
 }
 
 /** \} */

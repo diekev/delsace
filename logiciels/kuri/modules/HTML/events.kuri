@@ -233,7 +233,7 @@ table_virtuelle_event := TableVirtuellePlatformObject(
     sur_destruction = event_sur_destruction
 )
 
-event_sur_destruction :: fonc (base: *JavaScript.Cellule)
+event_sur_destruction :: fonc (base: *JS.Cellule)
 {
     event := base comme *Event
     déloge(event.touch_target_list)
@@ -317,9 +317,9 @@ table_virtuelle_mouse_event := TableVirtuellePlatformObject(
  * \{ */
 
 CallbackType :: struct {
-    empl cellule: JavaScript.Cellule
+    empl cellule: JS.Cellule
 
-    object: *JavaScript.Object
+    object: *JS.Object
     callback_context: *EnvironmentSettings
 }
 
@@ -339,7 +339,7 @@ donne_incumbent_settings_object :: fonc () -> *EnvironmentSettings
 
 #portée_fichier
 
-table_virtuelle_event_listener := JavaScript.TableVirtuelleCellule(classe = EventListener)
+table_virtuelle_event_listener := JS.TableVirtuelleCellule(classe = EventListener)
 
 #portée_export
 
@@ -348,10 +348,10 @@ EventListener :: struct {
     table = *table_virtuelle_event_listener
 }
 
-crée_event_listener :: fonc (object: *JavaScript.Object) -> *EventListener
+crée_event_listener :: fonc (object: *JS.Object) -> *EventListener
 {
-    tas_de_mémoire := JavaScript.donne_tas_de_mémoire(object)
-    résultat := JavaScript.alloue(tas_de_mémoire, EventListener)
+    tas_de_mémoire := JS.donne_tas_de_mémoire(object)
+    résultat := JS.alloue(tas_de_mémoire, EventListener)
     résultat.object = object
     résultat.callback_context = donne_incumbent_settings_object()
     retourne résultat
@@ -376,7 +376,7 @@ AddEventListenerOptions :: struct {
 
 #portée_fichier
 
-table_virtuelle_event_handler := JavaScript.TableVirtuelleCellule(classe = EventHandler)
+table_virtuelle_event_handler := JS.TableVirtuelleCellule(classe = EventHandler)
 
 #portée_export
 
@@ -385,10 +385,10 @@ EventHandler :: struct {
     table = *table_virtuelle_event_handler
 }
 
-crée_event_handler :: fonc (object: *JavaScript.Object, callback_context : *EnvironmentSettings = nul) -> *EventHandler
+crée_event_handler :: fonc (object: *JS.Object, callback_context : *EnvironmentSettings = nul) -> *EventHandler
 {
-    tas_de_mémoire := JavaScript.donne_tas_de_mémoire(object)
-    résultat := JavaScript.alloue(tas_de_mémoire, EventHandler)
+    tas_de_mémoire := JS.donne_tas_de_mémoire(object)
+    résultat := JS.alloue(tas_de_mémoire, EventHandler)
     résultat.object = object
     saufsi callback_context {
         callback_context = donne_incumbent_settings_object()
@@ -421,7 +421,7 @@ TableVirtuelleEventTarget :: struct {
     sur_legacy_canceled_activation_behavior: fonc(*EventTarget, *Event)(rien)
 }
 
-event_target_sur_destruction :: fonc (base: *JavaScript.Cellule)
+event_target_sur_destruction :: fonc (base: *JS.Cellule)
 {
     platform_object_sur_destruction(base)
     target := base comme *EventTarget
@@ -920,9 +920,9 @@ inner_invoke :: fonc (event: *Event, listeners: []EventTarget.EventListenerEntry
 {
     // imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
 
-    arguments: [..]JavaScript.Valeur
+    arguments: [..]JS.Valeur
     diffère déloge(arguments)
-    tableau_ajoute(*arguments, JavaScript.Valeur(Object = event))
+    tableau_ajoute(*arguments, JS.Valeur(Object = event))
 
     pour listeners {
         si it.type != event.type {
@@ -941,8 +941,8 @@ inner_invoke :: fonc (event: *Event, listeners: []EventTarget.EventListenerEntry
             continue
         }
 
-        completion := call_a_user_object_operation(JavaScript.Valeur(Object = it.callback.object), arguments, JavaScript.Valeur(Object = event.current_target))
-        saufsi JavaScript.est_normal(completion) {
+        completion := call_a_user_object_operation(JS.Valeur(Object = it.callback.object), arguments, JS.Valeur(Object = event.current_target))
+        saufsi JS.est_normal(completion) {
             // À FAIRE : it.callback.callback_context.donne_global_object()
             global := event.target.realm.global_object
             report_an_exception(completion.valeur.V, global)
@@ -951,18 +951,18 @@ inner_invoke :: fonc (event: *Event, listeners: []EventTarget.EventListenerEntry
 }
 
 /* https://webidl.spec.whatwg.org/#call-a-user-objects-operation */
-call_a_user_object_operation :: fonc (value: JavaScript.Valeur, args: []JavaScript.Valeur, this_arg: JavaScript.Valeur) -> JavaScript.CompletionRecord
+call_a_user_object_operation :: fonc (value: JS.Valeur, args: []JS.Valeur, this_arg: JS.Valeur) -> JS.CompletionRecord
 {
     // imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
 
-    target := JavaScript.donne_objet(this_arg) comme *EventTarget
+    target := JS.donne_objet(this_arg) comme *EventTarget
 
     realm := target.realm
-    settings := JavaScript.donne_données(realm.host_defined, EnvironmentSettings)
+    settings := JS.donne_données(realm.host_defined, EnvironmentSettings)
 
     prepare_to_run_script(settings)
 
-    evaluation_status := JavaScript.call(JavaScript.donne_mv(realm), value, this_arg, args)
+    evaluation_status := JS.call(JS.donne_mv(realm), value, this_arg, args)
 
     cleanup_after_running_script(settings)
 
@@ -1146,10 +1146,10 @@ get_the_current_value_of_the_event_handler :: fonc (event_target: *EventTarget, 
         // 7. If body is not parsable as FunctionBody or if parsing detects an early error, then follow these substeps:
         // @fuite-de-mémoire
         realm := event_target.realm
-        texte_source := JavaScript.crée_texte_source(body)
-        parsed_body: *JavaScript.NoeudSyntaxique
+        texte_source := JS.crée_texte_source(body)
+        parsed_body: *JS.NoeudSyntaxique
 
-        discr JavaScript.parse_text(realm, *texte_source, JavaScript.GoalSymbol.FunctionBody) {
+        discr JS.parse_text(realm, *texte_source, JS.GoalSymbol.FunctionBody) {
             Ok(n) {
                 parsed_body = n
             }
@@ -1169,8 +1169,8 @@ get_the_current_value_of_the_event_handler :: fonc (event_target: *EventTarget, 
 
         // 8. Push settings object's realm execution context onto the JavaScript execution context stack; it is now the running JavaScript execution context.
         execution_context := settings_object.donne_realm_execution_context()
-        mv := JavaScript.donne_mv(realm)
-        JavaScript.empile_execution_context(mv, execution_context)
+        mv := JS.donne_mv(realm)
+        JS.empile_execution_context(mv, execution_context)
 
         // 9. Let function be the result of calling OrdinaryFunctionCreate, with arguments:
         // functionPrototype %Function.prototype%
@@ -1193,21 +1193,21 @@ get_the_current_value_of_the_event_handler :: fonc (event_target: *EventTarget, 
         // Let the function have five arguments, named event, source, lineno, colno, and error.
         // Otherwise
         // Let the function have a single argument called event.
-        parameter_list: [..]*JavaScript.Expression
+        parameter_list: [..]*JS.Expression
         si name == EVT_onerror {
-            identifier := JavaScript.crée_identifier_pour_html(crée_chaine_utf16_unique("event"))
+            identifier := JS.crée_identifier_pour_html(crée_chaine_utf16_unique("event"))
             tableau_ajoute(*parameter_list, identifier)
-            identifier = JavaScript.crée_identifier_pour_html(crée_chaine_utf16_unique("source"))
+            identifier = JS.crée_identifier_pour_html(crée_chaine_utf16_unique("source"))
             tableau_ajoute(*parameter_list, identifier)
-            identifier = JavaScript.crée_identifier_pour_html(crée_chaine_utf16_unique("lineno"))
+            identifier = JS.crée_identifier_pour_html(crée_chaine_utf16_unique("lineno"))
             tableau_ajoute(*parameter_list, identifier)
-            identifier = JavaScript.crée_identifier_pour_html(crée_chaine_utf16_unique("colno"))
+            identifier = JS.crée_identifier_pour_html(crée_chaine_utf16_unique("colno"))
             tableau_ajoute(*parameter_list, identifier)
-            identifier = JavaScript.crée_identifier_pour_html(crée_chaine_utf16_unique("error"))
+            identifier = JS.crée_identifier_pour_html(crée_chaine_utf16_unique("error"))
             tableau_ajoute(*parameter_list, identifier)
         }
         sinon {
-            identifier := JavaScript.crée_identifier_pour_html(crée_chaine_utf16_unique("event"))
+            identifier := JS.crée_identifier_pour_html(crée_chaine_utf16_unique("event"))
             tableau_ajoute(*parameter_list, identifier)
         }
 
@@ -1216,7 +1216,7 @@ get_the_current_value_of_the_event_handler :: fonc (event_target: *EventTarget, 
         // thisMode non-lexical-this
 
         // scope
-        scope: *JavaScript.Environment
+        scope: *JS.Environment
         {
             // 1. Let realm be settings object's realm.
             scope_realm := settings_object.donne_realm()
@@ -1235,10 +1235,10 @@ get_the_current_value_of_the_event_handler :: fonc (event_target: *EventTarget, 
             // 6. Return scope.
         }
 
-        function := JavaScript.ordinary_function_create(realm, function_prototype, source_text, parameter_list, parsed_body comme *JavaScript.Statement, JavaScript.NON_LEXICAL_THIS, scope, nul)
+        function := JS.ordinary_function_create(realm, function_prototype, source_text, parameter_list, parsed_body comme *JS.Statement, JS.NON_LEXICAL_THIS, scope, nul)
 
         // 10. Remove settings object's realm execution context from the JavaScript execution context stack.
-        JavaScript.dépile_execution_context(mv)
+        JS.dépile_execution_context(mv)
 
         // 11. Set function.[[ScriptOrModule]] to null.
         function.script_or_module = nul
@@ -1274,7 +1274,7 @@ determine_the_target_of_an_event_handler :: fonc (event_target: *EventTarget, na
 
     // 4. Return eventTarget's node document's relevant global object.
     global := donne_relevant_settings_object(event_target).donne_global_object()
-    retourne JavaScript.vérifie_comme(global, EventTarget)
+    retourne JS.vérifie_comme(global, EventTarget)
 }
 
 est_élément :: fonc (event_target: *EventTarget) -> *Élément
@@ -1321,30 +1321,30 @@ event_target_donne_node_document :: fonc (event_target: *EventTarget) -> *Docume
 
 #portée_fichier
 
-event_handler_processor_sur_appel :: fonc (params: *JavaScript.ParamètresObjectCall) -> JavaScript.CompletionRecord
+event_handler_processor_sur_appel :: fonc (params: *JS.ParamètresObjectCall) -> JS.CompletionRecord
 {
-    processor := JavaScript.vérifie_comme(params.object, EventHandlerProcessor)
-    objet := JavaScript.donne_objet(JavaScript.donne_argument(params, 0))
-    event := JavaScript.vérifie_comme(objet, Event)
+    processor := JS.vérifie_comme(params.object, EventHandlerProcessor)
+    objet := JS.donne_objet(JS.donne_argument(params, 0))
+    event := JS.vérifie_comme(objet, Event)
     retourne process_event_handler(processor.event_target, processor.nom, event)
 }
 
 /* https://html.spec.whatwg.org/multipage/webappapis.html#the-event-handler-processing-algorithm */
-process_event_handler :: fonc (event_target: *EventTarget, nom: DOMString, event: *Event) -> JavaScript.CompletionRecord
+process_event_handler :: fonc (event_target: *EventTarget, nom: DOMString, event: *Event) -> JS.CompletionRecord
 {
     // 1. Let callback be the result of getting the current value of the event handler given eventTarget and name.
     callback := get_the_current_value_of_the_event_handler(event_target, nom)
 
     // 2. If callback is null, then return.
     si callback == nul {
-        retourne JavaScript.normal_completion(JavaScript.js_undefined)
+        retourne JS.normal_completion(JS.js_undefined)
     }
 
     // À FAIRE : 3. Let special error event handling be true if event is an ErrorEvent object, event's type is "error", and event's currentTarget implements the WindowOrWorkerGlobalScope mixin. Otherwise, let special error event handling be false.
     special_error_event := faux
 
     // 4. Process the Event object event as follows:
-    return_value := JavaScript.js_undefined
+    return_value := JS.js_undefined
     // If special error event handling is true
     si special_error_event {
         // Let return value be the result of invoking callback with « event's message, event's filename, event's lineno, event's colno, event's error », "rethrow", and with callback this value set to event's currentTarget.
@@ -1353,16 +1353,16 @@ process_event_handler :: fonc (event_target: *EventTarget, nom: DOMString, event
     sinon {
         // À FAIRE : Let return value be the result of invoking callback with « event », "rethrow", and with callback this value set to event's currentTarget.
 
-        arg_event := JavaScript.Valeur(Object = event)
+        arg_event := JS.Valeur(Object = event)
 
-        args: []JavaScript.Valeur
+        args: []JS.Valeur
         args.pointeur = *arg_event
         args.taille = 1
 
-        this_value := JavaScript.Valeur(Object = event.current_target)
+        this_value := JS.Valeur(Object = event.current_target)
 
-        completion := call_a_user_object_operation(JavaScript.Valeur(Object = callback.object), args, this_value)
-        saufsi JavaScript.est_normal(completion) {
+        completion := call_a_user_object_operation(JS.Valeur(Object = callback.object), args, this_value)
+        saufsi JS.est_normal(completion) {
             retourne completion
         }
         return_value = completion.valeur.V
@@ -1381,17 +1381,17 @@ process_event_handler :: fonc (event_target: *EventTarget, nom: DOMString, event
 
     // Otherwise
     // If return value is false, then set event's canceled flag.
-    si JavaScript.est_false(return_value) {
+    si JS.est_false(return_value) {
         event.canceled = vrai
     }
 
-    retourne JavaScript.normal_completion(return_value)
+    retourne JS.normal_completion(return_value)
 }
 
-table_virtuelle_event_handler_processor := JavaScript.TableVirtuelleObject(classe = EventHandlerProcessor, sur_call = event_handler_processor_sur_appel)
+table_virtuelle_event_handler_processor := JS.TableVirtuelleObject(classe = EventHandlerProcessor, sur_call = event_handler_processor_sur_appel)
 
 EventHandlerProcessor :: struct {
-    empl function: JavaScript.Function
+    empl function: JS.Function
     table = *table_virtuelle_event_handler_processor
 
     event_target: *EventTarget
@@ -1400,9 +1400,9 @@ EventHandlerProcessor :: struct {
 
 crée_event_handler_processor :: fonc (event_target: *EventTarget, nom: DOMString) -> *EventHandlerProcessor
 {
-    tas_de_mémoire := JavaScript.donne_tas_de_mémoire(event_target.realm)
-    résultat := JavaScript.alloue(tas_de_mémoire, EventHandlerProcessor)
-    JavaScript.set_function_length(résultat, 1.0)
+    tas_de_mémoire := JS.donne_tas_de_mémoire(event_target.realm)
+    résultat := JS.alloue(tas_de_mémoire, EventHandlerProcessor)
+    JS.set_function_length(résultat, 1.0)
     résultat.event_target = event_target
     résultat.nom = nom
     retourne résultat

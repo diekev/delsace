@@ -3,7 +3,7 @@
 
 importe Chaine
 importe Fondation
-JavaScript :: importe JavaScript
+JS :: importe JavaScript
 importe SysFichier
 importe Temps
 
@@ -214,9 +214,9 @@ détruit :: fonc (parsat: &ParsatHTML)
 }
 
 /* Parse un document HTML depuis une chaine de caractère. */
-parse_document :: fonc (realm: *JavaScript.Realm, source: chaine) -> ParsatHTML
+parse_document :: fonc (realm: *JS.Realm, source: chaine) -> ParsatHTML
 {
-    tas_de_mémoire := JavaScript.donne_tas_de_mémoire(realm)
+    tas_de_mémoire := JS.donne_tas_de_mémoire(realm)
     document := crée_noeud_document(tas_de_mémoire, realm)
     document.type = "html"
 
@@ -234,7 +234,7 @@ parse_document :: fonc (realm: *JavaScript.Realm, source: chaine) -> ParsatHTML
     retourne parsat
 }
 
-parse_document :: fonc (tas_de_mémoire: *JavaScript.TasDeMémoire, document: chaine) -> ParsatHTML
+parse_document :: fonc (tas_de_mémoire: *JS.TasDeMémoire, document: chaine) -> ParsatHTML
 {
     parseuse := initialise_parseuse(tas_de_mémoire, document)
     diffère détruit_parseuse(*parseuse)
