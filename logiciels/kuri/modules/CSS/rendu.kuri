@@ -685,25 +685,44 @@ noeud_text_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDe
     élément := noeud.élément comme *HTML.HTMLInputElement
     couleur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color).couleur
     value := HTML.donne_value(élément)
+    state := HTML.donne_state(élément)
 
     si value.est_vide() {
         value = HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_placeholder).donne_chaine_utf16()
         couleur.a = 128
     }
+    sinon si state == HTML.HTMLInputElement.State.Password {
+        /* U+002A ASTERISK (*) or U+25CF BLACK CIRCLE (●) */
+        élément.texte_mot_de_passe.unités.taille = 0
+
+        pour value.taille() {
+            tableau_ajoute(*élément.texte_mot_de_passe.unités, 0x25CF)
+        }
+
+        value = élément.texte_mot_de_passe
+    }
 
     saufsi value.est_vide() {
-        rect_texte := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_contenu())
+        rect_texte := donne_rect_texte_pour_input(noeud)
+        rect_texte = ctx.donne_rectangle_corrigé(rect_texte)
         ctx.commandes.dessine_texte(noeud.fonte, value, rect_texte, couleur, nul)
     }
 
     éditrice := élément.éditrice
     si éditrice && éditrice.curseur_est_affiché {
-        rect_curseur := donne_rectangle_rembourrage(noeud)
+        rect_curseur := donne_rect_texte_pour_input(noeud)
 
-        texte_avant_curseur := éditrice.texte_à_éditer
-        texte_avant_curseur.points_de_code.taille = éditrice.curseur.fin
-
-        curseur_x := éditrice.fonte.donne_largeur_texte(texte_avant_curseur)
+        curseur_x: z32
+        si state == HTML.HTMLInputElement.State.Password {
+            texte_avant_curseur := value
+            texte_avant_curseur.unités.taille = éditrice.curseur.fin
+            curseur_x = éditrice.fonte.donne_largeur_texte(texte_avant_curseur)
+        }
+        sinon {
+            texte_avant_curseur := éditrice.texte_à_éditer
+            texte_avant_curseur.points_de_code.taille = éditrice.curseur.fin
+            curseur_x = éditrice.fonte.donne_largeur_texte(texte_avant_curseur)
+        }
 
         rect_curseur.x = rect_curseur.x + curseur_x comme r32
         rect_curseur.largeur = 1.0
@@ -727,9 +746,29 @@ noeud_button_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Contexte
     value := HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_value).donne_chaine_utf16()
 
     saufsi value.est_vide() {
-        rect_texte := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_contenu())
+        rect_texte := donne_rect_texte_pour_input(noeud)
+        rect_texte = ctx.donne_rectangle_corrigé(rect_texte)
         ctx.commandes.dessine_texte(noeud.fonte, value, rect_texte, couleur, nul)
     }
+}
+
+donne_rect_texte_pour_input :: fonc (noeud: *NoeudDeDispositionRemplacement) -> RectanglePosDim(r32)
+{
+    rect_texte := noeud.donne_rectangle_contenu()
+    
+    /* Centre le texte dans le rectangle. Le centrage se fait en centrant les minuscules. */
+    métriques := donne_métriques_fonte(noeud.fonte)
+    taille_minuscule := donne_hauteur_glyph(noeud.fonte, 'x' comme n32).Quelque comme r32
+
+    taille_disponible := (rect_texte.hauteur - taille_minuscule)
+    déplacement := taille_disponible * 0.5
+
+    position_y_ligne_de_base := rect_texte.y + rect_texte.hauteur - déplacement
+    position_y := position_y_ligne_de_base - métriques.jambage_supérieur
+
+    rect_texte.y = position_y
+    rect_texte.hauteur = métriques.donne_hauteur_ligne()
+    retourne rect_texte
 }
 
 noeud_radio_button_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)

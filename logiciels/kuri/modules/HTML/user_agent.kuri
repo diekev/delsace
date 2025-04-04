@@ -1,6 +1,6 @@
 importe HTTP
 importe Fondation
-importe #inemployé JavaScript
+JavaScript :: importe JavaScript
 
 /* ------------------------------------------------------------------------- */
 /** \nom UserAgent
@@ -27,6 +27,9 @@ UserAgent :: struct {
     /* Valeur par défaut pour l'entête 'User-Agent'.
      * https://fetch.spec.whatwg.org/#default-user-agent-value */
     user_agent_string: DOMString
+
+    /* Utilisé pour les fichiers de réponse pour les erreurs. */
+    nom_navigateur := "Le Navigateur"
 }
 
 initialise_user_agent :: fonc (user_agent: *UserAgent)
@@ -180,6 +183,8 @@ RappelsInterface :: struct {
     sur_défile_page_vers_fragment: fonc(*RappelsInterface)(rien)
     sur_donne_taille_écran: fonc(*RappelsInterface)(TailleÉcranExposéWeb)
     sur_édition_text_input_requise: fonc(*RappelsInterface, *HTMLInputElement)(rien)
+    sur_rapporte_exception: fonc (*RappelsInterface, *Document, chaine)(rien)
+    sur_rapporte_log: fonc (*RappelsInterface, *Document, chaine)(rien)
 }
 
 détruit_rappels :: fonc (rappels: *RappelsInterface)
@@ -377,6 +382,26 @@ donne_taille_écran :: fonc (user_agent: *UserAgent) -> TailleÉcranExposéWeb
         retourne
     }
     rappels.sur_édition_text_input_requise(rappels, input)
+}
+
+rapporte_exception :: fonc (user_agent: *UserAgent, document: *Document, exception: chaine)
+{
+    rappels := user_agent.rappels_interface
+    saufsi rappels && rappels.sur_rapporte_exception {
+        imprime("EXCEPTION NON-PIÉGÉE : %\n", exception)
+        retourne
+    }
+    rappels.sur_rapporte_exception(rappels, document, exception)
+}
+
+rapporte_log :: fonc (user_agent: *UserAgent, document: *Document, message: chaine)
+{
+    rappels := user_agent.rappels_interface
+    saufsi rappels && rappels.sur_rapporte_log {
+        imprime("LOG : %\n", message)
+        retourne
+    }
+    rappels.sur_rapporte_log(rappels, document, message)
 }
 
 /** \} */
