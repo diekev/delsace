@@ -2,7 +2,7 @@ importe Chaine
 importe CSS
 importe Ensemble
 importe Fondation
-importe #inemployé HTML
+HTML :: importe HTML
 importe SysFichier
 
 principale :: fonc ()
