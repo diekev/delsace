@@ -3,7 +3,7 @@ importe Ensemble
 importe EnsembleDeBits
 importe Fondation
 importe Géométrie
-importe #inemployé HTML
+HTML :: importe HTML
 importe Image
 importe Internet
 importe Math

@@ -3,12 +3,12 @@ importe Chaine
 importe CodecDonnées
 importe Compilatrice
 importe Couleur
-importe #inemployé CSS
+CSS :: importe CSS
 importe Fondation
 importe Géométrie
 importe HTML
 importe HTTP
-importe #inemployé JavaScript
+JavaScript :: importe JavaScript
 importe OpenGL
 importe PeintureInterface
 importe Périphériques

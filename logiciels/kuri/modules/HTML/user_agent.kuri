@@ -1,6 +1,6 @@
 importe HTTP
 importe Fondation
-importe #inemployé JavaScript
+JavaScript :: importe JavaScript
 
 /* ------------------------------------------------------------------------- */
 /** \nom UserAgent

@@ -1563,9 +1563,10 @@ static CodeRetourValidation trouve_candidates_pour_appel(
             return CodeRetourValidation::OK;
         }
 
-        auto accédé = accès->accédée;
         if (accès->déclaration_référée) {
-            auto module = espace.compilatrice().module(accédé->ident);
+            auto accédée = accès->accédée->comme_référence_déclaration();
+            auto déclaration_module = accédée->déclaration_référée->comme_déclaration_module();
+            auto module = déclaration_module->module;
             auto declarations = kuri::tablet<NoeudDéclaration *, 10>();
             trouve_déclarations_dans_module(declarations, module, accès->ident, fichier);
 

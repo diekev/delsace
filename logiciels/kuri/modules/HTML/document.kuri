@@ -1,9 +1,9 @@
 importe Chaine
-importe #inemployé CSS
+CSS :: importe CSS
 importe Ensemble
 importe Fondation
 importe Image
-importe #inemployé JavaScript
+JavaScript :: importe JavaScript
 
 /* ------------------------------------------------------------------------- */
 /** \nom Document.

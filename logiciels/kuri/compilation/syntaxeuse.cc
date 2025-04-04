@@ -586,37 +586,9 @@ void Syntaxeuse::analyse_une_chose()
 
     if (genre_lexème == GenreLexème::IMPORTE) {
         consomme();
-
-        auto est_employé = true;
-        if (apparie(GenreLexème::DIRECTIVE)) {
-            consomme();
-
-            if (lexème_courant()->ident != ID::inemployé) {
-                rapporte_erreur("Directive invlide après « importe »");
-            }
-            consomme();
-            est_employé = false;
-        }
-
-        auto expression = NoeudExpression::nul();
-        if (apparie(GenreLexème::CHAINE_LITTERALE)) {
-            expression = m_tacheronne.assembleuse->crée_littérale_chaine(lexème_courant());
-        }
-        else if (apparie(GenreLexème::CHAINE_CARACTERE)) {
-            expression = m_tacheronne.assembleuse->crée_référence_déclaration(lexème_courant());
-        }
-        else {
-            rapporte_erreur("Attendu une chaine littérale ou un identifiant après 'importe'");
-        }
-
-        auto noeud = m_tacheronne.assembleuse->crée_importe(lexème, expression);
-        noeud->bloc_parent->ajoute_expression(noeud);
-        noeud->est_employé = est_employé;
-
+        auto noeud = analyse_importe(lexème, nullptr);
         requiers_typage(noeud);
         m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::IMPORTE;
-
-        consomme();
     }
     else if (genre_lexème == GenreLexème::CHARGE) {
         consomme();
@@ -713,6 +685,10 @@ void Syntaxeuse::analyse_une_chose()
         }
         else if (noeud->est_dépendance_bibliothèque()) {
             requiers_typage(noeud);
+        }
+        else if (noeud->est_importe()) {
+            requiers_typage(noeud);
+            m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::IMPORTE;
         }
         else {
             rapporte_erreur_avec_site(
@@ -2399,6 +2375,12 @@ NoeudExpression *Syntaxeuse::analyse_référence_déclaration(Lexème const *lex
                 annule_sauvegarde_position();
                 return analyse_déclaration_enum(lexème_référence);
             }
+            case GenreLexème::IMPORTE:
+            {
+                annule_sauvegarde_position();
+                consomme();
+                return analyse_importe(lexème, lexème_référence);
+            }
             default:
             {
                 break;
@@ -3654,6 +3636,32 @@ void Syntaxeuse::analyse_directive_symbole_externe(NoeudDéclarationSymbole *dé
     else {
         données_externes->nom_symbole = déclaration_symbole->ident->nom;
     }
+}
+
+NoeudInstructionImporte *Syntaxeuse::analyse_importe(Lexème const *lexème,
+                                                     Lexème const *lexème_référence)
+{
+    auto expression = NoeudExpression::nul();
+    if (apparie(GenreLexème::CHAINE_LITTERALE)) {
+        expression = m_tacheronne.assembleuse->crée_littérale_chaine(lexème_courant());
+    }
+    else if (apparie(GenreLexème::CHAINE_CARACTERE)) {
+        expression = m_tacheronne.assembleuse->crée_référence_déclaration(lexème_courant());
+    }
+    else {
+        rapporte_erreur("Attendu une chaine littérale ou un identifiant après 'importe'");
+    }
+
+    auto noeud = m_tacheronne.assembleuse->crée_importe(lexème, expression);
+    noeud->bloc_parent->ajoute_expression(noeud);
+    noeud->est_employé = lexème_référence == nullptr;
+    if (lexème_référence) {
+        noeud->ident = lexème_référence->ident;
+    }
+
+    consomme();
+
+    return noeud;
 }
 
 void Syntaxeuse::recycle_référence(NoeudExpressionRéférence *référence)
