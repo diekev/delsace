@@ -1,6 +1,6 @@
 importe Chaine
 importe Fondation
-JavaScript :: importe JavaScript
+JS :: importe JavaScript
 
 /* 8.1.4 Script processing model
  * https://html.spec.whatwg.org/multipage/webappapis.html#scripting-processing-model */
@@ -12,9 +12,9 @@ JavaScript :: importe JavaScript
 
 Script :: struct {
     settings_object: *EnvironmentSettings
-    record: *JavaScript.Script
-    parse_error: JavaScript.Valeur
-    error_to_rethrow: JavaScript.Valeur
+    record: *JS.Script
+    parse_error: JS.Valeur
+    error_to_rethrow: JS.Valeur
     fetch_options: Optionnel(OptionsFetchScript)
     base_url: *URL @NeVisitePas
 }
@@ -78,17 +78,17 @@ create_a_classic_script :: fonc (user_agent: *UserAgent, source: chaine, setting
     script.muted_errors = muted_errors
 
     // 8. Set script's parse error and error to rethrow to null.
-    script.parse_error = JavaScript.js_null
-    script.error_to_rethrow = JavaScript.js_null
+    script.parse_error = JS.js_null
+    script.error_to_rethrow = JS.js_null
 
     // À FAIRE : 9. Record classic script creation time given script and sourceURLForWindowScripts.
 
     // 10. Let result be ParseScript(source, settings's realm, script).
-    host_defined := JavaScript.crée_host_defined(script)
+    host_defined := JS.crée_host_defined(script)
 
-    discr JavaScript.parse_script(source, settings.donne_realm(), host_defined) {
+    discr JS.parse_script(source, settings.donne_realm(), host_defined) {
         Erreur(e) {
-            error := JavaScript.Valeur(Object = e)
+            error := JS.Valeur(Object = e)
             imprime("%\n", error)
 
             // 11. If result is a list of errors, then:
@@ -118,7 +118,7 @@ create_a_classic_script :: fonc (user_agent: *UserAgent, source: chaine, setting
  * https://html.spec.whatwg.org/multipage/webappapis.html#calling-scripts
  * \{ */
 
-run_the_classic_script :: fonc (script: *ClassicScript, rethrow_errors := faux) -> JavaScript.CompletionRecord
+run_the_classic_script :: fonc (script: *ClassicScript, rethrow_errors := faux) -> JS.CompletionRecord
 {
     // 1. Let settings be the settings object of script.
     settings := script.settings_object
@@ -131,21 +131,21 @@ run_the_classic_script :: fonc (script: *ClassicScript, rethrow_errors := faux) 
     prepare_to_run_script(settings)
 
     // 5. Let evaluationStatus be null.
-    evaluation_status := JavaScript.normal_completion(JavaScript.js_null)
+    evaluation_status := JS.normal_completion(JS.js_null)
 
     // 6. If script's error to rethrow is not null, then set evaluationStatus to Completion { [[Type]]: throw, [[Value]]: script's error to rethrow, [[Target]]: empty }.
-    saufsi JavaScript.est_nulle(script.error_to_rethrow) {
-        evaluation_status = JavaScript.throw_completion(script.error_to_rethrow)
+    saufsi JS.est_nulle(script.error_to_rethrow) {
+        evaluation_status = JS.throw_completion(script.error_to_rethrow)
     }
     // 7. Otherwise, set evaluationStatus to ScriptEvaluation(script's record).
     sinon {
-        evaluation_status = JavaScript.script_evaluation(script.record)
+        evaluation_status = JS.script_evaluation(script.record)
     }
 
     // If ScriptEvaluation does not complete because the user agent has aborted the running script, leave evaluationStatus as null.
 
     // 8. If evaluationStatus is an abrupt completion, then:
-    si JavaScript.est_abrupt(evaluation_status) {
+    si JS.est_abrupt(evaluation_status) {
         // 1. If rethrow errors is true and script's muted errors is false, then:
         si rethrow_errors && script.muted_errors == faux {
             // 1. Clean up after running script with settings.
@@ -180,7 +180,7 @@ run_the_classic_script :: fonc (script: *ClassicScript, rethrow_errors := faux) 
     cleanup_after_running_script(settings)
 
     // 10. If evaluationStatus is a normal completion, then return evaluationStatus.
-    si JavaScript.est_normal(evaluation_status) {
+    si JS.est_normal(evaluation_status) {
         retourne evaluation_status
     }
 
@@ -192,10 +192,10 @@ run_the_classic_script :: fonc (script: *ClassicScript, rethrow_errors := faux) 
 prepare_to_run_script :: fonc (settings: *EnvironmentSettings)
 {
     execution_context := settings.donne_realm_execution_context()
-    mv := JavaScript.donne_mv(JavaScript.donne_tas_de_mémoire(execution_context))
+    mv := JS.donne_mv(JS.donne_tas_de_mémoire(execution_context))
 
     // 1. Push settings's realm execution context onto the JavaScript execution context stack; it is now the running JavaScript execution context.
-    JavaScript.empile_execution_context(mv, execution_context)
+    JS.empile_execution_context(mv, execution_context)
 
     // À FAIRE : 2. Add settings to the surrounding agent's event loop's currently running task's script evaluation environment settings object set.
 }
@@ -204,13 +204,13 @@ prepare_to_run_script :: fonc (settings: *EnvironmentSettings)
 cleanup_after_running_script :: fonc (settings: *EnvironmentSettings)
 {
     execution_context := settings.donne_realm_execution_context()
-    mv := JavaScript.donne_mv(JavaScript.donne_tas_de_mémoire(execution_context))
+    mv := JS.donne_mv(JS.donne_tas_de_mémoire(execution_context))
 
     // 1. Assert: settings's realm execution context is the running JavaScript execution context.
-    assert(execution_context == JavaScript.donne_running_execution_context(mv))
+    assert(execution_context == JS.donne_running_execution_context(mv))
 
     // 2. Remove settings's realm execution context from the JavaScript execution context stack.
-    JavaScript.dépile_execution_context(mv)
+    JS.dépile_execution_context(mv)
 
     // À FAIRE 3. If the JavaScript execution context stack is now empty, perform a microtask checkpoint. (If this runs scripts, these algorithms will be invoked reentrantly.)
 }
@@ -223,12 +223,12 @@ cleanup_after_running_script :: fonc (settings: *EnvironmentSettings)
  * \{ */
 
 /* https://html.spec.whatwg.org/multipage/webappapis.html#report-an-exception */
-report_an_exception :: fonc (exception: JavaScript.Valeur, global: *JavaScript.Object)
+report_an_exception :: fonc (exception: JS.Valeur, global: *JS.Object)
 {
     // À FAIRE : standardise
 
-    window := JavaScript.vérifie_comme(global, Window)
-    chn := JavaScript.to_string(window.realm, exception).valeur.V
+    window := JS.vérifie_comme(global, Window)
+    chn := JS.to_string(window.realm, exception).valeur.V
 
     texte_exception := converti_vers_chaine(chn.String.texte.donne_chaine_utf16())
 

@@ -742,27 +742,27 @@ crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Do
     //     For the global object, create a new Window object.
     //     For the global this binding, use browsingContext's WindowProxy object.
     ConfigurationRealmBrowsingContext :: struct {
-        empl base: JavaScript.ConfigurationRealm
+        empl base: JS.ConfigurationRealm
 
         browsing_context: *BrowsingContext
         user_agent: *UserAgent
     }
 
-    crée_objet_global :: fonc(base: *JavaScript.ConfigurationRealm, realm: *JavaScript.Realm) -> *JavaScript.Object
+    crée_objet_global :: fonc(base: *JS.ConfigurationRealm, realm: *JS.Realm) -> *JS.Object
     {
         configuration := base comme *ConfigurationRealmBrowsingContext
 
-        tas_de_mémoire := JavaScript.donne_tas_de_mémoire(realm)
+        tas_de_mémoire := JS.donne_tas_de_mémoire(realm)
 
         window := crée_objet_window(configuration.user_agent, tas_de_mémoire, realm)
 
-        window_proxy := JavaScript.alloue(tas_de_mémoire, WindowProxy)
+        window_proxy := JS.alloue(tas_de_mémoire, WindowProxy)
         configuration.browsing_context.window_proxy = window_proxy
 
         retourne window
     }
 
-    donne_this_binding_global :: fonc (base: *JavaScript.ConfigurationRealm) -> *JavaScript.Object
+    donne_this_binding_global :: fonc (base: *JS.ConfigurationRealm) -> *JS.Object
     {
         configuration := base comme *ConfigurationRealmBrowsingContext
         retourne configuration.browsing_context.window_proxy
@@ -791,7 +791,7 @@ crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Do
 
     // 13. Set up a window environment settings object with about:blank, realm execution context, null, topLevelCreationURL, and topLevelOrigin.
     set_up_window_environnement_context(donne_about_blank_url(), realm_execution_context, nul, top_level_creation_url, top_level_origin)
-    environment_settings := JavaScript.donne_données(realm_execution_context.realm.host_defined, EnvironmentSettings)
+    environment_settings := JS.donne_données(realm_execution_context.realm.host_defined, EnvironmentSettings)
 
     // 14. Let loadTimingInfo be a new document load timing info with its
     //     navigation start time set to the result of calling coarsen time with
@@ -902,16 +902,16 @@ obtain_similar_origin_window_agent :: fonc (origin: Origin @inutilisée, groupe:
 }
 
 /* https://html.spec.whatwg.org/multipage/webappapis.html#creating-a-new-javascript-realm */
-crée_un_nouveau_realm :: fonc (agent: *rien @inutilisée, mv: *JavaScript.MachineVirtuelle, configuration: *JavaScript.ConfigurationRealm) -> *JavaScript.ExecutionContext
+crée_un_nouveau_realm :: fonc (agent: *rien @inutilisée, mv: *JS.MachineVirtuelle, configuration: *JS.ConfigurationRealm) -> *JS.ExecutionContext
 {
     // 1. Perform InitializeHostDefinedRealm() with the provided customizations for creating the global object and the global this binding.
-    _ := JavaScript.initialise_host_defined_realm(mv, configuration)
+    _ := JS.initialise_host_defined_realm(mv, configuration)
 
     // 2. Let realm execution context be the running JavaScript execution context.
-    realm_execution_context := JavaScript.donne_running_execution_context(mv)
+    realm_execution_context := JS.donne_running_execution_context(mv)
 
     // 3. Remove realm execution context from the JavaScript execution context stack.
-    JavaScript.dépile_execution_context(mv)
+    JS.dépile_execution_context(mv)
 
     // 4. Let realm be realm execution context's Realm component.
 
@@ -929,7 +929,7 @@ crée_un_nouveau_realm :: fonc (agent: *rien @inutilisée, mv: *JavaScript.Machi
 
 /* https://html.spec.whatwg.org/multipage/nav-history-apis.html#set-up-a-window-environment-settings-object */
 set_up_window_environnement_context :: fonc (creation_url: *URL,
-                                             execution_context: *JavaScript.ExecutionContext,
+                                             execution_context: *JS.ExecutionContext,
                                              reserved_environment: *rien @inutilisée,
                                              top_level_creation_url: *URL,
                                              top_level_origin: Origin)
@@ -944,12 +944,12 @@ set_up_window_environnement_context :: fonc (creation_url: *URL,
     WindowEnvironment :: struct {
         empl base_env: EnvironmentSettings
 
-        execution_context: *JavaScript.ExecutionContext
+        execution_context: *JS.ExecutionContext
         window: *Window
     }
 
     // The realm execution context
-    sur_donne_realm_execution_context :: fonc (base: *EnvironmentSettings) -> *JavaScript.ExecutionContext
+    sur_donne_realm_execution_context :: fonc (base: *EnvironmentSettings) -> *JS.ExecutionContext
     {
         // Return execution context.
         env := base comme *WindowEnvironment
@@ -1031,7 +1031,7 @@ set_up_window_environnement_context :: fonc (creation_url: *URL,
     settings_object.top_level_origin = top_level_origin
 
     // 7. Set realm's [[HostDefined]] field to settings object.
-    realm.host_defined = JavaScript.crée_host_defined(settings_object)
+    realm.host_defined = JS.crée_host_defined(settings_object)
 }
 
 /** \} */

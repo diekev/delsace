@@ -1,0 +1,283 @@
+importe Fondation
+
+JS :: importe JavaScript
+WS :: importe WebSocket
+
+/* ------------------------------------------------------------------------- */
+/** \nom WebSocket
+ * https://websockets.spec.whatwg.org/#the-websocket-interface
+ * \{ */
+
+WebSocket :: struct {
+    empl event_target: EventTarget
+    table = *table_virtuelle_web_socket
+
+    CONNECTING : n16 : 0
+    OPEN : n16 : 1
+    CLOSING : n16 : 2
+    CLOSED : n16 : 3
+
+    url: *URL
+    ready_state := CONNECTING
+}
+
+#portée_fichier
+
+table_virtuelle_web_socket := TableVirtuelleEventTarget(classe = WebSocket, sur_destruction = web_socket_sur_destruction)
+
+web_socket_sur_destruction :: fonc (base: *JS.Cellule)
+{
+    web_socket := base comme *WebSocket
+    event_target_sur_destruction(web_socket)
+    détruit_url(web_socket.url)
+}
+
+#portée_module
+
+/* https://websockets.spec.whatwg.org/#dom-websocket-websocket */
+web_socket_construct :: fonc (interpréteuse: *JS.Interpréteuse, web_socket: *WebSocket, url: DOMString) -> JS.CompletionRecord
+{
+    realm := JS.donne_realm(interpréteuse)
+    settings := web_socket.donne_relevant_settings_object()
+
+    window := JS.vérifie_comme(realm.global_object, Window)
+    user_agent := window.document.donne_user_agent()
+
+    // 1. Let baseURL be this's relevant settings object's API base URL.
+    base_url := settings.donne_api_base_url()
+
+    // 2. Let urlRecord be the result of applying the URL parser to url with baseURL.
+    // @fuite-de-mémoire si une exception est lancée
+    url_record := url_parser(user_agent, url, base = base_url)
+
+    // 3. If urlRecord is failure, then throw a "SyntaxError" DOMException.
+    saufsi url_record {
+        retourne throw_dom_exception(realm, "SyntaxError", "Invalid URL")
+    }
+
+    // 4. If urlRecord’s scheme is "http", then set urlRecord’s scheme to "ws".
+    si url_record.scheme == "http" {
+        url_record.définis_schéma("ws")
+    }
+    // 5. Otherwise, if urlRecord’s scheme is "https", set urlRecord’s scheme to "wss".
+    sinon si url_record.scheme == "https" {
+        url_record.définis_schéma("wss")
+    }
+
+    // 6. If urlRecord’s scheme is not "ws" or "wss", then throw a "SyntaxError" DOMException.
+    saufsi url_record.scheme == "ws" || url_record.scheme == "wss" {
+        retourne throw_dom_exception(realm, "SyntaxError", "Invalid schema for WebSocket connection")
+    }
+
+    // 7. If urlRecord’s fragment is non-null, then throw a "SyntaxError" DOMException.
+    si url_record.fragment.possède_valeur() {
+        retourne throw_dom_exception(realm, "SyntaxError", "WebSocket URLs should not have fragments")
+    }
+
+    // À FAIRE 8. If protocols is a string, set protocols to a sequence consisting of just that string.
+    
+    // 9. If any of the values in protocols occur more than once or otherwise fail to match the requirements for elements that comprise the value of `Sec-WebSocket-Protocol` fields as defined by The WebSocket protocol, then throw a "SyntaxError" DOMException. [WSP]
+
+    // 10. Set this's url to urlRecord.
+    web_socket.url = url_record
+
+    // 11. Let client be this's relevant settings object.
+    client := settings
+
+    imprime("WebSocket : %\n", web_socket)
+
+    // 12. Run this step in parallel:
+    lance_tâche_pour_établir_connexion_websocket(user_agent, web_socket, client)
+
+    retourne JS.normal_completion(JS.Valeur(Object = web_socket))
+}
+
+#portée_fichier
+
+lance_tâche_pour_établir_connexion_websocket :: fonc (user_agent: *UserAgent, web_socket: *WebSocket, client: *EnvironmentSettings)
+{
+    imprime("[%]\n", #nom_de_cette_fonction)
+
+    Tâche :: struct {
+        empl base: Algorithm
+        user_agent: *UserAgent
+        web_socket: *WebSocket
+        client: *EnvironmentSettings
+    }
+
+    sur_run :: fonc (empl tâche: *Tâche)
+    {
+        // À FAIRE : Establish a WebSocket connection given urlRecord, protocols, and client. [FETCH]
+        user_agent.lance_requête_websocket(web_socket, client)
+    }
+
+    tâche := crée_algorithm(sur_run, Tâche)
+    tâche.user_agent = user_agent
+    tâche.web_socket = web_socket
+    tâche.client = client
+
+    user_agent.lance_en_parallèle(tâche)
+}
+
+#portée_module
+
+/* https://websockets.spec.whatwg.org/#dom-websocket-send */
+send :: fonc (websocket: *WebSocket @inutilisée, data: DOMString @inutilisée)
+{
+    // À FAIRE : If this's ready state is CONNECTING, then throw an "InvalidStateError" DOMException.
+}
+
+send :: fonc (websocket: *WebSocket @inutilisée, data: *JS.ArrayBuffer @inutilisée)
+{
+    // À FAIRE : If this's ready state is CONNECTING, then throw an "InvalidStateError" DOMException.
+}
+
+send :: fonc (websocket: *WebSocket @inutilisée, data: *Blob @inutilisée)
+{
+    // À FAIRE : If this's ready state is CONNECTING, then throw an "InvalidStateError" DOMException.
+}
+
+// close :: fonc ()
+// {
+
+// }
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 4. Feedback from the protocol
+ * https://websockets.spec.whatwg.org/#feedback-from-the-protocol
+ * \{ */
+
+#portée_export
+
+crée_tâche_pour_connexion_websocket_établis :: fonc (user_agent: *UserAgent, web_socket: *WebSocket)
+{
+    imprime("[%]\n", #nom_de_cette_fonction)
+
+    Tâche :: struct {
+        empl base: Algorithm
+
+        web_socket: *WebSocket
+    }
+
+    sur_run :: fonc (empl tâche: *Tâche)
+    {
+        imprime("[%] connexion_websocket_établis\n", #nom_de_cette_fonction)
+        // 1. Change the ready state to OPEN (1).
+        web_socket.ready_state = WebSocket.OPEN
+
+        // À FAIRE 2. Change the extensions attribute’s value to the extensions in use, if it is not the null value. [WSP]
+
+        // 3. Change the protocol attribute’s value to the subprotocol in use, if it is not the null value. [WSP]
+
+        // 4. Fire an event named open at the WebSocket object.
+        _ := fire_an_event(web_socket, EventType.open)
+    }
+
+    tâche := crée_algorithm(sur_run, Tâche)
+    tâche.web_socket = web_socket
+
+    user_agent.enfile_une_tâche(SourceDeTâche.WebSocket, tâche)
+}
+
+crée_tâche_pour_message_websocket :: fonc (user_agent: *UserAgent, web_socket: *WebSocket, type: WS.OpCode, données: []octet)
+{
+    imprime("[%]\n", #nom_de_cette_fonction)
+
+    Tâche :: struct {
+        empl base: Algorithm
+
+        web_socket: *WebSocket
+        type: WS.OpCode
+        données: [..]octet
+    }
+
+    sur_run :: fonc (empl tâche: *Tâche)
+    {
+        imprime("[%] message_websocket\n", #nom_de_cette_fonction)
+        // 1. If ready state is not OPEN (1), then return.
+        si web_socket.ready_state != WebSocket.OPEN {
+            retourne
+        }
+
+        // 2. Let dataForEvent be determined by switching on type and binary type:
+        // type indicates that the data is Text
+        // a new DOMString containing data
+
+        // type indicates that the data is Binary and binary type is "blob"
+        // a new Blob object, created in the relevant Realm of the WebSocket object, that represents data as its raw data [FILEAPI]
+
+        // type indicates that the data is Binary and binary type is "arraybuffer"
+        // a new ArrayBuffer object, created in the relevant Realm of the WebSocket object, whose contents are data
+
+        // 3. Fire an event named message at the WebSocket object, using MessageEvent,
+        // with the origin attribute initialized to the serialization of the WebSocket object’s url's origin,
+        // and the data attribute initialized to dataForEvent.
+    }
+
+    tâche := crée_algorithm(sur_run, Tâche)
+    tâche.web_socket = web_socket
+    tâche.type = type
+    tâche.données = tableau_copie(données)
+
+    user_agent.enfile_une_tâche(SourceDeTâche.WebSocket, tâche)
+}
+
+crée_tâche_pour_début_fermeture_websocket :: fonc (user_agent: *UserAgent, web_socket: *WebSocket)
+{
+    imprime("[%]\n", #nom_de_cette_fonction)
+
+    Tâche :: struct {
+        empl base: Algorithm
+        web_socket: *WebSocket
+    }
+
+    sur_run :: fonc (empl tâche: *Tâche)
+    {
+        imprime("[%] fermeture_websocket\n", #nom_de_cette_fonction)
+        web_socket.ready_state = WebSocket.CLOSING
+    }
+
+    tâche := crée_algorithm(sur_run, Tâche)
+    tâche.web_socket = web_socket
+
+    user_agent.enfile_une_tâche(SourceDeTâche.WebSocket, tâche)
+}
+
+crée_tâche_pour_connexion_websocket_fermée :: fonc (user_agent: *UserAgent, web_socket: *WebSocket)
+{
+    imprime("[%]\n", #nom_de_cette_fonction)
+
+    Tâche :: struct {
+        empl base: Algorithm
+        web_socket: *WebSocket
+    }
+
+    sur_run :: fonc (empl tâche: *Tâche)
+    {
+        imprime("[%] websocket_fermée\n", #nom_de_cette_fonction)
+
+        // 1. Change the ready state to CLOSED (3).
+        web_socket.ready_state = WebSocket.CLOSED
+
+        // À FAIRE : 2. If the user agent was required to fail the WebSocket connection,
+        // or if the WebSocket connection was closed after being flagged as full,
+        // fire an event named error at the WebSocket object. [WSP]
+
+        // À FAIRE passe données : 3. Fire an event named close at the WebSocket object,
+        // using CloseEvent, with the wasClean attribute initialized to true if the
+        // connection closed cleanly and false otherwise, the code attribute initialized
+        // to the WebSocket connection close code, and the reason attribute initialized
+        // to the result of applying UTF-8 decode without BOM to the WebSocket connection
+        // close reason. [WSP]
+        _ := fire_an_event(web_socket, EventType.close)
+    }
+
+    tâche := crée_algorithm(sur_run, Tâche)
+    tâche.web_socket = web_socket
+
+    user_agent.enfile_une_tâche(SourceDeTâche.WebSocket, tâche)
+}
+
+/** \} */
