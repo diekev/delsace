@@ -33,7 +33,7 @@ réinitialise :: fonc (chn: &ChaineUTF16) #enligne
     chn.unités.taille = 0
 }
 
-copie_chaine :: fonc (chn: &ChaineUTF16) -> ChaineUTF16
+copie_chaine :: fonc (chn: ChaineUTF16) -> ChaineUTF16
 {
     résultat: ChaineUTF16
     résultat.unités = tableau_copie(chn.unités)
@@ -385,14 +385,68 @@ supprime_espace_blanches_autour :: fonc (chn: ChaineUTF16) -> ChaineUTF16
     retourne ChaineUTF16()
 }
 
-supprime_espace_blanches_autour_en_place :: fonc (chn: *ChaineUTF16)
+donne_sous_chaine_entre_espace_blanches :: fonc (chn: ChaineUTF16) -> ChaineUTF16
 {
-    début := donne_position_premier_caractère_non_blanc(mémoire(chn))
-    fin := donne_position_dernier_caractère_non_blanc(mémoire(chn))
+    début := donne_position_premier_caractère_non_blanc(chn)
+    fin := donne_position_dernier_caractère_non_blanc(chn)
 
     si début < fin {
-        mémoire(chn) = sous_chaine(mémoire(chn), début, fin)
+        retourne sous_chaine(chn, début, fin)
     }
+
+    retourne ChaineUTF16()
+}
+
+supprime_espace_blanches_autour_en_place :: fonc (chn: *ChaineUTF16)
+{
+    ptr_début := chn.unités.pointeur
+    ptr_fin := chn.unités.pointeur + chn.unités.taille
+
+    tantque ptr_début < ptr_fin {
+        saufsi est_caractère_espace_blanc(mémoire(ptr_début)) {
+            arrête
+        }
+        ptr_début += 1
+    }
+
+    insertion := chn.unités.pointeur
+
+    tantque ptr_début < ptr_fin {
+        si est_caractère_espace_blanc(mémoire(ptr_début)) {
+            arrête
+        }
+
+        mémoire(insertion) = mémoire(ptr_début)
+
+        ptr_début += 1
+        insertion += 1
+    }
+
+    chn.unités.taille = (insertion - chn.unités.pointeur)
+}
+
+/* https://infra.spec.whatwg.org/#strip-newlines */
+supprime_nouvelles_lignes_en_place :: fonc (chn: *ChaineUTF16)
+{
+    début := chn.unités.pointeur
+    fin := chn.unités.pointeur + chn.unités.taille
+
+    insertion := début
+    taille_finale := chn.unités.taille
+
+    tantque début < fin {
+        si mémoire(début) == 0x0A || mémoire(début) == 0x0D {
+            début += 1
+            taille_finale -= 1
+            continue
+        }
+
+        mémoire(insertion) = mémoire(début)
+        début += 1
+        insertion += 1
+    }
+
+    chn.unités.taille = taille_finale
 }
 
 sous_chaine :: fonc (chn: ChaineUTF16, début: z64, fin: z64) -> ChaineUTF16
@@ -979,7 +1033,7 @@ compare_ascii_insensible_à_la_casse :: fonc (chn1: ChaineUTF16Unique, chn2: cha
 supprime_espace_blanches_autour :: fonc (chn: ChaineUTF16Unique) -> ChaineUTF16Unique
 {
     chn_utf16 := chn.donne_chaine_utf16()
-    supprime_espace_blanches_autour_en_place(*chn_utf16)
+    chn_utf16 = donne_sous_chaine_entre_espace_blanches(chn_utf16)
     retourne crée_chaine_utf16_unique(chn_utf16)
 }
 
