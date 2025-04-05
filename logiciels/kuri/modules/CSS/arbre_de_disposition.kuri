@@ -1490,6 +1490,9 @@ crée_noeud_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *
         sinon si HTML.is_radio_button_widget(input_element) {
             résultat = crée_noeud_de_remplacement_radio_button_input(arbre, input_element)
         }
+        sinon si HTML.is_checkbox_widget(input_element) {
+            résultat = crée_noeud_de_remplacement_checkbox_input(arbre, input_element)
+        }
         sinon {
             résultat = crée_noeud_pour_display(arbre, display, élément)
         }
@@ -3775,6 +3778,37 @@ crée_noeud_de_remplacement_radio_button_input :: fonc (arbre: *ArbreDeDispositi
 }
 
 noeud_radio_button_input_dimensions_intrinsèques :: fonc (noeud: *NoeudDeDispositionRemplacement, ctx: *ContexteDeFormattage @inutilisée)
+{
+    assert(noeud.élément.local_name == HTML.TAG_input)
+    noeud.largeur_intrinsèque = 14.0
+    noeud.hauteur_intrinsèque = 14.0
+}
+
+/** \} */
+/* ------------------------------------------------------------------------- */
+/** \nom NoeudDeDispositionRemplacement pour input type=checkbox
+ * \{ */
+
+#portée_fichier
+
+__table_noeud_de_disposition_checkbox_input := TableVirtuelleNoeudDeDispo(
+    type = NoeudDeDispositionRemplacement,
+    sur_dessin = noeud_checkbox_input_sur_dessin,
+    sur_mesure = noeud_disposition_remplacement_sur_mesure,
+    sur_divise_en_lignes = noeud_disposition_remplacement_sur_divise_en_lignes,
+    sur_dessin_tampon_id = noeud_disposition_remplacement_sur_dessin_tampon_id,
+    sur_dessin_fragment = noeud_disposition_remplacement_sur_dessin_fragment)
+
+crée_noeud_de_remplacement_checkbox_input :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLInputElement) -> *NoeudDeDispositionRemplacement
+{
+    résultat := arbre.crée_noeud(NoeudDeDispositionRemplacement)
+    résultat.table_virtuelle = *__table_noeud_de_disposition_checkbox_input
+    résultat.élément = élément
+    résultat.sur_calcul_dimensions_intrinsèques = noeud_checkbox_input_dimensions_intrinsèques
+    retourne résultat
+}
+
+noeud_checkbox_input_dimensions_intrinsèques :: fonc (noeud: *NoeudDeDispositionRemplacement, ctx: *ContexteDeFormattage @inutilisée)
 {
     assert(noeud.élément.local_name == HTML.TAG_input)
     noeud.largeur_intrinsèque = 14.0
