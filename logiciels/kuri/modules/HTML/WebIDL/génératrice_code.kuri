@@ -415,6 +415,7 @@ Type :: struct {
     nom: chaine
     nulifiable: bool
     est_union: bool
+    est_énum: bool
     types_rubriques_union: [..]*Type
 }
 
@@ -821,7 +822,16 @@ génère_code_conversion_this :: fonc (enchaineuse: *Enchaineuse, interface: *In
 
 génère_code_conversion_argument :: fonc (enchaineuse: *Enchaineuse, nom: chaine, index: z64, type: *Type)
 {
-    si type.nom == "DOMString" || type.nom == "USVString" {
+    si type.est_énum {
+        ajoute_au_tampon(enchaineuse, "    saufsi JS.est_chaine(valeur_", nom, ") {\n        retourne JS.lance_type_error(interpréteuse,  \"argument is not a string\");\n    }\n")
+        ajoute_au_tampon(enchaineuse, "    str := valeur_", nom, ".String.texte\n")
+        ajoute_au_tampon(enchaineuse, "    str_native := converti_vers_chaine(str.donne_chaine_utf16())\n")
+        ajoute_au_tampon(enchaineuse, "    diffère déloge(str_native)\n")
+        ajoute_au_tampon(enchaineuse, "    valeur_énum, trouvée := donne_valeur_énum_pour_nom(info_de(", type.nom, "), str_native)\n")
+        ajoute_au_tampon(enchaineuse, "    saufsi trouvée { retourne JS.lance_type_error(interpréteuse, \"invalid value\") }\n")
+        ajoute_au_tampon(enchaineuse, "    ", nom, " := valeur_énum comme ", type.nom, "\n")
+    }
+    sinon si type.nom == "DOMString" || type.nom == "USVString" {
         ajoute_au_tampon(enchaineuse, "    completion = JS.to_string(interpréteuse, valeur_", nom, ")\n")
         ajoute_au_tampon(enchaineuse, "    saufsi JS.est_normal(completion) {\n        retourne completion;\n    }\n")
         ajoute_au_tampon(enchaineuse, "    ", nom, " := completion.valeur.V.String.texte\n")
@@ -886,7 +896,13 @@ génère_code_conversion_argument :: fonc (enchaineuse: *Enchaineuse, nom: chain
 
 génère_code_conversion_résultat :: fonc (enchaineuse: *Enchaineuse, type: *Type)
 {
-    si type.nom == "undefined" {
+    si type.est_énum {
+        ajoute_au_tampon(enchaineuse, "    str_native := donne_nom_énum_pour_valeur(résultat)\n")
+        ajoute_au_tampon(enchaineuse, "    str_unique := crée_chaine_utf16_unique(str_native)\n")
+        ajoute_au_tampon(enchaineuse, "    str := JS.crée_chaine(JS.donne_realm(interpréteuse), str_unique)\n")
+        ajoute_au_tampon(enchaineuse, "    retourne JS.normal_completion(JS.Valeur(String = str))\n")
+    }
+    sinon si type.nom == "undefined" {
         ajoute_au_tampon(enchaineuse, "    retourne JS.normal_completion(JS.js_undefined)\n")
     }
     sinon si type.nom == "DOMString" || type.nom == "USVString" {
@@ -951,6 +967,11 @@ parse_fichier :: fonc (chemin: CheminFichier, texte: chaine, interfaces: *Interf
 
         si lexème == "interface" {
             parse_interface(*parseuse, interfaces)
+            continue
+        }
+
+        si lexème == "enum" {
+            parse_énum(*parseuse)
             continue
         }
 
@@ -1118,6 +1139,47 @@ parse_un_attribut :: fonc (parseuse: *ParseuseInterface, interface: *Interface)
     tableau_ajoute(*interface.attributs, résultat)
 
     consomme_point_virgule(parseuse)
+}
+
+parse_énum :: fonc (parseuse: *ParseuseInterface)
+{
+    nom := donne_lexème_suivant(parseuse)
+    type := trouve_ou_ajoute_type(parseuse.interfaces, nom, faux)
+    type.est_énum = vrai
+
+    saufsi consomme_caractère(parseuse, '{') {
+        rapporte_erreur(parseuse, "attendu '{'")
+    }
+
+    tantque parseuse.début < parseuse.fin {
+        saufsi consomme_caractère(parseuse, '"') {
+            rapporte_erreur(parseuse, "attendu '\"'")
+        }
+
+        /* Nous utilisons les InfoTypes du langage pour ça. */
+        _ := parseuse.donne_lexème_suivant()
+
+        saufsi consomme_caractère(parseuse, '"') {
+            rapporte_erreur(parseuse, "attendu '\"'")
+        }
+
+        saufsi consomme_caractère(parseuse, ',') {
+            arrête
+        }
+    }
+
+    saufsi consomme_caractère(parseuse, '}') {
+        rapporte_erreur(parseuse, "attendu '}'")
+    }
+
+    saufsi consomme_caractère(parseuse, ';') {
+        rapporte_erreur(parseuse, "attendu ';'")
+    }
+}
+
+rapporte_erreur :: fonc (parseuse: *ParseuseInterface, message: chaine)
+{
+    rapporte_erreur(parseuse, message, donne_lexème_suivant(parseuse))
 }
 
 rapporte_erreur :: fonc (parseuse: *ParseuseInterface, message: chaine, lexème_obtenu: chaine)
