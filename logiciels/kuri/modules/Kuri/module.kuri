@@ -889,7 +889,9 @@ __initialise_contexte_extra :: fonc (ctx: *ContexteProgramme, trace_appel: *Trac
 }
 
 __début_pile: *n64 = --- #mémoire_locale
-__init_début_pile :: fonc (adresse: *n64)
+/* NOTE : ceci est horslignée car les coulisses peuvent se plaindre 
+ * de la prise d'une adresse locale si enlignée. */
+__init_début_pile :: fonc (adresse: *n64) #horsligne
 {
     __début_pile = adresse
 }
