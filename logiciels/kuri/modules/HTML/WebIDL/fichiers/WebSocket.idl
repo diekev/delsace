@@ -27,4 +27,4 @@ interface WebSocket : EventTarget {
 
     // À FAIRE : ArrayBuffer doit être BufferSource
     undefined send((ArrayBuffer or Blob or USVString) data);
-}
+};

@@ -2,4 +2,4 @@ interface HTMLInputElement : HTMLElement {
     /* [CEReactions] */ attribute /* [LegacyNullToEmptyString] */ DOMString value;
 
     attribute boolean checked;
-}
+};

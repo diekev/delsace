@@ -993,8 +993,11 @@ parse_interface :: fonc (parseuse: *ParseuseInterface, interfaces: *Interfaces)
         rapporte_erreur(parseuse, "attendu '{'", donne_lexème_suivant(parseuse))
     }
 
-    boucle {
+    tantque parseuse.début < parseuse.fin {
         si consomme_caractère(parseuse, '}') {
+            saufsi consomme_caractère(parseuse, ';') {
+                rapporte_erreur(parseuse, "attendu ';'", parseuse.donne_lexème_suivant())
+            }
             arrête
         }
 
