@@ -831,6 +831,9 @@ génère_code_conversion_argument :: fonc (enchaineuse: *Enchaineuse, nom: chain
         ajoute_au_tampon(enchaineuse, "    saufsi trouvée { retourne JS.lance_type_error(interpréteuse, \"invalid value\") }\n")
         ajoute_au_tampon(enchaineuse, "    ", nom, " := valeur_énum comme ", type.nom, "\n")
     }
+    sinon si type.nom == "any" {
+        ajoute_au_tampon(enchaineuse, "    ", nom, " := valeur_", nom, "\n")
+    }
     sinon si type.nom == "DOMString" || type.nom == "USVString" {
         ajoute_au_tampon(enchaineuse, "    completion = JS.to_string(interpréteuse, valeur_", nom, ")\n")
         ajoute_au_tampon(enchaineuse, "    saufsi JS.est_normal(completion) {\n        retourne completion;\n    }\n")
@@ -901,6 +904,9 @@ génère_code_conversion_résultat :: fonc (enchaineuse: *Enchaineuse, type: *Ty
         ajoute_au_tampon(enchaineuse, "    str_unique := crée_chaine_utf16_unique(str_native)\n")
         ajoute_au_tampon(enchaineuse, "    str := JS.crée_chaine(JS.donne_realm(interpréteuse), str_unique)\n")
         ajoute_au_tampon(enchaineuse, "    retourne JS.normal_completion(JS.Valeur(String = str))\n")
+    }
+    sinon si type.nom == "any" {
+        ajoute_au_tampon(enchaineuse, "    retourne JS.normal_completion(résultat)\n")
     }
     sinon si type.nom == "undefined" {
         ajoute_au_tampon(enchaineuse, "    retourne JS.normal_completion(JS.js_undefined)\n")
