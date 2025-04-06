@@ -739,10 +739,9 @@ PeintreIGUMI :: struct {
     empl base: Peintre
 
     ctx: *IGUMI.DonnéesContexteGL
-    ctx_précédent: *IGUMI.DonnéesContexteGL
 }
 
-crée_peintre_igumi :: fonc (taille_cannevas: Taille, crée_contexte_unique := faux) -> *Peintre
+crée_peintre_igumi :: fonc (taille_cannevas: Taille, crée_contexte_unique := faux) -> *PeintreIGUMI
 {
     peintre := loge(PeintreIGUMI)
     initialise_peintre_igumi(peintre, taille_cannevas, crée_contexte_unique)
@@ -872,28 +871,14 @@ donne_taille_cannevas_igumi :: fonc (peintre: *Peintre @inutilisée) -> Taille
     retourne Taille(Largeur(IGUMI.donne_largeur_cannevas()), Hauteur(IGUMI.donne_hauteur_cannevas()))
 }
 
-commence_dessin_igumi :: fonc (peintre: *PeintreIGUMI)
+commence_dessin_igumi :: fonc (peintre: *PeintreIGUMI @inutilisée)
 {
-    si peintre.ctx == nul {
-        IGUMI.réinitialise_données()
-        retourne
-    }
-
-    ctx_précédent := IGUMI.donne_contexte_courant()
-    si ctx_précédent != peintre.ctx {
-        peintre.ctx_précédent = ctx_précédent
-        IGUMI.définis_contexte_courant(peintre.ctx)
-        IGUMI.réinitialise_données()
-    }
+    IGUMI.réinitialise_données()
 }
 
-termine_dessin_igumi :: fonc (peintre: *PeintreIGUMI)
+termine_dessin_igumi :: fonc (peintre: *PeintreIGUMI @inutilisée)
 {
     IGUMI.termine_immédiat()
-
-    si peintre.ctx != nul {
-        IGUMI.définis_contexte_courant(peintre.ctx_précédent)
-    }
 }
 
 remplis_arrière_plan_igumi :: fonc (peintre: *Peintre @inutilisée, couleur_peintre: CouleurPeintre)
