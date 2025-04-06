@@ -201,6 +201,12 @@ DefaultScreen :: fonc (display: *Display) -> z32 #enligne
 
 principale :: fonc ()
 {
+    token := load_x11_auth_token()
+    si token.possède_valeur() {
+        imprime("%\n", token.Quelque)
+    }
+
+    /*
     diffère imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée())
 
     _ExposureMask := 1 << 15
@@ -253,4 +259,154 @@ principale :: fonc ()
             arrête
         }
     }
+    */
+}
+
+importe POSIX
+importe Ordinatrice
+importe SysFichier
+
+avance :: fonc (tampon: []octet, n: z64) -> []octet
+{
+    tampon.pointeur += n
+    tampon.taille -= n
+    retourne tampon
+}
+
+lis_grand_boutisme :: fonc (tampon: []octet, $T: type_de_données) -> T, []octet
+{
+    assert(tampon.taille >= taille_de(T) comme z64)
+    résultat := mémoire(tampon.pointeur comme *T)
+    commute_boutisme(*résultat)
+    reste := avance(tampon, taille_de(T) comme z64)
+    retourne résultat, reste
+}
+
+lis_petit_boutisme :: fonc (tampon: []octet, $T: type_de_données) -> T, []octet
+{
+    assert(tampon.taille >= taille_de(T) comme z64)
+    résultat := mémoire(tampon.pointeur comme *T)
+    reste := avance(tampon, taille_de(T) comme z64)
+    retourne résultat, reste
+}
+
+AUTH_ENTRY_FAMILY_LOCAL : n16 : 1
+AUTH_ENTRY_MAGIC_COOKIE :: "MIT-MAGIC-COOKIE-1"
+
+AuthToken :: [16]n8
+
+AuthEntry :: struct {
+	family: n16
+	auth_name: []octet
+	auth_data: []octet
+}
+
+donne_chemin_fichier_xauthority :: fonc () -> CheminFichier
+{
+	chemin_env := chaine_environnement("XAUTHORITY")
+    si chemin_env {
+        retourne CheminFichier(chemin_env)
+    }
+
+    répertoire_personnel := chemin_répertoire_personnel()
+    saufsi répertoire_personnel.possède_valeur() {
+        retourne CheminFichier()
+    }
+
+    retourne répertoire_personnel.Quelque / ".Xauthority"
+}
+
+load_x11_auth_token :: fonc () -> Optionnel(AuthToken)
+{
+    chemin := donne_chemin_fichier_xauthority()
+    saufsi fichier_existe(chemin) {
+        retourne
+    }
+    diffère détruit_chemin(chemin)
+
+    imprime("%\n", chemin.chn)
+
+    contenu := contenu_fichier_binaire(chemin)
+    si contenu.taille == 0 {
+        retourne
+    }
+    diffère déloge(contenu)
+
+    tampon : []octet = contenu
+
+	boucle {
+        si tampon.taille == 0 {
+            arrête
+        }
+
+		auth_entry: AuthEntry
+        auth_entry, tampon = read_x11_auth_entry(tampon)
+
+        imprime("tampon.taille\n", auth_entry)
+
+        si auth_entry.family != AUTH_ENTRY_FAMILY_LOCAL {
+            continue
+        }
+
+        cookie := chaine_depuis_tranche_octets(auth_entry.auth_name)
+        si cookie != AUTH_ENTRY_MAGIC_COOKIE {
+            continue
+        }
+
+        si auth_entry.auth_data.taille != taille_de(AuthToken) comme z64 {
+            continue
+        }
+
+        auth_token := mémoire(auth_entry.auth_data.pointeur comme *AuthToken)
+        retourne auth_token
+	}
+}
+
+read_x11_auth_entry :: fonc (tampon: []octet) -> AuthEntry, []octet
+{
+	entry := AuthEntry()
+
+    entry.family, tampon = lis_petit_boutisme(tampon, n16)
+
+    imprime("entry.family : %, tampon.taille %\n", entry.family, tampon.taille)
+
+    taille_adresse: n16
+    taille_adresse, tampon = lis_grand_boutisme(tampon, n16)
+
+    adresse: []octet
+    adresse.pointeur = tampon.pointeur
+    adresse.taille = taille_adresse comme z64
+    tampon = avance(tampon, taille_adresse comme z64)
+
+    imprime("taille_adresse : %, tampon.taille %\n", taille_adresse, tampon.taille)
+
+    taille_display_number: n16
+    taille_display_number, tampon = lis_grand_boutisme(tampon, n16)
+
+    display_number: []octet
+    display_number.pointeur = tampon.pointeur
+    display_number.taille = taille_display_number comme z64
+    tampon = avance(tampon, taille_display_number comme z64)
+
+    taille_auth_name: n16
+    taille_auth_name, tampon = lis_grand_boutisme(tampon, n16)
+
+    auth_name: []octet
+    auth_name.pointeur = tampon.pointeur
+    auth_name.taille = taille_auth_name comme z64
+    tampon = avance(tampon, taille_auth_name comme z64)
+
+    entry.auth_name = auth_name
+
+    taille_auth_data: n16
+    taille_auth_data, tampon = lis_grand_boutisme(tampon, n16)
+
+    auth_data: []octet
+    auth_data.pointeur = tampon.pointeur
+    auth_data.taille = taille_auth_data comme z64
+    tampon = avance(tampon, taille_auth_data comme z64)
+
+    entry.auth_data = auth_data
+
+    retourne entry, tampon
 }

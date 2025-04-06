@@ -3,4 +3,4 @@
 interface mixin GlobalEventHandlers {
     [IDLEventHandler] attribute EventHandler onclick;
     [IDLEventHandler] attribute EventHandler onload;
-}
+};

@@ -6,4 +6,4 @@ interface Navigator {
     [Member] readonly attribute DOMString userAgent;
     [Member] readonly attribute DOMString vendor;
     [Member] readonly attribute DOMString vendorSub;
-}
+};

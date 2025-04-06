@@ -383,6 +383,19 @@ update_the_current_document_readiness :: fonc (document: *Document, readiness_va
 /* À FAIRE : standardise https://drafts.csswg.org/cssom/#add-a-css-style-sheet */
 ajoute_feuille_de_style :: fonc (document: *Document, feuille_de_style: *CSS.CSSStyleSheet)
 {
+    si feuille_de_style.owner_node {
+        pour document.feuilles_de_style {
+            saufsi it.owner_node {
+                continue
+            }
+
+            si est_avant_noeud_dans_l_arbre(feuille_de_style.owner_node, it.owner_node) {
+                tableau_insère_index(*document.feuilles_de_style, feuille_de_style, index_it)
+                retourne
+            }
+        }
+    }
+
     tableau_ajoute(*document.feuilles_de_style, feuille_de_style)
 }
 

@@ -36,6 +36,9 @@ Peintre :: struct {
     /* Donne la taille du cannevas. */
     rappel_donne_taille_cannevas: fonc(*Peintre)(Taille)
 
+    /* Commence un nouveau dessin. */
+    rappel_commence_dessin: fonc(*Peintre)(rien)
+
     /* Termine le dessin en cours (vide les tampons courant, etc.) */
     rappel_termine_dessin: fonc(*Peintre)(rien)
 
@@ -108,6 +111,11 @@ définis_taille_cannevas :: fonc (peintre: *Peintre, taille: Taille) -> rien #en
 donne_taille_cannevas :: fonc (peintre: *Peintre) -> Taille #enligne
 {
     retourne peintre.rappel_donne_taille_cannevas(peintre)
+}
+
+commence_dessin :: fonc (peintre: *Peintre) #enligne
+{
+    peintre.rappel_commence_dessin(peintre)
 }
 
 termine_dessin :: fonc (peintre: *Peintre) #enligne
@@ -295,6 +303,7 @@ initialise_peintre_dessin :: fonc (peintre: *PeintreDessin)
 {
     peintre.rappel_définis_taille_cannevas = définis_taille_cannevas_dessin
     peintre.rappel_donne_taille_cannevas = donne_taille_cannevas_dessin
+    peintre.rappel_commence_dessin = commence_dessin_dessin
     peintre.rappel_termine_dessin = termine_dessin_dessin
     peintre.rappel_remplis_arrière_plan = remplis_arrière_plan_dessin
     peintre.rappel_dessine_rectangle = dessine_rectangle_dessin
@@ -410,6 +419,10 @@ donne_taille_cannevas_dessin :: fonc (peintre: *Peintre) -> Taille
     peintre_dessin := peintre comme *PeintreDessin
     rect := peintre_dessin.tampon_de_rendu.rect
     retourne Taille(Largeur(rect.largeur), Hauteur(rect.hauteur))
+}
+
+commence_dessin_dessin :: fonc (peintre: *PeintreDessin @inutilisée)
+{
 }
 
 termine_dessin_dessin :: fonc (peintre: *Peintre @inutilisée)
@@ -722,19 +735,32 @@ définis_ciseau_dessin :: fonc (peintre: *PeintreDessin, rectangle_peintre: Rect
  * Peintre utilisant IGUMI pour dessiner l'interface.
  * \{ */
 
-crée_peintre_igumi :: fonc (taille_cannevas: Taille) -> *Peintre
+PeintreIGUMI :: struct {
+    empl base: Peintre
+
+    ctx: *IGUMI.DonnéesContexteGL
+}
+
+crée_peintre_igumi :: fonc (taille_cannevas: Taille, crée_contexte_unique := faux) -> *PeintreIGUMI
 {
-    peintre := loge(Peintre)
-    initialise_peintre_igumi(peintre, taille_cannevas)
+    peintre := loge(PeintreIGUMI)
+    initialise_peintre_igumi(peintre, taille_cannevas, crée_contexte_unique)
     retourne peintre
 }
 
-initialise_peintre_igumi :: fonc (peintre: *Peintre, taille_cannevas: Taille)
+initialise_peintre_igumi :: fonc (peintre: *PeintreIGUMI, taille_cannevas: Taille, crée_contexte_unique := faux)
 {
-    initialise_igumi()
+    si crée_contexte_unique {
+        peintre.ctx = loge(IGUMI.DonnéesContexteGL)
+        initialise_contexte(peintre.ctx)
+    }
+    sinon {
+        initialise_igumi()
+    }
 
     peintre.rappel_définis_taille_cannevas = définis_taille_cannevas_igumi
     peintre.rappel_donne_taille_cannevas = donne_taille_cannevas_igumi
+    peintre.rappel_commence_dessin = commence_dessin_igumi
     peintre.rappel_termine_dessin = termine_dessin_igumi
     peintre.rappel_remplis_arrière_plan = remplis_arrière_plan_igumi
     peintre.rappel_dessine_rectangle = dessine_rectangle_igumi
@@ -845,7 +871,12 @@ donne_taille_cannevas_igumi :: fonc (peintre: *Peintre @inutilisée) -> Taille
     retourne Taille(Largeur(IGUMI.donne_largeur_cannevas()), Hauteur(IGUMI.donne_hauteur_cannevas()))
 }
 
-termine_dessin_igumi :: fonc (peintre: *Peintre @inutilisée)
+commence_dessin_igumi :: fonc (peintre: *PeintreIGUMI @inutilisée)
+{
+    IGUMI.réinitialise_données()
+}
+
+termine_dessin_igumi :: fonc (peintre: *PeintreIGUMI @inutilisée)
 {
     IGUMI.termine_immédiat()
 }
@@ -861,7 +892,7 @@ dessine_rectangle_igumi :: fonc (peintre: *Peintre @inutilisée, rectangle_peint
     rectangle := donne_rectangle_igumi(rectangle_peintre)
     couleur := donne_couleur_igumi(couleur_peintre)
 
-    commence_immédiat(ModeImmédiat.LIGNES, nuanceur_base)
+    commence_immédiat(ModeImmédiat.LIGNES, IDNuanceur.Basique)
 
     p0 := Point2D(r32)(rectangle.x, rectangle.y)
     p1 := Point2D(r32)(rectangle.x, rectangle.y + rectangle.hauteur)
@@ -879,7 +910,7 @@ remplis_rectangle_igumi :: fonc (peintre: *Peintre @inutilisée, rectangle_peint
     rectangle := donne_rectangle_igumi(rectangle_peintre)
     couleur := donne_couleur_igumi(couleur_peintre)
 
-    commence_immédiat(ModeImmédiat.TRIANGLES, nuanceur_base)
+    commence_immédiat(ModeImmédiat.TRIANGLES, IDNuanceur.Basique)
 
     quad_immédiat(rectangle.x, rectangle.y, rectangle.largeur, rectangle.hauteur, couleur)
 }
@@ -889,7 +920,7 @@ dessine_rectangle_arrondi_igumi :: fonc (peintre: *Peintre @inutilisée, rectang
     rectangle := donne_rectangle_igumi(rectangle_peintre)
     couleur := donne_couleur_igumi(couleur_peintre)
 
-    commence_immédiat(ModeImmédiat.LIGNES, nuanceur_base)
+    commence_immédiat(ModeImmédiat.LIGNES, IDNuanceur.Basique)
 
     rayon_double := rayon * 2.0
     si rayon_double == rectangle.largeur && rayon_double == rectangle.hauteur {
@@ -906,7 +937,7 @@ remplis_rectangle_arrondi_igumi :: fonc (peintre: *Peintre @inutilisée, rectang
     rectangle := donne_rectangle_igumi(rectangle_peintre)
     couleur := donne_couleur_igumi(couleur_peintre)
 
-    commence_immédiat(ModeImmédiat.TRIANGLES, nuanceur_base)
+    commence_immédiat(ModeImmédiat.TRIANGLES, IDNuanceur.Basique)
 
     // rayon_double := rayon * 2.0
     // si rayon_double == rectangle.largeur && rayon_double == rectangle.hauteur {
@@ -922,7 +953,7 @@ dessine_bordure_igumi :: fonc (peintre: *Peintre @inutilisée, rectangle_peintre
 {
     rectangle := donne_rectangle_igumi(rectangle_peintre)
 
-    commence_immédiat(ModeImmédiat.TRIANGLES, nuanceur_base)
+    commence_immédiat(ModeImmédiat.TRIANGLES, IDNuanceur.Basique)
 
     /* NOTE : le haut et la bas sont inversés pour CSS dont l'origine est en haut, alors qu'IGUMI préfère l'origine en bas. */
 
@@ -992,7 +1023,7 @@ dessine_cercle_igumi :: fonc (peintre: *Peintre @inutilisée, cercle_peintre: Ce
     cercle := donne_cercle_igumi(cercle_peintre)
     couleur := donne_couleur_igumi(couleur_peintre)
 
-    commence_immédiat(ModeImmédiat.LIGNES, nuanceur_base)
+    commence_immédiat(ModeImmédiat.LIGNES, IDNuanceur.Basique)
 
     cercle_immédiat(cercle.centre_x, cercle.centre_y, cercle.rayon, couleur, faux)
 }
@@ -1002,7 +1033,7 @@ remplis_cercle_igumi :: fonc (peintre: *Peintre @inutilisée, cercle_peintre: Ce
     cercle := donne_cercle_igumi(cercle_peintre)
     couleur := donne_couleur_igumi(couleur_peintre)
 
-    commence_immédiat(ModeImmédiat.TRIANGLES, nuanceur_base)
+    commence_immédiat(ModeImmédiat.TRIANGLES, IDNuanceur.Basique)
 
     cercle_immédiat(cercle.centre_x, cercle.centre_y, cercle.rayon, couleur, vrai)
 }
@@ -1012,7 +1043,7 @@ dessine_segment_igumi :: fonc (peintre: *Peintre @inutilisée, segment_peintre: 
     segment := donne_ligne_igumi(segment_peintre)
     couleur := donne_couleur_igumi(couleur_peintre)
 
-    commence_immédiat(ModeImmédiat.LIGNES, nuanceur_base)
+    commence_immédiat(ModeImmédiat.LIGNES, IDNuanceur.Basique)
 
     segment_immédiat(segment.p0.x, segment.p0.y, segment.p1.x, segment.p1.y, couleur)
 }
@@ -1021,7 +1052,7 @@ dessine_segments_igumi :: fonc (peintre: *Peintre @inutilisée, segments_peintre
 {
     couleur := donne_couleur_igumi(couleur_peintre)
 
-    commence_immédiat(ModeImmédiat.LIGNES, nuanceur_base)
+    commence_immédiat(ModeImmédiat.LIGNES, IDNuanceur.Basique)
 
     pour segments_peintre {
         segment := donne_ligne_igumi(it)
@@ -1087,7 +1118,7 @@ dessine_image_rvba_32bit_igumi :: fonc (peintre: *Peintre @inutilisée, image: T
 
 donne_fonte_igumi :: fonc (peintre: *Peintre @inutilisée) -> *Fonte
 {
-    retourne fonte_globale
+    retourne IGUMI.donne_contexte_courant().fonte_globale
 }
 
 dessine_tampon_sur_écran_igumi :: fonc (peintre: *Peintre @inutilisée)
@@ -1095,9 +1126,18 @@ dessine_tampon_sur_écran_igumi :: fonc (peintre: *Peintre @inutilisée)
     /* Rien à faire pour le moment. */
 }
 
-détruit_peintre_igumi :: fonc (peintre: *Peintre)
+détruit_peintre_igumi :: fonc (peintre: *PeintreIGUMI)
 {
-    issitialise_igumi()
+    si peintre.ctx {
+        issitialise_ctx(peintre.ctx)
+        si peintre.ctx.utilisateurs == 0 {
+            déloge(peintre.ctx)
+        }
+    }
+    sinon {
+        issitialise_igumi()
+    }
+
     déloge(peintre)
 }
 
@@ -1124,7 +1164,7 @@ définis_ciseau_igumi :: fonc (peintre: *Peintre @inutilisée, rectangle: Rectan
 
 dessine_commandes_css :: fonc (peintre: *Peintre, commandes: *CSS.CommandesDeRendu)
 {
-    IGUMI.réinitialise_données()
+    peintre.commence_dessin()
 
     début := commandes.commandes.pointeur
     fin := début + commandes.commandes.taille
@@ -1229,7 +1269,7 @@ dessine_commandes_id_css :: fonc (peintre: *Peintre @inutilisée, commandes: *CS
     début := commandes.commandes.pointeur
     fin := début + commandes.commandes.taille
 
-    IGUMI.commence_immédiat_id(IGUMI.ModeImmédiat.TRIANGLES, IGUMI.nuanceur_id)
+    IGUMI.commence_immédiat_id(IGUMI.ModeImmédiat.TRIANGLES)
     vérifie_erreur("commence_immédiat_id")
 
     /* Remets à zéro au cas la mémoire est réutilisée par le pilote. */
