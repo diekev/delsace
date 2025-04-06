@@ -1,4 +1,4 @@
 interface HTMLLinkElement : HTMLElement {
     [Reflect] attribute DOMString href;
     [Reflect] attribute DOMString rel;
-}
+};
