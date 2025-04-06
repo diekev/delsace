@@ -682,4 +682,39 @@ donne_index_de_même_type_dans_parent_depuis_la_fin :: fonc (élément: *Éléme
     retourne résultat
 }
 
+est_avant_noeud_dans_l_arbre :: fonc (a: *Élément, b: *Élément) -> bool
+{
+    si a.parent == b.parent {
+        index_a := donne_index_dans_parent(a)
+        index_b := donne_index_dans_parent(b)
+        retourne index_a < index_b
+    }
+
+    traversée: [..]*Noeud
+    diffère déloge(traversée)
+
+    pour > a.document.enfants {
+        tableau_ajoute(*traversée, it)
+    }
+
+    tantque traversée.taille != 0 {
+        noeud := traversée[traversée.taille - 1]
+        traversée.taille -= 1
+
+        si noeud == a {
+            retourne vrai
+        }
+
+        si noeud == b {
+            retourne faux
+        }
+
+        pour > noeud.enfants {
+            tableau_ajoute(*traversée, it)
+        }
+    }
+
+    retourne faux
+}
+
 /** \} */
