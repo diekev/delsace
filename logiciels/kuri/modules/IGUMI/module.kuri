@@ -45,9 +45,9 @@ initialise_igumi :: fonc ()
     chemin_fonte := CheminFichier("/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf")
     fonte_globale = crée_fonte(chemin_fonte, 14.0)
 
-    glGenVertexArrays(1, *va_immédiat)
-    glGenBuffers(1, *vbo_immédiat)
-    glGenBuffers(1, *vbo_immédiat_index)
+    glGenVertexArrays(1, *données_tampon_xcnu.va_immédiat)
+    glGenBuffers(1, *données_tampon_xcnu.vbo_immédiat)
+    glGenBuffers(1, *données_tampon_xcnu.vbo_immédiat_index)
     vérifie_erreur("création des VBO immédiats")
 
     glGenVertexArrays(1, *données_tampon_id.va_immédiat)
@@ -63,9 +63,9 @@ issitialise_igumi :: fonc ()
         retourne
     }
 
-    glDeleteVertexArrays(1, *va_immédiat)
-    glDeleteBuffers(1, *vbo_immédiat)
-    glDeleteBuffers(1, *vbo_immédiat_index)
+    glDeleteVertexArrays(1, *données_tampon_xcnu.va_immédiat)
+    glDeleteBuffers(1, *données_tampon_xcnu.vbo_immédiat)
+    glDeleteBuffers(1, *données_tampon_xcnu.vbo_immédiat_index)
 
     glDeleteVertexArrays(1, *données_tampon_id.va_immédiat)
     glDeleteBuffers(1, *données_tampon_id.vbo_immédiat)
@@ -234,12 +234,18 @@ largeur_cannevas: z32
 hauteur_cannevas: z32
 
 MAX_SOMMETS_IMMÉDIAT :: 2400
-sommets_immédiat : [MAX_SOMMETS_IMMÉDIAT]FormatVertexXCNU = ---
-num_sommets_immédiat : z32 = 0
-va_immédiat: n32
-vbo_immédiat: n32
-vbo_immédiat_index: n32
-données_tampon_initialisées: bool
+
+DonnéesImmédiatesXCNU :: struct {
+    sommets_immédiat : [MAX_SOMMETS_IMMÉDIAT]FormatVertexXCNU = ---
+    num_sommets : z32 = 0
+
+    va_immédiat: n32
+    vbo_immédiat: n32
+    vbo_immédiat_index: n32
+    données_tampon_initialisées: bool
+}
+
+données_tampon_xcnu: DonnéesImmédiatesXCNU
 
 nuanceur_global: *NuanceurGL
 nuanceur_base: *NuanceurGL
@@ -295,7 +301,7 @@ réinitialise_données :: fonc ()
 
 commence_immédiat :: fonc (mode: ModeImmédiat, nuanceur: *NuanceurGL, fonte : *Fonte = nul)
 {
-    si mode != dernier_mode || nuanceur != dernier_nuanceur || fonte != dernière_fonte || num_sommets_immédiat == MAX_SOMMETS_IMMÉDIAT {
+    si mode != dernier_mode || nuanceur != dernier_nuanceur || fonte != dernière_fonte || données_tampon_xcnu.num_sommets == MAX_SOMMETS_IMMÉDIAT {
         termine_immédiat()
 
         dernier_mode = mode
@@ -312,40 +318,40 @@ ModeImmédiat :: énum {
 
 termine_immédiat :: fonc ()
 {
-    si !num_sommets_immédiat {
+    si !données_tampon_xcnu.num_sommets {
         retourne
     }
 
     nuanceur := nuanceur_global
 
     si !nuanceur {
-        si num_sommets_immédiat {
+        si données_tampon_xcnu.num_sommets {
             panique("tentative d'utiliser termine_immédiat alors qu'aucun nuanceur n'est installé")
         }
 
-        num_sommets_immédiat = 0
+        données_tampon_xcnu.num_sommets = 0
         retourne
     }
 
-    s : []FormatVertexXCNU = sommets_immédiat
-    compte := num_sommets_immédiat comme n64
+    s : []FormatVertexXCNU = données_tampon_xcnu.sommets_immédiat
+    compte := données_tampon_xcnu.num_sommets comme n64
 
     glUseProgram(nuanceur.programme)
     vérifie_erreur("termine_immédiat.glUseProgram")
 
-    glBindVertexArray(va_immédiat)
+    glBindVertexArray(données_tampon_xcnu.va_immédiat)
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_immédiat)
+    glBindBuffer(GL_ARRAY_BUFFER, données_tampon_xcnu.vbo_immédiat)
     vérifie_erreur("termine_immédiat.glBindBuffer")
 
     définis_uniforme(nuanceur.loc_projection, projection)
 
     installe_format_xcnu(nuanceur)
 
-    saufsi données_tampon_initialisées {
+    saufsi données_tampon_xcnu.données_tampon_initialisées {
         glBufferData(GL_ARRAY_BUFFER, (MAX_SOMMETS_IMMÉDIAT comme n32) * taille_de(FormatVertexXCNU), s.pointeur, GL_DYNAMIC_DRAW)
         vérifie_erreur("termine_immédiat.glBufferData")
-        données_tampon_initialisées = vrai
+        données_tampon_xcnu.données_tampon_initialisées = vrai
     }
 
     glBufferSubData(GL_ARRAY_BUFFER, 0, compte * taille_de(FormatVertexXCNU), s.pointeur)
@@ -361,7 +367,7 @@ termine_immédiat :: fonc ()
     // nettoyage
     glUseProgram(0)
     glBindVertexArray(0)
-    num_sommets_immédiat = 0
+    données_tampon_xcnu.num_sommets = 0
 
     vérifie_erreur("termine_immédiat")
 }
@@ -406,25 +412,25 @@ installe_format_xcnu :: fonc (nuanceur: *NuanceurGL)
 
 ajoute_sommets :: fonc (pos: Vec3, couleur: CouleurRVBA)
 {
-    si num_sommets_immédiat >= MAX_SOMMETS_IMMÉDIAT {
+    si données_tampon_xcnu.num_sommets >= MAX_SOMMETS_IMMÉDIAT {
         termine_immédiat()
     }
 
-    sommets_immédiat[num_sommets_immédiat].position = pos
-    sommets_immédiat[num_sommets_immédiat].couleur = couleur
-    num_sommets_immédiat += 1
+    données_tampon_xcnu.sommets_immédiat[données_tampon_xcnu.num_sommets].position = pos
+    données_tampon_xcnu.sommets_immédiat[données_tampon_xcnu.num_sommets].couleur = couleur
+    données_tampon_xcnu.num_sommets += 1
 }
 
 ajoute_sommets :: fonc (pos: Vec3, uv: Vec2, couleur: CouleurRVBA)
 {
-    si num_sommets_immédiat >= MAX_SOMMETS_IMMÉDIAT {
+    si données_tampon_xcnu.num_sommets >= MAX_SOMMETS_IMMÉDIAT {
         termine_immédiat()
     }
 
-    sommets_immédiat[num_sommets_immédiat].position = pos
-    sommets_immédiat[num_sommets_immédiat].couleur = couleur
-    sommets_immédiat[num_sommets_immédiat].uv = uv
-    num_sommets_immédiat += 1
+    données_tampon_xcnu.sommets_immédiat[données_tampon_xcnu.num_sommets].position = pos
+    données_tampon_xcnu.sommets_immédiat[données_tampon_xcnu.num_sommets].couleur = couleur
+    données_tampon_xcnu.sommets_immédiat[données_tampon_xcnu.num_sommets].uv = uv
+    données_tampon_xcnu.num_sommets += 1
 }
 
 /** \} */
