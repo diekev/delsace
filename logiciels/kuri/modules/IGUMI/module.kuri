@@ -15,8 +15,22 @@ importe Typographie
 /** \nom Initialisation et issitialisation.
  * \{ */
 
+#portée_fichier
+
+__igumi_initialisé := faux
+__utilisateurs := 0
+
+#portée_export
+
 initialise_igumi :: fonc ()
 {
+    __utilisateurs += 1
+
+    si __igumi_initialisé {
+        retourne
+    }
+    __igumi_initialisé = vrai
+
     chemins := #exécute donne_chemins_nuanceurs()
 
     nuanceur_texte = crée_nuanceur_depuis_fichier(chemins.chemin_vertex_texte, chemins.chemin_fragment_texte)
@@ -44,6 +58,11 @@ initialise_igumi :: fonc ()
 
 issitialise_igumi :: fonc ()
 {
+    __utilisateurs -= 1
+    si __utilisateurs > 0 {
+        retourne
+    }
+
     glDeleteVertexArrays(1, *va_immédiat)
     glDeleteBuffers(1, *vbo_immédiat)
     glDeleteBuffers(1, *vbo_immédiat_index)
