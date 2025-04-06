@@ -647,6 +647,11 @@ void QT_core_application_definis_feuille_de_style(QT_Chaine feuille)
     qApp->setStyleSheet(vers_qt(feuille));
 }
 
+void QT_core_application_set_attribute(QT_ApplicationAttribute attribute)
+{
+    QCoreApplication::setAttribute((Qt::ApplicationAttribute)attribute);
+}
+
 QT_Application *QT_donne_application()
 {
     return reinterpret_cast<QT_Application *>(qApp);
@@ -2209,6 +2214,12 @@ QT_Rappels_GLWidget *QT_glwidget_donne_rappels(QT_OpenGLWidget *widget)
         return ipa_widget->donne_rappels();
     }
     return nullptr;
+}
+
+QT_OpenGL_Context *QT_glwidget_context(QT_OpenGLWidget *widget)
+{
+    VERS_QT(widget);
+    return vers_ipa(qwidget->context());
 }
 
 /** \} */
@@ -4659,6 +4670,14 @@ void QT_doublespinbox_definis_symboles_boutons(QT_DoubleSpinBox *doublespinbox,
 /** \name QT_AbstractSocket
  * \{ */
 
+static QT_Socket_Error convertis_socket_error(QAbstractSocket::SocketError error)
+{
+    switch (error) {
+        ENUMERE_SOCKET_ERROR(ENUMERE_TRANSLATION_ENUM_QT_VERS_IPA)
+    }
+    return QT_Socket_Error::QT_SOCKET_ERROR_UnknownSocketError;
+}
+
 static void connecte_rappels_socket(QTcpSocket *socket, QT_Rappels_Socket *rappels)
 {
     if (!rappels) {
@@ -4677,7 +4696,9 @@ static void connecte_rappels_socket(QTcpSocket *socket, QT_Rappels_Socket *rappe
     if (rappels->sur_erreur) {
         QObject::connect(socket,
                          qOverload<QAbstractSocket::SocketError>(&QAbstractSocket::errorOccurred),
-                         [=](QAbstractSocket::SocketError) { rappels->sur_erreur(rappels); });
+                         [=](QAbstractSocket::SocketError error) {
+                             rappels->sur_erreur(rappels, convertis_socket_error(error));
+                         });
     }
     if (rappels->sur_resolution_hote) {
         QObject::connect(

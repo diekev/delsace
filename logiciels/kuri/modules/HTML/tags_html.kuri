@@ -184,6 +184,7 @@ ATTR_language : DOMString = ---
 ATTR_method : DOMString = ---
 ATTR_name : DOMString = ---
 ATTR_month : DOMString = ---
+ATTR_nonce : DOMString = ---
 ATTR_noopener : DOMString = ---
 ATTR_nomodule : DOMString = ---
 ATTR_noreferrer : DOMString = ---
