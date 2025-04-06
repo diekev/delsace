@@ -1189,7 +1189,7 @@ calcule_display_final :: fonc (propriétés: *PropriétésDeStyle)
     // The position of the box will be determined by the 'top', 'right', 'bottom' and 'left' properties
     // and the box's containing block.
     si position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_fixed) {
-        propriétés.définis_valeur_calculée(IDPropriété.Float, ValeurDeStyle(mot_clé = PROP_none))
+        propriétés.définis_valeur_calculée(IDPropriété.Float, donne_valeur_none())
         propriétés.définis_valeur_calculée(IDPropriété.Display, convertis_display_pour_position_ou_float(display))
         retourne
     }
@@ -3158,7 +3158,7 @@ noeud_disposition_nouvelle_ligne_sur_divise_en_lignes :: fonc (base: *NoeudDeDis
     ]
 
     pour ids_propriétés {
-        base.propriétés.définis_valeur_utilisée(it, ValeurDeStyle(pixels = 0.0))
+        base.propriétés.définis_valeur_utilisée(it, donne_valeur_pixels_zéro())
     }
 
     ajourne_boite_pour_calcul_largeur(base)

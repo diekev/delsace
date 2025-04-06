@@ -2843,7 +2843,7 @@ parse_valeur_length_percentage_ou_auto :: fonc (parseuse: &Parseuse(ComponentVal
     lexème := parseuse.lexème_courant()
     si lexème.est_mot_clé(PROP_auto) {
         parseuse.avance()
-        retourne ValeurDeStyle(mot_clé = PROP_auto)
+        retourne donne_valeur_auto()
     }
     retourne parse_valeur_length_percentage(parseuse)
 }
@@ -3105,7 +3105,7 @@ parse_propriété_number_ou_auto :: fonc (value: []ComponentValue) -> Optionnel(
         retourne ValeurDeStyle(number = lexème.lexème.numeric_value)
     }
     si lexème.est_mot_clé(PROP_auto) {
-        retourne ValeurDeStyle(mot_clé = PROP_auto)
+        retourne donne_valeur_auto()
     }
 }
 
@@ -3280,7 +3280,7 @@ parse_valeur_couleur :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(
 
         si compare_ascii_insensible_à_la_casse(lexème.donne_texte(), PROP_currentColor) {
             parseuse.avance()
-            retourne ValeurDeStyle(mot_clé = PROP_currentColor)
+            retourne donne_valeur_currentColor()
         }
 
         retourne
@@ -3813,9 +3813,9 @@ parse_propriété_text_decoration :: fonc (ctx: *ContexteParsageShorthand, value
     // text-decoration
     //     <'text-decoration-line'> || <'text-decoration-style'> || <'text-decoration-color'>
 
-    line := ValeurDeStyle(mot_clé = PROP_none)
-    style := ValeurDeStyle(mot_clé = PROP_solid)
-    color := ValeurDeStyle(mot_clé = PROP_currentColor)
+    line := donne_valeur_none()
+    style := donne_valeur_solid()
+    color := donne_valeur_currentColor()
 
     tantque !fini(parseuse) {
         parseuse.consomme_espaces_blanches()
@@ -4041,10 +4041,10 @@ parse_propriété_font :: fonc (ctx: *ContexteParsageShorthand, value: []Compone
         retourne vrai
     }
 
-    font_weight := ValeurDeStyle(mot_clé = PROP_normal)
-    line_height := ValeurDeStyle(mot_clé = PROP_normal)
-    font_family := ValeurDeStyle(mot_clé = PROP_serif)
-    font_size := ValeurDeStyle(mot_clé = PROP_medium)
+    font_weight := donne_valeur_normal()
+    line_height := donne_valeur_normal()
+    font_family := donne_valeur_serif()
+    font_size := donne_valeur_medium()
 
     parseuse := initialise_une_parseuse(value)
 
@@ -4168,7 +4168,7 @@ parse_valeur_font_family :: fonc (parseuse: &Parseuse(ComponentValue), pour_shor
 
     /* Si nous arrivons ici, la syntaxe est valide, mais nous ne connaissons pas la fonte.
      * Retourne une valeur par défaut pour ne pas polluer la sortie avec des messages d'erreur. */
-    retourne ValeurDeStyle(mot_clé = PROP_serif)
+    retourne donne_valeur_serif()
 }
 
 /** \} */
@@ -4262,11 +4262,11 @@ parse_propriété_background :: fonc (ctx: *ContexteParsageShorthand, value: []C
         retourne vrai
     }
 
-    couleur := ValeurDeStyle(mot_clé = PROP_transparent)
+    couleur := donne_valeur_transparent()
     eu_couleur := faux
-    image := ValeurDeStyle(mot_clé = PROP_none)
+    image := donne_valeur_none()
     background_repeat := ValeurDeStyle(background_repeat = BackgroundRepeat(PROP_repeat))
-    background_attachment := ValeurDeStyle(mot_clé = PROP_scroll)
+    background_attachment := donne_valeur_scroll()
 
     parseuse := initialise_une_parseuse(value)
 
@@ -4335,7 +4335,7 @@ parse_valeur_background_image :: fonc (parseuse: &Parseuse(ComponentValue)) -> O
     lexème := parseuse.lexème_courant()
     si lexème.est_mot_clé(PROP_none) {
         parseuse.avance()
-        retourne ValeurDeStyle(mot_clé = PROP_none)
+        retourne donne_valeur_none()
     }
 
     si lexème.est_lexème_de_genre(GenreLexème.Url) {
@@ -4470,7 +4470,7 @@ parse_propriété_border_impl :: fonc (value: []ComponentValue) -> Optionnel(Val
     }
     sinon {
         /* Valeur initiale */
-        résultat.width = ValeurDeStyle(mot_clé = PROP_medium)
+        résultat.width = donne_valeur_medium()
     }
 
     si valeur_style.possède_valeur() {
@@ -4478,7 +4478,7 @@ parse_propriété_border_impl :: fonc (value: []ComponentValue) -> Optionnel(Val
     }
     sinon {
         /* Valeur initiale */
-        résultat.style = ValeurDeStyle(mot_clé = PROP_none)
+        résultat.style = donne_valeur_none()
     }
 
     si valeur_color.possède_valeur() {
@@ -4486,7 +4486,7 @@ parse_propriété_border_impl :: fonc (value: []ComponentValue) -> Optionnel(Val
     }
     sinon {
         /* Valeur initiale */
-        résultat.color = ValeurDeStyle(mot_clé = PROP_currentColor)
+        résultat.color = donne_valeur_currentColor()
     }
 
     retourne résultat
@@ -5100,7 +5100,7 @@ parse_propriété_max_height_width :: fonc (value: []ComponentValue) -> Optionne
     /* none | <length-percentage [0,∞]> | min-content | max-content | fit-content(<length-percentage [0,∞]>) | <calc-size()> */
     lexème := parseuse.lexème_courant()
     si lexème.est_mot_clé(PROP_none) {
-        retourne ValeurDeStyle(mot_clé = PROP_none)
+        retourne donne_valeur_none()
     }
 
     retourne parse_valeur_length_percentage_positive(parseuse)
@@ -5141,7 +5141,7 @@ parse_valeur_line_height :: fonc (parseuse: &Parseuse(ComponentValue)) -> Option
 
     si lexème.est_mot_clé(PROP_normal) {
         parseuse.avance()
-        retourne ValeurDeStyle(mot_clé = PROP_normal)
+        retourne donne_valeur_normal()
     }
 }
 
@@ -5402,7 +5402,7 @@ parse_propriété_flex_basis :: fonc (value: []ComponentValue) -> Optionnel(Vale
     lexème := parseuse.lexème_courant()
 
     si lexème.est_mot_clé(PROP_content) {
-        retourne ValeurDeStyle(mot_clé = PROP_content)
+        retourne donne_valeur_content()
     }
 
     retourne parse_propriété_height_width(value)
@@ -5464,9 +5464,9 @@ parse_shorthand_flex :: fonc (ctx: *ContexteParsageShorthand, value: []Component
 
     lexème := parseuse.lexème_courant()
 
-    flex_grow := ValeurDeStyle(number = 0.0)
-    flex_shrink := ValeurDeStyle(number = 1.0)
-    flex_basis := ValeurDeStyle(mot_clé = PROP_auto)
+    flex_grow := donne_valeur_number_zéro()
+    flex_shrink := donne_valeur_number_un()
+    flex_basis := donne_valeur_auto()
 
     eu_flex_grow := faux
     eu_flex_shrink := faux
@@ -5474,7 +5474,7 @@ parse_shorthand_flex :: fonc (ctx: *ContexteParsageShorthand, value: []Component
 
     si lexème.est_mot_clé(PROP_none) {
         // flex: 0 0 auto
-        flex_shrink = ValeurDeStyle(number = 0.0)
+        flex_shrink = donne_valeur_number_zéro()
     }
     sinon {
         tantque !fini(parseuse) {
@@ -5554,8 +5554,8 @@ parse_shorthand_flex_flow :: fonc (ctx: *ContexteParsageShorthand, value: []Comp
 
     parseuse := initialise_une_parseuse(value)
 
-    flex_direction := ValeurDeStyle(mot_clé = PROP_row)
-    flex_wrap := ValeurDeStyle(mot_clé = PROP_nowrap)
+    flex_direction := donne_valeur_row()
+    flex_wrap := donne_valeur_nowrap()
 
     tantque !fini(parseuse) {
         parseuse.consomme_espaces_blanches()
