@@ -48,8 +48,27 @@ ErreurDeCalcul :: énum {
     PourcentageIncalculable
 }
 
+NoeudDeCalcul :: struct {
+    est_opérateur: bool
+    opérateur_calc: OpérateurCalc
+    valeur: ValeurDeStyle
+}
+
+opérateur == :: fonc (a: NoeudDeCalcul, b: NoeudDeCalcul) -> bool #horsligne
+{
+    si a.est_opérateur != b.est_opérateur {
+        retourne faux
+    }
+
+    si a.est_opérateur {
+        retourne a.opérateur_calc == b.opérateur_calc
+    }
+
+    retourne sont_mêmes_valeurs(a.valeur, b.valeur)
+}
+
 CalcFunction :: struct {
-    valeurs: [..]ValeurDeStyle
+    valeurs: [..]NoeudDeCalcul
 }
 
 copie_calc :: fonc (src: CalcFunction) -> CalcFunction
@@ -70,7 +89,7 @@ opérateur == :: fonc (calc1: CalcFunction, calc2: CalcFunction) -> bool #horsli
     }
 
     pour calc1.valeurs {
-        saufsi sont_mêmes_valeurs(calc2.valeurs[index_it], it) {
+        saufsi calc2.valeurs[index_it] == it {
             retourne faux
         }
     }
@@ -84,7 +103,7 @@ opérateur == :: fonc (calc1: CalcFunction, calc2: CalcFunction) -> bool #horsli
     diffère détruit(pile)
 
     pour calc.valeurs {
-        si it.est_opérateur_calc() {
+        si it.est_opérateur {
             droite := pile.dépile()
             gauche := pile.dépile()
             op := it.opérateur_calc
@@ -99,23 +118,23 @@ opérateur == :: fonc (calc1: CalcFunction, calc2: CalcFunction) -> bool #horsli
             continue
         }
 
-        si it.est_percentage() {
+        si it.valeur.est_percentage() {
             si ctx.pour_résolution_pourcentage {
                 /* À FAIRE(langage) : it.pixels = it.percentage... semble échouer */
-                it = ValeurDeStyle(pixels = it.percentage * ctx.référence_pourcentage / 100.0)
+                it.valeur = ValeurDeStyle(pixels = it.valeur.percentage * ctx.référence_pourcentage / 100.0)
             }
             sinon si genre_valeur_calculée.FontSize || genre_valeur_calculée.LineHeight {
-                it = ValeurDeStyle(pixels = it.percentage * ctx.longueurs_relative_fonte.em / 100.0)
+                it.valeur = ValeurDeStyle(pixels = it.valeur.percentage * ctx.longueurs_relative_fonte.em / 100.0)
             }
             sinon {
                 retourne ErreurDeCalcul.PourcentageIncalculable
             }
         }
-        sinon si it.est_longueur() {
-            it = ValeurDeStyle(pixels = calcule_longueur(it.longueur, ctx))
+        sinon si it.valeur.est_longueur() {
+            it.valeur = ValeurDeStyle(pixels = calcule_longueur(it.valeur.longueur, ctx))
         }
 
-        pile.empile(it)
+        pile.empile(it.valeur)
     }
 
     si pile.taille() != 1 {
@@ -239,8 +258,6 @@ ValeurDeStyle :: union {
     cursor: CursorType
     variable: Variable
     calc: CalcFunction
-    /* Uniquement pour stocker les opérateurs de calc sans avoir un autre type. */
-    opérateur_calc: OpérateurCalc
     background_repeat: BackgroundRepeat
 }
 
@@ -391,16 +408,6 @@ sont_mêmes_valeurs :: fonc (a: ValeurDeStyle, b: ValeurDeStyle) -> bool
                 }
             }
         }
-        opérateur_calc(o) {
-            discr b {
-                opérateur_calc(ob) {
-                    retourne o == ob
-                }
-                sinon {
-                    retourne faux
-                }
-            }
-        }
         background_repeat(br) {
             discr b {
                 background_repeat(obr) {
@@ -433,7 +440,9 @@ copie_valeur :: fonc (valeur: ValeurDeStyle) -> ValeurDeStyle
         calc(c) {
             nouveau_calc: CalcFunction
             pour c.valeurs {
-                tableau_ajoute(*nouveau_calc.valeurs, copie_valeur(it))
+                copie_noeud := it
+                copie_noeud.valeur = copie_valeur(it.valeur)
+                tableau_ajoute(*nouveau_calc.valeurs, copie_noeud)
             }
             retourne ValeurDeStyle(calc = nouveau_calc)
         }
@@ -577,18 +586,6 @@ est_calc :: fonc (valeur: ValeurDeStyle) -> bool
     }
 }
 
-est_opérateur_calc :: fonc (valeur: ValeurDeStyle) -> bool
-{
-    discr valeur {
-        opérateur_calc {
-            retourne vrai
-        }
-        sinon {
-            retourne faux
-        }
-    }
-}
-
 est_négative :: fonc (valeur: ValeurDeStyle) -> bool
 {
     discr valeur {
@@ -672,10 +669,6 @@ imprime_valeur_de_style :: fonc (enchaineuse: *Enchaineuse, valeur: *ValeurDeSty
                 virgule = ", "
             }
             ajoute_au_tampon(enchaineuse, ")")
-        }
-        opérateur_calc(o) {
-            chaines := ["+", "-", "*", "/"]
-            ajoute_au_tampon(enchaineuse, chaines[o])
         }
         background_repeat(b) {
             ajoute_au_tampon(enchaineuse, b.horizontal)

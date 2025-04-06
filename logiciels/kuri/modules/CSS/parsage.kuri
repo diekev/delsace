@@ -2872,7 +2872,7 @@ parse_calc_function :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(V
         retourne
     }
 
-    valeurs: [..]ValeurDeStyle
+    valeurs: [..]NoeudDeCalcul
 
     parseuse_arguments := initialise_une_parseuse(lexème.function.value)
     
@@ -2888,7 +2888,7 @@ parse_calc_function :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(V
 }
 
 /* <calc-sum> = <calc-product> [ [ '+' | '-' ] <calc-product> ]* */
-parse_calc_sum :: fonc (parseuse: &Parseuse(ComponentValue), résultat: *[..]ValeurDeStyle) -> bool
+parse_calc_sum :: fonc (parseuse: &Parseuse(ComponentValue), résultat: *[..]NoeudDeCalcul) -> bool
 {
     saufsi parseuse.parse_calc_product(résultat) {
         retourne faux
@@ -2915,14 +2915,14 @@ parse_calc_sum :: fonc (parseuse: &Parseuse(ComponentValue), résultat: *[..]Val
             retourne faux
         }
 
-        tableau_ajoute(résultat, ValeurDeStyle(opérateur_calc = opérateur_calc))
+        tableau_ajoute(résultat, NoeudDeCalcul(est_opérateur = vrai, opérateur_calc = opérateur_calc))
     }
 
     retourne vrai
 }
 
 /* <calc-product> = <calc-value> [ [ '*' | '/' ] <calc-value> ]* */
-parse_calc_product :: fonc (parseuse: &Parseuse(ComponentValue), résultat: *[..]ValeurDeStyle) -> bool
+parse_calc_product :: fonc (parseuse: &Parseuse(ComponentValue), résultat: *[..]NoeudDeCalcul) -> bool
 {
     saufsi parseuse.parse_calc_value(résultat) {
         retourne faux
@@ -2950,14 +2950,14 @@ parse_calc_product :: fonc (parseuse: &Parseuse(ComponentValue), résultat: *[..
             retourne faux
         }
 
-        tableau_ajoute(résultat, ValeurDeStyle(opérateur_calc = opérateur_calc))
+        tableau_ajoute(résultat, NoeudDeCalcul(est_opérateur = vrai, opérateur_calc = opérateur_calc))
     }
 
     retourne vrai
 }
 
 /* <calc-value> = <number> | <dimension> | <percentage> | <calc-keyword> | ( <calc-sum> ) */
-parse_calc_value :: fonc (parseuse: &Parseuse(ComponentValue), résultat: *[..]ValeurDeStyle) -> bool
+parse_calc_value :: fonc (parseuse: &Parseuse(ComponentValue), résultat: *[..]NoeudDeCalcul) -> bool
 {
     parseuse.consomme_espaces_blanches()
 
@@ -2970,10 +2970,10 @@ parse_calc_value :: fonc (parseuse: &Parseuse(ComponentValue), résultat: *[..]V
         parseuse.avance()
 
         si lexème.lexème.drapeau_type_nombre == DrapeauxTypeNombre.Integer {
-            tableau_ajoute(résultat, ValeurDeStyle(integer = lexème.lexème.numeric_value))
+            tableau_ajoute(résultat, NoeudDeCalcul(valeur = ValeurDeStyle(integer = lexème.lexème.numeric_value)))
         }
         sinon {
-            tableau_ajoute(résultat, ValeurDeStyle(number = lexème.lexème.numeric_value))
+            tableau_ajoute(résultat, NoeudDeCalcul(valeur = ValeurDeStyle(number = lexème.lexème.numeric_value)))
         }
 
         retourne vrai
@@ -2986,7 +2986,7 @@ parse_calc_value :: fonc (parseuse: &Parseuse(ComponentValue), résultat: *[..]V
         si unité.possède_valeur() {
             parseuse.avance()
             longueur := Longueur(données_lexème.numeric_value, unité.Quelque)
-            tableau_ajoute(résultat, ValeurDeStyle(longueur = longueur))
+            tableau_ajoute(résultat, NoeudDeCalcul(valeur = ValeurDeStyle(longueur = longueur)))
             retourne vrai
         }
 
@@ -2995,7 +2995,7 @@ parse_calc_value :: fonc (parseuse: &Parseuse(ComponentValue), résultat: *[..]V
 
     si lexème.est_lexème_de_genre(GenreLexème.Percentage) {
         parseuse.avance()
-        tableau_ajoute(résultat, ValeurDeStyle(percentage = lexème.lexème.numeric_value))
+        tableau_ajoute(résultat, NoeudDeCalcul(valeur = ValeurDeStyle(percentage = lexème.lexème.numeric_value)))
         retourne vrai
     }
 
