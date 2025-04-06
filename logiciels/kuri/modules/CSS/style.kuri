@@ -60,7 +60,7 @@ opérateur == :: fonc (calc1: CalcFunction, calc2: CalcFunction) -> bool #horsli
     }
 
     pour calc1.valeurs {
-        si calc2.valeurs[index_it] != it {
+        saufsi sont_mêmes_valeurs(calc2.valeurs[index_it], it) {
             retourne faux
         }
     }
@@ -234,7 +234,7 @@ ValeurDeStyle :: union {
     background_repeat: BackgroundRepeat
 }
 
-opérateur == :: fonc (a: ValeurDeStyle, b: ValeurDeStyle) -> bool
+sont_mêmes_valeurs :: fonc (a: ValeurDeStyle, b: ValeurDeStyle) -> bool
 {
     discr a {
         mot_clé(m) {
@@ -406,11 +406,6 @@ opérateur == :: fonc (a: ValeurDeStyle, b: ValeurDeStyle) -> bool
         }
     }
     retourne faux
-}
-
-opérateur != :: fonc (a: ValeurDeStyle, b: ValeurDeStyle) -> bool
-{
-    retourne !(a == b)
 }
 
 copie_valeur :: fonc (valeur: ValeurDeStyle) -> ValeurDeStyle

@@ -681,7 +681,7 @@ ajoute_presentational_hint :: fonc (résolveuse: *RésolveuseStyle, nom_proprié
             continue
         }
 
-        si it.value[0] != value {
+        saufsi sont_mêmes_valeurs(it.value[0], value) {
             continue
         }
 
@@ -938,7 +938,7 @@ donne_ajournement_pour_différence_propriétés :: fonc (nouvelles_propriétés:
     }
 
     pour nouvelle.value {
-        si ancienne.value[index_it] == it {
+        si sont_mêmes_valeurs(ancienne.value[index_it], it) {
             continue
         }
 
