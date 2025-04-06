@@ -1,4 +1,4 @@
 interface Location {
     /* [LegacyUnforgeable] */ readonly attribute USVString protocol;
     /* [LegacyUnforgeable] */ readonly attribute USVString hostname;
-}
+};
