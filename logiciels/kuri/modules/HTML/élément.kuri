@@ -3507,7 +3507,11 @@ process_the_linked_resource_stylesheet :: fonc (el: *HTMLLinkElement, success: b
         // owner node             -> el
         feuille_de_style.owner_node = el
         // À FAIRE media                  -> The media attribute of el.
-        // À FAIRE title                  -> The title attribute of el, if el is in a document tree, or the empty string otherwise.
+        // title                  -> The title attribute of el, if el is in a document tree, or the empty string otherwise.
+        si is_in_a_document_tree(el) {
+            feuille_de_style.title = el.donne_attribut_ou_chaine_vide(ATTR_title)
+        }
+
         // À FAIRE alternate flag         -> Set if the link is an alternative style sheet and el's explicitly enabled is false; unset otherwise.
         feuille_de_style.alternate = faux
         // À FAIRE origin-clean flag      -> Set if the resource is CORS-same-origin; unset otherwise.
@@ -4667,7 +4671,10 @@ ajourne_style_block :: fonc (style: *HTMLStyleElement)
     feuille_de_style.type = mime_css
     feuille_de_style.owner_node = element
     // À FAIRE : media = The media attribute of element.
-    // À FAIRE : title = The title attribute of element, if element is in a document tree, or the empty string otherwise.
+    // title = The title attribute of element, if element is in a document tree, or the empty string otherwise.
+    si is_in_a_document_tree(element) {
+        feuille_de_style.title = element.donne_attribut_ou_chaine_vide(ATTR_title)
+    }
     feuille_de_style.alternate = faux
     feuille_de_style.origin_clean = vrai
     feuille_de_style.parent_style_sheet = nul

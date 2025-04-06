@@ -718,3 +718,20 @@ est_avant_noeud_dans_l_arbre :: fonc (a: *Élément, b: *Élément) -> bool
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 4.2.1 Document Tree
+ * https://dom.spec.whatwg.org/#document-trees
+ * \{ */
+
+/* https://dom.spec.whatwg.org/#in-a-document-tree */
+is_in_a_document_tree :: fonc (node: *Noeud) -> bool
+{
+    root := node.donne_racine()
+    si root {
+        retourne root.genre == GenreNoeud.Document
+    }
+    retourne faux
+}
+
+/** \} */
