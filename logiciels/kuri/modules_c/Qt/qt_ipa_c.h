@@ -2000,6 +2000,8 @@ struct QT_OpenGLWidget *QT_cree_glwidget(struct QT_Rappels_GLWidget *rappels,
 
 struct QT_Rappels_GLWidget *QT_glwidget_donne_rappels(struct QT_OpenGLWidget *widget);
 
+struct QT_OpenGL_Context *QT_glwidget_context(struct QT_OpenGLWidget *widget);
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

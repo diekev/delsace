@@ -2216,6 +2216,12 @@ QT_Rappels_GLWidget *QT_glwidget_donne_rappels(QT_OpenGLWidget *widget)
     return nullptr;
 }
 
+QT_OpenGL_Context *QT_glwidget_context(QT_OpenGLWidget *widget)
+{
+    VERS_QT(widget);
+    return vers_ipa(qwidget->context());
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
