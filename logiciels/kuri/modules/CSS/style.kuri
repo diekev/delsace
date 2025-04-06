@@ -48,6 +48,92 @@ ErreurDeCalcul :: énum {
     PourcentageIncalculable
 }
 
+/* https://drafts.css-houdini.org/css-typed-om-1/#numeric-typing */
+NumericValueType :: struct {
+    /* Si la chaine est vide, nous avons un nombre. */
+    base_type: chaine
+    exponent: z32
+    unité: Longueur.Unité
+    percent_hint: chaine
+}
+
+peut_ajouter_types :: fonc (type1: *NumericValueType, type2: *NumericValueType) -> Optionnel(NumericValueType)
+{
+    si type1.percent_hint && type2.percent_hint && type1.percent_hint != type2.percent_hint {
+        retourne
+    }
+
+    si type1.percent_hint && type2.percent_hint == "" {
+        résultat := mémoire(type1)
+        résultat.base_type = type2.base_type
+        retourne résultat
+    }
+
+    si type2.percent_hint && type1.percent_hint == "" {
+        résultat := mémoire(type2)
+        résultat.base_type = type1.base_type
+        retourne résultat
+    }
+
+    si type1.base_type == "" && type2.base_type != "" {
+        retourne mémoire(type2)
+    }
+
+    si type2.base_type == "" && type1.base_type != "" {
+        retourne mémoire(type1)
+    }
+
+    si type1.base_type == type2.base_type {
+        retourne mémoire(type1)
+    }
+}
+
+peut_multiplier_types :: fonc (type1: *NumericValueType, type2: *NumericValueType) -> Optionnel(NumericValueType)
+{
+    retourne peut_ajouter_types(type1, type2)
+}
+
+NumericValue :: struct {
+    type: NumericValueType
+    value: r64
+}
+
+/* https://drafts.csswg.org/css-values/#determine-the-type-of-a-calculation */
+donne_numeric_value :: fonc (valeur: ValeurDeStyle) -> Optionnel(NumericValue)
+{
+    résultat: NumericValue
+    discr valeur {
+        integer(i) {
+            résultat.value = i
+        }
+        number(n) {
+            résultat.value = n
+        }
+        longueur(l) {
+            résultat.type.base_type = "length"
+            résultat.type.exponent = 1
+            résultat.type.unité = l.unité
+            résultat.value = l.valeur
+        }
+        pixels(p) {
+            résultat.type.base_type = "length"
+            résultat.type.exponent = 1
+            résultat.type.unité = Longueur.Unité.Px
+            résultat.value = p
+        }
+        percentage(p) {
+            résultat.type.base_type = "percent"
+            résultat.type.exponent = 1
+            résultat.type.percent_hint = "percent"
+            résultat.value = p
+        }
+        sinon {
+            retourne
+        }
+    }
+    retourne résultat
+}
+
 NoeudDeCalcul :: struct {
     est_opérateur: bool
     opérateur_calc: OpérateurCalc
@@ -99,7 +185,7 @@ opérateur == :: fonc (calc1: CalcFunction, calc2: CalcFunction) -> bool #horsli
 
 évalue_calc :: fonc (calc: CalcFunction, genre_valeur_calculée: GenreValeurCalculée, ctx: *ContexteCalculStyle) -> Résultat(ValeurDeStyle, ErreurDeCalcul)
 {
-    pile: Pile(ValeurDeStyle)
+    pile: Pile(NumericValue)
     diffère détruit(pile)
 
     pour calc.valeurs {
@@ -118,23 +204,30 @@ opérateur == :: fonc (calc1: CalcFunction, calc2: CalcFunction) -> bool #horsli
             continue
         }
 
-        si it.valeur.est_percentage() {
+        valeur := it.valeur
+
+        si valeur.est_percentage() {
             si ctx.pour_résolution_pourcentage {
-                /* À FAIRE(langage) : it.pixels = it.percentage... semble échouer */
-                it.valeur = ValeurDeStyle(pixels = it.valeur.percentage * ctx.référence_pourcentage / 100.0)
+                valeur = ValeurDeStyle(pixels = valeur.percentage * ctx.référence_pourcentage / 100.0)
             }
             sinon si genre_valeur_calculée.FontSize || genre_valeur_calculée.LineHeight {
-                it.valeur = ValeurDeStyle(pixels = it.valeur.percentage * ctx.longueurs_relative_fonte.em / 100.0)
+                valeur = ValeurDeStyle(pixels = valeur.percentage * ctx.longueurs_relative_fonte.em / 100.0)
             }
             sinon {
                 retourne ErreurDeCalcul.PourcentageIncalculable
             }
         }
         sinon si it.valeur.est_longueur() {
-            it.valeur = ValeurDeStyle(pixels = calcule_longueur(it.valeur.longueur, ctx))
+            valeur = ValeurDeStyle(pixels = calcule_longueur(valeur.longueur, ctx))
         }
 
-        pile.empile(it.valeur)
+        numeric_value := donne_numeric_value(valeur)
+        saufsi numeric_value.possède_valeur() {
+            imprime("Impossible de calculer : %\n", ValeurDeStyle(calc = calc))
+            retourne ErreurDeCalcul.FormuleInvalide
+        }
+
+        pile.empile(numeric_value.Quelque)
     }
 
     si pile.taille() != 1 {
@@ -142,98 +235,72 @@ opérateur == :: fonc (calc1: CalcFunction, calc2: CalcFunction) -> bool #horsli
         retourne ErreurDeCalcul.FormuleInvalide
     }
 
-    retourne pile.dépile()
+    numeric_value := pile.dépile()
+
+    si numeric_value.type.base_type == "length" {
+        retourne ValeurDeStyle(pixels = numeric_value.value)
+    }
+
+    si numeric_value.type.base_type == "" {
+        retourne ValeurDeStyle(number = numeric_value.value)
+    }
+
+    imprime("[%] impossible de convertir : %\n", #nom_de_cette_fonction, numeric_value)
+    retourne ErreurDeCalcul.FormuleInvalide
 }
 
 /* À FAIRE : standardise
  * https://drafts.csswg.org/css-values/#calc-calculation */
-applique_opérateur_calc :: fonc (op: OpérateurCalc, gauche: ValeurDeStyle, droite: ValeurDeStyle) -> Optionnel(ValeurDeStyle)
+applique_opérateur_calc :: fonc (op: OpérateurCalc, gauche: NumericValue, droite: NumericValue) -> Optionnel(NumericValue)
 {
     discr op {
         Plus {
-            si gauche.est_pixels() && droite.est_pixels() {
-                retourne ValeurDeStyle(pixels = gauche.pixels + droite.pixels)
+            type_résultat := peut_ajouter_types(*gauche.type, *droite.type)
+            saufsi type_résultat.possède_valeur() {
+                retourne
             }
+
+            résultat: NumericValue
+            résultat.type = type_résultat
+            résultat.value = gauche.value + droite.value
+            retourne résultat
         }
         Moins {
-            si gauche.est_pixels() && droite.est_pixels() {
-                retourne ValeurDeStyle(pixels = gauche.pixels - droite.pixels)
+            type_résultat := peut_ajouter_types(*gauche.type, *droite.type)
+            saufsi type_résultat.possède_valeur() {
+                retourne
             }
-            si droite.est_longueur() && gauche.est_pixels() {
-                si droite.longueur.unité == Longueur.Unité.Px {
-                    retourne ValeurDeStyle(pixels = droite.longueur.valeur * gauche.pixels)
-                }
-            }
+
+            résultat: NumericValue
+            résultat.type = type_résultat
+            résultat.value = gauche.value - droite.value
+            retourne résultat
         }
         Fois {
-            si gauche.est_pixels() && droite.est_nombre() {
-                retourne ValeurDeStyle(pixels = gauche.pixels * droite.number)
-            }
-            si droite.est_pixels() && gauche.est_nombre() {
-                retourne ValeurDeStyle(pixels = droite.pixels * gauche.number)
-            }
-            si gauche.est_pixels() && droite.est_integer() {
-                retourne ValeurDeStyle(pixels = gauche.pixels * droite.integer)
-            }
-            si droite.est_pixels() && gauche.est_integer() {
-                retourne ValeurDeStyle(pixels = droite.pixels * gauche.integer)
+            type_résultat := peut_multiplier_types(*gauche.type, *droite.type)
+            saufsi type_résultat.possède_valeur() {
+                retourne
             }
 
-            si gauche.est_longueur() && droite.est_nombre() {
-                si gauche.longueur.unité == Longueur.Unité.Px {
-                    retourne ValeurDeStyle(pixels = gauche.longueur.valeur * droite.number)
-                }
-            }
-            si droite.est_longueur() && gauche.est_nombre() {
-                si droite.longueur.unité == Longueur.Unité.Px {
-                    retourne ValeurDeStyle(pixels = droite.longueur.valeur * gauche.number)
-                }
-            }
-            si gauche.est_longueur() && droite.est_integer() {
-                si gauche.longueur.unité == Longueur.Unité.Px {
-                    retourne ValeurDeStyle(pixels = gauche.longueur.valeur * droite.integer)
-                }
-            }
-            si droite.est_longueur() && gauche.est_integer() {
-                si droite.longueur.unité == Longueur.Unité.Px {
-                    retourne ValeurDeStyle(pixels = droite.longueur.valeur * gauche.integer)
-                }
-            }
+            résultat: NumericValue
+            résultat.type = type_résultat
+            résultat.value = gauche.value * droite.value
+            retourne résultat
         }
         Divise {
-            si gauche.est_pixels() && droite.est_nombre() {
-                retourne ValeurDeStyle(pixels = gauche.pixels / droite.number)
-            }
-            si droite.est_pixels() && gauche.est_nombre() {
-                retourne ValeurDeStyle(pixels = droite.pixels / gauche.number)
-            }
-            si gauche.est_pixels() && droite.est_integer() {
-                retourne ValeurDeStyle(pixels = gauche.pixels / droite.integer)
-            }
-            si droite.est_pixels() && gauche.est_integer() {
-                retourne ValeurDeStyle(pixels = droite.pixels / gauche.integer)
+            type_résultat := peut_multiplier_types(*gauche.type, *droite.type)
+            saufsi type_résultat.possède_valeur() {
+                retourne
             }
 
-            si gauche.est_longueur() && droite.est_nombre() {
-                si gauche.longueur.unité == Longueur.Unité.Px {
-                    retourne ValeurDeStyle(pixels = gauche.longueur.valeur / droite.number)
-                }
+            si droite.value == 0.0 {
+                retourne
             }
-            si droite.est_longueur() && gauche.est_nombre() {
-                si droite.longueur.unité == Longueur.Unité.Px {
-                    retourne ValeurDeStyle(pixels = droite.longueur.valeur / gauche.number)
-                }
-            }
-            si gauche.est_longueur() && droite.est_integer() {
-                si gauche.longueur.unité == Longueur.Unité.Px {
-                    retourne ValeurDeStyle(pixels = gauche.longueur.valeur / droite.integer)
-                }
-            }
-            si droite.est_longueur() && gauche.est_integer() {
-                si droite.longueur.unité == Longueur.Unité.Px {
-                    retourne ValeurDeStyle(pixels = droite.longueur.valeur / gauche.integer)
-                }
-            }
+
+            résultat: NumericValue
+            résultat.type = type_résultat
+            résultat.value = gauche.value / droite.value
+            retourne résultat
         }
         sinon {
         }
