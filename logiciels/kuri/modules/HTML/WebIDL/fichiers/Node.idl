@@ -7,4 +7,4 @@ interface Node : EventTarget {
 
     Node appendChild(Node node);
     Node removeChild(Node node);
-}
+};
