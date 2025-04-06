@@ -1379,7 +1379,7 @@ importe PeintureInterface
 
 dessine_commandes :: fonc (peintre: *Peintre, commandes: *CommandesDeRendu)
 {
-    IGUMI.réinitialise_données()
+    peintre.commence_dessin()
 
     début := commandes.commandes.pointeur
     fin := début + commandes.commandes.taille
