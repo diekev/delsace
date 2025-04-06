@@ -4,4 +4,4 @@ interface NodeList {
     readonly attribute unsigned long length;
 
     // iterable<Node>;
-}
+};

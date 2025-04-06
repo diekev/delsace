@@ -6935,7 +6935,7 @@ RésultatValidation Sémanticienne::valide_instruction_empl_déclaration(
 
     if (!type_employé->est_type_structure()) {
         m_unité->espace
-            ->rapporte_erreur(decl,
+            ->rapporte_erreur(empl,
                               "Impossible d'employer une variable n'étant pas une structure.")
             .ajoute_message("Le type de la variable est : ")
             .ajoute_message(chaine_type(type_employé))
@@ -6949,12 +6949,11 @@ RésultatValidation Sémanticienne::valide_instruction_empl_déclaration(
 
     auto type_structure = type_employé->comme_type_structure();
 
-    /* Pour les structures, prend le bloc_parent qui sera celui de la structure. */
-    auto bloc_parent = decl->bloc_parent;
+    auto bloc_parent = empl->bloc_parent;
 
     /* Pour les fonctions, utilisent leurs blocs si le bloc_parent est le bloc_parent de la
      * fonction (ce qui est le cas pour les paramètres...) */
-    if (fonction_courante() && bloc_parent == fonction_courante()->corps->bloc->bloc_parent) {
+    if (fonction_courante() && bloc_parent->type_bloc == TypeBloc::PARAMÈTRES) {
         bloc_parent = fonction_courante()->corps->bloc;
     }
 
@@ -6968,7 +6967,7 @@ RésultatValidation Sémanticienne::valide_instruction_empl_déclaration(
 
         if (decl_existante) {
             m_espace
-                ->rapporte_erreur(decl,
+                ->rapporte_erreur(empl,
                                   "Impossible d'employer la déclaration car une "
                                   "déclaration avec le même nom qu'un de ses membres "
                                   "existe déjà dans le bloc.")

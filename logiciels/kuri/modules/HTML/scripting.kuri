@@ -33,7 +33,7 @@ ClassicScript :: struct {
  * \{ */
 
 OptionsFetchScript :: struct {
-    cryptographic_nonce: chaine
+    cryptographic_nonce: DOMString
     integrity_metadata: chaine
     parser_metadata := "not-parser-inserted"
     credentials_mode := "same-origin"
