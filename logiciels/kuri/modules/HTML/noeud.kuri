@@ -579,3 +579,107 @@ donne_node_name :: fonc (noeud: *Noeud) -> DOMString
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Hiérarchie
+ * \{ */
+
+donne_index_dans_parent :: fonc (élément: *Élément) -> n32
+{
+    parent := élément.parent
+    assert(parent != nul)
+
+    résultat : n32 = 1
+
+    pour parent.enfants {
+        saufsi est_élément(it) {
+            continue
+        }
+
+        si it == élément {
+            arrête
+        }
+
+        résultat += 1
+    }
+
+    retourne résultat
+}
+
+donne_index_dans_parent_depuis_la_fin :: fonc (élément: *Élément) -> n32
+{
+    parent := élément.parent
+    assert(parent != nul)
+
+    résultat : n32 = 1
+
+    pour > parent.enfants {
+        saufsi est_élément(it) {
+            continue
+        }
+
+        si it == élément {
+            arrête
+        }
+
+        résultat += 1
+    }
+
+    retourne résultat
+}
+
+donne_index_de_même_type_dans_parent :: fonc (élément: *Élément) -> n32
+{
+    parent := élément.parent
+    assert(parent != nul)
+
+    résultat : n32 = 1
+
+    pour parent.enfants {
+        saufsi est_élément(it) {
+            continue
+        }
+
+        adelphe := it comme *Élément
+        saufsi adelphe.local_name == élément.local_name {
+            continue
+        }
+
+        si it == élément {
+            arrête
+        }
+
+        résultat += 1
+    }
+
+    retourne résultat
+}
+
+donne_index_de_même_type_dans_parent_depuis_la_fin :: fonc (élément: *Élément) -> n32
+{
+    parent := élément.parent
+    assert(parent != nul)
+
+    résultat : n32 = 1
+
+    pour > parent.enfants {
+        saufsi est_élément(it) {
+            continue
+        }
+
+        adelphe := it comme *Élément
+        saufsi adelphe.local_name == élément.local_name {
+            continue
+        }
+
+        si it == élément {
+            arrête
+        }
+
+        résultat += 1
+    }
+
+    retourne résultat
+}
+
+/** \} */
