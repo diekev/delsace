@@ -69,6 +69,7 @@ TableVirtuelleÉlément :: struct {
 
     espace_de_nom: chaine // DOMString @namespaceURI
     local_name: DOMString
+    cryptographic_nonce: DOMString
 
     état_élément_custom: chaine
     définition_élément_custom: *rien
@@ -160,6 +161,35 @@ table_virtuelle_élément := TableVirtuelleÉlément(
     si local_name == ATTR_class {
         déloge(élément.liste_classes)
         // À FAIRE : invalide le style pour les classes
+        retourne vrai
+    }
+
+    /* https://html.spec.whatwg.org/multipage/urls-and-fetching.html#cryptographicnonce */
+    si local_name == ATTR_nonce {
+        // 1. À FAIRE : If element does not include HTMLOrSVGElement, then return.
+
+        // 2. If localName is not nonce or namespace is not null, then return.
+        si espace_de_nom.possède_valeur() {
+            retourne vrai
+        }
+
+        // 3. If value is null, then set element's [[CryptographicNonce]] to the empty string.
+        si valeur == nul {
+            élément.cryptographic_nonce = crée_chaine_utf16_unique_vide()
+        }
+        // 4. Otherwise, set element's [[CryptographicNonce]] to value.
+        sinon {
+            élément.cryptographic_nonce = mémoire(valeur)
+
+            /* Elements that have a nonce content attribute ensure that the cryptographic nonce is 
+             * only exposed to script (and not to side-channels like CSS attribute selectors) by
+             * taking the value from the content attribute, moving it into an internal slot named
+             * [[CryptographicNonce]], exposing it to script via the HTMLOrSVGElement interface mixin,
+             * and setting the content attribute to the empty string. Unless otherwise specified,
+             * the slot's value is the empty string. */
+            attr := cherche_attribut(élément, ATTR_nonce)
+            attr.valeur = crée_chaine_utf16_unique_vide()
+        }
         retourne vrai
     }
 
@@ -3289,7 +3319,8 @@ create_link_request :: fonc (user_agent: *UserAgent, options: *LinkProcessingOpt
     // 7. Set request's integrity metadata to options's integrity.
     request.integrity_metadata = options.integrity
 
-    // À FAIRE 8. Set request's cryptographic nonce metadata to options's cryptographic nonce metadata.
+    // 8. Set request's cryptographic nonce metadata to options's cryptographic nonce metadata.
+    request.cryptographic_nonce = options.cryptographic_nonce
 
     // 9. Set request's referrer policy to options's referrer policy.
     request.referrer_policy = options.referrer_policy
@@ -3347,6 +3378,7 @@ LinkProcessingOptions :: struct {
     integrity: DOMString
     type: DOMString
     href: DOMString
+    cryptographic_nonce: DOMString
     base_url: *URL
     origin: Origin
     environment: *EnvironmentSettings
@@ -3384,7 +3416,8 @@ create_link_options :: fonc (el: *HTMLLinkElement) -> LinkProcessingOptions
     options.policy_container = clone(document.policy_container) // @spec-bug ?
     // document                     -> document
     options.document = document
-    // À FAIRE cryptographic nonce metadata -> The current value of el's [[CryptographicNonce]] internal slot
+    // cryptographic nonce metadata -> The current value of el's [[CryptographicNonce]] internal slot
+    options.cryptographic_nonce = el.cryptographic_nonce
     // fetch priority               -> the state of el's fetchpriority content attribute
     options.fetch_priority = el.donne_fetch_priority_content_attribute_state()
 
@@ -4104,7 +4137,7 @@ prépare :: fonc (el: *HTMLScriptElement)
     module_script_credentials := ""
 
     /* 24. INCOMPLET */
-    cryptographic_nonce := ""
+    cryptographic_nonce := el.cryptographic_nonce
 
     /* 25. INCOMPLET */
     integrity := ""
