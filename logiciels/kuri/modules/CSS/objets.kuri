@@ -15,6 +15,8 @@ StyleSheet :: struct {
     type: CSSOMString
     location: *HTML.URL
 
+    title: HTML.DOMString
+
     origine: OrigineCascade
     /* Ceci est utilisé pour les feuilles de styles représentant des "presentational hints". */
     force_spécifité_zéro: bool

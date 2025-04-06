@@ -272,7 +272,7 @@ apparie_simple_selector :: fonc (simple: &SimpleSelector, élément: *HTML.Élé
                     saufsi élément.parent {
                         retourne faux
                     }
-                    index_dans_parent := donne_index_dans_parent(élément)
+                    index_dans_parent := HTML.donne_index_dans_parent(élément)
                     retourne apparie_nth_child(simple.nth_child, index_dans_parent)
                 }
 
@@ -280,7 +280,7 @@ apparie_simple_selector :: fonc (simple: &SimpleSelector, élément: *HTML.Élé
                     saufsi élément.parent {
                         retourne faux
                     }
-                    index_dans_parent := donne_index_de_même_type_dans_parent(élément)
+                    index_dans_parent := HTML.donne_index_de_même_type_dans_parent(élément)
                     retourne apparie_nth_child(simple.nth_child, index_dans_parent)
                 }
 
@@ -288,7 +288,7 @@ apparie_simple_selector :: fonc (simple: &SimpleSelector, élément: *HTML.Élé
                     saufsi élément.parent {
                         retourne faux
                     }
-                    index_dans_parent := donne_index_dans_parent_depuis_la_fin(élément)
+                    index_dans_parent := HTML.donne_index_dans_parent_depuis_la_fin(élément)
                     retourne apparie_nth_child(simple.nth_child, index_dans_parent)
                 }
 
@@ -296,7 +296,7 @@ apparie_simple_selector :: fonc (simple: &SimpleSelector, élément: *HTML.Élé
                     saufsi élément.parent {
                         retourne faux
                     }
-                    index_dans_parent := donne_index_de_même_type_dans_parent_depuis_la_fin(élément)
+                    index_dans_parent := HTML.donne_index_de_même_type_dans_parent_depuis_la_fin(élément)
                     retourne apparie_nth_child(simple.nth_child, index_dans_parent)
                 }
 
@@ -345,104 +345,6 @@ apparie_nth_child :: fonc (nth_child: SimpleSelector.NthChild, index: n32) -> bo
     }
 
     retourne (nth_child.A * n + nth_child.B) == index comme z32
-}
-
-donne_index_dans_parent :: fonc (élément: *HTML.Élément) -> n32
-{
-    parent := élément.parent
-    assert(parent != nul)
-
-    résultat : n32 = 1
-
-    pour parent.enfants {
-        saufsi HTML.est_élément(it) {
-            continue
-        }
-
-        si it == élément {
-            arrête
-        }
-
-        résultat += 1
-    }
-
-    retourne résultat
-}
-
-donne_index_dans_parent_depuis_la_fin :: fonc (élément: *HTML.Élément) -> n32
-{
-    parent := élément.parent
-    assert(parent != nul)
-
-    résultat : n32 = 1
-
-    pour > parent.enfants {
-        saufsi HTML.est_élément(it) {
-            continue
-        }
-
-        si it == élément {
-            arrête
-        }
-
-        résultat += 1
-    }
-
-    retourne résultat
-}
-
-donne_index_de_même_type_dans_parent :: fonc (élément: *HTML.Élément) -> n32
-{
-    parent := élément.parent
-    assert(parent != nul)
-
-    résultat : n32 = 1
-
-    pour parent.enfants {
-        saufsi HTML.est_élément(it) {
-            continue
-        }
-
-        adelphe := it comme *HTML.Élément
-        saufsi adelphe.local_name == élément.local_name {
-            continue
-        }
-
-        si it == élément {
-            arrête
-        }
-
-        résultat += 1
-    }
-
-    retourne résultat
-}
-
-donne_index_de_même_type_dans_parent_depuis_la_fin :: fonc (élément: *HTML.Élément) -> n32
-{
-    parent := élément.parent
-    assert(parent != nul)
-
-    résultat : n32 = 1
-
-    pour > parent.enfants {
-        saufsi HTML.est_élément(it) {
-            continue
-        }
-
-        adelphe := it comme *HTML.Élément
-        saufsi adelphe.local_name == élément.local_name {
-            continue
-        }
-
-        si it == élément {
-            arrête
-        }
-
-        résultat += 1
-    }
-
-    retourne résultat
 }
 
 apparie_sélecteur_fonction :: fonc (selector_list: &SelectorList, élément: *HTML.Élément) -> bool
