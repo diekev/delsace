@@ -14,4 +14,4 @@ interface Document : Node {
     NodeList getElementsByName(DOMString elementName);
 
     readonly attribute /* HTMLOrSVGScriptElement? */ HTMLScriptElement? currentScript; 
-}
+};
