@@ -1,4 +1,4 @@
-// enum BinaryType { "blob", "arraybuffer" };
+enum BinaryType { "blob", "arraybuffer" };
 
 // [Exposed=(Window,Worker)]
 interface WebSocket : EventTarget {
@@ -23,8 +23,8 @@ interface WebSocket : EventTarget {
 
     // messaging
     [IDLEventHandler] attribute EventHandler onmessage;
-    // attribute BinaryType binaryType;
+    [Member] attribute BinaryType binaryType;
 
     // À FAIRE : ArrayBuffer doit être BufferSource
     undefined send((ArrayBuffer or Blob or USVString) data);
-}
+};

@@ -2497,6 +2497,9 @@ HTMLInputElement :: struct {
     /* https://html.spec.whatwg.org/multipage/input.html#concept-input-checked-dirty-flag */
     dirty_checkedness: bool
 
+    /* https://html.spec.whatwg.org/multipage/input.html#dom-input-indeterminate */
+    indeterminate: bool
+
     éditrice: *ÉditriceTexte
 
     /* À FAIRE : déplace ceci dans CSS. */
@@ -2624,6 +2627,11 @@ is_button_widget :: fonc (input: *HTMLInputElement) -> bool
 is_radio_button_widget :: fonc (input: *HTMLInputElement) -> bool
 {
     retourne donne_state(input) == HTMLInputElement.State.Radio_Button
+}
+
+is_checkbox_widget :: fonc (input: *HTMLInputElement) -> bool
+{
+    retourne donne_state(input) == HTMLInputElement.State.Checkbox
 }
 
 /* The checked IDL attribute allows scripts to manipulate the checkedness of an input element.
@@ -2875,8 +2883,9 @@ run_input_activation_behavior :: fonc (input: *HTMLInputElement, event: *Event)
 {
     state := donne_state(input)
 
-    /* https://html.spec.whatwg.org/multipage/input.html#radio-button-state-(type=radio) */
-    si state == HTMLInputElement.State.Radio_Button {
+    /* https://html.spec.whatwg.org/multipage/input.html#radio-button-state-(type=radio)
+     * https://html.spec.whatwg.org/multipage/input.html#checkbox-state-(type=checkbox) */
+    si state == HTMLInputElement.State.Radio_Button || state == HTMLInputElement.State.Checkbox {
         // 1. If the element is not connected, then return.
         saufsi est_connecté(input) {
             retourne

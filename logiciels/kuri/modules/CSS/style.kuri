@@ -19,9 +19,19 @@ BackgroundRepeat :: struct {
     vertical: CSSOMString
 }
 
+opérateur == :: fonc (a: BackgroundRepeat, b: BackgroundRepeat) -> bool
+{
+    retourne a.horizontal == b.horizontal && a.vertical == b.vertical
+}
+
 Variable :: struct {
     nom: CSSOMString
     fallback: [..]ComponentValue
+}
+
+opérateur == :: fonc (a: Variable, b: Variable) -> bool
+{
+    retourne a.nom == b.nom
 }
 
 OpérateurCalc :: énum n8 {
@@ -38,8 +48,113 @@ ErreurDeCalcul :: énum {
     PourcentageIncalculable
 }
 
+/* https://drafts.css-houdini.org/css-typed-om-1/#numeric-typing */
+NumericValueType :: struct {
+    /* Si la chaine est vide, nous avons un nombre. */
+    base_type: chaine
+    exponent: z32
+    unité: Longueur.Unité
+    percent_hint: chaine
+}
+
+peut_ajouter_types :: fonc (type1: *NumericValueType, type2: *NumericValueType) -> Optionnel(NumericValueType)
+{
+    si type1.percent_hint && type2.percent_hint && type1.percent_hint != type2.percent_hint {
+        retourne
+    }
+
+    si type1.percent_hint && type2.percent_hint == "" {
+        résultat := mémoire(type1)
+        résultat.base_type = type2.base_type
+        retourne résultat
+    }
+
+    si type2.percent_hint && type1.percent_hint == "" {
+        résultat := mémoire(type2)
+        résultat.base_type = type1.base_type
+        retourne résultat
+    }
+
+    si type1.base_type == "" && type2.base_type != "" {
+        retourne mémoire(type2)
+    }
+
+    si type2.base_type == "" && type1.base_type != "" {
+        retourne mémoire(type1)
+    }
+
+    si type1.base_type == type2.base_type {
+        retourne mémoire(type1)
+    }
+}
+
+peut_multiplier_types :: fonc (type1: *NumericValueType, type2: *NumericValueType) -> Optionnel(NumericValueType)
+{
+    retourne peut_ajouter_types(type1, type2)
+}
+
+NumericValue :: struct {
+    type: NumericValueType
+    value: r64
+}
+
+/* https://drafts.csswg.org/css-values/#determine-the-type-of-a-calculation */
+donne_numeric_value :: fonc (valeur: ValeurDeStyle) -> Optionnel(NumericValue)
+{
+    résultat: NumericValue
+    discr valeur {
+        integer(i) {
+            résultat.value = i
+        }
+        number(n) {
+            résultat.value = n
+        }
+        longueur(l) {
+            résultat.type.base_type = "length"
+            résultat.type.exponent = 1
+            résultat.type.unité = l.unité
+            résultat.value = l.valeur
+        }
+        pixels(p) {
+            résultat.type.base_type = "length"
+            résultat.type.exponent = 1
+            résultat.type.unité = Longueur.Unité.Px
+            résultat.value = p
+        }
+        percentage(p) {
+            résultat.type.base_type = "percent"
+            résultat.type.exponent = 1
+            résultat.type.percent_hint = "percent"
+            résultat.value = p
+        }
+        sinon {
+            retourne
+        }
+    }
+    retourne résultat
+}
+
+NoeudDeCalcul :: struct {
+    est_opérateur: bool
+    opérateur_calc: OpérateurCalc
+    valeur: ValeurDeStyle
+}
+
+opérateur == :: fonc (a: NoeudDeCalcul, b: NoeudDeCalcul) -> bool #horsligne
+{
+    si a.est_opérateur != b.est_opérateur {
+        retourne faux
+    }
+
+    si a.est_opérateur {
+        retourne a.opérateur_calc == b.opérateur_calc
+    }
+
+    retourne sont_mêmes_valeurs(a.valeur, b.valeur)
+}
+
 CalcFunction :: struct {
-    valeurs: [..]ValeurDeStyle
+    valeurs: [..]NoeudDeCalcul
 }
 
 copie_calc :: fonc (src: CalcFunction) -> CalcFunction
@@ -60,7 +175,7 @@ opérateur == :: fonc (calc1: CalcFunction, calc2: CalcFunction) -> bool #horsli
     }
 
     pour calc1.valeurs {
-        si calc2.valeurs[index_it] != it {
+        saufsi calc2.valeurs[index_it] == it {
             retourne faux
         }
     }
@@ -70,11 +185,11 @@ opérateur == :: fonc (calc1: CalcFunction, calc2: CalcFunction) -> bool #horsli
 
 évalue_calc :: fonc (calc: CalcFunction, genre_valeur_calculée: GenreValeurCalculée, ctx: *ContexteCalculStyle) -> Résultat(ValeurDeStyle, ErreurDeCalcul)
 {
-    pile: Pile(ValeurDeStyle)
+    pile: Pile(NumericValue)
     diffère détruit(pile)
 
     pour calc.valeurs {
-        si it.est_opérateur_calc() {
+        si it.est_opérateur {
             droite := pile.dépile()
             gauche := pile.dépile()
             op := it.opérateur_calc
@@ -89,23 +204,30 @@ opérateur == :: fonc (calc1: CalcFunction, calc2: CalcFunction) -> bool #horsli
             continue
         }
 
-        si it.est_percentage() {
+        valeur := it.valeur
+
+        si valeur.est_percentage() {
             si ctx.pour_résolution_pourcentage {
-                /* À FAIRE(langage) : it.pixels = it.percentage... semble échouer */
-                it = ValeurDeStyle(pixels = it.percentage * ctx.référence_pourcentage / 100.0)
+                valeur = ValeurDeStyle(pixels = valeur.percentage * ctx.référence_pourcentage / 100.0)
             }
             sinon si genre_valeur_calculée.FontSize || genre_valeur_calculée.LineHeight {
-                it = ValeurDeStyle(pixels = it.percentage * ctx.longueurs_relative_fonte.em / 100.0)
+                valeur = ValeurDeStyle(pixels = valeur.percentage * ctx.longueurs_relative_fonte.em / 100.0)
             }
             sinon {
                 retourne ErreurDeCalcul.PourcentageIncalculable
             }
         }
-        sinon si it.est_longueur() {
-            it = ValeurDeStyle(pixels = calcule_longueur(it.longueur, ctx))
+        sinon si it.valeur.est_longueur() {
+            valeur = ValeurDeStyle(pixels = calcule_longueur(valeur.longueur, ctx))
         }
 
-        pile.empile(it)
+        numeric_value := donne_numeric_value(valeur)
+        saufsi numeric_value.possède_valeur() {
+            imprime("Impossible de calculer : %\n", ValeurDeStyle(calc = calc))
+            retourne ErreurDeCalcul.FormuleInvalide
+        }
+
+        pile.empile(numeric_value.Quelque)
     }
 
     si pile.taille() != 1 {
@@ -113,98 +235,72 @@ opérateur == :: fonc (calc1: CalcFunction, calc2: CalcFunction) -> bool #horsli
         retourne ErreurDeCalcul.FormuleInvalide
     }
 
-    retourne pile.dépile()
+    numeric_value := pile.dépile()
+
+    si numeric_value.type.base_type == "length" {
+        retourne ValeurDeStyle(pixels = numeric_value.value)
+    }
+
+    si numeric_value.type.base_type == "" {
+        retourne ValeurDeStyle(number = numeric_value.value)
+    }
+
+    imprime("[%] impossible de convertir : %\n", #nom_de_cette_fonction, numeric_value)
+    retourne ErreurDeCalcul.FormuleInvalide
 }
 
 /* À FAIRE : standardise
  * https://drafts.csswg.org/css-values/#calc-calculation */
-applique_opérateur_calc :: fonc (op: OpérateurCalc, gauche: ValeurDeStyle, droite: ValeurDeStyle) -> Optionnel(ValeurDeStyle)
+applique_opérateur_calc :: fonc (op: OpérateurCalc, gauche: NumericValue, droite: NumericValue) -> Optionnel(NumericValue)
 {
     discr op {
         Plus {
-            si gauche.est_pixels() && droite.est_pixels() {
-                retourne ValeurDeStyle(pixels = gauche.pixels + droite.pixels)
+            type_résultat := peut_ajouter_types(*gauche.type, *droite.type)
+            saufsi type_résultat.possède_valeur() {
+                retourne
             }
+
+            résultat: NumericValue
+            résultat.type = type_résultat
+            résultat.value = gauche.value + droite.value
+            retourne résultat
         }
         Moins {
-            si gauche.est_pixels() && droite.est_pixels() {
-                retourne ValeurDeStyle(pixels = gauche.pixels - droite.pixels)
+            type_résultat := peut_ajouter_types(*gauche.type, *droite.type)
+            saufsi type_résultat.possède_valeur() {
+                retourne
             }
-            si droite.est_longueur() && gauche.est_pixels() {
-                si droite.longueur.unité == Longueur.Unité.Px {
-                    retourne ValeurDeStyle(pixels = droite.longueur.valeur * gauche.pixels)
-                }
-            }
+
+            résultat: NumericValue
+            résultat.type = type_résultat
+            résultat.value = gauche.value - droite.value
+            retourne résultat
         }
         Fois {
-            si gauche.est_pixels() && droite.est_nombre() {
-                retourne ValeurDeStyle(pixels = gauche.pixels * droite.number)
-            }
-            si droite.est_pixels() && gauche.est_nombre() {
-                retourne ValeurDeStyle(pixels = droite.pixels * gauche.number)
-            }
-            si gauche.est_pixels() && droite.est_integer() {
-                retourne ValeurDeStyle(pixels = gauche.pixels * droite.integer)
-            }
-            si droite.est_pixels() && gauche.est_integer() {
-                retourne ValeurDeStyle(pixels = droite.pixels * gauche.integer)
+            type_résultat := peut_multiplier_types(*gauche.type, *droite.type)
+            saufsi type_résultat.possède_valeur() {
+                retourne
             }
 
-            si gauche.est_longueur() && droite.est_nombre() {
-                si gauche.longueur.unité == Longueur.Unité.Px {
-                    retourne ValeurDeStyle(pixels = gauche.longueur.valeur * droite.number)
-                }
-            }
-            si droite.est_longueur() && gauche.est_nombre() {
-                si droite.longueur.unité == Longueur.Unité.Px {
-                    retourne ValeurDeStyle(pixels = droite.longueur.valeur * gauche.number)
-                }
-            }
-            si gauche.est_longueur() && droite.est_integer() {
-                si gauche.longueur.unité == Longueur.Unité.Px {
-                    retourne ValeurDeStyle(pixels = gauche.longueur.valeur * droite.integer)
-                }
-            }
-            si droite.est_longueur() && gauche.est_integer() {
-                si droite.longueur.unité == Longueur.Unité.Px {
-                    retourne ValeurDeStyle(pixels = droite.longueur.valeur * gauche.integer)
-                }
-            }
+            résultat: NumericValue
+            résultat.type = type_résultat
+            résultat.value = gauche.value * droite.value
+            retourne résultat
         }
         Divise {
-            si gauche.est_pixels() && droite.est_nombre() {
-                retourne ValeurDeStyle(pixels = gauche.pixels / droite.number)
-            }
-            si droite.est_pixels() && gauche.est_nombre() {
-                retourne ValeurDeStyle(pixels = droite.pixels / gauche.number)
-            }
-            si gauche.est_pixels() && droite.est_integer() {
-                retourne ValeurDeStyle(pixels = gauche.pixels / droite.integer)
-            }
-            si droite.est_pixels() && gauche.est_integer() {
-                retourne ValeurDeStyle(pixels = droite.pixels / gauche.integer)
+            type_résultat := peut_multiplier_types(*gauche.type, *droite.type)
+            saufsi type_résultat.possède_valeur() {
+                retourne
             }
 
-            si gauche.est_longueur() && droite.est_nombre() {
-                si gauche.longueur.unité == Longueur.Unité.Px {
-                    retourne ValeurDeStyle(pixels = gauche.longueur.valeur / droite.number)
-                }
+            si droite.value == 0.0 {
+                retourne
             }
-            si droite.est_longueur() && gauche.est_nombre() {
-                si droite.longueur.unité == Longueur.Unité.Px {
-                    retourne ValeurDeStyle(pixels = droite.longueur.valeur / gauche.number)
-                }
-            }
-            si gauche.est_longueur() && droite.est_integer() {
-                si gauche.longueur.unité == Longueur.Unité.Px {
-                    retourne ValeurDeStyle(pixels = gauche.longueur.valeur / droite.integer)
-                }
-            }
-            si droite.est_longueur() && gauche.est_integer() {
-                si droite.longueur.unité == Longueur.Unité.Px {
-                    retourne ValeurDeStyle(pixels = droite.longueur.valeur / gauche.integer)
-                }
-            }
+
+            résultat: NumericValue
+            résultat.type = type_résultat
+            résultat.value = gauche.value / droite.value
+            retourne résultat
         }
         sinon {
         }
@@ -229,12 +325,10 @@ ValeurDeStyle :: union {
     cursor: CursorType
     variable: Variable
     calc: CalcFunction
-    /* Uniquement pour stocker les opérateurs de calc sans avoir un autre type. */
-    opérateur_calc: OpérateurCalc
     background_repeat: BackgroundRepeat
 }
 
-opérateur == :: fonc (a: ValeurDeStyle, b: ValeurDeStyle) -> bool
+sont_mêmes_valeurs :: fonc (a: ValeurDeStyle, b: ValeurDeStyle) -> bool
 {
     discr a {
         mot_clé(m) {
@@ -263,7 +357,7 @@ opérateur == :: fonc (a: ValeurDeStyle, b: ValeurDeStyle) -> bool
         couleur(c) {
             discr b {
                 couleur(cb) {
-                    retourne cb.r == c.r && cb.v == c.v && cb.b == c.b && cb.a == c.a
+                    retourne cb == c
                 }
                 sinon {
                     retourne faux
@@ -273,7 +367,7 @@ opérateur == :: fonc (a: ValeurDeStyle, b: ValeurDeStyle) -> bool
         longueur(l) {
             discr b {
                 longueur(lb) {
-                    retourne lb.valeur == l.valeur && lb.unité == l.unité
+                    retourne lb == l
                 }
                 sinon {
                     retourne faux
@@ -344,7 +438,7 @@ opérateur == :: fonc (a: ValeurDeStyle, b: ValeurDeStyle) -> bool
         display(d) {
             discr b {
                 display(db) {
-                    retourne db.inner_type == d.inner_type && db.outer_type == d.outer_type && d.est_list_item == db.est_list_item
+                    retourne d == db
                 }
                 sinon {
                     retourne faux
@@ -381,20 +475,10 @@ opérateur == :: fonc (a: ValeurDeStyle, b: ValeurDeStyle) -> bool
                 }
             }
         }
-        opérateur_calc(o) {
-            discr b {
-                opérateur_calc(ob) {
-                    retourne o == ob
-                }
-                sinon {
-                    retourne faux
-                }
-            }
-        }
         background_repeat(br) {
             discr b {
                 background_repeat(obr) {
-                    retourne obr.horizontal == br.horizontal && obr.vertical == br.vertical
+                    retourne obr == br
                 }
                 sinon {
                     retourne faux
@@ -406,11 +490,6 @@ opérateur == :: fonc (a: ValeurDeStyle, b: ValeurDeStyle) -> bool
         }
     }
     retourne faux
-}
-
-opérateur != :: fonc (a: ValeurDeStyle, b: ValeurDeStyle) -> bool
-{
-    retourne !(a == b)
 }
 
 copie_valeur :: fonc (valeur: ValeurDeStyle) -> ValeurDeStyle
@@ -428,7 +507,9 @@ copie_valeur :: fonc (valeur: ValeurDeStyle) -> ValeurDeStyle
         calc(c) {
             nouveau_calc: CalcFunction
             pour c.valeurs {
-                tableau_ajoute(*nouveau_calc.valeurs, copie_valeur(it))
+                copie_noeud := it
+                copie_noeud.valeur = copie_valeur(it.valeur)
+                tableau_ajoute(*nouveau_calc.valeurs, copie_noeud)
             }
             retourne ValeurDeStyle(calc = nouveau_calc)
         }
@@ -572,18 +653,6 @@ est_calc :: fonc (valeur: ValeurDeStyle) -> bool
     }
 }
 
-est_opérateur_calc :: fonc (valeur: ValeurDeStyle) -> bool
-{
-    discr valeur {
-        opérateur_calc {
-            retourne vrai
-        }
-        sinon {
-            retourne faux
-        }
-    }
-}
-
 est_négative :: fonc (valeur: ValeurDeStyle) -> bool
 {
     discr valeur {
@@ -667,10 +736,6 @@ imprime_valeur_de_style :: fonc (enchaineuse: *Enchaineuse, valeur: *ValeurDeSty
                 virgule = ", "
             }
             ajoute_au_tampon(enchaineuse, ")")
-        }
-        opérateur_calc(o) {
-            chaines := ["+", "-", "*", "/"]
-            ajoute_au_tampon(enchaineuse, chaines[o])
         }
         background_repeat(b) {
             ajoute_au_tampon(enchaineuse, b.horizontal)
@@ -876,6 +941,11 @@ Longueur :: struct {
 
     valeur: r64
     unité: Unité
+}
+
+opérateur == :: fonc (a: Longueur, b: Longueur) -> bool
+{
+    retourne a.valeur == b.valeur && a.unité == b.unité
 }
 
 donne_unité_pour_nom :: fonc (nom: CSSOMString) -> Optionnel(Longueur.Unité)
@@ -1289,7 +1359,7 @@ calcule_pourcentage :: fonc (ctx: *ContexteCalculStyle, valeur: ValeurDeStyle, r
             }
             sinon {
                 /* À FAIRE : valeur initiale */
-                retourne ValeurDeStyle(pixels = 0.0)
+                retourne donne_valeur_pixels_zéro()
             }
         }
     }
@@ -1361,22 +1431,22 @@ calcule_style :: fonc (ctx: *ContexteCalculStyle, étape: ÉtapeCalculStyle)
     }
 
     si propriétés.style.valeurs[IDPropriété.BorderStyleLeft].line_style == LineStyle.None {
-        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthLeft, ValeurDeStyle(pixels = 0.0))
+        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthLeft, donne_valeur_pixels_zéro())
         ctx.propriétés_calculées.active(IDPropriété.BorderWidthLeft comme n16)
         ctx.propriétés_calculées.active(IDPropriété.BorderColorLeft comme n16)
     }
     si propriétés.style.valeurs[IDPropriété.BorderStyleTop].line_style == LineStyle.None {
-        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthTop, ValeurDeStyle(pixels = 0.0))
+        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthTop, donne_valeur_pixels_zéro())
         ctx.propriétés_calculées.active(IDPropriété.BorderWidthTop comme n16)
         ctx.propriétés_calculées.active(IDPropriété.BorderColorTop comme n16)
     }
     si propriétés.style.valeurs[IDPropriété.BorderStyleRight].line_style == LineStyle.None {
-        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthRight, ValeurDeStyle(pixels = 0.0))
+        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthRight, donne_valeur_pixels_zéro())
         ctx.propriétés_calculées.active(IDPropriété.BorderWidthRight comme n16)
         ctx.propriétés_calculées.active(IDPropriété.BorderColorRight comme n16)
     }
     si propriétés.style.valeurs[IDPropriété.BorderStyleBottom].line_style == LineStyle.None {
-        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthBottom, ValeurDeStyle(pixels = 0.0))
+        propriétés.définis_valeur_calculée(IDPropriété.BorderWidthBottom, donne_valeur_pixels_zéro())
         ctx.propriétés_calculées.active(IDPropriété.BorderWidthBottom comme n16)
         ctx.propriétés_calculées.active(IDPropriété.BorderColorBottom comme n16)
     }
@@ -1521,97 +1591,97 @@ initialise_style :: fonc (style: *Style)
 {
     style.valeurs[IDPropriété.Display] = ValeurDeStyle(display = Display())
     style.valeurs[IDPropriété.Cursor] = ValeurDeStyle(cursor = CursorType.auto)
-    style.valeurs[IDPropriété.Position] = ValeurDeStyle(mot_clé = PROP_static)
-    style.valeurs[IDPropriété.Float] = ValeurDeStyle(mot_clé = PROP_none)
-    style.valeurs[IDPropriété.Clear] = ValeurDeStyle(mot_clé = PROP_none)
-    style.valeurs[IDPropriété.OverflowX] = ValeurDeStyle(mot_clé = PROP_visible)
-    style.valeurs[IDPropriété.OverflowY] = ValeurDeStyle(mot_clé = PROP_visible)
+    style.valeurs[IDPropriété.Position] = donne_valeur_static()
+    style.valeurs[IDPropriété.Float] = donne_valeur_none()
+    style.valeurs[IDPropriété.Clear] = donne_valeur_none()
+    style.valeurs[IDPropriété.OverflowX] = donne_valeur_visible()
+    style.valeurs[IDPropriété.OverflowY] = donne_valeur_visible()
 
     /* Marges */
-    style.valeurs[IDPropriété.MarginBottom] = ValeurDeStyle(pixels = 0.0)
-    style.valeurs[IDPropriété.MarginLeft] = ValeurDeStyle(pixels = 0.0)
-    style.valeurs[IDPropriété.MarginRight] = ValeurDeStyle(pixels = 0.0)
-    style.valeurs[IDPropriété.MarginTop] = ValeurDeStyle(pixels = 0.0)
+    style.valeurs[IDPropriété.MarginBottom] = donne_valeur_pixels_zéro()
+    style.valeurs[IDPropriété.MarginLeft] = donne_valeur_pixels_zéro()
+    style.valeurs[IDPropriété.MarginRight] = donne_valeur_pixels_zéro()
+    style.valeurs[IDPropriété.MarginTop] = donne_valeur_pixels_zéro()
 
     /* Padding */
-    style.valeurs[IDPropriété.PaddingBottom] = ValeurDeStyle(pixels = 0.0)
-    style.valeurs[IDPropriété.PaddingLeft] = ValeurDeStyle(pixels = 0.0)
-    style.valeurs[IDPropriété.PaddingRight] = ValeurDeStyle(pixels = 0.0)
-    style.valeurs[IDPropriété.PaddingTop] = ValeurDeStyle(pixels = 0.0)
+    style.valeurs[IDPropriété.PaddingBottom] = donne_valeur_pixels_zéro()
+    style.valeurs[IDPropriété.PaddingLeft] = donne_valeur_pixels_zéro()
+    style.valeurs[IDPropriété.PaddingRight] = donne_valeur_pixels_zéro()
+    style.valeurs[IDPropriété.PaddingTop] = donne_valeur_pixels_zéro()
 
     style.valeurs[IDPropriété.Color] = CouleurRVBAN8(0, 0, 0, 255)
     style.valeurs[IDPropriété.BackgroundColor] = CouleurRVBAN8(0, 0, 0, 0)
-    style.valeurs[IDPropriété.BackgroundImage] = ValeurDeStyle(mot_clé = PROP_none)
+    style.valeurs[IDPropriété.BackgroundImage] = donne_valeur_none()
     style.valeurs[IDPropriété.BackgroundRepeat] = BackgroundRepeat(PROP_repeat)
-    style.valeurs[IDPropriété.BackgroundAttachment] = ValeurDeStyle(mot_clé = PROP_scroll)
+    style.valeurs[IDPropriété.BackgroundAttachment] = donne_valeur_scroll()
 
     /* Bordure */
-    style.valeurs[IDPropriété.BorderWidthBottom] = ValeurDeStyle(mot_clé = PROP_medium)
-    style.valeurs[IDPropriété.BorderWidthLeft] = ValeurDeStyle(mot_clé = PROP_medium)
-    style.valeurs[IDPropriété.BorderWidthRight] = ValeurDeStyle(mot_clé = PROP_medium)
-    style.valeurs[IDPropriété.BorderWidthTop] = ValeurDeStyle(mot_clé = PROP_medium)
+    style.valeurs[IDPropriété.BorderWidthBottom] = donne_valeur_medium()
+    style.valeurs[IDPropriété.BorderWidthLeft] = donne_valeur_medium()
+    style.valeurs[IDPropriété.BorderWidthRight] = donne_valeur_medium()
+    style.valeurs[IDPropriété.BorderWidthTop] = donne_valeur_medium()
 
     style.valeurs[IDPropriété.BorderStyleBottom] = ValeurDeStyle(line_style = LineStyle.None)
     style.valeurs[IDPropriété.BorderStyleLeft] = ValeurDeStyle(line_style = LineStyle.None)
     style.valeurs[IDPropriété.BorderStyleRight] = ValeurDeStyle(line_style = LineStyle.None)
     style.valeurs[IDPropriété.BorderStyleTop] = ValeurDeStyle(line_style = LineStyle.None)
 
-    style.valeurs[IDPropriété.BorderColorBottom] = ValeurDeStyle(mot_clé = PROP_currentColor)
-    style.valeurs[IDPropriété.BorderColorLeft] = ValeurDeStyle(mot_clé = PROP_currentColor)
-    style.valeurs[IDPropriété.BorderColorRight] = ValeurDeStyle(mot_clé = PROP_currentColor)
-    style.valeurs[IDPropriété.BorderColorTop] = ValeurDeStyle(mot_clé = PROP_currentColor)
+    style.valeurs[IDPropriété.BorderColorBottom] = donne_valeur_currentColor()
+    style.valeurs[IDPropriété.BorderColorLeft] = donne_valeur_currentColor()
+    style.valeurs[IDPropriété.BorderColorRight] = donne_valeur_currentColor()
+    style.valeurs[IDPropriété.BorderColorTop] = donne_valeur_currentColor()
 
-    style.valeurs[IDPropriété.BorderBottomLeftRadius] = ValeurDeStyle(pixels = 0.0)
-    style.valeurs[IDPropriété.BorderBottomRightRadius] = ValeurDeStyle(pixels = 0.0)
-    style.valeurs[IDPropriété.BorderTopLeftRadius] = ValeurDeStyle(pixels = 0.0)
-    style.valeurs[IDPropriété.BorderTopRightRadius] = ValeurDeStyle(pixels = 0.0)
+    style.valeurs[IDPropriété.BorderBottomLeftRadius] = donne_valeur_pixels_zéro()
+    style.valeurs[IDPropriété.BorderBottomRightRadius] = donne_valeur_pixels_zéro()
+    style.valeurs[IDPropriété.BorderTopLeftRadius] = donne_valeur_pixels_zéro()
+    style.valeurs[IDPropriété.BorderTopRightRadius] = donne_valeur_pixels_zéro()
 
-    style.valeurs[IDPropriété.BorderCollapse] = ValeurDeStyle(mot_clé = PROP_separate)
-    style.valeurs[IDPropriété.BorderSpacing] = ValeurDeStyle(pixels = 0.0)
+    style.valeurs[IDPropriété.BorderCollapse] = donne_valeur_separate()
+    style.valeurs[IDPropriété.BorderSpacing] = donne_valeur_pixels_zéro()
 
     /* Font */
-    style.valeurs[IDPropriété.FontFamily] = ValeurDeStyle(mot_clé = PROP_serif)
-    style.valeurs[IDPropriété.FontWeight] = ValeurDeStyle(mot_clé = PROP_normal)
-    style.valeurs[IDPropriété.FontStyle] = ValeurDeStyle(mot_clé = PROP_normal)
-    style.valeurs[IDPropriété.FontSize] = ValeurDeStyle(mot_clé = PROP_medium)
+    style.valeurs[IDPropriété.FontFamily] = donne_valeur_serif()
+    style.valeurs[IDPropriété.FontWeight] = donne_valeur_normal()
+    style.valeurs[IDPropriété.FontStyle] = donne_valeur_normal()
+    style.valeurs[IDPropriété.FontSize] = donne_valeur_medium()
 
     /* Text Decoration */
-    style.valeurs[IDPropriété.TextDecorationLine] = ValeurDeStyle(mot_clé = PROP_none)
-    style.valeurs[IDPropriété.TextDecorationStyle] = ValeurDeStyle(mot_clé = PROP_solid)
-    style.valeurs[IDPropriété.TextDecorationColor] = ValeurDeStyle(mot_clé = PROP_currentColor)
-    style.valeurs[IDPropriété.TextTransform] = ValeurDeStyle(mot_clé = PROP_none)
+    style.valeurs[IDPropriété.TextDecorationLine] = donne_valeur_none()
+    style.valeurs[IDPropriété.TextDecorationStyle] = donne_valeur_solid()
+    style.valeurs[IDPropriété.TextDecorationColor] = donne_valeur_currentColor()
+    style.valeurs[IDPropriété.TextTransform] = donne_valeur_none()
 
     /* Tailles */
-    style.valeurs[IDPropriété.Width] = ValeurDeStyle(mot_clé = PROP_auto)
-    style.valeurs[IDPropriété.MinWidth] = ValeurDeStyle(pixels = 0.0)
-    style.valeurs[IDPropriété.MaxWidth] = ValeurDeStyle(mot_clé = PROP_none)
-    style.valeurs[IDPropriété.Height] = ValeurDeStyle(mot_clé = PROP_auto)
-    style.valeurs[IDPropriété.MinHeight] = ValeurDeStyle(pixels = 0.0)
-    style.valeurs[IDPropriété.MaxHeight] = ValeurDeStyle(mot_clé = PROP_none)
+    style.valeurs[IDPropriété.Width] = donne_valeur_auto()
+    style.valeurs[IDPropriété.MinWidth] = donne_valeur_pixels_zéro()
+    style.valeurs[IDPropriété.MaxWidth] = donne_valeur_none()
+    style.valeurs[IDPropriété.Height] = donne_valeur_auto()
+    style.valeurs[IDPropriété.MinHeight] = donne_valeur_pixels_zéro()
+    style.valeurs[IDPropriété.MaxHeight] = donne_valeur_none()
 
-    style.valeurs[IDPropriété.LineHeight] = ValeurDeStyle(mot_clé = PROP_normal)
-    style.valeurs[IDPropriété.VerticalAlign] = ValeurDeStyle(mot_clé = PROP_baseline)
-    style.valeurs[IDPropriété.WhiteSpace] = ValeurDeStyle(mot_clé = PROP_normal)
+    style.valeurs[IDPropriété.LineHeight] = donne_valeur_normal()
+    style.valeurs[IDPropriété.VerticalAlign] = donne_valeur_baseline()
+    style.valeurs[IDPropriété.WhiteSpace] = donne_valeur_normal()
 
-    style.valeurs[IDPropriété.TextAlign] = ValeurDeStyle(mot_clé = PROP_start)
-    style.valeurs[IDPropriété.JustifyContent] = ValeurDeStyle(mot_clé = PROP_flex_start)
+    style.valeurs[IDPropriété.TextAlign] = donne_valeur_start()
+    style.valeurs[IDPropriété.JustifyContent] = donne_valeur_flex_start()
 
     /* Position */
-    style.valeurs[IDPropriété.Top] = ValeurDeStyle(mot_clé = PROP_auto)
-    style.valeurs[IDPropriété.Bottom] = ValeurDeStyle(mot_clé = PROP_auto)
-    style.valeurs[IDPropriété.Left] = ValeurDeStyle(mot_clé = PROP_auto)
-    style.valeurs[IDPropriété.Right] = ValeurDeStyle(mot_clé = PROP_auto)
+    style.valeurs[IDPropriété.Top] = donne_valeur_auto()
+    style.valeurs[IDPropriété.Bottom] = donne_valeur_auto()
+    style.valeurs[IDPropriété.Left] = donne_valeur_auto()
+    style.valeurs[IDPropriété.Right] = donne_valeur_auto()
 
     /* Flex */
-    style.valeurs[IDPropriété.FlexBasis] = ValeurDeStyle(mot_clé = PROP_auto)
-    style.valeurs[IDPropriété.FlexDirection] = ValeurDeStyle(mot_clé = PROP_row)
-    style.valeurs[IDPropriété.FlexWrap] = ValeurDeStyle(mot_clé = PROP_nowrap)
-    style.valeurs[IDPropriété.FlexGrow] = ValeurDeStyle(number = 0.0)
-    style.valeurs[IDPropriété.FlexShrink] = ValeurDeStyle(number = 1.0)
+    style.valeurs[IDPropriété.FlexBasis] = donne_valeur_auto()
+    style.valeurs[IDPropriété.FlexDirection] = donne_valeur_row()
+    style.valeurs[IDPropriété.FlexWrap] = donne_valeur_nowrap()
+    style.valeurs[IDPropriété.FlexGrow] = donne_valeur_number_zéro()
+    style.valeurs[IDPropriété.FlexShrink] = donne_valeur_number_un()
 
-    style.valeurs[IDPropriété.BoxSizing] = ValeurDeStyle(mot_clé = PROP_content_box)
-    style.valeurs[IDPropriété.Opacity] = ValeurDeStyle(number = 1.0)
-    style.valeurs[IDPropriété.ZIndex] = ValeurDeStyle(mot_clé = PROP_auto)
+    style.valeurs[IDPropriété.BoxSizing] = donne_valeur_content_box()
+    style.valeurs[IDPropriété.Opacity] = donne_valeur_number_un()
+    style.valeurs[IDPropriété.ZIndex] = donne_valeur_auto()
 }
 
 donne_bordure :: fonc (style: *Style) -> Border
@@ -1900,6 +1970,11 @@ Display :: struct {
     est_list_item := faux
 }
 
+opérateur == :: fonc (a: Display, b: Display) -> bool
+{
+    retourne a.inner_type == b.inner_type && a.outer_type == b.outer_type && a.est_list_item == b.est_list_item
+}
+
 /* ------------------------------------------------------------------------- */
 /** \nom Fonctions de rappels pour le calcul des valeurs de style.
  * Ces fonctions génèrent les "computed values".
@@ -2054,7 +2129,7 @@ calcule_valeur_propriété_générique :: fonc (valeur: ValeurDeStyle, genre_val
 
                 url_src := HTML.basic_url_parser(u.donne_chaine_utf16(), base = base_url)
                 saufsi url_src {
-                    retourne ValeurDeStyle(mot_clé = PROP_none)
+                    retourne donne_valeur_none()
                 }
 
                 url_string := HTML.url_serializer(url_src)
@@ -2542,6 +2617,122 @@ prop_border_inline_start_style_sur_calcul_style :: fonc (déclaration: *Déclara
 prop_border_inline_start_width_sur_calcul_style :: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
 {
     calcule_valeur_propriété_générique(déclaration, style, ctx, IDPropriété.BorderWidthLeft)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Valeurs par défaut.
+ * \{ */
+
+donne_valeur_pixels_zéro :: fonc () -> ValeurDeStyle
+{
+    retourne ValeurDeStyle(pixels = 0.0)
+}
+
+donne_valeur_number_zéro :: fonc () -> ValeurDeStyle
+{
+    retourne ValeurDeStyle(number = 0.0)
+}
+
+donne_valeur_number_un :: fonc () -> ValeurDeStyle
+{
+    retourne ValeurDeStyle(number = 1.0)
+}
+
+donne_valeur_auto :: fonc () -> ValeurDeStyle
+{
+    retourne ValeurDeStyle(mot_clé = PROP_auto)
+}
+
+donne_valeur_none :: fonc () -> ValeurDeStyle
+{
+    retourne ValeurDeStyle(mot_clé = PROP_none)
+}
+
+donne_valeur_currentColor :: fonc () -> ValeurDeStyle
+{
+    retourne ValeurDeStyle(mot_clé = PROP_currentColor)
+}
+
+donne_valeur_medium :: fonc () -> ValeurDeStyle
+{
+    retourne ValeurDeStyle(mot_clé = PROP_medium)
+}
+
+donne_valeur_normal :: fonc () -> ValeurDeStyle
+{
+    retourne ValeurDeStyle(mot_clé = PROP_normal)
+}
+
+donne_valeur_content :: fonc () -> ValeurDeStyle
+{
+    retourne ValeurDeStyle(mot_clé = PROP_content)
+}
+
+donne_valeur_solid :: fonc () -> ValeurDeStyle
+{
+    retourne ValeurDeStyle(mot_clé = PROP_solid)
+}
+
+donne_valeur_serif :: fonc () -> ValeurDeStyle
+{
+    retourne ValeurDeStyle(mot_clé = PROP_serif)
+}
+
+donne_valeur_visible :: fonc () -> ValeurDeStyle
+{
+    retourne ValeurDeStyle(mot_clé = PROP_visible)
+}
+
+donne_valeur_transparent :: fonc () -> ValeurDeStyle
+{
+    retourne ValeurDeStyle(mot_clé = PROP_transparent)
+}
+
+donne_valeur_scroll :: fonc () -> ValeurDeStyle
+{
+    retourne ValeurDeStyle(mot_clé = PROP_scroll)
+}
+
+donne_valeur_separate :: fonc () -> ValeurDeStyle
+{
+    retourne ValeurDeStyle(mot_clé = PROP_separate)
+}
+
+donne_valeur_static :: fonc () -> ValeurDeStyle
+{
+    retourne ValeurDeStyle(mot_clé = PROP_static)
+}
+
+donne_valeur_baseline :: fonc () -> ValeurDeStyle
+{
+    retourne ValeurDeStyle(mot_clé = PROP_baseline)
+}
+
+donne_valeur_start :: fonc () -> ValeurDeStyle
+{
+    retourne ValeurDeStyle(mot_clé = PROP_start)
+}
+
+donne_valeur_flex_start :: fonc () -> ValeurDeStyle
+{
+    retourne ValeurDeStyle(mot_clé = PROP_flex_start)
+}
+
+donne_valeur_row :: fonc () -> ValeurDeStyle
+{
+    retourne ValeurDeStyle(mot_clé = PROP_row)
+}
+
+donne_valeur_nowrap :: fonc () -> ValeurDeStyle
+{
+    retourne ValeurDeStyle(mot_clé = PROP_nowrap)
+}
+
+donne_valeur_content_box :: fonc () -> ValeurDeStyle
+{
+    retourne ValeurDeStyle(mot_clé = PROP_content_box)
 }
 
 /** \} */

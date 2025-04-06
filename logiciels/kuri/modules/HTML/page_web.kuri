@@ -412,7 +412,7 @@ input_element_sur_pression_souris :: fonc (input: *HTMLInputElement)
 
 input_element_sur_clic :: fonc (input: *HTMLInputElement)
 {
-    si input.is_radio_button_widget() {
+    si input.is_radio_button_widget() || input.is_checkbox_widget() {
         input.définis_checkedness(!input.checkedness)
 
         /* The dirty checkedness flag must be initially set to false when the element

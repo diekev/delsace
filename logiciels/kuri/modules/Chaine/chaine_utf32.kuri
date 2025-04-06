@@ -45,6 +45,12 @@ converti_vers_chaine :: fonc (chn: ChaineUTF32) -> chaine
 crée_chaine_utf32 :: fonc (chn: chaine) -> ChaineUTF32
 {
     résultat: ChaineUTF32
+    crée_chaine_utf32(chn, *résultat)
+    retourne résultat
+}
+
+crée_chaine_utf32 :: fonc (chn: chaine, résultat: *ChaineUTF32)
+{
     tableau_réserve(*résultat.points_de_code, chn.taille)
 
     ptr_source := chn.pointeur
@@ -68,7 +74,6 @@ crée_chaine_utf32 :: fonc (chn: chaine) -> ChaineUTF32
     }
 
     résultat.points_de_code.taille = taille
-    retourne résultat
 }
 
 opérateur == :: fonc (a: ChaineUTF32, b: ChaineUTF32) -> bool

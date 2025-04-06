@@ -167,6 +167,7 @@ RappelsInterface :: struct {
     sur_destruction: fonc(*RappelsInterface)(rien)
     sur_lancement_requête: fonc(*RappelsInterface, *Request)(*Response)
     sur_lancement_requête_websocket: fonc(*RappelsInterface, *WebSocket, *EnvironmentSettings)(rien)
+    sur_envoie_message_websocket: fonc(*RappelsInterface, *WebSocket, WS.OpCode, [..]octet)(rien)
     sur_spin_event_loop: fonc(*RappelsInterface)(rien)
     sur_élément_survolé: fonc(*RappelsInterface)(rien)
     sur_requête_rendu: fonc(*RappelsInterface)(rien)
@@ -244,6 +245,15 @@ lance_requête_websocket :: fonc (user_agent: *UserAgent, web_socket: *WebSocket
         retourne
     }
     rappels.sur_lancement_requête_websocket(rappels, web_socket, client)
+}
+
+envoie_message_websocket :: fonc (user_agent: *UserAgent, web_socket: *WebSocket, type: WS.OpCode, données: [..]octet)
+{
+    rappels := user_agent.rappels_interface
+    saufsi rappels && rappels.sur_envoie_message_websocket {
+        retourne
+    }
+    rappels.sur_envoie_message_websocket(rappels, web_socket, type, données)
 }
 
 enfile_une_tâche :: fonc (user_agent: *UserAgent, source: SourceDeTâche, algorithm: *Algorithm)
