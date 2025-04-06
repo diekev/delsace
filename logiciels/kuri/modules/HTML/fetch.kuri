@@ -104,6 +104,8 @@ Request :: struct {
     /* "no-referrer", "client", or a URL */
     referrer := "client"
 
+    cryptographic_nonce: DOMString
+
     referrer_policy := ReferrerPolicy.EmptyString
 
     policy_container : RequestPolicyContainer = "client"
