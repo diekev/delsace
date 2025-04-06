@@ -88,7 +88,7 @@ applique_box_sizing :: fonc (params: *ParamètresBoxSizing, valeur: ValeurDeStyl
 
     valeur.pixels -= params.delta
     si valeur.pixels < 0.0 {
-        valeur.pixels = 0.0
+        valeur = donne_valeur_pixels_zéro()
     }
 
     retourne valeur
@@ -386,7 +386,7 @@ calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement, fonctio
     fonction_de_calcul(args, *pl)
 
     si pl.width.pixels < 0.0 {
-        pl.width.pixels = 0.0
+        pl.width = donne_valeur_pixels_zéro()
     }
 
     propriétés.définis_valeur_utilisée(IDPropriété.Left, pl.left)
@@ -523,7 +523,7 @@ résoud_pourcentage_hauteur :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDe
      * https://www.w3.org/TR/CSS2/visudet.html#min-max-heights */
     prop_min_height := propriétés.donne_valeur_calculée(IDPropriété.MinHeight)
     si prop_min_height.est_percentage() && contenant_dépend_sur_contenu && !est_absolu {
-        propriétés.définis_valeur_calculée(IDPropriété.MinHeight, ValeurDeStyle(pixels = 0.0))
+        propriétés.définis_valeur_calculée(IDPropriété.MinHeight, donne_valeur_pixels_zéro())
     }
     sinon {
         résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.MinHeight, height_of_containing_block)
@@ -531,7 +531,7 @@ résoud_pourcentage_hauteur :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDe
 
     prop_max_height := propriétés.donne_valeur_calculée(IDPropriété.MaxHeight)
     si prop_max_height.est_percentage() && contenant_dépend_sur_contenu && !est_absolu {
-        propriétés.définis_valeur_calculée(IDPropriété.MaxHeight, ValeurDeStyle(mot_clé = PROP_none))
+        propriétés.définis_valeur_calculée(IDPropriété.MaxHeight, donne_valeur_none())
     }
     sinon {
         résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.MaxHeight, height_of_containing_block)
@@ -646,7 +646,7 @@ calcule_hauteur_et_marges :: fonc (empl args: *ArgumentsDimensionnement, fonctio
     résultat := fonction_de_calcul(args, *ph)
 
     si ph.height.est_pixels() && ph.height.pixels < 0.0 {
-        ph.height.pixels = 0.0
+        ph.height = donne_valeur_pixels_zéro()
     }
 
     propriétés.définis_valeur_utilisée(IDPropriété.Top, ph.top)
@@ -710,10 +710,10 @@ donne_fonction_calcul_hauteur_et_marges :: fonc (noeud: *NoeudDeDisposition) -> 
 calcule_hauteur_et_marges_block_level_normal_flow :: fonc (empl args: *ArgumentsDimensionnement, empl ph: *PropriétésHauteur) -> ÉtatCalculHauteur
 {
     si margin_top.est_auto() {
-        margin_top.pixels = 0.0
+        margin_top = donne_valeur_pixels_zéro()
     }
     si margin_bottom.est_auto() {
-        margin_bottom.pixels = 0.0
+        margin_bottom = donne_valeur_pixels_zéro()
     }
 
     si height.est_auto() {
@@ -731,7 +731,7 @@ calcule_hauteur_et_marges_block_level_normal_flow :: fonc (empl args: *Arguments
             nombre_de_lignes := noeud_bloc.lignes_tenante.lignes.taille
 
             si nombre_de_lignes == 0 {
-                height.pixels = 0.0
+                height = donne_valeur_pixels_zéro()
             }
             sinon {
                 dernier_fragment := noeud_bloc.lignes_tenante.lignes[nombre_de_lignes - 1]
@@ -775,7 +775,7 @@ calcule_hauteur_et_marges_block_level_normal_flow :: fonc (empl args: *Arguments
             }
             sinon {
                 // 4. zero, otherwise
-                height.pixels = 0.0
+                height = donne_valeur_pixels_zéro()
             }
         }
     }
@@ -826,10 +826,10 @@ calcule_largeur_et_marges_block_level_normal_flow :: fonc (empl args: *Arguments
 
         si tmp > width_of_containing_block {
             si margin_left.est_auto() {
-                margin_left = ValeurDeStyle(pixels = 0.0)
+                margin_left = donne_valeur_pixels_zéro()
             }
             si margin_right.est_auto() {
-                margin_right = ValeurDeStyle(pixels = 0.0)
+                margin_right = donne_valeur_pixels_zéro()
             }
         }
     }
@@ -854,12 +854,12 @@ calcule_largeur_et_marges_block_level_normal_flow :: fonc (empl args: *Arguments
          * Nous n'alignons que lors du formattage final ("normal") afin que les marges
          * n'interviennent pas dans le calcul des largeurs minimales et maximales. */
         si mode == ModeDeFormattage.Normal && ctx.doit_aligner_les_descendants.possède_valeur() {
-            margin_left.mot_clé = PROP_auto
-            margin_right.mot_clé = PROP_auto
+            margin_left = donne_valeur_auto()
+            margin_right = donne_valeur_auto()
         }
         sinon {
             // À FAIRE : direction
-            margin_right_pour_équation = ValeurDeStyle(pixels = 0.0)
+            margin_right_pour_équation = donne_valeur_pixels_zéro()
         }
     }
 
@@ -898,22 +898,22 @@ calcule_largeur_et_marges_block_level_normal_flow :: fonc (empl args: *Arguments
     // If 'width' is set to 'auto', any other 'auto' values become '0' and 'width' follows from the resulting equality.
     si width.est_auto() {
         si margin_left.est_auto() {
-            margin_left = ValeurDeStyle(pixels = 0.0)
+            margin_left = donne_valeur_pixels_zéro()
         }
         si border_left_width.est_auto() {
-            border_left_width = ValeurDeStyle(pixels = 0.0)
+            border_left_width = donne_valeur_pixels_zéro()
         }
         si padding_left.est_auto() {
-            padding_left = ValeurDeStyle(pixels = 0.0)
+            padding_left = donne_valeur_pixels_zéro()
         }
         si padding_right.est_auto() {
-            padding_right = ValeurDeStyle(pixels = 0.0)
+            padding_right = donne_valeur_pixels_zéro()
         }
         si border_right_width.est_auto() {
-            border_right_width = ValeurDeStyle(pixels = 0.0)
+            border_right_width = donne_valeur_pixels_zéro()
         }
         si margin_right.est_auto() {
-            margin_right = ValeurDeStyle(pixels = 0.0)
+            margin_right = donne_valeur_pixels_zéro()
         }
 
         résultat := width_of_containing_block - (margin_left.pixels + border_left_width.pixels + padding_left.pixels + padding_right.pixels + border_right_width.pixels + margin_right.pixels)
@@ -925,8 +925,8 @@ calcule_largeur_et_marges_block_level_normal_flow :: fonc (empl args: *Arguments
     si margin_left.est_auto() && margin_right.est_auto() {
         si mode != ModeDeFormattage.Normal {
             /* Non-spécifié. Si nous calculons une disposition minimale, n'ajustons pas les marges. */
-            margin_left.pixels = 0.0
-            margin_right.pixels = 0.0
+            margin_left = donne_valeur_pixels_zéro()
+            margin_right = donne_valeur_pixels_zéro()
             retourne
         }
 
@@ -949,15 +949,15 @@ calcule_largeur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
     si left.est_auto() && right.est_auto() && width.est_auto() {
         // À FAIRE : direction
         si margin_left.est_auto() {
-            margin_left.pixels = 0.0
+            margin_left = donne_valeur_pixels_zéro()
         }
         si margin_right.est_auto() {
-            margin_right.pixels = 0.0
+            margin_right = donne_valeur_pixels_zéro()
         }
 
         left.pixels = pos_x_statique - containing_block.rect.x
 
-        right.pixels = 0.0
+        right = donne_valeur_pixels_zéro()
         available_width := width_of_containing_block - left.pixels - margin_left.pixels - border_left_width.pixels - padding_left.pixels - padding_right.pixels - border_right_width.pixels - margin_right.pixels - right.pixels
         width.pixels = calcule_shrink_to_fit_width(ctx, noeud, available_width)
         right.pixels = width_of_containing_block - left.pixels - margin_left.pixels - border_left_width.pixels - padding_left.pixels - width.pixels - padding_right.pixels - border_right_width.pixels - margin_right.pixels
@@ -972,7 +972,7 @@ calcule_largeur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
             taille_marges := width_of_containing_block - left.pixels - border_left_width.pixels - padding_left.pixels - width.pixels - padding_right.pixels - border_right_width.pixels - right.pixels
             si taille_marges < 0.0 {
                 // À FAIRE : direction
-                margin_left.pixels = 0.0
+                margin_left = donne_valeur_pixels_zéro()
                 margin_right.pixels = taille_marges
             }
             sinon {
@@ -999,10 +999,10 @@ calcule_largeur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
     }
     sinon {
         si margin_left.est_auto() {
-            margin_left.pixels = 0.0
+            margin_left = donne_valeur_pixels_zéro()
         }
         si margin_right.est_auto() {
-            margin_right.pixels = 0.0
+            margin_right = donne_valeur_pixels_zéro()
         }
 
         // 1. 'left' and 'width' are 'auto' and 'right' is not 'auto', then the width is shrink-to-fit.
@@ -1059,10 +1059,10 @@ calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
         top.pixels = pos_y_statique - containing_block.rect.y
 
         si margin_top.est_auto() {
-            margin_top.pixels = 0.0
+            margin_top = donne_valeur_pixels_zéro()
         }
         si margin_bottom.est_auto() {
-            margin_bottom.pixels = 0.0
+            margin_bottom = donne_valeur_pixels_zéro()
         }
 
         saufsi args.calcul_hauteur_après_contenu {
@@ -1099,10 +1099,10 @@ calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
         // then the height is based on the content per 10.6.7, set 'auto' values for 'margin-top' and 'margin-bottom' to 0, and solve for 'top'
         si top.est_auto() && height.est_auto() && !bottom.est_auto() {
             si margin_top.est_auto() {
-                margin_top.pixels = 0.0
+                margin_top = donne_valeur_pixels_zéro()
             }
             si margin_bottom.est_auto() {
-                margin_bottom.pixels = 0.0
+                margin_bottom = donne_valeur_pixels_zéro()
             }
 
             saufsi args.calcul_hauteur_après_contenu {
@@ -1116,10 +1116,10 @@ calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
         // then set 'top' to the static position, set 'auto' values for 'margin-top' and 'margin-bottom' to 0, and solve for 'bottom'
         sinon si top.est_auto() && !height.est_auto() && bottom.est_auto() {
             si margin_top.est_auto() {
-                margin_top.pixels = 0.0
+                margin_top = donne_valeur_pixels_zéro()
             }
             si margin_bottom.est_auto() {
-                margin_bottom.pixels = 0.0
+                margin_bottom = donne_valeur_pixels_zéro()
             }
             top.pixels = pos_y_statique - containing_block.rect.y
             bottom.pixels = height_of_containing_block - top.pixels - margin_top.pixels - border_top_width.pixels - padding_top.pixels - height.pixels - padding_bottom.pixels - border_bottom_width.pixels - margin_bottom.pixels
@@ -1128,10 +1128,10 @@ calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
         // then the height is based on the content per 10.6.7, set 'auto' values for 'margin-top' and 'margin-bottom' to 0, and solve for 'bottom'
         sinon si !top.est_auto() && height.est_auto() && bottom.est_auto() {
             si margin_top.est_auto() {
-                margin_top.pixels = 0.0
+                margin_top = donne_valeur_pixels_zéro()
             }
             si margin_bottom.est_auto() {
-                margin_bottom.pixels = 0.0
+                margin_bottom = donne_valeur_pixels_zéro()
             }
 
             saufsi args.calcul_hauteur_après_contenu {
@@ -1145,10 +1145,10 @@ calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
         // then set 'auto' values for 'margin-top' and 'margin-bottom' to 0, and solve for 'top'
         sinon si top.est_auto() && !height.est_auto() && !bottom.est_auto() {
             si margin_top.est_auto() {
-                margin_top.pixels = 0.0
+                margin_top = donne_valeur_pixels_zéro()
             }
             si margin_bottom.est_auto() {
-                margin_bottom.pixels = 0.0
+                margin_bottom = donne_valeur_pixels_zéro()
             }
             top.pixels = height_of_containing_block - margin_top.pixels - border_top_width.pixels - padding_top.pixels - height.pixels - padding_bottom.pixels - border_bottom_width.pixels - margin_bottom.pixels - bottom.pixels
         }
@@ -1156,10 +1156,10 @@ calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
         // then 'auto' values for 'margin-top' and 'margin-bottom' are set to 0 and solve for 'height'
         sinon si !top.est_auto() && height.est_auto() && !bottom.est_auto() {
             si margin_top.est_auto() {
-                margin_top.pixels = 0.0
+                margin_top = donne_valeur_pixels_zéro()
             }
             si margin_bottom.est_auto() {
-                margin_bottom.pixels = 0.0
+                margin_bottom = donne_valeur_pixels_zéro()
             }
             height.pixels = height_of_containing_block - top.pixels - margin_top.pixels - border_top_width.pixels - padding_top.pixels - padding_bottom.pixels - border_bottom_width.pixels - margin_bottom.pixels - bottom.pixels
         }
@@ -1167,10 +1167,10 @@ calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
         // then set 'auto' values for 'margin-top' and 'margin-bottom' to 0 and solve for 'bottom'
         sinon si !top.est_auto() && !height.est_auto() && bottom.est_auto() {
             si margin_top.est_auto() {
-                margin_top.pixels = 0.0
+                margin_top = donne_valeur_pixels_zéro()
             }
             si margin_bottom.est_auto() {
-                margin_bottom.pixels = 0.0
+                margin_bottom = donne_valeur_pixels_zéro()
             }
             bottom.pixels = height_of_containing_block - top.pixels - margin_top.pixels - border_top_width.pixels - padding_top.pixels - height.pixels - padding_bottom.pixels - border_bottom_width.pixels - margin_bottom.pixels
         }
@@ -1199,10 +1199,10 @@ calcule_hauteur_et_marges_absolutely_positionned_replaced_element :: fonc (empl 
     // 3. If 'bottom' is 'auto', replace any 'auto' on 'margin-top' or 'margin-bottom' with '0'.
     si bottom.est_auto() {
         si margin_bottom.est_auto() {
-            margin_bottom.pixels = 0.0
+            margin_bottom = donne_valeur_pixels_zéro()
         }
         si margin_top.est_auto() {
-            margin_top.pixels = 0.0
+            margin_top = donne_valeur_pixels_zéro()
         }
     }
 
@@ -1225,10 +1225,10 @@ calcule_largeur_et_marges_floated_non_replaced_element :: fonc (empl args: *Argu
 {
     // If 'margin-left', or 'margin-right' are computed as 'auto', their used value is '0'.
     si margin_left.est_auto() {
-        margin_left.pixels = 0.0
+        margin_left = donne_valeur_pixels_zéro()
     }
     si margin_right.est_auto() {
-        margin_right.pixels = 0.0
+        margin_right = donne_valeur_pixels_zéro()
     }
 
     // If 'width' is computed as 'auto', the used value is the "shrink-to-fit" width.
@@ -1271,10 +1271,10 @@ calcule_largeur_et_marges_inline_replaced_element :: fonc (empl args: *Arguments
 
     // A computed value of 'auto' for 'margin-left' or 'margin-right' becomes a used value of '0'.
     si margin_left.est_auto() {
-        margin_left = ValeurDeStyle(pixels = 0.0)
+        margin_left = donne_valeur_pixels_zéro()
     }
     si margin_right.est_auto() {
-        margin_right = ValeurDeStyle(pixels = 0.0)
+        margin_right = donne_valeur_pixels_zéro()
     }
 
     // If 'height' and 'width' both have computed values of 'auto' and the element also has
@@ -1332,10 +1332,10 @@ calcule_hauteur_et_marges_inline_replaced_element :: fonc (empl args: *Arguments
 
     // If 'margin-top', or 'margin-bottom' are 'auto', their used value is 0.
     si margin_top.est_auto() {
-        margin_top = ValeurDeStyle(pixels = 0.0)
+        margin_top = donne_valeur_pixels_zéro()
     }
     si margin_bottom.est_auto() {
-        margin_bottom = ValeurDeStyle(pixels = 0.0)
+        margin_bottom = donne_valeur_pixels_zéro()
     }
 
     // If 'height' and 'width' both have computed values of 'auto' and the element also has
@@ -1393,17 +1393,17 @@ calcule_largeur_et_marges_absolutely_positionned_replaced_element :: fonc (empl 
     //    set 'right' to the static position.
     // À FAIRE : direction
     si left.est_auto() && right.est_auto() {
-        left.pixels = 0.0
+        left = donne_valeur_pixels_zéro()
     }
 
     // 3. If 'left' or 'right' are 'auto', replace any 'auto' on 'margin-left' or
     //    'margin-right' with '0'.
     si left.est_auto() || right.est_auto() {
         si margin_left.est_auto() {
-            margin_left.pixels = 0.0
+            margin_left = donne_valeur_pixels_zéro()
         }
         si margin_right.est_auto() {
-            margin_right.pixels = 0.0
+            margin_right = donne_valeur_pixels_zéro()
         }
     }
 
@@ -1455,16 +1455,16 @@ calcule_largeur_et_marges_block_level_replaced_element :: fonc (empl args: *Argu
 calcule_largeur_et_marges_inline_non_replaced_element :: fonc (args: *ArgumentsDimensionnement @inutilisée, empl pl: *PropriétésLargeur)
 {
     si margin_left.est_auto() {
-        margin_left = ValeurDeStyle(pixels = 0.0)
+        margin_left = donne_valeur_pixels_zéro()
     }
 
     si margin_right.est_auto() {
-        margin_right = ValeurDeStyle(pixels = 0.0)
+        margin_right = donne_valeur_pixels_zéro()
     }
 
     /* width ne s'applique pas, mais pour éviter des problèmes plus tard, remettons la valeur à zéro */
     si width.est_auto() {
-        width = ValeurDeStyle(pixels = 0.0)
+        width = donne_valeur_pixels_zéro()
     }
 }
 
@@ -1473,16 +1473,16 @@ calcule_hauteur_et_marges_inline_non_replaced_element :: fonc (args: *ArgumentsD
 {
     // À FAIRE : ceci est une copie des calculs pour la largeur
     si margin_top.est_auto() {
-        margin_top = ValeurDeStyle(pixels = 0.0)
+        margin_top = donne_valeur_pixels_zéro()
     }
 
     si margin_bottom.est_auto() {
-        margin_bottom = ValeurDeStyle(pixels = 0.0)
+        margin_bottom = donne_valeur_pixels_zéro()
     }
 
     /* height ne s'applique pas, mais pour éviter des problèmes plus tard, remettons la valeur à zéro */
     si height.est_auto() {
-        height = ValeurDeStyle(pixels = 0.0)
+        height = donne_valeur_pixels_zéro()
     }
 
     retourne ÉtatCalculHauteur.HauteurRésolue
@@ -1493,10 +1493,10 @@ calcule_largeur_et_marges_inline_block_non_replaced_element :: fonc (empl args: 
 {
     /* A computed value of 'auto' for 'margin-left' or 'margin-right' becomes a used value of '0'. */
     si margin_left.est_auto() {
-        margin_left = ValeurDeStyle(pixels = 0.0)
+        margin_left = donne_valeur_pixels_zéro()
     }
     si margin_right.est_auto() {
-        margin_right = ValeurDeStyle(pixels = 0.0)
+        margin_right = donne_valeur_pixels_zéro()
     }
 
     /* If 'width' is 'auto', the used value is the shrink-to-fit width as for floating elements. */
@@ -1514,10 +1514,10 @@ calcule_hauteur_et_marges_complicated_cases :: fonc (empl args: *ArgumentsDimens
 {
     // If 'margin-top', or 'margin-bottom' are 'auto', their used value is 0.
     si margin_top.est_auto() {
-        margin_top.pixels = 0.0
+        margin_top = donne_valeur_pixels_zéro()
     }
     si margin_bottom.est_auto() {
-        margin_bottom.pixels = 0.0
+        margin_bottom = donne_valeur_pixels_zéro()
     }
 
     //  If 'height' is 'auto', the height depends on the element's descendants per 10.6.7.

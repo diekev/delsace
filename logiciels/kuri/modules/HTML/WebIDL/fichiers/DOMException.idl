@@ -30,4 +30,4 @@ interface DOMException { // but see below note about JavaScript binding
     //  const unsigned short TIMEOUT_ERR = 23;
     //  const unsigned short INVALID_NODE_TYPE_ERR = 24;
     //  const unsigned short DATA_CLONE_ERR = 25;
-}
+};

@@ -3,15 +3,31 @@
  * https://tc39.es/ecma262/multipage/structured-data.html#sec-properties-of-the-arraybuffer-instances
  * \{ */
 
-#portée_fichier
-
-table_virtuelle_array_buffer := TableVirtuelleObject(classe = ArrayBuffer)
-
-#portée_export
-
 ArrayBuffer :: struct {
     empl objet: Object
     table = *table_virtuelle_array_buffer
+
+    bytes: [..]octet
+}
+
+#portée_fichier
+
+table_virtuelle_array_buffer := TableVirtuelleObject(classe = ArrayBuffer, sur_destruction = array_buffer_sur_destruction)
+
+array_buffer_sur_destruction :: fonc (base: *Cellule)
+{
+    sur_destruction_objet(base)
+    array := base comme *ArrayBuffer
+    déloge(array.bytes)
+}
+
+#portée_export
+
+crée_array_buffer :: fonc (realm: *Realm, bytes: [..]octet) -> *ArrayBuffer
+{
+    résultat := realm.donne_tas_de_mémoire().alloue(ArrayBuffer)
+    résultat.bytes = bytes
+    retourne résultat
 }
 
 /* Cette fonction n'est utilisé que par HTML pour WebIDL */

@@ -1383,7 +1383,7 @@ résoud_flex_basis :: fonc (noeud: *NoeudDeDisposition) -> ValeurDeStyle
         width := noeud.propriétés.donne_valeur_calculée(IDPropriété.Width)
 
         si width.est_auto() {
-            retourne ValeurDeStyle(mot_clé = PROP_content)
+            retourne donne_valeur_content()
         }
 
         retourne width

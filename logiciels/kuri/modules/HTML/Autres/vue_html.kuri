@@ -1410,10 +1410,10 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Request) -> *RappelsRequê
         // imprime("Écris : % / %\n", écris, texte_requête.taille)
     }
 
-    sur_erreur :: fonc (base: *QT_Rappels_Socket)
+    sur_erreur :: fonc (base: *QT_Rappels_Socket, error: QT_Socket_Error)
     {
         rappels := base comme *RappelsRequête
-        imprime("Erreur\n")
+        imprime("Erreur %\n", error)
         rappels.response = network_error(rappels.requête)
     }
 

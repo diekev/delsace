@@ -17,74 +17,30 @@ importe Typographie
 
 initialise_igumi :: fonc ()
 {
-    chemins := #exécute donne_chemins_nuanceurs()
-
-    nuanceur_texte = crée_nuanceur_depuis_fichier(chemins.chemin_vertex_texte, chemins.chemin_fragment_texte)
-    nuanceur_texte.nom = "texte"
-    nuanceur_base = crée_nuanceur_depuis_fichier(chemins.chemin_vertex_base, chemins.chemin_fragment_base)
-    nuanceur_base.nom = "base"
-    nuanceur_image = crée_nuanceur_depuis_fichier(chemins.chemin_vertex_image, chemins.chemin_fragment_image)
-    nuanceur_image.nom = "image"
-    nuanceur_id = crée_nuanceur_depuis_fichier(chemins.chemin_vertex_id, chemins.chemin_fragment_id)
-    nuanceur_id.nom = "id"
-
-    chemin_fonte := CheminFichier("/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf")
-    fonte_globale = crée_fonte(chemin_fonte, 14.0)
-
-    glGenVertexArrays(1, *va_immédiat)
-    glGenBuffers(1, *vbo_immédiat)
-    glGenBuffers(1, *vbo_immédiat_index)
-    vérifie_erreur("création des VBO immédiats")
-
-    glGenVertexArrays(1, *données_tampon_id.va_immédiat)
-    glGenBuffers(1, *données_tampon_id.vbo_immédiat)
-    glGenBuffers(1, *données_tampon_id.vbo_immédiat_index)
-    vérifie_erreur("création des VBO immédiats (ID)")
+    __ctx_courant = *__ctx_défaut
+    initialise_contexte(*__ctx_défaut)
 }
 
 issitialise_igumi :: fonc ()
 {
-    glDeleteVertexArrays(1, *va_immédiat)
-    glDeleteBuffers(1, *vbo_immédiat)
-    glDeleteBuffers(1, *vbo_immédiat_index)
-
-    glDeleteVertexArrays(1, *données_tampon_id.va_immédiat)
-    glDeleteBuffers(1, *données_tampon_id.vbo_immédiat)
-    glDeleteBuffers(1, *données_tampon_id.vbo_immédiat_index)
-
-    si fonte_globale {
-        détruit_fonte(fonte_globale)
-        fonte_globale = nul
-    }
-
-    détruit_nuanceur(nuanceur_base)
-    détruit_nuanceur(nuanceur_texte)
-    détruit_nuanceur(nuanceur_image)
-    détruit_nuanceur(nuanceur_id)
-
-    nuanceur_base = nul
-    nuanceur_texte = nul
-    nuanceur_image = nul
-    nuanceur_id = nul
-
-    détruit(__frame_buffers)
+    issitialise_ctx(*__ctx_défaut)
 }
 
 définis_fenêtre :: fonc (largeur: z32, hauteur: z32)
 {
-    largeur_cannevas = largeur
-    hauteur_cannevas = hauteur
-    projection = crée_matrice_projection_orthographique(0, largeur comme r32, 0, hauteur comme r32, -1.0, 1.0)
+    __ctx_courant.largeur_cannevas = largeur
+    __ctx_courant.hauteur_cannevas = hauteur
+    __ctx_courant.projection = crée_matrice_projection_orthographique(0, largeur comme r32, 0, hauteur comme r32, -1.0, 1.0)
 }
 
 donne_largeur_cannevas :: fonc () -> z32
 {
-    retourne largeur_cannevas
+    retourne __ctx_courant.largeur_cannevas
 }
 
 donne_hauteur_cannevas :: fonc () -> z32
 {
-    retourne hauteur_cannevas
+    retourne __ctx_courant.hauteur_cannevas
 }
 
 /** \} */
@@ -198,6 +154,13 @@ donne_chemins_nuanceurs :: fonc () -> CheminsNuanceurs
 /** \nom Données globales.
  * \{ */
 
+IDNuanceur :: énum {
+    Basique
+    Texte
+    Image
+    Id
+}
+
 FormatVertexXCNU :: struct {
     position: Vec3
     couleur: CouleurRVBA
@@ -210,29 +173,16 @@ DÉCALAGE_COULEUR :: 12
 DÉCALAGE_NORMAL :: 28
 DÉCALAGE_UV :: 40
 
-projection: Mat4r
-largeur_cannevas: z32
-hauteur_cannevas: z32
-
 MAX_SOMMETS_IMMÉDIAT :: 2400
-sommets_immédiat : [MAX_SOMMETS_IMMÉDIAT]FormatVertexXCNU = ---
-num_sommets_immédiat : z32 = 0
-va_immédiat: n32
-vbo_immédiat: n32
-vbo_immédiat_index: n32
-données_tampon_initialisées: bool
 
-nuanceur_global: *NuanceurGL
-nuanceur_base: *NuanceurGL
-nuanceur_texte: *NuanceurGL
-nuanceur_image: *NuanceurGL
-nuanceur_id: *NuanceurGL
+DonnéesImmédiatesXCNU :: struct {
+    sommets_immédiat : [MAX_SOMMETS_IMMÉDIAT]FormatVertexXCNU = ---
+    num_sommets : z32 = 0
 
-fonte_globale: *Fonte
-
-FormatVertexXId :: struct {
-    position: Vec3
-    id: n32
+    va_immédiat: n32
+    vbo_immédiat: n32
+    vbo_immédiat_index: n32
+    données_tampon_initialisées: bool
 }
 
 DÉCALAGE_ID :: 12
@@ -247,7 +197,116 @@ DonnéesImmédiatesXId :: struct {
     données_tampon_initialisées: bool
 }
 
-données_tampon_id: DonnéesImmédiatesXId
+FormatVertexXId :: struct {
+    position: Vec3
+    id: n32
+}
+
+DonnéesContexteGL :: struct {
+    initialisé := faux
+    utilisateurs := 0
+
+    projection: Mat4r
+    largeur_cannevas: z32
+    hauteur_cannevas: z32
+
+    nuanceur_global: *NuanceurGL
+    nuanceurs: [IDNuanceur.nombre_éléments]*NuanceurGL
+
+    fonte_globale: *Fonte
+
+    données_tampon_xcnu: DonnéesImmédiatesXCNU
+    données_tampon_id: DonnéesImmédiatesXId
+
+    dernier_mode: ModeImmédiat
+    dernier_nuanceur := (-1 comme IDNuanceur)
+    dernière_fonte: *Fonte
+    fontes_utilisées: [..]*Fonte
+
+    dernier_mode_id: ModeImmédiat
+    dernier_nuanceur_id := (-1 comme IDNuanceur)
+}
+
+#portée_fichier
+
+__ctx_défaut: DonnéesContexteGL
+__ctx_courant: *DonnéesContexteGL
+
+#portée_export
+
+initialise_contexte :: fonc (empl ctx: *DonnéesContexteGL)
+{
+    utilisateurs += 1
+
+    si initialisé {
+        retourne
+    }
+    initialisé = vrai
+
+    chemins := #exécute donne_chemins_nuanceurs()
+
+    nuanceurs[IDNuanceur.Texte] = crée_nuanceur_depuis_fichier(chemins.chemin_vertex_texte, chemins.chemin_fragment_texte)
+    nuanceurs[IDNuanceur.Texte].nom = "texte"
+    nuanceurs[IDNuanceur.Basique] = crée_nuanceur_depuis_fichier(chemins.chemin_vertex_base, chemins.chemin_fragment_base)
+    nuanceurs[IDNuanceur.Basique].nom = "base"
+    nuanceurs[IDNuanceur.Image] = crée_nuanceur_depuis_fichier(chemins.chemin_vertex_image, chemins.chemin_fragment_image)
+    nuanceurs[IDNuanceur.Image].nom = "image"
+    nuanceurs[IDNuanceur.Id] = crée_nuanceur_depuis_fichier(chemins.chemin_vertex_id, chemins.chemin_fragment_id)
+    nuanceurs[IDNuanceur.Id].nom = "id"
+
+    chemin_fonte := CheminFichier("/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf")
+    fonte_globale = crée_fonte(chemin_fonte, 14.0)
+
+    glGenVertexArrays(1, *données_tampon_xcnu.va_immédiat)
+    glGenBuffers(1, *données_tampon_xcnu.vbo_immédiat)
+    glGenBuffers(1, *données_tampon_xcnu.vbo_immédiat_index)
+    vérifie_erreur("création des VBO immédiats")
+
+    glGenVertexArrays(1, *données_tampon_id.va_immédiat)
+    glGenBuffers(1, *données_tampon_id.vbo_immédiat)
+    glGenBuffers(1, *données_tampon_id.vbo_immédiat_index)
+    vérifie_erreur("création des VBO immédiats (ID)")
+}
+
+issitialise_ctx :: fonc (empl ctx: *DonnéesContexteGL)
+{
+    utilisateurs -= 1
+    si utilisateurs > 0 {
+        retourne
+    }
+
+    glDeleteVertexArrays(1, *données_tampon_xcnu.va_immédiat)
+    glDeleteBuffers(1, *données_tampon_xcnu.vbo_immédiat)
+    glDeleteBuffers(1, *données_tampon_xcnu.vbo_immédiat_index)
+
+    glDeleteVertexArrays(1, *données_tampon_id.va_immédiat)
+    glDeleteBuffers(1, *données_tampon_id.vbo_immédiat)
+    glDeleteBuffers(1, *données_tampon_id.vbo_immédiat_index)
+
+    si fonte_globale {
+        détruit_fonte(fonte_globale)
+        fonte_globale = nul
+    }
+
+    pour & ctx.nuanceurs {
+        détruit_nuanceur(it)
+        it = nul
+    }
+
+    si ctx == *__ctx_défaut {
+        détruit(__frame_buffers)
+    }
+}
+
+donne_contexte_courant :: fonc () -> *DonnéesContexteGL
+{
+    retourne __ctx_courant
+}
+
+définis_contexte_courant :: fonc (ctx: *DonnéesContexteGL)
+{
+    __ctx_courant = ctx
+}
 
 /** \} */
 
@@ -255,15 +314,13 @@ données_tampon_id: DonnéesImmédiatesXId
 /** \nom Dessin.
  * \{ */
 
-dernier_mode: ModeImmédiat
-dernier_nuanceur: *NuanceurGL
-dernière_fonte: *Fonte
-fontes_utilisées: [..]*Fonte
 __glyphes: [..]*texture_glyph_t
 
 réinitialise_données :: fonc ()
 {
-    dernier_nuanceur = nul
+    empl __ctx_courant;
+
+    dernier_nuanceur = (-1 comme IDNuanceur)
     dernière_fonte = nul
     pour fontes_utilisées {
         si glIsTexture(it.atlas.id) {
@@ -274,15 +331,17 @@ réinitialise_données :: fonc ()
     __glyphes.taille = 0
 }
 
-commence_immédiat :: fonc (mode: ModeImmédiat, nuanceur: *NuanceurGL, fonte : *Fonte = nul)
+commence_immédiat :: fonc (mode: ModeImmédiat, id_nuanceur: IDNuanceur, fonte : *Fonte = nul)
 {
-    si mode != dernier_mode || nuanceur != dernier_nuanceur || fonte != dernière_fonte || num_sommets_immédiat == MAX_SOMMETS_IMMÉDIAT {
+    empl __ctx_courant;
+
+    si mode != dernier_mode || id_nuanceur != dernier_nuanceur || fonte != dernière_fonte || données_tampon_xcnu.num_sommets == MAX_SOMMETS_IMMÉDIAT {
         termine_immédiat()
 
         dernier_mode = mode
-        dernier_nuanceur = nuanceur
+        dernier_nuanceur = id_nuanceur
         dernière_fonte = fonte
-        utilise_nuanceur(nuanceur)
+        utilise_nuanceur(id_nuanceur)
     }
 }
 
@@ -293,40 +352,42 @@ ModeImmédiat :: énum {
 
 termine_immédiat :: fonc ()
 {
-    si !num_sommets_immédiat {
+    empl __ctx_courant;
+
+    si !données_tampon_xcnu.num_sommets {
         retourne
     }
 
     nuanceur := nuanceur_global
 
     si !nuanceur {
-        si num_sommets_immédiat {
+        si données_tampon_xcnu.num_sommets {
             panique("tentative d'utiliser termine_immédiat alors qu'aucun nuanceur n'est installé")
         }
 
-        num_sommets_immédiat = 0
+        données_tampon_xcnu.num_sommets = 0
         retourne
     }
 
-    s : []FormatVertexXCNU = sommets_immédiat
-    compte := num_sommets_immédiat comme n64
+    s : []FormatVertexXCNU = données_tampon_xcnu.sommets_immédiat
+    compte := données_tampon_xcnu.num_sommets comme n64
 
     glUseProgram(nuanceur.programme)
     vérifie_erreur("termine_immédiat.glUseProgram")
 
-    glBindVertexArray(va_immédiat)
+    glBindVertexArray(données_tampon_xcnu.va_immédiat)
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_immédiat)
+    glBindBuffer(GL_ARRAY_BUFFER, données_tampon_xcnu.vbo_immédiat)
     vérifie_erreur("termine_immédiat.glBindBuffer")
 
     définis_uniforme(nuanceur.loc_projection, projection)
 
     installe_format_xcnu(nuanceur)
 
-    saufsi données_tampon_initialisées {
+    saufsi données_tampon_xcnu.données_tampon_initialisées {
         glBufferData(GL_ARRAY_BUFFER, (MAX_SOMMETS_IMMÉDIAT comme n32) * taille_de(FormatVertexXCNU), s.pointeur, GL_DYNAMIC_DRAW)
         vérifie_erreur("termine_immédiat.glBufferData")
-        données_tampon_initialisées = vrai
+        données_tampon_xcnu.données_tampon_initialisées = vrai
     }
 
     glBufferSubData(GL_ARRAY_BUFFER, 0, compte * taille_de(FormatVertexXCNU), s.pointeur)
@@ -342,14 +403,14 @@ termine_immédiat :: fonc ()
     // nettoyage
     glUseProgram(0)
     glBindVertexArray(0)
-    num_sommets_immédiat = 0
+    données_tampon_xcnu.num_sommets = 0
 
     vérifie_erreur("termine_immédiat")
 }
 
-utilise_nuanceur :: fonc (nuanceur: *NuanceurGL)
+utilise_nuanceur :: fonc (id: IDNuanceur)
 {
-    nuanceur_global = nuanceur
+    __ctx_courant.nuanceur_global = __ctx_courant.nuanceurs[id]
 }
 
 installe_format_xcnu :: fonc (nuanceur: *NuanceurGL)
@@ -387,25 +448,29 @@ installe_format_xcnu :: fonc (nuanceur: *NuanceurGL)
 
 ajoute_sommets :: fonc (pos: Vec3, couleur: CouleurRVBA)
 {
-    si num_sommets_immédiat >= MAX_SOMMETS_IMMÉDIAT {
+    empl __ctx_courant;
+
+    si données_tampon_xcnu.num_sommets >= MAX_SOMMETS_IMMÉDIAT {
         termine_immédiat()
     }
 
-    sommets_immédiat[num_sommets_immédiat].position = pos
-    sommets_immédiat[num_sommets_immédiat].couleur = couleur
-    num_sommets_immédiat += 1
+    données_tampon_xcnu.sommets_immédiat[données_tampon_xcnu.num_sommets].position = pos
+    données_tampon_xcnu.sommets_immédiat[données_tampon_xcnu.num_sommets].couleur = couleur
+    données_tampon_xcnu.num_sommets += 1
 }
 
 ajoute_sommets :: fonc (pos: Vec3, uv: Vec2, couleur: CouleurRVBA)
 {
-    si num_sommets_immédiat >= MAX_SOMMETS_IMMÉDIAT {
+    empl __ctx_courant;
+
+    si données_tampon_xcnu.num_sommets >= MAX_SOMMETS_IMMÉDIAT {
         termine_immédiat()
     }
 
-    sommets_immédiat[num_sommets_immédiat].position = pos
-    sommets_immédiat[num_sommets_immédiat].couleur = couleur
-    sommets_immédiat[num_sommets_immédiat].uv = uv
-    num_sommets_immédiat += 1
+    données_tampon_xcnu.sommets_immédiat[données_tampon_xcnu.num_sommets].position = pos
+    données_tampon_xcnu.sommets_immédiat[données_tampon_xcnu.num_sommets].couleur = couleur
+    données_tampon_xcnu.sommets_immédiat[données_tampon_xcnu.num_sommets].uv = uv
+    données_tampon_xcnu.num_sommets += 1
 }
 
 /** \} */
@@ -716,10 +781,13 @@ dessine_texte :: fonc (fonte: *Fonte, texte: ChaineUTF32, x: r32, y: r32, couleu
 
 dessine_glyphes :: fonc (glyphes: []*texture_glyph_t, fonte: *Fonte, x: r32, y: r32, couleur: CouleurRVBA, effets: *EffetsTexte)
 {
+    empl __ctx_courant;
+    nuanceur_texte := nuanceurs[IDNuanceur.Texte]
+
     métriques := donne_métriques_fonte(fonte)
     y -= métriques.jambage_inférieur
 
-    commence_immédiat(ModeImmédiat.TRIANGLES, nuanceur_texte, fonte)
+    commence_immédiat(ModeImmédiat.TRIANGLES, IDNuanceur.Texte, fonte)
 
     // ancienne_fonction_mélange: z32
     // glGetIntegerv(GL_BLEND_SRC_ALPHA, *ancienne_fonction_mélange)
@@ -767,6 +835,8 @@ dessine_glyphes :: fonc (glyphes: []*texture_glyph_t, fonte: *Fonte, x: r32, y: 
 
 garantis_texture_pour_atlas :: fonc (fonte: *Fonte)
 {
+    empl __ctx_courant;
+
     saufsi glIsTexture(fonte.atlas.id) {
         glGenTextures(1, *fonte.atlas.id)
         tableau_ajoute(*fontes_utilisées, fonte)
@@ -883,7 +953,10 @@ image_immédiat :: fonc (image: TamponImageRVBA32Bit, rect_image: RectanglePosDi
 
 image_immédiat :: fonc (params: *ParamètresTexture2D, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32))
 {
-    commence_immédiat(ModeImmédiat.TRIANGLES, nuanceur_image)
+    empl __ctx_courant;
+    nuanceur_image := nuanceurs[IDNuanceur.Image]
+
+    commence_immédiat(ModeImmédiat.TRIANGLES, IDNuanceur.Image)
 
     // ancienne_fonction_mélange: z32
     // glGetIntegerv(GL_BLEND_SRC_ALPHA, *ancienne_fonction_mélange)
@@ -1067,20 +1140,19 @@ termine_frame_buffer :: fonc (opacité: r32 @inutilisée)
 /** \nom Tampon ID.
  * \{ */
 
-dernier_mode_id: ModeImmédiat
-dernier_nuanceur_id: *NuanceurGL
-
 réinitialise_données_id :: fonc ()
 {
-    dernier_nuanceur_id = nul
+    __ctx_courant.dernier_nuanceur_id = (-1 comme IDNuanceur)
 }
 
-commence_immédiat_id :: fonc (mode: ModeImmédiat, nuanceur: *NuanceurGL)
+commence_immédiat_id :: fonc (mode: ModeImmédiat)
 {
-    si mode != dernier_mode_id || nuanceur != dernier_nuanceur_id || données_tampon_id.num_sommets == MAX_SOMMETS_IMMÉDIAT {
+    empl __ctx_courant;
+
+    si mode != dernier_mode_id || dernier_nuanceur_id == (-1 comme IDNuanceur) || données_tampon_id.num_sommets == MAX_SOMMETS_IMMÉDIAT {
         dernier_mode_id = mode
-        dernier_nuanceur_id = nuanceur
-        utilise_nuanceur(nuanceur)
+        dernier_nuanceur_id = IDNuanceur.Id
+        utilise_nuanceur(IDNuanceur.Id)
 
         termine_immédiat_id()
     }
@@ -1088,13 +1160,13 @@ commence_immédiat_id :: fonc (mode: ModeImmédiat, nuanceur: *NuanceurGL)
 
 termine_immédiat_id :: fonc ()
 {
+    empl __ctx_courant;
+
     saufsi données_tampon_id.num_sommets {
         retourne
     }
 
-    nuanceur := dernier_nuanceur_id
-
-    saufsi nuanceur {
+    si dernier_nuanceur_id == (-1 comme IDNuanceur) {
         si données_tampon_id.num_sommets {
             panique("tentative d'utiliser termine_immédiat alors qu'aucun nuanceur n'est installé")
         }
@@ -1102,6 +1174,8 @@ termine_immédiat_id :: fonc ()
         données_tampon_id.num_sommets = 0
         retourne
     }
+
+    nuanceur := nuanceurs[dernier_nuanceur_id]
 
     s : []FormatVertexXId = données_tampon_id.sommets
     compte := données_tampon_id.num_sommets comme n64
@@ -1191,6 +1265,8 @@ quad_immédiat_id :: fonc (p0: Vec3, p1: Vec3, p2: Vec3, p3: Vec3, id: n32)
 
 ajoute_sommets_id :: fonc (pos: Vec3, id: n32)
 {
+    empl __ctx_courant;
+
     si données_tampon_id.num_sommets >= MAX_SOMMETS_IMMÉDIAT {
         termine_immédiat_id()
     }

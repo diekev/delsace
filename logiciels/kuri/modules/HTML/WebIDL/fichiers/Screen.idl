@@ -3,4 +3,4 @@
 interface Screen {
     readonly attribute long width;
     readonly attribute long height;
-}
+};

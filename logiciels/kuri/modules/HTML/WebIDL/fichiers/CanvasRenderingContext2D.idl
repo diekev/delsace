@@ -8,4 +8,4 @@ interface CanvasRenderingContext2D {
 
     undefined scale(double sx, double sy);
     undefined translate(double tx, double ty);
-}
+};

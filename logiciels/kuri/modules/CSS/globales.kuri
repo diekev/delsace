@@ -1,3 +1,4 @@
+importe Image
 importe SysFichier
 importe Typographie
 
@@ -38,11 +39,36 @@ GlobalesDessin :: struct {
     }
 
     fontes_en_cache: [..]FonteEnCache
+
+    image_checkbox: ImageIO
 }
+
+données_image_checkbox := n8.[
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 4,
+    1, 1, 1, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3,
+    40, 40, 40, 161, 42, 42, 42, 172, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 3, 35, 35, 35, 140, 59, 59, 59, 237, 10, 10, 10, 42, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 25, 25, 25, 105, 60, 60, 60, 245, 18, 18, 18, 72, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 41,
+    41, 41, 167, 38, 38, 38, 153, 2, 2, 2, 8, 20, 20, 20, 80, 61, 61, 61, 246, 23, 23, 23, 95, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 12, 12, 49, 58, 58, 58, 235, 48, 48, 48, 192, 58, 58, 58, 234, 32, 32, 32,
+    131, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 15, 15, 60, 59, 59, 59, 236,
+    38, 38, 38, 152, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 7, 7, 7, 28, 3, 3, 3, 13, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 crée_globales_dessin :: fonc () -> *GlobalesDessin
 {
-    retourne loge(GlobalesDessin)
+    résultat := loge(GlobalesDessin)
+    résultat.image_checkbox = alloc_image(10, 10, 4)
+
+    pixel := résultat.image_checkbox.donnees
+    pour résultat.image_checkbox.nombre_de_pixels() * 4 {
+        mémoire(pixel) = données_image_checkbox[index_it] comme r32 / 255.0
+        pixel += 1
+    }
+
+    retourne résultat
 }
 
 détruit_globales_dessin :: fonc (globales: *GlobalesDessin)
@@ -55,6 +81,7 @@ détruit_globales_dessin :: fonc (globales: *GlobalesDessin)
         détruit_fonte(it.fonte)
     }
 
+    détruit_image(globales.image_checkbox)
     déloge(globales.fontes_en_cache)
     déloge(globales)
 }
