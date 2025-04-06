@@ -647,6 +647,11 @@ void QT_core_application_definis_feuille_de_style(QT_Chaine feuille)
     qApp->setStyleSheet(vers_qt(feuille));
 }
 
+void QT_core_application_set_attribute(QT_ApplicationAttribute attribute)
+{
+    QCoreApplication::setAttribute((Qt::ApplicationAttribute)attribute);
+}
+
 QT_Application *QT_donne_application()
 {
     return reinterpret_cast<QT_Application *>(qApp);

@@ -552,6 +552,10 @@ void QT_fenetre_principale_ajoute_barre_a_outils(struct QT_Fenetre_Principale *f
 /** \name QT_Application
  * \{ */
 
+typedef enum QT_ApplicationAttribute {
+    QT_APPLICATIONATTRIBUTE_ShareOpenGLContexts = 18,
+} QT_ApplicationAttribute;
+
 struct QT_Application;
 
 struct QT_Application *QT_cree_application(int *argc, char **argv);
@@ -562,6 +566,8 @@ void QT_core_application_definis_nom_organisation(struct QT_Chaine nom);
 void QT_core_application_definis_nom_application(struct QT_Chaine nom);
 
 void QT_core_application_definis_feuille_de_style(struct QT_Chaine feuille);
+
+void QT_core_application_set_attribute(enum QT_ApplicationAttribute attribute);
 
 struct QT_Application *QT_donne_application(void);
 
