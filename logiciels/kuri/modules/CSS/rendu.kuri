@@ -797,6 +797,28 @@ noeud_radio_button_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Co
     }
 }
 
+noeud_checkbox_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+{
+    noeud := base comme *NoeudDeDispositionRemplacement
+    assert(noeud.élément.local_name == HTML.TAG_input)
+
+    input := noeud.élément comme *HTML.HTMLInputElement
+
+    rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_contenu())
+
+    remplis_rectangle(ctx.commandes, rect, CouleurRVBAN8(255, 255, 255, 255))
+    dessine_rectangle(ctx.commandes, rect, CouleurRVBAN8(0x8f, 0x8f, 0x9d, 255))
+
+    si input.checkedness {
+        rect_image := rect
+        rect_image.x += 2
+        rect_image.y += 2
+        rect_image.hauteur -= 4
+        rect_image.largeur -= 4
+        dessine_image(ctx.commandes, ctx.globales.image_checkbox, rect)
+    }
+}
+
 noeud_textarea_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
 {
     noeud := base comme *NoeudDeDispositionRemplacement
