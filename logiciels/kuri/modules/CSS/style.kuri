@@ -19,9 +19,19 @@ BackgroundRepeat :: struct {
     vertical: CSSOMString
 }
 
+opérateur == :: fonc (a: BackgroundRepeat, b: BackgroundRepeat) -> bool
+{
+    retourne a.horizontal == b.horizontal && a.vertical == b.vertical
+}
+
 Variable :: struct {
     nom: CSSOMString
     fallback: [..]ComponentValue
+}
+
+opérateur == :: fonc (a: Variable, b: Variable) -> bool
+{
+    retourne a.nom == b.nom
 }
 
 OpérateurCalc :: énum n8 {
@@ -263,7 +273,7 @@ sont_mêmes_valeurs :: fonc (a: ValeurDeStyle, b: ValeurDeStyle) -> bool
         couleur(c) {
             discr b {
                 couleur(cb) {
-                    retourne cb.r == c.r && cb.v == c.v && cb.b == c.b && cb.a == c.a
+                    retourne cb == c
                 }
                 sinon {
                     retourne faux
@@ -273,7 +283,7 @@ sont_mêmes_valeurs :: fonc (a: ValeurDeStyle, b: ValeurDeStyle) -> bool
         longueur(l) {
             discr b {
                 longueur(lb) {
-                    retourne lb.valeur == l.valeur && lb.unité == l.unité
+                    retourne lb == l
                 }
                 sinon {
                     retourne faux
@@ -344,7 +354,7 @@ sont_mêmes_valeurs :: fonc (a: ValeurDeStyle, b: ValeurDeStyle) -> bool
         display(d) {
             discr b {
                 display(db) {
-                    retourne db.inner_type == d.inner_type && db.outer_type == d.outer_type && d.est_list_item == db.est_list_item
+                    retourne d == db
                 }
                 sinon {
                     retourne faux
@@ -394,7 +404,7 @@ sont_mêmes_valeurs :: fonc (a: ValeurDeStyle, b: ValeurDeStyle) -> bool
         background_repeat(br) {
             discr b {
                 background_repeat(obr) {
-                    retourne obr.horizontal == br.horizontal && obr.vertical == br.vertical
+                    retourne obr == br
                 }
                 sinon {
                     retourne faux
@@ -871,6 +881,11 @@ Longueur :: struct {
 
     valeur: r64
     unité: Unité
+}
+
+opérateur == :: fonc (a: Longueur, b: Longueur) -> bool
+{
+    retourne a.valeur == b.valeur && a.unité == b.unité
 }
 
 donne_unité_pour_nom :: fonc (nom: CSSOMString) -> Optionnel(Longueur.Unité)
@@ -1893,6 +1908,11 @@ Display :: struct {
     outer_type := Type.Inline
     inner_type := Type.Flow
     est_list_item := faux
+}
+
+opérateur == :: fonc (a: Display, b: Display) -> bool
+{
+    retourne a.inner_type == b.inner_type && a.outer_type == b.outer_type && a.est_list_item == b.est_list_item
 }
 
 /* ------------------------------------------------------------------------- */
