@@ -3159,12 +3159,44 @@ void QT_doublespinbox_definis_symboles_boutons(struct QT_DoubleSpinBox *doublesp
 /** \name QT_AbstractSocket
  * \{ */
 
+#define ENUMERE_SOCKET_ERROR(O)                                                                   \
+    O(QT_SOCKET_ERROR_ConnectionRefusedError, QAbstractSocket::ConnectionRefusedError)            \
+    O(QT_SOCKET_ERROR_RemoteHostClosedError, QAbstractSocket::RemoteHostClosedError)              \
+    O(QT_SOCKET_ERROR_HostNotFoundError, QAbstractSocket::HostNotFoundError)                      \
+    O(QT_SOCKET_ERROR_SocketAccessError, QAbstractSocket::SocketAccessError)                      \
+    O(QT_SOCKET_ERROR_SocketResourceError, QAbstractSocket::SocketResourceError)                  \
+    O(QT_SOCKET_ERROR_SocketTimeoutError, QAbstractSocket::SocketTimeoutError)                    \
+    O(QT_SOCKET_ERROR_DatagramTooLargeError, QAbstractSocket::DatagramTooLargeError)              \
+    O(QT_SOCKET_ERROR_NetworkError, QAbstractSocket::NetworkError)                                \
+    O(QT_SOCKET_ERROR_AddressInUseError, QAbstractSocket::AddressInUseError)                      \
+    O(QT_SOCKET_ERROR_SocketAddressNotAvailableError,                                             \
+      QAbstractSocket::SocketAddressNotAvailableError)                                            \
+    O(QT_SOCKET_ERROR_UnsupportedSocketOperationError,                                            \
+      QAbstractSocket::UnsupportedSocketOperationError)                                           \
+    O(QT_SOCKET_ERROR_UnfinishedSocketOperationError,                                             \
+      QAbstractSocket::UnfinishedSocketOperationError)                                            \
+    O(QT_SOCKET_ERROR_ProxyAuthenticationRequiredError,                                           \
+      QAbstractSocket::ProxyAuthenticationRequiredError)                                          \
+    O(QT_SOCKET_ERROR_SslHandshakeFailedError, QAbstractSocket::SslHandshakeFailedError)          \
+    O(QT_SOCKET_ERROR_ProxyConnectionRefusedError, QAbstractSocket::ProxyConnectionRefusedError)  \
+    O(QT_SOCKET_ERROR_ProxyConnectionClosedError, QAbstractSocket::ProxyConnectionClosedError)    \
+    O(QT_SOCKET_ERROR_ProxyConnectionTimeoutError, QAbstractSocket::ProxyConnectionTimeoutError)  \
+    O(QT_SOCKET_ERROR_ProxyNotFoundError, QAbstractSocket::ProxyNotFoundError)                    \
+    O(QT_SOCKET_ERROR_ProxyProtocolError, QAbstractSocket::ProxyProtocolError)                    \
+    O(QT_SOCKET_ERROR_OperationError, QAbstractSocket::OperationError)                            \
+    O(QT_SOCKET_ERROR_SslInternalError, QAbstractSocket::SslInternalError)                        \
+    O(QT_SOCKET_ERROR_SslInvalidUserDataError, QAbstractSocket::SslInvalidUserDataError)          \
+    O(QT_SOCKET_ERROR_TemporaryError, QAbstractSocket::TemporaryError)                            \
+    O(QT_SOCKET_ERROR_UnknownSocketError, QAbstractSocket::UnknownSocketError)
+
+enum QT_Socket_Error { ENUMERE_SOCKET_ERROR(ENUMERE_DECLARATION_ENUM_IPA) };
+
 struct QT_Rappels_Socket {
     union QT_AbstractSocket socket;
 
     void (*sur_connexion)(struct QT_Rappels_Socket *);
     void (*sur_deconnexion)(struct QT_Rappels_Socket *);
-    void (*sur_erreur)(struct QT_Rappels_Socket *);
+    void (*sur_erreur)(struct QT_Rappels_Socket *, enum QT_Socket_Error);
     void (*sur_resolution_hote)(struct QT_Rappels_Socket *);
     // void proxyAuthenticationRequired(const QNetworkProxy &proxy, QAuthenticator *authenticator)
     // void stateChanged(QAbstractSocket::SocketState socketState)
