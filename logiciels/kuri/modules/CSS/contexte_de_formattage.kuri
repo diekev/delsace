@@ -488,7 +488,7 @@ ajoute_marge :: fonc (ctx: *ContexteDeFormattageBloc, noeud: *NoeudDeDisposition
 {
     assert(id == IDPropriété.MarginTop || id == IDPropriété.MarginBottom)
 
-    taille := noeud.propriétés.donne_valeur_utilisée(id).pixels comme r32
+    taille := noeud.propriétés.donne_valeur_utilisée(id).donne_pixels() comme r32
     si taille == 0.0 && est_espace_blanche_document(noeud) {
         retourne
     }
@@ -669,7 +669,7 @@ donne_marge_collapsée_depuis :: fonc (ctx: *ContexteDeFormattageBloc, noeud: *N
     retourne résultat
 }
 
-applique_clearance :: fonc (ctx: *ContexteDeFormattageBloc, empl params: *ParamètresPositionnementBoite, clear: ValeurDeStyle, décalage_y: r32)
+applique_clearance :: fonc (ctx: *ContexteDeFormattageBloc, empl params: *ParamètresPositionnementBoite, clear: *ValeurDeStyle, décalage_y: r32)
 {
     si clear.est_mot_clé(PROP_left) {
         hauteur_float_left := ctx.donne_décalage_floats_gauche() - décalage_y
@@ -807,8 +807,8 @@ position_boite_absolue :: fonc (noeud: *NoeudDeDisposition, containing_block: &C
     top := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Top)
     left := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Left)
 
-    x := bord_gauche + left.pixels comme r32
-    y := bord_haut + top.pixels comme r32
+    x := bord_gauche + left.donne_pixels() comme r32
+    y := bord_haut + top.donne_pixels() comme r32
 
     si décale {
         noeud.décale_vers_position(x, y)
@@ -1287,11 +1287,11 @@ calcule_taille_items :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDis
         }
         sinon si flex_basis.est_percentage() || flex_basis.est_calc() {
             définis_propriétés(ctx.ctx_calcul_style, noeud.propriétés)
-            largeur := calcule_pourcentage(ctx.ctx_calcul_style, flex_basis, largeur_disponible).pixels
+            largeur := calcule_pourcentage(ctx.ctx_calcul_style, flex_basis, largeur_disponible).donne_pixels()
             largeur_désirée = crée_outrepas_pour_coter_boite(largeur)
         }
         sinon {
-            largeur_désirée = crée_outrepas_pour_coter_boite(flex_basis.pixels)
+            largeur_désirée = crée_outrepas_pour_coter_boite(flex_basis.donne_pixels())
         }
 
         it.mesure(ctx, mode, *largeur_désirée)
@@ -1311,13 +1311,13 @@ determine_the_flex_base_size_and_hypothetical_main_size_of_each_item :: fonc (ct
         // A. If the item has a definite used flex basis, that’s the flex base size. 
         si flex_basis.est_percentage() || flex_basis.est_calc() {
             définis_propriétés(ctx.ctx_calcul_style, it.noeud.propriétés)
-            largeur := calcule_pourcentage(ctx.ctx_calcul_style, flex_basis, largeur_disponible).pixels
+            largeur := calcule_pourcentage(ctx.ctx_calcul_style, flex_basis, largeur_disponible).donne_pixels()
             it.flex_base_size = largeur comme r32
             continue
         }
 
         si flex_basis.est_pixels() {
-            it.flex_base_size = flex_basis.pixels comme r32
+            it.flex_base_size = flex_basis.donne_pixels() comme r32
             continue
         }
 
@@ -1362,13 +1362,13 @@ determine_the_flex_base_size_and_hypothetical_main_size_of_each_item :: fonc (ct
     pour * ctx.items {
         it.hypothetical_main_size = it.flex_base_size
         min_width := it.noeud.propriétés.donne_valeur_utilisée(IDPropriété.MinWidth)
-        si min_width.est_pixels() && it.hypothetical_main_size < min_width.pixels {
-            it.hypothetical_main_size = min_width.pixels comme r32
+        si min_width.est_pixels() && it.hypothetical_main_size < min_width.donne_pixels() {
+            it.hypothetical_main_size = min_width.donne_pixels() comme r32
         }
 
         max_width := it.noeud.propriétés.donne_valeur_utilisée(IDPropriété.MaxWidth)
-        si max_width.est_pixels() && it.hypothetical_main_size > max_width.pixels {
-            it.hypothetical_main_size = max_width.pixels comme r32
+        si max_width.est_pixels() && it.hypothetical_main_size > max_width.donne_pixels() {
+            it.hypothetical_main_size = max_width.donne_pixels() comme r32
         }
         imprime("item[%].flex_base_size : %, .hypothetical_main_size : %\n", index_it, it.flex_base_size, it.hypothetical_main_size)
     }
@@ -1562,13 +1562,13 @@ resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneF
             target_main_size := it.target_main_size
 
             min_width := it.noeud.propriétés.donne_valeur_utilisée(IDPropriété.MinWidth)
-            si min_width.est_pixels() && target_main_size < min_width.pixels {
-                target_main_size = min_width.pixels comme r32
+            si min_width.est_pixels() && target_main_size < min_width.donne_pixels() {
+                target_main_size = min_width.donne_pixels() comme r32
             }
 
             max_width := it.noeud.propriétés.donne_valeur_utilisée(IDPropriété.MaxWidth)
-            si max_width.est_pixels() && target_main_size > max_width.pixels {
-                target_main_size = max_width.pixels comme r32
+            si max_width.est_pixels() && target_main_size > max_width.donne_pixels() {
+                target_main_size = max_width.donne_pixels() comme r32
             }
 
             it.violation = target_main_size - it.target_main_size
@@ -2016,23 +2016,23 @@ formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox)
 
         width = it.box.propriétés.donne_valeur_calculée(IDPropriété.Width)
         si width.est_pixels() {
-            si width.pixels > it.minimum_content_width {
-                it.minimum_content_width = width.pixels
+            si width.donne_pixels() > it.minimum_content_width {
+                it.minimum_content_width = width.donne_pixels()
             }
 
-            si width.pixels > it.maximum_content_width {
-                it.maximum_content_width = width.pixels
+            si width.donne_pixels() > it.maximum_content_width {
+                it.maximum_content_width = width.donne_pixels()
             }
         }
 
         min_width := it.box.propriétés.donne_valeur_calculée(IDPropriété.MinWidth)
         si min_width.est_pixels() {
-            si min_width.pixels > it.minimum_content_width {
-                it.minimum_content_width = min_width.pixels
+            si min_width.donne_pixels() > it.minimum_content_width {
+                it.minimum_content_width = min_width.donne_pixels()
             }
 
-            si min_width.pixels > it.maximum_content_width {
-                it.maximum_content_width = min_width.pixels
+            si min_width.donne_pixels() > it.maximum_content_width {
+                it.maximum_content_width = min_width.donne_pixels()
             }
         }
 
@@ -2121,7 +2121,7 @@ formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox)
     largeur := calcule_largeur_table(ctx, table)
     largeur_du_contenu := largeur
 
-    border_spacing := table.propriétés.donne_valeur_calculée(IDPropriété.BorderSpacing).pixels
+    border_spacing := table.propriétés.donne_valeur_calculée(IDPropriété.BorderSpacing).donne_pixels()
     border_collapse := table.propriétés.donne_valeur_calculée(IDPropriété.BorderCollapse)
 
     utilise_border_spacing := border_collapse.est_mot_clé(PROP_separate)
@@ -2299,7 +2299,7 @@ calcule_largeur_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox
     }
 
     saufsi width.est_auto() {
-        W := width.pixels
+        W := width.donne_pixels()
         used_width := max(W, CAPMIN, MIN)
 
         si used_width > MIN {
@@ -2407,8 +2407,8 @@ dispose_cellules_ligne :: fonc (ctx: *ContexteDeFormattageTable, ligne: *LigneDe
 
     // À FAIRE : résoud ceci proprement
     prop_height := row.propriétés.donne_valeur_calculée(IDPropriété.Height)
-    si prop_height.est_pixels() && ligne.hauteur < prop_height.pixels {
-        ligne.hauteur = prop_height.pixels comme r32
+    si prop_height.est_pixels() && ligne.hauteur < prop_height.donne_pixels() {
+        ligne.hauteur = prop_height.donne_pixels() comme r32
     }
 
     aligne_cellules_verticalement(ctx, ligne, AlignementCellule.Bottom)

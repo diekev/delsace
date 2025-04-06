@@ -99,7 +99,7 @@ NumericValue :: struct {
 }
 
 /* https://drafts.csswg.org/css-values/#determine-the-type-of-a-calculation */
-donne_numeric_value :: fonc (valeur: ValeurDeStyle) -> Optionnel(NumericValue)
+donne_numeric_value :: fonc (valeur: *ValeurDeStyle) -> Optionnel(NumericValue)
 {
     résultat: NumericValue
     discr valeur {
@@ -137,7 +137,7 @@ donne_numeric_value :: fonc (valeur: ValeurDeStyle) -> Optionnel(NumericValue)
 NoeudDeCalcul :: struct {
     est_opérateur: bool
     opérateur_calc: OpérateurCalc
-    valeur: ValeurDeStyle
+    valeur: *ValeurDeStyle
 }
 
 opérateur == :: fonc (a: NoeudDeCalcul, b: NoeudDeCalcul) -> bool #horsligne
@@ -166,7 +166,7 @@ copie_calc :: fonc (src: CalcFunction) -> CalcFunction
     retourne résultat
 }
 
-/* À FAIRE(langage) : erreur de compilation C, sur impossibilité d'enligné opérateur==(ValeurDeStyle, ValeurDeStyle)
+/* À FAIRE(langage) : erreur de compilation C, sur impossibilité d'enligné opérateur==(ValeurDeStyle, *ValeurDeStyle)
  * si la boucle dans cette fonction est faite dans l'opérateur sus-mentionné, ou si #horsligne est manquant. */
 opérateur == :: fonc (calc1: CalcFunction, calc2: CalcFunction) -> bool #horsligne
 {
@@ -196,7 +196,7 @@ opérateur == :: fonc (calc1: CalcFunction, calc2: CalcFunction) -> bool #horsli
 
             valeur := applique_opérateur_calc(op, gauche, droite)
             saufsi valeur.possède_valeur() {
-                imprime("Impossible de calculer : %\n", ValeurDeStyle(calc = calc))
+                imprime("Impossible de calculer : %\n", *ValeurDeStyle(calc = calc))
                 retourne ErreurDeCalcul.FormuleInvalide
             }
 
@@ -208,22 +208,22 @@ opérateur == :: fonc (calc1: CalcFunction, calc2: CalcFunction) -> bool #horsli
 
         si valeur.est_percentage() {
             si ctx.pour_résolution_pourcentage {
-                valeur = ValeurDeStyle(pixels = valeur.percentage * ctx.référence_pourcentage / 100.0)
+                valeur = *ValeurDeStyle(pixels = valeur.percentage * ctx.référence_pourcentage / 100.0)
             }
             sinon si genre_valeur_calculée.FontSize || genre_valeur_calculée.LineHeight {
-                valeur = ValeurDeStyle(pixels = valeur.percentage * ctx.longueurs_relative_fonte.em / 100.0)
+                valeur = *ValeurDeStyle(pixels = valeur.percentage * ctx.longueurs_relative_fonte.em / 100.0)
             }
             sinon {
                 retourne ErreurDeCalcul.PourcentageIncalculable
             }
         }
         sinon si it.valeur.est_longueur() {
-            valeur = ValeurDeStyle(pixels = calcule_longueur(valeur.longueur, ctx))
+            valeur = *ValeurDeStyle(pixels = calcule_longueur(valeur.longueur, ctx))
         }
 
         numeric_value := donne_numeric_value(valeur)
         saufsi numeric_value.possède_valeur() {
-            imprime("Impossible de calculer : %\n", ValeurDeStyle(calc = calc))
+            imprime("Impossible de calculer : %\n", *ValeurDeStyle(calc = calc))
             retourne ErreurDeCalcul.FormuleInvalide
         }
 
@@ -231,7 +231,7 @@ opérateur == :: fonc (calc1: CalcFunction, calc2: CalcFunction) -> bool #horsli
     }
 
     si pile.taille() != 1 {
-        imprime("Trop de valeurs restantes pour : %\n", ValeurDeStyle(calc = calc))
+        imprime("Trop de valeurs restantes pour : %\n", *ValeurDeStyle(calc = calc))
         retourne ErreurDeCalcul.FormuleInvalide
     }
 
@@ -306,379 +306,439 @@ applique_opérateur_calc :: fonc (op: OpérateurCalc, gauche: NumericValue, droi
         }
     }
 }
+/* ------------------------------------------------------------------------- */
+/** \nom ValeurDeStyle
+ * https://www.w3.org/TR/css-values/#value-defs
+ * \{ */
 
-/* https://www.w3.org/TR/css-values/#value-defs */
-ValeurDeStyle :: union {
-    mot_clé: CSSOMString
-    url: CSSOMString
-    url_absolu: chaine
-    couleur: CouleurRVBAN8
-    longueur: Longueur
-    integer: r64
-    number: r64
-    percentage: r64
-    /* Valeur finale pour les longueurs, etc. */
-    pixels: r64
-    text_decoration_line: TextDecorationLine
-    line_style: LineStyle
-    display: Display
-    cursor: CursorType
-    variable: Variable
-    calc: CalcFunction
-    background_repeat: BackgroundRepeat
+TypeValeurDeStyle :: énum n16 {
+    MotClé
+    TextDecorationLine
+    LineStyle
+    CursorType
+    URL
+    Couleur
+    Integer
+    Number
+    Percentage
+    Longueur
+    Pixels
+    Variable
+    Calc
+    Display
+    BackgroundRepeat
 }
 
-sont_mêmes_valeurs :: fonc (a: ValeurDeStyle, b: ValeurDeStyle) -> bool
-{
-    discr a {
-        mot_clé(m) {
-            retourne b.est_mot_clé(m)
-        }
-        url(u) {
-            discr b {
-                url(ub) {
-                    retourne ub == u
-                }
-                sinon {
-                    retourne faux
-                }
-            }
-        }
-        url_absolu(u) {
-            discr b {
-                url_absolu(ub) {
-                    retourne ub == u
-                }
-                sinon {
-                    retourne faux
-                }
-            }
-        }
-        couleur(c) {
-            discr b {
-                couleur(cb) {
-                    retourne cb == c
-                }
-                sinon {
-                    retourne faux
-                }
-            }
-        }
-        longueur(l) {
-            discr b {
-                longueur(lb) {
-                    retourne lb == l
-                }
-                sinon {
-                    retourne faux
-                }
-            }
-
-        }
-        integer(i) {
-            discr b {
-                integer(ib) {
-                    retourne ib == i
-                }
-                sinon {
-                    retourne faux
-                }
-            }
-        }
-        number(n) {
-            discr b {
-                number(nb) {
-                    retourne nb == n
-                }
-                sinon {
-                    retourne faux
-                }
-            }
-        }
-        pixels(p) {
-            discr b {
-                pixels(pb) {
-                    retourne pb == p
-                }
-                sinon {
-                    retourne faux
-                }
-            }
-        }
-        percentage(p) {
-            discr b {
-                percentage(pb) {
-                    retourne pb == p
-                }
-                sinon {
-                    retourne faux
-                }
-            }
-        }
-        text_decoration_line(t) {
-            discr b {
-                text_decoration_line(tb) {
-                    retourne tb == t
-                }
-                sinon {
-                    retourne faux
-                }
-            }
-        }
-        line_style(l) {
-            discr b {
-                line_style(lb) {
-                    retourne lb == l
-                }
-                sinon {
-                    retourne faux
-                }
-            }
-        }
-        display(d) {
-            discr b {
-                display(db) {
-                    retourne d == db
-                }
-                sinon {
-                    retourne faux
-                }
-            }
-        }
-        cursor(c) {
-            discr b {
-                cursor(cb) {
-                    retourne cb == c
-                }
-                sinon {
-                    retourne faux
-                }
-            }
-        }
-        variable(v) {
-            discr b {
-                variable(vb) {
-                    retourne vb.nom == v.nom
-                }
-                sinon {
-                    retourne faux
-                }
-            }
-        }
-        calc(c) {
-            discr b {
-                calc(cb) {
-                    retourne c == cb
-                }
-                sinon {
-                    retourne faux
-                }
-            }
-        }
-        background_repeat(br) {
-            discr b {
-                background_repeat(obr) {
-                    retourne obr == br
-                }
-                sinon {
-                    retourne faux
-                }
-            }
-        }
-        sinon {
-            retourne faux
-        }
-    }
-    retourne faux
+ValeurDeStyle :: struct {
+    type: TypeValeurDeStyle
+    /* Pour le délogement, afin de ne pas avoir à tester le type. */
+    taille_allouée: n16
+    utilisations: z32
 }
 
-copie_valeur :: fonc (valeur: ValeurDeStyle) -> ValeurDeStyle
-{
-    discr valeur {
-        variable(v) {
-            nouvelle_variable: Variable
-            nouvelle_variable.nom = v.nom
-            nouvelle_variable.fallback = tableau_copie(v.fallback)
-            retourne ValeurDeStyle(variable = nouvelle_variable)
-        }
-        url_absolu(u) {
-            retourne ValeurDeStyle(url_absolu = copie_chaine(u))
-        }
-        calc(c) {
-            nouveau_calc: CalcFunction
-            pour c.valeurs {
-                copie_noeud := it
-                copie_noeud.valeur = copie_valeur(it.valeur)
-                tableau_ajoute(*nouveau_calc.valeurs, copie_noeud)
-            }
-            retourne ValeurDeStyle(calc = nouveau_calc)
-        }
-        sinon {}
-    }
+ValeurMotClé :: struct {
+    empl base: ValeurDeStyle
+    type = TypeValeurDeStyle.MotClé
 
+    valeur: CSSOMString
+}
+
+ValeurURL :: struct {
+    empl base: ValeurDeStyle
+    type = TypeValeurDeStyle.URL
+
+    valeur: CSSOMString
+}
+
+ValeurCouleur :: struct {
+    empl base: ValeurDeStyle
+    type = TypeValeurDeStyle.Couleur
+
+    valeur: CouleurRVBAN8
+}
+
+ValeurLongueur :: struct {
+    empl base: ValeurDeStyle
+    type = TypeValeurDeStyle.Longueur
+
+    valeur: Longueur
+}
+
+ValeurInteger :: struct {
+    empl base: ValeurDeStyle
+    type = TypeValeurDeStyle.Integer
+
+    valeur: r64
+}
+
+ValeurNumber :: struct {
+    empl base: ValeurDeStyle
+    type = TypeValeurDeStyle.Number
+
+    valeur: r64
+}
+
+ValeurPercentage :: struct {
+    empl base: ValeurDeStyle
+    type = TypeValeurDeStyle.Percentage
+
+    valeur: r64
+}
+
+ValeurPixels :: struct {
+    empl base: ValeurDeStyle
+    type = TypeValeurDeStyle.Pixels
+
+    valeur: r64
+}
+
+ValeurDisplay :: struct {
+    empl base: ValeurDeStyle
+    type = TypeValeurDeStyle.Display
+
+    valeur: Display
+}
+
+ValeurVariable :: struct {
+    empl base: ValeurDeStyle
+    type = TypeValeurDeStyle.Variable
+
+    valeur: Variable
+}
+
+ValeurCalc :: struct {
+    empl base: ValeurDeStyle
+    type = TypeValeurDeStyle.Calc
+
+    valeur: CalcFunction
+    opérateur_calc: OpérateurCalc
+}
+
+ValeurBackgroundRepeat :: struct {
+    empl base: ValeurDeStyle
+    type = TypeValeurDeStyle.BackgroundRepeat
+
+    valeur: BackgroundRepeat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom
+ * \{ */
+
+crée_valeur_de_style :: fonc (valeur: $T, $V: type_de_données) -> *V
+{
+    résultat := loge(V)
+    résultat.taille_allouée = taill_de(V) comme n16
+    résultat.utilisations = 1
+    résultat.valeur = valeur
+    retourne résultat
+}
+
+copie_valeur :: fonc (valeur: *ValeurDeStyle) -> *ValeurDeStyle
+{
+    valeur.utilisations += 1
     retourne valeur
 }
 
-détruit_valeur_de_style :: fonc (value: *ValeurDeStyle)
+détruit_valeur_de_style :: fonc (valeur: *ValeurDeStyle)
 {
-    discr mémoire(value) {
-        variable(v) {
-            détruit_tableau_component_value(*v.fallback)
-        }
-        url_absolu(u) {
-            déloge_si_logée(u)
-        }
-        calc(c) {
-            déloge(c.valeurs)
-        }
-        sinon {}
+    valeur.utilisations -= 1
+    assert(valeur.utilisations >= 0)
+
+    si valeur.utilisations != 0 {
+        retourne
     }
+
+    si valeur.est_variable() {
+        variable := valeur.donne_variable()
+        détruit_tableau_component_value(*variable.fallback)
+    }
+    sinon si valeur.est_url() {
+        url := valeur.donne_url_absolu()
+        déloge_si_logée(url)
+    }
+    sinon si valeur.est_calc() {
+        calc := valeur.donne_calc()
+        déloge(c.valeurs)
+    }
+
+    déloge_mémoire(valeur.taille_allouée comme z64, valeur, nul, PositionCodeSource())
 }
 
-est_mot_clé :: fonc (valeur: ValeurDeStyle, mot_clé: CSSOMString) -> bool
+sont_mêmes_valeurs :: fonc (a: *ValeurDeStyle, b: *ValeurDeStyle) -> bool
 {
-    discr valeur {
-        mot_clé(m) {
-            retourne m == mot_clé
+    si a == b {
+        retourne vrai
+    }
+
+    si a.type != b.type {
+        retourne faux
+    }
+
+    discr a.type {
+        MotClé {
+            retourne a.donne_mot_clé() == b.donne_mot_clé()
         }
-        sinon {
-            retourne faux
+        TextDecorationLine {
+            retourne a.donne_text_decoration_line() == b.donne_text_decoration_line()
+        }
+        LineStyle {
+            retourne a.donne_line_style() == b.donne_line_style()
+        }
+        CursorType {
+            retourne a.donne_cursor_type() == b.donne_cursor_type()
+        }
+        URL {
+            retourne a.donne_url() == b.donne_url()
+        }
+        Couleur {
+            retourne a.donne_couleur() == b.donne_couleur()
+        }
+        Integer {
+            retourne a.donne_integer() == b.donne_integer()
+        }
+        Number {
+            retourne a.donne_number() == b.donne_number()
+        }
+        Percentage {
+            retourne a.donne_percentage() == b.donne_percentage()
+        }
+        Longueur {
+            retourne a.donne_longueur() == b.donne_longueur()
+        }
+        Pixels {
+            retourne a.donne_pixels() == b.donne_pixels()
+        }
+        Variable {
+            retourne a.donne_variable() == b.donne_variable()
+        }
+        Calc {
+            retourne a.donne_calc() == b.donne_calc()
+        }
+        Display {
+            retourne a.donne_display() == b.donne_display()
+        }
+        BackgroundRepeat {
+            retourne a.donne_background_repeat() == b.donne_background_repeat()
         }
     }
+
+    retourne faux
 }
 
-est_auto :: fonc (valeur: ValeurDeStyle) -> bool
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Accésseurs ValeurDeStyle
+ * \{ */
+
+donne_line_style :: fonc (valeur: *ValeurDeStyle) -> LineStyle
+{
+    assert(valeur.type == TypeValeurDeStyle.LineStyle)
+
+    si valeur.est_mot_clé(PROP_none) {
+        retourne LineStyle.None
+    }
+    si valeur.est_mot_clé(PROP_hidden) {
+        retourne LineStyle.Hidden
+    }
+    si valeur.est_mot_clé(PROP_dotted) {
+        retourne LineStyle.Dotted
+    }
+    si valeur.est_mot_clé(PROP_dashed) {
+        retourne LineStyle.Dashed
+    }
+    si valeur.est_mot_clé(PROP_solid) {
+        retourne LineStyle.Solid
+    }
+    si valeur.est_mot_clé(PROP_double) {
+        retourne LineStyle.Double
+    }
+    si valeur.est_mot_clé(PROP_groove) {
+        retourne LineStyle.Groove
+    }
+    si valeur.est_mot_clé(PROP_ridge) {
+        retourne LineStyle.Ridge
+    }
+    si valeur.est_mot_clé(PROP_inset) {
+        retourne LineStyle.Inset
+    }
+    si valeur.est_mot_clé(PROP_outset) {
+        retourne LineStyle.Outset
+    }
+
+    imprime("[%] %\n", #nom_de_cette_fonction, valeur)
+    panique("LineStyle inconnu")
+}
+
+donne_text_decoration_line :: fonc (valeur: *ValeurDeStyle) -> TextDecorationLine
+{
+    assert(valeur.type == TypeValeurDeStyle.TextDecorationLine)
+}
+
+donne_cursor_type :: fonc (valeur: *ValeurDeStyle) -> CursorType
+{
+    assert(valeur.type == TypeValeurDeStyle.CursorType)
+}
+
+donne_mot_clé :: fonc (valeur: *ValeurDeStyle) -> CSSOMString
+{
+    assert(valeur.type == TypeValeurDeStyle.MotClé)
+    retourne (valeur comme *ValeurMotClé).valeur
+}
+
+donne_url :: fonc (valeur: *ValeurDeStyle) -> CSSOMString
+{
+    assert(valeur.type == TypeValeurDeStyle.URL)
+    retourne (valeur comme *ValeurURL).valeur
+}
+
+donne_couleur :: fonc (valeur: *ValeurDeStyle) -> CouleurRVBAN8
+{
+    assert(valeur.type == TypeValeurDeStyle.Couleur)
+    retourne (valeur comme *ValeurCouleur).valeur
+}
+
+donne_integer :: fonc (valeur: *ValeurDeStyle) -> r64
+{
+    assert(valeur.type == TypeValeurDeStyle.Integer)
+    retourne (valeur comme *ValeurInteger).valeur
+}
+
+donne_number :: fonc (valeur: *ValeurDeStyle) -> r64
+{
+    assert(valeur.type == TypeValeurDeStyle.Number)
+    retourne (valeur comme *ValeurNumber).valeur
+}
+
+donne_percentage :: fonc (valeur: *ValeurDeStyle) -> r64
+{
+    assert(valeur.type == TypeValeurDeStyle.Percentage)
+    retourne (valeur comme *ValeurPercentage).valeur
+}
+
+donne_longueur :: fonc (valeur: *ValeurDeStyle) -> Longueur
+{
+    assert(valeur.type == TypeValeurDeStyle.Longueur)
+    retourne (valeur comme *ValeurLongueur).valeur
+}
+
+donne_pixels :: fonc (valeur: *ValeurDeStyle) -> r64
+{
+    assert(valeur.type == TypeValeurDeStyle.Pixels)
+    retourne (valeur comme *ValeurPixels).valeur
+}
+
+donne_variable :: fonc (valeur: *ValeurDeStyle) -> Variable
+{
+    assert(valeur.type == TypeValeurDeStyle.Variable)
+    retourne (valeur comme *ValeurVariable).valeur
+}
+
+donne_calc :: fonc (valeur: *ValeurDeStyle) -> Calc
+{
+    assert(valeur.type == TypeValeurDeStyle.Calc)
+    retourne (valeur comme *ValeurCalc).valeur
+}
+
+donne_display :: fonc (valeur: *ValeurDeStyle) -> Display
+{
+    assert(valeur.type == TypeValeurDeStyle.Display)
+    retourne (valeur comme *ValeurDisplay).valeur
+}
+
+donne_background_repeat :: fonc (valeur: *ValeurDeStyle) -> BackgroundRepeat
+{
+    assert(valeur.type == TypeValeurDeStyle.BackgroundRepeat)
+    retourne (valeur comme *ValeurBackgroundRepeat).valeur
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Tests des types et valeurs de ValeurDeStyle
+ * \{ */
+
+est_mot_clé :: fonc (valeur: *ValeurDeStyle, mot_clé: CSSOMString) -> bool
+{
+    retourne valeur.type == TypeValeurDeStyle.MotClé && valeur.donne_mot_clé() == mot_clé
+}
+
+est_auto :: fonc (valeur: *ValeurDeStyle) -> bool
 {
     retourne est_mot_clé(valeur, PROP_auto)
 }
 
-est_none :: fonc (valeur: ValeurDeStyle) -> bool
+est_none :: fonc (valeur: *ValeurDeStyle) -> bool
 {
     retourne est_mot_clé(valeur, PROP_none)
 }
 
-est_percentage :: fonc (valeur: ValeurDeStyle) -> bool
+est_percentage :: fonc (valeur: *ValeurDeStyle) -> bool
 {
-    discr valeur {
-        percentage {
-            retourne vrai
-        }
-        sinon {
-            retourne faux
-        }
-    }
+    retourne valeur.type == TypeValeurDeStyle.Percentage
 }
 
-est_nombre :: fonc (valeur: ValeurDeStyle) -> bool
+est_nombre :: fonc (valeur: *ValeurDeStyle) -> bool
 {
-    discr valeur {
-        number {
-            retourne vrai
-        }
-        sinon {
-            retourne faux
-        }
-    }
+    retourne valeur.type == TypeValeurDeStyle.Number
 }
 
-est_integer :: fonc (valeur: ValeurDeStyle) -> bool
+est_integer :: fonc (valeur: *ValeurDeStyle) -> bool
 {
-    discr valeur {
-        integer {
-            retourne vrai
-        }
-        sinon {
-            retourne faux
-        }
-    }
+    retourne valeur.type == TypeValeurDeStyle.Integer
 }
 
-est_longueur :: fonc (valeur: ValeurDeStyle) -> bool
+est_longueur :: fonc (valeur: *ValeurDeStyle) -> bool
 {
-    discr valeur {
-        longueur {
-            retourne vrai
-        }
-        sinon {
-            retourne faux
-        }
-    }
+    retourne valeur.type == TypeValeurDeStyle.Longueur
 }
 
-est_pixels :: fonc (valeur: ValeurDeStyle) -> bool
+est_pixels :: fonc (valeur: *ValeurDeStyle) -> bool
 {
-    discr valeur {
-        pixels {
-            retourne vrai
-        }
-        sinon {
-            retourne faux
-        }
-    }
+    retourne valeur.type == TypeValeurDeStyle.Pixels
 }
 
-est_variable :: fonc (valeur: ValeurDeStyle) -> bool
+est_variable :: fonc (valeur: *ValeurDeStyle) -> bool
 {
-    discr valeur {
-        variable {
-            retourne vrai
-        }
-        sinon {
-            retourne faux
-        }
-    }
+    retourne valeur.type == TypeValeurDeStyle.Variable
 }
 
-est_couleur :: fonc (valeur: ValeurDeStyle) -> bool
+est_couleur :: fonc (valeur: *ValeurDeStyle) -> bool
 {
-    discr valeur {
-        couleur {
-            retourne vrai
-        }
-        sinon {
-            retourne faux
-        }
-    }
+    retourne valeur.type == TypeValeurDeStyle.Couleur
 }
 
-est_calc :: fonc (valeur: ValeurDeStyle) -> bool
+est_calc :: fonc (valeur: *ValeurDeStyle) -> bool
 {
-    discr valeur {
-        calc {
-            retourne vrai
-        }
-        sinon {
-            retourne faux
-        }
-    }
+    retourne valeur.type == TypeValeurDeStyle.Calc
 }
 
-est_négative :: fonc (valeur: ValeurDeStyle) -> bool
+est_négative :: fonc (valeur: *ValeurDeStyle) -> bool
 {
-    discr valeur {
-        longueur(l) {
-            retourne l.valeur < 0.0
-        }
-        integer(i) {
-            retourne i < 0.0
-        }
-        number(n) {
-            retourne n < 0.0
-        }
-        pixels(p) {
-            retourne p < 0.0
-        }
-        percentage(p) {
-            retourne p < 0.0
-        }
-        sinon {
-            retourne faux
-        }
+    si valeur.est_longueur() {
+        retourne valeur.donne_longueur().valeur < 0.0
+    }
+    si valeur.est_integer() {
+        retourne valeur.donne_integer() < 0.0
+    }
+    si valeur.est_number() {
+        retourne valeur.donne_number() < 0.0
+    }
+    si valeur.est_pixels() {
+        retourne valeur.donne_pixels() < 0.0
+    }
+    si valeur.est_percentage() {
+        retourne valeur.donne_percentage() < 0.0
     }
     retourne faux
 }
 
-imprime_valeur_de_style :: fonc (enchaineuse: *Enchaineuse, valeur: *ValeurDeStyle)
+/** \} */
+
+imprime_valeur_de_style :: fonc (enchaineuse: *Enchaineuse, valeur: **ValeurDeStyle)
 {
     saufsi valeur {
         retourne
@@ -854,23 +914,23 @@ donne_déclaration_propriété_personnalisée :: fonc (propriétés: *Propriét�
     retourne nul
 }
 
-donne_valeur_calculée :: fonc (propriétés: *PropriétésDeStyle, id: IDPropriété) -> ValeurDeStyle
+donne_valeur_calculée :: fonc (propriétés: *PropriétésDeStyle, id: IDPropriété) -> *ValeurDeStyle
 {
     retourne propriétés.style.valeurs[id]
 }
 
-définis_valeur_calculée :: fonc (propriétés: *PropriétésDeStyle, id: IDPropriété, valeur: ValeurDeStyle)
+définis_valeur_calculée :: fonc (propriétés: *PropriétésDeStyle, id: IDPropriété, valeur: *ValeurDeStyle)
 {
     assert(!valeur.est_calc())
     propriétés.style.valeurs[id] = valeur
 }
 
-donne_valeur_utilisée :: fonc (propriétés: *PropriétésDeStyle, id: IDPropriété) -> ValeurDeStyle
+donne_valeur_utilisée :: fonc (propriétés: *PropriétésDeStyle, id: IDPropriété) -> *ValeurDeStyle
 {
     retourne propriétés.style_utilisée.valeurs[id]
 }
 
-définis_valeur_utilisée :: fonc (propriétés: *PropriétésDeStyle, id: IDPropriété, valeur: ValeurDeStyle)
+définis_valeur_utilisée :: fonc (propriétés: *PropriétésDeStyle, id: IDPropriété, valeur: *ValeurDeStyle)
 {
     assert(!valeur.est_calc())
     propriétés.style_utilisée.valeurs[id] = valeur
@@ -1213,46 +1273,9 @@ BorderEdge :: énum {
 }
 
 Border :: struct {
-    width: [4]ValeurDeStyle
+    width: [4]*ValeurDeStyle
     style: [4]LineStyle
-    color: [4]ValeurDeStyle
-}
-
-donne_line_style :: fonc (value: ValeurDeStyle) -> LineStyle
-{
-    si value.est_mot_clé(PROP_none) {
-        retourne LineStyle.None
-    }
-    si value.est_mot_clé(PROP_hidden) {
-        retourne LineStyle.Hidden
-    }
-    si value.est_mot_clé(PROP_dotted) {
-        retourne LineStyle.Dotted
-    }
-    si value.est_mot_clé(PROP_dashed) {
-        retourne LineStyle.Dashed
-    }
-    si value.est_mot_clé(PROP_solid) {
-        retourne LineStyle.Solid
-    }
-    si value.est_mot_clé(PROP_double) {
-        retourne LineStyle.Double
-    }
-    si value.est_mot_clé(PROP_groove) {
-        retourne LineStyle.Groove
-    }
-    si value.est_mot_clé(PROP_ridge) {
-        retourne LineStyle.Ridge
-    }
-    si value.est_mot_clé(PROP_inset) {
-        retourne LineStyle.Inset
-    }
-    si value.est_mot_clé(PROP_outset) {
-        retourne LineStyle.Outset
-    }
-
-    imprime("[%] %\n", #nom_de_cette_fonction, value)
-    panique("LineStyle inconnu")
+    color: [4]*ValeurDeStyle
 }
 
 LongueursRelativesFonte :: struct {
@@ -1340,7 +1363,7 @@ résoud_pourcentage :: fonc (ctx: *ContexteCalculStyle, id: IDPropriété, réf�
     ctx.propriétés.définis_valeur_calculée(id, calcule_pourcentage(ctx, valeur, référence))
 }
 
-calcule_pourcentage :: fonc (ctx: *ContexteCalculStyle, valeur: ValeurDeStyle, référence: r64) -> ValeurDeStyle
+calcule_pourcentage :: fonc (ctx: *ContexteCalculStyle, valeur: *ValeurDeStyle, référence: r64) -> *ValeurDeStyle
 {
     ctx.pour_résolution_pourcentage = vrai
     diffère ctx.pour_résolution_pourcentage = faux
@@ -1584,13 +1607,13 @@ est_propriété_fonte :: fonc (id: IDPropriété) -> bool
 }
 
 Style :: struct {
-    valeurs: [IDPropriété.nombre_éléments]ValeurDeStyle
+    valeurs: [IDPropriété.nombre_éléments]*ValeurDeStyle
 }
 
 initialise_style :: fonc (style: *Style)
 {
-    style.valeurs[IDPropriété.Display] = ValeurDeStyle(display = Display())
-    style.valeurs[IDPropriété.Cursor] = ValeurDeStyle(cursor = CursorType.auto)
+    style.valeurs[IDPropriété.Display] = donne_valeur_display_défaut()
+    style.valeurs[IDPropriété.Cursor] = donne_valeur_auto()
     style.valeurs[IDPropriété.Position] = donne_valeur_static()
     style.valeurs[IDPropriété.Float] = donne_valeur_none()
     style.valeurs[IDPropriété.Clear] = donne_valeur_none()
@@ -1621,10 +1644,10 @@ initialise_style :: fonc (style: *Style)
     style.valeurs[IDPropriété.BorderWidthRight] = donne_valeur_medium()
     style.valeurs[IDPropriété.BorderWidthTop] = donne_valeur_medium()
 
-    style.valeurs[IDPropriété.BorderStyleBottom] = ValeurDeStyle(line_style = LineStyle.None)
-    style.valeurs[IDPropriété.BorderStyleLeft] = ValeurDeStyle(line_style = LineStyle.None)
-    style.valeurs[IDPropriété.BorderStyleRight] = ValeurDeStyle(line_style = LineStyle.None)
-    style.valeurs[IDPropriété.BorderStyleTop] = ValeurDeStyle(line_style = LineStyle.None)
+    style.valeurs[IDPropriété.BorderStyleBottom] = donne_valeur_none()
+    style.valeurs[IDPropriété.BorderStyleLeft] = donne_valeur_none()
+    style.valeurs[IDPropriété.BorderStyleRight] = donne_valeur_none()
+    style.valeurs[IDPropriété.BorderStyleTop] = donne_valeur_none()
 
     style.valeurs[IDPropriété.BorderColorBottom] = donne_valeur_currentColor()
     style.valeurs[IDPropriété.BorderColorLeft] = donne_valeur_currentColor()
@@ -1693,10 +1716,10 @@ donne_bordure :: fonc (style: *Style) -> Border
     résultat.width[BorderEdge.Left] = style.valeurs[IDPropriété.BorderWidthLeft]
     résultat.width[BorderEdge.Right] = style.valeurs[IDPropriété.BorderWidthRight]
 
-    résultat.style[BorderEdge.Top] = style.valeurs[IDPropriété.BorderStyleTop]
-    résultat.style[BorderEdge.Bottom] = style.valeurs[IDPropriété.BorderStyleBottom]
-    résultat.style[BorderEdge.Left] = style.valeurs[IDPropriété.BorderStyleLeft]
-    résultat.style[BorderEdge.Right] = style.valeurs[IDPropriété.BorderStyleRight]
+    résultat.style[BorderEdge.Top] = style.valeurs[IDPropriété.BorderStyleTop].donne_line_style()
+    résultat.style[BorderEdge.Bottom] = style.valeurs[IDPropriété.BorderStyleBottom].donne_line_style()
+    résultat.style[BorderEdge.Left] = style.valeurs[IDPropriété.BorderStyleLeft].donne_line_style()
+    résultat.style[BorderEdge.Right] = style.valeurs[IDPropriété.BorderStyleRight].donne_line_style()
 
     résultat.color[BorderEdge.Top] = style.valeurs[IDPropriété.BorderColorTop]
     résultat.color[BorderEdge.Bottom] = style.valeurs[IDPropriété.BorderColorBottom]
@@ -2000,7 +2023,7 @@ GenreValeurCalculée :: énum_drapeau {
     LineHeight
 }
 
-calcule_valeur_propriété_générique :: fonc (valeur: ValeurDeStyle, genre_valeur_calculée: GenreValeurCalculée, style: *Style, ctx: *ContexteCalculStyle) -> Optionnel(ValeurDeStyle)
+calcule_valeur_propriété_générique :: fonc (valeur: *ValeurDeStyle, genre_valeur_calculée: GenreValeurCalculée, style: *Style, ctx: *ContexteCalculStyle) -> Optionnel(ValeurDeStyle)
 {
     discr valeur {
         mot_clé(m) {
@@ -2324,7 +2347,7 @@ calcule_valeur_propriété_générique :: fonc (déclaration: *DéclarationPropr
 }
 
 /* À FAIRE : variables récurives. */
-résoud_valeur_variable :: fonc (ctx: *ContexteCalculStyle, info: *InfoTypePropriété, variable: Variable, id: IDPropriété) -> ValeurDeStyle
+résoud_valeur_variable :: fonc (ctx: *ContexteCalculStyle, info: *InfoTypePropriété, variable: Variable, id: IDPropriété) -> *ValeurDeStyle
 {
     déclaration := donne_déclaration_propriété_personnalisée(ctx.propriétés, variable.nom)
     saufsi déclaration {
@@ -2339,7 +2362,7 @@ résoud_valeur_variable :: fonc (ctx: *ContexteCalculStyle, info: *InfoTypePropr
     retourne ctx.valeurs_initiales.valeurs[id]
 }
 
-calcule_display_pour_mot_clé :: fonc (mot_clé: CSSOMString) -> ValeurDeStyle
+calcule_display_pour_mot_clé :: fonc (mot_clé: CSSOMString) -> *ValeurDeStyle
 {
     résultat: Display
 
@@ -2421,7 +2444,7 @@ calcule_display_pour_mot_clé :: fonc (mot_clé: CSSOMString) -> ValeurDeStyle
     retourne ValeurDeStyle(display = résultat)
 }
 
-calcule_font_size_pour_mot_clé :: fonc (m: CSSOMString, ctx: *ContexteCalculStyle) -> ValeurDeStyle
+calcule_font_size_pour_mot_clé :: fonc (m: CSSOMString, ctx: *ContexteCalculStyle) -> *ValeurDeStyle
 {
     taille_fonte_référence := ctx.longueurs_relative_fonte.em
     taille_fonte := taille_fonte_référence
@@ -2625,114 +2648,190 @@ prop_border_inline_start_width_sur_calcul_style :: fonc (déclaration: *Déclara
 /** \nom Valeurs par défaut.
  * \{ */
 
-donne_valeur_pixels_zéro :: fonc () -> ValeurDeStyle
+#portée_fichier
+
+__valeur_display_défaut : ValeurDisplay = ---
+__valeur_pixels_zéro : ValeurPixels = ---
+__valeur_number_zéro : ValeurNumber = ---
+__valeur_number_un : ValeurNumber = ---
+__valeur_auto : ValeurMotClé = ---
+__valeur_none : ValeurMotClé = ---
+__valeur_currentColor : ValeurMotClé = ---
+__valeur_medium : ValeurMotClé = ---
+__valeur_normal : ValeurMotClé = ---
+__valeur_content : ValeurMotClé = ---
+__valeur_solid : ValeurMotClé = ---
+__valeur_serif : ValeurMotClé = ---
+__valeur_visible : ValeurMotClé = ---
+__valeur_transparent : ValeurMotClé = ---
+__valeur_scroll : ValeurMotClé = ---
+__valeur_separate : ValeurMotClé = ---
+__valeur_static : ValeurMotClé = ---
+__valeur_baseline : ValeurMotClé = ---
+__valeur_start : ValeurMotClé = ---
+__valeur_flex_start : ValeurMotClé = ---
+__valeur_row : ValeurMotClé = ---
+__valeur_nowrap : ValeurMotClé = ---
+__valeur_content_box : ValeurMotClé = ---
+
+__valeurs_défauts_initialisées := faux
+
+initialise_valeurs_défaut :: fonc ()
 {
-    retourne ValeurDeStyle(pixels = 0.0)
+    si __valeurs_défauts_initialisées {
+        retourne
+    }
+
+    __valeurs_défauts_initialisées = vrai
+
+    __valeur_display_défaut = ValeurDisplay(utilisations = 1, valeur = Display())
+    __valeur_pixels_zéro = ValeurPixels(utilisations = 1, valeur = 0.0)
+    __valeur_number_zéro = ValeurNumber(utilisations = 1, valeur = 0.0)
+    __valeur_number_un = ValeurNumber(utilisations = 1, valeur = 1.0)
+    __valeur_auto = ValeurMotClé(utilisations = 1, valeur = PROP_auto)
+    __valeur_none = ValeurMotClé(utilisations = 1, valeur = PROP_none)
+    __valeur_currentColor = ValeurMotClé(utilisations = 1, valeur = PROP_currentColor)
+    __valeur_medium = ValeurMotClé(utilisations = 1, valeur = PROP_medium)
+    __valeur_normal = ValeurMotClé(utilisations = 1, valeur = PROP_normal)
+    __valeur_content = ValeurMotClé(utilisations = 1, valeur = PROP_content)
+    __valeur_solid = ValeurMotClé(utilisations = 1, valeur = PROP_solid)
+    __valeur_serif = ValeurMotClé(utilisations = 1, valeur = PROP_serif)
+    __valeur_visible = ValeurMotClé(utilisations = 1, valeur = PROP_visible)
+    __valeur_transparent = ValeurMotClé(utilisations = 1, valeur = PROP_transparent)
+    __valeur_scroll = ValeurMotClé(utilisations = 1, valeur = PROP_scroll)
+    __valeur_separate = ValeurMotClé(utilisations = 1, valeur = PROP_separate)
+    __valeur_static = ValeurMotClé(utilisations = 1, valeur = PROP_static)
+    __valeur_baseline = ValeurMotClé(utilisations = 1, valeur = PROP_baseline)
+    __valeur_start = ValeurMotClé(utilisations = 1, valeur = PROP_start)
+    __valeur_flex_start = ValeurMotClé(utilisations = 1, valeur = PROP_flex_start)
+    __valeur_row = ValeurMotClé(utilisations = 1, valeur = PROP_row)
+    __valeur_nowrap = ValeurMotClé(utilisations = 1, valeur = PROP_nowrap)
+    __valeur_content_box = ValeurMotClé(utilisations = 1, valeur = PROP_content_box)
 }
 
-donne_valeur_number_zéro :: fonc () -> ValeurDeStyle
+donne_valeur_défaut :: fonc (valeur: *ValeurDeStyle) -> *ValeurDeStyle
 {
-    retourne ValeurDeStyle(number = 0.0)
+    initialise_valeurs_défaut()
+
+    valeur.utilisations += 1
+    retourne valeur
 }
 
-donne_valeur_number_un :: fonc () -> ValeurDeStyle
+#portée_module
+
+donne_valeur_display_défaut :: fonc () -> *ValeurDeStyle
 {
-    retourne ValeurDeStyle(number = 1.0)
+    retourne donne_valeur_défaut(*__valeur_display_défaut)
 }
 
-donne_valeur_auto :: fonc () -> ValeurDeStyle
+donne_valeur_pixels_zéro :: fonc () -> *ValeurDeStyle
 {
-    retourne ValeurDeStyle(mot_clé = PROP_auto)
+    retourne donne_valeur_défaut(*__valeur_pixels_zéro)
 }
 
-donne_valeur_none :: fonc () -> ValeurDeStyle
+donne_valeur_number_zéro :: fonc () -> *ValeurDeStyle
 {
-    retourne ValeurDeStyle(mot_clé = PROP_none)
+    retourne donne_valeur_défaut(*__valeur_number_zéro)
 }
 
-donne_valeur_currentColor :: fonc () -> ValeurDeStyle
+donne_valeur_number_un :: fonc () -> *ValeurDeStyle
 {
-    retourne ValeurDeStyle(mot_clé = PROP_currentColor)
+    retourne donne_valeur_défaut(__valeur_number_un)
 }
 
-donne_valeur_medium :: fonc () -> ValeurDeStyle
+donne_valeur_auto :: fonc () -> *ValeurDeStyle
 {
-    retourne ValeurDeStyle(mot_clé = PROP_medium)
+    retourne donne_valeur_défaut(__valeur_auto)
 }
 
-donne_valeur_normal :: fonc () -> ValeurDeStyle
+donne_valeur_none :: fonc () -> *ValeurDeStyle
 {
-    retourne ValeurDeStyle(mot_clé = PROP_normal)
+    retourne donne_valeur_défaut(__valeur_none)
 }
 
-donne_valeur_content :: fonc () -> ValeurDeStyle
+donne_valeur_currentColor :: fonc () -> *ValeurDeStyle
 {
-    retourne ValeurDeStyle(mot_clé = PROP_content)
+    retourne donne_valeur_défaut(__valeur_currentColor)
 }
 
-donne_valeur_solid :: fonc () -> ValeurDeStyle
+donne_valeur_medium :: fonc () -> *ValeurDeStyle
 {
-    retourne ValeurDeStyle(mot_clé = PROP_solid)
+    retourne donne_valeur_défaut(__valeur_medium)
 }
 
-donne_valeur_serif :: fonc () -> ValeurDeStyle
+donne_valeur_normal :: fonc () -> *ValeurDeStyle
 {
-    retourne ValeurDeStyle(mot_clé = PROP_serif)
+    retourne donne_valeur_défaut(__valeur_normal)
 }
 
-donne_valeur_visible :: fonc () -> ValeurDeStyle
+donne_valeur_content :: fonc () -> *ValeurDeStyle
 {
-    retourne ValeurDeStyle(mot_clé = PROP_visible)
+    retourne donne_valeur_défaut(__valeur_content)
 }
 
-donne_valeur_transparent :: fonc () -> ValeurDeStyle
+donne_valeur_solid :: fonc () -> *ValeurDeStyle
 {
-    retourne ValeurDeStyle(mot_clé = PROP_transparent)
+    retourne donne_valeur_défaut(__valeur_solid)
 }
 
-donne_valeur_scroll :: fonc () -> ValeurDeStyle
+donne_valeur_serif :: fonc () -> *ValeurDeStyle
 {
-    retourne ValeurDeStyle(mot_clé = PROP_scroll)
+    retourne donne_valeur_défaut(*__valeur_serif)
 }
 
-donne_valeur_separate :: fonc () -> ValeurDeStyle
+donne_valeur_visible :: fonc () -> *ValeurDeStyle
 {
-    retourne ValeurDeStyle(mot_clé = PROP_separate)
+    retourne donne_valeur_défaut(*__valeur_visible)
 }
 
-donne_valeur_static :: fonc () -> ValeurDeStyle
+donne_valeur_transparent :: fonc () -> *ValeurDeStyle
 {
-    retourne ValeurDeStyle(mot_clé = PROP_static)
+    retourne donne_valeur_défaut(*__valeur_transparent)
 }
 
-donne_valeur_baseline :: fonc () -> ValeurDeStyle
+donne_valeur_scroll :: fonc () -> *ValeurDeStyle
 {
-    retourne ValeurDeStyle(mot_clé = PROP_baseline)
+    retourne donne_valeur_défaut(*__valeur_scroll)
 }
 
-donne_valeur_start :: fonc () -> ValeurDeStyle
+donne_valeur_separate :: fonc () -> *ValeurDeStyle
 {
-    retourne ValeurDeStyle(mot_clé = PROP_start)
+    retourne donne_valeur_défaut(*__valeur_separate)
 }
 
-donne_valeur_flex_start :: fonc () -> ValeurDeStyle
+donne_valeur_static :: fonc () -> *ValeurDeStyle
 {
-    retourne ValeurDeStyle(mot_clé = PROP_flex_start)
+    retourne donne_valeur_défaut(*__valeur_static)
 }
 
-donne_valeur_row :: fonc () -> ValeurDeStyle
+donne_valeur_baseline :: fonc () -> *ValeurDeStyle
 {
-    retourne ValeurDeStyle(mot_clé = PROP_row)
+    retourne donne_valeur_défaut(*__valeur_baseline)
 }
 
-donne_valeur_nowrap :: fonc () -> ValeurDeStyle
+donne_valeur_start :: fonc () -> *ValeurDeStyle
 {
-    retourne ValeurDeStyle(mot_clé = PROP_nowrap)
+    retourne donne_valeur_défaut(*__valeur_start)
 }
 
-donne_valeur_content_box :: fonc () -> ValeurDeStyle
+donne_valeur_flex_start :: fonc () -> *ValeurDeStyle
 {
-    retourne ValeurDeStyle(mot_clé = PROP_content_box)
+    retourne donne_valeur_défaut(*__valeur_flex_start)
+}
+
+donne_valeur_row :: fonc () -> *ValeurDeStyle
+{
+    retourne donne_valeur_défaut(*__valeur_row)
+}
+
+donne_valeur_nowrap :: fonc () -> *ValeurDeStyle
+{
+    retourne donne_valeur_défaut(*__valeur_nowrap)
+}
+
+donne_valeur_content_box :: fonc () -> *ValeurDeStyle
+{
+    retourne donne_valeur_défaut(*__valeur_content_box)
 }
 
 /** \} */

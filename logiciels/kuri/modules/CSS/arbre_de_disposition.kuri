@@ -1922,7 +1922,7 @@ détermine_fonte :: fonc (propriétés: *PropriétésDeStyle, globales: *Globale
     famille_fonte := "sérif"
     style := "normal"
     graisse := GraisseFonte.Normal
-    taille_fonte := propriétés.donne_valeur_utilisée(IDPropriété.FontSize).pixels comme r32
+    taille_fonte := propriétés.donne_valeur_utilisée(IDPropriété.FontSize).donne_pixels() comme r32
 
     font_family := propriétés.donne_valeur_utilisée(IDPropriété.FontFamily).mot_clé
     si font_family == PROP_monospace {
@@ -2034,7 +2034,7 @@ est_block_container :: fonc (noeud: *NoeudDeDisposition) -> bool
 donne_display :: fonc (noeud: *NoeudDeDisposition) -> Display
 {
     assert(noeud.propriétés != nul)
-    retourne noeud.propriétés.donne_valeur_utilisée(IDPropriété.Display).display
+    retourne noeud.propriétés.donne_valeur_utilisée(IDPropriété.Display).donne_display()
 }
 
 donne_line_height :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage) -> r32
@@ -2047,7 +2047,7 @@ donne_line_height :: fonc (propriétés: *PropriétésDeStyle, fonte: *Fonte) ->
 {
     line_height := propriétés.donne_valeur_utilisée(IDPropriété.LineHeight)
     si line_height.est_pixels() {
-        retourne line_height.pixels comme r32
+        retourne line_height.donne_pixels() comme r32
     }
 
     métriques := fonte.donne_métriques_fonte()
@@ -2070,10 +2070,10 @@ donne_décalage_top_pour_relative :: fonc (noeud: *NoeudDeDisposition) -> r32
     }
 
     si top.est_auto() {
-        retourne -bottom.pixels comme r32
+        retourne -bottom.donne_pixels() comme r32
     }
 
-    retourne top.pixels comme r32
+    retourne top.donne_pixels() comme r32
 }
 
 donne_décalage_left_pour_relative :: fonc (noeud: *NoeudDeDisposition) -> r32
@@ -2086,10 +2086,10 @@ donne_décalage_left_pour_relative :: fonc (noeud: *NoeudDeDisposition) -> r32
     }
     
     si left.est_auto() {
-        retourne -right.pixels comme r32
+        retourne -right.donne_pixels() comme r32
     }
 
-    retourne left.pixels comme r32
+    retourne left.donne_pixels() comme r32
 }
 
 donne_baseline :: fonc (noeud: *NoeudDeDisposition) -> Optionnel(r32)
@@ -3036,10 +3036,10 @@ noeud_disposition_inline_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition
 
     propriétés := noeud.propriétés
 
-    margin_left := propriétés.donne_valeur_utilisée(IDPropriété.MarginLeft).pixels comme r32
-    padding_left := propriétés.donne_valeur_utilisée(IDPropriété.PaddingLeft).pixels comme r32
-    padding_right := propriétés.donne_valeur_utilisée(IDPropriété.PaddingRight).pixels comme r32
-    margin_right := propriétés.donne_valeur_utilisée(IDPropriété.MarginRight).pixels comme r32
+    margin_left := propriétés.donne_valeur_utilisée(IDPropriété.MarginLeft).donne_pixels() comme r32
+    padding_left := propriétés.donne_valeur_utilisée(IDPropriété.PaddingLeft).donne_pixels() comme r32
+    padding_right := propriétés.donne_valeur_utilisée(IDPropriété.PaddingRight).donne_pixels() comme r32
+    margin_right := propriétés.donne_valeur_utilisée(IDPropriété.MarginRight).donne_pixels() comme r32
 
     fragment_marge_début := enligneuse.ajoute_fragment(noeud, 0.0, margin_left, Fragment.Type.MargeDébut)
     fragment_rembourrage_début := enligneuse.ajoute_fragment(noeud, 0.0, padding_left, Fragment.Type.RembourrageDébut)
@@ -4094,7 +4094,7 @@ table_wrapper_box_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteD
 
     height := noeud.propriétés.donne_valeur_calculée(IDPropriété.Height)
     si height.est_auto() {
-        hauteur_finale := crée_outrepas_pour_coter_contenu(noeud.table.propriétés.donne_valeur_utilisée(IDPropriété.Height).pixels)
+        hauteur_finale := crée_outrepas_pour_coter_contenu(noeud.table.propriétés.donne_valeur_utilisée(IDPropriété.Height).donne_pixels())
         args = crée_arguments_dimensionnement_hauteur(ctx, noeud, containing_block, *hauteur_finale)
         _ := calcule_hauteur_et_marges(*args)
     }
@@ -4562,7 +4562,7 @@ donne_largeur_contenu :: fonc (box: *TableCellBox, largeur_disponible: r64) -> r
         prop := propriétés.donne_valeur_calculée(it)
 
         si prop.est_pixels() {
-            largeur_disponible -= prop.pixels
+            largeur_disponible -= prop.donne_pixels()
         }
     }
 

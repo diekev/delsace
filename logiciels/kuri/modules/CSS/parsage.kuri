@@ -2264,12 +2264,12 @@ ContexteParsageShorthand :: struct {
     sur_ajoute_propriété := contexte_parsage_shorthand_ajoute_propriété
 }
 
-ajoute_propriété :: fonc (ctx: *ContexteParsageShorthand, nom: CSSOMString, valeur: ValeurDeStyle)
+ajoute_propriété :: fonc (ctx: *ContexteParsageShorthand, nom: CSSOMString, valeur: *ValeurDeStyle)
 {
     ctx.sur_ajoute_propriété(ctx, nom, valeur)
 }
 
-contexte_parsage_shorthand_ajoute_propriété :: fonc (ctx: *ContexteParsageShorthand, nom: CSSOMString, valeur: ValeurDeStyle)
+contexte_parsage_shorthand_ajoute_propriété :: fonc (ctx: *ContexteParsageShorthand, nom: CSSOMString, valeur: *ValeurDeStyle)
 {
     info_type_propriété := donne_info_type_pour_nom(nom)
     saufsi info_type_propriété {
@@ -4426,9 +4426,9 @@ parse_valeur_background_attachment :: fonc (parseuse: &Parseuse(ComponentValue))
  * \{ */
 
 ValeursBorder :: struct {
-    width: ValeurDeStyle
-    style: ValeurDeStyle
-    color: ValeurDeStyle
+    width: *ValeurDeStyle
+    style: *ValeurDeStyle
+    color: *ValeurDeStyle
 }
 
 parse_propriété_border_impl :: fonc (value: []ComponentValue) -> Optionnel(ValeursBorder)

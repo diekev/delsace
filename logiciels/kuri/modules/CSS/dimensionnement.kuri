@@ -12,19 +12,21 @@ importe Structures
  * \{ */
 
 OutrepasCotation :: struct {
-    valeur: ValeurDeStyle
+    valeur: *ValeurDeStyle
     est_affecté_par_box_sizing: bool
 }
 
 crée_outrepas_pour_coter_contenu :: fonc (valeur: r64) -> OutrepasCotation
 {
-    retourne OutrepasCotation(ValeurDeStyle(pixels = valeur))
+    // @fuite-de-mémoire
+    retourne OutrepasCotation(crée_valeur_de_style(valeur, ValeurPixels))
 }
 
 /* Cette fonction doit être utilisée si l'outrepas est affecté par box-sizing. */
 crée_outrepas_pour_coter_boite :: fonc (valeur: r64) -> OutrepasCotation
 {
-    retourne OutrepasCotation(ValeurDeStyle(pixels = valeur), vrai)
+    // @fuite-de-mémoire
+    retourne OutrepasCotation(crée_valeur_de_style(valeur, ValeurPixels), vrai)
 }
 
 /** \} */
@@ -76,7 +78,7 @@ donne_paramètres_box_sizing_pour_largeur :: fonc (propriétés: *PropriétésDe
     retourne résultat
 }
 
-applique_box_sizing :: fonc (params: *ParamètresBoxSizing, valeur: ValeurDeStyle) -> ValeurDeStyle
+applique_box_sizing :: fonc (params: *ParamètresBoxSizing, valeur: *ValeurDeStyle) -> ValeurDeStyle
 {
     saufsi valeur.est_pixels() {
         retourne valeur
@@ -349,15 +351,15 @@ calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement)
 }
 
 PropriétésLargeur :: struct {
-    left: ValeurDeStyle
-    margin_left: ValeurDeStyle
-    border_left_width: ValeurDeStyle
-    padding_left: ValeurDeStyle
-    width: ValeurDeStyle
-    padding_right: ValeurDeStyle
-    border_right_width: ValeurDeStyle
-    margin_right: ValeurDeStyle
-    right: ValeurDeStyle
+    left: *ValeurDeStyle
+    margin_left: *ValeurDeStyle
+    border_left_width: *ValeurDeStyle
+    padding_left: *ValeurDeStyle
+    width: *ValeurDeStyle
+    padding_right: *ValeurDeStyle
+    border_right_width: *ValeurDeStyle
+    margin_right: *ValeurDeStyle
+    right: *ValeurDeStyle
 }
 
 TypeFonctionCalculLargeur :: fonc(*ArgumentsDimensionnement,*PropriétésLargeur)(rien)
@@ -453,7 +455,7 @@ donne_fonction_calcul_largeur_et_marges :: fonc (noeud: *NoeudDeDisposition) -> 
     retourne calcule_largeur_et_marges_block_level_normal_flow
 }
 
-calcule_pourcentage :: fonc (valeur: ValeurDeStyle, référence: r64) -> ValeurDeStyle
+calcule_pourcentage :: fonc (valeur: *ValeurDeStyle, référence: r64) -> ValeurDeStyle
 {
     saufsi valeur.est_percentage() {
         retourne valeur
@@ -612,15 +614,15 @@ calcule_hauteur_et_marges :: fonc (empl args: *ArgumentsDimensionnement) -> Éta
 }
 
 PropriétésHauteur :: struct {
-    top: ValeurDeStyle
-    margin_top: ValeurDeStyle
-    border_top_width: ValeurDeStyle
-    padding_top: ValeurDeStyle
-    height: ValeurDeStyle
-    padding_bottom: ValeurDeStyle
-    border_bottom_width: ValeurDeStyle
-    margin_bottom: ValeurDeStyle
-    bottom: ValeurDeStyle
+    top: *ValeurDeStyle
+    margin_top: *ValeurDeStyle
+    border_top_width: *ValeurDeStyle
+    padding_top: *ValeurDeStyle
+    height: *ValeurDeStyle
+    padding_bottom: *ValeurDeStyle
+    border_bottom_width: *ValeurDeStyle
+    margin_bottom: *ValeurDeStyle
+    bottom: *ValeurDeStyle
 }
 
 TypeFonctionCalculHauteur :: fonc(*ArgumentsDimensionnement,*PropriétésHauteur)(ÉtatCalculHauteur)
