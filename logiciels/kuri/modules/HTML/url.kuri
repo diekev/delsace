@@ -171,12 +171,28 @@ définis_path :: fonc (url: *URL, opaque: chaine)
     url.path = opaque
 }
 
+définis_query :: fonc (url: *URL, query: ChaineASCII)
+{
+    si url.query.possède_valeur() {
+        déloge_si_logée(url.query.Quelque)
+    }
+    url.query = query
+}
+
 donne_fragment_ou_chaine_vide :: fonc (url: *URL) -> chaine
 {
     si url.fragment.possède_valeur() {
         retourne url.fragment.Quelque
     }
     retourne ""
+}
+
+définis_fragment :: fonc (url: *URL, fragment: ChaineASCII)
+{
+    si url.fragment.possède_valeur() {
+        déloge_si_logée(url.fragment.Quelque)
+    }
+    url.fragment = fragment
 }
 
 /* https://url.spec.whatwg.org/#url-opaque-path */
@@ -1550,10 +1566,11 @@ basic_url_parser_file_host :: fonc (parser: *BasicURLParser) -> RésultatParsage
 /* https://url.spec.whatwg.org/#path-start-state */
 basic_url_parser_path_start :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
 {
+    c := parser.donne_caractère()
+
     // 1. If url is special, then:
     si parser.url.est_spécial() {
         // 1. If c is U+005C (\), invalid-reverse-solidus validation error.
-        c := parser.donne_caractère()
         si c == 0x5C {
             rapporte_erreur_url(ErreurDeParsage.InvalidReverseSolidus)
         }
@@ -1569,19 +1586,39 @@ basic_url_parser_path_start :: fonc (parser: *BasicURLParser) -> RésultatParsag
         retourne RésultatParsageURL.Ok
     }
 
-    panique("non-implémenté")
-
     // 2. Otherwise, if state override is not given and c is U+003F (?), set url’s query to the empty string and state to query state.
+    si parser.state_override == nul && c == 0x3F {
+        parser.url.définis_query("")
+        parser.définis_state(ÉtatParsageURL.Query)
+        retourne RésultatParsageURL.Ok
+    }
 
     // 3. Otherwise, if state override is not given and c is U+0023 (#), set url’s fragment to the empty string and state to fragment state.
+    si parser.state_override == nul && c == 0x3F {
+        parser.url.définis_fragment("")
+        parser.définis_state(ÉtatParsageURL.Fragment)
+        retourne RésultatParsageURL.Ok
+    }
 
     // 4. Otherwise, if c is not the EOF code point:
-
+    si c != FIN_DE_FICHIER {
         // 1. Set state to path state.
+        parser.définis_state(ÉtatParsageURL.Path)
 
         // 2. If c is not U+002F (/), then decrease pointer by 1.
+        si c != 0x2F {
+            parser.decrease_pointer()
+        }
+
+        retourne RésultatParsageURL.Ok
+    }
 
     // 5. Otherwise, if state override is given and url’s host is null, append the empty string to url’s path.
+    si parser.state_override && !parser.url.host.possède_valeur() {
+        ajoute_segment_au_chemin(parser.url, "")
+    }
+
+    retourne RésultatParsageURL.Ok
 }
 
 /* https://url.spec.whatwg.org/#path-state */
