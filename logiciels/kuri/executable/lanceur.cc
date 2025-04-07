@@ -19,14 +19,16 @@
 
 #include "structures/chemin_systeme.hh"
 
-#define AVEC_THREADS
-
 /**
  * Fonction de rappel pour les fils d'exécutions.
  */
 static void lance_tacheronne(Tacheronne *tacheronne)
 {
-    tacheronne->gère_tâche();
+    while (true) {
+        if (tacheronne->gère_tâche()) {
+            break;
+        }
+    }
 }
 
 #if 0
@@ -209,6 +211,9 @@ static ActionParsageArgument gère_argument_émission_ri(ParseuseArguments & /*p
 static ActionParsageArgument gère_argument_émission_code_binaire(ParseuseArguments & /*parseuse*/,
                                                                  ArgumentsCompilatrice &résultat);
 
+static ActionParsageArgument gère_argument_mode_parallèle(ParseuseArguments &parseuse,
+                                                          ArgumentsCompilatrice &résultat);
+
 static DescriptionArgumentCompilation descriptions_arguments[] = {
     {"--aide", "-a", "--aide, -a", "Imprime cette aide", gère_argument_aide},
     {"--",
@@ -288,6 +293,7 @@ static DescriptionArgumentCompilation descriptions_arguments[] = {
      "binaire est émis avant l'exécution desdits métaprogrammes. Le fichier texte est émis comme "
      "un log standard de métaprogramme, dont la racine du nom est « code_binaire.txt ».",
      gère_argument_émission_code_binaire},
+    {"", "-j", "-j", "Active la compilation en mode parallèle", gère_argument_mode_parallèle},
 };
 
 static std::optional<DescriptionArgumentCompilation> donne_description_pour_arg(
@@ -471,6 +477,13 @@ static ActionParsageArgument gère_argument_émission_code_binaire(ParseuseArgum
     return ActionParsageArgument::CONTINUE;
 }
 
+static ActionParsageArgument gère_argument_mode_parallèle(ParseuseArguments & /*parseuse*/,
+                                                          ArgumentsCompilatrice &résultat)
+{
+    résultat.compile_en_mode_parallèle = true;
+    return ActionParsageArgument::CONTINUE;
+}
+
 static ActionParsageArgument gère_argument_coulisse(ParseuseArguments &parseuse,
                                                     ArgumentsCompilatrice &résultat)
 {
@@ -603,7 +616,6 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
     compilatrice.module_racine_compilation = module;
     compilatrice.ajoute_fichier_a_la_compilation(espace_defaut, nom_fichier, module, {});
 
-#ifdef AVEC_THREADS
     auto nombre_tacheronnes = std::thread::hardware_concurrency();
 
     kuri::tableau<Tacheronne *> tacheronnes;
@@ -628,27 +640,27 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
         tacheronnes[i]->drapeaux |= drapeaux;
     }
 
-    kuri::tableau<std::thread *> threads;
-    threads.réserve(nombre_tacheronnes);
+    if (compilatrice.arguments.compile_en_mode_parallèle) {
+        kuri::tableau<std::thread *> threads;
+        threads.réserve(nombre_tacheronnes);
 
-    POUR (tacheronnes) {
-        threads.ajoute(memoire::loge<std::thread>("std::thread", lance_tacheronne, it));
+        POUR (tacheronnes) {
+            threads.ajoute(memoire::loge<std::thread>("std::thread", lance_tacheronne, it));
+        }
+
+        POUR (threads) {
+            it->join();
+            memoire::deloge("std::thread", it);
+        }
     }
-
-    POUR (threads) {
-        it->join();
-        memoire::deloge("std::thread", it);
+    else {
+        auto compilation_terminée = false;
+        while (!compilation_terminée) {
+            POUR (tacheronnes) {
+                compilation_terminée |= it->gère_tâche();
+            }
+        }
     }
-#else
-    auto tacheronne = Tacheronne(compilatrice);
-    auto tacheronne_mp = Tacheronne(compilatrice);
-
-    tacheronne.drapeaux &= ~DrapeauxTacheronne::PEUT_EXECUTER;
-    tacheronne_mp.drapeaux = DrapeauxTacheronne::PEUT_EXECUTER;
-
-    lance_tacheronne(&tacheronne);
-    lance_tacheronne(&tacheronne_mp);
-#endif
 
     if (compilatrice.chaines_ajoutées_à_la_compilation->nombre_de_chaines()) {
         auto fichier_chaines = std::ofstream(".chaines_ajoutées");
