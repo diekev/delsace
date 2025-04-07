@@ -274,9 +274,11 @@ bool Tacheronne::gère_tâche()
                     exécute_métaprogrammes();
                 }
                 else {
-                    //                nombre_dodos += 1;
-                    //                dls::chrono::dors_microsecondes(100 * nombre_dodos);
-                    //                temps_passe_à_dormir += 0.1 * nombre_dodos;
+                    if (compilatrice.arguments.compile_en_mode_parallèle) {
+                        nombre_dodos += 1;
+                        dls::chrono::dors_microsecondes(100 * nombre_dodos);
+                        temps_passe_à_dormir += 0.1 * nombre_dodos;
+                    }
                     return false;
                 }
 
