@@ -151,7 +151,7 @@ struct Tacheronne {
 
     EMPECHE_COPIE(Tacheronne);
 
-    void gère_tâche();
+    bool gère_tâche();
 
     void rassemble_statistiques(Statistiques &stats);
 
