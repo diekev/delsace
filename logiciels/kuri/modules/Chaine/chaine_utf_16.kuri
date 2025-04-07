@@ -536,6 +536,25 @@ sous_chaine :: fonc (chn: ChaineUTF16, début: z64, fin: z64) -> ChaineUTF16
     retourne résultat
 }
 
+commence_par :: fonc (chn: ChaineUTF16, prédicat: fonc(n32)(bool), occurences_max: z64) -> bool
+{
+    si chn.taille() > occurences_max {
+        retourne faux
+    }
+
+    pour chn.unités {
+        si index_it >= occurences_max {
+            arrête
+        }
+
+        saufsi prédicat(it) {
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
+
 transforme_chaine :: fonc (chn: &ChaineUTF16, résultat: *ChaineUTF16, transformation: fonc(n32)(n32))
 {
     tableau_réserve(*résultat.unités, chn.taille())
