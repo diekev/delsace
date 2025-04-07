@@ -708,6 +708,22 @@ basic_url_parser :: fonc (input: ChaineUTF16, base : *URL = nul, url : *URL = nu
 
 #portée_fichier
 
+ErreurDeParsage :: énum {
+    SpecialSchemeMissingFollowingSolidus
+    MissingSchemeNonRelativeURL
+    InvalidReverseSolidus
+    HostMissing
+    PortOutOfRange
+    PortInvalid
+    FileInvalidWindowsDriveLetter
+    FileInvalidWindowsDriveLetterHost
+}
+
+rapporte_erreur_url :: fonc (code: ErreurDeParsage, fonction := #nom_de_cette_fonction)
+{
+    imprime("[%] %\n", fonction, code)
+}
+
 BasicURLParser :: struct {
     url: *URL
     base: *URL
@@ -881,7 +897,7 @@ basic_url_parser_scheme :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
             // 1. If remaining does not start with "//", special-scheme-missing-following-solidus validation error.
             restant := parser.donne_restant()
             si restant.taille() > 2 && restant.unités[0] != 0x2F && restant.unités[1] != 0x2F {
-                imprime("[%] special-scheme-missing-following-solidus\n", #nom_de_cette_fonction)
+                rapporte_erreur_url(ErreurDeParsage.SpecialSchemeMissingFollowingSolidus)
             }
 
             // 2. Set state to file state.
@@ -937,7 +953,7 @@ basic_url_parser_no_scheme :: fonc (parser: *BasicURLParser) -> RésultatParsage
 {
     // 1. If base is null, or base has an opaque path and c is not U+0023 (#), missing-scheme-non-relative-URL validation error, return failure.
     si parser.base == nul || (possède_chemin_opaque(parser.base) && parser.donne_caractère() != 0x23) {
-        imprime("[%] missing-scheme-non-relative-URL\n", #nom_de_cette_fonction)
+        rapporte_erreur_url(ErreurDeParsage.MissingSchemeNonRelativeURL)
         retourne RésultatParsageURL.Échec
     }
 
@@ -982,7 +998,7 @@ basic_url_parser_special_relative_or_authority :: fonc (parser: *BasicURLParser)
     }
     // 2. Otherwise, special-scheme-missing-following-solidus validation error, set state to relative state and decrease pointer by 1.
     sinon {
-        imprime("[%] special-scheme-missing-following-solidus\n", #nom_de_cette_fonction)
+        rapporte_erreur_url(ErreurDeParsage.SpecialSchemeMissingFollowingSolidus)
         parser.définis_state(ÉtatParsageURL.Relative)
         parser.decrease_pointer()
     }
@@ -1021,7 +1037,7 @@ basic_url_parser_relative :: fonc (parser: *BasicURLParser) -> RésultatParsageU
     }
     // 4. Otherwise, if url is special and c is U+005C (\), invalid-reverse-solidus validation error, set state to relative slash state.
     sinon si parser.url.est_spécial() && c == 0x5C {
-        imprime("[%] invalid-reverse-solidus\n", #nom_de_cette_fonction)
+        rapporte_erreur_url(ErreurDeParsage.InvalidReverseSolidus)
         parser.définis_state(ÉtatParsageURL.RelativeSlash)
     }
     // 5. Otherwise:
@@ -1076,7 +1092,7 @@ basic_url_parser_relative_slash :: fonc (parser: *BasicURLParser) -> RésultatPa
     si parser.url.est_spécial() && (c == 0x2F || c == 0x5C) {
         // 1. If c is U+005C (\), invalid-reverse-solidus validation error.
         si c == 0x5C {
-            imprime("[%] invalid-reverse-solidus\n", #nom_de_cette_fonction)
+            rapporte_erreur_url(ErreurDeParsage.InvalidReverseSolidus)
         }
 
         // 2. Set state to special authority ignore slashes state.
@@ -1121,7 +1137,7 @@ basic_url_parser_special_authority_slashes :: fonc (parser: *BasicURLParser) -> 
     // 2. Otherwise, special-scheme-missing-following-solidus validation error, set
     // state to special authority ignore slashes state and decrease pointer by 1.
     sinon {
-        imprime("[%] special-scheme-missing-following-solidus\n", #nom_de_cette_fonction)
+        rapporte_erreur_url(ErreurDeParsage.SpecialSchemeMissingFollowingSolidus)
         parser.définis_state(ÉtatParsageURL.SpecialAuthorityIgnoreSlashes)
         parser.decrease_pointer()
     }
@@ -1139,7 +1155,7 @@ basic_url_parser_special_authority_ignore_slashes :: fonc (parser: *BasicURLPars
     }
     // 2. Otherwise, special-scheme-missing-following-solidus validation error.
     sinon {
-        imprime("[%] special-scheme-missing-following-solidus\n", #nom_de_cette_fonction)
+        rapporte_erreur_url(ErreurDeParsage.SpecialSchemeMissingFollowingSolidus)
     }
     retourne RésultatParsageURL.Ok
 }
@@ -1176,7 +1192,7 @@ basic_url_parser_authority :: fonc (parser: *BasicURLParser) -> RésultatParsage
     sinon si (c == FIN_DE_FICHIER || c == 0x2F || c == 0x3F || c == 0x23) || (est_spécial(parser.url) && c == 0x5C) {
         // If atSignSeen is true and buffer is the empty string, host-missing validation error, return failure.
         si parser.at_sign_seen == vrai && parser.buffer.taille() == 0 {
-            imprime("[%] host-missing\n", #nom_de_cette_fonction)
+            rapporte_erreur_url(ErreurDeParsage.HostMissing)
             retourne RésultatParsageURL.Échec
         }
 
@@ -1206,7 +1222,7 @@ basic_url_parser_host :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
     sinon si c == 0x3A && parser.inside_brackets == faux {
         // 1. If buffer is the empty string, host-missing validation error, return failure.
         si parser.buffer.est_vide() {
-            imprime("[%] host-missing\n", #nom_de_cette_fonction)
+            rapporte_erreur_url(ErreurDeParsage.HostMissing)
             retourne RésultatParsageURL.Échec
         }
 
@@ -1234,7 +1250,7 @@ basic_url_parser_host :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
 
         // 1. If url is special and buffer is the empty string, host-missing validation error, return failure.
         si est_spécial(parser.url) && parser.buffer.est_vide() {
-            imprime("[%] host-missing\n", #nom_de_cette_fonction)
+            rapporte_erreur_url(ErreurDeParsage.HostMissing)
         }
         // 2. Otherwise, if state override is given, buffer is the empty string, and either url includes credentials or url’s port is non-null, return.
         sinon si parser.state_override && parser.buffer.est_vide() && (parser.url.inclus_credentials() || parser.url.port.possède_valeur()) {
@@ -1303,7 +1319,7 @@ basic_url_parser_port :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
 
             // 2. If port is not a 16-bit unsigned integer, port-out-of-range validation error, return failure.
             si port > 0xffff {
-                imprime("[%] port-out-of-range\n", #nom_de_cette_fonction)
+                rapporte_erreur_url(ErreurDeParsage.PortOutOfRange)
                 retourne RésultatParsageURL.Échec
             }
 
@@ -1333,7 +1349,7 @@ basic_url_parser_port :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
     }
 
     // 3. Otherwise, port-invalid validation error, return failure.
-    imprime("[%] port-invalid\n", #nom_de_cette_fonction)
+    rapporte_erreur_url(ErreurDeParsage.PortInvalid)
     retourne RésultatParsageURL.Échec
 }
 
@@ -1351,7 +1367,7 @@ basic_url_parser_file :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
     si c == 0x2F || c == 0x5C {
         // 1. If c is U+005C (\), invalid-reverse-solidus validation error.
         si c == 0x5C {
-            imprime("[%] invalid-reverse-solidus\n", #nom_de_cette_fonction)
+            rapporte_erreur_url(ErreurDeParsage.InvalidReverseSolidus)
         }
 
         // 2. Set state to file slash state.
@@ -1397,7 +1413,7 @@ basic_url_parser_file :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
             // 3. Otherwise:
             sinon {
                 // 1. File-invalid-Windows-drive-letter validation error.
-                imprime("[%] file-invalid-Windows-drive-letter\n", #nom_de_cette_fonction)
+                rapporte_erreur_url(ErreurDeParsage.FileInvalidWindowsDriveLetter)
 
                 // 2. Set url’s path to « ».
                 parser.url.définis_path("")
@@ -1424,7 +1440,7 @@ basic_url_parser_file_slash :: fonc (parser: *BasicURLParser) -> RésultatParsag
     si c == 0x2F || c == 0x5C {
         // 1. If c is U+005C (\), invalid-reverse-solidus validation error.
         si c == 0x5C {
-            imprime("[%] invalid-reverse-solidus\n", #nom_de_cette_fonction)
+            rapporte_erreur_url(ErreurDeParsage.InvalidReverseSolidus)
         }
 
         // 2. Set state to file host state.
@@ -1476,7 +1492,7 @@ basic_url_parser_file_host :: fonc (parser: *BasicURLParser) -> RésultatParsage
         // If state override is not given and buffer is a Windows drive letter,
         si parser.state_override == nul && est_lettre_stockage_windows(parser.buffer) {
             // file-invalid-Windows-drive-letter-host validation error,
-            imprime("[%] file-invalid-Windows-drive-letter-host\n", #nom_de_cette_fonction)
+            rapporte_erreur_url(ErreurDeParsage.FileInvalidWindowsDriveLetterHost)
             // set state to path state.
             parser.définis_state(ÉtatParsageURL.Path)
         }
@@ -1539,7 +1555,7 @@ basic_url_parser_path_start :: fonc (parser: *BasicURLParser) -> RésultatParsag
         // 1. If c is U+005C (\), invalid-reverse-solidus validation error.
         c := parser.donne_caractère()
         si c == 0x5C {
-            imprime("[%] invalid-reverse-solidus\n", #nom_de_cette_fonction)
+            rapporte_erreur_url(ErreurDeParsage.InvalidReverseSolidus)
         }
 
         // 2. Set state to path state.
@@ -1580,7 +1596,7 @@ basic_url_parser_path :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
     si (c == FIN_DE_FICHIER || c == 0x2F) || (parser.url.est_spécial() && c == 0x5C) || (parser.state_override == nul && (c == 0x3F || c == 0x23)) {
         // 1. If url is special and c is U+005C (\), invalid-reverse-solidus validation error.
         si parser.url.est_spécial() && c == 0x5C {
-            imprime("[%] invalid-reverse-solidus\n", #nom_de_cette_fonction)
+            rapporte_erreur_url(ErreurDeParsage.InvalidReverseSolidus)
         }
 
         // 2. If buffer is a double-dot URL path segment, then:
