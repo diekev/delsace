@@ -1694,9 +1694,15 @@ basic_url_parser_path :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
     }
     // 2. Otherwise, run these steps:
     sinon {
-        // À FAIRE 1. If c is not a URL code point and not U+0025 (%), invalid-URL-unit validation error.
+        // 1. If c is not a URL code point and not U+0025 (%), invalid-URL-unit validation error.
+        si c != 0x25 && !est_point_de_code_url(c) {
+            rapporte_erreur_url(ErreurDeParsage.InvalidURLUnit)
+        }
 
-        // À FAIRE 2. If c is U+0025 (%) and remaining does not start with two ASCII hex digits, invalid-URL-unit validation error.
+        // 2. If c is U+0025 (%) and remaining does not start with two ASCII hex digits, invalid-URL-unit validation error.
+        si c == 0x25 && !commence_par(parser.donne_restant(), est_chiffre_hexadecimal_ascii, 2) {
+            rapporte_erreur_url(ErreurDeParsage.InvalidURLUnit)
+        }
 
         // À FAIRE 3. UTF-8 percent-encode c using the path percent-encode set and append the result to buffer.
         chaine_ajoute(*parser.buffer, c)
@@ -1723,9 +1729,15 @@ basic_url_parser_opaque_path :: fonc (parser: *BasicURLParser) -> RésultatParsa
     }
     // 3. Otherwise:
     sinon {
-        // À FAIRE 1. If c is not the EOF code point, not a URL code point, and not U+0025 (%), invalid-URL-unit validation error.
+        // 1. If c is not the EOF code point, not a URL code point, and not U+0025 (%), invalid-URL-unit validation error.
+        si c != 0x25 && !est_point_de_code_url(c) {
+            rapporte_erreur_url(ErreurDeParsage.InvalidURLUnit)
+        }
 
-        // À FAIRE 2. If c is U+0025 (%) and remaining does not start with two ASCII hex digits, invalid-URL-unit validation error.
+        // 2. If c is U+0025 (%) and remaining does not start with two ASCII hex digits, invalid-URL-unit validation error.
+        si c == 0x25 && !commence_par(parser.donne_restant(), est_chiffre_hexadecimal_ascii, 2) {
+            rapporte_erreur_url(ErreurDeParsage.InvalidURLUnit)
+        }
 
         // À FAIRE 3. If c is not the EOF code point, UTF-8 percent-encode c using the C0 control percent-encode set and append the result to url’s path.
         si c != FIN_DE_FICHIER {
@@ -1771,9 +1783,15 @@ basic_url_parser_query :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
     }
     // 3. Otherwise, if c is not the EOF code point:
     sinon si c != FIN_DE_FICHIER {
-        // À FAIRE 1. If c is not a URL code point and not U+0025 (%), invalid-URL-unit validation error.
+        // 1. If c is not a URL code point and not U+0025 (%), invalid-URL-unit validation error.
+        si c != 0x25 && !est_point_de_code_url(c) {
+            rapporte_erreur_url(ErreurDeParsage.InvalidURLUnit)
+        }
 
-        // À FAIRE 2. If c is U+0025 (%) and remaining does not start with two ASCII hex digits, invalid-URL-unit validation error.
+        // 2. If c is U+0025 (%) and remaining does not start with two ASCII hex digits, invalid-URL-unit validation error.
+        si c == 0x25 && !commence_par(parser.donne_restant(), est_chiffre_hexadecimal_ascii, 2) {
+            rapporte_erreur_url(ErreurDeParsage.InvalidURLUnit)
+        }
 
         // 3. Append c to buffer.
         chaine_ajoute(*parser.buffer, c)
@@ -1788,11 +1806,17 @@ basic_url_parser_fragment :: fonc (parser: *BasicURLParser) -> RésultatParsageU
     // 1. If c is not the EOF code point, then:
     c := parser.donne_caractère()
     si c != FIN_DE_FICHIER {
-        // À FAIRE : 1. If c is not a URL code point and not U+0025 (%), invalid-URL-unit validation error.
+        // 1. If c is not a URL code point and not U+0025 (%), invalid-URL-unit validation error.
+        si c != 0x25 && !est_point_de_code_url(c) {
+            rapporte_erreur_url(ErreurDeParsage.InvalidURLUnit)
+        }
 
-        // À FAIRE : 2. If c is U+0025 (%) and remaining does not start with two ASCII hex digits, invalid-URL-unit validation error.
+        // 2. If c is U+0025 (%) and remaining does not start with two ASCII hex digits, invalid-URL-unit validation error.
+        si c == 0x25 && !commence_par(parser.donne_restant(), est_chiffre_hexadecimal_ascii, 2) {
+            rapporte_erreur_url(ErreurDeParsage.InvalidURLUnit)
+        }
 
-        // 3. UTF-8 percent-encode c using the fragment percent-encode set and append the result to url’s fragment.
+        // À FAIRE 3. UTF-8 percent-encode c using the fragment percent-encode set and append the result to url’s fragment.
         chaine_ajoute(*parser.buffer, c)
     }
     sinon {
