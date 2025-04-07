@@ -250,7 +250,6 @@ bool Tacheronne::gère_tâche()
 
         if (tâche.genre != GenreTâche::DORS) {
             nombre_dodos = 0;
-            // dbg() << __func__ << " : " << tâche.genre;
         }
 
         if (tâche.unité) {
