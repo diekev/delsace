@@ -76,6 +76,7 @@ struct ArgumentsCompilatrice {
     bool émets_ri = false;
     bool émets_code_binaire = false;
     bool importe_kuri = true;
+    bool compile_en_mode_parallèle = false;
     FormatRapportProfilage format_rapport_profilage = FormatRapportProfilage::BRENDAN_GREGG;
 
     TypeCoulisse coulisse = TypeCoulisse::C;

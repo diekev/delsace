@@ -13,6 +13,8 @@
 #include "graphe_dependance.hh"
 #include "unite_compilation.hh"
 
+#include <random>
+
 struct Compilatrice;
 struct GrapheDépendance;
 struct OrdonnanceuseTache;
@@ -114,6 +116,16 @@ class GestionnaireCode {
     kuri::tableau<UniteCompilation *> unités_en_attente{};
     kuri::tableau<UniteCompilation *> métaprogrammes_en_attente_de_crée_contexte{};
     bool metaprogrammes_en_attente_de_crée_contexte_est_ouvert = true;
+
+    struct InfoUnitéTemporisée {
+        UniteCompilation *unité = nullptr;
+        int cycles_à_temporiser = 0;
+        int cycle_courant = 0;
+    };
+
+    std::mt19937 mt{};
+    kuri::tableau<InfoUnitéTemporisée> unités_temporisées{};
+    kuri::tableau<InfoUnitéTemporisée> nouvelles_unités_temporisées{};
 
     Compilatrice *m_compilatrice = nullptr;
 
