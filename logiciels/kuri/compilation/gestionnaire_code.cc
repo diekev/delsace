@@ -22,6 +22,8 @@
 compilation
  */
 
+#undef TEMPORISE_UNITES_POUR_SIMULER_MOULTFILAGE
+
 #undef STATS_DÉTAILLÉES_GESTION
 
 #ifdef STATISTIQUES_DETAILLEES
@@ -169,6 +171,9 @@ GestionnaireCode::GestionnaireCode(Compilatrice *compilatrice)
     : m_compilatrice(compilatrice),
       m_assembleuse(memoire::loge<AssembleuseArbre>("AssembleuseArbre", allocatrice_noeud))
 {
+#ifdef TEMPORISE_UNITES_POUR_SIMULER_MOULTFILAGE
+    mt = std::mt19937(1337);
+#endif
 }
 
 GestionnaireCode::~GestionnaireCode()
@@ -1454,6 +1459,8 @@ void GestionnaireCode::rassemble_statistiques(Statistiques &statistiques) const
     mémoire += m_noeuds_à_valider.taille_mémoire();
     mémoire += m_fonctions_init_type_requises.taille_mémoire();
     mémoire += m_nouvelles_unités.taille_mémoire();
+    mémoire += unités_temporisées.taille_mémoire();
+    mémoire += nouvelles_unités_temporisées.taille_mémoire();
 
     mémoire += dépendances.dépendances.mémoire_utilisée();
     mémoire += dépendances.dépendances_épendues.mémoire_utilisée();
@@ -1495,6 +1502,21 @@ void GestionnaireCode::mets_en_attente(UniteCompilation *unité_attendante,
 
 void GestionnaireCode::tâche_unité_terminée(UniteCompilation *unité)
 {
+#ifdef TEMPORISE_UNITES_POUR_SIMULER_MOULTFILAGE
+    auto dist = std::uniform_real_distribution<double>(0.0, 1.0);
+    if (unité->fut_temporisée == false && dist(mt) > 0.25) {
+        auto info = InfoUnitéTemporisée{};
+        info.unité = unité;
+        info.cycles_à_temporiser = int(dist(mt) * 1000.0);
+
+        unité->fut_temporisée = true;
+        unités_temporisées.ajoute(info);
+        return;
+    }
+
+    // unité->fut_temporisée = false;
+#endif
+
     switch (unité->donne_raison_d_être()) {
         case RaisonDÊtre::AUCUNE:
         {
@@ -2018,6 +2040,19 @@ void GestionnaireCode::fonction_initialisation_type_créée(UniteCompilation *un
 
 void GestionnaireCode::crée_tâches(OrdonnanceuseTache &ordonnanceuse)
 {
+#ifdef TEMPORISE_UNITES_POUR_SIMULER_MOULTFILAGE
+    nouvelles_unités_temporisées.efface();
+    POUR (unités_temporisées) {
+        it.cycle_courant += 1;
+        if (it.cycle_courant > it.cycles_à_temporiser) {
+            tâche_unité_terminée(it.unité);
+            continue;
+        }
+        nouvelles_unités_temporisées.ajoute(it);
+    }
+    unités_temporisées.permute(nouvelles_unités_temporisées);
+#endif
+
     DÉBUTE_STAT(CRÉATION_TÂCHES);
     m_nouvelles_unités.efface();
 
