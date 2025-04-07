@@ -245,13 +245,13 @@ Tacheronne::~Tacheronne()
     memoire::deloge("ContexteAnalyseRI", analyseuse_ri);
 }
 
-void Tacheronne::gère_tâche()
+bool Tacheronne::gère_tâche()
 {
     auto temps_debut = dls::chrono::compte_seconde();
     auto tâche = Tâche::dors(compilatrice.espace_de_travail_defaut);
     auto &ordonnanceuse = compilatrice.ordonnanceuse;
 
-    while (true) {
+    {
         tâche = ordonnanceuse->tâche_suivante(tâche, drapeaux);
 
         if (tâche.genre != GenreTâche::DORS) {
@@ -266,8 +266,8 @@ void Tacheronne::gère_tâche()
         switch (tâche.genre) {
             case GenreTâche::COMPILATION_TERMINÉE:
             {
-                temps_scene = temps_debut.temps() - temps_executable - temps_fichier_objet;
-                return;
+                temps_scene += temps_debut.temps() - temps_executable - temps_fichier_objet;
+                return true;
             }
             case GenreTâche::DORS:
             {
@@ -279,9 +279,12 @@ void Tacheronne::gère_tâche()
                     exécute_métaprogrammes();
                 }
                 else {
-                    nombre_dodos += 1;
-                    dls::chrono::dors_microsecondes(100 * nombre_dodos);
-                    temps_passe_à_dormir += 0.1 * nombre_dodos;
+                    if (compilatrice.arguments.compile_en_mode_parallèle) {
+                        nombre_dodos += 1;
+                        dls::chrono::dors_microsecondes(100 * nombre_dodos);
+                        temps_passe_à_dormir += 0.1 * nombre_dodos;
+                    }
+                    return false;
                 }
 
                 break;
@@ -405,7 +408,7 @@ void Tacheronne::gère_tâche()
                     espace.rapporte_erreur_sans_site(
                         "Impossible de générer le code machine car une erreur est survenue lors "
                         "de la création de la représentation intermédiaire du programme.");
-                    return;
+                    return true;
                 }
                 if (compilatrice.arguments.émets_ri && !programme->pour_métaprogramme()) {
                     auto chemin_fichier_ri = programme->donne_chemin_pour_fichier_ri();
@@ -485,7 +488,8 @@ void Tacheronne::gère_tâche()
         }
     }
 
-    temps_scene = temps_debut.temps() - temps_executable - temps_fichier_objet;
+    temps_scene += temps_debut.temps() - temps_executable - temps_fichier_objet;
+    return false;
 }
 
 void Tacheronne::gère_unité_pour_typage(UniteCompilation *unite)
