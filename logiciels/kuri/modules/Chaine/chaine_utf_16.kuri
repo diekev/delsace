@@ -449,6 +449,80 @@ supprime_nouvelles_lignes_en_place :: fonc (chn: *ChaineUTF16)
     chn.unités.taille = taille_finale
 }
 
+supprime :: fonc (chn: ChaineUTF16, prédicat: fonc(n32)(bool)) -> ChaineUTF16
+{
+    résultat: ChaineUTF16
+
+    pour chn.unités {
+        si prédicat(it) {
+            continue
+        }
+        tableau_ajoute(*résultat.unités, it)
+    }
+
+    retourne résultat
+}
+
+possède :: fonc (chn: ChaineUTF16, prédicat: fonc(n32)(bool)) -> bool
+{
+    pour chn.unités {
+        si prédicat(it) {
+            retourne vrai
+        }
+    }
+    retourne faux
+}
+
+possède_au_début_ou_à_la_fin :: fonc (chn: ChaineUTF16, prédicat: fonc(n32)(bool)) -> bool
+{
+    pour chn.unités {
+        si prédicat(it) {
+            retourne vrai
+        }
+        arrête
+    }
+    pour > chn.unités {
+        si prédicat(it) {
+            retourne vrai
+        }
+        arrête
+    }
+    retourne faux
+}
+
+donne_sous_chaine_entre :: fonc (chn: ChaineUTF16, prédicat: fonc(n32)(bool)) -> ChaineUTF16
+{
+    résultat := chn
+
+    début := résultat.unités.pointeur
+    fin := début + résultat.unités.taille
+
+    tantque début < fin {
+        saufsi prédicat(mémoire(début)) {
+            arrête
+        }
+
+        début += 1
+    }
+
+    résultat.unités.pointeur = début
+    
+    taille: z64
+
+    fin -= 1
+    tantque fin >= début {
+        saufsi prédicat(mémoire(début)) {
+            arrête
+        }
+        fin -= 1
+        taille += 1
+    }
+
+    résultat.unités.taille = taille
+
+    retourne résultat
+}
+
 sous_chaine :: fonc (chn: ChaineUTF16, début: z64, fin: z64) -> ChaineUTF16
 {
     assert(début >= 0)
