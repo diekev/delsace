@@ -153,3 +153,29 @@ est_caractère_espace_blanc :: fonc (point_de_code: n32) -> bool #enligne
 {
     retourne point_de_code == ESPACE || point_de_code == TABULATION || point_de_code == RETOUR_CHARIOT || point_de_code == NOUVELLE_LIGNE || point_de_code == 0x0C
 }
+
+/* https://url.spec.whatwg.org/#url-code-points */
+est_point_de_code_url :: fonc (point_de_code: n32) -> bool
+{
+    si est_ascii_alphanumérique(point_de_code) {
+        retourne vrai
+    }
+
+    si point_de_code < 0xA0 {
+        pour "!$&'()*+,-./:;=?@_~" {
+            si point_de_code == it comme n32 {
+                retourne vrai
+            }
+        }
+    }
+
+    si point_de_code > point_de_code_maximal_autorisé() {
+        retourne faux
+    }
+
+    si est_leading_surrogate(point_de_code) || est_trailling_surrogate(point_de_code) {
+        retourne faux
+    }
+
+    retourne !est_noncaractère(point_de_code)
+}
