@@ -1850,7 +1850,7 @@ url_serializer :: fonc (url: *URL, exclude_fragment := faux) -> ChaineASCII
         }
     }
 
-    // 3. If url’s host is null, url does not have an opaque path, url’s path’s size is greater than 1, and url’s path[0] is the empty string, then append U+002F (/) followed by U+002E (.) to output.
+    // À FAIRE 3. If url’s host is null, url does not have an opaque path, url’s path’s size is greater than 1, and url’s path[0] is the empty string, then append U+002F (/) followed by U+002E (.) to output.
     // si !url.host.possède_valeur() && !url.possède_chemin_opaque() && url.path.Path.taille > 1 && url.path.Path[0] == "" {
     //     ajoute_au_tampon(*output, "/.")
     // }
