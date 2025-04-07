@@ -597,14 +597,26 @@ basic_url_parser :: fonc (input: ChaineUTF16, base : *URL = nul, url : *URL = nu
         // 1. Set url to a new URL.
         résultat = loge(URL)
 
-        // À FAIRE 2. If input contains any leading or trailing C0 control or space, invalid-URL-unit validation error.
-
-        // À FAIRE 3. Remove any leading and trailing C0 control or space from input.
+        // 2. If input contains any leading or trailing C0 control or space, invalid-URL-unit validation error.
+        // 3. Remove any leading and trailing C0 control or space from input.
+        si possède_au_début_ou_à_la_fin(input, est_controle_C0_ou_espace) {
+            rapporte_erreur_url(ErreurDeParsage.InvalidURLUnit)
+            input = donne_sous_chaine_entre(input, est_controle_C0_ou_espace)
+        }
     }
 
-    // À FAIRE 2. If input contains any ASCII tab or newline, invalid-URL-unit validation error.
+    input_fut_copié := faux
+    diffère si input_fut_copié {
+        détruit_chaine(input)
+    }
 
-    // À FAIRE 3. Remove all ASCII tab or newline from input.
+    // 2. If input contains any ASCII tab or newline, invalid-URL-unit validation error.
+    // 3. Remove all ASCII tab or newline from input.
+    si possède(input, est_ascii_tab_ou_nouvelle_ligne) {
+        rapporte_erreur_url(ErreurDeParsage.InvalidURLUnit)
+        input_fut_copié = vrai
+        input = supprime(input, est_ascii_tab_ou_nouvelle_ligne)
+    }
 
     // 4. Let state be state override if given, or scheme start state otherwise.
     state := si state_override { mémoire(state_override) } sinon { ÉtatParsageURL.SchemeStart }
@@ -733,6 +745,7 @@ ErreurDeParsage :: énum {
     PortInvalid
     FileInvalidWindowsDriveLetter
     FileInvalidWindowsDriveLetterHost
+    InvalidURLUnit
 }
 
 rapporte_erreur_url :: fonc (code: ErreurDeParsage, fonction := #nom_de_cette_fonction)
