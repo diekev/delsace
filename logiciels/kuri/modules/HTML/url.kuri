@@ -1247,13 +1247,16 @@ basic_url_parser_host :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
             retourne RésultatParsageURL.Ok
         }
 
-        // À FAIRE : 3. Let host be the result of host parsing buffer with url is not special.
-        host := converti_vers_chaine(parser.buffer)
+        // 3. Let host be the result of host parsing buffer with url is not special.
+        host_opt := host_parser(parser.buffer, !parser.url.est_spécial())
 
         // 4. If host is failure, then return failure.
+        saufsi host_opt.possède_valeur() {
+            retourne RésultatParsageURL.Échec
+        }
 
         // 5. Set url’s host to host, buffer to the empty string, and state to port state.
-        parser.url.définis_host(host)
+        parser.url.définis_host(host_opt.Quelque)
         parser.buffer.unités.taille = 0
         parser.définis_state(ÉtatParsageURL.Port)
     }
@@ -1273,13 +1276,16 @@ basic_url_parser_host :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
             retourne RésultatParsageURL.Terminé
         }
 
-        // À FAIRE : 3. Let host be the result of host parsing buffer with url is not special.
-        host := converti_vers_chaine(parser.buffer)
+        // 3. Let host be the result of host parsing buffer with url is not special.
+        host_opt := host_parser(parser.buffer, !parser.url.est_spécial())
 
         // 4. If host is failure, then return failure.
+        saufsi host_opt.possède_valeur() {
+            retourne RésultatParsageURL.Échec
+        }
 
         // 5. Set url’s host to host, buffer to the empty string, and state to path start state.
-        parser.url.définis_host(host)
+        parser.url.définis_host(host_opt.Quelque)
         parser.buffer.unités.taille = 0
         parser.définis_state(ÉtatParsageURL.PathStart)
 
