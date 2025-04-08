@@ -12,19 +12,21 @@ importe Structures
  * \{ */
 
 OutrepasCotation :: struct {
-    valeur: ValeurDeStyle
+    valeur: *ValeurDeStyle
     est_affecté_par_box_sizing: bool
 }
 
 crée_outrepas_pour_coter_contenu :: fonc (valeur: r64) -> OutrepasCotation
 {
-    retourne OutrepasCotation(ValeurDeStyle(pixels = valeur))
+    // @fuite-de-mémoire
+    retourne OutrepasCotation(crée_valeur_pixels(valeur))
 }
 
 /* Cette fonction doit être utilisée si l'outrepas est affecté par box-sizing. */
 crée_outrepas_pour_coter_boite :: fonc (valeur: r64) -> OutrepasCotation
 {
-    retourne OutrepasCotation(ValeurDeStyle(pixels = valeur), vrai)
+    // @fuite-de-mémoire
+    retourne OutrepasCotation(crée_valeur_pixels(valeur), vrai)
 }
 
 /** \} */
@@ -51,7 +53,7 @@ donne_paramètres_box_sizing_pour_hauteur :: fonc (propriétés: *PropriétésDe
         padding_bottom := propriétés.donne_valeur_calculée(IDPropriété.PaddingBottom)
         border_bottom_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthBottom)
 
-        résultat.delta = border_top_width.pixels + padding_top.pixels + padding_bottom.pixels + border_bottom_width.pixels
+        résultat.delta = border_top_width.donne_pixels() + padding_top.donne_pixels() + padding_bottom.donne_pixels() + border_bottom_width.donne_pixels()
     }
 
     retourne résultat
@@ -70,28 +72,28 @@ donne_paramètres_box_sizing_pour_largeur :: fonc (propriétés: *PropriétésDe
         padding_right := propriétés.donne_valeur_calculée(IDPropriété.PaddingRight)
         border_right_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthRight)
 
-        résultat.delta = border_left_width.pixels + padding_left.pixels + padding_right.pixels + border_right_width.pixels
+        résultat.delta = border_left_width.donne_pixels() + padding_left.donne_pixels() + padding_right.donne_pixels() + border_right_width.donne_pixels()
     }
 
     retourne résultat
 }
 
-applique_box_sizing :: fonc (params: *ParamètresBoxSizing, valeur: ValeurDeStyle) -> ValeurDeStyle
+applique_box_sizing :: fonc (params: *ParamètresBoxSizing, valeur: *ValeurDeStyle) -> *ValeurDeStyle
 {
     saufsi valeur.est_pixels() {
-        retourne valeur
+        retourne copie_valeur(valeur)
     }
 
     saufsi params.applique_delta {
-        retourne valeur
+        retourne copie_valeur(valeur)
     }
 
-    valeur.pixels -= params.delta
-    si valeur.pixels < 0.0 {
+    pixels := valeur.donne_pixels() - params.delta
+    si pixels < 0.0 {
         valeur = donne_valeur_pixels_zéro()
     }
 
-    retourne valeur
+    retourne crée_valeur_pixels(pixels)
 }
 
 /** \} */
@@ -100,13 +102,13 @@ ajourne_boite_pour_calcul_largeur :: fonc (noeud: *NoeudDeDisposition)
 {
     propriétés := noeud.propriétés
 
-    margin_left := propriétés.donne_valeur_utilisée(IDPropriété.MarginLeft).pixels comme r32
-    border_left_width := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthLeft).pixels comme r32
-    padding_left := propriétés.donne_valeur_utilisée(IDPropriété.PaddingLeft).pixels comme r32
-    width := propriétés.donne_valeur_utilisée(IDPropriété.Width).pixels comme r32
-    padding_right := propriétés.donne_valeur_utilisée(IDPropriété.PaddingRight).pixels comme r32
-    border_right_width := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthRight).pixels comme r32
-    margin_right := propriétés.donne_valeur_utilisée(IDPropriété.MarginRight).pixels comme r32
+    margin_left := propriétés.donne_valeur_utilisée(IDPropriété.MarginLeft).donne_pixels() comme r32
+    border_left_width := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthLeft).donne_pixels() comme r32
+    padding_left := propriétés.donne_valeur_utilisée(IDPropriété.PaddingLeft).donne_pixels() comme r32
+    width := propriétés.donne_valeur_utilisée(IDPropriété.Width).donne_pixels() comme r32
+    padding_right := propriétés.donne_valeur_utilisée(IDPropriété.PaddingRight).donne_pixels() comme r32
+    border_right_width := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthRight).donne_pixels() comme r32
+    margin_right := propriétés.donne_valeur_utilisée(IDPropriété.MarginRight).donne_pixels() comme r32
 
     x := noeud.modèle_de_boite.marge.x
 
@@ -127,13 +129,13 @@ ajourne_boite_pour_calcul_hauteur :: fonc (noeud: *NoeudDeDisposition)
 {
     propriétés := noeud.propriétés
 
-    margin_top := propriétés.donne_valeur_utilisée(IDPropriété.MarginTop).pixels comme r32
-    border_top_width := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthTop).pixels comme r32
-    padding_top := propriétés.donne_valeur_utilisée(IDPropriété.PaddingTop).pixels comme r32
-    height := propriétés.donne_valeur_utilisée(IDPropriété.Height).pixels comme r32
-    padding_bottom := propriétés.donne_valeur_utilisée(IDPropriété.PaddingBottom).pixels comme r32
-    border_bottom_width := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthBottom).pixels comme r32
-    margin_bottom := propriétés.donne_valeur_utilisée(IDPropriété.MarginBottom).pixels comme r32
+    margin_top := propriétés.donne_valeur_utilisée(IDPropriété.MarginTop).donne_pixels() comme r32
+    border_top_width := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthTop).donne_pixels() comme r32
+    padding_top := propriétés.donne_valeur_utilisée(IDPropriété.PaddingTop).donne_pixels() comme r32
+    height := propriétés.donne_valeur_utilisée(IDPropriété.Height).donne_pixels() comme r32
+    padding_bottom := propriétés.donne_valeur_utilisée(IDPropriété.PaddingBottom).donne_pixels() comme r32
+    border_bottom_width := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthBottom).donne_pixels() comme r32
+    margin_bottom := propriétés.donne_valeur_utilisée(IDPropriété.MarginBottom).donne_pixels() comme r32
 
     y := noeud.modèle_de_boite.marge.y
 
@@ -156,9 +158,9 @@ ajourne_boite_pour_calcul_hauteur_auto :: fonc (noeud: *NoeudDeDisposition)
 {
     propriétés := noeud.propriétés
 
-    margin_top := propriétés.donne_valeur_utilisée(IDPropriété.MarginTop).pixels comme r32
-    border_top_width := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthTop).pixels comme r32
-    padding_top := propriétés.donne_valeur_utilisée(IDPropriété.PaddingTop).pixels comme r32
+    margin_top := propriétés.donne_valeur_utilisée(IDPropriété.MarginTop).donne_pixels() comme r32
+    border_top_width := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthTop).donne_pixels() comme r32
+    padding_top := propriétés.donne_valeur_utilisée(IDPropriété.PaddingTop).donne_pixels() comme r32
 
     y := noeud.modèle_de_boite.marge.y
 
@@ -315,12 +317,12 @@ calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement)
         outrepas := outrepas_largeur.Quelque
         si outrepas.est_affecté_par_box_sizing {
             width = applique_box_sizing(*params_box_sizing, outrepas.valeur)
-            tmp_args.outrepas_largeur = crée_outrepas_pour_coter_contenu(width.pixels)
+            tmp_args.outrepas_largeur = crée_outrepas_pour_coter_contenu(width.donne_pixels())
         }
     }
     sinon saufsi width.est_auto() {
         width = applique_box_sizing(*params_box_sizing, width)
-        tmp_args.outrepas_largeur = crée_outrepas_pour_coter_contenu(width.pixels)
+        tmp_args.outrepas_largeur = crée_outrepas_pour_coter_contenu(width.donne_pixels())
     }
 
     fonction_de_calcul := donne_fonction_calcul_largeur_et_marges(noeud)
@@ -329,18 +331,18 @@ calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement)
     width = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width)
     max_width := noeud.propriétés.donne_valeur_calculée(IDPropriété.MaxWidth)
     max_width = applique_box_sizing(*params_box_sizing, max_width)
-    si max_width.est_pixels() && (width.pixels > max_width.pixels) {
+    si max_width.est_pixels() && (width.donne_pixels() > max_width.donne_pixels()) {
         tmp_args = mémoire(args)
-        tmp_args.outrepas_largeur = crée_outrepas_pour_coter_contenu(max_width.pixels)
+        tmp_args.outrepas_largeur = crée_outrepas_pour_coter_contenu(max_width.donne_pixels())
         calcule_largeur_et_marges(*tmp_args, fonction_de_calcul)
     }
 
     width = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width)
     min_width := noeud.propriétés.donne_valeur_calculée(IDPropriété.MinWidth)
     min_width = applique_box_sizing(*params_box_sizing, min_width)
-    si min_width.est_pixels() && min_width.pixels > 0.0 && (width.pixels < min_width.pixels) {
+    si min_width.est_pixels() && min_width.donne_pixels() > 0.0 && (width.donne_pixels() < min_width.donne_pixels()) {
         tmp_args = mémoire(args)
-        tmp_args.outrepas_largeur = crée_outrepas_pour_coter_contenu(min_width.pixels)
+        tmp_args.outrepas_largeur = crée_outrepas_pour_coter_contenu(min_width.donne_pixels())
         calcule_largeur_et_marges(*tmp_args, fonction_de_calcul)
     }
 
@@ -349,15 +351,15 @@ calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement)
 }
 
 PropriétésLargeur :: struct {
-    left: ValeurDeStyle
-    margin_left: ValeurDeStyle
-    border_left_width: ValeurDeStyle
-    padding_left: ValeurDeStyle
-    width: ValeurDeStyle
-    padding_right: ValeurDeStyle
-    border_right_width: ValeurDeStyle
-    margin_right: ValeurDeStyle
-    right: ValeurDeStyle
+    left: *ValeurDeStyle
+    margin_left: *ValeurDeStyle
+    border_left_width: *ValeurDeStyle
+    padding_left: *ValeurDeStyle
+    width: *ValeurDeStyle
+    padding_right: *ValeurDeStyle
+    border_right_width: *ValeurDeStyle
+    margin_right: *ValeurDeStyle
+    right: *ValeurDeStyle
 }
 
 TypeFonctionCalculLargeur :: fonc(*ArgumentsDimensionnement,*PropriétésLargeur)(rien)
@@ -385,7 +387,7 @@ calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement, fonctio
 
     fonction_de_calcul(args, *pl)
 
-    si pl.width.pixels < 0.0 {
+    si pl.width.donne_pixels() < 0.0 {
         pl.width = donne_valeur_pixels_zéro()
     }
 
@@ -405,7 +407,7 @@ calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement, fonctio
 donne_fonction_calcul_largeur_et_marges :: fonc (noeud: *NoeudDeDisposition) -> TypeFonctionCalculLargeur
 {
     propriétés := noeud.propriétés
-    display := propriétés.donne_valeur_calculée(IDPropriété.Display).display
+    display := propriétés.donne_valeur_calculée(IDPropriété.Display).donne_display()
     float := propriétés.donne_valeur_utilisée(IDPropriété.Float)
     position := propriétés.donne_valeur_utilisée(IDPropriété.Position)
 
@@ -453,13 +455,13 @@ donne_fonction_calcul_largeur_et_marges :: fonc (noeud: *NoeudDeDisposition) -> 
     retourne calcule_largeur_et_marges_block_level_normal_flow
 }
 
-calcule_pourcentage :: fonc (valeur: ValeurDeStyle, référence: r64) -> ValeurDeStyle
+calcule_pourcentage :: fonc (valeur: *ValeurDeStyle, référence: r64) -> *ValeurDeStyle
 {
     saufsi valeur.est_percentage() {
-        retourne valeur
+        retourne copie_valeur(valeur)
     }
 
-    retourne ValeurDeStyle(pixels = valeur.percentage * référence / 100.0)
+    retourne crée_valeur_pixels(valeur.donne_percentage() * référence / 100.0)
 }
 
 résoud_pourcentage_largeurs :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition, containing_block: &ContainingBlock)
@@ -512,7 +514,7 @@ résoud_pourcentage_hauteur :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDe
 
     prop_height := propriétés.donne_valeur_calculée(IDPropriété.Height)
     si prop_height.est_percentage() && contenant_dépend_sur_contenu && !est_absolu {
-        propriétés.définis_valeur_calculée(IDPropriété.Height, ValeurDeStyle(mot_clé = PROP_auto))
+        propriétés.définis_valeur_calculée(IDPropriété.Height, donne_valeur_auto())
     }
     sinon {
         résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.Height, height_of_containing_block)
@@ -579,7 +581,7 @@ calcule_hauteur_et_marges :: fonc (empl args: *ArgumentsDimensionnement) -> Éta
     }
     sinon saufsi height.est_auto() {
         height = applique_box_sizing(*params_box_sizing, height)
-        tmp_args.outrepas_hauteur = crée_outrepas_pour_coter_contenu(height.pixels)
+        tmp_args.outrepas_hauteur = crée_outrepas_pour_coter_contenu(height.donne_pixels())
     }
 
     résultat := calcule_hauteur_et_marges(*tmp_args, fonction_de_calcul)
@@ -591,18 +593,18 @@ calcule_hauteur_et_marges :: fonc (empl args: *ArgumentsDimensionnement) -> Éta
     height = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Height)
     max_height := noeud.propriétés.donne_valeur_calculée(IDPropriété.MaxHeight)
     max_height = applique_box_sizing(*params_box_sizing, max_height)
-    si max_height.est_pixels() && (height.pixels > max_height.pixels) {
+    si max_height.est_pixels() && (height.donne_pixels() > max_height.donne_pixels()) {
         tmp_args = mémoire(args)
-        tmp_args.outrepas_hauteur = crée_outrepas_pour_coter_contenu(max_height.pixels)
+        tmp_args.outrepas_hauteur = crée_outrepas_pour_coter_contenu(max_height.donne_pixels())
         _ := calcule_hauteur_et_marges(*tmp_args, fonction_de_calcul)
     }
 
     height = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Height)
     min_height := noeud.propriétés.donne_valeur_calculée(IDPropriété.MinHeight)
     min_height = applique_box_sizing(*params_box_sizing, min_height)
-    si min_height.est_pixels() && (height.pixels < min_height.pixels) {
+    si min_height.est_pixels() && (height.donne_pixels() < min_height.donne_pixels()) {
         tmp_args = mémoire(args)
-        tmp_args.outrepas_hauteur = crée_outrepas_pour_coter_contenu(min_height.pixels)
+        tmp_args.outrepas_hauteur = crée_outrepas_pour_coter_contenu(min_height.donne_pixels())
         _ := calcule_hauteur_et_marges(*tmp_args, fonction_de_calcul)
     }
 
@@ -612,15 +614,15 @@ calcule_hauteur_et_marges :: fonc (empl args: *ArgumentsDimensionnement) -> Éta
 }
 
 PropriétésHauteur :: struct {
-    top: ValeurDeStyle
-    margin_top: ValeurDeStyle
-    border_top_width: ValeurDeStyle
-    padding_top: ValeurDeStyle
-    height: ValeurDeStyle
-    padding_bottom: ValeurDeStyle
-    border_bottom_width: ValeurDeStyle
-    margin_bottom: ValeurDeStyle
-    bottom: ValeurDeStyle
+    top: *ValeurDeStyle
+    margin_top: *ValeurDeStyle
+    border_top_width: *ValeurDeStyle
+    padding_top: *ValeurDeStyle
+    height: *ValeurDeStyle
+    padding_bottom: *ValeurDeStyle
+    border_bottom_width: *ValeurDeStyle
+    margin_bottom: *ValeurDeStyle
+    bottom: *ValeurDeStyle
 }
 
 TypeFonctionCalculHauteur :: fonc(*ArgumentsDimensionnement,*PropriétésHauteur)(ÉtatCalculHauteur)
@@ -645,7 +647,7 @@ calcule_hauteur_et_marges :: fonc (empl args: *ArgumentsDimensionnement, fonctio
 
     résultat := fonction_de_calcul(args, *ph)
 
-    si ph.height.est_pixels() && ph.height.pixels < 0.0 {
+    si ph.height.est_pixels() && ph.height.donne_pixels() < 0.0 {
         ph.height = donne_valeur_pixels_zéro()
     }
 
@@ -669,7 +671,7 @@ calcule_hauteur_et_marges :: fonc (empl args: *ArgumentsDimensionnement, fonctio
 donne_fonction_calcul_hauteur_et_marges :: fonc (noeud: *NoeudDeDisposition) -> TypeFonctionCalculHauteur
 {
     propriétés := noeud.propriétés
-    display := propriétés.donne_valeur_calculée(IDPropriété.Display).display
+    display := propriétés.donne_valeur_calculée(IDPropriété.Display).donne_display()
     position := propriétés.donne_valeur_utilisée(IDPropriété.Position)
 
     si noeud.table_virtuelle.type == NoeudDeDispositionRemplacement {
@@ -737,7 +739,7 @@ calcule_hauteur_et_marges_block_level_normal_flow :: fonc (empl args: *Arguments
                 dernier_fragment := noeud_bloc.lignes_tenante.lignes[nombre_de_lignes - 1]
                 position_bord_bas_fragment := dernier_fragment.position_y + dernier_fragment.hauteur_contenu
 
-                height.pixels = position_bord_bas_fragment - position_bord_haut_contenu
+                height = crée_valeur_pixels(position_bord_bas_fragment - position_bord_haut_contenu)
             }
         }
         sinon si méthode_de_formattage == MéthodeDeFormattage.Flex {
@@ -758,7 +760,7 @@ calcule_hauteur_et_marges_block_level_normal_flow :: fonc (empl args: *Arguments
                 }
             }
 
-            height.pixels = position_bord_bas - position_bord_haut_contenu
+            height = crée_valeur_pixels(position_bord_bas - position_bord_haut_contenu)
         }
         sinon {
             enfant := donne_dernier_enfant_in_flow(noeud)
@@ -771,7 +773,7 @@ calcule_hauteur_et_marges_block_level_normal_flow :: fonc (empl args: *Arguments
                 si enfant.propriétés.donne_valeur_calculée(IDPropriété.Position).est_mot_clé(PROP_relative) {
                     position_bord_bas_fragment -= enfant.donne_décalage_top_pour_relative()
                 }
-                height.pixels = position_bord_bas_fragment - position_bord_haut_contenu
+                height = crée_valeur_pixels(position_bord_bas_fragment - position_bord_haut_contenu)
             }
             sinon {
                 // 4. zero, otherwise
@@ -811,17 +813,17 @@ calcule_largeur_et_marges_block_level_normal_flow :: fonc (empl args: *Arguments
     // 'margin-right' are, for the following rules, treated as zero.
     saufsi width.est_auto() {
         tmp : r64 = 0.0
-        tmp += border_left_width.pixels
-        tmp += padding_left.pixels
-        tmp += width.pixels
-        tmp += padding_right.pixels
-        tmp += border_right_width.pixels
+        tmp += border_left_width.donne_pixels()
+        tmp += padding_left.donne_pixels()
+        tmp += width.donne_pixels()
+        tmp += padding_right.donne_pixels()
+        tmp += border_right_width.donne_pixels()
 
         saufsi margin_left.est_auto() {
-            tmp += margin_left.pixels
+            tmp += margin_left.donne_pixels()
         }
         saufsi margin_right.est_auto() {
-            tmp += margin_right.pixels
+            tmp += margin_right.donne_pixels()
         }
 
         si tmp > width_of_containing_block {
@@ -866,32 +868,32 @@ calcule_largeur_et_marges_block_level_normal_flow :: fonc (empl args: *Arguments
     // If there is exactly one value specified as 'auto', its used value follows from the equality.
     si surcontraint == 1 {
         si margin_left.est_auto() {
-            résultat := width_of_containing_block - (border_left_width.pixels + padding_left.pixels + width.pixels + padding_right.pixels + border_right_width.pixels + margin_right_pour_équation.pixels)
-            margin_left = ValeurDeStyle(pixels = résultat)
+            résultat := width_of_containing_block - (border_left_width.donne_pixels() + padding_left.donne_pixels() + width.donne_pixels() + padding_right.donne_pixels() + border_right_width.donne_pixels() + margin_right_pour_équation.donne_pixels())
+            margin_left = crée_valeur_pixels(résultat)
         }
         sinon si border_left_width.est_auto() {
-            résultat := width_of_containing_block - (margin_left.pixels + padding_left.pixels + width.pixels + padding_right.pixels + border_right_width.pixels + margin_right_pour_équation.pixels)
-            border_left_width = ValeurDeStyle(pixels = résultat)
+            résultat := width_of_containing_block - (margin_left.donne_pixels() + padding_left.donne_pixels() + width.donne_pixels() + padding_right.donne_pixels() + border_right_width.donne_pixels() + margin_right_pour_équation.donne_pixels())
+            border_left_width = crée_valeur_pixels(résultat)
         }
         sinon si padding_left.est_auto() {
-            résultat := width_of_containing_block - (margin_left.pixels + border_left_width.pixels + width.pixels + padding_right.pixels + border_right_width.pixels + margin_right_pour_équation.pixels)
-            padding_left = ValeurDeStyle(pixels = résultat)
+            résultat := width_of_containing_block - (margin_left.donne_pixels() + border_left_width.donne_pixels() + width.donne_pixels() + padding_right.donne_pixels() + border_right_width.donne_pixels() + margin_right_pour_équation.donne_pixels())
+            padding_left = crée_valeur_pixels(résultat)
         }
         sinon si width.est_auto() {
-            résultat := width_of_containing_block - (margin_left.pixels + border_left_width.pixels + padding_left.pixels + padding_right.pixels + border_right_width.pixels + margin_right_pour_équation.pixels)
-            width = ValeurDeStyle(pixels = résultat)
+            résultat := width_of_containing_block - (margin_left.donne_pixels() + border_left_width.donne_pixels() + padding_left.donne_pixels() + padding_right.donne_pixels() + border_right_width.donne_pixels() + margin_right_pour_équation.donne_pixels())
+            width = crée_valeur_pixels(résultat)
         }
         sinon si padding_right.est_auto() {
-            résultat := width_of_containing_block - (margin_left.pixels + border_left_width.pixels + padding_left.pixels + width.pixels + border_right_width.pixels + margin_right_pour_équation.pixels)
-            padding_right = ValeurDeStyle(pixels = résultat)
+            résultat := width_of_containing_block - (margin_left.donne_pixels() + border_left_width.donne_pixels() + padding_left.donne_pixels() + width.donne_pixels() + border_right_width.donne_pixels() + margin_right_pour_équation.donne_pixels())
+            padding_right = crée_valeur_pixels(résultat)
         }
         sinon si border_right_width.est_auto() {
-            résultat := width_of_containing_block - (margin_left.pixels + border_left_width.pixels + padding_left.pixels + width.pixels + padding_right.pixels + margin_right_pour_équation.pixels)
-            border_right_width = ValeurDeStyle(pixels = résultat)
+            résultat := width_of_containing_block - (margin_left.donne_pixels() + border_left_width.donne_pixels() + padding_left.donne_pixels() + width.donne_pixels() + padding_right.donne_pixels() + margin_right_pour_équation.donne_pixels())
+            border_right_width = crée_valeur_pixels(résultat)
         }
         sinon si margin_right.est_auto() {
-            résultat := width_of_containing_block - (margin_left.pixels + border_left_width.pixels + padding_left.pixels + width.pixels + padding_right.pixels + border_right_width.pixels)
-            margin_right = ValeurDeStyle(pixels = résultat)
+            résultat := width_of_containing_block - (margin_left.donne_pixels() + border_left_width.donne_pixels() + padding_left.donne_pixels() + width.donne_pixels() + padding_right.donne_pixels() + border_right_width.donne_pixels())
+            margin_right = crée_valeur_pixels(résultat)
         }
     }
 
@@ -916,8 +918,8 @@ calcule_largeur_et_marges_block_level_normal_flow :: fonc (empl args: *Arguments
             margin_right = donne_valeur_pixels_zéro()
         }
 
-        résultat := width_of_containing_block - (margin_left.pixels + border_left_width.pixels + padding_left.pixels + padding_right.pixels + border_right_width.pixels + margin_right.pixels)
-        width = ValeurDeStyle(pixels = résultat)
+        résultat := width_of_containing_block - (margin_left.donne_pixels() + border_left_width.donne_pixels() + padding_left.donne_pixels() + padding_right.donne_pixels() + border_right_width.donne_pixels() + margin_right.donne_pixels())
+        width = crée_valeur_pixels(résultat)
     }
 
     // If both 'margin-left' and 'margin-right' are 'auto', their used values are equal.
@@ -930,11 +932,11 @@ calcule_largeur_et_marges_block_level_normal_flow :: fonc (empl args: *Arguments
             retourne
         }
 
-        résultat := width_of_containing_block - (border_left_width.pixels + padding_left.pixels + width.pixels + padding_right.pixels + border_right_width.pixels)
+        résultat := width_of_containing_block - (border_left_width.donne_pixels() + padding_left.donne_pixels() + width.donne_pixels() + padding_right.donne_pixels() + border_right_width.donne_pixels())
         résultat *= 0.5
 
-        margin_left = ValeurDeStyle(pixels = résultat)
-        margin_right = ValeurDeStyle(pixels = résultat)
+        margin_left = crée_valeur_pixels(résultat)
+        margin_right = crée_valeur_pixels(résultat)
     }
 }
 
@@ -955,12 +957,12 @@ calcule_largeur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
             margin_right = donne_valeur_pixels_zéro()
         }
 
-        left.pixels = pos_x_statique - containing_block.rect.x
+        left = crée_valeur_pixels(pos_x_statique - containing_block.rect.x)
 
         right = donne_valeur_pixels_zéro()
-        available_width := width_of_containing_block - left.pixels - margin_left.pixels - border_left_width.pixels - padding_left.pixels - padding_right.pixels - border_right_width.pixels - margin_right.pixels - right.pixels
-        width.pixels = calcule_shrink_to_fit_width(ctx, noeud, available_width)
-        right.pixels = width_of_containing_block - left.pixels - margin_left.pixels - border_left_width.pixels - padding_left.pixels - width.pixels - padding_right.pixels - border_right_width.pixels - margin_right.pixels
+        available_width := width_of_containing_block - left.donne_pixels() - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels() - right.donne_pixels()
+        width = crée_valeur_pixels(calcule_shrink_to_fit_width(ctx, noeud, available_width))
+        right = crée_valeur_pixels(width_of_containing_block - left.donne_pixels() - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - width.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels())
     }
     sinon si !left.est_auto() && !right.est_auto() && !width.est_auto() {
         // If none of the three is 'auto': If both 'margin-left' and 'margin-right' are 'auto',
@@ -969,32 +971,32 @@ calcule_largeur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
         // block is 'ltr' ('rtl'), set 'margin-left' ('margin-right') to zero and solve for
         // 'margin-right' ('margin-left').
         si margin_left.est_auto() && margin_right.est_auto() {
-            taille_marges := width_of_containing_block - left.pixels - border_left_width.pixels - padding_left.pixels - width.pixels - padding_right.pixels - border_right_width.pixels - right.pixels
+            taille_marges := width_of_containing_block - left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - width.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - right.donne_pixels()
             si taille_marges < 0.0 {
                 // À FAIRE : direction
                 margin_left = donne_valeur_pixels_zéro()
-                margin_right.pixels = taille_marges
+                margin_right = crée_valeur_pixels(taille_marges)
             }
             sinon {
                 taille_marges *= 0.5
 
-                margin_left.pixels = taille_marges
-                margin_right.pixels = taille_marges
+                margin_left = crée_valeur_pixels(taille_marges)
+                margin_right = crée_valeur_pixels(taille_marges)
             }
         }
         // If one of 'margin-left' or 'margin-right' is 'auto', solve the equation for that value.
         sinon si margin_left.est_auto() {
-            margin_left.pixels = width_of_containing_block - left.pixels - border_left_width.pixels - padding_left.pixels - width.pixels - padding_right.pixels - border_right_width.pixels - margin_right.pixels - right.pixels
+            margin_left = crée_valeur_pixels(width_of_containing_block - left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - width.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels() - right.donne_pixels())
         }
         sinon si margin_right.est_auto() {
-            margin_right.pixels = width_of_containing_block - margin_left.pixels - border_left_width.pixels - padding_left.pixels - width.pixels - padding_right.pixels - border_right_width.pixels - right.pixels
+            margin_right = crée_valeur_pixels(width_of_containing_block - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - width.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - right.donne_pixels())
         }
         // If the values are over-constrained, ignore the value for 'left' (in case the 'direction'
         // property of the containing block is 'rtl') or 'right' (in case 'direction' is 'ltr') and
         // solve for that value.
         sinon {
             // À FAIRE : direction
-            left.pixels = width_of_containing_block - margin_left.pixels - border_left_width.pixels - padding_left.pixels - width.pixels - padding_right.pixels - border_right_width.pixels - margin_right.pixels - right.pixels
+            left = crée_valeur_pixels(width_of_containing_block - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - width.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels() - right.donne_pixels())
         }
     }
     sinon {
@@ -1008,40 +1010,40 @@ calcule_largeur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
         // 1. 'left' and 'width' are 'auto' and 'right' is not 'auto', then the width is shrink-to-fit.
         //     Then solve for 'left'
         si left.est_auto() && width.est_auto() && !right.est_auto() {
-            available_width := width_of_containing_block - margin_left.pixels - border_left_width.pixels - padding_left.pixels - padding_right.pixels - border_right_width.pixels - margin_right.pixels - right.pixels
-            width.pixels = calcule_shrink_to_fit_width(ctx, noeud, available_width)
-            left.pixels = width_of_containing_block - margin_left.pixels - border_left_width.pixels - padding_left.pixels - width.pixels - padding_right.pixels - border_right_width.pixels - margin_right.pixels - right.pixels
+            available_width := width_of_containing_block - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels() - right.donne_pixels()
+            width = crée_valeur_pixels(calcule_shrink_to_fit_width(ctx, noeud, available_width))
+            left = crée_valeur_pixels(width_of_containing_block - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - width.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels() - right.donne_pixels())
         }
 
         // 2. 'left' and 'right' are 'auto' and 'width' is not 'auto', then if the 'direction' property of
         //    the element establishing the static-position containing block is 'ltr' set 'left' to the static position, otherwise set 'right' to the static position. Then solve for 'left' (if 'direction is 'rtl') or 'right' (if 'direction' is 'ltr').
         sinon si left.est_auto() && right.est_auto() && !width.est_auto() {
             // À FAIRE : direction
-            left.pixels = pos_x_statique - containing_block.rect.x
-            right.pixels = width_of_containing_block - left.pixels - margin_left.pixels - border_left_width.pixels - padding_left.pixels - width.pixels - padding_right.pixels - border_right_width.pixels - margin_right.pixels
+            left = crée_valeur_pixels(pos_x_statique - containing_block.rect.x)
+            right = crée_valeur_pixels(width_of_containing_block - left.donne_pixels() - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - width.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels())
         }
 
         // 3. 'width' and 'right' are 'auto' and 'left' is not 'auto', then the width is shrink-to-fit.
         //    Then solve for 'right'
         sinon si width.est_auto() && right.est_auto() && !left.est_auto() {
-            available_width := width_of_containing_block - left.pixels - margin_left.pixels - border_left_width.pixels - padding_left.pixels - padding_right.pixels - border_right_width.pixels - margin_right.pixels
-            width.pixels = calcule_shrink_to_fit_width(ctx, noeud, available_width)
-            right.pixels = width_of_containing_block - left.pixels - margin_left.pixels - border_left_width.pixels - padding_left.pixels - width.pixels - padding_right.pixels - border_right_width.pixels - margin_right.pixels
+            available_width := width_of_containing_block - left.donne_pixels() - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels()
+            width = crée_valeur_pixels(calcule_shrink_to_fit_width(ctx, noeud, available_width))
+            right = crée_valeur_pixels(width_of_containing_block - left.donne_pixels() - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - width.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels())
         }
 
         // 4. 'left' is 'auto', 'width' and 'right' are not 'auto', then solve for 'left'
         sinon si left.est_auto() && !width.est_auto() && !right.est_auto() {
-            left.pixels = width_of_containing_block - margin_left.pixels - border_left_width.pixels - padding_left.pixels - width.pixels - padding_right.pixels - border_right_width.pixels - margin_right.pixels - right.pixels
+            left = crée_valeur_pixels(width_of_containing_block - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - width.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels() - right.donne_pixels())
         }
         
         // 5. 'width' is 'auto', 'left' and 'right' are not 'auto', then solve for 'width'
         sinon si width.est_auto() && !left.est_auto() && !right.est_auto() {
-            width.pixels = width_of_containing_block - left.pixels - margin_left.pixels - border_left_width.pixels - padding_left.pixels - padding_right.pixels - border_right_width.pixels - margin_right.pixels - right.pixels
+            width = crée_valeur_pixels(width_of_containing_block - left.donne_pixels() - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels() - right.donne_pixels())
         }
         
         // 6. 'right' is 'auto', 'left' and 'width' are not 'auto', then solve for 'right'
         sinon si right.est_auto() && !left.est_auto() && !width.est_auto() {
-            right.pixels = width_of_containing_block - left.pixels - margin_left.pixels - border_left_width.pixels - padding_left.pixels - width.pixels - padding_right.pixels - border_right_width.pixels - margin_right.pixels
+            right = crée_valeur_pixels(width_of_containing_block - left.donne_pixels() - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - width.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels())
         }
     }
 }
@@ -1056,7 +1058,7 @@ calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
 
     // If all three of 'top', 'height', and 'bottom' are auto, set 'top' to the static position and apply rule number three below.
     si top.est_auto() && height.est_auto() && bottom.est_auto() {
-        top.pixels = pos_y_statique - containing_block.rect.y
+        top = crée_valeur_pixels(pos_y_statique - containing_block.rect.y)
 
         si margin_top.est_auto() {
             margin_top = donne_valeur_pixels_zéro()
@@ -1069,8 +1071,8 @@ calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
             retourne ÉtatCalculHauteur.HauteurDépendSurContenu
         }
 
-        height.pixels = calcule_auto_height_racine_contexte_de_formattage(noeud comme *NoeudDeDispositionBloc)
-        bottom.pixels = height_of_containing_block - top.pixels - margin_top.pixels - border_top_width.pixels - padding_top.pixels - height.pixels - padding_bottom.pixels - border_bottom_width.pixels - margin_bottom.pixels
+        height = crée_valeur_pixels(calcule_auto_height_racine_contexte_de_formattage(noeud comme *NoeudDeDispositionBloc))
+        bottom = crée_valeur_pixels(height_of_containing_block - top.donne_pixels() - margin_top.donne_pixels() - border_top_width.donne_pixels() - padding_top.donne_pixels() - height.donne_pixels() - padding_bottom.donne_pixels() - border_bottom_width.donne_pixels() - margin_bottom.donne_pixels())
     }
     // If none of the three are 'auto': If both 'margin-top' and 'margin-bottom' are 'auto',
     // solve the equation under the extra constraint that the two margins get equal values.
@@ -1078,18 +1080,18 @@ calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
     // If the values are over-constrained, ignore the value for 'bottom' and solve for that value.
     sinon si !top.est_auto() && !height.est_auto() && !bottom.est_auto() {
         si margin_top.est_auto() && margin_bottom.est_auto() {
-            marges := height_of_containing_block - top.pixels - border_top_width.pixels - padding_top.pixels - height.pixels - padding_bottom.pixels - border_bottom_width.pixels - bottom.pixels
-            margin_top.pixels = marges * 0.5
-            margin_bottom.pixels = marges * 0.5
+            marges := height_of_containing_block - top.donne_pixels() - border_top_width.donne_pixels() - padding_top.donne_pixels() - height.donne_pixels() - padding_bottom.donne_pixels() - border_bottom_width.donne_pixels() - bottom.donne_pixels()
+            margin_top = crée_valeur_pixels(marges * 0.5)
+            margin_bottom = crée_valeur_pixels(marges * 0.5)
         }
         sinon si margin_top.est_auto() {
-            margin_top.pixels = height_of_containing_block - top.pixels - border_top_width.pixels - padding_top.pixels - height.pixels - padding_bottom.pixels - border_bottom_width.pixels - margin_bottom.pixels - bottom.pixels
+            margin_top = crée_valeur_pixels(height_of_containing_block - top.donne_pixels() - border_top_width.donne_pixels() - padding_top.donne_pixels() - height.donne_pixels() - padding_bottom.donne_pixels() - border_bottom_width.donne_pixels() - margin_bottom.donne_pixels() - bottom.donne_pixels())
         }
         sinon si margin_bottom.est_auto() {
-            margin_bottom.pixels = height_of_containing_block - top.pixels - margin_top.pixels - border_top_width.pixels - padding_top.pixels - height.pixels - padding_bottom.pixels - border_bottom_width.pixels - bottom.pixels
+            margin_bottom = crée_valeur_pixels(height_of_containing_block - top.donne_pixels() - margin_top.donne_pixels() - border_top_width.donne_pixels() - padding_top.donne_pixels() - height.donne_pixels() - padding_bottom.donne_pixels() - border_bottom_width.donne_pixels() - bottom.donne_pixels())
         }
         sinon {
-            bottom.pixels = height_of_containing_block - top.pixels - margin_top.pixels - border_top_width.pixels - padding_top.pixels - height.pixels - padding_bottom.pixels - border_bottom_width.pixels - margin_bottom.pixels
+            bottom = crée_valeur_pixels(height_of_containing_block - top.donne_pixels() - margin_top.donne_pixels() - border_top_width.donne_pixels() - padding_top.donne_pixels() - height.donne_pixels() - padding_bottom.donne_pixels() - border_bottom_width.donne_pixels() - margin_bottom.donne_pixels())
         }
     }
     sinon {
@@ -1109,8 +1111,8 @@ calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
                 retourne ÉtatCalculHauteur.HauteurDépendSurContenu
             }
 
-            height.pixels = calcule_auto_height_racine_contexte_de_formattage(noeud comme *NoeudDeDispositionBloc)
-            top.pixels = height_of_containing_block - margin_top.pixels - border_top_width.pixels - padding_top.pixels - height.pixels - padding_bottom.pixels - border_bottom_width.pixels - margin_bottom.pixels - bottom.pixels
+            height = crée_valeur_pixels(calcule_auto_height_racine_contexte_de_formattage(noeud comme *NoeudDeDispositionBloc))
+            top = crée_valeur_pixels(height_of_containing_block - margin_top.donne_pixels() - border_top_width.donne_pixels() - padding_top.donne_pixels() - height.donne_pixels() - padding_bottom.donne_pixels() - border_bottom_width.donne_pixels() - margin_bottom.donne_pixels() - bottom.donne_pixels())
         }
         // 2. 'top' and 'bottom' are 'auto' and 'height' is not 'auto',
         // then set 'top' to the static position, set 'auto' values for 'margin-top' and 'margin-bottom' to 0, and solve for 'bottom'
@@ -1121,8 +1123,8 @@ calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
             si margin_bottom.est_auto() {
                 margin_bottom = donne_valeur_pixels_zéro()
             }
-            top.pixels = pos_y_statique - containing_block.rect.y
-            bottom.pixels = height_of_containing_block - top.pixels - margin_top.pixels - border_top_width.pixels - padding_top.pixels - height.pixels - padding_bottom.pixels - border_bottom_width.pixels - margin_bottom.pixels
+            top = crée_valeur_pixels(pos_y_statique - containing_block.rect.y)
+            bottom = crée_valeur_pixels(height_of_containing_block - top.donne_pixels() - margin_top.donne_pixels() - border_top_width.donne_pixels() - padding_top.donne_pixels() - height.donne_pixels() - padding_bottom.donne_pixels() - border_bottom_width.donne_pixels() - margin_bottom.donne_pixels())
         }
         // 3. 'height' and 'bottom' are 'auto' and 'top' is not 'auto',
         // then the height is based on the content per 10.6.7, set 'auto' values for 'margin-top' and 'margin-bottom' to 0, and solve for 'bottom'
@@ -1138,8 +1140,8 @@ calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
                 retourne ÉtatCalculHauteur.HauteurDépendSurContenu
             }
 
-            height.pixels = calcule_auto_height_racine_contexte_de_formattage(noeud comme *NoeudDeDispositionBloc)
-            bottom.pixels = height_of_containing_block - top.pixels - margin_top.pixels - border_top_width.pixels - padding_top.pixels - height.pixels - padding_bottom.pixels - border_bottom_width.pixels - margin_bottom.pixels
+            height = crée_valeur_pixels(calcule_auto_height_racine_contexte_de_formattage(noeud comme *NoeudDeDispositionBloc))
+            bottom = crée_valeur_pixels(height_of_containing_block - top.donne_pixels() - margin_top.donne_pixels() - border_top_width.donne_pixels() - padding_top.donne_pixels() - height.donne_pixels() - padding_bottom.donne_pixels() - border_bottom_width.donne_pixels() - margin_bottom.donne_pixels())
         }
         // 4. 'top' is 'auto', 'height' and 'bottom' are not 'auto',
         // then set 'auto' values for 'margin-top' and 'margin-bottom' to 0, and solve for 'top'
@@ -1150,7 +1152,7 @@ calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
             si margin_bottom.est_auto() {
                 margin_bottom = donne_valeur_pixels_zéro()
             }
-            top.pixels = height_of_containing_block - margin_top.pixels - border_top_width.pixels - padding_top.pixels - height.pixels - padding_bottom.pixels - border_bottom_width.pixels - margin_bottom.pixels - bottom.pixels
+            top = crée_valeur_pixels(height_of_containing_block - margin_top.donne_pixels() - border_top_width.donne_pixels() - padding_top.donne_pixels() - height.donne_pixels() - padding_bottom.donne_pixels() - border_bottom_width.donne_pixels() - margin_bottom.donne_pixels() - bottom.donne_pixels())
         }
         // 5. 'height' is 'auto', 'top' and 'bottom' are not 'auto',
         // then 'auto' values for 'margin-top' and 'margin-bottom' are set to 0 and solve for 'height'
@@ -1161,7 +1163,7 @@ calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
             si margin_bottom.est_auto() {
                 margin_bottom = donne_valeur_pixels_zéro()
             }
-            height.pixels = height_of_containing_block - top.pixels - margin_top.pixels - border_top_width.pixels - padding_top.pixels - padding_bottom.pixels - border_bottom_width.pixels - margin_bottom.pixels - bottom.pixels
+            height = crée_valeur_pixels(height_of_containing_block - top.donne_pixels() - margin_top.donne_pixels() - border_top_width.donne_pixels() - padding_top.donne_pixels() - padding_bottom.donne_pixels() - border_bottom_width.donne_pixels() - margin_bottom.donne_pixels() - bottom.donne_pixels())
         }
         // 6. 'bottom' is 'auto', 'top' and 'height' are not 'auto',
         // then set 'auto' values for 'margin-top' and 'margin-bottom' to 0 and solve for 'bottom'
@@ -1172,7 +1174,7 @@ calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
             si margin_bottom.est_auto() {
                 margin_bottom = donne_valeur_pixels_zéro()
             }
-            bottom.pixels = height_of_containing_block - top.pixels - margin_top.pixels - border_top_width.pixels - padding_top.pixels - height.pixels - padding_bottom.pixels - border_bottom_width.pixels - margin_bottom.pixels
+            bottom = crée_valeur_pixels(height_of_containing_block - top.donne_pixels() - margin_top.donne_pixels() - border_top_width.donne_pixels() - padding_top.donne_pixels() - height.donne_pixels() - padding_bottom.donne_pixels() - border_bottom_width.donne_pixels() - margin_bottom.donne_pixels())
         }
     }
 
@@ -1193,7 +1195,7 @@ calcule_hauteur_et_marges_absolutely_positionned_replaced_element :: fonc (empl 
 
     // 2. If both 'top' and 'bottom' have the value 'auto', replace 'top' with the element's static position.
     si top.est_auto() && bottom.est_auto() {
-        top.pixels = pos_y_statique - containing_block.rect.y
+        top = crée_valeur_pixels(pos_y_statique - containing_block.rect.y)
     }
 
     // 3. If 'bottom' is 'auto', replace any 'auto' on 'margin-top' or 'margin-bottom' with '0'.
@@ -1208,9 +1210,9 @@ calcule_hauteur_et_marges_absolutely_positionned_replaced_element :: fonc (empl 
 
     // 4. If at this point both 'margin-top' and 'margin-bottom' are still 'auto', solve the equation under the extra constraint that the two margins must get equal values.
     si margin_top.est_auto() && margin_bottom.est_auto() {
-        marges := height_of_containing_block - top.pixels - border_top_width.pixels - padding_top.pixels - height.pixels - padding_bottom.pixels - border_bottom_width.pixels - bottom.pixels
-        margin_top.pixels = marges * 0.5
-        margin_bottom.pixels = marges * 0.5
+        marges := height_of_containing_block - top.donne_pixels() - border_top_width.donne_pixels() - padding_top.donne_pixels() - height.donne_pixels() - padding_bottom.donne_pixels() - border_bottom_width.donne_pixels() - bottom.donne_pixels()
+        margin_top = crée_valeur_pixels(marges * 0.5)
+        margin_bottom = crée_valeur_pixels(marges * 0.5)
     }
 
     // À FAIRE 5. If at this point there is only one 'auto' left, solve the equation for that value.
@@ -1242,8 +1244,8 @@ calcule_largeur_et_marges_floated_non_replaced_element :: fonc (empl args: *Argu
         // block minus the used values of 'margin-left', 'border-left-width', 'padding-left',
         // 'padding-right', 'border-right-width', 'margin-right', and the widths of any relevant
         // scroll bars.
-        available_width := width_of_containing_block - margin_left.pixels - border_left_width.pixels - padding_left.pixels - padding_right.pixels - border_right_width.pixels - margin_right.pixels
-        width.pixels = calcule_shrink_to_fit_width(ctx, noeud, available_width)
+        available_width := width_of_containing_block - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels()
+        width = crée_valeur_pixels(calcule_shrink_to_fit_width(ctx, noeud, available_width))
     }
 }
 
@@ -1251,10 +1253,10 @@ calcule_shrink_to_fit_width :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDe
 {
     /* À FAIRE : ceci peut allouer de l'espace pour un des éléments vides via les espaces blanches interéléments. */
     formatte_intérieur(noeud comme *NoeudDeDispositionBloc, ctx, ModeDeFormattage.BrisureDeLigneExplicite)
-    preferred_width := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width).pixels
+    preferred_width := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width).donne_pixels()
 
     formatte_intérieur(noeud comme *NoeudDeDispositionBloc, ctx, ModeDeFormattage.ToutesLesBrisuresDeLigne)
-    minimum_width := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width).pixels
+    minimum_width := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width).donne_pixels()
 
     résultat := min(max(minimum_width, preferred_width), available_width)
     retourne résultat
@@ -1280,7 +1282,7 @@ calcule_largeur_et_marges_inline_replaced_element :: fonc (empl args: *Arguments
     // If 'height' and 'width' both have computed values of 'auto' and the element also has
     // an intrinsic width, then that intrinsic width is the used value of 'width'.
     si width.est_auto() && height.est_auto() && noeud_remplacement.possède_largeur_intrinsèque() {
-        width = ValeurDeStyle(pixels = noeud_remplacement.donne_largeur_intrinsèque())
+        width = crée_valeur_pixels(noeud_remplacement.donne_largeur_intrinsèque())
     }
     // If 'height' and 'width' both have computed values of 'auto' and the element has no
     // intrinsic width, but does have an intrinsic height and intrinsic ratio;
@@ -1290,14 +1292,14 @@ calcule_largeur_et_marges_inline_replaced_element :: fonc (empl args: *Arguments
     sinon si (width.est_auto() && height.est_auto() && !noeud_remplacement.possède_largeur_intrinsèque() && noeud_remplacement.possède_ratio_intrinsèque()) ||
              (width.est_auto() && !height.est_auto() && noeud_remplacement.possède_ratio_intrinsèque()) {
         si height.est_auto() {
-            width = ValeurDeStyle(pixels = noeud_remplacement.donne_hauteur_intrinsèque() * noeud_remplacement.donne_ratio_intrinsèque())
+            width = crée_valeur_pixels(noeud_remplacement.donne_hauteur_intrinsèque() * noeud_remplacement.donne_ratio_intrinsèque())
         }
         sinon si height.est_percentage() {
             /* À FAIRE : résoud les pourcentages pour la hauteur plus tôt. */
-            width = ValeurDeStyle(pixels = height.percentage * containing_block.donne_hauteur() * noeud_remplacement.donne_ratio_intrinsèque())
+            width = crée_valeur_pixels(height.donne_percentage() * containing_block.donne_hauteur() * noeud_remplacement.donne_ratio_intrinsèque())
         }
         sinon {
-            width = ValeurDeStyle(pixels = height.pixels * noeud_remplacement.donne_ratio_intrinsèque())
+            width = crée_valeur_pixels(height.donne_pixels() * noeud_remplacement.donne_ratio_intrinsèque())
         }
     }
 
@@ -1311,14 +1313,14 @@ calcule_largeur_et_marges_inline_replaced_element :: fonc (empl args: *Arguments
     // Otherwise, if 'width' has a computed value of 'auto', and the element has an intrinsic width,
     // then that intrinsic width is the used value of 'width'.
     sinon si width.est_auto() && noeud_remplacement.possède_largeur_intrinsèque() {
-        width = ValeurDeStyle(pixels = noeud_remplacement.donne_largeur_intrinsèque())
+        width = crée_valeur_pixels(noeud_remplacement.donne_largeur_intrinsèque())
     }
     // Otherwise, if 'width' has a computed value of 'auto', but none of the conditions above are met,
     // then the used value of 'width' becomes 300px.
     // If 300px is too wide to fit the device, UAs should use the width of the largest rectangle that
     // has a 2:1 ratio and fits the device instead.
     sinon si width.est_auto() {
-        width = ValeurDeStyle(pixels = 300.0)
+        width = crée_valeur_pixels(300.0)
     }
 }
 
@@ -1341,7 +1343,7 @@ calcule_hauteur_et_marges_inline_replaced_element :: fonc (empl args: *Arguments
     // If 'height' and 'width' both have computed values of 'auto' and the element also has
     // an intrinsic height, then that intrinsic height is the used value of 'height'.
     si width.est_auto() && height.est_auto() && noeud_remplacement.possède_hauteur_intrinsèque() {
-        height = ValeurDeStyle(pixels = noeud_remplacement.donne_hauteur_intrinsèque())
+        height = crée_valeur_pixels(noeud_remplacement.donne_hauteur_intrinsèque())
     }
 
     // Otherwise, if 'height' has a computed value of 'auto', and the element has an intrinsic
@@ -1349,13 +1351,13 @@ calcule_hauteur_et_marges_inline_replaced_element :: fonc (empl args: *Arguments
     //      (used width) / (intrinsic ratio)
     sinon si height.est_auto() && noeud_remplacement.possède_ratio_intrinsèque() {
         largeur_utilisée := propriétés.donne_valeur_utilisée(IDPropriété.Width)
-        height = ValeurDeStyle(pixels = largeur_utilisée.pixels / noeud_remplacement.donne_ratio_intrinsèque())
+        height = crée_valeur_pixels(largeur_utilisée.donne_pixels() / noeud_remplacement.donne_ratio_intrinsèque())
     }
 
     // Otherwise, if 'height' has a computed value of 'auto', and the element has an intrinsic height,
     // then that intrinsic height is the used value of 'height'.
     sinon si height.est_auto() && noeud_remplacement.possède_hauteur_intrinsèque() {
-        height = ValeurDeStyle(pixels = noeud_remplacement.donne_hauteur_intrinsèque())
+        height = crée_valeur_pixels(noeud_remplacement.donne_hauteur_intrinsèque())
     }
 
     // Otherwise, if 'height' has a computed value of 'auto', but none of the conditions above are met,
@@ -1363,7 +1365,7 @@ calcule_hauteur_et_marges_inline_replaced_element :: fonc (empl args: *Arguments
     // 2:1 ratio, has a height not greater than 150px, and has a width not greater than the device width.
     sinon si height.est_auto() {
         largeur_utilisée := propriétés.donne_valeur_utilisée(IDPropriété.Width)
-        height = ValeurDeStyle(pixels = largeur_utilisée.pixels * 0.5)
+        height = crée_valeur_pixels(largeur_utilisée.donne_pixels() * 0.5)
     }
 
     retourne ÉtatCalculHauteur.HauteurRésolue
@@ -1385,7 +1387,7 @@ calcule_largeur_et_marges_absolutely_positionned_replaced_element :: fonc (empl 
     //    If 'margin-left' or 'margin-right' is specified as 'auto' its used value
     //    is determined by the rules below.
     calcule_largeur_et_marges_inline_replaced_element(args, pl)
-    width.pixels = pl.width.pixels
+    width = crée_valeur_pixels(pl.width.donne_pixels())
 
     // 2. If both 'left' and 'right' have the value 'auto', then if the 'direction'
     //    property of the element establishing the static-position containing block
@@ -1413,24 +1415,24 @@ calcule_largeur_et_marges_absolutely_positionned_replaced_element :: fonc (empl 
     //    direction of the containing block is 'ltr' ('rtl'), set 'margin-left'
     //    ('margin-right') to zero and solve for 'margin-right' ('margin-left').
     si margin_left.est_auto() && margin_right.est_auto() {
-        taille_marges := width_of_containing_block - left.pixels - border_left_width.pixels - padding_left.pixels - width.pixels - padding_right.pixels - border_right_width.pixels - right.pixels
+        taille_marges := width_of_containing_block - left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - width.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - right.donne_pixels()
         taille_marges *= 0.5
-        margin_left.pixels = taille_marges
-        margin_right.pixels = taille_marges
+        margin_left = crée_valeur_pixels(taille_marges)
+        margin_right = crée_valeur_pixels(taille_marges)
     }
 
     // 5. If at this point there is an 'auto' left, solve the equation for that value.
     si left.est_auto() {
-        left.pixels = width_of_containing_block - margin_left.pixels - border_left_width.pixels - padding_left.pixels - width.pixels - padding_right.pixels - border_right_width.pixels - margin_right.pixels - right.pixels
+        left = crée_valeur_pixels(width_of_containing_block - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - width.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels() - right.donne_pixels())
     }
     sinon si right.est_auto() {
-        right.pixels = width_of_containing_block - left.pixels - margin_left.pixels - border_left_width.pixels - padding_left.pixels - width.pixels - padding_right.pixels - border_right_width.pixels - margin_right.pixels
+        right = crée_valeur_pixels(width_of_containing_block - left.donne_pixels() - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - width.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels())
     }
     sinon si margin_right.est_auto() {
-        margin_right.pixels = width_of_containing_block - left.pixels - margin_left.pixels - border_left_width.pixels - padding_left.pixels - width.pixels - padding_right.pixels - border_right_width.pixels - right.pixels
+        margin_right = crée_valeur_pixels(width_of_containing_block - left.donne_pixels() - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - width.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - right.donne_pixels())
     }
     sinon si margin_left.est_auto() {
-        margin_left.pixels = width_of_containing_block - left.pixels - border_left_width.pixels - padding_left.pixels - width.pixels - padding_right.pixels - border_right_width.pixels - margin_right.pixels - right.pixels
+        margin_left = crée_valeur_pixels(width_of_containing_block - left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - width.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels() - right.donne_pixels())
     }
 
     // 6. If at this point the values are over-constrained, ignore the value for either
@@ -1447,7 +1449,7 @@ calcule_largeur_et_marges_block_level_replaced_element :: fonc (empl args: *Argu
 
     // Then the rules for non-replaced block-level elements are applied to determine the margins.
     tmp_args := mémoire(args)
-    tmp_args.outrepas_largeur = crée_outrepas_pour_coter_contenu(pl.width.pixels)
+    tmp_args.outrepas_largeur = crée_outrepas_pour_coter_contenu(pl.width.donne_pixels())
     calcule_largeur_et_marges_block_level_normal_flow(*tmp_args, pl)
 }
 
@@ -1504,8 +1506,8 @@ calcule_largeur_et_marges_inline_block_non_replaced_element :: fonc (empl args: 
         noeud.propriétés.définis_valeur_utilisée(IDPropriété.MarginLeft, margin_left)
         noeud.propriétés.définis_valeur_utilisée(IDPropriété.MarginRight, margin_right)
 
-        available_width := width_of_containing_block - margin_left.pixels - border_left_width.pixels - padding_left.pixels - padding_right.pixels - border_right_width.pixels - margin_right.pixels
-        width.pixels = calcule_shrink_to_fit_width(ctx, noeud, available_width)
+        available_width := width_of_containing_block - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels()
+        width = crée_valeur_pixels(calcule_shrink_to_fit_width(ctx, noeud, available_width))
     }
 }
 
@@ -1526,7 +1528,7 @@ calcule_hauteur_et_marges_complicated_cases :: fonc (empl args: *ArgumentsDimens
             retourne ÉtatCalculHauteur.HauteurDépendSurContenu
         }
 
-        height.pixels = calcule_auto_height_racine_contexte_de_formattage(noeud comme *NoeudDeDispositionBloc)
+        height = crée_valeur_pixels(calcule_auto_height_racine_contexte_de_formattage(noeud comme *NoeudDeDispositionBloc))
     }
 
     // À FAIRE : For 'inline-block' elements, the margin box is used when calculating the height of the line box.
