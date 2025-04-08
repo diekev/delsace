@@ -565,17 +565,17 @@ noeud_disposition_inline_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition,
     si fragment.type == Fragment.Type.RembourrageDébut {
         propriétés := base.propriétés
 
-        background_color := propriétés.donne_valeur_utilisée(IDPropriété.BackgroundColor).couleur
+        background_color := propriétés.donne_valeur_utilisée(IDPropriété.BackgroundColor).donne_couleur()
 
         /* Le rembourrage vertical n'affecte pas la taille mais doit être inclus dans le dessin. */
-        padding_top := propriétés.donne_valeur_utilisée(IDPropriété.PaddingTop).pixels comme r32
-        padding_bottom := propriétés.donne_valeur_utilisée(IDPropriété.PaddingBottom).pixels comme r32
+        padding_top := propriétés.donne_valeur_utilisée(IDPropriété.PaddingTop).donne_pixels() comme r32
+        padding_bottom := propriétés.donne_valeur_utilisée(IDPropriété.PaddingBottom).donne_pixels() comme r32
 
         si background_color.a != 0 {
-            border_radius_top_left := propriétés.donne_valeur_utilisée(IDPropriété.BorderTopLeftRadius).pixels comme r32
-            border_radius_top_right := propriétés.donne_valeur_utilisée(IDPropriété.BorderTopRightRadius).pixels comme r32
-            border_radius_bottom_right := propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomRightRadius).pixels comme r32
-            border_radius_bottom_left := propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomLeftRadius).pixels comme r32
+            border_radius_top_left := propriétés.donne_valeur_utilisée(IDPropriété.BorderTopLeftRadius).donne_pixels() comme r32
+            border_radius_top_right := propriétés.donne_valeur_utilisée(IDPropriété.BorderTopRightRadius).donne_pixels() comme r32
+            border_radius_bottom_right := propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomRightRadius).donne_pixels() comme r32
+            border_radius_bottom_left := propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomLeftRadius).donne_pixels() comme r32
 
             premier_fragment := fragment
             dernier_fragment := lignes_tenante.fragments.pointeur + lignes_tenante.fragments.taille
@@ -619,8 +619,8 @@ noeud_disposition_texte_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, 
 
     line := propriétés.donne_valeur_utilisée(IDPropriété.TextDecorationLine)
     saufsi line.est_mot_clé(PROP_none) {
-        decoration := line.text_decoration_line
-        couleur := vers_couleur_rvba(propriétés.donne_valeur_utilisée(IDPropriété.TextDecorationColor).couleur)
+        decoration := line.donne_text_decoration_line()
+        couleur := vers_couleur_rvba(propriétés.donne_valeur_utilisée(IDPropriété.TextDecorationColor).donne_couleur())
 
         si decoration.UNDERLINE {
             effets.souslignage = vrai
@@ -640,7 +640,7 @@ noeud_disposition_texte_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, 
     fonte := noeud.fonte
     assert(fonte != nul)
 
-    couleur := propriétés.donne_valeur_utilisée(IDPropriété.Color).couleur
+    couleur := propriétés.donne_valeur_utilisée(IDPropriété.Color).donne_couleur()
 
     rect := ctx.donne_rectangle_corrigé(fragment.donne_rectangle())
 
@@ -683,7 +683,7 @@ noeud_text_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDe
     dessine_bordure(ctx, noeud)
 
     élément := noeud.élément comme *HTML.HTMLInputElement
-    couleur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color).couleur
+    couleur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color).donne_couleur()
     value := HTML.donne_value(élément)
     state := HTML.donne_state(élément)
 
@@ -742,7 +742,7 @@ noeud_button_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Contexte
     dessine_bordure(ctx, noeud)
 
     élément := noeud.élément comme *HTML.HTMLInputElement
-    couleur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color).couleur
+    couleur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color).donne_couleur()
     value := HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_value).donne_chaine_utf16()
 
     saufsi value.est_vide() {
@@ -828,7 +828,7 @@ noeud_textarea_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDess
     dessine_bordure(ctx, noeud)
 
     élément := noeud.élément comme *HTML.HTMLTextAreaElement
-    couleur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color).couleur
+    couleur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color).donne_couleur()
     value := HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_value).donne_chaine_utf16()
 
     si value.est_vide() {
@@ -871,7 +871,7 @@ noeud_select_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin
     fonte := noeud.fonte
     assert(fonte != nul)
 
-    couleur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color).couleur
+    couleur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color).donne_couleur()
 
     rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_contenu())
 
@@ -1016,7 +1016,7 @@ dessine_arrière_plan :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition)
 {
     commandes := ctx.commandes
 
-    background_color := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BackgroundColor).couleur
+    background_color := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BackgroundColor).donne_couleur()
     si background_color.a != 0 {
         rect_noeud: RectanglePosDim(r32)
         si noeud.parent == nul {
@@ -1028,10 +1028,10 @@ dessine_arrière_plan :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition)
             rect_noeud = ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
         }
 
-        border_radius_top_left := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderTopLeftRadius).pixels comme r32
-        border_radius_top_right := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderTopRightRadius).pixels comme r32
-        border_radius_bottom_right := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomRightRadius).pixels comme r32
-        border_radius_bottom_left := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomLeftRadius).pixels comme r32
+        border_radius_top_left := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderTopLeftRadius).donne_pixels() comme r32
+        border_radius_top_right := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderTopRightRadius).donne_pixels() comme r32
+        border_radius_bottom_right := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomRightRadius).donne_pixels() comme r32
+        border_radius_bottom_left := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomLeftRadius).donne_pixels() comme r32
 
         rayons := [ border_radius_top_left, border_radius_top_right, border_radius_bottom_right, border_radius_bottom_left ]
         commandes.remplis_rectangle_arrondi(rect_noeud, rayons, background_color)
@@ -1045,7 +1045,7 @@ dessine_arrière_plan :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition)
         retourne
     }
 
-    opt_image_data := ctx.donne_image_pour_url(image.url_absolu)
+    opt_image_data := ctx.donne_image_pour_url(image.donne_url_absolu())
     saufsi opt_image_data.possède_valeur() {
         retourne
     }
@@ -1056,7 +1056,7 @@ dessine_arrière_plan :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition)
         retourne
     }
 
-    background_repeat := noeud.propriétés.donne_valeur_calculée(IDPropriété.BackgroundRepeat).background_repeat
+    background_repeat := noeud.propriétés.donne_valeur_calculée(IDPropriété.BackgroundRepeat).donne_background_repeat()
     // imprime("background_repeat : %\n", background_repeat)
     répétition: RépétitionImage
     répétition.x = convertis_genre_répétition_image(background_repeat.horizontal)
@@ -1093,7 +1093,7 @@ dessine_arrière_plan_racine_html :: fonc (ctx: *ContexteDessin, noeud: *NoeudDe
         retourne
     }
 
-    background_color := body.noeud_de_disposition.propriétés.donne_valeur_utilisée(IDPropriété.BackgroundColor).couleur
+    background_color := body.noeud_de_disposition.propriétés.donne_valeur_utilisée(IDPropriété.BackgroundColor).donne_couleur()
     si background_color.a != 0 {
         /* À FAIRE : ne peint pas l'arrière-plan du "body" dans ce cas. */
         rect_noeud: RectanglePosDim(r32)
@@ -1157,14 +1157,14 @@ dessine_bordure :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition)
             /* À FAIRE : ce n'est pas calculé pour css_testsuites/chapter_08_-_box_model/border-bottom-width-092.html */
             couleur_bordure := bordure.color[coté]
             si couleur_bordure.est_mot_clé(PROP_currentColor) {
-                couleur = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color).couleur
+                couleur = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color).donne_couleur()
             }
             sinon {
-                couleur = bordure.color[coté].couleur
+                couleur = bordure.color[coté].donne_couleur()
             }
         }
 
-        largeur := bordure.width[coté].pixels comme r32
+        largeur := bordure.width[coté].donne_pixels() comme r32
 
         couleurs[coté] = couleur
         largeurs[coté] = largeur

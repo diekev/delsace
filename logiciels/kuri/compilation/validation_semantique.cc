@@ -577,6 +577,13 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                         .ajoute_site(expr_variable);
                     return CodeRetourValidation::Erreur;
                 }
+
+                if (noeud_directive->ident == ID::exécute && type_expression != TypeBase::RIEN &&
+                    !noeud_directive->possède_drapeau(PositionCodeNoeud::DROITE_ASSIGNATION)) {
+                    m_espace->rapporte_erreur(
+                        expression, "La valeur calculée par #exécute n'est pas utilisée.");
+                    return CodeRetourValidation::Erreur;
+                }
             }
 
             auto metaprogramme = crée_métaprogramme_pour_directive(noeud_directive);
@@ -4205,8 +4212,8 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
 RésultatValidation Sémanticienne::valide_déclaration_variable(NoeudDéclarationVariable *decl)
 {
     auto bloc_final = NoeudBloc::nul();
-    if (decl->possède_drapeau(DrapeauxNoeud::EST_PARAMETRE) ||
-        decl->possède_drapeau(DrapeauxNoeud::EST_MEMBRE_STRUCTURE)) {
+    if (decl->bloc_parent->type_bloc != TypeBloc::MODULE &&
+        decl->bloc_parent->type_bloc != TypeBloc::IMPÉRATIF) {
         bloc_final = decl->bloc_parent->bloc_parent;
     }
 
@@ -4380,8 +4387,8 @@ RésultatValidation Sémanticienne::valide_déclaration_variable_multiple(
 
     POUR (decls_et_refs) {
         auto bloc_final = NoeudBloc::nul();
-        if (it.decl->possède_drapeau(DrapeauxNoeud::EST_PARAMETRE) ||
-            it.decl->possède_drapeau(DrapeauxNoeud::EST_MEMBRE_STRUCTURE)) {
+        if ((it.decl->bloc_parent->type_bloc != TypeBloc::MODULE) &&
+            (it.decl->bloc_parent->type_bloc != TypeBloc::IMPÉRATIF)) {
             bloc_final = it.decl->bloc_parent->bloc_parent;
         }
 
