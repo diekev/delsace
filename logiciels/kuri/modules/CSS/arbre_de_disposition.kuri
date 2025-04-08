@@ -670,7 +670,7 @@ détruit_résolveuse :: fonc (résolveuse: *RésolveuseStyle)
 }
 
 /* https://html.spec.whatwg.org/multipage/rendering.html#the-css-user-agent-style-sheet-and-presentational-hints */
-ajoute_presentational_hint :: fonc (résolveuse: *RésolveuseStyle, nom_propriété: CSSOMString, value: ValeurDeStyle)
+ajoute_presentational_hint :: fonc (résolveuse: *RésolveuseStyle, nom_propriété: CSSOMString, value: *ValeurDeStyle)
 {
     pour résolveuse.presentational_hints {
         si it.property_name != nom_propriété {
@@ -875,7 +875,7 @@ donne_ajournement_pour_changement_style :: fonc (résolveuse: *RésolveuseStyle,
     diffère détruit_propriétés(nouvelles_propriétés)
 
     /* Vérifie si "display: none" reste "display: none". */
-    display := nouvelles_propriétés.donne_valeur_calculée(IDPropriété.Display).display
+    display := nouvelles_propriétés.donne_valeur_calculée(IDPropriété.Display).donne_display()
     si display.outer_type == Display.Type.None {
         si noeud_de_disposition == nul {
             /* Nous restons sur "display: none". */
@@ -1046,9 +1046,25 @@ compare_déclarations_pour_cascade :: fonc (a: DéclarationCascadée, b: Déclar
 
 crée_style_pour_bloc_anonyme :: fonc (résolveuse: *RésolveuseStyle, bloc: *NoeudDeDispositionBloc, bloc_parent: *NoeudDeDispositionBloc, outer_display: Display.Type)
 {
+    display := crée_valeur_display(Display(outer_type = outer_display, inner_type = Display.Type.Flow)) comme *ValeurDeStyle
+
+    /* Créons une fausse déclaration pour que le display soit proprement passé et appliqué aux valeurs utilisées. */
+    déclaration_display: DéclarationPropriété
+    déclaration_display.info = donne_info_type_pour_nom(PROP_display)
+    déclaration_display.property_name = PROP_display
+    déclaration_display.value.pointeur = *display
+    déclaration_display.value.taille = 1
+
+    ptr_déclaration_display := *déclaration_display
+
     résultat := crée_propriétés_de_style(bloc_parent.propriétés)
+    résultat.déclarations.pointeur = *ptr_déclaration_display
+    résultat.déclarations.taille = 1
+
     calcule_style(résolveuse, résultat, bloc_parent.propriétés)
-    résultat.définis_valeur_calculée(IDPropriété.Display, Display(outer_type = outer_display, inner_type = Display.Type.Flow))
+
+    résultat.déclarations.pointeur = nul
+    résultat.déclarations.taille = 0
 
     bloc.propriétés = résultat
 }
@@ -1059,7 +1075,7 @@ ContexteParsageShorthandVariable :: struct {
     ctx_calcul_style: *ContexteCalculStyle
 }
 
-contexte_parsage_shorthand_variable_ajoute_propriété :: fonc (ctx: *ContexteParsageShorthandVariable, nom: CSSOMString, valeur: ValeurDeStyle)
+contexte_parsage_shorthand_variable_ajoute_propriété :: fonc (ctx: *ContexteParsageShorthandVariable, nom: CSSOMString, valeur: *ValeurDeStyle)
 {
     info := donne_info_type_pour_nom(nom)
     saufsi info {
@@ -1092,7 +1108,7 @@ développe_variables :: fonc (propriétés: *PropriétésDeStyle, value: []Compo
         saufsi opt_variable.possède_valeur() {
             continue
         }
-        variable := opt_variable.Quelque.variable
+        variable := opt_variable.Quelque.donne_variable()
 
         déclaration := donne_déclaration_propriété_personnalisée(propriétés, variable.nom)
         saufsi déclaration {
@@ -1174,7 +1190,8 @@ calcule_valeur_propriété :: fonc (ctx: *ContexteCalculStyle, info: *InfoTypePr
  * https://www.w3.org/TR/2011/REC-CSS2-20110607/visuren.html#dis-pos-flo */
 calcule_display_final :: fonc (propriétés: *PropriétésDeStyle)
 {
-    display := propriétés.donne_valeur_calculée(IDPropriété.Display).display
+    prop_display := propriétés.donne_valeur_calculée(IDPropriété.Display) comme *ValeurDisplay
+    display := prop_display.donne_display()
     position := propriétés.donne_valeur_calculée(IDPropriété.Position)
     float := propriétés.donne_valeur_calculée(IDPropriété.Float)
 
@@ -1190,14 +1207,16 @@ calcule_display_final :: fonc (propriétés: *PropriétésDeStyle)
     // and the box's containing block.
     si position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_fixed) {
         propriétés.définis_valeur_calculée(IDPropriété.Float, donne_valeur_none())
-        propriétés.définis_valeur_calculée(IDPropriété.Display, convertis_display_pour_position_ou_float(display))
+        nouveau_display := crée_valeur_display(convertis_display_pour_position_ou_float(display))
+        propriétés.définis_valeur_calculée(IDPropriété.Display, nouveau_display)
         retourne
     }
 
     // 3. Otherwise, if 'float' has a value other than 'none', the box is floated and 'display' is set
     // according to the table below.
     saufsi float.est_none() {
-        propriétés.définis_valeur_calculée(IDPropriété.Display, convertis_display_pour_position_ou_float(display))
+        nouveau_display := crée_valeur_display(convertis_display_pour_position_ou_float(display))
+        propriétés.définis_valeur_calculée(IDPropriété.Display, nouveau_display)
         retourne
     }
 
@@ -1207,7 +1226,8 @@ calcule_display_final :: fonc (propriétés: *PropriétésDeStyle)
     // À FAIRE : test plus robuste pour définir l'élément racine.
     // À FAIRE : list-item.
     saufsi propriétés.parent {
-        propriétés.définis_valeur_calculée(IDPropriété.Display, convertis_display_pour_position_ou_float(display))
+        nouveau_display := crée_valeur_display(convertis_display_pour_position_ou_float(display))
+        propriétés.définis_valeur_calculée(IDPropriété.Display, nouveau_display)
         retourne
     }
 
@@ -1217,13 +1237,14 @@ calcule_display_final :: fonc (propriétés: *PropriétésDeStyle)
      * of an element generating a flex container is an inline-level value, it computes to its block-level
      * equivalent. (See CSS2.1§9.7 [CSS21] and CSS Display [CSS3-DISPLAY] for details on this type of
      * display value conversion.) */
-    display_parent := propriétés.parent.donne_valeur_calculée(IDPropriété.Display).display
+    display_parent := propriétés.parent.donne_valeur_calculée(IDPropriété.Display).donne_display()
     si display_parent.inner_type == Display.Type.Flex {
-        propriétés.définis_valeur_calculée(IDPropriété.Display, blocify_display(display))
+        nouveau_display := crée_valeur_display(blocify_display(display))
+        propriétés.définis_valeur_calculée(IDPropriété.Display, nouveau_display)
     }
 }
 
-convertis_display_pour_position_ou_float :: fonc (spécifié: Display) -> ValeurDeStyle
+convertis_display_pour_position_ou_float :: fonc (spécifié: Display) -> Display
 {
     // À FAIRE : display-internal
     résultat := spécifié
@@ -1240,11 +1261,11 @@ convertis_display_pour_position_ou_float :: fonc (spécifié: Display) -> Valeur
         }
     }
 
-    retourne ValeurDeStyle(display = résultat)
+    retourne résultat
 }
 
 /* https://www.w3.org/TR/css-display-3/#blockify */
-blocify_display :: fonc (spécifié: Display) -> ValeurDeStyle
+blocify_display :: fonc (spécifié: Display) -> Display
 {
     si spécifié.outer_type == Display.Type.Inline {
         spécifié.outer_type = Display.Type.Block
@@ -1467,7 +1488,7 @@ crée_noeud_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *
 
     propriétés := résoud_style(résolveuse, élément, nul, propriétés_parent)
 
-    display := propriétés.donne_valeur_calculée(IDPropriété.Display).display
+    display := propriétés.donne_valeur_calculée(IDPropriété.Display).donne_display()
     si display.outer_type == Display.Type.None {
         détruit_propriétés(propriétés)
         retourne
@@ -1642,7 +1663,7 @@ crée_noeud_pour_pseudo_élément :: fonc (empl créatrice: *CréatriceArbre, pa
         retourne
     }
 
-    display := propriétés_pseudo.donne_valeur_calculée(IDPropriété.Display).display
+    display := propriétés_pseudo.donne_valeur_calculée(IDPropriété.Display).donne_display()
     si display.outer_type == Display.Type.None {
         détruit_propriétés(propriétés_pseudo)
         retourne
@@ -1922,9 +1943,9 @@ détermine_fonte :: fonc (propriétés: *PropriétésDeStyle, globales: *Globale
     famille_fonte := "sérif"
     style := "normal"
     graisse := GraisseFonte.Normal
-    taille_fonte := propriétés.donne_valeur_utilisée(IDPropriété.FontSize).pixels comme r32
+    taille_fonte := propriétés.donne_valeur_utilisée(IDPropriété.FontSize).donne_pixels() comme r32
 
-    font_family := propriétés.donne_valeur_utilisée(IDPropriété.FontFamily).mot_clé
+    font_family := propriétés.donne_valeur_utilisée(IDPropriété.FontFamily).donne_mot_clé()
     si font_family == PROP_monospace {
         famille_fonte = "monospace"
     }
@@ -1932,12 +1953,12 @@ détermine_fonte :: fonc (propriétés: *PropriétésDeStyle, globales: *Globale
         famille_fonte = "sans-serif"
     }
 
-    font_weight := propriétés.donne_valeur_utilisée(IDPropriété.FontWeight).number
+    font_weight := propriétés.donne_valeur_utilisée(IDPropriété.FontWeight).donne_number()
     si font_weight >= 700.0 {
         graisse = GraisseFonte.Gras
     }
 
-    font_style := propriétés.donne_valeur_utilisée(IDPropriété.FontStyle).mot_clé
+    font_style := propriétés.donne_valeur_utilisée(IDPropriété.FontStyle).donne_mot_clé()
     si font_style == PROP_italic {
         style = "italic"
     }
@@ -2034,7 +2055,7 @@ est_block_container :: fonc (noeud: *NoeudDeDisposition) -> bool
 donne_display :: fonc (noeud: *NoeudDeDisposition) -> Display
 {
     assert(noeud.propriétés != nul)
-    retourne noeud.propriétés.donne_valeur_utilisée(IDPropriété.Display).display
+    retourne noeud.propriétés.donne_valeur_utilisée(IDPropriété.Display).donne_display()
 }
 
 donne_line_height :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage) -> r32
@@ -2047,13 +2068,13 @@ donne_line_height :: fonc (propriétés: *PropriétésDeStyle, fonte: *Fonte) ->
 {
     line_height := propriétés.donne_valeur_utilisée(IDPropriété.LineHeight)
     si line_height.est_pixels() {
-        retourne line_height.pixels comme r32
+        retourne line_height.donne_pixels() comme r32
     }
 
     métriques := fonte.donne_métriques_fonte()
 
-    si line_height.est_nombre() {
-        retourne line_height.number comme r32 * métriques.donne_hauteur_ligne()
+    si line_height.est_number() {
+        retourne line_height.donne_number() comme r32 * métriques.donne_hauteur_ligne()
     }
 
     assert(line_height.est_mot_clé(PROP_normal))
@@ -2070,10 +2091,10 @@ donne_décalage_top_pour_relative :: fonc (noeud: *NoeudDeDisposition) -> r32
     }
 
     si top.est_auto() {
-        retourne -bottom.pixels comme r32
+        retourne -bottom.donne_pixels() comme r32
     }
 
-    retourne top.pixels comme r32
+    retourne top.donne_pixels() comme r32
 }
 
 donne_décalage_left_pour_relative :: fonc (noeud: *NoeudDeDisposition) -> r32
@@ -2086,10 +2107,10 @@ donne_décalage_left_pour_relative :: fonc (noeud: *NoeudDeDisposition) -> r32
     }
     
     si left.est_auto() {
-        retourne -right.pixels comme r32
+        retourne -right.donne_pixels() comme r32
     }
 
-    retourne left.pixels comme r32
+    retourne left.donne_pixels() comme r32
 }
 
 donne_baseline :: fonc (noeud: *NoeudDeDisposition) -> Optionnel(r32)
@@ -2294,7 +2315,7 @@ donne_curseur :: fonc (noeud: *NoeudDeDisposition) -> CursorType
     saufsi noeud.propriétés {
         retourne CursorType.auto
     }
-    retourne noeud.propriétés.donne_valeur_utilisée(IDPropriété.Cursor).cursor
+    retourne noeud.propriétés.donne_valeur_utilisée(IDPropriété.Cursor).donne_cursor_type()
 }
 
 divise_en_lignes :: fonc (noeud: *NoeudDeDisposition, enligneuse: *Enligneuse, mode: ModeDeFormattage)
@@ -3036,10 +3057,10 @@ noeud_disposition_inline_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition
 
     propriétés := noeud.propriétés
 
-    margin_left := propriétés.donne_valeur_utilisée(IDPropriété.MarginLeft).pixels comme r32
-    padding_left := propriétés.donne_valeur_utilisée(IDPropriété.PaddingLeft).pixels comme r32
-    padding_right := propriétés.donne_valeur_utilisée(IDPropriété.PaddingRight).pixels comme r32
-    margin_right := propriétés.donne_valeur_utilisée(IDPropriété.MarginRight).pixels comme r32
+    margin_left := propriétés.donne_valeur_utilisée(IDPropriété.MarginLeft).donne_pixels() comme r32
+    padding_left := propriétés.donne_valeur_utilisée(IDPropriété.PaddingLeft).donne_pixels() comme r32
+    padding_right := propriétés.donne_valeur_utilisée(IDPropriété.PaddingRight).donne_pixels() comme r32
+    margin_right := propriétés.donne_valeur_utilisée(IDPropriété.MarginRight).donne_pixels() comme r32
 
     fragment_marge_début := enligneuse.ajoute_fragment(noeud, 0.0, margin_left, Fragment.Type.MargeDébut)
     fragment_rembourrage_début := enligneuse.ajoute_fragment(noeud, 0.0, padding_left, Fragment.Type.RembourrageDébut)
@@ -3148,7 +3169,7 @@ noeud_disposition_nouvelle_ligne_sur_divise_en_lignes :: fonc (base: *NoeudDeDis
 {
     line_height := donne_line_height(base, enligneuse.ctx)
 
-    base.propriétés.définis_valeur_utilisée(IDPropriété.Height, ValeurDeStyle(pixels = line_height))
+    base.propriétés.définis_valeur_utilisée(IDPropriété.Height, crée_valeur_pixels(line_height))
 
     ids_propriétés := [
         IDPropriété.BorderWidthLeft, IDPropriété.BorderWidthRight, IDPropriété.BorderWidthTop, IDPropriété.BorderWidthBottom,
@@ -3277,7 +3298,7 @@ traite_espaces_blanches :: fonc (noeud: *NoeudDeDispositionTexte)
     fragmente_texte_avec_espaces_blanches_ascii(noeud.texte, *noeud.fragments)
 
     propriétés := donne_propriété_parent(noeud)
-    white_space := propriétés.donne_valeur_utilisée(IDPropriété.WhiteSpace).mot_clé
+    white_space := propriétés.donne_valeur_utilisée(IDPropriété.WhiteSpace).donne_mot_clé()
 
     si white_space == PROP_normal || white_space == PROP_nowrap || white_space == PROP_pre_line {
         // 1. Any sequence of collapsible spaces and tabs immediately preceding or following a segment
@@ -3676,7 +3697,7 @@ noeud_text_input_dimensions_intrinsèques :: fonc (noeud: *NoeudDeDispositionRem
     /* For input elements whose type attribute is in one of the above states, the used value of the 'line-height'
      * property must be a length value that is no smaller than what the used value would be for 'line-height: normal'. */
     si line_height < hauteur_ligne {
-        noeud.propriétés.définis_valeur_utilisée(IDPropriété.LineHeight, ValeurDeStyle(pixels = hauteur_ligne))
+        noeud.propriétés.définis_valeur_utilisée(IDPropriété.LineHeight, crée_valeur_pixels(hauteur_ligne))
         line_height = hauteur_ligne
     }
 
@@ -4094,7 +4115,7 @@ table_wrapper_box_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteD
 
     height := noeud.propriétés.donne_valeur_calculée(IDPropriété.Height)
     si height.est_auto() {
-        hauteur_finale := crée_outrepas_pour_coter_contenu(noeud.table.propriétés.donne_valeur_utilisée(IDPropriété.Height).pixels)
+        hauteur_finale := crée_outrepas_pour_coter_contenu(noeud.table.propriétés.donne_valeur_utilisée(IDPropriété.Height).donne_pixels())
         args = crée_arguments_dimensionnement_hauteur(ctx, noeud, containing_block, *hauteur_finale)
         _ := calcule_hauteur_et_marges(*args)
     }
@@ -4562,7 +4583,7 @@ donne_largeur_contenu :: fonc (box: *TableCellBox, largeur_disponible: r64) -> r
         prop := propriétés.donne_valeur_calculée(it)
 
         si prop.est_pixels() {
-            largeur_disponible -= prop.pixels
+            largeur_disponible -= prop.donne_pixels()
         }
     }
 
