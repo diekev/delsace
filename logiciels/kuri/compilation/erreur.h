@@ -11,6 +11,7 @@ struct ErreurAppariement;
 struct EspaceDeTravail;
 struct NoeudExpression;
 struct SiteSource;
+struct NoeudDéclaration;
 struct NoeudDéclarationType;
 struct NoeudDéclarationTypeComposé;
 using Type = NoeudDéclarationType;
@@ -75,7 +76,7 @@ void redefinition_fonction(EspaceDeTravail const &espace,
 
 void redefinition_symbole(EspaceDeTravail const &espace,
                           const NoeudExpression *site_redefinition,
-                          const NoeudExpression *site_original);
+                          const NoeudDéclaration *site_original);
 
 void lance_erreur_transtypage_impossible(const Type *type_cible,
                                          const Type *type_enf,
