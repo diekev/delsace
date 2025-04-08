@@ -1046,9 +1046,25 @@ compare_déclarations_pour_cascade :: fonc (a: DéclarationCascadée, b: Déclar
 
 crée_style_pour_bloc_anonyme :: fonc (résolveuse: *RésolveuseStyle, bloc: *NoeudDeDispositionBloc, bloc_parent: *NoeudDeDispositionBloc, outer_display: Display.Type)
 {
+    display := ValeurDeStyle(display = Display(outer_type = outer_display, inner_type = Display.Type.Flow))
+
+    /* Créons une fausse déclaration pour que le display soit proprement passé et appliqué aux valeurs utilisées. */
+    déclaration_display: DéclarationPropriété
+    déclaration_display.info = donne_info_type_pour_nom(PROP_display)
+    déclaration_display.property_name = PROP_display
+    déclaration_display.value.pointeur = *display
+    déclaration_display.value.taille = 1
+
+    ptr_déclaration_display := *déclaration_display
+
     résultat := crée_propriétés_de_style(bloc_parent.propriétés)
+    résultat.déclarations.pointeur = *ptr_déclaration_display
+    résultat.déclarations.taille = 1
+
     calcule_style(résolveuse, résultat, bloc_parent.propriétés)
-    résultat.définis_valeur_calculée(IDPropriété.Display, Display(outer_type = outer_display, inner_type = Display.Type.Flow))
+
+    résultat.déclarations.pointeur = nul
+    résultat.déclarations.taille = 0
 
     bloc.propriétés = résultat
 }
