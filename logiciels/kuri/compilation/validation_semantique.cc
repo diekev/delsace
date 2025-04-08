@@ -577,6 +577,13 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                         .ajoute_site(expr_variable);
                     return CodeRetourValidation::Erreur;
                 }
+
+                if (noeud_directive->ident == ID::exécute && type_expression != TypeBase::RIEN &&
+                    !noeud_directive->possède_drapeau(PositionCodeNoeud::DROITE_ASSIGNATION)) {
+                    m_espace->rapporte_erreur(
+                        expression, "La valeur calculée par #exécute n'est pas utilisée.");
+                    return CodeRetourValidation::Erreur;
+                }
             }
 
             auto metaprogramme = crée_métaprogramme_pour_directive(noeud_directive);
