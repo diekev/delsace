@@ -357,7 +357,7 @@ rapporte_erreur :: fonc (parseuse: &Parseuse($T) @inutilisée, message: chaine)
  * \{ */
 
 /* 5.4.1 Parse something according to a CSS grammar */
-parse_according_to_a_css_grammar :: fonc (input: CSSOMString, grammar: fonc([]ComponentValue)(Optionnel(ValeurDeStyle))) -> Optionnel(ValeurDeStyle)
+parse_according_to_a_css_grammar :: fonc (input: CSSOMString, grammar: fonc([]ComponentValue)(Optionnel(*ValeurDeStyle))) -> Optionnel(*ValeurDeStyle)
 {
     // 1. Normalize input, and set input to the result.
     chn_input := input.donne_chaine_utf16().converti_vers_chaine()
@@ -510,6 +510,8 @@ parse_a_css_color :: fonc (input: CSSOMString, context: *HTML.Élément @inutili
     }
 
     color := opt_color.Quelque
+    diffère détruit_valeur_de_style(color)
+
     saufsi color.est_couleur() {
         retourne
     }
@@ -517,7 +519,7 @@ parse_a_css_color :: fonc (input: CSSOMString, context: *HTML.Élément @inutili
     // À FAIRE : 2. Let used color be the result of resolving color to a used color. If the value of other properties on the element a <color> is on is required to do the resolution (such as resolving a currentcolor or system color), use element if it was passed, or the initial values of the properties if not.
 
     // 3. Return used color.
-    retourne color.couleur
+    retourne color.donne_couleur()
 }
 
 /** \} */
@@ -2264,12 +2266,12 @@ ContexteParsageShorthand :: struct {
     sur_ajoute_propriété := contexte_parsage_shorthand_ajoute_propriété
 }
 
-ajoute_propriété :: fonc (ctx: *ContexteParsageShorthand, nom: CSSOMString, valeur: ValeurDeStyle)
+ajoute_propriété :: fonc (ctx: *ContexteParsageShorthand, nom: CSSOMString, valeur: *ValeurDeStyle)
 {
     ctx.sur_ajoute_propriété(ctx, nom, valeur)
 }
 
-contexte_parsage_shorthand_ajoute_propriété :: fonc (ctx: *ContexteParsageShorthand, nom: CSSOMString, valeur: ValeurDeStyle)
+contexte_parsage_shorthand_ajoute_propriété :: fonc (ctx: *ContexteParsageShorthand, nom: CSSOMString, valeur: *ValeurDeStyle)
 {
     info_type_propriété := donne_info_type_pour_nom(nom)
     saufsi info_type_propriété {
@@ -2287,7 +2289,7 @@ contexte_parsage_shorthand_ajoute_propriété :: fonc (ctx: *ContexteParsageShor
 }
 
 /* Les valeurs et noms doivent être données dans l'ordre : top, right, bottom, left. Voir #BorderEdge. */
-ajoute_propriétés_boite :: fonc (ctx: *ContexteParsageShorthand, nombre_valeurs: z64, valeurs: [4]ValeurDeStyle, noms: [4]CSSOMString)
+ajoute_propriétés_boite :: fonc (ctx: *ContexteParsageShorthand, nombre_valeurs: z64, valeurs: [4]*ValeurDeStyle, noms: [4]CSSOMString)
 {
     si nombre_valeurs == 1 {
         pour 4 {
@@ -2316,7 +2318,7 @@ ajoute_propriétés_boite :: fonc (ctx: *ContexteParsageShorthand, nombre_valeur
 }
 
 /* Les valeurs et noms doivent être données dans l'ordre : start, end. */
-ajoute_propriétés_logique :: fonc (ctx: *ContexteParsageShorthand, nombre_valeurs: z64, valeurs: [2]ValeurDeStyle, noms: [2]CSSOMString)
+ajoute_propriétés_logique :: fonc (ctx: *ContexteParsageShorthand, nombre_valeurs: z64, valeurs: [2]*ValeurDeStyle, noms: [2]CSSOMString)
 {
     si nombre_valeurs == 1 {
         ajoute_propriété(ctx, noms[0], valeurs[0])
@@ -2440,7 +2442,7 @@ rapporte_erreur_de_parsage :: fonc (déclaration: ParsedDeclaration)
     imprime("Impossible de parser : %\n", déclaration)
 }
 
-parse_valeur_propriété :: fonc (info_type_propriété: *InfoTypePropriété, value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_valeur_propriété :: fonc (info_type_propriété: *InfoTypePropriété, value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     opt_valeur := info_type_propriété.fonction_de_parsage(value)
     si opt_valeur.possède_valeur() {
@@ -2492,7 +2494,7 @@ InfoTypePropriété :: struct {
     drapeaux: DrapeauxPropriété
     genre_valeur_calculée: GenreValeurCalculée
     id: IDPropriété
-    fonction_de_parsage: fonc([]ComponentValue)(Optionnel(ValeurDeStyle))
+    fonction_de_parsage: fonc([]ComponentValue)(Optionnel(*ValeurDeStyle))
     sur_parsage_shorthand: fonc(*ContexteParsageShorthand, []ComponentValue)(bool)
     sur_calcul_style: fonc(*DéclarationPropriété, *Style, *ContexteCalculStyle)(rien)
 }
@@ -2691,13 +2693,13 @@ initialise_tables_infos_propriétés :: fonc ()
 #portée_module
 
 /* https://www.w3.org/TR/css-cascade/#defaulting-keywords */
-parse_css_wide_keyword :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+parse_css_wide_keyword :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     mots_clés := [PROP_initial, PROP_inherit, PROP_unset, PROP_revert]
     retourne parse_mot_clé(parseuse, mots_clés)
 }
 
-parse_mot_clé_global_ou_var :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+parse_mot_clé_global_ou_var :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     opt_valeur := parse_css_wide_keyword(parseuse)
     si opt_valeur.possède_valeur() {
@@ -2710,20 +2712,20 @@ parse_mot_clé_global_ou_var :: fonc (parseuse: &Parseuse(ComponentValue)) -> Op
     }
 }
 
-parse_mot_clé :: fonc (parseuse: &Parseuse(ComponentValue), mots_clés: []CSSOMString) -> Optionnel(ValeurDeStyle)
+parse_mot_clé :: fonc (parseuse: &Parseuse(ComponentValue), mots_clés: []CSSOMString) -> Optionnel(*ValeurDeStyle)
 {
     lexème := parseuse.lexème_courant()
 
     pour mots_clés {
         si lexème.est_identifiant(it) {
             parseuse.avance()
-            retourne ValeurDeStyle(mot_clé = lexème.donne_texte())
+            retourne crée_valeur_mot_clé(lexème.donne_texte())
         }
     }
 }
 
 /* https://drafts.csswg.org/css-values-4/#lengths */
-parse_valeur_length :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+parse_valeur_length :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     si parseuse.fini() {
         retourne
@@ -2738,7 +2740,7 @@ parse_valeur_length :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(V
         si unité.possède_valeur() {
             parseuse.avance()
             longueur := Longueur(données_lexème.numeric_value, unité.Quelque)
-            retourne ValeurDeStyle(longueur = longueur)
+            retourne crée_valeur_longueur(longueur)
         }
 
         retourne
@@ -2754,16 +2756,16 @@ parse_valeur_length :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(V
         parseuse.avance()
 
         si lexème.lexème.drapeau_type_nombre == DrapeauxTypeNombre.Integer {
-            retourne ValeurDeStyle(integer = valeur)
+            retourne crée_valeur_integer(valeur)
         }
 
-        retourne ValeurDeStyle(number = valeur)
+        retourne crée_valeur_number(valeur)
     }
 
     retourne parse_calc_function(parseuse)
 }
 
-parse_valeur_length_positive :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+parse_valeur_length_positive :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     valeur := parse_valeur_length(parseuse)
     si valeur.possède_valeur() {
@@ -2774,7 +2776,7 @@ parse_valeur_length_positive :: fonc (parseuse: &Parseuse(ComponentValue)) -> Op
     }
 }
 
-parse_valeur_percentage :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+parse_valeur_percentage :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     si parseuse.fini() {
         retourne
@@ -2784,11 +2786,11 @@ parse_valeur_percentage :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionn
 
     si lexème.est_lexème_de_genre(GenreLexème.Percentage) {
         parseuse.avance()
-        retourne ValeurDeStyle(percentage = lexème.lexème.numeric_value)
+        retourne crée_valeur_percentage(lexème.lexème.numeric_value)
     }
 }
 
-parse_valeur_number :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+parse_valeur_number :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     si parseuse.fini() {
         retourne
@@ -2800,14 +2802,14 @@ parse_valeur_number :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(V
         parseuse.avance()
 
         si lexème.lexème.drapeau_type_nombre == DrapeauxTypeNombre.Integer {
-            retourne ValeurDeStyle(integer = lexème.lexème.numeric_value)
+            retourne crée_valeur_integer(lexème.lexème.numeric_value)
         }
 
-        retourne ValeurDeStyle(number = lexème.lexème.numeric_value)
+        retourne crée_valeur_number(lexème.lexème.numeric_value)
     }
 }
 
-parse_valeur_number_positive :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+parse_valeur_number_positive :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     valeur := parse_valeur_number(parseuse)
     si valeur.possède_valeur() {
@@ -2818,7 +2820,7 @@ parse_valeur_number_positive :: fonc (parseuse: &Parseuse(ComponentValue)) -> Op
     }
 }
 
-parse_valeur_length_percentage :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+parse_valeur_length_percentage :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     length := parse_valeur_length(parseuse)
     si length.possède_valeur() {
@@ -2827,7 +2829,7 @@ parse_valeur_length_percentage :: fonc (parseuse: &Parseuse(ComponentValue)) -> 
     retourne parse_valeur_percentage(parseuse)
 }
 
-parse_valeur_length_percentage_positive :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+parse_valeur_length_percentage_positive :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     valeur := parse_valeur_length_percentage(parseuse)
     si valeur.possède_valeur() {
@@ -2838,7 +2840,7 @@ parse_valeur_length_percentage_positive :: fonc (parseuse: &Parseuse(ComponentVa
     }
 }
 
-parse_valeur_length_percentage_ou_auto :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+parse_valeur_length_percentage_ou_auto :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     lexème := parseuse.lexème_courant()
     si lexème.est_mot_clé(PROP_auto) {
@@ -2848,7 +2850,7 @@ parse_valeur_length_percentage_ou_auto :: fonc (parseuse: &Parseuse(ComponentVal
     retourne parse_valeur_length_percentage(parseuse)
 }
 
-parse_valeur_length_percentage_positive_ou_auto :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+parse_valeur_length_percentage_positive_ou_auto :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     valeur := parse_valeur_length_percentage_ou_auto(parseuse)
     si valeur.possède_valeur() {
@@ -2861,7 +2863,7 @@ parse_valeur_length_percentage_positive_ou_auto :: fonc (parseuse: &Parseuse(Com
 
 /* https://drafts.csswg.org/css-values/#calc-syntax
  * <calc()>  = calc( <calc-sum> ) */
-parse_calc_function :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+parse_calc_function :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     si parseuse.fini() {
         retourne
@@ -2883,7 +2885,7 @@ parse_calc_function :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(V
 
     parseuse.avance()
 
-    résultat := ValeurDeStyle(calc = CalcFunction(valeurs))
+    résultat := crée_valeur_calc(CalcFunction(valeurs))
     retourne résultat
 }
 
@@ -2970,10 +2972,10 @@ parse_calc_value :: fonc (parseuse: &Parseuse(ComponentValue), résultat: *[..]N
         parseuse.avance()
 
         si lexème.lexème.drapeau_type_nombre == DrapeauxTypeNombre.Integer {
-            tableau_ajoute(résultat, NoeudDeCalcul(valeur = ValeurDeStyle(integer = lexème.lexème.numeric_value)))
+            tableau_ajoute(résultat, NoeudDeCalcul(valeur = crée_valeur_integer(lexème.lexème.numeric_value)))
         }
         sinon {
-            tableau_ajoute(résultat, NoeudDeCalcul(valeur = ValeurDeStyle(number = lexème.lexème.numeric_value)))
+            tableau_ajoute(résultat, NoeudDeCalcul(valeur = crée_valeur_number(lexème.lexème.numeric_value)))
         }
 
         retourne vrai
@@ -2986,7 +2988,7 @@ parse_calc_value :: fonc (parseuse: &Parseuse(ComponentValue), résultat: *[..]N
         si unité.possède_valeur() {
             parseuse.avance()
             longueur := Longueur(données_lexème.numeric_value, unité.Quelque)
-            tableau_ajoute(résultat, NoeudDeCalcul(valeur = ValeurDeStyle(longueur = longueur)))
+            tableau_ajoute(résultat, NoeudDeCalcul(valeur = crée_valeur_longueur(longueur)))
             retourne vrai
         }
 
@@ -2995,7 +2997,7 @@ parse_calc_value :: fonc (parseuse: &Parseuse(ComponentValue), résultat: *[..]N
 
     si lexème.est_lexème_de_genre(GenreLexème.Percentage) {
         parseuse.avance()
-        tableau_ajoute(résultat, NoeudDeCalcul(valeur = ValeurDeStyle(percentage = lexème.lexème.numeric_value)))
+        tableau_ajoute(résultat, NoeudDeCalcul(valeur = crée_valeur_percentage(lexème.lexème.numeric_value)))
         retourne vrai
     }
 
@@ -3035,7 +3037,7 @@ parse_calc_value :: fonc (parseuse: &Parseuse(ComponentValue), résultat: *[..]N
     retourne faux
 }
 
-parse_variable :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+parse_variable :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     parseuse.consomme_espaces_blanches()
     si parseuse.fini() {
@@ -3051,7 +3053,7 @@ parse_variable :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(Valeur
     retourne parseuse_arguments.parse_variables_depuis_arguments()
 }
 
-parse_variables_depuis_arguments :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+parse_variables_depuis_arguments :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     parseuse.consomme_espaces_blanches()
 
@@ -3073,36 +3075,36 @@ parse_variables_depuis_arguments :: fonc (parseuse: &Parseuse(ComponentValue)) -
     résultat: Variable
     résultat.nom = nom
 
-    retourne ValeurDeStyle(variable = résultat)
+    retourne crée_valeur_variable(résultat)
 }
 
-parse_propriété_number :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_number :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     lexème := parseuse.lexème_courant()
     si lexème.est_lexème_de_genre(GenreLexème.Number) {
-        retourne ValeurDeStyle(number = lexème.lexème.numeric_value)
+        retourne crée_valeur_number(lexème.lexème.numeric_value)
     }
 }
 
-parse_propriété_number_ou_pourcentage :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_number_ou_pourcentage :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     lexème := parseuse.lexème_courant()
     si lexème.est_lexème_de_genre(GenreLexème.Number) {
-        retourne ValeurDeStyle(number = lexème.lexème.numeric_value)
+        retourne crée_valeur_number(lexème.lexème.numeric_value)
     }
     si lexème.est_lexème_de_genre(GenreLexème.Percentage) {
-        retourne ValeurDeStyle(percentage = lexème.lexème.numeric_value / 100.0)
+        retourne crée_valeur_percentage(lexème.lexème.numeric_value / 100.0)
     }
 }
 
-parse_propriété_number_ou_auto :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_number_ou_auto :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     lexème := parseuse.lexème_courant()
     si lexème.est_lexème_de_genre(GenreLexème.Number) {
-        retourne ValeurDeStyle(number = lexème.lexème.numeric_value)
+        retourne crée_valeur_number(lexème.lexème.numeric_value)
     }
     si lexème.est_mot_clé(PROP_auto) {
         retourne donne_valeur_auto()
@@ -3137,7 +3139,7 @@ parse_propriété_all :: fonc (ctx: *ContexteParsageShorthand, value: []Componen
  * \{ */
 
 /* https://drafts.csswg.org/css-display/#the-display-properties */
-parse_propriété_display :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_display :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
 
@@ -3169,19 +3171,19 @@ parse_propriété_display :: fonc (value: []ComponentValue) -> Optionnel(ValeurD
     lexème := parseuse.lexème_courant()
     si lexème.est_lexème_de_genre(GenreLexème.Ident) {
         si lexème.donne_texte() == PROP_list_item {
-            retourne ValeurDeStyle(PROP_list_item)
+            retourne crée_valeur_mot_clé(PROP_list_item)
         }
     }
 }
 
-parse_display_inside :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+parse_display_inside :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     /* <display-inside>   = flow | flow-root | table | flex | grid | ruby */
     mots_clés := [PROP_flow, PROP_flow_root, PROP_flex, PROP_table]
     retourne parse_mot_clé(parseuse, mots_clés)
 }
 
-parse_display_outside :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+parse_display_outside :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     opt_mot_clé := parse_css_wide_keyword(parseuse)
     si opt_mot_clé.possède_valeur() {
@@ -3193,7 +3195,7 @@ parse_display_outside :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel
     retourne parse_mot_clé(parseuse, mots_clés)
 }
 
-parse_display_box :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+parse_display_box :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     opt_mot_clé := parse_css_wide_keyword(parseuse)
     si opt_mot_clé.possède_valeur() {
@@ -3205,14 +3207,14 @@ parse_display_box :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(Val
     retourne parse_mot_clé(parseuse, mots_clés)
 }
 
-parse_display_legacy :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+parse_display_legacy :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     /* <display-legacy>   = inline-block | inline-table | inline-flex | inline-grid */
     mots_clés := [PROP_inline_block, PROP_inline_flex, PROP_inline_table]
     retourne parse_mot_clé(parseuse, mots_clés)
 }
 
-parse_display_internal :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+parse_display_internal :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     /* <display-internal> = table-row-group | table-header-group |
                      table-footer-group | table-row | table-cell |
@@ -3247,7 +3249,7 @@ valeur_hex_depuis_unité :: fonc (unité: n16) -> n8
 
 #portée_module
 
-parse_propriété_color :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_color :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
 
@@ -3263,7 +3265,7 @@ parse_propriété_color :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeS
     }
 }
 
-parse_valeur_couleur :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+parse_valeur_couleur :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     si parseuse.fini() {
         retourne
@@ -3275,7 +3277,7 @@ parse_valeur_couleur :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(
         opt_couleur := trouve_couleur_pour_mot_clé(lexème.donne_texte())
         si opt_couleur.possède_valeur() {
             parseuse.avance()
-            retourne ValeurDeStyle(couleur = opt_couleur.Quelque)
+            retourne crée_valeur_couleur(opt_couleur.Quelque)
         }
 
         si compare_ascii_insensible_à_la_casse(lexème.donne_texte(), PROP_currentColor) {
@@ -3326,7 +3328,7 @@ parse_valeur_couleur :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(
         }
 
         parseuse.avance()
-        retourne ValeurDeStyle(couleur = couleur)
+        retourne crée_valeur_couleur(couleur)
     }
 
     si lexème.est_fonction() {
@@ -3353,7 +3355,7 @@ parse_valeur_couleur :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(
 }
 
 /* https://www.w3.org/TR/css-color-4/#rgb-functions */
-parse_couleur_rgb :: fonc (function: &ParsedFunction) -> Optionnel(ValeurDeStyle)
+parse_couleur_rgb :: fonc (function: &ParsedFunction) -> Optionnel(*ValeurDeStyle)
 {
     résultat := parse_couleur_syntaxe_legacy(function.value)
     si résultat.possède_valeur() {
@@ -3371,7 +3373,7 @@ parse_couleur_rgb :: fonc (function: &ParsedFunction) -> Optionnel(ValeurDeStyle
     }
 }
 
-parse_couleur_rgb_modern :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_couleur_rgb_modern :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
 
@@ -3437,10 +3439,10 @@ parse_couleur_rgb_modern :: fonc (value: []ComponentValue) -> Optionnel(ValeurDe
     }
 
     couleur := CouleurRVBAN8(valeurs[0] comme n8, valeurs[1] comme n8, valeurs[2] comme n8, valeurs[3] comme n8)
-    retourne ValeurDeStyle(couleur = couleur)
+    retourne crée_valeur_couleur(couleur)
 }
 
-parse_couleur_rgb_legacy :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_couleur_rgb_legacy :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
 
@@ -3499,11 +3501,11 @@ parse_couleur_rgb_legacy :: fonc (value: []ComponentValue) -> Optionnel(ValeurDe
     }
 
     couleur := CouleurRVBAN8(valeurs[0] comme n8, valeurs[1] comme n8, valeurs[2] comme n8, valeurs[3] comme n8)
-    retourne ValeurDeStyle(couleur = couleur)
+    retourne crée_valeur_couleur(couleur)
 }
 
 /* https://www.w3.org/TR/css-color-4/#legacy-color-syntax */
-parse_couleur_syntaxe_legacy :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_couleur_syntaxe_legacy :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
 
@@ -3564,11 +3566,11 @@ parse_couleur_syntaxe_legacy :: fonc (value: []ComponentValue) -> Optionnel(Vale
     }
 
     couleur := CouleurRVBAN8(valeurs[0] comme n8, valeurs[1] comme n8, valeurs[2] comme n8, valeurs[3] comme n8)
-    retourne ValeurDeStyle(couleur = couleur)
+    retourne crée_valeur_couleur(couleur)
 }
 
 /* https://drafts.csswg.org/css-color-4/#funcdef-hsl */
-parse_couleur_hsl :: fonc (function: &ParsedFunction) -> Optionnel(ValeurDeStyle)
+parse_couleur_hsl :: fonc (function: &ParsedFunction) -> Optionnel(*ValeurDeStyle)
 {
     résultat := parse_couleur_hsl_legacy(function.value)
     si résultat.possède_valeur() {
@@ -3581,7 +3583,7 @@ parse_couleur_hsl :: fonc (function: &ParsedFunction) -> Optionnel(ValeurDeStyle
     }
 }
 
-parse_couleur_hsl_modern :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_couleur_hsl_modern :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
 
@@ -3657,10 +3659,10 @@ parse_couleur_hsl_modern :: fonc (value: []ComponentValue) -> Optionnel(ValeurDe
     rvb := tsl_vers_rvb(tsl)
 
     couleur := CouleurRVBAN8((rvb.r * 255.0) comme n8, (rvb.v * 255.0)  comme n8, (rvb.b * 255.0)  comme n8, (alpha * 255.0)  comme n8)
-    retourne ValeurDeStyle(couleur = couleur)
+    retourne crée_valeur_couleur(couleur)
 }
 
-parse_couleur_hsl_legacy :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_couleur_hsl_legacy :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
 
@@ -3725,7 +3727,7 @@ parse_couleur_hsl_legacy :: fonc (value: []ComponentValue) -> Optionnel(ValeurDe
     rvb := tsl_vers_rvb(tsl)
 
     couleur := CouleurRVBAN8((rvb.r * 255.0) comme n8, (rvb.v * 255.0)  comme n8, (rvb.b * 255.0)  comme n8, (alpha * 255.0)  comme n8)
-    retourne ValeurDeStyle(couleur = couleur)
+    retourne crée_valeur_couleur(couleur)
 }
 
 parse_hue :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(r64)
@@ -3847,25 +3849,26 @@ parse_propriété_text_decoration :: fonc (ctx: *ContexteParsageShorthand, value
     retourne vrai
 }
 
-parse_propriété_text_decoration_line :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_text_decoration_line :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     retourne parse_valeur_text_decoration_line(parseuse)
 }
 
-parse_propriété_text_decoration_style :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_text_decoration_style :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     retourne parse_valeur_text_decoration_style(parseuse)
 }
 
-parse_valeur_text_decoration_line :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+parse_valeur_text_decoration_line :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     si parseuse.fini() {
         retourne
     }
 
-    résultat: TextDecorationLine
+    mots_clés: [..]CSSOMString
+    diffère déloge(mots_clés)
 
     tantque !fini(parseuse) {
         lexème := parseuse.lexème_courant()
@@ -3878,17 +3881,17 @@ parse_valeur_text_decoration_line :: fonc (parseuse: &Parseuse(ComponentValue)) 
 
         si mot_clé == PROP_none {
             parseuse.avance()
-            retourne ValeurDeStyle(mot_clé = mot_clé)
+            retourne donne_valeur_none()
         }
 
         si mot_clé == PROP_underline {
-            résultat.UNDERLINE = vrai
+            tableau_ajoute(*mots_clés, mot_clé)
         }
         sinon si mot_clé == PROP_overline {
-            résultat.OVERLINE = vrai
+            tableau_ajoute(*mots_clés, mot_clé)
         }
         sinon si mot_clé == PROP_line_through {
-            résultat.LINE_THROUGH = vrai
+            tableau_ajoute(*mots_clés, mot_clé)
         }
         sinon {
             retourne
@@ -3898,10 +3901,18 @@ parse_valeur_text_decoration_line :: fonc (parseuse: &Parseuse(ComponentValue)) 
         parseuse.consomme_espaces_blanches()
     }
 
-    retourne ValeurDeStyle(text_decoration_line = résultat)
+    si mots_clés.taille == 1 {
+        retourne crée_valeur_mot_clé(mots_clés[0])
+    }
+
+    résultat := crée_valeur_liste()
+    pour mots_clés {
+        tableau_ajoute(*résultat.valeur, crée_valeur_mot_clé(it))
+    }
+    retourne résultat
 }
 
-parse_valeur_text_decoration_style :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+parse_valeur_text_decoration_style :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     si parseuse.fini() {
         retourne
@@ -3917,7 +3928,7 @@ parse_valeur_text_decoration_style :: fonc (parseuse: &Parseuse(ComponentValue))
 
     si mot_clé == PROP_solid {
         parseuse.avance()
-        retourne ValeurDeStyle(mot_clé = mot_clé)
+        retourne donne_valeur_solid()
     }
 
     si mot_clé == PROP_double || mot_clé == PROP_dotted || mot_clé == PROP_dashed || mot_clé == PROP_wavy {
@@ -3933,7 +3944,7 @@ parse_valeur_text_decoration_style :: fonc (parseuse: &Parseuse(ComponentValue))
  * \{ */
 
 /* none | [capitalize | uppercase | lowercase ] || full-width || full-size-kana | math-auto  */
-parse_propriété_text_transform :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_text_transform :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     mots_clés := [ PROP_none, PROP_capitalize, PROP_uppercase, PROP_lowercase ]
     parseuse := initialise_une_parseuse(value)
@@ -4007,7 +4018,7 @@ donne_type_cursor :: fonc (chn: CSSOMString) -> CursorType
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
-parse_propriété_cursor :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_cursor :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     mots_clés := [
         PROP_auto, PROP_default, PROP_none, PROP_context_menu, PROP_help, PROP_pointer, PROP_progress,
@@ -4110,13 +4121,13 @@ parse_propriété_font :: fonc (ctx: *ContexteParsageShorthand, value: []Compone
  * https://drafts.csswg.org/css-fonts/#font-family-prop
  * \{ */
 
-parse_propriété_font_family :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_font_family :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     retourne parse_valeur_font_family(parseuse, faux)
 }
 
-parse_valeur_font_family :: fonc (parseuse: &Parseuse(ComponentValue), pour_shorthand: bool) -> Optionnel(ValeurDeStyle)
+parse_valeur_font_family :: fonc (parseuse: &Parseuse(ComponentValue), pour_shorthand: bool) -> Optionnel(*ValeurDeStyle)
 {
 
     // [ <family-name> | <generic-family> ]#
@@ -4129,7 +4140,7 @@ parse_valeur_font_family :: fonc (parseuse: &Parseuse(ComponentValue), pour_shor
         PROP_serif, PROP_sans_serif, PROP_monospace
     ]
 
-    dernière_valeur_connue: Optionnel(ValeurDeStyle)
+    dernière_valeur_connue: Optionnel(*ValeurDeStyle)
 
     /* À FAIRE : stocke la liste complète. */
     tantque !fini(parseuse) {
@@ -4178,13 +4189,13 @@ parse_valeur_font_family :: fonc (parseuse: &Parseuse(ComponentValue), pour_shor
  * https://drafts.csswg.org/css-fonts/#font-weight-prop
  * \{ */
 
-parse_propriété_font_weight :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_font_weight :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     retourne parse_valeur_font_weight(parseuse)
 }
 
-parse_valeur_font_weight :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+parse_valeur_font_weight :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     mots_clés := [
         PROP_normal, PROP_bold, PROP_lighter, PROP_bolder
@@ -4198,7 +4209,7 @@ parse_valeur_font_weight :: fonc (parseuse: &Parseuse(ComponentValue)) -> Option
     lexème := parseuse.lexème_courant()
     si lexème.est_lexème_de_genre(GenreLexème.Number) {
         parseuse.avance()
-        retourne ValeurDeStyle(number = lexème.lexème.numeric_value)
+        retourne crée_valeur_number(lexème.lexème.numeric_value)
     }
 }
 
@@ -4209,13 +4220,13 @@ parse_valeur_font_weight :: fonc (parseuse: &Parseuse(ComponentValue)) -> Option
  * https://drafts.csswg.org/css-fonts/#font-size-prop
  * \{ */
 
-parse_propriété_font_size :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_font_size :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     retourne parse_valeur_font_size(parseuse)
 }
 
-parse_valeur_font_size :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+parse_valeur_font_size :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     mots_clés := [PROP_larger, PROP_smaller, PROP_xx_small, PROP_x_small, PROP_small, PROP_medium, PROP_large, PROP_x_large, PROP_xx_large, PROP_xxx_large]
 
@@ -4237,7 +4248,7 @@ parse_valeur_font_size :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionne
  * https://drafts.csswg.org/css-fonts/#font-style-prop
  * \{ */
 
-parse_propriété_font_style :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_font_style :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     /* normal | italic | oblique <angle [-90deg,90deg]>? */
     mots_clés := [
@@ -4265,7 +4276,7 @@ parse_propriété_background :: fonc (ctx: *ContexteParsageShorthand, value: []C
     couleur := donne_valeur_transparent()
     eu_couleur := faux
     image := donne_valeur_none()
-    background_repeat := ValeurDeStyle(background_repeat = BackgroundRepeat(PROP_repeat))
+    background_repeat := donne_valeur_background_repeat_défaut()
     background_attachment := donne_valeur_scroll()
 
     parseuse := initialise_une_parseuse(value)
@@ -4314,7 +4325,7 @@ parse_propriété_background :: fonc (ctx: *ContexteParsageShorthand, value: []C
 }
 
 /* https://drafts.csswg.org/css-backgrounds-3/#background-image */
-parse_propriété_background_image :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_background_image :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
 
@@ -4330,7 +4341,7 @@ parse_propriété_background_image :: fonc (value: []ComponentValue) -> Optionne
 
 /* <image> | none
  * <image> = <url> | <gradient> */
-parse_valeur_background_image :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+parse_valeur_background_image :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     lexème := parseuse.lexème_courant()
     si lexème.est_mot_clé(PROP_none) {
@@ -4341,7 +4352,7 @@ parse_valeur_background_image :: fonc (parseuse: &Parseuse(ComponentValue)) -> O
     si lexème.est_lexème_de_genre(GenreLexème.Url) {
         url := lexème.lexème.valeur
         parseuse.avance()
-        retourne ValeurDeStyle(url = url)
+        retourne crée_valeur_url(url)
     }
 
     si lexème.est_fonction() {
@@ -4350,21 +4361,21 @@ parse_valeur_background_image :: fonc (parseuse: &Parseuse(ComponentValue)) -> O
         si fonction.name == PROP_url {
             parseuse.avance()
             /* À FAIRE : parse proprement un identifiant ou une chaine. */
-            retourne ValeurDeStyle(url = fonction.value[0].lexème.valeur)
+            retourne crée_valeur_url(fonction.value[0].lexème.valeur)
         }
         retourne
     }
 }
 
 /* https://drafts.csswg.org/css-backgrounds-3/#background-repeat */
-parse_propriété_background_repeat :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_background_repeat :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     retourne parse_valeur_background_repeat(parseuse)
 }
 
 /* <repeat-style> = repeat-x | repeat-y | [repeat | space | round | no-repeat]{1,2} */
-parse_valeur_background_repeat :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+parse_valeur_background_repeat :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     si parseuse.fini() {
         retourne
@@ -4376,13 +4387,13 @@ parse_valeur_background_repeat :: fonc (parseuse: &Parseuse(ComponentValue)) -> 
     si lexème.est_mot_clé(PROP_repeat_x) {
         parseuse.avance()
         résultat.horizontal = PROP_repeat_x
-        retourne ValeurDeStyle(background_repeat = résultat)
+        retourne crée_valeur_background_repeat(résultat)
     }
 
     si lexème.est_mot_clé(PROP_repeat_y) {
         parseuse.avance()
         résultat.horizontal = PROP_repeat_y
-        retourne ValeurDeStyle(background_repeat = résultat)
+        retourne crée_valeur_background_repeat(résultat)
     }
 
     mots_clés := [PROP_repeat, PROP_space, PROP_round, PROP_no_repeat]
@@ -4392,27 +4403,29 @@ parse_valeur_background_repeat :: fonc (parseuse: &Parseuse(ComponentValue)) -> 
         retourne
     }
     
-    résultat.horizontal = valeur.Quelque.mot_clé
+    résultat.horizontal = valeur.Quelque.donne_mot_clé()
+    détruit_valeur_de_style(valeur.Quelque)
 
     parseuse.consomme_espaces_blanches()
 
     valeur = parse_mot_clé(parseuse, mots_clés)
     si valeur.possède_valeur() {
-        résultat.vertical = valeur.Quelque.mot_clé
+        résultat.vertical = valeur.Quelque.donne_mot_clé()
+        détruit_valeur_de_style(valeur.Quelque)
     }
 
-    retourne ValeurDeStyle(background_repeat = résultat)
+    retourne crée_valeur_background_repeat(résultat)
 }
 
 /* https://drafts.csswg.org/css-backgrounds-3/#background-attachment */
-parse_propriété_background_attachment :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_background_attachment :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     retourne parse_valeur_background_attachment(parseuse)
 }
 
 /* <attachment> = scroll | fixed | local */
-parse_valeur_background_attachment :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+parse_valeur_background_attachment :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     mots_clés := [PROP_scroll, PROP_fixed, PROP_local]
     retourne parse_mot_clé(parseuse, mots_clés)
@@ -4426,18 +4439,18 @@ parse_valeur_background_attachment :: fonc (parseuse: &Parseuse(ComponentValue))
  * \{ */
 
 ValeursBorder :: struct {
-    width: ValeurDeStyle
-    style: ValeurDeStyle
-    color: ValeurDeStyle
+    width: *ValeurDeStyle
+    style: *ValeurDeStyle
+    color: *ValeurDeStyle
 }
 
 parse_propriété_border_impl :: fonc (value: []ComponentValue) -> Optionnel(ValeursBorder)
 {
     parseuse := initialise_une_parseuse(value)
 
-    valeur_width: Optionnel(ValeurDeStyle)
-    valeur_style: Optionnel(ValeurDeStyle)
-    valeur_color: Optionnel(ValeurDeStyle)
+    valeur_width: Optionnel(*ValeurDeStyle)
+    valeur_style: Optionnel(*ValeurDeStyle)
+    valeur_color: Optionnel(*ValeurDeStyle)
 
     tantque !fini(parseuse) {
         parseuse.consomme_espaces_blanches()
@@ -4589,7 +4602,7 @@ parse_propriété_border_color :: fonc (ctx: *ContexteParsageShorthand, value: [
 
     parseuse := initialise_une_parseuse(value)
 
-    résultat: [4]ValeurDeStyle
+    résultat: [4]*ValeurDeStyle
     nombre_valeurs: z64
 
     tantque !fini(parseuse) && nombre_valeurs != 4 {
@@ -4629,7 +4642,7 @@ parse_propriété_border_style :: fonc (ctx: *ContexteParsageShorthand, value: [
 
     parseuse := initialise_une_parseuse(value)
 
-    résultat: [4]ValeurDeStyle
+    résultat: [4]*ValeurDeStyle
     nombre_valeurs: z64
 
     tantque !fini(parseuse) && nombre_valeurs != 4 {
@@ -4669,7 +4682,7 @@ parse_propriété_border_width :: fonc (ctx: *ContexteParsageShorthand, value: [
 
     parseuse := initialise_une_parseuse(value)
 
-    résultat: [4]ValeurDeStyle
+    résultat: [4]*ValeurDeStyle
     nombre_valeurs: z64
 
     tantque !fini(parseuse) && nombre_valeurs != 4 {
@@ -4700,7 +4713,7 @@ parse_propriété_border_width :: fonc (ctx: *ContexteParsageShorthand, value: [
     retourne vrai
 }
 
-parse_propriété_border_line_style :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_border_line_style :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
 
@@ -4716,7 +4729,7 @@ parse_propriété_border_line_style :: fonc (value: []ComponentValue) -> Optionn
     }
 }
 
-parse_propriété_border_line_width :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_border_line_width :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
 
@@ -4733,7 +4746,7 @@ parse_propriété_border_line_width :: fonc (value: []ComponentValue) -> Optionn
 }
 
 /* <line-width> = <length [0,∞]> | thin | medium | thick */
-parse_valeur_line_width :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+parse_valeur_line_width :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     mots_clés := [PROP_thin, PROP_medium, PROP_thick]
 
@@ -4760,7 +4773,7 @@ parse_valeur_line_width :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionn
 }
 
 /* <line-style> = none | hidden | dotted | dashed | solid | double | groove | ridge | inset | outset */
-parse_valeur_line_style :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+parse_valeur_line_style :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     mots_clés := [PROP_none, PROP_hidden, PROP_dotted, PROP_dashed, PROP_solid, PROP_double, PROP_groove, PROP_ridge, PROP_inset, PROP_outset]
     tantque !parseuse.fini() {
@@ -4794,7 +4807,7 @@ parse_propriété_border_radius_shorthand :: fonc (ctx: *ContexteParsageShorthan
 
     parseuse := initialise_une_parseuse(value)
 
-    résultat: [4]ValeurDeStyle
+    résultat: [4]*ValeurDeStyle
     nombre_de_valeurs: z64
 
     tantque !fini(parseuse) && nombre_de_valeurs != 4 {
@@ -4838,7 +4851,7 @@ parse_propriété_border_radius_shorthand :: fonc (ctx: *ContexteParsageShorthan
     retourne vrai
 }
 
-parse_propriété_border_radius :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_border_radius :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     retourne parse_valeur_length_percentage_positive(parseuse)
@@ -4861,7 +4874,7 @@ parse_propriété_margin :: fonc (ctx: *ContexteParsageShorthand, value: []Compo
 
     parseuse := initialise_une_parseuse(value)
 
-    résultat: [4]ValeurDeStyle
+    résultat: [4]*ValeurDeStyle
     nombre_valeurs: z64
 
     tantque !fini(parseuse) && nombre_valeurs != 4 {
@@ -4911,7 +4924,7 @@ parse_propriété_margin_logique :: fonc (ctx: *ContexteParsageShorthand, value:
 
     parseuse := initialise_une_parseuse(value)
 
-    résultat: [2]ValeurDeStyle
+    résultat: [2]*ValeurDeStyle
     nombre_valeurs: z64
 
     tantque !fini(parseuse) && nombre_valeurs != 2 {
@@ -4943,7 +4956,7 @@ parse_propriété_margin_logique :: fonc (ctx: *ContexteParsageShorthand, value:
     retourne vrai
 }
 
-parse_propriété_margin_top :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_margin_top :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     parseuse.consomme_espaces_blanches()
@@ -4969,7 +4982,7 @@ parse_propriété_padding :: fonc (ctx: *ContexteParsageShorthand, value: []Comp
 
     parseuse := initialise_une_parseuse(value)
 
-    résultat: [4]ValeurDeStyle
+    résultat: [4]*ValeurDeStyle
     nombre_valeurs: z64
 
     tantque !fini(parseuse) && nombre_valeurs != 4 {
@@ -5018,7 +5031,7 @@ parse_propriété_padding_logique :: fonc (ctx: *ContexteParsageShorthand, value
 
     parseuse := initialise_une_parseuse(value)
 
-    résultat: [2]ValeurDeStyle
+    résultat: [2]*ValeurDeStyle
     nombre_valeurs: z64
 
     tantque !fini(parseuse) && nombre_valeurs != 2 {
@@ -5050,7 +5063,7 @@ parse_propriété_padding_logique :: fonc (ctx: *ContexteParsageShorthand, value
     retourne vrai
 }
 
-parse_propriété_padding_top :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_padding_top :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     parseuse.consomme_espaces_blanches()
@@ -5066,7 +5079,7 @@ parse_propriété_padding_top :: fonc (value: []ComponentValue) -> Optionnel(Val
  * https://drafts.csswg.org/css-sizing-3/#preferred-size-properties
  * \{ */
 
-parse_propriété_height_width :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_height_width :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
 
@@ -5084,7 +5097,7 @@ parse_propriété_height_width :: fonc (value: []ComponentValue) -> Optionnel(Va
     }
 }
 
-parse_propriété_min_height_width :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_min_height_width :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     parseuse.consomme_espaces_blanches()
@@ -5092,7 +5105,7 @@ parse_propriété_min_height_width :: fonc (value: []ComponentValue) -> Optionne
     retourne parse_valeur_length_percentage_positive_ou_auto(parseuse)
 }
 
-parse_propriété_max_height_width :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_max_height_width :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     parseuse.consomme_espaces_blanches()
@@ -5114,13 +5127,13 @@ parse_propriété_max_height_width :: fonc (value: []ComponentValue) -> Optionne
  * \{ */
 
 /* normal | <number> | <length> | <percentage> | inherit */
-parse_propriété_line_height :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_line_height :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     retourne parse_valeur_line_height(parseuse)
 }
 
-parse_valeur_line_height :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+parse_valeur_line_height :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     valeur := parse_valeur_length_positive(parseuse)
     si valeur.possède_valeur() {
@@ -5152,7 +5165,7 @@ parse_valeur_line_height :: fonc (parseuse: &Parseuse(ComponentValue)) -> Option
  * https://drafts.csswg.org/css-position/#insets
  * \{ */
 
-parse_propriété_inset :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_inset :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     /* auto | <length-percentage> */
@@ -5177,7 +5190,7 @@ parse_propriété_inset_logique :: fonc (ctx: *ContexteParsageShorthand, value: 
 
     parseuse := initialise_une_parseuse(value)
 
-    résultat: [2]ValeurDeStyle
+    résultat: [2]*ValeurDeStyle
     nombre_valeurs: z64
 
     tantque !fini(parseuse) && nombre_valeurs != 2 {
@@ -5215,7 +5228,7 @@ parse_propriété_inset_shorthand :: fonc (ctx: *ContexteParsageShorthand, value
 
     parseuse := initialise_une_parseuse(value)
 
-    résultat: [4]ValeurDeStyle
+    résultat: [4]*ValeurDeStyle
     nombre_valeurs: z64
 
     tantque !fini(parseuse) && nombre_valeurs != 4 {
@@ -5254,7 +5267,7 @@ parse_propriété_inset_shorthand :: fonc (ctx: *ContexteParsageShorthand, value
  * https://drafts.csswg.org/css-text/#text-align-property
  * \{ */
 
-parse_propriété_text_align :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_text_align :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     mots_clés := [PROP_start, PROP_end, PROP_left, PROP_right, PROP_center, PROP_justify, PROP_match_parent, PROP_justify_all]
@@ -5268,7 +5281,7 @@ parse_propriété_text_align :: fonc (value: []ComponentValue) -> Optionnel(Vale
  * https://drafts.csswg.org/css-position/#position-property
  * \{ */
 
-parse_propriété_position :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_position :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     mots_clés := [PROP_static, PROP_relative, PROP_absolute, PROP_sticky, PROP_fixed]
@@ -5282,7 +5295,7 @@ parse_propriété_position :: fonc (value: []ComponentValue) -> Optionnel(Valeur
  * https://drafts.csswg.org/css2/#propdef-float
  * \{ */
 
-parse_propriété_float :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_float :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     mots_clés := [PROP_left, PROP_right, PROP_none]
@@ -5298,7 +5311,7 @@ parse_propriété_float :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeS
  * \{ */
 
 /* baseline | sub | super | top | text-top | middle | bottom | text-bottom | <percentage> | <length> */
-parse_propriété_vertical_align :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_vertical_align :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     mots_clés := [PROP_baseline, PROP_top, PROP_middle, PROP_bottom]
@@ -5312,7 +5325,7 @@ parse_propriété_vertical_align :: fonc (value: []ComponentValue) -> Optionnel(
  * https://www.w3.org/TR/CSS2/visuren.html#propdef-clear
  * \{ */
 
-parse_propriété_clear :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_clear :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     mots_clés := [PROP_none, PROP_left, PROP_both, PROP_right]
@@ -5335,7 +5348,7 @@ parse_shorthand_overflow :: fonc (ctx: *ContexteParsageShorthand, value: []Compo
 
     parseuse := initialise_une_parseuse(value)
 
-    résultat: [2]ValeurDeStyle
+    résultat: [2]*ValeurDeStyle
     nombre_valeurs: z64
 
     tantque !fini(parseuse) && nombre_valeurs != 2 {
@@ -5362,13 +5375,13 @@ parse_shorthand_overflow :: fonc (ctx: *ContexteParsageShorthand, value: []Compo
     retourne vrai
 }
 
-parse_propriété_overflow :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_overflow :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     retourne parse_valeur_overflow(parseuse)
 }
 
-parse_valeur_overflow :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+parse_valeur_overflow :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     mots_clés := [PROP_visible, PROP_hidden, PROP_clip, PROP_scroll, PROP_auto]
     retourne parse_mot_clé(parseuse, mots_clés)
@@ -5381,7 +5394,7 @@ parse_valeur_overflow :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel
  * https://drafts.csswg.org/css-flexbox/#justify-content-property
  * \{ */
 
-parse_propriété_justify_content :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_justify_content :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     mots_clés := [PROP_flex_start, PROP_flex_end, PROP_center, PROP_space_around, PROP_space_between]
     parseuse := initialise_une_parseuse(value)
@@ -5395,7 +5408,7 @@ parse_propriété_justify_content :: fonc (value: []ComponentValue) -> Optionnel
  * https://drafts.csswg.org/css-flexbox/#flex-basis-property
  * \{ */
 
-parse_propriété_flex_basis :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_flex_basis :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
 
@@ -5415,13 +5428,13 @@ parse_propriété_flex_basis :: fonc (value: []ComponentValue) -> Optionnel(Vale
  * https://drafts.csswg.org/css-flexbox/#flex-direction-property
  * \{ */
 
-parse_propriété_flex_direction :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_flex_direction :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     retourne parse_valeur_flex_direction(parseuse)
 }
 
-parse_valeur_flex_direction :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+parse_valeur_flex_direction :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     mots_clés := [PROP_row, PROP_row_reverse, PROP_column, PROP_column_reverse]
     retourne parse_mot_clé(parseuse, mots_clés)
@@ -5434,13 +5447,13 @@ parse_valeur_flex_direction :: fonc (parseuse: &Parseuse(ComponentValue)) -> Opt
  * https://drafts.csswg.org/css-flexbox/#flex-wrap-property
  * \{ */
 
-parse_propriété_flex_wrap :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_flex_wrap :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     retourne parse_valeur_flex_wrap(parseuse)
 }
 
-parse_valeur_flex_wrap :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(ValeurDeStyle)
+parse_valeur_flex_wrap :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
 {
     mots_clés := [PROP_nowrap, PROP_wrap, PROP_wrap_reverse]
     retourne parse_mot_clé(parseuse, mots_clés)
@@ -5486,15 +5499,15 @@ parse_shorthand_flex :: fonc (ctx: *ContexteParsageShorthand, value: []Component
                 parseuse.avance()
 
                 si eu_flex_grow == faux {
-                    flex_grow.number = lexème.lexème.numeric_value
+                    flex_grow = crée_valeur_number(lexème.lexème.numeric_value)
                     eu_flex_grow = vrai
                 }
                 sinon si eu_flex_shrink == faux {
-                    flex_shrink.number = lexème.lexème.numeric_value
+                    flex_shrink = crée_valeur_number(lexème.lexème.numeric_value)
                     eu_flex_shrink = vrai
                 }
                 sinon si eu_flex_basis == faux {
-                    flex_basis.number = lexème.lexème.numeric_value
+                    flex_basis = crée_valeur_number(lexème.lexème.numeric_value)
                     eu_flex_basis = vrai
                 }
                 sinon {
@@ -5521,14 +5534,14 @@ parse_shorthand_flex :: fonc (ctx: *ContexteParsageShorthand, value: []Component
     /* https://drafts.csswg.org/css-flexbox/#flex-common */
     si eu_flex_grow && !eu_flex_shrink && !eu_flex_basis {
         // flex: <number> -> number 1 0%;
-        flex_shrink.number = 1.0
-        flex_basis.percentage = 0.0
+        flex_shrink = donne_valeur_number_un()
+        flex_basis = donne_valeur_percentage_zéro()
     }
     sinon si eu_flex_basis && !eu_flex_shrink && !eu_flex_grow {
         si flex_basis.est_auto() {
             // flex: auto -> 1 1 auto;
-            flex_grow.number = 1.0
-            flex_shrink.number = 1.0
+            flex_grow = donne_valeur_number_un()
+            flex_shrink = donne_valeur_number_un()
         }
     }
 
@@ -5585,7 +5598,7 @@ parse_shorthand_flex_flow :: fonc (ctx: *ContexteParsageShorthand, value: []Comp
  * https://drafts.csswg.org/css-sizing/#box-sizing
  * \{ */
 
-parse_propriété_box_sizing :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_box_sizing :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     mots_clés := [PROP_border_box, PROP_content_box]
     parseuse := initialise_une_parseuse(value)
@@ -5599,7 +5612,7 @@ parse_propriété_box_sizing :: fonc (value: []ComponentValue) -> Optionnel(Vale
  * https://drafts.csswg.org/css-text/#propdef-white-space
  * \{ */
 
-parse_propriétés_white_space :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriétés_white_space :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     mots_clés := [PROP_normal, PROP_pre, PROP_nowrap, PROP_pre_wrap, PROP_break_spaces, PROP_pre_line]
     parseuse := initialise_une_parseuse(value)
@@ -5613,7 +5626,7 @@ parse_propriétés_white_space :: fonc (value: []ComponentValue) -> Optionnel(Va
  * https://drafts.csswg.org/css2/#propdef-border-spacing
  * \{ */
 
-parse_propriété_border_spacing :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_border_spacing :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     /* À FAIRE : 2 valeurs possibles. */
@@ -5627,7 +5640,7 @@ parse_propriété_border_spacing :: fonc (value: []ComponentValue) -> Optionnel(
  * https://drafts.csswg.org/css2/#propdef-border-collapse
  * \{ */
 
-parse_propriété_border_collapse :: fonc (value: []ComponentValue) -> Optionnel(ValeurDeStyle)
+parse_propriété_border_collapse :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     mots_clés := [PROP_collapse, PROP_separate]
     parseuse := initialise_une_parseuse(value)
