@@ -69,9 +69,19 @@ void redefinition_symbole(EspaceDeTravail const &espace,
                           const NoeudExpression *site_redefinition,
                           const NoeudDéclaration *site_original)
 {
+    kuri::chaine_statique message = "Le symbole fut déjà défini ici :\n\n";
+
+    if (site_original->est_déclaration_variable()) {
+        auto déclaration_variable = site_original->comme_déclaration_variable();
+        auto déclaration_source = déclaration_variable->déclaration_vient_d_un_emploi;
+        if (déclaration_source) {
+            message = "Le symbole fut défini via l'instruction 'empl' ici :\n\n:";
+        }
+    }
+
     espace
         .rapporte_erreur(site_redefinition, "Redéfinition du symbole !", Genre::VARIABLE_REDEFINIE)
-        .ajoute_message("Le symbole fut déjà défini ici :\n\n")
+        .ajoute_message(message)
         .ajoute_site(site_original);
 }
 
