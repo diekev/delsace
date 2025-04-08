@@ -67,7 +67,7 @@ void redefinition_fonction(EspaceDeTravail const &espace,
 
 void redefinition_symbole(EspaceDeTravail const &espace,
                           const NoeudExpression *site_redefinition,
-                          const NoeudExpression *site_original)
+                          const NoeudDéclaration *site_original)
 {
     espace
         .rapporte_erreur(site_redefinition, "Redéfinition du symbole !", Genre::VARIABLE_REDEFINIE)
