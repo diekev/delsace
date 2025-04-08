@@ -49,7 +49,7 @@ imprime_et_réinitialise_fut_dessiné :: fonc (ctx: *StackingContext)
 
 #portée_fichier
 
-donne_z_index :: fonc (stacking_context: *StackingContext) -> ValeurDeStyle
+donne_z_index :: fonc (stacking_context: *StackingContext) -> *ValeurDeStyle
 {
     retourne stacking_context.racine.propriétés.donne_valeur_calculée(IDPropriété.ZIndex)
 }
@@ -58,9 +58,9 @@ donne_opacité :: fonc (stacking_context: *StackingContext) -> r64
 {
     opacity := stacking_context.racine.propriétés.donne_valeur_calculée(IDPropriété.Opacity)
     si opacity.est_percentage() {
-        retourne opacity.percentage
+        retourne opacity.donne_percentage()
     }
-    retourne opacity.number
+    retourne opacity.donne_number()
 }
 
 donne_z_index_pour_tri :: fonc (stacking_context: *StackingContext) -> z32
@@ -70,7 +70,7 @@ donne_z_index_pour_tri :: fonc (stacking_context: *StackingContext) -> z32
         retourne 0
     }
 
-    retourne z_index.number comme z32
+    retourne z_index.donne_number() comme z32
 }
 
 est_position_fixée :: fonc (stacking_context: *StackingContext) -> bool
@@ -186,7 +186,7 @@ doit_générer_un_stacking_context :: fonc (noeud: *NoeudDeDisposition) -> bool
 
     // Element with an opacity value less than 1.
     opacity := noeud.propriétés.donne_valeur_calculée(IDPropriété.Opacity)
-    si (opacity.est_nombre() && opacity.number < 1.0) || (opacity.est_percentage() && opacity.percentage < 1.0) {
+    si (opacity.est_number() && opacity.donne_number() < 1.0) || (opacity.est_percentage() && opacity.donne_percentage() < 1.0) {
         retourne vrai
     }
 
@@ -327,7 +327,7 @@ dessine_stacking_context_pour_élément :: fonc (stacking_context: *StackingCont
             si z_index.est_auto() {
                 continue
             }
-            si z_index.number >= 0.0 {
+            si z_index.donne_number() >= 0.0 {
                 continue
             }
             dessine_stacking_context_standard(it, ctx)
@@ -395,7 +395,7 @@ dessine_stacking_context_pour_élément :: fonc (stacking_context: *StackingCont
             si z_index.est_auto() {
                 continue
             }
-            si z_index.number <= 0.0 {
+            si z_index.donne_number() <= 0.0 {
                 continue
             }
             dessine_stacking_context_standard(it, ctx)
@@ -726,7 +726,7 @@ donne_positioned_descendants_with_z_index_auto_ou_zéro :: fonc (noeud: *NoeudDe
         position := enfant.propriétés.donne_valeur_utilisée(IDPropriété.Position)
         saufsi position.est_mot_clé(PROP_static) {
             z_index := enfant.propriétés.donne_valeur_utilisée(IDPropriété.ZIndex)
-            si z_index.est_auto() || z_index.number == 0.0 {
+            si z_index.est_auto() || z_index.donne_number() == 0.0 {
                 tableau_ajoute(résultat, enfant)
             }
             continue

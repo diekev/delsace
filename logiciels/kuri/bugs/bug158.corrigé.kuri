@@ -1,0 +1,27 @@
+/* Les déclarations instruites avec empl peuvent voir le bloc parent.
+ * Catégorie : [validation sémantique]
+ */
+
+Struct1 :: struct {
+    base: z32
+}
+
+Base :: struct {
+    xyz: z32
+}
+
+ma_fonction :: fonc (empl x: Struct1) -> z32
+{
+    Struct2 :: struct {
+        empl base: Base // ne doit pas coléser avec x.base
+    }
+
+    s: Struct2
+    retourne s.xyz * base
+}
+
+principale :: fonc ()
+{
+    x: Struct1
+    _ := ma_fonction(x)
+}
