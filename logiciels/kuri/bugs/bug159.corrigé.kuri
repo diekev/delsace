@@ -1,0 +1,17 @@
+/* Les étiquettes des unions ajournées avant que l'assignation de la nouvelle rubrique n'eût lieu.
+ * Catégorie : [génération code]
+ */
+
+importe Fondation
+
+Union :: union {
+    pixels: r64
+    pourcentage: r64
+}
+
+principale :: fonc ()
+{
+    u: Union
+    u.pourcentage = 69.0
+    u.pixels = u.pourcentage
+}

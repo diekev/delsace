@@ -1066,7 +1066,7 @@ activate_an_event_handler :: fonc (event_target: *EventTarget, nom: DOMString)
 /* https://html.spec.whatwg.org/multipage/webappapis.html#event-handler-idl-attributes */
 get_event_handler_idl_attribute :: fonc (this: *EventTarget, name: DOMString) -> *EventHandler
 {
-    // À FAIRE : 1. Let eventTarget be the result of determining the target of an event handler given this object and name.
+    // 1. Let eventTarget be the result of determining the target of an event handler given this object and name.
     event_target := determine_the_target_of_an_event_handler(this, name)
 
     // 2. If eventTarget is null, then return null.
