@@ -3830,15 +3830,7 @@ void CompilatriceRI::génère_ri_pour_accès_membre_union(NoeudExpressionMembre 
         return;
     }
 
-    if (expression_gauche) {
-        // ajourne l'index du membre
-        auto membre_actif = m_constructrice.crée_référence_membre(noeud, ptr_union, 1);
-        m_constructrice.crée_stocke_mem(
-            noeud,
-            membre_actif,
-            m_constructrice.crée_z32(static_cast<unsigned>(noeud->index_membre + 1)));
-    }
-    else {
+    if (!expression_gauche) {
         // vérifie l'index du membre
         auto membre_actif = m_constructrice.crée_reference_membre_et_charge(noeud, ptr_union, 1);
 
@@ -5241,11 +5233,37 @@ void CompilatriceRI::compile_locale(NoeudExpression *variable,
 
     if (transformation.type == TypeTransformation::INUTILE) {
         génère_ri_pour_expression_droite(expression, pointeur);
+        ajourne_index_membre_union(variable);
         return;
     }
 
     génère_ri_transformee_pour_noeud(expression, pointeur, transformation);
+    ajourne_index_membre_union(variable);
     return;
+}
+
+/* À FAIRE : gère les assignations à de multiples valeurs, déplace dans la
+ * canonicalisation. */
+void CompilatriceRI::ajourne_index_membre_union(NoeudExpression *expression)
+{
+    if (!expression->est_référence_membre_union()) {
+        return;
+    }
+
+    auto noeud = expression->comme_référence_membre_union();
+
+    auto ancienne_expression_gauche = expression_gauche;
+    expression_gauche = false;
+    génère_ri_pour_noeud(noeud->accédée);
+    expression_gauche = ancienne_expression_gauche;
+
+    auto ptr_union = depile_valeur();
+    // ajourne l'index du membre
+    auto membre_actif = m_constructrice.crée_référence_membre(noeud, ptr_union, 1);
+    m_constructrice.crée_stocke_mem(
+        noeud,
+        membre_actif,
+        m_constructrice.crée_z32(static_cast<unsigned>(noeud->index_membre + 1)));
 }
 
 Atome *CompilatriceRI::donne_atome_pour_locale(NoeudExpression *expression)
