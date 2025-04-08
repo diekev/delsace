@@ -2845,6 +2845,15 @@ NoeudDéclaration *donne_déclaration_employée(NoeudExpression *noeud)
         return noeud->comme_référence_déclaration()->déclaration_référée;
     }
 
+    /* Pour les accès de rubriques. */
+    if (noeud->type->est_type_type_de_données()) {
+        auto type = noeud->type->comme_type_type_de_données();
+        if (type->type_connu &&
+            (type->type_connu->est_type_structure() || type->type_connu->est_type_énum())) {
+            return type->type_connu;
+        }
+    }
+
     return nullptr;
 }
 
