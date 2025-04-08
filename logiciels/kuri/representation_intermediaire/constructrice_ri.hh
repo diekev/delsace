@@ -458,6 +458,8 @@ struct CompilatriceRI {
                         NoeudExpression *expression,
                         TransformationType const &transformation);
 
+    void ajourne_index_membre_union(NoeudExpression *expression);
+
     Atome *donne_atome_pour_locale(NoeudExpression *expression);
 
     void génère_ri_pour_construction_tableau(NoeudExpressionConstructionTableau const *expr,

@@ -780,13 +780,13 @@ crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Do
     // 11. Let topLevelCreationURL be about:blank if embedder is null; otherwise embedder's relevant settings object's top-level creation URL.
     top_level_creation_url := donne_about_blank_url()
     si embedder {
-        // À FAIRE(settings object)
+        top_level_creation_url = embedder.donne_relevant_settings_object().top_level_creation_url
     }
 
     // 12. Let topLevelOrigin be origin if embedder is null; otherwise embedder's relevant settings object's top-level origin.
     top_level_origin := origin
     si embedder {
-        // À FAIRE(settings object)
+        top_level_origin = embedder.donne_relevant_settings_object().top_level_origin
     }
 
     // 13. Set up a window environment settings object with about:blank, realm execution context, null, topLevelCreationURL, and topLevelOrigin.

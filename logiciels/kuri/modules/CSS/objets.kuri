@@ -200,7 +200,7 @@ DéclarationPropriété :: struct {
     info: *InfoTypePropriété
     style_parent: *CSSStyleDeclaration
     property_name: CSSOMString
-    value: [..]ValeurDeStyle
+    value: [..]*ValeurDeStyle
     valeur_personnalisée: [..]ComponentValue
     important: bool
     case_sensitive: bool
@@ -210,7 +210,7 @@ DéclarationPropriété :: struct {
 
 détruit_déclaration :: fonc (déclaration: *DéclarationPropriété)
 {
-    pour * déclaration.value {
+    pour déclaration.value {
         détruit_valeur_de_style(it)
     }
 

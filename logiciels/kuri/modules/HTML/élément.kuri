@@ -1290,12 +1290,12 @@ ajoute_propriété_pour_couleur :: fonc (résolveuse: *CSS.RésolveuseStyle, nom
         retourne
     }
 
-    CSS.ajoute_presentational_hint(résolveuse, nom_propriété, CSS.ValeurDeStyle(couleur = opt_couleur.Quelque))
+    CSS.ajoute_presentational_hint(résolveuse, nom_propriété, CSS.crée_valeur_couleur(opt_couleur.Quelque))
 }
 
 ajoute_propriété_pour_mot_clé :: fonc (résolveuse: *CSS.RésolveuseStyle, nom_propriété: CSS.CSSOMString, mot_clé: CSS.CSSOMString)
 {
-    CSS.ajoute_presentational_hint(résolveuse, nom_propriété, CSS.ValeurDeStyle(mot_clé = mot_clé))
+    CSS.ajoute_presentational_hint(résolveuse, nom_propriété, CSS.crée_valeur_mot_clé(mot_clé))
 }
 
 ajoute_propriété_pour_dimension :: fonc (résolveuse: *CSS.RésolveuseStyle, élément: *Élément, nom_attribut: DOMString, nom_propriété: CSS.CSSOMString)
@@ -1315,7 +1315,7 @@ ajoute_propriété_pour_pixel_length :: fonc (résolveuse: *CSS.RésolveuseStyle
     si opt_attribut.possède_valeur() {
         valeur := parse_a_non_negative_integer(opt_attribut.Quelque)
         si valeur.possède_valeur() {
-            CSS.ajoute_presentational_hint(résolveuse, nom_propriété, CSS.ValeurDeStyle(pixels = valeur.Quelque comme r64))
+            CSS.ajoute_presentational_hint(résolveuse, nom_propriété, CSS.crée_valeur_pixels(valeur.Quelque comme r64))
         }
     }
 }
@@ -1333,17 +1333,17 @@ ajoute_propriété_pour_non_zero_dimension :: fonc (résolveuse: *CSS.Résolveus
 
 ajoute_propriété_pour_nombre :: fonc (résolveuse: *CSS.RésolveuseStyle, nom_propriété: CSS.CSSOMString, valeur: r64)
 {
-    CSS.ajoute_presentational_hint(résolveuse, nom_propriété, CSS.ValeurDeStyle(number = valeur))
+    CSS.ajoute_presentational_hint(résolveuse, nom_propriété, CSS.crée_valeur_number(valeur))
 }
 
 ajoute_propriété_pour_dimension :: fonc (résolveuse: *CSS.RésolveuseStyle, nom_propriété: CSS.CSSOMString, valeur: DimensionValue)
 {
     discr valeur {
         Percentage(p) {
-            CSS.ajoute_presentational_hint(résolveuse, nom_propriété, CSS.ValeurDeStyle(percentage = p))
+            CSS.ajoute_presentational_hint(résolveuse, nom_propriété, CSS.crée_valeur_percentage(p))
         }
         Length(l) {
-            CSS.ajoute_presentational_hint(résolveuse, nom_propriété, CSS.ValeurDeStyle(pixels = l))
+            CSS.ajoute_presentational_hint(résolveuse, nom_propriété, CSS.crée_valeur_pixels(l))
         }
         sinon {}
     }
@@ -1351,10 +1351,10 @@ ajoute_propriété_pour_dimension :: fonc (résolveuse: *CSS.RésolveuseStyle, n
 
 ajoute_presentational_hints_pour_bordure :: fonc (résolveuse: *CSS.RésolveuseStyle, couleur: CouleurRVBAN8, largeur: DimensionValue, style: CSS.CSSOMString)
 {
-    CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_bottom_color, CSS.ValeurDeStyle(couleur = couleur))
-    CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_top_color, CSS.ValeurDeStyle(couleur = couleur))
-    CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_left_color, CSS.ValeurDeStyle(couleur = couleur))
-    CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_right_color, CSS.ValeurDeStyle(couleur = couleur))
+    CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_bottom_color, CSS.crée_valeur_couleur(couleur))
+    CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_top_color, CSS.crée_valeur_couleur(couleur))
+    CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_left_color, CSS.crée_valeur_couleur(couleur))
+    CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_right_color, CSS.crée_valeur_couleur(couleur))
 
     ajoute_propriété_pour_mot_clé(résolveuse, CSS.PROP_border_bottom_style, style)
     ajoute_propriété_pour_mot_clé(résolveuse, CSS.PROP_border_top_style, style)
@@ -1411,9 +1411,9 @@ button_element_sur_applique_presentational_hints :: fonc (base: *Élément, rés
         CouleurRVBAN8(233, 233, 237, 255)
     }
 
-    CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_color, CSS.ValeurDeStyle(couleur = CouleurRVBAN8(0, 0, 0, 255)))
+    CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_color, CSS.donne_valeur_couleur_noire())
 
-    CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_background_color, CSS.ValeurDeStyle(couleur = couleur_arrière_plan))
+    CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_background_color, CSS.crée_valeur_couleur(couleur_arrière_plan))
 
     ajoute_propriété_pour_mot_clé(résolveuse, CSS.PROP_display, CSS.PROP_inline_block)
 
@@ -4772,29 +4772,29 @@ table_element_sur_applique_presentational_hints :: fonc (base: *Élément, réso
             valeur_border = 1.0
         }
 
-        valeur_de_style := CSS.ValeurDeStyle(pixels = valeur_border)
+        valeur_de_style := CSS.crée_valeur_pixels(valeur_border)
         CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_top_width, valeur_de_style)
-        CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_right_width, valeur_de_style)
-        CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_bottom_width, valeur_de_style)
-        CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_left_width, valeur_de_style)
+        CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_right_width, CSS.copie_valeur(valeur_de_style))
+        CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_bottom_width, CSS.copie_valeur(valeur_de_style))
+        CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_left_width, CSS.copie_valeur(valeur_de_style))
 
         /* À FAIRE : déplace ceci (voir Mozilla). */
-        border_style := CSS.ValeurDeStyle(mot_clé = CSS.PROP_solid)
-        CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_top_style, border_style)
-        CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_right_style, border_style)
-        CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_bottom_style, border_style)
-        CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_left_style, border_style)
+        border_style := CSS.donne_valeur_solid()
+        CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_top_style, CSS.copie_valeur(border_style))
+        CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_right_style, CSS.copie_valeur(border_style))
+        CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_bottom_style, CSS.copie_valeur(border_style))
+        CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_left_style, CSS.copie_valeur(border_style))
     }
 
     border_color := donne_attribut_ou_chaine_vide(base, ATTR_bordercolor)
     saufsi border_color.est_vide() {
         valeur := parse_a_legacy_colour_value(border_color)
         si valeur.possède_valeur() {
-            valeur_de_style := CSS.ValeurDeStyle(couleur = valeur.Quelque)
+            valeur_de_style := CSS.crée_valeur_couleur(valeur.Quelque)
             CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_top_color, valeur_de_style)
-            CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_right_color, valeur_de_style)
-            CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_bottom_color, valeur_de_style)
-            CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_left_color, valeur_de_style)
+            CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_right_color, CSS.copie_valeur(valeur_de_style))
+            CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_bottom_color, CSS.copie_valeur(valeur_de_style))
+            CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_left_color, CSS.copie_valeur(valeur_de_style))
         }
     }
 }
