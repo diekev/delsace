@@ -4210,8 +4210,8 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
 RésultatValidation Sémanticienne::valide_déclaration_variable(NoeudDéclarationVariable *decl)
 {
     auto bloc_final = NoeudBloc::nul();
-    if (decl->possède_drapeau(DrapeauxNoeud::EST_PARAMETRE) ||
-        decl->possède_drapeau(DrapeauxNoeud::EST_MEMBRE_STRUCTURE)) {
+    if (decl->bloc_parent->type_bloc != TypeBloc::MODULE &&
+        decl->bloc_parent->type_bloc != TypeBloc::IMPÉRATIF) {
         bloc_final = decl->bloc_parent->bloc_parent;
     }
 
@@ -4385,8 +4385,8 @@ RésultatValidation Sémanticienne::valide_déclaration_variable_multiple(
 
     POUR (decls_et_refs) {
         auto bloc_final = NoeudBloc::nul();
-        if (it.decl->possède_drapeau(DrapeauxNoeud::EST_PARAMETRE) ||
-            it.decl->possède_drapeau(DrapeauxNoeud::EST_MEMBRE_STRUCTURE)) {
+        if ((it.decl->bloc_parent->type_bloc != TypeBloc::MODULE) &&
+            (it.decl->bloc_parent->type_bloc != TypeBloc::IMPÉRATIF)) {
             bloc_final = it.decl->bloc_parent->bloc_parent;
         }
 
