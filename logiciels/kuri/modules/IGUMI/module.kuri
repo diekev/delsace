@@ -358,9 +358,7 @@ termine_immédiat :: fonc ()
         retourne
     }
 
-    nuanceur := nuanceur_global
-
-    si !nuanceur {
+    si dernier_nuanceur == (-1 comme IDNuanceur) {
         si données_tampon_xcnu.num_sommets {
             panique("tentative d'utiliser termine_immédiat alors qu'aucun nuanceur n'est installé")
         }
@@ -368,6 +366,8 @@ termine_immédiat :: fonc ()
         données_tampon_xcnu.num_sommets = 0
         retourne
     }
+
+    nuanceur := nuanceurs[dernier_nuanceur]
 
     s : []FormatVertexXCNU = données_tampon_xcnu.sommets_immédiat
     compte := données_tampon_xcnu.num_sommets comme n64
