@@ -25,7 +25,9 @@
 #include "simulation_grain.hh"
 
 #define NANOSVG_IMPLEMENTATION
+#define NANOSVG_ALL_COLOR_KEYWORDS
 #include "nanosvg/nanosvg.h"
+#undef NANOSVG_ALL_COLOR_KEYWORDS
 #undef NANOSVG_IMPLEMENTATION
 #define NANOSVGRAST_IMPLEMENTATION
 #include "nanosvg/nanosvgrast.h"
