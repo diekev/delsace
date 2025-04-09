@@ -24,6 +24,13 @@
 #include "gif.hh"
 #include "simulation_grain.hh"
 
+#define NANOSVG_IMPLEMENTATION
+#include "nanosvg/nanosvg.h"
+#undef NANOSVG_IMPLEMENTATION
+#define NANOSVGRAST_IMPLEMENTATION
+#include "nanosvg/nanosvgrast.h"
+#undef NANOSVGRAST_IMPLEMENTATION
+
 #define RETOURNE_SI_NUL(x)                                                                        \
     if (!(x)) {                                                                                   \
         return;                                                                                   \
@@ -1127,3 +1134,44 @@ void IMG_defocalise_image(const struct AdaptriceImage *image_entree,
 // Rééchantillonnage de l'image.
 
 PASSE_APPEL(reechantillonne_image, IMG_ParametresReechantillonnage)
+
+// ----------------------------------------------------------------------------
+// Image SVG.
+
+bool SVG_parse_image_depuis_contenu(char *data, SVGImage *resultat)
+{
+    auto image = nsvgParse(data, "px", 96.0f);
+    if (image == nullptr) {
+        return false;
+    }
+
+    resultat->image = image;
+    resultat->ratisseuse = nullptr;
+    resultat->height = image->height;
+    resultat->width = image->width;
+    return true;
+}
+
+void SVG_image_ratisse(SVGImage *image, uint8_t *sortie, int largeur, int hauteur)
+{
+    if (image->ratisseuse == nullptr) {
+        image->ratisseuse = nsvgCreateRasterizer();
+    }
+
+    nsvgRasterize(
+        image->ratisseuse, image->image, 0.0f, 0.0f, 1.0f, sortie, largeur, hauteur, largeur * 4);
+}
+
+void SVG_image_detruit(SVGImage *image)
+{
+    if (image->image) {
+        nsvgDelete(image->image);
+        image->image = nullptr;
+    }
+    if (image->ratisseuse) {
+        nsvgDeleteRasterizer(image->ratisseuse);
+        image->ratisseuse = nullptr;
+    }
+    image->width = 0.0f;
+    image->height = 0.0f;
+}
