@@ -3067,6 +3067,13 @@ static TypeTranstypage donne_type_transtypage_pour_défaut(Type const *src,
         dst = type_énum->type_sous_jacent;
     }
 
+    while (src->est_type_opaque()) {
+        src = src->comme_type_opaque()->type_opacifié;
+    }
+    while (dst->est_type_opaque()) {
+        dst = dst->comme_type_opaque()->type_opacifié;
+    }
+
     if (src->est_type_entier_naturel()) {
         if (dst->est_type_entier_naturel()) {
             if (src->taille_octet < dst->taille_octet) {
