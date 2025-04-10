@@ -612,7 +612,8 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                 auto temporaire = crée_déclaration_variable(
                     appel->lexème, appel->type, &non_initialisation);
                 temporaire->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
-                auto ref_temporaire = assem->crée_référence_déclaration(temporaire->lexème, temporaire);
+                auto ref_temporaire = assem->crée_référence_déclaration(temporaire->lexème,
+                                                                        temporaire);
                 ajoute_expression(temporaire);
 
                 auto ref_membre = assem->crée_référence_membre(
