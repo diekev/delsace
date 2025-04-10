@@ -234,7 +234,22 @@ report_an_exception :: fonc (exception: JS.Valeur, global: *JS.Object)
     // À FAIRE : standardise
 
     window := JS.vérifie_comme(global, Window)
+    
+    mv := JS.donne_mv(JS.donne_tas_de_mémoire(window))
+
+    settings: *EnvironmentSettings
+    si mv.execution_contexts.taille == 0 {
+        settings = window.donne_relevant_settings_object()
+        execution_context := settings.donne_realm_execution_context()
+        assert(execution_context != nul)
+        JS.empile_execution_context(mv, execution_context)
+    }
+
     chn := JS.to_string(window.realm, exception)
+
+    si settings {
+        JS.dépile_execution_context(mv)
+    }
 
     texte_exception := converti_vers_chaine(chn.texte.donne_chaine_utf16())
 
