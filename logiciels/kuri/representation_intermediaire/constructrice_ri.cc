@@ -5104,7 +5104,8 @@ void CompilatriceRI::compile_déclaration_globale_multiple(NoeudDéclarationVari
             auto var = it.variables[i];
             auto globale = var->comme_référence_déclaration()
                                ->déclaration_référée->comme_déclaration_variable();
-            compile_globale(var->comme_référence_déclaration()->déclaration_référée,
+            compile_globale(var->comme_référence_déclaration()
+                                ->déclaration_référée->comme_déclaration_variable(),
                             it.expression,
                             it.transformations[i]);
             globale->atome->drapeaux |= DrapeauxAtome::RI_FUT_GÉNÉRÉE;
@@ -5131,7 +5132,7 @@ void CompilatriceRI::compile_déclaration_locale_multiple(NoeudDéclarationVaria
     génère_ri_pour_assignation_variable(decl->données_decl);
 }
 
-void CompilatriceRI::compile_globale(NoeudDéclaration *decl,
+void CompilatriceRI::compile_globale(NoeudDéclarationVariable *decl,
                                      NoeudExpression *expression,
                                      TransformationType const &transformation)
 {
