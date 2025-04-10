@@ -832,9 +832,11 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
             auto expr_empl = noeud->comme_empl();
 
             auto déclaration_employée = donne_déclaration_employée(expr_empl->expression);
-            if (déclaration_employée->est_déclaration_type()) {
-                /* N'inclus pas les instructions `empl MonType` car ce n'est pas à être géré dans
-                 * la RI : ces déclarations ne sont utiles que pour la validation sémantique. */
+            if (déclaration_employée->est_déclaration_type() ||
+                déclaration_employée != expr_empl->expression) {
+                /* N'inclus pas les instructions `empl MonType` ou `empl variable` car ce n'est pas
+                 * à être géré dans la RI : ces déclarations ne sont utiles que pour la validation
+                 * sémantique. */
                 return nullptr;
             }
 
