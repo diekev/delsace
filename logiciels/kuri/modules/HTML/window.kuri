@@ -70,9 +70,9 @@ exécute_animation_frames :: fonc (window: *Window)
         this_arg := JS.js_undefined
         value := JS.Valeur(Object = callback)
 
-        evaluation_status := JS.call(JS.donne_mv(realm), value, this_arg)
-        saufsi JS.est_normal(evaluation_status) {
-            imprime("[%] %\n", #nom_de_cette_fonction, evaluation_status)
+        _ := JS.call(JS.donne_mv(realm), value, this_arg)
+        si JS.possède_exception(realm) {
+            imprime("[%] %\n", #nom_de_cette_fonction, JS.donne_exception(realm))
         }
 
         cleanup_after_running_script(settings)
@@ -258,9 +258,9 @@ crée_algorithm_pour_timeout :: fonc (window: *Window, handler: *JS.Object) -> *
         this_arg := JS.js_undefined
         value := JS.Valeur(Object = handler)
 
-        evaluation_status := JS.call(JS.donne_mv(realm), value, this_arg)
-        saufsi JS.est_normal(evaluation_status) {
-            imprime("[%] %\n", #nom_de_cette_fonction, evaluation_status)
+        _ := JS.call(JS.donne_mv(realm), value, this_arg)
+        saufsi JS.possède_exception(realm) {
+            imprime("[%] %\n", #nom_de_cette_fonction, JS.donne_exception(realm))
         }
 
         cleanup_after_running_script(settings)
@@ -314,7 +314,7 @@ window_proxy_ordinary_get_prototype_of :: fonc (object: *JS.Object) -> *JS.Objec
 
 /* 7.2.3.5 [[GetOwnProperty]] ( P )
  * https://html.spec.whatwg.org/multipage/nav-history-apis.html#windowproxy-getownproperty */
-window_proxy_sur_get_own_property :: fonc (object: *JS.Object, property_key: JS.PropertyKey) -> JS.CompletionRecord
+window_proxy_sur_get_own_property :: fonc (object: *JS.Object, property_key: JS.PropertyKey) -> Optionnel(JS.PropertyDescriptor)
 {
     proxy := object comme *WindowProxy
 
@@ -366,7 +366,7 @@ window_proxy_sur_get_own_property :: fonc (object: *JS.Object, property_key: JS.
 
 /* 7.2.3.7 [[Get]] ( P, Receiver )
  * https://html.spec.whatwg.org/multipage/nav-history-apis.html#windowproxy-get */
-window_proxy_sur_get :: fonc (object: *JS.Object, property_key: JS.PropertyKey, receiver: JS.Valeur) -> JS.CompletionRecord
+window_proxy_sur_get :: fonc (object: *JS.Object, property_key: JS.PropertyKey, receiver: JS.Valeur) -> JS.Valeur
 {
     proxy := object comme *WindowProxy
 
@@ -385,35 +385,36 @@ window_proxy_sur_get :: fonc (object: *JS.Object, property_key: JS.PropertyKey, 
 }
 
 /* https://html.spec.whatwg.org/multipage/nav-history-apis.html#crossoriginget-(-o,-p,-receiver-) */
-cross_origin_get :: fonc (object: *JS.Object, property_key: JS.PropertyKey, receiver: JS.Valeur) -> JS.CompletionRecord
+cross_origin_get :: fonc (object: *JS.Object, property_key: JS.PropertyKey, receiver: JS.Valeur) -> JS.Valeur
 {
     // 1. Let desc be ? O.[[GetOwnProperty]](P).
-    completion := JS.internal_get_own_property(object, property_key)
-    saufsi JS.est_normal(completion) {
-        retourne completion
+    opt_desc := JS.internal_get_own_property(object, property_key)
+    si JS.possède_exception(object) {
+        retourne JS.js_undefined
     }
-    desc := completion.valeur
 
     // 2. Assert: desc is not undefined.
-    assert(!JS.est_undefined(desc))
+    assert(opt_desc.possède_valeur())
+    desc := opt_desc.Quelque
 
     // 3. If IsDataDescriptor(desc) is true, then return desc.[[Value]].
-    si JS.is_data_descriptor(desc.P) {
-        retourne JS.normal_completion(desc.P.value.Quelque)
+    si JS.is_data_descriptor(desc) {
+        retourne desc.value.Quelque
     }
 
     // 4. Assert: IsAccessorDescriptor(desc) is true.
-    assert(JS.is_accessor_descriptor(desc.P))
+    assert(JS.is_accessor_descriptor(desc))
 
     // 5. Let getter be desc.[[Get]].
-    getter := desc.P.get
+    getter := desc.get
 
     mv := JS.donne_mv(JS.donne_tas_de_mémoire(JS.donne_objet(receiver)))
 
     // 6. If getter is undefined, then throw a "SecurityError" DOMException.
     saufsi getter.possède_valeur() {
         // À FAIRE : DOMException
-        retourne JS.lance_type_error(mv.interpréteuse, "SecurityError")
+        _ := JS.lance_type_error(mv.interpréteuse, "SecurityError")
+        retourne JS.js_undefined
     }
 
     // 7. Return ? Call(getter, Receiver).

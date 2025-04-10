@@ -228,9 +228,9 @@ report_an_exception :: fonc (exception: JS.Valeur, global: *JS.Object)
     // À FAIRE : standardise
 
     window := JS.vérifie_comme(global, Window)
-    chn := JS.to_string(window.realm, exception).valeur.V
+    chn := JS.to_string(window.realm, exception)
 
-    texte_exception := converti_vers_chaine(chn.String.texte.donne_chaine_utf16())
+    texte_exception := converti_vers_chaine(chn.texte.donne_chaine_utf16())
 
     user_agent := window.document.donne_user_agent()
     user_agent.rapporte_exception(window.document, texte_exception)

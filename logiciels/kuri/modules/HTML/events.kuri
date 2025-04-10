@@ -942,17 +942,17 @@ inner_invoke :: fonc (event: *Event, listeners: []EventTarget.EventListenerEntry
             continue
         }
 
-        completion := call_a_user_object_operation(JS.Valeur(Object = it.callback.object), arguments, JS.Valeur(Object = event.current_target))
-        saufsi JS.est_normal(completion) {
+        _ := call_a_user_object_operation(JS.Valeur(Object = it.callback.object), arguments, JS.Valeur(Object = event.current_target))
+        si JS.possède_exception(it.callback.object) {
             // À FAIRE : it.callback.callback_context.donne_global_object()
             global := event.target.realm.global_object
-            report_an_exception(completion.valeur.V, global)
+            report_an_exception(JS.donne_exception(it.callback.object), global)
         }
     }
 }
 
 /* https://webidl.spec.whatwg.org/#call-a-user-objects-operation */
-call_a_user_object_operation :: fonc (value: JS.Valeur, args: []JS.Valeur, this_arg: JS.Valeur) -> JS.CompletionRecord
+call_a_user_object_operation :: fonc (value: JS.Valeur, args: []JS.Valeur, this_arg: JS.Valeur) -> JS.Valeur
 {
     // imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
 
@@ -1322,23 +1322,24 @@ event_target_donne_node_document :: fonc (event_target: *EventTarget) -> *Docume
 
 #portée_fichier
 
-event_handler_processor_sur_appel :: fonc (params: *JS.ParamètresObjectCall) -> JS.CompletionRecord
+event_handler_processor_sur_appel :: fonc (params: *JS.ParamètresObjectCall) -> JS.Valeur
 {
     processor := JS.vérifie_comme(params.object, EventHandlerProcessor)
     objet := JS.donne_objet(JS.donne_argument(params, 0))
     event := JS.vérifie_comme(objet, Event)
-    retourne process_event_handler(processor.event_target, processor.nom, event)
+    process_event_handler(processor.event_target, processor.nom, event)
+    retourne JS.js_undefined
 }
 
 /* https://html.spec.whatwg.org/multipage/webappapis.html#the-event-handler-processing-algorithm */
-process_event_handler :: fonc (event_target: *EventTarget, nom: DOMString, event: *Event) -> JS.CompletionRecord
+process_event_handler :: fonc (event_target: *EventTarget, nom: DOMString, event: *Event)
 {
     // 1. Let callback be the result of getting the current value of the event handler given eventTarget and name.
     callback := get_the_current_value_of_the_event_handler(event_target, nom)
 
     // 2. If callback is null, then return.
     si callback == nul {
-        retourne JS.normal_completion(JS.js_undefined)
+        retourne
     }
 
     // À FAIRE : 3. Let special error event handling be true if event is an ErrorEvent object, event's type is "error", and event's currentTarget implements the WindowOrWorkerGlobalScope mixin. Otherwise, let special error event handling be false.
@@ -1362,11 +1363,7 @@ process_event_handler :: fonc (event_target: *EventTarget, nom: DOMString, event
 
         this_value := JS.Valeur(Object = event.current_target)
 
-        completion := call_a_user_object_operation(JS.Valeur(Object = callback.object), args, this_value)
-        saufsi JS.est_normal(completion) {
-            retourne completion
-        }
-        return_value = completion.valeur.V
+        return_value = call_a_user_object_operation(JS.Valeur(Object = callback.object), args, this_value)
     }
 
     // 5. Process return value as follows:
@@ -1385,8 +1382,6 @@ process_event_handler :: fonc (event_target: *EventTarget, nom: DOMString, event
     si JS.est_false(return_value) {
         event.canceled = vrai
     }
-
-    retourne JS.normal_completion(return_value)
 }
 
 table_virtuelle_event_handler_processor := JS.TableVirtuelleObject(classe = EventHandlerProcessor, sur_call = event_handler_processor_sur_appel)

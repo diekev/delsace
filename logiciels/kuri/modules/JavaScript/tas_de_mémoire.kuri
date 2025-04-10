@@ -26,7 +26,7 @@ TasDeMémoire :: struct {
 
 /* Fonction native pour forcer un ébouage
  * Cette fonction peut être ajoutée à un objet pour être appelée depuis les scripts. */
-fonction_native_éboue :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+fonction_native_éboue :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     #si DÉBOGUGE_MÉMOIRE {
         imprime("<<<<< ébouage forcé\n")
@@ -35,7 +35,7 @@ fonction_native_éboue :: fonc (empl params: *ParamètresObjectCall) -> Completi
     #si DÉBOGUGE_MÉMOIRE {
         imprime(">>>>> ébouage forcé\n")
     }
-    retourne normal_completion(js_undefined)
+    retourne js_undefined
 }
 
 détruit_données_tas_de_mémoire :: fonc (tas_de_mémoire: *TasDeMémoire)

@@ -87,7 +87,7 @@ ecma_script_function_instance_crée :: fonc (realm: *Realm) -> *Object
 
 /* 10.2.1 [[Call]] ( thisArgument, argumentsList )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ecmascript-function-objects-call-thisargument-argumentslist */
-sur_appel_fonction_ecma :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+sur_appel_fonction_ecma :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     assert(object.donne_classe() == ECMAScriptFunction)
     F := object comme *ECMAScriptFunction
@@ -127,16 +127,17 @@ sur_appel_fonction_ecma :: fonc (empl params: *ParamètresObjectCall) -> Complet
 
     // 8. If result is a return completion, return result.[[Value]].
     si result.est_return() {
-        retourne normal_completion(result.valeur)
+        retourne result.valeur
     }
 
     // 9. ReturnIfAbrupt(result).
-    si result.est_abrupt() {
-        retourne result
+    si result.est_throw() {
+        interpréteuse.définis_exception(result)
+        retourne js_undefined
     }
 
     // 10. Return undefined.
-    retourne normal_completion(js_undefined)
+    retourne js_undefined
 }
 
 /* 10.2.1.1 PrepareForOrdinaryCall ( F, newTarget )
@@ -227,7 +228,7 @@ ordinary_call_bind_this :: fonc (F: *ECMAScriptFunction, callee_context: *Execut
         sinon {
             // i. Let thisValue be ! ToObject(thisArgument).
             // ii. NOTE: ToObject produces wrapper objects using calleeRealm.
-            this_value = to_object(callee_realm, this_argument).valeur.V
+            this_value = to_object(callee_realm, this_argument)
         }
     }
 
@@ -236,8 +237,7 @@ ordinary_call_bind_this :: fonc (F: *ECMAScriptFunction, callee_context: *Execut
 
     // 8. Assert: The next step never returns an abrupt completion because localEnv.[[ThisBindingStatus]] is not INITIALIZED.
     // 9. Perform ! localEnv.BindThisValue(thisValue).
-    completion := bind_this_value(local_env comme *FunctionEnvironment, this_value)
-    assert(completion.est_normal())
+    _ := bind_this_value(local_env comme *FunctionEnvironment, this_value)
 
     // 10. Return UNUSED.
     retourne
@@ -274,7 +274,7 @@ ordinary_call_evaluate_body :: fonc (interpréteuse: *Interpréteuse, F: *ECMASc
 
 /* 10.2.2 [[Construct]] ( argumentsList, newTarget )
  * https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget */
-sur_construct_fonction_ecma :: fonc (empl params: *ParamètresObjectConstruct) -> CompletionRecord
+sur_construct_fonction_ecma :: fonc (empl params: *ParamètresObjectConstruct) -> Valeur
 {
     assert(object.donne_classe() == ECMAScriptFunction)
     F := object comme *ECMAScriptFunction
@@ -293,12 +293,10 @@ sur_construct_fonction_ecma :: fonc (empl params: *ParamètresObjectConstruct) -
     si kind == ConstructorKind.Base {
         // a. Let thisArgument be ? OrdinaryCreateFromConstructor(newTarget, "%Object.prototype%").
         new_target_func := new_target.donne_objet().vérifie_comme(Function)
-        completion := ordinary_create_from_constructor(realm, new_target_func, realm.intrinsics.object_prototype, object_instance_crée)
-        saufsi completion.est_normal() {
-            retourne completion
+        this_argument = ordinary_create_from_constructor(realm, new_target_func, realm.intrinsics.object_prototype, object_instance_crée)
+        si realm.possède_exception() {
+            retourne js_undefined
         }
-
-        this_argument = completion.valeur.V
     }
 
     // 4. Let calleeContext be PrepareForOrdinaryCall(F, newTarget).
@@ -334,12 +332,12 @@ sur_construct_fonction_ecma :: fonc (empl params: *ParamètresObjectConstruct) -
 
         // a. If result.[[Value]] is an Object, return result.[[Value]].
         si result_value.est_object() {
-            retourne normal_completion(result_value)
+            retourne result_value
         }
 
         // b. If kind is base, return thisArgument.
         si kind == ConstructorKind.Base {
-            retourne normal_completion(this_argument)
+            retourne this_argument
         }
 
         // c. If result.[[Value]] is not undefined, throw a TypeError exception.
@@ -350,21 +348,21 @@ sur_construct_fonction_ecma :: fonc (empl params: *ParamètresObjectConstruct) -
     // 11. Else,
     sinon si result.est_abrupt() {
         // a. ReturnIfAbrupt(result).
-        retourne result
+        interpréteuse.définis_exception(result)
+        retourne js_undefined
     }
 
     // 12. Let thisBinding be ? constructorEnv.GetThisBinding().
-    completion := constructor_env.get_this_binding(interpréteuse.donne_realm())
-    saufsi completion.est_normal() {
-        retourne completion
+    this_binding := constructor_env.get_this_binding(interpréteuse.donne_realm())
+    si interpréteuse.possède_exception() {
+        retourne js_undefined
     }
-    this_binding := completion.valeur.V
 
     // 13. Assert: thisBinding is an Object.
     assert(this_binding.est_object())
     
     // 14. Return thisBinding.
-    retourne normal_completion(this_binding)
+    retourne this_binding
 }
 
 /* 10.2.3 OrdinaryFunctionCreate ( functionPrototype, sourceText, ParameterList, Body, thisMode, env, privateEnv )
@@ -468,11 +466,11 @@ make_constructor :: fonc (F: *ECMAScriptFunction, opt_writable_prototype : *bool
 
     desc: PropertyDescriptor
     initialise_property_descriptor(*desc, Valeur(Object = F), drapeau_writable_prototype | Configurable)
-    _ := define_property_or_throw(prototype, STR_constructor, desc)
+    define_property_or_throw(prototype, STR_constructor, desc)
 
     // 6. Perform ! DefinePropertyOrThrow(F, "prototype", PropertyDescriptor { [[Value]]: prototype, [[Writable]]: writablePrototype, [[Enumerable]]: false, [[Configurable]]: false }).
     initialise_property_descriptor(*desc, Valeur(Object = prototype), drapeau_writable_prototype)
-    _ := define_property_or_throw(F, STR_prototype, desc)
+    define_property_or_throw(F, STR_prototype, desc)
 
     // 7. Return unused.
 }
@@ -482,7 +480,7 @@ make_constructor :: fonc (F: *ECMAScriptFunction, opt_writable_prototype : *bool
 set_function_name :: fonc (realm: *Realm, F: *Object, name: PropertyKey, prefix := crée_chaine_utf16_unique_vide() @inutilisée)
 {
     // À FAIRE : 1. Assert: F is an extensible object that does not have a "name" own property.
-    assert(has_own_property(F, STR_name).valeur.V.est_false())
+    assert(has_own_property(F, STR_name) == faux)
 
     // 2. If name is a Symbol, then
     si name.est_symbol() {
@@ -522,8 +520,7 @@ set_function_name :: fonc (realm: *Realm, F: *Object, name: PropertyKey, prefix 
         desc.value = Valeur(String = crée_chaine(F.donne_tas_de_mémoire(), name.String))
     }
     desc.configurable = vrai
-    completion := define_property_or_throw(F, STR_name, desc)
-    assert(completion.est_normal())
+    define_property_or_throw(F, STR_name, desc)
 
     // 7. Return unused.
 }
@@ -536,20 +533,19 @@ set_function_length :: fonc (F: *Object, length: r64)
 
     // 1. Assert: F is an extensible object that does not have a "length" own property.
     assert(F.extensible)
-    assert(has_own_property(F, STR_length).valeur.V.est_false())
+    assert(has_own_property(F, STR_length) == faux)
 
     // 2. Perform ! DefinePropertyOrThrow(F, "length", PropertyDescriptor { [[Value]]: 𝔽(length), [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: true }).
     desc: PropertyDescriptor
     initialise_property_descriptor(*desc, Valeur(Number = length), Configurable)
-    completion := define_property_or_throw(F, STR_length, desc)
-    assert(completion.est_normal())
+    define_property_or_throw(F, STR_length, desc)
 
     // 3. Return unused.
 }
 
 /* 10.2.11 FunctionDeclarationInstantiation ( func, argumentsList )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-functiondeclarationinstantiation */
-function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, func: *ECMAScriptFunction, arguments_list: []Valeur) -> CompletionRecord
+function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, func: *ECMAScriptFunction, arguments_list: []Valeur)
 {
     // À FAIRE
 
@@ -654,14 +650,14 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
     // 21. For each String paramName of parameterNames, do
     pour param_name dans parameter_names {
         // a. Let alreadyDeclared be ! env.HasBinding(paramName).
-        already_declared := env.has_binding(param_name).valeur.V
+        already_declared := env.has_binding(param_name)
 
         // b. NOTE: Early errors ensure that duplicate parameter names can only occur in non-strict functions that do not have parameter default values or rest parameters.
 
         // c. If alreadyDeclared is false, then
         si already_declared.est_false() {
             // i. Perform ! env.CreateMutableBinding(paramName, false).
-            _ := env.create_mutable_binding(interpréteuse.donne_realm(), param_name, faux)
+            env.create_mutable_binding(interpréteuse.donne_realm(), param_name, faux)
 
             // ii. If hasDuplicates is true, then
                 // 1. Perform ! env.InitializeBinding(paramName, undefined).
@@ -697,7 +693,7 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
             arguments_list[index_it]
         }
 
-        _ := env.initialize_binding(it, valeur)
+        env.initialize_binding(it, valeur)
     }
 
     var_env: *Environment
@@ -720,9 +716,9 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
                 // 1. Append n to instantiatedVarNames.
                 ensemble_ajoute(*instantiated_names, it)
                 // 2. Perform ! env.CreateMutableBinding(n, false).
-                _ := env.create_mutable_binding(interpréteuse.donne_realm(), it, faux)
+                env.create_mutable_binding(interpréteuse.donne_realm(), it, faux)
                 // 3. Perform ! env.InitializeBinding(n, undefined).
-                _ := env.initialize_binding(it, js_undefined)
+                env.initialize_binding(it, js_undefined)
             }
         }
 
@@ -789,7 +785,7 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
             // ii. Else,
             sinon {
                 // 1. Perform ! lexEnv.CreateMutableBinding(dn, false).
-                _ := lex_env.create_mutable_binding(interpréteuse.donne_realm(), name, faux)
+                lex_env.create_mutable_binding(interpréteuse.donne_realm(), name, faux)
             }
         }
     }
@@ -810,12 +806,11 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
         fo := instantiate_function_object(interpréteuse.donne_realm(), function, lex_env, private_env)
     
         // c. Perform ! varEnv.SetMutableBinding(fn, fo, false).
-        completion := var_env.set_mutable_binding(interpréteuse.donne_realm(), fn, Valeur(Object = fo), faux)
-        assert(completion.est_normal())
+        var_env.set_mutable_binding(interpréteuse.donne_realm(), fn, Valeur(Object = fo), faux)
+        assert(!interpréteuse.possède_exception())
     }
 
     // 37. Return UNUSED.
-    retourne normal_completion(js_undefined)
 }
 
 /** \} */
@@ -853,14 +848,14 @@ BuiltInFunction :: struct {
 
     realm: *Realm
     initial_name: ECMAString
-    sur_call_or_construct: fonc(*ParamètresCallOrConstruct)(CompletionRecord)
+    sur_call_or_construct: fonc(*ParamètresCallOrConstruct)(Valeur)
 }
 
 #portée_fichier
 
 /* 10.3.1 [[Call]] ( thisArgument, argumentsList )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-built-in-function-objects-call-thisargument-argumentslist */
-builtin_function_sur_call :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+builtin_function_sur_call :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Return ? BuiltinCallOrConstruct(F, thisArgument, argumentsList, undefined).
     retourne builtin_call_or_construct(object.vérifie_comme(BuiltInFunction), interpréteuse, this_value, arguments, js_undefined)
@@ -868,14 +863,14 @@ builtin_function_sur_call :: fonc (empl params: *ParamètresObjectCall) -> Compl
 
 /* 10.3.2 [[Construct]] ( argumentsList, newTarget )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-built-in-function-objects-construct-argumentslist-newtarget */
-builtin_function_sur_construct :: fonc (empl params: *ParamètresObjectConstruct) -> CompletionRecord
+builtin_function_sur_construct :: fonc (empl params: *ParamètresObjectConstruct) -> Valeur
 {
     // 1. Return ? BuiltinCallOrConstruct(F, uninitialized, argumentsList, newTarget).
     retourne builtin_call_or_construct(object.vérifie_comme(BuiltInFunction), interpréteuse, js_undefined, arguments, new_target)
 }
 
 /* 10.3.3 BuiltinCallOrConstruct ( F, thisArgument, argumentsList, newTarget ) */
-builtin_call_or_construct :: fonc (F: *BuiltInFunction, interpréteuse: *Interpréteuse, this_argument: Valeur, arguments: []Valeur, new_target: Valeur) -> CompletionRecord
+builtin_call_or_construct :: fonc (F: *BuiltInFunction, interpréteuse: *Interpréteuse, this_argument: Valeur, arguments: []Valeur, new_target: Valeur) -> Valeur
 {
     mv := interpréteuse.mv
 
@@ -1037,14 +1032,14 @@ crée_function_prototype :: fonc (realm: *Realm, prototype: *ObjectPrototype) ->
 }
 
 /* [[Call]] */
-fonction_prototype_sur_call :: fonc (params: *ParamètresObjectCall @inutilisée) -> CompletionRecord
+fonction_prototype_sur_call :: fonc (params: *ParamètresObjectCall @inutilisée) -> Valeur
 {
-    retourne normal_completion(js_undefined)
+    retourne js_undefined
 }
 
 /* 20.2.3.3 Function.prototype.call ( thisArg, ...args )
  * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-function.prototype.call */
-function_prototype_call :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+function_prototype_call :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let func be the this value.
     func := this_value
@@ -1080,7 +1075,7 @@ function_prototype_call :: fonc (empl params: *ParamètresObjectCall) -> Complet
 
 #portée_fichier
 
-fonction_native_sur_appel :: fonc (params: *ParamètresObjectCall) -> CompletionRecord
+fonction_native_sur_appel :: fonc (params: *ParamètresObjectCall) -> Valeur
 {
     function_native := params.object.vérifie_comme(FunctionNative)
     retourne function_native.sur_appel(params)
