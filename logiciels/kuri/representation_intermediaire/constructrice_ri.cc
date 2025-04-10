@@ -5127,6 +5127,9 @@ void CompilatriceRI::compile_globale(NoeudDéclarationVariable *decl,
             auto globale_tableau = m_constructrice.crée_globale(
                 *ident, expression->type, nullptr, false, false);
 
+            if (decl->bloc_pour_initialisation_globale) {
+                expression = decl->bloc_pour_initialisation_globale;
+            }
             /* La construction du tableau devra se faire via la fonction
              * d'initialisation des globales. */
             m_compilatrice.constructeurs_globaux->ajoute({globale_tableau, expression, {}});
@@ -5137,6 +5140,9 @@ void CompilatriceRI::compile_globale(NoeudDéclarationVariable *decl,
         }
         case MéthodeConstructionGlobale::NORMALE:
         {
+            if (decl->bloc_pour_initialisation_globale) {
+                expression = decl->bloc_pour_initialisation_globale;
+            }
             m_compilatrice.constructeurs_globaux->ajoute({atome, expression, transformation});
             break;
         }

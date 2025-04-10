@@ -719,15 +719,27 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                     bloc->expressions->ajoute(it);
                 }
 
-                /* À FAIRE : meilleure gestion des globales pour la génération de code. */
+                auto expression = déclaration->expression;
                 if (déclaration->expression->substitution) {
-                    bloc->expressions->ajoute(déclaration->expression->substitution);
-                    déclaration->expression->substitution = bloc;
+                    expression = déclaration->expression->substitution;
                 }
-                else {
-                    bloc->expressions->ajoute(déclaration->expression);
-                    déclaration->expression = bloc;
+
+                auto transformation = TransformationType{};
+                auto expression_transtypée = expression;
+                if (expression->est_comme()) {
+                    auto transtypage = expression->comme_comme();
+                    transformation = transtypage->transformation;
+                    expression_transtypée = transtypage->expression;
                 }
+
+                auto méthode = détermine_méthode_construction_globale(expression_transtypée,
+                                                                      transformation);
+                if (méthode == MéthodeConstructionGlobale::TABLEAU_FIXE_A_CONVERTIR) {
+                    expression = expression_transtypée;
+                }
+
+                bloc->expressions->ajoute(expression);
+                déclaration->bloc_pour_initialisation_globale = bloc;
             }
 
             return déclaration;
