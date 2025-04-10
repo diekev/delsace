@@ -449,7 +449,10 @@ to_boolean :: fonc (valeur: Valeur) -> bool
         sinon {}
     }
 
-    // À FAIRE : 3. If argument is an Object and argument has an [[IsHTMLDDA]] internal slot, return false.
+    // 3. If argument is an Object and argument has an [[IsHTMLDDA]] internal slot, return false.
+    si valeur.est_object() && possède_slot(valeur.donne_objet(), "[[IsHTMLDDA]]") {
+        retourne faux
+    }
 
     // 4. Return true.
     retourne vrai
