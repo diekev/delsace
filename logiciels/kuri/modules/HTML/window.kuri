@@ -412,8 +412,7 @@ cross_origin_get :: fonc (object: *JS.Object, property_key: JS.PropertyKey, rece
 
     // 6. If getter is undefined, then throw a "SecurityError" DOMException.
     saufsi getter.possède_valeur() {
-        // À FAIRE : DOMException
-        _ := JS.lance_type_error(mv.interpréteuse, "SecurityError")
+        throw_dom_exception(mv.interpréteuse, "SecurityError", "")
         retourne JS.js_undefined
     }
 

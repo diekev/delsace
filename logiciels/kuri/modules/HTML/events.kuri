@@ -702,8 +702,12 @@ dispatch_event :: fonc (target: *EventTarget, event: *Event) -> bool
 {
     // 1. If event’s dispatch flag is set, or if its initialized flag is not set,
     //    then throw an "InvalidStateError" DOMException.
-    si event.dispatch == vrai || event.initialized == faux {
-        imprime("[%] À FAIRE : throw an \"InvalidStateError\" DOMException\n", #nom_de_cette_fonction)
+    si event.dispatch == vrai {
+        throw_dom_exception(event.realm, "InvalidStateError", "L'évènement fut déjà traité")
+        retourne faux
+    }
+    si event.initialized == faux {
+        throw_dom_exception(event.realm, "InvalidStateError", "L'évènement n'est pas initialisé")
         retourne faux
     }
 

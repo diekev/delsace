@@ -205,6 +205,11 @@ possède_exception :: fonc (realm: *Realm) -> bool #enligne
     retourne possède_exception(realm.donne_tas_de_mémoire().mv)
 }
 
+définis_exception :: fonc (realm: *Realm, valeur: Valeur)
+{
+    définis_exception(realm.donne_tas_de_mémoire().mv, valeur)
+}
+
 donne_exception :: fonc (realm: *Realm) -> Valeur #enligne
 {
     retourne donne_exception(realm.donne_tas_de_mémoire().mv)

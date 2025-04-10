@@ -160,8 +160,10 @@ run_the_classic_script :: fonc (script: *ClassicScript, rethrow_errors := faux) 
             // 1. Clean up after running script with settings.
             cleanup_after_running_script(settings)
 
-            // À FAIRE 2. Throw a "NetworkError" DOMException.
-            retourne evaluation_status
+            // 2. Throw a "NetworkError" DOMException.
+            realm := settings.donne_realm_execution_context().realm
+            throw_dom_exception(realm, "NetworkError", "")
+            retourne JS.throw_completion(JS.donne_exception(realm))
         }
 
         // 3. Otherwise, rethrow errors is false. Perform the following steps:
@@ -184,8 +186,12 @@ run_the_classic_script :: fonc (script: *ClassicScript, rethrow_errors := faux) 
         retourne evaluation_status
     }
 
-    // À FAIRE : 11. If we've reached this point, evaluationStatus was left as null because the script was aborted prematurely during evaluation. Return Completion { [[Type]]: throw, [[Value]]: a new "QuotaExceededError" DOMException, [[Target]]: empty }.
-    retourne evaluation_status
+    // 11. If we've reached this point, evaluationStatus was left as null because the script was aborted
+    //     prematurely during evaluation.
+    //     Return Completion { [[Type]]: throw, [[Value]]: a new "QuotaExceededError" DOMException, [[Target]]: empty }.
+    realm := settings.donne_realm_execution_context().realm
+    throw_dom_exception(realm, "QuotaExceededError", "")
+    retourne JS.throw_completion(JS.donne_exception(realm))
 }
 
 /* https://html.spec.whatwg.org/multipage/webappapis.html#prepare-to-run-script */

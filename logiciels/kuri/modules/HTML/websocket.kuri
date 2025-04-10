@@ -59,7 +59,8 @@ web_socket_construct :: fonc (interpréteuse: *JS.Interpréteuse, web_socket: *W
 
     // 3. If urlRecord is failure, then throw a "SyntaxError" DOMException.
     saufsi url_record {
-        retourne throw_dom_exception(interpréteuse, "SyntaxError", "Invalid URL")
+        throw_dom_exception(interpréteuse, "SyntaxError", "Invalid URL")
+        retourne JS.js_undefined
     }
 
     // 4. If urlRecord’s scheme is "http", then set urlRecord’s scheme to "ws".
@@ -73,12 +74,14 @@ web_socket_construct :: fonc (interpréteuse: *JS.Interpréteuse, web_socket: *W
 
     // 6. If urlRecord’s scheme is not "ws" or "wss", then throw a "SyntaxError" DOMException.
     saufsi url_record.scheme == "ws" || url_record.scheme == "wss" {
-        retourne throw_dom_exception(interpréteuse, "SyntaxError", "Invalid schema for WebSocket connection")
+        throw_dom_exception(interpréteuse, "SyntaxError", "Invalid schema for WebSocket connection")
+        retourne JS.js_undefined
     }
 
     // 7. If urlRecord’s fragment is non-null, then throw a "SyntaxError" DOMException.
     si url_record.fragment.possède_valeur() {
-        retourne throw_dom_exception(interpréteuse, "SyntaxError", "WebSocket URLs should not have fragments")
+        throw_dom_exception(interpréteuse, "SyntaxError", "WebSocket URLs should not have fragments")
+        retourne JS.js_undefined
     }
 
     // À FAIRE 8. If protocols is a string, set protocols to a sequence consisting of just that string.
@@ -133,7 +136,8 @@ send :: fonc (web_socket: *WebSocket, data: DOMString)
 {
     // If this's ready state is CONNECTING
     si web_socket.ready_state == WebSocket.CONNECTING {
-        // À FAIRE : then throw an "InvalidStateError" DOMException.
+        // then throw an "InvalidStateError" DOMException.
+        throw_dom_exception(web_socket.realm, "InvalidStateError", "La websocket n'est pas prête pour l'écriture")
         retourne
     }
 
@@ -154,7 +158,8 @@ send :: fonc (web_socket: *WebSocket, data: *JS.ArrayBuffer)
 {
     // If this's ready state is CONNECTING
     si web_socket.ready_state == WebSocket.CONNECTING {
-        // À FAIRE : then throw an "InvalidStateError" DOMException.
+        // then throw an "InvalidStateError" DOMException.
+        throw_dom_exception(web_socket.realm, "InvalidStateError", "La websocket n'est pas prête pour l'écriture")
         retourne
     }
 
@@ -171,7 +176,8 @@ send :: fonc (web_socket: *WebSocket, data: *Blob)
 {
     // If this's ready state is CONNECTING
     si web_socket.ready_state == WebSocket.CONNECTING {
-        // À FAIRE : then throw an "InvalidStateError" DOMException.
+        // then throw an "InvalidStateError" DOMException.
+        throw_dom_exception(web_socket.realm, "InvalidStateError", "La websocket n'est pas prête pour l'écriture")
         retourne
     }
 
