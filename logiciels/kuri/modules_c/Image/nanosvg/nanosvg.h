@@ -3089,6 +3089,31 @@ static void nsvg__createGradients(NSVGparser* p)
 	}
 }
 
+#ifdef PREPARSE_SVG
+typedef struct NSVGPreParser
+{
+    int svgStartTagsCount;
+    int svgEndTagsCount;
+} NSVGPreParser;
+
+static void nsvg__preParseStartElement(void* ud, const char* el, const char** attr)
+{
+    (void)attr;
+    NSVGPreParser *p = (NSVGPreParser *)ud;
+    if (strcmp(el, "svg") == 0) {
+        p->svgStartTagsCount += 1;
+    }
+}
+
+static void nsvg__preParseEndElement(void* ud, const char* el)
+{
+    NSVGPreParser *p = (NSVGPreParser *)ud;
+    if (strcmp(el, "svg") == 0) {
+        p->svgEndTagsCount += 1;
+    }
+}
+#endif // PREPARSE_SVG
+
 NSVGimage* nsvgParse(char* input, const char* units, float dpi)
 {
 	NSVGparser* p;
@@ -3099,6 +3124,14 @@ NSVGimage* nsvgParse(char* input, const char* units, float dpi)
 		return NULL;
 	}
 	p->dpi = dpi;
+
+#ifdef PREPARSE_SVG
+        NSVGPreParser preparser = {0};
+        char *preparser_input = strdup(input);
+        nsvg__parseXML(preparser_input, nsvg__preParseStartElement, nsvg__preParseEndElement, NULL, &preparser);
+        printf("[%s] starts %d, ends %d\n", __func__, preparser.svgStartTagsCount, preparser.svgEndTagsCount);
+        free(preparser_input);
+#endif // PREPARSE_SVG
 
 	nsvg__parseXML(input, nsvg__startElement, nsvg__endElement, nsvg__content, p);
 
