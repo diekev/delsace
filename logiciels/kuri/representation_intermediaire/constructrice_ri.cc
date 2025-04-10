@@ -5210,6 +5210,16 @@ void CompilatriceRI::ajourne_index_membre_union(NoeudExpression *expression)
     }
 
     auto noeud = expression->comme_référence_membre_union();
+    auto type = noeud->accédée->type;
+
+    while (type->est_type_pointeur() || type->est_type_référence()) {
+        type = type_déréférencé_pour(type);
+    }
+
+    auto type_union = type->comme_type_union();
+    if (type_union->est_nonsure) {
+        return;
+    }
 
     auto ancienne_expression_gauche = expression_gauche;
     expression_gauche = false;
