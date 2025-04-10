@@ -86,6 +86,11 @@ EventType :: énum n8 {
     webkittransitionend
     wheel
 
+    animationend
+    animationiteration
+    animationstart
+    transitionend
+
     /* The following are the event handlers (and their corresponding event
      * handler event types) that must be supported by all HTML elements other
      * than body and frameset elements, as both event handler content attributes
@@ -208,6 +213,7 @@ Event :: struct {
     stop_immediate_propagation: bool
     bubbles: bool
     composed: bool
+    in_passive_listener: bool
 
     /* Attributes. */
     is_trusted: bool
@@ -834,7 +840,7 @@ dispatch :: fonc (event: *Event, target: *EventTarget, legacy_target_override : 
         }
 
         // 13. For each struct in event’s path, in reverse order:
-        pour > event.path {
+        pour > * event.path {
             // 1. If struct’s shadow-adjusted target is non-null, then set event’s eventPhase attribute to AT_TARGET.
             si it.shadow_adjusted_target {
                 event.event_phase = EventPhase.AT_TARGET
@@ -849,7 +855,7 @@ dispatch :: fonc (event: *Event, target: *EventTarget, legacy_target_override : 
         }
 
         // 14. For each struct in event’s path:
-        pour event.path {
+        pour * event.path {
             // 1. If struct’s shadow-adjusted target is non-null, then set event’s eventPhase attribute to AT_TARGET.
             si it.shadow_adjusted_target {
                 event.event_phase = EventPhase.AT_TARGET
@@ -913,46 +919,167 @@ dispatch :: fonc (event: *Event, target: *EventTarget, legacy_target_override : 
 }
 
 /* https://dom.spec.whatwg.org/#concept-event-listener-invoke */
-invoke :: fonc (segment: &Event.Path, event: *Event, phase: chaine, legacy_output_did_listeners_throw : *bool = nul @inutilisée)
+invoke :: fonc (struct_: *Event.Path, event: *Event, phase: chaine, legacy_output_did_listeners_throw : *bool = nul)
 {
-    // imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
-    event.current_target = segment.invocation_target
-    inner_invoke(event, segment.invocation_target.listeners, phase)
+    // 1. Set event’s target to the shadow-adjusted target of the last struct in event’s path, that is either struct or preceding struct, whose shadow-adjusted target is non-null.
+    index_struct := (struct_ - event.path.pointeur)
+    assert(index_struct >= 0)
+    assert(index_struct < event.path.taille)
+
+    tantque index_struct >= 0 {
+        segment := event.path[index_struct]
+        si segment.shadow_adjusted_target != nul {
+            event.target = segment.shadow_adjusted_target
+            arrête
+        }
+
+        index_struct -= 1
+    }
+
+    // 2. Set event’s relatedTarget to struct’s relatedTarget.
+    event.related_target = struct_.related_target
+
+    // 3. Set event’s touch target list to struct’s touch target list.
+    event.touch_target_list = struct_.touch_target_list
+
+    // 4. If event’s stop propagation flag is set, then return.
+    si event.stop_propagation {
+        retourne
+    }
+
+    // 5. Initialize event’s currentTarget attribute to struct’s invocation target.
+    event.current_target = struct_.invocation_target
+
+    // 6. Let listeners be a clone of event’s currentTarget attribute value’s event listener list.
+    listeners := tableau_copie(event.current_target.listeners)
+    diffère déloge(listeners)
+
+    // 7. Let invocationTargetInShadowTree be struct’s invocation-target-in-shadow-tree.
+    invocation_target_in_shadow_tree := struct_.invocation_target_in_shadow_tree
+
+    // 8. Let found be the result of running inner invoke with event, listeners, phase, invocationTargetInShadowTree, and legacyOutputDidListenersThrowFlag if given.
+    found := inner_invoke(event, listeners, phase, invocation_target_in_shadow_tree, legacy_output_did_listeners_throw)
+
+    // 9. If found is false and event’s isTrusted attribute is true:
+    si found == faux && event.is_trusted == vrai {
+        // 1. Let originalEventType be event’s type attribute value.
+        original_event_type := event.type
+
+        // 2. If event’s type attribute value is a match for any of the strings in the first column in the following table,
+        //    set event’s type attribute value to the string in the second column on the same row as the matching string,
+        //    and return otherwise.
+        // Event type	Legacy event type
+        // "animationend"	"webkitAnimationEnd"
+        // "animationiteration"	"webkitAnimationIteration"
+        // "animationstart"	"webkitAnimationStart"
+        // "transitionend"	"webkitTransitionEnd"
+        si event.type == EventType.animationend {
+            event.type = EventType.webkitanimationend
+        }
+        sinon si event.type == EventType.animationiteration {
+            event.type = EventType.webkitanimationiteration
+        }
+        sinon si event.type == EventType.animationstart {
+            event.type = EventType.webkitanimationstart
+        }
+        sinon si event.type == EventType.transitionend {
+            event.type = EventType.webkittransitionend
+        }
+        sinon {
+            retourne
+        }
+
+        // 3. Inner invoke with event, listeners, phase, invocationTargetInShadowTree, and legacyOutputDidListenersThrowFlag if given.
+        _ := inner_invoke(event, listeners, phase, invocation_target_in_shadow_tree, legacy_output_did_listeners_throw)
+
+        // 4. Set event’s type attribute value to originalEventType.
+        event.type = original_event_type
+    }
 }
 
 /* https://dom.spec.whatwg.org/#concept-event-listener-invoke */
-inner_invoke :: fonc (event: *Event, listeners: []EventTarget.EventListenerEntry, phase: chaine)
+inner_invoke :: fonc (event: *Event, listeners: []EventTarget.EventListenerEntry, phase: chaine, invocation_target_in_shadow_tree: bool @inutilisée, legacy_output_did_listeners_throw : *bool = nul) -> bool
 {
-    // imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+    argument := JS.Valeur(Object = event)
+    arguments: []JS.Valeur
+    arguments.pointeur = *argument
+    arguments.taille = 1
 
-    arguments: [..]JS.Valeur
-    diffère déloge(arguments)
-    tableau_ajoute(*arguments, JS.Valeur(Object = event))
+    // 1. Let found be false.
+    found := faux
 
+    // 2. For each listener of listeners, whose removed is false:
     pour listeners {
-        si it.type != event.type {
-            continue
-        }
-
         si it.removed {
             continue
         }
 
+        // 1. If event’s type attribute value is not listener’s type, then continue.
+        si it.type != event.type {
+            continue
+        }
+
+        // 2. Set found to true.
+        found = vrai
+
+        // 3. If phase is "capturing" and listener’s capture is false, then continue.
         si it.capture == faux && phase == "capturing" {
             continue
         }
 
+        // 4. If phase is "bubbling" and listener’s capture is true, then continue.
         si it.capture == vrai && phase == "bubbling" {
             continue
         }
 
+        // À FAIRE 5. If listener’s once is true, then remove an event listener given event’s currentTarget attribute value and listener.
+
+        // 6. Let global be listener callback’s associated realm’s global object.
+
+        // 7. Let currentEvent be undefined.
+
+        // 8. If global is a Window object:
+
+            // 1. Set currentEvent to global’s current event.
+
+            // 2. If invocationTargetInShadowTree is false, then set global’s current event to event.
+
+        // 9. If listener’s passive is true, then set event’s in passive listener flag.
+        si it.passive.possède_valeur() && it.passive.Quelque == vrai {
+            event.in_passive_listener = vrai
+        }
+
+        // 10. If global is a Window object, then record timing info for event listener given event and listener.
+
+        // 11. Call a user object’s operation with listener’s callback, "handleEvent", « event », and event’s currentTarget attribute value.
         _ := call_a_user_object_operation(JS.Valeur(Object = it.callback.object), arguments, JS.Valeur(Object = event.current_target))
+
+        // If this throws an exception exception:
         si JS.possède_exception(it.callback.object) {
+            // 1. Report exception for listener’s callback’s corresponding JavaScript object’s associated realm’s global object.
             // À FAIRE : it.callback.callback_context.donne_global_object()
             global := event.target.realm.global_object
             report_an_exception(JS.donne_exception(it.callback.object), global)
+
+            // 2. Set legacyOutputDidListenersThrowFlag if given.
+            si legacy_output_did_listeners_throw {
+                mémoire(legacy_output_did_listeners_throw) = vrai
+            }
+        }
+
+        // 12. Unset event’s in passive listener flag.
+        event.in_passive_listener = faux
+
+        // 13. If global is a Window object, then set global’s current event to currentEvent.
+
+        // 14. If event’s stop immediate propagation flag is set, then break.
+        si event.stop_immediate_propagation {
+            arrête
         }
     }
+
+    // 3. Return found.
+    retourne found
 }
 
 /* https://webidl.spec.whatwg.org/#call-a-user-objects-operation */
