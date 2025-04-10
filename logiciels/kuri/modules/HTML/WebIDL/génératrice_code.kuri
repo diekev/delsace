@@ -277,15 +277,19 @@ compile_interfaces_idl :: fonc () -> chaine
     chemin := crée_chemin_absolu(chemin_parent, CheminFichier("fichiers"))
     diffère détruit_chemin(chemin)
 
-    pour ExploratriceFichier(chemin) {
-        saufsi it.extension() == ".idl" {
+    chemins := donne_fichiers_du_dossier(chemin)
+    diffère déloge_tableau_et_ses_éléments(chemins)
+
+    pour chemins {
+        chm := CheminFichier(it)
+        saufsi chm.extension() == ".idl" {
             continue
         }
 
-        texte := contenu_fichier_texte(it)
+        texte := contenu_fichier_texte(chm)
         tableau_ajoute(*interfaces.contenus_fichiers, texte)
 
-        parse_fichier(it, texte, *interfaces)
+        parse_fichier(chm, texte, *interfaces)
     }
 
     ajoute_mixins_aux_interfaces(*interfaces)
