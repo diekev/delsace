@@ -5000,55 +5000,6 @@ void CompilatriceRI::génère_ri_pour_fonction_métaprogramme(
     définis_fonction_courante(nullptr);
 }
 
-enum class MéthodeConstructionGlobale {
-    /* L'expression est un tableau fixe que nous pouvons simplement construire. */
-    TABLEAU_CONSTANT,
-    /* L'expression est un tableau fixe que nous devons convertir vers un tableau
-     * dynamique. */
-    TABLEAU_FIXE_A_CONVERTIR,
-    /* L'expression peut-être construite via un simple constructeur. */
-    NORMALE,
-    /* L'expression est nulle, la valeur défaut du type devra être utilisée. */
-    PAR_VALEUR_DEFAUT,
-    /* L'expression est une expression de non-initialisation. */
-    SANS_INITIALISATION,
-};
-
-static MéthodeConstructionGlobale détermine_méthode_construction_globale(
-    NoeudExpression const *expression, TransformationType const &transformation)
-{
-    if (!expression) {
-        return MéthodeConstructionGlobale::PAR_VALEUR_DEFAUT;
-    }
-
-    if (expression->est_non_initialisation()) {
-        return MéthodeConstructionGlobale::SANS_INITIALISATION;
-    }
-
-    if (expression->est_construction_tableau()) {
-        if (transformation.type != TypeTransformation::INUTILE) {
-            return MéthodeConstructionGlobale::TABLEAU_FIXE_A_CONVERTIR;
-        }
-
-        auto const type_pointe = type_déréférencé_pour(expression->type);
-
-        if (!peut_être_utilisée_pour_initialisation_constante_globale(expression)) {
-            return MéthodeConstructionGlobale::NORMALE;
-        }
-
-        /* À FAIRE : permet la génération de code pour les tableaux globaux de structures dans le
-         * contexte global. Ceci nécessitera d'avoir une deuxième version de la génération de code
-         * pour les structures avec des instructions constantes. */
-        if (type_pointe->est_type_structure() || type_pointe->est_type_union()) {
-            return MéthodeConstructionGlobale::NORMALE;
-        }
-
-        return MéthodeConstructionGlobale::TABLEAU_CONSTANT;
-    }
-
-    return MéthodeConstructionGlobale::NORMALE;
-}
-
 void CompilatriceRI::génère_ri_pour_déclaration_variable(NoeudDéclarationVariable *decl)
 {
     if (m_fonction_courante == nullptr) {
