@@ -5534,8 +5534,8 @@ AtomeGlobale *CompilatriceRI::crée_info_appel_pour_trace_appel(InstructionAppel
         auto const fichier = m_compilatrice.fichier(pour_appel->site->lexème->fichier);
         auto const texte_ligne = fichier->tampon()[lexeme->ligne];
 
-        valeurs[0] = m_constructrice.crée_z32(uint64_t(lexeme->ligne));
-        valeurs[1] = m_constructrice.crée_z32(uint64_t(lexeme->colonne));
+        valeurs[0] = m_constructrice.crée_z32(uint64_t(lexeme->ligne + 1));
+        valeurs[1] = m_constructrice.crée_z32(uint64_t(lexeme->colonne + 1));
         valeurs[2] = crée_constante_pour_chaine(
             kuri::chaine_statique(texte_ligne.begin(), texte_ligne.taille()));
     }
