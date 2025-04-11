@@ -24,10 +24,10 @@ crée_eval :: fonc (realm: *Realm) -> *Function
 }
 
 /* https://tc39.es/ecma262/multipage/global-object.html#sec-eval-x */
-eval_sur_call :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+eval_sur_call :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     si arguments.taille == 0 {
-        retourne normal_completion(js_undefined)
+        retourne js_undefined
     }
 
     retourne perform_eval(interpréteuse, params.donne_argument(0), faux, faux)
@@ -35,14 +35,14 @@ eval_sur_call :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
 
 /* 19.2.1.1 PerformEval ( x, strictCaller, direct )
  * https://tc39.es/ecma262/multipage/global-object.html#sec-performeval */
-perform_eval :: fonc (interpréteuse: *Interpréteuse, x: Valeur, strict_caller: bool, direct: bool) -> CompletionRecord
+perform_eval :: fonc (interpréteuse: *Interpréteuse, x: Valeur, strict_caller: bool, direct: bool) -> Valeur
 {
     // 1. Assert: If direct is false, then strictCaller is also false.
     assert(direct == vrai || (direct == faux && strict_caller == faux))
 
     // 2. If x is not a String, return x.
     saufsi x.est_chaine() {
-        retourne normal_completion(x)
+        retourne x
     }
 
     // 3. Let evalRealm be the current Realm Record.
@@ -94,17 +94,18 @@ perform_eval :: fonc (interpréteuse: *Interpréteuse, x: Valeur, strict_caller:
     discr opt_script {
         Erreur(e) {
             // b. If script is a List of errors, throw a SyntaxError exception.
-            retourne throw_completion(Valeur(Object = e))
+            interpréteuse.définis_exception(Valeur(Object = e))
+            retourne js_undefined
         }
         Ok(noeud) {
             // c. If script Contains ScriptBody is false, return undefined.
             si noeud.type != NoeudScript {
-                retourne normal_completion(js_undefined)
+                retourne js_undefined
             }
 
             script = noeud comme *NoeudScript
             si script.script_body == nul {
-                retourne normal_completion(js_undefined)
+                retourne js_undefined
             }
         }
         sinon {}
@@ -211,7 +212,11 @@ perform_eval :: fonc (interpréteuse: *Interpréteuse, x: Valeur, strict_caller:
     // À FAIRE : 32. Resume the context that is now on the top of the execution context stack as the running execution context.
 
     // 33. Return ? result.
-    retourne result
+    si result.est_throw() {
+        interpréteuse.définis_exception(result)
+        retourne js_undefined
+    }
+    retourne result.valeur.V
 }
 
 /** \} */
@@ -236,22 +241,21 @@ crée_isnan :: fonc (realm: *Realm) -> *Function
     retourne résultat
 }
 
-isnan_sur_call :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+isnan_sur_call :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let num be ? ToNumber(number).
-    completion := to_number(interpréteuse, donne_argument(params, 0))
-    saufsi completion.est_normal() {
-        retourne completion
+    num := to_number(interpréteuse, donne_argument(params, 0))
+    si interpréteuse.possède_exception() {
+        retourne js_undefined
     }
-    num := completion.valeur.V.Number
 
     // 2. If num is NaN, return true.
     si est_nan(num) {
-        retourne normal_completion(Valeur(Boolean = vrai))
+        retourne vrai
     }
 
     // 3. Otherwise, return false.
-    retourne normal_completion(Valeur(Boolean = faux))
+    retourne faux
 }
 
 /** \} */
@@ -275,31 +279,29 @@ crée_parse_int :: fonc (realm: *Realm) -> *Function
     retourne résultat
 }
 
-parse_int_sur_call :: fonc (params: *ParamètresObjectCall) -> CompletionRecord
+parse_int_sur_call :: fonc (params: *ParamètresObjectCall) -> Valeur
 {
     retourne parse_int(params)
 }
 
 /* https://tc39.es/ecma262/multipage/global-object.html#sec-parseint-string-radix */
-parse_int :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+parse_int :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // À FAIRE : standardise, tests
 
-    completion := to_string(interpréteuse, params.donne_argument(0))
-    saufsi completion.est_normal() {
-        retourne completion
+    string := to_string(interpréteuse, params.donne_argument(0))
+    si interpréteuse.possède_exception() {
+        retourne js_undefined
     }
 
-    string := completion.valeur.V.String.texte
-
-    chn := converti_vers_chaine(string.donne_chaine_utf16())
+    chn := converti_vers_chaine(string.texte.donne_chaine_utf16())
     diffère déloge(chn)
 
     résultat := tente extrait_r64(chn) piège _ {
         retourne lance_type_error(interpréteuse, "value is not a Number")
     }
 
-    retourne normal_completion(Valeur(Number = résultat))
+    retourne résultat
 }
 
 /** \} */
@@ -325,25 +327,24 @@ crée_encode_uri_component :: fonc (realm: *Realm) -> *Function
 
 /* 19.2.6.4 encodeURIComponent ( uriComponent )
  * https://tc39.es/ecma262/multipage/global-object.html#sec-encodeuricomponent-uricomponent */
-encode_uri_component_sur_call :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+encode_uri_component_sur_call :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let componentString be ? ToString(uriComponent).
-    completion_component_string := to_string(interpréteuse, params.donne_argument(0))
-    saufsi completion_component_string.est_normal() {
-        retourne completion_component_string
+    component_string := to_string(interpréteuse, params.donne_argument(0))
+    si interpréteuse.possède_exception() {
+        retourne js_undefined
     }
-    component_string := completion_component_string.valeur.V.String.texte
 
     // 2. Let extraUnescaped be the empty String.
     extra_unescaped := crée_chaine_utf16_unique_vide()
 
     // 3. Return ? Encode(componentString, extraUnescaped).
-    retourne encode(interpréteuse, component_string, extra_unescaped)
+    retourne encode(interpréteuse, component_string.texte, extra_unescaped)
 }
 
 /* 19.2.6.5 Encode ( string, extraUnescaped )
  * https://tc39.es/ecma262/multipage/global-object.html#sec-encode */
-encode :: fonc (interpréteuse: *Interpréteuse, string: ECMAString, extra_unescaped: ECMAString) -> CompletionRecord
+encode :: fonc (interpréteuse: *Interpréteuse, string: ECMAString, extra_unescaped: ECMAString) -> Valeur
 {
     // 1. Let len be the length of string.
     len := string.taille()
@@ -421,7 +422,7 @@ encode :: fonc (interpréteuse: *Interpréteuse, string: ECMAString, extra_unesc
     résultat16 := chaine_depuis_enchaineuse(R)
     // @fuite-de-mémoire ?
     résultat := crée_chaine_utf16_unique(résultat16)
-    retourne crée_string_value_completion(interpréteuse, résultat)
+    retourne crée_chaine(interpréteuse.donne_realm(), résultat)
 }
 
 donne_chaine_hex_pour_octet :: fonc (o: n8) -> [2]n16
@@ -512,21 +513,19 @@ crée_json_object :: fonc (realm: *Realm)
 
 /* 25.5.1 JSON.parse ( text [ , reviver ] )
  * https://tc39.es/ecma262/multipage/structured-data.html#sec-json.parse */
-json_parse :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+json_parse :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let jsonString be ? ToString(text).
-    completion := to_string(interpréteuse, params.donne_argument(0))
-    saufsi completion.est_normal() {
-        retourne completion
+    json_string := to_string(interpréteuse, params.donne_argument(0))
+    si interpréteuse.possède_exception() {
+        retourne js_undefined
     }
-    json_string := completion.valeur.V.String
 
     // 2. Let unfiltered be ? ParseJSON(jsonString).
-    completion = parse_json(json_string, interpréteuse)
-    saufsi completion.est_normal() {
-        retourne completion
+    unfiltered := parse_json(json_string, interpréteuse)
+    si interpréteuse.possède_exception() {
+        retourne js_undefined
     }
-    unfiltered := completion.valeur.V
 
     // À FAIRE : 3. If IsCallable(reviver) is true, then
     // a. Let root be OrdinaryObjectCreate(%Object.prototype%).
@@ -535,12 +534,12 @@ json_parse :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
     // d. Return ? InternalizeJSONProperty(root, rootName, reviver).
     // 4. Else,
     // a. Return unfiltered.
-    retourne normal_completion(unfiltered)
+    retourne unfiltered
 }
 
 /* 25.5.1.1 ParseJSON ( text )
  * https://tc39.es/ecma262/multipage/structured-data.html#sec-ParseJSON */
-parse_json :: fonc (text: *PrimitiveChaine, interpréteuse: *Interpréteuse) -> CompletionRecord
+parse_json :: fonc (text: *PrimitiveChaine, interpréteuse: *Interpréteuse) -> Valeur
 {
     // À FAIRE 1. If StringToCodePoints(text) is not a valid JSON text as specified in ECMA-404, throw a SyntaxError exception.
 
@@ -560,7 +559,8 @@ parse_json :: fonc (text: *PrimitiveChaine, interpréteuse: *Interpréteuse) -> 
         Erreur(e) {
             // À FAIRE : il est impossible d'avoir des erreurs ici,
             // mais il faut implémenter proprement cette fonction selon la spécification.
-            retourne throw_completion(e)
+            interpréteuse.définis_exception(e)
+            retourne js_undefined
         }
         Ok(noeud) {
             assert(noeud.type == NoeudScript)
@@ -580,7 +580,7 @@ parse_json :: fonc (text: *PrimitiveChaine, interpréteuse: *Interpréteuse) -> 
     // 8. Assert: result is either a String, a Number, a Boolean, an Object that is defined by either an ArrayLiteral or an ObjectLiteral, or null.
 
     // 9. Return result.
-    retourne result
+    retourne result.valeur.V
 }
 
 /** \} */
