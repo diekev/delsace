@@ -520,7 +520,11 @@ append :: fonc (parent: *Noeud, node: *Noeud) -> *Noeud
 /* https://dom.spec.whatwg.org/#concept-node-pre-remove */
 pre_remove :: fonc (parent: *Noeud, child: *Noeud) -> *Noeud
 {
-    // À FAIRE 1. If child’s parent is not parent, then throw a "NotFoundError" DOMException.
+    // 1. If child’s parent is not parent, then throw a "NotFoundError" DOMException.
+    si child.parent != parent {
+        throw_dom_exception(parent.realm, "NotFoundError", "Le noeud n'est pas enfant du parent")
+        retourne nul
+    }
 
     // À FAIRE : 2. Remove child.
     pour parent.enfants {

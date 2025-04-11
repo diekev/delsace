@@ -434,11 +434,15 @@ QT_DonnéesTâche :: struct {
 
 poste_tâche :: fonc (file: *FileParallèle, tâche: QT_DonnéesTâche)
 {
-    message := loge(QT_MessageTâcheParallèle)
-    message.destinataire = file.filtre_évènement
-    message.tâche = tâche
+    ctx := contexte()
+    ctx.allocatrice = allocatrice_défaut
+    pousse_contexte ctx {
+        message := loge(QT_MessageTâcheParallèle)
+        message.destinataire = file.filtre_évènement
+        message.tâche = tâche
 
-    QT_application_poste_evenement_et_donnees(message.destinataire, __évènement_sur_tâche_parallèle, message)
+        QT_application_poste_evenement_et_donnees(message.destinataire, __évènement_sur_tâche_parallèle, message)
+    }
 }
 
 #portée_fichier
@@ -489,11 +493,17 @@ __filtre_tâches_finies_sur_évènement :: fonc (base: *QT_Rappels_Object @inuti
 
     si type == __évènement_sur_tâche_parallèle_finie {
         message := QT_event_perso_donne_donnees(event) comme *QT_MessageTâcheParallèle
-        diffère déloge(message)
         si message.tâche.sur_tâche_finie {
             message.tâche.sur_tâche_finie(message.tâche.données)
         }
         QT_evenement_accepte(event)
+
+        ctx := contexte()
+        ctx.allocatrice = allocatrice_défaut
+        pousse_contexte ctx {
+            déloge(message)
+        }
+
         retourne 1
     }
 

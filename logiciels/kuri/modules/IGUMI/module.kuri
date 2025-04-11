@@ -210,7 +210,6 @@ DonnéesContexteGL :: struct {
     largeur_cannevas: z32
     hauteur_cannevas: z32
 
-    nuanceur_global: *NuanceurGL
     nuanceurs: [IDNuanceur.nombre_éléments]*NuanceurGL
 
     fonte_globale: *Fonte
@@ -341,7 +340,6 @@ commence_immédiat :: fonc (mode: ModeImmédiat, id_nuanceur: IDNuanceur, fonte 
         dernier_mode = mode
         dernier_nuanceur = id_nuanceur
         dernière_fonte = fonte
-        utilise_nuanceur(id_nuanceur)
     }
 }
 
@@ -358,9 +356,7 @@ termine_immédiat :: fonc ()
         retourne
     }
 
-    nuanceur := nuanceur_global
-
-    si !nuanceur {
+    si dernier_nuanceur == (-1 comme IDNuanceur) {
         si données_tampon_xcnu.num_sommets {
             panique("tentative d'utiliser termine_immédiat alors qu'aucun nuanceur n'est installé")
         }
@@ -368,6 +364,8 @@ termine_immédiat :: fonc ()
         données_tampon_xcnu.num_sommets = 0
         retourne
     }
+
+    nuanceur := nuanceurs[dernier_nuanceur]
 
     s : []FormatVertexXCNU = données_tampon_xcnu.sommets_immédiat
     compte := données_tampon_xcnu.num_sommets comme n64
@@ -406,11 +404,6 @@ termine_immédiat :: fonc ()
     données_tampon_xcnu.num_sommets = 0
 
     vérifie_erreur("termine_immédiat")
-}
-
-utilise_nuanceur :: fonc (id: IDNuanceur)
-{
-    __ctx_courant.nuanceur_global = __ctx_courant.nuanceurs[id]
 }
 
 installe_format_xcnu :: fonc (nuanceur: *NuanceurGL)
@@ -1152,7 +1145,6 @@ commence_immédiat_id :: fonc (mode: ModeImmédiat)
     si mode != dernier_mode_id || dernier_nuanceur_id == (-1 comme IDNuanceur) || données_tampon_id.num_sommets == MAX_SOMMETS_IMMÉDIAT {
         dernier_mode_id = mode
         dernier_nuanceur_id = IDNuanceur.Id
-        utilise_nuanceur(IDNuanceur.Id)
 
         termine_immédiat_id()
     }

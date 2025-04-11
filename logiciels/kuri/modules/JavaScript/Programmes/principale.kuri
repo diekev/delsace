@@ -161,7 +161,7 @@ ObjetHTML :: struct {
 
 objet_html_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, enveloppe: *Enveloppe)
 {
-    fonction_native_ouvre_document :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+    fonction_native_ouvre_document :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     {
         si arguments.taille == 0 {
             retourne lance_type_error(interpréteuse, "ouvre_document requiers 1 argument")
@@ -182,7 +182,7 @@ objet_html_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, en
         parsat := HTML.parse_document(interpréteuse.donne_realm(), contenu)
         diffère HTML.détruit(parsat)
 
-        retourne normal_completion(Valeur(Object = parsat.document))
+        retourne parsat.document
     }
 
     enveloppe.ajoute_fonction_native("ouvre_document", fonction_native_ouvre_document)

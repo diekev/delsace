@@ -35,10 +35,16 @@ crée_dom_exception :: fonc (realm: *JS.Realm, name: chaine, message: chaine) ->
     retourne résultat
 }
 
-throw_dom_exception :: fonc (realm: *JS.Realm, name: chaine, message: chaine) -> JS.CompletionRecord
+throw_dom_exception :: fonc (interpréteuse: *JS.Interpréteuse, name: chaine, message: chaine)
+{
+    exception := crée_dom_exception(JS.donne_realm(interpréteuse), name, message)
+    JS.définis_exception(interpréteuse, exception)
+}
+
+throw_dom_exception :: fonc (realm: *JS.Realm, name: chaine, message: chaine)
 {
     exception := crée_dom_exception(realm, name, message)
-    retourne JS.throw_completion(JS.Valeur(Object = exception))
+    JS.définis_exception(realm, exception)
 }
 
 /** \} */
