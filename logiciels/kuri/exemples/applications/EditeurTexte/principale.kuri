@@ -1,6 +1,6 @@
 importe Fondation
-importe GlibC
 importe Numérique
+importe POSIX
 importe SysFichier
 importe Temps
 importe Terminal

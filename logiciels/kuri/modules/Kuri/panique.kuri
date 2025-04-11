@@ -1,6 +1,5 @@
 // nous importons Fondation car il nous faut le code d'impression, ce serait bien de ne pas avoir à faire cela afin que Kuri soit sans aucune dépendances...
 importe Fondation
-importe GlibC // pour exit
 importe Unicode
 
 imprime_trace_appel :: fonc () #sanstrace
