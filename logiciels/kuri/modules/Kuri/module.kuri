@@ -904,7 +904,7 @@ __point_d_entree_systeme :: fonc (argc: z32, argv: **z8) -> z32 #sanstrace #sans
     __init_début_pile(*début_pile)
 
     // initalise les autres membres du contexte
-    info_trace_appel := InfoFonctionTraceAppel(nom = "__point_d_entree_systeme", fichier = "module.kuri", adresse = nul)
+    info_trace_appel := InfoFonctionTraceAppel(nom = "__point_d_entree_systeme", fichier = #chemin_de_ce_fichier, adresse = nul)
     trace_appel := TraceAppel(info_fonction = *info_trace_appel)
 
     base_allocatrice: BaseAllocatrice
@@ -916,7 +916,7 @@ __point_d_entree_systeme :: fonc (argc: z32, argv: **z8) -> z32 #sanstrace #sans
 
     __init_exécution_kuri()
 
-    info_appel := InfoAppelTraceAppel(ligne = 749, colonne = 27, texte = "    résultat := principale()\n")
+    info_appel := InfoAppelTraceAppel(ligne = 749, colonne = 15, texte = "    principale()\n")
     trace_appel.info_appel = *info_appel
 
     système_ajoute_action_pour_action_erreur_de_segmentation()

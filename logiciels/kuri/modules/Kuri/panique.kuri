@@ -22,7 +22,7 @@ imprime_trace_appel :: fonc () #sanstrace
         imprime("%", info_appel.texte)
 
         i := 0
-        tantque i < info_appel.colonne {
+        tantque i < info_appel.colonne - 1 {
             imprime(" ")
             i += nombre_octets_utf8(*info_appel.texte[i])
         }
