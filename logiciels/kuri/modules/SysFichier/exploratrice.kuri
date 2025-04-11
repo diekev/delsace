@@ -149,3 +149,104 @@ opérateur pour :: fonc (exploratrice: ExploratriceFichier) -> CheminFichier
         #corps_boucle
     }
 }
+
+DécisionVisiteFichier :: énum {
+    // Si le fichier visité est un dossier, retourner cette valeur indique que nous le visiterons.
+    // Pour un fichier, la valeur est ignorée.
+    Continue
+    // Ignore le dossier même si la visite est récursive.
+    NeDescendPasDansLeDossier
+}
+
+InfoVisiteFichier :: struct {
+    chemin: chaine
+    nom: chaine
+
+    // temps_de_modification: ...
+
+    // eu_erreur: bool
+
+    est_dossier: bool
+    // est_symbolique: bool
+}
+
+FichiersÀVisiter :: énum_drapeau {
+    Fichiers
+    Dossiers
+}
+
+visite_fichiers :: fonc (dossier: CheminFichier, récursif: bool, données: $T, procédure: fonc(InfoVisiteFichier, T)(DécisionVisiteFichier), fichiers_à_visiter := FichiersÀVisiter.Fichiers | FichiersÀVisiter.Dossiers)
+{
+    visite_fichiers(dossier.chn, récursif, données, procédure, fichiers_à_visiter)
+}
+
+visite_fichiers :: fonc (dossier: chaine, récursif: bool, données: $T, procédure: fonc(InfoVisiteFichier, T)(DécisionVisiteFichier), fichiers_à_visiter := FichiersÀVisiter.Fichiers | FichiersÀVisiter.Dossiers)
+{
+    dossiers_à_visiter: Pile(CheminFichier)
+    diffère détruit(dossiers_à_visiter)
+    dossiers_à_visiter.empile(CheminFichier(copie_chaine(dossier))) 
+
+    info : InfoVisiteFichier = ---
+
+    tantque !dossiers_à_visiter.est_vide() {
+        dossier_courant := dossiers_à_visiter.dépile()
+        diffère détruit_chemin(dossier_courant)
+
+        pour ExploratriceFichier(dossier_courant) {
+            // À FAIRE : eu_erreur
+            info.chemin = it.chn
+            info.nom = it.nom_fichier_avec_extension()
+
+            si it.est_un_dossier() {
+                si it.nom_fichier() == "." || it.nom_fichier() == ".." {
+                    continue
+                }
+
+                descends_dans_le_dossier := récursif
+
+                si fichiers_à_visiter.Dossiers {
+                    info.est_dossier = vrai
+                    décision := procédure(info, données)
+
+                    si descends_dans_le_dossier {
+                        descends_dans_le_dossier = (décision == DécisionVisiteFichier.Continue)
+                    }
+                }
+
+                si descends_dans_le_dossier {
+                    dossiers_à_visiter.empile(copie_chemin(it))
+                }
+
+                continue
+            }
+
+            si fichiers_à_visiter.Fichiers && it.est_un_fichier_régulier() {
+                info.est_dossier = faux
+                // À FAIRE : symlink
+                _ := procédure(info, données)
+            }
+        }
+    }
+}
+
+donne_fichiers_du_dossier :: fonc (dossier: CheminFichier, récursif := faux) -> [..]chaine
+{
+    retourne donne_fichiers_du_dossier(dossier.chn, récursif)
+}
+
+donne_fichiers_du_dossier :: fonc (dossier: chaine, récursif := faux) -> [..]chaine
+{
+    résultat: [..]chaine
+
+    visite :: fonc (info: InfoVisiteFichier, fichiers: *[..]chaine) -> DécisionVisiteFichier
+    {
+        saufsi info.est_dossier {
+            tableau_ajoute(fichiers, copie_chaine(info.chemin))
+        }
+        retourne DécisionVisiteFichier.Continue
+    }
+
+    visite_fichiers(dossier, récursif, *résultat, visite)
+
+    retourne résultat
+}

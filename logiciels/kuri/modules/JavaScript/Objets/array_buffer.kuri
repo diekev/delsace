@@ -31,12 +31,13 @@ crée_array_buffer :: fonc (realm: *Realm, bytes: [..]octet) -> *ArrayBuffer
 }
 
 /* Cette fonction n'est utilisé que par HTML pour WebIDL */
-to_array_buffer :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur) -> CompletionRecord
+to_array_buffer :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur) -> *ArrayBuffer
 {
     saufsi valeur.est_object() && valeur.donne_objet().table.classe == ArrayBuffer {
-        retourne lance_type_error(interpréteuse, "object is not an ArrayBuffer")
+        _ := lance_type_error(interpréteuse, "object is not an ArrayBuffer")
+        retourne nul
     }
-    retourne normal_completion(valeur)
+    retourne valeur.donne_objet() comme *ArrayBuffer
 }
 
 /** \} */

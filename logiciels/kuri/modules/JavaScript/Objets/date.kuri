@@ -60,7 +60,7 @@ crée_date_constructor :: fonc (realm: *Realm, function_prototype: *FunctionProt
 
 /* 21.4.2.1 Date ( ...values )
  * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-date */
-date_constructor_call_or_construct :: fonc (empl params: *ParamètresCallOrConstruct) -> CompletionRecord
+date_constructor_call_or_construct :: fonc (empl params: *ParamètresCallOrConstruct) -> Valeur
 {
     // 1. If NewTarget is undefined, then
     si new_target.est_undefined() {
@@ -120,7 +120,7 @@ date_constructor_call_or_construct :: fonc (empl params: *ParamètresCallOrConst
     O.date_value = dv
 
     // 8. Return O.
-    retourne normal_completion(Valeur(Object = O))
+    retourne O
 }
 
 /** \} */
@@ -151,7 +151,7 @@ crée_date_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Objec
 
 /* 21.4.4.10 Date.prototype.getTime ( )
  * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-date.prototype.gettime */
-date_prototype_get_time :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+date_prototype_get_time :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let dateObject be the this value.
     date_object := this_value.donne_objet() comme *DateObject
@@ -162,12 +162,12 @@ date_prototype_get_time :: fonc (empl params: *ParamètresObjectCall) -> Complet
     }
 
     // 3. Return dateObject.[[DateValue]].
-    retourne normal_completion(Valeur(Number = date_object.date_value.millisecondes() comme r64))
+    retourne date_object.date_value.millisecondes() comme r64
 }
 
 /* 21.4.4.44 Date.prototype.valueOf ( )
  * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-date.prototype.valueof */
-date_prototype_value_of :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+date_prototype_value_of :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let dateObject be the this value.
     date_object := this_value.donne_objet() comme *DateObject
@@ -178,7 +178,7 @@ date_prototype_value_of :: fonc (empl params: *ParamètresObjectCall) -> Complet
     }
 
     // 3. Return dateObject.[[DateValue]].
-    retourne normal_completion(Valeur(Number = date_object.date_value.millisecondes() comme r64))
+    retourne date_object.date_value.millisecondes() comme r64
 }
 
 /** \} */

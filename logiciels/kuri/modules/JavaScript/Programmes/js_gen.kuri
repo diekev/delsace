@@ -1,0 +1,771 @@
+/* Ce programme génère du code Kuri depuis la spécification d'une fonction
+ * du standard ECMAScript. */
+
+importe Compilatrice
+importe Fondation
+importe SysFichier
+
+change_nom_sortie :: fonc ()
+{
+    options := compilatrice_obtiens_options()
+    options.nom_sortie = "js_gen"
+    compilatrice_ajourne_options(options)
+}
+
+#exécute change_nom_sortie()
+
+principale :: fonc ()
+{
+    contenu := contenu_fichier_texte(CheminFichier("js_gen.txt"))
+    lignes := divise(contenu, "\n")
+
+    parseuse: Parseuse
+    parseuse.bloc = crée_bloc(*parseuse)
+
+    pour lignes {
+        si it.commence_par("// ") {
+            continue
+        }
+
+        si it.taille > 0 && (it[it.taille - 1] == '.' || it[it.taille - 1] == ',') {
+            it.taille -= 1
+        }
+
+        // imprime("\n    // %\n", it)
+        parse_ligne(*parseuse, it)
+    }
+
+    génératrice: GénératriceCode
+    imprime_instruction(*génératrice, parseuse.bloc)
+}
+
+parse_ligne :: fonc (parseuse: *Parseuse, ligne: chaine)
+{
+    initialise_pour_ligne(parseuse, ligne)
+
+    indentation := compte_indentation(parseuse)
+    ligne.pointeur += indentation
+    ligne.taille -= indentation
+
+    si parseuse.bloc.indentation == -1 {
+        parseuse.bloc.indentation = indentation comme z32
+    }
+    sinon si indentation < parseuse.bloc.indentation {
+        tantque indentation < parseuse.bloc.indentation {
+            parseuse.bloc = parseuse.bloc.bloc_parent
+        }
+    }
+
+    assert(parseuse.bloc.indentation == indentation)
+
+    lexème := donne_lexème_suivant(parseuse)
+    _ := consomme_caractère(parseuse, '.')
+
+    lexème = donne_lexème_suivant(parseuse)
+
+    si lexème == "Let" {
+        instruction := parseuse.crée_instruction(ligne, InstructionLet)
+        instruction.variable = donne_lexème_suivant(parseuse)
+
+        lexème = donne_lexème_suivant(parseuse)
+        saufsi lexème == "be" {
+            rapporte_erreur(parseuse, "attendu 'be'", lexème)
+            retourne
+        }
+
+        instruction.expression = parse_expression(parseuse)
+        retourne
+    }
+
+    si lexème == "Assert" {
+        retourne
+    }
+
+    si lexème == "If" {
+        _ := parse_instruction_if(parseuse, ligne)
+        retourne
+    }
+
+    si lexème == "Return" {
+        return := parseuse.crée_instruction(ligne, InstructionReturn)
+        return.expression = parse_expression(parseuse)
+        retourne
+    }
+
+    si lexème == "Repeat" {
+        repeat := parseuse.crée_instruction(ligne, InstructionRepeat)
+
+        saufsi parseuse.consomme_caractère(',') {
+            parseuse.rapporte_erreur("attendu ','")
+            retourne
+        }
+
+        lexème = donne_lexème_suivant(parseuse)
+        saufsi lexème == "while" {
+            parseuse.rapporte_erreur("attendu 'while'", lexème)
+            retourne
+        }
+
+        repeat.expression = parse_expression(parseuse)
+        repeat.instruction = parseuse.crée_bloc()
+        parseuse.bloc = repeat.instruction
+        retourne
+    }
+
+    si lexème == "Else" {
+        instruction := parseuse.bloc.instructions[parseuse.bloc.instructions.taille - 1]
+        assert(instruction.type == InstructionIf || instruction.type == InstructionElseIf)
+
+        bloc := parseuse.crée_bloc()
+
+        lexème = parseuse.donne_lexème_suivant()
+        si lexème == "if" {
+            else_if := parseuse.crée_instruction(ligne, InstructionElseIf)
+            else_if.bloc = bloc
+            else_if.expression = parse_expression(parseuse)
+
+            saufsi consomme_caractère(parseuse, ',') {
+                rapporte_erreur(parseuse, "attendu ','", parseuse.donne_lexème_suivant())
+                retourne
+            }
+
+            parseuse.parse_bloc_if(else_if.bloc)
+            retourne
+        }
+
+        else := parseuse.crée_instruction(ligne, InstructionElse)
+        else.bloc = bloc
+        parseuse.bloc = bloc
+        retourne
+    }
+
+    si lexème == "Set" {
+        _ := parse_instruction_set(parseuse, ligne)
+        retourne
+    }
+
+    rapporte_erreur(parseuse, "lexème inattendu", lexème)
+}
+
+parse_instruction_if :: fonc (parseuse: *Parseuse, ligne: chaine) -> *InstructionIf
+{
+    instruction := parseuse.crée_instruction(ligne, InstructionIf)
+
+    instruction.expression = parse_expression(parseuse)
+    instruction.bloc = parseuse.crée_bloc()
+
+    saufsi consomme_caractère(parseuse, ',') {
+        rapporte_erreur(parseuse, "attendu ','", parseuse.donne_lexème_suivant())
+        retourne instruction
+    }
+
+    parse_bloc_if(parseuse, instruction.bloc)
+
+    retourne instruction
+}
+
+parse_bloc_if :: fonc (parseuse: *Parseuse, bloc: *InstructionBloc)
+{
+    lexème := parseuse.donne_lexème_suivant()
+    si lexème == "then" {
+        parseuse.bloc = bloc
+    }
+    sinon si lexème == "set" {
+        parseuse.bloc = bloc
+        _ := parse_instruction_set(parseuse, "")
+        parseuse.bloc = bloc.bloc_parent
+    }
+    sinon si lexème == "return" {
+        return := loge(InstructionReturn)
+        return.expression = parse_expression(parseuse)
+        tableau_ajoute(*bloc.instructions, return)
+    }
+    sinon {
+        rapporte_erreur(parseuse, "lexème inattendu", lexème)
+    }
+}
+
+parse_instruction_set :: fonc (parseuse: *Parseuse, ligne: chaine) -> *InstructionSet
+{
+    variable := parseuse.donne_lexème_suivant()
+
+    lexème := parseuse.donne_lexème_suivant()
+    saufsi lexème == "to" {
+        rapporte_erreur(parseuse, "attendu 'to'", lexème)
+        retourne nul
+    }
+
+    résultat := parseuse.crée_instruction(ligne, InstructionSet)
+    résultat.variable = variable
+    résultat.expression = parse_expression(parseuse)
+    retourne résultat
+}
+
+InfoExpressionBinaire :: struct {
+    lexème: chaine
+    op: chaine
+}
+
+__infos_expressions_binaire := [
+    InfoExpressionBinaire("+", "+"),
+    InfoExpressionBinaire("-", "-"),
+    InfoExpressionBinaire("*", "*"),
+    InfoExpressionBinaire("-", "-"),
+    InfoExpressionBinaire("<", "<"),
+    InfoExpressionBinaire(">", ">"),
+    InfoExpressionBinaire("=", "=="),
+    InfoExpressionBinaire("is", "=="),
+    InfoExpressionBinaire("≥", ">=")
+]
+
+parse_expression :: fonc (parseuse: *Parseuse) -> *Expression
+{
+    résultat := parse_expression_primaire(parseuse)
+    saufsi résultat {
+        retourne nul
+    }
+
+    parseuse.consomme_espaces_blanches()
+
+    pour __infos_expressions_binaire {
+        si parseuse.apparie(it.lexème) {
+            parseuse.début += it.lexème.taille
+            op := loge(ExpressionBinaire)
+            op.op = it.op
+            op.gauche = résultat
+            op.droite = parse_expression(parseuse)
+            retourne op
+        }
+    }
+
+    retourne résultat
+}
+
+InfoVariable :: struct {
+    lexème_spécifié: chaine
+    lexème_corrigé: chaine
+}
+
+__infos_variables := [
+    InfoVariable("+∞", "R64_INFINITÉ"),
+    InfoVariable("-∞", "R64_INFINITÉ_NÉGATIVE"),
+    InfoVariable("-1𝔽", "-1.0"),
+    InfoVariable("true", "vrai"),
+    InfoVariable("false", "faux"),
+    InfoVariable("this value", "this_value")
+]
+
+parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
+{
+    si consomme_caractère(parseuse, '?') {
+        retourne parse_expression_appel(parseuse, '?')
+    }
+
+    si consomme_caractère(parseuse, '!') {
+        retourne parse_expression_appel(parseuse, '!')
+    }
+
+    pour __infos_variables {
+        si parseuse.apparie(it.lexème_spécifié) {
+            parseuse.début += it.lexème_spécifié.taille
+            résultat := loge(ExpressionRéférence)
+            résultat.texte = it.lexème_corrigé
+            retourne résultat
+        }
+    }
+
+    début := parseuse.début
+
+    lexème := donne_lexème_suivant(parseuse)
+
+    si parseuse.consomme_caractère('(') {
+        parseuse.début = début
+        retourne parse_expression_appel(parseuse, 0)
+    }
+
+    résultat := loge(ExpressionRéférence)
+    résultat.texte = lexème
+    retourne résultat
+}
+
+parse_expression_appel :: fonc (parseuse: *Parseuse, gestion_exception: z8) -> *ExpressionAppel
+{
+    fonction := parseuse.donne_lexème_suivant()
+
+    saufsi consomme_caractère(parseuse, '(') {
+        rapporte_erreur(parseuse, "attendu '('", parseuse.donne_lexème_suivant())
+        retourne nul
+    }
+
+    résultat := loge(ExpressionAppel)
+    résultat.fonction = fonction
+    résultat.gestion_exception = gestion_exception
+
+    tantque parseuse.début < parseuse.fin {
+        si consomme_caractère(parseuse, ')') {
+            retourne résultat
+        }
+
+        expression := parse_expression(parseuse)
+        saufsi expression {
+            rapporte_erreur(parseuse, "attendu une expression", parseuse.donne_lexème_suivant())
+            arrête
+        }
+
+        tableau_ajoute(*résultat.params, expression)
+
+        saufsi parseuse.consomme_caractère(',') {
+            arrête
+        }
+    }
+
+    saufsi consomme_caractère(parseuse, ')') {
+        rapporte_erreur(parseuse, "attendu ')'", parseuse.donne_lexème_suivant())
+    }
+
+    retourne résultat
+}
+
+Parseuse :: struct {
+    début: *z8
+    fin: *z8
+
+    bloc: *InstructionBloc
+}
+
+initialise_pour_ligne :: fonc (parseuse: *Parseuse, ligne: chaine)
+{
+    parseuse.début = ligne.pointeur
+    parseuse.fin = ligne.pointeur + ligne.taille
+}
+
+crée_instruction :: fonc (parseuse: *Parseuse, ligne: chaine, $T: type_de_données) -> *T
+{
+    résultat := loge(T)
+    résultat.ligne = ligne
+    tableau_ajoute(*parseuse.bloc.instructions, résultat)
+    retourne résultat
+}
+
+crée_bloc :: fonc (parseuse: *Parseuse) -> *InstructionBloc
+{
+    résultat := loge(InstructionBloc)
+    résultat.bloc_parent = parseuse.bloc
+    retourne résultat
+}
+
+rapporte_erreur :: fonc (parseuse: *Parseuse, message: chaine)
+{
+    rapporte_erreur(parseuse, message, donne_lexème_suivant(parseuse))
+}
+
+rapporte_erreur :: fonc (parseuse: *Parseuse @inutilisée, message: chaine, lexème_obtenu: chaine)
+{
+    imprime("%, obtenu '%'\n", message, lexème_obtenu)
+}
+
+donne_lexème_suivant :: fonc (parseuse: *Parseuse) -> chaine
+{
+    consomme_espaces_blanches(parseuse)
+
+    si parseuse.début >= parseuse.fin {
+        retourne ""
+    }
+
+    si parseuse.apparie("𝔽") {
+        parseuse.début += "𝔽".taille
+        retourne "𝔽"
+    }
+
+    résultat := chaine(parseuse.début, 0)
+
+    tantque parseuse.début < parseuse.fin {
+        c := mémoire(parseuse.début)
+        si ('a' <= c <= 'z') || ('A' <= c <= 'Z') || ('0' <= c <= '9') {
+            parseuse.début += 1
+            résultat.taille += 1
+            continue
+        }
+
+        arrête
+    }
+
+    retourne résultat
+}
+
+apparie :: fonc (parseuse: *Parseuse, texte: chaine) -> bool
+{
+    consomme_espaces_blanches(parseuse)
+    si parseuse.début >= parseuse.fin {
+        retourne faux
+    }
+
+    taille := parseuse.fin - parseuse.début
+    si taille < texte.taille {
+        retourne faux
+    }
+
+    chn := chaine(parseuse.début, texte.taille)
+    retourne chn == texte
+}
+
+consomme_caractère :: fonc (parseuse: *Parseuse, c: z8) -> bool
+{
+    consomme_espaces_blanches(parseuse)
+    si parseuse.début >= parseuse.fin {
+        retourne faux
+    }
+
+    caractère := mémoire(parseuse.début)
+    si c != caractère {
+        retourne faux
+    }
+
+    parseuse.début += 1
+    retourne vrai
+}
+
+consomme_point_virgule :: fonc (parseuse: *Parseuse)
+{
+    saufsi consomme_caractère(parseuse, ';') {
+        rapporte_erreur(parseuse, "attendu ';", donne_lexème_suivant(parseuse))
+    }
+}
+
+consomme_espaces_blanches :: fonc (parseuse: *Parseuse)
+{
+    tantque parseuse.début < parseuse.fin {
+        si est_espace_blanc(mémoire(parseuse.début)) {
+            parseuse.début += 1
+            continue
+        }
+
+        arrête
+    }
+}
+
+compte_indentation :: fonc (parseuse: *Parseuse) -> z64
+{
+    début := parseuse.début
+
+    tantque début < parseuse.fin {
+        si est_espace_blanc(mémoire(début)) {
+            début += 1
+            continue
+        }
+
+        arrête
+    }
+
+    retourne début - parseuse.début
+}
+
+Instruction :: struct {
+    type := type_de_données
+    ligne: chaine
+}
+
+InstructionBloc :: struct {
+    empl base: Instruction
+    type = #type_de_cette_structure
+
+    indentation : z32 = -1
+    bloc_parent: *InstructionBloc
+
+    instructions: [..]*Instruction
+}
+
+InstructionIf :: struct {
+    empl base: Instruction
+    type = #type_de_cette_structure
+
+    expression: *Expression
+    bloc: *InstructionBloc
+}
+
+InstructionElseIf :: struct {
+    empl base: Instruction
+    type = #type_de_cette_structure
+
+    expression: *Expression
+    bloc: *InstructionBloc
+}
+
+InstructionElse :: struct {
+    empl base: Instruction
+    type = #type_de_cette_structure
+
+    bloc: *InstructionBloc
+}
+
+InstructionLet :: struct {
+    empl base: Instruction
+    type = #type_de_cette_structure
+
+    variable: chaine
+    expression: *Expression
+}
+
+InstructionSet :: struct {
+    empl base: Instruction
+    type = #type_de_cette_structure
+
+    variable: chaine
+    expression: *Expression
+}
+
+InstructionRepeat :: struct {
+    empl base: Instruction
+    type = #type_de_cette_structure
+
+    expression: *Expression
+    instruction: *InstructionBloc
+}
+
+InstructionReturn :: struct {
+    empl base: Instruction
+    type = #type_de_cette_structure
+
+    expression: *Expression
+}
+
+imprime_instruction :: fonc (génératrice: *GénératriceCode, base: *Instruction)
+{
+    discr base.type {
+        InstructionBloc {
+            bloc := base comme *InstructionBloc
+            génératrice.commence_bloc()
+            pour bloc.instructions {
+                si it.ligne {
+                    génératrice.ajoute_chaine("// ", it.ligne)
+                    génératrice.ajoute_nouvelle_ligne()
+                }
+                imprime_instruction(génératrice, it)
+                si index_it < bloc.instructions.taille - 1 {
+                    génératrice.ajoute_nouvelle_ligne()
+                }
+            }
+            génératrice.termine_bloc()
+        }
+        InstructionIf {
+            if := base comme *InstructionIf
+            génératrice.ajoute_chaine("si ")
+            imprime_expression(génératrice, if.expression)
+            génératrice.ajoute_chaine(" ")
+            imprime_instruction(génératrice, if.bloc)
+        }
+        InstructionElseIf {
+            else_if := base comme *InstructionElseIf
+            génératrice.ajoute_chaine("sinon si ")
+            imprime_expression(génératrice, else_if.expression)
+            génératrice.ajoute_chaine(" ")
+            imprime_instruction(génératrice, else_if.bloc)
+        }
+        InstructionElse {
+            else := base comme *InstructionElse
+            génératrice.ajoute_chaine("sinon ")
+            imprime_instruction(génératrice, else.bloc)
+        }
+        InstructionLet {
+            let := base comme *InstructionLet
+            génératrice.ajoute_chaine(let.variable, " := ")
+            imprime_expression(génératrice, let.expression)
+            vérifie_exception(génératrice, let.expression)
+        }
+        InstructionSet {
+            set := base comme *InstructionSet
+            génératrice.ajoute_chaine(set.variable, " = ")
+            imprime_expression(génératrice, set.expression)
+            vérifie_exception(génératrice, set.expression)
+        }
+        InstructionRepeat {
+            repeat := base comme *InstructionRepeat
+            génératrice.ajoute_chaine("tantque ")
+            imprime_expression(génératrice, repeat.expression)
+            génératrice.ajoute_chaine(" ")
+            imprime_instruction(génératrice, repeat.instruction)
+        }
+        InstructionReturn {
+            instruction := base comme *InstructionReturn
+            génératrice.ajoute_chaine("retourne")
+            si instruction.expression {
+                génératrice.ajoute_chaine(" ")
+                imprime_expression(génératrice, instruction.expression)
+            }
+        }
+        sinon {}
+    }
+}
+
+vérifie_exception :: fonc (génératrice: *GénératriceCode, expression: *Expression)
+{
+    si expression.type != ExpressionAppel {
+        retourne
+    }
+
+    appel := expression comme *ExpressionAppel
+    
+    si appel.gestion_exception == '?' {
+        génératrice.ajoute_nouvelle_ligne()
+        génératrice.ajoute_chaine("si interpréteuse.possède_exception() ")
+        génératrice.commence_bloc()
+        génératrice.ajoute_chaine("retourne")
+        génératrice.termine_bloc()
+        retourne
+    }
+
+    si appel.gestion_exception == '!' {
+        génératrice.ajoute_nouvelle_ligne()
+        génératrice.ajoute_chaine("assert(!interpréteuse.possède_exception())")
+        génératrice.ajoute_nouvelle_ligne()
+        retourne
+    }
+}
+
+Expression :: struct {
+    type := type_de_données
+}
+
+ExpressionRéférence :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+
+    texte: chaine
+}
+
+ExpressionBinaire :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+
+    op: chaine
+
+    gauche: *Expression
+    droite: *Expression
+}
+
+ExpressionAppel :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+
+    gestion_exception: z8
+
+    fonction: chaine
+    params: [..]*Expression
+}
+
+imprime_expression :: fonc (génératrice: *GénératriceCode, base: *Expression)
+{
+    discr base.type {
+        ExpressionRéférence {
+            expression := base comme *ExpressionRéférence
+            génératrice.ajoute_chaine(expression.texte)
+        }
+        ExpressionBinaire {
+            expression := base comme *ExpressionBinaire
+            génératrice.imprime_expression(expression.gauche)
+            génératrice.ajoute_chaine(" ", expression.op, " ")
+            génératrice.imprime_expression(expression.droite)
+        }
+        ExpressionAppel {
+            appel := base comme *ExpressionAppel
+
+            génératrice.ajoute_chaine(donne_nom_snake_case(appel.fonction))
+
+            saufsi appel.params {
+                si appel.gestion_exception != 0 {
+                    génératrice.ajoute_chaine("(interpréteuse)")
+                }
+                sinon {
+                    génératrice.ajoute_chaine("()")
+                }
+            }
+            sinon {
+                virgule := "("
+                si appel.gestion_exception != 0 {
+                    virgule = "(interpréteuse, "
+                }
+
+                pour appel.params {
+                    génératrice.ajoute_chaine(virgule)
+                    imprime_expression(génératrice, it)
+                    virgule = ", "
+                }
+
+                génératrice.ajoute_chaine(")")
+            }
+        }
+        sinon {}
+    }
+}
+
+GénératriceCode :: struct {
+    indentation: z32
+}
+
+ajoute_chaine :: fonc (génératrice: *GénératriceCode @inutilisée, chns: ...chaine)
+{
+    pour chns {
+        imprime("%", it)
+    }
+}
+
+ajoute_nouvelle_ligne :: fonc (génératrice: *GénératriceCode)
+{
+    chn := donne_chaine_indentation(génératrice.indentation)
+    imprime("\n%", chn)
+}
+
+commence_bloc :: fonc (génératrice: *GénératriceCode)
+{
+    ajoute_chaine(génératrice, "{")
+    génératrice.indentation += 1
+    ajoute_nouvelle_ligne(génératrice)
+}
+
+termine_bloc :: fonc (génératrice: *GénératriceCode)
+{
+    génératrice.indentation -= 1
+    ajoute_nouvelle_ligne(génératrice)
+    ajoute_chaine(génératrice, "}")
+    ajoute_nouvelle_ligne(génératrice)
+}
+
+importe Sérialisation
+
+Griffonier :: TamponFixe(T = z8, N = 128)
+
+__griffonier: Griffonier
+
+donne_nom_snake_case :: fonc (chn: chaine) -> chaine
+{
+    retourne donne_nom_snake_case(chn, *__griffonier)
+}
+
+donne_nom_snake_case :: fonc (chn: chaine, griffonier: *Griffonier) -> chaine
+{
+    premier := vrai
+
+    griffonier.curseur = 0
+
+    curseur := 0
+
+    tantque curseur < chn.taille {
+        it := chn[curseur]
+
+        si 'A' <= it <= 'Z' {
+            saufsi premier {
+                ajoute(griffonier, '_')
+            }
+
+            ajoute(griffonier, it - 'A' + 'a')
+        }
+        sinon {
+            ajoute(griffonier, it)
+        }
+
+        premier = faux
+        curseur += 1
+    }
+
+    retourne chaine(*griffonier.données[0], griffonier.curseur)
+}

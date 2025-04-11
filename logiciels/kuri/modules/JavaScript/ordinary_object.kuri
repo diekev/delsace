@@ -82,13 +82,13 @@ ordinary_set_prototype_of :: fonc (object: *Object, valeur: Valeur) -> bool
 
 /* 10.1.5.1 OrdinaryGetOwnProperty ( O, P )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarygetownproperty */
-ordinary_get_own_property :: fonc (object: *Object, property_key: PropertyKey) -> CompletionRecord
+ordinary_get_own_property :: fonc (object: *Object, property_key: PropertyKey) -> Optionnel(PropertyDescriptor)
 {
     propriété := object.trouve_propriété(property_key)
 
     // 1. If O does not have an own property with key P, return undefined.
     saufsi propriété {
-        retourne normal_completion(js_undefined)
+        retourne
     }
 
     // 2. Let D be a newly created Property Descriptor with no fields.
@@ -128,16 +128,16 @@ ordinary_get_own_property :: fonc (object: *Object, property_key: PropertyKey) -
     D.configurable = propriété.drapeaux.CONFIGURABLE == vrai
 
     // 8. Return D.
-    retourne normal_completion(D)
+    retourne D
 }
 
 /* 10.1.6 [[DefineOwnProperty]] ( P, Desc )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarydefineownproperty */
-ordinary_define_own_property :: fonc (object: *Object, property_key: PropertyKey, desc: &PropertyDescriptor) -> CompletionRecord
+ordinary_define_own_property :: fonc (object: *Object, property_key: PropertyKey, desc: &PropertyDescriptor) -> bool
 {
     // À FAIRE : standardise
     saufsi desc.value.possède_valeur() {
-        retourne normal_completion(Valeur(Boolean = faux))
+        retourne faux
     }
 
     valeur := desc.value.Quelque
@@ -164,27 +164,26 @@ ordinary_define_own_property :: fonc (object: *Object, property_key: PropertyKey
     propriété := trouve_propriété(object, property_key)
     si propriété {
         propriété.valeur = valeur
-        retourne normal_completion(Valeur(Boolean = vrai))
+        retourne vrai
     }
 
     object.ajoute_propriété(property_key, valeur, drapeaux)
-    retourne normal_completion(Valeur(Boolean = vrai))
+    retourne vrai
 }
 
 /* 10.1.7.1 OrdinaryHasProperty ( O, P )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinaryhasproperty */
-ordinary_has_property :: fonc (object: *Object, property_key: PropertyKey) -> CompletionRecord
+ordinary_has_property :: fonc (object: *Object, property_key: PropertyKey) -> bool
 {
     // 1. Let hasOwn be ? O.[[GetOwnProperty]](P).
-    completion := internal_get_own_property(object, property_key)
-    saufsi completion.est_normal() {
-        retourne completion
+    has_own := internal_get_own_property(object, property_key)
+    si object.possède_exception() {
+        retourne faux
     }
-    has_own := completion.valeur
 
     // 2. If hasOwn is not undefined, return true.
-    saufsi has_own.est_undefined() {
-        retourne normal_completion(Valeur(Boolean = vrai))
+    si has_own.possède_valeur() {
+        retourne vrai
     }
 
     // 3. Let parent be ? O.[[GetPrototypeOf]]().
@@ -197,49 +196,49 @@ ordinary_has_property :: fonc (object: *Object, property_key: PropertyKey) -> Co
     }
 
     // 5. Return false.
-    retourne normal_completion(Valeur(Boolean = faux))
+    retourne faux
 }
 
 /* 10.1.8.1 OrdinaryGet ( O, P, Receiver )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinary-object-internal-methods-and-internal-slots-get-p-receiver */
-ordinary_get :: fonc (object: *Object, property_key: PropertyKey, receiver: Valeur) -> CompletionRecord
+ordinary_get :: fonc (object: *Object, property_key: PropertyKey, receiver: Valeur) -> Valeur
 {
     // 1. Let desc be ? O.[[GetOwnProperty]](P).
-    completion_desc := internal_get_own_property(object, property_key)
-    saufsi completion_desc.est_normal() {
-        retourne completion_desc
+    opt_desc := internal_get_own_property(object, property_key)
+    si object.possède_exception() {
+        retourne js_undefined
     }
 
-    desc := completion_desc.valeur
-
     // 2. If desc is undefined, then
-    si desc.est_undefined() {
+    saufsi opt_desc.possède_valeur() {
         // a. Let parent be ? O.[[GetPrototypeOf]]().
         parent := internal_get_prototype_of(object)
 
         // b. If parent is null, return undefined.
         si parent == nul {
-            retourne normal_completion(desc)
+            retourne js_undefined
         }
 
         // c. Return ? parent.[[Get]](P, Receiver).
         retourne parent.internal_get(property_key, receiver)
     }
 
+    desc := opt_desc.Quelque
+
     // 3. If IsDataDescriptor(desc) is true, return desc.[[Value]].
-    si is_data_descriptor(desc.P) {
-        retourne normal_completion(desc.P.value.Quelque)
+    si is_data_descriptor(desc) {
+        retourne desc.value
     }
 
     // 4. Assert: IsAccessorDescriptor(desc) is true.
-    assert(is_accessor_descriptor(desc.P))
+    assert(is_accessor_descriptor(desc))
 
     // 5. Let getter be desc.[[Get]].
-    getter := desc.P.get
+    getter := desc.get
 
     // 6. If getter is undefined, return undefined.
     saufsi getter.possède_valeur() {
-        retourne normal_completion(js_undefined)
+        retourne js_undefined
     }
 
     // 7. Return ? Call(getter, Receiver).
@@ -249,14 +248,13 @@ ordinary_get :: fonc (object: *Object, property_key: PropertyKey, receiver: Vale
 
 /* 10.1.9.1 OrdinarySet ( O, P, V, Receiver )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinaryset */
-ordinary_set :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur, receiver: Valeur) -> CompletionRecord
+ordinary_set :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur, receiver: Valeur) -> bool
 {
     // 1. Let ownDesc be ? O.[[GetOwnProperty]](P).
-    completion_desc := internal_get_own_property(object, property_key)
-    saufsi completion_desc.est_normal() {
-        retourne completion_desc
+    own_desc := internal_get_own_property(object, property_key)
+    si object.possède_exception() {
+        retourne faux
     }
-    own_desc := completion_desc.valeur
 
     // 2. Return ? OrdinarySetWithOwnDescriptor(O, P, V, Receiver, ownDesc).
     retourne ordinary_set_with_own_descriptor(object, property_key, valeur, receiver, own_desc)
@@ -264,10 +262,12 @@ ordinary_set :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur
 
 /* 10.1.9.2 OrdinarySetWithOwnDescriptor ( O, P, V, Receiver, ownDesc )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarysetwithowndescriptor */
-ordinary_set_with_own_descriptor :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur, receiver: Valeur, own_desc: ValeurCompletion) -> CompletionRecord
+ordinary_set_with_own_descriptor :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur, receiver: Valeur, opt_own_desc: Optionnel(PropertyDescriptor)) -> bool
 {
+    own_desc: PropertyDescriptor
+
     // 1. If ownDesc is undefined, then
-    si own_desc.est_undefined() {
+    saufsi opt_own_desc.possède_valeur() {
         // a. Let parent be ? O.[[GetPrototypeOf]]().
         parent := internal_get_prototype_of(object)
 
@@ -282,36 +282,40 @@ ordinary_set_with_own_descriptor :: fonc (object: *Object, property_key: Propert
             own_desc = PropertyDescriptor(value = js_undefined, writable = vrai, enumerable = vrai, configurable = vrai)
         }
     }
+    sinon {
+        own_desc = opt_own_desc.Quelque
+    }
 
     // 2. If IsDataDescriptor(ownDesc) is true, then
-    si is_data_descriptor(own_desc.P) {
+    si is_data_descriptor(own_desc) {
         // a. If ownDesc.[[Writable]] is false, return false.
-        si own_desc.P.writable == faux {
-            retourne normal_completion(Valeur(Boolean = faux))
+        si own_desc.writable == faux {
+            retourne faux
         }
 
         // b. If Receiver is not an Object, return false.
         saufsi receiver.est_object() {
-            retourne normal_completion(Valeur(Boolean = faux))
+            retourne faux
         }
 
         // c. Let existingDescriptor be ? Receiver.[[GetOwnProperty]](P).
-        completion := internal_get_own_property(receiver.donne_objet(), property_key)
-        saufsi completion.est_normal() {
-            retourne completion
+        opt_existing_descriptor := internal_get_own_property(receiver.donne_objet(), property_key)
+        si receiver.donne_objet().possède_exception() {
+            retourne faux
         }
-        existing_descriptor := completion.valeur
 
         // d. If existingDescriptor is not undefined, then
-        saufsi existing_descriptor.est_undefined() {
+        si opt_existing_descriptor.possède_valeur() {
+            existing_descriptor := opt_existing_descriptor.Quelque
+
             // i. If IsAccessorDescriptor(existingDescriptor) is true, return false.
-            si is_accessor_descriptor(existing_descriptor.P) {
-                retourne normal_completion(Valeur(Boolean = faux))
+            si is_accessor_descriptor(existing_descriptor) {
+                retourne faux
             }
 
             // ii. If existingDescriptor.[[Writable]] is false, return false.
-            si existing_descriptor.P.writable == faux {
-                retourne normal_completion(Valeur(Boolean = faux))
+            si existing_descriptor.writable == faux {
+                retourne faux
             }
 
             // iii. Let valueDesc be the PropertyDescriptor { [[Value]]: V }.
@@ -330,14 +334,14 @@ ordinary_set_with_own_descriptor :: fonc (object: *Object, property_key: Propert
     }
 
     // 3. Assert: IsAccessorDescriptor(ownDesc) is true.
-    assert(is_accessor_descriptor(own_desc.P))
+    assert(is_accessor_descriptor(own_desc))
 
     // 4. Let setter be ownDesc.[[Set]].
-    setter := own_desc.P.set
+    setter := own_desc.set
 
     // 5. If setter is undefined, return false.
     saufsi setter.possède_valeur() {
-        retourne normal_completion(Valeur(Boolean = faux))
+        retourne faux
     }
 
     // 6. Perform ? Call(setter, Receiver, « V »).
@@ -347,43 +351,44 @@ ordinary_set_with_own_descriptor :: fonc (object: *Object, property_key: Propert
     arguments.pointeur = *valeur
     arguments.taille = 1
 
-    completion := call(mv, setter.Quelque, receiver, arguments)
-    saufsi completion.est_normal() {
-        retourne completion
+    _ := call(mv, setter.Quelque, receiver, arguments)
+    si mv.interpréteuse.possède_exception() {
+        retourne faux
     }
 
     // 7. Return true.
-    retourne normal_completion(Valeur(Boolean = vrai))
+    retourne vrai
 }
 
 /* 10.1.10.1 OrdinaryDelete ( O, P )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarydelete */
-ordinary_delete :: fonc (O: *Object, P: PropertyKey) -> CompletionRecord
+ordinary_delete :: fonc (O: *Object, P: PropertyKey) -> bool
 {
     // 1. Let desc be ? O.[[GetOwnProperty]](P).
-    completion := internal_get_own_property(O, P)
-    saufsi completion.est_normal() {
-        retourne completion
+    opt_desc := internal_get_own_property(O, P)
+    si O.possède_exception() {
+        retourne faux
     }
-    desc := completion.valeur
 
     // 2. If desc is undefined, return true.
-    si desc.est_undefined() {
-        retourne normal_completion(Valeur(Boolean = vrai))
+    saufsi opt_desc.possède_valeur() {
+        retourne vrai
     }
 
+    desc := opt_desc.Quelque
+
     // 3. If desc.[[Configurable]] is true, then
-    configurable := desc.P.configurable
+    configurable := desc.configurable
     si configurable.possède_valeur() && configurable.Quelque == vrai {
         // a. Remove the own property with name P from O.
         supprime_propriété(O, P)
 
         // b. Return true.
-        retourne normal_completion(Valeur(Boolean = vrai))
+        retourne vrai
     }
 
     // 4. Return false.
-    retourne normal_completion(Valeur(Boolean = faux))
+    retourne faux
 }
 
 /* 10.1.12 OrdinaryObjectCreate ( proto [ , additionalInternalSlotsList ] )
@@ -405,7 +410,7 @@ ordinary_object_create :: fonc (realm: *Realm, prototype: *Object, rappel_alloca
 
 /* 10.1.13 OrdinaryCreateFromConstructor ( constructor, intrinsicDefaultProto [ , internalSlotsList ] )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinaryobjectcreate */
-ordinary_create_from_constructor :: fonc (realm: *Realm, constructor: *Function, intrinsic_default_proto: *Object, rappel_allocation_objet: TypeFonctionAllocationObjet) -> CompletionRecord
+ordinary_create_from_constructor :: fonc (realm: *Realm, constructor: *Function, intrinsic_default_proto: *Object, rappel_allocation_objet: TypeFonctionAllocationObjet) -> *Object
 {
     // 1. Assert: intrinsicDefaultProto is this specification's name of an intrinsic object.
     //    The corresponding object must be an intrinsic that is intended to be used as the
@@ -413,23 +418,21 @@ ordinary_create_from_constructor :: fonc (realm: *Realm, constructor: *Function,
     assert(est_intrinsics(realm, intrinsic_default_proto))
 
     // 2. Let proto be ? GetPrototypeFromConstructor(constructor, intrinsicDefaultProto).
-    completion := get_prototype_from_constructor(realm, constructor, intrinsic_default_proto)
-    saufsi completion.est_normal() {
-        retourne completion
+    proto := get_prototype_from_constructor(realm, constructor, intrinsic_default_proto)
+    si realm.possède_exception() {
+        retourne nul
     }
-    proto := completion.valeur.V.donne_objet()
 
     // 3. If internalSlotsList is present, let slotsList be internalSlotsList.
     // 4. Else, let slotsList be a new empty List.
 
     // 5. Return OrdinaryObjectCreate(proto, slotsList).
-    résultat := ordinary_object_create(realm, proto, rappel_allocation_objet)
-    retourne normal_completion(Valeur(Object = résultat))
+    retourne ordinary_object_create(realm, proto, rappel_allocation_objet)
 }
 
 /* 10.1.14 GetPrototypeFromConstructor ( constructor, intrinsicDefaultProto )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-getprototypefromconstructor */
-get_prototype_from_constructor :: fonc (realm: *Realm, constructor: *Function, intrinsic_default_proto: *Object) -> CompletionRecord
+get_prototype_from_constructor :: fonc (realm: *Realm, constructor: *Function, intrinsic_default_proto: *Object) -> *Object
 {
     // 1. Assert: intrinsicDefaultProto is this specification's name of an intrinsic object.
     //    The corresponding object must be an intrinsic that is intended to be used as the
@@ -437,11 +440,10 @@ get_prototype_from_constructor :: fonc (realm: *Realm, constructor: *Function, i
     assert(est_intrinsics(realm, intrinsic_default_proto))
 
     // 2. Let proto be ? Get(constructor, "prototype").
-    completion := get(constructor, STR_prototype)
-    saufsi completion.est_normal() {
-        retourne completion
+    proto := get(constructor, STR_prototype)
+    si realm.possède_exception() {
+        retourne nul
     }
-    proto := completion.valeur.V
 
     // 3. If proto is not an Object, then
     saufsi proto.est_object() {
@@ -451,7 +453,7 @@ get_prototype_from_constructor :: fonc (realm: *Realm, constructor: *Function, i
     }
 
     // 4. Return proto.
-    retourne normal_completion(proto)
+    retourne proto.donne_objet()
 }
 
 /** \} */
