@@ -103,3 +103,17 @@ struct_statvfs :: struct #externe {
 statvfs :: fonc (path: ChaineC, s: *struct_statvfs) -> z32 #externe libc
 
 sysconf :: fonc (nom: SysConf) -> z64 #externe libc
+
+// #include <bits/socketadrr.h>
+
+sa_family_t :: n16
+
+/* Size of struct sockaddr_storage.  */
+_SS_SIZE :: 128
+
+// #include <sys/un.h>
+
+sockaddr_un :: struct #externe {
+    sun_family: sa_family_t
+    sun_path: [108]z8		/* Path name.  */
+}
