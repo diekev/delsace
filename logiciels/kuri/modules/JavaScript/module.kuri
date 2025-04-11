@@ -99,6 +99,8 @@ MachineVirtuelle :: struct {
     execution_contexts: [..]*ExecutionContext
     interpréteuse: *Interpréteuse
     utilise_code_binaire: bool
+
+    exception: Valeur
 }
 
 initialise_mv :: fonc (hôte: *Hôte, mv: *MachineVirtuelle)
@@ -165,9 +167,62 @@ rassemble_racines :: fonc (mv: *MachineVirtuelle, racines: *[..]*Cellule)
         ensemble_ajoute(racines, it)
     }
 
-    si mv.interpréteuse && mv.interpréteuse.exception.est_cellule() {
-        ensemble_ajoute(racines, mv.interpréteuse.exception.donne_cellule())
+    si mv.exception.est_cellule() {
+        ensemble_ajoute(racines, mv.exception.donne_cellule())
     }
+}
+
+possède_exception :: fonc (mv: *MachineVirtuelle) -> bool #enligne
+{
+    retourne mv.exception.est_valide()
+}
+
+définis_exception :: fonc (mv: *MachineVirtuelle, completion: CompletionRecord)
+{
+    saufsi completion.est_throw() {
+        retourne
+    }
+    définis_exception(mv, completion.valeur.V)
+}
+
+définis_exception :: fonc (mv: *MachineVirtuelle, valeur: Valeur)
+{
+    si mv.possède_exception() {
+        retourne
+    }
+    mv.exception = valeur
+}
+
+donne_exception :: fonc (mv: *MachineVirtuelle) -> Valeur
+{
+    résultat := mv.exception
+    init_de(Valeur)(*mv.exception)
+    retourne résultat
+}
+
+possède_exception :: fonc (realm: *Realm) -> bool #enligne
+{
+    retourne possède_exception(realm.donne_tas_de_mémoire().mv)
+}
+
+définis_exception :: fonc (realm: *Realm, valeur: Valeur)
+{
+    définis_exception(realm.donne_tas_de_mémoire().mv, valeur)
+}
+
+donne_exception :: fonc (realm: *Realm) -> Valeur #enligne
+{
+    retourne donne_exception(realm.donne_tas_de_mémoire().mv)
+}
+
+possède_exception :: fonc (cellule: *Cellule) -> bool #enligne
+{
+    retourne possède_exception(cellule.donne_tas_de_mémoire().mv)
+}
+
+donne_exception :: fonc (cellule: *Cellule) -> Valeur #enligne
+{
+    retourne donne_exception(cellule.donne_tas_de_mémoire().mv)
 }
 
 /** \} */

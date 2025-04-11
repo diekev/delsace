@@ -4,6 +4,7 @@ MIME_application_octet_stream :: "application/octet-stream"
 MIME_image_jpeg :: "image/jpeg"
 MIME_image_gif :: "image/gif"
 MIME_image_png :: "image/png"
+MIME_image_svg :: "image/svg+xml"
 MIME_image_webp :: "image/webp"
 MIME_text_css :: "text/css"
 MIME_text_html :: "text/html"
@@ -62,7 +63,7 @@ est_type_mime_javascript :: fonc (chn: ChaineUTF16Unique) -> bool
 
 est_type_mime_image :: fonc (content_type: chaine) -> bool
 {
-    retourne content_type == MIME_image_jpeg || content_type == MIME_image_png || content_type == MIME_image_webp || content_type == MIME_image_gif
+    retourne content_type == MIME_image_jpeg || content_type == MIME_image_png || content_type == MIME_image_webp || content_type == MIME_image_gif || content_type == MIME_image_svg
 }
 
 type_mime_pour_extension :: fonc (extension: chaine) -> chaine
@@ -101,6 +102,10 @@ type_mime_pour_extension :: fonc (extension: chaine) -> chaine
 
     si compare_ascii_insensible_à_la_casse(extension, ".txt") {
         retourne MIME_text_plain
+    }
+
+    si compare_ascii_insensible_à_la_casse(extension, ".svg") {
+        retourne MIME_image_svg
     }
 
     retourne MIME_application_octet_stream
