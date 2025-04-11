@@ -222,26 +222,18 @@ donne_chemins_fichiers_sources :: fonc () -> [..]CheminFichier
     diffère détruit_chemin(dossier_parent)
     dossier := dossier_parent / "fichiers/sources"
 
-    dossiers_à_visiter: Pile(CheminFichier)
-    dossiers_à_visiter.empile(dossier) 
-
-    tantque !dossiers_à_visiter.est_vide() {
-        dossier_courant := dossiers_à_visiter.dépile()
-        diffère détruit_chemin(dossier_courant)
-
-        pour ExploratriceFichier(dossier_courant) {
-            si it.est_un_dossier() {
-                dossiers_à_visiter.empile(copie_chemin(it))
-                continue
+    visite :: fonc (info: InfoVisiteFichier, fichiers: *[..]CheminFichier) -> DécisionVisiteFichier
+    {
+        saufsi info.est_dossier {
+            chemin := CheminFichier(info.chemin)
+            si chemin.extension() == ".html" {
+                tableau_ajoute(fichiers, CheminFichier(copie_chaine(info.chemin)))
             }
-
-            si it.extension() != ".html" {
-                continue
-            }
-
-            tableau_ajoute(*résultat, copie_chemin(it))
         }
+        retourne DécisionVisiteFichier.Continue
     }
+
+    visite_fichiers(dossier, récursif, *résultat, visite)
 
     retourne résultat
 }

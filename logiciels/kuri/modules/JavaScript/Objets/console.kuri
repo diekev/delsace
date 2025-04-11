@@ -108,10 +108,10 @@ LogLevel :: énum {
 }
 
 /* https://console.spec.whatwg.org/#assert */
-console_assert :: fonc (console: *Console, interpréteuse: *Interpréteuse, condition: bool, arguments: []Valeur) -> CompletionRecord
+console_assert :: fonc (console: *Console, interpréteuse: *Interpréteuse, condition: bool, arguments: []Valeur) -> Valeur
 {
     si condition {
-        retourne normal_completion(js_undefined)
+        retourne js_undefined
     }
 
     nouveaux_arguments: [..]Valeur
@@ -134,12 +134,12 @@ console_assert :: fonc (console: *Console, interpréteuse: *Interpréteuse, cond
     retourne logger(console, interpréteuse, LogLevel.ASSERT, nouveaux_arguments)
 }
 
-logger :: fonc (console: *Console, interpréteuse: *Interpréteuse, log_level: LogLevel, arguments: []Valeur) -> CompletionRecord
+logger :: fonc (console: *Console, interpréteuse: *Interpréteuse, log_level: LogLevel, arguments: []Valeur) -> Valeur
 {
     retourne printer(console, interpréteuse, log_level, arguments)
 }
 
-printer :: fonc (console: *Console, interpréteuse: *Interpréteuse, log_level: LogLevel @inutilisée, arguments: []Valeur) -> CompletionRecord
+printer :: fonc (console: *Console, interpréteuse: *Interpréteuse, log_level: LogLevel @inutilisée, arguments: []Valeur) -> Valeur
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
@@ -148,9 +148,9 @@ printer :: fonc (console: *Console, interpréteuse: *Interpréteuse, log_level: 
     virgule := ""
     pour arguments {
         ajoute_au_tampon(*enchaineuse, virgule)
-        completion := imprime_valeur_récursif(interpréteuse, *enchaineuse, it)
-        saufsi completion.est_normal() {
-            retourne completion
+        imprime_valeur_récursif(interpréteuse, *enchaineuse, it)
+        si interpréteuse.possède_exception() {
+            retourne js_undefined
         }
         virgule = " "
     }
@@ -160,19 +160,18 @@ printer :: fonc (console: *Console, interpréteuse: *Interpréteuse, log_level: 
 
     flux_sortie_log(console.flux_sortie, texte)
 
-    retourne normal_completion(js_undefined)
+    retourne js_undefined
 }
 
-imprime_valeur_récursif :: fonc (interpréteuse: *Interpréteuse, enchaineuse: *Enchaineuse, valeur: Valeur) -> CompletionRecord
+imprime_valeur_récursif :: fonc (interpréteuse: *Interpréteuse, enchaineuse: *Enchaineuse, valeur: Valeur)
 {
     saufsi valeur.est_object() {
-        complétion := to_string(interpréteuse, valeur)
-        saufsi complétion.est_normal() {
-            retourne complétion
+        S := to_string(interpréteuse, valeur)
+        si interpréteuse.possède_exception() {
+            retourne
         }
-        valeur = complétion.valeur.V
-        ajoute_au_tampon(enchaineuse, valeur.String.texte.donne_chaine_utf16())
-        retourne normal_completion(js_undefined)
+        ajoute_au_tampon(enchaineuse, S.texte.donne_chaine_utf16())
+        retourne
     }
 
     objet := valeur.donne_objet()
@@ -183,9 +182,9 @@ imprime_valeur_récursif :: fonc (interpréteuse: *Interpréteuse, enchaineuse: 
 
     pour prop dans objet.propriétés {
         ajoute_au_tampon(enchaineuse, virgule, prop.nom, ": ")
-        completion := imprime_valeur_récursif(interpréteuse, enchaineuse, prop.valeur)
-        saufsi completion.est_normal() {
-            retourne completion
+        imprime_valeur_récursif(interpréteuse, enchaineuse, prop.valeur)
+        si interpréteuse.possède_exception() {
+            retourne
         }
         virgule = ", "
     }
@@ -196,16 +195,14 @@ imprime_valeur_récursif :: fonc (interpréteuse: *Interpréteuse, enchaineuse: 
         }
 
         ajoute_au_tampon(enchaineuse, virgule, index_prop, ": ")
-        completion := imprime_valeur_récursif(interpréteuse, enchaineuse, prop.valeur)
-        saufsi completion.est_normal() {
-            retourne completion
+        imprime_valeur_récursif(interpréteuse, enchaineuse, prop.valeur)
+        si interpréteuse.possède_exception() {
+            retourne
         }
         virgule = ", "
     }
 
     ajoute_au_tampon(enchaineuse, " }")
-
-    retourne normal_completion(js_undefined)
 }
 
 /* https://console.spec.whatwg.org/#time */
@@ -225,9 +222,9 @@ time :: fonc (console: *Console, nom: ECMAString)
 }
 
 /* https://console.spec.whatwg.org/#timeend */
-time_end :: fonc (console: *Console, interpréteuse: *Interpréteuse, nom: ECMAString) -> CompletionRecord
+time_end :: fonc (console: *Console, interpréteuse: *Interpréteuse, nom: ECMAString) -> Valeur
 {
-    résultat := normal_completion(js_undefined)
+    résultat := js_undefined
 
     index_chronomètre : z64 = -1
 
@@ -247,6 +244,9 @@ time_end :: fonc (console: *Console, interpréteuse: *Interpréteuse, nom: ECMAS
         arguments.taille = 1
 
         résultat = printer(console, interpréteuse, LogLevel.TIME_END, arguments)
+        si interpréteuse.possède_exception() {
+            retourne js_undefined
+        }
         index_chronomètre = index_it
 
         déloge(chn_temps)
@@ -328,58 +328,58 @@ count_reset :: fonc (console: *Console, interpréteuse: *Interpréteuse, nom: EC
 initialise_console :: fonc (console: *Console)
 {
     /* https://console.spec.whatwg.org/#log */
-    fonction_native_log :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+    fonction_native_log :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     {
         console := this_value.donne_objet().vérifie_comme(Console)
         retourne logger(console, interpréteuse, LogLevel.LOG, arguments)
     }
 
     /* https://console.spec.whatwg.org/#warn */
-    fonction_native_warn :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+    fonction_native_warn :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     {
         console := this_value.donne_objet().vérifie_comme(Console)
         retourne logger(console, interpréteuse, LogLevel.WARN, arguments)
     }
 
     /* https://console.spec.whatwg.org/#debug */
-    fonction_native_debug :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+    fonction_native_debug :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     {
         console := this_value.donne_objet().vérifie_comme(Console)
         retourne logger(console, interpréteuse, LogLevel.DEBUG, arguments)
     }
 
     /* https://console.spec.whatwg.org/#info */
-    fonction_native_info :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+    fonction_native_info :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     {
         console := this_value.donne_objet().vérifie_comme(Console)
         retourne logger(console, interpréteuse, LogLevel.INFO, arguments)
     }
 
     /* https://console.spec.whatwg.org/#error */
-    fonction_native_error :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+    fonction_native_error :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     {
         console := this_value.donne_objet().vérifie_comme(Console)
         retourne logger(console, interpréteuse, LogLevel.ERROR, arguments)
     }
 
     /* https://console.spec.whatwg.org/#clear */
-    fonction_native_clear :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+    fonction_native_clear :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     {
         console := this_value.donne_objet().vérifie_comme(Console)
         flux_sortie_efface(console.flux_sortie)
-        retourne normal_completion(js_undefined)
+        retourne js_undefined
     }
 
     /* https://console.spec.whatwg.org/#assert */
-    fonction_native_assert :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+    fonction_native_assert :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     {
         console := this_value.donne_objet().vérifie_comme(Console)
 
         si arguments.taille == 0 {
-            retourne normal_completion(js_undefined)
+            retourne js_undefined
         }
 
-        condition := to_boolean(params.donne_argument(0)).Boolean
+        condition := to_boolean(params.donne_argument(0))
 
         arguments.pointeur += 1
         arguments.taille -= 1
@@ -387,81 +387,72 @@ initialise_console :: fonc (console: *Console)
         retourne console_assert(console, interpréteuse, condition, arguments)
     }
 
-    fonction_native_time :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+    fonction_native_time :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     {
         console := this_value.donne_objet().vérifie_comme(Console)
 
         si arguments.taille == 0 {
-            retourne normal_completion(js_undefined)
+            retourne js_undefined
         }
 
-        complétion := to_string(interpréteuse, params.donne_argument(0))
-        saufsi complétion.est_normal() {
-            retourne complétion
+        S := to_string(interpréteuse, params.donne_argument(0))
+        si interpréteuse.possède_exception() {
+            retourne js_undefined
         }
 
-        nom := complétion.valeur.V.String.texte
+        console.time(S.texte)
 
-        console.time(nom)
-
-        retourne normal_completion(js_undefined)
+        retourne js_undefined
     }
 
-    fonction_native_time_end :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+    fonction_native_time_end :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     {
         console := this_value.donne_objet().vérifie_comme(Console)
 
         si arguments.taille == 0 {
-            retourne normal_completion(js_undefined)
+            retourne js_undefined
         }
 
-        complétion := to_string(interpréteuse, params.donne_argument(0))
-        saufsi complétion.est_normal() {
-            retourne complétion
+        S := to_string(interpréteuse, params.donne_argument(0))
+        si interpréteuse.possède_exception() {
+            retourne js_undefined
         }
 
-        nom := complétion.valeur.V.String.texte
-        retourne console.time_end(interpréteuse, nom)
+        retourne console.time_end(interpréteuse, S.texte)
     }
 
-    fonction_native_count :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+    fonction_native_count :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     {
         console := this_value.donne_objet().vérifie_comme(Console)
 
         si arguments.taille == 0 {
-            retourne normal_completion(js_undefined)
+            retourne js_undefined
         }
 
-        complétion := to_string(interpréteuse, params.donne_argument(0))
-        saufsi complétion.est_normal() {
-            retourne complétion
+        S := to_string(interpréteuse, params.donne_argument(0))
+        si interpréteuse.possède_exception() {
+            retourne js_undefined
         }
 
-        nom := complétion.valeur.V.String.texte
-
-        console.count(interpréteuse, nom)
-
-        retourne normal_completion(js_undefined)
+        console.count(interpréteuse, S.texte)
+        retourne js_undefined
     }
 
-    fonction_native_count_reset :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+    fonction_native_count_reset :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     {
         console := this_value.donne_objet().vérifie_comme(Console)
 
         si arguments.taille == 0 {
-            retourne normal_completion(js_undefined)
+            retourne js_undefined
         }
 
-        complétion := to_string(interpréteuse, params.donne_argument(0))
-        saufsi complétion.est_normal() {
-            retourne complétion
+        S := to_string(interpréteuse, params.donne_argument(0))
+        si interpréteuse.possède_exception() {
+            retourne js_undefined
         }
 
-        nom := complétion.valeur.V.String.texte
-
-        console.count_reset(interpréteuse, nom)
-
-        retourne normal_completion(js_undefined)
+        console.count_reset(interpréteuse, S.texte)
+        retourne js_undefined
     }
 
     console.ajoute_fonction_native("log", fonction_native_log)

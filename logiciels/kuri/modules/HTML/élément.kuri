@@ -2453,6 +2453,41 @@ décode_image :: fonc (contenu: chaine, content_type: chaine, résultat: *ImageI
         retourne vrai
     }
 
+    si content_type == MIME_image_svg {
+        chaine_c := crée_chaine_c(contenu)
+        diffère détruit_chaine_c(chaine_c)
+
+        image_svg: SVGImage
+        saufsi SVG_parse_image_depuis_contenu(chaine_c comme *z8, *image_svg) {
+            retourne faux
+        }
+        diffère SVG_image_detruit(*image_svg)
+
+        hauteur := image_svg.height comme z32
+        largeur := image_svg.width comme z32
+
+        desc: DescriptriceImage
+        desc.largeur = image_svg.width comme n32
+        desc.hauteur = image_svg.height comme n32
+        desc.format = FormatPixel.RVBA_8
+
+        image := crée_image(*desc)
+        diffère détruit_données_image(*image)
+        SVG_image_ratisse(*image_svg, image.données comme *n8, desc.largeur comme z32, desc.hauteur comme z32)
+
+        mémoire(résultat) = alloc_image(hauteur, largeur, 4)
+
+        entrée := image.données
+        sortie := résultat.donnees
+        pour résultat.taille_donnees {
+            mémoire(sortie) = mémoire(entrée) comme n8 comme r32 / 255.0
+            entrée += 1
+            sortie += 1
+        }
+
+        retourne vrai
+    }
+
     // À FAIRE : prend le chemin de l'url si le schéma n'est pas "data"
     chemin_image := ""
     si content_type == "image/png" {
