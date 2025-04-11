@@ -5498,7 +5498,7 @@ AtomeGlobale *CompilatriceRI::crée_info_fonction_pour_trace_appel(AtomeFonction
     auto fichier = m_compilatrice.fichier(decl->lexème->fichier);
     auto nom_fonction = decl->ident ? crée_constante_pour_chaine(decl->ident->nom) :
                                       crée_constante_pour_chaine("???");
-    auto nom_fichier = crée_constante_pour_chaine(fichier->nom());
+    auto nom_fichier = crée_constante_pour_chaine(fichier->chemin());
 
     kuri::tableau<AtomeConstante *> valeurs(3);
     valeurs[0] = nom_fonction;
