@@ -333,12 +333,12 @@ to_uint32 :: fonc (valeur: Valeur) -> n32
 
 /* 7.1.1 ToPrimitive ( input [ , preferredType ] )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-toprimitive */
-to_primitive :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur, type_préféré := TypePréféré.Aucun) -> CompletionRecord
+to_primitive :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur, type_préféré := TypePréféré.Aucun) -> Valeur
 {
     retourne to_primitive(interpréteuse.donne_realm(), valeur, type_préféré)
 }
 
-to_primitive :: fonc (realm: *Realm, valeur: Valeur, type_préféré := TypePréféré.Aucun) -> CompletionRecord
+to_primitive :: fonc (realm: *Realm, valeur: Valeur, type_préféré := TypePréféré.Aucun) -> Valeur
 {
     // 1. If input is an Object, then
     si valeur.est_object() {
@@ -365,12 +365,12 @@ to_primitive :: fonc (realm: *Realm, valeur: Valeur, type_préféré := TypePré
     }
 
     // 2. Return input.
-    retourne normal_completion(valeur)
+    retourne valeur
 }
 
 /* 7.1.1.1 OrdinaryToPrimitive ( O, hint )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-ordinarytoprimitive */
-ordinary_to_primitive :: fonc (realm: *Realm, object: *Object, hint: TypePréféré) -> CompletionRecord
+ordinary_to_primitive :: fonc (realm: *Realm, object: *Object, hint: TypePréféré) -> Valeur
 {
     method_names: [2]ECMAString
 
@@ -388,25 +388,23 @@ ordinary_to_primitive :: fonc (realm: *Realm, object: *Object, hint: TypePréfé
     // 3. For each element name of methodNames, do
     pour method_names {
         // a. Let method be ? Get(O, name).
-        completion := get(object, it)
-        saufsi completion.est_normal() {
-            retourne completion
+        method := get(object, it)
+        si realm.possède_exception() {
+            retourne js_undefined
         }
-        method := completion.valeur.V
 
         // b. If IsCallable(method) is true, then
         si is_callable(method) {
             // i. Let result be ? Call(method, O).
             mv := realm.donne_tas_de_mémoire().donne_mv()
-            completion = call(mv, method, object)
-            saufsi completion.est_normal() {
-                retourne completion
+            result := call(mv, method, object)
+            si realm.possède_exception() {
+                retourne js_undefined
             }
-            result := completion.valeur.V
 
             // ii. If result is not an Object, return result.
             saufsi result.est_object() {
-                retourne normal_completion(result)
+                retourne result
             }
         }
     }
@@ -417,24 +415,24 @@ ordinary_to_primitive :: fonc (realm: *Realm, object: *Object, hint: TypePréfé
 
 /* 7.1.2 ToBoolean ( argument )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-toboolean */
-to_boolean :: fonc (valeur: Valeur) -> Valeur
+to_boolean :: fonc (valeur: Valeur) -> bool
 {
     // 1. If argument is a Boolean, return argument.
     si valeur.est_boolean() {
-        retourne valeur
+        retourne valeur.Boolean
     }
 
     // 2. If argument is one of undefined, null, +0𝔽, -0𝔽, NaN, 0ℤ, or the empty String, return false.
     discr valeur {
         Null {
-            retourne Valeur(Boolean = faux)
+            retourne faux
         }
         Undefined {
-            retourne Valeur(Boolean = faux)
+            retourne faux
         }
         Number(n) {
             si n == 0.0 || n == -0.0 {
-                retourne Valeur(Boolean = faux)
+                retourne faux
             }
 
             si est_nan(n) {
@@ -445,32 +443,34 @@ to_boolean :: fonc (valeur: Valeur) -> Valeur
         }
         String(s) {
             si s.texte == crée_chaine_utf16_unique("") {
-                retourne Valeur(Boolean = faux)
+                retourne faux
             }
         }
         sinon {}
     }
 
-    // À FAIRE : 3. If argument is an Object and argument has an [[IsHTMLDDA]] internal slot, return false.
+    // 3. If argument is an Object and argument has an [[IsHTMLDDA]] internal slot, return false.
+    si valeur.est_object() && possède_slot(valeur.donne_objet(), "[[IsHTMLDDA]]") {
+        retourne faux
+    }
 
     // 4. Return true.
-    retourne Valeur(Boolean = vrai)
+    retourne vrai
 }
 
 /* 7.1.3 ToNumeric ( value )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-tonumeric */
-to_numeric :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur) -> CompletionRecord
+to_numeric :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur) -> Valeur
 {
     // 1. Let primValue be ? ToPrimitive(value, NUMBER).
-    complétion_valeur_primitive := to_primitive(interpréteuse, valeur, TypePréféré.Number)
-    saufsi complétion_valeur_primitive.est_normal() {
-        retourne complétion_valeur_primitive
+    valeur_primitive := to_primitive(interpréteuse, valeur, TypePréféré.Number)
+    si interpréteuse.possède_exception() {
+        retourne js_undefined
     }
-    valeur_primitive := complétion_valeur_primitive.valeur.V
 
     // 2. If primValue is a BigInt, return primValue.
     si valeur_primitive.est_big_int() {
-        retourne normal_completion(valeur_primitive)
+        retourne valeur_primitive
     }
 
     // 3. Return ? ToNumber(primValue).
@@ -479,50 +479,51 @@ to_numeric :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur) -> Completi
 
 /* 7.1.4 ToNumber ( argument )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-tonumber */
-to_number :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur) -> CompletionRecord
+to_number :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur) -> r64
 {
     // 1. If argument is a Number, return argument.
     si valeur.est_nombre() {
-        retourne normal_completion(valeur)
+        retourne valeur.Number
     }
 
     // 2. If argument is either a Symbol or a BigInt, throw a TypeError exception.
     si valeur.est_symbol() {
-        retourne lance_type_error(interpréteuse, "can't convert Symbol to number")
+        _ := lance_type_error(interpréteuse, "can't convert Symbol to number")
+        retourne NaN
     }
     si valeur.est_big_int() {
-        retourne lance_type_error(interpréteuse, "can't convert BigInt to number")
+        _ := lance_type_error(interpréteuse, "can't convert BigInt to number")
+        retourne NaN
     }
 
     // 3. If argument is undefined, return NaN.
     si valeur.est_undefined() {
-        retourne normal_completion(Valeur(Number = NaN))
+        retourne NaN
     }
 
     // 4. If argument is either null or false, return +0𝔽.
     si valeur.est_nulle() || valeur.est_false() {
-        retourne normal_completion(Valeur(Number = 0.0))
+        retourne 0.0
     }
 
     // 5. If argument is true, return 1𝔽.
     si valeur.est_true() {
-        retourne normal_completion(Valeur(Number = 1.0))
+        retourne 1.0
     }
 
     // 6. If argument is a String, return StringToNumber(argument).
     si valeur.est_chaine() {
-        retourne normal_completion(string_to_number(interpréteuse.donne_realm(), valeur))
+        retourne string_to_number(interpréteuse.donne_realm(), valeur)
     }
 
     // 7. Assert: argument is an Object.
     assert(valeur.est_object())
 
     // 8. Let primValue be ? ToPrimitive(argument, NUMBER).
-    completion_primitive := to_primitive(interpréteuse, valeur, TypePréféré.Number)
-    saufsi completion_primitive.est_normal() {
-        retourne completion_primitive
+    prim_value := to_primitive(interpréteuse, valeur, TypePréféré.Number)
+    si interpréteuse.possède_exception() {
+        retourne js_undefined
     }
-    prim_value := completion_primitive.valeur.V
 
     // 9. Assert: primValue is not an Object.
     assert(prim_value.est_object() == faux)
@@ -533,7 +534,7 @@ to_number :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur) -> Completio
 
 /* 7.1.4.1.1 StringToNumber ( str )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-stringtonumber */
-string_to_number :: fonc (realm: *Realm, valeur: Valeur) -> Valeur
+string_to_number :: fonc (realm: *Realm, valeur: Valeur) -> r64
 {
     source := crée_texte_source(valeur.String.texte)
     diffère détruit_données_texte_source(*source)
@@ -544,68 +545,67 @@ string_to_number :: fonc (realm: *Realm, valeur: Valeur) -> Valeur
     discr literal {
         Erreur {
             // 2. If literal is a List of errors, return NaN.
-            retourne Valeur(Number = NaN)
+            retourne NaN
         }
         Ok(noeud) {
             diffère détruit_arbre(noeud)
 
             // 3. Return the StringNumericValue of literal.
             numeric := noeud comme *NumericLiteral
-            retourne Valeur(Number = numeric.valeur)
+            retourne numeric.valeur
         }
         sinon {}
     }
 
-    retourne Valeur(Number = NaN)
+    retourne NaN
 }
 
 /* 7.1.5 ToIntegerOrInfinity ( argument )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-tointegerorinfinity */
-to_integer_or_infinity :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur) -> CompletionRecord
+to_integer_or_infinity :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur) -> r64
 {
     // 1. Let number be ? ToNumber(argument).
-    completion := to_number(interpréteuse, valeur)
-    saufsi completion.est_normal() {
-        retourne completion
+    number := to_number(interpréteuse, valeur)
+    si interpréteuse.possède_exception() {
+        retourne NaN
     }
-    number := completion.valeur.V.Number
 
     // 2. If number is one of NaN, +0𝔽, or -0𝔽, return 0.
     si est_nan(number) || number == 0.0 || number == -0.0 {
-        retourne normal_completion(Valeur(Number = 0))
+        retourne 0.0
     }
 
     // 3. If number is +∞𝔽, return +∞.
     // 4. If number is -∞𝔽, return -∞.
     si est_infini(number) {
-        retourne normal_completion(Valeur(Number = number))
+        retourne number
     }
 
     // À FAIRE : 5. Return truncate(ℝ(number)).
-    retourne normal_completion(Valeur(Number = (number comme z64) comme r64))
+    retourne (number comme z64) comme r64
 }
 
 /* 7.1.6 ToInt32 ( argument )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-toint32 */
-to_int32 :: fonc (argument: Valeur) -> Valeur
+to_int32 :: fonc (argument: Valeur) -> r64
 {
     // À FAIRE : standardise
     x := argument.Number comme z32
-    retourne Valeur(Number = x comme r64)
+    retourne x comme r64
 }
 
 /* 7.1.17 ToString ( argument )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-tostring */
-to_string :: fonc (interpréteuse: *Interpréteuse, argument: Valeur) -> CompletionRecord
+to_string :: fonc (interpréteuse: *Interpréteuse, argument: Valeur) -> *PrimitiveChaine
 {
     retourne to_string(interpréteuse.donne_realm(), argument)
 }
 
-to_string :: fonc (realm: *Realm, argument: Valeur) -> CompletionRecord
+to_string :: fonc (realm: *Realm, argument: Valeur) -> *PrimitiveChaine
 {
     // 1. If argument is a String, return argument.
     si argument.est_chaine() {
-        retourne normal_completion(argument)
+        retourne argument.String
     }
 
     // 2. If argument is a Symbol, throw a TypeError exception.
@@ -615,27 +615,27 @@ to_string :: fonc (realm: *Realm, argument: Valeur) -> CompletionRecord
 
     // 3. If argument is undefined, return "undefined".
     si argument.est_undefined() {
-        retourne normal_completion(crée_chaine(realm, STR_undefined))
+        retourne crée_chaine(realm, STR_undefined)
     }
 
     // 4. If argument is null, return "null".
     si argument.est_nulle() {
-        retourne normal_completion(crée_chaine(realm, STR_null))
+        retourne crée_chaine(realm, STR_null)
     }
 
     // 5. If argument is true, return "true".
     si argument.est_true() {
-        retourne normal_completion(crée_chaine(realm, STR_true))
+        retourne crée_chaine(realm, STR_true)
     }
 
     // 6. If argument is false, return "false".
     si argument.est_false() {
-        retourne normal_completion(crée_chaine(realm, STR_false))
+        retourne crée_chaine(realm, STR_false)
     }
 
     // 7. If argument is a Number, return Number::toString(argument, 10).
     si argument.est_nombre() {
-        retourne normal_completion(number_to_string(realm, argument, 10))
+        retourne number_to_string(realm, argument, 10)
     }
 
     // 8. If argument is a BigInt, return BigInt::toString(argument, 10).
@@ -647,11 +647,10 @@ to_string :: fonc (realm: *Realm, argument: Valeur) -> CompletionRecord
     assert(argument.est_object())
 
     // 10. Let primValue be ? ToPrimitive(argument, STRING).
-    completion_prim_value := to_primitive(realm, argument, TypePréféré.String)
-    saufsi completion_prim_value.est_normal() {
-        retourne completion_prim_value
+    prim_value := to_primitive(realm, argument, TypePréféré.String)
+    si realm.possède_exception() {
+        retourne js_undefined
     }
-    prim_value := completion_prim_value.valeur.V
 
     // 11. Assert: primValue is not an Object.
     assert(!prim_value.est_object())
@@ -668,18 +667,25 @@ TypePréféré :: énum {
 
 /* 7.1.18 ToObject ( argument )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-toobject */
-to_object :: fonc (realm: *Realm, valeur: Valeur) -> CompletionRecord
+to_object :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur) -> *Object
+{
+    retourne to_object(interpréteuse.donne_realm(), valeur)
+}
+
+to_object :: fonc (realm: *Realm, valeur: Valeur) -> *Object
 {
     si valeur.est_undefined() {
-        retourne lance_type_error(realm, "undefined is not an Object")
+        _ := lance_type_error(realm, "undefined is not an Object")
+        retourne nul
     }
 
     si valeur.est_nulle() {
-        retourne lance_type_error(realm, "null is not an Object")
+        _ := lance_type_error(realm, "null is not an Object")
+        retourne nul
     }
 
     si valeur.est_object() {
-        retourne normal_completion(Valeur(Object = valeur.donne_objet()))
+        retourne valeur.donne_objet()
     }
 
     si valeur.est_chaine() {
@@ -687,17 +693,15 @@ to_object :: fonc (realm: *Realm, valeur: Valeur) -> CompletionRecord
         saufsi chn.objet {
             chn.objet = crée_chaine(realm.donne_tas_de_mémoire(), realm.intrinsics.string_prototype, valeur.String)
         }
-        retourne normal_completion(Valeur(Object = chn.objet))
+        retourne chn.objet
     }
 
     si valeur.est_nombre() {
-        object := crée_number_object(realm.donne_tas_de_mémoire(), realm.intrinsics.number_prototype, valeur.Number)
-        retourne normal_completion(Valeur(Object = object))
+        retourne crée_number_object(realm.donne_tas_de_mémoire(), realm.intrinsics.number_prototype, valeur.Number)
     }
 
     si valeur.est_boolean() {
-        object := crée_boolean_object(realm, valeur.Boolean)
-        retourne normal_completion(Valeur(Object = object))
+        retourne crée_boolean_object(realm, valeur.Boolean)
     }
 
     panique("to_object non-implémenté pour type")
@@ -705,49 +709,47 @@ to_object :: fonc (realm: *Realm, valeur: Valeur) -> CompletionRecord
 
 /* 7.1.19 ToPropertyKey ( argument )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-topropertykey */
-to_property_key :: fonc (interpréteuse: *Interpréteuse, argument: Valeur) -> CompletionRecord
+to_property_key :: fonc (interpréteuse: *Interpréteuse, argument: Valeur) -> PropertyKey
 {
     retourne to_property_key(interpréteuse.donne_realm(), argument)
 }
 
-to_property_key :: fonc (realm: *Realm, argument: Valeur) -> CompletionRecord
+to_property_key :: fonc (realm: *Realm, argument: Valeur) -> PropertyKey
 {
     // 1. Let key be ? ToPrimitive(argument, STRING).
-    completion := to_primitive(realm, argument, TypePréféré.String)
-    saufsi completion.est_normal() {
-        retourne completion
+    key := to_primitive(realm, argument, TypePréféré.String)
+    si realm.possède_exception() {
+        retourne PropertyKey(Symbol = nul)
     }
-    key := completion.valeur.V
 
     // 2. If key is a Symbol, then
     si key.est_symbol() {
         // a. Return key.
-        retourne normal_completion(key)
+        retourne PropertyKey(Symbol = key.Symbol)
     }
 
     // 3. Return ! ToString(key).
-    retourne to_string(realm, key)
+    retourne PropertyKey(to_string(realm, key).texte)
 }
 
 /* 7.1.20 ToLength ( argument )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-tolength */
-to_length :: fonc (interpréteuse: *Interpréteuse, argument: Valeur) -> CompletionRecord
+to_length :: fonc (interpréteuse: *Interpréteuse, argument: Valeur) -> r64
 {
     // 1. Let len be ? ToIntegerOrInfinity(argument).
-    completion := to_integer_or_infinity(interpréteuse, argument)
-    saufsi completion.est_normal() {
-        retourne completion
+    len := to_integer_or_infinity(interpréteuse, argument)
+    si interpréteuse.possède_exception() {
+        retourne NaN
     }
-    len := completion.valeur.V.Number
 
     // 2. If len ≤ 0, return +0𝔽.
     si len <= 0.0 {
-        retourne normal_completion(Valeur(Number = 0.0))
+        retourne 0.0
     }
 
     // 3. Return 𝔽(min(len, 2**53 - 1)).
     maximum := ((2 comme n64) << 53 - 1) comme r64
-    retourne normal_completion(Valeur(Number = min(len, maximum)))
+    retourne min(len, maximum)
 }
 
 /** \} */
@@ -759,15 +761,17 @@ to_length :: fonc (interpréteuse: *Interpréteuse, argument: Valeur) -> Complet
 
 /* 7.2.1 RequireObjectCoercible ( argument )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-requireobjectcoercible */
-require_object_coercible :: fonc (realm: *Realm, value: Valeur) -> CompletionRecord
+require_object_coercible :: fonc (realm: *Realm, value: Valeur) -> Valeur
 {
     si value.est_nulle() {
-        retourne lance_type_error(realm, "null is not an Object")
+        _ := lance_type_error(realm, "null is not an Object")
+        retourne js_undefined
     }
     si value.est_undefined() {
-        retourne lance_type_error(realm, "undefined is not an Object")
+        _ := lance_type_error(realm, "undefined is not an Object")
+        retourne js_undefined
     }
-    retourne normal_completion(value)
+    retourne value
 }
 
 /* 7.2.3 IsCallable ( argument )
@@ -934,7 +938,7 @@ same_value_non_number :: fonc (x: Valeur, y: Valeur) -> Valeur
 
 /* 7.2.11 IsLessThan ( x, y, LeftFirst )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-islessthan */
-is_less_than :: fonc (interpréteuse: *Interpréteuse, x: Valeur, y: Valeur, left_first: bool) -> CompletionRecord
+is_less_than :: fonc (interpréteuse: *Interpréteuse, x: Valeur, y: Valeur, left_first: bool) -> Valeur
 {
     px: Valeur
     py: Valeur
@@ -942,35 +946,31 @@ is_less_than :: fonc (interpréteuse: *Interpréteuse, x: Valeur, y: Valeur, lef
     // 1. If LeftFirst is true, then
     si left_first {
         // a. Let px be ? ToPrimitive(x, NUMBER).
-        completion := to_primitive(interpréteuse, x, TypePréféré.Number)
-        saufsi completion.est_normal() {
-            retourne completion
+        px = to_primitive(interpréteuse, x, TypePréféré.Number)
+        si interpréteuse.possède_exception() {
+            retourne faux
         }
-        px = completion.valeur.V
 
         // b. Let py be ? ToPrimitive(y, NUMBER).
-        completion = to_primitive(interpréteuse, y, TypePréféré.Number)
-        saufsi completion.est_normal() {
-            retourne completion
+        py = to_primitive(interpréteuse, y, TypePréféré.Number)
+        si interpréteuse.possède_exception() {
+            retourne faux
         }
-        py = completion.valeur.V
     }
     // 2. Else,
     sinon {
         // a. NOTE: The order of evaluation needs to be reversed to preserve left to right evaluation.
         // b. Let py be ? ToPrimitive(y, NUMBER).
-        completion := to_primitive(interpréteuse, y, TypePréféré.Number)
-        saufsi completion.est_normal() {
-            retourne completion
+        py = to_primitive(interpréteuse, y, TypePréféré.Number)
+        si interpréteuse.possède_exception() {
+            retourne faux
         }
-        py = completion.valeur.V
 
         // c. Let px be ? ToPrimitive(x, NUMBER).
-        completion = to_primitive(interpréteuse, x, TypePréféré.Number)
-        saufsi completion.est_normal() {
-            retourne completion
+        px = to_primitive(interpréteuse, x, TypePréféré.Number)
+        si interpréteuse.possède_exception() {
+            retourne faux
         }
-        px = completion.valeur.V
     }
 
     // 3. If px is a String and py is a String, then
@@ -986,7 +986,7 @@ is_less_than :: fonc (interpréteuse: *Interpréteuse, x: Valeur, y: Valeur, lef
         // d. If lx < ly, return true. Otherwise, return false.   
         chn_px := px.String.texte
         chn_py := py.String.texte
-        retourne normal_completion(Valeur(Boolean = chn_px < chn_py))
+        retourne chn_px < chn_py
     }
     // 4. Else,
     sinon {
@@ -1006,25 +1006,23 @@ is_less_than :: fonc (interpréteuse: *Interpréteuse, x: Valeur, y: Valeur, lef
         }
         // c. NOTE: Because px and py are primitive values, evaluation order is not important.
         // d. Let nx be ? ToNumeric(px).
-        completion := to_numeric(interpréteuse, px)
-        saufsi completion.est_normal() {
-            retourne completion
+        nx := to_numeric(interpréteuse, px)
+        si interpréteuse.possède_exception() {
+            retourne faux
         }
-        nx := completion.valeur.V
 
         // e. Let ny be ? ToNumeric(py).
-        completion = to_numeric(interpréteuse, py)
-        saufsi completion.est_normal() {
-            retourne completion
+        ny := to_numeric(interpréteuse, py)
+        si interpréteuse.possède_exception() {
+            retourne faux
         }
-        ny := completion.valeur.V
 
         // f. If Type(nx) is Type(ny), then
         si donne_type(nx) == donne_type(ny) {
             // i. If nx is a Number, then
             si nx.est_nombre() {
                 // 1. Return Number::lessThan(nx, ny).
-                retourne normal_completion(number_less_than(nx, ny))
+                retourne number_less_than(nx, ny)
             }
             // ii. Else,
                 // 1. Assert: nx is a BigInt.
@@ -1036,7 +1034,7 @@ is_less_than :: fonc (interpréteuse: *Interpréteuse, x: Valeur, y: Valeur, lef
 
         // h. If nx or ny is NaN, return undefined.
         si nx.est_nan() || ny.est_nan() {
-            retourne normal_completion(js_undefined)
+            retourne js_undefined
         }
 
         // i. If nx is -∞𝔽 or ny is +∞𝔽, return true.
@@ -1048,35 +1046,35 @@ is_less_than :: fonc (interpréteuse: *Interpréteuse, x: Valeur, y: Valeur, lef
 
 /* 7.2.12 IsLooselyEqual ( x, y )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-islooselyequal */
-is_loosely_equal :: fonc (interpréteuse: *Interpréteuse, x: Valeur, y: Valeur) -> CompletionRecord
+is_loosely_equal :: fonc (interpréteuse: *Interpréteuse, x: Valeur, y: Valeur) -> bool
 {
     // 1. If Type(x) is Type(y), then
     si x.donne_type() == y.donne_type() {
         // a. Return IsStrictlyEqual(x, y).
-        retourne normal_completion(is_strictly_equal(x, y))
+        retourne is_strictly_equal(x, y)
     }
 
     // 2. If x is null and y is undefined, return true.
     si x.est_nulle() && y.est_undefined() {
-        retourne normal_completion(Valeur(Boolean = vrai))
+        retourne vrai
     }
 
     // 3. If x is undefined and y is null, return true.
     si x.est_undefined() && y.est_nulle() {
-        retourne normal_completion(Valeur(Boolean = vrai))
+        retourne vrai
     }
 
     // À FAIRE 4. NOTE: This step is replaced in section B.3.6.2.
 
     // 5. If x is a Number and y is a String, return ! IsLooselyEqual(x, ! ToNumber(y)).
     si x.est_nombre() && y.est_chaine() {
-        ny := to_number(interpréteuse, y).valeur.V
+        ny := to_number(interpréteuse, y)
         retourne is_loosely_equal(interpréteuse, x, ny)
     }
 
     // 6. If x is a String and y is a Number, return ! IsLooselyEqual(! ToNumber(x), y).
     si x.est_chaine() && y.est_nombre() {
-        nx := to_number(interpréteuse, x).valeur.V
+        nx := to_number(interpréteuse, x)
         retourne is_loosely_equal(interpréteuse, nx, y)
     }
 
@@ -1095,13 +1093,13 @@ is_loosely_equal :: fonc (interpréteuse: *Interpréteuse, x: Valeur, y: Valeur)
 
     // 9. If x is a Boolean, return ! IsLooselyEqual(! ToNumber(x), y).
     si x.est_boolean() {
-        nx := to_number(interpréteuse, x).valeur.V
+        nx := to_number(interpréteuse, x)
         retourne is_loosely_equal(interpréteuse, nx, y)
     }
 
     // 10. If y is a Boolean, return ! IsLooselyEqual(x, ! ToNumber(y)).
     si y.est_boolean() {
-        ny := to_number(interpréteuse, y).valeur.V
+        ny := to_number(interpréteuse, y)
         retourne is_loosely_equal(interpréteuse, x, ny)
     }
 
@@ -1123,16 +1121,16 @@ is_loosely_equal :: fonc (interpréteuse: *Interpréteuse, x: Valeur, y: Valeur)
     }
 
     // 14. Return false.
-    retourne normal_completion(Valeur(Boolean = faux))
+    retourne faux
 }
 
 /* 7.2.13 IsStrictlyEqual ( x, y )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-isstrictlyequal */
-is_strictly_equal :: fonc (x: Valeur, y: Valeur) -> Valeur
+is_strictly_equal :: fonc (x: Valeur, y: Valeur) -> bool
 {
     // 1. If Type(x) is not Type(y), return false.
     si x.donne_type() != y.donne_type() {
-        retourne Valeur(Boolean = faux)
+        retourne faux
     }
 
     // 2. If x is a Number, then

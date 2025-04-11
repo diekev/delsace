@@ -64,7 +64,7 @@ number_unary_minus :: fonc (x: Valeur) -> Valeur
 number_bitwise_not :: fonc (x: Valeur) -> Valeur
 {
     // 1. Let oldValue be ! ToInt32(x).
-    old_value := to_int32(x).Number comme z32
+    old_value := to_int32(x) comme z32
 
     // 2. Return the bitwise complement of oldValue.
     // The mathematical value of the result is exactly representable as a 32-bit two's complement bit string.
@@ -618,6 +618,20 @@ to_uint32 :: fonc (property_key: PropertyKey) -> n32
 
     résultat := tente extrait_r64(texte_utf8) piège nonatteignable
     retourne résultat comme n32
+}
+
+donne_valeur :: fonc (property_key: PropertyKey, realm: *Realm) -> Valeur
+{
+    discr property_key {
+        String(s) {
+            retourne crée_chaine(realm, s)
+        }
+        Symbol(s) {
+            retourne s
+        }
+        sinon {}
+    }
+    retourne js_undefined
 }
 
 /** \} */

@@ -336,6 +336,9 @@ struct BaseDéclarationVariable : NoeudDéclarationSymbole {
     NoeudExpression * expression_type [code enfant construction]
 
     Annotation [] annotations [code copie]
+
+    // À FAIRE : permet d'avoir "enfant" sans avoir "code"
+    NoeudBloc *bloc_pour_initialisation_globale [code enfant]
 }
 
 /* a := ... */

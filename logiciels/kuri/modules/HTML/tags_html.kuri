@@ -324,6 +324,11 @@ EVT_onunload : DOMString = ---
 EVT_onreadystatechange : DOMString = ---
 EVT_onvisibilitychange : DOMString = ---
 
+EVT_onanimationend : DOMString = ---
+EVT_onanimationiteration : DOMString = ---
+EVT_onanimationstart : DOMString = ---
+EVT_ontransitionend : DOMString = ---
+
 /* Ceci doit être après les tags, car nous l'utilions comme sentinelle dans les
  * métaprogrammes plus bas. */
 tags_initialisés := faux

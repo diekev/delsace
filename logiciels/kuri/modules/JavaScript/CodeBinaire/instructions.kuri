@@ -933,9 +933,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 gauche := donne_registre(registres, relat.gch)
                 droite := interprète.donne_accumulateur()
 
-                completion := is_less_than(interprète, gauche, droite, vrai)
-                interprète.définis_exception(completion)
-                r := completion.valeur.V
+                r := is_less_than(interprète, gauche, droite, vrai)
 
                 si r.est_undefined() {
                     r = Valeur(Boolean = faux)
@@ -947,9 +945,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 gauche := donne_registre(registres, relat.gch)
                 droite := interprète.donne_accumulateur()
 
-                completion := is_less_than(interprète, droite, gauche, faux)
-                interprète.définis_exception(completion)
-                r := completion.valeur.V
+                r := is_less_than(interprète, droite, gauche, faux)
 
                 si r.est_undefined() {
                     r = Valeur(Boolean = faux)
@@ -961,9 +957,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 gauche := donne_registre(registres, relat.gch)
                 droite := interprète.donne_accumulateur()
 
-                completion := is_less_than(interprète, droite, gauche, faux)
-                interprète.définis_exception(completion)
-                r := completion.valeur.V
+                r := is_less_than(interprète, droite, gauche, faux)
                 si r.est_true() || r.est_undefined() {
                     r = Valeur(Boolean = faux)
                 }
@@ -977,9 +971,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 gauche := donne_registre(registres, relat.gch)
                 droite := interprète.donne_accumulateur()
 
-                completion := is_less_than(interprète, gauche, droite, vrai)
-                interprète.définis_exception(completion)
-                r := completion.valeur.V
+                r := is_less_than(interprète, gauche, droite, vrai)
                 si r.est_true() || r.est_undefined() {
                     r = Valeur(Boolean = faux)
                 }
@@ -1006,25 +998,16 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 gauche := donne_registre(registres, inst_ajout.gch)
                 droite := interprète.donne_accumulateur()
 
-                completion := is_loosely_equal(interprète, gauche, droite)
-                interprète.définis_exception(completion)
-                interprète.définis_accumulateur(completion.valeur.V)
+                r := is_loosely_equal(interprète, gauche, droite)
+                interprète.définis_accumulateur(r)
             }
             InstructionComparaisonInégal {
                 inst_ajout := it comme *InstructionComparaisonInégal
                 gauche := donne_registre(registres, inst_ajout.gch)
                 droite := interprète.donne_accumulateur()
 
-                completion := is_loosely_equal(interprète, gauche, droite)
-                interprète.définis_exception(completion)
-                résultat := completion.valeur.V
-                si résultat.est_true() {
-                    résultat.Boolean = faux
-                }
-                sinon {
-                    résultat.Boolean = vrai
-                }
-                interprète.définis_accumulateur(completion.valeur.V)
+                résultat := !is_loosely_equal(interprète, gauche, droite)
+                interprète.définis_accumulateur(résultat)
             }
             InstructionComparaisonÉgalStrict {
                 inst_ajout := it comme *InstructionComparaisonÉgalStrict
@@ -1039,13 +1022,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 gauche := donne_registre(registres, inst_ajout.gch)
                 droite := interprète.donne_accumulateur()
 
-                résultat := is_strictly_equal(gauche, droite)
-                si résultat.est_true() {
-                    résultat.Boolean = faux
-                }
-                sinon {
-                    résultat.Boolean = vrai
-                }
+                résultat := !is_strictly_equal(gauche, droite)
                 interprète.définis_accumulateur(résultat)
             }
             InstructionCréeChaine {
@@ -1080,14 +1057,13 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 realm := donne_realm(interprète)
 
                 résultat := resolve_binding(interprète, définis_locale.donne_chaine_primitive(realm))
-                interprète.définis_exception(résultat)
 
                 // À FAIRE
                 // référence := résultat.valeur.R
                 // noeud.coordonnée = référence.coordonnée
 
                 valeur := interprète.donne_accumulateur()
-                completion_assignment := put_value(interprète, résultat.valeur, valeur)
+                completion_assignment := put_value(interprète, résultat, valeur)
                 interprète.définis_exception(completion_assignment)
             }
             InstructionChargeLocale {
@@ -1095,11 +1071,9 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 realm := donne_realm(interprète)
 
                 résultat := resolve_binding(interprète, charge_locale.donne_chaine_primitive(realm))
-                interprète.définis_exception(résultat)
 
-                completion_rval := get_value(interprète, résultat.valeur)
-                interprète.définis_exception(completion_rval)
-                interprète.définis_accumulateur(completion_rval.valeur.V)
+                rval := get_value(interprète, résultat)
+                interprète.définis_accumulateur(rval)
             }
             InstructionInitialiseRéférence {
                 init := it comme *InstructionInitialiseRéférence
@@ -1107,8 +1081,8 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 realm := donne_realm(interprète)
                 valeur := interprète.donne_accumulateur()
 
-                lhs := resolve_binding(interprète, realm.crée_chaine(init.nom)).valeur.R
-                _ := initialize_reference_binding(lhs, valeur)
+                lhs := resolve_binding(interprète, realm.crée_chaine(init.nom))
+                initialize_reference_binding(lhs, valeur)
             }
             InstructionDéfinisMembre {
                 membre := it comme *InstructionDéfinisMembre
@@ -1143,9 +1117,8 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 référence.referenced_name = Valeur(String = referenced_name)
                 // À FAIRE : résultat.strict = strict
 
-                completion_rval := get_value(interprète, référence)
-                interprète.définis_exception(completion_rval)
-                interprète.définis_accumulateur(completion_rval.valeur.V)
+                rval := get_value(interprète, référence)
+                interprète.définis_accumulateur(rval)
             }
             InstructionDéfinisIndex {
                 inst := it comme *InstructionDéfinisIndex
@@ -1173,9 +1146,8 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 référence.referenced_name = property_name_value
                 // À FAIRE : résultat.strict = strict
 
-                completion_rval := get_value(interprète, référence)
-                interprète.définis_exception(completion_rval)
-                interprète.définis_accumulateur(completion_rval.valeur.V)
+                rval := get_value(interprète, référence)
+                interprète.définis_accumulateur(rval)
             }
             InstructionCréePropriétéArray {
                 inst := it comme *InstructionCréePropriétéArray
@@ -1183,7 +1155,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 objet := donne_registre(registres, inst.obj).donne_objet()
                 valeur := interprète.donne_accumulateur()
 
-                nom_propriété := to_string(interprète, Valeur(Number = inst.index comme r64)).valeur.V.String.texte
+                nom_propriété := to_string(interprète, Valeur(Number = inst.index comme r64)).texte
 
                 _ := create_data_property(objet, nom_propriété, valeur)
             }
@@ -1204,22 +1176,23 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 // 4. If func is not an Object, throw a TypeError exception.
                 saufsi func.est_object() {
                     message := imprime_chaine("'%' is not an Object", func)
-                    retourne lance_type_error(interprète, message)
+                    _ := lance_type_error(interprète, message)
+                    retourne throw_completion(interprète.donne_exception())
                 }
                 
                 // 5. If IsCallable(func) is false, throw a TypeError exception.
                 saufsi func.is_callable() {
                     message := imprime_chaine("'%' is not callable", func)
-                    retourne lance_type_error(interprète, message)
+                    _ := lance_type_error(interprète, message)
+                    retourne throw_completion(interprète.donne_exception())
                 }
 
                 // 6. If tailPosition is true, perform PrepareForTailCall().
 
                 // 7. Return ? Call(func, thisValue, argList).
-                completion := call(interprète, func, this_value, arguments)
-                interprète.définis_exception(completion)
+                valeur := call(interprète, func, this_value, arguments)
 
-                interprète.définis_accumulateur(completion.valeur.V)
+                interprète.définis_accumulateur(valeur)
             }
             InstructionAppelEval {
                 appel := it comme *InstructionAppelEval
@@ -1244,9 +1217,8 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                     // À FAIRE : is_strict(noeud)
                     strict_caller := faux
 
-                    completion := perform_eval(interprète, eval_arg, strict_caller, vrai)
-                    interprète.définis_exception(completion)
-                    interprète.définis_accumulateur(completion.valeur.V)
+                    valeur := perform_eval(interprète, eval_arg, strict_caller, vrai)
+                    interprète.définis_accumulateur(valeur)
                     continue
                 }
 
@@ -1255,22 +1227,22 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 // 4. If func is not an Object, throw a TypeError exception.
                 saufsi func.est_object() {
                     message := imprime_chaine("'%' is not an Object", func)
-                    retourne lance_type_error(interprète, message)
+                    _ := lance_type_error(interprète, message)
+                    retourne throw_completion(interprète.donne_exception())
                 }
                 
                 // 5. If IsCallable(func) is false, throw a TypeError exception.
                 saufsi func.is_callable() {
                     message := imprime_chaine("'%' is not callable", func)
-                    retourne lance_type_error(interprète, message)
+                    _ := lance_type_error(interprète, message)
+                    retourne throw_completion(interprète.donne_exception())
                 }
 
                 // 6. If tailPosition is true, perform PrepareForTailCall().
 
                 // 7. Return ? Call(func, thisValue, argList).
-                completion := call(interprète, func, this_value, arguments)
-                interprète.définis_exception(completion)
-
-                interprète.définis_accumulateur(completion.valeur.V)
+                valeur := call(interprète, func, this_value, arguments)
+                interprète.définis_accumulateur(valeur)
             }
             InstructionNew {
                 new := it comme *InstructionNew
@@ -1286,14 +1258,13 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
 
                 // 5. If IsConstructor(constructor) is false, throw a TypeError exception.
                 saufsi is_constructor(constructor) {
-                    retourne lance_type_error(interprète, "expression is not a constructor")
+                    _ := lance_type_error(interprète, "expression is not a constructor")
+                    retourne throw_completion(interprète.donne_exception())
                 }
 
                 // 6. Return ? Construct(constructor, argList).
-                completion := construct(interprète, constructor, arguments)
-                interprète.définis_exception(completion)
-
-                interprète.définis_accumulateur(completion.valeur.V)
+                valeur := construct(interprète, constructor, arguments)
+                interprète.définis_accumulateur(valeur)
             }
             InstructionThisValueAppel {
                 this_value := it comme *InstructionThisValueAppel
@@ -1339,21 +1310,13 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 retourne return_completion(valeur)
             }
             InstructionThis {
-                completion := resolve_this_binding(interprète)
-                interprète.définis_exception(completion)
-                interprète.définis_accumulateur(completion.valeur.V)
+                valeur := resolve_this_binding(interprète)
+                interprète.définis_accumulateur(valeur)
             }
             InstructionIncrémente {
                 valeur := interprète.donne_accumulateur()
 
-                complétion_old_value := to_numeric(interprète, valeur)
-                old_value := js_undefined
-                si complétion_old_value.est_throw() {
-                    interprète.définis_exception(complétion_old_value.valeur.V)
-                }
-                sinon {
-                    old_value = complétion_old_value.valeur.V
-                }
+                old_value := to_numeric(interprète, valeur)
 
                 nouvelle_valeur: Valeur
 
@@ -1369,14 +1332,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
             InstructionDécrémente {
                 valeur := interprète.donne_accumulateur()
 
-                complétion_old_value := to_numeric(interprète, valeur)
-                old_value := js_undefined
-                si complétion_old_value.est_throw() {
-                    interprète.définis_exception(complétion_old_value.valeur.V)
-                }
-                sinon {
-                    old_value = complétion_old_value.valeur.V
-                }
+                old_value := to_numeric(interprète, valeur)
 
                 nouvelle_valeur: Valeur
 
@@ -1442,9 +1398,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
             }
             InstructionThrow {
                 valeur := interprète.donne_accumulateur()
-                saufsi interprète.possède_exception() {
-                    interprète.exception = valeur
-                }
+                interprète.définis_exception(valeur)
             }
             InstructionEmpileExceptionHandler {
                 inst := it comme *InstructionEmpileExceptionHandler
@@ -1469,12 +1423,10 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
             InstructionUnaryMinus {
                 valeur := interprète.donne_accumulateur()
 
-                completion := to_number(interprète, valeur)
-                si completion.est_throw() {
-                    interprète.définis_exception(completion)
-                    continue
+                old_value := to_number(interprète, valeur)
+                si interprète.possède_exception() {
+                    retourne throw_completion(interprète.donne_exception())
                 }
-                old_value := completion.valeur.V
 
                 // 3. If oldValue is a Number, then
                 résultat := si old_value.est_nombre() {
@@ -1492,31 +1444,28 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
             }
             InstructionUnaryPlus {
                 valeur := interprète.donne_accumulateur()
-                completion := to_number(interprète, valeur)
-                interprète.définis_exception(completion)
-                interprète.définis_accumulateur(completion.valeur.V)
+                valeur = to_number(interprète, valeur)
+                interprète.définis_accumulateur(valeur)
             }
             InstructionLogicalNot {
                 valeur := interprète.donne_accumulateur()
                 old_value := to_boolean(valeur)
                 si old_value.est_true() {
-                    old_value.Boolean = faux
+                    old_value = faux
                 }
                 sinon {
-                    old_value.Boolean = vrai
+                    old_value = vrai
                 }
                 interprète.définis_accumulateur(old_value)
             }
             InstructionBinaryNot {
                 valeur := interprète.donne_accumulateur()
 
-                completion := to_numeric(interprète, valeur)
-                si completion.est_throw() {
-                    interprète.définis_exception(completion)
-                    continue
+                old_value := to_numeric(interprète, valeur)
+                si interprète.possède_exception() {
+                    retourne throw_completion(interprète.donne_exception())
                 }
 
-                old_value := completion.valeur.V
 
                 // 3. If oldValue is a Number, then
                 si old_value.est_nombre() {
@@ -1538,7 +1487,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 inst := it comme *InstructionCDPOT
                 valeur := interprète.donne_accumulateur()
                 objet := donne_registre(registres, inst.obj).donne_objet()
-                _ := create_data_property_or_throw(objet, inst.nom, valeur)
+                create_data_property_or_throw(objet, inst.nom, valeur)
             }
             sinon {
                 imprime("intruction inconnue!\n")
@@ -1583,15 +1532,13 @@ imprime_registres :: fonc (interprète: *InterprèteCodeBinaire)
     }
 
     // 6. Return ? HasProperty(rVal, ? ToPropertyKey(lVal)).
-    completion := to_property_key(interprète, gauche)
-    saufsi completion.est_normal() {
-        interprète.définis_exception(completion)
+    P := to_property_key(interprète, gauche)
+    si interprète.possède_exception() {
         retourne
     }
 
-    completion = has_property(droite.donne_objet(), completion.valeur.V.String.texte)
-    interprète.définis_exception(completion)
-    interprète.définis_accumulateur(completion.valeur.V)
+    résultat := has_property(droite.donne_objet(), P.String)
+    interprète.définis_accumulateur(résultat)
 }
 
 /** \} */

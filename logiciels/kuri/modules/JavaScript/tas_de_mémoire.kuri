@@ -26,7 +26,7 @@ TasDeMémoire :: struct {
 
 /* Fonction native pour forcer un ébouage
  * Cette fonction peut être ajoutée à un objet pour être appelée depuis les scripts. */
-fonction_native_éboue :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+fonction_native_éboue :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     #si DÉBOGUGE_MÉMOIRE {
         imprime("<<<<< ébouage forcé\n")
@@ -35,7 +35,7 @@ fonction_native_éboue :: fonc (empl params: *ParamètresObjectCall) -> Completi
     #si DÉBOGUGE_MÉMOIRE {
         imprime(">>>>> ébouage forcé\n")
     }
-    retourne normal_completion(js_undefined)
+    retourne js_undefined
 }
 
 détruit_données_tas_de_mémoire :: fonc (tas_de_mémoire: *TasDeMémoire)
@@ -275,9 +275,15 @@ alloue_cellule :: fonc (tas_de_mémoire: *TasDeMémoire, taille: n64) -> *rien
         }
     }
 
-    mémoire_bloc := loge_mémoire_alignée(BlocDeMémoire.TAILLE_BLOC comme z64, BlocDeMémoire.TAILLE_BLOC comme z64, info_de(BlocDeMémoire), PositionCodeSource())
-    bloc := mémoire_bloc comme *BlocDeMémoire
-    init_de(BlocDeMémoire)(bloc)
+    ctx := contexte()
+    ctx.allocatrice = allocatrice_défaut
+
+    bloc: *BlocDeMémoire
+    pousse_contexte ctx {
+        mémoire_bloc := loge_mémoire_alignée(BlocDeMémoire.TAILLE_BLOC comme z64, BlocDeMémoire.TAILLE_BLOC comme z64, info_de(BlocDeMémoire), PositionCodeSource())
+        bloc = mémoire_bloc comme *BlocDeMémoire
+        init_de(BlocDeMémoire)(bloc)
+    }
 
     initialise_bloc(bloc, taille)
 
@@ -539,7 +545,11 @@ initialise_bloc :: fonc (bloc: *BlocDeMémoire, taille_cellule: n64)
 
 détruit_bloc :: fonc (bloc: *BlocDeMémoire)
 {
-    déloge_mémoire(BlocDeMémoire.TAILLE_BLOC comme z64, bloc, info_de(BlocDeMémoire), PositionCodeSource())
+    ctx := contexte()
+    ctx.allocatrice = allocatrice_défaut
+    pousse_contexte ctx {
+        déloge_mémoire(BlocDeMémoire.TAILLE_BLOC comme z64, bloc, info_de(BlocDeMémoire), PositionCodeSource())
+    }
 }
 
 nombre_de_cellules :: fonc (bloc: *BlocDeMémoire) -> n64 #enligne

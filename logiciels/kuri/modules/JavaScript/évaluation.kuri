@@ -11,9 +11,9 @@ importe Fondation
 evaluate_function_body :: fonc (interpréteuse: *Interpréteuse, function_object: *ECMAScriptFunction, arguments_list: []Valeur) -> CompletionRecord
 {
     // 1. Perform ? FunctionDeclarationInstantiation(functionObject, argumentsList).
-    completion := function_declaration_instantiation(interpréteuse, function_object, arguments_list)
-    saufsi completion.est_normal() {
-        retourne completion
+    function_declaration_instantiation(interpréteuse, function_object, arguments_list)
+    si interpréteuse.possède_exception() {
+        retourne throw_completion(interpréteuse.donne_exception())
     }
     // 2. Return ? Evaluation of FunctionStatementList.
     assert(function_object.corps.type == FunctionBody)
@@ -116,7 +116,7 @@ instantiate_ordinary_function_expression :: fonc (interpréteuse: *Interpréteus
     make_constructor(closure)
 
     // 11. Perform ! funcEnv.InitializeBinding(name, closure).
-    _ := func_env.initialize_binding(name, Valeur(Function = closure))
+    func_env.initialize_binding(name, Valeur(Function = closure))
 
     // 12. Return closure.
     retourne closure
@@ -127,9 +127,9 @@ instantiate_ordinary_function_expression :: fonc (interpréteuse: *Interpréteus
 evaluate_concise_body :: fonc (interpréteuse: *Interpréteuse, function_object: *ECMAScriptFunction, arguments_list: []Valeur) -> CompletionRecord
 {
     // 1. Perform ? FunctionDeclarationInstantiation(functionObject, argumentsList).
-    completion := function_declaration_instantiation(interpréteuse, function_object, arguments_list)
-    saufsi completion.est_normal() {
-        retourne completion
+    function_declaration_instantiation(interpréteuse, function_object, arguments_list)
+    si interpréteuse.possède_exception() {
+        retourne throw_completion(interpréteuse.donne_exception())
     }
 
     // 2. Return ? Evaluation of ExpressionBody.

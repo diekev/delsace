@@ -324,20 +324,20 @@ définis_prototype :: fonc (object: *PlatformObject, type: type_de_données)
     object.prototype = donne_prototype(object.realm, index)
 }
 
-donne_platform_object :: fonc (interpréteuse: *JS.Interpréteuse, value: JS.Valeur, $Type: type_de_données) -> JS.CompletionRecord
+donne_platform_object :: fonc (interpréteuse: *JS.Interpréteuse, value: JS.Valeur, $Type: type_de_données) -> *Type
 {
-    completion := JS.to_object(JS.donne_realm(interpréteuse), value)
-    saufsi JS.est_normal(completion) {
-        retourne completion;
+    object := JS.to_object(interpréteuse, value)
+    si JS.possède_exception(interpréteuse) {
+        retourne nul
     }
-    object := JS.donne_objet(completion.valeur.V)
     info_type := info_de(Type)
     saufsi est_struct_ou_employeuse_de(JS.donne_info_type_cellule(object), info_type) {
         message := imprime_chaine("object is not a '%'", info_type.nom)
         diffère déloge(message)
-        retourne JS.lance_type_error(interpréteuse, message)
+        _ := JS.lance_type_error(interpréteuse, message)
+        retourne nul
     }
-    retourne JS.normal_completion(JS.Valeur(Object = object));
+    retourne object comme *Type
 }
 
 InfoConstructor :: struct {
@@ -355,7 +355,7 @@ initialise_constructors :: fonc (global: *JS.Object, realm: *JS.Realm)
         desc: JS.PropertyDescriptor
         JS.initialise_property_descriptor(*desc, JS.Valeur(Object = constructor), JS.DrapeauxPropriété.zéro)
 
-        _ := JS.define_property_or_throw(global, it.nom, desc)
+        JS.define_property_or_throw(global, it.nom, desc)
     }
 }
 

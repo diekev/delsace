@@ -211,25 +211,23 @@ capte_erreur_sur_destruction :: fonc (base: *Cellule)
     déloge(capte_erreur.erreurs)
 }
 
-capte_erreur_ajoute_erreur :: fonc (empl params: *ParamètresObjectCall) -> CompletionRecord
+capte_erreur_ajoute_erreur :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     capte_erreur := this_value.donne_objet().vérifie_comme(CapteErreur)
 
-    completion := to_string(interpréteuse, params.donne_argument(0))
-    saufsi completion.est_normal() {
-        retourne completion
+    cas := to_string(interpréteuse, params.donne_argument(0))
+    si interpréteuse.possède_exception() {
+        retourne js_undefined
     }
-    cas := completion.valeur.V.String.texte
 
-    completion = to_string(interpréteuse, params.donne_argument(1))
-    saufsi completion.est_normal() {
-        retourne completion
+    message := to_string(interpréteuse, params.donne_argument(1))
+    si interpréteuse.possède_exception() {
+        retourne js_undefined
     }
-    message := completion.valeur.V.String.texte
 
-    tableau_ajoute(*capte_erreur.erreurs, CapteErreur.Erreur(cas, message))
+    tableau_ajoute(*capte_erreur.erreurs, CapteErreur.Erreur(cas.texte, message.texte))
 
-    retourne normal_completion(js_undefined)
+    retourne js_undefined
 }
 
 crée_propriétés_hôte_objet_global :: fonc (base: *ConfigurationRealm @inutilisée, global: *Object)

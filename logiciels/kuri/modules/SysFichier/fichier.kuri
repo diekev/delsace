@@ -186,29 +186,11 @@ détermine_taille_fichiers_dossier :: fonc (dossier: CheminFichier, récursif : 
         retourne ErreurFichier.NEstPasUnDossier
     }
 
-    pile_dossiers: Pile(CheminFichier)
-    diffère pile_dossiers.détruit()
+    fichiers := donne_fichiers_du_dossier(dossier.chn, récursif)
+    diffère déloge_tableau_et_ses_éléments(fichiers)
 
-    pile_dossiers.empile(copie_chemin(dossier))
-
-    résultat : n64 = 0
-
-    tantque !pile_dossiers.est_vide() {
-        dossier_courant := pile_dossiers.dépile()
-        diffère détruit_chemin(dossier_courant)
-
-        pour ExploratriceFichier(dossier_courant) {
-            si récursif && it.est_un_dossier() {
-                pile_dossiers.empile(copie_chemin(it))
-                continue
-            }
-
-            saufsi it.est_un_fichier_régulier() {
-                continue
-            }
-
-            résultat += détermine_taille_fichier(it)
-        }
+    pour fichiers {
+        résultat += détermine_taille_fichier(CheminFichier(it))
     }
 
     retourne résultat
