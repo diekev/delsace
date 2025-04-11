@@ -122,8 +122,6 @@ ajourne_dessin_fenêtre :: fonc (jeu: *Jeu)
 
     couleur := CouleurRVBA(r = 1.0, v = 1.0, b = 1.0, a = 1.0)
 
-    utilise_nuanceur(IDNuanceur.Basique)
-
     commence_immédiat(ModeImmédiat.TRIANGLES, IDNuanceur.Basique)
     diffère termine_immédiat()
 
