@@ -309,17 +309,17 @@ global_declaration_instantiation :: fonc (realm: *Realm, script: *NoeudScript, e
             // i. If IsConstantDeclaration of d is true, then
             si it.nature == VariableDeclarationKind.Const {
                 // 1. Perform ? env.CreateImmutableBinding(dn, true).
-                completion := env.create_immutable_binding(realm, name, vrai)
-                saufsi completion.est_normal() {
-                    retourne completion
+                _ := env.create_immutable_binding(realm, name, vrai)
+                si realm.possède_exception() {
+                    retourne throw_completion(realm.donne_exception())
                 }
             }
             // ii. Else,
             sinon {
                 // 1. Perform ? env.CreateMutableBinding(dn, false).
-                completion := env.create_mutable_binding(realm, name, faux)
-                saufsi completion.est_normal() {
-                    retourne completion
+                env.create_mutable_binding(realm, name, faux)
+                si realm.possède_exception() {
+                    retourne throw_completion(realm.donne_exception())
                 }
             }
         }
@@ -337,9 +337,9 @@ global_declaration_instantiation :: fonc (realm: *Realm, script: *NoeudScript, e
         fo := instantiate_function_object(realm, function, env, private_env)
     
         // c. Perform ? env.CreateGlobalFunctionBinding(fn, fo, false).
-        completion := env.create_global_function_binding(fn, Valeur(Object = fo), faux)
-        saufsi completion.est_normal() {
-            retourne completion
+        env.create_global_function_binding(fn, Valeur(Object = fo), faux)
+        si realm.possède_exception() {
+            retourne throw_completion(realm.donne_exception())
         }
     }
 

@@ -3076,6 +3076,13 @@ static TypeTranstypage donne_type_transtypage_pour_défaut(Type const *src,
         dst = type_énum->type_sous_jacent;
     }
 
+    while (src->est_type_opaque()) {
+        src = src->comme_type_opaque()->type_opacifié;
+    }
+    while (dst->est_type_opaque()) {
+        dst = dst->comme_type_opaque()->type_opacifié;
+    }
+
     if (src->est_type_entier_naturel()) {
         if (dst->est_type_entier_naturel()) {
             if (src->taille_octet < dst->taille_octet) {
@@ -5009,55 +5016,6 @@ void CompilatriceRI::génère_ri_pour_fonction_métaprogramme(
     définis_fonction_courante(nullptr);
 }
 
-enum class MéthodeConstructionGlobale {
-    /* L'expression est un tableau fixe que nous pouvons simplement construire. */
-    TABLEAU_CONSTANT,
-    /* L'expression est un tableau fixe que nous devons convertir vers un tableau
-     * dynamique. */
-    TABLEAU_FIXE_A_CONVERTIR,
-    /* L'expression peut-être construite via un simple constructeur. */
-    NORMALE,
-    /* L'expression est nulle, la valeur défaut du type devra être utilisée. */
-    PAR_VALEUR_DEFAUT,
-    /* L'expression est une expression de non-initialisation. */
-    SANS_INITIALISATION,
-};
-
-static MéthodeConstructionGlobale détermine_méthode_construction_globale(
-    NoeudExpression const *expression, TransformationType const &transformation)
-{
-    if (!expression) {
-        return MéthodeConstructionGlobale::PAR_VALEUR_DEFAUT;
-    }
-
-    if (expression->est_non_initialisation()) {
-        return MéthodeConstructionGlobale::SANS_INITIALISATION;
-    }
-
-    if (expression->est_construction_tableau()) {
-        if (transformation.type != TypeTransformation::INUTILE) {
-            return MéthodeConstructionGlobale::TABLEAU_FIXE_A_CONVERTIR;
-        }
-
-        auto const type_pointe = type_déréférencé_pour(expression->type);
-
-        if (!peut_être_utilisée_pour_initialisation_constante_globale(expression)) {
-            return MéthodeConstructionGlobale::NORMALE;
-        }
-
-        /* À FAIRE : permet la génération de code pour les tableaux globaux de structures dans le
-         * contexte global. Ceci nécessitera d'avoir une deuxième version de la génération de code
-         * pour les structures avec des instructions constantes. */
-        if (type_pointe->est_type_structure() || type_pointe->est_type_union()) {
-            return MéthodeConstructionGlobale::NORMALE;
-        }
-
-        return MéthodeConstructionGlobale::TABLEAU_CONSTANT;
-    }
-
-    return MéthodeConstructionGlobale::NORMALE;
-}
-
 void CompilatriceRI::génère_ri_pour_déclaration_variable(NoeudDéclarationVariable *decl)
 {
     if (m_fonction_courante == nullptr) {
@@ -5113,7 +5071,8 @@ void CompilatriceRI::compile_déclaration_globale_multiple(NoeudDéclarationVari
             auto var = it.variables[i];
             auto globale = var->comme_référence_déclaration()
                                ->déclaration_référée->comme_déclaration_variable();
-            compile_globale(var->comme_référence_déclaration()->déclaration_référée,
+            compile_globale(var->comme_référence_déclaration()
+                                ->déclaration_référée->comme_déclaration_variable(),
                             it.expression,
                             it.transformations[i]);
             globale->atome->drapeaux |= DrapeauxAtome::RI_FUT_GÉNÉRÉE;
@@ -5140,7 +5099,7 @@ void CompilatriceRI::compile_déclaration_locale_multiple(NoeudDéclarationVaria
     génère_ri_pour_assignation_variable(decl->données_decl);
 }
 
-void CompilatriceRI::compile_globale(NoeudDéclaration *decl,
+void CompilatriceRI::compile_globale(NoeudDéclarationVariable *decl,
                                      NoeudExpression *expression,
                                      TransformationType const &transformation)
 {
@@ -5177,6 +5136,9 @@ void CompilatriceRI::compile_globale(NoeudDéclaration *decl,
             auto globale_tableau = m_constructrice.crée_globale(
                 *ident, expression->type, nullptr, false, false);
 
+            if (decl->bloc_pour_initialisation_globale) {
+                expression = decl->bloc_pour_initialisation_globale;
+            }
             /* La construction du tableau devra se faire via la fonction
              * d'initialisation des globales. */
             m_compilatrice.constructeurs_globaux->ajoute({globale_tableau, expression, {}});
@@ -5187,6 +5149,9 @@ void CompilatriceRI::compile_globale(NoeudDéclaration *decl,
         }
         case MéthodeConstructionGlobale::NORMALE:
         {
+            if (decl->bloc_pour_initialisation_globale) {
+                expression = decl->bloc_pour_initialisation_globale;
+            }
             m_compilatrice.constructeurs_globaux->ajoute({atome, expression, transformation});
             break;
         }
@@ -5260,6 +5225,16 @@ void CompilatriceRI::ajourne_index_membre_union(NoeudExpression *expression)
     }
 
     auto noeud = expression->comme_référence_membre_union();
+    auto type = noeud->accédée->type;
+
+    while (type->est_type_pointeur() || type->est_type_référence()) {
+        type = type_déréférencé_pour(type);
+    }
+
+    auto type_union = type->comme_type_union();
+    if (type_union->est_nonsure) {
+        return;
+    }
 
     auto ancienne_expression_gauche = expression_gauche;
     expression_gauche = false;

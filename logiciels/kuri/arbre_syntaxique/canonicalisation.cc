@@ -612,7 +612,8 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                 auto temporaire = crée_déclaration_variable(
                     appel->lexème, appel->type, &non_initialisation);
                 temporaire->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
-                auto ref_temporaire = assem->crée_référence_déclaration(temporaire->lexème, temporaire);
+                auto ref_temporaire = assem->crée_référence_déclaration(temporaire->lexème,
+                                                                        temporaire);
                 ajoute_expression(temporaire);
 
                 auto ref_membre = assem->crée_référence_membre(
@@ -734,15 +735,27 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                     bloc->expressions->ajoute(it);
                 }
 
-                /* À FAIRE : meilleure gestion des globales pour la génération de code. */
+                auto expression = déclaration->expression;
                 if (déclaration->expression->substitution) {
-                    bloc->expressions->ajoute(déclaration->expression->substitution);
-                    déclaration->expression->substitution = bloc;
+                    expression = déclaration->expression->substitution;
                 }
-                else {
-                    bloc->expressions->ajoute(déclaration->expression);
-                    déclaration->expression = bloc;
+
+                auto transformation = TransformationType{};
+                auto expression_transtypée = expression;
+                if (expression->est_comme()) {
+                    auto transtypage = expression->comme_comme();
+                    transformation = transtypage->transformation;
+                    expression_transtypée = transtypage->expression;
                 }
+
+                auto méthode = détermine_méthode_construction_globale(expression_transtypée,
+                                                                      transformation);
+                if (méthode == MéthodeConstructionGlobale::TABLEAU_FIXE_A_CONVERTIR) {
+                    expression = expression_transtypée;
+                }
+
+                bloc->expressions->ajoute(expression);
+                déclaration->bloc_pour_initialisation_globale = bloc;
             }
 
             return déclaration;
@@ -848,9 +861,11 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
             auto expr_empl = noeud->comme_empl();
 
             auto déclaration_employée = donne_déclaration_employée(expr_empl->expression);
-            if (déclaration_employée->est_déclaration_type()) {
-                /* N'inclus pas les instructions `empl MonType` car ce n'est pas à être géré dans
-                 * la RI : ces déclarations ne sont utiles que pour la validation sémantique. */
+            if (déclaration_employée->est_déclaration_type() ||
+                déclaration_employée != expr_empl->expression) {
+                /* N'inclus pas les instructions `empl MonType` ou `empl variable` car ce n'est pas
+                 * à être géré dans la RI : ces déclarations ne sont utiles que pour la validation
+                 * sémantique. */
                 return nullptr;
             }
 

@@ -29,7 +29,7 @@ make_basic_object :: fonc (realm: *Realm, rappel_allocation_objet: TypeFonctionA
 
 /* 7.3.2 Get
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-get-o-p */
-get :: fonc (object: *Object, property_key: PropertyKey) -> CompletionRecord
+get :: fonc (object: *Object, property_key: PropertyKey) -> Valeur
 {
     si is_array_index(property_key) {
         index := to_uint32(property_key)
@@ -40,33 +40,32 @@ get :: fonc (object: *Object, property_key: PropertyKey) -> CompletionRecord
     retourne object.internal_get(property_key, Valeur(Object = object))
 }
 
-get_by_index :: fonc (object: *Object, index: n32) -> CompletionRecord
+get_by_index :: fonc (object: *Object, index: n32) -> Valeur
 {
     retourne object.internal_get_by_index(index, Valeur(Object = object))
 }
 
 /* 7.3.4 Set
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-set-o-p-v-throw */
-set :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur, throw: bool) -> CompletionRecord
+set :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur, throw: bool)
 {
     // 1. Let success be ? O.[[Set]](P, V, O).
-    completion := object.internal_set(property_key, valeur, Valeur(Object = object))
-    saufsi completion.est_normal() {
-        retourne completion
+    succès := object.internal_set(property_key, valeur, Valeur(Object = object))
+    si object.possède_exception() {
+        retourne
     }
-    succès := completion.valeur.V
+
     // 2. If success is false and Throw is true, throw a TypeError exception.
-    si succès.est_false() && throw == vrai {
+    si succès == faux && throw == vrai {
         panique("exceptions non-implémentées")
     }
 
     // 3. Return UNUSED.
-    retourne normal_completion(js_undefined)
 }
 
 /* 7.3.5 CreateDataProperty ( O, P, V )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-createdataproperty */
-create_data_property :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur) -> CompletionRecord
+create_data_property :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur) -> bool
 {
     // 1. Let newDesc be the PropertyDescriptor { [[Value]]: V, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: true }.
     new_desc: PropertyDescriptor
@@ -81,47 +80,43 @@ create_data_property :: fonc (object: *Object, property_key: PropertyKey, valeur
 
 /* 7.3.6 CreateDataPropertyOrThrow ( O, P, V )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-createdatapropertyorthrow */
-create_data_property_or_throw :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur) -> CompletionRecord
+create_data_property_or_throw :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur)
 {
     // 1. Let success be ? CreateDataProperty(O, P, V).
-    completion := create_data_property(object, property_key, valeur)
-    saufsi completion.est_normal() {
-        retourne completion
+    success := create_data_property(object, property_key, valeur)
+    si object.possède_exception() {
+        retourne
     }
-    success := completion.valeur.V
 
     // 2. If success is false, throw a TypeError exception.
-    si success.est_false() {
+    saufsi success {
         panique("Exception non-implémentée")
     }
 
     // 3. Return UNUSED.
-    retourne normal_completion(js_undefined)
 }
 
 /* 7.3.8 DefinePropertyOrThrow ( O, P, desc )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-definepropertyorthrow */
-define_property_or_throw :: fonc (object: *Object, property_key: PropertyKey, desc: &PropertyDescriptor) -> CompletionRecord
+define_property_or_throw :: fonc (object: *Object, property_key: PropertyKey, desc: &PropertyDescriptor)
 {
     // 1. Let success be ? O.[[DefineOwnProperty]](P, desc).
-    completion := internal_define_own_property(object, property_key, desc)
-    saufsi completion.est_normal() {
-        retourne completion
+    success := internal_define_own_property(object, property_key, desc)
+    si object.possède_exception() {
+        retourne
     }
-    success := completion.valeur.V
 
     // 2. If success is false, throw a TypeError exception.
-    si success.est_false() {
+    saufsi success {
         panique("Exception non-implémentée")
     }
 
     // 3. Return UNUSED.
-    retourne normal_completion(js_undefined)
 }
 
 /* 7.3.11 HasProperty ( O, P ) 
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-hasproperty */
-has_property :: fonc (object: *Object, property_key: PropertyKey) -> CompletionRecord
+has_property :: fonc (object: *Object, property_key: PropertyKey) -> bool
 {
     // 1. Return ? O.[[HasProperty]](P).
     retourne internal_has_property(object, property_key)
@@ -129,31 +124,30 @@ has_property :: fonc (object: *Object, property_key: PropertyKey) -> CompletionR
 
 /* 7.3.12 HasOwnProperty ( O, P )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-hasownproperty */
-has_own_property :: fonc (object: *Object, nom: PropertyKey) -> CompletionRecord
+has_own_property :: fonc (object: *Object, nom: PropertyKey) -> bool
 {
-    completion_desc := internal_get_own_property(object, nom)
-    saufsi completion_desc.est_normal() {
-        retourne completion_desc
+    desc := internal_get_own_property(object, nom)
+    si object.possède_exception() {
+        retourne faux
     }
 
-    desc := completion_desc.valeur
-    si desc.est_undefined() {
-        retourne normal_completion(Valeur(Boolean = faux))
+    saufsi desc.possède_valeur() {
+        retourne faux
     }
 
-    retourne normal_completion(Valeur(Boolean = vrai))
+    retourne vrai
 }
 
 /* 7.3.13 Call ( F, V [ , argumentsList ] )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-call */
-call :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur, this_value: Valeur) -> CompletionRecord
+call :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur, this_value: Valeur) -> Valeur
 {
     // 1. If argumentsList is not present, set argumentsList to a new empty List.
     arguments: []Valeur
     retourne call(interpréteuse, valeur, this_value, arguments)
 }
 
-call :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+call :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur, this_value: Valeur, arguments: []Valeur) -> Valeur
 {
     // Continuation de la version sans arguments.
     // 2. If IsCallable(F) is false, throw a TypeError exception.
@@ -168,13 +162,13 @@ call :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur, this_value: Valeu
     retourne object.internal_call(interpréteuse, this_value, arguments)
 }
 
-call :: fonc (mv: *MachineVirtuelle, valeur: Valeur, this_value: Valeur) -> CompletionRecord
+call :: fonc (mv: *MachineVirtuelle, valeur: Valeur, this_value: Valeur) -> Valeur
 {
     arguments: []Valeur
     retourne call(mv, valeur, this_value, arguments)
 }
 
-call :: fonc (mv: *MachineVirtuelle, valeur: Valeur, this_value: Valeur, arguments: []Valeur) -> CompletionRecord
+call :: fonc (mv: *MachineVirtuelle, valeur: Valeur, this_value: Valeur, arguments: []Valeur) -> Valeur
 {
     interpréteuse_est_nulle := mv.interpréteuse == nul
     si interpréteuse_est_nulle {
@@ -191,14 +185,14 @@ call :: fonc (mv: *MachineVirtuelle, valeur: Valeur, this_value: Valeur, argumen
 
 /* 7.3.14 Construct ( F [ , argumentsList [ , newTarget ] ] )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-call */
-construct :: fonc (interpréteuse: *Interpréteuse, F: Valeur, arguments: []Valeur) -> CompletionRecord
+construct :: fonc (interpréteuse: *Interpréteuse, F: Valeur, arguments: []Valeur) -> Valeur
 {
     // 1. If newTarget is not present, set newTarget to F.
     new_target := F
     retourne construct(interpréteuse, F, arguments, new_target)
 }
 
-construct :: fonc (interpréteuse: *Interpréteuse, F: Valeur, arguments: []Valeur, new_target: Valeur) -> CompletionRecord
+construct :: fonc (interpréteuse: *Interpréteuse, F: Valeur, arguments: []Valeur, new_target: Valeur) -> Valeur
 {
     // Continuation de la version sans new_target.
     // 2. If argumentsList is not present, set argumentsList to a new empty List.
@@ -207,29 +201,25 @@ construct :: fonc (interpréteuse: *Interpréteuse, F: Valeur, arguments: []Vale
     retourne object.internal_construct(interpréteuse, arguments, new_target)
 }
 
-/*7.3.18 LengthOfArrayLike ( obj )
+/* 7.3.18 LengthOfArrayLike ( obj )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-lengthofarraylike */
-length_of_array_like :: fonc (interpréteuse: *Interpréteuse, obj: *Object) -> CompletionRecord
+length_of_array_like :: fonc (interpréteuse: *Interpréteuse, obj: *Object) -> r64
 {
     // 1. Return ℝ(? ToLength(? Get(obj, "length"))).
-    completion := get(obj, STR_length)
-    saufsi completion.est_normal() {
-        retourne completion
+    valeur := get(obj, STR_length)
+    si interpréteuse.possède_exception() {
+        retourne NaN
     }
-    completion = to_length(interpréteuse, completion.valeur.V)
-    saufsi completion.est_normal() {
-        retourne completion
-    }
-    retourne normal_completion(completion.valeur.V)
+    retourne to_length(interpréteuse, valeur)
 }
 
 /* 7.3.21 OrdinaryHasInstance ( C, O )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-ordinaryhasinstance */
-ordinary_has_instance :: fonc (interpréteuse: *Interpréteuse, C: Valeur, O: Valeur) -> CompletionRecord
+ordinary_has_instance :: fonc (interpréteuse: *Interpréteuse, C: Valeur, O: Valeur) -> bool
 {
     // 1. If IsCallable(C) is false, return false.
     si is_callable(C).est_false() {
-        retourne normal_completion(Valeur(Boolean = faux))
+        retourne faux
     }
 
     // À FAIRE : 2. If C has a [[BoundTargetFunction]] internal slot, then
@@ -238,19 +228,19 @@ ordinary_has_instance :: fonc (interpréteuse: *Interpréteuse, C: Valeur, O: Va
 
     // 3. If O is not an Object, return false.
     saufsi O.est_object() {
-        retourne normal_completion(Valeur(Boolean = faux))
+        retourne faux
     }
 
     // 4. Let P be ? Get(C, "prototype").
-    completion := get(C.donne_objet(), STR_prototype)
-    saufsi completion.est_normal() {
-        retourne completion
+    P := get(C.donne_objet(), STR_prototype)
+    si interpréteuse.possède_exception() {
+        retourne faux
     }
-    P := completion.valeur.V
 
     // 5. If P is not an Object, throw a TypeError exception.
     saufsi P.est_object() {
-        retourne lance_type_error(interpréteuse, "prototype is not an Object")
+        _ := lance_type_error(interpréteuse, "prototype is not an Object")
+        retourne faux
     }
 
     obj := O.donne_objet()
@@ -267,11 +257,11 @@ ordinary_has_instance :: fonc (interpréteuse: *Interpréteuse, C: Valeur, O: Va
 
         // c. If SameValue(P, O) is true, return true.
         si same_value(P, Valeur(Object = obj)).est_true() {
-            retourne normal_completion(Valeur(Boolean = vrai))
+            retourne vrai
         }
     }
 
-    retourne normal_completion(Valeur(Boolean = faux))
+    retourne faux
 }
 
 /** \} */

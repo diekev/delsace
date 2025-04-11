@@ -545,3 +545,22 @@ kuri::tableau<char> donne_tableau_valeurs_énum(NoeudEnum const &noeud);
 NoeudDéclaration *donne_déclaration_employée(NoeudExpression *noeud);
 
 NoeudDéclarationEntêteFonction *donne_entête_fonction(NoeudExpression *noeud);
+
+enum class MéthodeConstructionGlobale {
+    /* L'expression est un tableau fixe que nous pouvons simplement construire. */
+    TABLEAU_CONSTANT,
+    /* L'expression est un tableau fixe que nous devons convertir vers un tableau
+     * dynamique. */
+    TABLEAU_FIXE_A_CONVERTIR,
+    /* L'expression peut-être construite via un simple constructeur. */
+    NORMALE,
+    /* L'expression est nulle, la valeur défaut du type devra être utilisée. */
+    PAR_VALEUR_DEFAUT,
+    /* L'expression est une expression de non-initialisation. */
+    SANS_INITIALISATION,
+};
+
+std::ostream &operator<<(std::ostream &os, MéthodeConstructionGlobale méthode);
+
+MéthodeConstructionGlobale détermine_méthode_construction_globale(
+    NoeudExpression const *expression, TransformationType const &transformation);

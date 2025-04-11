@@ -451,7 +451,7 @@ struct CompilatriceRI {
     void compile_déclaration_variable_multiple(NoeudDéclarationVariableMultiple *decl);
     void compile_déclaration_globale_multiple(NoeudDéclarationVariableMultiple *decl);
     void compile_déclaration_locale_multiple(NoeudDéclarationVariableMultiple *decl);
-    void compile_globale(NoeudDéclaration *decl,
+    void compile_globale(NoeudDéclarationVariable *decl,
                          NoeudExpression *expression,
                          TransformationType const &transformation);
     void compile_locale(NoeudExpression *variable,

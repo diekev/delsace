@@ -391,6 +391,25 @@ void IMG_reechantillonne_image(const struct IMG_ParametresReechantillonnage *par
                                const struct AdaptriceImage *entree,
                                struct AdaptriceImage *sortie);
 
+// ----------------------------------------------------------------------------
+// Image SVG.
+
+struct NSVGimage;
+struct NSVGrasterizer;
+
+typedef struct SVGImage {
+    struct NSVGimage *image;
+    struct NSVGrasterizer *ratisseuse;
+    float width;
+    float height;
+} SVGImage;
+
+bool SVG_parse_image_depuis_contenu(char *data, struct SVGImage *resultat);
+
+void SVG_image_ratisse(struct SVGImage *image, uint8_t *sortie, int largeur, int hauteur);
+
+void SVG_image_detruit(struct SVGImage *image);
+
 #ifdef __cplusplus
 }
 #endif
