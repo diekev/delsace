@@ -11,49 +11,48 @@ Environment :: struct {
     outer_environment: *Environment
 
     sur_has_binding: fonc(*Environment, ECMAString, *z32)(bool)
-    sur_create_immutable_binding: fonc(*Environment, *Realm, ECMAString, bool)(CompletionRecord)
-    sur_create_mutable_binding: fonc(*Environment, *Realm, ECMAString, bool)(CompletionRecord)
-    sur_initialize_binding: fonc(*Environment, ECMAString, Valeur)(CompletionRecord)
-    sur_get_binding_value: fonc(*Environment, *Realm, ECMAString, bool)(CompletionRecord)
-    sur_set_mutable_binding: fonc(*Environment, *Realm, ECMAString, Valeur, bool)(CompletionRecord)
+    sur_create_immutable_binding: fonc(*Environment, *Realm, ECMAString, bool)(bool)
+    sur_create_mutable_binding: fonc(*Environment, *Realm, ECMAString, bool)(rien)
+    sur_initialize_binding: fonc(*Environment, ECMAString, Valeur)(rien)
+    sur_get_binding_value: fonc(*Environment, *Realm, ECMAString, bool)(Valeur)
+    sur_set_mutable_binding: fonc(*Environment, *Realm, ECMAString, Valeur, bool)(rien)
     sur_with_base_object: fonc(*Environment)(Valeur)
-    sur_create_global_function_binding: fonc(*Environment, ECMAString, Valeur, bool)(CompletionRecord)
+    sur_create_global_function_binding: fonc(*Environment, ECMAString, Valeur, bool)(rien)
     sur_has_this_binding: fonc(*Environment)(bool)
-    sur_get_this_binding: fonc(*Environment, *Realm)(CompletionRecord)
+    sur_get_this_binding: fonc(*Environment, *Realm)(Valeur)
 }
 
-has_binding :: fonc (environment: *Environment, nom: ECMAString, index : *z32 = nul) -> CompletionRecord
+has_binding :: fonc (environment: *Environment, nom: ECMAString, index : *z32 = nul) -> bool
 {
     assert(environment.sur_has_binding != nul)
-    résultat := environment.sur_has_binding(environment, nom, index)
-    retourne normal_completion(Valeur(Boolean = résultat))
+    retourne environment.sur_has_binding(environment, nom, index)
 }
 
-set_mutable_binding :: fonc (environment: *Environment, realm: *Realm, nom: ECMAString, valeur: Valeur, strict: bool) -> CompletionRecord
+set_mutable_binding :: fonc (environment: *Environment, realm: *Realm, nom: ECMAString, valeur: Valeur, strict: bool)
 {
     assert(environment.sur_set_mutable_binding != nul)
-    retourne environment.sur_set_mutable_binding(environment, realm, nom, valeur, strict)
+    environment.sur_set_mutable_binding(environment, realm, nom, valeur, strict)
 }
 
-create_immutable_binding :: fonc (environment: *Environment, realm: *Realm, nom: ECMAString, strict: bool) -> CompletionRecord
+create_immutable_binding :: fonc (environment: *Environment, realm: *Realm, nom: ECMAString, strict: bool) -> bool
 {
     assert(environment.sur_create_immutable_binding != nul)
     retourne environment.sur_create_immutable_binding(environment, realm, nom, strict)
 }
 
-create_mutable_binding :: fonc (environment: *Environment, realm: *Realm, nom: ECMAString, supprimable: bool) -> CompletionRecord
+create_mutable_binding :: fonc (environment: *Environment, realm: *Realm, nom: ECMAString, supprimable: bool)
 {
     assert(environment.sur_create_mutable_binding != nul)
-    retourne environment.sur_create_mutable_binding(environment, realm, nom, supprimable)
+    environment.sur_create_mutable_binding(environment, realm, nom, supprimable)
 }
 
-initialize_binding :: fonc (environment: *Environment, nom: ECMAString, valeur: Valeur) -> CompletionRecord
+initialize_binding :: fonc (environment: *Environment, nom: ECMAString, valeur: Valeur)
 {
     assert(environment.sur_initialize_binding != nul)
-    retourne environment.sur_initialize_binding(environment, nom, valeur)
+    environment.sur_initialize_binding(environment, nom, valeur)
 }
 
-get_binding_value :: fonc (environment: *Environment, realm: *Realm, nom: ECMAString, strict: bool) -> CompletionRecord
+get_binding_value :: fonc (environment: *Environment, realm: *Realm, nom: ECMAString, strict: bool) -> Valeur
 {
     assert(environment.sur_get_binding_value != nul)
     retourne environment.sur_get_binding_value(environment, realm, nom, strict)
@@ -65,10 +64,10 @@ with_base_object :: fonc (environment: *Environment) -> Valeur
     retourne environment.sur_with_base_object(environment)
 }
 
-create_global_function_binding :: fonc (environment: *Environment, N: ECMAString, V: Valeur, D: bool) -> CompletionRecord
+create_global_function_binding :: fonc (environment: *Environment, N: ECMAString, V: Valeur, D: bool)
 {
     assert(environment.sur_create_global_function_binding != nul)
-    retourne environment.sur_create_global_function_binding(environment, N, V, D)
+    environment.sur_create_global_function_binding(environment, N, V, D)
 }
 
 has_this_binding :: fonc (environment: *Environment) -> bool
@@ -77,7 +76,7 @@ has_this_binding :: fonc (environment: *Environment) -> bool
     retourne environment.sur_has_this_binding(environment)
 }
 
-get_this_binding :: fonc (environment: *Environment, realm: *Realm) -> CompletionRecord
+get_this_binding :: fonc (environment: *Environment, realm: *Realm) -> Valeur
 {
     assert(environment.sur_get_this_binding != nul)
     retourne environment.sur_get_this_binding(environment, realm)
@@ -85,7 +84,7 @@ get_this_binding :: fonc (environment: *Environment, realm: *Realm) -> Completio
 
 /* 9.1.2.1 GetIdentifierReference
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-getidentifierreference */
-get_identifier_reference :: fonc (environment: *Environment, nom: *PrimitiveChaine, strict: bool) -> CompletionRecord
+get_identifier_reference :: fonc (interpréteuse: *Interpréteuse, environment: *Environment, nom: *PrimitiveChaine, strict: bool) -> ReferenceRecord
 {
     // NOTE : Nous utilisons une boucle au lieu d'appels récursifs comme spécifié.
     //        La première étape spécifiée est faite à la fin.
@@ -96,11 +95,10 @@ get_identifier_reference :: fonc (environment: *Environment, nom: *PrimitiveChai
         index := -1
 
         // 2. Let exists be ? env.HasBinding(name).
-        completion_exists := has_binding(environment, nom.texte, *index)
-        saufsi completion_exists.est_normal() {
-            retourne completion_exists
+        exists := has_binding(environment, nom.texte, *index)
+        si interpréteuse.possède_exception() {
+            retourne référence_non_résolvable(Valeur(String = nom), strict)
         }
-        exists := completion_exists.valeur.V.Boolean
 
         // 3. If exists is true, then
         si exists {
@@ -118,7 +116,7 @@ get_identifier_reference :: fonc (environment: *Environment, nom: *PrimitiveChai
                 résultat.coordonnée = coordonnée
             }
 
-            retourne normal_completion(résultat)
+            retourne résultat
         }
 
         // 4. Else,
@@ -132,7 +130,7 @@ get_identifier_reference :: fonc (environment: *Environment, nom: *PrimitiveChai
 
     // 1. If env is null, then
     // a. Return the Reference Record { [[Base]]: UNRESOLVABLE, [[ReferencedName]]: name, [[Strict]]: strict, [[ThisValue]]: EMPTY }.
-    retourne normal_completion(référence_non_résolvable(Valeur(String = nom), strict))
+    retourne référence_non_résolvable(Valeur(String = nom), strict)
 }
 
 /** \} */
@@ -218,7 +216,7 @@ declarative_environment_has_binding :: fonc (base: *Environment, nom: ECMAString
 
 /* 9.1.1.1.2 CreateMutableBinding ( N, D )
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-declarative-environment-records-createmutablebinding-n-d */
-declarative_environment_create_mutable_binding :: fonc (base: *Environment, realm: *Realm @inutilisée, N: ECMAString, D: bool) -> CompletionRecord
+declarative_environment_create_mutable_binding :: fonc (base: *Environment, realm: *Realm @inutilisée, N: ECMAString, D: bool)
 {
     env_rec := base.vérifie_comme(DeclarativeEnvironment)
 
@@ -233,12 +231,11 @@ declarative_environment_create_mutable_binding :: fonc (base: *Environment, real
     binding.peut_être_détruit_par_delete = D
 
     // 3. Return unused.
-    retourne normal_completion(js_undefined)
 }
 
 /* 9.1.1.1.2 CreateImmutableBinding ( N, D )
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-declarative-environment-records-createimmutablebinding-n-s */
-declarative_environment_create_immutable_binding :: fonc (base: *Environment, realm: *Realm @inutilisée, N: ECMAString, S: bool) -> CompletionRecord
+declarative_environment_create_immutable_binding :: fonc (base: *Environment, realm: *Realm @inutilisée, N: ECMAString, S: bool) -> bool
 {
     env_rec := base.vérifie_comme(DeclarativeEnvironment)
 
@@ -254,12 +251,12 @@ declarative_environment_create_immutable_binding :: fonc (base: *Environment, re
     binding.strict = S
 
     // 3. Return unused.
-    retourne normal_completion(js_undefined)
+    retourne vrai
 }
 
 /* 9.1.1.1.4 InitializeBinding ( N, V )
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-declarative-environment-records-initializebinding-n-v */
-declarative_environment_initialize_binding :: fonc (base: *Environment, N: ECMAString, V: Valeur) -> CompletionRecord
+declarative_environment_initialize_binding :: fonc (base: *Environment, N: ECMAString, V: Valeur)
 {
     env_rec := base.vérifie_comme(DeclarativeEnvironment)
     binding := donne_binding(env_rec, N)
@@ -274,7 +271,6 @@ declarative_environment_initialize_binding :: fonc (base: *Environment, N: ECMAS
     binding.initialisé = vrai
     
     // 4. Return unused.
-    retourne normal_completion(js_undefined)
 }
 
 donne_binding :: fonc (env: *DeclarativeEnvironment, nom: ECMAString, index : *z32 = nul) -> *DeclarativeEnvironment.Binding
@@ -293,7 +289,7 @@ donne_binding :: fonc (env: *DeclarativeEnvironment, nom: ECMAString, index : *z
 
 /* 9.1.1.1.5 SetMutableBinding ( N, V, S )
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-declarative-environment-records-setmutablebinding-n-v-s */
-declarative_environment_set_mutable_binding :: fonc (base: *Environment, realm: *Realm, nom: ECMAString, valeur: Valeur, strict: bool) -> CompletionRecord
+declarative_environment_set_mutable_binding :: fonc (base: *Environment, realm: *Realm, nom: ECMAString, valeur: Valeur, strict: bool)
 {
     env_rec := base.vérifie_comme(DeclarativeEnvironment)
     binding := donne_binding(env_rec, nom)
@@ -303,17 +299,18 @@ declarative_environment_set_mutable_binding :: fonc (base: *Environment, realm: 
         // a. If S is true, throw a ReferenceError exception.
         si strict {
             message := imprime_chaine("unknown reference to '%'", nom)
-            retourne lance_reference_error(realm, message)
+            _ := lance_reference_error(realm, message)
+            retourne
         }
 
         // b. Perform ! envRec.CreateMutableBinding(N, true).
-        _ := env_rec.create_mutable_binding(realm, nom, vrai)
+        env_rec.create_mutable_binding(realm, nom, vrai)
 
         // c. Perform ! envRec.InitializeBinding(N, V).
-        _ := env_rec.initialize_binding(nom, valeur)
+        env_rec.initialize_binding(nom, valeur)
 
         // d. Return unused.
-        retourne normal_completion(js_undefined)
+        retourne
     }
 
     // 2. If the binding for N in envRec is a strict binding, set S to true.
@@ -325,7 +322,8 @@ declarative_environment_set_mutable_binding :: fonc (base: *Environment, realm: 
     saufsi binding.initialisé {
         // a. Throw a ReferenceError exception.
         message := imprime_chaine("unitialized binding for '%'", nom)
-        retourne lance_reference_error(realm, message)
+        _ := lance_reference_error(realm, message)
+        retourne
     }
     // 4. Else if the binding for N in envRec is a mutable binding, then
     sinon si binding.mutable {
@@ -338,17 +336,17 @@ declarative_environment_set_mutable_binding :: fonc (base: *Environment, realm: 
         // a. Assert: This is an attempt to change the value of an immutable binding.
         // b. If S is true, throw a TypeError exception.
         si strict {
-            retourne lance_type_error(realm, "setting value on unmutable object")
+            _ := lance_type_error(realm, "setting value on unmutable object")
+            retourne
         }
     }
 
     // 6. Return unused.
-    retourne normal_completion(js_undefined)
 }
 
 /* 9.1.1.1.6 GetBindingValue ( N, S )
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-declarative-environment-records-getbindingvalue-n-s */
-declarative_environment_get_binding_value :: fonc (base: *Environment, realm: *Realm, nom: ECMAString, strict: bool @inutilisée) -> CompletionRecord
+declarative_environment_get_binding_value :: fonc (base: *Environment, realm: *Realm, nom: ECMAString, strict: bool @inutilisée) -> Valeur
 {
     env_rec := base.vérifie_comme(DeclarativeEnvironment)
     binding := donne_binding(env_rec, nom)
@@ -362,7 +360,7 @@ declarative_environment_get_binding_value :: fonc (base: *Environment, realm: *R
     }
 
     // 3. Return the value currently bound to N in envRec.
-    retourne normal_completion(binding.valeur)
+    retourne binding.valeur
 }
 
 /* 9.1.1.1.8 HasThisBinding ( )
@@ -447,7 +445,7 @@ new_function_environment :: fonc (F: *ECMAScriptFunction, new_target: Valeur) ->
 
 /* 9.1.1.3.1 BindThisValue ( V )
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-bindthisvalue */
-bind_this_value :: fonc (env_rec: *FunctionEnvironment, V: Valeur) -> CompletionRecord
+bind_this_value :: fonc (env_rec: *FunctionEnvironment, V: Valeur) -> Valeur
 {
     // 1. Assert: envRec.[[ThisBindingStatus]] is not LEXICAL.
     assert(env_rec.this_binding_status != ThisBindingStatus.LEXICAL)
@@ -464,7 +462,7 @@ bind_this_value :: fonc (env_rec: *FunctionEnvironment, V: Valeur) -> Completion
     env_rec.this_binding_status = ThisBindingStatus.INITIALIZED
 
     // 5. Return V.
-    retourne normal_completion(V)
+    retourne V
 }
 
 /* 9.1.1.3.2 HasThisBinding ( )
@@ -478,7 +476,7 @@ function_environment_has_this_binding :: fonc (base: *Environment) -> bool
 
 /* 9.1.1.3.4 GetThisBinding ( )
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-function-environment-records-getthisbinding */
-function_environment_get_this_binding :: fonc (base: *Environment, realm: *Realm) -> CompletionRecord
+function_environment_get_this_binding :: fonc (base: *Environment, realm: *Realm) -> Valeur
 {
     env_rec := base.vérifie_comme(FunctionEnvironment)
 
@@ -491,7 +489,7 @@ function_environment_get_this_binding :: fonc (base: *Environment, realm: *Realm
     }
 
     // 3. Return envRec.[[ThisValue]].
-    retourne normal_completion(env_rec.this_value)
+    retourne env_rec.this_value
 }
 
 /** \} */
@@ -565,14 +563,10 @@ object_environment_has_binding :: fonc (base: *Environment, nom: ECMAString, ind
     binding_object := environment.binding_object
 
     // 2. Let foundBinding be ? HasProperty(bindingObject, N).
-    completion := has_property(binding_object, nom)
-    saufsi completion.est_normal() {
-        retourne faux
-    }
-    found_binding := completion.valeur.V
+    found_binding := has_property(binding_object, nom)
 
     // 3. If foundBinding is false, return false.
-    si found_binding.est_false() {
+    saufsi found_binding {
         retourne faux
     }
 
@@ -593,7 +587,7 @@ object_environment_has_binding :: fonc (base: *Environment, nom: ECMAString, ind
 
 /* 9.1.1.2.5 SetMutableBinding ( N, V, S )
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-object-environment-records-setmutablebinding-n-v-s */
-object_environment_set_mutable_binding :: fonc (base: *Environment, realm: *Realm, nom: ECMAString, valeur: Valeur, strict: bool) -> CompletionRecord
+object_environment_set_mutable_binding :: fonc (base: *Environment, realm: *Realm, nom: ECMAString, valeur: Valeur, strict: bool)
 {
     environment := base.vérifie_comme(ObjectEnvironment)
 
@@ -606,34 +600,34 @@ object_environment_set_mutable_binding :: fonc (base: *Environment, realm: *Real
     //                Peut-être que "set" pourrait être modifié afin de retourner plus
     //                d'information quant la présence de la propriété.
     saufsi strict {
-        retourne set(binding_object, nom, valeur, faux)
+        set(binding_object, nom, valeur, faux)
+        retourne
     }
 
     // 2. Let stillExists be ? HasProperty(bindingObject, N).
-    completion := has_property(binding_object, nom)
-    saufsi completion.est_normal() {
-        retourne completion
+    still_exists := has_property(binding_object, nom)
+    si realm.possède_exception() {
+        retourne
     }
-    still_exists := completion.valeur.V
 
     // 3. If stillExists is false and S is true, throw a ReferenceError exception.
-    si still_exists.est_false() && strict == vrai {
-        retourne lance_reference_error(realm, "cannot create property")
+    si still_exists == faux && strict == vrai {
+        _ := lance_reference_error(realm, "cannot create property")
+        retourne
     }
 
     // 4. Perform ? Set(bindingObject, N, V, S).
-    completion = set(binding_object, nom, valeur, strict)
-    saufsi completion.est_normal() {
-        retourne completion
+    set(binding_object, nom, valeur, strict)
+    si realm.possède_exception() {
+        retourne
     }
 
     // 5. Return UNUSED.
-    retourne normal_completion(js_undefined)
 }
 
 /* 9.1.1.2.6 GetBindingValue ( N, S ) 
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-object-environment-records-getbindingvalue-n-s */
-object_environment_get_binding_value :: fonc (base: *Environment, realm: *Realm, nom: ECMAString, strict: bool) -> CompletionRecord
+object_environment_get_binding_value :: fonc (base: *Environment, realm: *Realm, nom: ECMAString, strict: bool) -> Valeur
 {
     environment := base.vérifie_comme(ObjectEnvironment)
 
@@ -650,17 +644,16 @@ object_environment_get_binding_value :: fonc (base: *Environment, realm: *Realm,
     }
 
     // 2. Let value be ? HasProperty(bindingObject, N).
-    completion := has_property(binding_object, nom)
-    saufsi completion.est_normal() {
-        retourne completion
+    value := has_property(binding_object, nom)
+    si realm.possède_exception() {
+        retourne js_undefined
     }
-    value := completion.valeur.V
 
     // 3. If value is false, then
     si value.est_false() {
         // a. If S is false, return undefined; otherwise throw a ReferenceError exception.
         si strict == faux {
-            retourne normal_completion(js_undefined)
+            retourne js_undefined
         }
 
         retourne lance_reference_error(realm, "unknown property")
@@ -770,7 +763,7 @@ global_environment_has_binding :: fonc (base: *Environment, nom: ECMAString, ind
     dclrec := environment.declarative_record
 
     // 2. If ! DclRec.HasBinding(N) is true, return true.
-    si has_binding(dclrec, nom).valeur.V.Boolean {
+    si has_binding(dclrec, nom) {
         retourne vrai
     }
 
@@ -778,12 +771,12 @@ global_environment_has_binding :: fonc (base: *Environment, nom: ECMAString, ind
     objrec := environment.object_record
 
     // 4. Return ? ObjRec.HasBinding(N).
-    retourne has_binding(objrec, nom).valeur.V.Boolean
+    retourne has_binding(objrec, nom)
 }
 
 /* 9.1.1.4.2 CreateMmutableBinding ( N, D )
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-global-environment-records-createmutablebinding-n-d */
-global_environment_create_mutable_binding :: fonc (base: *Environment, realm: *Realm, N: ECMAString, S: bool) -> CompletionRecord
+global_environment_create_mutable_binding :: fonc (base: *Environment, realm: *Realm, N: ECMAString, S: bool)
 {
     env_rec := base.vérifie_comme(GlobalEnvironment)
 
@@ -791,18 +784,19 @@ global_environment_create_mutable_binding :: fonc (base: *Environment, realm: *R
     decl_rec := env_rec.declarative_record
 
     // 2. If ! DclRec.HasBinding(N) is true, throw a TypeError exception.
-    si decl_rec.has_binding(N).valeur.V.est_true() {
+    si decl_rec.has_binding(N) {
         message := imprime_chaine("redefinition of mutable variable '%'", N)
-        retourne lance_type_error(realm, message)
+        _ := lance_type_error(realm, message)
+        retourne
     }
 
     // 3. Return ! DclRec.CreateMutableBinding(N, S).
-    retourne decl_rec.create_mutable_binding(realm, N, S)
+    decl_rec.create_mutable_binding(realm, N, S)
 }
 
 /* 9.1.1.4.3 CreateImmutableBinding ( N, D )
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-declarative-environment-records-createimmutablebinding-n-s */
-global_environment_create_immutable_binding :: fonc (base: *Environment, realm: *Realm, N: ECMAString, S: bool) -> CompletionRecord
+global_environment_create_immutable_binding :: fonc (base: *Environment, realm: *Realm, N: ECMAString, S: bool) -> bool
 {
     env_rec := base.vérifie_comme(GlobalEnvironment)
 
@@ -810,9 +804,10 @@ global_environment_create_immutable_binding :: fonc (base: *Environment, realm: 
     decl_rec := env_rec.declarative_record
 
     // 2. If ! DclRec.HasBinding(N) is true, throw a TypeError exception.
-    si decl_rec.has_binding(N).valeur.V.est_true() {
+    si decl_rec.has_binding(N) {
         message := imprime_chaine("redefinition of immutable variable '%'", N)
-        retourne lance_type_error(realm, message)
+        _ := lance_type_error(realm, message)
+        retourne faux
     }
 
     // 3. Return ! DclRec.CreateImmutableBinding(N, S).
@@ -821,7 +816,7 @@ global_environment_create_immutable_binding :: fonc (base: *Environment, realm: 
 
 /* 9.1.1.4.4 InitializeBinding ( N, V )
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-global-environment-records-initializebinding-n-v */
-global_environment_initialize_binding :: fonc (base: *Environment, N: ECMAString, V: Valeur) -> CompletionRecord
+global_environment_initialize_binding :: fonc (base: *Environment, N: ECMAString, V: Valeur)
 {
     env_rec := base.vérifie_comme(GlobalEnvironment)
 
@@ -829,9 +824,10 @@ global_environment_initialize_binding :: fonc (base: *Environment, N: ECMAString
     decl_rec := env_rec.declarative_record
 
     // 2. If ! DclRec.HasBinding(N) is true, then
-    si decl_rec.has_binding(N).valeur.V.Boolean {
+    si decl_rec.has_binding(N) {
         // a. Return ! DclRec.InitializeBinding(N, V).
-        retourne decl_rec.initialize_binding(N, V)
+        decl_rec.initialize_binding(N, V)
+        retourne
     }
 
     // 3. Assert: If the binding exists, it must be in the Object Environment Record.
@@ -840,12 +836,12 @@ global_environment_initialize_binding :: fonc (base: *Environment, N: ECMAString
     obj_rec := env_rec.object_record
 
     // 5. Return ? ObjRec.InitializeBinding(N, V).
-    retourne obj_rec.initialize_binding(N, V)
+    obj_rec.initialize_binding(N, V)
 }
 
 /* 9.1.1.4.5 SetMutableBinding ( N, V, S )
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-global-environment-records-setmutablebinding-n-v-s */
-global_environment_set_mutable_binding :: fonc (base: *Environment, realm: *Realm, nom: ECMAString, valeur: Valeur, strict: bool) -> CompletionRecord
+global_environment_set_mutable_binding :: fonc (base: *Environment, realm: *Realm, nom: ECMAString, valeur: Valeur, strict: bool)
 {
     environment := base.vérifie_comme(GlobalEnvironment)
 
@@ -853,21 +849,22 @@ global_environment_set_mutable_binding :: fonc (base: *Environment, realm: *Real
     dclrec := environment.declarative_record
 
     // 2. If ! DclRec.HasBinding(N) is true, then
-    si has_binding(dclrec, nom).valeur.V.Boolean {
+    si has_binding(dclrec, nom) {
         // a. Return ? DclRec.SetMutableBinding(N, V, S).
-        retourne set_mutable_binding(dclrec, realm, nom, valeur, strict)
+        set_mutable_binding(dclrec, realm, nom, valeur, strict)
+        retourne
     }
 
     // 3. Let ObjRec be envRec.[[ObjectRecord]].
     objrec := environment.object_record
 
     // 4. Return ? ObjRec.SetMutableBinding(N, V, S).
-    retourne set_mutable_binding(objrec, realm, nom, valeur, strict)
+    set_mutable_binding(objrec, realm, nom, valeur, strict)
 }
 
 /* 9.1.1.4.6 GetBindingValue ( N, S )
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-global-environment-records-getbindingvalue-n-s */
-global_environment_get_binding_value :: fonc (base: *Environment, realm: *Realm, nom: ECMAString, strict: bool) -> CompletionRecord
+global_environment_get_binding_value :: fonc (base: *Environment, realm: *Realm, nom: ECMAString, strict: bool) -> Valeur
 {
     environment := base.vérifie_comme(GlobalEnvironment)
 
@@ -875,7 +872,7 @@ global_environment_get_binding_value :: fonc (base: *Environment, realm: *Realm,
     dclrec := environment.declarative_record
 
     // 2. If ! DclRec.HasBinding(N) is true, then
-    si has_binding(dclrec, nom).valeur.V.Boolean {
+    si has_binding(dclrec, nom) {
         // a. Return ? DclRec.GetBindingValue(N, S).
         retourne get_binding_value(dclrec, realm, nom, strict)
     }
@@ -905,16 +902,16 @@ global_environment_with_base_object :: fonc (base: *Environment @inutilisée) ->
 
 /* 9.1.1.4.11 GetThisBinding ( )
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-global-environment-records-getthisbindinghttps://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-global-environment-records-getthisbinding */
-global_environment_get_this_binding :: fonc (base: *Environment, realm: *Realm @inutilisée) -> CompletionRecord
+global_environment_get_this_binding :: fonc (base: *Environment, realm: *Realm @inutilisée) -> Valeur
 {
     env_rec := base.vérifie_comme(GlobalEnvironment)
     // 1. Return envRec.[[GlobalThisValue]].
-    retourne normal_completion(env_rec.global_this_value)
+    retourne env_rec.global_this_value
 }
 
 /* 9.1.1.4.18 CreateGlobalFunctionBinding ( N, V, D )
  * https://tc39.es/ecma262/#sec-createglobalfunctionbinding */
-global_environment_create_global_function_binding :: fonc (base: *Environment, N: ECMAString, V: Valeur, D: bool @inutilisée) -> CompletionRecord
+global_environment_create_global_function_binding :: fonc (base: *Environment, N: ECMAString, V: Valeur, D: bool @inutilisée)
 {
     env_rec := base.vérifie_comme(GlobalEnvironment)
 
@@ -932,16 +929,16 @@ global_environment_create_global_function_binding :: fonc (base: *Environment, N
     // 6. Perform ? DefinePropertyOrThrow(globalObject, N, desc).
 
     // 7. Perform ? Set(globalObject, N, V, false).
-    completion := set(global_object, N, V, faux)
-    saufsi completion.est_normal() {
-        retourne completion
+    set(global_object, N, V, faux)
+    mv := global_object.donne_tas_de_mémoire().mv
+    si mv.possède_exception() {
+        retourne
     }
 
     // À FAIRE : 8. If envRec.[[VarNames]] does not contain N, then
         // a. Append N to envRec.[[VarNames]].
 
     // 9. Return unused.
-    retourne normal_completion(js_undefined)
 }
 
 /** \} */
