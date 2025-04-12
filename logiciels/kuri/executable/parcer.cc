@@ -2239,6 +2239,11 @@ static auto analyse_configuration(const char *chemin)
         config.fichier_sortie = obj_sortie->valeur;
     }
 
+    auto obj_bibliothèque = cherche_chaine(dico, "bibliothèque");
+    if (obj_bibliothèque != nullptr) {
+        config.nom_bibliothèque = obj_bibliothèque->valeur;
+    }
+
     return config;
 }
 
@@ -2281,12 +2286,12 @@ static std::optional<Configuration> valide_configuration(Configuration config)
 
 static std::optional<Configuration> crée_config_depuis_json(int argc, char **argv)
 {
-    if (argc < 2) {
-        std::cerr << "Utilisation " << argv[0] << " CONFIG.json\n";
+    if (argc < 3) {
+        std::cerr << "Utilisation -c " << argv[0] << " CONFIG.json\n";
         return {};
     }
 
-    auto config = analyse_configuration(argv[1]);
+    auto config = analyse_configuration(argv[2]);
 
     if (config.fichier == "") {
         return {};
@@ -2394,9 +2399,17 @@ static kuri::tableau<const char *> parse_arguments_depuis_config(Configuration c
     return args;
 }
 
+static std::optional<Configuration> crée_configuration_depuis_arguments(int argc, char **argv)
+{
+    if (argc == 3 && std::string(argv[1]) == "-c") {
+        return crée_config_depuis_json(argc, argv);
+    }
+    return crée_config_pour_metaprogramme(argc, argv);
+}
+
 int main(int argc, char **argv)
 {
-    auto config_optionnelle = crée_config_pour_metaprogramme(argc, argv);
+    auto config_optionnelle = crée_configuration_depuis_arguments(argc, argv);
 
     if (!config_optionnelle.has_value()) {
         return 1;
