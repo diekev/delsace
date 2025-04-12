@@ -996,7 +996,7 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
 
     // imprime("temps de rendu : %\n", début_rendu.temps_écoulé_millisecondes())
 
-    peintre.dessine_commandes_css(commandes)
+    CSS.dessine_commandes(peintre, commandes)
 
     document := page.donne_document()
     lien_survolé := document.donne_lien_survolé()
@@ -1030,7 +1030,7 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
     assert(commandes != nul)
 
     peintre = vue_rendu_page.peintre_id
-    dessine_commandes_id_css(peintre, commandes, CSS.donne_tampon_id(document.arbre_de_disposition))
+    CSS.dessine_commandes_id(peintre, commandes, CSS.donne_tampon_id(document.arbre_de_disposition))
 
     /* Nous devrions faire ça plus haut mais il semblerait qu'il manque, ou qu'il y a une préemption, des ajournements. */
     window := document.realm.global_object comme *Window

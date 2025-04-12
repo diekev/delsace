@@ -119,3 +119,163 @@ donne_qt_cursor_shape :: fonc (type: CursorType) -> QT_CursorShape
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom PeintureInterface
+ * \{ */
+
+importe Géométrie
+importe Math
+importe OpenGL
+importe PeintureInterface
+
+dessine_commandes :: fonc (peintre: *Peintre, commandes: *CommandesDeRendu)
+{
+    peintre.commence_dessin()
+
+    début := commandes.commandes.pointeur
+    fin := début + commandes.commandes.taille
+
+    tantque début < fin {
+        base := début comme *BaseCommande
+        discr base.type {
+            REMPLIS_RECTANGLE_ID {}
+            REMPLIS_RECTANGLE {
+                commande := base comme *CommandeRemplisRectangle
+                peintre.remplis_rectangle(commande.rect, commande.couleur)
+            }
+            REMPLIS_RECTANGLE_ARRONDI {
+                commande := base comme *CommandeRemplisRectangleArrondi
+                peintre.remplis_rectangle_arrondi(commande.rect, commande.rayons, commande.couleur)
+            }
+            DESSINE_RECTANGLE {
+                commande := base comme *CommandeDessineRectangle
+                peintre.dessine_rectangle(commande.rect, commande.couleur)
+            }
+            DESSINE_RECTANGLE_ARRONDI {
+                // commande := base comme *CommandeDessineRectangleArrondi
+                // peintre.dessine_rectangle_arrondi(commande.rect, commande.rayons, commande.couleur)
+            }
+            DESSINE_BORDURE {
+                commande := base comme *CommandeDessineBordure
+
+                couleurs_peintre: [4]CouleurPeintre = ---
+                pour commande.couleurs {
+                    couleurs_peintre[index_it] = it
+                }
+
+                peintre.dessine_bordure(commande.rect, commande.largeurs, couleurs_peintre)
+            }
+            DESSINE_IMAGE {
+                commande := base comme *CommandeDessineImage
+                peintre.dessine_image(commande.image_data, commande.rect_image, commande.rect, commande.répétition)
+            }
+            DESSINE_TAMPON_IMAGE {
+                commande := base comme *CommandeDessineImageTampon
+                peintre.dessine_image(commande.image_data, commande.rect)
+            }
+            DESSINE_TEXTE {
+                commande := base comme *CommandeDessineTexte
+                peintre.dessine_texte(commande.fonte, commande.texte, commande.rect, commande.couleur, *commande.effets)
+            }
+            DESSINE_CERCLE {
+                commande := base comme *CommandeDessineCercle
+
+                cercle: Cercle(r32)
+                cercle.centre_x = commande.rect.x + commande.rect.largeur / 2
+                cercle.centre_y = commande.rect.y + commande.rect.hauteur / 2
+                cercle.rayon = max(commande.rect.largeur, commande.rect.hauteur) / 2.0
+
+                peintre.dessine_cercle(cercle, commande.couleur)
+            }
+            REMPLIS_CERCLE {
+                commande := base comme *CommandeRemplisCercle
+
+                cercle: Cercle(r32)
+                cercle.centre_x = commande.rect.x + commande.rect.largeur / 2
+                cercle.centre_y = commande.rect.y + commande.rect.hauteur / 2
+                cercle.rayon = max(commande.rect.largeur, commande.rect.hauteur) / 2.0
+
+                peintre.remplis_cercle(cercle, commande.couleur)
+            }
+            DÉBUTE_STACKING_CONTEXT {
+            }
+            TERMINE_STACKING_CONTEXT {
+            }
+            DÉBUTE_CISELAGE {
+                commande := base comme *CommandeDébuteCiselage
+                peintre.définis_ciseau(commande.rect)
+            }
+            TERMINE_CISELAGE {
+                peintre.restaure_ciseau()
+            }
+        }
+
+        début += base.taille_type
+    }
+
+    peintre.termine_dessin()
+}
+
+dessine_commandes_id :: fonc (peintre: *Peintre @inutilisée, commandes: *CommandesDeRendu, tampon_id: *TamponID)
+{
+    IGUMI.réinitialise_données_id()
+
+    fbo: GLuint
+    glGenFramebuffers(1, *fbo)
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo)
+
+    render_buf: GLuint
+    glGenRenderbuffers(1, *render_buf)
+    glBindRenderbuffer(GL_RENDERBUFFER, render_buf)
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_R32UI, tampon_id.largeur, tampon_id.hauteur)
+    vérifie_erreur("glRenderbufferStorage")
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, render_buf)
+    vérifie_erreur("glFramebufferRenderbuffer")
+
+    début := commandes.commandes.pointeur
+    fin := début + commandes.commandes.taille
+
+    IGUMI.commence_immédiat_id(IGUMI.ModeImmédiat.TRIANGLES)
+    vérifie_erreur("commence_immédiat_id")
+
+    /* Remets à zéro au cas la mémoire est réutilisée par le pilote. */
+    IGUMI.quad_immédiat_id(0.0, 0.0, tampon_id.largeur comme r32, tampon_id.hauteur comme r32, 0)
+
+    tantque début < fin {
+        base := début comme *BaseCommande
+
+        si base.type == TypeCommandeDeRendu.REMPLIS_RECTANGLE_ID {
+            commande := base comme *CommandeRemplisRectangleID
+            rect := commande.rect
+            IGUMI.quad_immédiat_id(rect.x, rect.y, rect.largeur, rect.hauteur, commande.id)
+        }
+
+        début += base.taille_type
+    }
+
+    IGUMI.termine_immédiat_id()
+    vérifie_erreur("termine_immédiat_id")
+
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0)
+    vérifie_erreur("glBindFramebuffer")
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo)
+    vérifie_erreur("glBindFramebuffer")
+
+    glReadBuffer(GL_COLOR_ATTACHMENT0)
+    vérifie_erreur("glReadBuffer")
+    glReadPixels(0, 0, tampon_id.largeur, tampon_id.hauteur, GL_RED_INTEGER, GL_UNSIGNED_INT, tampon_id.données.pointeur)
+    vérifie_erreur("glReadPixels")
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0)
+
+    glBindRenderbuffer(GL_RENDERBUFFER, 0)
+
+    glDeleteFramebuffers(1, *fbo)
+    glDeleteRenderbuffers(1, *render_buf)
+
+    tampon_id.fut_dessiné = vrai
+}
+
+/** \} */
