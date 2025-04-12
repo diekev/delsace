@@ -2899,6 +2899,7 @@ int main(int argc, char **argv)
      * n'existent en C. */
     convertisseuse.ajoute_typedef("r16", "r16");
     convertisseuse.ajoute_typedef("half", "r16");
+    convertisseuse.ajoute_typedef("ptrdiff_t", "z64");
 
     if (config.fichier_sortie != "") {
         std::ofstream fichier(config.fichier_sortie.c_str());
