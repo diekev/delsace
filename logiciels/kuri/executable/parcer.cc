@@ -702,34 +702,7 @@ static auto trouve_decalage(CXToken *tokens,
     return dec;
 }
 
-template <typename T>
-struct TableauStatique {
-    const T *donnees = nullptr;
-    size_t taille = 0;
-
-  public:
-    const T &operator[](size_t index)
-    {
-        return donnees[index];
-    }
-
-    bool est_vide() const
-    {
-        return !donnees;
-    }
-
-    T const *begin() const
-    {
-        return donnees;
-    }
-
-    T const *end() const
-    {
-        return donnees + taille;
-    }
-};
-
-static TableauStatique<CXToken> tokenise(CXTranslationUnit trans_unit, CXCursor cursor)
+static kuri::tableau_statique<CXToken> tokenise(CXTranslationUnit trans_unit, CXCursor cursor)
 {
     CXSourceRange range = clang_getCursorExtent(cursor);
     CXToken *tokens = nullptr;
@@ -738,7 +711,7 @@ static TableauStatique<CXToken> tokenise(CXTranslationUnit trans_unit, CXCursor 
 
     // À FAIRE clang_disposeTokens(trans_unit, tokens, nombre_tokens);
 
-    return {tokens, static_cast<size_t>(nombre_tokens)};
+    return {tokens, int64_t(nombre_tokens)};
 }
 
 using TypeDonneesType = kuri::tableau<dls::chaine>;
@@ -776,7 +749,7 @@ struct TypedefTypeFonction {
  */
 struct ParseuseTypedef {
     CXTranslationUnit m_trans_unit{};
-    TableauStatique<CXToken> m_tokens{};
+    kuri::tableau_statique<CXToken> m_tokens{};
 
     std::optional<TypedefTypeFonction> parse()
     {
@@ -883,15 +856,15 @@ static auto tokens_typedef(CXCursor cursor,
         donnees.imprime(flux_sortie, dico);
         // À FAIRE : meilleure manière de gérer ce cas
         clang_disposeTokens(trans_unit,
-                            const_cast<CXToken *>(tokens_.donnees),
-                            static_cast<unsigned>(parseuse.m_tokens.taille));
+                            const_cast<CXToken *>(tokens_.begin()),
+                            static_cast<unsigned>(parseuse.m_tokens.taille()));
         return;
     }
 
     // À FAIRE : meilleure manière de gérer ce cas
     clang_disposeTokens(trans_unit,
-                        const_cast<CXToken *>(tokens_.donnees),
-                        static_cast<unsigned>(parseuse.m_tokens.taille));
+                        const_cast<CXToken *>(tokens_.begin()),
+                        static_cast<unsigned>(parseuse.m_tokens.taille()));
 
     CXSourceRange range = clang_getCursorExtent(cursor);
     CXToken *tokens = nullptr;
