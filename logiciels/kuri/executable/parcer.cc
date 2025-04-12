@@ -155,6 +155,8 @@ struct Syntaxème {
 
     std::optional<TypeC> type_c{};
 
+    bool est_prodéclaration_inutile = false;
+
     Syntaxème(TypeSyntaxème type_) : type_syntaxème(type_)
     {
     }
@@ -1133,6 +1135,8 @@ struct Convertisseuse {
         syntaxeuse.noeud_courant.empile(module);
         convertis(cursor, trans_unit, flux_sortie);
         assert(syntaxeuse.noeud_courant.haut() == syntaxeuse.module);
+
+        marque_prodéclarations_inutiles(module);
 
         if (pour_bibliothèque != "") {
             flux_sortie << "lib" << pour_bibliothèque << " :: #bibliothèque \""
@@ -2430,6 +2434,10 @@ struct Convertisseuse {
 
     bool doit_ignorer_déclaration(Syntaxème *syntaxème)
     {
+        if (syntaxème->est_prodéclaration_inutile) {
+            return true;
+        }
+
         if (syntaxème->type_syntaxème == TypeSyntaxème::TYPEDEF) {
             auto typedef_ = static_cast<Typedef *>(syntaxème);
 
@@ -2478,6 +2486,36 @@ struct Convertisseuse {
                 if (!modules_importes.possède("Géométrie3D")) {
                     flux_sortie << "importe Géométrie3D\n\n";
                     modules_importes.insère("Géométrie3D");
+                }
+            }
+        }
+    }
+
+    void marque_prodéclarations_inutiles(Module *module)
+    {
+        for (int64_t i = 0; i < module->déclarations.taille(); i++) {
+            auto syntaxème1 = module->déclarations[i];
+            if (syntaxème1->type_syntaxème != TypeSyntaxème::DÉCLARATION_STRUCT) {
+                continue;
+            }
+
+            auto structure1 = static_cast<DéclarationStruct *>(syntaxème1);
+            if (structure1->rubriques.taille() != 0) {
+                continue;
+            }
+
+            for (int64_t j = i + 1; j < module->déclarations.taille(); j++) {
+                auto syntaxème2 = module->déclarations[j];
+                if (syntaxème2->type_syntaxème != TypeSyntaxème::DÉCLARATION_STRUCT) {
+                    continue;
+                }
+
+                auto structure2 = static_cast<DéclarationStruct *>(syntaxème2);
+                if (structure2->rubriques.taille() != 0) {
+                    if (structure2->nom == structure1->nom) {
+                        structure1->est_prodéclaration_inutile = true;
+                        break;
+                    }
                 }
             }
         }
