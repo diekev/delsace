@@ -1946,18 +1946,18 @@ struct Convertisseuse {
                 auto enfants = rassemble_enfants(cursor);
 
                 if (enfants.taille() == 1) {
-                    flux_sortie << "transtype(";
+                    flux_sortie << "(";
                     convertis(enfants[0], trans_unit, flux_sortie);
-                    flux_sortie << " : " << converti_type(cursor, typedefs) << ')';
+                    flux_sortie << " comme " << converti_type(cursor, typedefs) << ')';
                 }
                 else if (enfants.taille() == 2) {
                     /* par exemple :
                      * - static_cast<decltype(a)>(b)
                      * - (typeof(a))(b)
                      */
-                    flux_sortie << "transtype(";
+                    flux_sortie << "(";
                     convertis(enfants[1], trans_unit, flux_sortie);
-                    flux_sortie << " : " << converti_type(enfants[0], typedefs) << ')';
+                    flux_sortie << " comme " << converti_type(enfants[0], typedefs) << ')';
                 }
 
                 break;
