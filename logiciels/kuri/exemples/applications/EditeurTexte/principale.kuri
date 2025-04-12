@@ -1,4 +1,5 @@
 importe Fondation
+importe GlibC
 importe Numérique
 importe POSIX
 importe SysFichier

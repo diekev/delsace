@@ -80,6 +80,23 @@ flock :: fonc (__fd: z32, __operation: z32) -> z32 #externe libc
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom sys/ioctl.h
+ * \{ */
+
+winsize :: struct #externe {
+    ws_row: n16
+    ws_col: n16
+    ws_xpixel: n16
+    ws_ypixel: n16
+}
+
+TIOCGWINSZ :: 0x5413 comme n64
+
+ioctl :: fonc (fd: z32, request: n64, args: ...) -> z32 #externe libc
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom sys/timerfd.h
  * \{ */
 

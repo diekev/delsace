@@ -22,7 +22,14 @@ ntohs :: fonc (netshort: n16) -> n16 #externe libc
 // <assert.h>
 // <complex.h>
 // <cpio.h>
-// <ctype.h>
+
+/* ------------------------------------------------------------------------- */
+/** \nom ctype.h
+ * \{ */
+
+iscntrl :: fonc (c: z32) -> z32 #externe libc
+
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom dirent.h
@@ -836,7 +843,83 @@ wait :: fonc (status: *z32) -> z32 #externe libc
 
 // <syslog.h>
 // <tar.h>
-// <termios.h>
+
+/* ------------------------------------------------------------------------- */
+/** \nom termios.h
+ * \{ */
+
+VINTR :: 0
+VQUIT :: 1
+VERASE :: 2
+VKILL :: 3
+VEOF :: 4
+VTIME :: 5
+VMIN :: 6
+VSWTC :: 7
+VSTART :: 8
+VSTOP :: 9
+VSUSP :: 10
+VEOL :: 11
+VREPRINT :: 12
+VDISCARD :: 13
+VWERASE :: 14
+VLNEXT :: 15
+VEOL2 :: 16
+
+IGNBRK :: 0o0000001 comme n32
+BRKINT :: 0o0000002 comme n32
+IGNPAR :: 0o0000004 comme n32
+PARMRK :: 0o0000010 comme n32
+INPCK :: 0o0000020 comme n32
+ISTRIP :: 0o0000040 comme n32
+INLCR :: 0o0000100 comme n32
+IGNCR :: 0o0000200 comme n32
+ICRNL :: 0o0000400 comme n32
+IUCLC :: 0o0001000 comme n32
+IXON :: 0o0002000 comme n32
+IXANY :: 0o0004000 comme n32
+IXOFF :: 0o0010000 comme n32
+IMAXBEL :: 0o0020000 comme n32
+IUTF8 :: 0o0040000 comme n32
+
+OPOST :: 0o0000001 comme n32
+OLCUC :: 0o0000002 comme n32
+ONLCR :: 0o0000004 comme n32
+OCRNL :: 0o0000010 comme n32
+ONOCR :: 0o0000020 comme n32
+ONLRET :: 0o0000040 comme n32
+OFILL :: 0o0000100 comme n32
+OFDEL :: 0o0000200 comme n32
+
+CS8 :: 0o0000060 comme n32
+
+ISIG :: 0o0000001 comme n32
+ICANON :: 0o0000002 comme n32
+ECHO :: 0o0000010 comme n32
+IEXTEN :: 0o0100000 comme n32
+
+TCSANOW :: 0
+TCSADRAIN :: 1
+TCSAFLUSH :: 2
+
+NCCS :: 32
+
+termios :: struct #externe {
+    c_iflag: n32 /* input mode flags */
+    c_oflag: n32 /* output mode flags */
+    c_cflag: n32 /* control mode flags */
+    c_lflag: n32 /* local mode flags */
+    c_line: n8 /* line discipline */
+    c_cc: [NCCS]n8 /* control characters */
+    c_ispeed: n32 /* input speed */
+    c_ospeed: n32 /* output speed */
+}
+
+tcgetattr :: fonc (fd: z32, t: *termios) -> rien #externe libc
+tcsetattr :: fonc (fd: z32, drapeaux: z32, t: *termios) -> rien #externe libc
+
+/** \} */
+
 // <tgmath.h>
 
 /* ------------------------------------------------------------------------- */
