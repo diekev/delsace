@@ -215,7 +215,7 @@ CLÉ_CONTROLE :: fonc (c: z8) -> CléConsole
 
 console_lis_clé :: fonc () -> CléConsole
 {
-    c := tente entrée_standarde().lis_caractère() piège err {
+    c := tente entrée_standarde().lis_caractère() piège _ {
         imprime("une erreur est survenue lors de la lecture de l'entrée !\n")
         retourne 0 comme CléConsole
     }
