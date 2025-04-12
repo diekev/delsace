@@ -1531,7 +1531,7 @@ struct Convertisseuse {
             }
             case CXCursorKind::CXCursor_CompoundStmt:
             {
-                /* NOTE : un CompoundStmt correspond à un bloc, et peut donc contenir pluseurs
+                /* NOTE : un CompoundStmt correspond à un bloc, et peut donc contenir plusieurs
                  * instructions, par exemple :
                  *
                  * int a = 0;
@@ -1664,7 +1664,7 @@ struct Convertisseuse {
                  *
                  * en :
                  *
-                 * i = 0				 *
+                 * i = 0
                  * tantque i < 10 {
                  *		...
                  *		i += 1
