@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
  * The Original Code is Copyright (C) 2018 Kévin Dietrich. */
 
+#include <cstdio>
 #include <fstream>
 #include <iostream>
 #include <optional>
@@ -2532,6 +2533,9 @@ struct Configuration {
     kuri::tableau<kuri::chaine> dépendances_biblinternes{};
     /* Dépendances sur les bibliothèques internes ; celles installées dans modules/Kuri. */
     kuri::tableau<kuri::chaine> dépendances_qt{};
+
+    bool fichier_est_composite = false;
+    dls::chaine fichier_tmp{};
 };
 
 static auto analyse_configuration(const char *chemin)
@@ -2551,13 +2555,59 @@ static auto analyse_configuration(const char *chemin)
 
     auto dico = tori::extrait_dictionnaire(obj.get());
 
-    auto obj_fichier = cherche_chaine(dico, "fichier");
-
+    auto obj_fichier = dico->objet("fichier");
     if (obj_fichier == nullptr) {
         return config;
     }
 
-    config.fichier = obj_fichier->valeur;
+    if (obj_fichier->type == tori::type_objet::CHAINE) {
+        config.fichier = static_cast<tori::ObjetChaine *>(obj_fichier)->valeur;
+    }
+    else if (obj_fichier->type == tori::type_objet::TABLEAU) {
+        std::stringstream ss;
+
+        auto tableau = static_cast<tori::ObjetTableau *>(obj_fichier);
+        POUR (tableau->valeur) {
+            if (it->type != tori::type_objet::CHAINE) {
+                std::cerr << "Objet invalide dans le tableau de \"fichier\", nous ne voulons que "
+                             "des chaines\n";
+                std::cerr << "    NOTE : le type superflux est " << tori::chaine_type(it->type)
+                          << "\n";
+                return config;
+            }
+
+            auto obj_chaine = static_cast<tori::ObjetChaine *>(it.get());
+            std::ifstream ifs;
+            ifs.open(obj_chaine->valeur.c_str());
+
+            if (!ifs.is_open()) {
+                std::cerr << "Impossible de lire le fichier \"" << obj_chaine->valeur << "\"";
+                return config;
+            }
+
+            auto chaine = dls::chaine((std::istreambuf_iterator<char>(ifs)),
+                                      (std::istreambuf_iterator<char>()));
+            ss << chaine;
+        }
+
+        std::stringstream ss_tmp;
+        ss_tmp << "/tmp/parcer-" << obj_fichier << ".h";
+
+        auto nom_fichier_tmp = ss_tmp.str();
+
+        std::ofstream fichier_tmp(nom_fichier_tmp.c_str());
+        fichier_tmp << ss.str();
+
+        config.fichier = nom_fichier_tmp;
+        config.fichier_tmp = nom_fichier_tmp;
+        config.fichier_est_composite = true;
+    }
+    else {
+        std::cerr << "La propriété \"fichier\" doit être une chaine ou un tableau de chaines\n";
+        std::cerr << "    NOTE : la propriété est de type " << tori::chaine_type(obj_fichier->type)
+                  << "\n";
+        return config;
+    }
 
     auto obj_args = cherche_tableau(dico, "args");
 
@@ -2869,6 +2919,10 @@ int main(int argc, char **argv)
 
     clang_disposeTranslationUnit(unit);
     clang_disposeIndex(index);
+
+    if (config.fichier_est_composite && config.fichier_tmp.taille() != 0) {
+        remove(config.fichier_tmp.c_str());
+    }
 
     return 0;
 }
