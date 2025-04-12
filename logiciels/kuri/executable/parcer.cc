@@ -1080,6 +1080,8 @@ struct Convertisseuse {
 
     kuri::ensemble<kuri::chaine> modules_importes{};
 
+    kuri::ensemble<dls::chaine> commentaires_imprimés{};
+
     dls::chaine pour_bibliothèque{};
     kuri::tableau<kuri::chaine> dépendances_biblinternes{};
     kuri::tableau<kuri::chaine> dépendances_qt{};
@@ -2222,8 +2224,12 @@ struct Convertisseuse {
         profondeur += 1;
 
         if (syntaxème->commentaire.taille() != 0) {
-            imprime_tab(os);
-            os << syntaxème->commentaire << '\n';
+            /* Les typedefs et les structures qu'ils définissent ont les mêmes commentaires. */
+            if (!commentaires_imprimés.possède(syntaxème->commentaire)) {
+                imprime_tab(os);
+                os << syntaxème->commentaire << '\n';
+                commentaires_imprimés.insère(syntaxème->commentaire);
+            }
         }
 
         switch (syntaxème->type_syntaxème) {
