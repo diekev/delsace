@@ -1129,8 +1129,6 @@ struct Convertisseuse {
         CXCursor cursor = clang_getTranslationUnitCursor(trans_unit);
         // imprime_asa(cursor, 0, std::cout);
 
-        dossier_source = fichier_entete.chemin_parent();
-
         auto module = syntaxeuse.crée<Module>();
         syntaxeuse.module = module;
         syntaxeuse.noeud_courant.empile(module);
@@ -1177,6 +1175,24 @@ struct Convertisseuse {
         imprime_arbre(syntaxeuse.module, flux_sortie);
     }
 
+    bool doit_ignorer_fichier(kuri::chemin_systeme chemin_fichier)
+    {
+        if (chemin_fichier == fichier_source || chemin_fichier == fichier_entete) {
+            return false;
+        }
+
+        auto chemin_parent = chemin_fichier.chemin_parent();
+        while (chemin_parent.taille() != 0 && chemin_parent != "/") {
+            if (chemin_parent == kuri::chaine_statique(dossier_source)) {
+                return false;
+            }
+
+            chemin_parent = kuri::chemin_systeme(chemin_parent).chemin_parent();
+        }
+
+        return true;
+    }
+
     void convertis(CXCursor cursor, CXTranslationUnit trans_unit, std::ostream &flux_sortie)
     {
         switch (cursor.kind) {
@@ -1205,15 +1221,11 @@ struct Convertisseuse {
                     auto nom_fichier_c = kuri::chemin_systeme(clang_getCString(nom_fichier));
                     clang_disposeString(nom_fichier);
 
-                    if (nom_fichier_c.chemin_parent() != kuri::chaine_statique(dossier_source)) {
+                    //  À FAIRE: option pour controler ceci.
+                    if (doit_ignorer_fichier(nom_fichier_c)) {
+                        std::cerr << "Ignore " << nom_fichier_c << "\n";
                         continue;
                     }
-
-                    //  À FAIRE: option pour controler ceci.
-                    //                    if (nom_fichier_c != fichier_source && nom_fichier_c !=
-                    //                    fichier_entete) {
-                    //                        continue;
-                    //                    }
 
                     convertis(enfant, trans_unit, flux_sortie);
 
@@ -2534,6 +2546,8 @@ struct Configuration {
     /* Dépendances sur les bibliothèques internes ; celles installées dans modules/Kuri. */
     kuri::tableau<kuri::chaine> dépendances_qt{};
 
+    kuri::chemin_systeme dossier_source{};
+
     bool fichier_est_composite = false;
     dls::chaine fichier_tmp{};
 };
@@ -2562,9 +2576,13 @@ static auto analyse_configuration(const char *chemin)
 
     if (obj_fichier->type == tori::type_objet::CHAINE) {
         config.fichier = static_cast<tori::ObjetChaine *>(obj_fichier)->valeur;
+        auto chemin_fichier_source = kuri::chemin_systeme(config.fichier.c_str());
+        config.dossier_source = chemin_fichier_source.chemin_parent();
     }
     else if (obj_fichier->type == tori::type_objet::TABLEAU) {
         std::stringstream ss;
+
+        kuri::tableau<kuri::chemin_systeme> dossiers;
 
         auto tableau = static_cast<tori::ObjetTableau *>(obj_fichier);
         POUR (tableau->valeur) {
@@ -2588,6 +2606,15 @@ static auto analyse_configuration(const char *chemin)
             auto chaine = dls::chaine((std::istreambuf_iterator<char>(ifs)),
                                       (std::istreambuf_iterator<char>()));
             ss << chaine;
+
+            auto dossier_fichier =
+                kuri::chemin_systeme(obj_chaine->valeur.c_str()).chemin_parent();
+            dossiers.ajoute(dossier_fichier);
+        }
+
+        if (tableau->valeur.taille() == 0) {
+            std::cerr << "Aucun fichier spécifié\n";
+            return config;
         }
 
         std::stringstream ss_tmp;
@@ -2601,6 +2628,18 @@ static auto analyse_configuration(const char *chemin)
         config.fichier = nom_fichier_tmp;
         config.fichier_tmp = nom_fichier_tmp;
         config.fichier_est_composite = true;
+
+        auto premier_dossier = dossiers[0];
+        config.dossier_source = premier_dossier;
+
+        for (int i = 1; i < dossiers.taille(); i++) {
+            if (dossiers[i] != premier_dossier) {
+                config.dossier_source = kuri::chemin_systeme("/tmp/");
+                break;
+            }
+        }
+
+        std::cerr << "dossier_source : " << config.dossier_source << "\n";
     }
     else {
         std::cerr << "La propriété \"fichier\" doit être une chaine ou un tableau de chaines\n";
@@ -2725,6 +2764,7 @@ static std::optional<Configuration> crée_config_pour_metaprogramme(int argc, ch
 
     auto config = Configuration{};
     config.fichier = argv[1];
+    config.dossier_source = kuri::chemin_systeme(argv[1]).chemin_parent();
 
     if (std::string(argv[2]) != "-b") {
         std::cerr << "Utilisation " << argv[0]
@@ -2881,6 +2921,7 @@ int main(int argc, char **argv)
     auto convertisseuse = Convertisseuse();
     convertisseuse.fichier_source = fichier_source;
     convertisseuse.fichier_entete = fichier_entete;
+    convertisseuse.dossier_source = config.dossier_source;
     convertisseuse.pour_bibliothèque = config.nom_bibliothèque;
     convertisseuse.dépendances_biblinternes = config.dépendances_biblinternes;
     convertisseuse.dépendances_qt = config.dépendances_qt;
