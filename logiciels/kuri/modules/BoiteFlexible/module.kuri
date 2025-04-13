@@ -308,11 +308,15 @@ termine_rectangle :: fonc ()
     __boite_courante = __boite_courante.parent
 }
 
-dispose_séparateur_horizontal :: fonc ()
+dispose_séparateur_horizontal :: fonc (hauteur := 0)
 {
     assert(__boite_courante != nul)
     séparateur := __boite_courante.ajoute_enfant()
     séparateur.disposition.cotation.largeur = CROISSANTE()
+
+    si hauteur != 0 {
+        séparateur.disposition.cotation.hauteur = FIXE(hauteur)
+    }
 }
 
 ConfigurationTexte :: struct {
