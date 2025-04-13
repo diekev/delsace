@@ -13,6 +13,7 @@ importe Typographie
 TypeCommandeDeRendu :: énum {
     REMPLIS_RECTANGLE
     REMPLIS_RECTANGLE_ARRONDI
+    DESSINE_BORDURE
     DESSINE_TEXTE
     DESSINE_IMAGE
     DÉBUTE_CISELAGE
@@ -90,6 +91,24 @@ remplis_rectangle_arrondi :: fonc (commandes: *CommandesDeRendu, rect: Rectangle
     résultat := crée_commande(commandes, CommandeRemplisRectangleArrondi)
     résultat.rect = rect
     résultat.couleur = depuis_couleur_rvba(couleur)
+    résultat.rayon = rayon
+}
+
+CommandeDessineBordure :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.DESSINE_BORDURE
+
+    couleur: CouleurRVBAN8
+    largeur: r32
+    rayon: r32
+}
+
+dessine_bordure :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), couleur: CouleurRVBA, largeur: r32, rayon: r32)
+{
+    résultat := crée_commande(commandes, CommandeDessineBordure)
+    résultat.rect = rect
+    résultat.couleur = depuis_couleur_rvba(couleur)
+    résultat.largeur = largeur
     résultat.rayon = rayon
 }
 
@@ -234,6 +253,20 @@ ConfigurationRectangle :: struct {
     rayon_coin: r32
 }
 
+IndexConfigBordure :: #opaque n16
+
+CONFIG_BORDURE_INVALIDE :: IndexConfigBordure(-1 comme n16)
+
+est_valide :: fonc (index: IndexConfigBordure) -> bool #enligne
+{
+    retourne index comme n16 != CONFIG_BORDURE_INVALIDE comme n16
+}
+
+ConfigurationBordure :: struct {
+    largeur: r32
+    couleur: CouleurRVBA
+}
+
 dispose_rectangle :: fonc (id := "", arrière_plan := CouleurRVBA(), disposition := ConfigurationDiposition(), défilage := ConfigurationDéfilage(), config := ConfigurationRectangle())
 {
     assert(__boite_courante != nul)
@@ -246,6 +279,21 @@ dispose_rectangle :: fonc (id := "", arrière_plan := CouleurRVBA(), disposition
     boite.rectangle = config
 
     __boite_courante = boite
+}
+
+ajoute_bordure :: fonc (largeur: r32, couleur: CouleurRVBA)
+{
+    assert(__boite_courante != nul)
+    emboiteuse := __boite_courante.emboiteuse
+
+    si __boite_courante.index_bordure.est_valide() {
+        config := *emboiteuse.bordures[__boite_courante.index_bordure]
+        config.largeur = largeur
+        config.couleur = couleur
+    }
+    sinon {
+        __boite_courante.index_bordure = emboiteuse.ajoute_configuration_bordure(ConfigurationBordure(largeur, couleur))
+    }
 }
 
 termine_rectangle :: fonc ()
@@ -320,6 +368,7 @@ BoiteFlexible :: struct {
     rectangle: ConfigurationRectangle
     défilage: ConfigurationDéfilage
     config_texte: ConfigurationTexte
+    index_bordure := CONFIG_BORDURE_INVALIDE
 
     /* Valeurs pour les différents types. */
     arrière_plan: CouleurRVBA
@@ -572,6 +621,8 @@ Emboiteuse :: struct {
     barres_de_défilement: [..]BarreDeDéfilement
     éditrices_textes: [..]ÉditriceTextePourId
 
+    bordures: [..]ConfigurationBordure
+
     souris_x: r32
     souris_y: r32
 
@@ -608,6 +659,14 @@ réinitialise :: fonc (emboiteuse: *Emboiteuse)
 
     emboiteuse.toutes_les_boites.taille = 0
     emboiteuse.fragments.taille = 0
+    emboiteuse.bordures.taille = 0
+}
+
+ajoute_configuration_bordure :: fonc (emboiteuse: *Emboiteuse, config: ConfigurationBordure) -> IndexConfigBordure
+{
+    résultat := IndexConfigBordure(emboiteuse.bordures.taille comme n16)
+    tableau_ajoute(*emboiteuse.bordures, config)
+    retourne résultat
 }
 
 donne_barre_de_défilement :: fonc (boite: *BoiteFlexible, direction: Direction) -> (*BarreDeDéfilement, IndexBarreDeDéfilement)
@@ -1342,6 +1401,11 @@ génère_commandes :: fonc (boite: *BoiteFlexible, commandes: *CommandesDeRendu)
             sinon {
                 commandes.remplis_rectangle(rect, boite.arrière_plan)
             }
+
+            si boite.index_bordure.est_valide() {
+                config := boite.emboiteuse.bordures[boite.index_bordure]
+                commandes.dessine_bordure(rect, config.couleur, config.largeur, boite.rectangle.rayon_coin)
+            }
         }
         Texte {
             /* À FAIRE : décalage de 1 dans le calcul des index des fragments. */
@@ -1447,6 +1511,17 @@ dessine_commandes :: fonc (peintre: *Peintre, commandes: *CommandesDeRendu)
                 rect := commande.rect
                 rect.y = hauteur_vue - rect.y - rect.hauteur
                 peintre.remplis_rectangle_arrondi(rect, [commande.rayon, commande.rayon, commande.rayon, commande.rayon], commande.couleur)
+            }
+            DESSINE_BORDURE {
+                commande := base comme *CommandeDessineBordure
+                rect := commande.rect
+                rect.y = hauteur_vue - rect.y - rect.hauteur
+                // À FAIRE : largeur
+
+                largeurs := [commande.largeur, commande.largeur, commande.largeur, commande.largeur]
+                couleurs := CouleurPeintre.[commande.couleur, commande.couleur, commande.couleur, commande.couleur]
+
+                peintre.dessine_bordure(rect, largeurs, couleurs)
             }
             DESSINE_TEXTE {
                 commande := base comme *CommandeDessineTexte
