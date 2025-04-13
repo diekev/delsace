@@ -1080,6 +1080,7 @@ struct Convertisseuse {
     dico_typedefs typedefs{};
 
     kuri::ensemble<CXCursorKind> cursors_non_pris_en_charges{};
+    kuri::ensemble<kuri::chaine> fichiers_ignorés{};
 
     kuri::ensemble<kuri::chaine> modules_importes{};
 
@@ -1223,7 +1224,7 @@ struct Convertisseuse {
 
                     //  À FAIRE: option pour controler ceci.
                     if (doit_ignorer_fichier(nom_fichier_c)) {
-                        std::cerr << "Ignore " << nom_fichier_c << "\n";
+                        fichiers_ignorés.insère(kuri::chaine_statique(nom_fichier_c));
                         continue;
                     }
 
@@ -2967,6 +2968,15 @@ int main(int argc, char **argv)
             std::cerr << '\t' << clang_getCursorKindSpelling(kind) << " (" << kind << ')' << '\n';
         });
     }
+
+#if 0
+    if (convertisseuse.fichiers_ignorés.taille() != 0) {
+        std::cerr << "Les fichers suivants furent ignorés :\n";
+
+        convertisseuse.fichiers_ignorés.pour_chaque_element(
+            [&](auto fichier) { std::cerr << '\t' << fichier << '\n'; });
+    }
+#endif
 
     clang_disposeTranslationUnit(unit);
     clang_disposeIndex(index);
