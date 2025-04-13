@@ -1371,6 +1371,10 @@ struct Convertisseuse {
             }
             case CXCursorKind::CXCursor_TypedefDecl:
             {
+                /* typedef a b;
+                 * clang_getCursorType(cursor) => b
+                 * clang_getTypedefDeclUnderlyingType(cursor) => a
+                 */
                 auto type_source = clang_getTypedefDeclUnderlyingType(cursor);
                 auto type_défini = clang_getCursorType(cursor);
 
