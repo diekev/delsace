@@ -2353,10 +2353,14 @@ struct Convertisseuse {
 
                 imprime_tab(os);
                 os << variable->nom << ": " << converti_type(variable->type_c.value(), typedefs);
-                // À FAIRE : expression
-                // À FAIRE : storage_classe
-                os << "\n";
 
+                // À FAIRE : expression
+
+                if (variable->storage_class == CX_StorageClass::CX_SC_Extern) {
+                    os << " #externe lib" << pour_bibliothèque;
+                }
+
+                os << "\n";
                 break;
             }
             case TypeSyntaxème::DÉCLARATION_CONSTANTE:
