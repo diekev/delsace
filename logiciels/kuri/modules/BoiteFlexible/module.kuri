@@ -272,7 +272,7 @@ dispose_rectangle :: fonc (id := "", arrière_plan := CouleurRVBA(), disposition
     assert(__boite_courante != nul)
 
     boite := __boite_courante.ajoute_enfant()
-    boite.id = id
+    boite.id = calcule_empreinte_djb2(id)
     boite.arrière_plan = arrière_plan
     boite.disposition = disposition
     boite.défilage = défilage
@@ -294,6 +294,12 @@ ajoute_bordure :: fonc (largeur: r32, couleur: CouleurRVBA)
     sinon {
         __boite_courante.index_bordure = emboiteuse.ajoute_configuration_bordure(ConfigurationBordure(largeur, couleur))
     }
+}
+
+définis_arrière_plan :: fonc (couleur := CouleurRVBA())
+{
+    assert(__boite_courante != nul)
+    __boite_courante.arrière_plan = couleur
 }
 
 termine_rectangle :: fonc ()
@@ -340,7 +346,7 @@ dispose_procédure :: fonc (procédure: fonc(*rien, RectanglePosDim(r32))(rien),
     assert(__boite_courante != nul)
     boite := __boite_courante.ajoute_procédure(procédure, données_procédure)
     boite.disposition.cotation = cotation
-    boite.id = id
+    boite.id = calcule_empreinte_djb2(id)
     __boite_courante = boite
 }
 
@@ -361,7 +367,7 @@ BoiteFlexible :: struct {
     parent: *BoiteFlexible
     enfants: [..]*BoiteFlexible
 
-    id: chaine
+    id: n64
     type: Type
 
     disposition: ConfigurationDiposition
@@ -517,25 +523,25 @@ ajoute_texte :: fonc (boite: *BoiteFlexible, fonte: *Fonte, texte: chaine) -> *B
     retourne enfant
 }
 
-sur_pression_souris :: fonc (rappel: fonc(*rien, chaine, z32)(rien), données: *rien, index: z32)
+sur_pression_souris :: fonc (rappel: fonc(*rien, n64, z32)(rien), données: *rien, index: z32)
 {
     assert(__boite_courante != nul)
     définis_rappel(__boite_courante, TypeRappelUtilisateur.SurPressionSouris, rappel, données, index)
 }
 
-sur_relâchement_souris :: fonc (rappel: fonc(*rien, chaine, z32)(rien), données: *rien, index: z32)
+sur_relâchement_souris :: fonc (rappel: fonc(*rien, n64, z32)(rien), données: *rien, index: z32)
 {
     assert(__boite_courante != nul)
     définis_rappel(__boite_courante, TypeRappelUtilisateur.SurRelâchementSouris, rappel, données, index)
 }
 
-sur_clic_souris :: fonc (rappel: fonc(*rien, chaine, z32)(rien), données: *rien, index: z32)
+sur_clic_souris :: fonc (rappel: fonc(*rien, n64, z32)(rien), données: *rien, index: z32)
 {
     assert(__boite_courante != nul)
     définis_rappel(__boite_courante, TypeRappelUtilisateur.SurClicSouris, rappel, données, index)
 }
 
-définis_rappel :: fonc (boite: *BoiteFlexible, type: TypeRappelUtilisateur, rappel: fonc(*rien, chaine, z32)(rien), données: *rien, index: z32)
+définis_rappel :: fonc (boite: *BoiteFlexible, type: TypeRappelUtilisateur, rappel: fonc(*rien, n64, z32)(rien), données: *rien, index: z32)
 {
     boite.rappels[type].rappel = rappel
     boite.rappels[type].données_utilisateur = données
@@ -577,7 +583,7 @@ TypeRappelUtilisateur :: énum {
 }
 
 RappelUtilisateur :: struct {
-    rappel: fonc(*rien, chaine, z32)(rien)
+    rappel: fonc(*rien, n64, z32)(rien)
     données_utilisateur: *rien
     index_utilisateur: z32
 }
@@ -587,7 +593,7 @@ BoiteDisposée :: struct {
     premier_enfant: z32 = -1
     puiné : z32 = -1
 
-    id: chaine
+    id: n64
     rect: RectanglePosDim(r32)
     barre_de_défilement_verticale := INDEX_BARRE_DÉFILEMENT_INVALIDE
     barre_de_défilement_horizontale := INDEX_BARRE_DÉFILEMENT_INVALIDE
@@ -604,7 +610,7 @@ appel_rappel :: fonc (boite: *BoiteDisposée, type: TypeRappelUtilisateur)
 }
 
 ÉditriceTextePourId :: struct {
-    id: chaine
+    id: n64
     éditrice_texte: *ÉditriceTexte
 }
 
@@ -628,7 +634,7 @@ Emboiteuse :: struct {
 
     commandes: CommandesDeRendu
 
-    id_pressé: chaine
+    id_pressé: n64
 }
 
 commence_disposition :: fonc (emboiteuse: *Emboiteuse, largeur: z32, hauteur: z32)
@@ -786,7 +792,7 @@ enregistre_disposition :: fonc (emboiteuse: *Emboiteuse, boite: *BoiteFlexible, 
     }
 }
 
-donne_rect :: fonc (emboiteuse: *Emboiteuse, id: chaine) -> RectanglePosDim(r32)
+donne_rect :: fonc (emboiteuse: *Emboiteuse, id: n64) -> RectanglePosDim(r32)
 {
     pour * emboiteuse.boites_disposées {
         si it.id == id {
@@ -797,7 +803,7 @@ donne_rect :: fonc (emboiteuse: *Emboiteuse, id: chaine) -> RectanglePosDim(r32)
     retourne RectanglePosDim(r32)()
 }
 
-définis_éditrice_texte :: fonc (emboiteuse: *Emboiteuse, id: chaine, éditrice_texte: *ÉditriceTexte)
+définis_éditrice_texte :: fonc (emboiteuse: *Emboiteuse, id: n64, éditrice_texte: *ÉditriceTexte)
 {
     pour * emboiteuse.éditrices_textes {
         si it.id != id {
@@ -817,7 +823,7 @@ définis_éditrice_texte :: fonc (emboiteuse: *Emboiteuse, id: chaine, éditrice
     tableau_ajoute(*emboiteuse.éditrices_textes, ÉditriceTextePourId(id, éditrice_texte))
 }
 
-donne_éditrice_texte :: fonc (emboiteuse: *Emboiteuse, id: chaine) -> *ÉditriceTexte
+donne_éditrice_texte :: fonc (emboiteuse: *Emboiteuse, id: n64) -> *ÉditriceTexte
 {
     pour * emboiteuse.éditrices_textes {
         si it.id == id {
@@ -884,7 +890,7 @@ sur_relâchement_souris :: fonc (emboiteuse: *Emboiteuse, x: r32, y: r32)
         appel_rappel(boite, TypeRappelUtilisateur.SurClicSouris)
     }
 
-    emboiteuse.id_pressé = ""
+    emboiteuse.id_pressé = 0
 }
 
 applique_défilage_vertical :: fonc (emboiteuse: *Emboiteuse, x: r32, y: r32, delta: z32)
@@ -925,7 +931,7 @@ applique_défilage_vertical :: fonc (emboiteuse: *Emboiteuse, x: r32, y: r32, de
     }
 }
 
-donne_boite_disposée_pour_id :: fonc (emboiteuse: *Emboiteuse, id: chaine) -> *BoiteDisposée
+donne_boite_disposée_pour_id :: fonc (emboiteuse: *Emboiteuse, id: n64) -> *BoiteDisposée
 {
     si emboiteuse.boites_disposées.taille == 0 {
         retourne nul
@@ -979,14 +985,14 @@ donne_boite_sous_souris :: fonc (emboiteuse: *Emboiteuse) -> *BoiteDisposée
     retourne boite_courante
 }
 
-est_survolée :: fonc (id: chaine) -> bool
+est_survolée :: fonc () -> bool
 {
     assert(__boite_courante != nul)
     boite_disposée := donne_boite_sous_souris(__boite_courante.emboiteuse)
     saufsi boite_disposée {
         retourne faux
     }
-    retourne boite_disposée.id == id
+    retourne boite_disposée.id == __boite_courante.id
 }
 
 fragmente_texte :: fonc (emboiteuse: *Emboiteuse, boite: *BoiteFlexible)
