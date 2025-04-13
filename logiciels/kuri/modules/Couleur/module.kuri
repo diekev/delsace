@@ -144,11 +144,11 @@ CouleurTSV :: struct {
 
 rvb_vers_tsv :: fonc (couleur: CouleurRVBA) -> CouleurTSV
 {
-    r := couleur.r
-    v := couleur.v
-    b := couleur.b
+    r := couleur.r comme r64
+    v := couleur.v comme r64
+    b := couleur.b comme r64
 
-    k := 0.0
+    k : r64 = 0.0
 
     si v < b {
         permute(v, b)
@@ -165,9 +165,9 @@ rvb_vers_tsv :: fonc (couleur: CouleurRVBA) -> CouleurTSV
     chroma := r - min_vb
 
     résultat : CouleurTSV = ---
-    résultat.t = abs(k + (v - b) / (6.0 * chroma + 1e-20))
-    résultat.s = chroma / (r + 1e-20)
-    résultat.v = r
+    résultat.t = (abs(k + (v - b) / (6.0 * chroma + 1e-20))) comme r32
+    résultat.s = (chroma / (r + 1e-20)) comme r32
+    résultat.v = r comme r32
     retourne résultat
 }
 
