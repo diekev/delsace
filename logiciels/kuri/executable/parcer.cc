@@ -2352,9 +2352,13 @@ struct Convertisseuse {
                 auto variable = static_cast<DéclarationVariable *>(syntaxème);
 
                 imprime_tab(os);
-                os << variable->nom << ": " << converti_type(variable->type_c.value(), typedefs);
+                os << variable->nom << (variable->expression ? " : " : ": ");
+                os << converti_type(variable->type_c.value(), typedefs);
 
-                // À FAIRE : expression
+                if (variable->expression) {
+                    os << " = ";
+                    imprime_arbre(variable->expression, os);
+                }
 
                 if (variable->storage_class == CX_StorageClass::CX_SC_Extern) {
                     os << " #externe lib" << pour_bibliothèque;
