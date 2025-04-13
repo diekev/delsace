@@ -189,6 +189,7 @@ tsv_vers_rvb :: fonc (couleur: CouleurTSV) -> CouleurRVBA
     résultat.r = ((nr - 1.0) * s + 1.0) * v
     résultat.v = ((nv - 1.0) * s + 1.0) * v
     résultat.b = ((nb - 1.0) * s + 1.0) * v
+    résultat.a = 1.0
     retourne résultat
 }
 
@@ -273,6 +274,7 @@ tsl_vers_rvb :: fonc (couleur: CouleurTSL) -> CouleurRVBA
     résultat.r = (nr - 0.5) * chroma + l
     résultat.v = (ng - 0.5) * chroma + l
     résultat.b = (nb - 0.5) * chroma + l
+    résultat.a = 1.0
     retourne résultat
 }
 
