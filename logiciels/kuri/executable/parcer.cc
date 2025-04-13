@@ -2961,6 +2961,13 @@ int main(int argc, char **argv)
     convertisseuse.ajoute_typedef("half", "r16");
     convertisseuse.ajoute_typedef("ptrdiff_t", "z64");
 
+    if (WCHAR_WIDTH == 16) {
+        convertisseuse.ajoute_typedef("wchar_t", "n16");
+    }
+    else if (WCHAR_WIDTH == 32) {
+        convertisseuse.ajoute_typedef("wchar_t", "n32");
+    }
+
     if (config.fichier_sortie != "") {
         std::ofstream fichier(config.fichier_sortie.c_str());
         fichier << "/* stats-code ignore fichier */\n";
