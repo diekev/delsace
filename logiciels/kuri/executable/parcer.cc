@@ -1034,7 +1034,10 @@ static EnfantsBoucleFor determine_enfants_for(CXCursor cursor,
 
 static dls::chaine donne_préfixe_valeur_énum(dls::chaine const &nom_énum)
 {
-    auto résultat = nom_énum + "_";
+    auto résultat = nom_énum;
+    if (résultat[résultat.taille() - 1] != '_') {
+        résultat += "_";
+    }
 
     for (auto &c : résultat) {
         if (c >= 'a' && c <= 'z') {
@@ -2425,7 +2428,8 @@ struct Convertisseuse {
             case TypeSyntaxème::EXPRESSION:
             {
                 auto expression = static_cast<Expression *>(syntaxème);
-                os << expression->texte;
+                os << donne_nom_constante_énum_sans_préfixe(expression->texte,
+                                                            m_préfixe_énum_courant);
                 break;
             }
             case TypeSyntaxème::EXPRESSION_UNAIRE:
