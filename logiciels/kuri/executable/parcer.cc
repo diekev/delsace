@@ -2648,8 +2648,6 @@ static auto analyse_configuration(const char *chemin)
                 break;
             }
         }
-
-        std::cerr << "dossier_source : " << config.dossier_source << "\n";
     }
     else {
         std::cerr << "La propriété \"fichier\" doit être une chaine ou un tableau de chaines\n";
