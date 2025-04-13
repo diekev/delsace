@@ -2225,6 +2225,9 @@ struct Convertisseuse {
 
             auto variable = syntaxeuse.crée<DéclarationVariable>(param);
             variable->nom = donne_cursor_spelling(param);
+            if (variable->nom == "") {
+                variable->nom = "anonyme" + dls::vers_chaine(i);
+            }
             variable->type_c = donne_type_c(param, false);
             fonction->paramètres.ajoute(variable);
         }
