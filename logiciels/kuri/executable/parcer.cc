@@ -1486,6 +1486,7 @@ struct Convertisseuse {
                     variable->expression = parse_expression(
                         enfants[decalage], trans_unit, flux_sortie);
                 }
+                syntaxeuse.ajoute_au_noeud_courant(variable);
                 break;
             }
         }
