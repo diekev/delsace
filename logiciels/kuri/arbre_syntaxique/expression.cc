@@ -248,6 +248,45 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
         {
             return ValeurExpression(b->type->comme_type_type_de_données()->type_connu);
         }
+        case GenreNoeud::DÉCLARATION_ENTÊTE_FONCTION:
+        {
+            return ValeurExpression(
+                const_cast<NoeudDéclarationEntêteFonction *>(b->comme_entête_fonction()));
+        }
+        case GenreNoeud::DÉCLARATION_CONSTANTE:
+        {
+            auto decl = b->comme_déclaration_constante();
+
+            if (decl->valeur_expression.est_valide()) {
+                return decl->valeur_expression;
+            }
+
+            if (decl->expression == nullptr) {
+                if (decl->type->est_type_énum()) {
+                    auto type_enum = static_cast<TypeEnum *>(decl->type);
+
+                    auto info_membre = donne_membre_pour_nom(type_enum, decl->ident);
+                    if (info_membre.has_value()) {
+                        return ValeurExpression(info_membre->membre.valeur);
+                    }
+                }
+
+                if (decl->type->est_type_type_de_données()) {
+                    auto type_de_données = decl->type->comme_type_type_de_données();
+                    if (type_de_données->type_connu == nullptr) {
+                        return erreur_évaluation(
+                            b, "La déclaration n'a pas de type de données connu !");
+                    }
+
+                    return ValeurExpression(type_de_données->type_connu);
+                }
+
+                return erreur_évaluation(b,
+                                         "La déclaration de la variable n'a pas d'expression !");
+            }
+
+            return évalue_expression(compilatrice, decl->bloc_parent, decl->expression);
+        }
         case GenreNoeud::EXPRESSION_RÉFÉRENCE_DÉCLARATION:
         {
             auto fichier = compilatrice.fichier(b->lexème->fichier);
@@ -267,37 +306,7 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
                     b, "La référence n'est pas celle d'une variable constante !");
             }
 
-            auto decl_var = decl->comme_déclaration_constante();
-
-            if (decl_var->valeur_expression.est_valide()) {
-                return decl_var->valeur_expression;
-            }
-
-            if (decl_var->expression == nullptr) {
-                if (decl_var->type->est_type_énum()) {
-                    auto type_enum = static_cast<TypeEnum *>(decl_var->type);
-
-                    auto info_membre = donne_membre_pour_nom(type_enum, decl_var->ident);
-                    if (info_membre.has_value()) {
-                        return ValeurExpression(info_membre->membre.valeur);
-                    }
-                }
-
-                if (decl_var->type->est_type_type_de_données()) {
-                    auto type_de_données = decl_var->type->comme_type_type_de_données();
-                    if (type_de_données->type_connu == nullptr) {
-                        return erreur_évaluation(
-                            b, "La déclaration n'a pas de type de données connu !");
-                    }
-
-                    return ValeurExpression(type_de_données->type_connu);
-                }
-
-                return erreur_évaluation(b,
-                                         "La déclaration de la variable n'a pas d'expression !");
-            }
-
-            return évalue_expression(compilatrice, decl->bloc_parent, decl_var->expression);
+            return évalue_expression(compilatrice, decl->bloc_parent, decl);
         }
         case GenreNoeud::EXPRESSION_TAILLE_DE:
         {
@@ -521,6 +530,26 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
         case GenreNoeud::EXPRESSION_RÉFÉRENCE_MEMBRE:
         {
             auto ref_membre = b->comme_référence_membre();
+
+            if (ref_membre->déclaration_référée) {
+                auto accédée = ref_membre->accédée->comme_référence_déclaration();
+                auto déclaration_module = accédée->déclaration_référée->comme_déclaration_module();
+                auto module = déclaration_module->module;
+                auto fichier = compilatrice.fichier(ref_membre->lexème->fichier);
+                auto déclarations = kuri::tablet<NoeudDéclaration *, 10>();
+                trouve_déclarations_dans_module(déclarations, module, ref_membre->ident, fichier);
+
+                assert(déclarations.taille() > 0);
+
+                if (déclarations.taille() > 1) {
+                    return erreur_évaluation(b,
+                                             "L'expression ne peut être évaluée car le module "
+                                             "contient plusieurs symboles de ce nom.");
+                }
+
+                return évalue_expression(compilatrice, module->bloc, déclarations[0]);
+            }
+
             auto type_accede = ref_membre->accédée->type;
             type_accede = donne_type_accédé_effectif(type_accede);
 

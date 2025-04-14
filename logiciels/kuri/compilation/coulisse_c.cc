@@ -1343,6 +1343,14 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
             auto type = constante_entière->type;
             auto valeur_entière = constante_entière->valeur;
 
+            if (type->est_type_pointeur()) {
+                assert_rappel(type->est_type_pointeur(),
+                              [&]() { dbg() << "Le type est " << chaine_type(type); });
+
+                auto nom_type = donne_nom_pour_type(type);
+                return enchaine("(", nom_type, ")", int64_t(valeur_entière), "L");
+            }
+
             if (type->est_type_entier_naturel()) {
                 if (type->taille_octet == 1) {
                     return enchaine(static_cast<uint32_t>(valeur_entière));
@@ -2690,7 +2698,11 @@ std::optional<ErreurCoulisse> CoulisseC::génère_code_impl(const ArgsGénérati
 
     m_bibliothèques.efface();
 
-    crée_fichiers(repr_inter_programme, espace.options);
+    crée_fichiers(repr_inter_programme, espace);
+
+    auto chemin_dossier_espace = kuri::chemin_systeme::chemin_temporaire(
+        enchaine("kuri-", args.espace->nom, "/"));
+    kuri::chemin_systeme::crée_dossiers(chemin_dossier_espace);
 
     POUR (m_fichiers) {
         if (!kuri::chemin_systeme::supprime(it.chemin_fichier)) {
@@ -2838,9 +2850,9 @@ int64_t CoulisseC::mémoire_utilisée() const
     return résultat;
 }
 
-void CoulisseC::crée_fichiers(const ProgrammeRepreInter &repr_inter,
-                              OptionsDeCompilation const &options)
+void CoulisseC::crée_fichiers(const ProgrammeRepreInter &repr_inter, EspaceDeTravail const &espace)
 {
+    auto const &options = espace.options;
     const DonnéesConstantes *données_constantes = nullptr;
     auto opt_données_constantes = repr_inter.donne_données_constantes();
     if (opt_données_constantes.has_value()) {
@@ -2848,7 +2860,7 @@ void CoulisseC::crée_fichiers(const ProgrammeRepreInter &repr_inter,
     }
 
     /* Crée le fichier d'entête. */
-    auto &entête = ajoute_fichier_c(true);
+    auto &entête = ajoute_fichier_c(espace.nom, true);
     entête.données_constantes = données_constantes;
     entête.types = repr_inter.donne_types();
     entête.globales = repr_inter.donne_globales();
@@ -2860,7 +2872,7 @@ void CoulisseC::crée_fichiers(const ProgrammeRepreInter &repr_inter,
     /* Si nous compilons un fichier objet, mets tout le code dans un seul fichier, car nous ne
      * pouvons assembler plusieurs fichiers objets en un seul. */
     if (options.résultat == RésultatCompilation::FICHIER_OBJET) {
-        auto &fichier = ajoute_fichier_c(false);
+        auto &fichier = ajoute_fichier_c(espace.nom, false);
         fichier.données_constantes = données_constantes;
         fichier.types = repr_inter.donne_types();
         fichier.globales = repr_inter.donne_globales_internes();
@@ -2869,7 +2881,7 @@ void CoulisseC::crée_fichiers(const ProgrammeRepreInter &repr_inter,
     }
 
     /* Crée un fichier source pour les globales. */
-    auto &fichier_globales = ajoute_fichier_c(false);
+    auto &fichier_globales = ajoute_fichier_c(espace.nom, false);
     fichier_globales.données_constantes = données_constantes;
     fichier_globales.globales = repr_inter.donne_globales_internes();
 
@@ -2899,7 +2911,7 @@ void CoulisseC::crée_fichiers(const ProgrammeRepreInter &repr_inter,
         auto fonctions_du_fichier = kuri::tableau_statique<AtomeFonction *>(pointeur_fonction,
                                                                             taille);
 
-        auto &fichier = ajoute_fichier_c(false);
+        auto &fichier = ajoute_fichier_c(espace.nom, false);
         fichier.fonctions = fonctions_du_fichier;
 
         nombre_instructions = 0;
@@ -2907,18 +2919,19 @@ void CoulisseC::crée_fichiers(const ProgrammeRepreInter &repr_inter,
     }
 }
 
-CoulisseC::FichierC &CoulisseC::ajoute_fichier_c(bool entête)
+CoulisseC::FichierC &CoulisseC::ajoute_fichier_c(kuri::chaine_statique nom_espace, bool entête)
 {
     kuri::chaine nom_fichier;
     kuri::chaine nom_fichier_objet;
     kuri::chaine nom_fichier_erreur;
 
     if (entête) {
-        nom_fichier = kuri::chemin_systeme::chemin_temporaire("compilation_kuri.h").donne_chaine();
+        auto nom_entête = enchaine("kuri-", nom_espace, "/compilation_kuri.h");
+        nom_fichier = kuri::chemin_systeme::chemin_temporaire(nom_entête).donne_chaine();
     }
     else {
         auto nom_base_fichier = kuri::chemin_systeme::chemin_temporaire(
-            enchaine("compilation_kuri", m_fichiers.taille()));
+            enchaine("kuri-", nom_espace, "/compilation_kuri", m_fichiers.taille()));
 
         nom_fichier = enchaine(nom_base_fichier, ".c");
         nom_fichier_objet = nom_fichier_objet_pour(nom_base_fichier);

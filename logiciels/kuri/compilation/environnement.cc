@@ -300,7 +300,7 @@ static kuri::chaine commande_pour_fichier_objet_impl(OptionsDeCompilation const 
         enchaineuse << it << " ";
     }
 
-    enchaineuse << fichier_entrée << " -o " << fichier_sortie;
+    enchaineuse << "\"" << fichier_entrée << "\" -o \"" << fichier_sortie << "\"";
 
     /* Terminateur nul afin de pouvoir passer la commande à #system. */
     enchaineuse << '\0';
@@ -352,7 +352,7 @@ kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
     }
 
     POUR (fichiers_entrée) {
-        enchaineuse << it << " ";
+        enchaineuse << "\"" << it << "\" ";
     }
 
     /* Ajoute le fichier objet pour les r16. */
