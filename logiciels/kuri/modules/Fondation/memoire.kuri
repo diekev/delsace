@@ -4,7 +4,7 @@
 // tableaux d'octets pour s'assurer que nous ne dépassons jamais les limites des
 // blocs de mémoires à manipuler.
 
-importe GlibC // pour memcpy
+importe POSIX // pour memcpy
 
 /* Retourne la taille alignée pour être un multiple de N.
  * N doit être une puissance de 2, car nous présupposons
