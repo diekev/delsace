@@ -1,28 +1,4 @@
-// Interface pour les fonctions standardes définies par POSIX
-
 importe Chaine // pour ChaineC
-importe Fondation
-importe GlibC // pour timespec
-
-charge "confname"
-
-getenv :: fonc (nom: ChaineC) -> ChaineC #externe libc
-setenv :: fonc (nom: ChaineC, valeur: ChaineC, remplace: z32) -> z32 #externe libc
-unsetenv :: fonc (nom: ChaineC) -> z32 #externe libc
-getuid :: fonc () -> z32 #externe libc
-system :: fonc (command: ChaineC) -> z32 #externe libc
-sleep :: fonc (temps: z32) -> rien #externe libc
-usleep :: fonc (µsec: n32) -> z32 #externe libc
-nanosleep :: fonc (req: *timespec, rem: *timespec) -> z32 #externe libc
-symlink :: fonc (target: ChaineC, linkpath: ChaineC) -> z32 #externe libc
-mkdir :: fonc (chemin: ChaineC, mode: z32) -> z32 #externe libc
-
-realpath :: fonc (path: ChaineC, resolved_path: ChaineC) -> ChaineC #externe libc
-
-readlink :: fonc (pathname: ChaineC, tampon: *z8, taille_tampon: n64) -> z64 #externe libc
-
-/* PATH_MAX, limits.h */
-TAILLE_MAX_CHEMIN :: 4096
 
 chaine_environnement :: fonc (nom: chaine) -> chaine
 {
@@ -65,41 +41,61 @@ est_utilisateur_racine :: fonc () -> bool
     retourne getuid() == 0
 }
 
-fsblkcnt_t :: n64
+/* ------------------------------------------------------------------------- */
+/** \nom signal.h
+ * \{ */
 
-struct_statvfs :: struct #externe {
-    f_bsize: n64 /* filesystem block size */
-    f_frsize: n64 /* fragment size */
-    f_blocks: fsblkcnt_t /* size of fs in f_frsize units */
-    f_bfree: fsblkcnt_t /* # free blocks */
-    f_bavail: fsblkcnt_t /* # free blocks for unprivileged users */
-    f_files: fsblkcnt_t /* # inodes */
-    f_ffree: fsblkcnt_t /* # free inodes */
-    f_favail: fsblkcnt_t /* # free inodes for unprivileged users */
-    f_fsid: n64 /* filesystem ID */
-    f_flag: n64 /* mount flags */
-    f_namemax: n64 /* maximum filename length */
-    __f_spare: [6]z32
+action_pour_erreur_de_segmentation :: fonc (signum: z32 @inutilisée)
+{
+    appelé_depuis_signal_système = vrai
+    panique("violation de segmentation")
 }
 
-/*
- unsigned long int f_bsize;
-    unsigned long int f_frsize;
-    __fsblkcnt_t f_blocks;
-    __fsblkcnt_t f_bfree;
-    __fsblkcnt_t f_bavail;
-    __fsfilcnt_t f_files;
-    __fsfilcnt_t f_ffree;
-    __fsfilcnt_t f_favail;
-    unsigned long int f_fsid;
-#ifdef _STATVFSBUF_F_UNUSED
-    int __f_unused;
-#endif
-    unsigned long int f_flag;
-    unsigned long int f_namemax;
-    int __f_spare[6];
-*/
+action_pour_exception_en_point_flottant :: fonc (signum: z32 @inutilisée)
+{
+    appelé_depuis_signal_système = vrai
+    panique("exception en point flottant")
+}
 
-statvfs :: fonc (path: ChaineC, s: *struct_statvfs) -> z32 #externe libc
+action_pour_avortement :: fonc (signum: z32 @inutilisée)
+{
+    appelé_depuis_signal_système = vrai
+    panique("avortement")
+}
 
-sysconf :: fonc (nom: SysConf) -> z64 #externe libc
+ajoute_action_pour_erreur :: fonc (signal: z32, rappel: sighandler_t) -> bool
+{
+    act: sigaction_struct
+    act.sa_handler = rappel
+
+    retourne sigaction(signal, *act, nul) != -1
+}
+
+système_ajoute_action_pour_action_erreur_de_segmentation :: fonc ()
+{
+    saufsi ajoute_action_pour_erreur(SIGSEGV, action_pour_erreur_de_segmentation) {
+        retourne
+    }
+    saufsi ajoute_action_pour_erreur(SIGFPE, action_pour_exception_en_point_flottant) {
+        retourne
+    }
+    saufsi ajoute_action_pour_erreur(SIGABRT, action_pour_avortement) {
+        retourne
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom time.h
+ * \{ */
+
+timespec_depuis_ms :: fonc (ms: z64) -> timespec
+{
+    ts : timespec = ---
+    ts.tv_sec = ms / 1_000
+    ts.tv_nsec = (ms % 1_000) * 1_000_000
+    retourne ts
+}
+
+/** \} */

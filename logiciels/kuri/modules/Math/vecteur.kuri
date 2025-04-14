@@ -166,7 +166,7 @@ longueur_carrée :: fonc (u: Vec2, v: Vec2) -> r32
     retourne produit_scalaire(w, w)
 }
 
-// projection vectorielle
+// projection vectorielle de a sur b
 projette :: fonc (a: Vec2, b: Vec2) -> Vec2
 {
     retourne produit_scalaire(a, b) / produit_scalaire(b, b) * b
