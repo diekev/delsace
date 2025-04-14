@@ -1185,7 +1185,7 @@ struct Convertisseuse {
             return false;
         }
 
-        auto chemin_parent = chemin_fichier.chemin_parent();
+        auto chemin_parent = kuri::chaine(chemin_fichier.chemin_parent());
         while (chemin_parent.taille() != 0 && chemin_parent != "/") {
             if (chemin_parent == kuri::chaine_statique(dossier_source)) {
                 return false;
