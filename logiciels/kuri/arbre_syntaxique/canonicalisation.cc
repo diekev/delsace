@@ -327,6 +327,14 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                     return référence->substitution;
                 }
 
+                if (type->est_type_pointeur()) {
+                    référence->substitution = assem->crée_littérale_entier(
+                        référence->lexème,
+                        déclaration->type,
+                        static_cast<uint64_t>(decl_const->valeur_expression.entière()));
+                    return référence->substitution;
+                }
+
                 /* À FAIRE : test que les opaques fonctionnent ici. */
                 if (déclaration->type->est_type_chaine()) {
                     référence->substitution = decl_const->expression;

@@ -1234,6 +1234,14 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
             auto type = constante_entière->type;
             auto valeur_entière = constante_entière->valeur;
 
+            if (type->est_type_pointeur()) {
+                assert_rappel(type->est_type_pointeur(),
+                              [&]() { dbg() << "Le type est " << chaine_type(type); });
+
+                auto nom_type = donne_nom_pour_type(type);
+                return enchaine("(", nom_type, ")", int64_t(valeur_entière), "L");
+            }
+
             if (type->est_type_entier_naturel()) {
                 if (type->taille_octet == 1) {
                     return enchaine(static_cast<uint32_t>(valeur_entière));
