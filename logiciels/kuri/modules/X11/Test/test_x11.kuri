@@ -1,0 +1,52 @@
+importe Fondation
+importe X11
+
+principale :: fonc ()
+{
+    diffère imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée())
+
+    msg := "Hello, World!"
+
+    d := XOpenDisplay(nul)
+
+    si d == nul {
+        imprime("Impossible d'ouvrir un display !\n")
+        exit(1)
+    }
+    diffère _ := XCloseDisplay(d)
+
+    hauteur : n32 = 640
+    largeur : n32 = 480
+    largeur_bordure : n32 = 1
+
+    s := DefaultScreen(d)
+    w := XCreateSimpleWindow(
+        d,
+        RootWindow(d, s),
+        10,
+        10,
+        hauteur,
+        largeur,
+        largeur_bordure,
+        BlackPixel(d, s),
+        WhitePixel(d, s))
+
+    _ := XSelectInput(d, w, ExposureMask | KeyPressMask)
+    _ := XMapWindow(d, w)
+
+    gc_défaut := DefaultGC(d, s)
+
+    boucle {
+        e: _XEvent
+        _ := XNextEvent(d, *e)
+
+        si e.type == Expose {
+            _ := XFillRectangle(d, w, gc_défaut, 20, 20, 10, 10)
+            _ := XDrawString(d, w, gc_défaut, 10, 50, msg.pointeur, msg.taille comme z32)
+        }
+
+        si e.type == KeyPress {
+            arrête
+        }
+    }
+}
