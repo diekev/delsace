@@ -1,6 +1,6 @@
 importe Chaine
 importe Fondation
-importe GlibC
+importe POSIX
 importe SysFichier
 
 ErreurConnexion :: erreur {

@@ -233,7 +233,7 @@ donne_chemins_fichiers_sources :: fonc () -> [..]CheminFichier
         retourne DécisionVisiteFichier.Continue
     }
 
-    visite_fichiers(dossier, récursif, *résultat, visite)
+    visite_fichiers(dossier, vrai, *résultat, visite)
 
     retourne résultat
 }
