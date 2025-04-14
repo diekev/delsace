@@ -259,6 +259,7 @@ compile_fichier(modules/OutilsMaintenance/Programmes triage_imports)
 compile_fichier(modules/Unicode/Programme principale)
 compile_fichier(modules/WebSocket/Tests cliente)
 compile_fichier(modules/WebSocket/Tests serveuse)
+compile_fichier(modules/X11/Test test_x11)
 
 include(bugs/test_bugs.txt)
 

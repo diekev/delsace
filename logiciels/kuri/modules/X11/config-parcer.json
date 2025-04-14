@@ -1,0 +1,11 @@
+{
+    "fichier": [
+        "/usr/include/X11/Xlib.h"
+    ],
+    "bibliothèque": "X11",
+    "sortie": "interface.kuri",
+    "args": [],
+    "inclusions": [
+        "/usr/include/X11/"
+    ]
+}
