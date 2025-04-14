@@ -3964,6 +3964,7 @@ void CompilatriceRI::génère_ri_pour_condition_implicite(NoeudExpression const 
         }
         case GenreNoeud::FONCTION:
         case GenreNoeud::POINTEUR:
+        case GenreNoeud::TYPE_ADRESSE_FONCTION:
         {
             génère_ri_pour_expression_droite(condition, nullptr);
             auto valeur1 = depile_valeur();
@@ -5507,7 +5508,7 @@ AtomeGlobale *CompilatriceRI::crée_info_fonction_pour_trace_appel(AtomeFonction
     auto fichier = m_compilatrice.fichier(decl->lexème->fichier);
     auto nom_fonction = decl->ident ? crée_constante_pour_chaine(decl->ident->nom) :
                                       crée_constante_pour_chaine("???");
-    auto nom_fichier = crée_constante_pour_chaine(fichier->nom());
+    auto nom_fichier = crée_constante_pour_chaine(fichier->chemin());
 
     kuri::tableau<AtomeConstante *> valeurs(3);
     valeurs[0] = nom_fonction;
@@ -5543,8 +5544,8 @@ AtomeGlobale *CompilatriceRI::crée_info_appel_pour_trace_appel(InstructionAppel
         auto const fichier = m_compilatrice.fichier(pour_appel->site->lexème->fichier);
         auto const texte_ligne = fichier->tampon()[lexeme->ligne];
 
-        valeurs[0] = m_constructrice.crée_z32(uint64_t(lexeme->ligne));
-        valeurs[1] = m_constructrice.crée_z32(uint64_t(lexeme->colonne));
+        valeurs[0] = m_constructrice.crée_z32(uint64_t(lexeme->ligne + 1));
+        valeurs[1] = m_constructrice.crée_z32(uint64_t(lexeme->colonne + 1));
         valeurs[2] = crée_constante_pour_chaine(
             kuri::chaine_statique(texte_ligne.begin(), texte_ligne.taille()));
     }

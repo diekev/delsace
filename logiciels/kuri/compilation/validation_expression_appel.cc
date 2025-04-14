@@ -530,6 +530,50 @@ static auto supprime_doublons(kuri::tablet<NoeudDéclaration *, 10> &tablet) -> 
     }
 }
 
+/* Voir les autres commentaires à propos des doublons. */
+static auto supprime_doublons(ListeCandidatesExpressionAppel &candidates)
+{
+    if (candidates.taille() <= 1) {
+        return;
+    }
+
+    kuri::ensemblon<NoeudDéclaration *, TAILLE_CANDIDATES_DEFAUT> doublons;
+    ListeCandidatesExpressionAppel résultat;
+
+    POUR (candidates) {
+        if (!it.decl->est_déclaration()) {
+            résultat.ajoute(it);
+            continue;
+        }
+
+        auto decl = it.decl->comme_déclaration();
+        if (doublons.possède(decl)) {
+            continue;
+        }
+        doublons.insère(decl);
+        résultat.ajoute(it);
+    }
+
+    if (résultat.taille() != candidates.taille()) {
+        candidates = résultat;
+    }
+}
+
+static void ajoute_candidate_pour_déclaration(ListeCandidatesExpressionAppel &candidates,
+                                              NoeudDéclaration *decl)
+{
+    if (decl->est_déclaration_constante()) {
+        auto constante = decl->comme_déclaration_constante();
+        if (constante->valeur_expression.est_fonction()) {
+            decl = constante->valeur_expression.fonction();
+        }
+        else if (constante->valeur_expression.est_type()) {
+            decl = constante->valeur_expression.type();
+        }
+    }
+    candidates.ajoute({CANDIDATE_EST_DÉCLARATION, decl});
+}
+
 static void trouve_candidates_pour_expression(
     Sémanticienne &contexte,
     EspaceDeTravail &espace,
@@ -589,7 +633,7 @@ static void trouve_candidates_pour_expression(
             }
         }
 
-        candidates.ajoute({CANDIDATE_EST_DÉCLARATION, it});
+        ajoute_candidate_pour_déclaration(candidates, it);
     }
 }
 
@@ -1532,12 +1576,12 @@ static CodeRetourValidation trouve_candidates_pour_appel(
         }
 
         if (type_connu->est_type_structure()) {
-            candidates.ajoute({CANDIDATE_EST_DÉCLARATION, type_connu->comme_type_structure()});
+            ajoute_candidate_pour_déclaration(candidates, type_connu->comme_type_structure());
             return CodeRetourValidation::OK;
         }
 
         if (type_connu->est_type_union()) {
-            candidates.ajoute({CANDIDATE_EST_DÉCLARATION, type_connu->comme_type_union()});
+            ajoute_candidate_pour_déclaration(candidates, type_connu->comme_type_union());
             return CodeRetourValidation::OK;
         }
 
@@ -1574,7 +1618,7 @@ static CodeRetourValidation trouve_candidates_pour_appel(
             trouve_déclarations_dans_module(declarations, module, accès->ident, fichier);
 
             POUR (declarations) {
-                candidates.ajoute({CANDIDATE_EST_DÉCLARATION, it});
+                ajoute_candidate_pour_déclaration(candidates, it);
             }
             return CodeRetourValidation::OK;
         }
@@ -2066,6 +2110,8 @@ static RésultatValidation crée_liste_candidates(NoeudExpressionAppel const *ex
         return Attente::sur_symbole(expr->expression);
     }
 
+    supprime_doublons(état->liste_candidates);
+
     état->état = ÉtatRésolutionAppel::État::LISTE_CANDIDATES_CRÉÉE;
     return CodeRetourValidation::OK;
 }
@@ -2111,22 +2157,44 @@ static RésultatValidation sélectionne_candidate(NoeudExpressionAppel const *ex
      */
     if (état->candidates.taille() > 1 &&
         (état->candidates[0].poids_args == état->candidates[1].poids_args)) {
-        auto e = espace.rapporte_erreur(
-            expr,
-            "Je ne peux pas déterminer quelle fonction appeler car "
-            "plusieurs fonctions correspondent à l'expression d'appel.");
 
-        if (état->candidates[0].noeud_decl && état->candidates[1].noeud_decl) {
-            e.ajoute_message("Candidate possible :\n");
-            e.ajoute_site(état->candidates[0].noeud_decl);
-            e.ajoute_message("Candidate possible :\n");
-            e.ajoute_site(état->candidates[1].noeud_decl);
-        }
-        else {
-            e.ajoute_message("Erreur interne ! Aucun site pour les candidates possibles !");
-        }
+        auto decl_candidate1 = état->candidates[0].noeud_decl;
+        auto decl_candidate2 = état->candidates[1].noeud_decl;
 
-        return CodeRetourValidation::Erreur;
+        /* À FAIRE : il est possible d'avoir des doublons quand un module A importe deux modules B
+         * et C, et que B crée une constante depuis un symbole de C, par exemple
+         *
+         * module A :
+         *     importe B
+         *     importe C
+         *
+         *     fonction_de_C()
+         *
+         * module B :
+         *      C :: importe C
+         *      fonction_de_C :: C.fonction_de_C
+         *
+         * module C :
+         *      fonction_de_C :: fonc () {}
+         */
+        if (decl_candidate1 != decl_candidate2) {
+            auto e = espace.rapporte_erreur(
+                expr,
+                "Je ne peux pas déterminer quelle fonction appeler car "
+                "plusieurs fonctions correspondent à l'expression d'appel.");
+
+            if (decl_candidate1 && decl_candidate2) {
+                e.ajoute_message("Candidate possible :\n");
+                e.ajoute_site(decl_candidate1);
+                e.ajoute_message("Candidate possible :\n");
+                e.ajoute_site(decl_candidate2);
+            }
+            else {
+                e.ajoute_message("Erreur interne ! Aucun site pour les candidates possibles !");
+            }
+
+            return CodeRetourValidation::Erreur;
+        }
     }
 
     état->candidate_finale = &état->candidates[0];

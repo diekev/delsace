@@ -437,8 +437,7 @@ donne_chaine_hex_pour_octet :: fonc (o: n8) -> [2]n16
 
 /* 11.1.3 Static Semantics: UTF16SurrogatePairToCodePoint ( lead, trail )
  * https://tc39.es/ecma262/multipage/ecmascript-language-source-code.html#sec-utf16decodesurrogatepair */
-// À FAIRE(langage) : crash si Chaine.utf16_décode_paire_surrogate
-utf16_surrogate_pair_to_code_point :: utf16_décode_paire_surrogate
+utf16_surrogate_pair_to_code_point :: Chaine.utf16_décode_paire_surrogate
 
 /* 11.1.4 Static Semantics: CodePointAt ( string, position )
  * https://tc39.es/ecma262/multipage/ecmascript-language-source-code.html#sec-codepointat */
