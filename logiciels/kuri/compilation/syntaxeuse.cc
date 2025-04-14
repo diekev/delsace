@@ -745,6 +745,10 @@ NoeudExpression *Syntaxeuse::analyse_expression(DonnéesPrécédence const &donn
                                                 GenreLexème lexème_final)
 {
     auto expression = analyse_expression_primaire(lexème_final);
+    if (!expression) {
+        rapporte_erreur("Attendu une expression primaire");
+        return nullptr;
+    }
 
     while (!fini() && apparie_expression_secondaire() && lexème_courant()->genre != lexème_final) {
         auto nouvelle_précédence = précédence_pour_opérateur(lexème_courant()->genre);
@@ -761,10 +765,9 @@ NoeudExpression *Syntaxeuse::analyse_expression(DonnéesPrécédence const &donn
         auto nouvelle_associativité = associativité_pour_opérateur(lexème_courant()->genre);
         expression = analyse_expression_secondaire(
             expression, {nouvelle_précédence, nouvelle_associativité}, lexème_final);
-    }
-
-    if (!expression) {
-        rapporte_erreur("Attendu une expression primaire");
+        if (!expression) {
+            return nullptr;
+        }
     }
 
     return expression;
@@ -1848,6 +1851,9 @@ NoeudExpression *Syntaxeuse::analyse_appel_fonction(NoeudExpression *gauche)
 
     while (!fini() && apparie_expression()) {
         auto expr = analyse_expression({}, GenreLexème::VIRGULE);
+        if (!expr) {
+            return nullptr;
+        }
         params.ajoute(expr);
 
         if (expr->est_déclaration_variable()) {
@@ -2470,6 +2476,9 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_enum(Lexème const *lexème_no
         }
 
         auto noeud = analyse_expression({}, GenreLexème::INCONNU);
+        if (!noeud) {
+            return nullptr;
+        }
 
         if (noeud->est_référence_déclaration()) {
             auto decl_variable = m_tacheronne.assembleuse->crée_déclaration_constante(
