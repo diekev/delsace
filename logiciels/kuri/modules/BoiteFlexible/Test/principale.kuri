@@ -82,7 +82,7 @@ RappelsWindow :: struct {
     sur_evenement = rappels_window_sur_evenement
 }
 
-définis_document_courant :: fonc (rappels: *RappelsWindow, id: chaine, index: z32)
+définis_document_courant :: fonc (rappels: *RappelsWindow, id: n64, index: z32)
 {
     si index < 0 && index >= rappels.documents.taille {
         retourne
@@ -92,9 +92,7 @@ définis_document_courant :: fonc (rappels: *RappelsWindow, id: chaine, index: z
         retourne
     }
 
-    si rappels.documents[index].nom == id {
-        rappels.document_courant = index
-    }
+    rappels.document_courant = index
 }
 
 rappels_window_sur_creation :: fonc (base: *QT_Rappels_Window)
@@ -291,17 +289,17 @@ crée_interface :: fonc (rappels: *RappelsWindow) -> CommandesDeRendu
 
 ajoute_bouton_barre_menu :: fonc (fonte: *Fonte, texte: chaine)
 {
-    arrière_plan := si est_survolée(texte) {
-        CouleurRVBA(0.649, 0.649, 0.649, 1.0)
-    }
-    sinon {
-        CouleurRVBA(0.549, 0.549, 0.549, 1.0)
-    }
     dispose_rectangle(id = texte,
-                      arrière_plan = arrière_plan,
                       disposition = ConfigurationDiposition(rembourrage = [16.0, 8.0, 16.0, 8.0]),
                       config = ConfigurationRectangle(rayon_coin = 5.0))
     {
+        si est_survolée() {
+            définis_arrière_plan(CouleurRVBA(0.649, 0.649, 0.649, 1.0))
+        }
+        sinon {
+            définis_arrière_plan(CouleurRVBA(0.549, 0.549, 0.549, 1.0))
+        }
+
         dispose_texte(texte, ConfigurationTexte(fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)))
     }
     termine_rectangle()
@@ -310,21 +308,22 @@ ajoute_bouton_barre_menu :: fonc (fonte: *Fonte, texte: chaine)
 dessine_barre_latérale :: fonc (rappels: *RappelsWindow)
 {
     pour rappels.documents {
-        arrière_plan := si index_it == rappels.document_courant {
-            CouleurRVBA(0.649, 0.649, 0.649, 0.5)
-        }
-        sinon si est_survolée(it.nom) {
-            CouleurRVBA(0.649, 0.649, 0.649, 0.25)
-        }
-        sinon {
-            CouleurRVBA()
-        }
 
         dispose_rectangle(id = it.nom,
-                          arrière_plan = arrière_plan,
                           disposition = ConfigurationDiposition(cotation = Cotation(CROISSANTE()), rembourrage = [16.0, 8.0, 16.0, 8.0]),
                           config = ConfigurationRectangle(rayon_coin = 5.0))
         {
+            arrière_plan := si index_it == rappels.document_courant {
+                CouleurRVBA(0.649, 0.649, 0.649, 0.5)
+            }
+            sinon si est_survolée() {
+                CouleurRVBA(0.649, 0.649, 0.649, 0.25)
+            }
+            sinon {
+                CouleurRVBA()
+            }
+            définis_arrière_plan(arrière_plan)
+
             sur_clic_souris(définis_document_courant, rappels, index_it comme z32)
 
             dispose_texte(it.nom, ConfigurationTexte(rappels.fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)))
@@ -476,7 +475,7 @@ sur_fin_édition_texte_qt :: fonc (rappels: *RappelsÉditionTexteQt, chn: chaine
     rappels.rappels_window.texte_à_dessiner = copie_chaine(chn)
 }
 
-démarre_édition_texte :: fonc (rappels: *RappelsWindow, id: chaine, index: z32 @inutilisée)
+démarre_édition_texte :: fonc (rappels: *RappelsWindow, id: n64, index: z32 @inutilisée)
 {
     rappels_édition_texte := loge(RappelsÉditionTexteQt)
     diffère déloge(rappels_édition_texte)

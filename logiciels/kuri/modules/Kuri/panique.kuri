@@ -1,6 +1,5 @@
 // nous importons Fondation car il nous faut le code d'impression, ce serait bien de ne pas avoir à faire cela afin que Kuri soit sans aucune dépendances...
 importe Fondation
-importe GlibC // pour exit
 importe Unicode
 
 imprime_trace_appel :: fonc () #sanstrace
@@ -22,7 +21,7 @@ imprime_trace_appel :: fonc () #sanstrace
         imprime("%", info_appel.texte)
 
         i := 0
-        tantque i < info_appel.colonne {
+        tantque i < info_appel.colonne - 1 {
             imprime(" ")
             i += nombre_octets_utf8(*info_appel.texte[i])
         }

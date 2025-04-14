@@ -45,7 +45,7 @@ struct CoulisseC final : public Coulisse {
 
     int64_t mémoire_utilisée() const override;
 
-    void crée_fichiers(ProgrammeRepreInter const &repr_inter, OptionsDeCompilation const &options);
+    void crée_fichiers(ProgrammeRepreInter const &repr_inter, const EspaceDeTravail &espace);
 
-    FichierC &ajoute_fichier_c(bool entête);
+    FichierC &ajoute_fichier_c(kuri::chaine_statique nom_espace, bool entête);
 };

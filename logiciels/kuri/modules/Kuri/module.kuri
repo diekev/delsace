@@ -1,5 +1,9 @@
 importe Fondation
-importe GlibC // pour le signal de violation de segmentation
+
+GlibC :: importe GlibC
+
+POSIX :: importe POSIX
+exit :: POSIX.exit
 
 charge "bibliothèques"
 charge "infos_types"
@@ -91,7 +95,7 @@ allocatrice_défaut :: fonc (params: &ParamètresAllocation, données: *BaseAllo
                     données.pic_de_mémoire = données.mémoire_utilisée
                 }
             }
-            retourne malloc(nouvelle_taille comme n64)
+            retourne POSIX.malloc(nouvelle_taille comme n64)
         }
         ALLOUE_ALIGNÉ {
             si données {
@@ -102,7 +106,7 @@ allocatrice_défaut :: fonc (params: &ParamètresAllocation, données: *BaseAllo
                     données.pic_de_mémoire = données.mémoire_utilisée
                 }
             }
-            retourne aligned_alloc(params.alignement comme n64, nouvelle_taille comme n64)
+            retourne GlibC.aligned_alloc(params.alignement comme n64, nouvelle_taille comme n64)
         }
         RÉALLOUE {
             si données {
@@ -114,14 +118,14 @@ allocatrice_défaut :: fonc (params: &ParamètresAllocation, données: *BaseAllo
                     données.pic_de_mémoire = données.mémoire_utilisée
                 }
             }
-            retourne realloc(ancien_pointeur, nouvelle_taille comme n64)
+            retourne POSIX.realloc(ancien_pointeur, nouvelle_taille comme n64)
         }
         DÉSALLOUE {
             si données {
                 données.mémoire_utilisée -= ancienne_taille
                 données.nombre_désallocations += 1
             }
-            free(ancien_pointeur)
+            POSIX.free(ancien_pointeur)
             retourne nul
         }
     }
@@ -388,7 +392,7 @@ enregistre_liste_trace_appels :: fonc (racine: *TraceAppel) -> [..]TraceAppel
     n := nombre_de_trace(racine)
 
     /* À FAIRE: remplace l'appel à malloc par allocatrice_défaut, ou loge_mémoire. */
-    t := malloc(taille_de(TraceAppel) * n comme n64)
+    t := POSIX.malloc(taille_de(TraceAppel) * n comme n64)
 
     tableau_traces: [..]TraceAppel
     tableau_traces.pointeur = t
@@ -410,7 +414,7 @@ imprime_trace :: fonc (tableau: [..]TraceAppel, enchaineuse: *Enchaineuse)
 
 détruit_liste_trace_appels :: fonc (tableau_traces: [..]TraceAppel)
 {
-    free(tableau_traces.pointeur)
+    POSIX.free(tableau_traces.pointeur)
 }
 
 /* ------------------------------------------------------------------------- */
@@ -786,9 +790,6 @@ test_compare_chaine :: fonc () -> rien
 
 // --------------------------------
 
-strlen :: fonc (str: *z8) -> n64 #externe libc
-exit :: fonc (id: z32) -> rien #externe libc #sansretour
-
 arguments_ligne_commande :: fonc () -> [..]chaine
 {
     tabl_args: [..]chaine
@@ -806,7 +807,7 @@ arguments_ligne_commande :: fonc () -> [..]chaine
         pour __arguments_ligne_commande {
             chn: chaine
             chn.pointeur = it
-            chn.taille = strlen(it) comme z64
+            chn.taille = POSIX.strlen(it) comme z64
             tableau_ajoute(*tabl_args, chn)
         }
 
@@ -904,7 +905,7 @@ __point_d_entree_systeme :: fonc (argc: z32, argv: **z8) -> z32 #sanstrace #sans
     __init_début_pile(*début_pile)
 
     // initalise les autres membres du contexte
-    info_trace_appel := InfoFonctionTraceAppel(nom = "__point_d_entree_systeme", fichier = "module.kuri", adresse = nul)
+    info_trace_appel := InfoFonctionTraceAppel(nom = "__point_d_entree_systeme", fichier = #chemin_de_ce_fichier, adresse = nul)
     trace_appel := TraceAppel(info_fonction = *info_trace_appel)
 
     base_allocatrice: BaseAllocatrice
@@ -916,10 +917,10 @@ __point_d_entree_systeme :: fonc (argc: z32, argv: **z8) -> z32 #sanstrace #sans
 
     __init_exécution_kuri()
 
-    info_appel := InfoAppelTraceAppel(ligne = 749, colonne = 27, texte = "    résultat := principale()\n")
+    info_appel := InfoAppelTraceAppel(ligne = 749, colonne = 15, texte = "    principale()\n")
     trace_appel.info_appel = *info_appel
 
-    système_ajoute_action_pour_action_erreur_de_segmentation()
+    POSIX.système_ajoute_action_pour_action_erreur_de_segmentation()
 
     __principale()
 

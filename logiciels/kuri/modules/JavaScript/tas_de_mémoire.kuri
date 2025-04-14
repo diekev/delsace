@@ -1,7 +1,7 @@
 importe Ensemble
 importe Fondation
-importe GlibC
 importe Introspection
+importe POSIX
 importe Temps
 
 DÉBOGUGE_MÉMOIRE :: faux

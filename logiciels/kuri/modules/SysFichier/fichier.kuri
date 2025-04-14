@@ -189,6 +189,8 @@ détermine_taille_fichiers_dossier :: fonc (dossier: CheminFichier, récursif : 
     fichiers := donne_fichiers_du_dossier(dossier.chn, récursif)
     diffère déloge_tableau_et_ses_éléments(fichiers)
 
+    résultat: n64
+
     pour fichiers {
         résultat += détermine_taille_fichier(CheminFichier(it))
     }

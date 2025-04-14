@@ -252,6 +252,7 @@ alloc_image :: fonc (hauteur: z32, largeur: z32, composants: z32) -> ImageIO
 
     données := loge_tableau(r32, image.nombre_éléments_données())
     image.donnees = données.pointeur
+    image.taille_donnees = données.capacité comme z32
 
     retourne image
 }

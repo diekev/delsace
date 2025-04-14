@@ -11,12 +11,12 @@ lance_requête :: fonc (uri: &URI, requête: chaine) -> chaine
 
     port : n16 = port_pour_uri(uri)
 
-    fichier := tente ouvre_connexion_serveur(uri.hôte, port) piège err {
+    fichier := tente ouvre_connexion_serveur(uri.hôte, port) piège _ {
         retourne réponse
     }
 
     si port == 443 {
-        ctx_ssl := tente initialise_contexte_ssl_client() piège err {
+        ctx_ssl := tente initialise_contexte_ssl_client() piège _ {
             retourne réponse
         }
 
