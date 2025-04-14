@@ -65,6 +65,52 @@ readdir :: fonc (d: *DIR) -> *dirent #externe libc
 /** \} */
 
 // <dlfcn.h>
+/* ------------------------------------------------------------------------- */
+/** \nom 
+ * \{ */
+
+libdl :: #bibliothèque "dl"
+
+RTLD_LOCAL :: 0
+RTLD_LAZY :: 0x00001
+RTLD_NOW :: 0x00002
+RTLD_NOLOAD :: 0x00004
+RTLD_DEEPBIND :: 0x00008
+RTLD_GLOBAL :: 0x00100
+RTLD_NODELETE :: 0x01000
+
+/* If the first argument of `dlsym' or `dlvsym' is set to RTLD_NEXT
+   the run-time address of the symbol called NAME in the next shared
+   object is returned.  The "next" relation is defined by the order
+   the shared objects were loaded.  */
+RTLD_NEXT :: (-1 comme *rien)
+
+/* If the first argument to `dlsym' or `dlvsym' is set to RTLD_DEFAULT
+   the run-time address of the symbol called NAME in the global scope
+   is returned.  */
+RTLD_DEFAULT :: (0 comme *rien)
+
+/* Open the shared object FILE and map it in; return a handle that can be
+   passed to `dlsym' to get symbol values from it.  */
+dlopen :: fonc (__file: ChaineC, __mode: z32) -> *rien #externe libdl
+
+/* Unmap and close a shared object opened by `dlopen'.
+   The handle cannot be used again after calling `dlclose'.  */
+dlclose :: fonc (__handle: *rien) -> z32 #externe libdl
+
+/* Find the run-time address in the shared object HANDLE refers to
+   of the symbol called NAME.  */
+dlsym :: fonc (__handle: *rien, __name: ChaineC) -> *rien #externe libdl
+
+/* Version différente de dlsym pour pouvoir transtyper le résultat vers un type de fonction. */
+dlsym_func :: fonc (__handle: *rien, __name: ChaineC) -> adresse_fonction #externe libdl "dlsym"
+
+/* When any of the above functions fails, call this function
+   to return a string describing the error.  Each call resets
+   the error string so that a following call returns null.  */
+dlerror :: fonc () -> ChaineC #externe libdl
+
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom errno.h
