@@ -1,5 +1,5 @@
 importe Fondation
-importe GlibC
+importe POSIX
 
 adresse_depuis_s_adrr :: fonc (addr: in_addr) -> AdresseIPv4 #enligne
 {

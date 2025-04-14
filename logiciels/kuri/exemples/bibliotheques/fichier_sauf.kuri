@@ -34,7 +34,7 @@
 
 /* ------------------------------------------------------------------------- */
 
-importe GlibC
+importe POSIX
 
 /* ------------------------------------------------------------------------- */
 
@@ -633,15 +633,7 @@ _O_WRONLY := 1;
 FILE :: struct #externe ;
 
 umask :: fonc (m : z32) -> rien #externe
-perror :: fonc (c : *z8) -> rien #externe
-exit :: fonc (c : z32) -> rien #externe
 link :: fonc (a : *z8, b : *z8) -> z32 #externe
-write :: fonc (a : z32, b : *z8, c : z32) -> z64 #externe
-
-perror :: fonc(chn : chaine) -> rien
-{
-    perror(chn.pointeur);
-}
 
 _stderr := 0;
 

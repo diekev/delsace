@@ -466,6 +466,13 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
                 return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_vers};
             }
 
+            if (POUR_TRANSTYPAGE) {
+                if (type_de->est_type_adresse_fonction()) {
+                    return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE,
+                                              type_vers};
+                }
+            }
+
             if (!type_de->est_type_fonction()) {
                 return TransformationType(TypeTransformation::IMPOSSIBLE);
             }
