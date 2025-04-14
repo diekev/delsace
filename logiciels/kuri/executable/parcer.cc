@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
  * The Original Code is Copyright (C) 2018 Kévin Dietrich. */
 
+#include <cstdio>
 #include <fstream>
 #include <iostream>
 #include <optional>
@@ -59,6 +60,271 @@ using dls::outils::est_element;
  *      i : [..]z32 = loge [a * b]z32
  * - gestion correcte des typedefs, notamment pour typedef struct XXX { ... } XXX;
  */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Utilitaires
+ * \{ */
+
+static dls::chaine converti_chaine(CXString string)
+{
+    auto c_str = clang_getCString(string);
+    auto résultat = dls::chaine();
+    if (c_str && strcmp(c_str, "") != 0) {
+        résultat = dls::chaine(c_str);
+    }
+    return résultat;
+}
+
+static dls::chaine donne_commentaire(CXCursor cursor)
+{
+    auto comment = clang_Cursor_getRawCommentText(cursor);
+    auto résultat = converti_chaine(comment);
+    clang_disposeString(comment);
+    return résultat;
+}
+
+static dls::chaine donne_cursor_spelling(CXCursor cursor)
+{
+    auto spelling = clang_getCursorSpelling(cursor);
+    auto résultat = converti_chaine(spelling);
+    clang_disposeString(spelling);
+    return résultat;
+}
+
+static dls::chaine donne_type_spelling(CXType cursor)
+{
+    auto spelling = clang_getTypeSpelling(cursor);
+    auto résultat = converti_chaine(spelling);
+    clang_disposeString(spelling);
+    return résultat;
+}
+
+static std::optional<CXType> est_type_fonction(CXType type)
+{
+    if (type.kind == CXTypeKind::CXType_Pointer) {
+        type = clang_getPointeeType(type);
+    }
+
+    auto type_résultat = clang_getResultType(type);
+    if (type_résultat.kind == CXTypeKind::CXType_Invalid) {
+        return {};
+    }
+    return type_résultat;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Arbre Syntaxique
+ *  À FAIRE : utilise celui de kuri ?
+ * \{ */
+
+struct TypeC {
+    enum CXTypeKind kind {};
+    dls::chaine type_spelling{};
+};
+
+enum class TypeSyntaxème {
+    DÉFAUT,
+    MDOULE,
+    DÉCLARATION_ÉNUM,
+    DÉCLARATION_STRUCT,
+    DÉCLARATION_UNION,
+    DÉCLARATION_FONCTION,
+    DÉCLARATION_VARIABLE,
+    DÉCLARATION_CONSTANTE,
+    TYPEDEF,
+    TRANSTYPAGE,
+    EXPRESSION,
+    EXPRESSION_UNAIRE,
+    EXPRESSION_BINAIRE,
+};
+
+#define DECLARE_CONTRUCTEUR_DÉFAUT(nom, type)                                                     \
+    nom() : Syntaxème(TypeSyntaxème::type)                                                        \
+    {                                                                                             \
+    }
+
+#define DECLARE_CONTRUCTEUR_DÉFAUT_EXPRESSION(nom, type)                                          \
+    nom() : Expression(TypeSyntaxème::type)                                                       \
+    {                                                                                             \
+    }
+
+struct Syntaxème {
+    TypeSyntaxème type_syntaxème = TypeSyntaxème::DÉFAUT;
+    dls::chaine commentaire = "";
+
+    std::optional<TypeC> type_c{};
+
+    bool est_prodéclaration_inutile = false;
+
+    Syntaxème(TypeSyntaxème type_) : type_syntaxème(type_)
+    {
+    }
+
+    virtual ~Syntaxème() = default;
+};
+
+struct Module : public Syntaxème {
+    DECLARE_CONTRUCTEUR_DÉFAUT(Module, MDOULE)
+
+    kuri::tableau<Syntaxème *> déclarations{};
+};
+
+struct DéclarationÉnum : public Syntaxème {
+    DECLARE_CONTRUCTEUR_DÉFAUT(DéclarationÉnum, DÉCLARATION_ÉNUM)
+
+    dls::chaine nom = "";
+    TypeC type_sous_jacent{};
+    kuri::tableau<Syntaxème *> rubriques{};
+};
+
+struct DéclarationStruct : public Syntaxème {
+    DECLARE_CONTRUCTEUR_DÉFAUT(DéclarationStruct, DÉCLARATION_STRUCT)
+
+    dls::chaine nom = "";
+    kuri::tableau<Syntaxème *> rubriques{};
+};
+
+struct DéclarationUnion : public Syntaxème {
+    DECLARE_CONTRUCTEUR_DÉFAUT(DéclarationUnion, DÉCLARATION_UNION)
+
+    dls::chaine nom = "";
+    kuri::tableau<Syntaxème *> rubriques{};
+};
+
+struct Expression;
+
+struct DéclarationVariable : public Syntaxème {
+    EMPECHE_COPIE(DéclarationVariable);
+    DECLARE_CONTRUCTEUR_DÉFAUT(DéclarationVariable, DÉCLARATION_VARIABLE)
+
+    /* Pour les globales. */
+    CX_StorageClass storage_class{};
+
+    dls::chaine nom{};
+    Expression *expression = nullptr;
+};
+
+struct DéclarationConstante : public Syntaxème {
+    EMPECHE_COPIE(DéclarationConstante);
+    DECLARE_CONTRUCTEUR_DÉFAUT(DéclarationConstante, DÉCLARATION_CONSTANTE)
+
+    dls::chaine nom{};
+    Expression *expression = nullptr;
+};
+
+struct DéclarationFonction : public Syntaxème {
+    DECLARE_CONTRUCTEUR_DÉFAUT(DéclarationFonction, DÉCLARATION_FONCTION)
+
+    dls::chaine nom = "";
+    TypeC type_sortie = {};
+    bool est_inline = false;
+    kuri::tableau<DéclarationVariable *> paramètres{};
+};
+
+struct Typedef : public Syntaxème {
+    EMPECHE_COPIE(Typedef);
+    DECLARE_CONTRUCTEUR_DÉFAUT(Typedef, TYPEDEF)
+
+    TypeC type_défini{};
+    TypeC type_source{};
+    DéclarationFonction *type_fonction = nullptr;
+};
+
+struct Expression : public Syntaxème {
+    DECLARE_CONTRUCTEUR_DÉFAUT(Expression, EXPRESSION)
+
+    Expression(TypeSyntaxème type_syntaxème_) : Syntaxème(type_syntaxème_)
+    {
+    }
+
+    dls::chaine texte{};
+};
+
+struct ExpressionUnaire : public Expression {
+    EMPECHE_COPIE(ExpressionUnaire);
+    DECLARE_CONTRUCTEUR_DÉFAUT_EXPRESSION(ExpressionUnaire, EXPRESSION_UNAIRE)
+
+    Expression *opérande = nullptr;
+};
+
+struct ExpressionBinaire : public Expression {
+    EMPECHE_COPIE(ExpressionBinaire);
+    DECLARE_CONTRUCTEUR_DÉFAUT_EXPRESSION(ExpressionBinaire, EXPRESSION_BINAIRE)
+
+    Expression *gauche = nullptr;
+    Expression *droite = nullptr;
+};
+
+struct Transtypage : public Expression {
+    EMPECHE_COPIE(Transtypage);
+    DECLARE_CONTRUCTEUR_DÉFAUT_EXPRESSION(Transtypage, TRANSTYPAGE)
+
+    Expression *expression = nullptr;
+    TypeC type_vers{};
+};
+
+struct Syntaxeuse {
+    kuri::tableau<Syntaxème *> syntaxèmes{};
+
+    Module *module = nullptr;
+
+    kuri::pile<Syntaxème *> noeud_courant{};
+
+    ~Syntaxeuse()
+    {
+        POUR (syntaxèmes) {
+            delete it;
+        }
+    }
+
+    template <typename T>
+    T *crée()
+    {
+        auto résultat = new T();
+        syntaxèmes.ajoute(résultat);
+        return résultat;
+    }
+
+    template <typename T>
+    T *crée(CXCursor cursor)
+    {
+        auto résultat = this->crée<T>();
+        résultat->commentaire = donne_commentaire(cursor);
+        return résultat;
+    }
+
+    Expression *crée_expression(dls::chaine texte)
+    {
+        auto résultat = this->crée<Expression>();
+        résultat->texte = texte;
+        return résultat;
+    }
+
+    void ajoute_au_noeud_courant(Syntaxème *syntaxème)
+    {
+        auto parent = noeud_courant.haut();
+
+        if (parent->type_syntaxème == TypeSyntaxème::MDOULE) {
+            module->déclarations.ajoute(syntaxème);
+        }
+        else if (parent->type_syntaxème == TypeSyntaxème::DÉCLARATION_STRUCT) {
+            auto structure = static_cast<DéclarationStruct *>(parent);
+            structure->rubriques.ajoute(syntaxème);
+        }
+        else if (parent->type_syntaxème == TypeSyntaxème::DÉCLARATION_ÉNUM) {
+            auto énum = static_cast<DéclarationÉnum *>(parent);
+            énum->rubriques.ajoute(syntaxème);
+        }
+        else if (parent->type_syntaxème == TypeSyntaxème::DÉCLARATION_UNION) {
+            auto union_ = static_cast<DéclarationUnion *>(parent);
+            union_->rubriques.ajoute(syntaxème);
+        }
+    }
+};
+
+/** \} */
 
 std::ostream &operator<<(std::ostream &stream, const CXString &str)
 {
@@ -254,9 +520,7 @@ static dls::chaine converti_type(kuri::tableau<dls::chaine> const &morceaux,
     return flux.str();
 }
 
-static dls::chaine converti_type(CXType const &cxtype,
-                                 dico_typedefs const &typedefs,
-                                 bool dereference = false)
+static dls::chaine converti_type(TypeC const &type, dico_typedefs const &typedefs)
 {
     static auto dico_type = dls::cree_dico(dls::paire{CXType_Void, dls::vue_chaine("rien")},
                                            dls::paire{CXType_Bool, dls::vue_chaine("bool")},
@@ -276,9 +540,9 @@ static dls::chaine converti_type(CXType const &cxtype,
                                            dls::paire{CXType_Double, dls::vue_chaine("r64")},
                                            dls::paire{CXType_LongDouble, dls::vue_chaine("r128")});
 
-    auto type = cxtype.kind;
+    auto kind = type.kind;
 
-    auto plg_type = dico_type.trouve(type);
+    auto plg_type = dico_type.trouve(kind);
 
     if (!plg_type.est_finie()) {
         return plg_type.front().second;
@@ -286,10 +550,10 @@ static dls::chaine converti_type(CXType const &cxtype,
 
     auto flux = std::stringstream();
 
-    switch (type) {
+    switch (kind) {
         default:
         {
-            flux << "(cas défaut) " << type << " : " << clang_getTypeSpelling(cxtype);
+            flux << "(cas défaut) " << kind << " : " << type.type_spelling;
             break;
         }
         case CXType_Invalid:
@@ -307,13 +571,8 @@ static dls::chaine converti_type(CXType const &cxtype,
         case CXType_LValueReference: /* p.e. float & */
         case CXType_Elaborated:      /* p.e. struct Vecteur */
         {
-            auto flux_tmp = std::stringstream();
-            flux_tmp << clang_getTypeSpelling(cxtype);
-
-            auto chn = flux_tmp.str();
-
             /* pour les types anonymes */
-            auto nom_anonymous = trouve_nom_anonyme(chn);
+            auto nom_anonymous = trouve_nom_anonyme(type.type_spelling);
 
             if (nom_anonymous != "") {
                 auto iter_typedefs = typedefs.trouve(nom_anonymous);
@@ -325,9 +584,9 @@ static dls::chaine converti_type(CXType const &cxtype,
                 return nom_anonymous;
             }
 
-            auto morceaux = morcelle_type(chn);
+            auto morceaux = morcelle_type(type.type_spelling);
 
-            if (type == CXTypeKind::CXType_Pointer) {
+            if (type.kind == CXTypeKind::CXType_Pointer) {
                 /* vérifie s'il y a pointeur de fonction */
 
                 auto est_pointeur_fonc = false;
@@ -362,7 +621,7 @@ static dls::chaine converti_type(CXType const &cxtype,
                         auto const &m = morceaux[i];
 
                         if (m == ")" || m == ",") {
-                            flux << converti_type(type_param, typedefs, dereference);
+                            flux << converti_type(type_param, typedefs, false);
                             flux << m;
                             type_param.efface();
                         }
@@ -372,26 +631,18 @@ static dls::chaine converti_type(CXType const &cxtype,
                     }
 
                     flux << "(";
-                    flux << converti_type(type_retour, typedefs, dereference);
+                    flux << converti_type(type_retour, typedefs, false);
                     flux << ")";
 
                     return flux.str();
                 }
             }
 
-            return converti_type(morceaux, typedefs, dereference);
+            return converti_type(morceaux, typedefs, false);
         }
     }
 
     return flux.str();
-}
-
-static dls::chaine converti_type(CXCursor const &c,
-                                 dico_typedefs const &typedefs,
-                                 bool est_fonction = false)
-{
-    auto cxtype = est_fonction ? clang_getCursorResultType(c) : clang_getCursorType(c);
-    return converti_type(cxtype, typedefs);
 }
 
 static dls::chaine converti_type_sizeof(CXCursor cursor,
@@ -470,9 +721,7 @@ static inline const clang::Expr *getCursorExpr(CXCursor c)
     return clang::dyn_cast_or_null<clang::Expr>(getCursorStmt(c));
 }
 
-static auto determine_operateur_binaire(CXCursor cursor,
-                                        CXTranslationUnit trans_unit,
-                                        std::ostream &os)
+static dls::chaine determine_operateur_binaire(CXCursor cursor, CXTranslationUnit trans_unit)
 {
     /* Méthode tirée de
      * https://www.mail-archive.com/cfe-commits@cs.uiuc.edu/msg95414.html
@@ -483,9 +732,7 @@ static auto determine_operateur_binaire(CXCursor cursor,
 
     if (expr != nullptr) {
         auto op = clang::cast<clang::BinaryOperator>(expr);
-        os << op->getOpcodeStr().str();
-
-        return;
+        return op->getOpcodeStr().str();
     }
 
     /* Si la méthode au-dessus échoue, utilise celle-ci tirée de
@@ -497,18 +744,21 @@ static auto determine_operateur_binaire(CXCursor cursor,
     unsigned nombre_tokens = 0;
     clang_tokenize(trans_unit, range, &tokens, &nombre_tokens);
 
+    dls::chaine résultat;
+
     for (unsigned i = 0; i < nombre_tokens; i++) {
         auto loc_tok = clang_getTokenLocation(trans_unit, tokens[i]);
         auto loc_cur = clang_getCursorLocation(cursor);
 
         if (clang_equalLocations(loc_cur, loc_tok) == 0) {
             CXString s = clang_getTokenSpelling(trans_unit, tokens[i]);
-            os << s;
+            résultat = converti_chaine(s);
             break;
         }
     }
 
     clang_disposeTokens(trans_unit, tokens, nombre_tokens);
+    return résultat;
 }
 
 static auto est_operateur_unaire(CXString const &str)
@@ -576,15 +826,16 @@ static auto determine_expression_unaire(CXCursor cursor, CXTranslationUnit trans
 }
 
 // https://stackoverflow.com/questions/10692015/libclang-get-primitive-value
-static auto obtiens_litterale(CXCursor cursor, CXTranslationUnit trans_unit, std::ostream &os)
+static dls::chaine donne_chaine_pour_litérale(CXCursor cursor, CXTranslationUnit trans_unit)
 {
     auto expr = getCursorExpr(cursor);
 
     if (expr != nullptr) {
         if (cursor.kind == CXCursorKind::CXCursor_IntegerLiteral) {
             auto op = clang::cast<clang::IntegerLiteral>(expr);
-            os << op->getValue().getLimitedValue();
-            return;
+            std::stringstream stream;
+            stream << op->getValue().getLimitedValue();
+            return stream.str();
         }
     }
 
@@ -594,16 +845,15 @@ static auto obtiens_litterale(CXCursor cursor, CXTranslationUnit trans_unit, std
     clang_tokenize(trans_unit, range, &tokens, &nombre_tokens);
 
     if (tokens == nullptr) {
-        os << clang_getCursorSpelling(cursor);
-        return;
+        return donne_cursor_spelling(cursor);
     }
+
+    dls::chaine résultat;
 
     if (cursor.kind == CXCursorKind::CXCursor_CXXBoolLiteralExpr) {
         CXString s = clang_getTokenSpelling(trans_unit, tokens[0]);
         const char *str = clang_getCString(s);
-
-        os << ((strcmp(str, "true") == 0) ? "vrai" : "faux");
-
+        résultat = ((strcmp(str, "true") == 0) ? "vrai" : "faux");
         clang_disposeString(s);
     }
     else if (cursor.kind == CXCursorKind::CXCursor_FloatingLiteral) {
@@ -616,46 +866,43 @@ static auto obtiens_litterale(CXCursor cursor, CXTranslationUnit trans_unit, std
             len = len - 1;
         }
 
-        for (auto i = 0u; i < len; ++i) {
-            os << str[i];
-        }
-
+        résultat = dls::chaine(str, int64_t(len));
         clang_disposeString(s);
     }
     else {
-        os << clang_getTokenSpelling(trans_unit, tokens[0]);
+        résultat = converti_chaine(clang_getTokenSpelling(trans_unit, tokens[0]));
     }
 
     clang_disposeTokens(trans_unit, tokens, nombre_tokens);
+    return résultat;
 }
 
-static auto converti_chaine(CXString string)
+static TypeC donne_type_c(CXType cxtype)
 {
-    auto c_str = clang_getCString(string);
-    auto chaine = dls::chaine(c_str);
-    clang_disposeString(string);
-    return chaine;
+    auto résultat = TypeC{};
+    résultat.kind = cxtype.kind;
+    résultat.type_spelling = donne_type_spelling(cxtype);
+    return résultat;
+}
+
+static TypeC donne_type_c(CXCursor cursor, bool est_fonction = false)
+{
+    auto cxtype = est_fonction ? clang_getCursorResultType(cursor) : clang_getCursorType(cursor);
+    return donne_type_c(cxtype);
 }
 
 static auto determine_nom_anomyme(CXCursor cursor, dico_typedefs &typedefs, int &nombre_anonyme)
 {
-    auto spelling = clang_getCursorSpelling(cursor);
-    auto c_str = clang_getCString(spelling);
-
-    if (strcmp(c_str, "") != 0) {
-        auto chn = dls::chaine(c_str);
-        clang_disposeString(spelling);
-        return chn;
+    auto spelling = donne_cursor_spelling(cursor);
+    if (spelling.taille()) {
+        return spelling;
     }
 
-    clang_disposeString(spelling);
-
     /* le type peut avoir l'information : typedef struct {} TYPE */
-    spelling = clang_getTypeSpelling(clang_getCursorType(cursor));
-    auto chn_spelling = converti_chaine(spelling);
+    spelling = donne_type_spelling(clang_getCursorType(cursor));
 
-    if (chn_spelling != "") {
-        auto nom_anonymous = trouve_nom_anonyme(chn_spelling);
+    if (spelling != "") {
+        auto nom_anonymous = trouve_nom_anonyme(spelling);
 
         if (nom_anonymous != "") {
             auto nom = "anonyme" + dls::vers_chaine(nombre_anonyme++);
@@ -665,7 +912,7 @@ static auto determine_nom_anomyme(CXCursor cursor, dico_typedefs &typedefs, int 
             return nom;
         }
 
-        return chn_spelling;
+        return spelling;
     }
 
     return "anonyme" + dls::vers_chaine(nombre_anonyme++);
@@ -700,261 +947,6 @@ static auto trouve_decalage(CXToken *tokens,
     }
 
     return dec;
-}
-
-template <typename T>
-struct TableauStatique {
-    const T *donnees = nullptr;
-    size_t taille = 0;
-
-  public:
-    const T &operator[](size_t index)
-    {
-        return donnees[index];
-    }
-
-    bool est_vide() const
-    {
-        return !donnees;
-    }
-
-    T const *begin() const
-    {
-        return donnees;
-    }
-
-    T const *end() const
-    {
-        return donnees + taille;
-    }
-};
-
-static TableauStatique<CXToken> tokenise(CXTranslationUnit trans_unit, CXCursor cursor)
-{
-    CXSourceRange range = clang_getCursorExtent(cursor);
-    CXToken *tokens = nullptr;
-    unsigned nombre_tokens = 0;
-    clang_tokenize(trans_unit, range, &tokens, &nombre_tokens);
-
-    // À FAIRE clang_disposeTokens(trans_unit, tokens, nombre_tokens);
-
-    return {tokens, static_cast<size_t>(nombre_tokens)};
-}
-
-using TypeDonneesType = kuri::tableau<dls::chaine>;
-struct TypedefTypeFonction {
-    dls::chaine nom_typedef = "";
-    TypeDonneesType type_retour{};
-    kuri::tableau<TypeDonneesType> type_parametres{};
-
-    void imprime(std::ostream &os, dico_typedefs const &typedefs)
-    {
-        os << nom_typedef << " :: fonc ";
-
-        auto virgule = "(";
-
-        if (type_parametres.est_vide()) {
-            os << virgule;
-        }
-        else {
-            POUR (type_parametres) {
-                os << virgule << converti_type(it, typedefs);
-                virgule = ", ";
-            }
-        }
-
-        os << ")";
-
-        os << "(";
-        os << converti_type(type_retour, typedefs);
-        os << ");\n\n";
-    }
-};
-
-/* Une parseuse pour comprendre les typedefs.
- * Pour l'instant, ne gère que les typedefs pour les pointeurs de fonctions.
- */
-struct ParseuseTypedef {
-    CXTranslationUnit m_trans_unit{};
-    TableauStatique<CXToken> m_tokens{};
-
-    std::optional<TypedefTypeFonction> parse()
-    {
-        auto d = m_tokens.begin();
-        auto f = m_tokens.end();
-
-        if (apparie(*d, "typedef")) {
-            d++;
-        }
-
-        return parse_typedef_fonction(d, f);
-    }
-
-    std::optional<TypedefTypeFonction> parse_typedef_fonction(const CXToken *d, const CXToken *f)
-    {
-        auto résultat = TypedefTypeFonction{};
-
-        // d'abord le type de retour
-        while (d != f) {
-            /* Nous avons le début du nom. */
-            if (apparie(*d, "(")) {
-                break;
-            }
-
-            résultat.type_retour.ajoute(converti_chaine(clang_getTokenSpelling(m_trans_unit, *d)));
-            d++;
-        }
-
-        /* Retourne si à la fin, ou si le type retour est vide. */
-        if (d == f || résultat.type_retour.est_vide()) {
-            return {};
-        }
-
-        // Vérification
-        if (!apparie(*d++, "(")) {
-            return {};
-        }
-
-        if (!apparie(*d++, "*")) {
-            return {};
-        }
-
-        résultat.nom_typedef = converti_chaine(clang_getTokenSpelling(m_trans_unit, *d++));
-
-        if (résultat.nom_typedef == "") {
-            return {};
-        }
-
-        if (!apparie(*d++, ")")) {
-            return {};
-        }
-
-        /* Paramètres. */
-        if (!apparie(*d++, "(")) {
-            return {};
-        }
-
-        auto type_courant = TypeDonneesType{};
-
-        while (d != f) {
-            if (apparie(*d, ")")) {
-                if (!type_courant.est_vide()) {
-                    résultat.type_parametres.ajoute(type_courant);
-                }
-                break;
-            }
-
-            if (apparie(*d, ",")) {
-                if (type_courant.est_vide()) {
-                    return {};
-                }
-
-                résultat.type_parametres.ajoute(type_courant);
-                type_courant = TypeDonneesType{};
-                d++;
-                continue;
-            }
-
-            type_courant.ajoute(converti_chaine(clang_getTokenSpelling(m_trans_unit, *d)));
-            d++;
-        }
-
-        return résultat;
-    }
-
-    bool apparie(CXToken token, const char *chaine)
-    {
-        auto spelling = clang_getTokenSpelling(m_trans_unit, token);
-        return converti_chaine(spelling) == chaine;
-    }
-};
-
-static auto tokens_typedef(CXCursor cursor,
-                           CXTranslationUnit trans_unit,
-                           dico_typedefs &dico,
-                           std::ostream &flux_sortie)
-{
-    auto tokens_ = tokenise(trans_unit, cursor);
-    auto parseuse = ParseuseTypedef{trans_unit, tokens_};
-    auto type_fonction_optionnel = parseuse.parse();
-
-    if (type_fonction_optionnel.has_value()) {
-        auto donnees = type_fonction_optionnel.value();
-        donnees.imprime(flux_sortie, dico);
-        // À FAIRE : meilleure manière de gérer ce cas
-        clang_disposeTokens(trans_unit,
-                            const_cast<CXToken *>(tokens_.donnees),
-                            static_cast<unsigned>(parseuse.m_tokens.taille));
-        return;
-    }
-
-    // À FAIRE : meilleure manière de gérer ce cas
-    clang_disposeTokens(trans_unit,
-                        const_cast<CXToken *>(tokens_.donnees),
-                        static_cast<unsigned>(parseuse.m_tokens.taille));
-
-    CXSourceRange range = clang_getCursorExtent(cursor);
-    CXToken *tokens = nullptr;
-    unsigned nombre_tokens = 0;
-    clang_tokenize(trans_unit, range, &tokens, &nombre_tokens);
-
-    if (tokens == nullptr) {
-        clang_disposeTokens(trans_unit, tokens, nombre_tokens);
-        return;
-    }
-
-    /* il y a des cas où le token pour typedef se trouve être caché derrière un
-     * define donc la range pointent sur tout le code entre le define et son
-     * utilisation, ce qui peut représenter plusieurs lignes, donc valide le
-     * typedef
-     * À FAIRE : il manque les typedefs pour les structures et union connues
-     */
-    for (auto i = 1u; i < nombre_tokens - 1; ++i) {
-        auto spelling = clang_getTokenSpelling(trans_unit, tokens[i]);
-
-        auto chn = converti_chaine(spelling);
-
-        auto est_mot_cle = est_element(chn,
-                                       "struct",
-                                       "enum",
-                                       "union",
-                                       "*",
-                                       "&",
-                                       "unsigned",
-                                       "char",
-                                       "short",
-                                       "int",
-                                       "long",
-                                       "float",
-                                       "double",
-                                       "void",
-                                       ";");
-
-        if (est_mot_cle) {
-            continue;
-        }
-
-        if (dico.trouve(chn) != dico.fin()) {
-            continue;
-        }
-
-        clang_disposeTokens(trans_unit, tokens, nombre_tokens);
-        return;
-    }
-
-    auto nom = converti_chaine(clang_getTokenSpelling(trans_unit, tokens[nombre_tokens - 1]));
-    auto morceaux = kuri::tableau<dls::chaine>();
-
-    for (auto i = 1u; i < nombre_tokens - 1; ++i) {
-        auto spelling = clang_getTokenSpelling(trans_unit, tokens[i]);
-        morceaux.ajoute(converti_chaine(spelling));
-    }
-
-    dico.insere({nom, morceaux});
-
-    clang_disposeTokens(trans_unit, tokens, nombre_tokens);
-
-    return;
 }
 
 static auto tokens_typealias(CXCursor cursor, CXTranslationUnit trans_unit, dico_typedefs &dico)
@@ -1042,7 +1034,10 @@ static EnfantsBoucleFor determine_enfants_for(CXCursor cursor,
 
 static dls::chaine donne_préfixe_valeur_énum(dls::chaine const &nom_énum)
 {
-    auto résultat = nom_énum + "_";
+    auto résultat = nom_énum;
+    if (résultat[résultat.taille() - 1] != '_') {
+        résultat += "_";
+    }
 
     for (auto &c : résultat) {
         if (c >= 'a' && c <= 'z') {
@@ -1074,6 +1069,7 @@ static dls::chaine donne_nom_constante_énum_sans_préfixe(dls::chaine const &no
 }
 
 struct Convertisseuse {
+    Syntaxeuse syntaxeuse{};
     kuri::chemin_systeme fichier_source{};
     kuri::chemin_systeme fichier_entete{};
     kuri::chemin_systeme dossier_source{};
@@ -1087,8 +1083,11 @@ struct Convertisseuse {
     dico_typedefs typedefs{};
 
     kuri::ensemble<CXCursorKind> cursors_non_pris_en_charges{};
+    kuri::ensemble<kuri::chaine> fichiers_ignorés{};
 
     kuri::ensemble<kuri::chaine> modules_importes{};
+
+    kuri::ensemble<dls::chaine> commentaires_imprimés{};
 
     dls::chaine pour_bibliothèque{};
     kuri::tableau<kuri::chaine> dépendances_biblinternes{};
@@ -1120,8 +1119,28 @@ struct Convertisseuse {
         clang_disposeString(comment);
     }
 
+    void rapporte_cursor_non_pris_en_charge(CXCursor cursor, std::ostream &flux_sortie)
+    {
+        cursors_non_pris_en_charges.insère(clang_getCursorKind(cursor));
+
+        flux_sortie << "Cursor '" << clang_getCursorSpelling(cursor) << "' of kind '"
+                    << clang_getCursorKindSpelling(clang_getCursorKind(cursor)) << "' of type '"
+                    << clang_getTypeSpelling(clang_getCursorType(cursor)) << "'\n";
+    }
+
     void convertis(CXTranslationUnit trans_unit, std::ostream &flux_sortie)
     {
+        CXCursor cursor = clang_getTranslationUnitCursor(trans_unit);
+        // imprime_asa(cursor, 0, std::cout);
+
+        auto module = syntaxeuse.crée<Module>();
+        syntaxeuse.module = module;
+        syntaxeuse.noeud_courant.empile(module);
+        convertis(cursor, trans_unit, flux_sortie);
+        assert(syntaxeuse.noeud_courant.haut() == syntaxeuse.module);
+
+        marque_prodéclarations_inutiles(module);
+
         if (pour_bibliothèque != "") {
             flux_sortie << "lib" << pour_bibliothèque << " :: #bibliothèque \""
                         << pour_bibliothèque << "\"\n\n";
@@ -1154,27 +1173,36 @@ struct Convertisseuse {
             }
         }
 
-        dossier_source = fichier_entete.chemin_parent();
+        ajoute_imports_pour_structures(syntaxeuse.module, flux_sortie);
 
-        CXCursor cursor = clang_getTranslationUnitCursor(trans_unit);
-        // imprime_asa(cursor, 0, std::cout);
-        convertis(cursor, trans_unit, flux_sortie);
+        profondeur = -2;
+        imprime_arbre(syntaxeuse.module, flux_sortie);
+    }
+
+    bool doit_ignorer_fichier(kuri::chemin_systeme chemin_fichier)
+    {
+        if (chemin_fichier == fichier_source || chemin_fichier == fichier_entete) {
+            return false;
+        }
+
+        auto chemin_parent = kuri::chaine(chemin_fichier.chemin_parent());
+        while (chemin_parent.taille() != 0 && chemin_parent != "/") {
+            if (chemin_parent == kuri::chaine_statique(dossier_source)) {
+                return false;
+            }
+
+            chemin_parent = kuri::chemin_systeme(chemin_parent).chemin_parent();
+        }
+
+        return true;
     }
 
     void convertis(CXCursor cursor, CXTranslationUnit trans_unit, std::ostream &flux_sortie)
     {
-        ++profondeur;
-
         switch (cursor.kind) {
             default:
             {
-                cursors_non_pris_en_charges.insère(clang_getCursorKind(cursor));
-
-                flux_sortie << "Cursor '" << clang_getCursorSpelling(cursor) << "' of kind '"
-                            << clang_getCursorKindSpelling(clang_getCursorKind(cursor))
-                            << "' of type '" << clang_getTypeSpelling(clang_getCursorType(cursor))
-                            << "'\n";
-
+                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
                 break;
             }
             case CXCursorKind::CXCursor_Namespace:
@@ -1197,15 +1225,11 @@ struct Convertisseuse {
                     auto nom_fichier_c = kuri::chemin_systeme(clang_getCString(nom_fichier));
                     clang_disposeString(nom_fichier);
 
-                    if (nom_fichier_c.chemin_parent() != kuri::chaine_statique(dossier_source)) {
+                    //  À FAIRE: option pour controler ceci.
+                    if (doit_ignorer_fichier(nom_fichier_c)) {
+                        fichiers_ignorés.insère(kuri::chaine_statique(nom_fichier_c));
                         continue;
                     }
-
-                    //  À FAIRE: option pour controler ceci.
-                    //                    if (nom_fichier_c != fichier_source && nom_fichier_c !=
-                    //                    fichier_entete) {
-                    //                        continue;
-                    //                    }
 
                     convertis(enfant, trans_unit, flux_sortie);
 
@@ -1232,112 +1256,70 @@ struct Convertisseuse {
                     enfants_filtres.ajoute(enfant);
                 }
 
+                auto structure = syntaxeuse.crée<DéclarationStruct>(cursor);
+                structure->nom = determine_nom_anomyme(cursor, typedefs, nombre_anonymes);
+
                 if (!enfants_filtres.est_vide()) {
-                    imprime_commentaire(cursor, flux_sortie);
-
-                    auto nom = determine_nom_anomyme(cursor, typedefs, nombre_anonymes);
-                    imprime_tab(flux_sortie);
-                    flux_sortie << nom;
-                    flux_sortie << " :: struct {\n";
-
-                    noms_structure.empile(nom);
-
+                    syntaxeuse.noeud_courant.empile(structure);
                     converti_enfants(enfants_filtres, trans_unit, flux_sortie);
-
-                    noms_structure.depile();
-
-                    imprime_tab(flux_sortie);
-                    flux_sortie << "}\n\n";
-                }
-                else {
-                    imprime_commentaire(cursor, flux_sortie);
-                    auto nom = determine_nom_anomyme(cursor, typedefs, nombre_anonymes);
-                    // À FAIRE : paramétrise ceci
-                    if (nom == "AdaptriceMaillage" || nom == "Interruptrice" ||
-                        nom == "ContexteEvaluation") {
-                        if (!modules_importes.possède("Géométrie3D")) {
-                            flux_sortie << "importe Géométrie3D\n\n";
-                            modules_importes.insère("Géométrie3D");
-                        }
-                    }
-                    else if (nom != "ContexteKuri") {
-                        imprime_tab(flux_sortie);
-                        flux_sortie << nom;
-                        flux_sortie << " :: struct #externe;\n\n";
-                    }
+                    syntaxeuse.noeud_courant.depile();
                 }
 
+                syntaxeuse.ajoute_au_noeud_courant(structure);
                 break;
             }
             case CXCursorKind::CXCursor_UnionDecl:
             {
-                imprime_commentaire(cursor, flux_sortie);
-                imprime_tab(flux_sortie);
-                flux_sortie << determine_nom_anomyme(cursor, typedefs, nombre_anonymes);
-                flux_sortie << " :: union nonsûr {\n";
+                auto union_ = syntaxeuse.crée<DéclarationUnion>(cursor);
+                union_->nom = determine_nom_anomyme(cursor, typedefs, nombre_anonymes);
+
+                syntaxeuse.noeud_courant.empile(union_);
                 converti_enfants(cursor, trans_unit, flux_sortie);
+                syntaxeuse.noeud_courant.depile();
 
-                imprime_tab(flux_sortie);
-                flux_sortie << "}\n\n";
-
+                syntaxeuse.ajoute_au_noeud_courant(union_);
                 break;
             }
             case CXCursorKind::CXCursor_FieldDecl:
             {
-                imprime_commentaire(cursor, flux_sortie);
-                imprime_tab(flux_sortie);
-                flux_sortie << clang_getCursorSpelling(cursor);
-                flux_sortie << " : ";
-                flux_sortie << converti_type(cursor, typedefs);
-                flux_sortie << '\n';
+                auto variable = syntaxeuse.crée<DéclarationVariable>(cursor);
+                variable->nom = donne_cursor_spelling(cursor);
+                variable->type_c = donne_type_c(cursor, false);
+                syntaxeuse.ajoute_au_noeud_courant(variable);
                 break;
             }
             case CXCursorKind::CXCursor_EnumDecl:
             {
-                imprime_commentaire(cursor, flux_sortie);
-                imprime_tab(flux_sortie);
-                auto nom_énum = determine_nom_anomyme(cursor, typedefs, nombre_anonymes);
+                auto énum = syntaxeuse.crée<DéclarationÉnum>(cursor);
+                énum->nom = determine_nom_anomyme(cursor, typedefs, nombre_anonymes);
+                énum->type_sous_jacent = donne_type_c(clang_getEnumDeclIntegerType(cursor));
 
-                auto type = clang_getEnumDeclIntegerType(cursor);
-                flux_sortie << nom_énum << " :: énum " << converti_type(type, typedefs);
-
-                flux_sortie << " {\n";
-                m_préfixe_énum_courant = donne_préfixe_valeur_énum(nom_énum);
+                syntaxeuse.noeud_courant.empile(énum);
                 converti_enfants(cursor, trans_unit, flux_sortie);
-                m_préfixe_énum_courant = "";
+                syntaxeuse.noeud_courant.depile();
 
-                imprime_tab(flux_sortie);
-                flux_sortie << "}\n\n";
-
+                syntaxeuse.ajoute_au_noeud_courant(énum);
                 break;
             }
             case CXCursorKind::CXCursor_EnumConstantDecl:
             {
-                imprime_commentaire(cursor, flux_sortie);
-                imprime_tab(flux_sortie);
-
-                auto spelling = clang_getCursorSpelling(cursor);
-                auto nom_constante = converti_chaine(spelling);
-                nom_constante = donne_nom_constante_énum_sans_préfixe(nom_constante,
-                                                                      m_préfixe_énum_courant);
-
-                flux_sortie << nom_constante;
+                auto déclaration = syntaxeuse.crée<DéclarationConstante>(cursor);
+                déclaration->nom = donne_cursor_spelling(cursor);
 
                 auto enfants = rassemble_enfants(cursor);
-
                 if (!enfants.est_vide()) {
-                    flux_sortie << " :: ";
-                    converti_enfants(enfants, trans_unit, flux_sortie);
+                    assert(enfants.taille() == 1);
+                    déclaration->expression = parse_expression(
+                        enfants[0], trans_unit, flux_sortie);
                 }
 
-                flux_sortie << "\n";
+                auto noeud_courant = syntaxeuse.noeud_courant.haut();
+                if (noeud_courant->type_syntaxème != TypeSyntaxème::DÉCLARATION_ÉNUM) {
+                    std::cerr << "Le noeud courant n'est celui d'une déclaration d'énum\n";
+                    exit(1);
+                }
 
-                break;
-            }
-            case CXCursorKind::CXCursor_TypeRef:
-            {
-                /* pour les constructeurs entre autres */
-                flux_sortie << clang_getTypeSpelling(clang_getCursorType(cursor));
+                static_cast<DéclarationÉnum *>(noeud_courant)->rubriques.ajoute(déclaration);
                 break;
             }
             case CXCursorKind::CXCursor_FunctionDecl:
@@ -1352,9 +1334,13 @@ struct Convertisseuse {
                 converti_declaration_fonction(cursor, trans_unit, true, flux_sortie);
                 break;
             }
-            case CXCursorKind::CXCursor_CXXThisExpr:
+            case CXCursorKind::CXCursor_TypeRef:
             {
-                flux_sortie << "this";
+                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+#if 0
+                /* pour les constructeurs entre autres */
+                flux_sortie << clang_getTypeSpelling(clang_getCursorType(cursor));
+#endif
                 break;
             }
             case CXCursorKind::CXCursor_CXXAccessSpecifier:
@@ -1385,7 +1371,41 @@ struct Convertisseuse {
             }
             case CXCursorKind::CXCursor_TypedefDecl:
             {
-                tokens_typedef(cursor, trans_unit, typedefs, flux_sortie);
+                /* typedef a b;
+                 * clang_getCursorType(cursor) => b
+                 * clang_getTypedefDeclUnderlyingType(cursor) => a
+                 */
+                auto type_source = clang_getTypedefDeclUnderlyingType(cursor);
+                auto type_défini = clang_getCursorType(cursor);
+
+                auto typedef_ = syntaxeuse.crée<Typedef>(cursor);
+                typedef_->type_défini = donne_type_c(type_défini);
+
+                auto type_résultat_opt = est_type_fonction(type_source);
+                if (type_résultat_opt.has_value()) {
+                    auto fonction = syntaxeuse.crée<DéclarationFonction>();
+                    fonction->type_sortie = donne_type_c(type_résultat_opt.value());
+
+                    auto enfants = rassemble_enfants(cursor);
+
+                    POUR (enfants) {
+                        if (it.kind != CXCursorKind::CXCursor_ParmDecl) {
+                            continue;
+                        }
+
+                        auto variable = syntaxeuse.crée<DéclarationVariable>();
+                        variable->nom = donne_cursor_spelling(it);
+                        variable->type_c = donne_type_c(it, false);
+                        fonction->paramètres.ajoute(variable);
+                    }
+
+                    typedef_->type_fonction = fonction;
+                }
+                else {
+                    typedef_->type_source = donne_type_c(type_source);
+                }
+
+                syntaxeuse.ajoute_au_noeud_courant(typedef_);
                 break;
             }
             case CXCursorKind::CXCursor_TypeAliasDecl:
@@ -1393,8 +1413,111 @@ struct Convertisseuse {
                 tokens_typealias(cursor, trans_unit, typedefs);
                 break;
             }
+            case CXCursorKind::CXCursor_DeclStmt:
+            {
+                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+#if 0
+                imprime_commentaire(cursor, flux_sortie);
+
+                /* Un DeclStmt peut être :
+                 * soit int x = 0;
+                 * soit int x = 0, y = 0, z = 0;
+                 *
+                 * Dans le deuxième cas, la virgule n'est pas considérée comme
+                 * un opérateur binaire, et les différentes expressions sont
+                 * les filles du DeclStmt. Donc pour proprement tenir en compte
+                 * ce cas, on rassemble et converti les enfants en insérant un
+                 * point-virgule quand nécessaire.
+                 */
+                auto enfants = rassemble_enfants(cursor);
+
+                for (auto i = 0; i < enfants.taille(); ++i) {
+                    convertis(enfants[i], trans_unit, flux_sortie);
+
+                    if (enfants.taille() > 1 && i < enfants.taille() - 1) {
+                        flux_sortie << '\n';
+                        --profondeur;
+                        imprime_tab(flux_sortie);
+                        ++profondeur;
+                    }
+                }
+#endif
+                break;
+            }
+            case CXCursorKind::CXCursor_VarDecl:
+            {
+                auto enfants = rassemble_enfants(cursor);
+                auto cxtype = clang_getCursorType(cursor);
+
+                auto nombre_enfants = enfants.taille();
+                auto decalage = 0;
+
+                if (cxtype.kind == CXTypeKind::CXType_ConstantArray) {
+                    /* le premier enfant est la taille du tableau */
+                    nombre_enfants -= 1;
+                    decalage += 1;
+                }
+
+                /* les variables déclarées comme étant des pointeurs de
+                 * fonctions ont les types des arguments comme enfants */
+                for (auto const &enfant : enfants) {
+                    switch (enfant.kind) {
+                        default:
+                        {
+                            break;
+                        }
+                        /* pour certaines déclarations dans les codes C, le premier
+                         * enfant semble être une référence vers le type
+                         * (p.e. struct Vecteur) */
+                        case CXCursorKind::CXCursor_TypeRef:
+                        case CXCursorKind::CXCursor_ParmDecl:
+                        case CXCursorKind::CXCursor_VisibilityAttr:
+                        {
+                            decalage += 1;
+                            nombre_enfants -= 1;
+                        }
+                    }
+                }
+
+                if (nombre_enfants > 1) {
+                    std::cerr << "Trop d'expressions pour la variable "
+                              << donne_cursor_spelling(cursor) << " : " << nombre_enfants << "\n";
+                    exit(1);
+                }
+
+                auto variable = syntaxeuse.crée<DéclarationVariable>(cursor);
+                variable->nom = donne_cursor_spelling(cursor);
+                variable->type_c = donne_type_c(cursor);
+                variable->storage_class = clang_Cursor_getStorageClass(cursor);
+
+                if (nombre_enfants == 1) {
+                    variable->expression = parse_expression(
+                        enfants[decalage], trans_unit, flux_sortie);
+                }
+                syntaxeuse.ajoute_au_noeud_courant(variable);
+                break;
+            }
+        }
+    }
+
+    Expression *parse_expression(CXCursor cursor,
+                                 CXTranslationUnit trans_unit,
+                                 std::ostream &flux_sortie)
+    {
+        switch (cursor.kind) {
+            default:
+            {
+                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+                break;
+            }
+            case CXCursorKind::CXCursor_CXXThisExpr:
+            {
+                return syntaxeuse.crée_expression("this");
+            }
             case CXCursorKind::CXCursor_CallExpr:
             {
+                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+#if 0
                 auto enfants = rassemble_enfants(cursor);
 
                 /* le premier enfant nous fournis soit le nom de la fonction,
@@ -1421,96 +1544,13 @@ struct Convertisseuse {
                 }
 
                 flux_sortie << ')';
-
-                break;
-            }
-            case CXCursorKind::CXCursor_DeclStmt:
-            {
-                imprime_commentaire(cursor, flux_sortie);
-
-                /* Un DeclStmt peut être :
-                 * soit int x = 0;
-                 * soit int x = 0, y = 0, z = 0;
-                 *
-                 * Dans le deuxième cas, la virgule n'est pas considérée comme
-                 * un opérateur binaire, et les différentes expressions sont
-                 * les filles du DeclStmt. Donc pour proprement tenir en compte
-                 * ce cas, on rassemble et converti les enfants en insérant un
-                 * point-virgule quand nécessaire.
-                 */
-                auto enfants = rassemble_enfants(cursor);
-
-                for (auto i = 0; i < enfants.taille(); ++i) {
-                    convertis(enfants[i], trans_unit, flux_sortie);
-
-                    if (enfants.taille() > 1 && i < enfants.taille() - 1) {
-                        flux_sortie << '\n';
-                        --profondeur;
-                        imprime_tab(flux_sortie);
-                        ++profondeur;
-                    }
-                }
-
-                break;
-            }
-            case CXCursorKind::CXCursor_VarDecl:
-            {
-                imprime_commentaire(cursor, flux_sortie);
-
-                auto enfants = rassemble_enfants(cursor);
-                auto cxtype = clang_getCursorType(cursor);
-
-                auto nombre_enfants = enfants.taille();
-                auto decalage = 0;
-
-                if (cxtype.kind == CXTypeKind::CXType_ConstantArray) {
-                    /* le premier enfant est la taille du tableau */
-                    nombre_enfants -= 1;
-                    decalage += 1;
-                }
-
-                /* les variables déclarées comme étant des pointeurs de
-                 * fonctions ont les types des arguments comme enfants */
-                for (auto const &enfant : enfants) {
-                    switch (enfant.kind) {
-                        default:
-                        {
-                            break;
-                        }
-                            /* pour certaines déclarations dans les codes C, le premier
-                             * enfant semble être une référence vers le type
-                             * (p.e. struct Vecteur) */
-                        case CXCursorKind::CXCursor_TypeRef:
-                        case CXCursorKind::CXCursor_ParmDecl:
-                        case CXCursorKind::CXCursor_VisibilityAttr:
-                        {
-                            decalage += 1;
-                            nombre_enfants -= 1;
-                        }
-                    }
-                }
-
-                if (nombre_enfants == 0) {
-                    /* nous avons une déclaration simple (int x;) */
-                    flux_sortie << clang_getCursorSpelling(cursor);
-                    flux_sortie << " : ";
-                    flux_sortie << converti_type(cursor, typedefs);
-                }
-                else {
-                    flux_sortie << clang_getCursorSpelling(cursor);
-                    flux_sortie << " : ";
-                    flux_sortie << converti_type(cursor, typedefs);
-                    flux_sortie << " = ";
-
-                    for (auto i = decalage; i < enfants.taille(); ++i) {
-                        convertis(enfants[i], trans_unit, flux_sortie);
-                    }
-                }
-
+#endif
                 break;
             }
             case CXCursorKind::CXCursor_InitListExpr:
             {
+                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+#if 0
                 auto enfants = rassemble_enfants(cursor);
 
                 auto virgule = "[ ";
@@ -1522,16 +1562,14 @@ struct Convertisseuse {
                 }
 
                 flux_sortie << " ]";
-                break;
-            }
-            case CXCursorKind::CXCursor_ParmDecl:
-            {
-                /* ne peut pas en avoir à ce niveau */
+#endif
                 break;
             }
             case CXCursorKind::CXCursor_CompoundStmt:
             {
-                /* NOTE : un CompoundStmt correspond à un bloc, et peut donc contenir pluseurs
+                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+#if 0
+                /* NOTE : un CompoundStmt correspond à un bloc, et peut donc contenir plusieurs
                  * instructions, par exemple :
                  *
                  * int a = 0;
@@ -1563,11 +1601,13 @@ struct Convertisseuse {
 
                     flux_sortie << '\n';
                 }
-
+#endif
                 break;
             }
             case CXCursorKind::CXCursor_IfStmt:
             {
+                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+#if 0
                 auto enfants = rassemble_enfants(cursor);
 
                 flux_sortie << "si ";
@@ -1620,11 +1660,13 @@ struct Convertisseuse {
                         flux_sortie << "}";
                     }
                 }
-
+#endif
                 break;
             }
             case CXCursorKind::CXCursor_WhileStmt:
             {
+                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+#if 0
                 auto enfants = rassemble_enfants(cursor);
 
                 flux_sortie << "tantque ";
@@ -1637,11 +1679,13 @@ struct Convertisseuse {
                 ++profondeur;
 
                 flux_sortie << "}";
-
+#endif
                 break;
             }
             case CXCursorKind::CXCursor_DoStmt:
             {
+                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+#if 0
                 auto enfants = rassemble_enfants(cursor);
 
                 flux_sortie << "répète {\n";
@@ -1652,11 +1696,13 @@ struct Convertisseuse {
 
                 flux_sortie << "} tantque ";
                 convertis(enfants[1], trans_unit, flux_sortie);
-
+#endif
                 break;
             }
             case CXCursorKind::CXCursor_ForStmt:
             {
+                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+#if 0
                 /* Transforme :
                  * for (int i = 0; i < 10; ++i) {
                  *		...
@@ -1664,7 +1710,7 @@ struct Convertisseuse {
                  *
                  * en :
                  *
-                 * i = 0				 *
+                 * i = 0
                  * tantque i < 10 {
                  *		...
                  *		i += 1
@@ -1712,27 +1758,38 @@ struct Convertisseuse {
                 imprime_tab(flux_sortie);
                 ++profondeur;
                 flux_sortie << "}";
-
+#endif
                 break;
             }
             case CXCursorKind::CXCursor_BreakStmt:
             {
+                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+#if 0
                 flux_sortie << "arrête";
+#endif
                 break;
             }
             case CXCursorKind::CXCursor_ContinueStmt:
             {
+                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+#if 0
                 flux_sortie << "continue";
+#endif
                 break;
             }
             case CXCursorKind::CXCursor_ReturnStmt:
             {
+                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+#if 0
                 flux_sortie << "retourne ";
                 converti_enfants(cursor, trans_unit, flux_sortie);
+#endif
                 break;
             }
             case CXCursorKind::CXCursor_SwitchStmt:
             {
+                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+#if 0
                 auto enfants = rassemble_enfants(cursor);
 
                 flux_sortie << "discr ";
@@ -1744,18 +1801,23 @@ struct Convertisseuse {
                 imprime_tab(flux_sortie);
                 ++profondeur;
                 flux_sortie << "}\n";
-
+#endif
                 break;
             }
             case CXCursorKind::CXCursor_DefaultStmt:
             {
+                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+#if 0
                 /* À FAIRE : gestion propre du cas défaut, le langage possède un
                  * 'sinon' qu'il faudra utiliser correctement */
                 converti_enfants(cursor, trans_unit, flux_sortie);
+#endif
                 break;
             }
             case CXCursorKind::CXCursor_CaseStmt:
             {
+                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+#if 0
                 /* L'arbre des cas est ainsi :
                  * case
                  *	valeur
@@ -1803,15 +1865,23 @@ struct Convertisseuse {
                 imprime_tab(flux_sortie);
                 ++profondeur;
                 flux_sortie << "}\n";
-
+#endif
                 break;
             }
             case CXCursorKind::CXCursor_ParenExpr:
             {
-                flux_sortie << "(";
-                converti_enfants(cursor, trans_unit, flux_sortie);
-                flux_sortie << ")";
-                break;
+                auto paren = syntaxeuse.crée<ExpressionUnaire>(cursor);
+                paren->texte = "(";
+
+                auto enfants = rassemble_enfants(cursor);
+                if (enfants.taille() != 1) {
+                    std::cerr << "L'expression de parenthèse a plusieurs enfants : "
+                              << enfants.taille() << "\n";
+                    exit(1);
+                }
+
+                paren->opérande = parse_expression(enfants[0], trans_unit, flux_sortie);
+                return paren;
             }
             case CXCursorKind::CXCursor_IntegerLiteral:
             case CXCursorKind::CXCursor_CharacterLiteral:
@@ -1819,17 +1889,18 @@ struct Convertisseuse {
             case CXCursorKind::CXCursor_FloatingLiteral:
             case CXCursorKind::CXCursor_CXXBoolLiteralExpr:
             {
-                obtiens_litterale(cursor, trans_unit, flux_sortie);
-                break;
+                auto chn = donne_chaine_pour_litérale(cursor, trans_unit);
+                return syntaxeuse.crée_expression(chn);
             }
             case CXCursorKind::CXCursor_GNUNullExpr:
             case CXCursorKind::CXCursor_CXXNullPtrLiteralExpr:
             {
-                flux_sortie << "nul";
-                break;
+                return syntaxeuse.crée_expression("nul");
             }
             case CXCursorKind::CXCursor_ArraySubscriptExpr:
             {
+                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+#if 0
                 auto enfants = rassemble_enfants(cursor);
                 assert(enfants.taille() == 2);
 
@@ -1837,11 +1908,13 @@ struct Convertisseuse {
                 flux_sortie << '[';
                 convertis(enfants[1], trans_unit, flux_sortie);
                 flux_sortie << ']';
-
+#endif
                 break;
             }
             case CXCursorKind::CXCursor_MemberRefExpr:
             {
+                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+#if 0
                 auto enfants = rassemble_enfants(cursor);
 
                 if (enfants.taille() == 1) {
@@ -1854,7 +1927,7 @@ struct Convertisseuse {
                     flux_sortie << "this.";
                     flux_sortie << clang_getCursorSpelling(cursor);
                 }
-
+#endif
                 break;
             }
             case CXCursorKind::CXCursor_BinaryOperator:
@@ -1863,18 +1936,16 @@ struct Convertisseuse {
                 auto enfants = rassemble_enfants(cursor);
                 assert(enfants.taille() == 2);
 
-                convertis(enfants[0], trans_unit, flux_sortie);
-
-                flux_sortie << ' ';
-                determine_operateur_binaire(cursor, trans_unit, flux_sortie);
-                flux_sortie << ' ';
-
-                convertis(enfants[1], trans_unit, flux_sortie);
-
-                break;
+                auto binaire = syntaxeuse.crée<ExpressionBinaire>(cursor);
+                binaire->texte = determine_operateur_binaire(cursor, trans_unit);
+                binaire->gauche = parse_expression(enfants[0], trans_unit, flux_sortie);
+                binaire->droite = parse_expression(enfants[1], trans_unit, flux_sortie);
+                return binaire;
             }
             case CXCursorKind::CXCursor_UnaryOperator:
             {
+                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+#if 0
                 auto enfants = rassemble_enfants(cursor);
                 assert(enfants.taille() == 1);
 
@@ -1903,11 +1974,13 @@ struct Convertisseuse {
 
                     convertis(enfants[0], trans_unit, flux_sortie);
                 }
-
+#endif
                 break;
             }
             case CXCursorKind::CXCursor_ConditionalOperator:
             {
+                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+#if 0
                 auto enfants = rassemble_enfants(cursor);
                 assert(enfants.taille() == 3);
 
@@ -1918,22 +1991,29 @@ struct Convertisseuse {
                 flux_sortie << " } sinon { ";
                 convertis(enfants[2], trans_unit, flux_sortie);
                 flux_sortie << " } ";
-
+#endif
                 break;
             }
             case CXCursorKind::CXCursor_DeclRefExpr:
             {
-                flux_sortie << clang_getCursorSpelling(cursor);
-                break;
+                return syntaxeuse.crée_expression(donne_cursor_spelling(cursor));
             }
             case CXCursorKind::CXCursor_UnexposedExpr:
             {
-                converti_enfants(cursor, trans_unit, flux_sortie);
-                break;
+                auto enfants = rassemble_enfants(cursor);
+                if (enfants.taille() != 1) {
+                    std::cerr << "Plusieurs enfants sur UnexposedExpr : " << enfants.taille()
+                              << "\n";
+                    exit(1);
+                }
+                return parse_expression(enfants[0], trans_unit, flux_sortie);
             }
             case CXCursorKind::CXCursor_UnexposedDecl:
             {
+                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+#if 0
                 converti_enfants(cursor, trans_unit, flux_sortie);
+#endif
                 break;
             }
             case CXCursorKind::CXCursor_CStyleCastExpr:
@@ -1943,27 +2023,32 @@ struct Convertisseuse {
             case CXCursorKind::CXCursor_CXXConstCastExpr:
             case CXCursorKind::CXCursor_CXXReinterpretCastExpr:
             {
+                auto transtypage = syntaxeuse.crée<Transtypage>(cursor);
+
                 auto enfants = rassemble_enfants(cursor);
 
                 if (enfants.taille() == 1) {
-                    flux_sortie << "transtype(";
-                    convertis(enfants[0], trans_unit, flux_sortie);
-                    flux_sortie << " : " << converti_type(cursor, typedefs) << ')';
+                    transtypage->expression = parse_expression(
+                        enfants[0], trans_unit, flux_sortie);
+                    transtypage->type_vers = donne_type_c(cursor);
                 }
                 else if (enfants.taille() == 2) {
                     /* par exemple :
                      * - static_cast<decltype(a)>(b)
                      * - (typeof(a))(b)
                      */
-                    flux_sortie << "transtype(";
-                    convertis(enfants[1], trans_unit, flux_sortie);
-                    flux_sortie << " : " << converti_type(enfants[0], typedefs) << ')';
+
+                    transtypage->expression = parse_expression(
+                        enfants[1], trans_unit, flux_sortie);
+                    transtypage->type_vers = donne_type_c(enfants[0]);
                 }
 
-                break;
+                return transtypage;
             }
             case CXCursorKind::CXCursor_UnaryExpr:
             {
+                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+#if 0
                 auto chn = determine_expression_unaire(cursor, trans_unit);
 
                 if (chn == "sizeof") {
@@ -1974,12 +2059,15 @@ struct Convertisseuse {
                 else {
                     converti_enfants(cursor, trans_unit, flux_sortie);
                 }
-
+#endif
                 break;
             }
             case CXCursorKind::CXCursor_StmtExpr:
             {
+                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+#if 0
                 converti_enfants(cursor, trans_unit, flux_sortie);
+#endif
                 break;
             }
             case CXCursorKind::CXCursor_CXXFinalAttr:
@@ -1993,11 +2081,12 @@ struct Convertisseuse {
             case CXCursorKind::CXCursor_NullStmt:
             {
                 /* les lignes ne consistant que d'un ';' */
-                flux_sortie << '\n';
                 break;
             }
             case CXCursorKind::CXCursor_CXXNewExpr:
             {
+                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+#if 0
                 auto enfants = rassemble_enfants(cursor);
                 auto cxtype = clang_getCursorType(cursor);
 
@@ -2013,17 +2102,22 @@ struct Convertisseuse {
                     flux_sortie << ']';
                     flux_sortie << converti_type(cxtype, typedefs, true);
                 }
-
+#endif
                 break;
             }
             case CXCursorKind::CXCursor_CXXDeleteExpr:
             {
+                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+#if 0
                 flux_sortie << "déloge ";
                 converti_enfants(cursor, trans_unit, flux_sortie);
+#endif
                 break;
             }
             case CXCursorKind::CXCursor_CXXForRangeStmt:
             {
+                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+#if 0
                 auto enfants = rassemble_enfants(cursor);
 
                 flux_sortie << "pour ";
@@ -2034,27 +2128,32 @@ struct Convertisseuse {
                 convertis(enfants[2], trans_unit, flux_sortie);
                 imprime_tab(flux_sortie);
                 flux_sortie << "}\n";
-
+#endif
                 break;
             }
             case CXCursorKind::CXCursor_NamespaceRef:
             {
+                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+#if 0
                 flux_sortie << clang_getCursorSpelling(cursor) << '.';
+#endif
                 break;
             }
             case CXCursorKind::CXCursor_TemplateRef:
             {
+                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+#if 0
                 flux_sortie << clang_getCursorSpelling(cursor) << '.';
+#endif
                 break;
             }
         }
-
-        --profondeur;
+        return nullptr;
     }
 
     void imprime_tab(std::ostream &flux_sortie)
     {
-        for (auto i = 0; i < profondeur - 2; ++i) {
+        for (auto i = 0; i < profondeur; ++i) {
             flux_sortie << "    ";
         }
     }
@@ -2095,34 +2194,27 @@ struct Convertisseuse {
             }
         }
 
-        imprime_commentaire(cursor, flux_sortie);
+        auto fonction = syntaxeuse.crée<DéclarationFonction>(cursor);
+        fonction->nom = donne_cursor_spelling(cursor);
+        fonction->type_sortie = donne_type_c(cursor, true);
+        fonction->est_inline = clang_Cursor_isFunctionInlined(cursor);
 
-        if (clang_Cursor_isFunctionInlined(cursor)) {
-            flux_sortie << "#enligne ";
-        }
-
-        flux_sortie << clang_getCursorSpelling(cursor);
-        flux_sortie << " :: fonc ";
-
-        auto virgule = "(";
-        auto nombre_parametres = 0;
-
+#if 0
         if (!noms_structure.est_vide()) {
             flux_sortie << virgule;
             flux_sortie << "this : *" << noms_structure.haut();
-            virgule = ", ";
-            ++nombre_parametres;
         }
+#endif
 
         for (auto i = 0; i < enfants.taille(); ++i) {
             auto param = enfants[i];
 
             if (est_methode_cpp && param.kind == CXCursorKind::CXCursor_TypeRef) {
+#if 0
                 flux_sortie << virgule;
                 flux_sortie << "this : &";
                 flux_sortie << converti_type(param, typedefs);
-                virgule = ", ";
-                ++nombre_parametres;
+#endif
                 continue;
             }
 
@@ -2131,40 +2223,336 @@ struct Convertisseuse {
                 continue;
             }
 
-            flux_sortie << virgule;
-            flux_sortie << clang_getCursorSpelling(param);
-            flux_sortie << " : ";
-            flux_sortie << converti_type(param, typedefs);
-
-            virgule = ", ";
-            ++nombre_parametres;
-        }
-
-        /* Il n'y a pas de paramètres. */
-        if (nombre_parametres == 0) {
-            flux_sortie << '(';
-        }
-
-        flux_sortie << ") -> " << converti_type(cursor, typedefs, true);
-
-        if (est_declaration) {
-            /* Nous avons une déclaration */
-            flux_sortie << " #externe";
-            if (pour_bibliothèque != "") {
-                flux_sortie << " lib" << pour_bibliothèque;
+            auto variable = syntaxeuse.crée<DéclarationVariable>(param);
+            variable->nom = donne_cursor_spelling(param);
+            if (variable->nom == "") {
+                variable->nom = "anonyme" + dls::vers_chaine(i);
             }
+            variable->type_c = donne_type_c(param, false);
+            fonction->paramètres.ajoute(variable);
+        }
+
+#if 0
+        if (!est_declaration) {
             flux_sortie << '\n';
-            flux_sortie << '\n';
+            flux_sortie << "{\n";
+            convertis(enfant_bloc, trans_unit, flux_sortie);
+            flux_sortie << "}\n\n";
+        }
+#endif
+
+        syntaxeuse.ajoute_au_noeud_courant(fonction);
+    }
+
+    void imprime_arbre(Syntaxème *syntaxème, std::ostream &os)
+    {
+        if (!syntaxème) {
             return;
         }
 
-        flux_sortie << '\n';
+        profondeur += 1;
 
-        flux_sortie << "{\n";
+        if (syntaxème->commentaire.taille() != 0) {
+            /* Les typedefs et les structures qu'ils définissent ont les mêmes commentaires. */
+            if (!commentaires_imprimés.possède(syntaxème->commentaire)) {
+                imprime_tab(os);
+                os << syntaxème->commentaire << '\n';
+                commentaires_imprimés.insère(syntaxème->commentaire);
+            }
+        }
 
-        convertis(enfant_bloc, trans_unit, flux_sortie);
+        switch (syntaxème->type_syntaxème) {
+            case TypeSyntaxème::DÉFAUT:
+            {
+                os << "!!!!!!!!!!!!!!!! Erreur\n";
+                break;
+            }
+            case TypeSyntaxème::MDOULE:
+            {
+                auto module = static_cast<Module *>(syntaxème);
+                POUR (module->déclarations) {
+                    if (doit_ignorer_déclaration(it)) {
+                        continue;
+                    }
 
-        flux_sortie << "}\n\n";
+                    imprime_arbre(it, os);
+                    os << "\n";
+                }
+                break;
+            }
+            case TypeSyntaxème::DÉCLARATION_ÉNUM:
+            {
+                auto énum = static_cast<DéclarationÉnum *>(syntaxème);
+
+                imprime_tab(os);
+                os << énum->nom << " :: énum ";
+                os << converti_type(énum->type_sous_jacent, typedefs);
+                os << " {\n";
+
+                m_préfixe_énum_courant = donne_préfixe_valeur_énum(énum->nom);
+                POUR (énum->rubriques) {
+                    imprime_arbre(it, os);
+                }
+                m_préfixe_énum_courant = "";
+
+                imprime_tab(os);
+                os << "}\n";
+                break;
+            }
+            case TypeSyntaxème::DÉCLARATION_STRUCT:
+            {
+                auto structure = static_cast<DéclarationStruct *>(syntaxème);
+
+                imprime_tab(os);
+                os << structure->nom << " :: struct #externe";
+
+                if (structure->rubriques.taille() == 0) {
+                    os << "\n";
+                    break;
+                }
+
+                os << " {\n";
+
+                POUR (structure->rubriques) {
+                    imprime_arbre(it, os);
+                }
+
+                imprime_tab(os);
+                os << "}\n";
+                break;
+            }
+            case TypeSyntaxème::DÉCLARATION_UNION:
+            {
+                auto union_ = static_cast<DéclarationUnion *>(syntaxème);
+
+                imprime_tab(os);
+                os << union_->nom << " :: union nonsûr {\n";
+
+                POUR (union_->rubriques) {
+                    imprime_arbre(it, os);
+                }
+
+                imprime_tab(os);
+                os << "}\n";
+                break;
+            }
+            case TypeSyntaxème::DÉCLARATION_FONCTION:
+            {
+                auto fonction = static_cast<DéclarationFonction *>(syntaxème);
+
+                imprime_tab(os);
+                os << fonction->nom << " :: fonc ";
+
+                kuri::chaine_statique virgule = "(";
+                POUR (fonction->paramètres) {
+                    os << virgule << it->nom << ": "
+                       << converti_type(it->type_c.value(), typedefs);
+                    virgule = ", ";
+                }
+
+                if (fonction->paramètres.taille() == 0) {
+                    os << virgule;
+                }
+
+                os << ") -> " << converti_type(fonction->type_sortie, typedefs);
+                os << " #externe lib" << pour_bibliothèque << "\n";
+                break;
+            }
+            case TypeSyntaxème::DÉCLARATION_VARIABLE:
+            {
+                auto variable = static_cast<DéclarationVariable *>(syntaxème);
+
+                imprime_tab(os);
+                os << variable->nom << (variable->expression ? " : " : ": ");
+                os << converti_type(variable->type_c.value(), typedefs);
+
+                if (variable->expression) {
+                    os << " = ";
+                    imprime_arbre(variable->expression, os);
+                }
+
+                if (variable->storage_class == CX_StorageClass::CX_SC_Extern) {
+                    os << " #externe lib" << pour_bibliothèque;
+                }
+
+                os << "\n";
+                break;
+            }
+            case TypeSyntaxème::DÉCLARATION_CONSTANTE:
+            {
+                auto constante = static_cast<DéclarationConstante *>(syntaxème);
+
+                imprime_tab(os);
+
+                os << donne_nom_constante_énum_sans_préfixe(constante->nom,
+                                                            m_préfixe_énum_courant);
+
+                if (constante->expression) {
+                    os << " :: ";
+                    imprime_arbre(constante->expression, os);
+                }
+
+                os << "\n";
+                break;
+            }
+            case TypeSyntaxème::TYPEDEF:
+            {
+                auto typedef_ = static_cast<Typedef *>(syntaxème);
+
+                imprime_tab(os);
+                os << converti_type(typedef_->type_défini, typedefs) << " :: ";
+
+                if (typedef_->type_fonction) {
+                    auto fonction = typedef_->type_fonction;
+
+                    kuri::chaine_statique virgule = "fonc(";
+                    POUR (fonction->paramètres) {
+                        os << virgule << converti_type(it->type_c.value(), typedefs);
+                        virgule = ", ";
+                    }
+
+                    if (fonction->paramètres.taille() == 0) {
+                        os << virgule;
+                    }
+
+                    os << ")(" << converti_type(fonction->type_sortie, typedefs) << ")";
+                }
+                else {
+                    os << converti_type(typedef_->type_source, typedefs);
+                }
+
+                os << "\n";
+                break;
+            }
+            case TypeSyntaxème::TRANSTYPAGE:
+            {
+                auto transtypage = static_cast<Transtypage *>(syntaxème);
+
+                imprime_arbre(transtypage->expression, os);
+                os << " comme " << converti_type(transtypage->type_vers, typedefs);
+                break;
+            }
+            case TypeSyntaxème::EXPRESSION:
+            {
+                auto expression = static_cast<Expression *>(syntaxème);
+                os << donne_nom_constante_énum_sans_préfixe(expression->texte,
+                                                            m_préfixe_énum_courant);
+                break;
+            }
+            case TypeSyntaxème::EXPRESSION_UNAIRE:
+            {
+                auto unaire = static_cast<ExpressionUnaire *>(syntaxème);
+                if (unaire->texte == "(") {
+                    os << "(";
+                    imprime_arbre(unaire->opérande, os);
+                    os << ")";
+                }
+                else {
+                    std::cerr << "Expression unaire non-gérée : " << unaire->texte << "\n";
+                    exit(1);
+                }
+                break;
+            }
+            case TypeSyntaxème::EXPRESSION_BINAIRE:
+            {
+                auto binaire = static_cast<ExpressionBinaire *>(syntaxème);
+                imprime_arbre(binaire->gauche, os);
+                os << ' ' << binaire->texte << ' ';
+                imprime_arbre(binaire->droite, os);
+                break;
+            }
+        }
+
+        profondeur -= 1;
+    }
+
+    bool doit_ignorer_déclaration(Syntaxème *syntaxème)
+    {
+        if (syntaxème->est_prodéclaration_inutile) {
+            return true;
+        }
+
+        if (syntaxème->type_syntaxème == TypeSyntaxème::TYPEDEF) {
+            auto typedef_ = static_cast<Typedef *>(syntaxème);
+
+            auto nom_type_défini = converti_type(typedef_->type_défini, typedefs);
+            if (nom_type_défini == "bool" || nom_type_défini == "r16") {
+                return true;
+            }
+
+            if (!typedef_->type_fonction) {
+                auto nom_type_source = converti_type(typedef_->type_source, typedefs);
+                if (nom_type_source == nom_type_défini) {
+                    /* Par exemple : typedef struct XYZ { } XYZ; */
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        if (syntaxème->type_syntaxème == TypeSyntaxème::DÉCLARATION_STRUCT) {
+            auto structure = static_cast<DéclarationStruct *>(syntaxème);
+            return structure->nom == "ContexteKuri";
+        }
+
+        return false;
+    }
+
+    void ajoute_imports_pour_structures(Module *module, std::ostream &flux_sortie)
+    {
+        POUR (module->déclarations) {
+            if (it->type_syntaxème != TypeSyntaxème::DÉCLARATION_STRUCT) {
+                continue;
+            }
+
+            auto structure = static_cast<DéclarationStruct *>(it);
+            auto nom = structure->nom;
+
+            if (structure->rubriques.taille() != 0) {
+                /* N'importe les modules que si la structure est externe. */
+                continue;
+            }
+
+            // À FAIRE : paramétrise ceci
+            if (nom == "AdaptriceMaillage" || nom == "Interruptrice" ||
+                nom == "ContexteEvaluation") {
+                if (!modules_importes.possède("Géométrie3D")) {
+                    flux_sortie << "importe Géométrie3D\n\n";
+                    modules_importes.insère("Géométrie3D");
+                }
+            }
+        }
+    }
+
+    void marque_prodéclarations_inutiles(Module *module)
+    {
+        for (int64_t i = 0; i < module->déclarations.taille(); i++) {
+            auto syntaxème1 = module->déclarations[i];
+            if (syntaxème1->type_syntaxème != TypeSyntaxème::DÉCLARATION_STRUCT) {
+                continue;
+            }
+
+            auto structure1 = static_cast<DéclarationStruct *>(syntaxème1);
+            if (structure1->rubriques.taille() != 0) {
+                continue;
+            }
+
+            for (int64_t j = i + 1; j < module->déclarations.taille(); j++) {
+                auto syntaxème2 = module->déclarations[j];
+                if (syntaxème2->type_syntaxème != TypeSyntaxème::DÉCLARATION_STRUCT) {
+                    continue;
+                }
+
+                auto structure2 = static_cast<DéclarationStruct *>(syntaxème2);
+                if (structure2->rubriques.taille() != 0) {
+                    if (structure2->nom == structure1->nom) {
+                        structure1->est_prodéclaration_inutile = true;
+                        break;
+                    }
+                }
+            }
+        }
     }
 };
 
@@ -2178,6 +2566,11 @@ struct Configuration {
     kuri::tableau<kuri::chaine> dépendances_biblinternes{};
     /* Dépendances sur les bibliothèques internes ; celles installées dans modules/Kuri. */
     kuri::tableau<kuri::chaine> dépendances_qt{};
+
+    kuri::chemin_systeme dossier_source{};
+
+    bool fichier_est_composite = false;
+    dls::chaine fichier_tmp{};
 };
 
 static auto analyse_configuration(const char *chemin)
@@ -2197,13 +2590,82 @@ static auto analyse_configuration(const char *chemin)
 
     auto dico = tori::extrait_dictionnaire(obj.get());
 
-    auto obj_fichier = cherche_chaine(dico, "fichier");
-
+    auto obj_fichier = dico->objet("fichier");
     if (obj_fichier == nullptr) {
         return config;
     }
 
-    config.fichier = obj_fichier->valeur;
+    if (obj_fichier->type == tori::type_objet::CHAINE) {
+        config.fichier = static_cast<tori::ObjetChaine *>(obj_fichier)->valeur;
+        auto chemin_fichier_source = kuri::chemin_systeme(config.fichier.c_str());
+        config.dossier_source = chemin_fichier_source.chemin_parent();
+    }
+    else if (obj_fichier->type == tori::type_objet::TABLEAU) {
+        std::stringstream ss;
+
+        kuri::tableau<kuri::chemin_systeme> dossiers;
+
+        auto tableau = static_cast<tori::ObjetTableau *>(obj_fichier);
+        POUR (tableau->valeur) {
+            if (it->type != tori::type_objet::CHAINE) {
+                std::cerr << "Objet invalide dans le tableau de \"fichier\", nous ne voulons que "
+                             "des chaines\n";
+                std::cerr << "    NOTE : le type superflux est " << tori::chaine_type(it->type)
+                          << "\n";
+                return config;
+            }
+
+            auto obj_chaine = static_cast<tori::ObjetChaine *>(it.get());
+            std::ifstream ifs;
+            ifs.open(obj_chaine->valeur.c_str());
+
+            if (!ifs.is_open()) {
+                std::cerr << "Impossible de lire le fichier \"" << obj_chaine->valeur << "\"";
+                return config;
+            }
+
+            auto chaine = dls::chaine((std::istreambuf_iterator<char>(ifs)),
+                                      (std::istreambuf_iterator<char>()));
+            ss << chaine;
+
+            auto dossier_fichier =
+                kuri::chemin_systeme(obj_chaine->valeur.c_str()).chemin_parent();
+            dossiers.ajoute(dossier_fichier);
+        }
+
+        if (tableau->valeur.taille() == 0) {
+            std::cerr << "Aucun fichier spécifié\n";
+            return config;
+        }
+
+        std::stringstream ss_tmp;
+        ss_tmp << "/tmp/parcer-" << obj_fichier << ".h";
+
+        auto nom_fichier_tmp = ss_tmp.str();
+
+        std::ofstream fichier_tmp(nom_fichier_tmp.c_str());
+        fichier_tmp << ss.str();
+
+        config.fichier = nom_fichier_tmp;
+        config.fichier_tmp = nom_fichier_tmp;
+        config.fichier_est_composite = true;
+
+        auto premier_dossier = dossiers[0];
+        config.dossier_source = premier_dossier;
+
+        for (int i = 1; i < dossiers.taille(); i++) {
+            if (dossiers[i] != premier_dossier) {
+                config.dossier_source = kuri::chemin_systeme("/tmp/");
+                break;
+            }
+        }
+    }
+    else {
+        std::cerr << "La propriété \"fichier\" doit être une chaine ou un tableau de chaines\n";
+        std::cerr << "    NOTE : la propriété est de type " << tori::chaine_type(obj_fichier->type)
+                  << "\n";
+        return config;
+    }
 
     auto obj_args = cherche_tableau(dico, "args");
 
@@ -2237,6 +2699,11 @@ static auto analyse_configuration(const char *chemin)
 
     if (obj_sortie != nullptr) {
         config.fichier_sortie = obj_sortie->valeur;
+    }
+
+    auto obj_bibliothèque = cherche_chaine(dico, "bibliothèque");
+    if (obj_bibliothèque != nullptr) {
+        config.nom_bibliothèque = obj_bibliothèque->valeur;
     }
 
     return config;
@@ -2281,12 +2748,12 @@ static std::optional<Configuration> valide_configuration(Configuration config)
 
 static std::optional<Configuration> crée_config_depuis_json(int argc, char **argv)
 {
-    if (argc < 2) {
-        std::cerr << "Utilisation " << argv[0] << " CONFIG.json\n";
+    if (argc < 3) {
+        std::cerr << "Utilisation -c " << argv[0] << " CONFIG.json\n";
         return {};
     }
 
-    auto config = analyse_configuration(argv[1]);
+    auto config = analyse_configuration(argv[2]);
 
     if (config.fichier == "") {
         return {};
@@ -2316,6 +2783,7 @@ static std::optional<Configuration> crée_config_pour_metaprogramme(int argc, ch
 
     auto config = Configuration{};
     config.fichier = argv[1];
+    config.dossier_source = kuri::chemin_systeme(argv[1]).chemin_parent();
 
     if (std::string(argv[2]) != "-b") {
         std::cerr << "Utilisation " << argv[0]
@@ -2394,9 +2862,17 @@ static kuri::tableau<const char *> parse_arguments_depuis_config(Configuration c
     return args;
 }
 
+static std::optional<Configuration> crée_configuration_depuis_arguments(int argc, char **argv)
+{
+    if (argc == 3 && std::string(argv[1]) == "-c") {
+        return crée_config_depuis_json(argc, argv);
+    }
+    return crée_config_pour_metaprogramme(argc, argv);
+}
+
 int main(int argc, char **argv)
 {
-    auto config_optionnelle = crée_config_pour_metaprogramme(argc, argv);
+    auto config_optionnelle = crée_configuration_depuis_arguments(argc, argv);
 
     if (!config_optionnelle.has_value()) {
         return 1;
@@ -2464,6 +2940,7 @@ int main(int argc, char **argv)
     auto convertisseuse = Convertisseuse();
     convertisseuse.fichier_source = fichier_source;
     convertisseuse.fichier_entete = fichier_entete;
+    convertisseuse.dossier_source = config.dossier_source;
     convertisseuse.pour_bibliothèque = config.nom_bibliothèque;
     convertisseuse.dépendances_biblinternes = config.dépendances_biblinternes;
     convertisseuse.dépendances_qt = config.dépendances_qt;
@@ -2482,6 +2959,14 @@ int main(int argc, char **argv)
      * n'existent en C. */
     convertisseuse.ajoute_typedef("r16", "r16");
     convertisseuse.ajoute_typedef("half", "r16");
+    convertisseuse.ajoute_typedef("ptrdiff_t", "z64");
+
+    if (WCHAR_WIDTH == 16) {
+        convertisseuse.ajoute_typedef("wchar_t", "n16");
+    }
+    else if (WCHAR_WIDTH == 32) {
+        convertisseuse.ajoute_typedef("wchar_t", "n32");
+    }
 
     if (config.fichier_sortie != "") {
         std::ofstream fichier(config.fichier_sortie.c_str());
@@ -2500,8 +2985,21 @@ int main(int argc, char **argv)
         });
     }
 
+#if 0
+    if (convertisseuse.fichiers_ignorés.taille() != 0) {
+        std::cerr << "Les fichers suivants furent ignorés :\n";
+
+        convertisseuse.fichiers_ignorés.pour_chaque_element(
+            [&](auto fichier) { std::cerr << '\t' << fichier << '\n'; });
+    }
+#endif
+
     clang_disposeTranslationUnit(unit);
     clang_disposeIndex(index);
+
+    if (config.fichier_est_composite && config.fichier_tmp.taille() != 0) {
+        remove(config.fichier_tmp.c_str());
+    }
 
     return 0;
 }

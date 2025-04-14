@@ -2,8 +2,7 @@
 
 importe Chaine
 importe Fondation
-importe GlibC // pour fork et al.
-importe POSIX // pour system
+importe POSIX // pour fork, system, etc.
 importe SysFichier
 
 charge "test_de_programme"

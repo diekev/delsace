@@ -13,6 +13,7 @@ importe Typographie
 TypeCommandeDeRendu :: énum {
     REMPLIS_RECTANGLE
     REMPLIS_RECTANGLE_ARRONDI
+    DESSINE_BORDURE
     DESSINE_TEXTE
     DESSINE_IMAGE
     DÉBUTE_CISELAGE
@@ -90,6 +91,24 @@ remplis_rectangle_arrondi :: fonc (commandes: *CommandesDeRendu, rect: Rectangle
     résultat := crée_commande(commandes, CommandeRemplisRectangleArrondi)
     résultat.rect = rect
     résultat.couleur = depuis_couleur_rvba(couleur)
+    résultat.rayon = rayon
+}
+
+CommandeDessineBordure :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.DESSINE_BORDURE
+
+    couleur: CouleurRVBAN8
+    largeur: r32
+    rayon: r32
+}
+
+dessine_bordure :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), couleur: CouleurRVBA, largeur: r32, rayon: r32)
+{
+    résultat := crée_commande(commandes, CommandeDessineBordure)
+    résultat.rect = rect
+    résultat.couleur = depuis_couleur_rvba(couleur)
+    résultat.largeur = largeur
     résultat.rayon = rayon
 }
 
@@ -234,12 +253,26 @@ ConfigurationRectangle :: struct {
     rayon_coin: r32
 }
 
+IndexConfigBordure :: #opaque n16
+
+CONFIG_BORDURE_INVALIDE :: IndexConfigBordure(-1 comme n16)
+
+est_valide :: fonc (index: IndexConfigBordure) -> bool #enligne
+{
+    retourne index comme n16 != CONFIG_BORDURE_INVALIDE comme n16
+}
+
+ConfigurationBordure :: struct {
+    largeur: r32
+    couleur: CouleurRVBA
+}
+
 dispose_rectangle :: fonc (id := "", arrière_plan := CouleurRVBA(), disposition := ConfigurationDiposition(), défilage := ConfigurationDéfilage(), config := ConfigurationRectangle())
 {
     assert(__boite_courante != nul)
 
     boite := __boite_courante.ajoute_enfant()
-    boite.id = id
+    boite.id = calcule_empreinte_djb2(id)
     boite.arrière_plan = arrière_plan
     boite.disposition = disposition
     boite.défilage = défilage
@@ -248,17 +281,42 @@ dispose_rectangle :: fonc (id := "", arrière_plan := CouleurRVBA(), disposition
     __boite_courante = boite
 }
 
+ajoute_bordure :: fonc (largeur: r32, couleur: CouleurRVBA)
+{
+    assert(__boite_courante != nul)
+    emboiteuse := __boite_courante.emboiteuse
+
+    si __boite_courante.index_bordure.est_valide() {
+        config := *emboiteuse.bordures[__boite_courante.index_bordure]
+        config.largeur = largeur
+        config.couleur = couleur
+    }
+    sinon {
+        __boite_courante.index_bordure = emboiteuse.ajoute_configuration_bordure(ConfigurationBordure(largeur, couleur))
+    }
+}
+
+définis_arrière_plan :: fonc (couleur := CouleurRVBA())
+{
+    assert(__boite_courante != nul)
+    __boite_courante.arrière_plan = couleur
+}
+
 termine_rectangle :: fonc ()
 {
     assert(__boite_courante != nul)
     __boite_courante = __boite_courante.parent
 }
 
-dispose_séparateur_horizontal :: fonc ()
+dispose_séparateur_horizontal :: fonc (hauteur := 0)
 {
     assert(__boite_courante != nul)
     séparateur := __boite_courante.ajoute_enfant()
     séparateur.disposition.cotation.largeur = CROISSANTE()
+
+    si hauteur != 0 {
+        séparateur.disposition.cotation.hauteur = FIXE(hauteur)
+    }
 }
 
 ConfigurationTexte :: struct {
@@ -292,7 +350,7 @@ dispose_procédure :: fonc (procédure: fonc(*rien, RectanglePosDim(r32))(rien),
     assert(__boite_courante != nul)
     boite := __boite_courante.ajoute_procédure(procédure, données_procédure)
     boite.disposition.cotation = cotation
-    boite.id = id
+    boite.id = calcule_empreinte_djb2(id)
     __boite_courante = boite
 }
 
@@ -313,13 +371,14 @@ BoiteFlexible :: struct {
     parent: *BoiteFlexible
     enfants: [..]*BoiteFlexible
 
-    id: chaine
+    id: n64
     type: Type
 
     disposition: ConfigurationDiposition
     rectangle: ConfigurationRectangle
     défilage: ConfigurationDéfilage
     config_texte: ConfigurationTexte
+    index_bordure := CONFIG_BORDURE_INVALIDE
 
     /* Valeurs pour les différents types. */
     arrière_plan: CouleurRVBA
@@ -468,25 +527,25 @@ ajoute_texte :: fonc (boite: *BoiteFlexible, fonte: *Fonte, texte: chaine) -> *B
     retourne enfant
 }
 
-sur_pression_souris :: fonc (rappel: fonc(*rien, chaine, z32)(rien), données: *rien, index: z32)
+sur_pression_souris :: fonc (rappel: fonc(*rien, n64, z32)(rien), données: *rien, index: z32)
 {
     assert(__boite_courante != nul)
     définis_rappel(__boite_courante, TypeRappelUtilisateur.SurPressionSouris, rappel, données, index)
 }
 
-sur_relâchement_souris :: fonc (rappel: fonc(*rien, chaine, z32)(rien), données: *rien, index: z32)
+sur_relâchement_souris :: fonc (rappel: fonc(*rien, n64, z32)(rien), données: *rien, index: z32)
 {
     assert(__boite_courante != nul)
     définis_rappel(__boite_courante, TypeRappelUtilisateur.SurRelâchementSouris, rappel, données, index)
 }
 
-sur_clic_souris :: fonc (rappel: fonc(*rien, chaine, z32)(rien), données: *rien, index: z32)
+sur_clic_souris :: fonc (rappel: fonc(*rien, n64, z32)(rien), données: *rien, index: z32)
 {
     assert(__boite_courante != nul)
     définis_rappel(__boite_courante, TypeRappelUtilisateur.SurClicSouris, rappel, données, index)
 }
 
-définis_rappel :: fonc (boite: *BoiteFlexible, type: TypeRappelUtilisateur, rappel: fonc(*rien, chaine, z32)(rien), données: *rien, index: z32)
+définis_rappel :: fonc (boite: *BoiteFlexible, type: TypeRappelUtilisateur, rappel: fonc(*rien, n64, z32)(rien), données: *rien, index: z32)
 {
     boite.rappels[type].rappel = rappel
     boite.rappels[type].données_utilisateur = données
@@ -528,7 +587,7 @@ TypeRappelUtilisateur :: énum {
 }
 
 RappelUtilisateur :: struct {
-    rappel: fonc(*rien, chaine, z32)(rien)
+    rappel: fonc(*rien, n64, z32)(rien)
     données_utilisateur: *rien
     index_utilisateur: z32
 }
@@ -538,7 +597,7 @@ BoiteDisposée :: struct {
     premier_enfant: z32 = -1
     puiné : z32 = -1
 
-    id: chaine
+    id: n64
     rect: RectanglePosDim(r32)
     barre_de_défilement_verticale := INDEX_BARRE_DÉFILEMENT_INVALIDE
     barre_de_défilement_horizontale := INDEX_BARRE_DÉFILEMENT_INVALIDE
@@ -555,7 +614,7 @@ appel_rappel :: fonc (boite: *BoiteDisposée, type: TypeRappelUtilisateur)
 }
 
 ÉditriceTextePourId :: struct {
-    id: chaine
+    id: n64
     éditrice_texte: *ÉditriceTexte
 }
 
@@ -572,12 +631,14 @@ Emboiteuse :: struct {
     barres_de_défilement: [..]BarreDeDéfilement
     éditrices_textes: [..]ÉditriceTextePourId
 
+    bordures: [..]ConfigurationBordure
+
     souris_x: r32
     souris_y: r32
 
     commandes: CommandesDeRendu
 
-    id_pressé: chaine
+    id_pressé: n64
 }
 
 commence_disposition :: fonc (emboiteuse: *Emboiteuse, largeur: z32, hauteur: z32)
@@ -608,6 +669,14 @@ réinitialise :: fonc (emboiteuse: *Emboiteuse)
 
     emboiteuse.toutes_les_boites.taille = 0
     emboiteuse.fragments.taille = 0
+    emboiteuse.bordures.taille = 0
+}
+
+ajoute_configuration_bordure :: fonc (emboiteuse: *Emboiteuse, config: ConfigurationBordure) -> IndexConfigBordure
+{
+    résultat := IndexConfigBordure(emboiteuse.bordures.taille comme n16)
+    tableau_ajoute(*emboiteuse.bordures, config)
+    retourne résultat
 }
 
 donne_barre_de_défilement :: fonc (boite: *BoiteFlexible, direction: Direction) -> (*BarreDeDéfilement, IndexBarreDeDéfilement)
@@ -727,7 +796,7 @@ enregistre_disposition :: fonc (emboiteuse: *Emboiteuse, boite: *BoiteFlexible, 
     }
 }
 
-donne_rect :: fonc (emboiteuse: *Emboiteuse, id: chaine) -> RectanglePosDim(r32)
+donne_rect :: fonc (emboiteuse: *Emboiteuse, id: n64) -> RectanglePosDim(r32)
 {
     pour * emboiteuse.boites_disposées {
         si it.id == id {
@@ -738,7 +807,7 @@ donne_rect :: fonc (emboiteuse: *Emboiteuse, id: chaine) -> RectanglePosDim(r32)
     retourne RectanglePosDim(r32)()
 }
 
-définis_éditrice_texte :: fonc (emboiteuse: *Emboiteuse, id: chaine, éditrice_texte: *ÉditriceTexte)
+définis_éditrice_texte :: fonc (emboiteuse: *Emboiteuse, id: n64, éditrice_texte: *ÉditriceTexte)
 {
     pour * emboiteuse.éditrices_textes {
         si it.id != id {
@@ -758,7 +827,7 @@ définis_éditrice_texte :: fonc (emboiteuse: *Emboiteuse, id: chaine, éditrice
     tableau_ajoute(*emboiteuse.éditrices_textes, ÉditriceTextePourId(id, éditrice_texte))
 }
 
-donne_éditrice_texte :: fonc (emboiteuse: *Emboiteuse, id: chaine) -> *ÉditriceTexte
+donne_éditrice_texte :: fonc (emboiteuse: *Emboiteuse, id: n64) -> *ÉditriceTexte
 {
     pour * emboiteuse.éditrices_textes {
         si it.id == id {
@@ -825,7 +894,7 @@ sur_relâchement_souris :: fonc (emboiteuse: *Emboiteuse, x: r32, y: r32)
         appel_rappel(boite, TypeRappelUtilisateur.SurClicSouris)
     }
 
-    emboiteuse.id_pressé = ""
+    emboiteuse.id_pressé = 0
 }
 
 applique_défilage_vertical :: fonc (emboiteuse: *Emboiteuse, x: r32, y: r32, delta: z32)
@@ -866,7 +935,7 @@ applique_défilage_vertical :: fonc (emboiteuse: *Emboiteuse, x: r32, y: r32, de
     }
 }
 
-donne_boite_disposée_pour_id :: fonc (emboiteuse: *Emboiteuse, id: chaine) -> *BoiteDisposée
+donne_boite_disposée_pour_id :: fonc (emboiteuse: *Emboiteuse, id: n64) -> *BoiteDisposée
 {
     si emboiteuse.boites_disposées.taille == 0 {
         retourne nul
@@ -920,14 +989,14 @@ donne_boite_sous_souris :: fonc (emboiteuse: *Emboiteuse) -> *BoiteDisposée
     retourne boite_courante
 }
 
-est_survolée :: fonc (id: chaine) -> bool
+est_survolée :: fonc () -> bool
 {
     assert(__boite_courante != nul)
     boite_disposée := donne_boite_sous_souris(__boite_courante.emboiteuse)
     saufsi boite_disposée {
         retourne faux
     }
-    retourne boite_disposée.id == id
+    retourne boite_disposée.id == __boite_courante.id
 }
 
 fragmente_texte :: fonc (emboiteuse: *Emboiteuse, boite: *BoiteFlexible)
@@ -1342,6 +1411,11 @@ génère_commandes :: fonc (boite: *BoiteFlexible, commandes: *CommandesDeRendu)
             sinon {
                 commandes.remplis_rectangle(rect, boite.arrière_plan)
             }
+
+            si boite.index_bordure.est_valide() {
+                config := boite.emboiteuse.bordures[boite.index_bordure]
+                commandes.dessine_bordure(rect, config.couleur, config.largeur, boite.rectangle.rayon_coin)
+            }
         }
         Texte {
             /* À FAIRE : décalage de 1 dans le calcul des index des fragments. */
@@ -1447,6 +1521,17 @@ dessine_commandes :: fonc (peintre: *Peintre, commandes: *CommandesDeRendu)
                 rect := commande.rect
                 rect.y = hauteur_vue - rect.y - rect.hauteur
                 peintre.remplis_rectangle_arrondi(rect, [commande.rayon, commande.rayon, commande.rayon, commande.rayon], commande.couleur)
+            }
+            DESSINE_BORDURE {
+                commande := base comme *CommandeDessineBordure
+                rect := commande.rect
+                rect.y = hauteur_vue - rect.y - rect.hauteur
+                // À FAIRE : largeur
+
+                largeurs := [commande.largeur, commande.largeur, commande.largeur, commande.largeur]
+                couleurs := CouleurPeintre.[commande.couleur, commande.couleur, commande.couleur, commande.couleur]
+
+                peintre.dessine_bordure(rect, largeurs, couleurs)
             }
             DESSINE_TEXTE {
                 commande := base comme *CommandeDessineTexte

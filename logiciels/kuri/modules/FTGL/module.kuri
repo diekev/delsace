@@ -1,5 +1,5 @@
 importe Fondation
-importe GlibC
+importe POSIX
 
 charge "interface_ftgl"
 

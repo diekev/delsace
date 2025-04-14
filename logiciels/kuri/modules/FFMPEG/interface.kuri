@@ -1,7 +1,6 @@
 /* stats-code ignore fichier */
 
 importe Chaine
-importe GlibC
 
 libavformat :: #bibliothèque "avformat"
 libavcodec :: #bibliothèque "avcodec"

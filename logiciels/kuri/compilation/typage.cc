@@ -1834,6 +1834,7 @@ bool est_type_booléen_implicite(Type *type)
                                     GenreNoeud::ENTIER_NATUREL,
                                     GenreNoeud::ENTIER_RELATIF,
                                     GenreNoeud::FONCTION,
+                                    GenreNoeud::TYPE_ADRESSE_FONCTION,
                                     GenreNoeud::POINTEUR,
                                     GenreNoeud::TABLEAU_DYNAMIQUE,
                                     GenreNoeud::TYPE_TRANCHE);
@@ -2249,7 +2250,6 @@ bool peut_etre_type_constante(Type const *type)
         /* Les tuples ne sont que pour les retours de fonctions. */
         case GenreNoeud::TUPLE:
         case GenreNoeud::RÉFÉRENCE:
-        case GenreNoeud::POINTEUR:
         case GenreNoeud::POLYMORPHIQUE:
         case GenreNoeud::RIEN:
         {

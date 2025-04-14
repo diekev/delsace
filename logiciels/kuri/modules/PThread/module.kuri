@@ -1,4 +1,4 @@
-importe GlibC
+importe POSIX
 
 // À FAIRE
 sched_param :: struct #externe { sched_priority: z32 }

@@ -14,6 +14,11 @@ Fonte :: struct {
     font: *texture_font_t
 }
 
+crée_fonte :: fonc (chemin: chaine, taille_police: r32) -> *Fonte
+{
+    retourne crée_fonte(CheminFichier(chemin), taille_police)
+}
+
 crée_fonte :: fonc (chemin: CheminFichier, taille_police: r32) -> *Fonte
 {
     chemin_c := crée_chaine_c(chemin.chn)

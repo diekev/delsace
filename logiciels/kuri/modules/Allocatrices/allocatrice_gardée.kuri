@@ -1,5 +1,5 @@
 importe Fondation
-importe GlibC
+importe POSIX
 
 LienLocal :: struct {
     suivant: *LienLocal
