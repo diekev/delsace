@@ -1832,6 +1832,7 @@ bool est_type_booléen_implicite(Type *type)
                                     GenreNoeud::ENTIER_NATUREL,
                                     GenreNoeud::ENTIER_RELATIF,
                                     GenreNoeud::FONCTION,
+                                    GenreNoeud::TYPE_ADRESSE_FONCTION,
                                     GenreNoeud::POINTEUR,
                                     GenreNoeud::TABLEAU_DYNAMIQUE,
                                     GenreNoeud::TYPE_TRANCHE);

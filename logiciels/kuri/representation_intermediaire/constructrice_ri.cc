@@ -3955,6 +3955,7 @@ void CompilatriceRI::génère_ri_pour_condition_implicite(NoeudExpression const 
         }
         case GenreNoeud::FONCTION:
         case GenreNoeud::POINTEUR:
+        case GenreNoeud::TYPE_ADRESSE_FONCTION:
         {
             génère_ri_pour_expression_droite(condition, nullptr);
             auto valeur1 = depile_valeur();
