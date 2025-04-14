@@ -183,7 +183,7 @@ ferme_base_de_données :: fonc (table: *Table) -> rien
     }
 
     si paginatrice.utilise_stockage_disque {
-        tente ferme(*paginatrice.fichier) piège err {
+        tente ferme(*paginatrice.fichier) piège _ {
             panique("Échec lors de la fermeture du fichier")
             retourne
         }
