@@ -512,10 +512,13 @@ imprime_nombre_réel :: fonc (enchaineuse: *Enchaineuse, format: FormatRéel) ->
 
     frac := x - part_entière comme r32
 
-    p := format.précision
+    p := min(format.précision, 64)
 
     fraction_entière: n64
     mutliplicateur_fraction : n64 = 1
+
+    tampon: [64]z8
+    index_tampon: z64
 
     répète {
         frac *= 10.0
@@ -524,6 +527,9 @@ imprime_nombre_réel :: fonc (enchaineuse: *Enchaineuse, format: FormatRéel) ->
         si p == 0 {
             si chiffre >= 5 {
                 fraction_entière += 1
+                si index_tampon != 0 {
+                    tampon[index_tampon - 1] += 1
+                }
             }
 
             arrête
@@ -531,6 +537,9 @@ imprime_nombre_réel :: fonc (enchaineuse: *Enchaineuse, format: FormatRéel) ->
 
         fraction_entière *= 10
         fraction_entière += (frac comme n64)
+
+        tampon[index_tampon] = (frac comme n32 comme z8) + '0'
+        index_tampon += 1
 
         mutliplicateur_fraction *= 10
 
@@ -548,8 +557,8 @@ imprime_nombre_réel :: fonc (enchaineuse: *Enchaineuse, format: FormatRéel) ->
     imprime_nombre_entier(enchaineuse, FormatEntier(valeur = part_entière))
 
     si fraction_entière != 0 {
-        ajoute_au_tampon(enchaineuse, ".")
-        imprime_nombre_entier(enchaineuse, FormatEntier(valeur = fraction_entière))
+        mot := chaine(*tampon[0], index_tampon)
+        ajoute_au_tampon(enchaineuse, ".", mot)
     }
 }
 

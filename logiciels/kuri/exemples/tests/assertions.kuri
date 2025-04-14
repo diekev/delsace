@@ -1,6 +1,6 @@
 importe Compilatrice
 importe Fondation
-importe GlibC // pour write
+importe POSIX // pour write
 
 // ----------------------------------------------------------------------------
 
