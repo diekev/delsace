@@ -1061,11 +1061,6 @@ struct Convertisseuse {
                     }
 
                     convertis(enfant, trans_unit, flux_sortie);
-
-                    /* variable globale */
-                    if (enfant.kind == CXCursorKind::CXCursor_VarDecl) {
-                        flux_sortie << "\n";
-                    }
                 }
 
                 break;
