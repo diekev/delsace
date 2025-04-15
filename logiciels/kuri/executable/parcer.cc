@@ -75,6 +75,14 @@ static dls::chaine converti_chaine(CXString string)
     return résultat;
 }
 
+static dls::chaine donne_nom_fichier(CXFile file)
+{
+    auto comment = clang_getFileName(file);
+    auto résultat = converti_chaine(comment);
+    clang_disposeString(comment);
+    return résultat;
+}
+
 static dls::chaine donne_commentaire(CXCursor cursor)
 {
     auto comment = clang_Cursor_getRawCommentText(cursor);
@@ -951,7 +959,14 @@ struct Convertisseuse {
     void rapporte_cursor_non_pris_en_charge(CXCursor cursor, std::ostream &flux_sortie)
     {
         cursors_non_pris_en_charges.insère(clang_getCursorKind(cursor));
+        auto loc = clang_getCursorLocation(cursor);
+        CXFile file;
+        unsigned line;
+        unsigned column;
+        unsigned offset;
+        clang_getExpansionLocation(loc, &file, &line, &column, &offset);
 
+        flux_sortie << donne_nom_fichier(file) << ":" << line << ":" << column << ":\n";
         flux_sortie << "Cursor '" << clang_getCursorSpelling(cursor) << "' of kind '"
                     << clang_getCursorKindSpelling(clang_getCursorKind(cursor)) << "' of type '"
                     << clang_getTypeSpelling(clang_getCursorType(cursor)) << "'\n";
