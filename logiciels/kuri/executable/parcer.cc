@@ -1051,6 +1051,18 @@ struct Convertisseuse {
                 rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
                 break;
             }
+            case CXCursorKind::CXCursor_InclusionDirective:
+            case CXCursorKind::CXCursor_MacroExpansion:
+            {
+                break;
+            }
+            case CXCursorKind::CXCursor_MacroDefinition:
+            {
+                // if (!clang_Cursor_isMacroFunctionLike(cursor)) {
+                //     imprime_asa(cursor, 0, std::cerr);
+                // }
+                break;
+            }
             case CXCursorKind::CXCursor_Namespace:
             case CXCursorKind::CXCursor_TranslationUnit:
             {
@@ -2727,7 +2739,8 @@ int main(int argc, char **argv)
         static_cast<int>(args.taille()),
         nullptr,
         0,
-        CXTranslationUnit_None | CXTranslationUnit_IncludeBriefCommentsInCodeCompletion);
+        CXTranslationUnit_None | CXTranslationUnit_DetailedPreprocessingRecord |
+            CXTranslationUnit_IncludeBriefCommentsInCodeCompletion);
 
     if (unit == nullptr) {
         std::cerr << "Unable to parse translation unit. Quitting.\n";
