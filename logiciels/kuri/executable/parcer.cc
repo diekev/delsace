@@ -283,6 +283,7 @@ struct Transtypage : public Expression {
 
 struct Syntaxeuse {
     kuri::tableau<Syntaxème *> syntaxèmes{};
+    kuri::tableau<DéclarationStruct *> toutes_les_structures{};
 
     Module *module = nullptr;
 
@@ -984,7 +985,7 @@ struct Convertisseuse {
         convertis(cursor, trans_unit, flux_sortie);
         assert(syntaxeuse.noeud_courant.haut() == syntaxeuse.module);
 
-        marque_prodéclarations_inutiles(module);
+        marque_prodéclarations_inutiles();
 
         if (nom_bibliothèque != "") {
             flux_sortie << "lib" << nom_bibliothèque_sûr << " :: #bibliothèque \""
@@ -1106,6 +1107,7 @@ struct Convertisseuse {
                 }
 
                 syntaxeuse.ajoute_au_noeud_courant(structure);
+                syntaxeuse.toutes_les_structures.ajoute(structure);
                 break;
             }
             case CXCursorKind::CXCursor_UnionDecl:
@@ -2154,6 +2156,9 @@ struct Convertisseuse {
                 os << " {\n";
 
                 POUR (structure->rubriques) {
+                    if (it->est_prodéclaration_inutile) {
+                        continue;
+                    }
                     imprime_arbre(it, os);
                 }
 
@@ -2365,26 +2370,16 @@ struct Convertisseuse {
         }
     }
 
-    void marque_prodéclarations_inutiles(Module *module)
+    void marque_prodéclarations_inutiles()
     {
-        for (int64_t i = 0; i < module->déclarations.taille(); i++) {
-            auto syntaxème1 = module->déclarations[i];
-            if (syntaxème1->type_syntaxème != TypeSyntaxème::DÉCLARATION_STRUCT) {
-                continue;
-            }
-
-            auto structure1 = static_cast<DéclarationStruct *>(syntaxème1);
+        for (int64_t i = 0; i < syntaxeuse.toutes_les_structures.taille(); i++) {
+            auto structure1 = syntaxeuse.toutes_les_structures[i];
             if (structure1->rubriques.taille() != 0) {
                 continue;
             }
 
-            for (int64_t j = i + 1; j < module->déclarations.taille(); j++) {
-                auto syntaxème2 = module->déclarations[j];
-                if (syntaxème2->type_syntaxème != TypeSyntaxème::DÉCLARATION_STRUCT) {
-                    continue;
-                }
-
-                auto structure2 = static_cast<DéclarationStruct *>(syntaxème2);
+            for (int64_t j = i + 1; j < syntaxeuse.toutes_les_structures.taille(); j++) {
+                auto structure2 = syntaxeuse.toutes_les_structures[j];
                 if (structure2->rubriques.taille() != 0) {
                     if (structure2->nom == structure1->nom) {
                         structure1->est_prodéclaration_inutile = true;
