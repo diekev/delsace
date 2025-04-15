@@ -2717,6 +2717,8 @@ int main(int argc, char **argv)
     auto config = config_optionnelle.value();
     auto args = parse_arguments_depuis_config(config);
 
+    args.ajoute("-fparse-all-comments");
+
     CXIndex index = clang_createIndex(0, 0);
     CXTranslationUnit unit = clang_parseTranslationUnit(
         index,
