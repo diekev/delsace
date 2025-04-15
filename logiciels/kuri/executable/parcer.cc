@@ -109,6 +109,19 @@ static std::optional<CXType> est_type_fonction(CXType type)
     if (type_résultat.kind == CXTypeKind::CXType_Invalid) {
         return {};
     }
+    return type;
+}
+
+static std::optional<CXType> donne_type_retour_si_fonction(CXType type)
+{
+    if (type.kind == CXTypeKind::CXType_Pointer) {
+        type = clang_getPointeeType(type);
+    }
+
+    auto type_résultat = clang_getResultType(type);
+    if (type_résultat.kind == CXTypeKind::CXType_Invalid) {
+        return {};
+    }
     return type_résultat;
 }
 
@@ -118,11 +131,6 @@ static std::optional<CXType> est_type_fonction(CXType type)
 /** \nom Arbre Syntaxique
  *  À FAIRE : utilise celui de kuri ?
  * \{ */
-
-struct TypeC {
-    enum CXTypeKind kind {};
-    dls::chaine type_spelling{};
-};
 
 enum class TypeSyntaxème {
     DÉFAUT,
@@ -154,7 +162,7 @@ struct Syntaxème {
     TypeSyntaxème type_syntaxème = TypeSyntaxème::DÉFAUT;
     dls::chaine commentaire = "";
 
-    std::optional<TypeC> type_c{};
+    std::optional<CXType> type_c{};
 
     bool est_prodéclaration_inutile = false;
 
@@ -175,7 +183,7 @@ struct DéclarationÉnum : public Syntaxème {
     DECLARE_CONTRUCTEUR_DÉFAUT(DéclarationÉnum, DÉCLARATION_ÉNUM)
 
     dls::chaine nom = "";
-    TypeC type_sous_jacent{};
+    CXType type_sous_jacent{};
     kuri::tableau<Syntaxème *> rubriques{};
 };
 
@@ -218,7 +226,7 @@ struct DéclarationFonction : public Syntaxème {
     DECLARE_CONTRUCTEUR_DÉFAUT(DéclarationFonction, DÉCLARATION_FONCTION)
 
     dls::chaine nom = "";
-    TypeC type_sortie = {};
+    CXType type_sortie = {};
     bool est_inline = false;
     kuri::tableau<DéclarationVariable *> paramètres{};
 };
@@ -227,8 +235,8 @@ struct Typedef : public Syntaxème {
     EMPECHE_COPIE(Typedef);
     DECLARE_CONTRUCTEUR_DÉFAUT(Typedef, TYPEDEF)
 
-    TypeC type_défini{};
-    TypeC type_source{};
+    CXType type_défini{};
+    CXType type_source{};
     DéclarationFonction *type_fonction = nullptr;
 };
 
@@ -262,7 +270,7 @@ struct Transtypage : public Expression {
     DECLARE_CONTRUCTEUR_DÉFAUT_EXPRESSION(Transtypage, TRANSTYPAGE)
 
     Expression *expression = nullptr;
-    TypeC type_vers{};
+    CXType type_vers{};
 };
 
 struct Syntaxeuse {
@@ -333,70 +341,6 @@ std::ostream &operator<<(std::ostream &stream, const CXString &str)
     return stream;
 }
 
-static auto morcelle_type(dls::chaine const &str)
-{
-    auto ret = kuri::tableau<dls::chaine>();
-    auto taille_mot = 0;
-    auto ptr = &str[0];
-
-    for (auto i = 0; i < str.taille(); ++i) {
-        if (str[i] == ' ') {
-            if (taille_mot != 0) {
-                ret.ajoute({ptr, taille_mot});
-                taille_mot = 0;
-            }
-        }
-        else if (dls::outils::est_element(str[i], '*', '&', '(', ')', ',')) {
-            if (taille_mot != 0) {
-                ret.ajoute({ptr, taille_mot});
-                taille_mot = 0;
-            }
-
-            ptr = &str[i];
-            ret.ajoute({ptr, 1});
-
-            taille_mot = 0;
-        }
-        else if (str[i] == '[') {
-            if (taille_mot != 0) {
-                ret.ajoute({ptr, taille_mot});
-                taille_mot = 0;
-            }
-
-            ptr = &str[i];
-            taille_mot = 1;
-            i++;
-
-            while (i < str.taille()) {
-                if (str[i] == ']') {
-                    taille_mot += 1;
-                    i++;
-                    break;
-                }
-                taille_mot += 1;
-                i++;
-            }
-
-            ret.ajoute({ptr, taille_mot});
-
-            taille_mot = 0;
-        }
-        else {
-            if (taille_mot == 0) {
-                ptr = &str[i];
-            }
-
-            ++taille_mot;
-        }
-    }
-
-    if (taille_mot != 0) {
-        ret.ajoute({ptr, taille_mot});
-    }
-
-    return ret;
-}
-
 /* En fonction de là où ils apparaissent, les types anonymes sont de la forme :
  * ({anonymous|unnamed} at FILE:POS)
  * ou
@@ -423,104 +367,28 @@ static dls::chaine trouve_nom_anonyme(dls::chaine chn)
 
 using dico_typedefs = dls::dico_desordonne<dls::chaine, kuri::tableau<dls::chaine>>;
 
-static dls::chaine converti_type(kuri::tableau<dls::chaine> const &morceaux,
-                                 dico_typedefs const &typedefs,
-                                 bool dereference = false)
+static dls::chaine converti_type(CXType const &type, dico_typedefs const &typedefs);
+
+static dls::chaine convertis_type_fonction(CXType const &type, dico_typedefs const &typedefs)
 {
-    static auto dico_type_chn = dls::cree_dico(
-        dls::paire{dls::vue_chaine("void"), dls::vue_chaine("rien")},
-        dls::paire{dls::vue_chaine("bool"), dls::vue_chaine("bool")},
-        dls::paire{dls::vue_chaine("uchar"), dls::vue_chaine("n8")},
-        dls::paire{dls::vue_chaine("ushort"), dls::vue_chaine("n16")},
-        dls::paire{dls::vue_chaine("uint"), dls::vue_chaine("n32")},
-        dls::paire{dls::vue_chaine("ulong"), dls::vue_chaine("n64")},
-        dls::paire{dls::vue_chaine("char"), dls::vue_chaine("z8")},
-        dls::paire{dls::vue_chaine("short"), dls::vue_chaine("z16")},
-        dls::paire{dls::vue_chaine("int"), dls::vue_chaine("z32")},
-        dls::paire{dls::vue_chaine("long"), dls::vue_chaine("z64")},
-        // voir autre commentaire dans le fichier, hack pour traduire vers r16
-        dls::paire{dls::vue_chaine("r16"), dls::vue_chaine("r16")},
-        dls::paire{dls::vue_chaine("float"), dls::vue_chaine("r32")},
-        dls::paire{dls::vue_chaine("double"), dls::vue_chaine("r64")});
-
-    auto pile_morceaux = kuri::pile<dls::chaine>();
-
-    for (auto i = 0; i < morceaux.taille(); ++i) {
-        auto &morceau = morceaux[i];
-
-        if (morceau == "struct") {
-            continue;
-        }
-
-        if (morceau == "union") {
-            continue;
-        }
-
-        if (morceau == "enum") {
-            continue;
-        }
-
-        if (morceau == "const") {
-            continue;
-        }
-
-        if (morceau == "signed") {
-            continue;
-        }
-
-        if (morceau == "unsigned") {
-            if (pile_morceaux.est_vide()) {
-                if (i >= morceaux.taille() - 1) {
-                    pile_morceaux.empile("uint32_t");
-                }
-                else {
-                    auto morceau_suiv = morceaux[i + 1];
-                    pile_morceaux.empile("u" + morceau_suiv);
-
-                    i += 1;
-                }
-            }
-            else {
-                auto morceau_prev = pile_morceaux.depile();
-                pile_morceaux.empile("u" + morceau_prev);
-            }
-
-            continue;
-        }
-
-        pile_morceaux.empile(morceau);
-    }
-
-    if (dereference) {
-        pile_morceaux.depile();
-    }
+    auto nombre_args = clang_getNumArgTypes(type);
 
     auto flux = std::stringstream();
+    flux << "fonc(";
 
-    while (!pile_morceaux.est_vide()) {
-        auto morceau = pile_morceaux.depile();
-
-        auto plg_type_chn = dico_type_chn.trouve(morceau);
-
-        if (!plg_type_chn.est_finie()) {
-            flux << plg_type_chn.front().second;
+    for (int i = 0; i < nombre_args; i++) {
+        if (i > 0) {
+            flux << ", ";
         }
-        else {
-            auto iter_typedef = typedefs.trouve(morceau);
-
-            if (iter_typedef != typedefs.fin()) {
-                flux << converti_type(iter_typedef->second, typedefs, dereference);
-            }
-            else {
-                flux << morceau;
-            }
-        }
+        flux << converti_type(clang_getArgType(type, uint32_t(i)), typedefs);
     }
+
+    flux << ")(" << converti_type(clang_getResultType(type), typedefs) << ")";
 
     return flux.str();
 }
 
-static dls::chaine converti_type(TypeC const &type, dico_typedefs const &typedefs)
+static dls::chaine converti_type(CXType const &type, dico_typedefs const &typedefs)
 {
     static auto dico_type = dls::cree_dico(dls::paire{CXType_Void, dls::vue_chaine("rien")},
                                            dls::paire{CXType_Bool, dls::vue_chaine("bool")},
@@ -548,12 +416,17 @@ static dls::chaine converti_type(TypeC const &type, dico_typedefs const &typedef
         return plg_type.front().second;
     }
 
+    auto type_fonction_opt = est_type_fonction(type);
+    if (type_fonction_opt.has_value()) {
+        return convertis_type_fonction(type_fonction_opt.value(), typedefs);
+    }
+
     auto flux = std::stringstream();
 
     switch (kind) {
         default:
         {
-            flux << "(cas défaut) " << kind << " : " << type.type_spelling;
+            flux << "(cas défaut) " << kind << " : " << donne_type_spelling(type);
             break;
         }
         case CXType_Invalid:
@@ -561,18 +434,53 @@ static dls::chaine converti_type(TypeC const &type, dico_typedefs const &typedef
             flux << "invalide";
             break;
         }
+        case CXType_Pointer: /* p.e. float * */
+        {
+            flux << "*" << converti_type(clang_getPointeeType(type), typedefs);
+            break;
+        }
+        case CXType_ConstantArray: /* p.e. float [4] */
+        {
+            auto taille = clang_getArraySize(type);
+            flux << "[" << taille << "]";
+            flux << converti_type(clang_getArrayElementType(type), typedefs);
+            break;
+        }
+        case CXType_LValueReference: /* p.e. float & */
+        {
+            flux << "&" << converti_type(clang_getPointeeType(type), typedefs);
+            break;
+        }
+        case CXType_Typedef:
+        {
+            auto spelling = donne_type_spelling(type);
+            if (spelling.trouve("const ") == 0) {
+                spelling = spelling.sous_chaine(6);
+            }
+
+            if (spelling == "bool" || spelling == "r16") {
+                return spelling;
+            }
+
+            /* Détecte typedef int32_t int, etc., mais uniquement pour les types primitifs de C. */
+            auto canonique = clang_getCanonicalType(type);
+            auto plg_type = dico_type.trouve(canonique.kind);
+            if (!plg_type.est_finie()) {
+                if (typedefs.trouve(spelling) != typedefs.fin()) {
+                    return plg_type.front().second;
+                }
+            }
+
+            return spelling;
+        }
         case CXType_Auto:
         case CXType_Enum:
-        case CXType_Typedef:
         case CXType_Record:          /* p.e. struct Vecteur */
-        case CXType_ConstantArray:   /* p.e. float [4] */
         case CXType_IncompleteArray: /* p.e. float [] */
-        case CXType_Pointer:         /* p.e. float * */
-        case CXType_LValueReference: /* p.e. float & */
         case CXType_Elaborated:      /* p.e. struct Vecteur */
         {
             /* pour les types anonymes */
-            auto nom_anonymous = trouve_nom_anonyme(type.type_spelling);
+            auto nom_anonymous = trouve_nom_anonyme(donne_type_spelling(type));
 
             if (nom_anonymous != "") {
                 auto iter_typedefs = typedefs.trouve(nom_anonymous);
@@ -584,95 +492,26 @@ static dls::chaine converti_type(TypeC const &type, dico_typedefs const &typedef
                 return nom_anonymous;
             }
 
-            auto morceaux = morcelle_type(type.type_spelling);
-
-            if (type.kind == CXTypeKind::CXType_Pointer) {
-                /* vérifie s'il y a pointeur de fonction */
-
-                auto est_pointeur_fonc = false;
-
-                for (auto const &m : morceaux) {
-                    if (m == "(") {
-                        est_pointeur_fonc = true;
-                        break;
-                    }
-                }
-
-                if (est_pointeur_fonc) {
-                    auto type_retour = kuri::tableau<dls::chaine>();
-                    auto decalage = 0;
-
-                    for (auto i = 0; i < morceaux.taille(); ++i) {
-                        auto const &m = morceaux[i];
-
-                        if (m == "(") {
-                            break;
-                        }
-
-                        type_retour.ajoute(m);
-                        decalage++;
-                    }
-
-                    flux << " fonc (";
-
-                    auto type_param = kuri::tableau<dls::chaine>();
-
-                    for (auto i = decalage + 4; i < morceaux.taille(); ++i) {
-                        auto const &m = morceaux[i];
-
-                        if (m == ")" || m == ",") {
-                            flux << converti_type(type_param, typedefs, false);
-                            flux << m;
-                            type_param.efface();
-                        }
-                        else {
-                            type_param.ajoute(m);
-                        }
-                    }
-
-                    flux << "(";
-                    flux << converti_type(type_retour, typedefs, false);
-                    flux << ")";
-
-                    return flux.str();
-                }
+            auto spelling = donne_type_spelling(type);
+            if (spelling.trouve("const ") == 0) {
+                spelling = spelling.sous_chaine(6);
             }
 
-            return converti_type(morceaux, typedefs, false);
+            if (spelling.trouve("struct ") == 0) {
+                return spelling.sous_chaine(7);
+            }
+            if (spelling.trouve("union ") == 0) {
+                return spelling.sous_chaine(6);
+            }
+            if (spelling.trouve("enum ") == 0) {
+                return spelling.sous_chaine(5);
+            }
+            std::cerr << "Impossible de convertir le type nommé '" << spelling << "'\n";
+            exit(1);
         }
     }
 
     return flux.str();
-}
-
-static dls::chaine converti_type_sizeof(CXCursor cursor,
-                                        CXTranslationUnit trans_unit,
-                                        dico_typedefs const &typedefs)
-{
-    CXSourceRange range = clang_getCursorExtent(cursor);
-    CXToken *tokens = nullptr;
-    unsigned nombre_tokens = 0;
-    clang_tokenize(trans_unit, range, &tokens, &nombre_tokens);
-
-    if (tokens == nullptr) {
-        clang_disposeTokens(trans_unit, tokens, nombre_tokens);
-        return dls::chaine();
-    }
-
-    auto donnees_types = kuri::tableau<dls::chaine>();
-
-    for (auto i = 2u; i < nombre_tokens - 1; ++i) {
-        auto spelling = clang_getTokenSpelling(trans_unit, tokens[i]);
-        auto c_str = clang_getCString(spelling);
-
-        donnees_types.ajoute(c_str);
-
-        clang_disposeString(spelling);
-    }
-
-    clang_disposeTokens(trans_unit, tokens, nombre_tokens);
-
-    return converti_type(donnees_types, typedefs);
 }
 
 static auto rassemble_enfants(CXCursor cursor)
@@ -875,20 +714,6 @@ static dls::chaine donne_chaine_pour_litérale(CXCursor cursor, CXTranslationUni
 
     clang_disposeTokens(trans_unit, tokens, nombre_tokens);
     return résultat;
-}
-
-static TypeC donne_type_c(CXType cxtype)
-{
-    auto résultat = TypeC{};
-    résultat.kind = cxtype.kind;
-    résultat.type_spelling = donne_type_spelling(cxtype);
-    return résultat;
-}
-
-static TypeC donne_type_c(CXCursor cursor, bool est_fonction = false)
-{
-    auto cxtype = est_fonction ? clang_getCursorResultType(cursor) : clang_getCursorType(cursor);
-    return donne_type_c(cxtype);
 }
 
 static auto determine_nom_anomyme(CXCursor cursor, dico_typedefs &typedefs, int &nombre_anonyme)
@@ -1284,7 +1109,7 @@ struct Convertisseuse {
             {
                 auto variable = syntaxeuse.crée<DéclarationVariable>(cursor);
                 variable->nom = donne_cursor_spelling(cursor);
-                variable->type_c = donne_type_c(cursor, false);
+                variable->type_c = clang_getCursorType(cursor);
                 syntaxeuse.ajoute_au_noeud_courant(variable);
                 break;
             }
@@ -1292,7 +1117,7 @@ struct Convertisseuse {
             {
                 auto énum = syntaxeuse.crée<DéclarationÉnum>(cursor);
                 énum->nom = determine_nom_anomyme(cursor, typedefs, nombre_anonymes);
-                énum->type_sous_jacent = donne_type_c(clang_getEnumDeclIntegerType(cursor));
+                énum->type_sous_jacent = clang_getEnumDeclIntegerType(cursor);
 
                 syntaxeuse.noeud_courant.empile(énum);
                 converti_enfants(cursor, trans_unit, flux_sortie);
@@ -1379,12 +1204,12 @@ struct Convertisseuse {
                 auto type_défini = clang_getCursorType(cursor);
 
                 auto typedef_ = syntaxeuse.crée<Typedef>(cursor);
-                typedef_->type_défini = donne_type_c(type_défini);
+                typedef_->type_défini = type_défini;
 
-                auto type_résultat_opt = est_type_fonction(type_source);
+                auto type_résultat_opt = donne_type_retour_si_fonction(type_source);
                 if (type_résultat_opt.has_value()) {
                     auto fonction = syntaxeuse.crée<DéclarationFonction>();
-                    fonction->type_sortie = donne_type_c(type_résultat_opt.value());
+                    fonction->type_sortie = type_résultat_opt.value();
 
                     auto enfants = rassemble_enfants(cursor);
 
@@ -1395,14 +1220,14 @@ struct Convertisseuse {
 
                         auto variable = syntaxeuse.crée<DéclarationVariable>();
                         variable->nom = donne_cursor_spelling(it);
-                        variable->type_c = donne_type_c(it, false);
+                        variable->type_c = clang_getCursorType(it);
                         fonction->paramètres.ajoute(variable);
                     }
 
                     typedef_->type_fonction = fonction;
                 }
                 else {
-                    typedef_->type_source = donne_type_c(type_source);
+                    typedef_->type_source = type_source;
                 }
 
                 syntaxeuse.ajoute_au_noeud_courant(typedef_);
@@ -1487,7 +1312,7 @@ struct Convertisseuse {
 
                 auto variable = syntaxeuse.crée<DéclarationVariable>(cursor);
                 variable->nom = donne_cursor_spelling(cursor);
-                variable->type_c = donne_type_c(cursor);
+                variable->type_c = clang_getCursorType(cursor);
                 variable->storage_class = clang_Cursor_getStorageClass(cursor);
 
                 if (nombre_enfants == 1) {
@@ -2030,7 +1855,7 @@ struct Convertisseuse {
                 if (enfants.taille() == 1) {
                     transtypage->expression = parse_expression(
                         enfants[0], trans_unit, flux_sortie);
-                    transtypage->type_vers = donne_type_c(cursor);
+                    transtypage->type_vers = clang_getCursorType(cursor);
                 }
                 else if (enfants.taille() == 2) {
                     /* par exemple :
@@ -2040,7 +1865,7 @@ struct Convertisseuse {
 
                     transtypage->expression = parse_expression(
                         enfants[1], trans_unit, flux_sortie);
-                    transtypage->type_vers = donne_type_c(enfants[0]);
+                    transtypage->type_vers = clang_getCursorType(enfants[0]);
                 }
 
                 return transtypage;
@@ -2196,7 +2021,7 @@ struct Convertisseuse {
 
         auto fonction = syntaxeuse.crée<DéclarationFonction>(cursor);
         fonction->nom = donne_cursor_spelling(cursor);
-        fonction->type_sortie = donne_type_c(cursor, true);
+        fonction->type_sortie = clang_getCursorResultType(cursor);
         fonction->est_inline = clang_Cursor_isFunctionInlined(cursor);
 
 #if 0
@@ -2228,7 +2053,7 @@ struct Convertisseuse {
             if (variable->nom == "") {
                 variable->nom = "anonyme" + dls::vers_chaine(i);
             }
-            variable->type_c = donne_type_c(param, false);
+            variable->type_c = clang_getCursorType(param);
             fonction->paramètres.ajoute(variable);
         }
 
