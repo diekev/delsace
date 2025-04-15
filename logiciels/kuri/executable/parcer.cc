@@ -926,7 +926,8 @@ struct Convertisseuse {
 
     kuri::ensemble<dls::chaine> commentaires_imprimés{};
 
-    dls::chaine pour_bibliothèque{};
+    dls::chaine nom_bibliothèque{};
+    dls::chaine nom_bibliothèque_sûr{};
     kuri::tableau<kuri::chaine> dépendances_biblinternes{};
     kuri::tableau<kuri::chaine> dépendances_qt{};
 
@@ -985,12 +986,12 @@ struct Convertisseuse {
 
         marque_prodéclarations_inutiles(module);
 
-        if (pour_bibliothèque != "") {
-            flux_sortie << "lib" << pour_bibliothèque << " :: #bibliothèque \""
-                        << pour_bibliothèque << "\"\n\n";
+        if (nom_bibliothèque != "") {
+            flux_sortie << "lib" << nom_bibliothèque_sûr << " :: #bibliothèque \""
+                        << nom_bibliothèque << "\"\n\n";
 
             for (auto &dép : dépendances_biblinternes) {
-                flux_sortie << "#dépendance_bibliothèque lib" << pour_bibliothèque << " " << dép
+                flux_sortie << "#dépendance_bibliothèque lib" << nom_bibliothèque_sûr << " " << dép
                             << "\n";
             }
             if (!dépendances_biblinternes.est_vide()) {
@@ -998,20 +999,20 @@ struct Convertisseuse {
             }
             for (auto &dép : dépendances_qt) {
                 flux_sortie << "libQt5" << dép << " :: #bibliothèque \"Qt5" << dép << "\"\n";
-                flux_sortie << "#dépendance_bibliothèque lib" << pour_bibliothèque << " libQt5"
+                flux_sortie << "#dépendance_bibliothèque lib" << nom_bibliothèque_sûr << " libQt5"
                             << dép << "\n";
             }
             if (!dépendances_qt.est_vide()) {
                 flux_sortie << "libQt5Core :: #bibliothèque \"Qt5Core\"\n";
-                flux_sortie << "#dépendance_bibliothèque lib" << pour_bibliothèque
+                flux_sortie << "#dépendance_bibliothèque lib" << nom_bibliothèque_sûr
                             << " libQt5Core\n";
                 flux_sortie << "\n";
                 flux_sortie << "libQt5Gui :: #bibliothèque \"Qt5Gui\"\n";
-                flux_sortie << "#dépendance_bibliothèque lib" << pour_bibliothèque
+                flux_sortie << "#dépendance_bibliothèque lib" << nom_bibliothèque_sûr
                             << " libQt5Gui\n";
                 flux_sortie << "\n";
                 flux_sortie << "libqt_entetes :: #bibliothèque \"qt_entetes\"\n";
-                flux_sortie << "#dépendance_bibliothèque lib" << pour_bibliothèque
+                flux_sortie << "#dépendance_bibliothèque lib" << nom_bibliothèque_sûr
                             << " libqt_entetes\n";
                 flux_sortie << "\n";
             }
@@ -2194,7 +2195,7 @@ struct Convertisseuse {
                 }
 
                 os << ") -> " << converti_type(fonction->type_sortie, typedefs);
-                os << " #externe lib" << pour_bibliothèque << "\n";
+                os << " #externe lib" << nom_bibliothèque_sûr << "\n";
                 break;
             }
             case TypeSyntaxème::DÉCLARATION_VARIABLE:
@@ -2211,7 +2212,7 @@ struct Convertisseuse {
                 }
 
                 if (variable->storage_class == CX_StorageClass::CX_SC_Extern) {
-                    os << " #externe lib" << pour_bibliothèque;
+                    os << " #externe lib" << nom_bibliothèque_sûr;
                 }
 
                 os << "\n";
@@ -2780,7 +2781,13 @@ int main(int argc, char **argv)
     convertisseuse.fichier_source = fichier_source;
     convertisseuse.fichier_entete = fichier_entete;
     convertisseuse.dossier_source = config.dossier_source;
-    convertisseuse.pour_bibliothèque = config.nom_bibliothèque;
+    convertisseuse.nom_bibliothèque = config.nom_bibliothèque;
+    convertisseuse.nom_bibliothèque_sûr = config.nom_bibliothèque;
+    POUR (convertisseuse.nom_bibliothèque_sûr) {
+        if (it == '.' || it == '-') {
+            it = '_';
+        }
+    }
     convertisseuse.dépendances_biblinternes = config.dépendances_biblinternes;
     convertisseuse.dépendances_qt = config.dépendances_qt;
     convertisseuse.ajoute_typedef("size_t", "ulong");
