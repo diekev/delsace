@@ -473,7 +473,7 @@ static dls::chaine converti_type(CXType const &type, dico_typedefs const &typede
 
             /* Détecte typedef int32_t int, etc., mais uniquement pour les types primitifs de C. */
             auto canonique = clang_getCanonicalType(type);
-            auto plg_type = dico_type.trouve(canonique.kind);
+            plg_type = dico_type.trouve(canonique.kind);
             if (!plg_type.est_finie()) {
                 if (typedefs.trouve(spelling) != typedefs.fin()) {
                     return plg_type.front().second;
