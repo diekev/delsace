@@ -1786,38 +1786,34 @@ struct Convertisseuse {
             }
             case CXCursorKind::CXCursor_UnaryOperator:
             {
-                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
-#if 0
                 auto enfants = rassemble_enfants(cursor);
-                assert(enfants.taille() == 1);
+                if (enfants.taille() != 1) {
+                    std::cerr << "L'expression unaire a plusieurs enfants : " << enfants.taille()
+                              << "\n";
+                    exit(1);
+                }
 
                 auto chn = determine_operateur_unaire(cursor, trans_unit);
 
-                if (chn == "++") {
-                    convertis(enfants[0], trans_unit, flux_sortie);
-                    flux_sortie << " += 1";
+                if (chn == "++" || chn == "--") {
+                    rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+                    break;
                 }
-                else if (chn == "--") {
-                    convertis(enfants[0], trans_unit, flux_sortie);
-                    flux_sortie << " -= 1";
+
+                auto unaire = syntaxeuse.crée<ExpressionUnaire>(cursor);
+
+                if (chn == "*") {
+                    unaire->texte = "mémoire";
                 }
-                else if (chn == "*") {
-                    flux_sortie << "mémoire(";
-                    convertis(enfants[0], trans_unit, flux_sortie);
-                    flux_sortie << ")";
+                else if (chn == "&") {
+                    unaire->texte = "*";
                 }
                 else {
-                    if (chn == "&") {
-                        flux_sortie << '@';
-                    }
-                    else {
-                        flux_sortie << chn;
-                    }
-
-                    convertis(enfants[0], trans_unit, flux_sortie);
+                    unaire->texte = chn;
                 }
-#endif
-                break;
+
+                unaire->opérande = parse_expression(enfants[0], trans_unit, flux_sortie);
+                return unaire;
             }
             case CXCursorKind::CXCursor_ConditionalOperator:
             {
@@ -2292,9 +2288,14 @@ struct Convertisseuse {
                     imprime_arbre(unaire->opérande, os);
                     os << ")";
                 }
+                else if (unaire->texte == "mémoire") {
+                    os << "mémoire(";
+                    imprime_arbre(unaire->opérande, os);
+                    os << ")";
+                }
                 else {
-                    std::cerr << "Expression unaire non-gérée : " << unaire->texte << "\n";
-                    exit(1);
+                    os << unaire->texte;
+                    imprime_arbre(unaire->opérande, os);
                 }
                 break;
             }
