@@ -1067,9 +1067,9 @@ struct Convertisseuse {
                     unsigned offset;
                     clang_getExpansionLocation(loc, &file, &line, &column, &offset);
 
-                    auto nom_fichier = clang_getFileName(file);
-                    auto nom_fichier_c = kuri::chemin_systeme(clang_getCString(nom_fichier));
-                    clang_disposeString(nom_fichier);
+                    auto nom_fichier = donne_nom_fichier(file);
+                    auto nom_fichier_c = kuri::chemin_systeme(
+                        kuri::chaine_statique(nom_fichier.c_str(), nom_fichier.taille()));
 
                     //  À FAIRE: option pour controler ceci.
                     if (doit_ignorer_fichier(nom_fichier_c)) {
