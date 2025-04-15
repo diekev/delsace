@@ -473,11 +473,15 @@ static dls::chaine converti_type(CXType const &type, dico_typedefs const &typede
 
             return spelling;
         }
+        case CXType_IncompleteArray: /* p.e. float [] */
+        {
+            flux << "*" << converti_type(clang_getArrayElementType(type), typedefs);
+            break;
+        }
         case CXType_Auto:
         case CXType_Enum:
-        case CXType_Record:          /* p.e. struct Vecteur */
-        case CXType_IncompleteArray: /* p.e. float [] */
-        case CXType_Elaborated:      /* p.e. struct Vecteur */
+        case CXType_Record:     /* p.e. struct Vecteur */
+        case CXType_Elaborated: /* p.e. struct Vecteur */
         {
             /* pour les types anonymes */
             auto nom_anonymous = trouve_nom_anonyme(donne_type_spelling(type));
