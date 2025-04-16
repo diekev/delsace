@@ -2841,8 +2841,8 @@ struct Convertisseuse {
             return;
         }
 
-        for (auto &it : syntaxeuse.toutes_les_structures) {
-            for (auto &rubrique : it->rubriques) {
+        for (auto &structure : syntaxeuse.toutes_les_structures) {
+            for (auto &rubrique : structure->rubriques) {
                 if (rubrique->type_syntaxème != TypeSyntaxème::DÉCLARATION_VARIABLE) {
                     continue;
                 }
