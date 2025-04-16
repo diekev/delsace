@@ -2483,6 +2483,41 @@ struct Configuration {
     dls::chaine fichier_tmp{};
 };
 
+static kuri::tableau<dls::chaine> parse_tableau_de_chaines(tori::ObjetDictionnaire *dico,
+                                                           dls::chaine nom)
+{
+    kuri::tableau<dls::chaine> résultat;
+
+    auto tableau = cherche_tableau(dico, nom);
+
+    if (tableau != nullptr) {
+        for (auto objet : tableau->valeur) {
+            if (objet->type != tori::type_objet::CHAINE) {
+                std::cerr << "Objet invalide dans le tableau de \"" << nom
+                          << "\", nous ne voulons que "
+                             "des chaines\n";
+                std::cerr << "    NOTE : le type superflux est " << tori::chaine_type(objet->type)
+                          << "\n";
+                exit(1);
+            }
+
+            auto obj_chaine = extrait_chaine(objet.get());
+            résultat.ajoute(obj_chaine->valeur);
+        }
+    }
+
+    return résultat;
+}
+
+static dls::chaine parse_chaine(tori::ObjetDictionnaire *dico, dls::chaine nom)
+{
+    auto objet = cherche_chaine(dico, nom);
+    if (objet != nullptr) {
+        return objet->valeur;
+    }
+    return "";
+}
+
 static auto analyse_configuration(const char *chemin)
 {
     auto config = Configuration{};
@@ -2577,44 +2612,10 @@ static auto analyse_configuration(const char *chemin)
         return config;
     }
 
-    auto obj_args = cherche_tableau(dico, "args");
-
-    if (obj_args != nullptr) {
-        for (auto objet : obj_args->valeur) {
-            if (objet->type != tori::type_objet::CHAINE) {
-                std::cerr << "args : l'objet n'est pas une chaine !\n";
-                continue;
-            }
-
-            auto obj_chaine = extrait_chaine(objet.get());
-            config.args.ajoute(obj_chaine->valeur);
-        }
-    }
-
-    auto obj_inclusions = cherche_tableau(dico, "inclusions");
-
-    if (obj_inclusions != nullptr) {
-        for (auto objet : obj_inclusions->valeur) {
-            if (objet->type != tori::type_objet::CHAINE) {
-                std::cerr << "inclusions : l'objet n'est pas une chaine !\n";
-                continue;
-            }
-
-            auto obj_chaine = extrait_chaine(objet.get());
-            config.inclusions.ajoute(obj_chaine->valeur);
-        }
-    }
-
-    auto obj_sortie = cherche_chaine(dico, "sortie");
-
-    if (obj_sortie != nullptr) {
-        config.fichier_sortie = obj_sortie->valeur;
-    }
-
-    auto obj_bibliothèque = cherche_chaine(dico, "bibliothèque");
-    if (obj_bibliothèque != nullptr) {
-        config.nom_bibliothèque = obj_bibliothèque->valeur;
-    }
+    config.args = parse_tableau_de_chaines(dico, "args");
+    config.inclusions = parse_tableau_de_chaines(dico, "inclusions");
+    config.fichier_sortie = parse_chaine(dico, "sortie");
+    config.nom_bibliothèque = parse_chaine(dico, "bibliothèque");
 
     return config;
 }
