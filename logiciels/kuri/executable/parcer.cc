@@ -1313,6 +1313,14 @@ struct Convertisseuse {
     void rapporte_cursor_non_pris_en_charge(CXCursor cursor, std::ostream &flux_sortie)
     {
         cursors_non_pris_en_charges.insère(clang_getCursorKind(cursor));
+        imprime_position_source_cursor(cursor, flux_sortie);
+        flux_sortie << "Cursor '" << clang_getCursorSpelling(cursor) << "' of kind '"
+                    << clang_getCursorKindSpelling(clang_getCursorKind(cursor)) << "' of type '"
+                    << clang_getTypeSpelling(clang_getCursorType(cursor)) << "'\n";
+    }
+
+    void imprime_position_source_cursor(CXCursor cursor, std::ostream &flux_sortie)
+    {
         auto loc = clang_getCursorLocation(cursor);
         CXFile file;
         unsigned line;
@@ -1321,9 +1329,6 @@ struct Convertisseuse {
         clang_getExpansionLocation(loc, &file, &line, &column, &offset);
 
         flux_sortie << donne_nom_fichier(file) << ":" << line << ":" << column << ":\n";
-        flux_sortie << "Cursor '" << clang_getCursorSpelling(cursor) << "' of kind '"
-                    << clang_getCursorKindSpelling(clang_getCursorKind(cursor)) << "' of type '"
-                    << clang_getTypeSpelling(clang_getCursorType(cursor)) << "'\n";
     }
 
     void convertis(CXTranslationUnit trans_unit, std::ostream &flux_sortie)
