@@ -406,16 +406,16 @@ static dls::chaine converti_type(CXType const &type, dico_typedefs const &typede
                                            dls::paire{CXType_UShort, dls::vue_chaine("n16")},
                                            dls::paire{CXType_UInt, dls::vue_chaine("n32")},
                                            dls::paire{CXType_ULong, dls::vue_chaine("n64")},
-                                           dls::paire{CXType_ULongLong, dls::vue_chaine("n128")},
+                                           dls::paire{CXType_ULongLong, dls::vue_chaine("n64")},
                                            dls::paire{CXType_Char_S, dls::vue_chaine("z8")},
                                            dls::paire{CXType_SChar, dls::vue_chaine("z8")},
                                            dls::paire{CXType_Short, dls::vue_chaine("z16")},
                                            dls::paire{CXType_Int, dls::vue_chaine("z32")},
                                            dls::paire{CXType_Long, dls::vue_chaine("z64")},
-                                           dls::paire{CXType_LongLong, dls::vue_chaine("z128")},
+                                           dls::paire{CXType_LongLong, dls::vue_chaine("z64")},
                                            dls::paire{CXType_Float, dls::vue_chaine("r32")},
                                            dls::paire{CXType_Double, dls::vue_chaine("r64")},
-                                           dls::paire{CXType_LongDouble, dls::vue_chaine("r128")});
+                                           dls::paire{CXType_LongDouble, dls::vue_chaine("r64")});
 
     auto kind = type.kind;
 
