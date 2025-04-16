@@ -90,6 +90,7 @@ struct Configuration {
 
     kuri::tableau<RubriqueEmployée> rubriques_employées{};
     kuri::ensemble<dls::chaine> fonctions_à_ignorer{};
+    kuri::ensemble<dls::chaine> fichiers_à_inclure{};
 };
 
 static kuri::tableau<dls::chaine> parse_tableau_de_chaines(tori::ObjetDictionnaire *dico,
@@ -277,6 +278,7 @@ static auto analyse_configuration(const char *chemin)
     }
 
     config.fonctions_à_ignorer = parse_ensemble_de_chaines(dico, "fonctions_à_ignorer");
+    config.fichiers_à_inclure = parse_ensemble_de_chaines(dico, "fichiers_à_inclure");
 
     return config;
 }
@@ -1403,6 +1405,12 @@ struct Convertisseuse {
     {
         if (chemin_fichier == fichier_source || chemin_fichier == fichier_entete) {
             return false;
+        }
+
+        if (config->fichiers_à_inclure.taille() != 0) {
+            auto chaine_chemin_fichier = dls::chaine(chemin_fichier.pointeur(),
+                                                     chemin_fichier.taille());
+            return !config->fichiers_à_inclure.possède(chaine_chemin_fichier);
         }
 
         auto chemin_parent = kuri::chaine(chemin_fichier.chemin_parent());
