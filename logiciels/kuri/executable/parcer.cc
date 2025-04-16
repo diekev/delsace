@@ -1146,7 +1146,15 @@ struct Convertisseuse {
                     syntaxeuse.noeud_courant.depile();
                 }
 
-                syntaxeuse.ajoute_au_noeud_courant(structure);
+                if (structure->rubriques.taille() == 0) {
+                    // Prodéclaration, ajoute au module.
+                    syntaxeuse.module->déclarations.ajoute(structure);
+                }
+                else {
+                    // À FAIRE : assert(est_anonyme) si le noeud courant n'est pas le module ?
+                    syntaxeuse.ajoute_au_noeud_courant(structure);
+                }
+
                 syntaxeuse.toutes_les_structures.ajoute(structure);
                 break;
             }
@@ -2413,20 +2421,46 @@ struct Convertisseuse {
 
     void marque_prodéclarations_inutiles()
     {
+        kuri::tableau<DéclarationStruct *> structures;
+
         for (int64_t i = 0; i < syntaxeuse.toutes_les_structures.taille(); i++) {
             auto structure1 = syntaxeuse.toutes_les_structures[i];
-            if (structure1->rubriques.taille() != 0) {
+            if (structure1->nom.trouve("anonyme") == 0) {
                 continue;
             }
 
-            for (int64_t j = i + 1; j < syntaxeuse.toutes_les_structures.taille(); j++) {
-                auto structure2 = syntaxeuse.toutes_les_structures[j];
-                if (structure2->rubriques.taille() != 0) {
-                    if (structure2->nom == structure1->nom) {
-                        structure1->est_prodéclaration_inutile = true;
-                        break;
-                    }
+            auto trouvée = false;
+
+            POUR (structures) {
+                if (it->nom != structure1->nom) {
+                    continue;
                 }
+
+                trouvée = true;
+
+                if (it->rubriques.taille() == structure1->rubriques.taille()) {
+                    if (it->rubriques.taille() != 0) {
+                        std::cerr << "Redéfinition de la structure '" << it->nom
+                                  << "' avec des rubriques\n";
+                        exit(1);
+                    }
+
+                    structure1->est_prodéclaration_inutile = true;
+                    break;
+                }
+
+                if (it->rubriques.taille() == 0) {
+                    it->est_prodéclaration_inutile = true;
+                    it = structure1;
+                    break;
+                }
+
+                structure1->est_prodéclaration_inutile = true;
+                break;
+            }
+
+            if (!trouvée) {
+                structures.ajoute(structure1);
             }
         }
     }
@@ -2830,6 +2864,7 @@ int main(int argc, char **argv)
     convertisseuse.dépendances_biblinternes = config.dépendances_biblinternes;
     convertisseuse.dépendances_qt = config.dépendances_qt;
     convertisseuse.ajoute_typedef("size_t", "ulong");
+    convertisseuse.ajoute_typedef("ssize_t", "long");
     convertisseuse.ajoute_typedef("std::size_t", "ulong");
     convertisseuse.ajoute_typedef("uint8_t", "uchar");
     convertisseuse.ajoute_typedef("uint16_t", "ushort");
