@@ -1114,7 +1114,35 @@ struct Convertisseuse {
 
                 if (!enfants_filtres.est_vide()) {
                     syntaxeuse.noeud_courant.empile(structure);
-                    converti_enfants(enfants_filtres, trans_unit, flux_sortie);
+
+                    int64_t index_enfant = 0;
+                    while (index_enfant < enfants_filtres.taille()) {
+                        auto enfant = enfants_filtres[index_enfant];
+                        index_enfant += 1;
+
+                        auto bit_field = clang_Cursor_isBitField(enfant);
+                        // clang_getFieldDeclBitWidth(enfant)
+                        if (bit_field != 0) {
+                            while (index_enfant < enfants_filtres.taille()) {
+                                auto enfant2 = enfants_filtres[index_enfant];
+                                if (!clang_Cursor_isBitField(enfant2)) {
+                                    break;
+                                }
+                                // À FAIRE : vérifie que le type est le même
+                                index_enfant += 1;
+                            }
+
+                            auto variable = syntaxeuse.crée<DéclarationVariable>(cursor);
+                            variable->nom = "bitfield" + dls::vers_chaine(index_enfant);
+                            variable->type_c = clang_getCursorType(enfant);
+
+                            structure->rubriques.ajoute(variable);
+                            continue;
+                        }
+
+                        convertis(enfant, trans_unit, flux_sortie);
+                    }
+
                     syntaxeuse.noeud_courant.depile();
                 }
 
