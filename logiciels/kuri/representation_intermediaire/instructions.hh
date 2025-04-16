@@ -882,7 +882,7 @@ struct VisiteuseAtome {
 
     void réinitialise();
 
-    void visite_atome(Atome *racine, std::function<DécisionVisiteAtome (Atome *)> rappel);
+    void visite_atome(Atome *racine, std::function<DécisionVisiteAtome(Atome *)> rappel);
 };
 
 /* Visite récursivement l'atome. */
