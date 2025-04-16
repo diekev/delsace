@@ -511,7 +511,11 @@ static dls::chaine converti_type(CXType const &type, dico_typedefs const &typede
             }
 
             if (spelling.trouve("struct ") == 0) {
-                return spelling.sous_chaine(7);
+                spelling = spelling.sous_chaine(7);
+                if (spelling == "stat") {
+                    return "struct_stat";
+                }
+                return spelling;
             }
             if (spelling.trouve("union ") == 0) {
                 return spelling.sous_chaine(6);
