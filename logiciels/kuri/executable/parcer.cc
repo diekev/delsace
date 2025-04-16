@@ -118,6 +118,17 @@ static kuri::tableau<dls::chaine> parse_tableau_de_chaines(tori::ObjetDictionnai
     return résultat;
 }
 
+kuri::ensemble<dls::chaine> parse_ensemble_de_chaines(tori::ObjetDictionnaire *dico,
+                                                      dls::chaine nom)
+{
+    auto résultat = kuri::ensemble<dls::chaine>();
+    auto tableau = parse_tableau_de_chaines(dico, nom);
+    POUR (tableau) {
+        résultat.insère(it);
+    }
+    return résultat;
+}
+
 static dls::chaine parse_chaine(tori::ObjetDictionnaire *dico, dls::chaine nom)
 {
     auto objet = cherche_chaine(dico, nom);
@@ -265,10 +276,7 @@ static auto analyse_configuration(const char *chemin)
         config.rubriques_employées = rubriques_employées;
     }
 
-    auto fonctions_à_ignorer = parse_tableau_de_chaines(dico, "fonctions_à_ignorer");
-    POUR (fonctions_à_ignorer) {
-        config.fonctions_à_ignorer.insère(it);
-    }
+    config.fonctions_à_ignorer = parse_ensemble_de_chaines(dico, "fonctions_à_ignorer");
 
     return config;
 }
