@@ -62,6 +62,302 @@ using dls::outils::est_element;
  */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Configuration
+ * \{ */
+
+struct Configuration {
+    dls::chaine fichier{};
+    dls::chaine fichier_sortie{};
+    kuri::tableau<dls::chaine> args{};
+    kuri::tableau<dls::chaine> inclusions{};
+    kuri::tableau<dls::chaine> modules_à_importer{};
+    dls::chaine nom_bibliothèque{};
+    /* Dépendances sur les bibliothèques internes ; celles installées dans modules/Kuri. */
+    kuri::tableau<kuri::chaine> dépendances_biblinternes{};
+    /* Dépendances sur les bibliothèques internes ; celles installées dans modules/Kuri. */
+    kuri::tableau<kuri::chaine> dépendances_qt{};
+
+    kuri::chemin_systeme dossier_source{};
+
+    bool fichier_est_composite = false;
+    dls::chaine fichier_tmp{};
+};
+
+static kuri::tableau<dls::chaine> parse_tableau_de_chaines(tori::ObjetDictionnaire *dico,
+                                                           dls::chaine nom)
+{
+    kuri::tableau<dls::chaine> résultat;
+
+    auto tableau = cherche_tableau(dico, nom);
+
+    if (tableau != nullptr) {
+        for (auto objet : tableau->valeur) {
+            if (objet->type != tori::type_objet::CHAINE) {
+                std::cerr << "Objet invalide dans le tableau de \"" << nom
+                          << "\", nous ne voulons que "
+                             "des chaines\n";
+                std::cerr << "    NOTE : le type superflux est " << tori::chaine_type(objet->type)
+                          << "\n";
+                exit(1);
+            }
+
+            auto obj_chaine = extrait_chaine(objet.get());
+            résultat.ajoute(obj_chaine->valeur);
+        }
+    }
+
+    return résultat;
+}
+
+static dls::chaine parse_chaine(tori::ObjetDictionnaire *dico, dls::chaine nom)
+{
+    auto objet = cherche_chaine(dico, nom);
+    if (objet != nullptr) {
+        return objet->valeur;
+    }
+    return "";
+}
+
+static auto analyse_configuration(const char *chemin)
+{
+    auto config = Configuration{};
+    auto obj = json::compile_script(chemin);
+
+    if (obj == nullptr) {
+        std::cerr << "La compilation du script a renvoyé un objet nul !\n";
+        return config;
+    }
+
+    if (obj->type != tori::type_objet::DICTIONNAIRE) {
+        std::cerr << "La compilation du script n'a pas produit de dictionnaire !\n";
+        return config;
+    }
+
+    auto dico = tori::extrait_dictionnaire(obj.get());
+
+    auto obj_fichier = dico->objet("fichier");
+    if (obj_fichier == nullptr) {
+        return config;
+    }
+
+    if (obj_fichier->type == tori::type_objet::CHAINE) {
+        config.fichier = static_cast<tori::ObjetChaine *>(obj_fichier)->valeur;
+        auto chemin_fichier_source = kuri::chemin_systeme(config.fichier.c_str());
+        config.dossier_source = chemin_fichier_source.chemin_parent();
+    }
+    else if (obj_fichier->type == tori::type_objet::TABLEAU) {
+        std::stringstream ss;
+
+        kuri::tableau<kuri::chemin_systeme> dossiers;
+
+        auto tableau = static_cast<tori::ObjetTableau *>(obj_fichier);
+        POUR (tableau->valeur) {
+            if (it->type != tori::type_objet::CHAINE) {
+                std::cerr << "Objet invalide dans le tableau de \"fichier\", nous ne voulons que "
+                             "des chaines\n";
+                std::cerr << "    NOTE : le type superflux est " << tori::chaine_type(it->type)
+                          << "\n";
+                return config;
+            }
+
+            auto obj_chaine = static_cast<tori::ObjetChaine *>(it.get());
+            std::ifstream ifs;
+            ifs.open(obj_chaine->valeur.c_str());
+
+            if (!ifs.is_open()) {
+                std::cerr << "Impossible de lire le fichier \"" << obj_chaine->valeur << "\"";
+                return config;
+            }
+
+            auto chaine = dls::chaine((std::istreambuf_iterator<char>(ifs)),
+                                      (std::istreambuf_iterator<char>()));
+            ss << chaine;
+
+            auto dossier_fichier =
+                kuri::chemin_systeme(obj_chaine->valeur.c_str()).chemin_parent();
+            dossiers.ajoute(dossier_fichier);
+        }
+
+        if (tableau->valeur.taille() == 0) {
+            std::cerr << "Aucun fichier spécifié\n";
+            return config;
+        }
+
+        std::stringstream ss_tmp;
+        ss_tmp << "/tmp/parcer-" << obj_fichier << ".h";
+
+        auto nom_fichier_tmp = ss_tmp.str();
+
+        std::ofstream fichier_tmp(nom_fichier_tmp.c_str());
+        fichier_tmp << ss.str();
+
+        config.fichier = nom_fichier_tmp;
+        config.fichier_tmp = nom_fichier_tmp;
+        config.fichier_est_composite = true;
+
+        auto premier_dossier = dossiers[0];
+        config.dossier_source = premier_dossier;
+
+        for (int i = 1; i < dossiers.taille(); i++) {
+            if (dossiers[i] != premier_dossier) {
+                config.dossier_source = kuri::chemin_systeme("/tmp/");
+                break;
+            }
+        }
+    }
+    else {
+        std::cerr << "La propriété \"fichier\" doit être une chaine ou un tableau de chaines\n";
+        std::cerr << "    NOTE : la propriété est de type " << tori::chaine_type(obj_fichier->type)
+                  << "\n";
+        return config;
+    }
+
+    config.args = parse_tableau_de_chaines(dico, "args");
+    config.inclusions = parse_tableau_de_chaines(dico, "inclusions");
+    config.modules_à_importer = parse_tableau_de_chaines(dico, "modules_à_importer");
+    config.fichier_sortie = parse_chaine(dico, "sortie");
+    config.nom_bibliothèque = parse_chaine(dico, "bibliothèque");
+
+    return config;
+}
+
+static std::optional<Configuration> valide_configuration(Configuration config)
+{
+    if (!kuri::chemin_systeme::existe(config.fichier.c_str())) {
+        std::cerr << "Le fichier \"" << config.fichier << "\" n'existe pas !\n";
+        return {};
+    }
+
+    return config;
+}
+
+static std::optional<Configuration> crée_config_depuis_json(int argc, char **argv)
+{
+    if (argc < 3) {
+        std::cerr << "Utilisation -c " << argv[0] << " CONFIG.json\n";
+        return {};
+    }
+
+    auto config = analyse_configuration(argv[2]);
+
+    if (config.fichier == "") {
+        return {};
+    }
+
+    return valide_configuration(config);
+}
+
+static bool commence_par(kuri::chaine_statique chn1, kuri::chaine_statique chn2)
+{
+    if (chn1.taille() < chn2.taille()) {
+        return false;
+    }
+
+    auto sous_chaine = chn1.sous_chaine(0, chn2.taille());
+    return sous_chaine == chn2;
+}
+
+static std::optional<Configuration> crée_config_pour_metaprogramme(int argc, char **argv)
+{
+    if (argc < 7) {
+        std::cerr
+            << "Utilisation " << argv[0]
+            << " FICHIER_SOURCE -b NOM_BIBLIOTHEQUE -o FICHIER_SORTIE.kuri -l BIBLIOTHEQUES\n";
+        return {};
+    }
+
+    auto config = Configuration{};
+    config.fichier = argv[1];
+    config.dossier_source = kuri::chemin_systeme(argv[1]).chemin_parent();
+
+    if (std::string(argv[2]) != "-b") {
+        std::cerr << "Utilisation " << argv[0]
+                  << " FICHIER_SOURCE -b NOM_BIBLIOTHEQUE -o FICHIER_SORTIE.kuri\n";
+        std::cerr << "Attendu '-b' après le nom du fichier d'entrée !\n";
+        return {};
+    }
+
+    if (std::string(argv[4]) != "-o") {
+        std::cerr << "Utilisation " << argv[0]
+                  << " FICHIER_SOURCE -b NOM_BIBLIOTHEQUE -o FICHIER_SORTIE.kuri\n";
+        std::cerr << "Attendu '-o' après le nom de la bibliothèque !\n";
+        return {};
+    }
+
+    if (std::string(argv[6]) != "-l") {
+        std::cerr << "Utilisation " << argv[0]
+                  << " FICHIER_SOURCE -b NOM_BIBLIOTHEQUE -o FICHIER_SORTIE.kuri\n";
+        std::cerr << "Attendu '-l' après le nom du fichier !\n";
+        return {};
+    }
+
+    config.nom_bibliothèque = argv[3];
+    config.fichier_sortie = argv[5];
+
+    /* À FAIRE : termine ceci. */
+#if 0
+    for (int i = 7; i < argc; i++) {
+        auto chn = kuri::chaine(argv[i]);
+        if (commence_par(chn, "dls::")) {
+            chn = chn.sous_chaine(5);
+
+            if (chn == "algorithmes_image") {
+                continue;
+            }
+
+            if (chn == "memoire") {
+                chn = "mémoire";
+            }
+
+            config.dépendances_biblinternes.ajoute(enchaine("libdls_", chn));
+
+            //    std::cerr << "biblinterne : " << chn << '\n';
+
+            // std::cerr << "lib" << chn << " :: #bibliothèque \"bib_" << chn << "\"\n";
+            //            std::cerr << "#dépendance_bibliothèque " << config.nom_bibliothèque << "
+            //            lib" << chn
+            //                      << "\n";
+        }
+        else if (commence_par(chn, "Qt5::")) {
+            // chn = chn.sous_chaine(5);
+            // config.dépendances_qt.ajoute(chn);
+        }
+        else {
+            std::cerr << argv[i] << '\n';
+        }
+    }
+#endif
+
+    return valide_configuration(config);
+}
+
+static kuri::tableau<const char *> parse_arguments_depuis_config(Configuration const &config)
+{
+    auto args = kuri::tableau<const char *>();
+
+    for (auto const &arg : config.args) {
+        args.ajoute(arg.c_str());
+    }
+
+    for (auto const &inclusion : config.inclusions) {
+        args.ajoute("-I");
+        args.ajoute(inclusion.c_str());
+    }
+
+    return args;
+}
+
+static std::optional<Configuration> crée_configuration_depuis_arguments(int argc, char **argv)
+{
+    if (argc == 3 && std::string(argv[1]) == "-c") {
+        return crée_config_depuis_json(argc, argv);
+    }
+    return crée_config_pour_metaprogramme(argc, argv);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Utilitaires
  * \{ */
 
@@ -914,7 +1210,6 @@ struct Convertisseuse {
     Syntaxeuse syntaxeuse{};
     kuri::chemin_systeme fichier_source{};
     kuri::chemin_systeme fichier_entete{};
-    kuri::chemin_systeme dossier_source{};
 
     int profondeur = 0;
     /* pour les structures, unions, et énumérations anonymes */
@@ -931,11 +1226,9 @@ struct Convertisseuse {
 
     kuri::ensemble<dls::chaine> commentaires_imprimés{};
 
-    dls::chaine nom_bibliothèque{};
     dls::chaine nom_bibliothèque_sûr{};
-    kuri::tableau<kuri::chaine> dépendances_biblinternes{};
-    kuri::tableau<kuri::chaine> dépendances_qt{};
-    kuri::tableau<dls::chaine> modules_à_importer{};
+
+    Configuration *config = nullptr;
 
     dls::chaine m_préfixe_énum_courant{};
 
@@ -992,30 +1285,30 @@ struct Convertisseuse {
 
         marque_prodéclarations_inutiles();
 
-        POUR (modules_à_importer) {
+        POUR (config->modules_à_importer) {
             flux_sortie << "importe " << it << "\n";
         }
-        if (modules_à_importer.taille()) {
+        if (config->modules_à_importer.taille()) {
             flux_sortie << "\n";
         }
 
-        if (nom_bibliothèque != "") {
+        if (config->nom_bibliothèque != "") {
             flux_sortie << "lib" << nom_bibliothèque_sûr << " :: #bibliothèque \""
-                        << nom_bibliothèque << "\"\n\n";
+                        << config->nom_bibliothèque << "\"\n\n";
 
-            for (auto &dép : dépendances_biblinternes) {
+            for (auto &dép : config->dépendances_biblinternes) {
                 flux_sortie << "#dépendance_bibliothèque lib" << nom_bibliothèque_sûr << " " << dép
                             << "\n";
             }
-            if (!dépendances_biblinternes.est_vide()) {
+            if (!config->dépendances_biblinternes.est_vide()) {
                 flux_sortie << "\n";
             }
-            for (auto &dép : dépendances_qt) {
+            for (auto &dép : config->dépendances_qt) {
                 flux_sortie << "libQt5" << dép << " :: #bibliothèque \"Qt5" << dép << "\"\n";
                 flux_sortie << "#dépendance_bibliothèque lib" << nom_bibliothèque_sûr << " libQt5"
                             << dép << "\n";
             }
-            if (!dépendances_qt.est_vide()) {
+            if (!config->dépendances_qt.est_vide()) {
                 flux_sortie << "libQt5Core :: #bibliothèque \"Qt5Core\"\n";
                 flux_sortie << "#dépendance_bibliothèque lib" << nom_bibliothèque_sûr
                             << " libQt5Core\n";
@@ -1045,7 +1338,7 @@ struct Convertisseuse {
 
         auto chemin_parent = kuri::chaine(chemin_fichier.chemin_parent());
         while (chemin_parent.taille() != 0 && chemin_parent != "/") {
-            if (chemin_parent == kuri::chaine_statique(dossier_source)) {
+            if (chemin_parent == kuri::chaine_statique(config->dossier_source)) {
                 return false;
             }
 
@@ -2478,162 +2771,6 @@ struct Convertisseuse {
     }
 };
 
-struct Configuration {
-    dls::chaine fichier{};
-    dls::chaine fichier_sortie{};
-    kuri::tableau<dls::chaine> args{};
-    kuri::tableau<dls::chaine> inclusions{};
-    kuri::tableau<dls::chaine> modules_à_importer{};
-    dls::chaine nom_bibliothèque{};
-    /* Dépendances sur les bibliothèques internes ; celles installées dans modules/Kuri. */
-    kuri::tableau<kuri::chaine> dépendances_biblinternes{};
-    /* Dépendances sur les bibliothèques internes ; celles installées dans modules/Kuri. */
-    kuri::tableau<kuri::chaine> dépendances_qt{};
-
-    kuri::chemin_systeme dossier_source{};
-
-    bool fichier_est_composite = false;
-    dls::chaine fichier_tmp{};
-};
-
-static kuri::tableau<dls::chaine> parse_tableau_de_chaines(tori::ObjetDictionnaire *dico,
-                                                           dls::chaine nom)
-{
-    kuri::tableau<dls::chaine> résultat;
-
-    auto tableau = cherche_tableau(dico, nom);
-
-    if (tableau != nullptr) {
-        for (auto objet : tableau->valeur) {
-            if (objet->type != tori::type_objet::CHAINE) {
-                std::cerr << "Objet invalide dans le tableau de \"" << nom
-                          << "\", nous ne voulons que "
-                             "des chaines\n";
-                std::cerr << "    NOTE : le type superflux est " << tori::chaine_type(objet->type)
-                          << "\n";
-                exit(1);
-            }
-
-            auto obj_chaine = extrait_chaine(objet.get());
-            résultat.ajoute(obj_chaine->valeur);
-        }
-    }
-
-    return résultat;
-}
-
-static dls::chaine parse_chaine(tori::ObjetDictionnaire *dico, dls::chaine nom)
-{
-    auto objet = cherche_chaine(dico, nom);
-    if (objet != nullptr) {
-        return objet->valeur;
-    }
-    return "";
-}
-
-static auto analyse_configuration(const char *chemin)
-{
-    auto config = Configuration{};
-    auto obj = json::compile_script(chemin);
-
-    if (obj == nullptr) {
-        std::cerr << "La compilation du script a renvoyé un objet nul !\n";
-        return config;
-    }
-
-    if (obj->type != tori::type_objet::DICTIONNAIRE) {
-        std::cerr << "La compilation du script n'a pas produit de dictionnaire !\n";
-        return config;
-    }
-
-    auto dico = tori::extrait_dictionnaire(obj.get());
-
-    auto obj_fichier = dico->objet("fichier");
-    if (obj_fichier == nullptr) {
-        return config;
-    }
-
-    if (obj_fichier->type == tori::type_objet::CHAINE) {
-        config.fichier = static_cast<tori::ObjetChaine *>(obj_fichier)->valeur;
-        auto chemin_fichier_source = kuri::chemin_systeme(config.fichier.c_str());
-        config.dossier_source = chemin_fichier_source.chemin_parent();
-    }
-    else if (obj_fichier->type == tori::type_objet::TABLEAU) {
-        std::stringstream ss;
-
-        kuri::tableau<kuri::chemin_systeme> dossiers;
-
-        auto tableau = static_cast<tori::ObjetTableau *>(obj_fichier);
-        POUR (tableau->valeur) {
-            if (it->type != tori::type_objet::CHAINE) {
-                std::cerr << "Objet invalide dans le tableau de \"fichier\", nous ne voulons que "
-                             "des chaines\n";
-                std::cerr << "    NOTE : le type superflux est " << tori::chaine_type(it->type)
-                          << "\n";
-                return config;
-            }
-
-            auto obj_chaine = static_cast<tori::ObjetChaine *>(it.get());
-            std::ifstream ifs;
-            ifs.open(obj_chaine->valeur.c_str());
-
-            if (!ifs.is_open()) {
-                std::cerr << "Impossible de lire le fichier \"" << obj_chaine->valeur << "\"";
-                return config;
-            }
-
-            auto chaine = dls::chaine((std::istreambuf_iterator<char>(ifs)),
-                                      (std::istreambuf_iterator<char>()));
-            ss << chaine;
-
-            auto dossier_fichier =
-                kuri::chemin_systeme(obj_chaine->valeur.c_str()).chemin_parent();
-            dossiers.ajoute(dossier_fichier);
-        }
-
-        if (tableau->valeur.taille() == 0) {
-            std::cerr << "Aucun fichier spécifié\n";
-            return config;
-        }
-
-        std::stringstream ss_tmp;
-        ss_tmp << "/tmp/parcer-" << obj_fichier << ".h";
-
-        auto nom_fichier_tmp = ss_tmp.str();
-
-        std::ofstream fichier_tmp(nom_fichier_tmp.c_str());
-        fichier_tmp << ss.str();
-
-        config.fichier = nom_fichier_tmp;
-        config.fichier_tmp = nom_fichier_tmp;
-        config.fichier_est_composite = true;
-
-        auto premier_dossier = dossiers[0];
-        config.dossier_source = premier_dossier;
-
-        for (int i = 1; i < dossiers.taille(); i++) {
-            if (dossiers[i] != premier_dossier) {
-                config.dossier_source = kuri::chemin_systeme("/tmp/");
-                break;
-            }
-        }
-    }
-    else {
-        std::cerr << "La propriété \"fichier\" doit être une chaine ou un tableau de chaines\n";
-        std::cerr << "    NOTE : la propriété est de type " << tori::chaine_type(obj_fichier->type)
-                  << "\n";
-        return config;
-    }
-
-    config.args = parse_tableau_de_chaines(dico, "args");
-    config.inclusions = parse_tableau_de_chaines(dico, "inclusions");
-    config.modules_à_importer = parse_tableau_de_chaines(dico, "modules_à_importer");
-    config.fichier_sortie = parse_chaine(dico, "sortie");
-    config.nom_bibliothèque = parse_chaine(dico, "bibliothèque");
-
-    return config;
-}
-
 void imprime_ligne(std::string tampon, uint32_t ligne, uint32_t colonne, uint32_t decalage)
 {
     int ligne_courante = 1;
@@ -2659,140 +2796,6 @@ void imprime_ligne(std::string tampon, uint32_t ligne, uint32_t colonne, uint32_
 
     std::cerr << ligne << ":" << colonne << " |"
               << std::string(&tampon[position_ligne], position_fin_ligne - position_ligne);
-}
-
-static std::optional<Configuration> valide_configuration(Configuration config)
-{
-    if (!kuri::chemin_systeme::existe(config.fichier.c_str())) {
-        std::cerr << "Le fichier \"" << config.fichier << "\" n'existe pas !\n";
-        return {};
-    }
-
-    return config;
-}
-
-static std::optional<Configuration> crée_config_depuis_json(int argc, char **argv)
-{
-    if (argc < 3) {
-        std::cerr << "Utilisation -c " << argv[0] << " CONFIG.json\n";
-        return {};
-    }
-
-    auto config = analyse_configuration(argv[2]);
-
-    if (config.fichier == "") {
-        return {};
-    }
-
-    return valide_configuration(config);
-}
-
-static bool commence_par(kuri::chaine_statique chn1, kuri::chaine_statique chn2)
-{
-    if (chn1.taille() < chn2.taille()) {
-        return false;
-    }
-
-    auto sous_chaine = chn1.sous_chaine(0, chn2.taille());
-    return sous_chaine == chn2;
-}
-
-static std::optional<Configuration> crée_config_pour_metaprogramme(int argc, char **argv)
-{
-    if (argc < 7) {
-        std::cerr
-            << "Utilisation " << argv[0]
-            << " FICHIER_SOURCE -b NOM_BIBLIOTHEQUE -o FICHIER_SORTIE.kuri -l BIBLIOTHEQUES\n";
-        return {};
-    }
-
-    auto config = Configuration{};
-    config.fichier = argv[1];
-    config.dossier_source = kuri::chemin_systeme(argv[1]).chemin_parent();
-
-    if (std::string(argv[2]) != "-b") {
-        std::cerr << "Utilisation " << argv[0]
-                  << " FICHIER_SOURCE -b NOM_BIBLIOTHEQUE -o FICHIER_SORTIE.kuri\n";
-        std::cerr << "Attendu '-b' après le nom du fichier d'entrée !\n";
-        return {};
-    }
-
-    if (std::string(argv[4]) != "-o") {
-        std::cerr << "Utilisation " << argv[0]
-                  << " FICHIER_SOURCE -b NOM_BIBLIOTHEQUE -o FICHIER_SORTIE.kuri\n";
-        std::cerr << "Attendu '-o' après le nom de la bibliothèque !\n";
-        return {};
-    }
-
-    if (std::string(argv[6]) != "-l") {
-        std::cerr << "Utilisation " << argv[0]
-                  << " FICHIER_SOURCE -b NOM_BIBLIOTHEQUE -o FICHIER_SORTIE.kuri\n";
-        std::cerr << "Attendu '-l' après le nom du fichier !\n";
-        return {};
-    }
-
-    config.nom_bibliothèque = argv[3];
-    config.fichier_sortie = argv[5];
-
-    /* À FAIRE : termine ceci. */
-#if 0
-    for (int i = 7; i < argc; i++) {
-        auto chn = kuri::chaine(argv[i]);
-        if (commence_par(chn, "dls::")) {
-            chn = chn.sous_chaine(5);
-
-            if (chn == "algorithmes_image") {
-                continue;
-            }
-
-            if (chn == "memoire") {
-                chn = "mémoire";
-            }
-
-            config.dépendances_biblinternes.ajoute(enchaine("libdls_", chn));
-
-            //    std::cerr << "biblinterne : " << chn << '\n';
-
-            // std::cerr << "lib" << chn << " :: #bibliothèque \"bib_" << chn << "\"\n";
-            //            std::cerr << "#dépendance_bibliothèque " << config.nom_bibliothèque << "
-            //            lib" << chn
-            //                      << "\n";
-        }
-        else if (commence_par(chn, "Qt5::")) {
-            // chn = chn.sous_chaine(5);
-            // config.dépendances_qt.ajoute(chn);
-        }
-        else {
-            std::cerr << argv[i] << '\n';
-        }
-    }
-#endif
-
-    return valide_configuration(config);
-}
-
-static kuri::tableau<const char *> parse_arguments_depuis_config(Configuration const &config)
-{
-    auto args = kuri::tableau<const char *>();
-
-    for (auto const &arg : config.args) {
-        args.ajoute(arg.c_str());
-    }
-
-    for (auto const &inclusion : config.inclusions) {
-        args.ajoute("-I");
-        args.ajoute(inclusion.c_str());
-    }
-
-    return args;
-}
-
-static std::optional<Configuration> crée_configuration_depuis_arguments(int argc, char **argv)
-{
-    if (argc == 3 && std::string(argv[1]) == "-c") {
-        return crée_config_depuis_json(argc, argv);
-    }
-    return crée_config_pour_metaprogramme(argc, argv);
 }
 
 int main(int argc, char **argv)
@@ -2868,17 +2871,13 @@ int main(int argc, char **argv)
     auto convertisseuse = Convertisseuse();
     convertisseuse.fichier_source = fichier_source;
     convertisseuse.fichier_entete = fichier_entete;
-    convertisseuse.dossier_source = config.dossier_source;
-    convertisseuse.nom_bibliothèque = config.nom_bibliothèque;
     convertisseuse.nom_bibliothèque_sûr = config.nom_bibliothèque;
     POUR (convertisseuse.nom_bibliothèque_sûr) {
         if (it == '.' || it == '-') {
             it = '_';
         }
     }
-    convertisseuse.dépendances_biblinternes = config.dépendances_biblinternes;
-    convertisseuse.dépendances_qt = config.dépendances_qt;
-    convertisseuse.modules_à_importer = config.modules_à_importer;
+    convertisseuse.config = &config;
     convertisseuse.ajoute_typedef("size_t", "ulong");
     convertisseuse.ajoute_typedef("ssize_t", "long");
     convertisseuse.ajoute_typedef("std::size_t", "ulong");
